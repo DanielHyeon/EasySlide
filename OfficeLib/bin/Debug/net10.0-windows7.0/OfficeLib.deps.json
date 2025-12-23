@@ -1,0 +1,138 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "OfficeLib/1.0.0": {
+        "dependencies": {
+          "NetOfficeFw.Core": "1.9.7",
+          "NetOfficeFw.PowerPoint": "1.9.7",
+          "NetOfficeFw.Word": "1.9.7"
+        },
+        "runtime": {
+          "OfficeLib.dll": {}
+        }
+      },
+      "NetOfficeFw.Core/1.9.7": {
+        "runtime": {
+          "lib/net462/NetOffice.dll": {
+            "assemblyVersion": "1.9.7.0",
+            "fileVersion": "1.9.7.0"
+          }
+        }
+      },
+      "NetOfficeFw.Office/1.9.7": {
+        "dependencies": {
+          "NetOfficeFw.Core": "1.9.7",
+          "stdole": "7.0.3300"
+        },
+        "runtime": {
+          "lib/net462/OfficeApi.dll": {
+            "assemblyVersion": "1.9.7.0",
+            "fileVersion": "1.9.7.0"
+          }
+        }
+      },
+      "NetOfficeFw.PowerPoint/1.9.7": {
+        "dependencies": {
+          "NetOfficeFw.Core": "1.9.7",
+          "NetOfficeFw.Office": "1.9.7",
+          "NetOfficeFw.VBIDE": "1.9.7",
+          "stdole": "7.0.3300"
+        },
+        "runtime": {
+          "lib/net462/PowerPointApi.dll": {
+            "assemblyVersion": "1.9.7.0",
+            "fileVersion": "1.9.7.0"
+          }
+        }
+      },
+      "NetOfficeFw.VBIDE/1.9.7": {
+        "dependencies": {
+          "NetOfficeFw.Core": "1.9.7",
+          "NetOfficeFw.Office": "1.9.7"
+        },
+        "runtime": {
+          "lib/net462/VBIDEApi.dll": {
+            "assemblyVersion": "1.9.7.0",
+            "fileVersion": "1.9.7.0"
+          }
+        }
+      },
+      "NetOfficeFw.Word/1.9.7": {
+        "dependencies": {
+          "NetOfficeFw.Core": "1.9.7",
+          "NetOfficeFw.Office": "1.9.7",
+          "NetOfficeFw.VBIDE": "1.9.7",
+          "stdole": "7.0.3300"
+        },
+        "runtime": {
+          "lib/net462/WordApi.dll": {
+            "assemblyVersion": "1.9.7.0",
+            "fileVersion": "1.9.7.0"
+          }
+        }
+      },
+      "stdole/7.0.3300": {
+        "runtime": {
+          "lib/net10/stdole.dll": {
+            "assemblyVersion": "7.0.3300.0",
+            "fileVersion": "7.0.9466.1"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "OfficeLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NetOfficeFw.Core/1.9.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-H5CgPpCzPcAM1HKiH2HXg5XM9U+0Y+G8JSVNO01aTlrOK1zTMve/u4MfBXdlxrqFoUfaiI4f/cbbULHmmoaJOA==",
+      "path": "netofficefw.core/1.9.7",
+      "hashPath": "netofficefw.core.1.9.7.nupkg.sha512"
+    },
+    "NetOfficeFw.Office/1.9.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ehGhe792e1bpGsSuyUAA5xyp+vLEotIL7a74ZomDNkmvvr+3NM4um0x8BD1928jQy2/dD2gcB9Qwip8yA+PY7A==",
+      "path": "netofficefw.office/1.9.7",
+      "hashPath": "netofficefw.office.1.9.7.nupkg.sha512"
+    },
+    "NetOfficeFw.PowerPoint/1.9.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bNaL3p4hiIsgkVjlIM45y/ibR2D/dNKiZhDs02tg7lYmNVBygyOmAFE+Zjk2AHinWbW6YZ/m2mREmiRHfd/xtg==",
+      "path": "netofficefw.powerpoint/1.9.7",
+      "hashPath": "netofficefw.powerpoint.1.9.7.nupkg.sha512"
+    },
+    "NetOfficeFw.VBIDE/1.9.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zytsGUQSZEUXGo220Vl0TyyZJ/xXmxhlytWVhTcKDDzpMVNe1Sh6YCETA+DOX3z50tscV5/Z8wNf/v79cPniIQ==",
+      "path": "netofficefw.vbide/1.9.7",
+      "hashPath": "netofficefw.vbide.1.9.7.nupkg.sha512"
+    },
+    "NetOfficeFw.Word/1.9.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-WXiA0LMCt3iPKebSFp/bjnBJvUYY8y98ROX7lLcTy5/13S9xPexN5ftE/QXg1zJZNfy5vw18fSRdraHKtKSmtg==",
+      "path": "netofficefw.word/1.9.7",
+      "hashPath": "netofficefw.word.1.9.7.nupkg.sha512"
+    },
+    "stdole/7.0.3300": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-p9WhjNp/gM2z80u+xNA1XXFek57iybUUJaDnQooKfdct3vGIpmDzLdL7Rq4ZmFzZc3LN3SFs5bRIE7j/+gLn5Q==",
+      "path": "stdole/7.0.3300",
+      "hashPath": "stdole.7.0.3300.nupkg.sha512"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "OfficeLib/1.0.0": {
+        "dependencies": {
+          "NetOffice.PowerPoint": "1.7.4.11",
+          "NetOffice.Word": "1.7.4.11"
+        },
+        "runtime": {
+          "OfficeLib.dll": {}
+        }
+      },
+      "NetOffice.Core/1.7.4.11": {
+        "runtime": {
+          "lib/net45/NetOffice.dll": {
+            "assemblyVersion": "1.7.4.11",
+            "fileVersion": "1.7.3.0"
+          },
+          "lib/net45/OfficeApi.dll": {
+            "assemblyVersion": "1.7.4.11",
+            "fileVersion": "1.7.3.0"
+          },
+          "lib/net45/VBIDEApi.dll": {
+            "assemblyVersion": "1.7.4.11",
+            "fileVersion": "1.7.3.0"
+          }
+        }
+      },
+      "NetOffice.PowerPoint/1.7.4.11": {
+        "dependencies": {
+          "NetOffice.Core": "1.7.4.11"
+        },
+        "runtime": {
+          "lib/net45/PowerPointApi.dll": {
+            "assemblyVersion": "1.7.4.11",
+            "fileVersion": "1.7.3.0"
+          }
+        }
+      },
+      "NetOffice.Word/1.7.4.11": {
+        "dependencies": {
+          "NetOffice.Core": "1.7.4.11"
+        },
+        "runtime": {
+          "lib/net45/WordApi.dll": {
+            "assemblyVersion": "1.7.4.11",
+            "fileVersion": "1.7.3.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "OfficeLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NetOffice.Core/1.7.4.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-voWeYFBjBET6y0kugZ7LUCJHBtT/ox/JFEscRdyqDXyooVdY246d19wVMr1ftXXD+30k5ZiClIGZbpOxHLFp0A==",
+      "path": "netoffice.core/1.7.4.11",
+      "hashPath": "netoffice.core.1.7.4.11.nupkg.sha512"
+    },
+    "NetOffice.PowerPoint/1.7.4.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xWHk5ECpV/CLtlPAwII6WRvMi7qHU8GB63EsvUqAHatokBQWOQD17//GL/eXWmexLzCVTa76rYvvdUZsk1eCpA==",
+      "path": "netoffice.powerpoint/1.7.4.11",
+      "hashPath": "netoffice.powerpoint.1.7.4.11.nupkg.sha512"
+    },
+    "NetOffice.Word/1.7.4.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4JdykhEmFfHuf18PbvbP1mKC60RT5D5PIRYyTz85IshjEQVonAmp6fn4k63niM/pliNVYkh/xDENAEQOLQjkJw==",
+      "path": "netoffice.word/1.7.4.11",
+      "hashPath": "netoffice.word.1.7.4.11.nupkg.sha512"
+    }
+  }
+}

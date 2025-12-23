@@ -1,0 +1,12 @@
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\bin\Debug\net10.0-windows7.0\OfficeLib.deps.json
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\bin\Debug\net10.0-windows7.0\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\bin\Debug\net10.0-windows7.0\OfficeLib.pdb
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.csproj.AssemblyReference.cache
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.GeneratedMSBuildEditorConfig.editorconfig
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.AssemblyInfoInputs.cache
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.AssemblyInfo.cs
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.csproj.CoreCompileInputs.cache
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\refint\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\OfficeLib.pdb
+E:\WorkSpace\wp-ms\dev\EasiSlides_v9.0(mariadb&sqlite)_v2.5.8\OfficeLib\obj\Debug\net10.0-windows7.0\ref\OfficeLib.dll

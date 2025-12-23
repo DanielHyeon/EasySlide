@@ -1,0 +1,991 @@
+﻿//using Microsoft.Office.Interop.Access.Dao;
+using System;
+using System.Collections.Generic;
+using System.Data;
+//using System.Data.SQLite;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Easislides.Module;
+#if SQLite
+using DbConnection = System.Data.SQLite.SQLiteConnection;
+using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
+using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
+using DbCommand = System.Data.SQLite.SQLiteCommand;
+using DbDataReader = System.Data.SQLite.SQLiteDataReader;
+using DbTransaction = System.Data.SQLite.SQLiteTransaction;
+#elif MariaDB
+using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
+using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
+using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
+using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
+using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
+using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
+#endif
+
+namespace Easislides.Util
+{
+    class DataUtil
+    {
+
+#if DAO
+		public static int GetDataInt(Recordset rs, string Fieldname)
+		{
+			try
+			{
+				return ObjToInt(rs.Fields[Fieldname].Value, Minus1IfBlank: false);
+			}
+			catch
+			{
+				return 0;
+			}
+		}
+#elif SQLite
+		public static int GetDataInt(DataRow dr, string Fieldname)
+		{
+			int number = 0;
+
+			try
+			{
+				if (dr[Fieldname] != null)
+				{
+
+					bool canConvert = int.TryParse(dr[Fieldname].ToString(), out number);
+					if (canConvert != true)
+					{
+						if (dr[Fieldname].ToString().ToUpper() == "TRUE")
+							number = 1;
+						else if (dr[Fieldname].ToString().ToUpper() == "FALSE")
+							number = 0;
+						else
+							number = ObjToInt(dr[Fieldname], Minus1IfBlank: false);
+					}
+				}
+
+				return number;
+			}
+			catch
+			{
+				return number;
+			}
+		}
+
+		public static int GetDataInt(DbDataReader dr, string Fieldname)
+		{
+			int number = 0;
+
+			try
+			{
+				if (dr[Fieldname] != null)
+				{
+
+					bool canConvert = int.TryParse(dr[Fieldname].ToString(), out number);
+					if (canConvert != true)
+					{
+						if (dr[Fieldname].ToString().ToUpper() == "TRUE")
+							number = 1;
+						else if (dr[Fieldname].ToString().ToUpper() == "FALSE")
+							number = 0;
+						else
+							number = ObjToInt(dr[Fieldname], Minus1IfBlank: false);
+					}
+				}
+
+				return number;
+			}
+			catch
+			{
+				return number;
+			}
+		}
+#endif
+
+#if DAO
+		public static int GetDataInt(Recordset rs, string Fieldname, bool Minus1IfBlank)
+		{
+			try
+			{
+				return ObjToInt(rs.Fields[Fieldname].Value, Minus1IfBlank);
+			}
+			catch
+			{
+				return Minus1IfBlank ? (-1) : 0;
+			}
+		}
+#elif SQLite
+		public static int GetDataInt(DataRow dr, string Fieldname, bool Minus1IfBlank)
+		{
+			try
+			{
+				return ObjToInt(dr[Fieldname], Minus1IfBlank);
+			}
+			catch
+			{
+				return Minus1IfBlank ? (-1) : 0;
+			}
+		}
+
+		public static int GetDataInt(DbDataReader dr, string Fieldname, bool Minus1IfBlank)
+		{
+			try
+			{
+				return ObjToInt(dr[Fieldname], Minus1IfBlank);
+			}
+			catch
+			{
+				return Minus1IfBlank ? (-1) : 0;
+			}
+		}
+#endif
+
+
+#if DAO
+		public static double GetDataDouble(Recordset rs, string Fieldname)
+		{
+			try
+			{
+				return ObjToDouble(rs.Fields[Fieldname].Value);
+			}
+			catch
+			{
+				return 0.0;
+			}
+		}
+#elif SQLite
+		public static double GetDataDouble(DataRow dr, string Fieldname)
+		{
+			try
+			{
+				return ObjToDouble(dr[Fieldname]);
+			}
+			catch
+			{
+				return 0.0;
+			}
+		}
+
+		public static double GetDataDouble(DbDataReader dr, string Fieldname)
+		{
+			try
+			{
+				return ObjToDouble(dr[Fieldname]);
+			}
+			catch
+			{
+				return 0.0;
+			}
+		}
+#endif
+
+#if DAO
+		public static string GetDataString(Recordset rs, string Fieldname)
+		{
+			try
+			{
+				return ObjToString(rs.Fields[Fieldname].Value);
+			}
+			catch
+			{
+				return "";
+			}
+		}
+#elif SQLite
+		public static string GetDataString(DataRow rs, string Fieldname)
+		{
+			try
+			{
+				return rs[Fieldname].ToString();
+			}
+			catch
+			{
+				return "";
+			}
+		}
+
+		public static string GetDataString(DbDataReader dr, string Fieldname)
+		{
+			try
+			{
+				return dr[Fieldname].ToString();
+			}
+			catch
+			{
+				return "";
+			}
+		}
+#endif
+
+		public static int ObjToInt(object InValue)
+		{
+			bool minus1IfBlank = false;
+			return ObjToInt(InValue, minus1IfBlank);
+		}
+
+		public static int ObjToInt(object InValue, bool Minus1IfBlank)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(InValue.ToString()))
+					return Minus1IfBlank ? (-1) : 0;
+
+				return Convert.ToInt32(InValue);
+			}
+			catch
+			{
+				return Minus1IfBlank ? (-1) : 0;
+			}
+		}
+
+		public static double ObjToDouble(object InValue)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(InValue.ToString()))
+					return 0.0;
+
+				return Convert.ToDouble(InValue);
+			}
+			catch
+			{
+				return 0.0;
+			}
+		}
+
+		public static string ObjToString(object InValue)
+		{
+			try
+			{
+				return Convert.ToString(InValue);
+			}
+			catch
+			{
+				return "";
+			}
+		}
+
+		public static int StringToInt(char InChar)
+		{
+			try
+			{
+				return InChar;
+			}
+			catch
+			{
+				return 0;
+			}
+		}
+
+		public static int StringToInt(string InString)
+		{
+			return StringToInt(InString, Minus1IfBlank: false);
+		}
+
+		public static int StringToInt(string InString, bool Minus1IfBlank)
+		{
+			int retVal = -1;
+			try
+			{
+				bool result = int.TryParse(InString, out retVal); //i now = 108 
+				if (!result)
+				{
+					return Minus1IfBlank ? (-1) : 0;
+				}
+
+				return retVal;
+
+				//InString = InString.Replace("*", "");
+				//InString = InString.Replace(" ", "");
+				//return (int)Convert.ToDouble(InString);
+			}
+			catch
+			{
+				return Minus1IfBlank ? (-1) : 0;
+			}
+		}
+
+		public static DateTime ObjToDate(object InValue)
+		{
+			try
+			{
+				return (DateTime)InValue;
+			}
+			catch
+			{
+				return DateTime.Now;
+			}
+		}
+
+		public static string Left(ReadOnlySpan<char> sString, int iLen)
+		{
+			try
+			{
+				if (iLen <= 0 || sString.Length == 0)
+				{
+					return "";
+				}
+				if (iLen < sString.Length)
+				{
+					return sString.Slice(0, iLen).ToString();
+				}
+				return sString.ToString();
+			}
+			catch
+			{
+				return sString.ToString();
+			}
+		}
+
+		public static string Right(ReadOnlySpan<char> sString, int iLen)
+		{
+			try
+			{
+				int length = sString.Length;
+
+				if (iLen <= 0 || length == 0)
+				{
+					return ReadOnlySpan<char>.Empty.ToString();
+				}
+
+				if (iLen < length)
+				{
+					return sString.Slice(length - iLen).ToString();
+				}
+
+				return sString.ToString();
+			}
+			catch
+			{
+				return sString.ToString();
+			}
+		}
+
+		public static string Mid(ReadOnlySpan<char> sString, int Start)
+		{
+			return Mid(sString, Start, -1);
+		}
+
+		public static string Mid(ReadOnlySpan<char> sString, int Start, int iLen)
+		{
+			try
+			{
+				if (iLen == 0 || sString.Length == 0)
+				{
+					return "";
+				}
+				if (iLen < 0)
+				{
+					iLen = sString.Length - Start;
+				}
+				else if (Start + iLen > sString.Length)
+				{
+					iLen = sString.Length - Start;
+				}
+				return sString.Slice(Start, iLen).ToString();
+			}
+			catch
+			{
+				return sString.ToString();
+			}
+		}
+
+		public static string Trim(string InString)
+		{
+			try
+			{
+				return InString.AsSpan().Trim().ToString();
+				//return InString.Trim();
+			}
+			catch
+			{
+				return "";
+			}
+		}
+
+		public static string TrimEnd(string InString)
+		{
+			try
+			{
+				return InString.TrimEnd('\n', '\r');
+			}
+			catch
+			{
+				return "";
+			}
+		}
+
+		public static string TrimStart(string InString)
+		{
+			try
+			{
+				return InString.TrimStart('\n', '\r');
+			}
+			catch
+			{
+				return "";
+			}
+		}
+
+		public static bool GetBitBoolean(int InValue, int BitRequired)
+		{
+			if (GetBitValue(InValue, BitRequired) > 0)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		public static int GetBitValue(int InValue, int BitRequired)
+		{
+			if (InValue < 0)
+			{
+				InValue = 0;
+			}
+			int num = 0;
+			switch (BitRequired)
+			{
+				case 1:
+					num = (InValue & 1) / 1;
+					break;
+				case 2:
+					num = (InValue & 2) / 2;
+					break;
+				case 3:
+					num = (InValue & 4) / 4;
+					break;
+				case 4:
+					num = (InValue & 8) / 8;
+					break;
+				case 5:
+					num = (InValue & 0x10) / 16;
+					break;
+				case 6:
+					num = (InValue & 0x20) / 32;
+					break;
+				case 7:
+					num = (InValue & 0x40) / 64;
+					break;
+				case 8:
+					num = (InValue & 0x80) / 128;
+					break;
+			}
+			return (num > 0) ? 1 : 0;
+		}
+
+		public static string GetCJKTitle(string InTitle, SortBy CJKMode)
+		{
+			string FirstCharSym = null;
+			return GetCJKTitle(InTitle, CJKMode, ref FirstCharSym);
+		}
+
+		public static string GetCJKTitle(string InTitle, SortBy CJKMode, ref string FirstCharSym)
+		{
+			if (InTitle == "")
+			{
+				FirstCharSym = "";
+				return "";
+			}
+			string text = "";
+			if (CJKMode == SortBy.WordCount)
+			{
+				text = CJK_WordCount(InTitle);
+			}
+			if (FirstCharSym != null)
+			{
+				int num = InTitle[0];
+				if (num < 0)
+				{
+					num += 65536;
+				}
+				int num2 = gf.StrokeCount[num];
+				if (num2 > 0)
+				{
+					if (text != "")
+					{
+						FirstCharSym = text;
+					}
+					else
+					{
+						FirstCharSym = num2.ToString("00");
+					}
+				}
+				else
+				{
+					FirstCharSym = " " + Left(InTitle, 1);
+				}
+			}
+			text += CJK_StrokeCount(InTitle);
+			if (text.Length > 100)
+			{
+				text = DataUtil.Left(text, 100);
+			}
+			return text;
+		}
+
+		public static string CJK_WordCount(string DName)
+		{
+			if (DName == "" || ((DataUtil.StringToInt(DName[0]) > 0) & (DataUtil.StringToInt(DName[0]) < 128)))
+			{
+				return "000";
+			}
+			int num = DName.IndexOf("(") - 1;
+			if (num < 0)
+			{
+				num = DName.Length;
+			}
+			int num2 = DName.IndexOf(" ") - 1;
+			if (num2 > 0 && num2 < num)
+			{
+				num = num2;
+			}
+			return num.ToString("000");
+		}
+
+		public static string CJK_StrokeCount(string DName)
+		{
+			string str = "";
+			int num = 0;
+			long num2 = (!(DName == "")) ? DataUtil.StringToInt(DName[0]) : 0;
+			if (num2 < 0)
+			{
+				num2 += 65536;
+			}
+			int num3 = gf.StrokeCount[num2];
+			if (num3 > 0)
+			{
+				str = str + num3.ToString("00") + num2.ToString("00000");
+				DName = DataUtil.Right(DName, DName.Length - 1);
+				while (DName.Length > 0)
+				{
+					num++;
+					if (num < 6)
+					{
+						num2 = (int)DName[0];
+						if (num2 < 0)
+						{
+							num2 += 65536;
+						}
+						num3 = gf.StrokeCount[num2];
+						str = ((num3 <= 0) ? (str + "00" + num2.ToString("00000")) : (str + num3.ToString("00") + num2.ToString("00000")));
+						DName = DataUtil.Right(DName, DName.Length - 1);
+					}
+					else
+					{
+						str += DName;
+						DName = "";
+					}
+				}
+				if (str.Length > 100)
+				{
+					str = DataUtil.Left(str, 100);
+				}
+			}
+			else
+			{
+				str = "000" + DName;
+			}
+			return str;
+		}
+
+		public static string Format6(string InString)
+		{
+			InString = Trim(InString);
+			if (InString.Length == 0)
+			{
+				return "000000";
+			}
+			if (InString.Length == 1)
+			{
+				return "00000" + InString;
+			}
+			if (InString.Length == 2)
+			{
+				return "0000" + InString;
+			}
+			if (InString.Length == 3)
+			{
+				return "000" + InString;
+			}
+			if (InString.Length == 4)
+			{
+				return "00" + InString;
+			}
+			if (InString.Length == 5)
+			{
+				return "0" + InString;
+			}
+			return Left(InString, 6);
+		}
+
+		public static string UnicodeToAscii_RTF(string InString)
+		{
+			StringBuilder stringBuilder = new StringBuilder();
+			string text = "";
+			int num = 0;
+			for (int i = 0; i < InString.Length; i++)
+			{
+				text = DataUtil.Mid(InString, i, 1);
+				if ((text != "\r") & (text != "\n") & (text != "\t"))
+				{
+					num = text[0];
+					if (num < 0)
+					{
+						num += 65536;
+					}
+					if (num > 255)
+					{
+						stringBuilder.Append("\\u" + num.ToString("00000") + "?");
+					}
+					else
+					{
+						stringBuilder.Append(text);
+					}
+				}
+				else
+				{
+					stringBuilder.Append(text);
+				}
+			}
+			return stringBuilder.ToString();
+		}
+
+		public static string UnicodeToAscii_HTML(string InString)
+		{
+			StringBuilder stringBuilder = new StringBuilder();
+			string text = "";
+			int num = 0;
+			for (int i = 0; i < InString.Length; i++)
+			{
+				text = DataUtil.Mid(InString, i, 1);
+				if ((text != "\r") & (text != "\n") & (text != "\t"))
+				{
+					num = text[0];
+					if (num < 0)
+					{
+						num += 65536;
+					}
+					if (num > 255)
+					{
+						stringBuilder.Append("&#" + num.ToString("00000") + ";");
+					}
+					else
+					{
+						stringBuilder.Append(text);
+					}
+				}
+				else
+				{
+					stringBuilder.Append(text);
+				}
+			}
+			return stringBuilder.ToString();
+		}
+
+		public static string HexString(string InString)
+		{
+			StringBuilder stringBuilder = new StringBuilder();
+			string text = "";
+			int num = 0;
+			for (int i = 0; i < InString.Length; i++)
+			{
+				text = DataUtil.Mid(InString, i, 1);
+				num = text[0];
+				if (num < 0)
+				{
+					num += 65536;
+				}
+				if (num > 127)
+				{
+					stringBuilder.Append(num.ToString("x"));
+				}
+				else
+				{
+					stringBuilder.Append(text);
+				}
+			}
+			return stringBuilder.ToString();
+		}
+
+		public static int CountLf(string InText)
+		{
+			int num = 0;
+			InText += "\n";
+			int length = InText.Length;
+			for (int i = 0; i < length; i++)
+			{
+				if (DataUtil.Mid(InText, i, 1) == "\n")
+				{
+					num++;
+				}
+			}
+			return num;
+		}
+
+		public static int Convertv32FormatString(ref string InFormatString, char InSeparator)
+		{
+			string InfoHeading = "";
+			string InfoFolder = "";
+			string InfoRotate = "";
+			return Convertv32FormatString(ref InFormatString, InSeparator, ref InfoHeading, ref InfoFolder, ref InfoRotate);
+		}
+
+		public static int Convertv32FormatString(ref string InFormatString, char InSeparator, ref string InfoHeading, ref string InfoFolder, ref string InfoRotate)
+		{
+			InFormatString = InFormatString.Replace("[", "");
+			InFormatString = InFormatString.Replace("]", "");
+			if (InFormatString == "")
+			{
+				return -1;
+			}
+			string text = "";
+			string text2 = "";
+			int num = -1;
+			int result = -1;
+			string[] array = InFormatString.Split(InSeparator);
+			for (int i = 0; i <= array.GetUpperBound(0); i++)
+			{
+				num = DataUtil.Remap32Index(ExtractOneInfo(ref array[i], '=', RemoveExtract: true, MinusOneIfBlank: false));
+				if (num > 1 && num < 10000)
+				{
+					object obj = text;
+					text = string.Concat(obj, num.ToString(), "=", array[i], '>');
+				}
+				switch (num)
+				{
+					case 1:
+						result = DataUtil.StringToInt(array[i]);
+						break;
+					case 10001:
+						InfoHeading = array[i];
+						break;
+					case 10002:
+						InfoFolder = array[i];
+						break;
+					case 10003:
+						InfoRotate = array[i];
+						break;
+				}
+			}
+			InFormatString = text;
+			return result;
+		}
+
+		public static int Remap32Index(string InString)
+		{
+			try
+			{
+				int num = InString[0];
+				int result = -1;
+				switch (num)
+				{
+					case 1:
+						result = 1;
+						break;
+					case 2:
+						result = 11;
+						break;
+					case 3:
+						result = 12;
+						break;
+					case 4:
+						result = 13;
+						break;
+					case 5:
+						result = 14;
+						break;
+					case 6:
+						result = 15;
+						break;
+					case 8:
+						result = 22;
+						break;
+					case 9:
+						result = 25;
+						break;
+					case 10:
+						result = 26;
+						break;
+					case 11:
+						result = 27;
+						break;
+					case 12:
+						result = 28;
+						break;
+					case 13:
+						result = 29;
+						break;
+					case 14:
+						result = 30;
+						break;
+					case 15:
+						result = 31;
+						break;
+					case 16:
+						result = 41;
+						break;
+					case 17:
+						result = 42;
+						break;
+					case 19:
+						result = 43;
+						break;
+					case 20:
+						result = 44;
+						break;
+					case 21:
+						result = 45;
+						break;
+					case 22:
+						result = 46;
+						break;
+					case 23:
+						result = 47;
+						break;
+					case 24:
+						result = 48;
+						break;
+					case 26:
+						result = 61;
+						break;
+					case 27:
+						result = 62;
+						break;
+					case 28:
+						result = 63;
+						break;
+					case 29:
+						result = 64;
+						break;
+					case 30:
+						result = 65;
+						break;
+					case 41:
+						result = 101;
+						break;
+					case 42:
+						result = 102;
+						break;
+					case 46:
+						result = 106;
+						break;
+					case 47:
+						result = 107;
+						break;
+					case 51:
+						result = 111;
+						break;
+					case 52:
+						result = 112;
+						break;
+					case 56:
+						result = 116;
+						break;
+					case 57:
+						result = 117;
+						break;
+					case 61:
+						result = 121;
+						break;
+					case 62:
+						result = 122;
+						break;
+					case 66:
+						result = 131;
+						break;
+					case 67:
+						result = 132;
+						break;
+					case 71:
+						result = 136;
+						break;
+					case 72:
+						result = 137;
+						break;
+					case 81:
+						result = 151;
+						break;
+					case 82:
+						result = 153;
+						break;
+					case 83:
+						result = 154;
+						break;
+					case 84:
+						result = 155;
+						break;
+					case 85:
+						result = 170;
+						break;
+					case 86:
+						result = 171;
+						break;
+					case 87:
+						result = 172;
+						break;
+					case 95:
+						result = 174;
+						break;
+					case 96:
+						result = 180;
+						break;
+					case 110:
+						result = 10001;
+						break;
+					case 111:
+						result = 10002;
+						break;
+					case 31:
+						result = 10003;
+						break;
+				}
+				return result;
+			}
+			catch
+			{
+				return -1;
+			}
+		}
+
+		public static string ExtractOneInfo(ref string InString, char ExtractSym)
+		{
+			return ExtractOneInfo(ref InString, ExtractSym, RemoveExtract: true);
+		}
+
+		public static string ExtractOneInfo(ref string InString, char ExtractSym, bool RemoveExtract)
+		{
+			return ExtractOneInfo(ref InString, ExtractSym, RemoveExtract, MinusOneIfBlank: true);
+		}
+
+		public static string ExtractOneInfo(ref string InString, char ExtractSym, bool RemoveExtract, bool MinusOneIfBlank)
+		{
+			if (InString == null || InString.Length == 0)
+			{
+				if (MinusOneIfBlank)
+				{
+					return "-1";
+				}
+				return "";
+			}
+			int num = InString.IndexOf(ExtractSym);
+			string result;
+			if (num >= 0)
+			{
+				result = DataUtil.Mid(InString, 0, num);
+				if (RemoveExtract)
+				{
+					InString = DataUtil.Mid(InString, num + 1);
+				}
+				return result;
+			}
+			result = InString;
+			if (RemoveExtract)
+			{
+				InString = "";
+			}
+			if (result == "" && MinusOneIfBlank)
+			{
+				return "-1";
+			}
+			return result;
+		}
+	}
+}

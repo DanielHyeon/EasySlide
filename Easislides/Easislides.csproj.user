@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_LastSelectedProfileId>D:\Workplace\wp-ms\dev\EasiSlides_v8.0%28mariadb&amp;sqlite%29_v2.5.0\Easislides\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="Easislides\DShowLib.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmSplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmBackground.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmBibleRename.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmCopy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmCopyMoveExternal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmEditBibleItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmEditItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmEditNotes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmExport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmFind.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmGenerateDoc.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmGenerateHtml.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmGetWorkingFolder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmHelp.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmImport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmImportAccessHelper.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmImportFolder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmInfoScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmLaunchMediaPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmLaunchShow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmLookupTitles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmLyricsScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmManageItemLists.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMediaPlayerControl.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMove.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmPopupText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmRearrangeFolderPositions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmRecoverDeleted.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmRegister.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmShowAlert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmSingleMonitorAlert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmSmartMerge.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmUpdateFileName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmUsages.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\ImageCanvas.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Easislides\ImageTransitionControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="HookManager\GlobalEventProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Easislides\FrmMain.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Easislides\FrmSplashScreen.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

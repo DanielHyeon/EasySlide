@@ -1,0 +1,36 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "630a67cd-2699-47ad-a9f9-647f8acf65fc": {
+      "ProjectGuid": "630a67cd-2699-47ad-a9f9-647f8acf65fc",
+      "DisplayName": "Easislides",
+      "ColorIndex": 0
+    },
+    "db80e6bd-9a9d-475f-a249-9367e06f16a8": {
+      "ProjectGuid": "db80e6bd-9a9d-475f-a249-9367e06f16a8",
+      "DisplayName": "OfficeLib",
+      "ColorIndex": 1
+    },
+    "8237bd8d-c4c7-4a02-8309-33b62690c9f2": {
+      "ProjectGuid": "8237bd8d-c4c7-4a02-8309-33b62690c9f2",
+      "DisplayName": "SQLiteTestConsole",
+      "ColorIndex": 2
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "기타 파일",
+      "ColorIndex": -1
+    },
+    "5adf2b92-bceb-441a-9462-a56bb45c8e02": {
+      "ProjectGuid": "5adf2b92-bceb-441a-9462-a56bb45c8e02",
+      "DisplayName": "Solution Items",
+      "ColorIndex": 3
+    },
+    "bec6d52c-0806-4c6c-880d-7c2b8084e3d4": {
+      "ProjectGuid": "bec6d52c-0806-4c6c-880d-7c2b8084e3d4",
+      "DisplayName": "DirectShowLib",
+      "ColorIndex": 4
+    }
+  },
+  "NextColorIndex": 5
+}

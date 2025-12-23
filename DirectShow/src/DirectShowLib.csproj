@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>DirectShowLib</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>DShowNET.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<PackageId>DirectShowLib.Net</PackageId>
+		<Authors>http://sourceforge.net/projects/directshownet/</Authors>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup> 
+</Project>
