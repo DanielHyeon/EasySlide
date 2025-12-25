@@ -166,11 +166,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v9.0(mariadb&sqlite)_v2.5.7.5\\OfficeLib\\OfficeLib.csproj",
+      "projectUniqueName": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\OfficeLib\\OfficeLib.csproj",
       "projectName": "OfficeLib",
-      "projectPath": "D:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v9.0(mariadb&sqlite)_v2.5.7.5\\OfficeLib\\OfficeLib.csproj",
+      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\OfficeLib\\OfficeLib.csproj",
       "packagesPath": "C:\\Users\\daniel\\.nuget\\packages\\",
-      "outputPath": "D:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v9.0(mariadb&sqlite)_v2.5.7.5\\OfficeLib\\obj\\",
+      "outputPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\OfficeLib\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -204,7 +204,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net9.0-windows7.0": {
@@ -239,7 +239,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
   },

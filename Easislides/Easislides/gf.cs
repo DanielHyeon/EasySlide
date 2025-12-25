@@ -871,7 +871,7 @@ namespace Easislides
 
 		public static bool HB_ShowVerses = true;
 
-		public static int PP_MaxFiles = 25;
+		public static int PP_MaxFiles = 50;
 
         //public static int OutputMonitorNumber = 1;
 

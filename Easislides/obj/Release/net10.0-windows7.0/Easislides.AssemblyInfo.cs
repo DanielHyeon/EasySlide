@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Easislides")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b415b1e54962ff4ec7fb197568015d7b341c69c")]
 [assembly: System.Reflection.AssemblyProductAttribute("Easislides")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Easislides")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
