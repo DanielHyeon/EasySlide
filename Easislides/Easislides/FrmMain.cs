@@ -1,4 +1,4 @@
-ï»¿using Easislides.Properties;
+using Easislides.Properties;
 using OfficeLib;
 using System;
 using System.ComponentModel;
@@ -267,7 +267,7 @@ namespace Easislides
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            /// Keyboard Hooking ?ï¿½ì‘
+            /// Keyboard Hooking ??ÀÛ
             RemoveHookBlackScreen();
             AddHookBlackScreen();
 
@@ -303,7 +303,7 @@ namespace Easislides
 
             using (ResXResourceReader reader = new ResXResourceReader(resxPath))
             {
-                reader.UseResXDataNodes = true; // ?ï¿½ì´???ï¿½ë“œï¿½??ï¿½ì–´???ï¿½???ï¿½ëŸ¬ ë°©ï¿½?
+                reader.UseResXDataNodes = true; // ??ÀÌ????µå????¾î????????·¯ ¹æ??
 
                 foreach (DictionaryEntry entry in reader)
                 {
@@ -312,27 +312,27 @@ namespace Easislides
 
                     try
                     {
-                        // ?ï¿½ì œ ?ï¿½???ï¿½ì¸???ï¿½í•´ ï¿½?ë¡œë“œ
+                        // ??Á¦ ??????ÀÎ????ÇØ ??·Îµå
                         object value = node.GetValue((ITypeResolutionService)null);
 
                         if (value == null) continue;
 
-                        // 1. ?ï¿½ë°˜ ?ï¿½ï¿½?ì§€ (Bitmap) ì²˜ë¦¬
+                        // 1. ??¹İ ????Áö (Bitmap) Ã³¸®
                         if (value is Bitmap bmp)
                         {
                             SaveImage(bmp, outputDir, key, ImageFormat.Png);
                         }
-                        // 2. ?ï¿½ì´ï¿½?(Icon) ì²˜ë¦¬ - $this.Icon ??
+                        // 2. ??ÀÌ??(Icon) Ã³¸® - $this.Icon ??
                         else if (value is Icon icon)
                         {
-                            // ?ï¿½ì´ì½˜ï¿½? Bitmap?ï¿½ë¡œ ë³€?ï¿½í•´???ï¿½?ï¿½í•˜ê±°ë‚˜ .icoï¿½??ï¿½??
+                            // ??ÀÌÄÜ?? Bitmap??·Î º¯??ÇØ??????ÇÏ°Å³ª .ico??????
                             using (FileStream fs = new FileStream(Path.Combine(outputDir, $"{key}.ico"), FileMode.Create))
                             {
                                 icon.Save(fs);
                             }
                             Console.WriteLine($"[Icon] Extracted: {key}.ico");
                         }
-                        // 3. ?ï¿½ï¿½?ì§€ ë¦¬ìŠ¤???ï¿½íŠ¸ï¿½?(ImageStream) ì²˜ë¦¬ - imageListSys.ImageStream ??
+                        // 3. ????Áö ¸®½º????Æ®??(ImageStream) Ã³¸® - imageListSys.ImageStream ??
                         else if (value is ImageListStreamer streamer)
                         {
                             using (ImageList imgList = new ImageList())
@@ -346,10 +346,10 @@ namespace Easislides
                                 Console.WriteLine($"[ImageList] Extracted {imgList.Images.Count} images from {key}");
                             }
                         }
-                        // 4. ë¬´ì‹œ???ï¿½?ï¿½ë“¤ (TrayLocation ??
+                        // 4. ¹«½Ã??????µé (TrayLocation ??
                         else
                         {
-                            // Point, Size ?ï¿½ì˜ ?ï¿½?ï¿½ï¿½? ë¡œê·¸ï¿½??ï¿½ê¸°ï¿½??ï¿½í‚µ
+                            // Point, Size ??ÀÇ ?????? ·Î±×????±â????Åµ
                             // Console.WriteLine($"[Skip] {key} is type {value.GetType().Name}");
                         }
                     }
@@ -364,7 +364,7 @@ namespace Easislides
 
         private static void SaveImage(Image img, string dir, string name, ImageFormat format)
         {
-            // ?ï¿½ì¼ëª…ì— ?ï¿½íš¨?ï¿½ï¿½? ?ï¿½ï¿½? ë¬¸ì ?ï¿½ê±°
+            // ??ÀÏ¸í¿¡ ??È¿???? ???? ¹®ÀÚ ??°Å
             foreach (char c in Path.GetInvalidFileNameChars())
             {
                 name = name.Replace(c, '_');
@@ -443,7 +443,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel 
-        /// ?ï¿½ï¿½??ï¿½íŠ¸ë¦¬ì—???ï¿½ìƒ??ê°’ì„ ?ï¿½ì–´?ï¿½ëŠ” ê²ƒì„ ì¶”ï¿½?.
+        /// ??????Æ®¸®¿¡????»ó??°ªÀ» ??¾î??´Â °ÍÀ» Ãß??.
         /// </summary>
         /// <returns></returns>
         private bool InitFormControls()
@@ -680,7 +680,7 @@ namespace Easislides
 
             int num6 = 0;
 
-            // Daniel Park ?ï¿½ì • 2023??12??24??
+            // Daniel Park ??Á¤ 2023??12??24??
             //int newHeight = 0;
             if (!gf.isScreenWideMode)
             {
@@ -698,7 +698,7 @@ namespace Easislides
                 num6 = InPanelContainer.Height - (num2 + num3 + num4);
                 num6 = ((num6 <= 0) ? 1 : num6);
                 // daniel
-                // ë¯¸ë¦¬ë³´ê¸° ?ï¿½ì´ï¿½??ï¿½?ï¿½ë“œï¿½?ë³€ï¿½?
+                // ¹Ì¸®º¸±â ??ÀÌ??????µå??º¯??
                 // num5 = num6 * 4 / 3;
 
                 //if (gf.isScreenWideMode)
@@ -730,7 +730,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// ?ï¿½ì •ï¿½?ResizeSampleScreen version 1
+        /// ??Á¤??ResizeSampleScreen version 1
         /// </summary>
         /// <param name="InPanelContainer"></param>
         /// <param name="InHolder"></param>
@@ -753,7 +753,7 @@ namespace Easislides
                 num6 = InPanelContainer.Height - (num2 + num3 + num4);
                 num6 = ((num6 <= 0) ? 1 : num6);
                 // daniel
-                // ë¯¸ë¦¬ë³´ê¸° ?ï¿½ì´ï¿½??ï¿½?ï¿½ë“œï¿½?ë³€ï¿½?
+                // ¹Ì¸®º¸±â ??ÀÌ??????µå??º¯??
                 // num5 = num6 * 4 / 3;
 
                 //if (gf.isScreenWideMode)
@@ -785,7 +785,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// ?ï¿½ë³¸ ResizeSampleScreen
+        /// ??º» ResizeSampleScreen
         /// </summary>
         /// <param name="InPanelContainer"></param>
         /// <param name="InHolder"></param>
@@ -882,7 +882,7 @@ namespace Easislides
                         SaveFormStateToRegistry();
                     }
                     //daniel
-                    //?ï¿½ë¡œê·¸ë¨ ì¢…ë£Œ???ï¿½ì›Œ?ï¿½ì¸???ï¿½ì¼???ï¿½ìŒ
+                    //??·Î±×·¥ Á¾·á????¿ö??ÀÎ????ÀÏ????À½
                     gf.ClearUpPowerpointWindows();
                     gf.DeleteFolderFiles(gf.EasiSlidesTempDir);
 
@@ -2502,7 +2502,7 @@ namespace Easislides
             else
             {
                 // 22/04/01 03:39 daniel
-                // ?ï¿½ì¬ ë³´ì—¬ ì£¼ê³  ?ï¿½ëŠ” ?ï¿½ë¼?ï¿½ë“œ???ï¿½?ï¿½ï¿½???ë³´ì—¬ ì¤€??
+                // ??Àç º¸¿© ÁÖ°í ??´Â ??¶ó??µå??????????º¸¿© ÁØ??
                 string text2 = text;
                 text = $"[{Convert.ToString(gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {gf.OutputItem.Title} {text2}{gf.OutputItem.CurSlide}/{gf.OutputItem.TotalSlides} ";
             }
@@ -2727,6 +2727,7 @@ namespace Easislides
                     InCanvas[index].Tag = index.ToString();
                     InCanvas[index].SlideNumber = index + 1;
                     InCanvas[index].MouseUp += PowerPointImage_MouseUp;
+                    InCanvas[index].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[index].PowerPoint = true;
                     InCanvas[index].Visible = true;
                 }
@@ -2766,6 +2767,7 @@ namespace Easislides
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
+                    InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[i].PowerPoint = true;
                 }
 
@@ -2823,6 +2825,7 @@ namespace Easislides
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
+                    InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[i].PowerPoint = true;
 
                     ///daniel
@@ -2867,21 +2870,117 @@ namespace Easislides
             }
         }
 
+        // PowerPoint ½æ³×ÀÏ Å¬¸¯ Ã³¸®¸¦ À§ÇÑ Å¸ÀÌ¸Ó ¹× ÇÃ·¡±×
+        private System.Windows.Forms.Timer pptClickTimer = null;
+        private Control pptClickedControl = null;
+        private bool pptDoubleClickInProgress = false;
+
         private void PowerPointImage_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
                 Control control = (Control)sender;
+
+                // ´õºíÅ¬¸¯ÀÌ ÁøÇà ÁßÀÌ¸é ´ÜÀÏ Å¬¸¯ ¹«½Ã
+                if (pptDoubleClickInProgress)
+                {
+                    return;
+                }
+
+                // ±âÁ¸ Å¸ÀÌ¸Ó°¡ ÀÖÀ¸¸é ÁßÁö
+                if (pptClickTimer != null)
+                {
+                    pptClickTimer.Stop();
+                    pptClickTimer.Dispose();
+                }
+
+                // Å¬¸¯ÇÑ ÄÁÆ®·Ñ ÀúÀå
+                pptClickedControl = control;
+
+                // ´ÜÀÏ Å¬¸¯ Ã³¸®¸¦ Áö¿¬½ÃÅ°´Â Å¸ÀÌ¸Ó »ı¼º (´õºíÅ¬¸¯ °¨Áö ½Ã°£: 300ms)
+                pptClickTimer = new System.Windows.Forms.Timer();
+                pptClickTimer.Interval = SystemInformation.DoubleClickTime;
+                pptClickTimer.Tick += (s, args) =>
+                {
+                    pptClickTimer.Stop();
+                    pptClickTimer.Dispose();
+                    pptClickTimer = null;
+
+                    // ´õºíÅ¬¸¯ÀÌ ¾Æ´Ñ °æ¿ì¿¡¸¸ ´ÜÀÏ Å¬¸¯ Ã³¸®
+                    if (!pptDoubleClickInProgress && pptClickedControl != null)
+                    {
+                        if (pptClickedControl.Name == "PP_Preview")
+                        {
+                            gf.PreviewItem.CurSlide = DataUtil.ObjToInt(pptClickedControl.Tag) + 1;
+                            MoveToSlide(gf.PreviewItem, KeyDirection.Refresh);
+                        }
+                        else
+                        {
+                            gf.OutputItem.CurSlide = DataUtil.ObjToInt(pptClickedControl.Tag) + 1;
+                            MoveToSlide(gf.OutputItem, KeyDirection.Refresh);
+                        }
+                    }
+                    pptClickedControl = null;
+                };
+                pptClickTimer.Start();
+            }
+        }
+
+        /// <summary>
+        /// PowerPoint ½æ³×ÀÏ ´õºíÅ¬¸¯ ÀÌº¥Æ® ÇÚµé·¯
+        /// ´õºíÅ¬¸¯ ½Ã PowerPoint ½½¶óÀÌµå¼î Ã¢À» È°¼ºÈ­ÇÏ°í ¾Ö´Ï¸ŞÀÌ¼Ç/µ¿¿µ»óÀ» Àç»ıÇÕ´Ï´Ù.
+        /// </summary>
+        private void PowerPointImage_DoubleClick(object sender, EventArgs e)
+        {
+            try
+            {
+                // ´õºíÅ¬¸¯ ÇÃ·¡±× ¼³Á¤ (´ÜÀÏ Å¬¸¯ Å¸ÀÌ¸Ó ¹«È¿È­)
+                pptDoubleClickInProgress = true;
+
+                // Å¸ÀÌ¸Ó Ãë¼Ò
+                if (pptClickTimer != null)
+                {
+                    pptClickTimer.Stop();
+                    pptClickTimer.Dispose();
+                    pptClickTimer = null;
+                }
+
+                Control control = (Control)sender;
+                int slideNumber = DataUtil.ObjToInt(control.Tag) + 1;
+
+                // ½½¶óÀÌµå ¹øÈ£ ¼³Á¤
+                SongSettings InItem;
                 if (control.Name == "PP_Preview")
                 {
-                    gf.PreviewItem.CurSlide = DataUtil.ObjToInt(control.Tag) + 1;
-                    MoveToSlide(gf.PreviewItem, KeyDirection.Refresh);
+                    gf.PreviewItem.CurSlide = slideNumber;
+                    InItem = gf.PreviewItem;
                 }
                 else
                 {
-                    gf.OutputItem.CurSlide = DataUtil.ObjToInt(control.Tag) + 1;
-                    MoveToSlide(gf.OutputItem, KeyDirection.Refresh);
+                    gf.OutputItem.CurSlide = slideNumber;
+                    InItem = gf.OutputItem;
                 }
+
+                // Trigger PowerPoint click to start animation/video
+                if (MainPPT.prePowerPointApp != null)
+                {
+                    MainPPT.ActivateSlideShowAndTriggerClick(slideNumber);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in PowerPointImage_DoubleClick: {ex.Message}");
+            }
+            finally
+            {
+                // ´õºíÅ¬¸¯ ÇÃ·¡±× ¸®¼Â (¾à°£ÀÇ Áö¿¬ ÈÄ)
+                System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        pptDoubleClickInProgress = false;
+                    }));
+                });
             }
         }
 
@@ -3286,9 +3385,9 @@ namespace Easislides
             string text8 = "";
             string text9 = "";
             int num2 = 0;
-            ///MDB Access?ï¿½ì„œ??Like ê²€?ï¿½ì—??"*" ???ï¿½ìš©
+            ///MDB Access??¼­??Like °Ë??¿¡??"*" ????¿ë
             //string text10 = "*";
-            ///SQLite?ï¿½ì„œ??Like ê²€?ï¿½ì—??"%" ï¿½??ï¿½ìš©
+            ///SQLite??¼­??Like °Ë??¿¡??"%" ????¿ë
             string text10 = "%";
 
             gf.TotalMusicFiles = -1;
@@ -3487,7 +3586,7 @@ namespace Easislides
 
         static int LoadThumbOutlockkey = 0;
         /// <summary>
-        /// daniel out ?ï¿½ï¿½?ì§€ ë¡œë“œ???ï¿½ì²´ï¿½??ï¿½ì‹œ ê·¸ë¦¬ì§€ ?ï¿½ìŒ
+        /// daniel out ????Áö ·Îµå????Ã¼????½Ã ±×¸®Áö ??À½
         /// </summary>
         /// <param name="InFlowPanel"></param>
         /// <param name="InCanvas"></param>
@@ -3541,7 +3640,7 @@ namespace Easislides
         static int LoadThumbPreviewlockkey = 0;
         static int previousPreviewSelectedSlide = 1;
         /// <summary>
-        /// daniel 4265 ?ï¿½ì¸ ?ï¿½ë¥˜??
+        /// daniel 4265 ??ÀÎ ??·ù??
         /// </summary>
         /// <param name="InFlowPanel"></param>
         /// <param name="InCanvas"></param>
@@ -3726,7 +3825,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel ??ë²„íŠ¼ ?ï¿½íƒ??(?ï¿½ê²½ ??ï¿½ï¿½)
+        /// daniel ??¹öÆ° ??ÅÃ??(??°æ ????)
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -3822,7 +3921,7 @@ namespace Easislides
                     }
                     BibleText.Text = "";
                     BibleUserLookup.Text = "";
-                    //?ï¿½ê²½ëª©ë¡ ì½¤ë³´ë°•ìŠ¤?ï¿½ì„œ ?ï¿½ê²½ ?ï¿½íƒ???ï¿½í–‰?ï¿½ì–´ ?ï¿½ê²½ êµ¬ì ˆ???ï¿½ì‹œ ??
+                    //??°æ¸ñ·Ï ÄŞº¸¹Ú½º??¼­ ??°æ ??ÅÃ????Çà??¾î ??°æ ±¸Àı????½Ã ??
                     gf.LoadBiblePassagesFromTabIndex(TabBibleVersions.SelectedIndex, BookLookup, ref BibleText, gf.HB_ShowVerses);
                     gf.HB_SequentialListing = true;
                     ShowStatusBarSummary();
@@ -4684,7 +4783,7 @@ namespace Easislides
                 bool flag = false;
                 try
                 {
-                    //SQLite LCase()  -> lower() ï¿½?ë³€ï¿½?UCase() -> upper()
+                    //SQLite LCase()  -> lower() ??º¯??UCase() -> upper()
                     //string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where LCase(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
                     string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where lower(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
 
@@ -4866,7 +4965,7 @@ namespace Easislides
 
             if (num >= 0)
             {
-                //?ï¿½ì¼ ë³€ï¿½??ï¿½ï¿½?ï¿½?ê°™ì´ ì²´í¬ ?ï¿½ì•¼??
+                //??ÀÏ º¯????????°°ÀÌ Ã¼Å© ??¾ß??
                 string InTitle = WorshipListItems.Items[num].SubItems[0].Text;
                 string text = WorshipListItems.Items[num].SubItems[1].Text;
                 gf.PreviewItem.InMainItemText = InTitle;
@@ -5499,7 +5598,7 @@ namespace Easislides
                     return;
                 }
                 WorshipListItems.Items[selectedIndex].SubItems[2].Text = gf.PreviewItem.Format.FormatString;
-                // ë¬¸ì œ ?ï¿½ìŒ ?ï¿½?ï¿½ì„ ëª»í•¨
+                // ¹®Á¦ ??À½ ????À» ¸øÇÔ
                 gf.SaveFormatStringToDatabase(gf.PreviewItem.ItemID, gf.PreviewItem.Format.FormatString);
                 SaveWorshipList();
             }
@@ -6652,7 +6751,7 @@ namespace Easislides
         }
 
         //static String prePreviewItemID = "";
-        //?ï¿½ì¼ ë³€ï¿½??ï¿½ï¿½?ï¿½?ê°™ì´ ì²´í¬
+        //??ÀÏ º¯????????°°ÀÌ Ã¼Å©
 
         private void WorshipListItems_DoubleClick(object sender, EventArgs e)
         {
@@ -8763,7 +8862,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// ?ï¿½ì¥??docx ì¶”ï¿½?
+        /// ??Àå??docx Ãß??
         /// </summary>
         private void LocateFileWorshipList()
         {
@@ -8791,7 +8890,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// ?ï¿½ì¥??docx ì¶”ï¿½?
+        /// ??Àå??docx Ãß??
         /// </summary>
         /// <param name="FullPathFileName"></param>
         /// <param name="AddToLocation"></param>
@@ -9187,7 +9286,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// ?ï¿½ì¥??docx ì¶”ï¿½?
+        /// ??Àå??docx Ãß??
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -11607,7 +11706,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// ?ï¿½ì¥??.docx ì¶”ï¿½?
+        /// ??Àå??.docx Ãß??
         /// </summary>
         /// <param name="InIDString"></param>
         /// <param name="InTitle"></param>
@@ -12120,7 +12219,7 @@ namespace Easislides
                     string text = "";
                     int num = -1;
 
-                    /// daniel  ?ï¿½ìš©?ï¿½ëŠ” ê³³ì´ ?ï¿½ì–´????ï¿½ï¿½
+                    /// daniel  ??¿ë??´Â °÷ÀÌ ??¾î??????
                     //Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
                     //tableRecordSet.Index = "PrimaryKey";
 
@@ -13877,7 +13976,7 @@ namespace Easislides
         }
 
         #region Event handlers of particular events. They will be activated when an appropriate checkbox is checked.
-        //daniel ?ï¿½ì • 2024??
+        //daniel ??Á¤ 2024??
         private void HookManager_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -13935,7 +14034,7 @@ namespace Easislides
                     }));
                     break;
                 case Keys.Down when gf.GlobalHookKey_Arrow:
-                    //ë²„ê·¸ ?ï¿½ìŒ ë§ˆìš°???ï¿½ì¹˜???ï¿½ë¼ ?ï¿½ì‘???ï¿½ìƒ??
+                    //¹ö±× ??À½ ¸¶¿ì????Ä¡????¶ó ??ÀÛ????»ó??
                     frmMain.BeginInvoke(new Action(() =>
                     {
                         MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
@@ -13951,3 +14050,4 @@ namespace Easislides
         }
     }
 }
+

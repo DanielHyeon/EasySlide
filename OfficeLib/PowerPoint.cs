@@ -40,7 +40,7 @@ namespace OfficeLib
 
 		public bool isLive = false;
 
-		//·¹Áö½ºÆ®¸®¿¡ µî·Ï µÇ´Â Screen Device Name
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½?ï¿½Ç´ï¿½ Screen Device Name
 		public string displayName = "None";
 
         public void Init()
@@ -293,8 +293,8 @@ namespace OfficeLib
 
 		/// <summary>
 		/// daniel
-		/// ÀÌ ÇÁ·Î±×·¥¿¡¼­ »ç¿ëÇÑ ÆÄ¿öÆ÷ÀÎÆ®¸¸ ´İÀ½
-		/// ´Ù¸¥ ÀÛ¾÷ ¶§¹®¿¡ ¿¬ ÆÄ¿öÆ÷ÀÎÆ® ÆÄÀÏÀº ´İÁö ¾ÊÀ½
+		/// ï¿½ï¿½ ï¿½ï¿½ï¿½Î±×·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½?ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ï¿½Ù¸ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		/// <param name="PowerpointList"></param>
 		/// <param name="TotalPowerpointItems"></param>
@@ -335,7 +335,7 @@ namespace OfficeLib
 			}
 			TotalPowerpointItems = 0;
 
-			//daniel PowerPoint App Á¾·á
+			//daniel PowerPoint App ï¿½ï¿½ï¿½ï¿½
 			QuitPowerPointApp(prePowerPointApp);
 
 			return "Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3 + (flag ? ". Error When Closing" : ". No Error");
@@ -345,7 +345,7 @@ namespace OfficeLib
 
 
 		/// daniel 
-		/// ÆÄ¿öÆ÷ÀÎÆ® Slide Show°¡ µÉ¶§ À©µµ¿ì Ã¢À» Minimized »óÅÂ·Î ¹Ù²Û´Ù.
+		/// ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ® Slide Showï¿½ï¿½ ï¿½É¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ Minimized ï¿½ï¿½ï¿½Â·ï¿½ ï¿½Ù²Û´ï¿½.
 		/// </summary>
 		public void NewApp()
 		{
@@ -362,7 +362,7 @@ namespace OfficeLib
 		}
 
 		/// <summary>
-		/// Ã¢À» ÃÖ¼ÒÈ­ ÇØÁØ´Ù.
+		/// Ã¢ï¿½ï¿½ ï¿½Ö¼ï¿½È­ ï¿½ï¿½ï¿½Ø´ï¿½.
 		/// </summary>
 		/// <param name="Pres"></param>
 		//private void PrePowerPointApp_PresentationOpenEvent(Presentation Pres)
@@ -383,6 +383,42 @@ namespace OfficeLib
 		//	Pres.Application.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
 		//	//prePowerPointApp.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
 		//}
+
+		/// <summary>
+		/// ?ï¿½ë¸”?ï¿½ë¦­ ??PowerPoint ?ï¿½ë¼?ï¿½ë“œ??ì°½ì„ ?ï¿½ì„±?ï¿½í•˜ï¿½??ï¿½ë‹ˆë©”ì´???ï¿½ì˜?ï¿½ì„ ?ï¿½ìƒ?ï¿½ëŠ” ë©”ì„œ??
+		/// </summary>
+		public void ActivateSlideShowAndTriggerClick(int slideNumber = -1)
+		{
+			try
+			{
+				if (prePowerPointApp == null)
+				{
+					return;
+				}
+
+				_Presentation activePresentation = prePowerPointApp.ActivePresentation;
+				if (activePresentation != null && activePresentation.SlideShowWindow != null)
+				{
+					// ?ï¿½ì¬ ?ï¿½ë¼?ï¿½ë“œ ?ï¿½ì¸
+					int currentSlide = activePresentation.SlideShowWindow.View.Slide.SlideIndex;
+
+					// ?ï¿½ë¼?ï¿½ë“œ ë²ˆí˜¸ê°€ ì§€?ï¿½ë˜?ï¿½ê³ , ?ï¿½ì¬ ?ï¿½ë¼?ï¿½ë“œ?ï¿½ ?ï¿½ë¥¸ ê²½ìš°?ï¿½ë§Œ ?ï¿½ë™
+					if (slideNumber > 0)
+					{
+						activePresentation.SlideShowWindow.View.GotoSlide(slideNumber, MsoTriState.msoTrue);
+						//Thread.Sleep(200);
+					}
+
+					activePresentation.SlideShowWindow.Activate();
+					activePresentation.SlideShowWindow.View.GotoClick(0);
+					activePresentation.SlideShowWindow.View.Next();
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error activating SlideShow: {ex.Message}");
+			}
+		}
 
 		public int ImplementPowerpointSlideMovement(ref int InCurSlide, int InCurMaxSlide, OfficeLibKeys InKey)
 		{
@@ -458,8 +494,7 @@ namespace OfficeLib
                             //int ClickCount = activePresentation.SlideShowWindow.View.GetClickCount();
 
                             activePresentation.SlideShowWindow.Activate();
-                            activePresentation.SlideShowWindow.View.GotoClick(0);
-                            
+                            activePresentation.SlideShowWindow.View.Next();
 
                             if (activePresentation.SlideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
 							{
@@ -470,7 +505,7 @@ namespace OfficeLib
 								if (InCurSlide != activePresentation.SlideShowWindow.View.Slide.SlideIndex)
 								{
                                     InCurSlide = activePresentation.SlideShowWindow.View.Slide.SlideIndex;
-                                }									                             
+                                }
                             }
                         }
                         break;
@@ -591,7 +626,7 @@ namespace OfficeLib
 
 			var hashFileInfo = new FileInfo(hashFileName);
 
-			//ÆÄÀÏ ÀÖ´ÂÁö È®ÀÎ ÀÖÀ»¶§(true), ¾øÀ¸¸é(false)
+			//ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(false)
 			if (hashFileInfo.Exists)
 			{
 				result = false;
@@ -620,7 +655,7 @@ namespace OfficeLib
 			var pptFileInfo = new FileInfo(FilePath);
 
 			FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
-			//ÆÄÀÏ ÀÖ´ÂÁö È®ÀÎ ÀÖÀ»¶§(true), ¾øÀ¸¸é(false)
+			//ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(false)
 			Console.WriteLine(FilePrefix + Convert.ToString(1) + ".jpg");
 
 			if (jpgFileInfo.Exists)
@@ -678,7 +713,7 @@ namespace OfficeLib
 					isJpgFileExist = false;
 					break;
 				}
-				//ÆÄÀÏ ÀÖ´ÂÁö È®ÀÎ ÀÖÀ»¶§(true), ¾øÀ¸¸é(false)
+				//ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(false)
 			}
 
 			if (isJpgFileExist)
@@ -738,7 +773,7 @@ namespace OfficeLib
 				//}
 				try
 				{
-					/// ¼öÁ¤Slide Ä«¿îÆ®, SongVerses Ä«¿îÆ® ¸¸Å­¸¸ ÃÊ±âÈ­
+					/// ï¿½ï¿½ï¿½ï¿½Slide Ä«ï¿½ï¿½Æ®, SongVerses Ä«ï¿½ï¿½Æ® ï¿½ï¿½Å­ï¿½ï¿½ ï¿½Ê±ï¿½È­
 					for (int i = 1; i < TotalSlides; i++)
 					{
 						Slide[i, 0] = -1;
@@ -1269,7 +1304,7 @@ namespace OfficeLib
                 if (presentation != null)
                 {
                     presentation.Close();
-                    presentation.Dispose();  // NetOffice¿¡¼­ Á¦°øÇÏ´Â Dispose() »ç¿ë
+                    presentation.Dispose();  // NetOfficeï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Dispose() ï¿½ï¿½ï¿½?
                 }
             }
             catch (Exception e)
@@ -1289,7 +1324,7 @@ namespace OfficeLib
                 if (prePowerPointApp != null && !prePowerPointApp.IsDisposed)
                 {
                     prePowerPointApp.Quit();
-                    prePowerPointApp.Dispose();  // Dispose()´Â Quit() ÀÌÈÄ¿¡ È£Ãâ
+                    prePowerPointApp.Dispose();  // Dispose()ï¿½ï¿½ Quit() ï¿½ï¿½ï¿½Ä¿ï¿½ È£ï¿½ï¿½
                 }
             }
             catch (ObjectDisposedException)
@@ -1373,3 +1408,4 @@ namespace OfficeLib
 		}
 	}
 }
+
