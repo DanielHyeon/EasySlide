@@ -1,1 +1,17 @@
-{"ShowEmptyProjects":false,"CustomColumnOrderings":{"name":0,"file-path":1,"file-name":2,"neutral-value":3,"neutral-comment":4,"type":5},"ShowValidationErrors":true,"SelectedResourceGroupsByProject":{"D:\\WorkSpace\\MS\\Dev\\EasiSlides_v9.0(mariadb\u0026sqlite)_v2.5.6\\DirectShow\\src\\DirectShowLib.csproj":[],"D:\\WorkSpace\\MS\\Dev\\EasiSlides_v9.0(mariadb\u0026sqlite)_v2.5.6\\OfficeLib\\OfficeLib.csproj":[],"D:\\WorkSpace\\MS\\Dev\\EasiSlides_v9.0(mariadb\u0026sqlite)_v2.5.6\\Easislides\\Easislides.csproj":["D:\\WorkSpace\\MS\\Dev\\EasiSlides_v9.0(mariadb\u0026sqlite)_v2.5.6\\Easislides\\Properties\\Resources.resx"]},"VisibleColumnKeys":["name","neutral-value","neutral-comment"]}
+{
+  "ShowEmptyProjects": false,
+  "SelectedGroups": [],
+  "ExpandedProjects": [],
+  "EnableSpellChecker": true,
+  "ColumnOrder": [
+    "name",
+    "type",
+    "neutral-value",
+    "neutral-comment"
+  ],
+  "VisibleColumnKeys": [
+    "name",
+    "neutral-comment",
+    "neutral-value"
+  ]
+}

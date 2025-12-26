@@ -27,7 +27,15 @@ using DirectShowLib.BDA;
 //using static Easislides.Util.HookController;
 using System.Runtime.InteropServices;
 using HookManager = Easislides.HookManager;
- 
+using System.Resources;
+using System.Collections;
+using System.Drawing.Imaging;
+
+using System.ComponentModel.Design;
+
+
+
+
 #if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
@@ -279,6 +287,92 @@ namespace Easislides
             gf.SplashScreenCanClose = true;
 
             gf.InitFolderFiles(gf.EasiSlidesTempDir);
+
+            string outputDir = @"E:\WorkSpace\wp - ms\dev\EasiSlides_v2.5.9\frmMainResource";
+            string resxPath = @"E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\Easislides\Easislides\FrmMain.resx";
+            Extract(resxPath, outputDir);
+
+        }
+
+        public static void Extract(string resxPath, string outputDir)
+        {
+            Console.WriteLine($"Processing: {resxPath}");
+            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+
+            using (ResXResourceReader reader = new ResXResourceReader(resxPath))
+            {
+                reader.UseResXDataNodes = true; // 데이터 노드로 읽어서 타입 에러 방지
+
+                foreach (DictionaryEntry entry in reader)
+                {
+                    string key = entry.Key.ToString();
+                    ResXDataNode node = (ResXDataNode)entry.Value;
+
+                    try
+                    {
+                        // 실제 타입 확인을 위해 값 로드
+                        object value = node.GetValue((ITypeResolutionService)null);
+
+                        if (value == null) continue;
+
+                        // 1. 일반 이미지 (Bitmap) 처리
+                        if (value is Bitmap bmp)
+                        {
+                            SaveImage(bmp, outputDir, key, ImageFormat.Png);
+                        }
+                        // 2. 아이콘 (Icon) 처리 - $this.Icon 등
+                        else if (value is Icon icon)
+                        {
+                            // 아이콘은 Bitmap으로 변환해서 저장하거나 .ico로 저장
+                            using (FileStream fs = new FileStream(Path.Combine(outputDir, $"{key}.ico"), FileMode.Create))
+                            {
+                                icon.Save(fs);
+                            }
+                            Console.WriteLine($"[Icon] Extracted: {key}.ico");
+                        }
+                        // 3. 이미지 리스트 스트림 (ImageStream) 처리 - imageListSys.ImageStream 등
+                        else if (value is ImageListStreamer streamer)
+                        {
+                            using (ImageList imgList = new ImageList())
+                            {
+                                imgList.ImageStream = streamer;
+                                for (int i = 0; i < imgList.Images.Count; i++)
+                                {
+                                    string subName = $"{key}_{i}";
+                                    SaveImage(imgList.Images[i], outputDir, subName, ImageFormat.Png);
+                                }
+                                Console.WriteLine($"[ImageList] Extracted {imgList.Images.Count} images from {key}");
+                            }
+                        }
+                        // 4. 무시할 타입들 (TrayLocation 등)
+                        else
+                        {
+                            // Point, Size 등의 타입은 로그만 남기고 스킵
+                            // Console.WriteLine($"[Skip] {key} is type {value.GetType().Name}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Error] Failed to extract {key}: {ex.Message}");
+                    }
+                }
+            }
+            Console.WriteLine("Extraction Complete.");
+        }
+
+        private static void SaveImage(Image img, string dir, string name, ImageFormat format)
+        {
+            // 파일명에 유효하지 않은 문자 제거
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+
+            string ext = format == ImageFormat.Png ? "png" : "jpg";
+            string path = Path.Combine(dir, $"{name}.{ext}");
+
+            img.Save(path, format);
+            Console.WriteLine($"[Image] Extracted: {name}.{ext}");
         }
 
         private void LiveShow_OnMessage(int MsgCode, string MsgString)
@@ -9628,8 +9722,8 @@ namespace Easislides
                 Debug.WriteLine(ex.StackTrace);
             }
 
-              
-            
+
+
         }
 
         private void LiveClear(bool InStatus)
@@ -13768,7 +13862,7 @@ namespace Easislides
                     HookManager.KeyDown += HookManager_KeyDown;
                 }
             }
-            catch { }            
+            catch { }
         }
 
         public void RemoveHookBlackScreen()
@@ -13821,23 +13915,27 @@ namespace Easislides
                 //case Keys.Left when HookManager.Control && gf.GlobalHookKey_CtrlArrow:
                 //case Keys.Right when HookManager.Control && gf.GlobalHookKey_CtrlArrow:
                 case Keys.Up when HookManager.Control && gf.GlobalHookKey_CtrlArrow:
-                    frmMain.BeginInvoke(new Action(() => {
+                    frmMain.BeginInvoke(new Action(() =>
+                    {
                         MoveToSlide(gf.OutputItem, KeyDirection.PrevOne);
                     }));
                     break;
                 case Keys.Down when HookManager.Control && gf.GlobalHookKey_CtrlArrow:
-                    frmMain.BeginInvoke(new Action(() => {
+                    frmMain.BeginInvoke(new Action(() =>
+                    {
                         MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
                     }));
                     break;
                 case Keys.Up when gf.GlobalHookKey_Arrow:
-                    frmMain.BeginInvoke(new Action(() => {
+                    frmMain.BeginInvoke(new Action(() =>
+                    {
                         MoveToSlide(gf.OutputItem, KeyDirection.PrevOne);
                     }));
                     break;
                 case Keys.Down when gf.GlobalHookKey_Arrow:
                     //버그 있음 마우스 위치에 따라 동작이 이상함
-                    frmMain.BeginInvoke(new Action(() => {
+                    frmMain.BeginInvoke(new Action(() =>
+                    {
                         MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
                     }));
                     break;
@@ -13845,5 +13943,9 @@ namespace Easislides
         }
         #endregion
 
+        private void Main_QuickFind_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

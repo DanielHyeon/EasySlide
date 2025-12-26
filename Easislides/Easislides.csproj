@@ -8,7 +8,7 @@
     <Platforms>AnyCPU;x64</Platforms>
     <StartupObject>Easislides.Program</StartupObject>
     <DebugType>portable</DebugType>
-    <ApplicationIcon>Resources\ES.Icon.ico</ApplicationIcon>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\ES.Icon.ico" />
+    <Content Include="favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
