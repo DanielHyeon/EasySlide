@@ -3357,9 +3357,9 @@ namespace Easislides
             // Main_New
             // 
             Main_New.AutoSize = false;
-            Main_New.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_New.BackgroundImage");
             Main_New.BackgroundImageLayout = ImageLayout.Stretch;
             Main_New.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_New.Image = (System.Drawing.Image)resources.GetObject("Main_New.Image");
             Main_New.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_New.Name = "Main_New";
             Main_New.Size = new System.Drawing.Size(29, 28);
@@ -3370,9 +3370,9 @@ namespace Easislides
             // Main_Edit
             // 
             Main_Edit.AutoSize = false;
-            Main_Edit.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Edit.BackgroundImage");
             Main_Edit.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Edit.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Edit.Image = (System.Drawing.Image)resources.GetObject("Main_Edit.Image");
             Main_Edit.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Edit.Name = "Main_Edit";
             Main_Edit.Size = new System.Drawing.Size(29, 28);
@@ -3383,9 +3383,9 @@ namespace Easislides
             // Main_Copy
             // 
             Main_Copy.AutoSize = false;
-            Main_Copy.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Copy.BackgroundImage");
             Main_Copy.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Copy.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Copy.Image = (System.Drawing.Image)resources.GetObject("Main_Copy.Image");
             Main_Copy.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Copy.Name = "Main_Copy";
             Main_Copy.Size = new System.Drawing.Size(29, 28);
@@ -3396,9 +3396,9 @@ namespace Easislides
             // Main_Move
             // 
             Main_Move.AutoSize = false;
-            Main_Move.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Move.BackgroundImage");
             Main_Move.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Move.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Move.Image = (System.Drawing.Image)resources.GetObject("Main_Move.Image");
             Main_Move.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Move.Name = "Main_Move";
             Main_Move.Padding = new Padding(2);
@@ -3410,9 +3410,9 @@ namespace Easislides
             // Main_Delete
             // 
             Main_Delete.AutoSize = false;
-            Main_Delete.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Delete.BackgroundImage");
             Main_Delete.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Delete.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Delete.Image = (System.Drawing.Image)resources.GetObject("Main_Delete.Image");
             Main_Delete.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Delete.Name = "Main_Delete";
             Main_Delete.Size = new System.Drawing.Size(29, 28);
@@ -3428,9 +3428,9 @@ namespace Easislides
             // Main_Media
             // 
             Main_Media.AutoSize = false;
-            Main_Media.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Media.BackgroundImage");
             Main_Media.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Media.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Media.Image = (System.Drawing.Image)resources.GetObject("Main_Media.Image");
             Main_Media.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Media.Name = "Main_Media";
             Main_Media.Size = new System.Drawing.Size(29, 28);
@@ -3441,9 +3441,9 @@ namespace Easislides
             // Main_Refresh
             // 
             Main_Refresh.AutoSize = false;
-            Main_Refresh.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Refresh.BackgroundImage");
             Main_Refresh.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Refresh.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Refresh.Image = (System.Drawing.Image)resources.GetObject("Main_Refresh.Image");
             Main_Refresh.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Refresh.Name = "Main_Refresh";
             Main_Refresh.Size = new System.Drawing.Size(29, 28);
@@ -3459,9 +3459,9 @@ namespace Easislides
             // Main_Options
             // 
             Main_Options.AutoSize = false;
-            Main_Options.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Options.BackgroundImage");
             Main_Options.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Options.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Options.Image = (System.Drawing.Image)resources.GetObject("Main_Options.Image");
             Main_Options.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Options.Name = "Main_Options";
             Main_Options.Size = new System.Drawing.Size(29, 28);
@@ -3477,10 +3477,10 @@ namespace Easislides
             // Main_NoRotate
             // 
             Main_NoRotate.AutoSize = false;
-            Main_NoRotate.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_NoRotate.BackgroundImage");
             Main_NoRotate.BackgroundImageLayout = ImageLayout.Stretch;
             Main_NoRotate.CheckOnClick = true;
             Main_NoRotate.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_NoRotate.Image = (System.Drawing.Image)resources.GetObject("Main_NoRotate.Image");
             Main_NoRotate.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_NoRotate.Name = "Main_NoRotate";
             Main_NoRotate.Size = new System.Drawing.Size(29, 28);
@@ -3503,7 +3503,7 @@ namespace Easislides
             // 
             Main_Rotate0.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate0.Image");
             Main_Rotate0.Name = "Main_Rotate0";
-            Main_Rotate0.Size = new System.Drawing.Size(298, 26);
+            Main_Rotate0.Size = new System.Drawing.Size(302, 30);
             Main_Rotate0.Tag = "0";
             Main_Rotate0.Text = "Auto Rotate One Item ";
             // 
@@ -3511,7 +3511,7 @@ namespace Easislides
             // 
             Main_Rotate1.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate1.Image");
             Main_Rotate1.Name = "Main_Rotate1";
-            Main_Rotate1.Size = new System.Drawing.Size(298, 26);
+            Main_Rotate1.Size = new System.Drawing.Size(302, 30);
             Main_Rotate1.Tag = "1";
             Main_Rotate1.Text = "Auto Rotate One Item - Repeat";
             // 
@@ -3519,7 +3519,7 @@ namespace Easislides
             // 
             Main_Rotate2.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate2.Image");
             Main_Rotate2.Name = "Main_Rotate2";
-            Main_Rotate2.Size = new System.Drawing.Size(298, 26);
+            Main_Rotate2.Size = new System.Drawing.Size(302, 30);
             Main_Rotate2.Tag = "2";
             Main_Rotate2.Text = "Auto Rotate Group";
             // 
@@ -3527,16 +3527,16 @@ namespace Easislides
             // 
             Main_Rotate3.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate3.Image");
             Main_Rotate3.Name = "Main_Rotate3";
-            Main_Rotate3.Size = new System.Drawing.Size(298, 26);
+            Main_Rotate3.Size = new System.Drawing.Size(302, 30);
             Main_Rotate3.Tag = "3";
             Main_Rotate3.Text = "Auto Rotate Group - Repeat";
             // 
             // Main_Alerts
             // 
             Main_Alerts.AutoSize = false;
-            Main_Alerts.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Alerts.BackgroundImage");
             Main_Alerts.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Alerts.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Alerts.Image = (System.Drawing.Image)resources.GetObject("Main_Alerts.Image");
             Main_Alerts.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Alerts.Name = "Main_Alerts";
             Main_Alerts.Size = new System.Drawing.Size(29, 28);
@@ -3547,9 +3547,9 @@ namespace Easislides
             // Main_Chinese
             // 
             Main_Chinese.AutoSize = false;
-            Main_Chinese.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Chinese.BackgroundImage");
             Main_Chinese.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Chinese.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Chinese.Image = (System.Drawing.Image)resources.GetObject("Main_Chinese.Image");
             Main_Chinese.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Chinese.Name = "Main_Chinese";
             Main_Chinese.Size = new System.Drawing.Size(29, 28);
@@ -3565,9 +3565,9 @@ namespace Easislides
             // Main_Find
             // 
             Main_Find.AutoSize = false;
-            Main_Find.BackgroundImage = (System.Drawing.Image)resources.GetObject("Main_Find.BackgroundImage");
             Main_Find.BackgroundImageLayout = ImageLayout.Stretch;
             Main_Find.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Find.Image = (System.Drawing.Image)resources.GetObject("Main_Find.Image");
             Main_Find.ImageTransparentColor = System.Drawing.Color.Magenta;
             Main_Find.Name = "Main_Find";
             Main_Find.Size = new System.Drawing.Size(29, 28);
