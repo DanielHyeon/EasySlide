@@ -31,6 +31,7 @@ namespace Easislides
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
+            imageListSys = new ImageList(components);
             Ind_HeadFirstScreen = new ToolStripMenuItem();
             PreviewBtnVerse1 = new Button();
             PreviewBtnVerse2 = new Button();
@@ -60,7 +61,6 @@ namespace Easislides
             IndradioButtonFormat = new RadioButton();
             IndradioButtonText = new RadioButton();
             IndcbPreviewNotes = new CheckBox();
-            imageListSys = new ImageList(components);
             PreviewHolder = new Panel();
             PreviewBack = new Panel();
             PreviewNotes = new RichTextBox();
@@ -746,6 +746,64 @@ namespace Easislides
             panelInd6.SuspendLayout();
             SuspendLayout();
             // 
+            // imageListSys
+            // 
+            imageListSys.ColorDepth = ColorDepth.Depth16Bit;
+            imageListSys.ImageStream = (ImageListStreamer)resources.GetObject("imageListSys.ImageStream");
+            imageListSys.TransparentColor = System.Drawing.Color.Transparent;
+            imageListSys.Images.SetKeyName(0, "favicon.ico");
+            imageListSys.Images.SetKeyName(1, "ES Icon 32 Blue - Highlight.ico");
+            imageListSys.Images.SetKeyName(2, "pptType.png");
+            imageListSys.Images.SetKeyName(3, "PPTType-Highlight.png");
+            imageListSys.Images.SetKeyName(4, "BibleType.gif");
+            imageListSys.Images.SetKeyName(5, "BibleType-Highlight.gif");
+            imageListSys.Images.SetKeyName(6, "NotebookType.gif");
+            imageListSys.Images.SetKeyName(7, "NotebookType-Highlight.gif");
+            imageListSys.Images.SetKeyName(8, "infoType.gif");
+            imageListSys.Images.SetKeyName(9, "infoType-Highlight.gif");
+            imageListSys.Images.SetKeyName(10, "WordType.gif");
+            imageListSys.Images.SetKeyName(11, "WordType-Highlight.gif");
+            imageListSys.Images.SetKeyName(12, "singleScreen.png");
+            imageListSys.Images.SetKeyName(13, "dualScreen.png");
+            imageListSys.Images.SetKeyName(14, "keyboard.png");
+            imageListSys.Images.SetKeyName(15, "BlackScreen.gif");
+            imageListSys.Images.SetKeyName(16, "BlackScreen-red.gif");
+            imageListSys.Images.SetKeyName(17, "hideText.gif");
+            imageListSys.Images.SetKeyName(18, "hideText-red.gif");
+            imageListSys.Images.SetKeyName(19, "folderOpen.gif");
+            imageListSys.Images.SetKeyName(20, "pic-bestfit.gif");
+            imageListSys.Images.SetKeyName(21, "Bibles_Go.gif");
+            imageListSys.Images.SetKeyName(22, "Option.gif");
+            imageListSys.Images.SetKeyName(23, "infoType.gif");
+            imageListSys.Images.SetKeyName(24, "PPTListType.gif");
+            imageListSys.Images.SetKeyName(25, "tick.gif");
+            imageListSys.Images.SetKeyName(26, "singleScreen.png");
+            imageListSys.Images.SetKeyName(27, "question-mark.gif");
+            imageListSys.Images.SetKeyName(28, "mediaType.gif");
+            imageListSys.Images.SetKeyName(29, "mediaType-Highlight.gif");
+            imageListSys.Images.SetKeyName(30, "LiveCam.gif");
+            imageListSys.Images.SetKeyName(31, "LiveCam-red.gif");
+            imageListSys.Images.SetKeyName(32, "LiveCam.gif");
+            imageListSys.Images.SetKeyName(33, "btnLive.png");
+            imageListSys.Images.SetKeyName(34, "Move Up.png");
+            imageListSys.Images.SetKeyName(35, "Move Down.png");
+            imageListSys.Images.SetKeyName(36, "EditSessionNote.png");
+            imageListSys.Images.SetKeyName(37, "EditSessionNote.png");
+            imageListSys.Images.SetKeyName(38, "btnLive.png");
+            imageListSys.Images.SetKeyName(39, "btnToOutputMove.png");
+            imageListSys.Images.SetKeyName(40, "btnToOutput.png");
+            imageListSys.Images.SetKeyName(41, "SetPreviewNote.png");
+            imageListSys.Images.SetKeyName(42, "MoveToUpList.png");
+            imageListSys.Images.SetKeyName(43, "MoveToDownList.png");
+            imageListSys.Images.SetKeyName(44, "MoveToUpContent.png");
+            imageListSys.Images.SetKeyName(45, "MoveToDownContent.png");
+            imageListSys.Images.SetKeyName(46, "MediaFile.png");
+            imageListSys.Images.SetKeyName(47, "Alert.png");
+            imageListSys.Images.SetKeyName(48, "MoveToUpList.png");
+            imageListSys.Images.SetKeyName(49, "MoveToDownList.png");
+            imageListSys.Images.SetKeyName(50, "MoveToUpContent.png");
+            imageListSys.Images.SetKeyName(51, "MoveToDownContent.png");
+            // 
             // Ind_HeadFirstScreen
             // 
             Ind_HeadFirstScreen.Image = (System.Drawing.Image)resources.GetObject("Ind_HeadFirstScreen.Image");
@@ -1022,7 +1080,8 @@ namespace Easislides
             // PreviewBtnSlideDown
             // 
             PreviewBtnSlideDown.Dock = DockStyle.Left;
-            PreviewBtnSlideDown.Image = (System.Drawing.Image)resources.GetObject("PreviewBtnSlideDown.Image");
+            PreviewBtnSlideDown.ImageIndex = 45;
+            PreviewBtnSlideDown.ImageList = imageListSys;
             PreviewBtnSlideDown.Location = new System.Drawing.Point(254, 0);
             PreviewBtnSlideDown.Margin = new Padding(3, 5, 3, 5);
             PreviewBtnSlideDown.Name = "PreviewBtnSlideDown";
@@ -1034,7 +1093,8 @@ namespace Easislides
             // PreviewBtnSlideUp
             // 
             PreviewBtnSlideUp.Dock = DockStyle.Left;
-            PreviewBtnSlideUp.Image = (System.Drawing.Image)resources.GetObject("PreviewBtnSlideUp.Image");
+            PreviewBtnSlideUp.ImageIndex = 44;
+            PreviewBtnSlideUp.ImageList = imageListSys;
             PreviewBtnSlideUp.Location = new System.Drawing.Point(224, 0);
             PreviewBtnSlideUp.Margin = new Padding(3, 5, 3, 5);
             PreviewBtnSlideUp.Name = "PreviewBtnSlideUp";
@@ -1046,7 +1106,8 @@ namespace Easislides
             // PreviewBtnItemDown
             // 
             PreviewBtnItemDown.Dock = DockStyle.Left;
-            PreviewBtnItemDown.Image = (System.Drawing.Image)resources.GetObject("PreviewBtnItemDown.Image");
+            PreviewBtnItemDown.ImageIndex = 43;
+            PreviewBtnItemDown.ImageList = imageListSys;
             PreviewBtnItemDown.Location = new System.Drawing.Point(194, 0);
             PreviewBtnItemDown.Margin = new Padding(3, 5, 3, 5);
             PreviewBtnItemDown.Name = "PreviewBtnItemDown";
@@ -1058,7 +1119,8 @@ namespace Easislides
             // PreviewBtnItemUp
             // 
             PreviewBtnItemUp.Dock = DockStyle.Left;
-            PreviewBtnItemUp.Image = (System.Drawing.Image)resources.GetObject("PreviewBtnItemUp.Image");
+            PreviewBtnItemUp.ImageIndex = 42;
+            PreviewBtnItemUp.ImageList = imageListSys;
             PreviewBtnItemUp.Location = new System.Drawing.Point(164, 0);
             PreviewBtnItemUp.Margin = new Padding(3, 5, 3, 5);
             PreviewBtnItemUp.Name = "PreviewBtnItemUp";
@@ -1125,54 +1187,6 @@ namespace Easislides
             toolTip1.SetToolTip(IndcbPreviewNotes, "Show Session Notes");
             IndcbPreviewNotes.UseVisualStyleBackColor = true;
             IndcbPreviewNotes.Click += IndcbPreviewNotes_Click;
-            // 
-            // imageListSys
-            // 
-            imageListSys.ColorDepth = ColorDepth.Depth8Bit;
-            imageListSys.ImageStream = (ImageListStreamer)resources.GetObject("imageListSys.ImageStream");
-            imageListSys.TransparentColor = System.Drawing.Color.White;
-            imageListSys.Images.SetKeyName(0, "ES Icon 32 Blue.ico");
-            imageListSys.Images.SetKeyName(1, "ES Icon 32 Blue - Highlight.ico");
-            imageListSys.Images.SetKeyName(2, "PPImg.gif");
-            imageListSys.Images.SetKeyName(3, "PPImg - Highlight.gif");
-            imageListSys.Images.SetKeyName(4, "Bible.gif");
-            imageListSys.Images.SetKeyName(5, "Bible - Hightlight.gif");
-            imageListSys.Images.SetKeyName(6, "notebook.gif");
-            imageListSys.Images.SetKeyName(7, "notebook-highlight.gif");
-            imageListSys.Images.SetKeyName(8, "Info_Sym.gif");
-            imageListSys.Images.SetKeyName(9, "Info_Sym highlight.gif");
-            imageListSys.Images.SetKeyName(10, "word.gif");
-            imageListSys.Images.SetKeyName(11, "word-highlight.gif");
-            imageListSys.Images.SetKeyName(12, "singlescreen.gif");
-            imageListSys.Images.SetKeyName(13, "dualscreens.gif");
-            imageListSys.Images.SetKeyName(14, "keyboard.gif");
-            imageListSys.Images.SetKeyName(15, "BlackScreen.png");
-            imageListSys.Images.SetKeyName(16, "BlackScreen-Red.gif");
-            imageListSys.Images.SetKeyName(17, "hideText.png");
-            imageListSys.Images.SetKeyName(18, "BlueScreen-Red.gif");
-            imageListSys.Images.SetKeyName(19, "folder.gif");
-            imageListSys.Images.SetKeyName(20, "pic-bestfit.gif");
-            imageListSys.Images.SetKeyName(21, "Bible.gif");
-            imageListSys.Images.SetKeyName(22, "options.gif");
-            imageListSys.Images.SetKeyName(23, "Info_Sym.gif");
-            imageListSys.Images.SetKeyName(24, "PPImg.gif");
-            imageListSys.Images.SetKeyName(25, "Tick.gif");
-            imageListSys.Images.SetKeyName(26, "NumNewScreen.gif");
-            imageListSys.Images.SetKeyName(27, "ques.gif");
-            imageListSys.Images.SetKeyName(28, "Media.gif");
-            imageListSys.Images.SetKeyName(29, "Media-highlight.gif");
-            imageListSys.Images.SetKeyName(30, "LiveCam.png");
-            imageListSys.Images.SetKeyName(31, "camcorder-Red.gif");
-            imageListSys.Images.SetKeyName(32, "LiveCam.png");
-            imageListSys.Images.SetKeyName(33, "btnLive.png");
-            imageListSys.Images.SetKeyName(34, "Move Up.png");
-            imageListSys.Images.SetKeyName(35, "Move Down.png");
-            imageListSys.Images.SetKeyName(36, "EditSessionNote.png");
-            imageListSys.Images.SetKeyName(37, "EditSessionNote.png");
-            imageListSys.Images.SetKeyName(38, "btnLive.png");
-            imageListSys.Images.SetKeyName(39, "btnToOutputMove.png");
-            imageListSys.Images.SetKeyName(40, "btnToOutput.png");
-            imageListSys.Images.SetKeyName(41, "SetPreviewNote.png");
             // 
             // PreviewHolder
             // 
@@ -2070,7 +2084,8 @@ namespace Easislides
             // OutputBtnSlideDown
             // 
             OutputBtnSlideDown.Dock = DockStyle.Left;
-            OutputBtnSlideDown.Image = (System.Drawing.Image)resources.GetObject("OutputBtnSlideDown.Image");
+            OutputBtnSlideDown.ImageIndex = 51;
+            OutputBtnSlideDown.ImageList = imageListSys;
             OutputBtnSlideDown.Location = new System.Drawing.Point(183, 0);
             OutputBtnSlideDown.Margin = new Padding(3, 5, 3, 5);
             OutputBtnSlideDown.Name = "OutputBtnSlideDown";
@@ -2082,7 +2097,8 @@ namespace Easislides
             // OutputBtnSlideUp
             // 
             OutputBtnSlideUp.Dock = DockStyle.Left;
-            OutputBtnSlideUp.Image = (System.Drawing.Image)resources.GetObject("OutputBtnSlideUp.Image");
+            OutputBtnSlideUp.ImageIndex = 50;
+            OutputBtnSlideUp.ImageList = imageListSys;
             OutputBtnSlideUp.Location = new System.Drawing.Point(153, 0);
             OutputBtnSlideUp.Margin = new Padding(3, 5, 3, 5);
             OutputBtnSlideUp.Name = "OutputBtnSlideUp";
@@ -2094,7 +2110,8 @@ namespace Easislides
             // OutputBtnItemDown
             // 
             OutputBtnItemDown.Dock = DockStyle.Left;
-            OutputBtnItemDown.Image = (System.Drawing.Image)resources.GetObject("OutputBtnItemDown.Image");
+            OutputBtnItemDown.ImageIndex = 49;
+            OutputBtnItemDown.ImageList = imageListSys;
             OutputBtnItemDown.Location = new System.Drawing.Point(123, 0);
             OutputBtnItemDown.Margin = new Padding(3, 5, 3, 5);
             OutputBtnItemDown.Name = "OutputBtnItemDown";
@@ -2106,7 +2123,8 @@ namespace Easislides
             // OutputBtnItemUp
             // 
             OutputBtnItemUp.Dock = DockStyle.Left;
-            OutputBtnItemUp.Image = (System.Drawing.Image)resources.GetObject("OutputBtnItemUp.Image");
+            OutputBtnItemUp.ImageIndex = 48;
+            OutputBtnItemUp.ImageList = imageListSys;
             OutputBtnItemUp.Location = new System.Drawing.Point(93, 0);
             OutputBtnItemUp.Margin = new Padding(3, 5, 3, 5);
             OutputBtnItemUp.Name = "OutputBtnItemUp";
@@ -2118,7 +2136,8 @@ namespace Easislides
             // OutputBtnRefAlert
             // 
             OutputBtnRefAlert.Dock = DockStyle.Left;
-            OutputBtnRefAlert.Image = (System.Drawing.Image)resources.GetObject("OutputBtnRefAlert.Image");
+            OutputBtnRefAlert.ImageIndex = 47;
+            OutputBtnRefAlert.ImageList = imageListSys;
             OutputBtnRefAlert.Location = new System.Drawing.Point(62, 0);
             OutputBtnRefAlert.Margin = new Padding(3, 5, 3, 5);
             OutputBtnRefAlert.Name = "OutputBtnRefAlert";
@@ -2130,7 +2149,8 @@ namespace Easislides
             // OutputBtnMedia
             // 
             OutputBtnMedia.Dock = DockStyle.Left;
-            OutputBtnMedia.Image = (System.Drawing.Image)resources.GetObject("OutputBtnMedia.Image");
+            OutputBtnMedia.ImageIndex = 46;
+            OutputBtnMedia.ImageList = imageListSys;
             OutputBtnMedia.Location = new System.Drawing.Point(31, 0);
             OutputBtnMedia.Margin = new Padding(3, 5, 3, 5);
             OutputBtnMedia.Name = "OutputBtnMedia";

@@ -267,7 +267,7 @@ namespace Easislides
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            /// Keyboard Hooking 시작
+            /// Keyboard Hooking ?�작
             RemoveHookBlackScreen();
             AddHookBlackScreen();
 
@@ -288,9 +288,11 @@ namespace Easislides
 
             gf.InitFolderFiles(gf.EasiSlidesTempDir);
 
-            string outputDir = @"E:\WorkSpace\wp - ms\dev\EasiSlides_v2.5.9\frmMainResource";
-            string resxPath = @"E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\Easislides\Easislides\FrmMain.resx";
-            Extract(resxPath, outputDir);
+            /// Daniel 25.12.26
+            /// Test Resource Extraction
+            //string outputDir = @"E:\WorkSpace\wp - ms\dev\EasiSlides_v2.5.9\frmMainResource";
+            //string resxPath = @"E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\Easislides\Easislides\FrmMain.resx";
+            //Extract(resxPath, outputDir);
 
         }
 
@@ -301,7 +303,7 @@ namespace Easislides
 
             using (ResXResourceReader reader = new ResXResourceReader(resxPath))
             {
-                reader.UseResXDataNodes = true; // 데이터 노드로 읽어서 타입 에러 방지
+                reader.UseResXDataNodes = true; // ?�이???�드�??�어???�???�러 방�?
 
                 foreach (DictionaryEntry entry in reader)
                 {
@@ -310,27 +312,27 @@ namespace Easislides
 
                     try
                     {
-                        // 실제 타입 확인을 위해 값 로드
+                        // ?�제 ?�???�인???�해 �?로드
                         object value = node.GetValue((ITypeResolutionService)null);
 
                         if (value == null) continue;
 
-                        // 1. 일반 이미지 (Bitmap) 처리
+                        // 1. ?�반 ?��?지 (Bitmap) 처리
                         if (value is Bitmap bmp)
                         {
                             SaveImage(bmp, outputDir, key, ImageFormat.Png);
                         }
-                        // 2. 아이콘 (Icon) 처리 - $this.Icon 등
+                        // 2. ?�이�?(Icon) 처리 - $this.Icon ??
                         else if (value is Icon icon)
                         {
-                            // 아이콘은 Bitmap으로 변환해서 저장하거나 .ico로 저장
+                            // ?�이콘�? Bitmap?�로 변?�해???�?�하거나 .ico�??�??
                             using (FileStream fs = new FileStream(Path.Combine(outputDir, $"{key}.ico"), FileMode.Create))
                             {
                                 icon.Save(fs);
                             }
                             Console.WriteLine($"[Icon] Extracted: {key}.ico");
                         }
-                        // 3. 이미지 리스트 스트림 (ImageStream) 처리 - imageListSys.ImageStream 등
+                        // 3. ?��?지 리스???�트�?(ImageStream) 처리 - imageListSys.ImageStream ??
                         else if (value is ImageListStreamer streamer)
                         {
                             using (ImageList imgList = new ImageList())
@@ -344,10 +346,10 @@ namespace Easislides
                                 Console.WriteLine($"[ImageList] Extracted {imgList.Images.Count} images from {key}");
                             }
                         }
-                        // 4. 무시할 타입들 (TrayLocation 등)
+                        // 4. 무시???�?�들 (TrayLocation ??
                         else
                         {
-                            // Point, Size 등의 타입은 로그만 남기고 스킵
+                            // Point, Size ?�의 ?�?��? 로그�??�기�??�킵
                             // Console.WriteLine($"[Skip] {key} is type {value.GetType().Name}");
                         }
                     }
@@ -362,7 +364,7 @@ namespace Easislides
 
         private static void SaveImage(Image img, string dir, string name, ImageFormat format)
         {
-            // 파일명에 유효하지 않은 문자 제거
+            // ?�일명에 ?�효?��? ?��? 문자 ?�거
             foreach (char c in Path.GetInvalidFileNameChars())
             {
                 name = name.Replace(c, '_');
@@ -441,7 +443,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel 
-        /// 레지스트리에서 해상도 값을 얻어오는 것을 추가.
+        /// ?��??�트리에???�상??값을 ?�어?�는 것을 추�?.
         /// </summary>
         /// <returns></returns>
         private bool InitFormControls()
@@ -678,7 +680,7 @@ namespace Easislides
 
             int num6 = 0;
 
-            // Daniel Park 수정 2023년 12월 24일
+            // Daniel Park ?�정 2023??12??24??
             //int newHeight = 0;
             if (!gf.isScreenWideMode)
             {
@@ -696,7 +698,7 @@ namespace Easislides
                 num6 = InPanelContainer.Height - (num2 + num3 + num4);
                 num6 = ((num6 <= 0) ? 1 : num6);
                 // daniel
-                // 미리보기 사이즈 와이드로 변경
+                // 미리보기 ?�이�??�?�드�?변�?
                 // num5 = num6 * 4 / 3;
 
                 //if (gf.isScreenWideMode)
@@ -728,7 +730,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 수정본 ResizeSampleScreen version 1
+        /// ?�정�?ResizeSampleScreen version 1
         /// </summary>
         /// <param name="InPanelContainer"></param>
         /// <param name="InHolder"></param>
@@ -751,7 +753,7 @@ namespace Easislides
                 num6 = InPanelContainer.Height - (num2 + num3 + num4);
                 num6 = ((num6 <= 0) ? 1 : num6);
                 // daniel
-                // 미리보기 사이즈 와이드로 변경
+                // 미리보기 ?�이�??�?�드�?변�?
                 // num5 = num6 * 4 / 3;
 
                 //if (gf.isScreenWideMode)
@@ -783,7 +785,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 원본 ResizeSampleScreen
+        /// ?�본 ResizeSampleScreen
         /// </summary>
         /// <param name="InPanelContainer"></param>
         /// <param name="InHolder"></param>
@@ -880,7 +882,7 @@ namespace Easislides
                         SaveFormStateToRegistry();
                     }
                     //daniel
-                    //프로그램 종료시 파워포인트 파일을 닫음
+                    //?�로그램 종료???�워?�인???�일???�음
                     gf.ClearUpPowerpointWindows();
                     gf.DeleteFolderFiles(gf.EasiSlidesTempDir);
 
@@ -2500,7 +2502,7 @@ namespace Easislides
             else
             {
                 // 22/04/01 03:39 daniel
-                // 현재 보여 주고 있는 슬라이드의 타이틀을 보여 준다
+                // ?�재 보여 주고 ?�는 ?�라?�드???�?��???보여 준??
                 string text2 = text;
                 text = $"[{Convert.ToString(gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {gf.OutputItem.Title} {text2}{gf.OutputItem.CurSlide}/{gf.OutputItem.TotalSlides} ";
             }
@@ -3284,9 +3286,9 @@ namespace Easislides
             string text8 = "";
             string text9 = "";
             int num2 = 0;
-            ///MDB Access에서는 Like 검색에서 "*" 을 사용
+            ///MDB Access?�서??Like 검?�에??"*" ???�용
             //string text10 = "*";
-            ///SQLite에서는 Like 검색에서 "%" 를 사용
+            ///SQLite?�서??Like 검?�에??"%" �??�용
             string text10 = "%";
 
             gf.TotalMusicFiles = -1;
@@ -3485,7 +3487,7 @@ namespace Easislides
 
         static int LoadThumbOutlockkey = 0;
         /// <summary>
-        /// daniel out 이미지 로드시 전체를 다시 그리지 않음
+        /// daniel out ?��?지 로드???�체�??�시 그리지 ?�음
         /// </summary>
         /// <param name="InFlowPanel"></param>
         /// <param name="InCanvas"></param>
@@ -3539,7 +3541,7 @@ namespace Easislides
         static int LoadThumbPreviewlockkey = 0;
         static int previousPreviewSelectedSlide = 1;
         /// <summary>
-        /// daniel 4265 라인 오류남
+        /// daniel 4265 ?�인 ?�류??
         /// </summary>
         /// <param name="InFlowPanel"></param>
         /// <param name="InCanvas"></param>
@@ -3724,7 +3726,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel 탭 버튼 선택시 (성경 탭등)
+        /// daniel ??버튼 ?�택??(?�경 ??��)
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -3820,7 +3822,7 @@ namespace Easislides
                     }
                     BibleText.Text = "";
                     BibleUserLookup.Text = "";
-                    //성경목록 콤보박스에서 성경 선택시 실행되어 성경 구절이 표시 됨
+                    //?�경목록 콤보박스?�서 ?�경 ?�택???�행?�어 ?�경 구절???�시 ??
                     gf.LoadBiblePassagesFromTabIndex(TabBibleVersions.SelectedIndex, BookLookup, ref BibleText, gf.HB_ShowVerses);
                     gf.HB_SequentialListing = true;
                     ShowStatusBarSummary();
@@ -4682,7 +4684,7 @@ namespace Easislides
                 bool flag = false;
                 try
                 {
-                    //SQLite LCase()  -> lower() 로 변경 UCase() -> upper()
+                    //SQLite LCase()  -> lower() �?변�?UCase() -> upper()
                     //string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where LCase(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
                     string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where lower(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
 
@@ -4864,7 +4866,7 @@ namespace Easislides
 
             if (num >= 0)
             {
-                //파일 변경 여부를 같이 체크 해야함
+                //?�일 변�??��?�?같이 체크 ?�야??
                 string InTitle = WorshipListItems.Items[num].SubItems[0].Text;
                 string text = WorshipListItems.Items[num].SubItems[1].Text;
                 gf.PreviewItem.InMainItemText = InTitle;
@@ -5497,7 +5499,7 @@ namespace Easislides
                     return;
                 }
                 WorshipListItems.Items[selectedIndex].SubItems[2].Text = gf.PreviewItem.Format.FormatString;
-                // 문제 있음 저장을 못함
+                // 문제 ?�음 ?�?�을 못함
                 gf.SaveFormatStringToDatabase(gf.PreviewItem.ItemID, gf.PreviewItem.Format.FormatString);
                 SaveWorshipList();
             }
@@ -6650,7 +6652,7 @@ namespace Easislides
         }
 
         //static String prePreviewItemID = "";
-        //파일 변경 여부를 같이 체크
+        //?�일 변�??��?�?같이 체크
 
         private void WorshipListItems_DoubleClick(object sender, EventArgs e)
         {
@@ -8761,7 +8763,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// 확장자 docx 추가
+        /// ?�장??docx 추�?
         /// </summary>
         private void LocateFileWorshipList()
         {
@@ -8789,7 +8791,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// 확장자 docx 추가
+        /// ?�장??docx 추�?
         /// </summary>
         /// <param name="FullPathFileName"></param>
         /// <param name="AddToLocation"></param>
@@ -9185,7 +9187,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// 확장자 docx 추가
+        /// ?�장??docx 추�?
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -11605,7 +11607,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// 확장자 .docx 추가
+        /// ?�장??.docx 추�?
         /// </summary>
         /// <param name="InIDString"></param>
         /// <param name="InTitle"></param>
@@ -12118,7 +12120,7 @@ namespace Easislides
                     string text = "";
                     int num = -1;
 
-                    /// daniel  사용하는 곳이 없어서 삭제
+                    /// daniel  ?�용?�는 곳이 ?�어????��
                     //Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
                     //tableRecordSet.Index = "PrimaryKey";
 
@@ -13875,7 +13877,7 @@ namespace Easislides
         }
 
         #region Event handlers of particular events. They will be activated when an appropriate checkbox is checked.
-        //daniel 수정 2024년
+        //daniel ?�정 2024??
         private void HookManager_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -13933,7 +13935,7 @@ namespace Easislides
                     }));
                     break;
                 case Keys.Down when gf.GlobalHookKey_Arrow:
-                    //버그 있음 마우스 위치에 따라 동작이 이상함
+                    //버그 ?�음 마우???�치???�라 ?�작???�상??
                     frmMain.BeginInvoke(new Action(() =>
                     {
                         MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
