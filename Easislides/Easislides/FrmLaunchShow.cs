@@ -1,4 +1,4 @@
-using Easislides.Module;
+ï»¿using Easislides.Module;
 using Easislides.Util;
 using OfficeLib;
 using System;
@@ -112,7 +112,7 @@ namespace Easislides
 
 		public event Message OnMessage;
 
-		//Active µÇ¾î ÀÖÀ» °æ¿ì¿¡¸¸ Active È£Ãâ ÇÒ ¼ö ÀÖµµ·Ï ¼±¾ð
+		//Active ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½?Active È£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		private bool isActivated = false;
 
 		protected override void Dispose(bool disposing)
@@ -124,7 +124,7 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		//Active µÇ¾î ÀÖÀ» °æ¿ì¿¡¸¸ Active È£Ãâ
+		//Active ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½?Active È£ï¿½ï¿½
 		protected override void OnActivated(EventArgs e)
 		{
 			isActivated = true;
@@ -403,6 +403,18 @@ namespace Easislides
 				base.Width = 0;
 			}
 		}
+		private string GetMediaOutputMonitorName(SongSettings item)
+		{
+			if (item != null && item.Format != null && !string.IsNullOrEmpty(item.Format.MediaOutputMonitorName))
+			{
+				return item.Format.MediaOutputMonitorName;
+			}
+			if (!string.IsNullOrEmpty(gf.MediaOutputMonitorName))
+			{
+				return gf.MediaOutputMonitorName;
+			}
+			return gf.OutputMonitorName;
+		}
 
 		private void SetScreenOnTop(bool StartTimer)
 		{
@@ -668,11 +680,11 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// daniel v2.2 ¼öÁ¤
+		/// daniel v2.2 ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		// ÆÄ¿öÆ÷ÀÎÆ®¿¡ µ¿¿µ»ó ÄÁÅÙÃ÷°¡ ÀÖÀ» °æ¿ì ÀÌ´ë·Î ÄÚµù ÇÏ¸é µ¿¿µ»ó Àç»ýÀÌ ¾ÈµÊ
+		// ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½?ï¿½Ì´ï¿½ï¿½?ï¿½Úµï¿½ ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½?ï¿½Èµï¿½
 		//private void TimerSingleScreen_Tick(object sender, EventArgs e)
 		//{
 		//	base.TopMost = StayTopMost;
@@ -684,7 +696,7 @@ namespace Easislides
 		//}
 
 		
-		// ÆÄ¿öÆ÷ÀÎÆ®¿¡ µ¿¿µ»ó ÄÁÅÙÃ÷°¡ ÀÖÀ» °æ¿ì Àç»ý µÇµµ·Ï ¼öÁ¤
+		// ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½?ï¿½ï¿½ï¿½?ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		private void TimerSingleScreen_Tick(object sender, EventArgs e)
         {
             base.TopMost = StayTopMost;
@@ -725,7 +737,7 @@ namespace Easislides
 			if (KeyCode == Keys.Escape || KeyCode == Keys.Subtract || KeyCode == Keys.OemMinus || KeyCode == Keys.F12)
 			{
 				//daniel
-				//esc Å°¸¦ ´©¸£¸é ½½¶óÀÌµå ¼î°¡ Á¾·á µÊ
+				//esc Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½î°¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 				StopShow();
 				return;
 			}
@@ -1397,6 +1409,7 @@ namespace Easislides
 				{
 					ItemMediaChangedSinceLiveCam = true;
 					gf.CurrentMediaLocation = "";
+			gf.CurrentMediaOutputMonitorName = "";
 				}
 				if (text == "P")
 				{
@@ -1496,12 +1509,17 @@ namespace Easislides
 				break;
 			}
 			MediaBackgroundStyle mediaBackgroundStyle3 = mediaBackgroundStyle2;
-			if (mediaBackgroundStyle3 == MediaBackgroundStyle.Video)
+			bool itemHasExplicitMedia = InItem.Type == "M" ||
+				!string.IsNullOrEmpty(InItem.Format.HeaderData[50]) ||
+				!string.IsNullOrEmpty(InItem.Format.HeaderData[51]) ||
+				!string.IsNullOrEmpty(InItem.Format.HeaderData[55]) ||
+				!string.IsNullOrEmpty(InItem.Format.HeaderData[56]);
+			if (mediaBackgroundStyle3 == MediaBackgroundStyle.Video && itemHasExplicitMedia)
 			{
-				gf.MediaCurrentItemIsVideo = true;
-				InItem.Format.MediaTransparent = true;
-			}
-			else
+                gf.MediaCurrentItemIsVideo = true;
+                InItem.Format.MediaTransparent = true;
+            }
+            else
 			{
 				gf.MediaCurrentItemIsVideo = false;
 				InItem.Format.MediaTransparent = false;
@@ -1580,6 +1598,15 @@ namespace Easislides
 				bool inUseDefaultFormat = (FormatString == "") ? true : false;
 				string inMediaLocation = gf.ExtractHeaderInfo(FormatString, 51, '>');
 				int inMediaCaptureDeviceNumber = DataUtil.StringToInt(gf.ExtractHeaderInfo(FormatString, 55, '>'));
+				string inMediaOutputMonitorName = gf.ExtractHeaderInfo(FormatString, 56, '>');
+				if (inMediaOutputMonitorName == "" && gf.MediaOutputMonitorName != "")
+				{
+					inMediaOutputMonitorName = gf.MediaOutputMonitorName;
+				}
+				if (inMediaOutputMonitorName == "")
+				{
+					inMediaOutputMonitorName = gf.OutputMonitorName;
+				}
 				string mediaLocation = gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, text, inMediaLocation, inMediaCaptureDeviceNumber);
 				if (gf.CurrentMediaLocation == mediaLocation)
 				{
@@ -1596,6 +1623,7 @@ namespace Easislides
 		private void ResetMediaSettings()
 		{
 			gf.CurrentMediaLocation = "";
+			gf.CurrentMediaOutputMonitorName = "";
 			gf.CurrentMediaIsVideo = false;
 			gf.MediaNotifyRepeatItem = false;
 		}
@@ -1953,12 +1981,15 @@ namespace Easislides
 					MediaPlayerWindow.Remote_ClearScreen();
 					break;
 				case MediaPlayerWindowAction.Remote_LoadItem:
+					MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
 					result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_LoadItem();
 					break;
 				case MediaPlayerWindowAction.Remote_ResumeItem:
+					MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
 					result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_ResumeItem();
 					break;
 				case MediaPlayerWindowAction.Remote_RepeatItem:
+					MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
 					result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_RepeatItem();
 					break;
 				case MediaPlayerWindowAction.Remote_ResumeItemFromStart:
@@ -1971,9 +2002,11 @@ namespace Easislides
 					MediaPlayerWindow.Remote_StopItem();
 					break;
 				case MediaPlayerWindowAction.Remote_LoadLiveCam:
+					MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
 					result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_LoadLiveCam();
 					break;
 				case MediaPlayerWindowAction.Remote_UpdateLiveCam:
+					MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
 					result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_UpdateLiveCam();
 					break;
 				case MediaPlayerWindowAction.Remote_RefreshMediaWindow:
@@ -2163,3 +2196,7 @@ namespace Easislides
 		}
 	}
 }
+
+
+
+

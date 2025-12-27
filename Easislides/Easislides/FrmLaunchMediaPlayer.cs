@@ -104,14 +104,68 @@ namespace Easislides
 				DShowPlayer.Parent = this;
 				DShowPlayer.Location = new Point(0, 0);
 				DShowPlayer.Dock = DockStyle.None;
-				int num = gf.LS_Width * gf.VideoSize / 100;
-				int num2 = gf.LS_Height * gf.VideoSize / 100;
-				int num3 = (gf.LS_Width - num) / 2 - 1;
-				num3 = ((num3 >= 0) ? num3 : 0);
-				int t = (gf.VideoVAlign == 1) ? ((gf.LS_Height - num2) / 2) : ((gf.VideoVAlign == 2) ? (gf.LS_Height - num2) : 0);
-				DShowPlayer.SetDefaultSize(num3, t, num, num2, (VAlign)gf.VideoVAlign);
+				ApplyPlayerBounds(gf.LS_Width, gf.LS_Height);
 				DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
 			}
+		}
+
+		public void ApplyOutputMonitor(string monitorName)
+		{
+			Screen targetScreen = null;
+			if (!string.IsNullOrEmpty(monitorName))
+			{
+				foreach (Screen screen in Screen.AllScreens)
+				{
+					if (string.Equals(screen.DeviceName, monitorName, StringComparison.OrdinalIgnoreCase))
+					{
+						targetScreen = screen;
+						break;
+					}
+				}
+			}
+			if (targetScreen == null && !string.IsNullOrEmpty(gf.OutputMonitorName))
+			{
+				foreach (Screen screen in Screen.AllScreens)
+				{
+					if (string.Equals(screen.DeviceName, gf.OutputMonitorName, StringComparison.OrdinalIgnoreCase))
+					{
+						targetScreen = screen;
+						break;
+					}
+				}
+			}
+			if (targetScreen == null)
+			{
+				targetScreen = Screen.PrimaryScreen;
+			}
+			if (targetScreen == null)
+			{
+				return;
+			}
+			gf.CurrentMediaOutputMonitorName = targetScreen.DeviceName;
+			SetShowWindow(targetScreen.Bounds);
+		}
+
+		private void SetShowWindow(Rectangle bounds)
+		{
+			base.Left = bounds.Left;
+			base.Top = bounds.Top;
+			base.Width = bounds.Width;
+			base.Height = bounds.Height;
+			if (gf.WMP_Present)
+			{
+				ApplyPlayerBounds(bounds.Width, bounds.Height);
+			}
+		}
+
+		private void ApplyPlayerBounds(int screenWidth, int screenHeight)
+		{
+			int num = screenWidth * gf.VideoSize / 100;
+			int num2 = screenHeight * gf.VideoSize / 100;
+			int num3 = (screenWidth - num) / 2 - 1;
+			num3 = ((num3 >= 0) ? num3 : 0);
+			int t = (gf.VideoVAlign == 1) ? ((screenHeight - num2) / 2) : ((gf.VideoVAlign == 2) ? (screenHeight - num2) : 0);
+			DShowPlayer.SetDefaultSize(num3, t, num, num2, (VAlign)gf.VideoVAlign);
 		}
 
 		private void DShowPlayer_ForeColorChanged(object sender, EventArgs e)

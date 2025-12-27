@@ -6007,7 +6007,7 @@ namespace Easislides
             CMenuWorship.ImageScalingSize = new System.Drawing.Size(24, 24);
             CMenuWorship.Items.AddRange(new ToolStripItem[] { CMenuWorship_SelectAll, CMenuWorship_UnselectAll, CMenuWorship_Clear, toolStripSeparator39, CMenuWorship_Edit, CMenuWorship_Play, toolStripSeparator37, CMenuWorship_AddUsages });
             CMenuWorship.Name = "ContextMenuBibleText";
-            CMenuWorship.Size = new System.Drawing.Size(220, 160);
+            CMenuWorship.Size = new System.Drawing.Size(220, 188);
             // 
             // CMenuWorship_SelectAll
             // 

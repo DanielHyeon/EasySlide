@@ -608,8 +608,8 @@ namespace Easislides
 		public static bool PreviewArea_ShowNotations = true;
 
 		/// <summary>
-		/// daniel 성경이나 텍스트 파일을 1절씩 읽어와 RichEditBox에 보여줄때
-		/// RichEditBox의 borderStyle을 FixedSingle:1로 할것인지 None:0 으로 할 것인지 결정
+		/// daniel ?�경?�나 ?�스???�일??1?�씩 ?�어?� RichEditBox??보여줄때
+		/// RichEditBox??borderStyle??FixedSingle:1�??�것?��? None:0 ?�로 ??것인지 결정
 		/// </summary>
 		public static bool PreviewArea_LineBetweenScreens = true;
 
@@ -1619,6 +1619,8 @@ namespace Easislides
 
 		public static string CurrentMediaLocation = "";
 
+		public static string CurrentMediaOutputMonitorName = "";
+
 		public static bool CurrentMediaIsVideo = false;
 
 		public static int MediaOption = 0;
@@ -1634,6 +1636,8 @@ namespace Easislides
 		public static int MediaWidescreen = 0;
 
 		public static int MediaCaptureDeviceNumber = 1;
+
+		public static string MediaOutputMonitorName = "";
 
 		public static bool MediaNotifyRepeatItem = false;
 
@@ -1674,6 +1678,8 @@ namespace Easislides
 		public static int Temp_MediaWidescreen = 0;
 
 		public static int Temp_MediaCaptureDeviceNumber = 1;
+
+		public static string Temp_MediaOutputMonitorName = "";
 
 		public static double[,] MainFontSpacingFactor = new double[41, 2];
 
@@ -1957,7 +1963,7 @@ namespace Easislides
 
 		public static bool PriorScreenSaverState = false;
 
-		//daniel  스크린 사이즈 4:3 , wide
+		//daniel  ?�크�??�이�?4:3 , wide
 		public static bool isScreenWideMode = false;
 
 		private gf()
@@ -2263,7 +2269,7 @@ namespace Easislides
 			ConnectStringBibleDB = ConnectStringDef + BiblesListFileName;
 			UserString = DataUtil.Trim(RegUtil.GetRegValue("config", "RegistrationUser", ""));
 
-            //속도 개선 필요
+            //?�도 개선 ?�요
             //var task2 = Task.Run<bool>(() =>
             //{
             if (!ValidateVer_3_4_Fields())
@@ -2304,7 +2310,7 @@ namespace Easislides
 
 			SetPatternPeriod();
 
-            //속도 개선 필요
+            //?�도 개선 ?�요
             //var task2 = Task.Run<bool>(() =>
             //{
             //    if (!ValidateVer_3_4_Fields())
@@ -4197,12 +4203,12 @@ namespace Easislides
 			}
 
             //daniel
-            //Global Keyboard Hook 가져오기
+            //Global Keyboard Hook 가?�오�?
             GlobalHookKey_F7 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F7", 0)) > 0) ? true : false);
             GlobalHookKey_F8 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F8", 0)) > 0) ? true : false);
 
             //daniel
-            //Global Keyboard Hook 가져오기
+            //Global Keyboard Hook 가?�오�?
             GlobalHookKey_F9 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F9", 0)) > 0) ? true : false);
             GlobalHookKey_F10 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F10", 0)) > 0) ? true : false);
 
@@ -4392,15 +4398,15 @@ namespace Easislides
 			UpdateV4RegDM();
 			DMAlwaysUseSecondaryMonitor = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "AlwaysTryDualMonitor", 1)) > 0) ? true : false);
 			//daniel
-			//스크린 Mode
+			//?�크�?Mode
 			isScreenWideMode = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "IsMonitorWide", 0)) > 0) ? true : false);
 
 			DualMonitorSelectAutoOption = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOption", 0));
 			if ((DualMonitorSelectAutoOption < 0) | (DualMonitorSelectAutoOption > 1))
 			{
-				/// 모니터 선택 옵션
-				/// 0인 경우 사용자가 리스트에서 선택하여 자동으로 PPT 위치를 잡는다
-				/// 1인 경우 사용자가 커스텀으로 모니터 위치를 수동으로 입력한다.
+				/// 모니???�택 ?�션
+				/// 0??경우 ?�용?��? 리스?�에???�택?�여 ?�동?�로 PPT ?�치�??�는??
+				/// 1??경우 ?�용?��? 커스?�?�로 모니???�치�??�동?�로 ?�력?�다.
 				DualMonitorSelectAutoOption = 0;
 			}
 			DMOption1Left = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOptionCustomLeft", 0));
@@ -4924,15 +4930,15 @@ namespace Easislides
 		//	UpdateV4RegDM();
 		//	DMAlwaysUseSecondaryMonitor = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "AlwaysTryDualMonitor", 1)) > 0) ? true : false);
 		//	//daniel
-		//	//스크린 Mode
+		//	//?�크�?Mode
 		//	isScreenWideMode = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "IsMonitorWide", 0)) > 0) ? true : false);
 
 		//	DualMonitorSelectAutoOption = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOption", 0));
 		//	if ((DualMonitorSelectAutoOption < 0) | (DualMonitorSelectAutoOption > 1))
 		//	{
-		//		/// 모니터 선택 옵션
-		//		/// 0인 경우 사용자가 리스트에서 선택하여 자동으로 PPT 위치를 잡는다
-		//		/// 1인 경우 사용자가 커스텀으로 모니터 위치를 수동으로 입력한다.
+		//		/// 모니???�택 ?�션
+		//		/// 0??경우 ?�용?��? 리스?�에???�택?�여 ?�동?�로 PPT ?�치�??�는??
+		//		/// 1??경우 ?�용?��? 커스?�?�로 모니???�치�??�동?�로 ?�력?�다.
 		//		DualMonitorSelectAutoOption = 0; 
 		//	}
 		//	DMOption1Left = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOptionCustomLeft", 0));
@@ -5939,15 +5945,15 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "NotationFontFactor", (int)(NotationFontFactor * 100.0));
 			RegUtil.SaveRegValue("options", "ExternalListing", PowerpointListingStyle);
 			RegUtil.SaveRegValue("options", "KeyBoardOption", KeyBoardOption);
-            // Global Hook F7, F8 (panel black) 여부
+            // Global Hook F7, F8 (panel black) ?��?
             RegUtil.SaveRegValue("options", "GlobalHookKey_F7", GlobalHookKey_F7 ? 1 : 0);
             RegUtil.SaveRegValue("options", "GlobalHookKey_F8", GlobalHookKey_F8 ? 1 : 0);
 
-            // Global Hook F9, F10 (panel black) 여부
+            // Global Hook F9, F10 (panel black) ?��?
             RegUtil.SaveRegValue("options", "GlobalHookKey_F9", GlobalHookKey_F9 ? 1 : 0);
             RegUtil.SaveRegValue("options", "GlobalHookKey_F10", GlobalHookKey_F10 ? 1 : 0);
 
-            // Global Hook Arrow, CtrlArrow (panel black) 여부
+            // Global Hook Arrow, CtrlArrow (panel black) ?��?
             RegUtil.SaveRegValue("options", "GlobalHookKey_Arrow", GlobalHookKey_Arrow ? 1 : 0);
             RegUtil.SaveRegValue("options", "GlobalHookKey_CtrlArrow", GlobalHookKey_CtrlArrow ? 1 : 0);
 
@@ -6019,7 +6025,7 @@ namespace Easislides
             RegUtil.SaveRegValue("monitors", "AlwaysTryDualMonitor", DMAlwaysUseSecondaryMonitor ? 1 : 0);
 
             // daniel
-            // 모니터 Wide 스크린 Mode
+            // 모니??Wide ?�크�?Mode
             RegUtil.SaveRegValue("monitors", "IsMonitorWide", isScreenWideMode ? 1: 0);
 			RegUtil.SaveRegValue("monitors", "DualMonitorOption", DualMonitorSelectAutoOption);
 			RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomLeft", DMOption1Left);
@@ -6058,7 +6064,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// 로딩 속도를 빠르게 하기 위해 수정 필요
+		/// 로딩 ?�도�?빠르�??�기 ?�해 ?�정 ?�요
 		/// </summary>
 		/// <param name="CheckColumns"></param>
 		/// <returns></returns>
@@ -6856,7 +6862,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// 성경책을 읽어 오는 부분
+		/// ?�경책을 ?�어 ?�는 부�?
 		/// </summary>
 		/// <param name="InBibleVersion"></param>
 		/// <param name="InChapterList"></param>
@@ -6920,9 +6926,9 @@ namespace Easislides
 #endif
 
 			/// daniel
-			/// OleDbConnection 연결이 꼬이는 것을 방지 하기 위해
-			/// 아래 로직 분리
-			/// InChapterList.SelectedIndex가 호출 될 경우 LoadBiblePassages가 호출 됨
+			/// OleDbConnection ?�결??꼬이??것을 방�? ?�기 ?�해
+			/// ?�래 로직 분리
+			/// InChapterList.SelectedIndex가 ?�출 ??경우 LoadBiblePassages가 ?�출 ??
 			if (recordSetRowsCount > 0)
 			{
 				if (ShowSearchResultsLine)
@@ -7688,6 +7694,7 @@ namespace Easislides
 				MediaWidescreen = DataUtil.GetBitValue(num, 3);
 				num = ExtractNumericData(HeaderData[55]);
 				MediaCaptureDeviceNumber = (((num < 1) | (num > 5)) ? 1 : num);
+				MediaOutputMonitorName = HeaderData[56];
 				BackgroundPicture = HeaderData[61];
 				num = ExtractNumericData(HeaderData[62]);
 				BackgroundMode = (ImageMode)(((num < 0) | (num > 2)) ? 2 : num);
@@ -8181,7 +8188,7 @@ namespace Easislides
 			{
 				if (allScreens[inMonitor] == null)
 				{
-					//None 으로 설정
+					//None ?�로 ?�정
 					inMonitor = GetPrimaryMonitorIndex();
 					return;
 				}
@@ -8283,7 +8290,7 @@ namespace Easislides
                     //l = screenRectangle.Left;
                     //h = selectScreen.Bounds.Height;
                     //// daniel
-                    //// 프리젠테이션 사이즈 와이드로 변경
+                    //// ?�리?�테?�션 ?�이�??�?�드�?변�?
                     //// //w = h * 4 / 3;
                     //if (gf.isScreenWideMode)
                     //    w = selectScreen.Bounds.Width;
@@ -8296,7 +8303,7 @@ namespace Easislides
                     l = selectScreen.Bounds.X;
                     h = screenSize.Height;
                     // daniel
-                    // 프리젠테이션 사이즈 와이드로 변경
+                    // ?�리?�테?�션 ?�이�??�?�드�?변�?
                     // //w = h * 4 / 3;
                     if (gf.isScreenWideMode)
                         w = screenSize.Width;
@@ -8313,7 +8320,7 @@ namespace Easislides
 				l = selectScreen.Bounds.X;
 				h = screenSize.Height;
 				// daniel
-				// 프리젠테이션 사이즈 와이드로 변경
+				// ?�리?�테?�션 ?�이�??�?�드�?변�?
 				// //w = h * 4 / 3;
 				if (gf.isScreenWideMode)
 					w = screenSize.Width;
@@ -8326,7 +8333,7 @@ namespace Easislides
 				//l = screenRectangle.Left;
 				//h = allScreens[0].Bounds.Height;
 				//// daniel
-				//// 프리젠테이션 사이즈 와이드로 변경
+				//// ?�리?�테?�션 ?�이�??�?�드�?변�?
 				//// //w = h * 4 / 3;
 				//if (gf.isScreenWideMode)
 				//	w = allScreens[0].Bounds.Width;
@@ -8360,7 +8367,7 @@ namespace Easislides
 				l = selectScreen.Bounds.Y;
 				h = screenSize.Height;
 				// daniel
-				// 프리젠테이션 사이즈 와이드로 변경
+				// ?�리?�테?�션 ?�이�??�?�드�?변�?
 				// //w = h * 4 / 3;
 				if (gf.isScreenWideMode)
 					w = screenSize.Width;
@@ -8373,7 +8380,7 @@ namespace Easislides
 				//l = screenRectangle.Left;
 				//h = allScreens[monitorIndex].Bounds.Height;
 				//// daniel
-				//// 프리젠테이션 사이즈 와이드로 변경
+				//// ?�리?�테?�션 ?�이�??�?�드�?변�?
 				//// //w = h * 4 / 3;
 				//if (gf.isScreenWideMode)
 				//	w = allScreens[monitorIndex].Bounds.Width;
@@ -8389,7 +8396,7 @@ namespace Easislides
 				l = primaryScreen.Bounds.Y;
 				h = screenSize.Height;
 				// daniel
-				// 프리젠테이션 사이즈 와이드로 변경
+				// ?�리?�테?�션 ?�이�??�?�드�?변�?
 				// //w = h * 4 / 3;
 				if (gf.isScreenWideMode)
 					w = screenSize.Width;
@@ -8402,7 +8409,7 @@ namespace Easislides
 				//l = screenRectangle.Left;
 				//h = allScreens[0].Bounds.Height;
 				//// daniel
-				//// 프리젠테이션 사이즈 와이드로 변경
+				//// ?�리?�테?�션 ?�이�??�?�드�?변�?
 				//// //w = h * 4 / 3;
 				//if (gf.isScreenWideMode)
 				//	w = allScreens[0].Bounds.Width;
@@ -8425,19 +8432,19 @@ namespace Easislides
 		//	{
 		//		if (allScreens[i].Primary)
 		//		{
-		//			num4 = i; //0이 secondory 1이 primary
+		//			num4 = i; //0??secondory 1??primary
 		//			i = num;
 		//		}
 		//	}
 
-		//	// 스크린이 없을 경우 0으로 셋팅
+		//	// ?�크린이 ?�을 경우 0?�로 ?�팅
 		//	if (num4 < 0)
 		//	{
 		//		num4 = 0;
 		//	}
 
 		//	int num5;
-		//	//Primary Monitor 일 경우
+		//	//Primary Monitor ??경우
 		//	if (InMonitor == 0)
 		//	{
 		//		num5 = num4; //0
@@ -8480,7 +8487,7 @@ namespace Easislides
 		//		l = allScreens[num5].Bounds.Left;
 		//		h = allScreens[num5].Bounds.Height;
 		//		// daniel
-		//		// 프리젠테이션 사이즈 와이드로 변경
+		//		// ?�리?�테?�션 ?�이�??�?�드�?변�?
 		//		// //w = h * 4 / 3;
 		//		if (gf.isScreenWideMode)
 		//			w = allScreens[num5].Bounds.Width;
@@ -8496,7 +8503,7 @@ namespace Easislides
 		//		l = allScreens[num5].Bounds.Left;
 		//		h = allScreens[num5].Bounds.Height;
 		//		// daniel
-		//		// 프리젠테이션 사이즈 와이드로 변경
+		//		// ?�리?�테?�션 ?�이�??�?�드�?변�?
 		//		// //w = h * 4 / 3;
 		//		if (gf.isScreenWideMode)
 		//			w = allScreens[num5].Bounds.Width;
@@ -8765,6 +8772,7 @@ namespace Easislides
 			int num = InItem.Format.MediaMute + InItem.Format.MediaRepeat * 2 + InItem.Format.MediaWidescreen * 4;
 			stringBuilder.Append(Convert.ToString(54) + "=" + num.ToString() + '>');
 			stringBuilder.Append(Convert.ToString(55) + "=" + Convert.ToString(InItem.Format.MediaCaptureDeviceNumber) + '>');
+			stringBuilder.Append(Convert.ToString(56) + "=" + InItem.Format.MediaOutputMonitorName + '>');
 			stringBuilder.Append(Convert.ToString(61) + "=" + InItem.Format.BackgroundPicture + '>');
 			stringBuilder.Append(Convert.ToString(62) + "=" + Convert.ToString((int)InItem.Format.BackgroundMode) + '>');
 			stringBuilder.Append(Convert.ToString(72) + "=" + tempScreen.GetTransitionText(InItem.Format.ShowItemTransition) + '>');
@@ -8989,8 +8997,8 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// 사용자가 BibleTab을 선택하고 성경 특정권을 선택후 특정절을 선택시
-        /// 아래 메소드가 호출됨
+        /// ?�용?��? BibleTab???�택?�고 ?�경 ?�정권을 ?�택???�정?�을 ?�택??
+        /// ?�래 메소?��? ?�출??
         /// </summary>
         /// <param name="InFullBibleString"></param>
         /// <returns></returns>
@@ -8998,10 +9006,10 @@ namespace Easislides
         {
             try
             {
-                // 첫 번째 값이 0보다 크면 flag = true
+                // �?번째 값이 0보다 ?�면 flag = true
                 bool flag = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0;
 
-                // 성경 버전 정보 저장
+                // ?�경 버전 ?�보 ?�??
                 string[] bibleVersions = new string[2];
                 int[] versionNumbers = new int[2];
 
@@ -9013,7 +9021,7 @@ namespace Easislides
 
                 string[] verseData = { InFullBibleString, InFullBibleString };
 
-                // 결과 문자열
+                // 결과 문자??
                 StringBuilder InTextString = new StringBuilder();
 
                 bool hasSecondVersion = versionNumbers[1] >= 0;
@@ -9048,7 +9056,7 @@ namespace Easislides
             }
             catch (Exception ex)
             {
-                // 예외 발생 시 디버깅을 위해 로그 출력
+                // ?�외 발생 ???�버깅을 ?�해 로그 출력
                 Console.WriteLine($"Error: {ex.Message}");
                 return "";
             }
@@ -9056,8 +9064,8 @@ namespace Easislides
 
         /// <summary>
         /// daniel
-        /// 사용자가 BibleTab을 선택하고 성경 특정권을 선택후 특정절을 선택시
-        /// 아래 메소드가 호출됨
+        /// ?�용?��? BibleTab???�택?�고 ?�경 ?�정권을 ?�택???�정?�을 ?�택??
+        /// ?�래 메소?��? ?�출??
         /// </summary>
         /// <param name="InFullBibleString"></param>
         /// <returns></returns>
@@ -12225,6 +12233,7 @@ namespace Easislides
 				stringBuilder.Append(Convert.ToString(53) + "=" + Convert.ToString(MediaBalance) + '>');
 				stringBuilder.Append(Convert.ToString(54) + "=" + num.ToString() + '>');
 				stringBuilder.Append(Convert.ToString(55) + "=" + MediaCaptureDeviceNumber.ToString() + '>');
+				stringBuilder.Append(Convert.ToString(56) + "=" + MediaOutputMonitorName + '>');
 				stringBuilder.Append(Convert.ToString(61) + "=" + BackgroundPicture + '>');
 				stringBuilder.Append(Convert.ToString(62) + "=" + Convert.ToString((int)BackgroundMode) + '>');
 				stringBuilder.Append(Convert.ToString(63) + "=" + Convert.ToString(ShowVerticalAlign) + '>');
@@ -12935,7 +12944,7 @@ namespace Easislides
 			if (!ShowLiveCam && gf.DualMonitorSelectAutoOption == 1)
             {
 				float scalef = 0.75f;
-                // 파워포인트 파일이 표시되는 모니터를 설정하기 위해 설정
+                // ?�워?�인???�일???�시?�는 모니?��? ?�정?�기 ?�해 ?�정
 
                 if (DualMonitorMode)
                 {
@@ -13018,7 +13027,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// 확장자 docx 추가
+		/// ?�장??docx 추�?
 		/// </summary>
 		/// <param name="InFileName"></param>
 		/// <returns></returns>
@@ -13248,7 +13257,7 @@ namespace Easislides
 							flag = true;
 						}
 						InPP.Open(DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1), ref PowerpointList, ref TotalPowerpointItems);
-						// 이렇게 해주지 않으면 프리젠테이션창이 Nomal로 뜬다
+						// ?�렇�??�주지 ?�으�??�리?�테?�션창이 Nomal�??�다
 						InPP.prePowerPointApp.Activate();
 						InPP.prePowerPointApp.WindowState = NetOffice.PowerPointApi.Enums.PpWindowState.ppWindowMinimized;
 						//InPP.newOpen(DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1), ref PowerpointList, ref TotalPowerpointItems);
@@ -13290,7 +13299,7 @@ namespace Easislides
 		}
         /// <summary>
         /// daniel park
-        /// Buffer_LS_Width 오류 발생으로 코드 삽입
+        /// Buffer_LS_Width ?�류 발생?�로 코드 ?�입
         /// </summary>
         /// <param name="InScreen"></param>
         public static void SetDefaultBackScreen(ref ImageTransitionControl InScreen)
@@ -14644,7 +14653,7 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// daniel 2020년 5월 6일 수정
+		/// daniel 2020??5??6???�정
 		/// </summary>
 		/// <param name="InProcessString"></param>
 		/// <returns></returns>
@@ -14660,7 +14669,7 @@ namespace Easislides
 				};
 				Process.Start(psi);
 
-				//.net core에서는 아래와 같이 하면 동작을 하지 않음(파워포인트를 열수 없음)
+				//.net core?�서???�래?� 같이 ?�면 ?�작???��? ?�음(?�워?�인?��? ?�수 ?�음)
 				//Process process = Process.Start(InProcessString);
 			}
 			catch(Exception e)
@@ -17835,7 +17844,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel 
-		/// 확장자 docx 추가
+		/// ?�장??docx 추�?
 		/// </summary>
 		/// <param name="InFileName"></param>
 		/// <returns></returns>
@@ -17990,6 +17999,7 @@ namespace Easislides
 			}
 			num3 = ExtractNumericData(InItem.Format.HeaderData[55]);
 			InItem.Format.MediaCaptureDeviceNumber = (((num3 < 1) | (num3 > 5)) ? 1 : num3);
+			InItem.Format.MediaOutputMonitorName = InItem.Format.HeaderData[56];
 			num3 = ExtractNumericData(InItem.Format.HeaderData[62]);
 			InItem.Format.BackgroundMode = (ImageMode)(((num3 < 0) | (num3 > 2)) ? ((int)BackgroundMode) : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[63]);
@@ -18025,3 +18035,4 @@ namespace Easislides
 		}
 	}
 }
+

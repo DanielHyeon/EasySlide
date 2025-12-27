@@ -77,6 +77,8 @@ namespace Easislides.Module
 
         public int MediaCaptureDeviceNumber;
 
+        public string MediaOutputMonitorName = "";
+
         public int MediaVolume = 50;
 
         public int MediaBalance = 0;

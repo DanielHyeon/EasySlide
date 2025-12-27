@@ -129,6 +129,10 @@ namespace Easislides
 
 		private Label LabelResolution;
 
+		private Label labelOutputMonitor;
+
+		private ComboBox cbOutputMonitor;
+
 		private bool InitLoad = true;
 
 		private double TimeIncrement = 1.0;
@@ -163,6 +167,8 @@ namespace Easislides
             groupBox2 = new GroupBox();
             LabelResolution = new Label();
             label15 = new Label();
+            cbOutputMonitor = new ComboBox();
+            labelOutputMonitor = new Label();
             cbWidescreen = new CheckBox();
             LabelMediaType = new Label();
             label10 = new Label();
@@ -232,6 +238,8 @@ namespace Easislides
             // 
             groupBox2.Controls.Add(LabelResolution);
             groupBox2.Controls.Add(label15);
+            groupBox2.Controls.Add(cbOutputMonitor);
+            groupBox2.Controls.Add(labelOutputMonitor);
             groupBox2.Controls.Add(cbWidescreen);
             groupBox2.Controls.Add(LabelMediaType);
             groupBox2.Controls.Add(label10);
@@ -255,7 +263,7 @@ namespace Easislides
             groupBox2.Margin = new Padding(4, 5, 4, 5);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(4, 5, 4, 5);
-            groupBox2.Size = new Size(644, 363);
+            groupBox2.Size = new Size(644, 395);
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "Settings";
@@ -279,6 +287,26 @@ namespace Easislides
             label15.Size = new Size(82, 20);
             label15.TabIndex = 25;
             label15.Text = "Resolution:";
+            // 
+            // cbOutputMonitor
+            // 
+            cbOutputMonitor.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbOutputMonitor.FormattingEnabled = true;
+            cbOutputMonitor.Location = new Point(136, 346);
+            cbOutputMonitor.Margin = new Padding(4, 5, 4, 5);
+            cbOutputMonitor.Name = "cbOutputMonitor";
+            cbOutputMonitor.Size = new Size(200, 28);
+            cbOutputMonitor.TabIndex = 28;
+            // 
+            // labelOutputMonitor
+            // 
+            labelOutputMonitor.AutoSize = true;
+            labelOutputMonitor.Location = new Point(17, 350);
+            labelOutputMonitor.Margin = new Padding(4, 0, 4, 0);
+            labelOutputMonitor.Name = "labelOutputMonitor";
+            labelOutputMonitor.Size = new Size(115, 20);
+            labelOutputMonitor.TabIndex = 27;
+            labelOutputMonitor.Text = "Output Monitor:";
             // 
             // cbWidescreen
             // 
@@ -592,7 +620,7 @@ namespace Easislides
             // BtnCancel
             // 
             BtnCancel.DialogResult = DialogResult.Cancel;
-            BtnCancel.Location = new Point(341, 548);
+            BtnCancel.Location = new Point(341, 585);
             BtnCancel.Margin = new Padding(4, 5, 4, 5);
             BtnCancel.Name = "BtnCancel";
             BtnCancel.Size = new Size(107, 37);
@@ -602,7 +630,7 @@ namespace Easislides
             // BtnOK
             // 
             BtnOK.DialogResult = DialogResult.OK;
-            BtnOK.Location = new Point(213, 548);
+            BtnOK.Location = new Point(213, 585);
             BtnOK.Margin = new Padding(4, 5, 4, 5);
             BtnOK.Name = "BtnOK";
             BtnOK.Size = new Size(107, 37);
@@ -778,7 +806,7 @@ namespace Easislides
             // 
             LocationBtn.AutoSize = false;
             LocationBtn.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            LocationBtn.Image = Resources.folder;
+            LocationBtn.Image = (Image)resources.GetObject("LocationBtn.Image");
             LocationBtn.ImageTransparentColor = Color.Magenta;
             LocationBtn.Name = "LocationBtn";
             LocationBtn.Size = new Size(22, 22);
@@ -816,7 +844,7 @@ namespace Easislides
             AcceptButton = BtnOK;
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(668, 602);
+            ClientSize = new Size(668, 640);
             Controls.Add(groupBox1);
             Controls.Add(BtnCancel);
             Controls.Add(BtnOK);
@@ -869,6 +897,7 @@ namespace Easislides
 			SourceOption1.Text = "Play Media File based on Item Title (if any)";
 			gf.LoadBlankCaptureDevices(ref cbCaptureDevices);
 			InitMediaPlayer();
+			LoadOutputMonitors();
 			tbSourceLocation.Text = gf.Temp_MediaLocation;
 			cbCaptureDevices.SelectedIndex = gf.Temp_MediaCaptureDeviceNumber - 1;
 			TrackBarVolume.Value = (((gf.Temp_MediaVolume >= 0) & (gf.Temp_MediaVolume <= 100)) ? gf.Temp_MediaVolume : 50);
@@ -915,6 +944,31 @@ namespace Easislides
 			{
 				EnableMediaControls(MediaOn: false);
 			}
+		}
+
+		private void LoadOutputMonitors()
+		{
+			cbOutputMonitor.Items.Clear();
+			cbOutputMonitor.Items.Add("Default (Output Monitor)");
+			foreach (Screen screen in Screen.AllScreens)
+			{
+				cbOutputMonitor.Items.Add(screen.DeviceName);
+			}
+			SelectOutputMonitor(gf.Temp_MediaOutputMonitorName);
+		}
+
+		private void SelectOutputMonitor(string monitorName)
+		{
+			if (!string.IsNullOrEmpty(monitorName))
+			{
+				int index = cbOutputMonitor.Items.IndexOf(monitorName);
+				if (index >= 0)
+				{
+					cbOutputMonitor.SelectedIndex = index;
+					return;
+				}
+			}
+			cbOutputMonitor.SelectedIndex = 0;
 		}
 
 		private void EnableMediaControls(bool MediaOn)
@@ -1187,6 +1241,7 @@ namespace Easislides
 			gf.Temp_MediaOption = GetSelectedSourceOption();
 			gf.Temp_MediaLocation = DataUtil.Trim(tbSourceLocation.Text);
 			gf.Temp_MediaCaptureDeviceNumber = cbCaptureDevices.SelectedIndex + 1;
+			gf.Temp_MediaOutputMonitorName = (cbOutputMonitor.SelectedIndex > 0) ? cbOutputMonitor.SelectedItem.ToString() : "";
 			gf.Temp_MediaVolume = TrackBarVolume.Value;
 			gf.Temp_MediaBalance = TrackBarBalance.Value;
 			gf.Temp_MediaMute = (cbMute.Checked ? 1 : 0);

@@ -2499,6 +2499,7 @@ namespace Easislides
 			gf.Temp_MediaOption = gf.MediaOption;
 			gf.Temp_MediaLocation = gf.MediaLocation;
 			gf.Temp_MediaCaptureDeviceNumber = gf.MediaCaptureDeviceNumber;
+\t\t\tgf.Temp_MediaOutputMonitorName = gf.MediaOutputMonitorName;
 			gf.Temp_MediaVolume = gf.MediaVolume;
 			gf.Temp_MediaBalance = gf.MediaBalance;
 			gf.Temp_MediaMute = gf.MediaMute;
@@ -2509,6 +2510,7 @@ namespace Easislides
 				gf.MediaOption = gf.Temp_MediaOption;
 				gf.MediaLocation = gf.Temp_MediaLocation;
 				gf.MediaCaptureDeviceNumber = gf.Temp_MediaCaptureDeviceNumber;
+\t\t\tgf.MediaOutputMonitorName = gf.Temp_MediaOutputMonitorName;
 				gf.MediaVolume = gf.Temp_MediaVolume;
 				gf.MediaBalance = gf.Temp_MediaBalance;
 				gf.MediaMute = gf.Temp_MediaMute;
@@ -2845,6 +2847,7 @@ namespace Easislides
 			gf.Temp_MediaOption = gf.PreviewItem.Format.MediaOption;
 			gf.Temp_MediaLocation = gf.PreviewItem.Format.MediaLocation;
 			gf.Temp_MediaCaptureDeviceNumber = gf.PreviewItem.Format.MediaCaptureDeviceNumber;
+\t\t\tgf.Temp_MediaOutputMonitorName = gf.PreviewItem.Format.MediaOutputMonitorName;
 			gf.Temp_MediaVolume = gf.PreviewItem.Format.MediaVolume;
 			gf.Temp_MediaBalance = gf.PreviewItem.Format.MediaBalance;
 			gf.Temp_MediaMute = gf.PreviewItem.Format.MediaMute;
@@ -2855,6 +2858,7 @@ namespace Easislides
 				gf.PreviewItem.Format.MediaOption = gf.Temp_MediaOption;
 				gf.PreviewItem.Format.MediaLocation = gf.Temp_MediaLocation;
 				gf.PreviewItem.Format.MediaCaptureDeviceNumber = gf.Temp_MediaCaptureDeviceNumber;
+\t\t\tgf.PreviewItem.Format.MediaOutputMonitorName = gf.Temp_MediaOutputMonitorName;
 				gf.PreviewItem.Format.MediaVolume = gf.Temp_MediaVolume;
 				gf.PreviewItem.Format.MediaBalance = gf.Temp_MediaBalance;
 				gf.PreviewItem.Format.MediaMute = gf.Temp_MediaMute;
@@ -6605,6 +6609,7 @@ namespace Easislides
 			stringBuilder.Append(Convert.ToString(53) + "=" + Convert.ToString(gf.PreviewItem.Format.MediaBalance) + '>');
 			stringBuilder.Append(Convert.ToString(54) + "=" + num3.ToString() + '>');
 			stringBuilder.Append(Convert.ToString(55) + "=" + Convert.ToString(gf.PreviewItem.Format.MediaCaptureDeviceNumber) + '>');
+			stringBuilder.Append(Convert.ToString(56) + "=" + gf.PreviewItem.Format.MediaOutputMonitorName + '>');
 			stringBuilder.Append(Convert.ToString(61) + "=" + gf.PreviewItem.Format.BackgroundPicture + '>');
 			stringBuilder.Append(Convert.ToString(62) + "=" + Convert.ToString((int)gf.PreviewItem.Format.BackgroundMode) + '>');
 			stringBuilder.Append(Convert.ToString(63) + "=" + Convert.ToString(gf.PreviewItem.Format.ShowVerticalAlign) + '>');
@@ -21858,3 +21863,5 @@ namespace Easislides
 	//    }
 	//}
 }
+
+

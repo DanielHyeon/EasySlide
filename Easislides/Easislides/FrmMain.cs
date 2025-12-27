@@ -1477,6 +1477,7 @@ namespace Easislides
             gf.Temp_MediaOption = gf.MediaOption;
             gf.Temp_MediaLocation = gf.MediaLocation;
             gf.Temp_MediaCaptureDeviceNumber = gf.MediaCaptureDeviceNumber;
+            gf.Temp_MediaOutputMonitorName = gf.MediaOutputMonitorName;
             gf.Temp_MediaVolume = gf.MediaVolume;
             gf.Temp_MediaBalance = gf.MediaBalance;
             gf.Temp_MediaMute = gf.MediaMute;
@@ -1487,6 +1488,7 @@ namespace Easislides
                 gf.MediaOption = gf.Temp_MediaOption;
                 gf.MediaLocation = gf.Temp_MediaLocation;
                 gf.MediaCaptureDeviceNumber = gf.Temp_MediaCaptureDeviceNumber;
+                gf.MediaOutputMonitorName = gf.Temp_MediaOutputMonitorName;
                 gf.MediaVolume = gf.Temp_MediaVolume;
                 gf.MediaBalance = gf.Temp_MediaBalance;
                 gf.MediaMute = gf.Temp_MediaMute;
@@ -1823,6 +1825,7 @@ namespace Easislides
             gf.Temp_MediaOption = gf.PreviewItem.Format.MediaOption;
             gf.Temp_MediaLocation = gf.PreviewItem.Format.MediaLocation;
             gf.Temp_MediaCaptureDeviceNumber = gf.PreviewItem.Format.MediaCaptureDeviceNumber;
+            gf.Temp_MediaOutputMonitorName = gf.PreviewItem.Format.MediaOutputMonitorName;
             gf.Temp_MediaVolume = gf.PreviewItem.Format.MediaVolume;
             gf.Temp_MediaBalance = gf.PreviewItem.Format.MediaBalance;
             gf.Temp_MediaMute = gf.PreviewItem.Format.MediaMute;
@@ -1833,6 +1836,7 @@ namespace Easislides
                 gf.PreviewItem.Format.MediaOption = gf.Temp_MediaOption;
                 gf.PreviewItem.Format.MediaLocation = gf.Temp_MediaLocation;
                 gf.PreviewItem.Format.MediaCaptureDeviceNumber = gf.Temp_MediaCaptureDeviceNumber;
+                gf.PreviewItem.Format.MediaOutputMonitorName = gf.Temp_MediaOutputMonitorName;
                 gf.PreviewItem.Format.MediaVolume = gf.Temp_MediaVolume;
                 gf.PreviewItem.Format.MediaBalance = gf.Temp_MediaBalance;
                 gf.PreviewItem.Format.MediaMute = gf.Temp_MediaMute;
@@ -5686,6 +5690,7 @@ namespace Easislides
             stringBuilder.Append(Convert.ToString(53) + "=" + Convert.ToString(gf.PreviewItem.Format.MediaBalance) + '>');
             stringBuilder.Append(Convert.ToString(54) + "=" + num3.ToString() + '>');
             stringBuilder.Append(Convert.ToString(55) + "=" + Convert.ToString(gf.PreviewItem.Format.MediaCaptureDeviceNumber) + '>');
+            stringBuilder.Append(Convert.ToString(56) + "=" + gf.PreviewItem.Format.MediaOutputMonitorName + '>');
             stringBuilder.Append(Convert.ToString(61) + "=" + gf.PreviewItem.Format.BackgroundPicture + '>');
             stringBuilder.Append(Convert.ToString(62) + "=" + Convert.ToString((int)gf.PreviewItem.Format.BackgroundMode) + '>');
             stringBuilder.Append(Convert.ToString(63) + "=" + Convert.ToString(gf.PreviewItem.Format.ShowVerticalAlign) + '>');
@@ -11100,7 +11105,25 @@ namespace Easislides
 
         private void Main_Media_Click(object sender, EventArgs e)
         {
-            SongsListPlay();
+            if (HasSelectedSongItem())
+            {
+                Ind_Media_Clicked();
+                return;
+            }
+            Def_Media_Clicked();
+        }
+
+        private bool HasSelectedSongItem()
+        {
+            switch (tabControlSource.SelectedTab.Name)
+            {
+                case "tabFolders":
+                    return SongsList.SelectedItems.Count == 1;
+                case "tabFiles":
+                    return InfoScreenList.SelectedItems.Count > 0;
+                default:
+                    return false;
+            }
         }
 
         private void SongsListPlay()
@@ -11579,9 +11602,23 @@ namespace Easislides
             }
             string title2 = gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
             string text = WorshipListItems.Items[index].SubItems[1].Text;
+            string itemType = DataUtil.Left(text, 1);
             string inString = DataUtil.Right(text, text.Length - 1);
+            if (itemType == "M")
+            {
+                if (string.IsNullOrWhiteSpace(inString) || !File.Exists(inString))
+                {
+                    MessageBox.Show("Sorry, cannot find the media file '" + inString + "'.");
+                    return;
+                }
+                if (!gf.RunProcess(inString))
+                {
+                    MessageBox.Show("Sorry, cannot open the media file '" + inString + "'.");
+                }
+                return;
+            }
             int inKey = DataUtil.StringToInt(inString);
-            if (DataUtil.Left(text, 1) == "D")
+            if (itemType == "D")
             {
                 title = gf.LookupDBTitle2(inKey);
             }
