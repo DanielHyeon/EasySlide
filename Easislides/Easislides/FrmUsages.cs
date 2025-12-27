@@ -119,234 +119,324 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmUsages));
-			SessionList = new System.Windows.Forms.ComboBox();
-			BtnCancel = new System.Windows.Forms.Button();
-			BtnReCalc = new System.Windows.Forms.Button();
-			BtnGenerate = new System.Windows.Forms.Button();
-			CalendarFrom = new System.Windows.Forms.MonthCalendar();
-			CalendarTo = new System.Windows.Forms.MonthCalendar();
-			label1 = new System.Windows.Forms.Label();
-			label2 = new System.Windows.Forms.Label();
-			BtnOccurrences = new System.Windows.Forms.RadioButton();
-			BtnUsages = new System.Windows.Forms.RadioButton();
-			UsageDetails = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			columnHeader2 = new System.Windows.Forms.ColumnHeader();
-			columnHeader3 = new System.Windows.Forms.ColumnHeader();
-			columnHeader4 = new System.Windows.Forms.ColumnHeader();
-			columnHeader5 = new System.Windows.Forms.ColumnHeader();
-			columnHeader6 = new System.Windows.Forms.ColumnHeader();
-			columnHeader7 = new System.Windows.Forms.ColumnHeader();
-			columnHeader8 = new System.Windows.Forms.ColumnHeader();
-			CMenuUsageDetails = new System.Windows.Forms.ContextMenuStrip(components);
-			CMenuUsageDetails_SelectAll = new System.Windows.Forms.ToolStripMenuItem();
-			CMenuUsageDetails_UnselectAll = new System.Windows.Forms.ToolStripMenuItem();
-			toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-			CMenuUsageDetails_Clear = new System.Windows.Forms.ToolStripMenuItem();
-			toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-			CMenuUsageDetails_Report = new System.Windows.Forms.ToolStripMenuItem();
-			SummaryDetails = new System.Windows.Forms.ListView();
-			columnHeader9 = new System.Windows.Forms.ColumnHeader();
-			columnHeader10 = new System.Windows.Forms.ColumnHeader();
-			columnHeader11 = new System.Windows.Forms.ColumnHeader();
-			columnHeader12 = new System.Windows.Forms.ColumnHeader();
-			toolTip1 = new System.Windows.Forms.ToolTip(components);
-			BtnDelete = new System.Windows.Forms.Button();
-			CMenuUsageDetails.SuspendLayout();
-			SuspendLayout();
-			SessionList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			SessionList.FormattingEnabled = true;
-			SessionList.Location = new System.Drawing.Point(12, 9);
-			SessionList.Name = "SessionList";
-			SessionList.Size = new System.Drawing.Size(178, 21);
-			SessionList.TabIndex = 0;
-			BtnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			BtnCancel.Location = new System.Drawing.Point(110, 35);
-			BtnCancel.Name = "BtnCancel";
-			BtnCancel.Size = new System.Drawing.Size(80, 24);
-			BtnCancel.TabIndex = 5;
-			BtnCancel.Text = "Close";
-			BtnCancel.Click += new System.EventHandler(BtnCancel_Click);
-			BtnReCalc.Location = new System.Drawing.Point(12, 35);
-			BtnReCalc.Name = "BtnReCalc";
-			BtnReCalc.Size = new System.Drawing.Size(80, 24);
-			BtnReCalc.TabIndex = 4;
-			BtnReCalc.Text = "Refresh";
-			BtnReCalc.Click += new System.EventHandler(BtnReCalc_Click);
-			BtnGenerate.Image = Resources.document;
-			BtnGenerate.Location = new System.Drawing.Point(373, 9);
-			BtnGenerate.Name = "BtnGenerate";
-			BtnGenerate.Size = new System.Drawing.Size(24, 24);
-			BtnGenerate.TabIndex = 3;
-			toolTip1.SetToolTip(BtnGenerate, "Generate Usages Report");
-			BtnGenerate.Click += new System.EventHandler(BtnGenerate_Click);
-			CalendarFrom.Location = new System.Drawing.Point(12, 79);
-			CalendarFrom.Name = "CalendarFrom";
-			CalendarFrom.TabIndex = 6;
-			CalendarTo.Location = new System.Drawing.Point(12, 257);
-			CalendarTo.Name = "CalendarTo";
-			CalendarTo.TabIndex = 7;
-			label1.AutoSize = true;
-			label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			label1.Location = new System.Drawing.Point(14, 63);
-			label1.Name = "label1";
-			label1.Size = new System.Drawing.Size(78, 13);
-			label1.TabIndex = 13;
-			label1.Text = "Period From:";
-			label2.AutoSize = true;
-			label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			label2.Location = new System.Drawing.Point(14, 241);
-			label2.Name = "label2";
-			label2.Size = new System.Drawing.Size(66, 13);
-			label2.TabIndex = 14;
-			label2.Text = "Period To:";
-			BtnOccurrences.Appearance = System.Windows.Forms.Appearance.Button;
-			BtnOccurrences.Location = new System.Drawing.Point(287, 9);
-			BtnOccurrences.Name = "BtnOccurrences";
-			BtnOccurrences.Size = new System.Drawing.Size(80, 22);
-			BtnOccurrences.TabIndex = 2;
-			BtnOccurrences.Text = "Occurrences";
-			BtnOccurrences.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			BtnUsages.Appearance = System.Windows.Forms.Appearance.Button;
-			BtnUsages.Checked = true;
-			BtnUsages.Location = new System.Drawing.Point(204, 9);
-			BtnUsages.Name = "BtnUsages";
-			BtnUsages.Size = new System.Drawing.Size(80, 22);
-			BtnUsages.TabIndex = 1;
-			BtnUsages.TabStop = true;
-			BtnUsages.Text = "Full Details";
-			BtnUsages.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			BtnUsages.CheckedChanged += new System.EventHandler(BtnUsages_CheckedChanged);
-			UsageDetails.Columns.AddRange(new System.Windows.Forms.ColumnHeader[8]
-			{
-				columnHeader1,
-				columnHeader2,
-				columnHeader3,
-				columnHeader4,
-				columnHeader5,
-				columnHeader6,
-				columnHeader7,
-				columnHeader8
-			});
-			UsageDetails.ContextMenuStrip = CMenuUsageDetails;
-			UsageDetails.FullRowSelect = true;
-			UsageDetails.Location = new System.Drawing.Point(204, 35);
-			UsageDetails.Name = "UsageDetails";
-			UsageDetails.Size = new System.Drawing.Size(449, 377);
-			UsageDetails.TabIndex = 8;
-			UsageDetails.UseCompatibleStateImageBehavior = false;
-			UsageDetails.View = System.Windows.Forms.View.Details;
-			UsageDetails.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(UsageDetails_ColumnClick);
-			columnHeader1.Text = "Date";
-			columnHeader1.Width = 68;
-			columnHeader2.Text = "Session";
-			columnHeader2.Width = 118;
-			columnHeader3.Text = "Song Title";
-			columnHeader3.Width = 143;
-			columnHeader4.Text = "No.";
-			columnHeader4.Width = 54;
-			columnHeader5.Text = "Admin1";
-			columnHeader6.Text = "Admin2";
-			columnHeader6.Width = 58;
-			columnHeader7.Text = "Song ID";
-			columnHeader7.Width = 56;
-			columnHeader8.Text = "Sys ID";
-			columnHeader8.Width = 53;
-			CMenuUsageDetails.Items.AddRange(new System.Windows.Forms.ToolStripItem[6]
-			{
-				CMenuUsageDetails_SelectAll,
-				CMenuUsageDetails_UnselectAll,
-				toolStripSeparator1,
-				CMenuUsageDetails_Clear,
-				toolStripSeparator2,
-				CMenuUsageDetails_Report
-			});
-			CMenuUsageDetails.Name = "ContextMenuBibleText";
-			CMenuUsageDetails.Size = new System.Drawing.Size(225, 104);
-			CMenuUsageDetails_SelectAll.Name = "CMenuUsageDetails_SelectAll";
-			CMenuUsageDetails_SelectAll.Size = new System.Drawing.Size(224, 22);
-			CMenuUsageDetails_SelectAll.Text = "Select &All";
-			CMenuUsageDetails_SelectAll.Click += new System.EventHandler(CMenuUsageDetails_SelectAll_Click);
-			CMenuUsageDetails_UnselectAll.Name = "CMenuUsageDetails_UnselectAll";
-			CMenuUsageDetails_UnselectAll.Size = new System.Drawing.Size(224, 22);
-			CMenuUsageDetails_UnselectAll.Text = "&Unselect All";
-			CMenuUsageDetails_UnselectAll.Click += new System.EventHandler(CMenuUsageDetails_UnselectAll_Click);
-			toolStripSeparator1.Name = "toolStripSeparator1";
-			toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
-			CMenuUsageDetails_Clear.Name = "CMenuUsageDetails_Clear";
-			CMenuUsageDetails_Clear.Size = new System.Drawing.Size(224, 22);
-			CMenuUsageDetails_Clear.Text = "Delete Selected Usage Records";
-			CMenuUsageDetails_Clear.Click += new System.EventHandler(CMenuUsageDetails_Clear_Click);
-			toolStripSeparator2.Name = "toolStripSeparator2";
-			toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
-			CMenuUsageDetails_Report.Name = "CMenuUsageDetails_Report";
-			CMenuUsageDetails_Report.Size = new System.Drawing.Size(224, 22);
-			CMenuUsageDetails_Report.Text = "Generate Usage Report";
-			CMenuUsageDetails_Report.Click += new System.EventHandler(CMenuUsageDetails_Report_Click);
-			SummaryDetails.Columns.AddRange(new System.Windows.Forms.ColumnHeader[4]
-			{
-				columnHeader9,
-				columnHeader10,
-				columnHeader11,
-				columnHeader12
-			});
-			SummaryDetails.FullRowSelect = true;
-			SummaryDetails.Location = new System.Drawing.Point(204, 35);
-			SummaryDetails.MultiSelect = false;
-			SummaryDetails.Name = "SummaryDetails";
-			SummaryDetails.Size = new System.Drawing.Size(449, 377);
-			SummaryDetails.TabIndex = 9;
-			SummaryDetails.UseCompatibleStateImageBehavior = false;
-			SummaryDetails.View = System.Windows.Forms.View.Details;
-			SummaryDetails.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(SummaryDetails_ColumnClick);
-			columnHeader9.Text = "Occurrence";
-			columnHeader9.Width = 71;
-			columnHeader10.Text = "Song Title";
-			columnHeader10.Width = 248;
-			columnHeader11.Text = "No.";
-			columnHeader11.Width = 64;
-			columnHeader12.Text = "ID";
-			BtnDelete.Image = Resources.Delete;
-			BtnDelete.Location = new System.Drawing.Point(400, 9);
-			BtnDelete.Name = "BtnDelete";
-			BtnDelete.Size = new System.Drawing.Size(24, 24);
-			BtnDelete.TabIndex = 15;
-			toolTip1.SetToolTip(BtnDelete, "Delete Selected Usage Records");
-			BtnDelete.Click += new System.EventHandler(BtnDelete_Click);
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(662, 423);
-			base.Controls.Add(BtnDelete);
-			base.Controls.Add(BtnOccurrences);
-			base.Controls.Add(BtnUsages);
-			base.Controls.Add(label2);
-			base.Controls.Add(label1);
-			base.Controls.Add(CalendarTo);
-			base.Controls.Add(CalendarFrom);
-			base.Controls.Add(BtnGenerate);
-			base.Controls.Add(BtnReCalc);
-			base.Controls.Add(BtnCancel);
-			base.Controls.Add(SessionList);
-			base.Controls.Add(UsageDetails);
-			base.Controls.Add(SummaryDetails);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmUsages";
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Usages";
-			base.Load += new System.EventHandler(FrmViewUsages_Load);
-			CMenuUsageDetails.ResumeLayout(false);
-			ResumeLayout(false);
-			PerformLayout();
-		}
+        private void InitializeComponent()
+        {
+            components = new Container();
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmUsages));
+            SessionList = new ComboBox();
+            BtnCancel = new Button();
+            BtnReCalc = new Button();
+            BtnGenerate = new Button();
+            CalendarFrom = new MonthCalendar();
+            CalendarTo = new MonthCalendar();
+            label1 = new Label();
+            label2 = new Label();
+            BtnOccurrences = new RadioButton();
+            BtnUsages = new RadioButton();
+            UsageDetails = new ListView();
+            columnHeader1 = new ColumnHeader();
+            columnHeader2 = new ColumnHeader();
+            columnHeader3 = new ColumnHeader();
+            columnHeader4 = new ColumnHeader();
+            columnHeader5 = new ColumnHeader();
+            columnHeader6 = new ColumnHeader();
+            columnHeader7 = new ColumnHeader();
+            columnHeader8 = new ColumnHeader();
+            CMenuUsageDetails = new ContextMenuStrip(components);
+            CMenuUsageDetails_SelectAll = new ToolStripMenuItem();
+            CMenuUsageDetails_UnselectAll = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            CMenuUsageDetails_Clear = new ToolStripMenuItem();
+            toolStripSeparator2 = new ToolStripSeparator();
+            CMenuUsageDetails_Report = new ToolStripMenuItem();
+            SummaryDetails = new ListView();
+            columnHeader9 = new ColumnHeader();
+            columnHeader10 = new ColumnHeader();
+            columnHeader11 = new ColumnHeader();
+            columnHeader12 = new ColumnHeader();
+            toolTip1 = new ToolTip(components);
+            BtnDelete = new Button();
+            CMenuUsageDetails.SuspendLayout();
+            SuspendLayout();
+            // 
+            // SessionList
+            // 
+            SessionList.DropDownStyle = ComboBoxStyle.DropDownList;
+            SessionList.FormattingEnabled = true;
+            SessionList.Location = new Point(16, 14);
+            SessionList.Margin = new Padding(4, 5, 4, 5);
+            SessionList.Name = "SessionList";
+            SessionList.Size = new Size(236, 28);
+            SessionList.TabIndex = 0;
+            // 
+            // BtnCancel
+            // 
+            BtnCancel.DialogResult = DialogResult.Cancel;
+            BtnCancel.Location = new Point(147, 54);
+            BtnCancel.Margin = new Padding(4, 5, 4, 5);
+            BtnCancel.Name = "BtnCancel";
+            BtnCancel.Size = new Size(107, 37);
+            BtnCancel.TabIndex = 5;
+            BtnCancel.Text = "Close";
+            BtnCancel.Click += BtnCancel_Click;
+            // 
+            // BtnReCalc
+            // 
+            BtnReCalc.Location = new Point(16, 54);
+            BtnReCalc.Margin = new Padding(4, 5, 4, 5);
+            BtnReCalc.Name = "BtnReCalc";
+            BtnReCalc.Size = new Size(107, 37);
+            BtnReCalc.TabIndex = 4;
+            BtnReCalc.Text = "Refresh";
+            BtnReCalc.Click += BtnReCalc_Click;
+            // 
+            // BtnGenerate
+            // 
+            BtnGenerate.Image = Resources.document;
+            BtnGenerate.Location = new Point(497, 14);
+            BtnGenerate.Margin = new Padding(4, 5, 4, 5);
+            BtnGenerate.Name = "BtnGenerate";
+            BtnGenerate.Size = new Size(32, 37);
+            BtnGenerate.TabIndex = 3;
+            toolTip1.SetToolTip(BtnGenerate, "Generate Usages Report");
+            BtnGenerate.Click += BtnGenerate_Click;
+            // 
+            // CalendarFrom
+            // 
+            CalendarFrom.Location = new Point(16, 122);
+            CalendarFrom.Margin = new Padding(12, 14, 12, 14);
+            CalendarFrom.Name = "CalendarFrom";
+            CalendarFrom.TabIndex = 6;
+            // 
+            // CalendarTo
+            // 
+            CalendarTo.Location = new Point(16, 395);
+            CalendarTo.Margin = new Padding(12, 14, 12, 14);
+            CalendarTo.Name = "CalendarTo";
+            CalendarTo.TabIndex = 7;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1.Location = new Point(19, 97);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(101, 17);
+            label1.TabIndex = 13;
+            label1.Text = "Period From:";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Location = new Point(19, 371);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(84, 17);
+            label2.TabIndex = 14;
+            label2.Text = "Period To:";
+            // 
+            // BtnOccurrences
+            // 
+            BtnOccurrences.Appearance = Appearance.Button;
+            BtnOccurrences.Location = new Point(383, 14);
+            BtnOccurrences.Margin = new Padding(4, 5, 4, 5);
+            BtnOccurrences.Name = "BtnOccurrences";
+            BtnOccurrences.Size = new Size(107, 34);
+            BtnOccurrences.TabIndex = 2;
+            BtnOccurrences.Text = "Occurrences";
+            BtnOccurrences.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // BtnUsages
+            // 
+            BtnUsages.Appearance = Appearance.Button;
+            BtnUsages.Checked = true;
+            BtnUsages.Location = new Point(272, 14);
+            BtnUsages.Margin = new Padding(4, 5, 4, 5);
+            BtnUsages.Name = "BtnUsages";
+            BtnUsages.Size = new Size(107, 34);
+            BtnUsages.TabIndex = 1;
+            BtnUsages.TabStop = true;
+            BtnUsages.Text = "Full Details";
+            BtnUsages.TextAlign = ContentAlignment.MiddleCenter;
+            BtnUsages.CheckedChanged += BtnUsages_CheckedChanged;
+            // 
+            // UsageDetails
+            // 
+            UsageDetails.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5, columnHeader6, columnHeader7, columnHeader8 });
+            UsageDetails.ContextMenuStrip = CMenuUsageDetails;
+            UsageDetails.FullRowSelect = true;
+            UsageDetails.Location = new Point(272, 54);
+            UsageDetails.Margin = new Padding(4, 5, 4, 5);
+            UsageDetails.Name = "UsageDetails";
+            UsageDetails.Size = new Size(597, 578);
+            UsageDetails.TabIndex = 8;
+            UsageDetails.UseCompatibleStateImageBehavior = false;
+            UsageDetails.View = View.Details;
+            UsageDetails.ColumnClick += UsageDetails_ColumnClick;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "Date";
+            columnHeader1.Width = 68;
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Text = "Session";
+            columnHeader2.Width = 118;
+            // 
+            // columnHeader3
+            // 
+            columnHeader3.Text = "Song Title";
+            columnHeader3.Width = 143;
+            // 
+            // columnHeader4
+            // 
+            columnHeader4.Text = "No.";
+            columnHeader4.Width = 54;
+            // 
+            // columnHeader5
+            // 
+            columnHeader5.Text = "Admin1";
+            // 
+            // columnHeader6
+            // 
+            columnHeader6.Text = "Admin2";
+            columnHeader6.Width = 58;
+            // 
+            // columnHeader7
+            // 
+            columnHeader7.Text = "Song ID";
+            columnHeader7.Width = 56;
+            // 
+            // columnHeader8
+            // 
+            columnHeader8.Text = "Sys ID";
+            columnHeader8.Width = 53;
+            // 
+            // CMenuUsageDetails
+            // 
+            CMenuUsageDetails.ImageScalingSize = new Size(20, 20);
+            CMenuUsageDetails.Items.AddRange(new ToolStripItem[] { CMenuUsageDetails_SelectAll, CMenuUsageDetails_UnselectAll, toolStripSeparator1, CMenuUsageDetails_Clear, toolStripSeparator2, CMenuUsageDetails_Report });
+            CMenuUsageDetails.Name = "ContextMenuBibleText";
+            CMenuUsageDetails.Size = new Size(286, 112);
+            // 
+            // CMenuUsageDetails_SelectAll
+            // 
+            CMenuUsageDetails_SelectAll.Name = "CMenuUsageDetails_SelectAll";
+            CMenuUsageDetails_SelectAll.Size = new Size(285, 24);
+            CMenuUsageDetails_SelectAll.Text = "Select &All";
+            CMenuUsageDetails_SelectAll.Click += CMenuUsageDetails_SelectAll_Click;
+            // 
+            // CMenuUsageDetails_UnselectAll
+            // 
+            CMenuUsageDetails_UnselectAll.Name = "CMenuUsageDetails_UnselectAll";
+            CMenuUsageDetails_UnselectAll.Size = new Size(285, 24);
+            CMenuUsageDetails_UnselectAll.Text = "&Unselect All";
+            CMenuUsageDetails_UnselectAll.Click += CMenuUsageDetails_UnselectAll_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(282, 6);
+            // 
+            // CMenuUsageDetails_Clear
+            // 
+            CMenuUsageDetails_Clear.Name = "CMenuUsageDetails_Clear";
+            CMenuUsageDetails_Clear.Size = new Size(285, 24);
+            CMenuUsageDetails_Clear.Text = "Delete Selected Usage Records";
+            CMenuUsageDetails_Clear.Click += CMenuUsageDetails_Clear_Click;
+            // 
+            // toolStripSeparator2
+            // 
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(282, 6);
+            // 
+            // CMenuUsageDetails_Report
+            // 
+            CMenuUsageDetails_Report.Name = "CMenuUsageDetails_Report";
+            CMenuUsageDetails_Report.Size = new Size(285, 24);
+            CMenuUsageDetails_Report.Text = "Generate Usage Report";
+            CMenuUsageDetails_Report.Click += CMenuUsageDetails_Report_Click;
+            // 
+            // SummaryDetails
+            // 
+            SummaryDetails.Columns.AddRange(new ColumnHeader[] { columnHeader9, columnHeader10, columnHeader11, columnHeader12 });
+            SummaryDetails.FullRowSelect = true;
+            SummaryDetails.Location = new Point(272, 54);
+            SummaryDetails.Margin = new Padding(4, 5, 4, 5);
+            SummaryDetails.MultiSelect = false;
+            SummaryDetails.Name = "SummaryDetails";
+            SummaryDetails.Size = new Size(597, 578);
+            SummaryDetails.TabIndex = 9;
+            SummaryDetails.UseCompatibleStateImageBehavior = false;
+            SummaryDetails.View = View.Details;
+            SummaryDetails.ColumnClick += SummaryDetails_ColumnClick;
+            // 
+            // columnHeader9
+            // 
+            columnHeader9.Text = "Occurrence";
+            columnHeader9.Width = 71;
+            // 
+            // columnHeader10
+            // 
+            columnHeader10.Text = "Song Title";
+            columnHeader10.Width = 248;
+            // 
+            // columnHeader11
+            // 
+            columnHeader11.Text = "No.";
+            columnHeader11.Width = 64;
+            // 
+            // columnHeader12
+            // 
+            columnHeader12.Text = "ID";
+            // 
+            // BtnDelete
+            // 
+            BtnDelete.Image = Resources.Delete;
+            BtnDelete.Location = new Point(533, 14);
+            BtnDelete.Margin = new Padding(4, 5, 4, 5);
+            BtnDelete.Name = "BtnDelete";
+            BtnDelete.Size = new Size(32, 37);
+            BtnDelete.TabIndex = 15;
+            toolTip1.SetToolTip(BtnDelete, "Delete Selected Usage Records");
+            BtnDelete.Click += BtnDelete_Click;
+            // 
+            // FrmUsages
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(883, 651);
+            Controls.Add(BtnDelete);
+            Controls.Add(BtnOccurrences);
+            Controls.Add(BtnUsages);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(CalendarTo);
+            Controls.Add(CalendarFrom);
+            Controls.Add(BtnGenerate);
+            Controls.Add(BtnReCalc);
+            Controls.Add(BtnCancel);
+            Controls.Add(SessionList);
+            Controls.Add(UsageDetails);
+            Controls.Add(SummaryDetails);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmUsages";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Usages";
+            Load += FrmViewUsages_Load;
+            CMenuUsageDetails.ResumeLayout(false);
+            ResumeLayout(false);
+            PerformLayout();
+        }
 
-		public FrmUsages()
+        public FrmUsages()
 		{
 			InitializeComponent();
 		}

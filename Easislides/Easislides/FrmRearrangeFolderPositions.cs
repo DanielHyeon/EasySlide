@@ -39,115 +39,142 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmRearrangeFolderPositions));
-			SongFolder = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			columnHeader2 = new System.Windows.Forms.ColumnHeader();
-			OKBtn = new System.Windows.Forms.Button();
-			CancelBtn = new System.Windows.Forms.Button();
-			toolStripRearrangeFolders = new System.Windows.Forms.ToolStrip();
-			SF_Up = new System.Windows.Forms.ToolStripButton();
-			SF_Down = new System.Windows.Forms.ToolStripButton();
-			panel1 = new System.Windows.Forms.Panel();
-			toolStripRearrangeFolders.SuspendLayout();
-			panel1.SuspendLayout();
-			SuspendLayout();
-			SongFolder.Columns.AddRange(new System.Windows.Forms.ColumnHeader[2]
-			{
-				columnHeader1,
-				columnHeader2
-			});
-			SongFolder.FullRowSelect = true;
-			SongFolder.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			SongFolder.HideSelection = false;
-			SongFolder.Location = new System.Drawing.Point(12, 12);
-			SongFolder.Name = "SongFolder";
-			SongFolder.ShowGroups = false;
-			SongFolder.ShowItemToolTips = true;
-			SongFolder.Size = new System.Drawing.Size(156, 209);
-			SongFolder.TabIndex = 0;
-			SongFolder.UseCompatibleStateImageBehavior = false;
-			SongFolder.View = System.Windows.Forms.View.Details;
-			columnHeader1.Text = "";
-			columnHeader1.Width = 120;
-			columnHeader2.Width = 0;
-			OKBtn.Location = new System.Drawing.Point(199, 21);
-			OKBtn.Name = "OKBtn";
-			OKBtn.Size = new System.Drawing.Size(80, 24);
-			OKBtn.TabIndex = 1;
-			OKBtn.Text = "Apply";
-			OKBtn.Click += new System.EventHandler(OKBtn_Click);
-			CancelBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			CancelBtn.Location = new System.Drawing.Point(199, 51);
-			CancelBtn.Name = "CancelBtn";
-			CancelBtn.Size = new System.Drawing.Size(80, 24);
-			CancelBtn.TabIndex = 2;
-			CancelBtn.Text = "Cancel";
-			toolStripRearrangeFolders.AutoSize = false;
-			toolStripRearrangeFolders.CanOverflow = false;
-			toolStripRearrangeFolders.Dock = System.Windows.Forms.DockStyle.None;
-			toolStripRearrangeFolders.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStripRearrangeFolders.Items.AddRange(new System.Windows.Forms.ToolStripItem[2]
-			{
-				SF_Up,
-				SF_Down
-			});
-			toolStripRearrangeFolders.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
-			toolStripRearrangeFolders.Location = new System.Drawing.Point(0, 0);
-			toolStripRearrangeFolders.Name = "toolStripRearrangeFolders";
-			toolStripRearrangeFolders.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStripRearrangeFolders.Size = new System.Drawing.Size(25, 57);
-			toolStripRearrangeFolders.TabIndex = 0;
-			SF_Up.AutoSize = false;
-			SF_Up.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			SF_Up.Image = Resources.handup;
-			SF_Up.ImageTransparentColor = System.Drawing.Color.Magenta;
-			SF_Up.Name = "SF_Up";
-			SF_Up.Size = new System.Drawing.Size(22, 22);
-			SF_Up.Tag = "up";
-			SF_Up.ToolTipText = "Move Item Up";
-			SF_Up.MouseUp += new System.Windows.Forms.MouseEventHandler(SF_UpDown_MouseUp);
-			SF_Down.AutoSize = false;
-			SF_Down.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			SF_Down.Image = Resources.handdown;
-			SF_Down.ImageTransparentColor = System.Drawing.Color.Magenta;
-			SF_Down.Name = "SF_Down";
-			SF_Down.Size = new System.Drawing.Size(22, 22);
-			SF_Down.Tag = "down";
-			SF_Down.ToolTipText = "Move Item Down";
-			SF_Down.MouseUp += new System.Windows.Forms.MouseEventHandler(SF_UpDown_MouseUp);
-			panel1.Controls.Add(toolStripRearrangeFolders);
-			panel1.Location = new System.Drawing.Point(170, 18);
-			panel1.Name = "panel1";
-			panel1.Size = new System.Drawing.Size(25, 53);
-			panel1.TabIndex = 7;
-			base.AcceptButton = OKBtn;
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(293, 233);
-			base.Controls.Add(panel1);
-			base.Controls.Add(CancelBtn);
-			base.Controls.Add(OKBtn);
-			base.Controls.Add(SongFolder);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmRearrangeFolderPositions";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Re-Arrange Song Folders";
-			base.FormClosing += new System.Windows.Forms.FormClosingEventHandler(FrmRearrangeFolderPositions_FormClosing);
-			base.Load += new System.EventHandler(FrmRearrangeFolderPositions_Load);
-			toolStripRearrangeFolders.ResumeLayout(false);
-			toolStripRearrangeFolders.PerformLayout();
-			panel1.ResumeLayout(false);
-			ResumeLayout(false);
-		}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmRearrangeFolderPositions));
+            SongFolder = new ListView();
+            columnHeader1 = new ColumnHeader();
+            columnHeader2 = new ColumnHeader();
+            OKBtn = new Button();
+            CancelBtn = new Button();
+            toolStripRearrangeFolders = new ToolStrip();
+            SF_Up = new ToolStripButton();
+            SF_Down = new ToolStripButton();
+            panel1 = new Panel();
+            toolStripRearrangeFolders.SuspendLayout();
+            panel1.SuspendLayout();
+            SuspendLayout();
+            // 
+            // SongFolder
+            // 
+            SongFolder.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2 });
+            SongFolder.FullRowSelect = true;
+            SongFolder.HeaderStyle = ColumnHeaderStyle.None;
+            SongFolder.Location = new Point(16, 18);
+            SongFolder.Margin = new Padding(4, 5, 4, 5);
+            SongFolder.Name = "SongFolder";
+            SongFolder.ShowGroups = false;
+            SongFolder.ShowItemToolTips = true;
+            SongFolder.Size = new Size(207, 319);
+            SongFolder.TabIndex = 0;
+            SongFolder.UseCompatibleStateImageBehavior = false;
+            SongFolder.View = View.Details;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "";
+            columnHeader1.Width = 120;
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Width = 0;
+            // 
+            // OKBtn
+            // 
+            OKBtn.Location = new Point(265, 32);
+            OKBtn.Margin = new Padding(4, 5, 4, 5);
+            OKBtn.Name = "OKBtn";
+            OKBtn.Size = new Size(107, 37);
+            OKBtn.TabIndex = 1;
+            OKBtn.Text = "Apply";
+            OKBtn.Click += OKBtn_Click;
+            // 
+            // CancelBtn
+            // 
+            CancelBtn.DialogResult = DialogResult.Cancel;
+            CancelBtn.Location = new Point(265, 78);
+            CancelBtn.Margin = new Padding(4, 5, 4, 5);
+            CancelBtn.Name = "CancelBtn";
+            CancelBtn.Size = new Size(107, 37);
+            CancelBtn.TabIndex = 2;
+            CancelBtn.Text = "Cancel";
+            // 
+            // toolStripRearrangeFolders
+            // 
+            toolStripRearrangeFolders.AutoSize = false;
+            toolStripRearrangeFolders.CanOverflow = false;
+            toolStripRearrangeFolders.Dock = DockStyle.None;
+            toolStripRearrangeFolders.GripStyle = ToolStripGripStyle.Hidden;
+            toolStripRearrangeFolders.ImageScalingSize = new Size(20, 20);
+            toolStripRearrangeFolders.Items.AddRange(new ToolStripItem[] { SF_Up, SF_Down });
+            toolStripRearrangeFolders.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+            toolStripRearrangeFolders.Location = new Point(0, 0);
+            toolStripRearrangeFolders.Name = "toolStripRearrangeFolders";
+            toolStripRearrangeFolders.RenderMode = ToolStripRenderMode.System;
+            toolStripRearrangeFolders.Size = new Size(33, 88);
+            toolStripRearrangeFolders.TabIndex = 0;
+            // 
+            // SF_Up
+            // 
+            SF_Up.AutoSize = false;
+            SF_Up.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            SF_Up.Image = Resources.handup;
+            SF_Up.ImageTransparentColor = Color.Magenta;
+            SF_Up.Name = "SF_Up";
+            SF_Up.Size = new Size(22, 22);
+            SF_Up.Tag = "up";
+            SF_Up.ToolTipText = "Move Item Up";
+            SF_Up.MouseUp += SF_UpDown_MouseUp;
+            // 
+            // SF_Down
+            // 
+            SF_Down.AutoSize = false;
+            SF_Down.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            SF_Down.Image = Resources.handdown;
+            SF_Down.ImageTransparentColor = Color.Magenta;
+            SF_Down.Name = "SF_Down";
+            SF_Down.Size = new Size(22, 22);
+            SF_Down.Tag = "down";
+            SF_Down.ToolTipText = "Move Item Down";
+            SF_Down.MouseUp += SF_UpDown_MouseUp;
+            // 
+            // panel1
+            // 
+            panel1.Controls.Add(toolStripRearrangeFolders);
+            panel1.Location = new Point(227, 28);
+            panel1.Margin = new Padding(4, 5, 4, 5);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(33, 82);
+            panel1.TabIndex = 7;
+            // 
+            // FrmRearrangeFolderPositions
+            // 
+            AcceptButton = OKBtn;
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(391, 358);
+            Controls.Add(panel1);
+            Controls.Add(CancelBtn);
+            Controls.Add(OKBtn);
+            Controls.Add(SongFolder);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmRearrangeFolderPositions";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Re-Arrange Song Folders";
+            FormClosing += FrmRearrangeFolderPositions_FormClosing;
+            Load += FrmRearrangeFolderPositions_Load;
+            toolStripRearrangeFolders.ResumeLayout(false);
+            toolStripRearrangeFolders.PerformLayout();
+            panel1.ResumeLayout(false);
+            ResumeLayout(false);
+        }
 
-		public FrmRearrangeFolderPositions()
+        public FrmRearrangeFolderPositions()
 		{
 			InitializeComponent();
 		}

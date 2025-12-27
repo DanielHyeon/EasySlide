@@ -14407,12 +14407,12 @@ namespace Easislides
 #elif SQLite
 		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex, int BookIndex, int MatchSelected)
 		{
-			string text = "\"*[ -/:-@]";
-			string text2 = "[ -/:-@]*\"";
+			string text = "'*[ -/:-@]";
+			string text2 = "[ -/:-@]*'";
 			if (PartialWordSearch(VersionIndex))
 			{
-				text = "\"%";
-				text2 = "%\"";
+				text = "'%";
+				text2 = "%'";
 			}
 			if (DataUtil.Trim(InSearchPassage).Length > 0)
 			{
@@ -14431,6 +14431,7 @@ namespace Easislides
 						{
 							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
 							{
+								string term = DataUtil.Trim(sArray[i]).Replace("'", "''");
 								if (i > 0)
 								{
 									text4 += " or ";
@@ -14439,11 +14440,11 @@ namespace Easislides
 									text7 += " or ";
 								}
 								string text8 = text4;
-								text4 = text8 + " lower(bibletext) like " + text + DataUtil.Trim(sArray[i]) + text2;
-								text5 = text5 + " lower(bibletext) like \"" + DataUtil.Trim(sArray[i]) + text2;
+								text4 = text8 + " lower(bibletext) like " + text + term + text2;
+								text5 = text5 + " lower(bibletext) like '" + term + text2;
 								text8 = text6;
-								text6 = text8 + " lower(bibletext) like " + text + DataUtil.Trim(sArray[i]) + "\"";
-								text7 = text7 + " lower(bibletext) like \"" + DataUtil.Trim(sArray[i]) + "\"";
+								text6 = text8 + " lower(bibletext) like " + text + term + "'";
+								text7 = text7 + " lower(bibletext) like '" + term + "'";
 							}
 							break;
 						}
@@ -14451,6 +14452,7 @@ namespace Easislides
 						{
 							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
 							{
+								string term = DataUtil.Trim(sArray[i]).Replace("'", "''");
 								if (i > 0)
 								{
 									text4 += " and ";
@@ -14459,19 +14461,20 @@ namespace Easislides
 									text7 += " and ";
 								}
 								string text8 = text4;
-								text4 = text8 + " lower(bibletext) like " + text + sArray[i] + text2;
-								text5 = text5 + " lower(bibletext) like \"" + sArray[i] + text2;
+								text4 = text8 + " lower(bibletext) like " + text + term + text2;
+								text5 = text5 + " lower(bibletext) like '" + term + text2;
 								text8 = text6;
-								text6 = text8 + " lower(bibletext) like " + text + sArray[i] + "\"";
-								text7 = text7 + " lower(bibletext) like \"" + sArray[i] + "\"";
+								text6 = text8 + " lower(bibletext) like " + text + term + "'";
+								text7 = text7 + " lower(bibletext) like '" + term + "'";
 							}
 							break;
 						}
 					default:
-						text4 = " lower(bibletext) like " + text + DataUtil.Trim(InSearchPassage).ToLower() + text2;
-						text5 = " lower(bibletext) like \"" + DataUtil.Trim(InSearchPassage).ToLower() + text2;
-						text6 = " lower(bibletext) like " + text + DataUtil.Trim(InSearchPassage).ToLower() + "\"";
-						text7 = " lower(bibletext) like \"" + DataUtil.Trim(InSearchPassage).ToLower() + "\"";
+						string passage = DataUtil.Trim(InSearchPassage).ToLower().Replace("'", "''");
+						text4 = " lower(bibletext) like " + text + passage + text2;
+						text5 = " lower(bibletext) like '" + passage + text2;
+						text6 = " lower(bibletext) like " + text + passage + "'";
+						text7 = " lower(bibletext) like '" + passage + "'";
 						break;
 				}
 				text4 = DataUtil.Trim(text4);

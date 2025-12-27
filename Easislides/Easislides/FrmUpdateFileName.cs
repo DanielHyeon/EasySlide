@@ -33,57 +33,77 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmUpdateFileName));
-			tbFileName = new System.Windows.Forms.TextBox();
-			Mess = new System.Windows.Forms.Label();
-			BtnCancel = new System.Windows.Forms.Button();
-			BtnOK = new System.Windows.Forms.Button();
-			SuspendLayout();
-			tbFileName.Location = new System.Drawing.Point(12, 35);
-			tbFileName.Name = "tbFileName";
-			tbFileName.Size = new System.Drawing.Size(309, 20);
-			tbFileName.TabIndex = 0;
-			Mess.Location = new System.Drawing.Point(12, 9);
-			Mess.Name = "Mess";
-			Mess.Size = new System.Drawing.Size(316, 14);
-			Mess.TabIndex = 1;
-			Mess.Text = "T";
-			BtnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			BtnCancel.Location = new System.Drawing.Point(177, 71);
-			BtnCancel.Name = "BtnCancel";
-			BtnCancel.Size = new System.Drawing.Size(80, 24);
-			BtnCancel.TabIndex = 2;
-			BtnCancel.Text = "Cancel";
-			BtnOK.Location = new System.Drawing.Point(81, 71);
-			BtnOK.Name = "BtnOK";
-			BtnOK.Size = new System.Drawing.Size(80, 24);
-			BtnOK.TabIndex = 1;
-			BtnOK.Text = "OK";
-			BtnOK.Click += new System.EventHandler(BtnOK_Click);
-			base.AcceptButton = BtnOK;
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.CancelButton = BtnCancel;
-			base.ClientSize = new System.Drawing.Size(333, 113);
-			base.Controls.Add(BtnCancel);
-			base.Controls.Add(BtnOK);
-			base.Controls.Add(Mess);
-			base.Controls.Add(tbFileName);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmUpdateFileName";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			base.Load += new System.EventHandler(frmUpdateFileName_Load);
-			ResumeLayout(false);
-			PerformLayout();
-		}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmUpdateFileName));
+            tbFileName = new TextBox();
+            Mess = new Label();
+            BtnCancel = new Button();
+            BtnOK = new Button();
+            SuspendLayout();
+            // 
+            // tbFileName
+            // 
+            tbFileName.Location = new Point(16, 54);
+            tbFileName.Margin = new Padding(4, 5, 4, 5);
+            tbFileName.Name = "tbFileName";
+            tbFileName.Size = new Size(411, 27);
+            tbFileName.TabIndex = 0;
+            // 
+            // Mess
+            // 
+            Mess.Location = new Point(16, 14);
+            Mess.Margin = new Padding(4, 0, 4, 0);
+            Mess.Name = "Mess";
+            Mess.Size = new Size(421, 22);
+            Mess.TabIndex = 1;
+            Mess.Text = "T";
+            // 
+            // BtnCancel
+            // 
+            BtnCancel.DialogResult = DialogResult.Cancel;
+            BtnCancel.Location = new Point(236, 109);
+            BtnCancel.Margin = new Padding(4, 5, 4, 5);
+            BtnCancel.Name = "BtnCancel";
+            BtnCancel.Size = new Size(107, 37);
+            BtnCancel.TabIndex = 2;
+            BtnCancel.Text = "Cancel";
+            // 
+            // BtnOK
+            // 
+            BtnOK.Location = new Point(108, 109);
+            BtnOK.Margin = new Padding(4, 5, 4, 5);
+            BtnOK.Name = "BtnOK";
+            BtnOK.Size = new Size(107, 37);
+            BtnOK.TabIndex = 1;
+            BtnOK.Text = "OK";
+            BtnOK.Click += BtnOK_Click;
+            // 
+            // FrmUpdateFileName
+            // 
+            AcceptButton = BtnOK;
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = BtnCancel;
+            ClientSize = new Size(444, 174);
+            Controls.Add(BtnCancel);
+            Controls.Add(BtnOK);
+            Controls.Add(Mess);
+            Controls.Add(tbFileName);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmUpdateFileName";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Load += frmUpdateFileName_Load;
+            ResumeLayout(false);
+            PerformLayout();
+        }
 
-		public FrmUpdateFileName()
+        public FrmUpdateFileName()
 		{
 			InitializeComponent();
 		}

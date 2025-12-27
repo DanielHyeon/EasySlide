@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "o/ied9URLYs=",
+  "dgSpecHash": "70qeQnvgY7k=",
   "success": true,
-  "projectFilePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+  "projectFilePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\daniel\\.nuget\\packages\\bouncycastle.cryptography\\2.3.1\\bouncycastle.cryptography.2.3.1.nupkg.sha512",
     "C:\\Users\\daniel\\.nuget\\packages\\google.protobuf\\3.26.1\\google.protobuf.3.26.1.nupkg.sha512",
@@ -25,9 +25,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Package 'NetOffice.Core 1.7.4.11' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0-windows7.0'. This package may not be fully compatible with your project.",
-      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "warningLevel": 1,
-      "filePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "filePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "libraryId": "NetOffice.Core",
       "targetGraphs": [
         "net10.0-windows7.0"
@@ -37,9 +37,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Package 'NetOffice.PowerPoint 1.7.4.11' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0-windows7.0'. This package may not be fully compatible with your project.",
-      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "warningLevel": 1,
-      "filePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "filePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "libraryId": "NetOffice.PowerPoint",
       "targetGraphs": [
         "net10.0-windows7.0"
@@ -49,9 +49,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Package 'NetOffice.Word 1.7.4.11' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0-windows7.0'. This package may not be fully compatible with your project.",
-      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "warningLevel": 1,
-      "filePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "filePath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "libraryId": "NetOffice.Word",
       "targetGraphs": [
         "net10.0-windows7.0"

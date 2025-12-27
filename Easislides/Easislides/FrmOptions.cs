@@ -4126,12 +4126,12 @@ namespace Easislides
             tabControl1.Controls.Add(tabPageBibles);
             tabControl1.Controls.Add(tabPageLicence);
             tabControl1.Controls.Add(tabPageKeyboard);
-            tabControl1.Location = new Point(14, 14);
-            tabControl1.Margin = new Padding(4, 3, 4, 3);
+            tabControl1.Location = new Point(16, 19);
+            tabControl1.Margin = new Padding(5, 4, 5, 4);
             tabControl1.Name = "tabControl1";
             tabControl1.Padding = new Point(10, 3);
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(636, 428);
+            tabControl1.Size = new Size(727, 571);
             tabControl1.TabIndex = 0;
             tabControl1.Tag = "";
             // 
@@ -4144,22 +4144,22 @@ namespace Easislides
             tabPageMainWindow.Controls.Add(groupBox7);
             tabPageMainWindow.Controls.Add(groupBox6);
             tabPageMainWindow.Controls.Add(groupBox1);
-            tabPageMainWindow.Location = new Point(4, 24);
-            tabPageMainWindow.Margin = new Padding(4, 3, 4, 3);
+            tabPageMainWindow.Location = new Point(4, 29);
+            tabPageMainWindow.Margin = new Padding(5, 4, 5, 4);
             tabPageMainWindow.Name = "tabPageMainWindow";
-            tabPageMainWindow.Padding = new Padding(4, 3, 4, 3);
-            tabPageMainWindow.Size = new Size(628, 400);
+            tabPageMainWindow.Padding = new Padding(5, 4, 5, 4);
+            tabPageMainWindow.Size = new Size(719, 538);
             tabPageMainWindow.TabIndex = 0;
             tabPageMainWindow.Text = "Main Window";
             // 
             // groupBox24
             // 
             groupBox24.Controls.Add(checkBoxLMBox);
-            groupBox24.Location = new Point(312, 155);
-            groupBox24.Margin = new Padding(4, 3, 4, 3);
+            groupBox24.Location = new Point(357, 207);
+            groupBox24.Margin = new Padding(5, 4, 5, 4);
             groupBox24.Name = "groupBox24";
-            groupBox24.Padding = new Padding(4, 3, 4, 3);
-            groupBox24.Size = new Size(299, 54);
+            groupBox24.Padding = new Padding(5, 4, 5, 4);
+            groupBox24.Size = new Size(342, 72);
             groupBox24.TabIndex = 4;
             groupBox24.TabStop = false;
             groupBox24.Text = "Other Settings";
@@ -4167,21 +4167,21 @@ namespace Easislides
             // checkBoxLMBox
             // 
             checkBoxLMBox.AutoSize = true;
-            checkBoxLMBox.Location = new Point(13, 24);
-            checkBoxLMBox.Margin = new Padding(4, 3, 4, 3);
+            checkBoxLMBox.Location = new Point(15, 32);
+            checkBoxLMBox.Margin = new Padding(5, 4, 5, 4);
             checkBoxLMBox.Name = "checkBoxLMBox";
-            checkBoxLMBox.Size = new Size(183, 19);
+            checkBoxLMBox.Size = new Size(228, 24);
             checkBoxLMBox.TabIndex = 2;
             checkBoxLMBox.Text = "Show Lyrics Monitor Alert Box";
             // 
             // groupBox12
             // 
             groupBox12.Controls.Add(panelJump);
-            groupBox12.Location = new Point(312, 215);
-            groupBox12.Margin = new Padding(4, 3, 4, 3);
+            groupBox12.Location = new Point(357, 287);
+            groupBox12.Margin = new Padding(5, 4, 5, 4);
             groupBox12.Name = "groupBox12";
-            groupBox12.Padding = new Padding(4, 3, 4, 3);
-            groupBox12.Size = new Size(299, 120);
+            groupBox12.Padding = new Padding(5, 4, 5, 4);
+            groupBox12.Size = new Size(342, 160);
             groupBox12.TabIndex = 5;
             groupBox12.TabStop = false;
             groupBox12.Text = "Jump To Folder Icons";
@@ -4192,39 +4192,39 @@ namespace Easislides
             panelJump.Controls.Add(label55);
             panelJump.Controls.Add(label10);
             panelJump.Controls.Add(toolStripJump);
-            panelJump.Location = new Point(14, 20);
-            panelJump.Margin = new Padding(4, 3, 4, 3);
+            panelJump.Location = new Point(16, 27);
+            panelJump.Margin = new Padding(5, 4, 5, 4);
             panelJump.Name = "panelJump";
-            panelJump.Size = new Size(231, 95);
+            panelJump.Size = new Size(264, 127);
             panelJump.TabIndex = 0;
             // 
             // label56
             // 
             label56.AutoSize = true;
-            label56.Location = new Point(9, 70);
-            label56.Margin = new Padding(4, 0, 4, 0);
+            label56.Location = new Point(10, 93);
+            label56.Margin = new Padding(5, 0, 5, 0);
             label56.Name = "label56";
-            label56.Size = new Size(18, 15);
+            label56.Size = new Size(21, 20);
             label56.TabIndex = 11;
             label56.Text = "C.";
             // 
             // label55
             // 
             label55.AutoSize = true;
-            label55.Location = new Point(9, 40);
-            label55.Margin = new Padding(4, 0, 4, 0);
+            label55.Location = new Point(10, 53);
+            label55.Margin = new Padding(5, 0, 5, 0);
             label55.Name = "label55";
-            label55.Size = new Size(17, 15);
+            label55.Size = new Size(21, 20);
             label55.TabIndex = 10;
             label55.Text = "B.";
             // 
             // label10
             // 
             label10.AutoSize = true;
-            label10.Location = new Point(9, 10);
-            label10.Margin = new Padding(4, 0, 4, 0);
+            label10.Location = new Point(10, 13);
+            label10.Margin = new Padding(5, 0, 5, 0);
             label10.Name = "label10";
-            label10.Size = new Size(18, 15);
+            label10.Size = new Size(22, 20);
             label10.TabIndex = 9;
             label10.Text = "A.";
             // 
@@ -4236,11 +4236,11 @@ namespace Easislides
             toolStripJump.ImageScalingSize = new Size(24, 24);
             toolStripJump.Items.AddRange(new ToolStripItem[] { toolStripJumpA, toolStripSeparator1, toolStripJumpB, toolStripSeparator2, toolStripJumpC });
             toolStripJump.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
-            toolStripJump.Location = new Point(37, 5);
+            toolStripJump.Location = new Point(42, 7);
             toolStripJump.Name = "toolStripJump";
             toolStripJump.Padding = new Padding(0, 0, 2, 0);
             toolStripJump.RenderMode = ToolStripRenderMode.System;
-            toolStripJump.Size = new Size(190, 83);
+            toolStripJump.Size = new Size(216, 98);
             toolStripJump.TabIndex = 5;
             // 
             // toolStripJumpA
@@ -4249,39 +4249,39 @@ namespace Easislides
             toolStripJumpA.DropDownStyle = ComboBoxStyle.DropDownList;
             toolStripJumpA.MaxDropDownItems = 12;
             toolStripJumpA.Name = "toolStripJumpA";
-            toolStripJumpA.Size = new Size(186, 23);
+            toolStripJumpA.Size = new Size(212, 28);
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(187, 6);
+            toolStripSeparator1.Size = new Size(213, 6);
             // 
             // toolStripJumpB
             // 
             toolStripJumpB.DropDownStyle = ComboBoxStyle.DropDownList;
             toolStripJumpB.Name = "toolStripJumpB";
-            toolStripJumpB.Size = new Size(185, 23);
+            toolStripJumpB.Size = new Size(211, 28);
             // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(187, 6);
+            toolStripSeparator2.Size = new Size(213, 6);
             // 
             // toolStripJumpC
             // 
             toolStripJumpC.DropDownStyle = ComboBoxStyle.DropDownList;
             toolStripJumpC.Name = "toolStripJumpC";
-            toolStripJumpC.Size = new Size(185, 23);
+            toolStripJumpC.Size = new Size(211, 28);
             // 
             // groupBox22
             // 
             groupBox22.Controls.Add(checkBoxPPTab);
             groupBox22.Controls.Add(panel3);
-            groupBox22.Location = new Point(7, 155);
-            groupBox22.Margin = new Padding(4, 3, 4, 3);
+            groupBox22.Location = new Point(8, 207);
+            groupBox22.Margin = new Padding(5, 4, 5, 4);
             groupBox22.Name = "groupBox22";
-            groupBox22.Padding = new Padding(4, 3, 4, 3);
-            groupBox22.Size = new Size(294, 87);
+            groupBox22.Padding = new Padding(5, 4, 5, 4);
+            groupBox22.Size = new Size(336, 116);
             groupBox22.TabIndex = 1;
             groupBox22.TabStop = false;
             groupBox22.Text = "Powerpoint";
@@ -4289,10 +4289,10 @@ namespace Easislides
             // checkBoxPPTab
             // 
             checkBoxPPTab.AutoSize = true;
-            checkBoxPPTab.Location = new Point(13, 57);
-            checkBoxPPTab.Margin = new Padding(4, 3, 4, 3);
+            checkBoxPPTab.Location = new Point(15, 76);
+            checkBoxPPTab.Margin = new Padding(5, 4, 5, 4);
             checkBoxPPTab.Name = "checkBoxPPTab";
-            checkBoxPPTab.Size = new Size(141, 19);
+            checkBoxPPTab.Size = new Size(173, 24);
             checkBoxPPTab.TabIndex = 1;
             checkBoxPPTab.Text = "Show Powerpoint Tab";
             // 
@@ -4300,27 +4300,27 @@ namespace Easislides
             // 
             panel3.Controls.Add(PPMaxUpDown);
             panel3.Controls.Add(label3);
-            panel3.Location = new Point(8, 21);
-            panel3.Margin = new Padding(4, 3, 4, 3);
+            panel3.Location = new Point(9, 28);
+            panel3.Margin = new Padding(5, 4, 5, 4);
             panel3.Name = "panel3";
-            panel3.Size = new Size(278, 29);
+            panel3.Size = new Size(318, 39);
             panel3.TabIndex = 0;
             // 
             // PPMaxUpDown
             // 
-            PPMaxUpDown.Location = new Point(209, 3);
-            PPMaxUpDown.Margin = new Padding(4, 3, 4, 3);
+            PPMaxUpDown.Location = new Point(239, 4);
+            PPMaxUpDown.Margin = new Padding(5, 4, 5, 4);
             PPMaxUpDown.Name = "PPMaxUpDown";
-            PPMaxUpDown.Size = new Size(63, 23);
+            PPMaxUpDown.Size = new Size(72, 27);
             PPMaxUpDown.TabIndex = 0;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(4, 6);
-            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Location = new Point(5, 8);
+            label3.Margin = new Padding(5, 0, 5, 0);
             label3.Name = "label3";
-            label3.Size = new Size(166, 15);
+            label3.Size = new Size(209, 20);
             label3.TabIndex = 0;
             label3.Text = "Max Powerpoint Files allowed:";
             // 
@@ -4334,11 +4334,11 @@ namespace Easislides
             groupBox7.Controls.Add(TextRegionUseColour);
             groupBox7.Controls.Add(cbPreviewShowNotations);
             groupBox7.Controls.Add(cbLineBetweenScreens);
-            groupBox7.Location = new Point(312, 16);
-            groupBox7.Margin = new Padding(4, 3, 4, 3);
+            groupBox7.Location = new Point(357, 21);
+            groupBox7.Margin = new Padding(5, 4, 5, 4);
             groupBox7.Name = "groupBox7";
-            groupBox7.Padding = new Padding(4, 3, 4, 3);
-            groupBox7.Size = new Size(299, 132);
+            groupBox7.Padding = new Padding(5, 4, 5, 4);
+            groupBox7.Size = new Size(342, 176);
             groupBox7.TabIndex = 3;
             groupBox7.TabStop = false;
             groupBox7.Text = "Preview Text Areas";
@@ -4347,10 +4347,10 @@ namespace Easislides
             // 
             btnTextRegionSlideBackColour.BackColor = Color.LightGray;
             btnTextRegionSlideBackColour.FlatStyle = FlatStyle.Flat;
-            btnTextRegionSlideBackColour.Location = new Point(177, 92);
-            btnTextRegionSlideBackColour.Margin = new Padding(4, 3, 4, 3);
+            btnTextRegionSlideBackColour.Location = new Point(202, 123);
+            btnTextRegionSlideBackColour.Margin = new Padding(5, 4, 5, 4);
             btnTextRegionSlideBackColour.Name = "btnTextRegionSlideBackColour";
-            btnTextRegionSlideBackColour.Size = new Size(114, 29);
+            btnTextRegionSlideBackColour.Size = new Size(130, 39);
             btnTextRegionSlideBackColour.TabIndex = 7;
             btnTextRegionSlideBackColour.Text = "Selected Back";
             btnTextRegionSlideBackColour.UseVisualStyleBackColor = false;
@@ -4360,10 +4360,10 @@ namespace Easislides
             // 
             btnTextRegionSlideTextColour.BackColor = Color.LightGray;
             btnTextRegionSlideTextColour.FlatStyle = FlatStyle.Flat;
-            btnTextRegionSlideTextColour.Location = new Point(177, 62);
-            btnTextRegionSlideTextColour.Margin = new Padding(4, 3, 4, 3);
+            btnTextRegionSlideTextColour.Location = new Point(202, 83);
+            btnTextRegionSlideTextColour.Margin = new Padding(5, 4, 5, 4);
             btnTextRegionSlideTextColour.Name = "btnTextRegionSlideTextColour";
-            btnTextRegionSlideTextColour.Size = new Size(114, 29);
+            btnTextRegionSlideTextColour.Size = new Size(130, 39);
             btnTextRegionSlideTextColour.TabIndex = 6;
             btnTextRegionSlideTextColour.Text = "Selected Colour";
             btnTextRegionSlideTextColour.UseVisualStyleBackColor = false;
@@ -4373,10 +4373,10 @@ namespace Easislides
             // 
             btnTextRegionChangeColour.BackColor = Color.LightGray;
             btnTextRegionChangeColour.FlatStyle = FlatStyle.Flat;
-            btnTextRegionChangeColour.Location = new Point(177, 32);
-            btnTextRegionChangeColour.Margin = new Padding(4, 3, 4, 3);
+            btnTextRegionChangeColour.Location = new Point(202, 43);
+            btnTextRegionChangeColour.Margin = new Padding(5, 4, 5, 4);
             btnTextRegionChangeColour.Name = "btnTextRegionChangeColour";
-            btnTextRegionChangeColour.Size = new Size(114, 29);
+            btnTextRegionChangeColour.Size = new Size(130, 39);
             btnTextRegionChangeColour.TabIndex = 5;
             btnTextRegionChangeColour.Text = "Focused Colour";
             btnTextRegionChangeColour.UseVisualStyleBackColor = false;
@@ -4384,52 +4384,52 @@ namespace Easislides
             // 
             // PreviewFontUpDown
             // 
-            PreviewFontUpDown.Location = new Point(77, 22);
-            PreviewFontUpDown.Margin = new Padding(4, 3, 4, 3);
+            PreviewFontUpDown.Location = new Point(88, 29);
+            PreviewFontUpDown.Margin = new Padding(5, 4, 5, 4);
             PreviewFontUpDown.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
             PreviewFontUpDown.Minimum = new decimal(new int[] { 8, 0, 0, 0 });
             PreviewFontUpDown.Name = "PreviewFontUpDown";
-            PreviewFontUpDown.Size = new Size(63, 23);
+            PreviewFontUpDown.Size = new Size(72, 27);
             PreviewFontUpDown.TabIndex = 1;
             PreviewFontUpDown.Value = new decimal(new int[] { 8, 0, 0, 0 });
             // 
             // label37
             // 
             label37.AutoSize = true;
-            label37.Location = new Point(10, 25);
-            label37.Margin = new Padding(4, 0, 4, 0);
+            label37.Location = new Point(11, 33);
+            label37.Margin = new Padding(5, 0, 5, 0);
             label37.Name = "label37";
-            label37.Size = new Size(54, 15);
+            label37.Size = new Size(69, 20);
             label37.TabIndex = 0;
             label37.Text = "Font Size";
             // 
             // TextRegionUseColour
             // 
             TextRegionUseColour.AutoSize = true;
-            TextRegionUseColour.Location = new Point(14, 75);
-            TextRegionUseColour.Margin = new Padding(4, 3, 4, 3);
+            TextRegionUseColour.Location = new Point(16, 100);
+            TextRegionUseColour.Margin = new Padding(5, 4, 5, 4);
             TextRegionUseColour.Name = "TextRegionUseColour";
-            TextRegionUseColour.Size = new Size(131, 19);
+            TextRegionUseColour.Size = new Size(161, 24);
             TextRegionUseColour.TabIndex = 3;
             TextRegionUseColour.Text = "Use Focused Colour";
             // 
             // cbPreviewShowNotations
             // 
             cbPreviewShowNotations.AutoSize = true;
-            cbPreviewShowNotations.Location = new Point(14, 52);
-            cbPreviewShowNotations.Margin = new Padding(4, 3, 4, 3);
+            cbPreviewShowNotations.Location = new Point(16, 69);
+            cbPreviewShowNotations.Margin = new Padding(5, 4, 5, 4);
             cbPreviewShowNotations.Name = "cbPreviewShowNotations";
-            cbPreviewShowNotations.Size = new Size(110, 19);
+            cbPreviewShowNotations.Size = new Size(136, 24);
             cbPreviewShowNotations.TabIndex = 2;
             cbPreviewShowNotations.Text = "Show Notations";
             // 
             // cbLineBetweenScreens
             // 
             cbLineBetweenScreens.AutoSize = true;
-            cbLineBetweenScreens.Location = new Point(14, 98);
-            cbLineBetweenScreens.Margin = new Padding(4, 3, 4, 3);
+            cbLineBetweenScreens.Location = new Point(16, 131);
+            cbLineBetweenScreens.Margin = new Padding(5, 4, 5, 4);
             cbLineBetweenScreens.Name = "cbLineBetweenScreens";
-            cbLineBetweenScreens.Size = new Size(139, 19);
+            cbLineBetweenScreens.Size = new Size(173, 24);
             cbLineBetweenScreens.TabIndex = 4;
             cbLineBetweenScreens.Text = "Line between Screens";
             // 
@@ -4438,11 +4438,11 @@ namespace Easislides
             groupBox6.Controls.Add(checkBoxMediaTab);
             groupBox6.Controls.Add(panel5);
             groupBox6.Controls.Add(tbMusicLocation);
-            groupBox6.Location = new Point(7, 248);
-            groupBox6.Margin = new Padding(4, 3, 4, 3);
+            groupBox6.Location = new Point(8, 331);
+            groupBox6.Margin = new Padding(5, 4, 5, 4);
             groupBox6.Name = "groupBox6";
-            groupBox6.Padding = new Padding(4, 3, 4, 3);
-            groupBox6.Size = new Size(294, 87);
+            groupBox6.Padding = new Padding(5, 4, 5, 4);
+            groupBox6.Size = new Size(336, 116);
             groupBox6.TabIndex = 2;
             groupBox6.TabStop = false;
             groupBox6.Text = "Media Files";
@@ -4450,20 +4450,20 @@ namespace Easislides
             // checkBoxMediaTab
             // 
             checkBoxMediaTab.AutoSize = true;
-            checkBoxMediaTab.Location = new Point(14, 57);
-            checkBoxMediaTab.Margin = new Padding(4, 3, 4, 3);
+            checkBoxMediaTab.Location = new Point(16, 76);
+            checkBoxMediaTab.Margin = new Padding(5, 4, 5, 4);
             checkBoxMediaTab.Name = "checkBoxMediaTab";
-            checkBoxMediaTab.Size = new Size(113, 19);
+            checkBoxMediaTab.Size = new Size(140, 24);
             checkBoxMediaTab.TabIndex = 1;
             checkBoxMediaTab.Text = "Show Media Tab";
             // 
             // panel5
             // 
             panel5.Controls.Add(toolStrip1);
-            panel5.Location = new Point(260, 25);
-            panel5.Margin = new Padding(4, 3, 4, 3);
+            panel5.Location = new Point(297, 33);
+            panel5.Margin = new Padding(5, 4, 5, 4);
             panel5.Name = "panel5";
-            panel5.Size = new Size(26, 24);
+            panel5.Size = new Size(30, 32);
             panel5.TabIndex = 29;
             // 
             // toolStrip1
@@ -4479,7 +4479,7 @@ namespace Easislides
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Padding = new Padding(0, 0, 2, 0);
             toolStrip1.RenderMode = ToolStripRenderMode.System;
-            toolStrip1.Size = new Size(29, 28);
+            toolStrip1.Size = new Size(33, 37);
             toolStrip1.TabIndex = 0;
             // 
             // MusicLocationBtn
@@ -4496,11 +4496,11 @@ namespace Easislides
             // 
             // tbMusicLocation
             // 
-            tbMusicLocation.Location = new Point(10, 25);
-            tbMusicLocation.Margin = new Padding(4, 3, 4, 3);
+            tbMusicLocation.Location = new Point(11, 33);
+            tbMusicLocation.Margin = new Padding(5, 4, 5, 4);
             tbMusicLocation.MaxLength = 10;
             tbMusicLocation.Name = "tbMusicLocation";
-            tbMusicLocation.Size = new Size(244, 23);
+            tbMusicLocation.Size = new Size(278, 27);
             tbMusicLocation.TabIndex = 0;
             // 
             // groupBox1
@@ -4508,11 +4508,11 @@ namespace Easislides
             groupBox1.Controls.Add(panel4);
             groupBox1.Controls.Add(panel2);
             groupBox1.Controls.Add(panel1);
-            groupBox1.Location = new Point(7, 16);
-            groupBox1.Margin = new Padding(4, 3, 4, 3);
+            groupBox1.Location = new Point(8, 21);
+            groupBox1.Margin = new Padding(5, 4, 5, 4);
             groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(4, 3, 4, 3);
-            groupBox1.Size = new Size(294, 132);
+            groupBox1.Padding = new Padding(5, 4, 5, 4);
+            groupBox1.Size = new Size(336, 176);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Maximum Setting";
@@ -4521,28 +4521,28 @@ namespace Easislides
             // 
             panel4.Controls.Add(EditHistoryMaxUpDown);
             panel4.Controls.Add(label4);
-            panel4.Location = new Point(7, 89);
-            panel4.Margin = new Padding(4, 3, 4, 3);
+            panel4.Location = new Point(8, 119);
+            panel4.Margin = new Padding(5, 4, 5, 4);
             panel4.Name = "panel4";
-            panel4.Size = new Size(278, 29);
+            panel4.Size = new Size(318, 39);
             panel4.TabIndex = 4;
             // 
             // EditHistoryMaxUpDown
             // 
-            EditHistoryMaxUpDown.Location = new Point(209, 3);
-            EditHistoryMaxUpDown.Margin = new Padding(4, 3, 4, 3);
+            EditHistoryMaxUpDown.Location = new Point(239, 4);
+            EditHistoryMaxUpDown.Margin = new Padding(5, 4, 5, 4);
             EditHistoryMaxUpDown.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
             EditHistoryMaxUpDown.Name = "EditHistoryMaxUpDown";
-            EditHistoryMaxUpDown.Size = new Size(63, 23);
+            EditHistoryMaxUpDown.Size = new Size(72, 27);
             EditHistoryMaxUpDown.TabIndex = 1;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(4, 6);
-            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Location = new Point(5, 8);
+            label4.Margin = new Padding(5, 0, 5, 0);
             label4.Name = "label4";
-            label4.Size = new Size(159, 15);
+            label4.Size = new Size(201, 20);
             label4.TabIndex = 0;
             label4.Text = "Max Edit History items listed:";
             // 
@@ -4550,30 +4550,30 @@ namespace Easislides
             // 
             panel2.Controls.Add(AdhocVersesMaxUpDown);
             panel2.Controls.Add(label2);
-            panel2.Location = new Point(7, 55);
-            panel2.Margin = new Padding(4, 3, 4, 3);
+            panel2.Location = new Point(8, 73);
+            panel2.Margin = new Padding(5, 4, 5, 4);
             panel2.Name = "panel2";
-            panel2.Size = new Size(278, 29);
+            panel2.Size = new Size(318, 39);
             panel2.TabIndex = 2;
             // 
             // AdhocVersesMaxUpDown
             // 
-            AdhocVersesMaxUpDown.Location = new Point(209, 3);
-            AdhocVersesMaxUpDown.Margin = new Padding(4, 3, 4, 3);
+            AdhocVersesMaxUpDown.Location = new Point(239, 4);
+            AdhocVersesMaxUpDown.Margin = new Padding(5, 4, 5, 4);
             AdhocVersesMaxUpDown.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
             AdhocVersesMaxUpDown.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             AdhocVersesMaxUpDown.Name = "AdhocVersesMaxUpDown";
-            AdhocVersesMaxUpDown.Size = new Size(63, 23);
+            AdhocVersesMaxUpDown.Size = new Size(72, 27);
             AdhocVersesMaxUpDown.TabIndex = 0;
             AdhocVersesMaxUpDown.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(4, 6);
-            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Location = new Point(5, 8);
+            label2.Margin = new Padding(5, 0, 5, 0);
             label2.Name = "label2";
-            label2.Size = new Size(150, 15);
+            label2.Size = new Size(191, 20);
             label2.TabIndex = 0;
             label2.Text = "Max Bible Search Selection:";
             // 
@@ -4581,30 +4581,30 @@ namespace Easislides
             // 
             panel1.Controls.Add(VersesMaxUpDown);
             panel1.Controls.Add(label1);
-            panel1.Location = new Point(7, 22);
-            panel1.Margin = new Padding(4, 3, 4, 3);
+            panel1.Location = new Point(8, 29);
+            panel1.Margin = new Padding(5, 4, 5, 4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(278, 29);
+            panel1.Size = new Size(318, 39);
             panel1.TabIndex = 1;
             // 
             // VersesMaxUpDown
             // 
-            VersesMaxUpDown.Location = new Point(209, 3);
-            VersesMaxUpDown.Margin = new Padding(4, 3, 4, 3);
+            VersesMaxUpDown.Location = new Point(239, 4);
+            VersesMaxUpDown.Margin = new Padding(5, 4, 5, 4);
             VersesMaxUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             VersesMaxUpDown.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             VersesMaxUpDown.Name = "VersesMaxUpDown";
-            VersesMaxUpDown.Size = new Size(63, 23);
+            VersesMaxUpDown.Size = new Size(72, 27);
             VersesMaxUpDown.TabIndex = 1;
             VersesMaxUpDown.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(4, 6);
-            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Location = new Point(5, 8);
+            label1.Margin = new Padding(5, 0, 5, 0);
             label1.Name = "label1";
-            label1.Size = new Size(147, 15);
+            label1.Size = new Size(188, 20);
             label1.TabIndex = 0;
             label1.Text = "Max Bible Verses Selection:";
             // 
@@ -4616,21 +4616,21 @@ namespace Easislides
             tabPageShow.Controls.Add(groupBox3);
             tabPageShow.Controls.Add(groupBox2);
             tabPageShow.Controls.Add(groupBox4);
-            tabPageShow.Location = new Point(4, 24);
-            tabPageShow.Margin = new Padding(4, 3, 4, 3);
+            tabPageShow.Location = new Point(4, 29);
+            tabPageShow.Margin = new Padding(5, 4, 5, 4);
             tabPageShow.Name = "tabPageShow";
-            tabPageShow.Padding = new Padding(4, 3, 4, 3);
-            tabPageShow.Size = new Size(628, 400);
+            tabPageShow.Padding = new Padding(5, 4, 5, 4);
+            tabPageShow.Size = new Size(719, 538);
             tabPageShow.TabIndex = 7;
             tabPageShow.Text = "Show";
             // 
             // label58
             // 
             label58.AutoSize = true;
-            label58.Location = new Point(21, 318);
-            label58.Margin = new Padding(4, 0, 4, 0);
+            label58.Location = new Point(24, 424);
+            label58.Margin = new Padding(5, 0, 5, 0);
             label58.Name = "label58";
-            label58.Size = new Size(190, 15);
+            label58.Size = new Size(239, 20);
             label58.TabIndex = 4;
             label58.Text = "** Applicable in Dual Monitor Only";
             // 
@@ -4640,11 +4640,11 @@ namespace Easislides
             groupBox5.Controls.Add(cbAdvanceNextItem);
             groupBox5.Controls.Add(checkBoxMediaNoPanel);
             groupBox5.Controls.Add(checkBoxPPNoPanel);
-            groupBox5.Location = new Point(7, 172);
-            groupBox5.Margin = new Padding(4, 3, 4, 3);
+            groupBox5.Location = new Point(8, 229);
+            groupBox5.Margin = new Padding(5, 4, 5, 4);
             groupBox5.Name = "groupBox5";
-            groupBox5.Padding = new Padding(4, 3, 4, 3);
-            groupBox5.Size = new Size(292, 133);
+            groupBox5.Padding = new Padding(5, 4, 5, 4);
+            groupBox5.Size = new Size(334, 177);
             groupBox5.TabIndex = 1;
             groupBox5.TabStop = false;
             groupBox5.Text = "Other Settings";
@@ -4652,40 +4652,40 @@ namespace Easislides
             // cbDisableScreenSaver
             // 
             cbDisableScreenSaver.AutoSize = true;
-            cbDisableScreenSaver.Location = new Point(13, 99);
-            cbDisableScreenSaver.Margin = new Padding(4, 3, 4, 3);
+            cbDisableScreenSaver.Location = new Point(15, 132);
+            cbDisableScreenSaver.Margin = new Padding(5, 4, 5, 4);
             cbDisableScreenSaver.Name = "cbDisableScreenSaver";
-            cbDisableScreenSaver.Size = new Size(203, 19);
+            cbDisableScreenSaver.Size = new Size(256, 24);
             cbDisableScreenSaver.TabIndex = 41;
             cbDisableScreenSaver.Text = "Disable Screen Saver during Show";
             // 
             // cbAdvanceNextItem
             // 
             cbAdvanceNextItem.AutoSize = true;
-            cbAdvanceNextItem.Location = new Point(13, 24);
-            cbAdvanceNextItem.Margin = new Padding(4, 3, 4, 3);
+            cbAdvanceNextItem.Location = new Point(15, 32);
+            cbAdvanceNextItem.Margin = new Padding(5, 4, 5, 4);
             cbAdvanceNextItem.Name = "cbAdvanceNextItem";
-            cbAdvanceNextItem.Size = new Size(126, 19);
+            cbAdvanceNextItem.Size = new Size(157, 24);
             cbAdvanceNextItem.TabIndex = 2;
             cbAdvanceNextItem.Text = "Advance Next Item";
             // 
             // checkBoxMediaNoPanel
             // 
             checkBoxMediaNoPanel.AutoSize = true;
-            checkBoxMediaNoPanel.Location = new Point(13, 66);
-            checkBoxMediaNoPanel.Margin = new Padding(4, 3, 4, 3);
+            checkBoxMediaNoPanel.Location = new Point(15, 88);
+            checkBoxMediaNoPanel.Margin = new Padding(5, 4, 5, 4);
             checkBoxMediaNoPanel.Name = "checkBoxMediaNoPanel";
-            checkBoxMediaNoPanel.Size = new Size(186, 19);
+            checkBoxMediaNoPanel.Size = new Size(231, 24);
             checkBoxMediaNoPanel.TabIndex = 30;
             checkBoxMediaNoPanel.Text = "No Panel Overlay For Media **";
             // 
             // checkBoxPPNoPanel
             // 
             checkBoxPPNoPanel.AutoSize = true;
-            checkBoxPPNoPanel.Location = new Point(13, 45);
-            checkBoxPPNoPanel.Margin = new Padding(4, 3, 4, 3);
+            checkBoxPPNoPanel.Location = new Point(15, 60);
+            checkBoxPPNoPanel.Margin = new Padding(5, 4, 5, 4);
             checkBoxPPNoPanel.Name = "checkBoxPPNoPanel";
-            checkBoxPPNoPanel.Size = new Size(214, 19);
+            checkBoxPPNoPanel.Size = new Size(264, 24);
             checkBoxPPNoPanel.TabIndex = 4;
             checkBoxPPNoPanel.Text = "No Panel Overlay For Powerpoint **";
             // 
@@ -4698,11 +4698,11 @@ namespace Easislides
             groupBox3.Controls.Add(rbGapItemOption1);
             groupBox3.Controls.Add(rbGapItemOption0);
             groupBox3.Controls.Add(rbGapItemOption2);
-            groupBox3.Location = new Point(313, 17);
-            groupBox3.Margin = new Padding(4, 3, 4, 3);
+            groupBox3.Location = new Point(358, 23);
+            groupBox3.Margin = new Padding(5, 4, 5, 4);
             groupBox3.Name = "groupBox3";
-            groupBox3.Padding = new Padding(4, 3, 4, 3);
-            groupBox3.Size = new Size(299, 148);
+            groupBox3.Padding = new Padding(5, 4, 5, 4);
+            groupBox3.Size = new Size(342, 197);
             groupBox3.TabIndex = 2;
             groupBox3.TabStop = false;
             groupBox3.Text = "Gap between items";
@@ -4710,20 +4710,20 @@ namespace Easislides
             // cbGapItemUseFade
             // 
             cbGapItemUseFade.AutoSize = true;
-            cbGapItemUseFade.Location = new Point(12, 112);
-            cbGapItemUseFade.Margin = new Padding(4, 3, 4, 3);
+            cbGapItemUseFade.Location = new Point(14, 149);
+            cbGapItemUseFade.Margin = new Padding(5, 4, 5, 4);
             cbGapItemUseFade.Name = "cbGapItemUseFade";
-            cbGapItemUseFade.Size = new Size(128, 19);
+            cbGapItemUseFade.Size = new Size(158, 24);
             cbGapItemUseFade.TabIndex = 5;
             cbGapItemUseFade.Text = "Use Fade Transition";
             // 
             // panel39
             // 
             panel39.Controls.Add(toolStrip10);
-            panel39.Location = new Point(260, 80);
-            panel39.Margin = new Padding(4, 3, 4, 3);
+            panel39.Location = new Point(297, 107);
+            panel39.Margin = new Padding(5, 4, 5, 4);
             panel39.Name = "panel39";
-            panel39.Size = new Size(29, 24);
+            panel39.Size = new Size(33, 32);
             panel39.TabIndex = 31;
             // 
             // toolStrip10
@@ -4739,7 +4739,7 @@ namespace Easislides
             toolStrip10.Name = "toolStrip10";
             toolStrip10.Padding = new Padding(0, 0, 2, 0);
             toolStrip10.RenderMode = ToolStripRenderMode.System;
-            toolStrip10.Size = new Size(29, 28);
+            toolStrip10.Size = new Size(33, 37);
             toolStrip10.TabIndex = 0;
             // 
             // GapLogoLocationBtn
@@ -4756,50 +4756,50 @@ namespace Easislides
             // 
             // tbGapLogoLocation
             // 
-            tbGapLogoLocation.Location = new Point(33, 80);
-            tbGapLogoLocation.Margin = new Padding(4, 3, 4, 3);
+            tbGapLogoLocation.Location = new Point(38, 107);
+            tbGapLogoLocation.Margin = new Padding(5, 4, 5, 4);
             tbGapLogoLocation.MaxLength = 10;
             tbGapLogoLocation.Name = "tbGapLogoLocation";
-            tbGapLogoLocation.Size = new Size(223, 23);
+            tbGapLogoLocation.Size = new Size(254, 27);
             tbGapLogoLocation.TabIndex = 4;
             tbGapLogoLocation.TextChanged += tbGapLogoLocation_TextChanged;
             // 
             // rbGapItemOption3
             // 
             rbGapItemOption3.AutoSize = true;
-            rbGapItemOption3.Location = new Point(12, 84);
-            rbGapItemOption3.Margin = new Padding(4, 3, 4, 3);
+            rbGapItemOption3.Location = new Point(14, 112);
+            rbGapItemOption3.Margin = new Padding(5, 4, 5, 4);
             rbGapItemOption3.Name = "rbGapItemOption3";
-            rbGapItemOption3.Size = new Size(14, 13);
+            rbGapItemOption3.Size = new Size(17, 16);
             rbGapItemOption3.TabIndex = 3;
             // 
             // rbGapItemOption1
             // 
             rbGapItemOption1.AutoSize = true;
-            rbGapItemOption1.Location = new Point(12, 39);
-            rbGapItemOption1.Margin = new Padding(4, 3, 4, 3);
+            rbGapItemOption1.Location = new Point(14, 52);
+            rbGapItemOption1.Margin = new Padding(5, 4, 5, 4);
             rbGapItemOption1.Name = "rbGapItemOption1";
-            rbGapItemOption1.Size = new Size(91, 19);
+            rbGapItemOption1.Size = new Size(113, 24);
             rbGapItemOption1.TabIndex = 1;
             rbGapItemOption1.Text = "Black Screen";
             // 
             // rbGapItemOption0
             // 
             rbGapItemOption0.AutoSize = true;
-            rbGapItemOption0.Location = new Point(12, 18);
-            rbGapItemOption0.Margin = new Padding(4, 3, 4, 3);
+            rbGapItemOption0.Location = new Point(14, 24);
+            rbGapItemOption0.Margin = new Padding(5, 4, 5, 4);
             rbGapItemOption0.Name = "rbGapItemOption0";
-            rbGapItemOption0.Size = new Size(65, 19);
+            rbGapItemOption0.Size = new Size(81, 24);
             rbGapItemOption0.TabIndex = 0;
             rbGapItemOption0.Text = "No Gap";
             // 
             // rbGapItemOption2
             // 
             rbGapItemOption2.AutoSize = true;
-            rbGapItemOption2.Location = new Point(12, 60);
-            rbGapItemOption2.Margin = new Padding(4, 3, 4, 3);
+            rbGapItemOption2.Location = new Point(14, 80);
+            rbGapItemOption2.Margin = new Padding(5, 4, 5, 4);
             rbGapItemOption2.Name = "rbGapItemOption2";
-            rbGapItemOption2.Size = new Size(172, 19);
+            rbGapItemOption2.Size = new Size(215, 24);
             rbGapItemOption2.TabIndex = 2;
             rbGapItemOption2.Text = "Default Session Background";
             // 
@@ -4810,11 +4810,11 @@ namespace Easislides
             groupBox2.Controls.Add(VideoSizeUpDown1);
             groupBox2.Controls.Add(label14);
             groupBox2.Controls.Add(panelVideoHolder);
-            groupBox2.Location = new Point(313, 172);
-            groupBox2.Margin = new Padding(4, 3, 4, 3);
+            groupBox2.Location = new Point(358, 229);
+            groupBox2.Margin = new Padding(5, 4, 5, 4);
             groupBox2.Name = "groupBox2";
-            groupBox2.Padding = new Padding(4, 3, 4, 3);
-            groupBox2.Size = new Size(299, 133);
+            groupBox2.Padding = new Padding(5, 4, 5, 4);
+            groupBox2.Size = new Size(342, 177);
             groupBox2.TabIndex = 3;
             groupBox2.TabStop = false;
             groupBox2.Text = "Video Background";
@@ -4822,20 +4822,20 @@ namespace Easislides
             // label51
             // 
             label51.AutoSize = true;
-            label51.Location = new Point(177, 75);
-            label51.Margin = new Padding(4, 0, 4, 0);
+            label51.Location = new Point(202, 100);
+            label51.Margin = new Padding(5, 0, 5, 0);
             label51.Name = "label51";
-            label51.Size = new Size(38, 15);
+            label51.Size = new Size(47, 20);
             label51.TabIndex = 2;
             label51.Text = "Align:";
             // 
             // panel45
             // 
             panel45.Controls.Add(toolStripVideo);
-            panel45.Location = new Point(217, 70);
-            panel45.Margin = new Padding(4, 3, 4, 3);
+            panel45.Location = new Point(248, 93);
+            panel45.Margin = new Padding(5, 4, 5, 4);
             panel45.Name = "panel45";
-            panel45.Size = new Size(37, 25);
+            panel45.Size = new Size(42, 33);
             panel45.TabIndex = 44;
             // 
             // toolStripVideo
@@ -4851,7 +4851,7 @@ namespace Easislides
             toolStripVideo.Name = "toolStripVideo";
             toolStripVideo.Padding = new Padding(0, 0, 2, 0);
             toolStripVideo.RenderMode = ToolStripRenderMode.System;
-            toolStripVideo.Size = new Size(37, 29);
+            toolStripVideo.Size = new Size(42, 39);
             toolStripVideo.TabIndex = 0;
             // 
             // Video_VAlign
@@ -4861,7 +4861,7 @@ namespace Easislides
             Video_VAlign.Image = (Image)resources.GetObject("Video_VAlign.Image");
             Video_VAlign.ImageTransparentColor = Color.Magenta;
             Video_VAlign.Name = "Video_VAlign";
-            Video_VAlign.Size = new Size(37, 26);
+            Video_VAlign.Size = new Size(38, 36);
             Video_VAlign.Tag = "0";
             Video_VAlign.ToolTipText = "Vertical Alignment";
             Video_VAlign.DropDownItemClicked += Video_VAlign_DropDownItemClicked;
@@ -4870,7 +4870,7 @@ namespace Easislides
             // 
             Video_VAlignTop.Image = (Image)resources.GetObject("Video_VAlignTop.Image");
             Video_VAlignTop.Name = "Video_VAlignTop";
-            Video_VAlignTop.Size = new Size(145, 22);
+            Video_VAlignTop.Size = new Size(181, 26);
             Video_VAlignTop.Tag = "0";
             Video_VAlignTop.Text = "Align Top";
             // 
@@ -4878,7 +4878,7 @@ namespace Easislides
             // 
             Video_VAlignCentre.Image = (Image)resources.GetObject("Video_VAlignCentre.Image");
             Video_VAlignCentre.Name = "Video_VAlignCentre";
-            Video_VAlignCentre.Size = new Size(145, 22);
+            Video_VAlignCentre.Size = new Size(181, 26);
             Video_VAlignCentre.Tag = "1";
             Video_VAlignCentre.Text = "Align Centre";
             // 
@@ -4886,17 +4886,17 @@ namespace Easislides
             // 
             Video_VAlignBottom.Image = (Image)resources.GetObject("Video_VAlignBottom.Image");
             Video_VAlignBottom.Name = "Video_VAlignBottom";
-            Video_VAlignBottom.Size = new Size(145, 22);
+            Video_VAlignBottom.Size = new Size(181, 26);
             Video_VAlignBottom.Tag = "2";
             Video_VAlignBottom.Text = "Align Bottom";
             // 
             // VideoSizeUpDown1
             // 
-            VideoSizeUpDown1.Location = new Point(219, 40);
-            VideoSizeUpDown1.Margin = new Padding(4, 3, 4, 3);
+            VideoSizeUpDown1.Location = new Point(250, 53);
+            VideoSizeUpDown1.Margin = new Padding(5, 4, 5, 4);
             VideoSizeUpDown1.Minimum = new decimal(new int[] { 25, 0, 0, 0 });
             VideoSizeUpDown1.Name = "VideoSizeUpDown1";
-            VideoSizeUpDown1.Size = new Size(56, 23);
+            VideoSizeUpDown1.Size = new Size(64, 27);
             VideoSizeUpDown1.TabIndex = 0;
             VideoSizeUpDown1.Value = new decimal(new int[] { 100, 0, 0, 0 });
             VideoSizeUpDown1.ValueChanged += VideoSizeUpDown1_ValueChanged;
@@ -4904,10 +4904,10 @@ namespace Easislides
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(177, 45);
-            label14.Margin = new Padding(4, 0, 4, 0);
+            label14.Location = new Point(202, 60);
+            label14.Margin = new Padding(5, 0, 5, 0);
             label14.Name = "label14";
-            label14.Size = new Size(30, 15);
+            label14.Size = new Size(39, 20);
             label14.TabIndex = 1;
             label14.Text = "Size:";
             // 
@@ -4916,20 +4916,20 @@ namespace Easislides
             panelVideoHolder.BackColor = Color.Navy;
             panelVideoHolder.BorderStyle = BorderStyle.Fixed3D;
             panelVideoHolder.Controls.Add(panelVideoSize);
-            panelVideoHolder.Location = new Point(8, 23);
-            panelVideoHolder.Margin = new Padding(4, 3, 4, 3);
+            panelVideoHolder.Location = new Point(9, 31);
+            panelVideoHolder.Margin = new Padding(5, 4, 5, 4);
             panelVideoHolder.Name = "panelVideoHolder";
-            panelVideoHolder.Size = new Size(139, 103);
+            panelVideoHolder.Size = new Size(158, 136);
             panelVideoHolder.TabIndex = 15;
             // 
             // panelVideoSize
             // 
             panelVideoSize.BackColor = Color.FromArgb(128, 128, 255);
             panelVideoSize.Controls.Add(label50);
-            panelVideoSize.Location = new Point(15, 0);
-            panelVideoSize.Margin = new Padding(4, 3, 4, 3);
+            panelVideoSize.Location = new Point(17, 0);
+            panelVideoSize.Margin = new Padding(5, 4, 5, 4);
             panelVideoSize.Name = "panelVideoSize";
-            panelVideoSize.Size = new Size(103, 77);
+            panelVideoSize.Size = new Size(118, 103);
             panelVideoSize.TabIndex = 31;
             // 
             // label50
@@ -4938,9 +4938,9 @@ namespace Easislides
             label50.Dock = DockStyle.Fill;
             label50.ForeColor = Color.White;
             label50.Location = new Point(0, 0);
-            label50.Margin = new Padding(4, 0, 4, 0);
+            label50.Margin = new Padding(5, 0, 5, 0);
             label50.Name = "label50";
-            label50.Size = new Size(103, 77);
+            label50.Size = new Size(118, 103);
             label50.TabIndex = 21;
             label50.Text = "Video Size";
             label50.TextAlign = ContentAlignment.MiddleCenter;
@@ -4952,11 +4952,11 @@ namespace Easislides
             groupBox4.Controls.Add(cbLineBetweenRegions);
             groupBox4.Controls.Add(cbUseLargestFont);
             groupBox4.Controls.Add(cbAutoTextOverflow);
-            groupBox4.Location = new Point(7, 17);
-            groupBox4.Margin = new Padding(4, 3, 4, 3);
+            groupBox4.Location = new Point(8, 23);
+            groupBox4.Margin = new Padding(5, 4, 5, 4);
             groupBox4.Name = "groupBox4";
-            groupBox4.Padding = new Padding(4, 3, 4, 3);
-            groupBox4.Size = new Size(292, 148);
+            groupBox4.Padding = new Padding(5, 4, 5, 4);
+            groupBox4.Size = new Size(334, 197);
             groupBox4.TabIndex = 0;
             groupBox4.TabStop = false;
             groupBox4.Text = "Text Settings";
@@ -4965,70 +4965,70 @@ namespace Easislides
             // 
             panel46.Controls.Add(NotationFontFactorUpDown);
             panel46.Controls.Add(label54);
-            panel46.Location = new Point(7, 106);
-            panel46.Margin = new Padding(4, 3, 4, 3);
+            panel46.Location = new Point(8, 141);
+            panel46.Margin = new Padding(5, 4, 5, 4);
             panel46.Name = "panel46";
-            panel46.Size = new Size(278, 29);
+            panel46.Size = new Size(318, 39);
             panel46.TabIndex = 4;
             // 
             // NotationFontFactorUpDown
             // 
-            NotationFontFactorUpDown.Location = new Point(216, 3);
-            NotationFontFactorUpDown.Margin = new Padding(4, 3, 4, 3);
+            NotationFontFactorUpDown.Location = new Point(247, 4);
+            NotationFontFactorUpDown.Margin = new Padding(5, 4, 5, 4);
             NotationFontFactorUpDown.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             NotationFontFactorUpDown.Minimum = new decimal(new int[] { 20, 0, 0, 0 });
             NotationFontFactorUpDown.Name = "NotationFontFactorUpDown";
-            NotationFontFactorUpDown.Size = new Size(56, 23);
+            NotationFontFactorUpDown.Size = new Size(64, 27);
             NotationFontFactorUpDown.TabIndex = 0;
             NotationFontFactorUpDown.Value = new decimal(new int[] { 75, 0, 0, 0 });
             // 
             // label54
             // 
             label54.AutoSize = true;
-            label54.Location = new Point(4, 8);
-            label54.Margin = new Padding(4, 0, 4, 0);
+            label54.Location = new Point(5, 11);
+            label54.Margin = new Padding(5, 0, 5, 0);
             label54.Name = "label54";
-            label54.Size = new Size(197, 15);
+            label54.Size = new Size(249, 20);
             label54.TabIndex = 0;
             label54.Text = "Size of Notations to Folder Font (%):";
             // 
             // cbWordWrapLeftAlignIndent
             // 
             cbWordWrapLeftAlignIndent.AutoSize = true;
-            cbWordWrapLeftAlignIndent.Location = new Point(13, 87);
-            cbWordWrapLeftAlignIndent.Margin = new Padding(4, 3, 4, 3);
+            cbWordWrapLeftAlignIndent.Location = new Point(15, 116);
+            cbWordWrapLeftAlignIndent.Margin = new Padding(5, 4, 5, 4);
             cbWordWrapLeftAlignIndent.Name = "cbWordWrapLeftAlignIndent";
-            cbWordWrapLeftAlignIndent.Size = new Size(167, 19);
+            cbWordWrapLeftAlignIndent.Size = new Size(210, 24);
             cbWordWrapLeftAlignIndent.TabIndex = 3;
             cbWordWrapLeftAlignIndent.Text = "Indent Word Wrapped Text";
             // 
             // cbLineBetweenRegions
             // 
             cbLineBetweenRegions.AutoSize = true;
-            cbLineBetweenRegions.Location = new Point(13, 65);
-            cbLineBetweenRegions.Margin = new Padding(4, 3, 4, 3);
+            cbLineBetweenRegions.Location = new Point(15, 87);
+            cbLineBetweenRegions.Margin = new Padding(5, 4, 5, 4);
             cbLineBetweenRegions.Name = "cbLineBetweenRegions";
-            cbLineBetweenRegions.Size = new Size(141, 19);
+            cbLineBetweenRegions.Size = new Size(176, 24);
             cbLineBetweenRegions.TabIndex = 2;
             cbLineBetweenRegions.Text = "Line between Regions";
             // 
             // cbUseLargestFont
             // 
             cbUseLargestFont.AutoSize = true;
-            cbUseLargestFont.Location = new Point(13, 43);
-            cbUseLargestFont.Margin = new Padding(4, 3, 4, 3);
+            cbUseLargestFont.Location = new Point(15, 57);
+            cbUseLargestFont.Margin = new Padding(5, 4, 5, 4);
             cbUseLargestFont.Name = "cbUseLargestFont";
-            cbUseLargestFont.Size = new Size(113, 19);
+            cbUseLargestFont.Size = new Size(140, 24);
             cbUseLargestFont.TabIndex = 1;
             cbUseLargestFont.Text = "Use Largest Font";
             // 
             // cbAutoTextOverflow
             // 
             cbAutoTextOverflow.AutoSize = true;
-            cbAutoTextOverflow.Location = new Point(13, 22);
-            cbAutoTextOverflow.Margin = new Padding(4, 3, 4, 3);
+            cbAutoTextOverflow.Location = new Point(15, 29);
+            cbAutoTextOverflow.Margin = new Padding(5, 4, 5, 4);
             cbAutoTextOverflow.Name = "cbAutoTextOverflow";
-            cbAutoTextOverflow.Size = new Size(127, 19);
+            cbAutoTextOverflow.Size = new Size(158, 24);
             cbAutoTextOverflow.TabIndex = 0;
             cbAutoTextOverflow.Text = "Auto Text Overflow";
             // 
@@ -5038,10 +5038,10 @@ namespace Easislides
             tabPageMonitors.Controls.Add(groupBox23);
             tabPageMonitors.Controls.Add(groupBoxLM);
             tabPageMonitors.Controls.Add(groupBoxDM);
-            tabPageMonitors.Location = new Point(4, 24);
-            tabPageMonitors.Margin = new Padding(4, 3, 4, 3);
+            tabPageMonitors.Location = new Point(4, 29);
+            tabPageMonitors.Margin = new Padding(5, 4, 5, 4);
             tabPageMonitors.Name = "tabPageMonitors";
-            tabPageMonitors.Size = new Size(628, 400);
+            tabPageMonitors.Size = new Size(719, 538);
             tabPageMonitors.TabIndex = 6;
             tabPageMonitors.Text = "Monitors";
             // 
@@ -5057,11 +5057,11 @@ namespace Easislides
             groupBox23.Controls.Add(cbWidescreen);
             groupBox23.Controls.Add(cbMute);
             groupBox23.Controls.Add(label52);
-            groupBox23.Location = new Point(8, 214);
-            groupBox23.Margin = new Padding(4, 3, 4, 3);
+            groupBox23.Location = new Point(9, 285);
+            groupBox23.Margin = new Padding(5, 4, 5, 4);
             groupBox23.Name = "groupBox23";
-            groupBox23.Padding = new Padding(4, 3, 4, 3);
-            groupBox23.Size = new Size(293, 166);
+            groupBox23.Padding = new Padding(5, 4, 5, 4);
+            groupBox23.Size = new Size(335, 221);
             groupBox23.TabIndex = 1;
             groupBox23.TabStop = false;
             groupBox23.Text = "Live Cam Settings";
@@ -5069,20 +5069,20 @@ namespace Easislides
             // checkBoxLiveCamNoPanel
             // 
             checkBoxLiveCamNoPanel.AutoSize = true;
-            checkBoxLiveCamNoPanel.Location = new Point(12, 140);
-            checkBoxLiveCamNoPanel.Margin = new Padding(4, 3, 4, 3);
+            checkBoxLiveCamNoPanel.Location = new Point(14, 187);
+            checkBoxLiveCamNoPanel.Margin = new Padding(5, 4, 5, 4);
             checkBoxLiveCamNoPanel.Name = "checkBoxLiveCamNoPanel";
-            checkBoxLiveCamNoPanel.Size = new Size(202, 19);
+            checkBoxLiveCamNoPanel.Size = new Size(249, 24);
             checkBoxLiveCamNoPanel.TabIndex = 6;
             checkBoxLiveCamNoPanel.Text = "No Panel Overlay For Live Cam **";
             // 
             // panel47
             // 
             panel47.Controls.Add(toolStripCaptureDevices);
-            panel47.Location = new Point(12, 24);
-            panel47.Margin = new Padding(4, 3, 4, 3);
+            panel47.Location = new Point(14, 32);
+            panel47.Margin = new Padding(5, 4, 5, 4);
             panel47.Name = "panel47";
-            panel47.Size = new Size(274, 25);
+            panel47.Size = new Size(313, 33);
             panel47.TabIndex = 70;
             // 
             // toolStripCaptureDevices
@@ -5098,7 +5098,7 @@ namespace Easislides
             toolStripCaptureDevices.Name = "toolStripCaptureDevices";
             toolStripCaptureDevices.Padding = new Padding(0, 0, 2, 0);
             toolStripCaptureDevices.RenderMode = ToolStripRenderMode.System;
-            toolStripCaptureDevices.Size = new Size(274, 29);
+            toolStripCaptureDevices.Size = new Size(313, 39);
             toolStripCaptureDevices.TabIndex = 0;
             // 
             // cbCaptureDevices
@@ -5106,58 +5106,58 @@ namespace Easislides
             cbCaptureDevices.AutoSize = false;
             cbCaptureDevices.DropDownStyle = ComboBoxStyle.DropDownList;
             cbCaptureDevices.Name = "cbCaptureDevices";
-            cbCaptureDevices.Size = new Size(268, 23);
+            cbCaptureDevices.Size = new Size(306, 28);
             // 
             // label53
             // 
             label53.AutoSize = true;
-            label53.Location = new Point(97, 70);
-            label53.Margin = new Padding(4, 0, 4, 0);
+            label53.Location = new Point(111, 93);
+            label53.Margin = new Padding(5, 0, 5, 0);
             label53.Name = "label53";
-            label53.Size = new Size(28, 15);
+            label53.Size = new Size(34, 20);
             label53.TabIndex = 77;
             label53.Text = "Min";
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(261, 112);
-            label5.Margin = new Padding(4, 0, 4, 0);
+            label5.Location = new Point(298, 149);
+            label5.Margin = new Padding(5, 0, 5, 0);
             label5.Name = "label5";
-            label5.Size = new Size(14, 15);
+            label5.Size = new Size(18, 20);
             label5.TabIndex = 76;
             label5.Text = "R";
             // 
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(104, 112);
-            label7.Margin = new Padding(4, 0, 4, 0);
+            label7.Location = new Point(119, 149);
+            label7.Margin = new Padding(5, 0, 5, 0);
             label7.Name = "label7";
-            label7.Size = new Size(13, 15);
+            label7.Size = new Size(16, 20);
             label7.TabIndex = 75;
             label7.Text = "L";
             // 
             // TrackBarBalance
             // 
             TrackBarBalance.AutoSize = false;
-            TrackBarBalance.Location = new Point(122, 102);
-            TrackBarBalance.Margin = new Padding(4, 3, 4, 3);
+            TrackBarBalance.Location = new Point(139, 136);
+            TrackBarBalance.Margin = new Padding(5, 4, 5, 4);
             TrackBarBalance.Maximum = 100;
             TrackBarBalance.Minimum = -100;
             TrackBarBalance.Name = "TrackBarBalance";
-            TrackBarBalance.Size = new Size(135, 39);
+            TrackBarBalance.Size = new Size(154, 52);
             TrackBarBalance.TabIndex = 5;
             TrackBarBalance.TickFrequency = 20;
             // 
             // TrackBarVolume
             // 
             TrackBarVolume.AutoSize = false;
-            TrackBarVolume.Location = new Point(122, 57);
-            TrackBarVolume.Margin = new Padding(4, 3, 4, 3);
+            TrackBarVolume.Location = new Point(139, 76);
+            TrackBarVolume.Margin = new Padding(5, 4, 5, 4);
             TrackBarVolume.Maximum = 100;
             TrackBarVolume.Name = "TrackBarVolume";
-            TrackBarVolume.Size = new Size(135, 40);
+            TrackBarVolume.Size = new Size(154, 53);
             TrackBarVolume.TabIndex = 4;
             TrackBarVolume.TickFrequency = 10;
             TrackBarVolume.TickStyle = TickStyle.Both;
@@ -5165,30 +5165,30 @@ namespace Easislides
             // cbWidescreen
             // 
             cbWidescreen.AutoSize = true;
-            cbWidescreen.Location = new Point(12, 92);
-            cbWidescreen.Margin = new Padding(4, 3, 4, 3);
+            cbWidescreen.Location = new Point(14, 123);
+            cbWidescreen.Margin = new Padding(5, 4, 5, 4);
             cbWidescreen.Name = "cbWidescreen";
-            cbWidescreen.Size = new Size(88, 19);
+            cbWidescreen.Size = new Size(110, 24);
             cbWidescreen.TabIndex = 3;
             cbWidescreen.Text = "WideScreen";
             // 
             // cbMute
             // 
             cbMute.AutoSize = true;
-            cbMute.Location = new Point(12, 66);
-            cbMute.Margin = new Padding(4, 3, 4, 3);
+            cbMute.Location = new Point(14, 88);
+            cbMute.Margin = new Padding(5, 4, 5, 4);
             cbMute.Name = "cbMute";
-            cbMute.Size = new Size(54, 19);
+            cbMute.Size = new Size(65, 24);
             cbMute.TabIndex = 2;
             cbMute.Text = "Mute";
             // 
             // label52
             // 
             label52.AutoSize = true;
-            label52.Location = new Point(255, 70);
-            label52.Margin = new Padding(4, 0, 4, 0);
+            label52.Location = new Point(291, 93);
+            label52.Margin = new Padding(5, 0, 5, 0);
             label52.Name = "label52";
-            label52.Size = new Size(29, 15);
+            label52.Size = new Size(37, 20);
             label52.TabIndex = 74;
             label52.Text = "Max";
             // 
@@ -5217,11 +5217,11 @@ namespace Easislides
             groupBoxLM.Controls.Add(label9);
             groupBoxLM.Controls.Add(cbLMShowNotations);
             groupBoxLM.Controls.Add(label49);
-            groupBoxLM.Location = new Point(315, 16);
-            groupBoxLM.Margin = new Padding(4, 3, 4, 3);
+            groupBoxLM.Location = new Point(360, 21);
+            groupBoxLM.Margin = new Padding(5, 4, 5, 4);
             groupBoxLM.Name = "groupBoxLM";
-            groupBoxLM.Padding = new Padding(4, 3, 4, 3);
-            groupBoxLM.Size = new Size(293, 368);
+            groupBoxLM.Padding = new Padding(5, 4, 5, 4);
+            groupBoxLM.Size = new Size(335, 491);
             groupBoxLM.TabIndex = 2;
             groupBoxLM.TabStop = false;
             groupBoxLM.Text = "Lyrics Monitor";
@@ -5229,10 +5229,10 @@ namespace Easislides
             // cbLMBroadcast
             // 
             cbLMBroadcast.AutoSize = true;
-            cbLMBroadcast.Location = new Point(22, 314);
-            cbLMBroadcast.Margin = new Padding(4, 3, 4, 3);
+            cbLMBroadcast.Location = new Point(25, 419);
+            cbLMBroadcast.Margin = new Padding(5, 4, 5, 4);
             cbLMBroadcast.Name = "cbLMBroadcast";
-            cbLMBroadcast.Size = new Size(110, 19);
+            cbLMBroadcast.Size = new Size(136, 24);
             cbLMBroadcast.TabIndex = 45;
             cbLMBroadcast.Text = "Broadcast Lyrics";
             cbLMBroadcast.Visible = false;
@@ -5241,10 +5241,10 @@ namespace Easislides
             // 
             btnLMHighlightColour.BackColor = Color.LightGray;
             btnLMHighlightColour.FlatStyle = FlatStyle.Flat;
-            btnLMHighlightColour.Location = new Point(22, 242);
-            btnLMHighlightColour.Margin = new Padding(4, 3, 4, 3);
+            btnLMHighlightColour.Location = new Point(25, 323);
+            btnLMHighlightColour.Margin = new Padding(5, 4, 5, 4);
             btnLMHighlightColour.Name = "btnLMHighlightColour";
-            btnLMHighlightColour.Size = new Size(114, 29);
+            btnLMHighlightColour.Size = new Size(130, 39);
             btnLMHighlightColour.TabIndex = 17;
             btnLMHighlightColour.Text = "Selected Colour";
             btnLMHighlightColour.UseVisualStyleBackColor = false;
@@ -5254,10 +5254,10 @@ namespace Easislides
             // 
             btnLMBackColour.BackColor = Color.LightGray;
             btnLMBackColour.FlatStyle = FlatStyle.Flat;
-            btnLMBackColour.Location = new Point(22, 278);
-            btnLMBackColour.Margin = new Padding(4, 3, 4, 3);
+            btnLMBackColour.Location = new Point(25, 371);
+            btnLMBackColour.Margin = new Padding(5, 4, 5, 4);
             btnLMBackColour.Name = "btnLMBackColour";
-            btnLMBackColour.Size = new Size(114, 29);
+            btnLMBackColour.Size = new Size(130, 39);
             btnLMBackColour.TabIndex = 18;
             btnLMBackColour.Text = "Back Colour";
             btnLMBackColour.UseVisualStyleBackColor = false;
@@ -5267,10 +5267,10 @@ namespace Easislides
             // 
             btnLMTextColour.BackColor = Color.LightGray;
             btnLMTextColour.FlatStyle = FlatStyle.Flat;
-            btnLMTextColour.Location = new Point(22, 207);
-            btnLMTextColour.Margin = new Padding(4, 3, 4, 3);
+            btnLMTextColour.Location = new Point(25, 276);
+            btnLMTextColour.Margin = new Padding(5, 4, 5, 4);
             btnLMTextColour.Name = "btnLMTextColour";
-            btnLMTextColour.Size = new Size(114, 29);
+            btnLMTextColour.Size = new Size(130, 39);
             btnLMTextColour.TabIndex = 16;
             btnLMTextColour.Text = "Text Colour";
             btnLMTextColour.UseVisualStyleBackColor = false;
@@ -5278,52 +5278,52 @@ namespace Easislides
             // 
             // LM1UpDownLeft
             // 
-            LM1UpDownLeft.Location = new Point(113, 114);
-            LM1UpDownLeft.Margin = new Padding(4, 3, 4, 3);
+            LM1UpDownLeft.Location = new Point(129, 152);
+            LM1UpDownLeft.Margin = new Padding(5, 4, 5, 4);
             LM1UpDownLeft.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             LM1UpDownLeft.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
             LM1UpDownLeft.Name = "LM1UpDownLeft";
-            LM1UpDownLeft.Size = new Size(57, 23);
+            LM1UpDownLeft.Size = new Size(65, 27);
             LM1UpDownLeft.TabIndex = 7;
             // 
             // label23
             // 
             label23.AutoSize = true;
-            label23.Location = new Point(78, 88);
-            label23.Margin = new Padding(4, 0, 4, 0);
+            label23.Location = new Point(89, 117);
+            label23.Margin = new Padding(5, 0, 5, 0);
             label23.Name = "label23";
-            label23.Size = new Size(30, 15);
+            label23.Size = new Size(37, 20);
             label23.TabIndex = 2;
             label23.Text = "Top:";
             // 
             // LM1UpDownTop
             // 
-            LM1UpDownTop.Location = new Point(113, 85);
-            LM1UpDownTop.Margin = new Padding(4, 3, 4, 3);
+            LM1UpDownTop.Location = new Point(129, 113);
+            LM1UpDownTop.Margin = new Padding(5, 4, 5, 4);
             LM1UpDownTop.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             LM1UpDownTop.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
             LM1UpDownTop.Name = "LM1UpDownTop";
-            LM1UpDownTop.Size = new Size(57, 23);
+            LM1UpDownTop.Size = new Size(65, 27);
             LM1UpDownTop.TabIndex = 3;
             // 
             // label26
             // 
             label26.AutoSize = true;
-            label26.Location = new Point(79, 117);
-            label26.Margin = new Padding(4, 0, 4, 0);
+            label26.Location = new Point(90, 156);
+            label26.Margin = new Padding(5, 0, 5, 0);
             label26.Name = "label26";
-            label26.Size = new Size(30, 15);
+            label26.Size = new Size(37, 20);
             label26.TabIndex = 6;
             label26.Text = "Left:";
             // 
             // LMNotationsUpDownFontSize
             // 
-            LMNotationsUpDownFontSize.Location = new Point(223, 179);
-            LMNotationsUpDownFontSize.Margin = new Padding(4, 3, 4, 3);
+            LMNotationsUpDownFontSize.Location = new Point(255, 239);
+            LMNotationsUpDownFontSize.Margin = new Padding(5, 4, 5, 4);
             LMNotationsUpDownFontSize.Maximum = new decimal(new int[] { 40, 0, 0, 0 });
             LMNotationsUpDownFontSize.Minimum = new decimal(new int[] { 8, 0, 0, 0 });
             LMNotationsUpDownFontSize.Name = "LMNotationsUpDownFontSize";
-            LMNotationsUpDownFontSize.Size = new Size(57, 23);
+            LMNotationsUpDownFontSize.Size = new Size(65, 27);
             LMNotationsUpDownFontSize.TabIndex = 14;
             LMNotationsUpDownFontSize.Value = new decimal(new int[] { 8, 0, 0, 0 });
             LMNotationsUpDownFontSize.Visible = false;
@@ -5331,10 +5331,10 @@ namespace Easislides
             // panel48
             // 
             panel48.Controls.Add(toolStripLyricsMonitor);
-            panel48.Location = new Point(182, 150);
-            panel48.Margin = new Padding(4, 3, 4, 3);
+            panel48.Location = new Point(208, 200);
+            panel48.Margin = new Padding(5, 4, 5, 4);
             panel48.Name = "panel48";
-            panel48.Size = new Size(84, 25);
+            panel48.Size = new Size(96, 33);
             panel48.TabIndex = 44;
             panel48.Visible = false;
             // 
@@ -5351,7 +5351,7 @@ namespace Easislides
             toolStripLyricsMonitor.Name = "toolStripLyricsMonitor";
             toolStripLyricsMonitor.Padding = new Padding(0, 0, 2, 0);
             toolStripLyricsMonitor.RenderMode = ToolStripRenderMode.System;
-            toolStripLyricsMonitor.Size = new Size(85, 29);
+            toolStripLyricsMonitor.Size = new Size(97, 39);
             toolStripLyricsMonitor.TabIndex = 0;
             // 
             // LM_Bold
@@ -5361,7 +5361,7 @@ namespace Easislides
             LM_Bold.Image = (Image)resources.GetObject("LM_Bold.Image");
             LM_Bold.ImageTransparentColor = Color.Magenta;
             LM_Bold.Name = "LM_Bold";
-            LM_Bold.Size = new Size(28, 26);
+            LM_Bold.Size = new Size(29, 36);
             // 
             // LM_Italic
             // 
@@ -5370,7 +5370,7 @@ namespace Easislides
             LM_Italic.Image = (Image)resources.GetObject("LM_Italic.Image");
             LM_Italic.ImageTransparentColor = Color.Magenta;
             LM_Italic.Name = "LM_Italic";
-            LM_Italic.Size = new Size(28, 26);
+            LM_Italic.Size = new Size(29, 36);
             // 
             // LM_Underline
             // 
@@ -5379,26 +5379,26 @@ namespace Easislides
             LM_Underline.Image = (Image)resources.GetObject("LM_Underline.Image");
             LM_Underline.ImageTransparentColor = Color.Magenta;
             LM_Underline.Name = "LM_Underline";
-            LM_Underline.Size = new Size(28, 26);
+            LM_Underline.Size = new Size(29, 36);
             // 
             // LM_AlwaysUse
             // 
             LM_AlwaysUse.AutoSize = true;
-            LM_AlwaysUse.Location = new Point(36, 53);
-            LM_AlwaysUse.Margin = new Padding(4, 3, 4, 3);
+            LM_AlwaysUse.Location = new Point(41, 71);
+            LM_AlwaysUse.Margin = new Padding(5, 4, 5, 4);
             LM_AlwaysUse.Name = "LM_AlwaysUse";
-            LM_AlwaysUse.Size = new Size(212, 19);
+            LM_AlwaysUse.Size = new Size(264, 24);
             LM_AlwaysUse.TabIndex = 1;
             LM_AlwaysUse.Text = "Always attempt Secondary Monitor";
             // 
             // LMUpDownFontSize
             // 
-            LMUpDownFontSize.Location = new Point(113, 150);
-            LMUpDownFontSize.Margin = new Padding(4, 3, 4, 3);
+            LMUpDownFontSize.Location = new Point(129, 200);
+            LMUpDownFontSize.Margin = new Padding(5, 4, 5, 4);
             LMUpDownFontSize.Maximum = new decimal(new int[] { 40, 0, 0, 0 });
             LMUpDownFontSize.Minimum = new decimal(new int[] { 8, 0, 0, 0 });
             LMUpDownFontSize.Name = "LMUpDownFontSize";
-            LMUpDownFontSize.Size = new Size(57, 23);
+            LMUpDownFontSize.Size = new Size(65, 27);
             LMUpDownFontSize.TabIndex = 12;
             LMUpDownFontSize.Value = new decimal(new int[] { 8, 0, 0, 0 });
             // 
@@ -5406,10 +5406,10 @@ namespace Easislides
             // 
             optLM0.AutoSize = true;
             optLM0.Checked = true;
-            optLM0.Location = new Point(12, 25);
-            optLM0.Margin = new Padding(4, 3, 4, 3);
+            optLM0.Location = new Point(14, 33);
+            optLM0.Margin = new Padding(5, 4, 5, 4);
             optLM0.Name = "optLM0";
-            optLM0.Size = new Size(14, 13);
+            optLM0.Size = new Size(17, 16);
             optLM0.TabIndex = 0;
             optLM0.TabStop = true;
             optLM0.UseVisualStyleBackColor = true;
@@ -5418,10 +5418,10 @@ namespace Easislides
             // panel43
             // 
             panel43.Controls.Add(toolStrip12);
-            panel43.Location = new Point(34, 22);
-            panel43.Margin = new Padding(4, 3, 4, 3);
+            panel43.Location = new Point(39, 29);
+            panel43.Margin = new Padding(5, 4, 5, 4);
             panel43.Name = "panel43";
-            panel43.Size = new Size(220, 25);
+            panel43.Size = new Size(251, 33);
             panel43.TabIndex = 30;
             // 
             // toolStrip12
@@ -5437,7 +5437,7 @@ namespace Easislides
             toolStrip12.Name = "toolStrip12";
             toolStrip12.Padding = new Padding(0, 0, 2, 0);
             toolStrip12.RenderMode = ToolStripRenderMode.System;
-            toolStrip12.Size = new Size(223, 29);
+            toolStrip12.Size = new Size(255, 39);
             toolStrip12.TabIndex = 0;
             // 
             // LyricsMonitorList
@@ -5446,15 +5446,15 @@ namespace Easislides
             LyricsMonitorList.DropDownStyle = ComboBoxStyle.DropDownList;
             LyricsMonitorList.MaxDropDownItems = 12;
             LyricsMonitorList.Name = "LyricsMonitorList";
-            LyricsMonitorList.Size = new Size(218, 23);
+            LyricsMonitorList.Size = new Size(249, 28);
             // 
             // panel44
             // 
             panel44.Controls.Add(toolStrip13);
-            panel44.Location = new Point(260, 24);
-            panel44.Margin = new Padding(4, 3, 4, 3);
+            panel44.Location = new Point(297, 32);
+            panel44.Margin = new Padding(5, 4, 5, 4);
             panel44.Name = "panel44";
-            panel44.Size = new Size(26, 24);
+            panel44.Size = new Size(30, 32);
             panel44.TabIndex = 29;
             // 
             // toolStrip13
@@ -5470,7 +5470,7 @@ namespace Easislides
             toolStrip13.Name = "toolStrip13";
             toolStrip13.Padding = new Padding(0, 0, 2, 0);
             toolStrip13.RenderMode = ToolStripRenderMode.System;
-            toolStrip13.Size = new Size(33, 28);
+            toolStrip13.Size = new Size(38, 37);
             toolStrip13.TabIndex = 0;
             // 
             // LyricsMonitor_Info
@@ -5488,23 +5488,23 @@ namespace Easislides
             // LM1UpDownHeight
             // 
             LM1UpDownHeight.Enabled = false;
-            LM1UpDownHeight.Location = new Point(223, 114);
-            LM1UpDownHeight.Margin = new Padding(4, 3, 4, 3);
+            LM1UpDownHeight.Location = new Point(255, 152);
+            LM1UpDownHeight.Margin = new Padding(5, 4, 5, 4);
             LM1UpDownHeight.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             LM1UpDownHeight.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             LM1UpDownHeight.Name = "LM1UpDownHeight";
-            LM1UpDownHeight.Size = new Size(57, 23);
+            LM1UpDownHeight.Size = new Size(65, 27);
             LM1UpDownHeight.TabIndex = 9;
             LM1UpDownHeight.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // LM1UpDownWidth
             // 
-            LM1UpDownWidth.Location = new Point(223, 85);
-            LM1UpDownWidth.Margin = new Padding(4, 3, 4, 3);
+            LM1UpDownWidth.Location = new Point(255, 113);
+            LM1UpDownWidth.Margin = new Padding(5, 4, 5, 4);
             LM1UpDownWidth.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             LM1UpDownWidth.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             LM1UpDownWidth.Name = "LM1UpDownWidth";
-            LM1UpDownWidth.Size = new Size(57, 23);
+            LM1UpDownWidth.Size = new Size(65, 27);
             LM1UpDownWidth.TabIndex = 5;
             LM1UpDownWidth.Value = new decimal(new int[] { 1, 0, 0, 0 });
             LM1UpDownWidth.ValueChanged += LM1UpDownWidth_ValueChanged;
@@ -5512,10 +5512,10 @@ namespace Easislides
             // optLM1
             // 
             optLM1.AutoSize = true;
-            optLM1.Location = new Point(12, 85);
-            optLM1.Margin = new Padding(4, 3, 4, 3);
+            optLM1.Location = new Point(14, 113);
+            optLM1.Margin = new Padding(5, 4, 5, 4);
             optLM1.Name = "optLM1";
-            optLM1.Size = new Size(70, 19);
+            optLM1.Size = new Size(83, 24);
             optLM1.TabIndex = 1;
             optLM1.TabStop = true;
             optLM1.Text = "Custom:";
@@ -5525,30 +5525,30 @@ namespace Easislides
             // label25
             // 
             label25.AutoSize = true;
-            label25.Location = new Point(176, 119);
-            label25.Margin = new Padding(4, 0, 4, 0);
+            label25.Location = new Point(201, 159);
+            label25.Margin = new Padding(5, 0, 5, 0);
             label25.Name = "label25";
-            label25.Size = new Size(46, 15);
+            label25.Size = new Size(57, 20);
             label25.TabIndex = 8;
             label25.Text = "Height:";
             // 
             // label48
             // 
             label48.AutoSize = true;
-            label48.Location = new Point(178, 88);
-            label48.Margin = new Padding(4, 0, 4, 0);
+            label48.Location = new Point(203, 117);
+            label48.Margin = new Padding(5, 0, 5, 0);
             label48.Name = "label48";
-            label48.Size = new Size(42, 15);
+            label48.Size = new Size(52, 20);
             label48.TabIndex = 4;
             label48.Text = "Width:";
             // 
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(188, 181);
-            label9.Margin = new Padding(4, 0, 4, 0);
+            label9.Location = new Point(215, 241);
+            label9.Margin = new Padding(5, 0, 5, 0);
             label9.Name = "label9";
-            label9.Size = new Size(30, 15);
+            label9.Size = new Size(39, 20);
             label9.TabIndex = 13;
             label9.Text = "Size:";
             label9.Visible = false;
@@ -5556,20 +5556,20 @@ namespace Easislides
             // cbLMShowNotations
             // 
             cbLMShowNotations.AutoSize = true;
-            cbLMShowNotations.Location = new Point(22, 180);
-            cbLMShowNotations.Margin = new Padding(4, 3, 4, 3);
+            cbLMShowNotations.Location = new Point(25, 240);
+            cbLMShowNotations.Margin = new Padding(5, 4, 5, 4);
             cbLMShowNotations.Name = "cbLMShowNotations";
-            cbLMShowNotations.Size = new Size(110, 19);
+            cbLMShowNotations.Size = new Size(136, 24);
             cbLMShowNotations.TabIndex = 15;
             cbLMShowNotations.Text = "Show Notations";
             // 
             // label49
             // 
             label49.AutoSize = true;
-            label49.Location = new Point(19, 153);
-            label49.Margin = new Padding(4, 0, 4, 0);
+            label49.Location = new Point(22, 204);
+            label49.Margin = new Padding(5, 0, 5, 0);
             label49.Name = "label49";
-            label49.Size = new Size(87, 15);
+            label49.Size = new Size(109, 20);
             label49.TabIndex = 11;
             label49.Text = "Main Font Size:";
             // 
@@ -5590,11 +5590,11 @@ namespace Easislides
             groupBoxDM.Controls.Add(label46);
             groupBoxDM.Controls.Add(label43);
             groupBoxDM.Controls.Add(label45);
-            groupBoxDM.Location = new Point(8, 16);
-            groupBoxDM.Margin = new Padding(4, 3, 4, 3);
+            groupBoxDM.Location = new Point(9, 21);
+            groupBoxDM.Margin = new Padding(5, 4, 5, 4);
             groupBoxDM.Name = "groupBoxDM";
-            groupBoxDM.Padding = new Padding(4, 3, 4, 3);
-            groupBoxDM.Size = new Size(293, 192);
+            groupBoxDM.Padding = new Padding(5, 4, 5, 4);
+            groupBoxDM.Size = new Size(335, 256);
             groupBoxDM.TabIndex = 0;
             groupBoxDM.TabStop = false;
             groupBoxDM.Text = "Live Output Monitor";
@@ -5603,17 +5603,19 @@ namespace Easislides
             // 
             panel49.Controls.Add(optWide);
             panel49.Controls.Add(optStandard);
-            panel49.Location = new Point(12, 53);
+            panel49.Location = new Point(14, 71);
+            panel49.Margin = new Padding(3, 4, 3, 4);
             panel49.Name = "panel49";
-            panel49.Size = new Size(268, 26);
+            panel49.Size = new Size(306, 35);
             panel49.TabIndex = 44;
             // 
             // optWide
             // 
             optWide.AutoSize = true;
-            optWide.Location = new Point(126, 4);
+            optWide.Location = new Point(144, 5);
+            optWide.Margin = new Padding(3, 4, 3, 4);
             optWide.Name = "optWide";
-            optWide.Size = new Size(79, 19);
+            optWide.Size = new Size(99, 24);
             optWide.TabIndex = 43;
             optWide.Text = "wide(16:9)";
             optWide.UseVisualStyleBackColor = true;
@@ -5623,9 +5625,10 @@ namespace Easislides
             // 
             optStandard.AutoSize = true;
             optStandard.Checked = true;
-            optStandard.Location = new Point(26, 4);
+            optStandard.Location = new Point(30, 5);
+            optStandard.Margin = new Padding(3, 4, 3, 4);
             optStandard.Name = "optStandard";
-            optStandard.Size = new Size(94, 19);
+            optStandard.Size = new Size(117, 24);
             optStandard.TabIndex = 42;
             optStandard.TabStop = true;
             optStandard.Text = "standard(4:3)";
@@ -5635,73 +5638,73 @@ namespace Easislides
             // DM_CustomAsSingleMonitor
             // 
             DM_CustomAsSingleMonitor.AutoSize = true;
-            DM_CustomAsSingleMonitor.Location = new Point(36, 163);
-            DM_CustomAsSingleMonitor.Margin = new Padding(4, 3, 4, 3);
+            DM_CustomAsSingleMonitor.Location = new Point(41, 217);
+            DM_CustomAsSingleMonitor.Margin = new Padding(5, 4, 5, 4);
             DM_CustomAsSingleMonitor.Name = "DM_CustomAsSingleMonitor";
-            DM_CustomAsSingleMonitor.Size = new Size(173, 19);
+            DM_CustomAsSingleMonitor.Size = new Size(216, 24);
             DM_CustomAsSingleMonitor.TabIndex = 41;
             DM_CustomAsSingleMonitor.Text = "Act as Single Monitor Mode";
             // 
             // DM1UpDownHeight
             // 
-            DM1UpDownHeight.Location = new Point(223, 135);
-            DM1UpDownHeight.Margin = new Padding(4, 3, 4, 3);
+            DM1UpDownHeight.Location = new Point(255, 180);
+            DM1UpDownHeight.Margin = new Padding(5, 4, 5, 4);
             DM1UpDownHeight.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             DM1UpDownHeight.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             DM1UpDownHeight.Name = "DM1UpDownHeight";
-            DM1UpDownHeight.Size = new Size(57, 23);
+            DM1UpDownHeight.Size = new Size(65, 27);
             DM1UpDownHeight.TabIndex = 3;
             DM1UpDownHeight.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // DM1UpDownLeft
             // 
-            DM1UpDownLeft.Location = new Point(118, 135);
-            DM1UpDownLeft.Margin = new Padding(4, 3, 4, 3);
+            DM1UpDownLeft.Location = new Point(135, 180);
+            DM1UpDownLeft.Margin = new Padding(5, 4, 5, 4);
             DM1UpDownLeft.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             DM1UpDownLeft.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
             DM1UpDownLeft.Name = "DM1UpDownLeft";
-            DM1UpDownLeft.Size = new Size(57, 23);
+            DM1UpDownLeft.Size = new Size(65, 27);
             DM1UpDownLeft.TabIndex = 1;
             // 
             // label44
             // 
             label44.AutoSize = true;
-            label44.Location = new Point(83, 109);
-            label44.Margin = new Padding(4, 0, 4, 0);
+            label44.Location = new Point(95, 145);
+            label44.Margin = new Padding(5, 0, 5, 0);
             label44.Name = "label44";
-            label44.Size = new Size(30, 15);
+            label44.Size = new Size(37, 20);
             label44.TabIndex = 36;
             label44.Text = "Top:";
             // 
             // DM1UpDownWidth
             // 
-            DM1UpDownWidth.Location = new Point(223, 106);
-            DM1UpDownWidth.Margin = new Padding(4, 3, 4, 3);
+            DM1UpDownWidth.Location = new Point(255, 141);
+            DM1UpDownWidth.Margin = new Padding(5, 4, 5, 4);
             DM1UpDownWidth.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             DM1UpDownWidth.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             DM1UpDownWidth.Name = "DM1UpDownWidth";
-            DM1UpDownWidth.Size = new Size(57, 23);
+            DM1UpDownWidth.Size = new Size(65, 27);
             DM1UpDownWidth.TabIndex = 2;
             DM1UpDownWidth.Value = new decimal(new int[] { 1, 0, 0, 0 });
             DM1UpDownWidth.ValueChanged += DM1UpDownWidth_ValueChanged;
             // 
             // DM1UpDownTop
             // 
-            DM1UpDownTop.Location = new Point(118, 106);
-            DM1UpDownTop.Margin = new Padding(4, 3, 4, 3);
+            DM1UpDownTop.Location = new Point(135, 141);
+            DM1UpDownTop.Margin = new Padding(5, 4, 5, 4);
             DM1UpDownTop.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             DM1UpDownTop.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
             DM1UpDownTop.Name = "DM1UpDownTop";
-            DM1UpDownTop.Size = new Size(57, 23);
+            DM1UpDownTop.Size = new Size(65, 27);
             DM1UpDownTop.TabIndex = 0;
             // 
             // optDM1
             // 
             optDM1.AutoSize = true;
-            optDM1.Location = new Point(12, 106);
-            optDM1.Margin = new Padding(4, 3, 4, 3);
+            optDM1.Location = new Point(14, 141);
+            optDM1.Margin = new Padding(5, 4, 5, 4);
             optDM1.Name = "optDM1";
-            optDM1.Size = new Size(70, 19);
+            optDM1.Size = new Size(83, 24);
             optDM1.TabIndex = 32;
             optDM1.TabStop = true;
             optDM1.Text = "Custom:";
@@ -5711,10 +5714,10 @@ namespace Easislides
             // 
             optDM0.AutoSize = true;
             optDM0.Checked = true;
-            optDM0.Location = new Point(12, 25);
-            optDM0.Margin = new Padding(4, 3, 4, 3);
+            optDM0.Location = new Point(14, 33);
+            optDM0.Margin = new Padding(5, 4, 5, 4);
             optDM0.Name = "optDM0";
-            optDM0.Size = new Size(14, 13);
+            optDM0.Size = new Size(17, 16);
             optDM0.TabIndex = 31;
             optDM0.TabStop = true;
             optDM0.UseVisualStyleBackColor = true;
@@ -5723,10 +5726,10 @@ namespace Easislides
             // panelDM
             // 
             panelDM.Controls.Add(toolStripMonitorList);
-            panelDM.Location = new Point(34, 22);
-            panelDM.Margin = new Padding(4, 3, 4, 3);
+            panelDM.Location = new Point(39, 29);
+            panelDM.Margin = new Padding(5, 4, 5, 4);
             panelDM.Name = "panelDM";
-            panelDM.Size = new Size(220, 25);
+            panelDM.Size = new Size(251, 33);
             panelDM.TabIndex = 30;
             // 
             // toolStripMonitorList
@@ -5742,7 +5745,7 @@ namespace Easislides
             toolStripMonitorList.Name = "toolStripMonitorList";
             toolStripMonitorList.Padding = new Padding(0, 0, 2, 0);
             toolStripMonitorList.RenderMode = ToolStripRenderMode.System;
-            toolStripMonitorList.Size = new Size(223, 29);
+            toolStripMonitorList.Size = new Size(255, 39);
             toolStripMonitorList.TabIndex = 0;
             // 
             // DualMonitorList
@@ -5751,15 +5754,15 @@ namespace Easislides
             DualMonitorList.DropDownStyle = ComboBoxStyle.DropDownList;
             DualMonitorList.MaxDropDownItems = 12;
             DualMonitorList.Name = "DualMonitorList";
-            DualMonitorList.Size = new Size(218, 23);
+            DualMonitorList.Size = new Size(249, 28);
             // 
             // panelLinkTitle2Lookup
             // 
             panelLinkTitle2Lookup.Controls.Add(toolStrip2);
-            panelLinkTitle2Lookup.Location = new Point(260, 24);
-            panelLinkTitle2Lookup.Margin = new Padding(4, 3, 4, 3);
+            panelLinkTitle2Lookup.Location = new Point(297, 32);
+            panelLinkTitle2Lookup.Margin = new Padding(5, 4, 5, 4);
             panelLinkTitle2Lookup.Name = "panelLinkTitle2Lookup";
-            panelLinkTitle2Lookup.Size = new Size(26, 24);
+            panelLinkTitle2Lookup.Size = new Size(30, 32);
             panelLinkTitle2Lookup.TabIndex = 29;
             // 
             // toolStrip2
@@ -5775,7 +5778,7 @@ namespace Easislides
             toolStrip2.Name = "toolStrip2";
             toolStrip2.Padding = new Padding(0, 0, 2, 0);
             toolStrip2.RenderMode = ToolStripRenderMode.System;
-            toolStrip2.Size = new Size(33, 28);
+            toolStrip2.Size = new Size(38, 37);
             toolStrip2.TabIndex = 5;
             // 
             // Monitor_Info
@@ -5793,40 +5796,40 @@ namespace Easislides
             // DM_AlwaysUseSecondaryMonitor
             // 
             DM_AlwaysUseSecondaryMonitor.AutoSize = true;
-            DM_AlwaysUseSecondaryMonitor.Location = new Point(12, 84);
-            DM_AlwaysUseSecondaryMonitor.Margin = new Padding(4, 3, 4, 3);
+            DM_AlwaysUseSecondaryMonitor.Location = new Point(14, 112);
+            DM_AlwaysUseSecondaryMonitor.Margin = new Padding(5, 4, 5, 4);
             DM_AlwaysUseSecondaryMonitor.Name = "DM_AlwaysUseSecondaryMonitor";
-            DM_AlwaysUseSecondaryMonitor.Size = new Size(212, 19);
+            DM_AlwaysUseSecondaryMonitor.Size = new Size(264, 24);
             DM_AlwaysUseSecondaryMonitor.TabIndex = 0;
             DM_AlwaysUseSecondaryMonitor.Text = "Always attempt Secondary Monitor";
             // 
             // label46
             // 
             label46.AutoSize = true;
-            label46.Location = new Point(176, 140);
-            label46.Margin = new Padding(4, 0, 4, 0);
+            label46.Location = new Point(201, 187);
+            label46.Margin = new Padding(5, 0, 5, 0);
             label46.Name = "label46";
-            label46.Size = new Size(46, 15);
+            label46.Size = new Size(57, 20);
             label46.TabIndex = 40;
             label46.Text = "Height:";
             // 
             // label43
             // 
             label43.AutoSize = true;
-            label43.Location = new Point(84, 138);
-            label43.Margin = new Padding(4, 0, 4, 0);
+            label43.Location = new Point(96, 184);
+            label43.Margin = new Padding(5, 0, 5, 0);
             label43.Name = "label43";
-            label43.Size = new Size(30, 15);
+            label43.Size = new Size(37, 20);
             label43.TabIndex = 34;
             label43.Text = "Left:";
             // 
             // label45
             // 
             label45.AutoSize = true;
-            label45.Location = new Point(178, 109);
-            label45.Margin = new Padding(4, 0, 4, 0);
+            label45.Location = new Point(203, 145);
+            label45.Margin = new Padding(5, 0, 5, 0);
             label45.Name = "label45";
-            label45.Size = new Size(42, 15);
+            label45.Size = new Size(52, 20);
             label45.TabIndex = 38;
             label45.Text = "Width:";
             // 
@@ -5836,11 +5839,11 @@ namespace Easislides
             tabPageAlerts.Controls.Add(groupBox8);
             tabPageAlerts.Controls.Add(groupBox16);
             tabPageAlerts.Controls.Add(groupBox15);
-            tabPageAlerts.Location = new Point(4, 24);
-            tabPageAlerts.Margin = new Padding(4, 3, 4, 3);
+            tabPageAlerts.Location = new Point(4, 29);
+            tabPageAlerts.Margin = new Padding(5, 4, 5, 4);
             tabPageAlerts.Name = "tabPageAlerts";
-            tabPageAlerts.Padding = new Padding(4, 3, 4, 3);
-            tabPageAlerts.Size = new Size(628, 400);
+            tabPageAlerts.Padding = new Padding(5, 4, 5, 4);
+            tabPageAlerts.Size = new Size(719, 538);
             tabPageAlerts.TabIndex = 2;
             tabPageAlerts.Text = "Alerts";
             // 
@@ -5853,11 +5856,11 @@ namespace Easislides
             groupBox8.Controls.Add(panel22);
             groupBox8.Controls.Add(panel33);
             groupBox8.Controls.Add(panel36);
-            groupBox8.Location = new Point(318, 12);
-            groupBox8.Margin = new Padding(4, 3, 4, 3);
+            groupBox8.Location = new Point(363, 16);
+            groupBox8.Margin = new Padding(5, 4, 5, 4);
             groupBox8.Name = "groupBox8";
-            groupBox8.Padding = new Padding(4, 3, 4, 3);
-            groupBox8.Size = new Size(299, 375);
+            groupBox8.Padding = new Padding(5, 4, 5, 4);
+            groupBox8.Size = new Size(342, 500);
             groupBox8.TabIndex = 2;
             groupBox8.TabStop = false;
             groupBox8.Text = "Display Reference On New Item";
@@ -5870,11 +5873,11 @@ namespace Easislides
             groupBox11.Controls.Add(tbPick);
             groupBox11.Controls.Add(label42);
             groupBox11.Controls.Add(label24);
-            groupBox11.Location = new Point(149, 22);
-            groupBox11.Margin = new Padding(4, 3, 4, 3);
+            groupBox11.Location = new Point(170, 29);
+            groupBox11.Margin = new Padding(5, 4, 5, 4);
             groupBox11.Name = "groupBox11";
-            groupBox11.Padding = new Padding(4, 3, 4, 3);
-            groupBox11.Size = new Size(141, 162);
+            groupBox11.Padding = new Padding(5, 4, 5, 4);
+            groupBox11.Size = new Size(161, 216);
             groupBox11.TabIndex = 1;
             groupBox11.TabStop = false;
             groupBox11.Text = "Pick && Substitute";
@@ -5882,48 +5885,48 @@ namespace Easislides
             // cbPickBlank
             // 
             cbPickBlank.AutoSize = true;
-            cbPickBlank.Location = new Point(9, 47);
-            cbPickBlank.Margin = new Padding(4, 3, 4, 3);
+            cbPickBlank.Location = new Point(10, 63);
+            cbPickBlank.Margin = new Padding(5, 4, 5, 4);
             cbPickBlank.Name = "cbPickBlank";
-            cbPickBlank.Size = new Size(121, 19);
+            cbPickBlank.Size = new Size(149, 24);
             cbPickBlank.TabIndex = 1;
             cbPickBlank.Text = "Blank if not found";
             // 
             // tbSubstitute
             // 
-            tbSubstitute.Location = new Point(9, 132);
-            tbSubstitute.Margin = new Padding(4, 3, 4, 3);
+            tbSubstitute.Location = new Point(10, 176);
+            tbSubstitute.Margin = new Padding(5, 4, 5, 4);
             tbSubstitute.MaxLength = 50;
             tbSubstitute.Name = "tbSubstitute";
-            tbSubstitute.Size = new Size(122, 23);
+            tbSubstitute.Size = new Size(139, 27);
             tbSubstitute.TabIndex = 5;
             // 
             // cbPick
             // 
             cbPick.AutoSize = true;
-            cbPick.Location = new Point(9, 25);
-            cbPick.Margin = new Padding(4, 3, 4, 3);
+            cbPick.Location = new Point(10, 33);
+            cbPick.Margin = new Padding(5, 4, 5, 4);
             cbPick.Name = "cbPick";
-            cbPick.Size = new Size(61, 19);
+            cbPick.Size = new Size(76, 24);
             cbPick.TabIndex = 0;
             cbPick.Text = "Enable";
             // 
             // tbPick
             // 
-            tbPick.Location = new Point(9, 87);
-            tbPick.Margin = new Padding(4, 3, 4, 3);
+            tbPick.Location = new Point(10, 116);
+            tbPick.Margin = new Padding(5, 4, 5, 4);
             tbPick.MaxLength = 50;
             tbPick.Name = "tbPick";
-            tbPick.Size = new Size(72, 23);
+            tbPick.Size = new Size(82, 27);
             tbPick.TabIndex = 3;
             // 
             // label42
             // 
             label42.AutoSize = true;
-            label42.Location = new Point(6, 113);
-            label42.Margin = new Padding(4, 0, 4, 0);
+            label42.Location = new Point(7, 151);
+            label42.Margin = new Padding(5, 0, 5, 0);
             label42.Name = "label42";
-            label42.Size = new Size(63, 15);
+            label42.Size = new Size(78, 20);
             label42.TabIndex = 4;
             label42.Text = "Substitute:";
             label42.TextAlign = ContentAlignment.BottomLeft;
@@ -5931,10 +5934,10 @@ namespace Easislides
             // label24
             // 
             label24.AutoSize = true;
-            label24.Location = new Point(7, 68);
-            label24.Margin = new Padding(4, 0, 4, 0);
+            label24.Location = new Point(8, 91);
+            label24.Margin = new Padding(5, 0, 5, 0);
             label24.Name = "label24";
-            label24.Size = new Size(32, 15);
+            label24.Size = new Size(38, 20);
             label24.TabIndex = 2;
             label24.Text = "Pick:";
             label24.TextAlign = ContentAlignment.BottomLeft;
@@ -5946,11 +5949,11 @@ namespace Easislides
             groupBox9.Controls.Add(Reference_Source0);
             groupBox9.Controls.Add(Reference_Source3);
             groupBox9.Controls.Add(Reference_Source4);
-            groupBox9.Location = new Point(10, 22);
-            groupBox9.Margin = new Padding(4, 3, 4, 3);
+            groupBox9.Location = new Point(11, 29);
+            groupBox9.Margin = new Padding(5, 4, 5, 4);
             groupBox9.Name = "groupBox9";
-            groupBox9.Padding = new Padding(4, 3, 4, 3);
-            groupBox9.Size = new Size(134, 162);
+            groupBox9.Padding = new Padding(5, 4, 5, 4);
+            groupBox9.Size = new Size(153, 216);
             groupBox9.TabIndex = 0;
             groupBox9.TabStop = false;
             groupBox9.Text = "Select Reference";
@@ -5958,50 +5961,50 @@ namespace Easislides
             // Reference_Source1
             // 
             Reference_Source1.AutoSize = true;
-            Reference_Source1.Location = new Point(9, 51);
-            Reference_Source1.Margin = new Padding(4, 3, 4, 3);
+            Reference_Source1.Location = new Point(10, 68);
+            Reference_Source1.Margin = new Padding(5, 4, 5, 4);
             Reference_Source1.Name = "Reference_Source1";
-            Reference_Source1.Size = new Size(78, 19);
+            Reference_Source1.Size = new Size(97, 24);
             Reference_Source1.TabIndex = 1;
             Reference_Source1.Text = "Song Title";
             // 
             // Reference_Source2
             // 
             Reference_Source2.AutoSize = true;
-            Reference_Source2.Location = new Point(9, 76);
-            Reference_Source2.Margin = new Padding(4, 3, 4, 3);
+            Reference_Source2.Location = new Point(10, 101);
+            Reference_Source2.Margin = new Padding(5, 4, 5, 4);
             Reference_Source2.Name = "Reference_Source2";
-            Reference_Source2.Size = new Size(99, 19);
+            Reference_Source2.Size = new Size(122, 24);
             Reference_Source2.TabIndex = 2;
             Reference_Source2.Text = "Song Number";
             // 
             // Reference_Source0
             // 
             Reference_Source0.AutoSize = true;
-            Reference_Source0.Location = new Point(9, 25);
-            Reference_Source0.Margin = new Padding(4, 3, 4, 3);
+            Reference_Source0.Location = new Point(10, 33);
+            Reference_Source0.Margin = new Padding(5, 4, 5, 4);
             Reference_Source0.Name = "Reference_Source0";
-            Reference_Source0.Size = new Size(96, 19);
+            Reference_Source0.Size = new Size(120, 24);
             Reference_Source0.TabIndex = 0;
             Reference_Source0.Text = "No Reference";
             // 
             // Reference_Source3
             // 
             Reference_Source3.AutoSize = true;
-            Reference_Source3.Location = new Point(9, 102);
-            Reference_Source3.Margin = new Padding(4, 3, 4, 3);
+            Reference_Source3.Location = new Point(10, 136);
+            Reference_Source3.Margin = new Padding(5, 4, 5, 4);
             Reference_Source3.Name = "Reference_Source3";
-            Reference_Source3.Size = new Size(107, 19);
+            Reference_Source3.Size = new Size(134, 24);
             Reference_Source3.TabIndex = 3;
             Reference_Source3.Text = "Book Reference";
             // 
             // Reference_Source4
             // 
             Reference_Source4.AutoSize = true;
-            Reference_Source4.Location = new Point(9, 128);
-            Reference_Source4.Margin = new Padding(4, 3, 4, 3);
+            Reference_Source4.Location = new Point(10, 171);
+            Reference_Source4.Margin = new Padding(5, 4, 5, 4);
             Reference_Source4.Name = "Reference_Source4";
-            Reference_Source4.Size = new Size(103, 19);
+            Reference_Source4.Size = new Size(129, 24);
             Reference_Source4.TabIndex = 4;
             Reference_Source4.Text = "User Reference";
             // 
@@ -6009,20 +6012,20 @@ namespace Easislides
             // 
             panel10.Controls.Add(btnReferenceChangeBackColour);
             panel10.Controls.Add(btnReferenceChangeTextColour);
-            panel10.Location = new Point(12, 314);
-            panel10.Margin = new Padding(4, 3, 4, 3);
+            panel10.Location = new Point(14, 419);
+            panel10.Margin = new Padding(5, 4, 5, 4);
             panel10.Name = "panel10";
-            panel10.Size = new Size(273, 29);
+            panel10.Size = new Size(312, 39);
             panel10.TabIndex = 5;
             // 
             // btnReferenceChangeBackColour
             // 
             btnReferenceChangeBackColour.BackColor = Color.LightGray;
             btnReferenceChangeBackColour.FlatStyle = FlatStyle.Flat;
-            btnReferenceChangeBackColour.Location = new Point(138, 0);
-            btnReferenceChangeBackColour.Margin = new Padding(4, 3, 4, 3);
+            btnReferenceChangeBackColour.Location = new Point(158, 0);
+            btnReferenceChangeBackColour.Margin = new Padding(5, 4, 5, 4);
             btnReferenceChangeBackColour.Name = "btnReferenceChangeBackColour";
-            btnReferenceChangeBackColour.Size = new Size(132, 29);
+            btnReferenceChangeBackColour.Size = new Size(151, 39);
             btnReferenceChangeBackColour.TabIndex = 1;
             btnReferenceChangeBackColour.Text = "Back Colour";
             btnReferenceChangeBackColour.UseVisualStyleBackColor = false;
@@ -6032,10 +6035,10 @@ namespace Easislides
             // 
             btnReferenceChangeTextColour.BackColor = Color.LightGray;
             btnReferenceChangeTextColour.FlatStyle = FlatStyle.Flat;
-            btnReferenceChangeTextColour.Location = new Point(5, 0);
-            btnReferenceChangeTextColour.Margin = new Padding(4, 3, 4, 3);
+            btnReferenceChangeTextColour.Location = new Point(6, 0);
+            btnReferenceChangeTextColour.Margin = new Padding(5, 4, 5, 4);
             btnReferenceChangeTextColour.Name = "btnReferenceChangeTextColour";
-            btnReferenceChangeTextColour.Size = new Size(133, 29);
+            btnReferenceChangeTextColour.Size = new Size(152, 39);
             btnReferenceChangeTextColour.TabIndex = 0;
             btnReferenceChangeTextColour.Text = "Text Colour";
             btnReferenceChangeTextColour.UseVisualStyleBackColor = false;
@@ -6044,10 +6047,10 @@ namespace Easislides
             // panel21
             // 
             panel21.Controls.Add(toolBarReferenceFormat);
-            panel21.Location = new Point(12, 200);
-            panel21.Margin = new Padding(4, 3, 4, 3);
+            panel21.Location = new Point(14, 267);
+            panel21.Margin = new Padding(5, 4, 5, 4);
             panel21.Name = "panel21";
-            panel21.Size = new Size(282, 25);
+            panel21.Size = new Size(322, 33);
             panel21.TabIndex = 2;
             // 
             // toolBarReferenceFormat
@@ -6063,7 +6066,7 @@ namespace Easislides
             toolBarReferenceFormat.Name = "toolBarReferenceFormat";
             toolBarReferenceFormat.Padding = new Padding(0, 0, 2, 0);
             toolBarReferenceFormat.RenderMode = ToolStripRenderMode.System;
-            toolBarReferenceFormat.Size = new Size(286, 29);
+            toolBarReferenceFormat.Size = new Size(327, 39);
             toolBarReferenceFormat.TabIndex = 0;
             // 
             // Reference_Scroll
@@ -6073,7 +6076,7 @@ namespace Easislides
             Reference_Scroll.Image = (Image)resources.GetObject("Reference_Scroll.Image");
             Reference_Scroll.ImageTransparentColor = Color.Magenta;
             Reference_Scroll.Name = "Reference_Scroll";
-            Reference_Scroll.Size = new Size(28, 26);
+            Reference_Scroll.Size = new Size(29, 36);
             Reference_Scroll.ToolTipText = "Scroll";
             // 
             // Reference_Flash
@@ -6083,7 +6086,7 @@ namespace Easislides
             Reference_Flash.Image = (Image)resources.GetObject("Reference_Flash.Image");
             Reference_Flash.ImageTransparentColor = Color.Magenta;
             Reference_Flash.Name = "Reference_Flash";
-            Reference_Flash.Size = new Size(28, 26);
+            Reference_Flash.Size = new Size(29, 36);
             Reference_Flash.ToolTipText = "Flash";
             // 
             // Reference_Transparent
@@ -6093,7 +6096,7 @@ namespace Easislides
             Reference_Transparent.Image = (Image)resources.GetObject("Reference_Transparent.Image");
             Reference_Transparent.ImageTransparentColor = Color.Magenta;
             Reference_Transparent.Name = "Reference_Transparent";
-            Reference_Transparent.Size = new Size(28, 26);
+            Reference_Transparent.Size = new Size(29, 36);
             Reference_Transparent.ToolTipText = "Transparent";
             // 
             // Reference_Align
@@ -6103,7 +6106,7 @@ namespace Easislides
             Reference_Align.Image = (Image)resources.GetObject("Reference_Align.Image");
             Reference_Align.ImageTransparentColor = Color.Magenta;
             Reference_Align.Name = "Reference_Align";
-            Reference_Align.Size = new Size(37, 26);
+            Reference_Align.Size = new Size(38, 36);
             Reference_Align.Tag = "2";
             Reference_Align.DropDownItemClicked += Reference_Align_DropDownItemClicked;
             // 
@@ -6111,7 +6114,7 @@ namespace Easislides
             // 
             Reference_AlignLeft.Image = (Image)resources.GetObject("Reference_AlignLeft.Image");
             Reference_AlignLeft.Name = "Reference_AlignLeft";
-            Reference_AlignLeft.Size = new Size(140, 22);
+            Reference_AlignLeft.Size = new Size(174, 26);
             Reference_AlignLeft.Tag = "1";
             Reference_AlignLeft.Text = "Align Left";
             // 
@@ -6119,7 +6122,7 @@ namespace Easislides
             // 
             Reference_AlignCentre.Image = (Image)resources.GetObject("Reference_AlignCentre.Image");
             Reference_AlignCentre.Name = "Reference_AlignCentre";
-            Reference_AlignCentre.Size = new Size(140, 22);
+            Reference_AlignCentre.Size = new Size(174, 26);
             Reference_AlignCentre.Tag = "2";
             Reference_AlignCentre.Text = "Align Centre";
             // 
@@ -6127,7 +6130,7 @@ namespace Easislides
             // 
             Reference_AlignRight.Image = (Image)resources.GetObject("Reference_AlignRight.Image");
             Reference_AlignRight.Name = "Reference_AlignRight";
-            Reference_AlignRight.Size = new Size(140, 22);
+            Reference_AlignRight.Size = new Size(174, 26);
             Reference_AlignRight.Tag = "3";
             Reference_AlignRight.Text = "Align Right";
             // 
@@ -6138,7 +6141,7 @@ namespace Easislides
             Reference_VAlign.Image = (Image)resources.GetObject("Reference_VAlign.Image");
             Reference_VAlign.ImageTransparentColor = Color.Magenta;
             Reference_VAlign.Name = "Reference_VAlign";
-            Reference_VAlign.Size = new Size(37, 26);
+            Reference_VAlign.Size = new Size(38, 36);
             Reference_VAlign.Tag = "1";
             Reference_VAlign.ToolTipText = "Vertical Alignment";
             Reference_VAlign.DropDownItemClicked += Reference_VAlign_DropDownItemClicked;
@@ -6147,7 +6150,7 @@ namespace Easislides
             // 
             Reference_VAlignTop.Image = (Image)resources.GetObject("Reference_VAlignTop.Image");
             Reference_VAlignTop.Name = "Reference_VAlignTop";
-            Reference_VAlignTop.Size = new Size(175, 22);
+            Reference_VAlignTop.Size = new Size(219, 26);
             Reference_VAlignTop.Tag = "0";
             Reference_VAlignTop.Text = "Align Top";
             // 
@@ -6155,7 +6158,7 @@ namespace Easislides
             // 
             Reference_VAlignCentre.Image = (Image)resources.GetObject("Reference_VAlignCentre.Image");
             Reference_VAlignCentre.Name = "Reference_VAlignCentre";
-            Reference_VAlignCentre.Size = new Size(175, 22);
+            Reference_VAlignCentre.Size = new Size(219, 26);
             Reference_VAlignCentre.Tag = "1";
             Reference_VAlignCentre.Text = "Align Near-Bottom";
             // 
@@ -6163,7 +6166,7 @@ namespace Easislides
             // 
             Reference_VAlignBottom.Image = (Image)resources.GetObject("Reference_VAlignBottom.Image");
             Reference_VAlignBottom.Name = "Reference_VAlignBottom";
-            Reference_VAlignBottom.Size = new Size(175, 22);
+            Reference_VAlignBottom.Size = new Size(219, 26);
             Reference_VAlignBottom.Tag = "2";
             Reference_VAlignBottom.Text = "Align Bottom";
             // 
@@ -6174,7 +6177,7 @@ namespace Easislides
             Reference_Bold.Image = (Image)resources.GetObject("Reference_Bold.Image");
             Reference_Bold.ImageTransparentColor = Color.Magenta;
             Reference_Bold.Name = "Reference_Bold";
-            Reference_Bold.Size = new Size(28, 26);
+            Reference_Bold.Size = new Size(29, 36);
             // 
             // Reference_Italics
             // 
@@ -6183,7 +6186,7 @@ namespace Easislides
             Reference_Italics.Image = (Image)resources.GetObject("Reference_Italics.Image");
             Reference_Italics.ImageTransparentColor = Color.Magenta;
             Reference_Italics.Name = "Reference_Italics";
-            Reference_Italics.Size = new Size(28, 26);
+            Reference_Italics.Size = new Size(29, 36);
             // 
             // Reference_Underline
             // 
@@ -6192,7 +6195,7 @@ namespace Easislides
             Reference_Underline.Image = (Image)resources.GetObject("Reference_Underline.Image");
             Reference_Underline.ImageTransparentColor = Color.Magenta;
             Reference_Underline.Name = "Reference_Underline";
-            Reference_Underline.Size = new Size(28, 26);
+            Reference_Underline.Size = new Size(29, 36);
             // 
             // Reference_Shadow
             // 
@@ -6201,7 +6204,7 @@ namespace Easislides
             Reference_Shadow.Image = (Image)resources.GetObject("Reference_Shadow.Image");
             Reference_Shadow.ImageTransparentColor = Color.Magenta;
             Reference_Shadow.Name = "Reference_Shadow";
-            Reference_Shadow.Size = new Size(28, 26);
+            Reference_Shadow.Size = new Size(29, 36);
             // 
             // Reference_Outline
             // 
@@ -6210,25 +6213,25 @@ namespace Easislides
             Reference_Outline.Image = (Image)resources.GetObject("Reference_Outline.Image");
             Reference_Outline.ImageTransparentColor = Color.Magenta;
             Reference_Outline.Name = "Reference_Outline";
-            Reference_Outline.Size = new Size(28, 26);
+            Reference_Outline.Size = new Size(29, 36);
             // 
             // panel22
             // 
             panel22.Controls.Add(label38);
             panel22.Controls.Add(toolStrip5);
-            panel22.Location = new Point(12, 227);
-            panel22.Margin = new Padding(4, 3, 4, 3);
+            panel22.Location = new Point(14, 303);
+            panel22.Margin = new Padding(5, 4, 5, 4);
             panel22.Name = "panel22";
-            panel22.Size = new Size(273, 25);
+            panel22.Size = new Size(312, 33);
             panel22.TabIndex = 2;
             // 
             // label38
             // 
             label38.AutoSize = true;
-            label38.Location = new Point(4, 5);
-            label38.Margin = new Padding(4, 0, 4, 0);
+            label38.Location = new Point(5, 7);
+            label38.Margin = new Padding(5, 0, 5, 0);
             label38.Name = "label38";
-            label38.Size = new Size(69, 15);
+            label38.Size = new Size(85, 20);
             label38.TabIndex = 0;
             label38.Text = "Font Name:";
             // 
@@ -6241,11 +6244,11 @@ namespace Easislides
             toolStrip5.ImageScalingSize = new Size(24, 24);
             toolStrip5.Items.AddRange(new ToolStripItem[] { ReferenceComboFont });
             toolStrip5.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
-            toolStrip5.Location = new Point(93, -1);
+            toolStrip5.Location = new Point(106, -1);
             toolStrip5.Name = "toolStrip5";
             toolStrip5.Padding = new Padding(0, 0, 2, 0);
             toolStrip5.RenderMode = ToolStripRenderMode.System;
-            toolStrip5.Size = new Size(177, 29);
+            toolStrip5.Size = new Size(202, 39);
             toolStrip5.TabIndex = 5;
             // 
             // ReferenceComboFont
@@ -6254,36 +6257,36 @@ namespace Easislides
             ReferenceComboFont.DropDownStyle = ComboBoxStyle.DropDownList;
             ReferenceComboFont.MaxDropDownItems = 12;
             ReferenceComboFont.Name = "ReferenceComboFont";
-            ReferenceComboFont.Size = new Size(174, 23);
+            ReferenceComboFont.Size = new Size(198, 28);
             // 
             // panel33
             // 
             panel33.Controls.Add(ReferenceSizeUpDown);
             panel33.Controls.Add(label40);
-            panel33.Location = new Point(12, 283);
-            panel33.Margin = new Padding(4, 3, 4, 3);
+            panel33.Location = new Point(14, 377);
+            panel33.Margin = new Padding(5, 4, 5, 4);
             panel33.Name = "panel33";
-            panel33.Size = new Size(273, 29);
+            panel33.Size = new Size(312, 39);
             panel33.TabIndex = 4;
             // 
             // ReferenceSizeUpDown
             // 
-            ReferenceSizeUpDown.Location = new Point(206, 3);
-            ReferenceSizeUpDown.Margin = new Padding(4, 3, 4, 3);
+            ReferenceSizeUpDown.Location = new Point(235, 4);
+            ReferenceSizeUpDown.Margin = new Padding(5, 4, 5, 4);
             ReferenceSizeUpDown.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
             ReferenceSizeUpDown.Minimum = new decimal(new int[] { 15, 0, 0, 0 });
             ReferenceSizeUpDown.Name = "ReferenceSizeUpDown";
-            ReferenceSizeUpDown.Size = new Size(63, 23);
+            ReferenceSizeUpDown.Size = new Size(72, 27);
             ReferenceSizeUpDown.TabIndex = 17;
             ReferenceSizeUpDown.Value = new decimal(new int[] { 20, 0, 0, 0 });
             // 
             // label40
             // 
             label40.AutoSize = true;
-            label40.Location = new Point(4, 6);
-            label40.Margin = new Padding(4, 0, 4, 0);
+            label40.Location = new Point(5, 8);
+            label40.Margin = new Padding(5, 0, 5, 0);
             label40.Name = "label40";
-            label40.Size = new Size(82, 15);
+            label40.Size = new Size(104, 20);
             label40.TabIndex = 0;
             label40.Text = "Font Size Max:";
             // 
@@ -6291,28 +6294,28 @@ namespace Easislides
             // 
             panel36.Controls.Add(ReferenceAlertDurationUpDown);
             panel36.Controls.Add(label41);
-            panel36.Location = new Point(12, 255);
-            panel36.Margin = new Padding(4, 3, 4, 3);
+            panel36.Location = new Point(14, 340);
+            panel36.Margin = new Padding(5, 4, 5, 4);
             panel36.Name = "panel36";
-            panel36.Size = new Size(273, 29);
+            panel36.Size = new Size(312, 39);
             panel36.TabIndex = 3;
             // 
             // ReferenceAlertDurationUpDown
             // 
-            ReferenceAlertDurationUpDown.Location = new Point(206, 3);
-            ReferenceAlertDurationUpDown.Margin = new Padding(4, 3, 4, 3);
+            ReferenceAlertDurationUpDown.Location = new Point(235, 4);
+            ReferenceAlertDurationUpDown.Margin = new Padding(5, 4, 5, 4);
             ReferenceAlertDurationUpDown.Maximum = new decimal(new int[] { 60, 0, 0, 0 });
             ReferenceAlertDurationUpDown.Name = "ReferenceAlertDurationUpDown";
-            ReferenceAlertDurationUpDown.Size = new Size(63, 23);
+            ReferenceAlertDurationUpDown.Size = new Size(72, 27);
             ReferenceAlertDurationUpDown.TabIndex = 17;
             // 
             // label41
             // 
             label41.AutoSize = true;
-            label41.Location = new Point(4, 6);
-            label41.Margin = new Padding(4, 0, 4, 0);
+            label41.Location = new Point(5, 8);
+            label41.Margin = new Padding(5, 0, 5, 0);
             label41.Name = "label41";
-            label41.Size = new Size(89, 15);
+            label41.Size = new Size(111, 20);
             label41.TabIndex = 0;
             label41.Text = "Duration (secs):";
             // 
@@ -6325,42 +6328,42 @@ namespace Easislides
             groupBox16.Controls.Add(panel25);
             groupBox16.Controls.Add(panel26);
             groupBox16.Controls.Add(panel27);
-            groupBox16.Location = new Point(9, 188);
-            groupBox16.Margin = new Padding(4, 3, 4, 3);
+            groupBox16.Location = new Point(10, 251);
+            groupBox16.Margin = new Padding(5, 4, 5, 4);
             groupBox16.Name = "groupBox16";
-            groupBox16.Padding = new Padding(4, 3, 4, 3);
-            groupBox16.Size = new Size(300, 196);
+            groupBox16.Padding = new Padding(5, 4, 5, 4);
+            groupBox16.Size = new Size(343, 261);
             groupBox16.TabIndex = 1;
             groupBox16.TabStop = false;
             groupBox16.Text = "Parental Alert";
             // 
             // ParentalAlert
             // 
-            ParentalAlert.Location = new Point(112, 170);
-            ParentalAlert.Margin = new Padding(4, 3, 4, 3);
+            ParentalAlert.Location = new Point(128, 227);
+            ParentalAlert.Margin = new Padding(5, 4, 5, 4);
             ParentalAlert.MaxLength = 50;
             ParentalAlert.Name = "ParentalAlert";
-            ParentalAlert.Size = new Size(171, 23);
+            ParentalAlert.Size = new Size(195, 27);
             ParentalAlert.TabIndex = 6;
             // 
             // panel23
             // 
             panel23.Controls.Add(btnParentalChangeBackColour);
             panel23.Controls.Add(btnParentalChangeTextColour);
-            panel23.Location = new Point(13, 137);
-            panel23.Margin = new Padding(4, 3, 4, 3);
+            panel23.Location = new Point(15, 183);
+            panel23.Margin = new Padding(5, 4, 5, 4);
             panel23.Name = "panel23";
-            panel23.Size = new Size(273, 29);
+            panel23.Size = new Size(312, 39);
             panel23.TabIndex = 4;
             // 
             // btnParentalChangeBackColour
             // 
             btnParentalChangeBackColour.BackColor = Color.LightGray;
             btnParentalChangeBackColour.FlatStyle = FlatStyle.Flat;
-            btnParentalChangeBackColour.Location = new Point(138, 0);
-            btnParentalChangeBackColour.Margin = new Padding(4, 3, 4, 3);
+            btnParentalChangeBackColour.Location = new Point(158, 0);
+            btnParentalChangeBackColour.Margin = new Padding(5, 4, 5, 4);
             btnParentalChangeBackColour.Name = "btnParentalChangeBackColour";
-            btnParentalChangeBackColour.Size = new Size(132, 29);
+            btnParentalChangeBackColour.Size = new Size(151, 39);
             btnParentalChangeBackColour.TabIndex = 1;
             btnParentalChangeBackColour.Text = "Back Colour";
             btnParentalChangeBackColour.UseVisualStyleBackColor = false;
@@ -6370,10 +6373,10 @@ namespace Easislides
             // 
             btnParentalChangeTextColour.BackColor = Color.LightGray;
             btnParentalChangeTextColour.FlatStyle = FlatStyle.Flat;
-            btnParentalChangeTextColour.Location = new Point(5, 0);
-            btnParentalChangeTextColour.Margin = new Padding(4, 3, 4, 3);
+            btnParentalChangeTextColour.Location = new Point(6, 0);
+            btnParentalChangeTextColour.Margin = new Padding(5, 4, 5, 4);
             btnParentalChangeTextColour.Name = "btnParentalChangeTextColour";
-            btnParentalChangeTextColour.Size = new Size(133, 29);
+            btnParentalChangeTextColour.Size = new Size(152, 39);
             btnParentalChangeTextColour.TabIndex = 0;
             btnParentalChangeTextColour.Text = "Text Colour";
             btnParentalChangeTextColour.UseVisualStyleBackColor = false;
@@ -6382,10 +6385,10 @@ namespace Easislides
             // label30
             // 
             label30.AutoSize = true;
-            label30.Location = new Point(18, 172);
-            label30.Margin = new Padding(4, 0, 4, 0);
+            label30.Location = new Point(21, 229);
+            label30.Margin = new Padding(5, 0, 5, 0);
             label30.Name = "label30";
-            label30.Size = new Size(88, 15);
+            label30.Size = new Size(111, 20);
             label30.TabIndex = 5;
             label30.Text = "Optional Prefix:";
             label30.TextAlign = ContentAlignment.BottomLeft;
@@ -6393,10 +6396,10 @@ namespace Easislides
             // panel24
             // 
             panel24.Controls.Add(ToolBarParentalFormat);
-            panel24.Location = new Point(13, 25);
-            panel24.Margin = new Padding(4, 3, 4, 3);
+            panel24.Location = new Point(15, 33);
+            panel24.Margin = new Padding(5, 4, 5, 4);
             panel24.Name = "panel24";
-            panel24.Size = new Size(286, 25);
+            panel24.Size = new Size(327, 33);
             panel24.TabIndex = 21;
             // 
             // ToolBarParentalFormat
@@ -6412,7 +6415,7 @@ namespace Easislides
             ToolBarParentalFormat.Name = "ToolBarParentalFormat";
             ToolBarParentalFormat.Padding = new Padding(0, 0, 2, 0);
             ToolBarParentalFormat.RenderMode = ToolStripRenderMode.System;
-            ToolBarParentalFormat.Size = new Size(286, 29);
+            ToolBarParentalFormat.Size = new Size(327, 39);
             ToolBarParentalFormat.TabIndex = 0;
             // 
             // Parental_Scroll
@@ -6422,7 +6425,7 @@ namespace Easislides
             Parental_Scroll.Image = (Image)resources.GetObject("Parental_Scroll.Image");
             Parental_Scroll.ImageTransparentColor = Color.Magenta;
             Parental_Scroll.Name = "Parental_Scroll";
-            Parental_Scroll.Size = new Size(28, 26);
+            Parental_Scroll.Size = new Size(29, 36);
             Parental_Scroll.ToolTipText = "Scroll";
             // 
             // Parental_Flash
@@ -6432,7 +6435,7 @@ namespace Easislides
             Parental_Flash.Image = (Image)resources.GetObject("Parental_Flash.Image");
             Parental_Flash.ImageTransparentColor = Color.Magenta;
             Parental_Flash.Name = "Parental_Flash";
-            Parental_Flash.Size = new Size(28, 26);
+            Parental_Flash.Size = new Size(29, 36);
             Parental_Flash.ToolTipText = "Flash";
             // 
             // Parental_Transparent
@@ -6442,7 +6445,7 @@ namespace Easislides
             Parental_Transparent.Image = (Image)resources.GetObject("Parental_Transparent.Image");
             Parental_Transparent.ImageTransparentColor = Color.Magenta;
             Parental_Transparent.Name = "Parental_Transparent";
-            Parental_Transparent.Size = new Size(28, 26);
+            Parental_Transparent.Size = new Size(29, 36);
             Parental_Transparent.ToolTipText = "Transparent";
             // 
             // Parental_Align
@@ -6452,7 +6455,7 @@ namespace Easislides
             Parental_Align.Image = (Image)resources.GetObject("Parental_Align.Image");
             Parental_Align.ImageTransparentColor = Color.Magenta;
             Parental_Align.Name = "Parental_Align";
-            Parental_Align.Size = new Size(37, 26);
+            Parental_Align.Size = new Size(38, 36);
             Parental_Align.Tag = "2";
             Parental_Align.DropDownItemClicked += Parental_Align_DropDownItemClicked;
             // 
@@ -6460,7 +6463,7 @@ namespace Easislides
             // 
             Parental_AlignLeft.Image = (Image)resources.GetObject("Parental_AlignLeft.Image");
             Parental_AlignLeft.Name = "Parental_AlignLeft";
-            Parental_AlignLeft.Size = new Size(140, 22);
+            Parental_AlignLeft.Size = new Size(174, 26);
             Parental_AlignLeft.Tag = "1";
             Parental_AlignLeft.Text = "Align Left";
             // 
@@ -6468,7 +6471,7 @@ namespace Easislides
             // 
             Parental_AlignCentre.Image = (Image)resources.GetObject("Parental_AlignCentre.Image");
             Parental_AlignCentre.Name = "Parental_AlignCentre";
-            Parental_AlignCentre.Size = new Size(140, 22);
+            Parental_AlignCentre.Size = new Size(174, 26);
             Parental_AlignCentre.Tag = "2";
             Parental_AlignCentre.Text = "Align Centre";
             // 
@@ -6476,7 +6479,7 @@ namespace Easislides
             // 
             Parental_AlignRight.Image = (Image)resources.GetObject("Parental_AlignRight.Image");
             Parental_AlignRight.Name = "Parental_AlignRight";
-            Parental_AlignRight.Size = new Size(140, 22);
+            Parental_AlignRight.Size = new Size(174, 26);
             Parental_AlignRight.Tag = "3";
             Parental_AlignRight.Text = "Align Right";
             // 
@@ -6487,7 +6490,7 @@ namespace Easislides
             Parental_VAlign.Image = (Image)resources.GetObject("Parental_VAlign.Image");
             Parental_VAlign.ImageTransparentColor = Color.Magenta;
             Parental_VAlign.Name = "Parental_VAlign";
-            Parental_VAlign.Size = new Size(37, 26);
+            Parental_VAlign.Size = new Size(38, 36);
             Parental_VAlign.Tag = "2";
             Parental_VAlign.Text = "Align Bottom";
             Parental_VAlign.ToolTipText = "Alert At Bottom of Screen";
@@ -6497,7 +6500,7 @@ namespace Easislides
             // 
             Parental_VAlignTop.Image = (Image)resources.GetObject("Parental_VAlignTop.Image");
             Parental_VAlignTop.Name = "Parental_VAlignTop";
-            Parental_VAlignTop.Size = new Size(145, 22);
+            Parental_VAlignTop.Size = new Size(181, 26);
             Parental_VAlignTop.Tag = "0";
             Parental_VAlignTop.Text = "Align Top";
             // 
@@ -6505,7 +6508,7 @@ namespace Easislides
             // 
             Parental_VAlignBottom.Image = (Image)resources.GetObject("Parental_VAlignBottom.Image");
             Parental_VAlignBottom.Name = "Parental_VAlignBottom";
-            Parental_VAlignBottom.Size = new Size(145, 22);
+            Parental_VAlignBottom.Size = new Size(181, 26);
             Parental_VAlignBottom.Tag = "2";
             Parental_VAlignBottom.Text = "Align Bottom";
             // 
@@ -6516,7 +6519,7 @@ namespace Easislides
             Parental_Bold.Image = (Image)resources.GetObject("Parental_Bold.Image");
             Parental_Bold.ImageTransparentColor = Color.Magenta;
             Parental_Bold.Name = "Parental_Bold";
-            Parental_Bold.Size = new Size(28, 26);
+            Parental_Bold.Size = new Size(29, 36);
             // 
             // Parental_Italics
             // 
@@ -6525,7 +6528,7 @@ namespace Easislides
             Parental_Italics.Image = (Image)resources.GetObject("Parental_Italics.Image");
             Parental_Italics.ImageTransparentColor = Color.Magenta;
             Parental_Italics.Name = "Parental_Italics";
-            Parental_Italics.Size = new Size(28, 26);
+            Parental_Italics.Size = new Size(29, 36);
             // 
             // Parental_Underline
             // 
@@ -6534,7 +6537,7 @@ namespace Easislides
             Parental_Underline.Image = (Image)resources.GetObject("Parental_Underline.Image");
             Parental_Underline.ImageTransparentColor = Color.Magenta;
             Parental_Underline.Name = "Parental_Underline";
-            Parental_Underline.Size = new Size(28, 26);
+            Parental_Underline.Size = new Size(29, 36);
             // 
             // Parental_Shadow
             // 
@@ -6543,7 +6546,7 @@ namespace Easislides
             Parental_Shadow.Image = (Image)resources.GetObject("Parental_Shadow.Image");
             Parental_Shadow.ImageTransparentColor = Color.Magenta;
             Parental_Shadow.Name = "Parental_Shadow";
-            Parental_Shadow.Size = new Size(28, 26);
+            Parental_Shadow.Size = new Size(29, 36);
             // 
             // Parental_Outline
             // 
@@ -6552,25 +6555,25 @@ namespace Easislides
             Parental_Outline.Image = (Image)resources.GetObject("Parental_Outline.Image");
             Parental_Outline.ImageTransparentColor = Color.Magenta;
             Parental_Outline.Name = "Parental_Outline";
-            Parental_Outline.Size = new Size(28, 26);
+            Parental_Outline.Size = new Size(29, 36);
             // 
             // panel25
             // 
             panel25.Controls.Add(label27);
             panel25.Controls.Add(toolStrip14);
-            panel25.Location = new Point(13, 53);
-            panel25.Margin = new Padding(4, 3, 4, 3);
+            panel25.Location = new Point(15, 71);
+            panel25.Margin = new Padding(5, 4, 5, 4);
             panel25.Name = "panel25";
-            panel25.Size = new Size(273, 25);
+            panel25.Size = new Size(312, 33);
             panel25.TabIndex = 1;
             // 
             // label27
             // 
             label27.AutoSize = true;
-            label27.Location = new Point(4, 5);
-            label27.Margin = new Padding(4, 0, 4, 0);
+            label27.Location = new Point(5, 7);
+            label27.Margin = new Padding(5, 0, 5, 0);
             label27.Name = "label27";
-            label27.Size = new Size(69, 15);
+            label27.Size = new Size(85, 20);
             label27.TabIndex = 0;
             label27.Text = "Font Name:";
             // 
@@ -6583,11 +6586,11 @@ namespace Easislides
             toolStrip14.ImageScalingSize = new Size(24, 24);
             toolStrip14.Items.AddRange(new ToolStripItem[] { ParentalComboFont });
             toolStrip14.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
-            toolStrip14.Location = new Point(93, -1);
+            toolStrip14.Location = new Point(106, -1);
             toolStrip14.Name = "toolStrip14";
             toolStrip14.Padding = new Padding(0, 0, 2, 0);
             toolStrip14.RenderMode = ToolStripRenderMode.System;
-            toolStrip14.Size = new Size(177, 29);
+            toolStrip14.Size = new Size(202, 39);
             toolStrip14.TabIndex = 5;
             // 
             // ParentalComboFont
@@ -6596,36 +6599,36 @@ namespace Easislides
             ParentalComboFont.DropDownStyle = ComboBoxStyle.DropDownList;
             ParentalComboFont.MaxDropDownItems = 12;
             ParentalComboFont.Name = "ParentalComboFont";
-            ParentalComboFont.Size = new Size(174, 23);
+            ParentalComboFont.Size = new Size(198, 28);
             // 
             // panel26
             // 
             panel26.Controls.Add(ParentalSizeUpDown);
             panel26.Controls.Add(label28);
-            panel26.Location = new Point(13, 108);
-            panel26.Margin = new Padding(4, 3, 4, 3);
+            panel26.Location = new Point(15, 144);
+            panel26.Margin = new Padding(5, 4, 5, 4);
             panel26.Name = "panel26";
-            panel26.Size = new Size(273, 29);
+            panel26.Size = new Size(312, 39);
             panel26.TabIndex = 3;
             // 
             // ParentalSizeUpDown
             // 
-            ParentalSizeUpDown.Location = new Point(206, 3);
-            ParentalSizeUpDown.Margin = new Padding(4, 3, 4, 3);
+            ParentalSizeUpDown.Location = new Point(235, 4);
+            ParentalSizeUpDown.Margin = new Padding(5, 4, 5, 4);
             ParentalSizeUpDown.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
             ParentalSizeUpDown.Minimum = new decimal(new int[] { 20, 0, 0, 0 });
             ParentalSizeUpDown.Name = "ParentalSizeUpDown";
-            ParentalSizeUpDown.Size = new Size(63, 23);
+            ParentalSizeUpDown.Size = new Size(72, 27);
             ParentalSizeUpDown.TabIndex = 17;
             ParentalSizeUpDown.Value = new decimal(new int[] { 20, 0, 0, 0 });
             // 
             // label28
             // 
             label28.AutoSize = true;
-            label28.Location = new Point(4, 6);
-            label28.Margin = new Padding(4, 0, 4, 0);
+            label28.Location = new Point(5, 8);
+            label28.Margin = new Padding(5, 0, 5, 0);
             label28.Name = "label28";
-            label28.Size = new Size(82, 15);
+            label28.Size = new Size(104, 20);
             label28.TabIndex = 0;
             label28.Text = "Font Size Max:";
             // 
@@ -6633,28 +6636,28 @@ namespace Easislides
             // 
             panel27.Controls.Add(ParentalAlertUpDown);
             panel27.Controls.Add(label29);
-            panel27.Location = new Point(13, 81);
-            panel27.Margin = new Padding(4, 3, 4, 3);
+            panel27.Location = new Point(15, 108);
+            panel27.Margin = new Padding(5, 4, 5, 4);
             panel27.Name = "panel27";
-            panel27.Size = new Size(273, 29);
+            panel27.Size = new Size(312, 39);
             panel27.TabIndex = 2;
             // 
             // ParentalAlertUpDown
             // 
-            ParentalAlertUpDown.Location = new Point(206, 3);
-            ParentalAlertUpDown.Margin = new Padding(4, 3, 4, 3);
+            ParentalAlertUpDown.Location = new Point(235, 4);
+            ParentalAlertUpDown.Margin = new Padding(5, 4, 5, 4);
             ParentalAlertUpDown.Maximum = new decimal(new int[] { 60, 0, 0, 0 });
             ParentalAlertUpDown.Name = "ParentalAlertUpDown";
-            ParentalAlertUpDown.Size = new Size(63, 23);
+            ParentalAlertUpDown.Size = new Size(72, 27);
             ParentalAlertUpDown.TabIndex = 17;
             // 
             // label29
             // 
             label29.AutoSize = true;
-            label29.Location = new Point(4, 6);
-            label29.Margin = new Padding(4, 0, 4, 0);
+            label29.Location = new Point(5, 8);
+            label29.Margin = new Padding(5, 0, 5, 0);
             label29.Name = "label29";
-            label29.Size = new Size(89, 15);
+            label29.Size = new Size(111, 20);
             label29.TabIndex = 0;
             label29.Text = "Duration (secs):";
             // 
@@ -6665,11 +6668,11 @@ namespace Easislides
             groupBox15.Controls.Add(panel19);
             groupBox15.Controls.Add(panel13);
             groupBox15.Controls.Add(panel11);
-            groupBox15.Location = new Point(9, 12);
-            groupBox15.Margin = new Padding(4, 3, 4, 3);
+            groupBox15.Location = new Point(10, 16);
+            groupBox15.Margin = new Padding(5, 4, 5, 4);
             groupBox15.Name = "groupBox15";
-            groupBox15.Padding = new Padding(4, 3, 4, 3);
-            groupBox15.Size = new Size(300, 171);
+            groupBox15.Padding = new Padding(5, 4, 5, 4);
+            groupBox15.Size = new Size(343, 228);
             groupBox15.TabIndex = 0;
             groupBox15.TabStop = false;
             groupBox15.Text = "Message Alert";
@@ -6678,20 +6681,20 @@ namespace Easislides
             // 
             panel20.Controls.Add(btnMessageChangeBackColour);
             panel20.Controls.Add(btnMessageChangeTextColour);
-            panel20.Location = new Point(13, 136);
-            panel20.Margin = new Padding(4, 3, 4, 3);
+            panel20.Location = new Point(15, 181);
+            panel20.Margin = new Padding(5, 4, 5, 4);
             panel20.Name = "panel20";
-            panel20.Size = new Size(273, 29);
+            panel20.Size = new Size(312, 39);
             panel20.TabIndex = 4;
             // 
             // btnMessageChangeBackColour
             // 
             btnMessageChangeBackColour.BackColor = Color.LightGray;
             btnMessageChangeBackColour.FlatStyle = FlatStyle.Flat;
-            btnMessageChangeBackColour.Location = new Point(138, 0);
-            btnMessageChangeBackColour.Margin = new Padding(4, 3, 4, 3);
+            btnMessageChangeBackColour.Location = new Point(158, 0);
+            btnMessageChangeBackColour.Margin = new Padding(5, 4, 5, 4);
             btnMessageChangeBackColour.Name = "btnMessageChangeBackColour";
-            btnMessageChangeBackColour.Size = new Size(132, 29);
+            btnMessageChangeBackColour.Size = new Size(151, 39);
             btnMessageChangeBackColour.TabIndex = 1;
             btnMessageChangeBackColour.Text = "Back Colour";
             btnMessageChangeBackColour.UseVisualStyleBackColor = false;
@@ -6701,10 +6704,10 @@ namespace Easislides
             // 
             btnMessageChangeTextColour.BackColor = Color.LightGray;
             btnMessageChangeTextColour.FlatStyle = FlatStyle.Flat;
-            btnMessageChangeTextColour.Location = new Point(5, 0);
-            btnMessageChangeTextColour.Margin = new Padding(4, 3, 4, 3);
+            btnMessageChangeTextColour.Location = new Point(6, 0);
+            btnMessageChangeTextColour.Margin = new Padding(5, 4, 5, 4);
             btnMessageChangeTextColour.Name = "btnMessageChangeTextColour";
-            btnMessageChangeTextColour.Size = new Size(133, 29);
+            btnMessageChangeTextColour.Size = new Size(152, 39);
             btnMessageChangeTextColour.TabIndex = 0;
             btnMessageChangeTextColour.Text = "Text Colour";
             btnMessageChangeTextColour.UseVisualStyleBackColor = false;
@@ -6713,10 +6716,10 @@ namespace Easislides
             // panel12
             // 
             panel12.Controls.Add(ToolBarMessageFormat);
-            panel12.Location = new Point(13, 22);
-            panel12.Margin = new Padding(4, 3, 4, 3);
+            panel12.Location = new Point(15, 29);
+            panel12.Margin = new Padding(5, 4, 5, 4);
             panel12.Name = "panel12";
-            panel12.Size = new Size(285, 25);
+            panel12.Size = new Size(326, 33);
             panel12.TabIndex = 0;
             // 
             // ToolBarMessageFormat
@@ -6732,7 +6735,7 @@ namespace Easislides
             ToolBarMessageFormat.Name = "ToolBarMessageFormat";
             ToolBarMessageFormat.Padding = new Padding(0, 0, 2, 0);
             ToolBarMessageFormat.RenderMode = ToolStripRenderMode.System;
-            ToolBarMessageFormat.Size = new Size(286, 29);
+            ToolBarMessageFormat.Size = new Size(327, 39);
             ToolBarMessageFormat.TabIndex = 0;
             // 
             // Message_Scroll
@@ -6742,7 +6745,7 @@ namespace Easislides
             Message_Scroll.Image = (Image)resources.GetObject("Message_Scroll.Image");
             Message_Scroll.ImageTransparentColor = Color.Magenta;
             Message_Scroll.Name = "Message_Scroll";
-            Message_Scroll.Size = new Size(28, 26);
+            Message_Scroll.Size = new Size(29, 36);
             Message_Scroll.ToolTipText = "Scroll";
             // 
             // Message_Flash
@@ -6752,7 +6755,7 @@ namespace Easislides
             Message_Flash.Image = (Image)resources.GetObject("Message_Flash.Image");
             Message_Flash.ImageTransparentColor = Color.Magenta;
             Message_Flash.Name = "Message_Flash";
-            Message_Flash.Size = new Size(28, 26);
+            Message_Flash.Size = new Size(29, 36);
             Message_Flash.ToolTipText = "Flash";
             // 
             // Message_Transparent
@@ -6762,7 +6765,7 @@ namespace Easislides
             Message_Transparent.Image = (Image)resources.GetObject("Message_Transparent.Image");
             Message_Transparent.ImageTransparentColor = Color.Magenta;
             Message_Transparent.Name = "Message_Transparent";
-            Message_Transparent.Size = new Size(28, 26);
+            Message_Transparent.Size = new Size(29, 36);
             Message_Transparent.ToolTipText = "Transparent";
             // 
             // Message_Align
@@ -6772,7 +6775,7 @@ namespace Easislides
             Message_Align.Image = (Image)resources.GetObject("Message_Align.Image");
             Message_Align.ImageTransparentColor = Color.Magenta;
             Message_Align.Name = "Message_Align";
-            Message_Align.Size = new Size(37, 26);
+            Message_Align.Size = new Size(38, 36);
             Message_Align.Tag = "2";
             Message_Align.DropDownItemClicked += Message_Align_DropDownItemClicked;
             // 
@@ -6780,7 +6783,7 @@ namespace Easislides
             // 
             Message_AlignLeft.Image = (Image)resources.GetObject("Message_AlignLeft.Image");
             Message_AlignLeft.Name = "Message_AlignLeft";
-            Message_AlignLeft.Size = new Size(140, 22);
+            Message_AlignLeft.Size = new Size(174, 26);
             Message_AlignLeft.Tag = "1";
             Message_AlignLeft.Text = "Align Left";
             // 
@@ -6788,7 +6791,7 @@ namespace Easislides
             // 
             Message_AlignCentre.Image = (Image)resources.GetObject("Message_AlignCentre.Image");
             Message_AlignCentre.Name = "Message_AlignCentre";
-            Message_AlignCentre.Size = new Size(140, 22);
+            Message_AlignCentre.Size = new Size(174, 26);
             Message_AlignCentre.Tag = "2";
             Message_AlignCentre.Text = "Align Centre";
             // 
@@ -6796,7 +6799,7 @@ namespace Easislides
             // 
             Message_AlignRight.Image = (Image)resources.GetObject("Message_AlignRight.Image");
             Message_AlignRight.Name = "Message_AlignRight";
-            Message_AlignRight.Size = new Size(140, 22);
+            Message_AlignRight.Size = new Size(174, 26);
             Message_AlignRight.Tag = "3";
             Message_AlignRight.Text = "Align Right";
             // 
@@ -6807,7 +6810,7 @@ namespace Easislides
             Message_VAlign.Image = (Image)resources.GetObject("Message_VAlign.Image");
             Message_VAlign.ImageTransparentColor = Color.Magenta;
             Message_VAlign.Name = "Message_VAlign";
-            Message_VAlign.Size = new Size(37, 26);
+            Message_VAlign.Size = new Size(38, 36);
             Message_VAlign.Tag = "2";
             Message_VAlign.Text = "Align Bottom";
             Message_VAlign.DropDownItemClicked += Message_VAlign_DropDownItemClicked;
@@ -6816,7 +6819,7 @@ namespace Easislides
             // 
             Message_VAlignTop.Image = (Image)resources.GetObject("Message_VAlignTop.Image");
             Message_VAlignTop.Name = "Message_VAlignTop";
-            Message_VAlignTop.Size = new Size(145, 22);
+            Message_VAlignTop.Size = new Size(181, 26);
             Message_VAlignTop.Tag = "0";
             Message_VAlignTop.Text = "Align Top";
             // 
@@ -6824,7 +6827,7 @@ namespace Easislides
             // 
             Message_VAlignBottom.Image = (Image)resources.GetObject("Message_VAlignBottom.Image");
             Message_VAlignBottom.Name = "Message_VAlignBottom";
-            Message_VAlignBottom.Size = new Size(145, 22);
+            Message_VAlignBottom.Size = new Size(181, 26);
             Message_VAlignBottom.Tag = "2";
             Message_VAlignBottom.Text = "Align Bottom";
             // 
@@ -6835,7 +6838,7 @@ namespace Easislides
             Message_Bold.Image = (Image)resources.GetObject("Message_Bold.Image");
             Message_Bold.ImageTransparentColor = Color.Magenta;
             Message_Bold.Name = "Message_Bold";
-            Message_Bold.Size = new Size(28, 26);
+            Message_Bold.Size = new Size(29, 36);
             // 
             // Message_Italics
             // 
@@ -6844,7 +6847,7 @@ namespace Easislides
             Message_Italics.Image = (Image)resources.GetObject("Message_Italics.Image");
             Message_Italics.ImageTransparentColor = Color.Magenta;
             Message_Italics.Name = "Message_Italics";
-            Message_Italics.Size = new Size(28, 26);
+            Message_Italics.Size = new Size(29, 36);
             // 
             // Message_Underline
             // 
@@ -6853,7 +6856,7 @@ namespace Easislides
             Message_Underline.Image = (Image)resources.GetObject("Message_Underline.Image");
             Message_Underline.ImageTransparentColor = Color.Magenta;
             Message_Underline.Name = "Message_Underline";
-            Message_Underline.Size = new Size(28, 26);
+            Message_Underline.Size = new Size(29, 36);
             // 
             // Message_Shadow
             // 
@@ -6862,7 +6865,7 @@ namespace Easislides
             Message_Shadow.Image = (Image)resources.GetObject("Message_Shadow.Image");
             Message_Shadow.ImageTransparentColor = Color.Magenta;
             Message_Shadow.Name = "Message_Shadow";
-            Message_Shadow.Size = new Size(28, 26);
+            Message_Shadow.Size = new Size(29, 36);
             // 
             // Message_Outline
             // 
@@ -6871,25 +6874,25 @@ namespace Easislides
             Message_Outline.Image = (Image)resources.GetObject("Message_Outline.Image");
             Message_Outline.ImageTransparentColor = Color.Magenta;
             Message_Outline.Name = "Message_Outline";
-            Message_Outline.Size = new Size(28, 26);
+            Message_Outline.Size = new Size(29, 36);
             // 
             // panel19
             // 
             panel19.Controls.Add(label21);
             panel19.Controls.Add(toolStrip11);
-            panel19.Location = new Point(13, 52);
-            panel19.Margin = new Padding(4, 3, 4, 3);
+            panel19.Location = new Point(15, 69);
+            panel19.Margin = new Padding(5, 4, 5, 4);
             panel19.Name = "panel19";
-            panel19.Size = new Size(273, 25);
+            panel19.Size = new Size(312, 33);
             panel19.TabIndex = 1;
             // 
             // label21
             // 
             label21.AutoSize = true;
-            label21.Location = new Point(4, 5);
-            label21.Margin = new Padding(4, 0, 4, 0);
+            label21.Location = new Point(5, 7);
+            label21.Margin = new Padding(5, 0, 5, 0);
             label21.Name = "label21";
-            label21.Size = new Size(69, 15);
+            label21.Size = new Size(85, 20);
             label21.TabIndex = 0;
             label21.Text = "Font Name:";
             // 
@@ -6902,11 +6905,11 @@ namespace Easislides
             toolStrip11.ImageScalingSize = new Size(24, 24);
             toolStrip11.Items.AddRange(new ToolStripItem[] { MessageComboFont });
             toolStrip11.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
-            toolStrip11.Location = new Point(93, -1);
+            toolStrip11.Location = new Point(106, -1);
             toolStrip11.Name = "toolStrip11";
             toolStrip11.Padding = new Padding(0, 0, 2, 0);
             toolStrip11.RenderMode = ToolStripRenderMode.System;
-            toolStrip11.Size = new Size(177, 29);
+            toolStrip11.Size = new Size(202, 39);
             toolStrip11.TabIndex = 5;
             // 
             // MessageComboFont
@@ -6915,36 +6918,36 @@ namespace Easislides
             MessageComboFont.DropDownStyle = ComboBoxStyle.DropDownList;
             MessageComboFont.MaxDropDownItems = 12;
             MessageComboFont.Name = "MessageComboFont";
-            MessageComboFont.Size = new Size(174, 23);
+            MessageComboFont.Size = new Size(198, 28);
             // 
             // panel13
             // 
             panel13.Controls.Add(MessageSizeUpDown);
             panel13.Controls.Add(label22);
-            panel13.Location = new Point(13, 107);
-            panel13.Margin = new Padding(4, 3, 4, 3);
+            panel13.Location = new Point(15, 143);
+            panel13.Margin = new Padding(5, 4, 5, 4);
             panel13.Name = "panel13";
-            panel13.Size = new Size(273, 29);
+            panel13.Size = new Size(312, 39);
             panel13.TabIndex = 3;
             // 
             // MessageSizeUpDown
             // 
-            MessageSizeUpDown.Location = new Point(206, 3);
-            MessageSizeUpDown.Margin = new Padding(4, 3, 4, 3);
+            MessageSizeUpDown.Location = new Point(235, 4);
+            MessageSizeUpDown.Margin = new Padding(5, 4, 5, 4);
             MessageSizeUpDown.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
             MessageSizeUpDown.Minimum = new decimal(new int[] { 20, 0, 0, 0 });
             MessageSizeUpDown.Name = "MessageSizeUpDown";
-            MessageSizeUpDown.Size = new Size(63, 23);
+            MessageSizeUpDown.Size = new Size(72, 27);
             MessageSizeUpDown.TabIndex = 17;
             MessageSizeUpDown.Value = new decimal(new int[] { 20, 0, 0, 0 });
             // 
             // label22
             // 
             label22.AutoSize = true;
-            label22.Location = new Point(4, 6);
-            label22.Margin = new Padding(4, 0, 4, 0);
+            label22.Location = new Point(5, 8);
+            label22.Margin = new Padding(5, 0, 5, 0);
             label22.Name = "label22";
-            label22.Size = new Size(82, 15);
+            label22.Size = new Size(104, 20);
             label22.TabIndex = 0;
             label22.Text = "Font Size Max:";
             // 
@@ -6952,28 +6955,28 @@ namespace Easislides
             // 
             panel11.Controls.Add(MessageAlertDurationUpDown);
             panel11.Controls.Add(label20);
-            panel11.Location = new Point(13, 80);
-            panel11.Margin = new Padding(4, 3, 4, 3);
+            panel11.Location = new Point(15, 107);
+            panel11.Margin = new Padding(5, 4, 5, 4);
             panel11.Name = "panel11";
-            panel11.Size = new Size(273, 29);
+            panel11.Size = new Size(312, 39);
             panel11.TabIndex = 2;
             // 
             // MessageAlertDurationUpDown
             // 
-            MessageAlertDurationUpDown.Location = new Point(206, 3);
-            MessageAlertDurationUpDown.Margin = new Padding(4, 3, 4, 3);
+            MessageAlertDurationUpDown.Location = new Point(235, 4);
+            MessageAlertDurationUpDown.Margin = new Padding(5, 4, 5, 4);
             MessageAlertDurationUpDown.Maximum = new decimal(new int[] { 999, 0, 0, 0 });
             MessageAlertDurationUpDown.Name = "MessageAlertDurationUpDown";
-            MessageAlertDurationUpDown.Size = new Size(63, 23);
+            MessageAlertDurationUpDown.Size = new Size(72, 27);
             MessageAlertDurationUpDown.TabIndex = 17;
             // 
             // label20
             // 
             label20.AutoSize = true;
-            label20.Location = new Point(4, 6);
-            label20.Margin = new Padding(4, 0, 4, 0);
+            label20.Location = new Point(5, 8);
+            label20.Margin = new Padding(5, 0, 5, 0);
             label20.Name = "label20";
-            label20.Size = new Size(89, 15);
+            label20.Size = new Size(111, 20);
             label20.TabIndex = 0;
             label20.Text = "Duration (secs):";
             // 
@@ -6983,11 +6986,11 @@ namespace Easislides
             tabPageFolders.Controls.Add(SelectedFolderGroupBox);
             tabPageFolders.Controls.Add(GroupBoxHeadings);
             tabPageFolders.Controls.Add(GroupBoxFolder);
-            tabPageFolders.Location = new Point(4, 24);
-            tabPageFolders.Margin = new Padding(4, 3, 4, 3);
+            tabPageFolders.Location = new Point(4, 29);
+            tabPageFolders.Margin = new Padding(5, 4, 5, 4);
             tabPageFolders.Name = "tabPageFolders";
-            tabPageFolders.Padding = new Padding(4, 3, 4, 3);
-            tabPageFolders.Size = new Size(628, 400);
+            tabPageFolders.Padding = new Padding(5, 4, 5, 4);
+            tabPageFolders.Size = new Size(719, 538);
             tabPageFolders.TabIndex = 1;
             tabPageFolders.Text = "Folders";
             // 
@@ -6998,11 +7001,11 @@ namespace Easislides
             SelectedFolderGroupBox.Controls.Add(GroupBoxFont1);
             SelectedFolderGroupBox.Controls.Add(GroupBoxFont0);
             SelectedFolderGroupBox.Controls.Add(groupBox10);
-            SelectedFolderGroupBox.Location = new Point(7, 160);
-            SelectedFolderGroupBox.Margin = new Padding(4, 3, 4, 3);
+            SelectedFolderGroupBox.Location = new Point(8, 213);
+            SelectedFolderGroupBox.Margin = new Padding(5, 4, 5, 4);
             SelectedFolderGroupBox.Name = "SelectedFolderGroupBox";
-            SelectedFolderGroupBox.Padding = new Padding(4, 3, 4, 3);
-            SelectedFolderGroupBox.Size = new Size(612, 225);
+            SelectedFolderGroupBox.Padding = new Padding(5, 4, 5, 4);
+            SelectedFolderGroupBox.Size = new Size(699, 300);
             SelectedFolderGroupBox.TabIndex = 2;
             SelectedFolderGroupBox.TabStop = false;
             SelectedFolderGroupBox.Text = "Settings for the English Folder";
@@ -7011,11 +7014,11 @@ namespace Easislides
             // 
             groupBox14.Controls.Add(ShowLineSpacing2MaxUpDown);
             groupBox14.Controls.Add(ShowLineSpacingMaxUpDown);
-            groupBox14.Location = new Point(454, 160);
-            groupBox14.Margin = new Padding(4, 3, 4, 3);
+            groupBox14.Location = new Point(519, 213);
+            groupBox14.Margin = new Padding(5, 4, 5, 4);
             groupBox14.Name = "groupBox14";
-            groupBox14.Padding = new Padding(4, 3, 4, 3);
-            groupBox14.Size = new Size(152, 55);
+            groupBox14.Padding = new Padding(5, 4, 5, 4);
+            groupBox14.Size = new Size(174, 73);
             groupBox14.TabIndex = 4;
             groupBox14.TabStop = false;
             groupBox14.Text = "Reg. 1-2 Line Spacing";
@@ -7024,12 +7027,12 @@ namespace Easislides
             // 
             ShowLineSpacing2MaxUpDown.DecimalPlaces = 2;
             ShowLineSpacing2MaxUpDown.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
-            ShowLineSpacing2MaxUpDown.Location = new Point(83, 22);
-            ShowLineSpacing2MaxUpDown.Margin = new Padding(4, 3, 4, 3);
+            ShowLineSpacing2MaxUpDown.Location = new Point(95, 29);
+            ShowLineSpacing2MaxUpDown.Margin = new Padding(5, 4, 5, 4);
             ShowLineSpacing2MaxUpDown.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
             ShowLineSpacing2MaxUpDown.Minimum = new decimal(new int[] { 5, 0, 0, 65536 });
             ShowLineSpacing2MaxUpDown.Name = "ShowLineSpacing2MaxUpDown";
-            ShowLineSpacing2MaxUpDown.Size = new Size(63, 23);
+            ShowLineSpacing2MaxUpDown.Size = new Size(72, 27);
             ShowLineSpacing2MaxUpDown.TabIndex = 1;
             ShowLineSpacing2MaxUpDown.Value = new decimal(new int[] { 5, 0, 0, 65536 });
             ShowLineSpacing2MaxUpDown.ValueChanged += ShowLineSpacing2MaxUpDown_ValueChanged;
@@ -7038,12 +7041,12 @@ namespace Easislides
             // 
             ShowLineSpacingMaxUpDown.DecimalPlaces = 2;
             ShowLineSpacingMaxUpDown.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
-            ShowLineSpacingMaxUpDown.Location = new Point(10, 22);
-            ShowLineSpacingMaxUpDown.Margin = new Padding(4, 3, 4, 3);
+            ShowLineSpacingMaxUpDown.Location = new Point(11, 29);
+            ShowLineSpacingMaxUpDown.Margin = new Padding(5, 4, 5, 4);
             ShowLineSpacingMaxUpDown.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
             ShowLineSpacingMaxUpDown.Minimum = new decimal(new int[] { 5, 0, 0, 65536 });
             ShowLineSpacingMaxUpDown.Name = "ShowLineSpacingMaxUpDown";
-            ShowLineSpacingMaxUpDown.Size = new Size(63, 23);
+            ShowLineSpacingMaxUpDown.Size = new Size(72, 27);
             ShowLineSpacingMaxUpDown.TabIndex = 0;
             ShowLineSpacingMaxUpDown.Value = new decimal(new int[] { 5, 0, 0, 65536 });
             ShowLineSpacingMaxUpDown.ValueChanged += ShowLineSpacingMaxUpDown_ValueChanged;
@@ -7058,11 +7061,11 @@ namespace Easislides
             groupBox13.Controls.Add(label13);
             groupBox13.Controls.Add(label12);
             groupBox13.Controls.Add(label11);
-            groupBox13.Location = new Point(454, 22);
-            groupBox13.Margin = new Padding(4, 3, 4, 3);
+            groupBox13.Location = new Point(519, 29);
+            groupBox13.Margin = new Padding(5, 4, 5, 4);
             groupBox13.Name = "groupBox13";
-            groupBox13.Padding = new Padding(4, 3, 4, 3);
-            groupBox13.Size = new Size(152, 134);
+            groupBox13.Padding = new Padding(5, 4, 5, 4);
+            groupBox13.Size = new Size(174, 179);
             groupBox13.TabIndex = 3;
             groupBox13.TabStop = false;
             groupBox13.Text = "Headings Text";
@@ -7070,10 +7073,10 @@ namespace Easislides
             // panel18
             // 
             panel18.Controls.Add(toolStrip3);
-            panel18.Location = new Point(59, 102);
-            panel18.Margin = new Padding(4, 3, 4, 3);
+            panel18.Location = new Point(67, 136);
+            panel18.Margin = new Padding(5, 4, 5, 4);
             panel18.Name = "panel18";
-            panel18.Size = new Size(89, 25);
+            panel18.Size = new Size(102, 33);
             panel18.TabIndex = 23;
             // 
             // toolStrip3
@@ -7089,7 +7092,7 @@ namespace Easislides
             toolStrip3.Name = "toolStrip3";
             toolStrip3.Padding = new Padding(0, 0, 2, 0);
             toolStrip3.RenderMode = ToolStripRenderMode.System;
-            toolStrip3.Size = new Size(86, 29);
+            toolStrip3.Size = new Size(98, 39);
             toolStrip3.TabIndex = 5;
             // 
             // tbLyricsHeading3
@@ -7097,16 +7100,16 @@ namespace Easislides
             tbLyricsHeading3.AutoSize = false;
             tbLyricsHeading3.MaxDropDownItems = 12;
             tbLyricsHeading3.Name = "tbLyricsHeading3";
-            tbLyricsHeading3.Size = new Size(81, 23);
+            tbLyricsHeading3.Size = new Size(92, 28);
             tbLyricsHeading3.TextChanged += tbLyricsHeading_TextChanged;
             // 
             // panel16
             // 
             panel16.Controls.Add(toolStrip8);
-            panel16.Location = new Point(59, 75);
-            panel16.Margin = new Padding(4, 3, 4, 3);
+            panel16.Location = new Point(67, 100);
+            panel16.Margin = new Padding(5, 4, 5, 4);
             panel16.Name = "panel16";
-            panel16.Size = new Size(89, 25);
+            panel16.Size = new Size(102, 33);
             panel16.TabIndex = 21;
             // 
             // toolStrip8
@@ -7122,7 +7125,7 @@ namespace Easislides
             toolStrip8.Name = "toolStrip8";
             toolStrip8.Padding = new Padding(0, 0, 2, 0);
             toolStrip8.RenderMode = ToolStripRenderMode.System;
-            toolStrip8.Size = new Size(86, 29);
+            toolStrip8.Size = new Size(98, 39);
             toolStrip8.TabIndex = 5;
             // 
             // tbLyricsHeading2
@@ -7130,16 +7133,16 @@ namespace Easislides
             tbLyricsHeading2.AutoSize = false;
             tbLyricsHeading2.MaxDropDownItems = 12;
             tbLyricsHeading2.Name = "tbLyricsHeading2";
-            tbLyricsHeading2.Size = new Size(81, 23);
+            tbLyricsHeading2.Size = new Size(92, 28);
             tbLyricsHeading2.TextChanged += tbLyricsHeading_TextChanged;
             // 
             // panel15
             // 
             panel15.Controls.Add(toolStrip7);
-            panel15.Location = new Point(59, 48);
-            panel15.Margin = new Padding(4, 3, 4, 3);
+            panel15.Location = new Point(67, 64);
+            panel15.Margin = new Padding(5, 4, 5, 4);
             panel15.Name = "panel15";
-            panel15.Size = new Size(89, 25);
+            panel15.Size = new Size(102, 33);
             panel15.TabIndex = 20;
             // 
             // toolStrip7
@@ -7155,7 +7158,7 @@ namespace Easislides
             toolStrip7.Name = "toolStrip7";
             toolStrip7.Padding = new Padding(0, 0, 2, 0);
             toolStrip7.RenderMode = ToolStripRenderMode.System;
-            toolStrip7.Size = new Size(86, 29);
+            toolStrip7.Size = new Size(98, 39);
             toolStrip7.TabIndex = 5;
             // 
             // tbLyricsHeading1
@@ -7163,26 +7166,26 @@ namespace Easislides
             tbLyricsHeading1.AutoSize = false;
             tbLyricsHeading1.MaxDropDownItems = 12;
             tbLyricsHeading1.Name = "tbLyricsHeading1";
-            tbLyricsHeading1.Size = new Size(81, 23);
+            tbLyricsHeading1.Size = new Size(92, 28);
             tbLyricsHeading1.TextChanged += tbLyricsHeading_TextChanged;
             // 
             // label47
             // 
             label47.AutoSize = true;
-            label47.Location = new Point(7, 54);
-            label47.Margin = new Padding(4, 0, 4, 0);
+            label47.Location = new Point(8, 72);
+            label47.Margin = new Padding(5, 0, 5, 0);
             label47.Name = "label47";
-            label47.Size = new Size(48, 15);
+            label47.Size = new Size(57, 20);
             label47.TabIndex = 1;
             label47.Text = "Chorus:";
             // 
             // panel14
             // 
             panel14.Controls.Add(toolStrip6);
-            panel14.Location = new Point(59, 22);
-            panel14.Margin = new Padding(4, 3, 4, 3);
+            panel14.Location = new Point(67, 29);
+            panel14.Margin = new Padding(5, 4, 5, 4);
             panel14.Name = "panel14";
-            panel14.Size = new Size(89, 25);
+            panel14.Size = new Size(102, 33);
             panel14.TabIndex = 19;
             // 
             // toolStrip6
@@ -7198,7 +7201,7 @@ namespace Easislides
             toolStrip6.Name = "toolStrip6";
             toolStrip6.Padding = new Padding(0, 0, 2, 0);
             toolStrip6.RenderMode = ToolStripRenderMode.System;
-            toolStrip6.Size = new Size(86, 29);
+            toolStrip6.Size = new Size(98, 39);
             toolStrip6.TabIndex = 5;
             // 
             // tbLyricsHeading0
@@ -7206,36 +7209,36 @@ namespace Easislides
             tbLyricsHeading0.AutoSize = false;
             tbLyricsHeading0.MaxDropDownItems = 12;
             tbLyricsHeading0.Name = "tbLyricsHeading0";
-            tbLyricsHeading0.Size = new Size(81, 23);
+            tbLyricsHeading0.Size = new Size(92, 28);
             tbLyricsHeading0.TextChanged += tbLyricsHeading_TextChanged;
             // 
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(7, 106);
-            label13.Margin = new Padding(4, 0, 4, 0);
+            label13.Location = new Point(8, 141);
+            label13.Margin = new Padding(5, 0, 5, 0);
             label13.Name = "label13";
-            label13.Size = new Size(47, 15);
+            label13.Size = new Size(58, 20);
             label13.TabIndex = 3;
             label13.Text = "Ending:";
             // 
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(7, 80);
-            label12.Margin = new Padding(4, 0, 4, 0);
+            label12.Location = new Point(8, 107);
+            label12.Margin = new Padding(5, 0, 5, 0);
             label12.Name = "label12";
-            label12.Size = new Size(44, 15);
+            label12.Size = new Size(56, 20);
             label12.TabIndex = 2;
             label12.Text = "Bridge:";
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(7, 27);
-            label11.Margin = new Padding(4, 0, 4, 0);
+            label11.Location = new Point(8, 36);
+            label11.Margin = new Padding(5, 0, 5, 0);
             label11.Name = "label11";
-            label11.Size = new Size(46, 15);
+            label11.Size = new Size(55, 20);
             label11.TabIndex = 0;
             label11.Text = "PreChr:";
             // 
@@ -7243,11 +7246,11 @@ namespace Easislides
             // 
             GroupBoxFont1.Controls.Add(panel8);
             GroupBoxFont1.Controls.Add(panel9);
-            GroupBoxFont1.Location = new Point(251, 122);
-            GroupBoxFont1.Margin = new Padding(4, 3, 4, 3);
+            GroupBoxFont1.Location = new Point(287, 163);
+            GroupBoxFont1.Margin = new Padding(5, 4, 5, 4);
             GroupBoxFont1.Name = "GroupBoxFont1";
-            GroupBoxFont1.Padding = new Padding(4, 3, 4, 3);
-            GroupBoxFont1.Size = new Size(196, 93);
+            GroupBoxFont1.Padding = new Padding(5, 4, 5, 4);
+            GroupBoxFont1.Size = new Size(224, 124);
             GroupBoxFont1.TabIndex = 2;
             GroupBoxFont1.TabStop = false;
             GroupBoxFont1.Text = "Region 2 Font";
@@ -7255,10 +7258,10 @@ namespace Easislides
             // panel8
             // 
             panel8.Controls.Add(toolStrip4);
-            panel8.Location = new Point(10, 22);
-            panel8.Margin = new Padding(4, 3, 4, 3);
+            panel8.Location = new Point(11, 29);
+            panel8.Margin = new Padding(5, 4, 5, 4);
             panel8.Name = "panel8";
-            panel8.Size = new Size(181, 25);
+            panel8.Size = new Size(207, 33);
             panel8.TabIndex = 15;
             // 
             // toolStrip4
@@ -7274,7 +7277,7 @@ namespace Easislides
             toolStrip4.Name = "toolStrip4";
             toolStrip4.Padding = new Padding(0, 0, 2, 0);
             toolStrip4.RenderMode = ToolStripRenderMode.System;
-            toolStrip4.Size = new Size(177, 29);
+            toolStrip4.Size = new Size(202, 39);
             toolStrip4.TabIndex = 0;
             // 
             // ComboFontName1
@@ -7283,26 +7286,26 @@ namespace Easislides
             ComboFontName1.DropDownStyle = ComboBoxStyle.DropDownList;
             ComboFontName1.MaxDropDownItems = 12;
             ComboFontName1.Name = "ComboFontName1";
-            ComboFontName1.Size = new Size(174, 23);
+            ComboFontName1.Size = new Size(198, 28);
             ComboFontName1.SelectedIndexChanged += ComboFontName1_SelectedIndexChanged;
             // 
             // panel9
             // 
             panel9.Controls.Add(FontSizeUpDown1);
             panel9.Controls.Add(ToolBarFontBtn1);
-            panel9.Location = new Point(10, 54);
-            panel9.Margin = new Padding(4, 3, 4, 3);
+            panel9.Location = new Point(11, 72);
+            panel9.Margin = new Padding(5, 4, 5, 4);
             panel9.Name = "panel9";
-            panel9.Size = new Size(181, 25);
+            panel9.Size = new Size(207, 33);
             panel9.TabIndex = 14;
             // 
             // FontSizeUpDown1
             // 
-            FontSizeUpDown1.Location = new Point(127, 0);
-            FontSizeUpDown1.Margin = new Padding(4, 3, 4, 3);
+            FontSizeUpDown1.Location = new Point(145, 0);
+            FontSizeUpDown1.Margin = new Padding(5, 4, 5, 4);
             FontSizeUpDown1.Minimum = new decimal(new int[] { 6, 0, 0, 0 });
             FontSizeUpDown1.Name = "FontSizeUpDown1";
-            FontSizeUpDown1.Size = new Size(49, 23);
+            FontSizeUpDown1.Size = new Size(56, 27);
             FontSizeUpDown1.TabIndex = 2;
             FontSizeUpDown1.Value = new decimal(new int[] { 6, 0, 0, 0 });
             FontSizeUpDown1.ValueChanged += FontSizeUpDown1_ValueChanged;
@@ -7320,7 +7323,7 @@ namespace Easislides
             ToolBarFontBtn1.Name = "ToolBarFontBtn1";
             ToolBarFontBtn1.Padding = new Padding(0, 0, 2, 0);
             ToolBarFontBtn1.RenderMode = ToolStripRenderMode.System;
-            ToolBarFontBtn1.Size = new Size(124, 29);
+            ToolBarFontBtn1.Size = new Size(142, 39);
             ToolBarFontBtn1.TabIndex = 0;
             // 
             // ToolBarFont_R2Bold
@@ -7330,7 +7333,7 @@ namespace Easislides
             ToolBarFont_R2Bold.Image = (Image)resources.GetObject("ToolBarFont_R2Bold.Image");
             ToolBarFont_R2Bold.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R2Bold.Name = "ToolBarFont_R2Bold";
-            ToolBarFont_R2Bold.Size = new Size(28, 26);
+            ToolBarFont_R2Bold.Size = new Size(29, 36);
             ToolBarFont_R2Bold.Click += ToolBarFont_R2_Click;
             // 
             // ToolBarFont_R2Italics
@@ -7340,14 +7343,14 @@ namespace Easislides
             ToolBarFont_R2Italics.Image = (Image)resources.GetObject("ToolBarFont_R2Italics.Image");
             ToolBarFont_R2Italics.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R2Italics.Name = "ToolBarFont_R2Italics";
-            ToolBarFont_R2Italics.Size = new Size(37, 26);
+            ToolBarFont_R2Italics.Size = new Size(38, 36);
             ToolBarFont_R2Italics.DropDownItemClicked += ToolBarFont_R2Italics_DropDownItemClicked;
             // 
             // ToolBarFont_R2Italics0
             // 
             ToolBarFont_R2Italics0.Image = (Image)resources.GetObject("ToolBarFont_R2Italics0.Image");
             ToolBarFont_R2Italics0.Name = "ToolBarFont_R2Italics0";
-            ToolBarFont_R2Italics0.Size = new Size(173, 22);
+            ToolBarFont_R2Italics0.Size = new Size(213, 26);
             ToolBarFont_R2Italics0.Tag = "0";
             ToolBarFont_R2Italics0.Text = "No Italics";
             // 
@@ -7355,7 +7358,7 @@ namespace Easislides
             // 
             ToolBarFont_R2Italics1.Image = (Image)resources.GetObject("ToolBarFont_R2Italics1.Image");
             ToolBarFont_R2Italics1.Name = "ToolBarFont_R2Italics1";
-            ToolBarFont_R2Italics1.Size = new Size(173, 22);
+            ToolBarFont_R2Italics1.Size = new Size(213, 26);
             ToolBarFont_R2Italics1.Tag = "1";
             ToolBarFont_R2Italics1.Text = "Italics";
             // 
@@ -7363,7 +7366,7 @@ namespace Easislides
             // 
             ToolBarFont_R2Italics2.Image = (Image)resources.GetObject("ToolBarFont_R2Italics2.Image");
             ToolBarFont_R2Italics2.Name = "ToolBarFont_R2Italics2";
-            ToolBarFont_R2Italics2.Size = new Size(173, 22);
+            ToolBarFont_R2Italics2.Size = new Size(213, 26);
             ToolBarFont_R2Italics2.Tag = "2";
             ToolBarFont_R2Italics2.Text = "Chorus Italics Only";
             // 
@@ -7374,7 +7377,7 @@ namespace Easislides
             ToolBarFont_R2Underline.Image = (Image)resources.GetObject("ToolBarFont_R2Underline.Image");
             ToolBarFont_R2Underline.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R2Underline.Name = "ToolBarFont_R2Underline";
-            ToolBarFont_R2Underline.Size = new Size(28, 26);
+            ToolBarFont_R2Underline.Size = new Size(29, 36);
             ToolBarFont_R2Underline.Click += ToolBarFont_R2_Click;
             // 
             // ToolBarFont_R2RTL
@@ -7384,7 +7387,7 @@ namespace Easislides
             ToolBarFont_R2RTL.Image = (Image)resources.GetObject("ToolBarFont_R2RTL.Image");
             ToolBarFont_R2RTL.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R2RTL.Name = "ToolBarFont_R2RTL";
-            ToolBarFont_R2RTL.Size = new Size(28, 26);
+            ToolBarFont_R2RTL.Size = new Size(29, 36);
             ToolBarFont_R2RTL.ToolTipText = "Right-To-Left";
             ToolBarFont_R2RTL.Click += ToolBarFont_R2_Click;
             // 
@@ -7392,11 +7395,11 @@ namespace Easislides
             // 
             GroupBoxFont0.Controls.Add(panelInd5);
             GroupBoxFont0.Controls.Add(panel7);
-            GroupBoxFont0.Location = new Point(251, 22);
-            GroupBoxFont0.Margin = new Padding(4, 3, 4, 3);
+            GroupBoxFont0.Location = new Point(287, 29);
+            GroupBoxFont0.Margin = new Padding(5, 4, 5, 4);
             GroupBoxFont0.Name = "GroupBoxFont0";
-            GroupBoxFont0.Padding = new Padding(4, 3, 4, 3);
-            GroupBoxFont0.Size = new Size(196, 93);
+            GroupBoxFont0.Padding = new Padding(5, 4, 5, 4);
+            GroupBoxFont0.Size = new Size(224, 124);
             GroupBoxFont0.TabIndex = 1;
             GroupBoxFont0.TabStop = false;
             GroupBoxFont0.Text = "Region 1 Font";
@@ -7404,10 +7407,10 @@ namespace Easislides
             // panelInd5
             // 
             panelInd5.Controls.Add(toolStripInd5);
-            panelInd5.Location = new Point(10, 22);
-            panelInd5.Margin = new Padding(4, 3, 4, 3);
+            panelInd5.Location = new Point(11, 29);
+            panelInd5.Margin = new Padding(5, 4, 5, 4);
             panelInd5.Name = "panelInd5";
-            panelInd5.Size = new Size(181, 25);
+            panelInd5.Size = new Size(207, 33);
             panelInd5.TabIndex = 13;
             // 
             // toolStripInd5
@@ -7423,7 +7426,7 @@ namespace Easislides
             toolStripInd5.Name = "toolStripInd5";
             toolStripInd5.Padding = new Padding(0, 0, 2, 0);
             toolStripInd5.RenderMode = ToolStripRenderMode.System;
-            toolStripInd5.Size = new Size(177, 29);
+            toolStripInd5.Size = new Size(202, 39);
             toolStripInd5.TabIndex = 5;
             // 
             // ComboFontName0
@@ -7432,26 +7435,26 @@ namespace Easislides
             ComboFontName0.DropDownStyle = ComboBoxStyle.DropDownList;
             ComboFontName0.MaxDropDownItems = 12;
             ComboFontName0.Name = "ComboFontName0";
-            ComboFontName0.Size = new Size(174, 23);
+            ComboFontName0.Size = new Size(198, 28);
             ComboFontName0.SelectedIndexChanged += ComboFontName0_SelectedIndexChanged;
             // 
             // panel7
             // 
             panel7.Controls.Add(FontSizeUpDown0);
             panel7.Controls.Add(ToolBarFontBtn0);
-            panel7.Location = new Point(10, 54);
-            panel7.Margin = new Padding(4, 3, 4, 3);
+            panel7.Location = new Point(11, 72);
+            panel7.Margin = new Padding(5, 4, 5, 4);
             panel7.Name = "panel7";
-            panel7.Size = new Size(181, 25);
+            panel7.Size = new Size(207, 33);
             panel7.TabIndex = 12;
             // 
             // FontSizeUpDown0
             // 
-            FontSizeUpDown0.Location = new Point(127, 0);
-            FontSizeUpDown0.Margin = new Padding(4, 3, 4, 3);
+            FontSizeUpDown0.Location = new Point(145, 0);
+            FontSizeUpDown0.Margin = new Padding(5, 4, 5, 4);
             FontSizeUpDown0.Minimum = new decimal(new int[] { 6, 0, 0, 0 });
             FontSizeUpDown0.Name = "FontSizeUpDown0";
-            FontSizeUpDown0.Size = new Size(49, 23);
+            FontSizeUpDown0.Size = new Size(56, 27);
             FontSizeUpDown0.TabIndex = 2;
             FontSizeUpDown0.Value = new decimal(new int[] { 6, 0, 0, 0 });
             FontSizeUpDown0.ValueChanged += FontSizeUpDown0_ValueChanged;
@@ -7469,7 +7472,7 @@ namespace Easislides
             ToolBarFontBtn0.Name = "ToolBarFontBtn0";
             ToolBarFontBtn0.Padding = new Padding(0, 0, 2, 0);
             ToolBarFontBtn0.RenderMode = ToolStripRenderMode.System;
-            ToolBarFontBtn0.Size = new Size(124, 29);
+            ToolBarFontBtn0.Size = new Size(142, 39);
             ToolBarFontBtn0.TabIndex = 0;
             // 
             // ToolBarFont_R1Bold
@@ -7479,7 +7482,7 @@ namespace Easislides
             ToolBarFont_R1Bold.Image = (Image)resources.GetObject("ToolBarFont_R1Bold.Image");
             ToolBarFont_R1Bold.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R1Bold.Name = "ToolBarFont_R1Bold";
-            ToolBarFont_R1Bold.Size = new Size(28, 26);
+            ToolBarFont_R1Bold.Size = new Size(29, 36);
             ToolBarFont_R1Bold.Click += ToolBarFont_R1_Click;
             // 
             // ToolBarFont_R1Italics
@@ -7489,7 +7492,7 @@ namespace Easislides
             ToolBarFont_R1Italics.Image = (Image)resources.GetObject("ToolBarFont_R1Italics.Image");
             ToolBarFont_R1Italics.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R1Italics.Name = "ToolBarFont_R1Italics";
-            ToolBarFont_R1Italics.Size = new Size(37, 26);
+            ToolBarFont_R1Italics.Size = new Size(38, 36);
             ToolBarFont_R1Italics.Tag = "0";
             ToolBarFont_R1Italics.DropDownItemClicked += ToolBarFont_R1Italics_DropDownItemClicked;
             // 
@@ -7497,7 +7500,7 @@ namespace Easislides
             // 
             ToolBarFont_R1Italics0.Image = (Image)resources.GetObject("ToolBarFont_R1Italics0.Image");
             ToolBarFont_R1Italics0.Name = "ToolBarFont_R1Italics0";
-            ToolBarFont_R1Italics0.Size = new Size(173, 22);
+            ToolBarFont_R1Italics0.Size = new Size(213, 26);
             ToolBarFont_R1Italics0.Tag = "0";
             ToolBarFont_R1Italics0.Text = "No Italics";
             // 
@@ -7505,7 +7508,7 @@ namespace Easislides
             // 
             ToolBarFont_R1Italics1.Image = (Image)resources.GetObject("ToolBarFont_R1Italics1.Image");
             ToolBarFont_R1Italics1.Name = "ToolBarFont_R1Italics1";
-            ToolBarFont_R1Italics1.Size = new Size(173, 22);
+            ToolBarFont_R1Italics1.Size = new Size(213, 26);
             ToolBarFont_R1Italics1.Tag = "1";
             ToolBarFont_R1Italics1.Text = "Italics";
             // 
@@ -7513,7 +7516,7 @@ namespace Easislides
             // 
             ToolBarFont_R1Italics2.Image = (Image)resources.GetObject("ToolBarFont_R1Italics2.Image");
             ToolBarFont_R1Italics2.Name = "ToolBarFont_R1Italics2";
-            ToolBarFont_R1Italics2.Size = new Size(173, 22);
+            ToolBarFont_R1Italics2.Size = new Size(213, 26);
             ToolBarFont_R1Italics2.Tag = "2";
             ToolBarFont_R1Italics2.Text = "Chorus Italics Only";
             // 
@@ -7524,7 +7527,7 @@ namespace Easislides
             ToolBarFont_R1Underline.Image = (Image)resources.GetObject("ToolBarFont_R1Underline.Image");
             ToolBarFont_R1Underline.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R1Underline.Name = "ToolBarFont_R1Underline";
-            ToolBarFont_R1Underline.Size = new Size(28, 26);
+            ToolBarFont_R1Underline.Size = new Size(29, 36);
             ToolBarFont_R1Underline.Click += ToolBarFont_R1_Click;
             // 
             // ToolBarFont_R1RTL
@@ -7534,7 +7537,7 @@ namespace Easislides
             ToolBarFont_R1RTL.Image = (Image)resources.GetObject("ToolBarFont_R1RTL.Image");
             ToolBarFont_R1RTL.ImageTransparentColor = Color.Magenta;
             ToolBarFont_R1RTL.Name = "ToolBarFont_R1RTL";
-            ToolBarFont_R1RTL.Size = new Size(28, 26);
+            ToolBarFont_R1RTL.Size = new Size(29, 36);
             ToolBarFont_R1RTL.ToolTipText = "Right-To-Left";
             ToolBarFont_R1RTL.Click += ToolBarFont_R1_Click;
             // 
@@ -7551,11 +7554,11 @@ namespace Easislides
             groupBox10.Controls.Add(label16);
             groupBox10.Controls.Add(label18);
             groupBox10.Controls.Add(label19);
-            groupBox10.Location = new Point(7, 22);
-            groupBox10.Margin = new Padding(4, 3, 4, 3);
+            groupBox10.Location = new Point(8, 29);
+            groupBox10.Margin = new Padding(5, 4, 5, 4);
             groupBox10.Name = "groupBox10";
-            groupBox10.Padding = new Padding(4, 3, 4, 3);
-            groupBox10.Size = new Size(237, 194);
+            groupBox10.Padding = new Padding(5, 4, 5, 4);
+            groupBox10.Size = new Size(271, 259);
             groupBox10.TabIndex = 0;
             groupBox10.TabStop = false;
             groupBox10.Text = "Region Positions";
@@ -7564,21 +7567,21 @@ namespace Easislides
             // 
             FontPositionUpDown0.BackColor = Color.SlateBlue;
             FontPositionUpDown0.ForeColor = Color.White;
-            FontPositionUpDown0.Location = new Point(178, 37);
-            FontPositionUpDown0.Margin = new Padding(4, 3, 4, 3);
+            FontPositionUpDown0.Location = new Point(203, 49);
+            FontPositionUpDown0.Margin = new Padding(5, 4, 5, 4);
             FontPositionUpDown0.Maximum = new decimal(new int[] { 99, 0, 0, 0 });
             FontPositionUpDown0.Name = "FontPositionUpDown0";
-            FontPositionUpDown0.Size = new Size(49, 23);
+            FontPositionUpDown0.Size = new Size(56, 27);
             FontPositionUpDown0.TabIndex = 0;
             FontPositionUpDown0.ValueChanged += FontPositionUpDown0_ValueChanged;
             // 
             // label17
             // 
             label17.AutoSize = true;
-            label17.Location = new Point(180, 22);
-            label17.Margin = new Padding(4, 0, 4, 0);
+            label17.Location = new Point(206, 29);
+            label17.Margin = new Padding(5, 0, 5, 0);
             label17.Name = "label17";
-            label17.Size = new Size(13, 15);
+            label17.Size = new Size(17, 20);
             label17.TabIndex = 26;
             label17.Text = "0";
             // 
@@ -7586,11 +7589,11 @@ namespace Easislides
             // 
             RightMarginUpDown.BackColor = Color.Green;
             RightMarginUpDown.ForeColor = Color.White;
-            RightMarginUpDown.Location = new Point(124, 153);
-            RightMarginUpDown.Margin = new Padding(4, 3, 4, 3);
+            RightMarginUpDown.Location = new Point(142, 204);
+            RightMarginUpDown.Margin = new Padding(5, 4, 5, 4);
             RightMarginUpDown.Maximum = new decimal(new int[] { 99, 0, 0, 0 });
             RightMarginUpDown.Name = "RightMarginUpDown";
-            RightMarginUpDown.Size = new Size(49, 23);
+            RightMarginUpDown.Size = new Size(56, 27);
             RightMarginUpDown.TabIndex = 4;
             RightMarginUpDown.ValueChanged += LeftRightMarginUpDown_ValueChanged;
             // 
@@ -7598,11 +7601,11 @@ namespace Easislides
             // 
             LeftMarginUpDown.BackColor = Color.Green;
             LeftMarginUpDown.ForeColor = Color.White;
-            LeftMarginUpDown.Location = new Point(8, 153);
-            LeftMarginUpDown.Margin = new Padding(4, 3, 4, 3);
+            LeftMarginUpDown.Location = new Point(9, 204);
+            LeftMarginUpDown.Margin = new Padding(5, 4, 5, 4);
             LeftMarginUpDown.Maximum = new decimal(new int[] { 99, 0, 0, 0 });
             LeftMarginUpDown.Name = "LeftMarginUpDown";
-            LeftMarginUpDown.Size = new Size(49, 23);
+            LeftMarginUpDown.Size = new Size(56, 27);
             LeftMarginUpDown.TabIndex = 3;
             LeftMarginUpDown.ValueChanged += LeftRightMarginUpDown_ValueChanged;
             // 
@@ -7610,11 +7613,11 @@ namespace Easislides
             // 
             FontPositionUpDownBottom.BackColor = Color.Navy;
             FontPositionUpDownBottom.ForeColor = Color.White;
-            FontPositionUpDownBottom.Location = new Point(178, 111);
-            FontPositionUpDownBottom.Margin = new Padding(4, 3, 4, 3);
+            FontPositionUpDownBottom.Location = new Point(203, 148);
+            FontPositionUpDownBottom.Margin = new Padding(5, 4, 5, 4);
             FontPositionUpDownBottom.Maximum = new decimal(new int[] { 99, 0, 0, 0 });
             FontPositionUpDownBottom.Name = "FontPositionUpDownBottom";
-            FontPositionUpDownBottom.Size = new Size(49, 23);
+            FontPositionUpDownBottom.Size = new Size(56, 27);
             FontPositionUpDownBottom.TabIndex = 21;
             FontPositionUpDownBottom.ValueChanged += FontPositionUpDownBottom_ValueChanged;
             // 
@@ -7622,11 +7625,11 @@ namespace Easislides
             // 
             FontPositionUpDown1.BackColor = Color.DarkViolet;
             FontPositionUpDown1.ForeColor = Color.White;
-            FontPositionUpDown1.Location = new Point(178, 74);
-            FontPositionUpDown1.Margin = new Padding(4, 3, 4, 3);
+            FontPositionUpDown1.Location = new Point(203, 99);
+            FontPositionUpDown1.Margin = new Padding(5, 4, 5, 4);
             FontPositionUpDown1.Maximum = new decimal(new int[] { 99, 0, 0, 0 });
             FontPositionUpDown1.Name = "FontPositionUpDown1";
-            FontPositionUpDown1.Size = new Size(49, 23);
+            FontPositionUpDown1.Size = new Size(56, 27);
             FontPositionUpDown1.TabIndex = 1;
             FontPositionUpDown1.ValueChanged += FontPositionUpDown1_ValueChanged;
             // 
@@ -7644,20 +7647,20 @@ namespace Easislides
             Sample_PanelMain.Controls.Add(panel41);
             Sample_PanelMain.Controls.Add(SamplePanel_Left);
             Sample_PanelMain.Controls.Add(SamplePanel_Right);
-            Sample_PanelMain.Location = new Point(7, 25);
-            Sample_PanelMain.Margin = new Padding(4, 3, 4, 3);
+            Sample_PanelMain.Location = new Point(8, 33);
+            Sample_PanelMain.Margin = new Padding(5, 4, 5, 4);
             Sample_PanelMain.Name = "Sample_PanelMain";
-            Sample_PanelMain.Size = new Size(167, 124);
+            Sample_PanelMain.Size = new Size(190, 164);
             Sample_PanelMain.TabIndex = 14;
             // 
             // panel38
             // 
             panel38.BackColor = Color.FromArgb(255, 128, 0);
             panel38.Dock = DockStyle.Top;
-            panel38.Location = new Point(16, 87);
-            panel38.Margin = new Padding(4, 3, 4, 3);
+            panel38.Location = new Point(19, 116);
+            panel38.Margin = new Padding(5, 4, 5, 4);
             panel38.Name = "panel38";
-            panel38.Size = new Size(131, 3);
+            panel38.Size = new Size(148, 4);
             panel38.TabIndex = 27;
             // 
             // SamplePanel_Region2
@@ -7665,10 +7668,10 @@ namespace Easislides
             SamplePanel_Region2.BackColor = Color.MediumOrchid;
             SamplePanel_Region2.Controls.Add(labelPreviewCentreBottom);
             SamplePanel_Region2.Dock = DockStyle.Top;
-            SamplePanel_Region2.Location = new Point(16, 54);
-            SamplePanel_Region2.Margin = new Padding(4, 3, 4, 3);
+            SamplePanel_Region2.Location = new Point(19, 72);
+            SamplePanel_Region2.Margin = new Padding(5, 4, 5, 4);
             SamplePanel_Region2.Name = "SamplePanel_Region2";
-            SamplePanel_Region2.Size = new Size(131, 33);
+            SamplePanel_Region2.Size = new Size(148, 44);
             SamplePanel_Region2.TabIndex = 33;
             // 
             // labelPreviewCentreBottom
@@ -7677,9 +7680,9 @@ namespace Easislides
             labelPreviewCentreBottom.Dock = DockStyle.Fill;
             labelPreviewCentreBottom.ForeColor = Color.White;
             labelPreviewCentreBottom.Location = new Point(0, 0);
-            labelPreviewCentreBottom.Margin = new Padding(4, 0, 4, 0);
+            labelPreviewCentreBottom.Margin = new Padding(5, 0, 5, 0);
             labelPreviewCentreBottom.Name = "labelPreviewCentreBottom";
-            labelPreviewCentreBottom.Size = new Size(131, 33);
+            labelPreviewCentreBottom.Size = new Size(148, 44);
             labelPreviewCentreBottom.TabIndex = 32;
             labelPreviewCentreBottom.Text = "Region 2 Top";
             labelPreviewCentreBottom.TextAlign = ContentAlignment.TopCenter;
@@ -7688,10 +7691,10 @@ namespace Easislides
             // 
             panel37.BackColor = Color.FromArgb(255, 128, 0);
             panel37.Dock = DockStyle.Top;
-            panel37.Location = new Point(16, 51);
-            panel37.Margin = new Padding(4, 3, 4, 3);
+            panel37.Location = new Point(19, 68);
+            panel37.Margin = new Padding(5, 4, 5, 4);
             panel37.Name = "panel37";
-            panel37.Size = new Size(131, 3);
+            panel37.Size = new Size(148, 4);
             panel37.TabIndex = 30;
             // 
             // SamplePanel_Region1
@@ -7699,10 +7702,10 @@ namespace Easislides
             SamplePanel_Region1.BackColor = Color.FromArgb(128, 128, 255);
             SamplePanel_Region1.Controls.Add(labelPreviewCentreTop);
             SamplePanel_Region1.Dock = DockStyle.Top;
-            SamplePanel_Region1.Location = new Point(16, 15);
-            SamplePanel_Region1.Margin = new Padding(4, 3, 4, 3);
+            SamplePanel_Region1.Location = new Point(19, 20);
+            SamplePanel_Region1.Margin = new Padding(5, 4, 5, 4);
             SamplePanel_Region1.Name = "SamplePanel_Region1";
-            SamplePanel_Region1.Size = new Size(131, 36);
+            SamplePanel_Region1.Size = new Size(148, 48);
             SamplePanel_Region1.TabIndex = 31;
             // 
             // labelPreviewCentreTop
@@ -7711,9 +7714,9 @@ namespace Easislides
             labelPreviewCentreTop.Dock = DockStyle.Fill;
             labelPreviewCentreTop.ForeColor = Color.White;
             labelPreviewCentreTop.Location = new Point(0, 0);
-            labelPreviewCentreTop.Margin = new Padding(4, 0, 4, 0);
+            labelPreviewCentreTop.Margin = new Padding(5, 0, 5, 0);
             labelPreviewCentreTop.Name = "labelPreviewCentreTop";
-            labelPreviewCentreTop.Size = new Size(131, 36);
+            labelPreviewCentreTop.Size = new Size(148, 48);
             labelPreviewCentreTop.TabIndex = 21;
             labelPreviewCentreTop.Text = "Region 1 Top";
             labelPreviewCentreTop.TextAlign = ContentAlignment.TopCenter;
@@ -7722,66 +7725,66 @@ namespace Easislides
             // 
             panel42.BackColor = Color.FromArgb(255, 128, 0);
             panel42.Dock = DockStyle.Top;
-            panel42.Location = new Point(16, 12);
-            panel42.Margin = new Padding(4, 3, 4, 3);
+            panel42.Location = new Point(19, 16);
+            panel42.Margin = new Padding(5, 4, 5, 4);
             panel42.Name = "panel42";
-            panel42.Size = new Size(131, 3);
+            panel42.Size = new Size(148, 4);
             panel42.TabIndex = 32;
             // 
             // SamplePanel_Top
             // 
             SamplePanel_Top.Dock = DockStyle.Top;
-            SamplePanel_Top.Location = new Point(16, 0);
-            SamplePanel_Top.Margin = new Padding(4, 3, 4, 3);
+            SamplePanel_Top.Location = new Point(19, 0);
+            SamplePanel_Top.Margin = new Padding(5, 4, 5, 4);
             SamplePanel_Top.Name = "SamplePanel_Top";
-            SamplePanel_Top.Size = new Size(131, 12);
+            SamplePanel_Top.Size = new Size(148, 16);
             SamplePanel_Top.TabIndex = 21;
             // 
             // panel40
             // 
             panel40.BackColor = Color.Green;
             panel40.Dock = DockStyle.Left;
-            panel40.Location = new Point(12, 0);
-            panel40.Margin = new Padding(4, 3, 4, 3);
+            panel40.Location = new Point(14, 0);
+            panel40.Margin = new Padding(5, 4, 5, 4);
             panel40.Name = "panel40";
-            panel40.Size = new Size(4, 120);
+            panel40.Size = new Size(5, 160);
             panel40.TabIndex = 28;
             // 
             // panel41
             // 
             panel41.BackColor = Color.Green;
             panel41.Dock = DockStyle.Right;
-            panel41.Location = new Point(147, 0);
-            panel41.Margin = new Padding(4, 3, 4, 3);
+            panel41.Location = new Point(167, 0);
+            panel41.Margin = new Padding(5, 4, 5, 4);
             panel41.Name = "panel41";
-            panel41.Size = new Size(4, 120);
+            panel41.Size = new Size(5, 160);
             panel41.TabIndex = 29;
             // 
             // SamplePanel_Left
             // 
             SamplePanel_Left.Dock = DockStyle.Left;
             SamplePanel_Left.Location = new Point(0, 0);
-            SamplePanel_Left.Margin = new Padding(4, 3, 4, 3);
+            SamplePanel_Left.Margin = new Padding(5, 4, 5, 4);
             SamplePanel_Left.Name = "SamplePanel_Left";
-            SamplePanel_Left.Size = new Size(12, 120);
+            SamplePanel_Left.Size = new Size(14, 160);
             SamplePanel_Left.TabIndex = 23;
             // 
             // SamplePanel_Right
             // 
             SamplePanel_Right.Dock = DockStyle.Right;
-            SamplePanel_Right.Location = new Point(151, 0);
-            SamplePanel_Right.Margin = new Padding(4, 3, 4, 3);
+            SamplePanel_Right.Location = new Point(172, 0);
+            SamplePanel_Right.Margin = new Padding(5, 4, 5, 4);
             SamplePanel_Right.Name = "SamplePanel_Right";
-            SamplePanel_Right.Size = new Size(12, 120);
+            SamplePanel_Right.Size = new Size(14, 160);
             SamplePanel_Right.TabIndex = 24;
             // 
             // label15
             // 
             label15.AutoSize = true;
-            label15.Location = new Point(56, 157);
-            label15.Margin = new Padding(4, 0, 4, 0);
+            label15.Location = new Point(64, 209);
+            label15.Margin = new Padding(5, 0, 5, 0);
             label15.Name = "label15";
-            label15.Size = new Size(66, 15);
+            label15.Size = new Size(83, 20);
             label15.TabIndex = 24;
             label15.Text = "Left - Right";
             // 
@@ -7789,20 +7792,20 @@ namespace Easislides
             // 
             label16.AutoSize = true;
             label16.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold);
-            label16.Location = new Point(167, 13);
-            label16.Margin = new Padding(4, 0, 4, 0);
+            label16.Location = new Point(191, 17);
+            label16.Margin = new Padding(5, 0, 5, 0);
             label16.Name = "label16";
-            label16.Size = new Size(20, 25);
+            label16.Size = new Size(24, 31);
             label16.TabIndex = 25;
             label16.Text = "-";
             // 
             // label18
             // 
             label18.AutoSize = true;
-            label18.Location = new Point(180, 135);
-            label18.Margin = new Padding(4, 0, 4, 0);
+            label18.Location = new Point(206, 180);
+            label18.Margin = new Padding(5, 0, 5, 0);
             label18.Name = "label18";
-            label18.Size = new Size(25, 15);
+            label18.Size = new Size(33, 20);
             label18.TabIndex = 28;
             label18.Text = "100";
             // 
@@ -7810,10 +7813,10 @@ namespace Easislides
             // 
             label19.AutoSize = true;
             label19.Font = new Font("Microsoft Sans Serif", 15.75F, FontStyle.Bold);
-            label19.Location = new Point(167, 126);
-            label19.Margin = new Padding(4, 0, 4, 0);
+            label19.Location = new Point(191, 168);
+            label19.Margin = new Padding(5, 0, 5, 0);
             label19.Name = "label19";
-            label19.Size = new Size(20, 25);
+            label19.Size = new Size(24, 31);
             label19.TabIndex = 2;
             label19.Text = "-";
             // 
@@ -7823,11 +7826,11 @@ namespace Easislides
             GroupBoxHeadings.Controls.Add(panelInd4);
             GroupBoxHeadings.Controls.Add(panel6);
             GroupBoxHeadings.Controls.Add(label8);
-            GroupBoxHeadings.Location = new Point(335, 20);
-            GroupBoxHeadings.Margin = new Padding(4, 3, 4, 3);
+            GroupBoxHeadings.Location = new Point(383, 27);
+            GroupBoxHeadings.Margin = new Padding(5, 4, 5, 4);
             GroupBoxHeadings.Name = "GroupBoxHeadings";
-            GroupBoxHeadings.Padding = new Padding(4, 3, 4, 3);
-            GroupBoxHeadings.Size = new Size(285, 134);
+            GroupBoxHeadings.Padding = new Padding(5, 4, 5, 4);
+            GroupBoxHeadings.Size = new Size(326, 179);
             GroupBoxHeadings.TabIndex = 1;
             GroupBoxHeadings.TabStop = false;
             GroupBoxHeadings.Text = "Headings Font for the Selected Folder";
@@ -7835,10 +7838,10 @@ namespace Easislides
             // panel17
             // 
             panel17.Controls.Add(toolStrip9);
-            panel17.Location = new Point(8, 55);
-            panel17.Margin = new Padding(4, 3, 4, 3);
+            panel17.Location = new Point(9, 73);
+            panel17.Margin = new Padding(5, 4, 5, 4);
             panel17.Name = "panel17";
-            panel17.Size = new Size(272, 25);
+            panel17.Size = new Size(311, 33);
             panel17.TabIndex = 20;
             // 
             // toolStrip9
@@ -7854,7 +7857,7 @@ namespace Easislides
             toolStrip9.Name = "toolStrip9";
             toolStrip9.Padding = new Padding(0, 0, 2, 0);
             toolStrip9.RenderMode = ToolStripRenderMode.System;
-            toolStrip9.Size = new Size(298, 29);
+            toolStrip9.Size = new Size(341, 39);
             toolStrip9.TabIndex = 5;
             // 
             // ComboLyricsHeading
@@ -7864,16 +7867,16 @@ namespace Easislides
             ComboLyricsHeading.Items.AddRange(new object[] { "Use Region 1 settings only", "Use Region 1 plus formatting below", "Use only formatting below" });
             ComboLyricsHeading.MaxDropDownItems = 12;
             ComboLyricsHeading.Name = "ComboLyricsHeading";
-            ComboLyricsHeading.Size = new Size(268, 23);
+            ComboLyricsHeading.Size = new Size(306, 28);
             ComboLyricsHeading.SelectedIndexChanged += ComboLyricsHeading_SelectedIndexChanged;
             // 
             // panelInd4
             // 
             panelInd4.Controls.Add(HeadingsFontToolbar);
-            panelInd4.Location = new Point(85, 85);
-            panelInd4.Margin = new Padding(4, 3, 4, 3);
+            panelInd4.Location = new Point(97, 113);
+            panelInd4.Margin = new Padding(5, 4, 5, 4);
             panelInd4.Name = "panelInd4";
-            panelInd4.Size = new Size(106, 25);
+            panelInd4.Size = new Size(121, 33);
             panelInd4.TabIndex = 11;
             // 
             // HeadingsFontToolbar
@@ -7889,7 +7892,7 @@ namespace Easislides
             HeadingsFontToolbar.Name = "HeadingsFontToolbar";
             HeadingsFontToolbar.Padding = new Padding(0, 0, 2, 0);
             HeadingsFontToolbar.RenderMode = ToolStripRenderMode.System;
-            HeadingsFontToolbar.Size = new Size(92, 29);
+            HeadingsFontToolbar.Size = new Size(105, 39);
             HeadingsFontToolbar.TabIndex = 0;
             // 
             // HeadingsFont_Bold
@@ -7899,7 +7902,7 @@ namespace Easislides
             HeadingsFont_Bold.Image = (Image)resources.GetObject("HeadingsFont_Bold.Image");
             HeadingsFont_Bold.ImageTransparentColor = Color.Magenta;
             HeadingsFont_Bold.Name = "HeadingsFont_Bold";
-            HeadingsFont_Bold.Size = new Size(28, 26);
+            HeadingsFont_Bold.Size = new Size(29, 36);
             HeadingsFont_Bold.Click += HeadingsFont_Click;
             // 
             // HeadingsFont_Italics
@@ -7909,7 +7912,7 @@ namespace Easislides
             HeadingsFont_Italics.Image = (Image)resources.GetObject("HeadingsFont_Italics.Image");
             HeadingsFont_Italics.ImageTransparentColor = Color.Magenta;
             HeadingsFont_Italics.Name = "HeadingsFont_Italics";
-            HeadingsFont_Italics.Size = new Size(37, 26);
+            HeadingsFont_Italics.Size = new Size(38, 36);
             HeadingsFont_Italics.Tag = "0";
             HeadingsFont_Italics.DropDownItemClicked += HeadingsFont_Italics_DropDownItemClicked;
             // 
@@ -7917,7 +7920,7 @@ namespace Easislides
             // 
             HeadingsFont_Italics0.Image = (Image)resources.GetObject("HeadingsFont_Italics0.Image");
             HeadingsFont_Italics0.Name = "HeadingsFont_Italics0";
-            HeadingsFont_Italics0.Size = new Size(173, 22);
+            HeadingsFont_Italics0.Size = new Size(213, 26);
             HeadingsFont_Italics0.Tag = "0";
             HeadingsFont_Italics0.Text = "No Italics";
             // 
@@ -7925,7 +7928,7 @@ namespace Easislides
             // 
             HeadingsFont_Italics1.Image = (Image)resources.GetObject("HeadingsFont_Italics1.Image");
             HeadingsFont_Italics1.Name = "HeadingsFont_Italics1";
-            HeadingsFont_Italics1.Size = new Size(173, 22);
+            HeadingsFont_Italics1.Size = new Size(213, 26);
             HeadingsFont_Italics1.Tag = "1";
             HeadingsFont_Italics1.Text = "Italics";
             // 
@@ -7933,7 +7936,7 @@ namespace Easislides
             // 
             HeadingsFont_Italics2.Image = (Image)resources.GetObject("HeadingsFont_Italics2.Image");
             HeadingsFont_Italics2.Name = "HeadingsFont_Italics2";
-            HeadingsFont_Italics2.Size = new Size(173, 22);
+            HeadingsFont_Italics2.Size = new Size(213, 26);
             HeadingsFont_Italics2.Tag = "2";
             HeadingsFont_Italics2.Text = "Chorus Italics Only";
             // 
@@ -7944,26 +7947,26 @@ namespace Easislides
             HeadingsFont_Underline.Image = (Image)resources.GetObject("HeadingsFont_Underline.Image");
             HeadingsFont_Underline.ImageTransparentColor = Color.Magenta;
             HeadingsFont_Underline.Name = "HeadingsFont_Underline";
-            HeadingsFont_Underline.Size = new Size(28, 26);
+            HeadingsFont_Underline.Size = new Size(29, 36);
             HeadingsFont_Underline.Click += HeadingsFont_Click;
             // 
             // panel6
             // 
             panel6.Controls.Add(ShowHeadingsPercentSizeUpDown);
             panel6.Controls.Add(label6);
-            panel6.Location = new Point(8, 22);
-            panel6.Margin = new Padding(4, 3, 4, 3);
+            panel6.Location = new Point(9, 29);
+            panel6.Margin = new Padding(5, 4, 5, 4);
             panel6.Name = "panel6";
-            panel6.Size = new Size(272, 29);
+            panel6.Size = new Size(311, 39);
             panel6.TabIndex = 2;
             // 
             // ShowHeadingsPercentSizeUpDown
             // 
-            ShowHeadingsPercentSizeUpDown.Location = new Point(205, 3);
-            ShowHeadingsPercentSizeUpDown.Margin = new Padding(4, 3, 4, 3);
+            ShowHeadingsPercentSizeUpDown.Location = new Point(234, 4);
+            ShowHeadingsPercentSizeUpDown.Margin = new Padding(5, 4, 5, 4);
             ShowHeadingsPercentSizeUpDown.Maximum = new decimal(new int[] { 150, 0, 0, 0 });
             ShowHeadingsPercentSizeUpDown.Name = "ShowHeadingsPercentSizeUpDown";
-            ShowHeadingsPercentSizeUpDown.Size = new Size(63, 23);
+            ShowHeadingsPercentSizeUpDown.Size = new Size(72, 27);
             ShowHeadingsPercentSizeUpDown.TabIndex = 1;
             ShowHeadingsPercentSizeUpDown.Value = new decimal(new int[] { 10, 0, 0, 0 });
             ShowHeadingsPercentSizeUpDown.ValueChanged += ShowHeadingsPercentSizeUpDown_ValueChanged;
@@ -7971,20 +7974,20 @@ namespace Easislides
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(4, 6);
-            label6.Margin = new Padding(4, 0, 4, 0);
+            label6.Location = new Point(5, 8);
+            label6.Margin = new Padding(5, 0, 5, 0);
             label6.Name = "label6";
-            label6.Size = new Size(153, 15);
+            label6.Size = new Size(195, 20);
             label6.TabIndex = 0;
             label6.Text = "Headings Size (% Region 1):";
             // 
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(12, 89);
-            label8.Margin = new Padding(4, 0, 4, 0);
+            label8.Location = new Point(14, 119);
+            label8.Margin = new Padding(5, 0, 5, 0);
             label8.Name = "label8";
-            label8.Size = new Size(69, 15);
+            label8.Size = new Size(85, 20);
             label8.TabIndex = 0;
             label8.Text = "Formatting:";
             // 
@@ -7993,11 +7996,11 @@ namespace Easislides
             GroupBoxFolder.Controls.Add(SongFolder_Rename);
             GroupBoxFolder.Controls.Add(cbFolderUse);
             GroupBoxFolder.Controls.Add(SongFolder);
-            GroupBoxFolder.Location = new Point(7, 20);
-            GroupBoxFolder.Margin = new Padding(4, 3, 4, 3);
+            GroupBoxFolder.Location = new Point(8, 27);
+            GroupBoxFolder.Margin = new Padding(5, 4, 5, 4);
             GroupBoxFolder.Name = "GroupBoxFolder";
-            GroupBoxFolder.Padding = new Padding(4, 3, 4, 3);
-            GroupBoxFolder.Size = new Size(321, 134);
+            GroupBoxFolder.Padding = new Padding(5, 4, 5, 4);
+            GroupBoxFolder.Size = new Size(367, 179);
             GroupBoxFolder.TabIndex = 0;
             GroupBoxFolder.TabStop = false;
             GroupBoxFolder.Text = "Select Folder to Update";
@@ -8005,10 +8008,10 @@ namespace Easislides
             // SongFolder_Rename
             // 
             SongFolder_Rename.FlatStyle = FlatStyle.Flat;
-            SongFolder_Rename.Location = new Point(216, 44);
-            SongFolder_Rename.Margin = new Padding(4, 3, 4, 3);
+            SongFolder_Rename.Location = new Point(247, 59);
+            SongFolder_Rename.Margin = new Padding(5, 4, 5, 4);
             SongFolder_Rename.Name = "SongFolder_Rename";
-            SongFolder_Rename.Size = new Size(91, 29);
+            SongFolder_Rename.Size = new Size(104, 39);
             SongFolder_Rename.TabIndex = 2;
             SongFolder_Rename.Text = "Rename";
             SongFolder_Rename.Click += SongFolder_Rename_Click;
@@ -8016,10 +8019,10 @@ namespace Easislides
             // cbFolderUse
             // 
             cbFolderUse.AutoSize = true;
-            cbFolderUse.Location = new Point(216, 22);
-            cbFolderUse.Margin = new Padding(4, 3, 4, 3);
+            cbFolderUse.Location = new Point(247, 29);
+            cbFolderUse.Margin = new Padding(5, 4, 5, 4);
             cbFolderUse.Name = "cbFolderUse";
-            cbFolderUse.Size = new Size(81, 19);
+            cbFolderUse.Size = new Size(101, 24);
             cbFolderUse.TabIndex = 1;
             cbFolderUse.Text = "Use Folder";
             cbFolderUse.CheckedChanged += cbFolderUse_CheckedChanged;
@@ -8030,13 +8033,13 @@ namespace Easislides
             SongFolder.FullRowSelect = true;
             SongFolder.HeaderStyle = ColumnHeaderStyle.None;
             SongFolder.LabelEdit = true;
-            SongFolder.Location = new Point(7, 22);
-            SongFolder.Margin = new Padding(4, 3, 4, 3);
+            SongFolder.Location = new Point(8, 29);
+            SongFolder.Margin = new Padding(5, 4, 5, 4);
             SongFolder.MultiSelect = false;
             SongFolder.Name = "SongFolder";
             SongFolder.ShowGroups = false;
             SongFolder.ShowItemToolTips = true;
-            SongFolder.Size = new Size(201, 100);
+            SongFolder.Size = new Size(229, 132);
             SongFolder.SmallImageList = imageListSys;
             SongFolder.TabIndex = 0;
             SongFolder.UseCompatibleStateImageBehavior = false;
@@ -8089,11 +8092,11 @@ namespace Easislides
             tabPageBibles.BackColor = SystemColors.Control;
             tabPageBibles.Controls.Add(groupBox19);
             tabPageBibles.Controls.Add(groupBox17);
-            tabPageBibles.Location = new Point(4, 24);
-            tabPageBibles.Margin = new Padding(4, 3, 4, 3);
+            tabPageBibles.Location = new Point(4, 29);
+            tabPageBibles.Margin = new Padding(5, 4, 5, 4);
             tabPageBibles.Name = "tabPageBibles";
-            tabPageBibles.Padding = new Padding(4, 3, 4, 3);
-            tabPageBibles.Size = new Size(628, 400);
+            tabPageBibles.Padding = new Padding(5, 4, 5, 4);
+            tabPageBibles.Size = new Size(719, 538);
             tabPageBibles.TabIndex = 3;
             tabPageBibles.Text = "Bibles";
             // 
@@ -8103,31 +8106,31 @@ namespace Easislides
             groupBox19.Controls.Add(btnBibleAdd);
             groupBox19.Controls.Add(btnBibleSearch);
             groupBox19.Controls.Add(BibleSearchList);
-            groupBox19.Location = new Point(7, 239);
-            groupBox19.Margin = new Padding(4, 3, 4, 3);
+            groupBox19.Location = new Point(8, 319);
+            groupBox19.Margin = new Padding(5, 4, 5, 4);
             groupBox19.Name = "groupBox19";
-            groupBox19.Padding = new Padding(4, 3, 4, 3);
-            groupBox19.Size = new Size(612, 143);
+            groupBox19.Padding = new Padding(5, 4, 5, 4);
+            groupBox19.Size = new Size(699, 191);
             groupBox19.TabIndex = 1;
             groupBox19.TabStop = false;
             groupBox19.Text = "Add Holy Bibles";
             // 
             // label32
             // 
-            label32.Location = new Point(394, 65);
-            label32.Margin = new Padding(4, 0, 4, 0);
+            label32.Location = new Point(450, 87);
+            label32.Margin = new Padding(5, 0, 5, 0);
             label32.Name = "label32";
-            label32.Size = new Size(196, 72);
+            label32.Size = new Size(224, 96);
             label32.TabIndex = 3;
             label32.Text = "Click Search to list Bibles in the EasiSlides Holy Bible Folder.  If Bibles are listed, select and click Add to use them in EasiSlides.";
             // 
             // btnBibleAdd
             // 
             btnBibleAdd.FlatStyle = FlatStyle.Flat;
-            btnBibleAdd.Location = new Point(493, 22);
-            btnBibleAdd.Margin = new Padding(4, 3, 4, 3);
+            btnBibleAdd.Location = new Point(563, 29);
+            btnBibleAdd.Margin = new Padding(5, 4, 5, 4);
             btnBibleAdd.Name = "btnBibleAdd";
-            btnBibleAdd.Size = new Size(91, 29);
+            btnBibleAdd.Size = new Size(104, 39);
             btnBibleAdd.TabIndex = 2;
             btnBibleAdd.Text = "Add";
             btnBibleAdd.Click += btnBibleAdd_Click;
@@ -8135,10 +8138,10 @@ namespace Easislides
             // btnBibleSearch
             // 
             btnBibleSearch.FlatStyle = FlatStyle.Flat;
-            btnBibleSearch.Location = new Point(394, 22);
-            btnBibleSearch.Margin = new Padding(4, 3, 4, 3);
+            btnBibleSearch.Location = new Point(450, 29);
+            btnBibleSearch.Margin = new Padding(5, 4, 5, 4);
             btnBibleSearch.Name = "btnBibleSearch";
-            btnBibleSearch.Size = new Size(91, 29);
+            btnBibleSearch.Size = new Size(104, 39);
             btnBibleSearch.TabIndex = 1;
             btnBibleSearch.Text = "Search";
             btnBibleSearch.Click += btnBibleSearch_Click;
@@ -8148,10 +8151,10 @@ namespace Easislides
             BibleSearchList.Columns.AddRange(new ColumnHeader[] { columnHeader12, columnHeader13, columnHeader14, columnHeader15 });
             BibleSearchList.FullRowSelect = true;
             BibleSearchList.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            BibleSearchList.Location = new Point(7, 22);
-            BibleSearchList.Margin = new Padding(4, 3, 4, 3);
+            BibleSearchList.Location = new Point(8, 29);
+            BibleSearchList.Margin = new Padding(5, 4, 5, 4);
             BibleSearchList.Name = "BibleSearchList";
-            BibleSearchList.Size = new Size(376, 114);
+            BibleSearchList.Size = new Size(429, 151);
             BibleSearchList.TabIndex = 0;
             BibleSearchList.UseCompatibleStateImageBehavior = false;
             BibleSearchList.View = View.Details;
@@ -8184,11 +8187,11 @@ namespace Easislides
             groupBox17.Controls.Add(panel28);
             groupBox17.Controls.Add(groupBox18);
             groupBox17.Controls.Add(BibleList);
-            groupBox17.Location = new Point(4, 18);
-            groupBox17.Margin = new Padding(4, 3, 4, 3);
+            groupBox17.Location = new Point(5, 24);
+            groupBox17.Margin = new Padding(5, 4, 5, 4);
             groupBox17.Name = "groupBox17";
-            groupBox17.Padding = new Padding(4, 3, 4, 3);
-            groupBox17.Size = new Size(612, 213);
+            groupBox17.Padding = new Padding(5, 4, 5, 4);
+            groupBox17.Size = new Size(699, 284);
             groupBox17.TabIndex = 0;
             groupBox17.TabStop = false;
             groupBox17.Text = "Current Holy Bibles in EasiSlides";
@@ -8196,10 +8199,10 @@ namespace Easislides
             // btnBibleRemove
             // 
             btnBibleRemove.FlatStyle = FlatStyle.Flat;
-            btnBibleRemove.Location = new Point(458, 58);
-            btnBibleRemove.Margin = new Padding(4, 3, 4, 3);
+            btnBibleRemove.Location = new Point(523, 77);
+            btnBibleRemove.Margin = new Padding(5, 4, 5, 4);
             btnBibleRemove.Name = "btnBibleRemove";
-            btnBibleRemove.Size = new Size(91, 29);
+            btnBibleRemove.Size = new Size(104, 39);
             btnBibleRemove.TabIndex = 3;
             btnBibleRemove.Text = "Remove";
             btnBibleRemove.Click += btnBibleRemove_Click;
@@ -8207,10 +8210,10 @@ namespace Easislides
             // btnBibleNameChange
             // 
             btnBibleNameChange.FlatStyle = FlatStyle.Flat;
-            btnBibleNameChange.Location = new Point(458, 22);
-            btnBibleNameChange.Margin = new Padding(4, 3, 4, 3);
+            btnBibleNameChange.Location = new Point(523, 29);
+            btnBibleNameChange.Margin = new Padding(5, 4, 5, 4);
             btnBibleNameChange.Name = "btnBibleNameChange";
-            btnBibleNameChange.Size = new Size(91, 29);
+            btnBibleNameChange.Size = new Size(104, 39);
             btnBibleNameChange.TabIndex = 2;
             btnBibleNameChange.Text = "Rename";
             btnBibleNameChange.Click += btnBibleNameChange_Click;
@@ -8218,10 +8221,10 @@ namespace Easislides
             // panel28
             // 
             panel28.Controls.Add(ToolBarBibles);
-            panel28.Location = new Point(394, 22);
-            panel28.Margin = new Padding(4, 3, 4, 3);
+            panel28.Location = new Point(450, 29);
+            panel28.Margin = new Padding(5, 4, 5, 4);
             panel28.Name = "panel28";
-            panel28.Size = new Size(29, 91);
+            panel28.Size = new Size(33, 121);
             panel28.TabIndex = 20;
             // 
             // ToolBarBibles
@@ -8237,7 +8240,7 @@ namespace Easislides
             ToolBarBibles.Name = "ToolBarBibles";
             ToolBarBibles.Padding = new Padding(0, 0, 2, 0);
             ToolBarBibles.RenderMode = ToolStripRenderMode.System;
-            ToolBarBibles.Size = new Size(29, 103);
+            ToolBarBibles.Size = new Size(33, 137);
             ToolBarBibles.TabIndex = 0;
             // 
             // Bibles_Info
@@ -8281,23 +8284,23 @@ namespace Easislides
             groupBox18.Controls.Add(BibleFontSizeUpDown);
             groupBox18.Controls.Add(label31);
             groupBox18.Controls.Add(panel29);
-            groupBox18.Location = new Point(398, 112);
-            groupBox18.Margin = new Padding(4, 3, 4, 3);
+            groupBox18.Location = new Point(455, 149);
+            groupBox18.Margin = new Padding(5, 4, 5, 4);
             groupBox18.Name = "groupBox18";
-            groupBox18.Padding = new Padding(4, 3, 4, 3);
-            groupBox18.Size = new Size(208, 93);
+            groupBox18.Padding = new Padding(5, 4, 5, 4);
+            groupBox18.Size = new Size(238, 124);
             groupBox18.TabIndex = 4;
             groupBox18.TabStop = false;
             groupBox18.Text = "Use Song Folder Settings";
             // 
             // BibleFontSizeUpDown
             // 
-            BibleFontSizeUpDown.Location = new Point(136, 54);
-            BibleFontSizeUpDown.Margin = new Padding(4, 3, 4, 3);
+            BibleFontSizeUpDown.Location = new Point(155, 72);
+            BibleFontSizeUpDown.Margin = new Padding(5, 4, 5, 4);
             BibleFontSizeUpDown.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             BibleFontSizeUpDown.Minimum = new decimal(new int[] { 5, 0, 0, 0 });
             BibleFontSizeUpDown.Name = "BibleFontSizeUpDown";
-            BibleFontSizeUpDown.Size = new Size(54, 23);
+            BibleFontSizeUpDown.Size = new Size(62, 27);
             BibleFontSizeUpDown.TabIndex = 0;
             BibleFontSizeUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
             BibleFontSizeUpDown.ValueChanged += BibleFontSizeUpDown_ValueChanged;
@@ -8305,20 +8308,20 @@ namespace Easislides
             // label31
             // 
             label31.AutoSize = true;
-            label31.Location = new Point(13, 58);
-            label31.Margin = new Padding(4, 0, 4, 0);
+            label31.Location = new Point(15, 77);
+            label31.Margin = new Padding(5, 0, 5, 0);
             label31.Name = "label31";
-            label31.Size = new Size(78, 15);
+            label31.Size = new Size(98, 20);
             label31.TabIndex = 1;
             label31.Text = "Font Size (%):";
             // 
             // panel29
             // 
             panel29.Controls.Add(toolStrip16);
-            panel29.Location = new Point(14, 22);
-            panel29.Margin = new Padding(4, 3, 4, 3);
+            panel29.Location = new Point(16, 29);
+            panel29.Margin = new Padding(5, 4, 5, 4);
             panel29.Name = "panel29";
-            panel29.Size = new Size(182, 25);
+            panel29.Size = new Size(208, 33);
             panel29.TabIndex = 21;
             // 
             // toolStrip16
@@ -8334,7 +8337,7 @@ namespace Easislides
             toolStrip16.Name = "toolStrip16";
             toolStrip16.Padding = new Padding(0, 0, 2, 0);
             toolStrip16.RenderMode = ToolStripRenderMode.System;
-            toolStrip16.Size = new Size(177, 29);
+            toolStrip16.Size = new Size(202, 39);
             toolStrip16.TabIndex = 0;
             // 
             // BibleAssociatedFolder
@@ -8343,7 +8346,7 @@ namespace Easislides
             BibleAssociatedFolder.DropDownStyle = ComboBoxStyle.DropDownList;
             BibleAssociatedFolder.MaxDropDownItems = 12;
             BibleAssociatedFolder.Name = "BibleAssociatedFolder";
-            BibleAssociatedFolder.Size = new Size(174, 23);
+            BibleAssociatedFolder.Size = new Size(198, 28);
             BibleAssociatedFolder.SelectedIndexChanged += BibleAssociatedFolder_SelectedIndexChanged;
             // 
             // BibleList
@@ -8351,11 +8354,11 @@ namespace Easislides
             BibleList.Columns.AddRange(new ColumnHeader[] { columnHeader4, columnHeader5, columnHeader6, columnHeader7, columnHeader8, columnHeader9 });
             BibleList.FullRowSelect = true;
             BibleList.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            BibleList.Location = new Point(7, 22);
-            BibleList.Margin = new Padding(4, 3, 4, 3);
+            BibleList.Location = new Point(8, 29);
+            BibleList.Margin = new Padding(5, 4, 5, 4);
             BibleList.Name = "BibleList";
             BibleList.ShowItemToolTips = true;
-            BibleList.Size = new Size(380, 183);
+            BibleList.Size = new Size(434, 243);
             BibleList.SmallImageList = imageListSys;
             BibleList.TabIndex = 0;
             BibleList.UseCompatibleStateImageBehavior = false;
@@ -8396,11 +8399,11 @@ namespace Easislides
             // 
             tabPageLicence.BackColor = SystemColors.Control;
             tabPageLicence.Controls.Add(groupBox20);
-            tabPageLicence.Location = new Point(4, 24);
-            tabPageLicence.Margin = new Padding(4, 3, 4, 3);
+            tabPageLicence.Location = new Point(4, 29);
+            tabPageLicence.Margin = new Padding(5, 4, 5, 4);
             tabPageLicence.Name = "tabPageLicence";
-            tabPageLicence.Padding = new Padding(4, 3, 4, 3);
-            tabPageLicence.Size = new Size(628, 400);
+            tabPageLicence.Padding = new Padding(5, 4, 5, 4);
+            tabPageLicence.Size = new Size(719, 538);
             tabPageLicence.TabIndex = 4;
             tabPageLicence.Text = "Licence";
             // 
@@ -8412,11 +8415,11 @@ namespace Easislides
             groupBox20.Controls.Add(tbNumberSymbol);
             groupBox20.Controls.Add(panel30);
             groupBox20.Controls.Add(label34);
-            groupBox20.Location = new Point(7, 18);
-            groupBox20.Margin = new Padding(4, 3, 4, 3);
+            groupBox20.Location = new Point(8, 24);
+            groupBox20.Margin = new Padding(5, 4, 5, 4);
             groupBox20.Name = "groupBox20";
-            groupBox20.Padding = new Padding(4, 3, 4, 3);
-            groupBox20.Size = new Size(612, 373);
+            groupBox20.Padding = new Padding(5, 4, 5, 4);
+            groupBox20.Size = new Size(699, 497);
             groupBox20.TabIndex = 4;
             groupBox20.TabStop = false;
             groupBox20.Text = "Licence Administration Details";
@@ -8424,10 +8427,10 @@ namespace Easislides
             // cbEnforceDisplay
             // 
             cbEnforceDisplay.AutoSize = true;
-            cbEnforceDisplay.Location = new Point(10, 331);
-            cbEnforceDisplay.Margin = new Padding(4, 3, 4, 3);
+            cbEnforceDisplay.Location = new Point(11, 441);
+            cbEnforceDisplay.Margin = new Padding(5, 4, 5, 4);
             cbEnforceDisplay.Name = "cbEnforceDisplay";
-            cbEnforceDisplay.Size = new Size(268, 19);
+            cbEnforceDisplay.Size = new Size(334, 24);
             cbEnforceDisplay.TabIndex = 5;
             cbEnforceDisplay.Text = "Enforce Display of Copyright on First Showing";
             // 
@@ -8442,100 +8445,100 @@ namespace Easislides
             panel32.Controls.Add(AdminLicPreview2);
             panel32.Controls.Add(AdminLicPreview1);
             panel32.Controls.Add(label36);
-            panel32.Location = new Point(328, 22);
-            panel32.Margin = new Padding(4, 3, 4, 3);
+            panel32.Location = new Point(375, 29);
+            panel32.Margin = new Padding(5, 4, 5, 4);
             panel32.Name = "panel32";
-            panel32.Size = new Size(232, 270);
+            panel32.Size = new Size(265, 360);
             panel32.TabIndex = 2;
             // 
             // AdminLicPreview8
             // 
-            AdminLicPreview8.Location = new Point(5, 232);
-            AdminLicPreview8.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview8.Location = new Point(6, 309);
+            AdminLicPreview8.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview8.MaxLength = 10;
             AdminLicPreview8.Name = "AdminLicPreview8";
             AdminLicPreview8.ReadOnly = true;
-            AdminLicPreview8.Size = new Size(221, 23);
+            AdminLicPreview8.Size = new Size(252, 27);
             AdminLicPreview8.TabIndex = 8;
             // 
             // AdminLicPreview7
             // 
-            AdminLicPreview7.Location = new Point(5, 204);
-            AdminLicPreview7.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview7.Location = new Point(6, 272);
+            AdminLicPreview7.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview7.MaxLength = 10;
             AdminLicPreview7.Name = "AdminLicPreview7";
             AdminLicPreview7.ReadOnly = true;
-            AdminLicPreview7.Size = new Size(221, 23);
+            AdminLicPreview7.Size = new Size(252, 27);
             AdminLicPreview7.TabIndex = 7;
             // 
             // AdminLicPreview6
             // 
-            AdminLicPreview6.Location = new Point(5, 177);
-            AdminLicPreview6.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview6.Location = new Point(6, 236);
+            AdminLicPreview6.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview6.MaxLength = 10;
             AdminLicPreview6.Name = "AdminLicPreview6";
             AdminLicPreview6.ReadOnly = true;
-            AdminLicPreview6.Size = new Size(221, 23);
+            AdminLicPreview6.Size = new Size(252, 27);
             AdminLicPreview6.TabIndex = 6;
             // 
             // AdminLicPreview5
             // 
-            AdminLicPreview5.Location = new Point(5, 149);
-            AdminLicPreview5.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview5.Location = new Point(6, 199);
+            AdminLicPreview5.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview5.MaxLength = 10;
             AdminLicPreview5.Name = "AdminLicPreview5";
             AdminLicPreview5.ReadOnly = true;
-            AdminLicPreview5.Size = new Size(221, 23);
+            AdminLicPreview5.Size = new Size(252, 27);
             AdminLicPreview5.TabIndex = 5;
             // 
             // AdminLicPreview4
             // 
-            AdminLicPreview4.Location = new Point(4, 121);
-            AdminLicPreview4.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview4.Location = new Point(5, 161);
+            AdminLicPreview4.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview4.MaxLength = 10;
             AdminLicPreview4.Name = "AdminLicPreview4";
             AdminLicPreview4.ReadOnly = true;
-            AdminLicPreview4.Size = new Size(221, 23);
+            AdminLicPreview4.Size = new Size(252, 27);
             AdminLicPreview4.TabIndex = 4;
             // 
             // AdminLicPreview3
             // 
-            AdminLicPreview3.Location = new Point(4, 93);
-            AdminLicPreview3.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview3.Location = new Point(5, 124);
+            AdminLicPreview3.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview3.MaxLength = 10;
             AdminLicPreview3.Name = "AdminLicPreview3";
             AdminLicPreview3.ReadOnly = true;
-            AdminLicPreview3.Size = new Size(221, 23);
+            AdminLicPreview3.Size = new Size(252, 27);
             AdminLicPreview3.TabIndex = 3;
             // 
             // AdminLicPreview2
             // 
-            AdminLicPreview2.Location = new Point(4, 54);
-            AdminLicPreview2.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview2.Location = new Point(5, 72);
+            AdminLicPreview2.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview2.MaxLength = 10;
             AdminLicPreview2.Name = "AdminLicPreview2";
             AdminLicPreview2.ReadOnly = true;
-            AdminLicPreview2.Size = new Size(221, 23);
+            AdminLicPreview2.Size = new Size(252, 27);
             AdminLicPreview2.TabIndex = 2;
             AdminLicPreview2.Text = "Public Domain";
             // 
             // AdminLicPreview1
             // 
-            AdminLicPreview1.Location = new Point(4, 27);
-            AdminLicPreview1.Margin = new Padding(4, 3, 4, 3);
+            AdminLicPreview1.Location = new Point(5, 36);
+            AdminLicPreview1.Margin = new Padding(5, 4, 5, 4);
             AdminLicPreview1.MaxLength = 10;
             AdminLicPreview1.Name = "AdminLicPreview1";
             AdminLicPreview1.ReadOnly = true;
-            AdminLicPreview1.Size = new Size(221, 23);
+            AdminLicPreview1.Size = new Size(252, 27);
             AdminLicPreview1.TabIndex = 1;
             // 
             // label36
             // 
             label36.AutoSize = true;
-            label36.Location = new Point(4, 8);
-            label36.Margin = new Padding(4, 0, 4, 0);
+            label36.Location = new Point(5, 11);
+            label36.Margin = new Padding(5, 0, 5, 0);
             label36.Name = "label36";
-            label36.Size = new Size(157, 15);
+            label36.Size = new Size(200, 20);
             label36.TabIndex = 0;
             label36.Text = "How it will appear on Screen";
             // 
@@ -8550,111 +8553,111 @@ namespace Easislides
             panel31.Controls.Add(AdminLicNo2);
             panel31.Controls.Add(AdminLicNo1);
             panel31.Controls.Add(label35);
-            panel31.Location = new Point(141, 22);
-            panel31.Margin = new Padding(4, 3, 4, 3);
+            panel31.Location = new Point(161, 29);
+            panel31.Margin = new Padding(5, 4, 5, 4);
             panel31.Name = "panel31";
-            panel31.Size = new Size(189, 270);
+            panel31.Size = new Size(216, 360);
             panel31.TabIndex = 1;
             // 
             // AdminLicNo8
             // 
-            AdminLicNo8.Location = new Point(5, 232);
-            AdminLicNo8.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo8.Location = new Point(6, 309);
+            AdminLicNo8.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo8.MaxLength = 10;
             AdminLicNo8.Name = "AdminLicNo8";
-            AdminLicNo8.Size = new Size(174, 23);
+            AdminLicNo8.Size = new Size(198, 27);
             AdminLicNo8.TabIndex = 8;
             AdminLicNo8.TextChanged += AdminLic_TextChanged;
             // 
             // AdminLicNo7
             // 
-            AdminLicNo7.Location = new Point(5, 204);
-            AdminLicNo7.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo7.Location = new Point(6, 272);
+            AdminLicNo7.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo7.MaxLength = 10;
             AdminLicNo7.Name = "AdminLicNo7";
-            AdminLicNo7.Size = new Size(174, 23);
+            AdminLicNo7.Size = new Size(198, 27);
             AdminLicNo7.TabIndex = 7;
             AdminLicNo7.TextChanged += AdminLic_TextChanged;
             // 
             // AdminLicNo6
             // 
-            AdminLicNo6.Location = new Point(5, 177);
-            AdminLicNo6.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo6.Location = new Point(6, 236);
+            AdminLicNo6.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo6.MaxLength = 10;
             AdminLicNo6.Name = "AdminLicNo6";
-            AdminLicNo6.Size = new Size(174, 23);
+            AdminLicNo6.Size = new Size(198, 27);
             AdminLicNo6.TabIndex = 6;
             AdminLicNo6.TextChanged += AdminLic_TextChanged;
             // 
             // AdminLicNo5
             // 
-            AdminLicNo5.Location = new Point(5, 149);
-            AdminLicNo5.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo5.Location = new Point(6, 199);
+            AdminLicNo5.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo5.MaxLength = 10;
             AdminLicNo5.Name = "AdminLicNo5";
-            AdminLicNo5.Size = new Size(174, 23);
+            AdminLicNo5.Size = new Size(198, 27);
             AdminLicNo5.TabIndex = 5;
             AdminLicNo5.TextChanged += AdminLic_TextChanged;
             // 
             // AdminLicNo4
             // 
-            AdminLicNo4.Location = new Point(4, 121);
-            AdminLicNo4.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo4.Location = new Point(5, 161);
+            AdminLicNo4.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo4.MaxLength = 10;
             AdminLicNo4.Name = "AdminLicNo4";
-            AdminLicNo4.Size = new Size(174, 23);
+            AdminLicNo4.Size = new Size(198, 27);
             AdminLicNo4.TabIndex = 4;
             AdminLicNo4.TextChanged += AdminLic_TextChanged;
             // 
             // AdminLicNo3
             // 
-            AdminLicNo3.Location = new Point(4, 93);
-            AdminLicNo3.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo3.Location = new Point(5, 124);
+            AdminLicNo3.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo3.MaxLength = 10;
             AdminLicNo3.Name = "AdminLicNo3";
-            AdminLicNo3.Size = new Size(174, 23);
+            AdminLicNo3.Size = new Size(198, 27);
             AdminLicNo3.TabIndex = 3;
             AdminLicNo3.TextChanged += AdminLic_TextChanged;
             // 
             // AdminLicNo2
             // 
-            AdminLicNo2.Location = new Point(4, 54);
-            AdminLicNo2.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo2.Location = new Point(5, 72);
+            AdminLicNo2.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo2.MaxLength = 10;
             AdminLicNo2.Name = "AdminLicNo2";
             AdminLicNo2.ReadOnly = true;
-            AdminLicNo2.Size = new Size(174, 23);
+            AdminLicNo2.Size = new Size(198, 27);
             AdminLicNo2.TabIndex = 2;
             AdminLicNo2.Text = "Blank";
             // 
             // AdminLicNo1
             // 
-            AdminLicNo1.Location = new Point(4, 27);
-            AdminLicNo1.Margin = new Padding(4, 3, 4, 3);
+            AdminLicNo1.Location = new Point(5, 36);
+            AdminLicNo1.Margin = new Padding(5, 4, 5, 4);
             AdminLicNo1.MaxLength = 10;
             AdminLicNo1.Name = "AdminLicNo1";
             AdminLicNo1.ReadOnly = true;
-            AdminLicNo1.Size = new Size(174, 23);
+            AdminLicNo1.Size = new Size(198, 27);
             AdminLicNo1.TabIndex = 1;
             AdminLicNo1.Text = "Blank";
             // 
             // label35
             // 
             label35.AutoSize = true;
-            label35.Location = new Point(4, 8);
-            label35.Margin = new Padding(4, 0, 4, 0);
+            label35.Location = new Point(5, 11);
+            label35.Margin = new Padding(5, 0, 5, 0);
             label35.Name = "label35";
-            label35.Size = new Size(94, 15);
+            label35.Size = new Size(116, 20);
             label35.TabIndex = 0;
             label35.Text = "Licence Number";
             // 
             // tbNumberSymbol
             // 
-            tbNumberSymbol.Location = new Point(146, 299);
-            tbNumberSymbol.Margin = new Padding(4, 3, 4, 3);
+            tbNumberSymbol.Location = new Point(167, 399);
+            tbNumberSymbol.Margin = new Padding(5, 4, 5, 4);
             tbNumberSymbol.MaxLength = 10;
             tbNumberSymbol.Name = "tbNumberSymbol";
-            tbNumberSymbol.Size = new Size(104, 23);
+            tbNumberSymbol.Size = new Size(118, 27);
             tbNumberSymbol.TabIndex = 4;
             tbNumberSymbol.TextChanged += AdminLic_TextChanged;
             // 
@@ -8669,107 +8672,107 @@ namespace Easislides
             panel30.Controls.Add(AdminLic2);
             panel30.Controls.Add(AdminLic1);
             panel30.Controls.Add(label33);
-            panel30.Location = new Point(7, 22);
-            panel30.Margin = new Padding(4, 3, 4, 3);
+            panel30.Location = new Point(8, 29);
+            panel30.Margin = new Padding(5, 4, 5, 4);
             panel30.Name = "panel30";
-            panel30.Size = new Size(135, 270);
+            panel30.Size = new Size(154, 360);
             panel30.TabIndex = 0;
             // 
             // AdminLic8
             // 
-            AdminLic8.Location = new Point(5, 232);
-            AdminLic8.Margin = new Padding(4, 3, 4, 3);
+            AdminLic8.Location = new Point(6, 309);
+            AdminLic8.Margin = new Padding(5, 4, 5, 4);
             AdminLic8.MaxLength = 10;
             AdminLic8.Name = "AdminLic8";
-            AdminLic8.Size = new Size(122, 23);
+            AdminLic8.Size = new Size(139, 27);
             AdminLic8.TabIndex = 8;
             // 
             // AdminLic7
             // 
-            AdminLic7.Location = new Point(5, 204);
-            AdminLic7.Margin = new Padding(4, 3, 4, 3);
+            AdminLic7.Location = new Point(6, 272);
+            AdminLic7.Margin = new Padding(5, 4, 5, 4);
             AdminLic7.MaxLength = 10;
             AdminLic7.Name = "AdminLic7";
-            AdminLic7.Size = new Size(122, 23);
+            AdminLic7.Size = new Size(139, 27);
             AdminLic7.TabIndex = 7;
             // 
             // AdminLic6
             // 
-            AdminLic6.Location = new Point(5, 177);
-            AdminLic6.Margin = new Padding(4, 3, 4, 3);
+            AdminLic6.Location = new Point(6, 236);
+            AdminLic6.Margin = new Padding(5, 4, 5, 4);
             AdminLic6.MaxLength = 10;
             AdminLic6.Name = "AdminLic6";
-            AdminLic6.Size = new Size(122, 23);
+            AdminLic6.Size = new Size(139, 27);
             AdminLic6.TabIndex = 6;
             // 
             // AdminLic5
             // 
-            AdminLic5.Location = new Point(5, 149);
-            AdminLic5.Margin = new Padding(4, 3, 4, 3);
+            AdminLic5.Location = new Point(6, 199);
+            AdminLic5.Margin = new Padding(5, 4, 5, 4);
             AdminLic5.MaxLength = 10;
             AdminLic5.Name = "AdminLic5";
-            AdminLic5.Size = new Size(122, 23);
+            AdminLic5.Size = new Size(139, 27);
             AdminLic5.TabIndex = 5;
             // 
             // AdminLic4
             // 
-            AdminLic4.Location = new Point(4, 121);
-            AdminLic4.Margin = new Padding(4, 3, 4, 3);
+            AdminLic4.Location = new Point(5, 161);
+            AdminLic4.Margin = new Padding(5, 4, 5, 4);
             AdminLic4.MaxLength = 10;
             AdminLic4.Name = "AdminLic4";
-            AdminLic4.Size = new Size(122, 23);
+            AdminLic4.Size = new Size(139, 27);
             AdminLic4.TabIndex = 4;
             // 
             // AdminLic3
             // 
-            AdminLic3.Location = new Point(4, 93);
-            AdminLic3.Margin = new Padding(4, 3, 4, 3);
+            AdminLic3.Location = new Point(5, 124);
+            AdminLic3.Margin = new Padding(5, 4, 5, 4);
             AdminLic3.MaxLength = 10;
             AdminLic3.Name = "AdminLic3";
             AdminLic3.ReadOnly = true;
-            AdminLic3.Size = new Size(122, 23);
+            AdminLic3.Size = new Size(139, 27);
             AdminLic3.TabIndex = 3;
             AdminLic3.Text = "CCLI";
             // 
             // AdminLic2
             // 
-            AdminLic2.Location = new Point(4, 54);
-            AdminLic2.Margin = new Padding(4, 3, 4, 3);
+            AdminLic2.Location = new Point(5, 72);
+            AdminLic2.Margin = new Padding(5, 4, 5, 4);
             AdminLic2.MaxLength = 10;
             AdminLic2.Name = "AdminLic2";
             AdminLic2.ReadOnly = true;
-            AdminLic2.Size = new Size(122, 23);
+            AdminLic2.Size = new Size(139, 27);
             AdminLic2.TabIndex = 2;
             AdminLic2.Text = "Public Domain";
             // 
             // AdminLic1
             // 
-            AdminLic1.Location = new Point(4, 27);
-            AdminLic1.Margin = new Padding(4, 3, 4, 3);
+            AdminLic1.Location = new Point(5, 36);
+            AdminLic1.Margin = new Padding(5, 4, 5, 4);
             AdminLic1.MaxLength = 10;
             AdminLic1.Name = "AdminLic1";
             AdminLic1.ReadOnly = true;
-            AdminLic1.Size = new Size(122, 23);
+            AdminLic1.Size = new Size(139, 27);
             AdminLic1.TabIndex = 1;
             AdminLic1.Text = "None";
             // 
             // label33
             // 
             label33.AutoSize = true;
-            label33.Location = new Point(4, 8);
-            label33.Margin = new Padding(4, 0, 4, 0);
+            label33.Location = new Point(5, 11);
+            label33.Margin = new Padding(5, 0, 5, 0);
             label33.Name = "label33";
-            label33.Size = new Size(80, 15);
+            label33.Size = new Size(100, 20);
             label33.TabIndex = 0;
             label33.Text = "Administrator";
             // 
             // label34
             // 
             label34.AutoSize = true;
-            label34.Location = new Point(7, 302);
-            label34.Margin = new Padding(4, 0, 4, 0);
+            label34.Location = new Point(8, 403);
+            label34.Margin = new Padding(5, 0, 5, 0);
             label34.Name = "label34";
-            label34.Size = new Size(97, 15);
+            label34.Size = new Size(120, 20);
             label34.TabIndex = 3;
             label34.Text = "Number Symbol:";
             // 
@@ -8786,21 +8789,21 @@ namespace Easislides
             tabPageKeyboard.Controls.Add(groupBox21);
             tabPageKeyboard.Controls.Add(label59);
             tabPageKeyboard.Controls.Add(label57);
-            tabPageKeyboard.Location = new Point(4, 24);
-            tabPageKeyboard.Margin = new Padding(4, 3, 4, 3);
+            tabPageKeyboard.Location = new Point(4, 29);
+            tabPageKeyboard.Margin = new Padding(5, 4, 5, 4);
             tabPageKeyboard.Name = "tabPageKeyboard";
-            tabPageKeyboard.Padding = new Padding(4, 3, 4, 3);
-            tabPageKeyboard.Size = new Size(628, 400);
+            tabPageKeyboard.Padding = new Padding(5, 4, 5, 4);
+            tabPageKeyboard.Size = new Size(719, 538);
             tabPageKeyboard.TabIndex = 5;
             tabPageKeyboard.Text = "Keyboard";
             // 
             // ChkGlobalHookF7
             // 
             ChkGlobalHookF7.AutoSize = true;
-            ChkGlobalHookF7.Location = new Point(181, 347);
-            ChkGlobalHookF7.Margin = new Padding(2);
+            ChkGlobalHookF7.Location = new Point(207, 463);
+            ChkGlobalHookF7.Margin = new Padding(2, 3, 2, 3);
             ChkGlobalHookF7.Name = "ChkGlobalHookF7";
-            ChkGlobalHookF7.Size = new Size(161, 19);
+            ChkGlobalHookF7.Size = new Size(198, 24);
             ChkGlobalHookF7.TabIndex = 14;
             ChkGlobalHookF7.Text = "F7 (turn off Black Output)";
             ChkGlobalHookF7.UseVisualStyleBackColor = true;
@@ -8808,10 +8811,10 @@ namespace Easislides
             // ChkGlobalHookF8
             // 
             ChkGlobalHookF8.AutoSize = true;
-            ChkGlobalHookF8.Location = new Point(181, 369);
-            ChkGlobalHookF8.Margin = new Padding(2);
+            ChkGlobalHookF8.Location = new Point(207, 492);
+            ChkGlobalHookF8.Margin = new Padding(2, 3, 2, 3);
             ChkGlobalHookF8.Name = "ChkGlobalHookF8";
-            ChkGlobalHookF8.Size = new Size(145, 19);
+            ChkGlobalHookF8.Size = new Size(178, 24);
             ChkGlobalHookF8.TabIndex = 13;
             ChkGlobalHookF8.Text = "F8 (no control Output)";
             ChkGlobalHookF8.UseVisualStyleBackColor = true;
@@ -8819,10 +8822,10 @@ namespace Easislides
             // ChkGlobalHookCtrlArrow
             // 
             ChkGlobalHookCtrlArrow.AutoSize = true;
-            ChkGlobalHookCtrlArrow.Location = new Point(366, 367);
-            ChkGlobalHookCtrlArrow.Margin = new Padding(2);
+            ChkGlobalHookCtrlArrow.Location = new Point(418, 489);
+            ChkGlobalHookCtrlArrow.Margin = new Padding(2, 3, 2, 3);
             ChkGlobalHookCtrlArrow.Name = "ChkGlobalHookCtrlArrow";
-            ChkGlobalHookCtrlArrow.Size = new Size(169, 19);
+            ChkGlobalHookCtrlArrow.Size = new Size(208, 24);
             ChkGlobalHookCtrlArrow.TabIndex = 12;
             ChkGlobalHookCtrlArrow.Text = "OutputView_CtrlArrowKeys";
             ChkGlobalHookCtrlArrow.UseVisualStyleBackColor = true;
@@ -8831,10 +8834,10 @@ namespace Easislides
             // ChkGlobalHookArrow
             // 
             ChkGlobalHookArrow.AutoSize = true;
-            ChkGlobalHookArrow.Location = new Point(366, 345);
-            ChkGlobalHookArrow.Margin = new Padding(2);
+            ChkGlobalHookArrow.Location = new Point(418, 460);
+            ChkGlobalHookArrow.Margin = new Padding(2, 3, 2, 3);
             ChkGlobalHookArrow.Name = "ChkGlobalHookArrow";
-            ChkGlobalHookArrow.Size = new Size(150, 19);
+            ChkGlobalHookArrow.Size = new Size(185, 24);
             ChkGlobalHookArrow.TabIndex = 10;
             ChkGlobalHookArrow.Text = "OutputView_ArrowKeys";
             ChkGlobalHookArrow.UseVisualStyleBackColor = true;
@@ -8844,20 +8847,20 @@ namespace Easislides
             // 
             label60.BorderStyle = BorderStyle.FixedSingle;
             label60.FlatStyle = FlatStyle.Flat;
-            label60.Location = new Point(151, 326);
+            label60.Location = new Point(173, 435);
             label60.Margin = new Padding(2, 0, 2, 0);
             label60.Name = "label60";
-            label60.Size = new Size(206, 66);
+            label60.Size = new Size(235, 87);
             label60.TabIndex = 8;
             label60.Text = "CopyPreviewToOutput";
             // 
             // ChkGlobalHookF10
             // 
             ChkGlobalHookF10.AutoSize = true;
-            ChkGlobalHookF10.Location = new Point(83, 357);
-            ChkGlobalHookF10.Margin = new Padding(2);
+            ChkGlobalHookF10.Location = new Point(95, 476);
+            ChkGlobalHookF10.Margin = new Padding(2, 3, 2, 3);
             ChkGlobalHookF10.Name = "ChkGlobalHookF10";
-            ChkGlobalHookF10.Size = new Size(44, 19);
+            ChkGlobalHookF10.Size = new Size(54, 24);
             ChkGlobalHookF10.TabIndex = 7;
             ChkGlobalHookF10.Text = "F10";
             ChkGlobalHookF10.UseVisualStyleBackColor = true;
@@ -8865,10 +8868,10 @@ namespace Easislides
             // ChkGlobalHookF9
             // 
             ChkGlobalHookF9.AutoSize = true;
-            ChkGlobalHookF9.Location = new Point(25, 357);
-            ChkGlobalHookF9.Margin = new Padding(2);
+            ChkGlobalHookF9.Location = new Point(29, 476);
+            ChkGlobalHookF9.Margin = new Padding(2, 3, 2, 3);
             ChkGlobalHookF9.Name = "ChkGlobalHookF9";
-            ChkGlobalHookF9.Size = new Size(38, 19);
+            ChkGlobalHookF9.Size = new Size(46, 24);
             ChkGlobalHookF9.TabIndex = 6;
             ChkGlobalHookF9.Text = "F9";
             ChkGlobalHookF9.UseVisualStyleBackColor = true;
@@ -8877,11 +8880,11 @@ namespace Easislides
             // 
             groupBox21.Controls.Add(panel34);
             groupBox21.Controls.Add(panel35);
-            groupBox21.Location = new Point(7, 17);
-            groupBox21.Margin = new Padding(4, 3, 4, 3);
+            groupBox21.Location = new Point(8, 23);
+            groupBox21.Margin = new Padding(5, 4, 5, 4);
             groupBox21.Name = "groupBox21";
-            groupBox21.Padding = new Padding(4, 3, 4, 3);
-            groupBox21.Size = new Size(612, 301);
+            groupBox21.Padding = new Padding(5, 4, 5, 4);
+            groupBox21.Size = new Size(699, 401);
             groupBox21.TabIndex = 5;
             groupBox21.TabStop = false;
             groupBox21.Text = "Keyboard Mapping during Show and in Preview.Output Areas";
@@ -8906,21 +8909,21 @@ namespace Easislides
             panel34.Controls.Add(kbSelect00);
             panel34.Controls.Add(rbKeyBoardOpt1);
             panel34.Controls.Add(rbKeyBoardOpt0);
-            panel34.Location = new Point(141, 22);
-            panel34.Margin = new Padding(4, 3, 4, 3);
+            panel34.Location = new Point(161, 29);
+            panel34.Margin = new Padding(5, 4, 5, 4);
             panel34.Name = "panel34";
-            panel34.Size = new Size(441, 270);
+            panel34.Size = new Size(504, 360);
             panel34.TabIndex = 37;
             // 
             // kbSelect17
             // 
             kbSelect17.BackColor = SystemColors.Window;
-            kbSelect17.Location = new Point(215, 232);
-            kbSelect17.Margin = new Padding(4, 3, 4, 3);
+            kbSelect17.Location = new Point(246, 309);
+            kbSelect17.Margin = new Padding(5, 4, 5, 4);
             kbSelect17.MaxLength = 10;
             kbSelect17.Name = "kbSelect17";
             kbSelect17.ReadOnly = true;
-            kbSelect17.Size = new Size(198, 23);
+            kbSelect17.Size = new Size(226, 27);
             kbSelect17.TabIndex = 34;
             kbSelect17.Text = "End";
             kbSelect17.TextAlign = HorizontalAlignment.Center;
@@ -8928,12 +8931,12 @@ namespace Easislides
             // kbSelect16
             // 
             kbSelect16.BackColor = SystemColors.Window;
-            kbSelect16.Location = new Point(216, 204);
-            kbSelect16.Margin = new Padding(4, 3, 4, 3);
+            kbSelect16.Location = new Point(247, 272);
+            kbSelect16.Margin = new Padding(5, 4, 5, 4);
             kbSelect16.MaxLength = 10;
             kbSelect16.Name = "kbSelect16";
             kbSelect16.ReadOnly = true;
-            kbSelect16.Size = new Size(198, 23);
+            kbSelect16.Size = new Size(226, 27);
             kbSelect16.TabIndex = 33;
             kbSelect16.Text = "Page Down / Space Bar";
             kbSelect16.TextAlign = HorizontalAlignment.Center;
@@ -8941,12 +8944,12 @@ namespace Easislides
             // kbSelect07
             // 
             kbSelect07.BackColor = SystemColors.Window;
-            kbSelect07.Location = new Point(5, 232);
-            kbSelect07.Margin = new Padding(4, 3, 4, 3);
+            kbSelect07.Location = new Point(6, 309);
+            kbSelect07.Margin = new Padding(5, 4, 5, 4);
             kbSelect07.MaxLength = 10;
             kbSelect07.Name = "kbSelect07";
             kbSelect07.ReadOnly = true;
-            kbSelect07.Size = new Size(198, 23);
+            kbSelect07.Size = new Size(226, 27);
             kbSelect07.TabIndex = 34;
             kbSelect07.Text = "Right Arrow";
             kbSelect07.TextAlign = HorizontalAlignment.Center;
@@ -8954,12 +8957,12 @@ namespace Easislides
             // kbSelect15
             // 
             kbSelect15.BackColor = SystemColors.Window;
-            kbSelect15.Location = new Point(216, 177);
-            kbSelect15.Margin = new Padding(4, 3, 4, 3);
+            kbSelect15.Location = new Point(247, 236);
+            kbSelect15.Margin = new Padding(5, 4, 5, 4);
             kbSelect15.MaxLength = 10;
             kbSelect15.Name = "kbSelect15";
             kbSelect15.ReadOnly = true;
-            kbSelect15.Size = new Size(198, 23);
+            kbSelect15.Size = new Size(226, 27);
             kbSelect15.TabIndex = 32;
             kbSelect15.Text = "Page Up";
             kbSelect15.TextAlign = HorizontalAlignment.Center;
@@ -8967,12 +8970,12 @@ namespace Easislides
             // kbSelect06
             // 
             kbSelect06.BackColor = SystemColors.Window;
-            kbSelect06.Location = new Point(5, 204);
-            kbSelect06.Margin = new Padding(4, 3, 4, 3);
+            kbSelect06.Location = new Point(6, 272);
+            kbSelect06.Margin = new Padding(5, 4, 5, 4);
             kbSelect06.MaxLength = 10;
             kbSelect06.Name = "kbSelect06";
             kbSelect06.ReadOnly = true;
-            kbSelect06.Size = new Size(198, 23);
+            kbSelect06.Size = new Size(226, 27);
             kbSelect06.TabIndex = 33;
             kbSelect06.Text = "Down Arrow / Space Bar";
             kbSelect06.TextAlign = HorizontalAlignment.Center;
@@ -8980,12 +8983,12 @@ namespace Easislides
             // kbSelect14
             // 
             kbSelect14.BackColor = SystemColors.Window;
-            kbSelect14.Location = new Point(216, 149);
-            kbSelect14.Margin = new Padding(4, 3, 4, 3);
+            kbSelect14.Location = new Point(247, 199);
+            kbSelect14.Margin = new Padding(5, 4, 5, 4);
             kbSelect14.MaxLength = 10;
             kbSelect14.Name = "kbSelect14";
             kbSelect14.ReadOnly = true;
-            kbSelect14.Size = new Size(198, 23);
+            kbSelect14.Size = new Size(226, 27);
             kbSelect14.TabIndex = 31;
             kbSelect14.Text = "Home";
             kbSelect14.TextAlign = HorizontalAlignment.Center;
@@ -8993,12 +8996,12 @@ namespace Easislides
             // kbSelect05
             // 
             kbSelect05.BackColor = SystemColors.Window;
-            kbSelect05.Location = new Point(5, 177);
-            kbSelect05.Margin = new Padding(4, 3, 4, 3);
+            kbSelect05.Location = new Point(6, 236);
+            kbSelect05.Margin = new Padding(5, 4, 5, 4);
             kbSelect05.MaxLength = 10;
             kbSelect05.Name = "kbSelect05";
             kbSelect05.ReadOnly = true;
-            kbSelect05.Size = new Size(198, 23);
+            kbSelect05.Size = new Size(226, 27);
             kbSelect05.TabIndex = 32;
             kbSelect05.Text = "Up Arrow";
             kbSelect05.TextAlign = HorizontalAlignment.Center;
@@ -9006,12 +9009,12 @@ namespace Easislides
             // kbSelect13
             // 
             kbSelect13.BackColor = SystemColors.Window;
-            kbSelect13.Location = new Point(215, 110);
-            kbSelect13.Margin = new Padding(4, 3, 4, 3);
+            kbSelect13.Location = new Point(246, 147);
+            kbSelect13.Margin = new Padding(5, 4, 5, 4);
             kbSelect13.MaxLength = 10;
             kbSelect13.Name = "kbSelect13";
             kbSelect13.ReadOnly = true;
-            kbSelect13.Size = new Size(198, 23);
+            kbSelect13.Size = new Size(226, 27);
             kbSelect13.TabIndex = 30;
             kbSelect13.Text = "Right Arrow";
             kbSelect13.TextAlign = HorizontalAlignment.Center;
@@ -9019,12 +9022,12 @@ namespace Easislides
             // kbSelect04
             // 
             kbSelect04.BackColor = SystemColors.Window;
-            kbSelect04.Location = new Point(5, 149);
-            kbSelect04.Margin = new Padding(4, 3, 4, 3);
+            kbSelect04.Location = new Point(6, 199);
+            kbSelect04.Margin = new Padding(5, 4, 5, 4);
             kbSelect04.MaxLength = 10;
             kbSelect04.Name = "kbSelect04";
             kbSelect04.ReadOnly = true;
-            kbSelect04.Size = new Size(198, 23);
+            kbSelect04.Size = new Size(226, 27);
             kbSelect04.TabIndex = 31;
             kbSelect04.Text = "Left Arrow";
             kbSelect04.TextAlign = HorizontalAlignment.Center;
@@ -9032,12 +9035,12 @@ namespace Easislides
             // kbSelect12
             // 
             kbSelect12.BackColor = SystemColors.Window;
-            kbSelect12.Location = new Point(215, 82);
-            kbSelect12.Margin = new Padding(4, 3, 4, 3);
+            kbSelect12.Location = new Point(246, 109);
+            kbSelect12.Margin = new Padding(5, 4, 5, 4);
             kbSelect12.MaxLength = 10;
             kbSelect12.Name = "kbSelect12";
             kbSelect12.ReadOnly = true;
-            kbSelect12.Size = new Size(198, 23);
+            kbSelect12.Size = new Size(226, 27);
             kbSelect12.TabIndex = 29;
             kbSelect12.Text = "Down Arrow";
             kbSelect12.TextAlign = HorizontalAlignment.Center;
@@ -9045,12 +9048,12 @@ namespace Easislides
             // kbSelect03
             // 
             kbSelect03.BackColor = SystemColors.Window;
-            kbSelect03.Location = new Point(4, 110);
-            kbSelect03.Margin = new Padding(4, 3, 4, 3);
+            kbSelect03.Location = new Point(5, 147);
+            kbSelect03.Margin = new Padding(5, 4, 5, 4);
             kbSelect03.MaxLength = 10;
             kbSelect03.Name = "kbSelect03";
             kbSelect03.ReadOnly = true;
-            kbSelect03.Size = new Size(198, 23);
+            kbSelect03.Size = new Size(226, 27);
             kbSelect03.TabIndex = 30;
             kbSelect03.Text = "End";
             kbSelect03.TextAlign = HorizontalAlignment.Center;
@@ -9058,12 +9061,12 @@ namespace Easislides
             // kbSelect11
             // 
             kbSelect11.BackColor = SystemColors.Window;
-            kbSelect11.Location = new Point(215, 54);
-            kbSelect11.Margin = new Padding(4, 3, 4, 3);
+            kbSelect11.Location = new Point(246, 72);
+            kbSelect11.Margin = new Padding(5, 4, 5, 4);
             kbSelect11.MaxLength = 10;
             kbSelect11.Name = "kbSelect11";
             kbSelect11.ReadOnly = true;
-            kbSelect11.Size = new Size(198, 23);
+            kbSelect11.Size = new Size(226, 27);
             kbSelect11.TabIndex = 28;
             kbSelect11.Text = "Up Arrow";
             kbSelect11.TextAlign = HorizontalAlignment.Center;
@@ -9071,12 +9074,12 @@ namespace Easislides
             // kbSelect02
             // 
             kbSelect02.BackColor = SystemColors.Window;
-            kbSelect02.Location = new Point(4, 82);
-            kbSelect02.Margin = new Padding(4, 3, 4, 3);
+            kbSelect02.Location = new Point(5, 109);
+            kbSelect02.Margin = new Padding(5, 4, 5, 4);
             kbSelect02.MaxLength = 10;
             kbSelect02.Name = "kbSelect02";
             kbSelect02.ReadOnly = true;
-            kbSelect02.Size = new Size(198, 23);
+            kbSelect02.Size = new Size(226, 27);
             kbSelect02.TabIndex = 29;
             kbSelect02.Text = "Page down";
             kbSelect02.TextAlign = HorizontalAlignment.Center;
@@ -9084,12 +9087,12 @@ namespace Easislides
             // kbSelect01
             // 
             kbSelect01.BackColor = SystemColors.Window;
-            kbSelect01.Location = new Point(4, 54);
-            kbSelect01.Margin = new Padding(4, 3, 4, 3);
+            kbSelect01.Location = new Point(5, 72);
+            kbSelect01.Margin = new Padding(5, 4, 5, 4);
             kbSelect01.MaxLength = 10;
             kbSelect01.Name = "kbSelect01";
             kbSelect01.ReadOnly = true;
-            kbSelect01.Size = new Size(198, 23);
+            kbSelect01.Size = new Size(226, 27);
             kbSelect01.TabIndex = 28;
             kbSelect01.Text = "Page Up";
             kbSelect01.TextAlign = HorizontalAlignment.Center;
@@ -9097,12 +9100,12 @@ namespace Easislides
             // kbSelect10
             // 
             kbSelect10.BackColor = SystemColors.Window;
-            kbSelect10.Location = new Point(215, 27);
-            kbSelect10.Margin = new Padding(4, 3, 4, 3);
+            kbSelect10.Location = new Point(246, 36);
+            kbSelect10.Margin = new Padding(5, 4, 5, 4);
             kbSelect10.MaxLength = 10;
             kbSelect10.Name = "kbSelect10";
             kbSelect10.ReadOnly = true;
-            kbSelect10.Size = new Size(198, 23);
+            kbSelect10.Size = new Size(226, 27);
             kbSelect10.TabIndex = 22;
             kbSelect10.Text = "Left Arrow";
             kbSelect10.TextAlign = HorizontalAlignment.Center;
@@ -9110,12 +9113,12 @@ namespace Easislides
             // kbSelect00
             // 
             kbSelect00.BackColor = SystemColors.Window;
-            kbSelect00.Location = new Point(4, 27);
-            kbSelect00.Margin = new Padding(4, 3, 4, 3);
+            kbSelect00.Location = new Point(5, 36);
+            kbSelect00.Margin = new Padding(5, 4, 5, 4);
             kbSelect00.MaxLength = 10;
             kbSelect00.Name = "kbSelect00";
             kbSelect00.ReadOnly = true;
-            kbSelect00.Size = new Size(198, 23);
+            kbSelect00.Size = new Size(226, 27);
             kbSelect00.TabIndex = 22;
             kbSelect00.Text = "Home";
             kbSelect00.TextAlign = HorizontalAlignment.Center;
@@ -9123,20 +9126,20 @@ namespace Easislides
             // rbKeyBoardOpt1
             // 
             rbKeyBoardOpt1.AutoSize = true;
-            rbKeyBoardOpt1.Location = new Point(266, 6);
-            rbKeyBoardOpt1.Margin = new Padding(4, 3, 4, 3);
+            rbKeyBoardOpt1.Location = new Point(304, 8);
+            rbKeyBoardOpt1.Margin = new Padding(5, 4, 5, 4);
             rbKeyBoardOpt1.Name = "rbKeyBoardOpt1";
-            rbKeyBoardOpt1.Size = new Size(82, 19);
+            rbKeyBoardOpt1.Size = new Size(102, 24);
             rbKeyBoardOpt1.TabIndex = 1;
             rbKeyBoardOpt1.Text = "Alternative";
             // 
             // rbKeyBoardOpt0
             // 
             rbKeyBoardOpt0.AutoSize = true;
-            rbKeyBoardOpt0.Location = new Point(59, 6);
-            rbKeyBoardOpt0.Margin = new Padding(4, 3, 4, 3);
+            rbKeyBoardOpt0.Location = new Point(67, 8);
+            rbKeyBoardOpt0.Margin = new Padding(5, 4, 5, 4);
             rbKeyBoardOpt0.Name = "rbKeyBoardOpt0";
-            rbKeyBoardOpt0.Size = new Size(63, 19);
+            rbKeyBoardOpt0.Size = new Size(79, 24);
             rbKeyBoardOpt0.TabIndex = 0;
             rbKeyBoardOpt0.Text = "Default";
             rbKeyBoardOpt0.CheckedChanged += rbKeyBoardOpt0_CheckedChanged;
@@ -9152,115 +9155,115 @@ namespace Easislides
             panel35.Controls.Add(kbAction1);
             panel35.Controls.Add(kbAction0);
             panel35.Controls.Add(label39);
-            panel35.Location = new Point(7, 22);
-            panel35.Margin = new Padding(4, 3, 4, 3);
+            panel35.Location = new Point(8, 29);
+            panel35.Margin = new Padding(5, 4, 5, 4);
             panel35.Name = "panel35";
-            panel35.Size = new Size(135, 270);
+            panel35.Size = new Size(154, 360);
             panel35.TabIndex = 23;
             // 
             // kbAction7
             // 
             kbAction7.BackColor = SystemColors.Window;
-            kbAction7.Location = new Point(5, 232);
-            kbAction7.Margin = new Padding(4, 3, 4, 3);
+            kbAction7.Location = new Point(6, 309);
+            kbAction7.Margin = new Padding(5, 4, 5, 4);
             kbAction7.MaxLength = 10;
             kbAction7.Name = "kbAction7";
             kbAction7.ReadOnly = true;
-            kbAction7.Size = new Size(122, 23);
+            kbAction7.Size = new Size(139, 27);
             kbAction7.TabIndex = 34;
             kbAction7.Text = "Last Slide";
             // 
             // kbAction6
             // 
             kbAction6.BackColor = SystemColors.Window;
-            kbAction6.Location = new Point(5, 204);
-            kbAction6.Margin = new Padding(4, 3, 4, 3);
+            kbAction6.Location = new Point(6, 272);
+            kbAction6.Margin = new Padding(5, 4, 5, 4);
             kbAction6.MaxLength = 10;
             kbAction6.Name = "kbAction6";
             kbAction6.ReadOnly = true;
-            kbAction6.Size = new Size(122, 23);
+            kbAction6.Size = new Size(139, 27);
             kbAction6.TabIndex = 33;
             kbAction6.Text = "Next Slide";
             // 
             // kbAction5
             // 
             kbAction5.BackColor = SystemColors.Window;
-            kbAction5.Location = new Point(5, 177);
-            kbAction5.Margin = new Padding(4, 3, 4, 3);
+            kbAction5.Location = new Point(6, 236);
+            kbAction5.Margin = new Padding(5, 4, 5, 4);
             kbAction5.MaxLength = 10;
             kbAction5.Name = "kbAction5";
             kbAction5.ReadOnly = true;
-            kbAction5.Size = new Size(122, 23);
+            kbAction5.Size = new Size(139, 27);
             kbAction5.TabIndex = 32;
             kbAction5.Text = "Previous Slide";
             // 
             // kbAction4
             // 
             kbAction4.BackColor = SystemColors.Window;
-            kbAction4.Location = new Point(5, 149);
-            kbAction4.Margin = new Padding(4, 3, 4, 3);
+            kbAction4.Location = new Point(6, 199);
+            kbAction4.Margin = new Padding(5, 4, 5, 4);
             kbAction4.MaxLength = 10;
             kbAction4.Name = "kbAction4";
             kbAction4.ReadOnly = true;
-            kbAction4.Size = new Size(122, 23);
+            kbAction4.Size = new Size(139, 27);
             kbAction4.TabIndex = 31;
             kbAction4.Text = "First Slide";
             // 
             // kbAction3
             // 
             kbAction3.BackColor = SystemColors.Window;
-            kbAction3.Location = new Point(4, 110);
-            kbAction3.Margin = new Padding(4, 3, 4, 3);
+            kbAction3.Location = new Point(5, 147);
+            kbAction3.Margin = new Padding(5, 4, 5, 4);
             kbAction3.MaxLength = 10;
             kbAction3.Name = "kbAction3";
             kbAction3.ReadOnly = true;
-            kbAction3.Size = new Size(122, 23);
+            kbAction3.Size = new Size(139, 27);
             kbAction3.TabIndex = 30;
             kbAction3.Text = "Last Item";
             // 
             // kbAction2
             // 
             kbAction2.BackColor = SystemColors.Window;
-            kbAction2.Location = new Point(4, 82);
-            kbAction2.Margin = new Padding(4, 3, 4, 3);
+            kbAction2.Location = new Point(5, 109);
+            kbAction2.Margin = new Padding(5, 4, 5, 4);
             kbAction2.MaxLength = 10;
             kbAction2.Name = "kbAction2";
             kbAction2.ReadOnly = true;
-            kbAction2.Size = new Size(122, 23);
+            kbAction2.Size = new Size(139, 27);
             kbAction2.TabIndex = 29;
             kbAction2.Text = "Next Item";
             // 
             // kbAction1
             // 
             kbAction1.BackColor = SystemColors.Window;
-            kbAction1.Location = new Point(4, 54);
-            kbAction1.Margin = new Padding(4, 3, 4, 3);
+            kbAction1.Location = new Point(5, 72);
+            kbAction1.Margin = new Padding(5, 4, 5, 4);
             kbAction1.MaxLength = 10;
             kbAction1.Name = "kbAction1";
             kbAction1.ReadOnly = true;
-            kbAction1.Size = new Size(122, 23);
+            kbAction1.Size = new Size(139, 27);
             kbAction1.TabIndex = 28;
             kbAction1.Text = "Previous Item";
             // 
             // kbAction0
             // 
             kbAction0.BackColor = SystemColors.Window;
-            kbAction0.Location = new Point(4, 27);
-            kbAction0.Margin = new Padding(4, 3, 4, 3);
+            kbAction0.Location = new Point(5, 36);
+            kbAction0.Margin = new Padding(5, 4, 5, 4);
             kbAction0.MaxLength = 10;
             kbAction0.Name = "kbAction0";
             kbAction0.ReadOnly = true;
-            kbAction0.Size = new Size(122, 23);
+            kbAction0.Size = new Size(139, 27);
             kbAction0.TabIndex = 22;
             kbAction0.Text = "First Item";
             // 
             // label39
             // 
             label39.AutoSize = true;
-            label39.Location = new Point(4, 8);
-            label39.Margin = new Padding(4, 0, 4, 0);
+            label39.Location = new Point(5, 11);
+            label39.Margin = new Padding(5, 0, 5, 0);
             label39.Name = "label39";
-            label39.Size = new Size(45, 15);
+            label39.Size = new Size(55, 20);
             label39.TabIndex = 27;
             label39.Text = "Action:";
             // 
@@ -9268,10 +9271,10 @@ namespace Easislides
             // 
             label59.BorderStyle = BorderStyle.FixedSingle;
             label59.FlatStyle = FlatStyle.Flat;
-            label59.Location = new Point(362, 326);
+            label59.Location = new Point(414, 435);
             label59.Margin = new Padding(2, 0, 2, 0);
             label59.Name = "label59";
-            label59.Size = new Size(206, 66);
+            label59.Size = new Size(235, 87);
             label59.TabIndex = 8;
             label59.Text = "SlideUpDown";
             // 
@@ -9279,30 +9282,30 @@ namespace Easislides
             // 
             label57.BorderStyle = BorderStyle.FixedSingle;
             label57.FlatStyle = FlatStyle.Flat;
-            label57.Location = new Point(7, 326);
+            label57.Location = new Point(8, 435);
             label57.Margin = new Padding(2, 0, 2, 0);
             label57.Name = "label57";
-            label57.Size = new Size(139, 66);
+            label57.Size = new Size(159, 87);
             label57.TabIndex = 8;
             label57.Text = "Black Screen";
             // 
             // BtnCancel
             // 
             BtnCancel.DialogResult = DialogResult.Cancel;
-            BtnCancel.Location = new Point(556, 449);
-            BtnCancel.Margin = new Padding(4, 3, 4, 3);
+            BtnCancel.Location = new Point(635, 599);
+            BtnCancel.Margin = new Padding(5, 4, 5, 4);
             BtnCancel.Name = "BtnCancel";
-            BtnCancel.Size = new Size(93, 28);
+            BtnCancel.Size = new Size(106, 37);
             BtnCancel.TabIndex = 1;
             BtnCancel.Text = "Cancel";
             BtnCancel.Click += BtnCancel_Click;
             // 
             // BtnOK
             // 
-            BtnOK.Location = new Point(444, 449);
-            BtnOK.Margin = new Padding(4, 3, 4, 3);
+            BtnOK.Location = new Point(507, 599);
+            BtnOK.Margin = new Padding(5, 4, 5, 4);
             BtnOK.Name = "BtnOK";
-            BtnOK.Size = new Size(93, 28);
+            BtnOK.Size = new Size(106, 37);
             BtnOK.TabIndex = 0;
             BtnOK.Text = "OK";
             BtnOK.Click += BtnOK_Click;
@@ -9313,15 +9316,15 @@ namespace Easislides
             // 
             // FrmOptions
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(663, 489);
+            ClientSize = new Size(758, 652);
             Controls.Add(BtnCancel);
             Controls.Add(BtnOK);
             Controls.Add(tabControl1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(4, 3, 4, 3);
+            Margin = new Padding(5, 4, 5, 4);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmOptions";

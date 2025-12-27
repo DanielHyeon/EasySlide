@@ -28,69 +28,89 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMove));
-			BtnCancel = new System.Windows.Forms.Button();
-			BtnOK = new System.Windows.Forms.Button();
-			SongFolder = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			Label1 = new System.Windows.Forms.Label();
-			SuspendLayout();
-			BtnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			BtnCancel.Location = new System.Drawing.Point(154, 179);
-			BtnCancel.Name = "BtnCancel";
-			BtnCancel.Size = new System.Drawing.Size(80, 24);
-			BtnCancel.TabIndex = 2;
-			BtnCancel.Text = "Cancel";
-			BtnOK.Location = new System.Drawing.Point(58, 179);
-			BtnOK.Name = "BtnOK";
-			BtnOK.Size = new System.Drawing.Size(80, 24);
-			BtnOK.TabIndex = 1;
-			BtnOK.Text = "OK";
-			BtnOK.Click += new System.EventHandler(BtnOK_Click);
-			SongFolder.Columns.AddRange(new System.Windows.Forms.ColumnHeader[1]
-			{
-				columnHeader1
-			});
-			SongFolder.FullRowSelect = true;
-			SongFolder.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			SongFolder.Location = new System.Drawing.Point(12, 46);
-			SongFolder.MultiSelect = false;
-			SongFolder.Name = "SongFolder";
-			SongFolder.Size = new System.Drawing.Size(277, 121);
-			SongFolder.TabIndex = 0;
-			SongFolder.UseCompatibleStateImageBehavior = false;
-			SongFolder.View = System.Windows.Forms.View.Details;
-			SongFolder.DoubleClick += new System.EventHandler(SongFolder_DoubleClick);
-			columnHeader1.Width = 240;
-			Label1.Location = new System.Drawing.Point(13, 9);
-			Label1.Name = "Label1";
-			Label1.Size = new System.Drawing.Size(276, 34);
-			Label1.TabIndex = 3;
-			Label1.Text = "label1";
-			base.AcceptButton = BtnOK;
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.CancelButton = BtnCancel;
-			base.ClientSize = new System.Drawing.Size(301, 215);
-			base.Controls.Add(Label1);
-			base.Controls.Add(SongFolder);
-			base.Controls.Add(BtnCancel);
-			base.Controls.Add(BtnOK);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmMove";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Move item(s) to another folder";
-			base.Load += new System.EventHandler(FrmMove_Load);
-			ResumeLayout(false);
-		}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmMove));
+            BtnCancel = new Button();
+            BtnOK = new Button();
+            SongFolder = new ListView();
+            columnHeader1 = new ColumnHeader();
+            Label1 = new Label();
+            SuspendLayout();
+            // 
+            // BtnCancel
+            // 
+            BtnCancel.DialogResult = DialogResult.Cancel;
+            BtnCancel.Location = new Point(205, 275);
+            BtnCancel.Margin = new Padding(4, 5, 4, 5);
+            BtnCancel.Name = "BtnCancel";
+            BtnCancel.Size = new Size(107, 37);
+            BtnCancel.TabIndex = 2;
+            BtnCancel.Text = "Cancel";
+            // 
+            // BtnOK
+            // 
+            BtnOK.Location = new Point(77, 275);
+            BtnOK.Margin = new Padding(4, 5, 4, 5);
+            BtnOK.Name = "BtnOK";
+            BtnOK.Size = new Size(107, 37);
+            BtnOK.TabIndex = 1;
+            BtnOK.Text = "OK";
+            BtnOK.Click += BtnOK_Click;
+            // 
+            // SongFolder
+            // 
+            SongFolder.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
+            SongFolder.FullRowSelect = true;
+            SongFolder.HeaderStyle = ColumnHeaderStyle.None;
+            SongFolder.Location = new Point(16, 71);
+            SongFolder.Margin = new Padding(4, 5, 4, 5);
+            SongFolder.MultiSelect = false;
+            SongFolder.Name = "SongFolder";
+            SongFolder.Size = new Size(368, 184);
+            SongFolder.TabIndex = 0;
+            SongFolder.UseCompatibleStateImageBehavior = false;
+            SongFolder.View = View.Details;
+            SongFolder.DoubleClick += SongFolder_DoubleClick;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Width = 240;
+            // 
+            // Label1
+            // 
+            Label1.Location = new Point(17, 14);
+            Label1.Margin = new Padding(4, 0, 4, 0);
+            Label1.Name = "Label1";
+            Label1.Size = new Size(368, 52);
+            Label1.TabIndex = 3;
+            Label1.Text = "label1";
+            // 
+            // FrmMove
+            // 
+            AcceptButton = BtnOK;
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = BtnCancel;
+            ClientSize = new Size(401, 331);
+            Controls.Add(Label1);
+            Controls.Add(SongFolder);
+            Controls.Add(BtnCancel);
+            Controls.Add(BtnOK);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmMove";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Move item(s) to another folder";
+            Load += FrmMove_Load;
+            ResumeLayout(false);
+        }
 
-		public FrmMove()
+        public FrmMove()
 		{
 			InitializeComponent();
 		}

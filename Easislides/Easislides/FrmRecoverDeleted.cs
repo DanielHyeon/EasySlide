@@ -206,99 +206,131 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmRecoverDeleted));
-			BtnCancel = new System.Windows.Forms.Button();
-			BtnOK = new System.Windows.Forms.Button();
-			SongsList = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			columnHeader2 = new System.Windows.Forms.ColumnHeader();
-			columnHeader3 = new System.Windows.Forms.ColumnHeader();
-			columnHeader4 = new System.Windows.Forms.ColumnHeader();
-			columnHeader5 = new System.Windows.Forms.ColumnHeader();
-			cbTickAll = new System.Windows.Forms.CheckBox();
-			toolTip1 = new System.Windows.Forms.ToolTip(components);
-			label1 = new System.Windows.Forms.Label();
-			SuspendLayout();
-			BtnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			BtnCancel.Location = new System.Drawing.Point(379, 255);
-			BtnCancel.Name = "BtnCancel";
-			BtnCancel.Size = new System.Drawing.Size(80, 24);
-			BtnCancel.TabIndex = 3;
-			BtnCancel.Text = "Close";
-			BtnOK.Location = new System.Drawing.Point(284, 255);
-			BtnOK.Name = "BtnOK";
-			BtnOK.Size = new System.Drawing.Size(80, 24);
-			BtnOK.TabIndex = 2;
-			BtnOK.Text = "Recover";
-			BtnOK.Click += new System.EventHandler(BtnOK_Click);
-			SongsList.CheckBoxes = true;
-			SongsList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[5]
-			{
-				columnHeader1,
-				columnHeader2,
-				columnHeader3,
-				columnHeader4,
-				columnHeader5
-			});
-			SongsList.FullRowSelect = true;
-			SongsList.Location = new System.Drawing.Point(12, 26);
-			SongsList.Name = "SongsList";
-			SongsList.ShowItemToolTips = true;
-			SongsList.Size = new System.Drawing.Size(447, 224);
-			SongsList.Sorting = System.Windows.Forms.SortOrder.Ascending;
-			SongsList.TabIndex = 0;
-			SongsList.UseCompatibleStateImageBehavior = false;
-			SongsList.View = System.Windows.Forms.View.Details;
-			SongsList.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(SongsList_ItemChecked);
-			SongsList.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(SongsList_ColumnClick);
-			columnHeader1.Text = "";
-			columnHeader1.Width = 239;
-			columnHeader2.Text = "Restore to Folder";
-			columnHeader2.Width = 106;
-			columnHeader3.Text = "Deleted (Y-M-D)";
-			columnHeader3.Width = 97;
-			columnHeader4.Text = "Song ID";
-			columnHeader4.Width = 0;
-			columnHeader5.Text = "FolderNo";
-			columnHeader5.Width = 0;
-			cbTickAll.AutoSize = true;
-			cbTickAll.Location = new System.Drawing.Point(21, 255);
-			cbTickAll.Name = "cbTickAll";
-			cbTickAll.Size = new System.Drawing.Size(61, 17);
-			cbTickAll.TabIndex = 1;
-			cbTickAll.Text = "Tick All";
-			cbTickAll.ThreeState = true;
-			cbTickAll.CheckedChanged += new System.EventHandler(cbTickAll_CheckedChanged);
-			label1.AutoSize = true;
-			label1.Location = new System.Drawing.Point(19, 8);
-			label1.Name = "label1";
-			label1.Size = new System.Drawing.Size(285, 13);
-			label1.TabIndex = 4;
-			label1.Text = "Tick the items you wish to restore and then click 'Recover':";
-			base.AcceptButton = BtnOK;
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.CancelButton = BtnCancel;
-			base.ClientSize = new System.Drawing.Size(471, 292);
-			base.Controls.Add(label1);
-			base.Controls.Add(cbTickAll);
-			base.Controls.Add(SongsList);
-			base.Controls.Add(BtnCancel);
-			base.Controls.Add(BtnOK);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmRecoverDeleted";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Recover Deleted Songs";
-			base.Load += new System.EventHandler(FrmRecoverDeleted_Load);
-			ResumeLayout(false);
-			PerformLayout();
-		}
-	}
+        private void InitializeComponent()
+        {
+            components = new Container();
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmRecoverDeleted));
+            BtnCancel = new Button();
+            BtnOK = new Button();
+            SongsList = new ListView();
+            columnHeader1 = new ColumnHeader();
+            columnHeader2 = new ColumnHeader();
+            columnHeader3 = new ColumnHeader();
+            columnHeader4 = new ColumnHeader();
+            columnHeader5 = new ColumnHeader();
+            cbTickAll = new CheckBox();
+            toolTip1 = new ToolTip(components);
+            label1 = new Label();
+            SuspendLayout();
+            // 
+            // BtnCancel
+            // 
+            BtnCancel.DialogResult = DialogResult.Cancel;
+            BtnCancel.Location = new Point(505, 392);
+            BtnCancel.Margin = new Padding(4, 5, 4, 5);
+            BtnCancel.Name = "BtnCancel";
+            BtnCancel.Size = new Size(107, 37);
+            BtnCancel.TabIndex = 3;
+            BtnCancel.Text = "Close";
+            // 
+            // BtnOK
+            // 
+            BtnOK.Location = new Point(379, 392);
+            BtnOK.Margin = new Padding(4, 5, 4, 5);
+            BtnOK.Name = "BtnOK";
+            BtnOK.Size = new Size(107, 37);
+            BtnOK.TabIndex = 2;
+            BtnOK.Text = "Recover";
+            BtnOK.Click += BtnOK_Click;
+            // 
+            // SongsList
+            // 
+            SongsList.CheckBoxes = true;
+            SongsList.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
+            SongsList.FullRowSelect = true;
+            SongsList.Location = new Point(16, 40);
+            SongsList.Margin = new Padding(4, 5, 4, 5);
+            SongsList.Name = "SongsList";
+            SongsList.ShowItemToolTips = true;
+            SongsList.Size = new Size(595, 342);
+            SongsList.Sorting = SortOrder.Ascending;
+            SongsList.TabIndex = 0;
+            SongsList.UseCompatibleStateImageBehavior = false;
+            SongsList.View = View.Details;
+            SongsList.ColumnClick += SongsList_ColumnClick;
+            SongsList.ItemChecked += SongsList_ItemChecked;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "";
+            columnHeader1.Width = 239;
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Text = "Restore to Folder";
+            columnHeader2.Width = 106;
+            // 
+            // columnHeader3
+            // 
+            columnHeader3.Text = "Deleted (Y-M-D)";
+            columnHeader3.Width = 97;
+            // 
+            // columnHeader4
+            // 
+            columnHeader4.Text = "Song ID";
+            columnHeader4.Width = 0;
+            // 
+            // columnHeader5
+            // 
+            columnHeader5.Text = "FolderNo";
+            columnHeader5.Width = 0;
+            // 
+            // cbTickAll
+            // 
+            cbTickAll.AutoSize = true;
+            cbTickAll.Location = new Point(28, 392);
+            cbTickAll.Margin = new Padding(4, 5, 4, 5);
+            cbTickAll.Name = "cbTickAll";
+            cbTickAll.Size = new Size(79, 24);
+            cbTickAll.TabIndex = 1;
+            cbTickAll.Text = "Tick All";
+            cbTickAll.ThreeState = true;
+            cbTickAll.CheckedChanged += cbTickAll_CheckedChanged;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(25, 12);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(390, 20);
+            label1.TabIndex = 4;
+            label1.Text = "Tick the items you wish to restore and then click 'Recover':";
+            // 
+            // FrmRecoverDeleted
+            // 
+            AcceptButton = BtnOK;
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = BtnCancel;
+            ClientSize = new Size(628, 449);
+            Controls.Add(label1);
+            Controls.Add(cbTickAll);
+            Controls.Add(SongsList);
+            Controls.Add(BtnCancel);
+            Controls.Add(BtnOK);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmRecoverDeleted";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Recover Deleted Songs";
+            Load += FrmRecoverDeleted_Load;
+            ResumeLayout(false);
+            PerformLayout();
+        }
+    }
 }

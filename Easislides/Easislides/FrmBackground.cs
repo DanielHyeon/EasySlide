@@ -101,421 +101,565 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmBackground));
-			OkBtn = new System.Windows.Forms.Button();
-			Colour1Btn = new System.Windows.Forms.Button();
-			Colour2Btn = new System.Windows.Forms.Button();
-			CancelBtn = new System.Windows.Forms.Button();
-			groupBox1 = new System.Windows.Forms.GroupBox();
-			groupBox4 = new System.Windows.Forms.GroupBox();
-			SwapBtn = new System.Windows.Forms.Button();
-			checkBoxColour2 = new System.Windows.Forms.CheckBox();
-			groupBox3 = new System.Windows.Forms.GroupBox();
-			groupBox2 = new System.Windows.Forms.GroupBox();
-			panel11 = new System.Windows.Forms.Panel();
-			pictureBox11 = new System.Windows.Forms.PictureBox();
-			panel9 = new System.Windows.Forms.Panel();
-			pictureBox9 = new System.Windows.Forms.PictureBox();
-			panel10 = new System.Windows.Forms.Panel();
-			pictureBox10 = new System.Windows.Forms.PictureBox();
-			panel8 = new System.Windows.Forms.Panel();
-			pictureBox8 = new System.Windows.Forms.PictureBox();
-			panel7 = new System.Windows.Forms.Panel();
-			pictureBox7 = new System.Windows.Forms.PictureBox();
-			panel6 = new System.Windows.Forms.Panel();
-			pictureBox6 = new System.Windows.Forms.PictureBox();
-			panel5 = new System.Windows.Forms.Panel();
-			pictureBox5 = new System.Windows.Forms.PictureBox();
-			panel4 = new System.Windows.Forms.Panel();
-			pictureBox4 = new System.Windows.Forms.PictureBox();
-			panel3 = new System.Windows.Forms.Panel();
-			pictureBox3 = new System.Windows.Forms.PictureBox();
-			panel2 = new System.Windows.Forms.Panel();
-			pictureBox2 = new System.Windows.Forms.PictureBox();
-			panel1 = new System.Windows.Forms.Panel();
-			pictureBox1 = new System.Windows.Forms.PictureBox();
-			panel0 = new System.Windows.Forms.Panel();
-			pictureBox0 = new System.Windows.Forms.PictureBox();
-			toolTip1 = new System.Windows.Forms.ToolTip(components);
-			groupBox1.SuspendLayout();
-			groupBox4.SuspendLayout();
-			groupBox3.SuspendLayout();
-			groupBox2.SuspendLayout();
-			panel11.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox11).BeginInit();
-			panel9.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox9).BeginInit();
-			panel10.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox10).BeginInit();
-			panel8.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox8).BeginInit();
-			panel7.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox7).BeginInit();
-			panel6.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox6).BeginInit();
-			panel5.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox5).BeginInit();
-			panel4.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
-			panel3.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
-			panel2.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
-			panel1.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-			panel0.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)pictureBox0).BeginInit();
-			SuspendLayout();
-			OkBtn.Location = new System.Drawing.Point(212, 15);
-			OkBtn.Name = "OkBtn";
-			OkBtn.Size = new System.Drawing.Size(76, 25);
-			OkBtn.TabIndex = 0;
-			OkBtn.Text = "OK";
-			OkBtn.Click += new System.EventHandler(OkBtn_Click);
-			Colour1Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Colour1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			Colour1Btn.Location = new System.Drawing.Point(7, 9);
-			Colour1Btn.Name = "Colour1Btn";
-			Colour1Btn.Size = new System.Drawing.Size(61, 22);
-			Colour1Btn.TabIndex = 0;
-			Colour1Btn.Text = "Colour 1";
-			Colour1Btn.MouseUp += new System.Windows.Forms.MouseEventHandler(Colour1_MouseUp);
-			Colour2Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Colour2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			Colour2Btn.Location = new System.Drawing.Point(22, 9);
-			Colour2Btn.Name = "Colour2Btn";
-			Colour2Btn.Size = new System.Drawing.Size(61, 22);
-			Colour2Btn.TabIndex = 1;
-			Colour2Btn.Text = "Colour 2";
-			Colour2Btn.MouseUp += new System.Windows.Forms.MouseEventHandler(Colour2_MouseUp);
-			CancelBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			CancelBtn.Location = new System.Drawing.Point(294, 15);
-			CancelBtn.Name = "CancelBtn";
-			CancelBtn.Size = new System.Drawing.Size(76, 25);
-			CancelBtn.TabIndex = 1;
-			CancelBtn.Text = "Cancel";
-			groupBox1.Controls.Add(groupBox4);
-			groupBox1.Controls.Add(groupBox3);
-			groupBox1.Controls.Add(OkBtn);
-			groupBox1.Controls.Add(CancelBtn);
-			groupBox1.Location = new System.Drawing.Point(9, 241);
-			groupBox1.Name = "groupBox1";
-			groupBox1.Size = new System.Drawing.Size(384, 47);
-			groupBox1.TabIndex = 0;
-			groupBox1.TabStop = false;
-			groupBox4.Controls.Add(SwapBtn);
-			groupBox4.Controls.Add(checkBoxColour2);
-			groupBox4.Controls.Add(Colour2Btn);
-			groupBox4.Location = new System.Drawing.Point(86, 7);
-			groupBox4.Name = "groupBox4";
-			groupBox4.Size = new System.Drawing.Size(120, 34);
-			groupBox4.TabIndex = 1;
-			groupBox4.TabStop = false;
-			SwapBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			SwapBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			SwapBtn.Image = Resources.SwapColours;
-			SwapBtn.Location = new System.Drawing.Point(89, 9);
-			SwapBtn.Name = "SwapBtn";
-			SwapBtn.Size = new System.Drawing.Size(24, 22);
-			SwapBtn.TabIndex = 2;
-			toolTip1.SetToolTip(SwapBtn, "Swap Colour 1 with Colour 2");
-			SwapBtn.MouseUp += new System.Windows.Forms.MouseEventHandler(SwapBtn_MouseUp);
-			checkBoxColour2.AutoSize = true;
-			checkBoxColour2.Location = new System.Drawing.Point(4, 13);
-			checkBoxColour2.Name = "checkBoxColour2";
-			checkBoxColour2.Size = new System.Drawing.Size(15, 14);
-			checkBoxColour2.TabIndex = 0;
-			toolTip1.SetToolTip(checkBoxColour2, "Use Colour 2");
-			checkBoxColour2.Click += new System.EventHandler(checkBoxColour2_Click);
-			groupBox3.Controls.Add(Colour1Btn);
-			groupBox3.Location = new System.Drawing.Point(6, 7);
-			groupBox3.Name = "groupBox3";
-			groupBox3.Size = new System.Drawing.Size(74, 34);
-			groupBox3.TabIndex = 0;
-			groupBox3.TabStop = false;
-			groupBox2.Controls.Add(panel11);
-			groupBox2.Controls.Add(panel9);
-			groupBox2.Controls.Add(panel10);
-			groupBox2.Controls.Add(panel8);
-			groupBox2.Controls.Add(panel7);
-			groupBox2.Controls.Add(panel6);
-			groupBox2.Controls.Add(panel5);
-			groupBox2.Controls.Add(panel4);
-			groupBox2.Controls.Add(panel3);
-			groupBox2.Controls.Add(panel2);
-			groupBox2.Controls.Add(panel1);
-			groupBox2.Controls.Add(panel0);
-			groupBox2.Location = new System.Drawing.Point(9, 4);
-			groupBox2.Name = "groupBox2";
-			groupBox2.Size = new System.Drawing.Size(384, 233);
-			groupBox2.TabIndex = 1;
-			groupBox2.TabStop = false;
-			groupBox2.Text = "Patterns";
-			panel11.BackColor = System.Drawing.Color.Red;
-			panel11.Controls.Add(pictureBox11);
-			panel11.Location = new System.Drawing.Point(280, 157);
-			panel11.Name = "panel11";
-			panel11.Size = new System.Drawing.Size(86, 66);
-			panel11.TabIndex = 11;
-			pictureBox11.BackColor = System.Drawing.Color.White;
-			pictureBox11.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox11.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox11.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox11.Location = new System.Drawing.Point(3, 3);
-			pictureBox11.Name = "pictureBox11";
-			pictureBox11.Size = new System.Drawing.Size(80, 60);
-			pictureBox11.TabIndex = 4;
-			pictureBox11.TabStop = false;
-			pictureBox11.Tag = "11";
-			pictureBox11.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox11.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel9.BackColor = System.Drawing.Color.Red;
-			panel9.Controls.Add(pictureBox9);
-			panel9.Location = new System.Drawing.Point(102, 157);
-			panel9.Name = "panel9";
-			panel9.Size = new System.Drawing.Size(86, 66);
-			panel9.TabIndex = 9;
-			pictureBox9.BackColor = System.Drawing.Color.White;
-			pictureBox9.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox9.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox9.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox9.Location = new System.Drawing.Point(3, 3);
-			pictureBox9.Name = "pictureBox9";
-			pictureBox9.Size = new System.Drawing.Size(80, 60);
-			pictureBox9.TabIndex = 4;
-			pictureBox9.TabStop = false;
-			pictureBox9.Tag = "9";
-			pictureBox9.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox9.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel10.BackColor = System.Drawing.Color.Red;
-			panel10.Controls.Add(pictureBox10);
-			panel10.Location = new System.Drawing.Point(191, 157);
-			panel10.Name = "panel10";
-			panel10.Size = new System.Drawing.Size(86, 66);
-			panel10.TabIndex = 10;
-			pictureBox10.BackColor = System.Drawing.Color.White;
-			pictureBox10.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox10.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox10.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox10.Location = new System.Drawing.Point(3, 3);
-			pictureBox10.Name = "pictureBox10";
-			pictureBox10.Size = new System.Drawing.Size(80, 60);
-			pictureBox10.TabIndex = 4;
-			pictureBox10.TabStop = false;
-			pictureBox10.Tag = "10";
-			pictureBox10.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox10.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel8.BackColor = System.Drawing.Color.Red;
-			panel8.Controls.Add(pictureBox8);
-			panel8.Location = new System.Drawing.Point(13, 157);
-			panel8.Name = "panel8";
-			panel8.Size = new System.Drawing.Size(86, 66);
-			panel8.TabIndex = 8;
-			pictureBox8.BackColor = System.Drawing.Color.White;
-			pictureBox8.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox8.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox8.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox8.Location = new System.Drawing.Point(3, 3);
-			pictureBox8.Name = "pictureBox8";
-			pictureBox8.Size = new System.Drawing.Size(80, 60);
-			pictureBox8.TabIndex = 4;
-			pictureBox8.TabStop = false;
-			pictureBox8.Tag = "8";
-			pictureBox8.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox8.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel7.BackColor = System.Drawing.Color.Red;
-			panel7.Controls.Add(pictureBox7);
-			panel7.Location = new System.Drawing.Point(280, 88);
-			panel7.Name = "panel7";
-			panel7.Size = new System.Drawing.Size(86, 66);
-			panel7.TabIndex = 7;
-			pictureBox7.BackColor = System.Drawing.Color.White;
-			pictureBox7.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox7.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox7.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox7.Location = new System.Drawing.Point(3, 3);
-			pictureBox7.Name = "pictureBox7";
-			pictureBox7.Size = new System.Drawing.Size(80, 60);
-			pictureBox7.TabIndex = 4;
-			pictureBox7.TabStop = false;
-			pictureBox7.Tag = "7";
-			pictureBox7.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox7.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel6.BackColor = System.Drawing.Color.Red;
-			panel6.Controls.Add(pictureBox6);
-			panel6.Location = new System.Drawing.Point(191, 88);
-			panel6.Name = "panel6";
-			panel6.Size = new System.Drawing.Size(86, 66);
-			panel6.TabIndex = 6;
-			pictureBox6.BackColor = System.Drawing.Color.White;
-			pictureBox6.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox6.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox6.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox6.Location = new System.Drawing.Point(3, 3);
-			pictureBox6.Name = "pictureBox6";
-			pictureBox6.Size = new System.Drawing.Size(80, 60);
-			pictureBox6.TabIndex = 4;
-			pictureBox6.TabStop = false;
-			pictureBox6.Tag = "6";
-			pictureBox6.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox6.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel5.BackColor = System.Drawing.Color.Red;
-			panel5.Controls.Add(pictureBox5);
-			panel5.Location = new System.Drawing.Point(102, 88);
-			panel5.Name = "panel5";
-			panel5.Size = new System.Drawing.Size(86, 66);
-			panel5.TabIndex = 5;
-			pictureBox5.BackColor = System.Drawing.Color.White;
-			pictureBox5.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox5.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox5.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox5.Location = new System.Drawing.Point(3, 3);
-			pictureBox5.Name = "pictureBox5";
-			pictureBox5.Size = new System.Drawing.Size(80, 60);
-			pictureBox5.TabIndex = 4;
-			pictureBox5.TabStop = false;
-			pictureBox5.Tag = "5";
-			pictureBox5.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox5.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel4.BackColor = System.Drawing.Color.Red;
-			panel4.Controls.Add(pictureBox4);
-			panel4.Location = new System.Drawing.Point(13, 88);
-			panel4.Name = "panel4";
-			panel4.Size = new System.Drawing.Size(86, 66);
-			panel4.TabIndex = 4;
-			pictureBox4.BackColor = System.Drawing.Color.White;
-			pictureBox4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox4.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox4.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox4.Location = new System.Drawing.Point(3, 3);
-			pictureBox4.Name = "pictureBox4";
-			pictureBox4.Size = new System.Drawing.Size(80, 60);
-			pictureBox4.TabIndex = 4;
-			pictureBox4.TabStop = false;
-			pictureBox4.Tag = "4";
-			pictureBox4.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox4.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel3.BackColor = System.Drawing.Color.Red;
-			panel3.Controls.Add(pictureBox3);
-			panel3.Location = new System.Drawing.Point(280, 19);
-			panel3.Name = "panel3";
-			panel3.Size = new System.Drawing.Size(86, 66);
-			panel3.TabIndex = 3;
-			pictureBox3.BackColor = System.Drawing.Color.White;
-			pictureBox3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox3.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox3.Location = new System.Drawing.Point(3, 3);
-			pictureBox3.Name = "pictureBox3";
-			pictureBox3.Size = new System.Drawing.Size(80, 60);
-			pictureBox3.TabIndex = 4;
-			pictureBox3.TabStop = false;
-			pictureBox3.Tag = "3";
-			pictureBox3.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox3.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel2.BackColor = System.Drawing.Color.Red;
-			panel2.Controls.Add(pictureBox2);
-			panel2.Location = new System.Drawing.Point(191, 19);
-			panel2.Name = "panel2";
-			panel2.Size = new System.Drawing.Size(86, 66);
-			panel2.TabIndex = 2;
-			pictureBox2.BackColor = System.Drawing.Color.White;
-			pictureBox2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox2.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox2.Location = new System.Drawing.Point(3, 3);
-			pictureBox2.Name = "pictureBox2";
-			pictureBox2.Size = new System.Drawing.Size(80, 60);
-			pictureBox2.TabIndex = 4;
-			pictureBox2.TabStop = false;
-			pictureBox2.Tag = "2";
-			pictureBox2.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox2.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel1.BackColor = System.Drawing.Color.Red;
-			panel1.Controls.Add(pictureBox1);
-			panel1.Location = new System.Drawing.Point(102, 19);
-			panel1.Name = "panel1";
-			panel1.Size = new System.Drawing.Size(86, 66);
-			panel1.TabIndex = 1;
-			pictureBox1.BackColor = System.Drawing.Color.White;
-			pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox1.Location = new System.Drawing.Point(3, 3);
-			pictureBox1.Name = "pictureBox1";
-			pictureBox1.Size = new System.Drawing.Size(80, 60);
-			pictureBox1.TabIndex = 4;
-			pictureBox1.TabStop = false;
-			pictureBox1.Tag = "1";
-			pictureBox1.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			panel0.BackColor = System.Drawing.Color.Red;
-			panel0.Controls.Add(pictureBox0);
-			panel0.Location = new System.Drawing.Point(13, 19);
-			panel0.Name = "panel0";
-			panel0.Size = new System.Drawing.Size(86, 66);
-			panel0.TabIndex = 0;
-			pictureBox0.BackColor = System.Drawing.Color.White;
-			pictureBox0.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			pictureBox0.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			pictureBox0.Cursor = System.Windows.Forms.Cursors.Hand;
-			pictureBox0.Location = new System.Drawing.Point(3, 3);
-			pictureBox0.Name = "pictureBox0";
-			pictureBox0.Size = new System.Drawing.Size(80, 60);
-			pictureBox0.TabIndex = 4;
-			pictureBox0.TabStop = false;
-			pictureBox0.Tag = "0";
-			pictureBox0.DoubleClick += new System.EventHandler(pictureBoxAll_DoubleClick);
-			pictureBox0.MouseDown += new System.Windows.Forms.MouseEventHandler(pictureBoxAll_MouseDown);
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(402, 298);
-			base.Controls.Add(groupBox2);
-			base.Controls.Add(groupBox1);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmBackground";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Background Colours and Patterns";
-			groupBox1.ResumeLayout(false);
-			groupBox4.ResumeLayout(false);
-			groupBox4.PerformLayout();
-			groupBox3.ResumeLayout(false);
-			groupBox2.ResumeLayout(false);
-			panel11.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox11).EndInit();
-			panel9.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox9).EndInit();
-			panel10.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox10).EndInit();
-			panel8.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox8).EndInit();
-			panel7.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox7).EndInit();
-			panel6.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
-			panel5.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
-			panel4.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
-			panel3.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
-			panel2.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
-			panel1.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-			panel0.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)pictureBox0).EndInit();
-			ResumeLayout(false);
-		}
+        private void InitializeComponent()
+        {
+            components = new Container();
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmBackground));
+            OkBtn = new Button();
+            Colour1Btn = new Button();
+            Colour2Btn = new Button();
+            CancelBtn = new Button();
+            groupBox1 = new GroupBox();
+            groupBox4 = new GroupBox();
+            SwapBtn = new Button();
+            checkBoxColour2 = new CheckBox();
+            groupBox3 = new GroupBox();
+            groupBox2 = new GroupBox();
+            panel11 = new Panel();
+            pictureBox11 = new PictureBox();
+            panel9 = new Panel();
+            pictureBox9 = new PictureBox();
+            panel10 = new Panel();
+            pictureBox10 = new PictureBox();
+            panel8 = new Panel();
+            pictureBox8 = new PictureBox();
+            panel7 = new Panel();
+            pictureBox7 = new PictureBox();
+            panel6 = new Panel();
+            pictureBox6 = new PictureBox();
+            panel5 = new Panel();
+            pictureBox5 = new PictureBox();
+            panel4 = new Panel();
+            pictureBox4 = new PictureBox();
+            panel3 = new Panel();
+            pictureBox3 = new PictureBox();
+            panel2 = new Panel();
+            pictureBox2 = new PictureBox();
+            panel1 = new Panel();
+            pictureBox1 = new PictureBox();
+            panel0 = new Panel();
+            pictureBox0 = new PictureBox();
+            toolTip1 = new ToolTip(components);
+            groupBox1.SuspendLayout();
+            groupBox4.SuspendLayout();
+            groupBox3.SuspendLayout();
+            groupBox2.SuspendLayout();
+            panel11.SuspendLayout();
+            ((ISupportInitialize)pictureBox11).BeginInit();
+            panel9.SuspendLayout();
+            ((ISupportInitialize)pictureBox9).BeginInit();
+            panel10.SuspendLayout();
+            ((ISupportInitialize)pictureBox10).BeginInit();
+            panel8.SuspendLayout();
+            ((ISupportInitialize)pictureBox8).BeginInit();
+            panel7.SuspendLayout();
+            ((ISupportInitialize)pictureBox7).BeginInit();
+            panel6.SuspendLayout();
+            ((ISupportInitialize)pictureBox6).BeginInit();
+            panel5.SuspendLayout();
+            ((ISupportInitialize)pictureBox5).BeginInit();
+            panel4.SuspendLayout();
+            ((ISupportInitialize)pictureBox4).BeginInit();
+            panel3.SuspendLayout();
+            ((ISupportInitialize)pictureBox3).BeginInit();
+            panel2.SuspendLayout();
+            ((ISupportInitialize)pictureBox2).BeginInit();
+            panel1.SuspendLayout();
+            ((ISupportInitialize)pictureBox1).BeginInit();
+            panel0.SuspendLayout();
+            ((ISupportInitialize)pictureBox0).BeginInit();
+            SuspendLayout();
+            // 
+            // OkBtn
+            // 
+            OkBtn.Location = new Point(283, 23);
+            OkBtn.Margin = new Padding(4, 5, 4, 5);
+            OkBtn.Name = "OkBtn";
+            OkBtn.Size = new Size(101, 38);
+            OkBtn.TabIndex = 0;
+            OkBtn.Text = "OK";
+            OkBtn.Click += OkBtn_Click;
+            // 
+            // Colour1Btn
+            // 
+            Colour1Btn.FlatStyle = FlatStyle.Flat;
+            Colour1Btn.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            Colour1Btn.Location = new Point(9, 14);
+            Colour1Btn.Margin = new Padding(4, 5, 4, 5);
+            Colour1Btn.Name = "Colour1Btn";
+            Colour1Btn.Size = new Size(81, 34);
+            Colour1Btn.TabIndex = 0;
+            Colour1Btn.Text = "Colour 1";
+            Colour1Btn.MouseUp += Colour1_MouseUp;
+            // 
+            // Colour2Btn
+            // 
+            Colour2Btn.FlatStyle = FlatStyle.Flat;
+            Colour2Btn.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            Colour2Btn.Location = new Point(29, 14);
+            Colour2Btn.Margin = new Padding(4, 5, 4, 5);
+            Colour2Btn.Name = "Colour2Btn";
+            Colour2Btn.Size = new Size(81, 34);
+            Colour2Btn.TabIndex = 1;
+            Colour2Btn.Text = "Colour 2";
+            Colour2Btn.MouseUp += Colour2_MouseUp;
+            // 
+            // CancelBtn
+            // 
+            CancelBtn.DialogResult = DialogResult.Cancel;
+            CancelBtn.Location = new Point(392, 23);
+            CancelBtn.Margin = new Padding(4, 5, 4, 5);
+            CancelBtn.Name = "CancelBtn";
+            CancelBtn.Size = new Size(101, 38);
+            CancelBtn.TabIndex = 1;
+            CancelBtn.Text = "Cancel";
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(groupBox4);
+            groupBox1.Controls.Add(groupBox3);
+            groupBox1.Controls.Add(OkBtn);
+            groupBox1.Controls.Add(CancelBtn);
+            groupBox1.Location = new Point(12, 371);
+            groupBox1.Margin = new Padding(4, 5, 4, 5);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new Padding(4, 5, 4, 5);
+            groupBox1.Size = new Size(512, 72);
+            groupBox1.TabIndex = 0;
+            groupBox1.TabStop = false;
+            // 
+            // groupBox4
+            // 
+            groupBox4.Controls.Add(SwapBtn);
+            groupBox4.Controls.Add(checkBoxColour2);
+            groupBox4.Controls.Add(Colour2Btn);
+            groupBox4.Location = new Point(115, 11);
+            groupBox4.Margin = new Padding(4, 5, 4, 5);
+            groupBox4.Name = "groupBox4";
+            groupBox4.Padding = new Padding(4, 5, 4, 5);
+            groupBox4.Size = new Size(160, 52);
+            groupBox4.TabIndex = 1;
+            groupBox4.TabStop = false;
+            // 
+            // SwapBtn
+            // 
+            SwapBtn.FlatStyle = FlatStyle.Flat;
+            SwapBtn.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            SwapBtn.Image = Resources.SwapColours;
+            SwapBtn.Location = new Point(119, 14);
+            SwapBtn.Margin = new Padding(4, 5, 4, 5);
+            SwapBtn.Name = "SwapBtn";
+            SwapBtn.Size = new Size(32, 34);
+            SwapBtn.TabIndex = 2;
+            toolTip1.SetToolTip(SwapBtn, "Swap Colour 1 with Colour 2");
+            SwapBtn.MouseUp += SwapBtn_MouseUp;
+            // 
+            // checkBoxColour2
+            // 
+            checkBoxColour2.AutoSize = true;
+            checkBoxColour2.Location = new Point(5, 20);
+            checkBoxColour2.Margin = new Padding(4, 5, 4, 5);
+            checkBoxColour2.Name = "checkBoxColour2";
+            checkBoxColour2.Size = new Size(18, 17);
+            checkBoxColour2.TabIndex = 0;
+            toolTip1.SetToolTip(checkBoxColour2, "Use Colour 2");
+            checkBoxColour2.Click += checkBoxColour2_Click;
+            // 
+            // groupBox3
+            // 
+            groupBox3.Controls.Add(Colour1Btn);
+            groupBox3.Location = new Point(8, 11);
+            groupBox3.Margin = new Padding(4, 5, 4, 5);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Padding = new Padding(4, 5, 4, 5);
+            groupBox3.Size = new Size(99, 52);
+            groupBox3.TabIndex = 0;
+            groupBox3.TabStop = false;
+            // 
+            // groupBox2
+            // 
+            groupBox2.Controls.Add(panel11);
+            groupBox2.Controls.Add(panel9);
+            groupBox2.Controls.Add(panel10);
+            groupBox2.Controls.Add(panel8);
+            groupBox2.Controls.Add(panel7);
+            groupBox2.Controls.Add(panel6);
+            groupBox2.Controls.Add(panel5);
+            groupBox2.Controls.Add(panel4);
+            groupBox2.Controls.Add(panel3);
+            groupBox2.Controls.Add(panel2);
+            groupBox2.Controls.Add(panel1);
+            groupBox2.Controls.Add(panel0);
+            groupBox2.Location = new Point(12, 6);
+            groupBox2.Margin = new Padding(4, 5, 4, 5);
+            groupBox2.Name = "groupBox2";
+            groupBox2.Padding = new Padding(4, 5, 4, 5);
+            groupBox2.Size = new Size(512, 358);
+            groupBox2.TabIndex = 1;
+            groupBox2.TabStop = false;
+            groupBox2.Text = "Patterns";
+            // 
+            // panel11
+            // 
+            panel11.BackColor = Color.Red;
+            panel11.Controls.Add(pictureBox11);
+            panel11.Location = new Point(373, 242);
+            panel11.Margin = new Padding(4, 5, 4, 5);
+            panel11.Name = "panel11";
+            panel11.Size = new Size(115, 102);
+            panel11.TabIndex = 11;
+            // 
+            // pictureBox11
+            // 
+            pictureBox11.BackColor = Color.White;
+            pictureBox11.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox11.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox11.Cursor = Cursors.Hand;
+            pictureBox11.Location = new Point(4, 5);
+            pictureBox11.Margin = new Padding(4, 5, 4, 5);
+            pictureBox11.Name = "pictureBox11";
+            pictureBox11.Size = new Size(105, 90);
+            pictureBox11.TabIndex = 4;
+            pictureBox11.TabStop = false;
+            pictureBox11.Tag = "11";
+            pictureBox11.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox11.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel9
+            // 
+            panel9.BackColor = Color.Red;
+            panel9.Controls.Add(pictureBox9);
+            panel9.Location = new Point(136, 242);
+            panel9.Margin = new Padding(4, 5, 4, 5);
+            panel9.Name = "panel9";
+            panel9.Size = new Size(115, 102);
+            panel9.TabIndex = 9;
+            // 
+            // pictureBox9
+            // 
+            pictureBox9.BackColor = Color.White;
+            pictureBox9.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox9.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox9.Cursor = Cursors.Hand;
+            pictureBox9.Location = new Point(4, 5);
+            pictureBox9.Margin = new Padding(4, 5, 4, 5);
+            pictureBox9.Name = "pictureBox9";
+            pictureBox9.Size = new Size(105, 90);
+            pictureBox9.TabIndex = 4;
+            pictureBox9.TabStop = false;
+            pictureBox9.Tag = "9";
+            pictureBox9.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox9.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel10
+            // 
+            panel10.BackColor = Color.Red;
+            panel10.Controls.Add(pictureBox10);
+            panel10.Location = new Point(255, 242);
+            panel10.Margin = new Padding(4, 5, 4, 5);
+            panel10.Name = "panel10";
+            panel10.Size = new Size(115, 102);
+            panel10.TabIndex = 10;
+            // 
+            // pictureBox10
+            // 
+            pictureBox10.BackColor = Color.White;
+            pictureBox10.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox10.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox10.Cursor = Cursors.Hand;
+            pictureBox10.Location = new Point(4, 5);
+            pictureBox10.Margin = new Padding(4, 5, 4, 5);
+            pictureBox10.Name = "pictureBox10";
+            pictureBox10.Size = new Size(105, 90);
+            pictureBox10.TabIndex = 4;
+            pictureBox10.TabStop = false;
+            pictureBox10.Tag = "10";
+            pictureBox10.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox10.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel8
+            // 
+            panel8.BackColor = Color.Red;
+            panel8.Controls.Add(pictureBox8);
+            panel8.Location = new Point(17, 242);
+            panel8.Margin = new Padding(4, 5, 4, 5);
+            panel8.Name = "panel8";
+            panel8.Size = new Size(115, 102);
+            panel8.TabIndex = 8;
+            // 
+            // pictureBox8
+            // 
+            pictureBox8.BackColor = Color.White;
+            pictureBox8.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox8.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox8.Cursor = Cursors.Hand;
+            pictureBox8.Location = new Point(4, 5);
+            pictureBox8.Margin = new Padding(4, 5, 4, 5);
+            pictureBox8.Name = "pictureBox8";
+            pictureBox8.Size = new Size(105, 90);
+            pictureBox8.TabIndex = 4;
+            pictureBox8.TabStop = false;
+            pictureBox8.Tag = "8";
+            pictureBox8.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox8.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel7
+            // 
+            panel7.BackColor = Color.Red;
+            panel7.Controls.Add(pictureBox7);
+            panel7.Location = new Point(373, 135);
+            panel7.Margin = new Padding(4, 5, 4, 5);
+            panel7.Name = "panel7";
+            panel7.Size = new Size(115, 102);
+            panel7.TabIndex = 7;
+            // 
+            // pictureBox7
+            // 
+            pictureBox7.BackColor = Color.White;
+            pictureBox7.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox7.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox7.Cursor = Cursors.Hand;
+            pictureBox7.Location = new Point(4, 5);
+            pictureBox7.Margin = new Padding(4, 5, 4, 5);
+            pictureBox7.Name = "pictureBox7";
+            pictureBox7.Size = new Size(105, 90);
+            pictureBox7.TabIndex = 4;
+            pictureBox7.TabStop = false;
+            pictureBox7.Tag = "7";
+            pictureBox7.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox7.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel6
+            // 
+            panel6.BackColor = Color.Red;
+            panel6.Controls.Add(pictureBox6);
+            panel6.Location = new Point(255, 135);
+            panel6.Margin = new Padding(4, 5, 4, 5);
+            panel6.Name = "panel6";
+            panel6.Size = new Size(115, 102);
+            panel6.TabIndex = 6;
+            // 
+            // pictureBox6
+            // 
+            pictureBox6.BackColor = Color.White;
+            pictureBox6.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox6.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox6.Cursor = Cursors.Hand;
+            pictureBox6.Location = new Point(4, 5);
+            pictureBox6.Margin = new Padding(4, 5, 4, 5);
+            pictureBox6.Name = "pictureBox6";
+            pictureBox6.Size = new Size(105, 90);
+            pictureBox6.TabIndex = 4;
+            pictureBox6.TabStop = false;
+            pictureBox6.Tag = "6";
+            pictureBox6.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox6.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel5
+            // 
+            panel5.BackColor = Color.Red;
+            panel5.Controls.Add(pictureBox5);
+            panel5.Location = new Point(136, 135);
+            panel5.Margin = new Padding(4, 5, 4, 5);
+            panel5.Name = "panel5";
+            panel5.Size = new Size(115, 102);
+            panel5.TabIndex = 5;
+            // 
+            // pictureBox5
+            // 
+            pictureBox5.BackColor = Color.White;
+            pictureBox5.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox5.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox5.Cursor = Cursors.Hand;
+            pictureBox5.Location = new Point(4, 5);
+            pictureBox5.Margin = new Padding(4, 5, 4, 5);
+            pictureBox5.Name = "pictureBox5";
+            pictureBox5.Size = new Size(105, 90);
+            pictureBox5.TabIndex = 4;
+            pictureBox5.TabStop = false;
+            pictureBox5.Tag = "5";
+            pictureBox5.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox5.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel4
+            // 
+            panel4.BackColor = Color.Red;
+            panel4.Controls.Add(pictureBox4);
+            panel4.Location = new Point(17, 135);
+            panel4.Margin = new Padding(4, 5, 4, 5);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(115, 102);
+            panel4.TabIndex = 4;
+            // 
+            // pictureBox4
+            // 
+            pictureBox4.BackColor = Color.White;
+            pictureBox4.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox4.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox4.Cursor = Cursors.Hand;
+            pictureBox4.Location = new Point(4, 5);
+            pictureBox4.Margin = new Padding(4, 5, 4, 5);
+            pictureBox4.Name = "pictureBox4";
+            pictureBox4.Size = new Size(105, 90);
+            pictureBox4.TabIndex = 4;
+            pictureBox4.TabStop = false;
+            pictureBox4.Tag = "4";
+            pictureBox4.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox4.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel3
+            // 
+            panel3.BackColor = Color.Red;
+            panel3.Controls.Add(pictureBox3);
+            panel3.Location = new Point(373, 29);
+            panel3.Margin = new Padding(4, 5, 4, 5);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(115, 102);
+            panel3.TabIndex = 3;
+            // 
+            // pictureBox3
+            // 
+            pictureBox3.BackColor = Color.White;
+            pictureBox3.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox3.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox3.Cursor = Cursors.Hand;
+            pictureBox3.Location = new Point(4, 5);
+            pictureBox3.Margin = new Padding(4, 5, 4, 5);
+            pictureBox3.Name = "pictureBox3";
+            pictureBox3.Size = new Size(105, 90);
+            pictureBox3.TabIndex = 4;
+            pictureBox3.TabStop = false;
+            pictureBox3.Tag = "3";
+            pictureBox3.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox3.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel2
+            // 
+            panel2.BackColor = Color.Red;
+            panel2.Controls.Add(pictureBox2);
+            panel2.Location = new Point(255, 29);
+            panel2.Margin = new Padding(4, 5, 4, 5);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(115, 102);
+            panel2.TabIndex = 2;
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.BackColor = Color.White;
+            pictureBox2.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox2.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox2.Cursor = Cursors.Hand;
+            pictureBox2.Location = new Point(4, 5);
+            pictureBox2.Margin = new Padding(4, 5, 4, 5);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(105, 90);
+            pictureBox2.TabIndex = 4;
+            pictureBox2.TabStop = false;
+            pictureBox2.Tag = "2";
+            pictureBox2.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox2.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel1
+            // 
+            panel1.BackColor = Color.Red;
+            panel1.Controls.Add(pictureBox1);
+            panel1.Location = new Point(136, 29);
+            panel1.Margin = new Padding(4, 5, 4, 5);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(115, 102);
+            panel1.TabIndex = 1;
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.BackColor = Color.White;
+            pictureBox1.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox1.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox1.Cursor = Cursors.Hand;
+            pictureBox1.Location = new Point(4, 5);
+            pictureBox1.Margin = new Padding(4, 5, 4, 5);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(105, 90);
+            pictureBox1.TabIndex = 4;
+            pictureBox1.TabStop = false;
+            pictureBox1.Tag = "1";
+            pictureBox1.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox1.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // panel0
+            // 
+            panel0.BackColor = Color.Red;
+            panel0.Controls.Add(pictureBox0);
+            panel0.Location = new Point(17, 29);
+            panel0.Margin = new Padding(4, 5, 4, 5);
+            panel0.Name = "panel0";
+            panel0.Size = new Size(115, 102);
+            panel0.TabIndex = 0;
+            // 
+            // pictureBox0
+            // 
+            pictureBox0.BackColor = Color.White;
+            pictureBox0.BackgroundImageLayout = ImageLayout.Stretch;
+            pictureBox0.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox0.Cursor = Cursors.Hand;
+            pictureBox0.Location = new Point(4, 5);
+            pictureBox0.Margin = new Padding(4, 5, 4, 5);
+            pictureBox0.Name = "pictureBox0";
+            pictureBox0.Size = new Size(105, 90);
+            pictureBox0.TabIndex = 4;
+            pictureBox0.TabStop = false;
+            pictureBox0.Tag = "0";
+            pictureBox0.DoubleClick += pictureBoxAll_DoubleClick;
+            pictureBox0.MouseDown += pictureBoxAll_MouseDown;
+            // 
+            // FrmBackground
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(536, 458);
+            Controls.Add(groupBox2);
+            Controls.Add(groupBox1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmBackground";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Background Colours and Patterns";
+            groupBox1.ResumeLayout(false);
+            groupBox4.ResumeLayout(false);
+            groupBox4.PerformLayout();
+            groupBox3.ResumeLayout(false);
+            groupBox2.ResumeLayout(false);
+            panel11.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox11).EndInit();
+            panel9.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox9).EndInit();
+            panel10.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox10).EndInit();
+            panel8.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox8).EndInit();
+            panel7.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox7).EndInit();
+            panel6.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox6).EndInit();
+            panel5.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox5).EndInit();
+            panel4.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox4).EndInit();
+            panel3.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox3).EndInit();
+            panel2.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox2).EndInit();
+            panel1.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox1).EndInit();
+            panel0.ResumeLayout(false);
+            ((ISupportInitialize)pictureBox0).EndInit();
+            ResumeLayout(false);
+        }
 
-		public FrmBackground()
+        public FrmBackground()
 		{
 			InitializeComponent();
 			LoadData();

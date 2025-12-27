@@ -45,103 +45,144 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmEditBibleItem));
-			groupBox1 = new System.Windows.Forms.GroupBox();
-			BibleVersionsRegion2 = new System.Windows.Forms.ComboBox();
-			BibleVersionsRegion1 = new System.Windows.Forms.ComboBox();
-			Title = new System.Windows.Forms.TextBox();
-			label2 = new System.Windows.Forms.Label();
-			label3 = new System.Windows.Forms.Label();
-			label1 = new System.Windows.Forms.Label();
-			BtnCancel = new System.Windows.Forms.Button();
-			BtnOK = new System.Windows.Forms.Button();
-			groupBox1.SuspendLayout();
-			SuspendLayout();
-			groupBox1.Controls.Add(BibleVersionsRegion2);
-			groupBox1.Controls.Add(BibleVersionsRegion1);
-			groupBox1.Controls.Add(Title);
-			groupBox1.Controls.Add(label2);
-			groupBox1.Controls.Add(label3);
-			groupBox1.Controls.Add(label1);
-			groupBox1.Location = new System.Drawing.Point(12, 12);
-			groupBox1.Name = "groupBox1";
-			groupBox1.Size = new System.Drawing.Size(379, 119);
-			groupBox1.TabIndex = 0;
-			groupBox1.TabStop = false;
-			groupBox1.Text = "Change Bible Versions";
-			BibleVersionsRegion2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			BibleVersionsRegion2.FormattingEnabled = true;
-			BibleVersionsRegion2.Location = new System.Drawing.Point(100, 81);
-			BibleVersionsRegion2.Name = "BibleVersionsRegion2";
-			BibleVersionsRegion2.Size = new System.Drawing.Size(261, 21);
-			BibleVersionsRegion2.TabIndex = 4;
-			BibleVersionsRegion1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			BibleVersionsRegion1.FormattingEnabled = true;
-			BibleVersionsRegion1.Location = new System.Drawing.Point(100, 54);
-			BibleVersionsRegion1.Name = "BibleVersionsRegion1";
-			BibleVersionsRegion1.Size = new System.Drawing.Size(261, 21);
-			BibleVersionsRegion1.TabIndex = 2;
-			Title.BackColor = System.Drawing.SystemColors.Window;
-			Title.Location = new System.Drawing.Point(51, 28);
-			Title.Name = "Title";
-			Title.ReadOnly = true;
-			Title.Size = new System.Drawing.Size(310, 20);
-			Title.TabIndex = 0;
-			Title.WordWrap = false;
-			label2.AutoSize = true;
-			label2.Location = new System.Drawing.Point(8, 57);
-			label2.Name = "label2";
-			label2.Size = new System.Drawing.Size(91, 13);
-			label2.TabIndex = 1;
-			label2.Text = "Region 1 Version:";
-			label3.AutoSize = true;
-			label3.Location = new System.Drawing.Point(8, 84);
-			label3.Name = "label3";
-			label3.Size = new System.Drawing.Size(91, 13);
-			label3.TabIndex = 3;
-			label3.Text = "Region 2 Version:";
-			label1.AutoSize = true;
-			label1.Location = new System.Drawing.Point(8, 31);
-			label1.Name = "label1";
-			label1.Size = new System.Drawing.Size(30, 13);
-			label1.TabIndex = 5;
-			label1.Text = "Title:";
-			BtnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			BtnCancel.Location = new System.Drawing.Point(213, 137);
-			BtnCancel.Name = "BtnCancel";
-			BtnCancel.Size = new System.Drawing.Size(80, 24);
-			BtnCancel.TabIndex = 2;
-			BtnCancel.Text = "Cancel";
-			BtnCancel.Click += new System.EventHandler(BtnCancel_Click);
-			BtnOK.Location = new System.Drawing.Point(117, 137);
-			BtnOK.Name = "BtnOK";
-			BtnOK.Size = new System.Drawing.Size(80, 24);
-			BtnOK.TabIndex = 1;
-			BtnOK.Text = "OK";
-			BtnOK.Click += new System.EventHandler(BtnOK_Click);
-			base.AcceptButton = BtnOK;
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(403, 173);
-			base.Controls.Add(BtnCancel);
-			base.Controls.Add(BtnOK);
-			base.Controls.Add(groupBox1);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmEditBibleItem";
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Edit Bible Item";
-			base.Load += new System.EventHandler(FrmEditBibleItem_Load);
-			groupBox1.ResumeLayout(false);
-			groupBox1.PerformLayout();
-			ResumeLayout(false);
-		}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmEditBibleItem));
+            groupBox1 = new GroupBox();
+            BibleVersionsRegion2 = new ComboBox();
+            BibleVersionsRegion1 = new ComboBox();
+            Title = new TextBox();
+            label2 = new Label();
+            label3 = new Label();
+            label1 = new Label();
+            BtnCancel = new Button();
+            BtnOK = new Button();
+            groupBox1.SuspendLayout();
+            SuspendLayout();
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(BibleVersionsRegion2);
+            groupBox1.Controls.Add(BibleVersionsRegion1);
+            groupBox1.Controls.Add(Title);
+            groupBox1.Controls.Add(label2);
+            groupBox1.Controls.Add(label3);
+            groupBox1.Controls.Add(label1);
+            groupBox1.Location = new Point(16, 18);
+            groupBox1.Margin = new Padding(4, 5, 4, 5);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new Padding(4, 5, 4, 5);
+            groupBox1.Size = new Size(505, 183);
+            groupBox1.TabIndex = 0;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Change Bible Versions";
+            // 
+            // BibleVersionsRegion2
+            // 
+            BibleVersionsRegion2.DropDownStyle = ComboBoxStyle.DropDownList;
+            BibleVersionsRegion2.FormattingEnabled = true;
+            BibleVersionsRegion2.Location = new Point(133, 125);
+            BibleVersionsRegion2.Margin = new Padding(4, 5, 4, 5);
+            BibleVersionsRegion2.Name = "BibleVersionsRegion2";
+            BibleVersionsRegion2.Size = new Size(347, 28);
+            BibleVersionsRegion2.TabIndex = 4;
+            // 
+            // BibleVersionsRegion1
+            // 
+            BibleVersionsRegion1.DropDownStyle = ComboBoxStyle.DropDownList;
+            BibleVersionsRegion1.FormattingEnabled = true;
+            BibleVersionsRegion1.Location = new Point(133, 83);
+            BibleVersionsRegion1.Margin = new Padding(4, 5, 4, 5);
+            BibleVersionsRegion1.Name = "BibleVersionsRegion1";
+            BibleVersionsRegion1.Size = new Size(347, 28);
+            BibleVersionsRegion1.TabIndex = 2;
+            // 
+            // Title
+            // 
+            Title.BackColor = SystemColors.Window;
+            Title.Location = new Point(68, 43);
+            Title.Margin = new Padding(4, 5, 4, 5);
+            Title.Name = "Title";
+            Title.ReadOnly = true;
+            Title.Size = new Size(412, 27);
+            Title.TabIndex = 0;
+            Title.WordWrap = false;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(11, 88);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(123, 20);
+            label2.TabIndex = 1;
+            label2.Text = "Region 1 Version:";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(11, 129);
+            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(123, 20);
+            label3.TabIndex = 3;
+            label3.Text = "Region 2 Version:";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(11, 48);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(41, 20);
+            label1.TabIndex = 5;
+            label1.Text = "Title:";
+            // 
+            // BtnCancel
+            // 
+            BtnCancel.DialogResult = DialogResult.Cancel;
+            BtnCancel.Location = new Point(284, 211);
+            BtnCancel.Margin = new Padding(4, 5, 4, 5);
+            BtnCancel.Name = "BtnCancel";
+            BtnCancel.Size = new Size(107, 37);
+            BtnCancel.TabIndex = 2;
+            BtnCancel.Text = "Cancel";
+            BtnCancel.Click += BtnCancel_Click;
+            // 
+            // BtnOK
+            // 
+            BtnOK.Location = new Point(156, 211);
+            BtnOK.Margin = new Padding(4, 5, 4, 5);
+            BtnOK.Name = "BtnOK";
+            BtnOK.Size = new Size(107, 37);
+            BtnOK.TabIndex = 1;
+            BtnOK.Text = "OK";
+            BtnOK.Click += BtnOK_Click;
+            // 
+            // FrmEditBibleItem
+            // 
+            AcceptButton = BtnOK;
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(537, 266);
+            Controls.Add(BtnCancel);
+            Controls.Add(BtnOK);
+            Controls.Add(groupBox1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmEditBibleItem";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Edit Bible Item";
+            Load += FrmEditBibleItem_Load;
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            ResumeLayout(false);
+        }
 
-		public FrmEditBibleItem()
+        public FrmEditBibleItem()
 		{
 			InitializeComponent();
 		}

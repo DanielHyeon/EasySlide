@@ -7479,15 +7479,56 @@ namespace Easislides
             }
             else if (name == "Bibles_Go")
             {
-                BibleUserLookup_ShowVerses();
+                BibleUserLookup_Submit();
             }
         }
 
-        private void BibleUserLookup_KeyUp(object sender, KeyEventArgs e)
+        private void BibleUserLookup_Submit()
         {
-            if ((e.KeyCode == Keys.Return) | (e.KeyCode == Keys.Return))
+            string inText = DataUtil.Trim(BibleUserLookup.Text);
+            if (inText == "")
             {
+                return;
+            }
+            int startChapterNo = 0;
+            int startVerseNo = 0;
+            int endChapterNo = 0;
+            int endVerseNo = 0;
+            bool isVerseLookup = BibleUserLookupValidation(ref inText, ref startChapterNo, ref startVerseNo, ref endChapterNo, ref endVerseNo);
+            if (isVerseLookup)
+            {
+                BibleUserLookup.Text = inText;
                 BibleUserLookup_ShowVerses();
+                return;
+            }
+            bool hasLetters = false;
+            foreach (char c in inText)
+            {
+                if (char.IsLetter(c))
+                {
+                    hasLetters = true;
+                    break;
+                }
+            }
+            if (hasLetters)
+            {
+                if (gf.HB_TotalVersions < 1)
+                {
+                    return;
+                }
+                gf.FindBibleVerses = true;
+                gf.FindFolderItems = false;
+                gf.HB_SQLString = gf.BuildBibleSearchString(inText, TabBibleVersions.SelectedIndex);
+                BibleVerseSearch();
+            }
+        }
+
+        private void BibleUserLookup_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return)
+            {
+                e.SuppressKeyPress = true;
+                BibleUserLookup_Submit();
             }
         }
 

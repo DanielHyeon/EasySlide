@@ -123,3 +123,33 @@ package-lock.json
 #Python
 /venv
 .venv
+
+# 1. 빌드 결과물 (가장 중요! 아까 충돌의 주범)
+# 컴파일할 때마다 새로 생기는 파일들이라 깃에 올리면 안 됩니다.
+bin/
+obj/
+Debug/
+Release/
+
+# 2. Visual Studio 임시 설정 파일
+# 사용자마다 설정이 다르므로 공유하면 안 됩니다.
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# 3. 기타 임시 파일 및 로그
+*.log
+*.tmp
+*.cache
+*.pdb
+
+# 4. 윈도우 썸네일 파일 (불필요)
+Thumbs.db
+Desktop.ini
+
+# 5. 패키지 관련 (NuGet)
+packages/
+*.nuget.props
+*.nuget.targets

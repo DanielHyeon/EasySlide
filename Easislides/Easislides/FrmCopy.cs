@@ -36,114 +36,144 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmCopy));
-			BtnCancel = new System.Windows.Forms.Button();
-			BtnOK = new System.Windows.Forms.Button();
-			SongFolder = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			Label1 = new System.Windows.Forms.Label();
-			optCopyToInfoScreen = new System.Windows.Forms.RadioButton();
-			optCopyToFolder = new System.Windows.Forms.RadioButton();
-			ExternalFilesFolder = new System.Windows.Forms.ListView();
-			columnHeader2 = new System.Windows.Forms.ColumnHeader();
-			SuspendLayout();
-			BtnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			BtnCancel.Location = new System.Drawing.Point(218, 190);
-			BtnCancel.Name = "BtnCancel";
-			BtnCancel.Size = new System.Drawing.Size(80, 24);
-			BtnCancel.TabIndex = 3;
-			BtnCancel.Text = "Cancel";
-			BtnOK.Location = new System.Drawing.Point(122, 190);
-			BtnOK.Name = "BtnOK";
-			BtnOK.Size = new System.Drawing.Size(80, 24);
-			BtnOK.TabIndex = 2;
-			BtnOK.Text = "OK";
-			BtnOK.Click += new System.EventHandler(BtnOK_Click);
-			SongFolder.Columns.AddRange(new System.Windows.Forms.ColumnHeader[1]
-			{
-				columnHeader1
-			});
-			SongFolder.FullRowSelect = true;
-			SongFolder.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			SongFolder.HideSelection = false;
-			SongFolder.Location = new System.Drawing.Point(11, 64);
-			SongFolder.MultiSelect = false;
-			SongFolder.Name = "SongFolder";
-			SongFolder.Size = new System.Drawing.Size(196, 117);
-			SongFolder.TabIndex = 0;
-			SongFolder.UseCompatibleStateImageBehavior = false;
-			SongFolder.View = System.Windows.Forms.View.Details;
-			SongFolder.DoubleClick += new System.EventHandler(SongFolder_DoubleClick);
-			SongFolder.MouseUp += new System.Windows.Forms.MouseEventHandler(SongFolder_MouseUp);
-			SongFolder.KeyUp += new System.Windows.Forms.KeyEventHandler(SongFolder_KeyUp);
-			columnHeader1.Width = 180;
-			Label1.Location = new System.Drawing.Point(13, 8);
-			Label1.Name = "Label1";
-			Label1.Size = new System.Drawing.Size(399, 34);
-			Label1.TabIndex = 4;
-			Label1.Text = "label1";
-			optCopyToInfoScreen.AutoSize = true;
-			optCopyToInfoScreen.Location = new System.Drawing.Point(218, 45);
-			optCopyToInfoScreen.Name = "optCopyToInfoScreen";
-			optCopyToInfoScreen.Size = new System.Drawing.Size(120, 17);
-			optCopyToInfoScreen.TabIndex = 9;
-			optCopyToInfoScreen.Text = "Copy To InfoScreen";
-			optCopyToInfoScreen.UseVisualStyleBackColor = true;
-			optCopyToFolder.AutoSize = true;
-			optCopyToFolder.Checked = true;
-			optCopyToFolder.Location = new System.Drawing.Point(17, 44);
-			optCopyToFolder.Name = "optCopyToFolder";
-			optCopyToFolder.Size = new System.Drawing.Size(149, 17);
-			optCopyToFolder.TabIndex = 10;
-			optCopyToFolder.TabStop = true;
-			optCopyToFolder.Text = "Copy To Database Folder:";
-			optCopyToFolder.UseVisualStyleBackColor = true;
-			ExternalFilesFolder.Columns.AddRange(new System.Windows.Forms.ColumnHeader[1]
-			{
-				columnHeader2
-			});
-			ExternalFilesFolder.FullRowSelect = true;
-			ExternalFilesFolder.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			ExternalFilesFolder.HideSelection = false;
-			ExternalFilesFolder.Location = new System.Drawing.Point(213, 64);
-			ExternalFilesFolder.MultiSelect = false;
-			ExternalFilesFolder.Name = "ExternalFilesFolder";
-			ExternalFilesFolder.Size = new System.Drawing.Size(196, 117);
-			ExternalFilesFolder.TabIndex = 1;
-			ExternalFilesFolder.UseCompatibleStateImageBehavior = false;
-			ExternalFilesFolder.View = System.Windows.Forms.View.Details;
-			ExternalFilesFolder.DoubleClick += new System.EventHandler(ExternalFilesFolder_DoubleClick);
-			ExternalFilesFolder.MouseUp += new System.Windows.Forms.MouseEventHandler(ExternalFilesFolder_MouseUp);
-			ExternalFilesFolder.KeyUp += new System.Windows.Forms.KeyEventHandler(ExternalFilesFolder_KeyUp);
-			columnHeader2.Width = 180;
-			base.AcceptButton = BtnOK;
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.CancelButton = BtnCancel;
-			base.ClientSize = new System.Drawing.Size(419, 227);
-			base.Controls.Add(optCopyToInfoScreen);
-			base.Controls.Add(optCopyToFolder);
-			base.Controls.Add(ExternalFilesFolder);
-			base.Controls.Add(Label1);
-			base.Controls.Add(SongFolder);
-			base.Controls.Add(BtnCancel);
-			base.Controls.Add(BtnOK);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmCopy";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "Copy item(s) to another folder";
-			base.Load += new System.EventHandler(FrmCopy_Load);
-			ResumeLayout(false);
-			PerformLayout();
-		}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmCopy));
+            BtnCancel = new Button();
+            BtnOK = new Button();
+            SongFolder = new ListView();
+            columnHeader1 = new ColumnHeader();
+            Label1 = new Label();
+            optCopyToInfoScreen = new RadioButton();
+            optCopyToFolder = new RadioButton();
+            ExternalFilesFolder = new ListView();
+            columnHeader2 = new ColumnHeader();
+            SuspendLayout();
+            // 
+            // BtnCancel
+            // 
+            BtnCancel.DialogResult = DialogResult.Cancel;
+            BtnCancel.Location = new Point(291, 292);
+            BtnCancel.Margin = new Padding(4, 5, 4, 5);
+            BtnCancel.Name = "BtnCancel";
+            BtnCancel.Size = new Size(107, 37);
+            BtnCancel.TabIndex = 3;
+            BtnCancel.Text = "Cancel";
+            // 
+            // BtnOK
+            // 
+            BtnOK.Location = new Point(163, 292);
+            BtnOK.Margin = new Padding(4, 5, 4, 5);
+            BtnOK.Name = "BtnOK";
+            BtnOK.Size = new Size(107, 37);
+            BtnOK.TabIndex = 2;
+            BtnOK.Text = "OK";
+            BtnOK.Click += BtnOK_Click;
+            // 
+            // SongFolder
+            // 
+            SongFolder.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
+            SongFolder.FullRowSelect = true;
+            SongFolder.HeaderStyle = ColumnHeaderStyle.None;
+            SongFolder.Location = new Point(15, 98);
+            SongFolder.Margin = new Padding(4, 5, 4, 5);
+            SongFolder.MultiSelect = false;
+            SongFolder.Name = "SongFolder";
+            SongFolder.Size = new Size(260, 178);
+            SongFolder.TabIndex = 0;
+            SongFolder.UseCompatibleStateImageBehavior = false;
+            SongFolder.View = View.Details;
+            SongFolder.DoubleClick += SongFolder_DoubleClick;
+            SongFolder.KeyUp += SongFolder_KeyUp;
+            SongFolder.MouseUp += SongFolder_MouseUp;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Width = 180;
+            // 
+            // Label1
+            // 
+            Label1.Location = new Point(17, 12);
+            Label1.Margin = new Padding(4, 0, 4, 0);
+            Label1.Name = "Label1";
+            Label1.Size = new Size(532, 52);
+            Label1.TabIndex = 4;
+            Label1.Text = "label1";
+            // 
+            // optCopyToInfoScreen
+            // 
+            optCopyToInfoScreen.AutoSize = true;
+            optCopyToInfoScreen.Location = new Point(291, 69);
+            optCopyToInfoScreen.Margin = new Padding(4, 5, 4, 5);
+            optCopyToInfoScreen.Name = "optCopyToInfoScreen";
+            optCopyToInfoScreen.Size = new Size(158, 24);
+            optCopyToInfoScreen.TabIndex = 9;
+            optCopyToInfoScreen.Text = "Copy To InfoScreen";
+            optCopyToInfoScreen.UseVisualStyleBackColor = true;
+            // 
+            // optCopyToFolder
+            // 
+            optCopyToFolder.AutoSize = true;
+            optCopyToFolder.Checked = true;
+            optCopyToFolder.Location = new Point(23, 68);
+            optCopyToFolder.Margin = new Padding(4, 5, 4, 5);
+            optCopyToFolder.Name = "optCopyToFolder";
+            optCopyToFolder.Size = new Size(200, 24);
+            optCopyToFolder.TabIndex = 10;
+            optCopyToFolder.TabStop = true;
+            optCopyToFolder.Text = "Copy To Database Folder:";
+            optCopyToFolder.UseVisualStyleBackColor = true;
+            // 
+            // ExternalFilesFolder
+            // 
+            ExternalFilesFolder.Columns.AddRange(new ColumnHeader[] { columnHeader2 });
+            ExternalFilesFolder.FullRowSelect = true;
+            ExternalFilesFolder.HeaderStyle = ColumnHeaderStyle.None;
+            ExternalFilesFolder.Location = new Point(284, 98);
+            ExternalFilesFolder.Margin = new Padding(4, 5, 4, 5);
+            ExternalFilesFolder.MultiSelect = false;
+            ExternalFilesFolder.Name = "ExternalFilesFolder";
+            ExternalFilesFolder.Size = new Size(260, 178);
+            ExternalFilesFolder.TabIndex = 1;
+            ExternalFilesFolder.UseCompatibleStateImageBehavior = false;
+            ExternalFilesFolder.View = View.Details;
+            ExternalFilesFolder.DoubleClick += ExternalFilesFolder_DoubleClick;
+            ExternalFilesFolder.KeyUp += ExternalFilesFolder_KeyUp;
+            ExternalFilesFolder.MouseUp += ExternalFilesFolder_MouseUp;
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Width = 180;
+            // 
+            // FrmCopy
+            // 
+            AcceptButton = BtnOK;
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = BtnCancel;
+            ClientSize = new Size(559, 349);
+            Controls.Add(optCopyToInfoScreen);
+            Controls.Add(optCopyToFolder);
+            Controls.Add(ExternalFilesFolder);
+            Controls.Add(Label1);
+            Controls.Add(SongFolder);
+            Controls.Add(BtnCancel);
+            Controls.Add(BtnOK);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmCopy";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Copy item(s) to another folder";
+            Load += FrmCopy_Load;
+            ResumeLayout(false);
+            PerformLayout();
+        }
 
-		public FrmCopy()
+        public FrmCopy()
 		{
 			InitializeComponent();
 		}

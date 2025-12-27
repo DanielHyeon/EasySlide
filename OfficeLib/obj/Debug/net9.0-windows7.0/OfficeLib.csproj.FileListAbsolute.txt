@@ -83,3 +83,16 @@ E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\OfficeLib\obj\Debug\net9.0-windows7.0\O
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\OfficeLib\obj\Debug\net9.0-windows7.0\refint\OfficeLib.dll
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.pdb
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\OfficeLib\obj\Debug\net9.0-windows7.0\ref\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\bin\Debug\net9.0-windows7.0\OfficeLib.deps.json
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\bin\Debug\net9.0-windows7.0\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\bin\Debug\net9.0-windows7.0\OfficeLib.pdb
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.csproj.AssemblyReference.cache
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.GeneratedMSBuildEditorConfig.editorconfig
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.AssemblyInfoInputs.cache
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.AssemblyInfo.cs
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.csproj.CoreCompileInputs.cache
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.sourcelink.json
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\refint\OfficeLib.dll
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\OfficeLib.pdb
+E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\OfficeLib\obj\Debug\net9.0-windows7.0\ref\OfficeLib.dll

@@ -751,8 +751,8 @@ namespace Easislides
             imageListSys.ColorDepth = ColorDepth.Depth16Bit;
             imageListSys.ImageStream = (ImageListStreamer)resources.GetObject("imageListSys.ImageStream");
             imageListSys.TransparentColor = System.Drawing.Color.Transparent;
-            imageListSys.Images.SetKeyName(0, "favicon.ico");
-            imageListSys.Images.SetKeyName(1, "ES Icon 32 Blue - Highlight.ico");
+            imageListSys.Images.SetKeyName(0, "fivicon.jpg");
+            imageListSys.Images.SetKeyName(1, "favicon-Highlight.png");
             imageListSys.Images.SetKeyName(2, "pptType.png");
             imageListSys.Images.SetKeyName(3, "PPTType-Highlight.png");
             imageListSys.Images.SetKeyName(4, "BibleType.gif");
@@ -3503,7 +3503,7 @@ namespace Easislides
             // 
             Main_Rotate0.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate0.Image");
             Main_Rotate0.Name = "Main_Rotate0";
-            Main_Rotate0.Size = new System.Drawing.Size(302, 30);
+            Main_Rotate0.Size = new System.Drawing.Size(298, 26);
             Main_Rotate0.Tag = "0";
             Main_Rotate0.Text = "Auto Rotate One Item ";
             // 
@@ -3511,7 +3511,7 @@ namespace Easislides
             // 
             Main_Rotate1.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate1.Image");
             Main_Rotate1.Name = "Main_Rotate1";
-            Main_Rotate1.Size = new System.Drawing.Size(302, 30);
+            Main_Rotate1.Size = new System.Drawing.Size(298, 26);
             Main_Rotate1.Tag = "1";
             Main_Rotate1.Text = "Auto Rotate One Item - Repeat";
             // 
@@ -3519,7 +3519,7 @@ namespace Easislides
             // 
             Main_Rotate2.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate2.Image");
             Main_Rotate2.Name = "Main_Rotate2";
-            Main_Rotate2.Size = new System.Drawing.Size(302, 30);
+            Main_Rotate2.Size = new System.Drawing.Size(298, 26);
             Main_Rotate2.Tag = "2";
             Main_Rotate2.Text = "Auto Rotate Group";
             // 
@@ -3527,7 +3527,7 @@ namespace Easislides
             // 
             Main_Rotate3.Image = (System.Drawing.Image)resources.GetObject("Main_Rotate3.Image");
             Main_Rotate3.Name = "Main_Rotate3";
-            Main_Rotate3.Size = new System.Drawing.Size(302, 30);
+            Main_Rotate3.Size = new System.Drawing.Size(298, 26);
             Main_Rotate3.Tag = "3";
             Main_Rotate3.Text = "Auto Rotate Group - Repeat";
             // 
@@ -3731,7 +3731,7 @@ namespace Easislides
             BibleUserLookup.Size = new System.Drawing.Size(59, 27);
             BibleUserLookup.TabIndex = 1;
             BibleUserLookup.Enter += FormControl_Enter;
-            BibleUserLookup.KeyUp += BibleUserLookup_KeyUp;
+            BibleUserLookup.KeyDown += BibleUserLookup_KeyDown;
             BibleUserLookup.Leave += FormControl_Leave;
             // 
             // panelBible2

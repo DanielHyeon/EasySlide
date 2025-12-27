@@ -660,203 +660,263 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmManageItemLists));
-			MainTabControl = new System.Windows.Forms.TabControl();
-			ListsTab = new System.Windows.Forms.TabPage();
-			TrashTab = new System.Windows.Forms.TabPage();
-			ItemList = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			TrashList = new System.Windows.Forms.ListView();
-			trashColumnHeader1 = new System.Windows.Forms.ColumnHeader();
-			AddBtn = new System.Windows.Forms.Button();
-			RenameBtn = new System.Windows.Forms.Button();
-			DelBtn = new System.Windows.Forms.Button();
-			CloseBtn = new System.Windows.Forms.Button();
-			SaveAsBtn = new System.Windows.Forms.Button();
-			SaveToBtn = new System.Windows.Forms.Button();
-			SaveTemplateBtn = new System.Windows.Forms.Button();
-			RestoreBtn = new System.Windows.Forms.Button();
-			DeletePermanentlyBtn = new System.Windows.Forms.Button();
-			EmptyTrashBtn = new System.Windows.Forms.Button();
-			saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-			MainTabControl.SuspendLayout();
-			ListsTab.SuspendLayout();
-			TrashTab.SuspendLayout();
-			SuspendLayout();
-			MainTabControl.Controls.Add(ListsTab);
-			MainTabControl.Controls.Add(TrashTab);
-			MainTabControl.Location = new System.Drawing.Point(12, 12);
-			MainTabControl.Name = "MainTabControl";
-			MainTabControl.SelectedIndex = 0;
-			MainTabControl.Size = new System.Drawing.Size(197, 226);
-			MainTabControl.TabIndex = 0;
-			MainTabControl.SelectedIndexChanged += new System.EventHandler(MainTabControl_SelectedIndexChanged);
-			ListsTab.Controls.Add(ItemList);
-			ListsTab.Location = new System.Drawing.Point(4, 22);
-			ListsTab.Name = "ListsTab";
-			ListsTab.Padding = new System.Windows.Forms.Padding(3);
-			ListsTab.Size = new System.Drawing.Size(189, 200);
-			ListsTab.TabIndex = 0;
-			ListsTab.Text = "Lists";
-			ListsTab.UseVisualStyleBackColor = true;
-			TrashTab.Controls.Add(TrashList);
-			TrashTab.Location = new System.Drawing.Point(4, 22);
-			TrashTab.Name = "TrashTab";
-			TrashTab.Padding = new System.Windows.Forms.Padding(3);
-			TrashTab.Size = new System.Drawing.Size(189, 200);
-			TrashTab.TabIndex = 1;
-			TrashTab.Text = "Trash";
-			TrashTab.UseVisualStyleBackColor = true;
-			ItemList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[1]
-			{
-				columnHeader1
-			});
-			ItemList.Dock = System.Windows.Forms.DockStyle.Fill;
-			ItemList.FullRowSelect = true;
-			ItemList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			ItemList.HideSelection = false;
-			ItemList.Location = new System.Drawing.Point(3, 3);
-			ItemList.MultiSelect = true;
-			ItemList.Name = "ItemList";
-			ItemList.ShowGroups = false;
-			ItemList.ShowItemToolTips = true;
-			ItemList.Size = new System.Drawing.Size(183, 194);
-			ItemList.Sorting = System.Windows.Forms.SortOrder.Ascending;
-			ItemList.TabIndex = 0;
-			ItemList.UseCompatibleStateImageBehavior = false;
-			ItemList.View = System.Windows.Forms.View.Details;
-			ItemList.DoubleClick += new System.EventHandler(ItemList_DoubleClick);
-			columnHeader1.Text = "";
-			columnHeader1.Width = 165;
-			TrashList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[1]
-			{
-				trashColumnHeader1
-			});
-			TrashList.Dock = System.Windows.Forms.DockStyle.Fill;
-			TrashList.FullRowSelect = true;
-			TrashList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			TrashList.HideSelection = false;
-			TrashList.Location = new System.Drawing.Point(3, 3);
-			TrashList.MultiSelect = true;
-			TrashList.Name = "TrashList";
-			TrashList.ShowGroups = false;
-			TrashList.ShowItemToolTips = true;
-			TrashList.Size = new System.Drawing.Size(183, 194);
-			TrashList.Sorting = System.Windows.Forms.SortOrder.Ascending;
-			TrashList.TabIndex = 0;
-			TrashList.UseCompatibleStateImageBehavior = false;
-			TrashList.View = System.Windows.Forms.View.Details;
-			trashColumnHeader1.Text = "";
-			trashColumnHeader1.Width = 165;
-			AddBtn.Image = Resources.New;
-			AddBtn.Location = new System.Drawing.Point(215, 12);
-			AddBtn.Name = "AddBtn";
-			AddBtn.Size = new System.Drawing.Size(88, 24);
-			AddBtn.TabIndex = 1;
-			AddBtn.Text = "Add New";
-			AddBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			AddBtn.Click += new System.EventHandler(AddBtn_Click);
-			RenameBtn.Image = Resources.editsym;
-			RenameBtn.Location = new System.Drawing.Point(215, 42);
-			RenameBtn.Name = "RenameBtn";
-			RenameBtn.Size = new System.Drawing.Size(88, 24);
-			RenameBtn.TabIndex = 2;
-			RenameBtn.Text = "Rename";
-			RenameBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			RenameBtn.Click += new System.EventHandler(RenameBtn_Click);
-			DelBtn.Image = Resources.Delete;
-			DelBtn.Location = new System.Drawing.Point(215, 72);
-			DelBtn.Name = "DelBtn";
-			DelBtn.Size = new System.Drawing.Size(88, 24);
-			DelBtn.TabIndex = 3;
-			DelBtn.Text = "Delete";
-			DelBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			DelBtn.Click += new System.EventHandler(DelBtn_Click);
-			CloseBtn.DialogResult = System.Windows.Forms.DialogResult.OK;
-			CloseBtn.Location = new System.Drawing.Point(121, 244);
-			CloseBtn.Name = "CloseBtn";
-			CloseBtn.Size = new System.Drawing.Size(88, 24);
-			CloseBtn.TabIndex = 4;
-			CloseBtn.Text = "Close";
-			CloseBtn.Click += new System.EventHandler(CloseBtn_Click);
-			SaveAsBtn.Image = Resources.Save;
-			SaveAsBtn.Location = new System.Drawing.Point(215, 128);
-			SaveAsBtn.Name = "SaveAsBtn";
-			SaveAsBtn.Size = new System.Drawing.Size(88, 24);
-			SaveAsBtn.TabIndex = 5;
-			SaveAsBtn.Text = "Save As";
-			SaveAsBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			SaveAsBtn.Click += new System.EventHandler(SaveAsBtn_Click);
-			SaveToBtn.Image = Resources.Save;
-			SaveToBtn.Location = new System.Drawing.Point(215, 188);
-			SaveToBtn.Name = "SaveToBtn";
-			SaveToBtn.Size = new System.Drawing.Size(88, 24);
-			SaveToBtn.TabIndex = 6;
-			SaveToBtn.Text = "WorshipList";
-			SaveToBtn.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			SaveToBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			SaveToBtn.Click += new System.EventHandler(SaveToBtn_Click);
-			SaveTemplateBtn.Image = Resources.Save;
-			SaveTemplateBtn.Location = new System.Drawing.Point(215, 158);
-			SaveTemplateBtn.Name = "SaveTemplateBtn";
-			SaveTemplateBtn.Size = new System.Drawing.Size(88, 24);
-			SaveTemplateBtn.TabIndex = 7;
-			SaveTemplateBtn.Text = "Template";
-			SaveTemplateBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			SaveTemplateBtn.Click += new System.EventHandler(SaveTemplateBtn_Click);
-			RestoreBtn.Image = Resources.editsym;
-			RestoreBtn.Location = new System.Drawing.Point(215, 12);
-			RestoreBtn.Name = "RestoreBtn";
-			RestoreBtn.Size = new System.Drawing.Size(88, 24);
-			RestoreBtn.TabIndex = 8;
-			RestoreBtn.Text = "Restore";
-			RestoreBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			RestoreBtn.Visible = false;
-			RestoreBtn.Click += new System.EventHandler(RestoreBtn_Click);
-			DeletePermanentlyBtn.Image = Resources.Delete;
-			DeletePermanentlyBtn.Location = new System.Drawing.Point(215, 42);
-			DeletePermanentlyBtn.Name = "DeletePermanentlyBtn";
-			DeletePermanentlyBtn.Size = new System.Drawing.Size(88, 24);
-			DeletePermanentlyBtn.TabIndex = 9;
-			DeletePermanentlyBtn.Text = "Delete";
-			DeletePermanentlyBtn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			DeletePermanentlyBtn.Visible = false;
-			DeletePermanentlyBtn.Click += new System.EventHandler(DeletePermanentlyBtn_Click);
-			EmptyTrashBtn.Location = new System.Drawing.Point(215, 72);
-			EmptyTrashBtn.Name = "EmptyTrashBtn";
-			EmptyTrashBtn.Size = new System.Drawing.Size(88, 24);
-			EmptyTrashBtn.TabIndex = 10;
-			EmptyTrashBtn.Text = "Empty Trash";
-			EmptyTrashBtn.Visible = false;
-			EmptyTrashBtn.Click += new System.EventHandler(EmptyTrashBtn_Click);
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(315, 280);
-			base.Controls.Add(EmptyTrashBtn);
-			base.Controls.Add(DeletePermanentlyBtn);
-			base.Controls.Add(RestoreBtn);
-			base.Controls.Add(SaveTemplateBtn);
-			base.Controls.Add(SaveToBtn);
-			base.Controls.Add(SaveAsBtn);
-			base.Controls.Add(CloseBtn);
-			base.Controls.Add(DelBtn);
-			base.Controls.Add(RenameBtn);
-			base.Controls.Add(AddBtn);
-			base.Controls.Add(MainTabControl);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmManageItemLists";
-			base.ShowInTaskbar = false;
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			base.Load += new System.EventHandler(FrmManageItemLists_Load);
-			MainTabControl.ResumeLayout(false);
-			ListsTab.ResumeLayout(false);
-			TrashTab.ResumeLayout(false);
-			ResumeLayout(false);
-		}
-	}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmManageItemLists));
+            MainTabControl = new TabControl();
+            ListsTab = new TabPage();
+            ItemList = new ListView();
+            columnHeader1 = new ColumnHeader();
+            TrashTab = new TabPage();
+            TrashList = new ListView();
+            trashColumnHeader1 = new ColumnHeader();
+            AddBtn = new Button();
+            RenameBtn = new Button();
+            DelBtn = new Button();
+            CloseBtn = new Button();
+            SaveAsBtn = new Button();
+            SaveToBtn = new Button();
+            SaveTemplateBtn = new Button();
+            RestoreBtn = new Button();
+            DeletePermanentlyBtn = new Button();
+            EmptyTrashBtn = new Button();
+            saveFileDialog1 = new SaveFileDialog();
+            MainTabControl.SuspendLayout();
+            ListsTab.SuspendLayout();
+            TrashTab.SuspendLayout();
+            SuspendLayout();
+            // 
+            // MainTabControl
+            // 
+            MainTabControl.Controls.Add(ListsTab);
+            MainTabControl.Controls.Add(TrashTab);
+            MainTabControl.Location = new Point(16, 18);
+            MainTabControl.Margin = new Padding(4, 5, 4, 5);
+            MainTabControl.Name = "MainTabControl";
+            MainTabControl.SelectedIndex = 0;
+            MainTabControl.Size = new Size(263, 348);
+            MainTabControl.TabIndex = 0;
+            MainTabControl.SelectedIndexChanged += MainTabControl_SelectedIndexChanged;
+            // 
+            // ListsTab
+            // 
+            ListsTab.Controls.Add(ItemList);
+            ListsTab.Location = new Point(4, 29);
+            ListsTab.Margin = new Padding(4, 5, 4, 5);
+            ListsTab.Name = "ListsTab";
+            ListsTab.Padding = new Padding(4, 5, 4, 5);
+            ListsTab.Size = new Size(255, 315);
+            ListsTab.TabIndex = 0;
+            ListsTab.Text = "Lists";
+            ListsTab.UseVisualStyleBackColor = true;
+            // 
+            // ItemList
+            // 
+            ItemList.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
+            ItemList.Dock = DockStyle.Fill;
+            ItemList.FullRowSelect = true;
+            ItemList.HeaderStyle = ColumnHeaderStyle.None;
+            ItemList.Location = new Point(4, 5);
+            ItemList.Margin = new Padding(4, 5, 4, 5);
+            ItemList.Name = "ItemList";
+            ItemList.ShowGroups = false;
+            ItemList.ShowItemToolTips = true;
+            ItemList.Size = new Size(247, 305);
+            ItemList.Sorting = SortOrder.Ascending;
+            ItemList.TabIndex = 0;
+            ItemList.UseCompatibleStateImageBehavior = false;
+            ItemList.View = View.Details;
+            ItemList.DoubleClick += ItemList_DoubleClick;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "";
+            columnHeader1.Width = 165;
+            // 
+            // TrashTab
+            // 
+            TrashTab.Controls.Add(TrashList);
+            TrashTab.Location = new Point(4, 29);
+            TrashTab.Margin = new Padding(4, 5, 4, 5);
+            TrashTab.Name = "TrashTab";
+            TrashTab.Padding = new Padding(4, 5, 4, 5);
+            TrashTab.Size = new Size(255, 315);
+            TrashTab.TabIndex = 1;
+            TrashTab.Text = "Trash";
+            TrashTab.UseVisualStyleBackColor = true;
+            // 
+            // TrashList
+            // 
+            TrashList.Columns.AddRange(new ColumnHeader[] { trashColumnHeader1 });
+            TrashList.Dock = DockStyle.Fill;
+            TrashList.FullRowSelect = true;
+            TrashList.HeaderStyle = ColumnHeaderStyle.None;
+            TrashList.Location = new Point(4, 5);
+            TrashList.Margin = new Padding(4, 5, 4, 5);
+            TrashList.Name = "TrashList";
+            TrashList.ShowGroups = false;
+            TrashList.ShowItemToolTips = true;
+            TrashList.Size = new Size(247, 305);
+            TrashList.Sorting = SortOrder.Ascending;
+            TrashList.TabIndex = 0;
+            TrashList.UseCompatibleStateImageBehavior = false;
+            TrashList.View = View.Details;
+            // 
+            // trashColumnHeader1
+            // 
+            trashColumnHeader1.Text = "";
+            trashColumnHeader1.Width = 165;
+            // 
+            // AddBtn
+            // 
+            AddBtn.Image = Resources.New;
+            AddBtn.Location = new Point(287, 18);
+            AddBtn.Margin = new Padding(4, 5, 4, 5);
+            AddBtn.Name = "AddBtn";
+            AddBtn.Size = new Size(117, 37);
+            AddBtn.TabIndex = 1;
+            AddBtn.Text = "Add New";
+            AddBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            AddBtn.Click += AddBtn_Click;
+            // 
+            // RenameBtn
+            // 
+            RenameBtn.Image = Resources.editsym;
+            RenameBtn.Location = new Point(287, 65);
+            RenameBtn.Margin = new Padding(4, 5, 4, 5);
+            RenameBtn.Name = "RenameBtn";
+            RenameBtn.Size = new Size(117, 37);
+            RenameBtn.TabIndex = 2;
+            RenameBtn.Text = "Rename";
+            RenameBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            RenameBtn.Click += RenameBtn_Click;
+            // 
+            // DelBtn
+            // 
+            DelBtn.Image = Resources.Delete;
+            DelBtn.Location = new Point(287, 111);
+            DelBtn.Margin = new Padding(4, 5, 4, 5);
+            DelBtn.Name = "DelBtn";
+            DelBtn.Size = new Size(117, 37);
+            DelBtn.TabIndex = 3;
+            DelBtn.Text = "Delete";
+            DelBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            DelBtn.Click += DelBtn_Click;
+            // 
+            // CloseBtn
+            // 
+            CloseBtn.DialogResult = DialogResult.OK;
+            CloseBtn.Location = new Point(161, 375);
+            CloseBtn.Margin = new Padding(4, 5, 4, 5);
+            CloseBtn.Name = "CloseBtn";
+            CloseBtn.Size = new Size(117, 37);
+            CloseBtn.TabIndex = 4;
+            CloseBtn.Text = "Close";
+            CloseBtn.Click += CloseBtn_Click;
+            // 
+            // SaveAsBtn
+            // 
+            SaveAsBtn.Image = Resources.Save;
+            SaveAsBtn.Location = new Point(287, 197);
+            SaveAsBtn.Margin = new Padding(4, 5, 4, 5);
+            SaveAsBtn.Name = "SaveAsBtn";
+            SaveAsBtn.Size = new Size(117, 37);
+            SaveAsBtn.TabIndex = 5;
+            SaveAsBtn.Text = "Save As";
+            SaveAsBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            SaveAsBtn.Click += SaveAsBtn_Click;
+            // 
+            // SaveToBtn
+            // 
+            SaveToBtn.Image = Resources.Save;
+            SaveToBtn.Location = new Point(287, 289);
+            SaveToBtn.Margin = new Padding(4, 5, 4, 5);
+            SaveToBtn.Name = "SaveToBtn";
+            SaveToBtn.Size = new Size(117, 37);
+            SaveToBtn.TabIndex = 6;
+            SaveToBtn.Text = "WorshipList";
+            SaveToBtn.TextAlign = ContentAlignment.MiddleRight;
+            SaveToBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            SaveToBtn.Click += SaveToBtn_Click;
+            // 
+            // SaveTemplateBtn
+            // 
+            SaveTemplateBtn.Image = Resources.Save;
+            SaveTemplateBtn.Location = new Point(287, 243);
+            SaveTemplateBtn.Margin = new Padding(4, 5, 4, 5);
+            SaveTemplateBtn.Name = "SaveTemplateBtn";
+            SaveTemplateBtn.Size = new Size(117, 37);
+            SaveTemplateBtn.TabIndex = 7;
+            SaveTemplateBtn.Text = "Template";
+            SaveTemplateBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            SaveTemplateBtn.Click += SaveTemplateBtn_Click;
+            // 
+            // RestoreBtn
+            // 
+            RestoreBtn.Image = Resources.editsym;
+            RestoreBtn.Location = new Point(287, 18);
+            RestoreBtn.Margin = new Padding(4, 5, 4, 5);
+            RestoreBtn.Name = "RestoreBtn";
+            RestoreBtn.Size = new Size(117, 37);
+            RestoreBtn.TabIndex = 8;
+            RestoreBtn.Text = "Restore";
+            RestoreBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            RestoreBtn.Visible = false;
+            RestoreBtn.Click += RestoreBtn_Click;
+            // 
+            // DeletePermanentlyBtn
+            // 
+            DeletePermanentlyBtn.Image = Resources.Delete;
+            DeletePermanentlyBtn.Location = new Point(287, 65);
+            DeletePermanentlyBtn.Margin = new Padding(4, 5, 4, 5);
+            DeletePermanentlyBtn.Name = "DeletePermanentlyBtn";
+            DeletePermanentlyBtn.Size = new Size(117, 37);
+            DeletePermanentlyBtn.TabIndex = 9;
+            DeletePermanentlyBtn.Text = "Delete";
+            DeletePermanentlyBtn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            DeletePermanentlyBtn.Visible = false;
+            DeletePermanentlyBtn.Click += DeletePermanentlyBtn_Click;
+            // 
+            // EmptyTrashBtn
+            // 
+            EmptyTrashBtn.Location = new Point(287, 111);
+            EmptyTrashBtn.Margin = new Padding(4, 5, 4, 5);
+            EmptyTrashBtn.Name = "EmptyTrashBtn";
+            EmptyTrashBtn.Size = new Size(117, 37);
+            EmptyTrashBtn.TabIndex = 10;
+            EmptyTrashBtn.Text = "Empty Trash";
+            EmptyTrashBtn.Visible = false;
+            EmptyTrashBtn.Click += EmptyTrashBtn_Click;
+            // 
+            // FrmManageItemLists
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(420, 431);
+            Controls.Add(EmptyTrashBtn);
+            Controls.Add(DeletePermanentlyBtn);
+            Controls.Add(RestoreBtn);
+            Controls.Add(SaveTemplateBtn);
+            Controls.Add(SaveToBtn);
+            Controls.Add(SaveAsBtn);
+            Controls.Add(CloseBtn);
+            Controls.Add(DelBtn);
+            Controls.Add(RenameBtn);
+            Controls.Add(AddBtn);
+            Controls.Add(MainTabControl);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmManageItemLists";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            Load += FrmManageItemLists_Load;
+            MainTabControl.ResumeLayout(false);
+            ListsTab.ResumeLayout(false);
+            TrashTab.ResumeLayout(false);
+            ResumeLayout(false);
+        }
+    }
 }

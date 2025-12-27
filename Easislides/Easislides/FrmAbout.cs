@@ -43,116 +43,164 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmAbout));
-			BtnSysInfo = new System.Windows.Forms.Button();
-			BtnOK = new System.Windows.Forms.Button();
-			lbleula = new System.Windows.Forms.RichTextBox();
-			label2 = new System.Windows.Forms.Label();
-			linkLabel1 = new System.Windows.Forms.LinkLabel();
-			lblRegDetails = new System.Windows.Forms.TextBox();
-			label3 = new System.Windows.Forms.Label();
-			lblVersion = new System.Windows.Forms.Label();
-			lblCopyright = new System.Windows.Forms.Label();
-			panel1 = new System.Windows.Forms.Panel();
-			label4 = new System.Windows.Forms.Label();
-			SuspendLayout();
-			BtnSysInfo.Location = new System.Drawing.Point(226, 293);
-			BtnSysInfo.Name = "BtnSysInfo";
-			BtnSysInfo.Size = new System.Drawing.Size(80, 24);
-			BtnSysInfo.TabIndex = 1;
-			BtnSysInfo.Text = "System Info";
-			BtnSysInfo.Click += new System.EventHandler(BtnSysInfo_Click);
-			BtnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-			BtnOK.Location = new System.Drawing.Point(312, 293);
-			BtnOK.Name = "BtnOK";
-			BtnOK.Size = new System.Drawing.Size(80, 24);
-			BtnOK.TabIndex = 2;
-			BtnOK.Text = "OK";
-			BtnOK.Click += new System.EventHandler(BtnOK_Click);
-			lbleula.BackColor = System.Drawing.SystemColors.Window;
-			lbleula.Location = new System.Drawing.Point(12, 93);
-			lbleula.Name = "lbleula";
-			lbleula.ReadOnly = true;
-			lbleula.Size = new System.Drawing.Size(381, 162);
-			lbleula.TabIndex = 3;
-			lbleula.Text = "";
-			lbleula.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(lbleula_LinkClicked);
-			label2.Location = new System.Drawing.Point(15, 63);
-			label2.Name = "label2";
-			label2.Size = new System.Drawing.Size(378, 32);
-			label2.TabIndex = 6;
-			label2.Text = "Use of EasiSlides is subject to your acceptance of the following End User Licence Agreement (EULA):";
-			linkLabel1.AutoSize = true;
-			linkLabel1.Location = new System.Drawing.Point(70, 40);
-			linkLabel1.Name = "linkLabel1";
-			linkLabel1.Size = new System.Drawing.Size(133, 13);
-			linkLabel1.TabIndex = 7;
-			((System.Windows.Forms.Label)linkLabel1).TabStop = true;
-			linkLabel1.Text = "http://www.easislides.com";
-			linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(linkLabel1_LinkClicked);
-			lblRegDetails.Location = new System.Drawing.Point(154, 260);
-			lblRegDetails.Name = "lblRegDetails";
-			lblRegDetails.Size = new System.Drawing.Size(238, 20);
-			lblRegDetails.TabIndex = 0;
-			label3.AutoSize = true;
-			label3.Location = new System.Drawing.Point(15, 263);
-			label3.Name = "label3";
-			label3.Size = new System.Drawing.Size(136, 13);
-			label3.TabIndex = 9;
-			label3.Text = "Name Displayed at Startup:";
-			lblVersion.AutoSize = true;
-			lblVersion.Location = new System.Drawing.Point(15, 282);
-			lblVersion.Name = "lblVersion";
-			lblVersion.Size = new System.Drawing.Size(42, 13);
-			lblVersion.TabIndex = 10;
-			lblVersion.Text = "Version";
-			lblCopyright.AutoSize = true;
-			lblCopyright.Location = new System.Drawing.Point(15, 301);
-			lblCopyright.Name = "lblCopyright";
-			lblCopyright.Size = new System.Drawing.Size(51, 13);
-			lblCopyright.TabIndex = 11;
-			lblCopyright.Text = "Copyright";
-			panel1.BackgroundImage = (System.Drawing.Image)resources.GetObject("panel1.BackgroundImage");
-			panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			panel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panel1.Location = new System.Drawing.Point(12, 12);
-			panel1.Name = "panel1";
-			panel1.Size = new System.Drawing.Size(46, 43);
-			panel1.TabIndex = 4;
-			label4.Location = new System.Drawing.Point(70, 12);
-			label4.Name = "label4";
-			label4.Size = new System.Drawing.Size(322, 28);
-			label4.TabIndex = 13;
-			label4.Text = "EasiSlides provides Christian Lyrics projection and publication for Christian Praise && Worship.";
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(404, 331);
-			base.Controls.Add(lblRegDetails);
-			base.Controls.Add(linkLabel1);
-			base.Controls.Add(panel1);
-			base.Controls.Add(BtnSysInfo);
-			base.Controls.Add(BtnOK);
-			base.Controls.Add(lbleula);
-			base.Controls.Add(label2);
-			base.Controls.Add(label3);
-			base.Controls.Add(lblVersion);
-			base.Controls.Add(lblCopyright);
-			base.Controls.Add(label4);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.MaximizeBox = false;
-			base.MinimizeBox = false;
-			base.Name = "FrmAbout";
-			base.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			Text = "About EasiSlides";
-			base.Load += new System.EventHandler(FrmAbout_Load);
-			ResumeLayout(false);
-			PerformLayout();
-		}
+        private void InitializeComponent()
+        {
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmAbout));
+            BtnSysInfo = new Button();
+            BtnOK = new Button();
+            lbleula = new RichTextBox();
+            label2 = new Label();
+            linkLabel1 = new LinkLabel();
+            lblRegDetails = new TextBox();
+            label3 = new Label();
+            lblVersion = new Label();
+            lblCopyright = new Label();
+            panel1 = new Panel();
+            label4 = new Label();
+            SuspendLayout();
+            // 
+            // BtnSysInfo
+            // 
+            BtnSysInfo.Location = new Point(301, 451);
+            BtnSysInfo.Margin = new Padding(4, 5, 4, 5);
+            BtnSysInfo.Name = "BtnSysInfo";
+            BtnSysInfo.Size = new Size(107, 37);
+            BtnSysInfo.TabIndex = 1;
+            BtnSysInfo.Text = "System Info";
+            BtnSysInfo.Click += BtnSysInfo_Click;
+            // 
+            // BtnOK
+            // 
+            BtnOK.DialogResult = DialogResult.OK;
+            BtnOK.Location = new Point(416, 451);
+            BtnOK.Margin = new Padding(4, 5, 4, 5);
+            BtnOK.Name = "BtnOK";
+            BtnOK.Size = new Size(107, 37);
+            BtnOK.TabIndex = 2;
+            BtnOK.Text = "OK";
+            BtnOK.Click += BtnOK_Click;
+            // 
+            // lbleula
+            // 
+            lbleula.BackColor = SystemColors.Window;
+            lbleula.Location = new Point(16, 143);
+            lbleula.Margin = new Padding(4, 5, 4, 5);
+            lbleula.Name = "lbleula";
+            lbleula.ReadOnly = true;
+            lbleula.Size = new Size(507, 247);
+            lbleula.TabIndex = 3;
+            lbleula.Text = "";
+            lbleula.LinkClicked += lbleula_LinkClicked;
+            // 
+            // label2
+            // 
+            label2.Location = new Point(20, 97);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(504, 49);
+            label2.TabIndex = 6;
+            label2.Text = "Use of EasiSlides is subject to your acceptance of the following End User Licence Agreement (EULA):";
+            // 
+            // linkLabel1
+            // 
+            linkLabel1.AutoSize = true;
+            linkLabel1.Location = new Point(93, 62);
+            linkLabel1.Margin = new Padding(4, 0, 4, 0);
+            linkLabel1.Name = "linkLabel1";
+            linkLabel1.Size = new Size(182, 20);
+            linkLabel1.TabIndex = 7;
+            linkLabel1.TabStop = true;
+            linkLabel1.Text = "http://www.easislides.com";
+            linkLabel1.LinkClicked += linkLabel1_LinkClicked;
+            // 
+            // lblRegDetails
+            // 
+            lblRegDetails.Location = new Point(205, 400);
+            lblRegDetails.Margin = new Padding(4, 5, 4, 5);
+            lblRegDetails.Name = "lblRegDetails";
+            lblRegDetails.Size = new Size(316, 27);
+            lblRegDetails.TabIndex = 0;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(20, 405);
+            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(191, 20);
+            label3.TabIndex = 9;
+            label3.Text = "Name Displayed at Startup:";
+            // 
+            // lblVersion
+            // 
+            lblVersion.AutoSize = true;
+            lblVersion.Location = new Point(20, 434);
+            lblVersion.Margin = new Padding(4, 0, 4, 0);
+            lblVersion.Name = "lblVersion";
+            lblVersion.Size = new Size(57, 20);
+            lblVersion.TabIndex = 10;
+            lblVersion.Text = "Version";
+            // 
+            // lblCopyright
+            // 
+            lblCopyright.AutoSize = true;
+            lblCopyright.Location = new Point(20, 463);
+            lblCopyright.Margin = new Padding(4, 0, 4, 0);
+            lblCopyright.Name = "lblCopyright";
+            lblCopyright.Size = new Size(74, 20);
+            lblCopyright.TabIndex = 11;
+            lblCopyright.Text = "Copyright";
+            // 
+            // panel1
+            // 
+            panel1.BackgroundImage = (Image)resources.GetObject("panel1.BackgroundImage");
+            panel1.BackgroundImageLayout = ImageLayout.Stretch;
+            panel1.BorderStyle = BorderStyle.Fixed3D;
+            panel1.Location = new Point(16, 18);
+            panel1.Margin = new Padding(4, 5, 4, 5);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(60, 64);
+            panel1.TabIndex = 4;
+            // 
+            // label4
+            // 
+            label4.Location = new Point(93, 18);
+            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Name = "label4";
+            label4.Size = new Size(429, 43);
+            label4.TabIndex = 13;
+            label4.Text = "EasiSlides provides Christian Lyrics projection and publication for Christian Praise && Worship.";
+            // 
+            // FrmAbout
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(539, 509);
+            Controls.Add(lblRegDetails);
+            Controls.Add(linkLabel1);
+            Controls.Add(panel1);
+            Controls.Add(BtnSysInfo);
+            Controls.Add(BtnOK);
+            Controls.Add(lbleula);
+            Controls.Add(label2);
+            Controls.Add(label3);
+            Controls.Add(lblVersion);
+            Controls.Add(lblCopyright);
+            Controls.Add(label4);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmAbout";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "About EasiSlides";
+            Load += FrmAbout_Load;
+            ResumeLayout(false);
+            PerformLayout();
+        }
 
-		public FrmAbout()
+        public FrmAbout()
 		{
 			InitializeComponent();
 		}

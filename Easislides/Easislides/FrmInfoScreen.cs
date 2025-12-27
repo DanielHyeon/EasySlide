@@ -749,2376 +749,3226 @@ namespace Easislides
 			base.Dispose(disposing);
 		}
 
-		private void InitializeComponent()
-		{
-			components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmInfoScreen));
-			toolStrip1 = new System.Windows.Forms.ToolStrip();
-			Main_New = new System.Windows.Forms.ToolStripButton();
-			Main_Save = new System.Windows.Forms.ToolStripButton();
-			Main_SaveExit = new System.Windows.Forms.ToolStripButton();
-			toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-			Main_Import = new System.Windows.Forms.ToolStripButton();
-			Main_WordWrap = new System.Windows.Forms.ToolStripButton();
-			Main_ChordsMenu = new System.Windows.Forms.ToolStripButton();
-			toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-			Main_TransposeDown = new System.Windows.Forms.ToolStripButton();
-			Main_TransposeUp = new System.Windows.Forms.ToolStripButton();
-			toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-			ComboFontName = new System.Windows.Forms.ToolStripComboBox();
-			ComboMainFontSize = new System.Windows.Forms.ToolStripComboBox();
-			ComboNotationFontSize = new System.Windows.Forms.ToolStripComboBox();
-			statusStrip1 = new System.Windows.Forms.StatusStrip();
-			toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-			splitContainer1 = new System.Windows.Forms.SplitContainer();
-			tbLyrics1 = new System.Windows.Forms.RichTextBox();
-			CMRegion1 = new System.Windows.Forms.ContextMenuStrip(components);
-			CMRegion1_Copy = new System.Windows.Forms.ToolStripMenuItem();
-			CMRegion1_Paste = new System.Windows.Forms.ToolStripMenuItem();
-			panelR1Top = new System.Windows.Forms.Panel();
-			LabeltbLyrics = new System.Windows.Forms.Label();
-			panelR1Left = new System.Windows.Forms.Panel();
-			panel3 = new System.Windows.Forms.Panel();
-			panelR1LeftBottom = new System.Windows.Forms.Panel();
-			R1RightToLeft = new System.Windows.Forms.CheckBox();
-			R1Chinese = new System.Windows.Forms.Button();
-			panelR1LeftMiddle = new System.Windows.Forms.Panel();
-			R1BtnBridge2 = new System.Windows.Forms.Button();
-			R1BtnPreChorus2 = new System.Windows.Forms.Button();
-			R1BtnChorus2 = new System.Windows.Forms.Button();
-			R1BtnPreChorus = new System.Windows.Forms.Button();
-			R1BtnChorus = new System.Windows.Forms.Button();
-			R1VerseFormat = new System.Windows.Forms.Button();
-			R1BtnNewScreen = new System.Windows.Forms.Button();
-			R1BtnNotations = new System.Windows.Forms.Button();
-			R1BtnEnding = new System.Windows.Forms.Button();
-			R1BtnBridge = new System.Windows.Forms.Button();
-			R1Btn10 = new System.Windows.Forms.Button();
-			R1Btn9 = new System.Windows.Forms.Button();
-			R1Btn8 = new System.Windows.Forms.Button();
-			R1Btn7 = new System.Windows.Forms.Button();
-			R1Btn6 = new System.Windows.Forms.Button();
-			R1Btn5 = new System.Windows.Forms.Button();
-			R1Btn4 = new System.Windows.Forms.Button();
-			R1Btn3 = new System.Windows.Forms.Button();
-			R1Btn2 = new System.Windows.Forms.Button();
-			R1Btn1 = new System.Windows.Forms.Button();
-			panelR1LeftTop = new System.Windows.Forms.Panel();
-			R1Undo = new System.Windows.Forms.Button();
-			R1Redo = new System.Windows.Forms.Button();
-			tabRightPane = new System.Windows.Forms.TabControl();
-			tabRight_Region2 = new System.Windows.Forms.TabPage();
-			panelR2All = new System.Windows.Forms.Panel();
-			tbLyrics2 = new System.Windows.Forms.RichTextBox();
-			CMRegion2 = new System.Windows.Forms.ContextMenuStrip(components);
-			CMRegion2_Copy = new System.Windows.Forms.ToolStripMenuItem();
-			CMRegion2_Paste = new System.Windows.Forms.ToolStripMenuItem();
-			panelR2Top = new System.Windows.Forms.Panel();
-			LabeltbLyrics2 = new System.Windows.Forms.Label();
-			panelR2Left = new System.Windows.Forms.Panel();
-			panel1 = new System.Windows.Forms.Panel();
-			panelR2LeftBottom = new System.Windows.Forms.Panel();
-			R2RightToLeft = new System.Windows.Forms.CheckBox();
-			R2Chinese = new System.Windows.Forms.Button();
-			panelR2LeftMiddle = new System.Windows.Forms.Panel();
-			R2BtnBridge2 = new System.Windows.Forms.Button();
-			R2BtnPreChorus2 = new System.Windows.Forms.Button();
-			R2BtnPreChorus = new System.Windows.Forms.Button();
-			R2VerseFormat = new System.Windows.Forms.Button();
-			R2BtnChorus = new System.Windows.Forms.Button();
-			R2BtnChorus2 = new System.Windows.Forms.Button();
-			R2BtnNewScreen = new System.Windows.Forms.Button();
-			R2BtnNotations = new System.Windows.Forms.Button();
-			R2BtnEnding = new System.Windows.Forms.Button();
-			R2BtnBridge = new System.Windows.Forms.Button();
-			R2Btn10 = new System.Windows.Forms.Button();
-			R2Btn9 = new System.Windows.Forms.Button();
-			R2Btn8 = new System.Windows.Forms.Button();
-			R2Btn7 = new System.Windows.Forms.Button();
-			R2Btn6 = new System.Windows.Forms.Button();
-			R2Btn5 = new System.Windows.Forms.Button();
-			R2Btn4 = new System.Windows.Forms.Button();
-			R2Btn3 = new System.Windows.Forms.Button();
-			R2Btn2 = new System.Windows.Forms.Button();
-			R2Btn1 = new System.Windows.Forms.Button();
-			panelR2LeftTop = new System.Windows.Forms.Panel();
-			R2Undo = new System.Windows.Forms.Button();
-			R2Redo = new System.Windows.Forms.Button();
-			SyncBtnDown = new System.Windows.Forms.Button();
-			SyncBtnUp = new System.Windows.Forms.Button();
-			tabRight_Rotate = new System.Windows.Forms.TabPage();
-			panelRotate = new System.Windows.Forms.Panel();
-			splitContainerRotate = new System.Windows.Forms.SplitContainer();
-			groupBoxRotateVerses = new System.Windows.Forms.GroupBox();
-			panelRotate_Verses = new System.Windows.Forms.Panel();
-			Rotate_VersesList = new System.Windows.Forms.ListView();
-			columnHeader6 = new System.Windows.Forms.ColumnHeader();
-			columnHeader7 = new System.Windows.Forms.ColumnHeader();
-			columnHeader8 = new System.Windows.Forms.ColumnHeader();
-			panel10 = new System.Windows.Forms.Panel();
-			label23 = new System.Windows.Forms.Label();
-			panelRotate_OrderList = new System.Windows.Forms.Panel();
-			Rotate_OrderList = new System.Windows.Forms.ListView();
-			columnHeader9 = new System.Windows.Forms.ColumnHeader();
-			columnHeader10 = new System.Windows.Forms.ColumnHeader();
-			panel12 = new System.Windows.Forms.Panel();
-			label24 = new System.Windows.Forms.Label();
-			panel13 = new System.Windows.Forms.Panel();
-			toolStripRotate_SeqSet = new System.Windows.Forms.ToolStrip();
-			Rotate_Verses_Add = new System.Windows.Forms.ToolStripButton();
-			Rotate_Verses_SmartAdd = new System.Windows.Forms.ToolStripButton();
-			panel14 = new System.Windows.Forms.Panel();
-			toolStripRotate_SeqUpDown = new System.Windows.Forms.ToolStrip();
-			Rotate_OrderList_Up = new System.Windows.Forms.ToolStripButton();
-			Rotate_OrderList_Down = new System.Windows.Forms.ToolStripButton();
-			toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-			Rotate_OrderList_Delete = new System.Windows.Forms.ToolStripButton();
-			panelRotate_Sample = new System.Windows.Forms.Panel();
-			labelDur = new System.Windows.Forms.Label();
-			btnAddPosition = new System.Windows.Forms.Button();
-			btnDuration = new System.Windows.Forms.Button();
-			LabelMediaType = new System.Windows.Forms.Label();
-			labelMed = new System.Windows.Forms.Label();
-			panelRotate_Media = new System.Windows.Forms.Panel();
-			panelNoPlayer = new System.Windows.Forms.Panel();
-			label14 = new System.Windows.Forms.Label();
-			labelNoPlayer1 = new System.Windows.Forms.Label();
-			labelNoPlayer2 = new System.Windows.Forms.Label();
-			labelPos = new System.Windows.Forms.Label();
-			LabelPosition = new System.Windows.Forms.Label();
-			panelLoc = new System.Windows.Forms.Panel();
-			toolStrip3 = new System.Windows.Forms.ToolStrip();
-			Rotate_LocationBtn = new System.Windows.Forms.ToolStripButton();
-			LabelDuration = new System.Windows.Forms.Label();
-			Rotate_tbSourceLocation = new System.Windows.Forms.TextBox();
-			TrackBarVolume = new System.Windows.Forms.TrackBar();
-			panelPlayBtns = new System.Windows.Forms.Panel();
-			TrackBarDuration = new System.Windows.Forms.TrackBar();
-			StopBtn = new System.Windows.Forms.Button();
-			PlayPauseBtn = new System.Windows.Forms.Button();
-			FastReverseBtn = new System.Windows.Forms.Button();
-			FastForwardBtn = new System.Windows.Forms.Button();
-			labelVol = new System.Windows.Forms.Label();
-			panelRotateLeft = new System.Windows.Forms.Panel();
-			flowLayoutRotate = new System.Windows.Forms.FlowLayoutPanel();
-			panelRotateLeftTop2 = new System.Windows.Forms.Panel();
-			Rotate_TimeTotal = new System.Windows.Forms.DateTimePicker();
-			btnClearMediaPositions = new System.Windows.Forms.Button();
-			label21 = new System.Windows.Forms.Label();
-			label19 = new System.Windows.Forms.Label();
-			panelRotateLeftTop1 = new System.Windows.Forms.Panel();
-			groupBox3 = new System.Windows.Forms.GroupBox();
-			Rotate_SlidesGapUpDown = new System.Windows.Forms.NumericUpDown();
-			Rotate_Equal = new System.Windows.Forms.RadioButton();
-			Rotate_Multiple = new System.Windows.Forms.RadioButton();
-			panel6 = new System.Windows.Forms.Panel();
-			menuStripMain = new System.Windows.Forms.MenuStrip();
-			Menu_MainFile = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_New = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_Save = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_SaveAs = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_SaveExit = new System.Windows.Forms.ToolStripMenuItem();
-			toolStripSeparator16 = new System.Windows.Forms.ToolStripSeparator();
-			Menu_EditHistoryList = new System.Windows.Forms.ToolStripMenuItem();
-			toolStripSeparator18 = new System.Windows.Forms.ToolStripSeparator();
-			Menu_Exit = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_MainTools = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_Import = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_WordWrap = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_ChordsMenu = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_EditHistorySeparator = new System.Windows.Forms.ToolStripSeparator();
-			Menu_TransposeDown = new System.Windows.Forms.ToolStripMenuItem();
-			Menu_TransposeUp = new System.Windows.Forms.ToolStripMenuItem();
-			toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
-			Menu_ShowAllButtons = new System.Windows.Forms.ToolStripMenuItem();
-			TimerEditRequest = new System.Windows.Forms.Timer(components);
-			OpenFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-			splitContainerMain = new System.Windows.Forms.SplitContainer();
-			groupBox2 = new System.Windows.Forms.GroupBox();
-			panelVerses = new System.Windows.Forms.Panel();
-			VersesList = new System.Windows.Forms.ListView();
-			columnHeader1 = new System.Windows.Forms.ColumnHeader();
-			columnHeader2 = new System.Windows.Forms.ColumnHeader();
-			panel2 = new System.Windows.Forms.Panel();
-			label16 = new System.Windows.Forms.Label();
-			panelOrderList = new System.Windows.Forms.Panel();
-			OrderList = new System.Windows.Forms.ListView();
-			columnHeader3 = new System.Windows.Forms.ColumnHeader();
-			columnHeader4 = new System.Windows.Forms.ColumnHeader();
-			panel4 = new System.Windows.Forms.Panel();
-			label17 = new System.Windows.Forms.Label();
-			panelSeqSet = new System.Windows.Forms.Panel();
-			toolStripSeqSet = new System.Windows.Forms.ToolStrip();
-			Verses_Add = new System.Windows.Forms.ToolStripButton();
-			Verses_SmartAdd = new System.Windows.Forms.ToolStripButton();
-			panelSeqUpDown = new System.Windows.Forms.Panel();
-			toolStripSeqUpDown = new System.Windows.Forms.ToolStrip();
-			OrderList_Up = new System.Windows.Forms.ToolStripButton();
-			OrderList_Down = new System.Windows.Forms.ToolStripButton();
-			toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-			OrderList_Delete = new System.Windows.Forms.ToolStripButton();
-			groupBox1 = new System.Windows.Forms.GroupBox();
-			panel7 = new System.Windows.Forms.Panel();
-			Btn_Title2 = new System.Windows.Forms.Button();
-			Btn_Title = new System.Windows.Forms.Button();
-			Btn_Copyright = new System.Windows.Forms.Button();
-			Btn_Writer = new System.Windows.Forms.Button();
-			SongFolder = new System.Windows.Forms.ComboBox();
-			panelLinkTitle2Lookup = new System.Windows.Forms.Panel();
-			toolStrip2 = new System.Windows.Forms.ToolStrip();
-			Title2_LookUp = new System.Windows.Forms.ToolStripButton();
-			LinkTitle2Pic = new System.Windows.Forms.Panel();
-			CopyrightInfo = new System.Windows.Forms.TextBox();
-			label2 = new System.Windows.Forms.Label();
-			WriterInfo = new System.Windows.Forms.TextBox();
-			label3 = new System.Windows.Forms.Label();
-			SongTitle2 = new System.Windows.Forms.TextBox();
-			label4 = new System.Windows.Forms.Label();
-			SongTitle = new System.Windows.Forms.TextBox();
-			label5 = new System.Windows.Forms.Label();
-			labelFormat = new System.Windows.Forms.Label();
-			panel8 = new System.Windows.Forms.Panel();
-			Btn_BookRef = new System.Windows.Forms.Button();
-			Btn_UserRef = new System.Windows.Forms.Button();
-			label6 = new System.Windows.Forms.Label();
-			UserReference = new System.Windows.Forms.TextBox();
-			BookReference = new System.Windows.Forms.TextBox();
-			label9 = new System.Windows.Forms.Label();
-			label10 = new System.Windows.Forms.Label();
-			LicAdminInfo2 = new System.Windows.Forms.ComboBox();
-			LicAdminInfo1 = new System.Windows.Forms.ComboBox();
-			SongTiming = new System.Windows.Forms.ComboBox();
-			label13 = new System.Windows.Forms.Label();
-			SongKey = new System.Windows.Forms.ComboBox();
-			SongNumber = new System.Windows.Forms.TextBox();
-			SongCapo = new System.Windows.Forms.ComboBox();
-			label11 = new System.Windows.Forms.Label();
-			label12 = new System.Windows.Forms.Label();
-			label8 = new System.Windows.Forms.Label();
-			label7 = new System.Windows.Forms.Label();
-			toolTip1 = new System.Windows.Forms.ToolTip(components);
-			TimerFast = new System.Windows.Forms.Timer(components);
-			TimerAttemptConnect = new System.Windows.Forms.Timer(components);
-			TimerTrack = new System.Windows.Forms.Timer(components);
-			saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-			toolStrip1.SuspendLayout();
-			statusStrip1.SuspendLayout();
-			splitContainer1.Panel1.SuspendLayout();
-			splitContainer1.Panel2.SuspendLayout();
-			splitContainer1.SuspendLayout();
-			CMRegion1.SuspendLayout();
-			panelR1Top.SuspendLayout();
-			panelR1Left.SuspendLayout();
-			panel3.SuspendLayout();
-			panelR1LeftBottom.SuspendLayout();
-			panelR1LeftMiddle.SuspendLayout();
-			panelR1LeftTop.SuspendLayout();
-			tabRightPane.SuspendLayout();
-			tabRight_Region2.SuspendLayout();
-			panelR2All.SuspendLayout();
-			CMRegion2.SuspendLayout();
-			panelR2Top.SuspendLayout();
-			panelR2Left.SuspendLayout();
-			panel1.SuspendLayout();
-			panelR2LeftBottom.SuspendLayout();
-			panelR2LeftMiddle.SuspendLayout();
-			panelR2LeftTop.SuspendLayout();
-			tabRight_Rotate.SuspendLayout();
-			panelRotate.SuspendLayout();
-			splitContainerRotate.Panel1.SuspendLayout();
-			splitContainerRotate.Panel2.SuspendLayout();
-			splitContainerRotate.SuspendLayout();
-			groupBoxRotateVerses.SuspendLayout();
-			panelRotate_Verses.SuspendLayout();
-			panel10.SuspendLayout();
-			panelRotate_OrderList.SuspendLayout();
-			panel12.SuspendLayout();
-			panel13.SuspendLayout();
-			toolStripRotate_SeqSet.SuspendLayout();
-			panel14.SuspendLayout();
-			toolStripRotate_SeqUpDown.SuspendLayout();
-			panelRotate_Sample.SuspendLayout();
-			panelRotate_Media.SuspendLayout();
-			panelNoPlayer.SuspendLayout();
-			panelLoc.SuspendLayout();
-			toolStrip3.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)TrackBarVolume).BeginInit();
-			panelPlayBtns.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)TrackBarDuration).BeginInit();
-			panelRotateLeft.SuspendLayout();
-			panelRotateLeftTop2.SuspendLayout();
-			panelRotateLeftTop1.SuspendLayout();
-			groupBox3.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)Rotate_SlidesGapUpDown).BeginInit();
-			menuStripMain.SuspendLayout();
-			splitContainerMain.Panel1.SuspendLayout();
-			splitContainerMain.Panel2.SuspendLayout();
-			splitContainerMain.SuspendLayout();
-			groupBox2.SuspendLayout();
-			panelVerses.SuspendLayout();
-			panel2.SuspendLayout();
-			panelOrderList.SuspendLayout();
-			panel4.SuspendLayout();
-			panelSeqSet.SuspendLayout();
-			toolStripSeqSet.SuspendLayout();
-			panelSeqUpDown.SuspendLayout();
-			toolStripSeqUpDown.SuspendLayout();
-			groupBox1.SuspendLayout();
-			panel7.SuspendLayout();
-			panelLinkTitle2Lookup.SuspendLayout();
-			toolStrip2.SuspendLayout();
-			panel8.SuspendLayout();
-			SuspendLayout();
-			toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[14]
-			{
-				Main_New,
-				Main_Save,
-				Main_SaveExit,
-				toolStripSeparator1,
-				Main_Import,
-				Main_WordWrap,
-				Main_ChordsMenu,
-				toolStripSeparator2,
-				Main_TransposeDown,
-				Main_TransposeUp,
-				toolStripSeparator4,
-				ComboFontName,
-				ComboMainFontSize,
-				ComboNotationFontSize
-			});
-			toolStrip1.Location = new System.Drawing.Point(0, 24);
-			toolStrip1.Name = "toolStrip1";
-			toolStrip1.Size = new System.Drawing.Size(775, 25);
-			toolStrip1.TabIndex = 0;
-			toolStrip1.Text = "toolStrip1";
-			Main_New.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_New.Image = Resources.New;
-			Main_New.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_New.Name = "Main_New";
-			Main_New.Size = new System.Drawing.Size(23, 22);
-			Main_New.ToolTipText = "New Item";
-			Main_New.Click += new System.EventHandler(Main_New_Click);
-			Main_Save.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_Save.Image = Resources.Save;
-			Main_Save.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_Save.Name = "Main_Save";
-			Main_Save.Size = new System.Drawing.Size(23, 22);
-			Main_Save.ToolTipText = "Save Item";
-			Main_Save.Click += new System.EventHandler(Main_Save_Click);
-			Main_SaveExit.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_SaveExit.Image = Resources.SaveClose;
-			Main_SaveExit.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_SaveExit.Name = "Main_SaveExit";
-			Main_SaveExit.Size = new System.Drawing.Size(23, 22);
-			Main_SaveExit.ToolTipText = "Save and Exit";
-			Main_SaveExit.Click += new System.EventHandler(Main_SaveExit_Click);
-			toolStripSeparator1.Name = "toolStripSeparator1";
-			toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-			Main_Import.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_Import.Image = Resources.open;
-			Main_Import.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_Import.Name = "Main_Import";
-			Main_Import.Size = new System.Drawing.Size(23, 22);
-			Main_Import.Text = "toolStripButton5";
-			Main_Import.ToolTipText = "Import Word/Text File";
-			Main_Import.Click += new System.EventHandler(Main_Import_Click);
-			Main_WordWrap.CheckOnClick = true;
-			Main_WordWrap.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_WordWrap.Image = Resources.wordwrap;
-			Main_WordWrap.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_WordWrap.Name = "Main_WordWrap";
-			Main_WordWrap.Size = new System.Drawing.Size(23, 22);
-			Main_WordWrap.ToolTipText = "Word Wrap";
-			Main_WordWrap.Click += new System.EventHandler(Main_WordWrap_Click);
-			Main_ChordsMenu.CheckOnClick = true;
-			Main_ChordsMenu.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_ChordsMenu.Image = Resources.PopUpChords;
-			Main_ChordsMenu.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_ChordsMenu.Name = "Main_ChordsMenu";
-			Main_ChordsMenu.Size = new System.Drawing.Size(23, 22);
-			Main_ChordsMenu.ToolTipText = "Right Click Chords Menu";
-			Main_ChordsMenu.Click += new System.EventHandler(Main_ChordsMenu_Click);
-			toolStripSeparator2.Name = "toolStripSeparator2";
-			toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
-			Main_TransposeDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_TransposeDown.Image = Resources.arrowGL;
-			Main_TransposeDown.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_TransposeDown.Name = "Main_TransposeDown";
-			Main_TransposeDown.Size = new System.Drawing.Size(23, 22);
-			Main_TransposeDown.ToolTipText = "Transpose Chord Down";
-			Main_TransposeDown.Click += new System.EventHandler(Main_TransposeDown_Click);
-			Main_TransposeUp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Main_TransposeUp.Image = Resources.arrowGR;
-			Main_TransposeUp.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Main_TransposeUp.Name = "Main_TransposeUp";
-			Main_TransposeUp.Size = new System.Drawing.Size(23, 22);
-			Main_TransposeUp.ToolTipText = "Transpose Chord Up";
-			Main_TransposeUp.Click += new System.EventHandler(Main_TransposeUp_Click);
-			toolStripSeparator4.Name = "toolStripSeparator4";
-			toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
-			ComboFontName.AutoSize = false;
-			ComboFontName.Name = "ComboFontName";
-			ComboFontName.Size = new System.Drawing.Size(121, 21);
-			ComboFontName.Text = "Font Name";
-			ComboFontName.ToolTipText = "Font Name";
-			ComboFontName.SelectedIndexChanged += new System.EventHandler(ComboFonts_SelectedIndexChanged);
-			ComboMainFontSize.AutoSize = false;
-			ComboMainFontSize.Name = "ComboMainFontSize";
-			ComboMainFontSize.Size = new System.Drawing.Size(40, 21);
-			ComboMainFontSize.Text = "12";
-			ComboMainFontSize.ToolTipText = "Font Size";
-			ComboMainFontSize.SelectedIndexChanged += new System.EventHandler(ComboFonts_SelectedIndexChanged);
-			ComboNotationFontSize.AutoSize = false;
-			ComboNotationFontSize.Name = "ComboNotationFontSize";
-			ComboNotationFontSize.Size = new System.Drawing.Size(40, 21);
-			ComboNotationFontSize.Text = "10";
-			ComboNotationFontSize.ToolTipText = "Notation Size";
-			ComboNotationFontSize.SelectedIndexChanged += new System.EventHandler(ComboFonts_SelectedIndexChanged);
-			statusStrip1.BackColor = System.Drawing.Color.LimeGreen;
-			statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[1]
-			{
-				toolStripStatusLabel1
-			});
-			statusStrip1.Location = new System.Drawing.Point(0, 539);
-			statusStrip1.Name = "statusStrip1";
-			statusStrip1.Size = new System.Drawing.Size(775, 22);
-			statusStrip1.TabIndex = 2;
-			toolStripStatusLabel1.BackColor = System.Drawing.Color.FromArgb(0, 192, 0);
-			toolStripStatusLabel1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			toolStripStatusLabel1.ForeColor = System.Drawing.Color.Black;
-			toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-			toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
-			splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-			splitContainer1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
-			splitContainer1.Location = new System.Drawing.Point(0, 0);
-			splitContainer1.Name = "splitContainer1";
-			splitContainer1.Panel1.Controls.Add(tbLyrics1);
-			splitContainer1.Panel1.Controls.Add(panelR1Top);
-			splitContainer1.Panel1.Controls.Add(panelR1Left);
-			splitContainer1.Panel2.Controls.Add(tabRightPane);
-			splitContainer1.Panel2.Controls.Add(panel6);
-			splitContainer1.Panel2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
-			splitContainer1.Size = new System.Drawing.Size(775, 355);
-			splitContainer1.SplitterDistance = 351;
-			splitContainer1.TabIndex = 0;
-			splitContainer1.Text = "splitContainer1";
-			tbLyrics1.AutoWordSelection = true;
-			tbLyrics1.ContextMenuStrip = CMRegion1;
-			tbLyrics1.DetectUrls = false;
-			tbLyrics1.Dock = System.Windows.Forms.DockStyle.Fill;
-			tbLyrics1.EnableAutoDragDrop = true;
-			tbLyrics1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
-			tbLyrics1.HideSelection = false;
-			tbLyrics1.Location = new System.Drawing.Point(55, 16);
-			tbLyrics1.Name = "tbLyrics1";
-			tbLyrics1.Size = new System.Drawing.Size(292, 335);
-			tbLyrics1.TabIndex = 0;
-			tbLyrics1.Text = "";
-			tbLyrics1.SelectionChanged += new System.EventHandler(tbLyrics_SelectionChanged);
-			tbLyrics1.MouseUp += new System.Windows.Forms.MouseEventHandler(tbLyrics1_MouseUp);
-			tbLyrics1.KeyDown += new System.Windows.Forms.KeyEventHandler(tbLyrics1_KeyDown);
-			tbLyrics1.KeyUp += new System.Windows.Forms.KeyEventHandler(tbLyrics1_KeyUp);
-			tbLyrics1.TextChanged += new System.EventHandler(tbLyrics1_TextChanged);
-			CMRegion1.Items.AddRange(new System.Windows.Forms.ToolStripItem[2]
-			{
-				CMRegion1_Copy,
-				CMRegion1_Paste
-			});
-			CMRegion1.Name = "CMRegion1";
-			CMRegion1.Size = new System.Drawing.Size(102, 48);
-			CMRegion1_Copy.Name = "CMRegion1_Copy";
-			CMRegion1_Copy.Size = new System.Drawing.Size(101, 22);
-			CMRegion1_Copy.Text = "Copy";
-			CMRegion1_Copy.Click += new System.EventHandler(CMRegion1_Copy_Click);
-			CMRegion1_Paste.Name = "CMRegion1_Paste";
-			CMRegion1_Paste.Size = new System.Drawing.Size(101, 22);
-			CMRegion1_Paste.Text = "Paste";
-			CMRegion1_Paste.Click += new System.EventHandler(CMRegion1_Paste_Click);
-			panelR1Top.Controls.Add(LabeltbLyrics);
-			panelR1Top.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR1Top.Location = new System.Drawing.Point(55, 0);
-			panelR1Top.Name = "panelR1Top";
-			panelR1Top.Size = new System.Drawing.Size(292, 16);
-			panelR1Top.TabIndex = 0;
-			LabeltbLyrics.Location = new System.Drawing.Point(3, 1);
-			LabeltbLyrics.Name = "LabeltbLyrics";
-			LabeltbLyrics.Size = new System.Drawing.Size(346, 13);
-			LabeltbLyrics.TabIndex = 0;
-			LabeltbLyrics.Text = "Region 1";
-			panelR1Left.Controls.Add(panel3);
-			panelR1Left.Dock = System.Windows.Forms.DockStyle.Left;
-			panelR1Left.Location = new System.Drawing.Point(0, 0);
-			panelR1Left.Name = "panelR1Left";
-			panelR1Left.Size = new System.Drawing.Size(55, 351);
-			panelR1Left.TabIndex = 1;
-			panel3.Controls.Add(panelR1LeftBottom);
-			panel3.Controls.Add(panelR1LeftMiddle);
-			panel3.Controls.Add(panelR1LeftTop);
-			panel3.Location = new System.Drawing.Point(4, 16);
-			panel3.Name = "panel3";
-			panel3.Size = new System.Drawing.Size(48, 279);
-			panel3.TabIndex = 2;
-			panelR1LeftBottom.Controls.Add(R1RightToLeft);
-			panelR1LeftBottom.Controls.Add(R1Chinese);
-			panelR1LeftBottom.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR1LeftBottom.Location = new System.Drawing.Point(0, 254);
-			panelR1LeftBottom.Name = "panelR1LeftBottom";
-			panelR1LeftBottom.Size = new System.Drawing.Size(48, 24);
-			panelR1LeftBottom.TabIndex = 2;
-			R1RightToLeft.Appearance = System.Windows.Forms.Appearance.Button;
-			R1RightToLeft.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1RightToLeft.Image = Resources.LangRightLeft;
-			R1RightToLeft.Location = new System.Drawing.Point(22, 1);
-			R1RightToLeft.Name = "R1RightToLeft";
-			R1RightToLeft.Size = new System.Drawing.Size(23, 23);
-			R1RightToLeft.TabIndex = 3;
-			toolTip1.SetToolTip(R1RightToLeft, "Right-To-Left Text");
-			R1RightToLeft.UseVisualStyleBackColor = true;
-			R1RightToLeft.Visible = false;
-			R1RightToLeft.Click += new System.EventHandler(RightToLeft_Click);
-			R1Chinese.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Chinese.Image = Resources.Chinese;
-			R1Chinese.Location = new System.Drawing.Point(0, 1);
-			R1Chinese.Name = "R1Chinese";
-			R1Chinese.Size = new System.Drawing.Size(23, 23);
-			R1Chinese.TabIndex = 22;
-			R1Chinese.Tag = "";
-			toolTip1.SetToolTip(R1Chinese, "Siwtch Trad/Simp Chinese");
-			R1Chinese.Click += new System.EventHandler(R1Chinese_Click);
-			panelR1LeftMiddle.Controls.Add(R1BtnBridge2);
-			panelR1LeftMiddle.Controls.Add(R1BtnPreChorus2);
-			panelR1LeftMiddle.Controls.Add(R1BtnChorus2);
-			panelR1LeftMiddle.Controls.Add(R1BtnPreChorus);
-			panelR1LeftMiddle.Controls.Add(R1BtnChorus);
-			panelR1LeftMiddle.Controls.Add(R1VerseFormat);
-			panelR1LeftMiddle.Controls.Add(R1BtnNewScreen);
-			panelR1LeftMiddle.Controls.Add(R1BtnNotations);
-			panelR1LeftMiddle.Controls.Add(R1BtnEnding);
-			panelR1LeftMiddle.Controls.Add(R1BtnBridge);
-			panelR1LeftMiddle.Controls.Add(R1Btn10);
-			panelR1LeftMiddle.Controls.Add(R1Btn9);
-			panelR1LeftMiddle.Controls.Add(R1Btn8);
-			panelR1LeftMiddle.Controls.Add(R1Btn7);
-			panelR1LeftMiddle.Controls.Add(R1Btn6);
-			panelR1LeftMiddle.Controls.Add(R1Btn5);
-			panelR1LeftMiddle.Controls.Add(R1Btn4);
-			panelR1LeftMiddle.Controls.Add(R1Btn3);
-			panelR1LeftMiddle.Controls.Add(R1Btn2);
-			panelR1LeftMiddle.Controls.Add(R1Btn1);
-			panelR1LeftMiddle.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR1LeftMiddle.Location = new System.Drawing.Point(0, 24);
-			panelR1LeftMiddle.Name = "panelR1LeftMiddle";
-			panelR1LeftMiddle.Size = new System.Drawing.Size(48, 230);
-			panelR1LeftMiddle.TabIndex = 0;
-			R1BtnBridge2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnBridge2.Image = Resources.NumBridge2;
-			R1BtnBridge2.Location = new System.Drawing.Point(23, 161);
-			R1BtnBridge2.Name = "R1BtnBridge2";
-			R1BtnBridge2.Size = new System.Drawing.Size(23, 23);
-			R1BtnBridge2.TabIndex = 17;
-			R1BtnBridge2.Tag = "103";
-			toolTip1.SetToolTip(R1BtnBridge2, "Bridge 2 Indicator");
-			R1BtnBridge2.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnPreChorus2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnPreChorus2.Image = Resources.NumPreChorus2;
-			R1BtnPreChorus2.Location = new System.Drawing.Point(23, 115);
-			R1BtnPreChorus2.Name = "R1BtnPreChorus2";
-			R1BtnPreChorus2.Size = new System.Drawing.Size(23, 23);
-			R1BtnPreChorus2.TabIndex = 13;
-			R1BtnPreChorus2.Tag = "112";
-			toolTip1.SetToolTip(R1BtnPreChorus2, "Prechorus2 Indicator");
-			R1BtnPreChorus2.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnChorus2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnChorus2.Image = Resources.NumChorus2;
-			R1BtnChorus2.Location = new System.Drawing.Point(23, 138);
-			R1BtnChorus2.Name = "R1BtnChorus2";
-			R1BtnChorus2.Size = new System.Drawing.Size(23, 23);
-			R1BtnChorus2.TabIndex = 15;
-			R1BtnChorus2.Tag = "102";
-			toolTip1.SetToolTip(R1BtnChorus2, "Chrous 2 Indicator");
-			R1BtnChorus2.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnPreChorus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnPreChorus.Image = Resources.NumPreChorus;
-			R1BtnPreChorus.Location = new System.Drawing.Point(0, 115);
-			R1BtnPreChorus.Name = "R1BtnPreChorus";
-			R1BtnPreChorus.Size = new System.Drawing.Size(23, 23);
-			R1BtnPreChorus.TabIndex = 12;
-			R1BtnPreChorus.Tag = "111";
-			toolTip1.SetToolTip(R1BtnPreChorus, "Prechorus Indicator");
-			R1BtnPreChorus.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnChorus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnChorus.Image = Resources.NumChorus;
-			R1BtnChorus.Location = new System.Drawing.Point(0, 138);
-			R1BtnChorus.Name = "R1BtnChorus";
-			R1BtnChorus.Size = new System.Drawing.Size(23, 23);
-			R1BtnChorus.TabIndex = 14;
-			R1BtnChorus.Tag = "0";
-			toolTip1.SetToolTip(R1BtnChorus, "Chorus Indicator");
-			R1BtnChorus.Click += new System.EventHandler(R1Btn_Click);
-			R1VerseFormat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1VerseFormat.Image = Resources.VerseFormat;
-			R1VerseFormat.Location = new System.Drawing.Point(23, 207);
-			R1VerseFormat.Name = "R1VerseFormat";
-			R1VerseFormat.Size = new System.Drawing.Size(23, 23);
-			R1VerseFormat.TabIndex = 21;
-			R1VerseFormat.Tag = "";
-			toolTip1.SetToolTip(R1VerseFormat, "Verses Format");
-			R1VerseFormat.Click += new System.EventHandler(R1VerseFormat_Click);
-			R1BtnNewScreen.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnNewScreen.Image = Resources.NumNewScreen;
-			R1BtnNewScreen.Location = new System.Drawing.Point(23, 184);
-			R1BtnNewScreen.Name = "R1BtnNewScreen";
-			R1BtnNewScreen.Size = new System.Drawing.Size(23, 23);
-			R1BtnNewScreen.TabIndex = 19;
-			R1BtnNewScreen.Tag = "151";
-			toolTip1.SetToolTip(R1BtnNewScreen, "New Screen Indicator");
-			R1BtnNewScreen.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnNotations.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnNotations.Image = Resources.NotationSym;
-			R1BtnNotations.Location = new System.Drawing.Point(0, 207);
-			R1BtnNotations.Name = "R1BtnNotations";
-			R1BtnNotations.Size = new System.Drawing.Size(23, 23);
-			R1BtnNotations.TabIndex = 20;
-			R1BtnNotations.Tag = "152";
-			toolTip1.SetToolTip(R1BtnNotations, "Notations Indicator (F8)");
-			R1BtnNotations.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnEnding.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnEnding.Image = Resources.NumEnding;
-			R1BtnEnding.Location = new System.Drawing.Point(0, 184);
-			R1BtnEnding.Name = "R1BtnEnding";
-			R1BtnEnding.Size = new System.Drawing.Size(23, 23);
-			R1BtnEnding.TabIndex = 18;
-			R1BtnEnding.Tag = "101";
-			toolTip1.SetToolTip(R1BtnEnding, "Ending Indicator");
-			R1BtnEnding.Click += new System.EventHandler(R1Btn_Click);
-			R1BtnBridge.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1BtnBridge.Image = Resources.NumBridge;
-			R1BtnBridge.Location = new System.Drawing.Point(0, 161);
-			R1BtnBridge.Name = "R1BtnBridge";
-			R1BtnBridge.Size = new System.Drawing.Size(23, 23);
-			R1BtnBridge.TabIndex = 16;
-			R1BtnBridge.Tag = "100";
-			toolTip1.SetToolTip(R1BtnBridge, "Bridge Indicator");
-			R1BtnBridge.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn10.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn10.Image = Resources.Num10;
-			R1Btn10.Location = new System.Drawing.Point(23, 92);
-			R1Btn10.Name = "R1Btn10";
-			R1Btn10.Size = new System.Drawing.Size(23, 23);
-			R1Btn10.TabIndex = 11;
-			R1Btn10.Tag = "10";
-			R1Btn10.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn9.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn9.Image = Resources.Num9;
-			R1Btn9.Location = new System.Drawing.Point(0, 92);
-			R1Btn9.Name = "R1Btn9";
-			R1Btn9.Size = new System.Drawing.Size(23, 23);
-			R1Btn9.TabIndex = 10;
-			R1Btn9.Tag = "9";
-			R1Btn9.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn8.Image = Resources.Num8;
-			R1Btn8.Location = new System.Drawing.Point(23, 69);
-			R1Btn8.Name = "R1Btn8";
-			R1Btn8.Size = new System.Drawing.Size(23, 23);
-			R1Btn8.TabIndex = 9;
-			R1Btn8.Tag = "8";
-			R1Btn8.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn7.Image = Resources.Num7;
-			R1Btn7.Location = new System.Drawing.Point(0, 69);
-			R1Btn7.Name = "R1Btn7";
-			R1Btn7.Size = new System.Drawing.Size(23, 23);
-			R1Btn7.TabIndex = 8;
-			R1Btn7.Tag = "7";
-			R1Btn7.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn6.Image = Resources.Num6;
-			R1Btn6.Location = new System.Drawing.Point(23, 46);
-			R1Btn6.Name = "R1Btn6";
-			R1Btn6.Size = new System.Drawing.Size(23, 23);
-			R1Btn6.TabIndex = 7;
-			R1Btn6.Tag = "6";
-			R1Btn6.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn5.Image = Resources.Num5;
-			R1Btn5.Location = new System.Drawing.Point(0, 46);
-			R1Btn5.Name = "R1Btn5";
-			R1Btn5.Size = new System.Drawing.Size(23, 23);
-			R1Btn5.TabIndex = 6;
-			R1Btn5.Tag = "5";
-			R1Btn5.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn4.Image = Resources.Num4;
-			R1Btn4.Location = new System.Drawing.Point(23, 23);
-			R1Btn4.Name = "R1Btn4";
-			R1Btn4.Size = new System.Drawing.Size(23, 23);
-			R1Btn4.TabIndex = 5;
-			R1Btn4.Tag = "4";
-			R1Btn4.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn3.Image = Resources.Num3;
-			R1Btn3.Location = new System.Drawing.Point(0, 23);
-			R1Btn3.Name = "R1Btn3";
-			R1Btn3.Size = new System.Drawing.Size(23, 23);
-			R1Btn3.TabIndex = 4;
-			R1Btn3.Tag = "3";
-			R1Btn3.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn2.Image = Resources.Num2;
-			R1Btn2.Location = new System.Drawing.Point(23, 0);
-			R1Btn2.Name = "R1Btn2";
-			R1Btn2.Size = new System.Drawing.Size(23, 23);
-			R1Btn2.TabIndex = 3;
-			R1Btn2.Tag = "2";
-			R1Btn2.Click += new System.EventHandler(R1Btn_Click);
-			R1Btn1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Btn1.Image = Resources.Num1;
-			R1Btn1.Location = new System.Drawing.Point(0, 0);
-			R1Btn1.Name = "R1Btn1";
-			R1Btn1.Size = new System.Drawing.Size(23, 23);
-			R1Btn1.TabIndex = 2;
-			R1Btn1.Tag = "1";
-			toolTip1.SetToolTip(R1Btn1, "Verse Indicator");
-			R1Btn1.Click += new System.EventHandler(R1Btn_Click);
-			panelR1LeftTop.Controls.Add(R1Undo);
-			panelR1LeftTop.Controls.Add(R1Redo);
-			panelR1LeftTop.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR1LeftTop.Location = new System.Drawing.Point(0, 0);
-			panelR1LeftTop.Name = "panelR1LeftTop";
-			panelR1LeftTop.Size = new System.Drawing.Size(48, 24);
-			panelR1LeftTop.TabIndex = 2;
-			R1Undo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Undo.Image = Resources.undo;
-			R1Undo.Location = new System.Drawing.Point(0, 1);
-			R1Undo.Name = "R1Undo";
-			R1Undo.Size = new System.Drawing.Size(23, 23);
-			R1Undo.TabIndex = 0;
-			R1Undo.Tag = "0";
-			toolTip1.SetToolTip(R1Undo, "Undo");
-			R1Undo.Click += new System.EventHandler(R1UndoRedo_Click);
-			R1Redo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R1Redo.Image = Resources.redo;
-			R1Redo.Location = new System.Drawing.Point(23, 1);
-			R1Redo.Name = "R1Redo";
-			R1Redo.Size = new System.Drawing.Size(23, 23);
-			R1Redo.TabIndex = 1;
-			R1Redo.Tag = "1";
-			toolTip1.SetToolTip(R1Redo, "Redo");
-			R1Redo.Click += new System.EventHandler(R1UndoRedo_Click);
-			tabRightPane.Controls.Add(tabRight_Region2);
-			tabRightPane.Controls.Add(tabRight_Rotate);
-			tabRightPane.Dock = System.Windows.Forms.DockStyle.Fill;
-			tabRightPane.Location = new System.Drawing.Point(0, 0);
-			tabRightPane.Multiline = true;
-			tabRightPane.Name = "tabRightPane";
-			tabRightPane.SelectedIndex = 0;
-			tabRightPane.Size = new System.Drawing.Size(413, 351);
-			tabRightPane.TabIndex = 0;
-			tabRight_Region2.BackColor = System.Drawing.SystemColors.Control;
-			tabRight_Region2.Controls.Add(panelR2All);
-			tabRight_Region2.Location = new System.Drawing.Point(4, 22);
-			tabRight_Region2.Name = "tabRight_Region2";
-			tabRight_Region2.Padding = new System.Windows.Forms.Padding(3);
-			tabRight_Region2.Size = new System.Drawing.Size(405, 325);
-			tabRight_Region2.TabIndex = 0;
-			tabRight_Region2.Text = "Region 2";
-			panelR2All.Controls.Add(tbLyrics2);
-			panelR2All.Controls.Add(panelR2Top);
-			panelR2All.Controls.Add(panelR2Left);
-			panelR2All.Dock = System.Windows.Forms.DockStyle.Fill;
-			panelR2All.Location = new System.Drawing.Point(3, 3);
-			panelR2All.Name = "panelR2All";
-			panelR2All.Size = new System.Drawing.Size(399, 319);
-			panelR2All.TabIndex = 7;
-			tbLyrics2.ContextMenuStrip = CMRegion2;
-			tbLyrics2.DetectUrls = false;
-			tbLyrics2.Dock = System.Windows.Forms.DockStyle.Fill;
-			tbLyrics2.EnableAutoDragDrop = true;
-			tbLyrics2.HideSelection = false;
-			tbLyrics2.Location = new System.Drawing.Point(72, 16);
-			tbLyrics2.Name = "tbLyrics2";
-			tbLyrics2.Size = new System.Drawing.Size(327, 303);
-			tbLyrics2.TabIndex = 5;
-			tbLyrics2.Text = "";
-			tbLyrics2.SelectionChanged += new System.EventHandler(tbLyrics2_SelectionChanged);
-			tbLyrics2.MouseUp += new System.Windows.Forms.MouseEventHandler(tbLyrics2_MouseUp);
-			tbLyrics2.KeyDown += new System.Windows.Forms.KeyEventHandler(tbLyrics2_KeyDown);
-			tbLyrics2.KeyUp += new System.Windows.Forms.KeyEventHandler(tbLyrics2_KeyUp);
-			tbLyrics2.TextChanged += new System.EventHandler(tbLyrics2_TextChanged);
-			CMRegion2.Items.AddRange(new System.Windows.Forms.ToolStripItem[2]
-			{
-				CMRegion2_Copy,
-				CMRegion2_Paste
-			});
-			CMRegion2.Name = "CMRegion1";
-			CMRegion2.Size = new System.Drawing.Size(102, 48);
-			CMRegion2_Copy.Name = "CMRegion2_Copy";
-			CMRegion2_Copy.Size = new System.Drawing.Size(101, 22);
-			CMRegion2_Copy.Text = "Copy";
-			CMRegion2_Copy.Click += new System.EventHandler(CMRegion2_Copy_Click);
-			CMRegion2_Paste.Name = "CMRegion2_Paste";
-			CMRegion2_Paste.Size = new System.Drawing.Size(101, 22);
-			CMRegion2_Paste.Text = "Paste";
-			CMRegion2_Paste.Click += new System.EventHandler(CMRegion2_Paste_Click);
-			panelR2Top.Controls.Add(LabeltbLyrics2);
-			panelR2Top.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR2Top.Location = new System.Drawing.Point(72, 0);
-			panelR2Top.Name = "panelR2Top";
-			panelR2Top.Size = new System.Drawing.Size(327, 16);
-			panelR2Top.TabIndex = 1;
-			LabeltbLyrics2.Location = new System.Drawing.Point(-1, 1);
-			LabeltbLyrics2.Name = "LabeltbLyrics2";
-			LabeltbLyrics2.Size = new System.Drawing.Size(377, 13);
-			LabeltbLyrics2.TabIndex = 1;
-			LabeltbLyrics2.Text = "Region 2";
-			panelR2Left.Controls.Add(panel1);
-			panelR2Left.Controls.Add(SyncBtnDown);
-			panelR2Left.Controls.Add(SyncBtnUp);
-			panelR2Left.Dock = System.Windows.Forms.DockStyle.Left;
-			panelR2Left.Location = new System.Drawing.Point(0, 0);
-			panelR2Left.Name = "panelR2Left";
-			panelR2Left.Size = new System.Drawing.Size(72, 319);
-			panelR2Left.TabIndex = 0;
-			panel1.Controls.Add(panelR2LeftBottom);
-			panel1.Controls.Add(panelR2LeftMiddle);
-			panel1.Controls.Add(panelR2LeftTop);
-			panel1.Location = new System.Drawing.Point(21, 15);
-			panel1.Name = "panel1";
-			panel1.Size = new System.Drawing.Size(48, 280);
-			panel1.TabIndex = 2;
-			panelR2LeftBottom.Controls.Add(R2RightToLeft);
-			panelR2LeftBottom.Controls.Add(R2Chinese);
-			panelR2LeftBottom.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR2LeftBottom.Location = new System.Drawing.Point(0, 254);
-			panelR2LeftBottom.Name = "panelR2LeftBottom";
-			panelR2LeftBottom.Size = new System.Drawing.Size(48, 24);
-			panelR2LeftBottom.TabIndex = 3;
-			R2RightToLeft.Appearance = System.Windows.Forms.Appearance.Button;
-			R2RightToLeft.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2RightToLeft.Image = Resources.LangRightLeft;
-			R2RightToLeft.Location = new System.Drawing.Point(23, 0);
-			R2RightToLeft.Name = "R2RightToLeft";
-			R2RightToLeft.Size = new System.Drawing.Size(23, 23);
-			R2RightToLeft.TabIndex = 24;
-			toolTip1.SetToolTip(R2RightToLeft, "Right-To-Left Text");
-			R2RightToLeft.UseVisualStyleBackColor = true;
-			R2RightToLeft.Visible = false;
-			R2RightToLeft.Click += new System.EventHandler(RightToLeft_Click);
-			R2Chinese.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Chinese.Image = Resources.Chinese;
-			R2Chinese.Location = new System.Drawing.Point(0, 0);
-			R2Chinese.Name = "R2Chinese";
-			R2Chinese.Size = new System.Drawing.Size(23, 23);
-			R2Chinese.TabIndex = 22;
-			R2Chinese.Tag = "";
-			toolTip1.SetToolTip(R2Chinese, "Siwtch Trad/Simp Chinese");
-			R2Chinese.Click += new System.EventHandler(R2Chinese_Click);
-			panelR2LeftMiddle.Controls.Add(R2BtnBridge2);
-			panelR2LeftMiddle.Controls.Add(R2BtnPreChorus2);
-			panelR2LeftMiddle.Controls.Add(R2BtnPreChorus);
-			panelR2LeftMiddle.Controls.Add(R2VerseFormat);
-			panelR2LeftMiddle.Controls.Add(R2BtnChorus);
-			panelR2LeftMiddle.Controls.Add(R2BtnChorus2);
-			panelR2LeftMiddle.Controls.Add(R2BtnNewScreen);
-			panelR2LeftMiddle.Controls.Add(R2BtnNotations);
-			panelR2LeftMiddle.Controls.Add(R2BtnEnding);
-			panelR2LeftMiddle.Controls.Add(R2BtnBridge);
-			panelR2LeftMiddle.Controls.Add(R2Btn10);
-			panelR2LeftMiddle.Controls.Add(R2Btn9);
-			panelR2LeftMiddle.Controls.Add(R2Btn8);
-			panelR2LeftMiddle.Controls.Add(R2Btn7);
-			panelR2LeftMiddle.Controls.Add(R2Btn6);
-			panelR2LeftMiddle.Controls.Add(R2Btn5);
-			panelR2LeftMiddle.Controls.Add(R2Btn4);
-			panelR2LeftMiddle.Controls.Add(R2Btn3);
-			panelR2LeftMiddle.Controls.Add(R2Btn2);
-			panelR2LeftMiddle.Controls.Add(R2Btn1);
-			panelR2LeftMiddle.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR2LeftMiddle.Location = new System.Drawing.Point(0, 24);
-			panelR2LeftMiddle.Name = "panelR2LeftMiddle";
-			panelR2LeftMiddle.Size = new System.Drawing.Size(48, 230);
-			panelR2LeftMiddle.TabIndex = 1;
-			R2BtnBridge2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnBridge2.Image = Resources.NumBridge2;
-			R2BtnBridge2.Location = new System.Drawing.Point(23, 161);
-			R2BtnBridge2.Name = "R2BtnBridge2";
-			R2BtnBridge2.Size = new System.Drawing.Size(23, 23);
-			R2BtnBridge2.TabIndex = 17;
-			R2BtnBridge2.Tag = "103";
-			toolTip1.SetToolTip(R2BtnBridge2, "Bridge 2 Indicator");
-			R2BtnBridge2.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnPreChorus2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnPreChorus2.Image = Resources.NumPreChorus2;
-			R2BtnPreChorus2.Location = new System.Drawing.Point(23, 115);
-			R2BtnPreChorus2.Name = "R2BtnPreChorus2";
-			R2BtnPreChorus2.Size = new System.Drawing.Size(23, 23);
-			R2BtnPreChorus2.TabIndex = 13;
-			R2BtnPreChorus2.Tag = "112";
-			toolTip1.SetToolTip(R2BtnPreChorus2, "Prechorus2 Indicator");
-			R2BtnPreChorus2.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnPreChorus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnPreChorus.Image = Resources.NumPreChorus;
-			R2BtnPreChorus.Location = new System.Drawing.Point(0, 115);
-			R2BtnPreChorus.Name = "R2BtnPreChorus";
-			R2BtnPreChorus.Size = new System.Drawing.Size(23, 23);
-			R2BtnPreChorus.TabIndex = 12;
-			R2BtnPreChorus.Tag = "111";
-			toolTip1.SetToolTip(R2BtnPreChorus, "Prechorus Indicator");
-			R2BtnPreChorus.Click += new System.EventHandler(R2Btn_Click);
-			R2VerseFormat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2VerseFormat.Image = Resources.VerseFormat;
-			R2VerseFormat.Location = new System.Drawing.Point(23, 207);
-			R2VerseFormat.Name = "R2VerseFormat";
-			R2VerseFormat.Size = new System.Drawing.Size(23, 23);
-			R2VerseFormat.TabIndex = 21;
-			R2VerseFormat.Tag = "";
-			toolTip1.SetToolTip(R2VerseFormat, "Verses Format");
-			R2VerseFormat.Click += new System.EventHandler(R2VerseFormat_Click);
-			R2BtnChorus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnChorus.Image = Resources.NumChorus;
-			R2BtnChorus.Location = new System.Drawing.Point(0, 138);
-			R2BtnChorus.Name = "R2BtnChorus";
-			R2BtnChorus.Size = new System.Drawing.Size(23, 23);
-			R2BtnChorus.TabIndex = 14;
-			R2BtnChorus.Tag = "0";
-			toolTip1.SetToolTip(R2BtnChorus, "Chorus Indicator");
-			R2BtnChorus.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnChorus2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnChorus2.Image = Resources.NumChorus2;
-			R2BtnChorus2.Location = new System.Drawing.Point(23, 138);
-			R2BtnChorus2.Name = "R2BtnChorus2";
-			R2BtnChorus2.Size = new System.Drawing.Size(23, 23);
-			R2BtnChorus2.TabIndex = 15;
-			R2BtnChorus2.Tag = "102";
-			toolTip1.SetToolTip(R2BtnChorus2, "Chrous 2 Indicator");
-			R2BtnChorus2.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnNewScreen.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnNewScreen.Image = Resources.NumNewScreen;
-			R2BtnNewScreen.Location = new System.Drawing.Point(23, 184);
-			R2BtnNewScreen.Name = "R2BtnNewScreen";
-			R2BtnNewScreen.Size = new System.Drawing.Size(23, 23);
-			R2BtnNewScreen.TabIndex = 19;
-			R2BtnNewScreen.Tag = "151";
-			toolTip1.SetToolTip(R2BtnNewScreen, "New Screen Indicator");
-			R2BtnNewScreen.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnNotations.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnNotations.Image = Resources.NotationSym;
-			R2BtnNotations.Location = new System.Drawing.Point(0, 207);
-			R2BtnNotations.Name = "R2BtnNotations";
-			R2BtnNotations.Size = new System.Drawing.Size(23, 23);
-			R2BtnNotations.TabIndex = 20;
-			R2BtnNotations.Tag = "152";
-			toolTip1.SetToolTip(R2BtnNotations, "Notations Indicator (F8)");
-			R2BtnNotations.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnEnding.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnEnding.Image = Resources.NumEnding;
-			R2BtnEnding.Location = new System.Drawing.Point(0, 184);
-			R2BtnEnding.Name = "R2BtnEnding";
-			R2BtnEnding.Size = new System.Drawing.Size(23, 23);
-			R2BtnEnding.TabIndex = 18;
-			R2BtnEnding.Tag = "101";
-			toolTip1.SetToolTip(R2BtnEnding, "Ending Indicator");
-			R2BtnEnding.Click += new System.EventHandler(R2Btn_Click);
-			R2BtnBridge.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2BtnBridge.Image = Resources.NumBridge;
-			R2BtnBridge.Location = new System.Drawing.Point(0, 161);
-			R2BtnBridge.Name = "R2BtnBridge";
-			R2BtnBridge.Size = new System.Drawing.Size(23, 23);
-			R2BtnBridge.TabIndex = 16;
-			R2BtnBridge.Tag = "100";
-			toolTip1.SetToolTip(R2BtnBridge, "Bridge Indicator");
-			R2BtnBridge.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn10.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn10.Image = Resources.Num10;
-			R2Btn10.Location = new System.Drawing.Point(23, 92);
-			R2Btn10.Name = "R2Btn10";
-			R2Btn10.Size = new System.Drawing.Size(23, 23);
-			R2Btn10.TabIndex = 11;
-			R2Btn10.Tag = "10";
-			R2Btn10.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn9.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn9.Image = Resources.Num9;
-			R2Btn9.Location = new System.Drawing.Point(0, 92);
-			R2Btn9.Name = "R2Btn9";
-			R2Btn9.Size = new System.Drawing.Size(23, 23);
-			R2Btn9.TabIndex = 10;
-			R2Btn9.Tag = "9";
-			R2Btn9.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn8.Image = Resources.Num8;
-			R2Btn8.Location = new System.Drawing.Point(23, 69);
-			R2Btn8.Name = "R2Btn8";
-			R2Btn8.Size = new System.Drawing.Size(23, 23);
-			R2Btn8.TabIndex = 9;
-			R2Btn8.Tag = "8";
-			R2Btn8.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn7.Image = Resources.Num7;
-			R2Btn7.Location = new System.Drawing.Point(0, 69);
-			R2Btn7.Name = "R2Btn7";
-			R2Btn7.Size = new System.Drawing.Size(23, 23);
-			R2Btn7.TabIndex = 8;
-			R2Btn7.Tag = "7";
-			R2Btn7.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn6.Image = Resources.Num6;
-			R2Btn6.Location = new System.Drawing.Point(23, 46);
-			R2Btn6.Name = "R2Btn6";
-			R2Btn6.Size = new System.Drawing.Size(23, 23);
-			R2Btn6.TabIndex = 7;
-			R2Btn6.Tag = "6";
-			R2Btn6.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn5.Image = Resources.Num5;
-			R2Btn5.Location = new System.Drawing.Point(0, 46);
-			R2Btn5.Name = "R2Btn5";
-			R2Btn5.Size = new System.Drawing.Size(23, 23);
-			R2Btn5.TabIndex = 6;
-			R2Btn5.Tag = "5";
-			R2Btn5.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn4.Image = Resources.Num4;
-			R2Btn4.Location = new System.Drawing.Point(23, 23);
-			R2Btn4.Name = "R2Btn4";
-			R2Btn4.Size = new System.Drawing.Size(23, 23);
-			R2Btn4.TabIndex = 5;
-			R2Btn4.Tag = "4";
-			R2Btn4.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn3.Image = Resources.Num3;
-			R2Btn3.Location = new System.Drawing.Point(0, 23);
-			R2Btn3.Name = "R2Btn3";
-			R2Btn3.Size = new System.Drawing.Size(23, 23);
-			R2Btn3.TabIndex = 4;
-			R2Btn3.Tag = "3";
-			R2Btn3.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn2.Image = Resources.Num2;
-			R2Btn2.Location = new System.Drawing.Point(23, 0);
-			R2Btn2.Name = "R2Btn2";
-			R2Btn2.Size = new System.Drawing.Size(23, 23);
-			R2Btn2.TabIndex = 3;
-			R2Btn2.Tag = "2";
-			R2Btn2.Click += new System.EventHandler(R2Btn_Click);
-			R2Btn1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Btn1.Image = Resources.Num1;
-			R2Btn1.Location = new System.Drawing.Point(0, 0);
-			R2Btn1.Name = "R2Btn1";
-			R2Btn1.Size = new System.Drawing.Size(23, 23);
-			R2Btn1.TabIndex = 2;
-			R2Btn1.Tag = "1";
-			toolTip1.SetToolTip(R2Btn1, "Verse Indicator");
-			R2Btn1.Click += new System.EventHandler(R2Btn_Click);
-			panelR2LeftTop.Controls.Add(R2Undo);
-			panelR2LeftTop.Controls.Add(R2Redo);
-			panelR2LeftTop.Dock = System.Windows.Forms.DockStyle.Top;
-			panelR2LeftTop.Location = new System.Drawing.Point(0, 0);
-			panelR2LeftTop.Name = "panelR2LeftTop";
-			panelR2LeftTop.Size = new System.Drawing.Size(48, 24);
-			panelR2LeftTop.TabIndex = 2;
-			R2Undo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Undo.Image = Resources.undo;
-			R2Undo.Location = new System.Drawing.Point(0, 1);
-			R2Undo.Name = "R2Undo";
-			R2Undo.Size = new System.Drawing.Size(23, 23);
-			R2Undo.TabIndex = 0;
-			R2Undo.Tag = "0";
-			toolTip1.SetToolTip(R2Undo, "Undo");
-			R2Undo.Click += new System.EventHandler(R2UndoRedo_Click);
-			R2Redo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			R2Redo.Image = Resources.redo;
-			R2Redo.Location = new System.Drawing.Point(23, 1);
-			R2Redo.Name = "R2Redo";
-			R2Redo.Size = new System.Drawing.Size(23, 23);
-			R2Redo.TabIndex = 1;
-			R2Redo.Tag = "1";
-			toolTip1.SetToolTip(R2Redo, "Redo");
-			R2Redo.Click += new System.EventHandler(R2UndoRedo_Click);
-			SyncBtnDown.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			SyncBtnDown.Image = Resources.green_down;
-			SyncBtnDown.Location = new System.Drawing.Point(0, 40);
-			SyncBtnDown.Name = "SyncBtnDown";
-			SyncBtnDown.Size = new System.Drawing.Size(20, 22);
-			SyncBtnDown.TabIndex = 1;
-			SyncBtnDown.Tag = "1";
-			toolTip1.SetToolTip(SyncBtnDown, "Highlight Next Slide");
-			SyncBtnDown.Click += new System.EventHandler(SyncBtnUpDown_Click);
-			SyncBtnUp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			SyncBtnUp.Image = Resources.green_up;
-			SyncBtnUp.Location = new System.Drawing.Point(0, 18);
-			SyncBtnUp.Name = "SyncBtnUp";
-			SyncBtnUp.Size = new System.Drawing.Size(20, 22);
-			SyncBtnUp.TabIndex = 0;
-			SyncBtnUp.Tag = "0";
-			toolTip1.SetToolTip(SyncBtnUp, "Highlight Previous Slide");
-			SyncBtnUp.Click += new System.EventHandler(SyncBtnUpDown_Click);
-			tabRight_Rotate.BackColor = System.Drawing.SystemColors.Control;
-			tabRight_Rotate.Controls.Add(panelRotate);
-			tabRight_Rotate.Location = new System.Drawing.Point(4, 22);
-			tabRight_Rotate.Name = "tabRight_Rotate";
-			tabRight_Rotate.Padding = new System.Windows.Forms.Padding(3);
-			tabRight_Rotate.Size = new System.Drawing.Size(405, 325);
-			tabRight_Rotate.TabIndex = 1;
-			tabRight_Rotate.Text = "Rotate Style";
-			panelRotate.Controls.Add(splitContainerRotate);
-			panelRotate.Controls.Add(panelRotateLeft);
-			panelRotate.Dock = System.Windows.Forms.DockStyle.Fill;
-			panelRotate.Location = new System.Drawing.Point(3, 3);
-			panelRotate.Name = "panelRotate";
-			panelRotate.Size = new System.Drawing.Size(399, 319);
-			panelRotate.TabIndex = 0;
-			splitContainerRotate.Dock = System.Windows.Forms.DockStyle.Fill;
-			splitContainerRotate.Location = new System.Drawing.Point(123, 0);
-			splitContainerRotate.Name = "splitContainerRotate";
-			splitContainerRotate.Orientation = System.Windows.Forms.Orientation.Horizontal;
-			splitContainerRotate.Panel1.Controls.Add(groupBoxRotateVerses);
-			splitContainerRotate.Panel2.Controls.Add(panelRotate_Sample);
-			splitContainerRotate.Size = new System.Drawing.Size(276, 319);
-			splitContainerRotate.SplitterDistance = 108;
-			splitContainerRotate.TabIndex = 33;
-			splitContainerRotate.Text = "splitContainer2";
-			splitContainerRotate.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(splitContainerRotate_SplitterMoved);
-			groupBoxRotateVerses.Controls.Add(panelRotate_Verses);
-			groupBoxRotateVerses.Controls.Add(panelRotate_OrderList);
-			groupBoxRotateVerses.Controls.Add(panel13);
-			groupBoxRotateVerses.Controls.Add(panel14);
-			groupBoxRotateVerses.Dock = System.Windows.Forms.DockStyle.Left;
-			groupBoxRotateVerses.Enabled = false;
-			groupBoxRotateVerses.Location = new System.Drawing.Point(0, 0);
-			groupBoxRotateVerses.Name = "groupBoxRotateVerses";
-			groupBoxRotateVerses.Padding = new System.Windows.Forms.Padding(0);
-			groupBoxRotateVerses.Size = new System.Drawing.Size(240, 108);
-			groupBoxRotateVerses.TabIndex = 33;
-			groupBoxRotateVerses.TabStop = false;
-			panelRotate_Verses.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panelRotate_Verses.Controls.Add(Rotate_VersesList);
-			panelRotate_Verses.Controls.Add(panel10);
-			panelRotate_Verses.Location = new System.Drawing.Point(6, 10);
-			panelRotate_Verses.Name = "panelRotate_Verses";
-			panelRotate_Verses.Size = new System.Drawing.Size(90, 97);
-			panelRotate_Verses.TabIndex = 1;
-			Rotate_VersesList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[3]
-			{
-				columnHeader6,
-				columnHeader7,
-				columnHeader8
-			});
-			Rotate_VersesList.Dock = System.Windows.Forms.DockStyle.Fill;
-			Rotate_VersesList.FullRowSelect = true;
-			Rotate_VersesList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			Rotate_VersesList.Location = new System.Drawing.Point(0, 14);
-			Rotate_VersesList.Margin = new System.Windows.Forms.Padding(1);
-			Rotate_VersesList.Name = "Rotate_VersesList";
-			Rotate_VersesList.ShowItemToolTips = true;
-			Rotate_VersesList.Size = new System.Drawing.Size(86, 79);
-			Rotate_VersesList.TabIndex = 0;
-			Rotate_VersesList.UseCompatibleStateImageBehavior = false;
-			Rotate_VersesList.View = System.Windows.Forms.View.Details;
-			Rotate_VersesList.DoubleClick += new System.EventHandler(Rotate_VersesList_DoubleClick);
-			columnHeader6.Width = 65;
-			columnHeader7.Width = 0;
-			columnHeader8.Width = 0;
-			panel10.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			panel10.Controls.Add(label23);
-			panel10.Dock = System.Windows.Forms.DockStyle.Top;
-			panel10.Location = new System.Drawing.Point(0, 0);
-			panel10.Name = "panel10";
-			panel10.Size = new System.Drawing.Size(86, 14);
-			panel10.TabIndex = 0;
-			label23.AutoSize = true;
-			label23.Location = new System.Drawing.Point(12, -1);
-			label23.Name = "label23";
-			label23.Size = new System.Drawing.Size(39, 13);
-			label23.TabIndex = 0;
-			label23.Text = "Verses";
-			panelRotate_OrderList.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panelRotate_OrderList.Controls.Add(Rotate_OrderList);
-			panelRotate_OrderList.Controls.Add(panel12);
-			panelRotate_OrderList.Location = new System.Drawing.Point(122, 10);
-			panelRotate_OrderList.Name = "panelRotate_OrderList";
-			panelRotate_OrderList.Size = new System.Drawing.Size(90, 97);
-			panelRotate_OrderList.TabIndex = 2;
-			Rotate_OrderList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[2]
-			{
-				columnHeader9,
-				columnHeader10
-			});
-			Rotate_OrderList.Dock = System.Windows.Forms.DockStyle.Fill;
-			Rotate_OrderList.FullRowSelect = true;
-			Rotate_OrderList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			Rotate_OrderList.Location = new System.Drawing.Point(0, 14);
-			Rotate_OrderList.Name = "Rotate_OrderList";
-			Rotate_OrderList.Size = new System.Drawing.Size(86, 79);
-			Rotate_OrderList.TabIndex = 0;
-			Rotate_OrderList.UseCompatibleStateImageBehavior = false;
-			Rotate_OrderList.View = System.Windows.Forms.View.Details;
-			Rotate_OrderList.KeyUp += new System.Windows.Forms.KeyEventHandler(Rotate_OrderList_KeyUp);
-			columnHeader9.Width = 65;
-			columnHeader10.Width = 0;
-			panel12.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			panel12.Controls.Add(label24);
-			panel12.Dock = System.Windows.Forms.DockStyle.Top;
-			panel12.Location = new System.Drawing.Point(0, 0);
-			panel12.Name = "panel12";
-			panel12.Size = new System.Drawing.Size(86, 14);
-			panel12.TabIndex = 0;
-			label24.AutoSize = true;
-			label24.Location = new System.Drawing.Point(10, -1);
-			label24.Name = "label24";
-			label24.Size = new System.Drawing.Size(56, 13);
-			label24.TabIndex = 0;
-			label24.Text = "Sequence";
-			panel13.Controls.Add(toolStripRotate_SeqSet);
-			panel13.Location = new System.Drawing.Point(96, 27);
-			panel13.Name = "panel13";
-			panel13.Size = new System.Drawing.Size(25, 52);
-			panel13.TabIndex = 13;
-			toolStripRotate_SeqSet.AutoSize = false;
-			toolStripRotate_SeqSet.CanOverflow = false;
-			toolStripRotate_SeqSet.Dock = System.Windows.Forms.DockStyle.None;
-			toolStripRotate_SeqSet.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStripRotate_SeqSet.Items.AddRange(new System.Windows.Forms.ToolStripItem[2]
-			{
-				Rotate_Verses_Add,
-				Rotate_Verses_SmartAdd
-			});
-			toolStripRotate_SeqSet.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
-			toolStripRotate_SeqSet.Location = new System.Drawing.Point(0, 1);
-			toolStripRotate_SeqSet.Name = "toolStripRotate_SeqSet";
-			toolStripRotate_SeqSet.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStripRotate_SeqSet.Size = new System.Drawing.Size(25, 62);
-			toolStripRotate_SeqSet.TabIndex = 5;
-			Rotate_Verses_Add.AutoSize = false;
-			Rotate_Verses_Add.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Rotate_Verses_Add.Image = Resources.arrowR;
-			Rotate_Verses_Add.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Rotate_Verses_Add.Name = "Rotate_Verses_Add";
-			Rotate_Verses_Add.Size = new System.Drawing.Size(22, 22);
-			Rotate_Verses_Add.Tag = "";
-			Rotate_Verses_Add.ToolTipText = "Add";
-			Rotate_Verses_Add.Click += new System.EventHandler(Rotate_Verses_Add_Click);
-			Rotate_Verses_SmartAdd.AutoSize = false;
-			Rotate_Verses_SmartAdd.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Rotate_Verses_SmartAdd.Image = Resources.multi_arrowr;
-			Rotate_Verses_SmartAdd.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Rotate_Verses_SmartAdd.Name = "Rotate_Verses_SmartAdd";
-			Rotate_Verses_SmartAdd.Size = new System.Drawing.Size(22, 22);
-			Rotate_Verses_SmartAdd.Tag = "";
-			Rotate_Verses_SmartAdd.ToolTipText = "Smart Add";
-			Rotate_Verses_SmartAdd.Click += new System.EventHandler(Rotate_Verses_Add_Click);
-			panel14.Controls.Add(toolStripRotate_SeqUpDown);
-			panel14.Location = new System.Drawing.Point(211, 28);
-			panel14.Name = "panel14";
-			panel14.Size = new System.Drawing.Size(25, 79);
-			panel14.TabIndex = 12;
-			toolStripRotate_SeqUpDown.AutoSize = false;
-			toolStripRotate_SeqUpDown.CanOverflow = false;
-			toolStripRotate_SeqUpDown.Dock = System.Windows.Forms.DockStyle.None;
-			toolStripRotate_SeqUpDown.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStripRotate_SeqUpDown.Items.AddRange(new System.Windows.Forms.ToolStripItem[4]
-			{
-				Rotate_OrderList_Up,
-				Rotate_OrderList_Down,
-				toolStripSeparator3,
-				Rotate_OrderList_Delete
-			});
-			toolStripRotate_SeqUpDown.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
-			toolStripRotate_SeqUpDown.Location = new System.Drawing.Point(0, -1);
-			toolStripRotate_SeqUpDown.Name = "toolStripRotate_SeqUpDown";
-			toolStripRotate_SeqUpDown.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStripRotate_SeqUpDown.Size = new System.Drawing.Size(25, 89);
-			toolStripRotate_SeqUpDown.TabIndex = 5;
-			Rotate_OrderList_Up.AutoSize = false;
-			Rotate_OrderList_Up.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Rotate_OrderList_Up.Image = Resources.handup;
-			Rotate_OrderList_Up.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Rotate_OrderList_Up.Name = "Rotate_OrderList_Up";
-			Rotate_OrderList_Up.Size = new System.Drawing.Size(22, 22);
-			Rotate_OrderList_Up.Tag = "up";
-			Rotate_OrderList_Up.ToolTipText = "Move Item Up";
-			Rotate_OrderList_Up.Click += new System.EventHandler(Rotate_OrderList_Btn_Click);
-			Rotate_OrderList_Down.AutoSize = false;
-			Rotate_OrderList_Down.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Rotate_OrderList_Down.Image = Resources.handdown;
-			Rotate_OrderList_Down.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Rotate_OrderList_Down.Name = "Rotate_OrderList_Down";
-			Rotate_OrderList_Down.Size = new System.Drawing.Size(22, 22);
-			Rotate_OrderList_Down.Tag = "down";
-			Rotate_OrderList_Down.ToolTipText = "Move Item Down";
-			Rotate_OrderList_Down.Click += new System.EventHandler(Rotate_OrderList_Btn_Click);
-			toolStripSeparator3.Name = "toolStripSeparator3";
-			toolStripSeparator3.Size = new System.Drawing.Size(23, 6);
-			Rotate_OrderList_Delete.AutoSize = false;
-			Rotate_OrderList_Delete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Rotate_OrderList_Delete.Image = Resources.Delete;
-			Rotate_OrderList_Delete.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Rotate_OrderList_Delete.Name = "Rotate_OrderList_Delete";
-			Rotate_OrderList_Delete.Size = new System.Drawing.Size(22, 22);
-			Rotate_OrderList_Delete.Tag = "delete";
-			Rotate_OrderList_Delete.ToolTipText = "Delete";
-			Rotate_OrderList_Delete.Click += new System.EventHandler(Rotate_OrderList_Btn_Click);
-			panelRotate_Sample.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panelRotate_Sample.Controls.Add(labelDur);
-			panelRotate_Sample.Controls.Add(btnAddPosition);
-			panelRotate_Sample.Controls.Add(btnDuration);
-			panelRotate_Sample.Controls.Add(LabelMediaType);
-			panelRotate_Sample.Controls.Add(labelMed);
-			panelRotate_Sample.Controls.Add(panelRotate_Media);
-			panelRotate_Sample.Controls.Add(labelPos);
-			panelRotate_Sample.Controls.Add(LabelPosition);
-			panelRotate_Sample.Controls.Add(panelLoc);
-			panelRotate_Sample.Controls.Add(LabelDuration);
-			panelRotate_Sample.Controls.Add(Rotate_tbSourceLocation);
-			panelRotate_Sample.Controls.Add(TrackBarVolume);
-			panelRotate_Sample.Controls.Add(panelPlayBtns);
-			panelRotate_Sample.Controls.Add(labelVol);
-			panelRotate_Sample.Dock = System.Windows.Forms.DockStyle.Fill;
-			panelRotate_Sample.Location = new System.Drawing.Point(0, 0);
-			panelRotate_Sample.Name = "panelRotate_Sample";
-			panelRotate_Sample.Size = new System.Drawing.Size(276, 207);
-			panelRotate_Sample.TabIndex = 31;
-			panelRotate_Sample.Resize += new System.EventHandler(panelRotate_Sample_Resize);
-			labelDur.AutoSize = true;
-			labelDur.Location = new System.Drawing.Point(6, 28);
-			labelDur.Name = "labelDur";
-			labelDur.Size = new System.Drawing.Size(43, 13);
-			labelDur.TabIndex = 68;
-			labelDur.Text = "Length:";
-			btnAddPosition.Image = Resources.arrowL;
-			btnAddPosition.Location = new System.Drawing.Point(7, 118);
-			btnAddPosition.Name = "btnAddPosition";
-			btnAddPosition.Size = new System.Drawing.Size(41, 22);
-			btnAddPosition.TabIndex = 1;
-			toolTip1.SetToolTip(btnAddPosition, "Copy current position to next blank timing");
-			btnAddPosition.Click += new System.EventHandler(btnAddPosition_Click);
-			btnDuration.Image = Resources.arrowBL;
-			btnDuration.Location = new System.Drawing.Point(7, 58);
-			btnDuration.Name = "btnDuration";
-			btnDuration.Size = new System.Drawing.Size(41, 23);
-			btnDuration.TabIndex = 0;
-			btnDuration.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			toolTip1.SetToolTip(btnDuration, "Click to Store length");
-			btnDuration.Click += new System.EventHandler(btnDuration_Click);
-			LabelMediaType.AutoSize = true;
-			LabelMediaType.ForeColor = System.Drawing.Color.Red;
-			LabelMediaType.Location = new System.Drawing.Point(93, 190);
-			LabelMediaType.Name = "LabelMediaType";
-			LabelMediaType.Size = new System.Drawing.Size(33, 13);
-			LabelMediaType.TabIndex = 30;
-			LabelMediaType.Text = "None";
-			labelMed.AutoSize = true;
-			labelMed.Location = new System.Drawing.Point(56, 190);
-			labelMed.Name = "labelMed";
-			labelMed.Size = new System.Drawing.Size(39, 13);
-			labelMed.TabIndex = 29;
-			labelMed.Text = "Media:";
-			panelRotate_Media.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panelRotate_Media.Controls.Add(panelNoPlayer);
-			panelRotate_Media.Location = new System.Drawing.Point(55, 26);
-			panelRotate_Media.Name = "panelRotate_Media";
-			panelRotate_Media.Size = new System.Drawing.Size(160, 120);
-			panelRotate_Media.TabIndex = 66;
-			panelNoPlayer.BackColor = System.Drawing.Color.MidnightBlue;
-			panelNoPlayer.Controls.Add(label14);
-			panelNoPlayer.Controls.Add(labelNoPlayer1);
-			panelNoPlayer.Controls.Add(labelNoPlayer2);
-			panelNoPlayer.ForeColor = System.Drawing.Color.White;
-			panelNoPlayer.Location = new System.Drawing.Point(0, 0);
-			panelNoPlayer.Name = "panelNoPlayer";
-			panelNoPlayer.Size = new System.Drawing.Size(156, 116);
-			panelNoPlayer.TabIndex = 1;
-			panelNoPlayer.Visible = false;
-			label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			label14.Location = new System.Drawing.Point(-1, 60);
-			label14.Name = "label14";
-			label14.Size = new System.Drawing.Size(154, 32);
-			label14.TabIndex = 25;
-			label14.Text = "to view / listen to Media Backgrounds.";
-			label14.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			labelNoPlayer1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			labelNoPlayer1.Location = new System.Drawing.Point(20, 16);
-			labelNoPlayer1.Name = "labelNoPlayer1";
-			labelNoPlayer1.Size = new System.Drawing.Size(111, 20);
-			labelNoPlayer1.TabIndex = 0;
-			labelNoPlayer1.Text = "Please install";
-			labelNoPlayer1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			labelNoPlayer2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			labelNoPlayer2.Location = new System.Drawing.Point(1, 33);
-			labelNoPlayer2.Name = "labelNoPlayer2";
-			labelNoPlayer2.Size = new System.Drawing.Size(154, 31);
-			labelNoPlayer2.TabIndex = 0;
-			labelNoPlayer2.Text = "Windows Media Player 10 or DirectX 9";
-			labelNoPlayer2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			labelPos.AutoSize = true;
-			labelPos.Location = new System.Drawing.Point(6, 87);
-			labelPos.Name = "labelPos";
-			labelPos.Size = new System.Drawing.Size(47, 13);
-			labelPos.TabIndex = 26;
-			labelPos.Text = "Position:";
-			LabelPosition.AutoSize = true;
-			LabelPosition.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			LabelPosition.ForeColor = System.Drawing.Color.Red;
-			LabelPosition.Location = new System.Drawing.Point(6, 102);
-			LabelPosition.Name = "LabelPosition";
-			LabelPosition.Size = new System.Drawing.Size(32, 13);
-			LabelPosition.TabIndex = 28;
-			LabelPosition.Text = "0:00";
-			panelLoc.Controls.Add(toolStrip3);
-			panelLoc.Location = new System.Drawing.Point(176, 1);
-			panelLoc.Name = "panelLoc";
-			panelLoc.Size = new System.Drawing.Size(23, 23);
-			panelLoc.TabIndex = 63;
-			toolStrip3.AutoSize = false;
-			toolStrip3.CanOverflow = false;
-			toolStrip3.Dock = System.Windows.Forms.DockStyle.None;
-			toolStrip3.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStrip3.Items.AddRange(new System.Windows.Forms.ToolStripItem[1]
-			{
-				Rotate_LocationBtn
-			});
-			toolStrip3.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
-			toolStrip3.Location = new System.Drawing.Point(1, 0);
-			toolStrip3.Name = "toolStrip3";
-			toolStrip3.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStrip3.Size = new System.Drawing.Size(25, 30);
-			toolStrip3.TabIndex = 0;
-			Rotate_LocationBtn.AutoSize = false;
-			Rotate_LocationBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Rotate_LocationBtn.Image = Resources.folder;
-			Rotate_LocationBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Rotate_LocationBtn.Name = "Rotate_LocationBtn";
-			Rotate_LocationBtn.Size = new System.Drawing.Size(22, 22);
-			Rotate_LocationBtn.Tag = "";
-			Rotate_LocationBtn.ToolTipText = "Media File Location";
-			Rotate_LocationBtn.Click += new System.EventHandler(Rotate_LocationBtn_Click);
-			LabelDuration.AutoSize = true;
-			LabelDuration.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			LabelDuration.ForeColor = System.Drawing.SystemColors.MenuHighlight;
-			LabelDuration.Location = new System.Drawing.Point(6, 43);
-			LabelDuration.Name = "LabelDuration";
-			LabelDuration.Size = new System.Drawing.Size(32, 13);
-			LabelDuration.TabIndex = 27;
-			LabelDuration.Text = "0:00";
-			Rotate_tbSourceLocation.Location = new System.Drawing.Point(3, 3);
-			Rotate_tbSourceLocation.Name = "Rotate_tbSourceLocation";
-			Rotate_tbSourceLocation.Size = new System.Drawing.Size(166, 20);
-			Rotate_tbSourceLocation.TabIndex = 0;
-			toolTip1.SetToolTip(Rotate_tbSourceLocation, "Optional Media File for Reference (Filename will not be saved)");
-			TrackBarVolume.AutoSize = false;
-			TrackBarVolume.Location = new System.Drawing.Point(216, 42);
-			TrackBarVolume.Maximum = 100;
-			TrackBarVolume.Name = "TrackBarVolume";
-			TrackBarVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
-			TrackBarVolume.Size = new System.Drawing.Size(37, 113);
-			TrackBarVolume.TabIndex = 8;
-			TrackBarVolume.TickFrequency = 10;
-			TrackBarVolume.TickStyle = System.Windows.Forms.TickStyle.TopLeft;
-			TrackBarVolume.ValueChanged += new System.EventHandler(TrackBarVolume_ValueChanged);
-			panelPlayBtns.Controls.Add(TrackBarDuration);
-			panelPlayBtns.Controls.Add(StopBtn);
-			panelPlayBtns.Controls.Add(PlayPauseBtn);
-			panelPlayBtns.Controls.Add(FastReverseBtn);
-			panelPlayBtns.Controls.Add(FastForwardBtn);
-			panelPlayBtns.Location = new System.Drawing.Point(49, 147);
-			panelPlayBtns.Name = "panelPlayBtns";
-			panelPlayBtns.Size = new System.Drawing.Size(167, 41);
-			panelPlayBtns.TabIndex = 24;
-			TrackBarDuration.AutoSize = false;
-			TrackBarDuration.Location = new System.Drawing.Point(-4, 0);
-			TrackBarDuration.Maximum = 1000;
-			TrackBarDuration.Name = "TrackBarDuration";
-			TrackBarDuration.Size = new System.Drawing.Size(172, 18);
-			TrackBarDuration.TabIndex = 11;
-			TrackBarDuration.TickFrequency = 0;
-			TrackBarDuration.TickStyle = System.Windows.Forms.TickStyle.None;
-			TrackBarDuration.Scroll += new System.EventHandler(TrackBarDuration_Scroll);
-			StopBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			StopBtn.Location = new System.Drawing.Point(124, 18);
-			StopBtn.Name = "StopBtn";
-			StopBtn.Size = new System.Drawing.Size(40, 23);
-			StopBtn.TabIndex = 16;
-			StopBtn.Text = "Stop";
-			StopBtn.Click += new System.EventHandler(StopBtn_Click);
-			PlayPauseBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			PlayPauseBtn.Location = new System.Drawing.Point(73, 18);
-			PlayPauseBtn.Name = "PlayPauseBtn";
-			PlayPauseBtn.Size = new System.Drawing.Size(49, 23);
-			PlayPauseBtn.TabIndex = 17;
-			PlayPauseBtn.Text = "Play";
-			PlayPauseBtn.Click += new System.EventHandler(PlayPauseBtn_Click);
-			FastReverseBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			FastReverseBtn.Location = new System.Drawing.Point(8, 18);
-			FastReverseBtn.Name = "FastReverseBtn";
-			FastReverseBtn.Size = new System.Drawing.Size(30, 23);
-			FastReverseBtn.TabIndex = 0;
-			FastReverseBtn.Text = "<<";
-			FastReverseBtn.MouseDown += new System.Windows.Forms.MouseEventHandler(FastReverseBtn_MouseDown);
-			FastReverseBtn.MouseUp += new System.Windows.Forms.MouseEventHandler(FastReverseBtn_MouseUp);
-			FastForwardBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			FastForwardBtn.Location = new System.Drawing.Point(40, 18);
-			FastForwardBtn.Name = "FastForwardBtn";
-			FastForwardBtn.Size = new System.Drawing.Size(30, 23);
-			FastForwardBtn.TabIndex = 1;
-			FastForwardBtn.Text = ">>";
-			FastForwardBtn.MouseDown += new System.Windows.Forms.MouseEventHandler(FastForwardBtn_MouseDown);
-			FastForwardBtn.MouseUp += new System.Windows.Forms.MouseEventHandler(FastForwardBtn_MouseUp);
-			labelVol.AutoSize = true;
-			labelVol.Location = new System.Drawing.Point(216, 26);
-			labelVol.Name = "labelVol";
-			labelVol.Size = new System.Drawing.Size(42, 13);
-			labelVol.TabIndex = 9;
-			labelVol.Text = "Volume";
-			panelRotateLeft.Controls.Add(flowLayoutRotate);
-			panelRotateLeft.Controls.Add(panelRotateLeftTop2);
-			panelRotateLeft.Controls.Add(panelRotateLeftTop1);
-			panelRotateLeft.Dock = System.Windows.Forms.DockStyle.Left;
-			panelRotateLeft.Location = new System.Drawing.Point(0, 0);
-			panelRotateLeft.Name = "panelRotateLeft";
-			panelRotateLeft.Size = new System.Drawing.Size(123, 319);
-			panelRotateLeft.TabIndex = 32;
-			flowLayoutRotate.AutoScroll = true;
-			flowLayoutRotate.Dock = System.Windows.Forms.DockStyle.Fill;
-			flowLayoutRotate.Location = new System.Drawing.Point(0, 138);
-			flowLayoutRotate.Name = "flowLayoutRotate";
-			flowLayoutRotate.Size = new System.Drawing.Size(123, 181);
-			flowLayoutRotate.TabIndex = 7;
-			panelRotateLeftTop2.Controls.Add(Rotate_TimeTotal);
-			panelRotateLeftTop2.Controls.Add(btnClearMediaPositions);
-			panelRotateLeftTop2.Controls.Add(label21);
-			panelRotateLeftTop2.Controls.Add(label19);
-			panelRotateLeftTop2.Dock = System.Windows.Forms.DockStyle.Top;
-			panelRotateLeftTop2.Location = new System.Drawing.Point(0, 66);
-			panelRotateLeftTop2.Name = "panelRotateLeftTop2";
-			panelRotateLeftTop2.Size = new System.Drawing.Size(123, 72);
-			panelRotateLeftTop2.TabIndex = 0;
-			Rotate_TimeTotal.CustomFormat = "mm:ss";
-			Rotate_TimeTotal.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-			Rotate_TimeTotal.Location = new System.Drawing.Point(56, 30);
-			Rotate_TimeTotal.Name = "Rotate_TimeTotal";
-			Rotate_TimeTotal.ShowUpDown = true;
-			Rotate_TimeTotal.Size = new System.Drawing.Size(52, 20);
-			Rotate_TimeTotal.TabIndex = 1;
-			btnClearMediaPositions.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			btnClearMediaPositions.Location = new System.Drawing.Point(4, 2);
-			btnClearMediaPositions.Name = "btnClearMediaPositions";
-			btnClearMediaPositions.Size = new System.Drawing.Size(112, 24);
-			btnClearMediaPositions.TabIndex = 0;
-			btnClearMediaPositions.Text = "Clear All Timings";
-			toolTip1.SetToolTip(btnClearMediaPositions, "Copy to next blank Position");
-			btnClearMediaPositions.Click += new System.EventHandler(btnClearMediaPositions_Click);
-			label21.AutoSize = true;
-			label21.Location = new System.Drawing.Point(3, 54);
-			label21.Name = "label21";
-			label21.Size = new System.Drawing.Size(115, 13);
-			label21.TabIndex = 1;
-			label21.Text = "Sequence/Start mm:ss";
-			label21.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			label19.AutoSize = true;
-			label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25f, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
-			label19.Location = new System.Drawing.Point(4, 34);
-			label19.Name = "label19";
-			label19.Size = new System.Drawing.Size(50, 13);
-			label19.TabIndex = 25;
-			label19.Text = "Length:";
-			panelRotateLeftTop1.Controls.Add(groupBox3);
-			panelRotateLeftTop1.Dock = System.Windows.Forms.DockStyle.Top;
-			panelRotateLeftTop1.Location = new System.Drawing.Point(0, 0);
-			panelRotateLeftTop1.Name = "panelRotateLeftTop1";
-			panelRotateLeftTop1.Size = new System.Drawing.Size(123, 66);
-			panelRotateLeftTop1.TabIndex = 68;
-			groupBox3.Controls.Add(Rotate_SlidesGapUpDown);
-			groupBox3.Controls.Add(Rotate_Equal);
-			groupBox3.Controls.Add(Rotate_Multiple);
-			groupBox3.Location = new System.Drawing.Point(4, 0);
-			groupBox3.Name = "groupBox3";
-			groupBox3.Size = new System.Drawing.Size(112, 60);
-			groupBox3.TabIndex = 9;
-			groupBox3.TabStop = false;
-			Rotate_SlidesGapUpDown.Location = new System.Drawing.Point(63, 13);
-			Rotate_SlidesGapUpDown.Maximum = new decimal(new int[4]
-			{
-				999,
-				0,
-				0,
-				0
-			});
-			Rotate_SlidesGapUpDown.Name = "Rotate_SlidesGapUpDown";
-			Rotate_SlidesGapUpDown.Size = new System.Drawing.Size(43, 20);
-			Rotate_SlidesGapUpDown.TabIndex = 2;
-			toolTip1.SetToolTip(Rotate_SlidesGapUpDown, "Timing in seconds");
-			Rotate_Equal.AutoSize = true;
-			Rotate_Equal.Location = new System.Drawing.Point(7, 15);
-			Rotate_Equal.Name = "Rotate_Equal";
-			Rotate_Equal.Size = new System.Drawing.Size(59, 17);
-			Rotate_Equal.TabIndex = 0;
-			Rotate_Equal.Tag = "1";
-			Rotate_Equal.Text = "Simple:";
-			toolTip1.SetToolTip(Rotate_Equal, "Rotate each slide in equal seconds");
-			Rotate_Equal.CheckedChanged += new System.EventHandler(Rotate_Option_CheckedChanged);
-			Rotate_Multiple.AutoSize = true;
-			Rotate_Multiple.Location = new System.Drawing.Point(7, 37);
-			Rotate_Multiple.Name = "Rotate_Multiple";
-			Rotate_Multiple.Size = new System.Drawing.Size(77, 17);
-			Rotate_Multiple.TabIndex = 1;
-			Rotate_Multiple.Tag = "2";
-			Rotate_Multiple.Text = "Sequence:";
-			panel6.Dock = System.Windows.Forms.DockStyle.Right;
-			panel6.Location = new System.Drawing.Point(413, 0);
-			panel6.Name = "panel6";
-			panel6.Size = new System.Drawing.Size(3, 351);
-			panel6.TabIndex = 6;
-			menuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[2]
-			{
-				Menu_MainFile,
-				Menu_MainTools
-			});
-			menuStripMain.Location = new System.Drawing.Point(0, 0);
-			menuStripMain.Name = "menuStripMain";
-			menuStripMain.Size = new System.Drawing.Size(775, 24);
-			menuStripMain.TabIndex = 6;
-			menuStripMain.Text = "menuStrip1";
-			Menu_MainFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[8]
-			{
-				Menu_New,
-				Menu_Save,
-				Menu_SaveAs,
-				Menu_SaveExit,
-				toolStripSeparator16,
-				Menu_EditHistoryList,
-				toolStripSeparator18,
-				Menu_Exit
-			});
-			Menu_MainFile.Name = "Menu_MainFile";
-			Menu_MainFile.Size = new System.Drawing.Size(35, 20);
-			Menu_MainFile.Text = "&File";
-			Menu_New.Image = Resources.New;
-			Menu_New.Name = "Menu_New";
-			Menu_New.Size = new System.Drawing.Size(134, 22);
-			Menu_New.Text = "&New";
-			Menu_New.Click += new System.EventHandler(Menu_New_Click);
-			Menu_Save.Image = Resources.Save;
-			Menu_Save.Name = "Menu_Save";
-			Menu_Save.Size = new System.Drawing.Size(134, 22);
-			Menu_Save.Text = "&Save";
-			Menu_Save.Click += new System.EventHandler(Menu_Save_Click);
-			Menu_SaveAs.Image = Resources.Save;
-			Menu_SaveAs.Name = "Menu_SaveAs";
-			Menu_SaveAs.Size = new System.Drawing.Size(134, 22);
-			Menu_SaveAs.Text = "Save &As...";
-			Menu_SaveAs.Click += new System.EventHandler(Menu_SaveAs_Click);
-			Menu_SaveExit.Image = Resources.SaveClose;
-			Menu_SaveExit.Name = "Menu_SaveExit";
-			Menu_SaveExit.Size = new System.Drawing.Size(134, 22);
-			Menu_SaveExit.Text = "Save && &Exit";
-			Menu_SaveExit.Click += new System.EventHandler(Menu_SaveExit_Click);
-			toolStripSeparator16.Name = "toolStripSeparator16";
-			toolStripSeparator16.Size = new System.Drawing.Size(131, 6);
-			Menu_EditHistoryList.Name = "Menu_EditHistoryList";
-			Menu_EditHistoryList.Size = new System.Drawing.Size(134, 22);
-			Menu_EditHistoryList.Text = "&Recent Edits";
-			toolStripSeparator18.Name = "toolStripSeparator18";
-			toolStripSeparator18.Size = new System.Drawing.Size(131, 6);
-			Menu_Exit.Name = "Menu_Exit";
-			Menu_Exit.ShortcutKeys = (System.Windows.Forms.Keys)262259;
-			Menu_Exit.Size = new System.Drawing.Size(134, 22);
-			Menu_Exit.Text = "E&xit";
-			Menu_Exit.Click += new System.EventHandler(Menu_Exit_Click);
-			Menu_MainTools.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[8]
-			{
-				Menu_Import,
-				Menu_WordWrap,
-				Menu_ChordsMenu,
-				Menu_EditHistorySeparator,
-				Menu_TransposeDown,
-				Menu_TransposeUp,
-				toolStripSeparator6,
-				Menu_ShowAllButtons
-			});
-			Menu_MainTools.Name = "Menu_MainTools";
-			Menu_MainTools.Size = new System.Drawing.Size(44, 20);
-			Menu_MainTools.Text = "&Tools";
-			Menu_Import.Image = Resources.open;
-			Menu_Import.Name = "Menu_Import";
-			Menu_Import.Size = new System.Drawing.Size(190, 22);
-			Menu_Import.Text = "&Import...";
-			Menu_Import.Click += new System.EventHandler(Menu_Import_Click);
-			Menu_WordWrap.CheckOnClick = true;
-			Menu_WordWrap.Image = Resources.wordwrap;
-			Menu_WordWrap.Name = "Menu_WordWrap";
-			Menu_WordWrap.Size = new System.Drawing.Size(190, 22);
-			Menu_WordWrap.Text = "&Word Wrap";
-			Menu_WordWrap.Click += new System.EventHandler(Main_WordWrap_Click);
-			Menu_ChordsMenu.CheckOnClick = true;
-			Menu_ChordsMenu.Image = Resources.PopUpChords;
-			Menu_ChordsMenu.Name = "Menu_ChordsMenu";
-			Menu_ChordsMenu.Size = new System.Drawing.Size(190, 22);
-			Menu_ChordsMenu.Text = "Right-Click Chords Menu";
-			Menu_ChordsMenu.Click += new System.EventHandler(Menu_ChordsMenu_Click);
-			Menu_EditHistorySeparator.Name = "Menu_EditHistorySeparator";
-			Menu_EditHistorySeparator.Size = new System.Drawing.Size(187, 6);
-			Menu_TransposeDown.Image = Resources.arrowGL;
-			Menu_TransposeDown.Name = "Menu_TransposeDown";
-			Menu_TransposeDown.Size = new System.Drawing.Size(190, 22);
-			Menu_TransposeDown.Text = "Transpose Chord &Down";
-			Menu_TransposeDown.Click += new System.EventHandler(Menu_TransposeDown_Click);
-			Menu_TransposeUp.Image = Resources.arrowGR;
-			Menu_TransposeUp.Name = "Menu_TransposeUp";
-			Menu_TransposeUp.Size = new System.Drawing.Size(190, 22);
-			Menu_TransposeUp.Text = "Transpose Chord &Up";
-			Menu_TransposeUp.Click += new System.EventHandler(Menu_TransposeUp_Click);
-			toolStripSeparator6.Name = "toolStripSeparator6";
-			toolStripSeparator6.Size = new System.Drawing.Size(187, 6);
-			Menu_ShowAllButtons.CheckOnClick = true;
-			Menu_ShowAllButtons.Name = "Menu_ShowAllButtons";
-			Menu_ShowAllButtons.Size = new System.Drawing.Size(190, 22);
-			Menu_ShowAllButtons.Text = "Show All &Buttons";
-			Menu_ShowAllButtons.Click += new System.EventHandler(Menu_ShowAllButtons_Click);
-			TimerEditRequest.Interval = 1000;
-			TimerEditRequest.Tick += new System.EventHandler(TimerEditRequest_Tick);
-			OpenFileDialog1.FileName = "openFileDialog1";
-			splitContainerMain.Dock = System.Windows.Forms.DockStyle.Fill;
-			splitContainerMain.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-			splitContainerMain.Location = new System.Drawing.Point(0, 49);
-			splitContainerMain.Name = "splitContainerMain";
-			splitContainerMain.Orientation = System.Windows.Forms.Orientation.Horizontal;
-			splitContainerMain.Panel1.BackColor = System.Drawing.SystemColors.Control;
-			splitContainerMain.Panel1.Controls.Add(groupBox2);
-			splitContainerMain.Panel1.Controls.Add(groupBox1);
-			splitContainerMain.Panel2.Controls.Add(splitContainer1);
-			splitContainerMain.Size = new System.Drawing.Size(775, 490);
-			splitContainerMain.SplitterDistance = 131;
-			splitContainerMain.TabIndex = 0;
-			splitContainerMain.Text = "splitContainer2";
-			splitContainerMain.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(splitContainerMain_SplitterMoved);
-			groupBox2.Controls.Add(panelVerses);
-			groupBox2.Controls.Add(panelOrderList);
-			groupBox2.Controls.Add(panelSeqSet);
-			groupBox2.Controls.Add(panelSeqUpDown);
-			groupBox2.Location = new System.Drawing.Point(447, 1);
-			groupBox2.Name = "groupBox2";
-			groupBox2.Padding = new System.Windows.Forms.Padding(0);
-			groupBox2.Size = new System.Drawing.Size(239, 129);
-			groupBox2.TabIndex = 1;
-			groupBox2.TabStop = false;
-			panelVerses.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panelVerses.Controls.Add(VersesList);
-			panelVerses.Controls.Add(panel2);
-			panelVerses.Location = new System.Drawing.Point(6, 10);
-			panelVerses.Name = "panelVerses";
-			panelVerses.Size = new System.Drawing.Size(90, 114);
-			panelVerses.TabIndex = 1;
-			VersesList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[2]
-			{
-				columnHeader1,
-				columnHeader2
-			});
-			VersesList.Dock = System.Windows.Forms.DockStyle.Fill;
-			VersesList.FullRowSelect = true;
-			VersesList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			VersesList.Location = new System.Drawing.Point(0, 14);
-			VersesList.Name = "VersesList";
-			VersesList.ShowItemToolTips = true;
-			VersesList.Size = new System.Drawing.Size(86, 96);
-			VersesList.TabIndex = 0;
-			VersesList.UseCompatibleStateImageBehavior = false;
-			VersesList.View = System.Windows.Forms.View.Details;
-			VersesList.DoubleClick += new System.EventHandler(VersesList_DoubleClick);
-			columnHeader1.Width = 65;
-			columnHeader2.Width = 0;
-			panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			panel2.Controls.Add(label16);
-			panel2.Dock = System.Windows.Forms.DockStyle.Top;
-			panel2.Location = new System.Drawing.Point(0, 0);
-			panel2.Name = "panel2";
-			panel2.Size = new System.Drawing.Size(86, 14);
-			panel2.TabIndex = 0;
-			label16.AutoSize = true;
-			label16.Location = new System.Drawing.Point(12, -1);
-			label16.Name = "label16";
-			label16.Size = new System.Drawing.Size(39, 13);
-			label16.TabIndex = 0;
-			label16.Text = "Verses";
-			panelOrderList.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			panelOrderList.Controls.Add(OrderList);
-			panelOrderList.Controls.Add(panel4);
-			panelOrderList.Location = new System.Drawing.Point(122, 10);
-			panelOrderList.Name = "panelOrderList";
-			panelOrderList.Size = new System.Drawing.Size(90, 114);
-			panelOrderList.TabIndex = 2;
-			OrderList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[2]
-			{
-				columnHeader3,
-				columnHeader4
-			});
-			OrderList.Dock = System.Windows.Forms.DockStyle.Fill;
-			OrderList.FullRowSelect = true;
-			OrderList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-			OrderList.Location = new System.Drawing.Point(0, 14);
-			OrderList.Name = "OrderList";
-			OrderList.Size = new System.Drawing.Size(86, 96);
-			OrderList.TabIndex = 0;
-			OrderList.UseCompatibleStateImageBehavior = false;
-			OrderList.View = System.Windows.Forms.View.Details;
-			OrderList.KeyUp += new System.Windows.Forms.KeyEventHandler(OrderList_KeyUp);
-			columnHeader3.Width = 65;
-			columnHeader4.Width = 0;
-			panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			panel4.Controls.Add(label17);
-			panel4.Dock = System.Windows.Forms.DockStyle.Top;
-			panel4.Location = new System.Drawing.Point(0, 0);
-			panel4.Name = "panel4";
-			panel4.Size = new System.Drawing.Size(86, 14);
-			panel4.TabIndex = 0;
-			label17.AutoSize = true;
-			label17.Location = new System.Drawing.Point(10, -1);
-			label17.Name = "label17";
-			label17.Size = new System.Drawing.Size(56, 13);
-			label17.TabIndex = 0;
-			label17.Text = "Sequence";
-			panelSeqSet.Controls.Add(toolStripSeqSet);
-			panelSeqSet.Location = new System.Drawing.Point(95, 28);
-			panelSeqSet.Name = "panelSeqSet";
-			panelSeqSet.Size = new System.Drawing.Size(25, 52);
-			panelSeqSet.TabIndex = 13;
-			toolStripSeqSet.AutoSize = false;
-			toolStripSeqSet.CanOverflow = false;
-			toolStripSeqSet.Dock = System.Windows.Forms.DockStyle.None;
-			toolStripSeqSet.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStripSeqSet.Items.AddRange(new System.Windows.Forms.ToolStripItem[2]
-			{
-				Verses_Add,
-				Verses_SmartAdd
-			});
-			toolStripSeqSet.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
-			toolStripSeqSet.Location = new System.Drawing.Point(0, 1);
-			toolStripSeqSet.Name = "toolStripSeqSet";
-			toolStripSeqSet.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStripSeqSet.Size = new System.Drawing.Size(25, 62);
-			toolStripSeqSet.TabIndex = 5;
-			Verses_Add.AutoSize = false;
-			Verses_Add.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Verses_Add.Image = Resources.arrowR;
-			Verses_Add.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Verses_Add.Name = "Verses_Add";
-			Verses_Add.Size = new System.Drawing.Size(22, 22);
-			Verses_Add.Tag = "";
-			Verses_Add.ToolTipText = "Move Item Up";
-			Verses_Add.Click += new System.EventHandler(Verses_Add_Click);
-			Verses_SmartAdd.AutoSize = false;
-			Verses_SmartAdd.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Verses_SmartAdd.Image = Resources.multi_arrowr;
-			Verses_SmartAdd.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Verses_SmartAdd.Name = "Verses_SmartAdd";
-			Verses_SmartAdd.Size = new System.Drawing.Size(22, 22);
-			Verses_SmartAdd.Tag = "";
-			Verses_SmartAdd.ToolTipText = "Move Item Down";
-			Verses_SmartAdd.Click += new System.EventHandler(Verses_Add_Click);
-			panelSeqUpDown.Controls.Add(toolStripSeqUpDown);
-			panelSeqUpDown.Location = new System.Drawing.Point(211, 26);
-			panelSeqUpDown.Name = "panelSeqUpDown";
-			panelSeqUpDown.Size = new System.Drawing.Size(25, 79);
-			panelSeqUpDown.TabIndex = 12;
-			toolStripSeqUpDown.AutoSize = false;
-			toolStripSeqUpDown.CanOverflow = false;
-			toolStripSeqUpDown.Dock = System.Windows.Forms.DockStyle.None;
-			toolStripSeqUpDown.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStripSeqUpDown.Items.AddRange(new System.Windows.Forms.ToolStripItem[4]
-			{
-				OrderList_Up,
-				OrderList_Down,
-				toolStripSeparator5,
-				OrderList_Delete
-			});
-			toolStripSeqUpDown.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.VerticalStackWithOverflow;
-			toolStripSeqUpDown.Location = new System.Drawing.Point(0, 0);
-			toolStripSeqUpDown.Name = "toolStripSeqUpDown";
-			toolStripSeqUpDown.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStripSeqUpDown.Size = new System.Drawing.Size(25, 83);
-			toolStripSeqUpDown.TabIndex = 5;
-			OrderList_Up.AutoSize = false;
-			OrderList_Up.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			OrderList_Up.Image = Resources.handup;
-			OrderList_Up.ImageTransparentColor = System.Drawing.Color.Magenta;
-			OrderList_Up.Name = "OrderList_Up";
-			OrderList_Up.Size = new System.Drawing.Size(22, 22);
-			OrderList_Up.Tag = "up";
-			OrderList_Up.ToolTipText = "Move Item Up";
-			OrderList_Up.Click += new System.EventHandler(OrderList_Btn_Click);
-			OrderList_Down.AutoSize = false;
-			OrderList_Down.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			OrderList_Down.Image = Resources.handdown;
-			OrderList_Down.ImageTransparentColor = System.Drawing.Color.Magenta;
-			OrderList_Down.Name = "OrderList_Down";
-			OrderList_Down.Size = new System.Drawing.Size(22, 22);
-			OrderList_Down.Tag = "down";
-			OrderList_Down.ToolTipText = "Move Item Down";
-			OrderList_Down.Click += new System.EventHandler(OrderList_Btn_Click);
-			toolStripSeparator5.Name = "toolStripSeparator5";
-			toolStripSeparator5.Size = new System.Drawing.Size(23, 6);
-			OrderList_Delete.AutoSize = false;
-			OrderList_Delete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			OrderList_Delete.Image = Resources.Delete;
-			OrderList_Delete.ImageTransparentColor = System.Drawing.Color.Magenta;
-			OrderList_Delete.Name = "OrderList_Delete";
-			OrderList_Delete.Size = new System.Drawing.Size(22, 22);
-			OrderList_Delete.Tag = "delete";
-			OrderList_Delete.ToolTipText = "Delete";
-			OrderList_Delete.Click += new System.EventHandler(OrderList_Btn_Click);
-			groupBox1.Controls.Add(panel7);
-			groupBox1.Controls.Add(panel8);
-			groupBox1.Location = new System.Drawing.Point(3, 1);
-			groupBox1.Margin = new System.Windows.Forms.Padding(3, 3, 6, 6);
-			groupBox1.Name = "groupBox1";
-			groupBox1.Padding = new System.Windows.Forms.Padding(0);
-			groupBox1.Size = new System.Drawing.Size(449, 129);
-			groupBox1.TabIndex = 0;
-			groupBox1.TabStop = false;
-			panel7.Controls.Add(Btn_Title2);
-			panel7.Controls.Add(Btn_Title);
-			panel7.Controls.Add(Btn_Copyright);
-			panel7.Controls.Add(Btn_Writer);
-			panel7.Controls.Add(SongFolder);
-			panel7.Controls.Add(panelLinkTitle2Lookup);
-			panel7.Controls.Add(LinkTitle2Pic);
-			panel7.Controls.Add(CopyrightInfo);
-			panel7.Controls.Add(label2);
-			panel7.Controls.Add(WriterInfo);
-			panel7.Controls.Add(label3);
-			panel7.Controls.Add(SongTitle2);
-			panel7.Controls.Add(label4);
-			panel7.Controls.Add(SongTitle);
-			panel7.Controls.Add(label5);
-			panel7.Controls.Add(labelFormat);
-			panel7.Location = new System.Drawing.Point(3, 10);
-			panel7.Name = "panel7";
-			panel7.Size = new System.Drawing.Size(216, 114);
-			panel7.TabIndex = 0;
-			Btn_Title2.BackColor = System.Drawing.Color.Aqua;
-			Btn_Title2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Btn_Title2.Location = new System.Drawing.Point(140, 48);
-			Btn_Title2.Name = "Btn_Title2";
-			Btn_Title2.Size = new System.Drawing.Size(18, 20);
-			Btn_Title2.TabIndex = 36;
-			Btn_Title2.TabStop = false;
-			Btn_Title2.Text = "...";
-			Btn_Title2.UseVisualStyleBackColor = false;
-			Btn_Title2.Visible = false;
-			Btn_Title2.Enter += new System.EventHandler(Btn_Enter);
-			Btn_Title2.Click += new System.EventHandler(Btn_Click);
-			Btn_Title2.Leave += new System.EventHandler(Btn_Enter);
-			Btn_Title.BackColor = System.Drawing.Color.Aqua;
-			Btn_Title.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Btn_Title.Location = new System.Drawing.Point(193, 26);
-			Btn_Title.Name = "Btn_Title";
-			Btn_Title.Size = new System.Drawing.Size(18, 20);
-			Btn_Title.TabIndex = 35;
-			Btn_Title.TabStop = false;
-			Btn_Title.Text = "...";
-			Btn_Title.UseVisualStyleBackColor = false;
-			Btn_Title.Visible = false;
-			Btn_Title.Enter += new System.EventHandler(Btn_Enter);
-			Btn_Title.Click += new System.EventHandler(Btn_Click);
-			Btn_Title.Leave += new System.EventHandler(Btn_Enter);
-			Btn_Copyright.BackColor = System.Drawing.Color.Aqua;
-			Btn_Copyright.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Btn_Copyright.Location = new System.Drawing.Point(193, 92);
-			Btn_Copyright.Name = "Btn_Copyright";
-			Btn_Copyright.Size = new System.Drawing.Size(18, 20);
-			Btn_Copyright.TabIndex = 34;
-			Btn_Copyright.TabStop = false;
-			Btn_Copyright.Text = "...";
-			Btn_Copyright.UseVisualStyleBackColor = false;
-			Btn_Copyright.Visible = false;
-			Btn_Copyright.Enter += new System.EventHandler(Btn_Enter);
-			Btn_Copyright.Click += new System.EventHandler(Btn_Click);
-			Btn_Copyright.Leave += new System.EventHandler(Btn_Enter);
-			Btn_Writer.BackColor = System.Drawing.Color.Aqua;
-			Btn_Writer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Btn_Writer.Location = new System.Drawing.Point(193, 70);
-			Btn_Writer.Name = "Btn_Writer";
-			Btn_Writer.Size = new System.Drawing.Size(18, 20);
-			Btn_Writer.TabIndex = 33;
-			Btn_Writer.TabStop = false;
-			Btn_Writer.Text = "...";
-			Btn_Writer.UseVisualStyleBackColor = false;
-			Btn_Writer.Visible = false;
-			Btn_Writer.Enter += new System.EventHandler(Btn_Enter);
-			Btn_Writer.Click += new System.EventHandler(Btn_Click);
-			Btn_Writer.Leave += new System.EventHandler(Btn_Enter);
-			SongFolder.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			SongFolder.FormattingEnabled = true;
-			SongFolder.Location = new System.Drawing.Point(93, 3);
-			SongFolder.MaxDropDownItems = 12;
-			SongFolder.Name = "SongFolder";
-			SongFolder.Size = new System.Drawing.Size(118, 21);
-			SongFolder.TabIndex = 1;
-			SongFolder.SelectedIndexChanged += new System.EventHandler(SongFolder_SelectedIndexChanged);
-			panelLinkTitle2Lookup.Controls.Add(toolStrip2);
-			panelLinkTitle2Lookup.Location = new System.Drawing.Point(184, 47);
-			panelLinkTitle2Lookup.Name = "panelLinkTitle2Lookup";
-			panelLinkTitle2Lookup.Size = new System.Drawing.Size(22, 21);
-			panelLinkTitle2Lookup.TabIndex = 28;
-			toolStrip2.AutoSize = false;
-			toolStrip2.CanOverflow = false;
-			toolStrip2.Dock = System.Windows.Forms.DockStyle.None;
-			toolStrip2.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-			toolStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[1]
-			{
-				Title2_LookUp
-			});
-			toolStrip2.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
-			toolStrip2.Location = new System.Drawing.Point(0, -1);
-			toolStrip2.Name = "toolStrip2";
-			toolStrip2.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-			toolStrip2.Size = new System.Drawing.Size(28, 24);
-			toolStrip2.TabIndex = 4;
-			Title2_LookUp.AutoSize = false;
-			Title2_LookUp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-			Title2_LookUp.Image = Resources.folder;
-			Title2_LookUp.ImageTransparentColor = System.Drawing.Color.Magenta;
-			Title2_LookUp.Name = "Title2_LookUp";
-			Title2_LookUp.Size = new System.Drawing.Size(22, 22);
-			Title2_LookUp.Tag = "down";
-			Title2_LookUp.ToolTipText = "Look Up Title";
-			Title2_LookUp.Click += new System.EventHandler(Title2_LookUp_Click);
-			LinkTitle2Pic.BackgroundImage = Resources.Tick;
-			LinkTitle2Pic.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-			LinkTitle2Pic.Location = new System.Drawing.Point(162, 48);
-			LinkTitle2Pic.Name = "LinkTitle2Pic";
-			LinkTitle2Pic.Size = new System.Drawing.Size(21, 21);
-			LinkTitle2Pic.TabIndex = 6;
-			CopyrightInfo.Location = new System.Drawing.Point(56, 92);
-			CopyrightInfo.MaxLength = 100;
-			CopyrightInfo.Name = "CopyrightInfo";
-			CopyrightInfo.Size = new System.Drawing.Size(156, 20);
-			CopyrightInfo.TabIndex = 6;
-			CopyrightInfo.Enter += new System.EventHandler(TextBox_Enter);
-			CopyrightInfo.Leave += new System.EventHandler(TextBox_Leave);
-			label2.AutoSize = true;
-			label2.Location = new System.Drawing.Point(3, 29);
-			label2.Name = "label2";
-			label2.Size = new System.Drawing.Size(30, 13);
-			label2.TabIndex = 4;
-			label2.Text = "Title:";
-			label2.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			WriterInfo.Location = new System.Drawing.Point(56, 70);
-			WriterInfo.MaxLength = 100;
-			WriterInfo.Name = "WriterInfo";
-			WriterInfo.Size = new System.Drawing.Size(156, 20);
-			WriterInfo.TabIndex = 5;
-			WriterInfo.Enter += new System.EventHandler(TextBox_Enter);
-			WriterInfo.Leave += new System.EventHandler(TextBox_Leave);
-			label3.AutoSize = true;
-			label3.Location = new System.Drawing.Point(3, 51);
-			label3.Name = "label3";
-			label3.Size = new System.Drawing.Size(36, 13);
-			label3.TabIndex = 5;
-			label3.Text = "Title2:";
-			label3.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			SongTitle2.Location = new System.Drawing.Point(56, 48);
-			SongTitle2.MaxLength = 100;
-			SongTitle2.Name = "SongTitle2";
-			SongTitle2.Size = new System.Drawing.Size(103, 20);
-			SongTitle2.TabIndex = 3;
-			SongTitle2.Enter += new System.EventHandler(TextBox_Enter);
-			SongTitle2.Leave += new System.EventHandler(TextBox_Leave);
-			label4.AutoSize = true;
-			label4.Location = new System.Drawing.Point(3, 73);
-			label4.Name = "label4";
-			label4.Size = new System.Drawing.Size(38, 13);
-			label4.TabIndex = 6;
-			label4.Text = "Writer:";
-			label4.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			SongTitle.Location = new System.Drawing.Point(56, 26);
-			SongTitle.MaxLength = 100;
-			SongTitle.Name = "SongTitle";
-			SongTitle.Size = new System.Drawing.Size(141, 20);
-			SongTitle.TabIndex = 2;
-			SongTitle.Enter += new System.EventHandler(TextBox_Enter);
-			SongTitle.Leave += new System.EventHandler(TextBox_Leave);
-			label5.AutoSize = true;
-			label5.Location = new System.Drawing.Point(3, 94);
-			label5.Name = "label5";
-			label5.Size = new System.Drawing.Size(54, 13);
-			label5.TabIndex = 7;
-			label5.Text = "Copyright:";
-			label5.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			labelFormat.AutoSize = true;
-			labelFormat.Location = new System.Drawing.Point(3, 6);
-			labelFormat.Name = "labelFormat";
-			labelFormat.Size = new System.Drawing.Size(89, 13);
-			labelFormat.TabIndex = 29;
-			labelFormat.Text = "Format As Folder:";
-			labelFormat.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			panel8.Controls.Add(Btn_BookRef);
-			panel8.Controls.Add(Btn_UserRef);
-			panel8.Controls.Add(label6);
-			panel8.Controls.Add(UserReference);
-			panel8.Controls.Add(BookReference);
-			panel8.Controls.Add(label9);
-			panel8.Controls.Add(label10);
-			panel8.Controls.Add(LicAdminInfo2);
-			panel8.Controls.Add(LicAdminInfo1);
-			panel8.Controls.Add(SongTiming);
-			panel8.Controls.Add(label13);
-			panel8.Controls.Add(SongKey);
-			panel8.Controls.Add(SongNumber);
-			panel8.Controls.Add(SongCapo);
-			panel8.Controls.Add(label11);
-			panel8.Controls.Add(label12);
-			panel8.Controls.Add(label8);
-			panel8.Controls.Add(label7);
-			panel8.Location = new System.Drawing.Point(220, 10);
-			panel8.Name = "panel8";
-			panel8.Size = new System.Drawing.Size(221, 114);
-			panel8.TabIndex = 1;
-			Btn_BookRef.BackColor = System.Drawing.Color.Aqua;
-			Btn_BookRef.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Btn_BookRef.Location = new System.Drawing.Point(200, 47);
-			Btn_BookRef.Name = "Btn_BookRef";
-			Btn_BookRef.Size = new System.Drawing.Size(18, 20);
-			Btn_BookRef.TabIndex = 31;
-			Btn_BookRef.TabStop = false;
-			Btn_BookRef.Text = "...";
-			Btn_BookRef.UseVisualStyleBackColor = false;
-			Btn_BookRef.Visible = false;
-			Btn_BookRef.Enter += new System.EventHandler(Btn_Enter);
-			Btn_BookRef.Click += new System.EventHandler(Btn_Click);
-			Btn_BookRef.Leave += new System.EventHandler(Btn_Enter);
-			Btn_UserRef.BackColor = System.Drawing.Color.Aqua;
-			Btn_UserRef.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			Btn_UserRef.Location = new System.Drawing.Point(200, 69);
-			Btn_UserRef.Name = "Btn_UserRef";
-			Btn_UserRef.Size = new System.Drawing.Size(18, 20);
-			Btn_UserRef.TabIndex = 30;
-			Btn_UserRef.TabStop = false;
-			Btn_UserRef.Text = "...";
-			Btn_UserRef.UseVisualStyleBackColor = false;
-			Btn_UserRef.Visible = false;
-			Btn_UserRef.Enter += new System.EventHandler(Btn_Enter);
-			Btn_UserRef.Click += new System.EventHandler(Btn_Click);
-			Btn_UserRef.Leave += new System.EventHandler(Btn_Enter);
-			label6.AutoSize = true;
-			label6.Location = new System.Drawing.Point(3, 6);
-			label6.Name = "label6";
-			label6.Size = new System.Drawing.Size(35, 13);
-			label6.TabIndex = 12;
-			label6.Text = "Capo:";
-			label6.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			UserReference.Location = new System.Drawing.Point(56, 69);
-			UserReference.Name = "UserReference";
-			UserReference.Size = new System.Drawing.Size(144, 20);
-			UserReference.TabIndex = 5;
-			UserReference.Enter += new System.EventHandler(TextBox_Enter);
-			UserReference.Leave += new System.EventHandler(TextBox_Leave);
-			BookReference.Location = new System.Drawing.Point(56, 47);
-			BookReference.MaxLength = 100;
-			BookReference.Name = "BookReference";
-			BookReference.Size = new System.Drawing.Size(144, 20);
-			BookReference.TabIndex = 4;
-			BookReference.Enter += new System.EventHandler(TextBox_Enter);
-			BookReference.Leave += new System.EventHandler(TextBox_Leave);
-			label9.AutoSize = true;
-			label9.Location = new System.Drawing.Point(3, 73);
-			label9.Name = "label9";
-			label9.Size = new System.Drawing.Size(52, 13);
-			label9.TabIndex = 19;
-			label9.Text = "User Ref:";
-			label9.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			label10.AutoSize = true;
-			label10.Location = new System.Drawing.Point(3, 94);
-			label10.Name = "label10";
-			label10.Size = new System.Drawing.Size(48, 13);
-			label10.TabIndex = 20;
-			label10.Text = "Admin 1:";
-			label10.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			LicAdminInfo2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			LicAdminInfo2.FormattingEnabled = true;
-			LicAdminInfo2.Location = new System.Drawing.Point(146, 91);
-			LicAdminInfo2.MaxDropDownItems = 12;
-			LicAdminInfo2.Name = "LicAdminInfo2";
-			LicAdminInfo2.Size = new System.Drawing.Size(72, 21);
-			LicAdminInfo2.TabIndex = 7;
-			LicAdminInfo1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			LicAdminInfo1.FormattingEnabled = true;
-			LicAdminInfo1.Location = new System.Drawing.Point(56, 91);
-			LicAdminInfo1.MaxDropDownItems = 12;
-			LicAdminInfo1.Name = "LicAdminInfo1";
-			LicAdminInfo1.Size = new System.Drawing.Size(72, 21);
-			LicAdminInfo1.TabIndex = 6;
-			SongTiming.FormattingEnabled = true;
-			SongTiming.Location = new System.Drawing.Point(166, 24);
-			SongTiming.MaxDropDownItems = 13;
-			SongTiming.Name = "SongTiming";
-			SongTiming.Size = new System.Drawing.Size(52, 21);
-			SongTiming.TabIndex = 3;
-			label13.AutoSize = true;
-			label13.Location = new System.Drawing.Point(130, 94);
-			label13.Name = "label13";
-			label13.Size = new System.Drawing.Size(16, 13);
-			label13.TabIndex = 23;
-			label13.Text = "2:";
-			label13.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			SongKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			SongKey.FormattingEnabled = true;
-			SongKey.Location = new System.Drawing.Point(166, 2);
-			SongKey.MaxDropDownItems = 13;
-			SongKey.Name = "SongKey";
-			SongKey.Size = new System.Drawing.Size(52, 21);
-			SongKey.TabIndex = 1;
-			SongNumber.Location = new System.Drawing.Point(56, 25);
-			SongNumber.MaxLength = 10;
-			SongNumber.Name = "SongNumber";
-			SongNumber.Size = new System.Drawing.Size(70, 20);
-			SongNumber.TabIndex = 2;
-			SongCapo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			SongCapo.FormattingEnabled = true;
-			SongCapo.Location = new System.Drawing.Point(56, 2);
-			SongCapo.MaxDropDownItems = 13;
-			SongCapo.Name = "SongCapo";
-			SongCapo.Size = new System.Drawing.Size(70, 21);
-			SongCapo.TabIndex = 0;
-			label11.AutoSize = true;
-			label11.Location = new System.Drawing.Point(129, 5);
-			label11.Name = "label11";
-			label11.Size = new System.Drawing.Size(28, 13);
-			label11.TabIndex = 21;
-			label11.Text = "Key:";
-			label11.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			label12.AutoSize = true;
-			label12.Location = new System.Drawing.Point(128, 28);
-			label12.Name = "label12";
-			label12.Size = new System.Drawing.Size(41, 13);
-			label12.TabIndex = 22;
-			label12.Text = "Timing:";
-			label12.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			label8.AutoSize = true;
-			label8.Location = new System.Drawing.Point(3, 51);
-			label8.Name = "label8";
-			label8.Size = new System.Drawing.Size(55, 13);
-			label8.TabIndex = 18;
-			label8.Text = "Book Ref:";
-			label8.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			label7.AutoSize = true;
-			label7.Location = new System.Drawing.Point(3, 29);
-			label7.Name = "label7";
-			label7.Size = new System.Drawing.Size(55, 13);
-			label7.TabIndex = 17;
-			label7.Text = "Song No.:";
-			label7.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			TimerFast.Interval = 500;
-			TimerFast.Tick += new System.EventHandler(TimerFast_Tick);
-			TimerAttemptConnect.Interval = 500;
-			TimerAttemptConnect.Tick += new System.EventHandler(TimerAttemptConnect_Tick);
-			TimerTrack.Interval = 1000;
-			TimerTrack.Tick += new System.EventHandler(TimerTrack_Tick);
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			base.ClientSize = new System.Drawing.Size(775, 561);
-			base.Controls.Add(splitContainerMain);
-			base.Controls.Add(toolStrip1);
-			base.Controls.Add(statusStrip1);
-			base.Controls.Add(menuStripMain);
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			MinimumSize = new System.Drawing.Size(245, 238);
-			base.Name = "FrmInfoScreen";
-			base.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
-			Text = "InfoScreen";
-			base.Resize += new System.EventHandler(FrmInfoScreen_Resize);
-			base.FormClosing += new System.Windows.Forms.FormClosingEventHandler(FrmInfoScreen_FormClosing);
-			base.Load += new System.EventHandler(FrmInfoScreen_Load);
-			toolStrip1.ResumeLayout(false);
-			toolStrip1.PerformLayout();
-			statusStrip1.ResumeLayout(false);
-			statusStrip1.PerformLayout();
-			splitContainer1.Panel1.ResumeLayout(false);
-			splitContainer1.Panel2.ResumeLayout(false);
-			splitContainer1.ResumeLayout(false);
-			CMRegion1.ResumeLayout(false);
-			panelR1Top.ResumeLayout(false);
-			panelR1Left.ResumeLayout(false);
-			panel3.ResumeLayout(false);
-			panelR1LeftBottom.ResumeLayout(false);
-			panelR1LeftMiddle.ResumeLayout(false);
-			panelR1LeftTop.ResumeLayout(false);
-			tabRightPane.ResumeLayout(false);
-			tabRight_Region2.ResumeLayout(false);
-			panelR2All.ResumeLayout(false);
-			CMRegion2.ResumeLayout(false);
-			panelR2Top.ResumeLayout(false);
-			panelR2Left.ResumeLayout(false);
-			panel1.ResumeLayout(false);
-			panelR2LeftBottom.ResumeLayout(false);
-			panelR2LeftMiddle.ResumeLayout(false);
-			panelR2LeftTop.ResumeLayout(false);
-			tabRight_Rotate.ResumeLayout(false);
-			panelRotate.ResumeLayout(false);
-			splitContainerRotate.Panel1.ResumeLayout(false);
-			splitContainerRotate.Panel2.ResumeLayout(false);
-			splitContainerRotate.ResumeLayout(false);
-			groupBoxRotateVerses.ResumeLayout(false);
-			panelRotate_Verses.ResumeLayout(false);
-			panel10.ResumeLayout(false);
-			panel10.PerformLayout();
-			panelRotate_OrderList.ResumeLayout(false);
-			panel12.ResumeLayout(false);
-			panel12.PerformLayout();
-			panel13.ResumeLayout(false);
-			toolStripRotate_SeqSet.ResumeLayout(false);
-			toolStripRotate_SeqSet.PerformLayout();
-			panel14.ResumeLayout(false);
-			toolStripRotate_SeqUpDown.ResumeLayout(false);
-			toolStripRotate_SeqUpDown.PerformLayout();
-			panelRotate_Sample.ResumeLayout(false);
-			panelRotate_Sample.PerformLayout();
-			panelRotate_Media.ResumeLayout(false);
-			panelNoPlayer.ResumeLayout(false);
-			panelLoc.ResumeLayout(false);
-			toolStrip3.ResumeLayout(false);
-			toolStrip3.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)TrackBarVolume).EndInit();
-			panelPlayBtns.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)TrackBarDuration).EndInit();
-			panelRotateLeft.ResumeLayout(false);
-			panelRotateLeftTop2.ResumeLayout(false);
-			panelRotateLeftTop2.PerformLayout();
-			panelRotateLeftTop1.ResumeLayout(false);
-			groupBox3.ResumeLayout(false);
-			groupBox3.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)Rotate_SlidesGapUpDown).EndInit();
-			menuStripMain.ResumeLayout(false);
-			menuStripMain.PerformLayout();
-			splitContainerMain.Panel1.ResumeLayout(false);
-			splitContainerMain.Panel2.ResumeLayout(false);
-			splitContainerMain.ResumeLayout(false);
-			groupBox2.ResumeLayout(false);
-			panelVerses.ResumeLayout(false);
-			panel2.ResumeLayout(false);
-			panel2.PerformLayout();
-			panelOrderList.ResumeLayout(false);
-			panel4.ResumeLayout(false);
-			panel4.PerformLayout();
-			panelSeqSet.ResumeLayout(false);
-			toolStripSeqSet.ResumeLayout(false);
-			toolStripSeqSet.PerformLayout();
-			panelSeqUpDown.ResumeLayout(false);
-			toolStripSeqUpDown.ResumeLayout(false);
-			toolStripSeqUpDown.PerformLayout();
-			groupBox1.ResumeLayout(false);
-			panel7.ResumeLayout(false);
-			panel7.PerformLayout();
-			panelLinkTitle2Lookup.ResumeLayout(false);
-			toolStrip2.ResumeLayout(false);
-			toolStrip2.PerformLayout();
-			panel8.ResumeLayout(false);
-			panel8.PerformLayout();
-			ResumeLayout(false);
-			PerformLayout();
-		}
+        private void InitializeComponent()
+        {
+            components = new Container();
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(FrmInfoScreen));
+            toolStrip1 = new ToolStrip();
+            Main_New = new ToolStripButton();
+            Main_Save = new ToolStripButton();
+            Main_SaveExit = new ToolStripButton();
+            toolStripSeparator1 = new ToolStripSeparator();
+            Main_Import = new ToolStripButton();
+            Main_WordWrap = new ToolStripButton();
+            Main_ChordsMenu = new ToolStripButton();
+            toolStripSeparator2 = new ToolStripSeparator();
+            Main_TransposeDown = new ToolStripButton();
+            Main_TransposeUp = new ToolStripButton();
+            toolStripSeparator4 = new ToolStripSeparator();
+            ComboFontName = new ToolStripComboBox();
+            ComboMainFontSize = new ToolStripComboBox();
+            ComboNotationFontSize = new ToolStripComboBox();
+            statusStrip1 = new StatusStrip();
+            toolStripStatusLabel1 = new ToolStripStatusLabel();
+            splitContainer1 = new SplitContainer();
+            tbLyrics1 = new RichTextBox();
+            CMRegion1 = new ContextMenuStrip(components);
+            CMRegion1_Copy = new ToolStripMenuItem();
+            CMRegion1_Paste = new ToolStripMenuItem();
+            panelR1Top = new Panel();
+            LabeltbLyrics = new Label();
+            panelR1Left = new Panel();
+            panel3 = new Panel();
+            panelR1LeftBottom = new Panel();
+            R1RightToLeft = new CheckBox();
+            R1Chinese = new Button();
+            panelR1LeftMiddle = new Panel();
+            R1BtnBridge2 = new Button();
+            R1BtnPreChorus2 = new Button();
+            R1BtnChorus2 = new Button();
+            R1BtnPreChorus = new Button();
+            R1BtnChorus = new Button();
+            R1VerseFormat = new Button();
+            R1BtnNewScreen = new Button();
+            R1BtnNotations = new Button();
+            R1BtnEnding = new Button();
+            R1BtnBridge = new Button();
+            R1Btn10 = new Button();
+            R1Btn9 = new Button();
+            R1Btn8 = new Button();
+            R1Btn7 = new Button();
+            R1Btn6 = new Button();
+            R1Btn5 = new Button();
+            R1Btn4 = new Button();
+            R1Btn3 = new Button();
+            R1Btn2 = new Button();
+            R1Btn1 = new Button();
+            panelR1LeftTop = new Panel();
+            R1Undo = new Button();
+            R1Redo = new Button();
+            tabRightPane = new TabControl();
+            tabRight_Region2 = new TabPage();
+            panelR2All = new Panel();
+            tbLyrics2 = new RichTextBox();
+            CMRegion2 = new ContextMenuStrip(components);
+            CMRegion2_Copy = new ToolStripMenuItem();
+            CMRegion2_Paste = new ToolStripMenuItem();
+            panelR2Top = new Panel();
+            LabeltbLyrics2 = new Label();
+            panelR2Left = new Panel();
+            panel1 = new Panel();
+            panelR2LeftBottom = new Panel();
+            R2RightToLeft = new CheckBox();
+            R2Chinese = new Button();
+            panelR2LeftMiddle = new Panel();
+            R2BtnBridge2 = new Button();
+            R2BtnPreChorus2 = new Button();
+            R2BtnPreChorus = new Button();
+            R2VerseFormat = new Button();
+            R2BtnChorus = new Button();
+            R2BtnChorus2 = new Button();
+            R2BtnNewScreen = new Button();
+            R2BtnNotations = new Button();
+            R2BtnEnding = new Button();
+            R2BtnBridge = new Button();
+            R2Btn10 = new Button();
+            R2Btn9 = new Button();
+            R2Btn8 = new Button();
+            R2Btn7 = new Button();
+            R2Btn6 = new Button();
+            R2Btn5 = new Button();
+            R2Btn4 = new Button();
+            R2Btn3 = new Button();
+            R2Btn2 = new Button();
+            R2Btn1 = new Button();
+            panelR2LeftTop = new Panel();
+            R2Undo = new Button();
+            R2Redo = new Button();
+            SyncBtnDown = new Button();
+            SyncBtnUp = new Button();
+            tabRight_Rotate = new TabPage();
+            panelRotate = new Panel();
+            splitContainerRotate = new SplitContainer();
+            groupBoxRotateVerses = new GroupBox();
+            panelRotate_Verses = new Panel();
+            Rotate_VersesList = new ListView();
+            columnHeader6 = new ColumnHeader();
+            columnHeader7 = new ColumnHeader();
+            columnHeader8 = new ColumnHeader();
+            panel10 = new Panel();
+            label23 = new Label();
+            panelRotate_OrderList = new Panel();
+            Rotate_OrderList = new ListView();
+            columnHeader9 = new ColumnHeader();
+            columnHeader10 = new ColumnHeader();
+            panel12 = new Panel();
+            label24 = new Label();
+            panel13 = new Panel();
+            toolStripRotate_SeqSet = new ToolStrip();
+            Rotate_Verses_Add = new ToolStripButton();
+            Rotate_Verses_SmartAdd = new ToolStripButton();
+            panel14 = new Panel();
+            toolStripRotate_SeqUpDown = new ToolStrip();
+            Rotate_OrderList_Up = new ToolStripButton();
+            Rotate_OrderList_Down = new ToolStripButton();
+            toolStripSeparator3 = new ToolStripSeparator();
+            Rotate_OrderList_Delete = new ToolStripButton();
+            panelRotate_Sample = new Panel();
+            labelDur = new Label();
+            btnAddPosition = new Button();
+            btnDuration = new Button();
+            LabelMediaType = new Label();
+            labelMed = new Label();
+            panelRotate_Media = new Panel();
+            panelNoPlayer = new Panel();
+            label14 = new Label();
+            labelNoPlayer1 = new Label();
+            labelNoPlayer2 = new Label();
+            labelPos = new Label();
+            LabelPosition = new Label();
+            panelLoc = new Panel();
+            toolStrip3 = new ToolStrip();
+            Rotate_LocationBtn = new ToolStripButton();
+            LabelDuration = new Label();
+            Rotate_tbSourceLocation = new TextBox();
+            TrackBarVolume = new TrackBar();
+            panelPlayBtns = new Panel();
+            TrackBarDuration = new TrackBar();
+            StopBtn = new Button();
+            PlayPauseBtn = new Button();
+            FastReverseBtn = new Button();
+            FastForwardBtn = new Button();
+            labelVol = new Label();
+            panelRotateLeft = new Panel();
+            flowLayoutRotate = new FlowLayoutPanel();
+            panelRotateLeftTop2 = new Panel();
+            Rotate_TimeTotal = new DateTimePicker();
+            btnClearMediaPositions = new Button();
+            label21 = new Label();
+            label19 = new Label();
+            panelRotateLeftTop1 = new Panel();
+            groupBox3 = new GroupBox();
+            Rotate_SlidesGapUpDown = new NumericUpDown();
+            Rotate_Equal = new RadioButton();
+            Rotate_Multiple = new RadioButton();
+            panel6 = new Panel();
+            menuStripMain = new MenuStrip();
+            Menu_MainFile = new ToolStripMenuItem();
+            Menu_New = new ToolStripMenuItem();
+            Menu_Save = new ToolStripMenuItem();
+            Menu_SaveAs = new ToolStripMenuItem();
+            Menu_SaveExit = new ToolStripMenuItem();
+            toolStripSeparator16 = new ToolStripSeparator();
+            Menu_EditHistoryList = new ToolStripMenuItem();
+            toolStripSeparator18 = new ToolStripSeparator();
+            Menu_Exit = new ToolStripMenuItem();
+            Menu_MainTools = new ToolStripMenuItem();
+            Menu_Import = new ToolStripMenuItem();
+            Menu_WordWrap = new ToolStripMenuItem();
+            Menu_ChordsMenu = new ToolStripMenuItem();
+            Menu_EditHistorySeparator = new ToolStripSeparator();
+            Menu_TransposeDown = new ToolStripMenuItem();
+            Menu_TransposeUp = new ToolStripMenuItem();
+            toolStripSeparator6 = new ToolStripSeparator();
+            Menu_ShowAllButtons = new ToolStripMenuItem();
+            TimerEditRequest = new Timer(components);
+            OpenFileDialog1 = new OpenFileDialog();
+            splitContainerMain = new SplitContainer();
+            groupBox2 = new GroupBox();
+            panelVerses = new Panel();
+            VersesList = new ListView();
+            columnHeader1 = new ColumnHeader();
+            columnHeader2 = new ColumnHeader();
+            panel2 = new Panel();
+            label16 = new Label();
+            panelOrderList = new Panel();
+            OrderList = new ListView();
+            columnHeader3 = new ColumnHeader();
+            columnHeader4 = new ColumnHeader();
+            panel4 = new Panel();
+            label17 = new Label();
+            panelSeqSet = new Panel();
+            toolStripSeqSet = new ToolStrip();
+            Verses_Add = new ToolStripButton();
+            Verses_SmartAdd = new ToolStripButton();
+            panelSeqUpDown = new Panel();
+            toolStripSeqUpDown = new ToolStrip();
+            OrderList_Up = new ToolStripButton();
+            OrderList_Down = new ToolStripButton();
+            toolStripSeparator5 = new ToolStripSeparator();
+            OrderList_Delete = new ToolStripButton();
+            groupBox1 = new GroupBox();
+            panel7 = new Panel();
+            Btn_Title2 = new Button();
+            Btn_Title = new Button();
+            Btn_Copyright = new Button();
+            Btn_Writer = new Button();
+            SongFolder = new ComboBox();
+            panelLinkTitle2Lookup = new Panel();
+            toolStrip2 = new ToolStrip();
+            Title2_LookUp = new ToolStripButton();
+            LinkTitle2Pic = new Panel();
+            CopyrightInfo = new TextBox();
+            label2 = new Label();
+            WriterInfo = new TextBox();
+            label3 = new Label();
+            SongTitle2 = new TextBox();
+            label4 = new Label();
+            SongTitle = new TextBox();
+            label5 = new Label();
+            labelFormat = new Label();
+            panel8 = new Panel();
+            Btn_BookRef = new Button();
+            Btn_UserRef = new Button();
+            label6 = new Label();
+            UserReference = new TextBox();
+            BookReference = new TextBox();
+            label9 = new Label();
+            label10 = new Label();
+            LicAdminInfo2 = new ComboBox();
+            LicAdminInfo1 = new ComboBox();
+            SongTiming = new ComboBox();
+            label13 = new Label();
+            SongKey = new ComboBox();
+            SongNumber = new TextBox();
+            SongCapo = new ComboBox();
+            label11 = new Label();
+            label12 = new Label();
+            label8 = new Label();
+            label7 = new Label();
+            toolTip1 = new ToolTip(components);
+            TimerFast = new Timer(components);
+            TimerAttemptConnect = new Timer(components);
+            TimerTrack = new Timer(components);
+            saveFileDialog1 = new SaveFileDialog();
+            toolStrip1.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            ((ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
+            CMRegion1.SuspendLayout();
+            panelR1Top.SuspendLayout();
+            panelR1Left.SuspendLayout();
+            panel3.SuspendLayout();
+            panelR1LeftBottom.SuspendLayout();
+            panelR1LeftMiddle.SuspendLayout();
+            panelR1LeftTop.SuspendLayout();
+            tabRightPane.SuspendLayout();
+            tabRight_Region2.SuspendLayout();
+            panelR2All.SuspendLayout();
+            CMRegion2.SuspendLayout();
+            panelR2Top.SuspendLayout();
+            panelR2Left.SuspendLayout();
+            panel1.SuspendLayout();
+            panelR2LeftBottom.SuspendLayout();
+            panelR2LeftMiddle.SuspendLayout();
+            panelR2LeftTop.SuspendLayout();
+            tabRight_Rotate.SuspendLayout();
+            panelRotate.SuspendLayout();
+            ((ISupportInitialize)splitContainerRotate).BeginInit();
+            splitContainerRotate.Panel1.SuspendLayout();
+            splitContainerRotate.Panel2.SuspendLayout();
+            splitContainerRotate.SuspendLayout();
+            groupBoxRotateVerses.SuspendLayout();
+            panelRotate_Verses.SuspendLayout();
+            panel10.SuspendLayout();
+            panelRotate_OrderList.SuspendLayout();
+            panel12.SuspendLayout();
+            panel13.SuspendLayout();
+            toolStripRotate_SeqSet.SuspendLayout();
+            panel14.SuspendLayout();
+            toolStripRotate_SeqUpDown.SuspendLayout();
+            panelRotate_Sample.SuspendLayout();
+            panelRotate_Media.SuspendLayout();
+            panelNoPlayer.SuspendLayout();
+            panelLoc.SuspendLayout();
+            toolStrip3.SuspendLayout();
+            ((ISupportInitialize)TrackBarVolume).BeginInit();
+            panelPlayBtns.SuspendLayout();
+            ((ISupportInitialize)TrackBarDuration).BeginInit();
+            panelRotateLeft.SuspendLayout();
+            panelRotateLeftTop2.SuspendLayout();
+            panelRotateLeftTop1.SuspendLayout();
+            groupBox3.SuspendLayout();
+            ((ISupportInitialize)Rotate_SlidesGapUpDown).BeginInit();
+            menuStripMain.SuspendLayout();
+            ((ISupportInitialize)splitContainerMain).BeginInit();
+            splitContainerMain.Panel1.SuspendLayout();
+            splitContainerMain.Panel2.SuspendLayout();
+            splitContainerMain.SuspendLayout();
+            groupBox2.SuspendLayout();
+            panelVerses.SuspendLayout();
+            panel2.SuspendLayout();
+            panelOrderList.SuspendLayout();
+            panel4.SuspendLayout();
+            panelSeqSet.SuspendLayout();
+            toolStripSeqSet.SuspendLayout();
+            panelSeqUpDown.SuspendLayout();
+            toolStripSeqUpDown.SuspendLayout();
+            groupBox1.SuspendLayout();
+            panel7.SuspendLayout();
+            panelLinkTitle2Lookup.SuspendLayout();
+            toolStrip2.SuspendLayout();
+            panel8.SuspendLayout();
+            SuspendLayout();
+            // 
+            // toolStrip1
+            // 
+            toolStrip1.ImageScalingSize = new Size(20, 20);
+            toolStrip1.Items.AddRange(new ToolStripItem[] { Main_New, Main_Save, Main_SaveExit, toolStripSeparator1, Main_Import, Main_WordWrap, Main_ChordsMenu, toolStripSeparator2, Main_TransposeDown, Main_TransposeUp, toolStripSeparator4, ComboFontName, ComboMainFontSize, ComboNotationFontSize });
+            toolStrip1.Location = new Point(0, 30);
+            toolStrip1.Name = "toolStrip1";
+            toolStrip1.Size = new Size(1033, 28);
+            toolStrip1.TabIndex = 0;
+            toolStrip1.Text = "toolStrip1";
+            // 
+            // Main_New
+            // 
+            Main_New.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_New.Image = Resources.New;
+            Main_New.ImageTransparentColor = Color.Magenta;
+            Main_New.Name = "Main_New";
+            Main_New.Size = new Size(29, 25);
+            Main_New.ToolTipText = "New Item";
+            Main_New.Click += Main_New_Click;
+            // 
+            // Main_Save
+            // 
+            Main_Save.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Save.Image = Resources.Save;
+            Main_Save.ImageTransparentColor = Color.Magenta;
+            Main_Save.Name = "Main_Save";
+            Main_Save.Size = new Size(29, 25);
+            Main_Save.ToolTipText = "Save Item";
+            Main_Save.Click += Main_Save_Click;
+            // 
+            // Main_SaveExit
+            // 
+            Main_SaveExit.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_SaveExit.Image = Resources.SaveClose;
+            Main_SaveExit.ImageTransparentColor = Color.Magenta;
+            Main_SaveExit.Name = "Main_SaveExit";
+            Main_SaveExit.Size = new Size(29, 25);
+            Main_SaveExit.ToolTipText = "Save and Exit";
+            Main_SaveExit.Click += Main_SaveExit_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(6, 28);
+            // 
+            // Main_Import
+            // 
+            Main_Import.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_Import.Image = Resources.open;
+            Main_Import.ImageTransparentColor = Color.Magenta;
+            Main_Import.Name = "Main_Import";
+            Main_Import.Size = new Size(29, 25);
+            Main_Import.Text = "toolStripButton5";
+            Main_Import.ToolTipText = "Import Word/Text File";
+            Main_Import.Click += Main_Import_Click;
+            // 
+            // Main_WordWrap
+            // 
+            Main_WordWrap.CheckOnClick = true;
+            Main_WordWrap.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_WordWrap.Image = Resources.wordwrap;
+            Main_WordWrap.ImageTransparentColor = Color.Magenta;
+            Main_WordWrap.Name = "Main_WordWrap";
+            Main_WordWrap.Size = new Size(29, 25);
+            Main_WordWrap.ToolTipText = "Word Wrap";
+            Main_WordWrap.Click += Main_WordWrap_Click;
+            // 
+            // Main_ChordsMenu
+            // 
+            Main_ChordsMenu.CheckOnClick = true;
+            Main_ChordsMenu.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_ChordsMenu.Image = Resources.PopUpChords;
+            Main_ChordsMenu.ImageTransparentColor = Color.Magenta;
+            Main_ChordsMenu.Name = "Main_ChordsMenu";
+            Main_ChordsMenu.Size = new Size(29, 25);
+            Main_ChordsMenu.ToolTipText = "Right Click Chords Menu";
+            Main_ChordsMenu.Click += Main_ChordsMenu_Click;
+            // 
+            // toolStripSeparator2
+            // 
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(6, 28);
+            // 
+            // Main_TransposeDown
+            // 
+            Main_TransposeDown.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_TransposeDown.Image = Resources.arrowGL;
+            Main_TransposeDown.ImageTransparentColor = Color.Magenta;
+            Main_TransposeDown.Name = "Main_TransposeDown";
+            Main_TransposeDown.Size = new Size(29, 25);
+            Main_TransposeDown.ToolTipText = "Transpose Chord Down";
+            Main_TransposeDown.Click += Main_TransposeDown_Click;
+            // 
+            // Main_TransposeUp
+            // 
+            Main_TransposeUp.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Main_TransposeUp.Image = Resources.arrowGR;
+            Main_TransposeUp.ImageTransparentColor = Color.Magenta;
+            Main_TransposeUp.Name = "Main_TransposeUp";
+            Main_TransposeUp.Size = new Size(29, 25);
+            Main_TransposeUp.ToolTipText = "Transpose Chord Up";
+            Main_TransposeUp.Click += Main_TransposeUp_Click;
+            // 
+            // toolStripSeparator4
+            // 
+            toolStripSeparator4.Name = "toolStripSeparator4";
+            toolStripSeparator4.Size = new Size(6, 28);
+            // 
+            // ComboFontName
+            // 
+            ComboFontName.AutoSize = false;
+            ComboFontName.Name = "ComboFontName";
+            ComboFontName.Size = new Size(160, 28);
+            ComboFontName.Text = "Font Name";
+            ComboFontName.ToolTipText = "Font Name";
+            ComboFontName.SelectedIndexChanged += ComboFonts_SelectedIndexChanged;
+            // 
+            // ComboMainFontSize
+            // 
+            ComboMainFontSize.AutoSize = false;
+            ComboMainFontSize.Name = "ComboMainFontSize";
+            ComboMainFontSize.Size = new Size(52, 28);
+            ComboMainFontSize.Text = "12";
+            ComboMainFontSize.ToolTipText = "Font Size";
+            ComboMainFontSize.SelectedIndexChanged += ComboFonts_SelectedIndexChanged;
+            // 
+            // ComboNotationFontSize
+            // 
+            ComboNotationFontSize.AutoSize = false;
+            ComboNotationFontSize.Name = "ComboNotationFontSize";
+            ComboNotationFontSize.Size = new Size(52, 28);
+            ComboNotationFontSize.Text = "10";
+            ComboNotationFontSize.ToolTipText = "Notation Size";
+            ComboNotationFontSize.SelectedIndexChanged += ComboFonts_SelectedIndexChanged;
+            // 
+            // statusStrip1
+            // 
+            statusStrip1.BackColor = Color.LimeGreen;
+            statusStrip1.ImageScalingSize = new Size(20, 20);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
+            statusStrip1.Location = new Point(0, 841);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Padding = new Padding(1, 0, 19, 0);
+            statusStrip1.Size = new Size(1033, 22);
+            statusStrip1.TabIndex = 2;
+            // 
+            // toolStripStatusLabel1
+            // 
+            toolStripStatusLabel1.BackColor = Color.FromArgb(0, 192, 0);
+            toolStripStatusLabel1.Font = new Font("Microsoft Sans Serif", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            toolStripStatusLabel1.ForeColor = Color.Black;
+            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new Size(0, 16);
+            // 
+            // splitContainer1
+            // 
+            splitContainer1.BorderStyle = BorderStyle.Fixed3D;
+            splitContainer1.Dock = DockStyle.Fill;
+            splitContainer1.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            splitContainer1.Location = new Point(0, 0);
+            splitContainer1.Margin = new Padding(4, 5, 4, 5);
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(tbLyrics1);
+            splitContainer1.Panel1.Controls.Add(panelR1Top);
+            splitContainer1.Panel1.Controls.Add(panelR1Left);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(tabRightPane);
+            splitContainer1.Panel2.Controls.Add(panel6);
+            splitContainer1.Panel2.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            splitContainer1.Size = new Size(1033, 575);
+            splitContainer1.SplitterDistance = 467;
+            splitContainer1.SplitterWidth = 5;
+            splitContainer1.TabIndex = 0;
+            splitContainer1.Text = "splitContainer1";
+            // 
+            // tbLyrics1
+            // 
+            tbLyrics1.AutoWordSelection = true;
+            tbLyrics1.ContextMenuStrip = CMRegion1;
+            tbLyrics1.DetectUrls = false;
+            tbLyrics1.Dock = DockStyle.Fill;
+            tbLyrics1.EnableAutoDragDrop = true;
+            tbLyrics1.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            tbLyrics1.HideSelection = false;
+            tbLyrics1.Location = new Point(73, 25);
+            tbLyrics1.Margin = new Padding(4, 5, 4, 5);
+            tbLyrics1.Name = "tbLyrics1";
+            tbLyrics1.Size = new Size(390, 546);
+            tbLyrics1.TabIndex = 0;
+            tbLyrics1.Text = "";
+            tbLyrics1.SelectionChanged += tbLyrics_SelectionChanged;
+            tbLyrics1.TextChanged += tbLyrics1_TextChanged;
+            tbLyrics1.KeyDown += tbLyrics1_KeyDown;
+            tbLyrics1.KeyUp += tbLyrics1_KeyUp;
+            tbLyrics1.MouseUp += tbLyrics1_MouseUp;
+            // 
+            // CMRegion1
+            // 
+            CMRegion1.ImageScalingSize = new Size(20, 20);
+            CMRegion1.Items.AddRange(new ToolStripItem[] { CMRegion1_Copy, CMRegion1_Paste });
+            CMRegion1.Name = "CMRegion1";
+            CMRegion1.Size = new Size(113, 52);
+            // 
+            // CMRegion1_Copy
+            // 
+            CMRegion1_Copy.Name = "CMRegion1_Copy";
+            CMRegion1_Copy.Size = new Size(112, 24);
+            CMRegion1_Copy.Text = "Copy";
+            CMRegion1_Copy.Click += CMRegion1_Copy_Click;
+            // 
+            // CMRegion1_Paste
+            // 
+            CMRegion1_Paste.Name = "CMRegion1_Paste";
+            CMRegion1_Paste.Size = new Size(112, 24);
+            CMRegion1_Paste.Text = "Paste";
+            CMRegion1_Paste.Click += CMRegion1_Paste_Click;
+            // 
+            // panelR1Top
+            // 
+            panelR1Top.Controls.Add(LabeltbLyrics);
+            panelR1Top.Dock = DockStyle.Top;
+            panelR1Top.Location = new Point(73, 0);
+            panelR1Top.Margin = new Padding(4, 5, 4, 5);
+            panelR1Top.Name = "panelR1Top";
+            panelR1Top.Size = new Size(390, 25);
+            panelR1Top.TabIndex = 0;
+            // 
+            // LabeltbLyrics
+            // 
+            LabeltbLyrics.Location = new Point(4, 2);
+            LabeltbLyrics.Margin = new Padding(4, 0, 4, 0);
+            LabeltbLyrics.Name = "LabeltbLyrics";
+            LabeltbLyrics.Size = new Size(461, 20);
+            LabeltbLyrics.TabIndex = 0;
+            LabeltbLyrics.Text = "Region 1";
+            // 
+            // panelR1Left
+            // 
+            panelR1Left.Controls.Add(panel3);
+            panelR1Left.Dock = DockStyle.Left;
+            panelR1Left.Location = new Point(0, 0);
+            panelR1Left.Margin = new Padding(4, 5, 4, 5);
+            panelR1Left.Name = "panelR1Left";
+            panelR1Left.Size = new Size(73, 571);
+            panelR1Left.TabIndex = 1;
+            // 
+            // panel3
+            // 
+            panel3.Controls.Add(panelR1LeftBottom);
+            panel3.Controls.Add(panelR1LeftMiddle);
+            panel3.Controls.Add(panelR1LeftTop);
+            panel3.Location = new Point(5, 25);
+            panel3.Margin = new Padding(4, 5, 4, 5);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(64, 429);
+            panel3.TabIndex = 2;
+            // 
+            // panelR1LeftBottom
+            // 
+            panelR1LeftBottom.Controls.Add(R1RightToLeft);
+            panelR1LeftBottom.Controls.Add(R1Chinese);
+            panelR1LeftBottom.Dock = DockStyle.Top;
+            panelR1LeftBottom.Location = new Point(0, 391);
+            panelR1LeftBottom.Margin = new Padding(4, 5, 4, 5);
+            panelR1LeftBottom.Name = "panelR1LeftBottom";
+            panelR1LeftBottom.Size = new Size(64, 37);
+            panelR1LeftBottom.TabIndex = 2;
+            // 
+            // R1RightToLeft
+            // 
+            R1RightToLeft.Appearance = Appearance.Button;
+            R1RightToLeft.FlatStyle = FlatStyle.Flat;
+            R1RightToLeft.Image = Resources.LangRightLeft;
+            R1RightToLeft.Location = new Point(29, 2);
+            R1RightToLeft.Margin = new Padding(4, 5, 4, 5);
+            R1RightToLeft.Name = "R1RightToLeft";
+            R1RightToLeft.Size = new Size(31, 35);
+            R1RightToLeft.TabIndex = 3;
+            toolTip1.SetToolTip(R1RightToLeft, "Right-To-Left Text");
+            R1RightToLeft.UseVisualStyleBackColor = true;
+            R1RightToLeft.Visible = false;
+            R1RightToLeft.Click += RightToLeft_Click;
+            // 
+            // R1Chinese
+            // 
+            R1Chinese.FlatStyle = FlatStyle.Flat;
+            R1Chinese.Image = Resources.Chinese;
+            R1Chinese.Location = new Point(0, 2);
+            R1Chinese.Margin = new Padding(4, 5, 4, 5);
+            R1Chinese.Name = "R1Chinese";
+            R1Chinese.Size = new Size(31, 35);
+            R1Chinese.TabIndex = 22;
+            R1Chinese.Tag = "";
+            toolTip1.SetToolTip(R1Chinese, "Siwtch Trad/Simp Chinese");
+            R1Chinese.Click += R1Chinese_Click;
+            // 
+            // panelR1LeftMiddle
+            // 
+            panelR1LeftMiddle.Controls.Add(R1BtnBridge2);
+            panelR1LeftMiddle.Controls.Add(R1BtnPreChorus2);
+            panelR1LeftMiddle.Controls.Add(R1BtnChorus2);
+            panelR1LeftMiddle.Controls.Add(R1BtnPreChorus);
+            panelR1LeftMiddle.Controls.Add(R1BtnChorus);
+            panelR1LeftMiddle.Controls.Add(R1VerseFormat);
+            panelR1LeftMiddle.Controls.Add(R1BtnNewScreen);
+            panelR1LeftMiddle.Controls.Add(R1BtnNotations);
+            panelR1LeftMiddle.Controls.Add(R1BtnEnding);
+            panelR1LeftMiddle.Controls.Add(R1BtnBridge);
+            panelR1LeftMiddle.Controls.Add(R1Btn10);
+            panelR1LeftMiddle.Controls.Add(R1Btn9);
+            panelR1LeftMiddle.Controls.Add(R1Btn8);
+            panelR1LeftMiddle.Controls.Add(R1Btn7);
+            panelR1LeftMiddle.Controls.Add(R1Btn6);
+            panelR1LeftMiddle.Controls.Add(R1Btn5);
+            panelR1LeftMiddle.Controls.Add(R1Btn4);
+            panelR1LeftMiddle.Controls.Add(R1Btn3);
+            panelR1LeftMiddle.Controls.Add(R1Btn2);
+            panelR1LeftMiddle.Controls.Add(R1Btn1);
+            panelR1LeftMiddle.Dock = DockStyle.Top;
+            panelR1LeftMiddle.Location = new Point(0, 37);
+            panelR1LeftMiddle.Margin = new Padding(4, 5, 4, 5);
+            panelR1LeftMiddle.Name = "panelR1LeftMiddle";
+            panelR1LeftMiddle.Size = new Size(64, 354);
+            panelR1LeftMiddle.TabIndex = 0;
+            // 
+            // R1BtnBridge2
+            // 
+            R1BtnBridge2.FlatStyle = FlatStyle.Flat;
+            R1BtnBridge2.Image = Resources.NumBridge2;
+            R1BtnBridge2.Location = new Point(31, 248);
+            R1BtnBridge2.Margin = new Padding(4, 5, 4, 5);
+            R1BtnBridge2.Name = "R1BtnBridge2";
+            R1BtnBridge2.Size = new Size(31, 35);
+            R1BtnBridge2.TabIndex = 17;
+            R1BtnBridge2.Tag = "103";
+            toolTip1.SetToolTip(R1BtnBridge2, "Bridge 2 Indicator");
+            R1BtnBridge2.Click += R1Btn_Click;
+            // 
+            // R1BtnPreChorus2
+            // 
+            R1BtnPreChorus2.FlatStyle = FlatStyle.Flat;
+            R1BtnPreChorus2.Image = Resources.NumPreChorus2;
+            R1BtnPreChorus2.Location = new Point(31, 177);
+            R1BtnPreChorus2.Margin = new Padding(4, 5, 4, 5);
+            R1BtnPreChorus2.Name = "R1BtnPreChorus2";
+            R1BtnPreChorus2.Size = new Size(31, 35);
+            R1BtnPreChorus2.TabIndex = 13;
+            R1BtnPreChorus2.Tag = "112";
+            toolTip1.SetToolTip(R1BtnPreChorus2, "Prechorus2 Indicator");
+            R1BtnPreChorus2.Click += R1Btn_Click;
+            // 
+            // R1BtnChorus2
+            // 
+            R1BtnChorus2.FlatStyle = FlatStyle.Flat;
+            R1BtnChorus2.Image = Resources.NumChorus2;
+            R1BtnChorus2.Location = new Point(31, 212);
+            R1BtnChorus2.Margin = new Padding(4, 5, 4, 5);
+            R1BtnChorus2.Name = "R1BtnChorus2";
+            R1BtnChorus2.Size = new Size(31, 35);
+            R1BtnChorus2.TabIndex = 15;
+            R1BtnChorus2.Tag = "102";
+            toolTip1.SetToolTip(R1BtnChorus2, "Chrous 2 Indicator");
+            R1BtnChorus2.Click += R1Btn_Click;
+            // 
+            // R1BtnPreChorus
+            // 
+            R1BtnPreChorus.FlatStyle = FlatStyle.Flat;
+            R1BtnPreChorus.Image = Resources.NumPreChorus;
+            R1BtnPreChorus.Location = new Point(0, 177);
+            R1BtnPreChorus.Margin = new Padding(4, 5, 4, 5);
+            R1BtnPreChorus.Name = "R1BtnPreChorus";
+            R1BtnPreChorus.Size = new Size(31, 35);
+            R1BtnPreChorus.TabIndex = 12;
+            R1BtnPreChorus.Tag = "111";
+            toolTip1.SetToolTip(R1BtnPreChorus, "Prechorus Indicator");
+            R1BtnPreChorus.Click += R1Btn_Click;
+            // 
+            // R1BtnChorus
+            // 
+            R1BtnChorus.FlatStyle = FlatStyle.Flat;
+            R1BtnChorus.Image = Resources.NumChorus;
+            R1BtnChorus.Location = new Point(0, 212);
+            R1BtnChorus.Margin = new Padding(4, 5, 4, 5);
+            R1BtnChorus.Name = "R1BtnChorus";
+            R1BtnChorus.Size = new Size(31, 35);
+            R1BtnChorus.TabIndex = 14;
+            R1BtnChorus.Tag = "0";
+            toolTip1.SetToolTip(R1BtnChorus, "Chorus Indicator");
+            R1BtnChorus.Click += R1Btn_Click;
+            // 
+            // R1VerseFormat
+            // 
+            R1VerseFormat.FlatStyle = FlatStyle.Flat;
+            R1VerseFormat.Image = Resources.VerseFormat;
+            R1VerseFormat.Location = new Point(31, 318);
+            R1VerseFormat.Margin = new Padding(4, 5, 4, 5);
+            R1VerseFormat.Name = "R1VerseFormat";
+            R1VerseFormat.Size = new Size(31, 35);
+            R1VerseFormat.TabIndex = 21;
+            R1VerseFormat.Tag = "";
+            toolTip1.SetToolTip(R1VerseFormat, "Verses Format");
+            R1VerseFormat.Click += R1VerseFormat_Click;
+            // 
+            // R1BtnNewScreen
+            // 
+            R1BtnNewScreen.FlatStyle = FlatStyle.Flat;
+            R1BtnNewScreen.Image = Resources.NumNewScreen;
+            R1BtnNewScreen.Location = new Point(31, 283);
+            R1BtnNewScreen.Margin = new Padding(4, 5, 4, 5);
+            R1BtnNewScreen.Name = "R1BtnNewScreen";
+            R1BtnNewScreen.Size = new Size(31, 35);
+            R1BtnNewScreen.TabIndex = 19;
+            R1BtnNewScreen.Tag = "151";
+            toolTip1.SetToolTip(R1BtnNewScreen, "New Screen Indicator");
+            R1BtnNewScreen.Click += R1Btn_Click;
+            // 
+            // R1BtnNotations
+            // 
+            R1BtnNotations.FlatStyle = FlatStyle.Flat;
+            R1BtnNotations.Image = Resources.NotationSym;
+            R1BtnNotations.Location = new Point(0, 318);
+            R1BtnNotations.Margin = new Padding(4, 5, 4, 5);
+            R1BtnNotations.Name = "R1BtnNotations";
+            R1BtnNotations.Size = new Size(31, 35);
+            R1BtnNotations.TabIndex = 20;
+            R1BtnNotations.Tag = "152";
+            toolTip1.SetToolTip(R1BtnNotations, "Notations Indicator (F8)");
+            R1BtnNotations.Click += R1Btn_Click;
+            // 
+            // R1BtnEnding
+            // 
+            R1BtnEnding.FlatStyle = FlatStyle.Flat;
+            R1BtnEnding.Image = Resources.NumEnding;
+            R1BtnEnding.Location = new Point(0, 283);
+            R1BtnEnding.Margin = new Padding(4, 5, 4, 5);
+            R1BtnEnding.Name = "R1BtnEnding";
+            R1BtnEnding.Size = new Size(31, 35);
+            R1BtnEnding.TabIndex = 18;
+            R1BtnEnding.Tag = "101";
+            toolTip1.SetToolTip(R1BtnEnding, "Ending Indicator");
+            R1BtnEnding.Click += R1Btn_Click;
+            // 
+            // R1BtnBridge
+            // 
+            R1BtnBridge.FlatStyle = FlatStyle.Flat;
+            R1BtnBridge.Image = Resources.NumBridge;
+            R1BtnBridge.Location = new Point(0, 248);
+            R1BtnBridge.Margin = new Padding(4, 5, 4, 5);
+            R1BtnBridge.Name = "R1BtnBridge";
+            R1BtnBridge.Size = new Size(31, 35);
+            R1BtnBridge.TabIndex = 16;
+            R1BtnBridge.Tag = "100";
+            toolTip1.SetToolTip(R1BtnBridge, "Bridge Indicator");
+            R1BtnBridge.Click += R1Btn_Click;
+            // 
+            // R1Btn10
+            // 
+            R1Btn10.FlatStyle = FlatStyle.Flat;
+            R1Btn10.Image = Resources.Num10;
+            R1Btn10.Location = new Point(31, 142);
+            R1Btn10.Margin = new Padding(4, 5, 4, 5);
+            R1Btn10.Name = "R1Btn10";
+            R1Btn10.Size = new Size(31, 35);
+            R1Btn10.TabIndex = 11;
+            R1Btn10.Tag = "10";
+            R1Btn10.Click += R1Btn_Click;
+            // 
+            // R1Btn9
+            // 
+            R1Btn9.FlatStyle = FlatStyle.Flat;
+            R1Btn9.Image = Resources.Num9;
+            R1Btn9.Location = new Point(0, 142);
+            R1Btn9.Margin = new Padding(4, 5, 4, 5);
+            R1Btn9.Name = "R1Btn9";
+            R1Btn9.Size = new Size(31, 35);
+            R1Btn9.TabIndex = 10;
+            R1Btn9.Tag = "9";
+            R1Btn9.Click += R1Btn_Click;
+            // 
+            // R1Btn8
+            // 
+            R1Btn8.FlatStyle = FlatStyle.Flat;
+            R1Btn8.Image = Resources.Num8;
+            R1Btn8.Location = new Point(31, 106);
+            R1Btn8.Margin = new Padding(4, 5, 4, 5);
+            R1Btn8.Name = "R1Btn8";
+            R1Btn8.Size = new Size(31, 35);
+            R1Btn8.TabIndex = 9;
+            R1Btn8.Tag = "8";
+            R1Btn8.Click += R1Btn_Click;
+            // 
+            // R1Btn7
+            // 
+            R1Btn7.FlatStyle = FlatStyle.Flat;
+            R1Btn7.Image = Resources.Num7;
+            R1Btn7.Location = new Point(0, 106);
+            R1Btn7.Margin = new Padding(4, 5, 4, 5);
+            R1Btn7.Name = "R1Btn7";
+            R1Btn7.Size = new Size(31, 35);
+            R1Btn7.TabIndex = 8;
+            R1Btn7.Tag = "7";
+            R1Btn7.Click += R1Btn_Click;
+            // 
+            // R1Btn6
+            // 
+            R1Btn6.FlatStyle = FlatStyle.Flat;
+            R1Btn6.Image = Resources.Num6;
+            R1Btn6.Location = new Point(31, 71);
+            R1Btn6.Margin = new Padding(4, 5, 4, 5);
+            R1Btn6.Name = "R1Btn6";
+            R1Btn6.Size = new Size(31, 35);
+            R1Btn6.TabIndex = 7;
+            R1Btn6.Tag = "6";
+            R1Btn6.Click += R1Btn_Click;
+            // 
+            // R1Btn5
+            // 
+            R1Btn5.FlatStyle = FlatStyle.Flat;
+            R1Btn5.Image = Resources.Num5;
+            R1Btn5.Location = new Point(0, 71);
+            R1Btn5.Margin = new Padding(4, 5, 4, 5);
+            R1Btn5.Name = "R1Btn5";
+            R1Btn5.Size = new Size(31, 35);
+            R1Btn5.TabIndex = 6;
+            R1Btn5.Tag = "5";
+            R1Btn5.Click += R1Btn_Click;
+            // 
+            // R1Btn4
+            // 
+            R1Btn4.FlatStyle = FlatStyle.Flat;
+            R1Btn4.Image = Resources.Num4;
+            R1Btn4.Location = new Point(31, 35);
+            R1Btn4.Margin = new Padding(4, 5, 4, 5);
+            R1Btn4.Name = "R1Btn4";
+            R1Btn4.Size = new Size(31, 35);
+            R1Btn4.TabIndex = 5;
+            R1Btn4.Tag = "4";
+            R1Btn4.Click += R1Btn_Click;
+            // 
+            // R1Btn3
+            // 
+            R1Btn3.FlatStyle = FlatStyle.Flat;
+            R1Btn3.Image = Resources.Num3;
+            R1Btn3.Location = new Point(0, 35);
+            R1Btn3.Margin = new Padding(4, 5, 4, 5);
+            R1Btn3.Name = "R1Btn3";
+            R1Btn3.Size = new Size(31, 35);
+            R1Btn3.TabIndex = 4;
+            R1Btn3.Tag = "3";
+            R1Btn3.Click += R1Btn_Click;
+            // 
+            // R1Btn2
+            // 
+            R1Btn2.FlatStyle = FlatStyle.Flat;
+            R1Btn2.Image = Resources.Num2;
+            R1Btn2.Location = new Point(31, 0);
+            R1Btn2.Margin = new Padding(4, 5, 4, 5);
+            R1Btn2.Name = "R1Btn2";
+            R1Btn2.Size = new Size(31, 35);
+            R1Btn2.TabIndex = 3;
+            R1Btn2.Tag = "2";
+            R1Btn2.Click += R1Btn_Click;
+            // 
+            // R1Btn1
+            // 
+            R1Btn1.FlatStyle = FlatStyle.Flat;
+            R1Btn1.Image = Resources.Num1;
+            R1Btn1.Location = new Point(0, 0);
+            R1Btn1.Margin = new Padding(4, 5, 4, 5);
+            R1Btn1.Name = "R1Btn1";
+            R1Btn1.Size = new Size(31, 35);
+            R1Btn1.TabIndex = 2;
+            R1Btn1.Tag = "1";
+            toolTip1.SetToolTip(R1Btn1, "Verse Indicator");
+            R1Btn1.Click += R1Btn_Click;
+            // 
+            // panelR1LeftTop
+            // 
+            panelR1LeftTop.Controls.Add(R1Undo);
+            panelR1LeftTop.Controls.Add(R1Redo);
+            panelR1LeftTop.Dock = DockStyle.Top;
+            panelR1LeftTop.Location = new Point(0, 0);
+            panelR1LeftTop.Margin = new Padding(4, 5, 4, 5);
+            panelR1LeftTop.Name = "panelR1LeftTop";
+            panelR1LeftTop.Size = new Size(64, 37);
+            panelR1LeftTop.TabIndex = 2;
+            // 
+            // R1Undo
+            // 
+            R1Undo.FlatStyle = FlatStyle.Flat;
+            R1Undo.Image = Resources.undo;
+            R1Undo.Location = new Point(0, 2);
+            R1Undo.Margin = new Padding(4, 5, 4, 5);
+            R1Undo.Name = "R1Undo";
+            R1Undo.Size = new Size(31, 35);
+            R1Undo.TabIndex = 0;
+            R1Undo.Tag = "0";
+            toolTip1.SetToolTip(R1Undo, "Undo");
+            R1Undo.Click += R1UndoRedo_Click;
+            // 
+            // R1Redo
+            // 
+            R1Redo.FlatStyle = FlatStyle.Flat;
+            R1Redo.Image = Resources.redo;
+            R1Redo.Location = new Point(31, 2);
+            R1Redo.Margin = new Padding(4, 5, 4, 5);
+            R1Redo.Name = "R1Redo";
+            R1Redo.Size = new Size(31, 35);
+            R1Redo.TabIndex = 1;
+            R1Redo.Tag = "1";
+            toolTip1.SetToolTip(R1Redo, "Redo");
+            R1Redo.Click += R1UndoRedo_Click;
+            // 
+            // tabRightPane
+            // 
+            tabRightPane.Controls.Add(tabRight_Region2);
+            tabRightPane.Controls.Add(tabRight_Rotate);
+            tabRightPane.Dock = DockStyle.Fill;
+            tabRightPane.Location = new Point(0, 0);
+            tabRightPane.Margin = new Padding(4, 5, 4, 5);
+            tabRightPane.Multiline = true;
+            tabRightPane.Name = "tabRightPane";
+            tabRightPane.SelectedIndex = 0;
+            tabRightPane.Size = new Size(553, 571);
+            tabRightPane.TabIndex = 0;
+            // 
+            // tabRight_Region2
+            // 
+            tabRight_Region2.BackColor = SystemColors.Control;
+            tabRight_Region2.Controls.Add(panelR2All);
+            tabRight_Region2.Location = new Point(4, 26);
+            tabRight_Region2.Margin = new Padding(4, 5, 4, 5);
+            tabRight_Region2.Name = "tabRight_Region2";
+            tabRight_Region2.Padding = new Padding(4, 5, 4, 5);
+            tabRight_Region2.Size = new Size(545, 541);
+            tabRight_Region2.TabIndex = 0;
+            tabRight_Region2.Text = "Region 2";
+            // 
+            // panelR2All
+            // 
+            panelR2All.Controls.Add(tbLyrics2);
+            panelR2All.Controls.Add(panelR2Top);
+            panelR2All.Controls.Add(panelR2Left);
+            panelR2All.Dock = DockStyle.Fill;
+            panelR2All.Location = new Point(4, 5);
+            panelR2All.Margin = new Padding(4, 5, 4, 5);
+            panelR2All.Name = "panelR2All";
+            panelR2All.Size = new Size(537, 531);
+            panelR2All.TabIndex = 7;
+            // 
+            // tbLyrics2
+            // 
+            tbLyrics2.ContextMenuStrip = CMRegion2;
+            tbLyrics2.DetectUrls = false;
+            tbLyrics2.Dock = DockStyle.Fill;
+            tbLyrics2.EnableAutoDragDrop = true;
+            tbLyrics2.HideSelection = false;
+            tbLyrics2.Location = new Point(96, 25);
+            tbLyrics2.Margin = new Padding(4, 5, 4, 5);
+            tbLyrics2.Name = "tbLyrics2";
+            tbLyrics2.Size = new Size(441, 506);
+            tbLyrics2.TabIndex = 5;
+            tbLyrics2.Text = "";
+            tbLyrics2.SelectionChanged += tbLyrics2_SelectionChanged;
+            tbLyrics2.TextChanged += tbLyrics2_TextChanged;
+            tbLyrics2.KeyDown += tbLyrics2_KeyDown;
+            tbLyrics2.KeyUp += tbLyrics2_KeyUp;
+            tbLyrics2.MouseUp += tbLyrics2_MouseUp;
+            // 
+            // CMRegion2
+            // 
+            CMRegion2.ImageScalingSize = new Size(20, 20);
+            CMRegion2.Items.AddRange(new ToolStripItem[] { CMRegion2_Copy, CMRegion2_Paste });
+            CMRegion2.Name = "CMRegion1";
+            CMRegion2.Size = new Size(113, 52);
+            // 
+            // CMRegion2_Copy
+            // 
+            CMRegion2_Copy.Name = "CMRegion2_Copy";
+            CMRegion2_Copy.Size = new Size(112, 24);
+            CMRegion2_Copy.Text = "Copy";
+            CMRegion2_Copy.Click += CMRegion2_Copy_Click;
+            // 
+            // CMRegion2_Paste
+            // 
+            CMRegion2_Paste.Name = "CMRegion2_Paste";
+            CMRegion2_Paste.Size = new Size(112, 24);
+            CMRegion2_Paste.Text = "Paste";
+            CMRegion2_Paste.Click += CMRegion2_Paste_Click;
+            // 
+            // panelR2Top
+            // 
+            panelR2Top.Controls.Add(LabeltbLyrics2);
+            panelR2Top.Dock = DockStyle.Top;
+            panelR2Top.Location = new Point(96, 0);
+            panelR2Top.Margin = new Padding(4, 5, 4, 5);
+            panelR2Top.Name = "panelR2Top";
+            panelR2Top.Size = new Size(441, 25);
+            panelR2Top.TabIndex = 1;
+            // 
+            // LabeltbLyrics2
+            // 
+            LabeltbLyrics2.Location = new Point(-1, 2);
+            LabeltbLyrics2.Margin = new Padding(4, 0, 4, 0);
+            LabeltbLyrics2.Name = "LabeltbLyrics2";
+            LabeltbLyrics2.Size = new Size(503, 20);
+            LabeltbLyrics2.TabIndex = 1;
+            LabeltbLyrics2.Text = "Region 2";
+            // 
+            // panelR2Left
+            // 
+            panelR2Left.Controls.Add(panel1);
+            panelR2Left.Controls.Add(SyncBtnDown);
+            panelR2Left.Controls.Add(SyncBtnUp);
+            panelR2Left.Dock = DockStyle.Left;
+            panelR2Left.Location = new Point(0, 0);
+            panelR2Left.Margin = new Padding(4, 5, 4, 5);
+            panelR2Left.Name = "panelR2Left";
+            panelR2Left.Size = new Size(96, 531);
+            panelR2Left.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            panel1.Controls.Add(panelR2LeftBottom);
+            panel1.Controls.Add(panelR2LeftMiddle);
+            panel1.Controls.Add(panelR2LeftTop);
+            panel1.Location = new Point(28, 23);
+            panel1.Margin = new Padding(4, 5, 4, 5);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(64, 431);
+            panel1.TabIndex = 2;
+            // 
+            // panelR2LeftBottom
+            // 
+            panelR2LeftBottom.Controls.Add(R2RightToLeft);
+            panelR2LeftBottom.Controls.Add(R2Chinese);
+            panelR2LeftBottom.Dock = DockStyle.Top;
+            panelR2LeftBottom.Location = new Point(0, 391);
+            panelR2LeftBottom.Margin = new Padding(4, 5, 4, 5);
+            panelR2LeftBottom.Name = "panelR2LeftBottom";
+            panelR2LeftBottom.Size = new Size(64, 37);
+            panelR2LeftBottom.TabIndex = 3;
+            // 
+            // R2RightToLeft
+            // 
+            R2RightToLeft.Appearance = Appearance.Button;
+            R2RightToLeft.FlatStyle = FlatStyle.Flat;
+            R2RightToLeft.Image = Resources.LangRightLeft;
+            R2RightToLeft.Location = new Point(31, 0);
+            R2RightToLeft.Margin = new Padding(4, 5, 4, 5);
+            R2RightToLeft.Name = "R2RightToLeft";
+            R2RightToLeft.Size = new Size(31, 35);
+            R2RightToLeft.TabIndex = 24;
+            toolTip1.SetToolTip(R2RightToLeft, "Right-To-Left Text");
+            R2RightToLeft.UseVisualStyleBackColor = true;
+            R2RightToLeft.Visible = false;
+            R2RightToLeft.Click += RightToLeft_Click;
+            // 
+            // R2Chinese
+            // 
+            R2Chinese.FlatStyle = FlatStyle.Flat;
+            R2Chinese.Image = Resources.Chinese;
+            R2Chinese.Location = new Point(0, 0);
+            R2Chinese.Margin = new Padding(4, 5, 4, 5);
+            R2Chinese.Name = "R2Chinese";
+            R2Chinese.Size = new Size(31, 35);
+            R2Chinese.TabIndex = 22;
+            R2Chinese.Tag = "";
+            toolTip1.SetToolTip(R2Chinese, "Siwtch Trad/Simp Chinese");
+            R2Chinese.Click += R2Chinese_Click;
+            // 
+            // panelR2LeftMiddle
+            // 
+            panelR2LeftMiddle.Controls.Add(R2BtnBridge2);
+            panelR2LeftMiddle.Controls.Add(R2BtnPreChorus2);
+            panelR2LeftMiddle.Controls.Add(R2BtnPreChorus);
+            panelR2LeftMiddle.Controls.Add(R2VerseFormat);
+            panelR2LeftMiddle.Controls.Add(R2BtnChorus);
+            panelR2LeftMiddle.Controls.Add(R2BtnChorus2);
+            panelR2LeftMiddle.Controls.Add(R2BtnNewScreen);
+            panelR2LeftMiddle.Controls.Add(R2BtnNotations);
+            panelR2LeftMiddle.Controls.Add(R2BtnEnding);
+            panelR2LeftMiddle.Controls.Add(R2BtnBridge);
+            panelR2LeftMiddle.Controls.Add(R2Btn10);
+            panelR2LeftMiddle.Controls.Add(R2Btn9);
+            panelR2LeftMiddle.Controls.Add(R2Btn8);
+            panelR2LeftMiddle.Controls.Add(R2Btn7);
+            panelR2LeftMiddle.Controls.Add(R2Btn6);
+            panelR2LeftMiddle.Controls.Add(R2Btn5);
+            panelR2LeftMiddle.Controls.Add(R2Btn4);
+            panelR2LeftMiddle.Controls.Add(R2Btn3);
+            panelR2LeftMiddle.Controls.Add(R2Btn2);
+            panelR2LeftMiddle.Controls.Add(R2Btn1);
+            panelR2LeftMiddle.Dock = DockStyle.Top;
+            panelR2LeftMiddle.Location = new Point(0, 37);
+            panelR2LeftMiddle.Margin = new Padding(4, 5, 4, 5);
+            panelR2LeftMiddle.Name = "panelR2LeftMiddle";
+            panelR2LeftMiddle.Size = new Size(64, 354);
+            panelR2LeftMiddle.TabIndex = 1;
+            // 
+            // R2BtnBridge2
+            // 
+            R2BtnBridge2.FlatStyle = FlatStyle.Flat;
+            R2BtnBridge2.Image = Resources.NumBridge2;
+            R2BtnBridge2.Location = new Point(31, 248);
+            R2BtnBridge2.Margin = new Padding(4, 5, 4, 5);
+            R2BtnBridge2.Name = "R2BtnBridge2";
+            R2BtnBridge2.Size = new Size(31, 35);
+            R2BtnBridge2.TabIndex = 17;
+            R2BtnBridge2.Tag = "103";
+            toolTip1.SetToolTip(R2BtnBridge2, "Bridge 2 Indicator");
+            R2BtnBridge2.Click += R2Btn_Click;
+            // 
+            // R2BtnPreChorus2
+            // 
+            R2BtnPreChorus2.FlatStyle = FlatStyle.Flat;
+            R2BtnPreChorus2.Image = Resources.NumPreChorus2;
+            R2BtnPreChorus2.Location = new Point(31, 177);
+            R2BtnPreChorus2.Margin = new Padding(4, 5, 4, 5);
+            R2BtnPreChorus2.Name = "R2BtnPreChorus2";
+            R2BtnPreChorus2.Size = new Size(31, 35);
+            R2BtnPreChorus2.TabIndex = 13;
+            R2BtnPreChorus2.Tag = "112";
+            toolTip1.SetToolTip(R2BtnPreChorus2, "Prechorus2 Indicator");
+            R2BtnPreChorus2.Click += R2Btn_Click;
+            // 
+            // R2BtnPreChorus
+            // 
+            R2BtnPreChorus.FlatStyle = FlatStyle.Flat;
+            R2BtnPreChorus.Image = Resources.NumPreChorus;
+            R2BtnPreChorus.Location = new Point(0, 177);
+            R2BtnPreChorus.Margin = new Padding(4, 5, 4, 5);
+            R2BtnPreChorus.Name = "R2BtnPreChorus";
+            R2BtnPreChorus.Size = new Size(31, 35);
+            R2BtnPreChorus.TabIndex = 12;
+            R2BtnPreChorus.Tag = "111";
+            toolTip1.SetToolTip(R2BtnPreChorus, "Prechorus Indicator");
+            R2BtnPreChorus.Click += R2Btn_Click;
+            // 
+            // R2VerseFormat
+            // 
+            R2VerseFormat.FlatStyle = FlatStyle.Flat;
+            R2VerseFormat.Image = Resources.VerseFormat;
+            R2VerseFormat.Location = new Point(31, 318);
+            R2VerseFormat.Margin = new Padding(4, 5, 4, 5);
+            R2VerseFormat.Name = "R2VerseFormat";
+            R2VerseFormat.Size = new Size(31, 35);
+            R2VerseFormat.TabIndex = 21;
+            R2VerseFormat.Tag = "";
+            toolTip1.SetToolTip(R2VerseFormat, "Verses Format");
+            R2VerseFormat.Click += R2VerseFormat_Click;
+            // 
+            // R2BtnChorus
+            // 
+            R2BtnChorus.FlatStyle = FlatStyle.Flat;
+            R2BtnChorus.Image = Resources.NumChorus;
+            R2BtnChorus.Location = new Point(0, 212);
+            R2BtnChorus.Margin = new Padding(4, 5, 4, 5);
+            R2BtnChorus.Name = "R2BtnChorus";
+            R2BtnChorus.Size = new Size(31, 35);
+            R2BtnChorus.TabIndex = 14;
+            R2BtnChorus.Tag = "0";
+            toolTip1.SetToolTip(R2BtnChorus, "Chorus Indicator");
+            R2BtnChorus.Click += R2Btn_Click;
+            // 
+            // R2BtnChorus2
+            // 
+            R2BtnChorus2.FlatStyle = FlatStyle.Flat;
+            R2BtnChorus2.Image = Resources.NumChorus2;
+            R2BtnChorus2.Location = new Point(31, 212);
+            R2BtnChorus2.Margin = new Padding(4, 5, 4, 5);
+            R2BtnChorus2.Name = "R2BtnChorus2";
+            R2BtnChorus2.Size = new Size(31, 35);
+            R2BtnChorus2.TabIndex = 15;
+            R2BtnChorus2.Tag = "102";
+            toolTip1.SetToolTip(R2BtnChorus2, "Chrous 2 Indicator");
+            R2BtnChorus2.Click += R2Btn_Click;
+            // 
+            // R2BtnNewScreen
+            // 
+            R2BtnNewScreen.FlatStyle = FlatStyle.Flat;
+            R2BtnNewScreen.Image = Resources.NumNewScreen;
+            R2BtnNewScreen.Location = new Point(31, 283);
+            R2BtnNewScreen.Margin = new Padding(4, 5, 4, 5);
+            R2BtnNewScreen.Name = "R2BtnNewScreen";
+            R2BtnNewScreen.Size = new Size(31, 35);
+            R2BtnNewScreen.TabIndex = 19;
+            R2BtnNewScreen.Tag = "151";
+            toolTip1.SetToolTip(R2BtnNewScreen, "New Screen Indicator");
+            R2BtnNewScreen.Click += R2Btn_Click;
+            // 
+            // R2BtnNotations
+            // 
+            R2BtnNotations.FlatStyle = FlatStyle.Flat;
+            R2BtnNotations.Image = Resources.NotationSym;
+            R2BtnNotations.Location = new Point(0, 318);
+            R2BtnNotations.Margin = new Padding(4, 5, 4, 5);
+            R2BtnNotations.Name = "R2BtnNotations";
+            R2BtnNotations.Size = new Size(31, 35);
+            R2BtnNotations.TabIndex = 20;
+            R2BtnNotations.Tag = "152";
+            toolTip1.SetToolTip(R2BtnNotations, "Notations Indicator (F8)");
+            R2BtnNotations.Click += R2Btn_Click;
+            // 
+            // R2BtnEnding
+            // 
+            R2BtnEnding.FlatStyle = FlatStyle.Flat;
+            R2BtnEnding.Image = Resources.NumEnding;
+            R2BtnEnding.Location = new Point(0, 283);
+            R2BtnEnding.Margin = new Padding(4, 5, 4, 5);
+            R2BtnEnding.Name = "R2BtnEnding";
+            R2BtnEnding.Size = new Size(31, 35);
+            R2BtnEnding.TabIndex = 18;
+            R2BtnEnding.Tag = "101";
+            toolTip1.SetToolTip(R2BtnEnding, "Ending Indicator");
+            R2BtnEnding.Click += R2Btn_Click;
+            // 
+            // R2BtnBridge
+            // 
+            R2BtnBridge.FlatStyle = FlatStyle.Flat;
+            R2BtnBridge.Image = Resources.NumBridge;
+            R2BtnBridge.Location = new Point(0, 248);
+            R2BtnBridge.Margin = new Padding(4, 5, 4, 5);
+            R2BtnBridge.Name = "R2BtnBridge";
+            R2BtnBridge.Size = new Size(31, 35);
+            R2BtnBridge.TabIndex = 16;
+            R2BtnBridge.Tag = "100";
+            toolTip1.SetToolTip(R2BtnBridge, "Bridge Indicator");
+            R2BtnBridge.Click += R2Btn_Click;
+            // 
+            // R2Btn10
+            // 
+            R2Btn10.FlatStyle = FlatStyle.Flat;
+            R2Btn10.Image = Resources.Num10;
+            R2Btn10.Location = new Point(31, 142);
+            R2Btn10.Margin = new Padding(4, 5, 4, 5);
+            R2Btn10.Name = "R2Btn10";
+            R2Btn10.Size = new Size(31, 35);
+            R2Btn10.TabIndex = 11;
+            R2Btn10.Tag = "10";
+            R2Btn10.Click += R2Btn_Click;
+            // 
+            // R2Btn9
+            // 
+            R2Btn9.FlatStyle = FlatStyle.Flat;
+            R2Btn9.Image = Resources.Num9;
+            R2Btn9.Location = new Point(0, 142);
+            R2Btn9.Margin = new Padding(4, 5, 4, 5);
+            R2Btn9.Name = "R2Btn9";
+            R2Btn9.Size = new Size(31, 35);
+            R2Btn9.TabIndex = 10;
+            R2Btn9.Tag = "9";
+            R2Btn9.Click += R2Btn_Click;
+            // 
+            // R2Btn8
+            // 
+            R2Btn8.FlatStyle = FlatStyle.Flat;
+            R2Btn8.Image = Resources.Num8;
+            R2Btn8.Location = new Point(31, 106);
+            R2Btn8.Margin = new Padding(4, 5, 4, 5);
+            R2Btn8.Name = "R2Btn8";
+            R2Btn8.Size = new Size(31, 35);
+            R2Btn8.TabIndex = 9;
+            R2Btn8.Tag = "8";
+            R2Btn8.Click += R2Btn_Click;
+            // 
+            // R2Btn7
+            // 
+            R2Btn7.FlatStyle = FlatStyle.Flat;
+            R2Btn7.Image = Resources.Num7;
+            R2Btn7.Location = new Point(0, 106);
+            R2Btn7.Margin = new Padding(4, 5, 4, 5);
+            R2Btn7.Name = "R2Btn7";
+            R2Btn7.Size = new Size(31, 35);
+            R2Btn7.TabIndex = 8;
+            R2Btn7.Tag = "7";
+            R2Btn7.Click += R2Btn_Click;
+            // 
+            // R2Btn6
+            // 
+            R2Btn6.FlatStyle = FlatStyle.Flat;
+            R2Btn6.Image = Resources.Num6;
+            R2Btn6.Location = new Point(31, 71);
+            R2Btn6.Margin = new Padding(4, 5, 4, 5);
+            R2Btn6.Name = "R2Btn6";
+            R2Btn6.Size = new Size(31, 35);
+            R2Btn6.TabIndex = 7;
+            R2Btn6.Tag = "6";
+            R2Btn6.Click += R2Btn_Click;
+            // 
+            // R2Btn5
+            // 
+            R2Btn5.FlatStyle = FlatStyle.Flat;
+            R2Btn5.Image = Resources.Num5;
+            R2Btn5.Location = new Point(0, 71);
+            R2Btn5.Margin = new Padding(4, 5, 4, 5);
+            R2Btn5.Name = "R2Btn5";
+            R2Btn5.Size = new Size(31, 35);
+            R2Btn5.TabIndex = 6;
+            R2Btn5.Tag = "5";
+            R2Btn5.Click += R2Btn_Click;
+            // 
+            // R2Btn4
+            // 
+            R2Btn4.FlatStyle = FlatStyle.Flat;
+            R2Btn4.Image = Resources.Num4;
+            R2Btn4.Location = new Point(31, 35);
+            R2Btn4.Margin = new Padding(4, 5, 4, 5);
+            R2Btn4.Name = "R2Btn4";
+            R2Btn4.Size = new Size(31, 35);
+            R2Btn4.TabIndex = 5;
+            R2Btn4.Tag = "4";
+            R2Btn4.Click += R2Btn_Click;
+            // 
+            // R2Btn3
+            // 
+            R2Btn3.FlatStyle = FlatStyle.Flat;
+            R2Btn3.Image = Resources.Num3;
+            R2Btn3.Location = new Point(0, 35);
+            R2Btn3.Margin = new Padding(4, 5, 4, 5);
+            R2Btn3.Name = "R2Btn3";
+            R2Btn3.Size = new Size(31, 35);
+            R2Btn3.TabIndex = 4;
+            R2Btn3.Tag = "3";
+            R2Btn3.Click += R2Btn_Click;
+            // 
+            // R2Btn2
+            // 
+            R2Btn2.FlatStyle = FlatStyle.Flat;
+            R2Btn2.Image = Resources.Num2;
+            R2Btn2.Location = new Point(31, 0);
+            R2Btn2.Margin = new Padding(4, 5, 4, 5);
+            R2Btn2.Name = "R2Btn2";
+            R2Btn2.Size = new Size(31, 35);
+            R2Btn2.TabIndex = 3;
+            R2Btn2.Tag = "2";
+            R2Btn2.Click += R2Btn_Click;
+            // 
+            // R2Btn1
+            // 
+            R2Btn1.FlatStyle = FlatStyle.Flat;
+            R2Btn1.Image = Resources.Num1;
+            R2Btn1.Location = new Point(0, 0);
+            R2Btn1.Margin = new Padding(4, 5, 4, 5);
+            R2Btn1.Name = "R2Btn1";
+            R2Btn1.Size = new Size(31, 35);
+            R2Btn1.TabIndex = 2;
+            R2Btn1.Tag = "1";
+            toolTip1.SetToolTip(R2Btn1, "Verse Indicator");
+            R2Btn1.Click += R2Btn_Click;
+            // 
+            // panelR2LeftTop
+            // 
+            panelR2LeftTop.Controls.Add(R2Undo);
+            panelR2LeftTop.Controls.Add(R2Redo);
+            panelR2LeftTop.Dock = DockStyle.Top;
+            panelR2LeftTop.Location = new Point(0, 0);
+            panelR2LeftTop.Margin = new Padding(4, 5, 4, 5);
+            panelR2LeftTop.Name = "panelR2LeftTop";
+            panelR2LeftTop.Size = new Size(64, 37);
+            panelR2LeftTop.TabIndex = 2;
+            // 
+            // R2Undo
+            // 
+            R2Undo.FlatStyle = FlatStyle.Flat;
+            R2Undo.Image = Resources.undo;
+            R2Undo.Location = new Point(0, 2);
+            R2Undo.Margin = new Padding(4, 5, 4, 5);
+            R2Undo.Name = "R2Undo";
+            R2Undo.Size = new Size(31, 35);
+            R2Undo.TabIndex = 0;
+            R2Undo.Tag = "0";
+            toolTip1.SetToolTip(R2Undo, "Undo");
+            R2Undo.Click += R2UndoRedo_Click;
+            // 
+            // R2Redo
+            // 
+            R2Redo.FlatStyle = FlatStyle.Flat;
+            R2Redo.Image = Resources.redo;
+            R2Redo.Location = new Point(31, 2);
+            R2Redo.Margin = new Padding(4, 5, 4, 5);
+            R2Redo.Name = "R2Redo";
+            R2Redo.Size = new Size(31, 35);
+            R2Redo.TabIndex = 1;
+            R2Redo.Tag = "1";
+            toolTip1.SetToolTip(R2Redo, "Redo");
+            R2Redo.Click += R2UndoRedo_Click;
+            // 
+            // SyncBtnDown
+            // 
+            SyncBtnDown.FlatStyle = FlatStyle.Flat;
+            SyncBtnDown.Image = Resources.green_down;
+            SyncBtnDown.Location = new Point(0, 62);
+            SyncBtnDown.Margin = new Padding(4, 5, 4, 5);
+            SyncBtnDown.Name = "SyncBtnDown";
+            SyncBtnDown.Size = new Size(27, 34);
+            SyncBtnDown.TabIndex = 1;
+            SyncBtnDown.Tag = "1";
+            toolTip1.SetToolTip(SyncBtnDown, "Highlight Next Slide");
+            SyncBtnDown.Click += SyncBtnUpDown_Click;
+            // 
+            // SyncBtnUp
+            // 
+            SyncBtnUp.FlatStyle = FlatStyle.Flat;
+            SyncBtnUp.Image = Resources.green_up;
+            SyncBtnUp.Location = new Point(0, 28);
+            SyncBtnUp.Margin = new Padding(4, 5, 4, 5);
+            SyncBtnUp.Name = "SyncBtnUp";
+            SyncBtnUp.Size = new Size(27, 34);
+            SyncBtnUp.TabIndex = 0;
+            SyncBtnUp.Tag = "0";
+            toolTip1.SetToolTip(SyncBtnUp, "Highlight Previous Slide");
+            SyncBtnUp.Click += SyncBtnUpDown_Click;
+            // 
+            // tabRight_Rotate
+            // 
+            tabRight_Rotate.BackColor = SystemColors.Control;
+            tabRight_Rotate.Controls.Add(panelRotate);
+            tabRight_Rotate.Location = new Point(4, 26);
+            tabRight_Rotate.Margin = new Padding(4, 5, 4, 5);
+            tabRight_Rotate.Name = "tabRight_Rotate";
+            tabRight_Rotate.Padding = new Padding(4, 5, 4, 5);
+            tabRight_Rotate.Size = new Size(543, 510);
+            tabRight_Rotate.TabIndex = 1;
+            tabRight_Rotate.Text = "Rotate Style";
+            // 
+            // panelRotate
+            // 
+            panelRotate.Controls.Add(splitContainerRotate);
+            panelRotate.Controls.Add(panelRotateLeft);
+            panelRotate.Dock = DockStyle.Fill;
+            panelRotate.Location = new Point(4, 5);
+            panelRotate.Margin = new Padding(4, 5, 4, 5);
+            panelRotate.Name = "panelRotate";
+            panelRotate.Size = new Size(535, 500);
+            panelRotate.TabIndex = 0;
+            // 
+            // splitContainerRotate
+            // 
+            splitContainerRotate.Dock = DockStyle.Fill;
+            splitContainerRotate.Location = new Point(164, 0);
+            splitContainerRotate.Margin = new Padding(4, 5, 4, 5);
+            splitContainerRotate.Name = "splitContainerRotate";
+            splitContainerRotate.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainerRotate.Panel1
+            // 
+            splitContainerRotate.Panel1.Controls.Add(groupBoxRotateVerses);
+            // 
+            // splitContainerRotate.Panel2
+            // 
+            splitContainerRotate.Panel2.Controls.Add(panelRotate_Sample);
+            splitContainerRotate.Size = new Size(371, 500);
+            splitContainerRotate.SplitterDistance = 169;
+            splitContainerRotate.SplitterWidth = 6;
+            splitContainerRotate.TabIndex = 33;
+            splitContainerRotate.Text = "splitContainer2";
+            splitContainerRotate.SplitterMoved += splitContainerRotate_SplitterMoved;
+            // 
+            // groupBoxRotateVerses
+            // 
+            groupBoxRotateVerses.Controls.Add(panelRotate_Verses);
+            groupBoxRotateVerses.Controls.Add(panelRotate_OrderList);
+            groupBoxRotateVerses.Controls.Add(panel13);
+            groupBoxRotateVerses.Controls.Add(panel14);
+            groupBoxRotateVerses.Dock = DockStyle.Left;
+            groupBoxRotateVerses.Enabled = false;
+            groupBoxRotateVerses.Location = new Point(0, 0);
+            groupBoxRotateVerses.Margin = new Padding(4, 5, 4, 5);
+            groupBoxRotateVerses.Name = "groupBoxRotateVerses";
+            groupBoxRotateVerses.Padding = new Padding(0);
+            groupBoxRotateVerses.Size = new Size(320, 169);
+            groupBoxRotateVerses.TabIndex = 33;
+            groupBoxRotateVerses.TabStop = false;
+            // 
+            // panelRotate_Verses
+            // 
+            panelRotate_Verses.BorderStyle = BorderStyle.Fixed3D;
+            panelRotate_Verses.Controls.Add(Rotate_VersesList);
+            panelRotate_Verses.Controls.Add(panel10);
+            panelRotate_Verses.Location = new Point(8, 15);
+            panelRotate_Verses.Margin = new Padding(4, 5, 4, 5);
+            panelRotate_Verses.Name = "panelRotate_Verses";
+            panelRotate_Verses.Size = new Size(119, 147);
+            panelRotate_Verses.TabIndex = 1;
+            // 
+            // Rotate_VersesList
+            // 
+            Rotate_VersesList.Columns.AddRange(new ColumnHeader[] { columnHeader6, columnHeader7, columnHeader8 });
+            Rotate_VersesList.Dock = DockStyle.Fill;
+            Rotate_VersesList.FullRowSelect = true;
+            Rotate_VersesList.HeaderStyle = ColumnHeaderStyle.None;
+            Rotate_VersesList.Location = new Point(0, 20);
+            Rotate_VersesList.Margin = new Padding(1, 2, 1, 2);
+            Rotate_VersesList.Name = "Rotate_VersesList";
+            Rotate_VersesList.ShowItemToolTips = true;
+            Rotate_VersesList.Size = new Size(115, 123);
+            Rotate_VersesList.TabIndex = 0;
+            Rotate_VersesList.UseCompatibleStateImageBehavior = false;
+            Rotate_VersesList.View = View.Details;
+            Rotate_VersesList.DoubleClick += Rotate_VersesList_DoubleClick;
+            // 
+            // columnHeader6
+            // 
+            columnHeader6.Width = 65;
+            // 
+            // columnHeader7
+            // 
+            columnHeader7.Width = 0;
+            // 
+            // columnHeader8
+            // 
+            columnHeader8.Width = 0;
+            // 
+            // panel10
+            // 
+            panel10.BorderStyle = BorderStyle.FixedSingle;
+            panel10.Controls.Add(label23);
+            panel10.Dock = DockStyle.Top;
+            panel10.Location = new Point(0, 0);
+            panel10.Margin = new Padding(4, 5, 4, 5);
+            panel10.Name = "panel10";
+            panel10.Size = new Size(115, 20);
+            panel10.TabIndex = 0;
+            // 
+            // label23
+            // 
+            label23.AutoSize = true;
+            label23.Location = new Point(16, -2);
+            label23.Margin = new Padding(4, 0, 4, 0);
+            label23.Name = "label23";
+            label23.Size = new Size(52, 17);
+            label23.TabIndex = 0;
+            label23.Text = "Verses";
+            // 
+            // panelRotate_OrderList
+            // 
+            panelRotate_OrderList.BorderStyle = BorderStyle.Fixed3D;
+            panelRotate_OrderList.Controls.Add(Rotate_OrderList);
+            panelRotate_OrderList.Controls.Add(panel12);
+            panelRotate_OrderList.Location = new Point(163, 15);
+            panelRotate_OrderList.Margin = new Padding(4, 5, 4, 5);
+            panelRotate_OrderList.Name = "panelRotate_OrderList";
+            panelRotate_OrderList.Size = new Size(119, 147);
+            panelRotate_OrderList.TabIndex = 2;
+            // 
+            // Rotate_OrderList
+            // 
+            Rotate_OrderList.Columns.AddRange(new ColumnHeader[] { columnHeader9, columnHeader10 });
+            Rotate_OrderList.Dock = DockStyle.Fill;
+            Rotate_OrderList.FullRowSelect = true;
+            Rotate_OrderList.HeaderStyle = ColumnHeaderStyle.None;
+            Rotate_OrderList.Location = new Point(0, 20);
+            Rotate_OrderList.Margin = new Padding(4, 5, 4, 5);
+            Rotate_OrderList.Name = "Rotate_OrderList";
+            Rotate_OrderList.Size = new Size(115, 123);
+            Rotate_OrderList.TabIndex = 0;
+            Rotate_OrderList.UseCompatibleStateImageBehavior = false;
+            Rotate_OrderList.View = View.Details;
+            Rotate_OrderList.KeyUp += Rotate_OrderList_KeyUp;
+            // 
+            // columnHeader9
+            // 
+            columnHeader9.Width = 65;
+            // 
+            // columnHeader10
+            // 
+            columnHeader10.Width = 0;
+            // 
+            // panel12
+            // 
+            panel12.BorderStyle = BorderStyle.FixedSingle;
+            panel12.Controls.Add(label24);
+            panel12.Dock = DockStyle.Top;
+            panel12.Location = new Point(0, 0);
+            panel12.Margin = new Padding(4, 5, 4, 5);
+            panel12.Name = "panel12";
+            panel12.Size = new Size(115, 20);
+            panel12.TabIndex = 0;
+            // 
+            // label24
+            // 
+            label24.AutoSize = true;
+            label24.Location = new Point(13, -2);
+            label24.Margin = new Padding(4, 0, 4, 0);
+            label24.Name = "label24";
+            label24.Size = new Size(72, 17);
+            label24.TabIndex = 0;
+            label24.Text = "Sequence";
+            // 
+            // panel13
+            // 
+            panel13.Controls.Add(toolStripRotate_SeqSet);
+            panel13.Location = new Point(128, 42);
+            panel13.Margin = new Padding(4, 5, 4, 5);
+            panel13.Name = "panel13";
+            panel13.Size = new Size(33, 80);
+            panel13.TabIndex = 13;
+            // 
+            // toolStripRotate_SeqSet
+            // 
+            toolStripRotate_SeqSet.AutoSize = false;
+            toolStripRotate_SeqSet.CanOverflow = false;
+            toolStripRotate_SeqSet.Dock = DockStyle.None;
+            toolStripRotate_SeqSet.GripStyle = ToolStripGripStyle.Hidden;
+            toolStripRotate_SeqSet.ImageScalingSize = new Size(20, 20);
+            toolStripRotate_SeqSet.Items.AddRange(new ToolStripItem[] { Rotate_Verses_Add, Rotate_Verses_SmartAdd });
+            toolStripRotate_SeqSet.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+            toolStripRotate_SeqSet.Location = new Point(0, 2);
+            toolStripRotate_SeqSet.Name = "toolStripRotate_SeqSet";
+            toolStripRotate_SeqSet.RenderMode = ToolStripRenderMode.System;
+            toolStripRotate_SeqSet.Size = new Size(33, 95);
+            toolStripRotate_SeqSet.TabIndex = 5;
+            // 
+            // Rotate_Verses_Add
+            // 
+            Rotate_Verses_Add.AutoSize = false;
+            Rotate_Verses_Add.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Rotate_Verses_Add.Image = Resources.arrowR;
+            Rotate_Verses_Add.ImageTransparentColor = Color.Magenta;
+            Rotate_Verses_Add.Name = "Rotate_Verses_Add";
+            Rotate_Verses_Add.Size = new Size(22, 22);
+            Rotate_Verses_Add.Tag = "";
+            Rotate_Verses_Add.ToolTipText = "Add";
+            Rotate_Verses_Add.Click += Rotate_Verses_Add_Click;
+            // 
+            // Rotate_Verses_SmartAdd
+            // 
+            Rotate_Verses_SmartAdd.AutoSize = false;
+            Rotate_Verses_SmartAdd.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Rotate_Verses_SmartAdd.Image = Resources.multi_arrowr;
+            Rotate_Verses_SmartAdd.ImageTransparentColor = Color.Magenta;
+            Rotate_Verses_SmartAdd.Name = "Rotate_Verses_SmartAdd";
+            Rotate_Verses_SmartAdd.Size = new Size(22, 22);
+            Rotate_Verses_SmartAdd.Tag = "";
+            Rotate_Verses_SmartAdd.ToolTipText = "Smart Add";
+            Rotate_Verses_SmartAdd.Click += Rotate_Verses_Add_Click;
+            // 
+            // panel14
+            // 
+            panel14.Controls.Add(toolStripRotate_SeqUpDown);
+            panel14.Location = new Point(281, 43);
+            panel14.Margin = new Padding(4, 5, 4, 5);
+            panel14.Name = "panel14";
+            panel14.Size = new Size(33, 122);
+            panel14.TabIndex = 12;
+            // 
+            // toolStripRotate_SeqUpDown
+            // 
+            toolStripRotate_SeqUpDown.AutoSize = false;
+            toolStripRotate_SeqUpDown.CanOverflow = false;
+            toolStripRotate_SeqUpDown.Dock = DockStyle.None;
+            toolStripRotate_SeqUpDown.GripStyle = ToolStripGripStyle.Hidden;
+            toolStripRotate_SeqUpDown.ImageScalingSize = new Size(20, 20);
+            toolStripRotate_SeqUpDown.Items.AddRange(new ToolStripItem[] { Rotate_OrderList_Up, Rotate_OrderList_Down, toolStripSeparator3, Rotate_OrderList_Delete });
+            toolStripRotate_SeqUpDown.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+            toolStripRotate_SeqUpDown.Location = new Point(0, -2);
+            toolStripRotate_SeqUpDown.Name = "toolStripRotate_SeqUpDown";
+            toolStripRotate_SeqUpDown.RenderMode = ToolStripRenderMode.System;
+            toolStripRotate_SeqUpDown.Size = new Size(33, 137);
+            toolStripRotate_SeqUpDown.TabIndex = 5;
+            // 
+            // Rotate_OrderList_Up
+            // 
+            Rotate_OrderList_Up.AutoSize = false;
+            Rotate_OrderList_Up.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Rotate_OrderList_Up.Image = Resources.handup;
+            Rotate_OrderList_Up.ImageTransparentColor = Color.Magenta;
+            Rotate_OrderList_Up.Name = "Rotate_OrderList_Up";
+            Rotate_OrderList_Up.Size = new Size(22, 22);
+            Rotate_OrderList_Up.Tag = "up";
+            Rotate_OrderList_Up.ToolTipText = "Move Item Up";
+            Rotate_OrderList_Up.Click += Rotate_OrderList_Btn_Click;
+            // 
+            // Rotate_OrderList_Down
+            // 
+            Rotate_OrderList_Down.AutoSize = false;
+            Rotate_OrderList_Down.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Rotate_OrderList_Down.Image = Resources.handdown;
+            Rotate_OrderList_Down.ImageTransparentColor = Color.Magenta;
+            Rotate_OrderList_Down.Name = "Rotate_OrderList_Down";
+            Rotate_OrderList_Down.Size = new Size(22, 22);
+            Rotate_OrderList_Down.Tag = "down";
+            Rotate_OrderList_Down.ToolTipText = "Move Item Down";
+            Rotate_OrderList_Down.Click += Rotate_OrderList_Btn_Click;
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(31, 6);
+            // 
+            // Rotate_OrderList_Delete
+            // 
+            Rotate_OrderList_Delete.AutoSize = false;
+            Rotate_OrderList_Delete.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Rotate_OrderList_Delete.Image = Resources.Delete;
+            Rotate_OrderList_Delete.ImageTransparentColor = Color.Magenta;
+            Rotate_OrderList_Delete.Name = "Rotate_OrderList_Delete";
+            Rotate_OrderList_Delete.Size = new Size(22, 22);
+            Rotate_OrderList_Delete.Tag = "delete";
+            Rotate_OrderList_Delete.ToolTipText = "Delete";
+            Rotate_OrderList_Delete.Click += Rotate_OrderList_Btn_Click;
+            // 
+            // panelRotate_Sample
+            // 
+            panelRotate_Sample.BorderStyle = BorderStyle.Fixed3D;
+            panelRotate_Sample.Controls.Add(labelDur);
+            panelRotate_Sample.Controls.Add(btnAddPosition);
+            panelRotate_Sample.Controls.Add(btnDuration);
+            panelRotate_Sample.Controls.Add(LabelMediaType);
+            panelRotate_Sample.Controls.Add(labelMed);
+            panelRotate_Sample.Controls.Add(panelRotate_Media);
+            panelRotate_Sample.Controls.Add(labelPos);
+            panelRotate_Sample.Controls.Add(LabelPosition);
+            panelRotate_Sample.Controls.Add(panelLoc);
+            panelRotate_Sample.Controls.Add(LabelDuration);
+            panelRotate_Sample.Controls.Add(Rotate_tbSourceLocation);
+            panelRotate_Sample.Controls.Add(TrackBarVolume);
+            panelRotate_Sample.Controls.Add(panelPlayBtns);
+            panelRotate_Sample.Controls.Add(labelVol);
+            panelRotate_Sample.Dock = DockStyle.Fill;
+            panelRotate_Sample.Location = new Point(0, 0);
+            panelRotate_Sample.Margin = new Padding(4, 5, 4, 5);
+            panelRotate_Sample.Name = "panelRotate_Sample";
+            panelRotate_Sample.Size = new Size(371, 325);
+            panelRotate_Sample.TabIndex = 31;
+            panelRotate_Sample.Resize += panelRotate_Sample_Resize;
+            // 
+            // labelDur
+            // 
+            labelDur.AutoSize = true;
+            labelDur.Location = new Point(8, 43);
+            labelDur.Margin = new Padding(4, 0, 4, 0);
+            labelDur.Name = "labelDur";
+            labelDur.Size = new Size(56, 17);
+            labelDur.TabIndex = 68;
+            labelDur.Text = "Length:";
+            // 
+            // btnAddPosition
+            // 
+            btnAddPosition.Image = Resources.arrowL;
+            btnAddPosition.Location = new Point(9, 182);
+            btnAddPosition.Margin = new Padding(4, 5, 4, 5);
+            btnAddPosition.Name = "btnAddPosition";
+            btnAddPosition.Size = new Size(55, 34);
+            btnAddPosition.TabIndex = 1;
+            toolTip1.SetToolTip(btnAddPosition, "Copy current position to next blank timing");
+            btnAddPosition.Click += btnAddPosition_Click;
+            // 
+            // btnDuration
+            // 
+            btnDuration.Image = Resources.arrowBL;
+            btnDuration.Location = new Point(9, 89);
+            btnDuration.Margin = new Padding(4, 5, 4, 5);
+            btnDuration.Name = "btnDuration";
+            btnDuration.Size = new Size(55, 35);
+            btnDuration.TabIndex = 0;
+            btnDuration.TextAlign = ContentAlignment.MiddleLeft;
+            toolTip1.SetToolTip(btnDuration, "Click to Store length");
+            btnDuration.Click += btnDuration_Click;
+            // 
+            // LabelMediaType
+            // 
+            LabelMediaType.AutoSize = true;
+            LabelMediaType.ForeColor = Color.Red;
+            LabelMediaType.Location = new Point(124, 292);
+            LabelMediaType.Margin = new Padding(4, 0, 4, 0);
+            LabelMediaType.Name = "LabelMediaType";
+            LabelMediaType.Size = new Size(42, 17);
+            LabelMediaType.TabIndex = 30;
+            LabelMediaType.Text = "None";
+            // 
+            // labelMed
+            // 
+            labelMed.AutoSize = true;
+            labelMed.Location = new Point(75, 292);
+            labelMed.Margin = new Padding(4, 0, 4, 0);
+            labelMed.Name = "labelMed";
+            labelMed.Size = new Size(50, 17);
+            labelMed.TabIndex = 29;
+            labelMed.Text = "Media:";
+            // 
+            // panelRotate_Media
+            // 
+            panelRotate_Media.BorderStyle = BorderStyle.Fixed3D;
+            panelRotate_Media.Controls.Add(panelNoPlayer);
+            panelRotate_Media.Location = new Point(73, 40);
+            panelRotate_Media.Margin = new Padding(4, 5, 4, 5);
+            panelRotate_Media.Name = "panelRotate_Media";
+            panelRotate_Media.Size = new Size(212, 182);
+            panelRotate_Media.TabIndex = 66;
+            // 
+            // panelNoPlayer
+            // 
+            panelNoPlayer.BackColor = Color.MidnightBlue;
+            panelNoPlayer.Controls.Add(label14);
+            panelNoPlayer.Controls.Add(labelNoPlayer1);
+            panelNoPlayer.Controls.Add(labelNoPlayer2);
+            panelNoPlayer.ForeColor = Color.White;
+            panelNoPlayer.Location = new Point(0, 0);
+            panelNoPlayer.Margin = new Padding(4, 5, 4, 5);
+            panelNoPlayer.Name = "panelNoPlayer";
+            panelNoPlayer.Size = new Size(208, 178);
+            panelNoPlayer.TabIndex = 1;
+            panelNoPlayer.Visible = false;
+            // 
+            // label14
+            // 
+            label14.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label14.Location = new Point(-1, 92);
+            label14.Margin = new Padding(4, 0, 4, 0);
+            label14.Name = "label14";
+            label14.Size = new Size(205, 49);
+            label14.TabIndex = 25;
+            label14.Text = "to view / listen to Media Backgrounds.";
+            label14.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // labelNoPlayer1
+            // 
+            labelNoPlayer1.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelNoPlayer1.Location = new Point(27, 25);
+            labelNoPlayer1.Margin = new Padding(4, 0, 4, 0);
+            labelNoPlayer1.Name = "labelNoPlayer1";
+            labelNoPlayer1.Size = new Size(148, 31);
+            labelNoPlayer1.TabIndex = 0;
+            labelNoPlayer1.Text = "Please install";
+            labelNoPlayer1.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // labelNoPlayer2
+            // 
+            labelNoPlayer2.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            labelNoPlayer2.Location = new Point(1, 51);
+            labelNoPlayer2.Margin = new Padding(4, 0, 4, 0);
+            labelNoPlayer2.Name = "labelNoPlayer2";
+            labelNoPlayer2.Size = new Size(205, 48);
+            labelNoPlayer2.TabIndex = 0;
+            labelNoPlayer2.Text = "Windows Media Player 10 or DirectX 9";
+            labelNoPlayer2.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // labelPos
+            // 
+            labelPos.AutoSize = true;
+            labelPos.Location = new Point(8, 134);
+            labelPos.Margin = new Padding(4, 0, 4, 0);
+            labelPos.Name = "labelPos";
+            labelPos.Size = new Size(62, 17);
+            labelPos.TabIndex = 26;
+            labelPos.Text = "Position:";
+            // 
+            // LabelPosition
+            // 
+            LabelPosition.AutoSize = true;
+            LabelPosition.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LabelPosition.ForeColor = Color.Red;
+            LabelPosition.Location = new Point(8, 157);
+            LabelPosition.Margin = new Padding(4, 0, 4, 0);
+            LabelPosition.Name = "LabelPosition";
+            LabelPosition.Size = new Size(40, 17);
+            LabelPosition.TabIndex = 28;
+            LabelPosition.Text = "0:00";
+            // 
+            // panelLoc
+            // 
+            panelLoc.Controls.Add(toolStrip3);
+            panelLoc.Location = new Point(235, 2);
+            panelLoc.Margin = new Padding(4, 5, 4, 5);
+            panelLoc.Name = "panelLoc";
+            panelLoc.Size = new Size(31, 35);
+            panelLoc.TabIndex = 63;
+            // 
+            // toolStrip3
+            // 
+            toolStrip3.AutoSize = false;
+            toolStrip3.CanOverflow = false;
+            toolStrip3.Dock = DockStyle.None;
+            toolStrip3.GripStyle = ToolStripGripStyle.Hidden;
+            toolStrip3.ImageScalingSize = new Size(20, 20);
+            toolStrip3.Items.AddRange(new ToolStripItem[] { Rotate_LocationBtn });
+            toolStrip3.LayoutStyle = ToolStripLayoutStyle.Flow;
+            toolStrip3.Location = new Point(1, 0);
+            toolStrip3.Name = "toolStrip3";
+            toolStrip3.RenderMode = ToolStripRenderMode.System;
+            toolStrip3.Size = new Size(33, 46);
+            toolStrip3.TabIndex = 0;
+            // 
+            // Rotate_LocationBtn
+            // 
+            Rotate_LocationBtn.AutoSize = false;
+            Rotate_LocationBtn.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Rotate_LocationBtn.Image = Resources.folder;
+            Rotate_LocationBtn.ImageTransparentColor = Color.Magenta;
+            Rotate_LocationBtn.Name = "Rotate_LocationBtn";
+            Rotate_LocationBtn.Size = new Size(22, 22);
+            Rotate_LocationBtn.Tag = "";
+            Rotate_LocationBtn.ToolTipText = "Media File Location";
+            Rotate_LocationBtn.Click += Rotate_LocationBtn_Click;
+            // 
+            // LabelDuration
+            // 
+            LabelDuration.AutoSize = true;
+            LabelDuration.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LabelDuration.ForeColor = SystemColors.MenuHighlight;
+            LabelDuration.Location = new Point(8, 66);
+            LabelDuration.Margin = new Padding(4, 0, 4, 0);
+            LabelDuration.Name = "LabelDuration";
+            LabelDuration.Size = new Size(40, 17);
+            LabelDuration.TabIndex = 27;
+            LabelDuration.Text = "0:00";
+            // 
+            // Rotate_tbSourceLocation
+            // 
+            Rotate_tbSourceLocation.Location = new Point(4, 5);
+            Rotate_tbSourceLocation.Margin = new Padding(4, 5, 4, 5);
+            Rotate_tbSourceLocation.Name = "Rotate_tbSourceLocation";
+            Rotate_tbSourceLocation.Size = new Size(220, 23);
+            Rotate_tbSourceLocation.TabIndex = 0;
+            toolTip1.SetToolTip(Rotate_tbSourceLocation, "Optional Media File for Reference (Filename will not be saved)");
+            // 
+            // TrackBarVolume
+            // 
+            TrackBarVolume.AutoSize = false;
+            TrackBarVolume.Location = new Point(288, 65);
+            TrackBarVolume.Margin = new Padding(4, 5, 4, 5);
+            TrackBarVolume.Maximum = 100;
+            TrackBarVolume.Name = "TrackBarVolume";
+            TrackBarVolume.Orientation = Orientation.Vertical;
+            TrackBarVolume.Size = new Size(49, 174);
+            TrackBarVolume.TabIndex = 8;
+            TrackBarVolume.TickFrequency = 10;
+            TrackBarVolume.TickStyle = TickStyle.TopLeft;
+            TrackBarVolume.ValueChanged += TrackBarVolume_ValueChanged;
+            // 
+            // panelPlayBtns
+            // 
+            panelPlayBtns.Controls.Add(TrackBarDuration);
+            panelPlayBtns.Controls.Add(StopBtn);
+            panelPlayBtns.Controls.Add(PlayPauseBtn);
+            panelPlayBtns.Controls.Add(FastReverseBtn);
+            panelPlayBtns.Controls.Add(FastForwardBtn);
+            panelPlayBtns.Location = new Point(65, 226);
+            panelPlayBtns.Margin = new Padding(4, 5, 4, 5);
+            panelPlayBtns.Name = "panelPlayBtns";
+            panelPlayBtns.Size = new Size(223, 63);
+            panelPlayBtns.TabIndex = 24;
+            // 
+            // TrackBarDuration
+            // 
+            TrackBarDuration.AutoSize = false;
+            TrackBarDuration.Location = new Point(-5, 0);
+            TrackBarDuration.Margin = new Padding(4, 5, 4, 5);
+            TrackBarDuration.Maximum = 1000;
+            TrackBarDuration.Name = "TrackBarDuration";
+            TrackBarDuration.Size = new Size(229, 28);
+            TrackBarDuration.TabIndex = 11;
+            TrackBarDuration.TickFrequency = 0;
+            TrackBarDuration.TickStyle = TickStyle.None;
+            TrackBarDuration.Scroll += TrackBarDuration_Scroll;
+            // 
+            // StopBtn
+            // 
+            StopBtn.FlatStyle = FlatStyle.Flat;
+            StopBtn.Location = new Point(165, 28);
+            StopBtn.Margin = new Padding(4, 5, 4, 5);
+            StopBtn.Name = "StopBtn";
+            StopBtn.Size = new Size(53, 35);
+            StopBtn.TabIndex = 16;
+            StopBtn.Text = "Stop";
+            StopBtn.Click += StopBtn_Click;
+            // 
+            // PlayPauseBtn
+            // 
+            PlayPauseBtn.FlatStyle = FlatStyle.Flat;
+            PlayPauseBtn.Location = new Point(97, 28);
+            PlayPauseBtn.Margin = new Padding(4, 5, 4, 5);
+            PlayPauseBtn.Name = "PlayPauseBtn";
+            PlayPauseBtn.Size = new Size(65, 35);
+            PlayPauseBtn.TabIndex = 17;
+            PlayPauseBtn.Text = "Play";
+            PlayPauseBtn.Click += PlayPauseBtn_Click;
+            // 
+            // FastReverseBtn
+            // 
+            FastReverseBtn.FlatStyle = FlatStyle.Flat;
+            FastReverseBtn.Location = new Point(11, 28);
+            FastReverseBtn.Margin = new Padding(4, 5, 4, 5);
+            FastReverseBtn.Name = "FastReverseBtn";
+            FastReverseBtn.Size = new Size(40, 35);
+            FastReverseBtn.TabIndex = 0;
+            FastReverseBtn.Text = "<<";
+            FastReverseBtn.MouseDown += FastReverseBtn_MouseDown;
+            FastReverseBtn.MouseUp += FastReverseBtn_MouseUp;
+            // 
+            // FastForwardBtn
+            // 
+            FastForwardBtn.FlatStyle = FlatStyle.Flat;
+            FastForwardBtn.Location = new Point(53, 28);
+            FastForwardBtn.Margin = new Padding(4, 5, 4, 5);
+            FastForwardBtn.Name = "FastForwardBtn";
+            FastForwardBtn.Size = new Size(40, 35);
+            FastForwardBtn.TabIndex = 1;
+            FastForwardBtn.Text = ">>";
+            FastForwardBtn.MouseDown += FastForwardBtn_MouseDown;
+            FastForwardBtn.MouseUp += FastForwardBtn_MouseUp;
+            // 
+            // labelVol
+            // 
+            labelVol.AutoSize = true;
+            labelVol.Location = new Point(288, 40);
+            labelVol.Margin = new Padding(4, 0, 4, 0);
+            labelVol.Name = "labelVol";
+            labelVol.Size = new Size(55, 17);
+            labelVol.TabIndex = 9;
+            labelVol.Text = "Volume";
+            // 
+            // panelRotateLeft
+            // 
+            panelRotateLeft.Controls.Add(flowLayoutRotate);
+            panelRotateLeft.Controls.Add(panelRotateLeftTop2);
+            panelRotateLeft.Controls.Add(panelRotateLeftTop1);
+            panelRotateLeft.Dock = DockStyle.Left;
+            panelRotateLeft.Location = new Point(0, 0);
+            panelRotateLeft.Margin = new Padding(4, 5, 4, 5);
+            panelRotateLeft.Name = "panelRotateLeft";
+            panelRotateLeft.Size = new Size(164, 500);
+            panelRotateLeft.TabIndex = 32;
+            // 
+            // flowLayoutRotate
+            // 
+            flowLayoutRotate.AutoScroll = true;
+            flowLayoutRotate.Dock = DockStyle.Fill;
+            flowLayoutRotate.Location = new Point(0, 213);
+            flowLayoutRotate.Margin = new Padding(4, 5, 4, 5);
+            flowLayoutRotate.Name = "flowLayoutRotate";
+            flowLayoutRotate.Size = new Size(164, 287);
+            flowLayoutRotate.TabIndex = 7;
+            // 
+            // panelRotateLeftTop2
+            // 
+            panelRotateLeftTop2.Controls.Add(Rotate_TimeTotal);
+            panelRotateLeftTop2.Controls.Add(btnClearMediaPositions);
+            panelRotateLeftTop2.Controls.Add(label21);
+            panelRotateLeftTop2.Controls.Add(label19);
+            panelRotateLeftTop2.Dock = DockStyle.Top;
+            panelRotateLeftTop2.Location = new Point(0, 102);
+            panelRotateLeftTop2.Margin = new Padding(4, 5, 4, 5);
+            panelRotateLeftTop2.Name = "panelRotateLeftTop2";
+            panelRotateLeftTop2.Size = new Size(164, 111);
+            panelRotateLeftTop2.TabIndex = 0;
+            // 
+            // Rotate_TimeTotal
+            // 
+            Rotate_TimeTotal.CustomFormat = "mm:ss";
+            Rotate_TimeTotal.Format = DateTimePickerFormat.Custom;
+            Rotate_TimeTotal.Location = new Point(75, 46);
+            Rotate_TimeTotal.Margin = new Padding(4, 5, 4, 5);
+            Rotate_TimeTotal.Name = "Rotate_TimeTotal";
+            Rotate_TimeTotal.ShowUpDown = true;
+            Rotate_TimeTotal.Size = new Size(68, 23);
+            Rotate_TimeTotal.TabIndex = 1;
+            // 
+            // btnClearMediaPositions
+            // 
+            btnClearMediaPositions.FlatStyle = FlatStyle.Flat;
+            btnClearMediaPositions.Location = new Point(5, 3);
+            btnClearMediaPositions.Margin = new Padding(4, 5, 4, 5);
+            btnClearMediaPositions.Name = "btnClearMediaPositions";
+            btnClearMediaPositions.Size = new Size(149, 37);
+            btnClearMediaPositions.TabIndex = 0;
+            btnClearMediaPositions.Text = "Clear All Timings";
+            toolTip1.SetToolTip(btnClearMediaPositions, "Copy to next blank Position");
+            btnClearMediaPositions.Click += btnClearMediaPositions_Click;
+            // 
+            // label21
+            // 
+            label21.AutoSize = true;
+            label21.Location = new Point(4, 83);
+            label21.Margin = new Padding(4, 0, 4, 0);
+            label21.Name = "label21";
+            label21.Size = new Size(150, 17);
+            label21.TabIndex = 1;
+            label21.Text = "Sequence/Start mm:ss";
+            label21.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // label19
+            // 
+            label19.AutoSize = true;
+            label19.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label19.Location = new Point(5, 52);
+            label19.Margin = new Padding(4, 0, 4, 0);
+            label19.Name = "label19";
+            label19.Size = new Size(63, 17);
+            label19.TabIndex = 25;
+            label19.Text = "Length:";
+            // 
+            // panelRotateLeftTop1
+            // 
+            panelRotateLeftTop1.Controls.Add(groupBox3);
+            panelRotateLeftTop1.Dock = DockStyle.Top;
+            panelRotateLeftTop1.Location = new Point(0, 0);
+            panelRotateLeftTop1.Margin = new Padding(4, 5, 4, 5);
+            panelRotateLeftTop1.Name = "panelRotateLeftTop1";
+            panelRotateLeftTop1.Size = new Size(164, 102);
+            panelRotateLeftTop1.TabIndex = 68;
+            // 
+            // groupBox3
+            // 
+            groupBox3.Controls.Add(Rotate_SlidesGapUpDown);
+            groupBox3.Controls.Add(Rotate_Equal);
+            groupBox3.Controls.Add(Rotate_Multiple);
+            groupBox3.Location = new Point(5, 0);
+            groupBox3.Margin = new Padding(4, 5, 4, 5);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Padding = new Padding(4, 5, 4, 5);
+            groupBox3.Size = new Size(149, 92);
+            groupBox3.TabIndex = 9;
+            groupBox3.TabStop = false;
+            // 
+            // Rotate_SlidesGapUpDown
+            // 
+            Rotate_SlidesGapUpDown.Location = new Point(84, 20);
+            Rotate_SlidesGapUpDown.Margin = new Padding(4, 5, 4, 5);
+            Rotate_SlidesGapUpDown.Maximum = new decimal(new int[] { 999, 0, 0, 0 });
+            Rotate_SlidesGapUpDown.Name = "Rotate_SlidesGapUpDown";
+            Rotate_SlidesGapUpDown.Size = new Size(57, 23);
+            Rotate_SlidesGapUpDown.TabIndex = 2;
+            toolTip1.SetToolTip(Rotate_SlidesGapUpDown, "Timing in seconds");
+            // 
+            // Rotate_Equal
+            // 
+            Rotate_Equal.AutoSize = true;
+            Rotate_Equal.Location = new Point(9, 23);
+            Rotate_Equal.Margin = new Padding(4, 5, 4, 5);
+            Rotate_Equal.Name = "Rotate_Equal";
+            Rotate_Equal.Size = new Size(75, 21);
+            Rotate_Equal.TabIndex = 0;
+            Rotate_Equal.Tag = "1";
+            Rotate_Equal.Text = "Simple:";
+            toolTip1.SetToolTip(Rotate_Equal, "Rotate each slide in equal seconds");
+            Rotate_Equal.CheckedChanged += Rotate_Option_CheckedChanged;
+            // 
+            // Rotate_Multiple
+            // 
+            Rotate_Multiple.AutoSize = true;
+            Rotate_Multiple.Location = new Point(9, 57);
+            Rotate_Multiple.Margin = new Padding(4, 5, 4, 5);
+            Rotate_Multiple.Name = "Rotate_Multiple";
+            Rotate_Multiple.Size = new Size(97, 21);
+            Rotate_Multiple.TabIndex = 1;
+            Rotate_Multiple.Tag = "2";
+            Rotate_Multiple.Text = "Sequence:";
+            // 
+            // panel6
+            // 
+            panel6.Dock = DockStyle.Right;
+            panel6.Location = new Point(553, 0);
+            panel6.Margin = new Padding(4, 5, 4, 5);
+            panel6.Name = "panel6";
+            panel6.Size = new Size(4, 571);
+            panel6.TabIndex = 6;
+            // 
+            // menuStripMain
+            // 
+            menuStripMain.ImageScalingSize = new Size(20, 20);
+            menuStripMain.Items.AddRange(new ToolStripItem[] { Menu_MainFile, Menu_MainTools });
+            menuStripMain.Location = new Point(0, 0);
+            menuStripMain.Name = "menuStripMain";
+            menuStripMain.Padding = new Padding(8, 3, 0, 3);
+            menuStripMain.Size = new Size(1033, 30);
+            menuStripMain.TabIndex = 6;
+            menuStripMain.Text = "menuStrip1";
+            // 
+            // Menu_MainFile
+            // 
+            Menu_MainFile.DropDownItems.AddRange(new ToolStripItem[] { Menu_New, Menu_Save, Menu_SaveAs, Menu_SaveExit, toolStripSeparator16, Menu_EditHistoryList, toolStripSeparator18, Menu_Exit });
+            Menu_MainFile.Name = "Menu_MainFile";
+            Menu_MainFile.Size = new Size(46, 24);
+            Menu_MainFile.Text = "&File";
+            // 
+            // Menu_New
+            // 
+            Menu_New.Image = Resources.New;
+            Menu_New.Name = "Menu_New";
+            Menu_New.Size = new Size(173, 26);
+            Menu_New.Text = "&New";
+            Menu_New.Click += Menu_New_Click;
+            // 
+            // Menu_Save
+            // 
+            Menu_Save.Image = Resources.Save;
+            Menu_Save.Name = "Menu_Save";
+            Menu_Save.Size = new Size(173, 26);
+            Menu_Save.Text = "&Save";
+            Menu_Save.Click += Menu_Save_Click;
+            // 
+            // Menu_SaveAs
+            // 
+            Menu_SaveAs.Image = Resources.Save;
+            Menu_SaveAs.Name = "Menu_SaveAs";
+            Menu_SaveAs.Size = new Size(173, 26);
+            Menu_SaveAs.Text = "Save &As...";
+            Menu_SaveAs.Click += Menu_SaveAs_Click;
+            // 
+            // Menu_SaveExit
+            // 
+            Menu_SaveExit.Image = Resources.SaveClose;
+            Menu_SaveExit.Name = "Menu_SaveExit";
+            Menu_SaveExit.Size = new Size(173, 26);
+            Menu_SaveExit.Text = "Save && &Exit";
+            Menu_SaveExit.Click += Menu_SaveExit_Click;
+            // 
+            // toolStripSeparator16
+            // 
+            toolStripSeparator16.Name = "toolStripSeparator16";
+            toolStripSeparator16.Size = new Size(170, 6);
+            // 
+            // Menu_EditHistoryList
+            // 
+            Menu_EditHistoryList.Name = "Menu_EditHistoryList";
+            Menu_EditHistoryList.Size = new Size(173, 26);
+            Menu_EditHistoryList.Text = "&Recent Edits";
+            // 
+            // toolStripSeparator18
+            // 
+            toolStripSeparator18.Name = "toolStripSeparator18";
+            toolStripSeparator18.Size = new Size(170, 6);
+            // 
+            // Menu_Exit
+            // 
+            Menu_Exit.Name = "Menu_Exit";
+            Menu_Exit.Size = new Size(173, 26);
+            Menu_Exit.Text = "E&xit";
+            Menu_Exit.Click += Menu_Exit_Click;
+            // 
+            // Menu_MainTools
+            // 
+            Menu_MainTools.DropDownItems.AddRange(new ToolStripItem[] { Menu_Import, Menu_WordWrap, Menu_ChordsMenu, Menu_EditHistorySeparator, Menu_TransposeDown, Menu_TransposeUp, toolStripSeparator6, Menu_ShowAllButtons });
+            Menu_MainTools.Name = "Menu_MainTools";
+            Menu_MainTools.Size = new Size(58, 24);
+            Menu_MainTools.Text = "&Tools";
+            // 
+            // Menu_Import
+            // 
+            Menu_Import.Image = Resources.open;
+            Menu_Import.Name = "Menu_Import";
+            Menu_Import.Size = new Size(255, 26);
+            Menu_Import.Text = "&Import...";
+            Menu_Import.Click += Menu_Import_Click;
+            // 
+            // Menu_WordWrap
+            // 
+            Menu_WordWrap.CheckOnClick = true;
+            Menu_WordWrap.Image = Resources.wordwrap;
+            Menu_WordWrap.Name = "Menu_WordWrap";
+            Menu_WordWrap.Size = new Size(255, 26);
+            Menu_WordWrap.Text = "&Word Wrap";
+            Menu_WordWrap.Click += Main_WordWrap_Click;
+            // 
+            // Menu_ChordsMenu
+            // 
+            Menu_ChordsMenu.CheckOnClick = true;
+            Menu_ChordsMenu.Image = Resources.PopUpChords;
+            Menu_ChordsMenu.Name = "Menu_ChordsMenu";
+            Menu_ChordsMenu.Size = new Size(255, 26);
+            Menu_ChordsMenu.Text = "Right-Click Chords Menu";
+            Menu_ChordsMenu.Click += Menu_ChordsMenu_Click;
+            // 
+            // Menu_EditHistorySeparator
+            // 
+            Menu_EditHistorySeparator.Name = "Menu_EditHistorySeparator";
+            Menu_EditHistorySeparator.Size = new Size(252, 6);
+            // 
+            // Menu_TransposeDown
+            // 
+            Menu_TransposeDown.Image = Resources.arrowGL;
+            Menu_TransposeDown.Name = "Menu_TransposeDown";
+            Menu_TransposeDown.Size = new Size(255, 26);
+            Menu_TransposeDown.Text = "Transpose Chord &Down";
+            Menu_TransposeDown.Click += Menu_TransposeDown_Click;
+            // 
+            // Menu_TransposeUp
+            // 
+            Menu_TransposeUp.Image = Resources.arrowGR;
+            Menu_TransposeUp.Name = "Menu_TransposeUp";
+            Menu_TransposeUp.Size = new Size(255, 26);
+            Menu_TransposeUp.Text = "Transpose Chord &Up";
+            Menu_TransposeUp.Click += Menu_TransposeUp_Click;
+            // 
+            // toolStripSeparator6
+            // 
+            toolStripSeparator6.Name = "toolStripSeparator6";
+            toolStripSeparator6.Size = new Size(252, 6);
+            // 
+            // Menu_ShowAllButtons
+            // 
+            Menu_ShowAllButtons.CheckOnClick = true;
+            Menu_ShowAllButtons.Name = "Menu_ShowAllButtons";
+            Menu_ShowAllButtons.Size = new Size(255, 26);
+            Menu_ShowAllButtons.Text = "Show All &Buttons";
+            Menu_ShowAllButtons.Click += Menu_ShowAllButtons_Click;
+            // 
+            // TimerEditRequest
+            // 
+            TimerEditRequest.Interval = 1000;
+            TimerEditRequest.Tick += TimerEditRequest_Tick;
+            // 
+            // OpenFileDialog1
+            // 
+            OpenFileDialog1.FileName = "openFileDialog1";
+            // 
+            // splitContainerMain
+            // 
+            splitContainerMain.Dock = DockStyle.Fill;
+            splitContainerMain.FixedPanel = FixedPanel.Panel1;
+            splitContainerMain.Location = new Point(0, 58);
+            splitContainerMain.Margin = new Padding(4, 5, 4, 5);
+            splitContainerMain.Name = "splitContainerMain";
+            splitContainerMain.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainerMain.Panel1
+            // 
+            splitContainerMain.Panel1.BackColor = SystemColors.Control;
+            splitContainerMain.Panel1.Controls.Add(groupBox2);
+            splitContainerMain.Panel1.Controls.Add(groupBox1);
+            // 
+            // splitContainerMain.Panel2
+            // 
+            splitContainerMain.Panel2.Controls.Add(splitContainer1);
+            splitContainerMain.Size = new Size(1033, 783);
+            splitContainerMain.SplitterDistance = 202;
+            splitContainerMain.SplitterWidth = 6;
+            splitContainerMain.TabIndex = 0;
+            splitContainerMain.Text = "splitContainer2";
+            splitContainerMain.SplitterMoved += splitContainerMain_SplitterMoved;
+            // 
+            // groupBox2
+            // 
+            groupBox2.Controls.Add(panelVerses);
+            groupBox2.Controls.Add(panelOrderList);
+            groupBox2.Controls.Add(panelSeqSet);
+            groupBox2.Controls.Add(panelSeqUpDown);
+            groupBox2.Location = new Point(596, 2);
+            groupBox2.Margin = new Padding(4, 5, 4, 5);
+            groupBox2.Name = "groupBox2";
+            groupBox2.Padding = new Padding(0);
+            groupBox2.Size = new Size(319, 198);
+            groupBox2.TabIndex = 1;
+            groupBox2.TabStop = false;
+            // 
+            // panelVerses
+            // 
+            panelVerses.BorderStyle = BorderStyle.Fixed3D;
+            panelVerses.Controls.Add(VersesList);
+            panelVerses.Controls.Add(panel2);
+            panelVerses.Location = new Point(8, 15);
+            panelVerses.Margin = new Padding(4, 5, 4, 5);
+            panelVerses.Name = "panelVerses";
+            panelVerses.Size = new Size(119, 173);
+            panelVerses.TabIndex = 1;
+            // 
+            // VersesList
+            // 
+            VersesList.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2 });
+            VersesList.Dock = DockStyle.Fill;
+            VersesList.FullRowSelect = true;
+            VersesList.HeaderStyle = ColumnHeaderStyle.None;
+            VersesList.Location = new Point(0, 20);
+            VersesList.Margin = new Padding(4, 5, 4, 5);
+            VersesList.Name = "VersesList";
+            VersesList.ShowItemToolTips = true;
+            VersesList.Size = new Size(115, 149);
+            VersesList.TabIndex = 0;
+            VersesList.UseCompatibleStateImageBehavior = false;
+            VersesList.View = View.Details;
+            VersesList.DoubleClick += VersesList_DoubleClick;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Width = 65;
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Width = 0;
+            // 
+            // panel2
+            // 
+            panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(label16);
+            panel2.Dock = DockStyle.Top;
+            panel2.Location = new Point(0, 0);
+            panel2.Margin = new Padding(4, 5, 4, 5);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(115, 20);
+            panel2.TabIndex = 0;
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(16, -2);
+            label16.Margin = new Padding(4, 0, 4, 0);
+            label16.Name = "label16";
+            label16.Size = new Size(50, 20);
+            label16.TabIndex = 0;
+            label16.Text = "Verses";
+            // 
+            // panelOrderList
+            // 
+            panelOrderList.BorderStyle = BorderStyle.Fixed3D;
+            panelOrderList.Controls.Add(OrderList);
+            panelOrderList.Controls.Add(panel4);
+            panelOrderList.Location = new Point(163, 15);
+            panelOrderList.Margin = new Padding(4, 5, 4, 5);
+            panelOrderList.Name = "panelOrderList";
+            panelOrderList.Size = new Size(119, 173);
+            panelOrderList.TabIndex = 2;
+            // 
+            // OrderList
+            // 
+            OrderList.Columns.AddRange(new ColumnHeader[] { columnHeader3, columnHeader4 });
+            OrderList.Dock = DockStyle.Fill;
+            OrderList.FullRowSelect = true;
+            OrderList.HeaderStyle = ColumnHeaderStyle.None;
+            OrderList.Location = new Point(0, 20);
+            OrderList.Margin = new Padding(4, 5, 4, 5);
+            OrderList.Name = "OrderList";
+            OrderList.Size = new Size(115, 149);
+            OrderList.TabIndex = 0;
+            OrderList.UseCompatibleStateImageBehavior = false;
+            OrderList.View = View.Details;
+            OrderList.KeyUp += OrderList_KeyUp;
+            // 
+            // columnHeader3
+            // 
+            columnHeader3.Width = 65;
+            // 
+            // columnHeader4
+            // 
+            columnHeader4.Width = 0;
+            // 
+            // panel4
+            // 
+            panel4.BorderStyle = BorderStyle.FixedSingle;
+            panel4.Controls.Add(label17);
+            panel4.Dock = DockStyle.Top;
+            panel4.Location = new Point(0, 0);
+            panel4.Margin = new Padding(4, 5, 4, 5);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(115, 20);
+            panel4.TabIndex = 0;
+            // 
+            // label17
+            // 
+            label17.AutoSize = true;
+            label17.Location = new Point(13, -2);
+            label17.Margin = new Padding(4, 0, 4, 0);
+            label17.Name = "label17";
+            label17.Size = new Size(73, 20);
+            label17.TabIndex = 0;
+            label17.Text = "Sequence";
+            // 
+            // panelSeqSet
+            // 
+            panelSeqSet.Controls.Add(toolStripSeqSet);
+            panelSeqSet.Location = new Point(127, 43);
+            panelSeqSet.Margin = new Padding(4, 5, 4, 5);
+            panelSeqSet.Name = "panelSeqSet";
+            panelSeqSet.Size = new Size(33, 80);
+            panelSeqSet.TabIndex = 13;
+            // 
+            // toolStripSeqSet
+            // 
+            toolStripSeqSet.AutoSize = false;
+            toolStripSeqSet.CanOverflow = false;
+            toolStripSeqSet.Dock = DockStyle.None;
+            toolStripSeqSet.GripStyle = ToolStripGripStyle.Hidden;
+            toolStripSeqSet.ImageScalingSize = new Size(20, 20);
+            toolStripSeqSet.Items.AddRange(new ToolStripItem[] { Verses_Add, Verses_SmartAdd });
+            toolStripSeqSet.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+            toolStripSeqSet.Location = new Point(0, 2);
+            toolStripSeqSet.Name = "toolStripSeqSet";
+            toolStripSeqSet.RenderMode = ToolStripRenderMode.System;
+            toolStripSeqSet.Size = new Size(33, 95);
+            toolStripSeqSet.TabIndex = 5;
+            // 
+            // Verses_Add
+            // 
+            Verses_Add.AutoSize = false;
+            Verses_Add.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Verses_Add.Image = Resources.arrowR;
+            Verses_Add.ImageTransparentColor = Color.Magenta;
+            Verses_Add.Name = "Verses_Add";
+            Verses_Add.Size = new Size(22, 22);
+            Verses_Add.Tag = "";
+            Verses_Add.ToolTipText = "Move Item Up";
+            Verses_Add.Click += Verses_Add_Click;
+            // 
+            // Verses_SmartAdd
+            // 
+            Verses_SmartAdd.AutoSize = false;
+            Verses_SmartAdd.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Verses_SmartAdd.Image = Resources.multi_arrowr;
+            Verses_SmartAdd.ImageTransparentColor = Color.Magenta;
+            Verses_SmartAdd.Name = "Verses_SmartAdd";
+            Verses_SmartAdd.Size = new Size(22, 22);
+            Verses_SmartAdd.Tag = "";
+            Verses_SmartAdd.ToolTipText = "Move Item Down";
+            Verses_SmartAdd.Click += Verses_Add_Click;
+            // 
+            // panelSeqUpDown
+            // 
+            panelSeqUpDown.Controls.Add(toolStripSeqUpDown);
+            panelSeqUpDown.Location = new Point(281, 40);
+            panelSeqUpDown.Margin = new Padding(4, 5, 4, 5);
+            panelSeqUpDown.Name = "panelSeqUpDown";
+            panelSeqUpDown.Size = new Size(33, 122);
+            panelSeqUpDown.TabIndex = 12;
+            // 
+            // toolStripSeqUpDown
+            // 
+            toolStripSeqUpDown.AutoSize = false;
+            toolStripSeqUpDown.CanOverflow = false;
+            toolStripSeqUpDown.Dock = DockStyle.None;
+            toolStripSeqUpDown.GripStyle = ToolStripGripStyle.Hidden;
+            toolStripSeqUpDown.ImageScalingSize = new Size(20, 20);
+            toolStripSeqUpDown.Items.AddRange(new ToolStripItem[] { OrderList_Up, OrderList_Down, toolStripSeparator5, OrderList_Delete });
+            toolStripSeqUpDown.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;
+            toolStripSeqUpDown.Location = new Point(0, 0);
+            toolStripSeqUpDown.Name = "toolStripSeqUpDown";
+            toolStripSeqUpDown.RenderMode = ToolStripRenderMode.System;
+            toolStripSeqUpDown.Size = new Size(33, 128);
+            toolStripSeqUpDown.TabIndex = 5;
+            // 
+            // OrderList_Up
+            // 
+            OrderList_Up.AutoSize = false;
+            OrderList_Up.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            OrderList_Up.Image = Resources.handup;
+            OrderList_Up.ImageTransparentColor = Color.Magenta;
+            OrderList_Up.Name = "OrderList_Up";
+            OrderList_Up.Size = new Size(22, 22);
+            OrderList_Up.Tag = "up";
+            OrderList_Up.ToolTipText = "Move Item Up";
+            OrderList_Up.Click += OrderList_Btn_Click;
+            // 
+            // OrderList_Down
+            // 
+            OrderList_Down.AutoSize = false;
+            OrderList_Down.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            OrderList_Down.Image = Resources.handdown;
+            OrderList_Down.ImageTransparentColor = Color.Magenta;
+            OrderList_Down.Name = "OrderList_Down";
+            OrderList_Down.Size = new Size(22, 22);
+            OrderList_Down.Tag = "down";
+            OrderList_Down.ToolTipText = "Move Item Down";
+            OrderList_Down.Click += OrderList_Btn_Click;
+            // 
+            // toolStripSeparator5
+            // 
+            toolStripSeparator5.Name = "toolStripSeparator5";
+            toolStripSeparator5.Size = new Size(31, 6);
+            // 
+            // OrderList_Delete
+            // 
+            OrderList_Delete.AutoSize = false;
+            OrderList_Delete.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            OrderList_Delete.Image = Resources.Delete;
+            OrderList_Delete.ImageTransparentColor = Color.Magenta;
+            OrderList_Delete.Name = "OrderList_Delete";
+            OrderList_Delete.Size = new Size(22, 22);
+            OrderList_Delete.Tag = "delete";
+            OrderList_Delete.ToolTipText = "Delete";
+            OrderList_Delete.Click += OrderList_Btn_Click;
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(panel7);
+            groupBox1.Controls.Add(panel8);
+            groupBox1.Location = new Point(4, 2);
+            groupBox1.Margin = new Padding(4, 5, 8, 9);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new Padding(0);
+            groupBox1.Size = new Size(599, 198);
+            groupBox1.TabIndex = 0;
+            groupBox1.TabStop = false;
+            // 
+            // panel7
+            // 
+            panel7.Controls.Add(Btn_Title2);
+            panel7.Controls.Add(Btn_Title);
+            panel7.Controls.Add(Btn_Copyright);
+            panel7.Controls.Add(Btn_Writer);
+            panel7.Controls.Add(SongFolder);
+            panel7.Controls.Add(panelLinkTitle2Lookup);
+            panel7.Controls.Add(LinkTitle2Pic);
+            panel7.Controls.Add(CopyrightInfo);
+            panel7.Controls.Add(label2);
+            panel7.Controls.Add(WriterInfo);
+            panel7.Controls.Add(label3);
+            panel7.Controls.Add(SongTitle2);
+            panel7.Controls.Add(label4);
+            panel7.Controls.Add(SongTitle);
+            panel7.Controls.Add(label5);
+            panel7.Controls.Add(labelFormat);
+            panel7.Location = new Point(4, 15);
+            panel7.Margin = new Padding(4, 5, 4, 5);
+            panel7.Name = "panel7";
+            panel7.Size = new Size(288, 175);
+            panel7.TabIndex = 0;
+            // 
+            // Btn_Title2
+            // 
+            Btn_Title2.BackColor = Color.Aqua;
+            Btn_Title2.FlatStyle = FlatStyle.Flat;
+            Btn_Title2.Location = new Point(187, 74);
+            Btn_Title2.Margin = new Padding(4, 5, 4, 5);
+            Btn_Title2.Name = "Btn_Title2";
+            Btn_Title2.Size = new Size(24, 31);
+            Btn_Title2.TabIndex = 36;
+            Btn_Title2.TabStop = false;
+            Btn_Title2.Text = "...";
+            Btn_Title2.UseVisualStyleBackColor = false;
+            Btn_Title2.Visible = false;
+            Btn_Title2.Click += Btn_Click;
+            Btn_Title2.Enter += Btn_Enter;
+            Btn_Title2.Leave += Btn_Enter;
+            // 
+            // Btn_Title
+            // 
+            Btn_Title.BackColor = Color.Aqua;
+            Btn_Title.FlatStyle = FlatStyle.Flat;
+            Btn_Title.Location = new Point(257, 40);
+            Btn_Title.Margin = new Padding(4, 5, 4, 5);
+            Btn_Title.Name = "Btn_Title";
+            Btn_Title.Size = new Size(24, 31);
+            Btn_Title.TabIndex = 35;
+            Btn_Title.TabStop = false;
+            Btn_Title.Text = "...";
+            Btn_Title.UseVisualStyleBackColor = false;
+            Btn_Title.Visible = false;
+            Btn_Title.Click += Btn_Click;
+            Btn_Title.Enter += Btn_Enter;
+            Btn_Title.Leave += Btn_Enter;
+            // 
+            // Btn_Copyright
+            // 
+            Btn_Copyright.BackColor = Color.Aqua;
+            Btn_Copyright.FlatStyle = FlatStyle.Flat;
+            Btn_Copyright.Location = new Point(257, 142);
+            Btn_Copyright.Margin = new Padding(4, 5, 4, 5);
+            Btn_Copyright.Name = "Btn_Copyright";
+            Btn_Copyright.Size = new Size(24, 31);
+            Btn_Copyright.TabIndex = 34;
+            Btn_Copyright.TabStop = false;
+            Btn_Copyright.Text = "...";
+            Btn_Copyright.UseVisualStyleBackColor = false;
+            Btn_Copyright.Visible = false;
+            Btn_Copyright.Click += Btn_Click;
+            Btn_Copyright.Enter += Btn_Enter;
+            Btn_Copyright.Leave += Btn_Enter;
+            // 
+            // Btn_Writer
+            // 
+            Btn_Writer.BackColor = Color.Aqua;
+            Btn_Writer.FlatStyle = FlatStyle.Flat;
+            Btn_Writer.Location = new Point(257, 108);
+            Btn_Writer.Margin = new Padding(4, 5, 4, 5);
+            Btn_Writer.Name = "Btn_Writer";
+            Btn_Writer.Size = new Size(24, 31);
+            Btn_Writer.TabIndex = 33;
+            Btn_Writer.TabStop = false;
+            Btn_Writer.Text = "...";
+            Btn_Writer.UseVisualStyleBackColor = false;
+            Btn_Writer.Visible = false;
+            Btn_Writer.Click += Btn_Click;
+            Btn_Writer.Enter += Btn_Enter;
+            Btn_Writer.Leave += Btn_Enter;
+            // 
+            // SongFolder
+            // 
+            SongFolder.DropDownStyle = ComboBoxStyle.DropDownList;
+            SongFolder.FormattingEnabled = true;
+            SongFolder.Location = new Point(124, 5);
+            SongFolder.Margin = new Padding(4, 5, 4, 5);
+            SongFolder.MaxDropDownItems = 12;
+            SongFolder.Name = "SongFolder";
+            SongFolder.Size = new Size(156, 28);
+            SongFolder.TabIndex = 1;
+            SongFolder.SelectedIndexChanged += SongFolder_SelectedIndexChanged;
+            // 
+            // panelLinkTitle2Lookup
+            // 
+            panelLinkTitle2Lookup.Controls.Add(toolStrip2);
+            panelLinkTitle2Lookup.Location = new Point(245, 72);
+            panelLinkTitle2Lookup.Margin = new Padding(4, 5, 4, 5);
+            panelLinkTitle2Lookup.Name = "panelLinkTitle2Lookup";
+            panelLinkTitle2Lookup.Size = new Size(29, 32);
+            panelLinkTitle2Lookup.TabIndex = 28;
+            // 
+            // toolStrip2
+            // 
+            toolStrip2.AutoSize = false;
+            toolStrip2.CanOverflow = false;
+            toolStrip2.Dock = DockStyle.None;
+            toolStrip2.GripStyle = ToolStripGripStyle.Hidden;
+            toolStrip2.ImageScalingSize = new Size(20, 20);
+            toolStrip2.Items.AddRange(new ToolStripItem[] { Title2_LookUp });
+            toolStrip2.LayoutStyle = ToolStripLayoutStyle.Flow;
+            toolStrip2.Location = new Point(0, -2);
+            toolStrip2.Name = "toolStrip2";
+            toolStrip2.RenderMode = ToolStripRenderMode.System;
+            toolStrip2.Size = new Size(37, 37);
+            toolStrip2.TabIndex = 4;
+            // 
+            // Title2_LookUp
+            // 
+            Title2_LookUp.AutoSize = false;
+            Title2_LookUp.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            Title2_LookUp.Image = Resources.folder;
+            Title2_LookUp.ImageTransparentColor = Color.Magenta;
+            Title2_LookUp.Name = "Title2_LookUp";
+            Title2_LookUp.Size = new Size(22, 22);
+            Title2_LookUp.Tag = "down";
+            Title2_LookUp.ToolTipText = "Look Up Title";
+            Title2_LookUp.Click += Title2_LookUp_Click;
+            // 
+            // LinkTitle2Pic
+            // 
+            LinkTitle2Pic.BackgroundImage = Resources.Tick;
+            LinkTitle2Pic.BackgroundImageLayout = ImageLayout.Center;
+            LinkTitle2Pic.Location = new Point(216, 74);
+            LinkTitle2Pic.Margin = new Padding(4, 5, 4, 5);
+            LinkTitle2Pic.Name = "LinkTitle2Pic";
+            LinkTitle2Pic.Size = new Size(28, 32);
+            LinkTitle2Pic.TabIndex = 6;
+            // 
+            // CopyrightInfo
+            // 
+            CopyrightInfo.Location = new Point(75, 142);
+            CopyrightInfo.Margin = new Padding(4, 5, 4, 5);
+            CopyrightInfo.MaxLength = 100;
+            CopyrightInfo.Name = "CopyrightInfo";
+            CopyrightInfo.Size = new Size(207, 27);
+            CopyrightInfo.TabIndex = 6;
+            CopyrightInfo.Enter += TextBox_Enter;
+            CopyrightInfo.Leave += TextBox_Leave;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(4, 45);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(41, 20);
+            label2.TabIndex = 4;
+            label2.Text = "Title:";
+            label2.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // WriterInfo
+            // 
+            WriterInfo.Location = new Point(75, 108);
+            WriterInfo.Margin = new Padding(4, 5, 4, 5);
+            WriterInfo.MaxLength = 100;
+            WriterInfo.Name = "WriterInfo";
+            WriterInfo.Size = new Size(207, 27);
+            WriterInfo.TabIndex = 5;
+            WriterInfo.Enter += TextBox_Enter;
+            WriterInfo.Leave += TextBox_Leave;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(4, 78);
+            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(49, 20);
+            label3.TabIndex = 5;
+            label3.Text = "Title2:";
+            label3.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // SongTitle2
+            // 
+            SongTitle2.Location = new Point(75, 74);
+            SongTitle2.Margin = new Padding(4, 5, 4, 5);
+            SongTitle2.MaxLength = 100;
+            SongTitle2.Name = "SongTitle2";
+            SongTitle2.Size = new Size(136, 27);
+            SongTitle2.TabIndex = 3;
+            SongTitle2.Enter += TextBox_Enter;
+            SongTitle2.Leave += TextBox_Leave;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(4, 112);
+            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Name = "label4";
+            label4.Size = new Size(53, 20);
+            label4.TabIndex = 6;
+            label4.Text = "Writer:";
+            label4.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // SongTitle
+            // 
+            SongTitle.Location = new Point(75, 40);
+            SongTitle.Margin = new Padding(4, 5, 4, 5);
+            SongTitle.MaxLength = 100;
+            SongTitle.Name = "SongTitle";
+            SongTitle.Size = new Size(187, 27);
+            SongTitle.TabIndex = 2;
+            SongTitle.Enter += TextBox_Enter;
+            SongTitle.Leave += TextBox_Leave;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(4, 145);
+            label5.Margin = new Padding(4, 0, 4, 0);
+            label5.Name = "label5";
+            label5.Size = new Size(77, 20);
+            label5.TabIndex = 7;
+            label5.Text = "Copyright:";
+            label5.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // labelFormat
+            // 
+            labelFormat.AutoSize = true;
+            labelFormat.Location = new Point(4, 9);
+            labelFormat.Margin = new Padding(4, 0, 4, 0);
+            labelFormat.Name = "labelFormat";
+            labelFormat.Size = new Size(125, 20);
+            labelFormat.TabIndex = 29;
+            labelFormat.Text = "Format As Folder:";
+            labelFormat.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // panel8
+            // 
+            panel8.Controls.Add(Btn_BookRef);
+            panel8.Controls.Add(Btn_UserRef);
+            panel8.Controls.Add(label6);
+            panel8.Controls.Add(UserReference);
+            panel8.Controls.Add(BookReference);
+            panel8.Controls.Add(label9);
+            panel8.Controls.Add(label10);
+            panel8.Controls.Add(LicAdminInfo2);
+            panel8.Controls.Add(LicAdminInfo1);
+            panel8.Controls.Add(SongTiming);
+            panel8.Controls.Add(label13);
+            panel8.Controls.Add(SongKey);
+            panel8.Controls.Add(SongNumber);
+            panel8.Controls.Add(SongCapo);
+            panel8.Controls.Add(label11);
+            panel8.Controls.Add(label12);
+            panel8.Controls.Add(label8);
+            panel8.Controls.Add(label7);
+            panel8.Location = new Point(293, 15);
+            panel8.Margin = new Padding(4, 5, 4, 5);
+            panel8.Name = "panel8";
+            panel8.Size = new Size(295, 175);
+            panel8.TabIndex = 1;
+            // 
+            // Btn_BookRef
+            // 
+            Btn_BookRef.BackColor = Color.Aqua;
+            Btn_BookRef.FlatStyle = FlatStyle.Flat;
+            Btn_BookRef.Location = new Point(267, 72);
+            Btn_BookRef.Margin = new Padding(4, 5, 4, 5);
+            Btn_BookRef.Name = "Btn_BookRef";
+            Btn_BookRef.Size = new Size(24, 31);
+            Btn_BookRef.TabIndex = 31;
+            Btn_BookRef.TabStop = false;
+            Btn_BookRef.Text = "...";
+            Btn_BookRef.UseVisualStyleBackColor = false;
+            Btn_BookRef.Visible = false;
+            Btn_BookRef.Click += Btn_Click;
+            Btn_BookRef.Enter += Btn_Enter;
+            Btn_BookRef.Leave += Btn_Enter;
+            // 
+            // Btn_UserRef
+            // 
+            Btn_UserRef.BackColor = Color.Aqua;
+            Btn_UserRef.FlatStyle = FlatStyle.Flat;
+            Btn_UserRef.Location = new Point(267, 106);
+            Btn_UserRef.Margin = new Padding(4, 5, 4, 5);
+            Btn_UserRef.Name = "Btn_UserRef";
+            Btn_UserRef.Size = new Size(24, 31);
+            Btn_UserRef.TabIndex = 30;
+            Btn_UserRef.TabStop = false;
+            Btn_UserRef.Text = "...";
+            Btn_UserRef.UseVisualStyleBackColor = false;
+            Btn_UserRef.Visible = false;
+            Btn_UserRef.Click += Btn_Click;
+            Btn_UserRef.Enter += Btn_Enter;
+            Btn_UserRef.Leave += Btn_Enter;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(4, 9);
+            label6.Margin = new Padding(4, 0, 4, 0);
+            label6.Name = "label6";
+            label6.Size = new Size(47, 20);
+            label6.TabIndex = 12;
+            label6.Text = "Capo:";
+            label6.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // UserReference
+            // 
+            UserReference.Location = new Point(75, 106);
+            UserReference.Margin = new Padding(4, 5, 4, 5);
+            UserReference.Name = "UserReference";
+            UserReference.Size = new Size(191, 27);
+            UserReference.TabIndex = 5;
+            UserReference.Enter += TextBox_Enter;
+            UserReference.Leave += TextBox_Leave;
+            // 
+            // BookReference
+            // 
+            BookReference.Location = new Point(75, 72);
+            BookReference.Margin = new Padding(4, 5, 4, 5);
+            BookReference.MaxLength = 100;
+            BookReference.Name = "BookReference";
+            BookReference.Size = new Size(191, 27);
+            BookReference.TabIndex = 4;
+            BookReference.Enter += TextBox_Enter;
+            BookReference.Leave += TextBox_Leave;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(4, 112);
+            label9.Margin = new Padding(4, 0, 4, 0);
+            label9.Name = "label9";
+            label9.Size = new Size(67, 20);
+            label9.TabIndex = 19;
+            label9.Text = "User Ref:";
+            label9.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(4, 145);
+            label10.Margin = new Padding(4, 0, 4, 0);
+            label10.Name = "label10";
+            label10.Size = new Size(68, 20);
+            label10.TabIndex = 20;
+            label10.Text = "Admin 1:";
+            label10.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // LicAdminInfo2
+            // 
+            LicAdminInfo2.DropDownStyle = ComboBoxStyle.DropDownList;
+            LicAdminInfo2.FormattingEnabled = true;
+            LicAdminInfo2.Location = new Point(195, 140);
+            LicAdminInfo2.Margin = new Padding(4, 5, 4, 5);
+            LicAdminInfo2.MaxDropDownItems = 12;
+            LicAdminInfo2.Name = "LicAdminInfo2";
+            LicAdminInfo2.Size = new Size(95, 28);
+            LicAdminInfo2.TabIndex = 7;
+            // 
+            // LicAdminInfo1
+            // 
+            LicAdminInfo1.DropDownStyle = ComboBoxStyle.DropDownList;
+            LicAdminInfo1.FormattingEnabled = true;
+            LicAdminInfo1.Location = new Point(75, 140);
+            LicAdminInfo1.Margin = new Padding(4, 5, 4, 5);
+            LicAdminInfo1.MaxDropDownItems = 12;
+            LicAdminInfo1.Name = "LicAdminInfo1";
+            LicAdminInfo1.Size = new Size(95, 28);
+            LicAdminInfo1.TabIndex = 6;
+            // 
+            // SongTiming
+            // 
+            SongTiming.FormattingEnabled = true;
+            SongTiming.Location = new Point(221, 37);
+            SongTiming.Margin = new Padding(4, 5, 4, 5);
+            SongTiming.MaxDropDownItems = 13;
+            SongTiming.Name = "SongTiming";
+            SongTiming.Size = new Size(68, 28);
+            SongTiming.TabIndex = 3;
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(173, 145);
+            label13.Margin = new Padding(4, 0, 4, 0);
+            label13.Name = "label13";
+            label13.Size = new Size(20, 20);
+            label13.TabIndex = 23;
+            label13.Text = "2:";
+            label13.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // SongKey
+            // 
+            SongKey.DropDownStyle = ComboBoxStyle.DropDownList;
+            SongKey.FormattingEnabled = true;
+            SongKey.Location = new Point(221, 3);
+            SongKey.Margin = new Padding(4, 5, 4, 5);
+            SongKey.MaxDropDownItems = 13;
+            SongKey.Name = "SongKey";
+            SongKey.Size = new Size(68, 28);
+            SongKey.TabIndex = 1;
+            // 
+            // SongNumber
+            // 
+            SongNumber.Location = new Point(75, 38);
+            SongNumber.Margin = new Padding(4, 5, 4, 5);
+            SongNumber.MaxLength = 10;
+            SongNumber.Name = "SongNumber";
+            SongNumber.Size = new Size(92, 27);
+            SongNumber.TabIndex = 2;
+            // 
+            // SongCapo
+            // 
+            SongCapo.DropDownStyle = ComboBoxStyle.DropDownList;
+            SongCapo.FormattingEnabled = true;
+            SongCapo.Location = new Point(75, 3);
+            SongCapo.Margin = new Padding(4, 5, 4, 5);
+            SongCapo.MaxDropDownItems = 13;
+            SongCapo.Name = "SongCapo";
+            SongCapo.Size = new Size(92, 28);
+            SongCapo.TabIndex = 0;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Location = new Point(172, 8);
+            label11.Margin = new Padding(4, 0, 4, 0);
+            label11.Name = "label11";
+            label11.Size = new Size(36, 20);
+            label11.TabIndex = 21;
+            label11.Text = "Key:";
+            label11.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(171, 43);
+            label12.Margin = new Padding(4, 0, 4, 0);
+            label12.Name = "label12";
+            label12.Size = new Size(58, 20);
+            label12.TabIndex = 22;
+            label12.Text = "Timing:";
+            label12.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(4, 78);
+            label8.Margin = new Padding(4, 0, 4, 0);
+            label8.Name = "label8";
+            label8.Size = new Size(72, 20);
+            label8.TabIndex = 18;
+            label8.Text = "Book Ref:";
+            label8.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(4, 45);
+            label7.Margin = new Padding(4, 0, 4, 0);
+            label7.Name = "label7";
+            label7.Size = new Size(73, 20);
+            label7.TabIndex = 17;
+            label7.Text = "Song No.:";
+            label7.TextAlign = ContentAlignment.BottomLeft;
+            // 
+            // TimerFast
+            // 
+            TimerFast.Interval = 500;
+            TimerFast.Tick += TimerFast_Tick;
+            // 
+            // TimerAttemptConnect
+            // 
+            TimerAttemptConnect.Interval = 500;
+            TimerAttemptConnect.Tick += TimerAttemptConnect_Tick;
+            // 
+            // TimerTrack
+            // 
+            TimerTrack.Interval = 1000;
+            TimerTrack.Tick += TimerTrack_Tick;
+            // 
+            // FrmInfoScreen
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1033, 863);
+            Controls.Add(splitContainerMain);
+            Controls.Add(toolStrip1);
+            Controls.Add(statusStrip1);
+            Controls.Add(menuStripMain);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            MinimumSize = new Size(321, 341);
+            Name = "FrmInfoScreen";
+            SizeGripStyle = SizeGripStyle.Show;
+            Text = "InfoScreen";
+            FormClosing += FrmInfoScreen_FormClosing;
+            Load += FrmInfoScreen_Load;
+            Resize += FrmInfoScreen_Resize;
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            ((ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
+            CMRegion1.ResumeLayout(false);
+            panelR1Top.ResumeLayout(false);
+            panelR1Left.ResumeLayout(false);
+            panel3.ResumeLayout(false);
+            panelR1LeftBottom.ResumeLayout(false);
+            panelR1LeftMiddle.ResumeLayout(false);
+            panelR1LeftTop.ResumeLayout(false);
+            tabRightPane.ResumeLayout(false);
+            tabRight_Region2.ResumeLayout(false);
+            panelR2All.ResumeLayout(false);
+            CMRegion2.ResumeLayout(false);
+            panelR2Top.ResumeLayout(false);
+            panelR2Left.ResumeLayout(false);
+            panel1.ResumeLayout(false);
+            panelR2LeftBottom.ResumeLayout(false);
+            panelR2LeftMiddle.ResumeLayout(false);
+            panelR2LeftTop.ResumeLayout(false);
+            tabRight_Rotate.ResumeLayout(false);
+            panelRotate.ResumeLayout(false);
+            splitContainerRotate.Panel1.ResumeLayout(false);
+            splitContainerRotate.Panel2.ResumeLayout(false);
+            ((ISupportInitialize)splitContainerRotate).EndInit();
+            splitContainerRotate.ResumeLayout(false);
+            groupBoxRotateVerses.ResumeLayout(false);
+            panelRotate_Verses.ResumeLayout(false);
+            panel10.ResumeLayout(false);
+            panel10.PerformLayout();
+            panelRotate_OrderList.ResumeLayout(false);
+            panel12.ResumeLayout(false);
+            panel12.PerformLayout();
+            panel13.ResumeLayout(false);
+            toolStripRotate_SeqSet.ResumeLayout(false);
+            toolStripRotate_SeqSet.PerformLayout();
+            panel14.ResumeLayout(false);
+            toolStripRotate_SeqUpDown.ResumeLayout(false);
+            toolStripRotate_SeqUpDown.PerformLayout();
+            panelRotate_Sample.ResumeLayout(false);
+            panelRotate_Sample.PerformLayout();
+            panelRotate_Media.ResumeLayout(false);
+            panelNoPlayer.ResumeLayout(false);
+            panelLoc.ResumeLayout(false);
+            toolStrip3.ResumeLayout(false);
+            toolStrip3.PerformLayout();
+            ((ISupportInitialize)TrackBarVolume).EndInit();
+            panelPlayBtns.ResumeLayout(false);
+            ((ISupportInitialize)TrackBarDuration).EndInit();
+            panelRotateLeft.ResumeLayout(false);
+            panelRotateLeftTop2.ResumeLayout(false);
+            panelRotateLeftTop2.PerformLayout();
+            panelRotateLeftTop1.ResumeLayout(false);
+            groupBox3.ResumeLayout(false);
+            groupBox3.PerformLayout();
+            ((ISupportInitialize)Rotate_SlidesGapUpDown).EndInit();
+            menuStripMain.ResumeLayout(false);
+            menuStripMain.PerformLayout();
+            splitContainerMain.Panel1.ResumeLayout(false);
+            splitContainerMain.Panel2.ResumeLayout(false);
+            ((ISupportInitialize)splitContainerMain).EndInit();
+            splitContainerMain.ResumeLayout(false);
+            groupBox2.ResumeLayout(false);
+            panelVerses.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
+            panelOrderList.ResumeLayout(false);
+            panel4.ResumeLayout(false);
+            panel4.PerformLayout();
+            panelSeqSet.ResumeLayout(false);
+            toolStripSeqSet.ResumeLayout(false);
+            toolStripSeqSet.PerformLayout();
+            panelSeqUpDown.ResumeLayout(false);
+            toolStripSeqUpDown.ResumeLayout(false);
+            toolStripSeqUpDown.PerformLayout();
+            groupBox1.ResumeLayout(false);
+            panel7.ResumeLayout(false);
+            panel7.PerformLayout();
+            panelLinkTitle2Lookup.ResumeLayout(false);
+            toolStrip2.ResumeLayout(false);
+            toolStrip2.PerformLayout();
+            panel8.ResumeLayout(false);
+            panel8.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
+        }
 
-		public FrmInfoScreen()
+        public FrmInfoScreen()
 		{
 			InitializeComponent();
 			popupHelper = new PopupWindowHelper();

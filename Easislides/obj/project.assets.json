@@ -736,11 +736,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "projectUniqueName": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "projectName": "Easislides",
-      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\Easislides.csproj",
+      "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides.csproj",
       "packagesPath": "C:\\Users\\daniel\\.nuget\\packages\\",
-      "outputPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\Easislides\\obj\\",
+      "outputPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -762,11 +762,11 @@
         "net10.0-windows7.0": {
           "targetAlias": "net10.0-windows7.0",
           "projectReferences": {
-            "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\DirectShow\\src\\DirectShowLib.csproj": {
-              "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\DirectShow\\src\\DirectShowLib.csproj"
+            "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\DirectShow\\src\\DirectShowLib.csproj": {
+              "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\DirectShow\\src\\DirectShowLib.csproj"
             },
-            "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\OfficeLib\\OfficeLib.csproj": {
-              "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.5.9\\OfficeLib\\OfficeLib.csproj"
+            "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\OfficeLib\\OfficeLib.csproj": {
+              "projectPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\OfficeLib\\OfficeLib.csproj"
             }
           }
         }
