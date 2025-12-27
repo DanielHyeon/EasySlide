@@ -2925,7 +2925,7 @@ namespace Easislides
 			InString = "";
 			if (File.Exists(InFileName))
 			{
-				using StreamReader streamReader = new StreamReader(InFileName, detectEncodingFromByteOrderMarks: true);
+				using StreamReader streamReader = new StreamReader(InFileName, Encoding.Default, detectEncodingFromByteOrderMarks: true);
 				InString = streamReader.ReadToEnd();
 				//streamReader.Close();
 				return true;
@@ -12543,7 +12543,7 @@ namespace Easislides
 				string text = "";
 
       			//StreamReader streamReader = new StreamReader(InFileName, Encoding.GetEncoding(1252));
-				using StreamReader streamReader = new StreamReader(InFileName);
+				using StreamReader streamReader = new StreamReader(InFileName, Encoding.Default, detectEncodingFromByteOrderMarks: true);
 				text = streamReader.ReadToEnd();
 				//streamReader.Close();
 				return text.Replace("\r\n", "\n").Replace("\v", "\n");

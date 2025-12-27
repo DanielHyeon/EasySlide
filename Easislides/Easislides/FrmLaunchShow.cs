@@ -1,4 +1,4 @@
-﻿using Easislides.Module;
+using Easislides.Module;
 using Easislides.Util;
 using OfficeLib;
 using System;

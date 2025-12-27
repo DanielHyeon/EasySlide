@@ -761,7 +761,7 @@ namespace Easislides
 				try
 				{
 					Cursor = Cursors.WaitCursor;
-					using StreamWriter streamWriter = new StreamWriter(text, append: false, Encoding.Default);
+					using StreamWriter streamWriter = new StreamWriter(text, append: false, FileUtil.Utf8WithBom);
 					try
 					{
 						streamWriter.AutoFlush = true;
@@ -824,3 +824,4 @@ namespace Easislides
 		}
 	}
 }
+

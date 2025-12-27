@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -19,6 +20,10 @@ namespace Easislides
         {
             try
             {
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                Console.OutputEncoding = Encoding.UTF8;
+                Console.InputEncoding = Encoding.UTF8;
+
                 if (CommonUtil.OverlapProcessKill())
                 {
                     CommonUtil.ProcessKill("POWERPNT");

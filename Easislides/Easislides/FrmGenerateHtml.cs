@@ -538,7 +538,7 @@ namespace Easislides
 			StringBuilder stringBuilder = new StringBuilder();
 			MainHeaderInfo1 = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 " + MainFont.Name + ";}{\\f1\\fnil\\fcharset0 " + MainFontR2.Name + ";}}\\viewkind1\\uc1\\pard\\f0\\fs" + Convert.ToString(MainFont.Size * 2f) + "\\margr600\\margl1000\\margt900\\margb1000 ";
 			
-			using StreamWriter streamWriter = new StreamWriter($"{gf.GenHTMLDir}{OutputFileName}.rtf", append: false, Encoding.Default);
+			using StreamWriter streamWriter = new StreamWriter($"{gf.GenHTMLDir}{OutputFileName}.rtf", append: false, FileUtil.Utf8WithBom);
 			try
 			{
 				streamWriter.AutoFlush = true;

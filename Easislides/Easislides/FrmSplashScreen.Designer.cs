@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -57,13 +57,12 @@ namespace Easislides
             // 
             labelVersion.BackColor = System.Drawing.Color.Transparent;
             labelVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
-            labelVersion.ForeColor = System.Drawing.Color.RoyalBlue;
-            labelVersion.Location = new System.Drawing.Point(0, 316);
-            labelVersion.Margin = new Padding(4, 0, 4, 0);
+            labelVersion.ForeColor = System.Drawing.Color.DarkSlateGray;
+            labelVersion.Location = new System.Drawing.Point(0, 253);
             labelVersion.Name = "labelVersion";
-            labelVersion.Size = new System.Drawing.Size(140, 44);
+            labelVersion.Size = new System.Drawing.Size(112, 35);
             labelVersion.TabIndex = 1;
-            labelVersion.Text = "Version 5.1.0.1";
+            labelVersion.Text = "Version 6.0";
             labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panel1
@@ -74,9 +73,9 @@ namespace Easislides
             panel1.Controls.Add(labelVersion);
             panel1.Dock = DockStyle.Fill;
             panel1.Location = new System.Drawing.Point(0, 0);
-            panel1.Margin = new Padding(4, 5, 4, 5);
+            panel1.Margin = new Padding(3, 4, 3, 4);
             panel1.Name = "panel1";
-            panel1.Size = new System.Drawing.Size(481, 360);
+            panel1.Size = new System.Drawing.Size(382, 285);
             panel1.TabIndex = 4;
             panel1.Paint += panel1_Paint;
             // 
@@ -84,11 +83,10 @@ namespace Easislides
             // 
             labelCopyright.BackColor = System.Drawing.Color.Transparent;
             labelCopyright.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
-            labelCopyright.ForeColor = System.Drawing.Color.RoyalBlue;
-            labelCopyright.Location = new System.Drawing.Point(147, 316);
-            labelCopyright.Margin = new Padding(4, 0, 4, 0);
+            labelCopyright.ForeColor = System.Drawing.Color.DarkSlateGray;
+            labelCopyright.Location = new System.Drawing.Point(118, 253);
             labelCopyright.Name = "labelCopyright";
-            labelCopyright.Size = new System.Drawing.Size(330, 44);
+            labelCopyright.Size = new System.Drawing.Size(264, 35);
             labelCopyright.TabIndex = 4;
             labelCopyright.Text = "Copyright";
             labelCopyright.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -101,14 +99,14 @@ namespace Easislides
             // 
             // FrmSplashScreen
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
+            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(481, 360);
+            ClientSize = new System.Drawing.Size(382, 285);
             ControlBox = false;
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(4, 5, 4, 5);
+            Margin = new Padding(3, 4, 3, 4);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmSplashScreen";

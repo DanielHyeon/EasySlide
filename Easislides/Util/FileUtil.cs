@@ -10,6 +10,8 @@ namespace Easislides.Util
 
 	class FileUtil
     {
+		public static readonly Encoding Utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
 		public enum FileContentsType
 		{
 			DoubleByte,
@@ -62,7 +64,7 @@ namespace Easislides.Util
 					return true;
 				}
 
-				using StreamWriter streamWriter = new StreamWriter(FILE_NAME, append: false, Encoding.Default);
+				using StreamWriter streamWriter = new StreamWriter(FILE_NAME, append: false, Utf8WithBom);
 				streamWriter.AutoFlush = true;
 				streamWriter.Write((Mode == FileContentsType.Ascii_Rtf) ? DataUtil.UnicodeToAscii_RTF(Contents) : DataUtil.UnicodeToAscii_HTML(Contents));
 				//streamWriter.Flush();

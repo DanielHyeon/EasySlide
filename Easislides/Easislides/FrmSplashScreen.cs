@@ -1,4 +1,4 @@
-﻿using Easislides.Util;
+using Easislides.Util;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

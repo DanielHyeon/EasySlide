@@ -312,7 +312,7 @@ namespace Easislides
 
                     try
                     {
-                        // ??�� ??????��????�� ??�ε�
+                        // ??�� ??????��????�� ??�?�
                         object value = node.GetValue((ITypeResolutionService)null);
 
                         if (value == null) continue;
@@ -325,14 +325,14 @@ namespace Easislides
                         // 2. ??��??(Icon) ó�� - $this.Icon ??
                         else if (value is Icon icon)
                         {
-                            // ??����?? Bitmap??�� ��??��??????�ϰų� .ico??????
+                            // ??����?? Bitmap??�� ��??��??????�??� .ico??????
                             using (FileStream fs = new FileStream(Path.Combine(outputDir, $"{key}.ico"), FileMode.Create))
                             {
                                 icon.Save(fs);
                             }
                             Console.WriteLine($"[Icon] Extracted: {key}.ico");
                         }
-                        // 3. ????�� ����????Ʈ??(ImageStream) ó�� - imageListSys.ImageStream ??
+                        // 3. ????�� ����???????(ImageStream) ó�� - imageListSys.ImageStream ??
                         else if (value is ImageListStreamer streamer)
                         {
                             using (ImageList imgList = new ImageList())
@@ -349,7 +349,7 @@ namespace Easislides
                         // 4. ����??????�� (TrayLocation ??
                         else
                         {
-                            // Point, Size ??�� ?????? �α�????��????ŵ
+                            // Point, Size ??�� ?????? �?�????��?????
                             // Console.WriteLine($"[Skip] {key} is type {value.GetType().Name}");
                         }
                     }
@@ -364,7 +364,7 @@ namespace Easislides
 
         private static void SaveImage(Image img, string dir, string name, ImageFormat format)
         {
-            // ??�ϸ��� ??ȿ???? ???? ���� ??��
+            // ??�?��� ??????? ???? ���� ??��
             foreach (char c in Path.GetInvalidFileNameChars())
             {
                 name = name.Replace(c, '_');
@@ -443,7 +443,7 @@ namespace Easislides
 
         /// <summary>
         /// daniel 
-        /// ??????Ʈ����????��??���� ??��??�� ���� ��??.
+        /// ???????����????��??���� ??��??�� ���� ��??.
         /// </summary>
         /// <returns></returns>
         private bool InitFormControls()
@@ -698,7 +698,7 @@ namespace Easislides
                 num6 = InPanelContainer.Height - (num2 + num3 + num4);
                 num6 = ((num6 <= 0) ? 1 : num6);
                 // daniel
-                // �̸����� ??��??????��??��??
+                // �?����� ??��??????��??��??
                 // num5 = num6 * 4 / 3;
 
                 //if (gf.isScreenWideMode)
@@ -753,7 +753,7 @@ namespace Easislides
                 num6 = InPanelContainer.Height - (num2 + num3 + num4);
                 num6 = ((num6 <= 0) ? 1 : num6);
                 // daniel
-                // �̸����� ??��??????��??��??
+                // �?����� ??��??????��??��??
                 // num5 = num6 * 4 / 3;
 
                 //if (gf.isScreenWideMode)
@@ -882,7 +882,7 @@ namespace Easislides
                         SaveFormStateToRegistry();
                     }
                     //daniel
-                    //??�α׷� ����????��??��????��????��
+                    //??�??� ����????��??��????��????��
                     gf.ClearUpPowerpointWindows();
                     gf.DeleteFolderFiles(gf.EasiSlidesTempDir);
 
@@ -2506,7 +2506,7 @@ namespace Easislides
             else
             {
                 // 22/04/01 03:39 daniel
-                // ??�� ���� �ְ� ??�� ??��??��??????????���� ��??
+                // ??�� ���� �?� ??�� ??��??��??????????���� ��??
                 string text2 = text;
                 text = $"[{Convert.ToString(gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {gf.OutputItem.Title} {text2}{gf.OutputItem.CurSlide}/{gf.OutputItem.TotalSlides} ";
             }
@@ -2874,7 +2874,7 @@ namespace Easislides
             }
         }
 
-        // PowerPoint ������ Ŭ�� ó���� ���� Ÿ�̸� �� �÷���
+        // PowerPoint ������ ?�� ó���� ���� Ÿ�?� �� �÷���
         private System.Windows.Forms.Timer pptClickTimer = null;
         private Control pptClickedControl = null;
         private bool pptDoubleClickInProgress = false;
@@ -2885,23 +2885,23 @@ namespace Easislides
             {
                 Control control = (Control)sender;
 
-                // ����Ŭ���� ���� ���̸� ���� Ŭ�� ����
+                // ����?���� ���� ���?� ���� ?�� ����
                 if (pptDoubleClickInProgress)
                 {
                     return;
                 }
 
-                // ���� Ÿ�̸Ӱ� ������ ����
+                // ���� Ÿ�??� ������ ����
                 if (pptClickTimer != null)
                 {
                     pptClickTimer.Stop();
                     pptClickTimer.Dispose();
                 }
 
-                // Ŭ���� ��Ʈ�� ����
+                // ?���� ��?�� ����
                 pptClickedControl = control;
 
-                // ���� Ŭ�� ó���� ������Ű�� Ÿ�̸� ���� (����Ŭ�� ���� �ð�: 300ms)
+                // ���� ?�� ó���� ������?�� Ÿ�?� ���� (����?�� ���� �ð�: 300ms)
                 pptClickTimer = new System.Windows.Forms.Timer();
                 pptClickTimer.Interval = SystemInformation.DoubleClickTime;
                 pptClickTimer.Tick += (s, args) =>
@@ -2910,7 +2910,7 @@ namespace Easislides
                     pptClickTimer.Dispose();
                     pptClickTimer = null;
 
-                    // ����Ŭ���� �ƴ� ���쿡�� ���� Ŭ�� ó��
+                    // ����?���� �?� ���?�� ���� ?�� ó��
                     if (!pptDoubleClickInProgress && pptClickedControl != null)
                     {
                         if (pptClickedControl.Name == "PP_Preview")
@@ -2931,17 +2931,17 @@ namespace Easislides
         }
 
         /// <summary>
-        /// PowerPoint ������ ����Ŭ�� �̺�Ʈ �ڵ鷯
-        /// ����Ŭ�� �� PowerPoint �����̵��� â�� Ȱ��ȭ�ϰ� �ִϸ��̼�/�������� �����մϴ�.
+        /// PowerPoint ������ ����?�� �?�? �??
+        /// ����?�� �� PowerPoint �����?��� â�� ?��?�?� �??��?�/�������� �����??�.
         /// </summary>
         private void PowerPointImage_DoubleClick(object sender, EventArgs e)
         {
             try
             {
-                // ����Ŭ�� �÷��� ���� (���� Ŭ�� Ÿ�̸� ��ȿȭ)
+                // ����?�� �÷��� ���� (���� ?�� Ÿ�?� ��??)
                 pptDoubleClickInProgress = true;
 
-                // Ÿ�̸� ����
+                // Ÿ�?� ����
                 if (pptClickTimer != null)
                 {
                     pptClickTimer.Stop();
@@ -2952,7 +2952,7 @@ namespace Easislides
                 Control control = (Control)sender;
                 int slideNumber = DataUtil.ObjToInt(control.Tag) + 1;
 
-                // �����̵� ��ȣ ����
+                // �����?� ��? ����
                 SongSettings InItem;
                 if (control.Name == "PP_Preview")
                 {
@@ -2977,7 +2977,7 @@ namespace Easislides
             }
             finally
             {
-                // ����Ŭ�� �÷��� ���� (�ణ�� ���� ��)
+                // ����?�� �÷��� ���� (�?�� ���� ��)
                 System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
                 {
                     this.BeginInvoke(new Action(() =>
@@ -3590,7 +3590,7 @@ namespace Easislides
 
         static int LoadThumbOutlockkey = 0;
         /// <summary>
-        /// daniel out ????�� �ε�????ü????�� �׸��� ??��
+        /// daniel out ????�� �?�????ü????�� �?��� ??��
         /// </summary>
         /// <param name="InFlowPanel"></param>
         /// <param name="InCanvas"></param>
@@ -3829,7 +3829,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel ??��ư ??��??(??�� ????)
+        /// daniel ??��? ??��??(??�� ????)
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -3925,7 +3925,7 @@ namespace Easislides
                     }
                     BibleText.Text = "";
                     BibleUserLookup.Text = "";
-                    //??������ �޺��ڽ�??�� ??�� ??��????��??�� ??�� ����????�� ??
+                    //??������ �?��?�??�� ??�� ??��????��??�� ??�� ����????�� ??
                     gf.LoadBiblePassagesFromTabIndex(TabBibleVersions.SelectedIndex, BookLookup, ref BibleText, gf.HB_ShowVerses);
                     gf.HB_SequentialListing = true;
                     ShowStatusBarSummary();
@@ -4969,7 +4969,7 @@ namespace Easislides
 
             if (num >= 0)
             {
-                //??�� ��????????���� üũ ??��??
+                //??�� ��????????���� ü? ??��??
                 string InTitle = WorshipListItems.Items[num].SubItems[0].Text;
                 string text = WorshipListItems.Items[num].SubItems[1].Text;
                 gf.PreviewItem.InMainItemText = InTitle;
@@ -6756,7 +6756,7 @@ namespace Easislides
         }
 
         //static String prePreviewItemID = "";
-        //??�� ��????????���� üũ
+        //??�� ��????????���� ü?
 
         private void WorshipListItems_DoubleClick(object sender, EventArgs e)
         {
@@ -12331,7 +12331,7 @@ namespace Easislides
             try
             {
                 Cursor = Cursors.WaitCursor;
-                using StreamWriter streamWriter = new StreamWriter(OutputFileName, append: false, Encoding.Default);
+                using StreamWriter streamWriter = new StreamWriter(OutputFileName, append: false, FileUtil.Utf8WithBom);
                 try
                 {
                     streamWriter.AutoFlush = true;
@@ -14157,7 +14157,7 @@ namespace Easislides
                     }));
                     break;
                 case Keys.Down when gf.GlobalHookKey_Arrow:
-                    //���� ??�� ����????ġ????�� ??��????��??
+                    //���� ??�� ����?????????�� ??��????��??
                     frmMain.BeginInvoke(new Action(() =>
                     {
                         MoveToSlide(gf.OutputItem, KeyDirection.NextOne);

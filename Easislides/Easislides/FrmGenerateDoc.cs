@@ -489,7 +489,7 @@ namespace Easislides
 			{
 				Cursor = Cursors.WaitCursor;
 				InitRTF();
-				using StreamWriter streamWriter = new StreamWriter(gf.PB_FullFileName, append: false, Encoding.Default);
+				using StreamWriter streamWriter = new StreamWriter(gf.PB_FullFileName, append: false, FileUtil.Utf8WithBom);
 				try
 				{
 					streamWriter.AutoFlush = true;
