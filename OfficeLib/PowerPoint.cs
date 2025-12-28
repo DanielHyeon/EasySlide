@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 
 namespace OfficeLib
 {
@@ -693,6 +694,51 @@ namespace OfficeLib
 			return -1;
 		}
 
+		/// <summary>
+		/// 프레젠테이션에서 Verse 정보를 파싱하여 배열에 저장
+		/// </summary>
+		private void ParseVersesFromPresentation(_Presentation presentation, int totalSlides, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
+		{
+			bool flag = false;
+			SequenceSymbol.GetUpperBound(0);
+			for (int i = 1; i <= totalSlides; i++)
+			{
+				try
+				{
+					if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+						presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
+					{
+						int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
+						if (verseIndicator >= 0)
+						{
+							if (verseIndicator == VERSE_CHORUS)
+							{
+								if (!flag)
+								{
+									Slide[i, 0] = verseIndicator;
+									SongVerses[verseIndicator] = i;
+									flag = true;
+								}
+							}
+							else if (verseIndicator <= MAX_VERSE_NUMBER)
+							{
+								SongVerses[verseIndicator] = i;
+								Slide[i, 0] = verseIndicator;
+							}
+							else
+							{
+								Slide[i, 0] = verseIndicator;
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
+				}
+			}
+		}
+
 		public bool IsFileChanged(string FilePath)
 		{
 			bool result = true;
@@ -935,44 +981,9 @@ namespace OfficeLib
 				//Console.WriteLine(MD5HashString);
 				//System.IO.File.Create(MD5HashString);
 
-				bool flag = false;
-				SequenceSymbol.GetUpperBound(0);
-				for (int i = 1; i <= TotalSlides; i++)
-				{
-					try
-					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
-							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
-						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
-							if (verseIndicator >= 0)
-							{
-								if (verseIndicator == VERSE_CHORUS)
-								{
-									if (!flag)
-									{
-										Slide[i, 0] = verseIndicator;
-										SongVerses[verseIndicator] = i;
-										flag = true;
-									}
-								}
-								else if (verseIndicator <= MAX_VERSE_NUMBER)
-								{
-									SongVerses[verseIndicator] = i;
-									Slide[i, 0] = verseIndicator;
-								}
-								else
-								{
-									Slide[i, 0] = verseIndicator;
-								}
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
-					}
-				}
+				// Verse 정보 파싱
+				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+
 				return result;
 			}
 			catch (Exception e)
@@ -1043,7 +1054,7 @@ namespace OfficeLib
 						for (int i = 1; i <= result.TotalSlides; i++)
 						{
 							strPreFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-							presentation.Slides[i].Export(strPreFileName, "JPG", 640, 480);
+							presentation.Slides[i].Export(strPreFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 							strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
 							File.Copy(strPreFileName, strOutFileName, true);
 						}
@@ -1054,45 +1065,11 @@ namespace OfficeLib
 					}
 
 					// Verse 정보 파싱
-					int index = 2;
-					bool flag = false;
-					SequenceSymbol.GetUpperBound(0);
-
-					for (int i = 1; i <= result.TotalSlides; i++)
-					{
-						try
-						{
-							if (presentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
-								presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
-							{
-								int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
-								if (verseIndicator >= 0)
-								{
-									if (verseIndicator == 0)
-									{
-										if (!flag)
-										{
-											result.Slide[i, 0] = verseIndicator;
-											result.SongVerses[verseIndicator] = i;
-											flag = true;
-										}
-									}
-									else if (verseIndicator <= 12)
-									{
-										result.SongVerses[verseIndicator] = i;
-										result.Slide[i, 0] = verseIndicator;
-									}
-									else
-									{
-										result.Slide[i, 0] = verseIndicator;
-									}
-								}
-							}
-						}
-						catch
-						{
-						}
-					}
+					var songVerses = result.SongVerses;
+					var slide = result.Slide;
+					ParseVersesFromPresentation(presentation, result.TotalSlides, ref songVerses, ref slide, SequenceSymbol);
+					result.SongVerses = songVerses;
+					result.Slide = slide;
 				}
 				catch (Exception e)
 				{
@@ -1189,44 +1166,9 @@ namespace OfficeLib
 				//Console.WriteLine(MD5HashString);
 				//System.IO.File.Create(MD5HashString);
 
-				bool flag = false;
-				SequenceSymbol.GetUpperBound(0);
-				for (int i = 1; i <= TotalSlides; i++)
-				{
-					try
-					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
-							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
-						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
-							if (verseIndicator >= 0)
-							{
-								if (verseIndicator == VERSE_CHORUS)
-								{
-									if (!flag)
-									{
-										Slide[i, 0] = verseIndicator;
-										SongVerses[verseIndicator] = i;
-										flag = true;
-									}
-								}
-								else if (verseIndicator <= MAX_VERSE_NUMBER)
-								{
-									SongVerses[verseIndicator] = i;
-									Slide[i, 0] = verseIndicator;
-								}
-								else
-								{
-									Slide[i, 0] = verseIndicator;
-								}
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
-					}
-				}
+				// Verse 정보 파싱
+				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+
 				return result;
 			}
 			catch (Exception e)
@@ -1321,44 +1263,9 @@ namespace OfficeLib
 				//Console.WriteLine(MD5HashString);
 				//System.IO.File.Create(MD5HashString);
 
-				bool flag = false;
-				SequenceSymbol.GetUpperBound(0);
-				for (int i = 1; i <= TotalSlides; i++)
-				{
-					try
-					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
-							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
-						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
-							if (verseIndicator >= 0)
-							{
-								if (verseIndicator == VERSE_CHORUS)
-								{
-									if (!flag)
-									{
-										Slide[i, 0] = verseIndicator;
-										SongVerses[verseIndicator] = i;
-										flag = true;
-									}
-								}
-								else if (verseIndicator <= MAX_VERSE_NUMBER)
-								{
-									SongVerses[verseIndicator] = i;
-									Slide[i, 0] = verseIndicator;
-								}
-								else
-								{
-									Slide[i, 0] = verseIndicator;
-								}
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
-					}
-				}
+				// Verse 정보 파싱
+				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+
 				return result;
 			}
 			catch (Exception e)
@@ -1402,48 +1309,15 @@ namespace OfficeLib
 				{
 					presentation.Slides[k].Export(FilePrefix + Convert.ToString(k) + ".jpg", "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 				}
-				int index = 2;
-				bool flag = false;
-				SequenceSymbol.GetUpperBound(0);
-				for (int i = 1; i <= TotalSlides; i++)
-				{
-					try
-					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody && presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
-						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
-							if (verseIndicator >= 0)
-							{
-								if (verseIndicator == 0)
-								{
-									if (!flag)
-									{
-										Slide[i, 0] = verseIndicator;
-										SongVerses[verseIndicator] = i;
-										flag = true;
-									}
-								}
-								else if (verseIndicator <= 12)
-								{
-									SongVerses[verseIndicator] = i;
-									Slide[i, 0] = verseIndicator;
-								}
-								else
-								{
-									Slide[i, 0] = verseIndicator;
-								}
-							}
-						}
-						//preViewEvent(l-1);
-					}
-					catch
-					{
-					}
-				}
+
+				// Verse 정보 파싱
+				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+
 				return result;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error in BuildScreenDumps: {ex.Message}");
 				return false;
 			}
 			finally
@@ -1515,8 +1389,9 @@ namespace OfficeLib
 
 				return result;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error in BuildOneFirstScreenDump: {ex.Message}");
 				return false;
 			}
 			finally

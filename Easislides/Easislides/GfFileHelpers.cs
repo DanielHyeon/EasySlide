@@ -53,7 +53,14 @@ namespace Easislides
                         if (app != null && !app.IsDisposed)
                         {
                             try { app.Quit(); } catch { }
-                            try { Marshal.FinalReleaseComObject(app); } catch { }
+                            try
+                            {
+                                if (Marshal.IsComObject(app))
+                                {
+                                    Marshal.FinalReleaseComObject(app);
+                                }
+                            }
+                            catch { }
                             wrapper.prePowerPointApp = null;
                         }
                     }
@@ -75,7 +82,10 @@ namespace Easislides
                 // Only try to release the object itself if it is an RCW (safe to swallow errors)
                 try
                 {
-                    Marshal.FinalReleaseComObject(pptApp);
+                    if (Marshal.IsComObject(pptApp))
+                    {
+                        Marshal.FinalReleaseComObject(pptApp);
+                    }
                 }
                 catch { }
             }

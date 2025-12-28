@@ -16190,7 +16190,7 @@ namespace Easislides
 			FileInfo fileInfo = new FileInfo(InFileName);
 			using FileStream fileStream = fileInfo.OpenRead();
 			byte[] array = new byte[fileInfo.Length];
-			fileStream.Read(array, 0, array.Length);
+			fileStream.ReadExactly(array, 0, array.Length);
 			//fileStream.Close();
 			xtw.WriteStartElement(InElementString);
 			xtw.WriteBase64(array, 0, array.Length);

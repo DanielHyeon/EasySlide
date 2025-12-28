@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{00EF6423-38AC-4572-AF37-2AC64C81483A}|OfficeLib\\OfficeLib.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\officelib\\powerpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{00EF6423-38AC-4572-AF37-2AC64C81483A}|OfficeLib\\OfficeLib.csproj|solutionrelative:officelib\\powerpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\gf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\gf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -31,19 +35,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "PowerPoint.cs",
+              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\OfficeLib\\PowerPoint.cs",
+              "RelativeDocumentMoniker": "OfficeLib\\PowerPoint.cs",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\OfficeLib\\PowerPoint.cs",
+              "RelativeToolTip": "OfficeLib\\PowerPoint.cs",
+              "ViewState": "AgIAADUCAAAAAAAAAAAQwD8CAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-28T10:58:51.681Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "gf.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\gf.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\gf.cs",
               "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\gf.cs",
               "RelativeToolTip": "Easislides\\Easislides\\gf.cs",
-              "ViewState": "AgIAAF1BAAAAAAAAAAAAAF1BAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAAF1BAAAAAAAAAAAuwF1BAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-28T01:02:12.279Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "FrmMain.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.cs",
@@ -56,7 +73,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "FrmMain.cs [Design]",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.cs",
