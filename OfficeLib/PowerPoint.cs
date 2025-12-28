@@ -28,6 +28,19 @@ namespace OfficeLib
 
     public class PowerPoint
 	{
+		// 상수 정의
+		private const int NOTES_PLACEHOLDER_INDEX = 2;
+		private const int EXPORT_WIDTH = 640;
+		private const int EXPORT_HEIGHT = 480;
+		private const int MAX_VERSE_NUMBER = 12;
+		private const int VERSE_CHORUS = 0;
+		private const int VERSE_BRIDGE = 100;
+		private const int VERSE_ENDING = 101;
+		private const int VERSE_TAG = 102;
+		private const int VERSE_WORSHIP = 103;
+		private const int VERSE_PRAYER = 111;
+		private const int VERSE_QUIET = 112;
+
 		public PreviewEvent preViewEvent;
 
 		public PreViewToOutputEvent preViewToOutputEvent;
@@ -55,20 +68,26 @@ namespace OfficeLib
 			{
 				prePowerPointApp = new Application();
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error initializing PowerPoint Application: {ex.Message}");
+				throw;
 			}
 		}
 
 		public string Open(string InPowerpointFullPath, ref string[,] PowerpointList, ref int TotalPowerpointItems)
 		{
 			string text = "";
+			Presentation presentation = null;
+
 			try
 			{
 				_ = prePowerPointApp.Presentations.Count;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error accessing Presentations: {ex.Message}");
+				return "Error: PowerPoint application not available";
 			}
 
 			try
@@ -97,21 +116,35 @@ namespace OfficeLib
 				{
 					if (!flag)
 					{
-
-						Presentation presentation = prePowerPointApp.Presentations.Open(InPowerpointFullPath, MsoTriState.msoTrue, MsoTriState.msoTrue);
-						PowerpointList[TotalPowerpointItems + 1, 0] = InPowerpointFullPath;
-						PowerpointList[TotalPowerpointItems + 1, 1] = presentation.FullName;//prePowerPointApp.Presentations.Application.ActivePresentation.FullName;
-																							//prePowerPointApp.WindowState = PpWindowState.ppWindowMinimized;
-						TotalPowerpointItems++;
+						presentation = prePowerPointApp.Presentations.Open(InPowerpointFullPath, MsoTriState.msoTrue, MsoTriState.msoTrue);
+						if (presentation != null)
+						{
+							PowerpointList[TotalPowerpointItems + 1, 0] = InPowerpointFullPath;
+							PowerpointList[TotalPowerpointItems + 1, 1] = presentation.FullName;
+							TotalPowerpointItems++;
+							// presentation은 Presentations 컬렉션에서 관리되므로 여기서는 Dispose하지 않음
+						}
 					}
 				}
-				catch
+				catch (Exception ex)
 				{
+					Console.WriteLine($"Error opening presentation '{InPowerpointFullPath}': {ex.Message}");
+					// 에러 발생 시 열린 presentation 정리
+					if (presentation != null)
+					{
+						try
+						{
+							presentation.Close();
+							presentation.Dispose();
+						}
+						catch { }
+					}
 					return "Error Loading: " + text;
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error in Open method: {ex.Message}");
 				return "Error Loading: " + text;
 			}
 			return "";
@@ -123,8 +156,9 @@ namespace OfficeLib
 			{
 				prePowerPointApp.Presentations[InIndex].SlideShowSettings.Run();
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error running presentation at index {InIndex}: {ex.Message}");
 			}
 		}
 
@@ -149,7 +183,7 @@ namespace OfficeLib
 				{
 					string text3 = text2;
 					text2 = text3 + i + "-" + prePowerPointApp.Presentations[i].Name + "(" + prePowerPointApp.Presentations[i].FullName + ") ";
-					if (prePowerPointApp.Presentations[i].FullName.ToUpper() == text.ToUpper())
+					if (string.Equals(prePowerPointApp.Presentations[i].FullName, text, StringComparison.OrdinalIgnoreCase))
 					{
 						using SlideShowWindow window = prePowerPointApp.Presentations[i].SlideShowSettings.Run();
 
@@ -157,8 +191,9 @@ namespace OfficeLib
 					}
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error running presentation: {ex.Message}");
 				return "Error: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
 			}
 			return "Can't find Presentations: " + text + ".  " + text2;
@@ -166,6 +201,18 @@ namespace OfficeLib
 
 		public string GetPresentationName(string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
 		{
+			if (string.IsNullOrEmpty(InPowerpointFullPath))
+			{
+				Console.WriteLine("GetPresentationName: InPowerpointFullPath is null or empty");
+				return "";
+			}
+
+			if (PowerpointList == null)
+			{
+				Console.WriteLine("GetPresentationName: PowerpointList is null");
+				return "";
+			}
+
 			try
 			{
 				for (int i = 1; i <= TotalPowerpointItems; i++)
@@ -177,13 +224,15 @@ namespace OfficeLib
 							return PowerpointList[i, 1];
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Console.WriteLine($"Error accessing PowerpointList at index {i}: {ex.Message}");
 					}
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error in GetPresentationName: {ex.Message}");
 			}
 			return "";
 		}
@@ -194,8 +243,9 @@ namespace OfficeLib
 			{
 				prePowerPointApp.ActivePresentation.SlideShowWindow.View.First();
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error going to first slide: {ex.Message}");
 			}
 		}
 
@@ -205,19 +255,27 @@ namespace OfficeLib
 			{
 				prePowerPointApp.ActivePresentation.SlideShowWindow.View.Last();
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error going to last slide: {ex.Message}");
 			}
 		}
 
 		public void GotoSlide(int StartingSlide)
 		{
+			if (StartingSlide <= 0)
+			{
+				Console.WriteLine($"GotoSlide: Invalid slide number {StartingSlide}");
+				return;
+			}
+
 			try
 			{
 				prePowerPointApp.ActivePresentation.SlideShowWindow.View.GotoSlide(StartingSlide);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error going to slide {StartingSlide}: {ex.Message}");
 			}
 		}
 
@@ -243,17 +301,25 @@ namespace OfficeLib
 					registryKey.SetValue(Name, Value, RegistryValueKind.String);
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error saving registry value {Name}: {ex.Message}");
 			}
 		}
 
 		public static object GetRegValue(string Version, string Section, string Name, string defaultValue)
 		{
-
-			using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey($@"HKEY_CURRENT_USER\Software\Microsoft\Office\{Version}\{Section}"))
+			try
 			{
-				return registryKey.GetValue(Name, defaultValue);
+				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Office\{Version}\{Section}"))
+				{
+					return registryKey.GetValue(Name, defaultValue);
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error getting registry value {Name}: {ex.Message}");
+				return defaultValue;
 			}
 		}
 
@@ -532,7 +598,6 @@ namespace OfficeLib
 		{
 			try
 			{
-				int index = 2;
 				int num = -1;
 				bool flag = false;
 				SequenceSymbol.GetUpperBound(0);
@@ -540,12 +605,13 @@ namespace OfficeLib
 				{
 					try
 					{
-						if (prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody && prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
+						if (prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+							prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
 						{
-							num = GetVerseIndicator(prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
+							num = GetVerseIndicator(prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
 							if (num >= 0)
 							{
-								if (num == 0)
+								if (num == VERSE_CHORUS)
 								{
 									if (!flag)
 									{
@@ -554,7 +620,7 @@ namespace OfficeLib
 										flag = true;
 									}
 								}
-								else if (num <= 12)
+								else if (num <= MAX_VERSE_NUMBER)
 								{
 									SongVerses[num] = i;
 									Slide[i, 0] = num;
@@ -566,19 +632,21 @@ namespace OfficeLib
 							}
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Console.WriteLine($"Error loading verse for slide {i}: {ex.Message}");
 					}
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error in LoadVersesAndSlides: {ex.Message}");
 			}
 		}
 
 		public int GetVerseIndicator(string InString)
 		{
-			if (InString == null || InString == "")
+			if (string.IsNullOrEmpty(InString))
 			{
 				return -1;
 			}
@@ -586,7 +654,7 @@ namespace OfficeLib
 			try
 			{
 				int num = Convert.ToInt32(InString);
-				if (num >= 0 && num <= 12)
+				if (num >= 0 && num <= MAX_VERSE_NUMBER)
 				{
 					return num;
 				}
@@ -601,23 +669,24 @@ namespace OfficeLib
 						switch (InString[0])
 						{
 							case 'c':
-								return 0;
+								return VERSE_CHORUS;
 							case 'b':
-								return 100;
+								return VERSE_BRIDGE;
 							case 'e':
-								return 101;
+								return VERSE_ENDING;
 							case 't':
-								return 102;
+								return VERSE_TAG;
 							case 'w':
-								return 103;
+								return VERSE_WORSHIP;
 							case 'p':
-								return 111;
+								return VERSE_PRAYER;
 							case 'q':
-								return 112;
+								return VERSE_QUIET;
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Console.WriteLine($"Error parsing verse character '{InString}': {ex.Message}");
 					}
 				}
 			}
@@ -646,17 +715,19 @@ namespace OfficeLib
 		}
 
 		/// <summary>
-		/// daniel
+		/// JPG 파일이 이미 빌드되었는지 확인
 		/// </summary>
-		/// <param name="FilePath"></param>
-		/// <param name="FilePrefix"></param>
-		/// <returns></returns>
+		/// <param name="FilePath">PowerPoint 파일 경로</param>
+		/// <param name="FilePrefix">JPG 파일 접두사</param>
+		/// <param name="TotalSlides">총 슬라이드 수 (출력)</param>
+		/// <returns>true: 이미 빌드됨(재빌드 불필요), false: 재빌드 필요</returns>
 		public bool IsBuildedFileCheck(string FilePath, string FilePrefix, ref int TotalSlides)
 		{
-			bool result = true;
-
 			if (string.IsNullOrEmpty(FilePath))
+			{
+				Console.WriteLine("FilePath is null or empty");
 				return false;
+			}
 
 			// ✅ 캐싱: 먼저 캐시 확인 (성능 최적화)
 			string cacheKey = FilePath + "|" + FilePrefix;
@@ -672,49 +743,58 @@ namespace OfficeLib
 			}
 
 			var pptFileInfo = new FileInfo(FilePath);
+			if (!pptFileInfo.Exists)
+			{
+				Console.WriteLine($"PPT file not found: {FilePath}");
+				return false;
+			}
 
 			FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
-			//���� �ִ��� Ȯ�� ������(true), ������(false)
-			Console.WriteLine(FilePrefix + Convert.ToString(1) + ".jpg");
+			Console.WriteLine($"Checking JPG: {jpgFileInfo.FullName}");
 
-			if (jpgFileInfo.Exists)
+			// JPG 파일이 없으면 재빌드 필요
+			if (!jpgFileInfo.Exists)
 			{
-				if (pptFileInfo.LastWriteTimeUtc < jpgFileInfo.LastWriteTimeUtc)
-				{
-					Console.WriteLine(pptFileInfo.LastWriteTimeUtc.ToString() + "|" + jpgFileInfo.LastWriteTimeUtc);
-					_Presentation presentation = null;
-					try
-					{
-						presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-						TotalSlides = presentation.Slides.Count;
-					}
-					catch
-					{
-						result = false;
-					}
-                    finally
-                    {
-                        if (presentation != null)
-                            ClosePresentation(ref presentation);
-                    }
+				Console.WriteLine("JPG file not found - rebuild required");
+				_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
+				return false;
+			}
 
-                    result = true;
-				}
-				else
+			// JPG가 PPT보다 최신이면 이미 빌드됨
+			if (jpgFileInfo.LastWriteTimeUtc > pptFileInfo.LastWriteTimeUtc)
+			{
+				Console.WriteLine($"JPG is newer than PPT - already built (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
+
+				// 슬라이드 수를 가져오기 위해 프레젠테이션 열기
+				_Presentation presentation = null;
+				try
 				{
-					result = false;
+					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+					TotalSlides = presentation.Slides.Count;
+
+					_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
+					Console.WriteLine($"[Cache Store] Already built: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
+					return true;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error opening presentation to get slide count: {ex.Message}");
+					_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
+					return false;
+				}
+				finally
+				{
+					if (presentation != null)
+						ClosePresentation(ref presentation);
 				}
 			}
 			else
 			{
-				result = false;
+				// PPT가 JPG보다 최신이면 재빌드 필요
+				Console.WriteLine($"PPT is newer than JPG - rebuild required (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
+				_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
+				return false;
 			}
-
-			// ✅ 캐싱: 결과 저장 (다음 호출시 재사용)
-			_fileCheckCache[cacheKey] = (result, DateTime.Now, TotalSlides);
-			Console.WriteLine($"[Cache Store] File check result: {Path.GetFileName(FilePath)} = {result}");
-
-			return result;
 		}
 
 		public bool IsBuildedFileCheck(_Presentation presentation, string FilePath, string FilePrefix, ref int TotalSlides)
@@ -838,7 +918,7 @@ namespace OfficeLib
 					for (int i = 1; i <= TotalSlides; i++)
 					{
 						strPreFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-						presentation.Slides[i].Export(strPreFileName, "JPG", 640, 480);
+						presentation.Slides[i].Export(strPreFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
 						strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
 						File.Copy(strPreFileName, strOutFileName, true);
@@ -855,19 +935,19 @@ namespace OfficeLib
 				//Console.WriteLine(MD5HashString);
 				//System.IO.File.Create(MD5HashString);
 
-				int index = 2;
 				bool flag = false;
 				SequenceSymbol.GetUpperBound(0);
 				for (int i = 1; i <= TotalSlides; i++)
 				{
 					try
 					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody && presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
+						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
 						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
+							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
 							if (verseIndicator >= 0)
 							{
-								if (verseIndicator == 0)
+								if (verseIndicator == VERSE_CHORUS)
 								{
 									if (!flag)
 									{
@@ -876,7 +956,7 @@ namespace OfficeLib
 										flag = true;
 									}
 								}
-								else if (verseIndicator <= 12)
+								else if (verseIndicator <= MAX_VERSE_NUMBER)
 								{
 									SongVerses[verseIndicator] = i;
 									Slide[i, 0] = verseIndicator;
@@ -888,8 +968,9 @@ namespace OfficeLib
 							}
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
 					}
 				}
 				return result;
@@ -1082,7 +1163,7 @@ namespace OfficeLib
 					for (int i = 1; i <= TotalSlides; i++)
 					{
 						strOutFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-						presentation.Slides[i].Export(strOutFileName, "JPG", 640, 480);
+						presentation.Slides[i].Export(strOutFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
 						strPreFileName = strOutFileName.Replace("~OUTPPPreview$", "~PREPPPreview$");
 						File.Copy(strOutFileName, strPreFileName, true);
@@ -1108,19 +1189,19 @@ namespace OfficeLib
 				//Console.WriteLine(MD5HashString);
 				//System.IO.File.Create(MD5HashString);
 
-				int index = 2;
 				bool flag = false;
 				SequenceSymbol.GetUpperBound(0);
 				for (int i = 1; i <= TotalSlides; i++)
 				{
 					try
 					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody && presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
+						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
 						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
+							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
 							if (verseIndicator >= 0)
 							{
-								if (verseIndicator == 0)
+								if (verseIndicator == VERSE_CHORUS)
 								{
 									if (!flag)
 									{
@@ -1129,7 +1210,7 @@ namespace OfficeLib
 										flag = true;
 									}
 								}
-								else if (verseIndicator <= 12)
+								else if (verseIndicator <= MAX_VERSE_NUMBER)
 								{
 									SongVerses[verseIndicator] = i;
 									Slide[i, 0] = verseIndicator;
@@ -1141,8 +1222,9 @@ namespace OfficeLib
 							}
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
 					}
 				}
 				return result;
@@ -1223,7 +1305,7 @@ namespace OfficeLib
 					for (int i = 1; i <= TotalSlides; i++)
 					{
 						strFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-						presentation.Slides[i].Export(strFileName, "JPG", 640, 480);
+						presentation.Slides[i].Export(strFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
 					}
 
@@ -1239,19 +1321,19 @@ namespace OfficeLib
 				//Console.WriteLine(MD5HashString);
 				//System.IO.File.Create(MD5HashString);
 
-				int index = 2;
 				bool flag = false;
 				SequenceSymbol.GetUpperBound(0);
 				for (int i = 1; i <= TotalSlides; i++)
 				{
 					try
 					{
-						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody && presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
+						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
 						{
-							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
+							int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
 							if (verseIndicator >= 0)
 							{
-								if (verseIndicator == 0)
+								if (verseIndicator == VERSE_CHORUS)
 								{
 									if (!flag)
 									{
@@ -1260,7 +1342,7 @@ namespace OfficeLib
 										flag = true;
 									}
 								}
-								else if (verseIndicator <= 12)
+								else if (verseIndicator <= MAX_VERSE_NUMBER)
 								{
 									SongVerses[verseIndicator] = i;
 									Slide[i, 0] = verseIndicator;
@@ -1272,8 +1354,9 @@ namespace OfficeLib
 							}
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
 					}
 				}
 				return result;
@@ -1317,7 +1400,7 @@ namespace OfficeLib
 
 				for (int k = 1; k <= TotalSlides; k++)
 				{
-					presentation.Slides[k].Export(FilePrefix + Convert.ToString(k) + ".jpg", "JPG", 640, 480);
+					presentation.Slides[k].Export(FilePrefix + Convert.ToString(k) + ".jpg", "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 				}
 				int index = 2;
 				bool flag = false;
@@ -1428,7 +1511,7 @@ namespace OfficeLib
 					return result;
 				}
 				presentation = prePowerPointApp.Presentations.Open(ScreenDumpFullPath[0, num], MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-				presentation.Slides[1].Export(ScreenDumpFullPath[1, num], "JPG", 640, 480);
+				presentation.Slides[1].Export(ScreenDumpFullPath[1, num], "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 
 				return result;
 			}

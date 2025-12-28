@@ -1484,7 +1484,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel 
-		/// ·¹Áö½ºÆ®¸®¿¡¼­ ÇØ»óµµ °ªÀ» ¾ò¾î¿À´Â °ÍÀ» Ãß°¡.
+		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½.
 		/// </summary>
 		/// <returns></returns>
 		private bool InitFormControls()
@@ -1724,7 +1724,7 @@ namespace Easislides
 				num6 = InPanelContainer.Height - (num2 + num3 + num4);
 				num6 = ((num6 <= 0) ? 1 : num6);
 				// daniel
-				// ¹Ì¸®º¸±â »çÀÌÁî ¿ÍÀÌµå·Î º¯°æ
+				// ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				// num5 = num6 * 4 / 3;
 
 				if (gf.isScreenWideMode)
@@ -1756,7 +1756,7 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// ¼öÁ¤º» ResizeSampleScreen version 1
+		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ResizeSampleScreen version 1
 		/// </summary>
 		/// <param name="InPanelContainer"></param>
 		/// <param name="InHolder"></param>
@@ -1779,7 +1779,7 @@ namespace Easislides
 				num6 = InPanelContainer.Height - (num2 + num3 + num4);
 				num6 = ((num6 <= 0) ? 1 : num6);
 				// daniel
-				// ¹Ì¸®º¸±â »çÀÌÁî ¿ÍÀÌµå·Î º¯°æ
+				// ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				// num5 = num6 * 4 / 3;
 
 				if (gf.isScreenWideMode)
@@ -1811,7 +1811,7 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// ¿øº» ResizeSampleScreen
+		/// ï¿½ï¿½ï¿½ï¿½ ResizeSampleScreen
 		/// </summary>
 		/// <param name="InPanelContainer"></param>
 		/// <param name="InHolder"></param>
@@ -1904,9 +1904,9 @@ namespace Easislides
 					{
 						SaveFormStateToRegistry();
 					}
-					gf.DeleteFolderFiles(gf.EasiSlidesTempDir);
+					GfFileHelpers.DeleteFolderFilesSafe(gf.EasiSlidesTempDir);
 					//daniel
-					//ÇÁ·Î±×·¥ Á¾·á½Ã ÆÄ¿öÆ÷ÀÎÆ® ÆÄÀÏÀ» ´ÝÀ½
+					//ï¿½ï¿½ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					gf.ClearUpPowerpointWindows();
 				}
 				catch
@@ -3528,7 +3528,7 @@ namespace Easislides
 			else
 			{
 				// 22/04/01 03:39 daniel
-				// ÇöÀç º¸¿© ÁÖ°í ÀÖ´Â ½½¶óÀÌµåÀÇ Å¸ÀÌÆ²À» º¸¿© ÁØ´Ù
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½
 				string text2 = text;
 				text = $"[{Convert.ToString(gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {gf.OutputItem.Title} {text2}{gf.OutputItem.CurSlide}/{gf.OutputItem.TotalSlides} ";
 			}
@@ -4312,9 +4312,9 @@ namespace Easislides
 			string text8 = "";
 			string text9 = "";
 			int num2 = 0;
-			///MDB Access¿¡¼­´Â Like °Ë»ö¿¡¼­ "*" À» »ç¿ë
+			///MDB Accessï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Like ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ "*" ï¿½ï¿½ ï¿½ï¿½ï¿½
 			//string text10 = "*";
-			///SQLite¿¡¼­´Â Like °Ë»ö¿¡¼­ "%" ¸¦ »ç¿ë
+			///SQLiteï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Like ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ï¿½ "%" ï¿½ï¿½ ï¿½ï¿½ï¿½
 			string text10 = "%";
 
 			gf.TotalMusicFiles = -1;
@@ -4513,7 +4513,7 @@ namespace Easislides
 
 		static int LoadThumbOutlockkey = 0;
 		/// <summary>
-		/// daniel out ÀÌ¹ÌÁö ·Îµå½Ã ÀüÃ¼¸¦ ´Ù½Ã ±×¸®Áö ¾ÊÀ½
+		/// daniel out ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		/// <param name="InFlowPanel"></param>
 		/// <param name="InCanvas"></param>
@@ -4573,7 +4573,7 @@ namespace Easislides
 		static int LoadThumbPreviewlockkey = 0;
 		static int previousPreviewSelectedSlide = 1;
 		/// <summary>
-		/// daniel 4265 ¶óÀÎ ¿À·ù³²
+		/// daniel 4265 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		/// <param name="InFlowPanel"></param>
 		/// <param name="InCanvas"></param>
@@ -4750,7 +4750,7 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// daniel ÅÇ ¹öÆ° ¼±ÅÃ½Ã (¼º°æ ÅÇµî)
+		/// daniel ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½Ã½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½)
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
@@ -4846,7 +4846,7 @@ namespace Easislides
 					}
 					BibleText.Text = "";
 					BibleUserLookup.Text = "";
-					//¼º°æ¸ñ·Ï ÄÞº¸¹Ú½º¿¡¼­ ¼º°æ ¼±ÅÃ½Ã ½ÇÇàµÇ¾î ¼º°æ ±¸ÀýÀÌ Ç¥½Ã µÊ
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þºï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½
 					gf.LoadBiblePassagesFromTabIndex(TabBibleVersions.SelectedIndex, BookLookup, ref BibleText, gf.HB_ShowVerses);
 					gf.HB_SequentialListing = true;
 					ShowStatusBarSummary();
@@ -5708,7 +5708,7 @@ namespace Easislides
 				bool flag = false;
 				try
 				{
-					//SQLite LCase()  -> lower() ·Î º¯°æ UCase() -> upper()
+					//SQLite LCase()  -> lower() ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UCase() -> upper()
 					//string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where LCase(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
 					string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where lower(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
 
@@ -5890,7 +5890,7 @@ namespace Easislides
 
 			if (num >= 0)
 			{
-				//ÆÄÀÏ º¯°æ ¿©ºÎ¸¦ °°ÀÌ Ã¼Å© ÇØ¾ßÇÔ
+				//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å© ï¿½Ø¾ï¿½ï¿½ï¿½
 				string InTitle = WorshipListItems.Items[num].SubItems[0].Text;
 				string text = WorshipListItems.Items[num].SubItems[1].Text;
 				gf.PreviewItem.InMainItemText = InTitle;
@@ -7667,7 +7667,7 @@ namespace Easislides
 		}
 
 		//static String prePreviewItemID = "";
-		//ÆÄÀÏ º¯°æ ¿©ºÎ¸¦ °°ÀÌ Ã¼Å©
+		//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 
 		private void WorshipListItems_DoubleClick(object sender, EventArgs e)
 		{
@@ -9772,7 +9772,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// È®ÀåÀÚ docx Ãß°¡
+		/// È®ï¿½ï¿½ï¿½ï¿½ docx ï¿½ß°ï¿½
 		/// </summary>
 		private void LocateFileWorshipList()
 		{
@@ -9800,7 +9800,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// È®ÀåÀÚ docx Ãß°¡
+		/// È®ï¿½ï¿½ï¿½ï¿½ docx ï¿½ß°ï¿½
 		/// </summary>
 		/// <param name="FullPathFileName"></param>
 		/// <param name="AddToLocation"></param>
@@ -10194,7 +10194,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// È®ÀåÀÚ docx Ãß°¡
+		/// È®ï¿½ï¿½ï¿½ï¿½ docx ï¿½ß°ï¿½
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
@@ -12606,7 +12606,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel
-		/// È®ÀåÀÚ .docx Ãß°¡
+		/// È®ï¿½ï¿½ï¿½ï¿½ .docx ï¿½ß°ï¿½
 		/// </summary>
 		/// <param name="InIDString"></param>
 		/// <param name="InTitle"></param>
@@ -13119,7 +13119,7 @@ namespace Easislides
 					string text = "";
 					int num = -1;
 
-					/// daniel  »ç¿ëÇÏ´Â °÷ÀÌ ¾ø¾î¼­ »èÁ¦
+					/// daniel  ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½î¼­ ï¿½ï¿½ï¿½ï¿½
 					//Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
 					//tableRecordSet.Index = "PrimaryKey";
 

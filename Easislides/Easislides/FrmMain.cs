@@ -897,7 +897,7 @@ namespace Easislides
                     //daniel
                     //??�??� ����????��??��????��????��
                     gf.ClearUpPowerpointWindows();
-                    gf.DeleteFolderFiles(gf.EasiSlidesTempDir);
+                    GfFileHelpers.DeleteFolderFilesSafe(gf.EasiSlidesTempDir);
 
                 }
                 catch
