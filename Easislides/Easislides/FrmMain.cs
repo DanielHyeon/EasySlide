@@ -26,6 +26,7 @@ using static System.Runtime.CompilerServices.RuntimeHelpers;
 using DirectShowLib.BDA;
 //using static Easislides.Util.HookController;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using HookManager = Easislides.HookManager;
 using System.Resources;
 using System.Collections;
@@ -53,6 +54,18 @@ namespace Easislides
 {
     public partial class FrmMain : Form
     {
+        // Win32 API for window management
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private const uint SWP_NOMOVE = 0x0002;
+        private const uint SWP_NOSIZE = 0x0001;
+        private const uint SWP_SHOWWINDOW = 0x0040;
+
         private enum LiveShowAction
         {
             Remote_SongChanged,
@@ -9883,6 +9896,7 @@ namespace Easislides
             }
         }
 
+        [SupportedOSPlatform("windows")]
         private void MinAllWindows()
         {
             Type typeFromProgID = Type.GetTypeFromProgID("Shell.Application");
@@ -11670,6 +11684,181 @@ namespace Easislides
                 title = gf.LookupDBTitle2(inKey);
             }
             gf.Play_Media(title2, title);
+        }
+
+        private void CMenuWorship_PlayOnOutput_Click(object sender, EventArgs e)
+        {
+            WorshipListPlayOnOutputMonitor();
+        }
+
+        private void WorshipListPlayOnOutputMonitor()
+        {
+            string title = "";
+            int num = 0;
+            int index = 0;
+
+            if (WorshipListItems.Items.Count <= 0)
+            {
+                return;
+            }
+
+            // 선택된 항목 확인
+            for (int i = 0; i <= WorshipListItems.Items.Count - 1; i++)
+            {
+                if (WorshipListItems.Items[i].Selected)
+                {
+                    num++;
+                    index = i;
+                    if (num > 1)
+                    {
+                        i = WorshipListItems.Items.Count - 1;
+                    }
+                }
+            }
+
+            if (num != 1)
+            {
+                MessageBox.Show("Please select ONE item from the Worship List to play");
+                return;
+            }
+
+            string title2 = gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
+            string text = WorshipListItems.Items[index].SubItems[1].Text;
+            string itemType = DataUtil.Left(text, 1);
+            string inString = DataUtil.Right(text, text.Length - 1);
+
+            if (itemType == "M")
+            {
+                if (string.IsNullOrWhiteSpace(inString) || !File.Exists(inString))
+                {
+                    MessageBox.Show("Sorry, cannot find the media file '" + inString + "'.");
+                    return;
+                }
+
+                // Output Monitor에서 재생
+                PlayMediaOnOutputMonitor(inString);
+                return;
+            }
+
+            int inKey = DataUtil.StringToInt(inString);
+            if (itemType == "D")
+            {
+                title = gf.LookupDBTitle2(inKey);
+            }
+
+            // 미디어 파일 검색 후 재생
+            string mediaFile = gf.GetMediaFileName(title2, title);
+            if (!string.IsNullOrEmpty(mediaFile) && File.Exists(mediaFile))
+            {
+                PlayMediaOnOutputMonitor(mediaFile);
+            }
+            else
+            {
+                MessageBox.Show("Sorry, cannot find any media file for '" + title2 + "'");
+            }
+        }
+
+        private FrmLaunchMediaPlayer _mediaPlayerWindow = null;
+
+        private void PlayMediaOnOutputMonitor(string mediaFilePath)
+        {
+            // Output Monitor 설정 확인
+            string outputMonitorName = gf.OutputMonitorName;
+
+            if (string.IsNullOrEmpty(outputMonitorName) || outputMonitorName == "None")
+            {
+                MessageBox.Show("Please configure Output Monitor in Options first.");
+                return;
+            }
+
+            try
+            {
+                // FrmLaunchMediaPlayer 인스턴스 생성 또는 재사용
+                if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed)
+                {
+                    _mediaPlayerWindow = new FrmLaunchMediaPlayer();
+
+                    // ESC 키로 닫기 기능 추가
+                    _mediaPlayerWindow.KeyPreview = true;
+                    _mediaPlayerWindow.KeyDown += (s, e) =>
+                    {
+                        if (e.KeyCode == Keys.Escape)
+                        {
+                            _mediaPlayerWindow.Remote_StopItem();
+                            _mediaPlayerWindow.Hide();
+                        }
+                    };
+
+                    // 더블클릭으로 닫기 기능 추가
+                    _mediaPlayerWindow.DoubleClick += (s, e) =>
+                    {
+                        _mediaPlayerWindow.Remote_StopItem();
+                        _mediaPlayerWindow.Hide();
+                    };
+                }
+
+                // Output Monitor 적용
+                _mediaPlayerWindow.ApplyOutputMonitor(outputMonitorName);
+
+                // 미디어 파일 경로 설정
+                gf.LiveItem.Format.MediaOption = 2; // 2 = 직접 경로 지정
+                gf.LiveItem.Format.MediaLocation = mediaFilePath;
+                gf.LiveItem.Format.MediaVolume = 100;
+                gf.LiveItem.Format.MediaMute = 0;
+                gf.LiveItem.Format.MediaWidescreen = 0;
+                gf.LiveItem.Format.MediaRepeat = 0;
+                gf.LiveItem.RotateTotal = 0;
+                gf.LiveItem.Type = "M"; // M = Media 타입
+
+                // 미디어 플레이어 창 표시
+                if (!_mediaPlayerWindow.Visible)
+                {
+                    _mediaPlayerWindow.Show();
+                }
+
+                // 창을 최상위로 가져오기 (Win32 API 사용)
+                IntPtr handle = _mediaPlayerWindow.Handle;
+
+                // TopMost 설정
+                SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+                // Foreground로 가져오기
+                SetForegroundWindow(handle);
+                _mediaPlayerWindow.BringToFront();
+                _mediaPlayerWindow.Activate();
+
+                // 미디어 로드 및 재생
+                int result = _mediaPlayerWindow.Remote_LoadItem();
+                if (result == 0)
+                {
+                    MessageBox.Show("Failed to load media file: " + mediaFilePath + "\n\nPlease check if DirectShow is installed and the file format is supported.");
+                }
+                else
+                {
+                    // 재생 시작
+                    System.Threading.Thread.Sleep(500);
+                    _mediaPlayerWindow.Remote_ResumeItemFromStart();
+
+                    // 재생 시작 후에도 최상위 유지
+                    SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    SetForegroundWindow(handle);
+                    _mediaPlayerWindow.BringToFront();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error playing media: " + ex.Message);
+            }
+        }
+
+        // 미디어 플레이어 창 닫기 메서드
+        public void CloseMediaPlayer()
+        {
+            if (_mediaPlayerWindow != null && !_mediaPlayerWindow.IsDisposed)
+            {
+                _mediaPlayerWindow.Remote_StopItem();
+                _mediaPlayerWindow.Hide();
+            }
         }
 
         private void CMenuWorship_AddUsages_Click(object sender, EventArgs e)

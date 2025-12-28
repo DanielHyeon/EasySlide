@@ -14057,6 +14057,257 @@ namespace Easislides
 			return true;
 		}
 
+		// Win32 API 선언 - ShowWindow, SetForegroundWindow 추가
+		[DllImport("user32.dll")]
+		private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+		[DllImport("user32.dll")]
+		private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+		[DllImport("user32.dll")]
+		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+		[DllImport("user32.dll")]
+		private static extern bool IsWindowVisible(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct RECT
+		{
+			public int Left;
+			public int Top;
+			public int Right;
+			public int Bottom;
+		}
+
+		private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+		private static readonly IntPtr HWND_TOP = new IntPtr(0);
+		private const int SW_MAXIMIZE = 3;
+
+		/// <summary>
+		/// 최근에 생성된 미디어 플레이어 창 찾기
+		/// </summary>
+		private static IntPtr FindRecentMediaPlayerWindow(string fileName)
+		{
+			IntPtr foundWindow = IntPtr.Zero;
+			string fileNameLower = Path.GetFileName(fileName).ToLower();
+
+			EnumWindows((hWnd, lParam) =>
+			{
+				if (!IsWindowVisible(hWnd))
+					return true;
+
+				StringBuilder sb = new StringBuilder(256);
+				GetWindowText(hWnd, sb, 256);
+				string windowTitle = sb.ToString().ToLower();
+
+				// 창 제목에 파일 이름이 포함되어 있는지 확인
+				if (!string.IsNullOrEmpty(windowTitle))
+				{
+					string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileNameLower);
+					// 파일 이름 확장자 없이 검색 또는 일반적인 미디어 플레이어 이름 검색
+					if (windowTitle.Contains(fileNameWithoutExt) ||
+					    windowTitle.Contains("windows media player") ||
+					    windowTitle.Contains("media player") ||
+					    windowTitle.Contains("vlc media player") ||
+					    windowTitle.Contains("vlc") ||
+					    windowTitle.Contains("movies & tv") ||
+					    windowTitle.Contains("films & tv"))
+					{
+						foundWindow = hWnd;
+						return false; // 찾았으면 중단
+					}
+				}
+
+				return true; // 계속 검색
+			}, IntPtr.Zero);
+
+			return foundWindow;
+		}
+
+		/// <summary>
+		/// 지정된 모니터에서 프로세스를 최대화로 실행
+		/// </summary>
+		/// <param name="InProcessString">실행할 파일 경로</param>
+		/// <param name="monitorName">모니터 이름</param>
+		/// <returns>성공 여부</returns>
+		public static bool RunProcessOnMonitor(string InProcessString, string monitorName)
+		{
+			try
+			{
+				// 대상 모니터 찾기
+				Screen targetScreen = null;
+				foreach (Screen screen in Screen.AllScreens)
+				{
+					if (screen.DeviceName == monitorName)
+					{
+						targetScreen = screen;
+						break;
+					}
+				}
+
+				// Primary 모니터를 Secondary로 변경하는 로직 (DisplayInfo.cs와 동일)
+				if (monitorName == "Primary")
+				{
+					string secondaryName = DisplayInfo.getSecondryDisplayName();
+					foreach (Screen screen in Screen.AllScreens)
+					{
+						if (screen.DeviceName == secondaryName)
+						{
+							targetScreen = screen;
+							break;
+						}
+					}
+				}
+
+				if (targetScreen == null)
+				{
+					// 모니터를 찾지 못하면 기본 재생
+					return RunProcess(InProcessString);
+				}
+
+				// 프로세스 시작
+				ProcessStartInfo psi = new ProcessStartInfo
+				{
+					WindowStyle = ProcessWindowStyle.Normal,
+					FileName = InProcessString,
+					UseShellExecute = true
+				};
+				Process process = Process.Start(psi);
+
+				// UseShellExecute = true일 때 process가 null일 수 있음
+				if (process == null)
+				{
+					// 프로세스 객체는 없지만 미디어 플레이어는 실행됨
+					// 창 제목으로 검색해서 찾아야 함
+					Thread.Sleep(1500); // 플레이어가 시작될 때까지 대기
+					IntPtr foundHandle = FindRecentMediaPlayerWindow(InProcessString);
+
+					// 못 찾으면 여러 번 재시도 (최대 5번, 총 4초)
+					if (foundHandle == IntPtr.Zero)
+					{
+						for (int retry = 0; retry < 5 && foundHandle == IntPtr.Zero; retry++)
+						{
+							Thread.Sleep(800);
+							foundHandle = FindRecentMediaPlayerWindow(InProcessString);
+						}
+					}
+
+					if (foundHandle != IntPtr.Zero)
+					{
+						// Output Monitor로 이동 및 최대화
+						Rectangle targetBounds = targetScreen.Bounds;
+						SetWindowPos(foundHandle, HWND_TOP,
+							targetBounds.X, targetBounds.Y,
+							targetBounds.Width, targetBounds.Height,
+							SWP_SHOWWINDOW);
+						SetForegroundWindow(foundHandle);
+						ShowWindow(foundHandle, SW_MAXIMIZE);
+						return true;
+					}
+					else
+					{
+						Console.WriteLine("RunProcessOnMonitor: process가 null이고 창도 찾을 수 없습니다.");
+						return false;
+					}
+				}
+
+				// 프로세스 창이 생성될 때까지 대기 (최대 8초로 증가)
+				int maxWait = 80; // 80 * 100ms = 8초
+				int waitCount = 0;
+
+				while (process.MainWindowHandle == IntPtr.Zero && waitCount < maxWait)
+				{
+					Thread.Sleep(100);
+					process.Refresh();
+					waitCount++;
+				}
+
+				IntPtr handle = process.MainWindowHandle;
+
+				// 창 핸들을 얻지 못한 경우 창 제목으로 재검색
+				if (handle == IntPtr.Zero)
+				{
+					// 추가 대기 후 창 제목으로 검색 시도
+					Thread.Sleep(1000);
+					handle = FindRecentMediaPlayerWindow(InProcessString);
+
+					// 그래도 못 찾으면 여러 번 재시도
+					if (handle == IntPtr.Zero)
+					{
+						for (int retry = 0; retry < 5 && handle == IntPtr.Zero; retry++)
+						{
+							Thread.Sleep(500);
+							handle = FindRecentMediaPlayerWindow(InProcessString);
+						}
+					}
+
+					// 최종적으로도 창을 찾지 못한 경우
+					if (handle == IntPtr.Zero)
+					{
+						Console.WriteLine("RunProcessOnMonitor: 창 핸들을 찾을 수 없습니다. 위치 제어 불가");
+						return true; // 프로세스는 실행됨
+					}
+				}
+
+				// 창을 대상 모니터로 이동
+				Rectangle bounds = targetScreen.Bounds;
+
+				// 창이 완전히 로드될 때까지 잠시 대기
+				Thread.Sleep(300);
+
+				// 창 이동 및 크기 조정
+				SetWindowPos(handle, HWND_TOP,
+					bounds.X, bounds.Y,
+					bounds.Width, bounds.Height,
+					SWP_SHOWWINDOW);
+
+				// 창을 포그라운드로 가져오기
+				SetForegroundWindow(handle);
+
+				// 잠시 대기 후 최대화
+				Thread.Sleep(200);
+				ShowWindow(handle, SW_MAXIMIZE);
+
+				// 최종 확인: 창이 제대로 이동했는지 확인하고 재시도
+				Thread.Sleep(300);
+				RECT windowRect;
+				if (GetWindowRect(handle, out windowRect))
+				{
+					// 창이 목표 모니터 영역에 없으면 다시 이동 시도
+					if (windowRect.Left < bounds.Left - 100 ||
+					    windowRect.Top < bounds.Top - 100 ||
+					    windowRect.Left > bounds.Right + 100)
+					{
+						Console.WriteLine($"RunProcessOnMonitor: 창 위치 재조정 (현재: {windowRect.Left},{windowRect.Top} -> 목표: {bounds.X},{bounds.Y})");
+						SetWindowPos(handle, HWND_TOP,
+							bounds.X, bounds.Y,
+							bounds.Width, bounds.Height,
+							SWP_SHOWWINDOW);
+						Thread.Sleep(100);
+						ShowWindow(handle, SW_MAXIMIZE);
+					}
+				}
+
+				return true;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("RunProcessOnMonitor failed: " + e.Message);
+				Console.WriteLine(e.StackTrace);
+				return false;
+			}
+		}
+
 		public static string LookupDBTitle2(int InKey)
 		{
 			try

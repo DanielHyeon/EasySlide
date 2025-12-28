@@ -556,6 +556,7 @@ namespace Easislides
             toolStripSeparator39 = new ToolStripSeparator();
             CMenuWorship_Edit = new ToolStripMenuItem();
             CMenuWorship_Play = new ToolStripMenuItem();
+            CMenuWorship_PlayOnOutput = new ToolStripMenuItem();
             toolStripSeparator37 = new ToolStripSeparator();
             CMenuWorship_AddUsages = new ToolStripMenuItem();
             SessionList = new ComboBox();
@@ -5978,59 +5979,66 @@ namespace Easislides
             // CMenuWorship
             // 
             CMenuWorship.ImageScalingSize = new System.Drawing.Size(24, 24);
-            CMenuWorship.Items.AddRange(new ToolStripItem[] { CMenuWorship_SelectAll, CMenuWorship_UnselectAll, CMenuWorship_Clear, toolStripSeparator39, CMenuWorship_Edit, CMenuWorship_Play, toolStripSeparator37, CMenuWorship_AddUsages });
+            CMenuWorship.Items.AddRange(new ToolStripItem[] { CMenuWorship_SelectAll, CMenuWorship_UnselectAll, CMenuWorship_Clear, toolStripSeparator39, CMenuWorship_Edit, CMenuWorship_Play, CMenuWorship_PlayOnOutput, toolStripSeparator37, CMenuWorship_AddUsages });
             CMenuWorship.Name = "ContextMenuBibleText";
-            CMenuWorship.Size = new System.Drawing.Size(220, 160);
+            CMenuWorship.Size = new System.Drawing.Size(280, 184);
             // 
             // CMenuWorship_SelectAll
             // 
             CMenuWorship_SelectAll.Name = "CMenuWorship_SelectAll";
-            CMenuWorship_SelectAll.Size = new System.Drawing.Size(219, 24);
+            CMenuWorship_SelectAll.Size = new System.Drawing.Size(279, 24);
             CMenuWorship_SelectAll.Text = "Select &All";
             CMenuWorship_SelectAll.Click += CMenuWorship_SelectAll_Click;
             // 
             // CMenuWorship_UnselectAll
             // 
             CMenuWorship_UnselectAll.Name = "CMenuWorship_UnselectAll";
-            CMenuWorship_UnselectAll.Size = new System.Drawing.Size(219, 24);
+            CMenuWorship_UnselectAll.Size = new System.Drawing.Size(279, 24);
             CMenuWorship_UnselectAll.Text = "&Unselect All";
             CMenuWorship_UnselectAll.Click += CMenuWorship_UnselectAll_Click;
             // 
             // CMenuWorship_Clear
             // 
             CMenuWorship_Clear.Name = "CMenuWorship_Clear";
-            CMenuWorship_Clear.Size = new System.Drawing.Size(219, 24);
+            CMenuWorship_Clear.Size = new System.Drawing.Size(279, 24);
             CMenuWorship_Clear.Text = "Clear Worship List";
             CMenuWorship_Clear.Click += CMenuWorship_Clear_Click;
             // 
             // toolStripSeparator39
             // 
             toolStripSeparator39.Name = "toolStripSeparator39";
-            toolStripSeparator39.Size = new System.Drawing.Size(216, 6);
+            toolStripSeparator39.Size = new System.Drawing.Size(276, 6);
             // 
             // CMenuWorship_Edit
             // 
             CMenuWorship_Edit.Name = "CMenuWorship_Edit";
-            CMenuWorship_Edit.Size = new System.Drawing.Size(219, 24);
+            CMenuWorship_Edit.Size = new System.Drawing.Size(279, 24);
             CMenuWorship_Edit.Text = "Edit item";
             CMenuWorship_Edit.Click += CMenuWorship_Edit_Click;
             // 
             // CMenuWorship_Play
             // 
             CMenuWorship_Play.Name = "CMenuWorship_Play";
-            CMenuWorship_Play.Size = new System.Drawing.Size(219, 24);
+            CMenuWorship_Play.Size = new System.Drawing.Size(279, 24);
             CMenuWorship_Play.Text = "Play Media";
             CMenuWorship_Play.Click += CMenuWorship_Play_Click;
+            // 
+            // CMenuWorship_PlayOnOutput
+            // 
+            CMenuWorship_PlayOnOutput.Name = "CMenuWorship_PlayOnOutput";
+            CMenuWorship_PlayOnOutput.Size = new System.Drawing.Size(279, 24);
+            CMenuWorship_PlayOnOutput.Text = "Play Media on Output Monitor";
+            CMenuWorship_PlayOnOutput.Click += CMenuWorship_PlayOnOutput_Click;
             // 
             // toolStripSeparator37
             // 
             toolStripSeparator37.Name = "toolStripSeparator37";
-            toolStripSeparator37.Size = new System.Drawing.Size(216, 6);
+            toolStripSeparator37.Size = new System.Drawing.Size(276, 6);
             // 
             // CMenuWorship_AddUsages
             // 
             CMenuWorship_AddUsages.Name = "CMenuWorship_AddUsages";
-            CMenuWorship_AddUsages.Size = new System.Drawing.Size(219, 24);
+            CMenuWorship_AddUsages.Size = new System.Drawing.Size(279, 24);
             CMenuWorship_AddUsages.Text = "Add Songs to Usages";
             CMenuWorship_AddUsages.Click += CMenuWorship_AddUsages_Click;
             // 
@@ -7242,6 +7250,7 @@ namespace Easislides
         private ToolStripSeparator toolStripSeparator39;
         private ToolStripMenuItem CMenuWorship_Edit;
         private ToolStripMenuItem CMenuWorship_Play;
+        private ToolStripMenuItem CMenuWorship_PlayOnOutput;
         private ToolStripSeparator toolStripSeparator37;
         private ToolStripMenuItem CMenuWorship_AddUsages;
         private ComboBox SessionList;
