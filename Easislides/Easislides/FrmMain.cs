@@ -3641,6 +3641,7 @@ namespace Easislides
 
                     if (LoadThumbPreviewlockkey == 0)
                     {
+                        // ✅ 첫 로드: 모든 썸네일 로드
                         for (int i = 0; i < TotalImagesCount; i++)
                         {
                             InCanvas[i].BuildNewImageThumbs(i, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
@@ -3650,8 +3651,23 @@ namespace Easislides
                     {
                         if (previousPreviewSelectedSlide != CurSelectedSlide)
                         {
+                            // ✅ 최적화: 현재 + 이전 슬라이드만 업데이트
                             InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            InCanvas[previousPreviewSelectedSlide - 1].BuildNewImageThumbs(previousPreviewSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+
+                            if (previousPreviewSelectedSlide > 0 && previousPreviewSelectedSlide <= TotalImagesCount)
+                            {
+                                InCanvas[previousPreviewSelectedSlide - 1].BuildNewImageThumbs(previousPreviewSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            }
+
+                            // ✅ 추가 최적화: 주변 슬라이드도 미리 로드 (다음 선택 대비)
+                            if (CurSelectedSlide < TotalImagesCount)
+                            {
+                                InCanvas[CurSelectedSlide].BuildNewImageThumbs(CurSelectedSlide, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            }
+                            if (CurSelectedSlide > 1)
+                            {
+                                InCanvas[CurSelectedSlide - 2].BuildNewImageThumbs(CurSelectedSlide - 2, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            }
                         }
                     }
                 }
@@ -4952,12 +4968,13 @@ namespace Easislides
 
                 string filePrefix = gf.SetPowerpointPreviewPrefix1(gf.PreviewItem);
 
+                // ✅ 캐싱 최적화: 파일이 빌드되지 않았거나 다른 항목으로 변경된 경우에만 로드
                 if (!gf.PreviewPPT.IsBuildedFileCheck(gf.PreviewItem.Path, filePrefix, ref gf.PreviewItem.TotalSlides) || preSelectedItemNum != num)
                 {
                     LoadItem(ref gf.PreviewItem, text, WorshipListItems.Items[num].SubItems[2].Text, StartingSlide, ref InTitle, ScrollToCaret: true);
                     UpdateDisplayPanelFields();
-
                 }
+
                 preSelectedItemNum = num;
             }
             else
@@ -5261,7 +5278,7 @@ namespace Easislides
             {
                 gf.OutputPPT.preViewEvent = new OfficeLib.PreviewEvent(FormatPowerPointThumbContainers2);
 
-
+                // ✅ 중복 호출 방지: 같은 ItemID면 캐시 확인
                 if (OutputItem != InItem.ItemID)
                 {
                     OutputItem = InItem.ItemID;
@@ -5269,14 +5286,17 @@ namespace Easislides
                 else
                 {
                     if (gf.OutputPPT.IsBuildedFileCheck(InItem.Path, filePrefix, ref InItem.TotalSlides))
+                    {
+                        Console.WriteLine($"[Cache Hit] Output PPT already built: {InItem.ItemID}");
                         return;
+                    }
                 }
-
             }
             else
             {
                 gf.PreviewPPT.preViewEvent = new OfficeLib.PreviewEvent(FormatPowerPointThumbContainers2);
 
+                // ✅ 중복 호출 방지: 같은 ItemID면 캐시 확인
                 if (previwItem != InItem.ItemID)
                 {
                     previwItem = InItem.ItemID;
@@ -5284,7 +5304,10 @@ namespace Easislides
                 else
                 {
                     if (gf.PreviewPPT.IsBuildedFileCheck(InItem.Path, filePrefix, ref InItem.TotalSlides))
+                    {
+                        Console.WriteLine($"[Cache Hit] Preview PPT already built: {InItem.ItemID}");
                         return;
+                    }
                 }
             }
 
@@ -5297,6 +5320,8 @@ namespace Easislides
             }
             else
             {
+                // ✅ 동기 방식 유지 (PowerPoint COM 객체는 STA 스레드에서만 안전)
+                // 캐싱 및 이미지 최적화로 성능 개선
                 if (gf.PreviewPPT.BuildScreenPreDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, 9, 1000, ref InItem.SongVerses, ref InItem.Slide, gf.SequenceSymbol))
                 {
                     FormatPowerPointThumbContainers1(ref Powerpoint_PreviewCanvas, ref flowLayoutPreviewPowerPoint, InItem.TotalSlides);
@@ -11497,9 +11522,58 @@ namespace Easislides
 
         private void CMenuWorship_Clear_Click(object sender, EventArgs e)
         {
-            WorshipListItems.Items.Clear();
-            WorshipListIndexChanged();
-            SaveWorshipList();
+            if (WorshipListItems.Items.Count == 0)
+            {
+                MessageBox.Show("Worship list is already empty.");
+                return;
+            }
+
+            string currentSession = gf.CurSession;
+            if (string.IsNullOrEmpty(currentSession))
+            {
+                MessageBox.Show("No worship list is currently loaded.");
+                return;
+            }
+
+            DialogResult result = MessageBox.Show(
+                "Really clear the worship list '" + currentSession + "'?\n\nThe current worship list will be moved to trash.",
+                "Clear Worship List",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                try
+                {
+                    string sourceFile = gf.WorshipDir + currentSession + ".esw";
+                    string trashDir = gf.WorshipDir + "Trash\\";
+
+                    if (!Directory.Exists(trashDir))
+                    {
+                        Directory.CreateDirectory(trashDir);
+                    }
+
+                    string destFile = trashDir + currentSession + ".esw";
+
+                    if (File.Exists(destFile))
+                    {
+                        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                        destFile = trashDir + currentSession + "_" + timestamp + ".esw";
+                    }
+
+                    if (File.Exists(sourceFile))
+                    {
+                        File.Move(sourceFile, destFile);
+                    }
+
+                    WorshipListItems.Items.Clear();
+                    WorshipListIndexChanged();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error moving worship list to trash: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void CMenuWorship_Edit_Click(object sender, EventArgs e)

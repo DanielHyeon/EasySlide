@@ -17,6 +17,8 @@ using System.Reflection;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace OfficeLib
 {
@@ -42,6 +44,10 @@ namespace OfficeLib
 
 		//������Ʈ���� ���?�Ǵ� Screen Device Name
 		public string displayName = "None";
+
+		// ✅ 캐싱: 파일 체크 결과 저장 (성능 최적화)
+		private Dictionary<string, (bool Exists, DateTime LastCheck, int TotalSlides)> _fileCheckCache = new Dictionary<string, (bool, DateTime, int)>();
+		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
 
         public void Init()
 		{
@@ -652,6 +658,19 @@ namespace OfficeLib
 			if (string.IsNullOrEmpty(FilePath))
 				return false;
 
+			// ✅ 캐싱: 먼저 캐시 확인 (성능 최적화)
+			string cacheKey = FilePath + "|" + FilePrefix;
+			if (_fileCheckCache.ContainsKey(cacheKey))
+			{
+				var cached = _fileCheckCache[cacheKey];
+				if (DateTime.Now - cached.LastCheck < _cacheExpiration)
+				{
+					TotalSlides = cached.TotalSlides;
+					Console.WriteLine($"[Cache Hit] File check: {Path.GetFileName(FilePath)}");
+					return cached.Exists;
+				}
+			}
+
 			var pptFileInfo = new FileInfo(FilePath);
 
 			FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
@@ -690,6 +709,10 @@ namespace OfficeLib
 			{
 				result = false;
 			}
+
+			// ✅ 캐싱: 결과 저장 (다음 호출시 재사용)
+			_fileCheckCache[cacheKey] = (result, DateTime.Now, TotalSlides);
+			Console.WriteLine($"[Cache Store] File check result: {Path.GetFileName(FilePath)} = {result}");
 
 			return result;
 		}
@@ -881,6 +904,128 @@ namespace OfficeLib
 			{
 				ClosePresentation(ref presentation);
 			}
+		}
+
+		/// <summary>
+		/// 비동기 버전의 BuildScreenPreDumps - UI 블로킹 방지
+		/// </summary>
+		public async Task<BuildScreenDumpsResult> BuildScreenPreDumpsAsync(string FilePath, string FilePrefix, int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, int[] SongVerses, int[,] Slide, string[] SequenceSymbol)
+		{
+			var result = new BuildScreenDumpsResult
+			{
+				Success = true,
+				TotalSlides = TotalSlides,
+				SongVerses = (int[])SongVerses.Clone(),
+				Slide = (int[,])Slide.Clone()
+			};
+
+			await Task.Run(() =>
+			{
+				_Presentation presentation = null;
+				try
+				{
+					// 초기화
+					for (int i = 1; i < TotalSlides; i++)
+					{
+						result.Slide[i, 0] = -1;
+					}
+
+					for (int j = 0; j <= MAX_VERSES; j++)
+					{
+						result.SongVerses[j] = 0;
+					}
+
+					if (prePowerPointApp == null)
+					{
+						result.Success = true;
+						return;
+					}
+
+					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+					Console.WriteLine(FilePath);
+
+					if ((presentation == null) & (TotalSlides > 0))
+					{
+						result.Success = true;
+						return;
+					}
+
+					result.TotalSlides = presentation.Slides.Count;
+					String strPreFileName = "";
+					String strOutFileName = "";
+
+					// 파일이 빌드되지 않았으면 Export 수행
+					int tempTotalSlides = result.TotalSlides;
+					if (!IsBuildedFileCheck(presentation, FilePath, FilePrefix, ref tempTotalSlides))
+					{
+						result.TotalSlides = tempTotalSlides;
+						for (int i = 1; i <= result.TotalSlides; i++)
+						{
+							strPreFileName = FilePrefix + Convert.ToString(i) + ".jpg";
+							presentation.Slides[i].Export(strPreFileName, "JPG", 640, 480);
+							strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
+							File.Copy(strPreFileName, strOutFileName, true);
+						}
+					}
+					else
+					{
+						result.TotalSlides = tempTotalSlides;
+					}
+
+					// Verse 정보 파싱
+					int index = 2;
+					bool flag = false;
+					SequenceSymbol.GetUpperBound(0);
+
+					for (int i = 1; i <= result.TotalSlides; i++)
+					{
+						try
+						{
+							if (presentation.Slides[i].NotesPage.Shapes.Placeholders[index].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+								presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text.Length == 1)
+							{
+								int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[index].TextFrame.TextRange.Text);
+								if (verseIndicator >= 0)
+								{
+									if (verseIndicator == 0)
+									{
+										if (!flag)
+										{
+											result.Slide[i, 0] = verseIndicator;
+											result.SongVerses[verseIndicator] = i;
+											flag = true;
+										}
+									}
+									else if (verseIndicator <= 12)
+									{
+										result.SongVerses[verseIndicator] = i;
+										result.Slide[i, 0] = verseIndicator;
+									}
+									else
+									{
+										result.Slide[i, 0] = verseIndicator;
+									}
+								}
+							}
+						}
+						catch
+						{
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e.Message);
+					Console.WriteLine(e.StackTrace);
+					result.Success = false;
+				}
+				finally
+				{
+					ClosePresentation(ref presentation);
+				}
+			});
+
+			return result;
 		}
 
 		public bool BuildScreenOutDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
@@ -1406,6 +1551,17 @@ namespace OfficeLib
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// BuildScreenPreDumpsAsync의 결과를 담는 클래스
+	/// </summary>
+	public class BuildScreenDumpsResult
+	{
+		public bool Success { get; set; }
+		public int TotalSlides { get; set; }
+		public int[] SongVerses { get; set; }
+		public int[,] Slide { get; set; }
 	}
 }
 

@@ -95,7 +95,6 @@ namespace Easislides
             panel10 = new Panel();
             cbOutputBlack = new CheckBox();
             cbOutputClear = new CheckBox();
-            cbOutputCam = new CheckBox();
             OutputPanelDisplayName = new ListView();
             columnHeader16 = new ColumnHeader();
             cbGoLive = new CheckBox();
@@ -1526,7 +1525,6 @@ namespace Easislides
             // 
             panel10.Controls.Add(cbOutputBlack);
             panel10.Controls.Add(cbOutputClear);
-            panel10.Controls.Add(cbOutputCam);
             panel10.Controls.Add(OutputPanelDisplayName);
             panel10.Controls.Add(cbGoLive);
             panel10.Dock = DockStyle.Top;
@@ -1565,13 +1563,6 @@ namespace Easislides
             cbOutputClear.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             toolTip1.SetToolTip(cbOutputClear, "Hide Text");
             cbOutputClear.Click += cbOutputClear_Click;
-            // 
-            // cbOutputCam
-            // 
-            cbOutputCam.Location = new System.Drawing.Point(0, 0);
-            cbOutputCam.Name = "cbOutputCam";
-            cbOutputCam.Size = new System.Drawing.Size(104, 24);
-            cbOutputCam.TabIndex = 3;
             // 
             // OutputPanelDisplayName
             // 
@@ -6790,7 +6781,6 @@ namespace Easislides
         private Panel panel10;
         private CheckBox cbOutputBlack;
         private CheckBox cbOutputClear;
-        private CheckBox cbOutputCam;
         private ListView OutputPanelDisplayName;
         private ColumnHeader columnHeader16;
         private CheckBox cbGoLive;
