@@ -3,52 +3,32 @@
   "WorkspaceRootPath": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmsmartmerge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmsmartmerge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmmain.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmmain.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmsplashscreen.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmsplashscreen.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmsplashscreen.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmsplashscreen.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmsplashscreen.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmsplashscreen.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmsplashscreen.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmsplashscreen.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmmain.resx||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmmain.resx||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
       "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\easislides\\easislides\\frmmediaplayercontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmmediaplayercontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmmediaplayercontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmmediaplayercontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmedititem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmedititem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\gf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\gf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmlaunchshow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmlaunchshow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\easislides\\easislides\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\util\\displayinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\util\\displayinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|e:\\workspace\\wp-ms\\dev\\easislides_v2.6.0\\easislides\\easislides\\gf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{630A67CD-2699-47AD-A9F9-647F8ACF65FC}|Easislides\\Easislides.csproj|solutionrelative:easislides\\easislides\\gf.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -58,157 +38,99 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "FrmSmartMerge.cs [Design]",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSmartMerge.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmSmartMerge.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSmartMerge.cs [Design]",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmSmartMerge.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T14:59:50.9Z",
-              "EditorCaption": " [Design]"
+              "DocumentIndex": 1,
+              "Title": "FrmMain.resx",
+              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.resx",
+              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.resx",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.resx",
+              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.resx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAmwO4/AAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-12-28T06:45:58.339Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "FrmSplashScreen.resx",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.resx",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmSplashScreen.resx",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.resx",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmSplashScreen.resx",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
-              "WhenOpened": "2025-12-27T14:59:27.213Z",
+              "DocumentIndex": 0,
+              "Title": "FrmMain.Designer.cs",
+              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.Designer.cs",
+              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.Designer.cs",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.Designer.cs",
+              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.Designer.cs",
+              "ViewState": "AgIAAAUbAAAAAAAAAAAUwBUbAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-28T06:39:41.78Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "FrmSplashScreen.Designer.cs",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.Designer.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmSplashScreen.Designer.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.Designer.cs",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmSplashScreen.Designer.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T14:59:13.256Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "FrmSplashScreen.cs",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmSplashScreen.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.cs",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmSplashScreen.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA4AAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T14:57:45.863Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "FrmSplashScreen.cs [Design]",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmSplashScreen.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmSplashScreen.cs [Design]",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmSplashScreen.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T14:56:04.448Z",
-              "EditorCaption": " [Design]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
               "Title": "FrmLaunchShow.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmLaunchShow.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmLaunchShow.cs",
               "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmLaunchShow.cs",
               "RelativeToolTip": "Easislides\\Easislides\\FrmLaunchShow.cs",
-              "ViewState": "AgIAANYFAAAAAAAAAAAEwOoFAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAAgDAAAAAAAAAAAUwBoDAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T14:06:23.716Z",
+              "WhenOpened": "2025-12-28T06:06:17.773Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 5,
+              "Title": "DisplayInfo.cs",
+              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Util\\DisplayInfo.cs",
+              "RelativeDocumentMoniker": "Easislides\\Util\\DisplayInfo.cs",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Util\\DisplayInfo.cs",
+              "RelativeToolTip": "Easislides\\Util\\DisplayInfo.cs",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAlwEAAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-28T04:55:01.045Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "gf.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\gf.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\gf.cs",
               "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\gf.cs",
               "RelativeToolTip": "Easislides\\Easislides\\gf.cs",
-              "ViewState": "AgIAAFRDAAAAAAAAAAAkwG5DAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAAOIIAAAAAAAAAAAAwOgIAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T13:48:21.392Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T01:02:12.279Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "FrmEditItem.cs",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmEditItem.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmEditItem.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmEditItem.cs",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmEditItem.cs",
-              "ViewState": "AgIAAMQNAAAAAAAAAAAmwNANAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T12:54:12.225Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "FrmMediaPlayerControl.cs",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMediaPlayerControl.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMediaPlayerControl.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMediaPlayerControl.cs",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmMediaPlayerControl.cs",
-              "ViewState": "AgIAAMgAAAAAAAAAAADgv9kAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T12:50:10.636Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "FrmMediaPlayerControl.cs [Design]",
-              "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMediaPlayerControl.cs",
-              "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMediaPlayerControl.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMediaPlayerControl.cs [Design]",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmMediaPlayerControl.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T12:50:00.641Z",
-              "EditorCaption": " [Design]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 2,
               "Title": "FrmMain.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.cs",
               "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeToolTip": "Easislides\\Easislides\\FrmMain.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHsGAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAANYmAAAAAAAAAAAUwOcmAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T12:45:32.293Z",
+              "WhenOpened": "2025-12-28T00:44:10.565Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 4,
               "Title": "FrmMain.cs [Design]",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.cs",
               "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs [Design]",
               "RelativeToolTip": "Easislides\\Easislides\\FrmMain.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-27T12:44:15.729Z"
+              "WhenOpened": "2025-12-27T12:44:15.729Z",
+              "EditorCaption": " [Design]"
             }
           ]
         }

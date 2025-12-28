@@ -1287,7 +1287,7 @@ namespace Easislides
             {
                 //gf.OutputMonitorNumber = gf.GetSecondryMonitorIndex();
 
-                gf.OutputMonitorName = gf.GetSecondryMonitorName();
+                gf.OutputMonitorName = DisplayInfo.getSecondryDisplayName();
             }
 
 
@@ -1338,7 +1338,7 @@ namespace Easislides
 
             if (gf.LMAlwaysUseSecondaryMonitor & (DualMonitorList.Items.Count > 0))
             {
-                gf.GetScreenName(ref gf.LyricsMonitorName, (gf.DualMonitorSelectAutoOption == 0) ? gf.OutputMonitorName : "None");
+                DisplayInfo.GetDisplayName(ref gf.LyricsMonitorName, (gf.DualMonitorSelectAutoOption == 0) ? gf.OutputMonitorName : "None");
             }
 
             if (gf.LMSelectAutoOption != ((!optLM0.Checked) ? 1 : 0) || (int)LM1UpDownTop.Value != gf.LMOption1Top || (int)LM1UpDownLeft.Value != gf.LMOption1Left || (int)LM1UpDownWidth.Value != gf.LMOption1Width)
@@ -1509,7 +1509,7 @@ namespace Easislides
             }
 
             gf.SaveConfigSettings();
-            gf.SizeLaunchScreen();
+            DisplayInfo.SizeLaunchDisplay();
         }
 
         private void BuildFolderList()
@@ -2546,75 +2546,6 @@ namespace Easislides
             AdminLicPreview8.Text = (((DataUtil.Trim(AdminLic8.Text) != "") & (DataUtil.Trim(AdminLicNo8.Text) != "")) ? (DataUtil.Trim(AdminLic8.Text) + tbNumberSymbol.Text + DataUtil.Trim(AdminLicNo8.Text)) : "");
         }
 
-        //		public void SaveLicenceChanges()
-        //		{
-        //			gf.LicAdmin_List[3, 0] = AdminLic3.Text;
-        //			gf.LicAdmin_List[4, 0] = AdminLic4.Text;
-        //			gf.LicAdmin_List[5, 0] = AdminLic5.Text;
-        //			gf.LicAdmin_List[6, 0] = AdminLic6.Text;
-        //			gf.LicAdmin_List[7, 0] = AdminLic7.Text;
-        //			gf.LicAdmin_List[8, 0] = AdminLic8.Text;
-        //			gf.LicAdmin_List[3, 1] = AdminLicNo3.Text;
-        //			gf.LicAdmin_List[4, 1] = AdminLicNo4.Text;
-        //			gf.LicAdmin_List[5, 1] = AdminLicNo5.Text;
-        //			gf.LicAdmin_List[6, 1] = AdminLicNo6.Text;
-        //			gf.LicAdmin_List[7, 1] = AdminLicNo7.Text;
-        //			gf.LicAdmin_List[8, 1] = AdminLicNo8.Text;
-        //			gf.LicAdmin_List[3, 2] = AdminLicPreview3.Text;
-        //			gf.LicAdmin_List[4, 2] = AdminLicPreview4.Text;
-        //			gf.LicAdmin_List[5, 2] = AdminLicPreview5.Text;
-        //			gf.LicAdmin_List[6, 2] = AdminLicPreview6.Text;
-        //			gf.LicAdmin_List[7, 2] = AdminLicPreview7.Text;
-        //			gf.LicAdmin_List[8, 2] = AdminLicPreview8.Text;
-        //			gf.LicAdminNoSymbol = tbNumberSymbol.Text;
-        //			gf.LicAdminEnforceDisplay = cbEnforceDisplay.Checked;
-        //			try
-        //			{
-        //				string text = "";
-        //				using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringMainDB))
-        //				{
-        //					OleDbDataAdapter da = null;
-        //					DataSet ds = null;
-        //					DataTable dt = null;
-        //					for (int i = 0; i < 9; i++)
-        //					{
-        //						if ((i == 0) | (i >= 4))
-        //						{
-        //							(da, ds) = DbOleDbController.getDataAdapter(daoDb, "select * from Folder where FolderNo=" + i);
-        //							dt = ds.Tables[0];
-        //							//recordset.Edit();
-        //							dt.Rows[0]["ADMINISTRATOR"] = gf.LicAdmin_List[i, 0];
-        //							da.Update(dt);
-        //							dt.Dispose();
-        //							da.Dispose();
-        //							//recordset.Dispose();
-        //						}
-        //						else
-        //						{
-        //							string query = "select * from LICENCE where ADMINISTRATOR like \"*\" ";
-        //#if ODBC
-        //							query = query.Replace("\"*\"", "\"%\"");
-        //#endif
-        //							(da, ds) = DbOleDbController.getDataAdapter(daoDb, query);
-        //							dt = ds.Tables[0];
-        //							DataRow dr = dt.NewRow();
-        //							dr["ADMINISTRATOR"] = gf.LicAdmin_List[i, 0];
-        //							dr["REF"] = i;
-        //							da.Update(dt);
-        //							dt.Dispose();
-        //							da.Dispose();
-
-        //							//recordset.Dispose();
-        //						}
-        //					}
-        //				}		
-        //			}
-        //			catch
-        //			{
-        //			}
-        //			gf.SaveLicenceConfigSettings();
-        //		}
-
         private void LoadGeneralSetting()
         {
             VersesMaxUpDown.Value = gf.HB_MaxVersesSelection;
@@ -2649,7 +2580,7 @@ namespace Easislides
 
             DM_CustomAsSingleMonitor.Checked = gf.DMOption1AsSingleMonitor;
 
-            gf.GetScreenName(ref gf.OutputMonitorName, "None");
+            DisplayInfo.GetDisplayName(ref gf.OutputMonitorName, "None");
 
             int outputMonitorIndex = DualMonitorList.FindString(gf.OutputMonitorName);
 
@@ -2673,7 +2604,7 @@ namespace Easislides
 
             if (gf.LyricsMonitorName != "None")
             {
-                gf.GetScreenName(ref gf.LyricsMonitorName, (gf.DualMonitorSelectAutoOption == 0) ? gf.OutputMonitorName : "None");
+                DisplayInfo.GetDisplayName(ref gf.LyricsMonitorName, (gf.DualMonitorSelectAutoOption == 0) ? gf.OutputMonitorName : "None");
             }
 
             int lyricsMonitorIndex = LyricsMonitorList.FindString(gf.LyricsMonitorName);
@@ -2840,208 +2771,6 @@ namespace Easislides
 
         }
 
-        //private void LoadGeneralSetting()
-        //{
-        //	VersesMaxUpDown.Value = gf.HB_MaxVersesSelection;
-        //	AdhocVersesMaxUpDown.Value = gf.HB_MaxAdhocVersesSelection;
-        //	PPMaxUpDown.Value = gf.PP_MaxFiles;
-        //	EditHistoryMaxUpDown.Value = gf.MaxUserEditHistory;
-        //	BuildMonitorsList();
-        //	cbDisableScreenSaver.Checked = gf.DisableSreenSaver;
-        //	VideoSizeUpDown1.Value = gf.VideoSize;
-        //	string text = "";
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.VideoVAlign == 0) ? Video_VAlignTop.Name : ((gf.VideoVAlign != 1) ? Video_VAlignBottom.Name : Video_VAlignCentre.Name), SelectedBtn: ref Video_VAlign, InMenuItem1: Video_VAlignTop, InMenuItem2: Video_VAlignCentre, InMenuItem3: Video_VAlignBottom);
-        //	UpdateVideoSizeSample();
-        //	DM_AlwaysUseSecondaryMonitor.Checked = gf.DMAlwaysUseSecondaryMonitor;
-        //	if (gf.DualMonitorSelectAutoOption == 0)
-        //	{
-        //		optDM0.Checked = true;
-        //	}
-        //	else
-        //	{
-        //		optDM1.Checked = true;
-        //	}
-        //          // daniel
-        //          // 스크린 옵션 추가
-        //          optWide.Checked = (gf.isScreenWideMode)?true:false;
-
-        //          DM1UpDownTop.Value = gf.DMOption1Top;
-        //	DM1UpDownLeft.Value = gf.DMOption1Left;
-        //	DM1UpDownWidth.Value = ((gf.DMOption1Width < 1) ? 1 : gf.DMOption1Width);
-        //          DM1UpDownHeight.Value = ((gf.DMOption1Height < 1) ? 1 : gf.DMOption1Height);
-
-        //          //DM1UpDownHeight.Value = ((gf.DMOption1Height < 1) ? 1 : gf.DMOption1Height);
-
-        //          DM_CustomAsSingleMonitor.Checked = gf.DMOption1AsSingleMonitor;
-
-        //          gf.GetScreenNumber(ref gf.OutputMonitorNumber, -1);
-
-        //          DualMonitorList.SelectedIndex = gf.OutputMonitorNumber;
-
-        //          LM_AlwaysUse.Checked = gf.LMAlwaysUseSecondaryMonitor;
-        //	if (gf.LMSelectAutoOption == 1)
-        //	{
-        //		optLM1.Checked = true;
-        //	}
-        //	else
-        //	{
-        //		optLM0.Checked = true;
-        //	}
-        //	LM1UpDownTop.Value = gf.LMOption1Top;
-        //	LM1UpDownLeft.Value = gf.LMOption1Left;
-        //	LM1UpDownWidth.Value = ((gf.LMOption1Width < 1) ? 1 : gf.LMOption1Width);
-        //	LM1UpDownHeight.Value = ((gf.LMOption1Height < 1) ? 1 : gf.LMOption1Height);
-        //          /// gf.DualMonitorSelectAutoOption :  
-        //          gf.GetScreenNumber(ref gf.LyricsMonitorNumber, (gf.DualMonitorSelectAutoOption == 0) ? gf.OutputMonitorNumber : (-1));
-
-        //	LyricsMonitorList.SelectedIndex = gf.LyricsMonitorNumber;
-
-        //	btnLMTextColour.ForeColor = gf.LMTextColour;
-        //	btnLMHighlightColour.ForeColor = gf.LMHighlightColour;
-        //	btnLMBackColour.ForeColor = gf.LMBackColour;
-        //	PreviewFontUpDown.Value = ((gf.PreviewArea_FontSize >= 8) ? gf.PreviewArea_FontSize : 8);
-        //	LMUpDownFontSize.Value = ((gf.LMMainFontSize >= 8 && gf.LMMainFontSize <= 40) ? gf.LMMainFontSize : 20);
-        //	LMNotationsUpDownFontSize.Value = ((gf.LMNotationsFontSize >= 8 && gf.LMNotationsFontSize <= 40) ? gf.LMNotationsFontSize : 20);
-        //	cbLMShowNotations.Checked = gf.LMShowNotations;
-        //	LM_Bold.Checked = gf.LMFontBold;
-        //	LM_Italic.Checked = gf.LMFontItalic;
-        //	LM_Underline.Checked = gf.LMFontUnderline;
-        //	btnTextRegionChangeColour.ForeColor = gf.FocusedTextRegionColour;
-        //	btnTextRegionSlideTextColour.ForeColor = gf.TextRegionSlideTextColour;
-        //	btnTextRegionSlideBackColour.ForeColor = gf.TextRegionSlideBackColour;
-        //	TextRegionUseColour.Checked = gf.UseFocusedTextRegionColour;
-        //	checkBoxPPTab.Checked = gf.UsePowerpointTab;
-        //	checkBoxPPNoPanel.Checked = gf.NoPowerpointPanelOverlay;
-        //	checkBoxMediaTab.Checked = gf.UseMediaTab;
-        //	checkBoxMediaNoPanel.Checked = gf.NoMediaPanelOverlay;
-        //	checkBoxLMBox.Checked = gf.ShowLyricsMonitorAlertBox;
-        //	cbUseLargestFont.Checked = gf.UseLargestFontSize;
-        //	cbAutoTextOverflow.Checked = gf.AutoTextOverflow;
-        //	cbAdvanceNextItem.Checked = gf.AdvanceNextItem;
-        //	cbLineBetweenRegions.Checked = gf.LineBetweenRegions;
-        //	cbWordWrapLeftAlignIndent.Checked = gf.WordWrapLeftAlignIndent;
-        //	if (gf.GapItemOption == GapType.Black)
-        //	{
-        //		rbGapItemOption1.Checked = true;
-        //	}
-        //	else if (gf.GapItemOption == GapType.Default)
-        //	{
-        //		rbGapItemOption2.Checked = true;
-        //	}
-        //	else if (gf.GapItemOption == GapType.User)
-        //	{
-        //		rbGapItemOption3.Checked = true;
-        //	}
-        //	else
-        //	{
-        //		rbGapItemOption0.Checked = true;
-        //	}
-        //	tbGapLogoLocation.Text = gf.GapItemLogoFile;
-        //	cbGapItemUseFade.Checked = gf.GapItemUseFade;
-        //	NotationFontFactorUpDown.Value = (int)(gf.NotationFontFactor * 100.0);
-        //	cbPreviewShowNotations.Checked = gf.PreviewArea_ShowNotations;
-        //	cbLineBetweenScreens.Checked = gf.PreviewArea_LineBetweenScreens;
-        //	PreviewFontUpDown.Value = ((gf.PreviewArea_FontSize >= 8) ? gf.PreviewArea_FontSize : 8);
-        //	tbMusicLocation.Text = gf.MediaDir;
-        //	tbMusicLocation.BackColor = tbGapLogoLocation.BackColor;
-        //	gf.LoadBlankCaptureDevices(ref cbCaptureDevices);
-        //	if (gf.WMP_Present)
-        //	{
-        //		try
-        //		{
-        //			DShowLib dShowLib = new DShowLib();
-        //			dShowLib.ListCaptureDevices(ref cbCaptureDevices);
-        //		}
-        //		catch
-        //		{
-        //		}
-        //	}
-        //	cbCaptureDevices.SelectedIndex = gf.LiveCamNumber - 1;
-        //	TrackBarVolume.Value = (((gf.LiveCamVolume >= 0) & (gf.LiveCamVolume <= 100)) ? gf.LiveCamVolume : 30);
-        //	TrackBarBalance.Value = (((gf.LiveCamBalance >= -100) & (gf.LiveCamBalance <= 100)) ? gf.LiveCamBalance : 0);
-        //	cbMute.Checked = gf.LiveCamMute;
-        //	cbWidescreen.Checked = gf.LiveCamWidescreen;
-        //	checkBoxLiveCamNoPanel.Checked = gf.LiveCamNoPanelOverlay;
-        //	MessageAlertDurationUpDown.Value = gf.MessageAlertDuration;
-        //	Message_Scroll.Checked = gf.MessageAlertScroll;
-        //	Message_Flash.Checked = gf.MessageAlertFlash;
-        //	Message_Transparent.Checked = gf.MessageAlertTransparent;
-        //	MessageComboFont.Text = gf.MessageAlertFontName;
-        //	MessageSizeUpDown.Value = gf.MessageAlertFontSize;
-        //	btnMessageChangeTextColour.ForeColor = gf.MessageAlertTextColour;
-        //	btnMessageChangeBackColour.ForeColor = gf.MessageAlertBackColour;
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.MessageAlertTextAlign == 1) ? Message_AlignLeft.Name : ((gf.MessageAlertTextAlign != 2) ? Message_AlignRight.Name : Message_AlignCentre.Name), SelectedBtn: ref Message_Align, InMenuItem1: Message_AlignLeft, InMenuItem2: Message_AlignCentre, InMenuItem3: Message_AlignRight);
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.MessageAlertVerticalAlign != 0) ? Message_VAlignBottom.Name : Message_VAlignTop.Name, SelectedBtn: ref Message_VAlign, InMenuItem1: Message_VAlignTop, InMenuItem2: Message_VAlignBottom);
-        //	Message_Bold.Checked = gf.MessageAlertBold;
-        //	Message_Italics.Checked = gf.MessageAlertItalic;
-        //	Message_Underline.Checked = gf.MessageAlertUnderline;
-        //	Message_Shadow.Checked = gf.MessageAlertShadow;
-        //	Message_Outline.Checked = gf.MessageAlertOutline;
-        //	ParentalAlertUpDown.Value = gf.ParentalAlertDuration;
-        //	Parental_Scroll.Checked = gf.ParentalAlertScroll;
-        //	Parental_Flash.Checked = gf.ParentalAlertFlash;
-        //	Parental_Transparent.Checked = gf.ParentalAlertTransparent;
-        //	ParentalComboFont.Text = gf.ParentalAlertFontName;
-        //	ParentalSizeUpDown.Value = gf.ParentalAlertFontSize;
-        //	btnParentalChangeTextColour.ForeColor = gf.ParentalAlertTextColour;
-        //	btnParentalChangeBackColour.ForeColor = gf.ParentalAlertBackColour;
-        //	ParentalAlert.Text = gf.ParentalAlertHeading;
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.ParentalAlertTextAlign == 1) ? Parental_AlignLeft.Name : ((gf.ParentalAlertTextAlign != 2) ? Parental_AlignRight.Name : Parental_AlignCentre.Name), SelectedBtn: ref Parental_Align, InMenuItem1: Parental_AlignLeft, InMenuItem2: Parental_AlignCentre, InMenuItem3: Parental_AlignRight);
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.ParentalAlertVerticalAlign != 0) ? Parental_VAlignBottom.Name : Parental_VAlignTop.Name, SelectedBtn: ref Parental_VAlign, InMenuItem1: Parental_VAlignTop, InMenuItem2: Parental_VAlignBottom);
-        //	Parental_Bold.Checked = gf.ParentalAlertBold;
-        //	Parental_Italics.Checked = gf.ParentalAlertItalic;
-        //	Parental_Underline.Checked = gf.ParentalAlertUnderline;
-        //	Parental_Shadow.Checked = gf.ParentalAlertShadow;
-        //	Parental_Outline.Checked = gf.ParentalAlertOutline;
-        //	ReferenceAlertDurationUpDown.Value = gf.ReferenceAlertDuration;
-        //	Reference_Scroll.Checked = gf.ReferenceAlertScroll;
-        //	Reference_Flash.Checked = gf.ReferenceAlertFlash;
-        //	Reference_Transparent.Checked = gf.ReferenceAlertTransparent;
-        //	ReferenceComboFont.Text = gf.ReferenceAlertFontName;
-        //	ReferenceSizeUpDown.Value = gf.ReferenceAlertFontSize;
-        //	btnReferenceChangeTextColour.ForeColor = gf.ReferenceAlertTextColour;
-        //	btnReferenceChangeBackColour.ForeColor = gf.ReferenceAlertBackColour;
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.ReferenceAlertTextAlign == 1) ? Reference_AlignLeft.Name : ((gf.ReferenceAlertTextAlign != 2) ? Reference_AlignRight.Name : Reference_AlignCentre.Name), SelectedBtn: ref Reference_Align, InMenuItem1: Reference_AlignLeft, InMenuItem2: Reference_AlignCentre, InMenuItem3: Reference_AlignRight);
-        //	gf.AssignDropDownItem(SelectedMenuItemName: (gf.ReferenceAlertVerticalAlign == 0) ? Reference_VAlignTop.Name : ((gf.ReferenceAlertVerticalAlign != 2) ? Reference_VAlignCentre.Name : Reference_VAlignBottom.Name), SelectedBtn: ref Reference_VAlign, InMenuItem1: Reference_VAlignTop, InMenuItem2: Reference_VAlignCentre, InMenuItem3: Reference_VAlignBottom);
-        //	Reference_Bold.Checked = gf.ReferenceAlertBold;
-        //	Reference_Italics.Checked = gf.ReferenceAlertItalic;
-        //	Reference_Underline.Checked = gf.ReferenceAlertUnderline;
-        //	Reference_Shadow.Checked = gf.ReferenceAlertShadow;
-        //	Reference_Outline.Checked = gf.ReferenceAlertOutline;
-        //	cbPick.Checked = gf.ReferenceAlertUsePick;
-        //	cbPickBlank.Checked = gf.ReferenceAlertBlankIfPickNotFound;
-        //	tbPick.Text = gf.ReferenceAlertPickName;
-        //	tbSubstitute.Text = gf.ReferenceAlertPickSubstitute;
-        //	if (gf.ReferenceAlertSource == 1)
-        //	{
-        //		Reference_Source1.Checked = true;
-        //	}
-        //	else if (gf.ReferenceAlertSource == 2)
-        //	{
-        //		Reference_Source2.Checked = true;
-        //	}
-        //	else if (gf.ReferenceAlertSource == 3)
-        //	{
-        //		Reference_Source3.Checked = true;
-        //	}
-        //	else if (gf.ReferenceAlertSource == 4)
-        //	{
-        //		Reference_Source4.Checked = true;
-        //	}
-        //	else
-        //	{
-        //		Reference_Source0.Checked = true;
-        //	}
-        //	if (gf.KeyBoardOption == 0)
-        //	{
-        //		rbKeyBoardOpt0.Checked = true;
-        //	}
-        //	else
-        //	{
-        //		rbKeyBoardOpt1.Checked = true;
-        //	}
-        //}
-
         private void optDM_CheckedChanged(object sender, EventArgs e)
         {
             UpdateOptFields(1);
@@ -3077,15 +2806,6 @@ namespace Easislides
 
         private void DM1UpDownWidth_ValueChanged(object sender, EventArgs e)
         {
-            //if (DM1UpDownWidth.Value > 1m)
-            //{
-            //	DM1UpDownHeight.Value = (int)DM1UpDownWidth.Value * 3 / 4;
-            //}
-            //else
-            //{
-            //	DM1UpDownHeight.Value = 1m;
-            //}
-
             //wide mode가 아닐 경우
             if (!gf.isScreenWideMode)
                 gf.DMOption1Height = (int)DM1UpDownWidth.Value * 3 / 4;
@@ -3121,51 +2841,28 @@ namespace Easislides
             gf.SelectColorFromBtn(ref btnLMBackColour, ref ColourSymbol);
         }
 
+        
         public void BuildMonitorsList()
         {
-            Screen[] allScreens = Screen.AllScreens;
-
             DualMonitorList.Items.Clear();
             LyricsMonitorList.Items.Clear();
 
-            int nNumber = 0;
+            // DisplayInfo의 static 메서드를 사용하여 모니터 리스트 가져오기
+            List<string> allMonitors = DisplayInfo.GetAllMonitorsList();
+            List<string> nonPrimaryMonitors = DisplayInfo.GetNonPrimaryMonitorsList();
 
-            foreach (Screen screen in allScreens)
+            // DualMonitorList에 모든 모니터 추가
+            foreach (string monitor in allMonitors)
             {
-                if (screen != null)
-                {
-                    //DualMonitorList.Items.Add($"{screen.DeviceName}, {GetMonitor_Name(nNumber)}");
-                    //if (!screen.Primary)
-                    //{
-                    //    LyricsMonitorList.Items.Add($"{screen.DeviceName}, {GetMonitor_Name(nNumber)}");
-                    //}
-
-                    DualMonitorList.Items.Add($"{screen.DeviceName}");
-                    if (!screen.Primary)
-                    {
-                        LyricsMonitorList.Items.Add($"{screen.DeviceName}");
-                    }
-                }
-                nNumber++;
+                DualMonitorList.Items.Add(monitor);
             }
-            LyricsMonitorList.Items.Add("None");
+
+            // LyricsMonitorList에 Primary가 아닌 모니터들과 "None" 추가
+            foreach (string monitor in nonPrimaryMonitors)
+            {
+                LyricsMonitorList.Items.Add(monitor);
+            }
         }
-
-        //public void BuildMonitorsList_Old()
-        //{
-        //    int maxScreen = gf.GetMaxScreen();
-
-        //    DualMonitorList.Items.Clear();
-
-        //    DualMonitorList.Items.Add("Primary Monitor (Single Monitor)");
-        //    LyricsMonitorList.Items.Clear();
-        //    LyricsMonitorList.Items.Add("None");
-        //    for (int i = 1; i <= maxScreen - 1; i++)
-        //    {
-        //        DualMonitorList.Items.Add("Secondary Monitor " + i);
-        //        LyricsMonitorList.Items.Add("Secondary Monitor " + i);
-        //    }
-        //}
 
         private void Monitor_Info_Click(object sender, EventArgs e)
         {
@@ -3175,43 +2872,10 @@ namespace Easislides
                 int OutLeft = 0;
                 int OutWidth = 0;
                 int OutHeight = 0;
-                gf.GetScreenInfo(DualMonitorList.SelectedItem.ToString(), ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
-                //gf.GetScreenInfo(DualMonitorList.SelectedIndex, ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
+                DisplayInfo.GetDisplayInfo(DualMonitorList.SelectedItem.ToString(), ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
+                
                 MessageBox.Show(DualMonitorList.Text + " Setup: \nTop:\t" + Convert.ToString(OutTop) + "\nLeft:\t" + Convert.ToString(OutLeft) + "\nWidth:\t" + Convert.ToString(OutWidth) + "\nHeight:\t" + Convert.ToString(OutHeight));
             }
-        }
-
-        private string GetMonitor_Name(int nNumberOfDevicesPresent)
-        {
-            Guid GUID_DEVCLASS_MONITOR = new Guid("4D36E96E-E325-11CE-BFC1-08002BE10318");
-
-            string strDeviceName = "";
-
-            IntPtr hDeviceInfo = DiNative.SetupDiGetClassDevs(ref GUID_DEVCLASS_MONITOR, 0, IntPtr.Zero, DiNative.DIGCF_PRESENT);
-            if (hDeviceInfo != IntPtr.Zero)
-            {
-                var DeviceInfoData = new DiNative.SP_DEVINFO_DATA() { cbSize = Marshal.SizeOf(typeof(DiNative.SP_DEVINFO_DATA)) };
-                DiNative.SetupDiEnumDeviceInfo(hDeviceInfo, (uint)nNumberOfDevicesPresent, DeviceInfoData);
-
-                StringBuilder sbDeviceName = new StringBuilder(260);
-                sbDeviceName.Capacity = 260;
-
-                bool bRet = DiNative.SetupDiGetDeviceRegistryProperty(hDeviceInfo, DeviceInfoData, DiNative.SPDRP_FRIENDLYNAME, 0, sbDeviceName, (uint)sbDeviceName.Capacity, IntPtr.Zero);
-                if (bRet)
-                {
-                    strDeviceName = sbDeviceName.ToString();
-                }
-                else
-                {
-                    bRet = DiNative.SetupDiGetDeviceRegistryProperty(hDeviceInfo, DeviceInfoData, DiNative.SPDRP_DEVICEDESC, 0, sbDeviceName, (uint)sbDeviceName.Capacity, IntPtr.Zero);
-                    if (bRet)
-                    {
-                        strDeviceName = sbDeviceName.ToString();
-                    }
-                }
-            }
-
-            return strDeviceName;
         }
 
         private void LyricsMonitor_Info_Click(object sender, EventArgs e)
@@ -3228,7 +2892,7 @@ namespace Easislides
                     MessageBox.Show("No Lyrics Monitor");
                     return;
                 }
-                gf.GetScreenInfo(LyricsMonitorList.SelectedItem.ToString(), ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
+                DisplayInfo.GetDisplayInfo(LyricsMonitorList.SelectedItem.ToString(), ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
                 //gf.GetScreenInfo(LyricsMonitorList.SelectedIndex, ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
                 MessageBox.Show(LyricsMonitorList.Text + " Setup: \nTop:\t" + Convert.ToString(OutTop) + "\nLeft:\t" + Convert.ToString(OutLeft) + "\nWidth:\t" + Convert.ToString(OutWidth) + "\nHeight:\t" + Convert.ToString(OutHeight));
             }

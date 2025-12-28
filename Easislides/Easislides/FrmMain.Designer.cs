@@ -218,7 +218,6 @@ namespace Easislides
             toolStripSeparator28 = new ToolStripSeparator();
             Menu_BlackScreen = new ToolStripMenuItem();
             Menu_ClearScreen = new ToolStripMenuItem();
-            Menu_LiveCam = new ToolStripMenuItem();
             Menu_StartShow = new ToolStripMenuItem();
             Menu_RestartCurrentItem = new ToolStripMenuItem();
             Menu_MainTools = new ToolStripMenuItem();
@@ -1543,7 +1542,7 @@ namespace Easislides
             cbOutputBlack.Dock = DockStyle.Right;
             cbOutputBlack.ImageIndex = 15;
             cbOutputBlack.ImageList = imageListSys;
-            cbOutputBlack.Location = new System.Drawing.Point(73, 0);
+            cbOutputBlack.Location = new System.Drawing.Point(113, 0);
             cbOutputBlack.Margin = new Padding(3, 5, 3, 5);
             cbOutputBlack.Name = "cbOutputBlack";
             cbOutputBlack.Size = new System.Drawing.Size(40, 33);
@@ -1558,7 +1557,7 @@ namespace Easislides
             cbOutputClear.Dock = DockStyle.Right;
             cbOutputClear.ImageIndex = 17;
             cbOutputClear.ImageList = imageListSys;
-            cbOutputClear.Location = new System.Drawing.Point(113, 0);
+            cbOutputClear.Location = new System.Drawing.Point(153, 0);
             cbOutputClear.Margin = new Padding(3, 5, 3, 5);
             cbOutputClear.Name = "cbOutputClear";
             cbOutputClear.Size = new System.Drawing.Size(40, 33);
@@ -1569,18 +1568,10 @@ namespace Easislides
             // 
             // cbOutputCam
             // 
-            cbOutputCam.Appearance = Appearance.Button;
-            cbOutputCam.Dock = DockStyle.Right;
-            cbOutputCam.ImageIndex = 30;
-            cbOutputCam.ImageList = imageListSys;
-            cbOutputCam.Location = new System.Drawing.Point(153, 0);
-            cbOutputCam.Margin = new Padding(3, 5, 3, 5);
+            cbOutputCam.Location = new System.Drawing.Point(0, 0);
             cbOutputCam.Name = "cbOutputCam";
-            cbOutputCam.Size = new System.Drawing.Size(40, 33);
-            cbOutputCam.TabIndex = 9;
-            cbOutputCam.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            toolTip1.SetToolTip(cbOutputCam, "Live Cam");
-            cbOutputCam.Click += cbOutputCam_Click;
+            cbOutputCam.Size = new System.Drawing.Size(104, 24);
+            cbOutputCam.TabIndex = 3;
             // 
             // OutputPanelDisplayName
             // 
@@ -2905,15 +2896,6 @@ namespace Easislides
             Menu_ClearScreen.Text = "Clear Screen";
             Menu_ClearScreen.Click += Menu_ClearScreen_Click;
             // 
-            // Menu_LiveCam
-            // 
-            Menu_LiveCam.Image = (System.Drawing.Image)resources.GetObject("Menu_LiveCam.Image");
-            Menu_LiveCam.Name = "Menu_LiveCam";
-            Menu_LiveCam.ShortcutKeys = Keys.F4;
-            Menu_LiveCam.Size = new System.Drawing.Size(310, 26);
-            Menu_LiveCam.Text = "Live Cam";
-            Menu_LiveCam.Click += Menu_LiveCam_Click;
-            // 
             // Menu_StartShow
             // 
             Menu_StartShow.Name = "Menu_StartShow";
@@ -3037,7 +3019,7 @@ namespace Easislides
             // 
             // Menu_MainOutput
             // 
-            Menu_MainOutput.DropDownItems.AddRange(new ToolStripItem[] { Menu_StartShow, Menu_GoLiveWithPreview, Menu_RefreshOutput, toolStripSeparator28, Menu_BlackScreen, Menu_ClearScreen, Menu_LiveCam, Menu_RestartCurrentItem });
+            Menu_MainOutput.DropDownItems.AddRange(new ToolStripItem[] { Menu_StartShow, Menu_GoLiveWithPreview, Menu_RefreshOutput, toolStripSeparator28, Menu_BlackScreen, Menu_ClearScreen, Menu_RestartCurrentItem });
             Menu_MainOutput.Name = "Menu_MainOutput";
             Menu_MainOutput.Size = new System.Drawing.Size(69, 24);
             Menu_MainOutput.Text = "&Output";
@@ -6007,7 +5989,7 @@ namespace Easislides
             CMenuWorship.ImageScalingSize = new System.Drawing.Size(24, 24);
             CMenuWorship.Items.AddRange(new ToolStripItem[] { CMenuWorship_SelectAll, CMenuWorship_UnselectAll, CMenuWorship_Clear, toolStripSeparator39, CMenuWorship_Edit, CMenuWorship_Play, toolStripSeparator37, CMenuWorship_AddUsages });
             CMenuWorship.Name = "ContextMenuBibleText";
-            CMenuWorship.Size = new System.Drawing.Size(220, 188);
+            CMenuWorship.Size = new System.Drawing.Size(220, 160);
             // 
             // CMenuWorship_SelectAll
             // 
@@ -6931,7 +6913,7 @@ namespace Easislides
         private ToolStripSeparator toolStripSeparator28;
         private ToolStripMenuItem Menu_BlackScreen;
         private ToolStripMenuItem Menu_ClearScreen;
-        private ToolStripMenuItem Menu_LiveCam;
+        //private ToolStripMenuItem Menu_LiveCam;
         private ToolStripMenuItem Menu_StartShow;
         private ToolStripMenuItem Menu_RestartCurrentItem;
         private ToolStripMenuItem Menu_MainTools;

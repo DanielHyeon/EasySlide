@@ -7,6 +7,9 @@
     <Compile Update="Easislides\DShowLib.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="Easislides\FrmLaunchShow.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Easislides\FrmSplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -67,16 +70,7 @@
     <Compile Update="Easislides\FrmInfoScreen.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Easislides\FrmLaunchMediaPlayer.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Easislides\FrmLaunchShow.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="Easislides\FrmLookupTitles.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Easislides\FrmLyricsScreen.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Easislides\FrmManageItemLists.cs">

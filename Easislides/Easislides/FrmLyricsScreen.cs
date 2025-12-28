@@ -185,7 +185,7 @@ namespace Easislides
 		{
 			InitFormLoad = true;
 			//if ((gf.LyricsMonitorNumber > 0 || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
-			if ((gf.LyricsMonitorName == gf.GetSecondryMonitorName() || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
+			if ((gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
 			{
 				base.Left = gf.LM_Left;
 				base.Top = gf.LM_Top;

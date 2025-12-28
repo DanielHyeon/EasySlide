@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OfficeLib")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3c87a4c8febb3e48b6315170d0079e10a7957688")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+858b59d221d7e49026ece38b84b557f812dfb5e3")]
 [assembly: System.Reflection.AssemblyProductAttribute("OfficeLib")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OfficeLib")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

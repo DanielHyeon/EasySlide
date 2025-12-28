@@ -8186,10 +8186,10 @@ namespace Easislides
             {
                 cbOutputClear.ImageIndex = (gf.TimerFlashOn ? 18 : 17);
             }
-            if (cbOutputCam.Checked)
-            {
-                cbOutputCam.ImageIndex = (gf.TimerFlashOn ? 31 : 30);
-            }
+            //if (cbOutputCam.Checked)
+            //{
+            //    cbOutputCam.ImageIndex = (gf.TimerFlashOn ? 31 : 30);
+            //}
             if (gf.ShowRunning)
             {
                 if (gf.DualMonitorMode & gf.LaunchShowUpdateDone)
@@ -9696,7 +9696,7 @@ namespace Easislides
                 UpdateWorshipShowIcons();
                 gf.SaveShowOptions = false;
                 gf.OutputItem.GapItemOnDisplay = false;
-                gf.SizeLaunchScreen();
+                DisplayInfo.SizeLaunchDisplay();
                 FormWindowState formWindowState;
                 if (gf.DualMonitorMode)
                 {
@@ -9765,7 +9765,7 @@ namespace Easislides
                 SetAutoRotateButtons();
                 LiveBlack(gf.ShowLiveBlack);
                 LiveClear(gf.ShowLiveClear);
-                LiveCam(gf.ShowLiveCam);
+                //LiveCam(gf.ShowLiveCam);
                 if (gf.SaveShowOptions)
                 {
                     SaveWorshipList();
@@ -9801,7 +9801,7 @@ namespace Easislides
                 gf.ResetShowRunningSettings();
                 UpdateWorshipShowIcons();
                 gf.SaveShowOptions = false;
-                gf.SizeLaunchScreen();
+                DisplayInfo.SizeLaunchDisplay();
                 try
                 {
                     LiveShow.Close();
@@ -9873,7 +9873,7 @@ namespace Easislides
                 SetAutoRotateButtons();
                 LiveBlack(gf.ShowLiveBlack);
                 LiveClear(gf.ShowLiveClear);
-                LiveCam(gf.ShowLiveCam);
+                //LiveCam(gf.ShowLiveCam);
                 if (gf.SaveShowOptions)
                 {
                     SaveWorshipList();
@@ -9953,18 +9953,18 @@ namespace Easislides
             ResizeOutputBottomPanel();
         }
 
-        private void LiveCam(bool InStatus)
-        {
-            gf.ShowLiveCam = InStatus;
-            cbOutputCam.Checked = gf.ShowLiveCam;
-            Menu_LiveCam.Checked = gf.ShowLiveCam;
-            cbOutputCam.ImageIndex = (cbOutputCam.Checked ? 31 : 30);
-            if (gf.ShowRunning)
-            {
-                RemoteControlLiveShow(LiveShowAction.Remote_LiveCamStartStop);
-            }
-            FocusOutputArea();
-        }
+        //private void LiveCam(bool InStatus)
+        //{
+        //    gf.ShowLiveCam = InStatus;
+        //    cbOutputCam.Checked = gf.ShowLiveCam;
+        //    Menu_LiveCam.Checked = gf.ShowLiveCam;
+        //    cbOutputCam.ImageIndex = (cbOutputCam.Checked ? 31 : 30);
+        //    if (gf.ShowRunning)
+        //    {
+        //        RemoteControlLiveShow(LiveShowAction.Remote_LiveCamStartStop);
+        //    }
+        //    FocusOutputArea();
+        //}
 
         private void RedrawOutputItemText()
         {
@@ -10286,10 +10286,10 @@ namespace Easislides
             LiveClear(!gf.ShowLiveClear);
         }
 
-        private void Menu_LiveCam_Click(object sender, EventArgs e)
-        {
-            LiveCam(!gf.ShowLiveCam);
-        }
+        //private void Menu_LiveCam_Click(object sender, EventArgs e)
+        //{
+        //    //LiveCam(!gf.ShowLiveCam);
+        //}
 
         private void Menu_RestartCurrentItem_Click(object sender, EventArgs e)
         {
@@ -10327,10 +10327,10 @@ namespace Easislides
             LiveClear(cbOutputClear.Checked);
         }
 
-        private void cbOutputCam_Click(object sender, EventArgs e)
-        {
-            LiveCam(cbOutputCam.Checked);
-        }
+        //private void cbOutputCam_Click(object sender, EventArgs e)
+        //{
+        //    LiveCam(cbOutputCam.Checked);
+        //}
 
         private void Menu_SelectAll_Click(object sender, EventArgs e)
         {
@@ -12615,12 +12615,12 @@ namespace Easislides
                     case LiveShowAction.Remote_WorshipListChanged:
                         LiveShow.Remote_WorshipListChanged();
                         break;
-                    case LiveShowAction.Remote_LiveCamStartStop:
-                        LiveShow.Remote_LiveCamStartStop();
-                        break;
-                    case LiveShowAction.Remote_LiveCamUpdate:
-                        LiveShow.Remote_LiveCamUpdate();
-                        break;
+                    //case LiveShowAction.Remote_LiveCamStartStop:
+                    //    LiveShow.Remote_LiveCamStartStop();
+                    //    break;
+                    //case LiveShowAction.Remote_LiveCamUpdate:
+                    //    LiveShow.Remote_LiveCamUpdate();
+                    //    break;
                     case LiveShowAction.Remote_RefreshMediaWindow:
                         LiveShow.Remote_RefreshMediaWindow();
                         break;
@@ -12629,8 +12629,8 @@ namespace Easislides
                         break;
                     case LiveShowAction.Remote_GetMediaTimings:
                         return LiveShow.Remote_GetMediaTimings();
-                    case LiveShowAction.Remote_MediaItemPausePlay:
-                        return LiveShow.Remote_MediaItemPausePlay();
+                    //case LiveShowAction.Remote_MediaItemPausePlay:
+                    //    return LiveShow.Remote_MediaItemPausePlay();
                     case LiveShowAction.Remote_SongJumpTo:
                         LiveShow.Remote_SongJumpTo();
                         break;

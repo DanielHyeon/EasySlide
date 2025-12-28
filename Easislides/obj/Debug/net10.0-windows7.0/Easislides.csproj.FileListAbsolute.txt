@@ -136,10 +136,8 @@ E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmImportAccessHelper.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmImportFolder.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmInfoScreen.resources
-E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmLaunchMediaPlayer.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmLaunchShow.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmLookupTitles.resources
-E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmLyricsScreen.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmMain.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmManageItemLists.resources
 E:\WorkSpace\wp-ms\dev\EasiSlides_v2.6.0\Easislides\obj\Debug\net10.0-windows7.0\Easislides.FrmMediaPlayerControl.resources
