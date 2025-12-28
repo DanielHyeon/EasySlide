@@ -2874,9 +2874,9 @@ namespace Easislides
             }
         }
 
-        // PowerPoint ������ ?�� ó���� ���� Ÿ�?� �� �÷���
-        private System.Windows.Forms.Timer pptClickTimer = null;
-        private Control pptClickedControl = null;
+        // PowerPoint 싱글/더블 클릭 처리
+        private int pptLastClickedSlide = -1;
+        private Control pptLastClickedControl = null;
         private bool pptDoubleClickInProgress = false;
 
         private void PowerPointImage_MouseUp(object sender, MouseEventArgs e)
@@ -2885,74 +2885,47 @@ namespace Easislides
             {
                 Control control = (Control)sender;
 
-                // ����?���� ���� ���?� ���� ?�� ����
+                // 더블클릭 진행 중이면 싱글 클릭 무시
                 if (pptDoubleClickInProgress)
                 {
                     return;
                 }
 
-                // ���� Ÿ�??� ������ ����
-                if (pptClickTimer != null)
+                int slideNumber = DataUtil.ObjToInt(control.Tag) + 1;
+
+                // 즉시 슬라이드 이동 (Delay 없음)
+                if (control.Name == "PP_Preview")
                 {
-                    pptClickTimer.Stop();
-                    pptClickTimer.Dispose();
+                    gf.PreviewItem.CurSlide = slideNumber;
+                    MoveToSlide(gf.PreviewItem, KeyDirection.Refresh);
+                }
+                else
+                {
+                    gf.OutputItem.CurSlide = slideNumber;
+                    MoveToSlide(gf.OutputItem, KeyDirection.Refresh);
                 }
 
-                // ?���� ��?�� ����
-                pptClickedControl = control;
-
-                // ���� ?�� ó���� ������?�� Ÿ�?� ���� (����?�� ���� �ð�: 300ms)
-                pptClickTimer = new System.Windows.Forms.Timer();
-                pptClickTimer.Interval = SystemInformation.DoubleClickTime;
-                pptClickTimer.Tick += (s, args) =>
-                {
-                    pptClickTimer.Stop();
-                    pptClickTimer.Dispose();
-                    pptClickTimer = null;
-
-                    // ����?���� �?� ���?�� ���� ?�� ó��
-                    if (!pptDoubleClickInProgress && pptClickedControl != null)
-                    {
-                        if (pptClickedControl.Name == "PP_Preview")
-                        {
-                            gf.PreviewItem.CurSlide = DataUtil.ObjToInt(pptClickedControl.Tag) + 1;
-                            MoveToSlide(gf.PreviewItem, KeyDirection.Refresh);
-                        }
-                        else
-                        {
-                            gf.OutputItem.CurSlide = DataUtil.ObjToInt(pptClickedControl.Tag) + 1;
-                            MoveToSlide(gf.OutputItem, KeyDirection.Refresh);
-                        }
-                    }
-                    pptClickedControl = null;
-                };
-                pptClickTimer.Start();
+                // 마지막 클릭 정보 저장 (더블 클릭 감지용)
+                pptLastClickedSlide = slideNumber;
+                pptLastClickedControl = control;
             }
         }
 
         /// <summary>
-        /// PowerPoint ������ ����?�� �?�? �??
-        /// ����?�� �� PowerPoint �����?��� â�� ?��?�?� �??��?�/�������� �����??�.
+        /// PowerPoint 이미지 더블클릭 처리
+        /// 더블클릭 시 PowerPoint 슬라이드쇼 창을 활성화하고 애니메이션/비디오를 트리거합니다.
         /// </summary>
         private void PowerPointImage_DoubleClick(object sender, EventArgs e)
         {
             try
             {
-                // ����?�� �÷��� ���� (���� ?�� Ÿ�?� ��??)
+                // 더블클릭 플래그 설정
                 pptDoubleClickInProgress = true;
-
-                // Ÿ�?� ����
-                if (pptClickTimer != null)
-                {
-                    pptClickTimer.Stop();
-                    pptClickTimer.Dispose();
-                    pptClickTimer = null;
-                }
 
                 Control control = (Control)sender;
                 int slideNumber = DataUtil.ObjToInt(control.Tag) + 1;
 
-                // �����?� ��? ����
+                // 슬라이드 번호 설정
                 SongSettings InItem;
                 if (control.Name == "PP_Preview")
                 {
@@ -2977,7 +2950,7 @@ namespace Easislides
             }
             finally
             {
-                // ����?�� �÷��� ���� (�?�� ���� ��)
+                // 더블클릭 플래그 해제 (다음 클릭 허용)
                 System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
                 {
                     this.BeginInvoke(new Action(() =>

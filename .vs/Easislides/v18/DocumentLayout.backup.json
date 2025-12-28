@@ -41,21 +41,21 @@
           "SelectedChildIndex": 2,
           "Children": [
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "FrmMain.resx",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.resx",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.resx",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.resx",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.resx",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.resx*",
+              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.resx*",
               "ViewState": "AgIAAAAAAAAAAAAAAAAmwO4/AAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
               "WhenOpened": "2025-12-28T06:45:58.339Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
               "$type": "Document",
@@ -63,8 +63,8 @@
               "Title": "FrmMain.Designer.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.Designer.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.Designer.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.Designer.cs",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.Designer.cs",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.Designer.cs*",
+              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.Designer.cs*",
               "ViewState": "AgIAAAUbAAAAAAAAAAAUwBUbAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-28T06:39:41.78Z",
@@ -105,7 +105,8 @@
               "RelativeToolTip": "Easislides\\Easislides\\gf.cs",
               "ViewState": "AgIAAOIIAAAAAAAAAAAAwOgIAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-28T01:02:12.279Z"
+              "WhenOpened": "2025-12-28T01:02:12.279Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -113,8 +114,8 @@
               "Title": "FrmMain.cs",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.cs",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs*",
+              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.cs*",
               "ViewState": "AgIAANYmAAAAAAAAAAAUwOcmAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-28T00:44:10.565Z",
@@ -126,8 +127,8 @@
               "Title": "FrmMain.cs [Design]",
               "DocumentMoniker": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs",
               "RelativeDocumentMoniker": "Easislides\\Easislides\\FrmMain.cs",
-              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs [Design]",
-              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.cs [Design]",
+              "ToolTip": "E:\\WorkSpace\\wp-ms\\dev\\EasiSlides_v2.6.0\\Easislides\\Easislides\\FrmMain.cs [Design]*",
+              "RelativeToolTip": "Easislides\\Easislides\\FrmMain.cs [Design]*",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-27T12:44:15.729Z",
               "EditorCaption": " [Design]"
