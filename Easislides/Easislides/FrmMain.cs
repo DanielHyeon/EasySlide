@@ -11787,6 +11787,11 @@ namespace Easislides
                             _mediaPlayerWindow.Remote_StopItem();
                             _mediaPlayerWindow.Hide();
                         }
+                        else if (e.KeyCode == Keys.Space)
+                        {
+                            // Space 키로 전체화면 전환 기능 추가
+                            _mediaPlayerWindow.Remote_PausePlayItem();
+                        }
                     };
 
                     // 더블클릭으로 닫기 기능 추가
