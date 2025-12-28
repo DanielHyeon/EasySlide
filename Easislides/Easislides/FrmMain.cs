@@ -71,8 +71,8 @@ namespace Easislides
             Remote_LiveBlackClearChanged,
             Remote_ChineseChanged,
             Remote_WorshipListChanged,
-            Remote_LiveCamStartStop,
-            Remote_LiveCamUpdate,
+            //Remote_LiveCamStartStop,
+            //Remote_LiveCamUpdate,
             Remote_RefreshMediaWindow,
             Remote_RotateOnOffChanged,
             Remote_GetMediaTimings,
@@ -10866,10 +10866,10 @@ namespace Easislides
                 LoadItem(ref gf.PreviewItem, gf.PreviewItem.Type + gf.PreviewItem.ItemID, gf.PreviewItem.Format.FormatString, gf.PreviewItem.CurSlide);
                 LoadItem(ref gf.OutputItem, gf.OutputItem.Type + gf.OutputItem.ItemID, gf.OutputItem.Format.FormatString, gf.OutputItem.CurSlide);
             }
-            if (gf.ShowRunning && gf.ShowLiveCam)
-            {
-                RemoteControlLiveShow(LiveShowAction.Remote_LiveCamUpdate);
-            }
+            //if (gf.ShowRunning && gf.ShowLiveCam)
+            //{
+            //    RemoteControlLiveShow(LiveShowAction.Remote_LiveCamUpdate);
+            //}
             SetTabsVisibility();
             SetJumpToolTips();
             ShowStatusBarSummary();
