@@ -514,37 +514,54 @@ namespace OfficeLib
 					return 1;
 				}
 
-                _Presentation activePresentation = prePowerPointApp.ActivePresentation;                
+                _Presentation activePresentation = prePowerPointApp.ActivePresentation;
+                
+                // SlideShowWindow가 존재하는지 확인 (슬라이드쇼가 실행 중이어야 함)
+                SlideShowWindow slideShowWindow = null;
+                try
+                {
+                    slideShowWindow = activePresentation.SlideShowWindow;
+                }
+                catch (COMException)
+                {
+                    // 슬라이드쇼가 실행 중이 아니면 현재 슬라이드 번호를 그대로 반환
+                    return InCurSlide;
+                }
+                
+                if (slideShowWindow == null)
+                {
+                    return InCurSlide;
+                }
             
                 switch (InKey)
 				{
 					case OfficeLibKeys.Left:
                         activePresentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
-                        activePresentation.SlideShowWindow.View.First();
+                        slideShowWindow.View.First();
                         InCurSlide = 1;
                         break;
 					case OfficeLibKeys.Up:
-						activePresentation.SlideShowWindow.View.Previous();
-						InCurSlide = activePresentation.SlideShowWindow.View.Slide.SlideIndex;
+						slideShowWindow.View.Previous();
+						InCurSlide = slideShowWindow.View.Slide.SlideIndex;
                         break;
 					case OfficeLibKeys.Down:
-						activePresentation.SlideShowWindow.View.Next();
-						if (activePresentation.SlideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
+						slideShowWindow.View.Next();
+						if (slideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
 						{
-							activePresentation.SlideShowWindow.View.Last();
+							slideShowWindow.View.Last();
                             InCurSlide = -1;
 						}
 						else
 						{
-							InCurSlide = activePresentation.SlideShowWindow.View.Slide.SlideIndex;
+							InCurSlide = slideShowWindow.View.Slide.SlideIndex;
                         }
                         break;
 					case OfficeLibKeys.Right:
-						activePresentation.SlideShowWindow.View.Last();
+						slideShowWindow.View.Last();
 						InCurSlide = InCurMaxSlide;
                         break;
 					case OfficeLibKeys.None:
-						activePresentation.SlideShowWindow.View.GotoSlide(InSlideNo, MsoTriState.msoFalse);                        
+						slideShowWindow.View.GotoSlide(InSlideNo, MsoTriState.msoFalse);                        
                         InCurSlide = InSlideNo;
                         break;
 					case OfficeLibKeys.Space:
@@ -552,38 +569,38 @@ namespace OfficeLib
 						if (InCurSlide == -1)
 							return InCurSlide;
 
-                        if (activePresentation.SlideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
+                        if (slideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
 						{
-							//activePresentation.SlideShowWindow.View.Last();
+							//slideShowWindow.View.Last();
                             InCurSlide = -1;
 						}
 						else
 						{
-							//int nIndex = activePresentation.SlideShowWindow.View.GetClickIndex();
-							//int nCount = activePresentation.SlideShowWindow.View.GetClickCount();
+							//int nIndex = slideShowWindow.View.GetClickIndex();
+							//int nCount = slideShowWindow.View.GetClickCount();
 
 							
-                            //activePresentation.SlideShowWindow.View.GotoClick(0);
-                            //int ClickCount = activePresentation.SlideShowWindow.View.GetClickCount();
+                            //slideShowWindow.View.GotoClick(0);
+                            //int ClickCount = slideShowWindow.View.GetClickCount();
 
-                            activePresentation.SlideShowWindow.Activate();
-                            activePresentation.SlideShowWindow.View.Next();
+                            slideShowWindow.Activate();
+                            slideShowWindow.View.Next();
 
-                            if (activePresentation.SlideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
+                            if (slideShowWindow.View.State == PpSlideShowState.ppSlideShowDone)
 							{
 								InCurSlide = -1;
                             }
 							else
 							{
-								if (InCurSlide != activePresentation.SlideShowWindow.View.Slide.SlideIndex)
+								if (InCurSlide != slideShowWindow.View.Slide.SlideIndex)
 								{
-                                    InCurSlide = activePresentation.SlideShowWindow.View.Slide.SlideIndex;
+                                    InCurSlide = slideShowWindow.View.Slide.SlideIndex;
                                 }
                             }
                         }
                         break;
 					case OfficeLibKeys.F5:
-						activePresentation.SlideShowWindow.View.GotoSlide(InCurSlide, MsoTriState.msoFalse);
+						slideShowWindow.View.GotoSlide(InCurSlide, MsoTriState.msoFalse);
                         break;
 				}
             }
