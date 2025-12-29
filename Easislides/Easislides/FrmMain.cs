@@ -4982,7 +4982,13 @@ namespace Easislides
                 string filePrefix = gf.SetPowerpointPreviewPrefix1(gf.PreviewItem);
 
                 // ✅ 캐싱 최적화: 파일이 빌드되지 않았거나 다른 항목으로 변경된 경우에만 로드
-                if (!gf.PreviewPPT.IsBuildedFileCheck(gf.PreviewItem.Path, filePrefix, ref gf.PreviewItem.TotalSlides) || preSelectedItemNum != num)
+                bool hasPptPathFromList = !string.IsNullOrEmpty(text)
+                    && text[0] == 'P'
+                    && text.Length > 1
+                    && !string.IsNullOrWhiteSpace(text.Substring(1));
+                if (!hasPptPathFromList
+                    || !gf.PreviewPPT.IsBuildedFileCheck(gf.PreviewItem.Path, filePrefix, ref gf.PreviewItem.TotalSlides)
+                    || preSelectedItemNum != num)
                 {
                     LoadItem(ref gf.PreviewItem, text, WorshipListItems.Items[num].SubItems[2].Text, StartingSlide, ref InTitle, ScrollToCaret: true);
                     UpdateDisplayPanelFields();
@@ -5285,6 +5291,12 @@ namespace Easislides
 
         private void BuildAllPowerpointScreenDumps(ref SongSettings InItem)
         {
+            if (string.IsNullOrWhiteSpace(InItem.Path))
+            {
+                Console.WriteLine("[Skip] PowerPoint path is empty; screen dumps not built.");
+                return;
+            }
+
             string filePrefix = gf.SetPowerpointPreviewPrefix1(InItem);
 
             if (InItem.OutputStyleScreen)

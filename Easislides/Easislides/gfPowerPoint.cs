@@ -50,31 +50,23 @@ namespace Easislides
 {
     internal unsafe partial class gf
     {
-        // All constants, fields, and methods have been moved to:
-        // - gfConstants.cs (constants and static fields)
-        // - gfUtility.cs (utility methods)
-        // - gfDatabase.cs (database methods)
-        // - gfBible.cs (bible methods)
-        // - gfDisplay.cs (display/UI methods)
-        // - gfMedia.cs (media/music methods)
-        // - gfPowerPoint.cs (PowerPoint methods)
-        // - gfFileIO.cs (file I/O methods)
-        // - gfImages.cs (image methods)
-        // - gfLyrics.cs (lyrics/notation methods)
-        // - gfFolder.cs (folder methods)
-        // - gfConfig.cs (configuration methods)
-    }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    public struct SHFILEOPSTRUCT
-    {
-        public IntPtr hwnd;
-        public uint wFunc;
-        public string pFrom;
-        public string pTo;
-        public ushort fFlags;
-        public bool fAnyOperationsAborted;
-        public IntPtr hNameMappings;
-        public string lpszProgressTitle;
+		public static bool PowerpointPresent()
+		{
+			string text = Application.StartupPath + "\\Sys\\~temp.ppt";
+			FileUtil.MakeDir(Application.StartupPath + "\\Sys");
+			if (!File.Exists(text))
+			{
+				FileUtil.CreateNewFile(text);
+			}
+			text = '"' + text + '"';
+			string lpResult = new string(' ', 260);
+			if (FindExecutable(text, "", lpResult) > 32)
+			{
+				return true;
+			}
+			return false;
+		}
+
     }
 }

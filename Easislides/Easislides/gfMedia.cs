@@ -50,31 +50,44 @@ namespace Easislides
 {
     internal unsafe partial class gf
     {
-        // All constants, fields, and methods have been moved to:
-        // - gfConstants.cs (constants and static fields)
-        // - gfUtility.cs (utility methods)
-        // - gfDatabase.cs (database methods)
-        // - gfBible.cs (bible methods)
-        // - gfDisplay.cs (display/UI methods)
-        // - gfMedia.cs (media/music methods)
-        // - gfPowerPoint.cs (PowerPoint methods)
-        // - gfFileIO.cs (file I/O methods)
-        // - gfImages.cs (image methods)
-        // - gfLyrics.cs (lyrics/notation methods)
-        // - gfFolder.cs (folder methods)
-        // - gfConfig.cs (configuration methods)
-    }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    public struct SHFILEOPSTRUCT
-    {
-        public IntPtr hwnd;
-        public uint wFunc;
-        public string pFrom;
-        public string pTo;
-        public ushort fFlags;
-        public bool fAnyOperationsAborted;
-        public IntPtr hNameMappings;
-        public string lpszProgressTitle;
+		public static bool MusicFound(string MusicTitle1)
+		{
+			return MusicFound(MusicTitle1, "");
+		}
+
+		public static bool MusicFound(string MusicTitle1, string MusicTitle2)
+		{
+			return MusicFound(MusicTitle1, MusicTitle2, StoreDirPath: false);
+		}
+
+		public static bool MusicFound(string MusicTitle1, string MusicTitle2, bool StoreDirPath)
+		{
+			if (TotalMusicFiles < 0)
+			{
+				TotalMusicFiles = 0;
+				MusicBuildContinue = true;
+				MusicBuildStartTime = DateTime.Now;
+				MusicBuildLapseTime = new TimeSpan(0L);
+				BuildMusicFilesListArray(MediaDir, StoreDirPath);
+			}
+			if (TotalMusicFiles < 1)
+			{
+				return false;
+			}
+			for (int i = 0; i < TotalMusicFiles; i++)
+			{
+				if (MediaFilesList[i, 0].ToLower() == MusicTitle1.ToLower())
+				{
+					return true;
+				}
+				if (MusicTitle2 != "" && MediaFilesList[i, 0].ToLower() == MusicTitle2.ToLower())
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
     }
 }

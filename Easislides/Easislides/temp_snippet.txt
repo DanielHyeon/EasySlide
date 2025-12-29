@@ -1,9 +1,0 @@
-				// 창 제목에 파일 이름이 포함되어 있는지 확인
-				if (!string.IsNullOrEmpty(windowTitle) &&
-				    (windowTitle.Contains(Path.GetFileNameWithoutExtension(fileNameLower)) ||
-				     windowTitle.Contains("media player") ||
-				     windowTitle.Contains("vlc")))
-				{
-					foundWindow = hWnd;
-					return false; // 찾았으면 중단
-				}
