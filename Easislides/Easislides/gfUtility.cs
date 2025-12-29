@@ -1,4 +1,4 @@
-﻿//using JRO;
+//using JRO;
 using Easislides.SQLite;
 //using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
 using Easislides.Util;

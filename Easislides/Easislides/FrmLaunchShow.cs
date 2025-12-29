@@ -188,7 +188,7 @@ namespace Easislides
 			if (FormFirstLoad)
 			{
 				Bitmap bitmap = new Bitmap(55, 25);
-				//Graphics graphics = Graphics.FromImage(bitmap);
+				Graphics graphics = Graphics.FromImage(bitmap);
 				IntPtr hicon = bitmap.GetHicon();
 				LiveCursor = new Cursor(hicon);
 				Cursor = LiveCursor;
@@ -198,8 +198,8 @@ namespace Easislides
 				//MediaPlayerWindow.OnMessage += MediaPlayerWindow_OnMessage;
 				//LyricsWindow.OnMessage += LyricsWindow_OnMessage;
 				LiveScreen.Cursor = LiveCursor;
-				//bitmap.Dispose();
-				//graphics.Dispose();
+				bitmap.Dispose();
+				graphics.Dispose();
 			}
 		}
 
@@ -770,22 +770,22 @@ namespace Easislides
 				MoveToLiveItem(InItem, KeyDirection.Refresh);
 				return;
 			//case Keys.F9:
-			//{
-			//	SetScreenOnTop(StartTimer: false);
-			//	FrmSingleMonitorAlert frmSingleMonitorAlert = new FrmSingleMonitorAlert();
-			//	DialogResult dialogResult = frmSingleMonitorAlert.ShowDialog();
-			//	if (dialogResult == DialogResult.OK)
 			//	{
-			//		LiveScreen.StartAlert(gf.LiveItem, gf.Alert_OriginalMessage, gf.AlertTimeRemaining, gf.Alert_UserFont, gf.Alert_Scroll, gf.Alert_Flash, gf.Alert_Transparent, gf.Alert_UserFontShadow, gf.Alert_UserFontOutline, gf.Alert_TextColour, gf.Alert_BackColour, gf.Alert_TextAlign, gf.Alert_VerticalAlign, gf.BottomBorderFactor);
+			//		SetScreenOnTop(StartTimer: false);
+			//		FrmSingleMonitorAlert frmSingleMonitorAlert = new FrmSingleMonitorAlert();
+			//		DialogResult dialogResult = frmSingleMonitorAlert.ShowDialog();
+			//		if (dialogResult == DialogResult.OK)
+			//		{
+			//			LiveScreen.StartAlert(gf.LiveItem, gf.Alert_OriginalMessage, gf.AlertTimeRemaining, gf.Alert_UserFont, gf.Alert_Scroll, gf.Alert_Flash, gf.Alert_Transparent, gf.Alert_UserFontShadow, gf.Alert_UserFontOutline, gf.Alert_TextColour, gf.Alert_BackColour, gf.Alert_TextAlign, gf.Alert_VerticalAlign, gf.BottomBorderFactor);
+			//		}
+			//		SetScreenOnTop(StartTimer: true);
+			//		return;
 			//	}
-			//	SetScreenOnTop(StartTimer: true);
-			//	return;
-			//}
-			//case Keys.F6:
-			//	gf.SwitchChineseLyricsNotationListView(ref gf.LiveItem, gf.SwitchChinese(ref gf.LiveItem.CompleteLyrics));
-			//	ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
-			//	return;
-			case Keys.A:
+				//case Keys.F6:
+				//	gf.SwitchChineseLyricsNotationListView(ref gf.LiveItem, gf.SwitchChinese(ref gf.LiveItem.CompleteLyrics));
+				//	ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+				//	return;
+				case Keys.A:
 				gf.AutoRotateOn = !gf.AutoRotateOn;
 				gf.RestartCurrentItem = false;
 				TimerRotate.Start();

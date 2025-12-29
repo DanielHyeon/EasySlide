@@ -434,33 +434,87 @@ namespace OfficeLib
 			}
 		}
 
-		/// <summary>
-		/// â�� �ּ�ȭ ���ش�.
-		/// </summary>
-		/// <param name="Pres"></param>
-		//private void PrePowerPointApp_PresentationOpenEvent(Presentation Pres)
-		//{
-		//	if (isLive && !isEditable)
-		//	{
-		//		Pres.Application.WindowState = PpWindowState.ppWindowMinimized;
-		//	}
-		//	else if (!isLive && isEditable)
-		//	{
-		//		Pres.Application.WindowState = PpWindowState.ppWindowNormal;
-		//	}
-		//	else
-		//	{
-		//		Pres.Application.WindowState = PpWindowState.ppWindowNormal;
-		//	}
+        /// <summary>
+        /// â�� �ּ�ȭ ���ش�.
+        /// </summary>
+        /// <param name="Pres"></param>
+        //private void PrePowerPointApp_PresentationOpenEvent(Presentation Pres)
+        //{
+        //	if (isLive && !isEditable)
+        //	{
+        //		Pres.Application.WindowState = PpWindowState.ppWindowMinimized;
+        //	}
+        //	else if (!isLive && isEditable)
+        //	{
+        //		Pres.Application.WindowState = PpWindowState.ppWindowNormal;
+        //	}
+        //	else
+        //	{
+        //		Pres.Application.WindowState = PpWindowState.ppWindowNormal;
+        //	}
 
-		//	Pres.Application.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
-		//	//prePowerPointApp.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
-		//}
+        //	Pres.Application.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
+        //	//prePowerPointApp.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
+        //}
 
-		/// <summary>
-		/// ?�블?�릭 ??PowerPoint ?�라?�드??창을 ?�성?�하�??�니메이???�영?�을 ?�생?�는 메서??
-		/// </summary>
-		public void ActivateSlideShowAndTriggerClick(int slideNumber = -1)
+        private DateTime lastClickTime = DateTime.MinValue;
+
+        public void SafePlayNext(int slideNumber = -1)
+        {
+            var activePresentation = prePowerPointApp.ActivePresentation;
+            if (activePresentation == null || activePresentation.SlideShowWindow == null) return;
+
+            // 1. 디바운스 (유지)
+            if ((DateTime.Now - lastClickTime).TotalMilliseconds < 500) return;
+            lastClickTime = DateTime.Now;
+
+            try
+            {
+                var view = activePresentation.SlideShowWindow.View;
+
+                // [핵심 수정 사항] 
+                // 입력된 번호가 유효하고(>0), '현재 보고 있는 슬라이드'와 '다를 때만' 이동합니다.
+                // 같을 때 이동하면 애니메이션이 리셋되기 때문입니다.
+                if (slideNumber > 0 && view.Slide.SlideIndex != slideNumber)
+                {
+                    // 다른 슬라이드로 이동할 때만 실행
+                    view.GotoSlide(slideNumber, MsoTriState.msoTrue);
+                }
+
+                activePresentation.SlideShowWindow.Activate();
+
+                // 현재 상태 다시 조회 (GotoSlide를 했을 수도 있으므로 여기서 조회)
+                int totalClicks = view.Slide.TimeLine.MainSequence.Count;
+                int currentIndex = view.GetClickIndex();
+
+                // 2. 애니메이션 실행 로직
+                if (currentIndex < totalClicks)
+                {
+                    view.Next();
+                    System.Diagnostics.Debug.WriteLine($"Playing animation {currentIndex + 1} of {totalClicks}");
+                }
+                else
+                {
+                    // 3. 애니메이션 끝난 후 처리
+                    System.Diagnostics.Debug.WriteLine("Animation finished. Resetting loop.");
+
+                    // 만약 '다음 슬라이드'로 자동으로 넘어가길 원하시면:
+                    // view.Next(); 
+
+                    // 현재 로직 유지 (반복 재생):
+                    view.GotoClick(0);
+                    view.Next();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error: " + ex.Message);
+            }
+        }
+        /// <summary>
+        /// ?�블?�릭 ??PowerPoint ?�라?�드??창을 ?�성?�하�??�니메이???�영?�을 ?�생?�는 메서??
+        /// </summary>
+        public void ActivateSlideShowAndTriggerClick(int slideNumber = -1)
 		{
 			try
 			{

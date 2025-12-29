@@ -2954,7 +2954,8 @@ namespace Easislides
                 // Trigger PowerPoint click to start animation/video
                 if (MainPPT.prePowerPointApp != null)
                 {
-                    MainPPT.ActivateSlideShowAndTriggerClick(slideNumber);
+                    MainPPT.SafePlayNext(slideNumber);
+                    //MainPPT.ActivateSlideShowAndTriggerClick(slideNumber);
                 }
             }
             catch (Exception ex)
@@ -9725,6 +9726,7 @@ namespace Easislides
                 {
                     gf.LaunchShowUpdateDone = false;
                     formWindowState = (base.WindowState = base.WindowState);
+
                     gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                     try
                     {
@@ -9800,7 +9802,7 @@ namespace Easislides
             }
         }
 
-        private void OldStart_Presentation()
+        private void Start_Presentation_Old()
         {
             if (gf.ShowRunning)
             {
