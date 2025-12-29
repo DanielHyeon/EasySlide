@@ -8,578 +8,323 @@ using System.Windows.Forms;
 
 namespace Easislides
 {
-	internal class ImageCanvas : Control
+	internal class ImageCanvas : Control, IDisposable
 	{
-		private Image _image;
+		// Constants
+		private const float FONT_SIZE_RATIO = 12.5f;
+		private const float SMALL_FONT_SIZE_RATIO = 24f;
+		private const float RESOLUTION_MULTIPLIER = 2f;
+		private const int SINGLE_DIGIT_OFFSET = 5;
+		private const int MULTI_DIGIT_OFFSET = 12;
 
-		private int _PosLeft = 0;
+		// Auto-properties
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public Image Image { get; set; }
 
-		private int _PosTop = 0;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PosLeft { get; set; }
 
-		private int _PosWidth = 0;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PosTop { get; set; }
 
-		private int _PosHeight = 0;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PosWidth { get; set; }
 
-		private string _FileName = "";
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PosHeight { get; set; }
 
-		private float _ImageRatio = 1f;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public string FileName { get; set; } = "";
 
-		private bool _PowerPoint = false;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public float ImageRatio { get; set; } = 1f;
 
-		private int _SlideNumber = 0;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsPowerPoint { get; set; }
 
-		private bool _ImageDone = false;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int SlideNumber { get; set; }
 
-		public float BorderWidthFactor = 0f;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsImageReady { get; set; }
 
-		public int PPSlideNumbering = 0;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public float BorderWidthFactor { get; set; }
 
-		public bool ExternalPP = false;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PowerPointSlideNumbering { get; set; }
 
-		public int CurSelectedSlide = 0;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsExternalPowerPoint { get; set; }
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Image image
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int CurrentSelectedSlide { get; set; }
+
+		// Legacy property names for backward compatibility
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool PowerPoint
 		{
-			get
-			{
-				return _image;
-			}
-			set
-			{
-				_image = value;
-			}
+			get => IsPowerPoint;
+			set => IsPowerPoint = value;
 		}
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int PosLeft
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public Image image
 		{
-			get
-			{
-				return _PosLeft;
-			}
-			set
-			{
-				_PosLeft = value;
-			}
+			get => Image;
+			set => Image = value;
 		}
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int PosTop
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool ExternalPP
 		{
-			get
-			{
-				return _PosTop;
-			}
-			set
-			{
-				_PosTop = value;
-			}
+			get => IsExternalPowerPoint;
+			set => IsExternalPowerPoint = value;
 		}
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int PosWidth
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PPSlideNumbering
 		{
-			get
-			{
-				return _PosWidth;
-			}
-			set
-			{
-				_PosWidth = value;
-			}
+			get => PowerPointSlideNumbering;
+			set => PowerPointSlideNumbering = value;
 		}
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int PosHeight
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int CurSelectedSlide
 		{
-			get
-			{
-				return _PosHeight;
-			}
-			set
-			{
-				_PosHeight = value;
-			}
+			get => CurrentSelectedSlide;
+			set => CurrentSelectedSlide = value;
 		}
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public string FileName
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool ImageDone
 		{
-			get
-			{
-				return _FileName;
-			}
-			set
-			{
-				_FileName = value;
-			}
+			get => IsImageReady;
+			set => IsImageReady = value;
 		}
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public float ImageRatio
-		{
-			get
-			{
-				return _ImageRatio;
-			}
-			set
-			{
-				_ImageRatio = value;
-			}
-		}
-
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public bool PowerPoint
-		{
-			get
-			{
-				return _PowerPoint;
-			}
-			set
-			{
-				_PowerPoint = value;
-			}
-		}
-
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int SlideNumber
-		{
-			get
-			{
-				return _SlideNumber;
-			}
-			set
-			{
-				_SlideNumber = value;
-			}
-		}
-
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public bool ImageDone
-		{
-			get
-			{
-				return _ImageDone;
-			}
-			set
-			{
-				_ImageDone = value;
-			}
-		}
-
-		public void SetImageRatio(int InImageWidth, int InImageHeight)
+				public void SetImageRatio(int InImageWidth, int InImageHeight)
 		{
 			ImageRatio = (float)InImageWidth / (float)InImageHeight;
 		}
 
-		public void ResizeCanvas_Old(int InCanvasWidth, int InCanvasHeight)
+		public void ResizeCanvas(int InCanvasWidth, int InCanvasHeight)
 		{
-            base.Width = InCanvasWidth;
-            base.Height = InCanvasHeight;
-
-			if (ImageDone && _image != null)
+			if (Image == null)
 			{
-				float num = (float)base.Width / (float)base.Height;
-				ImageRatio = (float)_image.Width / (float)_image.Height;
-				if (num < ImageRatio)
+				Console.WriteLine("Error: Image is null in ResizeCanvas.");
+				return;
+			}
+
+			try
+			{
+				base.Width = InCanvasWidth;
+				base.Height = InCanvasHeight;
+
+				float canvasRatio = (float)base.Width / base.Height;
+				float imageRatio = (float)Image.Width / Image.Height;
+
+				if (canvasRatio < imageRatio)
 				{
-					PosLeft = 0;
 					PosWidth = base.Width;
-					PosHeight = (int)((float)PosWidth / ImageRatio);
+					PosHeight = (int)Math.Round(PosWidth / imageRatio);
+					PosLeft = 0;
 					PosTop = (base.Height - PosHeight) / 2;
 				}
 				else
 				{
 					PosHeight = base.Height;
+					PosWidth = (int)Math.Round(PosHeight * imageRatio);
 					PosTop = 0;
-					PosWidth = (int)((float)PosHeight * ImageRatio);
 					PosLeft = (base.Width - PosWidth) / 2;
 				}
-				ImageDone = true;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error in ResizeCanvas: {ex.Message}");
 			}
 		}
 
-        public void ResizeCanvas(int InCanvasWidth, int InCanvasHeight)
-        {
-            // ✅ 이미지가 `null`이면 오류 방지
-            if (_image == null)
-            {
-                Console.WriteLine("Error: _image is null in ResizeCanvas.");
-                return;
-            }
-
-            try
-            {
-                base.Width = InCanvasWidth;
-                base.Height = InCanvasHeight;
-
-                float canvasRatio = (float)base.Width / base.Height;
-                float imageRatio = (float)_image.Width / _image.Height;  // ✅ 여기서 예외 발생 가능
-
-                // ✅ 비율을 유지하면서 캔버스 크기에 맞게 자동 조정
-                if (canvasRatio < imageRatio)
-                {
-                    PosWidth = base.Width;
-                    PosHeight = (int)Math.Round(PosWidth / imageRatio);
-                    PosLeft = 0;
-                    PosTop = (base.Height - PosHeight) / 2;
-                }
-                else
-                {
-                    PosHeight = base.Height;
-                    PosWidth = (int)Math.Round(PosHeight * imageRatio);
-                    PosTop = 0;
-                    PosLeft = (base.Width - PosWidth) / 2;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in ResizeCanvas: {ex.Message}");
-            }
-        }
 
 
-
-        public ImageCanvas()
+		public ImageCanvas()
 		{
 			SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
 			Cursor = Cursors.Hand;
 			base.Visible = false;
-			FileName = "";
-			ImageRatio = 1f;
 		}
 
-		//protected override void OnPaint(PaintEventArgs e)
-		//{
-		//	if ((_image != null || !(FileName == "")) && base.Visible)
-		//	{
-		//		if (ImageDone)
-		//		{
-		//			Draw_image(e);
-		//		}
-		//		else if (Calc_Image())
-		//		{
-		//			Draw_image(e);
-		//		}
-		//	}
-		//}
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			if ((Image == null || string.IsNullOrEmpty(FileName)) && !base.Visible)
+				return;
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            if ((_image == null || string.IsNullOrEmpty(FileName)) && !base.Visible)
-                return; // 불필요한 렌더링 방지
+			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+			e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            // 🔹 고해상도 렌더링을 위한 `Graphics` 설정
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+			if (!IsImageReady && !CalculateImage())
+				return;
 
-            if (!ImageDone && !Calc_Image())
-                return; // `Calc_Image()`가 실패하면 렌더링 중단
+			DrawImage(e);
+		}
 
-            Draw_image(e); // 최종적으로 이미지 렌더링
-        }
-
-        private void Draw_image(PaintEventArgs e)
+		private void DrawImage(PaintEventArgs e)
 		{
 			e.Graphics.Clear(BackColor);
-			e.Graphics.DrawImage(_image, new Rectangle(_PosLeft, _PosTop, _PosWidth, _PosHeight), new Rectangle(0, 0, _image.Width, _image.Height), GraphicsUnit.Pixel);
+			e.Graphics.DrawImage(Image, new Rectangle(PosLeft, PosTop, PosWidth, PosHeight), new Rectangle(0, 0, Image.Width, Image.Height), GraphicsUnit.Pixel);
 		}
 
-		public void BuildNewImageThumbs_Old(int NewCanvasIndex, int NewWidth, int NewHeight, ref string[] NewImageArray, int NewTotalCount, string NewPrefix, int NewCurSelectedSlide, Color NewBackColour, ToolTip NewToolTip, bool NewExternalPP)
+		public void BuildNewImageThumbs(int NewCanvasIndex, int NewWidth, int NewHeight, ref string[] NewImageArray,
+								int NewTotalCount, string NewPrefix, int NewCurSelectedSlide, Color NewBackColour,
+								ToolTip NewToolTip, bool NewExternalPowerPoint)
 		{
 			try
 			{
-				int pPSlideNumbering = NewCanvasIndex + 1;
-                string extension = "";
-				string text = "";
-				string text2 = NewImageArray[NewCanvasIndex];
-				base.Width = NewWidth;
-                base.Height = NewHeight;
+				int slideNumbering = NewCanvasIndex + 1;
+				string extension = Path.GetExtension(NewImageArray[NewCanvasIndex]).ToLower();
+				string imagePath = NewImageArray[NewCanvasIndex];
 
-				ExternalPP = NewExternalPP;
-				CurSelectedSlide = NewCurSelectedSlide;
-				if (PowerPoint)
+				base.Width = NewWidth;
+				base.Height = NewHeight;
+
+				IsExternalPowerPoint = NewExternalPowerPoint;
+				CurrentSelectedSlide = NewCurSelectedSlide;
+
+				if (IsPowerPoint)
 				{
-					text = PPSlideNumbering.ToString();
-					SlideNumber = PPSlideNumbering;
-					goto IL_0108;
+					SlideNumber = PowerPointSlideNumbering;
 				}
-				text = gf.GetDisplayNameOnly(ref NewImageArray[NewCanvasIndex], UpdateByRef: false, KeepExt: true);
-				SlideNumber = 0;
-                //if (DataUtil.Right(text2, 4) == ".ppt")
-                extension = Path.GetExtension(text2).ToLower();
-                if (extension == ".ppt"|| extension == ".pptx")
-                {
-					text2 = gf.ExtPPrefix + gf.ExtPPrefix_Num + "\\" + Path.GetFileNameWithoutExtension(text2) + ".jpg";
-				}
-				if (!(FileName == text2) || ExternalPP)
+				else
 				{
-					goto IL_0108;
+					SlideNumber = 0;
+					if (extension == ".ppt" || extension == ".pptx")
+					{
+						imagePath = $"{gf.ExtPPrefix}{gf.ExtPPrefix_Num}\\{Path.GetFileNameWithoutExtension(imagePath)}.jpg";
+					}
 				}
-				ResizeCanvas(base.Width, base.Height);
-				goto end_IL_0001;
-				IL_0108:
-				NewToolTip.SetToolTip(this, text);
-				PPSlideNumbering = pPSlideNumbering;
-				BackColor = NewBackColour;
-				BorderWidthFactor = 0.04f;
-				ImageDone = false;
-				FileName = text2;
-				base.Visible = true;
-				Invalidate();
-				end_IL_0001:;
+
+				if (FileName != imagePath || IsExternalPowerPoint)
+				{
+					FileName = imagePath;
+					IsImageReady = false;
+					BackColor = NewBackColour;
+					BorderWidthFactor = 0.04f;
+					base.Visible = true;
+
+					NewToolTip.SetToolTip(this, SlideNumber > 0 ? SlideNumber.ToString() : imagePath);
+
+					PowerPointSlideNumbering = slideNumbering;
+
+					ResizeCanvas(base.Width, base.Height);
+
+					Invalidate();
+				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error in BuildNewImageThumbs: {ex.Message}");
 			}
 		}
 
-        public void BuildNewImageThumbs(int NewCanvasIndex, int NewWidth, int NewHeight, ref string[] NewImageArray,
-                                int NewTotalCount, string NewPrefix, int NewCurSelectedSlide, Color NewBackColour,
-                                ToolTip NewToolTip, bool NewExternalPP)
-        {
-            try
-            {
-                int pPSlideNumbering = NewCanvasIndex + 1;
-                string extension = Path.GetExtension(NewImageArray[NewCanvasIndex]).ToLower();
-                string text2 = NewImageArray[NewCanvasIndex];
+		private void DrawSlideNumber(Graphics graphics, int storedImageWidth, int storedImageHeight, int margin)
+		{
+			string text = PowerPointSlideNumbering.ToString();
+			float offsetX = PowerPointSlideNumbering < 10 ? SINGLE_DIGIT_OFFSET : MULTI_DIGIT_OFFSET;
+			PointF position = new PointF(storedImageWidth - (margin * 2 + offsetX), margin);
 
-                base.Width = NewWidth;  
-                base.Height = NewHeight;
+			using (Font font = new Font("Microsoft Sans Serif", storedImageWidth / SMALL_FONT_SIZE_RATIO))
+			{
+				SizeF textSize = graphics.MeasureString(text, font);
 
-                ExternalPP = NewExternalPP;
-                CurSelectedSlide = NewCurSelectedSlide;
+				graphics.FillRectangle(Brushes.Black, position.X - 3, position.Y + 1, textSize.Width - 2, textSize.Height - 3);
+				graphics.FillRectangle(Brushes.Yellow, position.X - 4, position.Y, textSize.Width - 2, textSize.Height - 3);
+				graphics.DrawString(text, font, Brushes.Black, position.X - 5, position.Y);
+			}
+		}
 
-                if (PowerPoint)
-                {
-                    SlideNumber = PPSlideNumbering;
-                }
-                else
-                {
-                    SlideNumber = 0;
-                    if (extension == ".ppt" || extension == ".pptx")
-                    {
-                        text2 = $"{gf.ExtPPrefix}{gf.ExtPPrefix_Num}\\{Path.GetFileNameWithoutExtension(text2)}.jpg";
-                    }
-                }
+		private void DrawBorder(Graphics graphics, Rectangle rect, float fontSize)
+		{
+			Color borderColor = (CurrentSelectedSlide == PowerPointSlideNumbering) ? Color.Red : base.Parent.BackColor;
+			using (Pen pen = new Pen(borderColor, fontSize))
+			{
+				graphics.DrawRectangle(pen, rect);
+			}
+		}
 
-                // ✅ 파일명이 변경되었거나 외부 PowerPoint 파일이면 새 이미지 적용
-                if (FileName != text2 || ExternalPP)
-                {
-                    FileName = text2;
-                    ImageDone = false;
-                    BackColor = NewBackColour;
-                    BorderWidthFactor = 0.04f;
-                    base.Visible = true;
+		public bool CalculateImage()
+		{
+			int newImageWidth = 0, newImageHeight = 0;
+			int storedImageWidth = 0, storedImageHeight = 0;
 
-                    // ✅ 툴팁 설정
-                    NewToolTip.SetToolTip(this, SlideNumber > 0 ? SlideNumber.ToString() : text2);
+			try
+			{
+				if (IsExternalPowerPoint)
+				{
+					gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
+				}
 
-                    PPSlideNumbering = pPSlideNumbering;
+				using System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(FileName);
+				SetImageRatio(sourceImage.Width, sourceImage.Height);
+				gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
 
-                    // ✅ 고해상도 캔버스로 리사이징
-                    ResizeCanvas(base.Width, base.Height);
+				if (newImageWidth <= 0 || newImageHeight <= 0)
+				{
+					return false;
+				}
 
-                    Invalidate(); // 다시 그리기 요청
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in BuildNewImageThumbs: {ex.Message}");
-            }
-        }
+				storedImageWidth = (int)(storedImageWidth * RESOLUTION_MULTIPLIER);
+				storedImageHeight = (int)(storedImageHeight * RESOLUTION_MULTIPLIER);
 
-        /// <summary>
-        /// daniel 왼쪽 페이지 숫자 위치를 오른쪽 끝으로 이동
-        /// </summary>
-        /// <returns></returns>
-        public bool Calc_Image_Old()
-        {
-            int NewImageWidth = 0;
-            int NewImageHeight = 0;
-            int StoredImageWidth = 0;
-            int StoredImageHeight = 0;
-            int posWidth = PosWidth;
-            int posHeight = PosHeight;
-            try
-            {
-                if (ExternalPP)
-                {
-                    gf.ExternalPPT.BuildOneFirstScreenDump(PPSlideNumbering);
-                }
-                Image image = Image.FromFile(FileName);
-                SetImageRatio(image.Width, image.Height);
-                gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref NewImageWidth, ref NewImageHeight, ComputeStoredImage: true, ref StoredImageWidth, ref StoredImageHeight);
-                if ((NewImageWidth <= 0) | (NewImageHeight <= 0))
-                {
-                    return false;
-                }
-                Image image2 = new Bitmap(StoredImageWidth, StoredImageHeight, PixelFormat.Format24bppRgb);
-                Graphics graphics = Graphics.FromImage(image2);
-                Rectangle rect = new Rectangle(0, 0, StoredImageWidth, StoredImageHeight);
-                if (PowerPoint)
-                {
-                    Font font = new Font("Microsoft Sans Serif", (float)StoredImageWidth / 12.5f);
-                    int num = (int)((StoredImageWidth >= StoredImageHeight) ? ((float)StoredImageWidth * BorderWidthFactor) : ((float)StoredImageHeight * BorderWidthFactor));
+				using Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
+				using Graphics graphics = Graphics.FromImage(renderedImage);
 
-                    Rectangle rect2 = new Rectangle(num, num, StoredImageWidth - num * 2, StoredImageHeight - num * 2);
-                    graphics.DrawImage(image, rect2);
+				graphics.SmoothingMode = SmoothingMode.AntiAlias;
+				graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+				graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                    string text = PPSlideNumbering.ToString();
+				Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
 
-                    SizeF sizeF = graphics.MeasureString(text, font);
+				if (IsPowerPoint || IsExternalPowerPoint)
+				{
+					float fontSize = storedImageWidth / FONT_SIZE_RATIO;
+					int margin = storedImageWidth >= storedImageHeight
+						? (int)(storedImageWidth * BorderWidthFactor)
+						: (int)(storedImageHeight * BorderWidthFactor);
 
-                    PointF pointF;
+					Rectangle imageRect = new(margin, margin, storedImageWidth - 2 * margin, storedImageHeight - 2 * margin);
+					graphics.DrawImage(sourceImage, imageRect);
 
-					switch (PPSlideNumbering)
-                    {
-                        case < 10:
-                            pointF = new PointF(StoredImageWidth - (num * 2 + 5), num);
-                            break;
-                        default:
-                            pointF = new PointF(StoredImageWidth - (num * 2 + 12), num);
-                            break;
-                    }
+					DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
+					DrawBorder(graphics, fullRect, fontSize);
+				}
+				else
+				{
+					graphics.DrawImage(sourceImage, fullRect);
+				}
 
-					Font font1 = new Font("Microsoft Sans Serif", (float)StoredImageWidth / 16f);
-					SizeF sizeF1 = graphics.MeasureString(text, font1);
+				Image = (System.Drawing.Image)renderedImage.Clone();
 
-					graphics.FillRectangle(new SolidBrush(gf.BlackScreenColour), pointF.X-3, pointF.Y + 1f, sizeF1.Width - 2, sizeF1.Height - 3);
-                    graphics.FillRectangle(new SolidBrush(Color.Yellow), pointF.X-4, pointF.Y, sizeF1.Width - 2, sizeF1.Height - 3);
-                    graphics.DrawString(text, font1, new SolidBrush(gf.BlackScreenColour), pointF.X-5, pointF.Y);
+				IsImageReady = true;
+				ResizeCanvas(base.Width, base.Height);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error in CalculateImage: {ex.Message}");
+				IsImageReady = false;
+				return false;
+			}
+			return true;
+		}
 
-                    if (CurSelectedSlide == PPSlideNumbering)
-                    {
-                        graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red), (int)font.Size), rect);
-                    }
-                    else
-                    {
-                        graphics.DrawRectangle(new Pen(new SolidBrush(base.Parent.BackColor), (int)font.Size), rect);
-                    }
-                }
-                else if (ExternalPP)
-                {
-                    Font font = new Font("Microsoft Sans Serif", (float)StoredImageWidth / 12.5f);
-                    int num = (int)((StoredImageWidth >= StoredImageHeight) ? ((float)StoredImageWidth * BorderWidthFactor) : ((float)StoredImageHeight * BorderWidthFactor));
-                    Rectangle rect2 = new Rectangle(num, num, StoredImageWidth - num * 2, StoredImageHeight - num * 2);
-                    graphics.DrawImage(image, rect2);
-                    if (CurSelectedSlide == PPSlideNumbering)
-                    {
-                        graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red), (int)font.Size), rect);
-                    }
-                    else
-                    {
-                        graphics.DrawRectangle(new Pen(new SolidBrush(BackColor), (int)font.Size), rect);
-                    }
-                }
-                else
-                {
-                    graphics.DrawImage(image, rect);
-                }
-                this.image = image2;
-                ImageDone = true;
-                ResizeCanvas(base.Width, base.Height);
-                //image.Dispose();
-                //image2.Dispose();
-                //graphics.Dispose();
-            }
-            catch
-            {
-                ImageDone = false;
-                return false;
-            }
-            return true;
-        }
-
-        public bool Calc_Image()
-        {
-            int NewImageWidth = 0, NewImageHeight = 0;
-            int StoredImageWidth = 0, StoredImageHeight = 0;
-
-            try
-            {
-                if (ExternalPP)
-                {
-                    gf.ExternalPPT.BuildOneFirstScreenDump(PPSlideNumbering);
-                }
-
-                // 🔹 `Image.FromFile()`을 안전하게 호출하여 손상된 이미지 방지
-                using (Image image = Image.FromFile(FileName))
-                {
-                    SetImageRatio(image.Width, image.Height);
-                    gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref NewImageWidth, ref NewImageHeight, true, ref StoredImageWidth, ref StoredImageHeight);
-
-                    if (NewImageWidth <= 0 || NewImageHeight <= 0)
-                    {
-                        return false;
-                    }
-
-                    // ✅ 해상도 2배 증가하여 FHD~4K 지원
-                    StoredImageWidth *= 2;
-                    StoredImageHeight *= 2;
-
-                    using (Bitmap image2 = new Bitmap(StoredImageWidth, StoredImageHeight, PixelFormat.Format24bppRgb))
-                    using (Graphics graphics = Graphics.FromImage(image2))
-                    {
-                        // 🔹 고품질 그래픽 설정
-                        graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                        Rectangle rect = new Rectangle(0, 0, StoredImageWidth, StoredImageHeight);
-
-                        if (PowerPoint || ExternalPP)
-                        {
-                            float fontSize = StoredImageWidth / 12.5f;
-                            using (Font font = new Font("Microsoft Sans Serif", fontSize))
-                            {
-                                int margin = (StoredImageWidth >= StoredImageHeight) ? (int)(StoredImageWidth * BorderWidthFactor) : (int)(StoredImageHeight * BorderWidthFactor);
-                                Rectangle imageRect = new Rectangle(margin, margin, StoredImageWidth - 2 * margin, StoredImageHeight - 2 * margin);
-
-                                graphics.DrawImage(image, imageRect);
-
-                                string text = PPSlideNumbering.ToString();
-                                PointF pointF = new PointF(StoredImageWidth - (PPSlideNumbering < 10 ? margin * 2 + 5 : margin * 2 + 12), margin);
-
-                                // ✅ 텍스트 배경을 그리기 전에 텍스트 크기 계산 (2자리 수 이상일 때 위치 및 폰트 크기 보정)
-                                using (Font smallFont = new Font("Microsoft Sans Serif", StoredImageWidth / 24f))
-                                {
-                                    SizeF textSize = graphics.MeasureString(text, smallFont);
-
-                                    // ✅ 텍스트 배경을 올바른 위치에 적용
-                                    graphics.FillRectangle(Brushes.Black, pointF.X - 3, pointF.Y + 1, textSize.Width - 2, textSize.Height - 3);
-                                    graphics.FillRectangle(Brushes.Yellow, pointF.X - 4, pointF.Y, textSize.Width - 2, textSize.Height - 3);
-                                    graphics.DrawString(text, smallFont, Brushes.Black, pointF.X - 5, pointF.Y);
-                                }
-
-                                using (Pen pen = new Pen(CurSelectedSlide == PPSlideNumbering ? Color.Red : base.Parent.BackColor, font.Size))
-                                {
-                                    graphics.DrawRectangle(pen, rect);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            graphics.DrawImage(image, rect);
-                        }
-
-                        // ✅ 최종 고해상도 이미지 저장
-                        this.image = (Image)image2.Clone();
-                    }
-                }
-
-                ImageDone = true;
-                ResizeCanvas(base.Width, base.Height);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in Calc_Image: {ex.Message}");
-                ImageDone = false;
-                return false;
-            }
-            return true;
-        }
-    }
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				Image?.Dispose();
+				Image = null;
+			}
+			base.Dispose(disposing);
+		}
+	}
 }
