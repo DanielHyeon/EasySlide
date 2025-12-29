@@ -124,33 +124,99 @@ package-lock.json
 /venv
 .venv
 
-# C#
-# 1. 빌드 결과물 (가장 중요! 아까 충돌의 주범)
-# 컴파일할 때마다 새로 생기는 파일들이라 깃에 올리면 안 됩니다.
-bin/
-obj/
-Debug/
-Release/
+## C# / .NET / Visual Studio
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
 
-# 2. Visual Studio 임시 설정 파일
-# 사용자마다 설정이 다르므로 공유하면 안 됩니다.
+# Visual Studio cache/options
 .vs/
+.vscode/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+*.userprefs
 
-# 3. 기타 임시 파일 및 로그
-*.log
-*.tmp
-*.cache
+# Build results files
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
 *.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
 
-# 4. 윈도우 썸네일 파일 (불필요)
-Thumbs.db
-Desktop.ini
+# Caches
+*.cache
+[Ss]tyle[Cc]op.*
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
 
-# 5. 패키지 관련 (NuGet)
+# NuGet
 packages/
+!packages/build/
 *.nuget.props
 *.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Miscellaneous
+*.pidb
+*.scc
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+[Dd]ebug[Pp]ublic/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
