@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"e:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\fix_gc.ps1\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"e:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\fix_gc2.ps1\")",
+      "Bash(powershell:*)"
+    ]
+  }
+}
