@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -252,11 +252,128 @@ namespace Easislides
 			}
 		}
 
-		public bool CalculateImage()
+		private bool ShouldDrawPowerPointOverlay()
 		{
-			int newImageWidth = 0, newImageHeight = 0;
-			int storedImageWidth = 0, storedImageHeight = 0;
+			return IsPowerPoint || IsExternalPowerPoint;
+		}
 
+		private void ConfigureGraphics(Graphics graphics)
+		{
+			graphics.SmoothingMode = SmoothingMode.AntiAlias;
+			graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+		}
+
+		private int CalculateBorderMargin(int storedImageWidth, int storedImageHeight)
+		{
+			int baseSize = storedImageWidth >= storedImageHeight ? storedImageWidth : storedImageHeight;
+			return (int)(baseSize * BorderWidthFactor);
+		}
+
+		private bool TryCalculateTargetSizes(System.Drawing.Image sourceImage, out int storedImageWidth, out int storedImageHeight)
+		{
+			int newImageWidth = 0;
+			int newImageHeight = 0;
+			storedImageWidth = 0;
+			storedImageHeight = 0;
+
+			SetImageRatio(sourceImage.Width, sourceImage.Height);
+			gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
+
+			if (newImageWidth <= 0 || newImageHeight <= 0)
+			{
+				return false;
+			}
+
+			storedImageWidth = (int)(storedImageWidth * RESOLUTION_MULTIPLIER);
+			storedImageHeight = (int)(storedImageHeight * RESOLUTION_MULTIPLIER);
+
+			return storedImageWidth > 0 && storedImageHeight > 0;
+		}
+
+		/// <summary>
+		/// margin 클램프와 inner size guard만 유지
+		/// </summary>
+		/// <param name="sourceImage"></param>
+		/// <param name="storedImageWidth"></param>
+		/// <param name="storedImageHeight"></param>
+		/// <returns></returns> <summary>
+
+		private Bitmap RenderImage(System.Drawing.Image sourceImage, int storedImageWidth, int storedImageHeight)
+		{
+			Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
+			using Graphics graphics = Graphics.FromImage(renderedImage);
+
+			ConfigureGraphics(graphics);
+
+			Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
+
+			if (ShouldDrawPowerPointOverlay())
+			{
+				float fontSize = storedImageWidth / FONT_SIZE_RATIO;
+				int margin = CalculateBorderMargin(storedImageWidth, storedImageHeight);
+				int maxMargin = (Math.Min(storedImageWidth, storedImageHeight) - 1) / 2;
+				if (maxMargin < 0)
+				{
+					maxMargin = 0;
+				}
+				if (margin > maxMargin)
+				{
+					margin = maxMargin;
+				}
+
+				int innerWidth = storedImageWidth - 2 * margin;
+				int innerHeight = storedImageHeight - 2 * margin;
+				if (innerWidth <= 0 || innerHeight <= 0)
+				{
+					graphics.DrawImage(sourceImage, fullRect);
+					return renderedImage;
+				}
+
+				DrawBorder(graphics, fullRect, fontSize);
+				Rectangle imageRect = new(margin, margin, innerWidth, innerHeight);
+				graphics.DrawImage(sourceImage, imageRect);
+
+				DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
+			}
+			else
+			{
+				graphics.DrawImage(sourceImage, fullRect);
+			}
+
+			return renderedImage;
+		}
+
+        private Bitmap RenderImage_backup(System.Drawing.Image sourceImage, int storedImageWidth, int storedImageHeight)
+        {
+            Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
+            using Graphics graphics = Graphics.FromImage(renderedImage);
+
+            ConfigureGraphics(graphics);
+
+            Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
+
+            if (ShouldDrawPowerPointOverlay())
+            {
+                float fontSize = storedImageWidth / FONT_SIZE_RATIO;
+                int margin = CalculateBorderMargin(storedImageWidth, storedImageHeight);
+
+                DrawBorder(graphics, fullRect, fontSize);
+                Rectangle imageRect = new(margin, margin, storedImageWidth - 2 * margin, storedImageHeight - 2 * margin);
+                graphics.DrawImage(sourceImage, imageRect);
+
+                DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
+            }
+            else
+            {
+                graphics.DrawImage(sourceImage, fullRect);
+            }
+
+            return renderedImage;
+        }
+
+        public bool CalculateImage()
+		{
 			try
 			{
 				if (IsExternalPowerPoint)
@@ -265,43 +382,12 @@ namespace Easislides
 				}
 
 				using System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(FileName);
-				SetImageRatio(sourceImage.Width, sourceImage.Height);
-				gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
-
-				if (newImageWidth <= 0 || newImageHeight <= 0)
+				if (!TryCalculateTargetSizes(sourceImage, out int storedImageWidth, out int storedImageHeight))
 				{
 					return false;
 				}
 
-				storedImageWidth = (int)(storedImageWidth * RESOLUTION_MULTIPLIER);
-				storedImageHeight = (int)(storedImageHeight * RESOLUTION_MULTIPLIER);
-
-				using Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
-				using Graphics graphics = Graphics.FromImage(renderedImage);
-
-				graphics.SmoothingMode = SmoothingMode.AntiAlias;
-				graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-				graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-				Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
-
-				if (IsPowerPoint || IsExternalPowerPoint)
-				{
-					float fontSize = storedImageWidth / FONT_SIZE_RATIO;
-					int margin = storedImageWidth >= storedImageHeight
-						? (int)(storedImageWidth * BorderWidthFactor)
-						: (int)(storedImageHeight * BorderWidthFactor);
-
-					Rectangle imageRect = new(margin, margin, storedImageWidth - 2 * margin, storedImageHeight - 2 * margin);
-					graphics.DrawImage(sourceImage, imageRect);
-
-					DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
-					DrawBorder(graphics, fullRect, fontSize);
-				}
-				else
-				{
-					graphics.DrawImage(sourceImage, fullRect);
-				}
+				using Bitmap renderedImage = RenderImage(sourceImage, storedImageWidth, storedImageHeight);
 
 				Image = (System.Drawing.Image)renderedImage.Clone();
 
@@ -317,7 +403,73 @@ namespace Easislides
 			return true;
 		}
 
-		protected override void Dispose(bool disposing)
+        public bool CalculateImage_backup()
+        {
+            int newImageWidth = 0, newImageHeight = 0;
+            int storedImageWidth = 0, storedImageHeight = 0;
+
+            try
+            {
+                if (IsExternalPowerPoint)
+                {
+                    gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
+                }
+
+                using System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(FileName);
+                SetImageRatio(sourceImage.Width, sourceImage.Height);
+                gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
+
+                if (newImageWidth <= 0 || newImageHeight <= 0)
+                {
+                    return false;
+                }
+
+                storedImageWidth = (int)(storedImageWidth * RESOLUTION_MULTIPLIER);
+                storedImageHeight = (int)(storedImageHeight * RESOLUTION_MULTIPLIER);
+
+                using Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
+                using Graphics graphics = Graphics.FromImage(renderedImage);
+
+                graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
+
+                if (IsPowerPoint || IsExternalPowerPoint)
+                {
+
+                    float fontSize = storedImageWidth / FONT_SIZE_RATIO;
+                    int margin = storedImageWidth >= storedImageHeight
+                        ? (int)(storedImageWidth * BorderWidthFactor)
+                        : (int)(storedImageHeight * BorderWidthFactor);
+
+                    DrawBorder(graphics, fullRect, fontSize);
+                    Rectangle imageRect = new(margin, margin, storedImageWidth - 2 * margin, storedImageHeight - 2 * margin);
+                    graphics.DrawImage(sourceImage, imageRect);
+
+                    DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
+                }
+                else
+                {
+                    graphics.DrawImage(sourceImage, fullRect);
+                }
+
+                Image = (System.Drawing.Image)renderedImage.Clone();
+
+                IsImageReady = true;
+                ResizeCanvas(base.Width, base.Height);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CalculateImage: {ex.Message}");
+                IsImageReady = false;
+                return false;
+            }
+            return true;
+        }
+
+        protected override void Dispose(bool disposing)
 		{
 			if (disposing)
 			{
