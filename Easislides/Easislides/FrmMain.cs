@@ -11759,6 +11759,7 @@ namespace Easislides
         }
 
         private FrmLaunchMediaPlayer _mediaPlayerWindow = null;
+        private bool _isMediaPlayerHookActive = false;
 
         private void PlayMediaOnOutputMonitor(string mediaFilePath)
         {
@@ -11778,29 +11779,21 @@ namespace Easislides
                 {
                     _mediaPlayerWindow = new FrmLaunchMediaPlayer();
 
-                    // ESC 키로 닫기 기능 추가
-                    _mediaPlayerWindow.KeyPreview = true;
-                    _mediaPlayerWindow.KeyDown += (s, e) =>
-                    {
-                        if (e.KeyCode == Keys.Escape)
-                        {
-                            _mediaPlayerWindow.Remote_StopItem();
-                            _mediaPlayerWindow.Hide();
-                        }
-                        else if (e.KeyCode == Keys.Space)
-                        {
-                            // Space 키로 전체화면 전환 기능 추가
-                            _mediaPlayerWindow.Remote_PausePlayItem();
-                        }
-                    };
-
                     // 더블클릭으로 닫기 기능 추가
                     _mediaPlayerWindow.DoubleClick += (s, e) =>
                     {
-                        _mediaPlayerWindow.Remote_StopItem();
-                        _mediaPlayerWindow.Hide();
+                        StopMediaPlayer();
+                    };
+
+                    // 창이 닫힐 때 글로벌 후킹 해제
+                    _mediaPlayerWindow.FormClosed += (s, e) =>
+                    {
+                        RemoveHookMediaPlayer();
                     };
                 }
+
+                // 미디어 플레이어용 글로벌 키보드 후킹 시작
+                AddHookMediaPlayer();
 
                 // Output Monitor 적용
                 _mediaPlayerWindow.ApplyOutputMonitor(outputMonitorName);
@@ -11863,6 +11856,124 @@ namespace Easislides
             {
                 _mediaPlayerWindow.Remote_StopItem();
                 _mediaPlayerWindow.Hide();
+            }
+        }
+
+        /// <summary>
+        /// 미디어 플레이어용 글로벌 키보드 후킹 추가
+        /// </summary>
+        public void AddHookMediaPlayer()
+        {
+            try
+            {
+                if (!_isMediaPlayerHookActive)
+                {
+                    HookManager.KeyDown += HookManager_MediaPlayer_KeyDown;
+                    _isMediaPlayerHookActive = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to add media player hook: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 미디어 플레이어용 글로벌 키보드 후킹 제거
+        /// </summary>
+        public void RemoveHookMediaPlayer()
+        {
+            try
+            {
+                if (_isMediaPlayerHookActive)
+                {
+                    HookManager.KeyDown -= HookManager_MediaPlayer_KeyDown;
+                    _isMediaPlayerHookActive = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to remove media player hook: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 미디어 플레이어 전용 글로벌 키보드 이벤트 핸들러
+        /// </summary>
+        private void HookManager_MediaPlayer_KeyDown(object sender, KeyEventArgs e)
+        {
+            // 미디어 플레이어가 활성 상태일 때만 동작
+            if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed || !_mediaPlayerWindow.Visible)
+            {
+                return;
+            }
+
+            // UI 스레드에서 실행되도록 보장
+            frmMain.BeginInvoke(new Action(() =>
+            {
+                HandleMediaPlayerKey(e.KeyCode);
+            }));
+        }
+
+        /// <summary>
+        /// 미디어 플레이어 키 처리
+        /// </summary>
+        private void HandleMediaPlayerKey(Keys key)
+        {
+            if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed)
+                return;
+
+            switch (key)
+            {
+                case Keys.Escape:
+                    // ESC: 미디어 중지 및 숨김
+                    StopMediaPlayer();
+                    break;
+
+                case Keys.Space:
+                    // Space: 일시정지/재생 토글
+                    _mediaPlayerWindow.Remote_PausePlayItem();
+                    break;
+
+                case Keys.Enter:
+                    // Enter: 재생 재시작
+                    _mediaPlayerWindow.Remote_ResumeItemFromStart();
+                    break;
+
+                case Keys.S:
+                    // S: 중지
+                    _mediaPlayerWindow.Remote_StopItem();
+                    break;
+
+                case Keys.M:
+                    // M: 음소거 토글
+                    ToggleMediaMute();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 미디어 플레이어 중지
+        /// </summary>
+        private void StopMediaPlayer()
+        {
+            if (_mediaPlayerWindow != null && !_mediaPlayerWindow.IsDisposed)
+            {
+                _mediaPlayerWindow.Remote_StopItem();
+                _mediaPlayerWindow.Hide();
+                RemoveHookMediaPlayer();
+            }
+        }
+
+        /// <summary>
+        /// 미디어 음소거 토글
+        /// </summary>
+        private void ToggleMediaMute()
+        {
+            if (gf.LiveItem != null && gf.LiveItem.Format != null)
+            {
+                gf.LiveItem.Format.MediaMute = gf.LiveItem.Format.MediaMute == 0 ? 1 : 0;
+                // 음소거 상태 적용 (필요시 Remote_LoadItem 재호출)
             }
         }
 
