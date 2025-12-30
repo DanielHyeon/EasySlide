@@ -900,7 +900,7 @@ namespace OfficeLib
 				{
 					if (tempPresentation == null)
 					{
-						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
 						shouldClose = true;
 					}
 					TotalSlides = tempPresentation.Slides.Count;
@@ -936,7 +936,7 @@ namespace OfficeLib
 				{
 					if (tempPresentation == null)
 					{
-						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
 						shouldClose = true;
 					}
 					TotalSlides = tempPresentation.Slides.Count;
@@ -973,7 +973,7 @@ namespace OfficeLib
 				{
 					if (tempPresentation == null)
 					{
-						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
 						shouldClose = true;
 					}
 					TotalSlides = tempPresentation.Slides.Count;
@@ -1034,7 +1034,7 @@ namespace OfficeLib
 				Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
 					
 					// 캐시 히트: Verse 정보 파싱을 위해서만 프레젠테이션 열기
-					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
 					Console.WriteLine(FilePath);
 					if (presentation != null)
 					{
