@@ -6734,6 +6734,9 @@ namespace Easislides
                 point = WorshipListItems.PointToClient(Cursor.Position);
                 gf.GetSelectedIndex(WorshipListItems, ref OutString);
                 gf.SetMenuItem(ref CMenuWorship_Edit, OutString, "Edit Item", "Edit", DisableWhenBlank: true);
+                bool canPlayMedia = IsSelectedWorshipListMediaItem();
+                CMenuWorship_Play.Enabled = canPlayMedia;
+                CMenuWorship_PlayOnOutput.Enabled = canPlayMedia;
                 CMenuWorship.Show(WorshipListItems, point);
             }
             else
@@ -6750,6 +6753,26 @@ namespace Easislides
             {
                 WorshipListItems.Focus();
             }
+        }
+
+        private bool IsSelectedWorshipListMediaItem()
+        {
+            if (WorshipListItems.SelectedItems.Count != 1)
+            {
+                return false;
+            }
+            ListViewItem selected = WorshipListItems.SelectedItems[0];
+            if (selected.SubItems.Count < 2)
+            {
+                return false;
+            }
+            string typeAndPath = selected.SubItems[1].Text;
+            if (string.IsNullOrEmpty(typeAndPath))
+            {
+                return false;
+            }
+            string itemType = DataUtil.Left(typeAndPath, 1);
+            return itemType == "M";
         }
 
         private void ResetListViewBackgroundColour(ListView InListView)
