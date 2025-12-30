@@ -344,34 +344,6 @@ namespace Easislides
 			return renderedImage;
 		}
 
-        private Bitmap RenderImage_backup(System.Drawing.Image sourceImage, int storedImageWidth, int storedImageHeight)
-        {
-            Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
-            using Graphics graphics = Graphics.FromImage(renderedImage);
-
-            ConfigureGraphics(graphics);
-
-            Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
-
-            if (ShouldDrawPowerPointOverlay())
-            {
-                float fontSize = storedImageWidth / FONT_SIZE_RATIO;
-                int margin = CalculateBorderMargin(storedImageWidth, storedImageHeight);
-
-                DrawBorder(graphics, fullRect, fontSize);
-                Rectangle imageRect = new(margin, margin, storedImageWidth - 2 * margin, storedImageHeight - 2 * margin);
-                graphics.DrawImage(sourceImage, imageRect);
-
-                DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
-            }
-            else
-            {
-                graphics.DrawImage(sourceImage, fullRect);
-            }
-
-            return renderedImage;
-        }
-
         public bool CalculateImage()
 		{
 			try
@@ -402,72 +374,6 @@ namespace Easislides
 			}
 			return true;
 		}
-
-        public bool CalculateImage_backup()
-        {
-            int newImageWidth = 0, newImageHeight = 0;
-            int storedImageWidth = 0, storedImageHeight = 0;
-
-            try
-            {
-                if (IsExternalPowerPoint)
-                {
-                    gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
-                }
-
-                using System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(FileName);
-                SetImageRatio(sourceImage.Width, sourceImage.Height);
-                gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
-
-                if (newImageWidth <= 0 || newImageHeight <= 0)
-                {
-                    return false;
-                }
-
-                storedImageWidth = (int)(storedImageWidth * RESOLUTION_MULTIPLIER);
-                storedImageHeight = (int)(storedImageHeight * RESOLUTION_MULTIPLIER);
-
-                using Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
-                using Graphics graphics = Graphics.FromImage(renderedImage);
-
-                graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
-
-                if (IsPowerPoint || IsExternalPowerPoint)
-                {
-
-                    float fontSize = storedImageWidth / FONT_SIZE_RATIO;
-                    int margin = storedImageWidth >= storedImageHeight
-                        ? (int)(storedImageWidth * BorderWidthFactor)
-                        : (int)(storedImageHeight * BorderWidthFactor);
-
-                    DrawBorder(graphics, fullRect, fontSize);
-                    Rectangle imageRect = new(margin, margin, storedImageWidth - 2 * margin, storedImageHeight - 2 * margin);
-                    graphics.DrawImage(sourceImage, imageRect);
-
-                    DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
-                }
-                else
-                {
-                    graphics.DrawImage(sourceImage, fullRect);
-                }
-
-                Image = (System.Drawing.Image)renderedImage.Clone();
-
-                IsImageReady = true;
-                ResizeCanvas(base.Width, base.Height);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in CalculateImage: {ex.Message}");
-                IsImageReady = false;
-                return false;
-            }
-            return true;
-        }
 
         protected override void Dispose(bool disposing)
 		{

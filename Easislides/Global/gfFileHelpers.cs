@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Easislides
 {
-    static class GfFileHelpers
+    static class gfFileHelpers
     {
         public static bool TryDeleteWithRetries(string filePath, int retries = 5, int delayMs = 200)
         {
