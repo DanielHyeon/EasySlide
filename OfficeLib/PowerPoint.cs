@@ -979,101 +979,6 @@ namespace OfficeLib
 				return string.Join("", md5.ComputeHash(fs).ToArray().Select(i => i.ToString("X2")));
 		}
 
-		public bool BuildScreenPreDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
-		{
-			bool result = true;
-			try
-			{
-				//for (int i = 1; i < DB_MAXSLIDES; i++)
-				//{
-				//	Slide[i, 0] = -1;
-				//}
-				//for (int j = 0; j <= MAX_VERSES; j++)
-				//{
-				//	SongVerses[j] = 0;
-				//}
-				//if (App == null)
-				//{
-				//	return result;
-				//}
-				try
-				{
-					/// ����Slide ī��Ʈ, SongVerses ī��Ʈ ��ŭ�� �ʱ�ȭ
-					for (int i = 1; i < TotalSlides; i++)
-					{
-						Slide[i, 0] = -1;
-					}
-
-					for (int j = 0; j <= MAX_VERSES; j++)
-					{
-						SongVerses[j] = 0;
-					}
-				} 
-				catch (Exception)
-				{ }
-
-				if (prePowerPointApp == null)
-				{
-					return result;
-				}
-
-				// daniel 2019/11/22
-				//--------------------------------------------------------------------------------------------------------
-				//if (IsFileChanged(FilePath))
-				//{
-				//	return true;
-				//}
-
-				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-				Console.WriteLine(FilePath);
-				if ((presentation == null) & (TotalSlides > 0))
-				{
-					return result;
-				}
-				TotalSlides = presentation.Slides.Count;
-				String strPreFileName = "";
-				String strOutFileName = "";
-
-
-				if (!IsBuildedFileCheck(presentation, FilePath, FilePrefix, ref TotalSlides))
-				{
-					for (int i = 1; i <= TotalSlides; i++)
-					{
-						strPreFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-						presentation.Slides[i].Export(strPreFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
-						strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
-						File.Copy(strPreFileName, strOutFileName, true);
-					}
-				}
-				//else
-				//{
-				//	return result;
-				//}
-
-				//--------------------------------------------------------------------------------------------------------
-
-				//String MD5HashString = PP.GetMD5(FilePath);
-				//Console.WriteLine(MD5HashString);
-				//System.IO.File.Create(MD5HashString);
-
-				// Verse 정보 파싱
-				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-
-				return result;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e.Message);
-				Console.WriteLine(e.StackTrace);
-				return false;
-			}
-			finally
-			{
-				ClosePresentation(ref presentation);
-			}
-		}
-
 		/// <summary>
 		/// 비동기 버전의 BuildScreenPreDumps - UI 블로킹 방지
 		/// </summary>
@@ -1167,19 +1072,6 @@ namespace OfficeLib
 			bool result = true;
 			try
 			{
-				//for (int i = 1; i < DB_MAXSLIDES; i++)
-				//{
-				//	Slide[i, 0] = -1;
-				//}
-				//for (int j = 0; j <= MAX_VERSES; j++)
-				//{
-				//	SongVerses[j] = 0;
-				//}
-				//if (App == null)
-				//{
-				//	return result;
-				//}
-
 				for (int i = 1; i < TotalSlides; i++)
 				{
 					Slide[i, 0] = -1;
@@ -1192,13 +1084,6 @@ namespace OfficeLib
 				{
 					return result;
 				}
-
-				// daniel 2019/11/22
-				//--------------------------------------------------------------------------------------------------------
-				//if (IsFileChanged(FilePath))
-				//{
-				//	return true;
-				//}
 
 				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
 				Console.WriteLine(FilePath);
@@ -1256,26 +1141,6 @@ namespace OfficeLib
 					Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
 				}
 
-					//for (int i = 1; i <= TotalSlides; i++)
-					//{
-					//	strPreFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-					//	presentation.Slides[i].Export(strPreFileName, "JPG", 400, 300);
-					//	//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
-					//	strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
-					//	File.Copy(strPreFileName, strOutFileName, true);
-					//}
-
-				//else
-				//{
-				//	return result;
-				//}
-
-				//--------------------------------------------------------------------------------------------------------
-
-				//String MD5HashString = PP.GetMD5(FilePath);
-				//Console.WriteLine(MD5HashString);
-				//System.IO.File.Create(MD5HashString);
-
 				// Verse 정보 파싱
 				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
 
@@ -1305,91 +1170,6 @@ namespace OfficeLib
 		/// <param name="Slide"></param>
 		/// <param name="SequenceSymbol"></param>
 		/// <returns></returns>
-		public bool BuildScreenDumps1(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
-		{
-			bool result = true;
-			try
-			{
-				//for (int i = 1; i < DB_MAXSLIDES; i++)
-				//{
-				//	Slide[i, 0] = -1;
-				//}
-				//for (int j = 0; j <= MAX_VERSES; j++)
-				//{
-				//	SongVerses[j] = 0;
-				//}
-				//if (App == null)
-				//{
-				//	return result;
-				//}
-
-				for (int i = 1; i < TotalSlides; i++)
-				{
-					Slide[i, 0] = -1;
-				}
-				for (int j = 0; j <= TotalSlides; j++)
-				{
-					SongVerses[j] = 0;
-				}
-				if (prePowerPointApp == null)
-				{
-					return result;
-				}
-
-				// daniel 2019/11/22
-				//--------------------------------------------------------------------------------------------------------
-				//if (IsFileChanged(FilePath))
-				//{
-				//	return true;
-				//}
-
-				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-				Console.WriteLine(FilePath);
-				if ((presentation == null) & (TotalSlides > 0))
-				{
-					return result;
-				}
-				TotalSlides = presentation.Slides.Count;
-				String strFileName = "";
-
-				if (!IsBuildedFileCheck(FilePath, FilePrefix, ref TotalSlides))
-				{
-					for (int i = 1; i <= TotalSlides; i++)
-					{
-						strFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-						presentation.Slides[i].Export(strFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
-					}
-
-				}
-				//else
-				//{
-				//	return result;
-				//}
-
-				//--------------------------------------------------------------------------------------------------------
-
-				//String MD5HashString = PP.GetMD5(FilePath);
-				//Console.WriteLine(MD5HashString);
-				//System.IO.File.Create(MD5HashString);
-
-				// Verse 정보 파싱
-				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-
-				return result;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e.Message);
-				Console.WriteLine(e.StackTrace);
-				return false;
-			}
-			finally
-			{
-				ClosePresentation(ref presentation);
-			}
-		}
-
 		public bool BuildScreenDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
 			bool result = true;
