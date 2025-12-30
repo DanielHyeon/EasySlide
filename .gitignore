@@ -207,6 +207,7 @@ artifacts/
 *.VisualState.xml
 TestResult.xml
 [Dd]ebug[Pp]ublic/
+SQL[Ww]riteTestConsole.*
 
 # Windows image file caches
 Thumbs.db

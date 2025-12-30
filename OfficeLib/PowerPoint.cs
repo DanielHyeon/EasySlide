@@ -843,60 +843,104 @@ namespace OfficeLib
 		/// <param name="FilePrefix">JPG 파일 접두사</param>
 		/// <param name="TotalSlides">총 슬라이드 수 (출력)</param>
 		/// <returns>true: 이미 빌드됨(재빌드 불필요), false: 재빌드 필요</returns>
-		public bool IsBuildedFileCheck(string FilePath, string FilePrefix, ref int TotalSlides)
+		public bool IsBuildedFileCheck(string FilePath, string FilePrefix, ref int TotalSlides, _Presentation presentation = null)
+	{
+		if (string.IsNullOrEmpty(FilePath))
 		{
-			if (string.IsNullOrEmpty(FilePath))
+			Console.WriteLine("FilePath is null or empty");
+			return false;
+		}
+
+		var pptFileInfo = new FileInfo(FilePath);
+		if (!pptFileInfo.Exists)
+		{
+			Console.WriteLine($"PPT file not found: {FilePath}");
+			return false;
+		}
+
+		Console.WriteLine($"[DEBUG] PPT LastWriteTimeUtc: {pptFileInfo.LastWriteTimeUtc} ({pptFileInfo.LastWriteTimeUtc.Ticks})");
+
+		// ✅ 캐싱: 파일 수정 시간을 포함한 캐시 키 생성
+		string cacheKey = FilePath + "|" + FilePrefix + "|" + pptFileInfo.LastWriteTimeUtc.Ticks;
+		if (_fileCheckCache.ContainsKey(cacheKey))
+		{
+			var cached = _fileCheckCache[cacheKey];
+			if (DateTime.Now - cached.LastCheck < _cacheExpiration)
 			{
-				Console.WriteLine("FilePath is null or empty");
-				return false;
+				TotalSlides = cached.TotalSlides;
+				Console.WriteLine($"[Cache Hit] File check: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
+				return cached.Exists;
 			}
+		}
 
-			// ✅ 캐싱: 먼저 캐시 확인 (성능 최적화)
-			string cacheKey = FilePath + "|" + FilePrefix;
-			if (_fileCheckCache.ContainsKey(cacheKey))
+		// 이전 캐시 키 패턴과 일치하는 항목 제거 (파일이 수정되었으므로)
+		var oldCacheKeys = _fileCheckCache.Keys.Where(k => k.StartsWith(FilePath + "|" + FilePrefix + "|")).ToList();
+		foreach (var oldKey in oldCacheKeys)
+		{
+			if (oldKey != cacheKey)
 			{
-				var cached = _fileCheckCache[cacheKey];
-				if (DateTime.Now - cached.LastCheck < _cacheExpiration)
-				{
-					TotalSlides = cached.TotalSlides;
-					Console.WriteLine($"[Cache Hit] File check: {Path.GetFileName(FilePath)}");
-					return cached.Exists;
-				}
+				_fileCheckCache.Remove(oldKey);
 			}
+		}
 
-			var pptFileInfo = new FileInfo(FilePath);
-			if (!pptFileInfo.Exists)
+		FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
+		Console.WriteLine($"Checking JPG: {jpgFileInfo.FullName}");
+
+		// JPG 파일이 없으면 재빌드 필요
+		if (!jpgFileInfo.Exists)
+		{
+			Console.WriteLine("JPG file not found - rebuild required");
+			
+			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
+			if (TotalSlides == 0 || presentation == null)
 			{
-				Console.WriteLine($"PPT file not found: {FilePath}");
-				return false;
-			}
-
-			FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
-			Console.WriteLine($"Checking JPG: {jpgFileInfo.FullName}");
-
-			// JPG 파일이 없으면 재빌드 필요
-			if (!jpgFileInfo.Exists)
-			{
-				Console.WriteLine("JPG file not found - rebuild required");
-				_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
-				return false;
-			}
-
-			// JPG가 PPT보다 최신이면 이미 빌드됨
-			if (jpgFileInfo.LastWriteTimeUtc > pptFileInfo.LastWriteTimeUtc)
-			{
-				Console.WriteLine($"JPG is newer than PPT - already built (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
-
-				// 슬라이드 수를 가져오기 위해 프레젠테이션 열기
-				_Presentation presentation = null;
+				_Presentation tempPresentation = presentation;
+				bool shouldClose = false;
 				try
 				{
-					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-					TotalSlides = presentation.Slides.Count;
+					if (tempPresentation == null)
+					{
+						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+						shouldClose = true;
+					}
+					TotalSlides = tempPresentation.Slides.Count;
+					Console.WriteLine($"Presentation opened for slide count: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error opening presentation to get slide count: {ex.Message}");
+				}
+				finally
+				{
+					if (shouldClose && tempPresentation != null)
+						ClosePresentation(ref tempPresentation);
+				}
+			}
+			
+			_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
+			return false;
+		}
 
-					_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
-					Console.WriteLine($"[Cache Store] Already built: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
-					return true;
+		// JPG가 PPT보다 최신이거나 같으면 이미 빌드됨
+		Console.WriteLine($"[DEBUG] Comparing times - JPG: {jpgFileInfo.LastWriteTimeUtc} ({jpgFileInfo.LastWriteTimeUtc.Ticks}), PPT: {pptFileInfo.LastWriteTimeUtc} ({pptFileInfo.LastWriteTimeUtc.Ticks})");
+		if (jpgFileInfo.LastWriteTimeUtc >= pptFileInfo.LastWriteTimeUtc)
+		{
+			Console.WriteLine($"JPG is newer than or equal to PPT - already built (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
+			
+			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
+			if (TotalSlides == 0 || presentation == null)
+			{
+				_Presentation tempPresentation = presentation;
+				bool shouldClose = false;
+				try
+				{
+					if (tempPresentation == null)
+					{
+						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+						shouldClose = true;
+					}
+					TotalSlides = tempPresentation.Slides.Count;
+					Console.WriteLine($"Presentation opened for slide count: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
 				}
 				catch (Exception ex)
 				{
@@ -906,71 +950,52 @@ namespace OfficeLib
 				}
 				finally
 				{
-					if (presentation != null)
-						ClosePresentation(ref presentation);
+					if (shouldClose && tempPresentation != null)
+						ClosePresentation(ref tempPresentation);
 				}
 			}
-			else
-			{
-				// PPT가 JPG보다 최신이면 재빌드 필요
-				Console.WriteLine($"PPT is newer than JPG - rebuild required (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
-				_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
-				return false;
-			}
+			
+			_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
+			Console.WriteLine($"[Cache Store] Already built: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
+			return true;
 		}
-
-		public bool IsBuildedFileCheck(_Presentation presentation, string FilePath, string FilePrefix, ref int TotalSlides)
+		else
 		{
-			bool result = true;
-			bool isJpgFileExist = true;
-
-			if (string.IsNullOrEmpty(FilePath))
-				return false;
-
-			int checkSlides = TotalSlides > 2 ? 2 : TotalSlides;			
-
-			for (int i = 1; i <= checkSlides; i++)
+			// PPT가 JPG보다 최신이면 재빌드 필요
+			Console.WriteLine($"PPT is newer than JPG - rebuild required (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
+			
+			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
+			if (TotalSlides == 0 || presentation == null)
 			{
-				FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(i) + ".jpg");
-				Console.WriteLine(FilePrefix + Convert.ToString(i) + ".jpg");
-				if (!jpgFileInfo.Exists)
+				_Presentation tempPresentation = presentation;
+				bool shouldClose = false;
+				try
 				{
-					isJpgFileExist = false;
-					break;
-				}
-				//���� �ִ��� Ȯ�� ������(true), ������(false)
-			}
-
-			if (isJpgFileExist)
-			{
-				var pptFileInfo = new FileInfo(FilePath);
-				FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
-
-				if (pptFileInfo.LastWriteTimeUtc < jpgFileInfo.LastWriteTimeUtc)
-				{
-					Console.WriteLine(pptFileInfo.LastWriteTimeUtc.ToString() + "|" + jpgFileInfo.LastWriteTimeUtc);
-					try
+					if (tempPresentation == null)
 					{
-						TotalSlides = presentation.Slides.Count;
+						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+						shouldClose = true;
 					}
-					catch
-					{
-						result = false;
-					}
-					result = true;
+					TotalSlides = tempPresentation.Slides.Count;
+					Console.WriteLine($"Presentation opened for slide count: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
 				}
-				else
+				catch (Exception ex)
 				{
-					result = false;
+					Console.WriteLine($"Error opening presentation to get slide count: {ex.Message}");
+				}
+				finally
+				{
+					if (shouldClose && tempPresentation != null)
+						ClosePresentation(ref tempPresentation);
 				}
 			}
-			else
-			{
-				result = false;
-			}
-
-			return result;
+			
+			_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
+			return false;
 		}
+	}
+
+
 
 		private static string GetMD5(string path)
 		{
@@ -982,91 +1007,6 @@ namespace OfficeLib
 		/// <summary>
 		/// 비동기 버전의 BuildScreenPreDumps - UI 블로킹 방지
 		/// </summary>
-		public async Task<BuildScreenDumpsResult> BuildScreenPreDumpsAsync(string FilePath, string FilePrefix, int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, int[] SongVerses, int[,] Slide, string[] SequenceSymbol)
-		{
-			var result = new BuildScreenDumpsResult
-			{
-				Success = true,
-				TotalSlides = TotalSlides,
-				SongVerses = (int[])SongVerses.Clone(),
-				Slide = (int[,])Slide.Clone()
-			};
-
-			await Task.Run(() =>
-			{
-				_Presentation presentation = null;
-				try
-				{
-					// 초기화
-					for (int i = 1; i < TotalSlides; i++)
-					{
-						result.Slide[i, 0] = -1;
-					}
-
-					for (int j = 0; j <= MAX_VERSES; j++)
-					{
-						result.SongVerses[j] = 0;
-					}
-
-					if (prePowerPointApp == null)
-					{
-						result.Success = true;
-						return;
-					}
-
-					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-					Console.WriteLine(FilePath);
-
-					if ((presentation == null) & (TotalSlides > 0))
-					{
-						result.Success = true;
-						return;
-					}
-
-					result.TotalSlides = presentation.Slides.Count;
-					String strPreFileName = "";
-					String strOutFileName = "";
-
-					// 파일이 빌드되지 않았으면 Export 수행
-					int tempTotalSlides = result.TotalSlides;
-					if (!IsBuildedFileCheck(presentation, FilePath, FilePrefix, ref tempTotalSlides))
-					{
-						result.TotalSlides = tempTotalSlides;
-						for (int i = 1; i <= result.TotalSlides; i++)
-						{
-							strPreFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-							presentation.Slides[i].Export(strPreFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-							strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
-							File.Copy(strPreFileName, strOutFileName, true);
-						}
-					}
-					else
-					{
-						result.TotalSlides = tempTotalSlides;
-					}
-
-					// Verse 정보 파싱
-					var songVerses = result.SongVerses;
-					var slide = result.Slide;
-					ParseVersesFromPresentation(presentation, result.TotalSlides, ref songVerses, ref slide, SequenceSymbol);
-					result.SongVerses = songVerses;
-					result.Slide = slide;
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e.Message);
-					Console.WriteLine(e.StackTrace);
-					result.Success = false;
-				}
-				finally
-				{
-					ClosePresentation(ref presentation);
-				}
-			});
-
-			return result;
-		}
-
 		public bool BuildScreenOutDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
 			bool result = true;
@@ -1085,6 +1025,25 @@ namespace OfficeLib
 					return result;
 				}
 
+				// ✅ 먼저 캐시 체크 (프레젠테이션을 열기 전에)
+			Console.WriteLine($"[DEBUG BuildScreenOutDumps] Calling IsBuildedFileCheck...");
+			bool isBuilt = IsBuildedFileCheck(FilePath, FilePrefix, ref TotalSlides);
+			Console.WriteLine($"[DEBUG BuildScreenOutDumps] IsBuildedFileCheck returned: {isBuilt}");
+			if (isBuilt)
+			{
+				Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
+					
+					// 캐시 히트: Verse 정보 파싱을 위해서만 프레젠테이션 열기
+					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+					Console.WriteLine(FilePath);
+					if (presentation != null)
+					{
+						ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+					}
+					return result;
+				}
+
+				// 캐시 미스: 이미지를 새로 생성해야 함
 				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
 				Console.WriteLine(FilePath);
 				if ((presentation == null) & (TotalSlides > 0))
@@ -1095,19 +1054,16 @@ namespace OfficeLib
 				String strPreFileName = "";
 				String strOutFileName = "";
 
-
-				if (!IsBuildedFileCheck(presentation, FilePath, FilePrefix, ref TotalSlides))
+				Console.WriteLine($"Building {TotalSlides} output preview images to: {FilePrefix}");
+				for (int i = 1; i <= TotalSlides; i++)
 				{
-					Console.WriteLine($"Building {TotalSlides} output preview images to: {FilePrefix}");
-					for (int i = 1; i <= TotalSlides; i++)
-					{
-						strOutFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-						presentation.Slides[i].Export(strOutFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-						Console.WriteLine($"Exported slide {i} to: {strOutFileName}");
-						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
-						strPreFileName = strOutFileName.Replace("~OUTPPPreview$", "~PREPPPreview$");
+					strOutFileName = FilePrefix + Convert.ToString(i) + ".jpg";
+					presentation.Slides[i].Export(strOutFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+					Console.WriteLine($"Exported slide {i} to: {strOutFileName}");
+					//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
+					strPreFileName = strOutFileName.Replace("~OUTPPPreview$", "~PREPPPreview$");
 
-						// 파일 복사 재시도 (파일이 다른 프로세스에 의해 잠겨있을 수 있음)
+					// 파일 복사 재시도 (파일이 다른 프로세스에 의해 잠겨있을 수 있음)
 					int retryCount = 0;
 					bool copySucceeded = false;
 					while (retryCount < 3 && !copySucceeded)
@@ -1133,15 +1089,13 @@ namespace OfficeLib
 							}
 						}
 					}
-					}
-					Console.WriteLine($"Completed building {TotalSlides} output preview images");
 				}
-				else
-				{
-					Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
-				}
+				Console.WriteLine($"Completed building {TotalSlides} output preview images");
 
-				// Verse 정보 파싱
+			// ✅ 이미지 생성 완료 후 캐시 업데이트
+			UpdateImageBuildCache(FilePath, FilePrefix, TotalSlides);
+
+			// Verse 정보 파싱
 				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
 
 				return result;
@@ -1157,6 +1111,16 @@ namespace OfficeLib
 				ClosePresentation(ref presentation);
 			}
 		}
+
+
+// ✅ 이미지 생성 완료 후 캐시 업데이트 헬퍼 메서드
+private void UpdateImageBuildCache(string FilePath, string FilePrefix, int TotalSlides)
+{
+	var pptFileInfo = new FileInfo(FilePath);
+	string cacheKey = FilePath + "|" + FilePrefix + "|" + pptFileInfo.LastWriteTimeUtc.Ticks;
+	_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
+	Console.WriteLine($"[Cache Store] Images built successfully: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
+}
 
 		/// <summary>
 		/// daniel

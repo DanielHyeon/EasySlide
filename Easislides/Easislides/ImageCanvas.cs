@@ -20,6 +20,7 @@ namespace Easislides
 		// Private fields for caching
 		private Image _cachedSourceImage;
 		private string _cachedFileName;
+	private DateTime _cachedFileTime;
 
 		// Auto-properties
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -357,24 +358,29 @@ namespace Easislides
 					gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
 				}
 
-				// Check if we can use cached source image
+				// Check if file exists before loading
+				if (!File.Exists(FileName))
+				{
+					Console.WriteLine($"Image file not found: {FileName}");
+					IsImageReady = false;
+					return false;
+				}
+
+				// Get file modification time
+				var fileInfo = new FileInfo(FileName);
+				var currentFileTime = fileInfo.LastWriteTimeUtc;
+
+				// Check if we can use cached source image (same file name AND same modification time)
 				System.Drawing.Image sourceImage;
-				if (_cachedFileName == FileName && _cachedSourceImage != null)
+				if (_cachedFileName == FileName && _cachedFileTime == currentFileTime && _cachedSourceImage != null)
 				{
 					sourceImage = _cachedSourceImage;
+					Console.WriteLine($"[ImageCanvas Cache Hit] Using cached image: {Path.GetFileName(FileName)}");
 				}
 				else
 				{
-					// Clear old cached image if filename changed
+					// Clear old cached image if filename changed or file was modified
 					_cachedSourceImage?.Dispose();
-
-					// Check if file exists before loading
-					if (!File.Exists(FileName))
-					{
-						Console.WriteLine($"Image file not found: {FileName}");
-						IsImageReady = false;
-						return false;
-					}
 
 					// Load and cache new source image (using stream to avoid file lock)
 					using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -382,7 +388,9 @@ namespace Easislides
 						_cachedSourceImage = System.Drawing.Image.FromStream(stream);
 					}
 					_cachedFileName = FileName;
+					_cachedFileTime = currentFileTime;
 					sourceImage = _cachedSourceImage;
+					Console.WriteLine($"[ImageCanvas Cache Miss] Loaded new image: {Path.GetFileName(FileName)} (Modified: {currentFileTime})");
 				}
 
 				if (!TryCalculateTargetSizes(sourceImage, out int storedImageWidth, out int storedImageHeight))
