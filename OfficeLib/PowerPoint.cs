@@ -429,38 +429,12 @@ namespace OfficeLib
 			try
 			{
 				prePowerPointApp = new Application();
-				//prePowerPointApp.PresentationOpenEvent += PrePowerPointApp_PresentationOpenEvent;
-				//prePowerPointApp.Activate();
-				//prePowerPointApp.WindowState = PpWindowState.ppWindowMinimized;
 			}
 			catch (Exception)
             {
 				// 예외 무시
             }
 		}
-
-        /// <summary>
-        /// â�� �ּ�ȭ ���ش�.
-        /// </summary>
-        /// <param name="Pres"></param>
-        //private void PrePowerPointApp_PresentationOpenEvent(Presentation Pres)
-        //{
-        //	if (isLive && !isEditable)
-        //	{
-        //		Pres.Application.WindowState = PpWindowState.ppWindowMinimized;
-        //	}
-        //	else if (!isLive && isEditable)
-        //	{
-        //		Pres.Application.WindowState = PpWindowState.ppWindowNormal;
-        //	}
-        //	else
-        //	{
-        //		Pres.Application.WindowState = PpWindowState.ppWindowNormal;
-        //	}
-
-        //	Pres.Application.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
-        //	//prePowerPointApp.PresentationOpenEvent -= PrePowerPointApp_PresentationOpenEvent;
-        //}
 
         private DateTime lastClickTime = DateTime.MinValue;
 
@@ -635,12 +609,6 @@ namespace OfficeLib
 						}
 						else
 						{
-							//int nIndex = slideShowWindow.View.GetClickIndex();
-							//int nCount = slideShowWindow.View.GetClickCount();
-
-							
-                            //slideShowWindow.View.GotoClick(0);
-                            //int ClickCount = slideShowWindow.View.GetClickCount();
 
                             slideShowWindow.Activate();
                             slideShowWindow.View.Next();

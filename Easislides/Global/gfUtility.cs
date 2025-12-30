@@ -3352,7 +3352,7 @@ namespace Easislides
 					break;
 				default:
 					text = InItem.Lyrics[RegNum].Text;
-					MainFont = new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style);
+					ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
 					if (UseLargestFontSize)
 					{
 						ActionWordWrapSpacesAtStart(ref text);
@@ -3369,13 +3369,14 @@ namespace Easislides
 				string text3 = "";
 				for (int i = num8; i <= num9; i++)
 				{
-					text2 = InItem.LyricsAndNotationsList.Items[i].SubItems[2].Text;
+					ListViewItem item = InItem.LyricsAndNotationsList.Items[i];
+					text2 = item.SubItems[2].Text;
 					if (UseLargestFontSize)
 					{
 						ActionWordWrapSpacesAtStart(ref text2);
 					}
 					text = text + text2 + "\n";
-					text3 = InItem.LyricsAndNotationsList.Items[i].SubItems[4].Text;
+					text3 = item.SubItems[4].Text;
 					num5 += DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref text3, '>', RemoveExtract: false));
 					num6++;
 				}
@@ -3392,10 +3393,10 @@ namespace Easislides
 			int num10;
 			if (UseLargestFontSize)
 			{
-				MainFont = new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style);
+				ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
 				bool OnlyOneDisplayLine = false;
 				num10 = IncreaseFontToLargest(g, text, ref MainFont, fS_Width, num4, ref OnlyOneDisplayLine);
-				NotationsFont = new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style);
+				ReplaceFont(ref NotationsFont, new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style));
 				InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * num7);
 				return (int)((double)num10 * num7);
 			}
@@ -3408,17 +3409,26 @@ namespace Easislides
 				{
 					num = (int)InItem.Lyrics[RegNum].Font.Size;
 				}
-				MainFont = new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style);
-				NotationsFont = new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style);
+				ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
+				ReplaceFont(ref NotationsFont, new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style));
 				InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * num7);
 				return InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight * num5;
 			}
-			MainFont = new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style);
+			ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
 			ReduceFontToFit(g, text, ref MainFont, fS_Width, num4, MultiLine: true);
 			num10 = num4;
-			NotationsFont = new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style);
+			ReplaceFont(ref NotationsFont, new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style));
 			InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * num7);
 			return (int)((double)num10 * num7);
+		}
+
+		private static void ReplaceFont(ref Font target, Font replacement)
+		{
+			if (target != null && !ReferenceEquals(target, replacement))
+			{
+				target.Dispose();
+			}
+			target = replacement;
 		}
 
 		public static void SubstituteDashes(ref string ExtractedText, int InShowNotations)
