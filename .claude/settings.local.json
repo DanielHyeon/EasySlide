@@ -6,7 +6,8 @@
       "Bash(powershell -ExecutionPolicy Bypass -File \"e:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\fix_gc2.ps1\")",
       "Bash(powershell:*)",
       "Bash(where:*)",
-      "Bash(C:UsersdanielAppDataLocalPythonbinpython.exe \"e:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\extract_methods.py\")"
+      "Bash(C:UsersdanielAppDataLocalPythonbinpython.exe \"e:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\extract_methods.py\")",
+      "Bash(copy \"Easislides\\\\Easislides\\\\ImageCanvas.cs\" \"Easislides\\\\Easislides\\\\ImageCanvas.cs.bak\")"
     ]
   }
 }

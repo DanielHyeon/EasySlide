@@ -17,10 +17,6 @@ namespace Easislides
 		private const int SINGLE_DIGIT_OFFSET = 5;
 		private const int MULTI_DIGIT_OFFSET = 12;
 
-		// Private fields for caching
-		private Image _cachedSourceImage;
-		private string _cachedFileName;
-
 		// Auto-properties
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public Image Image { get; set; }
@@ -126,18 +122,19 @@ namespace Easislides
 				base.Height = InCanvasHeight;
 
 				float canvasRatio = (float)base.Width / base.Height;
+				float imageRatio = (float)Image.Width / Image.Height;
 
-				if (canvasRatio < ImageRatio)
+				if (canvasRatio < imageRatio)
 				{
 					PosWidth = base.Width;
-					PosHeight = (int)Math.Round(PosWidth / ImageRatio);
+					PosHeight = (int)Math.Round(PosWidth / imageRatio);
 					PosLeft = 0;
 					PosTop = (base.Height - PosHeight) / 2;
 				}
 				else
 				{
 					PosHeight = base.Height;
-					PosWidth = (int)Math.Round(PosHeight * ImageRatio);
+					PosWidth = (int)Math.Round(PosHeight * imageRatio);
 					PosTop = 0;
 					PosLeft = (base.Width - PosWidth) / 2;
 				}
@@ -219,8 +216,7 @@ namespace Easislides
 
 					PowerPointSlideNumbering = slideNumbering;
 
-					// ResizeCanvas는 CalculateImage에서 이미지 로드 후 호출됨
-					// ResizeCanvas(base.Width, base.Height);
+					ResizeCanvas(base.Width, base.Height);
 
 					Invalidate();
 				}
@@ -357,42 +353,15 @@ namespace Easislides
 					gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
 				}
 
-				// Check if we can use cached source image
-				System.Drawing.Image sourceImage;
-				if (_cachedFileName == FileName && _cachedSourceImage != null)
-				{
-					sourceImage = _cachedSourceImage;
-				}
-				else
-				{
-					// Clear old cached image if filename changed
-					_cachedSourceImage?.Dispose();
-
-					// Check if file exists before loading
-					if (!File.Exists(FileName))
-					{
-						Console.WriteLine($"Image file not found: {FileName}");
-						IsImageReady = false;
-						return false;
-					}
-
-					// Load and cache new source image (using stream to avoid file lock)
-					using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-					{
-						_cachedSourceImage = System.Drawing.Image.FromStream(stream);
-					}
-					_cachedFileName = FileName;
-					sourceImage = _cachedSourceImage;
-				}
-
+				using System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(FileName);
 				if (!TryCalculateTargetSizes(sourceImage, out int storedImageWidth, out int storedImageHeight))
 				{
 					return false;
 				}
 
-				// Render the thumbnail and assign directly (no Clone needed)
-				Image?.Dispose(); // Dispose old image
-				Image = RenderImage(sourceImage, storedImageWidth, storedImageHeight);
+				using Bitmap renderedImage = RenderImage(sourceImage, storedImageWidth, storedImageHeight);
+
+				Image = (System.Drawing.Image)renderedImage.Clone();
 
 				IsImageReady = true;
 				ResizeCanvas(base.Width, base.Height);
@@ -412,9 +381,6 @@ namespace Easislides
 			{
 				Image?.Dispose();
 				Image = null;
-				_cachedSourceImage?.Dispose();
-				_cachedSourceImage = null;
-				_cachedFileName = null;
 			}
 			base.Dispose(disposing);
 		}

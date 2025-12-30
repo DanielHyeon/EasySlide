@@ -286,11 +286,10 @@ namespace OfficeLib
 			{
 				return prePowerPointApp.ActivePresentation.Slides.Count;
 			}
-			catch (Exception)
-		{
-			// ActivePresentation이 없거나 접근 불가 시 0 반환
-			return 0;
-		}
+			catch
+			{
+				return 0;
+			}
 		}
 
 
@@ -334,9 +333,8 @@ namespace OfficeLib
                 prePowerPointApp.ActivePresentation.SlideShowWindow.Width = Width;
                 prePowerPointApp.ActivePresentation.SlideShowWindow.Height = Height;
             }
-            catch (Exception)
+            catch
             {
-				// 예외 무시
             }
         }
 
@@ -355,17 +353,15 @@ namespace OfficeLib
 							prePowerPointApp.Presentations[i].SlideShowWindow.Width = 1f;
 							prePowerPointApp.Presentations[i].SlideShowWindow.Height = 1f;
 						}
-						catch (Exception)
-            {
-				// 예외 무시
-            }
+						catch
+						{
+						}
 					}
 				}
 			}
-			catch (Exception)
-            {
-				// 예외 무시
-            }
+			catch
+			{
+			}
 		}
 
 		/// <summary>
@@ -433,10 +429,9 @@ namespace OfficeLib
 				//prePowerPointApp.Activate();
 				//prePowerPointApp.WindowState = PpWindowState.ppWindowMinimized;
 			}
-			catch (Exception)
-            {
-				// 예외 무시
-            }
+			catch
+			{
+			}
 		}
 
         /// <summary>
@@ -1213,48 +1208,14 @@ namespace OfficeLib
 
 				if (!IsBuildedFileCheck(presentation, FilePath, FilePrefix, ref TotalSlides))
 				{
-					Console.WriteLine($"Building {TotalSlides} output preview images to: {FilePrefix}");
 					for (int i = 1; i <= TotalSlides; i++)
 					{
 						strOutFileName = FilePrefix + Convert.ToString(i) + ".jpg";
 						presentation.Slides[i].Export(strOutFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-						Console.WriteLine($"Exported slide {i} to: {strOutFileName}");
 						//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
 						strPreFileName = strOutFileName.Replace("~OUTPPPreview$", "~PREPPPreview$");
-
-						// 파일 복사 재시도 (파일이 다른 프로세스에 의해 잠겨있을 수 있음)
-					int retryCount = 0;
-					bool copySucceeded = false;
-					while (retryCount < 3 && !copySucceeded)
-					{
-						try
-						{
-							File.Copy(strOutFileName, strPreFileName, true);
-							Console.WriteLine($"Copied to preview: {strPreFileName}");
-							copySucceeded = true;
-						}
-						catch (IOException ex)
-						{
-							retryCount++;
-							if (retryCount < 3)
-							{
-								Console.WriteLine($"File copy retry {retryCount}/3: {ex.Message}");
-								System.Threading.Thread.Sleep(100);
-							}
-							else
-							{
-								Console.WriteLine($"File copy failed after 3 attempts: {ex.Message}");
-								// 복사 실패시에도 계속 진행 (다음 슬라이드 처리)
-							}
-						}
+						File.Copy(strOutFileName, strPreFileName, true);
 					}
-					}
-					Console.WriteLine($"Completed building {TotalSlides} output preview images");
-				}
-				else
-				{
-					Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
-				}
 
 					//for (int i = 1; i <= TotalSlides; i++)
 					//{
@@ -1264,7 +1225,7 @@ namespace OfficeLib
 					//	strOutFileName = strPreFileName.Replace("~PREPPPreview$", "~OUTPPPreview$");
 					//	File.Copy(strPreFileName, strOutFileName, true);
 					//}
-
+				}
 				//else
 				//{
 				//	return result;

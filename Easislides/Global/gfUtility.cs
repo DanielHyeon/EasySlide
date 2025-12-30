@@ -2393,7 +2393,8 @@ namespace Easislides
 		public static void SetImageFormat(ref ImageTransitionControl InPic, string File_Name, ImageMode PicMode, bool SetTransparent)
 		{
 			Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
-			Graphics graphics = Graphics.FromImage(image);
+			using Graphics graphics = Graphics.FromImage(image);
+			
 			if (InPic.BackgroundID != "")
 			{
 				if (InPic.BackgroundID == DefaultBackgroundID)
@@ -2414,99 +2415,111 @@ namespace Easislides
 				InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
 			}
 			InPic.BackgroundID = "";
-			Image image2 = Image.FromFile(File_Name);
-			InPic.ImageFileName = File_Name;
-			InPic.PicMode = (int)PicMode;
-			double num = (double)image2.Width / (double)image2.Height;
-			if ((InPic.Width <= 0) | (InPic.Height <= 0))
+			
+			// Load image using stream to avoid file lock
+			Image image2;
+			using (var stream = new FileStream(File_Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
-				return;
+				image2 = Image.FromStream(stream);
 			}
-			double num2 = (double)InPic.Width / (double)InPic.Height;
-			switch (PicMode)
+			
+			try
 			{
-				case ImageMode.Centre:
-					{
-						int x2 = 0;
-						int y2 = 0;
-						int num4 = image2.Width;
-						int num3 = image2.Height;
-						int x;
-						int width;
-						int height;
-						int y;
-						if (num2 < num)
+				InPic.ImageFileName = File_Name;
+				InPic.PicMode = (int)PicMode;
+				double num = (double)image2.Width / (double)image2.Height;
+				if ((InPic.Width <= 0) | (InPic.Height <= 0))
+				{
+					return;
+				}
+				double num2 = (double)InPic.Width / (double)InPic.Height;
+				switch (PicMode)
+				{
+					case ImageMode.Centre:
 						{
-							x = 0;
-							width = image.Width;
-							height = (int)((double)width / num);
-							y = (image.Height - height) / 2;
-						}
-						else
-						{
-							y = 0;
-							height = image.Height;
-							width = (int)((double)height * num);
-							x = (image.Width - width) / 2;
-						}
-						graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, num4, num3), GraphicsUnit.Pixel);
-						break;
-					}
-				case ImageMode.Tile:
-					{
-						int num4 = image2.Width;
-						int num3 = image2.Height;
-						for (int x2 = 0; x2 <= image.Width / num4; x2++)
-						{
-							for (int y2 = 0; y2 <= image.Height / num3; y2++)
+							int x2 = 0;
+							int y2 = 0;
+							int num4 = image2.Width;
+							int num3 = image2.Height;
+							int x;
+							int width;
+							int height;
+							int y;
+							if (num2 < num)
 							{
-								int x = x2 * num4;
-								int y = y2 * num3;
-								graphics.DrawImage(image2, new Rectangle(x, y, num4, num3), new Rectangle(0, 0, num4, num3), GraphicsUnit.Pixel);
+								x = 0;
+								width = image.Width;
+								height = (int)((double)width / num);
+								y = (image.Height - height) / 2;
 							}
+							else
+							{
+								y = 0;
+								height = image.Height;
+								width = (int)((double)height * num);
+								x = (image.Width - width) / 2;
+							}
+							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, num4, num3), GraphicsUnit.Pixel);
+							break;
 						}
-						break;
-					}
-				default:
-					{
-						int x = 0;
-						int y = 0;
-						int width = image.Width;
-						int height = image.Height;
-						int y2;
-						int num3;
-						int num4;
-						int x2;
-						if (num2 < num)
+					case ImageMode.Tile:
 						{
-							y2 = 0;
-							num3 = image2.Height;
-							num4 = (int)((double)num3 * num2);
-							x2 = (image2.Width - num4) / 2;
+							int num4 = image2.Width;
+							int num3 = image2.Height;
+							for (int x2 = 0; x2 <= image.Width / num4; x2++)
+							{
+								for (int y2 = 0; y2 <= image.Height / num3; y2++)
+								{
+									int x = x2 * num4;
+									int y = y2 * num3;
+									graphics.DrawImage(image2, new Rectangle(x, y, num4, num3), new Rectangle(0, 0, num4, num3), GraphicsUnit.Pixel);
+								}
+							}
+							break;
 						}
-						else
+					default:
 						{
-							x2 = 0;
-							num4 = image2.Width;
-							num3 = (int)((double)num4 / num2);
-							y2 = (image2.Height - num3) / 2;
+							int x = 0;
+							int y = 0;
+							int width = image.Width;
+							int height = image.Height;
+							int y2;
+							int num3;
+							int num4;
+							int x2;
+							if (num2 < num)
+							{
+								y2 = 0;
+								num3 = image2.Height;
+								num4 = (int)((double)num3 * num2);
+								x2 = (image2.Width - num4) / 2;
+							}
+							else
+							{
+								x2 = 0;
+								num4 = image2.Width;
+								num3 = (int)((double)num4 / num2);
+								y2 = (image2.Height - num3) / 2;
+							}
+							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, num4, num3), GraphicsUnit.Pixel);
+							break;
 						}
-						graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, num4, num3), GraphicsUnit.Pixel);
-						break;
-					}
+				}
+				if (InPic.NewBackgroundPicture != null)
+				{
+					InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+				}
+				else
+				{
+					InPic.CurrentBackgroundPicture = image;
+				}
+				InPic.NewBackgroundPicture = image;
 			}
-			if (InPic.NewBackgroundPicture != null)
+			finally
 			{
-				InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+				// Clean up loaded image
+				image2?.Dispose();
 			}
-			else
-			{
-				InPic.CurrentBackgroundPicture = image;
-			}
-			InPic.NewBackgroundPicture = image;
-            //image2.Dispose();
-            //image.Dispose();
-            //graphics.Dispose();
         }
 
 		public static string GetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)

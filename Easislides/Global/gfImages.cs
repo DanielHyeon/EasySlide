@@ -184,7 +184,14 @@ namespace Easislides
 			int StoredImageHeight = 0;
 			try
 			{
-				using (Image image = Image.FromFile(text2))
+				// Load image using stream to avoid file lock
+				Image image;
+				using (var stream = new FileStream(text2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				{
+					image = Image.FromStream(stream);
+				}
+				
+				using (image)
 				{
 					InCanvas.SetImageRatio(image.Width, image.Height);
 					CalcImageToFit(InCanvas.ImageRatio, posWidth, posHeight, ref NewImageWidth2, ref NewImageHeight2, ComputeStoredImage: true, ref StoredImageWidth, ref StoredImageHeight);

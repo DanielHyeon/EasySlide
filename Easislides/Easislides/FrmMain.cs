@@ -5341,16 +5341,16 @@ namespace Easislides
             {
                 if (gf.OutputPPT.BuildScreenOutDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, 9, 1000, ref InItem.SongVerses, ref InItem.Slide, gf.SequenceSymbol))
                 {
-                    FormatPowerPointThumbContainers1(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, InItem.TotalSlides);
+                    FormatPowerPointThumbContainers(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, InItem.TotalSlides);
                 }
             }
             else
             {
                 // ✅ 동기 방식 유지 (PowerPoint COM 객체는 STA 스레드에서만 안전)
                 // 캐싱 및 이미지 최적화로 성능 개선
-                if (gf.PreviewPPT.BuildScreenPreDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, 9, 1000, ref InItem.SongVerses, ref InItem.Slide, gf.SequenceSymbol))
+                if (gf.PreviewPPT.BuildScreenDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, 9, 1000, ref InItem.SongVerses, ref InItem.Slide, gf.SequenceSymbol))
                 {
-                    FormatPowerPointThumbContainers1(ref Powerpoint_PreviewCanvas, ref flowLayoutPreviewPowerPoint, InItem.TotalSlides);
+                    FormatPowerPointThumbContainers(ref Powerpoint_PreviewCanvas, ref flowLayoutPreviewPowerPoint, InItem.TotalSlides);
                 }
             }
         }
