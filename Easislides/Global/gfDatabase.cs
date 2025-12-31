@@ -1,55 +1,22 @@
-//using JRO;
 using Easislides.SQLite;
-//using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
 using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
-using Microsoft.Win32;
-//using NetOffice.PowerPointApi;
-using OfficeLib;
 using System;
-using System.Collections;
 using System.Data;
-using System.Data.OleDb;
-using System.Data.SQLite;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 using Easislides.Module;
-using System.Threading;
-
-//using NetOffice.DAOApi;
-
-#if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
+
 
 namespace Easislides
 {
-    internal unsafe partial class gf
-    {
+	internal unsafe partial class gf
+	{
 
 		public static void CovertItemsTov4()
 		{
@@ -128,63 +95,6 @@ namespace Easislides
 			string fORMATDATA = FormatData.ToString();
 			return InsertItemIntoDatabase(InConnectString, title_, title_2, song_number2, FolderNo, lyrics, sequence, writer2, copyright2, capo2, timing, inKey, msc2, cATEGORY, lICENCE_ADMIN, lICENCE_ADMIN2, bOOK_REFERENCE, uSER_REFERENCE, sETTINGS, fORMATDATA);
 		}
-
-#if DAO
-		public static int InsertItemIntoDatabase(string InConnectString, string Title_1, string Title_2, int song_number, int FolderNo, string Lyrics, string Sequence, string writer, string copyright, int capo, string Timing, string InKey, string msc, string CATEGORY, string LICENCE_ADMIN1, string LICENCE_ADMIN2, string BOOK_REFERENCE, string USER_REFERENCE, string SETTINGS, string FORMATDATA)
-		{
-			Title_1 = DataUtil.Left(Title_1, 100);
-			Title_2 = DataUtil.Left(Title_2, 100);
-			Sequence = DataUtil.Left(Sequence, 100);
-			writer = DataUtil.Left(writer, 100);
-			copyright = DataUtil.Left(copyright, 100);
-			Timing = DataUtil.Left(Timing, 50);
-			InKey = DataUtil.Left(InKey, 20);
-			LICENCE_ADMIN1 = DataUtil.Left(LICENCE_ADMIN1, 50);
-			LICENCE_ADMIN2 = DataUtil.Left(LICENCE_ADMIN2, 50);
-			BOOK_REFERENCE = DataUtil.Left(BOOK_REFERENCE, 50);
-			string value = DataUtil.CJK_WordCount(Title_1);
-			string value2 = DataUtil.CJK_StrokeCount(Title_1);
-			Recordset tableRecordSet = DbDaoController.GetTableRecordSet(InConnectString, "SONG");
-			if (tableRecordSet != null)
-			{
-				try
-				{
-					tableRecordSet.AddNew();
-					tableRecordSet.Fields["Title_1"].Value = Title_1;
-					tableRecordSet.Fields["Title_2"].Value = Title_2;
-					tableRecordSet.Fields["song_number"].Value = song_number;
-					tableRecordSet.Fields["FolderNo"].Value = FolderNo;
-					tableRecordSet.Fields["Lyrics"].Value = Lyrics;
-					tableRecordSet.Fields["Sequence"].Value = Sequence;
-					tableRecordSet.Fields["writer"].Value = writer;
-					tableRecordSet.Fields["copyright"].Value = copyright;
-					tableRecordSet.Fields["CJK_WordCount"].Value = value;
-					tableRecordSet.Fields["CJK_StrokeCount"].Value = value2;
-					tableRecordSet.Fields["capo"].Value = capo;
-					tableRecordSet.Fields["Timing"].Value = Timing;
-					tableRecordSet.Fields["Key"].Value = InKey;
-					tableRecordSet.Fields["msc"].Value = msc;
-					tableRecordSet.Fields["CATEGORY"].Value = CATEGORY;
-					tableRecordSet.Fields["LICENCE_ADMIN1"].Value = LICENCE_ADMIN1;
-					tableRecordSet.Fields["LICENCE_ADMIN2"].Value = LICENCE_ADMIN2;
-					tableRecordSet.Fields["BOOK_REFERENCE"].Value = BOOK_REFERENCE;
-					tableRecordSet.Fields["USER_REFERENCE"].Value = USER_REFERENCE;
-					tableRecordSet.Fields["SETTINGS"].Value = SETTINGS;
-					tableRecordSet.Fields["FORMATDATA"].Value = FORMATDATA;
-					tableRecordSet.Fields["LastModified"].Value = DateTime.Now.Date;
-					tableRecordSet.Update();
-					Array ppsach = tableRecordSet.LastModified;
-					tableRecordSet.set_Bookmark(ref ppsach);
-					return DataUtil.ObjToInt(tableRecordSet.Fields["SongID"].Value);
-				}
-				catch
-				{
-					MessageBox.Show("Error encountered whilst adding item to database - item NOT added");
-				}
-			}
-			return 0;
-		}
-#elif SQLite
 		public static int InsertItemIntoDatabase(string InConnectString, string Title_1, string Title_2, int song_number, int FolderNo, string Lyrics, string Sequence, string writer, string copyright, int capo, string Timing, string InKey, string msc, string CATEGORY, string LICENCE_ADMIN1, string LICENCE_ADMIN2, string BOOK_REFERENCE, string USER_REFERENCE, string SETTINGS, string FORMATDATA)
 		{
 			Title_1 = DataUtil.Left(Title_1, 100);
@@ -200,7 +110,7 @@ namespace Easislides
 			string value = DataUtil.CJK_WordCount(Title_1);
 			string value2 = DataUtil.CJK_StrokeCount(Title_1);
 
-			
+
 
 			(DbDataAdapter sQLiteDataAdapter, DataTable dt) = DbController.GetDataAdapter(InConnectString, "Select * from SONG");
 
@@ -238,7 +148,7 @@ namespace Easislides
 					dr["FORMATDATA"] = FORMATDATA;
 					dr["LastModified"] = DateTime.Now.Date;
 
-					dt.Rows.Add(dr);					
+					dt.Rows.Add(dr);
 
 					sQLiteDataAdapter.Update(dt);  // Its also update in database.	
 
@@ -251,7 +161,6 @@ namespace Easislides
 			}
 			return 0;
 		}
-#endif
 
 		public static bool UpdateDatabaseItem(string InConnectString, SongSettings InItem, int SongID)
 		{
@@ -275,45 +184,7 @@ namespace Easislides
 			string value2 = DataUtil.CJK_StrokeCount(Title_1);
 			try
 			{
-#if OleDb
-				using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(ConnectStringMainDB))
-				{
-					try
-					{
-						string text = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
-						OleDbCommand command = new OleDbCommand(text, daoDb);
-						command.CommandText = text;
-						command.Parameters.AddWithValue("@Title_1", Title_1);
-						command.Parameters.AddWithValue("@Title_2", Title_2);
-						command.Parameters.AddWithValue("@song_number", song_number);
-						command.Parameters.AddWithValue("@FolderNo", FolderNo);
-						command.Parameters.AddWithValue("@Lyrics", Lyrics);
-						command.Parameters.AddWithValue("@Sequence", Sequence);
-						command.Parameters.AddWithValue("@writer", writer);
-						command.Parameters.AddWithValue("@copyright", copyright);
-						command.Parameters.AddWithValue("@CJK_WordCount", value);
-						command.Parameters.AddWithValue("@CJK_StrokeCount", value2);
-						command.Parameters.AddWithValue("@capo", capo);
-						command.Parameters.AddWithValue("@Timing", Timing);
-						command.Parameters.AddWithValue("@Key", InKey);
-						command.Parameters.AddWithValue("@msc", msc);
-						command.Parameters.AddWithValue("@CATEGORY", CATEGORY);
-						command.Parameters.AddWithValue("@LICENCE_ADMIN1", LICENCE_ADMIN1);
-						command.Parameters.AddWithValue("@LICENCE_ADMIN2", LICENCE_ADMIN2);
-						command.Parameters.AddWithValue("@BOOK_REFERENCE", BOOK_REFERENCE);
-						command.Parameters.AddWithValue("@USER_REFERENCE", USER_REFERENCE);
-						command.Parameters.AddWithValue("@SETTINGS", SETTINGS);
-						command.Parameters.AddWithValue("@FORMATDATA", FORMATDATA);
-						command.Parameters.AddWithValue("@LastModified", DateTime.Now.Date);
-						command.ExecuteNonQuery();
-						result = true;
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show("Error when writing to Database: \n" + ex.ToString());
-					}
-				}
-#elif SQLite
+
 				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
 				string text = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
 				using DbCommand command = new DbCommand(text, connection);
@@ -342,7 +213,6 @@ namespace Easislides
 				command.Parameters.AddWithValue("@LastModified", DateTime.Now.Date);
 				command.ExecuteNonQuery();
 				result = true;
-#endif
 			}
 			catch (Exception ex)
 			{
@@ -353,11 +223,8 @@ namespace Easislides
 
 		public static string RestoreOriginalSongsDatabase()
 		{
-#if SQLite
 			string text = $@"{Application.StartupPath}Sys\EasiSlidesDb.db";
-#else
-			string text = $@"{Application.StartupPath}Sys\EasiSlidesDb.mdb";
-#endif
+
 			RestoreSongsDatabase = false;
 			if (File.Exists(text))
 			{
@@ -368,21 +235,12 @@ namespace Easislides
 					string dBFileName = DBFileName;
 					if (File.Exists(dBFileName))
 					{
-#if SQLite
 						dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{num}{Path.GetExtension("EasiSlidesDb.db")}";
 						while (File.Exists(dBFileName))
 						{
 							num++;
 							dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{num}{Path.GetExtension("EasiSlidesDb.db")}";
 						}
-#else
-						dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{num}{Path.GetExtension("EasiSlidesDb.mdb")}";
-						while (File.Exists(dBFileName))
-						{
-							num++;
-							dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{num}{Path.GetExtension("EasiSlidesDb.mdb")}";
-						}
-#endif
 					}
 					else
 					{
@@ -455,11 +313,7 @@ namespace Easislides
 			{
 				return true;
 			}
-#if SQLite
 			string soucreFileName = $@"{Application.StartupPath}\Sys\{dbFileName}.db";
-#else
-			string soucreFileName = $@"{Application.StartupPath}\Sys\Defdb.dat";
-#endif
 
 			if (File.Exists(soucreFileName))
 			{
@@ -479,19 +333,11 @@ namespace Easislides
 			}
 			try
 			{
-#if OleDb
-				using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(InConnectString))
-				{
-					OleDbCommand command = new OleDbCommand("Delete * from Folder ", daoDb);
-					command.ExecuteNonQuery();
-				}
-#elif SQLite
-				using(DbConnection connection = DbController.GetDbConnection(InConnectString))
+				using (DbConnection connection = DbController.GetDbConnection(InConnectString))
 				{
 					DbCommand command = new DbCommand("Delete * from Folder ", connection);
 					command.ExecuteNonQuery();
 				}
-#endif
 				return true;
 			}
 			catch
@@ -503,20 +349,14 @@ namespace Easislides
 		public static void ResetFolder(int FNumber, string InFolderName, string InConnectString)
 		{
 
-#if OleDb
-			using OleDbConnection connection = DbConnectionController.GetOleDbConnection(InConnectString);
-#elif SQLite
 			using DbConnection connection = DbController.GetDbConnection(InConnectString);
-#endif
+
 			try
 			{
 				bool flag = false;
 				string cmdText = $@"select count(*) from FOLDER where FolderNo={DataUtil.ObjToString(FNumber)}";
-#if OleDb
-				OleDbCommand command = new OleDbCommand(cmdText, connection);
-#elif SQLite
-				DbCommand command = new DbCommand(cmdText, connection);				
-#endif
+
+				DbCommand command = new DbCommand(cmdText, connection);
 
 				if (DataUtil.ObjToInt(command.ExecuteScalar()) == 0)
 				{
@@ -582,22 +422,16 @@ namespace Easislides
 		{
 			var task = Task.Run(() =>
 			{
-#if OleDb
-				using OleDbConnection connection = new OleDbConnection(InConnectString);;
-#elif SQLite
+
 				using DbConnection connection = DbController.GetDbConnection(InConnectString);
-#endif
-				
+
 				try
 				{
 					bool flag = false;
 					string cmdText = $@"select count(*) from FOLDER where FolderNo={DataUtil.ObjToString(FNumber)}";
 					connection.Open();
-#if OleDb
-					OleDbCommand command = new OleDbCommand(cmdText, connection);
-#elif SQLite
+
 					DbCommand command = new DbCommand(cmdText, connection);
-#endif
 					if ((int)command.ExecuteScalar() == 0)
 					{
 						string value;
@@ -821,20 +655,20 @@ namespace Easislides
 				KeyBoardOption = 0;
 			}
 
-            //daniel
-            //Global Keyboard Hook 가?�오�?
-            GlobalHookKey_F7 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F7", 0)) > 0) ? true : false);
-            GlobalHookKey_F8 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F8", 0)) > 0) ? true : false);
+			//daniel
+			//Global Keyboard Hook 가?�오�?
+			GlobalHookKey_F7 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F7", 0)) > 0) ? true : false);
+			GlobalHookKey_F8 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F8", 0)) > 0) ? true : false);
 
-            //daniel
-            //Global Keyboard Hook 가?�오�?
-            GlobalHookKey_F9 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F9", 0)) > 0) ? true : false);
-            GlobalHookKey_F10 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F10", 0)) > 0) ? true : false);
+			//daniel
+			//Global Keyboard Hook 가?�오�?
+			GlobalHookKey_F9 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F9", 0)) > 0) ? true : false);
+			GlobalHookKey_F10 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F10", 0)) > 0) ? true : false);
 
-            GlobalHookKey_Arrow = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_Arrow", 0)) > 0) ? true : false);
-            GlobalHookKey_CtrlArrow = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_CtrlArrow", 0)) > 0) ? true : false);
+			GlobalHookKey_Arrow = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_Arrow", 0)) > 0) ? true : false);
+			GlobalHookKey_CtrlArrow = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_CtrlArrow", 0)) > 0) ? true : false);
 
-            EditMainFontName = RegUtil.GetRegValue("options", "EditMainFontName", "Microsoft Sans Serif");
+			EditMainFontName = RegUtil.GetRegValue("options", "EditMainFontName", "Microsoft Sans Serif");
 			if (EditMainFontName == "")
 			{
 				EditMainFontName = "Microsoft Sans Serif";
@@ -1091,7 +925,7 @@ namespace Easislides
 			if (!gf.isScreenWideMode)
 				LMOption1Height = LMOption1Width * 3 / 4;
 			else
-                LMOption1Height = LMOption1Height;
+				LMOption1Height = LMOption1Height;
 
 			if (LMOption1Height < 1)
 			{
@@ -1206,5 +1040,5 @@ namespace Easislides
 			SaveConfigSettings();
 		}
 
-    }
+	}
 }

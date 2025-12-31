@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Easislides.Util
 {
@@ -59,16 +55,13 @@ namespace Easislides.Util
 					WriteStringToBinaryFile(ref w, Contents);
 					w.Flush();
 					w.Dispose();
-					//fileStream.Close();
-					//fileStream = null;
 					return true;
 				}
 
 				using StreamWriter streamWriter = new StreamWriter(FILE_NAME, append: false, Utf8WithBom);
 				streamWriter.AutoFlush = true;
 				streamWriter.Write((Mode == FileContentsType.Ascii_Rtf) ? DataUtil.UnicodeToAscii_RTF(Contents) : DataUtil.UnicodeToAscii_HTML(Contents));
-				//streamWriter.Flush();
-				//streamWriter.Close();
+
 			}
 			catch
 			{

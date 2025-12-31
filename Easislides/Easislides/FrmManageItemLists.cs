@@ -1,11 +1,11 @@
-using Easislides.Module;
-using Easislides.Properties;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
 using System.Linq;
+using System.Windows.Forms;
+using Easislides.Module;
+using Easislides.Properties;
 
 namespace Easislides
 {

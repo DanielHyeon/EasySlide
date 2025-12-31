@@ -1,10 +1,10 @@
-using Easislides.Module;
-using Easislides.Util;
-using OfficeLib;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Easislides.Module;
+using Easislides.Util;
+using OfficeLib;
 
 namespace Easislides
 {

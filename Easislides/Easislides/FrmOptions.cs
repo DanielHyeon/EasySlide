@@ -1,22 +1,15 @@
 //using NetOffice.DAOApi;
-using Easislides.Properties;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Data;
-using System.Data.OleDb;
 using Easislides.Util;
 //using System.Data.SQLite;
 using Easislides.SQLite;
 using Easislides.Module;
-using Easislides.Util;
-using System.Runtime.InteropServices;
-
-using System.Text;
 using System.Collections.Generic;
-using System.Web;
 
 
 
@@ -24,10 +17,6 @@ using System.Web;
 #if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 #elif MariaDB
 using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
 using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;

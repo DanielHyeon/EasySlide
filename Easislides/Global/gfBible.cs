@@ -1,50 +1,13 @@
 //using JRO;
-using Easislides.SQLite;
-//using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
-using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
-using Microsoft.Win32;
-//using NetOffice.PowerPointApi;
-using OfficeLib;
 using System;
-using System.Collections;
 using System.Data;
-using System.Data.OleDb;
-using System.Data.SQLite;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
-using Easislides.Module;
-using System.Threading;
+using Easislides.SQLite;
+using Easislides.Util;
 
-//using NetOffice.DAOApi;
-
-#if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
-using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
+
 
 namespace Easislides
 {
@@ -59,17 +22,10 @@ namespace Easislides
 				InTab.ShowToolTips = true;
 				HB_TotalVersions = 0;
 				string fullSearchString = "select * from Biblefolder where NAME like \"*\" and displayorder >=0 order by displayorder, NAME";
-#if ODBC
-				fullSearchString = fullSearchString.Replace("\"*\"", "\"%\"");
-#endif
-#if OleDb
 
-				DataTable dataTable = DbOleDbController.GetDataTable(ConnectStringBibleDB, fullSearchString);
-#elif SQLite
 				//Provider = Microsoft.ACE.OLEDB.12.0;
 				//string SQLiteConnectStringBibleDB = ConnectStringBibleDB.Replace("Provider=Microsoft.ACE.OLEDB.12.0;", "");
 				using DataTable dataTable = DbController.GetDataTable(ConnectStringBibleDB, fullSearchString);
-#endif
 				if (dataTable.Rows.Count>0)
 				{
 					//recordSet.MoveFirst();
@@ -149,27 +105,6 @@ namespace Easislides
 
 			string fullSearchString = "select * from Bible where book=0 and chapter=10 and (verse >0 and verse <=" + 66 + ") order by verse";
 
-#if OleDb
-			using (OleDbConnection connection = DbConnectionController.GetOleDbConnection(ConnectStringDef + HBFilename))
-			{
-				DataTable datatable = DbOleDbController.getDataTable(connection, fullSearchString);
-				recordSetRowsCount = datatable.Rows.Count;
-				if (recordSetRowsCount > 0)
-				{
-					//recordSet.MoveFirst();
-					//while (!recordSet.EOF)
-					InChapterList.BeginUpdate();
-					foreach (DataRow dr in datatable.Rows)
-					{
-						HBVersionBookName[DataUtil.GetDataInt(dr, "verse")] = DataUtil.GetDataString(dr, "bibletext");
-						InChapterList.Items.Add(DataUtil.GetDataString(dr, "bibletext"));
-						//recordSet.MoveNext();
-					}
-					InChapterList.EndUpdate();
-				}
-			}
-
-#elif SQLite
 			using (DbConnection connection = DbController.GetDbConnection(ConnectSQLiteDef + HBFilename))
 			{
 				DataTable datatable = DbController.GetDataTable(connection, fullSearchString);
@@ -188,7 +123,6 @@ namespace Easislides
 					InChapterList.EndUpdate();
 				}
 			}
-#endif
 
 			/// daniel
 			/// OleDbConnection ?�결??꼬이??것을 방�? ?�기 ?�해
@@ -207,18 +141,16 @@ namespace Easislides
 				}
 				return true;
 			}
-			
+
 			return false;
 		}
 
 		public static string GetBibleFileName(int SelectedVersion)
 		{
 			string fullSearchString = "select * from Biblefolder where DISPLAYORDER = " + SelectedVersion;
-#if OleDb
-			DataTable datatable = DbOleDbController.GetDataTable(ConnectStringBibleDB, fullSearchString);
-#elif SQLite
+
 			using DataTable datatable = DbController.GetDataTable(ConnectStringBibleDB, fullSearchString);
-#endif
+
 			if (datatable.Rows.Count>0)
 			{
 				//recordSet.MoveFirst();
@@ -246,22 +178,17 @@ namespace Easislides
 				string connectString = ConnectStringDef + HB_Versions[InBiBleVersion, 4];
 				string text = "";
 				string text2 = "";
-#if OleDb
-				using (OleDbConnection connection = DbConnectionController.GetOleDbConnection(connectString))
-#elif SQLite
+
 				using (DbConnection connection = DbController.GetDbConnection(connectString))
-#endif
 				{
 					
 					DataTable recordset = null;
 					if (AdHocListing)
 					{
 						text2 = "select * from Bible where book=0 and chapter=10 and verse=" + InBookNumber;
-#if OleDb
-						recordset = DbOleDbController.getDataTable(connection, text2);
-#elif SQLite
+
 						recordset = DbController.GetDataTable(connection, text2);
-#endif
+
 						if (recordset.Rows.Count > 0)
 						{
 							//recordset.MoveFirst();
@@ -293,11 +220,9 @@ namespace Easislides
 					int num = 0;
 					int num2 = 0;
 					string str = (ShowFormatTags && !AdHocListing) ? '\u0098'.ToString() : " ";
-#if OleDb
-					recordset = DbOleDbController.getDataTable(connection, text2);
-#elif SQLite
+
 					recordset = DbController.GetDataTable(connection, text2);
-#endif
+
 					if (recordset.Rows.Count > 0)
 					{
 						//recordset.MoveFirst();
@@ -362,11 +287,8 @@ namespace Easislides
 			{
 				string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
 				string text = "";
-#if OleDb
-				using (OleDbConnection connection = DbConnectionController.GetOleDbConnection(connectString))
-#elif SQLite
+
 				using (DbConnection connection = DbController.GetDbConnection(connectString))
-#endif
 				{
 					
 					DataTable recordset = null;
@@ -375,11 +297,9 @@ namespace Easislides
 						try
 						{
 							text = "select * from bible where book =" + HB_VersesLocation[i, 1] + " and chapter=" + HB_VersesLocation[i, 2] + " and verse=" + HB_VersesLocation[i, 3] + " order by book, chapter, verse";
-#if OleDb
-							recordset = DbOleDbController.getDataTable(connection, text);
-#elif SQLite
-							recordset = DbController.GetDataTable(connection, text);			
-#endif
+
+							recordset = DbController.GetDataTable(connection, text);	
+
 							if (recordset.Rows.Count>0)
 							{
 								HB_VersesLocation[i, 4] = stringBuilder.Length;
@@ -431,16 +351,6 @@ namespace Easislides
 			string connectString = ConnectStringDef + FileName;
 			try
 			{
-#if OleDb
-				DataTable dataTable = DbOleDbController.GetDataTable(connectString, "select * from Bible where book=0 and chapter=0 and verse=0");
-				Description = DataUtil.GetDataString(dataTable.Rows[0], "bibletext");
-				dataTable = DbOleDbController.GetDataTable(connectString, "select * from Bible where book=0 and chapter=0 and verse=1");
-				Name = DataUtil.GetDataString(dataTable.Rows[0], "bibletext");
-				dataTable = DbOleDbController.GetDataTable(connectString, "select * from Bible where book=0 and chapter=0 and verse=3");
-				Copyright = DataUtil.GetDataString(dataTable.Rows[0], "bibletext");
-				dataTable = DbOleDbController.GetDataTable(connectString, "select * from Bible where book=0 and chapter=0 and verse=4");
-				Info = DataUtil.GetDataString(dataTable.Rows[0], "bibletext");
-#elif SQLite
 				DataTable dataTable = DbController.GetDataTable(connectString, "select * from Bible where book=0 and chapter=0 and verse=0");
 				Description = DataUtil.GetDataString(dataTable.Rows[0], "bibletext");
 				if (dataTable != null) dataTable.Dispose();
@@ -454,8 +364,6 @@ namespace Easislides
 				dataTable = DbController.GetDataTable(connectString, "select * from Bible where book=0 and chapter=0 and verse=4");
 				Info = DataUtil.GetDataString(dataTable.Rows[0], "bibletext");
 				if (dataTable != null) dataTable.Dispose();
-#endif
-
 			}
 			catch (Exception ex)
 			{

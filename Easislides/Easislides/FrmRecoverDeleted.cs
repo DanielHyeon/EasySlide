@@ -1,11 +1,11 @@
 //using NetOffice.DAOApi;
-using Easislides.SQLite;
-using Easislides.Util;
 using System;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using Easislides.SQLite;
+using Easislides.Util;
 
 namespace Easislides
 {

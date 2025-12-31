@@ -1,7 +1,4 @@
 #define DEBUG
-using DirectShowLib;
-using Easislides.Module;
-using Easislides.Util;
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -9,6 +6,9 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Windows.Forms;
+using DirectShowLib;
+using Easislides.Module;
+using Easislides.Util;
 
 namespace Easislides
 {

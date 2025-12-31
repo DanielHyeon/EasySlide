@@ -4,7 +4,6 @@ using Easislides.Util;
 using System;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
 //using System.Data.SQLite;
 using System.Drawing;
 using System.Windows.Forms;
@@ -12,11 +11,6 @@ using Easislides.SQLite;
 using Easislides.Module;
 #if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
-using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 #elif MariaDB
 using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
 using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;

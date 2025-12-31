@@ -8,18 +8,12 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using System.Data;
-using System.Data.OleDb;
 using Easislides.Util;
 
 using Easislides.SQLite;
 using Easislides.Module;
 #if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
-using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 #elif MariaDB
 using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
 using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;

@@ -1,11 +1,11 @@
 //using NetOffice.DAOApi;
-using Easislides.SQLite;
-using Easislides.Util;
 using System;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using Easislides.SQLite;
+using Easislides.Util;
 
 namespace Easislides
 {
@@ -594,7 +594,7 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// daniel °Ë»ö
+		/// daniel ï¿½Ë»ï¿½
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>

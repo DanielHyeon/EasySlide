@@ -1,18 +1,17 @@
 //using NetOffice.DAOApi;
-using Easislides.Properties;
 using System;
 using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using System.Data;
-using System.Data.OleDb;
-using Easislides.Util;
+using Easislides.Module;
+using Easislides.Properties;
 //using Microsoft.Office.Interop.Access.Dao;
 using Easislides.SQLite;
-using Easislides.Module;
+using Easislides.Util;
 
 namespace Easislides
 {

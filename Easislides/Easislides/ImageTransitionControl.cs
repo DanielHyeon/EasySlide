@@ -1,14 +1,13 @@
-using Easislides.Module;
-using Easislides.Util;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Threading;
-using System.ComponentModel;
 using System.Windows.Forms;
-using System.Collections.Concurrent;
+using Easislides.Module;
+using Easislides.Util;
 
 namespace Easislides
 {
@@ -2961,12 +2960,12 @@ namespace Easislides
 		{
 			if (disposing)
 			{
-				// ?�?�머 ?��? �??�제
+				// ?�?�머 ?��? �??�제
 				t?.Dispose();
 				ta?.Dispose();
 				tr?.Dispose();
 
-				// Graphics 객체 ?�리
+				// Graphics 객체 ?�리
 				wsg?.Dispose();
 				Newg?.Dispose();
 				alertg?.Dispose();
@@ -2978,7 +2977,7 @@ namespace Easislides
 				refg_Inverse?.Dispose();
 				refMessageg_Inverse?.Dispose();
 
-				// Image 객체 ?�리
+				// Image 객체 ?�리
 				Newbmp?.Dispose();
 				_currentCombinedImage?.Dispose();
 				_newCombinedImage?.Dispose();

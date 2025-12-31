@@ -4,21 +4,15 @@ using Easislides.SQLite;
 using System;
 using System.ComponentModel;
 using System.Data;
-using System.Data.OleDb;
-using System.Data.SQLite;
 using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 using Easislides.Module;
 
 #if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 #elif MariaDB
 using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
 using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
@@ -498,7 +492,7 @@ namespace Easislides
 			string text2 = "";
 			try
 			{
-				//daniel ¼öÁ¤ ¼Óµµ¸¦ ºü¸£°Ô ÇÏ±âÀ§ÇØOledataReader »ç¿ë
+				//daniel ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½OledataReader ï¿½ï¿½ï¿½
 				//OleDbConnection connection = new OleDbConnection(gf.ConnectStringUsageDB);
 				//connection.Open();
 				//using (OleDbConnection daoDb = DatabaseController.GetOleDbConnection(gf.ConnectStringUsageDB))

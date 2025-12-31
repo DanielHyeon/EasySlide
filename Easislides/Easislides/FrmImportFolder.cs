@@ -1,11 +1,11 @@
-using Easislides.Module;
-using Easislides.Properties;
-using Easislides.Util;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Easislides.Module;
+using Easislides.Properties;
+using Easislides.Util;
 
 namespace Easislides
 {
@@ -96,7 +96,7 @@ namespace Easislides
 
 		/// <summary>
 		/// daniel 
-		/// È®ÀåÀÚ docx Ãß°¡
+		/// È®ï¿½ï¿½ï¿½ï¿½ docx ï¿½ß°ï¿½
 		/// </summary>
 		private void StartImport()
 		{

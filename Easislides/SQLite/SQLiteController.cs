@@ -1,40 +1,20 @@
 ﻿using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
 using System;
 using System.Collections.Generic;
 using System.Data;
-//using System.Data.SQLite;
 using System.Threading;
 using System.Diagnostics;
-
-
-#if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
 using DbTransaction = System.Data.SQLite.SQLiteTransaction;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
+
 
 namespace Easislides.SQLite
 {
     class DbController  {
-		//const string dbConnectionString = @"Server=127.0.0.1;Database=easislidesdb;Uid =root;Pwd=dnffkffk48;";
-		//Provider=Microsoft.ACE.OLEDB.12.0;Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb
-
-		//const string EasiSlidesDbConnectString = @"Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
-		//const string EsUsageDbConnectString = @"Data Source=C:\EasiSlides\Admin\Database\EsUsage.db";
-		//const string EsBiblesListDbConnectString = @"Data Source=C:\EasiSlides\Admin\Database\EsBiblesList.db";
-		//const string AmendmentConnectString = @"Data Source=C:\EasiSlides\HolyBibles\개역개정-20131025.db";
-
 		static readonly object DefaultDblocker = new object();
 		static bool lockDefalutDbTaken = false;
 
@@ -193,21 +173,6 @@ namespace Easislides.SQLite
 			return result;
 		}
 
-		//직접 connection을 열지 않는다.
-		//connection을 매개변수로 받아와서 진행한다. 
-		//예제 코드
-		//private void createTablesIfNotExists(DbConnection connection)
-		//{
-		//    using (DbCommand command = new DbCommand(connection))
-		//    {
-		//        command.CommandText = getSqlQueryCreatTableCommand(true, true, "테이블 이름", new KeyValuePair<string, string>[]
-		//        {
-		//            CreadeField("요소","TEXT")
-		//        });
-		//        command.ExecuteNonQuery();
-		//    }
-		//}
-
 		public static void CreateField(ref DbConnection connection, string tableName, string fieldName, int fieldType)
 		{
 			CreateField(ref connection, tableName, fieldName, fieldType, 50);
@@ -269,7 +234,6 @@ namespace Easislides.SQLite
         {
 			try
             {
-#if SQLite
 				Monitor.Enter(DefaultDblocker);
 
 				while (lockDefalutDbTaken)
@@ -279,11 +243,7 @@ namespace Easislides.SQLite
 
 				DbConnection connection = new DbConnection(ConnectString);
 				connection.Open();
-#elif MariaDB
 
-				DbConnection connection = new DbConnection(dbConnectionString);
-				connection.Open();
-#endif
 				return connection;
 			}
             catch(Exception e) 

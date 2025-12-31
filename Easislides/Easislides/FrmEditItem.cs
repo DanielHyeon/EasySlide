@@ -1,16 +1,15 @@
 //using NetOffice.DAOApi;
-using Easislides.Properties;
 using System;
 using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using DirectShowLib;
-using Easislides.Util;
-using System.Data;
-using Easislides.SQLite;
 using Easislides.Module;
+using Easislides.Properties;
+using Easislides.SQLite;
+using Easislides.Util;
 
 namespace Easislides
 {

@@ -1,57 +1,22 @@
-//using JRO;
 using Easislides.SQLite;
-//using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
 using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
-using Microsoft.Win32;
-//using NetOffice.PowerPointApi;
-using OfficeLib;
 using System;
-using System.Collections;
 using System.Data;
-using System.Data.OleDb;
-using System.Data.SQLite;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using Easislides.Module;
-using System.Threading;
-
-//using NetOffice.DAOApi;
-
-#if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
-using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
-using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
 
 namespace Easislides
 {
-    internal unsafe partial class gf
-    {
+	internal unsafe partial class gf
+	{
 
-	public static bool InitEasiSlidesDir()
+		public static bool InitEasiSlidesDir()
 		{
 			RootEasiSlidesDir = RegUtil.GetRegValue("config", "root_directory", "C:\\EasiSlides\\");
 			if (RootEasiSlidesDir == "")
@@ -75,11 +40,8 @@ namespace Easislides
 			}
 			RegUtil.SaveRegValue("config", "root_directory", RootEasiSlidesDir);
 			ValidateID();
-#if SQLite
+
 			DBFileName = RootEasiSlidesDir + "Admin\\Database\\EasiSlidesDb.db";
-#else
-			DBFileName = RootEasiSlidesDir + "Admin\\Database\\EasiSlidesDb.mdb";
-#endif
 
 			bool flag = File.Exists(DBFileName);
 
@@ -196,37 +158,25 @@ namespace Easislides
 			ShowLMargin = Screen.PrimaryScreen.Bounds.Width / 50;
 			ShowRMargin = ShowLMargin;
 			ShowLyricsWidth = Screen.PrimaryScreen.Bounds.Width - ShowLMargin - ShowRMargin;
-
-#if SQLite
 			UsageFileName = RootEasiSlidesDir + "Admin\\Database\\EsUsage.db";
 			BiblesListFileName = RootEasiSlidesDir + "Admin\\Database\\EsBiblesList.db";
 			tempDBFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEasiSlidesDb.db";
 			tempUsageFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEsUsage.db";
 			tempBiblesListFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEsBiblesList.db";
-#else
-			UsageFileName = RootEasiSlidesDir + "Admin\\Database\\EsUsage.mdb";
-			BiblesListFileName = RootEasiSlidesDir + "Admin\\Database\\EsBiblesList.mdb";
-            tempDBFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEasiSlidesDb.mdb";
-            tempUsageFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEsUsage.mdb";
-            tempBiblesListFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEsBiblesList.mdb";
-#endif
-
-
-
 			ConnectStringMainDB = ConnectStringDef + DBFileName;
 			ConnectStringUsageDB = ConnectStringDef + UsageFileName;
 			ConnectStringBibleDB = ConnectStringDef + BiblesListFileName;
 			UserString = DataUtil.Trim(RegUtil.GetRegValue("config", "RegistrationUser", ""));
 
-            if (!ValidateVer_3_4_Fields())
-            {
-                return false;
-            }
+			if (!ValidateVer_3_4_Fields())
+			{
+				return false;
+			}
 
-            LoadSavedData();
+			LoadSavedData();
 
 			GenerateMusicKeysList();
-            DisplayInfo.SizeLaunchDisplay();
+			DisplayInfo.SizeLaunchDisplay();
 			ResetShowRunningSettings();
 
 			AlertsDataFile = RootEasiSlidesDir + "Admin\\Database\\Alerts.txt";
@@ -254,17 +204,7 @@ namespace Easislides
 
 			SetPatternPeriod();
 
-            //?�도 개선 ?�요
-            //var task2 = Task.Run<bool>(() =>
-            //{
-            //    if (!ValidateVer_3_4_Fields())
-            //    {
-            //        return Task.FromResult(false);
-            //    }
-            //    return Task.FromResult(true);
-            //});
-
-            return true;
+			return true;
 		}
 
 		public static void ValidateID()
@@ -352,23 +292,11 @@ namespace Easislides
 			bool flag20 = false;
 			bool flag21 = false;
 			bool flag22 = false;
-#if OleDb
-			OleDbConnection connection = new OleDbConnection(ConnectStringMainDB);
-			connection.Open();
-#elif SQLite
+
 			DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-#endif
 			try
 			{
-#if OleDb
-				DataTable dbSchemaTable = connection.GetOleDbSchemaTable(OleDbSchemaGuid.Columns, new object[4]
-				{
-					null,
-					null,
-					"Folder",
-					null
-				});
-#elif SQLite
+
 				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
 				{
 					null,
@@ -376,7 +304,7 @@ namespace Easislides
 					"Folder",
 					null
 				});
-#endif
+
 				foreach (DataRow row in dbSchemaTable.Rows)
 				{
 					string a = DataUtil.ObjToString(row["COLUMN_NAME"]).ToUpper();
@@ -437,60 +365,6 @@ namespace Easislides
 					}
 				}
 
-#if DAO
-				if (!flag)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "BIU0", 1);
-				}
-				if (!flag2)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "BIU1", 1);
-				}
-				if (!flag3)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "ColA", 0);
-				}
-				if (!flag4)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "ColB", 0);
-				}
-				if (!flag6)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "LMargin", 1);
-				}
-				if (!flag7)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "RMargin", 1);
-				}
-				if (!flag8)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "BMargin", 1);
-				}
-				if (!flag9)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "BIUHeading", 1);
-				}
-				if (!flag10)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "HeadingSize", 1);
-				}
-				if (!flag11)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "HeadingOption", 1);
-				}
-				if (!flag12)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "LineSpacing", 4);
-				}
-				if (!flag13)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "LineSpacing2", 4);
-				}
-				if (!flag5)
-				{
-					DbDaoController.CreateField(ref connection, "Folder", "PreChorusHeading", 0, 30);
-				}
-#elif SQLite
 				if (!flag)
 				{
 					DbController.CreateField(ref connection, "Folder", "BIU0", 1);
@@ -510,7 +384,7 @@ namespace Easislides
 				if (!flag5)
 				{
 					DbController.CreateField(ref connection, "Folder", "PreChorusHeading", 0, 30);
-				}				
+				}
 				if (!flag6)
 				{
 					DbController.CreateField(ref connection, "Folder", "LMargin", 1);
@@ -543,9 +417,6 @@ namespace Easislides
 				{
 					DbController.CreateField(ref connection, "Folder", "LineSpacing2", 4);
 				}
-
-
-#endif
 			}
 			catch
 			{
@@ -561,15 +432,7 @@ namespace Easislides
 			try
 			{
 				connection.Open();
-#if OleDb
-				DataTable dbSchemaTable = connection.GetOleDbSchemaTable(OleDbSchemaGuid.Columns, new object[4]
-				{
-					null,
-					null,
-					"Song",
-					null
-				});
-#elif SQLite
+
 				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
 				{
 					null,
@@ -577,7 +440,6 @@ namespace Easislides
 					"Song",
 					null
 				});
-#endif
 
 				foreach (DataRow row2 in dbSchemaTable.Rows)
 				{
@@ -628,72 +490,15 @@ namespace Easislides
 						}
 					}
 				}
-#if OleDb
-				if (num2 > 1 && num2 < 100)
-				{
-					OleDbCommand command = new OleDbCommand("ALTER TABLE Song ALTER COLUMN BOOK_REFERENCE TEXT (100) ", connection);
-					command.ExecuteNonQuery();
-				}
-				if (num3 > 1 && num3 < 255)
-				{
-					OleDbCommand command = new OleDbCommand("ALTER TABLE Song ALTER COLUMN SEQUENCE TEXT (255) ", connection);
-					command.ExecuteNonQuery();
-				}
-				if (!flag14)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "CAPO", 1);
-				}
-				if (!flag15)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "TIMING", 0);
-				}
-				if (!flag16)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "SONG_NUMBER", 1);
-				}
-				if (!flag17)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "BOOK_REFERENCE", 0);
-				}
-				if (!flag18)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "USER_REFERENCE", 5);
-				}
-				else if (num > 0)
-				{
-					OleDbCommand command = new OleDbCommand("ALTER TABLE Song ALTER COLUMN USER_REFERENCE MEMO ", connection);
-					command.ExecuteNonQuery();
-				}
-				if (!flag19)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "LICENCE_ADMIN1", 0);
-				}
-				if (!flag20)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "LICENCE_ADMIN2", 0);
-				}
-				if (!flag21)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "SETTINGS", 5);
-				}
-				if (!flag22)
-				{
-					DbDaoController.CreateField(ref connection, "Song", "FORMATDATA", 5);
-				}
-#elif SQLite
+
 				if (num2 > 1 && num2 < 100)
 				{
 					try
 					{
-#if MariaDB
-						DbCommand command = new DbCommand("ALTER TABLE Song MODIFY BOOK_REFERENCE varchar(100)", connection);
 
-						command.ExecuteNonQuery();
-#else
 						DbCommand command = new DbCommand("ALTER TABLE Song ALTER COLUMN BOOK_REFERENCE TEXT (100) ", connection);
 
 						command.ExecuteNonQuery();
-#endif
 					}
 					catch { }
 				}
@@ -752,7 +557,6 @@ namespace Easislides
 				{
 					DbController.CreateField(ref connection, "Song", "FORMATDATA", 5);
 				}
-#endif
 			}
 			catch
 			{
@@ -1047,5 +851,5 @@ namespace Easislides
 			}
 			return InCurItem;
 		}
-    }
+	}
 }

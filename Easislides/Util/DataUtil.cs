@@ -1,46 +1,14 @@
-﻿//using Microsoft.Office.Interop.Access.Dao;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
-//using System.Data.SQLite;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Easislides.Module;
-#if SQLite
-using DbConnection = System.Data.SQLite.SQLiteConnection;
-using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
 
 namespace Easislides.Util
 {
     class DataUtil
     {
 
-#if DAO
-		public static int GetDataInt(Recordset rs, string Fieldname)
-		{
-			try
-			{
-				return ObjToInt(rs.Fields[Fieldname].Value, Minus1IfBlank: false);
-			}
-			catch
-			{
-				return 0;
-			}
-		}
-#elif SQLite
 		public static int GetDataInt(DataRow dr, string Fieldname)
 		{
 			int number = 0;
@@ -98,21 +66,8 @@ namespace Easislides.Util
 				return number;
 			}
 		}
-#endif
 
-#if DAO
-		public static int GetDataInt(Recordset rs, string Fieldname, bool Minus1IfBlank)
-		{
-			try
-			{
-				return ObjToInt(rs.Fields[Fieldname].Value, Minus1IfBlank);
-			}
-			catch
-			{
-				return Minus1IfBlank ? (-1) : 0;
-			}
-		}
-#elif SQLite
+
 		public static int GetDataInt(DataRow dr, string Fieldname, bool Minus1IfBlank)
 		{
 			try
@@ -136,22 +91,8 @@ namespace Easislides.Util
 				return Minus1IfBlank ? (-1) : 0;
 			}
 		}
-#endif
 
 
-#if DAO
-		public static double GetDataDouble(Recordset rs, string Fieldname)
-		{
-			try
-			{
-				return ObjToDouble(rs.Fields[Fieldname].Value);
-			}
-			catch
-			{
-				return 0.0;
-			}
-		}
-#elif SQLite
 		public static double GetDataDouble(DataRow dr, string Fieldname)
 		{
 			try
@@ -175,21 +116,8 @@ namespace Easislides.Util
 				return 0.0;
 			}
 		}
-#endif
 
-#if DAO
-		public static string GetDataString(Recordset rs, string Fieldname)
-		{
-			try
-			{
-				return ObjToString(rs.Fields[Fieldname].Value);
-			}
-			catch
-			{
-				return "";
-			}
-		}
-#elif SQLite
+
 		public static string GetDataString(DataRow rs, string Fieldname)
 		{
 			try
@@ -213,7 +141,6 @@ namespace Easislides.Util
 				return "";
 			}
 		}
-#endif
 
 		public static int ObjToInt(object InValue)
 		{

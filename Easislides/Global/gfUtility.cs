@@ -1,50 +1,24 @@
-//using JRO;
 using Easislides.SQLite;
-//using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
 using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
 using Microsoft.Win32;
-//using NetOffice.PowerPointApi;
 using OfficeLib;
 using System;
 using System.Collections;
 using System.Data;
-using System.Data.OleDb;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using Easislides.Module;
 using System.Threading;
-
-//using NetOffice.DAOApi;
-
-#if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbTransaction = System.Data.SQLite.SQLiteTransaction;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
+
 
 namespace Easislides
 {
@@ -504,11 +478,8 @@ namespace Easislides
 				LicAdmin_List[num, 0] = "";
 			}
 			string fullSearchString = "select * from LICENCE where Ref >=4 and Ref < " + DataUtil.ObjToString(9);
-#if OleDb
-			DataTable datatable = DbOleDbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#elif SQLite
 			using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#endif
+
 			if (datatable.Rows.Count > 0)
 			{
 				//recordSet.MoveFirst();
@@ -545,71 +516,6 @@ namespace Easislides
 			LicAdmin_List[0, 2] = LicAdmin_List[1, 2];
 		}
 
-#if OleDb
-		public static void SaveFoldersSettings4()
-        {
-            int num = 0;
-            if (ValidateDefaultFolders(0))
-            {
-                try
-                {
-                    string text = "";
-                    Database daoDb = DbDaoController.GetDaoDb(ConnectStringMainDB);
-                    Recordset recordset = null;
-					for (int i = 1; i < 41; i++)
-                    {
-                        num = i;
-                        if (FolderName[i] != "")
-                        {
-                            text = "select * from Folder where FolderNo=" + i;
-                            recordset = DbDaoController.GetRecordSet(daoDb, text);
-                            recordset.Edit();
-                            recordset.Fields["name"].Value = FolderName[i];
-                            recordset.Fields["Use"].Value = FolderUse[i];
-                            recordset.Fields["GroupStyle"].Value = FolderGroupStyle[i];
-                            recordset.Fields["PreChorusHeading"].Value = FolderLyricsHeading[i, 0];
-                            recordset.Fields["ChorusHeading"].Value = FolderLyricsHeading[i, 1];
-                            recordset.Fields["BridgeHeading"].Value = FolderLyricsHeading[i, 2];
-                            recordset.Fields["EndingHeading"].Value = FolderLyricsHeading[i, 3];
-                            recordset.Fields["BIUHeading"].Value = FolderHeadingFontBold[i, 0] + FolderHeadingFontItalic[i, 0] * 2 + FolderHeadingFontUnderline[i, 0] * 4 + FolderHeadingFontBold[i, 1] * 8 + FolderHeadingFontItalic[i, 1] * 16 + FolderHeadingFontUnderline[i, 1] * 32;
-                            recordset.Fields["HeadingSize"].Value = FolderHeadingPercentSize[i];
-                            recordset.Fields["HeadingOption"].Value = FolderHeadingOption[i];
-                            recordset.Fields["LineSpacing"].Value = ShowLineSpacing[i, 0];
-                            recordset.Fields["LineSpacing2"].Value = ShowLineSpacing[i, 1];
-                            recordset.Fields["BIU0"].Value = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + ShowFontRTL[i, 0] * 64;
-                            recordset.Fields["Size0"].Value = ShowFontSize[i, 0];
-                            recordset.Fields["FontName0"].Value = ShowFontName[i, 0];
-                            recordset.Fields["Vpos0"].Value = ShowFontVPosition[i, 0];
-                            recordset.Fields["BIU1"].Value = ShowFontBold[i, 1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + ShowFontBold[i, 3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + ShowFontRTL[i, 1] * 64;
-                            recordset.Fields["Size1"].Value = ShowFontSize[i, 1];
-                            recordset.Fields["FontName1"].Value = ShowFontName[i, 1];
-                            recordset.Fields["Vpos1"].Value = ShowFontVPosition[i, 1];
-                            recordset.Fields["LMargin"].Value = ShowLeftMargin[i];
-                            recordset.Fields["RMargin"].Value = ShowRightMargin[i];
-                            recordset.Fields["BMargin"].Value = ShowBottomMargin[i];
-                            recordset.Update();
-                            recordset.Close();
-                        }
-                    }
-                    if (recordset != null)
-                    {
-                        recordset = null;
-                    }
-					if (daoDb != null)
-					{
-						daoDb.Close();
-						daoDb = null;
-					}
-
-				}
-                catch
-                {
-                    MessageBox.Show("Error: Cannot Save Folder Settings for Folder Index: " + num);
-                }
-            }
-        }
-
-#elif SQLite
 		public static void SaveFoldersSettings4()
 		{
 			int num = 0;
@@ -669,77 +575,7 @@ namespace Easislides
 				}
 			}
 		}
-#endif
 
-#if OleDb
-		public static void SaveFoldersSettings()
-		{
-			int num = 0;
-			int rowIndex = 0;
-
-			if (ValidateDefaultFolders(0))
-			{
-				try
-				{
-					string text = "";
-					using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(ConnectStringMainDB))
-					{
-						OleDbDataAdapter da = null;
-						DataSet ds = null;
-						DataTable dt = null;
-
-						text = "select * from Folder where FolderNo > 0 and FolderNo <= 41";
-
-						(da, ds) = DbOleDbController.getDataAdapter(daoDb, text);
-						dt = ds.Tables[0];
-						if (dt.Rows.Count > 0)
-						{
-							for (int i = 1; i < 41; i++)
-							{
-								num = i;
-								rowIndex = i - 1;
-								if (FolderName[i] != "")
-								{
-									dt.Rows[rowIndex]["name"] = FolderName[i];
-									dt.Rows[rowIndex]["Use"] = FolderUse[i];
-									dt.Rows[rowIndex]["GroupStyle"] = FolderGroupStyle[i];
-									dt.Rows[rowIndex]["PreChorusHeading"] = FolderLyricsHeading[i, 0];
-									dt.Rows[rowIndex]["ChorusHeading"] = FolderLyricsHeading[i, 1];
-									dt.Rows[rowIndex]["BridgeHeading"] = FolderLyricsHeading[i, 2];
-									dt.Rows[rowIndex]["EndingHeading"] = FolderLyricsHeading[i, 3];
-									dt.Rows[rowIndex]["BIUHeading"] = FolderHeadingFontBold[i, 0] + FolderHeadingFontItalic[i, 0] * 2 + FolderHeadingFontUnderline[i, 0] * 4 + FolderHeadingFontBold[i, 1] * 8 + FolderHeadingFontItalic[i, 1] * 16 + FolderHeadingFontUnderline[i, 1] * 32;
-									dt.Rows[rowIndex]["HeadingSize"] = FolderHeadingPercentSize[i];
-									dt.Rows[rowIndex]["HeadingOption"] = FolderHeadingOption[i];
-									dt.Rows[rowIndex]["LineSpacing"] = ShowLineSpacing[i, 0];
-									dt.Rows[rowIndex]["LineSpacing2"] = ShowLineSpacing[i, 1];
-									dt.Rows[rowIndex]["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + ShowFontRTL[i, 0] * 64;
-									dt.Rows[rowIndex]["Size0"] = ShowFontSize[i, 0];
-									dt.Rows[rowIndex]["FontName0"] = ShowFontName[i, 0];
-									dt.Rows[rowIndex]["Vpos0"] = ShowFontVPosition[i, 0];
-									dt.Rows[rowIndex]["BIU1"] = ShowFontBold[i, 1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + ShowFontBold[i, 3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + ShowFontRTL[i, 1] * 64;
-									dt.Rows[rowIndex]["Size1"] = ShowFontSize[i, 1];
-									dt.Rows[rowIndex]["FontName1"] = ShowFontName[i, 1];
-									dt.Rows[rowIndex]["Vpos1"] = ShowFontVPosition[i, 1];
-									dt.Rows[rowIndex]["LMargin"] = ShowLeftMargin[i];
-									dt.Rows[rowIndex]["RMargin"] = ShowRightMargin[i];
-									dt.Rows[rowIndex]["BMargin"] = ShowBottomMargin[i];									
-								}
-							}
-							da.Update(dt);
-							dt.Dispose();
-							da.Dispose();
-						}
-					}
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e.Message);
-					Console.WriteLine(e.StackTrace);
-				}
-			}
-		}
-
-#elif SQLite
 		public static void SaveFoldersSettings()
 		{
 			int num = 0;
@@ -804,7 +640,6 @@ namespace Easislides
 				}
 			}
 		}
-#endif
 
 		public static void SaveOptionsData()
 		{
@@ -1340,11 +1175,9 @@ namespace Easislides
 			{
 				string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
 				string fullSearchString = "select * from Bible where book=0 and chapter=10 and verse=" + InBookNumber;
-#if OleDb
-				DataTable datatable = DbOleDbController.getDataTable(connectString, fullSearchString);
-#elif SQLite
+
 				using DataTable datatable = DbController.GetDataTable(connectString, fullSearchString);
-#endif
+
 				if (datatable.Rows.Count>0)
 				{
 					return DataUtil.GetDataString(datatable.Rows[0], "bibletext");
@@ -1734,11 +1567,9 @@ namespace Easislides
 			try
 			{
 				string fullSearchString = "select * from SONG where songid=" + InItem.ItemID;
-#if OleDb
-				DataTable datatable = DbOleDbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
 				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#endif
+
 				if (datatable.Rows.Count>0)
 				{
 					InItem.Format.DBStoredFormat = DataUtil.GetDataString(datatable.Rows[0], "FORMATDATA");
@@ -1766,11 +1597,8 @@ namespace Easislides
 				try
 				{
 					string fullSearchString = "select * from SONG where songid=" + InItem.ItemID;
-#if OleDb
-					DataTable datatable = DbOleDbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
 					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#endif
 					
 					if (datatable.Rows.Count>0)
 					{
@@ -2355,8 +2183,6 @@ namespace Easislides
 					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
 				}
 				InPic.BackgroundID = text;
-				//image.Dispose();
-				//g.Dispose();
 			}
 			try
 			{
@@ -3622,11 +3448,7 @@ namespace Easislides
 				{
 					string fullSearchString = "select * from SONG where songid=" + text;
 
-#if OleDb
-					DataTable datatable = DbOleDbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#elif SQLite
 					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#endif
 
 					if (datatable.Rows.Count>0 && DataUtil.GetDataInt(datatable.Rows[0], "FolderNo") > 0 && FolderUse[DataUtil.GetDataInt(datatable.Rows[0], "FolderNo")] > 0)
 					{
@@ -4491,46 +4313,6 @@ namespace Easislides
 			}
 		}
 
-#if OleDb
-		public static bool ClearAllFormatting()
-		{
-			if (MessageBox.Show("This will clear all individual formatting held in the Lyrics Database. Click Yes to proceed.", "Compact EasiSlides Databases", MessageBoxButtons.YesNo) == DialogResult.Yes)
-			{
-				try
-				{
-					string fullSearchString = "select * from SONG where FORMATDATA <> ''";
-					using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(ConnectStringMainDB))
-					{
-						OleDbDataAdapter da = null;
-						DataSet ds = null;
-						DataTable dt = null;
-						(da, ds) = DbOleDbController.getDataAdapter(daoDb, fullSearchString);
-						dt = ds.Tables[0];
-						if (dt.Rows.Count > 0)
-						{
-							//recordset.MoveFirst();
-							//while (!recordset.EOF)
-							foreach (DataRow dr in dt.Rows)
-							{
-								//recordset.Edit();
-								dr["FORMATDATA"] = "";
-								//recordset.MoveNext();
-							}
-							da.Update(dt);
-							dt.Dispose();
-							da.Dispose();
-						}
-					}
-					return true;
-				}
-				catch
-				{
-				}
-			}
-			return false;
-		}
-
-#elif SQLite
 		public static bool ClearAllFormatting()
 		{
 			if (MessageBox.Show("This will clear all individual formatting held in the Lyrics Database. Click Yes to proceed.", "Compact EasiSlides Databases", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -4565,7 +4347,6 @@ namespace Easislides
 			}
 			return false;
 		}
-#endif
 
 		public static bool ClearRegistrySettings()
 		{
@@ -4585,32 +4366,6 @@ namespace Easislides
 			return false;
 		}
 
-#if DAO
-		public static void SaveFormatStringToDatabase(string SongID, string FormatString)
-		{
-			try
-			{
-				Recordset tableRecordSet = DbDaoController.GetTableRecordSet(ConnectStringMainDB, "SONG");
-				tableRecordSet.Index = "PrimaryKey";
-				tableRecordSet.Seek("=", SongID, def, def, def, def, def, def, def, def, def, def, def, def);
-				if (!tableRecordSet.NoMatch)
-				{
-					tableRecordSet.Edit();
-					tableRecordSet.Fields["FormatData"].Value = FormatString;
-					tableRecordSet.Update();
-				}
-				if (tableRecordSet != null)
-				{
-					tableRecordSet.Close();
-					tableRecordSet = null;
-				}
-			}
-			catch
-			{
-			}
-		}
-
-#elif SQLite
 		public static void SaveFormatStringToDatabase(string SongID, string FormatString)
 		{
             int intSongID = 0;
@@ -4635,153 +4390,12 @@ namespace Easislides
 			{
 			}
 		}
-#endif
 
 		public static string BuildItemSearchString(string InString)
 		{
 			return BuildItemSearchString(InString, SearchTitle: true, SearchContents: true, SearchSongNumber: true, SearchBookRef: true, SearchUserRef: true, SearchLicAdmin: true, SearchWriter: true, SearchCopyright: true, SearchNotationsOnly: false, "", "", SearchDates: false, DateTime.Now, DateTime.Now, null);
 		}
 
-#if DAO
-		public static string BuildItemSearchString(string InString, bool SearchTitle, bool SearchContents, bool SearchSongNumber, bool SearchBookRef, bool SearchUserRef, bool SearchLicAdmin, bool SearchWriter, bool SearchCopyright, bool SearchNotationsOnly, string SearchSongKey, string SearchSongTiming, bool SearchDates, DateTime DateFrom, DateTime DateTo, CheckedListBox InFolderList)
-		{
-			string text = "";
-			string text2 = "";
-			string text3 = "";
-			string text4 = "";
-			string text5 = "";
-			string text6 = "";
-			string text7 = "";
-			string text8 = "";
-			string text9 = "";
-			string text10 = "";
-			string text11 = "";
-			string text12 = "";
-			string text13 = "";
-			string text14 = "";
-			int num = 0;
-			string text15 = "*";
-			bool flag = false;
-			for (int i = 0; i <= InString.Length; i++)
-			{
-				text = ((!(DataUtil.Mid(InString, i, 1) != "*")) ? (text + text15) : (text + DataUtil.Mid(InString, i, 1)));
-			}
-			if (DataUtil.Left(text, 1) != text15)
-			{
-				text = text15 + text;
-			}
-			if (DataUtil.Right(text, 1) != text15)
-			{
-				text += text15;
-			}
-			for (int i = 1; i < 41; i++)
-			{
-				FindSongsFolder[i] = false;
-			}
-			if (InFolderList != null)
-			{
-				for (int i = 0; i <= InFolderList.CheckedItems.Count - 1; i++)
-				{
-					FindSongsFolder[GetFolderNumber(InFolderList.CheckedItems[i].ToString())] = true;
-					text2 = ((!(text2 == "")) ? (text2 + " or FolderNo=" + GetFolderNumber(InFolderList.CheckedItems[i].ToString())) : (" and (FolderNo=" + GetFolderNumber(InFolderList.CheckedItems[i].ToString())));
-				}
-				if (text2 != "")
-				{
-					text2 += ")";
-				}
-			}
-			else
-			{
-				for (int i = 1; i < 41; i++)
-				{
-					if (FolderUse[i] > 0)
-					{
-						FindSongsFolder[i] = true;
-						text2 = ((!(text2 == "")) ? (text2 + " or FolderNo=" + i) : (" and (FolderNo=" + i));
-					}
-				}
-				if (text2 != "")
-				{
-					text2 += ")";
-				}
-			}
-			if (SearchTitle)
-			{
-				text3 = " (LCase(Title_1) like \"" + text.ToLower() + "\" " + text2 + ") or (LCase(Title_2) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			if (SearchContents)
-			{
-				text7 = (flag ? " OR " : "") + " (LCase(lyrics) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			int num2 = DataUtil.StringToInt(text, Minus1IfBlank: true);
-			if (SearchSongNumber)
-			{
-				if (num2 == 0)
-				{
-					text4 = (flag ? " OR " : "") + " ((song_number < 1 or song_number = NULL ) " + text2 + ")";
-					flag = true;
-				}
-				else if (num2 < 0)
-				{
-					text4 = (flag ? " OR " : "") + " ((song_number >= " + num2 + "  and song_number <= " + num2 + ") " + text2 + ")";
-					flag = true;
-				}
-			}
-			if (SearchBookRef)
-			{
-				text5 = (flag ? " OR " : "") + " (LCase(BOOK_REFERENCE) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			if (SearchUserRef)
-			{
-				text6 = (flag ? " OR " : "") + " (LCase(USER_REFERENCE) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			if (SearchLicAdmin)
-			{
-				text10 = (flag ? " OR " : "") + " (LCase(licence_admin1) like \"" + text.ToLower() + "\" " + text2 + ") or (LCase(licence_admin2) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			if (SearchWriter)
-			{
-				text8 = (flag ? " OR " : "") + " (LCase(writer) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			if (SearchCopyright)
-			{
-				text9 = (flag ? " OR " : "") + " (LCase(copyright) like \"" + text.ToLower() + "\" " + text2 + ")";
-				flag = true;
-			}
-			if (SearchNotationsOnly)
-			{
-				text11 = (flag ? " AND " : "") + " (msc <> \"\")";
-			}
-			if (SearchSongKey != "")
-			{
-				text12 = (flag ? " AND " : "") + " (key = \"" + SearchSongKey + "\")";
-			}
-			if (SearchSongTiming != "")
-			{
-				text13 = (flag ? " AND " : "") + " (timing = \"" + SearchSongTiming + "\")";
-			}
-			if (SearchDates)
-			{
-				text14 = (flag ? " AND " : "") + " LastModified >=#" + DateFrom.ToString("MM-dd-yyyy") + "# and LastModified <=#" + DateTo.ToString("MM-dd-yyyy") + "# ";
-			}
-			string text16 = text3 + text7 + text4 + text5 + text6 + text10 + text8 + text9;
-			if (text16 != "")
-			{
-				text16 = "(" + text16 + ")";
-			}
-			if ((text16 == "") & !FindItemNotationsOnly)
-			{
-				text16 = " title_1 = \"@!@~!~\"";
-			}
-			return "select * from SONG where " + text16 + text12 + text13 + text11 + text14;
-		}
-#elif SQLite
 		public static string BuildItemSearchString(string InString, bool SearchTitle, bool SearchContents, bool SearchSongNumber, bool SearchBookRef, bool SearchUserRef, bool SearchLicAdmin, bool SearchWriter, bool SearchCopyright, bool SearchNotationsOnly, string SearchSongKey, string SearchSongTiming, bool SearchDates, DateTime DateFrom, DateTime DateTo, CheckedListBox InFolderList)
 		{
 			string text = "";
@@ -4920,101 +4534,12 @@ namespace Easislides
 			}
 			return "select * from SONG where " + text16 + text12 + text13 + text11 + text14;
 		}
-#endif
 
 		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex)
 		{
 			return BuildBibleSearchString(InSearchPassage, VersionIndex, 0, 2);
 		}
 
-#if DAO
-		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex, int BookIndex, int MatchSelected)
-		{
-			string text = "\"*[ -/:-@]";
-			string text2 = "[ -/:-@]*\"";
-			if (PartialWordSearch(VersionIndex))
-			{
-				text = "\"*";
-				text2 = "*\"";
-			}
-			if (DataUtil.Trim(InSearchPassage).Length > 0)
-			{
-				InSearchPassage = DataUtil.Trim(InSearchPassage.ToLower());
-				sArray = InSearchPassage.Split(' ');
-				string text3 = "";
-				string text4 = "";
-				string text5 = "";
-				string text6 = "";
-				string text7 = "";
-				text3 = "select * from Bible where book";
-				text3 = ((BookIndex >= 1) ? (text3 + "=" + BookIndex) : (text3 + ">0 "));
-				switch (MatchSelected)
-				{
-					case 1:
-						{
-							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
-							{
-								if (i > 0)
-								{
-									text4 += " or ";
-									text5 += " or ";
-									text6 += " or ";
-									text7 += " or ";
-								}
-								string text8 = text4;
-								text4 = text8 + " LCase(bibletext) like " + text + DataUtil.Trim(sArray[i]) + text2;
-								text5 = text5 + " LCase(bibletext) like \"" + DataUtil.Trim(sArray[i]) + text2;
-								text8 = text6;
-								text6 = text8 + " LCase(bibletext) like " + text + DataUtil.Trim(sArray[i]) + "\"";
-								text7 = text7 + " LCase(bibletext) like \"" + DataUtil.Trim(sArray[i]) + "\"";
-							}
-							break;
-						}
-					case 0:
-						{
-							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
-							{
-								if (i > 0)
-								{
-									text4 += " and ";
-									text5 += " and ";
-									text6 += " and ";
-									text7 += " and ";
-								}
-								string text8 = text4;
-								text4 = text8 + " LCase(bibletext) like " + text + sArray[i] + text2;
-								text5 = text5 + " LCase(bibletext) like \"" + sArray[i] + text2;
-								text8 = text6;
-								text6 = text8 + " LCase(bibletext) like " + text + sArray[i] + "\"";
-								text7 = text7 + " LCase(bibletext) like \"" + sArray[i] + "\"";
-							}
-							break;
-						}
-					default:
-						text4 = " LCase(bibletext) like " + text + DataUtil.Trim(InSearchPassage).ToLower() + text2;
-						text5 = " LCase(bibletext) like \"" + DataUtil.Trim(InSearchPassage).ToLower() + text2;
-						text6 = " LCase(bibletext) like " + text + DataUtil.Trim(InSearchPassage).ToLower() + "\"";
-						text7 = " LCase(bibletext) like \"" + DataUtil.Trim(InSearchPassage).ToLower() + "\"";
-						break;
-				}
-				text4 = DataUtil.Trim(text4);
-				text5 = DataUtil.Trim(text5);
-				text6 = DataUtil.Trim(text6);
-				text7 = DataUtil.Trim(text7);
-				if (text4 != "")
-				{
-					text3 = text3 + " AND ( (" + text4 + ")";
-					if (!PartialWordSearch(VersionIndex))
-					{
-						string text8 = text3;
-						text3 = text8 + " OR (" + text5 + ") OR (" + text6 + ") OR (" + text7 + ")";
-					}
-					return text3 + " ) order by Book, chapter, verse ";
-				}
-			}
-			return "";
-		}
-#elif SQLite
 		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex, int BookIndex, int MatchSelected)
 		{
 			string text = "'*[ -/:-@]";
@@ -5104,7 +4629,6 @@ namespace Easislides
 			}
 			return "";
 		}
-#endif
 
 		public static bool PartialWordSearch(int VersionIndex)
 		{
@@ -5115,17 +4639,11 @@ namespace Easislides
 			{
 				string connectString = ConnectStringDef + HB_Versions[VersionIndex, 4];
 				string fullSearchString = "select * from Bible where book=0 and chapter=0 and verse=20";
-#if OleDb
-				if (DbOleDbController.GetDataTable(connectString, fullSearchString).Rows.Count > 0)
-				{
-					return true;
-				}
-#elif SQLite
+
 				if (DbController.GetDataTable(connectString, fullSearchString).Rows.Count > 0)
 				{
 					return true;
 				}
-#endif
 
 			}
 			catch(Exception ex)
@@ -5136,45 +4654,6 @@ namespace Easislides
 			return false;
 		}
 
-#if DAO
-		public static bool SearchBiblePassages(int InBibleVersion, ref ComboBox InBookList, string InSelectString, ref RichTextBox InTextContainer, bool InShowVerses)
-		{
-			int num = 0;
-			string text = "";
-			string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
-			StringBuilder stringBuilder = new StringBuilder();
-			Recordset recordSet = DbDaoController.GetRecordSet(connectString, InSelectString);
-			if (!(recordSet?.EOF ?? true))
-			{
-				recordSet.MoveFirst();
-				while (!recordSet.EOF && num < 3000)
-				{
-					num++;
-					int dataInt = DataUtil.GetDataInt(recordSet, "book");
-					int dataInt2 = DataUtil.GetDataInt(recordSet, "chapter");
-					int dataInt3 = DataUtil.GetDataInt(recordSet, "verse");
-					text = string.Concat(InBookList.Items[dataInt - 1], " ", dataInt2, ":", dataInt3, " ");
-					HB_VersesLocation[num, 0] = InBibleVersion;
-					HB_VersesLocation[num, 1] = dataInt;
-					HB_VersesLocation[num, 2] = dataInt2;
-					HB_VersesLocation[num, 3] = dataInt3;
-					HB_VersesLocation[num, 4] = stringBuilder.Length;
-					stringBuilder.Append(text + (InShowVerses ? DataUtil.GetDataString(recordSet, "bibletext") : "") + "\n\n");
-					HB_VersesLocation[num, 5] = stringBuilder.Length + 1 - HB_VersesLocation[num, 4];
-					recordSet.MoveNext();
-				}
-				HB_VersesLocation[0, 0] = num;
-				InTextContainer.Text = DataUtil.TrimEnd(stringBuilder.ToString());
-				if (num >= 3000)
-				{
-					MessageBox.Show("The number of search results has been limited to " + Convert.ToString(3000) + ".");
-				}
-				return true;
-			}
-			return false;
-		}
-
-#elif SQLite
 		public static bool SearchBiblePassages(int InBibleVersion, ref ComboBox InBookList, string InSelectString, ref RichTextBox InTextContainer, bool InShowVerses)
 		{
 			int num = 0;
@@ -5223,7 +4702,6 @@ namespace Easislides
 			}
 			return false;
 		}
-#endif
 
 		public static bool FormInUse(string InFormName)
 		{
@@ -5488,11 +4966,9 @@ namespace Easislides
 			try
 			{
 				string fullSearchString = "select * from SONG where songid=" + Convert.ToString(InKey);
-#if OleDb
-				DataTable datatable = DbOleDbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
 				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#endif
+
 				if (datatable.Rows.Count>0)
 				{
 					return DataUtil.ObjToString(datatable.Rows[0]["Title_2"]);
@@ -5692,11 +5168,8 @@ namespace Easislides
 			try
 			{
 				string fullSearchString = "select * from SONG where songid=" + InSongID;
-#if OleDb
-				DataTable datatable = DbOleDbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
 				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-#endif
 				
 				if (datatable.Rows.Count > 0)
 				{
@@ -7443,25 +6916,6 @@ namespace Easislides
 			return "\\fs" + Convert.ToString(PB_WordsSize[InPart] * 2) + str + str2;
 		}
 
-#if DAO
-		public static bool LoadDataIntoItem(ref SongSettings InItem, Recordset rs, string InID)
-		{
-			try
-			{
-				rs.Seek("=", InID, def, def, def, def, def, def, def, def, def, def, def, def);
-				if (!rs.NoMatch)
-				{
-					return LoadDataIntoItem(ref InItem, rs);
-				}
-
-				InitialiseIndividualData(ref InItem);
-			}
-			catch
-			{
-			}
-			return false;
-		}
-#endif
 
 		public static bool LoadDataIntoItem(ref SongSettings InItem, DataTable dt, string InID)
 		{
@@ -7482,40 +6936,6 @@ namespace Easislides
 			}
 			return false;
 		}
-
-#if DAO
-		public static bool LoadDataIntoItem(ref SongSettings InItem, Recordset rs)
-		{
-			InitialiseIndividualData(ref InItem);
-			try
-			{
-				InItem.Title = DataUtil.GetDataString(rs, "Title_1");
-				InItem.Title2 = DataUtil.GetDataString(rs, "Title_2");
-				InItem.SongNumber = DataUtil.GetDataInt(rs, "song_number");
-				InItem.CompleteLyrics = DataUtil.GetDataString(rs, "Lyrics");
-				InItem.FolderNo = DataUtil.GetDataInt(rs, "FolderNo");
-				InItem.Copyright = DataUtil.GetDataString(rs, "Copyright");
-				InItem.Show_LicAdminInfo1 = DataUtil.GetDataString(rs, "LICENCE_ADMIN1");
-				InItem.Show_LicAdminInfo2 = DataUtil.GetDataString(rs, "LICENCE_ADMIN2");
-				InItem.Format.FormatString = DataUtil.GetDataString(rs, "FORMATDATA");
-				InItem.Notations = DataUtil.GetDataString(rs, "msc");
-				InItem.Capo = DataUtil.GetDataInt(rs, "capo", Minus1IfBlank: true);
-				InItem.SongSequence = DataUtil.GetDataString(rs, "Sequence");
-				InItem.Writer = DataUtil.GetDataString(rs, "Writer");
-				InItem.Book_Reference = DataUtil.GetDataString(rs, "Book_Reference");
-				InItem.User_Reference = DataUtil.GetDataString(rs, "User_Reference");
-				InItem.Timing = DataUtil.GetDataString(rs, "timing");
-				InItem.MusicKey = DataUtil.GetDataString(rs, "key");
-				InItem.Category = DataUtil.GetDataString(rs, "category");
-				InItem.Settings = DataUtil.GetDataString(rs, "SETTINGS");
-				return true;
-			}
-			catch
-			{
-			}
-			return false;
-		}
-#endif
 
 		public static bool LoadDataIntoItem(ref SongSettings InItem, DataRow dr)
 		{
