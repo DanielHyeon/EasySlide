@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace Easislides
 {
@@ -29,18 +30,10 @@ namespace Easislides
 			{
 				return false;
 			}
-			for (int i = 0; i < TotalMusicFiles; i++)
-			{
-				if (MediaFilesList[i, 0].ToLower() == MusicTitle1.ToLower())
-				{
-					return true;
-				}
-				if (MusicTitle2 != "" && MediaFilesList[i, 0].ToLower() == MusicTitle2.ToLower())
-				{
-					return true;
-				}
-			}
-			return false;
+
+			return MediaFilesList.Any(f =>
+				f.FileName.Equals(MusicTitle1, StringComparison.OrdinalIgnoreCase) ||
+				(!string.IsNullOrEmpty(MusicTitle2) && f.FileName.Equals(MusicTitle2, StringComparison.OrdinalIgnoreCase)));
 		}
 
     }

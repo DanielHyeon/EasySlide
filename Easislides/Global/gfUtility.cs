@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -965,10 +966,17 @@ namespace Easislides
 					foreach (string text in array)
 					{
 						string InFileName = text;
-						MediaFilesList[TotalMusicFiles, 0] = GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-						MediaFilesList[TotalMusicFiles, 1] = MediaFileExtension[i, 0];
-						int iLen = InFileName.Length - (MediaFilesList[TotalMusicFiles, 0].Length + MediaFilesList[TotalMusicFiles, 1].Length);
-						MediaFilesList[TotalMusicFiles, 2] = DataUtil.Left(InFileName, iLen);
+						string fileName = GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+						string extension = MediaFileExtension[i, 0];
+						int iLen = InFileName.Length - (fileName.Length + extension.Length);
+						string dirPath = DataUtil.Left(InFileName, iLen);
+
+						MediaFilesList.Add(new MediaFileInfo
+						{
+							FileName = fileName,
+							Extension = extension,
+							DirectoryPath = dirPath
+						});
 						TotalMusicFiles++;
 					}
 				}
@@ -1028,14 +1036,14 @@ namespace Easislides
 				{
 					if (StoreDirPath)
 					{
-						for (int k = 0; k < TotalMusicFiles; k++)
+						var mediaFile = MediaFilesList.FirstOrDefault(f =>
+							f.FileName == text && f.Extension == MediaFileExtension[j, 0]);
+
+						if (mediaFile != null)
 						{
-							if (MediaFilesList[k, 0] == text && MediaFilesList[k, 1] == MediaFileExtension[j, 0])
-							{
-								DirPath = MediaFilesList[k, 2];
-								FileName = MediaFilesList[k, 0] + MediaFilesList[k, 1];
-								return DirPath + FileName;
-							}
+							DirPath = mediaFile.DirectoryPath;
+							FileName = mediaFile.FileName + mediaFile.Extension;
+							return DirPath + FileName;
 						}
 					}
 					else
@@ -5946,14 +5954,14 @@ namespace Easislides
 				{
 					if (StoreDirPath)
 					{
-						for (int k = 0; k <= TotalMusicFiles - 1; k++)
+						var mediaFile = MediaFilesList.FirstOrDefault(f =>
+							f.FileName == text && f.Extension == MediaFileExtension[j, 0]);
+
+						if (mediaFile != null)
 						{
-							if (MediaFilesList[k, 0] == text && MediaFilesList[k, 1] == MediaFileExtension[j, 0])
-							{
-								DirPath = MediaFilesList[k, 2];
-								FileName = MediaFilesList[k, 0] + MediaFilesList[k, 1];
-								return DirPath + FileName;
-							}
+							DirPath = mediaFile.DirectoryPath;
+							FileName = mediaFile.FileName + mediaFile.Extension;
+							return DirPath + FileName;
 						}
 					}
 					else

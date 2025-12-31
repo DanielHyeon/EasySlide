@@ -5,6 +5,7 @@ using Easislides.Util;
 //using NetOffice.PowerPointApi;
 using OfficeLib;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +28,15 @@ using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
 
 namespace Easislides
 {
+	public class MediaFileInfo
+	{
+		public string FileName { get; set; }
+		public string Extension { get; set; }
+		public string DirectoryPath { get; set; }
+
+		public string FullPath => DirectoryPath + FileName + Extension;
+	}
+
     internal unsafe partial class gf
 	{
 
@@ -1032,7 +1042,7 @@ namespace Easislides
 
 		public static int TotalMusicFiles = -1;
 
-		public static string[,] MediaFilesList = new string[32000, 3];
+		public static List<MediaFileInfo> MediaFilesList = new List<MediaFileInfo>();
 
 		public static TimeSpan MediaPlayedLapseTime = new TimeSpan(0L);
 
@@ -1875,7 +1885,7 @@ namespace Easislides
 
 		public static PowerPoint ExternalPPT = new PowerPoint();
 
-		public static string[,] PowerpointList = new string[100000, 2];
+		public static string[,] PowerpointList = new string[1000, 2];
 
 		public static int TotalPowerpointItems = 0;
 

@@ -21,11 +21,17 @@ namespace Easislides
 				InTab.TabPages.Clear();
 				InTab.ShowToolTips = true;
 				HB_TotalVersions = 0;
-				string fullSearchString = "select * from Biblefolder where NAME like \"*\" and displayorder >=0 order by displayorder, NAME";
+
+				Console.WriteLine($"[LoadBibleVersions] BibleDir: {BibleDir}");
+				Console.WriteLine($"[LoadBibleVersions] ConnectStringBibleDB: {ConnectStringBibleDB}");
+
+				string fullSearchString = "select * from Biblefolder where NAME like '%' and displayorder >=0 order by displayorder, NAME";
 
 				//Provider = Microsoft.ACE.OLEDB.12.0;
 				//string SQLiteConnectStringBibleDB = ConnectStringBibleDB.Replace("Provider=Microsoft.ACE.OLEDB.12.0;", "");
 				using DataTable dataTable = DbController.GetDataTable(ConnectStringBibleDB, fullSearchString);
+				Console.WriteLine($"[LoadBibleVersions] DataTable rows: {dataTable.Rows.Count}");
+
 				if (dataTable.Rows.Count>0)
 				{
 					//recordSet.MoveFirst();
@@ -54,10 +60,13 @@ namespace Easislides
 							{
 								HB_Versions[HB_TotalVersions, 6] = "80";
 							}
+							Console.WriteLine($"[LoadBibleVersions] Added Bible version: {HB_Versions[HB_TotalVersions, 1]}");
 							HB_TotalVersions++;
-						}						
+						}
 					}
 				}
+				Console.WriteLine($"[LoadBibleVersions] Total versions loaded: {HB_TotalVersions}");
+
 				if (HB_TotalVersions > 0)
 				{
 					InTab.Enabled = true;
@@ -68,10 +77,24 @@ namespace Easislides
 					tabPage.Text = "No Bible";
 					InTab.Controls.Add(tabPage);
 					InTab.Enabled = false;
+					Console.WriteLine("[LoadBibleVersions] No Bible versions found - displaying 'No Bible' tab");
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"[LoadBibleVersions] ERROR: {ex.Message}");
+				Console.WriteLine($"[LoadBibleVersions] Stack Trace: {ex.StackTrace}");
+
+				// 에러 발생 시에도 "No Bible" 탭 표시
+				try
+				{
+					InTab.TabPages.Clear();
+					TabPage tabPage = new TabPage();
+					tabPage.Text = "Error Loading Bibles";
+					InTab.Controls.Add(tabPage);
+					InTab.Enabled = false;
+				}
+				catch { }
 			}
 		}
 
