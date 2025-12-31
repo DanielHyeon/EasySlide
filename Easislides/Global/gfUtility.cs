@@ -22,8 +22,8 @@ using DbDataReader = System.Data.SQLite.SQLiteDataReader;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
-    {
+	internal unsafe partial class gf
+	{
 
 		public static void MessageOverSplashScreen(string InString)
 		{
@@ -669,19 +669,19 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "NotationFontFactor", (int)(NotationFontFactor * 100.0));
 			RegUtil.SaveRegValue("options", "ExternalListing", PowerpointListingStyle);
 			RegUtil.SaveRegValue("options", "KeyBoardOption", KeyBoardOption);
-            // Global Hook F7, F8 (panel black) ?占쏙옙?
-            RegUtil.SaveRegValue("options", "GlobalHookKey_F7", GlobalHookKey_F7 ? 1 : 0);
-            RegUtil.SaveRegValue("options", "GlobalHookKey_F8", GlobalHookKey_F8 ? 1 : 0);
+			// Global Hook F7, F8 (panel black) ?占쏙옙?
+			RegUtil.SaveRegValue("options", "GlobalHookKey_F7", GlobalHookKey_F7 ? 1 : 0);
+			RegUtil.SaveRegValue("options", "GlobalHookKey_F8", GlobalHookKey_F8 ? 1 : 0);
 
-            // Global Hook F9, F10 (panel black) ?占쏙옙?
-            RegUtil.SaveRegValue("options", "GlobalHookKey_F9", GlobalHookKey_F9 ? 1 : 0);
-            RegUtil.SaveRegValue("options", "GlobalHookKey_F10", GlobalHookKey_F10 ? 1 : 0);
+			// Global Hook F9, F10 (panel black) ?占쏙옙?
+			RegUtil.SaveRegValue("options", "GlobalHookKey_F9", GlobalHookKey_F9 ? 1 : 0);
+			RegUtil.SaveRegValue("options", "GlobalHookKey_F10", GlobalHookKey_F10 ? 1 : 0);
 
-            // Global Hook Arrow, CtrlArrow (panel black) ?占쏙옙?
-            RegUtil.SaveRegValue("options", "GlobalHookKey_Arrow", GlobalHookKey_Arrow ? 1 : 0);
-            RegUtil.SaveRegValue("options", "GlobalHookKey_CtrlArrow", GlobalHookKey_CtrlArrow ? 1 : 0);
+			// Global Hook Arrow, CtrlArrow (panel black) ?占쏙옙?
+			RegUtil.SaveRegValue("options", "GlobalHookKey_Arrow", GlobalHookKey_Arrow ? 1 : 0);
+			RegUtil.SaveRegValue("options", "GlobalHookKey_CtrlArrow", GlobalHookKey_CtrlArrow ? 1 : 0);
 
-            RegUtil.SaveRegValue("options", "OutputmonitorName", OutputMonitorName);
+			RegUtil.SaveRegValue("options", "OutputmonitorName", OutputMonitorName);
 			RegUtil.SaveRegValue("options", "LyricsMonitorName", LyricsMonitorName);
 
 			RegUtil.SaveRegValue("options", "PreviewAreaShowNotations", PreviewArea_ShowNotations ? 1 : 0);
@@ -746,11 +746,11 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "FindItemDateTo", FindItemDateTo.ToString());
 			RegUtil.SaveRegValue("options", "OutlineFontSizeThreshold", OutlineFontSizeThreshold);
 
-            RegUtil.SaveRegValue("monitors", "AlwaysTryDualMonitor", DMAlwaysUseSecondaryMonitor ? 1 : 0);
+			RegUtil.SaveRegValue("monitors", "AlwaysTryDualMonitor", DMAlwaysUseSecondaryMonitor ? 1 : 0);
 
-            // daniel
-            // 紐⑤땲??Wide ?占쏀겕占?Mode
-            RegUtil.SaveRegValue("monitors", "IsMonitorWide", isScreenWideMode ? 1: 0);
+			// daniel
+			// 紐⑤땲??Wide ?占쏀겕占?Mode
+			RegUtil.SaveRegValue("monitors", "IsMonitorWide", isScreenWideMode ? 1 : 0);
 			RegUtil.SaveRegValue("monitors", "DualMonitorOption", DualMonitorSelectAutoOption);
 			RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomLeft", DMOption1Left);
 			RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomTop", DMOption1Top);
@@ -779,7 +779,7 @@ namespace Easislides
 			RegUtil.SaveRegValue("monitors", "LiveCamMute", LiveCamMute ? 1 : 0);
 
 
-        }
+		}
 
 		public static void LoadSongKeyCapoTiming(ref ComboBox SongCapo, ref ComboBox SongKey, ref ComboBox SongTiming)
 		{
@@ -929,82 +929,6 @@ namespace Easislides
 			MusicMinorChords[11, 1] = "F#m";
 		}
 
-		public static void OldGenerateMusicKeysList()
-		{
-			MusicMajorKeys[0] = "G";
-			MusicMajorKeys[1] = "Ab";
-			MusicMajorKeys[2] = "A";
-			MusicMajorKeys[3] = "Bb";
-			MusicMajorKeys[4] = "B";
-			MusicMajorKeys[5] = "C";
-			MusicMajorKeys[6] = "Db";
-			MusicMajorKeys[7] = "D";
-			MusicMajorKeys[8] = "Eb";
-			MusicMajorKeys[9] = "E";
-			MusicMajorKeys[10] = "F";
-			MusicMajorKeys[11] = "Gb";
-			MusicMinorKeys[0] = "Gm";
-			MusicMinorKeys[1] = "Abm";
-			MusicMinorKeys[2] = "Am";
-			MusicMinorKeys[3] = "Bbm";
-			MusicMinorKeys[4] = "Bm";
-			MusicMinorKeys[5] = "Cm";
-			MusicMinorKeys[6] = "Dbm";
-			MusicMinorKeys[7] = "Dm";
-			MusicMinorKeys[8] = "Ebm";
-			MusicMinorKeys[9] = "Em";
-			MusicMinorKeys[10] = "Fm";
-			MusicMinorKeys[11] = "Gbm";
-			MusicMajorChords[0, 0] = "G";
-			MusicMajorChords[1, 0] = "Ab";
-			MusicMajorChords[2, 0] = "A";
-			MusicMajorChords[3, 0] = "Bb";
-			MusicMajorChords[4, 0] = "B";
-			MusicMajorChords[5, 0] = "C";
-			MusicMajorChords[6, 0] = "Db";
-			MusicMajorChords[7, 0] = "D";
-			MusicMajorChords[8, 0] = "Eb";
-			MusicMajorChords[9, 0] = "E";
-			MusicMajorChords[10, 0] = "F";
-			MusicMajorChords[11, 0] = "Gb";
-			MusicMajorChords[0, 1] = "G";
-			MusicMajorChords[1, 1] = "G#";
-			MusicMajorChords[2, 1] = "A";
-			MusicMajorChords[3, 1] = "A#";
-			MusicMajorChords[4, 1] = "B";
-			MusicMajorChords[5, 1] = "C";
-			MusicMajorChords[6, 1] = "C#";
-			MusicMajorChords[7, 1] = "D";
-			MusicMajorChords[8, 1] = "D#";
-			MusicMajorChords[9, 1] = "E";
-			MusicMajorChords[10, 1] = "F";
-			MusicMajorChords[11, 1] = "F#";
-			MusicMinorChords[0, 0] = "Gm";
-			MusicMinorChords[1, 0] = "Abm";
-			MusicMinorChords[2, 0] = "Am";
-			MusicMinorChords[3, 0] = "Bbm";
-			MusicMinorChords[4, 0] = "Bm";
-			MusicMinorChords[5, 0] = "Cm";
-			MusicMinorChords[6, 0] = "Dbm";
-			MusicMinorChords[7, 0] = "Dm";
-			MusicMinorChords[8, 0] = "Ebm";
-			MusicMinorChords[9, 0] = "Em";
-			MusicMinorChords[10, 0] = "Fm";
-			MusicMinorChords[11, 0] = "Gbm";
-			MusicMinorChords[0, 1] = "Gm";
-			MusicMinorChords[1, 1] = "G#m";
-			MusicMinorChords[2, 1] = "Am";
-			MusicMinorChords[3, 1] = "A#m";
-			MusicMinorChords[4, 1] = "Bm";
-			MusicMinorChords[5, 1] = "Cm";
-			MusicMinorChords[6, 1] = "C#m";
-			MusicMinorChords[7, 1] = "Dm";
-			MusicMinorChords[8, 1] = "D#m";
-			MusicMinorChords[9, 1] = "Em";
-			MusicMinorChords[10, 1] = "Fm";
-			MusicMinorChords[11, 1] = "F#m";
-		}
-
 		public static void SingleArraySort(string[] InArray)
 		{
 			SingleArraySort(InArray, SortAscending: true);
@@ -1057,10 +981,10 @@ namespace Easislides
 			if (!FolderPath.EndsWith(@"\Media\"))
 			{
 				gf.MediaDir = @"C:\EasiSlides\Media\";
-                FolderPath = gf.MediaDir;
+				FolderPath = gf.MediaDir;
 			}
 
-            string[] directories = Directory.GetDirectories(FolderPath);
+			string[] directories = Directory.GetDirectories(FolderPath);
 			if (directories.Length > 0)
 			{
 				SingleArraySort(directories, SortAscending: true);
@@ -1178,7 +1102,7 @@ namespace Easislides
 
 				using DataTable datatable = DbController.GetDataTable(connectString, fullSearchString);
 
-				if (datatable.Rows.Count>0)
+				if (datatable.Rows.Count > 0)
 				{
 					return DataUtil.GetDataString(datatable.Rows[0], "bibletext");
 				}
@@ -1463,7 +1387,7 @@ namespace Easislides
 				return -1;
 			}
 
-			int chknum = -1;			
+			int chknum = -1;
 			try
 			{
 				bool isnum = int.TryParse(InString, out chknum);
@@ -1538,7 +1462,7 @@ namespace Easislides
 				return DataUtil.Left(InString, InString.Length - MusicSymLen);
 			}
 			return InString;
-		}		
+		}
 
 		public static void ResetShowRunningSettings()
 		{
@@ -1570,7 +1494,7 @@ namespace Easislides
 
 				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
 
-				if (datatable.Rows.Count>0)
+				if (datatable.Rows.Count > 0)
 				{
 					InItem.Format.DBStoredFormat = DataUtil.GetDataString(datatable.Rows[0], "FORMATDATA");
 				}
@@ -1599,8 +1523,8 @@ namespace Easislides
 					string fullSearchString = "select * from SONG where songid=" + InItem.ItemID;
 
 					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-					
-					if (datatable.Rows.Count>0)
+
+					if (datatable.Rows.Count > 0)
 					{
 						DataRow dr = datatable.Rows[0];
 						InItem.Title = DataUtil.GetDataString(dr, "Title_1");
@@ -1918,109 +1842,109 @@ namespace Easislides
 			LoadIndividualFormatData(ref InItem, "");
 		}
 
-        public static string LoadSelectedBibleVerses(string InFullBibleString)
-        {
-            try
-            {
-                // 占?踰덉㎏ 媛믪씠 0蹂대떎 ?占쎈㈃ flag = true
-                bool flag = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0;
+		public static string LoadSelectedBibleVerses(string InFullBibleString)
+		{
+			try
+			{
+				// 占?踰덉㎏ 媛믪씠 0蹂대떎 ?占쎈㈃ flag = true
+				bool flag = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0;
 
-                // ?占쎄꼍 踰꾩쟾 ?占쎈낫 ?占??
-                string[] bibleVersions = new string[2];
-                int[] versionNumbers = new int[2];
+				// ?占쎄꼍 踰꾩쟾 ?占쎈낫 ?占??
+				string[] bibleVersions = new string[2];
+				int[] versionNumbers = new int[2];
 
-                for (int i = 0; i < 2; i++)
-                {
-                    bibleVersions[i] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
-                    versionNumbers[i] = LookUpBibleVersionNumber(bibleVersions[i]);
-                }
+				for (int i = 0; i < 2; i++)
+				{
+					bibleVersions[i] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
+					versionNumbers[i] = LookUpBibleVersionNumber(bibleVersions[i]);
+				}
 
-                string[] verseData = { InFullBibleString, InFullBibleString };
+				string[] verseData = { InFullBibleString, InFullBibleString };
 
-                // 寃곌낵 臾몄옄??
-                StringBuilder InTextString = new StringBuilder();
+				// 寃곌낵 臾몄옄??
+				StringBuilder InTextString = new StringBuilder();
 
-                bool hasSecondVersion = versionNumbers[1] >= 0;
+				bool hasSecondVersion = versionNumbers[1] >= 0;
 
-                for (int i = 0; i <= (hasSecondVersion ? 1 : 0); i++)
-                {
-                    bool flag2 = PartialWordSearch(versionNumbers[1]);
+				for (int i = 0; i <= (hasSecondVersion ? 1 : 0); i++)
+				{
+					bool flag2 = PartialWordSearch(versionNumbers[1]);
 
-                    if (i == 1)
-                    {
-                        InTextString.Append(VerseSymbol[150]).Append("\n");
-                    }
+					if (i == 1)
+					{
+						InTextString.Append(VerseSymbol[150]).Append("\n");
+					}
 
-                    while (!string.IsNullOrEmpty(verseData[i]))
-                    {
-                        int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-                        int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-                        int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-                        int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-                        int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+					while (!string.IsNullOrEmpty(verseData[i]))
+					{
+						int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
 
-                        LoadBiblePassages(versionNumbers[i], inBookNumber, ref InTextString,
-                            InShowVerses: true, DoCompleteBook: false, TrackOutput: false,
-                            chapterStart, verseStart, chapterEnd, verseEnd,
-                            flag, flag2, flag, ShowFormatTags: true);
+						LoadBiblePassages(versionNumbers[i], inBookNumber, ref InTextString,
+							InShowVerses: true, DoCompleteBook: false, TrackOutput: false,
+							chapterStart, verseStart, chapterEnd, verseEnd,
+							flag, flag2, flag, ShowFormatTags: true);
 
-                        InTextString.Append("\n");
-                    }
-                }
+						InTextString.Append("\n");
+					}
+				}
 
-                return InTextString.ToString();
-            }
-            catch (Exception ex)
-            {
-                // ?占쎌쇅 諛쒖깮 ???占쎈쾭源낆쓣 ?占쏀빐 濡쒓렇 異쒕젰
-                Console.WriteLine($"Error: {ex.Message}");
-                return "";
-            }
-        }
+				return InTextString.ToString();
+			}
+			catch (Exception ex)
+			{
+				// ?占쎌쇅 諛쒖깮 ???占쎈쾭源낆쓣 ?占쏀빐 濡쒓렇 異쒕젰
+				Console.WriteLine($"Error: {ex.Message}");
+				return "";
+			}
+		}
 
-        public static string LoadSelectedBibleVerses_Old(string InFullBibleString)
-        {
-            try
-            {
-                bool flag = (DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0) ? true : false;
-                string[] array = new string[2];
-                int[] array2 = new int[2];
-                string[] array3 = new string[2];
-                array[0] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
-                array2[0] = LookUpBibleVersionNumber(array[0]);
-                array[1] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
-                array2[1] = LookUpBibleVersionNumber(array[1]);
-                array3[0] = InFullBibleString;
-                array3[1] = InFullBibleString;
-                StringBuilder InTextString = new StringBuilder();
-                string text = "";
-                for (int i = 0; i <= ((array2[1] >= 0) ? 1 : 0); i++)
-                {
-                    bool flag2 = false;
-                    string text2 = ConnectStringDef + HB_Versions[array2[i], 4];
-                    flag2 = PartialWordSearch(array2[1]);
-                    if (i == 1)
-                    {
-                        InTextString.Append(VerseSymbol[150] + "\n");
-                    }
-                    while (array3[i] != "")
-                    {
-                        int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-                        int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-                        int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-                        int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-                        int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-                        LoadBiblePassages(array2[i], inBookNumber, ref InTextString, InShowVerses: true, DoCompleteBook: false, TrackOutput: false, chapterStart, verseStart, chapterEnd, verseEnd, flag, flag2, flag ? true : false, ShowFormatTags: true);
-                        InTextString.Append("\n");
-                    }
-                }
-                return InTextString.ToString();
-            }
-            catch
-            {
-                return "";
-            }
-        }
+		public static string LoadSelectedBibleVerses_Old(string InFullBibleString)
+		{
+			try
+			{
+				bool flag = (DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0) ? true : false;
+				string[] array = new string[2];
+				int[] array2 = new int[2];
+				string[] array3 = new string[2];
+				array[0] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
+				array2[0] = LookUpBibleVersionNumber(array[0]);
+				array[1] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
+				array2[1] = LookUpBibleVersionNumber(array[1]);
+				array3[0] = InFullBibleString;
+				array3[1] = InFullBibleString;
+				StringBuilder InTextString = new StringBuilder();
+				string text = "";
+				for (int i = 0; i <= ((array2[1] >= 0) ? 1 : 0); i++)
+				{
+					bool flag2 = false;
+					string text2 = ConnectStringDef + HB_Versions[array2[i], 4];
+					flag2 = PartialWordSearch(array2[1]);
+					if (i == 1)
+					{
+						InTextString.Append(VerseSymbol[150] + "\n");
+					}
+					while (array3[i] != "")
+					{
+						int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						LoadBiblePassages(array2[i], inBookNumber, ref InTextString, InShowVerses: true, DoCompleteBook: false, TrackOutput: false, chapterStart, verseStart, chapterEnd, verseEnd, flag, flag2, flag ? true : false, ShowFormatTags: true);
+						InTextString.Append("\n");
+					}
+				}
+				return InTextString.ToString();
+			}
+			catch
+			{
+				return "";
+			}
+		}
 
 		public static void UpdatePosUpDowns(ref NumericUpDown Reg1_UpDown, ref NumericUpDown Reg2_UpDown, ref NumericUpDown RegBottom_UpDown, ref int Reg1_Value, ref int Reg2_Value, int RegBottom_Value)
 		{
@@ -2220,7 +2144,7 @@ namespace Easislides
 		{
 			Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
 			using Graphics graphics = Graphics.FromImage(image);
-			
+
 			if (InPic.BackgroundID != "")
 			{
 				if (InPic.BackgroundID == DefaultBackgroundID)
@@ -2241,14 +2165,14 @@ namespace Easislides
 				InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
 			}
 			InPic.BackgroundID = "";
-			
+
 			// Load image using stream to avoid file lock
 			Image image2;
 			using (var stream = new FileStream(File_Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				image2 = Image.FromStream(stream);
 			}
-			
+
 			try
 			{
 				InPic.ImageFileName = File_Name;
@@ -2346,7 +2270,7 @@ namespace Easislides
 				// Clean up loaded image
 				image2?.Dispose();
 			}
-        }
+		}
 
 		public static string GetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)
 		{
@@ -2366,7 +2290,7 @@ namespace Easislides
 				if (slide[CurSlide, num] <= slide[CurSlide, num2])
 				{
 					bool flag = false;
-					
+
 					for (int i = slide[CurSlide, num]; i <= slide[CurSlide, num2]; i++)
 					{
 						if (i >= itemCount) continue;
@@ -3450,7 +3374,7 @@ namespace Easislides
 
 					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
 
-					if (datatable.Rows.Count>0 && DataUtil.GetDataInt(datatable.Rows[0], "FolderNo") > 0 && FolderUse[DataUtil.GetDataInt(datatable.Rows[0], "FolderNo")] > 0)
+					if (datatable.Rows.Count > 0 && DataUtil.GetDataInt(datatable.Rows[0], "FolderNo") > 0 && FolderUse[DataUtil.GetDataInt(datatable.Rows[0], "FolderNo")] > 0)
 					{
 						InFileName = DataUtil.GetDataString(datatable.Rows[0], "Title_1");
 					}
@@ -3815,9 +3739,9 @@ namespace Easislides
 					return Keys.Down;
 				case KeyDirection.LastOne:
 					return Keys.Right;
-                case KeyDirection.SpaceOne:
-                    return Keys.Space;
-                default:
+				case KeyDirection.SpaceOne:
+					return Keys.Space;
+				default:
 					return Keys.F5;
 			}
 		}
@@ -4068,21 +3992,21 @@ namespace Easislides
 			}
 
 			if (!ShowLiveCam && gf.DualMonitorSelectAutoOption == 1)
-            {
+			{
 				float scalef = 0.75f;
-                // ?占쎌썙?占쎌씤???占쎌씪???占쎌떆?占쎈뒗 紐⑤땲?占쏙옙? ?占쎌젙?占쎄린 ?占쏀빐 ?占쎌젙
+				// ?占쎌썙?占쎌씤???占쎌씪???占쎌떆?占쎈뒗 紐⑤땲?占쏙옙? ?占쎌젙?占쎄린 ?占쏀빐 ?占쎌젙
 
-                if (DualMonitorMode)
-                {
-                    InPPT.SetShowWindow((float)LS_Left * scalef, (float)LS_Top * scalef, (float)LS_Width * scalef, (float)LS_Height * scalef);
-                }
-                else
-                {
-                    InPPT.SetShowWindow(LS_Left, LS_Top, (float)LS_Width * scalef, (float)LS_Height * scalef);
-                }
-            }
+				if (DualMonitorMode)
+				{
+					InPPT.SetShowWindow((float)LS_Left * scalef, (float)LS_Top * scalef, (float)LS_Width * scalef, (float)LS_Height * scalef);
+				}
+				else
+				{
+					InPPT.SetShowWindow(LS_Left, LS_Top, (float)LS_Width * scalef, (float)LS_Height * scalef);
+				}
+			}
 
-            InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
+			InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
 			return InPPT.Count();
 		}
 
@@ -4187,7 +4111,7 @@ namespace Easislides
 				char c = '\uE002';
 				string str = InString;
 				//str = Strings.StrConv(str, VbStrConv.SimplifiedChinese, CultureInfo.CurrentCulture.LCID);
-				
+
 				str = getStrConv(str, "utf-8");
 
 				switch (SelectedType)
@@ -4219,8 +4143,8 @@ namespace Easislides
 						InString = str;
 						return 1;
 				}
-            }
-            catch (Exception e)
+			}
+			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.StackTrace);
@@ -4241,65 +4165,65 @@ namespace Easislides
 				return myEncoding.GetString(buf);
 			}
 			catch (Exception e)
-            {
+			{
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.StackTrace);
 			}
 
-			return sDat; 
+			return sDat;
 		}
 
 		public static void ClearUpPowerpointWindows()
 		{
 			string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
-			if( text == "")
-            {
+			if (text == "")
+			{
 				LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
 			}
 		}
 
-        public static void SetDefaultBackScreen(ref ImageTransitionControl InScreen)
+		public static void SetDefaultBackScreen(ref ImageTransitionControl InScreen)
 		{
 			try
 			{
-                switch (Buffer_LS_Width)
-                {
-                    case <= 0 when Buffer_LS_Height == 768:
-                        Buffer_LS_Width = 1024;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 800:
-                        Buffer_LS_Width = 1280;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 1024:
-                        Buffer_LS_Width = 1280;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 900:
-                        Buffer_LS_Width = 1440;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 1050:
-                        Buffer_LS_Width = 1680;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 1200:
-                        Buffer_LS_Width = 1600;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 1536:
-                        Buffer_LS_Width = 2048;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 1920:
-                        Buffer_LS_Width = 1080;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 2560:
-                        Buffer_LS_Width = 1440;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 3840:
-                        Buffer_LS_Width = 2160;
-                        break;
-                    case <= 0 when Buffer_LS_Height == 7680:
-                        Buffer_LS_Width = 4320;
-                        break;
-                }
+				switch (Buffer_LS_Width)
+				{
+					case <= 0 when Buffer_LS_Height == 768:
+						Buffer_LS_Width = 1024;
+						break;
+					case <= 0 when Buffer_LS_Height == 800:
+						Buffer_LS_Width = 1280;
+						break;
+					case <= 0 when Buffer_LS_Height == 1024:
+						Buffer_LS_Width = 1280;
+						break;
+					case <= 0 when Buffer_LS_Height == 900:
+						Buffer_LS_Width = 1440;
+						break;
+					case <= 0 when Buffer_LS_Height == 1050:
+						Buffer_LS_Width = 1680;
+						break;
+					case <= 0 when Buffer_LS_Height == 1200:
+						Buffer_LS_Width = 1600;
+						break;
+					case <= 0 when Buffer_LS_Height == 1536:
+						Buffer_LS_Width = 2048;
+						break;
+					case <= 0 when Buffer_LS_Height == 1920:
+						Buffer_LS_Width = 1080;
+						break;
+					case <= 0 when Buffer_LS_Height == 2560:
+						Buffer_LS_Width = 1440;
+						break;
+					case <= 0 when Buffer_LS_Height == 3840:
+						Buffer_LS_Width = 2160;
+						break;
+					case <= 0 when Buffer_LS_Height == 7680:
+						Buffer_LS_Width = 4320;
+						break;
+				}
 
-                Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
+				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
 				Graphics g = Graphics.FromImage(image);
 				BackPattern.Fill(ref g, ShowScreenColour[0], ShowScreenColour[1], ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref DefaultBackgroundID);
 				InScreen.SetDefaultBackgroundPicture(image);
@@ -4368,11 +4292,11 @@ namespace Easislides
 
 		public static void SaveFormatStringToDatabase(string SongID, string FormatString)
 		{
-            int intSongID = 0;
-            bool result = int.TryParse(SongID, out intSongID);
+			int intSongID = 0;
+			bool result = int.TryParse(SongID, out intSongID);
 
 			if (!result) return;
-           
+
 			string sQuery = "select * from SONG";
 			try
 			{
@@ -4632,7 +4556,7 @@ namespace Easislides
 
 		public static bool PartialWordSearch(int VersionIndex)
 		{
-			if (VersionIndex < 0) 
+			if (VersionIndex < 0)
 				return false;
 
 			try
@@ -4646,7 +4570,7 @@ namespace Easislides
 				}
 
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Console.WriteLine(ex.Message);
 				Console.WriteLine(ex.StackTrace);
@@ -4746,7 +4670,7 @@ namespace Easislides
 				//.net core?占쎌꽌???占쎈옒?占?媛숈씠 ?占쎈㈃ ?占쎌옉???占쏙옙? ?占쎌쓬(?占쎌썙?占쎌씤?占쏙옙? ?占쎌닔 ?占쎌쓬)
 				//Process process = Process.Start(InProcessString);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.StackTrace);
@@ -4775,12 +4699,12 @@ namespace Easislides
 					string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileNameLower);
 					// ?뚯씪 ?대쫫 ?뺤옣???놁씠 寃???먮뒗 ?쇰컲?곸씤 誘몃뵒???뚮젅?댁뼱 ?대쫫 寃??
 					if (windowTitle.Contains(fileNameWithoutExt) ||
-					    windowTitle.Contains("windows media player") ||
-					    windowTitle.Contains("media player") ||
-					    windowTitle.Contains("vlc media player") ||
-					    windowTitle.Contains("vlc") ||
-					    windowTitle.Contains("movies & tv") ||
-					    windowTitle.Contains("films & tv"))
+						windowTitle.Contains("windows media player") ||
+						windowTitle.Contains("media player") ||
+						windowTitle.Contains("vlc media player") ||
+						windowTitle.Contains("vlc") ||
+						windowTitle.Contains("movies & tv") ||
+						windowTitle.Contains("films & tv"))
 					{
 						foundWindow = hWnd;
 						return false; // 李얠븯?쇰㈃ 以묐떒
@@ -4938,8 +4862,8 @@ namespace Easislides
 				{
 					// 李쎌씠 紐⑺몴 紐⑤땲???곸뿭???놁쑝硫??ㅼ떆 ?대룞 ?쒕룄
 					if (windowRect.Left < bounds.Left - 100 ||
-					    windowRect.Top < bounds.Top - 100 ||
-					    windowRect.Left > bounds.Right + 100)
+						windowRect.Top < bounds.Top - 100 ||
+						windowRect.Left > bounds.Right + 100)
 					{
 						Console.WriteLine($"RunProcessOnMonitor: 李??꾩튂 ?ъ“??(?꾩옱: {windowRect.Left},{windowRect.Top} -> 紐⑺몴: {bounds.X},{bounds.Y})");
 						SetWindowPos(handle, HWND_TOP,
@@ -4969,7 +4893,7 @@ namespace Easislides
 
 				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
 
-				if (datatable.Rows.Count>0)
+				if (datatable.Rows.Count > 0)
 				{
 					return DataUtil.ObjToString(datatable.Rows[0]["Title_2"]);
 				}
@@ -5170,7 +5094,7 @@ namespace Easislides
 				string fullSearchString = "select * from SONG where songid=" + InSongID;
 
 				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
-				
+
 				if (datatable.Rows.Count > 0)
 				{
 					return (FolderUse[DataUtil.ObjToInt(datatable.Rows[0]["FolderNo"])] > 0) ? true : false;
@@ -5353,33 +5277,6 @@ namespace Easislides
 				inString = DataUtil.Mid(InString, CurPos, num2);
 			}
 			return DataUtil.Trim(inString);
-		}
-
-		public static void OldGetCurPosInLine(string instring, ref int CurPos, int InPos)
-		{
-			if (instring.Length == 0)
-			{
-				return;
-			}
-			bool flag = false;
-			int num = CurPos + 1 + ((InPos == 0) ? (-1) : 0);
-			while ((num > 1) & (num < instring.Length + 1))
-			{
-				if ((DataUtil.Mid(instring, num, 1) == "\r") | (DataUtil.Mid(instring, num, 1) == "\n"))
-				{
-					flag = true;
-					CurPos = num + ((InPos != 0) ? (-1) : 0);
-					num = 1;
-				}
-				else
-				{
-					num += ((InPos != 0) ? 1 : (-1));
-				}
-			}
-			if (!flag)
-			{
-				CurPos = ((InPos != 0) ? instring.Length : 0);
-			}
 		}
 
 		public static string MakeTitleValidFileName(string InString)
@@ -6204,49 +6101,6 @@ namespace Easislides
 			Alert_FormatOriginalSequence = Alert_FormatSequence;
 		}
 
-		public static void OldBuildAlertSequence()
-		{
-			string text = "";
-			if (Alert_Flash)
-			{
-				text = "R" + '>' + "R" + '>' + "R" + '>' + "R" + '>';
-			}
-			Alert_FormatSequence = text;
-			bool flag = Alert_Scroll;
-			if ((Alert_OriginalMessage.Length + 30) * AlertGap > AlertTimeRemaining)
-			{
-				flag = false;
-			}
-			if (flag)
-			{
-				for (int i = 0; i < Alert_OriginalMessage.Length; i++)
-				{
-					Alert_FormatSequence = Alert_FormatSequence + "S" + '>';
-				}
-				Alert_FormattedMessage = "";
-				Alert_MessageLength = 0;
-			}
-			else if (!flag)
-			{
-				for (int i = 0; i < Alert_OriginalMessage.Length; i++)
-				{
-					Alert_FormatSequence = Alert_FormatSequence + "A" + '>';
-				}
-				Alert_FormattedMessage = "";
-				Alert_MessageLength = Alert_OriginalMessage.Length;
-			}
-			Alert_FormatSequence += text;
-			for (int i = 1; i <= 30; i++)
-			{
-				Alert_FormatSequence = Alert_FormatSequence + "A" + '>';
-			}
-			if (Alert_Scroll)
-			{
-				Alert_FormatSequence = Alert_FormatSequence + "C" + '>';
-			}
-			Alert_FormatOriginalSequence = Alert_FormatSequence;
-		}
-
 		public static void LoadComboBoxFromTextFile(ref ComboBox InComboBox, string InTextFile)
 		{
 			InComboBox.Items.Clear();
@@ -6740,9 +6594,9 @@ namespace Easislides
 
 		public static bool SaveXMLInfoScreen(SongSettings InItem, string InFileName, string[] InHeaderData, bool ReloadImageData, bool UseOriginalNotations)
 		{
-            XmlTextWriter xtw = null;
+			XmlTextWriter xtw = null;
 
-            try
+			try
 			{
 				xtw = new XmlTextWriter(InFileName, Encoding.UTF8);
 				xtw.Formatting = Formatting.Indented;
@@ -6756,7 +6610,7 @@ namespace Easislides
 			}
 			catch
 			{
-				if(xtw!= null)	
+				if (xtw != null)
 					xtw.Dispose();
 				return false;
 			}
@@ -6922,7 +6776,7 @@ namespace Easislides
 			try
 			{
 				DataRow[] arrRows = null;
-				arrRows = dt.Select("SONGID='"+ InID + "'");
+				arrRows = dt.Select("SONGID='" + InID + "'");
 
 				if (arrRows != null && arrRows.Length > 0)
 				{
@@ -7040,22 +6894,6 @@ namespace Easislides
 					return (InUseDefaultFormat && InType != "M") ? MediaLocation : InMediaLocation;
 				case 3:
 					return "<<Capture>>" + (InUseDefaultFormat ? MediaCaptureDeviceNumber.ToString() : InMediaCaptureDeviceNumber.ToString());
-				default:
-					return "";
-			}
-		}
-
-		public static string OldGetMediaLocation(SongSettings InItem)
-		{
-			string text = "";
-			switch (InItem.Format.MediaOption)
-			{
-				case 1:
-					return GetMediaFileName(InItem.Title, InItem.Title2);
-				case 2:
-					return (InItem.UseDefaultFormat && InItem.Type != "M") ? MediaLocation : InItem.Format.MediaLocation;
-				case 3:
-					return "<<Capture>>" + InItem.Format.MediaCaptureDeviceNumber;
 				default:
 					return "";
 			}
@@ -7992,6 +7830,5 @@ namespace Easislides
 				InItem.Format.TempImageFileName = dumpImageToFile(Convert.FromBase64String(InItem.Format.ImageString), InItem.Format.BackgroundPicture);
 			}
 		}
-
-    }
+	}
 }
