@@ -43,57 +43,39 @@ namespace Easislides
 			{
 				return "";
 			}
-
-			StringBuilder displayName = new StringBuilder();
-			StringBuilder extensions = new StringBuilder();
-
+			string str = "";
+			string text = "";
+			int num = 0;
 			switch (InMediaType)
 			{
 				case MediaBackgroundStyle.Audio:
-					displayName.Append("Audio Files (");
+					str = "Audio Files (";
 					break;
 				case MediaBackgroundStyle.Video:
-					displayName.Append("Video Files (");
+					str = "Video Files (";
 					break;
 			}
-
-			bool isFirst = true;
+			bool flag = true;
 			for (int i = 0; i < TotalMediaFileExt; i++)
 			{
 				if (InMediaType == MediaBackgroundStyle.None || MediaFileExtension[i, 1] == InMediaType.ToString())
 				{
-					if (!isFirst)
-					{
-						displayName.Append(',');
-						extensions.Append(';');
-					}
-
-					string ext = "*" + MediaFileExtension[i, 0];
-					displayName.Append(ext);
-					extensions.Append(ext);
-					isFirst = false;
+					str = str + (flag ? "" : ",") + "*" + MediaFileExtension[i, 0];
+					text = text + (flag ? "" : ";") + "*" + MediaFileExtension[i, 0];
+					flag = false;
 				}
 			}
-
-			if (isFirst)
+			if (flag)
 			{
 				return "";
 			}
-
-			if (InMediaType != MediaBackgroundStyle.None)
-			{
-				displayName.Append(')');
-			}
-			else
-			{
-				displayName.Append("Media Files (all types)");
-			}
-
-			return $"{displayName}|{extensions}";
+			str = ((InMediaType != 0) ? (str + ")") : "Media Files (all types)");
+			return str + "|" + text;
 		}
 
 		public static bool SaveIndexFile(string InFileName, ref ListView InList, UsageMode InMode, bool SaveAllItems, string InFormatString, string InNotes)
 		{
+			StringBuilder stringBuilder = new StringBuilder();
 			XmlTextWriter xtw = null;
 
             try
@@ -233,10 +215,8 @@ namespace Easislides
 					}
 				}
 			}
-			catch (Exception ex)
+			catch
 			{
-				Console.WriteLine($"Error in Load32InfoFile: {ex.Message}");
-				Console.WriteLine(ex.StackTrace);
 			}
 		}
 
@@ -247,6 +227,7 @@ namespace Easislides
 				XmlTextReader reader = new XmlTextReader(InFileName);
 				try
 				{
+					bool flag = false;
 					if (ValidateEasiSlidesXML(ref reader))
 					{
 						string itemID = InItem.ItemID;
@@ -258,20 +239,13 @@ namespace Easislides
 						Load32InfoFile(InFileName, ref InItem, ref ThisHeaderData);
 					}
 				}
-				catch (Exception ex)
+				catch
 				{
-					Console.WriteLine($"Error in LoadInfoFile (inner): {ex.Message}");
-					Console.WriteLine(ex.StackTrace);
 				}
-				finally
-				{
-					reader?.Close();
-				}
+				reader?.Close();
 			}
-			catch (Exception ex)
+			catch
 			{
-				Console.WriteLine($"Error in LoadInfoFile (outer): {ex.Message}");
-				Console.WriteLine(ex.StackTrace);
 			}
 		}
 
@@ -299,10 +273,8 @@ namespace Easislides
 						//InPP.newOpen(DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1), ref PowerpointList, ref TotalPowerpointItems);
 					}
 				}
-				catch (Exception ex)
+				catch
 				{
-					Console.WriteLine($"Error in PreLoadPowerpointFiles: {ex.Message}");
-					Console.WriteLine(ex.StackTrace);
 				}
 			}
 		}

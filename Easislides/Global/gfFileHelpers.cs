@@ -9,7 +9,7 @@ namespace Easislides
 {
     static class gfFileHelpers
     {
-        public static bool TryDeleteWithRetries(string filePath, int retries = 5, int delayMs = 200)
+        public static bool TryDeleteWithRetries(string filePath, int retries = 5, int delayMs = 100)
         {
             for (int i = 0; i < retries; i++)
             {
