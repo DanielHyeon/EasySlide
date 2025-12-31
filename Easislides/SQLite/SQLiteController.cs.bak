@@ -24,10 +24,10 @@ namespace Easislides.SQLite
 			int result = 0;
 			try
 			{
-				string query = "SELECT COUNT(*) FROM sqlite_master WHERE Name = @tableName";
-				using (DbCommand command = new DbCommand(query, connection))
+				string query = $"SELECT COUNT(*) FROM sqlite_master WHERE Name = '{tableName}'";
+				using (DbCommand command = new DbCommand(connection))
 				{
-					command.Parameters.AddWithValue("@tableName", tableName);
+					command.CommandText = query;
 					result = Convert.ToInt32(command.ExecuteScalar());
 				}
 			}
@@ -63,10 +63,8 @@ namespace Easislides.SQLite
 
 				if (flag)
 				{
-					using (DbCommand command = new DbCommand("DROP TABLE " + tableName, connection))
-					{
-						command.ExecuteNonQuery();
-					}
+					DbCommand command = new DbCommand("DROP TABLE " + tableName, connection);
+					command.ExecuteNonQuery();
 				}
 			}
 			catch (Exception ex)
@@ -102,7 +100,7 @@ namespace Easislides.SQLite
 			return sqlQueryCreatTable;
 		}
 
-		private KeyValuePair<string, string> CreateField(string name, string typenetc)
+		private KeyValuePair<string, string> CreadeField(string name, string typenetc)
 		{
 			return new KeyValuePair<string, string>(name, typenetc);
 		}
@@ -251,14 +249,15 @@ namespace Easislides.SQLite
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 				return null;
 			}
 			finally
 			{
 				lockDefalutDbTaken = false;
 				Monitor.Pulse(DefaultDblocker);
-				Monitor.Exit(DefaultDblocker);
+				//Monitor.Exit(DefaultDblocker);
 			}
 		}
 
@@ -267,16 +266,15 @@ namespace Easislides.SQLite
 			try
 			{
 				DataTable dt = new DataTable();
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader())
-				{
-					dt.Load(dataReader);
-				}
+				DbCommand command = new DbCommand(FullSearchString, connection);
+				//DbDataReader dataReader = command.ExecuteReader();
+				DbDataReader dataReader = command.ExecuteReader();
+				dt.Load(dataReader);
+
 				return dt;
 			}
-			catch (Exception ex)
+			catch
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				return null;
 			}
 		}
@@ -286,17 +284,17 @@ namespace Easislides.SQLite
 			try
 			{
 				DataTable dt = new DataTable();
-				using (DbConnection connection = GetDbConnection(ConnectString))
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection))
-				{
-					dt.Load(dataReader);
-				}
+				DbConnection connection = GetDbConnection(ConnectString);
+				DbCommand command = new DbCommand(FullSearchString, connection);
+				//DbDataReader dataReader = command.ExecuteReader();
+				DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection);
+				dt.Load(dataReader);
 				return dt;
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 				return null;
 			}
 		}
@@ -306,17 +304,18 @@ namespace Easislides.SQLite
 			try
 			{
 				DataTable dt = new DataTable();
+
 				string query = "select * from " + TableName;
-				using (DbCommand command = new DbCommand(query, connection))
-				using (DbDataReader dataReader = command.ExecuteReader())
-				{
-					dt.Load(dataReader);
-				}
+
+				DbCommand command = new DbCommand(query, connection);
+				//DbDataReader dataReader = command.ExecuteReader();
+				DbDataReader dataReader = command.ExecuteReader();
+				dt.Load(dataReader);
+
 				return dt;
 			}
-			catch (Exception ex)
+			catch
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return null;
 		}
@@ -326,40 +325,58 @@ namespace Easislides.SQLite
 		{
 			try
 			{
+				DataTable dt = new DataTable();
+
+				// DataAdapter는 자동으로 Connection을
+				// 핸들링한다. connection.Open() 불필요.
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
+
 				DbConnection connection = GetDbConnection(ConnectString);
-				return GetDataAdapter(connection, FullSearchString);
+
+				DbDataAdapter da = new DbDataAdapter(FullSearchString, connection);
+				//아래 구문이 빠질경우 업데이트가 되지 않는다.
+
+				DbCommandBuilder cmdBuilder = new DbCommandBuilder(da);
+				da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+
+				da.FillLoadOption = LoadOption.PreserveChanges;
+
+				da.Fill(dt);
+
+				return (da, dt);
 			}
-			catch (Exception ex)
+			catch
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				return (null, null);
 			}
 		}
 
-		// Obsolete: Use GetDataAdapter instead
-		[System.Obsolete("Use GetDataAdapter with PascalCase naming.")]
 		public static (DbDataAdapter, DataTable) getDataAdapter(DbConnection connection, string FullSearchString)
-		{
-			return GetDataAdapter(connection, FullSearchString);
-		}
-
-		public static (DbDataAdapter, DataTable) GetDataAdapter(DbConnection connection, string FullSearchString)
 		{
 			try
 			{
 				DataTable dt = new DataTable();
+
+				// DataAdapter는 자동으로 Connection을
+				// 핸들링한다. connection.Open() 불필요.
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
+
 				DbDataAdapter da = new DbDataAdapter(FullSearchString, connection);
-				using (DbCommandBuilder cmdBuilder = new DbCommandBuilder(da))
-				{
-					da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-					da.FillLoadOption = LoadOption.PreserveChanges;
-					da.Fill(dt);
-				}
+				//아래 구문이 빠질경우 업데이트가 되지 않는다.
+
+				DbCommandBuilder cmdBuilder = new DbCommandBuilder(da);
+				da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+
+				da.FillLoadOption = LoadOption.PreserveChanges;
+
+				da.Fill(dt);
+
 				return (da, dt);
 			}
-			catch (Exception ex)
+			catch
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				return (null, null);
 			}
 		}
@@ -368,17 +385,25 @@ namespace Easislides.SQLite
 		{
 			try
 			{
+
+				// DataAdapter는 자동으로 Connection을
+				// 핸들링한다. connection.Open() 불필요.
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
 				DataTable dt = new DataTable();
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader())
-				{
-					dt.Load(dataReader);
-				}
+
+				DbCommand command = new DbCommand(FullSearchString, connection);
+				//DbDataReader dataReader = command.ExecuteReader();
+				DbDataReader dataReader = command.ExecuteReader();
+
+				dt.Load(dataReader);
+
 				return dt;
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 				return null;
 			}
 		}
@@ -387,18 +412,23 @@ namespace Easislides.SQLite
 		{
 			try
 			{
+				//------------------------------------------------------------------
 				DataTable dt = new DataTable();
-				using (DbConnection connection = GetDbConnection(ConnectString))
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection))
-				{
-					dt.Load(dataReader);
-				}
+
+				using DbConnection connection = GetDbConnection(ConnectString);
+
+				DbCommand command = new DbCommand(FullSearchString, connection);
+				//DbDataReader dataReader = command.ExecuteReader();
+				DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection);
+
+				dt.Load(dataReader);
+
 				return dt;
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 				return null;
 			}
 		}
@@ -407,13 +437,19 @@ namespace Easislides.SQLite
 		{
 			try
 			{
+
+				// DataAdapter는 자동으로 Connection을
+				// 핸들링한다. connection.Open() 불필요.
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
 				DbCommand command = new DbCommand(FullSearchString, connection);
+				//DbDataReader dataReader = command.ExecuteReader();
 				DbDataReader dataReader = command.ExecuteReader();
+
 				return dataReader;
 			}
-			catch (Exception ex)
+			catch
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				return null;
 			}
 		}
@@ -457,19 +493,22 @@ namespace Easislides.SQLite
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 				return null;
 			}
 		}
 
 		public static (DbConnection, DataRow) GetDataRowScalar(string ConnectString, string FullSearchString)
 		{
+
 			try
 			{
 				using DataTable dt = new DataTable();
 				DataRow dataRow = null;
 
 				DbConnection connection = GetDbConnection(ConnectString);
+				connection.Open();
 
 				using DbCommand command = new DbCommand(FullSearchString, connection);
 				using DbDataReader dataReader = command.ExecuteReader();
@@ -483,7 +522,8 @@ namespace Easislides.SQLite
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
 				return (null, null);
 			}
 		}
