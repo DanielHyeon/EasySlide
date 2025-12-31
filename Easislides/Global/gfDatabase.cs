@@ -2,6 +2,7 @@ using Easislides.SQLite;
 using Easislides.Util;
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +18,32 @@ namespace Easislides
 {
 	internal unsafe partial class gf
 	{
+		private const int MaxTitleLength = 100;
+		private const int MaxSequenceLength = 100;
+		private const int MaxWriterLength = 100;
+		private const int MaxCopyrightLength = 100;
+		private const int MaxTimingLength = 50;
+		private const int MaxKeyLength = 20;
+		private const int MaxLicAdminLength = 50;
+		private const int MaxBookRefLength = 50;
+
+		private static void TruncateSongFields(
+			ref string title1, ref string title2, ref string sequence,
+			ref string writer, ref string copyright, ref string timing,
+			ref string key, ref string licAdmin1, ref string licAdmin2,
+			ref string bookRef)
+		{
+			title1 = DataUtil.Left(title1, MaxTitleLength);
+			title2 = DataUtil.Left(title2, MaxTitleLength);
+			sequence = DataUtil.Left(sequence, MaxSequenceLength);
+			writer = DataUtil.Left(writer, MaxWriterLength);
+			copyright = DataUtil.Left(copyright, MaxCopyrightLength);
+			timing = DataUtil.Left(timing, MaxTimingLength);
+			key = DataUtil.Left(key, MaxKeyLength);
+			licAdmin1 = DataUtil.Left(licAdmin1, MaxLicAdminLength);
+			licAdmin2 = DataUtil.Left(licAdmin2, MaxLicAdminLength);
+			bookRef = DataUtil.Left(bookRef, MaxBookRefLength);
+		}
 
 		public static void CovertItemsTov4()
 		{
@@ -33,8 +60,9 @@ namespace Easislides
 					Directory.Move(regValue, RootEasiSlidesDir + "Media\\");
 					RegUtil.SaveRegValue("config", "media_dir", RootEasiSlidesDir + "Media\\");
 				}
-				catch
+				catch (Exception ex)
 				{
+					Debug.WriteLine($"Failed to move Music directory to Media: {ex.Message}");
 				}
 			}
 			else if (regValue != "")
@@ -50,8 +78,9 @@ namespace Easislides
 				{
 					File.Move(text, text2);
 				}
-				catch
+				catch (Exception ex)
 				{
+					Debug.WriteLine($"Failed to move MusicExtensions.txt to MediaExtensions.txt: {ex.Message}");
 				}
 			}
 			string text3 = RootEasiSlidesDir + "User Images";
@@ -62,8 +91,9 @@ namespace Easislides
 				{
 					Directory.Move(text3, text4);
 				}
-				catch
+				catch (Exception ex)
 				{
+					Debug.WriteLine($"Failed to move 'User Images' directory to 'Images': {ex.Message}");
 				}
 			}
 		}
@@ -97,16 +127,8 @@ namespace Easislides
 		}
 		public static int InsertItemIntoDatabase(string InConnectString, string Title_1, string Title_2, int song_number, int FolderNo, string Lyrics, string Sequence, string writer, string copyright, int capo, string Timing, string InKey, string msc, string CATEGORY, string LICENCE_ADMIN1, string LICENCE_ADMIN2, string BOOK_REFERENCE, string USER_REFERENCE, string SETTINGS, string FORMATDATA)
 		{
-			Title_1 = DataUtil.Left(Title_1, 100);
-			Title_2 = DataUtil.Left(Title_2, 100);
-			Sequence = DataUtil.Left(Sequence, 100);
-			writer = DataUtil.Left(writer, 100);
-			copyright = DataUtil.Left(copyright, 100);
-			Timing = DataUtil.Left(Timing, 50);
-			InKey = DataUtil.Left(InKey, 20);
-			LICENCE_ADMIN1 = DataUtil.Left(LICENCE_ADMIN1, 50);
-			LICENCE_ADMIN2 = DataUtil.Left(LICENCE_ADMIN2, 50);
-			BOOK_REFERENCE = DataUtil.Left(BOOK_REFERENCE, 50);
+			TruncateSongFields(ref Title_1, ref Title_2, ref Sequence, ref writer, ref copyright,
+				ref Timing, ref InKey, ref LICENCE_ADMIN1, ref LICENCE_ADMIN2, ref BOOK_REFERENCE);
 			string value = DataUtil.CJK_WordCount(Title_1);
 			string value2 = DataUtil.CJK_StrokeCount(Title_1);
 
@@ -154,8 +176,9 @@ namespace Easislides
 
 					return DataUtil.ObjToInt(dr["SongID"]);
 				}
-				catch
+				catch (Exception ex)
 				{
+					Debug.WriteLine($"Error adding item to database: {ex.Message}");
 					MessageBox.Show("Error encountered whilst adding item to database - item NOT added");
 				}
 			}
@@ -170,22 +193,15 @@ namespace Easislides
 		public static bool UpdateDatabaseItem(string InConnectString, int SongID, string Title_1, string Title_2, int song_number, int FolderNo, string Lyrics, string Sequence, string writer, string copyright, int capo, string Timing, string InKey, string msc, string CATEGORY, string LICENCE_ADMIN1, string LICENCE_ADMIN2, string BOOK_REFERENCE, string USER_REFERENCE, string SETTINGS, string FORMATDATA)
 		{
 			bool result = false;
-			Title_1 = DataUtil.Left(Title_1, 100);
-			Title_2 = DataUtil.Left(Title_2, 100);
-			Sequence = DataUtil.Left(Sequence, 100);
-			writer = DataUtil.Left(writer, 100);
-			copyright = DataUtil.Left(copyright, 100);
-			Timing = DataUtil.Left(Timing, 50);
-			InKey = DataUtil.Left(InKey, 20);
-			LICENCE_ADMIN1 = DataUtil.Left(LICENCE_ADMIN1, 50);
-			LICENCE_ADMIN2 = DataUtil.Left(LICENCE_ADMIN2, 50);
-			BOOK_REFERENCE = DataUtil.Left(BOOK_REFERENCE, 50);
+			TruncateSongFields(ref Title_1, ref Title_2, ref Sequence, ref writer, ref copyright,
+				ref Timing, ref InKey, ref LICENCE_ADMIN1, ref LICENCE_ADMIN2, ref BOOK_REFERENCE);
 			string value = DataUtil.CJK_WordCount(Title_1);
 			string value2 = DataUtil.CJK_StrokeCount(Title_1);
 			try
 			{
 
 				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
+				connection.Open();
 				string text = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
 				using DbCommand command = new DbCommand(text, connection);
 				command.CommandText = text;
@@ -255,14 +271,16 @@ namespace Easislides
 						File.Copy(text, DBFileName);
 						return dBFileName;
 					}
-					catch
+					catch (Exception ex)
 					{
+						Debug.WriteLine($"Failed to restore database file: {ex.Message}");
 					}
 					MessageBox.Show("Sorry, cannot install the new Lyrics Database. Please make sure the existing database is not in use and then try again.");
 					return "-1";
 				}
-				catch
+				catch (Exception ex)
 				{
+					Debug.WriteLine($"Failed to create database directory or backup: {ex.Message}");
 					MessageBox.Show("Sorry, cannot install the new Lyrics Database. Please make sure the existing database is not in use and then try again.");
 					return "-1";
 				}
@@ -340,8 +358,9 @@ namespace Easislides
 				}
 				return true;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.WriteLine($"Failed to delete all folders: {ex.Message}");
 			}
 			return false;
 		}
@@ -406,8 +425,9 @@ namespace Easislides
 					command.ExecuteNonQuery();
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.WriteLine($"Failed to reset folder {FNumber}: {ex.Message}");
 			}
 			finally
 			{
@@ -416,81 +436,6 @@ namespace Easislides
 					connection.Close();
 				}
 			}
-		}
-
-		public static async Task ResetFolder1(int FNumber, string InFolderName, string InConnectString)
-		{
-			var task = Task.Run(() =>
-			{
-
-				using DbConnection connection = DbController.GetDbConnection(InConnectString);
-
-				try
-				{
-					bool flag = false;
-					string cmdText = $@"select count(*) from FOLDER where FolderNo={DataUtil.ObjToString(FNumber)}";
-					connection.Open();
-
-					DbCommand command = new DbCommand(cmdText, connection);
-					if ((int)command.ExecuteScalar() == 0)
-					{
-						string value;
-						if (InFolderName == "")
-						{
-							if (FNumber > 0)
-							{
-								value = $@"Folder {DataUtil.ObjToString(FNumber)}";
-								flag = ((FNumber < 4) ? true : false);
-							}
-							else
-							{
-								value = "Recycle Folder";
-								flag = false;
-							}
-						}
-						else
-						{
-							value = InFolderName;
-							flag = true;
-						}
-						cmdText = (command.CommandText = "Insert into Folder (FolderNo,name,Use,GroupStyle,PreChorusHeading,ChorusHeading, BridgeHeading,EndingHeading,BIUHeading,HeadingSize,HeadingOption,BIU0,Size0,Bold0,Align0,FontName0,Vpos0,BIU1,Size1,Bold1,Align1,FontName1,Vpos1)  Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-						command.Parameters.AddWithValue("@FolderNo", FNumber);
-						command.Parameters.AddWithValue("@Name", value);
-						command.Parameters.AddWithValue("@Use", flag);
-						command.Parameters.AddWithValue("@GroupStyle", SortBy.Alpha);
-						command.Parameters.AddWithValue("@PreChorusHeading", "");
-						command.Parameters.AddWithValue("@ChorusHeading", "Chorus:");
-						command.Parameters.AddWithValue("@BridgeHeading", "");
-						command.Parameters.AddWithValue("@EndingHeading", "");
-						command.Parameters.AddWithValue("@BIUHeading", 4);
-						command.Parameters.AddWithValue("@HeadingSize", 100);
-						command.Parameters.AddWithValue("@HeadingOption", HeadingFormat.AsRegion1Plus);
-						command.Parameters.AddWithValue("@BIU0", 0);
-						command.Parameters.AddWithValue("@Size0", 40);
-						command.Parameters.AddWithValue("@Bold0", false);
-						command.Parameters.AddWithValue("@Align0", 2);
-						command.Parameters.AddWithValue("@FontName0", "Microsoft Sans Serif");
-						command.Parameters.AddWithValue("@Vpos0", 0);
-						command.Parameters.AddWithValue("@BIU1", 0);
-						command.Parameters.AddWithValue("@Size1", 40);
-						command.Parameters.AddWithValue("@Bold1", false);
-						command.Parameters.AddWithValue("@Align1", 2);
-						command.Parameters.AddWithValue("@FontName1", "Microsoft Sans Serif");
-						command.Parameters.AddWithValue("@Vpos1", 50);
-						command.ExecuteNonQuery();
-					}
-				}
-				catch
-				{
-				}
-				finally
-				{
-					if (connection.State == ConnectionState.Open)
-					{
-						connection.Close();
-					}
-				}
-			});
 		}
 
 		public static void LoadSavedData()
@@ -655,13 +600,8 @@ namespace Easislides
 				KeyBoardOption = 0;
 			}
 
-			//daniel
-			//Global Keyboard Hook 가?�오�?
 			GlobalHookKey_F7 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F7", 0)) > 0) ? true : false);
 			GlobalHookKey_F8 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F8", 0)) > 0) ? true : false);
-
-			//daniel
-			//Global Keyboard Hook 가?�오�?
 			GlobalHookKey_F9 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F9", 0)) > 0) ? true : false);
 			GlobalHookKey_F10 = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GlobalHookKey_F10", 0)) > 0) ? true : false);
 
@@ -698,10 +638,6 @@ namespace Easislides
 			{
 				EditOpenDocumentDir = DocumentsDir;
 			}
-
-			//daniel
-			//OutputMonitorNumber = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "OutputmonitorNumber", 1));
-			//LyricsMonitorNumber = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "LyricsMonitorNumber", 0));
 
 			OutputMonitorName = RegUtil.GetRegValue("options", "OutputmonitorName", "None");
 			LyricsMonitorName = RegUtil.GetRegValue("options", "LyricsMonitorName", "None");
@@ -850,8 +786,6 @@ namespace Easislides
 			ReferenceAlertPickSeparator = RegUtil.GetRegValue("options", "ReferenceAlertPickSeparator", ",");
 			UpdateV4RegDM();
 			DMAlwaysUseSecondaryMonitor = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "AlwaysTryDualMonitor", 1)) > 0) ? true : false);
-			//daniel
-			//?�크�?Mode
 			isScreenWideMode = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "IsMonitorWide", 0)) > 0) ? true : false);
 
 			DualMonitorSelectAutoOption = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOption", 0));
@@ -1012,8 +946,9 @@ namespace Easislides
 			{
 				FindItemDateFrom = DateTime.Parse(s);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.WriteLine($"Failed to parse FindItemDateFrom, using default: {ex.Message}");
 				FindItemDateFrom = findItemDateFrom;
 			}
 			s = DataUtil.ObjToString(RegUtil.GetRegValue("options", "FindItemDateTo", DateTime.Now.ToString()));
@@ -1021,8 +956,9 @@ namespace Easislides
 			{
 				FindItemDateTo = DateTime.Parse(s);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.WriteLine($"Failed to parse FindItemDateTo, using default: {ex.Message}");
 				FindItemDateTo = DateTime.Now;
 			}
 			OutlineFontSizeThreshold = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "OutlineFontSizeThreshold", 55));
