@@ -1,5 +1,6 @@
 using Easislides.Util;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -19,8 +20,8 @@ namespace Easislides
 			{
 				InCanvas[i].PosWidth = w;
 				InCanvas[i].PosHeight = h;
-				InCanvas[i].PosLeft = (w + 5) * (i % ThumbImagesPerRow) + LeftOffset;
-				InCanvas[i].PosTop = TopOffset + (h + 5) * (i / ThumbImagesPerRow);
+				InCanvas[i].PosLeft = (w + IMAGE_SPACING) * (i % ThumbImagesPerRow) + LeftOffset;
+				InCanvas[i].PosTop = TopOffset + (h + IMAGE_SPACING) * (i / ThumbImagesPerRow);
 				if (i < InImagesCount)
 				{
 					InCanvas[i].Visible = true;
@@ -37,31 +38,38 @@ namespace Easislides
 		/// <summary>
 		/// PowerPoint 슬라이드에 슬라이드 번호 오버레이와 선택 테두리를 그립니다.
 		/// </summary>
-		private static void DrawPowerPointOverlay(Graphics graphics, Image sourceImage, int storedImageWidth, int storedImageHeight, 
+		private static void DrawPowerPointOverlay(Graphics graphics, Image sourceImage, int storedImageWidth, int storedImageHeight,
 			int slideNumber, int curSelectedSlide, Color parentBackColor)
 		{
-			Font font = new Font("Microsoft Sans Serif", (float)storedImageWidth * FONT_SIZE_RATIO);
-			int padding = (int)((storedImageWidth >= storedImageHeight) ? (storedImageWidth * PADDING_RATIO) : (storedImageHeight * PADDING_RATIO));
-			Rectangle imageRect = new Rectangle(padding, padding, storedImageWidth - padding * 2, storedImageHeight - padding * 2);
-			Rectangle outerRect = new Rectangle(0, 0, storedImageWidth, storedImageHeight);
+			using (Font font = new Font("Microsoft Sans Serif", (float)storedImageWidth * FONT_SIZE_RATIO))
+			{
+				int padding = (int)((storedImageWidth >= storedImageHeight) ? (storedImageWidth * PADDING_RATIO) : (storedImageHeight * PADDING_RATIO));
+				Rectangle imageRect = new Rectangle(padding, padding, storedImageWidth - padding * 2, storedImageHeight - padding * 2);
+				Rectangle outerRect = new Rectangle(0, 0, storedImageWidth, storedImageHeight);
 
-			// 이미지 그리기
-			graphics.DrawImage(sourceImage, imageRect);
+				// 이미지 그리기
+				graphics.DrawImage(sourceImage, imageRect);
 
-			// 슬라이드 번호 텍스트
-			string slideText = slideNumber.ToString();
-			PointF textPosition = new PointF(padding + 2, padding + 2);
-			SizeF textSize = graphics.MeasureString(slideText, font);
+				// 슬라이드 번호 텍스트
+				string slideText = slideNumber.ToString();
+				PointF textPosition = new PointF(padding + TEXT_OFFSET, padding + TEXT_OFFSET);
+				SizeF textSize = graphics.MeasureString(slideText, font);
 
-			// 텍스트 배경 (그림자 효과)
-			graphics.FillRectangle(new SolidBrush(BlackScreenColour), textPosition.X + 3f, textPosition.Y + 3f, textSize.Width, textSize.Height);
-			// 텍스트 배경 (노란색)
-			graphics.FillRectangle(new SolidBrush(Color.Yellow), textPosition.X, textPosition.Y, textSize.Width, textSize.Height);
-			// 텍스트 그리기
-			graphics.DrawString(slideText, font, new SolidBrush(BlackScreenColour), textPosition.X, textPosition.Y);
+				using (SolidBrush shadowBrush = new SolidBrush(BlackScreenColour))
+				using (SolidBrush yellowBrush = new SolidBrush(Color.Yellow))
+				using (SolidBrush textBrush = new SolidBrush(BlackScreenColour))
+				{
+					// 텍스트 배경 (그림자 효과)
+					graphics.FillRectangle(shadowBrush, textPosition.X + SHADOW_OFFSET, textPosition.Y + SHADOW_OFFSET, textSize.Width, textSize.Height);
+					// 텍스트 배경 (노란색)
+					graphics.FillRectangle(yellowBrush, textPosition.X, textPosition.Y, textSize.Width, textSize.Height);
+					// 텍스트 그리기
+					graphics.DrawString(slideText, font, textBrush, textPosition.X, textPosition.Y);
+				}
 
-			// 선택 테두리
-			DrawSelectionBorder(graphics, outerRect, slideNumber, curSelectedSlide, parentBackColor, (int)font.Size);
+				// 선택 테두리
+				DrawSelectionBorder(graphics, outerRect, slideNumber, curSelectedSlide, parentBackColor, (int)font.Size);
+			}
 		}
 
 		/// <summary>
@@ -70,16 +78,18 @@ namespace Easislides
 		private static void DrawExternalPowerPointOverlay(Graphics graphics, Image sourceImage, int storedImageWidth, int storedImageHeight,
 			int slideNumber, int curSelectedSlide, Color parentBackColor)
 		{
-			Font font = new Font("Microsoft Sans Serif", (float)storedImageWidth * FONT_SIZE_RATIO);
-			int padding = (int)((storedImageWidth >= storedImageHeight) ? (storedImageWidth * PADDING_RATIO) : (storedImageHeight * PADDING_RATIO));
-			Rectangle imageRect = new Rectangle(padding, padding, storedImageWidth - padding * 2, storedImageHeight - padding * 2);
-			Rectangle outerRect = new Rectangle(0, 0, storedImageWidth, storedImageHeight);
+			using (Font font = new Font("Microsoft Sans Serif", (float)storedImageWidth * FONT_SIZE_RATIO))
+			{
+				int padding = (int)((storedImageWidth >= storedImageHeight) ? (storedImageWidth * PADDING_RATIO) : (storedImageHeight * PADDING_RATIO));
+				Rectangle imageRect = new Rectangle(padding, padding, storedImageWidth - padding * 2, storedImageHeight - padding * 2);
+				Rectangle outerRect = new Rectangle(0, 0, storedImageWidth, storedImageHeight);
 
-			// 이미지 그리기
-			graphics.DrawImage(sourceImage, imageRect);
+				// 이미지 그리기
+				graphics.DrawImage(sourceImage, imageRect);
 
-			// 선택 테두리
-			DrawSelectionBorder(graphics, outerRect, slideNumber, curSelectedSlide, parentBackColor, (int)font.Size);
+				// 선택 테두리
+				DrawSelectionBorder(graphics, outerRect, slideNumber, curSelectedSlide, parentBackColor, (int)font.Size);
+			}
 		}
 
 		/// <summary>
@@ -87,13 +97,10 @@ namespace Easislides
 		/// </summary>
 		private static void DrawSelectionBorder(Graphics graphics, Rectangle rect, int slideNumber, int curSelectedSlide, Color parentBackColor, int penWidth)
 		{
-			if (curSelectedSlide == slideNumber)
+			Color borderColor = (curSelectedSlide == slideNumber) ? Color.Red : parentBackColor;
+			using (Pen pen = new Pen(borderColor, penWidth))
 			{
-				graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red), penWidth), rect);
-			}
-			else
-			{
-				graphics.DrawRectangle(new Pen(new SolidBrush(parentBackColor), penWidth), rect);
+				graphics.DrawRectangle(pen, rect);
 			}
 		}
 
@@ -151,44 +158,48 @@ namespace Easislides
 				{
 					image = Image.FromStream(stream);
 				}
-				
+
 				using (image)
 				{
 					InCanvas.SetImageRatio(image.Width, image.Height);
 					CalcImageToFit(InCanvas.ImageRatio, posWidth, posHeight, ref NewImageWidth2, ref NewImageHeight2, ComputeStoredImage: true, ref StoredImageWidth, ref StoredImageHeight);
 					if (!((NewImageWidth2 <= 0) | (NewImageHeight2 <= 0)))
 					{
-						using (Image image2 = new Bitmap(StoredImageWidth, StoredImageHeight, PixelFormat.Format24bppRgb))
+						// Create thumbnail image outside of using block to assign to InCanvas
+						Image thumbnailImage = new Bitmap(StoredImageWidth, StoredImageHeight, PixelFormat.Format24bppRgb);
+						using (Graphics graphics = Graphics.FromImage(thumbnailImage))
 						{
-							using (Graphics graphics = Graphics.FromImage(image2))
-							{
 							Rectangle rect = new Rectangle(0, 0, StoredImageWidth, StoredImageHeight);
-								if (InCanvas.PowerPoint)
-								{
-									DrawPowerPointOverlay(graphics, image, StoredImageWidth, StoredImageHeight, num, CurSelectedSlide, InCanvas.Parent.BackColor);
-								}
-								else if (ExternalPP)
-								{
-									DrawExternalPowerPointOverlay(graphics, image, StoredImageWidth, StoredImageHeight, num, CurSelectedSlide, InCanvas.Parent.BackColor);
-								}
-								else
-								{
-									graphics.DrawImage(image, rect);
-								}
-							num2 = (posWidth - NewImageWidth2) / 2;
-							num3 = (posHeight - NewImageHeight2) / 2;
-							InCanvas.Left = InCanvas.PosLeft + num2;
-							InCanvas.Top = InCanvas.PosTop + num3;
-							InCanvas.Width = NewImageWidth2;
-							InCanvas.Height = NewImageHeight2;
-							InToolTip.SetToolTip(InCanvas, text);
-							FileArray[InCanvasIndex] = ImageArray[FirstRef + InCanvasIndex];
-							InCanvas.FileName = text2;
-							InCanvas.image = image2;
-							InCanvas.Visible = true;
-							InCanvas.Invalidate();
-														}
+							if (InCanvas.PowerPoint)
+							{
+								DrawPowerPointOverlay(graphics, image, StoredImageWidth, StoredImageHeight, num, CurSelectedSlide, InCanvas.Parent.BackColor);
+							}
+							else if (ExternalPP)
+							{
+								DrawExternalPowerPointOverlay(graphics, image, StoredImageWidth, StoredImageHeight, num, CurSelectedSlide, InCanvas.Parent.BackColor);
+							}
+							else
+							{
+								graphics.DrawImage(image, rect);
+							}
 						}
+
+						num2 = (posWidth - NewImageWidth2) / 2;
+						num3 = (posHeight - NewImageHeight2) / 2;
+						InCanvas.Left = InCanvas.PosLeft + num2;
+						InCanvas.Top = InCanvas.PosTop + num3;
+						InCanvas.Width = NewImageWidth2;
+						InCanvas.Height = NewImageHeight2;
+						InToolTip.SetToolTip(InCanvas, text);
+						FileArray[InCanvasIndex] = ImageArray[FirstRef + InCanvasIndex];
+						InCanvas.FileName = text2;
+
+						// Dispose old image if exists
+						InCanvas.image?.Dispose();
+						InCanvas.image = thumbnailImage;
+
+						InCanvas.Visible = true;
+						InCanvas.Invalidate();
 					}
 				}
 			}
@@ -200,15 +211,12 @@ namespace Easislides
 
 		public static float SetImageRatio(int InImageWidth, int InImageHeight)
 		{
-			try
+			if (InImageHeight == 0)
 			{
-				return (float)InImageWidth / (float)InImageHeight;
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"SetImageRatio error: {ex.Message}");
+				Debug.WriteLine("SetImageRatio: Height is zero, returning default ratio 1.0");
 				return 1f;
 			}
+			return (float)InImageWidth / InImageHeight;
 		}
 
 		public static void CalcImageToFit(float InImageRatio, int InContainerWidth, int InContainerHeight, ref int NewImageWidth, ref int NewImageHeight)
@@ -251,10 +259,7 @@ namespace Easislides
 				string extension = Path.GetExtension(InFileName);
 				string text = EasiSlidesTempDir + fileNameWithoutExtension + GetUniqueID() + extension;
 				using FileStream fileStream = new FileStream(text, FileMode.OpenOrCreate, FileAccess.Write);
-				int num = 0;
-				fileStream.Write(img, num, img.Length - num);
-				//fileStream.Close();
-				//fileStream = null;
+				fileStream.Write(img, 0, img.Length);
 				return text;
 			}
 			catch (Exception ex)
@@ -264,14 +269,15 @@ namespace Easislides
 			}
 		}
 
+		private static readonly HashSet<string> SupportedImageExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+		{
+			".bmp", ".jpg", ".jpeg", ".ico", ".gif"
+		};
+
 		public static bool SupportedImageFormat(string InFileName)
 		{
-			string a = DataUtil.Right(InFileName, 4).ToLower();
-			if ((a == ".bmp") | (a == ".jpg") | (a == ".ico") | (a == ".gif") | (DataUtil.Right(InFileName, 5).ToLower() == ".jpeg"))
-			{
-				return true;
-			}
-			return false;
+			string extension = Path.GetExtension(InFileName);
+			return SupportedImageExtensions.Contains(extension);
 		}
 
 		public static void SetTransparentBackground(SongSettings InItem, ref ImageTransitionControl InPic)
@@ -427,6 +433,11 @@ namespace Easislides
 		private const int THUMBNAIL_HEIGHT = 150;
 		private const float FONT_SIZE_RATIO = 1f / 12f;
 		private const float PADDING_RATIO = 0.04f;
+
+		// UI 레이아웃 관련 상수
+		private const int IMAGE_SPACING = 5;  // 이미지 간격
+		private const int TEXT_OFFSET = 2;    // 텍스트 위치 오프셋
+		private const float SHADOW_OFFSET = 3f;  // 그림자 오프셋
 
 	}
 }
