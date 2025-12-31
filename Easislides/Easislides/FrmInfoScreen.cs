@@ -4658,7 +4658,7 @@ namespace Easislides
 					flag = true;
 					break;
 				case ".txt":
-					inLyrics = gf.LoadTextFile(InFileName, ShowErrorMsg: true);
+					inLyrics = gfFileHelpers.LoadTextFile(InFileName, ShowErrorMsg: true);
 					flag = true;
 					break;
 			}
@@ -5333,7 +5333,7 @@ namespace Easislides
 			string OutText = "";
 			string OutText2 = "";
 			Title2IgnoreChange = true;
-			gf.LoadInfoFile(InFileName, ref gf.InfoItem1, ref Info_HeaderData);
+            gfFileHelpers.LoadInfoFile(InFileName, ref gf.InfoItem1, ref Info_HeaderData);
 			gf.InfoItem1.Show_LicAdminInfo1 = gf.InfoItem1.In_LicAdminInfo1;
 			gf.InfoItem1.Show_LicAdminInfo2 = gf.InfoItem1.In_LicAdminInfo2;
 			ThisItemFileName = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);

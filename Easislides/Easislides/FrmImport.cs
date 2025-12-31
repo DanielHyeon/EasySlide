@@ -618,7 +618,7 @@ namespace Easislides
 			ImportFolderList.Items.Clear();
 			FolderLookupSongsCount = 0;
 			string InString = "";
-			if (!gf.LoadFileContents(ImportFileName, ref InString))
+			if (!gfFileHelpers.LoadFileContents(ImportFileName, ref InString))
 			{
 				goto IL_02ca;
 			}
@@ -1150,7 +1150,7 @@ namespace Easislides
 		private void Import_TextFormat(string ImportFileName)
 		{
 			string InString = "";
-			if (!gf.LoadFileContents(ImportFileName, ref InString))
+			if (!gfFileHelpers.LoadFileContents(ImportFileName, ref InString))
 			{
 				MessageBox.Show("There was an error reading the Import File - the file might not be a valid EasiSlides File");
 				ProgressBar1.Visible = false;
@@ -1967,7 +1967,7 @@ namespace Easislides
 			{
 				return false;
 			}
-			string text2 = gf.LoadTextFile(text);
+			string text2 = gfFileHelpers.LoadTextFile(text);
 			text2 = text2.Replace("<tr>", Convert.ToString('\u0001'));
 			string[] array = text2.Split('\u0001');
 			string text3 = "";
@@ -2021,7 +2021,7 @@ namespace Easislides
 			{
 				return;
 			}
-			string text = gf.LoadTextFile(ImportFileName);
+			string text = gfFileHelpers.LoadTextFile(ImportFileName);
 			int num = DataUtil.StringToInt(gf.GetDisplayNameOnly(ref ImportFileName, UpdateByRef: false, KeepExt: false));
 			text = text.Replace("InstanceBeginEditable name=", Convert.ToString('\u0001'));
 			string[] array = text.Split('\u0001');

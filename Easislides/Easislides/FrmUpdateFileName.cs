@@ -184,7 +184,7 @@ namespace Easislides
 				try
 				{
 					string inNotes = "";
-					gf.SaveIndexFile(InputDir + text + text2, ref gf.ListViewNotations, UsageMode.Worship, SaveAllItems: false, gf.Def_FormatString, inNotes);
+                    gfFileHelpers.SaveIndexFile(InputDir + text + text2, ref gf.ListViewNotations, UsageMode.Worship, SaveAllItems: false, gf.Def_FormatString, inNotes);
 					gf.SelectedListName = text;
 				}
 				catch

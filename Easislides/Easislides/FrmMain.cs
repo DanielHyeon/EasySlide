@@ -1468,7 +1468,7 @@ namespace Easislides
                 string fileName = saveFileDialog1.FileName;
                 try
                 {
-                    gf.SaveIndexFile(fileName, ref WorshipListItems, UsageMode.Worship, SaveAllItems: false, "", "");
+                    gfFileHelpers.SaveIndexFile(fileName, ref WorshipListItems, UsageMode.Worship, SaveAllItems: false, "", "");
                 }
                 catch
                 {
@@ -1815,7 +1815,7 @@ namespace Easislides
                 string fileName = saveFileDialog1.FileName;
                 try
                 {
-                    gf.SaveIndexFile(fileName, ref WorshipListItems, UsageMode.Worship, SaveAllItems: false, gf.PreviewItem.Format.FormatString, "");
+                    gfFileHelpers.SaveIndexFile(fileName, ref WorshipListItems, UsageMode.Worship, SaveAllItems: false, gf.PreviewItem.Format.FormatString, "");
                 }
                 catch
                 {
@@ -2254,7 +2254,7 @@ namespace Easislides
                 ListViewItem listViewItem = new ListViewItem();
                 string text = "";
                 string inFileName = gf.PraiseBookDir + gf.CurPraiseBook + ".esp";
-                gf.LoadFileContents(inFileName, ref InContents);
+                gfFileHelpers.LoadFileContents(inFileName, ref InContents);
                 int num = gf.Load32HeaderData(inFileName, InContents, ref gf.HeaderData);
                 if (num < 1)
                 {
@@ -4147,7 +4147,7 @@ namespace Easislides
             if (gf.ShowRunning)
             {
                 ValidateWorshipListItems(ShowErrorMessage: false);
-                gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
             }
             Cursor = Cursors.Default;
         }
@@ -4374,7 +4374,7 @@ namespace Easislides
         {
             gf.TotalMusicFiles = -1;
             string inFileName = gf.WorshipDir + gf.CurSession + ".esw";
-            gf.LoadFileContents(inFileName, ref InContents);
+            gfFileHelpers.LoadFileContents(inFileName, ref InContents);
             int num = gf.Load32HeaderData(inFileName, InContents, ref gf.HeaderData);
             if (num < 1)
             {
@@ -5027,10 +5027,10 @@ namespace Easislides
                     gf.WorshipSongs[i, 4] = DataUtil.Trim(WorshipListItems.Items[i - 1].SubItems[2].Text);
                 }
                 gf.TotalWorshipListItems = WorshipListItems.Items.Count;
-                gf.SaveIndexFile(gf.WorshipDir + gf.CurSession + ".esw", ref WorshipListItems, UsageMode.Worship, SaveAllItems: true, "", gf.CurSessionNotes);
+                gfFileHelpers.SaveIndexFile(gf.WorshipDir + gf.CurSession + ".esw", ref WorshipListItems, UsageMode.Worship, SaveAllItems: true, "", gf.CurSessionNotes);
                 if (PreloadPowerpoint)
                 {
-                    gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                    gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                 }
             }
         }
@@ -6461,7 +6461,7 @@ namespace Easislides
                 }
                 if (gf.PreviewItem.Type == "P" && gf.PreviewItem.Source != ItemSource.WorshipList)
                 {
-                    gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                    gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                 }
             }
             LoadThumbOutlockkey = 0;
@@ -6678,7 +6678,7 @@ namespace Easislides
                     gf.DocumentSongs[i, 4] = "";
                 }
                 FileUtil.CreateNewFile(gf.PraiseBookDir + gf.CurPraiseBook + ".esp");
-                gf.SaveIndexFile(gf.PraiseBookDir + gf.CurPraiseBook + ".esp", ref PraiseBookItems, UsageMode.PraiseBook, SaveAllItems: true, "", gf.CurPraiseBookNotes);
+                gfFileHelpers.SaveIndexFile(gf.PraiseBookDir + gf.CurPraiseBook + ".esp", ref PraiseBookItems, UsageMode.PraiseBook, SaveAllItems: true, "", gf.CurPraiseBookNotes);
             }
         }
 
@@ -9746,7 +9746,7 @@ namespace Easislides
                     gf.LaunchShowUpdateDone = false;
                     formWindowState = (base.WindowState = base.WindowState);
 
-                    gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                    gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                     try
                     {
                         LiveShow.Show();
@@ -9770,7 +9770,7 @@ namespace Easislides
                 TimerReMax.Enabled = true;
                 formWindowState = base.WindowState;
                 base.WindowState = FormWindowState.Minimized;
-                gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                 try
                 {
                     LiveShow.ShowDialog();
@@ -9867,7 +9867,7 @@ namespace Easislides
                 {
                     gf.LaunchShowUpdateDone = false;
                     formWindowState = (base.WindowState = base.WindowState);
-                    gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                    gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                     try
                     {
                         LiveShow.Show();
@@ -9884,7 +9884,7 @@ namespace Easislides
                 base.WindowState = FormWindowState.Minimized;
                 Cursor.Current = Cursors.Default;
                 Cursor.Hide();
-                gf.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
+                gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                 try
                 {
                     LiveShow.ShowDialog();
@@ -13285,7 +13285,7 @@ namespace Easislides
                     InFileName = DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1);
                     if (InFileName != "")
                     {
-                        gf.LoadInfoFile(InFileName, ref gf.TempItem1, ref ThisHeaderData);
+                        gfFileHelpers.LoadInfoFile(InFileName, ref gf.TempItem1, ref ThisHeaderData);
                         if (DataUtil.Trim(gf.TempItem1.Title) == "")
                         {
                             gf.TempItem1.Title = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);

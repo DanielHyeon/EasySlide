@@ -1327,7 +1327,7 @@ namespace Easislides
 					flag = true;
 					break;
 				case ".txt":
-					inLyrics = gf.LoadTextFile(InFileName, ShowErrorMsg: true);
+					inLyrics = gfFileHelpers.LoadTextFile(InFileName, ShowErrorMsg: true);
 					flag = true;
 					break;
 			}

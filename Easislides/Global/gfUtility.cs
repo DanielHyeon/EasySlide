@@ -1,4 +1,4 @@
-﻿using Easislides.SQLite;
+using Easislides.SQLite;
 using Easislides.Util;
 using Microsoft.Win32;
 using OfficeLib;
@@ -332,7 +332,7 @@ namespace Easislides
 		public static bool LoadUnicodeStrokeCount1()
 		{
 			string InString = "";
-			if (LoadFileContents(Application.StartupPath + "\\Sys\\strokecount.dat", ref InString))
+			if (gfFileHelpers.LoadFileContents(Application.StartupPath + "\\Sys\\strokecount.dat", ref InString))
 			{
 				int i = 1;
 				for (int num = InString.Length - 2; i <= num - 2; i += 3)
@@ -360,7 +360,7 @@ namespace Easislides
 		public static bool LoadUnicodeStrokeCount()
 		{
 			string InString = "";
-			if (LoadFileContents(Application.StartupPath + "\\Sys\\strokecount.dat", ref InString))
+			if (gfFileHelpers.LoadFileContents(Application.StartupPath + "\\Sys\\strokecount.dat", ref InString))
 			{
 				ReadOnlySpan<char> roString = InString.AsSpan();
 				int i = 1;
@@ -1403,7 +1403,7 @@ namespace Easislides
 				InItem.Type = "T";
 				InItem.Title = GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
 				InItem.Type = "T";
-				InItem.CompleteLyrics = LoadTextFile(InFileName);
+				InItem.CompleteLyrics = gfFileHelpers.LoadTextFile(InFileName);
 				InItem.Format.FormatString = InFormatString;
 				InItem.Capo = -1;
 				InItem.CurSlide = StartingSlide;
@@ -1413,7 +1413,7 @@ namespace Easislides
 			{
 				InItem.Type = "I";
 				string[] ThisHeaderData = new string[255];
-				LoadInfoFile(InFileName, ref InItem, ref ThisHeaderData);
+				gfFileHelpers.LoadInfoFile(InFileName, ref InItem, ref ThisHeaderData);
 				InItem.CurSlide = StartingSlide;
 				InItem.Path = DataUtil.Mid(InIDString, 1);
 			}
@@ -3478,7 +3478,7 @@ namespace Easislides
 		public static void GetTitle2AndFormatFromInfoFile(string InFileName, ref string Title2, ref string FormatString)
 		{
 			InitialiseIndividualData(ref TempItem1);
-			LoadInfoFile(InFileName, ref TempItem1, ref tempHeaderData);
+			gfFileHelpers.LoadInfoFile(InFileName, ref TempItem1, ref tempHeaderData);
 			Title2 = TempItem1.Title2;
 			FormatString = TempItem1.Format.FormatString;
 		}
@@ -5552,7 +5552,7 @@ namespace Easislides
 		{
 			InComboBox.Items.Clear();
 			string InString = "";
-			if (LoadFileContents(InTextFile, ref InString))
+			if (gfFileHelpers.LoadFileContents(InTextFile, ref InString))
 			{
 				InString = InString.Replace("\r\n", "\n");
 				try
@@ -5590,7 +5590,7 @@ namespace Easislides
 		{
 			InListView.Items.Clear();
 			string InString = "";
-			if (LoadFileContents(InTextFile, ref InString))
+			if (gfFileHelpers.LoadFileContents(InTextFile, ref InString))
 			{
 				InString = InString.Replace("\r\n", "\n");
 				try
@@ -7104,7 +7104,7 @@ namespace Easislides
 						result = GetOfficeDocContents(InFileName);
 						break;
 					case ".txt":
-						result = LoadTextFile(InFileName);
+						result = gfFileHelpers.LoadTextFile(InFileName);
 						break;
 				}
 			}

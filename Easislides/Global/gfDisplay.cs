@@ -12,6 +12,18 @@ namespace Easislides
 {
     internal unsafe partial class gf
     {
+		// Display Constants
+		private const int DefaultLyricsWidth = 960;
+		private const int MinFontSize = 1;
+		private const float MaxLayoutHeight = 32000f;
+		private const float MaxFontSize = 100f;
+		private const float FontSizeReduction = 4f;
+		private const int DefaultInitialFontSize = 30;
+		private const float FontSizeStep = 1f;
+		private const int InterlaceHeightPercentage = 90;
+		private const int BufferLSHeightDivisor30 = 30;
+		private const int BufferLSHeightDivisor40 = 40;
+		private const int FontThresholdDivisor = 30;
 
 		public static int DisplayFontSize(int InFontSize, int InLyricsWidth, int InNum, int Folderno)
 		{
@@ -25,8 +37,8 @@ namespace Easislides
 				{
 				}
 			}
-			int num = InFontSize * InLyricsWidth / 960;
-			return (num < 1) ? 1 : num;
+			int calculatedSize = InFontSize * InLyricsWidth / DefaultLyricsWidth;
+			return (calculatedSize < MinFontSize) ? MinFontSize : calculatedSize;
 		}
 
 		public static int ReduceFontToFit(Graphics g, string InText, ref Font MainFont, int InWidth, int InHeight)
@@ -36,22 +48,24 @@ namespace Easislides
 
 		public static int ReduceFontToFit(Graphics g, string InText, ref Font MainFont, int InWidth, int InHeight, bool MultiLine)
 		{
-			SizeF layoutArea = new SizeF(InWidth, 32000f);
+			SizeF layoutArea = new SizeF(InWidth, MaxLayoutHeight);
 			if (MultiLine)
 			{
-				while ((g.MeasureString(InText, MainFont, layoutArea).Height > (float)InHeight) & (MainFont.Size > 1f))
+				while ((RenderingCache.MeasureString(g, InText, MainFont, layoutArea).Height > (float)InHeight) & (MainFont.Size > MinFontSize))
 				{
-					ReplaceFont(ref MainFont, new Font(MainFont.Name, MainFont.Size - 1f, MainFont.Style));
+					MainFont = RenderingCache.GetFont(MainFont.Name, MainFont.Size - FontSizeStep, MainFont.Style);
 				}
 			}
 			else
 			{
-				while (MainFont.Size > 1f && (g.MeasureString(InText, MainFont).Width > (float)InWidth || g.MeasureString(InText, MainFont).Height > (float)InHeight))
+				SizeF textSize = RenderingCache.MeasureString(g, InText, MainFont);
+				while (MainFont.Size > MinFontSize && (textSize.Width > (float)InWidth || textSize.Height > (float)InHeight))
 				{
-					ReplaceFont(ref MainFont, new Font(MainFont.Name, MainFont.Size - 1f, MainFont.Style));
+					MainFont = RenderingCache.GetFont(MainFont.Name, MainFont.Size - FontSizeStep, MainFont.Style);
+					textSize = RenderingCache.MeasureString(g, InText, MainFont);
 				}
 			}
-			return (int)g.MeasureString(InText, MainFont).Height;
+			return (int)RenderingCache.MeasureString(g, InText, MainFont).Height;
 		}
 
 		public static int IncreaseFontToLargest(Graphics g, string InText, ref Font MainFont, int InWidth, int InHeight)
@@ -63,14 +77,14 @@ namespace Easislides
 		public static int IncreaseFontToLargest(Graphics g, string InText, ref Font MainFont, int InWidth, int InHeight, ref bool OnlyOneDisplayLine)
 		{
 			ReduceFontToFit(g, InText, ref MainFont, InWidth, InHeight);
-			SizeF layoutArea = new SizeF(InWidth, 32000f);
-			while ((g.MeasureString(InText, MainFont, layoutArea).Height < (float)InHeight) & (MainFont.Size <= 100f))
+			SizeF layoutArea = new SizeF(InWidth, MaxLayoutHeight);
+			while ((RenderingCache.MeasureString(g, InText, MainFont, layoutArea).Height < (float)InHeight) & (MainFont.Size <= MaxFontSize))
 			{
-				ReplaceFont(ref MainFont, new Font(MainFont.Name, MainFont.Size + 1f, MainFont.Style));
+				MainFont = RenderingCache.GetFont(MainFont.Name, MainFont.Size + FontSizeStep, MainFont.Style);
 			}
-			ReplaceFont(ref MainFont, new Font(MainFont.Name, MainFont.Size - 4f, MainFont.Style));
-			int result = (int)g.MeasureString(InText, MainFont, layoutArea).Height;
-			if (g.MeasureString(InText, MainFont).Width < (float)InWidth)
+			MainFont = RenderingCache.GetFont(MainFont.Name, MainFont.Size - FontSizeReduction, MainFont.Style);
+			int result = (int)RenderingCache.MeasureString(g, InText, MainFont, layoutArea).Height;
+			if (RenderingCache.MeasureString(g, InText, MainFont).Width < (float)InWidth)
 			{
 				OnlyOneDisplayLine = true;
 			}
@@ -86,82 +100,111 @@ namespace Easislides
 			return ShowDBSlide(ref InItem, ref PInPictureBox, DoActiveIndicator, TransitionAction, RedoBackground: false);
 		}
 
-		public static bool ShowDBSlide(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, bool DoActiveIndicator, ImageTransitionControl.TransitionAction TransitionAction, bool RedoBackground)
+		private struct DisplaySettings
 		{
-			int num = InItem.UseDefaultFormat ? ShowSongHeadingsAlign : InItem.Format.ShowSongHeadingsAlign;
-			int num2 = InItem.UseDefaultFormat ? ShowNotations : InItem.Format.ShowNotations;
-			int inShowInterlace = InItem.UseDefaultFormat ? ShowInterlace : InItem.Format.ShowInterlace;
-			int num3 = InItem.UseDefaultFormat ? ShowVerticalAlign : InItem.Format.ShowVerticalAlign;
-			int transitionType = InItem.UseDefaultFormat ? ShowItemTransition : InItem.Format.ShowItemTransition;
-			int transitionType2 = InItem.UseDefaultFormat ? ShowSlideTransition : InItem.Format.ShowSlideTransition;
+			public int ShowNotations;
+			public int ShowInterlace;
+			public int ShowVerticalAlign;
+			public int ItemTransition;
+			public int SlideTransition;
+			public int UseShadowFont;
+			public int UseOutlineFont;
+			public int HideDisplayPanel;
+		}
+
+		private static DisplaySettings ExtractDisplaySettings(ref SongSettings InItem)
+		{
+			DisplaySettings settings = new DisplaySettings
+			{
+				ShowNotations = InItem.UseDefaultFormat ? ShowNotations : InItem.Format.ShowNotations,
+				ShowInterlace = InItem.UseDefaultFormat ? ShowInterlace : InItem.Format.ShowInterlace,
+				ShowVerticalAlign = InItem.UseDefaultFormat ? ShowVerticalAlign : InItem.Format.ShowVerticalAlign,
+				ItemTransition = InItem.UseDefaultFormat ? ShowItemTransition : InItem.Format.ShowItemTransition,
+				SlideTransition = InItem.UseDefaultFormat ? ShowSlideTransition : InItem.Format.ShowSlideTransition,
+				UseShadowFont = InItem.UseDefaultFormat ? UseShadowFont : InItem.Format.UseShadowFont,
+				UseOutlineFont = InItem.UseDefaultFormat ? UseOutlineFont : InItem.Format.UseOutlineFont,
+				HideDisplayPanel = (!InItem.UseDefaultFormat) ? InItem.Format.HideDisplayPanel : ((ShowDataDisplayMode <= 0) ? 1 : 0)
+			};
+
 			InItem.Format.ShowLyrics = (InItem.UseDefaultFormat ? ShowLyrics : InItem.Format.ShowLyrics);
 			InItem.Format.ShowSongHeadings = (InItem.UseDefaultFormat ? ShowSongHeadings : InItem.Format.ShowSongHeadings);
 			InItem.Format.ShowSongHeadingsAlign = (InItem.UseDefaultFormat ? ShowSongHeadingsAlign : InItem.Format.ShowSongHeadingsAlign);
-			int inUseShadowFont = InItem.UseDefaultFormat ? UseShadowFont : InItem.Format.UseShadowFont;
-			int inUseOutlineFont = InItem.UseDefaultFormat ? UseOutlineFont : InItem.Format.UseOutlineFont;
-			int inHideDisplayPanel = (!InItem.UseDefaultFormat) ? InItem.Format.HideDisplayPanel : ((ShowDataDisplayMode <= 0) ? 1 : 0);
+
+			return settings;
+		}
+
+		private static void DetermineLyricsHeading(ref SongSettings InItem)
+		{
 			InItem.CurSlide = ((InItem.CurSlide <= 0) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
-			if (InItem.CurSlide > 0)
+
+			if (InItem.CurSlide <= 0)
 			{
-				if (InItem.Slide[InItem.CurSlide, 0] >= 0)
-				{
-					if (InItem.CurSlide > 1)
+				return;
+			}
+
+			if (InItem.Slide[InItem.CurSlide, 0] < 0)
+			{
+				InItem.Lyrics[2].Text = string.Empty;
+				return;
+			}
+
+			if (InItem.CurSlide == 1)
+			{
+				InItem.Lyrics[2].Text = InItem.Title;
+				return;
+			}
+
+			int slideType = InItem.Slide[InItem.CurSlide, 0];
+			switch (slideType)
+			{
+				case 0:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 1];
+					break;
+				case 102:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 1] + ((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? " (2)" : "");
+					break;
+				case 111:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 0];
+					break;
+				case 112:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 0] + ((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? " (2)" : "");
+					break;
+				case 100:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 2];
+					break;
+				case 103:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 2] + ((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? " (2)" : "");
+					break;
+				case 101:
+					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 3];
+					break;
+				default:
+					if (InItem.Verse2Present || (InItem.CurSlide > 1 && slideType == 1))
 					{
-						if (InItem.Slide[InItem.CurSlide, 0] == 0)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 1];
-						}
-						else if (InItem.Slide[InItem.CurSlide, 0] == 102)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 1] + ((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? " (2)" : "");
-						}
-						else if (InItem.Slide[InItem.CurSlide, 0] == 111)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 0];
-						}
-						else if (InItem.Slide[InItem.CurSlide, 0] == 112)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 0] + ((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? " (2)" : "");
-						}
-						else if (InItem.Slide[InItem.CurSlide, 0] == 100)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 2];
-						}
-						else if (InItem.Slide[InItem.CurSlide, 0] == 103)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 2] + ((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? " (2)" : "");
-						}
-						else if (InItem.Slide[InItem.CurSlide, 0] == 101)
-						{
-							InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 3];
-						}
-						else if (InItem.Verse2Present || (InItem.CurSlide > 1 && InItem.Slide[InItem.CurSlide, 0] == 1))
-						{
-							InItem.Lyrics[2].Text = VerseTitle[InItem.Slide[InItem.CurSlide, 0]];
-						}
-						else
-						{
-							InItem.Lyrics[2].Text = "";
-						}
+						InItem.Lyrics[2].Text = VerseTitle[slideType];
 					}
 					else
 					{
-						InItem.Lyrics[2].Text = InItem.Title;
+						InItem.Lyrics[2].Text = string.Empty;
 					}
-				}
-				else
-				{
-					InItem.Lyrics[2].Text = "";
-				}
+					break;
 			}
+		}
+
+		private static void ApplyDisplayOverrides(ref DisplaySettings settings)
+		{
 			if (ShowRunning_ShowNotations == 1)
 			{
-				num2 = ((num2 <= 0) ? 1 : 0);
+				settings.ShowNotations = ((settings.ShowNotations <= 0) ? 1 : 0);
 			}
-			num3 = (num3 + ShowRunning_ShowVerticalAlign) % 3;
+			settings.ShowVerticalAlign = (settings.ShowVerticalAlign + ShowRunning_ShowVerticalAlign) % 3;
+		}
+
+		private static void ConfigureTransition(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, DisplaySettings settings)
+		{
 			if (InItem.FirstShowing)
 			{
-				InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)transitionType;
+				InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)settings.ItemTransition;
 				if (LicAdminEnforceDisplay)
 				{
 					InItem.Show_LicAdim = true;
@@ -169,8 +212,12 @@ namespace Easislides
 			}
 			else
 			{
-				InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)transitionType2;
+				InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)settings.SlideTransition;
 			}
+		}
+
+		private static void UpdateBackground(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, ImageTransitionControl.TransitionAction TransitionAction, bool RedoBackground)
+		{
 			if (InItem.FirstShowing || RedoBackground || ComputeTransition(InItem, ref InPictureBox, TransitionAction) != 0)
 			{
 				if (InItem.Format.MediaTransparent || (ShowLiveCam && InItem.AtLiveScreen))
@@ -186,9 +233,19 @@ namespace Easislides
 			{
 				SetTransparentBackground(InItem, ref InPictureBox);
 			}
+		}
+
+		public static bool ShowDBSlide(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, bool DoActiveIndicator, ImageTransitionControl.TransitionAction TransitionAction, bool RedoBackground)
+		{
+			DisplaySettings settings = ExtractDisplaySettings(ref InItem);
+			DetermineLyricsHeading(ref InItem);
+			ApplyDisplayOverrides(ref settings);
+			ConfigureTransition(ref InItem, ref InPictureBox, settings);
+			UpdateBackground(ref InItem, ref InPictureBox, TransitionAction, RedoBackground);
+
 			if (InItem.Type != "")
 			{
-				DrawText(ref InItem, ref InPictureBox, InItem.LyricsAndNotationsList, inUseShadowFont, inUseOutlineFont, num2, inShowInterlace, num3, inHideDisplayPanel, TransitionAction, DoActiveIndicator, ClearAll: false);
+				DrawText(ref InItem, ref InPictureBox, InItem.LyricsAndNotationsList, settings.UseShadowFont, settings.UseOutlineFont, settings.ShowNotations, settings.ShowInterlace, settings.ShowVerticalAlign, settings.HideDisplayPanel, TransitionAction, DoActiveIndicator, ClearAll: false);
 			}
 			return true;
 		}
@@ -252,15 +309,11 @@ namespace Easislides
 				return;
 			}
 			ResetLyricsLayout(ref InItem);
-			Image textImage = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
-			Graphics g = Graphics.FromImage(textImage);
-			g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-			g.Clear(Color.Transparent);
+			Image textImage;
+			Graphics g = GraphicsBufferPool.GetTextGraphics(width, height, out textImage);
 
-			Image panelImage = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
-			Graphics panelGraphics = Graphics.FromImage(panelImage);
-			panelGraphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-			panelGraphics.Clear(Color.Transparent);
+			Image panelImage;
+			Graphics panelGraphics = GraphicsBufferPool.GetPanelGraphics(width, height, out panelImage);
 
 			EnsureImageBuffers(ref InPictureBox);
 			ComputeTransition(InItem, ref InPictureBox, options.TransitionAction);
@@ -324,8 +377,6 @@ namespace Easislides
 				LoadReferenceAlert(ref InPictureBox, InItem, options.ClearAll, options.DoActiveIndicator);
 			}
 			InPictureBox.Go(options.TransitionAction, firstShowing, options.ClearAll, options.DoActiveIndicator, liveCamOnShow);
-			g.Dispose();
-			panelGraphics.Dispose();
 		}
 
 		private static bool EnsureBackgroundAndSize(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, out int width, out int height)
@@ -352,7 +403,7 @@ namespace Easislides
 				InItem.Lyrics[i].FS_TopOffset = 0;
 				InItem.Lyrics[i].FS_OneLyricAndNotationHeight = 0;
 				InItem.Lyrics[i].FS_InterlaceGapHeight = 0;
-				InItem.Lyrics[i].FS_InterlaceLinePattern = "";
+				InItem.Lyrics[i].FS_InterlaceLinePattern = string.Empty;
 			}
 		}
 
@@ -411,11 +462,11 @@ namespace Easislides
 			int region2Height = 0;
 			int region0Height = 0;
 			int region1Height = 0;
-			Font mainFontHeader = new Font("Microsoft Sans Serif", 30f);
-			Font mainFontRegion0 = new Font("Microsoft Sans Serif", 30f);
-			Font mainFontRegion1 = new Font("Microsoft Sans Serif", 30f);
-			Font notationsFont = new Font("Microsoft Sans Serif", 30f);
-			Font notationsFont2 = new Font("Microsoft Sans Serif", 30f);
+			Font mainFontHeader = RenderingCache.GetFont("Microsoft Sans Serif", DefaultInitialFontSize, FontStyle.Regular);
+			Font mainFontRegion0 = RenderingCache.GetFont("Microsoft Sans Serif", DefaultInitialFontSize, FontStyle.Regular);
+			Font mainFontRegion1 = RenderingCache.GetFont("Microsoft Sans Serif", DefaultInitialFontSize, FontStyle.Regular);
+			Font notationsFont = RenderingCache.GetFont("Microsoft Sans Serif", DefaultInitialFontSize, FontStyle.Regular);
+			Font notationsFont2 = RenderingCache.GetFont("Microsoft Sans Serif", DefaultInitialFontSize, FontStyle.Regular);
 			int topOffset = 0;
 			int separatorHeight = 0;
 			region2Height = GetOneRegionHeight(ref InItem, ref InPictureBox, 2, LyricsAndNotationsList, ref g, useShadowFont, useOutlineFont, showNotations, onlyOneRegionShown, ref mainFontHeader, ref notationsFont, showInterlace, fitAllIntoOneScreen, UseLargestFontSize);
@@ -456,11 +507,6 @@ namespace Easislides
 			{
 				DrawOneRegion(ref InItem, ref InPictureBox, 2, LyricsAndNotationsList, ref g, useShadowFont, useOutlineFont, showNotations, onlyOneRegionShown, ref mainFontHeader, ref notationsFont2, topOffset, interlaceEnabled, showVerticalAlign, 0, fitAllIntoOneScreen, UseLargestFontSize);
 			}
-			mainFontHeader.Dispose();
-			mainFontRegion0.Dispose();
-			mainFontRegion1.Dispose();
-			notationsFont.Dispose();
-			notationsFont2.Dispose();
 		}
 
 		private static void FinalizeTransitionAndGo(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, bool clearAll)
@@ -492,49 +538,49 @@ namespace Easislides
 				return 0;
 			}
 			int HeightOffset = 0;
-			int num = -1;
-			int num2 = -1;
+			int lineStartIndex = -1;
+			int lineEndIndex = -1;
 			string lyricsText = "";
 			int fS_Left = InItem.Lyrics[RegNum].FS_Left;
-			int num3 = InItem.Lyrics[RegNum].FS_Top;
+			int topPosition = InItem.Lyrics[RegNum].FS_Top;
 			int fS_Width = InItem.Lyrics[RegNum].FS_Width;
-			int num4 = (InItem.Slide[0, 3] > 0 && !OnlyOneRegionShown) ? InItem.Lyrics[RegNum].FS_Height_R2Bound : InItem.Lyrics[RegNum].FS_Height;
-			SizeF layoutArea = new SizeF(fS_Width, 32000f);
-			int num5 = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * MainFontSpacingFactor[InItem.FolderNo, (RegNum != 0) ? 1 : 0]);
-			int notationsLineHeight = (int)((double)num5 * ((MainFont.Size >= 2f) ? NotationFontFactor : 1.0));
+			int regionHeight = (InItem.Slide[0, 3] > 0 && !OnlyOneRegionShown) ? InItem.Lyrics[RegNum].FS_Height_R2Bound : InItem.Lyrics[RegNum].FS_Height;
+			SizeF layoutArea = new SizeF(fS_Width, MaxLayoutHeight);
+			int oneLineHeight = (int)((double)RenderingCache.MeasureString(g, "A", MainFont, layoutArea).Height * MainFontSpacingFactor[InItem.FolderNo, (RegNum != 0) ? 1 : 0]);
+			int notationsLineHeight = (int)((double)oneLineHeight * ((MainFont.Size >= 2f) ? NotationFontFactor : 1.0));
 			int notationsLineTextVOffset = 0;
-			string interlaceLinePattern = (RegNum == 1) ? InItem.Lyrics[RegNum].FS_InterlaceLinePattern : "";
-			int num6 = 0;
+			string interlaceLinePattern = (RegNum == 1) ? InItem.Lyrics[RegNum].FS_InterlaceLinePattern : string.Empty;
+			int linesRequired = 0;
 			switch (RegNum)
 			{
 				case 0:
-					num = InItem.Slide[InItem.CurSlide, 1];
-					num2 = InItem.Slide[InItem.CurSlide, 2];
+					lineStartIndex = InItem.Slide[InItem.CurSlide, 1];
+					lineEndIndex = InItem.Slide[InItem.CurSlide, 2];
 					break;
 				case 1:
-					num = InItem.Slide[InItem.CurSlide, 3];
-					num2 = InItem.Slide[InItem.CurSlide, 4];
+					lineStartIndex = InItem.Slide[InItem.CurSlide, 3];
+					lineEndIndex = InItem.Slide[InItem.CurSlide, 4];
 					break;
 				case 2:
 					lyricsText = InItem.Lyrics[RegNum].Text;
-					num3 += OffsetAfterAlignment;
-					DrawOneLine(rect_normal: new RectangleF(fS_Left, num3 + InItem.Lyrics[RegNum].FS_TopOffset, fS_Width, num4), InItem: ref InItem, InPictureBox: ref InPictureBox, InLyrics: InItem.Lyrics[2], RegionNumber: 2, Slide: InItem.Slide, LyricsAndNotationsList: LyricsAndNotationsList, g: ref g, MainFont: MainFont, NotationsFont: NotationsFont, OneLineHeight: num5, NotationsLineHeight: 0, NotationsLineTextVOffset: 0, InHeight: num4, LyricsText: lyricsText, InUseShadowFont: InUseShadowFont, InUseOutlineFont: InUseOutlineFont, InShowNotations: 0);
+					topPosition += OffsetAfterAlignment;
+					DrawOneLine(rect_normal: new RectangleF(fS_Left, topPosition + InItem.Lyrics[RegNum].FS_TopOffset, fS_Width, regionHeight), InItem: ref InItem, InPictureBox: ref InPictureBox, InLyrics: InItem.Lyrics[2], RegionNumber: 2, Slide: InItem.Slide, LyricsAndNotationsList: LyricsAndNotationsList, g: ref g, MainFont: MainFont, NotationsFont: NotationsFont, OneLineHeight: oneLineHeight, NotationsLineHeight: 0, NotationsLineTextVOffset: 0, InHeight: regionHeight, LyricsText: lyricsText, InUseShadowFont: InUseShadowFont, InUseOutlineFont: InUseOutlineFont, InShowNotations: 0);
 					return 0;
 			}
-			if ((num < 0) | (num2 < 0))
+			if ((lineStartIndex < 0) | (lineEndIndex < 0))
 			{
 				return 0;
 			}
 			if (OnlyOneRegionShown)
 			{
-				num3 += OffsetAfterAlignment;
+				topPosition += OffsetAfterAlignment;
 			}
 			else
 			{
 				switch (RegNum)
 				{
 					case 0:
-						num3 += OffsetAfterAlignment;
+						topPosition += OffsetAfterAlignment;
 						if (InterlaceOption)
 						{
 							InItem.Lyrics[0].FS_InterlaceGapHeight = InItem.Lyrics[1].FS_OneLyricAndNotationHeight;
@@ -543,69 +589,89 @@ namespace Easislides
 					case 1:
 						if (InterlaceOption)
 						{
-							num3 = InItem.Lyrics[0].FS_Top + OffsetAfterAlignment + (int)((double)InItem.Lyrics[0].FS_OneLyricAndNotationHeight * 0.9);
+							topPosition = InItem.Lyrics[0].FS_Top + OffsetAfterAlignment + (int)((double)InItem.Lyrics[0].FS_OneLyricAndNotationHeight * InterlaceHeightPercentage / 100.0);
 							InItem.Lyrics[1].FS_InterlaceGapHeight = InItem.Lyrics[0].FS_OneLyricAndNotationHeight;
 							break;
 						}
-						num3 = InItem.Lyrics[0].FS_Top + OffsetAfterAlignment + Region1Height + Buffer_LS_Height / 30;
+						topPosition = InItem.Lyrics[0].FS_Top + OffsetAfterAlignment + Region1Height + Buffer_LS_Height / BufferLSHeightDivisor30;
 						if (LineBetweenRegions)
 						{
-							OutputOneLineToScreen(InItem, "<<DrawLine>>", MainFont, g, InItem.Lyrics[RegNum].ForeColour, StringAlignment.Center, InUseShadowFont, InUseOutlineFont, fS_Left, num3 - Buffer_LS_Height / 40, fS_Width, 0);
+							OutputOneLineToScreen(InItem, "<<DrawLine>>", MainFont, g, InItem.Lyrics[RegNum].ForeColour, StringAlignment.Center, InUseShadowFont, InUseOutlineFont, fS_Left, topPosition - Buffer_LS_Height / BufferLSHeightDivisor40, fS_Width, 0);
 						}
 						break;
 				}
 			}
-			InItem.Lyrics[RegNum].FS_TopOffset = num3;
-			RectangleF rect_normal2 = new RectangleF(fS_Left, num3, fS_Width, num4);
-			RectangleF rectangleF = new RectangleF(rect_normal2.Left + MainFont.Size / 30f + 1f, rect_normal2.Top + MainFont.Size / 30f + 1f, rect_normal2.Width, rect_normal2.Height);
-			if (num <= num2)
+			InItem.Lyrics[RegNum].FS_TopOffset = topPosition;
+			RectangleF rect_normal2 = new RectangleF(fS_Left, topPosition, fS_Width, regionHeight);
+			RectangleF rectangleF = new RectangleF(rect_normal2.Left + MainFont.Size / FontThresholdDivisor + 1f, rect_normal2.Top + MainFont.Size / FontThresholdDivisor + 1f, rect_normal2.Width, rect_normal2.Height);
+			if (lineStartIndex <= lineEndIndex)
 			{
-				for (int i = num; i <= num2; i++)
+				for (int i = lineStartIndex; i <= lineEndIndex; i++)
 				{
-					num6 = 0;
-					DrawOneLine(ref InItem, ref InPictureBox, InItem.Lyrics[RegNum], RegNum, InItem.Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, num5, notationsLineHeight, notationsLineTextVOffset, rect_normal2, num4, lyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, i, ref HeightOffset, ref num6, InterlaceOption, interlaceLinePattern);
+					linesRequired = 0;
+					DrawOneLine(ref InItem, ref InPictureBox, InItem.Lyrics[RegNum], RegNum, InItem.Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, oneLineHeight, notationsLineHeight, notationsLineTextVOffset, rect_normal2, regionHeight, lyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, i, ref HeightOffset, ref linesRequired, InterlaceOption, interlaceLinePattern);
 					if (RegNum == 0)
 					{
 						SongLyrics obj = InItem.Lyrics[1];
-						obj.FS_InterlaceLinePattern = obj.FS_InterlaceLinePattern + Convert.ToString(num6) + '>';
+						obj.FS_InterlaceLinePattern = obj.FS_InterlaceLinePattern + Convert.ToString(linesRequired) + '>';
 					}
 				}
 			}
 			return (int)MainFont.Size;
 		}
 
+		/// <summary>
+		/// Draws one line of lyrics - Simplified overload without line tracking.
+		/// </summary>
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations)
 		{
-			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, -1);
+			int heightOffset = 0;
+			int linesRequired = 0;
+			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, -1, ref heightOffset, ref linesRequired, false, string.Empty);
 		}
 
+		/// <summary>
+		/// Draws one line of lyrics - Overload with current line index.
+		/// </summary>
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int CurLine)
 		{
-			int HeightOffset = 0;
-			int LinesRequired = 0;
-			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref LinesRequired, InterlaceOption: false);
+			int heightOffset = 0;
+			int linesRequired = 0;
+			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref heightOffset, ref linesRequired, false, string.Empty);
 		}
 
+		/// <summary>
+		/// Draws one line of lyrics - Overload with height offset tracking.
+		/// </summary>
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int CurLine, ref int HeightOffset)
 		{
-			int LinesRequired = 0;
-			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref LinesRequired, InterlaceOption: false);
+			int linesRequired = 0;
+			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref linesRequired, false, string.Empty);
 		}
 
+		/// <summary>
+		/// Draws one line of lyrics - Overload with height and lines tracking.
+		/// </summary>
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int CurLine, ref int HeightOffset, ref int LinesRequired)
 		{
-			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref LinesRequired, InterlaceOption: false);
+			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref LinesRequired, false, string.Empty);
 		}
 
+		/// <summary>
+		/// Draws one line of lyrics - Overload with interlace option support.
+		/// </summary>
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int CurLine, ref int HeightOffset, ref int LinesRequired, bool InterlaceOption)
 		{
-			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref LinesRequired, InterlaceOption, "");
+			DrawOneLine(ref InItem, ref InPictureBox, InLyrics, RegionNumber, Slide, LyricsAndNotationsList, ref g, MainFont, NotationsFont, OneLineHeight, NotationsLineHeight, NotationsLineTextVOffset, rect_normal, InHeight, LyricsText, InUseShadowFont, InUseOutlineFont, InShowNotations, CurLine, ref HeightOffset, ref LinesRequired, InterlaceOption, string.Empty);
 		}
 
+		/// <summary>
+		/// Draws one line of lyrics with full parameter control - Complete implementation.
+		/// All other DrawOneLine overloads delegate to this method for actual rendering.
+		/// Handles line wrapping, notations, interlace mode, and height tracking.
+		/// </summary>
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int CurLine, ref int HeightOffset, ref int LinesRequired, bool InterlaceOption, string InterlaceLinePattern)
 		{
-			StringFormat stringFormat = new StringFormat();
-			SizeF sizeF = new SizeF(rect_normal.Width, 32000f);
 			int startPos = 0;
 			int num = 0;
 			int EndExtractedTextPos = -1;
@@ -634,10 +700,10 @@ namespace Easislides
 			}
 			if (InterlaceOption && RegionNumber == 1)
 			{
-				while ((g.MeasureString(LyricsText, MainFont, 100000).Width + 10f > rect_normal.Width * (float)R2_MaxLinesPermitted) & (MainFont.Size > 1f))
+				while ((RenderingCache.MeasureString(g, LyricsText, MainFont, 100000).Width + 10f > rect_normal.Width * (float)R2_MaxLinesPermitted) & (MainFont.Size > 1f))
 				{
-					MainFont = new Font(InLyrics.Font.Name, MainFont.Size - 1f, InLyrics.Font.Style);
-					NotationsFont = new Font(InLyrics.Font.Name, Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InLyrics.Font.Style);
+					MainFont = RenderingCache.GetFont(InLyrics.Font.Name, MainFont.Size - 1f, InLyrics.Font.Style);
+					NotationsFont = RenderingCache.GetFont(InLyrics.Font.Name, Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InLyrics.Font.Style);
 				}
 			}
 			LinesRequired++;
@@ -693,7 +759,7 @@ namespace Easislides
 			bool flag = false;
 			R2_MaxLinesPermitted--;
 			SubDivideOneOutputText(InText, MainFont, NotationsFont, g, InWidth, InShowNotations, NotationsString, length, InSetLength, StartPos, ref EndExtractedTextPos, ref ExtractedText);
-			int num = (int)(double)g.MeasureString(ExtractedText, MainFont).Width;
+			int num = (int)RenderingCache.MeasureString(g, ExtractedText, MainFont).Width;
 			HeightOffset += ((InShowNotations == 1) ? NotationsLineHeight : 0);
 			ActionUndoWordWrapSpacesAtStart(ref ExtractedText, ref ReplacedLog);
 			SubstituteDashes(ref ExtractedText, InShowNotations);
@@ -705,29 +771,27 @@ namespace Easislides
 				{
 					num3 = 1;
 				}
-				using (Font font = new Font(MainFont.Name, num3))
+				Font font = RenderingCache.GetFont(MainFont.Name, num3, MainFont.Style);
+				HeightOffset -= NotationsLineHeight;
+				int num4 = 0;
+				while (NotationsString != "")
 				{
-					HeightOffset -= NotationsLineHeight;
-					int num4 = 0;
-					while (NotationsString != "")
+					string text = DataUtil.ExtractOneInfo(ref NotationsString, ';');
+					int num5 = Convert.ToInt32(DataUtil.ExtractOneInfo(ref NotationsString, ';'));
+					if (!(text != "-1") || num5 < 0 || num5 < StartPos)
 					{
-						string text = DataUtil.ExtractOneInfo(ref NotationsString, ';');
-						int num5 = Convert.ToInt32(DataUtil.ExtractOneInfo(ref NotationsString, ';'));
-						if (!(text != "-1") || num5 < 0 || num5 < StartPos)
+						continue;
+					}
+					for (int i = StartPos; i <= EndExtractedTextPos; i++)
+					{
+						if ((((i == num5) ? 1 : 0) & ((i != EndExtractedTextPos) ? 1 : ((EndExtractedTextPos == length) ? 1 : 0))) != 0)
 						{
-							continue;
-						}
-						for (int i = StartPos; i <= EndExtractedTextPos; i++)
-						{
-							if ((((i == num5) ? 1 : 0) & ((i != EndExtractedTextPos) ? 1 : ((EndExtractedTextPos == length) ? 1 : 0))) != 0)
-							{
-								int iLen = i - StartPos;
-								string text2 = DataUtil.Mid(InText, StartPos, iLen);
-								int num6 = (int)g.MeasureString(text2, font).Width;
-								OutputOneLineToScreen(InItem, text, NotationsFont, g, InLyrics.ForeColour, StringAlignment.Near, InUseShadowFont, InUseOutlineFont, num2 + num6 + num4, InTop + HeightOffset + NotationsLineTextVOffset, InWidth, 0, (IsWrappedText && WordWrapLeftAlignIndent && InItem.Type != "I") ? true : false);
-								num4 += (int)((i == EndExtractedTextPos) ? g.MeasureString(text + "S", NotationsFont).Width : 0f);
-								i = EndExtractedTextPos;
-							}
+							int iLen = i - StartPos;
+							string text2 = DataUtil.Mid(InText, StartPos, iLen);
+							int num6 = (int)RenderingCache.MeasureString(g, text2, font).Width;
+							OutputOneLineToScreen(InItem, text, NotationsFont, g, InLyrics.ForeColour, StringAlignment.Near, InUseShadowFont, InUseOutlineFont, num2 + num6 + num4, InTop + HeightOffset + NotationsLineTextVOffset, InWidth, 0, (IsWrappedText && WordWrapLeftAlignIndent && InItem.Type != "I") ? true : false);
+							num4 += (int)((i == EndExtractedTextPos) ? RenderingCache.MeasureString(g, text + "S", NotationsFont).Width : 0f);
+							i = EndExtractedTextPos;
 						}
 					}
 				}
@@ -761,33 +825,35 @@ namespace Easislides
 			}
 			int num2 = (int)((double)InFont.Size * 1.2999999523162842);
 			int x2 = x;
+			Pen pen = RenderingCache.GetPen(BlackScreenColour, num);
+			SolidBrush shadowBrush = RenderingCache.GetBrush(BlackScreenColour);
+			SolidBrush textBrush = RenderingCache.GetBrush(InColour);
+			StringFormat stringFormat;
+			switch (alignformat)
+			{
+				case StringAlignment.Center:
+					stringFormat = StringFormatCenter;
+					x += w / 2;
+					break;
+				case StringAlignment.Far:
+					stringFormat = StringFormatFar;
+					x += w;
+					break;
+				default:
+					stringFormat = StringFormatNear;
+					if (IndentLeftAligned)
+					{
+						ExtractedText = "  " + ExtractedText;
+					}
+					break;
+			}
+			if (InFont.Size <= 1f)
+			{
+				return x;
+			}
 			using (GraphicsPath graphicsPath = new GraphicsPath())
 			using (GraphicsPath graphicsPath2 = new GraphicsPath())
-			using (Pen pen = new Pen(BlackScreenColour, num))
-			using (SolidBrush shadowBrush = new SolidBrush(BlackScreenColour))
-			using (SolidBrush textBrush = new SolidBrush(InColour))
-			using (StringFormat stringFormat = new StringFormat())
 			{
-				switch (alignformat)
-				{
-					case StringAlignment.Center:
-						x += w / 2;
-						break;
-					case StringAlignment.Far:
-						x += w;
-						break;
-					default:
-						if (IndentLeftAligned)
-						{
-							ExtractedText = "  " + ExtractedText;
-						}
-						break;
-				}
-				if (InFont.Size <= 1f)
-				{
-					return x;
-				}
-				stringFormat.Alignment = alignformat;
 				g.SmoothingMode = SmoothingMode.AntiAlias;
 				int num3 = 0;
 				int num4 = 0;
@@ -887,15 +953,7 @@ namespace Easislides
 
 		public static int DrawSuperScript(GraphicsPath pth, string InText, Font InFont, int InFontSize, Rectangle InRectangle, bool AlignLeft)
 		{
-			StringFormat stringFormat = new StringFormat();
-			if (AlignLeft)
-			{
-				stringFormat.Alignment = StringAlignment.Near;
-			}
-			else
-			{
-				stringFormat.Alignment = StringAlignment.Far;
-			}
+			StringFormat stringFormat = AlignLeft ? StringFormatNear : StringFormatFar;
 			InFontSize = InFontSize * 7 / 10;
 			if (InRectangle.Height == 0)
 			{
@@ -913,16 +971,15 @@ namespace Easislides
 		public static void DrawCapoSettings(SongSettings InItem, Graphics g)
 		{
 			SongLyrics songLyrics = InItem.Lyrics[3];
-			StringFormat stringFormat = new StringFormat();
 			int value = (int)songLyrics.FS_Font.Size;
 			int fS_Left = songLyrics.FS_Left;
 			int fS_Top = songLyrics.FS_Top;
 			int fS_Width = songLyrics.FS_Width;
 			int fS_Height = songLyrics.FS_Height;
-			stringFormat.Alignment = StringAlignment.Far;
-			Font font = new Font(songLyrics.FS_Font.Name, Convert.ToInt32(value), songLyrics.FS_Font.Style);
+			Font font = RenderingCache.GetFont(songLyrics.FS_Font.Name, Convert.ToInt32(value), songLyrics.FS_Font.Style);
+			SolidBrush brush = RenderingCache.GetBrush(songLyrics.ForeColour);
 			int num = fS_Top + fS_Height / 2;
-			g.DrawString(layoutRectangle: new RectangleF(fS_Left, num, fS_Width, fS_Height), s: "Capo " + Convert.ToString(InItem.Capo), font: font, brush: new SolidBrush(songLyrics.ForeColour), format: stringFormat);
+			g.DrawString(layoutRectangle: new RectangleF(fS_Left, num, fS_Width, fS_Height), s: "Capo " + Convert.ToString(InItem.Capo), font: font, brush: brush, format: StringFormatFar);
 		}
 
 		private const int DisplayPanelMeasureMaxWidth = 10000;
@@ -940,6 +997,195 @@ namespace Easislides
 		{
 			Alignment = StringAlignment.Far
 		};
+
+		private static readonly StringFormat StringFormatNear = new StringFormat
+		{
+			Alignment = StringAlignment.Near
+		};
+
+		private static readonly StringFormat StringFormatCenter = new StringFormat
+		{
+			Alignment = StringAlignment.Center
+		};
+
+		private static readonly StringFormat StringFormatFar = new StringFormat
+		{
+			Alignment = StringAlignment.Far
+		};
+
+		private static class GraphicsBufferPool
+		{
+			private static Image _textBuffer;
+			private static Graphics _textGraphics;
+			private static Image _panelBuffer;
+			private static Graphics _panelGraphics;
+			private static int _currentWidth;
+			private static int _currentHeight;
+			private static readonly object _lock = new object();
+
+			public static Graphics GetTextGraphics(int width, int height, out Image image)
+			{
+				lock (_lock)
+				{
+					if (_textBuffer == null || _currentWidth != width || _currentHeight != height)
+					{
+						_textGraphics?.Dispose();
+						_textBuffer?.Dispose();
+
+						_currentWidth = width;
+						_currentHeight = height;
+						_textBuffer = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
+						_textGraphics = Graphics.FromImage(_textBuffer);
+						_textGraphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+					}
+
+					_textGraphics.Clear(Color.Transparent);
+					image = _textBuffer;
+					return _textGraphics;
+				}
+			}
+
+			public static Graphics GetPanelGraphics(int width, int height, out Image image)
+			{
+				lock (_lock)
+				{
+					if (_panelBuffer == null || _currentWidth != width || _currentHeight != height)
+					{
+						_panelGraphics?.Dispose();
+						_panelBuffer?.Dispose();
+
+						_panelBuffer = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
+						_panelGraphics = Graphics.FromImage(_panelBuffer);
+						_panelGraphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+					}
+
+					_panelGraphics.Clear(Color.Transparent);
+					image = _panelBuffer;
+					return _panelGraphics;
+				}
+			}
+
+			public static void Clear()
+			{
+				lock (_lock)
+				{
+					_textGraphics?.Dispose();
+					_textBuffer?.Dispose();
+					_panelGraphics?.Dispose();
+					_panelBuffer?.Dispose();
+
+					_textBuffer = null;
+					_textGraphics = null;
+					_panelBuffer = null;
+					_panelGraphics = null;
+					_currentWidth = 0;
+					_currentHeight = 0;
+				}
+			}
+		}
+
+		private static class RenderingCache
+		{
+			private const int GlobalFontCacheSize = 128;
+			private const int GlobalBrushCacheSize = 64;
+			private const int GlobalMeasureCacheSize = 1024;
+			private const int GlobalPenCacheSize = 32;
+
+			public static readonly LruCache<FontKey, Font> Fonts = new LruCache<FontKey, Font>(GlobalFontCacheSize, font => font?.Dispose());
+			public static readonly Dictionary<int, SolidBrush> Brushes = new Dictionary<int, SolidBrush>();
+			public static readonly LruCache<MeasureKey, SizeF> Measures = new LruCache<MeasureKey, SizeF>(GlobalMeasureCacheSize, null);
+			public static readonly Dictionary<PenKey, Pen> Pens = new Dictionary<PenKey, Pen>();
+			private static readonly object _brushLock = new object();
+			private static readonly object _penLock = new object();
+
+			public static SolidBrush GetBrush(Color color)
+			{
+				int key = color.ToArgb();
+				lock (_brushLock)
+				{
+					if (!Brushes.TryGetValue(key, out SolidBrush brush))
+					{
+						brush = new SolidBrush(color);
+						Brushes[key] = brush;
+					}
+					return brush;
+				}
+			}
+
+			public static Font GetFont(string name, float size, FontStyle style)
+			{
+				if (size < 1f)
+				{
+					size = 1f;
+				}
+				FontKey key = new FontKey(name, (int)size, style);
+				return Fonts.GetOrAdd(key, _ => new Font(name, size, style));
+			}
+
+			public static Pen GetPen(Color color, float width)
+			{
+				PenKey key = new PenKey(color.ToArgb(), width);
+				lock (_penLock)
+				{
+					if (!Pens.TryGetValue(key, out Pen pen))
+					{
+						pen = new Pen(color, width);
+						Pens[key] = pen;
+					}
+					return pen;
+				}
+			}
+
+			public static SizeF MeasureString(Graphics g, string text, Font font, int maxWidth = 10000)
+			{
+				if (string.IsNullOrEmpty(text))
+				{
+					return SizeF.Empty;
+				}
+				MeasureKey key = new MeasureKey(FontKey.FromFont(font), text, maxWidth, 1.0f);
+				return Measures.GetOrAdd(key, _ => g.MeasureString(text, font, maxWidth));
+			}
+
+			public static SizeF MeasureString(Graphics g, string text, Font font, SizeF layoutArea)
+			{
+				if (string.IsNullOrEmpty(text))
+				{
+					return SizeF.Empty;
+				}
+				MeasureKey key = new MeasureKey(FontKey.FromFont(font), text, (int)layoutArea.Width, layoutArea.Height);
+				return Measures.GetOrAdd(key, _ => g.MeasureString(text, font, layoutArea));
+			}
+		}
+
+		private struct PenKey : IEquatable<PenKey>
+		{
+			public readonly int ColorArgb;
+			public readonly int WidthKey;
+
+			public PenKey(int colorArgb, float width)
+			{
+				ColorArgb = colorArgb;
+				WidthKey = (int)(width * 100f);
+			}
+
+			public bool Equals(PenKey other)
+			{
+				return ColorArgb == other.ColorArgb && WidthKey == other.WidthKey;
+			}
+
+			public override bool Equals(object obj)
+			{
+				return obj is PenKey other && Equals(other);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					return (ColorArgb * 397) ^ WidthKey;
+				}
+			}
+		}
 
 		private static readonly Dictionary<int, SolidBrush> DisplayPanelBrushCache = new Dictionary<int, SolidBrush>();
 		private static readonly LruCache<FontKey, Font> DisplayPanelFontCache = new LruCache<FontKey, Font>(DisplayPanelFontCacheSize, font => font.Dispose());
@@ -1062,20 +1308,20 @@ namespace Easislides
 			public readonly FontKey FontKey;
 			public readonly string Text;
 			public readonly int MaxWidth;
-			public readonly int ScaleKey;
+			public readonly int MaxHeight;
 
 			public MeasureKey(FontKey fontKey, string text, int maxWidth, float scale)
 			{
 				FontKey = fontKey;
 				Text = text ?? "";
 				MaxWidth = maxWidth;
-				ScaleKey = (int)(scale * 1000f);
+				MaxHeight = (int)(scale * 1000f);
 			}
 
 			public bool Equals(MeasureKey other)
 			{
 				return MaxWidth == other.MaxWidth
-					&& ScaleKey == other.ScaleKey
+					&& MaxHeight == other.MaxHeight
 					&& FontKey.Equals(other.FontKey)
 					&& string.Equals(Text, other.Text, StringComparison.Ordinal);
 			}
@@ -1093,7 +1339,7 @@ namespace Easislides
 					hash = hash * 31 + FontKey.GetHashCode();
 					hash = hash * 31 + StringComparer.Ordinal.GetHashCode(Text);
 					hash = hash * 31 + MaxWidth;
-					hash = hash * 31 + ScaleKey;
+					hash = hash * 31 + MaxHeight;
 					return hash;
 				}
 			}
@@ -1360,7 +1606,6 @@ namespace Easislides
 			string text = "";
 			string text2 = "";
 			Color color = In_TextColour;
-			StringFormat stringFormat = new StringFormat();
 			int num = (totalSlides <= 10) ? totalSlides : 11;
 			int num2 = (curSlide - 1) / 10 * 10 + 1;
 			int num3 = (totalSlides > num2 + 9) ? (num2 + 9) : totalSlides;
@@ -1397,8 +1642,8 @@ namespace Easislides
 						color = Color.White;
 					}
 					color = (flag ? Color.Red : In_TextColour);
-					OutputOneLineToScreen(InItem, text2, tempFont, g, color, stringFormat.Alignment, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, OffsetLeft, VersesSymOffsetTop, OffsetLeft + num7, 0);
-					OutputOneLineToScreen(InItem, text, tempFont, g, color, stringFormat.Alignment, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, OffsetLeft, SlidesSymOffsetTop, OffsetLeft + num7, 0);
+					OutputOneLineToScreen(InItem, text2, tempFont, g, color, StringAlignment.Near, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, OffsetLeft, VersesSymOffsetTop, OffsetLeft + num7, 0);
+					OutputOneLineToScreen(InItem, text, tempFont, g, color, StringAlignment.Near, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, OffsetLeft, SlidesSymOffsetTop, OffsetLeft + num7, 0);
 				}
 				OffsetLeft += num7;
 			}

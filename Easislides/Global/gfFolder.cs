@@ -15,8 +15,8 @@ using DbDataReader = System.Data.SQLite.SQLiteDataReader;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
-    {
+	internal unsafe partial class gf
+	{
 
 		public static bool ValidateDir(string FDir, bool CreateDir)
 		{
@@ -68,7 +68,7 @@ namespace Easislides
 			return InString;
 		}
 
-public static void LoadFolderNamesArray()
+		public static void LoadFolderNamesArray()
 		{
 			ValidateDefaultFolders();
 			int num = 0;
@@ -357,7 +357,7 @@ public static void LoadFolderNamesArray()
 			RefileSongs[0] = 0;
 			try
 			{
-		using (DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB))
+				using (DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB))
 				{
 					string text = "";
 					for (int num = SongItems.Count - 1; num >= 0; num--)
@@ -393,7 +393,7 @@ public static void LoadFolderNamesArray()
 							Console.WriteLine(e.StackTrace);
 						}
 					}
-				}				
+				}
 			}
 			catch (Exception ex)
 			{
@@ -513,8 +513,8 @@ public static void LoadFolderNamesArray()
 			InString = InString.Replace("|", "_");
 		}
 
-        public static void InitFolderFiles(string InFolder)
-        {
+		public static void InitFolderFiles(string InFolder)
+		{
 			try
 			{
 				string[] files = Directory.GetFiles(InFolder);
@@ -536,7 +536,7 @@ public static void LoadFolderNamesArray()
 				{
 					try
 					{
-                        InitFolderFiles(text);
+						InitFolderFiles(text);
 						Directory.Delete(text);
 					}
 					catch (Exception ex)
@@ -549,9 +549,9 @@ public static void LoadFolderNamesArray()
 			{
 				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
-        }
+		}
 
-        public static void DeleteFolderFiles(string InFolder)
+		public static void DeleteFolderFiles(string InFolder)
 		{
 			try
 			{
@@ -613,5 +613,5 @@ public static void LoadFolderNamesArray()
 				}
 			}
 		}
-    }
+	}
 }

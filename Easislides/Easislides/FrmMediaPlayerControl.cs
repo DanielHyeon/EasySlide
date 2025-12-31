@@ -1267,7 +1267,7 @@ namespace Easislides
 
 		private void LocationBtn_MouseUp(object sender, MouseEventArgs e)
 		{
-			OpenFileDialog1.Filter = gf.GetOpenFileDialogMediaString();
+			OpenFileDialog1.Filter = gfFileHelpers.GetOpenFileDialogMediaString();
 			OpenFileDialog1.InitialDirectory = gf.MediaDir;
 			OpenFileDialog1.AddExtension = true;
 			tbSourceLocation.Text = DataUtil.Trim(tbSourceLocation.Text);
