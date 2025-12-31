@@ -14,12 +14,13 @@ using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 
 namespace Easislides.SQLite
 {
-    class DbController  {
+	class DbController
+	{
 		static readonly object DefaultDblocker = new object();
 		static bool lockDefalutDbTaken = false;
 
 		private static int IsTableExist(string tableName, ref DbConnection connection)
-        {
+		{
 			int result = 0;
 			try
 			{
@@ -31,13 +32,13 @@ namespace Easislides.SQLite
 				}
 			}
 			catch (Exception ex)
-            {
+			{
 				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				result = 0;
-            }
+			}
 
-			return result; 
-        }
+			return result;
+		}
 
 		public static void DropTable(ref DbConnection connection, string tableName)
 		{
@@ -180,49 +181,49 @@ namespace Easislides.SQLite
 
 		public static void CreateField(ref DbConnection connection, string tableName, string fieldName, int fieldType, int fieldSize)
 		{
-            string text = "";
-            try
-            {
-                switch (fieldType)
-                {
-                    case 0:
-                        text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT({DataUtil.ObjToString(fieldSize)}) NULL";
-                        break;
-                    case 1:
-                        text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} INT";
-                        break;
-                    case 2:
-                        text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} DATE";
-                        break;
-                    case 4:
-                        text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} FLOAT";
-                        break;
-                    case 5:
-                        text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT";
-                        break;
-                }
-                if (!(text == ""))
-                {
+			string text = "";
+			try
+			{
+				switch (fieldType)
+				{
+					case 0:
+						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT({DataUtil.ObjToString(fieldSize)}) NULL";
+						break;
+					case 1:
+						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} INT";
+						break;
+					case 2:
+						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} DATE";
+						break;
+					case 4:
+						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} FLOAT";
+						break;
+					case 5:
+						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT";
+						break;
+				}
+				if (!(text == ""))
+				{
 
-                    if (connection.State != ConnectionState.Open)
-                        connection.Open();
+					if (connection.State != ConnectionState.Open)
+						connection.Open();
 
-                    using DbCommand command = new DbCommand(text, connection);
-                    command.ExecuteNonQuery();
+					using DbCommand command = new DbCommand(text, connection);
+					command.ExecuteNonQuery();
 
-                    if (fieldType == 0)
-                    {
-                        if (fieldName.ToUpper() == "TIMING".ToUpper())
-                        {
-                            fieldName = "MSC";
-                            text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName}";
+					if (fieldType == 0)
+					{
+						if (fieldName.ToUpper() == "TIMING".ToUpper())
+						{
+							fieldName = "MSC";
+							text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName}";
 							using DbCommand dbCommand1 = new DbCommand(text, connection);
-                            dbCommand1.ExecuteNonQuery();
-                        }
-                    }
-                }
+							dbCommand1.ExecuteNonQuery();
+						}
+					}
+				}
 
-            }
+			}
 			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
@@ -230,10 +231,10 @@ namespace Easislides.SQLite
 			}
 		}
 
-        public static DbConnection GetDbConnection(string ConnectString)
-        {
+		public static DbConnection GetDbConnection(string ConnectString)
+		{
 			try
-            {
+			{
 				Monitor.Enter(DefaultDblocker);
 
 				while (lockDefalutDbTaken)
@@ -246,12 +247,12 @@ namespace Easislides.SQLite
 
 				return connection;
 			}
-            catch(Exception e) 
-            {
+			catch (Exception e)
+			{
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.StackTrace);
-                return null;
-            }
+				return null;
+			}
 			finally
 			{
 				lockDefalutDbTaken = false;
@@ -278,28 +279,28 @@ namespace Easislides.SQLite
 			}
 		}
 
-        public static DataTable GetTableRecordSet(string ConnectString, string FullSearchString)
-        {
-            try
-            {
+		public static DataTable GetTableRecordSet(string ConnectString, string FullSearchString)
+		{
+			try
+			{
 				DataTable dt = new DataTable();
 				DbConnection connection = GetDbConnection(ConnectString);
-                DbCommand command = new DbCommand(FullSearchString, connection);
+				DbCommand command = new DbCommand(FullSearchString, connection);
 				//DbDataReader dataReader = command.ExecuteReader();
 				DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection);
 				dt.Load(dataReader);
 				return dt;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
-                return null;
-            }
-        }
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
+				return null;
+			}
+		}
 
-        public static DataTable GetTableRecordSet(DbConnection connection, string TableName)
-        {
+		public static DataTable GetTableRecordSet(DbConnection connection, string TableName)
+		{
 			try
 			{
 				DataTable dt = new DataTable();
@@ -316,8 +317,8 @@ namespace Easislides.SQLite
 			catch
 			{
 			}
-            return null;
-        }
+			return null;
+		}
 
 
 		public static (DbDataAdapter, DataTable) GetDataAdapter(string ConnectString, string FullSearchString)
@@ -330,7 +331,7 @@ namespace Easislides.SQLite
 				// 핸들링한다. connection.Open() 불필요.
 				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
 				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
-				
+
 				DbConnection connection = GetDbConnection(ConnectString);
 
 				DbDataAdapter da = new DbDataAdapter(FullSearchString, connection);
@@ -453,7 +454,7 @@ namespace Easislides.SQLite
 			}
 		}
 
-		public static (DbConnection, DbDataReader)  GetDataReader(string ConnectString, string FullSearchString)
+		public static (DbConnection, DbDataReader) GetDataReader(string ConnectString, string FullSearchString)
 		{
 			try
 			{
@@ -485,12 +486,12 @@ namespace Easislides.SQLite
 
 				dt.Load(dataReader);
 
-				if(dt != null && dt.Rows.Count > 0)
+				if (dt != null && dt.Rows.Count > 0)
 					dataRow = dt.Rows[0];
 
 				return dataRow;
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.StackTrace);
@@ -500,7 +501,7 @@ namespace Easislides.SQLite
 
 		public static (DbConnection, DataRow) GetDataRowScalar(string ConnectString, string FullSearchString)
 		{
-			
+
 			try
 			{
 				using DataTable dt = new DataTable();

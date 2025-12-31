@@ -4,8 +4,6 @@ namespace Easislides.Util
 {
     class RegUtil
     {
-		private const string RegistryBasePath = "Software\\EasiSlides\\";
-
 		public const string Reg_RootEasiSlidesDir = "root_directory";
 
 		public const string Reg_CurSession = "current_session";
@@ -286,26 +284,39 @@ namespace Easislides.Util
 
 		public static void SaveRegValue(string Section, string Name, string Value)
 		{
-			SaveRegValueInternal(Section, Name, Value, RegistryValueKind.String);
+			try
+			{
+				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey("Software\\EasiSlides\\" + Section))
+				{
+					registryKey.SetValue(Name, Value, RegistryValueKind.String);
+				}
+			}
+			catch
+			{
+			}
 		}
 
 		public static void SaveRegValue(string Section, string Name, int Value)
 		{
-			SaveRegValueInternal(Section, Name, Value, RegistryValueKind.DWord);
+			try
+			{
+				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey("Software\\EasiSlides\\" + Section))
+				{
+					registryKey.SetValue(Name, Value, RegistryValueKind.DWord);
+				}
+			}
+			catch
+			{
+			}
 		}
 
 		public static void SaveRegValue(string Section, string Name, long Value)
 		{
-			SaveRegValueInternal(Section, Name, Value, RegistryValueKind.QWord);
-		}
-
-		private static void SaveRegValueInternal(string Section, string Name, object Value, RegistryValueKind valueKind)
-		{
 			try
 			{
-				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey(RegistryBasePath + Section))
+				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey("Software\\EasiSlides\\" + Section))
 				{
-					registryKey?.SetValue(Name, Value, valueKind);
+					registryKey.SetValue(Name, Value, RegistryValueKind.QWord);
 				}
 			}
 			catch
@@ -337,9 +348,9 @@ namespace Easislides.Util
 		{
 			try
 			{
-				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey(RegistryBasePath + Section))
+				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey("Software\\EasiSlides\\" + Section))
 				{
-					return registryKey?.GetValue(Name, defaultValue);
+					return registryKey.GetValue(Name, defaultValue);					
 				}
 			}
 			catch
@@ -348,25 +359,17 @@ namespace Easislides.Util
 			}
 		}
 
-		public static void DeleteRegKey(string Section, string Name)
+		public static void DeleletRegKey(string Section, string Name)
 		{
 			try
 			{
-				using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(RegistryBasePath + Section, writable: true))
-				{
-					registryKey?.DeleteValue(Name);
-				}
+				RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("Software\\EasiSlides\\" + Section, writable: true);
+				registryKey.DeleteValue(Name);
+				registryKey.Close();
 			}
 			catch
 			{
 			}
-		}
-
-		// Obsolete: Use DeleteRegKey instead
-		[System.Obsolete("Method name typo. Use DeleteRegKey instead.")]
-		public static void DeleletRegKey(string Section, string Name)
-		{
-			DeleteRegKey(Section, Name);
 		}
 	}
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SQLiteTestConsole")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4d67b3ed51de35145315efb9ecf69599d3860692")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab51f00175271b8d585180cc5189da8318ebc20c")]
 [assembly: System.Reflection.AssemblyProductAttribute("SQLiteTestConsole")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SQLiteTestConsole")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
