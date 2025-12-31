@@ -7,6 +7,7 @@ using Easislides.SQLite;
 using Easislides.Util;
 
 using DbConnection = System.Data.SQLite.SQLiteConnection;
+using DbDataReader = System.Data.SQLite.SQLiteDataReader;
 
 
 namespace Easislides
@@ -414,6 +415,292 @@ namespace Easislides
 				}
 			}
 			return -1;
+		}
+
+		public static string LookUpBookName(int InBibleVersion, int InBookNumber)
+		{
+			try
+			{
+				string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
+				string fullSearchString = "select * from Bible where book=0 and chapter=10 and verse=" + InBookNumber;
+
+				using DataTable datatable = DbController.GetDataTable(connectString, fullSearchString);
+
+				if (datatable.Rows.Count > 0)
+				{
+					return DataUtil.GetDataString(datatable.Rows[0], "bibletext");
+				}
+			}
+			catch
+			{
+				return "";
+			}
+			return "";
+		}
+
+		public static string LoadSelectedBibleVerses(string InFullBibleString)
+		{
+			try
+			{
+				bool flag = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0;
+
+				string[] bibleVersions = new string[2];
+				int[] versionNumbers = new int[2];
+
+				for (int i = 0; i < 2; i++)
+				{
+					bibleVersions[i] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
+					versionNumbers[i] = LookUpBibleVersionNumber(bibleVersions[i]);
+				}
+
+				string[] verseData = { InFullBibleString, InFullBibleString };
+
+				StringBuilder InTextString = new StringBuilder();
+
+				bool hasSecondVersion = versionNumbers[1] >= 0;
+
+				for (int i = 0; i <= (hasSecondVersion ? 1 : 0); i++)
+				{
+					bool flag2 = PartialWordSearch(versionNumbers[1]);
+
+					if (i == 1)
+					{
+						InTextString.Append(VerseSymbol[150]).Append("\n");
+					}
+
+					while (!string.IsNullOrEmpty(verseData[i]))
+					{
+						int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+						int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
+
+						LoadBiblePassages(versionNumbers[i], inBookNumber, ref InTextString,
+							InShowVerses: true, DoCompleteBook: false, TrackOutput: false,
+							chapterStart, verseStart, chapterEnd, verseEnd,
+							flag, flag2, flag, ShowFormatTags: true);
+
+						InTextString.Append("\n");
+					}
+				}
+
+				return InTextString.ToString();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error: {ex.Message}");
+				return "";
+			}
+		}
+
+		public static string LoadSelectedBibleVerses_Old(string InFullBibleString)
+		{
+			try
+			{
+				bool flag = (DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0) ? true : false;
+				string[] array = new string[2];
+				int[] array2 = new int[2];
+				string[] array3 = new string[2];
+				array[0] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
+				array2[0] = LookUpBibleVersionNumber(array[0]);
+				array[1] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
+				array2[1] = LookUpBibleVersionNumber(array[1]);
+				array3[0] = InFullBibleString;
+				array3[1] = InFullBibleString;
+				StringBuilder stringBuilder = new StringBuilder();
+				bool flag2 = false;
+				int num = 0;
+				num = ((array2[1] >= 0) ? 1 : 0);
+				for (int i = 0; i <= num; i++)
+				{
+					flag2 = PartialWordSearch(array2[1]);
+					if (i == 1)
+					{
+						stringBuilder.Append(VerseSymbol[150] + "\n");
+					}
+					while (array3[i] != "")
+					{
+						int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
+						LoadBiblePassages(array2[i], inBookNumber, ref stringBuilder, InShowVerses: true, DoCompleteBook: false, TrackOutput: false, chapterStart, verseStart, chapterEnd, verseEnd, flag, flag2, flag, ShowFormatTags: true);
+						stringBuilder.Append("\n");
+					}
+				}
+				return stringBuilder.ToString();
+			}
+			catch
+			{
+				return "";
+			}
+		}
+
+		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex)
+		{
+			return BuildBibleSearchString(InSearchPassage, VersionIndex, 0, 2);
+		}
+
+		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex, int BookIndex, int MatchSelected)
+		{
+			string text = "'*[ -/:-@]";
+			string text2 = "[ -/:-@]*'";
+			if (PartialWordSearch(VersionIndex))
+			{
+				text = "'%";
+				text2 = "%'";
+			}
+			if (DataUtil.Trim(InSearchPassage).Length > 0)
+			{
+				InSearchPassage = DataUtil.Trim(InSearchPassage.ToLower());
+				sArray = InSearchPassage.Split(' ');
+				string text3 = "";
+				string text4 = "";
+				string text5 = "";
+				string text6 = "";
+				string text7 = "";
+				text3 = "select * from Bible where book";
+				text3 = ((BookIndex >= 1) ? (text3 + "=" + BookIndex) : (text3 + ">0 "));
+				switch (MatchSelected)
+				{
+					case 1:
+						{
+							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
+							{
+								string term = DataUtil.Trim(sArray[i]).Replace("'", "''");
+								if (i > 0)
+								{
+									text4 += " or ";
+									text5 += " or ";
+									text6 += " or ";
+									text7 += " or ";
+								}
+								string text8 = text4;
+								text4 = text8 + " lower(bibletext) like " + text + term + text2;
+								text5 = text5 + " lower(bibletext) like '" + term + text2;
+								text8 = text6;
+								text6 = text8 + " lower(bibletext) like " + text + term + "'";
+								text7 = text7 + " lower(bibletext) like '" + term + "'";
+							}
+							break;
+						}
+					case 0:
+						{
+							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
+							{
+								string term = DataUtil.Trim(sArray[i]).Replace("'", "''");
+								if (i > 0)
+								{
+									text4 += " and ";
+									text5 += " and ";
+									text6 += " and ";
+									text7 += " and ";
+								}
+								string text8 = text4;
+								text4 = text8 + " lower(bibletext) like " + text + term + text2;
+								text5 = text5 + " lower(bibletext) like '" + term + text2;
+								text8 = text6;
+								text6 = text8 + " lower(bibletext) like " + text + term + "'";
+								text7 = text7 + " lower(bibletext) like '" + term + "'";
+							}
+							break;
+						}
+					default:
+						string passage = DataUtil.Trim(InSearchPassage).ToLower().Replace("'", "''");
+						text4 = " lower(bibletext) like " + text + passage + text2;
+						text5 = " lower(bibletext) like '" + passage + text2;
+						text6 = " lower(bibletext) like " + text + passage + "'";
+						text7 = " lower(bibletext) like '" + passage + "'";
+						break;
+				}
+				text4 = DataUtil.Trim(text4);
+				text5 = DataUtil.Trim(text5);
+				text6 = DataUtil.Trim(text6);
+				text7 = DataUtil.Trim(text7);
+				if (text4 != "")
+				{
+					text3 = text3 + " AND ( (" + text4 + ")";
+					if (!PartialWordSearch(VersionIndex))
+					{
+						string text8 = text3;
+						text3 = text8 + " OR (" + text5 + ") OR (" + text6 + ") OR (" + text7 + ")";
+					}
+					return text3 + " ) order by Book, chapter, verse ";
+				}
+			}
+			return "";
+		}
+
+		public static bool PartialWordSearch(int VersionIndex)
+		{
+			if (VersionIndex < 0)
+				return false;
+
+			try
+			{
+				string connectString = ConnectStringDef + HB_Versions[VersionIndex, 4];
+				string fullSearchString = "select * from Bible where book=0 and chapter=0 and verse=20";
+
+				if (DbController.GetDataTable(connectString, fullSearchString).Rows.Count > 0)
+				{
+					return true;
+				}
+
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Console.WriteLine(ex.StackTrace);
+			}
+			return false;
+		}
+
+		public static bool SearchBiblePassages(int InBibleVersion, ref ComboBox InBookList, string InSelectString, ref RichTextBox InTextContainer, bool InShowVerses)
+		{
+			int num = 0;
+			string text = "";
+			string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
+			StringBuilder stringBuilder = new StringBuilder();
+
+			DbConnection connection = null;
+			DbDataReader dataReader = null;
+
+			(connection, dataReader) = DbController.GetDataReader(connectString, InSelectString);
+
+			using (connection)
+			{
+				using (dataReader)
+				{
+					if (dataReader != null && dataReader.HasRows)
+					{
+						while (dataReader.Read() && num < 3000)
+						{
+							num++;
+							int dataInt = DataUtil.GetDataInt(dataReader, "book");
+							int dataInt2 = DataUtil.GetDataInt(dataReader, "chapter");
+							int dataInt3 = DataUtil.GetDataInt(dataReader, "verse");
+							text = string.Concat(InBookList.Items[dataInt - 1], " ", dataInt2, ":", dataInt3, " ");
+							HB_VersesLocation[num, 0] = InBibleVersion;
+							HB_VersesLocation[num, 1] = dataInt;
+							HB_VersesLocation[num, 2] = dataInt2;
+							HB_VersesLocation[num, 3] = dataInt3;
+							HB_VersesLocation[num, 4] = stringBuilder.Length;
+							stringBuilder.Append(text + (InShowVerses ? DataUtil.GetDataString(dataReader, "bibletext") : "") + "\n\n");
+							HB_VersesLocation[num, 5] = stringBuilder.Length + 1 - HB_VersesLocation[num, 4];
+						}
+						HB_VersesLocation[0, 0] = num;
+						InTextContainer.Text = DataUtil.TrimEnd(stringBuilder.ToString());
+						if (num >= 3000)
+						{
+							MessageBox.Show("The number of search results has been limited to " + Convert.ToString(3000) + ".");
+						}
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 
     }

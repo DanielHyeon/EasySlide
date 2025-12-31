@@ -1,4 +1,4 @@
-using Easislides.SQLite;
+﻿using Easislides.SQLite;
 using Easislides.Util;
 using Microsoft.Win32;
 using OfficeLib;
@@ -409,53 +409,7 @@ namespace Easislides
 			}
 		}
 
-		public static void LoadMusicExtArray()
-		{
-			TotalMediaFileExt = 0;
-			LoadMusicExtArray("AudioExtensions.txt", MediaBackgroundStyle.Audio);
-			LoadMusicExtArray("VideoExtensions.txt", MediaBackgroundStyle.Video);
-		}
-
-		public static void LoadMusicExtArray(string InFile, MediaBackgroundStyle InMediaType)
-		{
-			if (InMediaType != MediaBackgroundStyle.Video)
-			{
-				InMediaType = MediaBackgroundStyle.Audio;
-			}
-			string text = RootEasiSlidesDir + "Admin\\Database\\" + InFile;
-			if (!File.Exists(text))
-			{
-				if (File.Exists(Application.StartupPath + "\\Sys\\" + InFile))
-				{
-					try
-					{
-						File.Copy(Application.StartupPath + "\\Sys\\" + InFile, text);
-					}
-					catch
-					{
-						FileUtil.CreateNewFile(text, FileUtil.FileContentsType.Ascii_Rtf);
-					}
-				}
-				else
-				{
-					FileUtil.CreateNewFile(text, FileUtil.FileContentsType.Ascii_Rtf);
-				}
-			}
-			using StreamReader streamReader = File.OpenText(text);
-			string text2 = "";
-			while ((text2 = streamReader.ReadLine()) != null)
-			{
-				text2 = DataUtil.TrimEnd(text2);
-				if (text2 != "" && TotalMediaFileExt < 3000 && ValidateMusicExt(ref text2, ShowMessage: false))
-				{
-					MediaFileExtension[TotalMediaFileExt, 0] = text2.ToLower();
-					MediaFileExtension[TotalMediaFileExt, 1] = InMediaType.ToString();
-					TotalMediaFileExt++;
-				}
-			}
-			//streamReader.Close();
-		}
-
+	
 		public static void ComputeShowLineSpacing()
 		{
 			for (int i = 0; i < 41; i++)
@@ -944,184 +898,8 @@ namespace Easislides
 			}
 		}
 
-		public static void BuildMusicFilesListArray(string FolderPath, bool StoreDirPath)
-		{
-			if (FolderPath == "" || !MusicBuildContinue || (!Directory.Exists(FolderPath) | (DataUtil.Mid(FolderPath, 1) == ":\\System Volume Information\\")))
-			{
-				return;
-			}
-			MusicBuildLapseTime = DateTime.Now.Subtract(MusicBuildStartTime);
-			if (MusicBuildLapseTime.Seconds > 10)
-			{
-				MusicBuildContinue = false;
-				return;
-			}
-			string[] array;
-			for (int i = 0; i < TotalMediaFileExt; i++)
-			{
-				try
-				{
-					string[] files = Directory.GetFiles(FolderPath, "*" + MediaFileExtension[i, 0]);
-					array = files;
-					foreach (string text in array)
-					{
-						string InFileName = text;
-						string fileName = GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-						string extension = MediaFileExtension[i, 0];
-						int iLen = InFileName.Length - (fileName.Length + extension.Length);
-						string dirPath = DataUtil.Left(InFileName, iLen);
-
-						MediaFilesList.Add(new MediaFileInfo
-						{
-							FileName = fileName,
-							Extension = extension,
-							DirectoryPath = dirPath
-						});
-						TotalMusicFiles++;
-					}
-				}
-				catch
-				{
-				}
-			}
-			// Daniel
-			// C:\EasiSlides\Media\
-			if (!FolderPath.EndsWith(@"\Media\"))
-			{
-				gf.MediaDir = @"C:\EasiSlides\Media\";
-				FolderPath = gf.MediaDir;
-			}
-
-			string[] directories = Directory.GetDirectories(FolderPath);
-			if (directories.Length > 0)
-			{
-				SingleArraySort(directories, SortAscending: true);
-			}
-			array = directories;
-			foreach (string str in array)
-			{
-				BuildMusicFilesListArray(str + "\\", StoreDirPath);
-			}
-		}
-
-		public static string GetMediaFileName(string MusicTitle1, string MusicTitle2)
-		{
-			string DirPath = "";
-			string FileName = "";
-			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath: false);
-		}
-
-		public static string GetMediaFileName(string MusicTitle1, string MusicTitle2, ref string DirPath)
-		{
-			string FileName = "";
-			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath: false);
-		}
-
-		public static string GetMediaFileName(string MusicTitle1, string MusicTitle2, ref string DirPath, ref string FileName)
-		{
-			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath: false);
-		}
-
-		public static string GetMediaFileName(string MusicTitle1, string MusicTitle2, ref string DirPath, ref string FileName, bool StoreDirPath)
-		{
-			if (StoreDirPath & (TotalMusicFiles < 1))
-			{
-				return "";
-			}
-			string text = "";
-			for (int i = 0; i <= 1; i++)
-			{
-				text = ((i == 0) ? MusicTitle1 : MusicTitle2);
-				for (int j = 0; j < TotalMediaFileExt; j++)
-				{
-					if (StoreDirPath)
-					{
-						var mediaFile = MediaFilesList.FirstOrDefault(f =>
-							f.FileName == text && f.Extension == MediaFileExtension[j, 0]);
-
-						if (mediaFile != null)
-						{
-							DirPath = mediaFile.DirectoryPath;
-							FileName = mediaFile.FileName + mediaFile.Extension;
-							return DirPath + FileName;
-						}
-					}
-					else
-					{
-						string mediaFileNameFromDir = GetMediaFileNameFromDir(MediaDir, MediaFileExtension[j, 0], text, ref DirPath, ref FileName);
-						if (mediaFileNameFromDir != "")
-						{
-							return mediaFileNameFromDir;
-						}
-					}
-				}
-			}
-			return "";
-		}
-
-		public static string GetMediaFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1)
-		{
-			string DirPath = "";
-			string FileName = "";
-			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath, ref FileName);
-		}
-
-		public static string GetMediaFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1, ref string DirPath)
-		{
-			string FileName = "";
-			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath, ref FileName);
-		}
-
-		public static string GetMediaFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1, ref string DirPath, ref string FileName)
-		{
-			if ((FolderPath == "") | !Directory.Exists(FolderPath) | (DataUtil.Mid(FolderPath, 1) == ":\\System Volume Information\\"))
-			{
-				return "";
-			}
-			if (File.Exists(FolderPath + MusicTitle1 + MusicExtension))
-			{
-				DirPath = FolderPath;
-				FileName = MusicTitle1 + MusicExtension;
-				return DirPath + FileName;
-			}
-			string[] directories = Directory.GetDirectories(FolderPath);
-			if (directories.Length > 0)
-			{
-				SingleArraySort(directories, SortAscending: true);
-			}
-			string[] array = directories;
-			foreach (string str in array)
-			{
-				string mediaFileNameFromDir = GetMediaFileNameFromDir(str + "\\", MusicExtension, MusicTitle1, ref DirPath, ref FileName);
-				if (mediaFileNameFromDir != "")
-				{
-					return mediaFileNameFromDir;
-				}
-			}
-			return "";
-		}
-
-		public static string LookUpBookName(int InBibleVersion, int InBookNumber)
-		{
-			try
-			{
-				string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
-				string fullSearchString = "select * from Bible where book=0 and chapter=10 and verse=" + InBookNumber;
-
-				using DataTable datatable = DbController.GetDataTable(connectString, fullSearchString);
-
-				if (datatable.Rows.Count > 0)
-				{
-					return DataUtil.GetDataString(datatable.Rows[0], "bibletext");
-				}
-			}
-			catch
-			{
-				return "";
-			}
-			return "";
-		}
-
+	
+	
 		public static int SetLyricsTopPos(int TopSetting, int ScreenHeight)
 		{
 			return ScreenHeight * TopSetting / 100;
@@ -1848,110 +1626,6 @@ namespace Easislides
 		public void LoadIndividualFormatData(ref SongSettings InItem)
 		{
 			LoadIndividualFormatData(ref InItem, "");
-		}
-
-		public static string LoadSelectedBibleVerses(string InFullBibleString)
-		{
-			try
-			{
-				// 占?踰덉㎏ 媛믪씠 0蹂대떎 ?占쎈㈃ flag = true
-				bool flag = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0;
-
-				// ?占쎄꼍 踰꾩쟾 ?占쎈낫 ?占??
-				string[] bibleVersions = new string[2];
-				int[] versionNumbers = new int[2];
-
-				for (int i = 0; i < 2; i++)
-				{
-					bibleVersions[i] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
-					versionNumbers[i] = LookUpBibleVersionNumber(bibleVersions[i]);
-				}
-
-				string[] verseData = { InFullBibleString, InFullBibleString };
-
-				// 寃곌낵 臾몄옄??
-				StringBuilder InTextString = new StringBuilder();
-
-				bool hasSecondVersion = versionNumbers[1] >= 0;
-
-				for (int i = 0; i <= (hasSecondVersion ? 1 : 0); i++)
-				{
-					bool flag2 = PartialWordSearch(versionNumbers[1]);
-
-					if (i == 1)
-					{
-						InTextString.Append(VerseSymbol[150]).Append("\n");
-					}
-
-					while (!string.IsNullOrEmpty(verseData[i]))
-					{
-						int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-						int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-						int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-						int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-						int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref verseData[i], ';'));
-
-						LoadBiblePassages(versionNumbers[i], inBookNumber, ref InTextString,
-							InShowVerses: true, DoCompleteBook: false, TrackOutput: false,
-							chapterStart, verseStart, chapterEnd, verseEnd,
-							flag, flag2, flag, ShowFormatTags: true);
-
-						InTextString.Append("\n");
-					}
-				}
-
-				return InTextString.ToString();
-			}
-			catch (Exception ex)
-			{
-				// ?占쎌쇅 諛쒖깮 ???占쎈쾭源낆쓣 ?占쏀빐 濡쒓렇 異쒕젰
-				Console.WriteLine($"Error: {ex.Message}");
-				return "";
-			}
-		}
-
-		public static string LoadSelectedBibleVerses_Old(string InFullBibleString)
-		{
-			try
-			{
-				bool flag = (DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InFullBibleString, ';')) > 0) ? true : false;
-				string[] array = new string[2];
-				int[] array2 = new int[2];
-				string[] array3 = new string[2];
-				array[0] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
-				array2[0] = LookUpBibleVersionNumber(array[0]);
-				array[1] = DataUtil.ExtractOneInfo(ref InFullBibleString, ';');
-				array2[1] = LookUpBibleVersionNumber(array[1]);
-				array3[0] = InFullBibleString;
-				array3[1] = InFullBibleString;
-				StringBuilder InTextString = new StringBuilder();
-				string text = "";
-				for (int i = 0; i <= ((array2[1] >= 0) ? 1 : 0); i++)
-				{
-					bool flag2 = false;
-					string text2 = ConnectStringDef + HB_Versions[array2[i], 4];
-					flag2 = PartialWordSearch(array2[1]);
-					if (i == 1)
-					{
-						InTextString.Append(VerseSymbol[150] + "\n");
-					}
-					while (array3[i] != "")
-					{
-						int inBookNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-						int chapterStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-						int verseStart = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-						int chapterEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-						int verseEnd = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref array3[i], ';'));
-						LoadBiblePassages(array2[i], inBookNumber, ref InTextString, InShowVerses: true, DoCompleteBook: false, TrackOutput: false, chapterStart, verseStart, chapterEnd, verseEnd, flag, flag2, flag ? true : false, ShowFormatTags: true);
-						InTextString.Append("\n");
-					}
-				}
-				return InTextString.ToString();
-			}
-			catch
-			{
-				return "";
-			}
 		}
 
 		public static void UpdatePosUpDowns(ref NumericUpDown Reg1_UpDown, ref NumericUpDown Reg2_UpDown, ref NumericUpDown RegBottom_UpDown, ref int Reg1_Value, ref int Reg2_Value, int RegBottom_Value)
@@ -4467,173 +4141,6 @@ namespace Easislides
 			return "select * from SONG where " + text16 + text12 + text13 + text11 + text14;
 		}
 
-		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex)
-		{
-			return BuildBibleSearchString(InSearchPassage, VersionIndex, 0, 2);
-		}
-
-		public static string BuildBibleSearchString(string InSearchPassage, int VersionIndex, int BookIndex, int MatchSelected)
-		{
-			string text = "'*[ -/:-@]";
-			string text2 = "[ -/:-@]*'";
-			if (PartialWordSearch(VersionIndex))
-			{
-				text = "'%";
-				text2 = "%'";
-			}
-			if (DataUtil.Trim(InSearchPassage).Length > 0)
-			{
-				InSearchPassage = DataUtil.Trim(InSearchPassage.ToLower());
-				sArray = InSearchPassage.Split(' ');
-				string text3 = "";
-				string text4 = "";
-				string text5 = "";
-				string text6 = "";
-				string text7 = "";
-				text3 = "select * from Bible where book";
-				text3 = ((BookIndex >= 1) ? (text3 + "=" + BookIndex) : (text3 + ">0 "));
-				switch (MatchSelected)
-				{
-					case 1:
-						{
-							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
-							{
-								string term = DataUtil.Trim(sArray[i]).Replace("'", "''");
-								if (i > 0)
-								{
-									text4 += " or ";
-									text5 += " or ";
-									text6 += " or ";
-									text7 += " or ";
-								}
-								string text8 = text4;
-								text4 = text8 + " lower(bibletext) like " + text + term + text2;
-								text5 = text5 + " lower(bibletext) like '" + term + text2;
-								text8 = text6;
-								text6 = text8 + " lower(bibletext) like " + text + term + "'";
-								text7 = text7 + " lower(bibletext) like '" + term + "'";
-							}
-							break;
-						}
-					case 0:
-						{
-							for (int i = 0; i <= sArray.GetUpperBound(0); i++)
-							{
-								string term = DataUtil.Trim(sArray[i]).Replace("'", "''");
-								if (i > 0)
-								{
-									text4 += " and ";
-									text5 += " and ";
-									text6 += " and ";
-									text7 += " and ";
-								}
-								string text8 = text4;
-								text4 = text8 + " lower(bibletext) like " + text + term + text2;
-								text5 = text5 + " lower(bibletext) like '" + term + text2;
-								text8 = text6;
-								text6 = text8 + " lower(bibletext) like " + text + term + "'";
-								text7 = text7 + " lower(bibletext) like '" + term + "'";
-							}
-							break;
-						}
-					default:
-						string passage = DataUtil.Trim(InSearchPassage).ToLower().Replace("'", "''");
-						text4 = " lower(bibletext) like " + text + passage + text2;
-						text5 = " lower(bibletext) like '" + passage + text2;
-						text6 = " lower(bibletext) like " + text + passage + "'";
-						text7 = " lower(bibletext) like '" + passage + "'";
-						break;
-				}
-				text4 = DataUtil.Trim(text4);
-				text5 = DataUtil.Trim(text5);
-				text6 = DataUtil.Trim(text6);
-				text7 = DataUtil.Trim(text7);
-				if (text4 != "")
-				{
-					text3 = text3 + " AND ( (" + text4 + ")";
-					if (!PartialWordSearch(VersionIndex))
-					{
-						string text8 = text3;
-						text3 = text8 + " OR (" + text5 + ") OR (" + text6 + ") OR (" + text7 + ")";
-					}
-					return text3 + " ) order by Book, chapter, verse ";
-				}
-			}
-			return "";
-		}
-
-		public static bool PartialWordSearch(int VersionIndex)
-		{
-			if (VersionIndex < 0)
-				return false;
-
-			try
-			{
-				string connectString = ConnectStringDef + HB_Versions[VersionIndex, 4];
-				string fullSearchString = "select * from Bible where book=0 and chapter=0 and verse=20";
-
-				if (DbController.GetDataTable(connectString, fullSearchString).Rows.Count > 0)
-				{
-					return true;
-				}
-
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine(ex.StackTrace);
-			}
-			return false;
-		}
-
-		public static bool SearchBiblePassages(int InBibleVersion, ref ComboBox InBookList, string InSelectString, ref RichTextBox InTextContainer, bool InShowVerses)
-		{
-			int num = 0;
-			string text = "";
-			string connectString = ConnectStringDef + HB_Versions[InBibleVersion, 4];
-			StringBuilder stringBuilder = new StringBuilder();
-
-			DbConnection connection = null;
-			DbDataReader dataReader = null;
-
-			(connection, dataReader) = DbController.GetDataReader(connectString, InSelectString);
-
-			//Recordset recordSet = DbDaoController.GetRecordSet(connectString, InSelectString);
-
-			using (connection)
-			{
-				using (dataReader)
-				{
-					if (dataReader != null && dataReader.HasRows)
-					{
-						//recordSet.MoveFirst();
-						while (dataReader.Read() && num < 3000)
-						{
-							num++;
-							int dataInt = DataUtil.GetDataInt(dataReader, "book");
-							int dataInt2 = DataUtil.GetDataInt(dataReader, "chapter");
-							int dataInt3 = DataUtil.GetDataInt(dataReader, "verse");
-							text = string.Concat(InBookList.Items[dataInt - 1], " ", dataInt2, ":", dataInt3, " ");
-							HB_VersesLocation[num, 0] = InBibleVersion;
-							HB_VersesLocation[num, 1] = dataInt;
-							HB_VersesLocation[num, 2] = dataInt2;
-							HB_VersesLocation[num, 3] = dataInt3;
-							HB_VersesLocation[num, 4] = stringBuilder.Length;
-							stringBuilder.Append(text + (InShowVerses ? DataUtil.GetDataString(dataReader, "bibletext") : "") + "\n\n");
-							HB_VersesLocation[num, 5] = stringBuilder.Length + 1 - HB_VersesLocation[num, 4];
-						}
-						HB_VersesLocation[0, 0] = num;
-						InTextContainer.Text = DataUtil.TrimEnd(stringBuilder.ToString());
-						if (num >= 3000)
-						{
-							MessageBox.Show("The number of search results has been limited to " + Convert.ToString(3000) + ".");
-						}
-						return true;
-					}
-				}
-			}
-			return false;
-		}
 
 		public static bool FormInUse(string InFormName)
 		{
@@ -4654,15 +4161,7 @@ namespace Easislides
 			InMenuItem.Enabled = true;
 		}
 
-		public static void Play_Media(string title1, string title2)
-		{
-			string mediaFileName = GetMediaFileName(title1, title2);
-			if (!RunProcess(mediaFileName))
-			{
-				MessageBox.Show("Sorry, cannot find any media file for '" + title1 + "'" + ((title2 != "") ? (" or '" + title2 + "'") : ""));
-			}
-		}
-
+	
 		public static bool RunProcess(string InProcessString)
 		{
 			try
@@ -5922,101 +5421,41 @@ namespace Easislides
 			return str + FileName;
 		}
 
+		// GetMusicFileName methods redirect to GetMediaFileName for compatibility
 		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2)
 		{
-			string DirPath = "";
-			string FileName = "";
-			return GetMusicFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath: false);
+			return GetMediaFileName(MusicTitle1, MusicTitle2);
 		}
 
 		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2, ref string DirPath)
 		{
-			string FileName = "";
-			return GetMusicFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath: false);
+			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath);
 		}
 
 		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2, ref string DirPath, ref string FileName)
 		{
-			return GetMusicFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath: false);
+			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName);
 		}
 
 		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2, ref string DirPath, ref string FileName, bool StoreDirPath)
 		{
-			if (StoreDirPath & (TotalMusicFiles < 1))
-			{
-				return "";
-			}
-			string text = "";
-			for (int i = 0; i <= 1; i++)
-			{
-				text = ((i == 0) ? MusicTitle1 : MusicTitle2);
-				for (int j = 0; j <= TotalMediaFileExt - 1; j++)
-				{
-					if (StoreDirPath)
-					{
-						var mediaFile = MediaFilesList.FirstOrDefault(f =>
-							f.FileName == text && f.Extension == MediaFileExtension[j, 0]);
-
-						if (mediaFile != null)
-						{
-							DirPath = mediaFile.DirectoryPath;
-							FileName = mediaFile.FileName + mediaFile.Extension;
-							return DirPath + FileName;
-						}
-					}
-					else
-					{
-						string musicFileNameFromDir = GetMusicFileNameFromDir(MediaDir, MediaFileExtension[j, 0], text, ref DirPath, ref FileName);
-						if (musicFileNameFromDir != "")
-						{
-							return musicFileNameFromDir;
-						}
-					}
-				}
-			}
-			return "";
+			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath);
 		}
 
+		// GetMusicFileNameFromDir methods redirect to GetMediaFileNameFromDir for compatibility
 		public static string GetMusicFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1)
 		{
-			string DirPath = "";
-			string FileName = "";
-			return GetMusicFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath, ref FileName);
+			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1);
 		}
 
 		public static string GetMusicFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1, ref string DirPath)
 		{
-			string FileName = "";
-			return GetMusicFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath, ref FileName);
+			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath);
 		}
 
 		public static string GetMusicFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1, ref string DirPath, ref string FileName)
 		{
-			if ((FolderPath == "") | !Directory.Exists(FolderPath) | (DataUtil.Mid(FolderPath, 2) == ":\\System Volume Information\\"))
-			{
-				return "";
-			}
-			if (File.Exists(FolderPath + MusicTitle1 + MusicExtension))
-			{
-				DirPath = FolderPath;
-				FileName = MusicTitle1 + MusicExtension;
-				return DirPath + FileName;
-			}
-			string[] directories = Directory.GetDirectories(FolderPath);
-			if (directories.Length > 0)
-			{
-				SingleArraySort(directories, SortAscending: true);
-			}
-			string[] array = directories;
-			foreach (string str in array)
-			{
-				string musicFileNameFromDir = GetMusicFileNameFromDir(str + "\\", MusicExtension, MusicTitle1, ref DirPath, ref FileName);
-				if (musicFileNameFromDir != "")
-				{
-					return musicFileNameFromDir;
-				}
-			}
-			return "";
+			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath, ref FileName);
 		}
 
 		public static void AlertSettings(AlertType InAlertType)
