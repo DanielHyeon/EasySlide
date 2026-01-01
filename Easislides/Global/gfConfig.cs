@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -15,100 +19,143 @@ namespace Easislides
 {
 	internal unsafe partial class gf
 	{
+		// Field definition structure for database schema validation
+		private struct FieldDefinition
+		{
+			public string Name;
+			public int Type;
+			public int Size;
+			public string TableName;
+
+			public FieldDefinition(string name, int type, int size, string tableName)
+			{
+				Name = name;
+				Type = type;
+				Size = size;
+				TableName = tableName;
+			}
+		}
+
+		/// <summary>
+		/// Checks and updates version information in registry
+		/// </summary>
+		private static void CheckAndUpdateVersion()
+		{
+			string version = RegUtil.GetRegValue("config", "version", "none");
+			if (version != EasiSlides_Version)
+			{
+				RegUtil.SaveRegValue("config", "version", EasiSlides_Version);
+			}
+		}
+
+		/// <summary>
+		/// Checks and updates database version information in registry
+		/// </summary>
+		private static void CheckAndUpdateDatabaseVersion()
+		{
+			string databaseVersion = RegUtil.GetRegValue("config", "database", "none");
+			if (databaseVersion != Database_Version)
+			{
+				ApplicationFirstRun = true;
+				RegUtil.SaveRegValue("config", "database", Database_Version);
+			}
+		}
+
+		/// <summary>
+		/// Prompts user to restore database on first run
+		/// </summary>
+		private static bool PromptRestoreDatabaseOnFirstRun()
+		{
+			SplashScreenBack = true;
+			bool result = MessageBox.Show(
+				"Would you like to Install the EasiSlides Lyrics Database supplied with EasiSlides 4.0.5? Your existing Lyrics Database, if any, will be renamed and retained for backup.  Click Yes to Install, or No to continue using existing database.",
+				$"New EasiSlides Version {EasiSlides_Version} ... Replace existing Database with Supplied Database?",
+				MessageBoxButtons.YesNo) == DialogResult.Yes;
+			SplashScreenBack = false;
+			return result;
+		}
+
+		/// <summary>
+		/// Prompts user to restore database when database file is missing
+		/// </summary>
+		private static bool PromptRestoreDatabaseOnMissing()
+		{
+			SplashScreenBack = true;
+			bool result = MessageBox.Show(
+				"Cannot find the Lyrics Database.  Would you like to Install the EasiSlides Lyrics Database supplied with EasiSlides 4.0.5?  Click Yes to Install, or No to create a new blank database.",
+				$"Loading EasiSlides {EasiSlides_Version} ... Install Supplied Database?",
+				MessageBoxButtons.YesNo) == DialogResult.Yes;
+			SplashScreenBack = false;
+			return result;
+		}
+
+		/// <summary>
+		/// Handles database restoration logic
+		/// </summary>
+		private static void HandleDatabaseRestoration(bool databaseExists)
+		{
+			if (ApplicationFirstRun || !databaseExists)
+			{
+				CovertItemsTov4();
+				
+				if (!RestoreSongsDatabase && ApplicationFirstRun)
+				{
+					RestoreSongsDatabase = PromptRestoreDatabaseOnFirstRun();
+				}
+				else if (!RestoreSongsDatabase && !databaseExists)
+				{
+					RestoreSongsDatabase = PromptRestoreDatabaseOnMissing();
+				}
+			}
+
+			if (RestoreSongsDatabase)
+			{
+				string backupFileName = RestoreOriginalSongsDatabase();
+				if (backupFileName != "-1")
+				{
+					string message = "Lyrics Database installed successfully.";
+					if (!string.IsNullOrEmpty(backupFileName))
+					{
+						message += $" Existing database has been renamed to: {backupFileName}";
+					}
+					MessageBox.Show(message);
+				}
+			}
+		}
 
 		public static bool InitEasiSlidesDir()
 		{
-			RootEasiSlidesDir = RegUtil.GetRegValue("config", "root_directory", "C:\\EasiSlides\\");
-			if (RootEasiSlidesDir == "")
+			RootEasiSlidesDir = RegUtil.GetRegValue("config", "root_directory", DefaultEasiSlidesDir);
+			if (string.IsNullOrEmpty(RootEasiSlidesDir))
 			{
-				RootEasiSlidesDir = "C:\\EasiSlides\\";
+				RootEasiSlidesDir = DefaultEasiSlidesDir;
 			}
-			string regValue = RegUtil.GetRegValue("config", "version", "none");
-			string regValue2 = RegUtil.GetRegValue("config", "database", "none");
-			if (regValue != "4.0.5")
-			{
-				RegUtil.SaveRegValue("config", "version", "4.0.5");
-			}
-			if (regValue2 != "4.0B")
-			{
-				ApplicationFirstRun = true;
-				RegUtil.SaveRegValue("config", "database", "4.0B");
-			}
+
+			CheckAndUpdateVersion();
+			CheckAndUpdateDatabaseVersion();
+
 			if (!ValidateRootFolder())
 			{
 				return false;
 			}
+
 			RegUtil.SaveRegValue("config", "root_directory", RootEasiSlidesDir);
 			ValidateID();
 
-			DBFileName = RootEasiSlidesDir + "Admin\\Database\\EasiSlidesDb.db";
+			DBFileName = RootEasiSlidesDir + DefaultDBDir + "EasiSlidesDb.db";
+			bool databaseExists = File.Exists(DBFileName);
 
-			bool flag = File.Exists(DBFileName);
+			HandleDatabaseRestoration(databaseExists);
 
-			if (ApplicationFirstRun || !flag)
-			{
-				CovertItemsTov4();
-				if (!RestoreSongsDatabase && ApplicationFirstRun)
-				{
-					SplashScreenBack = true;
-					if (MessageBox.Show("Would you like to Install the EasiSlides Lyrics Database supplied with EasiSlides 4.0.5? Your existing Lyrics Database, if any, will be renamed and retained for backup.  Click Yes to Install, or No to continue using existing database.", "New EasiSlides Version 4.0.5 ... Replace existing Database with Supplied Database?", MessageBoxButtons.YesNo) == DialogResult.Yes)
-					{
-						RestoreSongsDatabase = true;
-					}
-				}
-				else if (!RestoreSongsDatabase && !flag)
-				{
-					SplashScreenBack = true;
-					if (MessageBox.Show("Cannot find the Lyrics Database.  Would you like to Install the EasiSlides Lyrics Database supplied with EasiSlides 4.0.5?  Click Yes to Install, or No to create a new blank database.", "Loading EasiSlides 4.0.5 ... Install Supplied Database?", MessageBoxButtons.YesNo) == DialogResult.Yes)
-					{
-						RestoreSongsDatabase = true;
-					}
-				}
-			}
-			if (RestoreSongsDatabase)
-			{
-				string text = RestoreOriginalSongsDatabase();
-				if (text != "-1")
-				{
-					if (ApplicationFirstRun)
-					{
-						if (text != "")
-						{
-							MessageBox.Show("Lyrics Database installed successfully. " + ((text != "") ? ("Existing database has been renamed to: " + text) : ""));
-						}
-					}
-					else
-					{
-						MessageBox.Show("Lyrics Database installed successfully. " + ((text != "") ? ("Existing database has been renamed to: " + text) : ""));
-					}
-				}
-			}
 			SplashScreenFront = true;
 			return true;
 		}
 
-		public static bool InitAppData()
+		/// <summary>
+		/// Initializes verse titles array
+		/// </summary>
+		private static void InitializeVerseTitles()
 		{
-			PerformanceStartTime = DateTime.Now;
-			LoadInitData = true;
-			LoadEulaText();
-			//if (!LoadUnicodeStrokeCount())
-			//{
-			//	return false;
-			//}
-			HelpFile_Location = Application.StartupPath + "\\Sys\\EasiSlidesHelp.chm";
-			MusicSymLen = " <#>".Length;
-			MaxBackgroundStyleIndex = BackPattern.MaxStyleIndex;
-			ShowScreenColour[0] = DefaultBackColour;
-			ShowScreenColour[1] = DefaultBackColour;
-			ShowScreenStyle = 0;
-			ShowFontColour[0] = DefaultBackColour;
-			ShowFontColour[1] = DefaultBackColour;
-			//for (int i = 1; i < 160; i++)
-			//{
-			//	VerseTitle[i] = "";
-			//	SequenceSymbol[i] = "";
-			//}
 			VerseTitle[0] = "chorus";
 			for (int i = 1; i <= 99; i++)
 			{
@@ -123,18 +170,13 @@ namespace Easislides
 			VerseTitle[150] = "region 2";
 			VerseTitle[151] = "\n";
 			VerseTitle[152] = "note";
-			SymbolsString = "";
-			for (int i = 1; i <= 99; i++)
-			{
-				VerseSymbol[i] = "[" + VerseTitle[i] + "]";
-				SequenceSymbol[i] = VerseTitle[i];
-				SymbolsString = SymbolsString + VerseSymbol[i] + ",";
-			}
-			//for (int i = 100; i < 160; i++)
-			//{
-			//	VerseSymbol[i] = "";
-			//	SequenceSymbol[i] = "";
-			//}
+		}
+
+		/// <summary>
+		/// Initializes verse symbols and sequence symbols arrays
+		/// </summary>
+		private static void InitializeVerseSymbols()
+		{
 			VerseSymbol[0] = "[" + VerseTitle[0] + "]";
 			VerseSymbol[100] = "[" + VerseTitle[100] + "]";
 			VerseSymbol[103] = "[" + VerseTitle[103] + "]";
@@ -145,6 +187,13 @@ namespace Easislides
 			VerseSymbol[150] = "[" + VerseTitle[150] + "]";
 			VerseSymbol[151] = VerseTitle[151];
 			VerseSymbol[152] = "[" + VerseTitle[152] + "]";
+		}
+
+		/// <summary>
+		/// Initializes sequence symbols array
+		/// </summary>
+		private static void InitializeSequenceSymbols()
+		{
 			SequenceSymbol[0] = "c";
 			SequenceSymbol[100] = "b";
 			SequenceSymbol[103] = "w";
@@ -152,20 +201,97 @@ namespace Easislides
 			SequenceSymbol[102] = "t";
 			SequenceSymbol[111] = "p";
 			SequenceSymbol[112] = "q";
-			string symbolsString = SymbolsString;
-			SymbolsString = symbolsString + VerseSymbol[0] + "," + VerseSymbol[102] + "," + VerseSymbol[100] + "," + VerseSymbol[103] + "," + VerseSymbol[111] + "," + VerseSymbol[112] + "," + VerseSymbol[101] + "," + VerseSymbol[150];
+		}
+
+		/// <summary>
+		/// Builds the symbols string from verse symbols
+		/// </summary>
+		private static void BuildSymbolsString()
+		{
+			var symbolsBuilder = new StringBuilder();
+			
+			// Add numbered verse symbols (1-99)
+			for (int i = 1; i <= 99; i++)
+			{
+				VerseSymbol[i] = "[" + VerseTitle[i] + "]";
+				SequenceSymbol[i] = VerseTitle[i];
+				symbolsBuilder.Append(VerseSymbol[i]).Append(",");
+			}
+			
+			// Append additional symbols
+			symbolsBuilder.Append(VerseSymbol[0]).Append(",")
+				.Append(VerseSymbol[102]).Append(",")
+				.Append(VerseSymbol[100]).Append(",")
+				.Append(VerseSymbol[103]).Append(",")
+				.Append(VerseSymbol[111]).Append(",")
+				.Append(VerseSymbol[112]).Append(",")
+				.Append(VerseSymbol[101]).Append(",")
+				.Append(VerseSymbol[150]);
+			
+			SymbolsString = symbolsBuilder.ToString();
 			xArray = SymbolsString.Split(',');
-			ShowLMargin = Screen.PrimaryScreen.Bounds.Width / 50;
-			ShowRMargin = ShowLMargin;
-			ShowLyricsWidth = Screen.PrimaryScreen.Bounds.Width - ShowLMargin - ShowRMargin;
-			UsageFileName = RootEasiSlidesDir + "Admin\\Database\\EsUsage.db";
-			BiblesListFileName = RootEasiSlidesDir + "Admin\\Database\\EsBiblesList.db";
-			tempDBFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEasiSlidesDb.db";
-			tempUsageFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEsUsage.db";
-			tempBiblesListFileName = RootEasiSlidesDir + "Admin\\Database\\~tempEsBiblesList.db";
+		}
+
+		/// <summary>
+		/// Initializes database file paths and connection strings
+		/// </summary>
+		private static void InitializeDatabasePaths()
+		{
+			UsageFileName = RootEasiSlidesDir + DefaultDBDir + DefaultUsageFilename.Replace(".mdb", ".db");
+			BiblesListFileName = RootEasiSlidesDir + DefaultDBDir + DefaultBibleDBFilename.Replace(".mdb", ".db");
+			tempDBFileName = RootEasiSlidesDir + DefaultDBDir + "~tempEasiSlidesDb.db";
+			tempUsageFileName = RootEasiSlidesDir + DefaultDBDir + "~tempEsUsage.db";
+			tempBiblesListFileName = RootEasiSlidesDir + DefaultDBDir + "~tempEsBiblesList.db";
 			ConnectStringMainDB = ConnectStringDef + DBFileName;
 			ConnectStringUsageDB = ConnectStringDef + UsageFileName;
 			ConnectStringBibleDB = ConnectStringDef + BiblesListFileName;
+		}
+
+		/// <summary>
+		/// Initializes item instances
+		/// </summary>
+		private static void InitializeItemInstances()
+		{
+			PreviewItem.Initialise();
+			OutputItem.Initialise();
+			LiveItem.Initialise();
+			LyricsItem.Initialise();
+			TempItem1.Initialise();
+			EditItem1.Initialise();
+			EditItem2.Initialise();
+			InfoItem1.Initialise();
+			InfoItem2.Initialise();
+			OutputItem.OutputStyleScreen = true;
+		}
+
+		public static bool InitAppData()
+		{
+			PerformanceStartTime = DateTime.Now;
+			LoadInitData = true;
+			LoadEulaText();
+			//if (!LoadUnicodeStrokeCount())
+			//{
+			//	return false;
+			//}
+			HelpFile_Location = Application.StartupPath + "\\Sys\\EasiSlidesHelp.chm";
+			MusicSymLen = MusicSym.Length;
+			MaxBackgroundStyleIndex = BackPattern.MaxStyleIndex;
+			ShowScreenColour[0] = DefaultBackColour;
+			ShowScreenColour[1] = DefaultBackColour;
+			ShowScreenStyle = 0;
+			ShowFontColour[0] = DefaultBackColour;
+			ShowFontColour[1] = DefaultBackColour;
+
+			InitializeVerseTitles();
+			InitializeVerseSymbols();
+			InitializeSequenceSymbols();
+			BuildSymbolsString();
+
+			ShowLMargin = Screen.PrimaryScreen.Bounds.Width / 50;
+			ShowRMargin = ShowLMargin;
+			ShowLyricsWidth = Screen.PrimaryScreen.Bounds.Width - ShowLMargin - ShowRMargin;
+			
+			InitializeDatabasePaths();
 			UserString = DataUtil.Trim(RegUtil.GetRegValue("config", "RegistrationUser", ""));
 
 			if (!ValidateVer_3_4_Fields())
@@ -179,24 +305,15 @@ namespace Easislides
 			DisplayInfo.SizeLaunchDisplay();
 			ResetShowRunningSettings();
 
-			AlertsDataFile = RootEasiSlidesDir + "Admin\\Database\\Alerts.txt";
-			ParentalDataFile = RootEasiSlidesDir + "Admin\\Database\\Parental.txt";
-			string startupPath = Application.StartupPath;
-			PreviewItem.Initialise();
-			OutputItem.Initialise();
-			LiveItem.Initialise();
-			LyricsItem.Initialise();
-			TempItem1.Initialise();
-			EditItem1.Initialise();
-			EditItem2.Initialise();
-			InfoItem1.Initialise();
-			InfoItem2.Initialise();
-			OutputItem.OutputStyleScreen = true;
+			AlertsDataFile = RootEasiSlidesDir + DefaultDBDir + DefaultAlertsFilename;
+			ParentalDataFile = RootEasiSlidesDir + DefaultDBDir + DefaultParentalFilename;
+			
+			InitializeItemInstances();
 			SetListViewColumns(ListViewNotations, 5);
+			
 			var task1 = Task.Run(() =>
 			{
 				LivePP.Init();
-
 				PreviewPPT.Init();
 				OutputPPT.Init();
 				ExternalPPT.Init();
@@ -246,8 +363,9 @@ namespace Easislides
 					return false;
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Trace.WriteLine($"ERROR creating EasiSlides working folder: {ex.Message}, {ex.StackTrace}");
 			}
 			SplashScreenBack = true;
 			FrmGetWorkingFolder frmGetWorkingFolder = new FrmGetWorkingFolder();
@@ -261,315 +379,350 @@ namespace Easislides
 			return false;
 		}
 
+		/// <summary>
+		/// Executes an action with a database connection, ensuring proper connection management
+		/// </summary>
+		private static T ExecuteWithConnection<T>(string connectionString, Func<DbConnection, T> action)
+		{
+			DbConnection connection = null;
+			try
+			{
+				connection = DbController.GetDbConnection(connectionString);
+				if (connection == null)
+				{
+					return default(T);
+				}
+				return action(connection);
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR in ExecuteWithConnection: {ex.Message}, {ex.StackTrace}");
+				return default(T);
+			}
+			finally
+			{
+				if (connection != null && connection.State == ConnectionState.Open)
+				{
+					connection.Close();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Executes an action with a database connection, ensuring proper connection management (void return)
+		/// </summary>
+		private static void ExecuteWithConnection(string connectionString, Action<DbConnection> action)
+		{
+			DbConnection connection = null;
+			try
+			{
+				connection = DbController.GetDbConnection(connectionString);
+				if (connection == null)
+				{
+					return;
+				}
+				action(connection);
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR in ExecuteWithConnection: {ex.Message}, {ex.StackTrace}");
+			}
+			finally
+			{
+				if (connection != null && connection.State == ConnectionState.Open)
+				{
+					connection.Close();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets the column names from a database table schema
+		/// </summary>
+		private static HashSet<string> GetTableColumns(DbConnection connection, string tableName)
+		{
+			var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			try
+			{
+				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
+				{
+					null,
+					null,
+					tableName,
+					null
+				});
+
+				foreach (DataRow row in dbSchemaTable.Rows)
+				{
+					string columnName = DataUtil.ObjToString(row["COLUMN_NAME"]);
+					if (!string.IsNullOrEmpty(columnName))
+					{
+						columns.Add(columnName.ToUpper());
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR getting table columns for {tableName}: {ex.Message}, {ex.StackTrace}");
+			}
+			return columns;
+		}
+
+		/// <summary>
+		/// Validates and creates missing fields for a table based on field definitions
+		/// </summary>
+		private static void ValidateAndCreateFields(DbConnection connection, string tableName, FieldDefinition[] fieldDefinitions)
+		{
+			if (connection == null || connection.State != ConnectionState.Open)
+			{
+				return;
+			}
+
+			HashSet<string> existingColumns = GetTableColumns(connection, tableName);
+
+			foreach (var fieldDef in fieldDefinitions)
+			{
+				string fieldNameUpper = fieldDef.Name.ToUpper();
+				if (!existingColumns.Contains(fieldNameUpper))
+				{
+					try
+					{
+						if (fieldDef.Size > 0)
+						{
+							DbController.CreateField(ref connection, fieldDef.TableName, fieldDef.Name, fieldDef.Type, fieldDef.Size);
+						}
+						else
+						{
+							DbController.CreateField(ref connection, fieldDef.TableName, fieldDef.Name, fieldDef.Type);
+						}
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR creating field {fieldDef.Name} in table {tableName}: {ex.Message}, {ex.StackTrace}");
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Validates and updates field sizes if needed
+		/// </summary>
+		private static void ValidateFieldSizes(DbConnection connection, string tableName, Dictionary<string, int> fieldSizes)
+		{
+			if (connection == null || connection.State != ConnectionState.Open)
+			{
+				return;
+			}
+
+			try
+			{
+				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
+				{
+					null,
+					null,
+					tableName,
+					null
+				});
+
+				foreach (DataRow row in dbSchemaTable.Rows)
+				{
+					string columnName = DataUtil.ObjToString(row["COLUMN_NAME"]).ToUpper();
+					if (fieldSizes.ContainsKey(columnName))
+					{
+						int currentSize = DataUtil.ObjToInt(row["CHARACTER_MAXIMUM_LENGTH"]);
+						int requiredSize = fieldSizes[columnName];
+
+						if (currentSize > 1 && currentSize < requiredSize)
+						{
+							try
+							{
+								string alterQuery = "";
+								if (columnName == DBField_BOOK_REFERENCE.ToUpper())
+								{
+									alterQuery = $"ALTER TABLE {tableName} ALTER COLUMN {DBField_BOOK_REFERENCE} TEXT ({requiredSize})";
+								}
+								else if (columnName == DBField_SEQUENCE.ToUpper())
+								{
+									alterQuery = $"ALTER TABLE {tableName} MODIFY {DBField_SEQUENCE} varchar({requiredSize})";
+								}
+								else if (columnName == DBField_USER_REFERENCE.ToUpper())
+								{
+									alterQuery = $"ALTER TABLE {tableName} MODIFY {DBField_USER_REFERENCE} varchar({requiredSize})";
+								}
+
+								if (!string.IsNullOrEmpty(alterQuery))
+								{
+									using DbCommand command = new DbCommand(alterQuery, connection);
+									command.ExecuteNonQuery();
+								}
+							}
+							catch (Exception ex)
+							{
+								Trace.WriteLine($"ERROR altering field size for {columnName}: {ex.Message}, {ex.StackTrace}");
+							}
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR validating field sizes for table {tableName}: {ex.Message}, {ex.StackTrace}");
+			}
+		}
+
+		/// <summary>
+		/// Validates Folder table fields and creates missing ones
+		/// </summary>
+		private static bool ValidateFolderTableFields(DbConnection connection)
+		{
+			try
+			{
+				FieldDefinition[] folderFields = new FieldDefinition[]
+				{
+					new FieldDefinition(DBField_BIU0, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_BIU1, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_ColA, DBFieldType_Text, 0, DBTable_Folder),
+					new FieldDefinition(DBField_ColB, DBFieldType_Text, 0, DBTable_Folder),
+					new FieldDefinition(DBField_PreChorusHeading, DBFieldType_Text, DBFieldSize_DefaultText, DBTable_Folder),
+					new FieldDefinition(DBField_LMargin, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_RMargin, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_BMargin, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_BIUHeading, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_HeadingSize, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_HeadingOption, DBFieldType_Int, 0, DBTable_Folder),
+					new FieldDefinition(DBField_LineSpacing, DBFieldType_Float, 0, DBTable_Folder),
+					new FieldDefinition(DBField_LineSpacing2, DBFieldType_Float, 0, DBTable_Folder)
+				};
+
+				ValidateAndCreateFields(connection, DBTable_Folder, folderFields);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR validating Folder table fields: {ex.Message}, {ex.StackTrace}");
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Validates Song table fields and creates missing ones
+		/// </summary>
+		private static bool ValidateSongTableFields(DbConnection connection)
+		{
+			try
+			{
+				// First, validate field sizes for existing fields
+				var fieldSizes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+				{
+					{ DBField_BOOK_REFERENCE, DBFieldSize_BookReference },
+					{ DBField_SEQUENCE, DBFieldSize_Sequence },
+					{ DBField_USER_REFERENCE, DBFieldSize_UserReference }
+				};
+
+				ValidateFieldSizes(connection, DBTable_Song, fieldSizes);
+
+				// Get existing columns to check USER_REFERENCE size
+				HashSet<string> existingColumns = GetTableColumns(connection, DBTable_Song);
+				int userReferenceSize = 0;
+				if (existingColumns.Contains(DBField_USER_REFERENCE.ToUpper()))
+				{
+					try
+					{
+						using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
+						{
+							null,
+							null,
+							DBTable_Song,
+							null
+						});
+
+						foreach (DataRow row in dbSchemaTable.Rows)
+						{
+							string columnName = DataUtil.ObjToString(row["COLUMN_NAME"]).ToUpper();
+							if (columnName == DBField_USER_REFERENCE.ToUpper())
+							{
+								userReferenceSize = DataUtil.ObjToInt(row["CHARACTER_MAXIMUM_LENGTH"]);
+								break;
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR getting USER_REFERENCE size: {ex.Message}, {ex.StackTrace}");
+					}
+				}
+
+				// Validate and create missing fields
+				FieldDefinition[] songFields = new FieldDefinition[]
+				{
+					new FieldDefinition(DBField_CAPO, DBFieldType_Int, 0, DBTable_Song),
+					new FieldDefinition(DBField_TIMING, DBFieldType_Text, 0, DBTable_Song),
+					new FieldDefinition(DBField_SONG_NUMBER, DBFieldType_Int, 0, DBTable_Song),
+					new FieldDefinition(DBField_BOOK_REFERENCE, DBFieldType_Text, 0, DBTable_Song),
+					new FieldDefinition(DBField_USER_REFERENCE, DBFieldType_TextUnlimited, 0, DBTable_Song),
+					new FieldDefinition(DBField_LICENCE_ADMIN1, DBFieldType_Text, 0, DBTable_Song),
+					new FieldDefinition(DBField_LICENCE_ADMIN2, DBFieldType_Text, 0, DBTable_Song),
+					new FieldDefinition(DBField_SETTINGS, DBFieldType_TextUnlimited, 0, DBTable_Song),
+					new FieldDefinition(DBField_FORMATDATA, DBFieldType_TextUnlimited, 0, DBTable_Song)
+				};
+
+				ValidateAndCreateFields(connection, DBTable_Song, songFields);
+
+				// Update USER_REFERENCE size if needed
+				if (userReferenceSize > 0 && userReferenceSize < DBFieldSize_UserReference)
+				{
+					try
+					{
+						using DbCommand command = new DbCommand($"ALTER TABLE {DBTable_Song} MODIFY {DBField_USER_REFERENCE} varchar({DBFieldSize_UserReference})", connection);
+						command.ExecuteNonQuery();
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR updating USER_REFERENCE size: {ex.Message}, {ex.StackTrace}");
+					}
+				}
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR validating Song table fields: {ex.Message}, {ex.StackTrace}");
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Validates database schema fields for version 3.4 compatibility
+		/// </summary>
 		public static bool ValidateVer_3_4_Fields()
 		{
 			if (!ValidateDB(DatabaseType.Songs))
 			{
 				return false;
 			}
-			bool flag = false;
-			bool flag2 = false;
-			bool flag3 = false;
-			bool flag4 = false;
-			bool flag5 = false;
-			bool flag6 = false;
-			bool flag7 = false;
-			bool flag8 = false;
-			bool flag9 = false;
-			bool flag10 = false;
-			bool flag11 = false;
-			bool flag12 = false;
-			bool flag13 = false;
-			bool flag14 = false;
-			bool flag15 = false;
-			bool flag16 = false;
-			bool flag17 = false;
-			bool flag18 = false;
-			int num = 0;
-			int num2 = 0;
-			int num3 = 0;
-			bool flag19 = false;
-			bool flag20 = false;
-			bool flag21 = false;
-			bool flag22 = false;
 
-			DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-			try
+			return ExecuteWithConnection(ConnectStringMainDB, connection =>
 			{
-
-				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
+				if (connection == null)
 				{
-					null,
-					null,
-					"Folder",
-					null
-				});
-
-				foreach (DataRow row in dbSchemaTable.Rows)
-				{
-					string a = DataUtil.ObjToString(row["COLUMN_NAME"]).ToUpper();
-					if (a != "")
-					{
-						if (a == "BIU0".ToUpper())
-						{
-							flag = true;
-						}
-						if (a == "BIU1".ToUpper())
-						{
-							flag2 = true;
-						}
-						if (a == "ColA".ToUpper())
-						{
-							flag3 = true;
-						}
-						if (a == "ColB".ToUpper())
-						{
-							flag4 = true;
-						}
-						if (a == "LMargin".ToUpper())
-						{
-							flag6 = true;
-						}
-						if (a == "RMargin".ToUpper())
-						{
-							flag7 = true;
-						}
-						if (a == "BMargin".ToUpper())
-						{
-							flag8 = true;
-						}
-						if (a == "BIUHeading".ToUpper())
-						{
-							flag9 = true;
-						}
-						if (a == "HeadingSize".ToUpper())
-						{
-							flag10 = true;
-						}
-						if (a == "HeadingOption".ToUpper())
-						{
-							flag11 = true;
-						}
-						if (a == "LineSpacing".ToUpper())
-						{
-							flag12 = true;
-						}
-						if (a == "LineSpacing2".ToUpper())
-						{
-							flag13 = true;
-						}
-						if (a == "PreChorusHeading".ToUpper())
-						{
-							flag5 = true;
-						}
-					}
+					return false;
 				}
 
-				if (!flag)
+				bool folderValid = ValidateFolderTableFields(connection);
+				if (!folderValid)
 				{
-					DbController.CreateField(ref connection, "Folder", "BIU0", 1);
-				}
-				if (!flag2)
-				{
-					DbController.CreateField(ref connection, "Folder", "BIU1", 1);
-				}
-				if (!flag3)
-				{
-					DbController.CreateField(ref connection, "Folder", "ColA", 0);
-				}
-				if (!flag4)
-				{
-					DbController.CreateField(ref connection, "Folder", "ColB", 0);
-				}
-				if (!flag5)
-				{
-					DbController.CreateField(ref connection, "Folder", "PreChorusHeading", 0, 30);
-				}
-				if (!flag6)
-				{
-					DbController.CreateField(ref connection, "Folder", "LMargin", 1);
-				}
-				if (!flag7)
-				{
-					DbController.CreateField(ref connection, "Folder", "RMargin", 1);
-				}
-				if (!flag8)
-				{
-					DbController.CreateField(ref connection, "Folder", "BMargin", 1);
-				}
-				if (!flag9)
-				{
-					DbController.CreateField(ref connection, "Folder", "BIUHeading", 1);
-				}
-				if (!flag10)
-				{
-					DbController.CreateField(ref connection, "Folder", "HeadingSize", 1);
-				}
-				if (!flag11)
-				{
-					DbController.CreateField(ref connection, "Folder", "HeadingOption", 1);
-				}
-				if (!flag12)
-				{
-					DbController.CreateField(ref connection, "Folder", "LineSpacing", 4);
-				}
-				if (!flag13)
-				{
-					DbController.CreateField(ref connection, "Folder", "LineSpacing2", 4);
-				}
-			}
-			catch
-			{
-			}
-			finally
-			{
-				if (connection.State == ConnectionState.Open)
-				{
-					connection.Close();
-				}
-			}
-
-			try
-			{
-				connection.Open();
-
-				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
-				{
-					null,
-					null,
-					"Song",
-					null
-				});
-
-				foreach (DataRow row2 in dbSchemaTable.Rows)
-				{
-					string a = DataUtil.ObjToString(row2["COLUMN_NAME"]).ToUpper();
-					if (a != "")
-					{
-						if (a == "CAPO".ToUpper())
-						{
-							flag14 = true;
-						}
-						if (a == "TIMING".ToUpper())
-						{
-							flag15 = true;
-						}
-						if (a == "SONG_NUMBER".ToUpper())
-						{
-							flag16 = true;
-						}
-						if (a == "BOOK_REFERENCE".ToUpper())
-						{
-							flag17 = true;
-							num2 = DataUtil.ObjToInt(row2["CHARACTER_MAXIMUM_LENGTH"]);
-						}
-						if (a == "USER_REFERENCE".ToUpper())
-						{
-							flag18 = true;
-							num = DataUtil.ObjToInt(row2["CHARACTER_MAXIMUM_LENGTH"]);
-						}
-						if (a == "LICENCE_ADMIN1".ToUpper())
-						{
-							flag19 = true;
-						}
-						if (a == "LICENCE_ADMIN2".ToUpper())
-						{
-							flag20 = true;
-						}
-						if (a == "SETTINGS".ToUpper())
-						{
-							flag21 = true;
-						}
-						if (a == "SEQUENCE".ToUpper())
-						{
-							num3 = DataUtil.ObjToInt(row2["CHARACTER_MAXIMUM_LENGTH"]);
-						}
-						if (a == "FORMATDATA".ToUpper())
-						{
-							flag22 = true;
-						}
-					}
+					return false;
 				}
 
-				if (num2 > 1 && num2 < 100)
+				// Ensure connection is still open for Song table validation
+				if (connection.State != ConnectionState.Open)
 				{
-					try
-					{
-
-						DbCommand command = new DbCommand("ALTER TABLE Song ALTER COLUMN BOOK_REFERENCE TEXT (100) ", connection);
-
-						command.ExecuteNonQuery();
-					}
-					catch { }
-				}
-				if (num3 > 1 && num3 < 255)
-				{
-					try
-					{
-						DbCommand command = new DbCommand("ALTER TABLE Song MODIFY SEQUENCE varchar(255)", connection);
-						command.ExecuteNonQuery();
-					}
-					catch { }
-				}
-				if (!flag14)
-				{
-					DbController.CreateField(ref connection, "Song", "CAPO", 1);
-				}
-				if (!flag15)
-				{
-					DbController.CreateField(ref connection, "Song", "TIMING", 0);
-				}
-				if (!flag16)
-				{
-					DbController.CreateField(ref connection, "Song", "SONG_NUMBER", 1);
-				}
-				if (!flag17)
-				{
-					DbController.CreateField(ref connection, "Song", "BOOK_REFERENCE", 0);
-				}
-				if (!flag18)
-				{
-					DbController.CreateField(ref connection, "Song", "USER_REFERENCE", 5);
-				}
-				else if (num > 0)
-				{
-					try
-					{
-						DbCommand command = new DbCommand("ALTER TABLE Song MODIFY USER_REFERENCE varchar(255)", connection);
-						command.ExecuteNonQuery();
-					}
-					catch { }
+					connection.Open();
 				}
 
-				if (!flag19)
-				{
-					DbController.CreateField(ref connection, "Song", "LICENCE_ADMIN1", 0);
-				}
-				if (!flag20)
-				{
-					DbController.CreateField(ref connection, "Song", "LICENCE_ADMIN2", 0);
-				}
-				if (!flag21)
-				{
-					DbController.CreateField(ref connection, "Song", "SETTINGS", 5);
-				}
-				if (!flag22)
-				{
-					DbController.CreateField(ref connection, "Song", "FORMATDATA", 5);
-				}
-			}
-			catch
-			{
-			}
-			finally
-			{
-				if (connection.State == ConnectionState.Open)
-				{
-					connection.Close();
-				}
-			}
-
-			return true;
+				bool songValid = ValidateSongTableFields(connection);
+				return songValid;
+			});
 		}
 
 		public static bool ValidateMusicExt(ref string InExtension, bool ShowMessage)
@@ -578,20 +731,25 @@ namespace Easislides
 			{
 				return false;
 			}
+			
 			InExtension = DataUtil.Trim(InExtension);
-			string text = "";
+			var extensionBuilder = new StringBuilder();
+			
 			for (int i = 0; i < InExtension.Length; i++)
 			{
 				if (InExtension[i] != '.')
 				{
-					text += DataUtil.Mid(InExtension, i, 1);
+					extensionBuilder.Append(DataUtil.Mid(InExtension, i, 1));
 				}
 			}
-			if (text[0] != '.')
+			
+			string cleanedExtension = extensionBuilder.ToString();
+			if (cleanedExtension.Length > 0 && cleanedExtension[0] != '.')
 			{
-				text = "." + text;
+				cleanedExtension = "." + cleanedExtension;
 			}
-			InExtension = text;
+			
+			InExtension = cleanedExtension;
 			return true;
 		}
 
@@ -654,6 +812,103 @@ namespace Easislides
 			}
 		}
 
+		/// <summary>
+		/// Resets SongSettings to default values
+		/// </summary>
+		private static void ResetSongSettings(ref SongSettings item)
+		{
+			item.ItemID = "";
+			item.PrevItemPP = (item.Type == PPFileSym);
+			item.Type = "";
+			item.SongNumber = 0;
+			item.FolderNo = 0;
+			item.CompleteLyrics = "";
+			item.SongSequence = "";
+			item.SongBasicSequence = "";
+			item.SongOriginalLoadedSequence = "";
+			item.Writer = "";
+			item.Copyright = "";
+			item.Capo = -1;
+			item.Timing = "";
+			item.MusicKey = "";
+			item.OriginalNotations = "";
+			item.Notations = "";
+			item.Category = "";
+			item.Show_LicAdminInfo1 = "";
+			item.Show_LicAdminInfo2 = "";
+			item.In_LicAdminInfo1 = "";
+			item.In_LicAdminInfo2 = "";
+			item.Book_Reference = "";
+			item.User_Reference = "";
+			item.HBR2_FolderNo = 0;
+			item.HBR2_FontSizeFactor = 100;
+			item.FontSizeFactor = 100;
+			item.CurSlide = 0;
+			item.TotalSlides = 0;
+			item.Path = "";
+			item.RotateString = "";
+			item.RotateStyle = 1;
+			item.RotateGap = 0;
+			item.RotateTotal = 0;
+			item.RotateTimings = "";
+			item.RotateSequence = "";
+			item.FirstShowing = true;
+			item.FolderName = "";
+			item.PrevTitle = "";
+			item.NextTitle = "";
+		}
+
+		/// <summary>
+		/// Resets format-related settings
+		/// </summary>
+		private static void ResetFormatSettings(ref SongSettings item)
+		{
+			item.Format.ImageString = "";
+			item.Format.TempImageFileName = "";
+			item.Format.FormatString = "";
+			item.Format.DBStoredFormat = "";
+		}
+
+		/// <summary>
+		/// Applies gap media settings based on the specified gap media type
+		/// </summary>
+		private static void ApplyGapMediaSettings(ref SongSettings item, GapMedia gapMedia)
+		{
+			// Adjust gap media if needed
+			if (gapMedia == GapMedia.SessionMedia && MediaOption == 1)
+			{
+				gapMedia = GapMedia.None;
+			}
+
+			switch (gapMedia)
+			{
+				case GapMedia.SameAsPrevious:
+					item.Format.MediaOption = (item.UseDefaultFormat ? MediaOption : item.Format.MediaOption);
+					item.Format.MediaLocation = (item.UseDefaultFormat ? MediaLocation : item.Format.MediaLocation);
+					item.Format.MediaVolume = (item.UseDefaultFormat ? MediaVolume : item.Format.MediaVolume);
+					item.Format.MediaBalance = (item.UseDefaultFormat ? MediaBalance : item.Format.MediaBalance);
+					item.Format.MediaCaptureDeviceNumber = (item.UseDefaultFormat ? MediaCaptureDeviceNumber : item.Format.MediaCaptureDeviceNumber);
+					break;
+				case GapMedia.SessionMedia:
+					item.Format.MediaOption = MediaOption;
+					item.Format.MediaLocation = MediaLocation;
+					item.Format.MediaVolume = MediaVolume;
+					item.Format.MediaBalance = MediaBalance;
+					item.Format.MediaCaptureDeviceNumber = MediaCaptureDeviceNumber;
+					break;
+				default:
+					item.Title = "";
+					item.Title2 = "";
+					item.Format.MediaOption = 0;
+					item.Format.MediaLocation = "";
+					item.Format.MediaVolume = 0;
+					item.Format.MediaBalance = 0;
+					item.Format.MediaCaptureDeviceNumber = 0;
+					break;
+			}
+			item.UseDefaultFormat = true;
+		}
+
 		public static void InitialiseIndividualData(ref SongSettings InItem)
 		{
 			InitialiseIndividualData(ref InItem, GapMedia.None, "");
@@ -661,80 +916,9 @@ namespace Easislides
 
 		public static void InitialiseIndividualData(ref SongSettings InItem, GapMedia InGapMedia, string InType)
 		{
-			InItem.ItemID = "";
-			InItem.PrevItemPP = ((InItem.Type == "P") ? true : false);
-			InItem.Type = "";
-			InItem.SongNumber = 0;
-			InItem.FolderNo = 0;
-			InItem.CompleteLyrics = "";
-			InItem.SongSequence = "";
-			InItem.SongBasicSequence = "";
-			InItem.SongOriginalLoadedSequence = "";
-			InItem.Writer = "";
-			InItem.Copyright = "";
-			InItem.Capo = -1;
-			InItem.Timing = "";
-			InItem.MusicKey = "";
-			InItem.OriginalNotations = "";
-			InItem.Notations = "";
-			InItem.Category = "";
-			InItem.Show_LicAdminInfo1 = "";
-			InItem.Show_LicAdminInfo2 = "";
-			InItem.In_LicAdminInfo1 = "";
-			InItem.In_LicAdminInfo2 = "";
-			InItem.Book_Reference = "";
-			InItem.User_Reference = "";
-			InItem.HBR2_FolderNo = 0;
-			InItem.HBR2_FontSizeFactor = 100;
-			InItem.FontSizeFactor = 100;
-			InItem.CurSlide = 0;
-			InItem.TotalSlides = 0;
-			InItem.Path = "";
-			InItem.RotateString = "";
-			InItem.RotateStyle = 1;
-			InItem.RotateGap = 0;
-			InItem.RotateTotal = 0;
-			InItem.RotateTimings = "";
-			InItem.RotateSequence = "";
-			InItem.Format.ImageString = "";
-			InItem.Format.TempImageFileName = "";
-			InItem.FirstShowing = true;
-			InItem.FolderName = "";
-			InItem.PrevTitle = "";
-			InItem.NextTitle = "";
-			InItem.Format.FormatString = "";
-			InItem.Format.DBStoredFormat = "";
-			if (InGapMedia == GapMedia.SessionMedia && MediaOption == 1)
-			{
-				InGapMedia = GapMedia.None;
-			}
-			switch (InGapMedia)
-			{
-				case GapMedia.SameAsPrevious:
-					InItem.Format.MediaOption = (InItem.UseDefaultFormat ? MediaOption : InItem.Format.MediaOption);
-					InItem.Format.MediaLocation = (InItem.UseDefaultFormat ? MediaLocation : InItem.Format.MediaLocation);
-					InItem.Format.MediaVolume = (InItem.UseDefaultFormat ? MediaVolume : InItem.Format.MediaVolume);
-					InItem.Format.MediaBalance = (InItem.UseDefaultFormat ? MediaBalance : InItem.Format.MediaBalance);
-					InItem.Format.MediaCaptureDeviceNumber = (InItem.UseDefaultFormat ? MediaCaptureDeviceNumber : InItem.Format.MediaCaptureDeviceNumber);
-					break;
-				case GapMedia.SessionMedia:
-					InItem.Format.MediaOption = MediaOption;
-					InItem.Format.MediaLocation = MediaLocation;
-					InItem.Format.MediaVolume = MediaVolume;
-					InItem.Format.MediaBalance = MediaBalance;
-					InItem.Format.MediaCaptureDeviceNumber = MediaCaptureDeviceNumber;
-					break;
-				default:
-					InItem.Title = "";
-					InItem.Title2 = "";
-					InItem.Format.MediaOption = 0;
-					InItem.Format.MediaLocation = "";
-					InItem.Format.MediaVolume = 0;
-					InItem.Format.MediaBalance = 0;
-					InItem.Format.MediaCaptureDeviceNumber = 0;
-					break;
-			}
-			InItem.UseDefaultFormat = true;
+			ResetSongSettings(ref InItem);
+			ResetFormatSettings(ref InItem);
+			ApplyGapMediaSettings(ref InItem, InGapMedia);
 		}
 
 		public static void ValidateSequence(ref SongSettings InItem)
@@ -743,17 +927,19 @@ namespace Easislides
 			{
 				InItem.SongSequence = "";
 			}
-			string text = "";
+			
+			var sequenceBuilder = new StringBuilder();
 			for (int i = 0; i < InItem.SongSequence.Length; i++)
 			{
 				if (InItem.VersePresent[InItem.SongSequence[i]])
 				{
-					text += DataUtil.Mid(InItem.SongSequence, i, 1);
+					sequenceBuilder.Append(DataUtil.Mid(InItem.SongSequence, i, 1));
 				}
 			}
-			if (text.Length > 0)
+			
+			if (sequenceBuilder.Length > 0)
 			{
-				InItem.SongSequence = text;
+				InItem.SongSequence = sequenceBuilder.ToString();
 			}
 			else
 			{
@@ -761,53 +947,42 @@ namespace Easislides
 			}
 		}
 
-		public static void ValidateMainHistoryItems()
+		/// <summary>
+		/// Validates history items by removing empty entries and ensuring count is within limits
+		/// </summary>
+		private static void ValidateHistoryItems(ref string[,] historyList, ref int totalCount, int maxItems, bool validateMaxLimit)
 		{
-			int num = 0;
-			if ((TotalMainEditHistory < 0) | (TotalMainEditHistory > AbsoluteMaxHitoryItems))
+			if (validateMaxLimit && (totalCount < 0 || totalCount > maxItems))
 			{
-				TotalMainEditHistory = AbsoluteMaxHitoryItems;
+				totalCount = maxItems;
 			}
-			for (int i = 1; i <= TotalMainEditHistory; i++)
+
+			int validCount = 0;
+			for (int i = 1; i <= totalCount; i++)
 			{
-				if (GetItemTitle(MainEditHistoryList[i, 0]) != "")
+				if (GetItemTitle(historyList[i, 0]) != "")
 				{
-					num++;
-					MainEditHistoryList[num, 0] = MainEditHistoryList[i, 0];
+					validCount++;
+					historyList[validCount, 0] = historyList[i, 0];
 				}
 			}
-			TotalMainEditHistory = num;
-			RemoveDuplicateEditorHistoryItems(ref MainEditHistoryList, ref TotalMainEditHistory);
+			totalCount = validCount;
+			RemoveDuplicateEditorHistoryItems(ref historyList, ref totalCount);
+		}
+
+		public static void ValidateMainHistoryItems()
+		{
+			ValidateHistoryItems(ref MainEditHistoryList, ref TotalMainEditHistory, AbsoluteMaxHitoryItems, validateMaxLimit: true);
 		}
 
 		public static void ValidateEditorHistoryItems()
 		{
-			int num = 0;
-			for (int i = 1; i <= TotalEditorEditHistory; i++)
-			{
-				if (GetItemTitle(EditorEditHistoryList[i, 0]) != "")
-				{
-					num++;
-					EditorEditHistoryList[num, 0] = EditorEditHistoryList[i, 0];
-				}
-			}
-			TotalEditorEditHistory = num;
-			RemoveDuplicateEditorHistoryItems(ref EditorEditHistoryList, ref TotalEditorEditHistory);
+			ValidateHistoryItems(ref EditorEditHistoryList, ref TotalEditorEditHistory, AbsoluteMaxHitoryItems, validateMaxLimit: false);
 		}
 
 		public static void ValidateInfoScreenHistoryItems()
 		{
-			int num = 0;
-			for (int i = 1; i <= TotalInfoScreenEditHistory; i++)
-			{
-				if (GetItemTitle(InfoScreenEditHistoryList[i, 0]) != "")
-				{
-					num++;
-					InfoScreenEditHistoryList[num, 0] = InfoScreenEditHistoryList[i, 0];
-				}
-			}
-			TotalInfoScreenEditHistory = num;
-			RemoveDuplicateEditorHistoryItems(ref InfoScreenEditHistoryList, ref TotalInfoScreenEditHistory);
+			ValidateHistoryItems(ref InfoScreenEditHistoryList, ref TotalInfoScreenEditHistory, AbsoluteMaxHitoryItems, validateMaxLimit: false);
 		}
 
 		public static bool ValidateEasiSlidesXML(ref XmlTextReader reader)
@@ -817,14 +992,19 @@ namespace Easislides
 				reader.Read();
 				while (reader.Read())
 				{
-					if ((reader.NodeType == XmlNodeType.Element) & (reader.Name == "EasiSlides"))
+					if ((reader.NodeType == XmlNodeType.Element) & (reader.Name == XMLNode_EasiSlides))
 					{
 						return true;
 					}
 				}
 			}
-			catch
+			catch (XmlException ex)
 			{
+				Trace.WriteLine($"ERROR parsing XML: {ex.Message}, Line: {ex.LineNumber}, Position: {ex.LinePosition}");
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR validating EasiSlides XML: {ex.Message}, {ex.StackTrace}");
 			}
 			return false;
 		}
@@ -875,3 +1055,4 @@ namespace Easislides
 		}
 	}
 }
+

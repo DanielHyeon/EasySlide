@@ -474,6 +474,50 @@ namespace Easislides
 
 		public const string XMLNode_Settings = "Settings";
 
+		// Database table names
+		public const string DBTable_Folder = "Folder";
+		public const string DBTable_Song = "Song";
+
+		// Database field names - Folder table
+		public const string DBField_BIU0 = "BIU0";
+		public const string DBField_BIU1 = "BIU1";
+		public const string DBField_ColA = "ColA";
+		public const string DBField_ColB = "ColB";
+		public const string DBField_LMargin = "LMargin";
+		public const string DBField_RMargin = "RMargin";
+		public const string DBField_BMargin = "BMargin";
+		public const string DBField_BIUHeading = "BIUHeading";
+		public const string DBField_HeadingSize = "HeadingSize";
+		public const string DBField_HeadingOption = "HeadingOption";
+		public const string DBField_LineSpacing = "LineSpacing";
+		public const string DBField_LineSpacing2 = "LineSpacing2";
+		public const string DBField_PreChorusHeading = "PreChorusHeading";
+
+		// Database field names - Song table
+		public const string DBField_CAPO = "CAPO";
+		public const string DBField_TIMING = "TIMING";
+		public const string DBField_SONG_NUMBER = "SONG_NUMBER";
+		public const string DBField_BOOK_REFERENCE = "BOOK_REFERENCE";
+		public const string DBField_USER_REFERENCE = "USER_REFERENCE";
+		public const string DBField_LICENCE_ADMIN1 = "LICENCE_ADMIN1";
+		public const string DBField_LICENCE_ADMIN2 = "LICENCE_ADMIN2";
+		public const string DBField_SETTINGS = "SETTINGS";
+		public const string DBField_SEQUENCE = "SEQUENCE";
+		public const string DBField_FORMATDATA = "FORMATDATA";
+
+		// Database field type constants (matching DbController.CreateField fieldType parameter)
+		public const int DBFieldType_Text = 0;
+		public const int DBFieldType_Int = 1;
+		public const int DBFieldType_Date = 2;
+		public const int DBFieldType_Float = 4;
+		public const int DBFieldType_TextUnlimited = 5;
+
+		// Database field size constants
+		public const int DBFieldSize_DefaultText = 30;
+		public const int DBFieldSize_BookReference = 100;
+		public const int DBFieldSize_Sequence = 255;
+		public const int DBFieldSize_UserReference = 255;
+
 		public const string ImageSubFolderScenery = "Scenery";
 
 		public const string ImageSubFolderTiles = "Tiles";
