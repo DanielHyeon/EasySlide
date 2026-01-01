@@ -11,17 +11,13 @@ using System.Xml;
 using System.Linq;
 using System.Data;
 using System.Threading.Tasks;
-//using Microsoft.Office.Interop.Access.Dao;
 using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
 using System.Threading;
-//using System.Data.SQLite;
 using Easislides.SQLite;
 using Easislides.Module;
 using MethodInvoker = System.Windows.Forms.MethodInvoker;
 using Type = System.Type;
 using System.Diagnostics;
-//using static Easislides.Util.HookController;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Resources;
@@ -2185,68 +2181,6 @@ namespace Easislides
             }
         }
 
-#if DAO
-		public void Load32PraiseBook(int DataType)
-		{
-			if (!(DataUtil.Trim(PraiseBook.Text) == ""))
-			{
-				ListViewItem listViewItem = new ListViewItem();
-				string text = "";
-				string inFileName = gf.PraiseBookDir + gf.CurPraiseBook + ".esp";
-				gf.LoadFileContents(inFileName, ref InContents);
-				int num = gf.Load32HeaderData(inFileName, InContents, ref gf.HeaderData);
-				if (num < 1)
-				{
-					gf.ApplyHeaderData(1);
-					InContents = "";
-				}
-				if (DataType == 1)
-				{
-					gf.ApplyHeaderData(1);
-					return;
-				}
-				PraiseBookItems.Items.Clear();
-				gf.ApplyHeaderData(1);
-				InContents = DataUtil.Mid(InContents, num + 1, InContents.Length - num);
-				int num2 = 0;
-				int num3 = InContents.IndexOf(">");
-				try
-				{
-					Database daoDb = DbDaoController.GetDaoDb(gf.ConnectStringMainDB);
-					Recordset recordset = null;
-					while (num3 >= 0)
-					{
-						string text2 = DataUtil.Trim(DataUtil.Mid(InContents, num2, num3 - num2));
-						if (text2 != "")
-						{
-							int num4 = text2.IndexOf("\\");
-							string fNum_ID = DataUtil.Mid(text2, 1, num4 - 1);
-							int num5 = text2.IndexOf("\\", num4 + 1);
-							if (num5 < 0)
-							{
-								num5 = text2.Length + 1;
-							}
-							string displayName = DataUtil.Mid(text2, num4 + 1, num5 - (num4 + 1));
-							gf.WorshipListIDOK = true;
-							WriteItemtoPraiseBook(daoDb, recordset, DataUtil.Left(text2, 1), fNum_ID, displayName, "");
-						}
-						text2 = "";
-						num2 = num3 + 1;
-						num3 = InContents.IndexOf(">", num2);
-					}
-					if (recordset != null)
-					{
-						recordset.Close();
-						recordset = null;
-					}
-				}
-				catch
-				{
-				}
-				LoadIndexFilePostAction(UsageMode.PraiseBook);
-			}
-		}
-#elif SQLite
         public void Load32PraiseBook(int DataType)
         {
             if (!(DataUtil.Trim(PraiseBook.Text) == ""))
@@ -2302,65 +2236,7 @@ namespace Easislides
                 LoadIndexFilePostAction(UsageMode.PraiseBook);
             }
         }
-#endif
 
-#if DAO
-		private void WriteItemtoPraiseBook(Database db, Recordset rs, string InSym, string FNum_ID, string DisplayName1, string FolderName)
-		{
-			if (!(FNum_ID == ""))
-			{
-				ListViewItem listViewItem = new ListViewItem();
-				string text = "";
-				string text2 = "";
-				string text3 = "";
-				string text4 = "0";
-				string FirstCharSym = "";
-				if (InSym == "D")
-				{
-					bool flag = false;
-					try
-					{
-						string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where LCase(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
-						rs = DbDaoController.GetRecordSet(db, fullSearchString);
-						if (!(rs?.EOF ?? true))
-						{
-							rs.MoveFirst();
-							if (DataUtil.GetDataInt(rs, "FolderNo") > 0 && gf.FolderUse[DataUtil.GetDataInt(rs, "FolderNo")] > 0)
-							{
-								DisplayName1 = DataUtil.GetDataString(rs, "Title_1");
-								FolderName = gf.FolderName[DataUtil.GetDataInt(rs, "FolderNo")];
-								FNum_ID = "D" + DataUtil.GetDataInt(rs, "songid");
-								text4 = ((DataUtil.GetDataString(rs, "song_number") != "") ? DataUtil.GetDataString(rs, "song_number") : "0");
-								flag = true;
-							}
-						}
-						rs?.Close();
-						if (!flag)
-						{
-							FNum_ID = "D0";
-							DisplayName1 += " <Error - Item Not Found>";
-						}
-					}
-					catch
-					{
-						FNum_ID = "D0";
-						DisplayName1 += " <Error - Item Not Found>";
-					}
-				}
-				else
-				{
-					FNum_ID = "D0";
-					gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-				}
-				listViewItem = PraiseBookItems.Items.Add(DataUtil.GetCJKTitle(DisplayName1, gf.PB_CJKGroupStyle, ref FirstCharSym));
-				listViewItem.SubItems.Add("");
-				listViewItem.SubItems.Add(DisplayName1);
-				listViewItem.SubItems.Add(FNum_ID);
-				listViewItem.SubItems.Add(FirstCharSym);
-				listViewItem.SubItems.Add(text4);
-			}
-		}
-#elif SQLite
         private void WriteItemtoPraiseBook(DbConnection connection, string InSym, string FNum_ID, string DisplayName1, string FolderName)
         {
             if (!(FNum_ID == ""))
@@ -2419,7 +2295,6 @@ namespace Easislides
                 listViewItem.SubItems.Add(text4);
             }
         }
-#endif
 
         private void ShowStatusBarSummary()
         {
@@ -2861,14 +2736,6 @@ namespace Easislides
                     InCanvas[i].PowerPoint = true;
                 }
 
-                //if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-                //{
-                //    flowLayoutPreviewPowerPoint.Controls.Add(InCanvas[i]);
-                //}
-                //else
-                //{
-                //    flowLayoutOutputPowerPoint.Controls.Add(InCanvas[i]);
-                //}
             }
 
             if (controlCount > InTotalScreens)
@@ -3268,91 +3135,7 @@ namespace Easislides
             SongFolder_Change();
         }
 
-#if DAO
-		/// <summary>
-		/// daniel find
-		/// </summary>
-		/// <param name="FNumber"></param>
-		/// <param name="ListString"></param>
-		/// <param name="InItemMusicOnly"></param>
-		private void FillList(int FNumber, string ListString, bool InItemMusicOnly)
-		{
-			int num = 0;
-			string text = "";
-			string text2 = "";
-			string text3 = "";
-			string text4 = "";
-			string text5 = "";
-			string text6 = "";
-			string text7 = "";
-			string text8 = "";
-			string text9 = "";
-			int num2 = 0;
-			string text10 = "*";
-			gf.TotalMusicFiles = -1;
-			bool flag = false;
-			string text11 = "";
-			if (FNumber == 0)
-			{
-				for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
-				{
-					if (gf.FindSongsFolder[i])
-					{
-						text11 = ((!(text11 == "")) ? (text11 + " or FolderNo=" + Convert.ToString(i)) : (" and (FolderNo=" + Convert.ToString(i)));
-					}
-				}
-				text11 += ")";
-			}
-			else
-			{
-				text11 = " and FolderNo=" + Convert.ToString(FNumber);
-			}
-			string str = (FNumber < 0) ? gf.Find_SQLString : ("select * from SONG where (LCase(Title_1) like \"" + text10.ToLower() + "\" " + text11 + ") or (LCase(Title_2) like \"" + text10.ToLower() + "\" " + text11 + ")");
-			string str2 = gf.UseSongNumbers ? " order by song_number, cjk_strokecount" : ((CurStyle != SortBy.WordCount) ? " order by cjk_strokecount" : " order by cjk_wordcount, cjk_strokecount");
-			str += str2;
-			ListViewItem listViewItem = new ListViewItem();
-			SongsList.BeginUpdate();
-			try
-			{
-				Recordset recordSet = DbDaoController.GetRecordSet(gf.ConnectStringMainDB, str);
-				if (!(recordSet?.EOF ?? true))
-				{
-					ListViewItem[] array = new ListViewItem[recordSet.RecordCount];
-					int num3 = 0;
-					recordSet.MoveFirst();
-					while (!recordSet.EOF)
-					{
-						string musicTitle = DataUtil.ObjToString(recordSet.Fields["Title_2"].Value);
-						num2 = DataUtil.ObjToInt(recordSet.Fields["song_number"].Value);
-						bool flag2 = gf.MusicFound(DataUtil.ObjToString(recordSet.Fields["Title_1"].Value), musicTitle);
-						text8 = DataUtil.ObjToString(recordSet.Fields["LICENCE_ADMIN1"].Value);
-						text9 = DataUtil.ObjToString(recordSet.Fields["LICENCE_ADMIN2"].Value);
-						if ((InItemMusicOnly && flag2) || !InItemMusicOnly)
-						{
-							array[num3] = new ListViewItem(new string[7]
-							{
-								DataUtil.ObjToString(recordSet.Fields["Title_1"].Value) + (flag2 ? " <#>" : ""),
-								"D" + DataUtil.ObjToString(recordSet.Fields["SongID"].Value),
-								"",
-								"",
-								num2.ToString(),
-								text8,
-								text9
-							});
-							num3++;
-						}
-						recordSet.MoveNext();
-					}
-					SongsList.Items.AddRange(array);
-				}
-			}
-			catch
-			{
-			}
-			SongsList.EndUpdate();
-			ShowStatusBarSummary();
-		}
-#elif SQLite
+
         /// <summary>
         /// daniel find
         /// </summary>
@@ -3362,19 +3145,9 @@ namespace Easislides
         private void FillList(int FNumber, string ListString, bool InItemMusicOnly)
         {
             int num = 0;
-            //string text = "";
-            //string text2 = "";
-            //string text3 = "";
-            //string text4 = "";
-            //string text5 = "";
-            //string text6 = "";
-            //string text7 = "";
             string text8 = "";
             string text9 = "";
             int num2 = 0;
-            ///MDB Access??��??Like ��??��??"*" ????��
-            //string text10 = "*";
-            ///SQLite??��??Like ��??��??"%" ????��
             string text10 = "%";
 
             gf.TotalMusicFiles = -1;
@@ -3462,8 +3235,6 @@ namespace Easislides
             SongsList.EndUpdate();
             ShowStatusBarSummary();
         }
-#endif
-
 
         private int GetImagesPanelWidth()
         {
@@ -4277,12 +4048,7 @@ namespace Easislides
                                         {
                                             InNotes = xmlTextReader.ReadElementContentAsString();
                                         }
-#if DAO
-										Database daoDb = DbDaoController.GetDaoDb(gf.ConnectStringMainDB);
-										Recordset rs = null;
-#elif SQLite
                                         DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-#endif
                                         while (xmlTextReader.Read())
                                         {
                                             switch (xmlTextReader.NodeType)
@@ -4309,19 +4075,11 @@ namespace Easislides
                                                     {
                                                         if (InMode == UsageMode.Worship)
                                                         {
-#if DAO
-															WriteItemtoWorshipList(daoDb, rs, DataUtil.Left(text2, 1), DataUtil.Right(text2, text2.Length - 1), displayName, folderName, formatString, -1);
-#elif SQLite
                                                             WriteItemtoWorshipList(connection, DataUtil.Left(text2, 1), DataUtil.Right(text2, text2.Length - 1), displayName, folderName, formatString, -1);
-#endif
                                                         }
                                                         else
                                                         {
-#if DAO
-															WriteItemtoPraiseBook(daoDb, rs, DataUtil.Left(text2, 1), DataUtil.Right(text2, text2.Length - 1), displayName, folderName);
-#elif SQLite
                                                             WriteItemtoPraiseBook(connection, DataUtil.Left(text2, 1), DataUtil.Right(text2, text2.Length - 1), displayName, folderName);
-#endif
                                                         }
                                                         text2 = "";
                                                         displayName = "";
@@ -4397,12 +4155,7 @@ namespace Easislides
             try
             {
 
-#if DAO
-				Database daoDb = DbDaoController.GetDaoDb(gf.ConnectStringMainDB);
-				Recordset recordset = null;
-#elif SQLite
                 DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-#endif
                 while (num3 >= 0)
                 {
                     string text = DataUtil.Trim(DataUtil.Mid(InContents, num2, num3 - num2));
@@ -4436,24 +4189,16 @@ namespace Easislides
                         string inSym = DataUtil.Left(text, 1);
                         gf.WorshipListIDOK = true;
                         DataUtil.Convertv32FormatString(ref gf.SongFormatData, '*');
-#if DAO
-						WriteItemtoWorshipList(daoDb, recordset, inSym, fNum_ID, displayName, "", gf.SongFormatData, -1);
-#elif SQLite
+
                         WriteItemtoWorshipList(connection, inSym, fNum_ID, displayName, "", gf.SongFormatData, -1);
-#endif
+
 
                     }
                     text = "";
                     num2 = num3 + 1;
                     num3 = InContents.IndexOf(">", num2);
                 }
-#if DAO
-				if (recordset != null)
-				{
-					recordset.Close();
-					recordset = null;
-				}
-#endif
+
             }
             catch
             {
@@ -4559,12 +4304,8 @@ namespace Easislides
                                         {
                                             InNotes += xmlTextReader.ReadElementContentAsString();
                                         }
-#if DAO
-										Database daoDb = DbDaoController.GetDaoDb(gf.ConnectStringMainDB);
-										Recordset recordset = null;
-#elif SQLite
                                         DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-#endif
+
                                         while (xmlTextReader.Read())
                                         {
                                             switch (xmlTextReader.NodeType)
@@ -4589,11 +4330,9 @@ namespace Easislides
                                                 case XmlNodeType.EndElement:
                                                     if (text != "")
                                                     {
-#if DAO
-														WriteItemtoWorshipList(daoDb, rs, DataUtil.Left(text, 1), DataUtil.Right(text, text.Length - 1), displayName, folderName, formatString, AddToLocation);
-#elif SQLite
+
                                                         WriteItemtoWorshipList(connection, DataUtil.Left(text, 1), DataUtil.Right(text, text.Length - 1), displayName, folderName, formatString, AddToLocation);
-#endif
+
                                                         text = "";
                                                         displayName = "";
                                                         folderName = "";
@@ -4629,146 +4368,6 @@ namespace Easislides
             return true;
         }
 
-#if DAO
-		private void WriteItemtoWorshipList(Database db, Recordset rs, string InSym, string FNum_ID, string DisplayName1, string FolderName, string FormatString, int AddToLocation)
-		{
-			if (FNum_ID == "")
-			{
-				return;
-			}
-			ListViewItem listViewItem = new ListViewItem();
-			string musicTitle = "";
-			string musicTitle2 = gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: false);
-			string text = "";
-			string text2 = "";
-			string text3 = "0";
-			if (InSym == "D")
-			{
-				bool flag = false;
-				try
-				{
-					string fullSearchString = (!gf.WorshipListIDOK) ? ("select * from SONG where LCase(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
-					rs = DbDaoController.GetRecordSet(db, fullSearchString);
-					if (!(rs?.EOF ?? true))
-					{
-						rs.MoveFirst();
-						if (DataUtil.GetDataInt(rs, "FolderNo") > 0 && gf.FolderUse[DataUtil.GetDataInt(rs, "FolderNo")] > 0)
-						{
-							DisplayName1 = DataUtil.GetDataString(rs, "Title_1");
-							musicTitle = DataUtil.GetDataString(rs, "Title_2");
-							text = DataUtil.GetDataString(rs, "LICENCE_ADMIN1");
-							text2 = DataUtil.GetDataString(rs, "LICENCE_ADMIN2");
-							FolderName = gf.FolderName[DataUtil.GetDataInt(rs, "FolderNo")];
-							FNum_ID = "D" + DataUtil.GetDataInt(rs, "songid");
-							text3 = ((DataUtil.GetDataString(rs, "song_number") != "") ? DataUtil.GetDataString(rs, "song_number") : "0");
-							flag = true;
-						}
-					}
-					rs?.Close();
-					if (!flag)
-					{
-						DisplayName1 += " <Error - Item Not Found>";
-						FNum_ID = "D0";
-					}
-				}
-				catch
-				{
-					FNum_ID = "D0";
-					DisplayName1 += " <Error - Item Not Found>";
-				}
-			}
-			else if (InSym == "P")
-			{
-				FNum_ID = "P" + DisplayName1;
-				gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-			}
-			else if (InSym == "B")
-			{
-				FNum_ID = "B" + FNum_ID;
-			}
-			else if (InSym == "T")
-			{
-				FNum_ID = "T" + DisplayName1;
-				gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-			}
-			else if (InSym == "I")
-			{
-				FNum_ID = "I" + DisplayName1;
-				string InTitle = "";
-				gf.LoadIndividualData(ref gf.TempItem1, FNum_ID, "", 1, ref InTitle);
-				musicTitle2 = gf.TempItem1.Title;
-				musicTitle = gf.TempItem1.Title2;
-				gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-			}
-			else if (InSym == "W")
-			{
-				FNum_ID = "W" + DisplayName1;
-				gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-			}
-			else if (InSym == "M")
-			{
-				FNum_ID = "M" + DisplayName1;
-				gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-			}
-			if (DisplayName1 != "")
-			{
-				if (gf.MusicFound(musicTitle2, musicTitle))
-				{
-					DisplayName1 += " <#>";
-				}
-				if (AddToLocation < 0)
-				{
-					listViewItem = WorshipListItems.Items.Add(DisplayName1);
-				}
-				else
-				{
-					try
-					{
-						listViewItem = WorshipListItems.Items.Insert(AddToLocation, DisplayName1);
-					}
-					catch
-					{
-						listViewItem = WorshipListItems.Items.Add(DisplayName1);
-					}
-				}
-				if (InSym == "D")
-				{
-					listViewItem.ImageIndex = 0;
-				}
-				else if (InSym == "P")
-				{
-					listViewItem.ImageIndex = 2;
-				}
-				else if (InSym == "B")
-				{
-					listViewItem.ImageIndex = 4;
-				}
-				else if (InSym == "T")
-				{
-					listViewItem.ImageIndex = 6;
-				}
-				else if (InSym == "I")
-				{
-					listViewItem.ImageIndex = 8;
-				}
-				else if (InSym == "W")
-				{
-					listViewItem.ImageIndex = 10;
-				}
-				else if (InSym == "M")
-				{
-					listViewItem.ImageIndex = 28;
-				}
-				listViewItem.SubItems.Add(FNum_ID);
-				listViewItem.SubItems.Add(FormatString);
-				listViewItem.SubItems.Add(text3);
-				listViewItem.SubItems.Add(text);
-				listViewItem.SubItems.Add(text2);
-				listViewItem.SubItems.Add("");
-				listViewItem.SubItems.Add(FolderName);
-			}
-		}
-#elif SQLite
         private void WriteItemtoWorshipList(DbConnection connection, string InSym, string FNum_ID, string DisplayName1, string FolderName, string FormatString, int AddToLocation)
         {
             if (FNum_ID == "")
@@ -4911,7 +4510,6 @@ namespace Easislides
                 listViewItem.SubItems.Add(FolderName);
             }
         }
-#endif
 
         private void SetMainDefaultBackScreen()
         {
@@ -7051,79 +6649,7 @@ namespace Easislides
         {
             return AddFromSongsList(GetWorshipListNextSelectedLoc());
         }
-#if DAO
-		private bool AddFromSongsList(int AddToLocation)
-		{
-			if (SongsList.Items.Count == 0 || SongsList.SelectedItems.Count == 0)
-			{
-				return false;
-			}
-			ListViewItem listViewItem = new ListViewItem();
-			string text = "";
-			Cursor = Cursors.WaitCursor;
-			if (AddToLocation < 0 || AddToLocation > WorshipListItems.Items.Count)
-			{
-				AddToLocation = WorshipListItems.Items.Count;
-			}
-			int num = 0;
-			gf.TotalMusicFiles = -1;
-			try
-			{
-				Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
-				tableRecordSet.Index = "PrimaryKey";
-				for (int i = 0; i < SongsList.SelectedItems.Count; i++)
-				{
-					string text2 = SongsList.SelectedItems[i].SubItems[1].Text;
-					string text3 = DataUtil.Mid(text2, 1, text2.Length - 1);
-					long num2 = DataUtil.StringToInt(text3);
-					string text4 = DataUtil.Left(text2, 0);
-					try
-					{
-						tableRecordSet.Seek("=", text3, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def);
-						if (!tableRecordSet.NoMatch)
-						{
-							string text5 = DataUtil.GetDataString(tableRecordSet, "Title_1");
-							string dataString = DataUtil.GetDataString(tableRecordSet, "Title_2");
-							if (gf.MusicFound(text5, dataString))
-							{
-								text5 += " <#>";
-							}
-							text = DataUtil.GetDataString(tableRecordSet, "FORMATDATA");
-							listViewItem = WorshipListItems.Items.Insert(AddToLocation, text5);
-							listViewItem.ImageIndex = 0;
-							listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[1].Text);
-							listViewItem.SubItems.Add(text);
-							listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[4].Text);
-							listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[5].Text);
-							listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[6].Text);
-							listViewItem.SubItems.Add("");
-							listViewItem.SubItems.Add(SongFolder.Text);
-							AddToLocation++;
-							num++;
-						}
-					}
-					catch
-					{
-					}
-				}
-			}
-			catch
-			{
-			}
-			SetWorshipPraiseListColWidth();
-			if (num == 0)
-			{
-				Cursor = Cursors.Default;
-				return false;
-			}
-			ShowStatusBarSummary();
-			SelectWorshipListItem(AddToLocation - num, num);
-			SaveWorshipList();
-			UpdateOutputCurItemNo();
-			Cursor = Cursors.Default;
-			return true;
-		}
-#elif SQLite
+
         private bool AddFromSongsList(int AddToLocation)
         {
             if (SongsList.Items.Count == 0 || SongsList.SelectedItems.Count == 0)
@@ -7199,7 +6725,6 @@ namespace Easislides
             Cursor = Cursors.Default;
             return true;
         }
-#endif
 
         private int GetWorshipListNextSelectedLoc()
         {
@@ -10560,11 +10085,8 @@ namespace Easislides
                         string text2 = SongsList.Items[i].SubItems[1].Text;
                         string str = DataUtil.Right(text2, text2.Length - 1);
                         string fullSearchString = "select * from SONG where songid=" + str;
-#if OleDb
-						using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
                         using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
 
                         {
                             if (datatable.Rows.Count > 0)
@@ -12758,82 +12280,7 @@ namespace Easislides
             Cursor = Cursors.Default;
         }
 
-#if DAO
-		private void GenerateIndexReportTabText(string OutputFileName)
-		{
-			Cursor = Cursors.WaitCursor;
-			StringBuilder stringBuilder = new StringBuilder();
-			try
-			{
-				string text = "";
-				string text2 = "";
-				string text3 = "";
-				string text4 = "";
-				string text5 = "";
-				int num = -1;
-				
-				Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
-				tableRecordSet.Index = "PrimaryKey";
 
-				stringBuilder.Append("Song Title\tWriter\tMP\tSF\tTS\r\n");
-				for (int i = 0; i < SongsList.Items.Count; i++)
-				{
-					text4 = DataUtil.Mid(SongsList.Items[i].SubItems[1].Text, 1);
-					text = "";
-					text3 = "";
-					text5 = "";
-					tableRecordSet.Seek("=", text4, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def, gf.def);
-					if (!tableRecordSet.NoMatch)
-					{
-						text = DataUtil.GetDataString(tableRecordSet, "BOOK_REFERENCE");
-						text5 = DataUtil.GetDataString(tableRecordSet, "Writer");
-						text2 = "";
-						text3 = "\t" + text5;
-						num = text.IndexOf("MP");
-						if (num >= 0)
-						{
-							int num2 = num + 2;
-							int num3 = text.IndexOfAny(gf.ReferenceAlertPickSeparator.ToCharArray(), num2);
-							num3 = ((num3 >= 0) ? num3 : text.Length);
-							text2 = DataUtil.Mid(text, num2, num3 - num2);
-						}
-						text3 = text3 + "\t" + text2;
-						text2 = "";
-						num = text.IndexOf("SF");
-						if (num >= 0)
-						{
-							int num2 = num + 2;
-							int num3 = text.IndexOfAny(gf.ReferenceAlertPickSeparator.ToCharArray(), num2);
-							num3 = ((num3 >= 0) ? num3 : text.Length);
-							text2 = DataUtil.Mid(text, num2, num3 - num2);
-						}
-						text3 = text3 + "\t" + text2;
-						text2 = "";
-						num = text.IndexOf("TS");
-						if (num >= 0)
-						{
-							int num2 = num + 2;
-							int num3 = text.IndexOfAny(gf.ReferenceAlertPickSeparator.ToCharArray(), num2);
-							num3 = ((num3 >= 0) ? num3 : text.Length);
-							text2 = DataUtil.Mid(text, num2, num3 - num2);
-						}
-						text3 = text3 + "\t" + text2;
-					}
-					else
-					{
-						text3 = "\t\t\t\t";
-					}
-					stringBuilder.Append(gf.RemoveMusicSym(SongsList.Items[i].SubItems[0].Text) + text3 + "\r\n");
-				}
-				FileUtil.CreateNewFile(OutputFileName, FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString());
-				gf.RunProcess(OutputFileName);
-			}
-			catch
-			{
-			}
-			Cursor = Cursors.Default;
-		}
-#elif SQLite
         private void GenerateIndexReportTabText(string OutputFileName)
         {
             Cursor = Cursors.WaitCursor;
@@ -12909,7 +12356,7 @@ namespace Easislides
             }
             Cursor = Cursors.Default;
         }
-#endif
+
 
         private string SaveListingOfFolder(ref string InFileName, ref string InitDirectory)
         {
@@ -14556,6 +14003,6 @@ namespace Easislides
         {
 
         }
+
     }
 }
-
