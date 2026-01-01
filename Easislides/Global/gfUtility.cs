@@ -678,8 +678,9 @@ namespace Easislides
 				bool isnum = int.TryParse(InString, out chknum);
 				return chknum;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"ExtractNumericData Exception: {ex.Message}");
 				return -1;
 			}
 		}
@@ -772,8 +773,9 @@ namespace Easislides
 					InItem.Format.DBStoredFormat = DataUtil.GetDataString(datatable.Rows[0], "FORMATDATA");
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"LoadDBFormatString Exception: {ex.Message}");
 			}
 		}
 
@@ -833,8 +835,9 @@ namespace Easislides
 						}
 					}
 				}
-				catch
+				catch (Exception ex)
 				{
+					Console.WriteLine($"LoadIndividualData Type D Exception: {ex.Message}");
 				}
 			}
 			else if (a == "P")
@@ -1088,12 +1091,12 @@ namespace Easislides
 				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
 				Graphics g = Graphics.FromImage(image);
 				BackPattern.Clear(ref g, TransparentColour);
+				g.Dispose();
 				InPic.NewBackgroundPicture = image;
 				InPic.NewTextImage = InPic.NewBackgroundPicture;
 				InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.None;
 				InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
-				//image.Dispose();
-				//g.Dispose();
+				
 			}
 			else if (InItem.UseDefaultFormat)
 			{
@@ -1125,6 +1128,7 @@ namespace Easislides
 				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
 				Graphics g = Graphics.FromImage(image);
 				BackPattern.Fill(ref g, InItem.Format.ShowScreenColour[0], InItem.Format.ShowScreenColour[1], InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref text);
+				g.Dispose();
 				if (InPic.NewBackgroundPicture != null)
 				{
 					InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
@@ -1182,8 +1186,9 @@ namespace Easislides
 					InPic.NewCombinedImage = (Image)InPic.NewBackgroundPicture.Clone();
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"SetColoursFormat Exception: {ex.Message}");
 			}
 		}
 
@@ -2000,8 +2005,9 @@ namespace Easislides
 					registryKey.Close();
 					return true;
 				}
-				catch
+				catch (Exception ex)
 				{
+					Console.WriteLine($"ExtractEasiSlidesXMLItem Exception: {ex.Message}");
 				}
 			}
 			return false;
@@ -2014,7 +2020,7 @@ namespace Easislides
 
 			if (!result) return;
 
-			string sQuery = "select * from SONG";
+			string sQuery = $"select * from SONG where songid={intSongID}";
 			try
 			{
 				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
@@ -2027,8 +2033,9 @@ namespace Easislides
 				}
 				DbController.UpdateTable(connection, sQuery, dataTable);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"SaveFormatStringToDatabase Exception: {ex.Message}");
 			}
 		}
 
@@ -2213,8 +2220,9 @@ namespace Easislides
 					return DataUtil.ObjToString(datatable.Rows[0]["Title_2"]);
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"LookupDBTitle2 Exception: {ex.Message}");
 			}
 			return "";
 		}
