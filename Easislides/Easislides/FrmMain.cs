@@ -5390,6 +5390,15 @@ namespace Easislides
                 return;
             }
             bool flag = true;
+            int clampedSlide = StartingSlide;
+            if (clampedSlide < 1)
+            {
+                clampedSlide = 1;
+            }
+            else if (InItem.TotalSlides > 0 && clampedSlide > InItem.TotalSlides)
+            {
+                clampedSlide = InItem.TotalSlides;
+            }
             DisplaySettingsLabel(InItem);
             if (StartingSlide > 0)
             {
@@ -5403,7 +5412,7 @@ namespace Easislides
             {
                 if (gf.EasiSlidesMode == UsageMode.Worship)
                 {
-                    InItem.CurSlide = StartingSlide;
+                    InItem.CurSlide = clampedSlide;
                     ShowSlide(ref InItem, TransitionAction);
                 }
                 else
@@ -5415,7 +5424,7 @@ namespace Easislides
             {
                 if (gf.EasiSlidesMode == UsageMode.Worship)
                 {
-                    InItem.CurSlide = StartingSlide;
+                    InItem.CurSlide = clampedSlide;
                     ShowSlide(ref InItem, TransitionAction);
                 }
             }
@@ -8183,14 +8192,15 @@ namespace Easislides
             {
                 if (InDirection == KeyDirection.PrevOne)
                 {
+                    int lastSlideNo = (InItem.TotalSlides > 0) ? InItem.TotalSlides : 1;
                     if (InItem.Type == "G")
                     {
-                        MoveToItem(InItem, KeyDirection.Refresh, 30000, NotifyLiveShow);
+                        MoveToItem(InItem, KeyDirection.Refresh, lastSlideNo, NotifyLiveShow);
                         return;
                     }
                     if (InItem.CurItemNo > 1 && InItem.CurSlide < 2)
                     {
-                        MoveToItem(InItem, KeyDirection.PrevOne, 30000, NotifyLiveShow);
+                        MoveToItem(InItem, KeyDirection.PrevOne, lastSlideNo, NotifyLiveShow);
                         return;
                     }
                 }
