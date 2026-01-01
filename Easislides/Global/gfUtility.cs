@@ -3,6 +3,7 @@ using System.Collections;
 using System.Data;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -504,152 +505,53 @@ namespace Easislides
 		}
 
 		public static void LoadSongKeyCapoTiming(ref ComboBox SongCapo, ref ComboBox SongKey, ref ComboBox SongTiming)
+	{
+		SongCapo.Items.Clear();
+		SongCapo.Items.Add("");
+		for (int i = 0; i <= 11; i++)
 		{
-			SongCapo.Items.Clear();
-			SongCapo.Items.Add("");
-			SongCapo.Items.Add("Capo 0");
-			SongCapo.Items.Add("Capo 1");
-			SongCapo.Items.Add("Capo 2");
-			SongCapo.Items.Add("Capo 3");
-			SongCapo.Items.Add("Capo 4");
-			SongCapo.Items.Add("Capo 5");
-			SongCapo.Items.Add("Capo 6");
-			SongCapo.Items.Add("Capo 7");
-			SongCapo.Items.Add("Capo 8");
-			SongCapo.Items.Add("Capo 9");
-			SongCapo.Items.Add("Capo 10");
-			SongCapo.Items.Add("Capo 11");
-			SongKey.Items.Clear();
-			SongKey.Items.Add("");
-			SongKey.Items.Add("A");
-			SongKey.Items.Add("B");
-			SongKey.Items.Add("C");
-			SongKey.Items.Add("D");
-			SongKey.Items.Add("E");
-			SongKey.Items.Add("F");
-			SongKey.Items.Add("G");
-			SongKey.Items.Add("Am");
-			SongKey.Items.Add("Bm");
-			SongKey.Items.Add("Cm");
-			SongKey.Items.Add("Dm");
-			SongKey.Items.Add("Em");
-			SongKey.Items.Add("Fm");
-			SongKey.Items.Add("Gm");
-			SongKey.Items.Add("Ab");
-			SongKey.Items.Add("Bb");
-			SongKey.Items.Add("Db");
-			SongKey.Items.Add("Eb");
-			SongKey.Items.Add("F#");
-			SongKey.Items.Add("Bbm");
-			SongKey.Items.Add("C#m");
-			SongKey.Items.Add("D#m");
-			SongKey.Items.Add("F#m");
-			SongKey.Items.Add("G#m");
-			SongTiming.Items.Clear();
-			SongTiming.Items.Add("");
-			SongTiming.Items.Add("3/4");
-			SongTiming.Items.Add("4/4");
+			SongCapo.Items.Add($"Capo {i}");
 		}
 
+		string[] keys = { "", "A", "B", "C", "D", "E", "F", "G", "Am", "Bm", "Cm", "Dm", "Em", "Fm", "Gm", "Ab", "Bb", "Db", "Eb", "F#", "Bbm", "C#m", "D#m", "F#m", "G#m" };
+		SongKey.Items.Clear();
+		SongKey.Items.AddRange(keys);
+
+		string[] timings = { "", "3/4", "4/4" };
+		SongTiming.Items.Clear();
+		SongTiming.Items.AddRange(timings);
+	}
+
 		public static void GenerateMusicKeysList()
+	{
+		string[] majorKeys = { "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "F#" };
+		Array.Copy(majorKeys, MusicMajorKeys, majorKeys.Length);
+
+		int[] majorKeysFlatSharp = { 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1 };
+		Array.Copy(majorKeysFlatSharp, MusicMajorKeysFlatSharp, majorKeysFlatSharp.Length);
+
+		string[] minorKeys = { "Gm", "G#m", "Am", "Bbm", "Bm", "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m" };
+		Array.Copy(minorKeys, MusicMinorKeys, minorKeys.Length);
+
+		int[] minorKeysFlatSharp = { 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1 };
+		Array.Copy(minorKeysFlatSharp, MusicMinorKeysFlatSharp, minorKeysFlatSharp.Length);
+
+		string[] majorChords0 = { "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb" };
+		string[] majorChords1 = { "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#" };
+		for (int i = 0; i < 12; i++)
 		{
-			MusicMajorKeys[0] = "G";
-			MusicMajorKeys[1] = "Ab";
-			MusicMajorKeys[2] = "A";
-			MusicMajorKeys[3] = "Bb";
-			MusicMajorKeys[4] = "B";
-			MusicMajorKeys[5] = "C";
-			MusicMajorKeys[6] = "Db";
-			MusicMajorKeys[7] = "D";
-			MusicMajorKeys[8] = "Eb";
-			MusicMajorKeys[9] = "E";
-			MusicMajorKeys[10] = "F";
-			MusicMajorKeys[11] = "F#";
-			MusicMajorKeysFlatSharp[0] = 1;
-			MusicMajorKeysFlatSharp[1] = 0;
-			MusicMajorKeysFlatSharp[2] = 1;
-			MusicMajorKeysFlatSharp[3] = 0;
-			MusicMajorKeysFlatSharp[4] = 1;
-			MusicMajorKeysFlatSharp[5] = 1;
-			MusicMajorKeysFlatSharp[6] = 0;
-			MusicMajorKeysFlatSharp[7] = 1;
-			MusicMajorKeysFlatSharp[8] = 0;
-			MusicMajorKeysFlatSharp[9] = 1;
-			MusicMajorKeysFlatSharp[10] = 0;
-			MusicMajorKeysFlatSharp[11] = 1;
-			MusicMinorKeys[0] = "Gm";
-			MusicMinorKeys[1] = "G#m";
-			MusicMinorKeys[2] = "Am";
-			MusicMinorKeys[3] = "Bbm";
-			MusicMinorKeys[4] = "Bm";
-			MusicMinorKeys[5] = "Cm";
-			MusicMinorKeys[6] = "C#m";
-			MusicMinorKeys[7] = "Dm";
-			MusicMinorKeys[8] = "D#m";
-			MusicMinorKeys[9] = "Em";
-			MusicMinorKeys[10] = "Fm";
-			MusicMinorKeys[11] = "F#m";
-			MusicMinorKeysFlatSharp[0] = 0;
-			MusicMinorKeysFlatSharp[1] = 1;
-			MusicMinorKeysFlatSharp[2] = 1;
-			MusicMinorKeysFlatSharp[3] = 0;
-			MusicMinorKeysFlatSharp[4] = 1;
-			MusicMinorKeysFlatSharp[5] = 0;
-			MusicMinorKeysFlatSharp[6] = 1;
-			MusicMinorKeysFlatSharp[7] = 0;
-			MusicMinorKeysFlatSharp[8] = 1;
-			MusicMinorKeysFlatSharp[9] = 1;
-			MusicMinorKeysFlatSharp[10] = 0;
-			MusicMinorKeysFlatSharp[11] = 1;
-			MusicMajorChords[0, 0] = "G";
-			MusicMajorChords[1, 0] = "Ab";
-			MusicMajorChords[2, 0] = "A";
-			MusicMajorChords[3, 0] = "Bb";
-			MusicMajorChords[4, 0] = "B";
-			MusicMajorChords[5, 0] = "C";
-			MusicMajorChords[6, 0] = "Db";
-			MusicMajorChords[7, 0] = "D";
-			MusicMajorChords[8, 0] = "Eb";
-			MusicMajorChords[9, 0] = "E";
-			MusicMajorChords[10, 0] = "F";
-			MusicMajorChords[11, 0] = "Gb";
-			MusicMajorChords[0, 1] = "G";
-			MusicMajorChords[1, 1] = "G#";
-			MusicMajorChords[2, 1] = "A";
-			MusicMajorChords[3, 1] = "A#";
-			MusicMajorChords[4, 1] = "B";
-			MusicMajorChords[5, 1] = "C";
-			MusicMajorChords[6, 1] = "C#";
-			MusicMajorChords[7, 1] = "D";
-			MusicMajorChords[8, 1] = "D#";
-			MusicMajorChords[9, 1] = "E";
-			MusicMajorChords[10, 1] = "F";
-			MusicMajorChords[11, 1] = "F#";
-			MusicMinorChords[0, 0] = "Gm";
-			MusicMinorChords[1, 0] = "Abm";
-			MusicMinorChords[2, 0] = "Am";
-			MusicMinorChords[3, 0] = "Bbm";
-			MusicMinorChords[4, 0] = "Bm";
-			MusicMinorChords[5, 0] = "Cm";
-			MusicMinorChords[6, 0] = "Dbm";
-			MusicMinorChords[7, 0] = "Dm";
-			MusicMinorChords[8, 0] = "Ebm";
-			MusicMinorChords[9, 0] = "Em";
-			MusicMinorChords[10, 0] = "Fm";
-			MusicMinorChords[11, 0] = "Gbm";
-			MusicMinorChords[0, 1] = "Gm";
-			MusicMinorChords[1, 1] = "G#m";
-			MusicMinorChords[2, 1] = "Am";
-			MusicMinorChords[3, 1] = "A#m";
-			MusicMinorChords[4, 1] = "Bm";
-			MusicMinorChords[5, 1] = "Cm";
-			MusicMinorChords[6, 1] = "C#m";
-			MusicMinorChords[7, 1] = "Dm";
-			MusicMinorChords[8, 1] = "D#m";
-			MusicMinorChords[9, 1] = "Em";
-			MusicMinorChords[10, 1] = "Fm";
-			MusicMinorChords[11, 1] = "F#m";
+			MusicMajorChords[i, 0] = majorChords0[i];
+			MusicMajorChords[i, 1] = majorChords1[i];
 		}
+
+		string[] minorChords0 = { "Gm", "Abm", "Am", "Bbm", "Bm", "Cm", "Dbm", "Dm", "Ebm", "Em", "Fm", "Gbm" };
+		string[] minorChords1 = { "Gm", "G#m", "Am", "A#m", "Bm", "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m" };
+		for (int i = 0; i < 12; i++)
+		{
+			MusicMinorChords[i, 0] = minorChords0[i];
+			MusicMinorChords[i, 1] = minorChords1[i];
+		}
+	}
 
 		public static void SingleArraySort(string[] InArray)
 		{
@@ -1702,41 +1604,41 @@ namespace Easislides
 			}
 			else
 			{
-				stringBuilder.Append(Convert.ToString(11) + "=" + Convert.ToString(PanelBackColour.ToArgb()) + '>');
-				stringBuilder.Append(Convert.ToString(12) + "=" + Convert.ToString(PanelBackColourTransparent) + '>');
-				stringBuilder.Append(Convert.ToString(13) + "=" + Convert.ToString(PanelTextColour.ToArgb()) + '>');
-				stringBuilder.Append(Convert.ToString(14) + "=" + Convert.ToString(PanelTextColourAsRegion1) + '>');
-				stringBuilder.Append(Convert.ToString(15) + "=" + Convert.ToString(ShowDataDisplayMode + ShowDataDisplaySlides * 2 + ShowDataDisplaySongs * 4 + ShowDataDisplayTitle * 8 + ShowDataDisplayCopyright * 16 + ShowDataDisplayPrevNext * 32) + '>');
-				stringBuilder.Append(Convert.ToString(16) + "=" + Convert.ToString((int)(BottomBorderFactor * 100.0)) + '>');
-				stringBuilder.Append(Convert.ToString(17) + "=" + ShowDataDisplayFontName + '>');
-				stringBuilder.Append(Convert.ToString(18) + "=" + Convert.ToString(ShowDataDisplayFontBold + ShowDataDisplayFontItalic * 2 + ShowDataDisplayFontUnderline * 4 + ShowDataDisplayFontShadow * 8 + ShowDataDisplayFontOutline * 16) + '>');
-				stringBuilder.Append(Convert.ToString(19) + "=" + Convert.ToString(ShowDataDisplayIndicatorsFontSize) + '>');
-				stringBuilder.Append(Convert.ToString(21) + "=" + Convert.ToString(ShowSongHeadings) + '>');
-				stringBuilder.Append(Convert.ToString(23) + "=" + Convert.ToString(ShowSongHeadingsAlign) + '>');
-				stringBuilder.Append(Convert.ToString(22) + "=" + Convert.ToString(UseShadowFont * 2 + ShowNotations * 4 + ShowCapoZero * 8 + ShowInterlace * 16 + UseOutlineFont * 32) + '>');
-				stringBuilder.Append(Convert.ToString(25) + "=" + Convert.ToString(ShowLyrics) + '>');
-				stringBuilder.Append(Convert.ToString(26) + "=" + Convert.ToString(ShowScreenColour[0].ToArgb()) + '>');
-				stringBuilder.Append(Convert.ToString(27) + "=" + Convert.ToString(ShowScreenColour[1].ToArgb()) + '>');
-				stringBuilder.Append(Convert.ToString(28) + "=" + ShowScreenStyle.ToString() + '>');
-				stringBuilder.Append(Convert.ToString(29) + "=" + Convert.ToString(ShowFontColour[0].ToArgb()) + '>');
-				stringBuilder.Append(Convert.ToString(30) + "=" + Convert.ToString(ShowFontColour[1].ToArgb()) + '>');
-				stringBuilder.Append(Convert.ToString(31) + "=" + Convert.ToString(ShowFontAlign[0, 0]) + '>');
-				stringBuilder.Append(Convert.ToString(32) + "=" + Convert.ToString(ShowFontAlign[0, 1]) + '>');
-				stringBuilder.Append(Convert.ToString(50) + "=" + Convert.ToString(MediaOption) + '>');
-				stringBuilder.Append(Convert.ToString(51) + "=" + MediaLocation + '>');
-				stringBuilder.Append(Convert.ToString(52) + "=" + Convert.ToString(MediaVolume) + '>');
-				stringBuilder.Append(Convert.ToString(53) + "=" + Convert.ToString(MediaBalance) + '>');
-				stringBuilder.Append(Convert.ToString(54) + "=" + num.ToString() + '>');
-				stringBuilder.Append(Convert.ToString(55) + "=" + MediaCaptureDeviceNumber.ToString() + '>');
-				stringBuilder.Append(Convert.ToString(56) + "=" + MediaOutputMonitorName + '>');
-				stringBuilder.Append(Convert.ToString(61) + "=" + BackgroundPicture + '>');
-				stringBuilder.Append(Convert.ToString(62) + "=" + Convert.ToString((int)BackgroundMode) + '>');
-				stringBuilder.Append(Convert.ToString(63) + "=" + Convert.ToString(ShowVerticalAlign) + '>');
-				stringBuilder.Append(Convert.ToString(64) + "=" + Convert.ToString(ShowLeftMargin[0]) + '>');
-				stringBuilder.Append(Convert.ToString(65) + "=" + Convert.ToString(ShowRightMargin[0]) + '>');
-				stringBuilder.Append(Convert.ToString(66) + "=" + Convert.ToString(ShowBottomMargin[0]) + '>');
-				stringBuilder.Append(Convert.ToString(72) + "=" + GlobalImageCanvas.GetTransitionText(ShowItemTransition) + '>');
-				stringBuilder.Append(Convert.ToString(73) + "=" + GlobalImageCanvas.GetTransitionText(ShowSlideTransition) + '>');
+				stringBuilder.AppendFormat("{0}={1}>", 11, Convert.ToString(PanelBackColour.ToArgb()));
+				stringBuilder.AppendFormat("{0}={1}>", 12, PanelBackColourTransparent);
+				stringBuilder.AppendFormat("{0}={1}>", 13, Convert.ToString(PanelTextColour.ToArgb()));
+				stringBuilder.AppendFormat("{0}={1}>", 14, PanelTextColourAsRegion1);
+				stringBuilder.AppendFormat("{0}={1}>", 15, ShowDataDisplayMode + ShowDataDisplaySlides * 2 + ShowDataDisplaySongs * 4 + ShowDataDisplayTitle * 8 + ShowDataDisplayCopyright * 16 + ShowDataDisplayPrevNext * 32);
+				stringBuilder.AppendFormat("{0}={1}>", 16, Convert.ToString((int)(BottomBorderFactor * 100.0)));
+				stringBuilder.AppendFormat("{0}={1}>", 17, ShowDataDisplayFontName);
+				stringBuilder.AppendFormat("{0}={1}>", 18, ShowDataDisplayFontBold + ShowDataDisplayFontItalic * 2 + ShowDataDisplayFontUnderline * 4 + ShowDataDisplayFontShadow * 8 + ShowDataDisplayFontOutline * 16);
+				stringBuilder.AppendFormat("{0}={1}>", 19, ShowDataDisplayIndicatorsFontSize);
+				stringBuilder.AppendFormat("{0}={1}>", 21, ShowSongHeadings);
+				stringBuilder.AppendFormat("{0}={1}>", 23, ShowSongHeadingsAlign);
+				stringBuilder.AppendFormat("{0}={1}>", 22, UseShadowFont * 2 + ShowNotations * 4 + ShowCapoZero * 8 + ShowInterlace * 16 + UseOutlineFont * 32);
+				stringBuilder.AppendFormat("{0}={1}>", 25, ShowLyrics);
+				stringBuilder.AppendFormat("{0}={1}>", 26, Convert.ToString(ShowScreenColour[0].ToArgb()));
+				stringBuilder.AppendFormat("{0}={1}>", 27, Convert.ToString(ShowScreenColour[1].ToArgb()));
+				stringBuilder.AppendFormat("{0}={1}>", 28, ShowScreenStyle.ToString());
+				stringBuilder.AppendFormat("{0}={1}>", 29, Convert.ToString(ShowFontColour[0].ToArgb()));
+				stringBuilder.AppendFormat("{0}={1}>", 30, Convert.ToString(ShowFontColour[1].ToArgb()));
+				stringBuilder.AppendFormat("{0}={1}>", 31, ShowFontAlign[0, 0]);
+				stringBuilder.AppendFormat("{0}={1}>", 32, ShowFontAlign[0, 1]);
+				stringBuilder.AppendFormat("{0}={1}>", 50, MediaOption);
+				stringBuilder.AppendFormat("{0}={1}>", 51, MediaLocation);
+				stringBuilder.AppendFormat("{0}={1}>", 52, MediaVolume);
+				stringBuilder.AppendFormat("{0}={1}>", 53, MediaBalance);
+				stringBuilder.AppendFormat("{0}={1}>", 54, num.ToString());
+				stringBuilder.AppendFormat("{0}={1}>", 55, MediaCaptureDeviceNumber.ToString());
+				stringBuilder.AppendFormat("{0}={1}>", 56, MediaOutputMonitorName);
+				stringBuilder.AppendFormat("{0}={1}>", 61, BackgroundPicture);
+				stringBuilder.AppendFormat("{0}={1}>", 62, Convert.ToString((int)BackgroundMode));
+				stringBuilder.AppendFormat("{0}={1}>", 63, ShowVerticalAlign);
+				stringBuilder.AppendFormat("{0}={1}>", 64, ShowLeftMargin[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 65, ShowRightMargin[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 66, ShowBottomMargin[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 72, GlobalImageCanvas.GetTransitionText(ShowItemTransition));
+				stringBuilder.AppendFormat("{0}={1}>", 73, GlobalImageCanvas.GetTransitionText(ShowSlideTransition));
 				for (int i = 0; i < 8; i++)
 				{
 					int num2 = 101 + i * 5;
@@ -1744,17 +1646,17 @@ namespace Easislides
 					stringBuilder.Append(Convert.ToString(num2 + 1) + "=" + PB_WordsSize[i].ToString() + '>');
 					stringBuilder.Append(Convert.ToString(num2 + 2) + "=" + Convert.ToString(PB_WordsColour[i].ToArgb()) + '>');
 				}
-				stringBuilder.Append(Convert.ToString(151) + "=" + Convert.ToString(PB_ShowHeadings[0] + PB_ShowHeadings[1] * 2 + PB_ShowHeadings[2] * 4 + PB_ShowHeadings[3] * 8) + '>');
-				stringBuilder.Append(Convert.ToString(153) + "=" + Convert.ToString(PB_LyricsPattern) + '>');
-				stringBuilder.Append(Convert.ToString(154) + "=" + Convert.ToString(PB_ShowSection) + '>');
-				stringBuilder.Append(Convert.ToString(155) + "=" + Convert.ToString(PB_ShowColumns) + '>');
-				stringBuilder.Append(Convert.ToString(156) + "=" + Convert.ToString(PB_PageSize) + '>');
-				stringBuilder.Append(Convert.ToString(170) + "=" + Convert.ToString(PB_Spacing[0]) + '>');
-				stringBuilder.Append(Convert.ToString(171) + "=" + Convert.ToString(PB_Spacing[1]) + '>');
-				stringBuilder.Append(Convert.ToString(172) + "=" + Convert.ToString(PB_ShowScreenBreaks) + '>');
-				stringBuilder.Append(Convert.ToString(173) + "=" + Convert.ToString(PB_OneSongPerPage) + '>');
-				stringBuilder.Append(Convert.ToString(174) + "=" + Convert.ToString(PB_CJKGroupStyle) + '>');
-				stringBuilder.Append(Convert.ToString(180) + "=" + Convert.ToString(PB_ShowNotations + PB_ShowTiming * 2 + PB_ShowKey * 4 + PB_ShowCapo * 8 + PB_CapoZero * 16) + '>');
+				stringBuilder.AppendFormat("{0}={1}>", 151, PB_ShowHeadings[0] + PB_ShowHeadings[1] * 2 + PB_ShowHeadings[2] * 4 + PB_ShowHeadings[3] * 8);
+				stringBuilder.AppendFormat("{0}={1}>", 153, PB_LyricsPattern);
+				stringBuilder.AppendFormat("{0}={1}>", 154, PB_ShowSection);
+				stringBuilder.AppendFormat("{0}={1}>", 155, PB_ShowColumns);
+				stringBuilder.AppendFormat("{0}={1}>", 156, PB_PageSize);
+				stringBuilder.AppendFormat("{0}={1}>", 170, PB_Spacing[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 171, PB_Spacing[1]);
+				stringBuilder.AppendFormat("{0}={1}>", 172, PB_ShowScreenBreaks);
+				stringBuilder.AppendFormat("{0}={1}>", 173, PB_OneSongPerPage);
+				stringBuilder.AppendFormat("{0}={1}>", 174, PB_CJKGroupStyle);
+				stringBuilder.AppendFormat("{0}={1}>", 180, PB_ShowNotations + PB_ShowTiming * 2 + PB_ShowKey * 4 + PB_ShowCapo * 8 + PB_CapoZero * 16);
 			}
 			xtw.WriteStartElement("ListHeader");
 			xtw.WriteElementString("SystemID", SystemID);
@@ -1920,7 +1822,7 @@ namespace Easislides
 		public static string CombineSettings(SongSettings InItem)
 		{
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.Append(Convert.ToString(10) + "=" + InItem.RotateString + '>');
+			stringBuilder.AppendFormat("{0}={1}>", 10, InItem.RotateString);
 			return stringBuilder.ToString();
 		}
 
@@ -1941,8 +1843,9 @@ namespace Easislides
 				WordDoc wordDoc = new WordDoc();
 				return wordDoc.GetContents(InFileName).Replace("\v", "\n");
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Exception in SetColoursFormat: {ex.Message}");
 			}
 			return "";
 		}
