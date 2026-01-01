@@ -52,11 +52,9 @@ namespace Easislides
 				int num = 0;
 				ListViewItem listViewItem = new ListViewItem();
 				string fullSearchString = "select * from SONG where FolderNo=" + 0 + " order by LastModified";
-#if DAO
-				using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
 				using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
+
 				SongsList.Sorting = SortOrder.None;
 				if (datatable.Rows.Count > 0)
 				{

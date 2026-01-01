@@ -9553,11 +9553,7 @@ namespace Easislides
             string text = "";
             int num = 0;
 
-#if OleDb
-			using OleDbConnection connection = DbConnectionController.GetOleDbConnection(gf.ConnectStringMainDB);
-#elif SQLite
             using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-#endif
 
             gf.AdHocItemPresent = ((gf.OutputItem.Source != ItemSource.WorshipList) ? true : false);
             for (int i = 0; i <= WorshipListItems.Items.Count - ((!gf.AdHocItemPresent) ? 1 : 0); i++)
@@ -9588,11 +9584,7 @@ namespace Easislides
                     int num3 = 0;
                     try
                     {
-#if OleDb
-						using OleDbCommand comm = new OleDbCommand($"Select FolderNo From SONG Where SONGID={text4}", connection);
-#elif SQLite
                         using DbCommand comm = new DbCommand($"Select FolderNo From SONG Where SONGID={text4}", connection);
-#endif
 
                         object objValue = comm.ExecuteScalar();
 
@@ -11586,25 +11578,15 @@ namespace Easislides
             }
             try
             {
-#if OleDb
-				using OleDbConnection connection = DbConnectionController.GetOleDbConnection(gf.ConnectStringUsageDB);
-#elif SQLite
                 using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringUsageDB);
-#endif
-
-                string text = "";
+               string text = "";
                 for (int i = 0; i < WorshipListItems.Items.Count; i++)
                 {
                     if (DataUtil.Left(WorshipListItems.Items[i].SubItems[1].Text, 1) == "D")
                     {
                         num2 = i + 1;
                         text = "Insert into [USAGE] (WORSHIP_DATE,WORSHIP_LIST,SONG_TITLE,SONG_NUMBER,SONG_ID,ADMIN_1,ADMIN_2) Values (?,?,?,?,?,?,?)";
-#if OleDb
-						using OleDbCommand command = new OleDbCommand(text, connection);
-#elif SQLite
                         using DbCommand command = new DbCommand(text, connection);
-#endif
-
                         flag = true;
                         command.CommandText = text;
                         command.Parameters.AddWithValue("@WORSHIP_DATE", DateTime.Now.Date);

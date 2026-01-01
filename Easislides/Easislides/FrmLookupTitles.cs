@@ -193,11 +193,7 @@ namespace Easislides
 			{
 				ListViewItem listViewItem = new ListViewItem();
 				string fullSearchString = "select * from SONG where title_1 like \"" + gf.Lookup_NameSelected + "\" and folderno > 0 order by cjk_strokecount";
-#if OleDb
-				using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
 				using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
 				if (datatable.Rows.Count>0)
 				{
 					//recordSet.MoveFirst();

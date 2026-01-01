@@ -182,11 +182,8 @@ namespace Easislides
 			HtmlItem.SplitScreens = false;
 		}
 
-#if OleDb
-		private void LookupSong(OleDbConnection connection)
-#elif SQLite
+
 		private void LookupSong(DbConnection connection)
-#endif
 		{
 			try
 			{
@@ -197,11 +194,7 @@ namespace Easislides
 				//Database database = workspace.OpenDatabase(connection.DataSource, false, false);
 				string name = "select * from SONG where songid=" + DataUtil.Right(gf.DocumentSongs[CurrentSong, 0], gf.DocumentSongs[CurrentSong, 0].Length - 1);
 
-#if OleDb
-				using DataTable dt = DbOleDbController.getDataTable(connection, name);
-#elif SQLite
 				using DataTable dt = DbController.GetDataTable(connection, name);
-#endif
 				if (dt.Rows.Count > 0)
 				{
 					DataRow dr = dt.Rows[0];
@@ -352,11 +345,8 @@ namespace Easislides
 				string text8 = "";
 				int num7 = 0;
 				SongFolderLog = new int[gf.TotalPraiseBookItems];
-#if OleDb
-				using OleDbConnection connection = DbConnectionController.GetOleDbConnection(gf.ConnectStringMainDB);
-#elif SQLite
+
 				using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-#endif
 				for (int i = 0; i < gf.TotalPraiseBookItems; i++)
 				{
 					num7 = (i + 1) * 100 / gf.TotalPraiseBookItems;

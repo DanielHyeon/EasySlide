@@ -496,21 +496,7 @@ namespace Easislides
 				//OleDbConnection connection = new OleDbConnection(gf.ConnectStringUsageDB);
 				//connection.Open();
 				//using (OleDbConnection daoDb = DatabaseController.GetOleDbConnection(gf.ConnectStringUsageDB))
-#if OleDb
-				using OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringUsageDB);
-				
-				CompleteQuery = "SELECT * FROM [USAGE] WHERE WORSHIP_DATE >= @WORSHIP_DATE_FROM and WORSHIP_DATE <= @WORSHIP_DATE_TO order by WORSHIP_DATE";
-				using OleDbCommand command = new OleDbCommand(CompleteQuery, daoDb);
-				command.Parameters.AddWithValue("@WORSHIP_DATE_FROM", CalendarFrom.SelectionStart.Date);
-				command.Parameters.AddWithValue("@WORSHIP_DATE_TO", CalendarTo.SelectionStart.Date);
-				command.CommandText = CompleteQuery;
 
-				using OleDbDataAdapter oleDbDataAdapter = new OleDbDataAdapter(command);
-				DataSet dataSet = new DataSet();
-				oleDbDataAdapter.Fill(dataSet);
-
-				using DataTableReader dataTableReader = dataSet.Tables[0].CreateDataReader();
-#elif SQLite
 				using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringUsageDB);
 				CompleteQuery = "SELECT * FROM [USAGE] WHERE WORSHIP_DATE >= @WORSHIP_DATE_FROM and WORSHIP_DATE <= @WORSHIP_DATE_TO order by WORSHIP_DATE";
 
@@ -525,7 +511,6 @@ namespace Easislides
 				sQLiteDataAdapter.Fill(dataTable);				
 
 				using DataTableReader dataTableReader = dataTable.CreateDataReader();
-#endif
 
 				while (dataTableReader.Read())
 				{
@@ -694,21 +679,10 @@ namespace Easislides
 					{
 						for (int num = UsageDetails.SelectedItems.Count - 1; num >= 0; num--)
 						{
-#if OleDb
-							using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringUsageDB))
-							{
-								OleDbCommand command = new OleDbCommand("Delete * FROM [USAGE] WHERE REC_ID = " + UsageDetails.SelectedItems[num].SubItems[7].Text, daoDb);
-								//connection.Open();
-								command.ExecuteNonQuery();
-								UsageDetails.SelectedItems[num].Remove();
-								//connection.Close();
-							}
-#elif SQLite
 							using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringUsageDB);
 							DbCommand command = new DbCommand("Delete * FROM [USAGE] WHERE REC_ID = " + UsageDetails.SelectedItems[num].SubItems[7].Text, connection);
 							command.ExecuteNonQuery();
 							UsageDetails.SelectedItems[num].Remove();
-#endif
 						}
 					}
 				}

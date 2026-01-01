@@ -724,11 +724,8 @@ namespace Easislides
 			SongKey.Items.Add("");
 			string fullSearchString = "select DISTINCT Key FROM SONG ORDER BY Key";
 			string text = "";
-#if OleDb
-			using DataTable datatable1 = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
 			using DataTable datatable1 = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
+
 			if (datatable1.Rows.Count > 0)
 			{
 				text = "";
@@ -747,11 +744,9 @@ namespace Easislides
 			SongTiming.Items.Add("");
 			fullSearchString = "select DISTINCT Timing FROM SONG ORDER BY Timing";
 
-#if OleDb
-			using DataTable datatable2 = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
+
 			using DataTable datatable2 = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
+
 			if (datatable2.Rows.Count > 0)
 			{
 				text = "";

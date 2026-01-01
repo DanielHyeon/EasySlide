@@ -1981,11 +1981,7 @@ namespace Easislides
 
             try
             {
-#if OleDb
-			    using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringDef + gf.BiblesListFileName, fullSearchString);
-#elif SQLite
                 using DataTable datatable = DbController.GetDataTable(gf.ConnectSQLiteDef + gf.BiblesListFileName, fullSearchString);
-#endif
                 BibleList.Items.Clear();
                 if (datatable.Rows.Count > 0)
                 {
@@ -2245,104 +2241,7 @@ namespace Easislides
             }
         }
 
-#if OleDb
-        public void SaveBibleChanges()
-        {
-            string text = "";
-            using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringDef + gf.BiblesListFileName))
-            {
-                OleDbDataAdapter da;
-                DataSet ds;
-                DataTable dt;
-                try
-                {
-                    string query = "select * from Biblefolder where NAME like \"*\" ";
-#if ODBC
-                    query = query.Replace("\"*\"", "\"%\"");
-#endif
-                    (da, ds) = DbOleDbController.getDataAdapter(daoDb, query);
-                    dt = ds.Tables[0];
-                    if (dt.Rows.Count > 0)
-                    {
-                        foreach (DataRow dr in dt.Rows)
-                        {
-                            dr["displayorder"] = -1;
-                        }
-                        da.Update(dt);
-                        dt.Dispose();
-                        da.Dispose();
-                    }
 
-
-                    for (int i = 0; i < BibleList.Items.Count; i++)
-                    {
-                        (da, ds) = DbOleDbController.getDataAdapter(daoDb, "select * from Biblefolder where FILENAME = \"" + BibleList.Items[i].SubItems[2].Text + "\"");
-                        dt = ds.Tables[0];
-                        if (dt.Rows.Count > 0)
-                        {
-                            DataRow dr = dt.Rows[i];
-                            //recordset.Edit();
-                            dr["name"] = BibleList.Items[i].Text;
-                            dr["description"] = BibleList.Items[i].SubItems[1].Text;
-                            dr["filename"] = BibleList.Items[i].SubItems[2].Text;
-                            dr["copyright"] = BibleList.Items[i].SubItems[3].Text;
-                            dr["songfolder"] = BibleList.Items[i].SubItems[4].Text;
-                            int num = (BibleList.Items[i].SubItems[5].Text == "") ? 1 : Convert.ToInt32(BibleList.Items[i].SubItems[5].Text);
-                            dr["size"] = num;
-                            dr["displayorder"] = i;
-                        }
-                        else
-                        {
-                            query = "select * from Biblefolder where NAME like \"*\" ";
-#if ODBC
-                            query = query.Replace("\"*\"", "\"%\"");
-#endif
-                            (da, ds) = DbOleDbController.getDataAdapter(daoDb, query);
-                            dt = ds.Tables[0];
-                            DataRow dr = dt.NewRow();
-                            dr["name"] = BibleList.Items[i].Text;
-                            dr["description"] = BibleList.Items[i].SubItems[1].Text;
-                            dr["filename"] = BibleList.Items[i].SubItems[2].Text;
-                            dr["copyright"] = BibleList.Items[i].SubItems[3].Text;
-                            dr["songfolder"] = BibleList.Items[i].SubItems[4].Text;
-                            int num = (BibleList.Items[i].SubItems[5].Text == "") ? 1 : Convert.ToInt32(BibleList.Items[i].SubItems[5].Text);
-                            dr["size"] = num;
-                            dr["displayorder"] = i;
-                        }
-                        da.Update(dt);
-                        dt.Dispose();
-                        da.Dispose();
-
-                        gf.HB_Versions[i, 1] = BibleList.Items[i].Text;
-                        gf.HB_Versions[i, 2] = BibleList.Items[i].SubItems[1].Text;
-                        gf.HB_Versions[i, 4] = gf.BibleDir + BibleList.Items[i].SubItems[2].Text;
-                        gf.HB_Versions[i, 3] = BibleList.Items[i].SubItems[3].Text;
-                        gf.HB_Versions[i, 5] = BibleList.Items[i].SubItems[4].Text;
-                        gf.HB_Versions[i, 6] = BibleList.Items[i].SubItems[5].Text;
-                    }
-                    gf.HB_TotalVersions = BibleList.Items.Count;
-                    (da, ds) = DbOleDbController.getDataAdapter(daoDb, "select * from Biblefolder where displayorder < 0 ");
-                    dt = ds.Tables[0];
-                    if (dt.Rows.Count > 0)
-                    {
-                        for (int i = 0; i < dt.Rows.Count; i++)
-                        {
-                            dt.Rows[i].Delete();
-                        }
-                        da.Update(dt);
-                    }
-
-                    dt.Dispose();
-                    da.Dispose();
-
-                }
-                catch
-                {
-                }
-            }
-        }
-
-#elif SQLite
         public void SaveBibleChanges()
         {
             using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringSQLiteDef + gf.BiblesListFileName);
@@ -2426,9 +2325,8 @@ namespace Easislides
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
             }
-
         }
-#endif
+
         private void btnBibleNameChange_Click(object sender, EventArgs e)
         {
             int selectedIndex = gf.GetSelectedIndex(BibleList);

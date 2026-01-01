@@ -162,32 +162,7 @@ namespace Easislides
 
 		private bool LoadTables()
 		{
-#if OleDb
-			using OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringDef + gf.Import_AccessFileName);
 
-			TablesList.Items.Clear();
-			try
-			{
-				string[] restrictions = new string[4];
-				restrictions[3] = "Table";
-				DataTable userTables = daoDb.GetSchema("Tables", restrictions);
-
-				for (int i = 0; i < userTables.Rows.Count; i++)
-				{
-					string tableDefName = userTables.Rows[i][2].ToString();
-
-					if (DataUtil.Left(tableDefName, 4).ToLower() != "msys")
-					{
-						TablesList.Items.Add(tableDefName);
-					}
-				}
-			}
-			catch
-			{
-				MessageBox.Show("There was an error reading the Access Database File - please make sure its a proper Access Database File filled with data");
-				return false;
-			}
-#elif SQLite
 			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringSQLiteDef + gf.Import_AccessFileName);
 
 			TablesList.Items.Clear();
@@ -212,7 +187,6 @@ namespace Easislides
 				MessageBox.Show("There was an error reading the Access Database File - please make sure its a proper Access Database File filled with data");
 				return false;
 			}
-#endif
 
 			if (TablesList.Items.Count > 0)
 			{
@@ -223,11 +197,8 @@ namespace Easislides
 			return false;
 		}
 
-#if OleDb
-		public bool TableNameExists(OleDbConnection connection, string TableName)
-#elif SQLite
+
 		public bool TableNameExists(DbConnection connection, string TableName)
-#endif
 		{
 			try
 			{
@@ -248,22 +219,7 @@ namespace Easislides
 				MessageBox.Show("Please select a Database Table under Step 1.");
 				return;
 			}
-#if OldeDb
-			using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringDef + gf.Import_AccessFileName))
-			{				
-				if (!TableNameExists(daoDb, text))
-				{
-					MessageBox.Show("Error Encountered - Cannot find the table " + text + " in the Access Database");
-					return;
-				}
-				ClearColumns();
-				AssignedTitle.Items.Add("");
-				foreach (DataColumn field in daoDb.GetSchema(text).Columns)
-				{
-					AssignedTitle.Items.Add(field.ColumnName);
-				}
-			}
-#elif SQLite
+
 			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringSQLiteDef + gf.Import_AccessFileName);
 
 			if (!TableNameExists(connection, text))
@@ -278,7 +234,6 @@ namespace Easislides
 				AssignedTitle.Items.Add(field.ColumnName);
 			}
 
-#endif
 			if (AssignedTitle.Items.Count != 0)
 			{
 				string text2 = "";
@@ -336,11 +291,8 @@ namespace Easislides
 			Cursor = Cursors.WaitCursor;
 			string fullSearchString = "select * from [" + TablesList.Text + "]";
 
-#if OleDb
-			using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringDef + gf.Import_AccessFileName, fullSearchString);
-#elif SQLite
 			using DataTable datatable = DbController.GetDataTable(gf.ConnectSQLiteDef + gf.Import_AccessFileName, fullSearchString);
-#endif
+
 			int num = 0;
 			if (datatable.Rows.Count > 0)
 			{

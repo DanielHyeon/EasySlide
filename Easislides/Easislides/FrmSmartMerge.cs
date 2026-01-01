@@ -292,67 +292,7 @@ namespace Easislides
 			text = ((!OptionSourceBTitle1.Checked) ? "Title_2" : "Title_1");
 			int num = 0;
 			int num2 = 0;
-#if OleDb
-			try
-			{
-				using(DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, inName))
-				{
-					using (OleDbConnection daoDb = DbConnectionController.GetOleDbConnection(gf.ConnectStringMainDB))
-					{
-						if (datatable.Rows.Count > 0)
-						{
-							//recordSet.MoveFirst();
-							//while (!recordSet.EOF)
-							foreach (DataRow dr in datatable.Rows)
-							{
-								SongID1 = DataUtil.ObjToInt(dr["SongID"]);
-								string text2 = (!OptionSourceATitle1.Checked) ? DataUtil.ObjToString(dr["Title_2"]) : DataUtil.ObjToString(dr["Title_1"]);
-								if (DataUtil.Trim(text2) != "")
-								{
-									string text3 = DataUtil.ObjToString(dr["Title_1"]);
-									string inName2 = SongFolderB.Items[SongFolderB.SelectedIndex].ToString();
-									inName2 = "select * from SONG where Folderno=" + gf.GetFolderNumber(inName2) + " and LCase(" + text + ") like LCase(\"" + text2 + "\") ";
-									try
-									{
-										DataTable recordSet2 = DbOleDbController.getDataTable(daoDb, inName2);
-										if (recordSet2.Rows.Count > 0)
-										{
-											//recordSet2.MoveFirst();
-											//while (!recordSet2.EOF)
-											foreach (DataRow dr1 in recordSet2.Rows)
-											{
-												SongID2 = DataUtil.ObjToInt(dr1["SongID"]);
-												num2++;
-												string initTitle = GetInitTitle(DataUtil.ObjToString(dr1["Title_1"]));
-												string text4 = text3 + (OptionNewTitleA.Checked ? (" (" + initTitle + ")") : "");
-												listViewItem = TempSongsList.Items.Add(DataUtil.GetCJKTitle(text4, SortBy.Alpha));
-												listViewItem.SubItems.Add(text4);
-												listViewItem.SubItems.Add(SongID1.ToString());
-												listViewItem.SubItems.Add(SongID2.ToString());
-												listViewItem.SubItems.Add(text3);
-												listViewItem.SubItems.Add(initTitle);
-												//recordSet2.MoveNext();
-											}
-										}
-									}
-									catch (Exception e)
-									{
-										Console.WriteLine(e.Message);
-										Console.WriteLine(e.StackTrace);
-									}
-								}
-								//recordSet.MoveNext();
-							}
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine(ex.StackTrace);
-			}
-#elif SQLite
+
 			try
 			{
 				using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
@@ -403,7 +343,7 @@ namespace Easislides
 				Console.WriteLine(ex.Message);
 				Console.WriteLine(ex.StackTrace);
 			}
-#endif
+
 			TempSongsList.Sorting = SortOrder.Ascending;
 			TempSongsList.Sort();
 			if (TempSongsList.Items.Count > 0)
@@ -508,11 +448,8 @@ namespace Easislides
 			{
 				string fullSearchString = "select * from SONG where songid=" + InID;
 
-#if OleDb
-			    using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
 				using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
+
 				if (datatable.Rows.Count>0)
 				{
 					//recordSet.MoveFirst();

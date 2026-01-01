@@ -21,7 +21,7 @@ namespace Easislides
 
 		public static void FormatText(ref SongSettings InItem, Color PanelBackColour, int PanelBackColorAsScreen, Color PanelTextColor, int PaneltextColourAsRegion1, bool UseDefault)
 		{
-			using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatText", $"folder={(InItem != null ? InItem.FolderNo : -1)} type={(InItem != null ? InItem.Type : "null")} useDefault={UseDefault}") : null;
+			//using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatText", $"folder={(InItem != null ? InItem.FolderNo : -1)} type={(InItem != null ? InItem.Type : "null")} useDefault={UseDefault}") : null;
 			Color[] array = new Color[2];
 			int[] array2 = new int[2];
 			int[] array3 = new int[4];
@@ -338,7 +338,7 @@ namespace Easislides
 
 		public static string CombineLyricsAndNotations(string InText, string InNotations, Font MainFont, Font NotationFont, ref RichTextBox InWorkspace, ref RichTextBox InTempSpace)
 		{
-			using var perf = PerfLog.Enabled ? PerfLog.Scope("CombineLyricsAndNotations", $"textLen={(InText != null ? InText.Length : 0)} notationLen={(InNotations != null ? InNotations.Length : 0)}") : null;
+			//using var perf = PerfLog.Enabled ? PerfLog.Scope("CombineLyricsAndNotations", $"textLen={(InText != null ? InText.Length : 0)} notationLen={(InNotations != null ? InNotations.Length : 0)}") : null;
 			if ((InNotations == "") | (InText == ""))
 			{
 				return InText;
@@ -392,7 +392,7 @@ namespace Easislides
 
 		public static void FormatDisplayLyrics(ref SongSettings InItem, bool PrepareSlides, bool UseStoredSequence)
 		{
-			using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatDisplayLyrics", $"prepare={PrepareSlides} useStored={UseStoredSequence} lyricsLen={(InItem != null && InItem.CompleteLyrics != null ? InItem.CompleteLyrics.Length : 0)}") : null;
+			//using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatDisplayLyrics", $"prepare={PrepareSlides} useStored={UseStoredSequence} lyricsLen={(InItem != null && InItem.CompleteLyrics != null ? InItem.CompleteLyrics.Length : 0)}") : null;
 			int num = InItem.UseDefaultFormat ? ShowNotations : InItem.Format.ShowNotations;
 			int num2 = (!InItem.UseDefaultFormat) ? InItem.Format.TransposeOffset : ((ShowCapoZero == 1) ? IncrementChord(ref InItem.Capo, 0) : 0);
 			int num3 = -1;
@@ -3947,7 +3947,7 @@ namespace Easislides
 
 		public static void SubDivideTextAndNotations(string InString, string InNotation, Font MainFont, Font NotationsFont, ref ListView TextNotationsList, int InWidth)
 		{
-			using var perf = PerfLog.Enabled ? PerfLog.Scope("SubDivideTextAndNotations", $"textLen={(InString != null ? InString.Length : 0)} notationLen={(InNotation != null ? InNotation.Length : 0)} width={InWidth}") : null;
+			//using var perf = PerfLog.Enabled ? PerfLog.Scope("SubDivideTextAndNotations", $"textLen={(InString != null ? InString.Length : 0)} notationLen={(InNotation != null ? InNotation.Length : 0)} width={InWidth}") : null;
 			InWidth /= 15;
 			Graphics graphics = TextNotationsList.CreateGraphics();
 			int num = -1;
@@ -4086,7 +4086,7 @@ namespace Easislides
 
 		public static void DisplaySlidesFormattedLyrics(ref SongSettings InItem, ref RichTextBox InTextBox, bool ScrollToCaret, bool PreviewNotations)
 		{
-			using var perf = PerfLog.Enabled ? PerfLog.Scope("DisplaySlidesFormattedLyrics", $"total={(InItem != null ? InItem.TotalSlides : 0)} previewNotations={PreviewNotations}") : null;
+			//using var perf = PerfLog.Enabled ? PerfLog.Scope("DisplaySlidesFormattedLyrics", $"total={(InItem != null ? InItem.TotalSlides : 0)} previewNotations={PreviewNotations}") : null;
 			InItem.CurSlide = ((InItem.CurSlide < 1) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
 			InItem.FolderNo = ((InItem.FolderNo <= 0) ? 1 : InItem.FolderNo);
 			int num = 0;

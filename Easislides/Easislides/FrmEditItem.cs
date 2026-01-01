@@ -2087,14 +2087,9 @@ namespace Easislides
 				bool flag = false;
 				try
 				{
-#if OleDb
-					string fullSearchString = "select * from SONG where LCase(Title_1) like \"" + SongTitle2.Text.ToLower() + "\"" + SQLFolderLookUp;
-					using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#elif SQLite
 					//string fullSearchString = "select * from SONG where lower(Title_1) like \"" + SongTitle2.Text.ToLower() + "\"" + SQLFolderLookUp;
 					string fullSearchString = $@"select * from SONG where lower(Title_1) like \{SongTitle2.Text.ToLower()}\{SQLFolderLookUp}";
 					using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
-#endif
 
 					if (datatable.Rows.Count > 0)
 					{
