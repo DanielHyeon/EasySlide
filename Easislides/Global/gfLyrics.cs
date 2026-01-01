@@ -2320,209 +2320,225 @@ namespace Easislides
 
 		public static void FormatPlainLyrics(ref RichTextBox InTextBox)
 		{
-			string text = "";
-			string text2 = InTextBox.Text;
-			text = text2.Replace("\r\n", "\n");
-			text = text.Replace("\r", "");
-			for (int num = 99; num > 0; num--)
+			string text = InTextBox.Text.Replace("\r\n", "\n").Replace("\r", "");
+			if (text.Length == 0)
 			{
-				text = text.Replace("Verse   " + num, num.ToString());
-				text = text.Replace("verse   " + num, num.ToString());
-				text = text.Replace("VERSE   " + num, num.ToString());
-				text = text.Replace("Verse  " + num, num.ToString());
-				text = text.Replace("verse  " + num, num.ToString());
-				text = text.Replace("VERSE  " + num, num.ToString());
-				text = text.Replace("Verse   " + num, num.ToString());
-				text = text.Replace("verse   " + num, num.ToString());
-				text = text.Replace("VERSE   " + num, num.ToString());
-				text = text.Replace("Verse  " + num, num.ToString());
-				text = text.Replace("verse  " + num, num.ToString());
-				text = text.Replace("VERSE  " + num, num.ToString());
-				text = text.Replace("Verse " + num, num.ToString());
-				text = text.Replace("verse " + num, num.ToString());
-				text = text.Replace("VERSE " + num, num.ToString());
-				text = text.Replace("Verse" + num, num.ToString());
-				text = text.Replace("verse" + num, num.ToString());
-				text = text.Replace("VERSE" + num, num.ToString());
-				text = text.Replace("Ver   " + num, num.ToString());
-				text = text.Replace("ver   " + num, num.ToString());
-				text = text.Replace("VER   " + num, num.ToString());
-				text = text.Replace("Ver  " + num, num.ToString());
-				text = text.Replace("ver  " + num, num.ToString());
-				text = text.Replace("VER  " + num, num.ToString());
-				text = text.Replace("Ver " + num, num.ToString());
-				text = text.Replace("ver " + num, num.ToString());
-				text = text.Replace("VER " + num, num.ToString());
-				text = text.Replace("Ver" + num, num.ToString());
-				text = text.Replace("ver" + num, num.ToString());
-				text = text.Replace("VER" + num, num.ToString());
-				text = text.Replace("V   " + num, num.ToString());
-				text = text.Replace("v   " + num, num.ToString());
-				text = text.Replace("V  " + num, num.ToString());
-				text = text.Replace("v  " + num, num.ToString());
-				text = text.Replace("V " + num, num.ToString());
-				text = text.Replace("v " + num, num.ToString());
-				text = text.Replace("V" + num, num.ToString());
-				text = text.Replace("v" + num, num.ToString());
+				InTextBox.Text = text;
+				return;
 			}
-			if (text.IndexOf("1") >= 0)
+
+			string[] lines = text.Split('\n');
+			System.Collections.Generic.List<string> outputLines = new System.Collections.Generic.List<string>(lines.Length);
+
+			for (int i = 0; i < lines.Length; i++)
 			{
-				if (DataUtil.Left(text, 7) == "1.     ")
+				string line = lines[i];
+				if (line.Length == 0)
 				{
-					text = "[1]\n" + DataUtil.Mid(text, 8);
+					outputLines.Add("");
+					continue;
 				}
-				else if (DataUtil.Left(text, 6) == "1.    ")
+
+				if (TryNormalizeVersePrefix(line, out string verseNormalized))
 				{
-					text = "[1]\n" + DataUtil.Mid(text, 7);
+					line = verseNormalized;
 				}
-				else if (DataUtil.Left(text, 5) == "1.   ")
+
+				if (TryExtractChorus(line, out string chorusRemainder))
 				{
-					text = "[1]\n" + DataUtil.Mid(text, 6);
+					AppendHeading(outputLines, "[chorus]", chorusRemainder);
+					continue;
 				}
-				else if (DataUtil.Left(text, 4) == "1.  ")
+
+				if (TryExtractNumberHeading(line, out int verseNo, out string numberRemainder))
 				{
-					text = "[1]\n" + DataUtil.Mid(text, 5);
+					AppendHeading(outputLines, "[" + verseNo + "]", numberRemainder);
+					continue;
 				}
-				else if (DataUtil.Left(text, 3) == "1. ")
+
+				outputLines.Add(line);
+			}
+
+			for (int i = 0; i < outputLines.Count; i++)
+			{
+				if (outputLines[i].IndexOf('\t') >= 0)
 				{
-					text = "[1]\n" + DataUtil.Mid(text, 4);
-				}
-				else if (DataUtil.Left(text, 2) == "1.")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 3);
-				}
-				else if (DataUtil.Left(text, 7) == "1:     ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 8);
-				}
-				else if (DataUtil.Left(text, 6) == "1:    ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 7);
-				}
-				else if (DataUtil.Left(text, 5) == "1:   ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 6);
-				}
-				else if (DataUtil.Left(text, 4) == "1:  ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 5);
-				}
-				else if (DataUtil.Left(text, 3) == "1: ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 4);
-				}
-				else if (DataUtil.Left(text, 2) == "1:")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 3);
-				}
-				else if (DataUtil.Left(text, 7) == "1      ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 8);
-				}
-				else if (DataUtil.Left(text, 6) == "1     ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 7);
-				}
-				else if (DataUtil.Left(text, 5) == "1    ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 6);
-				}
-				else if (DataUtil.Left(text, 4) == "1   ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 5);
-				}
-				else if (DataUtil.Left(text, 3) == "1  ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 4);
-				}
-				else if (DataUtil.Left(text, 2) == "1 ")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 3);
-				}
-				else if (DataUtil.Left(text, 2) == "1\n")
-				{
-					text = "[1]\n" + DataUtil.Mid(text, 3);
+					outputLines[i] = outputLines[i].Replace("\t", "");
 				}
 			}
-			for (int num = 99; num > 0; num--)
+
+			System.Collections.Generic.List<string> cleaned = new System.Collections.Generic.List<string>(outputLines.Count);
+			for (int i = 0; i < outputLines.Count; i++)
 			{
-				if (text.IndexOf(num.ToString()) >= 0)
+				string line = outputLines[i];
+				if (IsHeadingLine(line))
 				{
-					text = text.Replace("\n" + num + ".     ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ".    ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ".   ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ".  ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ". ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ".", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ":     ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ":    ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ":   ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ":  ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ": ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + ":", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + "     ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + "    ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + "   ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + "  ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + " ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + " ", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + "\n", "\n[" + num + "]\n");
-					text = text.Replace("\n" + num + "\t", "\n[" + num + "]\n");
-					text = text.Replace("\n\n[" + num + "]", "\n[" + num + "]\n");
-					text = text.Replace("[" + num + "]\n\n", "[" + num + "]\n");
+					if (cleaned.Count > 0 && cleaned[cleaned.Count - 1].Length == 0)
+					{
+						cleaned.RemoveAt(cleaned.Count - 1);
+					}
+					cleaned.Add(line);
+					continue;
+				}
+				if (line.Length == 0 && cleaned.Count > 0 && IsHeadingLine(cleaned[cleaned.Count - 1]))
+				{
+					continue;
+				}
+				cleaned.Add(line);
+			}
+
+			System.Collections.Generic.List<string> collapsed = new System.Collections.Generic.List<string>(cleaned.Count);
+			int emptyRun = 0;
+			for (int i = 0; i < cleaned.Count; i++)
+			{
+				string line = cleaned[i];
+				if (line.Length == 0)
+				{
+					emptyRun++;
+					if (emptyRun <= 2)
+					{
+						collapsed.Add(line);
+					}
+				}
+				else
+				{
+					emptyRun = 0;
+					collapsed.Add(line);
 				}
 			}
-			string text3 = "ChoruS";
-			string text4 = "[chorus]\n";
-			text = text.Replace("\nchorus", "\n" + text3);
-			text = text.Replace("\nChorus", "\n" + text3);
-			text = text.Replace("\nCHORUS", "\n" + text3);
-			if (DataUtil.Left(text, 6) == "chorus")
+
+			string result = string.Join("\n", collapsed);
+			result = result.Replace("\t\n", "\n");
+			result = result.Replace("\n\n[", "\n[");
+			result = DataUtil.TrimEnd(result);
+			if (result.IndexOf("[2]") >= 0 && result.IndexOf("[1]") < 0)
 			{
-				text = text3 + DataUtil.Mid(text, 6);
+				result = "[1]\n" + result;
 			}
-			if (DataUtil.Left(text, 6) == "Chorus")
+			InTextBox.Text = result;
+
+			static void AppendHeading(System.Collections.Generic.List<string> target, string heading, string remainder)
 			{
-				text = text3 + DataUtil.Mid(text, 6);
+				target.Add(heading);
+				if (!string.IsNullOrEmpty(remainder))
+				{
+					target.Add(remainder);
+				}
 			}
-			if (DataUtil.Left(text, 6) == "CHORUS")
+
+			static bool TryExtractNumberHeading(string line, out int verseNo, out string remainder)
 			{
-				text = text3 + DataUtil.Mid(text, 6);
+				verseNo = 0;
+				remainder = "";
+				if (line.Length == 0 || line[0] < '0' || line[0] > '9')
+				{
+					return false;
+				}
+				int index = 0;
+				while (index < line.Length && line[index] >= '0' && line[index] <= '9')
+				{
+					index++;
+				}
+				if (!int.TryParse(line.Substring(0, index), out verseNo) || verseNo < 1 || verseNo > 99)
+				{
+					return false;
+				}
+				if (index < line.Length)
+				{
+					char next = line[index];
+					if (next != '.' && next != ':' && next != ' ' && next != '\t')
+					{
+						return false;
+					}
+				}
+				if (index < line.Length && (line[index] == '.' || line[index] == ':'))
+				{
+					index++;
+				}
+				while (index < line.Length && (line[index] == ' ' || line[index] == '\t'))
+				{
+					index++;
+				}
+				if (index < line.Length)
+				{
+					remainder = line.Substring(index);
+				}
+				return true;
 			}
-			if (text.IndexOf(text3) >= 0)
+
+			static bool TryExtractChorus(string line, out string remainder)
 			{
-				text = text.Replace(text3 + ".     ", text4);
-				text = text.Replace(text3 + ".    ", text4);
-				text = text.Replace(text3 + ".   ", text4);
-				text = text.Replace(text3 + ".  ", text4);
-				text = text.Replace(text3 + ". ", text4);
-				text = text.Replace(text3 + ".", text4);
-				text = text.Replace(text3 + ":     ", text4);
-				text = text.Replace(text3 + ":    ", text4);
-				text = text.Replace(text3 + ":   ", text4);
-				text = text.Replace(text3 + ":  ", text4);
-				text = text.Replace(text3 + ": ", text4);
-				text = text.Replace(text3 + ":", text4);
-				text = text.Replace(text3 + "     ", text4);
-				text = text.Replace(text3 + "    ", text4);
-				text = text.Replace(text3 + "   ", text4);
-				text = text.Replace(text3 + "  ", text4);
-				text = text.Replace(text3 + " ", text4);
-				text = text.Replace(text3 + "\t", text4);
-				text = text.Replace(text3, text4);
-				text = text.Replace("\n\n" + text4, "\n" + text4);
-				text = text.Replace(text4 + "\n", text4);
+				remainder = "";
+				if (line.Length < 6)
+				{
+					return false;
+				}
+				if (!line.StartsWith("chorus", StringComparison.OrdinalIgnoreCase))
+				{
+					return false;
+				}
+				int index = 6;
+				if (index < line.Length && (line[index] == '.' || line[index] == ':'))
+				{
+					index++;
+				}
+				while (index < line.Length && (line[index] == ' ' || line[index] == '\t'))
+				{
+					index++;
+				}
+				if (index < line.Length)
+				{
+					remainder = line.Substring(index);
+				}
+				return true;
 			}
-			if (text.IndexOf("[2]") >= 0 && text.IndexOf("[1]") < 0)
+
+			static bool TryNormalizeVersePrefix(string line, out string normalized)
 			{
-				text = "[1]\n" + text;
+				normalized = line;
+				int prefixLen = 0;
+				if (line.StartsWith("verse", StringComparison.OrdinalIgnoreCase))
+				{
+					prefixLen = 5;
+				}
+				else if (line.StartsWith("ver", StringComparison.OrdinalIgnoreCase))
+				{
+					prefixLen = 3;
+				}
+				else if (line.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+				{
+					prefixLen = 1;
+				}
+				if (prefixLen == 0 || line.Length <= prefixLen)
+				{
+					return false;
+				}
+				int index = prefixLen;
+				while (index < line.Length && (line[index] == ' ' || line[index] == '\t'))
+				{
+					index++;
+				}
+				int startDigits = index;
+				while (index < line.Length && line[index] >= '0' && line[index] <= '9')
+				{
+					index++;
+				}
+				if (index == startDigits)
+				{
+					return false;
+				}
+				if (!int.TryParse(line.Substring(startDigits, index - startDigits), out int verseNo) || verseNo < 1 || verseNo > 99)
+				{
+					return false;
+				}
+				normalized = verseNo + line.Substring(index);
+				return true;
 			}
-			text = text.Replace("\t\n", "\n");
-			text = text.Replace("\t", "");
-			text = text.Replace("\n\n\n", "\n\n");
-			text = text.Replace("\n\n[", "\n[");
-			text = DataUtil.TrimEnd(text);
-			InTextBox.Text = text;
+
+			static bool IsHeadingLine(string line)
+			{
+				return line.Length >= 3 && line[0] == '[' && line[line.Length - 1] == ']';
+			}
 		}
 
 		public static void Merge_Songs(SongSettings InItem1, SongSettings InItem2, ref string CombinedLyrics, ref string CombinedNotations)
