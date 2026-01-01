@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -737,7 +738,9 @@ namespace Easislides
 			{
 				gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
 				File.Copy(text, ExportFileName, overwrite: true);
-				using DataTable dt = DbController.GetDataTable(gf.ConnectStringMainDB, "select * from SONG");
+				List<ListViewItem> checkedItems = GetCheckedSongItems();
+				using DataTable dt = GetSongsForExport(checkedItems);
+				Dictionary<int, DataRow> rowMap = BuildSongRowMap(dt);
 				//tableRecordSet.Index = "PrimaryKey";
 				Cursor = Cursors.WaitCursor;
 				ProgressBar1.Visible = true;
@@ -750,22 +753,20 @@ namespace Easislides
 					{
 						gf.ResetFolder(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), gf.ConnectSQLiteDef + ExportFileName);
 					}
-					for (int i = 0; i < SongsList.Items.Count; i++)
+					for (int i = 0; i < checkedItems.Count; i++)
 					{
-						if (SongsList.Items[i].Checked)
+						int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
+						if (rowMap.TryGetValue(songId, out DataRow row) && gf.LoadDataIntoItem(ref ExportItem, row))
 						{
-							if (gf.LoadDataIntoItem(ref ExportItem, dt, SongsList.Items[i].SubItems[1].Text))
-							{
-								num3 = gf.InsertItemIntoDatabase(gf.ConnectStringDef + ExportFileName, ExportItem);
-							}
-							Update();
-							num = (i + 1) * 100 / TotSongsSel;
-							ProgressBar1.Value = ((num > 100) ? 100 : num);
-							ProgressBar1.Invalidate();
-							if (num3 < 1)
-							{
-								i = SongsList.Items.Count;
-							}
+							num3 = gf.InsertItemIntoDatabase(gf.ConnectStringDef + ExportFileName, ExportItem);
+						}
+						Update();
+						num = (i + 1) * 100 / TotSongsSel;
+						ProgressBar1.Value = ((num > 100) ? 100 : num);
+						ProgressBar1.Invalidate();
+						if (num3 < 1)
+						{
+							i = checkedItems.Count;
 						}
 					}
 					Cursor = Cursors.Default;
@@ -802,12 +803,15 @@ namespace Easislides
 			ProgressBar1.Value = 0;
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.Append("[est3.1]");
-			using DataTable dt = DbController.GetDataTable(gf.ConnectStringMainDB, "select * from SONG");
+			List<ListViewItem> checkedItems = GetCheckedSongItems();
+			using DataTable dt = GetSongsForExport(checkedItems);
+			Dictionary<int, DataRow> rowMap = BuildSongRowMap(dt);
 			//tableRecordSet.Index = "PrimaryKey";
 			Cursor = Cursors.WaitCursor;
-			for (int i = 0; i < SongsList.Items.Count; i++)
+			for (int i = 0; i < checkedItems.Count; i++)
 			{
-				if (!SongsList.Items[i].Checked || !gf.LoadDataIntoItem(ref ExportItem, dt, SongsList.Items[i].SubItems[1].Text))
+				int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
+				if (!rowMap.TryGetValue(songId, out DataRow row) || !gf.LoadDataIntoItem(ref ExportItem, row))
 				{
 					continue;
 				}
@@ -891,7 +895,7 @@ namespace Easislides
 				stringBuilder.Append("\r\n" + ExportItem.CompleteLyrics.Replace("\n", "\r\n"));
 				num++;
 				Update();
-				num2 = num * 100 / TotSongsSel;
+				num2 = (i + 1) * 100 / TotSongsSel;
 				ProgressBar1.Value = ((num2 > 100) ? 100 : num2);
 				ProgressBar1.Invalidate();
 			}
@@ -913,7 +917,9 @@ namespace Easislides
 		private void Export_XMLFormat(string ExportFileName)
 		{
 			gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
-			using DataTable dt = DbController.GetDataTable(gf.ConnectStringMainDB, "select * from SONG");
+			List<ListViewItem> checkedItems = GetCheckedSongItems();
+			using DataTable dt = GetSongsForExport(checkedItems);
+			Dictionary<int, DataRow> rowMap = BuildSongRowMap(dt);
 			//tableRecordSet.Index = "PrimaryKey";
 			Cursor = Cursors.WaitCursor;
 			ProgressBar1.Visible = true;
@@ -927,11 +933,12 @@ namespace Easislides
 				xtw.Formatting = Formatting.Indented;
 				xtw.WriteStartDocument();
 				xtw.WriteStartElement("EasiSlides");
-				for (int i = 0; i < SongsList.Items.Count; i++)
+				for (int i = 0; i < checkedItems.Count; i++)
 				{
-					if (SongsList.Items[i].Checked)
+					int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
+					if (rowMap.TryGetValue(songId, out DataRow row))
 					{
-						if (gf.LoadDataIntoItem(ref ExportItem, dt, SongsList.Items[i].SubItems[1].Text))
+						if (gf.LoadDataIntoItem(ref ExportItem, row))
 						{
 							gf.WriteXMLOneItem(ref xtw, ExportItem, null, ReloadImageData: false);
 							num++;
@@ -957,6 +964,60 @@ namespace Easislides
 				MessageBox.Show("Error encountered when trying to create export file'" + ExportFileName + "'. Export NOT completed.");
 			}
 			ProgressBar1.Value = 0;
+		}
+
+		private List<ListViewItem> GetCheckedSongItems()
+		{
+			List<ListViewItem> items = new List<ListViewItem>(SongsList.CheckedItems.Count);
+			foreach (ListViewItem item in SongsList.Items)
+			{
+				if (item.Checked)
+				{
+					items.Add(item);
+				}
+			}
+			return items;
+		}
+
+		private DataTable GetSongsForExport(List<ListViewItem> checkedItems)
+		{
+			if (checkedItems.Count == 0)
+			{
+				return new DataTable();
+			}
+			List<int> ids = new List<int>(checkedItems.Count);
+			for (int i = 0; i < checkedItems.Count; i++)
+			{
+				int id = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
+				if (id > 0)
+				{
+					ids.Add(id);
+				}
+			}
+			if (ids.Count == 0)
+			{
+				return new DataTable();
+			}
+			string query = "select * from SONG where SONGID in (" + string.Join(",", ids) + ")";
+			return DbController.GetDataTable(gf.ConnectStringMainDB, query);
+		}
+
+		private Dictionary<int, DataRow> BuildSongRowMap(DataTable dt)
+		{
+			Dictionary<int, DataRow> map = new Dictionary<int, DataRow>(dt?.Rows.Count ?? 0);
+			if (dt == null)
+			{
+				return map;
+			}
+			foreach (DataRow row in dt.Rows)
+			{
+				int id = DataUtil.ObjToInt(row["SongID"]);
+				if (id > 0)
+				{
+					map[id] = row;
+				}
+			}
+			return map;
 		}
 
 	}
