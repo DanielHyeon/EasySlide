@@ -1486,6 +1486,7 @@ namespace Easislides
             {
                 FrmMain.frmMain.RemoveHookBlackScreen();
             }
+            FrmMain.frmMain.UpdateBlackScreenShortcut();
 
             if (gf.GlobalHookKey_Arrow || gf.GlobalHookKey_CtrlArrow)
             {

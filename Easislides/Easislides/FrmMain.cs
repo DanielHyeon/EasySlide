@@ -275,6 +275,7 @@ namespace Easislides
             /// Keyboard Hooking ??��
             RemoveHookBlackScreen();
             AddHookBlackScreen();
+            UpdateBlackScreenShortcut();
 
             RemoveHookSlideUpDown();
             AddHookSlideUpDown();
@@ -13858,10 +13859,7 @@ namespace Easislides
 
         private void Menu_BlackScreen_Click(object sender, EventArgs e)
         {
-            if (!gf.GlobalHookKey_F9 && !gf.GlobalHookKey_F10)
-            {
-                LiveBlack(!gf.ShowLiveBlack);
-            }
+            LiveBlack(!gf.ShowLiveBlack);
         }
 
         /// <summary>
@@ -13912,6 +13910,12 @@ namespace Easislides
             catch { }
         }
 
+        public void UpdateBlackScreenShortcut()
+        {
+            // Prevent double-toggle when global black-screen hotkeys are enabled.
+            Menu_BlackScreen.ShortcutKeys = (gf.GlobalHookKey_F9 || gf.GlobalHookKey_F10) ? Keys.None : Keys.F9;
+        }
+
         #region Event handlers of particular events. They will be activated when an appropriate checkbox is checked.
         //daniel ??�� 2024??
         private void HookManager_KeyDown(object sender, KeyEventArgs e)
@@ -13939,9 +13943,11 @@ namespace Easislides
                     break;
                 case Keys.F9 when gf.GlobalHookKey_F9:
                     frmMain.BeginInvoke(new Action(() => { LiveBlack(!gf.ShowLiveBlack); }));
+                    e.Handled = true;
                     break;
                 case Keys.F10 when gf.GlobalHookKey_F10:
                     frmMain.BeginInvoke(new Action(() => { LiveBlack(!gf.ShowLiveBlack); }));
+                    e.Handled = true;
                     break;
             }
         }
