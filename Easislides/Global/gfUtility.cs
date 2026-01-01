@@ -178,11 +178,11 @@ namespace Easislides
 				RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomLeft", DMOption1Left);
 				RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomTop", DMOption1Top);
 				RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomWidth", DMOption1Width);
-				RegUtil.DeleletRegKey("options", "AlwaysTryDualMonitor");
-				RegUtil.DeleletRegKey("options", "DualMonitorOption");
-				RegUtil.DeleletRegKey("options", "DualMonitorOptionCustomLeft");
-				RegUtil.DeleletRegKey("options", "DualMonitorOptionCustomTop");
-				RegUtil.DeleletRegKey("options", "DualMonitorOptionCustomWidth");
+				RegUtil.DeleteRegKey("options", "AlwaysTryDualMonitor");
+				RegUtil.DeleteRegKey("options", "DualMonitorOption");
+				RegUtil.DeleteRegKey("options", "DualMonitorOptionCustomLeft");
+				RegUtil.DeleteRegKey("options", "DualMonitorOptionCustomTop");
+				RegUtil.DeleteRegKey("options", "DualMonitorOptionCustomWidth");
 			}
 		}
 

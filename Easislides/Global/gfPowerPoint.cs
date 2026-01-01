@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -15,6 +16,47 @@ namespace Easislides
 {
     internal unsafe partial class gf
     {
+		private const int ExecutableBufferSize = 260;
+		private const int MaxPowerpointSequence = 49;
+		private const int MaxSlideCount = 1000;
+		private const int SongVerseInitCount = 10;
+		private const int MainWindowWaitCount = 80;
+		private const int MainWindowWaitDelayMs = 100;
+		private const int WindowInitialSearchDelayMs = 1500;
+		private const int WindowRetryDelayMs = 800;
+		private const int WindowRetryCount = 5;
+		private const int WindowHandleFallbackDelayMs = 1000;
+		private const int WindowHandleRetryDelayMs = 500;
+		private const int WindowSettleDelayMs = 300;
+		private const int ForegroundDelayMs = 200;
+		private const int WindowBoundsSlack = 100;
+		private const int WindowTitleBufferSize = 256;
+		private const float PowerpointShowWindowScale = 0.75f;
+
+		private static readonly string[] MediaPlayerWindowKeywords =
+		{
+			"windows media player",
+			"media player",
+			"vlc media player",
+			"vlc",
+			"movies & tv",
+			"films & tv"
+		};
+
+		private static readonly Dictionary<Keys, Keys> KeyRemapTable = new Dictionary<Keys, Keys>
+		{
+			{ Keys.Home, Keys.Left },
+			{ Keys.Prior, Keys.Up },
+			{ Keys.Next, Keys.Down },
+			{ Keys.End, Keys.Right },
+			{ Keys.Left, Keys.Home },
+			{ Keys.Up, Keys.Prior },
+			{ Keys.Down, Keys.Next },
+			{ Keys.Right, Keys.End }
+		};
+		private static readonly Regex InvalidFileNameCharsRegex = new Regex(
+			string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()))),
+			RegexOptions.Compiled);
 
 		public static bool PowerpointPresent()
 		{
@@ -25,7 +67,7 @@ namespace Easislides
 				FileUtil.CreateNewFile(text);
 			}
 			text = '"' + text + '"';
-			string lpResult = new string(' ', 260);
+			string lpResult = new string(' ', ExecutableBufferSize);
 			if (FindExecutable(text, "", lpResult) > 32)
 			{
 				return true;
@@ -33,15 +75,29 @@ namespace Easislides
 			return false;
 		}
 
-		public static string SetPowerpointPreviewPrefix(SongSettings InItem)
+		public static string SetPowerpointPreviewPrefix(SongSettings InItem, bool useTitlePrefix = false)
 		{
 			if (InItem.Type != "P")
 			{
 				return "";
 			}
+
+			if (useTitlePrefix)
+			{
+				string prefixItemName = InvalidFileNameCharsRegex.Replace(InItem.Title, "");
+
+				if (InItem.OutputStyleScreen)
+				{
+					OUTPPFullPath = OUTPPPrefix + "$" + prefixItemName + "$";
+					return OUTPPFullPath;
+				}
+				PREPPFullPath = PREPPPrefix + "$" + prefixItemName + "$";
+				return PREPPFullPath;
+			}
+
 			if (InItem.OutputStyleScreen)
 			{
-				if ((OUTPPSequence < 0) | (OUTPPSequence >= 49))
+				if ((OUTPPSequence < 0) | (OUTPPSequence >= MaxPowerpointSequence))
 				{
 					OUTPPSequence = 0;
 				}
@@ -49,30 +105,12 @@ namespace Easislides
 				OUTPPFullPath = OUTPPPrefix + OUTPPSequence;
 				return OUTPPFullPath;
 			}
-			if ((PREPPSequence < 0) | (PREPPSequence >= 49))
+			if ((PREPPSequence < 0) | (PREPPSequence >= MaxPowerpointSequence))
 			{
 				PREPPSequence = 0;
 			}
 			PREPPSequence++;
 			PREPPFullPath = PREPPPrefix + PREPPSequence;
-			return PREPPFullPath;
-		}
-
-		public static string SetPowerpointPreviewPrefix1(SongSettings InItem)
-		{
-			if (InItem.Type != "P")
-			{
-				return "";
-			}
-			Regex regex = new Regex(string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()))));
-			string prefixItemName = regex.Replace(InItem.Title, "");
-
-			if (InItem.OutputStyleScreen)
-			{
-				OUTPPFullPath = OUTPPPrefix + "$" + prefixItemName + "$";
-				return OUTPPFullPath;
-			}
-			PREPPFullPath = PREPPPrefix + "$" + prefixItemName + "$";
 			return PREPPFullPath;
 		}
 
@@ -88,14 +126,11 @@ namespace Easislides
 
 		public static int RunPowerpointSong(ref SongSettings InItem, ref PowerPoint InPPT, int StartingSlide, bool ShowResult)
 		{
-			for (int i = 1; i <= 1000; i++)
+			for (int i = 1; i <= MaxSlideCount; i++)
 			{
 				InItem.Slide[i, 0] = -1;
 			}
-			for (int i = 0; i <= 9; i++)
-			{
-				InItem.SongVerses[i] = 0;
-			}
+			Array.Fill(InItem.SongVerses, 0, 0, Math.Min(SongVerseInitCount, InItem.SongVerses.Length));
 			InPPT.displayName = OutputMonitorName;
 
 			string text = InPPT.Run(InItem.Path, ref PowerpointList, ref TotalPowerpointItems);
@@ -117,8 +152,8 @@ namespace Easislides
 
 			if (!ShowLiveCam && gf.DualMonitorSelectAutoOption == 1)
 			{
-				float scalef = 0.75f;
-				// ??�쎌???�쎌?????�쎌?????�쎌???�쎈??紐⑤???�쏙?? ??�쎌???�쎄�???��?�???�쎌??
+				float scalef = PowerpointShowWindowScale;
+
 
 				if (DualMonitorMode)
 				{
@@ -145,58 +180,14 @@ namespace Easislides
 
 		public static void ReMapKeyBoard(ref Keys InKey)
 		{
-			if (InKey == Keys.Home)
+			if (KeyBoardOption != 1)
 			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Left;
-				}
+				return;
 			}
-			else if (InKey == Keys.Prior)
+
+			if (KeyRemapTable.TryGetValue(InKey, out Keys mappedKey))
 			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Up;
-				}
-			}
-			else if (InKey == Keys.Next)
-			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Down;
-				}
-			}
-			else if (InKey == Keys.End)
-			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Right;
-				}
-			}
-			else if (InKey == Keys.Left)
-			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Home;
-				}
-			}
-			else if (InKey == Keys.Up)
-			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Prior;
-				}
-			}
-			else if (InKey == Keys.Down)
-			{
-				if (KeyBoardOption == 1)
-				{
-					InKey = Keys.Next;
-				}
-			}
-			else if (InKey == Keys.Right && KeyBoardOption == 1)
-			{
-				InKey = Keys.End;
+				InKey = mappedKey;
 			}
 		}
 
@@ -276,22 +267,22 @@ namespace Easislides
 				if (!IsWindowVisible(hWnd))
 					return true;
 
-				StringBuilder sb = new StringBuilder(256);
-				GetWindowText(hWnd, sb, 256);
+				StringBuilder sb = new StringBuilder(WindowTitleBufferSize);
+				GetWindowText(hWnd, sb, WindowTitleBufferSize);
 				string windowTitle = sb.ToString().ToLower();
 
-				// �???�ぉ?????�� ??��????�??�뼱 ??�뒗吏 ?뺤씤
+
 				if (!string.IsNullOrEmpty(windowTitle))
 				{
 					string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileNameLower);
-					// ???�� ??��??뺤옣????�씠 寃???�?�� ??�컲?곸씤 誘몃�?????��??�뼱 ??��?寃??
+
 					if (windowTitle.Contains(fileNameWithoutExt) ||
-						windowTitle.Contains("windows media player") ||
-						windowTitle.Contains("media player") ||
-						windowTitle.Contains("vlc media player") ||
-						windowTitle.Contains("vlc") ||
-						windowTitle.Contains("movies & tv") ||
-						windowTitle.Contains("films & tv"))
+						windowTitle.Contains(MediaPlayerWindowKeywords[0]) ||
+						windowTitle.Contains(MediaPlayerWindowKeywords[1]) ||
+						windowTitle.Contains(MediaPlayerWindowKeywords[2]) ||
+						windowTitle.Contains(MediaPlayerWindowKeywords[3]) ||
+						windowTitle.Contains(MediaPlayerWindowKeywords[4]) ||
+						windowTitle.Contains(MediaPlayerWindowKeywords[5]))
 					{
 						foundWindow = hWnd;
 						return false; // 李얠�??�㈃ 以묐??
@@ -304,11 +295,41 @@ namespace Easislides
 			return foundWindow;
 		}
 
+		private static IntPtr FindMediaPlayerWindowWithRetries(string fileName, int initialDelayMs, int retryDelayMs, int retryCount)
+		{
+			if (initialDelayMs > 0)
+			{
+				Thread.Sleep(initialDelayMs);
+			}
+
+			IntPtr handle = FindRecentMediaPlayerWindow(fileName);
+			for (int retry = 0; retry < retryCount && handle == IntPtr.Zero; retry++)
+			{
+				Thread.Sleep(retryDelayMs);
+				handle = FindRecentMediaPlayerWindow(fileName);
+			}
+
+			return handle;
+		}
+
+		private static IntPtr WaitForMainWindowHandle(Process process, int maxWaitCount, int waitDelayMs)
+		{
+			int waitCount = 0;
+			while (process.MainWindowHandle == IntPtr.Zero && waitCount < maxWaitCount)
+			{
+				Thread.Sleep(waitDelayMs);
+				process.Refresh();
+				waitCount++;
+			}
+
+			return process.MainWindowHandle;
+		}
+
 		public static bool RunProcessOnMonitor(string InProcessString, string monitorName)
 		{
 			try
 			{
-				// ????紐⑤???李얘�?
+
 				Screen targetScreen = null;
 				foreach (Screen screen in Screen.AllScreens)
 				{
@@ -319,7 +340,6 @@ namespace Easislides
 					}
 				}
 
-				// Primary 紐⑤??�? Secondary�?蹂寃�?�??濡쒖�?(DisplayInfo.cs?? ??�씪)
 				if (monitorName == "Primary")
 				{
 					string secondaryName = DisplayInfo.getSecondryDisplayName();
@@ -335,11 +355,11 @@ namespace Easislides
 
 				if (targetScreen == null)
 				{
-					// 紐⑤??�? 李얠? 紐삵�?��?湲곕????�?
+	
 					return RunProcess(InProcessString);
 				}
 
-				// ?꾨줈?몄뒪 ??�옉
+
 				ProcessStartInfo psi = new ProcessStartInfo
 				{
 					WindowStyle = ProcessWindowStyle.Normal,
@@ -348,27 +368,17 @@ namespace Easislides
 				};
 				Process process = Process.Start(psi);
 
-				// UseShellExecute = true????process媛 null??????�쓬
 				if (process == null)
 				{
-					// ?꾨줈?몄뒪 媛앹�?????�?誘몃�?????��??�뼱????�뻾??
-					// �???�ぉ??�줈 寃??�빐??李얠�????
-					Thread.Sleep(1500); // ???��??�뼱媛 ??�옉?????��吏 ??�?
-					IntPtr foundHandle = FindRecentMediaPlayerWindow(InProcessString);
-
-					// �?李얠?�硫?????�??????(理쒕? 5�? ??4??
-					if (foundHandle == IntPtr.Zero)
-					{
-						for (int retry = 0; retry < 5 && foundHandle == IntPtr.Zero; retry++)
-						{
-							Thread.Sleep(800);
-							foundHandle = FindRecentMediaPlayerWindow(InProcessString);
-						}
-					}
+					IntPtr foundHandle = FindMediaPlayerWindowWithRetries(
+						InProcessString,
+						WindowInitialSearchDelayMs,
+						WindowRetryDelayMs,
+						WindowRetryCount);
 
 					if (foundHandle != IntPtr.Zero)
 					{
-						// Output Monitor�???��?�?理쒕???
+
 						Rectangle targetBounds = targetScreen.Bounds;
 						SetWindowPos(foundHandle, HWND_TOP,
 							targetBounds.X, targetBounds.Y,
@@ -385,79 +395,60 @@ namespace Easislides
 					}
 				}
 
-				// ?꾨줈?몄뒪 李쎌????�꽦?????��吏 ??�?(理쒕? 8?�덈�?利앷?)
-				int maxWait = 80; // 80 * 100ms = 8??
-				int waitCount = 0;
 
-				while (process.MainWindowHandle == IntPtr.Zero && waitCount < maxWait)
-				{
-					Thread.Sleep(100);
-					process.Refresh();
-					waitCount++;
-				}
+				IntPtr handle = WaitForMainWindowHandle(process, MainWindowWaitCount, MainWindowWaitDelayMs);
 
-				IntPtr handle = process.MainWindowHandle;
 
-				// �??몃뱾????? 紐삵�?寃쎌??�???�ぉ??�줈 ?????
 				if (handle == IntPtr.Zero)
 				{
-					// ?�붽? ??�???�???�ぉ??�줈 寃????�룄
-					Thread.Sleep(1000);
-					handle = FindRecentMediaPlayerWindow(InProcessString);
+					handle = FindMediaPlayerWindowWithRetries(
+						InProcessString,
+						WindowHandleFallbackDelayMs,
+						WindowHandleRetryDelayMs,
+						WindowRetryCount);
 
-					// 洹몃???�?李얠?�硫?????�??????
+
 					if (handle == IntPtr.Zero)
 					{
-						for (int retry = 0; retry < 5 && handle == IntPtr.Zero; retry++)
-						{
-							Thread.Sleep(500);
-							handle = FindRecentMediaPlayerWindow(InProcessString);
-						}
-					}
 
-					// 理쒖�?곸쑝濡쒕�?李쎌??李얠? 紐삵�?寃쎌??
-					if (handle == IntPtr.Zero)
-					{
-						Console.WriteLine("RunProcessOnMonitor: �??몃뱾??李얠??????�뒿??�떎. ?꾩튂 ??�뼱 ?�덇?");
-						return true; // ?꾨줈?몄뒪????�뻾??
+						return true; 
 					}
 				}
 
-				// 李쎌??????紐⑤??곕줈 ??��?
 				Rectangle bounds = targetScreen.Bounds;
 
-				// 李쎌???꾩쟾??濡쒕�?????��吏 ?좎떆 ??�?
-				Thread.Sleep(300);
 
-				// �???��?�???�?議곗??
+				Thread.Sleep(WindowSettleDelayMs);
+
+
 				SetWindowPos(handle, HWND_TOP,
 					bounds.X, bounds.Y,
 					bounds.Width, bounds.Height,
 					SWP_SHOWWINDOW);
 
-				// 李쎌???????�슫??�줈 媛?몄삤�?
+
 				SetForegroundWindow(handle);
 
-				// ?좎떆 ??�???理쒕???
-				Thread.Sleep(200);
+
+				Thread.Sleep(ForegroundDelayMs);
 				ShowWindow(handle, SW_MAXIMIZE);
 
-				// 理쒖�??뺤씤: 李쎌?????�???��??�뒗吏 ?뺤씤??��??????
-				Thread.Sleep(300);
+
+				Thread.Sleep(WindowSettleDelayMs);
 				RECT windowRect;
 				if (GetWindowRect(handle, out windowRect))
 				{
-					// 李쎌??紐⑺�?紐⑤????곸뿭????�쑝�???�떆 ??��???�룄
-					if (windowRect.Left < bounds.Left - 100 ||
-						windowRect.Top < bounds.Top - 100 ||
-						windowRect.Left > bounds.Right + 100)
+
+					if (windowRect.Left < bounds.Left - WindowBoundsSlack ||
+						windowRect.Top < bounds.Top - WindowBoundsSlack ||
+						windowRect.Left > bounds.Right + WindowBoundsSlack)
 					{
-						Console.WriteLine($"RunProcessOnMonitor: �??꾩튂 ?????(?꾩옱: {windowRect.Left},{windowRect.Top} -> 紐⑺�? {bounds.X},{bounds.Y})");
+						
 						SetWindowPos(handle, HWND_TOP,
 							bounds.X, bounds.Y,
 							bounds.Width, bounds.Height,
 							SWP_SHOWWINDOW);
-						Thread.Sleep(100);
+						Thread.Sleep(MainWindowWaitDelayMs);
 						ShowWindow(handle, SW_MAXIMIZE);
 					}
 				}

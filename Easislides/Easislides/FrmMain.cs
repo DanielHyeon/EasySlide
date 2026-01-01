@@ -4976,7 +4976,7 @@ namespace Easislides
                 gf.PreviewItem.CurItemNo = num + 1;
                 gf.PreviewItem.TotalItems = WorshipListItems.Items.Count;
 
-                string filePrefix = gf.SetPowerpointPreviewPrefix1(gf.PreviewItem);
+                string filePrefix = gf.SetPowerpointPreviewPrefix(gf.PreviewItem, useTitlePrefix: true);
 
                 // ✅ 캐싱 최적화: 파일이 빌드되지 않았거나 다른 항목으로 변경된 경우에만 로드
                 bool hasPptPathFromList = !string.IsNullOrEmpty(text)
@@ -5294,7 +5294,7 @@ namespace Easislides
                 return;
             }
 
-            string filePrefix = gf.SetPowerpointPreviewPrefix1(InItem);
+            string filePrefix = gf.SetPowerpointPreviewPrefix(InItem, useTitlePrefix: true);
 
             if (InItem.OutputStyleScreen)
             {
