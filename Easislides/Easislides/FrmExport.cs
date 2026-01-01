@@ -737,7 +737,7 @@ namespace Easislides
 			{
 				gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
 				File.Copy(text, ExportFileName, overwrite: true);
-				using DataTable dt = DbController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
+				using DataTable dt = DbController.GetDataTable(gf.ConnectStringMainDB, "select * from SONG");
 				//tableRecordSet.Index = "PrimaryKey";
 				Cursor = Cursors.WaitCursor;
 				ProgressBar1.Visible = true;
@@ -802,7 +802,7 @@ namespace Easislides
 			ProgressBar1.Value = 0;
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.Append("[est3.1]");
-			using DataTable dt = DbController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
+			using DataTable dt = DbController.GetDataTable(gf.ConnectStringMainDB, "select * from SONG");
 			//tableRecordSet.Index = "PrimaryKey";
 			Cursor = Cursors.WaitCursor;
 			for (int i = 0; i < SongsList.Items.Count; i++)
@@ -913,7 +913,7 @@ namespace Easislides
 		private void Export_XMLFormat(string ExportFileName)
 		{
 			gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
-			using DataTable dt = DbController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
+			using DataTable dt = DbController.GetDataTable(gf.ConnectStringMainDB, "select * from SONG");
 			//tableRecordSet.Index = "PrimaryKey";
 			Cursor = Cursors.WaitCursor;
 			ProgressBar1.Visible = true;
