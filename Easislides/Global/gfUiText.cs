@@ -9,6 +9,16 @@ namespace Easislides
 {
 	internal unsafe partial class gf
 	{
+		private enum SlideType
+		{
+			Chorus = 0,
+			Chorus2 = 102,
+			PreChorus = 111,
+			PreChorus2 = 112,
+			Bridge = 100,
+			Bridge2 = 103,
+			Ending = 101
+		}
 		public static void DisplayRichTextBoxSeries(ref SongSettings InItem, ref Panel InPanel, ref RichTextBox[] InRichTextBox, bool ScrollToCaret, bool PreviewNotations)
 		{
 			InItem.CurSlide = ((InItem.CurSlide < 1) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
@@ -24,82 +34,85 @@ namespace Easislides
 
 			int maxSlides = InItem.Slide.GetLength(0) - 1;
 			int totalSlides = (InItem.TotalSlides > maxSlides) ? maxSlides : InItem.TotalSlides;
-			for (int i = 1; i <= totalSlides; i++)
+
+			using (Font selectionFont = new Font("Microsoft Sans Serif", InRichTextBox[1].Font.Size, InRichTextBox[1].Font.Style))
 			{
-				StringBuilder builder = new StringBuilder();
-				int initialLength = builder.Length;
-				int headingLength = 0;
-
-				if (InItem.Slide[i, 0] >= 0)
+				for (int i = 1; i <= totalSlides; i++)
 				{
-					if (i > 1)
-					{
-						builder.Append('\n');
-					}
-					if (InItem.Slide[i, 0] == 0)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? FolderLyricsHeading[InItem.FolderNo, 1] : "Chorus:");
-					}
-					else if (InItem.Slide[i, 0] == 102)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? (FolderLyricsHeading[InItem.FolderNo, 1] + " (2)") : "Chorus 2:");
-					}
-					else if (InItem.Slide[i, 0] == 111)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? FolderLyricsHeading[InItem.FolderNo, 0] : "Prechorus:");
-					}
-					else if (InItem.Slide[i, 0] == 112)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? (FolderLyricsHeading[InItem.FolderNo, 0] + " (2)") : "Prechorus 2:");
-					}
-					else if (InItem.Slide[i, 0] == 100)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? FolderLyricsHeading[InItem.FolderNo, 2] : "Bridge:");
-					}
-					else if (InItem.Slide[i, 0] == 103)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? (FolderLyricsHeading[InItem.FolderNo, 2] + " (2)") : "Bridge 2:");
-					}
-					else if (InItem.Slide[i, 0] == 101)
-					{
-						builder.Append((FolderLyricsHeading[InItem.FolderNo, 3] != "") ? FolderLyricsHeading[InItem.FolderNo, 3] : "Ending:");
-					}
-					else if (InItem.Verse2Present || (i > 1 && InItem.Slide[i, 0] == 1))
-					{
-						builder.Append(VerseTitle[InItem.Slide[i, 0]]).Append('.');
-					}
-					headingLength = builder.Length - initialLength;
-				}
+					StringBuilder builder = new StringBuilder();
+					int initialLength = builder.Length;
+					int headingLength = 0;
 
-				builder.Append('\n');
-				if (InItem.Slide[i, 2] >= 0)
-				{
-					builder.Append(GetSlideContents(InItem, i, 0, InRichTextBox[1].Font, PreviewNotations));
-				}
-				if (InItem.Slide[i, 4] >= 0)
-				{
-					builder.Append(GetSlideContents(InItem, i, 1, InRichTextBox[1].Font, PreviewNotations));
-				}
-
-				string text = DataUtil.TrimStart(builder.ToString());
-				text = DataUtil.TrimEnd(text);
-
-				if (InRichTextBox[i] != null)
-				{
-					InRichTextBox[i].Text = text;
-					InRichTextBox[i].SelectAll();
-					using (Font selectionFont = new Font("Microsoft Sans Serif", InRichTextBox[i].Font.Size, InRichTextBox[i].Font.Style))
+					if (InItem.Slide[i, 0] >= 0)
 					{
+						if (i > 1)
+						{
+							builder.Append('\n');
+						}
+
+						int slideTypeValue = InItem.Slide[i, 0];
+						if (slideTypeValue == (int)SlideType.Chorus)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? FolderLyricsHeading[InItem.FolderNo, 1] : "Chorus:");
+						}
+						else if (slideTypeValue == (int)SlideType.Chorus2)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? (FolderLyricsHeading[InItem.FolderNo, 1] + " (2)") : "Chorus 2:");
+						}
+						else if (slideTypeValue == (int)SlideType.PreChorus)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? FolderLyricsHeading[InItem.FolderNo, 0] : "Prechorus:");
+						}
+						else if (slideTypeValue == (int)SlideType.PreChorus2)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? (FolderLyricsHeading[InItem.FolderNo, 0] + " (2)") : "Prechorus 2:");
+						}
+						else if (slideTypeValue == (int)SlideType.Bridge)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? FolderLyricsHeading[InItem.FolderNo, 2] : "Bridge:");
+						}
+						else if (slideTypeValue == (int)SlideType.Bridge2)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? (FolderLyricsHeading[InItem.FolderNo, 2] + " (2)") : "Bridge 2:");
+						}
+						else if (slideTypeValue == (int)SlideType.Ending)
+						{
+							builder.Append((FolderLyricsHeading[InItem.FolderNo, 3] != "") ? FolderLyricsHeading[InItem.FolderNo, 3] : "Ending:");
+						}
+						else if (InItem.Verse2Present || (i > 1 && slideTypeValue == 1))
+						{
+							builder.Append(VerseTitle[slideTypeValue]).Append('.');
+						}
+						headingLength = builder.Length - initialLength;
+					}
+
+					builder.Append('\n');
+					if (InItem.Slide[i, 2] >= 0)
+					{
+						builder.Append(GetSlideContents(InItem, i, 0, InRichTextBox[1].Font, PreviewNotations));
+					}
+					if (InItem.Slide[i, 4] >= 0)
+					{
+						builder.Append(GetSlideContents(InItem, i, 1, InRichTextBox[1].Font, PreviewNotations));
+					}
+
+					string text = DataUtil.TrimStart(builder.ToString());
+					text = DataUtil.TrimEnd(text);
+
+					if (InRichTextBox[i] != null)
+					{
+						InRichTextBox[i].Text = text;
+						InRichTextBox[i].SelectAll();
 						InRichTextBox[i].SelectionFont = selectionFont;
+						InRichTextBox[i].SelectionStart = 0;
+						InRichTextBox[i].SelectionLength = 0;
 					}
-					InRichTextBox[i].SelectionStart = 0;
-					InRichTextBox[i].SelectionLength = 0;
-				}
 
-				int totalLength = text.Length - initialLength + 1;
-				InItem.Slide[i, 5] = initialLength;
-				InItem.Slide[i, 6] = totalLength;
-				InItem.Slide[i, 7] = headingLength;
+					int totalLength = text.Length - initialLength + 1;
+					InItem.Slide[i, 5] = initialLength;
+					InItem.Slide[i, 6] = totalLength;
+					InItem.Slide[i, 7] = headingLength;
+				}
 			}
 			HighlightRichTextBox(ref InRichTextBox, ref InPanel, InItem, OnEnterPanel: false, ScrollToCaret);
 		}
@@ -111,14 +124,7 @@ namespace Easislides
 
 		public static void ClipboardCopyTextBox(RichTextBox InTextBox)
 		{
-			if (InTextBox.SelectedText != "")
-			{
-				Clipboard.SetDataObject(InTextBox.SelectedText);
-			}
-			else
-			{
-				Clipboard.SetDataObject("");
-			}
+			Clipboard.SetDataObject(InTextBox.SelectedText ?? "");
 		}
 
 		public static void ClipboardPasteTextBox(RichTextBox InTextBox, int Location)
@@ -170,23 +176,23 @@ namespace Easislides
 			}
 		}
 
-		public static void LoadBlankCaptureDevices(ref ToolStripComboBox InComboBoxDevice, ref ToolStripComboBox InComboBoxMedium)
+		public static void LoadBlankCaptureDevices(ref ToolStripComboBox InComboBoxDevice)
+		{
+			LoadBlankCaptureDevices(ref InComboBoxDevice, null);
+		}
+
+		public static void LoadBlankCaptureDevices(ref ToolStripComboBox InComboBoxDevice, ToolStripComboBox InComboBoxMedium)
 		{
 			InComboBoxDevice.Items.Clear();
 			for (int i = 1; i <= 10; i++)
 			{
 				InComboBoxDevice.Items.Add(i + ".");
 			}
-			InComboBoxMedium.Items.Clear();
-			InComboBoxMedium.Items.Add("Video");
-		}
 
-		public static void LoadBlankCaptureDevices(ref ToolStripComboBox InComboBoxDevice)
-		{
-			InComboBoxDevice.Items.Clear();
-			for (int i = 1; i <= 10; i++)
+			if (InComboBoxMedium != null)
 			{
-				InComboBoxDevice.Items.Add(i + ".");
+				InComboBoxMedium.Items.Clear();
+				InComboBoxMedium.Items.Add("Video");
 			}
 		}
 
@@ -269,9 +275,7 @@ namespace Easislides
 
 		public static void Control_Enter(Control InControl)
 		{
-			Color InBackground = InControl.BackColor;
-			SetEnterColour(ref InBackground);
-			InControl.BackColor = InBackground;
+			InControl.BackColor = UseFocusedTextRegionColour ? FocusedTextRegionColour : NormalTextRegionBackColour;
 			if (InControl.Name == "Main_QuickFind")
 			{
 				((TextBox)InControl).SelectAll();
@@ -280,29 +284,17 @@ namespace Easislides
 
 		public static void Control_Leave(Control InControl)
 		{
-			Color InBackground = InControl.BackColor;
-			SetLeaveColor(ref InBackground);
-			InControl.BackColor = InBackground;
+			InControl.BackColor = NormalTextRegionBackColour;
 		}
 
 		public static void SetEnterColour(ref Color InBackground)
 		{
-			if (UseFocusedTextRegionColour)
-			{
-				InBackground = FocusedTextRegionColour;
-			}
-			else
-			{
-				InBackground = NormalTextRegionBackColour;
-			}
+			InBackground = UseFocusedTextRegionColour ? FocusedTextRegionColour : NormalTextRegionBackColour;
 		}
 
 		public static void SetLeaveColor(ref Color InBackground)
 		{
-			if (InBackground != NormalTextRegionBackColour)
-			{
-				InBackground = NormalTextRegionBackColour;
-			}
+			InBackground = NormalTextRegionBackColour;
 		}
 	}
 }
