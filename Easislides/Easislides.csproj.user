@@ -7,6 +7,9 @@
     <Compile Update="Easislides\DShowLib.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="Easislides\FrmLaunchMediaPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Easislides\FrmLaunchShow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -117,9 +120,6 @@
     </Compile>
     <Compile Update="Easislides\ImageTransitionControl.cs">
       <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="FrmLaunchMediaPlayer.cs">
-      <SubType>Form</SubType>
     </Compile>
     <Compile Update="HookManager\GlobalEventProvider.cs">
       <SubType>Component</SubType>

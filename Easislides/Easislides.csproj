@@ -42,17 +42,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Easislides\FrmLaunchMediaPlayer.cs" />
     <Compile Remove="Easislides\FrmLyricsScreen.cs" />
     <Compile Remove="Easislides\FrmMain_Old.cs" />
     <Compile Remove="Easislides\FrmSplashScreenOld.cs" />
+    <Compile Remove="FrmLaunchMediaPlayer.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Remove="Easislides\FrmLaunchMediaPlayer.resx" />
     <EmbeddedResource Remove="Easislides\FrmLyricsScreen.resx" />
     <EmbeddedResource Remove="Easislides\FrmMain_Old.resx" />
     <EmbeddedResource Remove="Easislides\FrmSplashScreenOld.resx" />
+    <EmbeddedResource Remove="FrmLaunchMediaPlayer.resx" />
   </ItemGroup>
 
   <ItemGroup>
