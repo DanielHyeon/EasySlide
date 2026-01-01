@@ -21,6 +21,7 @@ namespace Easislides
 
 		public static void FormatText(ref SongSettings InItem, Color PanelBackColour, int PanelBackColorAsScreen, Color PanelTextColor, int PaneltextColourAsRegion1, bool UseDefault)
 		{
+			using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatText", $"folder={(InItem != null ? InItem.FolderNo : -1)} type={(InItem != null ? InItem.Type : "null")} useDefault={UseDefault}") : null;
 			Color[] array = new Color[2];
 			int[] array2 = new int[2];
 			int[] array3 = new int[4];
@@ -107,8 +108,8 @@ namespace Easislides
 			int num9 = buffer_LS_Height - (int)(TopBorderFactor * (double)buffer_LS_Height + (BottomBorderFactor + 0.029999999329447746) * (double)buffer_LS_Height + (double)(num4 * buffer_LS_Height / 100));
 			ShowTopBorderSize = (int)((double)buffer_LS_Height * TopBorderFactor);
 
-			Image image = new Bitmap(num8, 1, PixelFormat.Format24bppRgb);
-			Graphics graphics = Graphics.FromImage(image);
+			using var image = new Bitmap(num8, 1, PixelFormat.Format24bppRgb);
+			using var graphics = Graphics.FromImage(image);
 			SizeF layoutArea = new SizeF(num8, 32000f);
 			int i;
 			FontStyle fontStyle;
@@ -337,6 +338,7 @@ namespace Easislides
 
 		public static string CombineLyricsAndNotations(string InText, string InNotations, Font MainFont, Font NotationFont, ref RichTextBox InWorkspace, ref RichTextBox InTempSpace)
 		{
+			using var perf = PerfLog.Enabled ? PerfLog.Scope("CombineLyricsAndNotations", $"textLen={(InText != null ? InText.Length : 0)} notationLen={(InNotations != null ? InNotations.Length : 0)}") : null;
 			if ((InNotations == "") | (InText == ""))
 			{
 				return InText;
@@ -355,7 +357,7 @@ namespace Easislides
 				{
 					GetMinMaxfromTextBox(InWorkspace, i, ref InMin, ref InMax);
 					InTempSpace.Text = "";
-					string text2 = "";
+					StringBuilder lineNotationBuilder = new StringBuilder();
 					while (NotationsArray[i].Length > 0)
 					{
 						text = NotationsArray[i];
@@ -365,12 +367,16 @@ namespace Easislides
 						int associatedLyricsLineCurPosX = GetAssociatedLyricsLineCurPosX(ref InWorkspace, inCurPos, InMin, InMax);
 						while (GetAssociatedLyricsLineCurPosX(ref InTempSpace, InTempSpace.Text.Length - 1) < associatedLyricsLineCurPosX - 4)
 						{
-							text2 += " ";
-							InTempSpace.Text = text2;
+							lineNotationBuilder.Append(' ');
+							InTempSpace.Text = lineNotationBuilder.ToString();
 							MarkSelectedRTB(ref InTempSpace, 0, InTempSpace.Text.Length, 2, MainFont, NotationFont);
 						}
-						text2 += (((text2.Length > 1) & (DataUtil.Right(text2, 1) != " ")) ? (" " + text3) : text3);
-						InTempSpace.Text = text2;
+						if (lineNotationBuilder.Length > 1 && lineNotationBuilder[lineNotationBuilder.Length - 1] != ' ')
+						{
+							lineNotationBuilder.Append(' ');
+						}
+						lineNotationBuilder.Append(text3);
+						InTempSpace.Text = lineNotationBuilder.ToString();
 						MarkSelectedRTB(ref InTempSpace, 0, InTempSpace.Text.Length, 2, MainFont, NotationFont);
 					}
 					stringBuilder.Append(InTempSpace.Text + " »\n");
@@ -386,6 +392,7 @@ namespace Easislides
 
 		public static void FormatDisplayLyrics(ref SongSettings InItem, bool PrepareSlides, bool UseStoredSequence)
 		{
+			using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatDisplayLyrics", $"prepare={PrepareSlides} useStored={UseStoredSequence} lyricsLen={(InItem != null && InItem.CompleteLyrics != null ? InItem.CompleteLyrics.Length : 0)}") : null;
 			int num = InItem.UseDefaultFormat ? ShowNotations : InItem.Format.ShowNotations;
 			int num2 = (!InItem.UseDefaultFormat) ? InItem.Format.TransposeOffset : ((ShowCapoZero == 1) ? IncrementChord(ref InItem.Capo, 0) : 0);
 			int num3 = -1;
@@ -3915,6 +3922,7 @@ namespace Easislides
 
 		public static void SubDivideTextAndNotations(string InString, string InNotation, Font MainFont, Font NotationsFont, ref ListView TextNotationsList, int InWidth)
 		{
+			using var perf = PerfLog.Enabled ? PerfLog.Scope("SubDivideTextAndNotations", $"textLen={(InString != null ? InString.Length : 0)} notationLen={(InNotation != null ? InNotation.Length : 0)} width={InWidth}") : null;
 			InWidth /= 15;
 			Graphics graphics = TextNotationsList.CreateGraphics();
 			int num = -1;
@@ -3932,7 +3940,7 @@ namespace Easislides
 						listViewItem = TextNotationsList.Items.Add(text);
 						listViewItem.SubItems.Add("");
 						string InString2 = InNotation;
-						string text2 = "";
+						StringBuilder notationBuilder = new StringBuilder();
 						while (InString2 != "")
 						{
 							string text3 = DataUtil.ExtractOneInfo(ref InString2, ';');
@@ -3944,11 +3952,13 @@ namespace Easislides
 									InString2 = "";
 									continue;
 								}
-								object obj = text2;
-								text2 = string.Concat(obj, text3, ';', Convert.ToString(Convert.ToInt32(text4) - num2), ';');
+								notationBuilder.Append(text3);
+								notationBuilder.Append(';');
+								notationBuilder.Append(Convert.ToString(Convert.ToInt32(text4) - num2));
+								notationBuilder.Append(';');
 							}
 						}
-						listViewItem.SubItems.Add((text2 != "") ? text2 : " ");
+						listViewItem.SubItems.Add((notationBuilder.Length > 0) ? notationBuilder.ToString() : " ");
 						listViewItem.SubItems.Add(Convert.ToString(num2));
 						num2 += num3;
 						InString = DataUtil.Mid(InString, num3);
@@ -4051,6 +4061,7 @@ namespace Easislides
 
 		public static void DisplaySlidesFormattedLyrics(ref SongSettings InItem, ref RichTextBox InTextBox, bool ScrollToCaret, bool PreviewNotations)
 		{
+			using var perf = PerfLog.Enabled ? PerfLog.Scope("DisplaySlidesFormattedLyrics", $"total={(InItem != null ? InItem.TotalSlides : 0)} previewNotations={PreviewNotations}") : null;
 			InItem.CurSlide = ((InItem.CurSlide < 1) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
 			InItem.FolderNo = ((InItem.FolderNo <= 0) ? 1 : InItem.FolderNo);
 			int num = 0;
@@ -4059,11 +4070,12 @@ namespace Easislides
 			{
 				return;
 			}
+			StringBuilder textBuilder = new StringBuilder();
 			int num2 = 0;
 			int num3 = 0;
 			for (int i = 1; i <= InItem.TotalSlides; i++)
 			{
-				num2 = InTextBox.Text.Length;
+				num2 = textBuilder.Length;
 				int num4 = 0;
 				try
 				{
@@ -4071,63 +4083,63 @@ namespace Easislides
 					{
 						if (i > 1)
 						{
-							InTextBox.Text += "\n";
+							textBuilder.Append('\n');
 						}
 						if (InItem.Slide[i, 0] == 0)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? FolderLyricsHeading[InItem.FolderNo, 1] : "Chorus:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? FolderLyricsHeading[InItem.FolderNo, 1] : "Chorus:");
 						}
 						else if (InItem.Slide[i, 0] == 102)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? (FolderLyricsHeading[InItem.FolderNo, 1] + " (2)") : "Chorus 2:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? (FolderLyricsHeading[InItem.FolderNo, 1] + " (2)") : "Chorus 2:");
 						}
 						else if (InItem.Slide[i, 0] == 111)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? FolderLyricsHeading[InItem.FolderNo, 0] : "Prechorus:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? FolderLyricsHeading[InItem.FolderNo, 0] : "Prechorus:");
 						}
 						else if (InItem.Slide[i, 0] == 112)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? (FolderLyricsHeading[InItem.FolderNo, 0] + " (2)") : "Prechorus 2:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? (FolderLyricsHeading[InItem.FolderNo, 0] + " (2)") : "Prechorus 2:");
 						}
 						else if (InItem.Slide[i, 0] == 100)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? FolderLyricsHeading[InItem.FolderNo, 2] : "Bridge:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? FolderLyricsHeading[InItem.FolderNo, 2] : "Bridge:");
 						}
 						else if (InItem.Slide[i, 0] == 103)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? (FolderLyricsHeading[InItem.FolderNo, 2] + " (2)") : "Bridge 2:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? (FolderLyricsHeading[InItem.FolderNo, 2] + " (2)") : "Bridge 2:");
 						}
 						else if (InItem.Slide[i, 0] == 101)
 						{
-							InTextBox.Text += ((FolderLyricsHeading[InItem.FolderNo, 3] != "") ? FolderLyricsHeading[InItem.FolderNo, 3] : "Ending:");
+							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 3] != "") ? FolderLyricsHeading[InItem.FolderNo, 3] : "Ending:");
 						}
 						else if (InItem.Verse2Present || (i > 1 && InItem.Slide[i, 0] == 1))
 						{
-							RichTextBox obj = InTextBox;
-							obj.Text = obj.Text + VerseTitle[InItem.Slide[i, 0]] + ".";
+							textBuilder.Append(VerseTitle[InItem.Slide[i, 0]] + ".");
 							int num5 = InItem.Slide[i, 0];
 						}
-						num4 = InTextBox.Text.Length - num2;
+						num4 = textBuilder.Length - num2;
 					}
 				}
 				catch
 				{
 					MessageBox.Show("Error");
 				}
-				InTextBox.Text += "\n";
+				textBuilder.Append('\n');
 				if (InItem.Slide[i, 2] >= 0)
 				{
-					InTextBox.Text += GetSlideContents(InItem, i, 0, InTextBox.Font, PreviewNotations);
+					textBuilder.Append(GetSlideContents(InItem, i, 0, InTextBox.Font, PreviewNotations));
 				}
 				if (InItem.Slide[i, 4] >= 0)
 				{
-					InTextBox.Text += GetSlideContents(InItem, i, 1, InTextBox.Font, PreviewNotations);
+					textBuilder.Append(GetSlideContents(InItem, i, 1, InTextBox.Font, PreviewNotations));
 				}
-				num3 = InTextBox.Text.Length - num2 + 1;
+				num3 = textBuilder.Length - num2 + 1;
 				InItem.Slide[i, 5] = num2;
 				InItem.Slide[i, 6] = num3;
 				InItem.Slide[i, 7] = num4;
 			}
+			InTextBox.Text = textBuilder.ToString();
 			for (int i = 1; i <= InItem.TotalSlides; i++)
 			{
 				if (InItem.Slide[InItem.CurSlide, 7] > 0)
