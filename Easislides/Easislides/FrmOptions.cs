@@ -52,49 +52,49 @@ namespace Easislides
 
         private float SampleSplitterHorizontalIncrement = 1.4f;
 
-        private string[,] tempFolderLyricsHeading = new string[41, 4];
+        private string[,] tempFolderLyricsHeading = new string[gf.MAXSONGSFOLDERS, 4];
 
-        private string[] tempFolderName = new string[41];
+        private string[] tempFolderName = new string[gf.MAXSONGSFOLDERS];
 
-        private int[] tempFolderGroupStyle = new int[41];
+        private int[] tempFolderGroupStyle = new int[gf.MAXSONGSFOLDERS];
 
-        private bool[] tempFolderUse = new bool[41];
+        private bool[] tempFolderUse = new bool[gf.MAXSONGSFOLDERS];
 
-        private int[,] tempShowFontVPosition = new int[41, 2];
+        private int[,] tempShowFontVPosition = new int[gf.MAXSONGSFOLDERS, 2];
 
-        private int[,] tempShowFontSize = new int[41, 2];
+        private int[,] tempShowFontSize = new int[gf.MAXSONGSFOLDERS, 2];
 
-        private int[,] tempShowFontVPositionMax = new int[41, 2];
+        private int[,] tempShowFontVPositionMax = new int[gf.MAXSONGSFOLDERS, 2];
 
-        private int[,] tempShowFontVPositionMin = new int[41, 2];
+        private int[,] tempShowFontVPositionMin = new int[gf.MAXSONGSFOLDERS, 2];
 
-        private int[] tempLeftMargin = new int[41];
+        private int[] tempLeftMargin = new int[gf.MAXSONGSFOLDERS];
 
-        private int[] tempRightMargin = new int[41];
+        private int[] tempRightMargin = new int[gf.MAXSONGSFOLDERS];
 
-        private int[] tempBottomMargin = new int[41];
+        private int[] tempBottomMargin = new int[gf.MAXSONGSFOLDERS];
 
-        private string[,] tempShowFontName = new string[41, 2];
+        private string[,] tempShowFontName = new string[gf.MAXSONGSFOLDERS, 2];
 
-        private bool[,] tempShowFontBold = new bool[41, 4];
+        private bool[,] tempShowFontBold = new bool[gf.MAXSONGSFOLDERS, 4];
 
-        private bool[,] tempShowFontItalic = new bool[41, 4];
+        private bool[,] tempShowFontItalic = new bool[gf.MAXSONGSFOLDERS, 4];
 
-        private bool[,] tempShowFontUnderline = new bool[41, 4];
+        private bool[,] tempShowFontUnderline = new bool[gf.MAXSONGSFOLDERS, 4];
 
-        private bool[,] tempShowFontRTL = new bool[41, 2];
+        private bool[,] tempShowFontRTL = new bool[gf.MAXSONGSFOLDERS, 2];
 
-        public int[] tempFolderHeadingPercentSize = new int[41];
+        public int[] tempFolderHeadingPercentSize = new int[gf.MAXSONGSFOLDERS];
 
-        public int[] tempFolderHeadingOption = new int[41];
+        public int[] tempFolderHeadingOption = new int[gf.MAXSONGSFOLDERS];
 
-        public bool[,] tempFolderHeadingFontBold = new bool[41, 2];
+        public bool[,] tempFolderHeadingFontBold = new bool[gf.MAXSONGSFOLDERS, 2];
 
-        public bool[,] tempFolderHeadingFontItalic = new bool[41, 2];
+        public bool[,] tempFolderHeadingFontItalic = new bool[gf.MAXSONGSFOLDERS, 2];
 
-        public bool[,] tempFolderHeadingFontUnderline = new bool[41, 2];
+        public bool[,] tempFolderHeadingFontUnderline = new bool[gf.MAXSONGSFOLDERS, 2];
 
-        public double[,] tempShowLineSpacing = new double[41, 2];
+        public double[,] tempShowLineSpacing = new double[gf.MAXSONGSFOLDERS, 2];
 
         private bool LoadTempPos = false;
 
@@ -1033,7 +1033,7 @@ namespace Easislides
         private void FrmOptions_Load(object sender, EventArgs e)
         {
             DirOK = true;
-            for (int i = 1; i < 41; i++)
+            for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
             {
                 tempFolderName[i] = gf.FolderName[i];
                 tempFolderGroupStyle[i] = (int)gf.FolderGroupStyle[i];
@@ -1151,7 +1151,7 @@ namespace Easislides
 
         private void SaveVariables()
         {
-            for (int i = 1; i < 41; i++)
+            for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
             {
                 if ((gf.FolderName[i] != tempFolderName[i]) | (gf.FolderGroupStyle[i] != (SortBy)tempFolderGroupStyle[i]) | (gf.FolderUse[i] != (tempFolderUse[i] ? 1 : 0)))
                 {
@@ -1508,7 +1508,7 @@ namespace Easislides
             toolStripJumpA.Items.Clear();
             toolStripJumpB.Items.Clear();
             toolStripJumpC.Items.Clear();
-            for (int i = 1; i < 41; i++)
+            for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
             {
                 listViewItem = SongFolder.Items.Add(tempFolderName[i]);
                 if (tempFolderUse[i])
@@ -1530,7 +1530,7 @@ namespace Easislides
             toolStripJumpA.SelectedIndex = 1;
             toolStripJumpB.SelectedIndex = 1;
             toolStripJumpC.SelectedIndex = 1;
-            for (int i = 1; i < 41; i++)
+            for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
             {
                 if (gf.JumpToA == i)
                 {
@@ -2035,7 +2035,7 @@ namespace Easislides
         private void BuildBibleAssociatedFolder()
         {
             BibleAssociatedFolder.Items.Clear();
-            for (int i = 1; i < 41; i++)
+            for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
             {
                 BibleAssociatedFolder.Items.Add(tempFolderName[i]);
             }

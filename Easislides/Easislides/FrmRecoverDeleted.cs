@@ -65,7 +65,7 @@ namespace Easislides
 					foreach (DataRow dr in datatable.Rows)
 					{
 						num = DataUtil.ObjToInt(dr["OldFolder"]);
-						if ((num < 0) | (num > 41))
+						if ((num < 0) | (num > gf.MAXSONGSFOLDERS))
 						{
 							num = 1;
 						}

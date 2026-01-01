@@ -224,7 +224,7 @@ namespace Easislides
 					bool flag = false;
 					if (gf.ValidateDirNameFormat(text, "New folder name"))
 					{
-						for (int i = 1; i <= 41; i++)
+						for (int i = 1; i <= gf.MAXSONGSFOLDERS; i++)
 						{
 							if (gf.FolderRenameName[i].ToLower() == text.ToLower())
 							{

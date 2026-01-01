@@ -22,7 +22,7 @@ namespace Easislides
 
 		private int[] SongFolderLog = new int[32000];
 
-		private int[,] FolderFNum = new int[41, 2];
+		private int[,] FolderFNum = new int[gf.MAXSONGSFOLDERS, 2];
 
 		private int CurrentSong;
 
@@ -874,7 +874,7 @@ namespace Easislides
 			FList[0] = gf.ShowFontName[1, 0];
 			RichTextBox1.Text = "";
 			int num = 1;
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				for (int j = 0; j <= 1; j++)
 				{

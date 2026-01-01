@@ -1661,7 +1661,7 @@ namespace Easislides
 
 		public static void ComputeShowLineSpacing()
 		{
-			for (int i = 0; i < 41; i++)
+			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
 				MainFontSpacingFactor[i, 0] = ShowLineSpacing[i, 0] + 0.05;
 				MainFontSpacingFactor[i, 1] = ShowLineSpacing[i, 1] + 0.05;

@@ -706,27 +706,27 @@ namespace Easislides
 
 		public static bool SystemClientServerConnected = false;
 
-		public static int[,] ShowFontVPosition = new int[41, 2];
+		public static int[,] ShowFontVPosition = new int[MAXSONGSFOLDERS, 2];
 
-		public static int[,] ShowFontAlign = new int[41, 2];
+		public static int[,] ShowFontAlign = new int[MAXSONGSFOLDERS, 2];
 
-		public static int[,] ShowFontSize = new int[41, 2];
+		public static int[,] ShowFontSize = new int[MAXSONGSFOLDERS, 2];
 
-		public static int[,] ShowFontBold = new int[41, 4];
+		public static int[,] ShowFontBold = new int[MAXSONGSFOLDERS, 4];
 
-		public static int[,] ShowFontItalic = new int[41, 4];
+		public static int[,] ShowFontItalic = new int[MAXSONGSFOLDERS, 4];
 
-		public static int[,] ShowFontUnderline = new int[41, 4];
+		public static int[,] ShowFontUnderline = new int[MAXSONGSFOLDERS, 4];
 
-		public static int[,] ShowFontRTL = new int[41, 2];
+		public static int[,] ShowFontRTL = new int[MAXSONGSFOLDERS, 2];
 
-		public static string[,] ShowFontName = new string[41, 2];
+		public static string[,] ShowFontName = new string[MAXSONGSFOLDERS, 2];
 
-		public static int[] ShowLeftMargin = new int[41];
+		public static int[] ShowLeftMargin = new int[MAXSONGSFOLDERS];
 
-		public static int[] ShowRightMargin = new int[41];
+		public static int[] ShowRightMargin = new int[MAXSONGSFOLDERS];
 
-		public static int[] ShowBottomMargin = new int[41];
+		public static int[] ShowBottomMargin = new int[MAXSONGSFOLDERS];
 
 		public static int ShowRotateGap = 0;
 
@@ -1520,7 +1520,7 @@ namespace Easislides
 
 		public static string CurPraiseBookNotes = "";
 
-		public static string[] FolderRenameName = new string[41];
+		public static string[] FolderRenameName = new string[MAXSONGSFOLDERS];
 
 		public static string SelectedListName;
 
@@ -1562,25 +1562,25 @@ namespace Easislides
 
 		public static string EditNotesHeading = "";
 
-		public static string[,] FolderLyricsHeading = new string[41, 4];
+		public static string[,] FolderLyricsHeading = new string[MAXSONGSFOLDERS, 4];
 
-		public static string[] FolderName = new string[41];
+		public static string[] FolderName = new string[MAXSONGSFOLDERS];
 
-		public static int[] FolderHeadingPercentSize = new int[41];
+		public static int[] FolderHeadingPercentSize = new int[MAXSONGSFOLDERS];
 
-		public static int[,] FolderHeadingFontBold = new int[41, 2];
+		public static int[,] FolderHeadingFontBold = new int[MAXSONGSFOLDERS, 2];
 
-		public static int[,] FolderHeadingFontItalic = new int[41, 2];
+		public static int[,] FolderHeadingFontItalic = new int[MAXSONGSFOLDERS, 2];
 
-		public static int[,] FolderHeadingFontUnderline = new int[41, 2];
+		public static int[,] FolderHeadingFontUnderline = new int[MAXSONGSFOLDERS, 2];
 
-		public static int[] FolderHeadingOption = new int[41];
+		public static int[] FolderHeadingOption = new int[MAXSONGSFOLDERS];
 
-		public static double[,] ShowLineSpacing = new double[41, 2];
+		public static double[,] ShowLineSpacing = new double[MAXSONGSFOLDERS, 2];
 
-		public static int[] FolderUse = new int[41];
+		public static int[] FolderUse = new int[MAXSONGSFOLDERS];
 
-		public static SortBy[] FolderGroupStyle = new SortBy[41];
+		public static SortBy[] FolderGroupStyle = new SortBy[MAXSONGSFOLDERS];
 
 		public static int UseOutlineFont = 0;
 
@@ -1670,7 +1670,7 @@ namespace Easislides
 
 		public static string Temp_MediaOutputMonitorName = "";
 
-		public static double[,] MainFontSpacingFactor = new double[41, 2];
+		public static double[,] MainFontSpacingFactor = new double[MAXSONGSFOLDERS, 2];
 
 		public static double NotationFontFactor = 0.75;
 
@@ -1767,7 +1767,7 @@ namespace Easislides
 
 		public static string BookRefData = "";
 
-		public static bool[] FindSongsFolder = new bool[41];
+		public static bool[] FindSongsFolder = new bool[MAXSONGSFOLDERS];
 
 		public static bool AllDirOK = false;
 

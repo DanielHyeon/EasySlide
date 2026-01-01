@@ -28,7 +28,7 @@ namespace Easislides
 
 		private Panel panel1;
 
-		private int[] OriginalFolderPosition = new int[41];
+		private int[] OriginalFolderPosition = new int[gf.MAXSONGSFOLDERS];
 
 		protected override void Dispose(bool disposing)
 		{
@@ -188,7 +188,7 @@ namespace Easislides
 		{
 			ListViewItem listViewItem = new ListViewItem();
 			SongFolder.Items.Clear();
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				listViewItem = SongFolder.Items.Add(gf.FolderName[i]);
 				listViewItem.SubItems.Add(i.ToString());

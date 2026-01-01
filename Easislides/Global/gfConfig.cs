@@ -634,7 +634,7 @@ namespace Easislides
 			{
 				return false;
 			}
-			for (int i = 0; i < 41; i++)
+			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
 				ResetFolder(i, "", ConnectStringMainDB);
 			}

@@ -440,7 +440,7 @@ namespace Easislides
 
 		public static void LoadSavedData()
 		{
-			for (int i = 0; i < 41; i++)
+			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
 				FindSongsFolder[i] = true;
 			}
@@ -899,17 +899,17 @@ namespace Easislides
 			VideoExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\VideoExtensions.txt";
 			LoadMusicExtArray();
 			JumpToA = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "JumpToA", 1));
-			if ((JumpToA < 1) | (JumpToA > 41))
+			if ((JumpToA < 1) | (JumpToA > MAXSONGSFOLDERS))
 			{
 				JumpToA = 1;
 			}
 			JumpToB = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "JumpToB", 2));
-			if ((JumpToB < 1) | (JumpToB > 41))
+			if ((JumpToB < 1) | (JumpToB > MAXSONGSFOLDERS))
 			{
 				JumpToB = 2;
 			}
 			JumpToC = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "JumpToC", 3));
-			if ((JumpToC < 1) | (JumpToC > 41))
+			if ((JumpToC < 1) | (JumpToC > MAXSONGSFOLDERS))
 			{
 				JumpToC = 3;
 			}

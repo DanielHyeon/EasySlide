@@ -144,7 +144,7 @@ namespace Easislides
 
         private string[] sArray;
 
-        private string[,] tempFolderLyricsHeading = new string[41, 2];
+        private string[,] tempFolderLyricsHeading = new string[gf.MAXSONGSFOLDERS, 2];
 
         private string[] Verse = new string[160];
 
@@ -3242,7 +3242,7 @@ namespace Easislides
                 num3 = 0;
             }
             SongFolder.Items.Clear();
-            for (int i = 1; i < 41; i++)
+            for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
             {
                 if (gf.FolderUse[i] > 0)
                 {
@@ -3294,7 +3294,7 @@ namespace Easislides
 			string text11 = "";
 			if (FNumber == 0)
 			{
-				for (int i = 1; i < 41; i++)
+				for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 				{
 					if (gf.FindSongsFolder[i])
 					{
@@ -3382,7 +3382,7 @@ namespace Easislides
             string text11 = "";
             if (FNumber == 0)
             {
-                for (int i = 1; i < 41; i++)
+                for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
                 {
                     if (gf.FindSongsFolder[i])
                     {
@@ -11295,7 +11295,7 @@ namespace Easislides
             {
                 num = gf.JumpToC;
             }
-            if (num > 0 && num < 41 && gf.FolderUse[num] > 0)
+            if (num > 0 && num < gf.MAXSONGSFOLDERS && gf.FolderUse[num] > 0)
             {
                 try
                 {

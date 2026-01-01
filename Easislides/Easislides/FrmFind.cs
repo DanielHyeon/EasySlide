@@ -622,7 +622,7 @@ namespace Easislides
 			base.Top = num2;
 			base.Left = num;
 			FolderList.Items.Clear();
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				if ((gf.FolderName[i].ToString() != "") & (gf.FolderUse[i] > 0))
 				{

@@ -254,7 +254,7 @@ namespace Easislides
 					DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["FolderNo"] };
 					dataTable.PrimaryKey = primarykey;
 
-					for (int i = 1; i < 41; i++)
+					for (int i = 1; i < MAXSONGSFOLDERS; i++)
 					{
 						num = i;
 						if (FolderName[i] != "")
@@ -314,12 +314,12 @@ namespace Easislides
 					DbDataAdapter sQLiteDataAdapter = null;
 					DataTable dataTable = null;
 
-					text = "select * from Folder where FolderNo > 0 and FolderNo <= 41";
+					text = "select * from Folder where FolderNo > 0 and FolderNo <= " + MAXSONGSFOLDERS;
 					(sQLiteDataAdapter, dataTable) = DbController.getDataAdapter(connection, text);
 
 					if (dataTable.Rows.Count > 0)
 					{
-						for (int i = 1; i < 41; i++)
+						for (int i = 1; i < MAXSONGSFOLDERS; i++)
 						{
 							num = i;
 							rowIndex = i - 1;
@@ -1978,7 +1978,7 @@ namespace Easislides
 			{
 				text += text15;
 			}
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < MAXSONGSFOLDERS; i++)
 			{
 				FindSongsFolder[i] = false;
 			}
@@ -1996,7 +1996,7 @@ namespace Easislides
 			}
 			else
 			{
-				for (int i = 1; i < 41; i++)
+				for (int i = 1; i < MAXSONGSFOLDERS; i++)
 				{
 					if (FolderUse[i] > 0)
 					{

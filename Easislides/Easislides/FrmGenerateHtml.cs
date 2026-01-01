@@ -32,7 +32,7 @@ namespace Easislides
 
 		private int[] SongFolderLog = new int[1];
 
-		private int[,] FolderFNum = new int[41, 1];
+		private int[,] FolderFNum = new int[gf.MAXSONGSFOLDERS, 1];
 
 		private int CurrentSong;
 

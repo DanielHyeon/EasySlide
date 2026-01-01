@@ -907,7 +907,7 @@ namespace Easislides
 		private void BuildFolderList()
 		{
 			SongFolder.Items.Clear();
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				if (gf.FolderUse[i] > 0)
 				{

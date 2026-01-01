@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using Easislides.Module;
@@ -12,11 +14,116 @@ using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
+using DbParameter = System.Data.SQLite.SQLiteParameter;
+using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 
 namespace Easislides
 {
 	internal unsafe partial class gf
 	{
+		private static readonly char[] InvalidDirNameChars = new char[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' };
+
+		private struct SongRefileUpdate
+		{
+			public int SongId;
+			public int NewFolder;
+			public int OldFolder;
+			public ListViewItem Item;
+		}
+
+		private static bool ContainsInvalidDirNameChars(string value)
+		{
+			return value.IndexOfAny(InvalidDirNameChars) >= 0;
+		}
+
+		private static string RemoveInvalidDirNameCharsInternal(string value)
+		{
+			StringBuilder sb = new StringBuilder(value.Length);
+			foreach (char ch in value)
+			{
+				if (Array.IndexOf(InvalidDirNameChars, ch) < 0)
+				{
+					sb.Append(ch);
+				}
+			}
+			return sb.ToString();
+		}
+
+		private static string ReplaceInvalidDirNameChars(string value, char replacement)
+		{
+			char[] buffer = value.ToCharArray();
+			bool changed = false;
+			for (int i = 0; i < buffer.Length; i++)
+			{
+				if (Array.IndexOf(InvalidDirNameChars, buffer[i]) >= 0)
+				{
+					buffer[i] = replacement;
+					changed = true;
+				}
+			}
+			return changed ? new string(buffer) : value;
+		}
+
+		private static void DeleteFolderContents(string folder)
+		{
+			try
+			{
+				Stack<string> toProcess = new Stack<string>();
+				Stack<string> toDelete = new Stack<string>();
+
+				toProcess.Push(folder);
+				while (toProcess.Count > 0)
+				{
+					string current = toProcess.Pop();
+					toDelete.Push(current);
+
+					try
+					{
+						foreach (string file in Directory.EnumerateFiles(current))
+						{
+							try
+							{
+								File.Delete(file);
+							}
+							catch (Exception ex)
+							{
+								Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+							}
+						}
+
+						foreach (string dir in Directory.EnumerateDirectories(current))
+						{
+							toProcess.Push(dir);
+						}
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+					}
+				}
+
+				while (toDelete.Count > 0)
+				{
+					string dir = toDelete.Pop();
+					if (dir == folder)
+					{
+						continue;
+					}
+					try
+					{
+						Directory.Delete(dir);
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+			}
+		}
 
 		public static bool ValidateDir(string FDir, bool CreateDir)
 		{
@@ -43,7 +150,7 @@ namespace Easislides
 
 		public static bool ValidateDirNameFormat(string InString, string Heading)
 		{
-			if (!InString.Contains("\\") && !InString.Contains("/") && !InString.Contains(":") && !InString.Contains("*") && !InString.Contains("?") && !InString.Contains("\"") && !InString.Contains("<") && !InString.Contains(">") && !InString.Contains("|"))
+			if (!ContainsInvalidDirNameChars(InString))
 			{
 				return true;
 			}
@@ -56,16 +163,7 @@ namespace Easislides
 
 		public static string CorrectDirNameFormat(string InString)
 		{
-			InString = InString.Replace("\\", "");
-			InString = InString.Replace("/", "");
-			InString = InString.Replace(":", "");
-			InString = InString.Replace("*", "");
-			InString = InString.Replace("?", "");
-			InString = InString.Replace("\"", "");
-			InString = InString.Replace("<", "");
-			InString = InString.Replace(">", "");
-			InString = InString.Replace("|", "");
-			return InString;
+			return RemoveInvalidDirNameCharsInternal(InString);
 		}
 
 		public static void LoadFolderNamesArray()
@@ -74,7 +172,7 @@ namespace Easislides
 			int num = 0;
 			string text = "";
 			string text2 = "";
-			string fullSearchString = "select * from FOLDER where FolderNo >=0 and FolderNo < " + DataUtil.ObjToString(41);
+			string fullSearchString = "select * from FOLDER where FolderNo >=0 and FolderNo < " + DataUtil.ObjToString(MAXSONGSFOLDERS);
 
 			DbConnection connection = null;
 			DbDataReader dataReader = null;
@@ -210,7 +308,7 @@ namespace Easislides
 
 		public static int GetFolderNumber(string InName, bool ZeroIfInvalid)
 		{
-			for (int i = 0; i < 41; i++)
+			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
 				if (InName == FolderName[i])
 				{
@@ -248,8 +346,9 @@ namespace Easislides
 				}
 				return true;
 			}
-			catch
+			catch (Exception ex)
 			{
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return false;
 		}
@@ -257,97 +356,177 @@ namespace Easislides
 		public static int ReFileSelectedSongs(ref ListView InListView, int CurFolder, int NewFolder, ref int[] RefileSongs, bool UpdateModifiedDate)
 		{
 			RefileSongs[0] = 0;
-			string sQuery = "select * from SONG";
 			try
 			{
-				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				using DataTable dataTable = DbController.GetDataTable(ConnectStringMainDB, sQuery);
-
-				DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["SONGID"] };
-				dataTable.PrimaryKey = primarykey;
+				List<SongRefileUpdate> updates = new List<SongRefileUpdate>();
+				HashSet<int> songIds = new HashSet<int>();
 
 				for (int num = InListView.Items.Count - 1; num >= 0; num--)
 				{
 					if (InListView.Items[num].Selected)
 					{
-						string text2;
+						string songIdText;
+						int targetFolder;
 						if (CurFolder == 0)
 						{
-							text2 = InListView.Items[num].SubItems[3].Text;
-							NewFolder = DataUtil.StringToInt(InListView.Items[num].SubItems[1].Text);
+							songIdText = InListView.Items[num].SubItems[3].Text;
+							targetFolder = DataUtil.StringToInt(InListView.Items[num].SubItems[1].Text);
 						}
 						else
 						{
 							string text3 = InListView.Items[num].SubItems[1].Text;
-							text2 = DataUtil.Right(text3, text3.Length - 1);
+							songIdText = DataUtil.Right(text3, text3.Length - 1);
+							targetFolder = NewFolder;
 						}
-						try
+
+						int songId = DataUtil.StringToInt(songIdText);
+						songIds.Add(songId);
+						updates.Add(new SongRefileUpdate
 						{
-							DataRow dr = dataTable.Rows.Find($"{text2}");
-							if (dr != null)
+							SongId = songId,
+							NewFolder = targetFolder,
+							OldFolder = CurFolder,
+							Item = InListView.Items[num]
+						});
+					}
+				}
+
+				if (updates.Count == 0)
+				{
+					return 0;
+				}
+
+				StringBuilder idBuilder = new StringBuilder();
+				foreach (int id in songIds)
+				{
+					if (idBuilder.Length > 0)
+					{
+						idBuilder.Append(",");
+					}
+					idBuilder.Append(id);
+				}
+
+				string sQuery = "select * from SONG where SONGID in (" + idBuilder + ")";
+
+				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
+				using DataTable dataTable = DbController.GetDataTable(connection, sQuery);
+
+				if (dataTable == null || dataTable.Rows.Count == 0)
+				{
+					return 0;
+				}
+
+				DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["SONGID"] };
+				dataTable.PrimaryKey = primarykey;
+
+				foreach (SongRefileUpdate update in updates)
+				{
+					try
+					{
+						DataRow dr = dataTable.Rows.Find(update.SongId);
+						if (dr != null)
+						{
+							dr["OldFolder"] = update.OldFolder;
+							dr["FolderNo"] = update.NewFolder;
+							if (UpdateModifiedDate)
 							{
-								dr["OldFolder"] = CurFolder;
-								dr["FolderNo"] = NewFolder;
-								if (UpdateModifiedDate)
-								{
-									dr["LastModified"] = DateTime.Now.Date;
-								}
-								InListView.Items[num].Remove();
-								RefileSongs[0]++;
-								RefileSongs[RefileSongs[0]] = DataUtil.StringToInt(text2);
+								dr["LastModified"] = DateTime.Now.Date;
 							}
+							update.Item.Remove();
+							RefileSongs[0]++;
+							RefileSongs[RefileSongs[0]] = update.SongId;
 						}
-						catch
-						{
-						}
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 					}
 				}
 
 				DbController.UpdateTable(connection, sQuery, dataTable);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return RefileSongs[0];
 		}
 
 		public static int ReFileSelectedSongs(ref ListView InListView)
 		{
-			string sQuery = "select * from SONG";
 			try
 			{
-				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				using DataTable dataTable = DbController.GetDataTable(ConnectStringMainDB, sQuery);
-
-				DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["SONGID"] };
-				dataTable.PrimaryKey = primarykey;
+				List<SongRefileUpdate> updates = new List<SongRefileUpdate>();
+				HashSet<int> songIds = new HashSet<int>();
 
 				for (int num = InListView.Items.Count - 1; num >= 0; num--)
 				{
 					if (InListView.Items[num].Checked)
 					{
-						string text2 = InListView.Items[num].SubItems[3].Text;
-						try
+						int songId = DataUtil.StringToInt(InListView.Items[num].SubItems[3].Text);
+						songIds.Add(songId);
+						updates.Add(new SongRefileUpdate
 						{
-							DataRow dr = dataTable.Rows.Find($"{text2}");
-							if (dr != null)
-							{
-								int num2 = Convert.ToInt32(InListView.Items[num].SubItems[4].Text);
-								dr["OldFolder"] = 0;
-								dr["FolderNo"] = num2;
-								dr["LastModified"] = DateTime.Now.Date;
-								InListView.Items[num].Remove();
-							}
-						}
-						catch
-						{
-						}
+							SongId = songId,
+							NewFolder = DataUtil.StringToInt(InListView.Items[num].SubItems[4].Text),
+							OldFolder = 0,
+							Item = InListView.Items[num]
+						});
 					}
 				}
+
+				if (updates.Count == 0)
+				{
+					return 0;
+				}
+
+				StringBuilder idBuilder = new StringBuilder();
+				foreach (int id in songIds)
+				{
+					if (idBuilder.Length > 0)
+					{
+						idBuilder.Append(",");
+					}
+					idBuilder.Append(id);
+				}
+
+				string sQuery = "select * from SONG where SONGID in (" + idBuilder + ")";
+
+				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
+				using DataTable dataTable = DbController.GetDataTable(connection, sQuery);
+
+				if (dataTable == null || dataTable.Rows.Count == 0)
+				{
+					return 0;
+				}
+
+				DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["SONGID"] };
+				dataTable.PrimaryKey = primarykey;
+
+				foreach (SongRefileUpdate update in updates)
+				{
+					try
+					{
+						DataRow dr = dataTable.Rows.Find(update.SongId);
+						if (dr != null)
+						{
+							dr["OldFolder"] = update.OldFolder;
+							dr["FolderNo"] = update.NewFolder;
+							dr["LastModified"] = DateTime.Now.Date;
+							update.Item.Remove();
+						}
+					}
+					catch (Exception ex)
+					{
+						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+					}
+				}
+
 				DbController.UpdateTable(connection, sQuery, dataTable);
 			}
-			catch
+			catch (Exception ex)
 			{
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return InListView.CheckedItems.Count;
 		}
@@ -359,46 +538,61 @@ namespace Easislides
 			{
 				using (DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB))
 				{
-					string text = "";
+					using DbTransaction transaction = connection.BeginTransaction();
+					string text = UpdateModifiedDate
+						? "Update SONG SET OldFolder = @OldFolder, FolderNo = @FolderNo, LastModified = @LastModified where songid = @SongId"
+						: "Update SONG SET OldFolder = @OldFolder, FolderNo = @FolderNo where songid = @SongId";
+					using DbCommand command = new DbCommand(text, connection, transaction);
+					DbParameter oldFolderParam = command.Parameters.Add("@OldFolder", DbType.Int32);
+					DbParameter folderNoParam = command.Parameters.Add("@FolderNo", DbType.Int32);
+					DbParameter songIdParam = command.Parameters.Add("@SongId", DbType.Int32);
+					DbParameter lastModifiedParam = null;
+					if (UpdateModifiedDate)
+					{
+						lastModifiedParam = command.Parameters.Add("@LastModified", DbType.Date);
+					}
 					for (int num = SongItems.Count - 1; num >= 0; num--)
 					{
 						try
 						{
-							string text2;
+							string songIdText;
+							int targetFolder;
 							if (CurFolder == 0)
 							{
-								text2 = SongItems[num].SubItems[3].Text;
-								NewFolder = DataUtil.StringToInt(SongItems[num].SubItems[1].Text);
+								songIdText = SongItems[num].SubItems[3].Text;
+								targetFolder = DataUtil.StringToInt(SongItems[num].SubItems[1].Text);
 							}
 							else
 							{
 								string text3 = SongItems[num].SubItems[1].Text;
-								text2 = DataUtil.Right(text3, text3.Length - 1);
+								songIdText = DataUtil.Right(text3, text3.Length - 1);
+								targetFolder = NewFolder;
 							}
-							text = "Update SONG SET OldFolder = @OldFolder, FolderNo =@FolderNo" + (UpdateModifiedDate ? ", LastModified =@LastModified" : "") + " where songid=" + text2.ToString();
-							using DbCommand command = new DbCommand(text, connection);
-							command.CommandText = text;
-							command.Parameters.AddWithValue("@OldFolder", CurFolder);
-							command.Parameters.AddWithValue("@FolderNo", NewFolder);
-							command.Parameters.AddWithValue("@LastModified", DateTime.Now.Date);
+
+							int songId = DataUtil.StringToInt(songIdText);
+							oldFolderParam.Value = CurFolder;
+							folderNoParam.Value = targetFolder;
+							songIdParam.Value = songId;
+							if (UpdateModifiedDate && lastModifiedParam != null)
+							{
+								lastModifiedParam.Value = DateTime.Now.Date;
+							}
 							command.ExecuteNonQuery();
-							command.Dispose();
 							SongItems[num].Remove();
 							RefileSongs[0]++;
-							RefileSongs[RefileSongs[0]] = DataUtil.StringToInt(text2);
+							RefileSongs[RefileSongs[0]] = songId;
 						}
 						catch (Exception e)
 						{
-							Console.WriteLine(e.Message);
-							Console.WriteLine(e.StackTrace);
+							Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
 						}
 					}
+					transaction.Commit();
 				}
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine(ex.StackTrace);
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return RefileSongs[0];
 		}
@@ -408,11 +602,12 @@ namespace Easislides
 			bool flag = false;
 			try
 			{
-				int[] array = new int[41];
+				int[] array = new int[MAXSONGSFOLDERS];
 				string text = "";
-				for (int i = 1; i < 41; i++)
+				for (int i = 1; i < MAXSONGSFOLDERS; i++)
 				{
-					if (InFolderOrder.Items.Count >= 41)
+					//daniel if (InFolderOrder.Items.Count >= 41) break;
+					if (InFolderOrder.Items.Count < MAXSONGSFOLDERS)
 					{
 						break;
 					}
@@ -494,56 +689,21 @@ namespace Easislides
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine(ex.StackTrace);
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return false;
 		}
 
 		public static void RemoveInvalidDirNameChars(ref string InString)
 		{
-			InString = InString.Replace("\\", "_");
-			InString = InString.Replace("/", "_");
-			InString = InString.Replace(":", "_");
-			InString = InString.Replace("*", "_");
-			InString = InString.Replace("?", "_");
-			InString = InString.Replace("\"", "_");
-			InString = InString.Replace("<", "_");
-			InString = InString.Replace(">", "_");
-			InString = InString.Replace("|", "_");
+			InString = ReplaceInvalidDirNameChars(InString, '_');
 		}
 
 		public static void InitFolderFiles(string InFolder)
 		{
 			try
 			{
-				string[] files = Directory.GetFiles(InFolder);
-				string[] array = files;
-				foreach (string path in array)
-				{
-					try
-					{
-						File.Delete(path);
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-					}
-				}
-				string[] directories = Directory.GetDirectories(InFolder);
-				array = directories;
-				foreach (string text in array)
-				{
-					try
-					{
-						InitFolderFiles(text);
-						Directory.Delete(text);
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-					}
-				}
+				DeleteFolderContents(InFolder);
 			}
 			catch (Exception ex)
 			{
@@ -558,34 +718,7 @@ namespace Easislides
 				if (CommonUtil.ProcessKill("POWERPNT"))
 				{
 					Thread.Sleep(2000);
-
-					string[] files = Directory.GetFiles(InFolder);
-					string[] array = files;
-					foreach (string path in array)
-					{
-						try
-						{
-							File.Delete(path);
-						}
-						catch (Exception ex)
-						{
-							Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-						}
-					}
-					string[] directories = Directory.GetDirectories(InFolder);
-					array = directories;
-					foreach (string text in array)
-					{
-						try
-						{
-							DeleteFolderFiles(text);
-							Directory.Delete(text);
-						}
-						catch (Exception ex)
-						{
-							Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-						}
-					}
+					DeleteFolderContents(InFolder);
 				}
 			}
 			catch (Exception ex)

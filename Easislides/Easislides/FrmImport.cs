@@ -143,7 +143,7 @@ namespace Easislides
 
 		private string[] sArray;
 
-		private string[] EsfFolderNames = new string[41];
+		private string[] EsfFolderNames = new string[gf.MAXSONGSFOLDERS];
 
 		private string esf1SongTitle = "[#";
 
@@ -527,7 +527,7 @@ namespace Easislides
 		private void BuildFolderList()
 		{
 			SongFolder.Items.Clear();
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				if (gf.FolderUse[i] > 0)
 				{
@@ -570,7 +570,7 @@ namespace Easislides
 			using DbConnection connection = DbController.GetDbConnection(gf.ConnectSQLiteDef + ImportFileName);
 #endif
 
-			for (int i = 0; i < 41; i++)
+			for (int i = 0; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				EsfFolderNames[i] = "";
 			}
@@ -1114,7 +1114,7 @@ namespace Easislides
 
 		private string GetImportFolderNumber(string InFolderName)
 		{
-			for (int i = 1; i < 41; i++)
+			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
 			{
 				if (EsfFolderNames[i] == InFolderName)
 				{
