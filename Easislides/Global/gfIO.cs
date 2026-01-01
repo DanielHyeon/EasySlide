@@ -19,7 +19,14 @@ namespace Easislides
 			{
 				try
 				{
-					string dest = Path.Combine(InDir, Path.GetFileNameWithoutExtension(path) + InNewExt);
+					string baseName = Path.GetFileNameWithoutExtension(path);
+					string dest = Path.Combine(InDir, baseName + InNewExt);
+					int num = 0;
+					while (File.Exists(dest))
+					{
+						num++;
+						dest = Path.Combine(InDir, baseName + " - Renamed (" + num + ")" + InNewExt);
+					}
 					File.Move(path, dest);
 				}
 				catch (IOException ex)
@@ -57,34 +64,6 @@ namespace Easislides
 			{
 			}
 			return text;
-		}
-
-		public static bool LoadUnicodeStrokeCount1()
-		{
-			string InString = "";
-			if (gfFileHelpers.LoadFileContents(Application.StartupPath + "\\Sys\\strokecount.dat", ref InString))
-			{
-				int i = 1;
-				for (int num = InString.Length - 2; i <= num - 2; i += 3)
-				{
-					int num2 = DataUtil.ObjToInt(InString.Substring(i, 2));
-					if (num2 > 0)
-					{
-						int num3 = InString[i - 1];
-						if (num3 < 0)
-						{
-							num3 += 65536;
-						}
-						if (num3 >= 0)
-						{
-							StrokeCount[num3] = num2;
-						}
-					}
-				}
-				return true;
-			}
-			MessageOverSplashScreen("The EasiSlides system file strokecount.dat is missing. Please re-install EasiSlides Software.");
-			return false;
 		}
 
 		public static bool LoadUnicodeStrokeCount()
@@ -187,16 +166,15 @@ namespace Easislides
 				int num = 0;
 				string extension = Path.GetExtension(SourceFileName);
 				string displayNameOnly = GetDisplayNameOnly(ref SourceFileName, UpdateByRef: false);
-				string text = Path.GetDirectoryName(SourceFileName) + "\\";
 				if (!Directory.Exists(CopyToFolder) && !FileUtil.MakeDir(CopyToFolder))
 				{
 					return "";
 				}
-				string text2 = CopyToFolder + displayNameOnly + extension;
+				string text2 = Path.Combine(CopyToFolder, displayNameOnly + extension);
 				while (File.Exists(text2))
 				{
 					num++;
-					text2 = CopyToFolder + displayNameOnly + " - Copy (" + num + ")" + extension;
+					text2 = Path.Combine(CopyToFolder, displayNameOnly + " - Copy (" + num + ")" + extension);
 				}
 				try
 				{
@@ -217,16 +195,15 @@ namespace Easislides
 				int num = 0;
 				string extension = Path.GetExtension(SourceFileName);
 				string displayNameOnly = GetDisplayNameOnly(ref SourceFileName, UpdateByRef: false);
-				string text = Path.GetDirectoryName(SourceFileName) + "\\";
 				if (!Directory.Exists(MoveToFolder) && !FileUtil.MakeDir(MoveToFolder))
 				{
 					return "";
 				}
-				string text2 = MoveToFolder + displayNameOnly + extension;
+				string text2 = Path.Combine(MoveToFolder, displayNameOnly + extension);
 				while (File.Exists(text2))
 				{
 					num++;
-					text2 = MoveToFolder + displayNameOnly + " - Copy (" + num + ")" + extension;
+					text2 = Path.Combine(MoveToFolder, displayNameOnly + " - Copy (" + num + ")" + extension);
 				}
 				try
 				{

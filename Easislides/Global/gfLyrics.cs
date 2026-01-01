@@ -668,18 +668,27 @@ namespace Easislides
 
 		public static void ApplyHeaderData(int InMode)
 		{
-			int num = IndexFileVersion = ExtractNumericData(HeaderData[1]);
+			int?[] numericCache = new int?[HeaderData.Length];
+			int GetNumeric(int index)
+			{
+				if (!numericCache[index].HasValue)
+				{
+					numericCache[index] = ExtractNumericData(HeaderData[index]);
+				}
+				return numericCache[index].Value;
+			}
+			int num = IndexFileVersion = GetNumeric(1);
 			if (InMode != 1)
 			{
-				num = ExtractNumericData(HeaderData[11]);
+				num = GetNumeric(11);
 				PanelBackColour = (((HeaderData[11] == "") | !ValidateColour(num)) ? DefaultBackColour : Color.FromArgb(Convert.ToInt32(num)));
-				num = ExtractNumericData(HeaderData[12]);
+				num = GetNumeric(12);
 				PanelBackColourTransparent = (((num < 0) | (num > 1)) ? 1 : num);
-				num = ExtractNumericData(HeaderData[13]);
+				num = GetNumeric(13);
 				PanelTextColour = (((HeaderData[13] == "") | !ValidateColour(num)) ? DefaultForeColour : Color.FromArgb(Convert.ToInt32(num)));
-				num = ExtractNumericData(HeaderData[14]);
+				num = GetNumeric(14);
 				PanelTextColourAsRegion1 = (((num < 0) | (num > 1)) ? 1 : num);
-				num = ExtractNumericData(HeaderData[15]);
+				num = GetNumeric(15);
 				num = ((num < 0) ? 31 : num);
 				ShowDataDisplayMode = DataUtil.GetBitValue(num, 1);
 				ShowDataDisplaySlides = DataUtil.GetBitValue(num, 2);
@@ -687,7 +696,7 @@ namespace Easislides
 				ShowDataDisplayTitle = DataUtil.GetBitValue(num, 4);
 				ShowDataDisplayCopyright = DataUtil.GetBitValue(num, 5);
 				ShowDataDisplayPrevNext = DataUtil.GetBitValue(num, 6);
-				num = ExtractNumericData(HeaderData[16]);
+				num = GetNumeric(16);
 				num = ((num < 6 || num > 20) ? 8 : num);
 				BottomBorderFactor = (double)num / 100.0;
 				ShowDataDisplayFontName = HeaderData[17];
@@ -695,66 +704,66 @@ namespace Easislides
 				{
 					ShowDataDisplayFontName = "Microsoft Sans Serif";
 				}
-				num = ExtractNumericData(HeaderData[18]);
+				num = GetNumeric(18);
 				num = ((num >= 0) ? num : 0);
 				ShowDataDisplayFontBold = DataUtil.GetBitValue(num, 1);
 				ShowDataDisplayFontItalic = DataUtil.GetBitValue(num, 2);
 				ShowDataDisplayFontUnderline = DataUtil.GetBitValue(num, 3);
 				ShowDataDisplayFontShadow = DataUtil.GetBitValue(num, 4);
 				ShowDataDisplayFontOutline = DataUtil.GetBitValue(num, 5);
-				num = ExtractNumericData(HeaderData[19]);
+				num = GetNumeric(19);
 				ShowDataDisplayIndicatorsFontSize = ((num < 8 || num > 20) ? 8 : num);
-				num = ExtractNumericData(HeaderData[21]);
+				num = GetNumeric(21);
 				ShowSongHeadings = (((num < 0) | (num > 3)) ? 1 : num);
-				num = ExtractNumericData(HeaderData[22]);
+				num = GetNumeric(22);
 				num = ((num < 0) ? 2 : num);
 				UseShadowFont = DataUtil.GetBitValue(num, 2);
 				ShowNotations = DataUtil.GetBitValue(num, 3);
 				ShowCapoZero = DataUtil.GetBitValue(num, 4);
 				ShowInterlace = DataUtil.GetBitValue(num, 5);
 				UseOutlineFont = DataUtil.GetBitValue(num, 6);
-				num = ExtractNumericData(HeaderData[23]);
+				num = GetNumeric(23);
 				ShowSongHeadingsAlign = ((!((num < 0) | (num > 4))) ? num : 0);
-				num = ExtractNumericData(HeaderData[25]);
+				num = GetNumeric(25);
 				ShowLyrics = (((num < 0) | (num > 2)) ? 2 : num);
-				num = ExtractNumericData(HeaderData[26]);
+				num = GetNumeric(26);
 				ShowScreenColour[0] = (((HeaderData[26] == "") | !ValidateColour(num)) ? DefaultBackColour : Color.FromArgb(Convert.ToInt32(num)));
-				num = ExtractNumericData(HeaderData[27]);
+				num = GetNumeric(27);
 				ShowScreenColour[1] = (((HeaderData[27] == "") | !ValidateColour(num)) ? ShowScreenColour[0] : Color.FromArgb(Convert.ToInt32(num)));
-				num = ExtractNumericData(HeaderData[28]);
+				num = GetNumeric(28);
 				ShowScreenStyle = ((!((num < 0) | (num > MaxBackgroundStyleIndex))) ? num : 0);
-				num = ExtractNumericData(HeaderData[29]);
+				num = GetNumeric(29);
 				ShowFontColour[0] = (((HeaderData[29] == "") | !ValidateColour(num)) ? DefaultForeColour : Color.FromArgb(Convert.ToInt32(num)));
-				num = ExtractNumericData(HeaderData[30]);
+				num = GetNumeric(30);
 				ShowFontColour[1] = (((HeaderData[30] == "") | !ValidateColour(num)) ? DefaultForeColour : Color.FromArgb(Convert.ToInt32(num)));
-				num = ExtractNumericData(HeaderData[31]);
+				num = GetNumeric(31);
 				ShowFontAlign[0, 0] = (((num < 0) | (num > 3)) ? 2 : num);
-				num = ExtractNumericData(HeaderData[32]);
+				num = GetNumeric(32);
 				ShowFontAlign[0, 1] = (((num < 0) | (num > 3)) ? 2 : num);
-				num = ExtractNumericData(HeaderData[50]);
+				num = GetNumeric(50);
 				MediaOption = ((!((num < 0) | (num > 3))) ? num : 0);
 				MediaLocation = HeaderData[51];
-				num = ExtractNumericData(HeaderData[52]);
+				num = GetNumeric(52);
 				MediaVolume = (((num < 0) | (num > 100)) ? 50 : num);
-				num = ExtractNumericData(HeaderData[53]);
+				num = GetNumeric(53);
 				MediaBalance = ((!((num < -100) | (num > 100))) ? num : 0);
-				num = ExtractNumericData(HeaderData[54]);
+				num = GetNumeric(54);
 				MediaMute = DataUtil.GetBitValue(num, 1);
 				MediaRepeat = DataUtil.GetBitValue(num, 2);
 				MediaWidescreen = DataUtil.GetBitValue(num, 3);
-				num = ExtractNumericData(HeaderData[55]);
+				num = GetNumeric(55);
 				MediaCaptureDeviceNumber = (((num < 1) | (num > 5)) ? 1 : num);
 				MediaOutputMonitorName = HeaderData[56];
 				BackgroundPicture = HeaderData[61];
-				num = ExtractNumericData(HeaderData[62]);
+				num = GetNumeric(62);
 				BackgroundMode = (ImageMode)(((num < 0) | (num > 2)) ? 2 : num);
-				num = ExtractNumericData(HeaderData[63]);
+				num = GetNumeric(63);
 				ShowVerticalAlign = (((num < 0) | (num > 2)) ? 1 : num);
-				num = ExtractNumericData(HeaderData[64]);
+				num = GetNumeric(64);
 				ShowLeftMargin[0] = (((num < 0) | (num > 40)) ? 2 : num);
-				num = ExtractNumericData(HeaderData[65]);
+				num = GetNumeric(65);
 				ShowRightMargin[0] = (((num < 0) | (num > 40)) ? 2 : num);
-				num = ExtractNumericData(HeaderData[66]);
+				num = GetNumeric(66);
 				ShowBottomMargin[0] = ((!((num < 0) | (num > 100))) ? num : 0);
 				ShowItemTransition = GlobalImageCanvas.GetTransitionType(HeaderData[72]);
 				ShowSlideTransition = GlobalImageCanvas.GetTransitionType(HeaderData[73]);
@@ -791,7 +800,7 @@ namespace Easislides
 			for (int i = 0; i < 8; i++)
 			{
 				int num2 = 101 + i * 5;
-				num = ExtractNumericData(HeaderData[num2]);
+				num = GetNumeric(num2);
 				PB_ShowWords[i] = ((num < 0) ? 1 : DataUtil.GetBitValue(num, 1));
 				if (num < 0)
 				{
@@ -802,9 +811,9 @@ namespace Easislides
 					PB_WordsBold[i] = DataUtil.GetBitValue(num, 2);
 					PB_WordsItalic[i] = DataUtil.GetBitValue(num, 3);
 					PB_WordsUnderline[i] = DataUtil.GetBitValue(num, 4);
-					num = ExtractNumericData(HeaderData[num2 + 1]);
+					num = GetNumeric(num2 + 1);
 					PB_WordsSize[i] = (((num < 4) | (num > 72)) ? PB_WordsSize[i] : num);
-					num = ExtractNumericData(HeaderData[num2 + 2]);
+					num = GetNumeric(num2 + 2);
 					PB_WordsColour[i] = (((HeaderData[num2 + 2] == "") | !ValidateColour(num)) ? BlackScreenColour : Color.FromArgb(Convert.ToInt32(num)));
 				}
 				else
@@ -816,30 +825,30 @@ namespace Easislides
 					PB_WordsColour[i] = PB_WordsColour[2];
 				}
 			}
-			num = ExtractNumericData(HeaderData[151]);
+			num = GetNumeric(151);
 			PB_ShowHeadings[0] = DataUtil.GetBitValue(num, 1);
 			PB_ShowHeadings[1] = DataUtil.GetBitValue(num, 2);
 			PB_ShowHeadings[2] = DataUtil.GetBitValue(num, 3);
 			PB_ShowHeadings[3] = DataUtil.GetBitValue(num, 4);
-			num = ExtractNumericData(HeaderData[153]);
+			num = GetNumeric(153);
 			PB_LyricsPattern = (((num < 0) | (num > 1)) ? 1 : num);
-			num = ExtractNumericData(HeaderData[154]);
+			num = GetNumeric(154);
 			PB_ShowSection = (((num < 0) | (num > 2)) ? 2 : num);
-			num = ExtractNumericData(HeaderData[155]);
+			num = GetNumeric(155);
 			PB_ShowColumns = (((num < 1) | (num > 2)) ? 2 : num);
-			num = ExtractNumericData(HeaderData[156]);
+			num = GetNumeric(156);
 			PB_PageSize = ((!((num < 0) | (num > 1))) ? num : 0);
-			num = ExtractNumericData(HeaderData[170]);
+			num = GetNumeric(170);
 			PB_Spacing[0] = ((!((num < 0) | (num > 5))) ? num : 0);
-			num = ExtractNumericData(HeaderData[171]);
+			num = GetNumeric(171);
 			PB_Spacing[1] = (((num < 1) | (num > 20)) ? 2 : num);
-			num = ExtractNumericData(HeaderData[172]);
+			num = GetNumeric(172);
 			PB_ShowScreenBreaks = (((num < 0) | (num > 1)) ? 1 : num);
-			num = ExtractNumericData(HeaderData[173]);
+			num = GetNumeric(173);
 			PB_OneSongPerPage = ((!((num < 0) | (num > 1))) ? num : 0);
-			num = ExtractNumericData(HeaderData[174]);
+			num = GetNumeric(174);
 			PB_CJKGroupStyle = (SortBy)((!((num < 0) | (num > 1))) ? num : 0);
-			num = ExtractNumericData(HeaderData[180]);
+			num = GetNumeric(180);
 			PB_ShowNotations = DataUtil.GetBitValue(num, 1);
 			PB_ShowTiming = DataUtil.GetBitValue(num, 2);
 			PB_ShowKey = DataUtil.GetBitValue(num, 3);

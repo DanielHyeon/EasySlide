@@ -22,6 +22,7 @@ namespace Easislides
 	internal unsafe partial class gf
 	{
 		private static readonly char[] InvalidDirNameChars = new char[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' };
+		private static Dictionary<string, int> FolderNameIndex;
 
 		private struct SongRefileUpdate
 		{
@@ -62,6 +63,20 @@ namespace Easislides
 				}
 			}
 			return changed ? new string(buffer) : value;
+		}
+
+		private static void RebuildFolderNameIndex()
+		{
+			Dictionary<string, int> index = new Dictionary<string, int>(MAXSONGSFOLDERS, StringComparer.Ordinal);
+			for (int i = 0; i < MAXSONGSFOLDERS; i++)
+			{
+				string name = FolderName[i];
+				if (!string.IsNullOrEmpty(name) && !index.ContainsKey(name))
+				{
+					index[name] = i;
+				}
+			}
+			FolderNameIndex = index;
 		}
 
 		private static void DeleteFolderContents(string folder)
@@ -299,6 +314,7 @@ namespace Easislides
 					}
 				}
 			}
+			RebuildFolderNameIndex();
 		}
 
 		public static int GetFolderNumber(string InName)
@@ -308,12 +324,13 @@ namespace Easislides
 
 		public static int GetFolderNumber(string InName, bool ZeroIfInvalid)
 		{
-			for (int i = 0; i < MAXSONGSFOLDERS; i++)
+			if (FolderNameIndex == null)
 			{
-				if (InName == FolderName[i])
-				{
-					return i;
-				}
+				RebuildFolderNameIndex();
+			}
+			if (FolderNameIndex.TryGetValue(InName, out int folderNo))
+			{
+				return folderNo;
 			}
 			if (ZeroIfInvalid)
 			{
@@ -729,20 +746,27 @@ namespace Easislides
 
 		public static void BuildSubFolderList(string InDir, string RemovePrefix, ref string[,] InGroup, ref int InTotal)
 		{
-			string[] directories = Directory.GetDirectories(InDir);
-			if (directories.Length > 0)
+			Stack<string> pending = new Stack<string>();
+			pending.Push(InDir);
+
+			while (pending.Count > 0)
 			{
-				SingleArraySort(directories);
-			}
-			string[] array = directories;
-			foreach (string text in array)
-			{
-				if ((!(RemovePrefix == ImagesDir) || !(text == RootEasiSlidesDir + "Images\\Scenery")) && !(text == RootEasiSlidesDir + "Images\\Tiles") && InTotal < 255)
+				string current = pending.Pop();
+				string[] directories = Directory.GetDirectories(current);
+				if (directories.Length > 0)
 				{
-					InGroup[InTotal, 1] = text + "\\";
-					InGroup[InTotal, 0] = "\\" + text.Replace(RemovePrefix, "");
-					InTotal++;
-					BuildSubFolderList(text, RemovePrefix, ref InGroup, ref InTotal);
+					SingleArraySort(directories);
+				}
+				for (int i = directories.Length - 1; i >= 0; i--)
+				{
+					string text = directories[i];
+					if ((!(RemovePrefix == ImagesDir) || !(text == RootEasiSlidesDir + "Images\\Scenery")) && !(text == RootEasiSlidesDir + "Images\\Tiles") && InTotal < 255)
+					{
+						InGroup[InTotal, 1] = text + "\\";
+						InGroup[InTotal, 0] = "\\" + text.Replace(RemovePrefix, "");
+						InTotal++;
+						pending.Push(text);
+					}
 				}
 			}
 		}
