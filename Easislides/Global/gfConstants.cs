@@ -1,9 +1,5 @@
 //using JRO;
 //using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
-using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
-//using NetOffice.PowerPointApi;
-using OfficeLib;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,6 +9,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Easislides.Module;
+using Easislides.Util;
+//using Microsoft.Office.Interop.Access.Dao;
+//using NetOffice.PowerPointApi;
+using OfficeLib;
 
 //using NetOffice.DAOApi;
 

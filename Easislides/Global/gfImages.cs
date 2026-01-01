@@ -1,4 +1,3 @@
-using Easislides.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
 using Easislides.Module;
+using Easislides.Util;
 
 namespace Easislides
 {

@@ -1,7 +1,3 @@
-using Easislides.SQLite;
-using Easislides.Util;
-using Microsoft.Win32;
-using OfficeLib;
 using System;
 using System.Collections;
 using System.Data;
@@ -11,6 +7,10 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using Easislides.Module;
+using Easislides.SQLite;
+using Easislides.Util;
+using Microsoft.Win32;
+using OfficeLib;
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 

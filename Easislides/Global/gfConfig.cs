@@ -1,5 +1,3 @@
-using Easislides.SQLite;
-using Easislides.Util;
 using System;
 using System.Data;
 using System.Drawing;
@@ -8,8 +6,10 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using Easislides.Module;
-using DbConnection = System.Data.SQLite.SQLiteConnection;
+using Easislides.SQLite;
+using Easislides.Util;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
+using DbConnection = System.Data.SQLite.SQLiteConnection;
 
 namespace Easislides
 {

@@ -1,6 +1,3 @@
-using Easislides.Module;
-using Easislides.Util;
-using OfficeLib;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,6 +7,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using Easislides.Module;
+using Easislides.Util;
+using OfficeLib;
 
 namespace Easislides
 {

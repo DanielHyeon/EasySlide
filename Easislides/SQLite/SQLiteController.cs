@@ -1,13 +1,13 @@
-﻿using Easislides.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Threading;
 using System.Diagnostics;
+using System.Threading;
+using Easislides.Util;
+using DbCommand = System.Data.SQLite.SQLiteCommand;
+using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
-using DbCommand = System.Data.SQLite.SQLiteCommand;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
 using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 
