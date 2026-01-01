@@ -250,5 +250,39 @@ namespace Easislides
 			}
 		}
 
+		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2)
+		{
+			return GetMediaFileName(MusicTitle1, MusicTitle2);
+		}
+
+		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2, ref string DirPath)
+		{
+			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath);
+		}
+
+		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2, ref string DirPath, ref string FileName)
+		{
+			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName);
+		}
+
+		public static string GetMusicFileName(string MusicTitle1, string MusicTitle2, ref string DirPath, ref string FileName, bool StoreDirPath)
+		{
+			return GetMediaFileName(MusicTitle1, MusicTitle2, ref DirPath, ref FileName, StoreDirPath);
+		}
+
+		public static string GetMusicFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1)
+		{
+			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1);
+		}
+
+		public static string GetMusicFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1, ref string DirPath)
+		{
+			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath);
+		}
+
+		public static string GetMusicFileNameFromDir(string FolderPath, string MusicExtension, string MusicTitle1, ref string DirPath, ref string FileName)
+		{
+			return GetMediaFileNameFromDir(FolderPath, MusicExtension, MusicTitle1, ref DirPath, ref FileName);
+		}
     }
 }

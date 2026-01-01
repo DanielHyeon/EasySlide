@@ -4,15 +4,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml;
 using Easislides.Module;
-using System.IO;
-using System.Data;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
-	{
+    internal unsafe partial class gf
+    {
 
 		public void FormatText(ref SongSettings InItem, Color PanelBackColour, int PanelBackColorAsScreen, Color PanelTextColor, int PaneltextColourAsRegion1)
 		{
@@ -106,7 +103,7 @@ namespace Easislides
 			int num8 = buffer_LS_Width - (num7 + num3 * buffer_LS_Width / 100);
 			int num9 = buffer_LS_Height - (int)(TopBorderFactor * (double)buffer_LS_Height + (BottomBorderFactor + 0.029999999329447746) * (double)buffer_LS_Height + (double)(num4 * buffer_LS_Height / 100));
 			ShowTopBorderSize = (int)((double)buffer_LS_Height * TopBorderFactor);
-
+			
 			Image image = new Bitmap(num8, 1, PixelFormat.Format24bppRgb);
 			Graphics graphics = Graphics.FromImage(image);
 			SizeF layoutArea = new SizeF(num8, 32000f);
@@ -578,10 +575,22 @@ namespace Easislides
 			return num;
 		}
 
+
+		// ================================================================
+		// Functions moved from gfUtility.cs for Lyrics/Notation handling
+		// ================================================================
+
+		// ========== Load32HeaderData (Line 676) ==========
+
+	
+	
 		public static int Load32HeaderData(string InFileName, string InContents, ref string[] ThisHeaderData)
 		{
 			return Load32HeaderData(InFileName, InContents, ref ThisHeaderData, '>');
 		}
+
+
+		// ========== Load32HeaderData (Line 681) ==========
 
 		public static int Load32HeaderData(string InFileName, string InContents, ref string[] ThisHeaderData, char SeparatorSym)
 		{
@@ -608,6 +617,9 @@ namespace Easislides
 			return num2;
 		}
 
+
+		// ========== ExtractHeaderInfo (Line 706) ==========
+
 		public static string ExtractHeaderInfo(string InString, int Index, char Separator)
 		{
 			int num = InString.IndexOf(Index + "=");
@@ -624,6 +636,8 @@ namespace Easislides
 			return "";
 		}
 
+
+		// ========== LoadHeaderData (Line 722) ==========
 
 		public static int LoadHeaderData(string InFormatString, ref string[] ThisHeaderData, char SeparatorSym)
 		{
@@ -654,10 +668,16 @@ namespace Easislides
 			return 1;
 		}
 
+
+		// ========== ApplyHeaderData (Line 751) ==========
+
 		public static void ApplyHeaderData()
 		{
 			ApplyHeaderData(0);
 		}
+
+
+		// ========== ApplyHeaderData (Line 756) ==========
 
 		public static void ApplyHeaderData(int InMode)
 		{
@@ -840,6 +860,9 @@ namespace Easislides
 			PB_CapoZero = ((num >= 0) ? DataUtil.GetBitValue(num, 5) : 0);
 		}
 
+
+		// ========== GapFormatString (Line 1216) ==========
+
 		private static string GapFormatString(ref SongSettings InItem)
 		{
 			InItem.UseDefaultFormat = false;
@@ -896,6 +919,9 @@ namespace Easislides
 			return stringBuilder.ToString();
 		}
 
+
+		// ========== IsNewR2Format (Line 1272) ==========
+
 		public static bool IsNewR2Format(string InLyrics)
 		{
 			InLyrics = InLyrics.Replace("\r\n", "\n");
@@ -949,6 +975,9 @@ namespace Easislides
 			return false;
 		}
 
+
+		// ========== IncrementChord (Line 1369) ==========
+
 		public static int IncrementChord(ref int CurPos, int TransposeTo)
 		{
 			int num = CurPos + TransposeTo;
@@ -962,6 +991,9 @@ namespace Easislides
 			}
 			return num;
 		}
+
+
+		// ========== GetSlideContents (Line 1714) ==========
 
 		public static string GetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)
 		{
@@ -1023,6 +1055,9 @@ namespace Easislides
 			return DataUtil.TrimEnd(text) + "\n";
 		}
 
+
+		// ========== OldGetSlideContents (Line 1774) ==========
+
 		public static string OldGetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)
 		{
 			int[,] slide = InItem.Slide;
@@ -1065,6 +1100,9 @@ namespace Easislides
 			}
 			return text;
 		}
+
+
+		// ========== FormatNotationString (Line 1817) ==========
 
 		public static string FormatNotationString(ListView InListView, string InString, string InNotation, Font MainFont, Font NotationsFont)
 		{
@@ -1121,15 +1159,24 @@ namespace Easislides
 			return " ";
 		}
 
+
+		// ========== GetAssociatedLyricsLineCurPosX (Line 1872) ==========
+
 		public static int GetAssociatedLyricsLineCurPosX(ref RichTextBox IntextBox, int InCurPos)
 		{
 			return GetAssociatedLyricsLineCurPosX(ref IntextBox, InCurPos, 0);
 		}
 
+
+		// ========== GetAssociatedLyricsLineCurPosX (Line 1877) ==========
+
 		public static int GetAssociatedLyricsLineCurPosX(ref RichTextBox IntextBox, int InCurPos, int LyricsCurPosMin)
 		{
 			return GetAssociatedLyricsLineCurPosX(ref IntextBox, InCurPos, LyricsCurPosMin, 64000);
 		}
+
+
+		// ========== GetAssociatedLyricsLineCurPosX (Line 1882) ==========
 
 		public static int GetAssociatedLyricsLineCurPosX(ref RichTextBox IntextBox, int InCurPos, int LyricsCurPosMin, int LyricsCurPosMax)
 		{
@@ -1147,6 +1194,8 @@ namespace Easislides
 		}
 
 
+		// ========== GetMinMaxfromTextBox (Line 1897) ==========
+
 		public static void GetMinMaxfromTextBox(RichTextBox InBox, int InLineNumber, ref int InMin, ref int InMax)
 		{
 			int num = 0;
@@ -1163,6 +1212,9 @@ namespace Easislides
 			}
 			InMax--;
 		}
+
+
+		// ========== GetMinMaxfromTextString (Line 1914) ==========
 
 		public static void GetMinMaxfromTextString(string InString, int InLineNumber, ref int InMin, ref int InMax)
 		{
@@ -1189,6 +1241,9 @@ namespace Easislides
 			InMax--;
 		}
 
+
+		// ========== GetVerseIndicator (Line 1939) ==========
+
 		public static int GetVerseIndicator(string InString)
 		{
 			for (int i = 0; i <= 150; i++)
@@ -1200,6 +1255,9 @@ namespace Easislides
 			}
 			return -1;
 		}
+
+
+		// ========== TransposeOneNotationString (Line 1951) ==========
 
 		public static string TransposeOneNotationString(string NotationString, int TransposeTo, int FlatSharpKey)
 		{
@@ -1213,6 +1271,9 @@ namespace Easislides
 			}
 			return text;
 		}
+
+
+		// ========== ExtractOneNotationsLine (Line 1964) ==========
 
 		public static int ExtractOneNotationsLine(ref string InString, ref string ResultString)
 		{
@@ -1243,6 +1304,9 @@ namespace Easislides
 			return num3;
 		}
 
+
+		// ========== ChangeNotationLineNumber (Line 1993) ==========
+
 		public static void ChangeNotationLineNumber(ref string InOneNotationLine, int InNewLineNumber)
 		{
 			if (InOneNotationLine.Length > 0)
@@ -1256,6 +1320,9 @@ namespace Easislides
 				}
 			}
 		}
+
+
+		// ========== BuildSlides (Line 2007) ==========
 
 		public static void BuildSlides(SongSettings InItem, ListView LyricsLists, ref string SongSequence, ref int CurSongMaxSlides, ref int[] SongVerses, ref int[] ChorusSlides, ref int[,] Slide, int InShowNotations)
 		{
@@ -1438,6 +1505,9 @@ namespace Easislides
 			return num;
 		}
 
+
+		// ========== GetVerseScreenLoc (Line 2185) ==========
+
 		public static int GetVerseScreenLoc(ListView LyricsLists, int StartLoc, int EndLoc, int InScreenNumber)
 		{
 			if (StartLoc > EndLoc)
@@ -1471,6 +1541,9 @@ namespace Easislides
 			return -1;
 		}
 
+
+		// ========== GetVerseScreenEndLoc (Line 2218) ==========
+
 		public static int GetVerseScreenEndLoc(ListView LyricsLists, int StartLoc, int EndLoc)
 		{
 			if (StartLoc > EndLoc)
@@ -1494,6 +1567,9 @@ namespace Easislides
 			}
 			return EndLoc;
 		}
+
+
+		// ========== BuildSlidesReg2 (Line 2242) ==========
 
 		public static void BuildSlidesReg2(ListView LyricsLists, int StartLoc, int EndLoc, ref int[,] Slide, ref int CurSlideNumber, int[,] Reg1SubLoc, int InScreenNumber, bool LastSubScreen)
 		{
@@ -1586,10 +1662,16 @@ namespace Easislides
 			return num;
 		}
 
+
+		// ========== GetOneScreen (Line 2330) ==========
+
 		public static int GetOneScreen(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, Graphics g, int startline, ref int endline, int EndLoc, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations)
 		{
 			return GetOneScreen(InItem, InLyricsFormat, ref LyricsLists, g, startline, ref endline, EndLoc, Region2Present, RegionNumber, FolderNo, InShowNotations, FitAllIntoOneScreen: false, UseLargestFontSize: false);
 		}
+
+
+		// ========== GetOneScreen (Line 2335) ==========
 
 		public static int GetOneScreen(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, Graphics g, int startline, ref int endline, int EndLoc, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations, bool FitAllIntoOneScreen, bool UseLargestFontSize)
 		{
@@ -1635,6 +1717,9 @@ namespace Easislides
 			return 1;
 		}
 
+
+		// ========== ActionWordWrapSpacesAtStart (Line 2379) ==========
+
 		public static string ActionWordWrapSpacesAtStart(ref string InString)
 		{
 			string text = "";
@@ -1653,6 +1738,9 @@ namespace Easislides
 			}
 			return text;
 		}
+
+
+		// ========== ActionUndoWordWrapSpacesAtStart (Line 2398) ==========
 
 		public static void ActionUndoWordWrapSpacesAtStart(ref string ExtractedText, ref string ReplacedLog)
 		{
@@ -1678,6 +1766,9 @@ namespace Easislides
 			}
 			ReplacedLog = text;
 		}
+
+
+		// ========== GetLinesRequiredAndAddBreakPlusFont (Line 2423) ==========
 
 		public static int GetLinesRequiredAndAddBreakPlusFont(ref ListView LyricsLists, Font MainFont, Graphics g, int LyricsIndex, float InWidth)
 		{
@@ -1743,6 +1834,9 @@ namespace Easislides
 				ExtractedText = ExtractedText.Replace(DashesStringSubstitute, "");
 			}
 		}
+
+
+		// ========== SubDivideOneOutputText (Line 2599) ==========
 
 		public static void SubDivideOneOutputText(string InText, Font MainFont, Font NotationsFont, Graphics g, int InWidth, int InShowNotations, string NotationsString, int TextLength, int InSetLength, int StartPos, ref int EndExtractedTextPos, ref string ExtractedText)
 		{
@@ -1825,6 +1919,9 @@ namespace Easislides
 			}
 		}
 
+
+		// ========== OldSwitchChineseLyricsNotationListView (Line 3200) ==========
+
 		public static void OldSwitchChineseLyricsNotationListView(ref ListView InLyricsAndNotationsList, int ChangeTo)
 		{
 			if (InLyricsAndNotationsList.Items.Count > 0)
@@ -1837,6 +1934,9 @@ namespace Easislides
 				}
 			}
 		}
+
+
+		// ========== SwitchChineseLyricsNotationListView (Line 3213) ==========
 
 		public static void SwitchChineseLyricsNotationListView(ref SongSettings InItem, int ChangeTo)
 		{
@@ -1853,6 +1953,9 @@ namespace Easislides
 				}
 			}
 		}
+
+
+		// ========== SwitchChinese (Line 3229) ==========
 
 		public static int SwitchChinese(ref RichTextBox InTextBox)
 		{
@@ -1889,10 +1992,16 @@ namespace Easislides
 			return num;
 		}
 
+
+		// ========== SwitchChinese (Line 3264) ==========
+
 		public static int SwitchChinese(ref string InString)
 		{
 			return SwitchChinese(ref InString, -1);
 		}
+
+
+		// ========== SwitchChinese (Line 3269) ==========
 
 		public static int SwitchChinese(ref string InString, int SelectedType)
 		{
@@ -1944,6 +2053,9 @@ namespace Easislides
 			return 1;
 		}
 
+
+		// ========== getStrConv (Line 3319) ==========
+
 		static string getStrConv(string sDat, string codepage)
 		{
 			try
@@ -1964,6 +2076,9 @@ namespace Easislides
 			return sDat;
 		}
 
+
+		// ========== TransposeChord (Line 3605) ==========
+
 		public static string TransposeChord(string InNotation, int TransposeStep, int FlatSharpKey)
 		{
 			if (InNotation == "")
@@ -1983,6 +2098,9 @@ namespace Easislides
 			}
 			return str + str2;
 		}
+
+
+		// ========== TransposeOneChord (Line 3625) ==========
 
 		public static string TransposeOneChord(string InChord, int TransposeStep, bool accidentals, int FlatSharpKey)
 		{
@@ -4316,4 +4434,1245 @@ namespace Easislides
 			}
 		}
 	}
+
+
+		// ========== TransposeKey (Line 3694) ==========
+
+		public static int TransposeKey(ref string InKey, int TransposeStep)
+		{
+			if (InKey == "")
+			{
+				return (TransposeStep > 0) ? 1 : 0;
+			}
+			bool flag = false;
+			int num = -1;
+			int num2 = 0;
+			for (int i = 0; i <= 11; i++)
+			{
+				if (MusicMajorKeys[i] == InKey)
+				{
+					flag = true;
+					num = i;
+					num2 = 0;
+					i = 12;
+				}
+			}
+			if (!flag)
+			{
+				for (int i = 0; i <= 11; i++)
+				{
+					if (MusicMinorKeys[i] == InKey)
+					{
+						flag = true;
+						num = i;
+						num2 = 1;
+						i = 12;
+					}
+				}
+			}
+			if (flag)
+			{
+				string text = "";
+				int num3 = -1;
+				int num4 = num + TransposeStep;
+				if (num4 < 0)
+				{
+					num4 = 11 + num4 + 1;
+				}
+				if (num4 > 11)
+				{
+					num4 = num4 - 11 - 1;
+				}
+				if (num2 == 0)
+				{
+					text = MusicMajorKeys[num4];
+					num3 = MusicMajorKeysFlatSharp[num4];
+				}
+				else
+				{
+					text = MusicMinorKeys[num4];
+					num3 = MusicMinorKeysFlatSharp[num4];
+				}
+				InKey = text;
+				return num3;
+			}
+			return -1;
+		}
+
+
+		// ========== GetCurPosInLine (Line 3755) ==========
+
+		public static void GetCurPosInLine(string instring, ref int CurPos)
+		{
+			MoveToPosInLine(instring, ref CurPos, 0);
+		}
+
+
+		// ========== MoveToPosInLine (Line 3760) ==========
+
+		public static void MoveToPosInLine(string instring, ref int CurPos, int InMode)
+		{
+			if (instring.Length == 0)
+			{
+				return;
+			}
+			bool flag = false;
+			int num = CurPos + ((InMode == 0) ? (-1) : 0);
+			string text = "";
+			while (num >= 0 && num < instring.Length && !flag)
+			{
+				text = DataUtil.Mid(instring, num, 1);
+				if ((text == "\r") | (text == "\n"))
+				{
+					flag = true;
+					CurPos = num + ((InMode == 0) ? 1 : 0);
+					num = 0;
+				}
+				else
+				{
+					num += ((InMode != 0) ? 1 : (-1));
+				}
+			}
+			if (!flag)
+			{
+				CurPos = ((InMode != 0) ? instring.Length : 0);
+			}
+		}
+
+
+		// ========== InsertChordAboveCurrentLine (Line 3789) ==========
+
+		public static void InsertChordAboveCurrentLine(ref RichTextBox InTextBox, string InChordString)
+		{
+			bool flag = (InChordString[0].ToString() == "/") ? true : false;
+			int i = InTextBox.SelectionStart;
+			int curPos = i;
+			int num = i;
+			int length = InTextBox.Text.Length;
+			Point positionFromCharIndex = InTextBox.GetPositionFromCharIndex(i);
+			int lineFromCharIndex = InTextBox.GetLineFromCharIndex(i);
+			bool flag2 = false;
+			int num2 = InTextBox.Text.IndexOf("Â»", i);
+			if (InTextBox.GetLineFromCharIndex(num2) != lineFromCharIndex)
+			{
+				num2 = -1;
+			}
+			int num3 = -1;
+			if (num2 >= 0)
+			{
+				num3 = i;
+			}
+			else
+			{
+				InChordString += " ";
+				if (lineFromCharIndex < 1)
+				{
+					flag2 = true;
+				}
+				else
+				{
+					string textFromPreviousLine = GetTextFromPreviousLine(InTextBox.Text, curPos);
+					if (textFromPreviousLine.IndexOf("Â»") < 0)
+					{
+						flag2 = true;
+					}
+				}
+				if (flag2)
+				{
+					InsertIndicator(ref InTextBox, 151);
+					InTextBox.SelectionStart -= 1;
+					InsertIndicator(ref InTextBox, 152);
+					i = InTextBox.SelectionStart;
+				}
+				else
+				{
+					GetCurPosInLine(InTextBox.Text, ref i);
+					i--;
+				}
+			}
+			int CurPos = -1;
+			MoveToPosInLine(InTextBox.Text, ref CurPos, 1);
+			GetCurPosInLine(InTextBox.Text, ref i);
+			int num4 = i;
+			InTextBox.SelectionStart = i;
+			num2 = InTextBox.Text.IndexOf("Â»", i);
+			if (num2 < 0)
+			{
+				return;
+			}
+			if (num3 >= 0)
+			{
+				i = num3;
+			}
+			InTextBox.SelectionStart = num2;
+			Point positionFromCharIndex2 = InTextBox.GetPositionFromCharIndex(InTextBox.SelectionStart);
+			while (positionFromCharIndex2.X < positionFromCharIndex.X)
+			{
+				InTextBox.SelectedText = " ";
+				positionFromCharIndex2 = InTextBox.GetPositionFromCharIndex(InTextBox.SelectionStart);
+			}
+			GetCurPosInLine(InTextBox.Text, ref i);
+			for (; InTextBox.GetPositionFromCharIndex(i).X < positionFromCharIndex.X; i++)
+			{
+			}
+			bool flag3 = false;
+			while (i > num4 && i < num2 && !flag3)
+			{
+				if (InTextBox.Text[i - 1].ToString() == " ")
+				{
+					flag3 = true;
+				}
+				else if (InTextBox.Text[i].ToString() == " ")
+				{
+					i++;
+					flag3 = true;
+				}
+				else
+				{
+					i++;
+				}
+			}
+			Point point = new Point(-1, -1);
+			int num5 = -1;
+			for (int j = i; j <= num2; j++)
+			{
+				if (InTextBox.Text[j].ToString() != " ")
+				{
+					point = InTextBox.GetPositionFromCharIndex(j);
+					num5 = j;
+					j = num2 + 1;
+				}
+			}
+			InTextBox.SelectionStart = i;
+			InTextBox.SelectedText = InChordString;
+			InTextBox.SelectedText = "";
+			if (num5 >= 0)
+			{
+				num5 += InChordString.Length - 1;
+				int x = InTextBox.GetPositionFromCharIndex(num5).X;
+				while (x >= point.X && InTextBox.Text[num5 - 1].ToString() == " " && InTextBox.Text[num5 - 2].ToString() == " ")
+				{
+					InTextBox.SelectionStart = num5;
+					InTextBox.SelectionLength = 1;
+					InTextBox.SelectedText = "";
+					num5--;
+					x = InTextBox.GetPositionFromCharIndex(num5).X;
+				}
+			}
+			InTextBox.SelectionStart = ((num3 >= 0) ? (num3 + InChordString.Length) : (num + (InTextBox.Text.Length - length)));
+			InTextBox.SelectedText = "";
+		}
+
+
+		// ========== GetTextFromPreviousLine (Line 3910) ==========
+
+		public static string GetTextFromPreviousLine(string InString, int CurPos)
+		{
+			GetCurPosInLine(InString, ref CurPos);
+			if (CurPos > 0)
+			{
+				CurPos--;
+			}
+			int num = CurPos;
+			GetCurPosInLine(InString, ref CurPos);
+			int num2 = num - CurPos;
+			string inString = "";
+			if (num2 > 0)
+			{
+				inString = DataUtil.Mid(InString, CurPos, num2);
+			}
+			return DataUtil.Trim(inString);
+		}
+
+
+		// ========== FormatPlainLyrics (Line 3952) ==========
+
+		public static void FormatPlainLyrics(ref RichTextBox InTextBox)
+		{
+			string text = "";
+			string text2 = InTextBox.Text;
+			text = text2.Replace("\r\n", "\n");
+			text = text.Replace("\r", "");
+			for (int num = 99; num > 0; num--)
+			{
+				text = text.Replace("Verse   " + num, num.ToString());
+				text = text.Replace("verse   " + num, num.ToString());
+				text = text.Replace("VERSE   " + num, num.ToString());
+				text = text.Replace("Verse  " + num, num.ToString());
+				text = text.Replace("verse  " + num, num.ToString());
+				text = text.Replace("VERSE  " + num, num.ToString());
+				text = text.Replace("Verse   " + num, num.ToString());
+				text = text.Replace("verse   " + num, num.ToString());
+				text = text.Replace("VERSE   " + num, num.ToString());
+				text = text.Replace("Verse  " + num, num.ToString());
+				text = text.Replace("verse  " + num, num.ToString());
+				text = text.Replace("VERSE  " + num, num.ToString());
+				text = text.Replace("Verse " + num, num.ToString());
+				text = text.Replace("verse " + num, num.ToString());
+				text = text.Replace("VERSE " + num, num.ToString());
+				text = text.Replace("Verse" + num, num.ToString());
+				text = text.Replace("verse" + num, num.ToString());
+				text = text.Replace("VERSE" + num, num.ToString());
+				text = text.Replace("Ver   " + num, num.ToString());
+				text = text.Replace("ver   " + num, num.ToString());
+				text = text.Replace("VER   " + num, num.ToString());
+				text = text.Replace("Ver  " + num, num.ToString());
+				text = text.Replace("ver  " + num, num.ToString());
+				text = text.Replace("VER  " + num, num.ToString());
+				text = text.Replace("Ver " + num, num.ToString());
+				text = text.Replace("ver " + num, num.ToString());
+				text = text.Replace("VER " + num, num.ToString());
+				text = text.Replace("Ver" + num, num.ToString());
+				text = text.Replace("ver" + num, num.ToString());
+				text = text.Replace("VER" + num, num.ToString());
+				text = text.Replace("V   " + num, num.ToString());
+				text = text.Replace("v   " + num, num.ToString());
+				text = text.Replace("V  " + num, num.ToString());
+				text = text.Replace("v  " + num, num.ToString());
+				text = text.Replace("V " + num, num.ToString());
+				text = text.Replace("v " + num, num.ToString());
+				text = text.Replace("V" + num, num.ToString());
+				text = text.Replace("v" + num, num.ToString());
+			}
+			if (text.IndexOf("1") >= 0)
+			{
+				if (DataUtil.Left(text, 7) == "1.     ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 8);
+				}
+				else if (DataUtil.Left(text, 6) == "1.    ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 7);
+				}
+				else if (DataUtil.Left(text, 5) == "1.   ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 6);
+				}
+				else if (DataUtil.Left(text, 4) == "1.  ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 5);
+				}
+				else if (DataUtil.Left(text, 3) == "1. ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 4);
+				}
+				else if (DataUtil.Left(text, 2) == "1.")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 3);
+				}
+				else if (DataUtil.Left(text, 7) == "1:     ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 8);
+				}
+				else if (DataUtil.Left(text, 6) == "1:    ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 7);
+				}
+				else if (DataUtil.Left(text, 5) == "1:   ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 6);
+				}
+				else if (DataUtil.Left(text, 4) == "1:  ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 5);
+				}
+				else if (DataUtil.Left(text, 3) == "1: ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 4);
+				}
+				else if (DataUtil.Left(text, 2) == "1:")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 3);
+				}
+				else if (DataUtil.Left(text, 7) == "1      ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 8);
+				}
+				else if (DataUtil.Left(text, 6) == "1     ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 7);
+				}
+				else if (DataUtil.Left(text, 5) == "1    ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 6);
+				}
+				else if (DataUtil.Left(text, 4) == "1   ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 5);
+				}
+				else if (DataUtil.Left(text, 3) == "1  ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 4);
+				}
+				else if (DataUtil.Left(text, 2) == "1 ")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 3);
+				}
+				else if (DataUtil.Left(text, 2) == "1\n")
+				{
+					text = "[1]\n" + DataUtil.Mid(text, 3);
+				}
+			}
+			for (int num = 99; num > 0; num--)
+			{
+				if (text.IndexOf(num.ToString()) >= 0)
+				{
+					text = text.Replace("\n" + num + ".     ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ".    ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ".   ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ".  ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ". ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ".", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ":     ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ":    ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ":   ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ":  ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ": ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + ":", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + "     ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + "    ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + "   ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + "  ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + " ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + " ", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + "\n", "\n[" + num + "]\n");
+					text = text.Replace("\n" + num + "\t", "\n[" + num + "]\n");
+					text = text.Replace("\n\n[" + num + "]", "\n[" + num + "]\n");
+					text = text.Replace("[" + num + "]\n\n", "[" + num + "]\n");
+				}
+			}
+			string text3 = "ChoruS";
+			string text4 = "[chorus]\n";
+			text = text.Replace("\nchorus", "\n" + text3);
+			text = text.Replace("\nChorus", "\n" + text3);
+			text = text.Replace("\nCHORUS", "\n" + text3);
+			if (DataUtil.Left(text, 6) == "chorus")
+			{
+				text = text3 + DataUtil.Mid(text, 6);
+			}
+			if (DataUtil.Left(text, 6) == "Chorus")
+			{
+				text = text3 + DataUtil.Mid(text, 6);
+			}
+			if (DataUtil.Left(text, 6) == "CHORUS")
+			{
+				text = text3 + DataUtil.Mid(text, 6);
+			}
+			if (text.IndexOf(text3) >= 0)
+			{
+				text = text.Replace(text3 + ".     ", text4);
+				text = text.Replace(text3 + ".    ", text4);
+				text = text.Replace(text3 + ".   ", text4);
+				text = text.Replace(text3 + ".  ", text4);
+				text = text.Replace(text3 + ". ", text4);
+				text = text.Replace(text3 + ".", text4);
+				text = text.Replace(text3 + ":     ", text4);
+				text = text.Replace(text3 + ":    ", text4);
+				text = text.Replace(text3 + ":   ", text4);
+				text = text.Replace(text3 + ":  ", text4);
+				text = text.Replace(text3 + ": ", text4);
+				text = text.Replace(text3 + ":", text4);
+				text = text.Replace(text3 + "     ", text4);
+				text = text.Replace(text3 + "    ", text4);
+				text = text.Replace(text3 + "   ", text4);
+				text = text.Replace(text3 + "  ", text4);
+				text = text.Replace(text3 + " ", text4);
+				text = text.Replace(text3 + "\t", text4);
+				text = text.Replace(text3, text4);
+				text = text.Replace("\n\n" + text4, "\n" + text4);
+				text = text.Replace(text4 + "\n", text4);
+			}
+			if (text.IndexOf("[2]") >= 0 && text.IndexOf("[1]") < 0)
+			{
+				text = "[1]\n" + text;
+			}
+			text = text.Replace("\t\n", "\n");
+			text = text.Replace("\t", "");
+			text = text.Replace("\n\n\n", "\n\n");
+			text = text.Replace("\n\n[", "\n[");
+			text = DataUtil.TrimEnd(text);
+			InTextBox.Text = text;
+		}
+
+
+		// ========== Merge_Songs (Line 4159) ==========
+
+		public static void Merge_Songs(SongSettings InItem1, SongSettings InItem2, ref string CombinedLyrics, ref string CombinedNotations)
+		{
+			FormatDisplayLyrics(ref InItem1, PrepareSlides: false, UseStoredSequence: true);
+			FormatDisplayLyrics(ref InItem2, PrepareSlides: false, UseStoredSequence: true);
+			int[] array = new int[160];
+			ListViewItem listViewItem = new ListViewItem();
+			TempItem1.LyricsAndNotationsList.Items.Clear();
+			bool flag = false;
+			for (int i = 0; i < InItem1.SongSequence.Length; i++)
+			{
+				int num = InItem1.SongSequence[i];
+				if (i == 0 && (InItem1.CompleteLyrics.IndexOf(VerseSymbol[num]) >= 0 || InItem2.CompleteLyrics.IndexOf(VerseSymbol[num]) >= 0))
+				{
+					flag = true;
+				}
+				listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[num]);
+				listViewItem.SubItems.Add("");
+				for (int j = InItem1.VerseLineLoc[num, 1]; (j >= 0) & (j <= InItem1.VerseLineLoc[num, 2]); j++)
+				{
+					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(InItem1.LyricsAndNotationsList.Items[j].SubItems[2].Text);
+					listViewItem.SubItems.Add(InItem1.LyricsAndNotationsList.Items[j].SubItems[3].Text);
+				}
+				if (InItem2.VersePresent[num] & (InItem2.CompleteLyrics != ""))
+				{
+					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[150]);
+					listViewItem.SubItems.Add("");
+					for (int k = InItem2.VerseLineLoc[num, 1]; (k >= 0) & (k <= InItem2.VerseLineLoc[num, 2]); k++)
+					{
+						listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(InItem2.LyricsAndNotationsList.Items[k].SubItems[2].Text);
+						listViewItem.SubItems.Add(InItem2.LyricsAndNotationsList.Items[k].SubItems[3].Text);
+					}
+					InItem2.VersePresent[num] = false;
+				}
+			}
+			for (int i = 0; i <= 112; i++)
+			{
+				if (InItem2.VersePresent[i] & (InItem2.CompleteLyrics != ""))
+				{
+					int num = i;
+					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[num]);
+					listViewItem.SubItems.Add("");
+					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[150]);
+					listViewItem.SubItems.Add("");
+					for (int k = InItem2.VerseLineLoc[num, 1]; (k >= 0) & (k <= InItem2.VerseLineLoc[num, 2]); k++)
+					{
+						listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(InItem2.LyricsAndNotationsList.Items[k].SubItems[2].Text);
+						listViewItem.SubItems.Add(InItem2.LyricsAndNotationsList.Items[k].SubItems[3].Text);
+					}
+				}
+			}
+			if (!flag && TempItem1.LyricsAndNotationsList.Items.Count > 0)
+			{
+				TempItem1.LyricsAndNotationsList.Items[0].Remove();
+			}
+			CombinedLyrics = "";
+			for (int i = 0; i < TempItem1.LyricsAndNotationsList.Items.Count; i++)
+			{
+				CombinedLyrics = CombinedLyrics + "\n" + TempItem1.LyricsAndNotationsList.Items[i].SubItems[0].Text;
+			}
+			CombinedLyrics = DataUtil.Mid(CombinedLyrics, 1);
+			CombinedNotations = "";
+			for (int i = 0; i < TempItem1.LyricsAndNotationsList.Items.Count; i++)
+			{
+				if (TempItem1.LyricsAndNotationsList.Items[i].SubItems[1].Text != "")
+				{
+					object obj = CombinedNotations;
+					CombinedNotations = string.Concat(obj, "(", Convert.ToString(i), ';', TempItem1.LyricsAndNotationsList.Items[i].SubItems[1].Text, ")");
+				}
+			}
+			CombinedLyrics = DataUtil.TrimEnd(CombinedLyrics);
+		}
+
+
+		// ========== ExtractLyrics (Line 4271) ==========
+
+		public static ListView ExtractLyrics(string InLyrics, string InNotations)
+		{
+			string OutText = "";
+			string OutNotationString = "";
+			string OutText2 = "";
+			string OutNotationString2 = "";
+			return ExtractLyrics(InLyrics, InNotations, ref OutText, ref OutNotationString, ref OutText2, ref OutNotationString2);
+		}
+
+
+		// ========== ExtractLyrics (Line 4280) ==========
+
+		public static ListView ExtractLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
+		{
+			InLyrics = InLyrics.Replace("\r\n", "\n");
+			if (IsNewR2Format(InLyrics))
+			{
+				return ExtractNewFormatLyrics(InLyrics, InNotations, ref OutText1, ref OutNotationString1, ref OutText2, ref OutNotationString2);
+			}
+			return ExtractDefaultFormatLyrics(InLyrics, InNotations, ref OutText1, ref OutNotationString1, ref OutText2, ref OutNotationString2);
+		}
+
+
+		// ========== ExtractNewFormatLyrics (Line 4290) ==========
+
+		public static ListView ExtractNewFormatLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
+		{
+			string text = "";
+			StringBuilder stringBuilder = new StringBuilder();
+			StringBuilder stringBuilder2 = new StringBuilder();
+			StringBuilder stringBuilder3 = new StringBuilder();
+			StringBuilder stringBuilder4 = new StringBuilder();
+			string ResultString = "";
+			string text2 = "";
+			int num = -1;
+			int num2 = -1;
+			int num3 = -1;
+			string text3 = "";
+			int num4 = -1;
+			int num5 = 1;
+			bool flag = false;
+			string[] array = InLyrics.Split("\n"[0]);
+			ListView listView = new ListView();
+			SetListViewColumns(listView, 4);
+			listView.Items.Clear();
+			ListViewItem listViewItem = new ListViewItem();
+			for (int i = 0; i <= array.GetUpperBound(0); i++)
+			{
+				for (int j = 0; j <= xArray.GetUpperBound(0); j++)
+				{
+					if (array[i] == xArray[j])
+					{
+						if (array[i] != VerseSymbol[150])
+						{
+							text3 = array[i];
+							num4 = GetVerseNumeric(text3);
+							flag = true;
+							j = xArray.GetUpperBound(0) + 1;
+						}
+						else
+						{
+							num5 = 2;
+						}
+					}
+				}
+				if ((num < i) & (InNotations.Length > 0))
+				{
+					num = ExtractOneNotationsLine(ref InNotations, ref ResultString);
+				}
+				if (num5 == 1)
+				{
+					num2++;
+					stringBuilder.Append(array[i] + "\n");
+					if (i == num)
+					{
+						text2 = AddNotationLineNumber(ResultString, num2);
+						stringBuilder3.Append(text2);
+						text2 = ResultString;
+					}
+				}
+				else if (array[i] == VerseSymbol[150])
+				{
+					flag = true;
+				}
+				else
+				{
+					num3++;
+					stringBuilder2.Append(array[i] + "\n");
+					if (i == num)
+					{
+						text2 = AddNotationLineNumber(ResultString, num3);
+						stringBuilder4.Append(text2);
+						text2 = ResultString;
+					}
+				}
+				if (!flag)
+				{
+					if (num4 < 0)
+					{
+						num4 = 1;
+					}
+					listViewItem = listView.Items.Add(num4.ToString());
+					listViewItem.SubItems.Add(num5.ToString());
+					listViewItem.SubItems.Add(array[i]);
+					listViewItem.SubItems.Add(text2);
+				}
+				flag = false;
+				text2 = "";
+			}
+			OutText1 = DataUtil.TrimEnd(stringBuilder.ToString());
+			OutText2 = DataUtil.TrimEnd(stringBuilder2.ToString());
+			OutNotationString1 = stringBuilder3.ToString();
+			OutNotationString2 = stringBuilder4.ToString();
+			return listView;
+		}
+
+
+		// ========== ExtractDefaultFormatLyrics (Line 4381) ==========
+
+		public static ListView ExtractDefaultFormatLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
+		{
+			string text = "";
+			StringBuilder stringBuilder = new StringBuilder();
+			StringBuilder stringBuilder2 = new StringBuilder();
+			StringBuilder stringBuilder3 = new StringBuilder();
+			StringBuilder stringBuilder4 = new StringBuilder();
+			string ResultString = "";
+			string text2 = "";
+			int num = -1;
+			int num2 = -1;
+			int num3 = -1;
+			string text3 = "";
+			int num4 = -1;
+			int num5 = 1;
+			bool flag = false;
+			string[] array = InLyrics.Split("\n"[0]);
+			ListView listView = new ListView();
+			SetListViewColumns(listView, 4);
+			listView.Items.Clear();
+			ListViewItem listViewItem = new ListViewItem();
+			for (int i = 0; i <= array.GetUpperBound(0); i++)
+			{
+				for (int j = 0; j <= xArray.GetUpperBound(0); j++)
+				{
+					if (array[i] == xArray[j])
+					{
+						flag = true;
+						if (array[i] != VerseSymbol[150])
+						{
+							num5 = 1;
+							text3 = array[i];
+							num4 = GetVerseNumeric(text3);
+							j = xArray.GetUpperBound(0) + 1;
+						}
+						else
+						{
+							num5 = 2;
+						}
+					}
+				}
+				if ((num < i) & (InNotations.Length > 0))
+				{
+					num = ExtractOneNotationsLine(ref InNotations, ref ResultString);
+				}
+				if (num5 == 1)
+				{
+					num2++;
+					stringBuilder.Append(array[i] + "\n");
+					if (i == num)
+					{
+						text2 = AddNotationLineNumber(ResultString, num2);
+						stringBuilder3.Append(text2);
+						text2 = ResultString;
+					}
+				}
+				else if (array[i] == VerseSymbol[150])
+				{
+					if (text3 != "")
+					{
+						num3++;
+						stringBuilder2.Append(text3 + "\n");
+					}
+				}
+				else
+				{
+					num3++;
+					stringBuilder2.Append(array[i] + "\n");
+					if (i == num)
+					{
+						text2 = AddNotationLineNumber(ResultString, num3);
+						stringBuilder4.Append(text2);
+						text2 = ResultString;
+					}
+				}
+				if (!flag)
+				{
+					if (num4 < 0)
+					{
+						num4 = 1;
+					}
+					listViewItem = listView.Items.Add(num4.ToString());
+					listViewItem.SubItems.Add(num5.ToString());
+					listViewItem.SubItems.Add(array[i]);
+					listViewItem.SubItems.Add(text2);
+				}
+				flag = false;
+				text2 = "";
+			}
+			OutText1 = DataUtil.TrimEnd(stringBuilder.ToString());
+			OutText2 = DataUtil.TrimEnd(stringBuilder2.ToString());
+			OutNotationString1 = stringBuilder3.ToString();
+			OutNotationString2 = stringBuilder4.ToString();
+			return listView;
+		}
+
+
+		// ========== GetVerseNumeric (Line 4477) ==========
+
+		private static int GetVerseNumeric(string CurVerseSymbol)
+		{
+			for (int i = 0; i < 160; i++)
+			{
+				if (CurVerseSymbol == VerseSymbol[i])
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+
+		// ========== AddNotationLineNumber (Line 4489) ==========
+
+		public static string AddNotationLineNumber(string InOneNotationLine, int InNewLineNumber)
+		{
+			if (InOneNotationLine != "")
+			{
+				return "(" + InNewLineNumber + ';' + InOneNotationLine + ")";
+			}
+			return "";
+		}
+
+
+		// ========== MapLyricsBreak (Line 4708) ==========
+
+		public static void MapLyricsBreak(ref ListView InScreenBreak, ref RichTextBox InLyrics, ref bool ScreenBreakListDone)
+		{
+			int num = 0;
+			int num2 = -1;
+			int num3 = -1;
+			int num4 = 0;
+			string text = "";
+			string text2 = "";
+			bool flag = false;
+			InLyrics.Text.Replace("\r\n", "\n");
+			InLyrics.Text = DataUtil.TrimStart(InLyrics.Text);
+			InScreenBreak.Items.Clear();
+			InLyrics.Focus();
+			while (num >= 0)
+			{
+				num2 = InLyrics.Text.IndexOf("[", (num < InLyrics.Text.Length) ? num : InLyrics.Text.Length);
+				num3 = InLyrics.Text.IndexOf("\n\n", (num < InLyrics.Text.Length) ? num : InLyrics.Text.Length);
+				if (!flag && num2 != 0 && num3 != 0)
+				{
+					num2 = -1;
+					num3 = 0;
+				}
+				if (num2 >= 0 && num3 >= 0)
+				{
+					if (num2 < num3)
+					{
+						text = ValidateVerseIndicator(InLyrics.Text, num2);
+						if (text != "")
+						{
+							if (text2 != text)
+							{
+								num4 = 0;
+							}
+							text2 = text;
+							AddItemToScreenBreak(ref InScreenBreak, num2, text2, num4);
+							num4++;
+							num = text2.Length + num2;
+						}
+					}
+					else
+					{
+						AddItemToScreenBreak(ref InScreenBreak, num3 + (flag ? 2 : 0), text2, num4);
+						num4++;
+						num = 2 + num3;
+					}
+				}
+				else if (num2 >= 0)
+				{
+					text = ValidateVerseIndicator(InLyrics.Text, num2);
+					if (text != "")
+					{
+						if (text2 != text)
+						{
+							num4 = 0;
+						}
+						text2 = text;
+						AddItemToScreenBreak(ref InScreenBreak, num2, text2, num4);
+						num4++;
+						num = text2.Length + num2;
+					}
+				}
+				else if (num3 >= 0)
+				{
+					AddItemToScreenBreak(ref InScreenBreak, num3 + (flag ? 2 : 0), text2, num4);
+					num4++;
+					num = 2 + num3;
+				}
+				else
+				{
+					num = -1;
+				}
+				flag = true;
+			}
+			ScreenBreakListDone = true;
+		}
+
+
+		// ========== ValidateVerseIndicator (Line 4784) ==========
+
+		public static string ValidateVerseIndicator(string InText, int StartPosition)
+		{
+			for (int i = 0; i <= 99; i++)
+			{
+				if (DataUtil.Mid(InText, StartPosition, VerseSymbol[i].Length) == VerseSymbol[i])
+				{
+					return VerseSymbol[i];
+				}
+			}
+			for (int i = 100; i <= 112; i++)
+			{
+				if (DataUtil.Mid(InText, StartPosition, VerseSymbol[i].Length) == VerseSymbol[i])
+				{
+					return VerseSymbol[i];
+				}
+			}
+			return "";
+		}
+
+
+		// ========== AddItemToScreenBreak (Line 4803) ==========
+
+		public static void AddItemToScreenBreak(ref ListView InListView, int NewPosition, string VerseSym, int ScreenBreakCount)
+		{
+			ListViewItem listViewItem = new ListViewItem();
+			listViewItem = InListView.Items.Add(NewPosition.ToString());
+			listViewItem.SubItems.Add(VerseSym);
+			listViewItem.SubItems.Add(ScreenBreakCount.ToString());
+		}
+
+
+		// ========== GetBreakPosition (Line 4811) ==========
+
+		public static void GetBreakPosition(ListView InListView, int CurPosition, int Direction, ref int NewPosition, ref int NewPositionLength, ref string LookupVerseSym, ref int LookupScreenCount)
+		{
+			if (InListView.Items.Count == 0)
+			{
+				LookupVerseSym = "";
+				NewPosition = 0;
+				NewPositionLength = -1;
+				LookupScreenCount = 0;
+				return;
+			}
+			int num = -1;
+			if (Direction == 0)
+			{
+				int num2 = InListView.Items.Count - 1;
+				while (true)
+				{
+					if (num2 >= 0)
+					{
+						if (DataUtil.StringToInt(InListView.Items[num2].SubItems[0].Text) < CurPosition)
+						{
+							num = num2;
+							break;
+						}
+						num2--;
+						continue;
+					}
+					num = 0;
+					break;
+				}
+			}
+			else
+			{
+				int num2 = 0;
+				while (true)
+				{
+					if (num2 < InListView.Items.Count)
+					{
+						if (DataUtil.StringToInt(InListView.Items[num2].SubItems[0].Text) > CurPosition)
+						{
+							if (NewPositionLength == 0 && num2 > 0)
+							{
+								num2--;
+							}
+							num = num2;
+							break;
+						}
+						num2++;
+						continue;
+					}
+					num = InListView.Items.Count - 1;
+					break;
+				}
+			}
+			NewPosition = DataUtil.StringToInt(InListView.Items[num].SubItems[0].Text);
+			LookupVerseSym = InListView.Items[num].SubItems[1].Text;
+			LookupScreenCount = DataUtil.StringToInt(InListView.Items[num].SubItems[2].Text);
+			if (num < InListView.Items.Count - 1)
+			{
+				int num3 = DataUtil.StringToInt(InListView.Items[num + 1].SubItems[0].Text);
+				NewPositionLength = num3 - NewPosition;
+			}
+			else
+			{
+				NewPositionLength = -1;
+			}
+		}
+
+
+		// ========== GetBreakPosition (Line 4878) ==========
+
+		public static void GetBreakPosition(ListView InListView, ref int NewPosition, ref int NewPositionLength, string LookupVerseSym, int LookupScreenCount)
+		{
+			if (InListView.Items.Count == 0)
+			{
+				LookupVerseSym = "";
+				NewPosition = 0;
+				NewPositionLength = 0;
+				LookupScreenCount = 0;
+				return;
+			}
+			int num = -1;
+			int num2 = 0;
+			while (true)
+			{
+				if (num2 < InListView.Items.Count)
+				{
+					if (InListView.Items[num2].SubItems[1].Text == LookupVerseSym && DataUtil.StringToInt(InListView.Items[num2].SubItems[2].Text) == LookupScreenCount)
+					{
+						num = num2;
+						break;
+					}
+					num2++;
+					continue;
+				}
+				if (num >= 0)
+				{
+					break;
+				}
+				LookupVerseSym = "";
+				NewPosition = 0;
+				NewPositionLength = 0;
+				LookupScreenCount = 0;
+				return;
+			}
+			NewPosition = DataUtil.StringToInt(InListView.Items[num].SubItems[0].Text);
+			if (num < InListView.Items.Count - 1)
+			{
+				int num3 = DataUtil.StringToInt(InListView.Items[num + 1].SubItems[0].Text);
+				NewPositionLength = num3 - NewPosition;
+			}
+			else
+			{
+				NewPositionLength = -1;
+			}
+		}
+
+
+		// ========== ScanSelectedRTB (Line 4924) ==========
+
+		public static void ScanSelectedRTB(ref RichTextBox InTextBox, bool[] VersePresent, bool DoAll, int StartPos, int EndPos, string[] InsArray, Font MainFont, Font NotationFont, bool DoNotations)
+		{
+			if (InTextBox.Text == "")
+			{
+				return;
+			}
+			int selectionStart = EndPos;
+			if (DoAll)
+			{
+				StartPos = 0;
+				EndPos = InTextBox.Text.Length - 1;
+			}
+			else
+			{
+				if (StartPos > EndPos)
+				{
+					int num = EndPos;
+					StartPos = EndPos;
+					EndPos = StartPos;
+				}
+				MoveToPosInLine(InTextBox.Text, ref StartPos, 0);
+				MoveToPosInLine(InTextBox.Text, ref EndPos, 1);
+			}
+			int num2 = 0;
+			MarkSelectedRTB(ref InTextBox, StartPos, EndPos - StartPos + 1, 0, MainFont, NotationFont);
+			for (num2 = 0; num2 <= InsArray.GetUpperBound(0); num2++)
+			{
+				if (StartPos < 0)
+				{
+					StartPos = 0;
+				}
+				if (InsArray[num2] == VerseSymbol[150])
+				{
+					int num3;
+					try
+					{
+						num3 = InTextBox.Text.IndexOf(InsArray[num2], StartPos);
+					}
+					catch
+					{
+						num3 = -1;
+					}
+					while (num3 >= 0)
+					{
+						MarkSelectedRTB(ref InTextBox, num3, InsArray[num2].Length, 1, MainFont, NotationFont);
+						num3 = InTextBox.Text.IndexOf(InsArray[num2], num3 + 1);
+					}
+				}
+				else
+				{
+					int num3;
+					try
+					{
+						num3 = InTextBox.Text.IndexOf(InsArray[num2], StartPos);
+					}
+					catch
+					{
+						num3 = -1;
+					}
+					if (num3 >= 0 && num3 <= EndPos)
+					{
+						MarkSelectedRTB(ref InTextBox, num3, InsArray[num2].Length, 1, MainFont, NotationFont);
+					}
+				}
+			}
+			if (DoNotations)
+			{
+				int num3;
+				try
+				{
+					num3 = InTextBox.Text.IndexOf("Â»", StartPos);
+				}
+				catch
+				{
+					num3 = -1;
+				}
+				while (num3 >= 0 && num3 <= EndPos)
+				{
+					int CurPos = num3;
+					int CurPos2 = num3;
+					MoveToPosInLine(InTextBox.Text, ref CurPos, 0);
+					MoveToPosInLine(InTextBox.Text, ref CurPos2, 1);
+					MarkSelectedRTB(ref InTextBox, CurPos, CurPos2 - CurPos + 1, 2, MainFont, NotationFont);
+					num3 = InTextBox.Text.IndexOf("Â»", num3 + 1);
+				}
+			}
+			InTextBox.SelectionStart = selectionStart;
+		}
+
+
+		// ========== MarkSelectedRTB (Line 5013) ==========
+
+		public static void MarkSelectedRTB(ref RichTextBox InTextBox, int SelStartPos, int SelLen, int InMode, Font MainFont, Font NotationFont)
+		{
+			SendMessage(InTextBox.Handle, 11u, 0u, 0u);
+			InTextBox.SelectionStart = SelStartPos;
+			InTextBox.SelectionLength = SelLen;
+			switch (InMode)
+			{
+				case 0:
+					InTextBox.SelectionCharOffset = 0;
+					InTextBox.SelectionFont = MainFont;
+					InTextBox.SelectionColor = NormalTextColour;
+					break;
+				case 1:
+					InTextBox.SelectionCharOffset = 0;
+					InTextBox.SelectionFont = MainFont;
+					InTextBox.SelectionColor = SelectedTextColour;
+					break;
+				case 2:
+					InTextBox.SelectionCharOffset = 0;
+					InTextBox.SelectionFont = NotationFont;
+					InTextBox.SelectionColor = NotationColour;
+					break;
+			}
+			InTextBox.SelectionStart = SelStartPos + SelLen;
+			InTextBox.SelectionLength = 0;
+			InTextBox.SelectionColor = NormalTextColour;
+			SendMessage(InTextBox.Handle, 11u, 1u, 0u);
+			InTextBox.Refresh();
+		}
+
+
+		// ========== SubDivideTextAndNotations (Line 5554) ==========
+
+		public static void SubDivideTextAndNotations(string InString, string InNotation, Font MainFont, Font NotationsFont, ref ListView TextNotationsList, int InWidth)
+		{
+			InWidth /= 15;
+			Graphics graphics = TextNotationsList.CreateGraphics();
+			int num = -1;
+			ListViewItem listViewItem = new ListViewItem();
+			int num2 = 0;
+			TextNotationsList.Items.Clear();
+			while (InString != "")
+			{
+				int length = InString.Length;
+				for (int num3 = length; num3 >= 1; num3--)
+				{
+					string text = DataUtil.Left(InString, num3);
+					if (((graphics.MeasureString(text, MainFont, 32000, StringFormat.GenericDefault).Width <= (float)InWidth) | (text.IndexOf(" ") < 0)) && ((DataUtil.Right(text, 1) == " ") | (num3 == length) | (text.IndexOf(" ") < 0)))
+					{
+						listViewItem = TextNotationsList.Items.Add(text);
+						listViewItem.SubItems.Add("");
+						string InString2 = InNotation;
+						string text2 = "";
+						while (InString2 != "")
+						{
+							string text3 = DataUtil.ExtractOneInfo(ref InString2, ';');
+							string text4 = DataUtil.ExtractOneInfo(ref InString2, ';');
+							if (((text3 != "-1") & (text4 != "-1")) && Convert.ToInt32(text4) >= num2)
+							{
+								if (Convert.ToInt32(text4) >= num2 + num3 && num3 < length)
+								{
+									InString2 = "";
+									continue;
+								}
+								object obj = text2;
+								text2 = string.Concat(obj, text3, ';', Convert.ToString(Convert.ToInt32(text4) - num2), ';');
+							}
+						}
+						listViewItem.SubItems.Add((text2 != "") ? text2 : " ");
+						listViewItem.SubItems.Add(Convert.ToString(num2));
+						num2 += num3;
+						InString = DataUtil.Mid(InString, num3);
+						num3 = 0;
+					}
+				}
+			}
+			for (int num3 = 0; num3 < TextNotationsList.Items.Count; num3++)
+			{
+				TextNotationsList.Items[num3].SubItems[1].Text = FormatNotationString(TextNotationsList, TextNotationsList.Items[num3].SubItems[0].Text, TextNotationsList.Items[num3].SubItems[2].Text, MainFont, NotationsFont);
+			}
+		}
+
+
+		// ========== OldSubDivideTextAndNotations (Line 5603) ==========
+
+		public static void OldSubDivideTextAndNotations(string InString, string InNotation, Font MainFont, Font NotationsFont, ref ListView TextNotationsList, int InWidth)
+		{
+			InWidth /= 15;
+			Graphics graphics = TextNotationsList.CreateGraphics();
+			int num = -1;
+			ListViewItem listViewItem = new ListViewItem();
+			int num2 = 0;
+			TextNotationsList.Items.Clear();
+			while (InString != "")
+			{
+				int length = InString.Length;
+				for (int num3 = length; num3 >= 1; num3--)
+				{
+					string text = DataUtil.Left(InString, num3);
+					if (((graphics.MeasureString(text, MainFont, 32000, StringFormat.GenericDefault).Width <= (float)InWidth) | (text.IndexOf(" ") < 0)) && ((DataUtil.Right(text, 1) == " ") | (num3 == length) | (text.IndexOf(" ") < 0)))
+					{
+						listViewItem = TextNotationsList.Items.Add(text);
+						listViewItem.SubItems.Add("");
+						string InString2 = InNotation;
+						string text2 = "";
+						while (InString2 != "")
+						{
+							string text3 = DataUtil.ExtractOneInfo(ref InString2, ';');
+							string text4 = DataUtil.ExtractOneInfo(ref InString2, ';');
+							if (((text3 != "-1") & (text4 != "-1")) && Convert.ToInt32(text4) >= num2)
+							{
+								if (Convert.ToInt32(text4) >= num2 + num3 && num3 < length)
+								{
+									InString2 = "";
+									continue;
+								}
+								object obj = text2;
+								text2 = string.Concat(obj, text3, ';', Convert.ToString(Convert.ToInt32(text4) - num2), ';');
+							}
+						}
+						listViewItem.SubItems.Add((text2 != "") ? text2 : " ");
+						listViewItem.SubItems.Add(Convert.ToString(num2));
+						num2 += num3;
+						InString = DataUtil.Mid(InString, num3);
+						num3 = 0;
+					}
+				}
+			}
+			for (int num3 = 0; num3 < TextNotationsList.Items.Count; num3++)
+			{
+			}
+		}
+
+
+    }
 }

@@ -439,5 +439,93 @@ namespace Easislides
 		private const int TEXT_OFFSET = 2;    // 텍스트 위치 오프셋
 		private const float SHADOW_OFFSET = 3f;  // 그림자 오프셋
 
+		public static void SetDefaultBackScreen(ref ImageTransitionControl InScreen)
+		{
+			try
+			{
+				switch (Buffer_LS_Width)
+				{
+					case <= 0 when Buffer_LS_Height == 768:
+						Buffer_LS_Width = 1024;
+						break;
+					case <= 0 when Buffer_LS_Height == 800:
+						Buffer_LS_Width = 1280;
+						break;
+					case <= 0 when Buffer_LS_Height == 1024:
+						Buffer_LS_Width = 1280;
+						break;
+					case <= 0 when Buffer_LS_Height == 900:
+						Buffer_LS_Width = 1440;
+						break;
+					case <= 0 when Buffer_LS_Height == 1050:
+						Buffer_LS_Width = 1680;
+						break;
+					case <= 0 when Buffer_LS_Height == 1200:
+						Buffer_LS_Width = 1600;
+						break;
+					case <= 0 when Buffer_LS_Height == 1536:
+						Buffer_LS_Width = 2048;
+						break;
+					case <= 0 when Buffer_LS_Height == 1920:
+						Buffer_LS_Width = 1080;
+						break;
+					case <= 0 when Buffer_LS_Height == 2560:
+						Buffer_LS_Width = 1440;
+						break;
+					case <= 0 when Buffer_LS_Height == 3840:
+						Buffer_LS_Width = 2160;
+						break;
+					case <= 0 when Buffer_LS_Height == 7680:
+						Buffer_LS_Width = 4320;
+						break;
+				}
+
+				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
+				Graphics g = Graphics.FromImage(image);
+				BackPattern.Fill(ref g, ShowScreenColour[0], ShowScreenColour[1], ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref DefaultBackgroundID);
+				InScreen.SetDefaultBackgroundPicture(image);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.StackTrace);
+				Console.WriteLine(e.Message);
+			}
+		}
+
+		public static ImageTransitionControl.TransitionTypes ComputeTransition(SongSettings InItem, ref ImageTransitionControl InPictureBox, ImageTransitionControl.TransitionAction TransitionAction)
+		{
+			bool flag = false;
+			if ((ShowLiveCam & InItem.AtLiveScreen) || (InItem.OutputStyleScreen && ShowLiveBlack && TransitionAction != ImageTransitionControl.TransitionAction.AsFade))
+			{
+				flag = true;
+			}
+			if (InItem.PrevItemPP || flag)
+			{
+				InPictureBox.TransitionType = ImageTransitionControl.TransitionTypes.None;
+			}
+			else if (TransitionAction != ImageTransitionControl.TransitionAction.AsStored)
+			{
+				if (InItem.FirstShowing)
+				{
+					InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)InItem.Format.ShowItemTransition;
+				}
+				else
+				{
+					switch (TransitionAction)
+					{
+						case ImageTransitionControl.TransitionAction.AsStoredItem:
+							InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)InItem.Format.ShowItemTransition;
+							break;
+						case ImageTransitionControl.TransitionAction.None:
+							InPictureBox.TransitionType = ImageTransitionControl.TransitionTypes.None;
+							break;
+						default:
+							InPictureBox.TransitionType = (ImageTransitionControl.TransitionTypes)InItem.Format.ShowSlideTransition;
+							break;
+					}
+				}
+			}
+			return InPictureBox.TransitionType;
+		}
 	}
 }

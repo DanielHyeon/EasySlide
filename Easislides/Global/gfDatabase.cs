@@ -976,5 +976,23 @@ namespace Easislides
 			SaveConfigSettings();
 		}
 
+		public static bool ValidSongID(int InSongID)
+		{
+			try
+			{
+				string fullSearchString = "select * from SONG where songid=" + InSongID;
+
+				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
+
+				if (datatable.Rows.Count > 0)
+				{
+					return (FolderUse[DataUtil.ObjToInt(datatable.Rows[0]["FolderNo"])] > 0) ? true : false;
+				}
+			}
+			catch
+			{
+			}
+			return false;
+		}
 	}
 }

@@ -851,5 +851,27 @@ namespace Easislides
 			}
 			return InCurItem;
 		}
+
+		public static void SetLiveShowScreenSaverSettings()
+		{
+			SystemParametersInfo(16, 0, ref PriorScreenSaverState, 0);
+			if (PriorScreenSaverState && DisableSreenSaver)
+			{
+				SetScreenSaverActive(SetOn: false);
+			}
+		}
+
+		public static void RestoreScreenSaverSettings()
+		{
+			if (PriorScreenSaverState)
+			{
+				SetScreenSaverActive(SetOn: true);
+			}
+		}
+
+		public static void SetScreenSaverActive(bool SetOn)
+		{
+			SystemParametersInfo(17, SetOn ? 1 : 0, ref SetOn, 0);
+		}
 	}
 }

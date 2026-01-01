@@ -1651,5 +1651,86 @@ namespace Easislides
 			OffsetLeft += (int)g.MeasureString("A", tempFont, 10000).Width;
 			return num5;
 		}
+
+		public static void MessageOverSplashScreen(string InString)
+		{
+			SplashScreenBack = true;
+			MessageBox.Show(InString);
+			SplashScreenBack = false;
+		}
+
+		public static void ComputeShowLineSpacing()
+		{
+			for (int i = 0; i < 41; i++)
+			{
+				MainFontSpacingFactor[i, 0] = ShowLineSpacing[i, 0] + 0.05;
+				MainFontSpacingFactor[i, 1] = ShowLineSpacing[i, 1] + 0.05;
+			}
+		}
+
+		public static int SetLyricsTopPos(int TopSetting, int ScreenHeight)
+		{
+			return ScreenHeight * TopSetting / 100;
+		}
+
+		public static void ResetShowRunningSettings()
+		{
+			ShowRunning_ShowDataDisplayMode = 0;
+			ShowRunning_ShowSongHeadings = 0;
+			ShowRunning_ShowLyrics = 0;
+			ShowRunning_UseShadowFont = 0;
+			ShowRunning_UseOutlineFont = 0;
+			ShowRunning_ShowNotations = 0;
+			ShowRunning_ShowInterlace = 0;
+			ShowRunning_ShowVerticalAlign = 0;
+		}
+
+		public static int DP_SetSlideIndicators(SongSettings InItem, ref ImageTransitionControl InPic, ref Graphics g, Font tempFont, RectangleF rect_slidesinfo)
+		{
+			int num = (InItem.Source == ItemSource.WorshipList) ? InItem.CurItemNo : 0;
+			int totalWorshipListItems = TotalWorshipListItems;
+			Color color = (PanelTextColourAsRegion1 > 0) ? InItem.Lyrics[3].ForeColour : PanelTextColour;
+			StringFormat stringFormat = new StringFormat();
+			string text = "";
+			string text2 = "";
+			FontStyle fontStyle = FontStyle.Regular;
+			if (ShowDataDisplayFontBold > 0)
+			{
+				fontStyle |= FontStyle.Bold;
+			}
+			if (ShowDataDisplayFontItalic > 0)
+			{
+				fontStyle |= FontStyle.Italic;
+			}
+			tempFont = new Font(tempFont.Name, tempFont.Size, fontStyle);
+			int num2 = (int)g.MeasureString("1", tempFont, 10000).Height;
+			int num3 = (int)(rect_slidesinfo.Top + rect_slidesinfo.Height / 20f);
+			int num4 = (int)(rect_slidesinfo.Top + rect_slidesinfo.Height / 2f);
+			int num5 = num4 - num2 / 20;
+			int num6 = 0;
+			if (ShowDataDisplaySlides > 0)
+			{
+				int num7 = DataDisplaySlides(InItem, ref g, tempFont, color, rect_slidesinfo, num3, num4, num5, 0, DisplayIndicators: false);
+				num6 = (int)rect_slidesinfo.Width - num7;
+				DataDisplaySlides(InItem, ref g, tempFont, color, rect_slidesinfo, num3, num4, num5, num6, DisplayIndicators: true);
+				num6 -= (int)g.MeasureString("1", tempFont, 10000).Width;
+			}
+			else
+			{
+				num6 = (int)rect_slidesinfo.Width;
+			}
+			if (ShowDataDisplaySongs > 0)
+			{
+				text2 = ((num > 0) ? num.ToString() : "A");
+				int num8 = (int)g.MeasureString(text2, tempFont, 10000).Width;
+				text = totalWorshipListItems.ToString();
+				int num9 = (int)g.MeasureString(text, tempFont, 10000).Width;
+				num6 -= num9;
+				OutputOneLineToScreen(InItem, text2, tempFont, g, color, stringFormat.Alignment, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, num6 + (num9 - num8) / 2, num3, num6 + num9, 0);
+				OutputOneLineToScreen(InItem, text, tempFont, g, color, stringFormat.Alignment, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, num6, num4, num6 + num9, 0);
+				g.DrawLine(new Pen(color), num6, num5, num6 + num9, num5);
+			}
+			return num6;
+		}
     }
 }

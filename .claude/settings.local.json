@@ -7,7 +7,16 @@
       "Bash(powershell:*)",
       "Bash(where:*)",
       "Bash(C:UsersdanielAppDataLocalPythonbinpython.exe \"e:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\extract_methods.py\")",
-      "Bash(copy \"Easislides\\\\Easislides\\\\ImageCanvas.cs\" \"Easislides\\\\Easislides\\\\ImageCanvas.cs.bak\")"
+      "Bash(copy \"Easislides\\\\Easislides\\\\ImageCanvas.cs\" \"Easislides\\\\Easislides\\\\ImageCanvas.cs.bak\")",
+      "Bash(dotnet build:*)",
+      "Bash(for file in gfUtility.cs gfColorsFonts.cs gfIO.cs gfDisplay.cs)",
+      "Bash(done)",
+      "Bash(for file in gfUtility.cs gfColorsFonts.cs gfIO.cs gfDisplay.cs gfConfig.cs gfDatabase.cs gfMedia.cs)",
+      "Bash(python:*)",
+      "Bash(C:UsersdanielAppDataLocalPythonbinpython.exe remove_pp_funcs.py)",
+      "Bash(copy \"Easislides\\\\Global\\\\gfUtility.cs\" \"Easislides\\\\Global\\\\gfUtility.cs.backup_pp\")",
+      "Bash(copy \"E:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\Easislides\\\\Global\\\\gfLyrics.cs\" \"E:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\Easislides\\\\Global\\\\gfLyrics.cs.backup\")",
+      "Bash(copy:*)"
     ]
   }
 }
