@@ -479,11 +479,9 @@ namespace Easislides
 				try
 				{
 					Cursor = Cursors.WaitCursor;
-#if OleDb
-					using DataTable datatable = DbOleDbController.GetDataTable(gf.ConnectStringMainDB, text3);
-#elif SQLite
+
 					using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, text3);
-#endif
+
 					if (datatable.Rows.Count > 0)
 					{
 						foreach (DataRow dr in datatable.Rows)
@@ -730,74 +728,7 @@ namespace Easislides
 			}
 			tbExportTo.Visible = true;
 		}
-#if DAO
-		private void Export_DatabaseFormat(string ExportFileName)
-		{
-			int num = 0;
-			string text = Application.StartupPath + "\\Sys\\Defdb.dat";
-			if (File.Exists(text))
-			{
-				gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
-				File.Copy(text, ExportFileName, overwrite: true);
-				Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
-				tableRecordSet.Index = "PrimaryKey";
-				Cursor = Cursors.WaitCursor;
-				ProgressBar1.Visible = true;
-				ProgressBar1.Value = 0;
-				int num2 = 0;
-				int num3 = 0;
-				if (gf.DeleteAllFolders(gf.ConnectStringDef + ExportFileName))
-				{
-					for (int i = 0; i < FolderList.CheckedItems.Count; i++)
-					{
-						gf.ResetFolder(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), gf.ConnectStringDef + ExportFileName);
-					}
-					for (int i = 0; i < SongsList.Items.Count; i++)
-					{
-						if (SongsList.Items[i].Checked)
-						{
-							if (gf.LoadDataIntoItem(ref ExportItem, tableRecordSet, SongsList.Items[i].SubItems[1].Text))
-							{
-								num3 = gf.InsertItemIntoDatabase(gf.ConnectStringDef + ExportFileName, ExportItem);
-							}
-							Update();
-							num = (i + 1) * 100 / TotSongsSel;
-							ProgressBar1.Value = ((num > 100) ? 100 : num);
-							ProgressBar1.Invalidate();
-							if (num3 < 1)
-							{
-								i = SongsList.Items.Count;
-							}
-						}
-					}
-					Cursor = Cursors.Default;
-					if (num3 > 0)
-					{
-						MessageBox.Show("Export Completed. Total of " + Convert.ToString(SongsList.CheckedItems.Count) + " songs exported to " + ExportFileName);
-					}
-					else
-					{
-						MessageBox.Show("Error encountered when exporting to database file'" + ExportFileName + "'. Export NOT completed.");
-					}
-				}
-				else
-				{
-					MessageBox.Show("Error encountered when trying to create export database file'" + ExportFileName + "'. Export NOT completed.");
-				}
-				if (tableRecordSet != null)
-				{
-					tableRecordSet = null;
-				}
-				ProgressBar1.Value = 0;
-				Cursor = Cursors.Default;
-			}
-			else
-			{
-				MessageBox.Show("System Error: cannot create export database file. You may need to re-install EasiSlides Software.");
-			}
-		}
 
-#elif SQLite
 		private void Export_DatabaseFormat(string ExportFileName)
 		{
 			int num = 0;
@@ -817,11 +748,7 @@ namespace Easislides
 				{
 					for (int i = 0; i < FolderList.CheckedItems.Count; i++)
 					{
-#if OleDb
-						gf.ResetFolder(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), gf.ConnectStringDef + ExportFileName);
-#elif SQLite
 						gf.ResetFolder(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), gf.ConnectSQLiteDef + ExportFileName);
-#endif
 					}
 					for (int i = 0; i < SongsList.Items.Count; i++)
 					{
@@ -864,131 +791,7 @@ namespace Easislides
 				MessageBox.Show("System Error: cannot create export database file. You may need to re-install EasiSlides Software.");
 			}
 		}
-#endif
 
-
-
-#if DAO
-		private void Export_TextFormat(string ExportFileName)
-		{
-			int num = 0;
-			gf.ValidateDir(Path.GetDirectoryName(ExportFileName), CreateDir: true);
-			int num2 = 0;
-			int num3 = 0;
-			ProgressBar1.Visible = true;
-			ProgressBar1.Value = 0;
-			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.Append("[est3.1]");
-			Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
-			tableRecordSet.Index = "PrimaryKey";
-			Cursor = Cursors.WaitCursor;
-			for (int i = 0; i < SongsList.Items.Count; i++)
-			{
-				if (!SongsList.Items[i].Checked || !gf.LoadDataIntoItem(ref ExportItem, tableRecordSet, SongsList.Items[i].SubItems[1].Text))
-				{
-					continue;
-				}
-				stringBuilder.Append("\r\n[>" + ExportItem.Title);
-				if (ExportItem.Title2 != "")
-				{
-					stringBuilder.Append(">>" + ExportItem.Title2);
-				}
-				if (ExportItem.FolderNo > 0)
-				{
-					stringBuilder.Append(">f" + gf.FolderName[ExportItem.FolderNo]);
-				}
-				if (ExportItem.SongNumber > 0)
-				{
-					stringBuilder.Append(">n" + ExportItem.SongNumber);
-				}
-				if (ExportItem.Book_Reference != "")
-				{
-					stringBuilder.Append(">r" + ExportItem.Book_Reference);
-				}
-				if (ExportItem.User_Reference != "")
-				{
-					stringBuilder.Append(">u" + ExportItem.User_Reference);
-				}
-				if (ExportItem.Copyright != "")
-				{
-					stringBuilder.Append(">c" + ExportItem.Copyright);
-				}
-				if (ExportItem.Writer != "")
-				{
-					stringBuilder.Append(">w" + ExportItem.Writer);
-				}
-				if (ExportItem.MusicKey != "")
-				{
-					stringBuilder.Append(">k" + ExportItem.MusicKey);
-				}
-				if (ExportItem.Timing != "")
-				{
-					stringBuilder.Append(">t" + ExportItem.Timing);
-				}
-				if (ExportItem.Capo >= 0)
-				{
-					stringBuilder.Append(">0" + ExportItem.Capo);
-				}
-				if (ExportItem.Show_LicAdminInfo1 != "")
-				{
-					stringBuilder.Append(">a" + ExportItem.Show_LicAdminInfo1);
-				}
-				if (ExportItem.Show_LicAdminInfo2 != "")
-				{
-					stringBuilder.Append(">b" + ExportItem.Show_LicAdminInfo2);
-				}
-				if (ExportItem.SongSequence.Length > 0)
-				{
-					tempSequence = "";
-					for (int j = 0; j < ExportItem.SongSequence.Length; j++)
-					{
-						int num4 = DataUtil.StringToInt(ExportItem.SongSequence[j]);
-						if (num4 > 0 && num4 < 13)
-						{
-							tempSequence += Convert.ToString(num4);
-						}
-						else
-						{
-							tempSequence += gf.SequenceSymbol[num4];
-						}
-						if (j < ExportItem.SongSequence.Length - 1)
-						{
-							tempSequence += ",";
-						}
-					}
-					stringBuilder.Append(">@" + tempSequence);
-				}
-				stringBuilder.Append("]");
-				if (ExportItem.Notations != "")
-				{
-					string str = "[~" + ExportItem.Notations + "]";
-					stringBuilder.Append("\r\n" + str);
-				}
-				ExportItem.CompleteLyrics.Replace("\r\n", "\n");
-				stringBuilder.Append("\r\n" + ExportItem.CompleteLyrics.Replace("\n", "\r\n"));
-				num++;
-				Update();
-				num2 = num * 100 / TotSongsSel;
-				ProgressBar1.Value = ((num2 > 100) ? 100 : num2);
-				ProgressBar1.Invalidate();
-			}
-			tableRecordSet = null;
-			if (tableRecordSet != null)
-			{
-				tableRecordSet = null;
-			}
-			if (FileUtil.CreateNewFile(ExportFileName, FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString()))
-			{
-				MessageBox.Show("Export Completed. Total of " + Convert.ToString(num) + " songs exported to " + ExportFileName);
-			}
-			else
-			{
-				MessageBox.Show("Error encountered when trying to create export file'" + ExportFileName + "'. Export NOT completed.");
-			}
-			Cursor = Cursors.Default;
-			ProgressBar1.Visible = false;
-		}
-#elif SQLite
 		private void Export_TextFormat(string ExportFileName)
 		{
 			int num = 0;
@@ -1104,54 +907,9 @@ namespace Easislides
 			Cursor = Cursors.Default;
 			ProgressBar1.Visible = false;
 		}
-#endif
 
-#if DAO
-		private void Export_XMLFormat(string ExportFileName)
-		{
-			gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
-			Recordset tableRecordSet = DbDaoController.GetTableRecordSet(gf.ConnectStringMainDB, "SONG");
-			tableRecordSet.Index = "PrimaryKey";
-			Cursor = Cursors.WaitCursor;
-			ProgressBar1.Visible = true;
-			ProgressBar1.Value = 0;
-			int num = 0;
-			int num2 = 0;
-			try
-			{
-				XmlTextWriter xtw = new XmlTextWriter(ExportFileName, Encoding.UTF8);
-				xtw.Formatting = Formatting.Indented;
-				xtw.WriteStartDocument();
-				xtw.WriteStartElement("EasiSlides");
-				for (int i = 0; i < SongsList.Items.Count; i++)
-				{
-					if (SongsList.Items[i].Checked)
-					{
-						if (gf.LoadDataIntoItem(ref ExportItem, tableRecordSet, SongsList.Items[i].SubItems[1].Text))
-						{
-							gf.WriteXMLOneItem(ref xtw, ExportItem, null, ReloadImageData: false);
-							num++;
-						}
-						Update();
-						num2 = (i + 1) * 100 / TotSongsSel;
-						ProgressBar1.Value = ((num2 > 100) ? 100 : num2);
-						ProgressBar1.Invalidate();
-					}
-				}
-				xtw.WriteEndDocument();
-				xtw.Flush();
-				xtw.Close();
-				Cursor = Cursors.Default;
-				MessageBox.Show("Export Completed. Total of " + Convert.ToString(num) + " songs exported to " + ExportFileName);
-			}
-			catch
-			{
-				Cursor = Cursors.Default;
-				MessageBox.Show("Error encountered when trying to create export file'" + ExportFileName + "'. Export NOT completed.");
-			}
-			ProgressBar1.Value = 0;
-		}
-#elif SQLite
+
+
 		private void Export_XMLFormat(string ExportFileName)
 		{
 			gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
@@ -1200,6 +958,6 @@ namespace Easislides
 			}
 			ProgressBar1.Value = 0;
 		}
-#endif
+
 	}
 }

@@ -351,10 +351,14 @@ namespace Easislides
 			}
 			try
 			{
-				using (DbConnection connection = DbController.GetDbConnection(InConnectString))
+				using DbConnection connection = DbController.GetDbConnection(InConnectString);
+				using var transaction = connection.BeginTransaction();
+				using DbCommand command = new DbCommand("DELETE FROM Folder", connection, transaction);
+				int affectedRows = command.ExecuteNonQuery();
+				transaction.Commit();
+				if (affectedRows == 0)
 				{
-					DbCommand command = new DbCommand("Delete * from Folder ", connection);
-					command.ExecuteNonQuery();
+					Debug.WriteLine("No folders were deleted from Folder table.");
 				}
 				return true;
 			}
@@ -996,3 +1000,4 @@ namespace Easislides
 		}
 	}
 }
+
