@@ -1091,7 +1091,7 @@ namespace Easislides
 			private const int GlobalMeasureCacheSize = 1024;
 			private const int GlobalPenCacheSize = 32;
 
-			public static readonly LruCache<FontKey, Font> Fonts = new LruCache<FontKey, Font>(GlobalFontCacheSize, font => font?.Dispose());
+			public static readonly LruCache<FontKey, Font> Fonts = new LruCache<FontKey, Font>(GlobalFontCacheSize, null);
 			public static readonly Dictionary<int, SolidBrush> Brushes = new Dictionary<int, SolidBrush>();
 			public static readonly LruCache<MeasureKey, SizeF> Measures = new LruCache<MeasureKey, SizeF>(GlobalMeasureCacheSize, null);
 			public static readonly Dictionary<PenKey, Pen> Pens = new Dictionary<PenKey, Pen>();
@@ -1138,22 +1138,92 @@ namespace Easislides
 
 			public static SizeF MeasureString(Graphics g, string text, Font font, int maxWidth = 10000)
 			{
-				if (string.IsNullOrEmpty(text))
+				if (string.IsNullOrEmpty(text) || g == null || font == null)
 				{
 					return SizeF.Empty;
 				}
+				if (maxWidth <= 0)
+				{
+					return SafeMeasureString(g, text, font);
+				}
 				MeasureKey key = new MeasureKey(FontKey.FromFont(font), text, maxWidth, 1.0f);
-				return Measures.GetOrAdd(key, _ => g.MeasureString(text, font, maxWidth));
+				return Measures.GetOrAdd(key, _ => SafeMeasureString(g, text, font, maxWidth));
 			}
 
 			public static SizeF MeasureString(Graphics g, string text, Font font, SizeF layoutArea)
 			{
-				if (string.IsNullOrEmpty(text))
+				if (string.IsNullOrEmpty(text) || g == null || font == null)
 				{
 					return SizeF.Empty;
 				}
+				if (layoutArea.Width <= 0f || layoutArea.Height <= 0f
+					|| float.IsNaN(layoutArea.Width) || float.IsNaN(layoutArea.Height)
+					|| float.IsInfinity(layoutArea.Width) || float.IsInfinity(layoutArea.Height))
+				{
+					return SafeMeasureString(g, text, font);
+				}
 				MeasureKey key = new MeasureKey(FontKey.FromFont(font), text, (int)layoutArea.Width, layoutArea.Height);
-				return Measures.GetOrAdd(key, _ => g.MeasureString(text, font, layoutArea));
+				return Measures.GetOrAdd(key, _ => SafeMeasureString(g, text, font, layoutArea));
+			}
+
+			private static SizeF SafeMeasureString(Graphics g, string text, Font font)
+			{
+				try
+				{
+					if (font.Size <= 0f)
+					{
+						font = new Font(font.FontFamily, 1f, font.Style);
+					}
+					return g.MeasureString(text, font);
+				}
+				catch (ArgumentException)
+				{
+					return SizeF.Empty;
+				}
+				catch (ObjectDisposedException)
+				{
+					return SizeF.Empty;
+				}
+			}
+
+			private static SizeF SafeMeasureString(Graphics g, string text, Font font, int maxWidth)
+			{
+				try
+				{
+					if (font.Size <= 0f)
+					{
+						font = new Font(font.FontFamily, 1f, font.Style);
+					}
+					return g.MeasureString(text, font, maxWidth);
+				}
+				catch (ArgumentException)
+				{
+					return SafeMeasureString(g, text, font);
+				}
+				catch (ObjectDisposedException)
+				{
+					return SizeF.Empty;
+				}
+			}
+
+			private static SizeF SafeMeasureString(Graphics g, string text, Font font, SizeF layoutArea)
+			{
+				try
+				{
+					if (font.Size <= 0f)
+					{
+						font = new Font(font.FontFamily, 1f, font.Style);
+					}
+					return g.MeasureString(text, font, layoutArea);
+				}
+				catch (ArgumentException)
+				{
+					return SafeMeasureString(g, text, font);
+				}
+				catch (ObjectDisposedException)
+				{
+					return SizeF.Empty;
+				}
 			}
 		}
 
@@ -1188,7 +1258,7 @@ namespace Easislides
 		}
 
 		private static readonly Dictionary<int, SolidBrush> DisplayPanelBrushCache = new Dictionary<int, SolidBrush>();
-		private static readonly LruCache<FontKey, Font> DisplayPanelFontCache = new LruCache<FontKey, Font>(DisplayPanelFontCacheSize, font => font.Dispose());
+		private static readonly LruCache<FontKey, Font> DisplayPanelFontCache = new LruCache<FontKey, Font>(DisplayPanelFontCacheSize, null);
 		private static readonly LruCache<MeasureKey, int> DisplayPanelMeasureCache = new LruCache<MeasureKey, int>(DisplayPanelMeasureCacheSize, null);
 		private static readonly LruCache<TextCompositeKey, string> DisplayPanelTextCompositeCache = new LruCache<TextCompositeKey, string>(DisplayPanelTextCacheSize, null);
 

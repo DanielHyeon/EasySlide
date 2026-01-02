@@ -809,7 +809,7 @@ namespace OfficeLib
 	{
 		if (string.IsNullOrEmpty(FilePath))
 		{
-			Console.WriteLine("FilePath is null or empty");
+			Console.WriteLine($"FilePath is null or empty (FilePrefix='{FilePrefix}')");
 			return false;
 		}
 
@@ -974,6 +974,7 @@ namespace OfficeLib
 			bool result = true;
 			try
 			{
+				Console.WriteLine($"[BuildScreenOutDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
 				for (int i = 1; i < TotalSlides; i++)
 				{
 					Slide[i, 0] = -1;
@@ -984,6 +985,7 @@ namespace OfficeLib
 				}
 				if (prePowerPointApp == null)
 				{
+					Console.WriteLine("[BuildScreenOutDumps] prePowerPointApp is null");
 					return result;
 				}
 
@@ -1101,6 +1103,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			bool result = true;
 			try
 			{
+				Console.WriteLine($"[BuildScreenDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
 				for (int i = 1; i < DB_MAXSLIDES; i++)
 				{
 					Slide[i, 0] = -1;
@@ -1111,6 +1114,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				}
 				if (prePowerPointApp == null)
 				{
+					Console.WriteLine("[BuildScreenDumps] prePowerPointApp is null");
 					return result;
 				}
 

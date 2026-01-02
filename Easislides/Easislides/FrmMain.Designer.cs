@@ -1409,7 +1409,10 @@ namespace Easislides
             flowLayoutPreviewLyrics.Name = "flowLayoutPreviewLyrics";
             flowLayoutPreviewLyrics.Size = new System.Drawing.Size(83, 68);
             flowLayoutPreviewLyrics.TabIndex = 6;
+            flowLayoutPreviewLyrics.TabStop = true;
             flowLayoutPreviewLyrics.Click += flowLayoutPreviewLyrics_Click;
+            flowLayoutPreviewLyrics.KeyUp += flowLayoutPreviewLyrics_KeyUp;
+            flowLayoutPreviewLyrics.PreviewKeyDown += flowLayoutPreviewLyrics_PreviewKeyDown;
             flowLayoutPreviewLyrics.Leave += flowLayoutPreviewLyrics_Leave;
             // 
             // Ind_Outline
@@ -1481,6 +1484,7 @@ namespace Easislides
             PreviewInfo.Size = new System.Drawing.Size(38, 63);
             PreviewInfo.TabIndex = 4;
             PreviewInfo.Text = "";
+            PreviewInfo.KeyUp += PreviewInfo_KeyUp;
             PreviewInfo.Enter += FormControl_Enter;
             PreviewInfo.Leave += FormControl_Leave;
             // 

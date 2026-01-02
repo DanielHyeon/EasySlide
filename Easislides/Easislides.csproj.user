@@ -13,6 +13,18 @@
     <Compile Update="Easislides\FrmLaunchShow.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Easislides\FrmMain.Events.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.Fields.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.Layout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.Logic.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Easislides\FrmSplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -1996,7 +1996,10 @@ namespace Easislides
 		//daniel  ?占쏀겕占??占쎌씠占?4:3 , wide
 		public static bool isScreenWideMode = false;
 
-		private gf()
+		public static bool formLoaded = false;
+
+
+        private gf()
 		{
 		}
 

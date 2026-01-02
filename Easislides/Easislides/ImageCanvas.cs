@@ -153,9 +153,19 @@ namespace Easislides
 
 		public ImageCanvas()
 		{
-			SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
+			SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Selectable, value: true);
 			Cursor = Cursors.Hand;
 			base.Visible = false;
+			TabStop = true;
+		}
+
+		protected override bool IsInputKey(Keys keyData)
+		{
+			if (keyData == Keys.Up || keyData == Keys.Down)
+			{
+				return true;
+			}
+			return base.IsInputKey(keyData);
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
