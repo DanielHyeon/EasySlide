@@ -17,7 +17,8 @@
       "Bash(copy \"Easislides\\\\Global\\\\gfUtility.cs\" \"Easislides\\\\Global\\\\gfUtility.cs.backup_pp\")",
       "Bash(copy \"E:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\Easislides\\\\Global\\\\gfLyrics.cs\" \"E:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\Easislides\\\\Global\\\\gfLyrics.cs.backup\")",
       "Bash(copy:*)",
-      "Bash(Select-String -Pattern \"error|warning|succeeded|failed\" -Context 0,2)"
+      "Bash(Select-String -Pattern \"error|warning|succeeded|failed\" -Context 0,2)",
+      "Bash(findstr:*)"
     ]
   }
 }

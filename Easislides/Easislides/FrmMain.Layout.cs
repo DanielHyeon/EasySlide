@@ -483,6 +483,7 @@ namespace Easislides
                     InCanvas[index].SlideNumber = index + 1;
                     InCanvas[index].MouseUp += PowerPointImage_MouseUp;
                     InCanvas[index].DoubleClick += PowerPointImage_DoubleClick;
+                    InCanvas[index].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[index].PowerPoint = true;
                     InCanvas[index].Visible = true;
                 }
@@ -524,6 +525,7 @@ namespace Easislides
                     InCanvas[i].SlideNumber = i + 1;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
                     InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
+                    InCanvas[i].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[i].PowerPoint = true;
                 }
 
@@ -582,6 +584,7 @@ namespace Easislides
                     InCanvas[i].SlideNumber = i + 1;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
                     InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
+                    InCanvas[i].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[i].PowerPoint = true;
 
                     ///daniel

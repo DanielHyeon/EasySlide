@@ -1509,6 +1509,7 @@ namespace Easislides
             flowLayoutOutputPowerPoint.Name = "flowLayoutOutputPowerPoint";
             flowLayoutOutputPowerPoint.Size = new System.Drawing.Size(79, 53);
             flowLayoutOutputPowerPoint.TabIndex = 6;
+            flowLayoutOutputPowerPoint.TabStop = true;
             flowLayoutOutputPowerPoint.KeyUp += new KeyEventHandler(flowLayoutOutputPowerPoint_KeyUp);
             // 
             // flowLayoutOutputLyrics
@@ -6379,6 +6380,7 @@ namespace Easislides
             flowLayoutPreviewPowerPoint.Name = "flowLayoutPreviewPowerPoint";
             flowLayoutPreviewPowerPoint.Size = new System.Drawing.Size(79, 53);
             flowLayoutPreviewPowerPoint.TabIndex = 5;
+            flowLayoutPreviewPowerPoint.TabStop = true;
             flowLayoutPreviewPowerPoint.KeyUp += new KeyEventHandler(flowLayoutPreviewPowerPoint_KeyUp);
             // 
             // IndPanel

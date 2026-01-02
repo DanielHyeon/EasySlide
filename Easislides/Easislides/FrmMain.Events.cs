@@ -499,6 +499,19 @@ namespace Easislides
         }
 
         /// <summary>
+        /// PowerPoint ImageCanvas KeyUp 이벤트
+        /// </summary>
+        private void PowerPointImage_KeyUp(object sender, KeyEventArgs e)
+        {
+            Control control = (Control)sender;
+            string panelName = control.Name == "PP_Preview"
+                ? "flowLayoutPreviewPowerPoint"
+                : "flowLayoutOutputPowerPoint";
+
+            _keyboardHandler.HandlePowerPointContainerKeyUp(panelName, e.KeyCode, e.Shift);
+        }
+
+        /// <summary>
         /// PowerPoint Preview FlowLayoutPanel KeyUp 이벤트
         /// </summary>
         private void flowLayoutPreviewPowerPoint_KeyUp(object sender, KeyEventArgs e)
