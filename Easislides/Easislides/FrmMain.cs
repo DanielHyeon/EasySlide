@@ -55,6 +55,7 @@ namespace Easislides
             Init();
 
             frmMain = this;
+            _keyboardHandler = new KeyboardActionHandler(this);
 
         }
 
@@ -637,96 +638,191 @@ namespace Easislides
 
 
 
-        //private void SongsList_KeyUp(object sender, KeyEventArgs e)
-        //{
-        //    if (e.Control && e.KeyCode == Keys.A)
-        //    {
-        //        SongsList_SelectAll();
-        //    }
-        //    else if (e.Control && e.KeyCode == Keys.C)
-        //    {
-        //        Copy_Song();
-        //    }
-        //    else if (e.KeyCode == Keys.Delete)
-        //    {
-        //        RemoveSongsListSong();
-        //        SongsList.Focus();
-        //    }
-        //    else if (e.Control && e.Alt && e.KeyCode == Keys.V)
-        //    {
-        //        gf.ShowDebugVideoMessages = !gf.ShowDebugVideoMessages;
-        //        MessageBox.Show("Video Debug Message Turned " + (gf.ShowDebugVideoMessages ? "On" : "Off"));
-        //    }
-        //    else
-        //    {
-        //        SongsListIndexChanged(1, ScrollToCaret: false);
-        //        SongsList.Focus();
-        //    }
-        //}
+        private void SongsList_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.A)
+            {
+                SongsList_SelectAll();
+            }
+            else if (e.Control && e.KeyCode == Keys.C)
+            {
+                Copy_Song();
+            }
+            else if (e.KeyCode == Keys.Delete)
+            {
+                RemoveSongsListSong();
+                SongsList.Focus();
+            }
+            else if (e.Control && e.Alt && e.KeyCode == Keys.V)
+            {
+                gf.ShowDebugVideoMessages = !gf.ShowDebugVideoMessages;
+                MessageBox.Show("Video Debug Message Turned " + (gf.ShowDebugVideoMessages ? "On" : "Off"));
+            }
+            else
+            {
+                SongsListIndexChanged(1, ScrollToCaret: false);
+                SongsList.Focus();
+            }
+        }
 
-        //private void SongsList_MouseUp(object sender, MouseEventArgs e)
-        //{
-        //    if (e.Button == MouseButtons.Left)
-        //    {
-        //        SongsListIndexChanged();
-        //    }
-        //    else if (e.Button == MouseButtons.Right)
-        //    {
-        //        ListViewItem itemAt = SongsList.GetItemAt(e.X, e.Y);
-        //        string OutString = "";
-        //        if (itemAt != null)
-        //        {
-        //            itemAt.Selected = true;
-        //            SongsListIndexChanged();
-        //        }
-        //        gf.GetSelectedIndex(SongsList, ref OutString);
-        //        gf.SetMenuItem(ref CMenuSongs_Edit, OutString, "Edit Item", "Edit", DisableWhenBlank: true);
-        //        CMenuSongs.Show(SongsList, e.X, e.Y);
-        //    }
-        //    SongsList.Focus();
-        //}
-
-
+        private void SongsList_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                SongsListIndexChanged();
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                ListViewItem itemAt = SongsList.GetItemAt(e.X, e.Y);
+                string OutString = "";
+                if (itemAt != null)
+                {
+                    itemAt.Selected = true;
+                    SongsListIndexChanged();
+                }
+                gf.GetSelectedIndex(SongsList, ref OutString);
+                gf.SetMenuItem(ref CMenuSongs_Edit, OutString, "Edit Item", "Edit", DisableWhenBlank: true);
+                CMenuSongs.Show(SongsList, e.X, e.Y);
+            }
+            SongsList.Focus();
+        }
 
 
-
-        //private void Menu_EditHistory_Click(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        ToolStripMenuItem toolStripMenuItem = (ToolStripMenuItem)sender;
-        //        int num = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
-        //        Edit_Item(gf.MainEditHistoryList[num, 0]);
-        //    }
-        //    catch
-        //    {
-        //    }
-        //}
-
-        //private void SessionList_SelectedValueChanged(object sender, EventArgs e)
-        //{
-        //    if (!InitFormLoad)
-        //    {
-        //        SessionList_Change();
-        //    }
-        //}
-
-        //private void ThumbImage_MouseUp(object sender, MouseEventArgs e)
-        //{
-        //    Control control = (Control)sender;
-        //    ThumbImageClicked = Convert.ToInt32(control.Tag);
-        //    if (e.Button == MouseButtons.Left)
-        //    {
-        //        ApplyBackground(ThumbImageClicked, 2);
-        //    }
-        //    else if (e.Button == MouseButtons.Right)
-        //    {
-        //        Point position = control.PointToClient(Cursor.Position);
-        //        CMenuImages.Show(control, position);
-        //    }
-        //}
+        private void tabControlLists_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (tabControlLists.SelectedIndex)
+            {
+                case 0:
+                    ApplyWorshipMode();
+                    break;
+                case 1:
+                    ApplyPraisebookMode();
+                    break;
+            }
+        }
 
 
+        private void Menu_EditHistory_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ToolStripMenuItem toolStripMenuItem = (ToolStripMenuItem)sender;
+                int num = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
+                Edit_Item(gf.MainEditHistoryList[num, 0]);
+            }
+            catch
+            {
+            }
+        }
+
+        private void SessionList_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (!InitFormLoad)
+            {
+                SessionList_Change();
+            }
+        }
+
+        private void BuildPreviewScreenHandler()
+        {
+            PreviewScreen.DoubleClick += PreviewScreen_DoubleClick;
+        }
+
+        private void PreviewScreen_DoubleClick(object sender, EventArgs e)
+        {
+            if (gf.PreviewItem.Type == "D")
+            {
+                string inIDString = "D" + gf.PreviewItem.ItemID;
+                Edit_Item(inIDString);
+            }
+            else if (gf.PreviewItem.Type == "P")
+            {
+                string inIDString = "P" + gf.PreviewItem.Path;
+                Edit_Item(inIDString);
+            }
+            else if (gf.PreviewItem.Type == "B")
+            {
+                string inIDString = "B" + gf.PreviewItem.ItemID;
+                string text = Edit_Item(inIDString, ref gf.PreviewItem.Title);
+                if (text != "")
+                {
+                    if (gf.PreviewItem.Source == ItemSource.HolyBible)
+                    {
+                        HB_CurSelectedPassages = DataUtil.Right(text, text.Length - 1);
+                        HB_CurSelectedTitle = gf.PreviewItem.Title;
+                        HB_SelectedPassagesChanged(HB_CurSelectedPassages, ref HB_CurSelectedTitle);
+                    }
+                    else if (gf.PreviewItem.Source == ItemSource.WorshipList)
+                    {
+                        int selectedIndex = gf.GetSelectedIndex(WorshipListItems);
+                        WorshipListItems.Items[selectedIndex].SubItems[0].Text = gf.PreviewItem.Title;
+                        WorshipListItems.Items[selectedIndex].SubItems[1].Text = text;
+                        WorshipListIndexChanged();
+                    }
+                }
+            }
+            else if (gf.PreviewItem.Type == "T")
+            {
+                string inIDString = "T" + gf.PreviewItem.Path;
+                Edit_Item(inIDString);
+            }
+            else if (gf.PreviewItem.Type == "W")
+            {
+                string inIDString = "W" + gf.PreviewItem.Path;
+                Edit_Item(inIDString);
+            }
+            else if (gf.PreviewItem.Type == "I")
+            {
+                string inIDString = "I" + gf.PreviewItem.Path;
+                Edit_Item(inIDString);
+            }
+            else if (gf.PreviewItem.Type == "M")
+            {
+                string inIDString = "M" + gf.PreviewItem.Path;
+                Edit_Item(inIDString);
+            }
+        }
+
+        private void ThumbImage_MouseUp(object sender, MouseEventArgs e)
+        {
+            Control control = (Control)sender;
+            ThumbImageClicked = Convert.ToInt32(control.Tag);
+            if (e.Button == MouseButtons.Left)
+            {
+                ApplyBackground(ThumbImageClicked, 2);
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                Point position = control.PointToClient(Cursor.Position);
+                CMenuImages.Show(control, position);
+            }
+        }
+
+        private void ExternalFilesPP_DoubleClick(object sender, EventArgs e)
+        {
+            AddFromPowerpointList();
+        }
+
+        private void ExternalFilesPP_MouseUp(object sender, MouseEventArgs e)
+        {
+            Control control = (Control)sender;
+            ThumbImageClicked = Convert.ToInt32(control.Tag);
+            if (e.Button == MouseButtons.Left)
+            {
+                gf.PreviewItem.Source = ItemSource.ExternalFilePowerpoint;
+                string text = PowerpointCurPreview = "P" + ExternalPPImagename[ThumbImageClicked];
+                string InTitle = Path.GetFileNameWithoutExtension(ExternalPPImagename[ThumbImageClicked]);
+                gf.PreviewItem.InMainItemText = InTitle;
+                gf.PreviewItem.InSubItemItem1Text = text;
+                gf.PreviewItem.CurItemNo = 0;
+                LoadItem(ref gf.PreviewItem, text, "", 1, ref InTitle, ScrollToCaret: false);
+                LoadExternalPowerpointThumbImages(ThumbImageClicked + 1);
+                UpdateDisplayPanelFields();
+            }
+            else if (e.Button != MouseButtons.Right)
+            {
+            }
+        }
 
         //private void UpdateBackgroundImageButtons(int InMode, int BackgroundImageMode)
         //{
@@ -787,27 +883,219 @@ namespace Easislides
 
 
 
-        //private void btnToOutput_Click(object sender, EventArgs e)
+        private void btnToOutput_Click(object sender, EventArgs e)
+        {
+            if (gf.PreviewItem.ItemID != "")
+            {
+                CopyPreviewToOutput();
+            }
+        }
+
+
+
+        private void btnToOutputMoveNext_Click(object sender, EventArgs e)
+        {
+            if (gf.PreviewItem.ItemID != "")
+            {
+                CopyPreviewToOutput();
+            }
+            ManualMoveToItem(gf.PreviewItem, KeyDirection.NextOne);
+            FocusOutputArea();
+        }
+
+        private void Ind_MarginUpDown_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!UpdatingFormatFields)
+            {
+                UpDownBase upDownBase = (UpDownBase)sender;
+                string name = upDownBase.Name;
+                UpdatingFormatFields = true;
+                if (name == "Ind_Reg1TopUpDown")
+                {
+                    gf.PreviewItem.Format.ShowFontVPosition[0] = (int)Ind_Reg1TopUpDown.Value;
+                    UpdatingFormatFields = true;
+                    gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                }
+                else if (name == "Ind_Reg2TopUpDown")
+                {
+                    gf.PreviewItem.Format.ShowFontVPosition[1] = (int)Ind_Reg2TopUpDown.Value;
+                    UpdatingFormatFields = true;
+                    gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                }
+                else if (name == "Ind_LeftUpDown")
+                {
+                    gf.PreviewItem.Format.ShowLeftMargin = (int)Ind_LeftUpDown.Value;
+                }
+                else if (name == "Ind_RightUpDown")
+                {
+                    gf.PreviewItem.Format.ShowRightMargin = (int)Ind_RightUpDown.Value;
+                }
+                else if (name == "Ind_BottomUpDown")
+                {
+                    gf.PreviewItem.Format.ShowBottomMargin = (int)Ind_BottomUpDown.Value;
+                    UpdatingFormatFields = true;
+                    gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                }
+                UpdatingFormatFields = false;
+                UpdateFormatData();
+            }
+        }
+
+        private void Ind_FontsList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!(UpdatingFormatFields | InitFormLoad))
+            {
+                gf.PreviewItem.Format.ShowFontName[0] = Ind_Reg1FontsList.Text;
+                gf.PreviewItem.Format.ShowFontName[1] = Ind_Reg2FontsList.Text;
+                UpdateFormatData();
+            }
+        }
+
+        private void Ind_TransSelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!(UpdatingFormatFields | InitFormLoad))
+            {
+                ToolStripComboBox toolStripComboBox = (ToolStripComboBox)sender;
+                ImageTransitionControl.TransitionAction transitionAction = (toolStripComboBox.Name == "Ind_TransItem") ? ImageTransitionControl.TransitionAction.AsStoredItem : ImageTransitionControl.TransitionAction.AsStoredSlide;
+                gf.PreviewItem.Format.ShowItemTransition = Ind_TransItem.SelectedIndex;
+                gf.PreviewItem.Format.ShowSlideTransition = Ind_TransSlides.SelectedIndex;
+                UpdateFormatData(StartAtFirstSlide: false, transitionAction);
+            }
+        }
+
+        private void Ind_FontSizeUpDown_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!UpdatingFormatFields)
+            {
+                gf.PreviewItem.Format.ShowFontSize[0] = (int)Ind_Reg1SizeUpDown.Value;
+                gf.PreviewItem.Format.ShowFontSize[1] = (int)Ind_Reg2SizeUpDown.Value;
+                UpdateFormatData();
+            }
+        }
+
+        //private void Ind_MarginUpDown_MouseUp(object sender, MouseEventArgs e)
         //{
-        //    if (gf.PreviewItem.ItemID != "")
+        //    if (!UpdatingFormatFields)
         //    {
-        //        CopyPreviewToOutput();
+        //        UpDownBase upDownBase = (UpDownBase)sender;
+        //        string name = upDownBase.Name;
+        //        UpdatingFormatFields = true;
+        //        if (name == "Ind_Reg1TopUpDown")
+        //        {
+        //            gf.PreviewItem.Format.ShowFontVPosition[0] = (int)Ind_Reg1TopUpDown.Value;
+        //            UpdatingFormatFields = true;
+        //            gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+        //        }
+        //        else if (name == "Ind_Reg2TopUpDown")
+        //        {
+        //            gf.PreviewItem.Format.ShowFontVPosition[1] = (int)Ind_Reg2TopUpDown.Value;
+        //            UpdatingFormatFields = true;
+        //            gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+        //        }
+        //        else if (name == "Ind_LeftUpDown")
+        //        {
+        //            gf.PreviewItem.Format.ShowLeftMargin = (int)Ind_LeftUpDown.Value;
+        //        }
+        //        else if (name == "Ind_RightUpDown")
+        //        {
+        //            gf.PreviewItem.Format.ShowRightMargin = (int)Ind_RightUpDown.Value;
+        //        }
+        //        else if (name == "Ind_BottomUpDown")
+        //        {
+        //            gf.PreviewItem.Format.ShowBottomMargin = (int)Ind_BottomUpDown.Value;
+        //            UpdatingFormatFields = true;
+        //            gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+        //        }
+        //        UpdatingFormatFields = false;
+        //        UpdateFormatData();
         //    }
         //}
 
+        private void Menu_useSongNumbering_Click(object sender, EventArgs e)
+        {
+            ApplyUseSongNumbers(Menu_UseSongNumbering.Checked);
+            ImplementFolderChange = true;
+            SongFolder_Change();
+        }
 
+        private void BookLookup_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            BookLookupChanged();
+        }
 
-        //private void btnToOutputMoveNext_Click(object sender, EventArgs e)
-        //{
-        //    if (gf.PreviewItem.ItemID != "")
-        //    {
-        //        CopyPreviewToOutput();
-        //    }
-        //    ManualMoveToItem(gf.PreviewItem, KeyDirection.NextOne);
-        //    FocusOutputArea();
-        //}
+        private void TabBibleVersions_Click(object sender, EventArgs e)
+        {
+            if (TabBibleVersions.SelectedIndex != gf.HB_CurVersionTabIndex)
+            {
+                TabBibleVersionsChanged();
+            }
+        }
 
+        private void ImagesFolder_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowPicturesFolderThumbs();
+        }
 
+        private void SongFolder_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!InitFormLoad)
+            {
+                SongFolder_Change();
+            }
+        }
+
+        private void tabControlSource_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (IsSelectedTab(tabControlSource, "tabImages"))
+            {
+                if ((ImagesFolder.Items.Count > 0) & (ImagesFolder.Text == ""))
+                {
+                    ImagesFolder.SelectedIndex = 0;
+                    gf.TabSourceImagesChanged = false;
+                }
+                if (gf.TabSourceImagesChanged)
+                {
+                    FormatBackgroundThumbContainers();
+                    gf.TabSourceImagesChanged = false;
+                }
+            }
+            else if (IsSelectedTab(tabControlSource, "tabFiles"))
+            {
+                if ((InfoScreenFolder.Items.Count > 0) & (InfoScreenFolder.Text == ""))
+                {
+                    InfoScreenFolder.SelectedIndex = 0;
+                    gf.TabSourceExternalFilesChanged = false;
+                }
+                if (!gf.TabSourceExternalFilesChanged)
+                {
+                }
+            }
+            else if (IsSelectedTab(tabControlSource, "tabMedia"))
+            {
+                if ((MediaFolder.Items.Count > 0) & (MediaFolder.Text == ""))
+                {
+                    MediaFolder.SelectedIndex = 0;
+                    gf.TabSourceMediaFolderFilesChanged = false;
+                }
+                if (!gf.TabSourceMediaFolderFilesChanged)
+                {
+                }
+            }
+            else if (IsSelectedTab(tabControlSource, "tabPowerpoint"))
+            {
+                if ((PowerpointFolder.Items.Count > 0) & (PowerpointFolder.Text == ""))
+                {
+                    PowerpointFolder.SelectedIndex = 0;
+                    gf.TabSourceExternalFilesChanged = false;
+                }
+                if (gf.TabSourceExternalFilesChanged)
+                {
+                    FormatExternalPowerpointThumbContainers();
+                    gf.TabSourceExternalFilesChanged = false;
+                }
+            }
+            ShowStatusBarSummary();
+        }
 
         private void DisplaySettingsLabel(SongSettings Initem)
         {
@@ -1069,21 +1357,42 @@ namespace Easislides
 
         private void WorshipList_KeyUp(object sender, KeyEventArgs e)
         {
+            HandleListViewKeyEvent(
+                e,
+                WorshipList_SelectAll,
+                () => { RemoveWorshipListSong(); SaveWorshipList(); },
+                WorshipListIndexChanged,
+                WorshipListItems
+            );
+        }
+
+        /// <summary>
+        /// ListView 공통 키 이벤트 처리 헬퍼 메서드
+        /// </summary>
+        private void HandleListViewKeyEvent(KeyEventArgs e, Action selectAllAction, Action deleteAction, Action indexChangedAction, Control focusControl, Action copyAction = null)
+        {
             if (e.Control && e.KeyCode == Keys.A)
             {
-                WorshipList_SelectAll();
+                selectAllAction?.Invoke();
                 return;
             }
+
+            if (e.Control && e.KeyCode == Keys.C && copyAction != null)
+            {
+                copyAction?.Invoke();
+                return;
+            }
+
             if (e.KeyCode == Keys.Delete)
             {
-                RemoveWorshipListSong();
-                SaveWorshipList();
+                deleteAction?.Invoke();
             }
             else
             {
-                WorshipListIndexChanged();
+                indexChangedAction?.Invoke();
             }
-            WorshipListItems.Focus();
+
+            focusControl?.Focus();
         }
 
         //static String prePreviewItemID = "";
@@ -1169,20 +1478,13 @@ namespace Easislides
 
         private void PraiseBookItems_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Control && e.KeyCode == Keys.A)
-            {
-                PraiseBookList_SelectAll();
-                return;
-            }
-            if (e.KeyCode == Keys.Delete)
-            {
-                RemovePraiseBookListSong();
-            }
-            else
-            {
-                PraiseBookListIndexChanged();
-            }
-            PraiseBookItems.Focus();
+            HandleListViewKeyEvent(
+                e,
+                PraiseBookList_SelectAll,
+                RemovePraiseBookListSong,
+                PraiseBookListIndexChanged,
+                PraiseBookItems
+            );
         }
 
         private void PraiseBookList_SelectAll()
@@ -2517,198 +2819,44 @@ namespace Easislides
 
         private void ItemKeyPressed(SongSettings InItem, Keys KeyCode, bool ShiftKey)
         {
+            // PraiseBook 모드이거나 Tab 키는 처리하지 않음
             if (gf.EasiSlidesMode == UsageMode.PraiseBook || KeyCode == Keys.Tab)
             {
                 return;
             }
+
+            // 키보드 재매핑
             gf.ReMapKeyBoard(ref KeyCode);
-            int num;
-            switch (KeyCode)
+
+            // 네비게이션 키 처리
+            if (KeyboardMapping.IsNavigationKey(KeyCode))
             {
-                case Keys.Home:
-                    ManualMoveToItem(InItem, KeyDirection.FirstOne);
-                    return;
-                case Keys.Prior:
-                    ManualMoveToItem(InItem, KeyDirection.PrevOne);
-                    return;
-                case Keys.Next:
-                    ManualMoveToItem(InItem, KeyDirection.NextOne);
-                    return;
-                case Keys.End:
-                    ManualMoveToItem(InItem, KeyDirection.LastOne);
-                    return;
-                case Keys.Tab:
-                    ManualMoveToItem(InItem, KeyDirection.NextOne);
-                    return;
-                case Keys.Up:
-                    if (!gf.GlobalHookKey_CtrlArrow && !gf.GlobalHookKey_Arrow)
-                    {
-                        MoveToSlide(InItem, KeyDirection.PrevOne);
-                    }
-                    return;
-                case Keys.Left:
-                    MoveToSlide(InItem, KeyDirection.FirstOne);
-                    return;
-                case Keys.Right:
-                    MoveToSlide(InItem, KeyDirection.LastOne);
-                    return;
-                case Keys.Down:
-                    if (!gf.GlobalHookKey_CtrlArrow && !gf.GlobalHookKey_Arrow)
-                    {
-                        MoveToSlide(InItem, KeyDirection.NextOne);
-                    }
-                    return;
-                case Keys.Space:
-                    MoveToSlide(InItem, KeyDirection.SpaceOne);
-                    return;
-                default:
-                    num = ((!ShiftKey || KeyCode != Keys.B) ? 1 : 0);
-                    break;
-                case Keys.W:
-                    num = 0;
-                    break;
-            }
-            if (num == 0)
-            {
-                JumpToVerseType(InItem, 103);
+                _keyboardHandler.HandleNavigationKey(InItem, KeyCode);
                 return;
             }
-            int num2;
-            switch (KeyCode)
+
+            // 찬양 구절 점프 키 처리
+            if (KeyboardMapping.IsVerseJumpKey(KeyCode, ShiftKey))
             {
-                case Keys.B:
-                    JumpToVerseType(InItem, 100);
-                    return;
-                default:
-                    num2 = ((!ShiftKey || KeyCode != Keys.P) ? 1 : 0);
-                    break;
-                case Keys.Q:
-                    num2 = 0;
-                    break;
-            }
-            if (num2 == 0)
-            {
-                JumpToVerseType(InItem, 112);
+                _keyboardHandler.HandleVerseJumpKey(InItem, KeyCode, ShiftKey);
                 return;
             }
-            int num3;
-            switch (KeyCode)
+
+            // 숫자 키 처리 (C 키 포함)
+            if (KeyboardMapping.IsNumericKey(KeyCode) || KeyCode == Keys.C)
             {
-                case Keys.P:
-                    JumpToVerseType(InItem, 111);
-                    return;
-                case Keys.E:
-                    JumpToVerseType(InItem, 101);
-                    return;
-                case Keys.G:
-                    if (gf.GapItemOption == GapType.None)
-                    {
-                        gf.GapItemOption = gf.AltGapItemOption;
-                        gf.AltGapItemOption = GapType.None;
-                    }
-                    else
-                    {
-                        gf.AltGapItemOption = gf.GapItemOption;
-                        gf.GapItemOption = GapType.None;
-                    }
-                    ShowStatusBarSummary();
-                    return;
-                case Keys.Z:
-                    if (InItem.OutputStyleScreen)
-                    {
-                        QueryShowActive();
-                    }
-                    return;
-                case Keys.A:
-                    SetRotateState(!gf.AutoRotateOn);
-                    return;
-                case Keys.J:
-                    GotoNextNonRotateItem(InItem);
-                    return;
-                case Keys.M:
-                    if (InItem.OutputStyleScreen)
-                    {
-                        RemoteControlLiveShow(LiveShowAction.Remote_MediaItemPausePlay);
-                    }
-                    return;
-                default:
-                    num3 = ((!ShiftKey || KeyCode != Keys.C) ? 1 : 0);
-                    break;
-                case Keys.T:
-                    num3 = 0;
-                    break;
-            }
-            if (num3 == 0)
-            {
-                JumpToVerseType(InItem, 102);
+                _keyboardHandler.HandleNumericKey(InItem, KeyCode);
                 return;
             }
-            if (KeyCode == Keys.C)
+
+            // 기능 키 처리
+            if (KeyboardMapping.IsFunctionKey(KeyCode))
             {
-                KeyCode = Keys.D0;
-            }
-            else if (KeyCode == Keys.D0 || KeyCode == Keys.NumPad0)
-            {
-                KeyCode = Keys.D0;
-            }
-            else if (KeyCode == Keys.D1 || KeyCode == Keys.NumPad1)
-            {
-                KeyCode = Keys.D1;
-            }
-            else if (KeyCode == Keys.D2 || KeyCode == Keys.NumPad2)
-            {
-                KeyCode = Keys.D2;
-            }
-            else if (KeyCode == Keys.D3 || KeyCode == Keys.NumPad3)
-            {
-                KeyCode = Keys.D3;
-            }
-            else if (KeyCode == Keys.D4 || KeyCode == Keys.NumPad4)
-            {
-                KeyCode = Keys.D4;
-            }
-            else if (KeyCode == Keys.D5 || KeyCode == Keys.NumPad5)
-            {
-                KeyCode = Keys.D5;
-            }
-            else if (KeyCode == Keys.D6 || KeyCode == Keys.NumPad6)
-            {
-                KeyCode = Keys.D6;
-            }
-            else if (KeyCode == Keys.D7 || KeyCode == Keys.NumPad7)
-            {
-                KeyCode = Keys.D7;
-            }
-            else if (KeyCode == Keys.D8 || KeyCode == Keys.NumPad8)
-            {
-                KeyCode = Keys.D8;
-            }
-            else
-            {
-                if (KeyCode != Keys.D9 && KeyCode != Keys.NumPad9)
-                {
-                    return;
-                }
-                KeyCode = Keys.D9;
-            }
-            if (InItem.OutputStyleScreen)
-            {
-                if (InItem.SongVerses[(int)(KeyCode - 48)] > 0)
-                {
-                    InItem.CurSlide = InItem.SongVerses[(int)(KeyCode - 48)];
-                    MoveToSlide(InItem, KeyDirection.Refresh);
-                    KeyCode = Keys.None;
-                }
-            }
-            else if (InItem.SongVerses[(int)(KeyCode - 48)] > 0)
-            {
-                InItem.CurSlide = InItem.SongVerses[(int)(KeyCode - 48)];
-                MoveToSlide(InItem, KeyDirection.Refresh);
-                KeyCode = Keys.None;
+                _keyboardHandler.HandleFunctionKey(InItem, KeyCode);
             }
         }
 
-        private void JumpToVerseType(SongSettings InItem, int InOtherVerse)
+        internal void JumpToVerseType(SongSettings InItem, int InOtherVerse)
         {
             int num = 1;
             while (true)
@@ -2728,7 +2876,7 @@ namespace Easislides
             MoveToSlide(InItem, KeyDirection.Refresh);
         }
 
-        private void ManualMoveToItem(SongSettings InItem, KeyDirection InDirection)
+        internal void ManualMoveToItem(SongSettings InItem, KeyDirection InDirection)
         {
             MoveToItem(InItem, InDirection, 0, NotifyLiveShow: true);
         }
@@ -2849,7 +2997,7 @@ namespace Easislides
             FocusPreviewArea();
         }
 
-        private void MoveToSlide(SongSettings InItem, KeyDirection InDirection)
+        internal void MoveToSlide(SongSettings InItem, KeyDirection InDirection)
         {
             if (InItem.OutputStyleScreen)
             {
@@ -2995,7 +3143,7 @@ namespace Easislides
             ImplementSlideMove(InItem, ScrollToTop: true);
         }
 
-        private void QueryShowActive()
+        internal void QueryShowActive()
         {
             if (OutputScreen.RefStatus())
             {
@@ -3006,6 +3154,18 @@ namespace Easislides
             {
                 RemoteControlLiveShow(LiveShowAction.Remote_ReferenceAlertShow);
                 ShowSlide(ref gf.OutputItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: true);
+            }
+        }
+
+        /// <summary>
+        /// PowerPoint 애니메이션/비디오 재생 트리거
+        /// KeyboardActionHandler에서 호출됨
+        /// </summary>
+        internal void PlayPowerPointAnimation(int slideNumber)
+        {
+            if (MainPPT?.prePowerPointApp != null)
+            {
+                MainPPT.SafePlayNext(slideNumber);
             }
         }
 
@@ -4153,7 +4313,7 @@ namespace Easislides
             typeFromProgID.InvokeMember("MinimizeAll", BindingFlags.InvokeMethod, null, target, null);
         }
 
-        private void LiveBlack(bool InStatus)
+        internal void LiveBlack(bool InStatus)
         {
             try
             {
@@ -5461,7 +5621,7 @@ namespace Easislides
             SetRotateState(!Main_NoRotate.Checked);
         }
 
-        private void SetRotateState(bool RotateOn)
+        internal void SetRotateState(bool RotateOn)
         {
             Main_NoRotate.Checked = !RotateOn;
             gf.AutoRotateOn = RotateOn;
@@ -5998,6 +6158,7 @@ namespace Easislides
 
         private FrmLaunchMediaPlayer _mediaPlayerWindow = null;
         private bool _isMediaPlayerHookActive = false;
+        private KeyboardActionHandler _keyboardHandler;
 
         private void PlayMediaOnOutputMonitor(string mediaFilePath)
         {
@@ -7064,7 +7225,7 @@ namespace Easislides
             }
         }
 
-        private string RemoteControlLiveShow(LiveShowAction InAction)
+        internal string RemoteControlLiveShow(LiveShowAction InAction)
         {
             return RemoteControlLiveShow(InAction, KeyDirection.Refresh);
         }
@@ -8459,7 +8620,7 @@ namespace Easislides
             Debug.WriteLine($"PreviewInfo_KeyUp key={e.KeyCode} shift={e.Shift} focus={ActiveControl?.Name}");
         }
 
-        private void GotoNextNonRotateItem(SongSettings InItem)
+        internal void GotoNextNonRotateItem(SongSettings InItem)
         {
             SaveWorshipList();
             int nextNonRotateItem = gf.GetNextNonRotateItem((InItem.Type == "G") ? true : false);
@@ -8637,70 +8798,22 @@ namespace Easislides
         //daniel ??�� 2024??
         private void HookManager_KeyDown(object sender, KeyEventArgs e)
         {
-            switch (e.KeyCode)
+            frmMain.BeginInvoke(new Action(() =>
             {
-                case Keys.F7 when gf.GlobalHookKey_F7:
-                    frmMain.BeginInvoke(new Action(() =>
-                    {
-                        if (gf.PreviewItem.ItemID != "")
-                        {
-                            CopyPreviewToOutput();
-                            frmMain.BeginInvoke(new Action(() => { LiveBlack(gf.ShowLiveBlack = false); }));
-                        }
-                    }));
-                    break;
-                case Keys.F8 when gf.GlobalHookKey_F8:
-                    frmMain.BeginInvoke(new Action(() =>
-                    {
-                        if (gf.PreviewItem.ItemID != "")
-                        {
-                            CopyPreviewToOutput();
-                        }
-                    }));
-                    break;
-                case Keys.F9 when gf.GlobalHookKey_F9:
-                    frmMain.BeginInvoke(new Action(() => { LiveBlack(!gf.ShowLiveBlack); }));
+                _keyboardHandler.HandleGlobalFunctionKey(e.KeyCode);
+                if (e.KeyCode == Keys.F9 || e.KeyCode == Keys.F10)
+                {
                     e.Handled = true;
-                    break;
-                case Keys.F10 when gf.GlobalHookKey_F10:
-                    frmMain.BeginInvoke(new Action(() => { LiveBlack(!gf.ShowLiveBlack); }));
-                    e.Handled = true;
-                    break;
-            }
+                }
+            }));
         }
 
         private void HookManager_KeyUp(object sender, KeyEventArgs e)
         {
-            switch (e.KeyCode)
+            frmMain.BeginInvoke(new Action(() =>
             {
-                //case Keys.Left when HookManager.Control && gf.GlobalHookKey_CtrlArrow:
-                //case Keys.Right when HookManager.Control && gf.GlobalHookKey_CtrlArrow:
-                case Keys.Up when gf.GlobalHookKey_Arrow || HookManager.Control && gf.GlobalHookKey_CtrlArrow:
-                    frmMain.BeginInvoke(new Action(() =>
-                    {
-                        MoveToSlide(gf.OutputItem, KeyDirection.PrevOne);
-                    }));
-                    break;
-                case Keys.Down when gf.GlobalHookKey_Arrow || HookManager.Control && gf.GlobalHookKey_CtrlArrow:
-                    frmMain.BeginInvoke(new Action(() =>
-                    {
-                        MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
-                    }));
-                    break;
-                case Keys.Up: //when gf.GlobalHookKey_Arrow:
-                    frmMain.BeginInvoke(new Action(() =>
-                    {
-                        MoveToSlide(gf.OutputItem, KeyDirection.PrevOne);
-                    }));
-                    break;
-                case Keys.Down: //when gf.GlobalHookKey_Arrow:
-                    //���� ??�� ����?????????�� ??��????��??
-                    frmMain.BeginInvoke(new Action(() =>
-                    {
-                        MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
-                    }));
-                    break;
-            }
+                _keyboardHandler.HandleGlobalArrowKey(e.KeyCode, HookManager.Control);
+            }));
         }
         #endregion
 

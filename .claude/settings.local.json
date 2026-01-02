@@ -16,7 +16,8 @@
       "Bash(C:UsersdanielAppDataLocalPythonbinpython.exe remove_pp_funcs.py)",
       "Bash(copy \"Easislides\\\\Global\\\\gfUtility.cs\" \"Easislides\\\\Global\\\\gfUtility.cs.backup_pp\")",
       "Bash(copy \"E:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\Easislides\\\\Global\\\\gfLyrics.cs\" \"E:\\\\WorkSpace\\\\wp-ms\\\\dev\\\\EasiSlides_v2.6.1\\\\Easislides\\\\Global\\\\gfLyrics.cs.backup\")",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(Select-String -Pattern \"error|warning|succeeded|failed\" -Context 0,2)"
     ]
   }
 }

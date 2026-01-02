@@ -2969,7 +2969,7 @@ namespace Easislides
             return false;
         }
 
-        private void CopyPreviewToOutput()
+        internal void CopyPreviewToOutput()
         {
             gf.OutputItem.InMainItemText = gf.PreviewItem.InMainItemText;
             gf.OutputItem.InSubItemItem1Text = gf.PreviewItem.InSubItemItem1Text;

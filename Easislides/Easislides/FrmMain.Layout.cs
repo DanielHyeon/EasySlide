@@ -481,8 +481,6 @@ namespace Easislides
                     InCanvas[index].Name = text;
                     InCanvas[index].Tag = index.ToString();
                     InCanvas[index].SlideNumber = index + 1;
-                    InCanvas[index].PreviewKeyDown += PowerPointImage_PreviewKeyDown;
-                    InCanvas[index].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[index].MouseUp += PowerPointImage_MouseUp;
                     InCanvas[index].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[index].PowerPoint = true;
@@ -524,8 +522,6 @@ namespace Easislides
                     InCanvas[i].Name = text;
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
-                    InCanvas[i].PreviewKeyDown += PowerPointImage_PreviewKeyDown;
-                    InCanvas[i].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
                     InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[i].PowerPoint = true;
@@ -557,12 +553,12 @@ namespace Easislides
             if (InPanel.Name == "flowLayoutPreviewPowerPoint")
             {
                 text = "PP_Preview";
-                //flowLayoutPreviewPowerPoint.Controls.Clear();
+                flowLayoutPreviewPowerPoint.Controls.Clear();
             }
             else
             {
                 text = "PP_Output";
-                //flowLayoutOutputPowerPoint.Controls.Clear();
+                flowLayoutOutputPowerPoint.Controls.Clear();
             }
 
             int controlCount = 0;
@@ -584,8 +580,6 @@ namespace Easislides
                     InCanvas[i].Name = text;
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
-                    InCanvas[i].PreviewKeyDown += PowerPointImage_PreviewKeyDown;
-                    InCanvas[i].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
                     InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[i].PowerPoint = true;
@@ -623,6 +617,34 @@ namespace Easislides
                 }
             }
         }
+
+        private void PowerPointImage_DoubleClick(object sender, EventArgs e)
+        {
+            try
+            {
+                // 더블클릭 플래그 설정
+                pptDoubleClickInProgress = true;
+
+                // KeyboardActionHandler를 통해 처리
+                _keyboardHandler.HandlePowerPointThumbnailDoubleClick((Control)sender);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in PowerPointImage_DoubleClick: {ex.Message}");
+            }
+            finally
+            {
+                // 더블클릭 플래그 해제 (다음 클릭 허용)
+                System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        pptDoubleClickInProgress = false;
+                    }));
+                });
+            }
+        }
+
 
         private void SetCanvasVisible(ref ImageCanvas[] InCanvas, bool MakeVisible)
         {
@@ -729,7 +751,7 @@ namespace Easislides
             }
         }
 
-        private void ShowStatusBarSummary()
+        internal void ShowStatusBarSummary()
         {
             int num = 0;
             string text = "";

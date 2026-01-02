@@ -54,7 +54,7 @@ namespace Easislides
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
 
-        private enum LiveShowAction
+        internal enum LiveShowAction
         {
             Remote_SongChanged,
             Remote_SlideChanged,
