@@ -126,6 +126,11 @@ namespace DirectShowLib
         /// <returns>A managed representation of pElems (cElems items)</returns>
         public Guid[] ToGuidArray()
         {
+            if (this.pElems == IntPtr.Zero || this.cElems <= 0)
+            {
+                return new Guid[0];
+            }
+
             Guid[] retval = new Guid[this.cElems];
 
             for (int i = 0; i < this.cElems; i++)
@@ -1273,9 +1278,20 @@ namespace DirectShowLib
             IEnumMoniker enumMon;
 #endif
 
-            ICreateDevEnum enumDev = (ICreateDevEnum)new CreateDevEnum();
-            hr = enumDev.CreateClassEnumerator(FilterCategory, out enumMon, 0);
-            DsError.ThrowExceptionForHR(hr);
+            ICreateDevEnum enumDev = null;
+            try
+            {
+                enumDev = (ICreateDevEnum)new CreateDevEnum();
+                hr = enumDev.CreateClassEnumerator(FilterCategory, out enumMon, 0);
+                DsError.ThrowExceptionForHR(hr);
+            }
+            finally
+            {
+                if (enumDev != null)
+                {
+                    Marshal.ReleaseComObject(enumDev);
+                }
+            }
 
             // CreateClassEnumerator returns null for enumMon if there are no entries
             if (hr != 1)

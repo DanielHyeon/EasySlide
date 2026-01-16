@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Linq;
@@ -56,6 +56,8 @@ namespace OfficeLib
 		// ✅ 캐싱: 파일 체크 결과 저장 (성능 최적화)
 		private Dictionary<string, (bool Exists, DateTime LastCheck, int TotalSlides)> _fileCheckCache = new Dictionary<string, (bool, DateTime, int)>();
 		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
+		private readonly Dictionary<string, string> _fileHashCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		private readonly object _fileHashCacheLock = new object();
 
         public void Init()
 		{
@@ -779,24 +781,27 @@ namespace OfficeLib
 
 		public bool IsFileChanged(string FilePath)
 		{
-			bool result = true;
-
-			String hashFileName = PowerPoint.GetMD5(FilePath);
-
-			var hashFileInfo = new FileInfo(hashFileName);
-
-			//���� �ִ��� Ȯ�� ������(true), ������(false)
-			if (hashFileInfo.Exists)
+			if (string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
 			{
-				result = false;
-			}
-			else
-			{
-				result = true;
+				return true;
 			}
 
-			return result;
+			string currentHash = PowerPoint.GetMD5(FilePath);
+
+			lock (_fileHashCacheLock)
+			{
+				if (_fileHashCache.TryGetValue(FilePath, out var previousHash) &&
+					string.Equals(previousHash, currentHash, StringComparison.OrdinalIgnoreCase))
+				{
+					return false;
+				}
+
+				_fileHashCache[FilePath] = currentHash;
+			}
+
+			return true;
 		}
+
 
 		/// <summary>
 		/// JPG 파일이 이미 빌드되었는지 확인
@@ -1240,48 +1245,82 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
             }
         }
 
-        public void QuitPowerPointApp(Application prePowerPointApp)
-        {
-            try
-            {
-                if (prePowerPointApp != null && !prePowerPointApp.IsDisposed)
-                {
-                    prePowerPointApp.Quit();
-                    prePowerPointApp.Dispose();  // Dispose()�� Quit() ���Ŀ� ȣ��
-                }
-            }
-            catch (ObjectDisposedException)
-            {
-                Console.WriteLine("PowerPoint application was already disposed.");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error quitting PowerPoint: {e.Message}");
-                ForceKillPowerPoint();
-            }
-            finally
-            {
-                prePowerPointApp = null;
-            }
-        }
+		public void QuitPowerPointApp(Application prePowerPointApp)
+		{
+			try
+			{
+				if (prePowerPointApp != null && !prePowerPointApp.IsDisposed)
+				{
+					prePowerPointApp.Quit();
+					prePowerPointApp.Dispose();  // Dispose()?? Quit() ???Ŀ? ???
+				}
+			}
+			catch (ObjectDisposedException)
+			{
+				Console.WriteLine("PowerPoint application was already disposed.");
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"Error quitting PowerPoint: {e.Message}");
+				ForceKillPowerPoint(prePowerPointApp);
+			}
+			finally
+			{
+				if (ReferenceEquals(prePowerPointApp, this.prePowerPointApp))
+				{
+					this.prePowerPointApp = null;
+				}
+			}
+		}
 
-        private void ForceKillPowerPoint()
-        {
-            try
-            {
-                foreach (var process in Process.GetProcessesByName("POWERPNT"))
-                {
-                    process.Kill();
-                }
-                Console.WriteLine("PowerPoint process was forcibly terminated.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error killing PowerPoint process: {ex.Message}");
-            }
-        }
+		private void ForceKillPowerPoint(Application prePowerPointApp)
+		{
+			try
+			{
+				int processId = TryGetPowerPointProcessId(prePowerPointApp);
+				if (processId <= 0)
+				{
+					Console.WriteLine("PowerPoint process id could not be resolved; skip force kill.");
+					return;
+				}
 
-        public void ClosePresentation_Old(ref _Presentation presentation)
+				Process.GetProcessById(processId).Kill();
+				Console.WriteLine($"PowerPoint process (PID={processId}) was forcibly terminated.");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error killing PowerPoint process: {ex.Message}");
+			}
+		}
+
+		[DllImport("user32.dll")]
+		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+		private static int TryGetPowerPointProcessId(Application prePowerPointApp)
+		{
+			if (prePowerPointApp == null)
+			{
+				return 0;
+			}
+
+			try
+			{
+				int hwnd = prePowerPointApp.Hwnd;
+				if (hwnd == 0)
+				{
+					return 0;
+				}
+
+				GetWindowThreadProcessId(new IntPtr(hwnd), out uint pid);
+				return (int)pid;
+			}
+			catch
+			{
+				return 0;
+			}
+		}
+
+		public void ClosePresentation_Old(ref _Presentation presentation)
 		{
 			try
 			{
@@ -1342,4 +1381,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 		public int[,] Slide { get; set; }
 	}
 }
+
+
+
 

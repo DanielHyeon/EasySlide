@@ -25,6 +25,8 @@ namespace OfficeLib
 		/// <returns></returns>
 		public string GetContents(string InFileName)
 		{
+			Document document = null;
+			object missing = Type.Missing;
 			try
 			{
 				application = new Application();
@@ -32,14 +34,10 @@ namespace OfficeLib
 				application.Visible = false;
 				object FileName = InFileName;
 				object ConfirmConversions = Type.Missing;
-				Document document = application.Documents.Open(FileName, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions);
+				document = application.Documents.Open(FileName, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions);
 				string text = document.Content.Text;
 				text = text.Replace("\r\n", "\n"[0].ToString());
 				text = text.Replace("\r"[0], "\n"[0]);
-				document.Close(ConfirmConversions, ConfirmConversions, ConfirmConversions);
-				Marshal.ReleaseComObject(document);
-				document = null;
-				application.Quit(ConfirmConversions, ConfirmConversions, ConfirmConversions);
 				return text;
 			}
 			catch
@@ -48,8 +46,28 @@ namespace OfficeLib
 			}
 			finally
             {
+				if (document != null)
+				{
+					try
+					{
+						document.Close(missing, missing, missing);
+					}
+					catch
+					{
+					}
+					Marshal.ReleaseComObject(document);
+					document = null;
+				}
+
 				if (application != null)
 				{
+					try
+					{
+						application.Quit(missing, missing, missing);
+					}
+					catch
+					{
+					}
 					Marshal.ReleaseComObject(application);
 					application = null;
 				}
