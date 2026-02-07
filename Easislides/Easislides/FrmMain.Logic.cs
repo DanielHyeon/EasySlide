@@ -1355,7 +1355,21 @@ namespace Easislides
         private string LoadWorshipList(int DataType, string InFileName)
         {
             gf.StartPresAt = 0;
+            int itemCountInFileBefore = -1;
+            string lastWriteTime = "N/A";
+            try
+            {
+                if (System.IO.File.Exists(InFileName))
+                {
+                    string fileContent = System.IO.File.ReadAllText(InFileName);
+                    itemCountInFileBefore = System.Text.RegularExpressions.Regex.Matches(fileContent, "<Item>").Count;
+                    lastWriteTime = System.IO.File.GetLastWriteTime(InFileName).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                }
+            }
+            catch { }
+            WriteDebugLog($"LoadWorshipList() called - DataType: {DataType}, File: {InFileName}, Items in file: {itemCountInFileBefore}, File last modified: {lastWriteTime}");
             string result = LoadIndexFile(DataType, InFileName, ref WorshipListItems, UsageMode.Worship, ref gf.CurSessionNotes);
+            WriteDebugLog($"LoadWorshipList() completed - Items loaded in ListView: {WorshipListItems.Items.Count}");
             PreviewNotes.Text = gf.CurSessionNotes;
             return result;
         }
@@ -1440,6 +1454,7 @@ namespace Easislides
                                         text = xmlTextReader.ReadElementContentAsString();
                                         if (DataType == 2)
                                         {
+                                            xmlTextReader.Close();
                                             return text;
                                         }
                                         gf.LoadHeaderData(text, ref gf.HeaderData, '>');
@@ -1451,6 +1466,7 @@ namespace Easislides
                                                 UpdateDefaultFields();
                                                 UpdateDisplayPanelFields();
                                             }
+                                            xmlTextReader.Close();
                                             return text;
                                         }
                                         gf.ApplyHeaderData();
@@ -2016,6 +2032,9 @@ namespace Easislides
 
         private void SaveWorshipList(bool PreloadPowerpoint)
         {
+            // Diagnostic: Log save attempt to file
+            WriteDebugLog($"SaveWorshipList() called - Items count: {WorshipListItems.Items.Count}, UpdatingFormatFields: {UpdatingFormatFields}");
+
             if (!UpdatingFormatFields)
             {
                 gf.CurSession = SessionList.Text;
@@ -2027,11 +2046,76 @@ namespace Easislides
                     gf.WorshipSongs[i, 4] = DataUtil.Trim(WorshipListItems.Items[i - 1].SubItems[2].Text);
                 }
                 gf.TotalWorshipListItems = WorshipListItems.Items.Count;
-                gfFileHelpers.SaveIndexFile(gf.WorshipDir + gf.CurSession + ".esw", ref WorshipListItems, UsageMode.Worship, SaveAllItems: true, "", gf.CurSessionNotes);
+
+                string filePath = gf.WorshipDir + gf.CurSession + ".esw";
+
+                // Get file size BEFORE save
+                long fileSizeBefore = -1;
+                try { if (System.IO.File.Exists(filePath)) fileSizeBefore = new System.IO.FileInfo(filePath).Length; } catch { }
+                WriteDebugLog($"Saving to file: {filePath} (size before: {fileSizeBefore} bytes)");
+
+                bool saveResult = gfFileHelpers.SaveIndexFile(filePath, ref WorshipListItems, UsageMode.Worship, SaveAllItems: true, "", gf.CurSessionNotes);
+
+                // Get file size AFTER save and count items in file
+                long fileSizeAfter = -1;
+                int itemCountInFile = -1;
+                try
+                {
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        fileSizeAfter = new System.IO.FileInfo(filePath).Length;
+                        string fileContent = System.IO.File.ReadAllText(filePath);
+                        itemCountInFile = System.Text.RegularExpressions.Regex.Matches(fileContent, "<Item>").Count;
+                    }
+                }
+                catch { }
+
+                string lastWriteAfter = "N/A";
+                try { if (System.IO.File.Exists(filePath)) lastWriteAfter = System.IO.File.GetLastWriteTime(filePath).ToString("yyyy-MM-dd HH:mm:ss.fff"); } catch { }
+                WriteDebugLog($"SaveIndexFile returned: {saveResult}, file size after: {fileSizeAfter} bytes, items in file: {itemCountInFile}, expected: {WorshipListItems.Items.Count}, file modified: {lastWriteAfter}");
+
+                if (!saveResult)
+                {
+                    WriteDebugLog($"ERROR: SaveIndexFile returned FALSE - save FAILED!");
+                }
+                if (itemCountInFile != WorshipListItems.Items.Count)
+                {
+                    WriteDebugLog($"ERROR: Item count mismatch! File has {itemCountInFile} items but expected {WorshipListItems.Items.Count}");
+                }
+
                 if (PreloadPowerpoint)
                 {
                     gfFileHelpers.PreLoadPowerpointFiles(ref gf.LivePP, ref gf.WorshipSongs);
                 }
+            }
+            else
+            {
+                // Diagnostic: Log when save is skipped due to UpdatingFormatFields flag
+                WriteDebugLog("WARNING: SaveWorshipList() skipped - UpdatingFormatFields is true");
+            }
+        }
+
+        private const long MaxLogFileSize = 512 * 1024; // 512KB
+
+        private void WriteDebugLog(string message)
+        {
+            try
+            {
+                string logFile = System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+                    "EasiSlides_Debug.log"
+                );
+                if (System.IO.File.Exists(logFile) && new System.IO.FileInfo(logFile).Length > MaxLogFileSize)
+                {
+                    string backupFile = logFile + ".bak";
+                    if (System.IO.File.Exists(backupFile)) System.IO.File.Delete(backupFile);
+                    System.IO.File.Move(logFile, backupFile);
+                }
+                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}{Environment.NewLine}";
+                System.IO.File.AppendAllText(logFile, logMessage);
+            }
+            catch
+            {
             }
         }
 
@@ -2993,6 +3077,7 @@ namespace Easislides
                 }
             }
             LoadThumbOutlockkey = 0;
+            previousOutSelectedSlide = 1;
             LoadItem(ref gf.OutputItem, gf.PreviewItem.Type + gf.PreviewItem.ItemID, gf.PreviewItem.Format.FormatString, gf.PreviewItem.CurSlide, ref gf.PreviewItem.Title, ScrollToCaret: true);
             UpdateWorshipShowIcons();
             if (gf.ShowRunning)

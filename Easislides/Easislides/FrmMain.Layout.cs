@@ -457,20 +457,10 @@ namespace Easislides
 
         private void FormatPowerPointThumbContainers3(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int index)
         {
-            string text = "";
+            string text = (InPanel.Name == "flowLayoutPreviewPowerPoint") ? "PP_Preview" : "PP_Output";
             if (index == 0)
             {
                 gf.ThumbImagesPerRow = 3;
-                if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-                {
-                    text = "PP_Preview";
-                    //flowLayoutPreviewPowerPoint.Controls.Clear();
-                }
-                else
-                {
-                    text = "PP_Output";
-                    //flowLayoutOutputPowerPoint.Controls.Clear();
-                }
             }
 
             //for (int i = 0; i < InTotalScreens; i++)
@@ -964,7 +954,10 @@ namespace Easislides
                         if (previousOutSelectedSlide != CurSelectedSlide)
                         {
                             InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            InCanvas[previousOutSelectedSlide - 1].BuildNewImageThumbs(previousOutSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            if (previousOutSelectedSlide > 0 && previousOutSelectedSlide <= TotalImagesCount)
+                            {
+                                InCanvas[previousOutSelectedSlide - 1].BuildNewImageThumbs(previousOutSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            }
                         }
                     }
                 }
@@ -1475,43 +1468,56 @@ namespace Easislides
 
         private void UpdateFormatFields()
         {
+            WriteDebugLog("UpdateFormatFields() called - Setting UpdatingFormatFields = true");
             UpdatingFormatFields = true;
-            string text = "";
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowSongHeadings == 0) ? Ind_HeadNoTitles.Name : ((gf.PreviewItem.Format.ShowSongHeadings != 1) ? Ind_HeadFirstScreen.Name : Ind_HeadAllTitles.Name), SelectedBtn: ref Ind_Head, InMenuItem1: Ind_HeadNoTitles, InMenuItem2: Ind_HeadAllTitles, InMenuItem3: Ind_HeadFirstScreen);
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowSongHeadingsAlign == 1) ? Ind_HeadAlignAsR2.Name : ((gf.PreviewItem.Format.ShowSongHeadingsAlign == 2) ? Ind_HeadAlignLeft.Name : ((gf.PreviewItem.Format.ShowSongHeadingsAlign == 3) ? Ind_HeadAlignCentre.Name : ((gf.PreviewItem.Format.ShowSongHeadingsAlign != 4) ? Ind_HeadAlignAsR1.Name : Ind_HeadAlignRight.Name))), SelectedBtn: ref Ind_HeadAlign, InMenuItem1: Ind_HeadAlignAsR1, InMenuItem2: Ind_HeadAlignAsR2, InMenuItem3: Ind_HeadAlignLeft, InMenuItem4: Ind_HeadAlignCentre, InMenuItem5: Ind_HeadAlignRight);
-            Ind_Shadow.Checked = ((gf.PreviewItem.Format.UseShadowFont == 1) ? true : false);
-            Ind_Outline.Checked = ((gf.PreviewItem.Format.UseOutlineFont == 1) ? true : false);
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowLyrics == 0) ? Ind_ShowRegion1.Name : ((gf.PreviewItem.Format.ShowLyrics != 1) ? Ind_ShowRegionBoth.Name : Ind_ShowRegion2.Name), SelectedBtn: ref Ind_Region, InMenuItem1: Ind_ShowRegion1, InMenuItem2: Ind_ShowRegion2, InMenuItem3: Ind_ShowRegionBoth);
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowVerticalAlign == 0) ? Ind_VAlignTop.Name : ((gf.PreviewItem.Format.ShowVerticalAlign != 1) ? Ind_VAlignBottom.Name : Ind_VAlignCentre.Name), SelectedBtn: ref Ind_VAlign, InMenuItem1: Ind_VAlignTop, InMenuItem2: Ind_VAlignCentre, InMenuItem3: Ind_VAlignBottom);
-            Ind_Interlace.Checked = ((gf.PreviewItem.Format.ShowInterlace == 1) ? true : false);
-            Ind_Notations.Checked = ((gf.PreviewItem.Format.ShowNotations == 1) ? true : false);
-            Ind_HideDisplayPanel.Checked = ((gf.PreviewItem.Format.HideDisplayPanel == 1) ? true : false);
-            Ind_LeftUpDown.Value = gf.PreviewItem.Format.ShowLeftMargin;
-            Ind_RightUpDown.Value = gf.PreviewItem.Format.ShowRightMargin;
-            gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.BackgroundMode == ImageMode.Tile) ? Ind_ImageTile.Name : ((gf.PreviewItem.Format.BackgroundMode != ImageMode.Centre) ? Ind_ImageBestFit.Name : Ind_ImageCentre.Name), SelectedBtn: ref Ind_ImageMode, InMenuItem1: Ind_ImageTile, InMenuItem2: Ind_ImageCentre, InMenuItem3: Ind_ImageBestFit);
-            Ind_NoImage.Enabled = ((gf.PreviewItem.Format.BackgroundPicture != "") ? true : false);
-            Ind_BackColour.ForeColor = gf.PreviewItem.Format.ShowScreenColour[0];
-            Ind_R1Bold.Checked = ((gf.PreviewItem.Format.ShowFontBold[0] > 0) ? true : false);
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowFontItalic[0] > 0 && gf.PreviewItem.Format.ShowFontItalic[2] > 0) ? Ind_R1Italics1.Name : ((gf.PreviewItem.Format.ShowFontItalic[2] <= 0) ? Ind_R1Italics0.Name : Ind_R1Italics2.Name), SelectedBtn: ref Ind_R1Italics, InMenuItem1: Ind_R1Italics0, InMenuItem2: Ind_R1Italics1, InMenuItem3: Ind_R1Italics2);
-            Ind_R1Underline.Checked = ((gf.PreviewItem.Format.ShowFontUnderline[0] > 0) ? true : false);
-            text = ((gf.PreviewItem.Format.ShowFontAlign[0] == 1) ? Ind_R1AlignLeft.Name : ((gf.PreviewItem.Format.ShowFontAlign[0] != 2) ? Ind_R1AlignRight.Name : Ind_R1AlignCentre.Name));
-            Ind_R1Colour.ForeColor = gf.PreviewItem.Format.ShowFontColour[0];
-            gf.AssignDropDownItem(ref Ind_R1Align, text, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
-            Ind_Reg1FontsList.Text = gf.PreviewItem.Format.ShowFontName[0];
-            Ind_Reg1SizeUpDown.Value = gf.PreviewItem.Format.ShowFontSize[0];
-            Ind_R2Bold.Checked = ((gf.PreviewItem.Format.ShowFontBold[1] > 0) ? true : false);
-            gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowFontItalic[1] > 0 && gf.PreviewItem.Format.ShowFontItalic[3] > 0) ? Ind_R2Italics1.Name : ((gf.PreviewItem.Format.ShowFontItalic[3] <= 0) ? Ind_R2Italics0.Name : Ind_R2Italics2.Name), SelectedBtn: ref Ind_R2Italics, InMenuItem1: Ind_R2Italics0, InMenuItem2: Ind_R2Italics1, InMenuItem3: Ind_R2Italics2);
-            Ind_R2Underline.Checked = ((gf.PreviewItem.Format.ShowFontUnderline[1] > 0) ? true : false);
-            text = ((gf.PreviewItem.Format.ShowFontAlign[1] == 1) ? Ind_R2AlignLeft.Name : ((gf.PreviewItem.Format.ShowFontAlign[1] != 2) ? Ind_R2AlignRight.Name : Ind_R2AlignCentre.Name));
-            Ind_R2Colour.ForeColor = gf.PreviewItem.Format.ShowFontColour[1];
-            gf.AssignDropDownItem(ref Ind_R2Align, text, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
-            Ind_Reg2FontsList.Text = gf.PreviewItem.Format.ShowFontName[1];
-            Ind_Reg2SizeUpDown.Value = gf.PreviewItem.Format.ShowFontSize[1];
-            Ind_TransItem.SelectedIndex = gf.PreviewItem.Format.ShowItemTransition;
-            Ind_TransSlides.SelectedIndex = gf.PreviewItem.Format.ShowSlideTransition;
-            AssignMediaText(ref Ind_AssignMedia, gf.PreviewItem.Format.MediaOption);
-            UpdatingFormatFields = false;
+            try
+            {
+                string text = "";
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowSongHeadings == 0) ? Ind_HeadNoTitles.Name : ((gf.PreviewItem.Format.ShowSongHeadings != 1) ? Ind_HeadFirstScreen.Name : Ind_HeadAllTitles.Name), SelectedBtn: ref Ind_Head, InMenuItem1: Ind_HeadNoTitles, InMenuItem2: Ind_HeadAllTitles, InMenuItem3: Ind_HeadFirstScreen);
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowSongHeadingsAlign == 1) ? Ind_HeadAlignAsR2.Name : ((gf.PreviewItem.Format.ShowSongHeadingsAlign == 2) ? Ind_HeadAlignLeft.Name : ((gf.PreviewItem.Format.ShowSongHeadingsAlign == 3) ? Ind_HeadAlignCentre.Name : ((gf.PreviewItem.Format.ShowSongHeadingsAlign != 4) ? Ind_HeadAlignAsR1.Name : Ind_HeadAlignRight.Name))), SelectedBtn: ref Ind_HeadAlign, InMenuItem1: Ind_HeadAlignAsR1, InMenuItem2: Ind_HeadAlignAsR2, InMenuItem3: Ind_HeadAlignLeft, InMenuItem4: Ind_HeadAlignCentre, InMenuItem5: Ind_HeadAlignRight);
+                Ind_Shadow.Checked = ((gf.PreviewItem.Format.UseShadowFont == 1) ? true : false);
+                Ind_Outline.Checked = ((gf.PreviewItem.Format.UseOutlineFont == 1) ? true : false);
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowLyrics == 0) ? Ind_ShowRegion1.Name : ((gf.PreviewItem.Format.ShowLyrics != 1) ? Ind_ShowRegionBoth.Name : Ind_ShowRegion2.Name), SelectedBtn: ref Ind_Region, InMenuItem1: Ind_ShowRegion1, InMenuItem2: Ind_ShowRegion2, InMenuItem3: Ind_ShowRegionBoth);
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowVerticalAlign == 0) ? Ind_VAlignTop.Name : ((gf.PreviewItem.Format.ShowVerticalAlign != 1) ? Ind_VAlignBottom.Name : Ind_VAlignCentre.Name), SelectedBtn: ref Ind_VAlign, InMenuItem1: Ind_VAlignTop, InMenuItem2: Ind_VAlignCentre, InMenuItem3: Ind_VAlignBottom);
+                Ind_Interlace.Checked = ((gf.PreviewItem.Format.ShowInterlace == 1) ? true : false);
+                Ind_Notations.Checked = ((gf.PreviewItem.Format.ShowNotations == 1) ? true : false);
+                Ind_HideDisplayPanel.Checked = ((gf.PreviewItem.Format.HideDisplayPanel == 1) ? true : false);
+                Ind_LeftUpDown.Value = gf.PreviewItem.Format.ShowLeftMargin;
+                Ind_RightUpDown.Value = gf.PreviewItem.Format.ShowRightMargin;
+                gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.BackgroundMode == ImageMode.Tile) ? Ind_ImageTile.Name : ((gf.PreviewItem.Format.BackgroundMode != ImageMode.Centre) ? Ind_ImageBestFit.Name : Ind_ImageCentre.Name), SelectedBtn: ref Ind_ImageMode, InMenuItem1: Ind_ImageTile, InMenuItem2: Ind_ImageCentre, InMenuItem3: Ind_ImageBestFit);
+                Ind_NoImage.Enabled = ((gf.PreviewItem.Format.BackgroundPicture != "") ? true : false);
+                Ind_BackColour.ForeColor = gf.PreviewItem.Format.ShowScreenColour[0];
+                Ind_R1Bold.Checked = ((gf.PreviewItem.Format.ShowFontBold[0] > 0) ? true : false);
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowFontItalic[0] > 0 && gf.PreviewItem.Format.ShowFontItalic[2] > 0) ? Ind_R1Italics1.Name : ((gf.PreviewItem.Format.ShowFontItalic[2] <= 0) ? Ind_R1Italics0.Name : Ind_R1Italics2.Name), SelectedBtn: ref Ind_R1Italics, InMenuItem1: Ind_R1Italics0, InMenuItem2: Ind_R1Italics1, InMenuItem3: Ind_R1Italics2);
+                Ind_R1Underline.Checked = ((gf.PreviewItem.Format.ShowFontUnderline[0] > 0) ? true : false);
+                text = ((gf.PreviewItem.Format.ShowFontAlign[0] == 1) ? Ind_R1AlignLeft.Name : ((gf.PreviewItem.Format.ShowFontAlign[0] != 2) ? Ind_R1AlignRight.Name : Ind_R1AlignCentre.Name));
+                Ind_R1Colour.ForeColor = gf.PreviewItem.Format.ShowFontColour[0];
+                gf.AssignDropDownItem(ref Ind_R1Align, text, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
+                Ind_Reg1FontsList.Text = gf.PreviewItem.Format.ShowFontName[0];
+                Ind_Reg1SizeUpDown.Value = gf.PreviewItem.Format.ShowFontSize[0];
+                Ind_R2Bold.Checked = ((gf.PreviewItem.Format.ShowFontBold[1] > 0) ? true : false);
+                gf.AssignDropDownItem(SelectedMenuItemName: (gf.PreviewItem.Format.ShowFontItalic[1] > 0 && gf.PreviewItem.Format.ShowFontItalic[3] > 0) ? Ind_R2Italics1.Name : ((gf.PreviewItem.Format.ShowFontItalic[3] <= 0) ? Ind_R2Italics0.Name : Ind_R2Italics2.Name), SelectedBtn: ref Ind_R2Italics, InMenuItem1: Ind_R2Italics0, InMenuItem2: Ind_R2Italics1, InMenuItem3: Ind_R2Italics2);
+                Ind_R2Underline.Checked = ((gf.PreviewItem.Format.ShowFontUnderline[1] > 0) ? true : false);
+                text = ((gf.PreviewItem.Format.ShowFontAlign[1] == 1) ? Ind_R2AlignLeft.Name : ((gf.PreviewItem.Format.ShowFontAlign[1] != 2) ? Ind_R2AlignRight.Name : Ind_R2AlignCentre.Name));
+                Ind_R2Colour.ForeColor = gf.PreviewItem.Format.ShowFontColour[1];
+                gf.AssignDropDownItem(ref Ind_R2Align, text, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
+                Ind_Reg2FontsList.Text = gf.PreviewItem.Format.ShowFontName[1];
+                Ind_Reg2SizeUpDown.Value = gf.PreviewItem.Format.ShowFontSize[1];
+                Ind_TransItem.SelectedIndex = gf.PreviewItem.Format.ShowItemTransition;
+                Ind_TransSlides.SelectedIndex = gf.PreviewItem.Format.ShowSlideTransition;
+                AssignMediaText(ref Ind_AssignMedia, gf.PreviewItem.Format.MediaOption);
+            }
+            catch (Exception ex)
+            {
+                WriteDebugLog($"ERROR in UpdateFormatFields(): {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                WriteDebugLog("UpdateFormatFields() completed - Setting UpdatingFormatFields = false");
+                UpdatingFormatFields = false;
+            }
         }
 
         //private void UpdateDefaultNoImageButton()

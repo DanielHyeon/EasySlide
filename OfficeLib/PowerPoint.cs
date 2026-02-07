@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Linq;
@@ -1305,7 +1305,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 
 			try
 			{
-				int hwnd = prePowerPointApp.Hwnd;
+				int hwnd = prePowerPointApp.HWND;
 				if (hwnd == 0)
 				{
 					return 0;

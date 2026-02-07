@@ -375,6 +375,15 @@ namespace Easislides
             {
                 Trace.WriteLine($"SaveIndexFile failed: {ex.Message}");
                 Trace.WriteLine(ex.StackTrace);
+                try
+                {
+                    string logFile = System.IO.Path.Combine(
+                        System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+                        "EasiSlides_Debug.log");
+                    string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] SaveIndexFile EXCEPTION: {ex.GetType().Name}: {ex.Message}\n    File: {InFileName}\n    StackTrace: {ex.StackTrace}{Environment.NewLine}";
+                    System.IO.File.AppendAllText(logFile, logMessage);
+                }
+                catch { }
                 return false;
             }
             finally

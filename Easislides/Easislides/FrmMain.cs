@@ -910,33 +910,36 @@ namespace Easislides
                 UpDownBase upDownBase = (UpDownBase)sender;
                 string name = upDownBase.Name;
                 UpdatingFormatFields = true;
-                if (name == "Ind_Reg1TopUpDown")
+                try
                 {
-                    gf.PreviewItem.Format.ShowFontVPosition[0] = (int)Ind_Reg1TopUpDown.Value;
-                    UpdatingFormatFields = true;
-                    gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                    if (name == "Ind_Reg1TopUpDown")
+                    {
+                        gf.PreviewItem.Format.ShowFontVPosition[0] = (int)Ind_Reg1TopUpDown.Value;
+                        gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                    }
+                    else if (name == "Ind_Reg2TopUpDown")
+                    {
+                        gf.PreviewItem.Format.ShowFontVPosition[1] = (int)Ind_Reg2TopUpDown.Value;
+                        gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                    }
+                    else if (name == "Ind_LeftUpDown")
+                    {
+                        gf.PreviewItem.Format.ShowLeftMargin = (int)Ind_LeftUpDown.Value;
+                    }
+                    else if (name == "Ind_RightUpDown")
+                    {
+                        gf.PreviewItem.Format.ShowRightMargin = (int)Ind_RightUpDown.Value;
+                    }
+                    else if (name == "Ind_BottomUpDown")
+                    {
+                        gf.PreviewItem.Format.ShowBottomMargin = (int)Ind_BottomUpDown.Value;
+                        gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                    }
                 }
-                else if (name == "Ind_Reg2TopUpDown")
+                finally
                 {
-                    gf.PreviewItem.Format.ShowFontVPosition[1] = (int)Ind_Reg2TopUpDown.Value;
-                    UpdatingFormatFields = true;
-                    gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
+                    UpdatingFormatFields = false;
                 }
-                else if (name == "Ind_LeftUpDown")
-                {
-                    gf.PreviewItem.Format.ShowLeftMargin = (int)Ind_LeftUpDown.Value;
-                }
-                else if (name == "Ind_RightUpDown")
-                {
-                    gf.PreviewItem.Format.ShowRightMargin = (int)Ind_RightUpDown.Value;
-                }
-                else if (name == "Ind_BottomUpDown")
-                {
-                    gf.PreviewItem.Format.ShowBottomMargin = (int)Ind_BottomUpDown.Value;
-                    UpdatingFormatFields = true;
-                    gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref gf.PreviewItem.Format.ShowFontVPosition[0], ref gf.PreviewItem.Format.ShowFontVPosition[1], gf.PreviewItem.Format.ShowBottomMargin);
-                }
-                UpdatingFormatFields = false;
                 UpdateFormatData();
             }
         }
@@ -2563,20 +2566,25 @@ namespace Easislides
 
         private bool RemoveWorshipListSong(bool UpdateCurItemNo)
         {
+            WriteDebugLog($"RemoveWorshipListSong() called - Current count: {WorshipListItems.Items.Count}");
             bool flag = false;
             int num = -1;
             if (WorshipListItems.Items.Count == 0)
             {
+                WriteDebugLog("RemoveWorshipListSong() - No items to remove");
                 return false;
             }
+            int removedCount = 0;
             for (int num2 = WorshipListItems.Items.Count - 1; num2 >= 0; num2--)
             {
                 if (WorshipListItems.Items[num2].Selected)
                 {
                     WorshipListItems.Items[num2].Remove();
                     num = num2;
+                    removedCount++;
                 }
             }
+            WriteDebugLog($"RemoveWorshipListSong() - Removed {removedCount} items, New count: {WorshipListItems.Items.Count}");
             if (!UpdateCurItemNo)
             {
                 return false;
@@ -2911,6 +2919,7 @@ namespace Easislides
             }
             gf.Launch_StartPresAt = gf.StartPresAt;
             LoadThumbOutlockkey = 0;
+            previousOutSelectedSlide = 1;
 
             switch (InDirection)
             {

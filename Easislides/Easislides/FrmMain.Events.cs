@@ -160,6 +160,21 @@ namespace Easislides
             {
                 try
                 {
+                    string filePath = gf.WorshipDir + gf.CurSession + ".esw";
+                    int itemCountInFile = -1;
+                    string lastWriteTime = "N/A";
+                    try
+                    {
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            string fileContent = System.IO.File.ReadAllText(filePath);
+                            itemCountInFile = System.Text.RegularExpressions.Regex.Matches(fileContent, "<Item>").Count;
+                            lastWriteTime = System.IO.File.GetLastWriteTime(filePath).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        }
+                    }
+                    catch { }
+                    WriteDebugLog($"=== FORM CLOSING === File: {filePath}, Items in file: {itemCountInFile}, Items in ListView: {WorshipListItems.Items.Count}, File last modified: {lastWriteTime}, UpdatingFormatFields: {UpdatingFormatFields}");
+
                     RemoveHookBlackScreen();
                     RemoveHookSlideUpDown();
 
@@ -172,6 +187,7 @@ namespace Easislides
                     gf.ClearUpPowerpointWindows();
                     gfFileHelpers.DeleteFolderFilesSafe(gf.EasiSlidesTempDir);
 
+                    WriteDebugLog("=== FORM CLOSED SUCCESSFULLY ===");
                 }
                 catch
                 {
