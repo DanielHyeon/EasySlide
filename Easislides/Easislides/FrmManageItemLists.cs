@@ -13,15 +13,11 @@ namespace Easislides
 	{
 		private string InputDir;
 
-		private string InputDefaultFile;
-
 		private string ListText;
 
 		private string ListTextTo;
 
 		private string CurFile;
-
-		private string StartingFolder;
 
 		private string Ext_ToUse = "";
 
@@ -72,23 +68,21 @@ namespace Easislides
 
 		private void FrmManageItemLists_Load(object sender, EventArgs e)
 		{
-			if (gf.EasiSlidesMode == UsageMode.Worship)
+			if (Gf.EasiSlidesMode == UsageMode.Worship)
 			{
 				Text = "Manage Worship Lists";
-				InputDir = gf.WorshipDir;
+				InputDir = Gf.WorshipDir;
 				TrashDir = InputDir + "Trash\\";
-				InputDefaultFile = "Worship Service";
-				CurFile = gf.CurSession;
+				CurFile = Gf.CurSession;
 				ListText = "WorshipList";
 				ListTextTo = "PraiseBook";
 			}
-			else if (gf.EasiSlidesMode == UsageMode.PraiseBook)
+			else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
 			{
 				Text = "Manage PraiseBooks";
-				InputDir = gf.PraiseBookDir;
+				InputDir = Gf.PraiseBookDir;
 				TrashDir = InputDir + "Trash\\";
-				InputDefaultFile = "PraiseBook 1";
-				CurFile = gf.CurPraiseBook;
+				CurFile = Gf.CurPraiseBook;
 				ListText = "PraiseBook";
 				ListTextTo = "WorshipList";
 			}
@@ -117,8 +111,8 @@ namespace Easislides
 		{
 			bool flag = false;
 			ItemList.Items.Clear();
-			gf.ValidateDir(InputDir, CreateDir: true);
-			Ext_ToUse = ((InputDir == gf.WorshipDir) ? ".esw" : ".esp");
+			Gf.ValidateDir(InputDir, CreateDir: true);
+			Ext_ToUse = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
 			string[] files = Directory.GetFiles(InputDir, "*" + Ext_ToUse);
 			foreach (string text in files)
 			{
@@ -127,7 +121,7 @@ namespace Easislides
 					continue;
 
 				string InFileName = text;
-				InFileName = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
+				InFileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
 				if (InFileName != "")
 				{
 					ItemList.Items.Add(InFileName);
@@ -155,26 +149,26 @@ namespace Easislides
 				}
 				ItemList.Items[num].Selected = true;
 			}
-			else if (gf.EasiSlidesMode == UsageMode.Worship)
+			else if (Gf.EasiSlidesMode == UsageMode.Worship)
 			{
 				if (ItemList.Items.Count > 0)
 				{
-					gf.CurSession = ItemList.Items[0].Text;
+					Gf.CurSession = ItemList.Items[0].Text;
 				}
 				else
 				{
-					gf.CurSession = "";
+					Gf.CurSession = "";
 				}
 			}
-			else if (gf.EasiSlidesMode == UsageMode.PraiseBook)
+			else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
 			{
 				if (ItemList.Items.Count > 0)
 				{
-					gf.CurPraiseBook = ItemList.Items[0].Text;
+					Gf.CurPraiseBook = ItemList.Items[0].Text;
 				}
 				else
 				{
-					gf.CurPraiseBook = "";
+					Gf.CurPraiseBook = "";
 				}
 			}
 		}
@@ -185,12 +179,12 @@ namespace Easislides
 			if (!Directory.Exists(TrashDir))
 				return;
 
-			Ext_ToUse = ((InputDir == gf.WorshipDir) ? ".esw" : ".esp");
+			Ext_ToUse = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
 			string[] files = Directory.GetFiles(TrashDir, "*" + Ext_ToUse);
 			foreach (string text in files)
 			{
 				string InFileName = text;
-				InFileName = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
+				InFileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
 				if (InFileName != "")
 				{
 					TrashList.Items.Add(InFileName);
@@ -200,19 +194,19 @@ namespace Easislides
 
 		private void AddBtn_Click(object sender, EventArgs e)
 		{
-			gf.NameChangeAction = 1;
-			gf.NameChangeSucceeded = false;
+			Gf.NameChangeAction = 1;
+			Gf.NameChangeSucceeded = false;
 			FrmUpdateFileName frmUpdateFileName = new FrmUpdateFileName();
 			if (frmUpdateFileName.ShowDialog() == DialogResult.OK)
 			{
 				UpdateLists();
-				if (gf.EasiSlidesMode == UsageMode.Worship)
+				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
-					gf.WorshipListsChanged = true;
+					Gf.WorshipListsChanged = true;
 				}
-				else if (gf.EasiSlidesMode == UsageMode.PraiseBook)
+				else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
 				{
-					gf.PraiseBooksListChanged = true;
+					Gf.PraiseBooksListChanged = true;
 				}
 			}
 		}
@@ -271,13 +265,13 @@ namespace Easislides
 				UpdateLists();
 				UpdateTrashList();
 
-				if (gf.EasiSlidesMode == UsageMode.Worship)
+				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
-					gf.WorshipListsChanged = true;
+					Gf.WorshipListsChanged = true;
 				}
-				else if (gf.EasiSlidesMode == UsageMode.PraiseBook)
+				else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
 				{
-					gf.PraiseBooksListChanged = true;
+					Gf.PraiseBooksListChanged = true;
 				}
 			}
 		}
@@ -287,30 +281,30 @@ namespace Easislides
 			if (MainTabControl.SelectedTab != ListsTab)
 				return;
 
-			gf.NameChangeAction = 2;
+			Gf.NameChangeAction = 2;
 			if (ItemList.SelectedItems.Count < 1)
 			{
 				MessageBox.Show("You have not selected a " + ListText + " to rename!");
 				return;
 			}
-			gf.SelectedListName = ItemList.SelectedItems[0].Text;
-			bool flag = (gf.SelectedListName == CurFile) ? true : false;
+			Gf.SelectedListName = ItemList.SelectedItems[0].Text;
+			bool flag = (Gf.SelectedListName == CurFile) ? true : false;
 			FrmUpdateFileName frmUpdateFileName = new FrmUpdateFileName();
 			if (frmUpdateFileName.ShowDialog() == DialogResult.OK)
 			{
 				if (flag)
 				{
-					CurFile = gf.SelectedListName;
+					CurFile = Gf.SelectedListName;
 				}
-				if (gf.EasiSlidesMode == UsageMode.Worship)
+				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
-					gf.WorshipListsChanged = true;
-					gf.CurSession = CurFile;
+					Gf.WorshipListsChanged = true;
+					Gf.CurSession = CurFile;
 				}
 				else
 				{
-					gf.PraiseBooksListChanged = true;
-					gf.CurPraiseBook = CurFile;
+					Gf.PraiseBooksListChanged = true;
+					Gf.CurPraiseBook = CurFile;
 				}
 				UpdateLists();
 			}
@@ -329,13 +323,13 @@ namespace Easislides
 			string text = ItemList.SelectedItems[0].Text;
 			if (SaveAsItem(InputDir + text + Ext_ToUse) != "")
 			{
-				if (gf.EasiSlidesMode == UsageMode.Worship)
+				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
-					gf.WorshipListsChanged = true;
+					Gf.WorshipListsChanged = true;
 				}
-				else if (gf.EasiSlidesMode == UsageMode.PraiseBook)
+				else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
 				{
-					gf.PraiseBooksListChanged = true;
+					Gf.PraiseBooksListChanged = true;
 				}
 			}
 		}
@@ -351,23 +345,23 @@ namespace Easislides
 				return;
 			}
 			string text = ItemList.SelectedItems[0].Text;
-			gf.SelectedListName = InputDir + text + Ext_ToUse;
+			Gf.SelectedListName = InputDir + text + Ext_ToUse;
 			FrmUpdateFileName frmUpdateFileName = new FrmUpdateFileName();
-			gf.NameChangeSucceeded = false;
-			if (gf.EasiSlidesMode == UsageMode.Worship)
+			Gf.NameChangeSucceeded = false;
+			if (Gf.EasiSlidesMode == UsageMode.Worship)
 			{
-				gf.NameChangeAction = 7;
+				Gf.NameChangeAction = 7;
 				if (frmUpdateFileName.ShowDialog() == DialogResult.OK)
 				{
-					gf.PraiseBooksListChanged = true;
+					Gf.PraiseBooksListChanged = true;
 				}
 			}
 			else
 			{
-				gf.NameChangeAction = 8;
+				Gf.NameChangeAction = 8;
 				if (frmUpdateFileName.ShowDialog() == DialogResult.OK)
 				{
-					gf.WorshipListsChanged = true;
+					Gf.WorshipListsChanged = true;
 				}
 			}
 		}
@@ -386,7 +380,7 @@ namespace Easislides
 			try
 			{
 				string text2 = InputDir + text + Ext_ToUse;
-				string text3 = gf.WorshipTemplatesDir + text + ".est";
+				string text3 = Gf.WorshipTemplatesDir + text + ".est";
 				if (File.Exists(text2))
 				{
 					DialogResult dialogResult = DialogResult.Yes;
@@ -414,7 +408,7 @@ namespace Easislides
 		{
 			saveFileDialog1.Filter = "EasiSlides " + ListText + " File (*" + Ext_ToUse + ")|*" + Ext_ToUse;
 			saveFileDialog1.InitialDirectory = Path.GetDirectoryName(InFileName);
-			saveFileDialog1.FileName = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: true);
+			saveFileDialog1.FileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: true);
 			saveFileDialog1.OverwritePrompt = true;
 			saveFileDialog1.AddExtension = true;
 			saveFileDialog1.DefaultExt = Ext_ToUse;
@@ -456,13 +450,13 @@ namespace Easislides
 		{
 			if (ItemList.SelectedItems.Count > 0)
 			{
-				if (gf.EasiSlidesMode == UsageMode.Worship)
+				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
-					gf.CurSession = ItemList.SelectedItems[0].Text;
+					Gf.CurSession = ItemList.SelectedItems[0].Text;
 				}
 				else
 				{
-					gf.CurPraiseBook = ItemList.SelectedItems[0].Text;
+					Gf.CurPraiseBook = ItemList.SelectedItems[0].Text;
 				}
 			}
 		}
@@ -521,13 +515,13 @@ namespace Easislides
 				UpdateTrashList();
 				UpdateLists();
 
-				if (gf.EasiSlidesMode == UsageMode.Worship)
+				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
-					gf.WorshipListsChanged = true;
+					Gf.WorshipListsChanged = true;
 				}
-				else if (gf.EasiSlidesMode == UsageMode.PraiseBook)
+				else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
 				{
-					gf.PraiseBooksListChanged = true;
+					Gf.PraiseBooksListChanged = true;
 				}
 			}
 		}

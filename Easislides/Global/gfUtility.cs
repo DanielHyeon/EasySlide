@@ -18,7 +18,7 @@ using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 
 		public static void LoadEulaText()
@@ -315,7 +315,7 @@ namespace Easislides
 					DataTable dataTable = null;
 
 					text = "select * from Folder where FolderNo > 0 and FolderNo <= " + MAXSONGSFOLDERS;
-					(sQLiteDataAdapter, dataTable) = DbController.getDataAdapter(connection, text);
+					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, text);
 
 					if (dataTable.Rows.Count > 0)
 					{
@@ -989,7 +989,6 @@ namespace Easislides
 		{
 			if (SetTransparent)
 			{
-				string text = "";
 				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
 				Graphics g = Graphics.FromImage(image);
 				BackPattern.Clear(ref g, TransparentColour);
@@ -1120,11 +1119,14 @@ namespace Easislides
 			}
 			InPic.BackgroundID = "";
 
-			// Load image using stream to avoid file lock
+			// Load image as a standalone Bitmap: Image.FromStream binds to its source stream,
+			// and image2 lives long enough (through the entire switch/finally below) that the
+			// closed stream would otherwise cause intermittent GDI+ failures on DrawImage.
 			Image image2;
 			using (var stream = new FileStream(File_Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			using (var tempImage = Image.FromStream(stream))
 			{
-				image2 = Image.FromStream(stream);
+				image2 = new Bitmap(tempImage);
 			}
 
 			try
@@ -1800,7 +1802,6 @@ namespace Easislides
 			{
 				return "";
 			}
-			string text = "";
 			string text2 = "";
 			int num = -1;
 			string[] array = InSettingsString.Split('>');
@@ -1875,7 +1876,7 @@ namespace Easislides
 					DbDataAdapter sQLiteDataAdapter = null;
 
 					DataTable dataTable = null;
-					(sQLiteDataAdapter, dataTable) = DbController.getDataAdapter(connection, fullSearchString);
+					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, fullSearchString);
 
 					if (dataTable.Rows.Count > 0)
 					{
@@ -1963,7 +1964,6 @@ namespace Easislides
 			string text12 = "";
 			string text13 = "";
 			string text14 = "";
-			int num = 0;
 			string text15 = "%";
 			bool flag = false;
 			for (int i = 0; i <= InString.Length; i++)

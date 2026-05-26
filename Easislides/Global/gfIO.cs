@@ -6,7 +6,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 		public static void RenameExtensions(string InDir, string InOldExt, string InNewExt)
 		{

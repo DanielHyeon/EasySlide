@@ -136,15 +136,9 @@ namespace Easislides
 
 		private double TimeIncrement = 1.0;
 
-		private string PreviousStatus = "";
-
 		private bool PreviousMuteState = false;
 
 		private string Option1MediaFile = "";
-
-		private int AttemptConnectCount = 0;
-
-		private int MaxAttemptConnectCount = 60;
 
 		private DShowLib DShowPlayer = new DShowLib();
 
@@ -884,29 +878,29 @@ namespace Easislides
 
 		private void FrmMediaPlayerControl_Load(object sender, EventArgs e)
 		{
-			groupBox1.Enabled = ((!(gf.Temp_MediaItemType == "M") || gf.MPC_Type != MPCType.Individual) ? true : false);
-			if (gf.MPC_Type == MPCType.Individual)
+			groupBox1.Enabled = ((!(Gf.Temp_MediaItemType == "M") || Gf.MPC_Type != MPCType.Individual) ? true : false);
+			if (Gf.MPC_Type == MPCType.Individual)
 			{
-				Text = "Assign Media " + ((gf.Temp_MediaTitle1 != "") ? "for " : "") + gf.Temp_MediaTitle1;
+				Text = "Assign Media " + ((Gf.Temp_MediaTitle1 != "") ? "for " : "") + Gf.Temp_MediaTitle1;
 			}
 			else
 			{
 				Text = "Assign Media - Default Settings";
 			}
 			SourceOption1.Text = "Play Media File based on Item Title (if any)";
-			gf.LoadBlankCaptureDevices(ref cbCaptureDevices);
+			Gf.LoadBlankCaptureDevices(ref cbCaptureDevices);
 			InitMediaPlayer();
 			LoadOutputMonitors();
-			tbSourceLocation.Text = gf.Temp_MediaLocation;
-			cbCaptureDevices.SelectedIndex = gf.Temp_MediaCaptureDeviceNumber - 1;
-			TrackBarVolume.Value = (((gf.Temp_MediaVolume >= 0) & (gf.Temp_MediaVolume <= 100)) ? gf.Temp_MediaVolume : 50);
-			TrackBarBalance.Value = (((gf.Temp_MediaBalance >= -100) & (gf.Temp_MediaBalance <= 100)) ? gf.Temp_MediaBalance : 0);
-			cbMute.Checked = ((gf.Temp_MediaMute > 0) ? true : false);
-			cbRepeat.Checked = ((gf.Temp_MediaRepeat > 0) ? true : false);
-			cbWidescreen.Checked = ((gf.Temp_MediaWidescreen > 0) ? true : false);
+			tbSourceLocation.Text = Gf.Temp_MediaLocation;
+			cbCaptureDevices.SelectedIndex = Gf.Temp_MediaCaptureDeviceNumber - 1;
+			TrackBarVolume.Value = (((Gf.Temp_MediaVolume >= 0) & (Gf.Temp_MediaVolume <= 100)) ? Gf.Temp_MediaVolume : 50);
+			TrackBarBalance.Value = (((Gf.Temp_MediaBalance >= -100) & (Gf.Temp_MediaBalance <= 100)) ? Gf.Temp_MediaBalance : 0);
+			cbMute.Checked = ((Gf.Temp_MediaMute > 0) ? true : false);
+			cbRepeat.Checked = ((Gf.Temp_MediaRepeat > 0) ? true : false);
+			cbWidescreen.Checked = ((Gf.Temp_MediaWidescreen > 0) ? true : false);
 			LabelMediaType.Text = "";
 			LabelResolution.Text = "";
-			AssignSourceOption(gf.Temp_MediaOption);
+			AssignSourceOption(Gf.Temp_MediaOption);
 			ApplySoundControls(ApplyMute: false);
 			TimerTrack.Start();
 			InitLoad = false;
@@ -914,14 +908,14 @@ namespace Easislides
 
 		private void InitMediaPlayer()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				try
 				{
 					DShowPlayer.Parent = this;
 					DShowPlayer.Parent = panel1;
 					DShowPlayer.Location = new Point(0, 0);
-					DShowPlayer.SetDefaultSize(0, 0, panel1.Width, panel1.Height, (VAlign)gf.VideoVAlign);
+					DShowPlayer.SetDefaultSize(0, 0, panel1.Width, panel1.Height, (VAlign)Gf.VideoVAlign);
 					DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
 					DShowPlayer.ListCaptureDevices(ref cbCaptureDevices);
 					PlayerOK = true;
@@ -953,7 +947,7 @@ namespace Easislides
 			{
 				cbOutputMonitor.Items.Add(screen.DeviceName);
 			}
-			SelectOutputMonitor(gf.Temp_MediaOutputMonitorName);
+			SelectOutputMonitor(Gf.Temp_MediaOutputMonitorName);
 		}
 
 		private void SelectOutputMonitor(string monitorName)
@@ -1116,7 +1110,7 @@ namespace Easislides
 					switch (selectedSourceOption)
 					{
 					case 1:
-						Option1MediaFile = gf.GetMediaFileName(gf.Temp_MediaTitle1, gf.Temp_MediaTitle2);
+						Option1MediaFile = Gf.GetMediaFileName(Gf.Temp_MediaTitle1, Gf.Temp_MediaTitle2);
 						if (Option1MediaFile == "")
 						{
 							SourceOption1.Text = "Play Media File based on Item Title (if any)";
@@ -1144,7 +1138,6 @@ namespace Easislides
 					if (selectedSourceOption == 3 || DShowPlayer.newFilename != "")
 					{
 						DShowPlayer.OpenClip();
-						AttemptConnectCount = 0;
 						LabelMediaType.Text = DShowPlayer.GetStatusText();
 						LabelResolution.Text = DShowPlayer.GetVideoSize();
 					}
@@ -1237,15 +1230,15 @@ namespace Easislides
 
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
-			gf.Temp_MediaOption = GetSelectedSourceOption();
-			gf.Temp_MediaLocation = DataUtil.Trim(tbSourceLocation.Text);
-			gf.Temp_MediaCaptureDeviceNumber = cbCaptureDevices.SelectedIndex + 1;
-			gf.Temp_MediaOutputMonitorName = (cbOutputMonitor.SelectedIndex > 0) ? cbOutputMonitor.SelectedItem.ToString() : "";
-			gf.Temp_MediaVolume = TrackBarVolume.Value;
-			gf.Temp_MediaBalance = TrackBarBalance.Value;
-			gf.Temp_MediaMute = (cbMute.Checked ? 1 : 0);
-			gf.Temp_MediaRepeat = (cbRepeat.Checked ? 1 : 0);
-			gf.Temp_MediaWidescreen = (cbWidescreen.Checked ? 1 : 0);
+			Gf.Temp_MediaOption = GetSelectedSourceOption();
+			Gf.Temp_MediaLocation = DataUtil.Trim(tbSourceLocation.Text);
+			Gf.Temp_MediaCaptureDeviceNumber = cbCaptureDevices.SelectedIndex + 1;
+			Gf.Temp_MediaOutputMonitorName = (cbOutputMonitor.SelectedIndex > 0) ? cbOutputMonitor.SelectedItem.ToString() : "";
+			Gf.Temp_MediaVolume = TrackBarVolume.Value;
+			Gf.Temp_MediaBalance = TrackBarBalance.Value;
+			Gf.Temp_MediaMute = (cbMute.Checked ? 1 : 0);
+			Gf.Temp_MediaRepeat = (cbRepeat.Checked ? 1 : 0);
+			Gf.Temp_MediaWidescreen = (cbWidescreen.Checked ? 1 : 0);
 		}
 
 		private int GetSelectedSourceOption()
@@ -1268,7 +1261,7 @@ namespace Easislides
 		private void LocationBtn_MouseUp(object sender, MouseEventArgs e)
 		{
 			OpenFileDialog1.Filter = gfFileHelpers.GetOpenFileDialogMediaString();
-			OpenFileDialog1.InitialDirectory = gf.MediaDir;
+			OpenFileDialog1.InitialDirectory = Gf.MediaDir;
 			OpenFileDialog1.AddExtension = true;
 			tbSourceLocation.Text = DataUtil.Trim(tbSourceLocation.Text);
 			OpenFileDialog1.FileName = tbSourceLocation.Text;

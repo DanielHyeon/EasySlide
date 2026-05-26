@@ -53,7 +53,7 @@ namespace Easislides
 				ListViewItem listViewItem = new ListViewItem();
 				string fullSearchString = "select * from SONG where FolderNo=" + 0 + " order by LastModified";
 
-				using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
 				SongsList.Sorting = SortOrder.None;
 				if (datatable.Rows.Count > 0)
@@ -63,13 +63,13 @@ namespace Easislides
 					foreach (DataRow dr in datatable.Rows)
 					{
 						num = DataUtil.ObjToInt(dr["OldFolder"]);
-						if ((num < 0) | (num > gf.MAXSONGSFOLDERS))
+						if ((num < 0) | (num > Gf.MAXSONGSFOLDERS))
 						{
 							num = 1;
 						}
 						DateTime dateTime = DataUtil.ObjToDate(dr["LastModified"]);
 						listViewItem = SongsList.Items.Add(DataUtil.ObjToString(dr["Title_1"]));
-						listViewItem.SubItems.Add(gf.FolderName[num]);
+						listViewItem.SubItems.Add(Gf.FolderName[num]);
 						listViewItem.SubItems.Add(dateTime.ToString("yyyy-MM-dd"));
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["SongID"]));
 						listViewItem.SubItems.Add(num.ToString());
@@ -96,7 +96,7 @@ namespace Easislides
 			Cursor = Cursors.WaitCursor;
 			if (MessageBox.Show("Recover the Ticked song(s) to their Original Folders?", "Recover Song(s)", MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
-				if (gf.ReFileSelectedSongs(ref SongsList) == 0)
+				if (Gf.ReFileSelectedSongs(ref SongsList) == 0)
 				{
 					Cursor = Cursors.Default;
 					base.DialogResult = DialogResult.OK;
@@ -173,7 +173,7 @@ namespace Easislides
 
 		private void SongsList_ColumnClick(object sender, ColumnClickEventArgs e)
 		{
-			lv.Sort(ref SongsList, ref sortColumn, e.Column, FlipSort: true);
+			Lv.Sort(ref SongsList, ref sortColumn, e.Column, FlipSort: true);
 		}
 
 		private void oldSongsList_ColumnClick(object sender, ColumnClickEventArgs e)

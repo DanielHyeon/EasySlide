@@ -24,8 +24,6 @@ namespace Easislides
 	{
 		private bool FormInit = true;
 
-		private string MessRecords = "";
-
 		private IContainer components = null;
 
 		private ComboBox TablesList;
@@ -137,20 +135,20 @@ namespace Easislides
 
 		private void FrmImportAccessHelper_Load(object sender, EventArgs e)
 		{
-			Text = "Access Helper: " + gf.Import_AccessFileName;
-			gf.Import_TableName = "";
-			gf.Import_SongTitleColumnName = "";
-			gf.Import_SongTitle2ColumnName = "";
-			gf.Import_SongNumberColumnName = "";
-			gf.Import_BookReferenceColumnName = "";
-			gf.Import_UserReferenceColumnName = "";
-			gf.Import_SongLyricsColumnName = "";
-			gf.Import_SongWriterInfoColumnName = "";
-			gf.Import_SongCopyrightColumnName = "";
-			gf.Import_SongKeyColumnName = "";
-			gf.Import_SongTimingColumnName = "";
-			gf.Import_Admin1ColumnName = "";
-			gf.Import_Admin2ColumnName = "";
+			Text = "Access Helper: " + Gf.Import_AccessFileName;
+			Gf.Import_TableName = "";
+			Gf.Import_SongTitleColumnName = "";
+			Gf.Import_SongTitle2ColumnName = "";
+			Gf.Import_SongNumberColumnName = "";
+			Gf.Import_BookReferenceColumnName = "";
+			Gf.Import_UserReferenceColumnName = "";
+			Gf.Import_SongLyricsColumnName = "";
+			Gf.Import_SongWriterInfoColumnName = "";
+			Gf.Import_SongCopyrightColumnName = "";
+			Gf.Import_SongKeyColumnName = "";
+			Gf.Import_SongTimingColumnName = "";
+			Gf.Import_Admin1ColumnName = "";
+			Gf.Import_Admin2ColumnName = "";
 			ClearColumns();
 			LoadTables();
 			FormInit = false;
@@ -163,7 +161,7 @@ namespace Easislides
 		private bool LoadTables()
 		{
 
-			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringSQLiteDef + gf.Import_AccessFileName);
+			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringSQLiteDef + Gf.Import_AccessFileName);
 
 			TablesList.Items.Clear();
 			try
@@ -220,7 +218,7 @@ namespace Easislides
 				return;
 			}
 
-			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringSQLiteDef + gf.Import_AccessFileName);
+			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringSQLiteDef + Gf.Import_AccessFileName);
 
 			if (!TableNameExists(connection, text))
 			{
@@ -291,7 +289,7 @@ namespace Easislides
 			Cursor = Cursors.WaitCursor;
 			string fullSearchString = "select * from [" + TablesList.Text + "]";
 
-			using DataTable datatable = DbController.GetDataTable(gf.ConnectSQLiteDef + gf.Import_AccessFileName, fullSearchString);
+			using DataTable datatable = DbController.GetDataTable(Gf.ConnectSQLiteDef + Gf.Import_AccessFileName, fullSearchString);
 
 			int num = 0;
 			if (datatable.Rows.Count > 0)
@@ -487,24 +485,24 @@ namespace Easislides
 		{
 			if (ValidateColumns())
 			{
-				gf.Import_TableName = "[" + TablesList.Text + "]";
-				gf.Import_SongTitleColumnName = "[" + AssignedTitle.Text + "]";
+				Gf.Import_TableName = "[" + TablesList.Text + "]";
+				Gf.Import_SongTitleColumnName = "[" + AssignedTitle.Text + "]";
 				for (int i = 0; i <= AssignedLyricsMergeOrderList.Items.Count - 1; i++)
 				{
-					object import_SongLyricsColumnName = gf.Import_SongLyricsColumnName;
-					gf.Import_SongLyricsColumnName = string.Concat(import_SongLyricsColumnName, "[", AssignedLyricsMergeOrderList.Items[i].Text, "]", '>');
+					object import_SongLyricsColumnName = Gf.Import_SongLyricsColumnName;
+					Gf.Import_SongLyricsColumnName = string.Concat(import_SongLyricsColumnName, "[", AssignedLyricsMergeOrderList.Items[i].Text, "]", '>');
 				}
 				string text = "";
-				gf.Import_SongTitle2ColumnName = ((AssignedTitle2.Text != "") ? ("[" + AssignedTitle2.Text + "]") : text);
-				gf.Import_SongNumberColumnName = ((AssignedSongNumber.Text != "") ? ("[" + AssignedSongNumber.Text + "]") : text);
-				gf.Import_SongWriterInfoColumnName = ((AssignedWriter.Text != "") ? ("[" + AssignedWriter.Text + "]") : text);
-				gf.Import_BookReferenceColumnName = ((AssignedBookReference.Text != "") ? ("[" + AssignedBookReference.Text + "]") : text);
-				gf.Import_UserReferenceColumnName = ((AssignedUserReference.Text != "") ? ("[" + AssignedUserReference.Text + "]") : text);
-				gf.Import_SongCopyrightColumnName = ((AssignedCopyright.Text != "") ? ("[" + AssignedCopyright.Text + "]") : text);
-				gf.Import_SongKeyColumnName = ((AssignedKey.Text != "") ? ("[" + AssignedKey.Text + "]") : text);
-				gf.Import_SongTimingColumnName = ((AssignedTiming.Text != "") ? ("[" + AssignedTiming.Text + "]") : text);
-				gf.Import_Admin1ColumnName = ((AssignedAdmin1.Text != "") ? ("[" + AssignedAdmin1.Text + "]") : text);
-				gf.Import_Admin2ColumnName = ((AssignedAdmin2.Text != "") ? ("[" + AssignedAdmin2.Text + "]") : text);
+				Gf.Import_SongTitle2ColumnName = ((AssignedTitle2.Text != "") ? ("[" + AssignedTitle2.Text + "]") : text);
+				Gf.Import_SongNumberColumnName = ((AssignedSongNumber.Text != "") ? ("[" + AssignedSongNumber.Text + "]") : text);
+				Gf.Import_SongWriterInfoColumnName = ((AssignedWriter.Text != "") ? ("[" + AssignedWriter.Text + "]") : text);
+				Gf.Import_BookReferenceColumnName = ((AssignedBookReference.Text != "") ? ("[" + AssignedBookReference.Text + "]") : text);
+				Gf.Import_UserReferenceColumnName = ((AssignedUserReference.Text != "") ? ("[" + AssignedUserReference.Text + "]") : text);
+				Gf.Import_SongCopyrightColumnName = ((AssignedCopyright.Text != "") ? ("[" + AssignedCopyright.Text + "]") : text);
+				Gf.Import_SongKeyColumnName = ((AssignedKey.Text != "") ? ("[" + AssignedKey.Text + "]") : text);
+				Gf.Import_SongTimingColumnName = ((AssignedTiming.Text != "") ? ("[" + AssignedTiming.Text + "]") : text);
+				Gf.Import_Admin1ColumnName = ((AssignedAdmin1.Text != "") ? ("[" + AssignedAdmin1.Text + "]") : text);
+				Gf.Import_Admin2ColumnName = ((AssignedAdmin2.Text != "") ? ("[" + AssignedAdmin2.Text + "]") : text);
 				base.DialogResult = DialogResult.OK;
 				Close();
 			}

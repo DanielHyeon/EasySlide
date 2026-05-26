@@ -10,7 +10,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
+    internal unsafe partial class Gf
     {
 
 		public static int FormatImageContainers(ref ImageCanvas[] InCanvas, int MaxCanvas, int InImagesCount, int w, int h, int LeftOffset, int TopOffset)

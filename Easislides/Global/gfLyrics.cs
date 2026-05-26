@@ -11,7 +11,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 
 		public void FormatText(ref SongSettings InItem, Color PanelBackColour, int PanelBackColorAsScreen, Color PanelTextColor, int PaneltextColourAsRegion1)
@@ -642,7 +642,6 @@ namespace Easislides
 			{
 				return -1;
 			}
-			string text = "";
 			string text2 = "";
 			int num = -1;
 			string[] array = InFormatString.Split('>');
@@ -1085,7 +1084,6 @@ namespace Easislides
 		public static string FormatNotationString(ListView InListView, string InString, string InNotation, Font MainFont, Font NotationsFont)
 		{
 			Graphics graphics = InListView.CreateGraphics();
-			int num = 0;
 			string text = "";
 			int num2 = 0;
 			string text2 = "i";
@@ -1165,7 +1163,6 @@ namespace Easislides
 
 		public static void GetMinMaxfromTextBox(RichTextBox InBox, int InLineNumber, ref int InMin, ref int InMax)
 		{
-			int num = 0;
 			string text = InBox.Text + "\n";
 			InMax = -1;
 			for (int i = 0; i <= InLineNumber; i++)
@@ -1188,7 +1185,6 @@ namespace Easislides
 				InMax = -1;
 			}
 			int num = 0;
-			int num2 = 0;
 			string text = InString + "\n";
 			InMax = -1;
 			for (num = 0; num <= InLineNumber; num++)
@@ -1633,7 +1629,6 @@ namespace Easislides
 			}
 			int num3 = (int)g.MeasureString("A", InLyricsFormat.FS_Font, layoutArea).Height;
 			int num4 = 0;
-			bool flag = true;
 			for (int i = startline; i <= EndLoc; i++)
 			{
 				if (i == startline)
@@ -2626,7 +2621,6 @@ namespace Easislides
 		{
 			string text = "";
 			bool flag = false;
-			bool flag2 = false;
 			string text2 = "";
 			string text3 = "";
 			string[] array = Instring.Split(InStringDelim[0]);
@@ -2683,7 +2677,6 @@ namespace Easislides
 
 		public static ListView ExtractNewFormatLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
 		{
-			string text = "";
 			StringBuilder stringBuilder = new StringBuilder();
 			StringBuilder stringBuilder2 = new StringBuilder();
 			StringBuilder stringBuilder3 = new StringBuilder();
@@ -2774,7 +2767,6 @@ namespace Easislides
 
 		public static ListView ExtractDefaultFormatLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
 		{
-			string text = "";
 			StringBuilder stringBuilder = new StringBuilder();
 			StringBuilder stringBuilder2 = new StringBuilder();
 			StringBuilder stringBuilder3 = new StringBuilder();
@@ -3726,7 +3718,6 @@ namespace Easislides
 
 		public static string GetMediaLocation(int InMediaOption, string InTitle1, string InTitle2, bool InUseDefaultFormat, string InType, string InMediaLocation, int InMediaCaptureDeviceNumber)
 		{
-			string text = "";
 			InMediaOption = ((InUseDefaultFormat && InType != "M") ? MediaOption : InMediaOption);
 			switch (InMediaOption)
 			{
@@ -3950,7 +3941,6 @@ namespace Easislides
 			//using var perf = PerfLog.Enabled ? PerfLog.Scope("SubDivideTextAndNotations", $"textLen={(InString != null ? InString.Length : 0)} notationLen={(InNotation != null ? InNotation.Length : 0)} width={InWidth}") : null;
 			InWidth /= 15;
 			Graphics graphics = TextNotationsList.CreateGraphics();
-			int num = -1;
 			ListViewItem listViewItem = new ListViewItem();
 			int num2 = 0;
 			TextNotationsList.Items.Clear();
@@ -4001,7 +3991,6 @@ namespace Easislides
 		{
 			InWidth /= 15;
 			Graphics graphics = TextNotationsList.CreateGraphics();
-			int num = -1;
 			ListViewItem listViewItem = new ListViewItem();
 			int num2 = 0;
 			TextNotationsList.Items.Clear();
@@ -4089,7 +4078,6 @@ namespace Easislides
 			//using var perf = PerfLog.Enabled ? PerfLog.Scope("DisplaySlidesFormattedLyrics", $"total={(InItem != null ? InItem.TotalSlides : 0)} previewNotations={PreviewNotations}") : null;
 			InItem.CurSlide = ((InItem.CurSlide < 1) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
 			InItem.FolderNo = ((InItem.FolderNo <= 0) ? 1 : InItem.FolderNo);
-			int num = 0;
 			InTextBox.Text = "";
 			if (InItem.Type == "P")
 			{

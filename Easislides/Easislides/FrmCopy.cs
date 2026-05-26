@@ -180,20 +180,20 @@ namespace Easislides
 
 		private void FrmCopy_Load(object sender, EventArgs e)
 		{
-			Label1.Text = "You have selected " + gf.SelectedItemsCount + " item" + ((gf.SelectedItemsCount > 1) ? "s" : "") + " for Copy. Please select appropriate folder to copy the item" + ((gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
-			gf.CopyToFolder = -1;
+			Label1.Text = "You have selected " + Gf.SelectedItemsCount + " item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " for Copy. Please select appropriate folder to copy the item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
+			Gf.CopyToFolder = -1;
 			SongFolder.Items.Clear();
 			for (int i = 1; i <= 40; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.FolderName[i]);
 				}
 			}
 			ExternalFilesFolder.Items.Clear();
-			for (int i = 0; i < gf.InfoScreenFolderTotal; i++)
+			for (int i = 0; i < Gf.InfoScreenFolderTotal; i++)
 			{
-				ExternalFilesFolder.Items.Add(gf.InfoScreenGroups[i, 0]);
+				ExternalFilesFolder.Items.Add(Gf.InfoScreenGroups[i, 0]);
 			}
 		}
 
@@ -205,7 +205,7 @@ namespace Easislides
 				{
 					if (SongFolder.SelectedItems.Count > 0)
 					{
-						gf.CopyToFolder = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+						Gf.CopyToFolder = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 						base.DialogResult = DialogResult.OK;
 						Close();
 					}
@@ -221,7 +221,7 @@ namespace Easislides
 			}
 			else if (ExternalFilesFolder.SelectedItems.Count > 0)
 			{
-				gf.CopyToFolder = -1 * (1 + gf.GetSelectedIndex(ExternalFilesFolder));
+				Gf.CopyToFolder = -1 * (1 + Gf.GetSelectedIndex(ExternalFilesFolder));
 				base.DialogResult = DialogResult.OK;
 				Close();
 			}

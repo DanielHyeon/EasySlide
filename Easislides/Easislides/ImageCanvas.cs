@@ -224,7 +224,7 @@ namespace Easislides
 					SlideNumber = 0;
 					if (extension == ".ppt" || extension == ".pptx")
 					{
-						imagePath = $"{gf.ExtPPrefix}{gf.ExtPPrefix_Num}\\{Path.GetFileNameWithoutExtension(imagePath)}.jpg";
+						imagePath = $"{Gf.ExtPPrefix}{Gf.ExtPPrefix_Num}\\{Path.GetFileNameWithoutExtension(imagePath)}.jpg";
 					}
 				}
 
@@ -310,7 +310,7 @@ namespace Easislides
 			storedImageHeight = 0;
 
 			SetImageRatio(sourceImage.Width, sourceImage.Height);
-			gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
+			Gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
 
 			if (newImageWidth <= 0 || newImageHeight <= 0)
 			{
@@ -382,7 +382,7 @@ namespace Easislides
 			{
 				if (IsExternalPowerPoint)
 				{
-					gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
+					Gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
 				}
 
 				// PowerPoint Interop's Slide.Export returns before the JPG is guaranteed to be

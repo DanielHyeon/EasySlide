@@ -9,64 +9,64 @@ namespace Easislides.Util
     {
         public static void SizeLaunchDisplay()
         {
-            if ((gf.OutputMonitorName == getPrimaryDisplayName()) && gf.DMAlwaysUseSecondaryMonitor)
+            if ((Gf.OutputMonitorName == getPrimaryDisplayName()) && Gf.DMAlwaysUseSecondaryMonitor)
             {
-                gf.OutputMonitorName = getSecondryDisplayName();
+                Gf.OutputMonitorName = getSecondryDisplayName();
             }
 
-            GetDisplayName(ref gf.OutputMonitorName, ref gf.LS_Top, ref gf.LS_Left, ref gf.LS_Width, ref gf.LS_Height, "None");
+            GetDisplayName(ref Gf.OutputMonitorName, ref Gf.LS_Top, ref Gf.LS_Left, ref Gf.LS_Width, ref Gf.LS_Height, "None");
 
-            if (gf.DualMonitorSelectAutoOption == 0)
+            if (Gf.DualMonitorSelectAutoOption == 0)
             {
-                if (gf.OutputMonitorName != "None")
+                if (Gf.OutputMonitorName != "None")
                 {
-                    gf.DualMonitorMode = true;
-                    gf.OutputMonitorText = "Dual Monitor Mode";
+                    Gf.DualMonitorMode = true;
+                    Gf.OutputMonitorText = "Dual Monitor Mode";
                 }
                 else
                 {
-                    gf.DualMonitorMode = false;
-                    gf.OutputMonitorText = "Single Monitor Mode";
+                    Gf.DualMonitorMode = false;
+                    Gf.OutputMonitorText = "Single Monitor Mode";
                 }
             }
             else
             {
-                gf.LS_Top = gf.DMOption1Top;
-                gf.LS_Left = gf.DMOption1Left;
-                gf.LS_Width = gf.DMOption1Width;
-                gf.LS_Height = gf.DMOption1Height;
-                gf.DualMonitorMode = ((!gf.DMOption1AsSingleMonitor) ? true : false);
-                gf.OutputMonitorText = "Custom Monitor Mode";
+                Gf.LS_Top = Gf.DMOption1Top;
+                Gf.LS_Left = Gf.DMOption1Left;
+                Gf.LS_Width = Gf.DMOption1Width;
+                Gf.LS_Height = Gf.DMOption1Height;
+                Gf.DualMonitorMode = ((!Gf.DMOption1AsSingleMonitor) ? true : false);
+                Gf.OutputMonitorText = "Custom Monitor Mode";
             }
 
-            if (gf.LS_Height >= 768)
+            if (Gf.LS_Height >= 768)
             {
-                gf.Buffer_LS_Height = gf.LS_Height;
-                gf.Buffer_LS_Width = gf.LS_Width;
+                Gf.Buffer_LS_Height = Gf.LS_Height;
+                Gf.Buffer_LS_Width = Gf.LS_Width;
             }
             else
             {
-                float num = 768f / (float)gf.LS_Height;
-                gf.Buffer_LS_Height = 768;
-                gf.Buffer_LS_Width = (int)((float)gf.LS_Width * num);
+                float num = 768f / (float)Gf.LS_Height;
+                Gf.Buffer_LS_Height = 768;
+                Gf.Buffer_LS_Width = (int)((float)Gf.LS_Width * num);
             }
-            gf.ShowTopBorderSize = (int)((double)gf.Buffer_LS_Height * gf.TopBorderFactor);
-            gf.ShowBottomBorderSize = (int)((double)gf.Buffer_LS_Height * gf.BottomBorderFactor);
-            gf.AdjustedOutlineThreshold = gf.OutlineFontSizeThreshold * gf.Buffer_LS_Width / 960;
+            Gf.ShowTopBorderSize = (int)((double)Gf.Buffer_LS_Height * Gf.TopBorderFactor);
+            Gf.ShowBottomBorderSize = (int)((double)Gf.Buffer_LS_Height * Gf.BottomBorderFactor);
+            Gf.AdjustedOutlineThreshold = Gf.OutlineFontSizeThreshold * Gf.Buffer_LS_Width / 960;
 
-            if (gf.LMAlwaysUseSecondaryMonitor && (gf.LyricsMonitorName == getPrimaryDisplayName()))
+            if (Gf.LMAlwaysUseSecondaryMonitor && (Gf.LyricsMonitorName == getPrimaryDisplayName()))
             {
-                gf.LyricsMonitorName = getSecondryDisplayName();
+                Gf.LyricsMonitorName = getSecondryDisplayName();
             }
 
-            GetDisplayName(ref gf.LyricsMonitorName, ref gf.LM_Top, ref gf.LM_Left, ref gf.LM_Width, ref gf.LM_Height, (gf.DualMonitorSelectAutoOption == 0) ? gf.OutputMonitorName : "None", gf.LMAlwaysUseSecondaryMonitor);
+            GetDisplayName(ref Gf.LyricsMonitorName, ref Gf.LM_Top, ref Gf.LM_Left, ref Gf.LM_Width, ref Gf.LM_Height, (Gf.DualMonitorSelectAutoOption == 0) ? Gf.OutputMonitorName : "None", Gf.LMAlwaysUseSecondaryMonitor);
 
-            if (gf.LMSelectAutoOption == 1)
+            if (Gf.LMSelectAutoOption == 1)
             {
-                gf.LM_Top = gf.LMOption1Top;
-                gf.LM_Left = gf.LMOption1Left;
-                gf.LM_Width = gf.LMOption1Width;
-                gf.LM_Height = gf.LMOption1Height;
+                Gf.LM_Top = Gf.LMOption1Top;
+                Gf.LM_Left = Gf.LMOption1Left;
+                Gf.LM_Width = Gf.LMOption1Width;
+                Gf.LM_Height = Gf.LMOption1Height;
             }
         }
 
@@ -341,7 +341,7 @@ namespace Easislides.Util
                     // daniel
                     // ?�리?�테?�션 ?�이�??�?�드�?변�?
                     // //w = h * 4 / 3;
-                    if (gf.isScreenWideMode)
+                    if (Gf.isScreenWideMode)
                         w = screenSize.Width;
                     else
                         w = h * 4 / 3;
@@ -360,7 +360,7 @@ namespace Easislides.Util
                     // daniel
                     // ?�리?�테?�션 ?�이�??�?�드�?변�?
                     // //w = h * 4 / 3;
-                    if (gf.isScreenWideMode)
+                    if (Gf.isScreenWideMode)
                         w = screenSize.Width;
                     else
                         w = h * 4 / 3;
@@ -395,7 +395,7 @@ namespace Easislides.Util
                 // daniel
                 // ?�리?�테?�션 ?�이�??�?�드�?변�?
                 // //w = h * 4 / 3;
-                if (gf.isScreenWideMode)
+                if (Gf.isScreenWideMode)
                     w = screenSize.Width;
                 else
                     w = h * 4 / 3;
@@ -411,7 +411,7 @@ namespace Easislides.Util
                 // daniel
                 // ?�리?�테?�션 ?�이�??�?�드�?변�?
                 // //w = h * 4 / 3;
-                if (gf.isScreenWideMode)
+                if (Gf.isScreenWideMode)
                     w = screenSize.Width;
                 else
                     w = h * 4 / 3;

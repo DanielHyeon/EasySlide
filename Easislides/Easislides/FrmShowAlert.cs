@@ -520,7 +520,7 @@ namespace Easislides
 
 		private void FrmShowAlert_Load(object sender, EventArgs e)
 		{
-			gf.AlertFormOpen = true;
+			Gf.AlertFormOpen = true;
 			int num = RegUtil.GetRegValue("settings", FormRegLeft, 50);
 			int num2 = RegUtil.GetRegValue("settings", FormRegTop, 100);
 			if (num < 0)
@@ -542,23 +542,23 @@ namespace Easislides
 			base.Top = num2;
 			base.Left = num;
 			LoadAlertList();
-			cbParentalAlert.Text = gf.ParentalAlertDetails;
-			Parental_Flash.Checked = gf.ParentalAlertFlash;
-			Parental_Scroll.Checked = gf.ParentalAlertScroll;
-			Parental_Transparent.Checked = gf.ParentalAlertTransparent;
-			ParentalPrefix.Text = gf.ParentalAlertHeading + " ";
-			cbMessageAlert.Text = gf.MessageAlertDetails;
-			Message_Flash.Checked = gf.MessageAlertFlash;
-			Message_Scroll.Checked = gf.MessageAlertScroll;
-			Message_Transparent.Checked = gf.MessageAlertTransparent;
-			tbLyricsAlert.Text = gf.LyricsAlertDetails;
+			cbParentalAlert.Text = Gf.ParentalAlertDetails;
+			Parental_Flash.Checked = Gf.ParentalAlertFlash;
+			Parental_Scroll.Checked = Gf.ParentalAlertScroll;
+			Parental_Transparent.Checked = Gf.ParentalAlertTransparent;
+			ParentalPrefix.Text = Gf.ParentalAlertHeading + " ";
+			cbMessageAlert.Text = Gf.MessageAlertDetails;
+			Message_Flash.Checked = Gf.MessageAlertFlash;
+			Message_Scroll.Checked = Gf.MessageAlertScroll;
+			Message_Transparent.Checked = Gf.MessageAlertTransparent;
+			tbLyricsAlert.Text = Gf.LyricsAlertDetails;
 			TimerRestoreWindow.Start();
 		}
 
 		private void BtnStop_Click(object sender, EventArgs e)
 		{
-			gf.MessageAlertLive = false;
-			gf.ParentalAlertLive = false;
+			Gf.MessageAlertLive = false;
+			Gf.ParentalAlertLive = false;
 		}
 
 		private void BtnCancel_Click(object sender, EventArgs e)
@@ -568,14 +568,14 @@ namespace Easislides
 
 		private void LoadAlertList()
 		{
-			gf.LoadComboBoxFromTextFile(ref cbMessageAlert, gf.AlertsDataFile);
-			gf.LoadComboBoxFromTextFile(ref cbParentalAlert, gf.ParentalDataFile);
+			Gf.LoadComboBoxFromTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
+			Gf.LoadComboBoxFromTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
 		}
 
 		private void ParentalShow_Click(object sender, EventArgs e)
 		{
-			gf.ParentalAlertDetails = DataUtil.Trim(cbParentalAlert.Text);
-			if (!(gf.ParentalAlertDetails == ""))
+			Gf.ParentalAlertDetails = DataUtil.Trim(cbParentalAlert.Text);
+			if (!(Gf.ParentalAlertDetails == ""))
 			{
 				if (cbParentalAlert.Items.Count == 0 || cbParentalAlert.Text != cbParentalAlert.Items[0].ToString())
 				{
@@ -589,7 +589,7 @@ namespace Easislides
 								cbParentalAlert.Items.RemoveAt(num);
 							}
 						}
-						gf.SaveComboBoxToTextFile(ref cbParentalAlert, gf.ParentalDataFile);
+						Gf.SaveComboBoxToTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
 					}
 					catch
 					{
@@ -601,8 +601,8 @@ namespace Easislides
 
 		private void MessageShow_Click(object sender, EventArgs e)
 		{
-			gf.MessageAlertDetails = DataUtil.Trim(cbMessageAlert.Text);
-			if (!(gf.MessageAlertDetails == ""))
+			Gf.MessageAlertDetails = DataUtil.Trim(cbMessageAlert.Text);
+			if (!(Gf.MessageAlertDetails == ""))
 			{
 				cbMessageAlert.Text = DataUtil.Trim(cbMessageAlert.Text);
 				if (cbMessageAlert.Items.Count == 0 || cbMessageAlert.Text != cbMessageAlert.Items[0].ToString())
@@ -617,7 +617,7 @@ namespace Easislides
 								cbMessageAlert.Items.RemoveAt(num);
 							}
 						}
-						gf.SaveComboBoxToTextFile(ref cbMessageAlert, gf.AlertsDataFile);
+						Gf.SaveComboBoxToTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
 					}
 					catch
 					{
@@ -630,9 +630,9 @@ namespace Easislides
 		private void FrmShowAlert_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			SaveFormLocation();
-			gf.SaveOptionsData();
+			Gf.SaveOptionsData();
 			TimerRestoreWindow.Stop();
-			gf.AlertFormOpen = false;
+			Gf.AlertFormOpen = false;
 		}
 
 		private void SaveFormLocation()
@@ -643,9 +643,9 @@ namespace Easislides
 
 		private void TimerRestoreWindow_Tick(object sender, EventArgs e)
 		{
-			if (gf.AlertRestoreWindow)
+			if (Gf.AlertRestoreWindow)
 			{
-				gf.AlertRestoreWindow = false;
+				Gf.AlertRestoreWindow = false;
 				if (base.WindowState == FormWindowState.Minimized)
 				{
 					base.WindowState = FormWindowState.Normal;
@@ -661,28 +661,28 @@ namespace Easislides
 
 		private void ScrollFlashOption_Click(object sender, EventArgs e)
 		{
-			gf.ParentalAlertScroll = Parental_Scroll.Checked;
-			gf.ParentalAlertFlash = Parental_Flash.Checked;
-			gf.ParentalAlertTransparent = Parental_Transparent.Checked;
-			gf.MessageAlertScroll = Message_Scroll.Checked;
-			gf.MessageAlertFlash = Message_Flash.Checked;
-			gf.MessageAlertTransparent = Message_Transparent.Checked;
+			Gf.ParentalAlertScroll = Parental_Scroll.Checked;
+			Gf.ParentalAlertFlash = Parental_Flash.Checked;
+			Gf.ParentalAlertTransparent = Parental_Transparent.Checked;
+			Gf.MessageAlertScroll = Message_Scroll.Checked;
+			Gf.MessageAlertFlash = Message_Flash.Checked;
+			Gf.MessageAlertTransparent = Message_Transparent.Checked;
 		}
 
 		private void btnClearHistoryMessage_Click(object sender, EventArgs e)
 		{
 			cbMessageAlert.Items.Clear();
 			cbMessageAlert.Text = "";
-			gf.MessageAlertDetails = "";
-			gf.SaveComboBoxToTextFile(ref cbMessageAlert, gf.AlertsDataFile);
+			Gf.MessageAlertDetails = "";
+			Gf.SaveComboBoxToTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
 		}
 
 		private void btnClearHistoryParental_Click(object sender, EventArgs e)
 		{
 			cbParentalAlert.Items.Clear();
 			cbParentalAlert.Text = "";
-			gf.ParentalAlertDetails = "";
-			gf.SaveComboBoxToTextFile(ref cbParentalAlert, gf.ParentalDataFile);
+			Gf.ParentalAlertDetails = "";
+			Gf.SaveComboBoxToTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
 		}
 
 		private void cbParentalAlert_Enter(object sender, EventArgs e)
@@ -702,8 +702,8 @@ namespace Easislides
 
 		private void LyricsShow_Click(object sender, EventArgs e)
 		{
-			gf.LyricsAlertDetails = DataUtil.Trim(tbLyricsAlert.Text);
-			if (!(gf.LyricsAlertDetails == ""))
+			Gf.LyricsAlertDetails = DataUtil.Trim(tbLyricsAlert.Text);
+			if (!(Gf.LyricsAlertDetails == ""))
 			{
 				tbLyricsAlert.Text = DataUtil.Trim(tbLyricsAlert.Text);
 				this.OnMessage(2, "");
@@ -713,7 +713,7 @@ namespace Easislides
 		private void btnClearLyrics_Click(object sender, EventArgs e)
 		{
 			tbLyricsAlert.Text = "";
-			gf.LyricsAlertDetails = "";
+			Gf.LyricsAlertDetails = "";
 			this.OnMessage(2, "");
 		}
 	}

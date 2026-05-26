@@ -120,7 +120,7 @@ namespace Easislides
 
         private string PowerpointCurPreview = "";
 
-        private Color Pic_BorderColour = gf.BlackScreenColour;
+        private Color Pic_BorderColour = Gf.BlackScreenColour;
 
         private Color Pic_HighlightColour = Color.Red;
 
@@ -136,7 +136,7 @@ namespace Easislides
 
         private string[] sArray;
 
-        private string[,] tempFolderLyricsHeading = new string[gf.MAXSONGSFOLDERS, 2];
+        private string[,] tempFolderLyricsHeading = new string[Gf.MAXSONGSFOLDERS, 2];
 
         private string[] Verse = new string[160];
 
@@ -243,8 +243,6 @@ namespace Easislides
         public static FrmMain frmMain = null;
 
         // PowerPoint click handling state
-        private int pptLastClickedSlide = -1;
-        private Control pptLastClickedControl = null;
         private bool pptDoubleClickInProgress = false;
 
         // Thumbnail loading state

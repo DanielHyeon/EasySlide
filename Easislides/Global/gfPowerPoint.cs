@@ -14,7 +14,7 @@ using OfficeLib;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
+    internal unsafe partial class Gf
     {
 		private const int ExecutableBufferSize = 260;
 		private const int MaxPowerpointSequence = 49;
@@ -150,7 +150,7 @@ namespace Easislides
 				InItem.CurSlide = StartingSlide;
 			}
 
-			if (!ShowLiveCam && gf.DualMonitorSelectAutoOption == 1)
+			if (!ShowLiveCam && Gf.DualMonitorSelectAutoOption == 1)
 			{
 				float scalef = PowerpointShowWindowScale;
 

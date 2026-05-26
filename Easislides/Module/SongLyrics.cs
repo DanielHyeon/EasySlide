@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 
 namespace Easislides.Module
 {
@@ -60,7 +60,7 @@ namespace Easislides.Module
         {
             TextAlign = StringAlignment.Center;
             Shadow = false;
-            ForeColour = gf.DefaultForeColour;
+            ForeColour = Gf.DefaultForeColour;
             Text = "";
             Visible = true;
             Left = 0;

@@ -223,7 +223,7 @@ namespace Easislides
 
 		private void FrmGetWorkingFolder_Load(object sender, EventArgs e)
 		{
-			labelMsg.Text = "The EasiSlides Working Folder at " + gf.RootEasiSlidesDir + " is missing. Please select one of the following options and click OK.";
+			labelMsg.Text = "The EasiSlides Working Folder at " + Gf.RootEasiSlidesDir + " is missing. Please select one of the following options and click OK.";
 		}
 
 		private void BtnOK_Click(object sender, EventArgs e)
@@ -236,7 +236,7 @@ namespace Easislides
 			}
 			if (OptionNewFolder.Checked)
 			{
-				if (CreateFolder(gf.RootEasiSlidesDir))
+				if (CreateFolder(Gf.RootEasiSlidesDir))
 				{
 					base.DialogResult = DialogResult.OK;
 					Close();
@@ -245,9 +245,9 @@ namespace Easislides
 			}
 			if (OptionRestoreOriginalDatabase.Checked)
 			{
-				if (CreateFolder(gf.RootEasiSlidesDir))
+				if (CreateFolder(Gf.RootEasiSlidesDir))
 				{
-					gf.RestoreSongsDatabase = true;
+					Gf.RestoreSongsDatabase = true;
 					base.DialogResult = DialogResult.OK;
 					Close();
 				}
@@ -265,7 +265,7 @@ namespace Easislides
 			}
 			if (Directory.Exists(text))
 			{
-				gf.RootEasiSlidesDir = text;
+				Gf.RootEasiSlidesDir = text;
 				base.DialogResult = DialogResult.OK;
 				Close();
 			}
@@ -273,7 +273,7 @@ namespace Easislides
 			{
 				if (CreateFolder(text))
 				{
-					gf.RootEasiSlidesDir = text;
+					Gf.RootEasiSlidesDir = text;
 					base.DialogResult = DialogResult.OK;
 					Close();
 				}
@@ -287,7 +287,6 @@ namespace Easislides
 		private void LocationBtn_Click(object sender, EventArgs e)
 		{
 			FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-			string text = "";
 			folderBrowserDialog.SelectedPath = "C:\\";
 			folderBrowserDialog.Description = "Please select a Folder from below to be the EasiSlides Working Folder.";
 			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
@@ -302,7 +301,7 @@ namespace Easislides
 			{
 				return true;
 			}
-			MessageBox.Show("Error encountered whilst creating folder: " + gf.RootEasiSlidesDir + ". Make sure have write access to the area and try again");
+			MessageBox.Show("Error encountered whilst creating folder: " + Gf.RootEasiSlidesDir + ". Make sure have write access to the area and try again");
 			return false;
 		}
 

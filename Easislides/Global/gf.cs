@@ -19,7 +19,7 @@ using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
+    internal unsafe partial class Gf
     {
         // All constants, fields, and methods have been moved to:
         // - gfConstants.cs (constants and static fields)

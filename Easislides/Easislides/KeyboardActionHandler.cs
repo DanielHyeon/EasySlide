@@ -36,11 +36,11 @@ namespace Easislides
             SongSettings targetItem;
             if (control.Name == "PP_Preview")
             {
-                targetItem = gf.PreviewItem;
+                targetItem = Gf.PreviewItem;
             }
             else // PP_Output
             {
-                targetItem = gf.OutputItem;
+                targetItem = Gf.OutputItem;
             }
 
             if (targetItem.CurSlide != slideNumber)
@@ -61,11 +61,11 @@ namespace Easislides
             // 슬라이드 번호 설정
             if (control.Name == "PP_Preview")
             {
-                gf.PreviewItem.CurSlide = slideNumber;
+                Gf.PreviewItem.CurSlide = slideNumber;
             }
             else
             {
-                gf.OutputItem.CurSlide = slideNumber;
+                Gf.OutputItem.CurSlide = slideNumber;
             }
 
             // PowerPoint 애니메이션/비디오 트리거 (FrmMain을 통해 접근)
@@ -81,11 +81,11 @@ namespace Easislides
 
             // Preview와 Output 구분
             SongSettings targetItem = panelName == "flowLayoutPreviewPowerPoint"
-                ? gf.PreviewItem
-                : gf.OutputItem;
+                ? Gf.PreviewItem
+                : Gf.OutputItem;
 
             // 키 재매핑
-            gf.ReMapKeyBoard(ref keyCode);
+            Gf.ReMapKeyBoard(ref keyCode);
 
             // 네비게이션 키 처리
             if (KeyboardMapping.IsNavigationKey(keyCode))
@@ -138,7 +138,7 @@ namespace Easislides
                     _form.ManualMoveToItem(item, KeyDirection.NextOne);
                     break;
                 case Keys.Up:
-                    if (!gf.GlobalHookKey_CtrlArrow && !gf.GlobalHookKey_Arrow)
+                    if (!Gf.GlobalHookKey_CtrlArrow && !Gf.GlobalHookKey_Arrow)
                     {
                         _form.MoveToSlide(item, KeyDirection.PrevOne);
                     }
@@ -150,7 +150,7 @@ namespace Easislides
                     _form.MoveToSlide(item, KeyDirection.LastOne);
                     break;
                 case Keys.Down:
-                    if (!gf.GlobalHookKey_CtrlArrow && !gf.GlobalHookKey_Arrow)
+                    if (!Gf.GlobalHookKey_CtrlArrow && !Gf.GlobalHookKey_Arrow)
                     {
                         _form.MoveToSlide(item, KeyDirection.NextOne);
                     }
@@ -215,7 +215,7 @@ namespace Easislides
                     }
                     break;
                 case Keys.A:
-                    _form.SetRotateState(!gf.AutoRotateOn);
+                    _form.SetRotateState(!Gf.AutoRotateOn);
                     break;
                 case Keys.J:
                     _form.GotoNextNonRotateItem(item);
@@ -236,24 +236,24 @@ namespace Easislides
         {
             switch (key)
             {
-                case Keys.F7 when gf.GlobalHookKey_F7:
-                    if (gf.PreviewItem.ItemID != "")
+                case Keys.F7 when Gf.GlobalHookKey_F7:
+                    if (Gf.PreviewItem.ItemID != "")
                     {
                         _form.CopyPreviewToOutput();
-                        _form.BeginInvoke(new Action(() => { _form.LiveBlack(gf.ShowLiveBlack = false); }));
+                        _form.BeginInvoke(new Action(() => { _form.LiveBlack(Gf.ShowLiveBlack = false); }));
                     }
                     break;
-                case Keys.F8 when gf.GlobalHookKey_F8:
-                    if (gf.PreviewItem.ItemID != "")
+                case Keys.F8 when Gf.GlobalHookKey_F8:
+                    if (Gf.PreviewItem.ItemID != "")
                     {
                         _form.CopyPreviewToOutput();
                     }
                     break;
-                case Keys.F9 when gf.GlobalHookKey_F9:
-                    _form.LiveBlack(!gf.ShowLiveBlack);
+                case Keys.F9 when Gf.GlobalHookKey_F9:
+                    _form.LiveBlack(!Gf.ShowLiveBlack);
                     break;
-                case Keys.F10 when gf.GlobalHookKey_F10:
-                    _form.LiveBlack(!gf.ShowLiveBlack);
+                case Keys.F10 when Gf.GlobalHookKey_F10:
+                    _form.LiveBlack(!Gf.ShowLiveBlack);
                     break;
             }
         }
@@ -263,7 +263,7 @@ namespace Easislides
         /// </summary>
         public void HandleGlobalArrowKey(Keys key, bool controlPressed)
         {
-            bool shouldHandle = gf.GlobalHookKey_Arrow || (controlPressed && gf.GlobalHookKey_CtrlArrow);
+            bool shouldHandle = Gf.GlobalHookKey_Arrow || (controlPressed && Gf.GlobalHookKey_CtrlArrow);
 
             if (!shouldHandle)
                 return;
@@ -271,10 +271,10 @@ namespace Easislides
             switch (key)
             {
                 case Keys.Up:
-                    _form.MoveToSlide(gf.OutputItem, KeyDirection.PrevOne);
+                    _form.MoveToSlide(Gf.OutputItem, KeyDirection.PrevOne);
                     break;
                 case Keys.Down:
-                    _form.MoveToSlide(gf.OutputItem, KeyDirection.NextOne);
+                    _form.MoveToSlide(Gf.OutputItem, KeyDirection.NextOne);
                     break;
             }
         }
@@ -303,15 +303,15 @@ namespace Easislides
         /// </summary>
         private void ToggleGapOption()
         {
-            if (gf.GapItemOption == GapType.None)
+            if (Gf.GapItemOption == GapType.None)
             {
-                gf.GapItemOption = gf.AltGapItemOption;
-                gf.AltGapItemOption = GapType.None;
+                Gf.GapItemOption = Gf.AltGapItemOption;
+                Gf.AltGapItemOption = GapType.None;
             }
             else
             {
-                gf.AltGapItemOption = gf.GapItemOption;
-                gf.GapItemOption = GapType.None;
+                Gf.AltGapItemOption = Gf.GapItemOption;
+                Gf.GapItemOption = GapType.None;
             }
             _form.ShowStatusBarSummary();
         }

@@ -61,30 +61,30 @@ namespace Easislides
 			base.Top = Screen.PrimaryScreen.Bounds.Height - base.Height;
 			base.Left = 0;
 			LoadAlertList();
-			Message_Scroll.Checked = gf.MessageAlertScroll;
-			Message_Flash.Checked = gf.MessageAlertFlash;
-			Message_Transparent.Checked = gf.MessageAlertTransparent;
-			cbMessageAlert.Text = gf.MessageAlertDetails;
+			Message_Scroll.Checked = Gf.MessageAlertScroll;
+			Message_Flash.Checked = Gf.MessageAlertFlash;
+			Message_Transparent.Checked = Gf.MessageAlertTransparent;
+			cbMessageAlert.Text = Gf.MessageAlertDetails;
 			cbMessageAlert.SelectAll();
-			Parental_Scroll.Checked = gf.ParentalAlertScroll;
-			Parental_Flash.Checked = gf.ParentalAlertFlash;
-			Parental_Transparent.Checked = gf.ParentalAlertTransparent;
-			cbParentalAlert.Text = gf.ParentalAlertDetails;
-			ParentalPrefix.Text = gf.ParentalAlertHeading + " ";
+			Parental_Scroll.Checked = Gf.ParentalAlertScroll;
+			Parental_Flash.Checked = Gf.ParentalAlertFlash;
+			Parental_Transparent.Checked = Gf.ParentalAlertTransparent;
+			cbParentalAlert.Text = Gf.ParentalAlertDetails;
+			ParentalPrefix.Text = Gf.ParentalAlertHeading + " ";
 			Cursor.Position = new Point(270, base.Top + 12);
 			Cursor.Show();
 		}
 
 		private void LoadAlertList()
 		{
-			gf.LoadComboBoxFromTextFile(ref cbMessageAlert, gf.AlertsDataFile);
-			gf.LoadComboBoxFromTextFile(ref cbParentalAlert, gf.ParentalDataFile);
+			Gf.LoadComboBoxFromTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
+			Gf.LoadComboBoxFromTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
 		}
 
 		private void MessageShow_Click(object sender, EventArgs e)
 		{
-			gf.MessageAlertDetails = DataUtil.Trim(cbMessageAlert.Text);
-			if (!(gf.MessageAlertDetails == ""))
+			Gf.MessageAlertDetails = DataUtil.Trim(cbMessageAlert.Text);
+			if (!(Gf.MessageAlertDetails == ""))
 			{
 				cbMessageAlert.Text = DataUtil.Trim(cbMessageAlert.Text);
 				if (cbMessageAlert.Items.Count == 0 || cbMessageAlert.Text != cbMessageAlert.Items[0].ToString())
@@ -99,26 +99,26 @@ namespace Easislides
 								cbMessageAlert.Items.RemoveAt(num);
 							}
 						}
-						gf.SaveComboBoxToTextFile(ref cbMessageAlert, gf.AlertsDataFile);
+						Gf.SaveComboBoxToTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
 					}
 					catch
 					{
 					}
 				}
-				gf.MessageAlertScroll = Message_Scroll.Checked;
-				gf.MessageAlertFlash = Message_Flash.Checked;
-				gf.MessageAlertTransparent = Message_Transparent.Checked;
-				gf.MessageAlertDetails = cbMessageAlert.Text;
+				Gf.MessageAlertScroll = Message_Scroll.Checked;
+				Gf.MessageAlertFlash = Message_Flash.Checked;
+				Gf.MessageAlertTransparent = Message_Transparent.Checked;
+				Gf.MessageAlertDetails = cbMessageAlert.Text;
 				base.DialogResult = DialogResult.OK;
-				gf.AlertSettings(AlertType.Message);
+				Gf.AlertSettings(AlertType.Message);
 				Close();
 			}
 		}
 
 		private void ParentalShow_Click(object sender, EventArgs e)
 		{
-			gf.ParentalAlertDetails = DataUtil.Trim(cbParentalAlert.Text);
-			if (!(gf.ParentalAlertDetails == ""))
+			Gf.ParentalAlertDetails = DataUtil.Trim(cbParentalAlert.Text);
+			if (!(Gf.ParentalAlertDetails == ""))
 			{
 				if (cbParentalAlert.Items.Count == 0 || cbParentalAlert.Text != cbParentalAlert.Items[0].ToString())
 				{
@@ -132,26 +132,26 @@ namespace Easislides
 								cbParentalAlert.Items.RemoveAt(num);
 							}
 						}
-						gf.SaveComboBoxToTextFile(ref cbParentalAlert, gf.ParentalDataFile);
+						Gf.SaveComboBoxToTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
 					}
 					catch
 					{
 					}
 				}
-				gf.ParentalAlertScroll = Parental_Scroll.Checked;
-				gf.ParentalAlertFlash = Parental_Flash.Checked;
-				gf.ParentalAlertTransparent = Parental_Transparent.Checked;
-				gf.ParentalAlertDetails = cbParentalAlert.Text;
+				Gf.ParentalAlertScroll = Parental_Scroll.Checked;
+				Gf.ParentalAlertFlash = Parental_Flash.Checked;
+				Gf.ParentalAlertTransparent = Parental_Transparent.Checked;
+				Gf.ParentalAlertDetails = cbParentalAlert.Text;
 				base.DialogResult = DialogResult.OK;
-				gf.AlertSettings(AlertType.Parental);
+				Gf.AlertSettings(AlertType.Parental);
 				Close();
 			}
 		}
 
 		private void BtnDismiss_Click(object sender, EventArgs e)
 		{
-			gf.ParentalAlertLive = false;
-			gf.MessageAlertLive = false;
+			Gf.ParentalAlertLive = false;
+			Gf.MessageAlertLive = false;
 			Close();
 		}
 
@@ -162,7 +162,7 @@ namespace Easislides
 
 		private void FrmSingleMonitorAlert_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			gf.SaveOptionsData();
+			Gf.SaveOptionsData();
 			Cursor.Hide();
 		}
 
@@ -170,16 +170,16 @@ namespace Easislides
 		{
 			cbMessageAlert.Items.Clear();
 			cbMessageAlert.Text = "";
-			gf.MessageAlertDetails = "";
-			gf.SaveComboBoxToTextFile(ref cbMessageAlert, gf.AlertsDataFile);
+			Gf.MessageAlertDetails = "";
+			Gf.SaveComboBoxToTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
 		}
 
 		private void btnClearHistoryParental_Click(object sender, EventArgs e)
 		{
 			cbParentalAlert.Items.Clear();
 			cbParentalAlert.Text = "";
-			gf.ParentalAlertDetails = "";
-			gf.SaveComboBoxToTextFile(ref cbParentalAlert, gf.ParentalDataFile);
+			Gf.ParentalAlertDetails = "";
+			Gf.SaveComboBoxToTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
 		}
 
 		private void cbMessageAlert_Enter(object sender, EventArgs e)

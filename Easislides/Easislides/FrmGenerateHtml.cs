@@ -32,7 +32,7 @@ namespace Easislides
 
 		private int[] SongFolderLog = new int[1];
 
-		private int[,] FolderFNum = new int[gf.MAXSONGSFOLDERS, 1];
+		private int[,] FolderFNum = new int[Gf.MAXSONGSFOLDERS, 1];
 
 		private int CurrentSong;
 
@@ -143,29 +143,29 @@ namespace Easislides
 
 		private void FrmGenerateHTML_Load(object sender, EventArgs e)
 		{
-			Text = "Generate HTML files for " + gf.CurPraiseBook;
+			Text = "Generate HTML files for " + Gf.CurPraiseBook;
 			HeadingText0.Text = RegUtil.GetRegValue("config", "HTML_Publisher", "");
 			HeadingText1.Text = RegUtil.GetRegValue("config", "HTML_Web", "");
 			HeadingText2.Text = RegUtil.GetRegValue("config", "HTML_Info1", "");
-			gf.HTMLShowNumbers = ((RegUtil.GetRegValue("config", "HTML_ShowNumbers", 0) == 1) ? true : false);
-			gf.HTMLShowChorusItalics = ((RegUtil.GetRegValue("config", "HTML_ShowChorusItalics", 1) == 1) ? true : false);
-			gf.HTMLMusicLink = ((RegUtil.GetRegValue("config", "HTML_Musiclink", 1) == 1) ? true : false);
-			gf.HTMLShowIndex = ((RegUtil.GetRegValue("config", "HTML_ShowIndex", 1) == 1) ? true : false);
-			gf.HTMLShowBookRef = ((RegUtil.GetRegValue("config", "HTML_ShowBookReference", 1) == 1) ? true : false);
-			gf.HTMLShowUserRef = ((RegUtil.GetRegValue("config", "HTML_ShowUserReference", 1) == 1) ? true : false);
-			gf.HTMLDoubleByte = ((RegUtil.GetRegValue("config", "HTML_DoubleByte", 0) == 1) ? true : false);
-			gf.HTMLDocumentOption = RegUtil.GetRegValue("config", "HTML_DocumentOption", 0);
-			gf.HTMLDocumentOption = ((gf.HTMLDocumentOption >= 0 && gf.HTMLDocumentOption <= 1) ? gf.HTMLDocumentOption : 0);
-			gf.HTMLRTFFontSize = RegUtil.GetRegValue("config", "HTML_RTFFontSize", 12);
-			gf.HTMLRTFFontSize = ((gf.HTMLRTFFontSize < 6 || gf.HTMLRTFFontSize > 99) ? 12 : gf.HTMLRTFFontSize);
-			MusicLinkcb.Checked = gf.HTMLMusicLink;
-			ShowindexFilecb.Checked = gf.HTMLShowIndex;
-			MusicNumberscb.Checked = gf.HTMLShowNumbers;
-			ChorusItaliccb.Checked = gf.HTMLShowChorusItalics;
-			BookRefcb.Checked = gf.HTMLShowBookRef;
-			UserRefcb.Checked = gf.HTMLShowUserRef;
-			DoubleBytecb.Checked = gf.HTMLDoubleByte;
-			if (gf.HTMLDocumentOption == 0)
+			Gf.HTMLShowNumbers = ((RegUtil.GetRegValue("config", "HTML_ShowNumbers", 0) == 1) ? true : false);
+			Gf.HTMLShowChorusItalics = ((RegUtil.GetRegValue("config", "HTML_ShowChorusItalics", 1) == 1) ? true : false);
+			Gf.HTMLMusicLink = ((RegUtil.GetRegValue("config", "HTML_Musiclink", 1) == 1) ? true : false);
+			Gf.HTMLShowIndex = ((RegUtil.GetRegValue("config", "HTML_ShowIndex", 1) == 1) ? true : false);
+			Gf.HTMLShowBookRef = ((RegUtil.GetRegValue("config", "HTML_ShowBookReference", 1) == 1) ? true : false);
+			Gf.HTMLShowUserRef = ((RegUtil.GetRegValue("config", "HTML_ShowUserReference", 1) == 1) ? true : false);
+			Gf.HTMLDoubleByte = ((RegUtil.GetRegValue("config", "HTML_DoubleByte", 0) == 1) ? true : false);
+			Gf.HTMLDocumentOption = RegUtil.GetRegValue("config", "HTML_DocumentOption", 0);
+			Gf.HTMLDocumentOption = ((Gf.HTMLDocumentOption >= 0 && Gf.HTMLDocumentOption <= 1) ? Gf.HTMLDocumentOption : 0);
+			Gf.HTMLRTFFontSize = RegUtil.GetRegValue("config", "HTML_RTFFontSize", 12);
+			Gf.HTMLRTFFontSize = ((Gf.HTMLRTFFontSize < 6 || Gf.HTMLRTFFontSize > 99) ? 12 : Gf.HTMLRTFFontSize);
+			MusicLinkcb.Checked = Gf.HTMLMusicLink;
+			ShowindexFilecb.Checked = Gf.HTMLShowIndex;
+			MusicNumberscb.Checked = Gf.HTMLShowNumbers;
+			ChorusItaliccb.Checked = Gf.HTMLShowChorusItalics;
+			BookRefcb.Checked = Gf.HTMLShowBookRef;
+			UserRefcb.Checked = Gf.HTMLShowUserRef;
+			DoubleBytecb.Checked = Gf.HTMLDoubleByte;
+			if (Gf.HTMLDocumentOption == 0)
 			{
 				OptOutputHTML.Checked = true;
 			}
@@ -173,11 +173,11 @@ namespace Easislides
 			{
 				OptOutputRTF.Checked = true;
 			}
-			RTFFontSize.Value = gf.HTMLRTFFontSize;
-			gf.GenHTMLDir = gf.RootEasiSlidesDir + "Html\\";
-			WarningLabel.Text = "NOTE: Generate will Delete ALL existing HTML files in: '" + gf.GenHTMLDir + "'";
+			RTFFontSize.Value = Gf.HTMLRTFFontSize;
+			Gf.GenHTMLDir = Gf.RootEasiSlidesDir + "Html\\";
+			WarningLabel.Text = "NOTE: Generate will Delete ALL existing HTML files in: '" + Gf.GenHTMLDir + "'";
 			ToolTip1.SetToolTip(WarningLabel, WarningLabel.Text);
-			gf.SetListViewColumns(SubDivideList, 6);
+			Gf.SetListViewColumns(SubDivideList, 6);
 			HtmlItem.Initialise();
 			HtmlItem.SplitScreens = false;
 		}
@@ -187,22 +187,22 @@ namespace Easislides
 		{
 			try
 			{
-				//OleDbConnection connection = new OleDbConnection(gf.ConnectStringMainDB);
+				//OleDbConnection connection = new OleDbConnection(Gf.ConnectStringMainDB);
                 
 				//DBEngine dBEngine = new DBEngine();// DBEngineClass();
 				//Workspace workspace = dBEngine.Workspaces[0];
 				//Database database = workspace.OpenDatabase(connection.DataSource, false, false);
-				string name = "select * from SONG where songid=" + DataUtil.Right(gf.DocumentSongs[CurrentSong, 0], gf.DocumentSongs[CurrentSong, 0].Length - 1);
+				string name = "select * from SONG where songid=" + DataUtil.Right(Gf.DocumentSongs[CurrentSong, 0], Gf.DocumentSongs[CurrentSong, 0].Length - 1);
 
 				using DataTable dt = DbController.GetDataTable(connection, name);
 				if (dt.Rows.Count > 0)
 				{
 					DataRow dr = dt.Rows[0];
 
-					SongTitle = gf.RTFCheck(DataUtil.GetDataString(dr, "Title_1"));
-					SongLyrics = gf.RTFCheck(DataUtil.GetDataString(dr, "Lyrics"));
+					SongTitle = Gf.RTFCheck(DataUtil.GetDataString(dr, "Title_1"));
+					SongLyrics = Gf.RTFCheck(DataUtil.GetDataString(dr, "Lyrics"));
 					SongFolderNo = DataUtil.GetDataInt(dr, "FolderNo");
-					SongTitle2 = gf.RTFCheck(DataUtil.GetDataString(dr, "Title_2"));
+					SongTitle2 = Gf.RTFCheck(DataUtil.GetDataString(dr, "Title_2"));
 					SongNotations = DataUtil.GetDataString(dr, "msc");
 					SongSequence = DataUtil.GetDataString(dr, "Sequence");
 					WriterInfo = DataUtil.GetDataString(dr, "Writer");
@@ -211,7 +211,7 @@ namespace Easislides
 					BookRefInfo = DataUtil.GetDataString(dr, "BOOK_REFERENCE");
 					UserRefInfo = DataUtil.GetDataString(dr, "USER_REFERENCE");
 					CopyrightInfo = DataUtil.GetDataString(dr, "Copyright");
-					CopyrightInfo = gf.RTFCheck(WriterInfo + (((WriterInfo != "") & (CopyrightInfo != "")) ? "; " : "") + CopyrightInfo);
+					CopyrightInfo = Gf.RTFCheck(WriterInfo + (((WriterInfo != "") & (CopyrightInfo != "")) ? "; " : "") + CopyrightInfo);
 				}
 			}
 			catch
@@ -224,21 +224,21 @@ namespace Easislides
 			HtmlItem.SongSequence = SongSequence;
 			HtmlItem.CompleteLyrics = SongLyrics;
 			HtmlItem.Notations = SongNotations;
-			gf.FormatDisplayLyrics(ref HtmlItem, PrepareSlides: true, UseStoredSequence: true);
+			Gf.FormatDisplayLyrics(ref HtmlItem, PrepareSlides: true, UseStoredSequence: true);
 			SongSequence = HtmlItem.SongSequence;
 			CurSlide = 1;
 		}
 
 		private string CheckHTMLDisplayName(string InFileName)
 		{
-			gf.RemoveInvalidDirNameChars(ref InFileName);
-			if (!File.Exists(gf.GenHTMLDir + InFileName + ".htm"))
+			Gf.RemoveInvalidDirNameChars(ref InFileName);
+			if (!File.Exists(Gf.GenHTMLDir + InFileName + ".htm"))
 			{
 				return InFileName;
 			}
 			for (int i = 1; i <= 10000; i++)
 			{
-				if (!File.Exists(gf.GenHTMLDir + InFileName + i + ".htm"))
+				if (!File.Exists(Gf.GenHTMLDir + InFileName + i + ".htm"))
 				{
 					return InFileName + i;
 				}
@@ -248,45 +248,45 @@ namespace Easislides
 
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
-			gf.HTMLPublisher = DataUtil.Trim(HeadingText0.Text);
-			gf.HTMLWeb = DataUtil.Trim(HeadingText1.Text);
-			gf.HTMLInfo1 = DataUtil.Trim(HeadingText2.Text);
-			gf.HTMLMusicLink = MusicLinkcb.Checked;
-			gf.HTMLShowIndex = ShowindexFilecb.Checked;
-			gf.HTMLShowNumbers = MusicNumberscb.Checked;
-			gf.HTMLShowChorusItalics = ChorusItaliccb.Checked;
-			gf.HTMLShowBookRef = BookRefcb.Checked;
-			gf.HTMLShowUserRef = UserRefcb.Checked;
-			gf.HTMLDoubleByte = DoubleBytecb.Checked;
-			gf.HTMLDocumentOption = ((!OptOutputHTML.Checked) ? 1 : 0);
-			gf.HTMLRTFFontSize = (int)RTFFontSize.Value;
-			RegUtil.SaveRegValue("config", "HTML_Publisher", gf.HTMLPublisher);
-			RegUtil.SaveRegValue("config", "HTML_Web", gf.HTMLWeb);
-			RegUtil.SaveRegValue("config", "HTML_Info1", gf.HTMLInfo1);
-			RegUtil.SaveRegValue("config", "HTML_Musiclink", gf.HTMLMusicLink ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_ShowIndex", gf.HTMLShowIndex ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_ShowChorusItalics", gf.HTMLShowChorusItalics ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_ShowNumbers", gf.HTMLShowNumbers ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_ShowBookReference", gf.HTMLShowBookRef ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_ShowUserReference", gf.HTMLShowUserRef ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_DoubleByte", gf.HTMLDoubleByte ? 1 : 0);
-			RegUtil.SaveRegValue("config", "HTML_DocumentOption", gf.HTMLDocumentOption);
-			RegUtil.SaveRegValue("config", "HTML_RTFFontSize", gf.HTMLRTFFontSize);
-			HeadingText0.Text = gf.HTMLPublisher;
-			HeadingText1.Text = gf.HTMLWeb;
-			HeadingText2.Text = gf.HTMLInfo1;
-			gf.ValidateDir(gf.GenHTMLDir, CreateDir: true);
+			Gf.HTMLPublisher = DataUtil.Trim(HeadingText0.Text);
+			Gf.HTMLWeb = DataUtil.Trim(HeadingText1.Text);
+			Gf.HTMLInfo1 = DataUtil.Trim(HeadingText2.Text);
+			Gf.HTMLMusicLink = MusicLinkcb.Checked;
+			Gf.HTMLShowIndex = ShowindexFilecb.Checked;
+			Gf.HTMLShowNumbers = MusicNumberscb.Checked;
+			Gf.HTMLShowChorusItalics = ChorusItaliccb.Checked;
+			Gf.HTMLShowBookRef = BookRefcb.Checked;
+			Gf.HTMLShowUserRef = UserRefcb.Checked;
+			Gf.HTMLDoubleByte = DoubleBytecb.Checked;
+			Gf.HTMLDocumentOption = ((!OptOutputHTML.Checked) ? 1 : 0);
+			Gf.HTMLRTFFontSize = (int)RTFFontSize.Value;
+			RegUtil.SaveRegValue("config", "HTML_Publisher", Gf.HTMLPublisher);
+			RegUtil.SaveRegValue("config", "HTML_Web", Gf.HTMLWeb);
+			RegUtil.SaveRegValue("config", "HTML_Info1", Gf.HTMLInfo1);
+			RegUtil.SaveRegValue("config", "HTML_Musiclink", Gf.HTMLMusicLink ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_ShowIndex", Gf.HTMLShowIndex ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_ShowChorusItalics", Gf.HTMLShowChorusItalics ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_ShowNumbers", Gf.HTMLShowNumbers ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_ShowBookReference", Gf.HTMLShowBookRef ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_ShowUserReference", Gf.HTMLShowUserRef ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_DoubleByte", Gf.HTMLDoubleByte ? 1 : 0);
+			RegUtil.SaveRegValue("config", "HTML_DocumentOption", Gf.HTMLDocumentOption);
+			RegUtil.SaveRegValue("config", "HTML_RTFFontSize", Gf.HTMLRTFFontSize);
+			HeadingText0.Text = Gf.HTMLPublisher;
+			HeadingText1.Text = Gf.HTMLWeb;
+			HeadingText2.Text = Gf.HTMLInfo1;
+			Gf.ValidateDir(Gf.GenHTMLDir, CreateDir: true);
 			try
 			{
-				if (Directory.Exists(gf.GenHTMLDir))
+				if (Directory.Exists(Gf.GenHTMLDir))
 				{
-					string[] files = Directory.GetFiles(gf.GenHTMLDir, "*.htm");
+					string[] files = Directory.GetFiles(Gf.GenHTMLDir, "*.htm");
 					string[] array = files;
 					foreach (string path in array)
 					{
 						File.Delete(path);
 					}
-					files = Directory.GetFiles(gf.GenHTMLDir, "*.rtf");
+					files = Directory.GetFiles(Gf.GenHTMLDir, "*.rtf");
 					array = files;
 					foreach (string path in array)
 					{
@@ -295,9 +295,9 @@ namespace Easislides
 				}
 				WarningLabel.Visible = false;
 				StartGeneration();
-				if (gf.HTMLShowIndex)
+				if (Gf.HTMLShowIndex)
 				{
-					gf.RunProcess(gf.GenHTMLDir + "index.htm");
+					Gf.RunProcess(Gf.GenHTMLDir + "index.htm");
 				}
 			}
 			catch
@@ -312,18 +312,18 @@ namespace Easislides
 			StringBuilder stringBuilder = new StringBuilder();
 			string text = DateTime.Now.Date.ToString("dd MMM yyyy");
 			int num = 0;
-			int hTMLRTFFontSize = gf.HTMLRTFFontSize;
-			int num2 = gf.HTMLRTFFontSize * 10 / 12;
-			gf.TotalMusicFiles = -1;
+			int hTMLRTFFontSize = Gf.HTMLRTFFontSize;
+			int num2 = Gf.HTMLRTFFontSize * 10 / 12;
+			Gf.TotalMusicFiles = -1;
 			HTML_ShowHeadings[0] = 1;
 			HTML_ShowHeadings[1] = 1;
 			HTML_ShowHeadings[2] = 0;
 			HTML_ShowHeadings[3] = 0;
 			NewLine = "<BR>\r\n";
-			gf.RTFNewLine = "\\b0\\i0\\ulnone\\par ";
-			gf.RTFIndent[0] = "\\pard\\fi-1500\\li1500\\tx1100 ";
-			gf.RTFIndent[1] = "\\pard\\fi-900\\li900\\tx500 ";
-			gf.RTFIndent[2] = "\\pard\\li0\\tx500 ";
+			Gf.RTFNewLine = "\\b0\\i0\\ulnone\\par ";
+			Gf.RTFIndent[0] = "\\pard\\fi-1500\\li1500\\tx1100 ";
+			Gf.RTFIndent[1] = "\\pard\\fi-900\\li900\\tx500 ";
+			Gf.RTFIndent[2] = "\\pard\\li0\\tx500 ";
 			RTFMaxTextWidth = 8750;
 			Cursor = Cursors.WaitCursor;
 			ProgressBar1.Value = 0;
@@ -336,30 +336,27 @@ namespace Easislides
 				int num6 = OptOutputHTML.Checked ? 420 : 530;
 				string text2 = OptOutputHTML.Checked ? "" : ",toolbar=yes";
 				string text3 = "\r\n<SCRIPT TYPE=\"text/javascript\"><!--\r\nfunction popup(mylink, windowname) \r\n{\r\nif (! window.focus)return true;\r\nvar href;\r\nif (typeof(mylink) == 'string')\r\n href=mylink;\r\nelse\r\n href=mylink.href;\r\nwindow.open(href, windowname, 'width=" + num5 + ",height=" + num6 + text2 + ", left=" + num4 + ",top=" + num3 + ", resizable=yes, scrollbars=yes');\r\nreturn false;\r\n}\r\n//-->\r\n</SCRIPT>\r\n";
-				string text4 = "<META NAME=\"description\" CONTENT=\"" + gf.HTMLInfo1 + ((gf.HTMLInfo1 != "") ? " - " : "") + "Auto-Generated by EasiSlides\">";
-				stringBuilder.Append(EasiSlidesInfoComments + EasiSlidesInfoCommentsEnd + "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"><html><head><title>" + gf.HTMLPublisher + "</title>" + text4 + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" + text3 + "</head><body>" + ((gf.HTMLPublisher == "") ? "" : ("<font size=\"4\"><b><a href=" + gf.HTMLWeb + ">" + gf.HTMLPublisher + "</a></b>" + NewLine + NewLine)) + ((gf.HTMLInfo1 == "") ? "" : (gf.HTMLInfo1 + NewLine + NewLine)) + "Dated: " + text + "</P><ul><li><b>To see the contents:</b> Click on the desired title and the contents will appear in a new window.</a>");
-				stringBuilder.Append((gf.HTMLMusicLink ? "<li><b>To play a music file:</b> If <font color=\"#FF00FF\">(Music)</font> appears beside a title, you can click on it to play the music file for that title</a>" : "") + "</P></ul>");
+				string text4 = "<META NAME=\"description\" CONTENT=\"" + Gf.HTMLInfo1 + ((Gf.HTMLInfo1 != "") ? " - " : "") + "Auto-Generated by EasiSlides\">";
+				stringBuilder.Append(EasiSlidesInfoComments + EasiSlidesInfoCommentsEnd + "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"><html><head><title>" + Gf.HTMLPublisher + "</title>" + text4 + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" + text3 + "</head><body>" + ((Gf.HTMLPublisher == "") ? "" : ("<font size=\"4\"><b><a href=" + Gf.HTMLWeb + ">" + Gf.HTMLPublisher + "</a></b>" + NewLine + NewLine)) + ((Gf.HTMLInfo1 == "") ? "" : (Gf.HTMLInfo1 + NewLine + NewLine)) + "Dated: " + text + "</P><ul><li><b>To see the contents:</b> Click on the desired title and the contents will appear in a new window.</a>");
+				stringBuilder.Append((Gf.HTMLMusicLink ? "<li><b>To play a music file:</b> If <font color=\"#FF00FF\">(Music)</font> appears beside a title, you can click on it to play the music file for that title</a>" : "") + "</P></ul>");
 				string text5 = "";
-				string text6 = "";
-				string text7 = "";
 				string text8 = "";
 				int num7 = 0;
-				SongFolderLog = new int[gf.TotalPraiseBookItems];
+				SongFolderLog = new int[Gf.TotalPraiseBookItems];
 
-				using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-				for (int i = 0; i < gf.TotalPraiseBookItems; i++)
+				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+				for (int i = 0; i < Gf.TotalPraiseBookItems; i++)
 				{
-					num7 = (i + 1) * 100 / gf.TotalPraiseBookItems;
+					num7 = (i + 1) * 100 / Gf.TotalPraiseBookItems;
 					ProgressBar1.Value = ((num7 > 100) ? 100 : num7);
 					CurrentSong = i + 1;
 					LookupSong(connection);
 					SongFolderLog[i] = SongFolderNo;
 					string songTitle = SongTitle;
-					bool flag = false;
 					string text9 = "";
-					if (gf.HTMLShowNumbers)
+					if (Gf.HTMLShowNumbers)
 					{
-						text5 = ((!gf.UseSongNumbers) ? (Convert.ToString(CurrentSong) + ". ") : (gf.DocumentSongs[CurrentSong, 4] + ". "));
+						text5 = ((!Gf.UseSongNumbers) ? (Convert.ToString(CurrentSong) + ". ") : (Gf.DocumentSongs[CurrentSong, 4] + ". "));
 					}
 					text9 = DataUtil.HexString(songTitle);
 					SongFolderLog[i] = SongFolderNo;
@@ -376,14 +373,13 @@ namespace Easislides
 							num++;
 						}
 					}
-					int num9 = 0;
 					ChorusDone = false;
 					string text10 = CheckHTMLDisplayName(text9);
 					stringBuilder.Append("\r\n<li><b>" + text5 + "</b><a href=\"" + text10 + (OptOutputHTML.Checked ? ".htm" : ".rtf") + "\" onClick=\"return popup(this, 'A')\">" + SongTitle + "</a>");
 					text8 = "";
-					if (gf.HTMLMusicLink && gf.MusicFound(SongTitle, SongTitle2, StoreDirPath: true))
+					if (Gf.HTMLMusicLink && Gf.MusicFound(SongTitle, SongTitle2, StoreDirPath: true))
 					{
-						text8 = gf.Html_MusicDisplayName(SongTitle, SongTitle2, gf.GenHTMLDir);
+						text8 = Gf.Html_MusicDisplayName(SongTitle, SongTitle2, Gf.GenHTMLDir);
 						if (text8 != "")
 						{
 							stringBuilder.Append(" <a href=" + '"' + text8 + '"' + "><font color=\"#FF00FF\">(Music)</font></a></li>");
@@ -395,14 +391,14 @@ namespace Easislides
 					}
 					else if (OptOutputRTF.Checked)
 					{
-						Font mainFont = new Font(gf.ShowFontName[SongFolderNo, 0], hTMLRTFFontSize);
-						Font mainFontR = new Font(gf.ShowFontName[SongFolderNo, 1], hTMLRTFFontSize);
-						Font notationsFont = new Font(gf.ShowFontName[SongFolderNo, 0], num2);
-						Font notationsFontR = new Font(gf.ShowFontName[SongFolderNo, 1], num2);
+						Font mainFont = new Font(Gf.ShowFontName[SongFolderNo, 0], hTMLRTFFontSize);
+						Font mainFontR = new Font(Gf.ShowFontName[SongFolderNo, 1], hTMLRTFFontSize);
+						Font notationsFont = new Font(Gf.ShowFontName[SongFolderNo, 0], num2);
+						Font notationsFontR = new Font(Gf.ShowFontName[SongFolderNo, 1], num2);
 						GenerateOneRTFFile(i, text10, num, mainFont, mainFontR, notationsFont, notationsFontR);
 					}
 				}
-				FileUtil.CreateNewFile(gf.GenHTMLDir + "index.htm", (!gf.HTMLDoubleByte) ? FileUtil.FileContentsType.Ascii_Html : FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString());
+				FileUtil.CreateNewFile(Gf.GenHTMLDir + "index.htm", (!Gf.HTMLDoubleByte) ? FileUtil.FileContentsType.Ascii_Html : FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString());
 				ProgressBar1.Value = 100;
 			}
 			catch
@@ -448,7 +444,7 @@ namespace Easislides
 					{
 						if (((HTML_ShowHeadings[1] > 0) & HtmlItem.VersePresent[2]) && HtmlItem.Slide[CurSlide, 0] != 101)
 						{
-							str = gf.VerseTitle[HtmlItem.Slide[CurSlide, 0]] + NewLine;
+							str = Gf.VerseTitle[HtmlItem.Slide[CurSlide, 0]] + NewLine;
 						}
 						CurFormat = 3;
 						flag = true;
@@ -477,17 +473,17 @@ namespace Easislides
 					stringBuilder.Append("</p><font size=\"2\">" + CopyrightInfo);
 				}
 				str2 = "";
-				if ((BookRefInfo != "") & gf.HTMLShowBookRef)
+				if ((BookRefInfo != "") & Gf.HTMLShowBookRef)
 				{
 					stringBuilder.Append(((CopyrightInfo == "") ? "</p><font size=\"2\">" : "<BR>") + BookRefInfo);
 				}
 				str2 = "";
-				if ((UserRefInfo != "") & gf.HTMLShowUserRef)
+				if ((UserRefInfo != "") & Gf.HTMLShowUserRef)
 				{
 					stringBuilder.Append((((CopyrightInfo == "") & (BookRefInfo == "")) ? "</p><font size=\"2\">" : "<BR>") + UserRefInfo);
 				}
 				stringBuilder.Append("</p>&nbsp;</div></SPAN>");
-				FileUtil.CreateNewFile(gf.GenHTMLDir + OutputFileName + ".htm", (!gf.HTMLDoubleByte) ? FileUtil.FileContentsType.Ascii_Html : FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString());
+				FileUtil.CreateNewFile(Gf.GenHTMLDir + OutputFileName + ".htm", (!Gf.HTMLDoubleByte) ? FileUtil.FileContentsType.Ascii_Html : FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString());
 				stringBuilder.Remove(0, stringBuilder.Length);
 			}
 			catch
@@ -512,7 +508,7 @@ namespace Easislides
 			text = DataUtil.TrimEnd(text);
 			if (CurFormat == 4)
 			{
-				return "<blockquote>" + (gf.HTMLShowChorusItalics ? "<em>" : "") + text + (gf.HTMLShowChorusItalics ? "</em>" : "") + "</blockquote>";
+				return "<blockquote>" + (Gf.HTMLShowChorusItalics ? "<em>" : "") + text + (Gf.HTMLShowChorusItalics ? "</em>" : "") + "</blockquote>";
 			}
 			return text;
 		}
@@ -522,19 +518,19 @@ namespace Easislides
 			StringBuilder stringBuilder = new StringBuilder();
 			MainHeaderInfo1 = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 " + MainFont.Name + ";}{\\f1\\fnil\\fcharset0 " + MainFontR2.Name + ";}}\\viewkind1\\uc1\\pard\\f0\\fs" + Convert.ToString(MainFont.Size * 2f) + "\\margr600\\margl1000\\margt900\\margb1000 ";
 			
-			using StreamWriter streamWriter = new StreamWriter($"{gf.GenHTMLDir}{OutputFileName}.rtf", append: false, FileUtil.Utf8WithBom);
+			using StreamWriter streamWriter = new StreamWriter($"{Gf.GenHTMLDir}{OutputFileName}.rtf", append: false, FileUtil.Utf8WithBom);
 			try
 			{
 				streamWriter.AutoFlush = true;
 				streamWriter.Write(MainHeaderInfo1);
-				streamWriter.Write(DataUtil.UnicodeToAscii_RTF("\\b1\\ul " + SongTitle + "\\b0\\ulnone " + gf.RTFNewLine));
+				streamWriter.Write(DataUtil.UnicodeToAscii_RTF("\\b1\\ul " + SongTitle + "\\b0\\ulnone " + Gf.RTFNewLine));
 				if (SongKey != "" || SongCapo > 0)
 				{
 					SongKey = ((SongKey != "") ? ("Key: " + SongKey + "  ") : "");
 					string text = (SongCapo > 0) ? ("Capo " + SongCapo) : "";
-					streamWriter.Write(DataUtil.UnicodeToAscii_RTF(gf.RTFNewLine + "\\b0\\ulnone " + SongKey + text + "\\b0\\ulnone "));
+					streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFNewLine + "\\b0\\ulnone " + SongKey + text + "\\b0\\ulnone "));
 				}
-				streamWriter.Write(DataUtil.UnicodeToAscii_RTF(gf.RTFNewLine));
+				streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFNewLine));
 				bool flag = false;
 				for (int i = 1; i <= HtmlItem.TotalSlides; i++)
 				{
@@ -543,7 +539,7 @@ namespace Easislides
 						flag = true;
 						i = HtmlItem.TotalSlides + 1;
 					}
-					else if (((HTML_ShowHeadings[0] > 0) & HtmlItem.VersePresent[2]) && HtmlItem.Slide[CurSlide, 0] != 101 && gf.VerseTitle[HtmlItem.Slide[CurSlide, 0]] != "")
+					else if (((HTML_ShowHeadings[0] > 0) & HtmlItem.VersePresent[2]) && HtmlItem.Slide[CurSlide, 0] != 101 && Gf.VerseTitle[HtmlItem.Slide[CurSlide, 0]] != "")
 					{
 						flag = true;
 						i = HtmlItem.TotalSlides + 1;
@@ -561,7 +557,7 @@ namespace Easislides
 						text2 = "\\par ";
 						if (HTML_ShowHeadings[0] > 0 && !ChorusDone)
 						{
-							text2 += gf.FolderLyricsHeading[SongFolderNo, 0];
+							text2 += Gf.FolderLyricsHeading[SongFolderNo, 0];
 							text2 = ((text2 != "") ? text2 : "");
 						}
 						if (!ChorusDone)
@@ -578,40 +574,40 @@ namespace Easislides
 					{
 						if (((HTML_ShowHeadings[1] > 0) & HtmlItem.VersePresent[2]) && HtmlItem.Slide[CurSlide, 0] != 101)
 						{
-							text2 = gf.VerseTitle[HtmlItem.Slide[CurSlide, 0]];
+							text2 = Gf.VerseTitle[HtmlItem.Slide[CurSlide, 0]];
 						}
 						CurFormat = 3;
 					}
 					if (HtmlItem.Slide[CurSlide, 2] > 0)
 					{
 						str = AddtoFTPFile(HtmlItem.Slide[CurSlide, 1], HtmlItem.Slide[CurSlide, 2], MainFont, NotationsFont, 0, CurFormat == 4 || flag, text2);
-						stringBuilder.Append(((CurFormat == 4) ? "" : gf.RTFNewLine) + str);
+						stringBuilder.Append(((CurFormat == 4) ? "" : Gf.RTFNewLine) + str);
 						text2 = "";
 					}
 					if (HtmlItem.Slide[CurSlide, 4] > 0)
 					{
 						str = AddtoFTPFile(HtmlItem.Slide[CurSlide, 3], HtmlItem.Slide[CurSlide, 4], MainFontR2, NotationsFontR2, 1, CurFormat == 4 || flag, text2);
-						stringBuilder.Append(((CurFormat == 4) ? "" : gf.RTFNewLine) + str);
+						stringBuilder.Append(((CurFormat == 4) ? "" : Gf.RTFNewLine) + str);
 					}
 					if (ShowFirstLineOnly)
 					{
 						i += InChorusSlideCount - 1;
 					}
 				}
-				stringBuilder.Append(gf.RTFNewLine + gf.RTFIndent[2]);
+				stringBuilder.Append(Gf.RTFNewLine + Gf.RTFIndent[2]);
 				if (CopyrightInfo != "")
 				{
-					stringBuilder.Append(gf.RTFNewLine + CopyrightInfo);
+					stringBuilder.Append(Gf.RTFNewLine + CopyrightInfo);
 				}
 				str = "";
-				if ((BookRefInfo != "") & gf.HTMLShowBookRef)
+				if ((BookRefInfo != "") & Gf.HTMLShowBookRef)
 				{
-					stringBuilder.Append(gf.RTFNewLine + BookRefInfo);
+					stringBuilder.Append(Gf.RTFNewLine + BookRefInfo);
 				}
 				str = "";
-				if ((UserRefInfo != "") & gf.HTMLShowUserRef)
+				if ((UserRefInfo != "") & Gf.HTMLShowUserRef)
 				{
-					stringBuilder.Append(gf.RTFNewLine + UserRefInfo);
+					stringBuilder.Append(Gf.RTFNewLine + UserRefInfo);
 				}
 				streamWriter.Write(DataUtil.UnicodeToAscii_RTF(stringBuilder.ToString()));
 				streamWriter.Write("}");
@@ -633,7 +629,7 @@ namespace Easislides
 			string text3 = "";
 			string text4 = "\\f" + RegionNum + "\\fs" + Convert.ToString(MainFont.Size * 2f);
 			string str = "\\f" + RegionNum + "\\fs" + Convert.ToString(NotationsFont.Size * 2f);
-			string text5 = HeadingPresent ? gf.RTFTab : "";
+			string text5 = HeadingPresent ? Gf.RTFTab : "";
 			NotationsPresent = false;
 			if (ShowNotations)
 			{
@@ -658,7 +654,7 @@ namespace Easislides
 					if (NotationsPresent)
 					{
 						text = HtmlItem.LyricsAndNotationsList.Items[i].SubItems[3].Text;
-						gf.SubDivideTextAndNotations(text3, text, MainFont, NotationsFont, ref SubDivideList, RTFMaxTextWidth);
+						Gf.SubDivideTextAndNotations(text3, text, MainFont, NotationsFont, ref SubDivideList, RTFMaxTextWidth);
 						text = str + SubDivideList.Items[0].SubItems[1].Text + "\\par " + text5;
 					}
 					string text6 = text2;
@@ -669,9 +665,9 @@ namespace Easislides
 			text2 = DataUtil.TrimEnd(text2);
 			if (CurFormat == 4)
 			{
-				return gf.RTFIndent[0] + (gf.HTMLShowChorusItalics ? "\\i " : "") + text2 + (gf.HTMLShowChorusItalics ? "\\i0" : "");
+				return Gf.RTFIndent[0] + (Gf.HTMLShowChorusItalics ? "\\i " : "") + text2 + (Gf.HTMLShowChorusItalics ? "\\i0" : "");
 			}
-			return (HeadingPresent ? gf.RTFIndent[1] : gf.RTFIndent[2]) + text2;
+			return (HeadingPresent ? Gf.RTFIndent[1] : Gf.RTFIndent[2]) + text2;
 		}
 
 		protected override void Dispose(bool disposing)

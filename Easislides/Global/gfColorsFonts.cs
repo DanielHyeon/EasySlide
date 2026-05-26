@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 		public static Color SelectNewColour(Color CurColour)
 		{

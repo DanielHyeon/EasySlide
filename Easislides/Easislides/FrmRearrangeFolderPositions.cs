@@ -28,7 +28,7 @@ namespace Easislides
 
 		private Panel panel1;
 
-		private int[] OriginalFolderPosition = new int[gf.MAXSONGSFOLDERS];
+		private int[] OriginalFolderPosition = new int[Gf.MAXSONGSFOLDERS];
 
 		protected override void Dispose(bool disposing)
 		{
@@ -188,9 +188,9 @@ namespace Easislides
 		{
 			ListViewItem listViewItem = new ListViewItem();
 			SongFolder.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				listViewItem = SongFolder.Items.Add(gf.FolderName[i]);
+				listViewItem = SongFolder.Items.Add(Gf.FolderName[i]);
 				listViewItem.SubItems.Add(i.ToString());
 			}
 		}
@@ -216,7 +216,7 @@ namespace Easislides
 			{
 				return;
 			}
-			int selectedIndex = gf.GetSelectedIndex(SongFolder);
+			int selectedIndex = Gf.GetSelectedIndex(SongFolder);
 			if (selectedIndex >= 1)
 			{
 				for (int i = 0; i <= 1; i++)
@@ -238,7 +238,7 @@ namespace Easislides
 			{
 				return;
 			}
-			int selectedIndex = gf.GetSelectedIndex(SongFolder);
+			int selectedIndex = Gf.GetSelectedIndex(SongFolder);
 			if (!((selectedIndex < 0) | (selectedIndex == count - 1)))
 			{
 				for (int i = 0; i <= 1; i++)
@@ -255,17 +255,16 @@ namespace Easislides
 
 		private void OKBtn_Click(object sender, EventArgs e)
 		{
-			bool flag = false;
 			Cursor = Cursors.WaitCursor;
-			string inName = gf.FolderName[gf.JumpToA];
-			string inName2 = gf.FolderName[gf.JumpToB];
-			string inName3 = gf.FolderName[gf.JumpToC];
-			if (gf.SwapFolderNumbers(SongFolder))
+			string inName = Gf.FolderName[Gf.JumpToA];
+			string inName2 = Gf.FolderName[Gf.JumpToB];
+			string inName3 = Gf.FolderName[Gf.JumpToC];
+			if (Gf.SwapFolderNumbers(SongFolder))
 			{
-				gf.LoadFolderNamesArray();
-				gf.JumpToA = gf.GetFolderNumber(inName);
-				gf.JumpToB = gf.GetFolderNumber(inName2);
-				gf.JumpToC = gf.GetFolderNumber(inName3);
+				Gf.LoadFolderNamesArray();
+				Gf.JumpToA = Gf.GetFolderNumber(inName);
+				Gf.JumpToB = Gf.GetFolderNumber(inName2);
+				Gf.JumpToC = Gf.GetFolderNumber(inName3);
 				base.DialogResult = DialogResult.OK;
 			}
 			else

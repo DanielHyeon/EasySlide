@@ -210,25 +210,25 @@ namespace Easislides
 			lblRegDetails.Text = RegUtil.GetRegValue("config", "RegistrationUser", "");
 			lblVersion.Text = "Software Version: 5.0.0";
 			lblCopyright.Text = "Copyright " + '©' + " 2019 daniel park revision";
-			lbleula.Text = gf.EULA;
+			lbleula.Text = Gf.EULA;
 			lbleula.SelectionStart = 0;
 			lbleula.SelectionLength = 0;
 		}
 
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
-			gf.UserString = DataUtil.Trim(lblRegDetails.Text);
-			RegUtil.SaveRegValue("config", "RegistrationUser", gf.UserString);
+			Gf.UserString = DataUtil.Trim(lblRegDetails.Text);
+			RegUtil.SaveRegValue("config", "RegistrationUser", Gf.UserString);
 		}
 
 		private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			gf.RunProcess(linkLabel1.Text);
+			Gf.RunProcess(linkLabel1.Text);
 		}
 
 		private void lbleula_LinkClicked(object sender, LinkClickedEventArgs e)
 		{
-			gf.RunProcess(e.LinkText);
+			Gf.RunProcess(e.LinkText);
 		}
 
 		private void BtnSysInfo_Click(object sender, EventArgs e)
@@ -236,7 +236,7 @@ namespace Easislides
 			string text = (string)Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Shared Tools\\MSINFO").GetValue("Path", "");
 			if (File.Exists(text))
 			{
-				gf.RunProcess(text);
+				Gf.RunProcess(text);
 			}
 		}
 	}

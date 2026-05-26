@@ -16,7 +16,7 @@ using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 		private const int MaxTitleLength = 100;
 		private const int MaxSequenceLength = 100;
@@ -69,7 +69,7 @@ namespace Easislides
 			{
 				RegUtil.SaveRegValue("config", "media_dir", regValue);
 			}
-			RegUtil.DeleletRegKey("config", name);
+			RegUtil.DeleteRegKey("config", name);
 			string text = RootEasiSlidesDir + "Admin\\Database\\MusicExtensions.txt";
 			string text2 = RootEasiSlidesDir + "Admin\\Database\\MediaExtensions.txt";
 			if (File.Exists(text) && !File.Exists(text2))
@@ -816,7 +816,7 @@ namespace Easislides
 				DMOption1Width = 100;
 			}
 
-			//if (!gf.isScreenWideMode)
+			//if (!Gf.isScreenWideMode)
 			//	DMOption1Height = DMOption1Width * 3 / 4;
 			//else
 			//	DMOption1Height = DMOption1Height;
@@ -860,10 +860,8 @@ namespace Easislides
 				LMOption1Width = 100;
 			}
 
-			if (!gf.isScreenWideMode)
+			if (!Gf.isScreenWideMode)
 				LMOption1Height = LMOption1Width * 3 / 4;
-			else
-				LMOption1Height = LMOption1Height;
 
 			if (LMOption1Height < 1)
 			{
@@ -896,7 +894,6 @@ namespace Easislides
 			FocusedTextRegionColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("options", "FocusedBackColour", FocusedTextRegionColour.ToArgb())));
 			TextRegionSlideTextColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("options", "SelectedSlideTextColour", TextRegionSlideTextColour.ToArgb())));
 			TextRegionSlideBackColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("options", "SelectedSlideBackColour", TextRegionSlideBackColour.ToArgb())));
-			string text2 = "";
 			TotalMediaFileExt = 0;
 			MediaExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\MediaExtensions.txt";
 			AudioExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\AudioExtensions.txt";

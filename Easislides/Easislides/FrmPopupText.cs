@@ -22,8 +22,8 @@ namespace Easislides
 
 		private void FrmPopup_Load(object sender, EventArgs e)
 		{
-			tbData.MaxLength = gf.popUpTextMaxLength;
-			tbData.Text = DataUtil.Left(gf.popUpText, gf.popUpTextMaxLength);
+			tbData.MaxLength = Gf.popUpTextMaxLength;
+			tbData.Text = DataUtil.Left(Gf.popUpText, Gf.popUpTextMaxLength);
 		}
 
 		private void FrmPopup_FormClosed(object sender, FormClosedEventArgs e)
@@ -32,7 +32,7 @@ namespace Easislides
 
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
-			gf.popUpText = tbData.Text;
+			Gf.popUpText = tbData.Text;
 			Close();
 		}
 

@@ -17,7 +17,7 @@ using DbConnection = System.Data.SQLite.SQLiteConnection;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 		// Field definition structure for database schema validation
 		private struct FieldDefinition

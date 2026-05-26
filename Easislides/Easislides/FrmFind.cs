@@ -600,7 +600,7 @@ namespace Easislides
 		/// <param name="e"></param>
 		private void FrmFind_Load(object sender, EventArgs e)
 		{
-			gf.FindItemsFormOpen = true;
+			Gf.FindItemsFormOpen = true;
 			int num = RegUtil.GetRegValue("settings", Reg_FormLeft, 50);
 			int num2 = RegUtil.GetRegValue("settings", Reg_FormTop, 100);
 			if (num < 0)
@@ -622,38 +622,38 @@ namespace Easislides
 			base.Top = num2;
 			base.Left = num;
 			FolderList.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if ((gf.FolderName[i].ToString() != "") & (gf.FolderUse[i] > 0))
+				if ((Gf.FolderName[i].ToString() != "") & (Gf.FolderUse[i] > 0))
 				{
-					FolderList.Items.Add(gf.FolderName[i]);
-					if (gf.FindSongsFolder[gf.GetFolderNumber(gf.FolderName[i])])
+					FolderList.Items.Add(Gf.FolderName[i]);
+					if (Gf.FindSongsFolder[Gf.GetFolderNumber(Gf.FolderName[i])])
 					{
 						FolderList.SetItemChecked(FolderList.Items.Count - 1, value: true);
 					}
 				}
 			}
-			gf.Find_SQLString = "";
-			txtName.Text = gf.FindSearchPhrase;
-			cbTitle.Checked = gf.FindItemInTitle;
-			cbContents.Checked = gf.FindItemInContents;
-			cbSongNumber.Checked = gf.FindItemInSongNumber;
-			cbBookRef.Checked = gf.FindItemInBookRef;
-			cbUserRef.Checked = gf.FindItemInUserRef;
-			cbLicAdmin.Checked = gf.FindItemInLicAdmin;
-			cbWriter.Checked = gf.FindItemInWriter;
-			cbCopyright.Checked = gf.FindItemInCopyright;
-			cbMusicOnly.Checked = gf.FindItemMediaOnly;
-			cbNotationsOnly.Checked = gf.FindItemNotationsOnly;
-			cbUseDates.Checked = gf.FindItemUseDates;
-			CalendarFrom.Value = DateTime.Parse(gf.FindItemDateFrom.ToShortTimeString());
-			CalendarTo.Value = DateTime.Parse(gf.FindItemDateTo.ToShortTimeString());
+			Gf.Find_SQLString = "";
+			txtName.Text = Gf.FindSearchPhrase;
+			cbTitle.Checked = Gf.FindItemInTitle;
+			cbContents.Checked = Gf.FindItemInContents;
+			cbSongNumber.Checked = Gf.FindItemInSongNumber;
+			cbBookRef.Checked = Gf.FindItemInBookRef;
+			cbUserRef.Checked = Gf.FindItemInUserRef;
+			cbLicAdmin.Checked = Gf.FindItemInLicAdmin;
+			cbWriter.Checked = Gf.FindItemInWriter;
+			cbCopyright.Checked = Gf.FindItemInCopyright;
+			cbMusicOnly.Checked = Gf.FindItemMediaOnly;
+			cbNotationsOnly.Checked = Gf.FindItemNotationsOnly;
+			cbUseDates.Checked = Gf.FindItemUseDates;
+			CalendarFrom.Value = DateTime.Parse(Gf.FindItemDateFrom.ToShortTimeString());
+			CalendarTo.Value = DateTime.Parse(Gf.FindItemDateTo.ToShortTimeString());
 			cbUseDatesChanged();
 			PopulateKeyTiming();
 			TimerRestoreWindow.Start();
 			BibleLookup.Items.Clear();
 			BookLookup.Items.Clear();
-			if (gf.HB_TotalVersions < 1)
+			if (Gf.HB_TotalVersions < 1)
 			{
 				TabControl1.TabPages[1].Enabled = false;
 				TabControl1.SelectedIndex = 0;
@@ -662,17 +662,17 @@ namespace Easislides
 				return;
 			}
 			TabControl1.TabPages[1].Enabled = true;
-			gf.HB_SQLString = "";
-			PassageSearchBox.Text = gf.FindBibleSearchPhrase;
+			Gf.HB_SQLString = "";
+			PassageSearchBox.Text = Gf.FindBibleSearchPhrase;
 			InitFormLoad = true;
-			for (int i = 0; i <= gf.HB_TotalVersions - 1; i++)
+			for (int i = 0; i <= Gf.HB_TotalVersions - 1; i++)
 			{
-				BibleLookup.Items.Add(gf.HB_Versions[i, 1] + " - " + gf.HB_Versions[i, 2]);
+				BibleLookup.Items.Add(Gf.HB_Versions[i, 1] + " - " + Gf.HB_Versions[i, 2]);
 			}
 			InitFormLoad = false;
-			BibleLookup.SelectedIndex = gf.HB_CurVersionTabIndex;
-			BookLookup.SelectedIndex = gf.FindBibleBookIndex;
-			if (gf.FindBibleVerses)
+			BibleLookup.SelectedIndex = Gf.HB_CurVersionTabIndex;
+			BookLookup.SelectedIndex = Gf.FindBibleBookIndex;
+			if (Gf.FindBibleVerses)
 			{
 				TabControl1.SelectedIndex = 1;
 				PassageSearchBox.Focus();
@@ -715,7 +715,7 @@ namespace Easislides
 			SongKey.Items.Add("Gbm");
 			SongKey.Items.Add("F#");
 			SongKey.Items.Add("F#m");
-			SongKey.Text = gf.FindItemWithKey;
+			SongKey.Text = Gf.FindItemWithKey;
 		}
 
 		private void PopulateKeyTiming()
@@ -724,7 +724,7 @@ namespace Easislides
 			SongKey.Items.Add("");
 			string fullSearchString = "select DISTINCT Key FROM SONG ORDER BY Key";
 			string text = "";
-			using DataTable datatable1 = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
+			using DataTable datatable1 = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
 			if (datatable1.Rows.Count > 0)
 			{
@@ -739,13 +739,13 @@ namespace Easislides
 				}
 			}
 
-			SongKey.Text = gf.FindItemWithKey;
+			SongKey.Text = Gf.FindItemWithKey;
 			SongTiming.Items.Clear();
 			SongTiming.Items.Add("");
 			fullSearchString = "select DISTINCT Timing FROM SONG ORDER BY Timing";
 
 
-			using DataTable datatable2 = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
+			using DataTable datatable2 = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
 			if (datatable2.Rows.Count > 0)
 			{
@@ -760,7 +760,7 @@ namespace Easislides
 				}
 			}
 			
-			SongTiming.Text = gf.FindItemWithTiming;
+			SongTiming.Text = Gf.FindItemWithTiming;
 		}
 
 		private void BibleLookup_SelectedIndexChanged(object sender, EventArgs e)
@@ -775,7 +775,7 @@ namespace Easislides
 		{
 			if (BibleLookup.Items.Count >= 1)
 			{
-				gf.LoadBibleBooksList(BibleLookup.SelectedIndex, ref BookLookup, ShowAllBooksLine: true, ShowSearchResultsLine: false);
+				Gf.LoadBibleBooksList(BibleLookup.SelectedIndex, ref BookLookup, ShowAllBooksLine: true, ShowSearchResultsLine: false);
 			}
 		}
 
@@ -789,14 +789,14 @@ namespace Easislides
 		{
 			SaveFormLocation();
 			TimerRestoreWindow.Stop();
-			gf.FindItemsFormOpen = false;
+			Gf.FindItemsFormOpen = false;
 		}
 
 		private void TimerRestoreWindow_Tick(object sender, EventArgs e)
 		{
-			if (gf.FindItemRestoreWindow)
+			if (Gf.FindItemRestoreWindow)
 			{
-				gf.FindItemRestoreWindow = false;
+				Gf.FindItemRestoreWindow = false;
 				if (base.WindowState == FormWindowState.Minimized)
 				{
 					base.WindowState = FormWindowState.Normal;
@@ -822,39 +822,39 @@ namespace Easislides
 					return;
 				}
 				txtName.Text = DataUtil.Trim(txtName.Text);
-				gf.FindSearchPhrase = txtName.Text;
-				gf.FindItemInTitle = cbTitle.Checked;
-				gf.FindItemInContents = cbContents.Checked;
-				gf.FindItemInSongNumber = cbSongNumber.Checked;
-				gf.FindItemInBookRef = cbBookRef.Checked;
-				gf.FindItemInUserRef = cbUserRef.Checked;
-				gf.FindItemInLicAdmin = cbLicAdmin.Checked;
-				gf.FindItemInWriter = cbWriter.Checked;
-				gf.FindItemInCopyright = cbCopyright.Checked;
-				gf.FindItemMediaOnly = cbMusicOnly.Checked;
-				gf.FindItemNotationsOnly = cbNotationsOnly.Checked;
-				gf.FindItemWithKey = SongKey.Text;
-				gf.FindItemWithTiming = SongTiming.Text;
-				gf.FindItemUseDates = cbUseDates.Checked;
-				gf.FindItemDateFrom = CalendarFrom.Value;
-				gf.FindItemDateTo = CalendarTo.Value;
-				gf.Find_SQLString = gf.BuildItemSearchString(txtName.Text, gf.FindItemInTitle, gf.FindItemInContents, gf.FindItemInSongNumber, gf.FindItemInBookRef, gf.FindItemInUserRef, gf.FindItemInLicAdmin, gf.FindItemInWriter, gf.FindItemInCopyright, gf.FindItemNotationsOnly, gf.FindItemWithKey, gf.FindItemWithTiming, gf.FindItemUseDates, gf.FindItemDateFrom, gf.FindItemDateTo, FolderList);
-				if (gf.Find_SQLString != "")
+				Gf.FindSearchPhrase = txtName.Text;
+				Gf.FindItemInTitle = cbTitle.Checked;
+				Gf.FindItemInContents = cbContents.Checked;
+				Gf.FindItemInSongNumber = cbSongNumber.Checked;
+				Gf.FindItemInBookRef = cbBookRef.Checked;
+				Gf.FindItemInUserRef = cbUserRef.Checked;
+				Gf.FindItemInLicAdmin = cbLicAdmin.Checked;
+				Gf.FindItemInWriter = cbWriter.Checked;
+				Gf.FindItemInCopyright = cbCopyright.Checked;
+				Gf.FindItemMediaOnly = cbMusicOnly.Checked;
+				Gf.FindItemNotationsOnly = cbNotationsOnly.Checked;
+				Gf.FindItemWithKey = SongKey.Text;
+				Gf.FindItemWithTiming = SongTiming.Text;
+				Gf.FindItemUseDates = cbUseDates.Checked;
+				Gf.FindItemDateFrom = CalendarFrom.Value;
+				Gf.FindItemDateTo = CalendarTo.Value;
+				Gf.Find_SQLString = Gf.BuildItemSearchString(txtName.Text, Gf.FindItemInTitle, Gf.FindItemInContents, Gf.FindItemInSongNumber, Gf.FindItemInBookRef, Gf.FindItemInUserRef, Gf.FindItemInLicAdmin, Gf.FindItemInWriter, Gf.FindItemInCopyright, Gf.FindItemNotationsOnly, Gf.FindItemWithKey, Gf.FindItemWithTiming, Gf.FindItemUseDates, Gf.FindItemDateFrom, Gf.FindItemDateTo, FolderList);
+				if (Gf.Find_SQLString != "")
 				{
-					gf.FindFolderItems = true;
-					gf.FindItemsRequested = true;
+					Gf.FindFolderItems = true;
+					Gf.FindItemsRequested = true;
 				}
 			}
-			else if (TabControl1.SelectedIndex == 1 && gf.HB_TotalVersions >= 1)
+			else if (TabControl1.SelectedIndex == 1 && Gf.HB_TotalVersions >= 1)
 			{
-				string text = gf.BuildBibleSearchString(MatchSelected: MatchAny.Checked ? 1 : ((!MatchAll.Checked) ? 2 : 0), InSearchPassage: PassageSearchBox.Text, VersionIndex: BibleLookup.SelectedIndex, BookIndex: BookLookup.SelectedIndex);
+				string text = Gf.BuildBibleSearchString(MatchSelected: MatchAny.Checked ? 1 : ((!MatchAll.Checked) ? 2 : 0), InSearchPassage: PassageSearchBox.Text, VersionIndex: BibleLookup.SelectedIndex, BookIndex: BookLookup.SelectedIndex);
 				if (text != "")
 				{
-					gf.HB_CurVersionTabIndex = BibleLookup.SelectedIndex;
-					gf.HB_SQLString = text;
-					gf.FindBibleSearchPhrase = PassageSearchBox.Text;
-					gf.FindBibleBookIndex = BookLookup.SelectedIndex;
-					gf.FindItemsRequested = true;
+					Gf.HB_CurVersionTabIndex = BibleLookup.SelectedIndex;
+					Gf.HB_SQLString = text;
+					Gf.FindBibleSearchPhrase = PassageSearchBox.Text;
+					Gf.FindBibleBookIndex = BookLookup.SelectedIndex;
+					Gf.FindItemsRequested = true;
 				}
 			}
 		}

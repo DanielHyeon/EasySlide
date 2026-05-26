@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using static Easislides.gf;
+using static Easislides.Gf;
 
 namespace Easislides.Module
 {

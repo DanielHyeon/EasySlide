@@ -12,7 +12,7 @@ using DbDataReader = System.Data.SQLite.SQLiteDataReader;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
+    internal unsafe partial class Gf
     {
 
 		public static void LoadBibleVersions(ref TabControl InTab)

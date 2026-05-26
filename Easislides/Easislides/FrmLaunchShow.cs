@@ -82,11 +82,7 @@ namespace Easislides
 
 		private bool FirstItemLoaded = true;
 
-		private bool ItemMediaChangedSinceLiveCam = false;
-
 		private bool FirstItemBeingProcessed = true;
-
-		private bool CursorOverForm = false;
 
 		private bool CurItemRotates = false;
 
@@ -95,10 +91,6 @@ namespace Easislides
 		private string LiveMediaPosition = "";
 
 		private int intLiveMediaDuration = 0;
-
-		private int intLiveMediaPosition = 0;
-
-		private bool CurMediaDoRotate = false;
 
 		private bool CurMediaPlayingStatus = false;
 
@@ -205,23 +197,23 @@ namespace Easislides
 
 		private void InitForm()
 		{
-			BackColor = gf.TransparentColour;
-			base.TransparencyKey = gf.TransparentColour;
+			BackColor = Gf.TransparentColour;
+			base.TransparencyKey = Gf.TransparentColour;
 			LiveScreen.Parent = this;
 			LiveScreen.Dock = DockStyle.Fill;
-			gf.SetLiveShowScreenSaverSettings();
+			Gf.SetLiveShowScreenSaverSettings();
 			SetShowWindow(max: true);
-			TimerSingleScreen.Interval = gf.AlertGap;
-			TimerRemote.Interval = gf.AlertGap;
-			TimerMouseDown.Interval = gf.AlertGap;
-			TimerOpacity.Interval = gf.AlertGap;
-			gf.LiveItem.Initialise();
-			gf.RestartItemActioned = true;
-			gf.SetDefaultBackScreen(ref LiveScreen);
+			TimerSingleScreen.Interval = Gf.AlertGap;
+			TimerRemote.Interval = Gf.AlertGap;
+			TimerMouseDown.Interval = Gf.AlertGap;
+			TimerOpacity.Interval = Gf.AlertGap;
+			Gf.LiveItem.Initialise();
+			Gf.RestartItemActioned = true;
+			Gf.SetDefaultBackScreen(ref LiveScreen);
 
-			//if (gf.LyricsMonitorNumber > 0 || gf.LMSelectAutoOption > 0)
+			//if (Gf.LyricsMonitorNumber > 0 || Gf.LMSelectAutoOption > 0)
 			//{
-			//    gf.tbLyricsMonitorSpace.Font = new Font(gf.tbLyricsMonitorSpace.Font.Name, gf.DisplayFontSize(gf.LMMainFontSize, gf.LM_Width, 1, 1), gf.tbLyricsMonitorSpace.Font.Style);
+			//    Gf.tbLyricsMonitorSpace.Font = new Font(Gf.tbLyricsMonitorSpace.Font.Name, Gf.DisplayFontSize(Gf.LMMainFontSize, Gf.LM_Width, 1, 1), Gf.tbLyricsMonitorSpace.Font.Style);
 			//    try
 			//    {
 			//        RemoteControlLyricsWindow(LyricsWindowAction.Show);
@@ -231,9 +223,9 @@ namespace Easislides
 			//    }
 			//}
 
-			//if (gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || gf.LMSelectAutoOption > 0)
+			//if (Gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || Gf.LMSelectAutoOption > 0)
 			//{
-			//	gf.tbLyricsMonitorSpace.Font = new Font(gf.tbLyricsMonitorSpace.Font.Name, gf.DisplayFontSize(gf.LMMainFontSize, gf.LM_Width, 1, 1), gf.tbLyricsMonitorSpace.Font.Style);
+			//	Gf.tbLyricsMonitorSpace.Font = new Font(Gf.tbLyricsMonitorSpace.Font.Name, Gf.DisplayFontSize(Gf.LMMainFontSize, Gf.LM_Width, 1, 1), Gf.tbLyricsMonitorSpace.Font.Style);
 			//	try
 			//	{
 			//		RemoteControlLyricsWindow(LyricsWindowAction.Show);
@@ -243,45 +235,45 @@ namespace Easislides
 			//	}
 			//}
 
-			gf.MediaResetStartTime = true;
+			Gf.MediaResetStartTime = true;
 			ResetMediaSettings();
 			InitMediaWindow();
 			FirstItemBeingProcessed = true;
-			if (gf.OutputItem.Type == "G")
+			if (Gf.OutputItem.Type == "G")
 			{
 				string InTitle = "";
-				gf.LiveItem.CurItemNo = gf.StartPresAt;
-				LoadItem(ref gf.LiveItem, "G1", "", 0, ref InTitle, ImageTransitionControl.TransitionAction.None, ReLoadIfCaptureDevice: false);
+				Gf.LiveItem.CurItemNo = Gf.StartPresAt;
+				LoadItem(ref Gf.LiveItem, "G1", "", 0, ref InTitle, ImageTransitionControl.TransitionAction.None, ReLoadIfCaptureDevice: false);
 			}
 			else
 			{
-				LoadWorshipListItemToLive((!gf.AdHocItemPresent) ? gf.StartPresAt : 0, gf.OutputItem.CurSlide, ImageTransitionControl.TransitionAction.AsStored);
+				LoadWorshipListItemToLive((!Gf.AdHocItemPresent) ? Gf.StartPresAt : 0, Gf.OutputItem.CurSlide, ImageTransitionControl.TransitionAction.AsStored);
 			}
-			if (gf.MessageAlertRequested)
+			if (Gf.MessageAlertRequested)
 			{
 				Remote_MessageAlertRequested();
 			}
-			else if (gf.ParentalAlertRequested)
+			else if (Gf.ParentalAlertRequested)
 			{
 				Remote_ParentalAlertRequested();
 			}
 			FirstItemBeingProcessed = false;
-			//if (gf.ShowLiveCam)
+			//if (Gf.ShowLiveCam)
 			//{
 			//	Remote_LiveCamStartStop();
 			//}
-			if (gf.DualMonitorMode)
+			if (Gf.DualMonitorMode)
 			{
 				base.TopMost = true;
 				return;
 			}
-			gf.HideTaskBar();
+			Gf.HideTaskBar();
 			SetScreenOnTop(StartTimer: true);
 		}
 
 		private void InitMediaWindow()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				try
 				{
@@ -328,16 +320,16 @@ namespace Easislides
 
 		public void Remote_ItemIsVideo()
 		{
-			gf.LiveItem.Format.MediaTransparent = true;
-			gf.MediaCurrentItemIsVideo = true;
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
-			gf.MinimizePowerPointWindows(ref gf.LivePP);
+			Gf.LiveItem.Format.MediaTransparent = true;
+			Gf.MediaCurrentItemIsVideo = true;
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 		}
 
 		public void Remote_ItemIsNotVideo()
 		{
-			gf.MediaCurrentItemIsVideo = false;
-			gf.LiveItem.Format.MediaTransparent = false;
+			Gf.MediaCurrentItemIsVideo = false;
+			Gf.LiveItem.Format.MediaTransparent = false;
 		}
 
 		public void Remote_WorshipListChanged()
@@ -347,40 +339,40 @@ namespace Easislides
 
 		//public void Remote_LiveCamStartStop()
 		//{
-		//	if (gf.ShowLiveCam)
+		//	if (Gf.ShowLiveCam)
 		//	{
-		//		CurMediaDoRotate = gf.MediaDoRotate;
+		//		CurMediaDoRotate = Gf.MediaDoRotate;
 		//		TimerRotate.Stop();
 		//		RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadLiveCam);
-		//		ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+		//		ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		//		ItemMediaChangedSinceLiveCam = false;
-		//		gf.MinimizePowerPointWindows(ref gf.LivePP);
+		//		Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 		//		return;
 		//	}
-		//	if (gf.LiveItem.Type == "P")
+		//	if (Gf.LiveItem.Type == "P")
 		//	{
-		//		gf.RunPowerpointSong(ref gf.LiveItem, ref gf.LivePP, gf.LiveItem.CurSlide);
+		//		Gf.RunPowerpointSong(ref Gf.LiveItem, ref Gf.LivePP, Gf.LiveItem.CurSlide);
 		//	}
 		//	if (ItemMediaChangedSinceLiveCam)
 		//	{
 		//		Remote_SongChanged(ReLoadIfCaptureDevice: true);
 		//		return;
 		//	}
-		//	gf.MediaLiveItemStartTime = DateTime.Now.Subtract(gf.MediaPlayedLapseTime);
+		//	Gf.MediaLiveItemStartTime = DateTime.Now.Subtract(Gf.MediaPlayedLapseTime);
 		//	TimerRotate.Start();
 		//	RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ResumeItem);
-		//	gf.MediaDoRotate = CurMediaDoRotate;
-		//	if (gf.MediaDoRotate)
+		//	Gf.MediaDoRotate = CurMediaDoRotate;
+		//	if (Gf.MediaDoRotate)
 		//	{
 		//		RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_GetMediaTimings);
-		//		gf.MediaLiveItemStartTime = DateTime.Now.Subtract(new TimeSpan(0, 0, intLiveMediaPosition));
+		//		Gf.MediaLiveItemStartTime = DateTime.Now.Subtract(new TimeSpan(0, 0, intLiveMediaPosition));
 		//	}
-		//	ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: false, RedoBackground: true);
+		//	ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: false, RedoBackground: true);
 		//}
 
 		//public void Remote_LiveCamUpdate()
 		//{
-		//	if (gf.ShowLiveCam)
+		//	if (Gf.ShowLiveCam)
 		//	{
 		//		RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_UpdateLiveCam);
 		//	}
@@ -390,15 +382,15 @@ namespace Easislides
 		{
 			if (max)
 			{
-				base.Left = gf.LS_Left;
-				base.Top = gf.LS_Top;
-				base.Height = gf.LS_Height;
-				base.Width = gf.LS_Width;
+				base.Left = Gf.LS_Left;
+				base.Top = Gf.LS_Top;
+				base.Height = Gf.LS_Height;
+				base.Width = Gf.LS_Width;
 			}
 			else
 			{
-				base.Left = gf.LS_Left;
-				base.Top = gf.LS_Top;
+				base.Left = Gf.LS_Left;
+				base.Top = Gf.LS_Top;
 				base.Height = 0;
 				base.Width = 0;
 			}
@@ -409,20 +401,20 @@ namespace Easislides
 			{
 				return item.Format.MediaOutputMonitorName;
 			}
-			if (!string.IsNullOrEmpty(gf.MediaOutputMonitorName))
+			if (!string.IsNullOrEmpty(Gf.MediaOutputMonitorName))
 			{
-				return gf.MediaOutputMonitorName;
+				return Gf.MediaOutputMonitorName;
 			}
-			return gf.OutputMonitorName;
+			return Gf.OutputMonitorName;
 		}
 
 		private void SetScreenOnTop(bool StartTimer)
 		{
 			StayTopMost = StartTimer;
 			base.TopMost = StayTopMost;
-			if (StartTimer && !gf.DualMonitorMode)
+			if (StartTimer && !Gf.DualMonitorMode)
 			{
-				Cursor.Position = new Point(gf.LS_Left, gf.LS_Height - 1);
+				Cursor.Position = new Point(Gf.LS_Left, Gf.LS_Height - 1);
 				TimerSingleScreen.Start();
 			}
 			else
@@ -444,21 +436,21 @@ namespace Easislides
 
 		private void FormClosingCleanup()
 		{
-			gf.ResetShowRunningSettings();
-			gf.MessageAlertLive = false;
-			gf.ParentalAlertLive = false;
-			gf.ShowRunning = false;
+			Gf.ResetShowRunningSettings();
+			Gf.MessageAlertLive = false;
+			Gf.ParentalAlertLive = false;
+			Gf.ShowRunning = false;
 			TimerRotate.Stop();
 			TimerSingleScreen.Stop();
 			TimerRemote.Stop();
 			TimerMouseDown.Stop();
-			gf.OutputItem.Type = gf.LiveItem.Type;
-			gf.OutputItem.CurItemNo = ((gf.LiveItem.CurItemNo < 0) ? 1 : gf.LiveItem.CurItemNo);
-			gf.OutputItem.CurSlide = ((gf.LiveItem.CurSlide < 1) ? 1 : gf.LiveItem.CurSlide);
-			gf.RestoreScreenSaverSettings();
-			gf.ClearUpPowerpointWindows();
-			gf.RefreshWindowsDesktop();
-			gf.ShowTaskBar();
+			Gf.OutputItem.Type = Gf.LiveItem.Type;
+			Gf.OutputItem.CurItemNo = ((Gf.LiveItem.CurItemNo < 0) ? 1 : Gf.LiveItem.CurItemNo);
+			Gf.OutputItem.CurSlide = ((Gf.LiveItem.CurSlide < 1) ? 1 : Gf.LiveItem.CurSlide);
+			Gf.RestoreScreenSaverSettings();
+			Gf.ClearUpPowerpointWindows();
+			Gf.RefreshWindowsDesktop();
+			Gf.ShowTaskBar();
 		}
 
 		public void StopShow()
@@ -466,7 +458,7 @@ namespace Easislides
 			try
 			{
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_StopShow);
-				gf.DrawText(ref gf.LiveItem, ref LiveScreen, gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: true);
+				Gf.DrawText(ref Gf.LiveItem, ref LiveScreen, Gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: true);
 			}
 			catch
 			{
@@ -480,127 +472,127 @@ namespace Easislides
 			}
 			FormClosingCleanup();
 			Hide();
-			gf.RefreshWindowsDesktop();
+			Gf.RefreshWindowsDesktop();
 		}
 
 		public void Remote_DefaultBackgroundChanged()
 		{
-			gf.SetDefaultBackScreen(ref LiveScreen);
-			gf.SetShowBackground(gf.LiveItem, ref LiveScreen);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.SetDefaultBackScreen(ref LiveScreen);
+			Gf.SetShowBackground(Gf.LiveItem, ref LiveScreen);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		public void Remote_BackgroundChanged()
 		{
-			gf.SetShowBackground(gf.LiveItem, ref LiveScreen);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.SetShowBackground(Gf.LiveItem, ref LiveScreen);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		public void Remote_MoveToItemChanged()
 		{
-			MoveToLiveItem(gf.LiveItem, gf.MainAction_MoveToItemKeyDirection, gf.OutputItem.CurSlide);
+			MoveToLiveItem(Gf.LiveItem, Gf.MainAction_MoveToItemKeyDirection, Gf.OutputItem.CurSlide);
 		}
 
 		public void Remote_SongChanged(bool ReLoadIfCaptureDevice)
 		{
-			if (gf.OutputItem.Type == "G")
+			if (Gf.OutputItem.Type == "G")
 			{
-				ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 			}
 			else
 			{
-				LoadWorshipListItemToLive(gf.DualMonitorMode ? gf.OutputItem.CurItemNo : gf.LiveItem.CurItemNo, gf.OutputItem.CurSlide, gf.MainAction_SongChanged_Transaction, ReLoadIfCaptureDevice);
+				LoadWorshipListItemToLive(Gf.DualMonitorMode ? Gf.OutputItem.CurItemNo : Gf.LiveItem.CurItemNo, Gf.OutputItem.CurSlide, Gf.MainAction_SongChanged_Transaction, ReLoadIfCaptureDevice);
 			}
-			gf.LaunchShowUpdateDone = true;
+			Gf.LaunchShowUpdateDone = true;
 		}
 
 		public void Remote_SlideChanged(int InDirection)
 		{
-			if (gf.LiveItem.CurItemNo == gf.OutputItem.CurItemNo)
+			if (Gf.LiveItem.CurItemNo == Gf.OutputItem.CurItemNo)
 			{
-				if (gf.LiveItem.Type == "P")
+				if (Gf.LiveItem.Type == "P")
 				{
-					gf.LiveItem.CurSlide = gf.OutputItem.CurSlide;
-					MoveToSlideLiveItem(gf.LiveItem, KeyDirection.Refresh);
+					Gf.LiveItem.CurSlide = Gf.OutputItem.CurSlide;
+					MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.Refresh);
 				}
 				else
 				{
-					gf.LiveItem.CurSlide = gf.OutputItem.CurSlide;
-					MoveToSlideLiveItem(gf.LiveItem, KeyDirection.Refresh);
+					Gf.LiveItem.CurSlide = Gf.OutputItem.CurSlide;
+					MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.Refresh);
 				}
 			}
 			else
 			{
-				LoadWorshipListItemToLive(gf.OutputItem.CurItemNo, gf.OutputItem.CurSlide, ImageTransitionControl.TransitionAction.AsStored);
+				LoadWorshipListItemToLive(Gf.OutputItem.CurItemNo, Gf.OutputItem.CurSlide, ImageTransitionControl.TransitionAction.AsStored);
 			}
 		}
 
 		public void Remote_SongJumpTo()
 		{
-			if (gf.OutputItem.Type == "G")
+			if (Gf.OutputItem.Type == "G")
 			{
 				string InTitle = "";
-				LoadItem(ref gf.LiveItem, "G1", "", 0, ref InTitle, ImageTransitionControl.TransitionAction.None, ReLoadIfCaptureDevice: false);
+				LoadItem(ref Gf.LiveItem, "G1", "", 0, ref InTitle, ImageTransitionControl.TransitionAction.None, ReLoadIfCaptureDevice: false);
 			}
 			else
 			{
-				MoveToLiveItem(gf.LiveItem, KeyDirection.Refresh);
+				MoveToLiveItem(Gf.LiveItem, KeyDirection.Refresh);
 			}
 		}
 
 		public void Remote_LiveBlackClearChanged()
 		{
-			if (gf.LiveItem.Type == "P")
+			if (Gf.LiveItem.Type == "P")
 			{
-				gf.DrawText(ref gf.LiveItem, ref LiveScreen, gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+				Gf.DrawText(ref Gf.LiveItem, ref LiveScreen, Gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 			}
 			else
 			{
-				ShowSlide(ref gf.LiveItem, gf.GapItemUseFade ? ImageTransitionControl.TransitionAction.AsFade : ImageTransitionControl.TransitionAction.None);
+				ShowSlide(ref Gf.LiveItem, Gf.GapItemUseFade ? ImageTransitionControl.TransitionAction.AsFade : ImageTransitionControl.TransitionAction.None);
 			}
 		}
 
 		public void Remote_FormatChanged()
 		{
-			if (gf.LiveItem.Type != "P")
+			if (Gf.LiveItem.Type != "P")
 			{
-				RefreshSlidesFonts(ref gf.LiveItem, gf.MainAction_SongChanged_Transaction);
+				RefreshSlidesFonts(ref Gf.LiveItem, Gf.MainAction_SongChanged_Transaction);
 			}
 		}
 
 		public void Remote_PanelChanged()
 		{
-			if (gf.LiveItem.Type == "P")
+			if (Gf.LiveItem.Type == "P")
 			{
-				gf.DrawText(ref gf.LiveItem, ref LiveScreen, gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+				Gf.DrawText(ref Gf.LiveItem, ref LiveScreen, Gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 			}
 			else
 			{
-				RefreshSlidesFonts(ref gf.LiveItem, gf.MainAction_SongChanged_Transaction);
+				RefreshSlidesFonts(ref Gf.LiveItem, Gf.MainAction_SongChanged_Transaction);
 			}
 		}
 
 		public void Remote_ChineseChanged()
 		{
-			gf.SwitchChineseLyricsNotationListView(ref gf.LiveItem, gf.SwitchChinese(ref gf.LiveItem.CompleteLyrics));
-			if (gf.LiveItem.Type != "P")
+			Gf.SwitchChineseLyricsNotationListView(ref Gf.LiveItem, Gf.SwitchChinese(ref Gf.LiveItem.CompleteLyrics));
+			if (Gf.LiveItem.Type != "P")
 			{
-				ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 			}
 		}
 
 		public void Remote_MessageAlertRequested()
 		{
-			gf.MessageAlertRequested = false;
-			gf.AlertSettings(AlertType.Message);
-			LiveScreen.StartAlert(gf.LiveItem, gf.Alert_OriginalMessage, gf.AlertTimeRemaining, gf.Alert_UserFont, gf.Alert_Scroll, gf.Alert_Flash, gf.Alert_Transparent, gf.Alert_UserFontShadow, gf.Alert_UserFontOutline, gf.Alert_TextColour, gf.Alert_BackColour, gf.Alert_TextAlign, gf.Alert_VerticalAlign, gf.BottomBorderFactor);
+			Gf.MessageAlertRequested = false;
+			Gf.AlertSettings(AlertType.Message);
+			LiveScreen.StartAlert(Gf.LiveItem, Gf.Alert_OriginalMessage, Gf.AlertTimeRemaining, Gf.Alert_UserFont, Gf.Alert_Scroll, Gf.Alert_Flash, Gf.Alert_Transparent, Gf.Alert_UserFontShadow, Gf.Alert_UserFontOutline, Gf.Alert_TextColour, Gf.Alert_BackColour, Gf.Alert_TextAlign, Gf.Alert_VerticalAlign, Gf.BottomBorderFactor);
 		}
 
 		public void Remote_ParentalAlertRequested()
 		{
-			gf.ParentalAlertRequested = false;
-			gf.AlertSettings(AlertType.Parental);
-			LiveScreen.StartAlert(gf.LiveItem, gf.Alert_OriginalMessage, gf.AlertTimeRemaining, gf.Alert_UserFont, gf.Alert_Scroll, gf.Alert_Flash, gf.Alert_Transparent, gf.Alert_UserFontShadow, gf.Alert_UserFontOutline, gf.Alert_TextColour, gf.Alert_BackColour, gf.Alert_TextAlign, gf.Alert_VerticalAlign, gf.BottomBorderFactor);
+			Gf.ParentalAlertRequested = false;
+			Gf.AlertSettings(AlertType.Parental);
+			LiveScreen.StartAlert(Gf.LiveItem, Gf.Alert_OriginalMessage, Gf.AlertTimeRemaining, Gf.Alert_UserFont, Gf.Alert_Scroll, Gf.Alert_Flash, Gf.Alert_Transparent, Gf.Alert_UserFontShadow, Gf.Alert_UserFontOutline, Gf.Alert_TextColour, Gf.Alert_BackColour, Gf.Alert_TextAlign, Gf.Alert_VerticalAlign, Gf.BottomBorderFactor);
 		}
 
 		public void Remote_ReferenceAlertRequested(bool NewStatus)
@@ -610,7 +602,7 @@ namespace Easislides
 
 		public void Remote_LyricsAlertRequested()
 		{
-			gf.LyricsAlertRequested = false;
+			Gf.LyricsAlertRequested = false;
 			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_LyricsAlertChanged);
 		}
 
@@ -643,18 +635,18 @@ namespace Easislides
 
 		public string Remote_GetMediaTimings()
 		{
-			if (gf.ShowLiveCam)
+			if (Gf.ShowLiveCam)
 			{
 				return "";
 			}
 			string result = "";
-			if (gf.AutoRotateOn && CurItemRotates)
+			if (Gf.AutoRotateOn && CurItemRotates)
 			{
-				LiveMediaPosition = new DateTime(gf.MediaPlayedLapseTime.Ticks).ToString("mm:ss");
-				LiveMediaDuration = new DateTime(new TimeSpan(0, 0, gf.LiveItem.RotateTotal).Ticks).ToString("mm:ss");
-				result = LiveMediaPosition + ((gf.LiveItem.RotateTotal > 0) ? (" [" + LiveMediaDuration + "]") : "");
+				LiveMediaPosition = new DateTime(Gf.MediaPlayedLapseTime.Ticks).ToString("mm:ss");
+				LiveMediaDuration = new DateTime(new TimeSpan(0, 0, Gf.LiveItem.RotateTotal).Ticks).ToString("mm:ss");
+				result = LiveMediaPosition + ((Gf.LiveItem.RotateTotal > 0) ? (" [" + LiveMediaDuration + "]") : "");
 			}
-			else if (gf.LiveItem.Type == "M")
+			else if (Gf.LiveItem.Type == "M")
 			{
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_GetMediaTimings);
 				if (LiveMediaDuration != "")
@@ -667,10 +659,10 @@ namespace Easislides
 
 		//public string Remote_MediaItemPausePlay()
 		//{
-		//	if (gf.CurrentMediaLocation != "" && !gf.ShowLiveCam)
+		//	if (Gf.CurrentMediaLocation != "" && !Gf.ShowLiveCam)
 		//	{
 		//		RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_PausePlayItem);
-		//		gf.MediaDoRotate = false;
+		//		Gf.MediaDoRotate = false;
 		//	}
 		//	return "";
 		//}
@@ -691,7 +683,7 @@ namespace Easislides
 		//	if (StayTopMost && Cursor.Position.X >= base.Left && Cursor.Position.X <= base.Left + base.Width && Cursor.Position.Y >= base.Top && Cursor.Position.Y <= base.Top + base.Bottom)
 		//	{
 		//		Activate();
-		//		Cursor.Position = new Point(gf.LS_Left, gf.LS_Height - 1);
+		//		Cursor.Position = new Point(Gf.LS_Left, Gf.LS_Height - 1);
 		//	}
 		//}
 
@@ -708,9 +700,9 @@ namespace Easislides
 
         private void TimerMouseDown_Tick(object sender, EventArgs e)
 		{
-			if (!gf.DualMonitorMode)
+			if (!Gf.DualMonitorMode)
 			{
-				mousedown_timelapse += gf.AlertGap;
+				mousedown_timelapse += Gf.AlertGap;
 			}
 			else
 			{
@@ -724,16 +716,16 @@ namespace Easislides
 		/// <param name="KeyCode"></param>
 		private void ItemKeyPressed(SongSettings InItem, Keys KeyCode)
 		{
-			if (gf.DualMonitorMode)
+			if (Gf.DualMonitorMode)
 			{
-				gf.ReMapKeyBoard(ref KeyCode);
+				Gf.ReMapKeyBoard(ref KeyCode);
 				if (KeyCode == Keys.Escape || KeyCode == Keys.Subtract || KeyCode == Keys.OemMinus || KeyCode == Keys.F12)
 				{
 					this.OnMessage(10, "");
 				}
 				return;
 			}
-			gf.ReMapKeyBoard(ref KeyCode);
+			Gf.ReMapKeyBoard(ref KeyCode);
 			if (KeyCode == Keys.Escape || KeyCode == Keys.Subtract || KeyCode == Keys.OemMinus || KeyCode == Keys.F12)
 			{
 				//daniel
@@ -753,20 +745,20 @@ namespace Easislides
 				return;
 			}
 			case Keys.F9 or Keys.F10:
-				gf.ShowLiveBlack = !gf.ShowLiveBlack;
-				ShowSlide(ref gf.LiveItem, gf.GapItemUseFade ? ImageTransitionControl.TransitionAction.AsFade : ImageTransitionControl.TransitionAction.None);
+				Gf.ShowLiveBlack = !Gf.ShowLiveBlack;
+				ShowSlide(ref Gf.LiveItem, Gf.GapItemUseFade ? ImageTransitionControl.TransitionAction.AsFade : ImageTransitionControl.TransitionAction.None);
 				return;
 			case Keys.F3:
-				gf.ShowLiveClear = !gf.ShowLiveClear;
-				ShowSlide(ref gf.LiveItem, gf.GapItemUseFade ? ImageTransitionControl.TransitionAction.AsFade : ImageTransitionControl.TransitionAction.None);
+				Gf.ShowLiveClear = !Gf.ShowLiveClear;
+				ShowSlide(ref Gf.LiveItem, Gf.GapItemUseFade ? ImageTransitionControl.TransitionAction.AsFade : ImageTransitionControl.TransitionAction.None);
 				return;
 			//case Keys.F4:
-			//	gf.ShowLiveCam = !gf.ShowLiveCam;
+			//	Gf.ShowLiveCam = !Gf.ShowLiveCam;
 			//	Remote_LiveCamStartStop();
 			//	return;
 			case Keys.F5:
-				gf.RestartItemActioned = false;
-				gf.AutoRotateOn = false;
+				Gf.RestartItemActioned = false;
+				Gf.AutoRotateOn = false;
 				MoveToLiveItem(InItem, KeyDirection.Refresh);
 				return;
 			//case Keys.F9:
@@ -776,18 +768,18 @@ namespace Easislides
 			//		DialogResult dialogResult = frmSingleMonitorAlert.ShowDialog();
 			//		if (dialogResult == DialogResult.OK)
 			//		{
-			//			LiveScreen.StartAlert(gf.LiveItem, gf.Alert_OriginalMessage, gf.AlertTimeRemaining, gf.Alert_UserFont, gf.Alert_Scroll, gf.Alert_Flash, gf.Alert_Transparent, gf.Alert_UserFontShadow, gf.Alert_UserFontOutline, gf.Alert_TextColour, gf.Alert_BackColour, gf.Alert_TextAlign, gf.Alert_VerticalAlign, gf.BottomBorderFactor);
+			//			LiveScreen.StartAlert(Gf.LiveItem, Gf.Alert_OriginalMessage, Gf.AlertTimeRemaining, Gf.Alert_UserFont, Gf.Alert_Scroll, Gf.Alert_Flash, Gf.Alert_Transparent, Gf.Alert_UserFontShadow, Gf.Alert_UserFontOutline, Gf.Alert_TextColour, Gf.Alert_BackColour, Gf.Alert_TextAlign, Gf.Alert_VerticalAlign, Gf.BottomBorderFactor);
 			//		}
 			//		SetScreenOnTop(StartTimer: true);
 			//		return;
 			//	}
 				//case Keys.F6:
-				//	gf.SwitchChineseLyricsNotationListView(ref gf.LiveItem, gf.SwitchChinese(ref gf.LiveItem.CompleteLyrics));
-				//	ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+				//	Gf.SwitchChineseLyricsNotationListView(ref Gf.LiveItem, Gf.SwitchChinese(ref Gf.LiveItem.CompleteLyrics));
+				//	ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 				//	return;
 				case Keys.A:
-				gf.AutoRotateOn = !gf.AutoRotateOn;
-				gf.RestartCurrentItem = false;
+				Gf.AutoRotateOn = !Gf.AutoRotateOn;
+				Gf.RestartCurrentItem = false;
 				TimerRotate.Start();
 				return;
 			//case Keys.M:
@@ -860,7 +852,7 @@ namespace Easislides
 				MoveToSlideLiveItem(InItem, KeyDirection.LastOne);
 				return;
 			case Keys.Down:
-				if (InItem.CurSlide < InItem.TotalSlides || gf.AdvanceNextItem)
+				if (InItem.CurSlide < InItem.TotalSlides || Gf.AdvanceNextItem)
 				{
 					MoveToSlideLiveItem(InItem, KeyDirection.NextOne);
 				}
@@ -869,15 +861,15 @@ namespace Easislides
 				MoveToSlideLiveItem(InItem, KeyDirection.NextOne);
 				return;
 			case Keys.G:
-				if (gf.GapItemOption == GapType.None)
+				if (Gf.GapItemOption == GapType.None)
 				{
-					gf.GapItemOption = gf.AltGapItemOption;
-					gf.AltGapItemOption = GapType.None;
+					Gf.GapItemOption = Gf.AltGapItemOption;
+					Gf.AltGapItemOption = GapType.None;
 				}
 				else
 				{
-					gf.AltGapItemOption = gf.GapItemOption;
-					gf.GapItemOption = GapType.None;
+					Gf.AltGapItemOption = Gf.GapItemOption;
+					Gf.GapItemOption = GapType.None;
 				}
 				return;
 			default:
@@ -965,7 +957,7 @@ namespace Easislides
 		{
 			if (NewStatus)
 			{
-				ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: true, RedoBackground: false);
+				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: true, RedoBackground: false);
 			}
 			else
 			{
@@ -995,73 +987,73 @@ namespace Easislides
 
 		private void ToggleShowDataDisplayMode()
 		{
-			gf.ShowDataDisplayMode = ((gf.ShowDataDisplayMode <= 0) ? 1 : 0);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.ShowDataDisplayMode = ((Gf.ShowDataDisplayMode <= 0) ? 1 : 0);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void ToggleShowHeader()
 		{
-			gf.ShowRunning_ShowSongHeadings = ((gf.ShowRunning_ShowSongHeadings <= 0) ? 1 : 0);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.ShowRunning_ShowSongHeadings = ((Gf.ShowRunning_ShowSongHeadings <= 0) ? 1 : 0);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void ToggleUseShadowFont()
 		{
-			gf.ShowRunning_UseShadowFont = ((gf.ShowRunning_UseShadowFont <= 0) ? 1 : 0);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.ShowRunning_UseShadowFont = ((Gf.ShowRunning_UseShadowFont <= 0) ? 1 : 0);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void ToggleUseOutlineFont()
 		{
-			gf.ShowRunning_UseOutlineFont = ((gf.ShowRunning_UseOutlineFont <= 0) ? 1 : 0);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.ShowRunning_UseOutlineFont = ((Gf.ShowRunning_UseOutlineFont <= 0) ? 1 : 0);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void ToggleShowNotations()
 		{
-			gf.ShowRunning_ShowNotations = ((gf.ShowRunning_ShowNotations <= 0) ? 1 : 0);
-			ShowSong(ref gf.LiveItem, 1, ImageTransitionControl.TransitionAction.None);
+			Gf.ShowRunning_ShowNotations = ((Gf.ShowRunning_ShowNotations <= 0) ? 1 : 0);
+			ShowSong(ref Gf.LiveItem, 1, ImageTransitionControl.TransitionAction.None);
 			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_ItemChanged);
 		}
 
 		private void ToggleInterlace()
 		{
-			gf.ShowRunning_ShowInterlace = ((gf.ShowRunning_ShowInterlace <= 0) ? 1 : 0);
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			Gf.ShowRunning_ShowInterlace = ((Gf.ShowRunning_ShowInterlace <= 0) ? 1 : 0);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void ToggleVerticalAlignment()
 		{
-			if (gf.ShowRunning_ShowVerticalAlign == 0)
+			if (Gf.ShowRunning_ShowVerticalAlign == 0)
 			{
-				gf.ShowRunning_ShowVerticalAlign = 1;
+				Gf.ShowRunning_ShowVerticalAlign = 1;
 			}
-			else if (gf.ShowRunning_ShowVerticalAlign == 1)
+			else if (Gf.ShowRunning_ShowVerticalAlign == 1)
 			{
-				gf.ShowRunning_ShowVerticalAlign = 2;
+				Gf.ShowRunning_ShowVerticalAlign = 2;
 			}
-			else if (gf.ShowRunning_ShowVerticalAlign == 2)
+			else if (Gf.ShowRunning_ShowVerticalAlign == 2)
 			{
-				gf.ShowRunning_ShowVerticalAlign = 0;
+				Gf.ShowRunning_ShowVerticalAlign = 0;
 			}
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void ToggleShowLyrics()
 		{
-			if (gf.ShowRunning_ShowLyrics == 0)
+			if (Gf.ShowRunning_ShowLyrics == 0)
 			{
-				gf.ShowRunning_ShowLyrics = 1;
+				Gf.ShowRunning_ShowLyrics = 1;
 			}
-			else if (gf.ShowRunning_ShowLyrics == 1)
+			else if (Gf.ShowRunning_ShowLyrics == 1)
 			{
-				gf.ShowRunning_ShowLyrics = 2;
+				Gf.ShowRunning_ShowLyrics = 2;
 			}
-			else if (gf.ShowRunning_ShowLyrics == 2)
+			else if (Gf.ShowRunning_ShowLyrics == 2)
 			{
-				gf.ShowRunning_ShowLyrics = 0;
+				Gf.ShowRunning_ShowLyrics = 0;
 			}
-			ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+			ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
 		}
 
 		private void FrmLiveShow_MouseDown(object sender, MouseEventArgs e)
@@ -1071,7 +1063,7 @@ namespace Easislides
 
 		public void DoMouseDown(MouseButtons InBtn)
 		{
-			if (!gf.DualMonitorMode)
+			if (!Gf.DualMonitorMode)
 			{
 				mouse_btn = InBtn;
 				mousedown_timelapse = 0;
@@ -1086,7 +1078,7 @@ namespace Easislides
 
 		public void DoMouseUp()
 		{
-			if (gf.DualMonitorMode)
+			if (Gf.DualMonitorMode)
 			{
 				return;
 			}
@@ -1094,20 +1086,20 @@ namespace Easislides
 			{
 				if (mouse_btn == MouseButtons.Left)
 				{
-					MoveToSlideLiveItem(gf.LiveItem, KeyDirection.NextOne);
+					MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.NextOne);
 				}
 				else if (mouse_btn == MouseButtons.Right)
 				{
-					MoveToSlideLiveItem(gf.LiveItem, KeyDirection.PrevOne);
+					MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.PrevOne);
 				}
 			}
 			else if (mouse_btn == MouseButtons.Left)
 			{
-				MoveToLiveItem(gf.LiveItem, KeyDirection.NextOne);
+				MoveToLiveItem(Gf.LiveItem, KeyDirection.NextOne);
 			}
 			else if (mouse_btn == MouseButtons.Right)
 			{
-				MoveToLiveItem(gf.LiveItem, KeyDirection.PrevOne);
+				MoveToLiveItem(Gf.LiveItem, KeyDirection.PrevOne);
 			}
 			mousedown_timelapse = 0;
 			TimerMouseDown.Stop();
@@ -1115,7 +1107,7 @@ namespace Easislides
 
 		protected override bool ProcessCmdKey(ref System.Windows.Forms.Message msg, Keys keyData)
 		{
-			ItemKeyPressed(gf.LiveItem, keyData);
+			ItemKeyPressed(Gf.LiveItem, keyData);
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
 
@@ -1128,7 +1120,7 @@ namespace Easislides
 		{
 			if (InItem.Type == "P")
 			{
-				if ((gf.DualMonitorMode && gf.NoPowerpointPanelOverlay && InItem.Type == "P")/* || (gf.DualMonitorMode && gf.LiveCamNoPanelOverlay && gf.ShowLiveCam)*/)
+				if ((Gf.DualMonitorMode && Gf.NoPowerpointPanelOverlay && InItem.Type == "P")/* || (Gf.DualMonitorMode && Gf.LiveCamNoPanelOverlay && Gf.ShowLiveCam)*/)
 				{
 					SetShowWindow(max: false);
 				}
@@ -1137,19 +1129,19 @@ namespace Easislides
 					SetShowWindow(max: true);
 					
 				}
-				gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Keys.None, InItem.CurSlide);
-				if (gf.ShowLiveCam)
+				Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Keys.None, InItem.CurSlide);
+				if (Gf.ShowLiveCam)
 				{
-					gf.SetTransparentBackground(InItem, ref LiveScreen);
+					Gf.SetTransparentBackground(InItem, ref LiveScreen);
 				}
-				gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+				Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 				//RemoteControlLyricsWindow(LyricsWindowAction.Remote_LyricsChanged);
 				return true;
 			}
 			if (TransitionAction == ImageTransitionControl.TransitionAction.AsStored)
 			{
 			}
-			if ((gf.DualMonitorMode && gf.NoMediaPanelOverlay && InItem.Type == "M") || (gf.DualMonitorMode && gf.LiveCamNoPanelOverlay && gf.ShowLiveCam))
+			if ((Gf.DualMonitorMode && Gf.NoMediaPanelOverlay && InItem.Type == "M") || (Gf.DualMonitorMode && Gf.LiveCamNoPanelOverlay && Gf.ShowLiveCam))
 			{
 				SetShowWindow(max: false);
 			}
@@ -1157,11 +1149,11 @@ namespace Easislides
 			{
 				SetShowWindow(max: true);
 			}
-			InItem.TotalItems = gf.TotalWorshipListItems;
-			bool flag = gf.ShowDBSlide(ref InItem, ref LiveScreen, DoActiveIndicator, TransitionAction, RedoBackground);
+			InItem.TotalItems = Gf.TotalWorshipListItems;
+			bool flag = Gf.ShowDBSlide(ref InItem, ref LiveScreen, DoActiveIndicator, TransitionAction, RedoBackground);
 			if (!flag)
 			{
-				gf.ResetPictureBox(ref InItem, ref LiveScreen, GapType.Default, TransitionAction);
+				Gf.ResetPictureBox(ref InItem, ref LiveScreen, GapType.Default, TransitionAction);
 			}
 			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_LyricsChanged);
 			return flag;
@@ -1175,9 +1167,9 @@ namespace Easislides
 
 		private bool RefreshSlidesFonts(ref SongSettings InItem, ImageTransitionControl.TransitionAction TransitionAction)
 		{
-			gf.FormatText(ref InItem, gf.PanelBackColour, gf.PanelBackColourTransparent, gf.PanelTextColour, gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
-			gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
-			gf.DisplaySlidesFormattedLyrics(ref InItem, ref gf.tbLyricsMonitorSpace, ScrollToCaret: true, gf.LMShowNotations);
+			Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
+			Gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
+			Gf.DisplaySlidesFormattedLyrics(ref InItem, ref Gf.tbLyricsMonitorSpace, ScrollToCaret: true, Gf.LMShowNotations);
 			return ShowSlide(ref InItem, TransitionAction);
 		}
 
@@ -1188,28 +1180,28 @@ namespace Easislides
 
 		private void MoveToLiveItem(SongSettings InItem, KeyDirection InDirection, int SlideNo)
 		{
-			gf.Launch_StartPresAt = (gf.DualMonitorMode ? gf.Launch_StartPresAt : gf.StartPresAt);
+			Gf.Launch_StartPresAt = (Gf.DualMonitorMode ? Gf.Launch_StartPresAt : Gf.StartPresAt);
 			switch (InDirection)
 			{
 			case KeyDirection.FirstOne:
 				LoadWorshipListItemToLive(1, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
 				break;
 			case KeyDirection.PrevOne:
-				if (gf.Launch_StartPresAt <= gf.TotalWorshipListItems)
+				if (Gf.Launch_StartPresAt <= Gf.TotalWorshipListItems)
 				{
-					LoadWorshipListItemToLive(gf.AdHocItemPresent ? gf.Launch_StartPresAt : (gf.Launch_StartPresAt - ((!(InItem.Type == "G")) ? 1 : 0)), SlideNo, ImageTransitionControl.TransitionAction.AsStored);
+					LoadWorshipListItemToLive(Gf.AdHocItemPresent ? Gf.Launch_StartPresAt : (Gf.Launch_StartPresAt - ((!(InItem.Type == "G")) ? 1 : 0)), SlideNo, ImageTransitionControl.TransitionAction.AsStored);
 				}
 				break;
 			case KeyDirection.NextOne:
 			{
-				if (gf.GapItemOption == GapType.None)
+				if (Gf.GapItemOption == GapType.None)
 				{
-					LoadWorshipListItemToLive(gf.Launch_StartPresAt + 1, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
+					LoadWorshipListItemToLive(Gf.Launch_StartPresAt + 1, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
 					break;
 				}
-				if (gf.Launch_StartPresAt <= gf.TotalWorshipListItems && (gf.Launch_StartPresAt == 0 || (InItem.Type == "G" && gf.Launch_StartPresAt != gf.TotalWorshipListItems)))
+				if (Gf.Launch_StartPresAt <= Gf.TotalWorshipListItems && (Gf.Launch_StartPresAt == 0 || (InItem.Type == "G" && Gf.Launch_StartPresAt != Gf.TotalWorshipListItems)))
 				{
-					LoadWorshipListItemToLive(gf.Launch_StartPresAt + 1, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
+					LoadWorshipListItemToLive(Gf.Launch_StartPresAt + 1, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
 					break;
 				}
 				string InTitle = "";
@@ -1217,10 +1209,10 @@ namespace Easislides
 				break;
 			}
 			case KeyDirection.LastOne:
-				LoadWorshipListItemToLive(gf.TotalWorshipListItems, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
+				LoadWorshipListItemToLive(Gf.TotalWorshipListItems, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
 				break;
 			default:
-				LoadWorshipListItemToLive(gf.Launch_StartPresAt, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
+				LoadWorshipListItemToLive(Gf.Launch_StartPresAt, SlideNo, ImageTransitionControl.TransitionAction.AsStored);
 				break;
 			}
 		}
@@ -1236,20 +1228,20 @@ namespace Easislides
 
 		private bool LoadWorshipListItemToLive(int Selecteditem, int SlideNo, ImageTransitionControl.TransitionAction TransitionAction, bool ReLoadIfCaptureDevice)
 		{
-			if (gf.AdHocItemPresent)
+			if (Gf.AdHocItemPresent)
 			{
 				if (Selecteditem > 0)
 				{
-					gf.AdHocItemPresent = false;
+					Gf.AdHocItemPresent = false;
 				}
-				if (Selecteditem > gf.TotalWorshipListItems)
+				if (Selecteditem > Gf.TotalWorshipListItems)
 				{
-					Selecteditem = gf.TotalWorshipListItems;
+					Selecteditem = Gf.TotalWorshipListItems;
 				}
 			}
 			else
 			{
-				if (gf.TotalWorshipListItems == 0)
+				if (Gf.TotalWorshipListItems == 0)
 				{
 					return false;
 				}
@@ -1257,26 +1249,26 @@ namespace Easislides
 				{
 					Selecteditem = 1;
 				}
-				else if (Selecteditem > gf.TotalWorshipListItems)
+				else if (Selecteditem > Gf.TotalWorshipListItems)
 				{
-					Selecteditem = gf.TotalWorshipListItems;
+					Selecteditem = Gf.TotalWorshipListItems;
 				}
 			}
-			string inIDString = gf.WorshipSongs[Selecteditem, 0];
-			string inFormatString = gf.WorshipSongs[Selecteditem, 4];
-			string InTitle = gf.WorshipSongs[Selecteditem, 2];
-			gf.LiveItem.CurItemNo = Selecteditem;
-			gf.StartPresAt = (gf.AdHocItemPresent ? gf.StartPresAt : gf.LiveItem.CurItemNo);
-			gf.LiveItem.Source = ((gf.LiveItem.CurItemNo > 0) ? ItemSource.WorshipList : gf.OutputItem.Source);
-			gf.LiveItem.OutputStyleScreen = true;
-			gf.LiveItem.AtLiveScreen = true;
-			LoadItem(ref gf.LiveItem, inIDString, inFormatString, SlideNo, ref InTitle, TransitionAction, ReLoadIfCaptureDevice);
+			string inIDString = Gf.WorshipSongs[Selecteditem, 0];
+			string inFormatString = Gf.WorshipSongs[Selecteditem, 4];
+			string InTitle = Gf.WorshipSongs[Selecteditem, 2];
+			Gf.LiveItem.CurItemNo = Selecteditem;
+			Gf.StartPresAt = (Gf.AdHocItemPresent ? Gf.StartPresAt : Gf.LiveItem.CurItemNo);
+			Gf.LiveItem.Source = ((Gf.LiveItem.CurItemNo > 0) ? ItemSource.WorshipList : Gf.OutputItem.Source);
+			Gf.LiveItem.OutputStyleScreen = true;
+			Gf.LiveItem.AtLiveScreen = true;
+			LoadItem(ref Gf.LiveItem, inIDString, inFormatString, SlideNo, ref InTitle, TransitionAction, ReLoadIfCaptureDevice);
 			return true;
 		}
 
 		private void MoveToSlideLiveItem(SongSettings InItem, KeyDirection InDirection)
 		{
-			if (gf.AdvanceNextItem)
+			if (Gf.AdvanceNextItem)
 			{
 				if (InDirection == KeyDirection.PrevOne)
 				{
@@ -1291,14 +1283,14 @@ namespace Easislides
 						return;
 					}
 				}
-				else if (InDirection == KeyDirection.NextOne && InItem.CurItemNo < gf.TotalWorshipListItems && InItem.CurSlide >= InItem.TotalSlides)
+				else if (InDirection == KeyDirection.NextOne && InItem.CurItemNo < Gf.TotalWorshipListItems && InItem.CurSlide >= InItem.TotalSlides)
 				{
 					if (InItem.Type == "P")
 					{
-						int num = gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)gf.ReMapKeyDirectionToPowerpoint(InDirection));
+						int num = Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
 						if (num > 0)
 						{
-							gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+							Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 							return;
 						}
 					}
@@ -1306,10 +1298,10 @@ namespace Easislides
 					return;
 				}
 			}
-			if (gf.ShowRunning & (InItem.Type == "P"))
+			if (Gf.ShowRunning & (InItem.Type == "P"))
 			{
-				gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)gf.ReMapKeyDirectionToPowerpoint(InDirection));
-				gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+				Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+				Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 				return;
 			}
 			switch (InDirection)
@@ -1332,7 +1324,7 @@ namespace Easislides
 				{
 					InItem.CurSlide++;
 				}
-				else if (gf.GapItemOption == GapType.None)
+				else if (Gf.GapItemOption == GapType.None)
 				{
 					InItem.CurSlide = InItem.TotalSlides;
 				}
@@ -1351,101 +1343,96 @@ namespace Easislides
 		private void LoadItem(ref SongSettings InItem, string InIDString, string InFormatString, int StartingSlide, ref string InTitle, ImageTransitionControl.TransitionAction TransitionAction, bool ReLoadIfCaptureDevice)
 		{
 			Stop_TimerRotate();
-			if (gf.RestartItemActioned)
+			if (Gf.RestartItemActioned)
 			{
-				gf.RestartCurrentItem = false;
+				Gf.RestartCurrentItem = false;
 			}
 			else
 			{
-				gf.RestartItemActioned = true;
-				gf.RestartCurrentItem = true;
+				Gf.RestartItemActioned = true;
+				Gf.RestartCurrentItem = true;
 			}
 			string text = DataUtil.Left(InIDString, 1);
 			string prevTitle = "";
 			string nextTitle = "";
 			bool flag = false;
-			if (gf.TotalWorshipListItems > 0)
+			if (Gf.TotalWorshipListItems > 0)
 			{
 				int num = -1;
 				int num2 = -1;
 				if (InItem.CurItemNo == 0)
 				{
-					num = gf.StartPresAt;
-					num2 = gf.StartPresAt + 1;
+					num = Gf.StartPresAt;
+					num2 = Gf.StartPresAt + 1;
 				}
 				else
 				{
-					num = gf.StartPresAt - 1;
-					num2 = gf.StartPresAt + 1;
+					num = Gf.StartPresAt - 1;
+					num2 = Gf.StartPresAt + 1;
 				}
 				if (num < 1 && InItem.CurItemNo == 0)
 				{
 					num = 1;
 				}
-				if (num2 > gf.TotalWorshipListItems)
+				if (num2 > Gf.TotalWorshipListItems)
 				{
-					num2 = ((InItem.CurItemNo != 0) ? (-1) : gf.TotalWorshipListItems);
+					num2 = ((InItem.CurItemNo != 0) ? (-1) : Gf.TotalWorshipListItems);
 				}
 				if (num == num2 && num == 0)
 				{
 					num = -1;
 				}
-				prevTitle = ((num >= 1) ? gf.RemoveMusicSym(gf.WorshipSongs[num, 2]) : "");
-				nextTitle = ((num2 >= 1) ? gf.RemoveMusicSym(gf.WorshipSongs[num2, 2]) : "");
+				prevTitle = ((num >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num, 2]) : "");
+				nextTitle = ((num2 >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num2, 2]) : "");
 			}
-			gf.InitialiseIndividualData(ref InItem, (text == "G" && Media_NextItemHasSameMedia()) ? GapMedia.SameAsPrevious : GapMedia.SessionMedia, "");
+			Gf.InitialiseIndividualData(ref InItem, (text == "G" && Media_NextItemHasSameMedia()) ? GapMedia.SameAsPrevious : GapMedia.SessionMedia, "");
 			InItem.PrevTitle = prevTitle;
 			InItem.NextTitle = nextTitle;
-			gf.LoadIndividualData(ref InItem, InIDString, "", StartingSlide, ref InTitle);
+			Gf.LoadIndividualData(ref InItem, InIDString, "", StartingSlide, ref InTitle);
 			if (InItem.Type == "I" || text == "G")
 			{
 				InFormatString = InItem.Format.FormatString;
 				TransitionAction = ImageTransitionControl.TransitionAction.AsStored;
 			}
-			gf.LoadIndividualFormatData(ref InItem, InFormatString);
-			if (gf.ShowLiveCam & !FirstItemBeingProcessed)
+			Gf.LoadIndividualFormatData(ref InItem, InFormatString);
+			if (Gf.ShowLiveCam & !FirstItemBeingProcessed)
 			{
-				if (gf.GetMediaLocation(InItem) != gf.CurrentMediaLocation || gf.CurrentMediaLocation == "")
+				if (Gf.GetMediaLocation(InItem) != Gf.CurrentMediaLocation || Gf.CurrentMediaLocation == "")
 				{
-					ItemMediaChangedSinceLiveCam = true;
-					gf.CurrentMediaLocation = "";
-			gf.CurrentMediaOutputMonitorName = "";
+					Gf.CurrentMediaLocation = "";
+			Gf.CurrentMediaOutputMonitorName = "";
 				}
 				if (text == "P")
 				{
-					gf.MinimizePowerPointWindows(ref gf.LivePP);
+					Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 				}
 				flag = true;
-			}
-			else
-			{
-				ItemMediaChangedSinceLiveCam = true;
 			}
 			if (text == "P" && !flag)
 			{
 				SetScreenOnTop(StartTimer: false);
-				gf.FormatText(ref InItem, gf.PanelBackColour, gf.PanelBackColourTransparent, gf.PanelTextColour, gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
-				InItem.TotalSlides = gf.RunPowerpointSong(ref InItem, ref gf.LivePP, StartingSlide);
+				Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
+				InItem.TotalSlides = Gf.RunPowerpointSong(ref InItem, ref Gf.LivePP, StartingSlide);
 				ResetMediaSettings();
-				gf.SetTransparentBackground(gf.LiveItem, ref LiveScreen);
+				Gf.SetTransparentBackground(Gf.LiveItem, ref LiveScreen);
 				InItem.Format.ShowItemTransition = 0;
 				InItem.Format.ShowSlideTransition = 0;
-				if (gf.ShowLiveCam)
+				if (Gf.ShowLiveCam)
 				{
-					gf.MinimizePowerPointWindows(ref gf.LivePP);
+					Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 				}
 				else
 				{
-					gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+					Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 				}
-				if (gf.DualMonitorMode && gf.NoPowerpointPanelOverlay)
+				if (Gf.DualMonitorMode && Gf.NoPowerpointPanelOverlay)
 				{
 					SetShowWindow(max: false);
 				}
 				CurItemRotates = false;
-				ShowSlide(ref gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: false, RedoBackground: true);
+				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: false, RedoBackground: true);
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ClearScreen);
-				gf.tbLyricsMonitorSpace.Text = "";
+				Gf.tbLyricsMonitorSpace.Text = "";
 				//RemoteControlLyricsWindow(LyricsWindowAction.Remote_ItemChanged);
 				SetScreenOnTop(StartTimer: true);
 				return;
@@ -1469,20 +1456,16 @@ namespace Easislides
 			{
 				return;
 			}
-			MediaBackgroundStyle mediaBackgroundStyle = gf.GetMediaBackgroundType(InItem, UpdateVariables: true);
+			MediaBackgroundStyle mediaBackgroundStyle = Gf.GetMediaBackgroundType(InItem, UpdateVariables: true);
 			if (InItem.Format.MediaOption == 3 && ReLoadIfCaptureDevice)
 			{
-				mediaBackgroundStyle = ((!gf.MediaCurrentItemIsVideo) ? MediaBackgroundStyle.Audio : MediaBackgroundStyle.Video);
+				mediaBackgroundStyle = ((!Gf.MediaCurrentItemIsVideo) ? MediaBackgroundStyle.Audio : MediaBackgroundStyle.Video);
 			}
-			gf.FormatText(ref InItem, gf.PanelBackColour, gf.PanelBackColourTransparent, gf.PanelTextColour, gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
-			gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
-			gf.DisplaySlidesFormattedLyrics(ref InItem, ref gf.tbLyricsMonitorSpace, ScrollToCaret: true, gf.LMShowNotations);
+			Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
+			Gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
+			Gf.DisplaySlidesFormattedLyrics(ref InItem, ref Gf.tbLyricsMonitorSpace, ScrollToCaret: true, Gf.LMShowNotations);
 			if (flag)
 			{
-				if (mediaBackgroundStyle != MediaBackgroundStyle.SameAsPrevious)
-				{
-					ItemMediaChangedSinceLiveCam = true;
-				}
 				return;
 			}
 			MediaBackgroundStyle mediaBackgroundStyle2 = MediaBackgroundStyle.None;
@@ -1495,7 +1478,7 @@ namespace Easislides
 				mediaBackgroundStyle2 = RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadItem);
 				break;
 			case MediaBackgroundStyle.SameAsPrevious:
-				mediaBackgroundStyle2 = ((!gf.MediaCurrentItemIsVideo) ? MediaBackgroundStyle.Audio : MediaBackgroundStyle.Video);
+				mediaBackgroundStyle2 = ((!Gf.MediaCurrentItemIsVideo) ? MediaBackgroundStyle.Audio : MediaBackgroundStyle.Video);
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ItemPlayingStatus);
 				if (!CurMediaPlayingStatus)
 				{
@@ -1516,17 +1499,17 @@ namespace Easislides
 				!string.IsNullOrEmpty(InItem.Format.HeaderData[56]);
 			if (mediaBackgroundStyle3 == MediaBackgroundStyle.Video && itemHasExplicitMedia)
 			{
-                gf.MediaCurrentItemIsVideo = true;
+                Gf.MediaCurrentItemIsVideo = true;
                 InItem.Format.MediaTransparent = true;
             }
             else
 			{
-				gf.MediaCurrentItemIsVideo = false;
+				Gf.MediaCurrentItemIsVideo = false;
 				InItem.Format.MediaTransparent = false;
 			}
-			if (gf.ShowLiveCam)
+			if (Gf.ShowLiveCam)
 			{
-				gf.MinimizePowerPointWindows(ref gf.LivePP);
+				Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 			}
 			else
 			{
@@ -1535,14 +1518,14 @@ namespace Easislides
 			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_ItemChanged);
 			if (InItem.Format.MediaTransparent)
 			{
-				gf.MinimizePowerPointWindows(ref gf.LivePP);
+				Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 			}
 			tempRotateTimings = "";
-			if (gf.AutoRotateOn)
+			if (Gf.AutoRotateOn)
 			{
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ResumeItem);
 			}
-			else if (gf.RestartCurrentItem && mediaBackgroundStyle2 != 0)
+			else if (Gf.RestartCurrentItem && mediaBackgroundStyle2 != 0)
 			{
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ResumeItemFromStart);
 			}
@@ -1575,40 +1558,40 @@ namespace Easislides
 
 		private bool Media_NextItemHasSameMedia()
 		{
-			if (gf.CurrentMediaLocation == "" || gf.LiveItem.CurItemNo == gf.TotalWorshipListItems || gf.StartPresAt == gf.TotalWorshipListItems)
+			if (Gf.CurrentMediaLocation == "" || Gf.LiveItem.CurItemNo == Gf.TotalWorshipListItems || Gf.StartPresAt == Gf.TotalWorshipListItems)
 			{
 				return false;
 			}
 			try
 			{
-				int num = gf.StartPresAt + 1;
-				string inTitle = gf.WorshipSongs[num, 2];
-				string text = gf.WorshipSongs[num, 1];
+				int num = Gf.StartPresAt + 1;
+				string inTitle = Gf.WorshipSongs[num, 2];
+				string text = Gf.WorshipSongs[num, 1];
 				string Title = "";
-				string FormatString = gf.WorshipSongs[num, 4];
+				string FormatString = Gf.WorshipSongs[num, 4];
 				if (text == "D")
 				{
-					Title = gf.LookupDBTitle2(DataUtil.StringToInt(DataUtil.Mid(gf.WorshipSongs[num, 0], 1)));
+					Title = Gf.LookupDBTitle2(DataUtil.StringToInt(DataUtil.Mid(Gf.WorshipSongs[num, 0], 1)));
 				}
 				else if (text == "I")
 				{
-					gf.GetTitle2AndFormatFromInfoFile(DataUtil.Mid(gf.WorshipSongs[num, 0], 1), ref Title, ref FormatString);
+					Gf.GetTitle2AndFormatFromInfoFile(DataUtil.Mid(Gf.WorshipSongs[num, 0], 1), ref Title, ref FormatString);
 				}
-				int inMediaOption = DataUtil.StringToInt(gf.ExtractHeaderInfo(FormatString, 50, '>'));
+				int inMediaOption = DataUtil.StringToInt(Gf.ExtractHeaderInfo(FormatString, 50, '>'));
 				bool inUseDefaultFormat = (FormatString == "") ? true : false;
-				string inMediaLocation = gf.ExtractHeaderInfo(FormatString, 51, '>');
-				int inMediaCaptureDeviceNumber = DataUtil.StringToInt(gf.ExtractHeaderInfo(FormatString, 55, '>'));
-				string inMediaOutputMonitorName = gf.ExtractHeaderInfo(FormatString, 56, '>');
-				if (inMediaOutputMonitorName == "" && gf.MediaOutputMonitorName != "")
+				string inMediaLocation = Gf.ExtractHeaderInfo(FormatString, 51, '>');
+				int inMediaCaptureDeviceNumber = DataUtil.StringToInt(Gf.ExtractHeaderInfo(FormatString, 55, '>'));
+				string inMediaOutputMonitorName = Gf.ExtractHeaderInfo(FormatString, 56, '>');
+				if (inMediaOutputMonitorName == "" && Gf.MediaOutputMonitorName != "")
 				{
-					inMediaOutputMonitorName = gf.MediaOutputMonitorName;
+					inMediaOutputMonitorName = Gf.MediaOutputMonitorName;
 				}
 				if (inMediaOutputMonitorName == "")
 				{
-					inMediaOutputMonitorName = gf.OutputMonitorName;
+					inMediaOutputMonitorName = Gf.OutputMonitorName;
 				}
-				string mediaLocation = gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, text, inMediaLocation, inMediaCaptureDeviceNumber);
-				if (gf.CurrentMediaLocation == mediaLocation)
+				string mediaLocation = Gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, text, inMediaLocation, inMediaCaptureDeviceNumber);
+				if (Gf.CurrentMediaLocation == mediaLocation)
 				{
 					return true;
 				}
@@ -1622,33 +1605,33 @@ namespace Easislides
 
 		private void ResetMediaSettings()
 		{
-			gf.CurrentMediaLocation = "";
-			gf.CurrentMediaOutputMonitorName = "";
-			gf.CurrentMediaIsVideo = false;
-			gf.MediaNotifyRepeatItem = false;
+			Gf.CurrentMediaLocation = "";
+			Gf.CurrentMediaOutputMonitorName = "";
+			Gf.CurrentMediaIsVideo = false;
+			Gf.MediaNotifyRepeatItem = false;
 		}
 
 		private void Start_ItemRotate(int InRotateGap, string InRotateTimings, MediaBackgroundStyle MediaBackground)
 		{
 			tempRotateTimings = InRotateTimings;
-			if (gf.LiveItem.RotateStyle == 2)
+			if (Gf.LiveItem.RotateStyle == 2)
 			{
 				ItemRotationNextTiming = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref tempRotateTimings, ';', RemoveExtract: true, MinusOneIfBlank: false));
 			}
 			else
 			{
-				ItemRotationNextTiming = gf.LiveItem.RotateGap;
+				ItemRotationNextTiming = Gf.LiveItem.RotateGap;
 			}
 			ItemRotationNextSlideNumber = 1;
-			gf.MediaDoRotate = ((MediaBackground != 0) ? true : false);
-			if (gf.LiveItem.RotateStyle == 2)
+			Gf.MediaDoRotate = ((MediaBackground != 0) ? true : false);
+			if (Gf.LiveItem.RotateStyle == 2)
 			{
-				if (gf.LiveItem.RotateTotal == 0)
+				if (Gf.LiveItem.RotateTotal == 0)
 				{
-					if (gf.MediaDoRotate)
+					if (Gf.MediaDoRotate)
 					{
 						RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_GetMediaTimings);
-						gf.LiveItem.RotateTotal = intLiveMediaDuration;
+						Gf.LiveItem.RotateTotal = intLiveMediaDuration;
 					}
 					else
 					{
@@ -1662,20 +1645,20 @@ namespace Easislides
 								num = num2;
 							}
 						}
-						gf.LiveItem.RotateTotal = num + 10;
+						Gf.LiveItem.RotateTotal = num + 10;
 					}
 				}
 				else
 				{
 					RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_GetMediaTimings);
 					int num3 = intLiveMediaDuration;
-					if (num3 != gf.LiveItem.RotateTotal)
+					if (num3 != Gf.LiveItem.RotateTotal)
 					{
-						gf.MediaDoRotate = false;
+						Gf.MediaDoRotate = false;
 					}
 				}
 			}
-			gf.MediaLiveItemStartTime = DateTime.Now;
+			Gf.MediaLiveItemStartTime = DateTime.Now;
 			CurItemRotates = true;
 			TimerRotate.Start();
 		}
@@ -1688,11 +1671,11 @@ namespace Easislides
 
 		private void TimerRotate_Tick(object sender, EventArgs e)
 		{
-			if ((gf.AutoRotateOn && CurItemRotates) || gf.RestartCurrentItem)
+			if ((Gf.AutoRotateOn && CurItemRotates) || Gf.RestartCurrentItem)
 			{
-				if (!gf.MediaDoRotate)
+				if (!Gf.MediaDoRotate)
 				{
-					gf.MediaPlayedLapseTime = DateTime.Now.Subtract(gf.MediaLiveItemStartTime);
+					Gf.MediaPlayedLapseTime = DateTime.Now.Subtract(Gf.MediaLiveItemStartTime);
 				}
 				DoRotate();
 			}
@@ -1704,25 +1687,25 @@ namespace Easislides
 
 		private void DoRotate()
 		{
-			switch (gf.LiveItem.RotateStyle)
+			switch (Gf.LiveItem.RotateStyle)
 			{
 			case 1:
-				if (gf.LiveItem.RotateGap < 0)
+				if (Gf.LiveItem.RotateGap < 0)
 				{
 					TimerRotate.Stop();
 				}
 				else
 				{
-					if (!(gf.MediaPlayedLapseTime.TotalSeconds > 0.0) || !(gf.MediaPlayedLapseTime.TotalSeconds >= (double)ItemRotationNextTiming))
+					if (!(Gf.MediaPlayedLapseTime.TotalSeconds > 0.0) || !(Gf.MediaPlayedLapseTime.TotalSeconds >= (double)ItemRotationNextTiming))
 					{
 						break;
 					}
-					if (gf.LiveItem.CurSlide < gf.LiveItem.TotalSlides)
+					if (Gf.LiveItem.CurSlide < Gf.LiveItem.TotalSlides)
 					{
-						gf.LiveItem.CurSlide++;
-						MoveToSlideLiveItem(gf.LiveItem, KeyDirection.Refresh);
-						ItemRotationNextTiming += gf.LiveItem.RotateGap;
-						if (gf.ShowRunning)
+						Gf.LiveItem.CurSlide++;
+						MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.Refresh);
+						ItemRotationNextTiming += Gf.LiveItem.RotateGap;
+						if (Gf.ShowRunning)
 						{
 							this.OnMessage(9, "");
 						}
@@ -1732,34 +1715,34 @@ namespace Easislides
 					int num = ImplementAutoRotateOption();
 					if (num >= 0)
 					{
-						if (num == gf.LiveItem.CurItemNo)
+						if (num == Gf.LiveItem.CurItemNo)
 						{
-							ItemRotationNextTiming = (int)gf.MediaPlayedLapseTime.TotalSeconds + gf.LiveItem.RotateGap;
-							gf.LiveItem.CurSlide = 1;
-							MoveToSlideLiveItem(gf.LiveItem, KeyDirection.Refresh);
-							if (gf.ShowRunning)
+							ItemRotationNextTiming = (int)Gf.MediaPlayedLapseTime.TotalSeconds + Gf.LiveItem.RotateGap;
+							Gf.LiveItem.CurSlide = 1;
+							MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.Refresh);
+							if (Gf.ShowRunning)
 							{
 								this.OnMessage(9, "");
 							}
 							TimerRotate.Start();
 							break;
 						}
-						prevRefMode = gf.ReferenceAlertSource;
-						gf.ReferenceAlertSource = ((num != gf.LiveItem.CurItemNo) ? gf.ReferenceAlertSource : 0);
+						prevRefMode = Gf.ReferenceAlertSource;
+						Gf.ReferenceAlertSource = ((num != Gf.LiveItem.CurItemNo) ? Gf.ReferenceAlertSource : 0);
 						LoadWorshipListItemToLive(num, 1, ImageTransitionControl.TransitionAction.AsStored);
-						gf.MediaLiveItemStartTime = DateTime.Now;
-						gf.ReferenceAlertSource = prevRefMode;
-						if (gf.ShowRunning)
+						Gf.MediaLiveItemStartTime = DateTime.Now;
+						Gf.ReferenceAlertSource = prevRefMode;
+						if (Gf.ShowRunning)
 						{
 							this.OnMessage(7, "");
 						}
 					}
-					else if (gf.GapItemOption != 0)
+					else if (Gf.GapItemOption != 0)
 					{
-						gf.StartPresAt = (gf.AdHocItemPresent ? gf.StartPresAt : gf.LiveItem.CurItemNo);
-						gf.Launch_StartPresAt = gf.StartPresAt;
-						MoveToLiveItem(gf.LiveItem, KeyDirection.NextOne);
-						if (gf.ShowRunning)
+						Gf.StartPresAt = (Gf.AdHocItemPresent ? Gf.StartPresAt : Gf.LiveItem.CurItemNo);
+						Gf.Launch_StartPresAt = Gf.StartPresAt;
+						MoveToLiveItem(Gf.LiveItem, KeyDirection.NextOne);
+						if (Gf.ShowRunning)
 						{
 							this.OnMessage(8, "");
 						}
@@ -1767,48 +1750,48 @@ namespace Easislides
 				}
 				break;
 			case 2:
-				if ((!(gf.MediaPlayedLapseTime.TotalSeconds > 0.0) || !(gf.MediaPlayedLapseTime.TotalSeconds >= (double)ItemRotationNextTiming)) && !(gf.MediaPlayedLapseTime.TotalSeconds >= (double)gf.LiveItem.RotateTotal))
+				if ((!(Gf.MediaPlayedLapseTime.TotalSeconds > 0.0) || !(Gf.MediaPlayedLapseTime.TotalSeconds >= (double)ItemRotationNextTiming)) && !(Gf.MediaPlayedLapseTime.TotalSeconds >= (double)Gf.LiveItem.RotateTotal))
 				{
 					break;
 				}
-				if (gf.MediaPlayedLapseTime.TotalSeconds >= (double)gf.LiveItem.RotateTotal)
+				if (Gf.MediaPlayedLapseTime.TotalSeconds >= (double)Gf.LiveItem.RotateTotal)
 				{
 					TimerRotate.Stop();
 					int num = ImplementAutoRotateOption();
 					if (num >= 0)
 					{
-						prevRefMode = gf.ReferenceAlertSource;
-						gf.ReferenceAlertSource = ((num != gf.LiveItem.CurItemNo) ? gf.ReferenceAlertSource : 0);
-						if (gf.MediaLengthAsRotateLength)
+						prevRefMode = Gf.ReferenceAlertSource;
+						Gf.ReferenceAlertSource = ((num != Gf.LiveItem.CurItemNo) ? Gf.ReferenceAlertSource : 0);
+						if (Gf.MediaLengthAsRotateLength)
 						{
 							RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_StopItem);
 						}
 						LoadWorshipListItemToLive(num, 1, ImageTransitionControl.TransitionAction.AsStored);
-						gf.MediaLiveItemStartTime = DateTime.Now;
-						gf.ReferenceAlertSource = prevRefMode;
-						if (gf.ShowRunning)
+						Gf.MediaLiveItemStartTime = DateTime.Now;
+						Gf.ReferenceAlertSource = prevRefMode;
+						if (Gf.ShowRunning)
 						{
 							this.OnMessage(7, "");
 						}
 					}
-					else if (gf.GapItemOption != 0)
+					else if (Gf.GapItemOption != 0)
 					{
-						gf.StartPresAt = (gf.AdHocItemPresent ? gf.StartPresAt : gf.LiveItem.CurItemNo);
-						gf.Launch_StartPresAt = gf.StartPresAt;
-						MoveToLiveItem(gf.LiveItem, KeyDirection.NextOne);
-						if (gf.ShowRunning)
+						Gf.StartPresAt = (Gf.AdHocItemPresent ? Gf.StartPresAt : Gf.LiveItem.CurItemNo);
+						Gf.Launch_StartPresAt = Gf.StartPresAt;
+						MoveToLiveItem(Gf.LiveItem, KeyDirection.NextOne);
+						if (Gf.ShowRunning)
 						{
 							this.OnMessage(8, "");
 						}
 					}
 					break;
 				}
-				if (ItemRotationNextSlideNumber < gf.LiveItem.TotalSlides && ItemRotationNextTiming > 0)
+				if (ItemRotationNextSlideNumber < Gf.LiveItem.TotalSlides && ItemRotationNextTiming > 0)
 				{
 					ItemRotationNextSlideNumber++;
-					gf.LiveItem.CurSlide = ItemRotationNextSlideNumber;
-					MoveToSlideLiveItem(gf.LiveItem, KeyDirection.Refresh);
-					if (gf.ShowRunning)
+					Gf.LiveItem.CurSlide = ItemRotationNextSlideNumber;
+					MoveToSlideLiveItem(Gf.LiveItem, KeyDirection.Refresh);
+					if (Gf.ShowRunning)
 					{
 						this.OnMessage(9, "");
 					}
@@ -1816,7 +1799,7 @@ namespace Easislides
 				ItemRotationNextTiming = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref tempRotateTimings, ';', RemoveExtract: true, MinusOneIfBlank: false));
 				if (ItemRotationNextTiming <= 0)
 				{
-					ItemRotationNextTiming = gf.LiveItem.RotateTotal;
+					ItemRotationNextTiming = Gf.LiveItem.RotateTotal;
 				}
 				break;
 			}
@@ -1825,34 +1808,34 @@ namespace Easislides
 		private int ImplementAutoRotateOption()
 		{
 			int num = -1;
-			if (gf.RestartCurrentItem)
+			if (Gf.RestartCurrentItem)
 			{
 				return -1;
 			}
-			if (gf.AutoRotateOn)
+			if (Gf.AutoRotateOn)
 			{
-				switch (gf.AutoRotateStyle)
+				switch (Gf.AutoRotateStyle)
 				{
 				case 0:
 					return -1;
 				case 1:
-					return (!gf.AdHocItemPresent) ? gf.StartPresAt : 0;
+					return (!Gf.AdHocItemPresent) ? Gf.StartPresAt : 0;
 				case 2:
 					num = Rotate_FindNextItem(GetPreviousIfNoNext: false);
-					if (num == gf.LiveItem.CurItemNo)
+					if (num == Gf.LiveItem.CurItemNo)
 					{
 						return -1;
 					}
-					gf.StartPresAt = num;
-					return gf.StartPresAt;
+					Gf.StartPresAt = num;
+					return Gf.StartPresAt;
 				default:
 					num = Rotate_FindNextItem(GetPreviousIfNoNext: true);
-					if (num == gf.LiveItem.CurItemNo)
+					if (num == Gf.LiveItem.CurItemNo)
 					{
-						return gf.LiveItem.CurItemNo;
+						return Gf.LiveItem.CurItemNo;
 					}
-					gf.StartPresAt = num;
-					return gf.StartPresAt;
+					Gf.StartPresAt = num;
+					return Gf.StartPresAt;
 				}
 			}
 			return -1;
@@ -1860,18 +1843,18 @@ namespace Easislides
 
 		private int Rotate_FindNextItem(bool GetPreviousIfNoNext)
 		{
-			if (gf.LiveItem.CurItemNo == gf.TotalWorshipListItems || gf.StartPresAt == gf.TotalWorshipListItems)
+			if (Gf.LiveItem.CurItemNo == Gf.TotalWorshipListItems || Gf.StartPresAt == Gf.TotalWorshipListItems)
 			{
 				if (GetPreviousIfNoNext)
 				{
-					return Rotate_FindPreviousItem(gf.LiveItem.CurItemNo);
+					return Rotate_FindPreviousItem(Gf.LiveItem.CurItemNo);
 				}
-				return gf.LiveItem.CurItemNo;
+				return Gf.LiveItem.CurItemNo;
 			}
 			try
 			{
-				int num = gf.StartPresAt + 1;
-				int itemRotateResult = gf.GetItemRotateResult(gf.WorshipSongs[num, 0]);
+				int num = Gf.StartPresAt + 1;
+				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num, 0]);
 				if (itemRotateResult > 0)
 				{
 					if (itemRotateResult == 2)
@@ -1883,24 +1866,23 @@ namespace Easislides
 						{
 						}
 					}
-					return gf.StartPresAt + 1;
+					return Gf.StartPresAt + 1;
 				}
-				if (gf.AdHocItemPresent && GetPreviousIfNoNext)
+				if (Gf.AdHocItemPresent && GetPreviousIfNoNext)
 				{
-					int num2 = gf.StartPresAt;
+					int num2 = Gf.StartPresAt;
 					try
 					{
-						num2 = gf.GetItemRotateResult(gf.WorshipSongs[gf.StartPresAt, 0]);
+						num2 = Gf.GetItemRotateResult(Gf.WorshipSongs[Gf.StartPresAt, 0]);
 					}
 					catch
 					{
 					}
-					int result = Rotate_FindPreviousItem(gf.StartPresAt);
+					int result = Rotate_FindPreviousItem(Gf.StartPresAt);
 					if (num2 < 1)
 					{
-						return gf.LiveItem.CurItemNo;
+						return Gf.LiveItem.CurItemNo;
 					}
-					int num3 = 0;
 					return result;
 				}
 			}
@@ -1909,9 +1891,9 @@ namespace Easislides
 			}
 			if (GetPreviousIfNoNext)
 			{
-				return Rotate_FindPreviousItem(gf.LiveItem.CurItemNo);
+				return Rotate_FindPreviousItem(Gf.LiveItem.CurItemNo);
 			}
-			return gf.LiveItem.CurItemNo;
+			return Gf.LiveItem.CurItemNo;
 		}
 
 		private int Rotate_FindPreviousItem(int InItemNo)
@@ -1923,7 +1905,7 @@ namespace Easislides
 			try
 			{
 				int num = InItemNo - 1;
-				int itemRotateResult = gf.GetItemRotateResult(gf.WorshipSongs[num, 0]);
+				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num, 0]);
 				if (itemRotateResult > 0)
 				{
 					if (itemRotateResult == 2)
@@ -1981,15 +1963,15 @@ namespace Easislides
 					//MediaPlayerWindow.Remote_ClearScreen();
 					break;
 				case MediaPlayerWindowAction.Remote_LoadItem:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
+					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
 					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_LoadItem();
 					break;
 				case MediaPlayerWindowAction.Remote_ResumeItem:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
+					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
 					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_ResumeItem();
 					break;
 				case MediaPlayerWindowAction.Remote_RepeatItem:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
+					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
 					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_RepeatItem();
 					break;
 				case MediaPlayerWindowAction.Remote_ResumeItemFromStart:
@@ -2002,11 +1984,11 @@ namespace Easislides
 					//MediaPlayerWindow.Remote_StopItem();
 					break;
 				case MediaPlayerWindowAction.Remote_LoadLiveCam:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
+					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
 					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_LoadLiveCam();
 					break;
 				case MediaPlayerWindowAction.Remote_UpdateLiveCam:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(gf.LiveItem));
+					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
 					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_UpdateLiveCam();
 					break;
 				case MediaPlayerWindowAction.Remote_RefreshMediaWindow:
@@ -2043,8 +2025,8 @@ namespace Easislides
 
 		//private void RemoteControlLyricsWindow(LyricsWindowAction InAction)
 		//{
-		//	//if (gf.LyricsMonitorNumber > 0 || gf.LMSelectAutoOption > 0)//gf.GetSecondryMonitorIndex()
-		//	if (gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || gf.LMSelectAutoOption > 0)
+		//	//if (Gf.LyricsMonitorNumber > 0 || Gf.LMSelectAutoOption > 0)//Gf.GetSecondryMonitorIndex()
+		//	if (Gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || Gf.LMSelectAutoOption > 0)
 		//	{
 		//		try
 		//		{
@@ -2090,8 +2072,8 @@ namespace Easislides
 
 		//private void RemoteControlLyricsWindow(LyricsWindowAction InAction)
 		//{
-		//	//if (gf.LyricsMonitorNumber > 0 || gf.LMSelectAutoOption > 0)//gf.GetSecondryMonitorIndex()
-		//	if (gf.LyricsMonitorNumber == gf.GetSecondryMonitorIndex() || gf.LMSelectAutoOption > 0)
+		//	//if (Gf.LyricsMonitorNumber > 0 || Gf.LMSelectAutoOption > 0)//Gf.GetSecondryMonitorIndex()
+		//	if (Gf.LyricsMonitorNumber == Gf.GetSecondryMonitorIndex() || Gf.LMSelectAutoOption > 0)
 		//	{
 		//		try
 		//		{
@@ -2137,29 +2119,27 @@ namespace Easislides
 
 		private void FrmLaunchShow_Enter(object sender, EventArgs e)
 		{
-			CursorOverForm = true;
 		}
 
 		private void FrmLaunchShow_Leave(object sender, EventArgs e)
 		{
-			CursorOverForm = false;
 		}
 
 		private void GotoNextNonRotateItem()
 		{
-			int nextNonRotateItem = gf.GetNextNonRotateItem((gf.LiveItem.Type == "G") ? true : false);
+			int nextNonRotateItem = Gf.GetNextNonRotateItem((Gf.LiveItem.Type == "G") ? true : false);
 			bool flag = false;
-			if (gf.GapItemOption == GapType.None)
+			if (Gf.GapItemOption == GapType.None)
 			{
-				if (nextNonRotateItem != gf.StartPresAt)
+				if (nextNonRotateItem != Gf.StartPresAt)
 				{
-					gf.StartPresAt = nextNonRotateItem;
-					MoveToLiveItem(gf.LiveItem, KeyDirection.Refresh);
+					Gf.StartPresAt = nextNonRotateItem;
+					MoveToLiveItem(Gf.LiveItem, KeyDirection.Refresh);
 				}
 			}
-			else if (nextNonRotateItem == gf.StartPresAt)
+			else if (nextNonRotateItem == Gf.StartPresAt)
 			{
-				if (gf.LiveItem.Type != "G")
+				if (Gf.LiveItem.Type != "G")
 				{
 					flag = true;
 				}
@@ -2170,16 +2150,16 @@ namespace Easislides
 			}
 			if (flag)
 			{
-				gf.StartPresAt = nextNonRotateItem;
-				gf.Launch_StartPresAt = gf.StartPresAt;
+				Gf.StartPresAt = nextNonRotateItem;
+				Gf.Launch_StartPresAt = Gf.StartPresAt;
 				string InTitle = "";
-				LoadItem(ref gf.LiveItem, "G1", "", 0, ref InTitle, ImageTransitionControl.TransitionAction.None, ReLoadIfCaptureDevice: false);
+				LoadItem(ref Gf.LiveItem, "G1", "", 0, ref InTitle, ImageTransitionControl.TransitionAction.None, ReLoadIfCaptureDevice: false);
 			}
 		}
 
 		private void TimerToFront_Tick(object sender, EventArgs e)
 		{
-			if (gf.DualMonitorMode)
+			if (Gf.DualMonitorMode)
 			{
 				TimerToFront.Stop();
 			}

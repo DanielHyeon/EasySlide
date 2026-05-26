@@ -141,7 +141,7 @@ namespace Easislides
 
         private void FrmHelp_Load(object sender, EventArgs e)
         {
-            int keyBoardOption = gf.KeyBoardOption;
+            int keyBoardOption = Gf.KeyBoardOption;
             if (keyBoardOption == 1)
             {
                 label_FirstItem.Text = "Left Arrow";
