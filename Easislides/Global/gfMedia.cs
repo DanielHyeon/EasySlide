@@ -7,7 +7,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
+    internal unsafe partial class Gf
     {
 
 		public static bool MusicFound(string MusicTitle1)
@@ -128,8 +128,8 @@ namespace Easislides
 			}
 			if (!FolderPath.EndsWith(@"\Media\"))
 			{
-				gf.MediaDir = @"C:\EasiSlides\Media\";
-				FolderPath = gf.MediaDir;
+				Gf.MediaDir = @"C:\EasiSlides\Media\";
+				FolderPath = Gf.MediaDir;
 			}
 
 			string[] directories = Directory.GetDirectories(FolderPath);

@@ -189,14 +189,14 @@ namespace Easislides
 
 		private void FrmEditBibleItem_Load(object sender, EventArgs e)
 		{
-			Title.Text = gf.EditBible_Title;
+			Title.Text = Gf.EditBible_Title;
 			LoadBibleList(ref BibleVersionsRegion1);
 			LoadBibleList(ref BibleVersionsRegion2);
-			InIDString = gf.EditBible_IDString;
-			gf.EditBible_IDString = "";
+			InIDString = Gf.EditBible_IDString;
+			Gf.EditBible_IDString = "";
 			InIDStringFirstPart = DataUtil.ExtractOneInfo(ref InIDString, ';');
-			InRegion1 = gf.LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InIDString, ';')) + 1;
-			InRegion2 = gf.LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InIDString, ';')) + 1;
+			InRegion1 = Gf.LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InIDString, ';')) + 1;
+			InRegion2 = Gf.LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InIDString, ';')) + 1;
 			BibleVersionsRegion1.SelectedIndex = InRegion1;
 			BibleVersionsRegion2.SelectedIndex = InRegion2;
 		}
@@ -205,9 +205,9 @@ namespace Easislides
 		{
 			InBibleList.Items.Clear();
 			InBibleList.Items.Add("");
-			for (int i = 0; i <= gf.HB_TotalVersions - 1; i++)
+			for (int i = 0; i <= Gf.HB_TotalVersions - 1; i++)
 			{
-				InBibleList.Items.Add(gf.HB_Versions[i, 1] + " - " + gf.HB_Versions[i, 2]);
+				InBibleList.Items.Add(Gf.HB_Versions[i, 1] + " - " + Gf.HB_Versions[i, 2]);
 			}
 		}
 
@@ -244,27 +244,27 @@ namespace Easislides
 		{
 			string text = "";
 			string text2 = "";
-			text = gf.GetDisplayNameOnly(ref gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 4], UpdateByRef: false, KeepExt: true);
+			text = Gf.GetDisplayNameOnly(ref Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 4], UpdateByRef: false, KeepExt: true);
 			if (BibleVersionsRegion2.SelectedIndex > 0)
 			{
-				text2 = gf.GetDisplayNameOnly(ref gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 4], UpdateByRef: false, KeepExt: true);
+				text2 = Gf.GetDisplayNameOnly(ref Gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 4], UpdateByRef: false, KeepExt: true);
 			}
-			//gf.EditBible_IDString = InIDStringFirstPart + ';' + text + ';' + text2 + ';' + InIDString;
-			gf.EditBible_IDString = $"{InIDStringFirstPart};{text};{text2};{InIDString}";
+			//Gf.EditBible_IDString = InIDStringFirstPart + ';' + text + ';' + text2 + ';' + InIDString;
+			Gf.EditBible_IDString = $"{InIDStringFirstPart};{text};{text2};{InIDString}";
 			
-			int num = gf.EditBible_Title.IndexOf('(');
+			int num = Gf.EditBible_Title.IndexOf('(');
 			if (num > 0)
 			{
-				gf.EditBible_Title = DataUtil.Trim(DataUtil.Left(gf.EditBible_Title, num - 1));
+				Gf.EditBible_Title = DataUtil.Trim(DataUtil.Left(Gf.EditBible_Title, num - 1));
 			}
 			if (text2 == "")
 			{
-				gf.EditBible_Title = gf.EditBible_Title + " (" + gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1] + ")";
+				Gf.EditBible_Title = Gf.EditBible_Title + " (" + Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1] + ")";
 				return;
 			}
-			string editBible_Title = gf.EditBible_Title;
-			//gf.EditBible_Title = editBible_Title + " (" + gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1] + "/" + gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 1] + ")";
-			gf.EditBible_Title = $"{editBible_Title} ({gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1]}/{gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 1]})";
+			string editBible_Title = Gf.EditBible_Title;
+			//Gf.EditBible_Title = editBible_Title + " (" + Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1] + "/" + Gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 1] + ")";
+			Gf.EditBible_Title = $"{editBible_Title} ({Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1]}/{Gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 1]})";
 		}
 
 		private void BtnOK_Click()

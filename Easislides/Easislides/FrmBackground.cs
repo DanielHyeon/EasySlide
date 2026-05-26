@@ -667,10 +667,10 @@ namespace Easislides
 
 		private void LoadData()
 		{
-			Text = (gf.ChangedIsDefault ? "Select Default Background Colours and Pattern" : "Background and Pattern for selected item");
-			InColour1 = gf.ChangedBackColour1;
-			InColour2 = gf.ChangedBackColour2;
-			SelectedStyle = gf.ChangedBackStyle;
+			Text = (Gf.ChangedIsDefault ? "Select Default Background Colours and Pattern" : "Background and Pattern for selected item");
+			InColour1 = Gf.ChangedBackColour1;
+			InColour2 = Gf.ChangedBackColour2;
+			SelectedStyle = Gf.ChangedBackStyle;
 			PicWidth = pictureBox0.Width;
 			PicHeight = pictureBox0.Height;
 			Colour1Btn.ForeColor = InColour1;
@@ -704,7 +704,7 @@ namespace Easislides
 			int inStyle = DataUtil.StringToInt((string)InPictureBox.Tag);
 			Image image = new Bitmap(PicWidth, PicHeight);
 			Graphics g = Graphics.FromImage(image);
-			gf.BackPattern.Fill(ref g, InColour1, InColour2, inStyle, PicWidth, PicHeight, ref BackgroundID);
+			Gf.BackPattern.Fill(ref g, InColour1, InColour2, inStyle, PicWidth, PicHeight, ref BackgroundID);
 			InPictureBox.BackgroundImage = image;
 			InPanel.BackColor = BackColor;
 			//image.Dispose();
@@ -729,7 +729,7 @@ namespace Easislides
 
 		private void Colour1_MouseUp(object sender, MouseEventArgs e)
 		{
-			if (gf.SelectColorFromBtn(ref Colour1Btn, ref InColour1))
+			if (Gf.SelectColorFromBtn(ref Colour1Btn, ref InColour1))
 			{
 				if (!checkBoxColour2.Checked)
 				{
@@ -741,7 +741,7 @@ namespace Easislides
 
 		private void Colour2_MouseUp(object sender, MouseEventArgs e)
 		{
-			if (gf.SelectColorFromBtn(ref Colour2Btn, ref InColour2))
+			if (Gf.SelectColorFromBtn(ref Colour2Btn, ref InColour2))
 			{
 				DrawAllPatterns();
 			}
@@ -780,9 +780,9 @@ namespace Easislides
 
 		private void UseNewSettingsAndExit()
 		{
-			gf.ChangedBackColour1 = InColour1;
-			gf.ChangedBackColour2 = InColour2;
-			gf.ChangedBackStyle = SelectedStyle;
+			Gf.ChangedBackColour1 = InColour1;
+			Gf.ChangedBackColour2 = InColour2;
+			Gf.ChangedBackStyle = SelectedStyle;
 			base.DialogResult = DialogResult.OK;
 			Close();
 		}

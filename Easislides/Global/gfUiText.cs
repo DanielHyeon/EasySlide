@@ -7,7 +7,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 		private enum SlideType
 		{

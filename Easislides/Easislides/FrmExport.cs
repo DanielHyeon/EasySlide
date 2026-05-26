@@ -422,22 +422,22 @@ namespace Easislides
 			ExportItem.Initialise();
 			SongsList.Sorting = SortOrder.None;
 			Preferred_Ext = ".xml";
-			tbExportTo.Text = ((gf.ExportFileName != "") ? gf.ExportFileName : GetLowestFileNum(gf.DocumentsDir + "Export_" + DateTime.Today.ToString("yyyy-MM-dd"), Preferred_Ext));
+			tbExportTo.Text = ((Gf.ExportFileName != "") ? Gf.ExportFileName : GetLowestFileNum(Gf.DocumentsDir + "Export_" + DateTime.Today.ToString("yyyy-MM-dd"), Preferred_Ext));
 		}
 
 		private void BuildFolderList()
 		{
 			FolderList.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					FolderList.Items.Add(gf.FolderName[i]);
+					FolderList.Items.Add(Gf.FolderName[i]);
 				}
 			}
 			if (FolderList.Items.Count == 0)
 			{
-				FolderList.Items.Add(gf.FolderName[1]);
+				FolderList.Items.Add(Gf.FolderName[1]);
 			}
 			FolderList.Text = FolderList.Items[0].ToString();
 			SongsList.Items.Clear();
@@ -472,7 +472,7 @@ namespace Easislides
 				string text3 = "";
 				for (int i = 0; i < FolderList.CheckedItems.Count; i++)
 				{
-					text3 = ((!(text3 == "")) ? (text3 + " or FolderNo=" + Convert.ToString(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()))) : ("select * from SONG where (FolderNo=" + Convert.ToString(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()))));
+					text3 = ((!(text3 == "")) ? (text3 + " or FolderNo=" + Convert.ToString(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()))) : ("select * from SONG where (FolderNo=" + Convert.ToString(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()))));
 				}
 				text3 = text3 + ") " + str + " order by cjk_strokecount";
 				//int num = 0;
@@ -481,7 +481,7 @@ namespace Easislides
 				{
 					Cursor = Cursors.WaitCursor;
 
-					using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, text3);
+					using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, text3);
 
 					if (datatable.Rows.Count > 0)
 					{
@@ -492,7 +492,7 @@ namespace Easislides
 							num2 = DataUtil.ObjToInt(dr["FolderNo"]);
 							listViewItem = SongsList.Items.Add(SongTitle);
 							listViewItem.SubItems.Add(SongID1);
-							listViewItem.SubItems.Add(gf.FolderName[num2]);
+							listViewItem.SubItems.Add(Gf.FolderName[num2]);
 						}
 					}
 				}
@@ -564,12 +564,10 @@ namespace Easislides
 			num++;
 			if ((num == 99) & !File.Exists(InFileName + "_" + num.ToString("00") + InExt))
 			{
-				bool flag = false;
 				for (int num2 = 1; num2 < 100; num2++)
 				{
 					if (!File.Exists(InFileName + "_" + num2.ToString("00") + InExt))
 					{
-						flag = true;
 						num = num2;
 						num2 = 100;
 					}
@@ -653,9 +651,9 @@ namespace Easislides
 		private void Export_FileName_Click(object sender, EventArgs e)
 		{
 			saveFileDialog1.Filter = "EasiSlides XML File (*.xml)|*.xml|EasiSlides Database File (*.esf)|*.esf|EasiSlides Text File (*.esn)|*.esn";
-			saveFileDialog1.InitialDirectory = gf.ExportToDir;
+			saveFileDialog1.InitialDirectory = Gf.ExportToDir;
 			string InFileName = tbExportTo.Text;
-			saveFileDialog1.FileName = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: false);
+			saveFileDialog1.FileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: false);
 			saveFileDialog1.OverwritePrompt = false;
 			saveFileDialog1.DefaultExt = Preferred_Ext;
 			if (saveFileDialog1.ShowDialog() == DialogResult.OK)
@@ -663,8 +661,8 @@ namespace Easislides
 				string extension = Path.GetExtension(saveFileDialog1.FileName);
 				string str = DataUtil.Left(saveFileDialog1.FileName, saveFileDialog1.FileName.Length - extension.Length);
 				tbExportTo.Text = str + extension;
-				gf.ExportFileName = tbExportTo.Text;
-				gf.ExportToDir = Path.GetDirectoryName(tbExportTo.Text) + "\\";
+				Gf.ExportFileName = tbExportTo.Text;
+				Gf.ExportToDir = Path.GetDirectoryName(tbExportTo.Text) + "\\";
 				string extension2 = Path.GetExtension(tbExportTo.Text);
 				Preferred_Ext = ValidateExportExtension(extension2);
 				RegUtil.SaveRegValue("settings", "export_ext", Preferred_Ext);
@@ -736,7 +734,7 @@ namespace Easislides
 			string text = Application.StartupPath + "\\Sys\\Defdb.dat";
 			if (File.Exists(text))
 			{
-				gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
+				Gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
 				File.Copy(text, ExportFileName, overwrite: true);
 				List<ListViewItem> checkedItems = GetCheckedSongItems();
 				using DataTable dt = GetSongsForExport(checkedItems);
@@ -745,20 +743,19 @@ namespace Easislides
 				Cursor = Cursors.WaitCursor;
 				ProgressBar1.Visible = true;
 				ProgressBar1.Value = 0;
-				int num2 = 0;
 				int num3 = 0;
-				if (gf.DeleteAllFolders(gf.ConnectStringDef + ExportFileName))
+				if (Gf.DeleteAllFolders(Gf.ConnectStringDef + ExportFileName))
 				{
 					for (int i = 0; i < FolderList.CheckedItems.Count; i++)
 					{
-						gf.ResetFolder(gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), gf.ConnectSQLiteDef + ExportFileName);
+						Gf.ResetFolder(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), Gf.ConnectSQLiteDef + ExportFileName);
 					}
 					for (int i = 0; i < checkedItems.Count; i++)
 					{
 						int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
-						if (rowMap.TryGetValue(songId, out DataRow row) && gf.LoadDataIntoItem(ref ExportItem, row))
+						if (rowMap.TryGetValue(songId, out DataRow row) && Gf.LoadDataIntoItem(ref ExportItem, row))
 						{
-							num3 = gf.InsertItemIntoDatabase(gf.ConnectStringDef + ExportFileName, ExportItem);
+							num3 = Gf.InsertItemIntoDatabase(Gf.ConnectStringDef + ExportFileName, ExportItem);
 						}
 						Update();
 						num = (i + 1) * 100 / TotSongsSel;
@@ -796,9 +793,8 @@ namespace Easislides
 		private void Export_TextFormat(string ExportFileName)
 		{
 			int num = 0;
-			gf.ValidateDir(Path.GetDirectoryName(ExportFileName), CreateDir: true);
+			Gf.ValidateDir(Path.GetDirectoryName(ExportFileName), CreateDir: true);
 			int num2 = 0;
-			int num3 = 0;
 			ProgressBar1.Visible = true;
 			ProgressBar1.Value = 0;
 			StringBuilder stringBuilder = new StringBuilder();
@@ -811,7 +807,7 @@ namespace Easislides
 			for (int i = 0; i < checkedItems.Count; i++)
 			{
 				int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
-				if (!rowMap.TryGetValue(songId, out DataRow row) || !gf.LoadDataIntoItem(ref ExportItem, row))
+				if (!rowMap.TryGetValue(songId, out DataRow row) || !Gf.LoadDataIntoItem(ref ExportItem, row))
 				{
 					continue;
 				}
@@ -822,7 +818,7 @@ namespace Easislides
 				}
 				if (ExportItem.FolderNo > 0)
 				{
-					stringBuilder.Append(">f" + gf.FolderName[ExportItem.FolderNo]);
+					stringBuilder.Append(">f" + Gf.FolderName[ExportItem.FolderNo]);
 				}
 				if (ExportItem.SongNumber > 0)
 				{
@@ -876,7 +872,7 @@ namespace Easislides
 						}
 						else
 						{
-							tempSequence += gf.SequenceSymbol[num4];
+							tempSequence += Gf.SequenceSymbol[num4];
 						}
 						if (j < ExportItem.SongSequence.Length - 1)
 						{
@@ -916,7 +912,7 @@ namespace Easislides
 
 		private void Export_XMLFormat(string ExportFileName)
 		{
-			gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
+			Gf.ValidateDir(Path.GetDirectoryName(ExportFileName) + "\\", CreateDir: true);
 			List<ListViewItem> checkedItems = GetCheckedSongItems();
 			using DataTable dt = GetSongsForExport(checkedItems);
 			Dictionary<int, DataRow> rowMap = BuildSongRowMap(dt);
@@ -938,9 +934,9 @@ namespace Easislides
 					int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
 					if (rowMap.TryGetValue(songId, out DataRow row))
 					{
-						if (gf.LoadDataIntoItem(ref ExportItem, row))
+						if (Gf.LoadDataIntoItem(ref ExportItem, row))
 						{
-							gf.WriteXMLOneItem(ref xtw, ExportItem, null, ReloadImageData: false);
+							Gf.WriteXMLOneItem(ref xtw, ExportItem, null, ReloadImageData: false);
 							num++;
 						}
 						Update();
@@ -999,7 +995,7 @@ namespace Easislides
 				return new DataTable();
 			}
 			string query = "select * from SONG where SONGID in (" + string.Join(",", ids) + ")";
-			return DbController.GetDataTable(gf.ConnectStringMainDB, query);
+			return DbController.GetDataTable(Gf.ConnectStringMainDB, query);
 		}
 
 		private Dictionary<int, DataRow> BuildSongRowMap(DataTable dt)

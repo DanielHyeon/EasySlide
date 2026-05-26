@@ -54,13 +54,9 @@ namespace Easislides
 
 		public bool isVideo = false;
 
-		private bool isFullScreen = false;
-
 		public int currentVolume = 0;
 
 		public bool isWidescreen = false;
-
-		private double currentPlaybackRate = 1.0;
 
 		private IntPtr hDrain = IntPtr.Zero;
 
@@ -94,7 +90,7 @@ namespace Easislides
 
 		public DShowLib()
 		{
-			BackColor = gf.TransparentColour;
+			BackColor = Gf.TransparentColour;
 			Bitmap bitmap = new Bitmap(55, 25);
 			//Graphics graphics = Graphics.FromImage(bitmap);
 			IntPtr hicon = bitmap.GetHicon();
@@ -193,8 +189,6 @@ namespace Easislides
 					num = InitPlayerWindow();
 					DsError.ThrowExceptionForHR(num);
 				}
-				isFullScreen = false;
-				currentPlaybackRate = 1.0;
 				num = mediaControl.Run();
 				DsError.ThrowExceptionForHR(num);
 				if (ResumeFromPreviousPosition)
@@ -232,7 +226,6 @@ namespace Easislides
 			}
 			SetPlayState(PlayState.Stopped);
 			isVideo = false;
-			isFullScreen = false;
 			CloseInterfaces();
 			SetPlayState(PlayState.Init);
 			Media_Width = 0;
@@ -398,7 +391,6 @@ namespace Easislides
 
 		private bool GetFrameStepInterface()
 		{
-			int num = 0;
 			IVideoFrameStep videoFrameStep = null;
 			videoFrameStep = (IVideoFrameStep)graphBuilder;
 			if (videoFrameStep.CanStep(0, null) == 0)
@@ -1112,7 +1104,7 @@ namespace Easislides
 
 		public void DebugMessage(string Message)
 		{
-			if (gf.DualMonitorMode && gf.ShowDebugVideoMessages)
+			if (Gf.DualMonitorMode && Gf.ShowDebugVideoMessages)
 			{
 				MessageBox.Show(Message);
 			}

@@ -194,20 +194,20 @@ namespace Easislides
         {
             try
             {
-                if (gf.LivePP != null)
+                if (Gf.LivePP != null)
                 {
-                    ReleasePowerpointApp(gf.LivePP);
-                    gf.LivePP = null;
+                    ReleasePowerpointApp(Gf.LivePP);
+                    Gf.LivePP = null;
                 }
-                if (gf.PreviewPPT != null)
+                if (Gf.PreviewPPT != null)
                 {
-                    ReleasePowerpointApp(gf.PreviewPPT);
-                    gf.PreviewPPT = null;
+                    ReleasePowerpointApp(Gf.PreviewPPT);
+                    Gf.PreviewPPT = null;
                 }
-                if (gf.OutputPPT != null)
+                if (Gf.OutputPPT != null)
                 {
-                    ReleasePowerpointApp(gf.OutputPPT);
-                    gf.OutputPPT = null;
+                    ReleasePowerpointApp(Gf.OutputPPT);
+                    Gf.OutputPPT = null;
                 }
             }
             catch (Exception ex)
@@ -236,7 +236,7 @@ namespace Easislides
 
         public static string GetOpenFileDialogMediaString(MediaBackgroundStyle InMediaType)
         {
-            if (gf.TotalMediaFileExt == 0)
+            if (Gf.TotalMediaFileExt == 0)
             {
                 return "";
             }
@@ -255,9 +255,9 @@ namespace Easislides
             }
 
             bool isFirst = true;
-            for (int i = 0; i < gf.TotalMediaFileExt; i++)
+            for (int i = 0; i < Gf.TotalMediaFileExt; i++)
             {
-                if (InMediaType == MediaBackgroundStyle.None || gf.MediaFileExtension[i, 1] == InMediaType.ToString())
+                if (InMediaType == MediaBackgroundStyle.None || Gf.MediaFileExtension[i, 1] == InMediaType.ToString())
                 {
                     if (!isFirst)
                     {
@@ -265,7 +265,7 @@ namespace Easislides
                         extensions.Append(';');
                     }
 
-                    string ext = "*" + gf.MediaFileExtension[i, 0];
+                    string ext = "*" + Gf.MediaFileExtension[i, 0];
                     displayName.Append(ext);
                     extensions.Append(ext);
                     isFirst = false;
@@ -299,7 +299,7 @@ namespace Easislides
             switch (itemType)
             {
                 case "D":
-                    title = gf.RemoveMusicSym(DataUtil.Trim(item.Text));
+                    title = Gf.RemoveMusicSym(DataUtil.Trim(item.Text));
                     if (DataUtil.Right(title, ERROR_ITEM_NOT_FOUND.Length) == ERROR_ITEM_NOT_FOUND)
                     {
                         title = DataUtil.Left(title, title.Length - ERROR_ITEM_NOT_FOUND.Length);
@@ -323,7 +323,7 @@ namespace Easislides
         private static void ExtractPraiseBookItemData(ListViewItem item, out string itemID, out string title, out string folder, out string formatData)
         {
             itemID = DataUtil.Trim(item.SubItems[3].Text);
-            title = gf.RemoveMusicSym(DataUtil.Trim(item.SubItems[2].Text));
+            title = Gf.RemoveMusicSym(DataUtil.Trim(item.SubItems[2].Text));
             folder = "";
             formatData = item.SubItems[5].Text;
         }
@@ -338,7 +338,7 @@ namespace Easislides
                 xtw.WriteStartDocument();
                 xtw.WriteStartElement("EasiSlides");
                 xtw.WriteStartElement("ListItem");
-                gf.WriteXMLSessionHeader(ref xtw, InFormatString, InNotes);
+                Gf.WriteXMLSessionHeader(ref xtw, InFormatString, InNotes);
 
                 int itemCount = SaveAllItems ? InList.Items.Count : 0;
 
@@ -462,10 +462,10 @@ namespace Easislides
             try
             {
                 reader = new XmlTextReader(InFileName);
-                if (gf.ValidateEasiSlidesXML(ref reader))
+                if (Gf.ValidateEasiSlidesXML(ref reader))
                 {
                     string itemID = InItem.ItemID;
-                    gf.ExtractEasiSlidesXMLItem(ref reader, ref InItem);
+                    Gf.ExtractEasiSlidesXMLItem(ref reader, ref InItem);
                     InItem.ItemID = itemID;
                 }
                 else
@@ -489,7 +489,7 @@ namespace Easislides
             bool flag = false;
             InPP.isLive = true;
             InPP.isEditable = false;
-            for (int i = 0; i <= gf.TotalWorshipListItems; i++)
+            for (int i = 0; i <= Gf.TotalWorshipListItems; i++)
             {
                 try
                 {
@@ -500,7 +500,7 @@ namespace Easislides
                             InPP.NewApp();
                             flag = true;
                         }
-                        InPP.Open(DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1), ref gf.PowerpointList, ref gf.TotalPowerpointItems);
+                        InPP.Open(DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1), ref Gf.PowerpointList, ref Gf.TotalPowerpointItems);
                         InPP.prePowerPointApp.Activate();
                         InPP.prePowerPointApp.WindowState = NetOffice.PowerPointApi.Enums.PpWindowState.ppWindowMinimized;
                     }

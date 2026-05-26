@@ -108,10 +108,10 @@ namespace Easislides
 
 		private void FrmRename_Load(object sender, EventArgs e)
 		{
-			InString = DataUtil.Trim(gf.Rename_String);
-			label1.Text = "Rename '" + gf.Rename_String + "' to:";
-			gf.Rename_ExistingString = gf.Rename_ExistingString.ToLower();
-			textBoxNewString.Text = gf.Rename_String;
+			InString = DataUtil.Trim(Gf.Rename_String);
+			label1.Text = "Rename '" + Gf.Rename_String + "' to:";
+			Gf.Rename_ExistingString = Gf.Rename_ExistingString.ToLower();
+			textBoxNewString.Text = Gf.Rename_String;
 			textBoxNewString.SelectAll();
 		}
 
@@ -125,13 +125,13 @@ namespace Easislides
 			textBoxNewString.Text = DataUtil.Trim(textBoxNewString.Text);
 			if (textBoxNewString.Text.Length > 0)
 			{
-				if (textBoxNewString.Text == gf.Rename_String)
+				if (textBoxNewString.Text == Gf.Rename_String)
 				{
 					Close();
 				}
-				else if (gf.Rename_ExistingString.IndexOf(textBoxNewString.Text.ToLower()) < 0)
+				else if (Gf.Rename_ExistingString.IndexOf(textBoxNewString.Text.ToLower()) < 0)
 				{
-					gf.Rename_String = textBoxNewString.Text;
+					Gf.Rename_String = textBoxNewString.Text;
 					base.DialogResult = DialogResult.OK;
 					Close();
 				}

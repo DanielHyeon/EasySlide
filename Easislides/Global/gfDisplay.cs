@@ -10,7 +10,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-    internal unsafe partial class gf
+    internal unsafe partial class Gf
     {
 		// Display Constants
 		private const int DefaultLyricsWidth = 960;
@@ -673,7 +673,6 @@ namespace Easislides
 		public static void DrawOneLine(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, SongLyrics InLyrics, int RegionNumber, int[,] Slide, ListView LyricsAndNotationsList, ref Graphics g, Font MainFont, Font NotationsFont, int OneLineHeight, int NotationsLineHeight, int NotationsLineTextVOffset, RectangleF rect_normal, int InHeight, string LyricsText, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int CurLine, ref int HeightOffset, ref int LinesRequired, bool InterlaceOption, string InterlaceLinePattern)
 		{
 			int startPos = 0;
-			int num = 0;
 			int EndExtractedTextPos = -1;
 			int R2_MaxLinesPermitted = Convert.ToInt32(DataUtil.ExtractOneInfo(ref InterlaceLinePattern, '>'));
 			if (R2_MaxLinesPermitted < 0)
@@ -756,7 +755,6 @@ namespace Easislides
 				return "";
 			}
 			string ExtractedText = "";
-			bool flag = false;
 			R2_MaxLinesPermitted--;
 			SubDivideOneOutputText(InText, MainFont, NotationsFont, g, InWidth, InShowNotations, NotationsString, length, InSetLength, StartPos, ref EndExtractedTextPos, ref ExtractedText);
 			int num = (int)RenderingCache.MeasureString(g, ExtractedText, MainFont).Width;

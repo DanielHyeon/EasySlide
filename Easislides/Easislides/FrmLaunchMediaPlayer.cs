@@ -20,10 +20,6 @@ namespace Easislides
 
 		private bool FormFirstLoad = true;
 
-		private int AttemptConnectCount = 0;
-
-		private int MaxAttemptConnectCount = 60;
-
 		private string PreviousItemLocation = "";
 
 		private bool ItemFirstPlay = false;
@@ -87,7 +83,7 @@ namespace Easislides
 		{
 			SetShowWindow();
 			BackColor = Color.Black;
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				InitMediaPlayer();
 				timerThread = new Thread(ThreadProc);
@@ -99,12 +95,12 @@ namespace Easislides
 
 		private void InitMediaPlayer()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				DShowPlayer.Parent = this;
 				DShowPlayer.Location = new Point(0, 0);
 				DShowPlayer.Dock = DockStyle.None;
-				ApplyPlayerBounds(gf.LS_Width, gf.LS_Height);
+				ApplyPlayerBounds(Gf.LS_Width, Gf.LS_Height);
 				DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
 			}
 		}
@@ -123,11 +119,11 @@ namespace Easislides
 					}
 				}
 			}
-			if (targetScreen == null && !string.IsNullOrEmpty(gf.OutputMonitorName))
+			if (targetScreen == null && !string.IsNullOrEmpty(Gf.OutputMonitorName))
 			{
 				foreach (Screen screen in Screen.AllScreens)
 				{
-					if (string.Equals(screen.DeviceName, gf.OutputMonitorName, StringComparison.OrdinalIgnoreCase))
+					if (string.Equals(screen.DeviceName, Gf.OutputMonitorName, StringComparison.OrdinalIgnoreCase))
 					{
 						targetScreen = screen;
 						break;
@@ -142,7 +138,7 @@ namespace Easislides
 			{
 				return;
 			}
-			gf.CurrentMediaOutputMonitorName = targetScreen.DeviceName;
+			Gf.CurrentMediaOutputMonitorName = targetScreen.DeviceName;
 			SetShowWindow(targetScreen.Bounds);
 		}
 
@@ -152,7 +148,7 @@ namespace Easislides
 			base.Top = bounds.Top;
 			base.Width = bounds.Width;
 			base.Height = bounds.Height;
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				ApplyPlayerBounds(bounds.Width, bounds.Height);
 			}
@@ -160,19 +156,19 @@ namespace Easislides
 
 		private void ApplyPlayerBounds(int screenWidth, int screenHeight)
 		{
-			int num = screenWidth * gf.VideoSize / 100;
-			int num2 = screenHeight * gf.VideoSize / 100;
+			int num = screenWidth * Gf.VideoSize / 100;
+			int num2 = screenHeight * Gf.VideoSize / 100;
 			int num3 = (screenWidth - num) / 2 - 1;
 			num3 = ((num3 >= 0) ? num3 : 0);
-			int t = (gf.VideoVAlign == 1) ? ((screenHeight - num2) / 2) : ((gf.VideoVAlign == 2) ? (screenHeight - num2) : 0);
-			DShowPlayer.SetDefaultSize(num3, t, num, num2, (VAlign)gf.VideoVAlign);
+			int t = (Gf.VideoVAlign == 1) ? ((screenHeight - num2) / 2) : ((Gf.VideoVAlign == 2) ? (screenHeight - num2) : 0);
+			DShowPlayer.SetDefaultSize(num3, t, num, num2, (VAlign)Gf.VideoVAlign);
 		}
 
 		private void DShowPlayer_ForeColorChanged(object sender, EventArgs e)
 		{
 			if (DShowPlayer.ForeColor == Color.Red)
 			{
-				if (gf.ShowRunning)
+				if (Gf.ShowRunning)
 				{
 					if (DShowPlayer.MouseBtnPressed == MouseButtons.Left)
 					{
@@ -187,7 +183,7 @@ namespace Easislides
 			}
 			if (DShowPlayer.ForeColor == Color.Blue)
 			{
-				if (gf.ShowRunning)
+				if (Gf.ShowRunning)
 				{
 					this.OnMessage(13, "");
 				}
@@ -200,36 +196,36 @@ namespace Easislides
 			case PlayState.Running:
 			{
 				TimerAttemptConnect.Stop();
-				gf.MediaNotifyItemConnecting = false;
+				Gf.MediaNotifyItemConnecting = false;
 				if (ItemFirstPlay)
 				{
-					if (!gf.ShowLiveCam)
+					if (!Gf.ShowLiveCam)
 					{
-						gf.MediaLiveItemStartTime = DateTime.Now;
-						gf.MediaPlayedLapseTime = new TimeSpan(0L);
+						Gf.MediaLiveItemStartTime = DateTime.Now;
+						Gf.MediaPlayedLapseTime = new TimeSpan(0L);
 					}
 				}
 				else
 				{
-					gf.MediaDoRotate = false;
+					Gf.MediaDoRotate = false;
 				}
 				ItemFirstPlay = false;
 				bool loopClip = false;
 				int clipDuration = DShowPlayer.GetClipDuration();
-				if (clipDuration == gf.LiveItem.RotateTotal || (gf.LiveItem.RotateStyle == 2 && gf.LiveItem.RotateTotal == 0))
+				if (clipDuration == Gf.LiveItem.RotateTotal || (Gf.LiveItem.RotateStyle == 2 && Gf.LiveItem.RotateTotal == 0))
 				{
-					if (!gf.ShowLiveCam)
+					if (!Gf.ShowLiveCam)
 					{
-						gf.MediaLengthAsRotateLength = true;
+						Gf.MediaLengthAsRotateLength = true;
 					}
 				}
 				else
 				{
-					if (!gf.ShowLiveCam)
+					if (!Gf.ShowLiveCam)
 					{
-						gf.MediaLengthAsRotateLength = false;
+						Gf.MediaLengthAsRotateLength = false;
 					}
-					if (gf.LiveItem.Format.MediaRepeat > 0 && !gf.RestartCurrentItem)
+					if (Gf.LiveItem.Format.MediaRepeat > 0 && !Gf.RestartCurrentItem)
 					{
 						loopClip = true;
 					}
@@ -239,9 +235,9 @@ namespace Easislides
 			}
 			case PlayState.Stopped:
 				DShowPlayer.currentVolume = 0;
-				if (!gf.ShowLiveCam)
+				if (!Gf.ShowLiveCam)
 				{
-					gf.MediaPlayedLapseTime = DateTime.Now.Subtract(gf.MediaLiveItemStartTime) + new TimeSpan(0, 0, 1);
+					Gf.MediaPlayedLapseTime = DateTime.Now.Subtract(Gf.MediaLiveItemStartTime) + new TimeSpan(0, 0, 1);
 				}
 				break;
 			}
@@ -249,7 +245,7 @@ namespace Easislides
 
 		public void Remote_StopItem()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				DShowPlayer.CloseClip();
 			}
@@ -257,7 +253,7 @@ namespace Easislides
 
 		public void Remote_PauseItem()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				DShowPlayer.PauseClip();
 			}
@@ -265,7 +261,7 @@ namespace Easislides
 
 		public void Remote_PausePlayItem()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				DShowPlayer.PausePlayClip();
 			}
@@ -273,7 +269,7 @@ namespace Easislides
 
 		public int Remote_LoadItem()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				return LoadMedia(ResumeFromPreviousPosition: false, FirstLoad: true);
 			}
@@ -282,7 +278,7 @@ namespace Easislides
 
 		public int Remote_ResumeItem()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				return LoadMedia(ResumeFromPreviousPosition: true, FirstLoad: false);
 			}
@@ -291,7 +287,7 @@ namespace Easislides
 
 		public void Remote_ResumeItemFromStart()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				DShowPlayer.ResumeFromStart();
 			}
@@ -299,7 +295,7 @@ namespace Easislides
 
 		public int Remote_LoadLiveCam()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				return LoadLiveCam();
 			}
@@ -308,7 +304,7 @@ namespace Easislides
 
 		public int Remote_UpdateLiveCam()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				return UpdateLiveCam();
 			}
@@ -317,7 +313,7 @@ namespace Easislides
 
 		public void Remote_ClearScreen()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				DShowPlayer.CloseClip();
 			}
@@ -325,9 +321,9 @@ namespace Easislides
 
 		public int Remote_RepeatItem()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
-				gf.MediaNotifyRepeatItem = false;
+				Gf.MediaNotifyRepeatItem = false;
 				return LoadMedia(ResumeFromPreviousPosition: false, FirstLoad: false);
 			}
 			return 0;
@@ -343,7 +339,7 @@ namespace Easislides
 
 		public bool Remote_ItemPlayingStatus()
 		{
-			if (gf.WMP_Present && DShowPlayer.currentState == PlayState.Running)
+			if (Gf.WMP_Present && DShowPlayer.currentState == PlayState.Running)
 			{
 				return true;
 			}
@@ -352,7 +348,7 @@ namespace Easislides
 
 		public void Remote_RefreshMediaWindow()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				try
 				{
@@ -379,7 +375,7 @@ namespace Easislides
 
 		public bool MediaIsVideo()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				return !DShowPlayer.isVideo;
 			}
@@ -407,7 +403,7 @@ namespace Easislides
 
 		private void UpdateProgress()
 		{
-			if (DShowPlayer.currentState != PlayState.Running || gf.ShowLiveCam)
+			if (DShowPlayer.currentState != PlayState.Running || Gf.ShowLiveCam)
 			{
 				return;
 			}
@@ -416,25 +412,25 @@ namespace Easislides
 			{
 				return;
 			}
-			if ((int)gf.MediaPlayedLapseTime.TotalSeconds <= currentPosition)
+			if ((int)Gf.MediaPlayedLapseTime.TotalSeconds <= currentPosition)
 			{
-				if (!gf.ShowLiveCam && gf.MediaDoRotate)
+				if (!Gf.ShowLiveCam && Gf.MediaDoRotate)
 				{
-					gf.MediaPlayedLapseTime = new TimeSpan(0, 0, currentPosition);
+					Gf.MediaPlayedLapseTime = new TimeSpan(0, 0, currentPosition);
 				}
 			}
-			else if (!gf.ShowLiveCam && gf.MediaDoRotate)
+			else if (!Gf.ShowLiveCam && Gf.MediaDoRotate)
 			{
-				gf.MediaPlayedLapseTime = DateTime.Now.Subtract(gf.MediaLiveItemStartTime);
+				Gf.MediaPlayedLapseTime = DateTime.Now.Subtract(Gf.MediaLiveItemStartTime);
 			}
 		}
 
 		private void SetShowWindow()
 		{
-			base.Left = gf.LS_Left;
-			base.Top = gf.LS_Top;
-			base.Height = gf.LS_Height;
-			base.Width = gf.LS_Width;
+			base.Left = Gf.LS_Left;
+			base.Top = Gf.LS_Top;
+			base.Height = Gf.LS_Height;
+			base.Width = Gf.LS_Width;
 		}
 
 		private void FrmLaunchMediaPlayer_FormClosing(object sender, FormClosingEventArgs e)
@@ -444,7 +440,7 @@ namespace Easislides
 
 		private int LoadMedia(bool ResumeFromPreviousPosition, bool FirstLoad)
 		{
-			string mediaLocation = gf.GetMediaLocation(gf.LiveItem);
+			string mediaLocation = Gf.GetMediaLocation(Gf.LiveItem);
 			int currentInputDevice = 1;
 			if (mediaLocation == "")
 			{
@@ -455,16 +451,16 @@ namespace Easislides
 			{
 				currentInputDevice = DataUtil.StringToInt(DataUtil.Mid(mediaLocation, "<<Capture>>".Length));
 			}
-			DShowPlayer.SetMute((gf.LiveItem.Format.MediaMute > 0) ? true : false);
-			DShowPlayer.SetWideScreen((gf.LiveItem.Format.MediaWidescreen > 0) ? true : false, ResizeWindow: false);
-			gf.MediaResetStartTime = true;
+			DShowPlayer.SetMute((Gf.LiveItem.Format.MediaMute > 0) ? true : false);
+			DShowPlayer.SetWideScreen((Gf.LiveItem.Format.MediaWidescreen > 0) ? true : false, ResizeWindow: false);
+			Gf.MediaResetStartTime = true;
 			DShowPlayer.newFilename = mediaLocation;
 			DShowPlayer.currentInputDevice = currentInputDevice;
 			PreviousItemLocation = mediaLocation;
 			ItemFirstPlay = true;
 			DShowPlayer.ResumeFromPreviousPosition = ResumeFromPreviousPosition;
 			DShowPlayer.OpenClip();
-			DShowPlayer.SetVolume(gf.LiveItem.Format.MediaVolume);
+			DShowPlayer.SetVolume(Gf.LiveItem.Format.MediaVolume);
 			if (DShowPlayer.currentState == PlayState.Running)
 			{
 				int result = (!DShowPlayer.isVideo) ? 1 : 2;
@@ -479,16 +475,16 @@ namespace Easislides
 
 		private int LoadLiveCam()
 		{
-			DShowPlayer.SetMute(gf.LiveCamMute);
-			DShowPlayer.SetWideScreen(gf.LiveCamWidescreen, ResizeWindow: false);
-			gf.MediaResetStartTime = true;
-			DShowPlayer.newFilename = "<<Capture>>" + gf.LiveCamNumber;
-			DShowPlayer.currentInputDevice = gf.LiveCamNumber;
+			DShowPlayer.SetMute(Gf.LiveCamMute);
+			DShowPlayer.SetWideScreen(Gf.LiveCamWidescreen, ResizeWindow: false);
+			Gf.MediaResetStartTime = true;
+			DShowPlayer.newFilename = "<<Capture>>" + Gf.LiveCamNumber;
+			DShowPlayer.currentInputDevice = Gf.LiveCamNumber;
 			PreviousItemLocation = DShowPlayer.newFilename;
 			ItemFirstPlay = true;
 			DShowPlayer.ResumeFromPreviousPosition = false;
 			DShowPlayer.OpenClip();
-			DShowPlayer.SetVolume(gf.LiveCamVolume);
+			DShowPlayer.SetVolume(Gf.LiveCamVolume);
 			if (DShowPlayer.currentState == PlayState.Running)
 			{
 				return (!DShowPlayer.isVideo) ? 1 : 2;
@@ -498,18 +494,18 @@ namespace Easislides
 
 		private int UpdateLiveCam()
 		{
-			DShowPlayer.SetMute(gf.LiveCamMute);
-			DShowPlayer.SetWideScreen(gf.LiveCamWidescreen, ResizeWindow: true);
-			if (PreviousItemLocation != "<<Capture>>" + gf.LiveCamNumber)
+			DShowPlayer.SetMute(Gf.LiveCamMute);
+			DShowPlayer.SetWideScreen(Gf.LiveCamWidescreen, ResizeWindow: true);
+			if (PreviousItemLocation != "<<Capture>>" + Gf.LiveCamNumber)
 			{
-				gf.MediaResetStartTime = true;
-				DShowPlayer.newFilename = "<<Capture>>" + gf.LiveCamNumber;
-				DShowPlayer.currentInputDevice = gf.LiveCamNumber;
+				Gf.MediaResetStartTime = true;
+				DShowPlayer.newFilename = "<<Capture>>" + Gf.LiveCamNumber;
+				DShowPlayer.currentInputDevice = Gf.LiveCamNumber;
 				PreviousItemLocation = DShowPlayer.newFilename;
 				ItemFirstPlay = true;
 				DShowPlayer.ResumeFromPreviousPosition = false;
 				DShowPlayer.OpenClip();
-				DShowPlayer.SetVolume(gf.LiveCamVolume);
+				DShowPlayer.SetVolume(Gf.LiveCamVolume);
 			}
 			if (DShowPlayer.currentState == PlayState.Running)
 			{
@@ -539,7 +535,7 @@ namespace Easislides
 
 		public bool Remote_GetMediaTimings(ref string Duration, ref string Position, ref int intDuration, ref int intPosition)
 		{
-			if (gf.WMP_Present && DShowPlayer.newFilename != "")
+			if (Gf.WMP_Present && DShowPlayer.newFilename != "")
 			{
 				Duration = ((DShowPlayer.newFilename != "") ? DShowPlayer.GetClipDurationString() : "00:00");
 				Position = DShowPlayer.GetCurrentPositionString();

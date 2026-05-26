@@ -2,7 +2,7 @@ using System.Windows.Forms;
 
 namespace Easislides
 {
-	internal class lv
+	internal class Lv
 	{
 		public static void Sort(ref ListView InListView, int SortColumn)
 		{

@@ -29,12 +29,12 @@ namespace Easislides
 
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
-			gf.RunProcess("http://www.easislides.com/register");
+			Gf.RunProcess("http://www.easislides.com/register");
 		}
 
 		private void lblRegister_LinkClicked(object sender, LinkClickedEventArgs e)
 		{
-			gf.RunProcess(e.LinkText);
+			Gf.RunProcess(e.LinkText);
 		}
 
 		protected override void Dispose(bool disposing)

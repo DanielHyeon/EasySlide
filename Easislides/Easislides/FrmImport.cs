@@ -73,57 +73,7 @@ namespace Easislides
 
 		private OpenFileDialog OpenFileDialog1;
 
-		private string InSeq;
-
-		private string InTxt;
-
-		private string OneSong;
-
-		private string InFileName;
-
-		private string MsgText;
-
-		private int InTotal;
-
-		private string SongNumber;
-
-		private string MusicNotations;
-
-		private string SongTiming;
-
-		private string SongCapo;
-
-		private string SongKey;
-
-		private string SongHeader;
-
-		private string tempSequence;
-
-		private string SongSequence;
-
-		private string UserReference;
-
-		private string BookReference;
-
-		private string SongCopyright;
-
-		private string SongWriterInfo;
-
-		private string SongLyrics;
-
-		private string SongTitle2;
-
-		private string SongTitle;
-
-		private string Lic_Admin2;
-
-		private string Lic_Admin1;
-
 		private string TextImportFormat;
-
-		private string CJK_WCount;
-
-		private string CJK_SCount;
 
 		private int CurSongID;
 
@@ -131,19 +81,11 @@ namespace Easislides
 
 		private int SongsUpdated;
 
-		private int DataProcessedSoFar;
-
-		private int FileDataSize;
-
-		private int ImportFileSize;
-
-		private int Filelength;
-
 		private int InFolderNo;
 
 		private string[] sArray;
 
-		private string[] EsfFolderNames = new string[gf.MAXSONGSFOLDERS];
+		private string[] EsfFolderNames = new string[Gf.MAXSONGSFOLDERS];
 
 		private string esf1SongTitle = "[#";
 
@@ -527,11 +469,11 @@ namespace Easislides
 		private void BuildFolderList()
 		{
 			SongFolder.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.FolderName[i]);
 				}
 			}
 		}
@@ -565,9 +507,9 @@ namespace Easislides
 			ImportFolderList.Items.Clear();
 
 
-			using DbConnection connection = DbController.GetDbConnection(gf.ConnectSQLiteDef + ImportFileName);
+			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectSQLiteDef + ImportFileName);
 
-			for (int i = 0; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 0; i < Gf.MAXSONGSFOLDERS; i++)
 			{
 				EsfFolderNames[i] = "";
 			}
@@ -693,9 +635,9 @@ namespace Easislides
 			try
 			{
 				XmlTextReader reader = new XmlTextReader(ImportFileName);
-				if (gf.ValidateEasiSlidesXML(ref reader))
+				if (Gf.ValidateEasiSlidesXML(ref reader))
 				{
-					while (gf.ExtractEasiSlidesXMLItem(ref reader, ref ImportItem))
+					while (Gf.ExtractEasiSlidesXMLItem(ref reader, ref ImportItem))
 					{
 						text = ((ImportItem.FolderName == "") ? "Default Folder" : ImportItem.FolderName);
 						FolderLookupSongsCount++;
@@ -723,14 +665,14 @@ namespace Easislides
 		private void LocationBtn_Click(object sender, EventArgs e)
 		{
 			OpenFileDialog1.Filter = "EasiSlides/XML Files (*.esf,*.esn,*.xml)|*.esf;*.est;*.esn;*.xml|Access Database (*.mdb)|*.mdb";
-			OpenFileDialog1.InitialDirectory = gf.ImportFromDir;
+			OpenFileDialog1.InitialDirectory = Gf.ImportFromDir;
 			OpenFileDialog1.AddExtension = true;
 			OpenFileDialog1.DefaultExt = "*.xml";
 			OpenFileDialog1.FileName = "";
 			if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
 			{
 				tbImportFrom.Text = OpenFileDialog1.FileName;
-				gf.ImportFromDir = Path.GetDirectoryName(tbImportFrom.Text) + "\\";
+				Gf.ImportFromDir = Path.GetDirectoryName(tbImportFrom.Text) + "\\";
 				BuildImportFolderList();
 			}
 		}
@@ -807,7 +749,7 @@ namespace Easislides
 			}
 			int num2 = 0;
 
-			using DataTable dataTable = DbController.GetDataTable(gf.ConnectStringDef + ImportFileName, "select * from SONG " + text);
+			using DataTable dataTable = DbController.GetDataTable(Gf.ConnectStringDef + ImportFileName, "select * from SONG " + text);
 
 			num2 = dataTable.Rows.Count;
 
@@ -817,15 +759,14 @@ namespace Easislides
 
 				listViewItem = SongsList.Items.Add("Importing...");
 				int num3 = 0;
-				InFolderNo = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+				InFolderNo = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 
 				//DataTable dt = DbController.GetDataTable(connection, fullSearchString);
 
-				DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
-				//Database daoDb = DbDaoController.GetDaoDb(gf.ConnectStringMainDB);
-				
+				DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+				//Database daoDb = DbDaoController.GetDaoDb(Gf.ConnectStringMainDB);
+
 				DataRow dr = null;
-				int num4 = 0;
 
 				foreach (DataRow row in dataTable.Rows)
 				{
@@ -835,7 +776,7 @@ namespace Easislides
 					ProgressBar1.Value = ((num3 > 100) ? 100 : num3);
 					Invalidate();
 					ProgressBar1.Invalidate();
-					if (gf.LoadDataIntoItem(ref ImportItem, row))
+					if (Gf.LoadDataIntoItem(ref ImportItem, row))
 					{
 						listViewItem = SongsList.Items.Add(Convert.ToString(num));
 						listViewItem.SubItems.Add(ImportItem.Title);
@@ -860,7 +801,6 @@ namespace Easislides
 					{
 						CurSongID = -1;
 					}
-					num4 = 0;
 					SaveSong(songRequired, CurSongID, ImportItem, ref listViewItem, ref SongsNew, ref SongsUpdated);
 					SongsList.Items[SongsList.Items.Count - 1].EnsureVisible();
 					SongsList.Update();
@@ -886,11 +826,11 @@ namespace Easislides
 			SongsNew = 0;
 			SongsList.Items.Clear();
 
-			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
+			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 
 			listViewItem = SongsList.Items.Add("");
 			listViewItem.SubItems.Add("Starting Import...");
-			int folderNumber = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+			int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 			int num2 = 0;
 			int num3 = 0;
 			string text2 = "";
@@ -902,7 +842,7 @@ namespace Easislides
 			try
 			{
 				XmlTextReader reader = new XmlTextReader(ImportFileName);
-				if (gf.ValidateEasiSlidesXML(ref reader))
+				if (Gf.ValidateEasiSlidesXML(ref reader))
 				{
 					Cursor = Cursors.WaitCursor;
 					ProgressBar1.Visible = true;
@@ -911,7 +851,7 @@ namespace Easislides
 					{
 						FolderLookupSongsCount = 1;
 					}
-					while (gf.ExtractEasiSlidesXMLItem(ref reader, ref ImportItem))
+					while (Gf.ExtractEasiSlidesXMLItem(ref reader, ref ImportItem))
 					{
 						text2 = ((ImportItem.FolderName == "") ? "Default Folder" : ImportItem.FolderName);
 						num++;
@@ -1025,7 +965,7 @@ namespace Easislides
 
 		private string GetImportFolderNumber(string InFolderName)
 		{
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
 				if (EsfFolderNames[i] == InFolderName)
 				{
@@ -1041,13 +981,13 @@ namespace Easislides
 			{
 				if (CurSongID < 1)
 				{
-					gf.InsertItemIntoDatabase(gf.ConnectStringMainDB, InItem);
+					Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, InItem);
 					cItem.SubItems.Add("++ Imported as a New Item ++");
 					SongsNew++;
 				}
 				else
 				{
-					gf.UpdateDatabaseItem(gf.ConnectStringMainDB, InItem, CurSongID);
+					Gf.UpdateDatabaseItem(Gf.ConnectStringMainDB, InItem, CurSongID);
 					cItem.SubItems.Add("** Existing Item in Database Replaced **");
 					SongsUpdated++;
 				}
@@ -1118,7 +1058,7 @@ namespace Easislides
 			InString = DataUtil.Right(InString, InString.Length - 8);
 			InString = InString.Replace(esfImportFormatTitle, Convert.ToString('\u0001'));
 			Cursor = Cursors.WaitCursor;
-			int folderNumber = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+			int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 			int num = 0;
 			ListViewItem listViewItem = new ListViewItem();
 			string[] array = InString.Split('\u0001');
@@ -1128,7 +1068,7 @@ namespace Easislides
 				text = text + ImportFolderList.CheckedItems[i].ToString() + ";";
 			}
 
-			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
+			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 
 			ProgressBar1.Visible = true;
 			listViewItem = SongsList.Items.Add("");
@@ -1172,7 +1112,7 @@ namespace Easislides
 						ProgressBar1.Invalidate();
 						if (text.IndexOf(text3 + ";") >= 0)
 						{
-							gf.InitialiseIndividualData(ref ImportItem);
+							Gf.InitialiseIndividualData(ref ImportItem);
 							LoadTextFileHeaderToItem(ref ImportItem, text2);
 							text4 = DataUtil.Mid(array[i], (num5 + 1 < array[i].Length) ? (num5 + 1) : 0);
 							if (text4.IndexOf("[~") >= 0)
@@ -1331,7 +1271,7 @@ namespace Easislides
 					}
 					else if (text2 == esfSequence)
 					{
-						InItem.SongSequence = gf.ConvertTextStringToSequence(text);
+						InItem.SongSequence = Gf.ConvertTextStringToSequence(text);
 					}
 					else if (text2 == esfSongFormat)
 					{
@@ -1346,7 +1286,7 @@ namespace Easislides
 			string strExt = Path.GetExtension(ImportFileName).ToLower();
 			if (strExt == ".mdb")
 			{
-				gf.Import_AccessFileName = ImportFileName;
+				Gf.Import_AccessFileName = ImportFileName;
 				FrmImportAccessHelper frmImportAccessHelper = new FrmImportAccessHelper();
 				if (frmImportAccessHelper.ShowDialog() == DialogResult.OK)
 				{
@@ -1361,20 +1301,20 @@ namespace Easislides
 		{
 			if (!UsedHelper)
 			{
-				gf.Import_SongTitleColumnName = "Title_1";
-				gf.Import_SongTitle2ColumnName = "Title_2";
-				gf.Import_SongNumberColumnName = "SONG_NUMBER";
-				gf.Import_SongCopyrightColumnName = "copyright";
-				gf.Import_BookReferenceColumnName = "BOOK_REFERENCE";
-				gf.Import_UserReferenceColumnName = "USER_REFERENCE";
-				gf.Import_SongWriterInfoColumnName = "writer";
-				gf.Import_SongLyricsColumnName = "Lyrics";
-				gf.Import_SongKeyColumnName = "key";
-				gf.Import_SongTimingColumnName = "Timing";
-				gf.Import_Admin1ColumnName = "LICENCE_ADMIN1";
-				gf.Import_Admin2ColumnName = "LICENCE_ADMIN2";
+				Gf.Import_SongTitleColumnName = "Title_1";
+				Gf.Import_SongTitle2ColumnName = "Title_2";
+				Gf.Import_SongNumberColumnName = "SONG_NUMBER";
+				Gf.Import_SongCopyrightColumnName = "copyright";
+				Gf.Import_BookReferenceColumnName = "BOOK_REFERENCE";
+				Gf.Import_UserReferenceColumnName = "USER_REFERENCE";
+				Gf.Import_SongWriterInfoColumnName = "writer";
+				Gf.Import_SongLyricsColumnName = "Lyrics";
+				Gf.Import_SongKeyColumnName = "key";
+				Gf.Import_SongTimingColumnName = "Timing";
+				Gf.Import_Admin1ColumnName = "LICENCE_ADMIN1";
+				Gf.Import_Admin2ColumnName = "LICENCE_ADMIN2";
 			}
-			sArray = gf.Import_SongLyricsColumnName.Split('>');
+			sArray = Gf.Import_SongLyricsColumnName.Split('>');
 			if (sArray != null)
 			{
 				for (int i = 0; i <= sArray.GetUpperBound(0); i++)
@@ -1393,7 +1333,7 @@ namespace Easislides
 			ProgressBar1.Value = 0;
 			int num2 = 0;
 
-			using DataTable dataTable = DbController.GetDataTable(gf.ConnectSQLiteDef + ImportFileName, "select * from " + gf.Import_TableName);
+			using DataTable dataTable = DbController.GetDataTable(Gf.ConnectSQLiteDef + ImportFileName, "select * from " + Gf.Import_TableName);
 			if (dataTable.Rows.Count <= 0)
 			{
 				return;
@@ -1403,9 +1343,9 @@ namespace Easislides
 
 			listViewItem = SongsList.Items.Add("Importing...");
 			int num3 = 0;
-			int folderNumber = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+			int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 
-			using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
+			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 			DataTable dt = null;
 			
 			foreach (DataRow dr in dataTable.Rows)
@@ -1465,21 +1405,21 @@ namespace Easislides
 		{
 			try
 			{
-				InItem.Title = DataUtil.GetDataString(rsIm, gf.Import_SongTitleColumnName);
-				InItem.Title2 = DataUtil.GetDataString(rsIm, gf.Import_SongTitle2ColumnName);
-				InItem.SongNumber = DataUtil.GetDataInt(rsIm, gf.Import_SongNumberColumnName);
+				InItem.Title = DataUtil.GetDataString(rsIm, Gf.Import_SongTitleColumnName);
+				InItem.Title2 = DataUtil.GetDataString(rsIm, Gf.Import_SongTitle2ColumnName);
+				InItem.SongNumber = DataUtil.GetDataInt(rsIm, Gf.Import_SongNumberColumnName);
 				InItem.CompleteLyrics = GetMergedSongLyrics(rsIm);
-				InItem.Copyright = DataUtil.GetDataString(rsIm, gf.Import_SongCopyrightColumnName);
-				InItem.Show_LicAdminInfo1 = DataUtil.GetDataString(rsIm, gf.Import_Admin1ColumnName);
-				InItem.Show_LicAdminInfo2 = DataUtil.GetDataString(rsIm, gf.Import_Admin2ColumnName);
+				InItem.Copyright = DataUtil.GetDataString(rsIm, Gf.Import_SongCopyrightColumnName);
+				InItem.Show_LicAdminInfo1 = DataUtil.GetDataString(rsIm, Gf.Import_Admin1ColumnName);
+				InItem.Show_LicAdminInfo2 = DataUtil.GetDataString(rsIm, Gf.Import_Admin2ColumnName);
 				InItem.Notations = DataUtil.GetDataString(rsIm, "msc");
 				InItem.Capo = DataUtil.GetDataInt(rsIm, "capo", Minus1IfBlank: true);
 				InItem.SongSequence = DataUtil.GetDataString(rsIm, "Sequence");
-				InItem.Writer = DataUtil.GetDataString(rsIm, gf.Import_SongWriterInfoColumnName);
-				InItem.Book_Reference = DataUtil.GetDataString(rsIm, gf.Import_BookReferenceColumnName);
-				InItem.User_Reference = DataUtil.GetDataString(rsIm, gf.Import_UserReferenceColumnName);
-				InItem.Timing = DataUtil.GetDataString(rsIm, gf.Import_SongTimingColumnName);
-				InItem.MusicKey = DataUtil.GetDataString(rsIm, gf.Import_SongKeyColumnName);
+				InItem.Writer = DataUtil.GetDataString(rsIm, Gf.Import_SongWriterInfoColumnName);
+				InItem.Book_Reference = DataUtil.GetDataString(rsIm, Gf.Import_BookReferenceColumnName);
+				InItem.User_Reference = DataUtil.GetDataString(rsIm, Gf.Import_UserReferenceColumnName);
+				InItem.Timing = DataUtil.GetDataString(rsIm, Gf.Import_SongTimingColumnName);
+				InItem.MusicKey = DataUtil.GetDataString(rsIm, Gf.Import_SongKeyColumnName);
 				InItem.Format.FormatString = "";
 				return true;
 			}
@@ -1527,7 +1467,7 @@ namespace Easislides
 			}
 			else if (Path.GetExtension(text).ToLower() == ".mdb")
 			{
-				gf.Import_AccessFileName = text;
+				Gf.Import_AccessFileName = text;
 				FrmImportAccessHelper frmImportAccessHelper = new FrmImportAccessHelper();
 				if (frmImportAccessHelper.ShowDialog() == DialogResult.OK)
 				{
@@ -1566,7 +1506,7 @@ namespace Easislides
 			if (DoSourceCDIndexExtract(ref SourceCDSongTitle))
 			{
 				string fullSearchString2 = "select * from SONG where Folderno > 0 and upper(book_reference) like \"%" + ImportItem.Book_Reference + "%\"";
-				using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
+				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 				try
 				{
 					ListViewItem listViewItem = new ListViewItem();
@@ -1581,7 +1521,7 @@ namespace Easislides
 					ProgressBar1.Value = 0;
 					string text2 = "";
 					int num3 = 0;
-					int folderNumber = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+					int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 					string[] array = files;
 					foreach (string importFileName in array)
 					{
@@ -1738,12 +1678,11 @@ namespace Easislides
 				return;
 			}
 			string text = gfFileHelpers.LoadTextFile(ImportFileName);
-			int num = DataUtil.StringToInt(gf.GetDisplayNameOnly(ref ImportFileName, UpdateByRef: false, KeepExt: false));
+			int num = DataUtil.StringToInt(Gf.GetDisplayNameOnly(ref ImportFileName, UpdateByRef: false, KeepExt: false));
 			text = text.Replace("InstanceBeginEditable name=", Convert.ToString('\u0001'));
 			string[] array = text.Split('\u0001');
 			string[] array2 = new string[4];
 			string value = "<!--";
-			string text2 = "";
 			array2[0] = "\"content\" -->";
 			array2[1] = "\"Author\" -->";
 			array2[2] = "\"copyright\" -->";
@@ -1772,7 +1711,7 @@ namespace Easislides
 					}
 				}
 			}
-			gf.InitialiseIndividualData(ref ImportItem);
+			Gf.InitialiseIndividualData(ref ImportItem);
 			if (num <= 0)
 			{
 				return;
@@ -1813,7 +1752,7 @@ namespace Easislides
 					if (array[i].IndexOf("<em>") >= 0 && !flag)
 					{
 						flag = true;
-						stringBuilder.Append(gf.VerseSymbol[0] + "\n");
+						stringBuilder.Append(Gf.VerseSymbol[0] + "\n");
 					}
 					array[i] = RemoveHTMLTags(array[i]);
 					flag2 = ((i < array.GetUpperBound(0) && array[i + 1].IndexOf("&nbsp;") >= 0) ? true : false);
@@ -1837,37 +1776,37 @@ namespace Easislides
 				int num = (array[array.GetUpperBound(0)] != "") ? array.GetUpperBound(0) : (array.GetUpperBound(0) - 1);
 				if (num > 0)
 				{
-					if (array[0].IndexOf(gf.VerseSymbol[0]) >= 0)
+					if (array[0].IndexOf(Gf.VerseSymbol[0]) >= 0)
 					{
 						text2 += '\0';
 						for (int i = 1; i <= num; i++)
 						{
 							text2 += (char)i;
 							text2 += '\0';
-							array[i] = gf.VerseSymbol[i] + "\n" + array[i].TrimStart('\n', '\r');
+							array[i] = Gf.VerseSymbol[i] + "\n" + array[i].TrimStart('\n', '\r');
 						}
 						if (num < 2)
 						{
 							text2 = "";
 						}
 					}
-					else if (array[1].IndexOf(gf.VerseSymbol[0]) >= 0 && num > 1)
+					else if (array[1].IndexOf(Gf.VerseSymbol[0]) >= 0 && num > 1)
 					{
 						text2 += '\u0001';
 						text2 += '\0';
-						array[0] = gf.VerseSymbol[1] + "\n" + array[0].TrimStart('\n', '\r');
+						array[0] = Gf.VerseSymbol[1] + "\n" + array[0].TrimStart('\n', '\r');
 						for (int i = 2; i <= num; i++)
 						{
 							text2 += (char)i;
 							text2 += '\0';
-							array[i] = gf.VerseSymbol[i] + "\n" + array[i].TrimStart('\n', '\r');
+							array[i] = Gf.VerseSymbol[i] + "\n" + array[i].TrimStart('\n', '\r');
 						}
 					}
-					else if (text.IndexOf(gf.VerseSymbol[0]) < 0)
+					else if (text.IndexOf(Gf.VerseSymbol[0]) < 0)
 					{
 						for (int i = 0; i <= num; i++)
 						{
-							array[i] = gf.VerseSymbol[i + 1] + "\n" + array[i].TrimStart('\n', '\r');
+							array[i] = Gf.VerseSymbol[i + 1] + "\n" + array[i].TrimStart('\n', '\r');
 						}
 					}
 					InString = "";

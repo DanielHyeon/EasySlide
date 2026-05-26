@@ -117,14 +117,14 @@ namespace Easislides
 
 		private void FrmMove_Load(object sender, EventArgs e)
 		{
-			Label1.Text = "You have selected " + gf.SelectedItemsCount + " item" + ((gf.SelectedItemsCount > 1) ? "s" : "") + " for Moving. Please choose a folder to move the item" + ((gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
-			gf.MoveToFolder = -1;
+			Label1.Text = "You have selected " + Gf.SelectedItemsCount + " item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " for Moving. Please choose a folder to move the item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
+			Gf.MoveToFolder = -1;
 			SongFolder.Items.Clear();
 			for (int i = 1; i <= 40; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.FolderName[i]);
 				}
 			}
 		}
@@ -135,7 +135,7 @@ namespace Easislides
 			{
 				if (SongFolder.SelectedItems.Count > 0)
 				{
-					gf.MoveToFolder = gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+					Gf.MoveToFolder = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 					base.DialogResult = DialogResult.OK;
 					Close();
 				}

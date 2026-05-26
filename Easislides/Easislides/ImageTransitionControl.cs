@@ -131,10 +131,6 @@ namespace Easislides
 
 		private Image Newbmp;
 
-		private TransitionTypes _itemTransitionType = TransitionTypes.None;
-
-		private TransitionTypes _slideTransitionType = TransitionTypes.None;
-
 		private TransitionTypes _transitionType = TransitionTypes.None;
 
 		private TransitionTypes _previousTransitionType = TransitionTypes.None;
@@ -214,8 +210,6 @@ namespace Easislides
 
 		private int AlertFlashCountMax = 20;
 
-		private bool AlertFlashAtStart = false;
-
 		private int AlertBorder = 20;
 
 		private Rectangle AlertOverallBackGroundRect = default(Rectangle);
@@ -282,8 +276,6 @@ namespace Easislides
 
 		private int RefFlashCountMax = 28;
 
-		private bool RefFlashAtStart = false;
-
 		private int RefBorder = 25;
 
 		private Rectangle RefOverallBackGroundRect = default(Rectangle);
@@ -324,17 +316,17 @@ namespace Easislides
 
 		private TimeSpan _refMessageTransitionTime = new TimeSpan(0, 0, 0, 1, 0);
 
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> CreateCompatibleDC = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&gf.CreateCompatibleDC;
+		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> CreateCompatibleDC = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&Gf.CreateCompatibleDC;
 
-		private delegate* unmanaged[Stdcall]<IntPtr, int, int, IntPtr> CreateCompatibleBitmap = (delegate* unmanaged[Stdcall]<IntPtr, int, int, IntPtr>)(delegate*<IntPtr, int, int, IntPtr>)&gf.CreateCompatibleBitmap;
+		private delegate* unmanaged[Stdcall]<IntPtr, int, int, IntPtr> CreateCompatibleBitmap = (delegate* unmanaged[Stdcall]<IntPtr, int, int, IntPtr>)(delegate*<IntPtr, int, int, IntPtr>)&Gf.CreateCompatibleBitmap;
 
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr> SelectObject = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr, IntPtr>)&gf.SelectObject;
+		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr> SelectObject = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr, IntPtr>)&Gf.SelectObject;
 
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> DeleteDC = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&gf.DeleteDC;
+		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> DeleteDC = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&Gf.DeleteDC;
 
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> DeleteObject = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&gf.DeleteObject;
+		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> DeleteObject = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&Gf.DeleteObject;
 
-		private delegate* unmanaged[Stdcall]<IntPtr, int, int, int, int, IntPtr, int, int, int, bool> BitBlt = (delegate* unmanaged[Stdcall]<IntPtr, int, int, int, int, IntPtr, int, int, int, bool>)(delegate*<IntPtr, int, int, int, int, IntPtr, int, int, int, bool>)&gf.BitBlt;
+		private delegate* unmanaged[Stdcall]<IntPtr, int, int, int, int, IntPtr, int, int, int, bool> BitBlt = (delegate* unmanaged[Stdcall]<IntPtr, int, int, int, int, IntPtr, int, int, int, bool>)(delegate*<IntPtr, int, int, int, int, IntPtr, int, int, int, bool>)&Gf.BitBlt;
 		// Cached objects for performance optimization
 		private ImageAttributes _cachedImageAttributes;
 		private ColorMatrix _cachedColorMatrix;
@@ -776,7 +768,7 @@ namespace Easislides
 			_cachedImageAttributes = new ImageAttributes();
 			_cachedColorMatrix = new ColorMatrix();
 			
-			BackColor = gf.TransparentColour;
+			BackColor = Gf.TransparentColour;
 		}
 
 		public void SetDefaultBackgroundPicture(Image InBitmap)
@@ -791,7 +783,7 @@ namespace Easislides
 			Newg = Graphics.FromImage(Newbmp);
 			if (LiveCamOnShow)
 			{
-				Newg.Clear(gf.TransparentColour);
+				Newg.Clear(Gf.TransparentColour);
 			}
 			else
 			{
@@ -2219,11 +2211,11 @@ namespace Easislides
 		private void DrawImageToOutputBitBlt(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, bool DrawAlert, ImageAttributes InImageAttributes, PanelType InPanelType)
 		{
 			IntPtr hdc = e.Graphics.GetHdc();
-			//IntPtr intPtr = gf.CreateCompatibleDC(hdc);
+			//IntPtr intPtr = Gf.CreateCompatibleDC(hdc);
 			IntPtr intPtr = CreateCompatibleDC(hdc);
-			//IntPtr intPtr2 = gf.CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
+			//IntPtr intPtr2 = Gf.CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
 			IntPtr intPtr2 = CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
-			//gf.SelectObject(intPtr, intPtr2);
+			//Gf.SelectObject(intPtr, intPtr2);
 			IntPtr intPtr3 = SelectObject(intPtr, intPtr2);
 
 			Graphics graphics = Graphics.FromHdc(intPtr);
@@ -2268,14 +2260,14 @@ namespace Easislides
 
 			IntPtr hdc2 = graphics.GetHdc();
 			BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, hdc2, 0, 0, 13369376);
-			//gf.BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, hdc2, 0, 0, 13369376);
+			//Gf.BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, hdc2, 0, 0, 13369376);
 			graphics.ReleaseHdc(hdc2);
 
-			//gf.DeleteDC(intPtr);
+			//Gf.DeleteDC(intPtr);
 			DeleteDC(intPtr);
-			//gf.DeleteObject(intPtr);
+			//Gf.DeleteObject(intPtr);
 			DeleteObject(intPtr);
-			//gf.DeleteObject(intPtr2);
+			//Gf.DeleteObject(intPtr2);
 			DeleteObject(intPtr2);
 
 			DeleteObject(intPtr3);
@@ -2461,7 +2453,7 @@ namespace Easislides
 
 		private void AlertTick(object state)
 		{
-			if (!gf.ParentalAlertLive & !gf.MessageAlertLive)
+			if (!Gf.ParentalAlertLive & !Gf.MessageAlertLive)
 			{
 				StopAlert();
 			}
@@ -2485,7 +2477,7 @@ namespace Easislides
 			if (_newBackgroundPicture != null)
 			{
 				int num = _newBackgroundPicture.Width;
-				int num2 = (int)(gf.MinBottomBorderFactor * (double)_newBackgroundPicture.Height * 1.2);
+				int num2 = (int)(Gf.MinBottomBorderFactor * (double)_newBackgroundPicture.Height * 1.2);
 				if (num < 1)
 				{
 					num = 1;
@@ -2510,7 +2502,7 @@ namespace Easislides
 				alertg_Inverse.Clear(Color.Transparent);
 				AlertBorder = num / 20;
 				InFont = new Font(InFont.Name, InFont.Size - 1f, InFont.Style);
-				int num3 = (int)((double)gf.ReduceFontToFit(alertg, InString, ref InFont, num - AlertBorder * 2, num2 - 2) * 1.1);
+				int num3 = (int)((double)Gf.ReduceFontToFit(alertg, InString, ref InFont, num - AlertBorder * 2, num2 - 2) * 1.1);
 				AlertMessageBackGroundRect = new Rectangle(0, 0, (int)alertg.MeasureString(InString, InFont).Width, num3);
 				num2 = num3 + 4;
 				alertg_Inverse.Dispose();
@@ -2528,7 +2520,7 @@ namespace Easislides
 				alertMessageg_Inverse.Dispose();
 				AlertimageMessage_Inverse.Dispose();
 
-				gf.OutputOneLineToScreen(InItem, InString, InFont, alertMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num2 - AlertMessageBackGroundRect.Height) / 2, AlertMessageBackGroundRect.Width, 0);
+				Gf.OutputOneLineToScreen(InItem, InString, InFont, alertMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num2 - AlertMessageBackGroundRect.Height) / 2, AlertMessageBackGroundRect.Width, 0);
 				Rectangle rectangle = default(Rectangle);
 				rectangle.Y = ((InVerticalAlignment != 0) ? (_newBackgroundPicture.Height - num2) : 0);
 				rectangle.Height = num2;
@@ -2715,8 +2707,8 @@ namespace Easislides
 				try
 				{
 					int num = _newBackgroundPicture.Width;
-					int num2 = (int)(gf.MinBottomBorderFactor * (double)(float)_newBackgroundPicture.Height * 1.1000000238418579);
-					int num3 = (int)(gf.MinBottomBorderFactor * (double)(float)base.ClientSize.Height * 3.0999999046325684);
+					int num2 = (int)(Gf.MinBottomBorderFactor * (double)(float)_newBackgroundPicture.Height * 1.1000000238418579);
+					int num3 = (int)(Gf.MinBottomBorderFactor * (double)(float)base.ClientSize.Height * 3.0999999046325684);
 					if (num < 1)
 					{
 						num = 1;
@@ -2733,7 +2725,7 @@ namespace Easislides
 					RefimageBackground = new Bitmap(num, num3);
 					refg = Graphics.FromImage(RefimageBackground);
 					InFont = new Font(InFont.Name, InFont.Size - 1f, InFont.Style);
-					int num4 = gf.ReduceFontToFit(refg, InString, ref InFont, num - RefBorder, num3);
+					int num4 = Gf.ReduceFontToFit(refg, InString, ref InFont, num - RefBorder, num3);
 					RefMessageBackGroundRect = new Rectangle(0, 0, (int)refg.MeasureString(InString, InFont).Width, num4);
 					num3 = num4 + 4;
 					num2 = num2 * 2 + num3;
@@ -2761,7 +2753,7 @@ namespace Easislides
 					RefimageMessage_Inverse = new Bitmap(RefMessageBackGroundRect.Width, RefMessageBackGroundRect.Height);
 					refMessageg_Inverse = Graphics.FromImage(RefimageMessage_Inverse);
 					refMessageg_Inverse.Clear(RefTransparent ? Color.Transparent : InBackColour);
-					gf.OutputOneLineToScreen(InItem, InString, InFont, refMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num3 - RefMessageBackGroundRect.Height) / 2, RefMessageBackGroundRect.Width, 0);
+					Gf.OutputOneLineToScreen(InItem, InString, InFont, refMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num3 - RefMessageBackGroundRect.Height) / 2, RefMessageBackGroundRect.Width, 0);
 					refMessageg_Inverse.Dispose();
 					RefimageMessage_Inverse.Dispose();
 

@@ -145,9 +145,9 @@ namespace Easislides
 		{
 			SmartMergeItemA.Initialise();
 			SmartMergeItemB.Initialise();
-			gf.SetListViewColumns(LyricsAndNotationsListA, 5);
-			gf.SetListViewColumns(LyricsAndNotationsListB, 5);
-			gf.SetListViewColumns(TempSongsList, 6);
+			Gf.SetListViewColumns(LyricsAndNotationsListA, 5);
+			Gf.SetListViewColumns(LyricsAndNotationsListB, 5);
+			Gf.SetListViewColumns(TempSongsList, 6);
 			InitLoad = true;
 			BuildFolderList();
 			UnselFolders();
@@ -160,13 +160,13 @@ namespace Easislides
 			SongFolderA.Items.Clear();
 			SongFolderB.Items.Clear();
 			SongFolderC.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolderA.Items.Add(gf.FolderName[i]);
-					SongFolderB.Items.Add(gf.FolderName[i]);
-					SongFolderC.Items.Add(gf.FolderName[i]);
+					SongFolderA.Items.Add(Gf.FolderName[i]);
+					SongFolderB.Items.Add(Gf.FolderName[i]);
+					SongFolderC.Items.Add(Gf.FolderName[i]);
 				}
 			}
 		}
@@ -288,14 +288,14 @@ namespace Easislides
 				text = "Title_2";
 			}
 			string inName = SongFolderA.Items[SongFolderA.SelectedIndex].ToString();
-			inName = "select * from SONG where Folderno=" + gf.GetFolderNumber(inName);
+			inName = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName);
 			text = ((!OptionSourceBTitle1.Checked) ? "Title_2" : "Title_1");
 			int num = 0;
 			int num2 = 0;
 
 			try
 			{
-				using DbConnection connection = DbController.GetDbConnection(gf.ConnectStringMainDB);
+				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 				using DataTable dataTable = DbController.GetDataTable(connection, inName);
 
 				if (dataTable.Rows.Count > 0)
@@ -308,7 +308,7 @@ namespace Easislides
 						{
 							string text3 = DataUtil.ObjToString(dr["Title_1"]);
 							string inName2 = SongFolderB.Items[SongFolderB.SelectedIndex].ToString();
-							inName2 = "select * from SONG where Folderno=" + gf.GetFolderNumber(inName2) + " and LCase(" + text + ") like LCase(\"" + text2 + "\") ";
+							inName2 = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName2) + " and LCase(" + text + ") like LCase(\"" + text2 + "\") ";
 							try
 							{
 								using DataTable dataTable1 = DbController.GetDataTable(connection, inName2);
@@ -409,7 +409,7 @@ namespace Easislides
 			}
 			string CombinedLyrics = "";
 			string CombinedNotations = "";
-			string folderNum = gf.GetFolderNumber(SongFolderC.Items[SongFolderC.SelectedIndex].ToString()).ToString();
+			string folderNum = Gf.GetFolderNumber(SongFolderC.Items[SongFolderC.SelectedIndex].ToString()).ToString();
 			int num2 = 0;
 			for (int i = 0; i < SongsList.Items.Count; i++)
 			{
@@ -423,7 +423,7 @@ namespace Easislides
 					SongID2 = DataUtil.StringToInt(SongsList.Items[i].SubItems[2].Text);
 					if (LookUpSong(SongID2.ToString(), ref SmartMergeItemB, ref SongLayoutSequenceB, ref SongLyricsB, ref SongSequenceB, ref SongCopyrightB, ref BookReferenceB, ref UserReferenceB, ref SongWriterInfoB, ref SongCapoB, ref SongKeyB, ref SongTimingB, ref SongAdminB))
 					{
-						gf.Merge_Songs(SmartMergeItemA, SmartMergeItemB, ref CombinedLyrics, ref CombinedNotations);
+						Gf.Merge_Songs(SmartMergeItemA, SmartMergeItemB, ref CombinedLyrics, ref CombinedNotations);
 						SaveSong(SongsList.Items[i].SubItems[0].Text, folderNum, SongsList.Items[i].SubItems[3].Text, CombinedLyrics, CombinedNotations, SongSequenceA, (SongCopyrightA != "") ? SongCopyrightA : SongCopyrightB, BookReferenceA + (((BookReferenceA != "") & (BookReferenceB != "")) ? "," : "") + BookReferenceB, UserReferenceA + (((UserReferenceA != "") & (UserReferenceB != "")) ? "," : "") + UserReferenceB, (SongWriterInfoA != "") ? SongWriterInfoA : SongWriterInfoB, (SongCapoA != "-1") ? SongCapoA : SongCapoB, (SongKeyA != "") ? SongKeyA : SongKeyB, (SongTimingA != "") ? SongTimingA : SongTimingB, SongAdminA, SongAdminB);
 						num2++;
 					}
@@ -436,11 +436,11 @@ namespace Easislides
 
 		private bool LookUpSong(string InID, ref SongSettings InItem, ref string LayoutSequence, ref string Lyrics, ref string DBSequence, ref string Copyright, ref string BookReference, ref string UserReference, ref string Writer, ref string SongCapo, ref string SongKey, ref string SongTiming, ref string SongAdmin)
 		{
-			if (!gf.ValidateDB(DatabaseType.Songs))
+			if (!Gf.ValidateDB(DatabaseType.Songs))
 			{
 				return false;
 			}
-			if (!gf.ValidSongID(DataUtil.StringToInt(InID)))
+			if (!Gf.ValidSongID(DataUtil.StringToInt(InID)))
 			{
 				return false;
 			}
@@ -448,7 +448,7 @@ namespace Easislides
 			{
 				string fullSearchString = "select * from SONG where songid=" + InID;
 
-				using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
 				if (datatable.Rows.Count>0)
 				{
@@ -469,7 +469,7 @@ namespace Easislides
 					InItem.SongSequence = DataUtil.ObjToString(dr["Sequence"]);
 					InItem.CompleteLyrics = DataUtil.ObjToString(dr["Lyrics"]);
 					InItem.Notations = DataUtil.ObjToString(dr["msc"]);
-					gf.FormatDisplayLyrics(ref InItem, PrepareSlides: false, UseStoredSequence: true);
+					Gf.FormatDisplayLyrics(ref InItem, PrepareSlides: false, UseStoredSequence: true);
 					DBSequence = InItem.SongSequence;
 				}
 			}
@@ -481,7 +481,7 @@ namespace Easislides
 
 		private void SaveSong(string Title, string FolderNum, string Title2, string InLyrics, string InNotations, string Sequence, string Copyright, string BookReference, string UserReference, string Writer, string SongCapo, string SongKey, string SongTiming, string SongAdmin1, string SongAdmin2)
 		{
-			int num = gf.InsertItemIntoDatabase(gf.ConnectStringMainDB, Title, Title2, 0, DataUtil.StringToInt(FolderNum), InLyrics, Sequence, Writer, Copyright, SongCapo, SongTiming, SongKey, InNotations, "", SongAdmin1, SongAdmin2, BookReference, UserReference, "", "");
+			int num = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Title, Title2, 0, DataUtil.StringToInt(FolderNum), InLyrics, Sequence, Writer, Copyright, SongCapo, SongTiming, SongKey, InNotations, "", SongAdmin1, SongAdmin2, BookReference, UserReference, "", "");
 		}
 
 		protected override void Dispose(bool disposing)

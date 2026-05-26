@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -374,7 +374,7 @@ namespace Easislides.Util
 				{
 					num += 65536;
 				}
-				int num2 = gf.StrokeCount[num];
+				int num2 = Gf.StrokeCount[num];
 				if (num2 > 0)
 				{
 					if (text != "")
@@ -427,7 +427,7 @@ namespace Easislides.Util
 			{
 				num2 += 65536;
 			}
-			int num3 = gf.StrokeCount[num2];
+			int num3 = Gf.StrokeCount[num2];
 			if (num3 > 0)
 			{
 				str = str + num3.ToString("00") + num2.ToString("00000");
@@ -442,7 +442,7 @@ namespace Easislides.Util
 						{
 							num2 += 65536;
 						}
-						num3 = gf.StrokeCount[num2];
+						num3 = Gf.StrokeCount[num2];
 						str = ((num3 <= 0) ? (str + "00" + num2.ToString("00000")) : (str + num3.ToString("00") + num2.ToString("00000")));
 						DName = DataUtil.Right(DName, DName.Length - 1);
 					}
@@ -591,7 +591,6 @@ namespace Easislides.Util
 				return -1;
 			}
 			string text = "";
-			string text2 = "";
 			int num = -1;
 			int result = -1;
 			string[] array = InFormatString.Split(InSeparator);

@@ -66,7 +66,7 @@ namespace Easislides
 
 		private void FrmImportFolder_Load(object sender, EventArgs e)
 		{
-			tbLocation.Text = gf.ImportFolder_StartDir;
+			tbLocation.Text = Gf.ImportFolder_StartDir;
 			DocFileExtension[0] = ".doc";
 			DocFileExtension[1] = ".docx";
 			DocFileExtension[2] = ".txt";
@@ -100,17 +100,16 @@ namespace Easislides
 		/// </summary>
 		private void StartImport()
 		{
-			int num = 0;
 			BuildDocumentsContinue = true;
 			BuildDocumentsStartTime = DateTime.Now;
 			TotalDocFiles = 0;
 			BuildDocumentsListArray(tbLocation.Text);
 			int num2 = 0;
 			ProgressBar1.Value = 0;
-			gf.InitialiseIndividualData(ref ImportItem);
+			Gf.InitialiseIndividualData(ref ImportItem);
 			int num3 = 0;
 			int num4 = 0;
-			int folderNumber = gf.GetFolderNumber(SongFolder.Text);
+			int folderNumber = Gf.GetFolderNumber(SongFolder.Text);
 			if (TotalDocFiles > 0 && folderNumber > 0)
 			{
 				for (int i = 0; i < TotalDocFiles; i++)
@@ -131,8 +130,8 @@ namespace Easislides
 					}
 					ImportItem.FolderNo = folderNumber;
 					ImportItem.Title = Path.GetFileNameWithoutExtension(DocFilesList[i]);
-					ImportItem.CompleteLyrics = gf.ExtractDocTextContents(DocFilesList[i]);
-					gf.InsertItemIntoDatabase(gf.ConnectStringMainDB, ImportItem);
+					ImportItem.CompleteLyrics = Gf.ExtractDocTextContents(DocFilesList[i]);
+					Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, ImportItem);
 				}
 				ProgressBar1.Value = 100;
 				string text = (num3 > 0) ? (num3 + " Word Document" + ((num3 > 1) ? "s" : "")) : "";
@@ -180,7 +179,7 @@ namespace Easislides
 			string[] directories = Directory.GetDirectories(FolderPath);
 			if (directories.Length > 0)
 			{
-				gf.SingleArraySort(directories, SortAscending: true);
+				Gf.SingleArraySort(directories, SortAscending: true);
 			}
 			array = directories;
 			foreach (string str in array)
@@ -208,14 +207,14 @@ namespace Easislides
 		{
 			string text = "";
 			SongFolder.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(gf.FolderName[i]);
-					if (gf.FolderName[i] == gf.ImportFolder_FolderName)
+					SongFolder.Items.Add(Gf.FolderName[i]);
+					if (Gf.FolderName[i] == Gf.ImportFolder_FolderName)
 					{
-						text = gf.ImportFolder_FolderName;
+						text = Gf.ImportFolder_FolderName;
 					}
 				}
 			}
@@ -224,8 +223,8 @@ namespace Easislides
 
 		private void FrmImportFolder_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			gf.ImportFolder_FolderName = SongFolder.Text;
-			gf.ImportFolder_StartDir = tbLocation.Text;
+			Gf.ImportFolder_FolderName = SongFolder.Text;
+			Gf.ImportFolder_StartDir = tbLocation.Text;
 		}
 
 		protected override void Dispose(bool disposing)

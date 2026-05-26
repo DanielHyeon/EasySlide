@@ -75,8 +75,8 @@ namespace Easislides
             switch (MsgCode)
             {
                 case 0:
-                    gf.MessageAlertRequested = true;
-                    if (!gf.ShowRunning)
+                    Gf.MessageAlertRequested = true;
+                    if (!Gf.ShowRunning)
                     {
                         GoLive(InStatus: true);
                     }
@@ -86,8 +86,8 @@ namespace Easislides
                     }
                     break;
                 case 1:
-                    gf.ParentalAlertRequested = true;
-                    if (!gf.ShowRunning)
+                    Gf.ParentalAlertRequested = true;
+                    if (!Gf.ShowRunning)
                     {
                         GoLive(InStatus: true);
                     }
@@ -97,8 +97,8 @@ namespace Easislides
                     }
                     break;
                 case 2:
-                    gf.LyricsAlertRequested = true;
-                    if (gf.ShowRunning)
+                    Gf.LyricsAlertRequested = true;
+                    if (Gf.ShowRunning)
                     {
                         RemoteControlLiveShow(LiveShowAction.Remote_LyricsAlertShow);
                     }
@@ -120,7 +120,7 @@ namespace Easislides
             ResizePreviewRichTextBox();
             if (flowLayoutPreviewPowerPoint.Visible)
             {
-                SetPreviewPPThumbImages1(gf.PreviewItem.CurSlide);
+                SetPreviewPPThumbImages1(Gf.PreviewItem.CurSlide);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Easislides
             ResizeOutputRichTextBox();
             if (flowLayoutOutputPowerPoint.Visible)
             {
-                SetOutputPPThumbImages1(gf.OutputItem.CurSlide);
+                SetOutputPPThumbImages1(Gf.OutputItem.CurSlide);
             }
         }
 
@@ -160,7 +160,7 @@ namespace Easislides
             {
                 try
                 {
-                    string filePath = gf.WorshipDir + gf.CurSession + ".esw";
+                    string filePath = Gf.WorshipDir + Gf.CurSession + ".esw";
                     int itemCountInFile = -1;
                     string lastWriteTime = "N/A";
                     try
@@ -184,8 +184,8 @@ namespace Easislides
                     }
                     //daniel
                     //???? ??????????????
-                    gf.ClearUpPowerpointWindows();
-                    gfFileHelpers.DeleteFolderFilesSafe(gf.EasiSlidesTempDir);
+                    Gf.ClearUpPowerpointWindows();
+                    gfFileHelpers.DeleteFolderFilesSafe(Gf.EasiSlidesTempDir);
 
                     WriteDebugLog("=== FORM CLOSED SUCCESSFULLY ===");
                 }
@@ -197,7 +197,7 @@ namespace Easislides
 
         //private void tabControlSource_Resize(object sender, EventArgs e)
         //{
-        //    if (gf.formLoaded)
+        //    if (Gf.formLoaded)
         //    {
         //        UpdateDisplayPanelData(RefreshSlides: false);
         //    }
@@ -206,66 +206,66 @@ namespace Easislides
         private void Def_Media_Clicked()
         {
             FrmMediaPlayerControl frmMediaPlayerControl = new FrmMediaPlayerControl();
-            gf.MPC_Type = MPCType.Session;
-            gf.Temp_MediaTitle1 = "";
-            gf.Temp_MediaTitle2 = "";
-            gf.Temp_MediaOption = gf.MediaOption;
-            gf.Temp_MediaLocation = gf.MediaLocation;
-            gf.Temp_MediaCaptureDeviceNumber = gf.MediaCaptureDeviceNumber;
-            gf.Temp_MediaOutputMonitorName = gf.MediaOutputMonitorName;
-            gf.Temp_MediaVolume = gf.MediaVolume;
-            gf.Temp_MediaBalance = gf.MediaBalance;
-            gf.Temp_MediaMute = gf.MediaMute;
-            gf.Temp_MediaRepeat = gf.MediaRepeat;
-            gf.Temp_MediaWidescreen = gf.MediaWidescreen;
+            Gf.MPC_Type = MPCType.Session;
+            Gf.Temp_MediaTitle1 = "";
+            Gf.Temp_MediaTitle2 = "";
+            Gf.Temp_MediaOption = Gf.MediaOption;
+            Gf.Temp_MediaLocation = Gf.MediaLocation;
+            Gf.Temp_MediaCaptureDeviceNumber = Gf.MediaCaptureDeviceNumber;
+            Gf.Temp_MediaOutputMonitorName = Gf.MediaOutputMonitorName;
+            Gf.Temp_MediaVolume = Gf.MediaVolume;
+            Gf.Temp_MediaBalance = Gf.MediaBalance;
+            Gf.Temp_MediaMute = Gf.MediaMute;
+            Gf.Temp_MediaRepeat = Gf.MediaRepeat;
+            Gf.Temp_MediaWidescreen = Gf.MediaWidescreen;
             if (frmMediaPlayerControl.ShowDialog() == DialogResult.OK)
             {
-                gf.MediaOption = gf.Temp_MediaOption;
-                gf.MediaLocation = gf.Temp_MediaLocation;
-                gf.MediaCaptureDeviceNumber = gf.Temp_MediaCaptureDeviceNumber;
-                gf.MediaOutputMonitorName = gf.Temp_MediaOutputMonitorName;
-                gf.MediaVolume = gf.Temp_MediaVolume;
-                gf.MediaBalance = gf.Temp_MediaBalance;
-                gf.MediaMute = gf.Temp_MediaMute;
-                gf.MediaRepeat = gf.Temp_MediaRepeat;
-                gf.MediaWidescreen = gf.Temp_MediaWidescreen;
-                AssignMediaText(ref Def_AssignMedia, gf.MediaOption);
+                Gf.MediaOption = Gf.Temp_MediaOption;
+                Gf.MediaLocation = Gf.Temp_MediaLocation;
+                Gf.MediaCaptureDeviceNumber = Gf.Temp_MediaCaptureDeviceNumber;
+                Gf.MediaOutputMonitorName = Gf.Temp_MediaOutputMonitorName;
+                Gf.MediaVolume = Gf.Temp_MediaVolume;
+                Gf.MediaBalance = Gf.Temp_MediaBalance;
+                Gf.MediaMute = Gf.Temp_MediaMute;
+                Gf.MediaRepeat = Gf.Temp_MediaRepeat;
+                Gf.MediaWidescreen = Gf.Temp_MediaWidescreen;
+                AssignMediaText(ref Def_AssignMedia, Gf.MediaOption);
                 ApplyDefaultData(StartAtFirstSlide: false);
             }
         }
 
         private void Def_Region_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Def_Region, e.ClickedItem.Name, Def_ShowRegion1, Def_ShowRegion2, Def_ShowRegionBoth);
-            gf.ShowLyrics = DataUtil.ObjToInt(Def_Region.Tag);
+            Gf.AssignDropDownItem(ref Def_Region, e.ClickedItem.Name, Def_ShowRegion1, Def_ShowRegion2, Def_ShowRegionBoth);
+            Gf.ShowLyrics = DataUtil.ObjToInt(Def_Region.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 
         private void Def_VAlign_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Def_VAlign, e.ClickedItem.Name, Def_VAlignTop, Def_VAlignCentre, Def_VAlignBottom);
-            gf.ShowVerticalAlign = DataUtil.ObjToInt(Def_VAlign.Tag);
+            Gf.AssignDropDownItem(ref Def_VAlign, e.ClickedItem.Name, Def_VAlignTop, Def_VAlignCentre, Def_VAlignBottom);
+            Gf.ShowVerticalAlign = DataUtil.ObjToInt(Def_VAlign.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 
         private void Def_R1Align_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Def_R1Align, e.ClickedItem.Name, Def_R1AlignLeft, Def_R1AlignCentre, Def_R1AlignRight);
-            gf.ShowFontAlign[0, 0] = DataUtil.ObjToInt(Def_R1Align.Tag);
+            Gf.AssignDropDownItem(ref Def_R1Align, e.ClickedItem.Name, Def_R1AlignLeft, Def_R1AlignCentre, Def_R1AlignRight);
+            Gf.ShowFontAlign[0, 0] = DataUtil.ObjToInt(Def_R1Align.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 
         private void Def_R2Align_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Def_R2Align, e.ClickedItem.Name, Def_R2AlignLeft, Def_R2AlignCentre, Def_R2AlignRight);
-            gf.ShowFontAlign[0, 1] = DataUtil.ObjToInt(Def_R2Align.Tag);
+            Gf.AssignDropDownItem(ref Def_R2Align, e.ClickedItem.Name, Def_R2AlignLeft, Def_R2AlignCentre, Def_R2AlignRight);
+            Gf.ShowFontAlign[0, 1] = DataUtil.ObjToInt(Def_R2Align.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 
         private void Def_ImageMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Def_ImageMode, e.ClickedItem.Name, Def_ImageTile, Def_ImageCentre, Def_ImageBestFit);
-            gf.BackgroundMode = (ImageMode)DataUtil.ObjToInt(Def_ImageMode.Tag);
+            Gf.AssignDropDownItem(ref Def_ImageMode, e.ClickedItem.Name, Def_ImageTile, Def_ImageCentre, Def_ImageBestFit);
+            Gf.BackgroundMode = (ImageMode)DataUtil.ObjToInt(Def_ImageMode.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 
@@ -275,8 +275,8 @@ namespace Easislides
             {
                 ToolStripComboBox toolStripComboBox = (ToolStripComboBox)sender;
                 ImageTransitionControl.TransitionAction transitionAction = (toolStripComboBox.Name == "Def_TransItem") ? ImageTransitionControl.TransitionAction.AsStoredItem : ImageTransitionControl.TransitionAction.AsStoredSlide;
-                gf.ShowItemTransition = Def_TransItem.SelectedIndex;
-                gf.ShowSlideTransition = Def_TransSlides.SelectedIndex;
+                Gf.ShowItemTransition = Def_TransItem.SelectedIndex;
+                Gf.ShowSlideTransition = Def_TransSlides.SelectedIndex;
                 ApplyDefaultData(StartAtFirstSlide: false, transitionAction);
             }
         }
@@ -287,48 +287,48 @@ namespace Easislides
             string name = toolStripButton.Name;
             if (name == "Ind_LoadTemplate")
             {
-                if (gf.PreviewItem.ItemID != "")
+                if (Gf.PreviewItem.ItemID != "")
                 {
                     LoadIndividualTemplate();
                 }
             }
             else if (name == "Ind_SaveTemplate")
             {
-                if (gf.PreviewItem.ItemID != "")
+                if (Gf.PreviewItem.ItemID != "")
                 {
-                    SaveIndividualTemplate(gf.PreviewItem.Title);
+                    SaveIndividualTemplate(Gf.PreviewItem.Title);
                 }
             }
             else if (name == "Ind_Shadow")
             {
-                gf.PreviewItem.Format.UseShadowFont = (toolStripButton.Checked ? 1 : 0);
+                Gf.PreviewItem.Format.UseShadowFont = (toolStripButton.Checked ? 1 : 0);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
             else if (name == "Ind_Outline")
             {
-                gf.PreviewItem.Format.UseOutlineFont = (toolStripButton.Checked ? 1 : 0);
+                Gf.PreviewItem.Format.UseOutlineFont = (toolStripButton.Checked ? 1 : 0);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
             else if (name == "Ind_Interlace")
             {
-                gf.PreviewItem.Format.ShowInterlace = (toolStripButton.Checked ? 1 : 0);
+                Gf.PreviewItem.Format.ShowInterlace = (toolStripButton.Checked ? 1 : 0);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
             else if (name == "Ind_Notations")
             {
-                gf.PreviewItem.Format.ShowNotations = (toolStripButton.Checked ? 1 : 0);
+                Gf.PreviewItem.Format.ShowNotations = (toolStripButton.Checked ? 1 : 0);
                 UpdateFormatData(StartAtFirstSlide: true);
             }
             else if (name == "Ind_CapoDown")
             {
-                gf.PreviewItem.Format.PreviousTransposeOffset = gf.PreviewItem.Format.TransposeOffset;
-                gf.PreviewItem.Format.TransposeOffset = gf.IncrementChord(ref gf.PreviewItem.Format.TransposeOffset, -1);
+                Gf.PreviewItem.Format.PreviousTransposeOffset = Gf.PreviewItem.Format.TransposeOffset;
+                Gf.PreviewItem.Format.TransposeOffset = Gf.IncrementChord(ref Gf.PreviewItem.Format.TransposeOffset, -1);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
             else if (name == "Ind_CapoUp")
             {
-                gf.PreviewItem.Format.PreviousTransposeOffset = gf.PreviewItem.Format.TransposeOffset;
-                gf.PreviewItem.Format.TransposeOffset = gf.IncrementChord(ref gf.PreviewItem.Format.TransposeOffset, 1);
+                Gf.PreviewItem.Format.PreviousTransposeOffset = Gf.PreviewItem.Format.TransposeOffset;
+                Gf.PreviewItem.Format.TransposeOffset = Gf.IncrementChord(ref Gf.PreviewItem.Format.TransposeOffset, 1);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
             else if (name == "Ind_NoImage")
@@ -337,7 +337,7 @@ namespace Easislides
             }
             else if (name == "Ind_BackColour")
             {
-                if (gf.SelectBackgroundColors(ref Ind_BackColour, ref gf.PreviewItem.Format.ShowScreenColour[0], ref gf.PreviewItem.Format.ShowScreenColour[1], ref gf.PreviewItem.Format.ShowScreenStyle, IsDefault: false))
+                if (Gf.SelectBackgroundColors(ref Ind_BackColour, ref Gf.PreviewItem.Format.ShowScreenColour[0], ref Gf.PreviewItem.Format.ShowScreenColour[1], ref Gf.PreviewItem.Format.ShowScreenStyle, IsDefault: false))
                 {
                     ClearFormatPicture();
                 }
@@ -348,7 +348,7 @@ namespace Easislides
             }
             else if (name == "Ind_HideDisplayPanel")
             {
-                gf.PreviewItem.Format.HideDisplayPanel = (toolStripButton.Checked ? 1 : 0);
+                Gf.PreviewItem.Format.HideDisplayPanel = (toolStripButton.Checked ? 1 : 0);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
         }
@@ -356,31 +356,31 @@ namespace Easislides
         private void Ind_Media_Clicked()
         {
             FrmMediaPlayerControl frmMediaPlayerControl = new FrmMediaPlayerControl();
-            gf.MPC_Type = MPCType.Individual;
-            gf.Temp_MediaItemType = gf.PreviewItem.Type;
-            gf.Temp_MediaTitle1 = gf.PreviewItem.Title;
-            gf.Temp_MediaTitle2 = gf.PreviewItem.Title2;
-            gf.Temp_MediaOption = gf.PreviewItem.Format.MediaOption;
-            gf.Temp_MediaLocation = gf.PreviewItem.Format.MediaLocation;
-            gf.Temp_MediaCaptureDeviceNumber = gf.PreviewItem.Format.MediaCaptureDeviceNumber;
-            gf.Temp_MediaOutputMonitorName = gf.PreviewItem.Format.MediaOutputMonitorName;
-            gf.Temp_MediaVolume = gf.PreviewItem.Format.MediaVolume;
-            gf.Temp_MediaBalance = gf.PreviewItem.Format.MediaBalance;
-            gf.Temp_MediaMute = gf.PreviewItem.Format.MediaMute;
-            gf.Temp_MediaRepeat = gf.PreviewItem.Format.MediaRepeat;
-            gf.Temp_MediaWidescreen = gf.PreviewItem.Format.MediaWidescreen;
+            Gf.MPC_Type = MPCType.Individual;
+            Gf.Temp_MediaItemType = Gf.PreviewItem.Type;
+            Gf.Temp_MediaTitle1 = Gf.PreviewItem.Title;
+            Gf.Temp_MediaTitle2 = Gf.PreviewItem.Title2;
+            Gf.Temp_MediaOption = Gf.PreviewItem.Format.MediaOption;
+            Gf.Temp_MediaLocation = Gf.PreviewItem.Format.MediaLocation;
+            Gf.Temp_MediaCaptureDeviceNumber = Gf.PreviewItem.Format.MediaCaptureDeviceNumber;
+            Gf.Temp_MediaOutputMonitorName = Gf.PreviewItem.Format.MediaOutputMonitorName;
+            Gf.Temp_MediaVolume = Gf.PreviewItem.Format.MediaVolume;
+            Gf.Temp_MediaBalance = Gf.PreviewItem.Format.MediaBalance;
+            Gf.Temp_MediaMute = Gf.PreviewItem.Format.MediaMute;
+            Gf.Temp_MediaRepeat = Gf.PreviewItem.Format.MediaRepeat;
+            Gf.Temp_MediaWidescreen = Gf.PreviewItem.Format.MediaWidescreen;
             if (frmMediaPlayerControl.ShowDialog() == DialogResult.OK)
             {
-                gf.PreviewItem.Format.MediaOption = gf.Temp_MediaOption;
-                gf.PreviewItem.Format.MediaLocation = gf.Temp_MediaLocation;
-                gf.PreviewItem.Format.MediaCaptureDeviceNumber = gf.Temp_MediaCaptureDeviceNumber;
-                gf.PreviewItem.Format.MediaOutputMonitorName = gf.Temp_MediaOutputMonitorName;
-                gf.PreviewItem.Format.MediaVolume = gf.Temp_MediaVolume;
-                gf.PreviewItem.Format.MediaBalance = gf.Temp_MediaBalance;
-                gf.PreviewItem.Format.MediaMute = gf.Temp_MediaMute;
-                gf.PreviewItem.Format.MediaRepeat = gf.Temp_MediaRepeat;
-                gf.PreviewItem.Format.MediaWidescreen = gf.Temp_MediaWidescreen;
-                AssignMediaText(ref Ind_AssignMedia, gf.PreviewItem.Format.MediaOption);
+                Gf.PreviewItem.Format.MediaOption = Gf.Temp_MediaOption;
+                Gf.PreviewItem.Format.MediaLocation = Gf.Temp_MediaLocation;
+                Gf.PreviewItem.Format.MediaCaptureDeviceNumber = Gf.Temp_MediaCaptureDeviceNumber;
+                Gf.PreviewItem.Format.MediaOutputMonitorName = Gf.Temp_MediaOutputMonitorName;
+                Gf.PreviewItem.Format.MediaVolume = Gf.Temp_MediaVolume;
+                Gf.PreviewItem.Format.MediaBalance = Gf.Temp_MediaBalance;
+                Gf.PreviewItem.Format.MediaMute = Gf.Temp_MediaMute;
+                Gf.PreviewItem.Format.MediaRepeat = Gf.Temp_MediaRepeat;
+                Gf.PreviewItem.Format.MediaWidescreen = Gf.Temp_MediaWidescreen;
+                AssignMediaText(ref Ind_AssignMedia, Gf.PreviewItem.Format.MediaOption);
                 UpdateFormatData(StartAtFirstSlide: false);
             }
         }
@@ -392,32 +392,32 @@ namespace Easislides
             string name = toolStripButton.Name;
             if (name == "Ind_R1Bold")
             {
-                gf.PreviewItem.Format.ShowFontBold[0] = (@checked ? 1 : 0);
+                Gf.PreviewItem.Format.ShowFontBold[0] = (@checked ? 1 : 0);
                 UpdateFormatData();
             }
             else if (name == "Ind_R1Underline")
             {
-                gf.PreviewItem.Format.ShowFontUnderline[0] = (@checked ? 1 : 0);
+                Gf.PreviewItem.Format.ShowFontUnderline[0] = (@checked ? 1 : 0);
                 UpdateFormatData();
             }
             else if (name == "Ind_R1Colour")
             {
-                if (gf.SelectColorFromBtn(ref Ind_R1Colour, ref gf.PreviewItem.Format.ShowFontColour[0]))
+                if (Gf.SelectColorFromBtn(ref Ind_R1Colour, ref Gf.PreviewItem.Format.ShowFontColour[0]))
                 {
                     UpdateFormatData(StartAtFirstSlide: false);
                 }
             }
             else if (name == "Ind_R2Bold")
             {
-                gf.PreviewItem.Format.ShowFontBold[1] = (@checked ? 1 : 0);
+                Gf.PreviewItem.Format.ShowFontBold[1] = (@checked ? 1 : 0);
                 UpdateFormatData();
             }
             else if (name == "Ind_R2Underline")
             {
-                gf.PreviewItem.Format.ShowFontUnderline[1] = (@checked ? 1 : 0);
+                Gf.PreviewItem.Format.ShowFontUnderline[1] = (@checked ? 1 : 0);
                 UpdateFormatData();
             }
-            else if (name == "Ind_R2Colour" && gf.SelectColorFromBtn(ref Ind_R2Colour, ref gf.PreviewItem.Format.ShowFontColour[1]))
+            else if (name == "Ind_R2Colour" && Gf.SelectColorFromBtn(ref Ind_R2Colour, ref Gf.PreviewItem.Format.ShowFontColour[1]))
             {
                 UpdateFormatData(StartAtFirstSlide: false);
             }
@@ -425,73 +425,73 @@ namespace Easislides
 
         private void Ind_R1Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_R1Italics, e.ClickedItem.Name, Ind_R1Italics0, Ind_R1Italics1, Ind_R1Italics2);
+            Gf.AssignDropDownItem(ref Ind_R1Italics, e.ClickedItem.Name, Ind_R1Italics0, Ind_R1Italics1, Ind_R1Italics2);
             int num = DataUtil.ObjToInt(Ind_R1Italics.Tag);
             int num2 = num;
             if (num2 == 2)
             {
-                gf.PreviewItem.Format.ShowFontItalic[0] = 0;
-                gf.PreviewItem.Format.ShowFontItalic[2] = 1;
+                Gf.PreviewItem.Format.ShowFontItalic[0] = 0;
+                Gf.PreviewItem.Format.ShowFontItalic[2] = 1;
             }
             else
             {
-                gf.PreviewItem.Format.ShowFontItalic[0] = num;
-                gf.PreviewItem.Format.ShowFontItalic[2] = num;
+                Gf.PreviewItem.Format.ShowFontItalic[0] = num;
+                Gf.PreviewItem.Format.ShowFontItalic[2] = num;
             }
             UpdateFormatData();
         }
 
         private void Ind_R2Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_R2Italics, e.ClickedItem.Name, Ind_R2Italics0, Ind_R2Italics1, Ind_R2Italics2);
+            Gf.AssignDropDownItem(ref Ind_R2Italics, e.ClickedItem.Name, Ind_R2Italics0, Ind_R2Italics1, Ind_R2Italics2);
             int num = DataUtil.ObjToInt(Ind_R2Italics.Tag);
             int num2 = num;
             if (num2 == 2)
             {
-                gf.PreviewItem.Format.ShowFontItalic[1] = 0;
-                gf.PreviewItem.Format.ShowFontItalic[3] = 1;
+                Gf.PreviewItem.Format.ShowFontItalic[1] = 0;
+                Gf.PreviewItem.Format.ShowFontItalic[3] = 1;
             }
             else
             {
-                gf.PreviewItem.Format.ShowFontItalic[1] = num;
-                gf.PreviewItem.Format.ShowFontItalic[3] = num;
+                Gf.PreviewItem.Format.ShowFontItalic[1] = num;
+                Gf.PreviewItem.Format.ShowFontItalic[3] = num;
             }
             UpdateFormatData();
         }
 
         private void Ind_Region_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_Region, e.ClickedItem.Name, Ind_ShowRegion1, Ind_ShowRegion2, Ind_ShowRegionBoth);
-            gf.PreviewItem.Format.ShowLyrics = DataUtil.ObjToInt(Ind_Region.Tag);
+            Gf.AssignDropDownItem(ref Ind_Region, e.ClickedItem.Name, Ind_ShowRegion1, Ind_ShowRegion2, Ind_ShowRegionBoth);
+            Gf.PreviewItem.Format.ShowLyrics = DataUtil.ObjToInt(Ind_Region.Tag);
             UpdateFormatData(StartAtFirstSlide: false);
         }
 
         private void Ind_VAlign_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_VAlign, e.ClickedItem.Name, Ind_VAlignTop, Ind_VAlignCentre, Ind_VAlignBottom);
-            gf.PreviewItem.Format.ShowVerticalAlign = DataUtil.ObjToInt(Ind_VAlign.Tag);
+            Gf.AssignDropDownItem(ref Ind_VAlign, e.ClickedItem.Name, Ind_VAlignTop, Ind_VAlignCentre, Ind_VAlignBottom);
+            Gf.PreviewItem.Format.ShowVerticalAlign = DataUtil.ObjToInt(Ind_VAlign.Tag);
             UpdateFormatData(StartAtFirstSlide: false);
         }
 
         private void Ind_ImageMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_ImageMode, e.ClickedItem.Name, Ind_ImageTile, Ind_ImageCentre, Ind_ImageBestFit);
-            gf.PreviewItem.Format.BackgroundMode = (ImageMode)DataUtil.ObjToInt(Ind_ImageMode.Tag);
-            gf.SetShowBackground(gf.PreviewItem, ref PreviewScreen);
+            Gf.AssignDropDownItem(ref Ind_ImageMode, e.ClickedItem.Name, Ind_ImageTile, Ind_ImageCentre, Ind_ImageBestFit);
+            Gf.PreviewItem.Format.BackgroundMode = (ImageMode)DataUtil.ObjToInt(Ind_ImageMode.Tag);
+            Gf.SetShowBackground(Gf.PreviewItem, ref PreviewScreen);
             UpdateFormatData(StartAtFirstSlide: false);
         }
 
         private void Ind_R1Align_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_R1Align, e.ClickedItem.Name, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
-            gf.PreviewItem.Format.ShowFontAlign[0] = DataUtil.ObjToInt(Ind_R1Align.Tag);
+            Gf.AssignDropDownItem(ref Ind_R1Align, e.ClickedItem.Name, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
+            Gf.PreviewItem.Format.ShowFontAlign[0] = DataUtil.ObjToInt(Ind_R1Align.Tag);
             UpdateFormatData(StartAtFirstSlide: false);
         }
 
         private void Ind_R2Align_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            gf.AssignDropDownItem(ref Ind_R2Align, e.ClickedItem.Name, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
-            gf.PreviewItem.Format.ShowFontAlign[1] = DataUtil.ObjToInt(Ind_R2Align.Tag);
+            Gf.AssignDropDownItem(ref Ind_R2Align, e.ClickedItem.Name, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
+            Gf.PreviewItem.Format.ShowFontAlign[1] = DataUtil.ObjToInt(Ind_R2Align.Tag);
             UpdateFormatData(StartAtFirstSlide: false);
         }
 

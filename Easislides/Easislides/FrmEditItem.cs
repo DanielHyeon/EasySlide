@@ -38,8 +38,6 @@ namespace Easislides
 
 		private int[] VerseListIndex = new int[160];
 
-		private bool LyricsVisited;
-
 		private bool VerseSymbolChanged;
 
 		private bool[] prevVersePresent = new bool[160];
@@ -48,15 +46,11 @@ namespace Easislides
 
 		private int[] VersePresentNewScreenCount = new int[160];
 
-		private string SongLyrics;
-
 //		private bool InsertAction;
 
 //		private int LeftMargin;
 
 //		private byte[] VerseArray;
-
-		private string SQLFolderLookUp;
 
 		private string SavedWriterInfo;
 
@@ -97,8 +91,6 @@ namespace Easislides
 //		private int counta;
 
 		private bool Title2IgnoreChange;
-
-		private long countb;
 
 		private string InitSongTitle2;
 
@@ -736,33 +728,33 @@ namespace Easislides
 			switch (PopupBtnPressed)
 			{
 			case "Btn_Title":
-				gf.popUpText = SongTitle.Text;
-				gf.popUpTextMaxLength = SongTitle.MaxLength;
+				Gf.popUpText = SongTitle.Text;
+				Gf.popUpTextMaxLength = SongTitle.MaxLength;
 				p = new System.Drawing.Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + SongTitle.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + SongTitle.Top + SongTitle.Height);
 				break;
 			case "Btn_Title2":
-				gf.popUpText = SongTitle2.Text;
-				gf.popUpTextMaxLength = SongTitle2.MaxLength;
+				Gf.popUpText = SongTitle2.Text;
+				Gf.popUpTextMaxLength = SongTitle2.MaxLength;
 				p = new System.Drawing.Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + SongTitle2.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + SongTitle2.Top + SongTitle2.Height);
 				break;
 			case "Btn_Writer":
-				gf.popUpText = WriterInfo.Text;
-				gf.popUpTextMaxLength = WriterInfo.MaxLength;
+				Gf.popUpText = WriterInfo.Text;
+				Gf.popUpTextMaxLength = WriterInfo.MaxLength;
 				p = new System.Drawing.Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + WriterInfo.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + WriterInfo.Top + WriterInfo.Height);
 				break;
 			case "Btn_Copyright":
-				gf.popUpText = CopyrightInfo.Text;
-				gf.popUpTextMaxLength = CopyrightInfo.MaxLength;
+				Gf.popUpText = CopyrightInfo.Text;
+				Gf.popUpTextMaxLength = CopyrightInfo.MaxLength;
 				p = new System.Drawing.Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + CopyrightInfo.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + CopyrightInfo.Top + CopyrightInfo.Height);
 				break;
 			case "Btn_BookRef":
-				gf.popUpText = BookReference.Text;
-				gf.popUpTextMaxLength = BookReference.MaxLength;
+				Gf.popUpText = BookReference.Text;
+				Gf.popUpTextMaxLength = BookReference.MaxLength;
 				p = new System.Drawing.Point(splitContainerMain.Left + groupBox1.Left + panel8.Left + BookReference.Left, splitContainerMain.Top + groupBox1.Top + panel8.Top + BookReference.Top + BookReference.Height);
 				break;
 			case "Btn_UserRef":
-				gf.popUpText = UserReference.Text;
-				gf.popUpTextMaxLength = UserReference.MaxLength;
+				Gf.popUpText = UserReference.Text;
+				Gf.popUpTextMaxLength = UserReference.MaxLength;
 				p = new System.Drawing.Point(splitContainerMain.Left + groupBox1.Left + panel8.Left + UserReference.Left, splitContainerMain.Top + groupBox1.Top + panel8.Top + UserReference.Top + UserReference.Height);
 				break;
 			}
@@ -776,22 +768,22 @@ namespace Easislides
 			switch (PopupBtnPressed)
 			{
 			case "Btn_Title":
-				SongTitle.Text = gf.popUpText;
+				SongTitle.Text = Gf.popUpText;
 				break;
 			case "Btn_Title2":
-				SongTitle2.Text = gf.popUpText;
+				SongTitle2.Text = Gf.popUpText;
 				break;
 			case "Btn_Writer":
-				WriterInfo.Text = gf.popUpText;
+				WriterInfo.Text = Gf.popUpText;
 				break;
 			case "Btn_Copyright":
-				CopyrightInfo.Text = gf.popUpText;
+				CopyrightInfo.Text = Gf.popUpText;
 				break;
 			case "Btn_BookRef":
-				BookReference.Text = gf.popUpText;
+				BookReference.Text = Gf.popUpText;
 				break;
 			case "Btn_UserRef":
-				UserReference.Text = gf.popUpText;
+				UserReference.Text = Gf.popUpText;
 				break;
 			}
 		}
@@ -852,8 +844,7 @@ namespace Easislides
 			num6 = ((num6 >= 0 && num6 <= 1) ? num6 : 0);
 			tabRightPane.SelectedIndex = num6;
 			BuildTempItems();
-			sArray = gf.SymbolsString.Split(',');
-			LyricsVisited = false;
+			sArray = Gf.SymbolsString.Split(',');
 			InitMediaPlayer();
 			BuildFolderList();
 			ResetAll();
@@ -861,38 +852,38 @@ namespace Easislides
 			SetLyricsWordWrap(SetWordWrap);
 			SetChordsMenu = ((RegUtil.GetRegValue("settings", Reg_FormSetChordsMenu, 0) > 0) ? true : false);
 			SetMenuChordsMenu(SetChordsMenu);
-			gf.BuildFontsList(ref ComboFontName);
-			gf.BuildFontSizeList(ref ComboMainFontSize);
-			gf.BuildFontSizeList(ref ComboNotationFontSize);
-			ComboFontName.Text = gf.EditMainFontName;
-			ComboMainFontSize.Text = gf.EditMainFontSize.ToString();
-			ComboNotationFontSize.Text = gf.EditNotationFontSize.ToString();
+			Gf.BuildFontsList(ref ComboFontName);
+			Gf.BuildFontSizeList(ref ComboMainFontSize);
+			Gf.BuildFontSizeList(ref ComboNotationFontSize);
+			ComboFontName.Text = Gf.EditMainFontName;
+			ComboMainFontSize.Text = Gf.EditMainFontSize.ToString();
+			ComboNotationFontSize.Text = Gf.EditNotationFontSize.ToString();
 			InitFontsLists = false;
 			ApplyFonts();
 			EnableFontNameSize(EnableState: true);
 			LoadLists();
-			if (gf.ValidSongID(gf.DB_CurSongID))
+			if (Gf.ValidSongID(Gf.DB_CurSongID))
 			{
 				EnableFontNameSize(EnableState: false);
 				IgnoreChange = true;
-				LoadSong(gf.DB_CurSongID);
+				LoadSong(Gf.DB_CurSongID);
 				IgnoreChange = false;
 				tbLyrics1.Focus();
 			}
-			else if (gf.CurFolderName != "")
+			else if (Gf.CurFolderName != "")
 			{
-				SongFolder.Text = gf.CurFolderName;
-				SavedFolder = gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString()).ToString();
+				SongFolder.Text = Gf.CurFolderName;
+				SavedFolder = Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString()).ToString();
 			}
 			BuildEditHistoryMenuItems();
-			gf.EditorItemID = gf.DB_CurSongID;
+			Gf.EditorItemID = Gf.DB_CurSongID;
 			EnableEditHistory();
-			AddToEditHistory("D" + Convert.ToString(gf.DB_CurSongID));
+			AddToEditHistory("D" + Convert.ToString(Gf.DB_CurSongID));
 			tbLyrics1.DragEnter += tbLyrics_DragEnter;
 			tbLyrics1.DragDrop += tbLyrics1_DragDrop;
 			tbLyrics2.DragEnter += tbLyrics_DragEnter;
 			tbLyrics2.DragDrop += tbLyrics2_DragDrop;
-			TrackBarVolume.Value = (((gf.MediaVolume >= 0) & (gf.MediaVolume <= 100)) ? gf.MediaVolume : 20);
+			TrackBarVolume.Value = (((Gf.MediaVolume >= 0) & (Gf.MediaVolume <= 100)) ? Gf.MediaVolume : 20);
 			TimerTrack.Start();
 			TimerEditRequest.Start();
 			BeginInvoke(new MethodInvoker(focustbLyrics1));
@@ -907,16 +898,16 @@ namespace Easislides
 		private void BuildFolderList()
 		{
 			SongFolder.Items.Clear();
-			for (int i = 1; i < gf.MAXSONGSFOLDERS; i++)
+			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.FolderName[i]);
 				}
 			}
 			if (SongFolder.Items.Count == 0)
 			{
-				SongFolder.Items.Add(gf.FolderName[1]);
+				SongFolder.Items.Add(Gf.FolderName[1]);
 			}
 			SongFolder.Text = SongFolder.Items[0].ToString();
 		}
@@ -925,7 +916,7 @@ namespace Easislides
 		{
 			Menu_EditHistoryList.DropDownItems.Clear();
 			ToolStripMenuItem toolStripMenuItem = new ToolStripMenuItem();
-			for (int i = 0; i < gf.AbsoluteMaxHitoryItems - 1; i++)
+			for (int i = 0; i < Gf.AbsoluteMaxHitoryItems - 1; i++)
 			{
 				toolStripMenuItem = new ToolStripMenuItem();
 				toolStripMenuItem.Name = "Menu_EditHistory" + i;
@@ -1001,7 +992,7 @@ namespace Easislides
 		{
 			Button button = (Button)sender;
 			InsertingPresetItem = true;
-			gf.InsertIndicator(ref tbLyrics1, DataUtil.ObjToInt(button.Tag));
+			Gf.InsertIndicator(ref tbLyrics1, DataUtil.ObjToInt(button.Tag));
 			InsertingPresetItem = false;
 			Lyrics_TextChanged(1);
 		}
@@ -1010,7 +1001,7 @@ namespace Easislides
 		{
 			Button button = (Button)sender;
 			InsertingPresetItem = true;
-			gf.InsertIndicator(ref tbLyrics2, DataUtil.ObjToInt(button.Tag));
+			Gf.InsertIndicator(ref tbLyrics2, DataUtil.ObjToInt(button.Tag));
 			InsertingPresetItem = false;
 			Lyrics_TextChanged(2);
 		}
@@ -1131,36 +1122,36 @@ namespace Easislides
 
 		private void LoadLists()
 		{
-			gf.LoadSongKeyCapoTiming(ref SongCapo, ref SongKey, ref SongTiming);
+			Gf.LoadSongKeyCapoTiming(ref SongCapo, ref SongKey, ref SongTiming);
 			LicAdminInfo1.Items.Clear();
 			LicAdminInfo1.Items.Add("");
-			LicAdminInfo1.Items.Add(gf.LicAdmin_List[2, 0]);
-			LicAdminInfo1.Items.Add(gf.LicAdmin_List[3, 0]);
+			LicAdminInfo1.Items.Add(Gf.LicAdmin_List[2, 0]);
+			LicAdminInfo1.Items.Add(Gf.LicAdmin_List[3, 0]);
 			LicAdminInfo2.Items.Clear();
 			LicAdminInfo2.Items.Add("");
-			LicAdminInfo2.Items.Add(gf.LicAdmin_List[2, 0]);
-			LicAdminInfo2.Items.Add(gf.LicAdmin_List[3, 0]);
-			if (gf.LicAdmin_List[4, 0] != "")
+			LicAdminInfo2.Items.Add(Gf.LicAdmin_List[2, 0]);
+			LicAdminInfo2.Items.Add(Gf.LicAdmin_List[3, 0]);
+			if (Gf.LicAdmin_List[4, 0] != "")
 			{
-				LicAdminInfo1.Items.Add(gf.LicAdmin_List[4, 0]);
-				LicAdminInfo2.Items.Add(gf.LicAdmin_List[4, 0]);
+				LicAdminInfo1.Items.Add(Gf.LicAdmin_List[4, 0]);
+				LicAdminInfo2.Items.Add(Gf.LicAdmin_List[4, 0]);
 			}
-			if (gf.LicAdmin_List[5, 0] != "")
+			if (Gf.LicAdmin_List[5, 0] != "")
 			{
-				LicAdminInfo1.Items.Add(gf.LicAdmin_List[5, 0]);
-				LicAdminInfo2.Items.Add(gf.LicAdmin_List[5, 0]);
+				LicAdminInfo1.Items.Add(Gf.LicAdmin_List[5, 0]);
+				LicAdminInfo2.Items.Add(Gf.LicAdmin_List[5, 0]);
 			}
-			if (gf.LicAdmin_List[6, 0] != "")
+			if (Gf.LicAdmin_List[6, 0] != "")
 			{
-				LicAdminInfo1.Items.Add(gf.LicAdmin_List[6, 0]);
-				LicAdminInfo2.Items.Add(gf.LicAdmin_List[6, 0]);
+				LicAdminInfo1.Items.Add(Gf.LicAdmin_List[6, 0]);
+				LicAdminInfo2.Items.Add(Gf.LicAdmin_List[6, 0]);
 			}
 		}
 
 		private void ResetAll()
 		{
-			gf.InitialiseIndividualData(ref gf.EditItem1);
-			gf.InitialiseIndividualData(ref gf.EditItem2);
+			Gf.InitialiseIndividualData(ref Gf.EditItem1);
+			Gf.InitialiseIndividualData(ref Gf.EditItem2);
 			CurSongID = -1;
 			SongTitle.Text = "";
 			SongTitle2.Text = "";
@@ -1233,7 +1224,7 @@ namespace Easislides
 			SavedCapo = SongCapo.Text;
 			SavedSongKey = SongKey.Text;
 			SavedSongTiming = SongTiming.Text;
-			SavedFolder = gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString()).ToString();
+			SavedFolder = Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString()).ToString();
 			SavedSequence = OrderListSequence;
 			SavedRotateString = RotateString;
 		}
@@ -1266,26 +1257,26 @@ namespace Easislides
 		{
 			if (!InitFontsLists)
 			{
-				gf.EditMainFontSize = DataUtil.StringToInt(ComboMainFontSize.Text);
-				if ((gf.EditMainFontSize < 6) | (gf.EditMainFontSize > 20))
+				Gf.EditMainFontSize = DataUtil.StringToInt(ComboMainFontSize.Text);
+				if ((Gf.EditMainFontSize < 6) | (Gf.EditMainFontSize > 20))
 				{
-					gf.EditMainFontSize = 12;
+					Gf.EditMainFontSize = 12;
 				}
-				gf.EditNotationFontSize = DataUtil.StringToInt(ComboNotationFontSize.Text);
-				if ((gf.EditNotationFontSize < 6) | (gf.EditNotationFontSize > 20))
+				Gf.EditNotationFontSize = DataUtil.StringToInt(ComboNotationFontSize.Text);
+				if ((Gf.EditNotationFontSize < 6) | (Gf.EditNotationFontSize > 20))
 				{
-					gf.EditNotationFontSize = 10;
+					Gf.EditNotationFontSize = 10;
 				}
-				MainFont = gf.GetNewFont(ComboFontName.Text, gf.EditMainFontSize, InBold: false, InItalic: false, InUnderline: false, ShowErrorMsg: false);
-				gf.EditMainFontName = MainFont.Name;
+				MainFont = Gf.GetNewFont(ComboFontName.Text, Gf.EditMainFontSize, InBold: false, InItalic: false, InUnderline: false, ShowErrorMsg: false);
+				Gf.EditMainFontName = MainFont.Name;
 				tbLyrics1.Font = MainFont;
 				tbLyrics2.Font = MainFont;
 				tbWorkspace.Font = MainFont;
 				tbTempSpace.Font = MainFont;
-				NotationFont = gf.GetNewFont(gf.EditMainFontName, gf.EditNotationFontSize, InBold: false, InItalic: false, InUnderline: false, ShowErrorMsg: false);
-				RegUtil.SaveRegValue("options", "EditMainFontName", gf.EditMainFontName);
-				RegUtil.SaveRegValue("options", "EditMainFontSize", gf.EditMainFontSize);
-				RegUtil.SaveRegValue("options", "EditNotationFontSize", gf.EditNotationFontSize);
+				NotationFont = Gf.GetNewFont(Gf.EditMainFontName, Gf.EditNotationFontSize, InBold: false, InItalic: false, InUnderline: false, ShowErrorMsg: false);
+				RegUtil.SaveRegValue("options", "EditMainFontName", Gf.EditMainFontName);
+				RegUtil.SaveRegValue("options", "EditMainFontSize", Gf.EditMainFontSize);
+				RegUtil.SaveRegValue("options", "EditNotationFontSize", Gf.EditNotationFontSize);
 			}
 		}
 
@@ -1296,12 +1287,12 @@ namespace Easislides
 		private void ExternalDocumentBtnPressed()
 		{
 			OpenFileDialog1.Filter = "Word Documents and Text Files (*.doc;*.docx;*.txt) | *.doc;*docx;*.txt|Word Documents (*.doc;*.docx)|*.doc;*.docx|Text Files (*.txt)|*.txt";
-			OpenFileDialog1.InitialDirectory = gf.EditOpenDocumentDir;
+			OpenFileDialog1.InitialDirectory = Gf.EditOpenDocumentDir;
 			OpenFileDialog1.FileName = "";
 			if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
 			{
-				gf.EditOpenDocumentDir = Path.GetDirectoryName(OpenFileDialog1.FileName);
-				RegUtil.SaveRegValue("options", "EditOpenDocumentDir", gf.EditOpenDocumentDir);
+				Gf.EditOpenDocumentDir = Path.GetDirectoryName(OpenFileDialog1.FileName);
+				RegUtil.SaveRegValue("options", "EditOpenDocumentDir", Gf.EditOpenDocumentDir);
 				string fileName = OpenFileDialog1.FileName;
 				GetExternalDocumentContents(fileName, 3);
 			}
@@ -1323,7 +1314,7 @@ namespace Easislides
 			{
 				case ".doc":
 				case "*.docx":
-					inLyrics = gf.GetOfficeDocContents(InFileName);
+					inLyrics = Gf.GetOfficeDocContents(InFileName);
 					flag = true;
 					break;
 				case ".txt":
@@ -1333,12 +1324,12 @@ namespace Easislides
 			}
 			if (flag)
 			{
-				gf.ExtractLyrics(inLyrics, "", ref OutText, ref Lyrics1SavedNotations, ref OutText2, ref Lyrics2SavedNotations);
+				Gf.ExtractLyrics(inLyrics, "", ref OutText, ref Lyrics1SavedNotations, ref OutText2, ref Lyrics2SavedNotations);
 				string text3 = "";
 				string text4 = "";
 				if (RegNum == 1 || RegNum == 3)
 				{
-					text = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+					text = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
 					text3 = OutText;
 					text4 = OutText2;
 				}
@@ -1352,7 +1343,7 @@ namespace Easislides
 					text4 = OutText;
 					if (SongTitle2.Text == "")
 					{
-						text2 = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+						text2 = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
 					}
 				}
 				if (RegNum == 3 || (tbLyrics1.Text != "" && text3 != "") || (tbLyrics2.Text != "" && text4 != ""))
@@ -1362,7 +1353,7 @@ namespace Easislides
 						Cursor = Cursors.Default;
 						return;
 					}
-					SongTitle.Text = gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+					SongTitle.Text = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
 				}
 				if (text != "")
 				{
@@ -1374,11 +1365,11 @@ namespace Easislides
 				}
 				if (text3 != "")
 				{
-					tbLyrics1.Text = gf.CombineLyricsAndNotations(text3, Lyrics1SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
+					tbLyrics1.Text = Gf.CombineLyricsAndNotations(text3, Lyrics1SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
 				}
 				if (text4 != "")
 				{
-					tbLyrics2.Text = gf.CombineLyricsAndNotations(text4, Lyrics2SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
+					tbLyrics2.Text = Gf.CombineLyricsAndNotations(text4, Lyrics2SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
 				}
 			}
 			Cursor = Cursors.Default;
@@ -1391,23 +1382,23 @@ namespace Easislides
 			{
 			case 1:
 			{
-				num = gf.SwitchChinese(ref tbLyrics1);
+				num = Gf.SwitchChinese(ref tbLyrics1);
 				string InString = SongTitle.Text;
-				gf.SwitchChinese(ref InString, num);
+				Gf.SwitchChinese(ref InString, num);
 				SongTitle.Text = InString;
 				InString = SongTitle2.Text;
-				gf.SwitchChinese(ref InString, num);
+				Gf.SwitchChinese(ref InString, num);
 				SongTitle2.Text = InString;
 				InString = WriterInfo.Text;
-				gf.SwitchChinese(ref InString, num);
+				Gf.SwitchChinese(ref InString, num);
 				WriterInfo.Text = InString;
 				InString = CopyrightInfo.Text;
-				gf.SwitchChinese(ref InString, num);
+				Gf.SwitchChinese(ref InString, num);
 				CopyrightInfo.Text = InString;
 				break;
 			}
 			case 2:
-				gf.SwitchChinese(ref tbLyrics2);
+				Gf.SwitchChinese(ref tbLyrics2);
 				break;
 			}
 		}
@@ -1418,7 +1409,7 @@ namespace Easislides
 			if (SongKey.Text != "")
 			{
 				string InKey = SongKey.Text;
-				flatSharpKey = gf.TransposeKey(ref InKey, TransposeStep);
+				flatSharpKey = Gf.TransposeKey(ref InKey, TransposeStep);
 				SongKey.Text = InKey;
 			}
 			if (SongCapo.Text != "")
@@ -1438,8 +1429,8 @@ namespace Easislides
 			IgnoreChange = true;
 			BtnChordsClick(TransposeStep, ref tbLyrics1, ref Lyrics1SavedNotations, ref Lyrics1Only, flatSharpKey);
 			BtnChordsClick(TransposeStep, ref tbLyrics2, ref Lyrics2SavedNotations, ref Lyrics2Only, flatSharpKey);
-			gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
-			gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+			Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+			Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
 			IgnoreChange = false;
 		}
 
@@ -1447,7 +1438,6 @@ namespace Easislides
 		{
 			ValidateMusicNotations(ref InTextBox, ref SavedNotations, ref LyricsOnly);
 			string text = SavedNotations;
-			bool flag = false;
 			string text2 = "";
 			string text3 = "";
 			for (int i = 0; i < text.Length; i++)
@@ -1459,17 +1449,16 @@ namespace Easislides
 				}
 				else if (text4 == ';'.ToString())
 				{
-					text3 = gf.TransposeChord(text3, TransposeStep, FlatSharpKey);
+					text3 = Gf.TransposeChord(text3, TransposeStep, FlatSharpKey);
 					text2 = text2 + text3 + text4;
 					text3 = "";
-					flag = false;
 				}
 				else
 				{
 					text3 += text4;
 				}
 			}
-			InTextBox.Text = gf.CombineLyricsAndNotations(LyricsOnly, text2, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
+			InTextBox.Text = Gf.CombineLyricsAndNotations(LyricsOnly, text2, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
 		}
 
 		private bool ValidateMusicNotations(ref RichTextBox InTextBox, ref string InSavedNotations, ref string InLyricsOnly)
@@ -1488,7 +1477,6 @@ namespace Easislides
 			int num2 = 0;
 			ListViewItem listViewItem = new ListViewItem();
 			BuildListofNotationLines(ref InTextBox, ref ListViewNotations, ref InLyricsOnly, num);
-			bool flag = false;
 			int num3 = num - 1;
 			bool flag2 = false;
 			for (int num4 = num - 1; num4 >= 0; num4--)
@@ -1518,7 +1506,6 @@ namespace Easislides
 			int InMax = 0;
 			int InMin2 = 0;
 			int InMax2 = 0;
-			int num5 = 0;
 			int num6 = 0;
 			string MusicNotationName = "";
 			System.Drawing.Point MusicNotationCoOrd = new System.Drawing.Point(0, 0);
@@ -1526,8 +1513,8 @@ namespace Easislides
 			for (int num4 = 0; num4 <= ListViewNotations.Items.Count - 1; num4++)
 			{
 				ListViewNotationLog.Items.Clear();
-				gf.GetMinMaxfromTextBox(InTextBox, DataUtil.StringToInt(ListViewNotations.Items[num4].SubItems[2].Text), ref InMin, ref InMax);
-				gf.GetMinMaxfromTextBox(InTextBox, DataUtil.StringToInt(ListViewNotations.Items[num4].Text), ref InMin2, ref InMax2);
+				Gf.GetMinMaxfromTextBox(InTextBox, DataUtil.StringToInt(ListViewNotations.Items[num4].SubItems[2].Text), ref InMin, ref InMax);
+				Gf.GetMinMaxfromTextBox(InTextBox, DataUtil.StringToInt(ListViewNotations.Items[num4].Text), ref InMin2, ref InMax2);
 				num2 = DataUtil.StringToInt(ListViewNotations.Items[num4].SubItems[2].Text) - num4;
 				num6 = 0;
 				while (FindNextNotation(InTextBox, ref num6, ref MusicNotationName, ref MusicNotationCoOrd, InMin, InMax))
@@ -1586,7 +1573,7 @@ namespace Easislides
 				}
 				listViewItem.SubItems.Add("");
 				listViewItem.SubItems.Add("");
-				gf.GetMinMaxfromTextBox(InTextBox, i, ref InMin, ref InMax);
+				Gf.GetMinMaxfromTextBox(InTextBox, i, ref InMin, ref InMax);
 				text = DataUtil.Mid(InTextBox.Text, InMin, InMax - InMin + 1);
 				InLyricsOnly = InLyricsOnly + text + ((i < TotalLines - 1) ? "\n" : "");
 			}
@@ -1597,7 +1584,6 @@ namespace Easislides
 
 		public void OldGetMinMaxfromTextBox(RichTextBox InBox, int InLineNumber, ref int InMin, ref int InMax)
 		{
-			int num = 0;
 			string text = InBox.Text + "\n";
 			InMax = -1;
 			for (int i = 0; i <= InLineNumber; i++)
@@ -1632,7 +1618,6 @@ namespace Easislides
 						int index = IntextBox.SelectionStart = MusicCurPosMin + i;
 						MusicNotationCoOrd = IntextBox.GetPositionFromCharIndex(index);
 						int x = MusicNotationCoOrd.X;
-						text = text;
 					}
 					MusicNotationName += text;
 				}
@@ -1669,35 +1654,35 @@ namespace Easislides
 			}
 			StringBuilder stringBuilder = new StringBuilder();
 			tbWorkspace.Text = InLyrics;
-			gf.MarkSelectedRTB(ref tbWorkspace, 0, tbWorkspace.Text.Length, 0, MainFont, NotationFont);
+			Gf.MarkSelectedRTB(ref tbWorkspace, 0, tbWorkspace.Text.Length, 0, MainFont, NotationFont);
 			int num = DataUtil.CountLf(tbWorkspace.Text);
 			int InMin = 0;
 			int InMax = 0;
 			string text = "";
-			int num2 = gf.ListNotationData(InNotations, ref gf.NotationsArray, num);
+			int num2 = Gf.ListNotationData(InNotations, ref Gf.NotationsArray, num);
 			for (int i = 0; i < num; i++)
 			{
-				if (num2 > 0 && gf.NotationsArray[i] != "")
+				if (num2 > 0 && Gf.NotationsArray[i] != "")
 				{
-					gf.GetMinMaxfromTextBox(tbWorkspace, i, ref InMin, ref InMax);
+					Gf.GetMinMaxfromTextBox(tbWorkspace, i, ref InMin, ref InMax);
 					tbTempSpace.Text = "";
 					string text2 = "";
-					while (gf.NotationsArray[i].Length > 0)
+					while (Gf.NotationsArray[i].Length > 0)
 					{
-						text = gf.NotationsArray[i];
+						text = Gf.NotationsArray[i];
 						string text3 = DataUtil.ExtractOneInfo(ref text, ';', RemoveExtract: true, MinusOneIfBlank: false);
 						int inCurPos = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref text, ';', RemoveExtract: true, MinusOneIfBlank: false));
-						gf.NotationsArray[i] = text;
-						int associatedLyricsLineCurPosX = gf.GetAssociatedLyricsLineCurPosX(ref tbWorkspace, inCurPos, InMin, InMax);
-						while (gf.GetAssociatedLyricsLineCurPosX(ref tbTempSpace, tbTempSpace.Text.Length - 1) < associatedLyricsLineCurPosX - 1)
+						Gf.NotationsArray[i] = text;
+						int associatedLyricsLineCurPosX = Gf.GetAssociatedLyricsLineCurPosX(ref tbWorkspace, inCurPos, InMin, InMax);
+						while (Gf.GetAssociatedLyricsLineCurPosX(ref tbTempSpace, tbTempSpace.Text.Length - 1) < associatedLyricsLineCurPosX - 1)
 						{
 							text2 += " ";
 							tbTempSpace.Text = text2;
-							gf.MarkSelectedRTB(ref tbTempSpace, 0, tbTempSpace.Text.Length, 2, MainFont, NotationFont);
+							Gf.MarkSelectedRTB(ref tbTempSpace, 0, tbTempSpace.Text.Length, 2, MainFont, NotationFont);
 						}
 						text2 += (((text2.Length > 1) & (DataUtil.Right(text2, 1) != " ")) ? (" " + text3) : text3);
 						tbTempSpace.Text = text2;
-						gf.MarkSelectedRTB(ref tbTempSpace, 0, tbTempSpace.Text.Length, 2, MainFont, NotationFont);
+						Gf.MarkSelectedRTB(ref tbTempSpace, 0, tbTempSpace.Text.Length, 2, MainFont, NotationFont);
 					}
 					stringBuilder.Append(tbTempSpace.Text + " »\n");
 				}
@@ -1712,30 +1697,30 @@ namespace Easislides
 
 		private void EnableEditHistory()
 		{
-			gf.LoadRegistryEditorEditHistory();
+			Gf.LoadRegistryEditorEditHistory();
 			UpdateMenu_EditHistory();
 		}
 
 		private void AddToEditHistory(string InItemID)
 		{
-			if (!((gf.GetItemTitle(InItemID) == "") | (gf.EditorEditHistoryList[1, 0] == InItemID)))
+			if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.EditorEditHistoryList[1, 0] == InItemID)))
 			{
-				if (gf.TotalEditorEditHistory < gf.MaxUserEditHistory)
+				if (Gf.TotalEditorEditHistory < Gf.MaxUserEditHistory)
 				{
-					gf.TotalEditorEditHistory++;
+					Gf.TotalEditorEditHistory++;
 				}
 				else
 				{
-					gf.TotalEditorEditHistory = gf.MaxUserEditHistory;
+					Gf.TotalEditorEditHistory = Gf.MaxUserEditHistory;
 				}
-				for (int num = gf.TotalEditorEditHistory; num >= 2; num--)
+				for (int num = Gf.TotalEditorEditHistory; num >= 2; num--)
 				{
-					gf.EditorEditHistoryList[num, 0] = gf.EditorEditHistoryList[num - 1, 0];
+					Gf.EditorEditHistoryList[num, 0] = Gf.EditorEditHistoryList[num - 1, 0];
 				}
-				gf.EditorEditHistoryList[1, 0] = InItemID;
-				gf.RemoveDuplicateEditorHistoryItems(ref gf.EditorEditHistoryList, ref gf.TotalEditorEditHistory);
+				Gf.EditorEditHistoryList[1, 0] = InItemID;
+				Gf.RemoveDuplicateEditorHistoryItems(ref Gf.EditorEditHistoryList, ref Gf.TotalEditorEditHistory);
 				UpdateMenu_EditHistory();
-				gf.SaveEditorEditHistoryToRegistry();
+				Gf.SaveEditorEditHistoryToRegistry();
 			}
 		}
 
@@ -1745,30 +1730,30 @@ namespace Easislides
 			{
 				int num = 0;
 				string text = "";
-				if ((gf.TotalEditorEditHistory < 0) | (gf.TotalEditorEditHistory > gf.AbsoluteMaxHitoryItems))
+				if ((Gf.TotalEditorEditHistory < 0) | (Gf.TotalEditorEditHistory > Gf.AbsoluteMaxHitoryItems))
 				{
-					gf.TotalEditorEditHistory = gf.AbsoluteMaxHitoryItems;
+					Gf.TotalEditorEditHistory = Gf.AbsoluteMaxHitoryItems;
 				}
-				for (int i = 1; i <= gf.TotalEditorEditHistory; i++)
+				for (int i = 1; i <= Gf.TotalEditorEditHistory; i++)
 				{
-					text = gf.GetItemTitle(gf.EditorEditHistoryList[i, 0]);
-					if (text != "" && gf.EditorEditHistoryList[num, 0] != gf.EditorEditHistoryList[i, 0])
+					text = Gf.GetItemTitle(Gf.EditorEditHistoryList[i, 0]);
+					if (text != "" && Gf.EditorEditHistoryList[num, 0] != Gf.EditorEditHistoryList[i, 0])
 					{
 						num++;
-						gf.EditorEditHistoryList[num, 0] = gf.EditorEditHistoryList[i, 0];
-						gf.EditorEditHistoryList[num, 1] = text;
+						Gf.EditorEditHistoryList[num, 0] = Gf.EditorEditHistoryList[i, 0];
+						Gf.EditorEditHistoryList[num, 1] = text;
 					}
 				}
-				gf.TotalEditorEditHistory = num;
-				for (int i = gf.TotalEditorEditHistory + 1; i <= gf.AbsoluteMaxHitoryItems; i++)
+				Gf.TotalEditorEditHistory = num;
+				for (int i = Gf.TotalEditorEditHistory + 1; i <= Gf.AbsoluteMaxHitoryItems; i++)
 				{
-					gf.EditorEditHistoryList[i, 0] = "";
-					gf.EditorEditHistoryList[i, 1] = "";
+					Gf.EditorEditHistoryList[i, 0] = "";
+					Gf.EditorEditHistoryList[i, 1] = "";
 				}
-				for (int i = 1; i < gf.AbsoluteMaxHitoryItems; i++)
+				for (int i = 1; i < Gf.AbsoluteMaxHitoryItems; i++)
 				{
-					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + gf.EditorEditHistoryList[i, 1];
-					Menu_EditHistoryList.DropDownItems[i - 1].Visible = ((i <= gf.TotalEditorEditHistory) ? true : false);
+					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.EditorEditHistoryList[i, 1];
+					Menu_EditHistoryList.DropDownItems[i - 1].Visible = ((i <= Gf.TotalEditorEditHistory) ? true : false);
 				}
 			}
 			catch
@@ -1880,7 +1865,7 @@ namespace Easislides
 
 		private bool ChangesMade()
 		{
-			if (tbLyrics1.Text != Lyrics1SavedCopy || tbLyrics2.Text != Lyrics2SavedCopy || SongTitle.Text != SavedTitle || SongTitle2.Text != SavedTitle2 || SongNumber.Text != SavedSongNumber || BookReference.Text != SavedBookReference || UserReference.Text != SavedUserReference || WriterInfo.Text != SavedWriterInfo || CopyrightInfo.Text != SavedCopyrightInfo || LicAdminInfo1.Text != SavedLicAdminInfo1 || LicAdminInfo2.Text != SavedLicAdminInfo2 || SongKey.Text != SavedSongKey || SongTiming.Text != SavedSongTiming || SongCapo.Text != SavedCapo || GenerateRotateString() != SavedRotateString || gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString()) != DataUtil.StringToInt(SavedFolder) || OrderListSequence != SavedSequence)
+			if (tbLyrics1.Text != Lyrics1SavedCopy || tbLyrics2.Text != Lyrics2SavedCopy || SongTitle.Text != SavedTitle || SongTitle2.Text != SavedTitle2 || SongNumber.Text != SavedSongNumber || BookReference.Text != SavedBookReference || UserReference.Text != SavedUserReference || WriterInfo.Text != SavedWriterInfo || CopyrightInfo.Text != SavedCopyrightInfo || LicAdminInfo1.Text != SavedLicAdminInfo1 || LicAdminInfo2.Text != SavedLicAdminInfo2 || SongKey.Text != SavedSongKey || SongTiming.Text != SavedSongTiming || SongCapo.Text != SavedCapo || GenerateRotateString() != SavedRotateString || Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString()) != DataUtil.StringToInt(SavedFolder) || OrderListSequence != SavedSequence)
 			{
 				return true;
 			}
@@ -1912,44 +1897,43 @@ namespace Easislides
 		private void SaveSong()
 		{
 			ClearErrorMessage(0);
-			if (!gf.ValidateDB(DatabaseType.Songs))
+			if (!Gf.ValidateDB(DatabaseType.Songs))
 			{
 				return;
 			}
-			int num = 0;
 			bool flag = false;
-			gf.EditorItemNew = false;
-			gf.EditorItemFolderChanged = false;
-			gf.EditorItemTitleChanged = false;
-			gf.EditorItemTitle = DataUtil.Left(SongTitle.Text, 100);
-			gf.EditorItemNewFolder = gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString());
-			gf.EditItem1.Title = gf.EditorItemTitle;
-			gf.EditItem1.Title2 = SongTitle2.Text;
-			gf.EditItem1.SongNumber = DataUtil.StringToInt(SongNumber.Text);
-			gf.EditItem1.FolderNo = gf.EditorItemNewFolder;
-			gf.EditItem1.CompleteLyrics = CombinedLyrics;
-			gf.EditItem1.Notations = CombinedNotations;
-			gf.EditItem1.SongSequence = OrderListSequence;
-			gf.EditItem1.Writer = WriterInfo.Text;
-			gf.EditItem1.Copyright = CopyrightInfo.Text;
-			gf.EditItem1.Category = "";
-			gf.EditItem1.Timing = SongTiming.Text;
-			gf.EditItem1.MusicKey = SongKey.Text;
-			gf.EditItem1.Capo = SongCapo.SelectedIndex - 1;
-			gf.EditItem1.Show_LicAdminInfo1 = LicAdminInfo1.Text;
-			gf.EditItem1.Show_LicAdminInfo2 = LicAdminInfo2.Text;
-			gf.EditItem1.Book_Reference = BookReference.Text;
-			gf.EditItem1.User_Reference = UserReference.Text;
-			gf.EditItem1.RotateString = GenerateRotateString();
-			gf.EditItem1.Settings = gf.CombineSettings(gf.EditItem1);
+			Gf.EditorItemNew = false;
+			Gf.EditorItemFolderChanged = false;
+			Gf.EditorItemTitleChanged = false;
+			Gf.EditorItemTitle = DataUtil.Left(SongTitle.Text, 100);
+			Gf.EditorItemNewFolder = Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString());
+			Gf.EditItem1.Title = Gf.EditorItemTitle;
+			Gf.EditItem1.Title2 = SongTitle2.Text;
+			Gf.EditItem1.SongNumber = DataUtil.StringToInt(SongNumber.Text);
+			Gf.EditItem1.FolderNo = Gf.EditorItemNewFolder;
+			Gf.EditItem1.CompleteLyrics = CombinedLyrics;
+			Gf.EditItem1.Notations = CombinedNotations;
+			Gf.EditItem1.SongSequence = OrderListSequence;
+			Gf.EditItem1.Writer = WriterInfo.Text;
+			Gf.EditItem1.Copyright = CopyrightInfo.Text;
+			Gf.EditItem1.Category = "";
+			Gf.EditItem1.Timing = SongTiming.Text;
+			Gf.EditItem1.MusicKey = SongKey.Text;
+			Gf.EditItem1.Capo = SongCapo.SelectedIndex - 1;
+			Gf.EditItem1.Show_LicAdminInfo1 = LicAdminInfo1.Text;
+			Gf.EditItem1.Show_LicAdminInfo2 = LicAdminInfo2.Text;
+			Gf.EditItem1.Book_Reference = BookReference.Text;
+			Gf.EditItem1.User_Reference = UserReference.Text;
+			Gf.EditItem1.RotateString = GenerateRotateString();
+			Gf.EditItem1.Settings = Gf.CombineSettings(Gf.EditItem1);
 			if (CurSongID < 0)
 			{
-				gf.EditorItemNew = true;
+				Gf.EditorItemNew = true;
 				if (SongNumber.Text == "")
 				{
 					SongNumber.Text = "0";
 				}
-				int num2 = gf.InsertItemIntoDatabase(gf.ConnectStringMainDB, gf.EditItem1.Title, gf.EditItem1.Title2, gf.EditItem1.SongNumber, gf.EditItem1.FolderNo, gf.EditItem1.CompleteLyrics, gf.EditItem1.SongSequence, gf.EditItem1.Writer, gf.EditItem1.Copyright, gf.EditItem1.Capo, gf.EditItem1.Timing, gf.EditItem1.MusicKey, gf.EditItem1.Notations, "", gf.EditItem1.Show_LicAdminInfo1, gf.EditItem1.Show_LicAdminInfo2, gf.EditItem1.Book_Reference, gf.EditItem1.User_Reference, gf.EditItem1.Settings, gf.EditItem1.Format.FormatString);
+				int num2 = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Gf.EditItem1.Title, Gf.EditItem1.Title2, Gf.EditItem1.SongNumber, Gf.EditItem1.FolderNo, Gf.EditItem1.CompleteLyrics, Gf.EditItem1.SongSequence, Gf.EditItem1.Writer, Gf.EditItem1.Copyright, Gf.EditItem1.Capo, Gf.EditItem1.Timing, Gf.EditItem1.MusicKey, Gf.EditItem1.Notations, "", Gf.EditItem1.Show_LicAdminInfo1, Gf.EditItem1.Show_LicAdminInfo2, Gf.EditItem1.Book_Reference, Gf.EditItem1.User_Reference, Gf.EditItem1.Settings, Gf.EditItem1.Format.FormatString);
 				if (num2 > 0)
 				{
 					flag = true;
@@ -1958,8 +1942,8 @@ namespace Easislides
 			}
 			else
 			{
-				gf.LoadDBFormatString(ref gf.EditItem1);
-				flag = gf.UpdateDatabaseItem(gf.ConnectStringMainDB, CurSongID, gf.EditItem1.Title, gf.EditItem1.Title2, gf.EditItem1.SongNumber, gf.EditItem1.FolderNo, gf.EditItem1.CompleteLyrics, gf.EditItem1.SongSequence, gf.EditItem1.Writer, gf.EditItem1.Copyright, gf.EditItem1.Capo, gf.EditItem1.Timing, gf.EditItem1.MusicKey, gf.EditItem1.Notations, "", gf.EditItem1.Show_LicAdminInfo1, gf.EditItem1.Show_LicAdminInfo2, gf.EditItem1.Book_Reference, gf.EditItem1.User_Reference, gf.EditItem1.Settings, gf.EditItem1.Format.DBStoredFormat);
+				Gf.LoadDBFormatString(ref Gf.EditItem1);
+				flag = Gf.UpdateDatabaseItem(Gf.ConnectStringMainDB, CurSongID, Gf.EditItem1.Title, Gf.EditItem1.Title2, Gf.EditItem1.SongNumber, Gf.EditItem1.FolderNo, Gf.EditItem1.CompleteLyrics, Gf.EditItem1.SongSequence, Gf.EditItem1.Writer, Gf.EditItem1.Copyright, Gf.EditItem1.Capo, Gf.EditItem1.Timing, Gf.EditItem1.MusicKey, Gf.EditItem1.Notations, "", Gf.EditItem1.Show_LicAdminInfo1, Gf.EditItem1.Show_LicAdminInfo2, Gf.EditItem1.Book_Reference, Gf.EditItem1.User_Reference, Gf.EditItem1.Settings, Gf.EditItem1.Format.DBStoredFormat);
 			}
 			if (flag)
 			{
@@ -1969,64 +1953,61 @@ namespace Easislides
 			{
 				ShowMessage(1, "Error encountered - Item NOT saved.");
 			}
-			RotateString = gf.EditItem1.RotateString;
+			RotateString = Gf.EditItem1.RotateString;
 			UpdateSavedStrings();
-			gf.EditorItemID = CurSongID;
+			Gf.EditorItemID = CurSongID;
 			AddToEditHistory("D" + CurSongID);
-			gf.EditorLoadItem = true;
+			Gf.EditorLoadItem = true;
 		}
 
 		private void LoadSong(int InDB_CurSongID)
 		{
-			if (gf.ValidateDB(DatabaseType.Songs) && gf.ValidSongID(InDB_CurSongID))
+			if (Gf.ValidateDB(DatabaseType.Songs) && Gf.ValidSongID(InDB_CurSongID))
 			{
 				ResetAll();
 				CurSongID = InDB_CurSongID;
-				SongLyrics = "";
 				string OutText = "";
 				string OutText2 = "";
-				gf.InitialiseIndividualData(ref gf.EditItem1);
-				gf.LoadIndividualData(ref gf.EditItem1, "D" + InDB_CurSongID, "", 1);
-				gf.EditItem1.Show_LicAdminInfo1 = gf.EditItem1.In_LicAdminInfo1;
-				gf.EditItem1.Show_LicAdminInfo2 = gf.EditItem1.In_LicAdminInfo2;
-				SongTitle.Text = gf.EditItem1.Title;
-				SongFolder.Text = gf.FolderName[gf.EditItem1.FolderNo];
+				Gf.InitialiseIndividualData(ref Gf.EditItem1);
+				Gf.LoadIndividualData(ref Gf.EditItem1, "D" + InDB_CurSongID, "", 1);
+				Gf.EditItem1.Show_LicAdminInfo1 = Gf.EditItem1.In_LicAdminInfo1;
+				Gf.EditItem1.Show_LicAdminInfo2 = Gf.EditItem1.In_LicAdminInfo2;
+				SongTitle.Text = Gf.EditItem1.Title;
+				SongFolder.Text = Gf.FolderName[Gf.EditItem1.FolderNo];
 				Title2IgnoreChange = true;
-				SongTitle2.Text = gf.EditItem1.Title2;
-				SongNumber.Text = gf.EditItem1.SongNumber.ToString();
-				BookReference.Text = gf.EditItem1.Book_Reference;
-				UserReference.Text = gf.EditItem1.User_Reference;
+				SongTitle2.Text = Gf.EditItem1.Title2;
+				SongNumber.Text = Gf.EditItem1.SongNumber.ToString();
+				BookReference.Text = Gf.EditItem1.Book_Reference;
+				UserReference.Text = Gf.EditItem1.User_Reference;
 				InitSongTitle2 = SongTitle.Text;
-				CopyrightInfo.Text = gf.EditItem1.Copyright;
-				LicAdminInfo1.Text = gf.EditItem1.Show_LicAdminInfo1;
-				LicAdminInfo2.Text = gf.EditItem1.Show_LicAdminInfo2;
-				WriterInfo.Text = gf.EditItem1.Writer;
-				OrderListSequence = gf.EditItem1.SongSequence;
-				string text = gf.EditItem1.Capo.ToString();
+				CopyrightInfo.Text = Gf.EditItem1.Copyright;
+				LicAdminInfo1.Text = Gf.EditItem1.Show_LicAdminInfo1;
+				LicAdminInfo2.Text = Gf.EditItem1.Show_LicAdminInfo2;
+				WriterInfo.Text = Gf.EditItem1.Writer;
+				OrderListSequence = Gf.EditItem1.SongSequence;
+				string text = Gf.EditItem1.Capo.ToString();
 				SongCapo.Text = (((text == "") | (text == "-1")) ? "" : ("Capo " + text));
 				if (SongCapo.Text == "")
 				{
 					SongCapo.SelectedIndex = 0;
 				}
-				SongTiming.Text = gf.EditItem1.Timing;
-				SongKey.Text = gf.EditItem1.MusicKey;
-				Lyrics1SavedNotations = gf.EditItem1.Notations;
-				gf.ExtractLyrics(gf.EditItem1.CompleteLyrics, Lyrics1SavedNotations, ref OutText, ref Lyrics1SavedNotations, ref OutText2, ref Lyrics2SavedNotations);
+				SongTiming.Text = Gf.EditItem1.Timing;
+				SongKey.Text = Gf.EditItem1.MusicKey;
+				Lyrics1SavedNotations = Gf.EditItem1.Notations;
+				Gf.ExtractLyrics(Gf.EditItem1.CompleteLyrics, Lyrics1SavedNotations, ref OutText, ref Lyrics1SavedNotations, ref OutText2, ref Lyrics2SavedNotations);
 				InitLoad = true;
-				tbLyrics1.Text = gf.CombineLyricsAndNotations(OutText, Lyrics1SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
-				tbLyrics2.Text = gf.CombineLyricsAndNotations(OutText2, Lyrics2SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
+				tbLyrics1.Text = Gf.CombineLyricsAndNotations(OutText, Lyrics1SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
+				tbLyrics2.Text = Gf.CombineLyricsAndNotations(OutText2, Lyrics2SavedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
 				InitLoad = false;
 				UpdateVersesList();
 				IgnoreChange = true;
-				gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
-				gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
 				IgnoreChange = false;
-				RotateString = gf.EditItem1.RotateString;
+				RotateString = Gf.EditItem1.RotateString;
 				OrderList.Items.Clear();
 				Rotate_OrderList.Items.Clear();
-				int num = 1;
-				int num2 = 0;
-				Rotate_tbSourceLocation.Text = gf.GetMediaFileName(SongTitle.Text, SongTitle2.Text);
+				Rotate_tbSourceLocation.Text = Gf.GetMediaFileName(SongTitle.Text, SongTitle2.Text);
 				ListViewItem listViewItem = new ListViewItem();
 				if (OrderListSequence.Length > 0)
 				{
@@ -2035,7 +2016,7 @@ namespace Easislides
 						for (int i = 0; i < OrderListSequence.Length; i++)
 						{
 							int num3 = OrderListSequence[i];
-							listViewItem = OrderList.Items.Add(gf.VerseTitle[num3]);
+							listViewItem = OrderList.Items.Add(Gf.VerseTitle[num3]);
 							listViewItem.SubItems.Add(num3.ToString());
 						}
 					}
@@ -2043,14 +2024,14 @@ namespace Easislides
 					{
 					}
 				}
-				if (gf.EditItem1.RotateSequence.Length > 0)
+				if (Gf.EditItem1.RotateSequence.Length > 0)
 				{
 					try
 					{
-						for (int i = 0; i < gf.EditItem1.RotateSequence.Length; i++)
+						for (int i = 0; i < Gf.EditItem1.RotateSequence.Length; i++)
 						{
-							int num3 = gf.EditItem1.RotateSequence[i];
-							listViewItem = Rotate_OrderList.Items.Add(gf.VerseTitle[num3]);
+							int num3 = Gf.EditItem1.RotateSequence[i];
+							listViewItem = Rotate_OrderList.Items.Add(Gf.VerseTitle[num3]);
 							listViewItem.SubItems.Add(num3.ToString());
 						}
 					}
@@ -2058,7 +2039,7 @@ namespace Easislides
 					{
 					}
 				}
-				UpdateRotateTimePositions(gf.EditItem1.RotateStyle, gf.EditItem1.RotateGap, gf.EditItem1.RotateTotal, gf.EditItem1.RotateTimings, UseRotateTimings: true, ResetAll: false);
+				UpdateRotateTimePositions(Gf.EditItem1.RotateStyle, Gf.EditItem1.RotateGap, Gf.EditItem1.RotateTotal, Gf.EditItem1.RotateTimings, UseRotateTimings: true, ResetAll: false);
 				UpdateSavedStrings();
 				Title2IgnoreChange = false;
 				SongTitle2_Change();
@@ -2087,9 +2068,8 @@ namespace Easislides
 				bool flag = false;
 				try
 				{
-					//string fullSearchString = "select * from SONG where lower(Title_1) like \"" + SongTitle2.Text.ToLower() + "\"" + SQLFolderLookUp;
-					string fullSearchString = $@"select * from SONG where lower(Title_1) like \{SongTitle2.Text.ToLower()}\{SQLFolderLookUp}";
-					using DataTable datatable = DbController.GetDataTable(gf.ConnectStringMainDB, fullSearchString);
+					string fullSearchString = $@"select * from SONG where lower(Title_1) like \{SongTitle2.Text.ToLower()}\";
+					using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
 					if (datatable.Rows.Count > 0)
 					{
@@ -2141,41 +2121,40 @@ namespace Easislides
 			tbLyrics2.SelectionStart = selectionStart2;
 			tbLyrics2.SelectionLength = 0;
 			tbLyrics2.ScrollToCaret();
-			gf.EditItem1.CompleteLyrics = Lyrics1Only;
-			gf.EditItem1.Notations = Lyrics1SavedNotations;
-			gf.EditItem1.OriginalNotations = Lyrics1SavedNotations;
-			gf.EditItem2.CompleteLyrics = Lyrics2Only;
-			gf.EditItem2.Notations = Lyrics2SavedNotations;
-			gf.EditItem2.OriginalNotations = Lyrics2SavedNotations;
-			gf.Merge_Songs(gf.EditItem1, gf.EditItem2, ref CombinedLyrics, ref CombinedNotations);
+			Gf.EditItem1.CompleteLyrics = Lyrics1Only;
+			Gf.EditItem1.Notations = Lyrics1SavedNotations;
+			Gf.EditItem1.OriginalNotations = Lyrics1SavedNotations;
+			Gf.EditItem2.CompleteLyrics = Lyrics2Only;
+			Gf.EditItem2.Notations = Lyrics2SavedNotations;
+			Gf.EditItem2.OriginalNotations = Lyrics2SavedNotations;
+			Gf.Merge_Songs(Gf.EditItem1, Gf.EditItem2, ref CombinedLyrics, ref CombinedNotations);
 			return true;
 		}
 
 		private bool ValidateTitles()
 		{
-			string text = "";
 			if (DataUtil.Trim(SongTitle.Text) == "")
 			{
 				ShowMessage(1, "There is no Song Title!");
 				return false;
 			}
-			if (!gf.ValidateTitleDetails(SongTitle.Text, "Song Title"))
+			if (!Gf.ValidateTitleDetails(SongTitle.Text, "Song Title"))
 			{
 				return false;
 			}
-			if (!gf.ValidateTitleDetails(SongTitle2.Text, "Link Title"))
+			if (!Gf.ValidateTitleDetails(SongTitle2.Text, "Link Title"))
 			{
 				return false;
 			}
-			if (!gf.ValidateTitleDetails(CopyrightInfo.Text, "Copyright Info"))
+			if (!Gf.ValidateTitleDetails(CopyrightInfo.Text, "Copyright Info"))
 			{
 				return false;
 			}
-			if (!gf.ValidateTitleDetails(BookReference.Text, "Book Reference Info"))
+			if (!Gf.ValidateTitleDetails(BookReference.Text, "Book Reference Info"))
 			{
 				return false;
 			}
-			if (!gf.ValidateTitleDetails(WriterInfo.Text, "Writer Info"))
+			if (!Gf.ValidateTitleDetails(WriterInfo.Text, "Writer Info"))
 			{
 				return false;
 			}
@@ -2205,11 +2184,11 @@ namespace Easislides
 				{
 					if (num > 0 && num < 13)
 					{
-						ShowMessage(1, "Sequence contains Verse " + gf.VerseTitle[num] + " which is not in the lyrics!");
+						ShowMessage(1, "Sequence contains Verse " + Gf.VerseTitle[num] + " which is not in the lyrics!");
 					}
 					else
 					{
-						ShowMessage(1, "Sequence contains a " + gf.VerseTitle[num] + " which is not in the lyrics!");
+						ShowMessage(1, "Sequence contains a " + Gf.VerseTitle[num] + " which is not in the lyrics!");
 					}
 					i = OrderList.Items.Count - 1;
 					return false;
@@ -2237,11 +2216,11 @@ namespace Easislides
 			InTextBox.Text = InTextBox.Text.Replace("\r\n", "\n");
 			if (Region == 1)
 			{
-				gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
 			}
 			else
 			{
-				gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
 			}
 			IgnoreChange = false;
 			bool flag = true;
@@ -2251,18 +2230,18 @@ namespace Easislides
 			{
 				if (VersePresent[num])
 				{
-					int num2 = InTextBox.Text.IndexOf(gf.VerseSymbol[num]);
+					int num2 = InTextBox.Text.IndexOf(Gf.VerseSymbol[num]);
 					if (num2 >= 0 && num2 != 0)
 					{
 						if (DataUtil.Mid(InTextBox.Text, num2 - 1, 1) != "\n")
 						{
-							gf.ClipboardPasteTextBox(InTextBox, num2 - 1, "\r\n\r\n");
+							Gf.ClipboardPasteTextBox(InTextBox, num2 - 1, "\r\n\r\n");
 							num2 = InTextBox.SelectionStart + 1;
 						}
-						num2 += gf.VerseSymbol[num].Length;
+						num2 += Gf.VerseSymbol[num].Length;
 						if (DataUtil.Mid(InTextBox.Text, num2, 1) != "\n")
 						{
-							gf.ClipboardPasteTextBox(InTextBox, num2, "\r\n\r\n");
+							Gf.ClipboardPasteTextBox(InTextBox, num2, "\r\n\r\n");
 							num2 = InTextBox.SelectionStart + 1;
 						}
 					}
@@ -2278,13 +2257,13 @@ namespace Easislides
 				}
 			}
 			tbWorkspace.Text = InTextBox.Text.Replace("\r\n", "\n");
-			int num3 = tbWorkspace.Text.IndexOf(gf.VerseSymbol[150]);
+			int num3 = tbWorkspace.Text.IndexOf(Gf.VerseSymbol[150]);
 			if (num3 >= 0)
 			{
 				ShowMessage(Region, "REGION 2 indicator is not permitted - please remove");
 				InTextBox.Focus();
 				InTextBox.SelectionStart = num3;
-				InTextBox.SelectionLength = gf.VerseSymbol[150].Length;
+				InTextBox.SelectionLength = Gf.VerseSymbol[150].Length;
 				return false;
 			}
 			flag = true;
@@ -2298,7 +2277,7 @@ namespace Easislides
 			{
 				if (VersePresent[num])
 				{
-					int num2 = tbWorkspace.Text.IndexOf(gf.VerseSymbol[num]);
+					int num2 = tbWorkspace.Text.IndexOf(Gf.VerseSymbol[num]);
 					if (num2 >= 0)
 					{
 						if (num2 < num6)
@@ -2308,7 +2287,7 @@ namespace Easislides
 						}
 						if (num >= 0 && num <= 112)
 						{
-							int num8 = tbWorkspace.Text.IndexOf(gf.VerseSymbol[num], num2 + gf.VerseSymbol[num].Length);
+							int num8 = tbWorkspace.Text.IndexOf(Gf.VerseSymbol[num], num2 + Gf.VerseSymbol[num].Length);
 							if (num8 >= 0)
 							{
 								flag2 = true;
@@ -2349,8 +2328,8 @@ namespace Easislides
 				for (int i = 0; i <= tbWorkspace.TextLength; i++)
 				{
 					tbWorkspace.SelectionStart = i;
-					tbWorkspace.SelectionLength = gf.VerseSymbol[num].Length;
-					if (tbWorkspace.SelectedText == gf.VerseSymbol[num])
+					tbWorkspace.SelectionLength = Gf.VerseSymbol[num].Length;
+					if (tbWorkspace.SelectedText == Gf.VerseSymbol[num])
 					{
 						if (num2 < 0)
 						{
@@ -2363,15 +2342,15 @@ namespace Easislides
 				}
 				if (num > 0 && num < 13)
 				{
-					ShowMessage(Region, "Duplicate Verse " + gf.VerseTitle[num] + " indicator found - please amend.");
+					ShowMessage(Region, "Duplicate Verse " + Gf.VerseTitle[num] + " indicator found - please amend.");
 				}
 				else
 				{
-					ShowMessage(Region, "Duplicate " + gf.VerseTitle[num] + " indicator found - please amend.");
+					ShowMessage(Region, "Duplicate " + Gf.VerseTitle[num] + " indicator found - please amend.");
 				}
 				InTextBox.Focus();
 				InTextBox.SelectionStart = num8;
-				InTextBox.SelectionLength = gf.VerseSymbol[num].Length;
+				InTextBox.SelectionLength = Gf.VerseSymbol[num].Length;
 				return false;
 			}
 			if (num4 > 0)
@@ -2387,7 +2366,7 @@ namespace Easislides
 				}
 				else
 				{
-					ShowMessage(Region, "Indicator is required for the lyrics before the " + gf.VerseTitle[num5]);
+					ShowMessage(Region, "Indicator is required for the lyrics before the " + Gf.VerseTitle[num5]);
 				}
 				return false;
 			}
@@ -2403,7 +2382,6 @@ namespace Easislides
 			}
 			ListViewItem listViewItem = new ListViewItem();
 			wArray = "";
-			countb = -1L;
 			VerseSymbolChanged = false;
 			bool flag = false;
 			int num = -1;
@@ -2413,8 +2391,8 @@ namespace Easislides
 				{
 					continue;
 				}
-				num = tbLyrics1.Text.IndexOf(gf.VerseSymbol[i], 0);
-				if (gf.VerseSymbol[i] != "" && num >= 0)
+				num = tbLyrics1.Text.IndexOf(Gf.VerseSymbol[i], 0);
+				if (Gf.VerseSymbol[i] != "" && num >= 0)
 				{
 					VersePresent[i] = true;
 					VersePresentNewScreenCount[i] = CountVerseScreens(tbLyrics1.Text, num + 1);
@@ -2422,8 +2400,8 @@ namespace Easislides
 				}
 				else
 				{
-					num = tbLyrics2.Text.IndexOf(gf.VerseSymbol[i], 0);
-					if (gf.VerseSymbol[i] != "" && num >= 0)
+					num = tbLyrics2.Text.IndexOf(Gf.VerseSymbol[i], 0);
+					if (Gf.VerseSymbol[i] != "" && num >= 0)
 					{
 						VersePresent[i] = true;
 						VersePresentNewScreenCount[i] = CountVerseScreens(tbLyrics2.Text, num + 1);
@@ -2439,7 +2417,7 @@ namespace Easislides
 				{
 					VerseSymbolChanged = true;
 				}
-				wArray += (VersePresent[i] ? ("," + gf.VerseSymbol[i]) : "");
+				wArray += (VersePresent[i] ? ("," + Gf.VerseSymbol[i]) : "");
 			}
 			if (wArray != "")
 			{
@@ -2453,7 +2431,7 @@ namespace Easislides
 				{
 					if (VersePresent[i])
 					{
-						listViewItem = VersesList.Items.Add(gf.VerseTitle[i]);
+						listViewItem = VersesList.Items.Add(Gf.VerseTitle[i]);
 						listViewItem.SubItems.Add(i.ToString());
 						listViewItem.SubItems.Add(VersePresentNewScreenCount[i].ToString());
 					}
@@ -2461,7 +2439,7 @@ namespace Easislides
 				}
 				if (VersePresent[0])
 				{
-					listViewItem = VersesList.Items.Add(gf.VerseTitle[0]);
+					listViewItem = VersesList.Items.Add(Gf.VerseTitle[0]);
 					listViewItem.SubItems.Add(0.ToString());
 					listViewItem.SubItems.Add(VersePresentNewScreenCount[0].ToString());
 				}
@@ -2470,7 +2448,7 @@ namespace Easislides
 				{
 					if (VersePresent[i])
 					{
-						listViewItem = VersesList.Items.Add(gf.VerseTitle[i]);
+						listViewItem = VersesList.Items.Add(Gf.VerseTitle[i]);
 						listViewItem.SubItems.Add(i.ToString());
 						listViewItem.SubItems.Add(VersePresentNewScreenCount[0].ToString());
 					}
@@ -2485,7 +2463,7 @@ namespace Easislides
 					VersePresentNewScreenCount[1] = 1;
 				}
 				VersePresent[1] = true;
-				listViewItem = VersesList.Items.Add(gf.VerseTitle[1]);
+				listViewItem = VersesList.Items.Add(Gf.VerseTitle[1]);
 				listViewItem.SubItems.Add("1");
 				listViewItem.SubItems.Add(VersePresentNewScreenCount[1].ToString());
 				prevVersePresent[1] = VersePresent[1];
@@ -2625,12 +2603,12 @@ namespace Easislides
 			IgnoreChange = true;
 			if (Region == 1)
 			{
-				gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: false, StackTrackPos[Region, 1], StackTrackPos[Region, 1], sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: false, StackTrackPos[Region, 1], StackTrackPos[Region, 1], sArray, MainFont, NotationFont, DoNotations: true);
 				tbLyrics1.Focus();
 			}
 			else
 			{
-				gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: false, StackTrackPos[Region, 1], StackTrackPos[Region, 1], sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: false, StackTrackPos[Region, 1], StackTrackPos[Region, 1], sArray, MainFont, NotationFont, DoNotations: true);
 				tbLyrics2.Focus();
 			}
 			IgnoreChange = false;
@@ -2638,11 +2616,11 @@ namespace Easislides
 
 		private void SongFolder_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			int folderNumber = gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString());
+			int folderNumber = Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString());
 			try
 			{
-				SetRightToLeft1 = ((gf.ShowFontRTL[folderNumber, 0] > 0) ? true : false);
-				SetRightToLeft2 = ((gf.ShowFontRTL[folderNumber, 1] > 0) ? true : false);
+				SetRightToLeft1 = ((Gf.ShowFontRTL[folderNumber, 0] > 0) ? true : false);
+				SetRightToLeft2 = ((Gf.ShowFontRTL[folderNumber, 1] > 0) ? true : false);
 			}
 			catch
 			{
@@ -2670,7 +2648,7 @@ namespace Easislides
 					e.Cancel = true;
 					return;
 				}
-				gf.EditorFormOpen = false;
+				Gf.EditorFormOpen = false;
 			}
 			try
 			{
@@ -2722,10 +2700,10 @@ namespace Easislides
 				int num = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
 				if (ActionBeforeNextEvent() != DialogResult.Cancel)
 				{
-					gf.EditorItemID = DataUtil.StringToInt(DataUtil.Mid(gf.EditorEditHistoryList[num, 0], 1));
-					LoadSong(gf.EditorItemID);
-					AddToEditHistory("D" + gf.EditorItemID);
-					gf.EditorLoadItem = true;
+					Gf.EditorItemID = DataUtil.StringToInt(DataUtil.Mid(Gf.EditorEditHistoryList[num, 0], 1));
+					LoadSong(Gf.EditorItemID);
+					AddToEditHistory("D" + Gf.EditorItemID);
+					Gf.EditorLoadItem = true;
 				}
 			}
 			catch
@@ -2912,9 +2890,9 @@ namespace Easislides
 			InOrderList.Items.Clear();
 			tbWorkspace.Text = tbLyrics1.Text;
 			int num = tbWorkspace.Text.IndexOf("[");
-			if (tbWorkspace.Text.IndexOf(gf.VerseSymbol[0]) == num && num >= 0)
+			if (tbWorkspace.Text.IndexOf(Gf.VerseSymbol[0]) == num && num >= 0)
 			{
-				listViewItem = InOrderList.Items.Add(gf.VerseTitle[0]);
+				listViewItem = InOrderList.Items.Add(Gf.VerseTitle[0]);
 				listViewItem.SubItems.Add(0.ToString());
 			}
 			for (int i = 1; i < 99; i++)
@@ -2923,18 +2901,18 @@ namespace Easislides
 				{
 					continue;
 				}
-				listViewItem = InOrderList.Items.Add(gf.VerseTitle[i]);
+				listViewItem = InOrderList.Items.Add(Gf.VerseTitle[i]);
 				listViewItem.SubItems.Add(i.ToString());
 				if (VersePresent[111])
 				{
 					if (!VersePresent[i + 1] & VersePresent[112])
 					{
-						listViewItem = InOrderList.Items.Add(gf.VerseTitle[112]);
+						listViewItem = InOrderList.Items.Add(Gf.VerseTitle[112]);
 						listViewItem.SubItems.Add(112.ToString());
 					}
 					else
 					{
-						listViewItem = InOrderList.Items.Add(gf.VerseTitle[111]);
+						listViewItem = InOrderList.Items.Add(Gf.VerseTitle[111]);
 						listViewItem.SubItems.Add(111.ToString());
 					}
 				}
@@ -2942,24 +2920,24 @@ namespace Easislides
 				{
 					if (!VersePresent[i + 1] & VersePresent[102])
 					{
-						listViewItem = InOrderList.Items.Add(gf.VerseTitle[102]);
+						listViewItem = InOrderList.Items.Add(Gf.VerseTitle[102]);
 						listViewItem.SubItems.Add(102.ToString());
 					}
 					else
 					{
-						listViewItem = InOrderList.Items.Add(gf.VerseTitle[0]);
+						listViewItem = InOrderList.Items.Add(Gf.VerseTitle[0]);
 						listViewItem.SubItems.Add(0.ToString());
 					}
 				}
 				if ((i == 1) & VersePresent[100])
 				{
-					listViewItem = InOrderList.Items.Add(gf.VerseTitle[100]);
+					listViewItem = InOrderList.Items.Add(Gf.VerseTitle[100]);
 					listViewItem.SubItems.Add(100.ToString());
 				}
 			}
 			if (VersePresent[101])
 			{
-				listViewItem = InOrderList.Items.Add(gf.VerseTitle[101]);
+				listViewItem = InOrderList.Items.Add(Gf.VerseTitle[101]);
 				listViewItem.SubItems.Add(101.ToString());
 			}
 			UpdateSequence(ref InOrderList, ref InSequence);
@@ -3139,19 +3117,19 @@ namespace Easislides
 
 		private void R1VerseFormat_Click(object sender, EventArgs e)
 		{
-			gf.FormatPlainLyrics(ref tbLyrics1);
+			Gf.FormatPlainLyrics(ref tbLyrics1);
 		}
 
 		private void R2VerseFormat_Click(object sender, EventArgs e)
 		{
-			gf.FormatPlainLyrics(ref tbLyrics2);
+			Gf.FormatPlainLyrics(ref tbLyrics2);
 		}
 
 		private void TimerEditRequest_Tick(object sender, EventArgs e)
 		{
-			if (gf.Edit_RequestReceived)
+			if (Gf.Edit_RequestReceived)
 			{
-				gf.Edit_RequestReceived = false;
+				Gf.Edit_RequestReceived = false;
 				ClearErrorMessage(0);
 				if (base.WindowState == FormWindowState.Minimized)
 				{
@@ -3160,23 +3138,23 @@ namespace Easislides
 				base.TopMost = true;
 				Focus();
 				base.TopMost = false;
-				if (gf.DB_CurSongID > 0)
+				if (Gf.DB_CurSongID > 0)
 				{
 					if (ActionBeforeNextEvent() == DialogResult.Cancel)
 					{
 						return;
 					}
-					LoadSong(gf.DB_CurSongID);
-					AddToEditHistory("D" + gf.DB_CurSongID);
+					LoadSong(Gf.DB_CurSongID);
+					AddToEditHistory("D" + Gf.DB_CurSongID);
 				}
 				else
 				{
 					NewItem();
 				}
 			}
-			if (gf.Edit_HistoryMaxChanged)
+			if (Gf.Edit_HistoryMaxChanged)
 			{
-				gf.SaveEditorEditHistoryToRegistry();
+				Gf.SaveEditorEditHistoryToRegistry();
 				UpdateMenu_EditHistory();
 			}
 		}
@@ -3185,23 +3163,23 @@ namespace Easislides
 		{
 			if (SongTitle2.Text == "")
 			{
-				gf.Lookup_NameSelected = "*";
+				Gf.Lookup_NameSelected = "*";
 			}
 			else
 			{
-				gf.Lookup_NameSelected = "*" + DataUtil.Trim(SongTitle2.Text) + "*";
+				Gf.Lookup_NameSelected = "*" + DataUtil.Trim(SongTitle2.Text) + "*";
 			}
 			FrmLookupTitles frmLookupTitles = new FrmLookupTitles();
-			if (frmLookupTitles.ShowDialog() == DialogResult.OK && gf.Lookup_NameSelected != "")
+			if (frmLookupTitles.ShowDialog() == DialogResult.OK && Gf.Lookup_NameSelected != "")
 			{
-				SongTitle2.Text = gf.Lookup_NameSelected;
-				if (gf.Lookup_NameBookRef != "")
+				SongTitle2.Text = Gf.Lookup_NameSelected;
+				if (Gf.Lookup_NameBookRef != "")
 				{
-					gf.UpdateRefString(gf.Lookup_NameBookRef, ",", ref BookReference, ",");
+					Gf.UpdateRefString(Gf.Lookup_NameBookRef, ",", ref BookReference, ",");
 				}
-				if (gf.Lookup_NameUserRef != "")
+				if (Gf.Lookup_NameUserRef != "")
 				{
-					gf.UpdateRefString(gf.Lookup_NameUserRef, ",", ref UserReference, ",");
+					Gf.UpdateRefString(Gf.Lookup_NameUserRef, ",", ref UserReference, ",");
 				}
 			}
 		}
@@ -3221,11 +3199,11 @@ namespace Easislides
 			int NewPositionLength = selectionLength;
 			if (!ScreenBreak1Available)
 			{
-				gf.MapLyricsBreak(ref ScreenBreaks1, ref tbLyrics1, ref ScreenBreak1Available);
+				Gf.MapLyricsBreak(ref ScreenBreaks1, ref tbLyrics1, ref ScreenBreak1Available);
 			}
 			if (!ScreenBreak2Available)
 			{
-				gf.MapLyricsBreak(ref ScreenBreaks2, ref tbLyrics2, ref ScreenBreak2Available);
+				Gf.MapLyricsBreak(ref ScreenBreaks2, ref tbLyrics2, ref ScreenBreak2Available);
 			}
 			string LookupVerseSym = "";
 			int LookupScreenCount = 0;
@@ -3233,10 +3211,10 @@ namespace Easislides
 			{
 				num = -1;
 			}
-			gf.GetBreakPosition(ScreenBreaks1, num, Direction, ref NewPosition, ref NewPositionLength, ref LookupVerseSym, ref LookupScreenCount);
+			Gf.GetBreakPosition(ScreenBreaks1, num, Direction, ref NewPosition, ref NewPositionLength, ref LookupVerseSym, ref LookupScreenCount);
 			int NewPosition2 = 0;
 			int NewPositionLength2 = 0;
-			gf.GetBreakPosition(ScreenBreaks2, ref NewPosition2, ref NewPositionLength2, LookupVerseSym, LookupScreenCount);
+			Gf.GetBreakPosition(ScreenBreaks2, ref NewPosition2, ref NewPositionLength2, LookupVerseSym, LookupScreenCount);
 			tbLyrics1.SelectionStart = NewPosition;
 			tbLyrics1.SelectionLength = ((NewPositionLength >= 0) ? NewPositionLength : (tbLyrics1.Text.Length - NewPositionLength));
 			tbLyrics1.ScrollToCaret();
@@ -3324,7 +3302,7 @@ namespace Easislides
 			if (e.KeyCode == Keys.F8)
 			{
 				InsertingPresetItem = true;
-				gf.InsertIndicator(ref tbLyrics1, 152);
+				Gf.InsertIndicator(ref tbLyrics1, 152);
 				InsertingPresetItem = false;
 				Lyrics_TextChanged(1);
 			}
@@ -3347,7 +3325,7 @@ namespace Easislides
 			if (e.KeyCode == Keys.F8)
 			{
 				InsertingPresetItem = true;
-				gf.InsertIndicator(ref tbLyrics2, 152);
+				Gf.InsertIndicator(ref tbLyrics2, 152);
 				InsertingPresetItem = false;
 				Lyrics_TextChanged(2);
 			}
@@ -3452,14 +3430,14 @@ namespace Easislides
 
 		private void InitMediaPlayer()
 		{
-			if (gf.WMP_Present)
+			if (Gf.WMP_Present)
 			{
 				try
 				{
 					DShowPlayer.Parent = this;
 					DShowPlayer.Parent = panelRotate_Media;
 					DShowPlayer.Location = new System.Drawing.Point(0, 0);
-					DShowPlayer.SetDefaultSize(0, 0, panelRotate_Media.Width, panelRotate_Media.Height, (VAlign)gf.VideoVAlign);
+					DShowPlayer.SetDefaultSize(0, 0, panelRotate_Media.Width, panelRotate_Media.Height, (VAlign)Gf.VideoVAlign);
 					DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
 					PlayerOK = true;
 				}
@@ -3537,7 +3515,7 @@ namespace Easislides
 			catch
 			{
 			}
-			text = ((text != "") ? text : gf.MediaDir);
+			text = ((text != "") ? text : Gf.MediaDir);
 			OpenFileDialog1.Filter = "All Files (*.*) | *.*";
 			OpenFileDialog1.InitialDirectory = text;
 			OpenFileDialog1.AddExtension = true;
@@ -3703,7 +3681,7 @@ namespace Easislides
 			if (PlayerOK)
 			{
 				DShowPlayer.SetVolume(TrackBarVolume.Value);
-				gf.MediaVolume = TrackBarVolume.Value;
+				Gf.MediaVolume = TrackBarVolume.Value;
 			}
 		}
 
@@ -3855,7 +3833,6 @@ namespace Easislides
 				return "";
 			}
 			string text = InStyle.ToString() + ';' + InGapRotateTime.ToString() + ';' + InTotalRotateTime.ToString() + ';';
-			int num = 0;
 			for (int i = 0; i < InOrderList.Items.Count; i++)
 			{
 				text = text + DataUtil.StringToInt(InOrderList.Items[i].SubItems[1].Text).ToString() + ';';
@@ -3864,7 +3841,6 @@ namespace Easislides
 			{
 				ListBox listBox = new ListBox();
 				listBox.Sorted = false;
-				string text2 = "";
 				TimeSpan timeSpan = new TimeSpan(0, 0, 0);
 				for (int i = 0; i < InTotalScreens; i++)
 				{
@@ -3989,22 +3965,22 @@ namespace Easislides
 
 		private void CMRegion1_Copy_Click(object sender, EventArgs e)
 		{
-			gf.ClipboardCopyTextBox(tbLyrics1);
+			Gf.ClipboardCopyTextBox(tbLyrics1);
 		}
 
 		private void CMRegion1_Paste_Click(object sender, EventArgs e)
 		{
-			gf.ClipboardPasteTextBox(tbLyrics1, tbLyrics1.SelectionStart);
+			Gf.ClipboardPasteTextBox(tbLyrics1, tbLyrics1.SelectionStart);
 		}
 
 		private void CMRegion2_Copy_Click(object sender, EventArgs e)
 		{
-			gf.ClipboardCopyTextBox(tbLyrics2);
+			Gf.ClipboardCopyTextBox(tbLyrics2);
 		}
 
 		private void CMRegion2_Paste_Click(object sender, EventArgs e)
 		{
-			gf.ClipboardPasteTextBox(tbLyrics2, tbLyrics2.SelectionStart);
+			Gf.ClipboardPasteTextBox(tbLyrics2, tbLyrics2.SelectionStart);
 		}
 
 		private void BuildLyricsContextMenu(int InRegion)
@@ -4061,14 +4037,14 @@ namespace Easislides
 			for (int i = 0; i < 12; i++)
 			{
 				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = gf.MusicMinorChords[i, 0];
+				toolStripMenuItem.Text = Gf.MusicMinorChords[i, 0];
 				toolStripMenuItem.Tag = InRegion.ToString();
 				toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 				toolStripMenuItem.Click += ContextMenuChords_Click;
 				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
 				{
 					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = gf.MusicMinorChords[i, 1];
+					toolStripMenuItem.Text = Gf.MusicMinorChords[i, 1];
 					toolStripMenuItem.Tag = InRegion.ToString();
 					toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 					toolStripMenuItem.Click += ContextMenuChords_Click;
@@ -4080,14 +4056,14 @@ namespace Easislides
 			for (int i = 0; i < 12; i++)
 			{
 				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = gf.MusicMinorChords[i, 0] + "7";
+				toolStripMenuItem.Text = Gf.MusicMinorChords[i, 0] + "7";
 				toolStripMenuItem.Tag = InRegion.ToString();
 				toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 				toolStripMenuItem.Click += ContextMenuChords_Click;
 				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
 				{
 					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = gf.MusicMinorChords[i, 1] + "7";
+					toolStripMenuItem.Text = Gf.MusicMinorChords[i, 1] + "7";
 					toolStripMenuItem.Tag = InRegion.ToString();
 					toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 					toolStripMenuItem.Click += ContextMenuChords_Click;
@@ -4099,14 +4075,14 @@ namespace Easislides
 			for (int i = 0; i < 12; i++)
 			{
 				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = gf.MusicMajorChords[i, 1] + "7";
+				toolStripMenuItem.Text = Gf.MusicMajorChords[i, 1] + "7";
 				toolStripMenuItem.Tag = InRegion.ToString();
 				toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 				toolStripMenuItem.Click += ContextMenuChords_Click;
 				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
 				{
 					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = gf.MusicMajorChords[i, 0] + "7";
+					toolStripMenuItem.Text = Gf.MusicMajorChords[i, 0] + "7";
 					toolStripMenuItem.Tag = InRegion.ToString();
 					toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 					toolStripMenuItem.Click += ContextMenuChords_Click;
@@ -4118,7 +4094,7 @@ namespace Easislides
 			for (int i = 0; i < 12; i++)
 			{
 				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = "/" + gf.MusicMajorChords[i, 1];
+				toolStripMenuItem.Text = "/" + Gf.MusicMajorChords[i, 1];
 				toolStripMenuItem.Tag = InRegion.ToString();
 				toolStripMenuItem2.DropDownItems.Add(toolStripMenuItem);
 				toolStripMenuItem.Click += ContextMenuChords_Click;
@@ -4126,14 +4102,14 @@ namespace Easislides
 			for (int i = 0; i < 12; i++)
 			{
 				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = gf.MusicMajorChords[i, 1];
+				toolStripMenuItem.Text = Gf.MusicMajorChords[i, 1];
 				toolStripMenuItem.Tag = InRegion.ToString();
 				InContextMenu.Items.Add(toolStripMenuItem);
 				toolStripMenuItem.Click += ContextMenuChords_Click;
 				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
 				{
 					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = gf.MusicMajorChords[i, 0];
+					toolStripMenuItem.Text = Gf.MusicMajorChords[i, 0];
 					toolStripMenuItem.Tag = InRegion.ToString();
 					InContextMenu.Items.Add(toolStripMenuItem);
 					toolStripMenuItem.Click += ContextMenuChords_Click;
@@ -4151,7 +4127,7 @@ namespace Easislides
 					tbLyrics1.SelectionStart = tbLyrics1MouseUpPos;
 					tbLyrics1.SelectionLength = 0;
 					InsertingPresetItem = true;
-					gf.InsertChordAboveCurrentLine(ref tbLyrics1, toolStripMenuItem.Text);
+					Gf.InsertChordAboveCurrentLine(ref tbLyrics1, toolStripMenuItem.Text);
 					InsertingPresetItem = false;
 					Lyrics_TextChanged(1);
 				}
@@ -4160,7 +4136,7 @@ namespace Easislides
 					tbLyrics2.SelectionStart = tbLyrics2MouseUpPos;
 					tbLyrics2.SelectionLength = 0;
 					InsertingPresetItem = true;
-					gf.InsertChordAboveCurrentLine(ref tbLyrics2, toolStripMenuItem.Text);
+					Gf.InsertChordAboveCurrentLine(ref tbLyrics2, toolStripMenuItem.Text);
 					InsertingPresetItem = false;
 					Lyrics_TextChanged(2);
 				}

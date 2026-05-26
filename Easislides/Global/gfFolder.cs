@@ -19,7 +19,7 @@ using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 
 namespace Easislides
 {
-	internal unsafe partial class gf
+	internal unsafe partial class Gf
 	{
 		private static readonly char[] InvalidDirNameChars = new char[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' };
 		private static Dictionary<string, int> FolderNameIndex;
@@ -616,11 +616,9 @@ namespace Easislides
 
 		public static bool SwapFolderNumbers(ListView InFolderOrder)
 		{
-			bool flag = false;
 			try
 			{
 				int[] array = new int[MAXSONGSFOLDERS];
-				string text = "";
 				for (int i = 1; i < MAXSONGSFOLDERS; i++)
 				{
 					//daniel if (InFolderOrder.Items.Count >= 41) break;
@@ -638,7 +636,7 @@ namespace Easislides
 					DbDataAdapter sQLiteDataAdapter;
 
 					DataTable dataTable = null;
-					(sQLiteDataAdapter, dataTable) = DbController.getDataAdapter(connection, fullSearchString);
+					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, fullSearchString);
 
 					if (dataTable.Rows.Count > 0)
 					{
@@ -661,7 +659,7 @@ namespace Easislides
 					}
 
 					fullSearchString = "select * from FOLDER  where FolderNo > 0 ORDER BY FolderNo";
-					(sQLiteDataAdapter, dataTable) = DbController.getDataAdapter(connection, fullSearchString);
+					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, fullSearchString);
 
 					string text2 = "";
 					if (dataTable.Rows.Count > 0)
@@ -683,7 +681,7 @@ namespace Easislides
 					}
 
 					fullSearchString = "select * from FOLDER  where FolderNo < 0 ORDER BY FolderNo";
-					(sQLiteDataAdapter, dataTable) = DbController.getDataAdapter(connection, fullSearchString);
+					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, fullSearchString);
 
 					if (dataTable.Rows.Count > 0)
 					{

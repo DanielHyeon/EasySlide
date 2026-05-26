@@ -110,7 +110,7 @@ namespace Easislides
 		private void InitForm()
 		{
 			SetShowWindow();
-			gf.LyricsItem.Initialise();
+			Gf.LyricsItem.Initialise();
 			UpdateWorshipList();
 		}
 
@@ -184,13 +184,13 @@ namespace Easislides
 		private void SetShowWindow()
 		{
 			InitFormLoad = true;
-			//if ((gf.LyricsMonitorNumber > 0 || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
-			if ((gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
+			//if ((Gf.LyricsMonitorNumber > 0 || Gf.LMSelectAutoOption > 0) && Gf.LMSelectAutoOption != 2)
+			if ((Gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || Gf.LMSelectAutoOption > 0) && Gf.LMSelectAutoOption != 2)
 			{
-				base.Left = gf.LM_Left;
-				base.Top = gf.LM_Top;
-				base.Height = gf.LM_Height;
-				base.Width = gf.LM_Width;
+				base.Left = Gf.LM_Left;
+				base.Top = Gf.LM_Top;
+				base.Height = Gf.LM_Height;
+				base.Width = Gf.LM_Width;
 				base.Visible = true;
 			}
 			else
@@ -209,15 +209,15 @@ namespace Easislides
 			WorshipListItems.Dock = DockStyle.Fill;
 			LyricsAlertTextBox.Dock = DockStyle.Fill;
 			LoadPositions();
-			WorshipListItems.BackColor = gf.LMBackColour;
-			PreviewLyrics.BackColor = gf.LMBackColour;
-			OutputLyrics.BackColor = gf.LMBackColour;
-			LyricsAlertTextBox.BackColor = gf.LMBackColour;
-			WorshipListItems.ForeColor = gf.LMTextColour;
-			PreviewLyrics.ForeColor = gf.LMTextColour;
-			OutputLyrics.ForeColor = gf.LMTextColour;
-			WorshipListItems.ForeColor = gf.LMTextColour;
-			LyricsAlertTextBox.ForeColor = gf.LMHighlightColour;
+			WorshipListItems.BackColor = Gf.LMBackColour;
+			PreviewLyrics.BackColor = Gf.LMBackColour;
+			OutputLyrics.BackColor = Gf.LMBackColour;
+			LyricsAlertTextBox.BackColor = Gf.LMBackColour;
+			WorshipListItems.ForeColor = Gf.LMTextColour;
+			PreviewLyrics.ForeColor = Gf.LMTextColour;
+			OutputLyrics.ForeColor = Gf.LMTextColour;
+			WorshipListItems.ForeColor = Gf.LMTextColour;
+			LyricsAlertTextBox.ForeColor = Gf.LMHighlightColour;
 			SetLyricsFonts();
 			InitFormLoad = false;
 		}
@@ -225,13 +225,13 @@ namespace Easislides
 		//private void SetShowWindow()
 		//{
 		//	InitFormLoad = true;
-		//	//if ((gf.LyricsMonitorNumber > 0 || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
-		//	if ((gf.LyricsMonitorNumber == gf.GetSecondryMonitorIndex() || gf.LMSelectAutoOption > 0) && gf.LMSelectAutoOption != 2)
+		//	//if ((Gf.LyricsMonitorNumber > 0 || Gf.LMSelectAutoOption > 0) && Gf.LMSelectAutoOption != 2)
+		//	if ((Gf.LyricsMonitorNumber == Gf.GetSecondryMonitorIndex() || Gf.LMSelectAutoOption > 0) && Gf.LMSelectAutoOption != 2)
 		//	{
-		//		base.Left = gf.LM_Left;
-		//		base.Top = gf.LM_Top;
-		//		base.Height = gf.LM_Height;
-		//		base.Width = gf.LM_Width;
+		//		base.Left = Gf.LM_Left;
+		//		base.Top = Gf.LM_Top;
+		//		base.Height = Gf.LM_Height;
+		//		base.Width = Gf.LM_Width;
 		//		base.Visible = true;
 		//	}
 		//	else
@@ -250,30 +250,30 @@ namespace Easislides
 		//	WorshipListItems.Dock = DockStyle.Fill;
 		//	LyricsAlertTextBox.Dock = DockStyle.Fill;
 		//	LoadPositions();
-		//	WorshipListItems.BackColor = gf.LMBackColour;
-		//	PreviewLyrics.BackColor = gf.LMBackColour;
-		//	OutputLyrics.BackColor = gf.LMBackColour;
-		//	LyricsAlertTextBox.BackColor = gf.LMBackColour;
-		//	WorshipListItems.ForeColor = gf.LMTextColour;
-		//	PreviewLyrics.ForeColor = gf.LMTextColour;
-		//	OutputLyrics.ForeColor = gf.LMTextColour;
-		//	WorshipListItems.ForeColor = gf.LMTextColour;
-		//	LyricsAlertTextBox.ForeColor = gf.LMHighlightColour;
+		//	WorshipListItems.BackColor = Gf.LMBackColour;
+		//	PreviewLyrics.BackColor = Gf.LMBackColour;
+		//	OutputLyrics.BackColor = Gf.LMBackColour;
+		//	LyricsAlertTextBox.BackColor = Gf.LMBackColour;
+		//	WorshipListItems.ForeColor = Gf.LMTextColour;
+		//	PreviewLyrics.ForeColor = Gf.LMTextColour;
+		//	OutputLyrics.ForeColor = Gf.LMTextColour;
+		//	WorshipListItems.ForeColor = Gf.LMTextColour;
+		//	LyricsAlertTextBox.ForeColor = Gf.LMHighlightColour;
 		//	SetLyricsFonts();
 		//	InitFormLoad = false;
 		//}
 
 		public void SetLyricsFonts()
 		{
-			ScreenFontSize = gf.DisplayFontSize(gf.LMMainFontSize, gf.LM_Width, 1, 1);
+			ScreenFontSize = Gf.DisplayFontSize(Gf.LMMainFontSize, Gf.LM_Width, 1, 1);
 			if (ScreenFontSize < 2)
 			{
 				ScreenFontSize = 2;
 			}
-			OutputLyrics.Font = new Font(gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize, gf.tbLyricsMonitorSpace.Font.Style);
-			PreviewLyrics.Font = new Font(gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize * 2 / 3, gf.tbLyricsMonitorSpace.Font.Style);
-			WorshipListItems.Font = new Font(gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize * 2 / 3, gf.tbLyricsMonitorSpace.Font.Style);
-			LyricsAlertTextBox.Font = new Font(gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize * 5 / 6, gf.tbLyricsMonitorSpace.Font.Style);
+			OutputLyrics.Font = new Font(Gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize, Gf.tbLyricsMonitorSpace.Font.Style);
+			PreviewLyrics.Font = new Font(Gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize * 2 / 3, Gf.tbLyricsMonitorSpace.Font.Style);
+			WorshipListItems.Font = new Font(Gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize * 2 / 3, Gf.tbLyricsMonitorSpace.Font.Style);
+			LyricsAlertTextBox.Font = new Font(Gf.tbLyricsMonitorSpace.Font.Name, ScreenFontSize * 5 / 6, Gf.tbLyricsMonitorSpace.Font.Style);
 		}
 
 		public void Remote_StopShow()
@@ -293,8 +293,8 @@ namespace Easislides
 
 		private void Apply_NotationsChanged()
 		{
-			string InTitle = gf.WorshipSongs[gf.LyricsItem.CurItemNo, 2];
-			LoadItem(ref gf.LyricsItem, gf.WorshipSongs[gf.LyricsItem.CurItemNo, 0], gf.WorshipSongs[gf.LyricsItem.CurItemNo, 4], ref InTitle);
+			string InTitle = Gf.WorshipSongs[Gf.LyricsItem.CurItemNo, 2];
+			LoadItem(ref Gf.LyricsItem, Gf.WorshipSongs[Gf.LyricsItem.CurItemNo, 0], Gf.WorshipSongs[Gf.LyricsItem.CurItemNo, 4], ref InTitle);
 		}
 
 		public void Remote_ItemChanged()
@@ -304,7 +304,7 @@ namespace Easislides
 
 		private void Apply_ItemChanged()
 		{
-			OutputLyrics.Text = gf.tbLyricsMonitorSpace.Text;
+			OutputLyrics.Text = Gf.tbLyricsMonitorSpace.Text;
 			HighlightStartPresAtItem();
 			LoadNextItem = true;
 			Remote_LyricsChanged();
@@ -317,7 +317,7 @@ namespace Easislides
 
 		private void Apply_LyricsChanged()
 		{
-			gf.HighlightDisplaySlidesText(gf.LiveItem, ref OutputLyrics, ScrollToCaret: true, gf.LMTextColour, gf.LMHighlightColour);
+			Gf.HighlightDisplaySlidesText(Gf.LiveItem, ref OutputLyrics, ScrollToCaret: true, Gf.LMTextColour, Gf.LMHighlightColour);
 			if (LoadNextItem)
 			{
 				LoadNextItemLyrics();
@@ -331,7 +331,7 @@ namespace Easislides
 
 		private void Apply_LyricsAlertChanged()
 		{
-			LyricsAlertTextBox.Text = gf.LyricsAlertDetails;
+			LyricsAlertTextBox.Text = Gf.LyricsAlertDetails;
 			LyricsAlertTextBox.SelectAll();
 			LyricsAlertTextBox.SelectionAlignment = HorizontalAlignment.Center;
 			LyricsAlertTextBox.SelectionLength = 0;
@@ -344,22 +344,22 @@ namespace Easislides
 
 		private void EnableRemoteUpdate()
 		{
-			gf.LyricsMonitor_LyricsChanged = true;
+			Gf.LyricsMonitor_LyricsChanged = true;
 		}
 
 		private void UpdateWorshipList()
 		{
 			WorshipListItems.Items.Clear();
-			if (gf.TotalWorshipListItems <= 0)
+			if (Gf.TotalWorshipListItems <= 0)
 			{
 				return;
 			}
 			ListViewItem listViewItem = new ListViewItem();
 			string text = "";
-			for (int i = 0; i < gf.TotalWorshipListItems; i++)
+			for (int i = 0; i < Gf.TotalWorshipListItems; i++)
 			{
-				listViewItem = WorshipListItems.Items.Add(gf.WorshipSongs[i + 1, 2]);
-				text = gf.WorshipSongs[i + 1, 1];
+				listViewItem = WorshipListItems.Items.Add(Gf.WorshipSongs[i + 1, 2]);
+				text = Gf.WorshipSongs[i + 1, 1];
 				if (text == "D")
 				{
 					listViewItem.ImageIndex = 0;
@@ -388,8 +388,8 @@ namespace Easislides
 				{
 					listViewItem.ImageIndex = 10;
 				}
-				listViewItem.SubItems.Add(gf.WorshipSongs[i + 1, 0]);
-				listViewItem.SubItems.Add(gf.WorshipSongs[i + 1, 4]);
+				listViewItem.SubItems.Add(Gf.WorshipSongs[i + 1, 0]);
+				listViewItem.SubItems.Add(Gf.WorshipSongs[i + 1, 4]);
 				listViewItem.SubItems.Add("");
 				listViewItem.SubItems.Add("");
 				listViewItem.SubItems.Add("");
@@ -402,22 +402,22 @@ namespace Easislides
 
 		private void HighlightStartPresAtItem()
 		{
-			if (gf.StartPresAt > 0 && gf.StartPresAt <= gf.TotalWorshipListItems)
+			if (Gf.StartPresAt > 0 && Gf.StartPresAt <= Gf.TotalWorshipListItems)
 			{
-				WorshipListItems.Items[gf.StartPresAt - 1].Selected = true;
-				WorshipListItems.Items[gf.StartPresAt - 1].EnsureVisible();
+				WorshipListItems.Items[Gf.StartPresAt - 1].Selected = true;
+				WorshipListItems.Items[Gf.StartPresAt - 1].EnsureVisible();
 			}
 		}
 
 		private void LoadNextItemLyrics()
 		{
 			string text = "";
-			if (gf.StartPresAt > 0)
+			if (Gf.StartPresAt > 0)
 			{
-				int num = (gf.StartPresAt < gf.TotalWorshipListItems - 1) ? (gf.StartPresAt + 1) : gf.TotalWorshipListItems;
-				string InTitle = gf.WorshipSongs[num, 2];
-				LoadItem(ref gf.LyricsItem, gf.WorshipSongs[num, 0], gf.WorshipSongs[num, 4], ref InTitle);
-				gf.LyricsItem.CurItemNo = num;
+				int num = (Gf.StartPresAt < Gf.TotalWorshipListItems - 1) ? (Gf.StartPresAt + 1) : Gf.TotalWorshipListItems;
+				string InTitle = Gf.WorshipSongs[num, 2];
+				LoadItem(ref Gf.LyricsItem, Gf.WorshipSongs[num, 0], Gf.WorshipSongs[num, 4], ref InTitle);
+				Gf.LyricsItem.CurItemNo = num;
 			}
 			LoadNextItem = false;
 		}
@@ -425,7 +425,7 @@ namespace Easislides
 		private void LoadItem(ref SongSettings InItem, string InIDString, string InFormatString, ref string InTitle)
 		{
 			string text = DataUtil.Left(InIDString, 1);
-			gf.InitialiseIndividualData(ref InItem);
+			Gf.InitialiseIndividualData(ref InItem);
 			InItem.PrevTitle = "";
 			InItem.NextTitle = "";
 			PreviewLyrics.Text = "";
@@ -444,15 +444,15 @@ namespace Easislides
 			}
 			if (num == 0)
 			{
-				gf.LoadIndividualData(ref InItem, InIDString, "", 1, ref InTitle);
+				Gf.LoadIndividualData(ref InItem, InIDString, "", 1, ref InTitle);
 				if (InItem.Type == "I")
 				{
 					InFormatString = InItem.Format.FormatString;
 				}
-				gf.LoadIndividualFormatData(ref InItem, InFormatString);
-				gf.FormatText(ref InItem, gf.PanelBackColour, gf.PanelBackColourTransparent, gf.PanelTextColour, gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
-				gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
-				gf.DisplaySlidesFormattedLyrics(ref InItem, ref PreviewLyrics, ScrollToCaret: true, gf.LMShowNotations);
+				Gf.LoadIndividualFormatData(ref InItem, InFormatString);
+				Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
+				Gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
+				Gf.DisplaySlidesFormattedLyrics(ref InItem, ref PreviewLyrics, ScrollToCaret: true, Gf.LMShowNotations);
 			}
 		}
 
@@ -473,8 +473,8 @@ namespace Easislides
 
 		private void timerLyricsAlert_Tick(object sender, EventArgs e)
 		{
-			LyricsAlertTextBox.ForeColor = ((LyricsAlertTextBox.ForeColor == gf.LMHighlightColour) ? gf.LMTextColour : gf.LMHighlightColour);
-			LyricsAlertTextBox.BackColor = ((LyricsAlertTextBox.BackColor == gf.LMBackColour) ? Color.Red : gf.LMBackColour);
+			LyricsAlertTextBox.ForeColor = ((LyricsAlertTextBox.ForeColor == Gf.LMHighlightColour) ? Gf.LMTextColour : Gf.LMHighlightColour);
+			LyricsAlertTextBox.BackColor = ((LyricsAlertTextBox.BackColor == Gf.LMBackColour) ? Color.Red : Gf.LMBackColour);
 			LyricsFlashCount++;
 			if (LyricsFlashCount > 3)
 			{
@@ -487,8 +487,8 @@ namespace Easislides
 		{
 			LyricsFlashCount = 0;
 			timerLyricsAlert.Stop();
-			LyricsAlertTextBox.ForeColor = gf.LMHighlightColour;
-			LyricsAlertTextBox.BackColor = gf.LMBackColour;
+			LyricsAlertTextBox.ForeColor = Gf.LMHighlightColour;
+			LyricsAlertTextBox.BackColor = Gf.LMBackColour;
 		}
 
 		private void FrmLyricsScreen_FormClosing(object sender, FormClosingEventArgs e)

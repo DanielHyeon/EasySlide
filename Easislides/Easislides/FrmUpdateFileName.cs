@@ -110,56 +110,56 @@ namespace Easislides
 
 		private void frmUpdateFileName_Load(object sender, EventArgs e)
 		{
-			if (gf.EasiSlidesMode == UsageMode.Worship)
+			if (Gf.EasiSlidesMode == UsageMode.Worship)
 			{
-				InputDir = gf.WorshipDir;
+				InputDir = Gf.WorshipDir;
 				ListText = "Worship List";
 			}
 			else
 			{
-				InputDir = gf.PraiseBookDir;
+				InputDir = Gf.PraiseBookDir;
 				ListText = "PraiseBook List";
 			}
-			if (gf.NameChangeAction == 1)
+			if (Gf.NameChangeAction == 1)
 			{
 				Text = "Add New " + ListText;
 				Mess.Text = "Please enter title of the new " + ListText;
 			}
-			else if (gf.NameChangeAction == 2)
+			else if (Gf.NameChangeAction == 2)
 			{
 				Text = "Rename " + ListText;
-				Mess.Text = "Rename '" + gf.SelectedListName + "' to:";
-				tbFileName.Text = gf.SelectedListName;
+				Mess.Text = "Rename '" + Gf.SelectedListName + "' to:";
+				tbFileName.Text = Gf.SelectedListName;
 				tbFileName.SelectAll();
 			}
-			else if (gf.NameChangeAction == 3)
+			else if (Gf.NameChangeAction == 3)
 			{
-				Text = "Rename Folder '" + gf.FolderRenameName[gf.FolderRenameNo] + "'";
-				Mess.Text = "Rename '" + gf.SelectedListName + "' to:";
-				tbFileName.Text = gf.FolderRenameName[gf.FolderRenameNo];
+				Text = "Rename Folder '" + Gf.FolderRenameName[Gf.FolderRenameNo] + "'";
+				Mess.Text = "Rename '" + Gf.SelectedListName + "' to:";
+				tbFileName.Text = Gf.FolderRenameName[Gf.FolderRenameNo];
 				tbFileName.SelectAll();
 			}
-			else if (gf.NameChangeAction == 6)
+			else if (Gf.NameChangeAction == 6)
 			{
 				Text = "Save InfoScreen as...";
 				Mess.Text = "Save as:";
-				tbFileName.Text = gf.FolderRenameName[gf.FolderRenameNo];
+				tbFileName.Text = Gf.FolderRenameName[Gf.FolderRenameNo];
 				tbFileName.SelectAll();
 			}
-			else if (gf.NameChangeAction == 7)
+			else if (Gf.NameChangeAction == 7)
 			{
 				Text = "Copy Session to PraiseBook";
-				tbFileName.Text = gf.GetDisplayNameOnly(ref gf.SelectedListName, UpdateByRef: false, KeepExt: false);
+				tbFileName.Text = Gf.GetDisplayNameOnly(ref Gf.SelectedListName, UpdateByRef: false, KeepExt: false);
 				tbFileName.SelectAll();
-				InputDir = gf.PraiseBookDir;
+				InputDir = Gf.PraiseBookDir;
 				Mess.Text = "Copy '" + tbFileName.Text + "' as:";
 			}
-			else if (gf.NameChangeAction == 8)
+			else if (Gf.NameChangeAction == 8)
 			{
 				Text = "Copy PraiseBook to Session";
-				tbFileName.Text = gf.GetDisplayNameOnly(ref gf.SelectedListName, UpdateByRef: false, KeepExt: false);
+				tbFileName.Text = Gf.GetDisplayNameOnly(ref Gf.SelectedListName, UpdateByRef: false, KeepExt: false);
 				tbFileName.SelectAll();
-				InputDir = gf.WorshipDir;
+				InputDir = Gf.WorshipDir;
 				Mess.Text = "Copy '" + tbFileName.Text + "' as:";
 			}
 		}
@@ -168,10 +168,10 @@ namespace Easislides
 		{
 			string text = tbFileName.Text;
 			string text2 = "";
-			if (gf.NameChangeAction == 1)
+			if (Gf.NameChangeAction == 1)
 			{
-				text2 = ((InputDir == gf.WorshipDir) ? ".esw" : ".esp");
-				if (!gf.ValidateDirNameFormat(text, ListText + " Title"))
+				text2 = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+				if (!Gf.ValidateDirNameFormat(text, ListText + " Title"))
 				{
 					return false;
 				}
@@ -180,22 +180,22 @@ namespace Easislides
 					MessageBox.Show("There is already a list with the same name, please try a different name.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 					return false;
 				}
-				gf.ValidateDir(InputDir, CreateDir: true);
+				Gf.ValidateDir(InputDir, CreateDir: true);
 				try
 				{
 					string inNotes = "";
-                    gfFileHelpers.SaveIndexFile(InputDir + text + text2, ref gf.ListViewNotations, UsageMode.Worship, SaveAllItems: false, gf.Def_FormatString, inNotes);
-					gf.SelectedListName = text;
+                    gfFileHelpers.SaveIndexFile(InputDir + text + text2, ref Gf.ListViewNotations, UsageMode.Worship, SaveAllItems: false, Gf.Def_FormatString, inNotes);
+					Gf.SelectedListName = text;
 				}
 				catch
 				{
 					MessageBox.Show("Error encountered whilst create new file - Please ensure you have write access to " + InputDir, "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 			}
-			else if (gf.NameChangeAction == 2)
+			else if (Gf.NameChangeAction == 2)
 			{
-				text2 = ((InputDir == gf.WorshipDir) ? ".esw" : ".esp");
-				if (!gf.ValidateDirNameFormat(text, ListText + " Title"))
+				text2 = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+				if (!Gf.ValidateDirNameFormat(text, ListText + " Title"))
 				{
 					return false;
 				}
@@ -204,11 +204,11 @@ namespace Easislides
 					MessageBox.Show("There is already a list with the same name, please try a different name.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 					return false;
 				}
-				gf.ValidateDir(InputDir, CreateDir: true);
+				Gf.ValidateDir(InputDir, CreateDir: true);
 				try
 				{
-					File.Move(InputDir + gf.SelectedListName + text2, InputDir + text + text2);
-					gf.SelectedListName = text;
+					File.Move(InputDir + Gf.SelectedListName + text2, InputDir + text + text2);
+					Gf.SelectedListName = text;
 				}
 				catch
 				{
@@ -217,42 +217,42 @@ namespace Easislides
 			}
 			else
 			{
-				if (gf.NameChangeAction == 3)
+				if (Gf.NameChangeAction == 3)
 				{
-					string text3 = gf.FolderRenameName[gf.FolderRenameNo];
+					string text3 = Gf.FolderRenameName[Gf.FolderRenameNo];
 					string text4 = text;
 					bool flag = false;
-					if (gf.ValidateDirNameFormat(text, "New folder name"))
+					if (Gf.ValidateDirNameFormat(text, "New folder name"))
 					{
-						for (int i = 1; i <= gf.MAXSONGSFOLDERS; i++)
+						for (int i = 1; i <= Gf.MAXSONGSFOLDERS; i++)
 						{
-							if (gf.FolderRenameName[i].ToLower() == text.ToLower())
+							if (Gf.FolderRenameName[i].ToLower() == text.ToLower())
 							{
 								flag = true;
 							}
 						}
 						if (!flag)
 						{
-							gf.FolderRenameName[gf.FolderRenameNo] = text;
+							Gf.FolderRenameName[Gf.FolderRenameNo] = text;
 							return true;
 						}
 						return false;
 					}
 					return false;
 				}
-				if (gf.NameChangeAction == 7)
+				if (Gf.NameChangeAction == 7)
 				{
-					string text5 = gf.PraiseBookDir + DataUtil.Trim(tbFileName.Text) + ".esp";
+					string text5 = Gf.PraiseBookDir + DataUtil.Trim(tbFileName.Text) + ".esp";
 					try
 					{
 						if (!File.Exists(text5))
 						{
-							File.Copy(gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, text5, overwrite: true);
 							return true;
 						}
 						if (MessageBox.Show("PraiseBook already exists. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo) == DialogResult.Yes)
 						{
-							File.Copy(gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, text5, overwrite: true);
 							return true;
 						}
 						return false;
@@ -263,19 +263,19 @@ namespace Easislides
 						return false;
 					}
 				}
-				if (gf.NameChangeAction == 8)
+				if (Gf.NameChangeAction == 8)
 				{
-					string text5 = gf.WorshipDir + DataUtil.Trim(tbFileName.Text) + ".esw";
+					string text5 = Gf.WorshipDir + DataUtil.Trim(tbFileName.Text) + ".esw";
 					try
 					{
 						if (!File.Exists(text5))
 						{
-							File.Copy(gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, text5, overwrite: true);
 							return true;
 						}
 						if (MessageBox.Show("WorshipList already exists. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo) == DialogResult.Yes)
 						{
-							File.Copy(gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, text5, overwrite: true);
 							return true;
 						}
 						return false;

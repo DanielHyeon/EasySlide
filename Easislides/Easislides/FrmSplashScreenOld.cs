@@ -160,15 +160,15 @@ namespace Easislides
 
 		private void TimerCheckClose_Tick(object sender, EventArgs e)
 		{
-			if (gf.SplashScreenBack)
+			if (Gf.SplashScreenBack)
 			{
 				SplashBack(Min: true);
 			}
-			if (gf.SplashScreenFront)
+			if (Gf.SplashScreenFront)
 			{
 				SplashBack(Min: false);
 			}
-			if (gf.SplashScreenCanClose)
+			if (Gf.SplashScreenCanClose)
 			{
 				CloseSplash();
 			}
@@ -184,8 +184,8 @@ namespace Easislides
 			{
 				BringToFront();
 			}
-			gf.SplashScreenBack = false;
-			gf.SplashScreenFront = false;
+			Gf.SplashScreenBack = false;
+			Gf.SplashScreenFront = false;
 		}
 
         private void FrmSplashScreen_Load(object sender, EventArgs e)

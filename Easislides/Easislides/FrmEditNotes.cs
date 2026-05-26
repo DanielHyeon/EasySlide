@@ -75,8 +75,8 @@ namespace Easislides
 
 		private void FrmEditNotes_Load(object sender, EventArgs e)
 		{
-			Text = gf.EditNotesHeading;
-			tbData.Text = gf.EditNotes;
+			Text = Gf.EditNotesHeading;
+			tbData.Text = Gf.EditNotes;
 			if (tbData.Text != "")
 			{
 				tbData.SelectionStart = 0;
@@ -86,7 +86,7 @@ namespace Easislides
 
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
-			gf.EditNotes = tbData.Text;
+			Gf.EditNotes = tbData.Text;
 		}
 	}
 }

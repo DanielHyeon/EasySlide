@@ -39,7 +39,7 @@ namespace Easislides
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
 
-                gf.SplashScreenCanClose = true;
+                Gf.SplashScreenCanClose = true;
             }
         }
     }

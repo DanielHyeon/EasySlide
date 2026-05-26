@@ -184,11 +184,11 @@ namespace Easislides
 
 		private void FrmCopyMoveExternal_Load(object sender, EventArgs e)
 		{
-			if (gf.ExternalCopyFolder >= 1)
+			if (Gf.ExternalCopyFolder >= 1)
 			{
 				ActionString1 = "copying";
 				ActionString2 = "copy";
-				switch (gf.ExternalMoveCopyType)
+				switch (Gf.ExternalMoveCopyType)
 				{
 				case "I":
 					Text = "Copy InfoScreen(s)";
@@ -210,7 +210,7 @@ namespace Easislides
 				optCopyToInfoScreen.Checked = true;
 				optCopyToFolder.Enabled = false;
 				SongFolder.Enabled = false;
-				switch (gf.ExternalMoveCopyType)
+				switch (Gf.ExternalMoveCopyType)
 				{
 				case "I":
 					Text = "Move InfoScreen(s)";
@@ -220,23 +220,23 @@ namespace Easislides
 					break;
 				}
 			}
-			Label1.Text = "You have selected " + gf.SelectedItemsCount + " item" + ((gf.SelectedItemsCount > 1) ? "s" : "") + " for " + ActionString1 + ". Please choose a folder to " + ActionString2 + " the item" + ((gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
+			Label1.Text = "You have selected " + Gf.SelectedItemsCount + " item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " for " + ActionString1 + ". Please choose a folder to " + ActionString2 + " the item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
 			ExternalFilesFolder.Items.Clear();
-			switch (gf.ExternalMoveCopyType)
+			switch (Gf.ExternalMoveCopyType)
 			{
 			case "I":
 			{
-				for (int i = 0; i < gf.InfoScreenFolderTotal; i++)
+				for (int i = 0; i < Gf.InfoScreenFolderTotal; i++)
 				{
-					ExternalFilesFolder.Items.Add(gf.InfoScreenGroups[i, 0]);
+					ExternalFilesFolder.Items.Add(Gf.InfoScreenGroups[i, 0]);
 				}
 				break;
 			}
 			case "P":
 			{
-				for (int i = 0; i < gf.PowerpointFolderTotal; i++)
+				for (int i = 0; i < Gf.PowerpointFolderTotal; i++)
 				{
-					ExternalFilesFolder.Items.Add(gf.PowerpointGroups[i, 0]);
+					ExternalFilesFolder.Items.Add(Gf.PowerpointGroups[i, 0]);
 				}
 				break;
 			}
@@ -244,9 +244,9 @@ namespace Easislides
 			SongFolder.Items.Clear();
 			for (int i = 1; i <= 40; i++)
 			{
-				if (gf.FolderUse[i] > 0)
+				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.FolderName[i]);
 				}
 			}
 		}
@@ -257,13 +257,13 @@ namespace Easislides
 			{
 				if (ExternalFilesFolder.SelectedItems.Count > 0)
 				{
-					if (gf.ExternalCopyFolder >= 1)
+					if (Gf.ExternalCopyFolder >= 1)
 					{
-						gf.ExternalCopyFolder = gf.GetSelectedIndex(ExternalFilesFolder);
+						Gf.ExternalCopyFolder = Gf.GetSelectedIndex(ExternalFilesFolder);
 					}
 					else
 					{
-						gf.ExternalMoveFolder = gf.GetSelectedIndex(ExternalFilesFolder);
+						Gf.ExternalMoveFolder = Gf.GetSelectedIndex(ExternalFilesFolder);
 					}
 					base.DialogResult = DialogResult.OK;
 					Close();
@@ -277,13 +277,13 @@ namespace Easislides
 			{
 				if (SongFolder.SelectedItems.Count > 0)
 				{
-					if (gf.ExternalCopyFolder >= 1)
+					if (Gf.ExternalCopyFolder >= 1)
 					{
-						gf.ExternalCopyFolder = -1 * gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+						Gf.ExternalCopyFolder = -1 * Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 					}
 					else
 					{
-						gf.ExternalMoveFolder = -1 * gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+						Gf.ExternalMoveFolder = -1 * Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 					}
 					base.DialogResult = DialogResult.OK;
 					Close();
