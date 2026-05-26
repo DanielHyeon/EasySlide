@@ -20,7 +20,15 @@ namespace Easislides
 		// Private fields for caching
 		private Image _cachedSourceImage;
 		private string _cachedFileName;
-	private DateTime _cachedFileTime;
+		private DateTime _cachedFileTime;
+
+		// Constants for transient file-availability handling (PPT slide export → JPG flush race)
+		private const int FILE_AVAILABILITY_RETRY_COUNT = 5;
+		private const int FILE_AVAILABILITY_RETRY_DELAY_MS = 30;
+
+		// Guards a single delayed Invalidate when the source JPG is still being flushed by
+		// PowerPoint Interop. Prevents a busy repaint loop if the file never appears.
+		private bool _deferredRepaintScheduled;
 
 		// Auto-properties
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -170,7 +178,9 @@ namespace Easislides
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
-			if ((Image == null || string.IsNullOrEmpty(FileName)) && !base.Visible)
+			if (!base.Visible)
+				return;
+			if (Image == null && string.IsNullOrEmpty(FileName))
 				return;
 
 			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -218,7 +228,14 @@ namespace Easislides
 					}
 				}
 
-				if (FileName != imagePath || IsExternalPowerPoint)
+				// Re-render when (a) the path changed, (b) we always re-export for external PPT,
+				// or (c) the same path was re-built on disk (mtime advanced past our cache).
+				bool pathChanged = FileName != imagePath;
+				bool fileTouched = !pathChanged
+				                   && !string.IsNullOrEmpty(imagePath)
+				                   && File.Exists(imagePath)
+				                   && new FileInfo(imagePath).LastWriteTimeUtc != _cachedFileTime;
+				if (pathChanged || fileTouched || IsExternalPowerPoint)
 				{
 					FileName = imagePath;
 					IsImageReady = false;
@@ -368,11 +385,14 @@ namespace Easislides
 					gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
 				}
 
-				// Check if file exists before loading
-				if (!File.Exists(FileName))
+				// PowerPoint Interop's Slide.Export returns before the JPG is guaranteed to be
+				// visible to File.Exists (AV scanners, FS cache flush). Retry briefly so the very
+				// first paint doesn't lose the slide. Total wait stays under ~150ms.
+				if (!WaitForFileAvailable(FileName))
 				{
 					Console.WriteLine($"Image file not found: {FileName}");
 					IsImageReady = false;
+					ScheduleDeferredRepaint();
 					return false;
 				}
 
@@ -392,10 +412,13 @@ namespace Easislides
 					// Clear old cached image if filename changed or file was modified
 					_cachedSourceImage?.Dispose();
 
-					// Load and cache new source image (using stream to avoid file lock)
+					// MSDN: Image.FromStream requires the stream to remain open for the Image's
+					// lifetime. Clone into a standalone Bitmap so the file/stream can be released
+					// safely and DrawImage cannot fail with GDI+ generic errors on lazy pixel reads.
 					using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+					using (var tempImage = System.Drawing.Image.FromStream(stream))
 					{
-						_cachedSourceImage = System.Drawing.Image.FromStream(stream);
+						_cachedSourceImage = new Bitmap(tempImage);
 					}
 					_cachedFileName = FileName;
 					_cachedFileTime = currentFileTime;
@@ -413,6 +436,7 @@ namespace Easislides
 				Image = RenderImage(sourceImage, storedImageWidth, storedImageHeight);
 
 				IsImageReady = true;
+				_deferredRepaintScheduled = false;
 				ResizeCanvas(base.Width, base.Height);
 			}
 			catch (Exception ex)
@@ -422,6 +446,47 @@ namespace Easislides
 				return false;
 			}
 			return true;
+		}
+
+		private static bool WaitForFileAvailable(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+			{
+				return false;
+			}
+			for (int attempt = 0; attempt < FILE_AVAILABILITY_RETRY_COUNT; attempt++)
+			{
+				if (File.Exists(path))
+				{
+					return true;
+				}
+				System.Threading.Thread.Sleep(FILE_AVAILABILITY_RETRY_DELAY_MS);
+			}
+			return File.Exists(path);
+		}
+
+		private void ScheduleDeferredRepaint()
+		{
+			if (_deferredRepaintScheduled || !IsHandleCreated || IsDisposed)
+			{
+				return;
+			}
+			_deferredRepaintScheduled = true;
+			try
+			{
+				BeginInvoke(new Action(() =>
+				{
+					if (!IsDisposed && base.Visible)
+					{
+						Invalidate();
+					}
+				}));
+			}
+			catch (Exception ex)
+			{
+				_deferredRepaintScheduled = false;
+				Console.WriteLine($"ScheduleDeferredRepaint failed: {ex.Message}");
+			}
 		}
 
         protected override void Dispose(bool disposing)
