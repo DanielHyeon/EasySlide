@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Input;
 using LegacyKeys = System.Windows.Forms.Keys;
@@ -14,6 +16,11 @@ namespace Easislides.Wpf.Input;
 /// ADR-0004 단일 소스 — 단축키 등록/조회/실행 중앙 관리.
 /// 글로벌(IsGlobal=true) 항목은 HookManager가 처리, 그 외는 WPF PreviewKeyDown이 처리.
 ///
+/// Thread-safety (리뷰 #6):
+///   - HookManager 콜백은 별도 OS 스레드에서 호출되므로 TryHandleGlobal과 Register가 동시 진행 가능.
+///   - _shortcuts를 ImmutableList로 관리하고 Interlocked.CompareExchange로 교체 — lock-free read.
+///   - Register는 앱 시작 시 일괄 호출이 일반적이지만, 동적 등록도 안전.
+///
 /// 사용 예 (Sprint 0 PoC-A):
 ///   var reg = App.Services.GetRequiredService&lt;ShortcutRegistry&gt;();
 ///   reg.Register(new Shortcut(WpfKey.F5, WpfModifierKeys.None, "Live.NextSlide", true, "다음 슬라이드"));
@@ -21,21 +28,28 @@ namespace Easislides.Wpf.Input;
 /// </summary>
 public sealed class ShortcutRegistry
 {
-    private readonly List<Shortcut> _shortcuts = new();
+    private ImmutableList<Shortcut> _shortcuts = ImmutableList<Shortcut>.Empty;
     private readonly ConcurrentDictionary<string, Action> _bindings = new();
 
-    /// <summary>등록된 단축키 목록 (UI 표시·충돌 검사용).</summary>
-    public IReadOnlyList<Shortcut> All => _shortcuts.AsReadOnly();
+    /// <summary>등록된 단축키 목록 (UI 표시·충돌 검사용). 읽기는 lock-free.</summary>
+    public IReadOnlyList<Shortcut> All => _shortcuts;
 
-    /// <summary>단축키를 등록한다. 중복 키 조합은 예외.</summary>
+    /// <summary>단축키를 등록한다. 중복 키 조합은 예외. Thread-safe.</summary>
     public void Register(Shortcut shortcut)
     {
-        if (_shortcuts.Any(s => s.Key == shortcut.Key && s.Modifiers == shortcut.Modifiers))
+        ImmutableList<Shortcut> oldList, newList;
+        do
         {
-            throw new InvalidOperationException(
-                $"단축키 충돌: {shortcut.DisplayText}는 이미 다른 명령에 사용 중입니다.");
+            oldList = _shortcuts;
+            if (oldList.Any(s => s.Key == shortcut.Key && s.Modifiers == shortcut.Modifiers))
+            {
+                throw new InvalidOperationException(
+                    $"단축키 충돌: {shortcut.DisplayText}는 이미 다른 명령에 사용 중입니다.");
+            }
+            newList = oldList.Add(shortcut);
         }
-        _shortcuts.Add(shortcut);
+        // CAS — 다른 스레드가 동시에 _shortcuts를 변경했으면 재시도
+        while (Interlocked.CompareExchange(ref _shortcuts, newList, oldList) != oldList);
     }
 
     /// <summary>명령 식별자에 실제 핸들러를 바인딩한다.</summary>
@@ -50,7 +64,9 @@ public sealed class ShortcutRegistry
     /// </summary>
     public bool TryHandle(WpfKey key, WpfModifierKeys modifiers)
     {
-        var shortcut = _shortcuts.FirstOrDefault(s => s.Key == key && s.Modifiers == modifiers);
+        // ImmutableList 읽기 — lock 없음, 한 시점의 snapshot 사용
+        var snapshot = _shortcuts;
+        var shortcut = snapshot.FirstOrDefault(s => s.Key == key && s.Modifiers == modifiers);
         if (shortcut is null) return false;
         return Invoke(shortcut.CommandName);
     }
@@ -70,7 +86,9 @@ public sealed class ShortcutRegistry
         if ((legacyModifiers & LegacyKeys.Shift) != 0) wpfMods |= WpfModifierKeys.Shift;
         if ((legacyModifiers & LegacyKeys.Alt) != 0) wpfMods |= WpfModifierKeys.Alt;
 
-        var shortcut = _shortcuts.FirstOrDefault(
+        // HookManager 콜백은 별도 OS 스레드 — snapshot으로 lock-free 읽기
+        var snapshot = _shortcuts;
+        var shortcut = snapshot.FirstOrDefault(
             s => s.IsGlobal && s.Key == wpfKey && s.Modifiers == wpfMods);
         if (shortcut is null) return false;
         return Invoke(shortcut.CommandName);

@@ -39,4 +39,10 @@ public partial class DemoWindow : Window
         var gallery = new IconGalleryWindow { Owner = this };
         gallery.Show();
     }
+
+    private void OnControlsGallery_Click(object sender, RoutedEventArgs e)
+    {
+        var gallery = new ControlsGalleryWindow { Owner = this };
+        gallery.Show();
+    }
 }
