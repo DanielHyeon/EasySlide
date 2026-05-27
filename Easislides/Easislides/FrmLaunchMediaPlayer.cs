@@ -8,15 +8,9 @@ using System.Windows.Forms;
 
 namespace Easislides
 {
-	public class FrmLaunchMediaPlayer : Form
+	public partial class FrmLaunchMediaPlayer : Form
 	{
 		public delegate void Message(int MsgCode, string MsgString);
-
-		private IContainer components = null;
-
-		private System.Windows.Forms.Timer TimerAttemptConnect;
-
-		private System.Windows.Forms.Timer TimerRefresh;
 
 		private bool FormFirstLoad = true;
 
@@ -31,37 +25,6 @@ namespace Easislides
 		private DShowLib DShowPlayer = new DShowLib();
 
 		public event Message OnMessage;
-
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && components != null)
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
-
-		private void InitializeComponent()
-		{
-			components = new System.ComponentModel.Container();
-			TimerAttemptConnect = new System.Windows.Forms.Timer(components);
-			TimerRefresh = new System.Windows.Forms.Timer(components);
-			SuspendLayout();
-			TimerRefresh.Enabled = true;
-			TimerRefresh.Interval = 500;
-			//TimerRefresh.Tick += new System.EventHandler(TimerRefresh_Tick);
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			BackColor = System.Drawing.Color.Black;
-			base.ClientSize = new System.Drawing.Size(125, 110);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-			base.Name = "FrmLaunchMediaPlayer";
-			base.ShowInTaskbar = false;
-			base.VisibleChanged += new System.EventHandler(FrmLaunchMediaPlayer_VisibleChanged);
-			base.FormClosing += new System.Windows.Forms.FormClosingEventHandler(FrmLaunchMediaPlayer_FormClosing);
-			base.Load += new System.EventHandler(FrmLaunchMediaPlayer_Load);
-			ResumeLayout(false);
-		}
 
 		public FrmLaunchMediaPlayer()
 		{

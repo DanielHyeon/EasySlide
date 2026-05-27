@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -43,8 +43,10 @@
 
   <ItemGroup>
     <Compile Remove="Easislides\FrmLyricsScreen.cs" />
+    <Compile Remove="Easislides\FrmLyricsScreen.Designer.cs" />
     <Compile Remove="Easislides\FrmMain_Old.cs" />
     <Compile Remove="Easislides\FrmSplashScreenOld.cs" />
+    <Compile Remove="Easislides\FrmSplashScreenOld.Designer.cs" />
     <Compile Remove="FrmLaunchMediaPlayer.cs" />
   </ItemGroup>
 

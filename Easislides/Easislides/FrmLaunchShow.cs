@@ -8,7 +8,7 @@ using OfficeLib;
 
 namespace Easislides
 {
-	public class FrmLaunchShow : Form
+	public partial class FrmLaunchShow : Form
 	{
 		public delegate void Message(int MsgCode, string MsgString);
 
@@ -43,22 +43,6 @@ namespace Easislides
 			Remote_WorshipListChanged,
 			Remote_LyricsAlertChanged
 		}
-
-		private IContainer components = null;
-
-		private Timer TimerSingleScreen;
-
-		private Timer TimerRemote;
-
-		private Timer TimerMouseDown;
-
-		private Timer TimerOpacity;
-
-		private Timer TimerRotate;
-
-		private ImageList imageList1;
-
-		private Timer TimerToFront;
 
 		private bool FormFirstLoad = true;
 
@@ -107,67 +91,12 @@ namespace Easislides
 		//Active �Ǿ� ���� ��쿡��?Active ȣ�� �� �� �ֵ��� ����
 		private bool isActivated = false;
 
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && components != null)
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
-
-		//Active �Ǿ� ���� ��쿡��?Active ȣ��
+				//Active �Ǿ� ���� ��쿡��?Active ȣ��
 		protected override void OnActivated(EventArgs e)
 		{
 			isActivated = true;
 
 			base.OnActivated(e);
-		}
-
-		private void InitializeComponent()
-		{
-			components = new System.ComponentModel.Container();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmLaunchShow));
-			TimerSingleScreen = new System.Windows.Forms.Timer(components);
-			TimerRemote = new System.Windows.Forms.Timer(components);
-			TimerMouseDown = new System.Windows.Forms.Timer(components);
-			TimerOpacity = new System.Windows.Forms.Timer(components);
-			TimerRotate = new System.Windows.Forms.Timer(components);
-			imageList1 = new System.Windows.Forms.ImageList(components);
-			TimerToFront = new System.Windows.Forms.Timer(components);
-			SuspendLayout();
-			TimerSingleScreen.Tick += new System.EventHandler(TimerSingleScreen_Tick);
-			TimerRemote.Tick += new System.EventHandler(TimerRemote_Tick);
-			TimerMouseDown.Enabled = true;
-			TimerMouseDown.Interval = 200;
-			TimerMouseDown.Tick += new System.EventHandler(TimerMouseDown_Tick);
-			TimerOpacity.Tick += new System.EventHandler(TimerOpacity_Tick);
-			TimerRotate.Interval = 500;
-			TimerRotate.Tick += new System.EventHandler(TimerRotate_Tick);
-			imageList1.ImageStream = (System.Windows.Forms.ImageListStreamer)resources.GetObject("imageList1.ImageStream");
-			imageList1.TransparentColor = System.Drawing.Color.Transparent;
-			imageList1.Images.SetKeyName(0, "Blank.gif");
-			TimerToFront.Enabled = true;
-			TimerToFront.Tick += new System.EventHandler(TimerToFront_Tick);
-			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
-			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			BackColor = System.Drawing.Color.Black;
-			base.ClientSize = new System.Drawing.Size(102, 72);
-			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-			base.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-			base.KeyPreview = true;
-			base.Name = "FrmLaunchShow";
-			base.ShowIcon = false;
-			base.ShowInTaskbar = false;
-			Text = "Live";
-			base.TopMost = true;
-			base.TransparencyKey = System.Drawing.Color.FromArgb(128, 64, 192);
-			base.Load += new System.EventHandler(FrmLaunchShow_Load);
-			base.Enter += new System.EventHandler(FrmLaunchShow_Enter);
-			base.VisibleChanged += new System.EventHandler(FrmLaunchShow_VisibleChanged);
-			base.Leave += new System.EventHandler(FrmLaunchShow_Leave);
-			base.FormClosing += new System.Windows.Forms.FormClosingEventHandler(FrmLaunchShow_FormClosing);
-			ResumeLayout(false);
 		}
 
 		public FrmLaunchShow()
@@ -687,7 +616,7 @@ namespace Easislides
 		//	}
 		//}
 
-		
+
 		// �Ŀ�����Ʈ�� ������ �������� ���� ���?���?�ǵ��� ����
 		private void TimerSingleScreen_Tick(object sender, EventArgs e)
         {
@@ -1127,7 +1056,7 @@ namespace Easislides
 				else
 				{
 					SetShowWindow(max: true);
-					
+
 				}
 				Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Keys.None, InItem.CurSlide);
 				if (Gf.ShowLiveCam)
@@ -2176,7 +2105,3 @@ namespace Easislides
 		}
 	}
 }
-
-
-
-
