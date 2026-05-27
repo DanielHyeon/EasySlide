@@ -19,6 +19,11 @@
                 <ResourceDictionary Source="Controls/EsToggle.xaml" />
                 <ResourceDictionary Source="Controls/EsCard.xaml" />
                 <ResourceDictionary Source="Controls/EsLiveIndicator.xaml" />
+                <ResourceDictionary Source="Controls/EsTabView.xaml" />
+                <ResourceDictionary Source="Controls/EsComboBox.xaml" />
+                <ResourceDictionary Source="Controls/EsCommandBar.xaml" />
+                <ResourceDictionary Source="Controls/EsDialog.xaml" />
+                <ResourceDictionary Source="Controls/EsToast.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
