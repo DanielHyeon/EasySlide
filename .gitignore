@@ -223,4 +223,5 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 # CodeGraph (local machine DB, not committed)
 .codegraph/
+
 .claude/
