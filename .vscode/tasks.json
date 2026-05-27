@@ -2,6 +2,29 @@
     "version": "2.0.0",
     "tasks": [
         {
+            // 빠른 WPF 단독 빌드 — F5(Easislides.Wpf) 시 자동 실행
+            "label": "build-wpf",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Easislides.Wpf/Easislides.Wpf.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            // 솔루션 전체 빌드 (Legacy 포함)
             "label": "build",
             "command": "dotnet",
             "type": "process",
@@ -12,6 +35,20 @@
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            // WPF 단독 watch 모드 — 파일 변경 시 자동 재시작 (디자인 토큰 작업에 유용)
+            "label": "watch-wpf",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "--project",
+                "${workspaceFolder}/Easislides.Wpf/Easislides.Wpf.csproj",
+                "run"
+            ],
+            "problemMatcher": "$msCompile",
+            "isBackground": true
         },
         {
             "label": "publish",

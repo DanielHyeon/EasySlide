@@ -2,18 +2,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // Use IntelliSense to find out which attributes exist for C# debugging
-            // Use hover for the description of the existing attributes
-            // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
-            "name": ".NET Core Launch (console)",
+            // EasiSlides v3.0 신규 WPF 진입점 (Sprint 0~)
+            "name": "Launch Easislides.Wpf (WPF/.NET 10)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-wpf",
+            "program": "${workspaceFolder}/Easislides.Wpf/bin/Debug/net10.0-windows/Easislides.Wpf.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Easislides.Wpf",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false,
+            "logging": {
+                "moduleLoad": false
+            }
+        },
+        {
+            // Legacy WinForms 진입점 (M3까지 유지 — ADR-0007)
+            "name": "Launch Easislides (Legacy WinForms)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Easislides/bin/Debug/net10.0-windows7.0/Easislides.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Easislides",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
         },
