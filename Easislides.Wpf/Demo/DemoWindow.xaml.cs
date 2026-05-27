@@ -33,4 +33,10 @@ public partial class DemoWindow : Window
         var poc = new PocBComStress { Owner = this };
         poc.Show();
     }
+
+    private void OnIconGallery_Click(object sender, RoutedEventArgs e)
+    {
+        var gallery = new IconGalleryWindow { Owner = this };
+        gallery.Show();
+    }
 }
