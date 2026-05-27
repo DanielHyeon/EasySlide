@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 신규 WPF 프로젝트 — Sprint 0 PoC 단계. 정식 마이그레이션 산출물의 출발점. -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>Easislides.Wpf</RootNamespace>
+    <AssemblyName>Easislides.Wpf</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <!-- UseWindowsForms=true 사유: (1) HookManager가 System.Windows.Forms.MouseEventArgs 등 사용, (2) Strangler Fig 패턴으로 마이그레이션 기간 동안 WindowsFormsHost로 legacy 폼 임베드 가능성 보존. Sprint 9에서 HookManager를 별도 라이브러리(Easislides.HookManager.csproj)로 추출한 뒤 이 플래그 제거 검토. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Platforms>AnyCPU;x64</Platforms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ADR-0001: Fluent 2 컨트롤 라이브러리. EasiDS 토큰으로 비주얼 오버라이딩. -->
+    <PackageReference Include="WPF-UI" Version="3.0.5" />
+    <!-- MVVM 소스 제너레이터 (ObservableObject, RelayCommand) -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- DI 컨테이너 -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- PoC-B: PowerPoint COM 호출용. NetOffice 타입이 transitively 전파됨. -->
+    <ProjectReference Include="..\OfficeLib\OfficeLib.csproj" />
+  </ItemGroup>
+
+  <!-- ADR-0004 PoC-A: HookManager 소스를 file-link로 공유 (복사 X). Sprint 9에 라이브러리로 추출 후 ProjectReference로 교체 예정. -->
+  <ItemGroup>
+    <Compile Include="..\Easislides\HookManager\HookManager.cs">
+      <Link>External\HookManager\HookManager.cs</Link>
+    </Compile>
+    <Compile Include="..\Easislides\HookManager\HookManager.Callbacks.cs">
+      <Link>External\HookManager\HookManager.Callbacks.cs</Link>
+    </Compile>
+    <Compile Include="..\Easislides\HookManager\HookManager.Windows.cs">
+      <Link>External\HookManager\HookManager.Windows.cs</Link>
+    </Compile>
+    <Compile Include="..\Easislides\HookManager\HookManager.Structures.cs">
+      <Link>External\HookManager\HookManager.Structures.cs</Link>
+    </Compile>
+    <Compile Include="..\Easislides\HookManager\GlobalEventProvider.cs">
+      <Link>External\HookManager\GlobalEventProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Easislides\HookManager\MouseEventExtArgs.cs">
+      <Link>External\HookManager\MouseEventExtArgs.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!-- 폰트 자산 (ADR-0003). Sprint 1에서 실제 PretendardVariable.ttf를 Assets/Fonts/에 배치. PoC 단계에서는 시스템 폰트 폴백으로 동작 확인. -->
+  <ItemGroup>
+    <Folder Include="Assets\Fonts\" />
+  </ItemGroup>
+
+</Project>

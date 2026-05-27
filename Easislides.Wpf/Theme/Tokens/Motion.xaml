@@ -1,0 +1,24 @@
+<!--
+    모션 토큰 — 계획서 §4.4
+    prefers-reduced-motion 대응: ThemeService가 SystemParameters.ClientAreaAnimation false 감지 시 Duration 0으로 갱신.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Duration (ms 단위, Double — Animation에서 TimeSpan.FromMilliseconds로 사용) -->
+    <sys:Double x:Key="Motion.Duration.Fast">150</sys:Double>
+    <sys:Double x:Key="Motion.Duration.Normal">250</sys:Double>
+    <sys:Double x:Key="Motion.Duration.Slow">400</sys:Double>
+
+    <!-- KeyTime 변형 -->
+    <KeyTime x:Key="Motion.KeyTime.Fast">0:0:0.150</KeyTime>
+    <KeyTime x:Key="Motion.KeyTime.Normal">0:0:0.250</KeyTime>
+    <KeyTime x:Key="Motion.KeyTime.Slow">0:0:0.400</KeyTime>
+
+    <!-- Duration TimeSpan -->
+    <Duration x:Key="Motion.TimeSpan.Fast">0:0:0.150</Duration>
+    <Duration x:Key="Motion.TimeSpan.Normal">0:0:0.250</Duration>
+    <Duration x:Key="Motion.TimeSpan.Slow">0:0:0.400</Duration>
+
+</ResourceDictionary>

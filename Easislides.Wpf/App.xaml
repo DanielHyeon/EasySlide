@@ -1,0 +1,21 @@
+<Application x:Class="Easislides.Wpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             Startup="OnStartup">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- WPF UI Fluent 2 기본 리소스 (ADR-0001). 다음에 EasiDS가 오버라이딩. -->
+                <ui:ThemesDictionary Theme="Light" />
+                <ui:ControlsDictionary />
+
+                <!-- EasiDS 디자인 토큰 — 단일 진실 (Single Source of Truth) -->
+                <ResourceDictionary Source="Theme/EasiDS.xaml" />
+
+                <!-- 컨트롤 스타일 -->
+                <ResourceDictionary Source="Controls/EsButton.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,37 @@
+<!--
+    간격 토큰 — 계획서 §4.3
+    스페이싱 스케일 (4 base): 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64
+    Padding(3,5,3,5) 같은 비정형 값 금지 (§9.2 Roslyn 분석기 검증).
+    ScaleFactor가 런타임에 곱해짐 (ADR-0006).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Spacing 스케일 (px) -->
+    <sys:Double x:Key="Spacing.Xxs">2</sys:Double>
+    <sys:Double x:Key="Spacing.Xs">4</sys:Double>
+    <sys:Double x:Key="Spacing.Sm">8</sys:Double>
+    <sys:Double x:Key="Spacing.Md">12</sys:Double>
+    <sys:Double x:Key="Spacing.Lg">16</sys:Double>
+    <sys:Double x:Key="Spacing.Xl">20</sys:Double>
+    <sys:Double x:Key="Spacing.Xxl">24</sys:Double>
+    <sys:Double x:Key="Spacing.3xl">32</sys:Double>
+    <sys:Double x:Key="Spacing.4xl">40</sys:Double>
+    <sys:Double x:Key="Spacing.5xl">48</sys:Double>
+    <sys:Double x:Key="Spacing.6xl">64</sys:Double>
+
+    <!-- Thickness — XAML Margin/Padding 직접 사용 -->
+    <Thickness x:Key="Thickness.Xs">4</Thickness>
+    <Thickness x:Key="Thickness.Sm">8</Thickness>
+    <Thickness x:Key="Thickness.Md">12</Thickness>
+    <Thickness x:Key="Thickness.Lg">16</Thickness>
+    <Thickness x:Key="Thickness.Xl">24</Thickness>
+
+    <!-- 타깃 크기 (시니어 모드 대응 — ScaleFactor 적용) -->
+    <sys:Double x:Key="Spacing.TargetMin">44</sys:Double>
+    <sys:Double x:Key="Spacing.ButtonHeight.Sm">32</sys:Double>
+    <sys:Double x:Key="Spacing.ButtonHeight.Md">40</sys:Double>
+    <sys:Double x:Key="Spacing.ButtonHeight.Lg">48</sys:Double>
+
+</ResourceDictionary>

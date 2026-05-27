@@ -1,0 +1,120 @@
+<!--
+    EsButton — 계획서 §5.1
+    변종 (Style.Variant):
+      - EsButton.Primary    : 액센트 채움 (주요 액션)
+      - EsButton.Secondary  : 보더만 (보조 액션)
+      - EsButton.Danger     : 위험 액션 (삭제·되돌리기)
+
+    토큰 참조:
+      Color.Accent.* / Color.Border.* / Color.Status.Danger
+      Spacing.ButtonHeight.Md (시니어 모드 시 자동 확대)
+      Type.Button.FontSize / Type.Weight.Semibold
+      Radius.Medium / Motion.Duration.Fast
+
+    포커스 링: FocusVisualStyle — Color.Border.Focus 2px (§7.2).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 공통 포커스 비주얼 (키보드 포커스만 표시) -->
+    <Style x:Key="EsButton.FocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="-3"
+                               StrokeThickness="2"
+                               Stroke="{DynamicResource Brush.Border.Focus}"
+                               StrokeDashArray="1 0"
+                               RadiusX="6" RadiusY="6" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 베이스 — 모든 EsButton 변종이 BasedOn -->
+    <Style x:Key="EsButton.Base" TargetType="Button">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Button.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+        <Setter Property="Padding" Value="16,0" />
+        <Setter Property="MinHeight" Value="{DynamicResource Spacing.ButtonHeight.Md}" />
+        <Setter Property="MinWidth" Value="80" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource EsButton.FocusVisual}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="PART_Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource CornerRadius.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Primary — 액센트 채움 (주요 액션) -->
+    <Style x:Key="EsButton.Primary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+        <Setter Property="Background" Value="{DynamicResource Brush.Accent.Primary}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Inverse}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.Accent.PrimaryHover}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.PrimaryHover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.Accent.PrimaryPressed}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.PrimaryPressed}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Secondary — 보더만 (보조 액션) -->
+    <Style x:Key="EsButton.Secondary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Danger — 위험 액션 (삭제) -->
+    <Style x:Key="EsButton.Danger" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+        <Setter Property="Background" Value="{DynamicResource Brush.Status.Danger}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Inverse}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Status.Danger}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="0.9" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Opacity" Value="0.8" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>
