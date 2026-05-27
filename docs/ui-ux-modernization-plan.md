@@ -543,8 +543,8 @@ Theme/
 | 첫 실행 시 사용자 자산 마이그레이션 실패 | 데이터 유실 | 중 | §10.5 마이그레이션 도구 — 복사 전 백업 zip 생성, 실패 시 롤백, 사용자에게 명시 로그 |
 
 ### 10.4 일정 가속 옵션 (선택)
-- 아이콘 디자이너 1명 외부 의뢰 (2주, 60개 SVG) → Sprint 1~2 단축
 - 디자인 시스템 컨설팅 1주 → 토큰 합의 가속
+- (참고: **아이콘은 외주 없음** — Microsoft Fluent UI System Icons 라이브러리에서 직접 추출. 추출·변환·사용 가이드는 [docs/ui/icon-pipeline.md](ui/icon-pipeline.md), 자산 1:1 매핑은 [docs/ui/icon-migration-map.md](ui/icon-migration-map.md))
 
 ### 10.5 데이터 마이그레이션 & Legacy 유지보수 (Q7·Q8 확정)
 
@@ -609,7 +609,11 @@ v3.0 정식 출시일(M4)을 D-Day로 하여:
 | `dualscreens.png` / `singlescreen.png` | `ic_fluent_dual_screen_24_regular` / `ic_fluent_screen_24_regular` | |
 | `주일예배 썸네일.png` / `수요예배 썸네일.png` | 사용자 콘텐츠로 분리 (`%AppData%/EasiSlides/Thumbs/`) | 자산 아님 |
 
-전체 매핑 표는 별도 `docs/ui/icon-migration-map.md`로 분리 예정.
+**전체 매핑 표 + 추출/변환 가이드는 별도 문서로 분리됨**:
+- [docs/ui/icon-pipeline.md](ui/icon-pipeline.md) — Microsoft Fluent UI System Icons에서 직접 추출, SVG→XAML 변환, WPF UI `SymbolIcon` 사용법
+- [docs/ui/icon-migration-map.md](ui/icon-migration-map.md) — 60+ 자산 전체 1:1 매핑
+
+> **외주 불가**: 아이콘 자산은 별도 디자이너에게 발주하지 않고, MIT 라이선스의 공식 Fluent UI System Icons 라이브러리에서 직접 추출하여 사용 (ADR-0002).
 
 ### 11.C 결정 사항 ADR 후보
 다음 결정은 본 계획서 승인 후 개별 ADR로 분리하여 `docs/adr/`에 기록:
@@ -640,6 +644,6 @@ v3.0 정식 출시일(M4)을 D-Day로 하여:
 1. ~~본 계획서 합의 / Q1~Q8 답변~~ ✅ 완료 (v1.1)
 2. **ADR-001~007 작성** (다음 마일스톤) — 결정의 배경·대안·결과를 영구 기록
 3. **Sprint 0 킥오프** — `Easislides.Wpf` 프로젝트 생성 + `EasiDS` 토큰 ResourceDictionary + **PoC-A(HookManager), PoC-B(COM STA) 최우선 검증** (§8.3)
-4. 디자이너(또는 외주)에게 아이콘 매핑 표 전달 (§11.B)
+4. **아이콘 추출 (내부 작업, 외주 없음)** — [docs/ui/icon-pipeline.md](ui/icon-pipeline.md) 가이드 따라 Microsoft Fluent UI System Icons에서 60+ 자산 SVG 추출 + WPF 자원 등록. 매핑 표는 [docs/ui/icon-migration-map.md](ui/icon-migration-map.md). Sprint 1 Day 1~2에 일괄 작업.
 5. 베타 테스터 그룹(2~3명 운영자) 모집 — 시니어 모드 온보딩 카피 검증 포함
 6. `AssetMigrator` 명세서 + 백업/롤백 시퀀스 다이어그램 별도 작성 (§10.5.1)
