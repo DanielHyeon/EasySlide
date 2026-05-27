@@ -1,0 +1,124 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using NetOffice.PowerPointApi;
+
+namespace Easislides.Wpf.Interop;
+
+/// <summary>
+/// PowerPoint COM 세션 래퍼 — 계획서 §10.3 STA 스레드 모델 리스크 대응.
+///
+/// 핵심 규칙 (ADR-0001 / §10.3):
+///   1. COM 객체는 생성 STA 스레드에서만 호출·소멸 (크로스-스레드 호출 금지)
+///   2. Task.Run 결과는 Dispatcher.Invoke로 UI에 넘김
+///   3. 본 래퍼는 자체 STA 워커 스레드를 보유하여 COM 어피니티 보장
+///
+/// Sprint 0 PoC-B 검증: 100회 순회 후 좀비 POWERPNT.EXE 0 확인.
+/// </summary>
+public sealed class OfficePptSession : IDisposable
+{
+    private readonly Thread _staThread;
+    private readonly System.Collections.Concurrent.BlockingCollection<Action> _workQueue;
+    private readonly CancellationTokenSource _cts;
+    private Application? _ppt;
+    private bool _disposed;
+
+    public OfficePptSession()
+    {
+        _workQueue = new System.Collections.Concurrent.BlockingCollection<Action>();
+        _cts = new CancellationTokenSource();
+        _staThread = new Thread(WorkerLoop)
+        {
+            IsBackground = true,
+            Name = "EsOfficePptStaWorker",
+        };
+        _staThread.SetApartmentState(ApartmentState.STA);
+        _staThread.Start();
+    }
+
+    private void WorkerLoop()
+    {
+        try
+        {
+            foreach (var work in _workQueue.GetConsumingEnumerable(_cts.Token))
+            {
+                work();
+            }
+        }
+        catch (OperationCanceledException) { /* 정상 종료 */ }
+    }
+
+    /// <summary>STA 워커 스레드에서 동작을 실행하고 결과를 비동기 반환.</summary>
+    private Task<T> RunOnStaAsync<T>(Func<T> work)
+    {
+        var tcs = new TaskCompletionSource<T>();
+        _workQueue.Add(() =>
+        {
+            try { tcs.SetResult(work()); }
+            catch (Exception ex) { tcs.SetException(ex); }
+        });
+        return tcs.Task;
+    }
+
+    /// <summary>
+    /// PowerPoint Application 인스턴스를 STA 스레드에서 생성한다.
+    /// 생성 직후 Presentations.Count로 워밍업 — OfficeLib/PowerPoint.cs:82 검증된 패턴.
+    /// NetOffice의 일부 속성(예: Version)은 워밍업 전 접근 시 throw 가능.
+    /// </summary>
+    public Task OpenAsync() => RunOnStaAsync(() =>
+    {
+        _ppt ??= new Application();
+        _ = _ppt.Presentations.Count; // 워밍업 (OfficeLib 패턴)
+        return true;
+    });
+
+    /// <summary>
+    /// 가벼운 COM 호출 — Presentations.Count 조회.
+    /// STA 어피니티 + COM 마샬링 검증용. 크로스-스레드 호출 시 즉시 COMException.
+    /// OfficeLib 헬스 체크 패턴(PowerPoint.cs:82) 재사용.
+    /// </summary>
+    public Task<int> PingAsync() => RunOnStaAsync(() =>
+    {
+        if (_ppt is null) throw new InvalidOperationException("PowerPoint 세션이 열려 있지 않음. OpenAsync 먼저 호출하세요.");
+        return _ppt.Presentations.Count;
+    });
+
+    /// <summary>현재 세션 종료 — STA 스레드에서 Quit + ReleaseComObject.</summary>
+    public Task CloseAsync() => RunOnStaAsync(() =>
+    {
+        if (_ppt is not null)
+        {
+            try { _ppt.Quit(); }
+            catch { /* COM 종료 시 발생 가능, 무시 */ }
+
+            try { _ppt.Dispose(); }
+            catch { }
+
+            try { Marshal.FinalReleaseComObject(_ppt); }
+            catch { }
+
+            _ppt = null;
+            // 명시적 GC — COM 참조 카운트 즉시 해제 유도
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+        return true;
+    });
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        // 종료 전 세션 닫기
+        try { CloseAsync().GetAwaiter().GetResult(); } catch { }
+
+        _cts.Cancel();
+        _workQueue.CompleteAdding();
+        _staThread.Join(TimeSpan.FromSeconds(5));
+        _cts.Dispose();
+        _workQueue.Dispose();
+    }
+}

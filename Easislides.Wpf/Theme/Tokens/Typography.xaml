@@ -1,0 +1,73 @@
+<!--
+    타이포그래피 토큰 — 계획서 §4.2
+    ADR-0003: 한글 폰트 Pretendard Variable 번들 (Sprint 1에서 실제 파일 추가).
+    ADR-0006: ScaleFactor(1.0/1.2/1.4)는 ThemeService가 런타임에 FontSize 값만 갱신.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- 폰트 패밀리 (ADR-0003) -->
+    <!-- Sprint 1: pack://application:,,,/Assets/Fonts/#Pretendard Variable 로 교체. PoC 단계는 시스템 폴백. -->
+    <FontFamily x:Key="Font.Primary">Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif</FontFamily>
+    <FontFamily x:Key="Font.Mono">Cascadia Code, Consolas, monospace</FontFamily>
+
+    <!-- 타입 스케일 (Standard 기본값) — ScaleFactor가 런타임에 곱해짐 -->
+    <sys:Double x:Key="Type.Display.FontSize">32</sys:Double>
+    <sys:Double x:Key="Type.Title1.FontSize">24</sys:Double>
+    <sys:Double x:Key="Type.Title2.FontSize">20</sys:Double>
+    <sys:Double x:Key="Type.Title3.FontSize">18</sys:Double>
+    <sys:Double x:Key="Type.BodyLarge.FontSize">16</sys:Double>
+    <sys:Double x:Key="Type.Body.FontSize">14</sys:Double>
+    <sys:Double x:Key="Type.Caption.FontSize">12</sys:Double>
+    <sys:Double x:Key="Type.ButtonLarge.FontSize">16</sys:Double>
+    <sys:Double x:Key="Type.Button.FontSize">14</sys:Double>
+
+    <!-- Line height multiplier (LineStackingStrategy='BlockLineHeight'와 함께 사용) -->
+    <sys:Double x:Key="Type.LineHeight.Tight">1.25</sys:Double>
+    <sys:Double x:Key="Type.LineHeight.Normal">1.5</sys:Double>
+
+    <!-- FontWeight -->
+    <FontWeight x:Key="Type.Weight.Regular">Normal</FontWeight>
+    <FontWeight x:Key="Type.Weight.Medium">Medium</FontWeight>
+    <FontWeight x:Key="Type.Weight.Semibold">SemiBold</FontWeight>
+    <FontWeight x:Key="Type.Weight.Bold">Bold</FontWeight>
+
+    <!-- TextBlock 통합 스타일 (선택적 사용) -->
+    <Style x:Key="Type.Display.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Display.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+    </Style>
+    <Style x:Key="Type.Title1.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Title1.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+    </Style>
+    <Style x:Key="Type.Title2.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Title2.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+    </Style>
+    <Style x:Key="Type.Title3.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Title3.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+    </Style>
+    <Style x:Key="Type.BodyLarge.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Regular}" />
+    </Style>
+    <Style x:Key="Type.Body.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Regular}" />
+    </Style>
+    <Style x:Key="Type.Caption.Style" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Caption.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Regular}" />
+    </Style>
+
+</ResourceDictionary>
