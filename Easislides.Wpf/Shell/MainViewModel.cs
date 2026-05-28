@@ -128,7 +128,7 @@ public sealed partial class MainViewModel : ObservableObject
             OutputDisplays.Add(display);
         }
 
-        var selected = _display.GetPreferredDisplay(preferredId);
+        var selected = GetPreferredOutputDisplay(preferredId, displays);
         var matching = OutputDisplays.FirstOrDefault(display =>
             string.Equals(display.Id, selected.Id, StringComparison.OrdinalIgnoreCase)) ?? selected;
         if (!OutputDisplays.Contains(matching))
@@ -147,13 +147,38 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OpenOutput()
     {
-        var display = SelectedOutputDisplay ?? _display.GetPreferredDisplay();
+        var display = SelectedOutputDisplay ?? GetPreferredOutputDisplay(null);
         _output.Open(display, windowed: true);
         SelectedOutputDisplay = display;
         LiveBar.OutputMonitorName = _output.Current.Display?.Name ?? string.Empty;
         StatusText = $"출력 창 열림: {LiveBar.OutputMonitorName}";
         _telemetry.Record(MainCommandIds.OutputOpen, succeeded: true, StatusText);
         NotifyCommandStates();
+    }
+
+    private OutputDisplay GetPreferredOutputDisplay(string? preferredId, IReadOnlyList<OutputDisplay>? displays = null)
+    {
+        var availableDisplays = displays ?? _display.GetDisplays();
+        if (!string.IsNullOrWhiteSpace(preferredId))
+        {
+            var preferred = availableDisplays.FirstOrDefault(display =>
+                string.Equals(display.Id, preferredId, StringComparison.OrdinalIgnoreCase));
+            if (preferred is not null)
+            {
+                return preferred;
+            }
+        }
+
+        if (_settings.Get(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor))
+        {
+            return availableDisplays.FirstOrDefault(display => !display.IsPrimary)
+                ?? availableDisplays.FirstOrDefault(display => display.IsPrimary)
+                ?? _display.GetPrimaryDisplay();
+        }
+
+        return availableDisplays.FirstOrDefault(display => display.IsPrimary)
+            ?? availableDisplays.FirstOrDefault()
+            ?? _display.GetPrimaryDisplay();
     }
 
     private async Task CloseOutputAsync()

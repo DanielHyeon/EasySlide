@@ -178,7 +178,7 @@ Office 검증:
 현재 자동화 완료:
 
 - `PowerPointRenderServiceTests`: backend 결과 반환, 파일 stamp 기반 cache hit, 파일 변경 invalidation, unsupported/locked file 차단, 요청 timeout 및 설정 기반 timeout, 설정 기반 thumbnail cache 용량/runtime 재구성, backend 오류 분류 검증
-- `AppServiceRegistrationTests`: WPF 운영 DI 등록이 `PowerPointRenderService`를 settings-backed 생성자로 resolve하는지 검증
+- `AppServiceRegistrationTests`: WPF 운영 DI 등록이 `PowerPointRenderService`와 `WindowPlacementService`를 settings-backed 생성자로 resolve하는지 검증
 - `ThumbnailCacheTests`: cache hit, 파일 stamp 변경 miss, source invalidation, LRU entry/byte eviction, 통계 snapshot 검증
 - `ImageAssetServiceTests`: fit/fill 배치, 이미지 metadata 로드, unsupported/locked/decode error 분류 검증
 - `PreviewCanvasTests`: `ImageAssetService.CalculatePlacement` 계약 기반 fit/fill 배치, DPI별 bitmap pixel dimension 처리, source 없음 처리, slide number/selection 포함 WPF pixel render 검증
@@ -197,10 +197,10 @@ Office 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 6개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 208개 통과
-- `dotnet test Easislides.sln -c Debug`: 208개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 213개 통과
+- `dotnet test Easislides.sln -c Debug`: 213개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 208개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 213개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:

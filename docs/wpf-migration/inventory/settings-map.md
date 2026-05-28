@@ -57,7 +57,7 @@
 | `UsePowerpointTab`, `NoPowerpointPanelOverlay`, `PP_MaxFiles` | PowerPoint | typed key, legacy migration, SettingsWindow 노출 완료. `PowerPointRenderTimeoutSeconds`/`ThumbnailCacheMegabytes` runtime 소비처 연결 완료. 나머지 운영 소비처 연결 후속 |
 | `UseMediaTab`, `NoMediaPanelOverlay`, `MediaDir`, `LiveCamNumber` | 미디어 | typed key, legacy migration, SettingsWindow 노출 완료. 운영 소비처 연결 후속 |
 | `ShowLyricsMonitorAlertBox`, `AdvanceNextItem`, `GapItemOption`, `GapItemLogoFile`, `GapItemUseFade` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. 라이브 송출 runtime 연결 후속 |
-| `DMAlwaysUseSecondaryMonitor`, `DMOption1Top`, `DMOption1Left`, `DMOption1Width` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. display/window placement runtime 연결 후속 |
+| `DMAlwaysUseSecondaryMonitor`, `DMOption1Top`, `DMOption1Left`, `DMOption1Width` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. display/window placement runtime 연결 완료 |
 | `LMTextColour`, `LMBackColour`, `LMShowNotations` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. lyrics monitor appearance runtime 연결 후속 |
 
 ## 4. 검증
@@ -70,4 +70,4 @@
 
 ## 5. 완료 여부
 
-현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 실제 legacy registry source 연결은 `RegistryLegacySettingsSource`로 완료됐고, production 시작 시 첫 실행 migration 경계는 `SettingsBootstrapMigrationService`로 연결됐다. runtime 소비처 중 `DefaultOutputMonitorId`는 `MainViewModel.RefreshOutputDisplays` 초기 선택으로, `MediaVolume`/`MediaBalance`/`MediaMuted`는 `MediaPlaybackService` load/default 및 settings change 경계로 연결됐다. 남은 범위는 legacy file source 연결 여부 최종 판정, 나머지 runtime 소비처 연결, 운영 데이터 리허설이다.
+현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 실제 legacy registry source 연결은 `RegistryLegacySettingsSource`로 완료됐고, production 시작 시 첫 실행 migration 경계는 `SettingsBootstrapMigrationService`로 연결됐다. runtime 소비처 중 `DefaultOutputMonitorId`와 `DisplayAlwaysUseSecondaryMonitor`는 `MainViewModel.RefreshOutputDisplays` 초기 선택 및 제거된 저장 모니터 fallback으로, `DisplayCustomTop`/`DisplayCustomLeft`/`DisplayCustomWidth`는 `WindowPlacementService` custom bounds로, `MediaVolume`/`MediaBalance`/`MediaMuted`는 `MediaPlaybackService` load/default 및 settings change 경계로 연결됐다. 남은 범위는 legacy file source 연결 여부 최종 판정, 나머지 runtime 소비처 연결, 운영 데이터 리허설이다.

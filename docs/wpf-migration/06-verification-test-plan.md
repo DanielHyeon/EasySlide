@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 208개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 213개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 208개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 213개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -80,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 208개 이상 통과.
+- WPF 테스트 213개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -188,7 +188,7 @@ dotnet test Easislides.sln -c Debug --no-build
 - window placement policy
 - hook lifecycle
 
-현재 상태: `DisplayServiceTests`, `GlobalInputServiceTests`, `CommandCatalogTests`, `WindowPlacementServiceTests`, `PlatformDiagnosticsServiceTests`, `MainViewModelTests.OpenOutputCommand_UsesPreferredDisplayFromDisplayService`, `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings` 추가 완료. 모니터 열거 fallback, primary/secondary 선택 정책, 선택된 출력 모니터와 저장/이식된 기본 출력 모니터 설정으로 WPF 출력 창을 여는 경계, HookManager adapter 시작/중지/실패 cleanup, global scope 단축키 라우팅, command id 중복/shortcut 충돌 방지, Live 위험 명령 메타데이터, fullscreen/windowed 출력 창 배치 정책, platform diagnostics snapshot과 경고 수집을 자동 검증한다. `App.xaml.cs`는 운영 MainWindow 시작 시 `IGlobalInputService.Start()`를 호출하고 앱 종료 시 DI provider dispose로 hook 구독을 해제한다.
+현재 상태: `DisplayServiceTests`, `GlobalInputServiceTests`, `CommandCatalogTests`, `WindowPlacementServiceTests`, `PlatformDiagnosticsServiceTests`, `MainViewModelTests.OpenOutputCommand_UsesPreferredDisplayFromDisplayService`, `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`, `MainViewModelTests.OpenOutputCommand_WhenAlwaysUseSecondaryMonitorDisabledWithoutDefault_SelectsPrimary`, `MainViewModelTests.OpenOutputCommand_WhenDefaultMonitorMissingAndAlwaysUseSecondaryDisabled_FallsBackToPrimary` 추가 완료. 모니터 열거 fallback, primary/secondary 선택 정책, 선택된 출력 모니터와 저장/이식된 기본 출력 모니터 및 보조 모니터 우선 정책으로 WPF 출력 창을 여는 경계, 저장된 모니터가 제거된 경우의 primary fallback, HookManager adapter 시작/중지/실패 cleanup, global scope 단축키 라우팅, command id 중복/shortcut 충돌 방지, Live 위험 명령 메타데이터, fullscreen/windowed 출력 창 배치 정책, settings 기반 legacy custom bounds, platform diagnostics snapshot과 경고 수집을 자동 검증한다. `App.xaml.cs`는 운영 MainWindow 시작 시 `IGlobalInputService.Start()`를 호출하고 앱 종료 시 DI provider dispose로 hook 구독을 해제한다.
 
 수동 게이트:
 

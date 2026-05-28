@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Threading;
+using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using FluentAssertions;
@@ -26,11 +27,17 @@ public class AppServiceRegistrationTests
             using var provider = services.BuildServiceProvider();
             var settings = provider.GetRequiredService<ISettingsService>();
             var service = provider.GetRequiredService<IPowerPointRenderService>();
+            var placement = provider.GetRequiredService<IWindowPlacementService>();
 
             service.Should().BeOfType<PowerPointRenderService>();
             var settingsField = typeof(PowerPointRenderService).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
             settingsField.Should().NotBeNull();
             settingsField!.GetValue(service).Should().BeSameAs(settings);
+
+            placement.Should().BeOfType<WindowPlacementService>();
+            var placementSettingsField = typeof(WindowPlacementService).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
+            placementSettingsField.Should().NotBeNull();
+            placementSettingsField!.GetValue(placement).Should().BeSameAs(settings);
         });
     }
 
