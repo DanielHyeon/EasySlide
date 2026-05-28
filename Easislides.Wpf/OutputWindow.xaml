@@ -1,0 +1,51 @@
+<Window x:Class="Easislides.Wpf.OutputWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="EasiSlides Output"
+        Width="1280"
+        Height="720"
+        Background="{DynamicResource Brush.Surface.Page}"
+        Foreground="{DynamicResource Brush.Text.Primary}"
+        WindowStartupLocation="Manual">
+    <Grid Background="{DynamicResource Brush.Surface.Page}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Height="8"
+                Background="{DynamicResource Brush.Live.Active}" />
+
+        <TextBlock Grid.Row="1"
+                   Text="{Binding DisplayTitle}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   FontSize="72"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource Brush.Text.Primary}"
+                   MaxWidth="1100" />
+
+        <Grid Grid.Row="2"
+              Margin="{StaticResource Thickness.Xl}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="{Binding OutputMonitorName}"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StatusLabel}"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Title3.Style}"
+                       Foreground="{DynamicResource Brush.Live.Active}" />
+        </Grid>
+    </Grid>
+</Window>

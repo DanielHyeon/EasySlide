@@ -42,11 +42,15 @@ public partial class App : Application
         services.AddSingleton<IOutputWindowService, OutputWindowService>();
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
+        services.AddTransient<OutputWindow>();
+        services.AddSingleton<OutputSurfaceFactory>(sp => () => sp.GetRequiredService<OutputWindow>());
+        services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
         services.AddTransient<MainViewModel>();
         services.AddTransient<MainWindow>();
         services.AddTransient<DemoWindow>();
 
         Services = services.BuildServiceProvider();
+        _ = Services.GetRequiredService<IOutputWindowHost>();
 
         var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
         Window window = useDemo

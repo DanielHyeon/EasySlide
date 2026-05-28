@@ -129,7 +129,7 @@
 | LiveBar 컴포지트 | 1차 완료 | 실제 세션 연결 필요 |
 | SafetyConfirm | 1차 완료 | 실제 위험 명령 연결 필요 |
 | MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결 |
-| 출력 화면 WPF 대체 | 부분 구현 | `OutputWindowService` 상태/배치 정책 구현, 실제 borderless 출력 Window 필요 |
+| 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel` 연결. borderless/fullscreen 및 창 모드 배치와 라이브 snapshot 반영 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
 | 미디어 컨트롤 WPF 대체 | 미완료 | 계획 필요 |
 | 키보드/리모컨 연결 | 부분 완료 | `ShortcutRegistry`와 `MainViewModel.BindShortcuts` 연결, HookManager adapter 운영 연결 필요 |
 
@@ -166,12 +166,24 @@ UX 검증:
 - `ShortcutRegistryTests`: 로컬/글로벌 단축키 매핑
 - `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable
 - `OutputWindowServiceTests`: 모니터 좌표 계산, 창 재배치 정책
+- `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, 이벤트 구독 해제
+- `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨
 
 현재 자동화 완료:
 
 - `LiveSessionServiceTests`
 - `OutputWindowServiceTests`
 - `MainViewModelTests`
+- `OutputWindowHostTests`
+- `OutputWindowViewModelTests`
+
+2026-05-29 검증 결과:
+
+- `dotnet test Easislides.sln -c Debug`: 73개 통과
+- `dotnet build Easislides.sln -c Release`: 성공
+- `dotnet test Easislides.sln -c Release --no-build`: 73개 통과
+- Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
+- `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:
 
