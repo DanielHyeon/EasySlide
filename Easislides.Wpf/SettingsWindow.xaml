@@ -217,12 +217,71 @@
                         <TextBlock Text="단축키" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel Margin="{StaticResource Thickness.Xl}">
-                    <TextBlock Text="기본 단축키와 리모컨 입력은 플랫폼 단계의 CommandCatalog와 HookManager adapter에서 관리됩니다."
-                               TextWrapping="Wrap"
-                               Style="{StaticResource Type.Body.Style}"
-                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                </StackPanel>
+                <ListBox ItemsSource="{Binding ShortcutItems}"
+                         Margin="{StaticResource Thickness.Xl}"
+                         BorderBrush="{DynamicResource Brush.Border.Default}"
+                         AutomationProperties.Name="단축키 편집 목록">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid MinHeight="48" Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.4*" />
+                                    <ColumnDefinition Width="96" />
+                                    <ColumnDefinition Width="112" />
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               Style="{StaticResource Type.Body.Style}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource Brush.Text.Primary}" />
+                                    <TextBlock Text="{Binding CommandId}"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding ScopeText}"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding DefaultGesture}"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource Type.Body.Style}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource Brush.Text.Primary}" />
+                                <TextBox Grid.Column="3"
+                                         Text="{Binding CustomGesture, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource EsTextBox.Default}"
+                                         AutomationProperties.Name="사용자 단축키"
+                                         Margin="0,0,8,0" />
+                                <Button Grid.Column="4"
+                                        Command="{Binding DataContext.SaveShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        AutomationProperties.Name="단축키 저장"
+                                        Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
+                                        <TextBlock Text="저장" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Grid.Column="5"
+                                        Command="{Binding DataContext.ResetShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        AutomationProperties.Name="단축키 기본값 복원">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="Eraser24" Margin="0,0,6,0" />
+                                        <TextBlock Text="복원" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </TabItem>
 
             <TabItem>

@@ -207,6 +207,10 @@ public interface ISettingsService
     Task<SettingsResult> ImportAsync(string sourcePath);
 
     Task<SettingsResult> MigrateLegacyAsync(ILegacySettingsSource legacySettings);
+
+    SettingsResult SetShortcutOverride(string slotId, string gesture, SettingsChangeSource source = SettingsChangeSource.User);
+
+    SettingsResult ResetShortcutOverride(string slotId, SettingsChangeSource source = SettingsChangeSource.User);
 }
 
 public sealed class SettingsService : ISettingsService
@@ -249,6 +253,42 @@ public sealed class SettingsService : ISettingsService
         ArgumentNullException.ThrowIfNull(key);
         var next = SetValue(Current, key.Id, value);
         return ApplySnapshot(next, source, backupPath: null);
+    }
+
+    public SettingsResult SetShortcutOverride(
+        string slotId,
+        string gesture,
+        SettingsChangeSource source = SettingsChangeSource.User)
+    {
+        if (string.IsNullOrWhiteSpace(slotId))
+        {
+            return SettingsResult.Failure([Error("shortcuts", "Shortcut slot id cannot be empty.")]);
+        }
+
+        if (string.IsNullOrWhiteSpace(gesture))
+        {
+            return SettingsResult.Failure([Error($"shortcuts.{slotId}", "Shortcut gesture cannot be empty.")]);
+        }
+
+        var shortcuts = new Dictionary<string, string>(Current.Shortcuts, StringComparer.OrdinalIgnoreCase)
+        {
+            [slotId] = gesture,
+        };
+        return ApplySnapshot(Current with { Shortcuts = shortcuts }, source, backupPath: null);
+    }
+
+    public SettingsResult ResetShortcutOverride(
+        string slotId,
+        SettingsChangeSource source = SettingsChangeSource.User)
+    {
+        if (string.IsNullOrWhiteSpace(slotId))
+        {
+            return SettingsResult.Failure([Error("shortcuts", "Shortcut slot id cannot be empty.")]);
+        }
+
+        var shortcuts = new Dictionary<string, string>(Current.Shortcuts, StringComparer.OrdinalIgnoreCase);
+        shortcuts.Remove(slotId);
+        return ApplySnapshot(Current with { Shortcuts = shortcuts }, source, backupPath: null);
     }
 
     public SettingsResult Validate(EasiSettingsSnapshot snapshot)

@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Easislides.Wpf.Data;
+using Easislides.Wpf.Input;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Shell;
 using Easislides.Wpf.Theme;
 using FluentAssertions;
 using Xunit;
@@ -254,6 +256,73 @@ public class SettingsWindowViewModelTests
         sut.StatusMessage.Should().Contain("취소");
     }
 
+    [Fact]
+    public void Constructor_BuildsShortcutEditorItemsFromCommandCatalog()
+    {
+        using var fixture = SettingsFixture.Create();
+        var defaults = fixture.CommandCatalog.GetDefaultShortcuts();
+
+        var sut = fixture.CreateViewModel();
+
+        sut.ShortcutItems.Select(item => item.SlotId)
+            .Should()
+            .BeEquivalentTo(defaults.Select(ShortcutSettings.GetSlotId));
+        sut.ShortcutItems.Should().Contain(item =>
+            item.CommandId == MainCommandIds.LiveNext &&
+            item.IsGlobal &&
+            item.DefaultGesture == "F5" &&
+            item.EffectiveGesture == "F5");
+    }
+
+    [Fact]
+    public void SaveShortcut_WhenGestureIsValid_PersistsOverrideAndUpdatesEffectiveGesture()
+    {
+        using var fixture = SettingsFixture.Create();
+        var sut = fixture.CreateViewModel();
+        var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
+        item.CustomGesture = "F8";
+
+        var result = sut.SaveShortcut(item);
+
+        result.Succeeded.Should().BeTrue();
+        item.CustomGesture.Should().Be("F8");
+        item.EffectiveGesture.Should().Be("F8");
+        fixture.Settings.Current.Shortcuts[item.SlotId].Should().Be("F8");
+        sut.StatusMessage.Should().Contain("단축키");
+    }
+
+    [Fact]
+    public void SaveShortcut_WhenGestureCollidesWithAnotherShortcut_RejectsOverride()
+    {
+        using var fixture = SettingsFixture.Create();
+        var sut = fixture.CreateViewModel();
+        var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
+        item.CustomGesture = "Ctrl+L";
+
+        var result = sut.SaveShortcut(item);
+
+        result.Succeeded.Should().BeFalse();
+        fixture.Settings.Current.Shortcuts.Should().NotContainKey(item.SlotId);
+        sut.ValidationMessages.Should().Contain(message => message.Contains("충돌"));
+    }
+
+    [Fact]
+    public void ResetShortcut_WhenOverrideExists_RemovesOverrideAndRestoresDefault()
+    {
+        using var fixture = SettingsFixture.Create();
+        var sut = fixture.CreateViewModel();
+        var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
+        item.CustomGesture = "F8";
+        sut.SaveShortcut(item);
+
+        var result = sut.ResetShortcut(item);
+
+        result.Succeeded.Should().BeTrue();
+        item.CustomGesture.Should().BeEmpty();
+        item.EffectiveGesture.Should().Be("F5");
+        fixture.Settings.Current.Shortcuts.Should().NotContainKey(item.SlotId);
+    }
+
     private sealed class SettingsFixture : IDisposable
     {
         private SettingsFixture(string root)
@@ -265,6 +334,7 @@ public class SettingsWindowViewModelTests
             Theme = new RecordingThemeService();
             Database = new RecordingDatabaseMigrationService();
             PathPicker = new RecordingSettingsPathPicker();
+            CommandCatalog = new CommandCatalog();
         }
 
         public string Root { get; }
@@ -277,6 +347,8 @@ public class SettingsWindowViewModelTests
 
         public RecordingSettingsPathPicker PathPicker { get; }
 
+        public CommandCatalog CommandCatalog { get; }
+
         public static SettingsFixture Create()
         {
             var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_SettingsWindow_{Guid.NewGuid():N}");
@@ -285,7 +357,7 @@ public class SettingsWindowViewModelTests
         }
 
         public SettingsWindowViewModel CreateViewModel()
-            => new(Settings, Theme, Database, PathPicker);
+            => new(Settings, Theme, Database, PathPicker, CommandCatalog);
 
         public void Dispose()
         {

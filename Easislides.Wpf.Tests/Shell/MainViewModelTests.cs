@@ -1,10 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Platform;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -176,10 +180,35 @@ public class MainViewModelTests
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LivePrevious && !s.IsGlobal);
     }
 
+    [Fact]
+    public void BindShortcuts_AppliesSavedShortcutOverrides()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var catalog = new CommandCatalog();
+        var defaultShortcut = catalog.GetDefaultShortcuts()
+            .Single(shortcut => shortcut.CommandName == MainCommandIds.LiveNext && shortcut.IsGlobal);
+        settings.SetShortcutOverride(ShortcutSettings.GetSlotId(defaultShortcut), "F8");
+        var sut = CreateSut(commandCatalog: catalog, settings: settings);
+        var registry = new ShortcutRegistry();
+
+        sut.BindShortcuts(registry);
+
+        registry.All.Should().Contain(shortcut =>
+            shortcut.CommandName == MainCommandIds.LiveNext &&
+            shortcut.IsGlobal &&
+            shortcut.Key == Key.F8);
+        registry.All.Should().NotContain(shortcut =>
+            shortcut.CommandName == MainCommandIds.LiveNext &&
+            shortcut.IsGlobal &&
+            shortcut.Key == Key.F5);
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
-        ICommandCatalog? commandCatalog = null)
+        ICommandCatalog? commandCatalog = null,
+        ISettingsService? settings = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -190,7 +219,8 @@ public class MainViewModelTests
             prompt ?? new RecordingSafetyPrompt(allow: true),
             telemetry,
             display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback),
-            commandCatalog ?? new CommandCatalog());
+            commandCatalog ?? new CommandCatalog(),
+            settings ?? TempSettingsFolder.CreateDetachedSettings());
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt
@@ -230,6 +260,45 @@ public class MainViewModelTests
             }
 
             return _displays.FirstOrDefault(display => !display.IsPrimary) ?? GetPrimaryDisplay();
+        }
+    }
+
+    private sealed class TempSettingsFolder : IDisposable
+    {
+        private TempSettingsFolder(string root)
+        {
+            Root = root;
+            Directory.CreateDirectory(root);
+        }
+
+        public string Root { get; }
+
+        public static TempSettingsFolder Create()
+            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_MainSettings_{Guid.NewGuid():N}"));
+
+        public static ISettingsService CreateDetachedSettings()
+        {
+            var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_MainSettings_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(root);
+            return new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups")));
+        }
+
+        public ISettingsService CreateSettings()
+            => new SettingsService(new SettingsServiceOptions(
+                Path.Combine(Root, "settings.json"),
+                Path.Combine(Root, "Backups")));
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(Root, recursive: true);
+            }
+            catch
+            {
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Data;
+using Easislides.Wpf.Input;
 using Easislides.Wpf.Theme;
 using Wpf.Ui.Controls;
 
@@ -31,12 +32,75 @@ public sealed record SettingsSectionViewModel(
     string Description,
     SymbolRegular Symbol);
 
+public sealed partial class ShortcutEditorItemViewModel : ObservableObject
+{
+    private string _customGesture;
+
+    public ShortcutEditorItemViewModel(
+        string slotId,
+        string commandId,
+        string category,
+        string displayName,
+        string description,
+        bool isDangerous,
+        bool isGlobal,
+        string defaultGesture,
+        string? customGesture)
+    {
+        SlotId = slotId;
+        CommandId = commandId;
+        Category = category;
+        DisplayName = displayName;
+        Description = description;
+        IsDangerous = isDangerous;
+        IsGlobal = isGlobal;
+        DefaultGesture = defaultGesture;
+        _customGesture = customGesture ?? "";
+    }
+
+    public string SlotId { get; }
+
+    public string CommandId { get; }
+
+    public string Category { get; }
+
+    public string DisplayName { get; }
+
+    public string Description { get; }
+
+    public bool IsDangerous { get; }
+
+    public bool IsGlobal { get; }
+
+    public string ScopeText => IsGlobal ? "전역" : "로컬";
+
+    public string DefaultGesture { get; }
+
+    public string CustomGesture
+    {
+        get => _customGesture;
+        set
+        {
+            if (SetProperty(ref _customGesture, value))
+            {
+                OnPropertyChanged(nameof(EffectiveGesture));
+                OnPropertyChanged(nameof(IsCustomized));
+            }
+        }
+    }
+
+    public string EffectiveGesture => string.IsNullOrWhiteSpace(CustomGesture) ? DefaultGesture : CustomGesture;
+
+    public bool IsCustomized => !string.IsNullOrWhiteSpace(CustomGesture);
+}
+
 public sealed partial class SettingsWindowViewModel : ObservableObject
 {
     private readonly ISettingsService _settings;
     private readonly IThemeService _theme;
     private readonly IDatabaseMigrationService _databaseMigration;
     private readonly ISettingsPathPicker _pathPicker;
+    private readonly ICommandCatalog _commandCatalog;
     private bool _isRefreshing;
 
     private SettingsSectionViewModel _selectedSection;
@@ -62,12 +126,14 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         ISettingsService settings,
         IThemeService theme,
         IDatabaseMigrationService databaseMigration,
-        ISettingsPathPicker pathPicker)
+        ISettingsPathPicker pathPicker,
+        ICommandCatalog commandCatalog)
     {
         _settings = settings;
         _theme = theme;
         _databaseMigration = databaseMigration;
         _pathPicker = pathPicker;
+        _commandCatalog = commandCatalog;
 
         Sections = new ObservableCollection<SettingsSectionViewModel>(CreateSections());
         _selectedSection = Sections[0];
@@ -79,6 +145,20 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         BrowseDataBackupRootCommand = new AsyncRelayCommand(BrowseDataBackupRootAsync);
         BrowseSettingsImportCommand = new AsyncRelayCommand(BrowseSettingsImportAsync);
         BrowseSettingsExportCommand = new AsyncRelayCommand(BrowseSettingsExportAsync);
+        SaveShortcutCommand = new RelayCommand<ShortcutEditorItemViewModel>(item =>
+        {
+            if (item is not null)
+            {
+                SaveShortcut(item);
+            }
+        });
+        ResetShortcutCommand = new RelayCommand<ShortcutEditorItemViewModel>(item =>
+        {
+            if (item is not null)
+            {
+                ResetShortcut(item);
+            }
+        });
         AnalyzeDatabaseCommand = new AsyncRelayCommand(AnalyzeDatabaseAsync, CanAnalyzeDatabase);
         ExportSettingsCommand = new AsyncRelayCommand(ExportSettingsAsync, CanUseTransferPath);
         ImportSettingsCommand = new AsyncRelayCommand(ImportSettingsAsync, CanUseTransferPath);
@@ -91,6 +171,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public ObservableCollection<string> ValidationMessages { get; } = new();
 
     public ObservableCollection<DatabaseTable> DatabaseTables { get; } = new();
+
+    public ObservableCollection<ShortcutEditorItemViewModel> ShortcutItems { get; } = new();
 
     public IReadOnlyList<ColorTheme> ThemeOptions { get; } = Enum.GetValues<ColorTheme>();
 
@@ -109,6 +191,10 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public IAsyncRelayCommand BrowseSettingsImportCommand { get; }
 
     public IAsyncRelayCommand BrowseSettingsExportCommand { get; }
+
+    public IRelayCommand<ShortcutEditorItemViewModel> SaveShortcutCommand { get; }
+
+    public IRelayCommand<ShortcutEditorItemViewModel> ResetShortcutCommand { get; }
 
     public IAsyncRelayCommand AnalyzeDatabaseCommand { get; }
 
@@ -326,6 +412,52 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             () => _pathPicker.PickSettingsExportAsync(SettingsTransferPath),
             "내보내기 파일 선택됨");
 
+    public SettingsResult SaveShortcut(ShortcutEditorItemViewModel item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        if (!ShortcutSettings.TryParseGesture(item.CustomGesture, out _, out _, out var parseError))
+        {
+            var issue = new SettingsIssue($"shortcuts.{item.SlotId}", SettingsIssueSeverity.Error, parseError);
+            SetIssues([issue]);
+            StatusMessage = "단축키 저장 실패";
+            return SettingsResult.Failure([issue]);
+        }
+
+        var normalized = ShortcutSettings.NormalizeGesture(item.CustomGesture);
+        var collision = ShortcutItems.FirstOrDefault(other =>
+            !ReferenceEquals(other, item) &&
+            string.Equals(other.EffectiveGesture, normalized, StringComparison.OrdinalIgnoreCase));
+        if (collision is not null)
+        {
+            var issue = new SettingsIssue(
+                $"shortcuts.{item.SlotId}",
+                SettingsIssueSeverity.Error,
+                $"단축키 충돌: {collision.DisplayName} ({collision.ScopeText})");
+            SetIssues([issue]);
+            StatusMessage = "단축키 저장 실패";
+            return SettingsResult.Failure([issue]);
+        }
+
+        item.CustomGesture = normalized;
+        var result = _settings.SetShortcutOverride(item.SlotId, normalized);
+        ApplyResult(result, "단축키 저장됨");
+        return result;
+    }
+
+    public SettingsResult ResetShortcut(ShortcutEditorItemViewModel item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        var result = _settings.ResetShortcutOverride(item.SlotId);
+        if (result.Succeeded)
+        {
+            item.CustomGesture = "";
+        }
+
+        ApplyResult(result, "단축키 기본값 복원됨");
+        return result;
+    }
+
     private static SettingsSectionViewModel[] CreateSections()
         =>
         [
@@ -360,6 +492,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             AdminDatabasePath = current.Data.AdminDatabasePath;
             DataBackupRoot = current.Data.BackupRoot;
             EnableDiagnostics = current.Advanced.EnableDiagnostics;
+            RefreshShortcutItems(current.Shortcuts);
         }
         finally
         {
@@ -402,6 +535,29 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         SetIssues(result.Issues);
         StatusMessage = result.Succeeded ? successMessage : "설정 저장 실패";
+    }
+
+    private void RefreshShortcutItems(IReadOnlyDictionary<string, string> overrides)
+    {
+        ShortcutItems.Clear();
+        foreach (var command in _commandCatalog.All)
+        {
+            foreach (var shortcut in command.DefaultShortcuts)
+            {
+                var slotId = ShortcutSettings.GetSlotId(shortcut);
+                overrides.TryGetValue(slotId, out var customGesture);
+                ShortcutItems.Add(new ShortcutEditorItemViewModel(
+                    slotId,
+                    command.Id,
+                    command.Category,
+                    command.DisplayName,
+                    command.Description,
+                    command.IsDangerous,
+                    shortcut.IsGlobal,
+                    shortcut.DisplayText,
+                    customGesture));
+            }
+        }
     }
 
     private async Task BrowsePersistedPathAsync(

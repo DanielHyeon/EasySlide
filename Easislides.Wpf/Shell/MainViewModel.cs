@@ -9,6 +9,7 @@ using Easislides.Wpf.Composites;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Platform;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
@@ -20,6 +21,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ICommandTelemetry _telemetry;
     private readonly IDisplayService _display;
     private readonly ICommandCatalog _commandCatalog;
+    private readonly ISettingsService _settings;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
@@ -31,7 +33,8 @@ public sealed partial class MainViewModel : ObservableObject
         ILiveSafetyPrompt safetyPrompt,
         ICommandTelemetry telemetry,
         IDisplayService display,
-        ICommandCatalog commandCatalog)
+        ICommandCatalog commandCatalog,
+        ISettingsService settings)
     {
         _session = session;
         _output = output;
@@ -39,6 +42,7 @@ public sealed partial class MainViewModel : ObservableObject
         _telemetry = telemetry;
         _display = display;
         _commandCatalog = commandCatalog;
+        _settings = settings;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += (_, _) => NotifyCommandStates();
@@ -91,7 +95,9 @@ public sealed partial class MainViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(registry);
 
-        foreach (var shortcut in _commandCatalog.GetDefaultShortcuts())
+        foreach (var shortcut in ShortcutSettings.ApplyOverrides(
+                     _commandCatalog.GetDefaultShortcuts(),
+                     _settings.Current.Shortcuts))
         {
             RegisterIfMissing(registry, shortcut);
         }
