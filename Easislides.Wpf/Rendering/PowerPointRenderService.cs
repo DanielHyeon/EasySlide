@@ -90,10 +90,18 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
     };
 
     private readonly IPowerPointRenderBackend _backend;
-    private readonly Dictionary<PowerPointRenderCacheKey, PowerPointSlideSnapshot> _cache = new();
-    private readonly object _cacheLock = new();
+    private readonly IThumbnailCache _cache;
 
-    public PowerPointRenderService(IPowerPointRenderBackend backend) => _backend = backend;
+    public PowerPointRenderService(IPowerPointRenderBackend backend)
+        : this(backend, new ThumbnailCache())
+    {
+    }
+
+    public PowerPointRenderService(IPowerPointRenderBackend backend, IThumbnailCache cache)
+    {
+        _backend = backend ?? throw new ArgumentNullException(nameof(backend));
+        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+    }
 
     public async Task<PowerPointRenderResult> RenderSlideAsync(
         PowerPointRenderRequest request,
@@ -106,7 +114,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
             return Complete(failure, stopwatch.Elapsed);
         }
 
-        var cacheKey = PowerPointRenderCacheKey.From(normalized, fileInfo!);
+        var cacheKey = CreateCacheKey(normalized, fileInfo!);
         if (normalized.UseCache && TryGetCached(cacheKey, out var cached))
         {
             return new PowerPointRenderResult(
@@ -181,13 +189,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
         }
     }
 
-    public void ClearCache()
-    {
-        lock (_cacheLock)
-        {
-            _cache.Clear();
-        }
-    }
+    public void ClearCache() => _cache.Clear();
 
     private static bool TryNormalizeRequest(
         PowerPointRenderRequest request,
@@ -248,21 +250,22 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
         }
     }
 
-    private bool TryGetCached(PowerPointRenderCacheKey key, out PowerPointSlideSnapshot? snapshot)
-    {
-        lock (_cacheLock)
-        {
-            return _cache.TryGetValue(key, out snapshot);
-        }
-    }
+    private bool TryGetCached(ThumbnailCacheKey key, out PowerPointSlideSnapshot? snapshot)
+        => _cache.TryGet(key, out snapshot);
 
-    private void Store(PowerPointRenderCacheKey key, PowerPointSlideSnapshot snapshot)
-    {
-        lock (_cacheLock)
-        {
-            _cache[key] = snapshot;
-        }
-    }
+    private void Store(ThumbnailCacheKey key, PowerPointSlideSnapshot snapshot)
+        => _cache.Store(key, snapshot, snapshot.ImageBytes.LongLength);
+
+    private static ThumbnailCacheKey CreateCacheKey(PowerPointRenderRequest request, FileInfo fileInfo)
+        => ThumbnailCacheKey.FromFile(
+            new ThumbnailCacheRequest(
+                request.FilePath,
+                ThumbnailSourceKind.PowerPointSlide,
+                request.SlideNumber,
+                request.PixelWidth,
+                request.PixelHeight,
+                Variant: "render"),
+            fileInfo);
 
     private static PowerPointRenderResult Complete(PowerPointRenderResult result, TimeSpan elapsed)
         => result with { Elapsed = elapsed };
@@ -287,23 +290,6 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
             : PowerPointRenderErrorKind.CorruptFile;
     }
 
-    private sealed record PowerPointRenderCacheKey(
-        string FilePath,
-        long LastWriteUtcTicks,
-        long Length,
-        int SlideNumber,
-        int PixelWidth,
-        int PixelHeight)
-    {
-        public static PowerPointRenderCacheKey From(PowerPointRenderRequest request, FileInfo fileInfo)
-            => new(
-                request.FilePath.ToUpperInvariant(),
-                fileInfo.LastWriteTimeUtc.Ticks,
-                fileInfo.Length,
-                request.SlideNumber,
-                request.PixelWidth,
-                request.PixelHeight);
-    }
 }
 
 public sealed class OfficePowerPointRenderBackend : IPowerPointRenderBackend, IDisposable

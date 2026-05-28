@@ -45,6 +45,27 @@ public class PowerPointRenderServiceTests
     }
 
     [Fact]
+    public async Task RenderSlideAsync_UsesInjectedThumbnailCacheAcrossServiceInstances()
+    {
+        using var fixture = TempPowerPointFile.Create();
+        var cache = new ThumbnailCache();
+        var firstBackend = new FakePowerPointRenderBackend();
+        var secondBackend = new FakePowerPointRenderBackend();
+        var firstService = new PowerPointRenderService(firstBackend, cache);
+        var secondService = new PowerPointRenderService(secondBackend, cache);
+        var request = DefaultRequest(fixture.Path);
+
+        var first = await firstService.RenderSlideAsync(request);
+        var second = await secondService.RenderSlideAsync(request);
+
+        first.FromCache.Should().BeFalse();
+        second.FromCache.Should().BeTrue();
+        second.Slide.Should().BeSameAs(first.Slide);
+        firstBackend.CallCount.Should().Be(1);
+        secondBackend.CallCount.Should().Be(0);
+    }
+
+    [Fact]
     public async Task RenderSlideAsync_WhenExtensionIsUnsupported_ReturnsUnsupportedWithoutCallingBackend()
     {
         using var fixture = TempPowerPointFile.Create(extension: ".txt");

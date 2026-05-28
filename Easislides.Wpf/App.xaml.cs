@@ -50,6 +50,7 @@ public partial class App : Application
         services.AddSingleton<IImageAssetService, ImageAssetService>();
         services.AddSingleton<ITransitionEffectService, TransitionEffectService>();
         services.AddSingleton<IOutputRenderer, OutputRenderer>();
+        services.AddSingleton<IThumbnailCache, ThumbnailCache>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService, PowerPointRenderService>();
 
