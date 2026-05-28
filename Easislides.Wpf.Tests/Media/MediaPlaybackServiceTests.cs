@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Easislides.Wpf.Media;
 using FluentAssertions;
 using Xunit;
@@ -82,6 +83,191 @@ public class MediaPlaybackServiceTests
         sut.Current.IsRepeatEnabled.Should().BeTrue();
     }
 
+    [Fact]
+    public void Commands_DelegateToBackendInOrder()
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend);
+
+        sut.Load(DefaultRequest(duration: TimeSpan.FromSeconds(60)));
+        sut.Play();
+        sut.Seek(TimeSpan.FromSeconds(30));
+        sut.Pause();
+        sut.Stop();
+
+        backend.Commands.Should().Equal(
+            "Load:intro.mp4",
+            "Play",
+            "Seek:00:00:30",
+            "Pause",
+            "Stop");
+        sut.Current.State.Should().Be(MediaPlaybackState.Stopped);
+        sut.Current.Position.Should().Be(TimeSpan.Zero);
+    }
+
+    [Fact]
+    public void Settings_ApplyClampedSnapshotToBackend()
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend);
+        sut.Load(DefaultRequest());
+
+        sut.SetVolume(150);
+        sut.SetBalance(-150);
+        sut.SetMuted(true);
+        sut.SetRepeatEnabled(true);
+
+        backend.LastSettings!.Volume.Should().Be(100);
+        backend.LastSettings.Balance.Should().Be(-100);
+        backend.LastSettings.IsMuted.Should().BeTrue();
+        backend.LastSettings.IsRepeatEnabled.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Load_WhenBackendRejectsMedia_SetsFailedSnapshot()
+    {
+        var backend = new FakeMediaPlaybackBackend
+        {
+            LoadException = new MediaPlaybackException("Codec not supported")
+        };
+        var sut = new MediaPlaybackService(backend);
+
+        sut.Load(DefaultRequest());
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Failed);
+        sut.Current.Source.Should().Be("intro.mp4");
+        sut.Current.ErrorMessage.Should().Be("Codec not supported");
+    }
+
+    [Fact]
+    public void Play_WhenBackendFails_SetsFailedSnapshot()
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend);
+        sut.Load(DefaultRequest());
+        backend.PlayException = new MediaPlaybackException("Renderer disconnected");
+
+        sut.Play();
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Failed);
+        sut.Current.ErrorMessage.Should().Be("Renderer disconnected");
+    }
+
+    [Fact]
+    public void CommandFailures_SetFailedSnapshot()
+    {
+        AssertBackendFailure(
+            (sut, backend) =>
+            {
+                sut.Play();
+                backend.PauseException = new MediaPlaybackException("Pause failed");
+                sut.Pause();
+            },
+            "Pause failed");
+        AssertBackendFailure(
+            (sut, backend) =>
+            {
+                backend.StopException = new MediaPlaybackException("Stop failed");
+                sut.Stop();
+            },
+            "Stop failed");
+        AssertBackendFailure(
+            (sut, backend) =>
+            {
+                backend.SeekException = new MediaPlaybackException("Seek failed");
+                sut.Seek(TimeSpan.FromSeconds(15));
+            },
+            "Seek failed");
+        AssertBackendFailure(
+            (sut, backend) =>
+            {
+                backend.SettingsException = new MediaPlaybackException("Settings failed");
+                sut.SetMuted(true);
+            },
+            "Settings failed");
+    }
+
     private static MediaPlaybackRequest DefaultRequest(TimeSpan? duration = null)
         => new("intro.mp4", MediaSourceKind.File, duration ?? TimeSpan.FromMinutes(3), "Video");
+
+    private static void AssertBackendFailure(
+        Action<MediaPlaybackService, FakeMediaPlaybackBackend> command,
+        string expectedMessage)
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend);
+        sut.Load(DefaultRequest());
+
+        command(sut, backend);
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Failed);
+        sut.Current.ErrorMessage.Should().Be(expectedMessage);
+    }
+
+    private sealed class FakeMediaPlaybackBackend : IMediaPlaybackBackend
+    {
+        public List<string> Commands { get; } = [];
+        public MediaPlaybackSnapshot? LastSettings { get; private set; }
+        public Exception? LoadException { get; init; }
+        public Exception? PlayException { get; set; }
+        public Exception? PauseException { get; set; }
+        public Exception? StopException { get; set; }
+        public Exception? SeekException { get; set; }
+        public Exception? SettingsException { get; set; }
+
+        public void Load(MediaPlaybackSnapshot snapshot)
+        {
+            Commands.Add($"Load:{snapshot.Source}");
+            if (LoadException is not null)
+            {
+                throw LoadException;
+            }
+        }
+
+        public void Play()
+        {
+            Commands.Add("Play");
+            if (PlayException is not null)
+            {
+                throw PlayException;
+            }
+        }
+
+        public void Pause()
+        {
+            Commands.Add("Pause");
+            if (PauseException is not null)
+            {
+                throw PauseException;
+            }
+        }
+
+        public void Stop()
+        {
+            Commands.Add("Stop");
+            if (StopException is not null)
+            {
+                throw StopException;
+            }
+        }
+
+        public void Seek(TimeSpan position)
+        {
+            Commands.Add($"Seek:{position:c}");
+            if (SeekException is not null)
+            {
+                throw SeekException;
+            }
+        }
+
+        public void ApplySettings(MediaPlaybackSnapshot snapshot)
+        {
+            LastSettings = snapshot;
+            Commands.Add($"Settings:{snapshot.Volume}:{snapshot.Balance}:{snapshot.IsMuted}:{snapshot.IsRepeatEnabled}");
+            if (SettingsException is not null)
+            {
+                throw SettingsException;
+            }
+        }
+    }
 }

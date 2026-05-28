@@ -89,6 +89,18 @@ public interface IMediaPlaybackService
 
 public sealed class MediaPlaybackService : IMediaPlaybackService
 {
+    private readonly IMediaPlaybackBackend _backend;
+
+    public MediaPlaybackService()
+        : this(new NoOpMediaPlaybackBackend())
+    {
+    }
+
+    public MediaPlaybackService(IMediaPlaybackBackend backend)
+    {
+        _backend = backend ?? throw new ArgumentNullException(nameof(backend));
+    }
+
     public event EventHandler<MediaPlaybackChangedEventArgs>? PlaybackChanged;
 
     public MediaPlaybackSnapshot Current { get; private set; } = MediaPlaybackSnapshot.Empty;
@@ -98,7 +110,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Source);
 
-        Update(new MediaPlaybackSnapshot(
+        var snapshot = new MediaPlaybackSnapshot(
             MediaPlaybackState.Ready,
             request.Source,
             request.SourceKind,
@@ -111,7 +123,9 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             request.IsRepeatEnabled,
             request.IsWidescreen,
             request.OutputDisplayId,
-            ErrorMessage: null));
+            ErrorMessage: null);
+
+        TryUpdate(snapshot, () => _backend.Load(snapshot));
     }
 
     public void Play()
@@ -121,7 +135,8 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { State = MediaPlaybackState.Playing, ErrorMessage = null });
+        var next = Current with { State = MediaPlaybackState.Playing, ErrorMessage = null };
+        TryUpdate(next, _backend.Play);
     }
 
     public void Pause()
@@ -131,7 +146,8 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { State = MediaPlaybackState.Paused });
+        var next = Current with { State = MediaPlaybackState.Paused };
+        TryUpdate(next, _backend.Pause);
     }
 
     public void Stop()
@@ -141,7 +157,8 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { State = MediaPlaybackState.Stopped, Position = TimeSpan.Zero });
+        var next = Current with { State = MediaPlaybackState.Stopped, Position = TimeSpan.Zero };
+        TryUpdate(next, _backend.Stop);
     }
 
     public void Seek(TimeSpan position)
@@ -151,7 +168,9 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { Position = ClampPosition(position, Current.Duration) });
+        var clamped = ClampPosition(position, Current.Duration);
+        var next = Current with { Position = clamped };
+        TryUpdate(next, () => _backend.Seek(clamped));
     }
 
     public void SetVolume(int volume)
@@ -161,7 +180,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { Volume = Clamp(volume, 0, 100) });
+        ApplySettings(Current with { Volume = Clamp(volume, 0, 100) });
     }
 
     public void SetBalance(int balance)
@@ -171,7 +190,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { Balance = Clamp(balance, -100, 100) });
+        ApplySettings(Current with { Balance = Clamp(balance, -100, 100) });
     }
 
     public void SetMuted(bool isMuted)
@@ -181,7 +200,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { IsMuted = isMuted });
+        ApplySettings(Current with { IsMuted = isMuted });
     }
 
     public void SetRepeatEnabled(bool isRepeatEnabled)
@@ -191,10 +210,30 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
             return;
         }
 
-        Update(Current with { IsRepeatEnabled = isRepeatEnabled });
+        ApplySettings(Current with { IsRepeatEnabled = isRepeatEnabled });
     }
 
-    private bool HasLoadedMedia => Current.State != MediaPlaybackState.Empty;
+    private bool HasLoadedMedia => Current.State is not MediaPlaybackState.Empty and not MediaPlaybackState.Failed;
+
+    private void ApplySettings(MediaPlaybackSnapshot snapshot)
+        => TryUpdate(snapshot, () => _backend.ApplySettings(snapshot));
+
+    private void TryUpdate(MediaPlaybackSnapshot snapshot, Action backendAction)
+    {
+        try
+        {
+            backendAction();
+            Update(snapshot);
+        }
+        catch (Exception ex)
+        {
+            Update(snapshot with
+            {
+                State = MediaPlaybackState.Failed,
+                ErrorMessage = ex.Message
+            });
+        }
+    }
 
     private void Update(MediaPlaybackSnapshot snapshot)
     {

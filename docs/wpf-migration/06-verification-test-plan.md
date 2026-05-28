@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 140개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 145개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 140개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 145개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -80,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 140개 이상 통과.
+- WPF 테스트 145개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -96,7 +96,7 @@ dotnet test Easislides.sln -c Debug --no-build
 - `MediaPlaybackServiceTests`
 - `MediaPlaybackViewModelTests`
 
-현재 상태: `MainViewModelTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출한다. 미디어 컨트롤은 backend 없는 상태 계약 기준으로 load/play/pause/stop/seek/mute/repeat/volume/balance와 ViewModel command를 자동 검증한다.
+현재 상태: `MainViewModelTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출한다. 미디어 컨트롤은 `IMediaPlaybackBackend` fake/NoOp 경계 기준으로 load/play/pause/stop/seek/mute/repeat/volume/balance, backend 명령 위임, 모든 주요 backend 명령 실패 상태 전환, ViewModel command를 자동 검증한다.
 2026-05-29 기준 Release 산출물 `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml` 생성 확인 완료.
 
 수동 게이트:
@@ -141,8 +141,9 @@ dotnet test Easislides.sln -c Debug --no-build
 - transition effect list/action/frame contract tests
 - output renderer scene snapshot tests
 - media playback state tests
+- media playback backend delegation/failure tests
 
-현재 상태: `PowerPointRenderServiceTests`, `ThumbnailCacheTests`, `ImageAssetServiceTests`, `PreviewCanvasTests`, `TransitionEffectServiceTests`, `OutputRendererTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. PPT는 `IPowerPointRenderService`/`PowerPointRenderService`로 파일 검증, timeout, `IThumbnailCache` 기반 cache invalidation, 오류 분류 계약을 고정했고 `OfficePowerPointRenderBackend`가 `OfficePptSession.ExportSlideAsync`를 통해 STA 경계 안에서 JPG export를 수행한다. 썸네일 캐시는 파일 경로/stamp/길이/크기/variant 기반 key, source invalidation, LRU entry/byte eviction, 통계 snapshot, PowerPoint render service 공유 캐시 주입을 고정했다. 이미지는 `IImageAssetService`/`ImageAssetService`로 메타데이터 로드, legacy `ImageCanvas.ResizeCanvas`와 같은 fit 배치, fill/stretch/center 배치, unsupported/locked/decode 오류 분류를 고정했고 `PreviewCanvas`가 bitmap pixel dimension 기준으로 같은 배치 계약과 WPF pixel render를 수행함을 검증했다. 전환 효과는 `ITransitionEffectService`/`TransitionEffectService`로 legacy 58개 전환 목록, `AsFade` action, background layer, progress/frame 계약을 고정했다. 출력 renderer는 `IOutputRenderer`/`OutputRenderer`로 Live/Hidden/Blackout/Ready/Standby scene snapshot, content placement, transition frame, `OutputWindowViewModel.Scene` 바인딩 경계를 고정했다. 미디어는 실제 파일/코덱/backend 통합 전 단계로 `IMediaPlaybackService` 상태 machine과 `MediaPlaybackViewModel` command/표시 계약을 고정했다. 후속으로 실제 PPT fixture 10개/100회 stress, WPF `MediaElement` 또는 DirectShow adapter 기반 통합 테스트, WinForms/WPF 출력 이미지 diff 테스트가 필요하다.
+현재 상태: `PowerPointRenderServiceTests`, `ThumbnailCacheTests`, `ImageAssetServiceTests`, `PreviewCanvasTests`, `TransitionEffectServiceTests`, `OutputRendererTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. PPT는 `IPowerPointRenderService`/`PowerPointRenderService`로 파일 검증, timeout, `IThumbnailCache` 기반 cache invalidation, 오류 분류 계약을 고정했고 `OfficePowerPointRenderBackend`가 `OfficePptSession.ExportSlideAsync`를 통해 STA 경계 안에서 JPG export를 수행한다. 썸네일 캐시는 파일 경로/stamp/길이/크기/variant 기반 key, source invalidation, LRU entry/byte eviction, 통계 snapshot, PowerPoint render service 공유 캐시 주입을 고정했다. 이미지는 `IImageAssetService`/`ImageAssetService`로 메타데이터 로드, legacy `ImageCanvas.ResizeCanvas`와 같은 fit 배치, fill/stretch/center 배치, unsupported/locked/decode 오류 분류를 고정했고 `PreviewCanvas`가 bitmap pixel dimension 기준으로 같은 배치 계약과 WPF pixel render를 수행함을 검증했다. 전환 효과는 `ITransitionEffectService`/`TransitionEffectService`로 legacy 58개 전환 목록, `AsFade` action, background layer, progress/frame 계약을 고정했다. 출력 renderer는 `IOutputRenderer`/`OutputRenderer`로 Live/Hidden/Blackout/Ready/Standby scene snapshot, content placement, transition frame, `OutputWindowViewModel.Scene` 바인딩 경계를 고정했다. 미디어는 `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`로 상태 machine, backend 명령 위임, 모든 주요 backend 명령 실패 시 `Failed` snapshot 전환, WPF `MediaElement` 파일 adapter 경계와 `MediaPlaybackViewModel` command/표시 계약을 고정했다. 후속으로 실제 PPT fixture 10개/100회 stress, WPF `MediaElement` visual host 또는 DirectShow adapter 기반 통합 테스트, WinForms/WPF 출력 이미지 diff 테스트가 필요하다.
 
 수동 게이트:
 
