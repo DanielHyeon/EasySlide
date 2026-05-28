@@ -115,6 +115,11 @@ public sealed partial class MainViewModel : ObservableObject
     public void RefreshOutputDisplays()
     {
         var preferredId = SelectedOutputDisplay?.Id;
+        if (string.IsNullOrWhiteSpace(preferredId))
+        {
+            preferredId = _settings.Get(EasiSettingKeys.DefaultOutputMonitorId);
+        }
+
         var displays = _display.GetDisplays();
 
         OutputDisplays.Clear();

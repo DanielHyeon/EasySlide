@@ -147,6 +147,7 @@
 - `GlobalInputServiceTests`: 전역 입력 시작 1회 보장, global scope 단축키 라우팅, local-only 단축키 차단, stop/unsubscribe, 시작 실패 cleanup
 - `DisplayServiceTests`: 빈 모니터 목록 fallback, primary 우선 정렬, preferred id 선택, 제거된 모니터 fallback
 - `MainViewModelTests.OpenOutputCommand_UsesPreferredDisplayFromDisplayService`: 운영 셸 출력 열기 명령이 선택/선호 모니터를 사용
+- `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`: 저장/이식된 기본 출력 모니터 설정이 운영 셸 초기 선택에 적용
 
 수동 테스트:
 
@@ -169,9 +170,9 @@
 
 2026-05-29 기준:
 
-- `dotnet test Easislides.sln -c Debug`: 99개 통과
+- `dotnet test Easislides.sln -c Debug`: 202개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 99개 통과
-- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/Platform/DisplayService.cs`, `Easislides.Wpf/Platform/WindowPlacementService.cs`, `Easislides.Wpf/Platform/PlatformDiagnosticsService.cs` 인식 확인
+- `dotnet test Easislides.sln -c Release --no-build`: 202개 통과
+- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/Platform/DisplayService.cs`, `Easislides.Wpf/Platform/WindowPlacementService.cs`, `Easislides.Wpf/Platform/PlatformDiagnosticsService.cs`, `Easislides.Wpf/Shell/MainViewModel.cs` 인식 확인
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - 남은 수동 검증: 실제 듀얼 모니터 좌우/상하 배치, 혼합 DPI, 모니터 제거/재연결, 실제 리모컨/타 앱 포커스 글로벌 단축키, 텍스트 입력 중 shortcut 충돌

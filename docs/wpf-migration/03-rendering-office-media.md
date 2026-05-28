@@ -196,10 +196,10 @@ Office 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 6개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 145개 통과
-- `dotnet test Easislides.sln -c Debug`: 145개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 202개 통과
+- `dotnet test Easislides.sln -c Debug`: 202개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 145개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 202개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:

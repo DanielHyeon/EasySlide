@@ -175,6 +175,7 @@ DB 검증:
 - `RegistryLegacySettingsSourceTests`: HKCU legacy registry section(`config`/`options`/`monitors`) 문자열/DWORD 읽기, 누락 값 조회 시 registry key 미생성, registry source 기반 `SettingsService.MigrateLegacyAsync` 검증
 - `SettingsBootstrapMigrationServiceTests`: settings.json 최초 미생성 시 legacy migration 실행, 기존 settings.json 존재 시 migration skip, migration 실패 시 settings.json 미생성 검증
 - `SettingsWindowViewModelTests`: 9개 설정 섹션 구성, 현재 설정 로드, 테마/크기 변경 저장 및 `IThemeService` 적용, invalid setting rollback, default restore, DB 분석 결과 표시, import 후 화면 갱신, 작업 폴더/AdminDB/백업 루트/설정 transfer path picker command, shortcut editor 항목 생성/override 저장/충돌 차단/기본값 복원, operational setting 로드/저장/rollback 검증
+- `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`: 저장/이식된 `DefaultOutputMonitorId`가 WPF 운영 셸의 초기 출력 모니터 선택에 적용되는지 검증
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
 
@@ -187,10 +188,10 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 20개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 201개 통과
-- `dotnet test Easislides.sln -c Debug`: 201개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 202개 통과
+- `dotnet test Easislides.sln -c Debug`: 202개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 201개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 202개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

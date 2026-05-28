@@ -71,6 +71,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void OpenOutputCommand_UsesDefaultOutputMonitorFromSettings()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.DefaultOutputMonitorId, "primary");
+        var primary = new OutputDisplay("primary", "주 모니터", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var outputDisplay = new OutputDisplay("display-2", "송출 모니터", 1920, 0, 1920, 1080, 1.25);
+        var sut = CreateSut(display: new FixedDisplayService(primary, outputDisplay), settings: settings);
+
+        sut.SelectedOutputDisplay.Should().Be(primary);
+
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.LiveBar.OutputMonitorName.Should().Be("주 모니터");
+        sut.StatusText.Should().Contain("주 모니터");
+    }
+
+    [Fact]
     public async Task NextItemCommand_WhenLive_AdvancesSelectionAndLiveSession()
     {
         var prompt = new RecordingSafetyPrompt(allow: true);
