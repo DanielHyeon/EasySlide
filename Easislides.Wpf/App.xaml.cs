@@ -67,7 +67,9 @@ public partial class App : Application
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddTransient<MediaPlaybackViewModel>();
+        services.AddTransient<SettingsWindowViewModel>();
         services.AddTransient<OutputWindow>();
+        services.AddTransient<SettingsWindow>();
         services.AddSingleton<OutputSurfaceFactory>(sp => () => sp.GetRequiredService<OutputWindow>());
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
         services.AddTransient<MainViewModel>();

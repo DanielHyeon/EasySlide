@@ -58,10 +58,20 @@
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding BlackScreenCommand}"
-                            Style="{StaticResource EsButton.Danger}">
+                            Style="{StaticResource EsButton.Danger}"
+                            Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="EyeOff24" Margin="0,0,6,0" />
                             <TextBlock Text="Black" />
+                        </StackPanel>
+                    </Button>
+                    <Button Click="OpenSettings_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="설정 열기"
+                            AutomationProperties.Name="설정 열기">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Settings24" Margin="0,0,6,0" />
+                            <TextBlock Text="설정" />
                         </StackPanel>
                     </Button>
                 </StackPanel>

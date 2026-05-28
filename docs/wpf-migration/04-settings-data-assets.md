@@ -122,8 +122,8 @@
 |---|---|---|
 | ThemeService | 1차 완료 | 다크/라이트/Senior 테스트 있음 |
 | Pretendard/EasiDS | 1차 완료 | WPF resource 반영 |
-| SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `EasiSettingsSnapshot`, typed `EasiSettingKeys` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. 실제 `FrmOptions` 전체 key inventory, SettingsWindow 바인딩, DB schema migration 연결은 후속 필요 |
-| SettingsWindow | 미완료 | 신규 구현 필요 |
+| SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `EasiSettingsSnapshot`, typed `EasiSettingKeys` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. 실제 `FrmOptions` 전체 key inventory와 legacy registry/file source 연결은 후속 필요 |
+| SettingsWindow | 부분 구현 | `SettingsWindow`, `SettingsWindowViewModel` 추가. ADR-0005 기준 9개 섹션(일반/화면/송출/PowerPoint/미디어/단축키/데이터/가져오기·내보내기/고급), typed setting 즉시 저장, 다크/라이트 및 Standard/Large/Senior 적용, default restore, import/export, AdminDB 분석, 검증 메시지 표시, MainWindow 설정 진입 버튼 자동 검증 완료. legacy `FrmOptions` 전체 key inventory와 파일 선택 dialog/shortcut editor 세부 UI는 후속 필요 |
 | legacy settings map | 미완료 | `FrmOptions` 분석 필요 |
 | 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. AppData 실제 경로 연결, SettingsWindow/온보딩 UI, DB/설정 snapshot 통합은 후속 필요 |
 | DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 AdminDB 전체 schema inventory, repository 연결, 운영 DB fixture 기반 WinForms/WPF 호환성 검증은 후속 필요 |
@@ -138,6 +138,7 @@
 - default restore가 동작한다.
 - 잘못된 경로/권한 부족/읽기 전용 파일에서 명확한 오류를 표시한다.
 - 현재 1차 자동 검증은 임시 설정 파일에서 `SettingsService` typed key get/set, validation failure rollback, default restore, JSON import/export, backup, legacy value conversion 계약으로 수행한다. 실제 `Properties.Settings`/`FrmOptions` 전체 key 매핑 후 호환성 검증을 추가한다.
+- SettingsWindow 1차 자동 검증은 `SettingsWindowViewModel` 섹션 구성, 설정값 로드, 테마/크기 즉시 적용, invalid setting rollback, default restore, import 후 화면 갱신, DB 분석 결과 표시 계약으로 수행한다. 실제 WPF 창의 파일 선택 dialog, keyboard focus order, 스크린샷 회귀 검증을 후속으로 추가한다.
 
 자산 검증:
 
@@ -170,18 +171,20 @@ DB 검증:
 현재 자동화 완료:
 
 - `SettingsServiceTests`: typed get/set 저장 및 변경 이벤트, invalid value rollback, default restore, JSON import/export, import 전 backup, invalid import 차단, legacy setting 변환 및 warning report 검증
+- `SettingsWindowViewModelTests`: 9개 설정 섹션 구성, 현재 설정 로드, 테마/크기 변경 저장 및 `IThemeService` 적용, invalid setting rollback, default restore, DB 분석 결과 표시, import 후 화면 갱신 검증
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
 
 2026-05-29 검증 결과:
 
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsServiceTests`: 7개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 7개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 164개 통과
-- `dotnet test Easislides.sln -c Debug`: 164개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 171개 통과
+- `dotnet test Easislides.sln -c Debug`: 171개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 164개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 171개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:
