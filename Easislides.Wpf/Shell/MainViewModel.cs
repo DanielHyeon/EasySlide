@@ -26,7 +26,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
-    [ObservableProperty] private string _statusText = "WPF 운영 셸 준비됨";
+    [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
 
     [ObservableProperty] private bool _isPowerPointTabVisible;
     [ObservableProperty] private bool _isPowerPointPanelOverlayEnabled = true;
@@ -409,11 +409,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         HasPowerPointLimitViolation = PowerPointFileCount > PowerPointMaxFiles;
         if (updateStatus && HasPowerPointLimitViolation)
         {
-            StatusText = $"PowerPoint limit exceeded: {PowerPointFileCount}/{PowerPointMaxFiles}";
+            StatusText = $"PowerPoint 제한 초과: {PowerPointFileCount}/{PowerPointMaxFiles}";
         }
         else if (updateStatus && wasViolation)
         {
-            StatusText = Queue.Count == 0 ? "Queue is empty" : $"{Queue.Count} items loaded";
+            StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
         }
     }
 
@@ -488,7 +488,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LoadQueue(new[]
         {
             new LiveQueueItem("sample-welcome", "예배 시작 안내", "Notice"),
-            new LiveQueueItem("sample-song", "주일찬양 #1", "Song"),
+            new LiveQueueItem("sample-song", "주일 찬양 #1", "Song"),
             new LiveQueueItem("sample-sermon", "말씀 본문", "Bible"),
         });
     }

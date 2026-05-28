@@ -18,6 +18,27 @@ namespace Easislides.Wpf.Tests.Shell;
 public class MainViewModelTests
 {
     [Fact]
+    public void Constructor_UsesReadableKoreanDefaultStatusAndSampleQueue()
+    {
+        var sut = CreateSut();
+
+        sut.StatusText.Should().Be("3개 항목 로드됨");
+        sut.Queue.Select(item => item.Title)
+            .Should()
+            .Contain(["예배 시작 안내", "주일 찬양 #1", "말씀 본문"]);
+    }
+
+    [Fact]
+    public void LoadQueue_WhenEmpty_UsesReadableKoreanStatus()
+    {
+        var sut = CreateSut();
+
+        sut.LoadQueue([]);
+
+        sut.StatusText.Should().Be("송출할 항목이 없습니다");
+    }
+
+    [Fact]
     public async Task GoLiveCommand_RequiresSelectionAndOpenOutput()
     {
         var sut = CreateSut();
@@ -135,6 +156,7 @@ public class MainViewModelTests
             new LiveQueueItem("ppt-1", "Deck 1", "P"),
             new LiveQueueItem("ppt-2", "Deck 2", "PowerPoint"),
         });
+        sut.StatusText.Should().Be("PowerPoint 제한 초과: 2/1");
         sut.OpenOutputCommand.Execute(null);
 
         sut.HasPowerPointLimitViolation.Should().BeTrue();
@@ -144,6 +166,7 @@ public class MainViewModelTests
 
         sut.HasPowerPointLimitViolation.Should().BeFalse();
         sut.GoLiveCommand.CanExecute(null).Should().BeTrue();
+        sut.StatusText.Should().Be("2개 항목 로드됨");
     }
 
     [Fact]

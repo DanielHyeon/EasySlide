@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Easislides.Wpf.Tests;
 
+[Collection("WPF Application")]
 public class AppServiceRegistrationTests
 {
     [Fact]

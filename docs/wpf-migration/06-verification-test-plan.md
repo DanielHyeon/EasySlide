@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 253개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 256개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 253개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 256개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -96,7 +96,7 @@ dotnet test Easislides.sln -c Debug --no-build
 - `MediaPlaybackServiceTests`
 - `MediaPlaybackViewModelTests`
 
-현재 상태: `MainViewModelTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출하며, 저장/이식된 `AdvanceNextItem`은 현재 항목을 송출한 뒤 다음 항목을 운영 selection으로 준비한다. `OutputWindowHost`/`OutputWindowViewModel`은 settings-backed lyrics monitor alert/color/notation visibility를 출력 창에 반영한다. 미디어 컨트롤은 `IMediaPlaybackBackend` fake/NoOp 경계 기준으로 load/play/pause/stop/seek/mute/repeat/volume/balance, 저장/이식된 media audio default와 runtime 변경 반영, backend 명령 위임, 모든 주요 backend 명령 실패 상태 전환, ViewModel command를 자동 검증한다.
+현재 상태: `MainViewModelTests`, `MainWindowCopyTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출하며, 저장/이식된 `AdvanceNextItem`은 현재 항목을 송출한 뒤 다음 항목을 운영 selection으로 준비한다. `MainWindowCopyTests`는 운영 셸 제목/출력/설정/예배 순서/상태 패널 한국어 라벨을 회귀 방지하고, `MainViewModelTests`는 샘플 큐와 빈 큐/PowerPoint 제한 상태 메시지의 readable Korean copy를 고정한다. `OutputWindowHost`/`OutputWindowViewModel`은 settings-backed lyrics monitor alert/color/notation visibility를 출력 창에 반영한다. 미디어 컨트롤은 `IMediaPlaybackBackend` fake/NoOp 경계 기준으로 load/play/pause/stop/seek/mute/repeat/volume/balance, 저장/이식된 media audio default와 runtime 변경 반영, backend 명령 위임, 모든 주요 backend 명령 실패 상태 전환, ViewModel command를 자동 검증한다.
 2026-05-29 기준 Release 산출물 `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml` 생성 확인 완료.
 
 수동 게이트:

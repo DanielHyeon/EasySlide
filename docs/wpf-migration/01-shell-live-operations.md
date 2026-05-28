@@ -129,7 +129,7 @@
 | WPF 앱 골격 | 완료 | `Easislides.Wpf` 존재 |
 | LiveBar 컴포지트 | 1차 구현 완료 | `LiveSessionService` snapshot과 `MainViewModel.ApplyLiveSnapshot`으로 상태/현재 항목/출력 모니터 연결 완료 |
 | SafetyConfirm | 1차 운영 연결 완료 | Go Live, Stop Live, 라이브 중 출력 닫기, Black/Hide 명령이 `ILiveSafetyPrompt` 확인 경계를 통과 |
-| MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결 |
+| MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결. 운영 셸 제목/버튼/패널 라벨, 샘플 큐, 빈 큐/PowerPoint 제한 상태 메시지의 한국어 readable copy 회귀 방지 완료 |
 | 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel`, `IDisplayService` 연결. borderless/fullscreen 및 창 모드 배치, `DefaultOutputMonitorId` 설정 기반 초기 출력 모니터 선택, 라이브 snapshot 반영 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
 | 미디어 컨트롤 WPF 대체 | 1차 구현 완료 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend` 추가. 재생/일시정지/정지/seek/mute/repeat/volume/balance 상태 계약, 설정 기반 media volume/balance/mute 기본값 및 변경 이벤트 반영, backend 명령 위임, 모든 주요 backend 명령 실패 시 `Failed` snapshot 전환, WPF `MediaElement` 파일 adapter 경계와 command 기반 ViewModel 검증 완료. DirectShow adapter 및 출력 화면 visual host 연결은 M3에서 계속 진행 |
 | 키보드/리모컨 연결 | 1차 구현 완료 | `ShortcutRegistry`, `MainViewModel.BindShortcuts`, `GlobalInputService`, HookManager adapter 운영 연결 완료. 실제 리모컨/타 앱 포커스 수동 검증은 M5에서 계속 수행 |
@@ -167,6 +167,7 @@ UX 검증:
 - `SafetyConfirmTests`: 위험 명령 확인/취소/중복 실행 방지
 - `ShortcutRegistryTests`: 로컬/글로벌 단축키 매핑
 - `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable, 위험 명령 SafetyConfirm 경계
+- `MainWindowCopyTests`: MainWindow XAML의 운영 셸 제목, 출력/설정/예배 순서/상태 패널 한국어 라벨 회귀 방지
 - `OutputWindowServiceTests`: 주입된 window placement 정책 사용, 모니터 좌표 계산, 창 재배치 정책
 - `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, settings-backed 출력 ViewModel, 이벤트 구독 해제
 - `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨, settings 기반 lyrics monitor 색상/alert/notation visibility runtime 반영
@@ -186,6 +187,7 @@ UX 검증:
 - `LiveSessionServiceTests`
 - `OutputWindowServiceTests`
 - `MainViewModelTests`
+- `MainWindowCopyTests`
 - `OutputWindowHostTests`
 - `OutputWindowViewModelTests`
 - `DisplayServiceTests`
@@ -200,11 +202,10 @@ UX 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 219개 통과
-- `dotnet test Easislides.sln -c Debug`: 219개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MainViewModelTests|MainWindowCopyTests"`: 19개 통과
+- `dotnet test Easislides.sln -c Debug`: 256개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 219개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 256개 통과
 - CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `LiveOutputRenderSettings`, `OutputWindowViewModel`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
