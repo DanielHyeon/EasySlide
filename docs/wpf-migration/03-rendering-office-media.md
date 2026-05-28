@@ -30,6 +30,8 @@
 
 - `Easislides.Wpf/Interop/OfficePptSession.cs`
 - `Easislides.Wpf/Poc/PocBComStress.xaml`
+- `Easislides.Wpf/Media/MediaPlaybackService.cs`
+- `Easislides.Wpf/Media/MediaPlaybackViewModel.cs`
 
 ## 2. 핵심 리스크
 
@@ -120,7 +122,7 @@
 | PPT 운영 service | 미완료 | timeout/cache/error contract 필요 |
 | 이미지 프리뷰 WPF 컨트롤 | 미완료 | `ImageCanvas` 대체 필요 |
 | 전환 효과 WPF화 | 미완료 | 기존 효과 목록화 필요 |
-| 미디어 playback WPF화 | 미완료 | backend 선택 필요 |
+| 미디어 playback WPF화 | 부분 구현 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`로 재생 상태 계약, command, 시간 표시, seek/audio setting clamp 자동 검증 완료. 실제 WPF `MediaElement`/DirectShow backend, 출력 화면 렌더 연결, 파일/코덱 오류 UI는 후속 구현 필요 |
 | 출력 renderer 동등성 | 미완료 | 이미지 diff 테스트 필요 |
 
 ## 6. 이식 후 검증 방안
@@ -144,6 +146,7 @@ Office 검증:
 - pause/resume/seek 후 출력 화면과 컨트롤 상태 동기화.
 - 코덱 오류 파일에서 앱이 멈추지 않고 안내를 표시.
 - 라이브 중 미디어 정지/seek가 안전 확인을 거침.
+- 현재 1차 자동 검증은 backend 없는 in-memory 상태 계약으로 수행한다. 실제 playback backend 연결 후 fixture 파일 기반 통합 검증을 추가한다.
 
 ## 7. 테스트 방안
 
@@ -153,7 +156,21 @@ Office 검증:
 - thumbnail cache invalidation tests
 - COM scheduler timeout/cancellation tests
 - media playback ViewModel state tests
+- media playback service state machine tests
 - output snapshot state tests
+
+현재 자동화 완료:
+
+- `MediaPlaybackServiceTests`: load/play/pause/stop, seek clamp, volume/balance/mute/repeat 상태 유지 검증
+- `MediaPlaybackViewModelTests`: load 표시값, play/pause command, 5초 seek command, mute/repeat toggle 검증
+
+2026-05-29 검증 결과:
+
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 8개 통과
+- `dotnet test Easislides.sln -c Debug`: 107개 통과
+- `dotnet build Easislides.sln -c Release`: 성공
+- `dotnet test Easislides.sln -c Release --no-build`: 107개 통과
+- `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:
 

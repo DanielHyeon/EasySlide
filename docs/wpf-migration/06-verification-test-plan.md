@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 99개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 107개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 99개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 107개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -80,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 99개 이상 통과.
+- WPF 테스트 107개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -93,8 +93,10 @@ dotnet test Easislides.sln -c Debug --no-build
 - `OutputWindowHostTests`
 - `OutputWindowViewModelTests`
 - `SafetyConfirm` 실제 command 연결 테스트
+- `MediaPlaybackServiceTests`
+- `MediaPlaybackViewModelTests`
 
-현재 상태: `MainViewModelTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출한다.
+현재 상태: `MainViewModelTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출한다. 미디어 컨트롤은 backend 없는 상태 계약 기준으로 load/play/pause/stop/seek/mute/repeat/volume/balance와 ViewModel command를 자동 검증한다.
 2026-05-29 기준 Release 산출물 `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml` 생성 확인 완료.
 
 수동 게이트:
@@ -134,6 +136,8 @@ dotnet test Easislides.sln -c Debug --no-build
 - thumbnail cache tests
 - image resize/fill/fit tests
 - media playback state tests
+
+현재 상태: `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. 실제 파일/코덱/backend 통합 전 단계로 `IMediaPlaybackService` 상태 machine과 `MediaPlaybackViewModel` command/표시 계약을 고정했다. 후속으로 WPF `MediaElement` 또는 DirectShow adapter를 연결한 fixture 기반 통합 테스트가 필요하다.
 
 수동 게이트:
 
