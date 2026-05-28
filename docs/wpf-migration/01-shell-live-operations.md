@@ -126,8 +126,8 @@
 | 항목 | 상태 | 비고 |
 |---|---|---|
 | WPF 앱 골격 | 완료 | `Easislides.Wpf` 존재 |
-| LiveBar 컴포지트 | 1차 완료 | 실제 세션 연결 필요 |
-| SafetyConfirm | 1차 완료 | 실제 위험 명령 연결 필요 |
+| LiveBar 컴포지트 | 1차 구현 완료 | `LiveSessionService` snapshot과 `MainViewModel.ApplyLiveSnapshot`으로 상태/현재 항목/출력 모니터 연결 완료 |
+| SafetyConfirm | 1차 운영 연결 완료 | Go Live, Stop Live, 라이브 중 출력 닫기, Black/Hide 명령이 `ILiveSafetyPrompt` 확인 경계를 통과 |
 | MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결 |
 | 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel`, `IDisplayService` 연결. borderless/fullscreen 및 창 모드 배치, 출력 모니터 선택, 라이브 snapshot 반영 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
 | 미디어 컨트롤 WPF 대체 | 미완료 | 계획 필요 |
@@ -147,7 +147,7 @@
 
 라이브 안전 검증:
 
-- 라이브 중 삭제/출력 변경/미디어 중지 명령은 확인 없이 실행되지 않는다.
+- 라이브 중 Go Live, Stop Live, 출력 닫기, Black/Hide 명령은 확인 없이 실행되지 않는다.
 - 취소 시 상태가 보존된다.
 - 실패 시 toast와 로그가 남는다.
 
@@ -165,7 +165,7 @@ UX 검증:
 - `LiveBarViewModelTests`: 상태/라벨/표시 여부
 - `SafetyConfirmTests`: 위험 명령 확인/취소/중복 실행 방지
 - `ShortcutRegistryTests`: 로컬/글로벌 단축키 매핑
-- `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable
+- `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable, 위험 명령 SafetyConfirm 경계
 - `OutputWindowServiceTests`: 모니터 좌표 계산, 창 재배치 정책
 - `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, 이벤트 구독 해제
 - `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨
@@ -184,9 +184,9 @@ UX 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.sln -c Debug`: 84개 통과
+- `dotnet test Easislides.sln -c Debug`: 87개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 84개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 87개 통과
 - CodeGraph 동기화 및 `GlobalInputService` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증

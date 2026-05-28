@@ -188,7 +188,7 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
         _running = false;
     }
 
-    private void OnHookKeyDown(object sender, LegacyKeyEventArgs e)
+    private void OnHookKeyDown(object? sender, LegacyKeyEventArgs e)
     {
         var args = new GlobalKeyEventArgs(e.KeyCode, e.Modifiers);
         KeyDown?.Invoke(this, args);

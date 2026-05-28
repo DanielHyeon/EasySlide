@@ -42,9 +42,9 @@ public sealed partial class MainViewModel : ObservableObject
         _output.OutputChanged += (_, _) => NotifyCommandStates();
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
-        CloseOutputCommand = new RelayCommand(CloseOutput, () => _output.Current.IsOpen);
-        GoLiveCommand = new RelayCommand(GoLive, CanGoLive);
-        StopLiveCommand = new RelayCommand(StopLive, () => _session.Current.State != LiveState.Off);
+        CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
+        GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
+        StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
         NextItemCommand = new RelayCommand(NextItem, CanMoveNext);
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
@@ -62,9 +62,9 @@ public sealed partial class MainViewModel : ObservableObject
     public ILiveSessionService Session => _session;
 
     public IRelayCommand OpenOutputCommand { get; }
-    public IRelayCommand CloseOutputCommand { get; }
-    public IRelayCommand GoLiveCommand { get; }
-    public IRelayCommand StopLiveCommand { get; }
+    public IAsyncRelayCommand CloseOutputCommand { get; }
+    public IAsyncRelayCommand GoLiveCommand { get; }
+    public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
     public IRelayCommand PreviousItemCommand { get; }
     public IAsyncRelayCommand HideOutputCommand { get; }
@@ -140,8 +140,20 @@ public sealed partial class MainViewModel : ObservableObject
         NotifyCommandStates();
     }
 
-    private void CloseOutput()
+    private async Task CloseOutputAsync()
     {
+        if (_session.Current.State != LiveState.Off)
+        {
+            var ok = await ConfirmLiveSafetyAsync(
+                MainCommandIds.OutputClose,
+                "라이브 중 출력 창을 닫을까요?",
+                "현재 송출이 중지되고 출력 창이 닫힙니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+            if (!ok)
+            {
+                return;
+            }
+        }
+
         _output.Close();
         if (_session.Current.State != LiveState.Off)
         {
@@ -156,7 +168,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     private bool CanGoLive() => SelectedItem is not null && _output.Current.IsOpen;
 
-    private void GoLive()
+    private async Task GoLiveAsync()
     {
         if (SelectedItem is null)
         {
@@ -164,15 +176,29 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        _session.GoLive(SelectedItem, monitorName);
-        StatusText = $"LIVE: {SelectedItem.Title}";
-        _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
-        NotifyCommandStates();
+        var ok = await ConfirmLiveSafetyAsync(
+            MainCommandIds.LiveGo,
+            $"'{SelectedItem.Title}' 항목을 라이브로 송출할까요?",
+            "선택 항목이 즉시 출력 화면에 표시됩니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+        if (!ok)
+        {
+            return;
+        }
+
+        PublishSelectedItem();
     }
 
-    private void StopLive()
+    private async Task StopLiveAsync()
     {
+        var ok = await ConfirmLiveSafetyAsync(
+            MainCommandIds.LiveStop,
+            "현재 라이브 송출을 중지할까요?",
+            "출력 화면이 대기 상태로 돌아갑니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+        if (!ok)
+        {
+            return;
+        }
+
         _session.Stop();
         StatusText = "라이브 중지";
         _telemetry.Record(MainCommandIds.LiveStop, succeeded: true, StatusText);
@@ -203,7 +229,7 @@ public sealed partial class MainViewModel : ObservableObject
         _telemetry.Record(MainCommandIds.LiveNext, succeeded: true, SelectedItem.Title);
         if (_session.Current.State == LiveState.Active)
         {
-            GoLive();
+            PublishSelectedItem();
         }
     }
 
@@ -218,7 +244,7 @@ public sealed partial class MainViewModel : ObservableObject
         _telemetry.Record(MainCommandIds.LivePrevious, succeeded: true, SelectedItem.Title);
         if (_session.Current.State == LiveState.Active)
         {
-            GoLive();
+            PublishSelectedItem();
         }
     }
 
@@ -227,22 +253,52 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task HideOutputAsync(bool blackout)
     {
         var actionName = blackout ? MainCommandIds.LiveBlack : MainCommandIds.LiveHide;
-        var ok = await _safetyPrompt.ConfirmAsync(new LiveSafetyRequest(
+        var ok = await ConfirmLiveSafetyAsync(
             actionName,
             blackout ? "현재 송출을 검은 화면으로 전환할까요?" : "현재 송출을 숨길까요?",
-            "라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.",
-            TimeSpan.FromSeconds(5))).ConfigureAwait(true);
-
+            "라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
-            _telemetry.Record(actionName, succeeded: false, "사용자 취소");
-            StatusText = "라이브 안전 확인 취소";
             return;
         }
 
         _session.HideOutput(blackout);
         StatusText = blackout ? "검은 화면 송출 중" : "출력 숨김";
         _telemetry.Record(actionName, succeeded: true, StatusText);
+        NotifyCommandStates();
+    }
+
+    private async Task<bool> ConfirmLiveSafetyAsync(string actionName, string question, string subtext)
+    {
+        var ok = await _safetyPrompt.ConfirmAsync(new LiveSafetyRequest(
+            actionName,
+            question,
+            subtext,
+            TimeSpan.FromSeconds(5))).ConfigureAwait(true);
+
+        if (ok)
+        {
+            return true;
+        }
+
+        _telemetry.Record(actionName, succeeded: false, "사용자 취소");
+        StatusText = "라이브 안전 확인 취소";
+        NotifyCommandStates();
+        return false;
+    }
+
+    private void PublishSelectedItem()
+    {
+        if (SelectedItem is null)
+        {
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
+            return;
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        _session.GoLive(SelectedItem, monitorName);
+        StatusText = $"LIVE: {SelectedItem.Title}";
+        _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         NotifyCommandStates();
     }
 

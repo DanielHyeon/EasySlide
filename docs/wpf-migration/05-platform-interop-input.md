@@ -168,9 +168,9 @@
 
 2026-05-29 기준:
 
-- `dotnet test Easislides.sln -c Debug`: 84개 통과
+- `dotnet test Easislides.sln -c Debug`: 87개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 84개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 87개 통과
 - CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Platform/DisplayService.cs` 인식 확인
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - 남은 수동 검증: 실제 듀얼 모니터 좌우/상하 배치, 혼합 DPI, 모니터 제거/재연결, 실제 리모컨/타 앱 포커스 글로벌 단축키, 텍스트 입력 중 shortcut 충돌

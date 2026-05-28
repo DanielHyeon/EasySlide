@@ -14,7 +14,7 @@ namespace Easislides.Wpf.Tests.Shell;
 public class MainViewModelTests
 {
     [Fact]
-    public void GoLiveCommand_RequiresSelectionAndOpenOutput()
+    public async Task GoLiveCommand_RequiresSelectionAndOpenOutput()
     {
         var sut = CreateSut();
         var item = new LiveQueueItem("song-1", "입례 찬양");
@@ -26,11 +26,28 @@ public class MainViewModelTests
         sut.SelectedItem = item;
 
         sut.GoLiveCommand.CanExecute(null).Should().BeTrue();
-        sut.GoLiveCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
 
         sut.LiveBar.State.Should().Be(LiveState.Active);
         sut.LiveBar.CurrentItemTitle.Should().Be("입례 찬양");
         sut.StatusText.Should().Contain("LIVE");
+    }
+
+    [Fact]
+    public async Task GoLiveCommand_WhenSafetyPromptDeclines_DoesNotChangeState()
+    {
+        var prompt = new RecordingSafetyPrompt(allow: false);
+        var sut = CreateSut(prompt);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "입례 찬양") });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        prompt.Requests.Should().ContainSingle(request => request.ActionName == MainCommandIds.LiveGo);
+        sut.LiveBar.State.Should().Be(LiveState.Off);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.StatusText.Should().Be("라이브 안전 확인 취소");
     }
 
     [Fact]
@@ -50,20 +67,23 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void NextItemCommand_WhenLive_AdvancesSelectionAndLiveSession()
+    public async Task NextItemCommand_WhenLive_AdvancesSelectionAndLiveSession()
     {
-        var sut = CreateSut();
+        var prompt = new RecordingSafetyPrompt(allow: true);
+        var sut = CreateSut(prompt);
         var first = new LiveQueueItem("song-1", "입례 찬양");
         var second = new LiveQueueItem("song-2", "봉헌 찬양");
         sut.LoadQueue(new[] { first, second });
         sut.OpenOutputCommand.Execute(null);
         sut.SelectedItem = first;
-        sut.GoLiveCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        prompt.Requests.Clear();
 
         sut.NextItemCommand.Execute(null);
 
         sut.SelectedItem.Should().Be(second);
         sut.LiveBar.CurrentItemTitle.Should().Be("봉헌 찬양");
+        prompt.Requests.Should().BeEmpty("라이브 중 Next/Prev 리모컨 흐름은 추가 확인으로 막지 않는다");
     }
 
     [Fact]
@@ -74,7 +94,10 @@ public class MainViewModelTests
         sut.LoadQueue(new[] { new LiveQueueItem("song-1", "입례 찬양") });
         sut.OpenOutputCommand.Execute(null);
         sut.SelectedItem = sut.Queue[0];
-        sut.GoLiveCommand.Execute(null);
+        prompt.Allow = true;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        prompt.Requests.Clear();
+        prompt.Allow = false;
 
         await sut.BlackScreenCommand.ExecuteAsync(null);
 
@@ -86,6 +109,55 @@ public class MainViewModelTests
 
         sut.LiveBar.State.Should().Be(LiveState.Hidden);
         sut.Session.Current.IsBlackout.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task StopLiveCommand_WhenLive_AsksSafetyPromptBeforeStopping()
+    {
+        var prompt = new RecordingSafetyPrompt(allow: false);
+        var sut = CreateSut(prompt);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "입례 찬양") });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        prompt.Allow = true;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        prompt.Requests.Clear();
+        prompt.Allow = false;
+
+        await sut.StopLiveCommand.ExecuteAsync(null);
+
+        prompt.Requests.Should().ContainSingle(request => request.ActionName == MainCommandIds.LiveStop);
+        sut.LiveBar.State.Should().Be(LiveState.Active);
+
+        prompt.Allow = true;
+        await sut.StopLiveCommand.ExecuteAsync(null);
+
+        sut.LiveBar.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
+    public async Task CloseOutputCommand_WhenLive_AsksSafetyPromptBeforeClosing()
+    {
+        var prompt = new RecordingSafetyPrompt(allow: true);
+        var sut = CreateSut(prompt);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "입례 찬양") });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        prompt.Requests.Clear();
+        prompt.Allow = false;
+
+        await sut.CloseOutputCommand.ExecuteAsync(null);
+
+        prompt.Requests.Should().ContainSingle(request => request.ActionName == MainCommandIds.OutputClose);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.CloseOutputCommand.CanExecute(null).Should().BeTrue();
+
+        prompt.Allow = true;
+        await sut.CloseOutputCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.CloseOutputCommand.CanExecute(null).Should().BeFalse();
     }
 
     [Fact]
