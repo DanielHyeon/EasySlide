@@ -166,7 +166,7 @@ UX 검증:
 - `SafetyConfirmTests`: 위험 명령 확인/취소/중복 실행 방지
 - `ShortcutRegistryTests`: 로컬/글로벌 단축키 매핑
 - `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable, 위험 명령 SafetyConfirm 경계
-- `OutputWindowServiceTests`: 모니터 좌표 계산, 창 재배치 정책
+- `OutputWindowServiceTests`: 주입된 window placement 정책 사용, 모니터 좌표 계산, 창 재배치 정책
 - `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, 이벤트 구독 해제
 - `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨
 - `DisplayServiceTests`: 출력 모니터 열거 fallback 및 선호 모니터 선택 정책
@@ -183,13 +183,14 @@ UX 검증:
 - `DisplayServiceTests`
 - `GlobalInputServiceTests`
 - `CommandCatalogTests`
+- `WindowPlacementServiceTests`
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.sln -c Debug`: 91개 통과
+- `dotnet test Easislides.sln -c Debug`: 95개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 91개 통과
-- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog` 인식 확인 완료
+- `dotnet test Easislides.sln -c Release --no-build`: 95개 통과
+- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 

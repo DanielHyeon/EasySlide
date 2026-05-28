@@ -1,3 +1,4 @@
+using Easislides.Wpf.Platform;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -72,5 +73,37 @@ public class OutputWindowServiceTests
 
         sut.Current.IsOpen.Should().BeFalse();
         sut.Current.Display.Should().BeNull();
+    }
+
+    [Fact]
+    public void Open_UsesInjectedWindowPlacementService()
+    {
+        var expected = new OutputWindowPlacement(10, 20, 300, 200, IsWindowed: true);
+        var placement = new FakeWindowPlacementService(expected);
+        var sut = new OutputWindowService(placement);
+
+        sut.Open(OutputDisplay.PrimaryFallback, windowed: true);
+
+        sut.Current.Placement.Should().Be(expected);
+        placement.LastDisplay.Should().Be(OutputDisplay.PrimaryFallback);
+        placement.LastWindowed.Should().BeTrue();
+    }
+
+    private sealed class FakeWindowPlacementService : IWindowPlacementService
+    {
+        private readonly OutputWindowPlacement _placement;
+
+        public FakeWindowPlacementService(OutputWindowPlacement placement) => _placement = placement;
+
+        public OutputDisplay? LastDisplay { get; private set; }
+
+        public bool? LastWindowed { get; private set; }
+
+        public OutputWindowPlacement CreateOutputPlacement(OutputDisplay display, bool windowed)
+        {
+            LastDisplay = display;
+            LastWindowed = windowed;
+            return _placement;
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using Easislides.Wpf.Platform;
 
 namespace Easislides.Wpf.Shell;
 
@@ -28,40 +29,7 @@ public sealed record OutputWindowPlacement(
     double Top,
     double Width,
     double Height,
-    bool IsWindowed)
-{
-    private const double PreferredWindowedWidth = 1280;
-    private const double PreferredWindowedHeight = 720;
-    private const double AspectRatio = 16d / 9d;
-
-    public static OutputWindowPlacement FromDisplay(OutputDisplay display, bool windowed)
-    {
-        ArgumentNullException.ThrowIfNull(display);
-
-        if (!windowed)
-        {
-            return new OutputWindowPlacement(
-                display.X,
-                display.Y,
-                display.Width,
-                display.Height,
-                IsWindowed: false);
-        }
-
-        var width = Math.Min(PreferredWindowedWidth, display.Width);
-        var height = width / AspectRatio;
-
-        if (height > display.Height)
-        {
-            height = display.Height;
-            width = height * AspectRatio;
-        }
-
-        var left = display.X + (display.Width - width) / 2;
-        var top = display.Y + (display.Height - height) / 2;
-        return new OutputWindowPlacement(left, top, width, height, IsWindowed: true);
-    }
-}
+    bool IsWindowed);
 
 public sealed record OutputWindowState(
     bool IsOpen,
@@ -94,6 +62,18 @@ public interface IOutputWindowService
 
 public sealed class OutputWindowService : IOutputWindowService
 {
+    private readonly IWindowPlacementService _placement;
+
+    public OutputWindowService()
+        : this(new WindowPlacementService())
+    {
+    }
+
+    public OutputWindowService(IWindowPlacementService placement)
+    {
+        _placement = placement;
+    }
+
     public event EventHandler<OutputWindowChangedEventArgs>? OutputChanged;
 
     public OutputWindowState Current { get; private set; } = OutputWindowState.Closed;
@@ -104,13 +84,13 @@ public sealed class OutputWindowService : IOutputWindowService
 
     public void Close() => Update(OutputWindowState.Closed);
 
-    private static OutputWindowState CreateState(OutputDisplay display, bool windowed)
+    private OutputWindowState CreateState(OutputDisplay display, bool windowed)
     {
         ArgumentNullException.ThrowIfNull(display);
         return new OutputWindowState(
             IsOpen: true,
             display,
-            OutputWindowPlacement.FromDisplay(display, windowed));
+            _placement.CreateOutputPlacement(display, windowed));
     }
 
     private void Update(OutputWindowState state)

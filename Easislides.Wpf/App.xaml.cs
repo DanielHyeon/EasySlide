@@ -43,6 +43,7 @@ public partial class App : Application
         services.AddSingleton<IGlobalInputService, GlobalInputService>();
         services.AddSingleton<IDisplayReader, SystemDisplayReader>();
         services.AddSingleton<IDisplayService, DisplayService>();
+        services.AddSingleton<IWindowPlacementService, WindowPlacementService>();
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
