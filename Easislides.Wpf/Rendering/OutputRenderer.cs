@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Windows;
 using Easislides.Wpf.Controls;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 
 namespace Easislides.Wpf.Rendering;
@@ -12,6 +14,34 @@ public enum OutputSceneKind
     Live,
     Hidden,
     Blackout
+}
+
+public sealed record LiveOutputRenderSettings(
+    bool ShowLyricsMonitorAlertBox = false,
+    bool AdvanceNextItem = false,
+    GapItemMode GapItemOption = GapItemMode.None,
+    string GapItemLogoFile = "",
+    bool GapItemUseFade = true,
+    int LyricsMonitorTextColorArgb = -16777216,
+    int LyricsMonitorBackgroundColorArgb = -1,
+    bool LyricsMonitorShowNotations = true)
+{
+    public static LiveOutputRenderSettings Default { get; } = new();
+
+    public static LiveOutputRenderSettings From(ISettingsService settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new LiveOutputRenderSettings(
+            settings.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox),
+            settings.Get(EasiSettingKeys.AdvanceNextItem),
+            settings.Get(EasiSettingKeys.GapItemOption),
+            settings.Get(EasiSettingKeys.GapItemLogoFile),
+            settings.Get(EasiSettingKeys.GapItemUseFade),
+            settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb),
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowNotations));
+    }
 }
 
 public sealed record OutputRenderRequest(
@@ -26,7 +56,8 @@ public sealed record OutputRenderRequest(
     TransitionActionKind TransitionAction = TransitionActionKind.None,
     TimeSpan TransitionDuration = default,
     TimeSpan TransitionElapsed = default,
-    TransitionBackgroundMode BackgroundMode = TransitionBackgroundMode.BothBackgrounds);
+    TransitionBackgroundMode BackgroundMode = TransitionBackgroundMode.BothBackgrounds,
+    LiveOutputRenderSettings? LiveOutputSettings = null);
 
 public sealed record OutputSceneSnapshot(
     OutputSceneKind Kind,
@@ -37,7 +68,14 @@ public sealed record OutputSceneSnapshot(
     bool IsOutputOpen,
     Rect Viewport,
     ImagePlacement ContentPlacement,
-    TransitionEffectFrame TransitionFrame)
+    TransitionEffectFrame TransitionFrame,
+    bool ShowsLyricsAlertBox,
+    bool LyricsMonitorShowNotations,
+    int LyricsMonitorTextColorArgb,
+    int LyricsMonitorBackgroundColorArgb,
+    GapItemMode GapItemOption,
+    string GapItemLogoFile,
+    bool GapItemUseFade)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 }
@@ -62,10 +100,11 @@ public sealed class OutputRenderer : IOutputRenderer
     {
         var viewportWidth = Math.Max(0, request.ViewportWidth);
         var viewportHeight = Math.Max(0, request.ViewportHeight);
+        var liveOutput = request.LiveOutputSettings ?? LiveOutputRenderSettings.Default;
         var kind = GetSceneKind(request.Session, request.Output);
-        var display = GetDisplayText(kind, request.Session);
+        var display = GetDisplayText(kind, request.Session, liveOutput);
         var placement = GetContentPlacement(kind, request, viewportWidth, viewportHeight);
-        var transition = CreateTransitionFrame(request, viewportWidth, viewportHeight);
+        var transition = CreateTransitionFrame(request, viewportWidth, viewportHeight, kind, liveOutput);
 
         return new OutputSceneSnapshot(
             kind,
@@ -76,7 +115,14 @@ public sealed class OutputRenderer : IOutputRenderer
             request.Output.IsOpen,
             CreateViewport(viewportWidth, viewportHeight),
             placement,
-            transition);
+            transition,
+            liveOutput.ShowLyricsMonitorAlertBox,
+            liveOutput.LyricsMonitorShowNotations,
+            liveOutput.LyricsMonitorTextColorArgb,
+            liveOutput.LyricsMonitorBackgroundColorArgb,
+            liveOutput.GapItemOption,
+            liveOutput.GapItemLogoFile,
+            liveOutput.GapItemUseFade);
     }
 
     private ImagePlacement GetContentPlacement(
@@ -103,12 +149,32 @@ public sealed class OutputRenderer : IOutputRenderer
             request.FillMode);
     }
 
-    private TransitionEffectFrame CreateTransitionFrame(OutputRenderRequest request, int viewportWidth, int viewportHeight)
+    private TransitionEffectFrame CreateTransitionFrame(
+        OutputRenderRequest request,
+        int viewportWidth,
+        int viewportHeight,
+        OutputSceneKind kind,
+        LiveOutputRenderSettings settings)
     {
+        var transitionKind = request.TransitionKind;
+        var transitionAction = request.TransitionAction;
+        var transitionDuration = request.TransitionDuration;
+
+        if (kind == OutputSceneKind.Ready &&
+            settings.GapItemOption != GapItemMode.None &&
+            settings.GapItemUseFade &&
+            transitionKind == TransitionEffectKind.None &&
+            transitionAction == TransitionActionKind.None)
+        {
+            transitionKind = TransitionEffectKind.Fade;
+            transitionAction = TransitionActionKind.AsStored;
+            transitionDuration = TimeSpan.FromMilliseconds(500);
+        }
+
         var plan = _transitions.CreatePlan(new TransitionEffectRequest(
-            request.TransitionKind,
-            request.TransitionAction,
-            request.TransitionDuration,
+            transitionKind,
+            transitionAction,
+            transitionDuration,
             request.BackgroundMode,
             viewportWidth,
             viewportHeight));
@@ -136,15 +202,33 @@ public sealed class OutputRenderer : IOutputRenderer
         return output.IsOpen ? OutputSceneKind.Ready : OutputSceneKind.Standby;
     }
 
-    private static (string Title, string Status) GetDisplayText(OutputSceneKind kind, LiveSessionSnapshot session)
+    private static (string Title, string Status) GetDisplayText(
+        OutputSceneKind kind,
+        LiveSessionSnapshot session,
+        LiveOutputRenderSettings settings)
         => kind switch
         {
             OutputSceneKind.Blackout => ("BLACK", "BLACKOUT"),
             OutputSceneKind.Hidden => ("HIDDEN", "HIDDEN"),
             OutputSceneKind.Live => (string.IsNullOrWhiteSpace(session.CurrentItemTitle) ? "LIVE" : session.CurrentItemTitle, "LIVE"),
-            OutputSceneKind.Ready => ("OUTPUT READY", "READY"),
+            OutputSceneKind.Ready => GetReadyDisplayText(settings),
             _ => ("STANDBY", "STANDBY")
         };
+
+    private static (string Title, string Status) GetReadyDisplayText(LiveOutputRenderSettings settings)
+        => settings.GapItemOption switch
+        {
+            GapItemMode.Black => ("BLACK", "GAP"),
+            GapItemMode.Default => ("OUTPUT READY", "GAP"),
+            GapItemMode.User => (GetGapLogoTitle(settings.GapItemLogoFile), "GAP"),
+            _ => ("OUTPUT READY", "READY")
+        };
+
+    private static string GetGapLogoTitle(string gapLogoFile)
+    {
+        var title = Path.GetFileNameWithoutExtension(gapLogoFile);
+        return string.IsNullOrWhiteSpace(title) ? "USER GAP" : title;
+    }
 
     private static string GetOutputMonitorName(LiveSessionSnapshot session, OutputWindowState output)
         => !string.IsNullOrWhiteSpace(session.OutputMonitorName)

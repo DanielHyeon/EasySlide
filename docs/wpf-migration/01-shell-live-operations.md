@@ -168,17 +168,17 @@ UX 검증:
 - `ShortcutRegistryTests`: 로컬/글로벌 단축키 매핑
 - `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable, 위험 명령 SafetyConfirm 경계
 - `OutputWindowServiceTests`: 주입된 window placement 정책 사용, 모니터 좌표 계산, 창 재배치 정책
-- `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, 이벤트 구독 해제
-- `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨
+- `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, settings-backed 출력 ViewModel, 이벤트 구독 해제
+- `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨, settings 기반 lyrics monitor 색상/alert/notation visibility runtime 반영
 - `DisplayServiceTests`: 출력 모니터 열거 fallback 및 선호 모니터 선택 정책
-- `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`, `MainViewModelTests.OpenOutputCommand_WhenAlwaysUseSecondaryMonitorDisabledWithoutDefault_SelectsPrimary`, `MainViewModelTests.OpenOutputCommand_WhenDefaultMonitorMissingAndAlwaysUseSecondaryDisabled_FallsBackToPrimary`: 저장/이식된 기본 출력 모니터와 보조 모니터 우선 정책, 제거된 저장 모니터 fallback을 운영 셸 출력 창 선택에 적용
+- `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`, `MainViewModelTests.OpenOutputCommand_WhenAlwaysUseSecondaryMonitorDisabledWithoutDefault_SelectsPrimary`, `MainViewModelTests.OpenOutputCommand_WhenDefaultMonitorMissingAndAlwaysUseSecondaryDisabled_FallsBackToPrimary`, `MainViewModelTests.GoLiveCommand_WhenAdvanceNextItemEnabled_PublishesCurrentAndSelectsNext`: 저장/이식된 기본 출력 모니터와 보조 모니터 우선 정책, 제거된 저장 모니터 fallback, `AdvanceNextItem` 자동 다음 항목 준비를 운영 셸 출력 창 선택/송출에 적용
 - `GlobalInputServiceTests`: HookManager adapter 시작/중지, 글로벌 단축키 라우팅, 로컬 단축키 차단, 시작 실패 cleanup
 - `CommandCatalogTests`: command id 중복 방지, 기본 shortcut의 command 참조 검증, 기본 shortcut 충돌 방지, Live 위험 명령 메타데이터 검증
 - `MediaPlaybackServiceTests`: media request load, playback state 전이, seek/audio setting clamp, 설정 기반 audio default/runtime 변경 반영, backend 명령 위임, load/play/pause/stop/seek/settings 실패 상태 전환 검증
 - `MediaPlaybackViewModelTests`: play/pause, stop, seek, mute/repeat command와 시간/상태 표시 검증
 - `PreviewCanvasTests`: WPF preview placement/render/DPI contract 검증
 - `TransitionEffectServiceTests`: WPF transition effect list/action/frame contract 검증
-- `OutputRendererTests`: 출력 scene snapshot, 표시 라벨, content placement, transition frame contract 검증
+- `OutputRendererTests`: 출력 scene snapshot, 표시 라벨, content placement, transition frame, gap/lyrics monitor runtime settings contract 검증
 - `ThumbnailCacheTests`: 썸네일 cache key/invalidation/LRU contract 검증
 
 현재 자동화 완료:
@@ -201,11 +201,11 @@ UX 검증:
 2026-05-29 검증 결과:
 
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 213개 통과
-- `dotnet test Easislides.sln -c Debug`: 213개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 219개 통과
+- `dotnet test Easislides.sln -c Debug`: 219개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 213개 통과
-- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
+- `dotnet test Easislides.sln -c Release --no-build`: 219개 통과
+- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `LiveOutputRenderSettings`, `OutputWindowViewModel`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 

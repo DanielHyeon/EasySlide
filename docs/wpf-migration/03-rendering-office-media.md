@@ -183,7 +183,7 @@ Office 검증:
 - `ImageAssetServiceTests`: fit/fill 배치, 이미지 metadata 로드, unsupported/locked/decode error 분류 검증
 - `PreviewCanvasTests`: `ImageAssetService.CalculatePlacement` 계약 기반 fit/fill 배치, DPI별 bitmap pixel dimension 처리, source 없음 처리, slide number/selection 포함 WPF pixel render 검증
 - `TransitionEffectServiceTests`: legacy 58개 전환 목록/표시명/해석, `AsFade` override, background layer, fade opacity, slide/reveal frame 계약 검증
-- `OutputRendererTests`: Live/Blackout/Standby scene, content placement, transition frame, 표시 라벨 계약 검증
+- `OutputRendererTests`: Live/Blackout/Standby/Ready gap scene, content placement, transition frame, 표시 라벨, lyrics monitor appearance snapshot 계약 검증
 - `MediaPlaybackServiceTests`: load/play/pause/stop, seek clamp, volume/balance/mute/repeat 상태 유지, settings 기반 media audio default/runtime 변경 반영, backend 명령 위임, load/play/pause/stop/seek/settings 실패 시 `Failed` snapshot 전환 검증
 - `MediaPlaybackViewModelTests`: load 표시값, play/pause command, 5초 seek command, mute/repeat toggle 검증
 
@@ -196,11 +196,11 @@ Office 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter ImageAssetServiceTests`: 6개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 6개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 213개 통과
-- `dotnet test Easislides.sln -c Debug`: 213개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 10개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 219개 통과
+- `dotnet test Easislides.sln -c Debug`: 219개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 213개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 219개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:

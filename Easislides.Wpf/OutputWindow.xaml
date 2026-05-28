@@ -4,10 +4,10 @@
         Title="EasiSlides Output"
         Width="1280"
         Height="720"
-        Background="{DynamicResource Brush.Surface.Page}"
-        Foreground="{DynamicResource Brush.Text.Primary}"
+        Background="{Binding SceneBackgroundBrush}"
+        Foreground="{Binding SceneForegroundBrush}"
         WindowStartupLocation="Manual">
-    <Grid Background="{DynamicResource Brush.Surface.Page}">
+    <Grid Background="{Binding SceneBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -15,8 +15,15 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Height="8"
-                Background="{DynamicResource Brush.Live.Active}" />
+                MinHeight="36"
+                Background="{DynamicResource Brush.Live.Active}"
+                Visibility="{Binding LyricsAlertVisibility}">
+            <TextBlock Text="{Binding StatusLabel}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{DynamicResource Brush.Surface.Page}" />
+        </Border>
 
         <TextBlock Grid.Row="1"
                    Text="{Binding DisplayTitle}"
@@ -26,7 +33,7 @@
                    TextWrapping="Wrap"
                    FontSize="72"
                    FontWeight="SemiBold"
-                   Foreground="{DynamicResource Brush.Text.Primary}"
+                   Foreground="{Binding SceneForegroundBrush}"
                    MaxWidth="1100" />
 
         <Grid Grid.Row="2"
@@ -39,13 +46,14 @@
             <TextBlock Text="{Binding OutputMonitorName}"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"
-                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                       Foreground="{Binding SceneForegroundBrush}" />
 
             <TextBlock Grid.Column="1"
                        Text="{Binding StatusLabel}"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Title3.Style}"
-                       Foreground="{DynamicResource Brush.Live.Active}" />
+                       Foreground="{DynamicResource Brush.Live.Active}"
+                       Visibility="{Binding NotationVisibility}" />
         </Grid>
     </Grid>
 </Window>

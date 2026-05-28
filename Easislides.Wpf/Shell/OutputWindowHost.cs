@@ -1,5 +1,6 @@
 using System;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
@@ -23,6 +24,7 @@ public sealed class OutputWindowHost : IOutputWindowHost
     private readonly ILiveSessionService _session;
     private readonly OutputSurfaceFactory _surfaceFactory;
     private readonly IOutputRenderer _renderer;
+    private readonly ISettingsService? _settings;
     private IOutputSurface? _surface;
     private OutputWindowViewModel? _viewModel;
     private LiveSessionSnapshot _lastSession;
@@ -36,7 +38,8 @@ public sealed class OutputWindowHost : IOutputWindowHost
             output,
             session,
             surfaceFactory,
-            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()))
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings: null)
     {
     }
 
@@ -45,11 +48,22 @@ public sealed class OutputWindowHost : IOutputWindowHost
         ILiveSessionService session,
         OutputSurfaceFactory surfaceFactory,
         IOutputRenderer renderer)
+        : this(output, session, surfaceFactory, renderer, settings: null)
+    {
+    }
+
+    public OutputWindowHost(
+        IOutputWindowService output,
+        ILiveSessionService session,
+        OutputSurfaceFactory surfaceFactory,
+        IOutputRenderer renderer,
+        ISettingsService? settings)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _session = session ?? throw new ArgumentNullException(nameof(session));
         _surfaceFactory = surfaceFactory ?? throw new ArgumentNullException(nameof(surfaceFactory));
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
+        _settings = settings;
         _lastSession = session.Current;
 
         _output.OutputChanged += OnOutputChanged;
@@ -102,7 +116,7 @@ public sealed class OutputWindowHost : IOutputWindowHost
             return;
         }
 
-        _viewModel = new OutputWindowViewModel(_renderer);
+        _viewModel = new OutputWindowViewModel(_renderer, _settings);
         _viewModel.ApplySession(_lastSession);
 
         _surface = _surfaceFactory();
@@ -112,6 +126,7 @@ public sealed class OutputWindowHost : IOutputWindowHost
     private void CloseSurface()
     {
         _surface?.Close();
+        _viewModel?.Dispose();
         _surface = null;
         _viewModel = null;
     }

@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Windows;
+using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -63,6 +67,29 @@ public class OutputWindowHostTests
     }
 
     [Fact]
+    public void OpenOutput_UsesSettingsBackedOutputViewModel()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.ShowLyricsMonitorAlertBox, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, false).Succeeded.Should().BeTrue();
+        var output = new OutputWindowService();
+        var session = new LiveSessionService();
+        var surfaces = new List<FakeOutputSurface>();
+        using var sut = new OutputWindowHost(
+            output,
+            session,
+            () => CreateSurface(surfaces),
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings);
+
+        output.Open(OutputDisplay.PrimaryFallback, windowed: true);
+
+        surfaces[0].ViewModel!.LyricsAlertVisibility.Should().Be(Visibility.Visible);
+        surfaces[0].ViewModel!.NotationVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
     public void CloseOutput_ClosesSurfaceAndReopenCreatesNewSurface()
     {
         var output = new OutputWindowService();
@@ -114,5 +141,35 @@ public class OutputWindowHostTests
         public void Show() => ShowCount++;
 
         public void Close() => CloseCount++;
+    }
+
+    private sealed class TempSettingsFolder : IDisposable
+    {
+        private TempSettingsFolder(string root)
+        {
+            Root = root;
+            Directory.CreateDirectory(root);
+        }
+
+        public string Root { get; }
+
+        public static TempSettingsFolder Create()
+            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_OutputHostSettings_{Guid.NewGuid():N}"));
+
+        public ISettingsService CreateSettings()
+            => new SettingsService(new SettingsServiceOptions(
+                Path.Combine(Root, "settings.json"),
+                Path.Combine(Root, "Backups")));
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(Root, recursive: true);
+            }
+            catch
+            {
+            }
+        }
     }
 }

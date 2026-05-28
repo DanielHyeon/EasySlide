@@ -141,7 +141,11 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
-        LiveBar.CurrentItemTitle = value?.Title ?? string.Empty;
+        if (_session.Current.State != LiveState.Active)
+        {
+            LiveBar.CurrentItemTitle = value?.Title ?? string.Empty;
+        }
+
         NotifyCommandStates();
     }
 
@@ -340,7 +344,23 @@ public sealed partial class MainViewModel : ObservableObject
         _session.GoLive(SelectedItem, monitorName);
         StatusText = $"LIVE: {SelectedItem.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
+        AdvanceSelectionAfterPublish(SelectedItem);
         NotifyCommandStates();
+    }
+
+    private void AdvanceSelectionAfterPublish(LiveQueueItem publishedItem)
+    {
+        if (!_settings.Get(EasiSettingKeys.AdvanceNextItem))
+        {
+            return;
+        }
+
+        var index = Queue.IndexOf(publishedItem);
+        if (index >= 0 && index < Queue.Count - 1)
+        {
+            SelectedItem = Queue[index + 1];
+            LiveBar.CurrentItemTitle = _session.Current.CurrentItemTitle;
+        }
     }
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)

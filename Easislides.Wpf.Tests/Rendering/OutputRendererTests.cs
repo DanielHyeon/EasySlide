@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -77,6 +78,57 @@ public class OutputRendererTests
         scene.StatusLabel.Should().Be("STANDBY");
         scene.IsOutputOpen.Should().BeFalse();
         scene.Viewport.Should().Be(new Rect(0, 0, 1280, 720));
+    }
+
+    [Fact]
+    public void CreateScene_Active_UsesLyricsMonitorAppearanceSettings()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            ShowLyricsMonitorAlertBox: true,
+            LyricsMonitorTextColorArgb: unchecked((int)0xFF123456),
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFABCDEF),
+            LyricsMonitorShowNotations: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Amazing Grace", "Display 2", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsLyricsAlertBox.Should().BeTrue();
+        scene.LyricsMonitorTextColorArgb.Should().Be(unchecked((int)0xFF123456));
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFFABCDEF));
+        scene.LyricsMonitorShowNotations.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CreateScene_ReadyWithUserGap_UsesGapLogoAndFadeSettings()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            GapItemOption: GapItemMode.User,
+            GapItemLogoFile: @"C:\EasiSlides\Images\gap-logo.png",
+            GapItemUseFade: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: LiveSessionSnapshot.Off,
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            TransitionElapsed: TimeSpan.FromMilliseconds(250),
+            LiveOutputSettings: settings));
+
+        scene.Kind.Should().Be(OutputSceneKind.Ready);
+        scene.DisplayTitle.Should().Be("gap-logo");
+        scene.StatusLabel.Should().Be("GAP");
+        scene.GapItemOption.Should().Be(GapItemMode.User);
+        scene.GapItemLogoFile.Should().Be(@"C:\EasiSlides\Images\gap-logo.png");
+        scene.GapItemUseFade.Should().BeTrue();
+        scene.TransitionFrame.Kind.Should().Be(TransitionEffectKind.Fade);
     }
 
     private static OutputRenderer CreateRenderer()

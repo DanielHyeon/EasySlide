@@ -55,6 +55,25 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLiveCommand_WhenAdvanceNextItemEnabled_PublishesCurrentAndSelectsNext()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var first = new LiveQueueItem("song-1", "입례 찬양");
+        var second = new LiveQueueItem("song-2", "봉헌 찬양");
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { first, second });
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemTitle.Should().Be("입례 찬양");
+        sut.LiveBar.CurrentItemTitle.Should().Be("입례 찬양");
+        sut.SelectedItem.Should().Be(second);
+    }
+
+    [Fact]
     public void OpenOutputCommand_UsesPreferredDisplayFromDisplayService()
     {
         var primary = new OutputDisplay("primary", "주 모니터", 0, 0, 1920, 1080, 1, IsPrimary: true);

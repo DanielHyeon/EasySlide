@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -28,6 +29,7 @@ public class AppServiceRegistrationTests
             var settings = provider.GetRequiredService<ISettingsService>();
             var service = provider.GetRequiredService<IPowerPointRenderService>();
             var placement = provider.GetRequiredService<IWindowPlacementService>();
+            var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
             service.Should().BeOfType<PowerPointRenderService>();
             var settingsField = typeof(PowerPointRenderService).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -38,6 +40,11 @@ public class AppServiceRegistrationTests
             var placementSettingsField = typeof(WindowPlacementService).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
             placementSettingsField.Should().NotBeNull();
             placementSettingsField!.GetValue(placement).Should().BeSameAs(settings);
+
+            outputHost.Should().BeOfType<OutputWindowHost>();
+            var hostSettingsField = typeof(OutputWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
+            hostSettingsField.Should().NotBeNull();
+            hostSettingsField!.GetValue(outputHost).Should().BeSameAs(settings);
         });
     }
 
