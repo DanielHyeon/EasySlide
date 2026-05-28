@@ -126,7 +126,7 @@
 | SettingsWindow | 미완료 | 신규 구현 필요 |
 | legacy settings map | 미완료 | `FrmOptions` 분석 필요 |
 | 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. AppData 실제 경로 연결, SettingsWindow/온보딩 UI, DB/설정 snapshot 통합은 후속 필요 |
-| DB 마이그레이션 | 미완료 | schema inventory 필요 |
+| DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 AdminDB 전체 schema inventory, repository 연결, 운영 DB fixture 기반 WinForms/WPF 호환성 검증은 후속 필요 |
 | 도움말/정보/등록 | 미완료 | 기존 폼 기능 확인 필요 |
 
 ## 5. 이식 후 검증 방안
@@ -154,6 +154,7 @@ DB 검증:
 - 손상 DB 처리.
 - schema version mismatch 안내.
 - transaction 실패 시 rollback.
+- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. 실제 `AdminDB` schema와 운영 DB 복사본 기준 read/write/repository 호환성 검증을 추가한다.
 
 ## 6. 테스트 방안
 
@@ -170,15 +171,17 @@ DB 검증:
 
 - `SettingsServiceTests`: typed get/set 저장 및 변경 이벤트, invalid value rollback, default restore, JSON import/export, import 전 backup, invalid import 차단, legacy setting 변환 및 warning report 검증
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
+- `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
 
 2026-05-29 검증 결과:
 
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsServiceTests`: 7개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 157개 통과
-- `dotnet test Easislides.sln -c Debug`: 157개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 164개 통과
+- `dotnet test Easislides.sln -c Debug`: 164개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 157개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 164개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Easislides.Wpf.Data;
 using Easislides.Wpf.Demo;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Media;
@@ -54,6 +55,7 @@ public partial class App : Application
         services.AddSingleton<IThumbnailCache, ThumbnailCache>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
+        services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService, PowerPointRenderService>();
 

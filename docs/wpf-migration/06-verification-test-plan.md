@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 157개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 164개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 157개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 164개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -80,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 157개 이상 통과.
+- WPF 테스트 164개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -161,7 +161,7 @@ dotnet test Easislides.sln -c Debug --no-build
 - asset copy hash
 - SQLite transaction/rollback
 
-현재 상태: `SettingsServiceTests`, `AssetMigrationServiceTests` 추가 완료. `ISettingsService`/`SettingsService`로 typed setting get/set, validation failure rollback, default restore, JSON import/export, backup, legacy settings source 변환을 자동 검증한다. `IAssetMigrationService`/`AssetMigrationService`로 사용자 자산 migration dry-run, 파일 sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 시 safe-name 복사, source missing/source-not-directory 오류 분류를 자동 검증한다. SettingsWindow, 전체 `FrmOptions` key inventory, DB schema migration, 실제 `%AppData%`/운영 작업 폴더 연결은 후속 단계로 남긴다.
+현재 상태: `SettingsServiceTests`, `AssetMigrationServiceTests`, `DatabaseMigrationServiceTests` 추가 완료. `ISettingsService`/`SettingsService`로 typed setting get/set, validation failure rollback, default restore, JSON import/export, backup, legacy settings source 변환을 자동 검증한다. `IAssetMigrationService`/`AssetMigrationService`로 사용자 자산 migration dry-run, 파일 sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 시 safe-name 복사, source missing/source-not-directory 오류 분류를 자동 검증한다. `IDatabaseMigrationService`/`DatabaseMigrationService`로 SQLite `user_version`/table 분석, dry-run, backup, transaction migration, rollback, backup restore, source missing/source-not-file/corrupt DB 오류 분류를 자동 검증한다. SettingsWindow, 전체 `FrmOptions` key inventory, 실제 AdminDB schema inventory, repository 연결, 실제 `%AppData%`/운영 작업 폴더 연결은 후속 단계로 남긴다.
 
 수동 게이트:
 
