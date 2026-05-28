@@ -65,7 +65,8 @@
 - `LegacySettingsMapTests`: 현행 `EasiSettingKeys` 전체가 인벤토리에 포함되는지 검증한다.
 - `LegacySettingsMapTests`: `FrmOptions.SaveVariables`의 고위험 key가 문서화되어 있는지 검증한다.
 - `LegacySettingsMapTests`: `root_directory`, `OutputMonitorName`, `LiveCamVolume`, `LiveCamBalance`, `LiveCamMute`, `DBFileName` 별칭 migration, scale 정규화, operational setting alias migration, `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환을 검증한다.
+- `RegistryLegacySettingsSourceTests`: `RegUtil` 호환 HKCU section(`config`/`options`/`monitors`)에서 문자열/DWORD 값을 읽고, 누락 값 조회 시 legacy registry key를 생성하지 않으며, registry source가 `SettingsService.MigrateLegacyAsync`에 연결되는지 검증한다.
 
 ## 5. 완료 여부
 
-현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 남은 범위는 실제 legacy registry/file source 연결, runtime 소비처 연결, 운영 데이터 리허설이다.
+현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 실제 legacy registry source 연결은 `RegistryLegacySettingsSource`로 완료됐다. 남은 범위는 legacy file source 연결, runtime 소비처 연결, 운영 데이터 리허설이다.
