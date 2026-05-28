@@ -47,6 +47,7 @@ public partial class App : Application
         services.AddSingleton<IDisplayService, DisplayService>();
         services.AddSingleton<IWindowPlacementService, WindowPlacementService>();
         services.AddSingleton<IPlatformDiagnosticsService, PlatformDiagnosticsService>();
+        services.AddSingleton<IImageAssetService, ImageAssetService>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService, PowerPointRenderService>();
 
