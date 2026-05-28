@@ -163,16 +163,23 @@ public class MainViewModelTests
     [Fact]
     public void BindShortcuts_RegistersLocalAndGlobalLiveNextCommands()
     {
-        var sut = CreateSut();
+        var catalog = new CommandCatalog();
+        var sut = CreateSut(commandCatalog: catalog);
         var registry = new ShortcutRegistry();
 
         sut.BindShortcuts(registry);
 
+        registry.All.Should().BeEquivalentTo(catalog.GetDefaultShortcuts());
+        registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveGo && !s.IsGlobal);
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveNext && s.IsGlobal);
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveNext && !s.IsGlobal);
+        registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LivePrevious && !s.IsGlobal);
     }
 
-    private static MainViewModel CreateSut(ILiveSafetyPrompt? prompt = null, IDisplayService? display = null)
+    private static MainViewModel CreateSut(
+        ILiveSafetyPrompt? prompt = null,
+        IDisplayService? display = null,
+        ICommandCatalog? commandCatalog = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -182,7 +189,8 @@ public class MainViewModelTests
             output,
             prompt ?? new RecordingSafetyPrompt(allow: true),
             telemetry,
-            display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback));
+            display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback),
+            commandCatalog ?? new CommandCatalog());
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt

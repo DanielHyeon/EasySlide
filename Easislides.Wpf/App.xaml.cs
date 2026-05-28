@@ -37,6 +37,7 @@ public partial class App : Application
 
         // 단축키 단일 소스 (ADR-0004)
         services.AddSingleton<ShortcutRegistry>();
+        services.AddSingleton<ICommandCatalog, CommandCatalog>();
         services.AddSingleton<IGlobalInputDispatcher>(_ => new WpfGlobalInputDispatcher(Current.Dispatcher));
         services.AddSingleton<IGlobalKeySource, HookManagerGlobalKeySource>();
         services.AddSingleton<IGlobalInputService, GlobalInputService>();

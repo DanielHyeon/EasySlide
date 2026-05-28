@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Composites;
@@ -20,6 +19,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILiveSafetyPrompt _safetyPrompt;
     private readonly ICommandTelemetry _telemetry;
     private readonly IDisplayService _display;
+    private readonly ICommandCatalog _commandCatalog;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
@@ -30,13 +30,15 @@ public sealed partial class MainViewModel : ObservableObject
         IOutputWindowService output,
         ILiveSafetyPrompt safetyPrompt,
         ICommandTelemetry telemetry,
-        IDisplayService display)
+        IDisplayService display,
+        ICommandCatalog commandCatalog)
     {
         _session = session;
         _output = output;
         _safetyPrompt = safetyPrompt;
         _telemetry = telemetry;
         _display = display;
+        _commandCatalog = commandCatalog;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += (_, _) => NotifyCommandStates();
@@ -89,12 +91,15 @@ public sealed partial class MainViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(registry);
 
-        RegisterIfMissing(registry, new Shortcut(Key.Space, ModifierKeys.None, MainCommandIds.LiveNext, false, "다음 항목"));
-        RegisterIfMissing(registry, new Shortcut(Key.F5, ModifierKeys.None, MainCommandIds.LiveNext, true, "다음 항목"));
-        RegisterIfMissing(registry, new Shortcut(Key.F4, ModifierKeys.None, MainCommandIds.LivePrevious, true, "이전 항목"));
-        RegisterIfMissing(registry, new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, false, "검은 화면"));
-        RegisterIfMissing(registry, new Shortcut(Key.H, ModifierKeys.Control, MainCommandIds.LiveHide, false, "출력 숨김"));
+        foreach (var shortcut in _commandCatalog.GetDefaultShortcuts())
+        {
+            RegisterIfMissing(registry, shortcut);
+        }
 
+        registry.Bind(MainCommandIds.OutputOpen, () => OpenOutputCommand.Execute(null));
+        registry.Bind(MainCommandIds.OutputClose, () => _ = CloseOutputCommand.ExecuteAsync(null));
+        registry.Bind(MainCommandIds.LiveGo, () => _ = GoLiveCommand.ExecuteAsync(null));
+        registry.Bind(MainCommandIds.LiveStop, () => _ = StopLiveCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveNext, () => NextItemCommand.Execute(null));
         registry.Bind(MainCommandIds.LivePrevious, () => PreviousItemCommand.Execute(null));
         registry.Bind(MainCommandIds.LiveBlack, () => _ = BlackScreenCommand.ExecuteAsync(null));

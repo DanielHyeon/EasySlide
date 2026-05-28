@@ -107,7 +107,7 @@
 |---|---|---|
 | ShortcutRegistry | 1차 완료 | thread-safe 구현, 테스트 있음 |
 | HookManager adapter | 1차 운영 연결 완료 | `GlobalInputService`, `HookManagerGlobalKeySource`, `WpfGlobalInputDispatcher` 추가. 앱 시작 시 HookManager 전역 키를 `ShortcutRegistry.TryHandleGlobal`로 라우팅하고 종료 시 unsubscribe/dispose |
-| Command catalog | 미완료 | legacy mapping 분석 필요 |
+| Command catalog | 1차 구현 완료 | `CommandCatalog`, `CommandDescriptor` 추가. 기본 shortcut, command category, 위험 명령 메타데이터를 중앙화하고 `MainViewModel.BindShortcuts`가 catalog 기본값을 등록 |
 | Display service | 1차 구현 완료 | `IDisplayService`, `DisplayService`, `SystemDisplayReader` 추가. WinForms `Screen.AllScreens` 기반 모니터 열거, primary fallback, 보조 출력 모니터 선호 정책 구현 |
 | Window placement | 미완료 | 출력/팝업 통합 필요 |
 | Platform diagnostics | 미완료 | 운영 문제 분석 화면 필요 |
@@ -140,7 +140,7 @@
 자동 테스트:
 
 - Shortcut conflict tests
-- command catalog serialization tests
+- `CommandCatalogTests`: command id 중복 방지, 기본 shortcut의 command 참조 검증, 기본 shortcut 충돌 방지, Live 위험 명령 메타데이터 검증
 - display coordinate conversion tests
 - window placement policy tests
 - `GlobalInputServiceTests`: 전역 입력 시작 1회 보장, global scope 단축키 라우팅, local-only 단축키 차단, stop/unsubscribe, 시작 실패 cleanup
@@ -168,9 +168,9 @@
 
 2026-05-29 기준:
 
-- `dotnet test Easislides.sln -c Debug`: 87개 통과
+- `dotnet test Easislides.sln -c Debug`: 91개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 87개 통과
-- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Platform/DisplayService.cs` 인식 확인
+- `dotnet test Easislides.sln -c Release --no-build`: 91개 통과
+- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/Platform/DisplayService.cs` 인식 확인
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - 남은 수동 검증: 실제 듀얼 모니터 좌우/상하 배치, 혼합 DPI, 모니터 제거/재연결, 실제 리모컨/타 앱 포커스 글로벌 단축키, 텍스트 입력 중 shortcut 충돌

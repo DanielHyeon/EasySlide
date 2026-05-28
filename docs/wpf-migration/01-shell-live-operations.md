@@ -171,6 +171,7 @@ UX 검증:
 - `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨
 - `DisplayServiceTests`: 출력 모니터 열거 fallback 및 선호 모니터 선택 정책
 - `GlobalInputServiceTests`: HookManager adapter 시작/중지, 글로벌 단축키 라우팅, 로컬 단축키 차단, 시작 실패 cleanup
+- `CommandCatalogTests`: command id 중복 방지, 기본 shortcut의 command 참조 검증, 기본 shortcut 충돌 방지, Live 위험 명령 메타데이터 검증
 
 현재 자동화 완료:
 
@@ -181,13 +182,14 @@ UX 검증:
 - `OutputWindowViewModelTests`
 - `DisplayServiceTests`
 - `GlobalInputServiceTests`
+- `CommandCatalogTests`
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.sln -c Debug`: 87개 통과
+- `dotnet test Easislides.sln -c Debug`: 91개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 87개 통과
-- CodeGraph 동기화 및 `GlobalInputService` 인식 확인 완료
+- `dotnet test Easislides.sln -c Release --no-build`: 91개 통과
+- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
