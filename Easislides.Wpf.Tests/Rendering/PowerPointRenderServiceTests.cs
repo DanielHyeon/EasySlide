@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 using FluentAssertions;
 using Xunit;
 
@@ -63,6 +64,65 @@ public class PowerPointRenderServiceTests
         second.Slide.Should().BeSameAs(first.Slide);
         firstBackend.CallCount.Should().Be(1);
         secondBackend.CallCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RenderSlideAsync_WhenRequestTimeoutIsZero_UsesSettingsTimeout()
+    {
+        using var fixture = TempPowerPointFile.Create();
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateService();
+        settings.Set(EasiSettingKeys.PowerPointRenderTimeoutSeconds, 42).Succeeded.Should().BeTrue();
+        var backend = new FakePowerPointRenderBackend();
+        var sut = new PowerPointRenderService(backend, settings);
+
+        var result = await sut.RenderSlideAsync(DefaultRequest(fixture.Path) with { Timeout = TimeSpan.Zero });
+
+        result.Succeeded.Should().BeTrue();
+        backend.LastRequest!.Timeout.Should().Be(TimeSpan.FromSeconds(42));
+    }
+
+    [Fact]
+    public async Task RenderSlideAsync_UsesSettingsBackedThumbnailCacheMegabytes()
+    {
+        using var fixture = TempPowerPointFile.Create();
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateService();
+        settings.Set(EasiSettingKeys.ThumbnailCacheMegabytes, 0).Succeeded.Should().BeTrue();
+        var backend = new FakePowerPointRenderBackend();
+        var sut = new PowerPointRenderService(backend, settings);
+
+        var first = await sut.RenderSlideAsync(DefaultRequest(fixture.Path));
+        var second = await sut.RenderSlideAsync(DefaultRequest(fixture.Path) with { SlideNumber = 2 });
+        var third = await sut.RenderSlideAsync(DefaultRequest(fixture.Path));
+
+        first.FromCache.Should().BeFalse();
+        second.FromCache.Should().BeFalse();
+        third.FromCache.Should().BeFalse();
+        backend.CallCount.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task RenderSlideAsync_WhenThumbnailCacheSettingChanges_ReconfiguresOwnedCache()
+    {
+        using var fixture = TempPowerPointFile.Create();
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateService();
+        settings.Set(EasiSettingKeys.ThumbnailCacheMegabytes, 1).Succeeded.Should().BeTrue();
+        var backend = new FakePowerPointRenderBackend();
+        var sut = new PowerPointRenderService(backend, settings);
+
+        await sut.RenderSlideAsync(DefaultRequest(fixture.Path));
+        await sut.RenderSlideAsync(DefaultRequest(fixture.Path) with { SlideNumber = 2 });
+        var cachedBeforeResize = await sut.RenderSlideAsync(DefaultRequest(fixture.Path));
+        settings.Set(EasiSettingKeys.ThumbnailCacheMegabytes, 0).Succeeded.Should().BeTrue();
+        var secondAfterResize = await sut.RenderSlideAsync(DefaultRequest(fixture.Path) with { SlideNumber = 2 });
+        var firstAfterSecondStore = await sut.RenderSlideAsync(DefaultRequest(fixture.Path));
+
+        cachedBeforeResize.FromCache.Should().BeTrue();
+        secondAfterResize.FromCache.Should().BeFalse();
+        firstAfterSecondStore.FromCache.Should().BeFalse();
+        backend.CallCount.Should().Be(4);
     }
 
     [Fact]
@@ -134,12 +194,14 @@ public class PowerPointRenderServiceTests
     private sealed class FakePowerPointRenderBackend : IPowerPointRenderBackend
     {
         public int CallCount { get; private set; }
+        public PowerPointRenderRequest? LastRequest { get; private set; }
         public TimeSpan Delay { get; init; }
         public Exception? Exception { get; init; }
 
         public async Task<PowerPointSlideSnapshot> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken)
         {
             CallCount++;
+            LastRequest = request;
 
             if (Delay > TimeSpan.Zero)
             {
@@ -187,6 +249,39 @@ public class PowerPointRenderServiceTests
             try
             {
                 File.Delete(Path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private sealed class TempSettingsFolder : IDisposable
+    {
+        private TempSettingsFolder(string root)
+        {
+            Root = root;
+            SettingsPath = Path.Combine(root, "settings.json");
+            BackupRoot = Path.Combine(root, "Backups");
+        }
+
+        public string Root { get; }
+
+        public string SettingsPath { get; }
+
+        public string BackupRoot { get; }
+
+        public static TempSettingsFolder Create()
+            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_PowerPointSettings_{Guid.NewGuid():N}"));
+
+        public SettingsService CreateService()
+            => new(new SettingsServiceOptions(SettingsPath, BackupRoot));
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(Root, recursive: true);
             }
             catch
             {

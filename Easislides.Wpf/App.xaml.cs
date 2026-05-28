@@ -25,18 +25,14 @@ public partial class App : Application
     /// <summary>전역 DI 서비스 프로바이더.</summary>
     public static IServiceProvider Services { get; private set; } = null!;
 
-    private void OnStartup(object sender, StartupEventArgs e)
+    public static void ConfigureServices(
+        IServiceCollection services,
+        SettingsServiceOptions settingsOptions,
+        Dispatcher dispatcher)
     {
-        // 전역 예외 핸들러 — Sprint 0 PoC 중 silent crash 방지.
-        // Sprint 1 이후: Serilog 등 로깅 인프라로 교체 + 사용자에게 비차단 알림.
-        DispatcherUnhandledException += OnUiException;
-        AppDomain.CurrentDomain.UnhandledException += OnDomainException;
-        TaskScheduler.UnobservedTaskException += OnTaskException;
-
-        // DI 컨테이너 구성
-        var services = new ServiceCollection();
-        var settingsOptions = SettingsServiceOptions.CreateDefault();
-        var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(settingsOptions);
+        ArgumentNullException.ThrowIfNull(dispatcher);
 
         // 디자인 시스템 — 런타임 테마/스케일 변경 (ADR-0006)
         services.AddSingleton<IThemeService, ThemeService>();
@@ -44,7 +40,7 @@ public partial class App : Application
         // 단축키 단일 소스 (ADR-0004)
         services.AddSingleton<ShortcutRegistry>();
         services.AddSingleton<ICommandCatalog, CommandCatalog>();
-        services.AddSingleton<IGlobalInputDispatcher>(_ => new WpfGlobalInputDispatcher(Current.Dispatcher));
+        services.AddSingleton<IGlobalInputDispatcher>(_ => new WpfGlobalInputDispatcher(dispatcher));
         services.AddSingleton<IGlobalKeySource, HookManagerGlobalKeySource>();
         services.AddSingleton<IGlobalInputService, GlobalInputService>();
         services.AddSingleton<IDisplayReader, SystemDisplayReader>();
@@ -63,7 +59,9 @@ public partial class App : Application
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
-        services.AddSingleton<IPowerPointRenderService, PowerPointRenderService>();
+        services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
+            sp.GetRequiredService<IPowerPointRenderBackend>(),
+            sp.GetRequiredService<ISettingsService>()));
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
@@ -81,6 +79,21 @@ public partial class App : Application
         services.AddTransient<MainViewModel>();
         services.AddTransient<MainWindow>();
         services.AddTransient<DemoWindow>();
+    }
+
+    private void OnStartup(object sender, StartupEventArgs e)
+    {
+        // 전역 예외 핸들러 — Sprint 0 PoC 중 silent crash 방지.
+        // Sprint 1 이후: Serilog 등 로깅 인프라로 교체 + 사용자에게 비차단 알림.
+        DispatcherUnhandledException += OnUiException;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainException;
+        TaskScheduler.UnobservedTaskException += OnTaskException;
+
+        // DI 컨테이너 구성
+        var services = new ServiceCollection();
+        var settingsOptions = SettingsServiceOptions.CreateDefault();
+        var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
+        ConfigureServices(services, settingsOptions, Current.Dispatcher);
 
         Services = services.BuildServiceProvider();
         _ = Services.GetRequiredService<IOutputWindowHost>();

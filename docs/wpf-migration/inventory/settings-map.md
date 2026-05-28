@@ -32,8 +32,8 @@
 | `LMShowNotations`, `LyricsMonitorShowNotations` | `liveOutput.lyricsMonitorShowNotations` | 송출 | bool, `true/false`, `1/0`, `yes/no` |
 | `UsePowerpointTab`, `UsePowerPointTab` | `powerPoint.usePowerPointTab` | PowerPoint | bool, `true/false`, `1/0`, `yes/no` |
 | `NoPowerpointPanelOverlay`, `NoPowerPointPanelOverlay` | `powerPoint.noPanelOverlay` | PowerPoint | bool, `true/false`, `1/0`, `yes/no` |
-| `PowerPointRenderTimeoutSeconds` | `powerPoint.renderTimeoutSeconds` | PowerPoint | 정수 |
-| `ThumbnailCacheMegabytes` | `powerPoint.thumbnailCacheMegabytes` | PowerPoint | 정수 |
+| `PowerPointRenderTimeoutSeconds` | `powerPoint.renderTimeoutSeconds` | PowerPoint | 정수, `PowerPointRenderService` 기본 timeout runtime 반영 |
+| `ThumbnailCacheMegabytes` | `powerPoint.thumbnailCacheMegabytes` | PowerPoint | 정수, `PowerPointRenderService` 설정 기반 thumbnail cache 용량/runtime 재구성 반영 |
 | `PowerPointMaxFiles`, `PowerpointMaxFiles`, `PP_MaxFiles` | `powerPoint.maxFiles` | PowerPoint | 정수, 1..100 |
 | `UseMediaTab` | `media.useMediaTab` | 미디어 | bool, `true/false`, `1/0`, `yes/no` |
 | `NoMediaPanelOverlay` | `media.noPanelOverlay` | 미디어 | bool, `true/false`, `1/0`, `yes/no` |
@@ -54,7 +54,7 @@
 
 | Legacy key | 섹션 | 상태 |
 |---|---|---|
-| `UsePowerpointTab`, `NoPowerpointPanelOverlay`, `PP_MaxFiles` | PowerPoint | typed key, legacy migration, SettingsWindow 노출 완료. 운영 소비처 연결 후속 |
+| `UsePowerpointTab`, `NoPowerpointPanelOverlay`, `PP_MaxFiles` | PowerPoint | typed key, legacy migration, SettingsWindow 노출 완료. `PowerPointRenderTimeoutSeconds`/`ThumbnailCacheMegabytes` runtime 소비처 연결 완료. 나머지 운영 소비처 연결 후속 |
 | `UseMediaTab`, `NoMediaPanelOverlay`, `MediaDir`, `LiveCamNumber` | 미디어 | typed key, legacy migration, SettingsWindow 노출 완료. 운영 소비처 연결 후속 |
 | `ShowLyricsMonitorAlertBox`, `AdvanceNextItem`, `GapItemOption`, `GapItemLogoFile`, `GapItemUseFade` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. 라이브 송출 runtime 연결 후속 |
 | `DMAlwaysUseSecondaryMonitor`, `DMOption1Top`, `DMOption1Left`, `DMOption1Width` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. display/window placement runtime 연결 후속 |

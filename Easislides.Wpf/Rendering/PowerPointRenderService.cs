@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Easislides.Wpf.Interop;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Rendering;
 
@@ -78,7 +79,7 @@ public interface IPowerPointRenderBackend
         CancellationToken cancellationToken);
 }
 
-public sealed class PowerPointRenderService : IPowerPointRenderService
+public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposable
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
     private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -91,6 +92,8 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
 
     private readonly IPowerPointRenderBackend _backend;
     private readonly IThumbnailCache _cache;
+    private readonly ISettingsService? _settings;
+    private readonly ThumbnailCache? _settingsBackedCache;
 
     public PowerPointRenderService(IPowerPointRenderBackend backend)
         : this(backend, new ThumbnailCache())
@@ -101,6 +104,17 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+    }
+
+    public PowerPointRenderService(IPowerPointRenderBackend backend, ISettingsService settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        _backend = backend ?? throw new ArgumentNullException(nameof(backend));
+        _settings = settings;
+        _settingsBackedCache = new ThumbnailCache(CreateThumbnailCacheOptions(settings));
+        _cache = _settingsBackedCache;
+        _settings.SettingsChanged += OnSettingsChanged;
     }
 
     public async Task<PowerPointRenderResult> RenderSlideAsync(
@@ -191,7 +205,15 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
 
     public void ClearCache() => _cache.Clear();
 
-    private static bool TryNormalizeRequest(
+    public void Dispose()
+    {
+        if (_settings is not null)
+        {
+            _settings.SettingsChanged -= OnSettingsChanged;
+        }
+    }
+
+    private bool TryNormalizeRequest(
         PowerPointRenderRequest request,
         out PowerPointRenderRequest normalized,
         out FileInfo? fileInfo,
@@ -224,9 +246,30 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
             return false;
         }
 
-        var timeout = request.Timeout <= TimeSpan.Zero ? DefaultTimeout : request.Timeout;
+        var timeout = request.Timeout <= TimeSpan.Zero ? GetConfiguredTimeout() : request.Timeout;
         normalized = request with { FilePath = fullPath, Timeout = timeout };
         return true;
+    }
+
+    private TimeSpan GetConfiguredTimeout()
+    {
+        if (_settings is null)
+        {
+            return DefaultTimeout;
+        }
+
+        var seconds = Clamp(_settings.Get(EasiSettingKeys.PowerPointRenderTimeoutSeconds), 1, 300);
+        return TimeSpan.FromSeconds(seconds);
+    }
+
+    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
+    {
+        if (_settingsBackedCache is null || _settings is null || !ContainsSetting(args.ChangedKeys, EasiSettingKeys.ThumbnailCacheMegabytes.Id))
+        {
+            return;
+        }
+
+        _settingsBackedCache.UpdateOptions(CreateThumbnailCacheOptions(_settings));
     }
 
     private static bool CanOpenForRead(string path, out PowerPointRenderResult failure)
@@ -289,6 +332,28 @@ public sealed class PowerPointRenderService : IPowerPointRenderService
             ? PowerPointRenderErrorKind.MissingOffice
             : PowerPointRenderErrorKind.CorruptFile;
     }
+
+    private static ThumbnailCacheOptions CreateThumbnailCacheOptions(ISettingsService settings)
+        => new(MaxBytes: MegabytesToBytes(settings.Get(EasiSettingKeys.ThumbnailCacheMegabytes)));
+
+    private static long MegabytesToBytes(int megabytes)
+        => Math.Max(0L, megabytes) * 1024L * 1024L;
+
+    private static bool ContainsSetting(IReadOnlyList<string> changedKeys, string settingId)
+    {
+        for (var i = 0; i < changedKeys.Count; i++)
+        {
+            if (string.Equals(changedKeys[i], settingId, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int Clamp(int value, int min, int max)
+        => Math.Min(Math.Max(value, min), max);
 
 }
 

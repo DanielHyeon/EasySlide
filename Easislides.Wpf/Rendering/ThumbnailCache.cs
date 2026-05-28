@@ -76,7 +76,7 @@ public sealed class ThumbnailCache : IThumbnailCache
 {
     private readonly Dictionary<ThumbnailCacheKey, CacheEntry> _entries = new();
     private readonly LinkedList<ThumbnailCacheKey> _lru = new();
-    private readonly ThumbnailCacheOptions _options;
+    private ThumbnailCacheOptions _options;
     private readonly object _lock = new();
     private long _totalBytes;
     private int _evictionCount;
@@ -89,11 +89,18 @@ public sealed class ThumbnailCache : IThumbnailCache
     public ThumbnailCache(ThumbnailCacheOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
-        _options = options with
+        _options = NormalizeOptions(options);
+    }
+
+    public void UpdateOptions(ThumbnailCacheOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        lock (_lock)
         {
-            MaxEntries = Math.Max(1, options.MaxEntries),
-            MaxBytes = Math.Max(1, options.MaxBytes)
-        };
+            _options = NormalizeOptions(options);
+            Trim();
+        }
     }
 
     public bool TryGet<TSnapshot>(ThumbnailCacheKey key, out TSnapshot? snapshot)
@@ -210,6 +217,13 @@ public sealed class ThumbnailCache : IThumbnailCache
         _totalBytes -= entry.ByteSize;
         return true;
     }
+
+    private static ThumbnailCacheOptions NormalizeOptions(ThumbnailCacheOptions options)
+        => options with
+        {
+            MaxEntries = Math.Max(1, options.MaxEntries),
+            MaxBytes = Math.Max(1, options.MaxBytes)
+        };
 
     private sealed record CacheEntry(
         object Snapshot,
