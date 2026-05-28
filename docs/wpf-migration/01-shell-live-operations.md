@@ -128,10 +128,10 @@
 | WPF 앱 골격 | 완료 | `Easislides.Wpf` 존재 |
 | LiveBar 컴포지트 | 1차 완료 | 실제 세션 연결 필요 |
 | SafetyConfirm | 1차 완료 | 실제 위험 명령 연결 필요 |
-| MainWindow | 미완료 | `DemoWindow`만 존재 |
-| 출력 화면 WPF 대체 | 미완료 | WinForms 원본 유지 |
+| MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결 |
+| 출력 화면 WPF 대체 | 부분 구현 | `OutputWindowService` 상태/배치 정책 구현, 실제 borderless 출력 Window 필요 |
 | 미디어 컨트롤 WPF 대체 | 미완료 | 계획 필요 |
-| 키보드/리모컨 연결 | 부분 완료 | `ShortcutRegistry` 테스트 있음, HookManager 운영 연결 필요 |
+| 키보드/리모컨 연결 | 부분 완료 | `ShortcutRegistry`와 `MainViewModel.BindShortcuts` 연결, HookManager adapter 운영 연결 필요 |
 
 ## 5. 이식 후 검증 방안
 
@@ -166,6 +166,12 @@ UX 검증:
 - `ShortcutRegistryTests`: 로컬/글로벌 단축키 매핑
 - `MainViewModelTests`: 선택 항목 변경, 라이브 상태 전이, 명령 enable/disable
 - `OutputWindowServiceTests`: 모니터 좌표 계산, 창 재배치 정책
+
+현재 자동화 완료:
+
+- `LiveSessionServiceTests`
+- `OutputWindowServiceTests`
+- `MainViewModelTests`
 
 수동 테스트:
 

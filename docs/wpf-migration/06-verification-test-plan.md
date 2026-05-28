@@ -19,7 +19,10 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug --no-build` | 51개 통과 |
+| `dotnet test Easislides.sln -c Debug --no-build` | 65개 통과 |
+| `dotnet build Easislides.sln -c Release` | 성공 |
+| `dotnet test Easislides.sln -c Release --no-build` | 65개 통과 |
+| `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
 | 남은 주요 경고 | NetOffice 호환성, DirectShow Windows API, HookManager nullable |
@@ -77,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 51개 이상 통과.
+- WPF 테스트 65개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -88,6 +91,9 @@ dotnet test Easislides.sln -c Debug --no-build
 - `LiveSessionServiceTests`
 - `OutputWindowServiceTests`
 - `SafetyConfirm` 실제 command 연결 테스트
+
+현재 상태: `MainViewModelTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests` 추가 완료. `BlackScreenCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다.
+2026-05-28 기준 Release 산출물 `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`와 `MainWindow.baml` 생성 확인 완료.
 
 수동 게이트:
 

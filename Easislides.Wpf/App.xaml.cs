@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Easislides.Wpf.Demo;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Shell;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,11 +37,22 @@ public partial class App : Application
         // 단축키 단일 소스 (ADR-0004)
         services.AddSingleton<ShortcutRegistry>();
 
+        // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
+        services.AddSingleton<ILiveSessionService, LiveSessionService>();
+        services.AddSingleton<IOutputWindowService, OutputWindowService>();
+        services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
+        services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
+        services.AddTransient<MainViewModel>();
+        services.AddTransient<MainWindow>();
+        services.AddTransient<DemoWindow>();
+
         Services = services.BuildServiceProvider();
 
-        // 데모 윈도우 표시 (Sprint 0 산출물 확인용)
-        var demo = new DemoWindow();
-        demo.Show();
+        var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
+        Window window = useDemo
+            ? Services.GetRequiredService<DemoWindow>()
+            : Services.GetRequiredService<MainWindow>();
+        window.Show();
     }
 
     private static void OnUiException(object sender, DispatcherUnhandledExceptionEventArgs e)
