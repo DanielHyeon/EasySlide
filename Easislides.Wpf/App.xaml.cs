@@ -37,6 +37,9 @@ public partial class App : Application
 
         // 단축키 단일 소스 (ADR-0004)
         services.AddSingleton<ShortcutRegistry>();
+        services.AddSingleton<IGlobalInputDispatcher>(_ => new WpfGlobalInputDispatcher(Current.Dispatcher));
+        services.AddSingleton<IGlobalKeySource, HookManagerGlobalKeySource>();
+        services.AddSingleton<IGlobalInputService, GlobalInputService>();
         services.AddSingleton<IDisplayReader, SystemDisplayReader>();
         services.AddSingleton<IDisplayService, DisplayService>();
 
@@ -60,6 +63,29 @@ public partial class App : Application
             ? Services.GetRequiredService<DemoWindow>()
             : Services.GetRequiredService<MainWindow>();
         window.Show();
+
+        if (!useDemo)
+        {
+            var globalInput = Services.GetRequiredService<IGlobalInputService>();
+            if (!globalInput.Start())
+            {
+                MessageBox.Show(
+                    "전역 단축키를 시작하지 못했습니다.\n\n앱 내부 단축키는 계속 사용할 수 있습니다.",
+                    "EasiSlides — 전역 단축키",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (Services is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        base.OnExit(e);
     }
 
     private static void OnUiException(object sender, DispatcherUnhandledExceptionEventArgs e)

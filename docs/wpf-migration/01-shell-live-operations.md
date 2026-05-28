@@ -131,7 +131,7 @@
 | MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결 |
 | 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel`, `IDisplayService` 연결. borderless/fullscreen 및 창 모드 배치, 출력 모니터 선택, 라이브 snapshot 반영 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
 | 미디어 컨트롤 WPF 대체 | 미완료 | 계획 필요 |
-| 키보드/리모컨 연결 | 부분 완료 | `ShortcutRegistry`와 `MainViewModel.BindShortcuts` 연결, HookManager adapter 운영 연결 필요 |
+| 키보드/리모컨 연결 | 1차 구현 완료 | `ShortcutRegistry`, `MainViewModel.BindShortcuts`, `GlobalInputService`, HookManager adapter 운영 연결 완료. 실제 리모컨/타 앱 포커스 수동 검증은 M5에서 계속 수행 |
 
 ## 5. 이식 후 검증 방안
 
@@ -143,6 +143,7 @@
 - Next/Prev 명령이 현재 출력과 다음 프리뷰를 정확히 갱신한다.
 - Black/Hide 상태는 LiveBar와 출력 창에 동시에 반영된다.
 - 출력 모니터 변경 후 기존 출력 창이 잘못된 모니터에 남지 않는다.
+- 허용된 글로벌 단축키가 HookManager adapter를 통해 `ShortcutRegistry`의 동일 command id로 라우팅된다.
 
 라이브 안전 검증:
 
@@ -169,6 +170,7 @@ UX 검증:
 - `OutputWindowHostTests`: 출력 창 생성/재배치/닫기, 라이브 세션 snapshot 바인딩, 이벤트 구독 해제
 - `OutputWindowViewModelTests`: Active/Hidden/Blackout/Standby 표시 라벨
 - `DisplayServiceTests`: 출력 모니터 열거 fallback 및 선호 모니터 선택 정책
+- `GlobalInputServiceTests`: HookManager adapter 시작/중지, 글로벌 단축키 라우팅, 로컬 단축키 차단, 시작 실패 cleanup
 
 현재 자동화 완료:
 
@@ -178,12 +180,14 @@ UX 검증:
 - `OutputWindowHostTests`
 - `OutputWindowViewModelTests`
 - `DisplayServiceTests`
+- `GlobalInputServiceTests`
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.sln -c Debug`: 79개 통과
+- `dotnet test Easislides.sln -c Debug`: 84개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 79개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 84개 통과
+- CodeGraph 동기화 및 `GlobalInputService` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
