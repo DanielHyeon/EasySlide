@@ -126,7 +126,7 @@
 | SettingsWindow | 부분 구현 | `SettingsWindow`, `SettingsWindowViewModel` 추가. ADR-0005 기준 9개 섹션(일반/화면/송출/PowerPoint/미디어/단축키/데이터/가져오기·내보내기/고급), typed setting 즉시 저장, 다크/라이트 및 Standard/Large/Senior 적용, default restore, import/export, AdminDB 분석, 검증 메시지 표시, MainWindow 설정 진입 버튼 자동 검증 완료. 작업 폴더/AdminDB/백업 루트/설정 가져오기/내보내기 파일 선택 dialog, shortcut editor 목록/저장/복원/충돌 검증, runtime shortcut override 반영, media volume/balance/mute/directory/live camera runtime 반영, PowerPoint render timeout/thumbnail cache/tab/max file/panel overlay runtime 반영, display/window placement runtime 반영, alert/gap/lyrics monitor output runtime 반영, PowerPoint/media/display/alert/gap/lyrics monitor operational setting 로드/저장/rollback 및 XAML 노출 검증 완료. WPF focus/screenshot 회귀는 후속 필요 |
 | legacy settings map | 부분 구현 | `docs/wpf-migration/inventory/settings-map.md`와 `LegacySettingsMap` 추가. 현행 `EasiSettingKeys` 전체 inventory, `FrmOptions.SaveVariables` 고위험 key 문서화, 핵심 legacy alias 자동 이식, bool 호환 parsing, media scale 정규화, legacy shortcut 자동 이식, PowerPoint/media/display/alert/gap/lyrics monitor 세부 typed key 자동 이식 검증 완료. media audio/default output monitor/PowerPoint render timeout/thumbnail cache/display window placement/alert/gap/lyrics monitor/PowerPoint tab/max file/media tab/media directory/live camera/panel overlay runtime 소비처 연결 완료 |
 | 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. AppData 실제 경로 연결, SettingsWindow/온보딩 UI, DB/설정 snapshot 통합은 후속 필요 |
-| DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService`, `IAdminDatabaseRepository`, `AdminDatabaseRepository` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 bundled `AdminDB/Database/EasiSlidesDb.db` schema inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only song folder/song summary repository, 운영 DI 등록 검증 완료. 쓰기 repository backup/transaction 통합과 운영 작업 폴더 리허설은 후속 필요 |
+| DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService`, `IAdminDatabaseRepository`, `AdminDatabaseRepository` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 bundled `AdminDB/Database/EasiSlidesDb.db` schema inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only song folder/song summary repository, folder/song write repository backup/transaction/rollback, 운영 DI 등록 검증 완료. 운영 작업 폴더 리허설은 후속 필요 |
 | 도움말/정보/등록 | 미완료 | 기존 폼 기능 확인 필요 |
 
 ## 5. 이식 후 검증 방안
@@ -155,7 +155,7 @@ DB 검증:
 - 손상 DB 처리.
 - schema version mismatch 안내.
 - transaction 실패 시 rollback.
-- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB schema inventory, missing table/column 호환성 진단, bundled `AdminDB/Database/EasiSlidesDb.db` 실제 schema inventory, read-only folder song count, folder별 song summary 조회, 운영 DI 등록을 검증한다. 운영 DB 복사본 기준 write/repository 호환성 검증은 후속으로 추가한다.
+- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB schema inventory, missing table/column 호환성 진단, bundled `AdminDB/Database/EasiSlidesDb.db` 실제 schema inventory, read-only folder song count, folder별 song summary 조회, folder upsert backup, legacy SONG 필드 insert, song 이동 실패 시 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. 운영 DB 복사본 기준 리허설은 후속으로 추가한다.
 
 ## 6. 테스트 방안
 
@@ -183,7 +183,7 @@ DB 검증:
 - `AppServiceRegistrationTests.ConfigureServices_ResolvesPowerPointRenderServiceWithSettingsBackedConstructor`: 운영 DI 등록이 PowerPoint 설정 소비 생성자를 사용하도록 고정
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
-- `AdminDatabaseRepositoryTests`: 임시 legacy AdminDB 및 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, 운영 DI 등록 검증
+- `AdminDatabaseRepositoryTests`: 임시 legacy AdminDB 및 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, folder upsert backup, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, song 이동 transaction rollback/backup restore, 운영 DI 등록 검증
 
 2026-05-29 검증 결과:
 
@@ -195,10 +195,10 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 20개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 241개 통과
-- `dotnet test Easislides.sln -c Debug`: 241개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 245개 통과
+- `dotnet test Easislides.sln -c Debug`: 245개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 241개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 245개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

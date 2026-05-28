@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
@@ -63,6 +64,72 @@ public sealed record SongSummary(
     string Key,
     string Lyrics);
 
+public enum AdminDatabaseWriteOperation
+{
+    SaveFolder,
+    SaveSong,
+    MoveSongs,
+}
+
+public enum AdminDatabaseWriteIssueKind
+{
+    SourceMissing,
+    SourceNotFile,
+    OpenFailed,
+    SchemaIncompatible,
+    InvalidRequest,
+    BackupFailed,
+    WriteFailed,
+    RestoreFailed,
+    NotFound,
+}
+
+public sealed record AdminDatabaseWriteIssue(
+    AdminDatabaseWriteIssueKind Kind,
+    AdminDatabaseIssueSeverity Severity,
+    string Message);
+
+public sealed record SongFolderWriteModel(
+    int FolderNo,
+    string Name,
+    bool IsEnabled);
+
+public sealed record SongWriteModel(
+    int? SongId,
+    string Title,
+    string AlternateTitle,
+    int FolderNo,
+    int SongNumber,
+    string Lyrics,
+    string Sequence = "",
+    string Writer = "",
+    string Copyright = "",
+    int Capo = 0,
+    string Timing = "",
+    string Key = "",
+    string Notations = "",
+    string Category = "",
+    string LicenceAdmin1 = "",
+    string LicenceAdmin2 = "",
+    string BookReference = "",
+    string UserReference = "",
+    string Settings = "",
+    string FormatData = "");
+
+public sealed record SongMoveRequest(
+    int SongId,
+    int OldFolderNo,
+    int NewFolderNo);
+
+public sealed record AdminDatabaseWriteReport(
+    bool Succeeded,
+    AdminDatabaseWriteOperation Operation,
+    string DatabasePath,
+    string? BackupPath,
+    IReadOnlyList<int> AffectedSongIds,
+    IReadOnlyList<int> AffectedFolderNos,
+    IReadOnlyList<AdminDatabaseWriteIssue> Issues);
+
 public interface IAdminDatabaseRepository
 {
     Task<AdminDatabaseSchemaInventory> AnalyzeSchemaAsync(string databasePath);
@@ -70,6 +137,21 @@ public interface IAdminDatabaseRepository
     Task<IReadOnlyList<SongFolderSummary>> GetSongFoldersAsync(string databasePath);
 
     Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null);
+
+    Task<AdminDatabaseWriteReport> SaveFolderAsync(
+        string databasePath,
+        string backupRoot,
+        SongFolderWriteModel folder);
+
+    Task<AdminDatabaseWriteReport> SaveSongAsync(
+        string databasePath,
+        string backupRoot,
+        SongWriteModel song);
+
+    Task<AdminDatabaseWriteReport> MoveSongsAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<SongMoveRequest> moves);
 }
 
 public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
@@ -89,6 +171,45 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
 
     public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
         => Task.FromResult(GetSongs(databasePath, folderNo));
+
+    public Task<AdminDatabaseWriteReport> SaveFolderAsync(
+        string databasePath,
+        string backupRoot,
+        SongFolderWriteModel folder)
+    {
+        ArgumentNullException.ThrowIfNull(folder);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.SaveFolder,
+            (connection, transaction, outcome) => SaveFolder(connection, transaction, folder, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> SaveSongAsync(
+        string databasePath,
+        string backupRoot,
+        SongWriteModel song)
+    {
+        ArgumentNullException.ThrowIfNull(song);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.SaveSong,
+            (connection, transaction, outcome) => SaveSong(connection, transaction, song, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> MoveSongsAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<SongMoveRequest> moves)
+    {
+        ArgumentNullException.ThrowIfNull(moves);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.MoveSongs,
+            (connection, transaction, outcome) => MoveSongs(connection, transaction, moves, outcome)));
+    }
 
     private static AdminDatabaseSchemaInventory AnalyzeSchema(string databasePath)
     {
@@ -191,6 +312,374 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
 
         return songs;
     }
+
+    private static AdminDatabaseWriteReport ExecuteWrite(
+        string databasePath,
+        string backupRoot,
+        AdminDatabaseWriteOperation operation,
+        Action<SQLiteConnection, SQLiteTransaction, AdminDatabaseWriteOutcome> write)
+    {
+        var inventory = AnalyzeSchema(databasePath);
+        if (!inventory.Succeeded)
+        {
+            return FailedWriteReport(
+                operation,
+                inventory.DatabasePath,
+                backupPath: null,
+                new AdminDatabaseWriteOutcome(),
+                ToWriteIssues(inventory.Issues));
+        }
+
+        if (string.IsNullOrWhiteSpace(backupRoot))
+        {
+            return FailedWriteReport(
+                operation,
+                inventory.DatabasePath,
+                backupPath: null,
+                new AdminDatabaseWriteOutcome(),
+                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, "Backup root cannot be empty.")]);
+        }
+
+        var outcome = new AdminDatabaseWriteOutcome();
+        string backupPath;
+        try
+        {
+            backupPath = CreateBackup(inventory.DatabasePath, backupRoot);
+        }
+        catch (Exception ex) when (IsFileSystemException(ex))
+        {
+            return FailedWriteReport(
+                operation,
+                inventory.DatabasePath,
+                backupPath: null,
+                outcome,
+                [WriteIssue(AdminDatabaseWriteIssueKind.BackupFailed, $"Unable to create AdminDB backup: {ex.Message}")]);
+        }
+
+        try
+        {
+            using var connection = OpenConnection(inventory.DatabasePath, readOnly: false);
+            using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                write(connection, transaction, outcome);
+                transaction.Commit();
+            }
+            catch
+            {
+                TryRollback(transaction);
+                throw;
+            }
+        }
+        catch (AdminDatabaseWriteException ex)
+        {
+            return RestoreAndReportFailure(operation, inventory.DatabasePath, backupPath, outcome, ex.Kind, ex.Message);
+        }
+        catch (Exception ex) when (IsSqliteOpenException(ex))
+        {
+            return RestoreAndReportFailure(
+                operation,
+                inventory.DatabasePath,
+                backupPath,
+                outcome,
+                AdminDatabaseWriteIssueKind.WriteFailed,
+                $"AdminDB write failed: {ex.Message}");
+        }
+
+        return new AdminDatabaseWriteReport(
+            Succeeded: true,
+            operation,
+            inventory.DatabasePath,
+            backupPath,
+            outcome.SongIds,
+            outcome.FolderNos,
+            Array.Empty<AdminDatabaseWriteIssue>());
+    }
+
+    private static void SaveFolder(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        SongFolderWriteModel folder,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        using var existsCommand = new SQLiteCommand(
+            "SELECT COUNT(*) FROM FOLDER WHERE FolderNo = @folderNo;",
+            connection,
+            transaction);
+        existsCommand.Parameters.AddWithValue("@folderNo", folder.FolderNo);
+        var exists = Convert.ToInt32(existsCommand.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
+        using var command = new SQLiteCommand(
+            exists
+                ? "UPDATE FOLDER SET Name = @name, Use = @use WHERE FolderNo = @folderNo;"
+                : "INSERT INTO FOLDER (FolderNo, Name, Use) VALUES (@folderNo, @name, @use);",
+            connection,
+            transaction);
+        command.Parameters.AddWithValue("@folderNo", folder.FolderNo);
+        command.Parameters.AddWithValue("@name", Normalize(folder.Name));
+        command.Parameters.AddWithValue("@use", folder.IsEnabled ? "True" : "False");
+        command.ExecuteNonQuery();
+        outcome.FolderNos.Add(folder.FolderNo);
+    }
+
+    private static void SaveSong(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        SongWriteModel song,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        var columns = ReadColumnMap(connection, "SONG");
+        var values = BuildSongValues(song);
+        var writable = values
+            .Where(value => columns.ContainsKey(value.Key))
+            .ToArray();
+
+        if (song.SongId is > 0)
+        {
+            var updates = writable
+                .Where(value =>
+                    !string.Equals(value.Key, "SONGID", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(value.Key, "OldFolder", StringComparison.OrdinalIgnoreCase))
+                .Select((value, index) => (value.Key, value.Value, ParameterName: $"@p{index}"))
+                .ToArray();
+            var assignments = string.Join(
+                ", ",
+                updates.Select(value => $"{QuoteIdentifier(columns[value.Key])} = {value.ParameterName}"));
+            using var command = new SQLiteCommand(
+                $"UPDATE SONG SET {assignments} WHERE {QuoteIdentifier(columns["SONGID"])} = @songId;",
+                connection,
+                transaction);
+            foreach (var value in updates)
+            {
+                command.Parameters.AddWithValue(value.ParameterName, value.Value ?? DBNull.Value);
+            }
+
+            command.Parameters.AddWithValue("@songId", song.SongId.Value);
+            var affected = command.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Song was not found: {song.SongId.Value}");
+            }
+
+            outcome.SongIds.Add(song.SongId.Value);
+            return;
+        }
+
+        var inserts = writable
+            .Where(value => !string.Equals(value.Key, "SONGID", StringComparison.OrdinalIgnoreCase))
+            .Select((value, index) => (value.Key, value.Value, ParameterName: $"@p{index}"))
+            .ToArray();
+        var insertColumns = string.Join(", ", inserts.Select(value => QuoteIdentifier(columns[value.Key])));
+        var insertValues = string.Join(", ", inserts.Select(value => value.ParameterName));
+        using var insertCommand = new SQLiteCommand(
+            $"INSERT INTO SONG ({insertColumns}) VALUES ({insertValues}); SELECT last_insert_rowid();",
+            connection,
+            transaction);
+        foreach (var value in inserts)
+        {
+            insertCommand.Parameters.AddWithValue(value.ParameterName, value.Value ?? DBNull.Value);
+        }
+
+        var songId = Convert.ToInt32(insertCommand.ExecuteScalar(), CultureInfo.InvariantCulture);
+        outcome.SongIds.Add(songId);
+    }
+
+    private static void MoveSongs(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<SongMoveRequest> moves,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (moves.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one song move is required.");
+        }
+
+        var columns = ReadColumnMap(connection, "SONG");
+        foreach (var move in moves)
+        {
+            var assignments = new List<string>
+            {
+                $"{QuoteIdentifier(columns["FOLDERNO"])} = @newFolderNo",
+            };
+            if (columns.TryGetValue("OldFolder", out var oldFolderColumn))
+            {
+                assignments.Add($"{QuoteIdentifier(oldFolderColumn)} = @oldFolderNo");
+            }
+
+            if (columns.TryGetValue("LastModified", out var lastModifiedColumn))
+            {
+                assignments.Add($"{QuoteIdentifier(lastModifiedColumn)} = @lastModified");
+            }
+
+            using var command = new SQLiteCommand(
+                $"UPDATE SONG SET {string.Join(", ", assignments)} WHERE {QuoteIdentifier(columns["SONGID"])} = @songId;",
+                connection,
+                transaction);
+            command.Parameters.AddWithValue("@songId", move.SongId);
+            command.Parameters.AddWithValue("@oldFolderNo", move.OldFolderNo);
+            command.Parameters.AddWithValue("@newFolderNo", move.NewFolderNo);
+            command.Parameters.AddWithValue("@lastModified", DateTime.Now.Date);
+            var affected = command.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Song was not found: {move.SongId}");
+            }
+
+            outcome.SongIds.Add(move.SongId);
+        }
+    }
+
+    private static IReadOnlyDictionary<string, object?> BuildSongValues(SongWriteModel song)
+    {
+        var title = Limit(song.Title, 100);
+        return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["TITLE_1"] = title,
+            ["TITLE_2"] = Limit(song.AlternateTitle, 100),
+            ["SONG_NUMBER"] = song.SongNumber,
+            ["FOLDERNO"] = song.FolderNo,
+            ["LYRICS"] = Normalize(song.Lyrics),
+            ["SEQUENCE"] = Limit(song.Sequence, 100),
+            ["WRITER"] = Limit(song.Writer, 100),
+            ["COPYRIGHT"] = Limit(song.Copyright, 100),
+            ["CJK_WordCount"] = ComputeLegacyCjkWordCount(title),
+            ["CJK_StrokeCount"] = ComputeLegacyCjkStrokeCount(title),
+            ["CAPO"] = song.Capo,
+            ["TIMING"] = Limit(song.Timing, 50),
+            ["KEY"] = Limit(song.Key, 20),
+            ["MSC"] = Normalize(song.Notations),
+            ["CATEGORY"] = Normalize(song.Category),
+            ["LICENCE_ADMIN1"] = Limit(song.LicenceAdmin1, 50),
+            ["LICENCE_ADMIN2"] = Limit(song.LicenceAdmin2, 50),
+            ["BOOK_REFERENCE"] = Limit(song.BookReference, 50),
+            ["USER_REFERENCE"] = Normalize(song.UserReference),
+            ["SETTINGS"] = Normalize(song.Settings),
+            ["FORMATDATA"] = Normalize(song.FormatData),
+            ["LastModified"] = DateTime.Now.Date,
+            ["OldFolder"] = 0,
+        };
+    }
+
+    private static string CreateBackup(string databasePath, string backupRoot)
+    {
+        var root = Path.GetFullPath(backupRoot);
+        Directory.CreateDirectory(root);
+        var fileName = Path.GetFileNameWithoutExtension(databasePath);
+        var extension = Path.GetExtension(databasePath);
+        var backupPath = Path.Combine(root, $"{fileName}.{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss-fff}{extension}");
+        File.Copy(databasePath, backupPath, overwrite: false);
+        CopySidecarIfExists(databasePath, backupPath, "-wal");
+        CopySidecarIfExists(databasePath, backupPath, "-shm");
+        return backupPath;
+    }
+
+    private static void RestoreBackup(string backupPath, string databasePath)
+    {
+        File.Copy(backupPath, databasePath, overwrite: true);
+        RestoreSidecar(backupPath, databasePath, "-wal");
+        RestoreSidecar(backupPath, databasePath, "-shm");
+    }
+
+    private static void RestoreSidecar(string backupPath, string databasePath, string suffix)
+    {
+        var backupSidecar = backupPath + suffix;
+        var databaseSidecar = databasePath + suffix;
+        if (File.Exists(backupSidecar))
+        {
+            File.Copy(backupSidecar, databaseSidecar, overwrite: true);
+            return;
+        }
+
+        if (File.Exists(databaseSidecar))
+        {
+            File.Delete(databaseSidecar);
+        }
+    }
+
+    private static void CopySidecarIfExists(string databasePath, string backupPath, string suffix)
+    {
+        var source = databasePath + suffix;
+        if (File.Exists(source))
+        {
+            File.Copy(source, backupPath + suffix, overwrite: false);
+        }
+    }
+
+    private static IReadOnlyDictionary<string, string> ReadColumnMap(SQLiteConnection connection, string tableName)
+    {
+        using var command = new SQLiteCommand($"PRAGMA table_info({QuoteIdentifier(tableName)});", connection);
+        using var reader = command.ExecuteReader();
+        var columns = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        while (reader.Read())
+        {
+            var columnName = GetString(reader, "name");
+            columns[columnName] = columnName;
+        }
+
+        return columns;
+    }
+
+    private static AdminDatabaseWriteReport RestoreAndReportFailure(
+        AdminDatabaseWriteOperation operation,
+        string databasePath,
+        string backupPath,
+        AdminDatabaseWriteOutcome outcome,
+        AdminDatabaseWriteIssueKind kind,
+        string message)
+    {
+        var issues = new List<AdminDatabaseWriteIssue>
+        {
+            WriteIssue(kind, message),
+        };
+        try
+        {
+            RestoreBackup(backupPath, databasePath);
+        }
+        catch (Exception ex) when (IsFileSystemException(ex))
+        {
+            issues.Add(WriteIssue(
+                AdminDatabaseWriteIssueKind.RestoreFailed,
+                $"AdminDB backup restore failed: {ex.Message}",
+                AdminDatabaseIssueSeverity.Warning));
+        }
+
+        return FailedWriteReport(operation, databasePath, backupPath, outcome, issues);
+    }
+
+    private static IReadOnlyList<AdminDatabaseWriteIssue> ToWriteIssues(IReadOnlyList<AdminDatabaseIssue> issues)
+        => issues
+            .Select(issue => WriteIssue(MapWriteIssueKind(issue.Kind), issue.Message, issue.Severity))
+            .ToArray();
+
+    private static AdminDatabaseWriteIssueKind MapWriteIssueKind(AdminDatabaseIssueKind kind)
+        => kind switch
+        {
+            AdminDatabaseIssueKind.SourceMissing => AdminDatabaseWriteIssueKind.SourceMissing,
+            AdminDatabaseIssueKind.SourceNotFile => AdminDatabaseWriteIssueKind.SourceNotFile,
+            AdminDatabaseIssueKind.OpenFailed => AdminDatabaseWriteIssueKind.OpenFailed,
+            _ => AdminDatabaseWriteIssueKind.SchemaIncompatible,
+        };
+
+    private static AdminDatabaseWriteReport FailedWriteReport(
+        AdminDatabaseWriteOperation operation,
+        string databasePath,
+        string? backupPath,
+        AdminDatabaseWriteOutcome outcome,
+        IReadOnlyList<AdminDatabaseWriteIssue> issues)
+        => new(
+            Succeeded: false,
+            operation,
+            databasePath,
+            backupPath,
+            outcome.SongIds,
+            outcome.FolderNos,
+            issues);
 
     private static void EnsureCompatible(string databasePath)
     {
@@ -357,6 +846,44 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
                !string.Equals(value, "no", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static string Limit(string? value, int maxLength)
+    {
+        var normalized = Normalize(value);
+        return normalized.Length <= maxLength ? normalized : normalized[..maxLength];
+    }
+
+    private static string Normalize(string? value)
+        => value ?? string.Empty;
+
+    private static string ComputeLegacyCjkWordCount(string title)
+    {
+        if (string.IsNullOrEmpty(title) || title[0] is > '\0' and < (char)128)
+        {
+            return "000";
+        }
+
+        var length = title.Length;
+        var parenthesisIndex = title.IndexOf('(', StringComparison.Ordinal);
+        if (parenthesisIndex > 0)
+        {
+            length = parenthesisIndex - 1;
+        }
+
+        var spaceIndex = title.IndexOf(' ', StringComparison.Ordinal);
+        if (spaceIndex > 0 && spaceIndex - 1 < length)
+        {
+            length = spaceIndex - 1;
+        }
+
+        return Math.Max(length, 0).ToString("000", CultureInfo.InvariantCulture);
+    }
+
+    private static string ComputeLegacyCjkStrokeCount(string title)
+    {
+        var value = "000" + title;
+        return value.Length <= 100 ? value : value[..100];
+    }
+
     private static AdminDatabaseSchemaInventory InventoryFailure(
         string databasePath,
         params AdminDatabaseIssue[] issues)
@@ -378,4 +905,37 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
 
     private static bool IsSqliteOpenException(Exception ex)
         => ex is SQLiteException or InvalidOperationException or IOException or UnauthorizedAccessException;
+
+    private static bool IsFileSystemException(Exception ex)
+        => ex is IOException or UnauthorizedAccessException or NotSupportedException;
+
+    private static void TryRollback(SQLiteTransaction transaction)
+    {
+        try
+        {
+            transaction.Rollback();
+        }
+        catch
+        {
+        }
+    }
+
+    private static AdminDatabaseWriteIssue WriteIssue(
+        AdminDatabaseWriteIssueKind kind,
+        string message,
+        AdminDatabaseIssueSeverity severity = AdminDatabaseIssueSeverity.Error)
+        => new(kind, severity, message);
+
+    private sealed class AdminDatabaseWriteOutcome
+    {
+        public List<int> SongIds { get; } = [];
+
+        public List<int> FolderNos { get; } = [];
+    }
+
+    private sealed class AdminDatabaseWriteException(AdminDatabaseWriteIssueKind kind, string message)
+        : InvalidOperationException(message)
+    {
+        public AdminDatabaseWriteIssueKind Kind { get; } = kind;
+    }
 }
