@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 124개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 131개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 124개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 131개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -80,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 124개 이상 통과.
+- WPF 테스트 131개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -138,9 +138,10 @@ dotnet test Easislides.sln -c Debug --no-build
 - image asset metadata/layout/error classification tests
 - image resize/fill/fit tests
 - PreviewCanvas WPF placement/render tests
+- transition effect list/action/frame contract tests
 - media playback state tests
 
-현재 상태: `PowerPointRenderServiceTests`, `ImageAssetServiceTests`, `PreviewCanvasTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. PPT는 `IPowerPointRenderService`/`PowerPointRenderService`로 파일 검증, timeout, cache invalidation, 오류 분류 계약을 고정했고 `OfficePowerPointRenderBackend`가 `OfficePptSession.ExportSlideAsync`를 통해 STA 경계 안에서 JPG export를 수행한다. 이미지는 `IImageAssetService`/`ImageAssetService`로 메타데이터 로드, legacy `ImageCanvas.ResizeCanvas`와 같은 fit 배치, fill/stretch/center 배치, unsupported/locked/decode 오류 분류를 고정했고 `PreviewCanvas`가 bitmap pixel dimension 기준으로 같은 배치 계약과 WPF pixel render를 수행함을 검증했다. 미디어는 실제 파일/코덱/backend 통합 전 단계로 `IMediaPlaybackService` 상태 machine과 `MediaPlaybackViewModel` command/표시 계약을 고정했다. 후속으로 실제 PPT fixture 10개/100회 stress, WPF `MediaElement` 또는 DirectShow adapter 기반 통합 테스트, 출력 renderer 동등성 테스트가 필요하다.
+현재 상태: `PowerPointRenderServiceTests`, `ImageAssetServiceTests`, `PreviewCanvasTests`, `TransitionEffectServiceTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. PPT는 `IPowerPointRenderService`/`PowerPointRenderService`로 파일 검증, timeout, cache invalidation, 오류 분류 계약을 고정했고 `OfficePowerPointRenderBackend`가 `OfficePptSession.ExportSlideAsync`를 통해 STA 경계 안에서 JPG export를 수행한다. 이미지는 `IImageAssetService`/`ImageAssetService`로 메타데이터 로드, legacy `ImageCanvas.ResizeCanvas`와 같은 fit 배치, fill/stretch/center 배치, unsupported/locked/decode 오류 분류를 고정했고 `PreviewCanvas`가 bitmap pixel dimension 기준으로 같은 배치 계약과 WPF pixel render를 수행함을 검증했다. 전환 효과는 `ITransitionEffectService`/`TransitionEffectService`로 legacy 58개 전환 목록, `AsFade` action, background layer, progress/frame 계약을 고정했다. 미디어는 실제 파일/코덱/backend 통합 전 단계로 `IMediaPlaybackService` 상태 machine과 `MediaPlaybackViewModel` command/표시 계약을 고정했다. 후속으로 실제 PPT fixture 10개/100회 stress, WPF `MediaElement` 또는 DirectShow adapter 기반 통합 테스트, 출력 renderer 동등성 테스트가 필요하다.
 
 수동 게이트:
 
