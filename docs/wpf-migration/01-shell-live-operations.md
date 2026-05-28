@@ -184,13 +184,14 @@ UX 검증:
 - `GlobalInputServiceTests`
 - `CommandCatalogTests`
 - `WindowPlacementServiceTests`
+- `PlatformDiagnosticsServiceTests`
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.sln -c Debug`: 95개 통과
+- `dotnet test Easislides.sln -c Debug`: 99개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 95개 통과
-- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService` 인식 확인 완료
+- `dotnet test Easislides.sln -c Release --no-build`: 99개 통과
+- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 

@@ -47,7 +47,7 @@
 | `ICommandRouter` | command id를 ViewModel/service 명령으로 라우팅 |
 | `IDisplayService` | 모니터 목록, DPI, 좌표, primary/output screen |
 | `IWindowPlacementService` | 출력/팝업/대화상자 위치 |
-| `IPlatformDiagnostics` | hook, monitor, registry, Office 진단 |
+| `IPlatformDiagnosticsService` | hook, monitor, registry, command catalog 진단 |
 
 ## 4. 이식 단계
 
@@ -110,7 +110,7 @@
 | Command catalog | 1차 구현 완료 | `CommandCatalog`, `CommandDescriptor` 추가. 기본 shortcut, command category, 위험 명령 메타데이터를 중앙화하고 `MainViewModel.BindShortcuts`가 catalog 기본값을 등록 |
 | Display service | 1차 구현 완료 | `IDisplayService`, `DisplayService`, `SystemDisplayReader` 추가. WinForms `Screen.AllScreens` 기반 모니터 열거, primary fallback, 보조 출력 모니터 선호 정책 구현 |
 | Window placement | 1차 구현 완료 | `IWindowPlacementService`, `WindowPlacementService` 추가. 출력 창 fullscreen/windowed 배치 정책을 중앙화하고 `OutputWindowService`가 주입된 배치 서비스를 사용 |
-| Platform diagnostics | 미완료 | 운영 문제 분석 화면 필요 |
+| Platform diagnostics | 1차 구현 완료 | `IPlatformDiagnosticsService`, `PlatformDiagnosticsService`, `PlatformDiagnosticsSnapshot` 추가. display/global input/command catalog 상태와 중복 command/shortcut 경고를 snapshot으로 수집 |
 
 ## 6. 이식 후 검증 방안
 
@@ -143,6 +143,7 @@
 - `CommandCatalogTests`: command id 중복 방지, 기본 shortcut의 command 참조 검증, 기본 shortcut 충돌 방지, Live 위험 명령 메타데이터 검증
 - display coordinate conversion tests
 - `WindowPlacementServiceTests`: fullscreen 모니터 bounds 적용, windowed 16:9 중앙 배치, 짧은 모니터 height 기준 축소 검증
+- `PlatformDiagnosticsServiceTests`: display/input/catalog snapshot, global input 오류 경고, display 진단 실패 graceful fallback, command/shortcut 중복 경고 검증
 - `GlobalInputServiceTests`: 전역 입력 시작 1회 보장, global scope 단축키 라우팅, local-only 단축키 차단, stop/unsubscribe, 시작 실패 cleanup
 - `DisplayServiceTests`: 빈 모니터 목록 fallback, primary 우선 정렬, preferred id 선택, 제거된 모니터 fallback
 - `MainViewModelTests.OpenOutputCommand_UsesPreferredDisplayFromDisplayService`: 운영 셸 출력 열기 명령이 선택/선호 모니터를 사용
@@ -168,9 +169,9 @@
 
 2026-05-29 기준:
 
-- `dotnet test Easislides.sln -c Debug`: 95개 통과
+- `dotnet test Easislides.sln -c Debug`: 99개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 95개 통과
-- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/Platform/DisplayService.cs`, `Easislides.Wpf/Platform/WindowPlacementService.cs` 인식 확인
+- `dotnet test Easislides.sln -c Release --no-build`: 99개 통과
+- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/Platform/DisplayService.cs`, `Easislides.Wpf/Platform/WindowPlacementService.cs`, `Easislides.Wpf/Platform/PlatformDiagnosticsService.cs` 인식 확인
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - 남은 수동 검증: 실제 듀얼 모니터 좌우/상하 배치, 혼합 DPI, 모니터 제거/재연결, 실제 리모컨/타 앱 포커스 글로벌 단축키, 텍스트 입력 중 shortcut 충돌
