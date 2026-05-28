@@ -54,6 +54,7 @@ public partial class App : Application
         services.AddSingleton<IOutputRenderer, OutputRenderer>();
         services.AddSingleton<IThumbnailCache, ThumbnailCache>();
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();

@@ -155,6 +155,105 @@ public class SettingsWindowViewModelTests
         fixture.Theme.AppliedSizes.Last().Should().Be(InterfaceSize.Large);
     }
 
+    [Fact]
+    public async Task BrowseWorkingFolderAsync_WhenFolderSelected_PersistsWorkingFolder()
+    {
+        using var fixture = SettingsFixture.Create();
+        var selected = Path.Combine(fixture.Root, "SelectedWork");
+        Directory.CreateDirectory(selected);
+        fixture.PathPicker.WorkingFolderResult = selected;
+        var sut = fixture.CreateViewModel();
+        var original = sut.WorkingFolder;
+
+        await sut.BrowseWorkingFolderAsync();
+
+        fixture.PathPicker.LastWorkingFolderInitialPath.Should().Be(original);
+        sut.WorkingFolder.Should().Be(selected);
+        fixture.Settings.Get(EasiSettingKeys.WorkingFolder).Should().Be(selected);
+        sut.StatusMessage.Should().Contain("선택");
+        sut.ValidationMessages.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task BrowseAdminDatabaseAsync_WhenFileSelected_PersistsPathAndEnablesAnalysis()
+    {
+        using var fixture = SettingsFixture.Create();
+        var selected = Path.Combine(fixture.Root, "AdminDB.sqlite");
+        await File.WriteAllTextAsync(selected, "");
+        fixture.PathPicker.AdminDatabasePathResult = selected;
+        var sut = fixture.CreateViewModel();
+
+        await sut.BrowseAdminDatabaseAsync();
+
+        fixture.PathPicker.LastAdminDatabaseInitialPath.Should().Be("");
+        sut.AdminDatabasePath.Should().Be(selected);
+        fixture.Settings.Get(EasiSettingKeys.AdminDatabasePath).Should().Be(selected);
+        sut.AnalyzeDatabaseCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task BrowseDataBackupRootAsync_WhenFolderSelected_PersistsBackupRoot()
+    {
+        using var fixture = SettingsFixture.Create();
+        var selected = Path.Combine(fixture.Root, "Backups2");
+        Directory.CreateDirectory(selected);
+        fixture.PathPicker.DataBackupRootResult = selected;
+        var sut = fixture.CreateViewModel();
+
+        await sut.BrowseDataBackupRootAsync();
+
+        fixture.PathPicker.LastDataBackupRootInitialPath.Should().Be("");
+        sut.DataBackupRoot.Should().Be(selected);
+        fixture.Settings.Get(EasiSettingKeys.DataBackupRoot).Should().Be(selected);
+        sut.ValidationMessages.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task BrowseSettingsImportAsync_WhenFileSelected_SetsTransferPathAndEnablesImport()
+    {
+        using var fixture = SettingsFixture.Create();
+        var selected = Path.Combine(fixture.Root, "settings.import.json");
+        await File.WriteAllTextAsync(selected, "{}");
+        fixture.PathPicker.SettingsImportPathResult = selected;
+        var sut = fixture.CreateViewModel();
+
+        await sut.BrowseSettingsImportAsync();
+
+        fixture.PathPicker.LastSettingsImportInitialPath.Should().Be("");
+        sut.SettingsTransferPath.Should().Be(selected);
+        sut.ImportSettingsCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task BrowseSettingsExportAsync_WhenFileSelected_SetsTransferPathAndEnablesExport()
+    {
+        using var fixture = SettingsFixture.Create();
+        var selected = Path.Combine(fixture.Root, "settings.export.json");
+        fixture.PathPicker.SettingsExportPathResult = selected;
+        var sut = fixture.CreateViewModel();
+
+        await sut.BrowseSettingsExportAsync();
+
+        fixture.PathPicker.LastSettingsExportInitialPath.Should().Be("");
+        sut.SettingsTransferPath.Should().Be(selected);
+        sut.ExportSettingsCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task BrowseWorkingFolderAsync_WhenPickerCancelled_KeepsCurrentValue()
+    {
+        using var fixture = SettingsFixture.Create();
+        fixture.PathPicker.WorkingFolderResult = null;
+        var sut = fixture.CreateViewModel();
+        var original = sut.WorkingFolder;
+
+        await sut.BrowseWorkingFolderAsync();
+
+        sut.WorkingFolder.Should().Be(original);
+        fixture.Settings.Get(EasiSettingKeys.WorkingFolder).Should().Be(original);
+        sut.StatusMessage.Should().Contain("취소");
+    }
+
     private sealed class SettingsFixture : IDisposable
     {
         private SettingsFixture(string root)
@@ -165,6 +264,7 @@ public class SettingsWindowViewModelTests
                 Path.Combine(root, "Backups")));
             Theme = new RecordingThemeService();
             Database = new RecordingDatabaseMigrationService();
+            PathPicker = new RecordingSettingsPathPicker();
         }
 
         public string Root { get; }
@@ -175,6 +275,8 @@ public class SettingsWindowViewModelTests
 
         public RecordingDatabaseMigrationService Database { get; }
 
+        public RecordingSettingsPathPicker PathPicker { get; }
+
         public static SettingsFixture Create()
         {
             var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_SettingsWindow_{Guid.NewGuid():N}");
@@ -183,7 +285,7 @@ public class SettingsWindowViewModelTests
         }
 
         public SettingsWindowViewModel CreateViewModel()
-            => new(Settings, Theme, Database);
+            => new(Settings, Theme, Database, PathPicker);
 
         public void Dispose()
         {
@@ -257,5 +359,58 @@ public class SettingsWindowViewModelTests
 
         public Task<DatabaseMigrationReport> MigrateAsync(DatabaseMigrationRequest request)
             => throw new NotSupportedException();
+    }
+
+    private sealed class RecordingSettingsPathPicker : ISettingsPathPicker
+    {
+        public string? WorkingFolderResult { get; set; }
+
+        public string? AdminDatabasePathResult { get; set; }
+
+        public string? DataBackupRootResult { get; set; }
+
+        public string? SettingsImportPathResult { get; set; }
+
+        public string? SettingsExportPathResult { get; set; }
+
+        public string? LastWorkingFolderInitialPath { get; private set; }
+
+        public string? LastAdminDatabaseInitialPath { get; private set; }
+
+        public string? LastDataBackupRootInitialPath { get; private set; }
+
+        public string? LastSettingsImportInitialPath { get; private set; }
+
+        public string? LastSettingsExportInitialPath { get; private set; }
+
+        public Task<string?> PickWorkingFolderAsync(string initialPath)
+        {
+            LastWorkingFolderInitialPath = initialPath;
+            return Task.FromResult(WorkingFolderResult);
+        }
+
+        public Task<string?> PickAdminDatabaseAsync(string initialPath)
+        {
+            LastAdminDatabaseInitialPath = initialPath;
+            return Task.FromResult(AdminDatabasePathResult);
+        }
+
+        public Task<string?> PickDataBackupRootAsync(string initialPath)
+        {
+            LastDataBackupRootInitialPath = initialPath;
+            return Task.FromResult(DataBackupRootResult);
+        }
+
+        public Task<string?> PickSettingsImportAsync(string initialPath)
+        {
+            LastSettingsImportInitialPath = initialPath;
+            return Task.FromResult(SettingsImportPathResult);
+        }
+
+        public Task<string?> PickSettingsExportAsync(string initialPath)
+        {
+            LastSettingsExportInitialPath = initialPath;
+            return Task.FromResult(SettingsExportPathResult);
+        }
     }
 }

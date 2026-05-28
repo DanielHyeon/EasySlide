@@ -76,10 +76,26 @@
                         <TextBlock Text="작업 폴더"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                        <TextBox Text="{Binding WorkingFolder, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource EsTextBox.Default}"
-                                 AutomationProperties.Name="작업 폴더"
-                                 Margin="0,4,0,16" />
+                        <Grid Margin="0,4,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding WorkingFolder, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource EsTextBox.Default}"
+                                     AutomationProperties.Name="작업 폴더"
+                                     Margin="0,0,8,0" />
+                            <Button Grid.Column="1"
+                                    Command="{Binding BrowseWorkingFolderCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    ToolTip="작업 폴더 선택"
+                                    AutomationProperties.Name="작업 폴더 선택">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
+                                    <TextBlock Text="찾기" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -221,10 +237,26 @@
                         <TextBlock Text="AdminDB 경로"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                        <TextBox Text="{Binding AdminDatabasePath, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource EsTextBox.Default}"
-                                 AutomationProperties.Name="AdminDB 경로"
-                                 Margin="0,4,0,12" />
+                        <Grid Margin="0,4,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding AdminDatabasePath, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource EsTextBox.Default}"
+                                     AutomationProperties.Name="AdminDB 경로"
+                                     Margin="0,0,8,0" />
+                            <Button Grid.Column="1"
+                                    Command="{Binding BrowseAdminDatabaseCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    ToolTip="AdminDB 파일 선택"
+                                    AutomationProperties.Name="AdminDB 파일 선택">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
+                                    <TextBlock Text="찾기" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
                         <Button Command="{Binding AnalyzeDatabaseCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 AutomationProperties.Name="DB 분석">
@@ -242,10 +274,26 @@
                         <TextBlock Text="백업 루트"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                        <TextBox Text="{Binding DataBackupRoot, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource EsTextBox.Default}"
-                                 AutomationProperties.Name="데이터 백업 루트"
-                                 Margin="0,4,0,16" />
+                        <Grid Margin="0,4,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding DataBackupRoot, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource EsTextBox.Default}"
+                                     AutomationProperties.Name="데이터 백업 루트"
+                                     Margin="0,0,8,0" />
+                            <Button Grid.Column="1"
+                                    Command="{Binding BrowseDataBackupRootCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    ToolTip="백업 루트 선택"
+                                    AutomationProperties.Name="백업 루트 선택">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
+                                    <TextBlock Text="찾기" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
 
                         <ListBox ItemsSource="{Binding DatabaseTables}"
                                  DisplayMemberPath="Name"
@@ -266,10 +314,38 @@
                     <TextBlock Text="설정 파일 경로"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                    <TextBox Text="{Binding SettingsTransferPath, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource EsTextBox.Default}"
-                             AutomationProperties.Name="설정 파일 경로"
-                             Margin="0,4,0,16" />
+                    <Grid Margin="0,4,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding SettingsTransferPath, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource EsTextBox.Default}"
+                                 AutomationProperties.Name="설정 파일 경로"
+                                 Margin="0,0,8,0" />
+                        <Button Grid.Column="1"
+                                Command="{Binding BrowseSettingsImportCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                ToolTip="가져오기 파일 선택"
+                                AutomationProperties.Name="가져오기 파일 선택"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
+                                <TextBlock Text="열기" />
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="2"
+                                Command="{Binding BrowseSettingsExportCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                ToolTip="내보내기 위치 선택"
+                                AutomationProperties.Name="내보내기 위치 선택">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
+                                <TextBlock Text="저장 위치" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
                     <StackPanel Orientation="Horizontal">
                         <Button Command="{Binding ExportSettingsCommand}"
                                 Style="{StaticResource EsButton.Secondary}"

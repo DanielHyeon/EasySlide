@@ -36,6 +36,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private readonly ISettingsService _settings;
     private readonly IThemeService _theme;
     private readonly IDatabaseMigrationService _databaseMigration;
+    private readonly ISettingsPathPicker _pathPicker;
     private bool _isRefreshing;
 
     private SettingsSectionViewModel _selectedSection;
@@ -60,17 +61,24 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public SettingsWindowViewModel(
         ISettingsService settings,
         IThemeService theme,
-        IDatabaseMigrationService databaseMigration)
+        IDatabaseMigrationService databaseMigration,
+        ISettingsPathPicker pathPicker)
     {
         _settings = settings;
         _theme = theme;
         _databaseMigration = databaseMigration;
+        _pathPicker = pathPicker;
 
         Sections = new ObservableCollection<SettingsSectionViewModel>(CreateSections());
         _selectedSection = Sections[0];
 
         RestoreDefaultsCommand = new RelayCommand(RestoreDefaults);
         RefreshCommand = new RelayCommand(() => RefreshFromSettings(applyAppearance: true));
+        BrowseWorkingFolderCommand = new AsyncRelayCommand(BrowseWorkingFolderAsync);
+        BrowseAdminDatabaseCommand = new AsyncRelayCommand(BrowseAdminDatabaseAsync);
+        BrowseDataBackupRootCommand = new AsyncRelayCommand(BrowseDataBackupRootAsync);
+        BrowseSettingsImportCommand = new AsyncRelayCommand(BrowseSettingsImportAsync);
+        BrowseSettingsExportCommand = new AsyncRelayCommand(BrowseSettingsExportAsync);
         AnalyzeDatabaseCommand = new AsyncRelayCommand(AnalyzeDatabaseAsync, CanAnalyzeDatabase);
         ExportSettingsCommand = new AsyncRelayCommand(ExportSettingsAsync, CanUseTransferPath);
         ImportSettingsCommand = new AsyncRelayCommand(ImportSettingsAsync, CanUseTransferPath);
@@ -91,6 +99,16 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public IRelayCommand RestoreDefaultsCommand { get; }
 
     public IRelayCommand RefreshCommand { get; }
+
+    public IAsyncRelayCommand BrowseWorkingFolderCommand { get; }
+
+    public IAsyncRelayCommand BrowseAdminDatabaseCommand { get; }
+
+    public IAsyncRelayCommand BrowseDataBackupRootCommand { get; }
+
+    public IAsyncRelayCommand BrowseSettingsImportCommand { get; }
+
+    public IAsyncRelayCommand BrowseSettingsExportCommand { get; }
 
     public IAsyncRelayCommand AnalyzeDatabaseCommand { get; }
 
@@ -280,6 +298,34 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         }
     }
 
+    public Task BrowseWorkingFolderAsync()
+        => BrowsePersistedPathAsync(
+            () => _pathPicker.PickWorkingFolderAsync(WorkingFolder),
+            value => WorkingFolder = value,
+            "작업 폴더 선택됨");
+
+    public Task BrowseAdminDatabaseAsync()
+        => BrowsePersistedPathAsync(
+            () => _pathPicker.PickAdminDatabaseAsync(AdminDatabasePath),
+            value => AdminDatabasePath = value,
+            "AdminDB 경로 선택됨");
+
+    public Task BrowseDataBackupRootAsync()
+        => BrowsePersistedPathAsync(
+            () => _pathPicker.PickDataBackupRootAsync(DataBackupRoot),
+            value => DataBackupRoot = value,
+            "백업 루트 선택됨");
+
+    public Task BrowseSettingsImportAsync()
+        => BrowseTransferPathAsync(
+            () => _pathPicker.PickSettingsImportAsync(SettingsTransferPath),
+            "가져오기 파일 선택됨");
+
+    public Task BrowseSettingsExportAsync()
+        => BrowseTransferPathAsync(
+            () => _pathPicker.PickSettingsExportAsync(SettingsTransferPath),
+            "내보내기 파일 선택됨");
+
     private static SettingsSectionViewModel[] CreateSections()
         =>
         [
@@ -356,6 +402,38 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         SetIssues(result.Issues);
         StatusMessage = result.Succeeded ? successMessage : "설정 저장 실패";
+    }
+
+    private async Task BrowsePersistedPathAsync(
+        Func<Task<string?>> pickPath,
+        Action<string> applyPath,
+        string successMessage)
+    {
+        var selectedPath = await pickPath();
+        if (string.IsNullOrWhiteSpace(selectedPath))
+        {
+            StatusMessage = "경로 선택 취소됨";
+            return;
+        }
+
+        applyPath(selectedPath);
+        if (ValidationMessages.Count == 0)
+        {
+            StatusMessage = successMessage;
+        }
+    }
+
+    private async Task BrowseTransferPathAsync(Func<Task<string?>> pickPath, string successMessage)
+    {
+        var selectedPath = await pickPath();
+        if (string.IsNullOrWhiteSpace(selectedPath))
+        {
+            StatusMessage = "경로 선택 취소됨";
+            return;
+        }
+
+        SettingsTransferPath = selectedPath;
+        StatusMessage = successMessage;
     }
 
     private void SetIssues(IEnumerable<SettingsIssue> issues)
