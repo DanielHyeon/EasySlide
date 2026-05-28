@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 73개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 79개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 73개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 79개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -80,7 +80,7 @@ dotnet test Easislides.sln -c Debug --no-build
 통과 기준:
 
 - 오류 0개.
-- WPF 테스트 73개 이상 통과.
+- WPF 테스트 79개 이상 통과.
 - DemoWindow, ControlsGallery, IconGallery, LiveBarDemo 실행 가능.
 
 ### M1 운영 셸
@@ -166,6 +166,8 @@ dotnet test Easislides.sln -c Debug --no-build
 - display coordinate conversion
 - window placement policy
 - hook lifecycle
+
+현재 상태: `DisplayServiceTests`와 `MainViewModelTests.OpenOutputCommand_UsesPreferredDisplayFromDisplayService` 추가 완료. 모니터 열거 fallback, primary/secondary 선택 정책, 선택된 출력 모니터로 WPF 출력 창을 여는 경계를 자동 검증한다.
 
 수동 게이트:
 

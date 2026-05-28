@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Easislides.Wpf.Demo;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Platform;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,8 @@ public partial class App : Application
 
         // 단축키 단일 소스 (ADR-0004)
         services.AddSingleton<ShortcutRegistry>();
+        services.AddSingleton<IDisplayReader, SystemDisplayReader>();
+        services.AddSingleton<IDisplayService, DisplayService>();
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();

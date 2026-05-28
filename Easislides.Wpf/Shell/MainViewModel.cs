@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Composites;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Platform;
 
 namespace Easislides.Wpf.Shell;
 
@@ -18,20 +19,24 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IOutputWindowService _output;
     private readonly ILiveSafetyPrompt _safetyPrompt;
     private readonly ICommandTelemetry _telemetry;
+    private readonly IDisplayService _display;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
+    [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     [ObservableProperty] private string _statusText = "WPF 운영 셸 준비됨";
 
     public MainViewModel(
         ILiveSessionService session,
         IOutputWindowService output,
         ILiveSafetyPrompt safetyPrompt,
-        ICommandTelemetry telemetry)
+        ICommandTelemetry telemetry,
+        IDisplayService display)
     {
         _session = session;
         _output = output;
         _safetyPrompt = safetyPrompt;
         _telemetry = telemetry;
+        _display = display;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += (_, _) => NotifyCommandStates();
@@ -46,9 +51,11 @@ public sealed partial class MainViewModel : ObservableObject
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
 
         SeedPlaceholderQueue();
+        RefreshOutputDisplays();
     }
 
     public ObservableCollection<LiveQueueItem> Queue { get; } = new();
+    public ObservableCollection<OutputDisplay> OutputDisplays { get; } = new();
 
     public LiveBarViewModel LiveBar { get; } = new();
 
@@ -94,6 +101,28 @@ public sealed partial class MainViewModel : ObservableObject
         registry.Bind(MainCommandIds.LiveHide, () => _ = HideOutputCommand.ExecuteAsync(null));
     }
 
+    public void RefreshOutputDisplays()
+    {
+        var preferredId = SelectedOutputDisplay?.Id;
+        var displays = _display.GetDisplays();
+
+        OutputDisplays.Clear();
+        foreach (var display in displays)
+        {
+            OutputDisplays.Add(display);
+        }
+
+        var selected = _display.GetPreferredDisplay(preferredId);
+        var matching = OutputDisplays.FirstOrDefault(display =>
+            string.Equals(display.Id, selected.Id, StringComparison.OrdinalIgnoreCase)) ?? selected;
+        if (!OutputDisplays.Contains(matching))
+        {
+            OutputDisplays.Add(matching);
+        }
+
+        SelectedOutputDisplay = matching;
+    }
+
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
         LiveBar.CurrentItemTitle = value?.Title ?? string.Empty;
@@ -102,7 +131,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OpenOutput()
     {
-        _output.Open(OutputDisplay.PrimaryFallback, windowed: true);
+        var display = SelectedOutputDisplay ?? _display.GetPreferredDisplay();
+        _output.Open(display, windowed: true);
+        SelectedOutputDisplay = display;
         LiveBar.OutputMonitorName = _output.Current.Display?.Name ?? string.Empty;
         StatusText = $"출력 창 열림: {LiveBar.OutputMonitorName}";
         _telemetry.Record(MainCommandIds.OutputOpen, succeeded: true, StatusText);

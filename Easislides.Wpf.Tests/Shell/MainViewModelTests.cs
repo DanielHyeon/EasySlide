@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Platform;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -29,6 +31,22 @@ public class MainViewModelTests
         sut.LiveBar.State.Should().Be(LiveState.Active);
         sut.LiveBar.CurrentItemTitle.Should().Be("입례 찬양");
         sut.StatusText.Should().Contain("LIVE");
+    }
+
+    [Fact]
+    public void OpenOutputCommand_UsesPreferredDisplayFromDisplayService()
+    {
+        var primary = new OutputDisplay("primary", "주 모니터", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var outputDisplay = new OutputDisplay("display-2", "송출 모니터", 1920, 0, 1920, 1080, 1.25);
+        var sut = CreateSut(display: new FixedDisplayService(primary, outputDisplay));
+
+        sut.OutputDisplays.Should().Equal(primary, outputDisplay);
+        sut.SelectedOutputDisplay.Should().Be(outputDisplay);
+
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.LiveBar.OutputMonitorName.Should().Be("송출 모니터");
+        sut.StatusText.Should().Contain("송출 모니터");
     }
 
     [Fact]
@@ -82,12 +100,17 @@ public class MainViewModelTests
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveNext && !s.IsGlobal);
     }
 
-    private static MainViewModel CreateSut(ILiveSafetyPrompt? prompt = null)
+    private static MainViewModel CreateSut(ILiveSafetyPrompt? prompt = null, IDisplayService? display = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
         var telemetry = new InMemoryCommandTelemetry();
-        return new MainViewModel(session, output, prompt ?? new RecordingSafetyPrompt(allow: true), telemetry);
+        return new MainViewModel(
+            session,
+            output,
+            prompt ?? new RecordingSafetyPrompt(allow: true),
+            telemetry,
+            display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback));
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt
@@ -101,6 +124,32 @@ public class MainViewModelTests
         {
             Requests.Add(request);
             return Task.FromResult(Allow);
+        }
+    }
+
+    private sealed class FixedDisplayService : IDisplayService
+    {
+        private readonly IReadOnlyList<OutputDisplay> _displays;
+
+        public FixedDisplayService(params OutputDisplay[] displays) => _displays = displays;
+
+        public IReadOnlyList<OutputDisplay> GetDisplays() => _displays;
+
+        public OutputDisplay GetPrimaryDisplay()
+            => _displays.FirstOrDefault(display => display.IsPrimary) ?? _displays[0];
+
+        public OutputDisplay GetPreferredDisplay(string? preferredDisplayId = null)
+        {
+            if (!string.IsNullOrWhiteSpace(preferredDisplayId))
+            {
+                var preferred = _displays.FirstOrDefault(display => display.Id == preferredDisplayId);
+                if (preferred is not null)
+                {
+                    return preferred;
+                }
+            }
+
+            return _displays.FirstOrDefault(display => !display.IsPrimary) ?? GetPrimaryDisplay();
         }
     }
 }

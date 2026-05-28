@@ -9,7 +9,8 @@ public sealed record OutputDisplay(
     double Y,
     double Width,
     double Height,
-    double DpiScale)
+    double DpiScale,
+    bool IsPrimary = false)
 {
     public static OutputDisplay PrimaryFallback { get; } = new(
         "primary",
@@ -18,7 +19,8 @@ public sealed record OutputDisplay(
         0,
         1920,
         1080,
-        1.0);
+        1.0,
+        IsPrimary: true);
 }
 
 public sealed record OutputWindowPlacement(

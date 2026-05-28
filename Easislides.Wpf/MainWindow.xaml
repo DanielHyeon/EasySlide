@@ -163,10 +163,11 @@
                     <TextBlock Text="출력"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                    <TextBlock Text="{Binding LiveBar.OutputMonitorName}"
-                               Style="{StaticResource Type.BodyLarge.Style}"
-                               Foreground="{DynamicResource Brush.Text.Primary}"
-                               Margin="0,2,0,16" />
+                    <ComboBox ItemsSource="{Binding OutputDisplays}"
+                              SelectedItem="{Binding SelectedOutputDisplay, Mode=TwoWay}"
+                              DisplayMemberPath="Name"
+                              MinHeight="36"
+                              Margin="0,4,0,16" />
 
                     <TextBlock Text="송출"
                                Style="{StaticResource Type.Caption.Style}"

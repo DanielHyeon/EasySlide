@@ -107,7 +107,7 @@
 | ShortcutRegistry | 1차 완료 | thread-safe 구현, 테스트 있음 |
 | HookManager PoC | 1차 완료 | 실제 운영 명령 연결 필요 |
 | Command catalog | 미완료 | legacy mapping 분석 필요 |
-| Display service | 미완료 | `gfDisplay`, `DisplayInfo` adapter 필요 |
+| Display service | 1차 구현 완료 | `IDisplayService`, `DisplayService`, `SystemDisplayReader` 추가. WinForms `Screen.AllScreens` 기반 모니터 열거, primary fallback, 보조 출력 모니터 선호 정책 구현 |
 | Window placement | 미완료 | 출력/팝업 통합 필요 |
 | Platform diagnostics | 미완료 | 운영 문제 분석 화면 필요 |
 
@@ -143,6 +143,8 @@
 - display coordinate conversion tests
 - window placement policy tests
 - hook event adapter unit tests
+- `DisplayServiceTests`: 빈 모니터 목록 fallback, primary 우선 정렬, preferred id 선택, 제거된 모니터 fallback
+- `MainViewModelTests.OpenOutputCommand_UsesPreferredDisplayFromDisplayService`: 운영 셸 출력 열기 명령이 선택/선호 모니터를 사용
 
 수동 테스트:
 
@@ -160,3 +162,14 @@
 
 - 리모컨 장비를 연결하고 30분 동안 Next/Prev/Black/Hide를 반복한다.
 - 입력 누락, 중복 실행, 포커스 손실, LiveBar 상태 불일치를 기록한다.
+
+## 8. 현재 검증 결과
+
+2026-05-29 기준:
+
+- `dotnet test Easislides.sln -c Debug`: 79개 통과
+- `dotnet build Easislides.sln -c Release`: 성공
+- `dotnet test Easislides.sln -c Release --no-build`: 79개 통과
+- CodeGraph 강제 재색인 완료: `Easislides.Wpf/Platform/DisplayService.cs` 인식 확인
+- Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
+- 남은 수동 검증: 실제 듀얼 모니터 좌우/상하 배치, 혼합 DPI, 모니터 제거/재연결
