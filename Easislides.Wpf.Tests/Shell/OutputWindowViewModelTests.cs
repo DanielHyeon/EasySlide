@@ -103,6 +103,29 @@ public class OutputWindowViewModelTests
         sut.Scene.LyricsMonitorTextColorArgb.Should().Be(unchecked((int)0xFF445566));
     }
 
+    [Fact]
+    public void SettingsChanged_RefreshesPanelOverlayVisibility()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.NoMediaPanelOverlay, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Media Item",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemKind: "M"));
+
+        sut.PanelOverlayVisibility.Should().Be(Visibility.Collapsed);
+        sut.Scene.ShowsPanelOverlay.Should().BeFalse();
+
+        settings.Set(EasiSettingKeys.NoMediaPanelOverlay, false).Succeeded.Should().BeTrue();
+
+        sut.PanelOverlayVisibility.Should().Be(Visibility.Visible);
+        sut.Scene.ShowsPanelOverlay.Should().BeTrue();
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)

@@ -104,6 +104,39 @@ public class OutputRendererTests
         scene.LyricsMonitorShowNotations.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData("P", true, false, false)]
+    [InlineData("PowerPoint", true, false, false)]
+    [InlineData("M", false, true, false)]
+    [InlineData("Media", false, true, false)]
+    [InlineData("Song", true, true, true)]
+    public void CreateScene_ActiveWithPanelOverlaySettings_UsesItemKind(
+        string itemKind,
+        bool noPowerPointPanelOverlay,
+        bool noMediaPanelOverlay,
+        bool expectedOverlay)
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            NoPowerPointPanelOverlay: noPowerPointPanelOverlay,
+            NoMediaPanelOverlay: noMediaPanelOverlay);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active,
+                "Live Item",
+                "Display 2",
+                IsBlackout: false,
+                CurrentItemKind: itemKind),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsPanelOverlay.Should().Be(expectedOverlay);
+    }
+
     [Fact]
     public void CreateScene_ReadyWithUserGap_UsesGapLogoAndFadeSettings()
     {

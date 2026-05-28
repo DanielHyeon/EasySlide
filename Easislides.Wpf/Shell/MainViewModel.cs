@@ -8,12 +8,13 @@ using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Composites;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
-public sealed partial class MainViewModel : ObservableObject
+public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionService _session;
     private readonly IOutputWindowService _output;
@@ -26,6 +27,18 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     [ObservableProperty] private string _statusText = "WPF 운영 셸 준비됨";
+
+    [ObservableProperty] private bool _isPowerPointTabVisible;
+    [ObservableProperty] private bool _isPowerPointPanelOverlayEnabled = true;
+    [ObservableProperty] private int _powerPointMaxFiles = EasiSettingKeys.PowerPointMaxFiles.DefaultValue;
+    [ObservableProperty] private int _powerPointFileCount;
+    [ObservableProperty] private bool _hasPowerPointLimitViolation;
+    [ObservableProperty] private bool _isMediaTabVisible;
+    [ObservableProperty] private bool _isMediaPanelOverlayEnabled = true;
+    [ObservableProperty] private string _mediaDirectory = EasiSettingKeys.MediaDirectory.DefaultValue;
+    [ObservableProperty] private int _liveCameraNumber = EasiSettingKeys.LiveCameraNumber.DefaultValue;
+    [ObservableProperty] private string _liveCameraSource = MediaPlaybackService.CreateLiveCameraSource(EasiSettingKeys.LiveCameraNumber.DefaultValue);
+    private bool _disposed;
 
     public MainViewModel(
         ILiveSessionService session,
@@ -46,6 +59,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += (_, _) => NotifyCommandStates();
+        _settings.SettingsChanged += OnSettingsChanged;
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
@@ -56,6 +70,7 @@ public sealed partial class MainViewModel : ObservableObject
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
 
+        ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
         RefreshOutputDisplays();
     }
@@ -88,6 +103,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         SelectedItem = Queue.FirstOrDefault();
         StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
+        RefreshPowerPointLimitState(updateStatus: true);
         NotifyCommandStates();
     }
 
@@ -211,7 +227,8 @@ public sealed partial class MainViewModel : ObservableObject
         NotifyCommandStates();
     }
 
-    private bool CanGoLive() => SelectedItem is not null && _output.Current.IsOpen;
+    private bool CanGoLive()
+        => SelectedItem is not null && _output.Current.IsOpen && !HasPowerPointLimitViolation;
 
     private async Task GoLiveAsync()
     {
@@ -363,6 +380,69 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
+    {
+        if (ContainsOperationalSetting(args.ChangedKeys))
+        {
+            ApplyOperationalSettings(updateStatus: true);
+        }
+    }
+
+    private void ApplyOperationalSettings(bool updateStatus)
+    {
+        IsPowerPointTabVisible = _settings.Get(EasiSettingKeys.UsePowerPointTab);
+        IsPowerPointPanelOverlayEnabled = !_settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay);
+        PowerPointMaxFiles = _settings.Get(EasiSettingKeys.PowerPointMaxFiles);
+        IsMediaTabVisible = _settings.Get(EasiSettingKeys.UseMediaTab);
+        IsMediaPanelOverlayEnabled = !_settings.Get(EasiSettingKeys.NoMediaPanelOverlay);
+        MediaDirectory = _settings.Get(EasiSettingKeys.MediaDirectory);
+        LiveCameraNumber = _settings.Get(EasiSettingKeys.LiveCameraNumber);
+        LiveCameraSource = MediaPlaybackService.CreateLiveCameraSource(LiveCameraNumber);
+        RefreshPowerPointLimitState(updateStatus);
+        NotifyCommandStates();
+    }
+
+    private void RefreshPowerPointLimitState(bool updateStatus)
+    {
+        var wasViolation = HasPowerPointLimitViolation;
+        PowerPointFileCount = Queue.Count(IsPowerPointItem);
+        HasPowerPointLimitViolation = PowerPointFileCount > PowerPointMaxFiles;
+        if (updateStatus && HasPowerPointLimitViolation)
+        {
+            StatusText = $"PowerPoint limit exceeded: {PowerPointFileCount}/{PowerPointMaxFiles}";
+        }
+        else if (updateStatus && wasViolation)
+        {
+            StatusText = Queue.Count == 0 ? "Queue is empty" : $"{Queue.Count} items loaded";
+        }
+    }
+
+    private static bool ContainsOperationalSetting(IReadOnlyList<string> changedKeys)
+    {
+        for (var i = 0; i < changedKeys.Count; i++)
+        {
+            var key = changedKeys[i];
+            if (string.Equals(key, EasiSettingKeys.UsePowerPointTab.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.PowerPointMaxFiles.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.UseMediaTab.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.MediaDirectory.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LiveCameraNumber.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsPowerPointItem(LiveQueueItem item)
+        => string.Equals(item.Kind, "P", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "PPT", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "PowerPoint", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "Presentation", StringComparison.OrdinalIgnoreCase);
+
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {
         LiveBar.State = snapshot.State;
@@ -390,6 +470,17 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         registry.Register(shortcut);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _settings.SettingsChanged -= OnSettingsChanged;
     }
 
     private void SeedPlaceholderQueue()

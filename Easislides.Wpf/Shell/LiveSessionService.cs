@@ -7,7 +7,8 @@ public sealed record LiveSessionSnapshot(
     LiveState State,
     string CurrentItemTitle,
     string OutputMonitorName,
-    bool IsBlackout)
+    bool IsBlackout,
+    string CurrentItemKind = "")
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -48,7 +49,8 @@ public sealed class LiveSessionService : ILiveSessionService
             LiveState.Active,
             item.Title,
             outputMonitorName,
-            IsBlackout: false));
+            IsBlackout: false,
+            item.Kind));
     }
 
     public void HideOutput(bool blackout)

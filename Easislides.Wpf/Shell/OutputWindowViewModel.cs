@@ -29,6 +29,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Brush _sceneBackgroundBrush;
     private Visibility _lyricsAlertVisibility = Visibility.Collapsed;
     private Visibility _notationVisibility = Visibility.Visible;
+    private Visibility _panelOverlayVisibility = Visibility.Visible;
     private OutputSceneSnapshot _scene;
     private bool _disposed;
 
@@ -129,6 +130,12 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _notationVisibility, value);
     }
 
+    public Visibility PanelOverlayVisibility
+    {
+        get => _panelOverlayVisibility;
+        private set => SetProperty(ref _panelOverlayVisibility, value);
+    }
+
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
         _session = snapshot;
@@ -168,6 +175,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         SceneBackgroundBrush = CreateBrush(scene.LyricsMonitorBackgroundColorArgb);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
+        PanelOverlayVisibility = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public void Dispose()
@@ -230,7 +238,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.GapItemUseFade.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(key, EasiSettingKeys.LyricsMonitorShowNotations.Id, StringComparison.OrdinalIgnoreCase))
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowNotations.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

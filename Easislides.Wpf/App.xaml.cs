@@ -67,7 +67,9 @@ public partial class App : Application
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
         services.AddSingleton<IOutputWindowService, OutputWindowService>();
         services.AddSingleton<IMediaPlaybackBackend, NoOpMediaPlaybackBackend>();
-        services.AddSingleton<IMediaPlaybackService, MediaPlaybackService>();
+        services.AddSingleton<IMediaPlaybackService>(sp => new MediaPlaybackService(
+            sp.GetRequiredService<IMediaPlaybackBackend>(),
+            sp.GetRequiredService<ISettingsService>()));
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddTransient<MediaPlaybackViewModel>();

@@ -24,7 +24,9 @@ public sealed record LiveOutputRenderSettings(
     bool GapItemUseFade = true,
     int LyricsMonitorTextColorArgb = -16777216,
     int LyricsMonitorBackgroundColorArgb = -1,
-    bool LyricsMonitorShowNotations = true)
+    bool LyricsMonitorShowNotations = true,
+    bool NoPowerPointPanelOverlay = false,
+    bool NoMediaPanelOverlay = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -40,7 +42,9 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.GapItemUseFade),
             settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb),
-            settings.Get(EasiSettingKeys.LyricsMonitorShowNotations));
+            settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
+            settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay),
+            settings.Get(EasiSettingKeys.NoMediaPanelOverlay));
     }
 }
 
@@ -75,7 +79,8 @@ public sealed record OutputSceneSnapshot(
     int LyricsMonitorBackgroundColorArgb,
     GapItemMode GapItemOption,
     string GapItemLogoFile,
-    bool GapItemUseFade)
+    bool GapItemUseFade,
+    bool ShowsPanelOverlay)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 }
@@ -122,7 +127,8 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorBackgroundColorArgb,
             liveOutput.GapItemOption,
             liveOutput.GapItemLogoFile,
-            liveOutput.GapItemUseFade);
+            liveOutput.GapItemUseFade,
+            ShouldShowPanelOverlay(kind, request.Session, liveOutput));
     }
 
     private ImagePlacement GetContentPlacement(
@@ -234,6 +240,44 @@ public sealed class OutputRenderer : IOutputRenderer
         => !string.IsNullOrWhiteSpace(session.OutputMonitorName)
             ? session.OutputMonitorName
             : output.Display?.Name ?? string.Empty;
+
+    private static bool ShouldShowPanelOverlay(
+        OutputSceneKind kind,
+        LiveSessionSnapshot session,
+        LiveOutputRenderSettings settings)
+    {
+        if (kind != OutputSceneKind.Live)
+        {
+            return true;
+        }
+
+        if (settings.NoPowerPointPanelOverlay && IsPowerPointKind(session.CurrentItemKind))
+        {
+            return false;
+        }
+
+        if (settings.NoMediaPanelOverlay && IsMediaKind(session.CurrentItemKind))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsPowerPointKind(string kind)
+        => string.Equals(kind, "P", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "PPT", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "PowerPoint", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "Presentation", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsMediaKind(string kind)
+        => string.Equals(kind, "M", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "Media", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "Video", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "Audio", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "LiveCamera", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "Live Camera", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, "CaptureDevice", StringComparison.OrdinalIgnoreCase);
 
     private static Rect CreateViewport(int viewportWidth, int viewportHeight)
         => viewportWidth > 0 && viewportHeight > 0

@@ -11,6 +11,10 @@
         Background="{DynamicResource Brush.Surface.Page}"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+
     <DockPanel LastChildFill="True">
         <composites:LiveBar DockPanel.Dock="Top"
                             DataContext="{Binding LiveBar}" />
@@ -135,13 +139,55 @@
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource CornerRadius.Small}">
-                        <Grid>
-                            <TextBlock Text="{Binding SelectedItem.Title}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Style="{StaticResource Type.Title3.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                        </Grid>
+                        <TabControl BorderThickness="0"
+                                    Background="Transparent">
+                            <TabItem Header="Preview">
+                                <Grid>
+                                    <TextBlock Text="{Binding SelectedItem.Title}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Style="{StaticResource Type.Title3.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                </Grid>
+                            </TabItem>
+                            <TabItem Header="PowerPoint"
+                                     Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}">
+                                <Grid Margin="{StaticResource Thickness.Lg}">
+                                    <StackPanel VerticalAlignment="Center"
+                                                HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding PowerPointFileCount, StringFormat={}Decks: {0}}"
+                                                   HorizontalAlignment="Center"
+                                                   Style="{StaticResource Type.Title3.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding PowerPointMaxFiles, StringFormat={}Limit: {0}}"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,8,0,0"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    </StackPanel>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Header="Media"
+                                     Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}">
+                                <Grid Margin="{StaticResource Thickness.Lg}">
+                                    <StackPanel VerticalAlignment="Center"
+                                                HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding MediaDirectory}"
+                                                   HorizontalAlignment="Center"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   MaxWidth="520"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding LiveCameraSource}"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,8,0,0"
+                                                   Style="{StaticResource Type.Title3.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    </StackPanel>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Border>
 
                     <StackPanel Grid.Row="2"

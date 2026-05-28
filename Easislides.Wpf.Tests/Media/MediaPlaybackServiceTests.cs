@@ -60,6 +60,42 @@ public class MediaPlaybackServiceTests
     }
 
     [Fact]
+    public void LoadFromMediaDirectory_WithSettingsService_UsesConfiguredMediaDirectory()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        var mediaDirectory = Path.Combine(fixture.Root, "Media Files");
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaDirectory).Succeeded.Should().BeTrue();
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend, settings);
+
+        sut.LoadFromMediaDirectory("intro.mp4", TimeSpan.FromMinutes(2), "Video");
+
+        sut.Current.Source.Should().Be(Path.Combine(mediaDirectory, "intro.mp4"));
+        sut.Current.SourceKind.Should().Be(MediaSourceKind.File);
+        backend.LastLoaded!.Source.Should().Be(Path.Combine(mediaDirectory, "intro.mp4"));
+    }
+
+    [Fact]
+    public void LoadLiveCamera_WithSettingsService_UsesConfiguredCaptureDevice()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        settings.Set(EasiSettingKeys.LiveCameraNumber, 3).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaVolume, 0.65).Succeeded.Should().BeTrue();
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend, settings);
+
+        sut.LoadLiveCamera(TimeSpan.Zero);
+
+        sut.Current.Source.Should().Be("<<Capture>>3");
+        sut.Current.SourceKind.Should().Be(MediaSourceKind.CaptureDevice);
+        sut.Current.MediaType.Should().Be("Live Camera");
+        sut.Current.Volume.Should().Be(65);
+        backend.LastLoaded!.Source.Should().Be("<<Capture>>3");
+    }
+
+    [Fact]
     public void SettingsChanged_WhenMediaLoaded_AppliesPersistedMediaDefaults()
     {
         using var fixture = TempSettingsFolder.Create();
@@ -79,6 +115,24 @@ public class MediaPlaybackServiceTests
         backend.LastSettings!.Volume.Should().Be(40);
         backend.LastSettings.Balance.Should().Be(25);
         backend.LastSettings.IsMuted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SettingsChanged_WhenLiveCameraLoaded_UpdatesCaptureDeviceSource()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        settings.Set(EasiSettingKeys.LiveCameraNumber, 2).Succeeded.Should().BeTrue();
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend, settings);
+        sut.LoadLiveCamera(TimeSpan.Zero);
+
+        settings.Set(EasiSettingKeys.LiveCameraNumber, 4).Succeeded.Should().BeTrue();
+
+        sut.Current.Source.Should().Be("<<Capture>>4");
+        sut.Current.SourceKind.Should().Be(MediaSourceKind.CaptureDevice);
+        backend.LastLoaded!.Source.Should().Be("<<Capture>>4");
+        backend.Commands.Should().ContainInOrder("Load:<<Capture>>2", "Load:<<Capture>>4");
     }
 
     [Fact]

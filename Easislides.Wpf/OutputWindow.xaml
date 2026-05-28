@@ -34,10 +34,12 @@
                    FontSize="72"
                    FontWeight="SemiBold"
                    Foreground="{Binding SceneForegroundBrush}"
-                   MaxWidth="1100" />
+                   MaxWidth="1100"
+                   Visibility="{Binding PanelOverlayVisibility}" />
 
         <Grid Grid.Row="2"
-              Margin="{StaticResource Thickness.Xl}">
+              Margin="{StaticResource Thickness.Xl}"
+              Visibility="{Binding PanelOverlayVisibility}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

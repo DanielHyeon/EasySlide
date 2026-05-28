@@ -74,6 +74,79 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void Constructor_UsesOperationalPowerPointAndMediaSettings()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.UsePowerPointTab, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.NoPowerPointPanelOverlay, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.PowerPointMaxFiles, 12).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.UseMediaTab, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.NoMediaPanelOverlay, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaDirectory, @"C:\EasiSlides\Media").Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LiveCameraNumber, 4).Succeeded.Should().BeTrue();
+
+        var sut = CreateSut(settings: settings);
+
+        sut.IsPowerPointTabVisible.Should().BeTrue();
+        sut.IsPowerPointPanelOverlayEnabled.Should().BeFalse();
+        sut.PowerPointMaxFiles.Should().Be(12);
+        sut.IsMediaTabVisible.Should().BeTrue();
+        sut.IsMediaPanelOverlayEnabled.Should().BeFalse();
+        sut.MediaDirectory.Should().Be(@"C:\EasiSlides\Media");
+        sut.LiveCameraNumber.Should().Be(4);
+        sut.LiveCameraSource.Should().Be("<<Capture>>4");
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesOperationalPowerPointAndMediaSettings()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.UsePowerPointTab, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.NoPowerPointPanelOverlay, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.PowerPointMaxFiles, 7).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.UseMediaTab, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.NoMediaPanelOverlay, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaDirectory, @"D:\Media").Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LiveCameraNumber, 5).Succeeded.Should().BeTrue();
+
+        sut.IsPowerPointTabVisible.Should().BeTrue();
+        sut.IsPowerPointPanelOverlayEnabled.Should().BeFalse();
+        sut.PowerPointMaxFiles.Should().Be(7);
+        sut.IsMediaTabVisible.Should().BeTrue();
+        sut.IsMediaPanelOverlayEnabled.Should().BeFalse();
+        sut.MediaDirectory.Should().Be(@"D:\Media");
+        sut.LiveCameraNumber.Should().Be(5);
+        sut.LiveCameraSource.Should().Be("<<Capture>>5");
+    }
+
+    [Fact]
+    public void LoadQueue_WhenPowerPointItemsExceedConfiguredLimit_DisablesGoLiveUntilLimitIncreases()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.PowerPointMaxFiles, 1).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("ppt-1", "Deck 1", "P"),
+            new LiveQueueItem("ppt-2", "Deck 2", "PowerPoint"),
+        });
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.HasPowerPointLimitViolation.Should().BeTrue();
+        sut.GoLiveCommand.CanExecute(null).Should().BeFalse();
+
+        settings.Set(EasiSettingKeys.PowerPointMaxFiles, 2).Succeeded.Should().BeTrue();
+
+        sut.HasPowerPointLimitViolation.Should().BeFalse();
+        sut.GoLiveCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
     public void OpenOutputCommand_UsesPreferredDisplayFromDisplayService()
     {
         var primary = new OutputDisplay("primary", "주 모니터", 0, 0, 1920, 1080, 1, IsPrimary: true);

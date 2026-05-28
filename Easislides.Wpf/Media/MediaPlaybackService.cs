@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Media;
@@ -79,6 +80,8 @@ public interface IMediaPlaybackService
     MediaPlaybackSnapshot Current { get; }
 
     void Load(MediaPlaybackRequest request);
+    void LoadFromMediaDirectory(string fileName, TimeSpan duration, string mediaType);
+    void LoadLiveCamera(TimeSpan duration, bool isWidescreen = true, string? outputDisplayId = null);
     void Play();
     void Pause();
     void Stop();
@@ -91,6 +94,8 @@ public interface IMediaPlaybackService
 
 public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 {
+    private const string LiveCameraSourcePrefix = "<<Capture>>";
+
     private readonly IMediaPlaybackBackend _backend;
     private readonly ISettingsService? _settings;
 
@@ -141,6 +146,26 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
         TryUpdate(snapshot, () => _backend.Load(snapshot));
     }
+
+    public void LoadFromMediaDirectory(string fileName, TimeSpan duration, string mediaType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+
+        Load(new MediaPlaybackRequest(
+            ResolveMediaSource(fileName),
+            MediaSourceKind.File,
+            duration,
+            mediaType));
+    }
+
+    public void LoadLiveCamera(TimeSpan duration, bool isWidescreen = true, string? outputDisplayId = null)
+        => Load(new MediaPlaybackRequest(
+            CreateLiveCameraSource(GetConfiguredLiveCameraNumber()),
+            MediaSourceKind.CaptureDevice,
+            duration,
+            "Live Camera",
+            IsWidescreen: isWidescreen,
+            OutputDisplayId: outputDisplayId));
 
     public void Play()
     {
@@ -257,7 +282,22 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
     {
-        if (!HasLoadedMedia || !ContainsAudioSetting(args.ChangedKeys) || _settings is null)
+        if (!HasLoadedMedia || _settings is null)
+        {
+            return;
+        }
+
+        if (ContainsLiveCameraSetting(args.ChangedKeys) && Current.SourceKind == MediaSourceKind.CaptureDevice)
+        {
+            var next = Current with
+            {
+                Source = CreateLiveCameraSource(GetConfiguredLiveCameraNumber()),
+                ErrorMessage = null
+            };
+            TryUpdate(next, () => _backend.Load(next));
+        }
+
+        if (!ContainsAudioSetting(args.ChangedKeys))
         {
             return;
         }
@@ -269,6 +309,25 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             IsMuted = _settings.Get(EasiSettingKeys.MediaMuted)
         });
     }
+
+    private string ResolveMediaSource(string fileName)
+    {
+        if (Path.IsPathRooted(fileName) || _settings is null)
+        {
+            return fileName;
+        }
+
+        var mediaDirectory = _settings.Get(EasiSettingKeys.MediaDirectory);
+        return string.IsNullOrWhiteSpace(mediaDirectory)
+            ? fileName
+            : Path.Combine(mediaDirectory, fileName);
+    }
+
+    private int GetConfiguredLiveCameraNumber()
+        => _settings?.Get(EasiSettingKeys.LiveCameraNumber) ?? EasiSettingKeys.LiveCameraNumber.DefaultValue;
+
+    public static string CreateLiveCameraSource(int cameraNumber)
+        => $"{LiveCameraSourcePrefix}{cameraNumber}";
 
     private void TryUpdate(MediaPlaybackSnapshot snapshot, Action backendAction)
     {
@@ -309,6 +368,19 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             if (string.Equals(key, EasiSettingKeys.MediaVolume.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.MediaBalance.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.MediaMuted.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsLiveCameraSetting(IReadOnlyList<string> changedKeys)
+    {
+        for (var i = 0; i < changedKeys.Count; i++)
+        {
+            if (string.Equals(changedKeys[i], EasiSettingKeys.LiveCameraNumber.Id, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
