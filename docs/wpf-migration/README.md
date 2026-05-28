@@ -1,6 +1,6 @@
 # WPF 이식 계획 문서 인덱스
 
-> 기준일: 2026-05-28  
+> 기준일: 2026-05-29
 > 참조: `.serena/memories/project_structure.md`, `docs/` 기준 문서, `Easislides.Wpf/README.md`  
 > 목적: WinForms 기반 EasiSlides v2.6.4의 모든 운영 기능을 WPF/Fluent 2 기반 v3.0으로 이식하기 위한 부문별 실행 계획, 완료 기준, 검증 및 테스트 방안을 정의한다.
 
@@ -29,8 +29,8 @@
 | WPF 프로젝트 골격 | `Easislides.Wpf` 솔루션 포함, DI, App.xaml, 테마 토큰 구성 | 완료 |
 | 디자인 시스템 | EasiDS 색/타입/간격/반경/모션 토큰, Pretendard 번들, 기본 컨트롤 일부 | 1차 완료, 추가 컨트롤 확장 필요 |
 | PoC | HookManager 호환 PoC, Office COM STA stress PoC 화면 존재 | 구현 완료, 실제 운영 데이터 검증 필요 |
-| 테스트 인프라 | `Easislides.Wpf.Tests`, xUnit/FluentAssertions, 219개 테스트 | 완료 |
-| 실제 기능 이식 | 운영 셸, 출력, 렌더링/미디어, 플랫폼 일부와 SettingsWindow/SettingsService/LegacySettingsMap/RegistryLegacySettingsSource/SettingsBootstrapMigrationService/자산/DB 마이그레이션 service, 기본 출력 모니터, display/window placement, media audio, PowerPoint render/cache runtime 소비가 WPF 경계로 이동 중 | 부분 구현 |
+| 테스트 인프라 | `Easislides.Wpf.Tests`, xUnit/FluentAssertions, 236개 테스트 | 완료 |
+| 실제 기능 이식 | 운영 셸, 출력, 렌더링/미디어, 플랫폼 일부와 SettingsWindow/SettingsService/LegacySettingsMap/RegistryLegacySettingsSource/FileLegacySettingsSource/CompositeLegacySettingsSource/SettingsBootstrapMigrationService/자산/DB 마이그레이션 service, 기본 출력 모니터, display/window placement, media audio/directory/live camera, PowerPoint render/cache/module runtime 소비가 WPF 경계로 이동 중 | 부분 구현 |
 | 운영 앱 전환 | WPF 앱은 데모/기반 단계, production entrypoint 아님 | 미완료 |
 
 최근 검증 결과:
@@ -40,7 +40,7 @@ dotnet build Easislides.sln -c Debug
 dotnet test Easislides.sln -c Debug
 ```
 
-결과: 빌드 성공, 테스트 219개 통과. 단, 기존 NetOffice/DirectShow/HookManager 경고는 남아 있다.
+결과: 빌드 성공, 테스트 236개 통과. 단, 기존 NetOffice/DirectShow/HookManager 경고는 남아 있다.
 
 ## 2. 구조 기준 분류
 

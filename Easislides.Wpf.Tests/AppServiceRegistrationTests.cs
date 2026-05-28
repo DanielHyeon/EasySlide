@@ -28,6 +28,7 @@ public class AppServiceRegistrationTests
 
             using var provider = services.BuildServiceProvider();
             var settings = provider.GetRequiredService<ISettingsService>();
+            var legacySettings = provider.GetRequiredService<ILegacySettingsSource>();
             var service = provider.GetRequiredService<IPowerPointRenderService>();
             var mediaPlayback = provider.GetRequiredService<IMediaPlaybackService>();
             var placement = provider.GetRequiredService<IWindowPlacementService>();
@@ -47,6 +48,8 @@ public class AppServiceRegistrationTests
             var mediaSettingsField = typeof(MediaPlaybackService).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
             mediaSettingsField.Should().NotBeNull();
             mediaSettingsField!.GetValue(mediaPlayback).Should().BeSameAs(settings);
+
+            legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
 
             outputHost.Should().BeOfType<OutputWindowHost>();
             var hostSettingsField = typeof(OutputWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);

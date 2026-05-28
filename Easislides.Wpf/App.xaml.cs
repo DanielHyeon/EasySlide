@@ -53,7 +53,11 @@ public partial class App : Application
         services.AddSingleton<IThumbnailCache, ThumbnailCache>();
         services.AddSingleton(settingsOptions);
         services.AddSingleton<ISettingsService>(sp => new SettingsService(sp.GetRequiredService<SettingsServiceOptions>()));
-        services.AddSingleton<ILegacySettingsSource, RegistryLegacySettingsSource>();
+        services.AddSingleton<RegistryLegacySettingsSource>();
+        services.AddSingleton(_ => FileLegacySettingsSource.CreateDefault());
+        services.AddSingleton<ILegacySettingsSource>(sp => new CompositeLegacySettingsSource(
+            sp.GetRequiredService<RegistryLegacySettingsSource>(),
+            sp.GetRequiredService<FileLegacySettingsSource>()));
         services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
