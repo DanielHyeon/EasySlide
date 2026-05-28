@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Easislides.Wpf.Input;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
 
@@ -60,6 +62,22 @@ public class LegacySettingsMapTests
     }
 
     [Fact]
+    public void AutomatedAliases_ExposeLegacyShortcutKeys()
+    {
+        LegacySettingsMap.GetAutomatedAliases(LegacySettingsMap.ShortcutOverridesKeyId)
+            .Should()
+            .Contain([
+                "KeyBoardOption",
+                "GlobalHookKey_F7",
+                "GlobalHookKey_F8",
+                "GlobalHookKey_F9",
+                "GlobalHookKey_F10",
+                "GlobalHookKey_Arrow",
+                "GlobalHookKey_CtrlArrow",
+            ]);
+    }
+
+    [Fact]
     public async Task MigrateLegacyAsync_UsesLegacyAliasesAndNormalizesMediaScales()
     {
         using var fixture = TempSettingsFolder.Create();
@@ -84,6 +102,88 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.MediaMuted).Should().BeTrue();
         sut.Get(EasiSettingKeys.AdminDatabasePath).Should().EndWith(Path.Combine("AdminDB", "EasiSlidesDb.db"));
     }
+
+    [Fact]
+    public async Task MigrateLegacyAsync_MapsLegacyShortcutOptionsIntoOverrides()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["KeyBoardOption"] = "1",
+            ["GlobalHookKey_F7"] = "1",
+            ["GlobalHookKey_F9"] = "1",
+            ["GlobalHookKey_Arrow"] = "1",
+        });
+
+        var result = await sut.MigrateLegacyAsync(legacy);
+
+        result.Succeeded.Should().BeTrue();
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LiveGo),
+            "F7"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LiveBlack),
+            "F9"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LivePrevious),
+            "Up"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LiveNext),
+            "Down"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            LocalSlot(MainCommandIds.LivePrevious),
+            "PageUp"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            LocalSlot(MainCommandIds.LiveNext),
+            "PageDown"));
+    }
+
+    [Fact]
+    public async Task MigrateLegacyAsync_MapsLegacyShortcutFallbackKeysAndWarnsForInvalidValues()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["KeyBoardOption"] = "7",
+            ["GlobalHookKey_F7"] = "0",
+            ["GlobalHookKey_F8"] = "1",
+            ["GlobalHookKey_F9"] = "0",
+            ["GlobalHookKey_F10"] = "1",
+            ["GlobalHookKey_CtrlArrow"] = "1",
+            ["GlobalHookKey_Arrow"] = "maybe",
+        });
+
+        var result = await sut.MigrateLegacyAsync(legacy);
+
+        result.Succeeded.Should().BeTrue();
+        result.Issues.Should().Contain(issue =>
+            issue.Key == "KeyBoardOption" &&
+            issue.Severity == SettingsIssueSeverity.Warning);
+        result.Issues.Should().Contain(issue =>
+            issue.Key == "GlobalHookKey_Arrow" &&
+            issue.Severity == SettingsIssueSeverity.Warning);
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LiveGo),
+            "F8"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LiveBlack),
+            "F10"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LivePrevious),
+            "Ctrl+Up"));
+        sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
+            GlobalSlot(MainCommandIds.LiveNext),
+            "Ctrl+Down"));
+        sut.Current.Shortcuts.Should().NotContainKey(LocalSlot(MainCommandIds.LiveNext));
+    }
+
+    private static string GlobalSlot(string commandId)
+        => ShortcutSettings.GetSlotId(commandId, isGlobal: true);
+
+    private static string LocalSlot(string commandId)
+        => ShortcutSettings.GetSlotId(commandId, isGlobal: false);
 
     private static string GetSettingId(object setting)
         => Convert.ToString(setting.GetType().GetProperty(nameof(EasiSettingKeys.Language.Id))?.GetValue(setting))

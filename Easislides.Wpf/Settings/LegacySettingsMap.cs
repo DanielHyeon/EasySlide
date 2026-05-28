@@ -34,6 +34,8 @@ public sealed record LegacySettingMapEntry(
 
 public static class LegacySettingsMap
 {
+    public const string ShortcutOverridesKeyId = "shortcuts";
+
     public static IReadOnlyList<LegacySettingMapEntry> Entries { get; } =
     [
         Automated("Language", EasiSettingKeys.Language.Id, SettingsSectionKind.General, LegacySettingValueKind.String, "WPF compatibility", "Current WPF setting import/export alias."),
@@ -83,13 +85,13 @@ public static class LegacySettingsMap
         Documented("LMBackColour", SettingsSectionKind.LiveOutput, LegacySettingValueKind.Color, "FrmOptions.SaveVariables", "Legacy lyrics monitor background color; no WPF setting key yet."),
         Documented("LMShowNotations", SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy lyrics monitor notation toggle; no WPF setting key yet."),
         Documented("LiveCamNumber", SettingsSectionKind.Media, LegacySettingValueKind.Integer, "FrmOptions.SaveVariables", "Legacy camera device index; no WPF setting key yet."),
-        Documented("KeyBoardOption", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Integer, "FrmOptions.SaveVariables", "Legacy keyboard routing mode; should map into CommandCatalog/ShortcutRegistry."),
-        Documented("GlobalHookKey_F7", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F7."),
-        Documented("GlobalHookKey_F8", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F8."),
-        Documented("GlobalHookKey_F9", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F9."),
-        Documented("GlobalHookKey_F10", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F10."),
-        Documented("GlobalHookKey_Arrow", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for arrow keys."),
-        Documented("GlobalHookKey_CtrlArrow", SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for Ctrl+Arrow."),
+        Automated("KeyBoardOption", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Integer, "FrmOptions.SaveVariables", "Legacy keyboard routing mode mapped into local next/previous shortcut overrides."),
+        Automated("GlobalHookKey_F7", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F7."),
+        Automated("GlobalHookKey_F8", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F8."),
+        Automated("GlobalHookKey_F9", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F9."),
+        Automated("GlobalHookKey_F10", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for F10."),
+        Automated("GlobalHookKey_Arrow", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for arrow keys."),
+        Automated("GlobalHookKey_CtrlArrow", ShortcutOverridesKeyId, SettingsSectionKind.Shortcuts, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy global hook toggle for Ctrl+Arrow."),
     ];
 
     public static IReadOnlyList<string> GetAutomatedAliases(string wpfKeyId)

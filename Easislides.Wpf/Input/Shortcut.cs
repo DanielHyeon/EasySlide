@@ -29,7 +29,12 @@ public sealed record Shortcut(
             if ((Modifiers & ModifierKeys.Shift) != 0) parts.Add("Shift");
             if ((Modifiers & ModifierKeys.Alt) != 0) parts.Add("Alt");
             if ((Modifiers & ModifierKeys.Windows) != 0) parts.Add("Win");
-            parts.Add(Key.ToString());
+            parts.Add(Key switch
+            {
+                Key.Prior => "PageUp",
+                Key.Next => "PageDown",
+                _ => Key.ToString(),
+            });
             return string.Join("+", parts);
         }
     }

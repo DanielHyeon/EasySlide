@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Windows.Input;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
@@ -49,5 +50,18 @@ public class CommandCatalogTests
             .And.Match<CommandDescriptor>(command => command.IsDangerous);
         sut.FindById(MainCommandIds.LiveNext).Should().NotBeNull()
             .And.Match<CommandDescriptor>(command => !command.IsDangerous);
+    }
+
+    [Fact]
+    public void ShortcutDisplayText_UsesFriendlyPageKeyNames()
+    {
+        new Shortcut(Key.Prior, ModifierKeys.Control, MainCommandIds.LivePrevious, IsGlobal: false, "Previous")
+            .DisplayText
+            .Should()
+            .Be("Ctrl+PageUp");
+        new Shortcut(Key.Next, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: false, "Next")
+            .DisplayText
+            .Should()
+            .Be("PageDown");
     }
 }

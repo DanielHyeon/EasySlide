@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Easislides.Wpf.Input;
+using Easislides.Wpf.Shell;
 using Easislides.Wpf.Theme;
 
 namespace Easislides.Wpf.Settings;
@@ -470,6 +472,7 @@ public sealed class SettingsService : ISettingsService
         {
             Advanced = next.Advanced with { EnableDiagnostics = value },
         });
+        next = ApplyLegacyShortcutOverrides(legacySettings, next, issues);
 
         var validation = Validate(next);
         var combinedIssues = issues.Concat(validation.Issues).ToArray();
@@ -859,6 +862,125 @@ public sealed class SettingsService : ISettingsService
 
         issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid {typeof(TEnum).Name}."));
         return current;
+    }
+
+    private static EasiSettingsSnapshot ApplyLegacyShortcutOverrides(
+        ILegacySettingsSource source,
+        EasiSettingsSnapshot current,
+        ICollection<SettingsIssue> issues)
+    {
+        var shortcuts = new Dictionary<string, string>(current.Shortcuts, StringComparer.OrdinalIgnoreCase);
+        var changed = false;
+
+        var hasF7 = TryGetLegacyBool(source, "GlobalHookKey_F7", issues, out var useF7);
+        var hasF8 = TryGetLegacyBool(source, "GlobalHookKey_F8", issues, out var useF8);
+        if (hasF7 && useF7)
+        {
+            PutShortcutOverride(shortcuts, MainCommandIds.LiveGo, isGlobal: true, "F7");
+            changed = true;
+        }
+        else if (hasF8 && useF8)
+        {
+            PutShortcutOverride(shortcuts, MainCommandIds.LiveGo, isGlobal: true, "F8");
+            changed = true;
+        }
+
+        var hasF9 = TryGetLegacyBool(source, "GlobalHookKey_F9", issues, out var useF9);
+        var hasF10 = TryGetLegacyBool(source, "GlobalHookKey_F10", issues, out var useF10);
+        if (hasF9 && useF9)
+        {
+            PutShortcutOverride(shortcuts, MainCommandIds.LiveBlack, isGlobal: true, "F9");
+            changed = true;
+        }
+        else if (hasF10 && useF10)
+        {
+            PutShortcutOverride(shortcuts, MainCommandIds.LiveBlack, isGlobal: true, "F10");
+            changed = true;
+        }
+
+        var hasArrow = TryGetLegacyBool(source, "GlobalHookKey_Arrow", issues, out var useArrow);
+        var hasCtrlArrow = TryGetLegacyBool(source, "GlobalHookKey_CtrlArrow", issues, out var useCtrlArrow);
+        if (hasArrow && useArrow)
+        {
+            PutShortcutOverride(shortcuts, MainCommandIds.LivePrevious, isGlobal: true, "Up");
+            PutShortcutOverride(shortcuts, MainCommandIds.LiveNext, isGlobal: true, "Down");
+            changed = true;
+        }
+        else if (hasCtrlArrow && useCtrlArrow)
+        {
+            PutShortcutOverride(shortcuts, MainCommandIds.LivePrevious, isGlobal: true, "Ctrl+Up");
+            PutShortcutOverride(shortcuts, MainCommandIds.LiveNext, isGlobal: true, "Ctrl+Down");
+            changed = true;
+        }
+
+        if (TryGetLegacyInt(source, "KeyBoardOption", issues, out var keyBoardOption))
+        {
+            if (keyBoardOption == 1)
+            {
+                PutShortcutOverride(shortcuts, MainCommandIds.LivePrevious, isGlobal: false, "PageUp");
+                PutShortcutOverride(shortcuts, MainCommandIds.LiveNext, isGlobal: false, "PageDown");
+                changed = true;
+            }
+            else if (keyBoardOption != 0)
+            {
+                issues.Add(Warning("KeyBoardOption", $"Legacy value '{keyBoardOption}' is not a supported keyboard option."));
+            }
+        }
+
+        return changed ? current with { Shortcuts = shortcuts } : current;
+    }
+
+    private static void PutShortcutOverride(
+        IDictionary<string, string> shortcuts,
+        string commandId,
+        bool isGlobal,
+        string gesture)
+    {
+        shortcuts[ShortcutSettings.GetSlotId(commandId, isGlobal)] = ShortcutSettings.NormalizeGesture(gesture);
+    }
+
+    private static bool TryGetLegacyBool(
+        ILegacySettingsSource source,
+        string legacyKey,
+        ICollection<SettingsIssue> issues,
+        out bool value)
+    {
+        if (!TryGetLegacyString(source, [legacyKey], out var raw, out var matchedKey))
+        {
+            value = false;
+            return false;
+        }
+
+        if (TryParseLegacyBool(raw, out value))
+        {
+            return true;
+        }
+
+        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid Boolean."));
+        value = false;
+        return false;
+    }
+
+    private static bool TryGetLegacyInt(
+        ILegacySettingsSource source,
+        string legacyKey,
+        ICollection<SettingsIssue> issues,
+        out int value)
+    {
+        if (!TryGetLegacyString(source, [legacyKey], out var raw, out var matchedKey))
+        {
+            value = 0;
+            return false;
+        }
+
+        if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+        {
+            return true;
+        }
+
+        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid integer."));
+        value = 0;
+        return false;
     }
 
     private static bool TryGetLegacyString(

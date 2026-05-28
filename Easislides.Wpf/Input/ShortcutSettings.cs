@@ -12,7 +12,13 @@ public static class ShortcutSettings
     public static string GetSlotId(Shortcut shortcut)
     {
         ArgumentNullException.ThrowIfNull(shortcut);
-        return $"{shortcut.CommandName}:{(shortcut.IsGlobal ? "global" : "local")}";
+        return GetSlotId(shortcut.CommandName, shortcut.IsGlobal);
+    }
+
+    public static string GetSlotId(string commandName, bool isGlobal)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(commandName);
+        return $"{commandName}:{(isGlobal ? "global" : "local")}";
     }
 
     public static bool TryApplyGesture(Shortcut shortcut, string gesture, out Shortcut updated, out string error)

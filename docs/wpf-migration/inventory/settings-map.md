@@ -26,6 +26,10 @@
 | `AdminDatabasePath`, `DBFileName` | `data.adminDatabasePath` | 데이터 | 경로 문자열 |
 | `DataBackupRoot` | `data.backupRoot` | 데이터 | 경로 문자열 |
 | `EnableDiagnostics` | `advanced.enableDiagnostics` | 고급 | bool |
+| `KeyBoardOption` | `shortcuts` | 단축키 | `1`이면 local `Live.Previous`/`Live.Next`를 `PageUp`/`PageDown`으로 override |
+| `GlobalHookKey_F7`, `GlobalHookKey_F8` | `shortcuts` | 단축키 | global `Live.Go`를 `F7` 우선, 없으면 `F8`로 override |
+| `GlobalHookKey_F9`, `GlobalHookKey_F10` | `shortcuts` | 단축키 | global `Live.Black`을 `F9` 우선, 없으면 `F10`으로 override |
+| `GlobalHookKey_Arrow`, `GlobalHookKey_CtrlArrow` | `shortcuts` | 단축키 | global `Live.Previous`/`Live.Next`를 `Up`/`Down` 또는 `Ctrl+Up`/`Ctrl+Down`으로 override |
 
 ## 3. 문서화 완료, 후속 key 필요
 
@@ -36,14 +40,13 @@
 | `ShowLyricsMonitorAlertBox`, `AdvanceNextItem`, `GapItemOption`, `GapItemLogoFile`, `GapItemUseFade` | 송출 | WPF key 필요 |
 | `DMAlwaysUseSecondaryMonitor`, `DMOption1Top`, `DMOption1Left`, `DMOption1Width` | 송출 | display/window placement 설정으로 확장 필요 |
 | `LMTextColour`, `LMBackColour`, `LMShowNotations` | 송출 | lyrics monitor appearance 설정으로 확장 필요 |
-| `KeyBoardOption`, `GlobalHookKey_F7`, `GlobalHookKey_F8`, `GlobalHookKey_F9`, `GlobalHookKey_F10`, `GlobalHookKey_Arrow`, `GlobalHookKey_CtrlArrow` | 단축키 | shortcut editor와 `CommandCatalog` 연결 필요 |
 
 ## 4. 검증
 
 - `LegacySettingsMapTests`: 현행 `EasiSettingKeys` 전체가 인벤토리에 포함되는지 검증한다.
 - `LegacySettingsMapTests`: `FrmOptions.SaveVariables`의 고위험 key가 문서화되어 있는지 검증한다.
-- `LegacySettingsMapTests`: `root_directory`, `OutputMonitorName`, `LiveCamVolume`, `LiveCamBalance`, `LiveCamMute`, `DBFileName` 별칭 migration과 scale 정규화를 검증한다.
+- `LegacySettingsMapTests`: `root_directory`, `OutputMonitorName`, `LiveCamVolume`, `LiveCamBalance`, `LiveCamMute`, `DBFileName` 별칭 migration, scale 정규화, `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환을 검증한다.
 
 ## 5. 완료 여부
 
-현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭은 구현됐고, `FrmOptions`의 세부 display, alert, shortcut, folder formatting key는 문서화됐지만 아직 WPF typed key와 UI가 필요하다.
+현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭과 legacy shortcut override는 구현됐고, `FrmOptions`의 세부 display, alert, folder formatting key는 문서화됐지만 아직 WPF typed key와 UI가 필요하다.
