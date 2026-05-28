@@ -119,7 +119,14 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
 
     public void ApplyTheme(ColorTheme theme)
     {
-        if (Application.Current is null) return;
+        var application = Application.Current;
+        if (application is null)
+        {
+            CurrentTheme = theme;
+            LastDiagnostic = $"Theme {theme} state updated without Application.Current.";
+            ThemeChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
 
         // 1. WPF UI 라이브러리 테마 — 실패해도 EasiDS 색 갱신은 계속 진행
         //
@@ -147,10 +154,19 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
             return;
         }
 
+        var resources = application.Resources;
+        if (resources is null)
+        {
+            CurrentTheme = theme;
+            LastDiagnostic = $"Theme {theme} state updated without application resources.";
+            ThemeChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
         int updated = 0;
         foreach (DictionaryEntry entry in source)
         {
-            Application.Current.Resources[entry.Key] = entry.Value;
+            resources[entry.Key] = entry.Value;
             updated++;
         }
 
@@ -164,16 +180,25 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
     {
         CurrentSize = size;
         var factor = ScaleFactor;
+        var resources = Application.Current?.Resources;
+        if (resources is null)
+        {
+            LastDiagnostic = $"Interface size {size} state updated without application resources.";
+            System.Diagnostics.Debug.WriteLine($"[ThemeService] {LastDiagnostic}");
+            SizeChanged?.Invoke(this, EventArgs.Empty);
+            OnPropertyChanged(nameof(ScaleFactor));
+            return;
+        }
 
         // FontSize 토큰 갱신 — DynamicResource 참조 컨트롤이 자동 재렌더
         foreach (var (key, baseValue) in ScaledFontSizes)
         {
-            Application.Current.Resources[key] = baseValue * factor;
+            resources[key] = baseValue * factor;
         }
 
         foreach (var (key, baseValue) in ScaledSpacings)
         {
-            Application.Current.Resources[key] = baseValue * factor;
+            resources[key] = baseValue * factor;
         }
 
         LastDiagnostic = $"✓ 크기 {size} (×{factor:F1}) — 폰트 {ScaledFontSizes.Length}개 / 간격 {ScaledSpacings.Length}개 갱신";

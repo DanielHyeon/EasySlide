@@ -487,6 +487,20 @@
                             </Button>
                         </Grid>
 
+                        <Button Command="{Binding RunOperationalDataRehearsalCommand}"
+                                Style="{StaticResource EsButton.Primary}"
+                                AutomationProperties.Name="운영 데이터 리허설">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
+                                <TextBlock Text="운영 데이터 리허설" />
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Text="{Binding OperationalRehearsalSummary}"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,12,0,16" />
+
                         <ListBox ItemsSource="{Binding DatabaseTables}"
                                  DisplayMemberPath="Name"
                                  MinHeight="120"

@@ -101,6 +101,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private readonly IDatabaseMigrationService _databaseMigration;
     private readonly ISettingsPathPicker _pathPicker;
     private readonly ICommandCatalog _commandCatalog;
+    private readonly IOperationalDataRehearsalService _operationalDataRehearsal;
     private bool _isRefreshing;
 
     private SettingsSectionViewModel _selectedSection;
@@ -140,19 +141,22 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private string _settingsTransferPath = "";
     private string _statusMessage = "설정 준비됨";
     private string _databaseAnalysisSummary = "DB 분석 대기";
+    private string _operationalRehearsalSummary = "운영 데이터 리허설 대기";
 
     public SettingsWindowViewModel(
         ISettingsService settings,
         IThemeService theme,
         IDatabaseMigrationService databaseMigration,
         ISettingsPathPicker pathPicker,
-        ICommandCatalog commandCatalog)
+        ICommandCatalog commandCatalog,
+        IOperationalDataRehearsalService operationalDataRehearsal)
     {
         _settings = settings;
         _theme = theme;
         _databaseMigration = databaseMigration;
         _pathPicker = pathPicker;
         _commandCatalog = commandCatalog;
+        _operationalDataRehearsal = operationalDataRehearsal;
 
         Sections = new ObservableCollection<SettingsSectionViewModel>(CreateSections());
         _selectedSection = Sections[0];
@@ -179,6 +183,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             }
         });
         AnalyzeDatabaseCommand = new AsyncRelayCommand(AnalyzeDatabaseAsync, CanAnalyzeDatabase);
+        RunOperationalDataRehearsalCommand = new AsyncRelayCommand(RunOperationalDataRehearsalAsync);
         ExportSettingsCommand = new AsyncRelayCommand(ExportSettingsAsync, CanUseTransferPath);
         ImportSettingsCommand = new AsyncRelayCommand(ImportSettingsAsync, CanUseTransferPath);
 
@@ -218,6 +223,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public IRelayCommand<ShortcutEditorItemViewModel> ResetShortcutCommand { get; }
 
     public IAsyncRelayCommand AnalyzeDatabaseCommand { get; }
+
+    public IAsyncRelayCommand RunOperationalDataRehearsalCommand { get; }
 
     public IAsyncRelayCommand ExportSettingsCommand { get; }
 
@@ -456,6 +463,12 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         private set => SetProperty(ref _databaseAnalysisSummary, value);
     }
 
+    public string OperationalRehearsalSummary
+    {
+        get => _operationalRehearsalSummary;
+        private set => SetProperty(ref _operationalRehearsalSummary, value);
+    }
+
     public void RestoreDefaults()
     {
         var result = _settings.RestoreDefaults();
@@ -501,6 +514,64 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         SetIssues(issues);
         DatabaseAnalysisSummary = "DB 분석 실패";
         StatusMessage = "DB 분석 실패";
+    }
+
+    public async Task RunOperationalDataRehearsalAsync()
+    {
+        var report = await _operationalDataRehearsal.RunAsync(new OperationalDataRehearsalRequest(
+            SourceRoot: WorkingFolder,
+            BackupRoot: DataBackupRoot,
+            AdminDatabasePath: AdminDatabasePath));
+        var assetCount = report.AssetReport?.Items.Count ?? 0;
+        var tableCount = report.DatabaseInventory?.Tables.Count ?? 0;
+        var errorCount = report.Issues.Count(issue => issue.Severity == OperationalDataRehearsalIssueSeverity.Error);
+        var warningCount = report.Issues.Count(issue => issue.Severity == OperationalDataRehearsalIssueSeverity.Warning);
+
+        DatabaseTables.Clear();
+        if (report.DatabaseInventory is not null)
+        {
+            foreach (var table in report.DatabaseInventory.Tables)
+            {
+                DatabaseTables.Add(table);
+            }
+
+            DatabaseAnalysisSummary = string.Format(
+                CultureInfo.InvariantCulture,
+                "schema {0}, tables {1}",
+                report.DatabaseInventory.SchemaVersion,
+                report.DatabaseInventory.Tables.Count);
+        }
+        else
+        {
+            DatabaseAnalysisSummary = "DB inventory 없음";
+        }
+
+        SetIssues(report.Issues.Select(issue => new SettingsIssue(
+            $"operationalRehearsal.{issue.Kind}",
+            issue.Severity == OperationalDataRehearsalIssueSeverity.Error
+                ? SettingsIssueSeverity.Error
+                : SettingsIssueSeverity.Warning,
+            $"{issue.Path}: {issue.Message}")));
+
+        if (report.Succeeded)
+        {
+            OperationalRehearsalSummary = string.Format(
+                CultureInfo.InvariantCulture,
+                "운영 데이터 리허설 완료: 파일 {0}개, 테이블 {1}개, 경고 {2}개",
+                assetCount,
+                tableCount,
+                warningCount);
+            StatusMessage = "운영 데이터 리허설 완료";
+            return;
+        }
+
+        OperationalRehearsalSummary = string.Format(
+            CultureInfo.InvariantCulture,
+            "운영 데이터 리허설 실패: 파일 {0}개, 오류 {1}개, 경고 {2}개",
+            assetCount,
+            errorCount,
+            warningCount);
+        StatusMessage = "운영 데이터 리허설 실패";
     }
 
     public async Task ExportSettingsAsync()

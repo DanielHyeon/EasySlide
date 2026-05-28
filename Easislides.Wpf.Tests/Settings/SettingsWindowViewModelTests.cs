@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Easislides.Wpf.Data;
 using Easislides.Wpf.Input;
@@ -368,6 +369,58 @@ public class SettingsWindowViewModelTests
     }
 
     [Fact]
+    public async Task RunOperationalDataRehearsalAsync_WhenServiceSucceeds_ReportsSummaryAndUsesCurrentPaths()
+    {
+        using var fixture = SettingsFixture.Create();
+        fixture.Rehearsal.Report = CreateRehearsalReport(
+            succeeded: true,
+            assetCount: 2,
+            tableCount: 1,
+            issues: []);
+        var sut = fixture.CreateViewModel();
+        sut.WorkingFolder = Path.Combine(fixture.Root, "Work");
+        sut.AdminDatabasePath = Path.Combine(fixture.Root, "Admin", "EasiSlidesDb.db");
+        sut.DataBackupRoot = Path.Combine(fixture.Root, "Backups");
+
+        await sut.RunOperationalDataRehearsalAsync();
+
+        fixture.Rehearsal.LastRequest.Should().NotBeNull();
+        fixture.Rehearsal.LastRequest!.SourceRoot.Should().Be(sut.WorkingFolder);
+        fixture.Rehearsal.LastRequest.AdminDatabasePath.Should().Be(sut.AdminDatabasePath);
+        fixture.Rehearsal.LastRequest.BackupRoot.Should().Be(sut.DataBackupRoot);
+        sut.OperationalRehearsalSummary.Should().Contain("파일 2개");
+        sut.OperationalRehearsalSummary.Should().Contain("테이블 1개");
+        sut.StatusMessage.Should().Contain("리허설");
+        sut.ValidationMessages.Should().BeEmpty();
+        sut.DatabaseTables.Should().ContainSingle(table => table.Name == "FOLDER");
+    }
+
+    [Fact]
+    public async Task RunOperationalDataRehearsalAsync_WhenServiceReportsError_ShowsIssueAndFailureStatus()
+    {
+        using var fixture = SettingsFixture.Create();
+        fixture.Rehearsal.Report = CreateRehearsalReport(
+            succeeded: false,
+            assetCount: 0,
+            tableCount: 0,
+            issues:
+            [
+                new OperationalDataRehearsalIssue(
+                    OperationalDataRehearsalIssueKind.WorkingFolderMissing,
+                    OperationalDataRehearsalIssueSeverity.Error,
+                    @"C:\Missing",
+                    "Working folder does not exist."),
+            ]);
+        var sut = fixture.CreateViewModel();
+
+        await sut.RunOperationalDataRehearsalAsync();
+
+        sut.StatusMessage.Should().Contain("실패");
+        sut.OperationalRehearsalSummary.Should().Contain("오류 1개");
+        sut.ValidationMessages.Should().Contain(message => message.Contains(nameof(OperationalDataRehearsalIssueKind.WorkingFolderMissing)));
+    }
+
+    [Fact]
     public void Constructor_BuildsShortcutEditorItemsFromCommandCatalog()
     {
         using var fixture = SettingsFixture.Create();
@@ -446,6 +499,7 @@ public class SettingsWindowViewModelTests
             Database = new RecordingDatabaseMigrationService();
             PathPicker = new RecordingSettingsPathPicker();
             CommandCatalog = new CommandCatalog();
+            Rehearsal = new RecordingOperationalDataRehearsalService();
         }
 
         public string Root { get; }
@@ -460,6 +514,8 @@ public class SettingsWindowViewModelTests
 
         public CommandCatalog CommandCatalog { get; }
 
+        public RecordingOperationalDataRehearsalService Rehearsal { get; }
+
         public static SettingsFixture Create()
         {
             var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_SettingsWindow_{Guid.NewGuid():N}");
@@ -468,7 +524,7 @@ public class SettingsWindowViewModelTests
         }
 
         public SettingsWindowViewModel CreateViewModel()
-            => new(Settings, Theme, Database, PathPicker, CommandCatalog);
+            => new(Settings, Theme, Database, PathPicker, CommandCatalog, Rehearsal);
 
         public void Dispose()
         {
@@ -595,5 +651,71 @@ public class SettingsWindowViewModelTests
             LastSettingsExportInitialPath = initialPath;
             return Task.FromResult(SettingsExportPathResult);
         }
+    }
+
+    private sealed class RecordingOperationalDataRehearsalService : IOperationalDataRehearsalService
+    {
+        public OperationalDataRehearsalReport Report { get; set; } = CreateRehearsalReport(
+            succeeded: true,
+            assetCount: 0,
+            tableCount: 0,
+            issues: []);
+
+        public OperationalDataRehearsalRequest? LastRequest { get; private set; }
+
+        public Task<OperationalDataRehearsalReport> RunAsync(
+            OperationalDataRehearsalRequest? request = null,
+            CancellationToken cancellationToken = default)
+        {
+            LastRequest = request;
+            return Task.FromResult(Report);
+        }
+    }
+
+    private static OperationalDataRehearsalReport CreateRehearsalReport(
+        bool succeeded,
+        int assetCount,
+        int tableCount,
+        IReadOnlyList<OperationalDataRehearsalIssue> issues)
+    {
+        var assetItems = Enumerable
+            .Range(1, assetCount)
+            .Select(index => new AssetMigrationItem(
+                $@"C:\Source\file{index}.png",
+                $@"C:\Destination\file{index}.png",
+                $"file{index}.png",
+                10,
+                "hash",
+                AssetMigrationItemStatus.Planned))
+            .ToArray();
+        var tables = Enumerable
+            .Range(1, tableCount)
+            .Select(index => new DatabaseTable(index == 1 ? "FOLDER" : $"TABLE_{index}", "CREATE TABLE T (Id INTEGER);"))
+            .ToArray();
+
+        return new OperationalDataRehearsalReport(
+            succeeded,
+            EasiSettingsSnapshot.CreateDefault(),
+            @"C:\Source",
+            @"C:\Destination",
+            @"C:\Backup",
+            @"C:\Source\Admin\Database\EasiSlidesDb.db",
+            new AssetMigrationReport(
+                succeeded,
+                IsDryRun: true,
+                @"C:\Source",
+                @"C:\Destination",
+                @"C:\Backup",
+                BackupDirectory: null,
+                assetItems,
+                []),
+            new AdminDatabaseSchemaInventory(
+                Succeeded: succeeded,
+                @"C:\Source\Admin\Database\EasiSlidesDb.db",
+                SchemaVersion: 4,
+                tables,
+                new Dictionary<string, IReadOnlyList<DatabaseColumn>>(),
+                []),
+            issues);
     }
 }

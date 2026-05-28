@@ -35,6 +35,7 @@ public class AppServiceRegistrationTests
             var placement = provider.GetRequiredService<IWindowPlacementService>();
             var adminRepository = provider.GetRequiredService<IAdminDatabaseRepository>();
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
+            var settingsViewModel = provider.GetRequiredService<SettingsWindowViewModel>();
             var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
             service.Should().BeOfType<PowerPointRenderService>();
@@ -55,6 +56,13 @@ public class AppServiceRegistrationTests
             legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
             adminRepository.Should().BeOfType<AdminDatabaseRepository>();
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
+
+            settingsViewModel.Should().NotBeNull();
+            var rehearsalField = typeof(SettingsWindowViewModel).GetField(
+                "_operationalDataRehearsal",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            rehearsalField.Should().NotBeNull();
+            rehearsalField!.GetValue(settingsViewModel).Should().BeSameAs(rehearsal);
 
             outputHost.Should().BeOfType<OutputWindowHost>();
             var hostSettingsField = typeof(OutputWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
