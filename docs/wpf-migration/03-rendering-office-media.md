@@ -30,6 +30,7 @@
 
 - `Easislides.Wpf/Interop/OfficePptSession.cs`
 - `Easislides.Wpf/Poc/PocBComStress.xaml`
+- `Easislides.Wpf/Rendering/PowerPointRenderService.cs`
 - `Easislides.Wpf/Media/MediaPlaybackService.cs`
 - `Easislides.Wpf/Media/MediaPlaybackViewModel.cs`
 
@@ -119,7 +120,7 @@
 | 항목 | 상태 | 비고 |
 |---|---|---|
 | Office COM PoC | 1차 완료 | `OfficePptSession`, stress 화면 존재 |
-| PPT 운영 service | 미완료 | timeout/cache/error contract 필요 |
+| PPT 운영 service | 부분 구현 | `IPowerPointRenderService`, `PowerPointRenderService`, `IPowerPointRenderBackend`, `OfficePowerPointRenderBackend` 추가. 파일 검증, timeout, cache invalidation, 오류 분류, STA `OfficePptSession.ExportSlideAsync` 경계 구현 및 자동 검증 완료. 실제 운영 PPT fixture 10개/100회 stress 검증은 후속 필요 |
 | 이미지 프리뷰 WPF 컨트롤 | 미완료 | `ImageCanvas` 대체 필요 |
 | 전환 효과 WPF화 | 미완료 | 기존 효과 목록화 필요 |
 | 미디어 playback WPF화 | 부분 구현 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`로 재생 상태 계약, command, 시간 표시, seek/audio setting clamp 자동 검증 완료. 실제 WPF `MediaElement`/DirectShow backend, 출력 화면 렌더 연결, 파일/코덱 오류 UI는 후속 구현 필요 |
@@ -139,6 +140,7 @@ Office 검증:
 - 실패 PPT 후 다음 정상 PPT 렌더가 가능한지 확인.
 - PowerPoint 프로세스 잔존 여부 확인.
 - UI 버튼 클릭과 로그 갱신이 렌더 중에도 응답하는지 확인.
+- 현재 1차 자동 검증은 fake backend 기반 service contract로 수행한다. 실제 PowerPoint 설치 환경에서는 `OfficePowerPointRenderBackend`와 `OfficePptSession.ExportSlideAsync`를 사용해 JPG export를 수행한다.
 
 미디어 검증:
 
@@ -155,21 +157,24 @@ Office 검증:
 - render contract unit tests
 - thumbnail cache invalidation tests
 - COM scheduler timeout/cancellation tests
+- PowerPoint render service cache/timeout/error classification tests
 - media playback ViewModel state tests
 - media playback service state machine tests
 - output snapshot state tests
 
 현재 자동화 완료:
 
+- `PowerPointRenderServiceTests`: backend 결과 반환, 파일 stamp 기반 cache hit, 파일 변경 invalidation, unsupported/locked file 차단, timeout, backend 오류 분류 검증
 - `MediaPlaybackServiceTests`: load/play/pause/stop, seek clamp, volume/balance/mute/repeat 상태 유지 검증
 - `MediaPlaybackViewModelTests`: load 표시값, play/pause command, 5초 seek command, mute/repeat toggle 검증
 
 2026-05-29 검증 결과:
 
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 8개 통과
-- `dotnet test Easislides.sln -c Debug`: 107개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PowerPointRenderServiceTests`: 6개 통과
+- `dotnet test Easislides.sln -c Debug`: 113개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 107개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 113개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:

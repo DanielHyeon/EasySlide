@@ -1,10 +1,17 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NetOffice.OfficeApi.Enums;
 using NetOffice.PowerPointApi;
 
 namespace Easislides.Wpf.Interop;
+
+public sealed record OfficePptSlideExport(
+    int SlideCount,
+    byte[] ImageBytes,
+    string ContentType);
 
 /// <summary>
 /// PowerPoint COM 세션 래퍼 — 계획서 §10.3 STA 스레드 모델 리스크 대응.
@@ -83,6 +90,50 @@ public sealed class OfficePptSession : IDisposable
         if (_ppt is null) throw new InvalidOperationException("PowerPoint 세션이 열려 있지 않음. OpenAsync 먼저 호출하세요.");
         return _ppt.Presentations.Count;
     });
+
+    public Task<OfficePptSlideExport> ExportSlideAsync(string filePath, int slideNumber, int width, int height)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentOutOfRangeException.ThrowIfLessThan(slideNumber, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(width, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(height, 1);
+
+        return RunOnStaAsync(() =>
+        {
+            _ppt ??= new Application();
+            _ = _ppt.Presentations.Count;
+
+            _Presentation? presentation = null;
+            var tempFile = Path.Combine(Path.GetTempPath(), $"EasiSlidesPpt_{Guid.NewGuid():N}.jpg");
+
+            try
+            {
+                presentation = _ppt.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
+                var slideCount = presentation.Slides.Count;
+                if (slideNumber > slideCount)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {slideCount}.");
+                }
+
+                presentation.Slides[slideNumber].Export(tempFile, "JPG", width, height);
+                return new OfficePptSlideExport(slideCount, File.ReadAllBytes(tempFile), "image/jpeg");
+            }
+            finally
+            {
+                if (presentation is not null)
+                {
+                    try { presentation.Close(); }
+                    catch { }
+
+                    try { presentation.Dispose(); }
+                    catch { }
+                }
+
+                try { File.Delete(tempFile); }
+                catch { }
+            }
+        });
+    }
 
     /// <summary>현재 세션 종료 — STA 스레드에서 Quit + ReleaseComObject.</summary>
     public Task CloseAsync() => RunOnStaAsync(() =>

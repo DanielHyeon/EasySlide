@@ -6,6 +6,7 @@ using Easislides.Wpf.Demo;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
+using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,8 @@ public partial class App : Application
         services.AddSingleton<IDisplayService, DisplayService>();
         services.AddSingleton<IWindowPlacementService, WindowPlacementService>();
         services.AddSingleton<IPlatformDiagnosticsService, PlatformDiagnosticsService>();
+        services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
+        services.AddSingleton<IPowerPointRenderService, PowerPointRenderService>();
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
