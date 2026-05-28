@@ -124,7 +124,7 @@
 | Pretendard/EasiDS | 1차 완료 | WPF resource 반영 |
 | SettingsWindow | 미완료 | 신규 구현 필요 |
 | legacy settings map | 미완료 | `FrmOptions` 분석 필요 |
-| 자산 마이그레이션 | 미완료 | AppData/작업 폴더 정책 필요 |
+| 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. AppData 실제 경로 연결, SettingsWindow/온보딩 UI, DB/설정 snapshot 통합은 후속 필요 |
 | DB 마이그레이션 | 미완료 | schema inventory 필요 |
 | 도움말/정보/등록 | 미완료 | 기존 폼 기능 확인 필요 |
 
@@ -143,6 +143,7 @@
 - 이미지/미디어 경로가 깨지지 않는다.
 - 중복 파일명 처리 규칙이 문서와 일치한다.
 - 마이그레이션 취소 후 원본 앱 실행이 가능하다.
+- 현재 1차 자동 검증은 임시 작업 폴더에서 `AssetMigrationService` dry-run/copy/hash/conflict/path error 계약으로 수행한다. 실제 `%AppData%`/운영 작업 폴더 연결 후 수동 리허설을 추가한다.
 
 DB 검증:
 
@@ -162,6 +163,19 @@ DB 검증:
 - path permission/error tests
 - SQLite repository transaction tests
 - asset copy hash tests
+
+현재 자동화 완료:
+
+- `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
+
+2026-05-29 검증 결과:
+
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 150개 통과
+- `dotnet test Easislides.sln -c Debug`: 150개 통과
+- `dotnet build Easislides.sln -c Release`: 성공
+- `dotnet test Easislides.sln -c Release --no-build`: 150개 통과
+- `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:
 

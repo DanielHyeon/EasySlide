@@ -7,6 +7,7 @@ using Easislides.Wpf.Input;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,7 @@ public partial class App : Application
         services.AddSingleton<ITransitionEffectService, TransitionEffectService>();
         services.AddSingleton<IOutputRenderer, OutputRenderer>();
         services.AddSingleton<IThumbnailCache, ThumbnailCache>();
+        services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService, PowerPointRenderService>();
 
