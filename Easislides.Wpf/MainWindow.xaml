@@ -69,6 +69,36 @@
                             <TextBlock Text="Black" />
                         </StackPanel>
                     </Button>
+                    <Button Click="OpenHelp_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="도움말 열기"
+                            AutomationProperties.Name="도움말 열기"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="QuestionCircle24" Margin="0,0,6,0" />
+                            <TextBlock Text="도움말" />
+                        </StackPanel>
+                    </Button>
+                    <Button Click="OpenRegistration_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="등록 페이지 안내"
+                            AutomationProperties.Name="등록 페이지 안내"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
+                            <TextBlock Text="등록" />
+                        </StackPanel>
+                    </Button>
+                    <Button Click="OpenAbout_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="EasiSlides 정보"
+                            AutomationProperties.Name="EasiSlides 정보"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Info24" Margin="0,0,6,0" />
+                            <TextBlock Text="정보" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenSettings_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="설정 열기"

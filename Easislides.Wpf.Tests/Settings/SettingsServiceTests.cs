@@ -154,6 +154,22 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public async Task MigrateLegacyAsync_ImportsRegistrationUser()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["RegistrationUser"] = "Grace Church",
+        });
+
+        var result = await sut.MigrateLegacyAsync(legacy);
+
+        result.Succeeded.Should().BeTrue();
+        sut.Get(EasiSettingKeys.RegistrationUser).Should().Be("Grace Church");
+    }
+
+    [Fact]
     public async Task ExportAsync_WritesCurrentSnapshotToRequestedPath()
     {
         using var fixture = TempSettingsFolder.Create();

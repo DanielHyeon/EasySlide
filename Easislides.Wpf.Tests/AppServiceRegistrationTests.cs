@@ -9,6 +9,7 @@ using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
+using Easislides.Wpf.Support;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -39,6 +40,11 @@ public class AppServiceRegistrationTests
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
             var onboarding = provider.GetRequiredService<IOnboardingCoordinator>();
             var onboardingDialog = provider.GetRequiredService<IOnboardingDialogService>();
+            var supportInfo = provider.GetRequiredService<ISupportInfoService>();
+            var supportLauncher = provider.GetRequiredService<ISupportLauncher>();
+            var aboutViewModel = provider.GetRequiredService<AboutWindowViewModel>();
+            var helpViewModel = provider.GetRequiredService<HelpWindowViewModel>();
+            var registrationViewModel = provider.GetRequiredService<RegistrationWindowViewModel>();
             var settingsViewModel = provider.GetRequiredService<SettingsWindowViewModel>();
             var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
@@ -62,6 +68,11 @@ public class AppServiceRegistrationTests
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
             onboarding.Should().BeOfType<OnboardingCoordinator>();
             onboardingDialog.Should().BeOfType<WelcomeWindowDialogService>();
+            supportInfo.Should().BeOfType<SupportInfoService>();
+            supportLauncher.Should().BeOfType<SupportLauncher>();
+            aboutViewModel.Should().NotBeNull();
+            helpViewModel.Should().NotBeNull();
+            registrationViewModel.Should().NotBeNull();
 
             settingsViewModel.Should().NotBeNull();
             var rehearsalField = typeof(SettingsWindowViewModel).GetField(

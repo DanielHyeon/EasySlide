@@ -76,6 +76,7 @@ public static class EasiSettingKeys
         "general.workingFolder",
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "EasiSlides"));
     public static readonly SettingKey<bool> OnboardingCompleted = new("general.onboardingCompleted", false);
+    public static readonly SettingKey<string> RegistrationUser = new("general.registrationUser", "");
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
     public static readonly SettingKey<InterfaceSize> InterfaceSize =
@@ -115,6 +116,7 @@ public static class EasiSettingKeys
         Language,
         WorkingFolder,
         OnboardingCompleted,
+        RegistrationUser,
         Theme,
         InterfaceSize,
         DefaultOutputMonitorId,
@@ -156,6 +158,8 @@ public sealed record GeneralSettings
     public string WorkingFolder { get; init; } = EasiSettingKeys.WorkingFolder.DefaultValue;
 
     public bool OnboardingCompleted { get; init; } = EasiSettingKeys.OnboardingCompleted.DefaultValue;
+
+    public string RegistrationUser { get; init; } = EasiSettingKeys.RegistrationUser.DefaultValue;
 }
 
 public sealed record AppearanceSettings
@@ -396,6 +400,13 @@ public sealed class SettingsService : ISettingsService
         RequireText(candidate.General.Language, EasiSettingKeys.Language.Id, issues);
         RequireText(candidate.General.WorkingFolder, EasiSettingKeys.WorkingFolder.Id, issues);
         ValidatePath(candidate.General.WorkingFolder, EasiSettingKeys.WorkingFolder.Id, issues, allowEmpty: false);
+        if (!string.IsNullOrWhiteSpace(candidate.General.RegistrationUser))
+        {
+            RequireNoControlCharacters(
+                candidate.General.RegistrationUser,
+                EasiSettingKeys.RegistrationUser.Id,
+                issues);
+        }
 
         if (!Enum.IsDefined(candidate.Appearance.Theme))
         {
@@ -550,6 +561,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.OnboardingCompleted.Id), next, issues, value => next with
         {
             General = next.General with { OnboardingCompleted = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.RegistrationUser.Id), next, value => next with
+        {
+            General = next.General with { RegistrationUser = value },
         });
         next = ApplyLegacyEnum<ColorTheme>(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.Theme.Id), next, issues, value => next with
         {
@@ -844,6 +859,7 @@ public sealed class SettingsService : ISettingsService
             "general.language" => snapshot.General.Language,
             "general.workingFolder" => snapshot.General.WorkingFolder,
             "general.onboardingCompleted" => snapshot.General.OnboardingCompleted,
+            "general.registrationUser" => snapshot.General.RegistrationUser,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
@@ -892,6 +908,10 @@ public sealed class SettingsService : ISettingsService
             "general.onboardingCompleted" => snapshot with
             {
                 General = snapshot.General with { OnboardingCompleted = Cast<bool>(keyId, value) },
+            },
+            "general.registrationUser" => snapshot with
+            {
+                General = snapshot.General with { RegistrationUser = Cast<string>(keyId, value) },
             },
             "appearance.theme" => snapshot with
             {

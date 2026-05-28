@@ -59,6 +59,8 @@ public class LegacySettingsMapTests
             .Should().Contain(["DefaultOutputMonitorId", "OutputMonitorName"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaVolume.Id)
             .Should().Contain(["MediaVolume", "LiveCamVolume"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.RegistrationUser.Id)
+            .Should().Contain(["RegistrationUser"]);
     }
 
     [Fact]

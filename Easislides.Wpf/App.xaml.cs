@@ -11,6 +11,7 @@ using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
+using Easislides.Wpf.Support;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,6 +63,8 @@ public partial class App : Application
         services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
         services.AddSingleton<IOnboardingDialogService, WelcomeWindowDialogService>();
         services.AddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
+        services.AddSingleton<ISupportInfoService, SupportInfoService>();
+        services.AddSingleton<ISupportLauncher, SupportLauncher>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IOperationalDataRehearsalService, OperationalDataRehearsalService>();
@@ -83,8 +86,14 @@ public partial class App : Application
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddTransient<MediaPlaybackViewModel>();
         services.AddTransient<SettingsWindowViewModel>();
+        services.AddTransient<AboutWindowViewModel>();
+        services.AddTransient<HelpWindowViewModel>();
+        services.AddTransient<RegistrationWindowViewModel>();
         services.AddTransient<OutputWindow>();
         services.AddTransient<SettingsWindow>();
+        services.AddTransient<AboutWindow>();
+        services.AddTransient<HelpWindow>();
+        services.AddTransient<RegistrationWindow>();
         services.AddSingleton<OutputSurfaceFactory>(sp => () => sp.GetRequiredService<OutputWindow>());
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
         services.AddTransient<MainViewModel>();
