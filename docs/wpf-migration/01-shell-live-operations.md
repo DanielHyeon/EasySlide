@@ -176,6 +176,7 @@ UX 검증:
 - `MediaPlaybackViewModelTests`: play/pause, stop, seek, mute/repeat command와 시간/상태 표시 검증
 - `PreviewCanvasTests`: WPF preview placement/render/DPI contract 검증
 - `TransitionEffectServiceTests`: WPF transition effect list/action/frame contract 검증
+- `OutputRendererTests`: 출력 scene snapshot, 표시 라벨, content placement, transition frame contract 검증
 
 현재 자동화 완료:
 
@@ -191,13 +192,14 @@ UX 검증:
 - `PlatformDiagnosticsServiceTests`
 - `MediaPlaybackServiceTests`
 - `MediaPlaybackViewModelTests`
+- `OutputRendererTests`
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.sln -c Debug`: 131개 통과
+- `dotnet test Easislides.sln -c Debug`: 134개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 131개 통과
-- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
+- `dotnet test Easislides.sln -c Release --no-build`: 134개 통과
+- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 

@@ -1,4 +1,6 @@
 using System;
+using Easislides.Wpf.Rendering;
+
 namespace Easislides.Wpf.Shell;
 
 public delegate IOutputSurface OutputSurfaceFactory();
@@ -20,6 +22,7 @@ public sealed class OutputWindowHost : IOutputWindowHost
     private readonly IOutputWindowService _output;
     private readonly ILiveSessionService _session;
     private readonly OutputSurfaceFactory _surfaceFactory;
+    private readonly IOutputRenderer _renderer;
     private IOutputSurface? _surface;
     private OutputWindowViewModel? _viewModel;
     private LiveSessionSnapshot _lastSession;
@@ -29,10 +32,24 @@ public sealed class OutputWindowHost : IOutputWindowHost
         IOutputWindowService output,
         ILiveSessionService session,
         OutputSurfaceFactory surfaceFactory)
+        : this(
+            output,
+            session,
+            surfaceFactory,
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()))
     {
-        _output = output;
-        _session = session;
-        _surfaceFactory = surfaceFactory;
+    }
+
+    public OutputWindowHost(
+        IOutputWindowService output,
+        ILiveSessionService session,
+        OutputSurfaceFactory surfaceFactory,
+        IOutputRenderer renderer)
+    {
+        _output = output ?? throw new ArgumentNullException(nameof(output));
+        _session = session ?? throw new ArgumentNullException(nameof(session));
+        _surfaceFactory = surfaceFactory ?? throw new ArgumentNullException(nameof(surfaceFactory));
+        _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _lastSession = session.Current;
 
         _output.OutputChanged += OnOutputChanged;
@@ -85,7 +102,7 @@ public sealed class OutputWindowHost : IOutputWindowHost
             return;
         }
 
-        _viewModel = new OutputWindowViewModel();
+        _viewModel = new OutputWindowViewModel(_renderer);
         _viewModel.ApplySession(_lastSession);
 
         _surface = _surfaceFactory();

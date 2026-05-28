@@ -1,17 +1,37 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Easislides.Wpf.Controls;
+using Easislides.Wpf.Rendering;
 
 namespace Easislides.Wpf.Shell;
 
 public sealed class OutputWindowViewModel : ObservableObject
 {
+    private const int DefaultViewportWidth = 1280;
+    private const int DefaultViewportHeight = 720;
+
+    private readonly IOutputRenderer _renderer;
     private LiveState _state = LiveState.Off;
+    private LiveSessionSnapshot _session = LiveSessionSnapshot.Off;
+    private OutputWindowState _output = OutputWindowState.Closed;
     private string _currentItemTitle = string.Empty;
     private string _outputMonitorName = string.Empty;
     private string _displayTitle = "STANDBY";
     private string _statusLabel = "STANDBY";
     private bool _isBlackout;
     private bool _isOutputOpen;
+    private OutputSceneSnapshot _scene;
+
+    public OutputWindowViewModel()
+        : this(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()))
+    {
+    }
+
+    public OutputWindowViewModel(IOutputRenderer renderer)
+    {
+        _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
+        _scene = CreateScene();
+    }
 
     public LiveState State
     {
@@ -55,51 +75,55 @@ public sealed class OutputWindowViewModel : ObservableObject
         private set => SetProperty(ref _isOutputOpen, value);
     }
 
+    public OutputSceneSnapshot Scene
+    {
+        get => _scene;
+        private set => SetProperty(ref _scene, value);
+    }
+
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
+        _session = snapshot;
         State = snapshot.State;
         CurrentItemTitle = snapshot.CurrentItemTitle;
-        IsBlackout = snapshot.IsBlackout;
-
-        if (!string.IsNullOrWhiteSpace(snapshot.OutputMonitorName))
-        {
-            OutputMonitorName = snapshot.OutputMonitorName;
-        }
-
         RefreshDisplayText();
     }
 
     public void ApplyOutput(OutputWindowState state)
     {
-        IsOutputOpen = state.IsOpen;
-        OutputMonitorName = state.Display?.Name ?? string.Empty;
+        _output = state;
         RefreshDisplayText();
     }
 
     private void RefreshDisplayText()
     {
-        if (State == LiveState.Hidden && IsBlackout)
-        {
-            DisplayTitle = "BLACK";
-            StatusLabel = "BLACKOUT";
-            return;
-        }
-
-        if (State == LiveState.Hidden)
-        {
-            DisplayTitle = "HIDDEN";
-            StatusLabel = "HIDDEN";
-            return;
-        }
-
-        if (State == LiveState.Active)
-        {
-            DisplayTitle = string.IsNullOrWhiteSpace(CurrentItemTitle) ? "LIVE" : CurrentItemTitle;
-            StatusLabel = "LIVE";
-            return;
-        }
-
-        DisplayTitle = IsOutputOpen ? "OUTPUT READY" : "STANDBY";
-        StatusLabel = IsOutputOpen ? "READY" : "STANDBY";
+        Scene = CreateScene();
+        ApplyScene(Scene);
     }
+
+    private OutputSceneSnapshot CreateScene()
+        => _renderer.CreateScene(new OutputRenderRequest(
+            _session,
+            _output,
+            GetViewportWidth(_output),
+            GetViewportHeight(_output)));
+
+    private void ApplyScene(OutputSceneSnapshot scene)
+    {
+        IsOutputOpen = scene.IsOutputOpen;
+        IsBlackout = scene.IsBlackout;
+        OutputMonitorName = scene.OutputMonitorName;
+        DisplayTitle = scene.DisplayTitle;
+        StatusLabel = scene.StatusLabel;
+    }
+
+    private static int GetViewportWidth(OutputWindowState output)
+        => output.IsOpen && output.Placement.Width > 0
+            ? (int)output.Placement.Width
+            : DefaultViewportWidth;
+
+    private static int GetViewportHeight(OutputWindowState output)
+        => output.IsOpen && output.Placement.Height > 0
+            ? (int)output.Placement.Height
+            : DefaultViewportHeight;
 }

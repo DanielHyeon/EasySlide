@@ -1,4 +1,5 @@
 using Easislides.Wpf.Controls;
+using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -23,6 +24,7 @@ public class OutputWindowViewModelTests
         sut.StatusLabel.Should().Be("LIVE");
         sut.IsBlackout.Should().BeFalse();
         sut.OutputMonitorName.Should().Be("Display 2");
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Live);
     }
 
     [Fact]
@@ -40,6 +42,7 @@ public class OutputWindowViewModelTests
         sut.DisplayTitle.Should().Be("BLACK");
         sut.StatusLabel.Should().Be("BLACKOUT");
         sut.IsBlackout.Should().BeTrue();
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Blackout);
     }
 
     [Fact]
@@ -55,5 +58,6 @@ public class OutputWindowViewModelTests
 
         sut.IsOutputOpen.Should().BeFalse();
         sut.OutputMonitorName.Should().BeEmpty();
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Standby);
     }
 }
