@@ -52,9 +52,12 @@
     </Compile>
   </ItemGroup>
 
-  <!-- 폰트 자산 (ADR-0003). Sprint 1에서 실제 PretendardVariable.ttf를 Assets/Fonts/에 배치. PoC 단계에서는 시스템 폰트 폴백으로 동작 확인. -->
+  <!-- 폰트 자산 (ADR-0003 / Q4). Pretendard Variable v1.3.9 번들. OFL 1.1 라이선스 동봉 의무. -->
   <ItemGroup>
-    <Folder Include="Assets\Fonts\" />
+    <Resource Include="Assets\Fonts\PretendardVariable.ttf" />
+    <Content Include="Assets\Fonts\Pretendard-OFL-1.1-LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

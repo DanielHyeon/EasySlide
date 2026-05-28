@@ -34,4 +34,8 @@
     <sys:Double x:Key="Spacing.ButtonHeight.Md">40</sys:Double>
     <sys:Double x:Key="Spacing.ButtonHeight.Lg">48</sys:Double>
 
+    <!-- 입력 컨트롤 패딩 — EsTextBox 등에서 사용 (리뷰 #5 매직 값 제거) -->
+    <Thickness x:Key="Thickness.Input.Default">12,8</Thickness>
+    <Thickness x:Key="Thickness.Input.Search">40,8,12,8</Thickness>
+
 </ResourceDictionary>

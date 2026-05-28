@@ -1,0 +1,115 @@
+<!--
+    EsTextBox — 계획서 §5.1
+    변종 (Style):
+      - EsTextBox.Default : 표준 텍스트 입력
+      - EsTextBox.Search  : 좌측에 검색 아이콘 (시각 affordance)
+      - EsTextBox.Numeric : 숫자 입력 (PreviewTextInput으로 필터 가능, 본 PoC는 비주얼만)
+
+    토큰: Brush.Surface.Card / Brush.Border.* / Brush.Text.* / Type.Body.FontSize / Radius.Medium
+    포커스: BorderBrush가 Brush.Accent.Primary로 전환 + 두께 2px.
+    Placeholder: WPF 표준 TextBox에 placeholder 없음 → VisualState로 구현 (Sprint 2 확장 예정, PoC는 단순 워터마크).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <!-- 베이스 TextBox 스타일 -->
+    <Style x:Key="EsTextBox.Base" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+        <Setter Property="SelectionOpacity" Value="0.35" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="{StaticResource Thickness.Input.Default}" />
+        <Setter Property="MinHeight" Value="{DynamicResource Spacing.ButtonHeight.Md}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="PART_Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource CornerRadius.Medium}"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center"
+                                      Focusable="False"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Hidden" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                            <Setter TargetName="PART_Border" Property="BorderThickness" Value="2" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="EsTextBox.Default" TargetType="TextBox" BasedOn="{StaticResource EsTextBox.Base}" />
+
+    <!-- Search 변종: 좌측 검색 아이콘 + 안쪽 패딩 조정 -->
+    <Style x:Key="EsTextBox.Search" TargetType="TextBox" BasedOn="{StaticResource EsTextBox.Base}">
+        <Setter Property="Padding" Value="{StaticResource Thickness.Input.Search}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="PART_Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource CornerRadius.Medium}"
+                            SnapsToDevicePixels="True">
+                        <Grid>
+                            <ui:SymbolIcon Symbol="Search24"
+                                           FontSize="18"
+                                           Width="20" Height="20"
+                                           Margin="12,0,0,0"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                            <Setter TargetName="PART_Border" Property="BorderThickness" Value="2" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Numeric: 오른쪽 정렬 + 등폭 폰트 -->
+    <Style x:Key="EsTextBox.Numeric" TargetType="TextBox" BasedOn="{StaticResource EsTextBox.Base}">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Mono}" />
+        <Setter Property="HorizontalContentAlignment" Value="Right" />
+    </Style>
+
+</ResourceDictionary>

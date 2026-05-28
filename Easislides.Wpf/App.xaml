@@ -13,8 +13,17 @@
                 <!-- EasiDS 디자인 토큰 — 단일 진실 (Single Source of Truth) -->
                 <ResourceDictionary Source="Theme/EasiDS.xaml" />
 
-                <!-- 컨트롤 스타일 -->
+                <!-- 컨트롤 스타일 (Sprint 1 §5.1) -->
                 <ResourceDictionary Source="Controls/EsButton.xaml" />
+                <ResourceDictionary Source="Controls/EsTextBox.xaml" />
+                <ResourceDictionary Source="Controls/EsToggle.xaml" />
+                <ResourceDictionary Source="Controls/EsCard.xaml" />
+                <ResourceDictionary Source="Controls/EsLiveIndicator.xaml" />
+                <ResourceDictionary Source="Controls/EsTabView.xaml" />
+                <ResourceDictionary Source="Controls/EsComboBox.xaml" />
+                <ResourceDictionary Source="Controls/EsCommandBar.xaml" />
+                <ResourceDictionary Source="Controls/EsDialog.xaml" />
+                <ResourceDictionary Source="Controls/EsToast.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

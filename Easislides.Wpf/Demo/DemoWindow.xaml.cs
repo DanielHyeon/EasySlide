@@ -1,4 +1,5 @@
 using System.Windows;
+using Easislides.Wpf.Onboarding;
 using Easislides.Wpf.Poc;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,5 +39,23 @@ public partial class DemoWindow : Window
     {
         var gallery = new IconGalleryWindow { Owner = this };
         gallery.Show();
+    }
+
+    private void OnControlsGallery_Click(object sender, RoutedEventArgs e)
+    {
+        var gallery = new ControlsGalleryWindow { Owner = this };
+        gallery.Show();
+    }
+
+    private void OnLiveBarDemo_Click(object sender, RoutedEventArgs e)
+    {
+        var demo = new LiveBarDemoWindow { Owner = this };
+        demo.Show();
+    }
+
+    private void OnWelcomeDemo_Click(object sender, RoutedEventArgs e)
+    {
+        var welcome = new WelcomeWindow { Owner = this };
+        welcome.ShowDialog();
     }
 }

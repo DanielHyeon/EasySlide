@@ -1,0 +1,84 @@
+<Window x:Class="Easislides.Wpf.Demo.LiveBarDemoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
+        xmlns:controls="clr-namespace:Easislides.Wpf.Controls"
+        Title="LiveBar 도메인 컴포지트 데모 — §6.2.1"
+        Width="960" Height="640"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel LastChildFill="True">
+
+        <!-- 상단 LiveBar (실제 사용 패턴) -->
+        <composites:LiveBar x:Name="LiveBarControl"
+                            DockPanel.Dock="Top" />
+
+        <!-- 본문 -->
+        <Grid Margin="{StaticResource Thickness.Xl}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="LiveBar State 전환 + SafetyConfirm 인라인 확인"
+                       Style="{StaticResource Type.Title1.Style}"
+                       Foreground="{DynamicResource Brush.Text.Primary}"
+                       Margin="0,0,0,16" />
+
+            <Border Grid.Row="1" Style="{StaticResource EsCard.Flat}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="LiveBar.State 전환"
+                               Style="{StaticResource Type.Title3.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               Margin="0,0,0,12" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Off (숨김)" Style="{StaticResource EsButton.Secondary}" Click="OnOff_Click" Margin="0,0,8,0" />
+                        <Button Content="Standby" Style="{StaticResource EsButton.Secondary}" Click="OnStandby_Click" Margin="0,0,8,0" />
+                        <Button Content="LIVE (Pulse)" Style="{StaticResource EsButton.Primary}" Click="OnLive_Click" Margin="0,0,8,0" />
+                        <Button Content="Hidden (Black)" Style="{StaticResource EsButton.Secondary}" Click="OnHidden_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource EsCard.Flat}">
+                <StackPanel>
+                    <TextBlock Text="SafetyConfirm 인라인 확인 (§5.2 라이브 안전장치)"
+                               Style="{StaticResource Type.Title3.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource Type.Body.Style}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"
+                               TextWrapping="Wrap"
+                               Text="아래 위험 버튼 클릭 시 인라인 확인 카드가 나타납니다. 5초 후 자동 취소 / Esc로 취소 / 외부 클릭으로 취소."
+                               Margin="0,0,0,12" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnDanger"
+                                Content="라이브 중 화면 검정 (Black)"
+                                Style="{StaticResource EsButton.Danger}"
+                                Click="OnDangerAction_Click" />
+                        <TextBlock x:Name="ResultText"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   VerticalAlignment="Center"
+                                   Margin="16,0,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Row="3"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                       TextWrapping="Wrap"
+                       Margin="0,12,0,0">
+                <Run Text="LIVE 시: 상단 바 빨간색 + Pulse 깜빡임 (Q5)." />
+                <LineBreak />
+                <Run Text="Standby: 노란색. Hidden: 어두운 색. Off: 바 전체 숨김 (Visibility=Collapsed)." />
+            </TextBlock>
+
+        </Grid>
+    </DockPanel>
+</Window>
