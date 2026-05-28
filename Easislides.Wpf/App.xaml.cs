@@ -61,6 +61,7 @@ public partial class App : Application
         services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
+        services.AddSingleton<IOperationalDataRehearsalService, OperationalDataRehearsalService>();
         services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
         services.AddSingleton<IAdminDatabaseRepository, AdminDatabaseRepository>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();

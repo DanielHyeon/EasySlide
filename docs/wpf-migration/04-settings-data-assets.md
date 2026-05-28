@@ -122,11 +122,12 @@
 |---|---|---|
 | ThemeService | 1차 완료 | 다크/라이트/Senior 테스트 있음 |
 | Pretendard/EasiDS | 1차 완료 | WPF resource 반영 |
-| SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `EasiSettingsSnapshot`, typed `EasiSettingKeys`, `RegistryLegacySettingsSource`, `FileLegacySettingsSource`, `CompositeLegacySettingsSource`, `SettingsBootstrapMigrationService` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. `LegacySettingsMap` 별칭 기반으로 `root_directory`/`RootEasiSlidesDir`/`OutputMonitorName`/`LiveCamVolume`/`LiveCamBalance`/`LiveCamMute`/`DBFileName` 이식, 미디어 0..100 scale 정규화, legacy `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환, PowerPoint/media/display/alert/gap/lyrics monitor operational setting migration을 구현했다. 실제 HKCU legacy registry section(`config`/`options`/`monitors`) 읽기와 누락 key 생성 방지 검증 완료. WPF production 시작 시 settings.json이 없을 때 registry 우선, 파일 fallback composite migration을 1회 적용하고 기존 settings.json이 있으면 사용자 값을 보존하도록 연결했다. legacy file source는 INI/key-value/XML `.config`/`user.config`/appSettings/JSON 경계와 `Properties.Settings` 호환 XML 읽기를 검증 완료. 운영 데이터 리허설은 후속 필요 |
+| SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `EasiSettingsSnapshot`, typed `EasiSettingKeys`, `RegistryLegacySettingsSource`, `FileLegacySettingsSource`, `CompositeLegacySettingsSource`, `SettingsBootstrapMigrationService` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. `LegacySettingsMap` 별칭 기반으로 `root_directory`/`RootEasiSlidesDir`/`OutputMonitorName`/`LiveCamVolume`/`LiveCamBalance`/`LiveCamMute`/`DBFileName` 이식, 미디어 0..100 scale 정규화, legacy `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환, PowerPoint/media/display/alert/gap/lyrics monitor operational setting migration을 구현했다. 실제 HKCU legacy registry section(`config`/`options`/`monitors`) 읽기와 누락 key 생성 방지 검증 완료. WPF production 시작 시 settings.json이 없을 때 registry 우선, 파일 fallback composite migration을 1회 적용하고 기존 settings.json이 있으면 사용자 값을 보존하도록 연결했다. legacy file source는 INI/key-value/XML `.config`/`user.config`/appSettings/JSON 경계와 `Properties.Settings` 호환 XML 읽기를 검증 완료. 운영 데이터 dry-run 리허설 서비스 연결 완료. 온보딩 UI와 실제 운영 수동 리허설은 후속 필요 |
 | SettingsWindow | 부분 구현 | `SettingsWindow`, `SettingsWindowViewModel` 추가. ADR-0005 기준 9개 섹션(일반/화면/송출/PowerPoint/미디어/단축키/데이터/가져오기·내보내기/고급), typed setting 즉시 저장, 다크/라이트 및 Standard/Large/Senior 적용, default restore, import/export, AdminDB 분석, 검증 메시지 표시, MainWindow 설정 진입 버튼 자동 검증 완료. 작업 폴더/AdminDB/백업 루트/설정 가져오기/내보내기 파일 선택 dialog, shortcut editor 목록/저장/복원/충돌 검증, runtime shortcut override 반영, media volume/balance/mute/directory/live camera runtime 반영, PowerPoint render timeout/thumbnail cache/tab/max file/panel overlay runtime 반영, display/window placement runtime 반영, alert/gap/lyrics monitor output runtime 반영, PowerPoint/media/display/alert/gap/lyrics monitor operational setting 로드/저장/rollback 및 XAML 노출 검증 완료. WPF focus/screenshot 회귀는 후속 필요 |
 | legacy settings map | 부분 구현 | `docs/wpf-migration/inventory/settings-map.md`와 `LegacySettingsMap` 추가. 현행 `EasiSettingKeys` 전체 inventory, `FrmOptions.SaveVariables` 고위험 key 문서화, 핵심 legacy alias 자동 이식, bool 호환 parsing, media scale 정규화, legacy shortcut 자동 이식, PowerPoint/media/display/alert/gap/lyrics monitor 세부 typed key 자동 이식 검증 완료. media audio/default output monitor/PowerPoint render timeout/thumbnail cache/display window placement/alert/gap/lyrics monitor/PowerPoint tab/max file/media tab/media directory/live camera/panel overlay runtime 소비처 연결 완료 |
-| 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. AppData 실제 경로 연결, SettingsWindow/온보딩 UI, DB/설정 snapshot 통합은 후속 필요 |
-| DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService`, `IAdminDatabaseRepository`, `AdminDatabaseRepository` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 bundled `AdminDB/Database/EasiSlidesDb.db` schema inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only song folder/song summary repository, folder/song write repository backup/transaction/rollback, 운영 DI 등록 검증 완료. 운영 작업 폴더 리허설은 후속 필요 |
+| 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. `IOperationalDataRehearsalService`가 설정의 `WorkingFolder` 또는 `%AppData%\Easislides` 기본 경로를 자산 dry-run scan에 연결하고, 목적지/백업 폴더를 만들지 않는 리허설 경계를 검증했다. SettingsWindow/온보딩 UI와 실제 운영 수동 리허설은 후속 필요 |
+| DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService`, `IAdminDatabaseRepository`, `AdminDatabaseRepository` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 bundled `AdminDB/Database/EasiSlidesDb.db` schema inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only song folder/song summary repository, folder/song write repository backup/transaction/rollback, 운영 DI 등록 검증 완료. `IOperationalDataRehearsalService`가 `WorkingFolder\Admin\Database\EasiSlidesDb.db` 파생 경로와 명시 AdminDB 경로의 schema inventory를 dry-run 리허설에 통합했다. 실제 운영 DB 복사본 수동 리허설은 후속 필요 |
+| 운영 데이터 리허설 | 1차 구현 완료 | `IOperationalDataRehearsalService`, `OperationalDataRehearsalService`, `OperationalDataRehearsalReport` 추가. 설정 snapshot에서 작업 폴더/백업 루트/AdminDB 경로를 해석하고, 누락 작업 폴더는 error로 중단, 누락 AdminDB는 warning으로 계속 진행, 자산 dry-run과 AdminDB schema inventory를 통합한다. dry-run 중 destination/backup directory를 생성하지 않으며 운영 DI 등록을 검증했다. 실제 `%AppData%` 운영 데이터와 60분 리허설은 후속 필요 |
 | 도움말/정보/등록 | 미완료 | 기존 폼 기능 확인 필요 |
 
 ## 5. 이식 후 검증 방안
@@ -146,7 +147,7 @@
 - 이미지/미디어 경로가 깨지지 않는다.
 - 중복 파일명 처리 규칙이 문서와 일치한다.
 - 마이그레이션 취소 후 원본 앱 실행이 가능하다.
-- 현재 1차 자동 검증은 임시 작업 폴더에서 `AssetMigrationService` dry-run/copy/hash/conflict/path error 계약으로 수행한다. 실제 `%AppData%`/운영 작업 폴더 연결 후 수동 리허설을 추가한다.
+- 현재 1차 자동 검증은 임시 작업 폴더에서 `AssetMigrationService` dry-run/copy/hash/conflict/path error 계약으로 수행한다. `OperationalDataRehearsalServiceTests`로 설정의 `WorkingFolder`, `%AppData%\EasislidesNext\UserAssets` 계열 destination override, 백업 루트, AdminDB 파생 경로를 묶은 dry-run orchestration을 검증한다. 실제 `%AppData%`/운영 작업 폴더 수동 리허설은 후속으로 추가한다.
 
 DB 검증:
 
@@ -155,7 +156,7 @@ DB 검증:
 - 손상 DB 처리.
 - schema version mismatch 안내.
 - transaction 실패 시 rollback.
-- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB schema inventory, missing table/column 호환성 진단, bundled `AdminDB/Database/EasiSlidesDb.db` 실제 schema inventory, read-only folder song count, folder별 song summary 조회, folder upsert backup, legacy SONG 필드 insert, song 이동 실패 시 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. 운영 DB 복사본 기준 리허설은 후속으로 추가한다.
+- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB schema inventory, missing table/column 호환성 진단, bundled `AdminDB/Database/EasiSlidesDb.db` 실제 schema inventory, read-only folder song count, folder별 song summary 조회, folder upsert backup, legacy SONG 필드 insert, song 이동 실패 시 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. `OperationalDataRehearsalServiceTests`로 운영 작업 폴더 기준 AdminDB 파생 경로 inventory와 AdminDB missing warning 경계를 검증한다. 운영 DB 복사본 기준 수동 리허설은 후속으로 추가한다.
 
 ## 6. 테스트 방안
 
@@ -184,6 +185,7 @@ DB 검증:
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
 - `AdminDatabaseRepositoryTests`: 임시 legacy AdminDB 및 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, folder upsert backup, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, song 이동 transaction rollback/backup restore, 운영 DI 등록 검증
+- `OperationalDataRehearsalServiceTests`: 설정 기반 작업 폴더/백업 루트/AdminDB 파생 경로 해석, destination/backup directory 미생성 dry-run, 자산 scan과 DB inventory 통합, 작업 폴더 누락 error, AdminDB 누락 warning 검증
 
 2026-05-29 검증 결과:
 
@@ -195,10 +197,11 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 20개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 245개 통과
-- `dotnet test Easislides.sln -c Debug`: 245개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter OperationalDataRehearsalServiceTests`: 3개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 248개 통과
+- `dotnet test Easislides.sln -c Debug`: 248개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 245개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 248개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

@@ -34,6 +34,7 @@ public class AppServiceRegistrationTests
             var mediaPlayback = provider.GetRequiredService<IMediaPlaybackService>();
             var placement = provider.GetRequiredService<IWindowPlacementService>();
             var adminRepository = provider.GetRequiredService<IAdminDatabaseRepository>();
+            var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
             var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
             service.Should().BeOfType<PowerPointRenderService>();
@@ -53,6 +54,7 @@ public class AppServiceRegistrationTests
 
             legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
             adminRepository.Should().BeOfType<AdminDatabaseRepository>();
+            rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
 
             outputHost.Should().BeOfType<OutputWindowHost>();
             var hostSettingsField = typeof(OutputWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
