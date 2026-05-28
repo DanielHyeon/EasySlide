@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Library;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Support;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,13 @@ public partial class MainWindow : Window
         var settingsWindow = _services.GetRequiredService<SettingsWindow>();
         settingsWindow.Owner = this;
         settingsWindow.ShowDialog();
+    }
+
+    private void OpenLibrary_Click(object sender, RoutedEventArgs e)
+    {
+        var libraryWindow = _services.GetRequiredService<LibraryWindow>();
+        libraryWindow.Owner = this;
+        libraryWindow.ShowDialog();
     }
 
     private void OpenHelp_Click(object sender, RoutedEventArgs e)

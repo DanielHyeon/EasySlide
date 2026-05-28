@@ -69,6 +69,16 @@
                             <TextBlock Text="Black" />
                         </StackPanel>
                     </Button>
+                    <Button Click="OpenLibrary_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="라이브러리 열기"
+                            AutomationProperties.Name="라이브러리 열기"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
+                            <TextBlock Text="라이브러리" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenHelp_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="도움말 열기"

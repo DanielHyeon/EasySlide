@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Threading;
 using Easislides.Wpf.Data;
+using Easislides.Wpf.Library;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Onboarding;
 using Easislides.Wpf.Platform;
@@ -42,6 +43,7 @@ public class AppServiceRegistrationTests
             var onboardingDialog = provider.GetRequiredService<IOnboardingDialogService>();
             var supportInfo = provider.GetRequiredService<ISupportInfoService>();
             var supportLauncher = provider.GetRequiredService<ISupportLauncher>();
+            var libraryViewModel = provider.GetRequiredService<LibraryViewModel>();
             var aboutViewModel = provider.GetRequiredService<AboutWindowViewModel>();
             var helpViewModel = provider.GetRequiredService<HelpWindowViewModel>();
             var registrationViewModel = provider.GetRequiredService<RegistrationWindowViewModel>();
@@ -70,6 +72,7 @@ public class AppServiceRegistrationTests
             onboardingDialog.Should().BeOfType<WelcomeWindowDialogService>();
             supportInfo.Should().BeOfType<SupportInfoService>();
             supportLauncher.Should().BeOfType<SupportLauncher>();
+            libraryViewModel.Should().NotBeNull();
             aboutViewModel.Should().NotBeNull();
             helpViewModel.Should().NotBeNull();
             registrationViewModel.Should().NotBeNull();
