@@ -110,11 +110,30 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private InterfaceSize _interfaceSize;
     private string _defaultOutputMonitorId = "";
     private bool _useSafetyConfirmations;
+    private bool _showLyricsMonitorAlertBox;
+    private bool _advanceNextItem;
+    private GapItemMode _gapItemOption;
+    private string _gapItemLogoFile = "";
+    private bool _gapItemUseFade;
+    private bool _displayAlwaysUseSecondaryMonitor;
+    private int _displayCustomTop;
+    private int _displayCustomLeft;
+    private int _displayCustomWidth;
+    private int _lyricsMonitorTextColorArgb;
+    private int _lyricsMonitorBackgroundColorArgb;
+    private bool _lyricsMonitorShowNotations;
+    private bool _usePowerPointTab;
+    private bool _noPowerPointPanelOverlay;
     private int _powerPointRenderTimeoutSeconds;
     private int _thumbnailCacheMegabytes;
+    private int _powerPointMaxFiles;
+    private bool _useMediaTab;
+    private bool _noMediaPanelOverlay;
+    private string _mediaDirectory = "";
     private double _mediaVolume;
     private double _mediaBalance;
     private bool _mediaMuted;
+    private int _liveCameraNumber;
     private string _adminDatabasePath = "";
     private string _dataBackupRoot = "";
     private bool _enableDiagnostics;
@@ -177,6 +196,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public IReadOnlyList<ColorTheme> ThemeOptions { get; } = Enum.GetValues<ColorTheme>();
 
     public IReadOnlyList<InterfaceSize> InterfaceSizeOptions { get; } = Enum.GetValues<InterfaceSize>();
+
+    public IReadOnlyList<GapItemMode> GapItemModeOptions { get; } = Enum.GetValues<GapItemMode>();
 
     public IRelayCommand RestoreDefaultsCommand { get; }
 
@@ -244,6 +265,90 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         set => SetAndPersist(ref _useSafetyConfirmations, value, EasiSettingKeys.UseSafetyConfirmations);
     }
 
+    public bool ShowLyricsMonitorAlertBox
+    {
+        get => _showLyricsMonitorAlertBox;
+        set => SetAndPersist(ref _showLyricsMonitorAlertBox, value, EasiSettingKeys.ShowLyricsMonitorAlertBox);
+    }
+
+    public bool AdvanceNextItem
+    {
+        get => _advanceNextItem;
+        set => SetAndPersist(ref _advanceNextItem, value, EasiSettingKeys.AdvanceNextItem);
+    }
+
+    public GapItemMode GapItemOption
+    {
+        get => _gapItemOption;
+        set => SetAndPersist(ref _gapItemOption, value, EasiSettingKeys.GapItemOption);
+    }
+
+    public string GapItemLogoFile
+    {
+        get => _gapItemLogoFile;
+        set => SetAndPersist(ref _gapItemLogoFile, value, EasiSettingKeys.GapItemLogoFile);
+    }
+
+    public bool GapItemUseFade
+    {
+        get => _gapItemUseFade;
+        set => SetAndPersist(ref _gapItemUseFade, value, EasiSettingKeys.GapItemUseFade);
+    }
+
+    public bool DisplayAlwaysUseSecondaryMonitor
+    {
+        get => _displayAlwaysUseSecondaryMonitor;
+        set => SetAndPersist(ref _displayAlwaysUseSecondaryMonitor, value, EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor);
+    }
+
+    public int DisplayCustomTop
+    {
+        get => _displayCustomTop;
+        set => SetAndPersist(ref _displayCustomTop, value, EasiSettingKeys.DisplayCustomTop);
+    }
+
+    public int DisplayCustomLeft
+    {
+        get => _displayCustomLeft;
+        set => SetAndPersist(ref _displayCustomLeft, value, EasiSettingKeys.DisplayCustomLeft);
+    }
+
+    public int DisplayCustomWidth
+    {
+        get => _displayCustomWidth;
+        set => SetAndPersist(ref _displayCustomWidth, value, EasiSettingKeys.DisplayCustomWidth);
+    }
+
+    public int LyricsMonitorTextColorArgb
+    {
+        get => _lyricsMonitorTextColorArgb;
+        set => SetAndPersist(ref _lyricsMonitorTextColorArgb, value, EasiSettingKeys.LyricsMonitorTextColorArgb);
+    }
+
+    public int LyricsMonitorBackgroundColorArgb
+    {
+        get => _lyricsMonitorBackgroundColorArgb;
+        set => SetAndPersist(ref _lyricsMonitorBackgroundColorArgb, value, EasiSettingKeys.LyricsMonitorBackgroundColorArgb);
+    }
+
+    public bool LyricsMonitorShowNotations
+    {
+        get => _lyricsMonitorShowNotations;
+        set => SetAndPersist(ref _lyricsMonitorShowNotations, value, EasiSettingKeys.LyricsMonitorShowNotations);
+    }
+
+    public bool UsePowerPointTab
+    {
+        get => _usePowerPointTab;
+        set => SetAndPersist(ref _usePowerPointTab, value, EasiSettingKeys.UsePowerPointTab);
+    }
+
+    public bool NoPowerPointPanelOverlay
+    {
+        get => _noPowerPointPanelOverlay;
+        set => SetAndPersist(ref _noPowerPointPanelOverlay, value, EasiSettingKeys.NoPowerPointPanelOverlay);
+    }
+
     public int PowerPointRenderTimeoutSeconds
     {
         get => _powerPointRenderTimeoutSeconds;
@@ -254,6 +359,30 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         get => _thumbnailCacheMegabytes;
         set => SetAndPersist(ref _thumbnailCacheMegabytes, value, EasiSettingKeys.ThumbnailCacheMegabytes);
+    }
+
+    public int PowerPointMaxFiles
+    {
+        get => _powerPointMaxFiles;
+        set => SetAndPersist(ref _powerPointMaxFiles, value, EasiSettingKeys.PowerPointMaxFiles);
+    }
+
+    public bool UseMediaTab
+    {
+        get => _useMediaTab;
+        set => SetAndPersist(ref _useMediaTab, value, EasiSettingKeys.UseMediaTab);
+    }
+
+    public bool NoMediaPanelOverlay
+    {
+        get => _noMediaPanelOverlay;
+        set => SetAndPersist(ref _noMediaPanelOverlay, value, EasiSettingKeys.NoMediaPanelOverlay);
+    }
+
+    public string MediaDirectory
+    {
+        get => _mediaDirectory;
+        set => SetAndPersist(ref _mediaDirectory, value, EasiSettingKeys.MediaDirectory);
     }
 
     public double MediaVolume
@@ -272,6 +401,12 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         get => _mediaMuted;
         set => SetAndPersist(ref _mediaMuted, value, EasiSettingKeys.MediaMuted);
+    }
+
+    public int LiveCameraNumber
+    {
+        get => _liveCameraNumber;
+        set => SetAndPersist(ref _liveCameraNumber, value, EasiSettingKeys.LiveCameraNumber);
     }
 
     public string AdminDatabasePath
@@ -463,9 +598,9 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         [
             new(SettingsSectionKind.General, "일반", "언어와 작업 폴더", EsIcons.Settings),
             new(SettingsSectionKind.Appearance, "화면", "테마와 인터페이스 크기", EsIcons.Template),
-            new(SettingsSectionKind.LiveOutput, "송출", "출력 모니터와 안전 확인", EsIcons.MonitorDual),
-            new(SettingsSectionKind.PowerPoint, "PowerPoint", "렌더링과 썸네일 캐시", EsIcons.PowerPointSlide),
-            new(SettingsSectionKind.Media, "미디어", "재생 볼륨과 음소거", EsIcons.MediaFile),
+            new(SettingsSectionKind.LiveOutput, "송출", "출력 모니터와 라이브 동작", EsIcons.MonitorDual),
+            new(SettingsSectionKind.PowerPoint, "PowerPoint", "탭 표시와 렌더링", EsIcons.PowerPointSlide),
+            new(SettingsSectionKind.Media, "미디어", "탭 표시와 재생", EsIcons.MediaFile),
             new(SettingsSectionKind.Shortcuts, "단축키", "키보드와 리모컨", EsIcons.Shortcuts),
             new(SettingsSectionKind.Data, "데이터", "AdminDB와 백업", EsIcons.FolderOpen),
             new(SettingsSectionKind.ImportExport, "가져오기/내보내기", "설정 파일 이동", EsIcons.ExportRtf),
@@ -484,11 +619,30 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             InterfaceSize = current.Appearance.InterfaceSize;
             DefaultOutputMonitorId = current.LiveOutput.DefaultOutputMonitorId;
             UseSafetyConfirmations = current.LiveOutput.UseSafetyConfirmations;
+            ShowLyricsMonitorAlertBox = current.LiveOutput.ShowLyricsMonitorAlertBox;
+            AdvanceNextItem = current.LiveOutput.AdvanceNextItem;
+            GapItemOption = current.LiveOutput.GapItemOption;
+            GapItemLogoFile = current.LiveOutput.GapItemLogoFile;
+            GapItemUseFade = current.LiveOutput.GapItemUseFade;
+            DisplayAlwaysUseSecondaryMonitor = current.LiveOutput.DisplayAlwaysUseSecondaryMonitor;
+            DisplayCustomTop = current.LiveOutput.DisplayCustomTop;
+            DisplayCustomLeft = current.LiveOutput.DisplayCustomLeft;
+            DisplayCustomWidth = current.LiveOutput.DisplayCustomWidth;
+            LyricsMonitorTextColorArgb = current.LiveOutput.LyricsMonitorTextColorArgb;
+            LyricsMonitorBackgroundColorArgb = current.LiveOutput.LyricsMonitorBackgroundColorArgb;
+            LyricsMonitorShowNotations = current.LiveOutput.LyricsMonitorShowNotations;
+            UsePowerPointTab = current.PowerPoint.UsePowerPointTab;
+            NoPowerPointPanelOverlay = current.PowerPoint.NoPanelOverlay;
             PowerPointRenderTimeoutSeconds = current.PowerPoint.RenderTimeoutSeconds;
             ThumbnailCacheMegabytes = current.PowerPoint.ThumbnailCacheMegabytes;
+            PowerPointMaxFiles = current.PowerPoint.MaxFiles;
+            UseMediaTab = current.Media.UseMediaTab;
+            NoMediaPanelOverlay = current.Media.NoPanelOverlay;
+            MediaDirectory = current.Media.Directory;
             MediaVolume = current.Media.Volume;
             MediaBalance = current.Media.Balance;
             MediaMuted = current.Media.Muted;
+            LiveCameraNumber = current.Media.LiveCameraNumber;
             AdminDatabasePath = current.Data.AdminDatabasePath;
             DataBackupRoot = current.Data.BackupRoot;
             EnableDiagnostics = current.Advanced.EnableDiagnostics;

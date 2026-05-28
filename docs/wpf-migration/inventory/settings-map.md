@@ -54,11 +54,11 @@
 
 | Legacy key | 섹션 | 상태 |
 |---|---|---|
-| `UsePowerpointTab`, `NoPowerpointPanelOverlay`, `PP_MaxFiles` | PowerPoint | typed key와 legacy migration 완료. SettingsWindow 세부 UI/운영 소비처 연결 후속 |
-| `UseMediaTab`, `NoMediaPanelOverlay`, `MediaDir`, `LiveCamNumber` | 미디어 | typed key와 legacy migration 완료. SettingsWindow 세부 UI/운영 소비처 연결 후속 |
-| `ShowLyricsMonitorAlertBox`, `AdvanceNextItem`, `GapItemOption`, `GapItemLogoFile`, `GapItemUseFade` | 송출 | typed key와 legacy migration 완료. 라이브 송출 runtime 연결 후속 |
-| `DMAlwaysUseSecondaryMonitor`, `DMOption1Top`, `DMOption1Left`, `DMOption1Width` | 송출 | typed key와 legacy migration 완료. display/window placement runtime 연결 후속 |
-| `LMTextColour`, `LMBackColour`, `LMShowNotations` | 송출 | typed key와 legacy migration 완료. lyrics monitor appearance runtime 연결 후속 |
+| `UsePowerpointTab`, `NoPowerpointPanelOverlay`, `PP_MaxFiles` | PowerPoint | typed key, legacy migration, SettingsWindow 노출 완료. 운영 소비처 연결 후속 |
+| `UseMediaTab`, `NoMediaPanelOverlay`, `MediaDir`, `LiveCamNumber` | 미디어 | typed key, legacy migration, SettingsWindow 노출 완료. 운영 소비처 연결 후속 |
+| `ShowLyricsMonitorAlertBox`, `AdvanceNextItem`, `GapItemOption`, `GapItemLogoFile`, `GapItemUseFade` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. 라이브 송출 runtime 연결 후속 |
+| `DMAlwaysUseSecondaryMonitor`, `DMOption1Top`, `DMOption1Left`, `DMOption1Width` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. display/window placement runtime 연결 후속 |
+| `LMTextColour`, `LMBackColour`, `LMShowNotations` | 송출 | typed key, legacy migration, SettingsWindow 노출 완료. lyrics monitor appearance runtime 연결 후속 |
 
 ## 4. 검증
 
@@ -68,4 +68,4 @@
 
 ## 5. 완료 여부
 
-현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key와 legacy migration까지 구현됐다. 남은 범위는 SettingsWindow 세부 UI 노출, 실제 legacy registry/file source 연결, runtime 소비처 연결, 운영 데이터 리허설이다.
+현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 남은 범위는 실제 legacy registry/file source 연결, runtime 소비처 연결, 운영 데이터 리허설이다.

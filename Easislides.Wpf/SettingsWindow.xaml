@@ -135,19 +135,112 @@
                         <TextBlock Text="송출" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel Margin="{StaticResource Thickness.Xl}">
-                    <TextBlock Text="기본 출력 모니터 ID"
-                               Style="{StaticResource Type.Caption.Style}"
-                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                    <TextBox Text="{Binding DefaultOutputMonitorId, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource EsTextBox.Default}"
-                             AutomationProperties.Name="기본 출력 모니터"
-                             Margin="0,4,0,16" />
-                    <CheckBox IsChecked="{Binding UseSafetyConfirmations}"
-                              Content="라이브 중 위험 액션 확인"
-                              AutomationProperties.Name="라이브 안전 확인"
-                              MinHeight="{DynamicResource Spacing.TargetMin}" />
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="{StaticResource Thickness.Xl}">
+                        <TextBlock Text="기본 출력 모니터 ID"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        <TextBox Text="{Binding DefaultOutputMonitorId, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource EsTextBox.Default}"
+                                 AutomationProperties.Name="기본 출력 모니터"
+                                 Margin="0,4,0,16" />
+
+                        <CheckBox IsChecked="{Binding UseSafetyConfirmations}"
+                                  Content="라이브 중 위험 액션 확인"
+                                  AutomationProperties.Name="라이브 안전 확인"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}" />
+                        <CheckBox IsChecked="{Binding ShowLyricsMonitorAlertBox}"
+                                  Content="가사 모니터 알림 표시"
+                                  AutomationProperties.Name="가사 모니터 알림 표시"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}" />
+                        <CheckBox IsChecked="{Binding AdvanceNextItem}"
+                                  Content="항목 끝에서 다음 항목 진행"
+                                  AutomationProperties.Name="다음 항목 자동 진행"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}"
+                                  Margin="0,0,0,16" />
+
+                        <TextBlock Text="간격 화면"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        <ComboBox ItemsSource="{Binding GapItemModeOptions}"
+                                  SelectedItem="{Binding GapItemOption, Mode=TwoWay}"
+                                  Style="{StaticResource EsComboBox.Default}"
+                                  AutomationProperties.Name="간격 화면 방식"
+                                  Margin="0,4,0,12" />
+                        <TextBox Text="{Binding GapItemLogoFile, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource EsTextBox.Default}"
+                                 AutomationProperties.Name="간격 화면 로고 파일"
+                                 Margin="0,0,0,8" />
+                        <CheckBox IsChecked="{Binding GapItemUseFade}"
+                                  Content="간격 화면 페이드 전환"
+                                  AutomationProperties.Name="간격 화면 페이드 전환"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}"
+                                  Margin="0,0,0,16" />
+
+                        <CheckBox IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor}"
+                                  Content="보조 모니터 우선 사용"
+                                  AutomationProperties.Name="보조 모니터 우선 사용"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}" />
+                        <Grid Margin="0,4,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="위"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding DisplayCustomTop, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource EsTextBox.Default}"
+                                         AutomationProperties.Name="출력 모니터 위" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <TextBlock Text="왼쪽"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding DisplayCustomLeft, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource EsTextBox.Default}"
+                                         AutomationProperties.Name="출력 모니터 왼쪽" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="폭"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding DisplayCustomWidth, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource EsTextBox.Default}"
+                                         AutomationProperties.Name="출력 모니터 폭" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="가사 글자 ARGB"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding LyricsMonitorTextColorArgb, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource EsTextBox.Default}"
+                                         AutomationProperties.Name="가사 모니터 글자색" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="가사 배경 ARGB"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding LyricsMonitorBackgroundColorArgb, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource EsTextBox.Default}"
+                                         AutomationProperties.Name="가사 모니터 배경색" />
+                            </StackPanel>
+                        </Grid>
+                        <CheckBox IsChecked="{Binding LyricsMonitorShowNotations}"
+                                  Content="가사 모니터 코드 표기"
+                                  AutomationProperties.Name="가사 모니터 코드 표기"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}" />
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <TabItem>
@@ -158,6 +251,15 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel Margin="{StaticResource Thickness.Xl}">
+                    <CheckBox IsChecked="{Binding UsePowerPointTab}"
+                              Content="PowerPoint 탭 표시"
+                              AutomationProperties.Name="PowerPoint 탭 표시"
+                              MinHeight="{DynamicResource Spacing.TargetMin}" />
+                    <CheckBox IsChecked="{Binding NoPowerPointPanelOverlay}"
+                              Content="PowerPoint 송출 패널 오버레이 숨김"
+                              AutomationProperties.Name="PowerPoint 패널 오버레이 숨김"
+                              MinHeight="{DynamicResource Spacing.TargetMin}"
+                              Margin="0,0,0,16" />
                     <TextBlock Text="렌더 타임아웃(초)"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
@@ -172,6 +274,13 @@
                              Style="{StaticResource EsTextBox.Default}"
                              AutomationProperties.Name="썸네일 캐시"
                              Margin="0,4,0,16" />
+                    <TextBlock Text="PowerPoint 최대 파일 수"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Text="{Binding PowerPointMaxFiles, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource EsTextBox.Default}"
+                             AutomationProperties.Name="PowerPoint 최대 파일 수"
+                             Margin="0,4,0,16" />
                 </StackPanel>
             </TabItem>
 
@@ -183,6 +292,22 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel Margin="{StaticResource Thickness.Xl}">
+                    <CheckBox IsChecked="{Binding UseMediaTab}"
+                              Content="미디어 탭 표시"
+                              AutomationProperties.Name="미디어 탭 표시"
+                              MinHeight="{DynamicResource Spacing.TargetMin}" />
+                    <CheckBox IsChecked="{Binding NoMediaPanelOverlay}"
+                              Content="미디어 송출 패널 오버레이 숨김"
+                              AutomationProperties.Name="미디어 패널 오버레이 숨김"
+                              MinHeight="{DynamicResource Spacing.TargetMin}"
+                              Margin="0,0,0,16" />
+                    <TextBlock Text="미디어 폴더"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Text="{Binding MediaDirectory, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource EsTextBox.Default}"
+                             AutomationProperties.Name="미디어 폴더"
+                             Margin="0,4,0,16" />
                     <TextBlock Text="볼륨"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
@@ -206,7 +331,15 @@
                     <CheckBox IsChecked="{Binding MediaMuted}"
                               Content="음소거"
                               AutomationProperties.Name="미디어 음소거"
-                              MinHeight="{DynamicResource Spacing.TargetMin}" />
+                              MinHeight="{DynamicResource Spacing.TargetMin}"
+                              Margin="0,0,0,16" />
+                    <TextBlock Text="라이브 카메라 번호"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Text="{Binding LiveCameraNumber, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource EsTextBox.Default}"
+                             AutomationProperties.Name="라이브 카메라 번호"
+                             Margin="0,4,0,16" />
                 </StackPanel>
             </TabItem>
 

@@ -55,6 +55,117 @@ public class SettingsWindowViewModelTests
     }
 
     [Fact]
+    public void Constructor_LoadsOperationalSettings()
+    {
+        using var fixture = SettingsFixture.Create();
+        fixture.Settings.Set(EasiSettingKeys.ShowLyricsMonitorAlertBox, true);
+        fixture.Settings.Set(EasiSettingKeys.AdvanceNextItem, true);
+        fixture.Settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.User);
+        fixture.Settings.Set(EasiSettingKeys.GapItemLogoFile, @"C:\EasiSlides\gap.png");
+        fixture.Settings.Set(EasiSettingKeys.GapItemUseFade, false);
+        fixture.Settings.Set(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor, false);
+        fixture.Settings.Set(EasiSettingKeys.DisplayCustomTop, 120);
+        fixture.Settings.Set(EasiSettingKeys.DisplayCustomLeft, -240);
+        fixture.Settings.Set(EasiSettingKeys.DisplayCustomWidth, 1920);
+        fixture.Settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, -65536);
+        fixture.Settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, -1);
+        fixture.Settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, false);
+        fixture.Settings.Set(EasiSettingKeys.UsePowerPointTab, true);
+        fixture.Settings.Set(EasiSettingKeys.NoPowerPointPanelOverlay, true);
+        fixture.Settings.Set(EasiSettingKeys.PowerPointMaxFiles, 80);
+        fixture.Settings.Set(EasiSettingKeys.UseMediaTab, true);
+        fixture.Settings.Set(EasiSettingKeys.NoMediaPanelOverlay, true);
+        fixture.Settings.Set(EasiSettingKeys.MediaDirectory, @"C:\EasiSlides\Media");
+        fixture.Settings.Set(EasiSettingKeys.LiveCameraNumber, 3);
+
+        var sut = fixture.CreateViewModel();
+
+        sut.ShowLyricsMonitorAlertBox.Should().BeTrue();
+        sut.AdvanceNextItem.Should().BeTrue();
+        sut.GapItemOption.Should().Be(GapItemMode.User);
+        sut.GapItemLogoFile.Should().Be(@"C:\EasiSlides\gap.png");
+        sut.GapItemUseFade.Should().BeFalse();
+        sut.DisplayAlwaysUseSecondaryMonitor.Should().BeFalse();
+        sut.DisplayCustomTop.Should().Be(120);
+        sut.DisplayCustomLeft.Should().Be(-240);
+        sut.DisplayCustomWidth.Should().Be(1920);
+        sut.LyricsMonitorTextColorArgb.Should().Be(-65536);
+        sut.LyricsMonitorBackgroundColorArgb.Should().Be(-1);
+        sut.LyricsMonitorShowNotations.Should().BeFalse();
+        sut.UsePowerPointTab.Should().BeTrue();
+        sut.NoPowerPointPanelOverlay.Should().BeTrue();
+        sut.PowerPointMaxFiles.Should().Be(80);
+        sut.UseMediaTab.Should().BeTrue();
+        sut.NoMediaPanelOverlay.Should().BeTrue();
+        sut.MediaDirectory.Should().Be(@"C:\EasiSlides\Media");
+        sut.LiveCameraNumber.Should().Be(3);
+        sut.GapItemModeOptions.Should().Contain(GapItemMode.Default);
+    }
+
+    [Fact]
+    public void ChangingOperationalSettings_PersistsTypedValues()
+    {
+        using var fixture = SettingsFixture.Create();
+        var sut = fixture.CreateViewModel();
+
+        sut.ShowLyricsMonitorAlertBox = true;
+        sut.AdvanceNextItem = true;
+        sut.GapItemOption = GapItemMode.Default;
+        sut.GapItemLogoFile = @"C:\EasiSlides\gap.png";
+        sut.GapItemUseFade = false;
+        sut.DisplayAlwaysUseSecondaryMonitor = false;
+        sut.DisplayCustomTop = 120;
+        sut.DisplayCustomLeft = -240;
+        sut.DisplayCustomWidth = 1920;
+        sut.LyricsMonitorTextColorArgb = -65536;
+        sut.LyricsMonitorBackgroundColorArgb = -1;
+        sut.LyricsMonitorShowNotations = false;
+        sut.UsePowerPointTab = true;
+        sut.NoPowerPointPanelOverlay = true;
+        sut.PowerPointMaxFiles = 80;
+        sut.UseMediaTab = true;
+        sut.NoMediaPanelOverlay = true;
+        sut.MediaDirectory = @"C:\EasiSlides\Media";
+        sut.LiveCameraNumber = 3;
+
+        fixture.Settings.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox).Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.AdvanceNextItem).Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Default);
+        fixture.Settings.Get(EasiSettingKeys.GapItemLogoFile).Should().Be(@"C:\EasiSlides\gap.png");
+        fixture.Settings.Get(EasiSettingKeys.GapItemUseFade).Should().BeFalse();
+        fixture.Settings.Get(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor).Should().BeFalse();
+        fixture.Settings.Get(EasiSettingKeys.DisplayCustomTop).Should().Be(120);
+        fixture.Settings.Get(EasiSettingKeys.DisplayCustomLeft).Should().Be(-240);
+        fixture.Settings.Get(EasiSettingKeys.DisplayCustomWidth).Should().Be(1920);
+        fixture.Settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(-65536);
+        fixture.Settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(-1);
+        fixture.Settings.Get(EasiSettingKeys.LyricsMonitorShowNotations).Should().BeFalse();
+        fixture.Settings.Get(EasiSettingKeys.UsePowerPointTab).Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay).Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.PowerPointMaxFiles).Should().Be(80);
+        fixture.Settings.Get(EasiSettingKeys.UseMediaTab).Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.NoMediaPanelOverlay).Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.MediaDirectory).Should().Be(@"C:\EasiSlides\Media");
+        fixture.Settings.Get(EasiSettingKeys.LiveCameraNumber).Should().Be(3);
+        sut.StatusMessage.Should().Contain("저장");
+        sut.ValidationMessages.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void InvalidOperationalSetting_RevertsPropertyAndReportsIssue()
+    {
+        using var fixture = SettingsFixture.Create();
+        var sut = fixture.CreateViewModel();
+
+        sut.PowerPointMaxFiles = 0;
+
+        sut.PowerPointMaxFiles.Should().Be(EasiSettingKeys.PowerPointMaxFiles.DefaultValue);
+        fixture.Settings.Get(EasiSettingKeys.PowerPointMaxFiles).Should().Be(EasiSettingKeys.PowerPointMaxFiles.DefaultValue);
+        sut.ValidationMessages.Should().Contain(message => message.Contains(EasiSettingKeys.PowerPointMaxFiles.Id));
+        sut.StatusMessage.Should().Contain("실패");
+    }
+
+    [Fact]
     public void ChangingThemeAndSize_PersistsAndAppliesThemeService()
     {
         using var fixture = SettingsFixture.Create();
