@@ -61,6 +61,14 @@ public sealed record SettingsServiceOptions(string SettingsFilePath, string Back
 
 public sealed record SettingKey<T>(string Id, T DefaultValue);
 
+public enum GapItemMode
+{
+    None = 0,
+    Black = 1,
+    Default = 2,
+    User = 3,
+}
+
 public static class EasiSettingKeys
 {
     public static readonly SettingKey<string> Language = new("general.language", "ko-KR");
@@ -73,11 +81,30 @@ public static class EasiSettingKeys
         new("appearance.interfaceSize", Easislides.Wpf.Theme.InterfaceSize.Standard);
     public static readonly SettingKey<string> DefaultOutputMonitorId = new("liveOutput.defaultOutputMonitorId", "");
     public static readonly SettingKey<bool> UseSafetyConfirmations = new("liveOutput.useSafetyConfirmations", true);
+    public static readonly SettingKey<bool> ShowLyricsMonitorAlertBox = new("liveOutput.showLyricsMonitorAlertBox", false);
+    public static readonly SettingKey<bool> AdvanceNextItem = new("liveOutput.advanceNextItem", false);
+    public static readonly SettingKey<GapItemMode> GapItemOption = new("liveOutput.gapItemOption", GapItemMode.None);
+    public static readonly SettingKey<string> GapItemLogoFile = new("liveOutput.gapItemLogoFile", "");
+    public static readonly SettingKey<bool> GapItemUseFade = new("liveOutput.gapItemUseFade", true);
+    public static readonly SettingKey<bool> DisplayAlwaysUseSecondaryMonitor = new("liveOutput.displayAlwaysUseSecondaryMonitor", true);
+    public static readonly SettingKey<int> DisplayCustomTop = new("liveOutput.displayCustomTop", 0);
+    public static readonly SettingKey<int> DisplayCustomLeft = new("liveOutput.displayCustomLeft", 0);
+    public static readonly SettingKey<int> DisplayCustomWidth = new("liveOutput.displayCustomWidth", 100);
+    public static readonly SettingKey<int> LyricsMonitorTextColorArgb = new("liveOutput.lyricsMonitorTextColorArgb", -16777216);
+    public static readonly SettingKey<int> LyricsMonitorBackgroundColorArgb = new("liveOutput.lyricsMonitorBackgroundColorArgb", -1);
+    public static readonly SettingKey<bool> LyricsMonitorShowNotations = new("liveOutput.lyricsMonitorShowNotations", true);
+    public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
+    public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
     public static readonly SettingKey<int> ThumbnailCacheMegabytes = new("powerPoint.thumbnailCacheMegabytes", 256);
+    public static readonly SettingKey<int> PowerPointMaxFiles = new("powerPoint.maxFiles", 20);
+    public static readonly SettingKey<bool> UseMediaTab = new("media.useMediaTab", false);
+    public static readonly SettingKey<bool> NoMediaPanelOverlay = new("media.noPanelOverlay", false);
+    public static readonly SettingKey<string> MediaDirectory = new("media.directory", "");
     public static readonly SettingKey<double> MediaVolume = new("media.volume", 0.8);
     public static readonly SettingKey<double> MediaBalance = new("media.balance", 0.0);
     public static readonly SettingKey<bool> MediaMuted = new("media.muted", false);
+    public static readonly SettingKey<int> LiveCameraNumber = new("media.liveCameraNumber", 1);
     public static readonly SettingKey<string> AdminDatabasePath = new("data.adminDatabasePath", "");
     public static readonly SettingKey<string> DataBackupRoot = new("data.backupRoot", "");
     public static readonly SettingKey<bool> EnableDiagnostics = new("advanced.enableDiagnostics", false);
@@ -90,11 +117,30 @@ public static class EasiSettingKeys
         InterfaceSize,
         DefaultOutputMonitorId,
         UseSafetyConfirmations,
+        ShowLyricsMonitorAlertBox,
+        AdvanceNextItem,
+        GapItemOption,
+        GapItemLogoFile,
+        GapItemUseFade,
+        DisplayAlwaysUseSecondaryMonitor,
+        DisplayCustomTop,
+        DisplayCustomLeft,
+        DisplayCustomWidth,
+        LyricsMonitorTextColorArgb,
+        LyricsMonitorBackgroundColorArgb,
+        LyricsMonitorShowNotations,
+        UsePowerPointTab,
+        NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
         ThumbnailCacheMegabytes,
+        PowerPointMaxFiles,
+        UseMediaTab,
+        NoMediaPanelOverlay,
+        MediaDirectory,
         MediaVolume,
         MediaBalance,
         MediaMuted,
+        LiveCameraNumber,
         AdminDatabasePath,
         DataBackupRoot,
         EnableDiagnostics,
@@ -120,22 +166,62 @@ public sealed record LiveOutputSettings
     public string DefaultOutputMonitorId { get; init; } = EasiSettingKeys.DefaultOutputMonitorId.DefaultValue;
 
     public bool UseSafetyConfirmations { get; init; } = EasiSettingKeys.UseSafetyConfirmations.DefaultValue;
+
+    public bool ShowLyricsMonitorAlertBox { get; init; } = EasiSettingKeys.ShowLyricsMonitorAlertBox.DefaultValue;
+
+    public bool AdvanceNextItem { get; init; } = EasiSettingKeys.AdvanceNextItem.DefaultValue;
+
+    public GapItemMode GapItemOption { get; init; } = EasiSettingKeys.GapItemOption.DefaultValue;
+
+    public string GapItemLogoFile { get; init; } = EasiSettingKeys.GapItemLogoFile.DefaultValue;
+
+    public bool GapItemUseFade { get; init; } = EasiSettingKeys.GapItemUseFade.DefaultValue;
+
+    public bool DisplayAlwaysUseSecondaryMonitor { get; init; } =
+        EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.DefaultValue;
+
+    public int DisplayCustomTop { get; init; } = EasiSettingKeys.DisplayCustomTop.DefaultValue;
+
+    public int DisplayCustomLeft { get; init; } = EasiSettingKeys.DisplayCustomLeft.DefaultValue;
+
+    public int DisplayCustomWidth { get; init; } = EasiSettingKeys.DisplayCustomWidth.DefaultValue;
+
+    public int LyricsMonitorTextColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorTextColorArgb.DefaultValue;
+
+    public int LyricsMonitorBackgroundColorArgb { get; init; } =
+        EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue;
+
+    public bool LyricsMonitorShowNotations { get; init; } = EasiSettingKeys.LyricsMonitorShowNotations.DefaultValue;
 }
 
 public sealed record PowerPointSettings
 {
+    public bool UsePowerPointTab { get; init; } = EasiSettingKeys.UsePowerPointTab.DefaultValue;
+
+    public bool NoPanelOverlay { get; init; } = EasiSettingKeys.NoPowerPointPanelOverlay.DefaultValue;
+
     public int RenderTimeoutSeconds { get; init; } = EasiSettingKeys.PowerPointRenderTimeoutSeconds.DefaultValue;
 
     public int ThumbnailCacheMegabytes { get; init; } = EasiSettingKeys.ThumbnailCacheMegabytes.DefaultValue;
+
+    public int MaxFiles { get; init; } = EasiSettingKeys.PowerPointMaxFiles.DefaultValue;
 }
 
 public sealed record MediaSettings
 {
+    public bool UseMediaTab { get; init; } = EasiSettingKeys.UseMediaTab.DefaultValue;
+
+    public bool NoPanelOverlay { get; init; } = EasiSettingKeys.NoMediaPanelOverlay.DefaultValue;
+
+    public string Directory { get; init; } = EasiSettingKeys.MediaDirectory.DefaultValue;
+
     public double Volume { get; init; } = EasiSettingKeys.MediaVolume.DefaultValue;
 
     public double Balance { get; init; } = EasiSettingKeys.MediaBalance.DefaultValue;
 
     public bool Muted { get; init; } = EasiSettingKeys.MediaMuted.DefaultValue;
+
+    public int LiveCameraNumber { get; init; } = EasiSettingKeys.LiveCameraNumber.DefaultValue;
 }
 
 public sealed record DataSettings
@@ -325,6 +411,31 @@ public sealed class SettingsService : ISettingsService
                 issues);
         }
 
+        if (!Enum.IsDefined(candidate.LiveOutput.GapItemOption))
+        {
+            issues.Add(Error(EasiSettingKeys.GapItemOption.Id, "Gap item option value is not supported."));
+        }
+
+        ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
+        RequireRange(
+            candidate.LiveOutput.DisplayCustomTop,
+            min: -9999,
+            max: 9999,
+            EasiSettingKeys.DisplayCustomTop.Id,
+            issues);
+        RequireRange(
+            candidate.LiveOutput.DisplayCustomLeft,
+            min: -9999,
+            max: 9999,
+            EasiSettingKeys.DisplayCustomLeft.Id,
+            issues);
+        RequireRange(
+            candidate.LiveOutput.DisplayCustomWidth,
+            min: 1,
+            max: 9999,
+            EasiSettingKeys.DisplayCustomWidth.Id,
+            issues);
+
         RequireRange(
             candidate.PowerPoint.RenderTimeoutSeconds,
             min: 1,
@@ -337,8 +448,16 @@ public sealed class SettingsService : ISettingsService
             max: 8192,
             EasiSettingKeys.ThumbnailCacheMegabytes.Id,
             issues);
+        RequireRange(
+            candidate.PowerPoint.MaxFiles,
+            min: 1,
+            max: 100,
+            EasiSettingKeys.PowerPointMaxFiles.Id,
+            issues);
+        ValidatePath(candidate.Media.Directory, EasiSettingKeys.MediaDirectory.Id, issues, allowEmpty: true);
         RequireRange(candidate.Media.Volume, min: 0.0, max: 1.0, EasiSettingKeys.MediaVolume.Id, issues);
         RequireRange(candidate.Media.Balance, min: -1.0, max: 1.0, EasiSettingKeys.MediaBalance.Id, issues);
+        RequireRange(candidate.Media.LiveCameraNumber, min: 1, max: 5, EasiSettingKeys.LiveCameraNumber.Id, issues);
         ValidatePath(candidate.Data.AdminDatabasePath, EasiSettingKeys.AdminDatabasePath.Id, issues, allowEmpty: true);
         ValidatePath(candidate.Data.BackupRoot, EasiSettingKeys.DataBackupRoot.Id, issues, allowEmpty: true);
 
@@ -440,6 +559,62 @@ public sealed class SettingsService : ISettingsService
         {
             LiveOutput = next.LiveOutput with { UseSafetyConfirmations = value },
         });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ShowLyricsMonitorAlertBox.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ShowLyricsMonitorAlertBox = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AdvanceNextItem.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { AdvanceNextItem = value },
+        });
+        next = ApplyLegacyEnum<GapItemMode>(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.GapItemOption.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { GapItemOption = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.GapItemLogoFile.Id), next, value => next with
+        {
+            LiveOutput = next.LiveOutput with { GapItemLogoFile = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.GapItemUseFade.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { GapItemUseFade = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { DisplayAlwaysUseSecondaryMonitor = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomTop.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { DisplayCustomTop = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomLeft.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { DisplayCustomLeft = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomWidth.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { DisplayCustomWidth = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorTextColorArgb.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { LyricsMonitorTextColorArgb = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { LyricsMonitorBackgroundColorArgb = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorShowNotations.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { LyricsMonitorShowNotations = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.UsePowerPointTab.Id), next, issues, value => next with
+        {
+            PowerPoint = next.PowerPoint with { UsePowerPointTab = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.NoPowerPointPanelOverlay.Id), next, issues, value => next with
+        {
+            PowerPoint = next.PowerPoint with { NoPanelOverlay = value },
+        });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointRenderTimeoutSeconds.Id), next, issues, value => next with
         {
             PowerPoint = next.PowerPoint with { RenderTimeoutSeconds = value },
@@ -447,6 +622,22 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ThumbnailCacheMegabytes.Id), next, issues, value => next with
         {
             PowerPoint = next.PowerPoint with { ThumbnailCacheMegabytes = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointMaxFiles.Id), next, issues, value => next with
+        {
+            PowerPoint = next.PowerPoint with { MaxFiles = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.UseMediaTab.Id), next, issues, value => next with
+        {
+            Media = next.Media with { UseMediaTab = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.NoMediaPanelOverlay.Id), next, issues, value => next with
+        {
+            Media = next.Media with { NoPanelOverlay = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaDirectory.Id), next, value => next with
+        {
+            Media = next.Media with { Directory = value },
         });
         next = ApplyLegacyDouble(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaVolume.Id), next, issues, NormalizeLegacyUnitScale, value => next with
         {
@@ -459,6 +650,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaMuted.Id), next, issues, value => next with
         {
             Media = next.Media with { Muted = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LiveCameraNumber.Id), next, issues, value => next with
+        {
+            Media = next.Media with { LiveCameraNumber = value },
         });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AdminDatabasePath.Id), next, value => next with
         {
@@ -614,6 +809,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<string> stringKey => stringKey.Id,
                 SettingKey<ColorTheme> themeKey => themeKey.Id,
                 SettingKey<InterfaceSize> sizeKey => sizeKey.Id,
+                SettingKey<GapItemMode> gapItemModeKey => gapItemModeKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
                 SettingKey<double> doubleKey => doubleKey.Id,
@@ -643,11 +839,30 @@ public sealed class SettingsService : ISettingsService
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
             "liveOutput.useSafetyConfirmations" => snapshot.LiveOutput.UseSafetyConfirmations,
+            "liveOutput.showLyricsMonitorAlertBox" => snapshot.LiveOutput.ShowLyricsMonitorAlertBox,
+            "liveOutput.advanceNextItem" => snapshot.LiveOutput.AdvanceNextItem,
+            "liveOutput.gapItemOption" => snapshot.LiveOutput.GapItemOption,
+            "liveOutput.gapItemLogoFile" => snapshot.LiveOutput.GapItemLogoFile,
+            "liveOutput.gapItemUseFade" => snapshot.LiveOutput.GapItemUseFade,
+            "liveOutput.displayAlwaysUseSecondaryMonitor" => snapshot.LiveOutput.DisplayAlwaysUseSecondaryMonitor,
+            "liveOutput.displayCustomTop" => snapshot.LiveOutput.DisplayCustomTop,
+            "liveOutput.displayCustomLeft" => snapshot.LiveOutput.DisplayCustomLeft,
+            "liveOutput.displayCustomWidth" => snapshot.LiveOutput.DisplayCustomWidth,
+            "liveOutput.lyricsMonitorTextColorArgb" => snapshot.LiveOutput.LyricsMonitorTextColorArgb,
+            "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot.LiveOutput.LyricsMonitorBackgroundColorArgb,
+            "liveOutput.lyricsMonitorShowNotations" => snapshot.LiveOutput.LyricsMonitorShowNotations,
+            "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
+            "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
             "powerPoint.thumbnailCacheMegabytes" => snapshot.PowerPoint.ThumbnailCacheMegabytes,
+            "powerPoint.maxFiles" => snapshot.PowerPoint.MaxFiles,
+            "media.useMediaTab" => snapshot.Media.UseMediaTab,
+            "media.noPanelOverlay" => snapshot.Media.NoPanelOverlay,
+            "media.directory" => snapshot.Media.Directory,
             "media.volume" => snapshot.Media.Volume,
             "media.balance" => snapshot.Media.Balance,
             "media.muted" => snapshot.Media.Muted,
+            "media.liveCameraNumber" => snapshot.Media.LiveCameraNumber,
             "data.adminDatabasePath" => snapshot.Data.AdminDatabasePath,
             "data.backupRoot" => snapshot.Data.BackupRoot,
             "advanced.enableDiagnostics" => snapshot.Advanced.EnableDiagnostics,
@@ -681,6 +896,62 @@ public sealed class SettingsService : ISettingsService
             {
                 LiveOutput = snapshot.LiveOutput with { UseSafetyConfirmations = Cast<bool>(keyId, value) },
             },
+            "liveOutput.showLyricsMonitorAlertBox" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ShowLyricsMonitorAlertBox = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.advanceNextItem" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { AdvanceNextItem = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.gapItemOption" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { GapItemOption = Cast<GapItemMode>(keyId, value) },
+            },
+            "liveOutput.gapItemLogoFile" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { GapItemLogoFile = Cast<string>(keyId, value) },
+            },
+            "liveOutput.gapItemUseFade" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { GapItemUseFade = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.displayAlwaysUseSecondaryMonitor" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { DisplayAlwaysUseSecondaryMonitor = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.displayCustomTop" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { DisplayCustomTop = Cast<int>(keyId, value) },
+            },
+            "liveOutput.displayCustomLeft" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { DisplayCustomLeft = Cast<int>(keyId, value) },
+            },
+            "liveOutput.displayCustomWidth" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { DisplayCustomWidth = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorTextColorArgb" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorTextColorArgb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundColorArgb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorShowNotations" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowNotations = Cast<bool>(keyId, value) },
+            },
+            "powerPoint.usePowerPointTab" => snapshot with
+            {
+                PowerPoint = snapshot.PowerPoint with { UsePowerPointTab = Cast<bool>(keyId, value) },
+            },
+            "powerPoint.noPanelOverlay" => snapshot with
+            {
+                PowerPoint = snapshot.PowerPoint with { NoPanelOverlay = Cast<bool>(keyId, value) },
+            },
             "powerPoint.renderTimeoutSeconds" => snapshot with
             {
                 PowerPoint = snapshot.PowerPoint with { RenderTimeoutSeconds = Cast<int>(keyId, value) },
@@ -688,6 +959,22 @@ public sealed class SettingsService : ISettingsService
             "powerPoint.thumbnailCacheMegabytes" => snapshot with
             {
                 PowerPoint = snapshot.PowerPoint with { ThumbnailCacheMegabytes = Cast<int>(keyId, value) },
+            },
+            "powerPoint.maxFiles" => snapshot with
+            {
+                PowerPoint = snapshot.PowerPoint with { MaxFiles = Cast<int>(keyId, value) },
+            },
+            "media.useMediaTab" => snapshot with
+            {
+                Media = snapshot.Media with { UseMediaTab = Cast<bool>(keyId, value) },
+            },
+            "media.noPanelOverlay" => snapshot with
+            {
+                Media = snapshot.Media with { NoPanelOverlay = Cast<bool>(keyId, value) },
+            },
+            "media.directory" => snapshot with
+            {
+                Media = snapshot.Media with { Directory = Cast<string>(keyId, value) },
             },
             "media.volume" => snapshot with
             {
@@ -700,6 +987,10 @@ public sealed class SettingsService : ISettingsService
             "media.muted" => snapshot with
             {
                 Media = snapshot.Media with { Muted = Cast<bool>(keyId, value) },
+            },
+            "media.liveCameraNumber" => snapshot with
+            {
+                Media = snapshot.Media with { LiveCameraNumber = Cast<int>(keyId, value) },
             },
             "data.adminDatabasePath" => snapshot with
             {

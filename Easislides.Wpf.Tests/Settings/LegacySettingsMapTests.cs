@@ -62,6 +62,21 @@ public class LegacySettingsMapTests
     }
 
     [Fact]
+    public void AutomatedAliases_ExposeLegacyOperationalSettingNames()
+    {
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointMaxFiles.Id)
+            .Should().Contain(["PowerPointMaxFiles", "PowerpointMaxFiles", "PP_MaxFiles"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaDirectory.Id)
+            .Should().Contain(["MediaDirectory", "MediaDir", "media_dir"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
+            .Should().Contain(["DMAlwaysUseSecondaryMonitor", "AlwaysTryDualMonitor"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomWidth.Id)
+            .Should().Contain(["DMOption1Width", "DualMonitorOptionCustomWidth"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorTextColorArgb.Id)
+            .Should().Contain(["LMTextColour", "LyricsMonitorTextColour"]);
+    }
+
+    [Fact]
     public void AutomatedAliases_ExposeLegacyShortcutKeys()
     {
         LegacySettingsMap.GetAutomatedAliases(LegacySettingsMap.ShortcutOverridesKeyId)
@@ -101,6 +116,60 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.MediaBalance).Should().Be(-0.25);
         sut.Get(EasiSettingKeys.MediaMuted).Should().BeTrue();
         sut.Get(EasiSettingKeys.AdminDatabasePath).Should().EndWith(Path.Combine("AdminDB", "EasiSlidesDb.db"));
+    }
+
+    [Fact]
+    public async Task MigrateLegacyAsync_MapsLegacyOperationalSettings()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        var mediaFolder = Path.Combine(fixture.LegacyFolder, "Media");
+        var logoFile = Path.Combine(fixture.LegacyFolder, "gap.png");
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["UsePowerpointTab"] = "1",
+            ["NoPowerpointPanelOverlay"] = "1",
+            ["PowerpointMaxFiles"] = "80",
+            ["UseMediaTab"] = "1",
+            ["NoMediaPanelOverlay"] = "1",
+            ["media_dir"] = mediaFolder,
+            ["LiveCamNumber"] = "3",
+            ["ShowLyricsMonitorAlertBox"] = "1",
+            ["AdvanceNextItem"] = "yes",
+            ["GapItemOption"] = "2",
+            ["GapItemLogoFile"] = logoFile,
+            ["GapItemUseFade"] = "0",
+            ["AlwaysTryDualMonitor"] = "0",
+            ["DualMonitorOptionCustomTop"] = "120",
+            ["DualMonitorOptionCustomLeft"] = "-240",
+            ["DualMonitorOptionCustomWidth"] = "1920",
+            ["LyricsMonitorTextColour"] = "-65536",
+            ["LyricsMonitorBackColour"] = "-1",
+            ["LyricsMonitorShowNotations"] = "0",
+        });
+
+        var result = await sut.MigrateLegacyAsync(legacy);
+
+        result.Succeeded.Should().BeTrue();
+        sut.Get(EasiSettingKeys.UsePowerPointTab).Should().BeTrue();
+        sut.Get(EasiSettingKeys.NoPowerPointPanelOverlay).Should().BeTrue();
+        sut.Get(EasiSettingKeys.PowerPointMaxFiles).Should().Be(80);
+        sut.Get(EasiSettingKeys.UseMediaTab).Should().BeTrue();
+        sut.Get(EasiSettingKeys.NoMediaPanelOverlay).Should().BeTrue();
+        sut.Get(EasiSettingKeys.MediaDirectory).Should().Be(mediaFolder);
+        sut.Get(EasiSettingKeys.LiveCameraNumber).Should().Be(3);
+        sut.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox).Should().BeTrue();
+        sut.Get(EasiSettingKeys.AdvanceNextItem).Should().BeTrue();
+        sut.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Default);
+        sut.Get(EasiSettingKeys.GapItemLogoFile).Should().Be(logoFile);
+        sut.Get(EasiSettingKeys.GapItemUseFade).Should().BeFalse();
+        sut.Get(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor).Should().BeFalse();
+        sut.Get(EasiSettingKeys.DisplayCustomTop).Should().Be(120);
+        sut.Get(EasiSettingKeys.DisplayCustomLeft).Should().Be(-240);
+        sut.Get(EasiSettingKeys.DisplayCustomWidth).Should().Be(1920);
+        sut.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(-65536);
+        sut.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(-1);
+        sut.Get(EasiSettingKeys.LyricsMonitorShowNotations).Should().BeFalse();
     }
 
     [Fact]
