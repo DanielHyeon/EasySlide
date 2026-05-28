@@ -130,7 +130,7 @@ Export Wizard:
 | 항목 | 상태 | 비고 |
 |---|---|---|
 | 도메인 모델 파악 | 부분 완료 | `Module` 구조 확인 |
-| Repository/service 추출 | 미완료 | `gf*` 의존 분리 필요 |
+| Repository/service 추출 | 부분 구현 | `IAdminDatabaseRepository`/`AdminDatabaseRepository`로 AdminDB schema inventory, `FOLDER`/`SONG` read-only folder/song summary 조회, bundled AdminDB 호환성 검증 완료. 쓰기 repository와 `gf*` 의존 분리는 후속 필요 |
 | Library WPF 화면 | 미완료 | 신규 구현 필요 |
 | Item editor | 미완료 | `FrmEditItem` 분석 필요 |
 | Bible editor | 미완료 | `gfBible` 계약화 필요 |
@@ -164,6 +164,7 @@ UX 검증:
 자동 테스트:
 
 - Repository 테스트: 샘플 작업 폴더 fixture로 목록 읽기/저장
+- 현재 자동화: `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB와 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, 운영 DI 등록을 검증한다.
 - Parser 테스트: 성경 참조, 가사 구분자, 파일명 규칙
 - Import 테스트: 정상/중복/깨진 파일/빈 폴더
 - Export 테스트: DOC/HTML 결과 메타데이터와 파일 생성 여부

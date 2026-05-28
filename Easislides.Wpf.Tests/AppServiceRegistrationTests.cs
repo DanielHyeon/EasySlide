@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Threading;
+using Easislides.Wpf.Data;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
@@ -32,6 +33,7 @@ public class AppServiceRegistrationTests
             var service = provider.GetRequiredService<IPowerPointRenderService>();
             var mediaPlayback = provider.GetRequiredService<IMediaPlaybackService>();
             var placement = provider.GetRequiredService<IWindowPlacementService>();
+            var adminRepository = provider.GetRequiredService<IAdminDatabaseRepository>();
             var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
             service.Should().BeOfType<PowerPointRenderService>();
@@ -50,6 +52,7 @@ public class AppServiceRegistrationTests
             mediaSettingsField!.GetValue(mediaPlayback).Should().BeSameAs(settings);
 
             legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
+            adminRepository.Should().BeOfType<AdminDatabaseRepository>();
 
             outputHost.Should().BeOfType<OutputWindowHost>();
             var hostSettingsField = typeof(OutputWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);

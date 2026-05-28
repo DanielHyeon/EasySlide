@@ -62,6 +62,7 @@ public partial class App : Application
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
+        services.AddSingleton<IAdminDatabaseRepository, AdminDatabaseRepository>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
             sp.GetRequiredService<IPowerPointRenderBackend>(),
