@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Media;
 
@@ -87,9 +89,10 @@ public interface IMediaPlaybackService
     void SetRepeatEnabled(bool isRepeatEnabled);
 }
 
-public sealed class MediaPlaybackService : IMediaPlaybackService
+public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 {
     private readonly IMediaPlaybackBackend _backend;
+    private readonly ISettingsService? _settings;
 
     public MediaPlaybackService()
         : this(new NoOpMediaPlaybackBackend())
@@ -97,8 +100,18 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
     }
 
     public MediaPlaybackService(IMediaPlaybackBackend backend)
+        : this(backend, settings: null)
+    {
+    }
+
+    public MediaPlaybackService(IMediaPlaybackBackend backend, ISettingsService? settings)
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
+        _settings = settings;
+        if (_settings is not null)
+        {
+            _settings.SettingsChanged += OnSettingsChanged;
+        }
     }
 
     public event EventHandler<MediaPlaybackChangedEventArgs>? PlaybackChanged;
@@ -109,20 +122,21 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Source);
+        var effectiveRequest = ApplyConfiguredAudioDefaults(request);
 
         var snapshot = new MediaPlaybackSnapshot(
             MediaPlaybackState.Ready,
-            request.Source,
-            request.SourceKind,
+            effectiveRequest.Source,
+            effectiveRequest.SourceKind,
             TimeSpan.Zero,
-            ClampDuration(request.Duration),
-            request.MediaType,
-            Clamp(request.Volume, 0, 100),
-            Clamp(request.Balance, -100, 100),
-            request.IsMuted,
-            request.IsRepeatEnabled,
-            request.IsWidescreen,
-            request.OutputDisplayId,
+            ClampDuration(effectiveRequest.Duration),
+            effectiveRequest.MediaType,
+            Clamp(effectiveRequest.Volume, 0, 100),
+            Clamp(effectiveRequest.Balance, -100, 100),
+            effectiveRequest.IsMuted,
+            effectiveRequest.IsRepeatEnabled,
+            effectiveRequest.IsWidescreen,
+            effectiveRequest.OutputDisplayId,
             ErrorMessage: null);
 
         TryUpdate(snapshot, () => _backend.Load(snapshot));
@@ -213,10 +227,48 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
         ApplySettings(Current with { IsRepeatEnabled = isRepeatEnabled });
     }
 
+    public void Dispose()
+    {
+        if (_settings is not null)
+        {
+            _settings.SettingsChanged -= OnSettingsChanged;
+        }
+    }
+
     private bool HasLoadedMedia => Current.State is not MediaPlaybackState.Empty and not MediaPlaybackState.Failed;
 
     private void ApplySettings(MediaPlaybackSnapshot snapshot)
         => TryUpdate(snapshot, () => _backend.ApplySettings(snapshot));
+
+    private MediaPlaybackRequest ApplyConfiguredAudioDefaults(MediaPlaybackRequest request)
+    {
+        if (_settings is null)
+        {
+            return request;
+        }
+
+        return request with
+        {
+            Volume = ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100),
+            Balance = ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100),
+            IsMuted = _settings.Get(EasiSettingKeys.MediaMuted)
+        };
+    }
+
+    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
+    {
+        if (!HasLoadedMedia || !ContainsAudioSetting(args.ChangedKeys) || _settings is null)
+        {
+            return;
+        }
+
+        ApplySettings(Current with
+        {
+            Volume = ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100),
+            Balance = ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100),
+            IsMuted = _settings.Get(EasiSettingKeys.MediaMuted)
+        });
+    }
 
     private void TryUpdate(MediaPlaybackSnapshot snapshot, Action backendAction)
     {
@@ -249,6 +301,22 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
     private static TimeSpan ClampDuration(TimeSpan duration)
         => duration < TimeSpan.Zero ? TimeSpan.Zero : duration;
 
+    private static bool ContainsAudioSetting(IReadOnlyList<string> changedKeys)
+    {
+        for (var i = 0; i < changedKeys.Count; i++)
+        {
+            var key = changedKeys[i];
+            if (string.Equals(key, EasiSettingKeys.MediaVolume.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.MediaBalance.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.MediaMuted.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static TimeSpan ClampPosition(TimeSpan position, TimeSpan duration)
     {
         if (position < TimeSpan.Zero)
@@ -261,4 +329,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService
 
     private static int Clamp(int value, int min, int max)
         => Math.Min(Math.Max(value, min), max);
+
+    private static int ToPercent(double value, int min, int max)
+        => Clamp((int)Math.Round(value * 100, MidpointRounding.AwayFromZero), min, max);
 }

@@ -38,9 +38,9 @@
 | `UseMediaTab` | `media.useMediaTab` | 미디어 | bool, `true/false`, `1/0`, `yes/no` |
 | `NoMediaPanelOverlay` | `media.noPanelOverlay` | 미디어 | bool, `true/false`, `1/0`, `yes/no` |
 | `MediaDirectory`, `MediaDir`, `media_dir` | `media.directory` | 미디어 | 경로 문자열 |
-| `MediaVolume`, `LiveCamVolume` | `media.volume` | 미디어 | 0..1 double, legacy 0..100 scale 자동 정규화 |
-| `MediaBalance`, `LiveCamBalance` | `media.balance` | 미디어 | -1..1 double, legacy -100..100 scale 자동 정규화 |
-| `MediaMuted`, `LiveCamMute` | `media.muted` | 미디어 | bool, `true/false`, `1/0`, `yes/no` |
+| `MediaVolume`, `LiveCamVolume` | `media.volume` | 미디어 | 0..1 double, legacy 0..100 scale 자동 정규화, `MediaPlaybackService` default/runtime 반영 |
+| `MediaBalance`, `LiveCamBalance` | `media.balance` | 미디어 | -1..1 double, legacy -100..100 scale 자동 정규화, `MediaPlaybackService` default/runtime 반영 |
+| `MediaMuted`, `LiveCamMute` | `media.muted` | 미디어 | bool, `true/false`, `1/0`, `yes/no`, `MediaPlaybackService` default/runtime 반영 |
 | `LiveCamNumber` | `media.liveCameraNumber` | 미디어 | 정수, 1..5 |
 | `AdminDatabasePath`, `DBFileName` | `data.adminDatabasePath` | 데이터 | 경로 문자열 |
 | `DataBackupRoot` | `data.backupRoot` | 데이터 | 경로 문자열 |
@@ -70,4 +70,4 @@
 
 ## 5. 완료 여부
 
-현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 실제 legacy registry source 연결은 `RegistryLegacySettingsSource`로 완료됐고, production 시작 시 첫 실행 migration 경계는 `SettingsBootstrapMigrationService`로 연결됐다. runtime 소비처 중 `DefaultOutputMonitorId`는 `MainViewModel.RefreshOutputDisplays` 초기 선택으로 연결됐다. 남은 범위는 legacy file source 연결 여부 최종 판정, 나머지 runtime 소비처 연결, 운영 데이터 리허설이다.
+현재 상태는 **부분 구현**이다. 자동 이식 가능한 핵심 경로/모니터/미디어/DB 별칭, legacy shortcut override, `FrmOptions`의 PowerPoint/media/display/alert/gap/lyrics monitor 세부 key는 WPF typed key, legacy migration, SettingsWindow 노출까지 구현됐다. 실제 legacy registry source 연결은 `RegistryLegacySettingsSource`로 완료됐고, production 시작 시 첫 실행 migration 경계는 `SettingsBootstrapMigrationService`로 연결됐다. runtime 소비처 중 `DefaultOutputMonitorId`는 `MainViewModel.RefreshOutputDisplays` 초기 선택으로, `MediaVolume`/`MediaBalance`/`MediaMuted`는 `MediaPlaybackService` load/default 및 settings change 경계로 연결됐다. 남은 범위는 legacy file source 연결 여부 최종 판정, 나머지 runtime 소비처 연결, 운영 데이터 리허설이다.

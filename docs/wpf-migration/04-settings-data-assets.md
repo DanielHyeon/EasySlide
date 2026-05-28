@@ -123,8 +123,8 @@
 | ThemeService | 1차 완료 | 다크/라이트/Senior 테스트 있음 |
 | Pretendard/EasiDS | 1차 완료 | WPF resource 반영 |
 | SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `EasiSettingsSnapshot`, typed `EasiSettingKeys`, `RegistryLegacySettingsSource`, `SettingsBootstrapMigrationService` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. `LegacySettingsMap` 별칭 기반으로 `root_directory`/`RootEasiSlidesDir`/`OutputMonitorName`/`LiveCamVolume`/`LiveCamBalance`/`LiveCamMute`/`DBFileName` 이식, 미디어 0..100 scale 정규화, legacy `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환, PowerPoint/media/display/alert/gap/lyrics monitor operational setting migration을 구현했다. 실제 HKCU legacy registry section(`config`/`options`/`monitors`) 읽기와 누락 key 생성 방지 검증 완료. WPF production 시작 시 settings.json이 없을 때 registry migration을 1회 적용하고 기존 settings.json이 있으면 사용자 값을 보존하도록 연결했다. legacy file source와 운영 데이터 리허설은 후속 필요 |
-| SettingsWindow | 부분 구현 | `SettingsWindow`, `SettingsWindowViewModel` 추가. ADR-0005 기준 9개 섹션(일반/화면/송출/PowerPoint/미디어/단축키/데이터/가져오기·내보내기/고급), typed setting 즉시 저장, 다크/라이트 및 Standard/Large/Senior 적용, default restore, import/export, AdminDB 분석, 검증 메시지 표시, MainWindow 설정 진입 버튼 자동 검증 완료. 작업 폴더/AdminDB/백업 루트/설정 가져오기/내보내기 파일 선택 dialog, shortcut editor 목록/저장/복원/충돌 검증, runtime shortcut override 반영, PowerPoint/media/display/alert/gap/lyrics monitor operational setting 로드/저장/rollback 및 XAML 노출 검증 완료. WPF focus/screenshot 회귀와 runtime 소비처 연결은 후속 필요 |
-| legacy settings map | 부분 구현 | `docs/wpf-migration/inventory/settings-map.md`와 `LegacySettingsMap` 추가. 현행 `EasiSettingKeys` 전체 inventory, `FrmOptions.SaveVariables` 고위험 key 문서화, 핵심 legacy alias 자동 이식, bool 호환 parsing, media scale 정규화, legacy shortcut 자동 이식, PowerPoint/media/display/alert/gap/lyrics monitor 세부 typed key 자동 이식 검증 완료. runtime 소비처 연결은 후속 필요 |
+| SettingsWindow | 부분 구현 | `SettingsWindow`, `SettingsWindowViewModel` 추가. ADR-0005 기준 9개 섹션(일반/화면/송출/PowerPoint/미디어/단축키/데이터/가져오기·내보내기/고급), typed setting 즉시 저장, 다크/라이트 및 Standard/Large/Senior 적용, default restore, import/export, AdminDB 분석, 검증 메시지 표시, MainWindow 설정 진입 버튼 자동 검증 완료. 작업 폴더/AdminDB/백업 루트/설정 가져오기/내보내기 파일 선택 dialog, shortcut editor 목록/저장/복원/충돌 검증, runtime shortcut override 반영, media volume/balance/mute runtime 반영, PowerPoint/media/display/alert/gap/lyrics monitor operational setting 로드/저장/rollback 및 XAML 노출 검증 완료. WPF focus/screenshot 회귀와 나머지 runtime 소비처 연결은 후속 필요 |
+| legacy settings map | 부분 구현 | `docs/wpf-migration/inventory/settings-map.md`와 `LegacySettingsMap` 추가. 현행 `EasiSettingKeys` 전체 inventory, `FrmOptions.SaveVariables` 고위험 key 문서화, 핵심 legacy alias 자동 이식, bool 호환 parsing, media scale 정규화, legacy shortcut 자동 이식, PowerPoint/media/display/alert/gap/lyrics monitor 세부 typed key 자동 이식 검증 완료. media audio/default output monitor runtime 소비처 연결 완료, 나머지 소비처 연결은 후속 필요 |
 | 자산 마이그레이션 | 부분 구현 | `IAssetMigrationService`, `AssetMigrationService` 추가. dry-run, 파일 hash 계산, 복사 후 hash 검증, backup report 작성, 목적지 충돌 시 기존 파일 보존 및 safe name 복사, source missing/not-directory 오류 분류 자동 검증 완료. AppData 실제 경로 연결, SettingsWindow/온보딩 UI, DB/설정 snapshot 통합은 후속 필요 |
 | DB 마이그레이션 | 부분 구현 | `IDatabaseMigrationService`, `DatabaseMigrationService` 추가. SQLite `PRAGMA user_version` 분석, 사용자 테이블 inventory, dry-run migration path, backup, transaction, rollback, 실패 시 backup restore, source missing/source-not-file/corrupt DB 오류 분류 자동 검증 완료. 실제 AdminDB 전체 schema inventory, repository 연결, 운영 DB fixture 기반 WinForms/WPF 호환성 검증은 후속 필요 |
 | 도움말/정보/등록 | 미완료 | 기존 폼 기능 확인 필요 |
@@ -176,6 +176,7 @@ DB 검증:
 - `SettingsBootstrapMigrationServiceTests`: settings.json 최초 미생성 시 legacy migration 실행, 기존 settings.json 존재 시 migration skip, migration 실패 시 settings.json 미생성 검증
 - `SettingsWindowViewModelTests`: 9개 설정 섹션 구성, 현재 설정 로드, 테마/크기 변경 저장 및 `IThemeService` 적용, invalid setting rollback, default restore, DB 분석 결과 표시, import 후 화면 갱신, 작업 폴더/AdminDB/백업 루트/설정 transfer path picker command, shortcut editor 항목 생성/override 저장/충돌 차단/기본값 복원, operational setting 로드/저장/rollback 검증
 - `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`: 저장/이식된 `DefaultOutputMonitorId`가 WPF 운영 셸의 초기 출력 모니터 선택에 적용되는지 검증
+- `MediaPlaybackServiceTests.Load_WithSettingsService_UsesPersistedMediaDefaults`, `MediaPlaybackServiceTests.SettingsChanged_WhenMediaLoaded_AppliesPersistedMediaDefaults`: 저장/이식된 media volume/balance/mute 기본값과 runtime 변경 이벤트가 재생 스냅샷/백엔드에 반영되는지 검증
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
 
@@ -188,10 +189,10 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 20개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 202개 통과
-- `dotnet test Easislides.sln -c Debug`: 202개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 204개 통과
+- `dotnet test Easislides.sln -c Debug`: 204개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 202개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 204개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

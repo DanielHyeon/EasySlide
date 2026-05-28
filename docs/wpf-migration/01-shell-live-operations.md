@@ -131,7 +131,7 @@
 | SafetyConfirm | 1차 운영 연결 완료 | Go Live, Stop Live, 라이브 중 출력 닫기, Black/Hide 명령이 `ILiveSafetyPrompt` 확인 경계를 통과 |
 | MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결 |
 | 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel`, `IDisplayService` 연결. borderless/fullscreen 및 창 모드 배치, `DefaultOutputMonitorId` 설정 기반 초기 출력 모니터 선택, 라이브 snapshot 반영 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
-| 미디어 컨트롤 WPF 대체 | 1차 구현 완료 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend` 추가. 재생/일시정지/정지/seek/mute/repeat/volume/balance 상태 계약, backend 명령 위임, 모든 주요 backend 명령 실패 시 `Failed` snapshot 전환, WPF `MediaElement` 파일 adapter 경계와 command 기반 ViewModel 검증 완료. DirectShow adapter 및 출력 화면 visual host 연결은 M3에서 계속 진행 |
+| 미디어 컨트롤 WPF 대체 | 1차 구현 완료 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend` 추가. 재생/일시정지/정지/seek/mute/repeat/volume/balance 상태 계약, 설정 기반 media volume/balance/mute 기본값 및 변경 이벤트 반영, backend 명령 위임, 모든 주요 backend 명령 실패 시 `Failed` snapshot 전환, WPF `MediaElement` 파일 adapter 경계와 command 기반 ViewModel 검증 완료. DirectShow adapter 및 출력 화면 visual host 연결은 M3에서 계속 진행 |
 | 키보드/리모컨 연결 | 1차 구현 완료 | `ShortcutRegistry`, `MainViewModel.BindShortcuts`, `GlobalInputService`, HookManager adapter 운영 연결 완료. 실제 리모컨/타 앱 포커스 수동 검증은 M5에서 계속 수행 |
 
 ## 5. 이식 후 검증 방안
@@ -174,7 +174,7 @@ UX 검증:
 - `MainViewModelTests.OpenOutputCommand_UsesDefaultOutputMonitorFromSettings`: 저장/이식된 기본 출력 모니터 설정을 운영 셸 출력 창 선택에 적용
 - `GlobalInputServiceTests`: HookManager adapter 시작/중지, 글로벌 단축키 라우팅, 로컬 단축키 차단, 시작 실패 cleanup
 - `CommandCatalogTests`: command id 중복 방지, 기본 shortcut의 command 참조 검증, 기본 shortcut 충돌 방지, Live 위험 명령 메타데이터 검증
-- `MediaPlaybackServiceTests`: media request load, playback state 전이, seek/audio setting clamp, backend 명령 위임, load/play/pause/stop/seek/settings 실패 상태 전환 검증
+- `MediaPlaybackServiceTests`: media request load, playback state 전이, seek/audio setting clamp, 설정 기반 audio default/runtime 변경 반영, backend 명령 위임, load/play/pause/stop/seek/settings 실패 상태 전환 검증
 - `MediaPlaybackViewModelTests`: play/pause, stop, seek, mute/repeat command와 시간/상태 표시 검증
 - `PreviewCanvasTests`: WPF preview placement/render/DPI contract 검증
 - `TransitionEffectServiceTests`: WPF transition effect list/action/frame contract 검증
@@ -200,11 +200,11 @@ UX 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 13개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 202개 통과
-- `dotnet test Easislides.sln -c Debug`: 202개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 204개 통과
+- `dotnet test Easislides.sln -c Debug`: 204개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 202개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 204개 통과
 - CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Easislides.Wpf.Media;
+using Easislides.Wpf.Settings;
 using FluentAssertions;
 using Xunit;
 
@@ -34,6 +36,49 @@ public class MediaPlaybackServiceTests
         sut.Current.IsMuted.Should().BeTrue();
         sut.Current.IsRepeatEnabled.Should().BeTrue();
         sut.Current.OutputDisplayId.Should().Be("secondary");
+    }
+
+    [Fact]
+    public void Load_WithSettingsService_UsesPersistedMediaDefaults()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        settings.Set(EasiSettingKeys.MediaVolume, 0.35).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaBalance, -0.25).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaMuted, true).Succeeded.Should().BeTrue();
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend, settings);
+
+        sut.Load(DefaultRequest());
+
+        sut.Current.Volume.Should().Be(35);
+        sut.Current.Balance.Should().Be(-25);
+        sut.Current.IsMuted.Should().BeTrue();
+        backend.LastLoaded!.Volume.Should().Be(35);
+        backend.LastLoaded.Balance.Should().Be(-25);
+        backend.LastLoaded.IsMuted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SettingsChanged_WhenMediaLoaded_AppliesPersistedMediaDefaults()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend, settings);
+        sut.Load(DefaultRequest());
+
+        settings.Set(EasiSettingKeys.MediaVolume, 0.4).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaBalance, 0.25).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaMuted, true).Succeeded.Should().BeTrue();
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Ready);
+        sut.Current.Volume.Should().Be(40);
+        sut.Current.Balance.Should().Be(25);
+        sut.Current.IsMuted.Should().BeTrue();
+        backend.LastSettings!.Volume.Should().Be(40);
+        backend.LastSettings.Balance.Should().Be(25);
+        backend.LastSettings.IsMuted.Should().BeTrue();
     }
 
     [Fact]
@@ -207,6 +252,7 @@ public class MediaPlaybackServiceTests
     private sealed class FakeMediaPlaybackBackend : IMediaPlaybackBackend
     {
         public List<string> Commands { get; } = [];
+        public MediaPlaybackSnapshot? LastLoaded { get; private set; }
         public MediaPlaybackSnapshot? LastSettings { get; private set; }
         public Exception? LoadException { get; init; }
         public Exception? PlayException { get; set; }
@@ -217,6 +263,7 @@ public class MediaPlaybackServiceTests
 
         public void Load(MediaPlaybackSnapshot snapshot)
         {
+            LastLoaded = snapshot;
             Commands.Add($"Load:{snapshot.Source}");
             if (LoadException is not null)
             {
@@ -267,6 +314,39 @@ public class MediaPlaybackServiceTests
             if (SettingsException is not null)
             {
                 throw SettingsException;
+            }
+        }
+    }
+
+    private sealed class TempSettingsFolder : IDisposable
+    {
+        private TempSettingsFolder(string root)
+        {
+            Root = root;
+            SettingsPath = Path.Combine(root, "settings.json");
+            BackupRoot = Path.Combine(root, "Backups");
+        }
+
+        public string Root { get; }
+
+        public string SettingsPath { get; }
+
+        public string BackupRoot { get; }
+
+        public static TempSettingsFolder Create()
+            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_MediaSettings_{Guid.NewGuid():N}"));
+
+        public SettingsService CreateService()
+            => new(new SettingsServiceOptions(SettingsPath, BackupRoot));
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(Root, recursive: true);
+            }
+            catch
+            {
             }
         }
     }
