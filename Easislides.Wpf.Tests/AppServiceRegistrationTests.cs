@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Windows.Threading;
 using Easislides.Wpf.Data;
 using Easislides.Wpf.Media;
+using Easislides.Wpf.Onboarding;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
@@ -35,6 +36,8 @@ public class AppServiceRegistrationTests
             var placement = provider.GetRequiredService<IWindowPlacementService>();
             var adminRepository = provider.GetRequiredService<IAdminDatabaseRepository>();
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
+            var onboarding = provider.GetRequiredService<IOnboardingCoordinator>();
+            var onboardingDialog = provider.GetRequiredService<IOnboardingDialogService>();
             var settingsViewModel = provider.GetRequiredService<SettingsWindowViewModel>();
             var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
@@ -56,6 +59,8 @@ public class AppServiceRegistrationTests
             legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
             adminRepository.Should().BeOfType<AdminDatabaseRepository>();
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
+            onboarding.Should().BeOfType<OnboardingCoordinator>();
+            onboardingDialog.Should().BeOfType<WelcomeWindowDialogService>();
 
             settingsViewModel.Should().NotBeNull();
             var rehearsalField = typeof(SettingsWindowViewModel).GetField(

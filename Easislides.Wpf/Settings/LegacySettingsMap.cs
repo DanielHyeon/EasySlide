@@ -42,6 +42,7 @@ public static class LegacySettingsMap
         Automated("WorkingFolder", EasiSettingKeys.WorkingFolder.Id, SettingsSectionKind.General, LegacySettingValueKind.Path, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("RootEasiSlidesDir", EasiSettingKeys.WorkingFolder.Id, SettingsSectionKind.General, LegacySettingValueKind.Path, "Gf.RootEasiSlidesDir", "Legacy working root after Gf.InitEasiSlidesDir."),
         Automated("root_directory", EasiSettingKeys.WorkingFolder.Id, SettingsSectionKind.General, LegacySettingValueKind.Path, "RegUtil config/root_directory", "Registry-backed legacy working root."),
+        Automated("OnboardingCompleted", EasiSettingKeys.OnboardingCompleted.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "First-run welcome completion marker."),
 
         Automated("Theme", EasiSettingKeys.Theme.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),
         Automated("InterfaceSize", EasiSettingKeys.InterfaceSize.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),

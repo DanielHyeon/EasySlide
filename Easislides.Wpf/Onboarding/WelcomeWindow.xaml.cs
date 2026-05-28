@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Input;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,9 +26,9 @@ public partial class WelcomeWindow : Window
         _theme = App.Services.GetRequiredService<IThemeService>();
     }
 
-    private void OnStandard_Click(object sender, MouseButtonEventArgs e) => Choose(InterfaceSize.Standard);
-    private void OnLarge_Click(object sender, MouseButtonEventArgs e) => Choose(InterfaceSize.Large);
-    private void OnSenior_Click(object sender, MouseButtonEventArgs e) => Choose(InterfaceSize.Senior);
+    private void OnStandard_Click(object sender, RoutedEventArgs e) => Choose(InterfaceSize.Standard);
+    private void OnLarge_Click(object sender, RoutedEventArgs e) => Choose(InterfaceSize.Large);
+    private void OnSenior_Click(object sender, RoutedEventArgs e) => Choose(InterfaceSize.Senior);
 
     private void Choose(InterfaceSize size)
     {

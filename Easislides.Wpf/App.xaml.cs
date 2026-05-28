@@ -6,6 +6,7 @@ using Easislides.Wpf.Data;
 using Easislides.Wpf.Demo;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Media;
+using Easislides.Wpf.Onboarding;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
@@ -59,6 +60,8 @@ public partial class App : Application
             sp.GetRequiredService<RegistryLegacySettingsSource>(),
             sp.GetRequiredService<FileLegacySettingsSource>()));
         services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
+        services.AddSingleton<IOnboardingDialogService, WelcomeWindowDialogService>();
+        services.AddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IOperationalDataRehearsalService, OperationalDataRehearsalService>();
@@ -131,6 +134,8 @@ public partial class App : Application
 
         if (!useDemo)
         {
+            Services.GetRequiredService<IOnboardingCoordinator>().RunIfNeeded(window);
+
             var globalInput = Services.GetRequiredService<IGlobalInputService>();
             if (!globalInput.Start())
             {

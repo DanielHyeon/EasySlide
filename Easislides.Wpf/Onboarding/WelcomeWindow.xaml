@@ -2,10 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="EasiSlides v3.0 — 웰컴"
-        Width="780" Height="540"
+        Title="EasiSlides 시작 설정"
+        Width="820"
+        Height="560"
+        MinWidth="760"
+        MinHeight="520"
         Background="{DynamicResource Brush.Surface.Page}"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
 
     <Grid Margin="40">
@@ -15,129 +18,119 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="환영합니다"
+            <TextBlock Text="EasiSlides 시작 설정"
                        Style="{StaticResource Type.Display.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}" />
-            <TextBlock Style="{StaticResource Type.Body.Style}"
+            <TextBlock Text="운영 환경에 맞는 인터페이스 크기를 선택해 주세요."
+                       Style="{StaticResource Type.Body.Style}"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
                        TextWrapping="Wrap"
-                       Margin="0,8,0,0">
-                <Run Text="운영자의 연령대나 시력에 맞춘 인터페이스 크기를 선택해 주세요." />
-                <LineBreak />
-                <Run Text="(언제든 설정 → 일반에서 변경할 수 있습니다)" FontSize="13" />
-            </TextBlock>
+                       Margin="0,8,0,0" />
         </StackPanel>
 
-        <!-- 3 카드 -->
-        <Grid Grid.Row="1" Margin="0,0,0,16">
+        <Grid Grid.Row="1" Margin="0,0,0,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border x:Name="StandardCard" Grid.Column="0"
-                    Style="{StaticResource EsCard.Interactive}"
+            <Button Grid.Column="0"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Padding="18"
+                    MinHeight="260"
                     Margin="0,0,8,0"
-                    MouseLeftButtonUp="OnStandard_Click"
-                    Tag="Standard">
+                    Click="OnStandard_Click"
+                    AutomationProperties.Name="표준 인터페이스 크기 선택">
                 <StackPanel HorizontalAlignment="Center">
-                    <ui:SymbolIcon Symbol="TextFont24" FontSize="40"
+                    <ui:SymbolIcon Symbol="TextFont24"
+                                   FontSize="40"
                                    Foreground="{DynamicResource Brush.Accent.Primary}"
                                    HorizontalAlignment="Center" />
                     <TextBlock Text="표준"
                                Style="{StaticResource Type.Title2.Style}"
                                Foreground="{DynamicResource Brush.Text.Primary}"
                                HorizontalAlignment="Center"
-                               Margin="0,16,0,8" />
+                               Margin="0,18,0,10" />
                     <TextBlock Text="본문 14px"
                                Style="{StaticResource Type.Body.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
                                HorizontalAlignment="Center" />
-                    <TextBlock Text="버튼 44 × 44 px"
-                               Style="{StaticResource Type.Body.Style}"
-                               Foreground="{DynamicResource Brush.Text.Secondary}"
-                               HorizontalAlignment="Center"
-                               Margin="0,4,0,0" />
-                    <TextBlock Text="정보 밀도 우선"
+                    <TextBlock Text="기본 정보 밀도"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}"
-                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
                                Margin="0,12,0,0" />
                 </StackPanel>
-            </Border>
+            </Button>
 
-            <Border x:Name="LargeCard" Grid.Column="1"
-                    Style="{StaticResource EsCard.Interactive}"
+            <Button Grid.Column="1"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Padding="18"
+                    MinHeight="260"
                     Margin="4,0"
-                    MouseLeftButtonUp="OnLarge_Click"
-                    Tag="Large">
+                    Click="OnLarge_Click"
+                    AutomationProperties.Name="큰 글씨 인터페이스 크기 선택">
                 <StackPanel HorizontalAlignment="Center">
-                    <ui:SymbolIcon Symbol="TextFont24" FontSize="48"
+                    <ui:SymbolIcon Symbol="TextFont24"
+                                   FontSize="48"
                                    Foreground="{DynamicResource Brush.Accent.Primary}"
                                    HorizontalAlignment="Center" />
                     <TextBlock Text="큰 글씨"
                                Style="{StaticResource Type.Title2.Style}"
                                Foreground="{DynamicResource Brush.Text.Primary}"
                                HorizontalAlignment="Center"
-                               Margin="0,16,0,8" />
+                               Margin="0,18,0,10" />
                     <TextBlock Text="본문 16px"
                                Style="{StaticResource Type.Body.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
                                HorizontalAlignment="Center" />
-                    <TextBlock Text="버튼 48 × 48 px"
-                               Style="{StaticResource Type.Body.Style}"
-                               Foreground="{DynamicResource Brush.Text.Secondary}"
-                               HorizontalAlignment="Center"
-                               Margin="0,4,0,0" />
-                    <TextBlock Text="가독성과 정보 밀도 균형"
+                    <TextBlock Text="가독성과 정보량 균형"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}"
-                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
                                Margin="0,12,0,0" />
                 </StackPanel>
-            </Border>
+            </Button>
 
-            <Border x:Name="SeniorCard" Grid.Column="2"
-                    Style="{StaticResource EsCard.Interactive}"
+            <Button Grid.Column="2"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Padding="18"
+                    MinHeight="260"
                     Margin="8,0,0,0"
-                    MouseLeftButtonUp="OnSenior_Click"
-                    Tag="Senior">
+                    Click="OnSenior_Click"
+                    AutomationProperties.Name="시니어 인터페이스 크기 선택">
                 <StackPanel HorizontalAlignment="Center">
-                    <ui:SymbolIcon Symbol="TextFont24" FontSize="56"
+                    <ui:SymbolIcon Symbol="TextFont24"
+                                   FontSize="56"
                                    Foreground="{DynamicResource Brush.Accent.Primary}"
                                    HorizontalAlignment="Center" />
                     <TextBlock Text="시니어"
                                Style="{StaticResource Type.Title2.Style}"
                                Foreground="{DynamicResource Brush.Text.Primary}"
                                HorizontalAlignment="Center"
-                               Margin="0,16,0,8" />
+                               Margin="0,18,0,10" />
                     <TextBlock Text="본문 20px"
                                Style="{StaticResource Type.Body.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
                                HorizontalAlignment="Center" />
-                    <TextBlock Text="버튼 52 × 52 px"
-                               Style="{StaticResource Type.Body.Style}"
-                               Foreground="{DynamicResource Brush.Text.Secondary}"
-                               HorizontalAlignment="Center"
-                               Margin="0,4,0,0" />
-                    <TextBlock Text="시니어 운영자 친화"
+                    <TextBlock Text="멀리서도 읽기 편한 크기"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}"
-                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
                                Margin="0,12,0,0" />
                 </StackPanel>
-            </Border>
+            </Button>
         </Grid>
 
-        <!-- Footer -->
         <TextBlock Grid.Row="2"
+                   Text="설정 창에서 언제든 다시 변경할 수 있습니다."
                    Style="{StaticResource Type.Caption.Style}"
                    Foreground="{DynamicResource Brush.Text.Tertiary}"
-                   HorizontalAlignment="Center"
-                   Text="카드를 클릭해 선택하면 즉시 적용됩니다. (계획서 §7.4 / Q2)" />
-
+                   HorizontalAlignment="Center" />
     </Grid>
 </Window>

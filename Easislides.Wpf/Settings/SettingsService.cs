@@ -75,6 +75,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<string> WorkingFolder = new(
         "general.workingFolder",
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "EasiSlides"));
+    public static readonly SettingKey<bool> OnboardingCompleted = new("general.onboardingCompleted", false);
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
     public static readonly SettingKey<InterfaceSize> InterfaceSize =
@@ -113,6 +114,7 @@ public static class EasiSettingKeys
     [
         Language,
         WorkingFolder,
+        OnboardingCompleted,
         Theme,
         InterfaceSize,
         DefaultOutputMonitorId,
@@ -152,6 +154,8 @@ public sealed record GeneralSettings
     public string Language { get; init; } = EasiSettingKeys.Language.DefaultValue;
 
     public string WorkingFolder { get; init; } = EasiSettingKeys.WorkingFolder.DefaultValue;
+
+    public bool OnboardingCompleted { get; init; } = EasiSettingKeys.OnboardingCompleted.DefaultValue;
 }
 
 public sealed record AppearanceSettings
@@ -543,6 +547,10 @@ public sealed class SettingsService : ISettingsService
         {
             General = next.General with { WorkingFolder = value },
         });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.OnboardingCompleted.Id), next, issues, value => next with
+        {
+            General = next.General with { OnboardingCompleted = value },
+        });
         next = ApplyLegacyEnum<ColorTheme>(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.Theme.Id), next, issues, value => next with
         {
             Appearance = next.Appearance with { Theme = value },
@@ -835,6 +843,7 @@ public sealed class SettingsService : ISettingsService
         {
             "general.language" => snapshot.General.Language,
             "general.workingFolder" => snapshot.General.WorkingFolder,
+            "general.onboardingCompleted" => snapshot.General.OnboardingCompleted,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
@@ -879,6 +888,10 @@ public sealed class SettingsService : ISettingsService
             "general.workingFolder" => snapshot with
             {
                 General = snapshot.General with { WorkingFolder = Cast<string>(keyId, value) },
+            },
+            "general.onboardingCompleted" => snapshot with
+            {
+                General = snapshot.General with { OnboardingCompleted = Cast<bool>(keyId, value) },
             },
             "appearance.theme" => snapshot with
             {
