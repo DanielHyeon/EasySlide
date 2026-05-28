@@ -35,6 +35,8 @@ public partial class App : Application
 
         // DI 컨테이너 구성
         var services = new ServiceCollection();
+        var settingsOptions = SettingsServiceOptions.CreateDefault();
+        var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
 
         // 디자인 시스템 — 런타임 테마/스케일 변경 (ADR-0006)
         services.AddSingleton<IThemeService, ThemeService>();
@@ -53,7 +55,10 @@ public partial class App : Application
         services.AddSingleton<ITransitionEffectService, TransitionEffectService>();
         services.AddSingleton<IOutputRenderer, OutputRenderer>();
         services.AddSingleton<IThumbnailCache, ThumbnailCache>();
-        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton(settingsOptions);
+        services.AddSingleton<ISettingsService>(sp => new SettingsService(sp.GetRequiredService<SettingsServiceOptions>()));
+        services.AddSingleton<ILegacySettingsSource, RegistryLegacySettingsSource>();
+        services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
@@ -80,7 +85,24 @@ public partial class App : Application
         Services = services.BuildServiceProvider();
         _ = Services.GetRequiredService<IOutputWindowHost>();
 
-        var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
+        if (!useDemo)
+        {
+            var migrationResult = Services
+                .GetRequiredService<ISettingsBootstrapMigrationService>()
+                .MigrateIfNeededAsync()
+                .GetAwaiter()
+                .GetResult();
+
+            if (migrationResult is { Succeeded: false })
+            {
+                MessageBox.Show(
+                    "기존 설정을 자동으로 가져오지 못했습니다.\n\n기본 설정으로 계속 시작합니다.",
+                    "EasiSlides — 설정 마이그레이션",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
         Window window = useDemo
             ? Services.GetRequiredService<DemoWindow>()
             : Services.GetRequiredService<MainWindow>();
