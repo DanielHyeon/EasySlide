@@ -374,59 +374,59 @@ public sealed class SettingsService : ISettingsService
         var issues = new List<SettingsIssue>();
         var next = Current;
 
-        next = ApplyLegacyString(legacySettings, "Language", next, value => next with
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.Language.Id), next, value => next with
         {
             General = next.General with { Language = value },
         });
-        next = ApplyLegacyString(legacySettings, "WorkingFolder", next, value => next with
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.WorkingFolder.Id), next, value => next with
         {
             General = next.General with { WorkingFolder = value },
         });
-        next = ApplyLegacyEnum<ColorTheme>(legacySettings, "Theme", next, issues, value => next with
+        next = ApplyLegacyEnum<ColorTheme>(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.Theme.Id), next, issues, value => next with
         {
             Appearance = next.Appearance with { Theme = value },
         });
-        next = ApplyLegacyEnum<InterfaceSize>(legacySettings, "InterfaceSize", next, issues, value => next with
+        next = ApplyLegacyEnum<InterfaceSize>(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.InterfaceSize.Id), next, issues, value => next with
         {
             Appearance = next.Appearance with { InterfaceSize = value },
         });
-        next = ApplyLegacyString(legacySettings, "DefaultOutputMonitorId", next, value => next with
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DefaultOutputMonitorId.Id), next, value => next with
         {
             LiveOutput = next.LiveOutput with { DefaultOutputMonitorId = value },
         });
-        next = ApplyLegacyBool(legacySettings, "UseSafetyConfirmations", next, issues, value => next with
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.UseSafetyConfirmations.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { UseSafetyConfirmations = value },
         });
-        next = ApplyLegacyInt(legacySettings, "PowerPointRenderTimeoutSeconds", next, issues, value => next with
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointRenderTimeoutSeconds.Id), next, issues, value => next with
         {
             PowerPoint = next.PowerPoint with { RenderTimeoutSeconds = value },
         });
-        next = ApplyLegacyInt(legacySettings, "ThumbnailCacheMegabytes", next, issues, value => next with
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ThumbnailCacheMegabytes.Id), next, issues, value => next with
         {
             PowerPoint = next.PowerPoint with { ThumbnailCacheMegabytes = value },
         });
-        next = ApplyLegacyDouble(legacySettings, "MediaVolume", next, issues, value => next with
+        next = ApplyLegacyDouble(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaVolume.Id), next, issues, NormalizeLegacyUnitScale, value => next with
         {
             Media = next.Media with { Volume = value },
         });
-        next = ApplyLegacyDouble(legacySettings, "MediaBalance", next, issues, value => next with
+        next = ApplyLegacyDouble(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaBalance.Id), next, issues, NormalizeLegacyUnitScale, value => next with
         {
             Media = next.Media with { Balance = value },
         });
-        next = ApplyLegacyBool(legacySettings, "MediaMuted", next, issues, value => next with
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaMuted.Id), next, issues, value => next with
         {
             Media = next.Media with { Muted = value },
         });
-        next = ApplyLegacyString(legacySettings, "AdminDatabasePath", next, value => next with
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AdminDatabasePath.Id), next, value => next with
         {
             Data = next.Data with { AdminDatabasePath = value },
         });
-        next = ApplyLegacyString(legacySettings, "DataBackupRoot", next, value => next with
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DataBackupRoot.Id), next, value => next with
         {
             Data = next.Data with { BackupRoot = value },
         });
-        next = ApplyLegacyBool(legacySettings, "EnableDiagnostics", next, issues, value => next with
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.EnableDiagnostics.Id), next, issues, value => next with
         {
             Advanced = next.Advanced with { EnableDiagnostics = value },
         });
@@ -693,7 +693,14 @@ public sealed class SettingsService : ISettingsService
         string legacyKey,
         EasiSettingsSnapshot current,
         Func<string, EasiSettingsSnapshot> apply)
-        => source.TryGetString(legacyKey, out var raw) && raw is not null ? apply(raw) : current;
+        => ApplyLegacyString(source, [legacyKey], current, apply);
+
+    private static EasiSettingsSnapshot ApplyLegacyString(
+        ILegacySettingsSource source,
+        IReadOnlyList<string> legacyKeys,
+        EasiSettingsSnapshot current,
+        Func<string, EasiSettingsSnapshot> apply)
+        => TryGetLegacyString(source, legacyKeys, out var raw, out _) ? apply(raw) : current;
 
     private static EasiSettingsSnapshot ApplyLegacyBool(
         ILegacySettingsSource source,
@@ -701,18 +708,26 @@ public sealed class SettingsService : ISettingsService
         EasiSettingsSnapshot current,
         ICollection<SettingsIssue> issues,
         Func<bool, EasiSettingsSnapshot> apply)
+        => ApplyLegacyBool(source, [legacyKey], current, issues, apply);
+
+    private static EasiSettingsSnapshot ApplyLegacyBool(
+        ILegacySettingsSource source,
+        IReadOnlyList<string> legacyKeys,
+        EasiSettingsSnapshot current,
+        ICollection<SettingsIssue> issues,
+        Func<bool, EasiSettingsSnapshot> apply)
     {
-        if (!source.TryGetString(legacyKey, out var raw) || raw is null)
+        if (!TryGetLegacyString(source, legacyKeys, out var raw, out var matchedKey))
         {
             return current;
         }
 
-        if (bool.TryParse(raw, out var parsed))
+        if (TryParseLegacyBool(raw, out var parsed))
         {
             return apply(parsed);
         }
 
-        issues.Add(Warning(legacyKey, $"Legacy value '{raw}' is not a valid Boolean."));
+        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid Boolean."));
         return current;
     }
 
@@ -722,8 +737,16 @@ public sealed class SettingsService : ISettingsService
         EasiSettingsSnapshot current,
         ICollection<SettingsIssue> issues,
         Func<int, EasiSettingsSnapshot> apply)
+        => ApplyLegacyInt(source, [legacyKey], current, issues, apply);
+
+    private static EasiSettingsSnapshot ApplyLegacyInt(
+        ILegacySettingsSource source,
+        IReadOnlyList<string> legacyKeys,
+        EasiSettingsSnapshot current,
+        ICollection<SettingsIssue> issues,
+        Func<int, EasiSettingsSnapshot> apply)
     {
-        if (!source.TryGetString(legacyKey, out var raw) || raw is null)
+        if (!TryGetLegacyString(source, legacyKeys, out var raw, out var matchedKey))
         {
             return current;
         }
@@ -733,7 +756,7 @@ public sealed class SettingsService : ISettingsService
             return apply(parsed);
         }
 
-        issues.Add(Warning(legacyKey, $"Legacy value '{raw}' is not a valid integer."));
+        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid integer."));
         return current;
     }
 
@@ -743,18 +766,27 @@ public sealed class SettingsService : ISettingsService
         EasiSettingsSnapshot current,
         ICollection<SettingsIssue> issues,
         Func<double, EasiSettingsSnapshot> apply)
+        => ApplyLegacyDouble(source, [legacyKey], current, issues, value => value, apply);
+
+    private static EasiSettingsSnapshot ApplyLegacyDouble(
+        ILegacySettingsSource source,
+        IReadOnlyList<string> legacyKeys,
+        EasiSettingsSnapshot current,
+        ICollection<SettingsIssue> issues,
+        Func<double, double> normalize,
+        Func<double, EasiSettingsSnapshot> apply)
     {
-        if (!source.TryGetString(legacyKey, out var raw) || raw is null)
+        if (!TryGetLegacyString(source, legacyKeys, out var raw, out var matchedKey))
         {
             return current;
         }
 
         if (double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
         {
-            return apply(parsed);
+            return apply(normalize(parsed));
         }
 
-        issues.Add(Warning(legacyKey, $"Legacy value '{raw}' is not a valid number."));
+        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid number."));
         return current;
     }
 
@@ -765,8 +797,17 @@ public sealed class SettingsService : ISettingsService
         ICollection<SettingsIssue> issues,
         Func<TEnum, EasiSettingsSnapshot> apply)
         where TEnum : struct, Enum
+        => ApplyLegacyEnum(source, [legacyKey], current, issues, apply);
+
+    private static EasiSettingsSnapshot ApplyLegacyEnum<TEnum>(
+        ILegacySettingsSource source,
+        IReadOnlyList<string> legacyKeys,
+        EasiSettingsSnapshot current,
+        ICollection<SettingsIssue> issues,
+        Func<TEnum, EasiSettingsSnapshot> apply)
+        where TEnum : struct, Enum
     {
-        if (!source.TryGetString(legacyKey, out var raw) || raw is null)
+        if (!TryGetLegacyString(source, legacyKeys, out var raw, out var matchedKey))
         {
             return current;
         }
@@ -776,9 +817,60 @@ public sealed class SettingsService : ISettingsService
             return apply(parsed);
         }
 
-        issues.Add(Warning(legacyKey, $"Legacy value '{raw}' is not a valid {typeof(TEnum).Name}."));
+        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid {typeof(TEnum).Name}."));
         return current;
     }
+
+    private static bool TryGetLegacyString(
+        ILegacySettingsSource source,
+        IReadOnlyList<string> legacyKeys,
+        out string value,
+        out string matchedKey)
+    {
+        foreach (var legacyKey in legacyKeys)
+        {
+            if (source.TryGetString(legacyKey, out var raw) && raw is not null)
+            {
+                value = raw;
+                matchedKey = legacyKey;
+                return true;
+            }
+        }
+
+        value = "";
+        matchedKey = legacyKeys.Count > 0 ? legacyKeys[0] : "";
+        return false;
+    }
+
+    private static bool TryParseLegacyBool(string raw, out bool value)
+    {
+        if (bool.TryParse(raw, out value))
+        {
+            return true;
+        }
+
+        if (string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(raw, "yes", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(raw, "y", StringComparison.OrdinalIgnoreCase))
+        {
+            value = true;
+            return true;
+        }
+
+        if (string.Equals(raw, "0", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(raw, "no", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(raw, "n", StringComparison.OrdinalIgnoreCase))
+        {
+            value = false;
+            return true;
+        }
+
+        value = false;
+        return false;
+    }
+
+    private static double NormalizeLegacyUnitScale(double value)
+        => Math.Abs(value) > 1.0 ? value / 100.0 : value;
 
     private static void RequireText(string? value, string key, ICollection<SettingsIssue> issues)
     {
