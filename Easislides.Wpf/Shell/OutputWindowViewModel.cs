@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
@@ -16,6 +18,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
     private readonly IOutputRenderer _renderer;
     private readonly ISettingsService? _settings;
+    private readonly Func<string, ImageSource?> _gapLogoLoader;
     private LiveState _state = LiveState.Off;
     private LiveSessionSnapshot _session = LiveSessionSnapshot.Off;
     private OutputWindowState _output = OutputWindowState.Closed;
@@ -30,6 +33,12 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _lyricsAlertVisibility = Visibility.Collapsed;
     private Visibility _notationVisibility = Visibility.Visible;
     private Visibility _panelOverlayVisibility = Visibility.Visible;
+    private Visibility _displayTitleVisibility = Visibility.Visible;
+    private Visibility _gapLogoVisibility = Visibility.Collapsed;
+    private ImageSource? _gapLogoSource;
+    // GapLogoLoader 캐시: 같은 경로를 매번 디스크에서 다시 디코딩하지 않도록 보관
+    private string? _cachedGapLogoPath;
+    private ImageSource? _cachedGapLogoSource;
     private OutputSceneSnapshot _scene;
     private bool _disposed;
 
@@ -44,9 +53,19 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     }
 
     public OutputWindowViewModel(IOutputRenderer renderer, ISettingsService? settings)
+        : this(renderer, settings, gapLogoLoader: null)
+    {
+    }
+
+    public OutputWindowViewModel(
+        IOutputRenderer renderer,
+        ISettingsService? settings,
+        Func<string, ImageSource?>? gapLogoLoader)
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _settings = settings;
+        // 로더 미주입 시 기본 로더(BitmapImage)로 디스크에서 직접 로드
+        _gapLogoLoader = gapLogoLoader ?? DefaultGapLogoLoader;
         _sceneForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
         _sceneBackgroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColorArgb);
         if (_settings is not null)
@@ -136,6 +155,26 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _panelOverlayVisibility, value);
     }
 
+    // GAP 모드(User)에서 로고 이미지가 표시 중이면 타이틀 텍스트를 숨겨야 하므로
+    // 별도 프로퍼티로 노출. 일반 상황에서는 PanelOverlayVisibility와 동일하게 동작.
+    public Visibility DisplayTitleVisibility
+    {
+        get => _displayTitleVisibility;
+        private set => SetProperty(ref _displayTitleVisibility, value);
+    }
+
+    public Visibility GapLogoVisibility
+    {
+        get => _gapLogoVisibility;
+        private set => SetProperty(ref _gapLogoVisibility, value);
+    }
+
+    public ImageSource? GapLogoSource
+    {
+        get => _gapLogoSource;
+        private set => SetProperty(ref _gapLogoSource, value);
+    }
+
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
         _session = snapshot;
@@ -175,7 +214,45 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         SceneBackgroundBrush = CreateBrush(scene.LyricsMonitorBackgroundColorArgb);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
-        PanelOverlayVisibility = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
+        var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
+        PanelOverlayVisibility = panelOverlay;
+        ApplyGapLogo(scene, panelOverlay);
+    }
+
+    // GAP 모드(User)에서 로고 파일이 로딩 가능하면 이미지를, 그 외에는 기존 타이틀 텍스트를 표시한다.
+    // 로고가 보이는 동안에는 타이틀 텍스트와 시각적으로 겹치지 않도록 DisplayTitleVisibility를 Collapsed로 둔다.
+    private void ApplyGapLogo(OutputSceneSnapshot scene, Visibility panelOverlay)
+    {
+        var logo = TryLoadGapLogo(scene);
+        GapLogoSource = logo;
+        // 패널 오버레이가 숨겨진 상태(예: PPT 라이브)면 로고도 굳이 노출하지 않는다.
+        var gapLogoVisible = logo is not null && panelOverlay == Visibility.Visible;
+        GapLogoVisibility = gapLogoVisible ? Visibility.Visible : Visibility.Collapsed;
+        DisplayTitleVisibility = gapLogoVisible ? Visibility.Collapsed : panelOverlay;
+    }
+
+    private ImageSource? TryLoadGapLogo(OutputSceneSnapshot scene)
+    {
+        // 로고가 의미 있는 시점은 Ready(GAP) 상태 + User 모드 + 경로 존재.
+        if (scene.Kind != OutputSceneKind.Ready
+            || scene.GapItemOption != GapItemMode.User
+            || string.IsNullOrWhiteSpace(scene.GapItemLogoFile))
+        {
+            _cachedGapLogoPath = null;
+            _cachedGapLogoSource = null;
+            return null;
+        }
+
+        if (string.Equals(_cachedGapLogoPath, scene.GapItemLogoFile, StringComparison.OrdinalIgnoreCase)
+            && _cachedGapLogoSource is not null)
+        {
+            return _cachedGapLogoSource;
+        }
+
+        var loaded = _gapLogoLoader(scene.GapItemLogoFile);
+        _cachedGapLogoPath = scene.GapItemLogoFile;
+        _cachedGapLogoSource = loaded;
+        return loaded;
     }
 
     public void Dispose()
@@ -214,6 +291,33 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         => output.IsOpen && output.Placement.Height > 0
             ? (int)output.Placement.Height
             : DefaultViewportHeight;
+
+    // 기본 GAP 로고 로더: 경로가 유효하면 BitmapImage로 로드 후 Freeze.
+    // BitmapCacheOption.OnLoad로 즉시 디코딩해 파일 핸들을 닫고, Freeze로 다른 스레드에서도 안전하게 사용 가능.
+    private static ImageSource? DefaultGapLogoLoader(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+            image.UriSource = new Uri(path, UriKind.Absolute);
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch
+        {
+            // 파일이 잠겨 있거나 디코딩 실패 시 조용히 무시 → 호출부는 텍스트 폴백 사용
+            return null;
+        }
+    }
 
     private static Brush CreateBrush(int argb)
     {

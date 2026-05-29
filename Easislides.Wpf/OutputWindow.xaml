@@ -25,17 +25,27 @@
                        Foreground="{DynamicResource Brush.Surface.Page}" />
         </Border>
 
-        <TextBlock Grid.Row="1"
-                   Text="{Binding DisplayTitle}"
+        <Grid Grid.Row="1">
+            <!-- GAP(User) 모드에서 로고 파일이 로딩되면 이미지를, 그 외에는 기존 타이틀 텍스트를 표시한다. -->
+            <Image Source="{Binding GapLogoSource}"
+                   Visibility="{Binding GapLogoVisibility}"
+                   Stretch="Uniform"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
-                   TextAlignment="Center"
-                   TextWrapping="Wrap"
-                   FontSize="72"
-                   FontWeight="SemiBold"
-                   Foreground="{Binding SceneForegroundBrush}"
                    MaxWidth="1100"
-                   Visibility="{Binding PanelOverlayVisibility}" />
+                   MaxHeight="600" />
+
+            <TextBlock Text="{Binding DisplayTitle}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       FontSize="72"
+                       FontWeight="SemiBold"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       MaxWidth="1100"
+                       Visibility="{Binding DisplayTitleVisibility}" />
+        </Grid>
 
         <Grid Grid.Row="2"
               Margin="{StaticResource Thickness.Xl}"

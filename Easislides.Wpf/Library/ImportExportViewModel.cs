@@ -71,6 +71,17 @@ public sealed partial class ImportExportViewModel : ObservableObject
     [ObservableProperty] private SongFolderSummary? _selectedExportFolder;
     [ObservableProperty] private ImportDuplicatePolicy _importDuplicatePolicy = ImportDuplicatePolicy.KeepExisting;
     [ObservableProperty] private ExportFormat _selectedExportFormat = ExportFormat.Xml;
+    [ObservableProperty] private bool _exportIncludeSongNumber;
+    [ObservableProperty] private bool _exportIncludeTitle = true;
+    [ObservableProperty] private bool _exportIncludeCopyright;
+    [ObservableProperty] private bool _exportIncludeBookReference = true;
+    [ObservableProperty] private bool _exportIncludeUserReference = true;
+    [ObservableProperty] private bool _exportIncludeKey;
+    [ObservableProperty] private bool _exportIncludeCapo;
+    [ObservableProperty] private bool _exportIncludeTiming;
+    [ObservableProperty] private bool _exportIncludeNotations;
+    [ObservableProperty] private bool _exportIncludeIndex;
+    [ObservableProperty] private bool _exportOneSongPerPage;
     [ObservableProperty] private bool _isAccessImportSource;
     [ObservableProperty] private AccessImportTable? _selectedAccessTable;
     [ObservableProperty] private string _accessTitleColumn = "";
@@ -366,12 +377,27 @@ public sealed partial class ImportExportViewModel : ObservableObject
                 ExportOutputPath,
                 SelectedExportFormat,
                 selectedSongs,
-                SelectedExportFolder is null ? [] : [SelectedExportFolder.FolderNo])).ConfigureAwait(true);
+                SelectedExportFolder is null ? [] : [SelectedExportFolder.FolderNo],
+                BuildPraiseBookOptions())).ConfigureAwait(true);
             StatusMessage = report.Succeeded
                 ? $"{report.ExportedSongs} songs exported."
                 : FormatIssues(report.Issues, "Export failed.");
         }).ConfigureAwait(true);
     }
+
+    private PraiseBookExportOptions BuildPraiseBookOptions()
+        => new(
+            IncludeSongNumber: ExportIncludeSongNumber,
+            IncludeTitle: ExportIncludeTitle,
+            IncludeCopyright: ExportIncludeCopyright,
+            IncludeBookReference: ExportIncludeBookReference,
+            IncludeUserReference: ExportIncludeUserReference,
+            IncludeKey: ExportIncludeKey,
+            IncludeCapo: ExportIncludeCapo,
+            IncludeTiming: ExportIncludeTiming,
+            IncludeNotations: ExportIncludeNotations,
+            IncludeIndex: ExportIncludeIndex,
+            OneSongPerPage: ExportOneSongPerPage);
 
     private async Task<AccessImportMapping?> ResolveAccessMappingAsync()
     {

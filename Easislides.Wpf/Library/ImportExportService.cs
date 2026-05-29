@@ -119,12 +119,42 @@ public sealed record ExportSongCandidate(
     string FolderName,
     int SongNumber);
 
+public sealed record PraiseBookTextStyle(
+    bool Bold = false,
+    bool Italic = false,
+    bool Underline = false,
+    int FontSize = 11,
+    string ColorHex = "#000000");
+
+public sealed record PraiseBookExportOptions(
+    bool IncludeSongNumber = false,
+    bool IncludeTitle = true,
+    bool IncludeCopyright = false,
+    bool IncludeBookReference = true,
+    bool IncludeUserReference = true,
+    bool IncludeKey = false,
+    bool IncludeCapo = false,
+    bool IncludeTiming = false,
+    bool IncludeNotations = false,
+    bool IncludeIndex = false,
+    bool OneSongPerPage = false,
+    int LineSpacing = 0,
+    int SongSpacing = 1,
+    PraiseBookTextStyle? TitleStyle = null,
+    PraiseBookTextStyle? MetadataStyle = null,
+    PraiseBookTextStyle? LyricsStyle = null,
+    PraiseBookTextStyle? NotationStyle = null)
+{
+    public static PraiseBookExportOptions Default { get; } = new();
+}
+
 public sealed record ExportRequest(
     string DatabasePath,
     string OutputPath,
     ExportFormat Format,
     IReadOnlyList<int> SongIds,
-    IReadOnlyList<int> FolderNos);
+    IReadOnlyList<int> FolderNos,
+    PraiseBookExportOptions? PraiseBookOptions = null);
 
 public sealed record ExportReport(
     bool Succeeded,
@@ -438,10 +468,10 @@ public sealed class ImportExportService : IImportExportService
                     WriteDatabase(request.OutputPath, exportItems, folders);
                     break;
                 case ExportFormat.Html:
-                    WriteHtml(request.OutputPath, exportItems);
+                    WriteHtml(request.OutputPath, exportItems, request.PraiseBookOptions);
                     break;
                 case ExportFormat.Rtf:
-                    WriteRtf(request.OutputPath, exportItems);
+                    WriteRtf(request.OutputPath, exportItems, request.PraiseBookOptions);
                     break;
                 default:
                     WriteXml(request.OutputPath, exportItems);
@@ -1082,53 +1112,332 @@ public sealed class ImportExportService : IImportExportService
         }
     }
 
-    private static void WriteHtml(string outputDirectory, IReadOnlyList<ExportSong> songs)
+    private static void WriteHtml(
+        string outputDirectory,
+        IReadOnlyList<ExportSong> songs,
+        PraiseBookExportOptions? praiseBookOptions)
     {
         Directory.CreateDirectory(outputDirectory);
-        var index = new StringBuilder("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>EasiSlides Export</title></head><body><ul>");
+        var options = praiseBookOptions ?? PraiseBookExportOptions.Default;
+        var styles = GetPraiseBookStyles(options);
+        var index = new StringBuilder("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>EasiSlides Export</title>")
+            .Append("<style>")
+            .Append(".song-title{").Append(BuildCssStyle(styles.Title)).Append("}")
+            .Append(".song-meta{").Append(BuildCssStyle(styles.Metadata)).Append("}")
+            .Append(".song-lyrics{").Append(BuildCssStyle(styles.Lyrics)).Append("white-space:pre-wrap;}")
+            .Append(".song-notations{").Append(BuildCssStyle(styles.Notation)).Append("white-space:pre-wrap;}")
+            .Append(".song.page-break{page-break-after: always; break-after: page;}")
+            .Append("</style></head><body>");
+        index.Append(options.IncludeIndex ? "<section class=\"book-index\"><h1>Index</h1><ol>" : "<ul>");
+
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var song in songs)
         {
             var fileName = GetUniqueHtmlFileName(song.Detail.Title, usedNames);
+            var indexText = BuildPraiseBookHeading(song, options);
+            if (string.IsNullOrWhiteSpace(indexText))
+            {
+                indexText = song.Detail.Title;
+            }
+
             index.Append("<li><a href=\"").Append(WebUtility.HtmlEncode(fileName)).Append("\">")
-                .Append(WebUtility.HtmlEncode(song.Detail.Title)).Append("</a></li>");
+                .Append(WebUtility.HtmlEncode(indexText)).Append("</a></li>");
+
             var body = new StringBuilder("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>")
                 .Append(WebUtility.HtmlEncode(song.Detail.Title))
-                .Append("</title></head><body><main><h1>")
-                .Append(WebUtility.HtmlEncode(song.Detail.Title))
-                .Append("</h1><pre>")
+                .Append("</title><style>")
+                .Append(".song-title{").Append(BuildCssStyle(styles.Title)).Append("}")
+                .Append(".song-meta{").Append(BuildCssStyle(styles.Metadata)).Append("}")
+                .Append(".song-lyrics{").Append(BuildCssStyle(styles.Lyrics)).Append("white-space:pre-wrap;}")
+                .Append(".song-notations{").Append(BuildCssStyle(styles.Notation)).Append("white-space:pre-wrap;}")
+                .Append(".song.page-break{page-break-after: always; break-after: page;}")
+                .Append("</style></head><body><main class=\"song")
+                .Append(options.OneSongPerPage ? " page-break" : "")
+                .Append("\">");
+
+            var heading = BuildPraiseBookHeading(song, options);
+            if (!string.IsNullOrWhiteSpace(heading))
+            {
+                body.Append("<h1 class=\"song-title\">")
+                    .Append(WebUtility.HtmlEncode(heading))
+                    .Append("</h1>");
+            }
+
+            var metadata = BuildPraiseBookMetadata(song, options);
+            if (metadata.Count > 0)
+            {
+                body.Append("<p class=\"song-meta\">")
+                    .Append(WebUtility.HtmlEncode(string.Join(" | ", metadata)))
+                    .Append("</p>");
+            }
+
+            if (options.IncludeNotations && !string.IsNullOrWhiteSpace(song.Detail.Notations))
+            {
+                body.Append("<pre class=\"song-notations\">")
+                    .Append(WebUtility.HtmlEncode(NormalizeLineEndings(song.Detail.Notations)))
+                    .Append("</pre>");
+            }
+
+            body.Append("<pre class=\"song-lyrics\">")
                 .Append(WebUtility.HtmlEncode(NormalizeLineEndings(song.Detail.Lyrics)))
-                .Append("</pre>");
-            if (!string.IsNullOrWhiteSpace(song.Detail.BookReference))
-            {
-                body.Append("<p>").Append(WebUtility.HtmlEncode(song.Detail.BookReference)).Append("</p>");
-            }
-
-            if (!string.IsNullOrWhiteSpace(song.Detail.UserReference))
-            {
-                body.Append("<p>").Append(WebUtility.HtmlEncode(song.Detail.UserReference)).Append("</p>");
-            }
-
-            body.Append("</main></body></html>");
+                .Append("</pre></main></body></html>");
             File.WriteAllText(Path.Combine(outputDirectory, fileName), body.ToString(), Encoding.UTF8);
         }
 
-        index.Append("</ul></body></html>");
+        index.Append(options.IncludeIndex ? "</ol></section>" : "</ul>");
+        index.Append("</body></html>");
         File.WriteAllText(Path.Combine(outputDirectory, "index.htm"), index.ToString(), Encoding.UTF8);
     }
 
-    private static void WriteRtf(string outputPath, IReadOnlyList<ExportSong> songs)
+    private static void WriteRtf(
+        string outputPath,
+        IReadOnlyList<ExportSong> songs,
+        PraiseBookExportOptions? praiseBookOptions)
     {
-        var builder = new StringBuilder(@"{\rtf1\ansi");
-        foreach (var song in songs)
+        var options = praiseBookOptions ?? PraiseBookExportOptions.Default;
+        var styles = GetPraiseBookStyles(options);
+        var colorIndexes = BuildRtfColorIndexes(styles);
+        var builder = new StringBuilder(@"{\rtf1\ansi\ansicpg1252\deff0")
+            .Append(@"{\fonttbl{\f0\fnil Segoe UI;}}")
+            .Append(BuildRtfColorTable(colorIndexes))
+            .Append(@"\viewkind1\uc1\pard ");
+
+        for (var index = 0; index < songs.Count; index++)
         {
-            builder.Append(@"\par\b ").Append(EscapeRtf(song.Detail.Title)).Append(@"\b0\par ");
-            builder.Append(EscapeRtf(NormalizeLineEndings(song.Detail.Lyrics).Replace("\n", @"\par ", StringComparison.Ordinal)));
-            builder.Append(@"\par ");
+            var song = songs[index];
+            if (index > 0 && options.OneSongPerPage)
+            {
+                builder.Append(@"\page ");
+            }
+
+            var heading = BuildPraiseBookHeading(song, options);
+            if (!string.IsNullOrWhiteSpace(heading))
+            {
+                AppendStyledRtfParagraph(builder, heading, styles.Title, colorIndexes);
+            }
+
+            foreach (var metadataLine in BuildPraiseBookMetadata(song, options))
+            {
+                AppendStyledRtfParagraph(builder, metadataLine, styles.Metadata, colorIndexes);
+            }
+
+            if (options.IncludeNotations && !string.IsNullOrWhiteSpace(song.Detail.Notations))
+            {
+                foreach (var line in SplitNormalizedLines(song.Detail.Notations))
+                {
+                    AppendStyledRtfParagraph(builder, line, styles.Notation, colorIndexes);
+                }
+            }
+
+            foreach (var line in SplitNormalizedLines(song.Detail.Lyrics))
+            {
+                AppendStyledRtfParagraph(builder, line, styles.Lyrics, colorIndexes);
+                AppendRtfBlankLines(builder, options.LineSpacing);
+            }
+
+            AppendRtfBlankLines(builder, options.SongSpacing);
+        }
+
+        if (options.IncludeIndex)
+        {
+            builder.Append(@"\page ");
+            AppendStyledRtfParagraph(builder, "INDEX", styles.Title, colorIndexes);
+            foreach (var song in songs)
+            {
+                var heading = BuildPraiseBookHeading(song, options);
+                AppendStyledRtfParagraph(
+                    builder,
+                    string.IsNullOrWhiteSpace(heading) ? song.Detail.Title : heading,
+                    styles.Metadata,
+                    colorIndexes);
+            }
         }
 
         builder.Append('}');
         File.WriteAllText(outputPath, builder.ToString(), Encoding.UTF8);
+    }
+
+    private static PraiseBookStyleSet GetPraiseBookStyles(PraiseBookExportOptions options)
+        => new(
+            NormalizeTextStyle(options.TitleStyle ?? new PraiseBookTextStyle(Bold: true, FontSize: 14, ColorHex: "#000000")),
+            NormalizeTextStyle(options.MetadataStyle ?? new PraiseBookTextStyle(Italic: true, FontSize: 10, ColorHex: "#333333")),
+            NormalizeTextStyle(options.LyricsStyle ?? new PraiseBookTextStyle(FontSize: 11, ColorHex: "#000000")),
+            NormalizeTextStyle(options.NotationStyle ?? new PraiseBookTextStyle(FontSize: 10, ColorHex: "#555555")));
+
+    private static PraiseBookTextStyle NormalizeTextStyle(PraiseBookTextStyle style)
+        => style with
+        {
+            FontSize = Math.Clamp(style.FontSize, 4, 72),
+            ColorHex = NormalizeHexColor(style.ColorHex),
+        };
+
+    private static string BuildPraiseBookHeading(ExportSong song, PraiseBookExportOptions options)
+    {
+        var parts = new List<string>(2);
+        if (options.IncludeSongNumber && song.Detail.SongNumber > 0)
+        {
+            parts.Add($"No. {song.Detail.SongNumber.ToString(CultureInfo.InvariantCulture)}");
+        }
+
+        if (options.IncludeTitle && !string.IsNullOrWhiteSpace(song.Detail.Title))
+        {
+            parts.Add(song.Detail.Title);
+        }
+
+        return string.Join(" ", parts);
+    }
+
+    private static IReadOnlyList<string> BuildPraiseBookMetadata(ExportSong song, PraiseBookExportOptions options)
+    {
+        var metadata = new List<string>();
+        AddMetadata(metadata, options.IncludeCopyright, song.Detail.Copyright);
+        AddMetadata(metadata, options.IncludeBookReference, song.Detail.BookReference);
+        AddMetadata(metadata, options.IncludeUserReference, song.Detail.UserReference);
+        AddMetadata(metadata, options.IncludeKey && !string.IsNullOrWhiteSpace(song.Detail.Key), $"Key: {song.Detail.Key}");
+        AddMetadata(metadata, options.IncludeCapo && song.Detail.Capo > 0, $"Capo {song.Detail.Capo.ToString(CultureInfo.InvariantCulture)}");
+        AddMetadata(metadata, options.IncludeTiming && !string.IsNullOrWhiteSpace(song.Detail.Timing), $"({song.Detail.Timing})");
+        return metadata;
+    }
+
+    private static void AddMetadata(List<string> metadata, bool include, string value)
+    {
+        if (include && !string.IsNullOrWhiteSpace(value))
+        {
+            metadata.Add(value.Trim());
+        }
+    }
+
+    private static string[] SplitNormalizedLines(string value)
+        => NormalizeLineEndings(value)
+            .Split('\n')
+            .Select(line => line.TrimEnd('\r'))
+            .ToArray();
+
+    private static Dictionary<string, RtfColor> BuildRtfColorIndexes(PraiseBookStyleSet styles)
+    {
+        var colors = new Dictionary<string, RtfColor>(StringComparer.OrdinalIgnoreCase);
+        foreach (var style in new[] { styles.Title, styles.Metadata, styles.Lyrics, styles.Notation })
+        {
+            if (colors.ContainsKey(style.ColorHex))
+            {
+                continue;
+            }
+
+            var (red, green, blue) = ParseHexColor(style.ColorHex);
+            colors[style.ColorHex] = new RtfColor(colors.Count + 1, red, green, blue);
+        }
+
+        return colors;
+    }
+
+    private static string BuildRtfColorTable(IReadOnlyDictionary<string, RtfColor> colorIndexes)
+    {
+        var builder = new StringBuilder(@"{\colortbl;");
+        foreach (var color in colorIndexes.Values.OrderBy(color => color.Index))
+        {
+            builder.Append(@"\red").Append(color.Red.ToString(CultureInfo.InvariantCulture))
+                .Append(@"\green").Append(color.Green.ToString(CultureInfo.InvariantCulture))
+                .Append(@"\blue").Append(color.Blue.ToString(CultureInfo.InvariantCulture))
+                .Append(';');
+        }
+
+        return builder.Append('}').ToString();
+    }
+
+    private static void AppendStyledRtfParagraph(
+        StringBuilder builder,
+        string text,
+        PraiseBookTextStyle style,
+        IReadOnlyDictionary<string, RtfColor> colorIndexes)
+    {
+        builder.Append(@"\pard");
+        if (style.Bold)
+        {
+            builder.Append(@"\b");
+        }
+
+        if (style.Italic)
+        {
+            builder.Append(@"\i");
+        }
+
+        if (style.Underline)
+        {
+            builder.Append(@"\ul");
+        }
+
+        builder.Append(@"\fs").Append((style.FontSize * 2).ToString(CultureInfo.InvariantCulture));
+        if (colorIndexes.TryGetValue(style.ColorHex, out var color))
+        {
+            builder.Append(@"\cf").Append(color.Index.ToString(CultureInfo.InvariantCulture));
+        }
+
+        builder.Append(' ')
+            .Append(EscapeRtf(text))
+            .Append(@"\b0\i0\ulnone\cf0\par ");
+    }
+
+    private static void AppendRtfBlankLines(StringBuilder builder, int count)
+    {
+        for (var i = 0; i < Math.Clamp(count, 0, 12); i++)
+        {
+            builder.Append(@"\par ");
+        }
+    }
+
+    private static string BuildCssStyle(PraiseBookTextStyle style)
+    {
+        var builder = new StringBuilder()
+            .Append("font-size:").Append(style.FontSize.ToString(CultureInfo.InvariantCulture)).Append("pt;")
+            .Append("color:").Append(style.ColorHex).Append(';');
+        if (style.Bold)
+        {
+            builder.Append("font-weight:700;");
+        }
+
+        if (style.Italic)
+        {
+            builder.Append("font-style:italic;");
+        }
+
+        if (style.Underline)
+        {
+            builder.Append("text-decoration:underline;");
+        }
+
+        return builder.ToString();
+    }
+
+    private static string NormalizeHexColor(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "#000000";
+        }
+
+        var hex = value.Trim();
+        if (!hex.StartsWith('#'))
+        {
+            hex = $"#{hex}";
+        }
+
+        if (hex.Length != 7)
+        {
+            return "#000000";
+        }
+
+        return int.TryParse(hex[1..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _)
+            ? hex.ToUpperInvariant()
+            : "#000000";
+    }
+
+    private static (int Red, int Green, int Blue) ParseHexColor(string colorHex)
+    {
+        var hex = NormalizeHexColor(colorHex);
+        var red = int.Parse(hex.Substring(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        var green = int.Parse(hex.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        var blue = int.Parse(hex.Substring(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        return (red, green, blue);
     }
 
     private static void AppendTextField(StringBuilder builder, string token, string value)
@@ -1309,6 +1618,14 @@ public sealed class ImportExportService : IImportExportService
         ImportSourceKind Kind,
         IReadOnlyList<ImportSong> Songs,
         IReadOnlyList<ImportExportIssue> Issues);
+
+    private sealed record PraiseBookStyleSet(
+        PraiseBookTextStyle Title,
+        PraiseBookTextStyle Metadata,
+        PraiseBookTextStyle Lyrics,
+        PraiseBookTextStyle Notation);
+
+    private sealed record RtfColor(int Index, int Red, int Green, int Blue);
 
     private sealed record ExportSong(SongDetail Detail, string FolderName);
 }

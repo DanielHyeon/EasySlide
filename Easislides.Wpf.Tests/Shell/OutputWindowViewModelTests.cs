@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
@@ -124,6 +126,140 @@ public class OutputWindowViewModelTests
 
         sut.PanelOverlayVisibility.Should().Be(Visibility.Visible);
         sut.Scene.ShowsPanelOverlay.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ReadyState_WithGapUserModeAndLoadableLogo_ShowsLogoAndHidesTitle()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.User).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.GapItemLogoFile, "logo.png").Succeeded.Should().BeTrue();
+        var loaderCalls = new List<string>();
+        var stubImage = CreateStubBitmap();
+        ImageSource? Loader(string path)
+        {
+            loaderCalls.Add(path);
+            return stubImage;
+        }
+
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings,
+            (Func<string, ImageSource?>)Loader);
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("display-2", "Display 2", 1920, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(1920, 0, 1920, 1080, IsWindowed: false)));
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Ready);
+        sut.GapLogoSource.Should().BeSameAs(stubImage);
+        sut.GapLogoVisibility.Should().Be(Visibility.Visible);
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Collapsed);
+        loaderCalls.Should().ContainSingle().Which.Should().Be("logo.png");
+    }
+
+    [Fact]
+    public void ReadyState_WithGapUserModeButLoaderReturnsNull_FallsBackToTitleText()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.User).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.GapItemLogoFile, "missing.png").Succeeded.Should().BeTrue();
+
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings,
+            (Func<string, ImageSource?>)(_ => null));
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("display-2", "Display 2", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: true)));
+
+        sut.GapLogoSource.Should().BeNull();
+        sut.GapLogoVisibility.Should().Be(Visibility.Collapsed);
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void ReadyState_WithGapDefaultMode_DoesNotInvokeLoader()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.Default).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.GapItemLogoFile, "logo.png").Succeeded.Should().BeTrue();
+        var loaderCalls = 0;
+
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings,
+            (Func<string, ImageSource?>)(_ => { loaderCalls++; return CreateStubBitmap(); }));
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1280, 720, 1),
+            new OutputWindowPlacement(0, 0, 1280, 720, IsWindowed: true)));
+
+        loaderCalls.Should().Be(0);
+        sut.GapLogoVisibility.Should().Be(Visibility.Collapsed);
+        sut.DisplayTitle.Should().Be("OUTPUT READY");
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void LiveState_WithGapUserMode_DoesNotShowGapLogo()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.User).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.GapItemLogoFile, "logo.png").Succeeded.Should().BeTrue();
+
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings,
+            (Func<string, ImageSource?>)(_ => CreateStubBitmap()));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Live);
+        sut.GapLogoVisibility.Should().Be(Visibility.Collapsed);
+        sut.DisplayTitle.Should().Be("Amazing Grace");
+    }
+
+    [Fact]
+    public void GapLogo_RepeatedScenesWithSamePath_OnlyInvokeLoaderOnce()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.User).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.GapItemLogoFile, "logo.png").Succeeded.Should().BeTrue();
+        var loaderCalls = 0;
+        var stubImage = CreateStubBitmap();
+
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings,
+            (Func<string, ImageSource?>)(_ => { loaderCalls++; return stubImage; }));
+        var openState = new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1280, 720, 1),
+            new OutputWindowPlacement(0, 0, 1280, 720, IsWindowed: true));
+
+        sut.ApplyOutput(openState);
+        sut.ApplyOutput(openState);
+        sut.ApplyOutput(openState);
+
+        loaderCalls.Should().Be(1);
+    }
+
+    private static BitmapSource CreateStubBitmap()
+    {
+        var pixels = new byte[] { 0, 0, 0, 255 };
+        var bitmap = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, palette: null, pixels, stride: 4);
+        bitmap.Freeze();
+        return bitmap;
     }
 
     private sealed class TempSettingsFolder : IDisposable

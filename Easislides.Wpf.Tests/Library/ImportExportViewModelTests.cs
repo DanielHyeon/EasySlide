@@ -123,6 +123,45 @@ public class ImportExportViewModelTests
         sut.StatusMessage.Should().Contain("1");
     }
 
+    [Fact]
+    public async Task ExportAsync_PassesPraiseBookOptions()
+    {
+        using var fixture = new ImportExportViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        sut.ExportOutputPath = Path.Combine(fixture.Root, "book.rtf");
+        sut.SelectedExportFormat = ExportFormat.Rtf;
+        sut.ExportIncludeSongNumber = true;
+        sut.ExportIncludeCopyright = true;
+        sut.ExportIncludeBookReference = true;
+        sut.ExportIncludeUserReference = true;
+        sut.ExportIncludeKey = true;
+        sut.ExportIncludeCapo = true;
+        sut.ExportIncludeTiming = true;
+        sut.ExportIncludeNotations = true;
+        sut.ExportIncludeIndex = true;
+        sut.ExportOneSongPerPage = true;
+
+        await sut.RefreshExportCandidatesAsync();
+        await sut.ExportAsync();
+
+        fixture.Service.LastExportRequest.Should().NotBeNull();
+        var options = fixture.Service.LastExportRequest!.PraiseBookOptions;
+        options.Should().NotBeNull();
+        options!.IncludeSongNumber.Should().BeTrue();
+        options.IncludeTitle.Should().BeTrue();
+        options.IncludeCopyright.Should().BeTrue();
+        options.IncludeBookReference.Should().BeTrue();
+        options.IncludeUserReference.Should().BeTrue();
+        options.IncludeKey.Should().BeTrue();
+        options.IncludeCapo.Should().BeTrue();
+        options.IncludeTiming.Should().BeTrue();
+        options.IncludeNotations.Should().BeTrue();
+        options.IncludeIndex.Should().BeTrue();
+        options.OneSongPerPage.Should().BeTrue();
+    }
+
     private sealed class ImportExportViewModelFixture : IDisposable
     {
         public ImportExportViewModelFixture()

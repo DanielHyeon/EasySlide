@@ -364,6 +364,141 @@ public class ImportExportServiceTests
         reader.GetString(2).Should().Be("Line 1\nLine 2");
     }
 
+    [Fact]
+    public async Task ExportAsync_WhenPraiseBookOptionsProvided_WritesRtfMetadataStylesAndIndex()
+    {
+        using var fixture = new ImportExportFixture();
+        fixture.Repository.Folders.Add(new SongFolderSummary(2, "Morning", true, 1));
+        fixture.Repository.Details[10] = new SongDetail(
+            10,
+            "Alpha",
+            "Alt",
+            2,
+            7,
+            "Line 1\nLine 2",
+            "1,c",
+            "Writer",
+            "Copyright",
+            2,
+            "Fast",
+            "G",
+            "G C",
+            "Praise",
+            "AdminA",
+            "AdminB",
+            "Ps 1",
+            "CCLI",
+            "settings",
+            "format");
+        var sut = fixture.CreateService();
+        var rtfPath = Path.Combine(fixture.Root, "book.rtf");
+        var options = new PraiseBookExportOptions(
+            IncludeSongNumber: true,
+            IncludeTitle: true,
+            IncludeCopyright: true,
+            IncludeBookReference: true,
+            IncludeUserReference: true,
+            IncludeKey: true,
+            IncludeCapo: true,
+            IncludeTiming: true,
+            IncludeNotations: true,
+            IncludeIndex: true,
+            OneSongPerPage: true,
+            SongSpacing: 2,
+            TitleStyle: new PraiseBookTextStyle(Bold: true, FontSize: 18, ColorHex: "#1F4E79"),
+            NotationStyle: new PraiseBookTextStyle(Italic: true, FontSize: 10, ColorHex: "#7C2D12"));
+
+        var report = await sut.ExportAsync(new ExportRequest(
+            fixture.AdminDatabasePath,
+            rtfPath,
+            ExportFormat.Rtf,
+            [10],
+            [2],
+            options));
+
+        report.Succeeded.Should().BeTrue();
+        var rtf = File.ReadAllText(rtfPath);
+        rtf.Should().Contain(@"{\rtf1");
+        rtf.Should().Contain(@"\red31\green78\blue121;");
+        rtf.Should().Contain(@"\red124\green45\blue18;");
+        rtf.Should().Contain(@"\b\fs36");
+        rtf.Should().Contain("No. 7 Alpha");
+        rtf.Should().Contain("Copyright");
+        rtf.Should().Contain("Ps 1");
+        rtf.Should().Contain("CCLI");
+        rtf.Should().Contain("Key: G");
+        rtf.Should().Contain("Capo 2");
+        rtf.Should().Contain("(Fast)");
+        rtf.Should().Contain("G C");
+        rtf.Should().Contain("INDEX");
+        rtf.Should().Contain(@"\page");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WhenPraiseBookOptionsProvided_WritesHtmlMetadataAndIndex()
+    {
+        using var fixture = new ImportExportFixture();
+        fixture.Repository.Folders.Add(new SongFolderSummary(2, "Morning", true, 1));
+        fixture.Repository.Details[10] = new SongDetail(
+            10,
+            "Alpha",
+            "",
+            2,
+            7,
+            "Line 1\nLine 2",
+            "",
+            "",
+            "Copyright",
+            2,
+            "Fast",
+            "G",
+            "G C",
+            "",
+            "",
+            "",
+            "Ps 1",
+            "CCLI",
+            "",
+            "");
+        var sut = fixture.CreateService();
+        var htmlDir = Path.Combine(fixture.Root, "html");
+        var options = new PraiseBookExportOptions(
+            IncludeSongNumber: true,
+            IncludeTitle: true,
+            IncludeCopyright: true,
+            IncludeBookReference: true,
+            IncludeUserReference: true,
+            IncludeKey: true,
+            IncludeCapo: true,
+            IncludeTiming: true,
+            IncludeNotations: true,
+            IncludeIndex: true,
+            OneSongPerPage: true);
+
+        var report = await sut.ExportAsync(new ExportRequest(
+            fixture.AdminDatabasePath,
+            htmlDir,
+            ExportFormat.Html,
+            [10],
+            [2],
+            options));
+
+        report.Succeeded.Should().BeTrue();
+        File.ReadAllText(Path.Combine(htmlDir, "index.htm")).Should()
+            .Contain("book-index")
+            .And.Contain("No. 7 Alpha");
+        File.ReadAllText(Path.Combine(htmlDir, "Alpha.htm")).Should()
+            .Contain("No. 7 Alpha")
+            .And.Contain("Copyright")
+            .And.Contain("Ps 1")
+            .And.Contain("CCLI")
+            .And.Contain("Key: G")
+            .And.Contain("Capo 2")
+            .And.Contain("(Fast)")
+            .And.Contain("G C")
+            .And.Contain("page-break-after");
+    }
+
     private sealed class ImportExportFixture : IDisposable
     {
         public ImportExportFixture()
