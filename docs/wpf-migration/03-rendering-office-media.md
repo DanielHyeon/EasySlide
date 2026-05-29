@@ -130,7 +130,7 @@
 | Office COM PoC | 1차 완료 | `OfficePptSession`, stress 화면 존재 |
 | PPT 운영 service | 부분 구현 | `IPowerPointRenderService`, `PowerPointRenderService`, `IPowerPointRenderBackend`, `OfficePowerPointRenderBackend` 추가. 파일 검증, timeout, `IThumbnailCache` 기반 cache invalidation, 오류 분류, STA `OfficePptSession.ExportSlideAsync` 경계 구현 및 자동 검증 완료. 실제 운영 PPT fixture 10개/100회 stress 검증은 후속 필요 |
 | 썸네일 캐시 | 1차 구현 완료 | `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheKey` 추가. 파일 경로/stamp/길이/크기/variant 기반 cache key, source invalidation, entry/byte limit, LRU eviction, 통계 snapshot, `PowerPointRenderService` 공유 캐시 주입 계약 자동 검증 완료. 이미지 asset service와 실제 디스크 캐시 연동은 후속 필요 |
-| 이미지 프리뷰 WPF 컨트롤 | 1차 구현 완료 | `IImageAssetService`, `ImageAssetService`, `PreviewCanvas` 추가. legacy `ImageCanvas.ResizeCanvas`와 같은 fit 중앙 정렬 계약, fill/stretch/center 배치, 이미지 메타데이터 로드, unsupported/locked/decode 오류 분류, bitmap pixel dimension 기반 DPI 안전 배치, `Source`/`FillMode`/선택 테두리/슬라이드 번호 WPF 렌더링 자동 검증 완료. 출력 renderer scene contract 연결은 완료했으며, `SlidePreviewControl` 연결과 WinForms/WPF 이미지 diff는 후속 필요 |
+| 이미지 프리뷰 WPF 컨트롤 | 1차 구현 완료 | `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `SlidePreviewControl` 추가. legacy `ImageCanvas.ResizeCanvas`와 같은 fit 중앙 정렬 계약, fill/stretch/center 배치, 이미지 메타데이터 로드, unsupported/locked/decode 오류 분류, bitmap pixel dimension 기반 DPI 안전 배치, `Source`/`FillMode`/선택 테두리/슬라이드 번호 WPF 렌더링 자동 검증 완료. `SlidePreviewControl`로 이미지 source가 있으면 `PreviewCanvas`를 표시하고, 없으면 title/kind fallback을 표시하며, MainWindow Preview 탭을 `LiveQueueItem` preview 속성에 연결했다. WinForms/WPF 이미지 diff는 후속 필요 |
 | 전환 효과 WPF화 | 부분 구현 | `ITransitionEffectService`, `TransitionEffectService` 추가. legacy `ImageTransitionControl`의 58개 전환 이름/순서, `TransitionAction`, background layer 정책, progress clamp, fade/slide/reveal/stretch/zoom/spin/flip frame 계약 자동 검증 완료. output renderer scene frame 연결은 완료했으며, 실제 WPF animation visual 적용은 후속 필요 |
 | 미디어 playback WPF화 | 부분 구현 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`로 재생 상태 계약, command, 시간 표시, seek/audio setting clamp, settings 기반 volume/balance/mute default 및 변경 이벤트 반영, `MediaDir` 기반 상대 파일 source 해석, `LiveCamNumber` 기반 `<<Capture>>n` live camera source 및 변경 이벤트 재로드, backend 명령 위임, 모든 주요 backend 명령 실패 시 `Failed` snapshot 전환, WPF `MediaElement` 파일 adapter 경계 자동 검증 완료. DirectShow adapter, 출력 화면 visual host 연결, 실제 fixture 파일/코덱 오류 UI 통합 검증은 후속 필요 |
 | 출력 renderer 동등성 | 부분 구현 | `IOutputRenderer`, `OutputRenderer`, `OutputSceneSnapshot` 추가. `LiveSessionSnapshot`/`OutputWindowState`에서 Live/Hidden/Blackout/Ready/Standby 장면, 출력 모니터명, 표시 라벨, blackout flag, viewport, content placement, transition frame, PowerPoint/media panel overlay visibility를 생성하고 `OutputWindowViewModel.Scene`으로 바인딩 경계를 고정했다. 실제 WinForms/WPF 이미지 diff와 full output visual renderer는 후속 필요 |
@@ -182,6 +182,7 @@ Office 검증:
 - `ThumbnailCacheTests`: cache hit, 파일 stamp 변경 miss, source invalidation, LRU entry/byte eviction, 통계 snapshot 검증
 - `ImageAssetServiceTests`: fit/fill 배치, 이미지 metadata 로드, unsupported/locked/decode error 분류 검증
 - `PreviewCanvasTests`: `ImageAssetService.CalculatePlacement` 계약 기반 fit/fill 배치, DPI별 bitmap pixel dimension 처리, source 없음 처리, slide number/selection 포함 WPF pixel render 검증
+- `SlidePreviewControlTests`: preview source를 `PreviewCanvas`에 전달, source 없음 title/kind fallback, MainWindow Preview 탭의 `SelectedItem.PreviewSource`/`PreviewFillMode`/`SlideNumber` 바인딩 검증
 - `TransitionEffectServiceTests`: legacy 58개 전환 목록/표시명/해석, `AsFade` override, background layer, fade opacity, slide/reveal frame 계약 검증
 - `OutputRendererTests`: Live/Blackout/Standby/Ready gap scene, content placement, transition frame, 표시 라벨, lyrics monitor appearance snapshot 계약 검증
 - `MediaPlaybackServiceTests`: load/play/pause/stop, seek clamp, volume/balance/mute/repeat 상태 유지, settings 기반 media audio default/runtime 변경 반영, backend 명령 위임, load/play/pause/stop/seek/settings 실패 시 `Failed` snapshot 전환 검증
@@ -195,12 +196,13 @@ Office 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PowerPointRenderServiceTests`: 10개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter ImageAssetServiceTests`: 6개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SlidePreviewControlTests`: 3개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 21개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 372개 통과
-- `dotnet test Easislides.sln -c Debug`: 372개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 375개 통과
+- `dotnet test Easislides.sln -c Debug`: 375개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 372개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 375개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:

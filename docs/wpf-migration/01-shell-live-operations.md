@@ -177,7 +177,7 @@ UX 검증:
 - `CommandCatalogTests`: command id 중복 방지, 기본 shortcut의 command 참조 검증, 기본 shortcut 충돌 방지, Live 위험 명령 메타데이터 검증
 - `MediaPlaybackServiceTests`: media request load, playback state 전이, seek/audio setting clamp, 설정 기반 audio default/runtime 변경 반영, backend 명령 위임, load/play/pause/stop/seek/settings 실패 상태 전환 검증
 - `MediaPlaybackViewModelTests`: play/pause, stop, seek, mute/repeat command와 시간/상태 표시 검증
-- `PreviewCanvasTests`: WPF preview placement/render/DPI contract 검증
+- `PreviewCanvasTests`/`SlidePreviewControlTests`: WPF preview placement/render/DPI contract와 MainWindow Preview 탭 바인딩 검증
 - `TransitionEffectServiceTests`: WPF transition effect list/action/frame contract 검증
 - `OutputRendererTests`: 출력 scene snapshot, 표시 라벨, content placement, transition frame, gap/lyrics monitor runtime settings contract 검증
 - `ThumbnailCacheTests`: 썸네일 cache key/invalidation/LRU contract 검증
@@ -203,10 +203,10 @@ UX 검증:
 2026-05-29 검증 결과:
 
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MainViewModelTests|MainWindowCopyTests"`: 19개 통과
-- `dotnet test Easislides.sln -c Debug`: 372개 통과
+- `dotnet test Easislides.sln -c Debug`: 375개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 372개 통과
-- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `PreviewCanvasTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `LiveOutputRenderSettings`, `OutputWindowViewModel`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
+- `dotnet test Easislides.sln -c Release --no-build`: 375개 통과
+- CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `SlidePreviewControl`, `PreviewCanvasTests`, `SlidePreviewControlTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `LiveOutputRenderSettings`, `OutputWindowViewModel`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
 - Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\Easislides.Wpf.exe`, `MainWindow.baml`, `OutputWindow.baml`
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 

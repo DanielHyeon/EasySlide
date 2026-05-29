@@ -200,7 +200,7 @@ UX 검증:
 - `ImportExportServiceTests`/`ImportExportViewModelTests`: legacy ESN/EST folder preview, 중복 정책별 import, XML replace import, TXT/DOC/DOCX folder import, Word COM `.doc` 추출 seam, Access MDB schema/suggested mapping/default preview/custom lyrics merge import, MDB helper mapping 전달, MDB 경로 변경 시 schema reset, XML/ESN/ESF/HTML/RTF export 산출물, praise-book metadata/style/index/page 옵션, 설정 기반 경로 해석, source folder 선택, export candidate 선택과 MainWindow/DI 연결 검증
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 12개 통과
 - `SearchUsageServiceTests`/`SearchUsageViewModelTests`: legacy song search field/folder/key/timing/notation/date filter, Title2 lookup 후보, usage 기간/세션 조회, occurrence summary, record delete 확인 승인/취소, 삭제 후 usage refresh, RTF report, 설정 기반 경로 해석과 MainWindow/DI 연결 검증
-- `dotnet test Easislides.sln -c Debug`: 372개 통과
+- `dotnet test Easislides.sln -c Debug`: 375개 통과
 
 수동 테스트:
 
