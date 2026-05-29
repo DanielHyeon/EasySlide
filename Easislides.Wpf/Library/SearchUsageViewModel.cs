@@ -1,0 +1,397 @@
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Easislides.Wpf.Data;
+using Easislides.Wpf.Settings;
+
+namespace Easislides.Wpf.Library;
+
+public sealed partial class SelectableSearchFolder : ObservableObject
+{
+    [ObservableProperty] private bool _isSelected = true;
+
+    public SelectableSearchFolder(SongFolderSummary folder)
+    {
+        Folder = folder;
+    }
+
+    public SongFolderSummary Folder { get; }
+
+    public int FolderNo => Folder.FolderNo;
+
+    public string Name => Folder.Name;
+
+    public int SongCount => Folder.SongCount;
+}
+
+public sealed partial class SelectableUsageRecord : ObservableObject
+{
+    [ObservableProperty] private bool _isSelected;
+
+    public SelectableUsageRecord(UsageRecord record)
+    {
+        Record = record;
+    }
+
+    public UsageRecord Record { get; }
+
+    public long RecordId => Record.RecordId;
+
+    public DateTime WorshipDate => Record.WorshipDate;
+
+    public string WorshipList => Record.WorshipList;
+
+    public string SongTitle => Record.SongTitle;
+
+    public int SongNumber => Record.SongNumber;
+
+    public string Admin1 => Record.Admin1;
+
+    public string Admin2 => Record.Admin2;
+}
+
+public sealed partial class SearchUsageViewModel : ObservableObject
+{
+    private const string LegacyAdminDatabaseRelativePath = @"Admin\Database\EasiSlidesDb.db";
+
+    private readonly ISettingsService _settings;
+    private readonly ISearchUsageService _service;
+    private UsageReport? _currentUsageReport;
+
+    [ObservableProperty] private string _workingFolder = "";
+    [ObservableProperty] private string _databasePath = "";
+    [ObservableProperty] private string _usageDatabasePath = "";
+    [ObservableProperty] private string _searchText = "";
+    [ObservableProperty] private string _searchKey = "";
+    [ObservableProperty] private string _searchTiming = "";
+    [ObservableProperty] private bool _searchTitle = true;
+    [ObservableProperty] private bool _searchLyrics = true;
+    [ObservableProperty] private bool _searchSongNumber = true;
+    [ObservableProperty] private bool _searchBookReference;
+    [ObservableProperty] private bool _searchUserReference;
+    [ObservableProperty] private bool _searchLicenceAdmin;
+    [ObservableProperty] private bool _searchWriter;
+    [ObservableProperty] private bool _searchCopyright;
+    [ObservableProperty] private bool _notationsOnly;
+    [ObservableProperty] private bool _mediaOnly;
+    [ObservableProperty] private bool _useModifiedDates;
+    [ObservableProperty] private DateTime _modifiedFrom = DateTime.Today.AddMonths(-3);
+    [ObservableProperty] private DateTime _modifiedTo = DateTime.Today;
+    [ObservableProperty] private DateTime _usageFrom = DateTime.Today.AddDays(-91);
+    [ObservableProperty] private DateTime _usageTo = DateTime.Today;
+    [ObservableProperty] private string _selectedUsageSession = "";
+    [ObservableProperty] private string _usageReportOutputPath = "";
+    [ObservableProperty] private string _statusMessage = "";
+    [ObservableProperty] private string _validationMessage = "";
+    [ObservableProperty] private bool _isBusy;
+
+    public SearchUsageViewModel(ISettingsService settings, ISearchUsageService service)
+    {
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _service = service ?? throw new ArgumentNullException(nameof(service));
+        LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
+        SearchSongsCommand = new AsyncRelayCommand(SearchSongsAsync, () => !IsBusy);
+        LookupTitlesCommand = new AsyncRelayCommand(LookupTitlesAsync, () => !IsBusy);
+        RefreshUsageCommand = new AsyncRelayCommand(RefreshUsageAsync, () => !IsBusy);
+        DeleteSelectedUsageCommand = new AsyncRelayCommand(DeleteSelectedUsageAsync, () => !IsBusy);
+        ExportUsageReportCommand = new AsyncRelayCommand(ExportUsageReportAsync, () => !IsBusy);
+    }
+
+    public ObservableCollection<SelectableSearchFolder> SearchFolders { get; } = new();
+
+    public ObservableCollection<SongSearchResult> SearchResults { get; } = new();
+
+    public ObservableCollection<LookupTitleCandidate> LookupCandidates { get; } = new();
+
+    public ObservableCollection<string> UsageSessions { get; } = new();
+
+    public ObservableCollection<SelectableUsageRecord> UsageRecords { get; } = new();
+
+    public ObservableCollection<UsageSummary> UsageSummary { get; } = new();
+
+    public IAsyncRelayCommand LoadCommand { get; }
+
+    public IAsyncRelayCommand SearchSongsCommand { get; }
+
+    public IAsyncRelayCommand LookupTitlesCommand { get; }
+
+    public IAsyncRelayCommand RefreshUsageCommand { get; }
+
+    public IAsyncRelayCommand DeleteSelectedUsageCommand { get; }
+
+    public IAsyncRelayCommand ExportUsageReportCommand { get; }
+
+    public async Task LoadAsync()
+    {
+        WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
+        DatabasePath = ResolveDatabasePath();
+        UsageDatabasePath = _service.GetDefaultUsageDatabasePath(WorkingFolder);
+        UsageReportOutputPath = string.IsNullOrWhiteSpace(WorkingFolder)
+            ? ""
+            : NormalizePath(Path.Combine(WorkingFolder, "Documents", "Song Usages.rtf"));
+
+        await RunBusyAsync(async () =>
+        {
+            var folders = (await _service.GetFoldersAsync(DatabasePath).ConfigureAwait(true))
+                .Where(folder => folder.IsEnabled)
+                .OrderBy(folder => folder.FolderNo)
+                .Select(folder => new SelectableSearchFolder(folder))
+                .ToArray();
+            SearchFolders.ReplaceWith(folders);
+            StatusMessage = $"{SearchFolders.Count} search folders loaded.";
+        }).ConfigureAwait(true);
+    }
+
+    public async Task SearchSongsAsync()
+    {
+        ValidationMessage = "";
+        if (!EnsureSearchDatabase())
+        {
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            var request = new SongSearchRequest(
+                DatabasePath,
+                SearchText,
+                SelectedFolderNos(),
+                BuildSearchFields(),
+                SearchKey,
+                SearchTiming,
+                NotationsOnly,
+                MediaOnly,
+                UseModifiedDates ? ModifiedFrom : null,
+                UseModifiedDates ? ModifiedTo : null);
+            var results = await _service.SearchSongsAsync(request).ConfigureAwait(true);
+            SearchResults.ReplaceWith(results);
+            StatusMessage = $"{SearchResults.Count} songs found.";
+        }).ConfigureAwait(true);
+    }
+
+    public async Task LookupTitlesAsync()
+    {
+        ValidationMessage = "";
+        if (!EnsureSearchDatabase())
+        {
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            var candidates = await _service.LookupTitlesAsync(DatabasePath, SearchText).ConfigureAwait(true);
+            LookupCandidates.ReplaceWith(candidates);
+            StatusMessage = $"{LookupCandidates.Count} title candidates found.";
+        }).ConfigureAwait(true);
+    }
+
+    public async Task RefreshUsageAsync()
+    {
+        ValidationMessage = "";
+        if (string.IsNullOrWhiteSpace(UsageDatabasePath))
+        {
+            ValidationMessage = "Usage database path is empty.";
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            _currentUsageReport = await _service.GetUsageAsync(new UsageRequest(
+                UsageDatabasePath,
+                UsageFrom,
+                UsageTo,
+                SelectedUsageSession)).ConfigureAwait(true);
+            UsageSessions.ReplaceWith(_currentUsageReport.Sessions);
+            if (!UsageSessions.Contains(SelectedUsageSession))
+            {
+                SelectedUsageSession = UsageSessions.FirstOrDefault() ?? "";
+            }
+
+            UsageRecords.ReplaceWith(_currentUsageReport.Records.Select(record => new SelectableUsageRecord(record)));
+            UsageSummary.ReplaceWith(_currentUsageReport.Summary);
+            StatusMessage = _currentUsageReport.Succeeded
+                ? $"{UsageRecords.Count} usage records loaded."
+                : FormatIssues(_currentUsageReport.Issues, "Usage refresh failed.");
+        }).ConfigureAwait(true);
+    }
+
+    public async Task DeleteSelectedUsageAsync()
+    {
+        ValidationMessage = "";
+        var selectedIds = UsageRecords
+            .Where(record => record.IsSelected)
+            .Select(record => record.RecordId)
+            .ToArray();
+        if (selectedIds.Length == 0)
+        {
+            ValidationMessage = "No usage records are selected.";
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            var report = await _service.DeleteUsageRecordsAsync(UsageDatabasePath, selectedIds).ConfigureAwait(true);
+            StatusMessage = report.Succeeded
+                ? $"{report.DeletedCount} usage records deleted."
+                : FormatIssues(report.Issues, "Usage delete failed.");
+        }).ConfigureAwait(true);
+    }
+
+    public async Task ExportUsageReportAsync()
+    {
+        ValidationMessage = "";
+        if (string.IsNullOrWhiteSpace(UsageReportOutputPath))
+        {
+            ValidationMessage = "Usage report output path is empty.";
+            return;
+        }
+
+        if (_currentUsageReport is null)
+        {
+            await RefreshUsageAsync().ConfigureAwait(true);
+        }
+
+        if (_currentUsageReport is null)
+        {
+            return;
+        }
+
+        await RunBusyAsync(async () =>
+        {
+            var report = await _service.ExportUsageReportAsync(_currentUsageReport, UsageReportOutputPath).ConfigureAwait(true);
+            StatusMessage = report.Succeeded
+                ? $"Usage report exported to {report.OutputPath}."
+                : FormatIssues(report.Issues, "Usage report export failed.");
+        }).ConfigureAwait(true);
+    }
+
+    private async Task RunBusyAsync(Func<Task> work)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        NotifyCommands();
+        try
+        {
+            await work().ConfigureAwait(true);
+        }
+        catch (Exception ex) when (IsRecoverable(ex))
+        {
+            StatusMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+            NotifyCommands();
+        }
+    }
+
+    private string ResolveDatabasePath()
+    {
+        var explicitPath = NormalizePath(_settings.Current.Data.AdminDatabasePath);
+        if (!string.IsNullOrWhiteSpace(explicitPath))
+        {
+            return explicitPath;
+        }
+
+        return string.IsNullOrWhiteSpace(WorkingFolder)
+            ? ""
+            : NormalizePath(Path.Combine(WorkingFolder, LegacyAdminDatabaseRelativePath));
+    }
+
+    private bool EnsureSearchDatabase()
+    {
+        if (!string.IsNullOrWhiteSpace(DatabasePath))
+        {
+            return true;
+        }
+
+        ValidationMessage = "AdminDB path is empty.";
+        return false;
+    }
+
+    private int[] SelectedFolderNos()
+        => SearchFolders
+            .Where(folder => folder.IsSelected)
+            .Select(folder => folder.FolderNo)
+            .ToArray();
+
+    private SongSearchFields BuildSearchFields()
+    {
+        var fields = SongSearchFields.None;
+        if (SearchTitle)
+        {
+            fields |= SongSearchFields.Title;
+        }
+
+        if (SearchLyrics)
+        {
+            fields |= SongSearchFields.Lyrics;
+        }
+
+        if (SearchSongNumber)
+        {
+            fields |= SongSearchFields.SongNumber;
+        }
+
+        if (SearchBookReference)
+        {
+            fields |= SongSearchFields.BookReference;
+        }
+
+        if (SearchUserReference)
+        {
+            fields |= SongSearchFields.UserReference;
+        }
+
+        if (SearchLicenceAdmin)
+        {
+            fields |= SongSearchFields.LicenceAdmin;
+        }
+
+        if (SearchWriter)
+        {
+            fields |= SongSearchFields.Writer;
+        }
+
+        if (SearchCopyright)
+        {
+            fields |= SongSearchFields.Copyright;
+        }
+
+        return fields;
+    }
+
+    private void NotifyCommands()
+    {
+        LoadCommand.NotifyCanExecuteChanged();
+        SearchSongsCommand.NotifyCanExecuteChanged();
+        LookupTitlesCommand.NotifyCanExecuteChanged();
+        RefreshUsageCommand.NotifyCanExecuteChanged();
+        DeleteSelectedUsageCommand.NotifyCanExecuteChanged();
+        ExportUsageReportCommand.NotifyCanExecuteChanged();
+    }
+
+    private static string NormalizePath(string? path)
+        => string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);
+
+    private static string FormatIssues(System.Collections.Generic.IReadOnlyList<SearchUsageIssue> issues, string fallback)
+    {
+        var detail = string.Join("; ", issues.Select(issue => issue.Message));
+        return string.IsNullOrWhiteSpace(detail) ? fallback : $"{fallback}: {detail}";
+    }
+
+    private static bool IsRecoverable(Exception ex)
+        => ex is IOException
+            or UnauthorizedAccessException
+            or InvalidOperationException
+            or NotSupportedException
+            or System.Data.SQLite.SQLiteException;
+}

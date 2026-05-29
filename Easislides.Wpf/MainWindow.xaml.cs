@@ -62,6 +62,13 @@ public partial class MainWindow : Window
         importExportWindow.ShowDialog();
     }
 
+    private void OpenSearchUsage_Click(object sender, RoutedEventArgs e)
+    {
+        var searchUsageWindow = _services.GetRequiredService<SearchUsageWindow>();
+        searchUsageWindow.Owner = this;
+        searchUsageWindow.ShowDialog();
+    }
+
     private void OpenBible_Click(object sender, RoutedEventArgs e)
     {
         var bibleWindow = _services.GetRequiredService<BibleWindow>();

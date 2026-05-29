@@ -100,6 +100,16 @@
                             <TextBlock Text="I/O" />
                         </StackPanel>
                     </Button>
+                    <Button Click="OpenSearchUsage_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="Search and usage"
+                            AutomationProperties.Name="Search and usage"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
+                            <TextBlock Text="Search" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenBible_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="성경 열기"

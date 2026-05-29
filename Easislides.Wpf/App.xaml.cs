@@ -76,6 +76,7 @@ public partial class App : Application
         services.AddSingleton<ISongMergeService, SongMergeService>();
         services.AddSingleton<IExternalFileOperationService, ExternalFileOperationService>();
         services.AddSingleton<IImportExportService, ImportExportService>();
+        services.AddSingleton<ISearchUsageService, SearchUsageService>();
         services.AddSingleton<IBibleRepository, BibleRepository>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
@@ -102,6 +103,7 @@ public partial class App : Application
         services.AddTransient<SongMergeViewModel>();
         services.AddTransient<ExternalFileOperationViewModel>();
         services.AddTransient<ImportExportViewModel>();
+        services.AddTransient<SearchUsageViewModel>();
         services.AddTransient<BibleViewModel>();
         services.AddTransient<SettingsWindowViewModel>();
         services.AddTransient<AboutWindowViewModel>();
@@ -118,6 +120,7 @@ public partial class App : Application
         services.AddTransient<SongMergeWindow>();
         services.AddTransient<ExternalFileOperationWindow>();
         services.AddTransient<ImportExportWindow>();
+        services.AddTransient<SearchUsageWindow>();
         services.AddTransient<BibleWindow>();
         services.AddTransient<SettingsWindow>();
         services.AddTransient<AboutWindow>();
