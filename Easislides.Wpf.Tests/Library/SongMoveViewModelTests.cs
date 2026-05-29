@@ -133,6 +133,12 @@ public class SongMoveViewModelTests
 
         public Task<AdminDatabaseWriteReport> RecoverSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongRecoveryRequest> recoveries)
             => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> ReorderFoldersAsync(string databasePath, string backupRoot, IReadOnlyList<FolderOrderRequest> order)
+            => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> ReorderSongsAsync(string databasePath, string backupRoot, int folderNo, IReadOnlyList<SongOrderRequest> order)
+            => throw new NotSupportedException();
     }
 
     private sealed class TempSongMoveSettings : IDisposable

@@ -154,6 +154,12 @@ public class SongRecoveryViewModelTests
                 recoveries.Select(recovery => recovery.TargetFolderNo).ToArray(),
                 Issues: []));
         }
+
+        public Task<AdminDatabaseWriteReport> ReorderFoldersAsync(string databasePath, string backupRoot, IReadOnlyList<FolderOrderRequest> order)
+            => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> ReorderSongsAsync(string databasePath, string backupRoot, int folderNo, IReadOnlyList<SongOrderRequest> order)
+            => throw new NotSupportedException();
     }
 
     private sealed class TempSongRecoverySettings : IDisposable

@@ -36,6 +36,10 @@ public sealed partial class LibraryViewModel : ObservableObject
         _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
         LoadSongsForSelectedFolderCommand = new AsyncRelayCommand(LoadSongsForSelectedFolderAsync, () => !IsBusy);
+        MoveSelectedFolderUpCommand = new AsyncRelayCommand(MoveSelectedFolderUpAsync, CanMoveSelectedFolderUp);
+        MoveSelectedFolderDownCommand = new AsyncRelayCommand(MoveSelectedFolderDownAsync, CanMoveSelectedFolderDown);
+        MoveSelectedSongUpCommand = new AsyncRelayCommand(MoveSelectedSongUpAsync, CanMoveSelectedSongUp);
+        MoveSelectedSongDownCommand = new AsyncRelayCommand(MoveSelectedSongDownAsync, CanMoveSelectedSongDown);
     }
 
     public ObservableCollection<SongFolderSummary> Folders { get; } = new();
@@ -45,6 +49,14 @@ public sealed partial class LibraryViewModel : ObservableObject
     public IAsyncRelayCommand LoadCommand { get; }
 
     public IAsyncRelayCommand LoadSongsForSelectedFolderCommand { get; }
+
+    public IAsyncRelayCommand MoveSelectedFolderUpCommand { get; }
+
+    public IAsyncRelayCommand MoveSelectedFolderDownCommand { get; }
+
+    public IAsyncRelayCommand MoveSelectedSongUpCommand { get; }
+
+    public IAsyncRelayCommand MoveSelectedSongDownCommand { get; }
 
     public async Task LoadAsync()
     {
@@ -60,6 +72,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         {
             var folders = await _adminDatabase.GetSongFoldersAsync(DatabasePath).ConfigureAwait(true);
             Folders.ReplaceWith(folders);
+            NotifyReorderCanExecuteChanged();
 
             _suppressSelectionLoad = true;
             try
@@ -126,13 +139,29 @@ public sealed partial class LibraryViewModel : ObservableObject
         return true;
     }
 
+    public Task MoveSelectedFolderUpAsync()
+        => MoveSelectedFolderAsync(-1);
+
+    public Task MoveSelectedFolderDownAsync()
+        => MoveSelectedFolderAsync(1);
+
+    public Task MoveSelectedSongUpAsync()
+        => MoveSelectedSongAsync(-1);
+
+    public Task MoveSelectedSongDownAsync()
+        => MoveSelectedSongAsync(1);
+
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
+        NotifyReorderCanExecuteChanged();
         if (!_suppressSelectionLoad)
         {
             _ = LoadSongsForSelectedFolderAsync();
         }
     }
+
+    partial void OnSelectedSongChanged(SongSummary? value)
+        => NotifyReorderCanExecuteChanged();
 
     partial void OnSearchTextChanged(string value)
     {
@@ -144,6 +173,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         LoadCommand.NotifyCanExecuteChanged();
         LoadSongsForSelectedFolderCommand.NotifyCanExecuteChanged();
+        NotifyReorderCanExecuteChanged();
     }
 
     private async Task LoadSongsForSelectedFolderCoreAsync()
@@ -162,6 +192,137 @@ public sealed partial class LibraryViewModel : ObservableObject
         TotalSongCount = _loadedSongs.Count;
         ApplySearch();
         UpdateStatus();
+    }
+
+    private async Task MoveSelectedFolderAsync(int direction)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        var selected = SelectedFolder;
+        var selectedIndex = selected is null ? -1 : Folders.IndexOf(selected);
+        var targetIndex = selectedIndex + direction;
+        if (selected is null || selectedIndex < 0 || targetIndex < 0 || targetIndex >= Folders.Count)
+        {
+            StatusMessage = "이동할 폴더를 선택하세요.";
+            return;
+        }
+
+        var target = Folders[targetIndex];
+        var selectedSongId = SelectedSong?.SongId;
+        IsBusy = true;
+        try
+        {
+            var report = await _adminDatabase
+                .ReorderFoldersAsync(
+                    DatabasePath,
+                    ResolveBackupRoot(),
+                    [
+                        new FolderOrderRequest(selected.FolderNo, target.FolderNo),
+                        new FolderOrderRequest(target.FolderNo, selected.FolderNo),
+                    ])
+                .ConfigureAwait(true);
+
+            if (!report.Succeeded)
+            {
+                StatusMessage = FormatWriteFailure("폴더 순서 저장 실패", report);
+                return;
+            }
+
+            await ReloadFoldersAndSelectAsync(target.FolderNo, selectedSongId).ConfigureAwait(true);
+            StatusMessage = "폴더 순서를 저장했습니다.";
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = $"폴더 순서 저장 실패: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task MoveSelectedSongAsync(int direction)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        if (SelectedFolder is null || SelectedSong is null)
+        {
+            StatusMessage = "이동할 곡을 선택하세요.";
+            return;
+        }
+
+        var orderedSongs = _loadedSongs.ToList();
+        var selectedIndex = orderedSongs.FindIndex(song => song.SongId == SelectedSong.SongId);
+        var targetIndex = selectedIndex + direction;
+        if (selectedIndex < 0 || targetIndex < 0 || targetIndex >= orderedSongs.Count)
+        {
+            StatusMessage = "이동할 곡을 선택하세요.";
+            return;
+        }
+
+        var selectedSongId = SelectedSong.SongId;
+        var selected = orderedSongs[selectedIndex];
+        orderedSongs.RemoveAt(selectedIndex);
+        orderedSongs.Insert(targetIndex, selected);
+        var order = orderedSongs
+            .Select((song, index) => new SongOrderRequest(song.SongId, index + 1))
+            .ToArray();
+
+        IsBusy = true;
+        try
+        {
+            var report = await _adminDatabase
+                .ReorderSongsAsync(DatabasePath, ResolveBackupRoot(), SelectedFolder.FolderNo, order)
+                .ConfigureAwait(true);
+
+            if (!report.Succeeded)
+            {
+                StatusMessage = FormatWriteFailure("곡 순서 저장 실패", report);
+                return;
+            }
+
+            await LoadSongsForSelectedFolderCoreAsync().ConfigureAwait(true);
+            SelectSongById(selectedSongId);
+            StatusMessage = "곡 순서를 저장했습니다.";
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = $"곡 순서 저장 실패: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ReloadFoldersAndSelectAsync(int folderNo, int? songId)
+    {
+        var folders = await _adminDatabase.GetSongFoldersAsync(DatabasePath).ConfigureAwait(true);
+        Folders.ReplaceWith(folders);
+        SelectFolderByNo(folderNo);
+        await LoadSongsForSelectedFolderCoreAsync().ConfigureAwait(true);
+        if (songId is > 0)
+        {
+            SelectSongById(songId.Value);
+        }
     }
 
     private async Task RunBusyAsync(Func<Task> action)
@@ -228,6 +389,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         SelectedSong = selected is not null && Songs.Contains(selected)
             ? selected
             : Songs.FirstOrDefault();
+        NotifyReorderCanExecuteChanged();
     }
 
     private void UpdateStatus()
@@ -261,6 +423,72 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     private static string NormalizePath(string? path)
         => string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);
+
+    private bool TryEnsureWritableDatabasePath(out string message)
+    {
+        if (!string.IsNullOrWhiteSpace(DatabasePath) && File.Exists(DatabasePath))
+        {
+            message = "";
+            return true;
+        }
+
+        if (TryResolveDatabasePath(out var resolvedPath, out message))
+        {
+            DatabasePath = resolvedPath;
+            return true;
+        }
+
+        DatabasePath = resolvedPath;
+        return false;
+    }
+
+    private string ResolveBackupRoot()
+    {
+        var configured = _settings.Current.Data.BackupRoot;
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            return NormalizePath(configured);
+        }
+
+        var databaseDirectory = Path.GetDirectoryName(DatabasePath);
+        return Path.Combine(
+            string.IsNullOrWhiteSpace(databaseDirectory) ? Environment.CurrentDirectory : databaseDirectory,
+            "Backups");
+    }
+
+    private bool CanMoveSelectedFolderUp()
+        => !IsBusy && SelectedFolder is not null && Folders.IndexOf(SelectedFolder) > 0;
+
+    private bool CanMoveSelectedFolderDown()
+        => !IsBusy && SelectedFolder is not null && Folders.IndexOf(SelectedFolder) >= 0 && Folders.IndexOf(SelectedFolder) < Folders.Count - 1;
+
+    private bool CanMoveSelectedSongUp()
+        => !IsBusy && SelectedSong is not null && _loadedSongs.ToList().FindIndex(song => song.SongId == SelectedSong.SongId) > 0;
+
+    private bool CanMoveSelectedSongDown()
+    {
+        if (IsBusy || SelectedSong is null)
+        {
+            return false;
+        }
+
+        var index = _loadedSongs.ToList().FindIndex(song => song.SongId == SelectedSong.SongId);
+        return index >= 0 && index < _loadedSongs.Count - 1;
+    }
+
+    private void NotifyReorderCanExecuteChanged()
+    {
+        MoveSelectedFolderUpCommand.NotifyCanExecuteChanged();
+        MoveSelectedFolderDownCommand.NotifyCanExecuteChanged();
+        MoveSelectedSongUpCommand.NotifyCanExecuteChanged();
+        MoveSelectedSongDownCommand.NotifyCanExecuteChanged();
+    }
+
+    private static string FormatWriteFailure(string prefix, AdminDatabaseWriteReport report)
+    {
+        var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
+        return string.IsNullOrWhiteSpace(detail) ? prefix : $"{prefix}: {detail}";
+    }
 
     private static bool IsRecoverableLibraryException(Exception ex)
         => ex is IOException

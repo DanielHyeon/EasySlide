@@ -69,6 +69,8 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal"
@@ -98,6 +100,25 @@
                                 ToolTip="선택 폴더 편집"
                                 AutomationProperties.Name="선택 폴더 편집">
                             <ui:SymbolIcon Symbol="Edit24" />
+                        </Button>
+                        <Button Grid.Column="3"
+                                Width="34"
+                                Height="34"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Command="{Binding MoveSelectedFolderUpCommand}"
+                                ToolTip="Move folder up"
+                                AutomationProperties.Name="Move folder up"
+                                Margin="6,0,6,0">
+                            <ui:SymbolIcon Symbol="ArrowUp24" />
+                        </Button>
+                        <Button Grid.Column="4"
+                                Width="34"
+                                Height="34"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Command="{Binding MoveSelectedFolderDownCommand}"
+                                ToolTip="Move folder down"
+                                AutomationProperties.Name="Move folder down">
+                            <ui:SymbolIcon Symbol="ArrowDown24" />
                         </Button>
                     </Grid>
 
@@ -206,6 +227,28 @@
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowRight24" Margin="0,0,6,0" />
                                     <TextBlock Text="이동" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Command="{Binding MoveSelectedSongUpCommand}"
+                                    ToolTip="Move song up"
+                                    AutomationProperties.Name="Move song up"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowUp24" Margin="0,0,6,0" />
+                                    <TextBlock Text="Up" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Command="{Binding MoveSelectedSongDownCommand}"
+                                    ToolTip="Move song down"
+                                    AutomationProperties.Name="Move song down"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowDown24" Margin="0,0,6,0" />
+                                    <TextBlock Text="Down" />
                                 </StackPanel>
                             </Button>
 

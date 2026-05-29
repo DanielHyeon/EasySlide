@@ -78,6 +78,8 @@ public enum AdminDatabaseWriteOperation
     MoveSongs,
     SoftDeleteSongs,
     RecoverSongs,
+    ReorderFolders,
+    ReorderSongs,
 }
 
 public enum AdminDatabaseWriteIssueKind
@@ -139,6 +141,14 @@ public sealed record SongRecoveryRequest(
     int SongId,
     int TargetFolderNo);
 
+public sealed record FolderOrderRequest(
+    int FolderNo,
+    int NewFolderNo);
+
+public sealed record SongOrderRequest(
+    int SongId,
+    int SongNumber);
+
 public sealed record AdminDatabaseWriteReport(
     bool Succeeded,
     AdminDatabaseWriteOperation Operation,
@@ -182,6 +192,17 @@ public interface IAdminDatabaseRepository
         string databasePath,
         string backupRoot,
         IReadOnlyList<SongRecoveryRequest> recoveries);
+
+    Task<AdminDatabaseWriteReport> ReorderFoldersAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<FolderOrderRequest> order);
+
+    Task<AdminDatabaseWriteReport> ReorderSongsAsync(
+        string databasePath,
+        string backupRoot,
+        int folderNo,
+        IReadOnlyList<SongOrderRequest> order);
 }
 
 public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
@@ -268,6 +289,33 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
             backupRoot,
             AdminDatabaseWriteOperation.RecoverSongs,
             (connection, transaction, outcome) => RecoverSongs(connection, transaction, recoveries, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> ReorderFoldersAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<FolderOrderRequest> order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.ReorderFolders,
+            (connection, transaction, outcome) => ReorderFolders(connection, transaction, order, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> ReorderSongsAsync(
+        string databasePath,
+        string backupRoot,
+        int folderNo,
+        IReadOnlyList<SongOrderRequest> order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.ReorderSongs,
+            (connection, transaction, outcome) => ReorderSongs(connection, transaction, folderNo, order, outcome)));
     }
 
     private static AdminDatabaseSchemaInventory AnalyzeSchema(string databasePath)
@@ -709,6 +757,193 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
             outcome.SongIds.Add(recovery.SongId);
             outcome.FolderNos.Add(recovery.TargetFolderNo);
         }
+    }
+
+    private static void ReorderFolders(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<FolderOrderRequest> order,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (order.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one folder reorder request is required.");
+        }
+
+        if (order.Any(item => item.FolderNo <= 0 || item.NewFolderNo <= 0))
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Folder numbers must be positive.");
+        }
+
+        if (order.Select(item => item.FolderNo).Distinct().Count() != order.Count ||
+            order.Select(item => item.NewFolderNo).Distinct().Count() != order.Count)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Folder reorder requests must contain distinct source and target folder numbers.");
+        }
+
+        var folderColumns = ReadColumnMap(connection, "FOLDER");
+        var songColumns = ReadColumnMap(connection, "SONG");
+        var sourceNumbers = order.Select(item => item.FolderNo).ToHashSet();
+        foreach (var item in order)
+        {
+            using var existsCommand = new SQLiteCommand(
+                $"SELECT COUNT(*) FROM FOLDER WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @folderNo;",
+                connection,
+                transaction);
+            existsCommand.Parameters.AddWithValue("@folderNo", item.FolderNo);
+            var exists = Convert.ToInt32(existsCommand.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
+            if (!exists)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Folder was not found: {item.FolderNo}");
+            }
+
+            if (!sourceNumbers.Contains(item.NewFolderNo))
+            {
+                using var targetCommand = new SQLiteCommand(
+                    $"SELECT COUNT(*) FROM FOLDER WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @folderNo;",
+                    connection,
+                    transaction);
+                targetCommand.Parameters.AddWithValue("@folderNo", item.NewFolderNo);
+                var targetExists = Convert.ToInt32(targetCommand.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
+                if (targetExists)
+                {
+                    throw new AdminDatabaseWriteException(
+                        AdminDatabaseWriteIssueKind.InvalidRequest,
+                        $"Target folder number is already in use: {item.NewFolderNo}");
+                }
+            }
+        }
+
+        foreach (var item in order)
+        {
+            using var songCommand = new SQLiteCommand(
+                $"UPDATE SONG SET {QuoteIdentifier(songColumns["FOLDERNO"])} = @stagedFolderNo WHERE {QuoteIdentifier(songColumns["FOLDERNO"])} = @folderNo;",
+                connection,
+                transaction);
+            songCommand.Parameters.AddWithValue("@folderNo", item.FolderNo);
+            songCommand.Parameters.AddWithValue("@stagedFolderNo", -item.FolderNo);
+            songCommand.ExecuteNonQuery();
+        }
+
+        foreach (var item in order)
+        {
+            using var songCommand = new SQLiteCommand(
+                $"UPDATE SONG SET {QuoteIdentifier(songColumns["FOLDERNO"])} = @newFolderNo WHERE {QuoteIdentifier(songColumns["FOLDERNO"])} = @stagedFolderNo;",
+                connection,
+                transaction);
+            songCommand.Parameters.AddWithValue("@stagedFolderNo", -item.FolderNo);
+            songCommand.Parameters.AddWithValue("@newFolderNo", item.NewFolderNo);
+            songCommand.ExecuteNonQuery();
+        }
+
+        foreach (var item in order)
+        {
+            using var stageCommand = new SQLiteCommand(
+                $"UPDATE FOLDER SET {QuoteIdentifier(folderColumns["FolderNo"])} = @stagedFolderNo WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @folderNo;",
+                connection,
+                transaction);
+            stageCommand.Parameters.AddWithValue("@folderNo", item.FolderNo);
+            stageCommand.Parameters.AddWithValue("@stagedFolderNo", -item.FolderNo);
+            var affected = stageCommand.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Folder was not found: {item.FolderNo}");
+            }
+        }
+
+        foreach (var item in order)
+        {
+            using var applyCommand = new SQLiteCommand(
+                $"UPDATE FOLDER SET {QuoteIdentifier(folderColumns["FolderNo"])} = @newFolderNo WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @stagedFolderNo;",
+                connection,
+                transaction);
+            applyCommand.Parameters.AddWithValue("@newFolderNo", item.NewFolderNo);
+            applyCommand.Parameters.AddWithValue("@stagedFolderNo", -item.FolderNo);
+            var affected = applyCommand.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Folder was not found: {item.FolderNo}");
+            }
+
+            outcome.FolderNos.Add(item.NewFolderNo);
+        }
+    }
+
+    private static void ReorderSongs(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        int folderNo,
+        IReadOnlyList<SongOrderRequest> order,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (folderNo <= 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Folder number must be positive.");
+        }
+
+        if (order.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one song reorder request is required.");
+        }
+
+        if (order.Any(item => item.SongId <= 0 || item.SongNumber <= 0))
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Song ids and song numbers must be positive.");
+        }
+
+        if (order.Select(item => item.SongId).Distinct().Count() != order.Count ||
+            order.Select(item => item.SongNumber).Distinct().Count() != order.Count)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Song reorder requests must contain distinct song ids and song numbers.");
+        }
+
+        var columns = ReadColumnMap(connection, "SONG");
+        foreach (var item in order)
+        {
+            using var command = new SQLiteCommand(
+                $"""
+                UPDATE SONG
+                SET {QuoteIdentifier(columns["SONG_NUMBER"])} = @songNumber
+                WHERE {QuoteIdentifier(columns["SONGID"])} = @songId
+                  AND {QuoteIdentifier(columns["FOLDERNO"])} = @folderNo;
+                """,
+                connection,
+                transaction);
+            command.Parameters.AddWithValue("@songId", item.SongId);
+            command.Parameters.AddWithValue("@folderNo", folderNo);
+            command.Parameters.AddWithValue("@songNumber", item.SongNumber);
+            var affected = command.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Song was not found in folder {folderNo}: {item.SongId}");
+            }
+
+            outcome.SongIds.Add(item.SongId);
+        }
+
+        outcome.FolderNos.Add(folderNo);
     }
 
     private static IReadOnlyDictionary<string, object?> BuildSongValues(SongWriteModel song)

@@ -331,6 +331,99 @@ public class AdminDatabaseRepositoryTests
         AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "FOLDERNO").Should().Be(0);
     }
 
+    [Fact]
+    public async Task ReorderFoldersAsync_SwapsFolderNumbersAndMovesSongsWithBackup()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 1, songNumber: 1);
+        fixture.InsertSong(20, "Dismissal", folderNo: 2, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.ReorderFoldersAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [
+                new FolderOrderRequest(1, 2),
+                new FolderOrderRequest(2, 1),
+            ]);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.ReorderFolders);
+        report.BackupPath.Should().NotBeNull();
+        report.AffectedFolderNos.Should().Equal(2, 1);
+        fixture.ReadFolderName(1).Should().Be("Evening");
+        fixture.ReadFolderName(2).Should().Be("Morning");
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(2);
+        fixture.ReadSongInt(20, "FOLDERNO").Should().Be(1);
+        AdminDatabaseFixture.ReadFolderName(report.BackupPath!, 1).Should().Be("Morning");
+        AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "FOLDERNO").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ReorderSongsAsync_RenumbersSongsWithinFolderWithBackup()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "First", folderNo: 1, songNumber: 1);
+        fixture.InsertSong(11, "Second", folderNo: 1, songNumber: 2);
+        fixture.InsertSong(12, "Third", folderNo: 1, songNumber: 3);
+        fixture.InsertSong(20, "Other", folderNo: 2, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.ReorderSongsAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            1,
+            [
+                new SongOrderRequest(12, 1),
+                new SongOrderRequest(10, 2),
+                new SongOrderRequest(11, 3),
+            ]);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.ReorderSongs);
+        report.AffectedSongIds.Should().Equal(12, 10, 11);
+        report.AffectedFolderNos.Should().Equal(1);
+        fixture.ReadSongInt(12, "SONG_NUMBER").Should().Be(1);
+        fixture.ReadSongInt(10, "SONG_NUMBER").Should().Be(2);
+        fixture.ReadSongInt(11, "SONG_NUMBER").Should().Be(3);
+        fixture.ReadSongInt(20, "SONG_NUMBER").Should().Be(1);
+        AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 12, "SONG_NUMBER").Should().Be(3);
+    }
+
+    [Fact]
+    public async Task ReorderSongsAsync_WhenSongIsOutsideFolder_RollsBackAndRestoresBackup()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "First", folderNo: 1, songNumber: 1);
+        fixture.InsertSong(20, "Other", folderNo: 2, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.ReorderSongsAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            1,
+            [
+                new SongOrderRequest(10, 2),
+                new SongOrderRequest(20, 1),
+            ]);
+
+        report.Succeeded.Should().BeFalse();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.ReorderSongs);
+        report.Issues.Should().Contain(issue => issue.Kind == AdminDatabaseWriteIssueKind.NotFound);
+        fixture.ReadSongInt(10, "SONG_NUMBER").Should().Be(1);
+        fixture.ReadSongInt(20, "SONG_NUMBER").Should().Be(1);
+        AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "SONG_NUMBER").Should().Be(1);
+    }
+
     private sealed class AdminDatabaseFixture : IDisposable
     {
         private AdminDatabaseFixture(string root)

@@ -157,7 +157,7 @@ DB 검증:
 - 손상 DB 처리.
 - schema version mismatch 안내.
 - transaction 실패 시 rollback.
-- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB schema inventory, missing table/column 호환성 진단, bundled `AdminDB/Database/EasiSlidesDb.db` 실제 schema inventory, read-only folder song count, folder별 song summary 조회, 삭제 곡 조회, folder upsert backup, legacy SONG 필드 insert/update, 일반 song move의 `LastModified` 보존, soft delete/recover backup/transaction, song 이동 실패 시 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. `OperationalDataRehearsalServiceTests`로 운영 작업 폴더 기준 AdminDB 파생 경로 inventory와 AdminDB missing warning 경계를 검증한다. 운영 DB 복사본 기준 수동 리허설은 후속으로 추가한다.
+- 현재 1차 자동 검증은 임시 SQLite DB에서 `DatabaseMigrationService` schema version/table 분석, dry-run 무변경 보고, backup 생성, 순차 migration, transaction rollback, backup restore, missing/directory/corrupt path 오류 계약으로 수행한다. `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB schema inventory, missing table/column 호환성 진단, bundled `AdminDB/Database/EasiSlidesDb.db` 실제 schema inventory, read-only folder song count, folder별 song summary 조회, 삭제 곡 조회, folder upsert backup, legacy SONG 필드 insert/update, 일반 song move의 `LastModified` 보존, soft delete/recover backup/transaction, folder reorder 시 `FOLDER.FolderNo`와 `SONG.FOLDERNO` 동시 갱신, song reorder 시 `SONG_NUMBER` 재시퀀싱과 rollback, song 이동 실패 시 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. `OperationalDataRehearsalServiceTests`로 운영 작업 폴더 기준 AdminDB 파생 경로 inventory와 AdminDB missing warning 경계를 검증한다. 운영 DB 복사본 기준 수동 리허설은 후속으로 추가한다.
 
 ## 6. 테스트 방안
 
@@ -186,7 +186,7 @@ DB 검증:
 - `SupportInfoServiceTests`: About/Registration/Help legacy copy, `RegistrationUser` 저장, 웹사이트/등록 페이지 launcher, `KeyBoardOption=1` shortcut override 기반 도움말 전환을 검증
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
-- `AdminDatabaseRepositoryTests`: 임시 legacy AdminDB 및 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, deleted song summary 조회, folder upsert backup, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, 일반 song 이동 시 `LastModified` 보존, soft delete/recover backup/transaction, song 이동 transaction rollback/backup restore, 운영 DI 등록 검증
+- `AdminDatabaseRepositoryTests`: 임시 legacy AdminDB 및 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, deleted song summary 조회, folder upsert backup, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, 일반 song 이동 시 `LastModified` 보존, soft delete/recover backup/transaction, folder reorder의 `FOLDER`/`SONG.FOLDERNO` staging 갱신, song reorder의 `SONG_NUMBER` 재시퀀싱과 rollback, song 이동 transaction rollback/backup restore, 운영 DI 등록 검증
 - `OperationalDataRehearsalServiceTests`: 설정 기반 작업 폴더/백업 루트/AdminDB 파생 경로 해석, destination/backup directory 미생성 dry-run, 자산 scan과 DB inventory 통합, 작업 폴더 누락 error, AdminDB 누락 warning 검증
 - `SettingsWindowViewModelTests.RunOperationalDataRehearsalAsync_*`: SettingsWindow 데이터 탭에서 현재 작업 폴더/AdminDB/백업 루트 값을 리허설 서비스에 전달하고, 파일/테이블/error/warning 요약과 검증 메시지, DB table inventory를 표시하는지 검증
 - `OnboardingCoordinatorTests`: 최초 실행 온보딩 표시, InterfaceSize 저장/테마 적용, 완료 플래그 저장, 완료 후 재표시 방지, 취소 시 미완료 유지 검증
@@ -205,16 +205,16 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SettingsWindowViewModelTests|AppServiceRegistrationTests|ThemeServiceTests"`: 36개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OnboardingCoordinatorTests|AppServiceRegistrationTests|LegacySettingsMapTests"`: 13개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SupportInfoServiceTests|AppServiceRegistrationTests|LegacySettingsMapTests|MigrateLegacyAsync_ImportsRegistrationUser"`: 20개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "LibraryViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 22개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 22개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 298개 통과
-- `dotnet test Easislides.sln -c Debug`: 298개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 25개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 303개 통과
+- `dotnet test Easislides.sln -c Debug`: 303개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 298개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 303개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:
