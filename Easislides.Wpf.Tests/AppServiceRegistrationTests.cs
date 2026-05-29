@@ -44,6 +44,7 @@ public class AppServiceRegistrationTests
             var supportInfo = provider.GetRequiredService<ISupportInfoService>();
             var supportLauncher = provider.GetRequiredService<ISupportLauncher>();
             var libraryViewModel = provider.GetRequiredService<LibraryViewModel>();
+            var folderEditorViewModel = provider.GetRequiredService<FolderEditorViewModel>();
             var songEditorViewModel = provider.GetRequiredService<SongEditorViewModel>();
             var songCopyViewModel = provider.GetRequiredService<SongCopyViewModel>();
             var songMoveViewModel = provider.GetRequiredService<SongMoveViewModel>();
@@ -76,6 +77,7 @@ public class AppServiceRegistrationTests
             supportInfo.Should().BeOfType<SupportInfoService>();
             supportLauncher.Should().BeOfType<SupportLauncher>();
             libraryViewModel.Should().NotBeNull();
+            folderEditorViewModel.Should().NotBeNull();
             songEditorViewModel.Should().NotBeNull();
             songCopyViewModel.Should().NotBeNull();
             songMoveViewModel.Should().NotBeNull();

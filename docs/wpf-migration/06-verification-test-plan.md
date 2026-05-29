@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 282개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 286개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 282개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 286개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -119,7 +119,7 @@ dotnet test Easislides.sln -c Debug --no-build
 - import/export fixture
 - search hit count
 
-현재 상태: `LibraryViewModelTests`, `SongEditorViewModelTests`, `SongCopyViewModelTests`, `SongMoveViewModelTests`, `AdminDatabaseRepositoryTests` 추가 완료. `LibraryViewModel`은 설정의 명시 AdminDB 경로 또는 기존 작업 폴더 파생 경로를 해석하고, `IAdminDatabaseRepository`를 통해 폴더 목록/선택 폴더 곡 목록을 로드하며, 제목/대체 제목/분류/key/가사 검색과 AdminDB 경로 누락 상태 메시지를 자동 검증한다. `SongEditorViewModel`은 기존 곡 필드 로드/dirty state, 제목 validation, `SongWriteModel` 매핑, configured/default backup root, 신규 곡 저장 후 id 반영을 자동 검증한다. `SongCopyViewModel`은 선택 곡 복사 시 원본 폴더 포함 대상 목록, 기본 복사 제목, 대상 폴더별 곡 번호 산정, `SongWriteModel` 매핑, configured/default backup root, 제목 validation을 자동 검증한다. `SongMoveViewModel`은 선택 곡 이동 시 source 폴더 제외 대상 목록, `SongMoveRequest` 매핑, configured/default backup root, 대상 폴더 validation을 자동 검증한다. `LibraryWindow`는 MainWindow 라이브러리 버튼으로 진입해 browse/search, 새 곡/편집 저장 후 reload, 선택 곡 복사/이동 후 대상 폴더 reload와 곡 선택까지 연결되었고, 드래그 정렬, soft delete/복구, 병합, bible editor와 import/export wizard는 후속 M2 범위로 남아 있다.
+현재 상태: `LibraryViewModelTests`, `FolderEditorViewModelTests`, `SongEditorViewModelTests`, `SongCopyViewModelTests`, `SongMoveViewModelTests`, `AdminDatabaseRepositoryTests` 추가 완료. `LibraryViewModel`은 설정의 명시 AdminDB 경로 또는 기존 작업 폴더 파생 경로를 해석하고, `IAdminDatabaseRepository`를 통해 폴더 목록/선택 폴더 곡 목록을 로드하며, 제목/대체 제목/분류/key/가사 검색과 AdminDB 경로 누락 상태 메시지를 자동 검증한다. `FolderEditorViewModel`은 기존 폴더 로드/dirty state, 새 폴더 번호 산정, 이름 validation, `SongFolderWriteModel` 매핑, configured/default backup root를 자동 검증한다. `SongEditorViewModel`은 기존 곡 필드 로드/dirty state, 제목 validation, `SongWriteModel` 매핑, configured/default backup root, 신규 곡 저장 후 id 반영을 자동 검증한다. `SongCopyViewModel`은 선택 곡 복사 시 원본 폴더 포함 대상 목록, 기본 복사 제목, 대상 폴더별 곡 번호 산정, `SongWriteModel` 매핑, configured/default backup root, 제목 validation을 자동 검증한다. `SongMoveViewModel`은 선택 곡 이동 시 source 폴더 제외 대상 목록, `SongMoveRequest` 매핑, configured/default backup root, 대상 폴더 validation을 자동 검증한다. `LibraryWindow`는 MainWindow 라이브러리 버튼으로 진입해 browse/search, 폴더 추가/편집 저장 후 reload, 새 곡/편집 저장 후 reload, 선택 곡 복사/이동 후 대상 폴더 reload와 곡 선택까지 연결되었고, 드래그 정렬, soft delete/복구, 병합, bible editor와 import/export wizard는 후속 M2 범위로 남아 있다.
 
 수동 게이트:
 

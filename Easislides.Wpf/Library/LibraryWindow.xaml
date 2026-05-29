@@ -63,14 +63,43 @@
                     CornerRadius="{StaticResource CornerRadius.Medium}"
                     Padding="{StaticResource Thickness.Lg}">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top"
-                                Orientation="Horizontal"
-                                Margin="0,0,0,12">
-                        <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,8,0" />
-                        <TextBlock Text="폴더"
-                                   Style="{StaticResource Type.Title3.Style}"
-                                   Foreground="{DynamicResource Brush.Text.Primary}" />
-                    </StackPanel>
+                    <Grid DockPanel.Dock="Top"
+                          Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,8,0" />
+                            <TextBlock Text="폴더"
+                                       Style="{StaticResource Type.Title3.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Primary}" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Width="34"
+                                Height="34"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Click="NewFolder_Click"
+                                ToolTip="폴더 추가"
+                                AutomationProperties.Name="폴더 추가"
+                                Margin="0,0,6,0">
+                            <ui:SymbolIcon Symbol="Add24" />
+                        </Button>
+
+                        <Button Grid.Column="2"
+                                Width="34"
+                                Height="34"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Click="EditFolder_Click"
+                                ToolTip="선택 폴더 편집"
+                                AutomationProperties.Name="선택 폴더 편집">
+                            <ui:SymbolIcon Symbol="Edit24" />
+                        </Button>
+                    </Grid>
 
                     <ListBox ItemsSource="{Binding Folders}"
                              SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"

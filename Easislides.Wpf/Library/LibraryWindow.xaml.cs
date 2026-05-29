@@ -34,6 +34,26 @@ public partial class LibraryWindow : Window
         await OpenSongEditorAsync(null);
     }
 
+    private async void NewFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel viewModel)
+        {
+            return;
+        }
+
+        await OpenFolderEditorAsync(viewModel, null);
+    }
+
+    private async void EditFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel { SelectedFolder: not null } viewModel)
+        {
+            return;
+        }
+
+        await OpenFolderEditorAsync(viewModel, viewModel.SelectedFolder);
+    }
+
     private async void EditSong_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
@@ -97,6 +117,31 @@ public partial class LibraryWindow : Window
         {
             viewModel.SelectSongById(songId.Value);
         }
+    }
+
+    private async Task OpenFolderEditorAsync(LibraryViewModel viewModel, SongFolderSummary? folder)
+    {
+        if (string.IsNullOrWhiteSpace(viewModel.DatabasePath))
+        {
+            viewModel.StatusMessage = "AdminDB 경로를 설정해야 합니다.";
+            return;
+        }
+
+        var editorWindow = _services.GetRequiredService<FolderEditorWindow>();
+        editorWindow.Owner = this;
+        if (editorWindow.DataContext is not FolderEditorViewModel editorViewModel)
+        {
+            return;
+        }
+
+        editorViewModel.Load(viewModel.DatabasePath, folder, viewModel.Folders);
+        var saved = editorWindow.ShowDialog() == true;
+        if (!saved)
+        {
+            return;
+        }
+
+        await ReloadLibraryToFolderAndSongAsync(viewModel, editorViewModel.FolderNo, null);
     }
 
     private async Task OpenSongCopyAsync(LibraryViewModel viewModel)

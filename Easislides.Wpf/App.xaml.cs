@@ -87,6 +87,7 @@ public partial class App : Application
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddTransient<MediaPlaybackViewModel>();
         services.AddTransient<LibraryViewModel>();
+        services.AddTransient<FolderEditorViewModel>();
         services.AddTransient<SongEditorViewModel>();
         services.AddTransient<SongCopyViewModel>();
         services.AddTransient<SongMoveViewModel>();
@@ -96,6 +97,7 @@ public partial class App : Application
         services.AddTransient<RegistrationWindowViewModel>();
         services.AddTransient<OutputWindow>();
         services.AddTransient<LibraryWindow>();
+        services.AddTransient<FolderEditorWindow>();
         services.AddTransient<SongEditorWindow>();
         services.AddTransient<SongCopyWindow>();
         services.AddTransient<SongMoveWindow>();
