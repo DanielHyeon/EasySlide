@@ -109,6 +109,16 @@ public partial class LibraryWindow : Window
         await OpenSongRecoveryAsync(viewModel);
     }
 
+    private async void MergeSongs_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel viewModel)
+        {
+            return;
+        }
+
+        await OpenSongMergeAsync(viewModel);
+    }
+
     private void Reorder_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _dragStartPoint = e.GetPosition(null);
@@ -339,6 +349,31 @@ public partial class LibraryWindow : Window
             viewModel,
             recoveryViewModel.RecoveredFolderNo,
             recoveryViewModel.RecoveredSongId);
+    }
+
+    private async Task OpenSongMergeAsync(LibraryViewModel viewModel)
+    {
+        if (string.IsNullOrWhiteSpace(viewModel.DatabasePath))
+        {
+            viewModel.StatusMessage = "AdminDB 경로를 설정해야 합니다.";
+            return;
+        }
+
+        var mergeWindow = _services.GetRequiredService<SongMergeWindow>();
+        mergeWindow.Owner = this;
+        if (mergeWindow.DataContext is not SongMergeViewModel mergeViewModel)
+        {
+            return;
+        }
+
+        mergeViewModel.Load(viewModel.DatabasePath, viewModel.Folders);
+        var merged = mergeWindow.ShowDialog() == true;
+        if (!merged)
+        {
+            return;
+        }
+
+        await ReloadLibraryToFolderAndSongAsync(viewModel, mergeViewModel.SelectedTargetFolder?.FolderNo, null);
     }
 
     private static async Task ReloadLibraryToFolderAndSongAsync(

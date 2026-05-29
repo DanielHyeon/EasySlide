@@ -70,7 +70,10 @@ public partial class App : Application
         services.AddSingleton<IAssetMigrationService, AssetMigrationService>();
         services.AddSingleton<IOperationalDataRehearsalService, OperationalDataRehearsalService>();
         services.AddSingleton<IDatabaseMigrationService, DatabaseMigrationService>();
-        services.AddSingleton<IAdminDatabaseRepository, AdminDatabaseRepository>();
+        services.AddSingleton<AdminDatabaseRepository>();
+        services.AddSingleton<IAdminDatabaseRepository>(sp => sp.GetRequiredService<AdminDatabaseRepository>());
+        services.AddSingleton<IAdminSongDetailRepository>(sp => sp.GetRequiredService<AdminDatabaseRepository>());
+        services.AddSingleton<ISongMergeService, SongMergeService>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
             sp.GetRequiredService<IPowerPointRenderBackend>(),
@@ -93,6 +96,7 @@ public partial class App : Application
         services.AddTransient<SongMoveViewModel>();
         services.AddTransient<SongDeleteViewModel>();
         services.AddTransient<SongRecoveryViewModel>();
+        services.AddTransient<SongMergeViewModel>();
         services.AddTransient<SettingsWindowViewModel>();
         services.AddTransient<AboutWindowViewModel>();
         services.AddTransient<HelpWindowViewModel>();
@@ -105,6 +109,7 @@ public partial class App : Application
         services.AddTransient<SongMoveWindow>();
         services.AddTransient<SongDeleteWindow>();
         services.AddTransient<SongRecoveryWindow>();
+        services.AddTransient<SongMergeWindow>();
         services.AddTransient<SettingsWindow>();
         services.AddTransient<AboutWindow>();
         services.AddTransient<HelpWindow>();

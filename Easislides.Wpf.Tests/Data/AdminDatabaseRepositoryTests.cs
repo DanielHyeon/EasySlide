@@ -110,6 +110,60 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
+    public async Task GetSongDetailAsync_ReturnsLegacyMergeFields()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertSong(
+            10,
+            "Opening",
+            folderNo: 1,
+            songNumber: 2,
+            title2: "Alt",
+            category: "Praise",
+            key: "G",
+            lyrics: "[1]\nLine",
+            sequence: "1",
+            writer: "Writer",
+            copyright: "Copyright",
+            capo: 2,
+            timing: "4/4",
+            notations: "G C",
+            licenceAdmin1: "Admin1",
+            licenceAdmin2: "Admin2",
+            bookReference: "Book",
+            userReference: "User",
+            settings: "Settings",
+            formatData: "Format");
+        var sut = new AdminDatabaseRepository();
+
+        var detail = await sut.GetSongDetailAsync(fixture.DatabasePath, 10);
+
+        detail.Should().NotBeNull();
+        detail!.SongId.Should().Be(10);
+        detail.Title.Should().Be("Opening");
+        detail.AlternateTitle.Should().Be("Alt");
+        detail.FolderNo.Should().Be(1);
+        detail.SongNumber.Should().Be(2);
+        detail.Lyrics.Should().Be("[1]\nLine");
+        detail.Sequence.Should().Be("1");
+        detail.Writer.Should().Be("Writer");
+        detail.Copyright.Should().Be("Copyright");
+        detail.Capo.Should().Be(2);
+        detail.Timing.Should().Be("4/4");
+        detail.Key.Should().Be("G");
+        detail.Notations.Should().Be("G C");
+        detail.Category.Should().Be("Praise");
+        detail.LicenceAdmin1.Should().Be("Admin1");
+        detail.LicenceAdmin2.Should().Be("Admin2");
+        detail.BookReference.Should().Be("Book");
+        detail.UserReference.Should().Be("User");
+        detail.Settings.Should().Be("Settings");
+        detail.FormatData.Should().Be("Format");
+    }
+
+    [Fact]
     public async Task GetDeletedSongsAsync_ReturnsFolderZeroSongsWithOriginalFolderAndDeletedDate()
     {
         using var fixture = AdminDatabaseFixture.Create();
@@ -521,6 +575,18 @@ public class AdminDatabaseRepositoryTests
             string category = "",
             string key = "",
             string lyrics = "",
+            string sequence = "",
+            string writer = "",
+            string copyright = "",
+            int capo = 0,
+            string timing = "",
+            string notations = "",
+            string licenceAdmin1 = "",
+            string licenceAdmin2 = "",
+            string bookReference = "",
+            string userReference = "",
+            string settings = "",
+            string formatData = "",
             int oldFolder = 0,
             DateTime? lastModified = null)
         {
@@ -528,9 +594,13 @@ public class AdminDatabaseRepositoryTests
             using var command = new SQLiteCommand(
                 """
                 INSERT INTO SONG
-                    (SONGID, TITLE_1, TITLE_2, CATEGORY, KEY, FOLDERNO, SONG_NUMBER, LYRICS, OldFolder, LastModified)
+                    (SONGID, TITLE_1, TITLE_2, CATEGORY, KEY, FOLDERNO, SONG_NUMBER, LYRICS, SEQUENCE,
+                     WRITER, COPYRIGHT, CAPO, TIMING, MSC, LICENCE_ADMIN1, LICENCE_ADMIN2, BOOK_REFERENCE,
+                     USER_REFERENCE, SETTINGS, FORMATDATA, OldFolder, LastModified)
                 VALUES
-                    (@songId, @title, @title2, @category, @key, @folderNo, @songNumber, @lyrics, @oldFolder, @lastModified);
+                    (@songId, @title, @title2, @category, @key, @folderNo, @songNumber, @lyrics, @sequence,
+                     @writer, @copyright, @capo, @timing, @notations, @licenceAdmin1, @licenceAdmin2,
+                     @bookReference, @userReference, @settings, @formatData, @oldFolder, @lastModified);
                 """,
                 connection);
             command.Parameters.AddWithValue("@songId", songId);
@@ -541,6 +611,18 @@ public class AdminDatabaseRepositoryTests
             command.Parameters.AddWithValue("@folderNo", folderNo);
             command.Parameters.AddWithValue("@songNumber", songNumber);
             command.Parameters.AddWithValue("@lyrics", lyrics);
+            command.Parameters.AddWithValue("@sequence", sequence);
+            command.Parameters.AddWithValue("@writer", writer);
+            command.Parameters.AddWithValue("@copyright", copyright);
+            command.Parameters.AddWithValue("@capo", capo);
+            command.Parameters.AddWithValue("@timing", timing);
+            command.Parameters.AddWithValue("@notations", notations);
+            command.Parameters.AddWithValue("@licenceAdmin1", licenceAdmin1);
+            command.Parameters.AddWithValue("@licenceAdmin2", licenceAdmin2);
+            command.Parameters.AddWithValue("@bookReference", bookReference);
+            command.Parameters.AddWithValue("@userReference", userReference);
+            command.Parameters.AddWithValue("@settings", settings);
+            command.Parameters.AddWithValue("@formatData", formatData);
             command.Parameters.AddWithValue("@oldFolder", oldFolder);
             command.Parameters.AddWithValue("@lastModified", lastModified ?? DateTime.MinValue.Date);
             command.ExecuteNonQuery();

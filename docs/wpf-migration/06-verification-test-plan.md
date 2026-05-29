@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 305개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 312개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 305개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 312개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -119,7 +119,13 @@ dotnet test Easislides.sln -c Debug --no-build
 - import/export fixture
 - search hit count
 
-현재 상태: `LibraryViewModelTests`, `FolderEditorViewModelTests`, `SongEditorViewModelTests`, `SongCopyViewModelTests`, `SongMoveViewModelTests`, `SongDeleteViewModelTests`, `SongRecoveryViewModelTests`, `AdminDatabaseRepositoryTests` 추가 완료. `LibraryViewModel`은 설정의 명시 AdminDB 경로 또는 기존 작업 폴더 파생 경로를 해석하고, `IAdminDatabaseRepository`를 통해 폴더 목록/선택 폴더 곡 목록을 로드하며, 제목/대체 제목/분류/key/가사 검색, AdminDB 경로 누락 상태 메시지, 폴더/곡 순서 변경 요청 매핑, drag/drop용 target index reorder와 reload/선택 복원을 자동 검증한다. `FolderEditorViewModel`은 기존 폴더 로드/dirty state, 새 폴더 번호 산정, 이름 validation, `SongFolderWriteModel` 매핑, configured/default backup root를 자동 검증한다. `SongEditorViewModel`은 기존 곡 필드 로드/dirty state, 제목 validation, `SongWriteModel` 매핑, configured/default backup root, 신규 곡 저장 후 id 반영을 자동 검증한다. `SongCopyViewModel`은 선택 곡 복사 시 원본 폴더 포함 대상 목록, 기본 복사 제목, 대상 폴더별 곡 번호 산정, `SongWriteModel` 매핑, configured/default backup root, 제목 validation을 자동 검증한다. `SongMoveViewModel`은 선택 곡 이동 시 source 폴더 제외 대상 목록, `SongMoveRequest` 매핑, configured/default backup root, 대상 폴더 validation을 자동 검증한다. `SongDeleteViewModel`은 선택 곡 soft delete 시 `SongDeleteRequest`, configured/default backup root, 선택 곡 validation을 검증한다. `SongRecoveryViewModel`은 삭제 곡 목록 조회, 선택 곡 복구 request, configured/default backup root, 미선택 validation을 검증한다. `AdminDatabaseRepositoryTests`는 삭제 곡 조회, 일반 이동의 `LastModified` 보존, soft delete/recover backup/transaction, folder reorder의 `FOLDER`/`SONG.FOLDERNO` staging 갱신, song reorder의 `SONG_NUMBER` 재시퀀싱과 rollback을 검증한다. `LibraryWindow`는 MainWindow 라이브러리 버튼으로 진입해 browse/search, 폴더 추가/편집 저장 후 reload, 폴더 위아래 및 직접 drag gesture 순서 변경, 새 곡/편집 저장 후 reload, 선택 곡 복사/이동/삭제 후 reload, 곡 위아래 및 직접 drag gesture 순서 변경, 삭제 곡 복구 후 대상 폴더 reload와 곡 선택까지 연결되었고, 병합, bible editor와 import/export wizard는 후속 M2 범위로 남아 있다.
+현재 상태: `LibraryViewModelTests`, `FolderEditorViewModelTests`, `SongEditorViewModelTests`, `SongCopyViewModelTests`, `SongMoveViewModelTests`, `SongDeleteViewModelTests`, `SongRecoveryViewModelTests`, `SongMergeViewModelTests`, `SongMergeServiceTests`, `AdminDatabaseRepositoryTests` 추가 완료.
+
+`LibraryViewModel`은 설정의 명시 AdminDB 경로 또는 기존 작업 폴더 파생 경로를 해석하고, `IAdminDatabaseRepository`를 통해 폴더 목록/선택 폴더 곡 목록을 로드하며, 제목/대체 제목/분류/key/가사 검색, AdminDB 경로 누락 상태 메시지, 폴더/곡 순서 변경 요청 매핑, drag/drop용 target index reorder와 reload/선택 복원을 자동 검증한다. `FolderEditorViewModel`은 기존 폴더 로드/dirty state, 새 폴더 번호 산정, 이름 validation, `SongFolderWriteModel` 매핑, configured/default backup root를 자동 검증한다. `SongEditorViewModel`은 기존 곡 필드 로드/dirty state, 제목 validation, `SongWriteModel` 매핑, configured/default backup root, 신규 곡 저장 후 id 반영을 자동 검증한다.
+
+`SongCopyViewModel`, `SongMoveViewModel`, `SongDeleteViewModel`, `SongRecoveryViewModel`은 복사/이동/삭제/복구 요청 매핑, configured/default backup root, 대상/선택 validation을 검증한다. `SongMergeViewModel`과 `SongMergeService`는 Source A/B 폴더와 기본/대체 제목 매칭, 후보 선택 validation, legacy `FrmSmartMerge` metadata fallback, `[region 2]` 기반 가사 병합, notation remap, 저장 후 reload 신호를 자동 검증한다. `AdminDatabaseRepositoryTests`는 song detail 조회, 삭제 곡 조회, 일반 이동의 `LastModified` 보존, soft delete/recover backup/transaction, folder reorder의 `FOLDER`/`SONG.FOLDERNO` staging 갱신, song reorder의 `SONG_NUMBER` 재시퀀싱과 rollback을 검증한다.
+
+`LibraryWindow`는 MainWindow 라이브러리 버튼으로 진입해 browse/search, 폴더 추가/편집 저장 후 reload, 폴더 위아래 및 직접 drag gesture 순서 변경, 새 곡/편집 저장 후 reload, 선택 곡 복사/이동/삭제 후 reload, 곡 위아래 및 직접 drag gesture 순서 변경, 삭제 곡 복구 후 대상 폴더 reload와 곡 선택, 스마트 병합 후 대상 폴더 reload까지 연결되었다. 외부 복사, bible editor와 import/export wizard는 후속 M2 범위로 남아 있다.
 
 수동 게이트:
 

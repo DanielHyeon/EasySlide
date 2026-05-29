@@ -273,10 +273,21 @@
                                     Click="RecoverSong_Click"
                                     ToolTip="삭제 곡 복구"
                                     AutomationProperties.Name="삭제 곡 복구"
-                                    Margin="0,0,0,8">
+                                    Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowUndo24" Margin="0,0,6,0" />
                                     <TextBlock Text="복구" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Click="MergeSongs_Click"
+                                    ToolTip="스마트 병합"
+                                    AutomationProperties.Name="스마트 병합"
+                                    Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
+                                    <TextBlock Text="병합" />
                                 </StackPanel>
                             </Button>
                         </WrapPanel>

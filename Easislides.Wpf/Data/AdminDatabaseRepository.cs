@@ -64,6 +64,28 @@ public sealed record SongSummary(
     string Key,
     string Lyrics);
 
+public sealed record SongDetail(
+    int SongId,
+    string Title,
+    string AlternateTitle,
+    int FolderNo,
+    int SongNumber,
+    string Lyrics,
+    string Sequence,
+    string Writer,
+    string Copyright,
+    int Capo,
+    string Timing,
+    string Key,
+    string Notations,
+    string Category,
+    string LicenceAdmin1,
+    string LicenceAdmin2,
+    string BookReference,
+    string UserReference,
+    string Settings,
+    string FormatData);
+
 public sealed record DeletedSongSummary(
     int SongId,
     string Title,
@@ -205,7 +227,12 @@ public interface IAdminDatabaseRepository
         IReadOnlyList<SongOrderRequest> order);
 }
 
-public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
+public interface IAdminSongDetailRepository
+{
+    Task<SongDetail?> GetSongDetailAsync(string databasePath, int songId);
+}
+
+public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSongDetailRepository
 {
     private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> RequiredSchema =
         new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase)
@@ -222,6 +249,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
 
     public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
         => Task.FromResult(GetSongs(databasePath, folderNo));
+
+    public Task<SongDetail?> GetSongDetailAsync(string databasePath, int songId)
+        => Task.FromResult(GetSongDetail(databasePath, songId));
 
     public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
         => Task.FromResult(GetDeletedSongs(databasePath));
@@ -418,6 +448,68 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
         }
 
         return songs;
+    }
+
+    private static SongDetail? GetSongDetail(string databasePath, int songId)
+    {
+        EnsureCompatible(databasePath);
+        using var connection = OpenConnection(Path.GetFullPath(databasePath), readOnly: true);
+        var columns = ReadColumnMap(connection, "SONG");
+        using var command = new SQLiteCommand(
+            $"""
+            SELECT
+                {SelectColumn(columns, "SONGID", "SONGID")},
+                {SelectColumn(columns, "TITLE_1", "TITLE_1")},
+                {SelectColumn(columns, "TITLE_2", "TITLE_2")},
+                {SelectColumn(columns, "FOLDERNO", "FOLDERNO")},
+                {SelectColumn(columns, "SONG_NUMBER", "SONG_NUMBER")},
+                {SelectColumn(columns, "LYRICS", "LYRICS")},
+                {SelectColumn(columns, "SEQUENCE", "SEQUENCE")},
+                {SelectColumn(columns, "WRITER", "WRITER")},
+                {SelectColumn(columns, "COPYRIGHT", "COPYRIGHT")},
+                {SelectColumn(columns, "CAPO", "CAPO")},
+                {SelectColumn(columns, "TIMING", "TIMING")},
+                {SelectColumn(columns, "KEY", "KEY")},
+                {SelectColumn(columns, "MSC", "MSC")},
+                {SelectColumn(columns, "CATEGORY", "CATEGORY")},
+                {SelectColumn(columns, "LICENCE_ADMIN1", "LICENCE_ADMIN1")},
+                {SelectColumn(columns, "LICENCE_ADMIN2", "LICENCE_ADMIN2")},
+                {SelectColumn(columns, "BOOK_REFERENCE", "BOOK_REFERENCE")},
+                {SelectColumn(columns, "USER_REFERENCE", "USER_REFERENCE")},
+                {SelectColumn(columns, "SETTINGS", "SETTINGS")},
+                {SelectColumn(columns, "FORMATDATA", "FORMATDATA")}
+            FROM SONG
+            WHERE {QuoteIdentifier(columns["SONGID"])} = @songId;
+            """,
+            connection);
+        command.Parameters.AddWithValue("@songId", songId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new SongDetail(
+            GetInt(reader, "SONGID"),
+            GetString(reader, "TITLE_1"),
+            GetString(reader, "TITLE_2"),
+            GetInt(reader, "FOLDERNO"),
+            GetInt(reader, "SONG_NUMBER"),
+            GetString(reader, "LYRICS"),
+            GetString(reader, "SEQUENCE"),
+            GetString(reader, "WRITER"),
+            GetString(reader, "COPYRIGHT"),
+            GetInt(reader, "CAPO"),
+            GetString(reader, "TIMING"),
+            GetString(reader, "KEY"),
+            GetString(reader, "MSC"),
+            GetString(reader, "CATEGORY"),
+            GetString(reader, "LICENCE_ADMIN1"),
+            GetString(reader, "LICENCE_ADMIN2"),
+            GetString(reader, "BOOK_REFERENCE"),
+            GetString(reader, "USER_REFERENCE"),
+            GetString(reader, "SETTINGS"),
+            GetString(reader, "FORMATDATA"));
     }
 
     private static IReadOnlyList<DeletedSongSummary> GetDeletedSongs(string databasePath)
@@ -1220,6 +1312,11 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
 
     private static string QuoteIdentifier(string identifier)
         => "\"" + identifier.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
+
+    private static string SelectColumn(IReadOnlyDictionary<string, string> columns, string columnName, string alias)
+        => columns.TryGetValue(columnName, out var actualName)
+            ? $"{QuoteIdentifier(actualName)} AS {QuoteIdentifier(alias)}"
+            : $"NULL AS {QuoteIdentifier(alias)}";
 
     private static string GetString(SQLiteDataReader reader, string name)
     {

@@ -38,6 +38,8 @@ public class AppServiceRegistrationTests
             var mediaPlayback = provider.GetRequiredService<IMediaPlaybackService>();
             var placement = provider.GetRequiredService<IWindowPlacementService>();
             var adminRepository = provider.GetRequiredService<IAdminDatabaseRepository>();
+            var songDetails = provider.GetRequiredService<IAdminSongDetailRepository>();
+            var songMergeService = provider.GetRequiredService<ISongMergeService>();
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
             var onboarding = provider.GetRequiredService<IOnboardingCoordinator>();
             var onboardingDialog = provider.GetRequiredService<IOnboardingDialogService>();
@@ -50,6 +52,7 @@ public class AppServiceRegistrationTests
             var songMoveViewModel = provider.GetRequiredService<SongMoveViewModel>();
             var songDeleteViewModel = provider.GetRequiredService<SongDeleteViewModel>();
             var songRecoveryViewModel = provider.GetRequiredService<SongRecoveryViewModel>();
+            var songMergeViewModel = provider.GetRequiredService<SongMergeViewModel>();
             var aboutViewModel = provider.GetRequiredService<AboutWindowViewModel>();
             var helpViewModel = provider.GetRequiredService<HelpWindowViewModel>();
             var registrationViewModel = provider.GetRequiredService<RegistrationWindowViewModel>();
@@ -73,6 +76,8 @@ public class AppServiceRegistrationTests
 
             legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
             adminRepository.Should().BeOfType<AdminDatabaseRepository>();
+            songDetails.Should().BeSameAs(adminRepository);
+            songMergeService.Should().BeOfType<SongMergeService>();
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
             onboarding.Should().BeOfType<OnboardingCoordinator>();
             onboardingDialog.Should().BeOfType<WelcomeWindowDialogService>();
@@ -85,6 +90,7 @@ public class AppServiceRegistrationTests
             songMoveViewModel.Should().NotBeNull();
             songDeleteViewModel.Should().NotBeNull();
             songRecoveryViewModel.Should().NotBeNull();
+            songMergeViewModel.Should().NotBeNull();
             aboutViewModel.Should().NotBeNull();
             helpViewModel.Should().NotBeNull();
             registrationViewModel.Should().NotBeNull();
