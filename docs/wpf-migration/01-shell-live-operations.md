@@ -130,7 +130,7 @@
 | LiveBar 컴포지트 | 1차 구현 완료 | `LiveSessionService` snapshot과 `MainViewModel.ApplyLiveSnapshot`으로 상태/현재 항목/출력 모니터 연결 완료 |
 | SafetyConfirm | 1차 운영 연결 완료 | Go Live, Stop Live, 라이브 중 출력 닫기, Black/Hide 명령이 `ILiveSafetyPrompt` 확인 경계를 통과 |
 | MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결. 운영 셸 제목/버튼/패널 라벨, 샘플 큐, 빈 큐/PowerPoint 제한 상태 메시지의 한국어 readable copy 회귀 방지 완료 |
-| 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel`, `IDisplayService` 연결. borderless/fullscreen 및 창 모드 배치, `DefaultOutputMonitorId` 설정 기반 초기 출력 모니터 선택, 라이브 snapshot 반영 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
+| 출력 화면 WPF 대체 | 1차 구현 완료 | `OutputWindow`, `OutputWindowHost`, `OutputWindowViewModel`, `IDisplayService` 연결. borderless/fullscreen 및 창 모드 배치, `DefaultOutputMonitorId` 설정 기반 초기 출력 모니터 선택, 라이브 snapshot 반영 완료. Blackout/Hidden 강제 검정 오버레이, Scene 변경 시 ContentArea fade-in 애니메이션, `LiveSessionSnapshot.CurrentItemPreviewSource`를 통한 송출 콘텐츠 이미지 자동 주입 및 `ContentPlacement` 좌표 기반 배치 완료. 실제 PPT/가사 렌더링 동등성은 M3에서 검증 |
 | 미디어 컨트롤 WPF 대체 | 1차 구현 완료 | `IMediaPlaybackService`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend` 추가. 재생/일시정지/정지/seek/mute/repeat/volume/balance 상태 계약, 설정 기반 media volume/balance/mute 기본값 및 변경 이벤트 반영, backend 명령 위임, 모든 주요 backend 명령 실패 시 `Failed` snapshot 전환, WPF `MediaElement` 파일 adapter 경계와 command 기반 ViewModel 검증 완료. DirectShow adapter 및 출력 화면 visual host 연결은 M3에서 계속 진행 |
 | 키보드/리모컨 연결 | 1차 구현 완료 | `ShortcutRegistry`, `MainViewModel.BindShortcuts`, `GlobalInputService`, HookManager adapter 운영 연결 완료. 실제 리모컨/타 앱 포커스 수동 검증은 M5에서 계속 수행 |
 
