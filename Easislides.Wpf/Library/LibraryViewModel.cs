@@ -105,6 +105,27 @@ public sealed partial class LibraryViewModel : ObservableObject
         SelectedSong = Songs.FirstOrDefault(song => song.SongId == songId) ?? SelectedSong;
     }
 
+    public bool SelectFolderByNo(int folderNo)
+    {
+        var folder = Folders.FirstOrDefault(item => item.FolderNo == folderNo);
+        if (folder is null)
+        {
+            return false;
+        }
+
+        _suppressSelectionLoad = true;
+        try
+        {
+            SelectedFolder = folder;
+        }
+        finally
+        {
+            _suppressSelectionLoad = false;
+        }
+
+        return true;
+    }
+
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
         if (!_suppressSelectionLoad)

@@ -44,6 +44,16 @@ public partial class LibraryWindow : Window
         await OpenSongEditorAsync(viewModel.SelectedSong);
     }
 
+    private async void CopySong_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        {
+            return;
+        }
+
+        await OpenSongCopyAsync(viewModel);
+    }
+
     private async void MoveSong_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
@@ -89,6 +99,31 @@ public partial class LibraryWindow : Window
         }
     }
 
+    private async Task OpenSongCopyAsync(LibraryViewModel viewModel)
+    {
+        if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
+        {
+            viewModel.StatusMessage = "복사할 곡을 선택하세요.";
+            return;
+        }
+
+        var copyWindow = _services.GetRequiredService<SongCopyWindow>();
+        copyWindow.Owner = this;
+        if (copyWindow.DataContext is not SongCopyViewModel copyViewModel)
+        {
+            return;
+        }
+
+        copyViewModel.Load(viewModel.DatabasePath, viewModel.SelectedSong, viewModel.SelectedFolder, viewModel.Folders);
+        var copied = copyWindow.ShowDialog() == true;
+        if (!copied)
+        {
+            return;
+        }
+
+        await ReloadLibraryToFolderAndSongAsync(viewModel, copyViewModel.SelectedTargetFolder?.FolderNo, copyViewModel.CreatedSongId);
+    }
+
     private async Task OpenSongMoveAsync(LibraryViewModel viewModel)
     {
         if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
@@ -111,7 +146,24 @@ public partial class LibraryWindow : Window
             return;
         }
 
+        await ReloadLibraryToFolderAndSongAsync(viewModel, moveViewModel.SelectedTargetFolder?.FolderNo, moveViewModel.SongId);
+    }
+
+    private static async Task ReloadLibraryToFolderAndSongAsync(
+        LibraryViewModel viewModel,
+        int? folderNo,
+        int? songId)
+    {
         await viewModel.LoadAsync();
+        if (folderNo is not null && viewModel.SelectFolderByNo(folderNo.Value))
+        {
+            await viewModel.LoadSongsForSelectedFolderAsync();
+        }
+
+        if (songId is not null)
+        {
+            viewModel.SelectSongById(songId.Value);
+        }
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)

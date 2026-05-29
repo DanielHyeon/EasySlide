@@ -125,6 +125,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal"
@@ -160,6 +161,18 @@
                         </Button>
 
                         <Button Grid.Column="3"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Click="CopySong_Click"
+                                ToolTip="선택 곡 복사"
+                                AutomationProperties.Name="선택 곡 복사"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
+                                <TextBlock Text="복사" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="4"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Click="MoveSong_Click"
                                 ToolTip="선택 곡 이동"
