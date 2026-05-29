@@ -254,6 +254,77 @@ public class OutputWindowViewModelTests
         loaderCalls.Should().Be(1);
     }
 
+    [Fact]
+    public void Blackout_ShowsBlackoutOverlay()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: true));
+
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void Hidden_ShowsBlackoutOverlay()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Hidden);
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void Live_DoesNotShowBlackoutOverlay()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void Standby_DoesNotShowBlackoutOverlay()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void Blackout_ThenLive_HidesBlackoutOverlay()
+    {
+        var sut = new OutputWindowViewModel();
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: true));
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Visible);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed);
+    }
+
     private static BitmapSource CreateStubBitmap()
     {
         var pixels = new byte[] { 0, 0, 0, 255 };

@@ -35,6 +35,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _panelOverlayVisibility = Visibility.Visible;
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
+    private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private ImageSource? _gapLogoSource;
     // GapLogoLoader 캐시: 같은 경로를 매번 디스크에서 다시 디코딩하지 않도록 보관
     private string? _cachedGapLogoPath;
@@ -175,6 +176,14 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _gapLogoSource, value);
     }
 
+    // Blackout/Hidden 상태에서 송출 화면을 검정으로 강제 덮는 오버레이.
+    // 사용자가 설정한 배경 브러시(LyricsMonitorBackgroundColorArgb)가 새지 않도록 보장한다.
+    public Visibility BlackoutOverlayVisibility
+    {
+        get => _blackoutOverlayVisibility;
+        private set => SetProperty(ref _blackoutOverlayVisibility, value);
+    }
+
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
         _session = snapshot;
@@ -217,7 +226,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
         PanelOverlayVisibility = panelOverlay;
         ApplyGapLogo(scene, panelOverlay);
+        BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) ? Visibility.Visible : Visibility.Collapsed;
     }
+
+    // Blackout(완전 차단) / Hidden(화면 끄기) 모두 송출 화면은 검정으로 덮어야 한다.
+    // 두 상태를 시각적으로 구분하는 것은 운영자 패널의 역할이고, 송출 화면은 둘 다 깨끗한 검정이 안전.
+    private static bool IsBlackoutOrHidden(OutputSceneKind kind)
+        => kind == OutputSceneKind.Blackout || kind == OutputSceneKind.Hidden;
 
     // GAP 모드(User)에서 로고 파일이 로딩 가능하면 이미지를, 그 외에는 기존 타이틀 텍스트를 표시한다.
     // 로고가 보이는 동안에는 타이틀 텍스트와 시각적으로 겹치지 않도록 DisplayTitleVisibility를 Collapsed로 둔다.

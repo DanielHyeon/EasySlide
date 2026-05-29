@@ -67,5 +67,13 @@
                        Foreground="{DynamicResource Brush.Live.Active}"
                        Visibility="{Binding NotationVisibility}" />
         </Grid>
+
+        <!-- Blackout/Hidden 상태에서 모든 행을 덮는 검정 오버레이.
+             사용자가 지정한 배경색이나 GAP 로고가 새는 것을 막는다. -->
+        <Rectangle Grid.Row="0"
+                   Grid.RowSpan="3"
+                   Fill="Black"
+                   IsHitTestVisible="False"
+                   Visibility="{Binding BlackoutOverlayVisibility}" />
     </Grid>
 </Window>
