@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
 using Easislides.Wpf.Data;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +13,8 @@ public partial class LibraryWindow : Window
 {
     private readonly IServiceProvider _services;
     private bool _loadedOnce;
+    private Point _dragStartPoint;
+    private object? _dragSourceItem;
 
     public LibraryWindow(LibraryViewModel viewModel, IServiceProvider services)
     {
@@ -102,6 +107,74 @@ public partial class LibraryWindow : Window
         }
 
         await OpenSongRecoveryAsync(viewModel);
+    }
+
+    private void Reorder_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(null);
+        _dragSourceItem = FindDataContext<SongFolderSummary>(e.OriginalSource as DependencyObject)
+            ?? (object?)FindDataContext<SongSummary>(e.OriginalSource as DependencyObject);
+    }
+
+    private void FolderList_MouseMove(object sender, MouseEventArgs e)
+    {
+        TryStartDrag<SongFolderSummary>(FolderList, e);
+    }
+
+    private void SongsGrid_MouseMove(object sender, MouseEventArgs e)
+    {
+        TryStartDrag<SongSummary>(SongsGrid, e);
+    }
+
+    private void Reorder_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = DragDropEffects.Move;
+        e.Handled = true;
+    }
+
+    private async void FolderList_Drop(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        if (DataContext is not LibraryViewModel viewModel ||
+            e.Data.GetData(typeof(SongFolderSummary)) is not SongFolderSummary dragged)
+        {
+            return;
+        }
+
+        var target = FindDataContext<SongFolderSummary>(e.OriginalSource as DependencyObject);
+        var targetIndex = target is null ? viewModel.Folders.Count - 1 : viewModel.Folders.IndexOf(target);
+        if (targetIndex < 0)
+        {
+            return;
+        }
+
+        if (viewModel.SelectedFolder?.FolderNo != dragged.FolderNo)
+        {
+            viewModel.SelectFolderByNo(dragged.FolderNo);
+            viewModel.SelectedSong = null;
+        }
+
+        await viewModel.MoveSelectedFolderToIndexAsync(targetIndex);
+    }
+
+    private async void SongsGrid_Drop(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        if (DataContext is not LibraryViewModel viewModel ||
+            e.Data.GetData(typeof(SongSummary)) is not SongSummary dragged)
+        {
+            return;
+        }
+
+        var target = FindDataContext<SongSummary>(e.OriginalSource as DependencyObject);
+        viewModel.SelectedSong = viewModel.Songs.FirstOrDefault(song => song.SongId == dragged.SongId) ?? dragged;
+        if (target is null)
+        {
+            await viewModel.MoveSelectedSongToEndAsync();
+            return;
+        }
+
+        await viewModel.MoveSelectedSongToSongAsync(target);
     }
 
     private async Task OpenSongEditorAsync(SongSummary? song)
@@ -288,5 +361,68 @@ public partial class LibraryWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void TryStartDrag<T>(DependencyObject source, MouseEventArgs e)
+        where T : class
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _dragSourceItem is not T item)
+        {
+            return;
+        }
+
+        var currentPoint = e.GetPosition(null);
+        var movedEnough =
+            Math.Abs(currentPoint.X - _dragStartPoint.X) >= SystemParameters.MinimumHorizontalDragDistance ||
+            Math.Abs(currentPoint.Y - _dragStartPoint.Y) >= SystemParameters.MinimumVerticalDragDistance;
+        if (!movedEnough)
+        {
+            return;
+        }
+
+        DragDrop.DoDragDrop(source, item, DragDropEffects.Move);
+        _dragSourceItem = null;
+    }
+
+    private static T? FindDataContext<T>(DependencyObject? source)
+        where T : class
+    {
+        var current = source;
+        while (current is not null)
+        {
+            if (current is FrameworkElement { DataContext: T frameworkValue })
+            {
+                return frameworkValue;
+            }
+
+            if (current is FrameworkContentElement { DataContext: T contentValue })
+            {
+                return contentValue;
+            }
+
+            current = GetParent(current);
+        }
+
+        return null;
+    }
+
+    private static DependencyObject? GetParent(DependencyObject current)
+    {
+        if (current is Visual or System.Windows.Media.Media3D.Visual3D)
+        {
+            return VisualTreeHelper.GetParent(current);
+        }
+
+        if (current is FrameworkElement frameworkElement)
+        {
+            return frameworkElement.Parent;
+        }
+
+        if (current is FrameworkContentElement contentElement)
+        {
+            return contentElement.Parent;
+        }
+
+        return null;
     }
 }

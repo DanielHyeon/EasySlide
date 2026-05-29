@@ -122,8 +122,14 @@
                         </Button>
                     </Grid>
 
-                    <ListBox ItemsSource="{Binding Folders}"
+                    <ListBox x:Name="FolderList"
+                             ItemsSource="{Binding Folders}"
                              SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                             AllowDrop="True"
+                             PreviewMouseLeftButtonDown="Reorder_PreviewMouseLeftButtonDown"
+                             MouseMove="FolderList_MouseMove"
+                             DragOver="Reorder_DragOver"
+                             Drop="FolderList_Drop"
                              BorderThickness="0"
                              HorizontalContentAlignment="Stretch">
                         <ListBox.ItemTemplate>
@@ -284,9 +290,15 @@
                              ToolTip="제목, 분류, 가사 검색"
                              AutomationProperties.Name="라이브러리 검색" />
 
-                    <DataGrid Grid.Row="2"
+                    <DataGrid x:Name="SongsGrid"
+                              Grid.Row="2"
                               ItemsSource="{Binding Songs}"
                               SelectedItem="{Binding SelectedSong, Mode=TwoWay}"
+                              AllowDrop="True"
+                              PreviewMouseLeftButtonDown="Reorder_PreviewMouseLeftButtonDown"
+                              MouseMove="SongsGrid_MouseMove"
+                              DragOver="Reorder_DragOver"
+                              Drop="SongsGrid_Drop"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"

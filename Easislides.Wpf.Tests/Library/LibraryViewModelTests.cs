@@ -129,6 +129,37 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task MoveSelectedFolderToIndexAsync_ReordersAcrossMultipleFolders()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.AddRange([
+            new SongFolderSummary(1, "Morning", IsEnabled: true, SongCount: 1),
+            new SongFolderSummary(2, "Evening", IsEnabled: true, SongCount: 1),
+            new SongFolderSummary(3, "Late", IsEnabled: true, SongCount: 1),
+        ]);
+        repository.SongsByFolder[1] = [Song(10, "Opening", folderNo: 1)];
+        repository.SongsByFolder[2] = [Song(20, "Middle", folderNo: 2)];
+        repository.SongsByFolder[3] = [Song(30, "Closing", folderNo: 3)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        await sut.MoveSelectedFolderToIndexAsync(2);
+
+        repository.LastFolderOrder.Should().Equal(
+            new FolderOrderRequest(1, 3),
+            new FolderOrderRequest(2, 1),
+            new FolderOrderRequest(3, 2));
+        sut.Folders.Select(folder => folder.Name).Should().Equal("Evening", "Late", "Morning");
+        sut.SelectedFolder.Should().NotBeNull();
+        sut.SelectedFolder!.Name.Should().Be("Morning");
+        sut.SelectedFolder.FolderNo.Should().Be(3);
+        sut.Songs.Should().ContainSingle().Which.SongId.Should().Be(10);
+    }
+
+    [Fact]
     public async Task MoveSelectedSongUpAsync_RenumbersVisibleSongsAndRestoresSelection()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -158,6 +189,35 @@ public class LibraryViewModelTests
         sut.SelectedSong.Should().NotBeNull();
         sut.SelectedSong!.SongId.Should().Be(12);
         sut.StatusMessage.Should().Be("곡 순서를 저장했습니다.");
+    }
+
+    [Fact]
+    public async Task MoveSelectedSongToIndexAsync_RenumbersAcrossMultipleRows()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "Morning", IsEnabled: true, SongCount: 3));
+        repository.SongsByFolder[1] =
+        [
+            Song(10, "First", folderNo: 1, songNumber: 1),
+            Song(11, "Second", folderNo: 1, songNumber: 2),
+            Song(12, "Third", folderNo: 1, songNumber: 3),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.SelectedSong = sut.Songs[0];
+
+        await sut.MoveSelectedSongToIndexAsync(2);
+
+        repository.LastSongOrder.Should().Equal(
+            new SongOrderRequest(11, 1),
+            new SongOrderRequest(12, 2),
+            new SongOrderRequest(10, 3));
+        sut.Songs.Select(song => song.SongId).Should().Equal(11, 12, 10);
+        sut.SelectedSong.Should().NotBeNull();
+        sut.SelectedSong!.SongId.Should().Be(10);
     }
 
     private static SongSummary Song(

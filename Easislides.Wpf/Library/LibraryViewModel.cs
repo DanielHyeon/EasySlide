@@ -140,16 +140,161 @@ public sealed partial class LibraryViewModel : ObservableObject
     }
 
     public Task MoveSelectedFolderUpAsync()
-        => MoveSelectedFolderAsync(-1);
+        => MoveSelectedFolderToIndexAsync(GetSelectedFolderIndex() - 1);
 
     public Task MoveSelectedFolderDownAsync()
-        => MoveSelectedFolderAsync(1);
+        => MoveSelectedFolderToIndexAsync(GetSelectedFolderIndex() + 1);
 
     public Task MoveSelectedSongUpAsync()
-        => MoveSelectedSongAsync(-1);
+        => MoveSelectedSongToIndexAsync(GetSelectedSongIndex() - 1);
 
     public Task MoveSelectedSongDownAsync()
-        => MoveSelectedSongAsync(1);
+        => MoveSelectedSongToIndexAsync(GetSelectedSongIndex() + 1);
+
+    public async Task MoveSelectedFolderToIndexAsync(int targetIndex)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        var selected = SelectedFolder;
+        var selectedIndex = selected is null ? -1 : Folders.IndexOf(selected);
+        if (selected is null || selectedIndex < 0 || targetIndex < 0 || targetIndex >= Folders.Count)
+        {
+            StatusMessage = "이동할 폴더를 선택하세요.";
+            return;
+        }
+
+        if (selectedIndex == targetIndex)
+        {
+            return;
+        }
+
+        var selectedSongId = SelectedSong?.SongId;
+        var orderedFolders = Folders.ToList();
+        var folderNumbers = orderedFolders
+            .Select(folder => folder.FolderNo)
+            .OrderBy(folderNo => folderNo)
+            .ToArray();
+        orderedFolders.RemoveAt(selectedIndex);
+        orderedFolders.Insert(targetIndex, selected);
+
+        var order = orderedFolders
+            .Select((folder, index) => new FolderOrderRequest(folder.FolderNo, folderNumbers[index]))
+            .Where(item => item.FolderNo != item.NewFolderNo)
+            .OrderBy(item => item.FolderNo)
+            .ToArray();
+
+        if (order.Length == 0)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var report = await _adminDatabase
+                .ReorderFoldersAsync(DatabasePath, ResolveBackupRoot(), order)
+                .ConfigureAwait(true);
+
+            if (!report.Succeeded)
+            {
+                StatusMessage = FormatWriteFailure("폴더 순서 저장 실패", report);
+                return;
+            }
+
+            await ReloadFoldersAndSelectAsync(folderNumbers[targetIndex], selectedSongId).ConfigureAwait(true);
+            StatusMessage = "폴더 순서를 저장했습니다.";
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = $"폴더 순서 저장 실패: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public Task MoveSelectedSongToSongAsync(SongSummary targetSong)
+        => MoveSelectedSongToIndexAsync(_loadedSongs.ToList().FindIndex(song => song.SongId == targetSong.SongId));
+
+    public Task MoveSelectedSongToEndAsync()
+        => MoveSelectedSongToIndexAsync(_loadedSongs.Count - 1);
+
+    public async Task MoveSelectedSongToIndexAsync(int targetIndex)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        if (SelectedFolder is null || SelectedSong is null)
+        {
+            StatusMessage = "이동할 곡을 선택하세요.";
+            return;
+        }
+
+        var orderedSongs = _loadedSongs.ToList();
+        var selectedIndex = orderedSongs.FindIndex(song => song.SongId == SelectedSong.SongId);
+        if (selectedIndex < 0 || targetIndex < 0 || targetIndex >= orderedSongs.Count)
+        {
+            StatusMessage = "이동할 곡을 선택하세요.";
+            return;
+        }
+
+        if (selectedIndex == targetIndex)
+        {
+            return;
+        }
+
+        var selectedSongId = SelectedSong.SongId;
+        var selected = orderedSongs[selectedIndex];
+        orderedSongs.RemoveAt(selectedIndex);
+        orderedSongs.Insert(targetIndex, selected);
+        var order = orderedSongs
+            .Select((song, index) => new SongOrderRequest(song.SongId, index + 1))
+            .ToArray();
+
+        IsBusy = true;
+        try
+        {
+            var report = await _adminDatabase
+                .ReorderSongsAsync(DatabasePath, ResolveBackupRoot(), SelectedFolder.FolderNo, order)
+                .ConfigureAwait(true);
+
+            if (!report.Succeeded)
+            {
+                StatusMessage = FormatWriteFailure("곡 순서 저장 실패", report);
+                return;
+            }
+
+            await LoadSongsForSelectedFolderCoreAsync().ConfigureAwait(true);
+            SelectSongById(selectedSongId);
+            StatusMessage = "곡 순서를 저장했습니다.";
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = $"곡 순서 저장 실패: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
@@ -192,125 +337,6 @@ public sealed partial class LibraryViewModel : ObservableObject
         TotalSongCount = _loadedSongs.Count;
         ApplySearch();
         UpdateStatus();
-    }
-
-    private async Task MoveSelectedFolderAsync(int direction)
-    {
-        if (IsBusy)
-        {
-            return;
-        }
-
-        if (!TryEnsureWritableDatabasePath(out var message))
-        {
-            StatusMessage = message;
-            return;
-        }
-
-        var selected = SelectedFolder;
-        var selectedIndex = selected is null ? -1 : Folders.IndexOf(selected);
-        var targetIndex = selectedIndex + direction;
-        if (selected is null || selectedIndex < 0 || targetIndex < 0 || targetIndex >= Folders.Count)
-        {
-            StatusMessage = "이동할 폴더를 선택하세요.";
-            return;
-        }
-
-        var target = Folders[targetIndex];
-        var selectedSongId = SelectedSong?.SongId;
-        IsBusy = true;
-        try
-        {
-            var report = await _adminDatabase
-                .ReorderFoldersAsync(
-                    DatabasePath,
-                    ResolveBackupRoot(),
-                    [
-                        new FolderOrderRequest(selected.FolderNo, target.FolderNo),
-                        new FolderOrderRequest(target.FolderNo, selected.FolderNo),
-                    ])
-                .ConfigureAwait(true);
-
-            if (!report.Succeeded)
-            {
-                StatusMessage = FormatWriteFailure("폴더 순서 저장 실패", report);
-                return;
-            }
-
-            await ReloadFoldersAndSelectAsync(target.FolderNo, selectedSongId).ConfigureAwait(true);
-            StatusMessage = "폴더 순서를 저장했습니다.";
-        }
-        catch (Exception ex) when (IsRecoverableLibraryException(ex))
-        {
-            StatusMessage = $"폴더 순서 저장 실패: {ex.Message}";
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private async Task MoveSelectedSongAsync(int direction)
-    {
-        if (IsBusy)
-        {
-            return;
-        }
-
-        if (!TryEnsureWritableDatabasePath(out var message))
-        {
-            StatusMessage = message;
-            return;
-        }
-
-        if (SelectedFolder is null || SelectedSong is null)
-        {
-            StatusMessage = "이동할 곡을 선택하세요.";
-            return;
-        }
-
-        var orderedSongs = _loadedSongs.ToList();
-        var selectedIndex = orderedSongs.FindIndex(song => song.SongId == SelectedSong.SongId);
-        var targetIndex = selectedIndex + direction;
-        if (selectedIndex < 0 || targetIndex < 0 || targetIndex >= orderedSongs.Count)
-        {
-            StatusMessage = "이동할 곡을 선택하세요.";
-            return;
-        }
-
-        var selectedSongId = SelectedSong.SongId;
-        var selected = orderedSongs[selectedIndex];
-        orderedSongs.RemoveAt(selectedIndex);
-        orderedSongs.Insert(targetIndex, selected);
-        var order = orderedSongs
-            .Select((song, index) => new SongOrderRequest(song.SongId, index + 1))
-            .ToArray();
-
-        IsBusy = true;
-        try
-        {
-            var report = await _adminDatabase
-                .ReorderSongsAsync(DatabasePath, ResolveBackupRoot(), SelectedFolder.FolderNo, order)
-                .ConfigureAwait(true);
-
-            if (!report.Succeeded)
-            {
-                StatusMessage = FormatWriteFailure("곡 순서 저장 실패", report);
-                return;
-            }
-
-            await LoadSongsForSelectedFolderCoreAsync().ConfigureAwait(true);
-            SelectSongById(selectedSongId);
-            StatusMessage = "곡 순서를 저장했습니다.";
-        }
-        catch (Exception ex) when (IsRecoverableLibraryException(ex))
-        {
-            StatusMessage = $"곡 순서 저장 실패: {ex.Message}";
-        }
-        finally
-        {
-            IsBusy = false;
-        }
     }
 
     private async Task ReloadFoldersAndSelectAsync(int folderNo, int? songId)
@@ -483,6 +509,12 @@ public sealed partial class LibraryViewModel : ObservableObject
         MoveSelectedSongUpCommand.NotifyCanExecuteChanged();
         MoveSelectedSongDownCommand.NotifyCanExecuteChanged();
     }
+
+    private int GetSelectedFolderIndex()
+        => SelectedFolder is null ? -1 : Folders.IndexOf(SelectedFolder);
+
+    private int GetSelectedSongIndex()
+        => SelectedSong is null ? -1 : _loadedSongs.ToList().FindIndex(song => song.SongId == SelectedSong.SongId);
 
     private static string FormatWriteFailure(string prefix, AdminDatabaseWriteReport report)
     {
