@@ -11,75 +11,71 @@ using Xunit;
 
 namespace Easislides.Wpf.Tests.Library;
 
-public class SongMoveViewModelTests
+public class SongDeleteViewModelTests
 {
     [Fact]
-    public void Load_ExcludesSourceFolderAndSelectsFirstTarget()
+    public void Load_PopulatesSelectedSongAndSourceFolder()
     {
-        using var fixture = TempSongMoveSettings.Create();
+        using var fixture = TempSongDeleteSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         var source = new SongFolderSummary(1, "Morning", true, 2);
-        var target = new SongFolderSummary(2, "Evening", true, 0);
-        var disabled = new SongFolderSummary(3, "Archive", false, 1);
-        var sut = new SongMoveViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        var sut = new SongDeleteViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
 
-        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source, target, disabled]);
+        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source);
 
+        sut.DatabasePath.Should().Be(fixture.AdminDatabasePath);
+        sut.SongId.Should().Be(10);
+        sut.SourceFolderNo.Should().Be(1);
         sut.SourceFolderName.Should().Be("Morning");
         sut.SongTitle.Should().Be("Opening");
-        sut.TargetFolders.Select(folder => folder.FolderNo).Should().Equal(2, 3);
-        sut.SelectedTargetFolder.Should().Be(target);
         sut.ValidationMessage.Should().Be("");
     }
 
     [Fact]
-    public async Task MoveAsync_WhenTargetSelected_UsesRepositoryAndConfiguredBackupRoot()
+    public async Task DeleteAsync_WhenValid_UsesRepositoryAndConfiguredBackupRoot()
     {
-        using var fixture = TempSongMoveSettings.Create();
+        using var fixture = TempSongDeleteSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         fixture.Settings.Set(EasiSettingKeys.DataBackupRoot, fixture.BackupRoot);
         var repository = new FakeAdminDatabaseRepository();
-        var source = new SongFolderSummary(1, "Morning", true, 1);
-        var target = new SongFolderSummary(2, "Evening", true, 0);
-        var sut = new SongMoveViewModel(fixture.Settings, repository);
-        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source, target]);
+        var source = new SongFolderSummary(1, "Morning", true, 2);
+        var sut = new SongDeleteViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source);
 
-        await sut.MoveAsync();
+        await sut.DeleteAsync();
 
         repository.LastDatabasePath.Should().Be(fixture.AdminDatabasePath);
         repository.LastBackupRoot.Should().Be(fixture.BackupRoot);
-        repository.LastMoves.Should().ContainSingle().Which.Should().Be(new SongMoveRequest(10, 1, 2));
-        sut.StatusMessage.Should().Be("이동되었습니다.");
+        repository.LastDeletes.Should().ContainSingle().Which.Should().Be(new SongDeleteRequest(10, 1));
+        sut.StatusMessage.Should().Be("삭제되었습니다.");
     }
 
     [Fact]
-    public async Task MoveAsync_WhenNoTargetFolder_ShowsValidationAndDoesNotWrite()
+    public async Task DeleteAsync_WhenSongMissing_ShowsValidationAndDoesNotWrite()
     {
-        using var fixture = TempSongMoveSettings.Create();
+        using var fixture = TempSongDeleteSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         var repository = new FakeAdminDatabaseRepository();
-        var source = new SongFolderSummary(1, "Morning", true, 1);
-        var sut = new SongMoveViewModel(fixture.Settings, repository);
-        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source]);
+        var sut = new SongDeleteViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, Song(0, "", folderNo: 0), new SongFolderSummary(0, "", true, 0));
 
-        await sut.MoveAsync();
+        await sut.DeleteAsync();
 
-        sut.ValidationMessage.Should().Be("이동할 대상 폴더를 선택하세요.");
-        repository.LastMoves.Should().BeEmpty();
+        sut.ValidationMessage.Should().Be("삭제할 곡을 선택하세요.");
+        repository.LastDeletes.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task MoveAsync_WhenBackupRootNotConfigured_UsesDatabaseSiblingBackupsFolder()
+    public async Task DeleteAsync_WhenBackupRootNotConfigured_UsesDatabaseSiblingBackupsFolder()
     {
-        using var fixture = TempSongMoveSettings.Create();
+        using var fixture = TempSongDeleteSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         var repository = new FakeAdminDatabaseRepository();
-        var source = new SongFolderSummary(1, "Morning", true, 1);
-        var target = new SongFolderSummary(2, "Evening", true, 0);
-        var sut = new SongMoveViewModel(fixture.Settings, repository);
-        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source, target]);
+        var source = new SongFolderSummary(1, "Morning", true, 2);
+        var sut = new SongDeleteViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source);
 
-        await sut.MoveAsync();
+        await sut.DeleteAsync();
 
         repository.LastBackupRoot.Should().Be(Path.Combine(fixture.Root, "Backups"));
     }
@@ -93,7 +89,7 @@ public class SongMoveViewModelTests
 
         public string LastBackupRoot { get; private set; } = "";
 
-        public List<SongMoveRequest> LastMoves { get; } = [];
+        public List<SongDeleteRequest> LastDeletes { get; } = [];
 
         public Task<AdminDatabaseSchemaInventory> AnalyzeSchemaAsync(string databasePath)
             => throw new NotSupportedException();
@@ -114,30 +110,30 @@ public class SongMoveViewModelTests
             => throw new NotSupportedException();
 
         public Task<AdminDatabaseWriteReport> MoveSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongMoveRequest> moves)
+            => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> SoftDeleteSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongDeleteRequest> deletes)
         {
             LastDatabasePath = databasePath;
             LastBackupRoot = backupRoot;
-            LastMoves.AddRange(moves);
+            LastDeletes.AddRange(deletes);
             return Task.FromResult(new AdminDatabaseWriteReport(
                 Succeeded: true,
-                AdminDatabaseWriteOperation.MoveSongs,
+                AdminDatabaseWriteOperation.SoftDeleteSongs,
                 databasePath,
                 Path.Combine(backupRoot, "backup.db"),
-                moves.Select(move => move.SongId).ToArray(),
-                moves.Select(move => move.NewFolderNo).ToArray(),
+                deletes.Select(delete => delete.SongId).ToArray(),
+                deletes.Select(delete => delete.OriginalFolderNo).ToArray(),
                 Issues: []));
         }
-
-        public Task<AdminDatabaseWriteReport> SoftDeleteSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongDeleteRequest> deletes)
-            => throw new NotSupportedException();
 
         public Task<AdminDatabaseWriteReport> RecoverSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongRecoveryRequest> recoveries)
             => throw new NotSupportedException();
     }
 
-    private sealed class TempSongMoveSettings : IDisposable
+    private sealed class TempSongDeleteSettings : IDisposable
     {
-        private TempSongMoveSettings(string root)
+        private TempSongDeleteSettings(string root)
         {
             Root = root;
             Directory.CreateDirectory(root);
@@ -155,8 +151,8 @@ public class SongMoveViewModelTests
 
         public string AdminDatabasePath { get; private set; } = "";
 
-        public static TempSongMoveSettings Create()
-            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_SongMove_{Guid.NewGuid():N}"));
+        public static TempSongDeleteSettings Create()
+            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_SongDelete_{Guid.NewGuid():N}"));
 
         public void CreateAdminDatabaseFile(string fileName)
         {

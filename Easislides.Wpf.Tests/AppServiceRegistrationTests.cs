@@ -48,6 +48,8 @@ public class AppServiceRegistrationTests
             var songEditorViewModel = provider.GetRequiredService<SongEditorViewModel>();
             var songCopyViewModel = provider.GetRequiredService<SongCopyViewModel>();
             var songMoveViewModel = provider.GetRequiredService<SongMoveViewModel>();
+            var songDeleteViewModel = provider.GetRequiredService<SongDeleteViewModel>();
+            var songRecoveryViewModel = provider.GetRequiredService<SongRecoveryViewModel>();
             var aboutViewModel = provider.GetRequiredService<AboutWindowViewModel>();
             var helpViewModel = provider.GetRequiredService<HelpWindowViewModel>();
             var registrationViewModel = provider.GetRequiredService<RegistrationWindowViewModel>();
@@ -81,6 +83,8 @@ public class AppServiceRegistrationTests
             songEditorViewModel.Should().NotBeNull();
             songCopyViewModel.Should().NotBeNull();
             songMoveViewModel.Should().NotBeNull();
+            songDeleteViewModel.Should().NotBeNull();
+            songRecoveryViewModel.Should().NotBeNull();
             aboutViewModel.Should().NotBeNull();
             helpViewModel.Should().NotBeNull();
             registrationViewModel.Should().NotBeNull();

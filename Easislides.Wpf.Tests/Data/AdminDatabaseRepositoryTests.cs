@@ -110,6 +110,33 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
+    public async Task GetDeletedSongsAsync_ReturnsFolderZeroSongsWithOriginalFolderAndDeletedDate()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(
+            20,
+            "Deleted Song",
+            folderNo: 0,
+            songNumber: 3,
+            oldFolder: 2,
+            lastModified: new DateTime(2026, 5, 29));
+        fixture.InsertSong(21, "Active Song", folderNo: 2, songNumber: 4);
+        var sut = new AdminDatabaseRepository();
+
+        var songs = await sut.GetDeletedSongsAsync(fixture.DatabasePath);
+
+        songs.Should().ContainSingle();
+        songs[0].SongId.Should().Be(20);
+        songs[0].Title.Should().Be("Deleted Song");
+        songs[0].OriginalFolderNo.Should().Be(2);
+        songs[0].OriginalFolderName.Should().Be("Evening");
+        songs[0].DeletedOn.Should().Be(new DateTime(2026, 5, 29));
+    }
+
+    [Fact]
     public async Task SaveFolderAsync_CreatesBackupAndUpsertsFolderInTransaction()
     {
         using var fixture = AdminDatabaseFixture.Create();
@@ -236,6 +263,74 @@ public class AdminDatabaseRepositoryTests
         AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "FOLDERNO").Should().Be(1);
     }
 
+    [Fact]
+    public async Task MoveSongsAsync_WhenNormalMove_PreservesLastModified()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 1, songNumber: 1, lastModified: new DateTime(2001, 2, 3));
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.MoveSongsAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [new SongMoveRequest(10, OldFolderNo: 1, NewFolderNo: 2)]);
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(2);
+        fixture.ReadSongInt(10, "OldFolder").Should().Be(1);
+        DateTime.Parse(fixture.ReadSongText(10, "LastModified")).Date.Should().Be(new DateTime(2001, 2, 3));
+    }
+
+    [Fact]
+    public async Task SoftDeleteSongsAsync_MovesSongsToDeletedFolderAndUpdatesDeletedDate()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 1, songNumber: 1, lastModified: new DateTime(2001, 2, 3));
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SoftDeleteSongsAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [new SongDeleteRequest(10, OriginalFolderNo: 1)]);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.SoftDeleteSongs);
+        report.AffectedSongIds.Should().Equal(10);
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(0);
+        fixture.ReadSongInt(10, "OldFolder").Should().Be(1);
+        DateTime.Parse(fixture.ReadSongText(10, "LastModified")).Date.Should().Be(DateTime.Now.Date);
+        AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "FOLDERNO").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RecoverSongsAsync_RestoresTargetFolderAndClearsOldFolder()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 0, songNumber: 1, oldFolder: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.RecoverSongsAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [new SongRecoveryRequest(10, TargetFolderNo: 1)]);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.RecoverSongs);
+        report.AffectedSongIds.Should().Equal(10);
+        report.AffectedFolderNos.Should().Equal(1);
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1);
+        fixture.ReadSongInt(10, "OldFolder").Should().Be(0);
+        DateTime.Parse(fixture.ReadSongText(10, "LastModified")).Date.Should().Be(DateTime.Now.Date);
+        AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "FOLDERNO").Should().Be(0);
+    }
+
     private sealed class AdminDatabaseFixture : IDisposable
     {
         private AdminDatabaseFixture(string root)
@@ -333,15 +428,16 @@ public class AdminDatabaseRepositoryTests
             string category = "",
             string key = "",
             string lyrics = "",
-            int oldFolder = 0)
+            int oldFolder = 0,
+            DateTime? lastModified = null)
         {
             using var connection = Open();
             using var command = new SQLiteCommand(
                 """
                 INSERT INTO SONG
-                    (SONGID, TITLE_1, TITLE_2, CATEGORY, KEY, FOLDERNO, SONG_NUMBER, LYRICS, OldFolder)
+                    (SONGID, TITLE_1, TITLE_2, CATEGORY, KEY, FOLDERNO, SONG_NUMBER, LYRICS, OldFolder, LastModified)
                 VALUES
-                    (@songId, @title, @title2, @category, @key, @folderNo, @songNumber, @lyrics, @oldFolder);
+                    (@songId, @title, @title2, @category, @key, @folderNo, @songNumber, @lyrics, @oldFolder, @lastModified);
                 """,
                 connection);
             command.Parameters.AddWithValue("@songId", songId);
@@ -353,6 +449,7 @@ public class AdminDatabaseRepositoryTests
             command.Parameters.AddWithValue("@songNumber", songNumber);
             command.Parameters.AddWithValue("@lyrics", lyrics);
             command.Parameters.AddWithValue("@oldFolder", oldFolder);
+            command.Parameters.AddWithValue("@lastModified", lastModified ?? DateTime.MinValue.Date);
             command.ExecuteNonQuery();
         }
 

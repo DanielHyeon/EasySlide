@@ -91,6 +91,8 @@ public partial class App : Application
         services.AddTransient<SongEditorViewModel>();
         services.AddTransient<SongCopyViewModel>();
         services.AddTransient<SongMoveViewModel>();
+        services.AddTransient<SongDeleteViewModel>();
+        services.AddTransient<SongRecoveryViewModel>();
         services.AddTransient<SettingsWindowViewModel>();
         services.AddTransient<AboutWindowViewModel>();
         services.AddTransient<HelpWindowViewModel>();
@@ -101,6 +103,8 @@ public partial class App : Application
         services.AddTransient<SongEditorWindow>();
         services.AddTransient<SongCopyWindow>();
         services.AddTransient<SongMoveWindow>();
+        services.AddTransient<SongDeleteWindow>();
+        services.AddTransient<SongRecoveryWindow>();
         services.AddTransient<SettingsWindow>();
         services.AddTransient<AboutWindow>();
         services.AddTransient<HelpWindow>();

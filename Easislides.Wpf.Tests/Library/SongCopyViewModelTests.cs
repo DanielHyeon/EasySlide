@@ -130,6 +130,9 @@ public class SongCopyViewModelTests
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
             => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
+            => throw new NotSupportedException();
+
         public Task<AdminDatabaseWriteReport> SaveFolderAsync(string databasePath, string backupRoot, SongFolderWriteModel folder)
             => throw new NotSupportedException();
 
@@ -149,6 +152,12 @@ public class SongCopyViewModelTests
         }
 
         public Task<AdminDatabaseWriteReport> MoveSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongMoveRequest> moves)
+            => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> SoftDeleteSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongDeleteRequest> deletes)
+            => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> RecoverSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongRecoveryRequest> recoveries)
             => throw new NotSupportedException();
     }
 

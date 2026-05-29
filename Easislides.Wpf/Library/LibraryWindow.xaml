@@ -150,68 +150,87 @@
 
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal"
-                                    VerticalAlignment="Center">
+                                     VerticalAlignment="Center">
                             <ui:SymbolIcon Symbol="Search24" Margin="0,0,8,0" />
                             <TextBlock Text="{Binding DisplayedSongCount, StringFormat={}{0}곡 표시}"
                                        Style="{StaticResource Type.Title3.Style}"
                                        Foreground="{DynamicResource Brush.Text.Primary}" />
                         </StackPanel>
 
-                        <Button Grid.Column="1"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Click="NewSong_Click"
-                                ToolTip="새 곡 만들기"
-                                AutomationProperties.Name="새 곡 만들기"
-                                Margin="0,0,8,0">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                                <TextBlock Text="새 곡" />
-                            </StackPanel>
-                        </Button>
+                        <WrapPanel Grid.Column="1"
+                                   HorizontalAlignment="Right"
+                                   Orientation="Horizontal">
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Click="NewSong_Click"
+                                    ToolTip="새 곡 만들기"
+                                    AutomationProperties.Name="새 곡 만들기"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
+                                    <TextBlock Text="새 곡" />
+                                </StackPanel>
+                            </Button>
 
-                        <Button Grid.Column="2"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Click="EditSong_Click"
-                                ToolTip="선택 곡 편집"
-                                AutomationProperties.Name="선택 곡 편집"
-                                Margin="0,0,8,0">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Info24" Margin="0,0,6,0" />
-                                <TextBlock Text="편집" />
-                            </StackPanel>
-                        </Button>
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Click="EditSong_Click"
+                                    ToolTip="선택 곡 편집"
+                                    AutomationProperties.Name="선택 곡 편집"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Info24" Margin="0,0,6,0" />
+                                    <TextBlock Text="편집" />
+                                </StackPanel>
+                            </Button>
 
-                        <Button Grid.Column="3"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Click="CopySong_Click"
-                                ToolTip="선택 곡 복사"
-                                AutomationProperties.Name="선택 곡 복사"
-                                Margin="0,0,8,0">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
-                                <TextBlock Text="복사" />
-                            </StackPanel>
-                        </Button>
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Click="CopySong_Click"
+                                    ToolTip="선택 곡 복사"
+                                    AutomationProperties.Name="선택 곡 복사"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
+                                    <TextBlock Text="복사" />
+                                </StackPanel>
+                            </Button>
 
-                        <Button Grid.Column="4"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Click="MoveSong_Click"
-                                ToolTip="선택 곡 이동"
-                                AutomationProperties.Name="선택 곡 이동"
-                                Margin="0,0,8,0">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="ArrowRight24" Margin="0,0,6,0" />
-                                <TextBlock Text="이동" />
-                            </StackPanel>
-                        </Button>
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Click="MoveSong_Click"
+                                    ToolTip="선택 곡 이동"
+                                    AutomationProperties.Name="선택 곡 이동"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowRight24" Margin="0,0,6,0" />
+                                    <TextBlock Text="이동" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource EsButton.Danger}"
+                                    Click="DeleteSong_Click"
+                                    ToolTip="선택 곡 삭제"
+                                    AutomationProperties.Name="선택 곡 삭제"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Delete24" Margin="0,0,6,0" />
+                                    <TextBlock Text="삭제" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource EsButton.Secondary}"
+                                    Click="RecoverSong_Click"
+                                    ToolTip="삭제 곡 복구"
+                                    AutomationProperties.Name="삭제 곡 복구"
+                                    Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="ArrowUndo24" Margin="0,0,6,0" />
+                                    <TextBlock Text="복구" />
+                                </StackPanel>
+                            </Button>
+                        </WrapPanel>
 
                     </Grid>
 

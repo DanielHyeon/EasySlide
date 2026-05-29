@@ -64,11 +64,20 @@ public sealed record SongSummary(
     string Key,
     string Lyrics);
 
+public sealed record DeletedSongSummary(
+    int SongId,
+    string Title,
+    int OriginalFolderNo,
+    string OriginalFolderName,
+    DateTime? DeletedOn);
+
 public enum AdminDatabaseWriteOperation
 {
     SaveFolder,
     SaveSong,
     MoveSongs,
+    SoftDeleteSongs,
+    RecoverSongs,
 }
 
 public enum AdminDatabaseWriteIssueKind
@@ -119,7 +128,16 @@ public sealed record SongWriteModel(
 public sealed record SongMoveRequest(
     int SongId,
     int OldFolderNo,
-    int NewFolderNo);
+    int NewFolderNo,
+    bool UpdateModifiedDate = false);
+
+public sealed record SongDeleteRequest(
+    int SongId,
+    int OriginalFolderNo);
+
+public sealed record SongRecoveryRequest(
+    int SongId,
+    int TargetFolderNo);
 
 public sealed record AdminDatabaseWriteReport(
     bool Succeeded,
@@ -138,6 +156,8 @@ public interface IAdminDatabaseRepository
 
     Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null);
 
+    Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath);
+
     Task<AdminDatabaseWriteReport> SaveFolderAsync(
         string databasePath,
         string backupRoot,
@@ -152,6 +172,16 @@ public interface IAdminDatabaseRepository
         string databasePath,
         string backupRoot,
         IReadOnlyList<SongMoveRequest> moves);
+
+    Task<AdminDatabaseWriteReport> SoftDeleteSongsAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<SongDeleteRequest> deletes);
+
+    Task<AdminDatabaseWriteReport> RecoverSongsAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<SongRecoveryRequest> recoveries);
 }
 
 public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
@@ -171,6 +201,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
 
     public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
         => Task.FromResult(GetSongs(databasePath, folderNo));
+
+    public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
+        => Task.FromResult(GetDeletedSongs(databasePath));
 
     public Task<AdminDatabaseWriteReport> SaveFolderAsync(
         string databasePath,
@@ -209,6 +242,32 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
             backupRoot,
             AdminDatabaseWriteOperation.MoveSongs,
             (connection, transaction, outcome) => MoveSongs(connection, transaction, moves, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> SoftDeleteSongsAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<SongDeleteRequest> deletes)
+    {
+        ArgumentNullException.ThrowIfNull(deletes);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.SoftDeleteSongs,
+            (connection, transaction, outcome) => SoftDeleteSongs(connection, transaction, deletes, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> RecoverSongsAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<SongRecoveryRequest> recoveries)
+    {
+        ArgumentNullException.ThrowIfNull(recoveries);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.RecoverSongs,
+            (connection, transaction, outcome) => RecoverSongs(connection, transaction, recoveries, outcome)));
     }
 
     private static AdminDatabaseSchemaInventory AnalyzeSchema(string databasePath)
@@ -308,6 +367,45 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
                 GetString(reader, "CATEGORY"),
                 GetString(reader, "KEY"),
                 GetString(reader, "LYRICS")));
+        }
+
+        return songs;
+    }
+
+    private static IReadOnlyList<DeletedSongSummary> GetDeletedSongs(string databasePath)
+    {
+        EnsureCompatible(databasePath);
+        using var connection = OpenConnection(Path.GetFullPath(databasePath), readOnly: true);
+        var columns = ReadColumnMap(connection, "SONG");
+        var oldFolderExpression = columns.ContainsKey("OldFolder") ? "s.OldFolder" : "1";
+        var lastModifiedExpression = columns.ContainsKey("LastModified") ? "s.LastModified" : "NULL";
+        using var command = new SQLiteCommand(
+            $"""
+            SELECT
+                s.SONGID,
+                s.TITLE_1,
+                CASE WHEN {oldFolderExpression} < 1 THEN 1 ELSE {oldFolderExpression} END AS OriginalFolderNo,
+                COALESCE(f.Name, '') AS OriginalFolderName,
+                {lastModifiedExpression} AS LastModified
+            FROM SONG s
+            LEFT JOIN FOLDER f ON f.FolderNo = CASE WHEN {oldFolderExpression} < 1 THEN 1 ELSE {oldFolderExpression} END
+            WHERE s.FOLDERNO = 0
+            ORDER BY LastModified, s.TITLE_1, s.SONGID;
+            """,
+            connection);
+        using var reader = command.ExecuteReader();
+        var songs = new List<DeletedSongSummary>();
+        while (reader.Read())
+        {
+            var originalFolderNo = GetInt(reader, "OriginalFolderNo");
+            songs.Add(new DeletedSongSummary(
+                GetInt(reader, "SONGID"),
+                GetString(reader, "TITLE_1"),
+                originalFolderNo,
+                string.IsNullOrWhiteSpace(GetString(reader, "OriginalFolderName"))
+                    ? $"Folder {originalFolderNo}"
+                    : GetString(reader, "OriginalFolderName"),
+                GetDate(reader, "LastModified")));
         }
 
         return songs;
@@ -510,7 +608,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
                 assignments.Add($"{QuoteIdentifier(oldFolderColumn)} = @oldFolderNo");
             }
 
-            if (columns.TryGetValue("LastModified", out var lastModifiedColumn))
+            if (move.UpdateModifiedDate && columns.TryGetValue("LastModified", out var lastModifiedColumn))
             {
                 assignments.Add($"{QuoteIdentifier(lastModifiedColumn)} = @lastModified");
             }
@@ -522,7 +620,11 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
             command.Parameters.AddWithValue("@songId", move.SongId);
             command.Parameters.AddWithValue("@oldFolderNo", move.OldFolderNo);
             command.Parameters.AddWithValue("@newFolderNo", move.NewFolderNo);
-            command.Parameters.AddWithValue("@lastModified", DateTime.Now.Date);
+            if (move.UpdateModifiedDate)
+            {
+                command.Parameters.AddWithValue("@lastModified", DateTime.Now.Date);
+            }
+
             var affected = command.ExecuteNonQuery();
             if (affected == 0)
             {
@@ -532,6 +634,80 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
             }
 
             outcome.SongIds.Add(move.SongId);
+        }
+    }
+
+    private static void SoftDeleteSongs(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<SongDeleteRequest> deletes,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (deletes.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one song delete is required.");
+        }
+
+        MoveSongs(
+            connection,
+            transaction,
+            deletes.Select(delete => new SongMoveRequest(
+                delete.SongId,
+                delete.OriginalFolderNo,
+                NewFolderNo: 0,
+                UpdateModifiedDate: true)).ToArray(),
+            outcome);
+    }
+
+    private static void RecoverSongs(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<SongRecoveryRequest> recoveries,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (recoveries.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one song recovery is required.");
+        }
+
+        var columns = ReadColumnMap(connection, "SONG");
+        foreach (var recovery in recoveries)
+        {
+            var assignments = new List<string>
+            {
+                $"{QuoteIdentifier(columns["FOLDERNO"])} = @targetFolderNo",
+            };
+            if (columns.TryGetValue("OldFolder", out var oldFolderColumn))
+            {
+                assignments.Add($"{QuoteIdentifier(oldFolderColumn)} = 0");
+            }
+
+            if (columns.TryGetValue("LastModified", out var lastModifiedColumn))
+            {
+                assignments.Add($"{QuoteIdentifier(lastModifiedColumn)} = @lastModified");
+            }
+
+            using var command = new SQLiteCommand(
+                $"UPDATE SONG SET {string.Join(", ", assignments)} WHERE {QuoteIdentifier(columns["SONGID"])} = @songId;",
+                connection,
+                transaction);
+            command.Parameters.AddWithValue("@songId", recovery.SongId);
+            command.Parameters.AddWithValue("@targetFolderNo", recovery.TargetFolderNo);
+            command.Parameters.AddWithValue("@lastModified", DateTime.Now.Date);
+            var affected = command.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Song was not found: {recovery.SongId}");
+            }
+
+            outcome.SongIds.Add(recovery.SongId);
+            outcome.FolderNos.Add(recovery.TargetFolderNo);
         }
     }
 
@@ -832,6 +1008,28 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository
         return int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
             ? parsed
             : 0;
+    }
+
+    private static DateTime? GetDate(SQLiteDataReader reader, string name)
+    {
+        var value = reader[name];
+        if (value is DBNull)
+        {
+            return null;
+        }
+
+        if (value is DateTime date)
+        {
+            return date.Date;
+        }
+
+        return DateTime.TryParse(
+            Convert.ToString(value, CultureInfo.InvariantCulture),
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeLocal,
+            out var parsed)
+            ? parsed.Date
+            : null;
     }
 
     private static bool ParseEnabled(string value)

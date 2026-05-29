@@ -1,0 +1,122 @@
+<Window x:Class="Easislides.Wpf.Library.SongRecoveryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="삭제 곡 복구"
+        Width="720"
+        Height="500"
+        MinWidth="640"
+        MinHeight="420"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded">
+    <Grid Margin="{StaticResource Thickness.Xl}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="삭제 곡 복구"
+                           Style="{StaticResource Type.Title1.Style}"
+                           Foreground="{DynamicResource Brush.Text.Primary}" />
+                <TextBlock Text="삭제된 곡을 선택해 원래 폴더로 복구합니다."
+                           Style="{StaticResource Type.Body.Style}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           Margin="0,6,0,0" />
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    Command="{Binding LoadCommand}"
+                    Style="{StaticResource EsButton.Secondary}"
+                    ToolTip="삭제 곡 목록 새로 고침"
+                    AutomationProperties.Name="삭제 곡 목록 새로 고침"
+                    VerticalAlignment="Top">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
+                    <TextBlock Text="새로 고침" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding DeletedSongs}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HeadersVisibility="Column"
+                  SelectionMode="Extended"
+                  Background="{DynamicResource Brush.Surface.Card}"
+                  BorderBrush="{DynamicResource Brush.Border.Default}"
+                  BorderThickness="1">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="54">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      AutomationProperties.Name="복구 선택" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="제목"
+                                    Binding="{Binding Song.Title}"
+                                    Width="2*" />
+                <DataGridTextColumn Header="원래 폴더"
+                                    Binding="{Binding Song.OriginalFolderName}"
+                                    Width="*" />
+                <DataGridTextColumn Header="삭제일"
+                                    Binding="{Binding Song.DeletedOn, StringFormat={}{0:yyyy-MM-dd}}"
+                                    Width="120" />
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding Song.SongId}"
+                                    Width="80" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <DockPanel Grid.Row="2"
+                   Margin="0,18,0,0">
+            <StackPanel DockPanel.Dock="Left">
+                <TextBlock Text="{Binding ValidationMessage}"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Status.Danger}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Button Command="{Binding RecoverCommand}"
+                        Style="{StaticResource EsButton.Primary}"
+                        ToolTip="선택 곡 복구"
+                        AutomationProperties.Name="선택 곡 복구"
+                        Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ArrowUndo24" Margin="0,0,6,0" />
+                        <TextBlock Text="복구" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource EsButton.Secondary}"
+                        Click="Close_Click"
+                        ToolTip="닫기"
+                        AutomationProperties.Name="삭제 곡 복구 창 닫기">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
+                        <TextBlock Text="닫기" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

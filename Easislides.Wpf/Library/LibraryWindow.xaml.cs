@@ -84,6 +84,26 @@ public partial class LibraryWindow : Window
         await OpenSongMoveAsync(viewModel);
     }
 
+    private async void DeleteSong_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        {
+            return;
+        }
+
+        await OpenSongDeleteAsync(viewModel);
+    }
+
+    private async void RecoverSong_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel viewModel)
+        {
+            return;
+        }
+
+        await OpenSongRecoveryAsync(viewModel);
+    }
+
     private async Task OpenSongEditorAsync(SongSummary? song)
     {
         if (DataContext is not LibraryViewModel viewModel)
@@ -192,6 +212,60 @@ public partial class LibraryWindow : Window
         }
 
         await ReloadLibraryToFolderAndSongAsync(viewModel, moveViewModel.SelectedTargetFolder?.FolderNo, moveViewModel.SongId);
+    }
+
+    private async Task OpenSongDeleteAsync(LibraryViewModel viewModel)
+    {
+        if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
+        {
+            viewModel.StatusMessage = "삭제할 곡을 선택하세요.";
+            return;
+        }
+
+        var deleteWindow = _services.GetRequiredService<SongDeleteWindow>();
+        deleteWindow.Owner = this;
+        if (deleteWindow.DataContext is not SongDeleteViewModel deleteViewModel)
+        {
+            return;
+        }
+
+        var folderNo = viewModel.SelectedFolder.FolderNo;
+        deleteViewModel.Load(viewModel.DatabasePath, viewModel.SelectedSong, viewModel.SelectedFolder);
+        var deleted = deleteWindow.ShowDialog() == true;
+        if (!deleted)
+        {
+            return;
+        }
+
+        await ReloadLibraryToFolderAndSongAsync(viewModel, folderNo, null);
+    }
+
+    private async Task OpenSongRecoveryAsync(LibraryViewModel viewModel)
+    {
+        if (string.IsNullOrWhiteSpace(viewModel.DatabasePath))
+        {
+            viewModel.StatusMessage = "AdminDB 경로를 설정해야 합니다.";
+            return;
+        }
+
+        var recoveryWindow = _services.GetRequiredService<SongRecoveryWindow>();
+        recoveryWindow.Owner = this;
+        if (recoveryWindow.DataContext is not SongRecoveryViewModel recoveryViewModel)
+        {
+            return;
+        }
+
+        recoveryViewModel.Load(viewModel.DatabasePath);
+        var recovered = recoveryWindow.ShowDialog() == true;
+        if (!recovered)
+        {
+            return;
+        }
+
+        await ReloadLibraryToFolderAndSongAsync(
+            viewModel,
+            recoveryViewModel.RecoveredFolderNo,
+            recoveryViewModel.RecoveredSongId);
     }
 
     private static async Task ReloadLibraryToFolderAndSongAsync(
