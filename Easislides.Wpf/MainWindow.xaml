@@ -79,6 +79,16 @@
                             <TextBlock Text="라이브러리" />
                         </StackPanel>
                     </Button>
+                    <Button Click="OpenExternalFiles_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="외부 파일 복사/이동"
+                            AutomationProperties.Name="외부 파일 복사/이동"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
+                            <TextBlock Text="외부 파일" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenHelp_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="도움말 열기"

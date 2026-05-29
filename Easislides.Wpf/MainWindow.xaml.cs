@@ -48,6 +48,13 @@ public partial class MainWindow : Window
         libraryWindow.ShowDialog();
     }
 
+    private void OpenExternalFiles_Click(object sender, RoutedEventArgs e)
+    {
+        var externalFileWindow = _services.GetRequiredService<ExternalFileOperationWindow>();
+        externalFileWindow.Owner = this;
+        externalFileWindow.ShowDialog();
+    }
+
     private void OpenHelp_Click(object sender, RoutedEventArgs e)
     {
         var helpWindow = _services.GetRequiredService<HelpWindow>();
