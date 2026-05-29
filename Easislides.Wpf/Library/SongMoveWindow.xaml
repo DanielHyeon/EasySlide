@@ -34,18 +34,20 @@
             </Grid.RowDefinitions>
 
             <StackPanel Margin="0,0,0,16">
-                <TextBlock Text="현재 폴더"
+                <TextBlock x:Name="LblCurrentFolder"
+                           Text="현재 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding SourceFolderName}"
                          IsReadOnly="True"
                          MinHeight="36"
                          Margin="0,4,0,0"
-                         AutomationProperties.Name="현재 폴더" />
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblCurrentFolder}" />
             </StackPanel>
 
             <StackPanel Grid.Row="1">
-                <TextBlock Text="대상 폴더"
+                <TextBlock x:Name="LblTargetFolder"
+                           Text="대상 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <ComboBox ItemsSource="{Binding TargetFolders}"
@@ -53,7 +55,7 @@
                           DisplayMemberPath="Name"
                           MinHeight="36"
                           Margin="0,4,0,0"
-                          AutomationProperties.Name="대상 폴더" />
+                          AutomationProperties.LabeledBy="{Binding ElementName=LblTargetFolder}" />
             </StackPanel>
         </Grid>
 

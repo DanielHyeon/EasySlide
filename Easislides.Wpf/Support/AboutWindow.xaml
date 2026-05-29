@@ -33,11 +33,12 @@
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Text="등록 사용자"
+                <TextBlock x:Name="LblRegistrationUser"
+                           Text="등록 사용자"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding RegistrationUser, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.Name="등록 사용자"
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblRegistrationUser}"
                          Margin="0,4,0,16"
                          MinHeight="36" />
 

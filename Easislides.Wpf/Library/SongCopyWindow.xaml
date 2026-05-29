@@ -36,19 +36,21 @@
             </Grid.RowDefinitions>
 
             <StackPanel Margin="0,0,0,14">
-                <TextBlock Text="원본 폴더"
+                <TextBlock x:Name="LblSourceFolder"
+                           Text="원본 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding SourceFolderName}"
                          IsReadOnly="True"
                          MinHeight="36"
                          Margin="0,4,0,0"
-                         AutomationProperties.Name="원본 폴더" />
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblSourceFolder}" />
             </StackPanel>
 
             <StackPanel Grid.Row="1"
                         Margin="0,0,0,14">
-                <TextBlock Text="대상 폴더"
+                <TextBlock x:Name="LblTargetFolder"
+                           Text="대상 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <ComboBox ItemsSource="{Binding TargetFolders}"
@@ -56,28 +58,30 @@
                           DisplayMemberPath="Name"
                           MinHeight="36"
                           Margin="0,4,0,0"
-                          AutomationProperties.Name="대상 폴더" />
+                          AutomationProperties.LabeledBy="{Binding ElementName=LblTargetFolder}" />
             </StackPanel>
 
             <StackPanel Grid.Row="2"
                         Margin="0,0,0,14">
-                <TextBlock Text="복사 제목"
+                <TextBlock x:Name="LblCopyTitle"
+                           Text="복사 제목"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding CopyTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MinHeight="36"
                          Margin="0,4,0,0"
-                         AutomationProperties.Name="복사 제목" />
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblCopyTitle}" />
             </StackPanel>
 
             <StackPanel Grid.Row="3">
-                <TextBlock Text="곡 번호"
+                <TextBlock x:Name="LblSongNumber"
+                           Text="곡 번호"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MinHeight="36"
                          Margin="0,4,0,0"
-                         AutomationProperties.Name="곡 번호" />
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblSongNumber}" />
             </StackPanel>
         </Grid>
 

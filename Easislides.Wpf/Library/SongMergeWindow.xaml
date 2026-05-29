@@ -75,7 +75,8 @@
             </StackPanel>
 
             <StackPanel Grid.Column="4">
-                <TextBlock Text="대상 폴더"
+                <TextBlock x:Name="LblTargetFolder"
+                           Text="대상 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <ComboBox ItemsSource="{Binding Folders}"
@@ -83,7 +84,7 @@
                           DisplayMemberPath="Name"
                           MinHeight="36"
                           Margin="0,4,0,0"
-                          AutomationProperties.Name="대상 폴더" />
+                          AutomationProperties.LabeledBy="{Binding ElementName=LblTargetFolder}" />
                 <CheckBox Content="Source B 제목을 병합 제목에 추가"
                           IsChecked="{Binding AppendSourceBTitleToMergedTitle, Mode=TwoWay}"
                           Margin="0,8,0,0"

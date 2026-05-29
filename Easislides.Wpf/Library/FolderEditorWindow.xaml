@@ -34,25 +34,27 @@
             </Grid.RowDefinitions>
 
             <StackPanel Margin="0,0,0,14">
-                <TextBlock Text="폴더 번호"
+                <TextBlock x:Name="LblFolderNo"
+                           Text="폴더 번호"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding FolderNo}"
                          IsReadOnly="True"
                          MinHeight="36"
                          Margin="0,4,0,0"
-                         AutomationProperties.Name="폴더 번호" />
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblFolderNo}" />
             </StackPanel>
 
             <StackPanel Grid.Row="1"
                         Margin="0,0,0,14">
-                <TextBlock Text="폴더 이름"
+                <TextBlock x:Name="LblFolderName"
+                           Text="폴더 이름"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MinHeight="36"
                          Margin="0,4,0,0"
-                         AutomationProperties.Name="폴더 이름" />
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblFolderName}" />
             </StackPanel>
 
             <CheckBox Grid.Row="2"
