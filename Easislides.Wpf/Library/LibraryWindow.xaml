@@ -330,6 +330,7 @@
 
                     <DataGrid x:Name="SongsGrid"
                               Grid.Row="2"
+                              AutomationProperties.Name="노래 목록"
                               ItemsSource="{Binding Songs}"
                               SelectedItem="{Binding SelectedSong, Mode=TwoWay}"
                               AllowDrop="True"
@@ -396,6 +397,7 @@
 
                     <TextBox Grid.Row="2"
                              Text="{Binding SelectedSong.Lyrics}"
+                             AutomationProperties.Name="선택한 노래 가사 미리보기"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"

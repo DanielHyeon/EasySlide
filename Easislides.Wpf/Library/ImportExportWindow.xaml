@@ -85,7 +85,8 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                        <TextBox Text="{Binding ImportSourcePath, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox AutomationProperties.Name="가져오기 원본 경로"
+                                 Text="{Binding ImportSourcePath, UpdateSourceTrigger=PropertyChanged}"
                                  MinHeight="36"
                                  VerticalContentAlignment="Center" />
                     </DockPanel>
@@ -136,13 +137,15 @@
                                     ToolTip="Load MDB schema">
                                 <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" />
                             </Button>
-                            <ComboBox ItemsSource="{Binding AccessTables}"
+                            <ComboBox AutomationProperties.Name="Access 테이블 선택"
+                                      ItemsSource="{Binding AccessTables}"
                                       SelectedItem="{Binding SelectedAccessTable}"
                                       DisplayMemberPath="Name"
                                       MinHeight="36" />
                         </DockPanel>
                         <ComboBox Grid.Row="1"
                                   Grid.Column="1"
+                                  AutomationProperties.Name="제목 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessTitleColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -150,12 +153,14 @@
                                   Margin="0,4,8,10" />
                         <TextBox Grid.Row="1"
                                  Grid.Column="2"
+                                 AutomationProperties.Name="가사 병합 열 매핑"
                                  Text="{Binding AccessLyricsColumnsText, UpdateSourceTrigger=PropertyChanged}"
                                  MinHeight="36"
                                  VerticalContentAlignment="Center"
                                  Margin="0,4,8,10" />
                         <ComboBox Grid.Row="1"
                                   Grid.Column="3"
+                                  AutomationProperties.Name="대체 제목 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessAlternateTitleColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -163,6 +168,7 @@
                                   Margin="0,4,8,10" />
                         <ComboBox Grid.Row="1"
                                   Grid.Column="4"
+                                  AutomationProperties.Name="찬송 번호 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessSongNumberColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -170,6 +176,7 @@
                                   Margin="0,4,8,10" />
                         <ComboBox Grid.Row="1"
                                   Grid.Column="5"
+                                  AutomationProperties.Name="작사작곡 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessWriterColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -201,6 +208,7 @@
                                    Style="{StaticResource Type.Caption.Style}" />
 
                         <ComboBox Grid.Row="3"
+                                  AutomationProperties.Name="저작권 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessCopyrightColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -208,6 +216,7 @@
                                   Margin="0,4,8,0" />
                         <ComboBox Grid.Row="3"
                                   Grid.Column="1"
+                                  AutomationProperties.Name="조(Key) 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessKeyColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -215,6 +224,7 @@
                                   Margin="0,4,8,0" />
                         <ComboBox Grid.Row="3"
                                   Grid.Column="2"
+                                  AutomationProperties.Name="타이밍 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessTimingColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -222,6 +232,7 @@
                                   Margin="0,4,8,0" />
                         <ComboBox Grid.Row="3"
                                   Grid.Column="3"
+                                  AutomationProperties.Name="교단 참조 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessBookReferenceColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -229,6 +240,7 @@
                                   Margin="0,4,8,0" />
                         <ComboBox Grid.Row="3"
                                   Grid.Column="4"
+                                  AutomationProperties.Name="사용자 참조 열 매핑"
                                   ItemsSource="{Binding AccessColumns}"
                                   Text="{Binding AccessUserReferenceColumn, UpdateSourceTrigger=PropertyChanged}"
                                   IsEditable="True"
@@ -241,12 +253,14 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <ComboBox ItemsSource="{Binding AccessColumns}"
+                            <ComboBox AutomationProperties.Name="라이선스 관리자1 열 매핑"
+                                      ItemsSource="{Binding AccessColumns}"
                                       Text="{Binding AccessLicenceAdmin1Column, UpdateSourceTrigger=PropertyChanged}"
                                       IsEditable="True"
                                       MinHeight="36"
                                       Margin="0,0,4,0" />
                             <ComboBox Grid.Column="1"
+                                      AutomationProperties.Name="라이선스 관리자2 열 매핑"
                                       ItemsSource="{Binding AccessColumns}"
                                       Text="{Binding AccessLicenceAdmin2Column, UpdateSourceTrigger=PropertyChanged}"
                                       IsEditable="True"
@@ -258,7 +272,8 @@
                                 Grid.Column="0">
                         <TextBlock Text="Source Folders"
                                    Style="{StaticResource Type.Caption.Style}" />
-                        <DataGrid ItemsSource="{Binding ImportSourceFolders}"
+                        <DataGrid AutomationProperties.Name="가져오기 원본 폴더 목록"
+                                  ItemsSource="{Binding ImportSourceFolders}"
                                   AutoGenerateColumns="False"
                                   CanUserAddRows="False"
                                   HeadersVisibility="Column"
@@ -282,14 +297,16 @@
                                 Margin="0,0,12,0">
                         <TextBlock Text="Target"
                                    Style="{StaticResource Type.Caption.Style}" />
-                        <ComboBox ItemsSource="{Binding Folders}"
+                        <ComboBox AutomationProperties.Name="가져오기 대상 폴더"
+                                  ItemsSource="{Binding Folders}"
                                   SelectedItem="{Binding SelectedTargetFolder}"
                                   DisplayMemberPath="Name"
                                   MinHeight="36"
                                   Margin="0,4,0,12" />
                         <TextBlock Text="Duplicates"
                                    Style="{StaticResource Type.Caption.Style}" />
-                        <ComboBox ItemsSource="{Binding DuplicatePolicies}"
+                        <ComboBox AutomationProperties.Name="중복 처리 정책"
+                                  ItemsSource="{Binding DuplicatePolicies}"
                                   SelectedItem="{Binding ImportDuplicatePolicy}"
                                   MinHeight="36"
                                   Margin="0,4,0,0" />
@@ -337,6 +354,7 @@
                                Text="Format"
                                Style="{StaticResource Type.Caption.Style}" />
                     <ComboBox Grid.Row="1"
+                              AutomationProperties.Name="내보내기 폴더"
                               ItemsSource="{Binding Folders}"
                               SelectedItem="{Binding SelectedExportFolder}"
                               DisplayMemberPath="Name"
@@ -344,6 +362,7 @@
                               Margin="0,4,12,12" />
                     <ComboBox Grid.Row="1"
                               Grid.Column="1"
+                              AutomationProperties.Name="내보내기 형식"
                               ItemsSource="{Binding ExportFormats}"
                               SelectedItem="{Binding SelectedExportFormat}"
                               MinHeight="36"
@@ -413,6 +432,7 @@
 
                     <DataGrid Grid.Row="3"
                               Grid.ColumnSpan="3"
+                              AutomationProperties.Name="내보내기 후보 목록"
                               ItemsSource="{Binding ExportCandidates}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
@@ -454,7 +474,8 @@
                                 <TextBlock Text="Export" />
                             </StackPanel>
                         </Button>
-                        <TextBox Text="{Binding ExportOutputPath, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox AutomationProperties.Name="내보내기 출력 경로"
+                                 Text="{Binding ExportOutputPath, UpdateSourceTrigger=PropertyChanged}"
                                  MinHeight="36"
                                  VerticalContentAlignment="Center" />
                     </DockPanel>

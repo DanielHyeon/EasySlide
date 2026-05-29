@@ -29,6 +29,7 @@
                         <DockPanel LastChildFill="True">
                             <ToggleButton x:Name="OverflowButton"
                                           DockPanel.Dock="Right"
+                                          AutomationProperties.Name="추가 명령"
                                           ClickMode="Press"
                                           Focusable="False"
                                           IsChecked="{Binding IsOverflowOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"

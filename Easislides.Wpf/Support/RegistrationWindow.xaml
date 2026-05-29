@@ -28,6 +28,7 @@
 
         <TextBox Grid.Row="1"
                  Text="{Binding Body}"
+                 AutomationProperties.Name="등록 안내 본문"
                  IsReadOnly="True"
                  AcceptsReturn="True"
                  TextWrapping="Wrap"
