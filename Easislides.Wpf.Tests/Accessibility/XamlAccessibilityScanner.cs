@@ -28,6 +28,9 @@ internal static class XamlAccessibilityScanner
         "ListBox", "ListView", "DataGrid", "Slider",
     };
 
+    // XAML 디렉티브 네임스페이스 — x:Name 정확 판별용.
+    private static readonly XNamespace XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+
     public readonly record struct Violation(string RelativePath, string Control, int Line);
 
     /// <summary>지정한 XAML 파일들에서 이름 없는 인터랙티브 컨트롤을 모은다.</summary>
@@ -47,25 +50,67 @@ internal static class XamlAccessibilityScanner
                 continue; // 파싱 불가 파일은 건너뜀
             }
 
-            foreach (var element in document.Descendants())
-            {
-                if (!InteractiveControls.Contains(element.Name.LocalName))
-                {
-                    continue;
-                }
-
-                if (HasAccessibleName(element))
-                {
-                    continue;
-                }
-
-                var line = (element as System.Xml.IXmlLineInfo)?.LineNumber ?? 0;
-                var rel = Path.GetRelativePath(repoRoot, file).Replace('\\', '/');
-                violations.Add(new Violation(rel, element.Name.LocalName, line));
-            }
+            var rel = Path.GetRelativePath(repoRoot, file).Replace('\\', '/');
+            violations.AddRange(ScanDocument(document, rel));
         }
 
         return violations;
+    }
+
+    /// <summary>
+    /// 단일 XAML 문서에서 이름 없는 인터랙티브 컨트롤을 찾는다.
+    /// (파일 기반 Scan 과 정책 단위 테스트가 공유 — 합성 XAML 검증 가능)
+    /// </summary>
+    public static IReadOnlyList<Violation> ScanDocument(XDocument document, string relativePath)
+    {
+        var violations = new List<Violation>();
+
+        foreach (var element in document.Descendants())
+        {
+            if (!InteractiveControls.Contains(element.Name.LocalName))
+            {
+                continue;
+            }
+
+            // 템플릿 구조 파트(PART_*, Focusable=False)는 소유 컨트롤이 의미를 제공하므로 면제.
+            if (IsExemptTemplatePart(element))
+            {
+                continue;
+            }
+
+            if (HasAccessibleName(element))
+            {
+                continue;
+            }
+
+            var line = (element as System.Xml.IXmlLineInfo)?.LineNumber ?? 0;
+            violations.Add(new Violation(relativePath, element.Name.LocalName, line));
+        }
+
+        return violations;
+    }
+
+    /// <summary>
+    /// 템플릿 구조 파트인지 — 자동화 트리에서 독립 이름이 필요 없는 경우.
+    ///
+    /// 정책 (계획서 §7.3, 작업 D3):
+    ///  - WPF 명명 규약 파트(x:Name="PART_*"): 의미·이름을 소유 ControlTemplate 컨트롤이 제공.
+    ///  - Focusable="False": 키보드 탭 순서에 없는 구조/장식 파트(예: ComboBox 드롭다운 토글) —
+    ///    소유 컨트롤의 자동화 패턴(ExpandCollapse 등)이 의미를 제공.
+    /// 그 외 "포커스 가능한 독립 동작" 파트(예: CommandBar 오버플로 버튼)는 면제 대상이 아니며
+    /// 반드시 이름을 가져야 한다.
+    /// </summary>
+    private static bool IsExemptTemplatePart(XElement element)
+    {
+        var name = element.Attribute(XamlNamespace + "Name")?.Value
+                   ?? element.Attribute("Name")?.Value;
+        if (name is not null && name.StartsWith("PART_", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var focusable = element.Attribute("Focusable")?.Value;
+        return string.Equals(focusable, "False", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool HasAccessibleName(XElement element)
@@ -133,9 +178,12 @@ internal static class XamlAccessibilityScanner
 
     /// <summary>
     /// 접근성 스캔 대상 프로덕션 WPF XAML 파일 목록.
-    /// 제외: bin/obj(빌드 산출물), Demo/Poc(개발용), App.xaml(부트스트랩),
-    ///       Controls/(스타일·ControlTemplate 정의 — 인스턴스 트리가 아니라 템플릿 내부 파트는
-    ///       소유 컨트롤 인스턴스가 이름을 제공하므로 개별 이름 대상이 아님).
+    /// 제외: bin/obj(빌드 산출물), Demo/Poc(개발용), App.xaml(부트스트랩).
+    ///
+    /// Controls/(스타일·ControlTemplate 정의)도 포함한다 — 단, 템플릿 내부 구조 파트는
+    /// <see cref="IsExemptTemplatePart"/> 정책(PART_* / Focusable=False)으로 면제된다.
+    /// 이렇게 하면 향후 커스텀 컨트롤 템플릿에 "이름 없는 포커스 가능 인터랙티브 파트"가
+    /// 새로 들어올 때 가드가 잡아낸다(과거의 블랭킷 제외 → 원칙 기반 정책으로 정형화).
     /// </summary>
     public static IReadOnlyList<string> ProductionXamlFiles(string repoRoot)
     {
@@ -146,7 +194,6 @@ internal static class XamlAccessibilityScanner
                 var rel = Path.GetRelativePath(repoRoot, p).Replace('\\', '/');
                 return !rel.Contains("/bin/") && !rel.Contains("/obj/")
                     && !rel.Contains("/Demo/") && !rel.Contains("/Poc/")
-                    && !rel.Contains("/Controls/")
                     && !rel.EndsWith("App.xaml", StringComparison.Ordinal);
             })
             .OrderBy(p => p, StringComparer.Ordinal)
