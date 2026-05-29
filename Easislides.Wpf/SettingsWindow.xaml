@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
         Title="EasiSlides 설정"
         Width="1040"
         Height="720"
@@ -181,41 +182,8 @@
                                   MinHeight="{DynamicResource Spacing.TargetMin}"
                                   Margin="0,0,0,16" />
 
-                        <CheckBox IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor}"
-                                  Content="보조 모니터 우선 사용"
-                                  AutomationProperties.Name="보조 모니터 우선 사용"
-                                  MinHeight="{DynamicResource Spacing.TargetMin}" />
-                        <Grid Margin="0,4,0,16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="위"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <TextBox Text="{Binding DisplayCustomTop, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource EsTextBox.Default}"
-                                         AutomationProperties.Name="출력 모니터 위" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                                <TextBlock Text="왼쪽"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <TextBox Text="{Binding DisplayCustomLeft, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource EsTextBox.Default}"
-                                         AutomationProperties.Name="출력 모니터 왼쪽" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="폭"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <TextBox Text="{Binding DisplayCustomWidth, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource EsTextBox.Default}"
-                                         AutomationProperties.Name="출력 모니터 폭" />
-                            </StackPanel>
-                        </Grid>
+                        <!-- 출력 배치(보조 모니터 우선 + 수동 위치) — 재사용 컴포지트로 분리(§5.2). DataContext 상속. -->
+                        <composites:OutputPlacementEditor />
 
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
