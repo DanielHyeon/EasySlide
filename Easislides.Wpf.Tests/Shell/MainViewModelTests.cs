@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Library;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
@@ -167,6 +168,41 @@ public class MainViewModelTests
         sut.HasPowerPointLimitViolation.Should().BeFalse();
         sut.GoLiveCommand.CanExecute(null).Should().BeTrue();
         sut.StatusText.Should().Be("2개 항목 로드됨");
+    }
+
+    [Fact]
+    public void AddBibleSelection_InsertsAfterCurrentSelectionAndSelectsInsertedItem()
+    {
+        var sut = CreateSut();
+        var opener = new LiveQueueItem("song-1", "Opening Song", "Song");
+        var sermon = new LiveQueueItem("sermon", "Sermon", "Message");
+        sut.LoadQueue([opener, sermon]);
+        sut.SelectedItem = opener;
+        var selection = new BibleSelection("0;kjv.db;niv.db;1;1;1;1;1;", "Genesis 1:1 (KJV/NIV)");
+
+        var inserted = sut.AddBibleSelection(selection);
+
+        inserted.Should().NotBeNull();
+        inserted!.Id.Should().Be(selection.IdString);
+        inserted.Title.Should().Be(selection.Title);
+        inserted.Kind.Should().Be("Bible");
+        sut.Queue.Should().Equal(opener, inserted, sermon);
+        sut.SelectedItem.Should().Be(inserted);
+        sut.StatusText.Should().Contain("성경 구절 추가됨");
+        sut.StatusText.Should().Contain("Genesis 1:1");
+    }
+
+    [Fact]
+    public void AddBibleSelection_WhenSelectionIsEmpty_DoesNotChangeQueue()
+    {
+        var sut = CreateSut();
+        var original = sut.Queue.ToArray();
+
+        var inserted = sut.AddBibleSelection(new BibleSelection("", ""));
+
+        inserted.Should().BeNull();
+        sut.Queue.Should().Equal(original);
+        sut.StatusText.Should().Be("선택된 성경 구절이 없습니다.");
     }
 
     [Fact]

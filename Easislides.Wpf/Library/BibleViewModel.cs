@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,6 +17,7 @@ public sealed partial class BibleViewModel : ObservableObject
     private readonly ISettingsService _settings;
     private readonly IBibleRepository _repository;
     private BiblePassageResult _currentResult = new("", [], IsSequential: true, WasLimited: false);
+    private BibleSelection _baseSelection = new("", "");
 
     [ObservableProperty] private string _workingFolder = "";
     [ObservableProperty] private BibleVersion? _selectedVersion;
@@ -26,6 +28,13 @@ public sealed partial class BibleViewModel : ObservableObject
     [ObservableProperty] private string _passageText = "";
     [ObservableProperty] private string _selectedPassageId = "";
     [ObservableProperty] private string _selectedPassageTitle = "";
+    [ObservableProperty] private BibleSelection _selectedSelection = new("", "");
+    [ObservableProperty] private BibleVersion? _previewRegion1Version;
+    [ObservableProperty] private BibleVersion? _previewRegion2Version;
+    [ObservableProperty] private bool _useRegion2Preview;
+    [ObservableProperty] private string _previewPassageId = "";
+    [ObservableProperty] private string _previewPassageTitle = "";
+    [ObservableProperty] private string _previewRegionSummary = "";
     [ObservableProperty] private string _statusMessage = "";
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _isBusy;
@@ -56,6 +65,8 @@ public sealed partial class BibleViewModel : ObservableObject
         WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
         Versions.ReplaceWith(_repository.GetVersions(WorkingFolder));
         SelectedVersion = Versions.Count > 0 ? Versions[0] : null;
+        PreviewRegion1Version = SelectedVersion;
+        PreviewRegion2Version = Versions.FirstOrDefault(version => !Equals(version, PreviewRegion1Version));
         LoadBooksForSelectedVersion();
         ValidationMessage = Versions.Count == 0
             ? "성경 목록 데이터베이스를 찾을 수 없습니다."
@@ -80,8 +91,7 @@ public sealed partial class BibleViewModel : ObservableObject
         {
             _currentResult = _repository.LoadBook(SelectedVersion, SelectedBook.Number, ShowVerses);
             PassageText = _currentResult.Text;
-            SelectedPassageId = "";
-            SelectedPassageTitle = "";
+            ClearSelection();
             StatusMessage = $"{_currentResult.Locations.Count}개 구절을 불러왔습니다.";
         });
     }
@@ -106,8 +116,7 @@ public sealed partial class BibleViewModel : ObservableObject
         {
             _currentResult = _repository.Search(SelectedVersion, Books, SearchText, MatchMode, ShowVerses);
             PassageText = _currentResult.Text;
-            SelectedPassageId = "";
-            SelectedPassageTitle = "";
+            ClearSelection();
             var suffix = _currentResult.WasLimited ? " 결과가 3000개로 제한되었습니다." : "";
             StatusMessage = $"{_currentResult.Locations.Count}개 구절을 찾았습니다.{suffix}";
         });
@@ -129,29 +138,47 @@ public sealed partial class BibleViewModel : ObservableObject
             selectionStart,
             selectionLength);
 
-        SelectedPassageId = selection.IdString;
-        SelectedPassageTitle = selection.Title;
-        ValidationMessage = string.IsNullOrWhiteSpace(selection.IdString)
+        _baseSelection = selection;
+        UpdatePreviewSelection();
+
+        var selected = SelectedSelection;
+        ValidationMessage = string.IsNullOrWhiteSpace(selected.IdString)
             ? "선택된 구절이 없습니다."
             : "";
-        if (!string.IsNullOrWhiteSpace(selection.IdString))
+        if (!string.IsNullOrWhiteSpace(selected.IdString))
         {
             StatusMessage = "성경 구절을 선택했습니다.";
-            SelectionChanged?.Invoke(this, new BibleSelectionChangedEventArgs(selection));
+            SelectionChanged?.Invoke(this, new BibleSelectionChangedEventArgs(selected));
         }
 
         NotifyCommands();
-        return selection;
+        return selected;
     }
 
     partial void OnSelectedVersionChanged(BibleVersion? value)
     {
         LoadBooksForSelectedVersion();
+        PreviewRegion1Version = value;
+        if (PreviewRegion2Version is null || Equals(PreviewRegion2Version, value))
+        {
+            PreviewRegion2Version = Versions.FirstOrDefault(version => !Equals(version, value));
+        }
+
+        UpdatePreviewSelection();
         NotifyCommands();
     }
 
     partial void OnSelectedBookChanged(BibleBook? value)
         => NotifyCommands();
+
+    partial void OnPreviewRegion1VersionChanged(BibleVersion? value)
+        => UpdatePreviewSelection();
+
+    partial void OnPreviewRegion2VersionChanged(BibleVersion? value)
+        => UpdatePreviewSelection();
+
+    partial void OnUseRegion2PreviewChanged(bool value)
+        => UpdatePreviewSelection();
 
     partial void OnIsBusyChanged(bool value)
         => NotifyCommands();
@@ -194,6 +221,76 @@ public sealed partial class BibleViewModel : ObservableObject
 
         Books.ReplaceWith(_repository.GetBooks(SelectedVersion));
         SelectedBook = Books.Count > 0 ? Books[0] : null;
+    }
+
+    private void ClearSelection()
+    {
+        _baseSelection = new BibleSelection("", "");
+        SelectedSelection = new BibleSelection("", "");
+        SelectedPassageId = "";
+        SelectedPassageTitle = "";
+        PreviewPassageId = "";
+        PreviewPassageTitle = "";
+        PreviewRegionSummary = BuildPreviewRegionSummary();
+    }
+
+    private void UpdatePreviewSelection()
+    {
+        PreviewRegionSummary = BuildPreviewRegionSummary();
+        if (string.IsNullOrWhiteSpace(_baseSelection.IdString))
+        {
+            SelectedSelection = new BibleSelection("", "");
+            SelectedPassageId = "";
+            SelectedPassageTitle = "";
+            PreviewPassageId = "";
+            PreviewPassageTitle = "";
+            return;
+        }
+
+        var region1 = PreviewRegion1Version ?? SelectedVersion;
+        if (region1 is null)
+        {
+            SelectedSelection = new BibleSelection("", "");
+            SelectedPassageId = "";
+            SelectedPassageTitle = "";
+            PreviewPassageId = "";
+            PreviewPassageTitle = "";
+            return;
+        }
+
+        var region2 = UseRegion2Preview ? PreviewRegion2Version : null;
+        if (region2 is not null &&
+            string.Equals(region2.FileName, region1.FileName, StringComparison.OrdinalIgnoreCase))
+        {
+            region2 = null;
+        }
+
+        var preview = _repository.ChangeSelectionVersions(_baseSelection.Title, _baseSelection.IdString, region1, region2);
+        SelectedSelection = preview;
+        SelectedPassageId = preview.IdString;
+        SelectedPassageTitle = preview.Title;
+        PreviewPassageId = preview.IdString;
+        PreviewPassageTitle = preview.Title;
+        PreviewRegionSummary = BuildPreviewRegionSummary(region1, region2);
+    }
+
+    private string BuildPreviewRegionSummary()
+        => BuildPreviewRegionSummary(PreviewRegion1Version ?? SelectedVersion, UseRegion2Preview ? PreviewRegion2Version : null);
+
+    private static string BuildPreviewRegionSummary(BibleVersion? region1, BibleVersion? region2)
+    {
+        if (region1 is null)
+        {
+            return "";
+        }
+
+        if (region2 is not null &&
+            string.Equals(region2.FileName, region1.FileName, StringComparison.OrdinalIgnoreCase))
+        {
+            region2 = null;
+        }
+
+        return region2 is null ? region1.Name : $"{region1.Name} / {region2.Name}";
     }
 
     private void NotifyCommands()

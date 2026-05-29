@@ -15,6 +15,8 @@ public partial class BibleWindow : Window
         DataContext = _viewModel;
     }
 
+    public BibleSelection SelectedSelection => _viewModel.SelectedSelection;
+
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         if (_loadedOnce)

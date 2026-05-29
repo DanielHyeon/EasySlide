@@ -90,6 +90,46 @@ public class BibleViewModelTests
         raised!.Selection.Should().Be(selection);
     }
 
+    [Fact]
+    public async Task BuildSelection_WhenRegionTwoPreviewEnabled_UpdatesPreviewSelectionAndRaisesPreview()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var baseSelection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv, fixture.Niv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 20)],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = baseSelection,
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        BibleSelectionChangedEventArgs? raised = null;
+        sut.SelectionChanged += (_, args) => raised = args;
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+        sut.UseRegion2Preview = true;
+
+        var selected = sut.BuildSelection(selectionStart: 3, selectionLength: 8);
+
+        repository.LastRegion1.Should().Be(fixture.Kjv);
+        repository.LastRegion2.Should().Be(fixture.Niv);
+        selected.IdString.Should().Be("0;kjv.db;niv.db;1;1;1;1;1;");
+        selected.Title.Should().Be("Genesis 1:1 (KJV/NIV)");
+        sut.SelectedSelection.Should().Be(selected);
+        sut.PreviewPassageId.Should().Be(selected.IdString);
+        sut.PreviewPassageTitle.Should().Be(selected.Title);
+        sut.SelectedPassageId.Should().Be(selected.IdString);
+        sut.SelectedPassageTitle.Should().Be(selected.Title);
+        sut.PreviewRegionSummary.Should().Be("KJV / NIV");
+        raised.Should().NotBeNull();
+        raised!.Selection.Should().Be(selected);
+    }
+
     private sealed class FakeBibleRepository : IBibleRepository
     {
         public IReadOnlyList<BibleVersion> Versions { get; init; } = [];
@@ -103,6 +143,10 @@ public class BibleViewModelTests
         public BibleSelection Selection { get; init; } = new("", "");
 
         public string LastSearchText { get; private set; } = "";
+
+        public BibleVersion? LastRegion1 { get; private set; }
+
+        public BibleVersion? LastRegion2 { get; private set; }
 
         public IReadOnlyList<BibleVersion> GetVersions(string workingFolder)
             => Versions;
@@ -140,7 +184,22 @@ public class BibleViewModelTests
             string currentIdString,
             BibleVersion region1,
             BibleVersion? region2)
-            => Selection;
+        {
+            LastRegion1 = region1;
+            LastRegion2 = region2;
+            if (string.IsNullOrWhiteSpace(currentIdString))
+            {
+                return new BibleSelection("", "");
+            }
+
+            var parts = currentIdString.Split(';');
+            var tail = string.Join(';', parts[3..]);
+            var baseTitle = currentTitle.Split(" (", StringSplitOptions.None)[0];
+            var suffix = region2 is null ? region1.Name : $"{region1.Name}/{region2.Name}";
+            return new BibleSelection(
+                $"{parts[0]};{region1.FileName};{region2?.FileName ?? ""};{tail}",
+                $"{baseTitle} ({suffix})");
+        }
     }
 
     private sealed class TempBibleSettings : IDisposable
@@ -154,6 +213,7 @@ public class BibleViewModelTests
                 Path.Combine(root, "settings.json"),
                 Path.Combine(root, "SettingsBackups")));
             Kjv = new BibleVersion(0, "KJV", "King James", "Public domain", "kjv.db", Path.Combine(WorkingFolder, "HolyBibles", "kjv.db"), 1, 80, SupportsPartialWordSearch: false);
+            Niv = new BibleVersion(1, "NIV", "New International", "Licensed", "niv.db", Path.Combine(WorkingFolder, "HolyBibles", "niv.db"), 2, 80, SupportsPartialWordSearch: true);
         }
 
         public string Root { get; }
@@ -163,6 +223,8 @@ public class BibleViewModelTests
         public ISettingsService Settings { get; }
 
         public BibleVersion Kjv { get; }
+
+        public BibleVersion Niv { get; }
 
         public static TempBibleSettings Create()
             => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_BibleVm_{Guid.NewGuid():N}"));

@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Composites;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
+using Easislides.Wpf.Library;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
@@ -105,6 +106,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
         RefreshPowerPointLimitState(updateStatus: true);
         NotifyCommandStates();
+    }
+
+    public LiveQueueItem? AddBibleSelection(BibleSelection selection)
+    {
+        if (string.IsNullOrWhiteSpace(selection.IdString) || string.IsNullOrWhiteSpace(selection.Title))
+        {
+            StatusText = "선택된 성경 구절이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var item = new LiveQueueItem(selection.IdString, selection.Title, "Bible");
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"성경 구절 추가됨: {selection.Title}";
+        NotifyCommandStates();
+        return item;
     }
 
     public void BindShortcuts(ShortcutRegistry registry)

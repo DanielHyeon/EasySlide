@@ -73,7 +73,10 @@ public partial class MainWindow : Window
     {
         var bibleWindow = _services.GetRequiredService<BibleWindow>();
         bibleWindow.Owner = this;
-        bibleWindow.ShowDialog();
+        if (bibleWindow.ShowDialog() == true && DataContext is MainViewModel viewModel)
+        {
+            viewModel.AddBibleSelection(bibleWindow.SelectedSelection);
+        }
     }
 
     private void OpenHelp_Click(object sender, RoutedEventArgs e)
