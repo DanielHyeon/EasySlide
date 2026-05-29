@@ -375,6 +375,111 @@ public class OutputWindowViewModelTests
         sut.ContentFadeDuration.Should().Be(TimeSpan.Zero);
     }
 
+    [Fact]
+    public void SetContentAsset_WithImageAndLiveSession_ShowsContentWithFitPlacement()
+    {
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Slide 1",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.SetContentAsset(CreateStubBitmap(), pixelWidth: 1920, pixelHeight: 1080);
+
+        sut.ContentVisibility.Should().Be(Visibility.Visible);
+        sut.ContentImageSource.Should().NotBeNull();
+        sut.ContentWidth.Should().Be(1920);
+        sut.ContentHeight.Should().Be(1080);
+    }
+
+    [Fact]
+    public void SetContentAsset_WithImageButNotLive_KeepsContentHidden()
+    {
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1280, 720, 1),
+            new OutputWindowPlacement(0, 0, 1280, 720, IsWindowed: true)));
+
+        sut.SetContentAsset(CreateStubBitmap(), pixelWidth: 1280, pixelHeight: 720);
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Ready);
+        sut.ContentVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void SetContentAsset_NullSource_HidesContentEvenWhenLive()
+    {
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Slide 1",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.SetContentAsset(source: null, pixelWidth: 0, pixelHeight: 0);
+
+        sut.ContentImageSource.Should().BeNull();
+        sut.ContentVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void SetContentAsset_FitMode_CentersImageWithLetterbox()
+    {
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Slide 1",
+            "Display 2",
+            IsBlackout: false));
+
+        // 4:3 이미지를 16:9 뷰포트에 Fit → 좌우 레터박스가 생긴다.
+        sut.SetContentAsset(CreateStubBitmap(), pixelWidth: 1600, pixelHeight: 1200, fillMode: ImageFillMode.Fit);
+
+        sut.ContentWidth.Should().Be(1440);
+        sut.ContentHeight.Should().Be(1080);
+        sut.ContentLeft.Should().Be(240);
+        sut.ContentTop.Should().Be(0);
+    }
+
+    [Fact]
+    public void SetContentAsset_BlackoutThenLive_HidesContentDuringBlackout()
+    {
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+        sut.SetContentAsset(CreateStubBitmap(), pixelWidth: 1920, pixelHeight: 1080);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Slide 1",
+            "Display 2",
+            IsBlackout: false));
+        sut.ContentVisibility.Should().Be(Visibility.Visible);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden,
+            "Slide 1",
+            "Display 2",
+            IsBlackout: true));
+
+        sut.ContentVisibility.Should().Be(Visibility.Collapsed);
+    }
+
     private static BitmapSource CreateStubBitmap()
     {
         var pixels = new byte[] { 0, 0, 0, 255 };

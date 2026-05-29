@@ -36,7 +36,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
+    private Visibility _contentVisibility = Visibility.Collapsed;
     private ImageSource? _gapLogoSource;
+    // 외부에서 주입되는 콘텐츠 이미지(예: PPT 슬라이드 썸네일).
+    // 비어 있으면 ContentVisibility=Collapsed로 화면에 표시되지 않는다.
+    private ImageSource? _contentImageSource;
+    private int _contentPixelWidth;
+    private int _contentPixelHeight;
+    private ImageFillMode _contentFillMode = ImageFillMode.Fit;
+    private double _contentLeft;
+    private double _contentTop;
+    private double _contentWidth;
+    private double _contentHeight;
     // GapLogoLoader 캐시: 같은 경로를 매번 디스크에서 다시 디코딩하지 않도록 보관
     private string? _cachedGapLogoPath;
     private ImageSource? _cachedGapLogoSource;
@@ -197,6 +208,60 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // ViewModel 자체는 WPF 애니메이션을 모르고, 단순히 "장면이 갱신됐다"는 사실만 전달.
     public event EventHandler? SceneChanged;
 
+    // 외부에서 주입된 콘텐츠 이미지(슬라이드 썸네일 등). null이면 Canvas Image가 숨겨진다.
+    public ImageSource? ContentImageSource
+    {
+        get => _contentImageSource;
+        private set => SetProperty(ref _contentImageSource, value);
+    }
+
+    public Visibility ContentVisibility
+    {
+        get => _contentVisibility;
+        private set => SetProperty(ref _contentVisibility, value);
+    }
+
+    // 콘텐츠 이미지의 화면 좌표·크기. Scene.ContentPlacement에서 계산된 값.
+    public double ContentLeft
+    {
+        get => _contentLeft;
+        private set => SetProperty(ref _contentLeft, value);
+    }
+
+    public double ContentTop
+    {
+        get => _contentTop;
+        private set => SetProperty(ref _contentTop, value);
+    }
+
+    public double ContentWidth
+    {
+        get => _contentWidth;
+        private set => SetProperty(ref _contentWidth, value);
+    }
+
+    public double ContentHeight
+    {
+        get => _contentHeight;
+        private set => SetProperty(ref _contentHeight, value);
+    }
+
+    // 외부 호출자(상위 컨트롤러)가 송출할 이미지 자산을 주입한다.
+    // source가 null이거나 픽셀 크기가 0이면 화면에서 사라진다.
+    // FillMode 변경은 OutputRenderRequest 재계산을 통해 새 ContentPlacement를 만들어 낸다.
+    public void SetContentAsset(
+        ImageSource? source,
+        int pixelWidth,
+        int pixelHeight,
+        ImageFillMode fillMode = ImageFillMode.Fit)
+    {
+        ContentImageSource = source;
+        _contentPixelWidth = pixelWidth;
+        _contentPixelHeight = pixelHeight;
+        _contentFillMode = fillMode;
+        RefreshDisplayText();
+    }
+
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
         _session = snapshot;
@@ -225,6 +290,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             _output,
             GetViewportWidth(_output),
             GetViewportHeight(_output),
+            ContentPixelWidth: _contentPixelWidth,
+            ContentPixelHeight: _contentPixelHeight,
+            FillMode: _contentFillMode,
             LiveOutputSettings: GetLiveOutputSettings()));
 
     private void ApplyScene(OutputSceneSnapshot scene)
@@ -242,6 +310,24 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         PanelOverlayVisibility = panelOverlay;
         ApplyGapLogo(scene, panelOverlay);
         BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) ? Visibility.Visible : Visibility.Collapsed;
+        ApplyContentPlacement(scene);
+    }
+
+    // Scene.ContentPlacement(픽셀 좌표·크기)를 XAML 바인딩에 노출.
+    // Live 상태 + 콘텐츠 이미지 + 유효한 Placement가 모두 만족할 때만 ContentVisibility=Visible.
+    private void ApplyContentPlacement(OutputSceneSnapshot scene)
+    {
+        var placement = scene.ContentPlacement;
+        ContentLeft = placement.Left;
+        ContentTop = placement.Top;
+        ContentWidth = placement.Width;
+        ContentHeight = placement.Height;
+
+        var hasContent = _contentImageSource is not null
+            && scene.ShowsContent
+            && placement.Width > 0
+            && placement.Height > 0;
+        ContentVisibility = hasContent ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // Blackout(완전 차단) / Hidden(화면 끄기) 모두 송출 화면은 검정으로 덮어야 한다.
