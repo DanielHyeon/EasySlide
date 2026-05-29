@@ -110,6 +110,7 @@
             </DockPanel>
 
             <DataGrid Grid.Row="1"
+                      AutomationProperties.Name="외부 파일 목록"
                       ItemsSource="{Binding SourceFiles}"
                       SelectedItem="{Binding SelectedSourceFile, Mode=TwoWay}"
                       AutoGenerateColumns="False"

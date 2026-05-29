@@ -117,6 +117,7 @@
             </DockPanel>
 
             <DataGrid Grid.Row="1"
+                      AutomationProperties.Name="병합 후보 목록"
                       ItemsSource="{Binding Candidates}"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"

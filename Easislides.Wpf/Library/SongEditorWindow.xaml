@@ -192,7 +192,8 @@
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Writer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
-                                             Margin="0,4,0,0" />
+                                             Margin="0,4,0,0"
+                                             AutomationProperties.Name="작사작곡" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2"
                                             Margin="0,0,0,12">
@@ -201,7 +202,8 @@
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Copyright, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
-                                             Margin="0,4,0,0" />
+                                             Margin="0,4,0,0"
+                                             AutomationProperties.Name="저작권" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1"
@@ -211,7 +213,8 @@
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Timing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
-                                             Margin="0,4,0,0" />
+                                             Margin="0,4,0,0"
+                                             AutomationProperties.Name="타이밍" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="1"
                                             Grid.Column="2"
@@ -221,7 +224,8 @@
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding BookReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
-                                             Margin="0,4,0,0" />
+                                             Margin="0,4,0,0"
+                                             AutomationProperties.Name="교단 참조" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="2"
@@ -231,7 +235,8 @@
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding UserReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
-                                             Margin="0,4,0,0" />
+                                             Margin="0,4,0,0"
+                                             AutomationProperties.Name="사용자 참조" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="2"
                                             Grid.Column="2"
@@ -246,10 +251,12 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <TextBox Text="{Binding LicenceAdmin1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 MinHeight="34" />
+                                                 MinHeight="34"
+                                                 AutomationProperties.Name="라이선스 관리자 1" />
                                         <TextBox Grid.Column="2"
                                                  Text="{Binding LicenceAdmin2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 MinHeight="34" />
+                                                 MinHeight="34"
+                                                 AutomationProperties.Name="라이선스 관리자 2" />
                                     </Grid>
                                 </StackPanel>
                             </Grid>
@@ -265,24 +272,28 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="절 순서(Sequence)"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
                                          MinHeight="78" />
                                 <TextBox Grid.Column="2"
                                          Text="{Binding Notations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="코드 표기(Notations)"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
                                          MinHeight="78" />
                             </Grid>
                             <TextBox Text="{Binding FormatData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="포맷 데이터"
                                      AcceptsReturn="True"
                                      TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto"
                                      MinHeight="72"
                                      Margin="0,8,0,0" />
                             <TextBox Text="{Binding SongSettingsData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="노래 설정 데이터"
                                      AcceptsReturn="True"
                                      TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto"

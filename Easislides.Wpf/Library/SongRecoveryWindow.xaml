@@ -47,6 +47,7 @@
         </Grid>
 
         <DataGrid Grid.Row="1"
+                  AutomationProperties.Name="삭제된 노래 목록"
                   ItemsSource="{Binding DeletedSongs}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"

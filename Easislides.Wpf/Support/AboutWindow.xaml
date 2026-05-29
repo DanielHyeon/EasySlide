@@ -37,6 +37,7 @@
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding RegistrationUser, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.Name="등록 사용자"
                          Margin="0,4,0,16"
                          MinHeight="36" />
 
@@ -52,6 +53,7 @@
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding EulaText}"
+                         AutomationProperties.Name="라이선스 본문"
                          IsReadOnly="True"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"

@@ -188,6 +188,7 @@
                     <ListBox ItemsSource="{Binding Queue}"
                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                              DisplayMemberPath="Title"
+                             AutomationProperties.Name="예배 순서 목록"
                              BorderThickness="0" />
                 </DockPanel>
             </Border>
@@ -305,6 +306,7 @@
                     <ComboBox ItemsSource="{Binding OutputDisplays}"
                               SelectedItem="{Binding SelectedOutputDisplay, Mode=TwoWay}"
                               DisplayMemberPath="Name"
+                              AutomationProperties.Name="출력 모니터 선택"
                               MinHeight="36"
                               Margin="0,4,0,16" />
 
