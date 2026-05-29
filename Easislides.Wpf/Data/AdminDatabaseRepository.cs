@@ -96,6 +96,8 @@ public sealed record DeletedSongSummary(
 public enum AdminDatabaseWriteOperation
 {
     SaveFolder,
+    SoftDeleteFolders,
+    RecoverFolders,
     SaveSong,
     MoveSongs,
     SoftDeleteSongs,
@@ -163,6 +165,10 @@ public sealed record SongRecoveryRequest(
     int SongId,
     int TargetFolderNo);
 
+public sealed record FolderDeleteRequest(int FolderNo);
+
+public sealed record FolderRecoveryRequest(int FolderNo);
+
 public sealed record FolderOrderRequest(
     int FolderNo,
     int NewFolderNo);
@@ -194,6 +200,16 @@ public interface IAdminDatabaseRepository
         string databasePath,
         string backupRoot,
         SongFolderWriteModel folder);
+
+    Task<AdminDatabaseWriteReport> SoftDeleteFoldersAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<FolderDeleteRequest> deletes);
+
+    Task<AdminDatabaseWriteReport> RecoverFoldersAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<FolderRecoveryRequest> recoveries);
 
     Task<AdminDatabaseWriteReport> SaveSongAsync(
         string databasePath,
@@ -267,6 +283,32 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             backupRoot,
             AdminDatabaseWriteOperation.SaveFolder,
             (connection, transaction, outcome) => SaveFolder(connection, transaction, folder, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> SoftDeleteFoldersAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<FolderDeleteRequest> deletes)
+    {
+        ArgumentNullException.ThrowIfNull(deletes);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.SoftDeleteFolders,
+            (connection, transaction, outcome) => SoftDeleteFolders(connection, transaction, deletes, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> RecoverFoldersAsync(
+        string databasePath,
+        string backupRoot,
+        IReadOnlyList<FolderRecoveryRequest> recoveries)
+    {
+        ArgumentNullException.ThrowIfNull(recoveries);
+        return Task.FromResult(ExecuteWrite(
+            databasePath,
+            backupRoot,
+            AdminDatabaseWriteOperation.RecoverFolders,
+            (connection, transaction, outcome) => RecoverFolders(connection, transaction, recoveries, outcome)));
     }
 
     public Task<AdminDatabaseWriteReport> SaveSongAsync(
@@ -657,6 +699,94 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         command.Parameters.AddWithValue("@use", folder.IsEnabled ? "True" : "False");
         command.ExecuteNonQuery();
         outcome.FolderNos.Add(folder.FolderNo);
+    }
+
+    private static void SoftDeleteFolders(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<FolderDeleteRequest> deletes,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (deletes.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one folder delete is required.");
+        }
+
+        SetFolderUse(
+            connection,
+            transaction,
+            deletes.Select(delete => delete.FolderNo).ToArray(),
+            isEnabled: false,
+            outcome);
+    }
+
+    private static void RecoverFolders(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<FolderRecoveryRequest> recoveries,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (recoveries.Count == 0)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "At least one folder recovery is required.");
+        }
+
+        SetFolderUse(
+            connection,
+            transaction,
+            recoveries.Select(recovery => recovery.FolderNo).ToArray(),
+            isEnabled: true,
+            outcome);
+    }
+
+    private static void SetFolderUse(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        IReadOnlyList<int> folderNos,
+        bool isEnabled,
+        AdminDatabaseWriteOutcome outcome)
+    {
+        if (folderNos.Any(folderNo => folderNo <= 0))
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Folder numbers must be positive.");
+        }
+
+        if (folderNos.Distinct().Count() != folderNos.Count)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                "Folder requests must contain distinct folder numbers.");
+        }
+
+        var columns = ReadColumnMap(connection, "FOLDER");
+        foreach (var folderNo in folderNos)
+        {
+            using var command = new SQLiteCommand(
+                $"""
+                UPDATE FOLDER
+                SET {QuoteIdentifier(columns["Use"])} = @use
+                WHERE {QuoteIdentifier(columns["FolderNo"])} = @folderNo;
+                """,
+                connection,
+                transaction);
+            command.Parameters.AddWithValue("@folderNo", folderNo);
+            command.Parameters.AddWithValue("@use", isEnabled ? "True" : "False");
+            var affected = command.ExecuteNonQuery();
+            if (affected == 0)
+            {
+                throw new AdminDatabaseWriteException(
+                    AdminDatabaseWriteIssueKind.NotFound,
+                    $"Folder was not found: {folderNo}");
+            }
+
+            outcome.FolderNos.Add(folderNo);
+        }
     }
 
     private static void SaveSong(

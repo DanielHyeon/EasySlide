@@ -29,6 +29,8 @@ public sealed partial class LibraryViewModel : ObservableObject
     [ObservableProperty] private int _activeFolderCount;
     [ObservableProperty] private int _displayedSongCount;
     [ObservableProperty] private int _totalSongCount;
+    [ObservableProperty] private bool _canDeleteFolder;
+    [ObservableProperty] private bool _canRecoverFolder;
 
     public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
@@ -38,6 +40,8 @@ public sealed partial class LibraryViewModel : ObservableObject
         LoadSongsForSelectedFolderCommand = new AsyncRelayCommand(LoadSongsForSelectedFolderAsync, () => !IsBusy);
         MoveSelectedFolderUpCommand = new AsyncRelayCommand(MoveSelectedFolderUpAsync, CanMoveSelectedFolderUp);
         MoveSelectedFolderDownCommand = new AsyncRelayCommand(MoveSelectedFolderDownAsync, CanMoveSelectedFolderDown);
+        DeleteSelectedFolderCommand = new AsyncRelayCommand(DeleteSelectedFolderAsync, CanDeleteSelectedFolder);
+        RecoverSelectedFolderCommand = new AsyncRelayCommand(RecoverSelectedFolderAsync, CanRecoverSelectedFolder);
         MoveSelectedSongUpCommand = new AsyncRelayCommand(MoveSelectedSongUpAsync, CanMoveSelectedSongUp);
         MoveSelectedSongDownCommand = new AsyncRelayCommand(MoveSelectedSongDownAsync, CanMoveSelectedSongDown);
     }
@@ -53,6 +57,10 @@ public sealed partial class LibraryViewModel : ObservableObject
     public IAsyncRelayCommand MoveSelectedFolderUpCommand { get; }
 
     public IAsyncRelayCommand MoveSelectedFolderDownCommand { get; }
+
+    public IAsyncRelayCommand DeleteSelectedFolderCommand { get; }
+
+    public IAsyncRelayCommand RecoverSelectedFolderCommand { get; }
 
     public IAsyncRelayCommand MoveSelectedSongUpCommand { get; }
 
@@ -145,6 +153,12 @@ public sealed partial class LibraryViewModel : ObservableObject
     public Task MoveSelectedFolderDownAsync()
         => MoveSelectedFolderToIndexAsync(GetSelectedFolderIndex() + 1);
 
+    public Task DeleteSelectedFolderAsync()
+        => SetSelectedFolderEnabledAsync(isEnabled: false);
+
+    public Task RecoverSelectedFolderAsync()
+        => SetSelectedFolderEnabledAsync(isEnabled: true);
+
     public Task MoveSelectedSongUpAsync()
         => MoveSelectedSongToIndexAsync(GetSelectedSongIndex() - 1);
 
@@ -220,6 +234,72 @@ public sealed partial class LibraryViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private async Task SetSelectedFolderEnabledAsync(bool isEnabled)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        var selected = SelectedFolder;
+        if (selected is null)
+        {
+            StatusMessage = isEnabled
+                ? "Select a disabled folder to restore."
+                : "Select an enabled folder to delete.";
+            return;
+        }
+
+        if (selected.IsEnabled == isEnabled)
+        {
+            StatusMessage = isEnabled
+                ? "Selected folder is already restored."
+                : "Selected folder is already disabled.";
+            return;
+        }
+
+        var selectedSongId = SelectedSong?.SongId;
+        IsBusy = true;
+        try
+        {
+            var report = isEnabled
+                ? await _adminDatabase
+                    .RecoverFoldersAsync(DatabasePath, ResolveBackupRoot(), [new FolderRecoveryRequest(selected.FolderNo)])
+                    .ConfigureAwait(true)
+                : await _adminDatabase
+                    .SoftDeleteFoldersAsync(DatabasePath, ResolveBackupRoot(), [new FolderDeleteRequest(selected.FolderNo)])
+                    .ConfigureAwait(true);
+
+            if (!report.Succeeded)
+            {
+                StatusMessage = FormatWriteFailure(
+                    isEnabled ? "Folder restore failed" : "Folder delete failed",
+                    report);
+                return;
+            }
+
+            await ReloadFoldersAndSelectAsync(selected.FolderNo, selectedSongId).ConfigureAwait(true);
+            StatusMessage = isEnabled ? "Folder restored." : "Folder disabled.";
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = isEnabled
+                ? $"Folder restore failed: {ex.Message}"
+                : $"Folder delete failed: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+            NotifyFolderActionCanExecuteChanged();
         }
     }
 
@@ -299,6 +379,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
         NotifyReorderCanExecuteChanged();
+        NotifyFolderActionCanExecuteChanged();
         if (!_suppressSelectionLoad)
         {
             _ = LoadSongsForSelectedFolderAsync();
@@ -318,6 +399,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         LoadCommand.NotifyCanExecuteChanged();
         LoadSongsForSelectedFolderCommand.NotifyCanExecuteChanged();
+        NotifyFolderActionCanExecuteChanged();
         NotifyReorderCanExecuteChanged();
     }
 
@@ -488,6 +570,12 @@ public sealed partial class LibraryViewModel : ObservableObject
     private bool CanMoveSelectedFolderDown()
         => !IsBusy && SelectedFolder is not null && Folders.IndexOf(SelectedFolder) >= 0 && Folders.IndexOf(SelectedFolder) < Folders.Count - 1;
 
+    private bool CanDeleteSelectedFolder()
+        => !IsBusy && SelectedFolder is { IsEnabled: true };
+
+    private bool CanRecoverSelectedFolder()
+        => !IsBusy && SelectedFolder is { IsEnabled: false };
+
     private bool CanMoveSelectedSongUp()
         => !IsBusy && SelectedSong is not null && _loadedSongs.ToList().FindIndex(song => song.SongId == SelectedSong.SongId) > 0;
 
@@ -508,6 +596,14 @@ public sealed partial class LibraryViewModel : ObservableObject
         MoveSelectedFolderDownCommand.NotifyCanExecuteChanged();
         MoveSelectedSongUpCommand.NotifyCanExecuteChanged();
         MoveSelectedSongDownCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyFolderActionCanExecuteChanged()
+    {
+        CanDeleteFolder = CanDeleteSelectedFolder();
+        CanRecoverFolder = CanRecoverSelectedFolder();
+        DeleteSelectedFolderCommand.NotifyCanExecuteChanged();
+        RecoverSelectedFolderCommand.NotifyCanExecuteChanged();
     }
 
     private int GetSelectedFolderIndex()

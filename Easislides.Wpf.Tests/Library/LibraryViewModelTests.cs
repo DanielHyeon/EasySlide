@@ -160,6 +160,62 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task DeleteSelectedFolderAsync_DisablesSelectedFolderAndReloadsSelection()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        fixture.Settings.Set(EasiSettingKeys.DataBackupRoot, fixture.BackupRoot);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.AddRange([
+            new SongFolderSummary(1, "Morning", IsEnabled: true, SongCount: 1),
+            new SongFolderSummary(2, "Evening", IsEnabled: true, SongCount: 1),
+        ]);
+        repository.SongsByFolder[1] = [Song(10, "Opening", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        sut.DeleteSelectedFolderCommand.CanExecute(null).Should().BeTrue();
+        await sut.DeleteSelectedFolderAsync();
+
+        repository.LastBackupRoot.Should().Be(fixture.BackupRoot);
+        repository.LastFolderDeletes.Should().Equal(new FolderDeleteRequest(1));
+        sut.SelectedFolder.Should().NotBeNull();
+        sut.SelectedFolder!.FolderNo.Should().Be(1);
+        sut.SelectedFolder.IsEnabled.Should().BeFalse();
+        sut.Songs.Should().ContainSingle().Which.SongId.Should().Be(10);
+        sut.DeleteSelectedFolderCommand.CanExecute(null).Should().BeFalse();
+        sut.RecoverSelectedFolderCommand.CanExecute(null).Should().BeTrue();
+        sut.StatusMessage.Should().Be("Folder disabled.");
+    }
+
+    [Fact]
+    public async Task RecoverSelectedFolderAsync_EnablesSelectedDisabledFolderAndReloadsSelection()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "Archive", IsEnabled: false, SongCount: 1));
+        repository.SongsByFolder[1] = [Song(10, "Archived Song", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        sut.RecoverSelectedFolderCommand.CanExecute(null).Should().BeTrue();
+        await sut.RecoverSelectedFolderAsync();
+
+        repository.LastBackupRoot.Should().Be(Path.Combine(fixture.Root, "Backups"));
+        repository.LastFolderRecoveries.Should().Equal(new FolderRecoveryRequest(1));
+        sut.SelectedFolder.Should().NotBeNull();
+        sut.SelectedFolder!.FolderNo.Should().Be(1);
+        sut.SelectedFolder.IsEnabled.Should().BeTrue();
+        sut.Songs.Should().ContainSingle().Which.SongId.Should().Be(10);
+        sut.RecoverSelectedFolderCommand.CanExecute(null).Should().BeFalse();
+        sut.DeleteSelectedFolderCommand.CanExecute(null).Should().BeTrue();
+        sut.StatusMessage.Should().Be("Folder restored.");
+    }
+
+    [Fact]
     public async Task MoveSelectedSongUpAsync_RenumbersVisibleSongsAndRestoresSelection()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -241,6 +297,10 @@ public class LibraryViewModelTests
 
         public string LastBackupRoot { get; private set; } = "";
 
+        public IReadOnlyList<FolderDeleteRequest> LastFolderDeletes { get; private set; } = [];
+
+        public IReadOnlyList<FolderRecoveryRequest> LastFolderRecoveries { get; private set; } = [];
+
         public IReadOnlyList<FolderOrderRequest> LastFolderOrder { get; private set; } = [];
 
         public int LastSongFolderNo { get; private set; }
@@ -279,6 +339,42 @@ public class LibraryViewModelTests
 
         public Task<AdminDatabaseWriteReport> SaveFolderAsync(string databasePath, string backupRoot, SongFolderWriteModel folder)
             => throw new NotSupportedException();
+
+        public Task<AdminDatabaseWriteReport> SoftDeleteFoldersAsync(
+            string databasePath,
+            string backupRoot,
+            IReadOnlyList<FolderDeleteRequest> deletes)
+        {
+            LastBackupRoot = backupRoot;
+            LastFolderDeletes = deletes.ToArray();
+            SetFolderEnabled(deletes.Select(delete => delete.FolderNo), isEnabled: false);
+            return Task.FromResult(new AdminDatabaseWriteReport(
+                Succeeded: true,
+                AdminDatabaseWriteOperation.SoftDeleteFolders,
+                databasePath,
+                Path.Combine(backupRoot, "backup.db"),
+                AffectedSongIds: [],
+                deletes.Select(delete => delete.FolderNo).ToArray(),
+                Issues: []));
+        }
+
+        public Task<AdminDatabaseWriteReport> RecoverFoldersAsync(
+            string databasePath,
+            string backupRoot,
+            IReadOnlyList<FolderRecoveryRequest> recoveries)
+        {
+            LastBackupRoot = backupRoot;
+            LastFolderRecoveries = recoveries.ToArray();
+            SetFolderEnabled(recoveries.Select(recovery => recovery.FolderNo), isEnabled: true);
+            return Task.FromResult(new AdminDatabaseWriteReport(
+                Succeeded: true,
+                AdminDatabaseWriteOperation.RecoverFolders,
+                databasePath,
+                Path.Combine(backupRoot, "backup.db"),
+                AffectedSongIds: [],
+                recoveries.Select(recovery => recovery.FolderNo).ToArray(),
+                Issues: []));
+        }
 
         public Task<AdminDatabaseWriteReport> SaveSongAsync(string databasePath, string backupRoot, SongWriteModel song)
             => throw new NotSupportedException();
@@ -356,6 +452,18 @@ public class LibraryViewModelTests
                 order.Select(item => item.SongId).ToArray(),
                 [folderNo],
                 Issues: []));
+        }
+
+        private void SetFolderEnabled(IEnumerable<int> folderNos, bool isEnabled)
+        {
+            var targets = folderNos.ToHashSet();
+            var updated = Folders
+                .Select(folder => targets.Contains(folder.FolderNo)
+                    ? folder with { IsEnabled = isEnabled }
+                    : folder)
+                .ToArray();
+            Folders.Clear();
+            Folders.AddRange(updated);
         }
     }
 

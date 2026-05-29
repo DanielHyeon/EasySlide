@@ -214,6 +214,69 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
+    public async Task SoftDeleteFoldersAsync_DisablesFoldersWithoutMovingSongs()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 1, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SoftDeleteFoldersAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [new FolderDeleteRequest(1)]);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.SoftDeleteFolders);
+        report.BackupPath.Should().NotBeNull();
+        File.Exists(report.BackupPath).Should().BeTrue();
+        report.AffectedFolderNos.Should().Equal(1);
+        fixture.ReadFolderUse(1).Should().Be("False");
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1);
+        AdminDatabaseFixture.ReadFolderUse(report.BackupPath!, 1).Should().Be("True");
+    }
+
+    [Fact]
+    public async Task RecoverFoldersAsync_EnablesDisabledFoldersWithBackup()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "False");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.RecoverFoldersAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [new FolderRecoveryRequest(1)]);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.RecoverFolders);
+        report.AffectedFolderNos.Should().Equal(1);
+        fixture.ReadFolderUse(1).Should().Be("True");
+        AdminDatabaseFixture.ReadFolderUse(report.BackupPath!, 1).Should().Be("False");
+    }
+
+    [Fact]
+    public async Task SoftDeleteFoldersAsync_WhenFolderMissing_RestoresBackupAndReportsNotFound()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SoftDeleteFoldersAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            [new FolderDeleteRequest(99)]);
+
+        report.Succeeded.Should().BeFalse();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.SoftDeleteFolders);
+        report.Issues.Should().Contain(issue => issue.Kind == AdminDatabaseWriteIssueKind.NotFound);
+        fixture.ReadFolderUse(1).Should().Be("True");
+    }
+
+    [Fact]
     public async Task SaveSongAsync_WhenNewSong_CreatesBackupInsertsLegacyFieldsAndReturnsSongId()
     {
         using var fixture = AdminDatabaseFixture.Create();
@@ -633,6 +696,8 @@ public class AdminDatabaseRepositoryTests
         public string ReadFolderUse(int folderNo) => ReadFolderText(DatabasePath, folderNo, "Use");
 
         public static string ReadFolderName(string databasePath, int folderNo) => ReadFolderText(databasePath, folderNo, "Name");
+
+        public static string ReadFolderUse(string databasePath, int folderNo) => ReadFolderText(databasePath, folderNo, "Use");
 
         public string ReadSongText(int songId, string columnName) => ReadSongText(DatabasePath, songId, columnName);
 

@@ -59,6 +59,43 @@ public partial class LibraryWindow : Window
         await OpenFolderEditorAsync(viewModel, viewModel.SelectedFolder);
     }
 
+    private async void DeleteFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel { SelectedFolder: not null } viewModel)
+        {
+            return;
+        }
+
+        var folder = viewModel.SelectedFolder;
+        if (!folder.IsEnabled)
+        {
+            viewModel.StatusMessage = "Selected folder is already disabled.";
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"Disable folder \"{folder.Name}\"? Songs stay in this folder and can be restored later.",
+            "Disable Folder",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (result != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        await viewModel.DeleteSelectedFolderAsync();
+    }
+
+    private async void RecoverFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel { SelectedFolder: not null } viewModel)
+        {
+            return;
+        }
+
+        await viewModel.RecoverSelectedFolderAsync();
+    }
+
     private async void EditSong_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)

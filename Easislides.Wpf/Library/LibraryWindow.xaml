@@ -63,15 +63,8 @@
                     CornerRadius="{StaticResource CornerRadius.Medium}"
                     Padding="{StaticResource Thickness.Lg}">
                 <DockPanel>
-                    <Grid DockPanel.Dock="Top"
-                          Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <StackPanel DockPanel.Dock="Top"
+                                Margin="0,0,0,12">
 
                         <StackPanel Orientation="Horizontal"
                                     VerticalAlignment="Center">
@@ -81,7 +74,8 @@
                                        Foreground="{DynamicResource Brush.Text.Primary}" />
                         </StackPanel>
 
-                        <Button Grid.Column="1"
+                        <WrapPanel Margin="0,10,0,0">
+                        <Button
                                 Width="34"
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
@@ -92,7 +86,7 @@
                             <ui:SymbolIcon Symbol="Add24" />
                         </Button>
 
-                        <Button Grid.Column="2"
+                        <Button
                                 Width="34"
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
@@ -101,17 +95,39 @@
                                 AutomationProperties.Name="선택 폴더 편집">
                             <ui:SymbolIcon Symbol="Edit24" />
                         </Button>
-                        <Button Grid.Column="3"
+                        <Button
+                                Width="34"
+                                Height="34"
+                                Style="{StaticResource EsButton.Danger}"
+                                Click="DeleteFolder_Click"
+                                IsEnabled="{Binding CanDeleteFolder}"
+                                ToolTip="Disable selected folder"
+                                AutomationProperties.Name="Disable selected folder"
+                                Margin="6,0,6,0">
+                            <ui:SymbolIcon Symbol="Delete24" />
+                        </Button>
+                        <Button
+                                Width="34"
+                                Height="34"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Click="RecoverFolder_Click"
+                                IsEnabled="{Binding CanRecoverFolder}"
+                                ToolTip="Restore selected folder"
+                                AutomationProperties.Name="Restore selected folder"
+                                Margin="0,0,6,0">
+                            <ui:SymbolIcon Symbol="ArrowUndo24" />
+                        </Button>
+                        <Button
                                 Width="34"
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Command="{Binding MoveSelectedFolderUpCommand}"
                                 ToolTip="Move folder up"
                                 AutomationProperties.Name="Move folder up"
-                                Margin="6,0,6,0">
+                                Margin="0,0,6,0">
                             <ui:SymbolIcon Symbol="ArrowUp24" />
                         </Button>
-                        <Button Grid.Column="4"
+                        <Button
                                 Width="34"
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
@@ -120,7 +136,8 @@
                                 AutomationProperties.Name="Move folder down">
                             <ui:SymbolIcon Symbol="ArrowDown24" />
                         </Button>
-                    </Grid>
+                        </WrapPanel>
+                    </StackPanel>
 
                     <ListBox x:Name="FolderList"
                              ItemsSource="{Binding Folders}"
@@ -136,6 +153,16 @@
                             <DataTemplate>
                                 <Grid MinHeight="42"
                                       Margin="0,2">
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Opacity" Value="1" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.55" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
