@@ -106,8 +106,26 @@ panel.Margin = new Thickness(3, 5, 3, 5);
 3. Fluent UI System Icons 빌드 파이프라인 구축
 4. `EsTextBox`, `EsComboBox`, `EsToggle`, `EsTabView` 추가
 5. `IThemeService.cs` 단위 테스트 (xUnit)
-6. Roslyn 분석기 `EasiDS001` 작성 (매직 색·폰트 차단)
+6. ~~Roslyn 분석기 `EasiDS001` 작성 (매직 색·폰트 차단)~~ ✅ 완료 (아래 거버넌스 참조)
 7. M1 마일스톤 — `WpfMainWindow`(FrmMain 신규) 착수
+
+## 거버넌스 — EasiDS 분석기 (계획서 §9.2)
+
+`Easislides.Analyzers/` (netstandard2.0 Roslyn 분석기) + `Easislides.Analyzers.Tests/` (12 테스트).
+WPF 프로젝트가 `OutputItemType=Analyzer`로 참조하여 빌드 시 자동 검사한다.
+
+**EasiDS001 — 매직 색·폰트 직접 사용 경고** (현재 Warning, 목표 Error):
+
+| 차단 | 허용(오탐 방지) |
+|---|---|
+| `Color.FromArgb/FromRgb/FromScRgb(상수, …)` | 런타임 값으로 만든 색 (`Color.FromArgb((byte)(v>>24), …)`) |
+| `Colors.Navy` · `System.Drawing.Color.Red` · `SystemColors.Control` | — |
+| `new FontFamily("Tahoma")` | `new FontFamily("pack://…")` (번들 폰트 등록) |
+| `new System.Drawing.Font(…)` | `System.Drawing` 밖 도메인 `Font` 토큰 타입 |
+
+알려진 한계(후속): `static readonly` 색 인자 혼용 우회, `Brushes.*` 팔레트는 미대상
+(PreviewCanvas 등 라이브 렌더링 폴백 토큰화 작업에서 다룸). StyleCop `AutomationProperties.Name`
+검사는 다음 반복(EasiDS002)에서 추가 예정.
 
 ## 참조
 

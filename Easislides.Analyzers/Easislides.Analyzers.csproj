@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EasiDS 디자인 시스템 강제용 Roslyn 분석기 (계획서 §9.2).
+    분석기는 반드시 netstandard2.0 으로 빌드해야 컴파일러에 로드된다.
+    실제 실행 어셈블리(net10.0)와 분리된 별도 산출물이다.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Easislides.Analyzers</RootNamespace>
+    <AssemblyName>Easislides.Analyzers</AssemblyName>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- 분석기 작성 시 권장되는 추가 규칙 (RS1xxx) 활성화 -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- 분석기 어셈블리는 일반 참조 산출물로 포함하지 않는다 -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslyn 분석기 API. PrivateAssets=all → 소비 프로젝트로 전파 금지 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- 분석기 릴리스 추적(RS2008) — 규칙 추가 이력을 기록 -->
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+</Project>
