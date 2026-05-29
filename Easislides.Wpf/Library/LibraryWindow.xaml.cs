@@ -44,6 +44,16 @@ public partial class LibraryWindow : Window
         await OpenSongEditorAsync(viewModel.SelectedSong);
     }
 
+    private async void MoveSong_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        {
+            return;
+        }
+
+        await OpenSongMoveAsync(viewModel);
+    }
+
     private async Task OpenSongEditorAsync(SongSummary? song)
     {
         if (DataContext is not LibraryViewModel viewModel)
@@ -77,6 +87,31 @@ public partial class LibraryWindow : Window
         {
             viewModel.SelectSongById(songId.Value);
         }
+    }
+
+    private async Task OpenSongMoveAsync(LibraryViewModel viewModel)
+    {
+        if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
+        {
+            viewModel.StatusMessage = "이동할 곡을 선택하세요.";
+            return;
+        }
+
+        var moveWindow = _services.GetRequiredService<SongMoveWindow>();
+        moveWindow.Owner = this;
+        if (moveWindow.DataContext is not SongMoveViewModel moveViewModel)
+        {
+            return;
+        }
+
+        moveViewModel.Load(viewModel.DatabasePath, viewModel.SelectedSong, viewModel.SelectedFolder, viewModel.Folders);
+        var moved = moveWindow.ShowDialog() == true;
+        if (!moved)
+        {
+            return;
+        }
+
+        await viewModel.LoadAsync();
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)

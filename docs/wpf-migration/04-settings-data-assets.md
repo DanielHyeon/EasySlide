@@ -182,7 +182,7 @@ DB 검증:
 - `MainViewModelTests.OpenOutputCommand_WhenAlwaysUseSecondaryMonitorDisabledWithoutDefault_SelectsPrimary`, `MainViewModelTests.OpenOutputCommand_WhenDefaultMonitorMissingAndAlwaysUseSecondaryDisabled_FallsBackToPrimary`, `WindowPlacementServiceTests.CreateOutputPlacement_Fullscreen_UsesSettingsCustomBoundsWhenConfigured`, `WindowPlacementServiceTests.CreateOutputPlacement_Windowed_CentersPreviewInsideSettingsCustomBounds`: 저장/이식된 display/window placement 정책과 제거된 저장 모니터 fallback이 출력 모니터 선택과 출력 창 geometry에 반영되는지 검증
 - `MediaPlaybackServiceTests.Load_WithSettingsService_UsesPersistedMediaDefaults`, `MediaPlaybackServiceTests.SettingsChanged_WhenMediaLoaded_AppliesPersistedMediaDefaults`: 저장/이식된 media volume/balance/mute 기본값과 runtime 변경 이벤트가 재생 스냅샷/백엔드에 반영되는지 검증
 - `PowerPointRenderServiceTests.RenderSlideAsync_WhenRequestTimeoutIsZero_UsesSettingsTimeout`, `PowerPointRenderServiceTests.RenderSlideAsync_UsesSettingsBackedThumbnailCacheMegabytes`, `PowerPointRenderServiceTests.RenderSlideAsync_WhenThumbnailCacheSettingChanges_ReconfiguresOwnedCache`: 저장/이식된 PowerPoint render timeout과 thumbnail cache 용량이 렌더 서비스 기본값 및 runtime 변경에 반영되는지 검증
-- `AppServiceRegistrationTests.ConfigureServices_ResolvesPowerPointRenderServiceWithSettingsBackedConstructor`: 운영 DI 등록이 PowerPoint 설정 소비 생성자와 Library/SongEditor ViewModel/Window 등록을 사용하도록 고정
+- `AppServiceRegistrationTests.ConfigureServices_ResolvesPowerPointRenderServiceWithSettingsBackedConstructor`: 운영 DI 등록이 PowerPoint 설정 소비 생성자와 Library/SongEditor/SongMove ViewModel/Window 등록을 사용하도록 고정
 - `SupportInfoServiceTests`: About/Registration/Help legacy copy, `RegistrationUser` 저장, 웹사이트/등록 페이지 launcher, `KeyBoardOption=1` shortcut override 기반 도움말 전환을 검증
 - `AssetMigrationServiceTests`: dry-run 파일/sha256 report, 원본 무수정 복사, 복사 후 hash 검증, backup report 작성, 목적지 파일 충돌 safe-name 처리, source missing/source-not-directory 오류 분류 검증
 - `DatabaseMigrationServiceTests`: SQLite schema version/table 분석, dry-run path 보고, backup 생성, 순차 migration, user_version 갱신, transaction rollback 및 backup restore, source missing/source-not-file/corrupt DB 오류 분류 검증
@@ -207,10 +207,11 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SupportInfoServiceTests|AppServiceRegistrationTests|LegacySettingsMapTests|MigrateLegacyAsync_ImportsRegistrationUser"`: 20개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "LibraryViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 274개 통과
-- `dotnet test Easislides.sln -c Debug`: 274개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 278개 통과
+- `dotnet test Easislides.sln -c Debug`: 278개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 274개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 278개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

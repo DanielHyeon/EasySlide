@@ -115,6 +115,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
@@ -123,7 +124,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal"
@@ -158,14 +159,28 @@
                             </StackPanel>
                         </Button>
 
-                        <TextBox Grid.Column="3"
-                                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MinHeight="36"
-                                 ToolTip="제목, 분류, 가사 검색"
-                                 AutomationProperties.Name="라이브러리 검색" />
+                        <Button Grid.Column="3"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Click="MoveSong_Click"
+                                ToolTip="선택 곡 이동"
+                                AutomationProperties.Name="선택 곡 이동"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="ArrowRight24" Margin="0,0,6,0" />
+                                <TextBlock Text="이동" />
+                            </StackPanel>
+                        </Button>
+
                     </Grid>
 
-                    <DataGrid Grid.Row="1"
+                    <TextBox Grid.Row="1"
+                             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             MinHeight="36"
+                             Margin="0,0,0,12"
+                             ToolTip="제목, 분류, 가사 검색"
+                             AutomationProperties.Name="라이브러리 검색" />
+
+                    <DataGrid Grid.Row="2"
                               ItemsSource="{Binding Songs}"
                               SelectedItem="{Binding SelectedSong, Mode=TwoWay}"
                               AutoGenerateColumns="False"

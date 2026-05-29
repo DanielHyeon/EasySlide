@@ -88,6 +88,7 @@ public partial class App : Application
         services.AddTransient<MediaPlaybackViewModel>();
         services.AddTransient<LibraryViewModel>();
         services.AddTransient<SongEditorViewModel>();
+        services.AddTransient<SongMoveViewModel>();
         services.AddTransient<SettingsWindowViewModel>();
         services.AddTransient<AboutWindowViewModel>();
         services.AddTransient<HelpWindowViewModel>();
@@ -95,6 +96,7 @@ public partial class App : Application
         services.AddTransient<OutputWindow>();
         services.AddTransient<LibraryWindow>();
         services.AddTransient<SongEditorWindow>();
+        services.AddTransient<SongMoveWindow>();
         services.AddTransient<SettingsWindow>();
         services.AddTransient<AboutWindow>();
         services.AddTransient<HelpWindow>();
