@@ -1,0 +1,22 @@
+<UserControl x:Class="Easislides.Wpf.Composites.FolderComboBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+
+    <!--
+        라벨 + 폴더 ComboBox. 내부 컨트롤은 UserControl 의 의존 속성(Root)에 바인딩한다.
+        호스트가 ItemsSource/SelectedItem/Label/AutomationName 을 자신의 ViewModel 에 바인딩.
+    -->
+    <StackPanel>
+        <TextBlock Text="{Binding Label, ElementName=Root}"
+                   Style="{StaticResource Type.Caption.Style}"
+                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+        <ComboBox x:Name="InnerCombo"
+                  ItemsSource="{Binding ItemsSource, ElementName=Root}"
+                  SelectedItem="{Binding SelectedItem, ElementName=Root, Mode=TwoWay}"
+                  DisplayMemberPath="Name"
+                  MinHeight="36"
+                  Margin="0,4,0,0"
+                  AutomationProperties.Name="{Binding AutomationName, ElementName=Root}" />
+    </StackPanel>
+</UserControl>
