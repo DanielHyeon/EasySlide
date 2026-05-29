@@ -41,6 +41,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private string? _cachedGapLogoPath;
     private ImageSource? _cachedGapLogoSource;
     private OutputSceneSnapshot _scene;
+    private TimeSpan _contentFadeDuration = TimeSpan.FromMilliseconds(250);
     private bool _disposed;
 
     public OutputWindowViewModel()
@@ -184,6 +185,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _blackoutOverlayVisibility, value);
     }
 
+    // 컨텐츠 영역(타이틀/로고) 진입 시 페이드 인 애니메이션 길이.
+    // 0이면 페이드 비활성 — 테스트에서는 TimeSpan.Zero로 설정해 즉시 1로 만든다.
+    public TimeSpan ContentFadeDuration
+    {
+        get => _contentFadeDuration;
+        set => SetProperty(ref _contentFadeDuration, value);
+    }
+
+    // Scene 변경 알림을 받아 페이드를 트리거할 코드-비하인드/뷰가 구독한다.
+    // ViewModel 자체는 WPF 애니메이션을 모르고, 단순히 "장면이 갱신됐다"는 사실만 전달.
+    public event EventHandler? SceneChanged;
+
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
         _session = snapshot;
@@ -202,6 +215,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         Scene = CreateScene();
         ApplyScene(Scene);
+        // 모든 프로퍼티가 갱신된 뒤에 알림 → 뷰(코드-비하인드)가 fade-in 등 진입 애니메이션을 트리거할 수 있게 한다.
+        SceneChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private OutputSceneSnapshot CreateScene()

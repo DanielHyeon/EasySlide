@@ -325,6 +325,56 @@ public class OutputWindowViewModelTests
         sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed);
     }
 
+    [Fact]
+    public void SceneChanged_FiresOnApplySession()
+    {
+        var sut = new OutputWindowViewModel();
+        var fireCount = 0;
+        sut.SceneChanged += (_, _) => fireCount++;
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Amazing Grace",
+            "Display 2",
+            IsBlackout: false));
+
+        fireCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void SceneChanged_FiresOnApplyOutput()
+    {
+        var sut = new OutputWindowViewModel();
+        var fireCount = 0;
+        sut.SceneChanged += (_, _) => fireCount++;
+
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1280, 720, 1),
+            new OutputWindowPlacement(0, 0, 1280, 720, IsWindowed: true)));
+
+        fireCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void ContentFadeDuration_DefaultIs250Ms()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ContentFadeDuration.Should().Be(TimeSpan.FromMilliseconds(250));
+    }
+
+    [Fact]
+    public void ContentFadeDuration_CanBeOverridden()
+    {
+        var sut = new OutputWindowViewModel
+        {
+            ContentFadeDuration = TimeSpan.Zero
+        };
+
+        sut.ContentFadeDuration.Should().Be(TimeSpan.Zero);
+    }
+
     private static BitmapSource CreateStubBitmap()
     {
         var pixels = new byte[] { 0, 0, 0, 255 };

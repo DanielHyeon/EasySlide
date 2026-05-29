@@ -25,7 +25,8 @@
                        Foreground="{DynamicResource Brush.Surface.Page}" />
         </Border>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1"
+              x:Name="ContentArea">
             <!-- GAP(User) 모드에서 로고 파일이 로딩되면 이미지를, 그 외에는 기존 타이틀 텍스트를 표시한다. -->
             <Image Source="{Binding GapLogoSource}"
                    Visibility="{Binding GapLogoVisibility}"
