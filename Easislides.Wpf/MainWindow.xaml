@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
+        xmlns:theme="clr-namespace:Easislides.Wpf.Theme"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="EasiSlides v3.0 - WPF 운영 셸"
         Width="1180"
@@ -87,6 +88,16 @@
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
                             <TextBlock Text="외부 파일" />
+                        </StackPanel>
+                    </Button>
+                    <Button Click="OpenBible_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="성경 열기"
+                            AutomationProperties.Name="성경 열기"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" Margin="0,0,6,0" />
+                            <TextBlock Text="성경" />
                         </StackPanel>
                     </Button>
                     <Button Click="OpenHelp_Click"

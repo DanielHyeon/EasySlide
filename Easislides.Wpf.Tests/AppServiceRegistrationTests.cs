@@ -41,6 +41,7 @@ public class AppServiceRegistrationTests
             var songDetails = provider.GetRequiredService<IAdminSongDetailRepository>();
             var songMergeService = provider.GetRequiredService<ISongMergeService>();
             var externalFiles = provider.GetRequiredService<IExternalFileOperationService>();
+            var bibleRepository = provider.GetRequiredService<IBibleRepository>();
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
             var onboarding = provider.GetRequiredService<IOnboardingCoordinator>();
             var onboardingDialog = provider.GetRequiredService<IOnboardingDialogService>();
@@ -55,6 +56,7 @@ public class AppServiceRegistrationTests
             var songRecoveryViewModel = provider.GetRequiredService<SongRecoveryViewModel>();
             var songMergeViewModel = provider.GetRequiredService<SongMergeViewModel>();
             var externalFileOperationViewModel = provider.GetRequiredService<ExternalFileOperationViewModel>();
+            var bibleViewModel = provider.GetRequiredService<BibleViewModel>();
             var aboutViewModel = provider.GetRequiredService<AboutWindowViewModel>();
             var helpViewModel = provider.GetRequiredService<HelpWindowViewModel>();
             var registrationViewModel = provider.GetRequiredService<RegistrationWindowViewModel>();
@@ -81,6 +83,7 @@ public class AppServiceRegistrationTests
             songDetails.Should().BeSameAs(adminRepository);
             songMergeService.Should().BeOfType<SongMergeService>();
             externalFiles.Should().BeOfType<ExternalFileOperationService>();
+            bibleRepository.Should().BeOfType<BibleRepository>();
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
             onboarding.Should().BeOfType<OnboardingCoordinator>();
             onboardingDialog.Should().BeOfType<WelcomeWindowDialogService>();
@@ -95,6 +98,7 @@ public class AppServiceRegistrationTests
             songRecoveryViewModel.Should().NotBeNull();
             songMergeViewModel.Should().NotBeNull();
             externalFileOperationViewModel.Should().NotBeNull();
+            bibleViewModel.Should().NotBeNull();
             aboutViewModel.Should().NotBeNull();
             helpViewModel.Should().NotBeNull();
             registrationViewModel.Should().NotBeNull();

@@ -1,0 +1,194 @@
+<Window x:Class="Easislides.Wpf.Library.BibleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:theme="clr-namespace:Easislides.Wpf.Theme"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="성경"
+        Width="920"
+        Height="680"
+        MinWidth="780"
+        MinHeight="560"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded">
+    <Grid Margin="{StaticResource Thickness.Xl}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Margin="0,0,0,18">
+            <ui:SymbolIcon DockPanel.Dock="Left"
+                           Symbol="{x:Static theme:EsIcons.Bible}"
+                           FontSize="28"
+                           Margin="0,2,10,0" />
+            <StackPanel>
+                <TextBlock Text="성경"
+                           Style="{StaticResource Type.Title1.Style}"
+                           Foreground="{DynamicResource Brush.Text.Primary}" />
+                <TextBlock Text="{Binding WorkingFolder}"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Row="1"
+              Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="1.1*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="1.8*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="버전"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <ComboBox ItemsSource="{Binding Versions}"
+                          SelectedItem="{Binding SelectedVersion, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          MinHeight="36"
+                          Margin="0,4,0,0"
+                          AutomationProperties.Name="성경 버전" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="책"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <ComboBox ItemsSource="{Binding Books}"
+                          SelectedItem="{Binding SelectedBook, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          MinHeight="36"
+                          Margin="0,4,0,0"
+                          AutomationProperties.Name="성경 책" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="4">
+                <TextBlock Text="검색"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         MinHeight="36"
+                         Margin="0,4,0,0"
+                         AutomationProperties.Name="성경 검색어" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="6"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Bottom">
+                <Button Command="{Binding LoadSelectedBookCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="선택한 책 불러오기"
+                        AutomationProperties.Name="성경 책 불러오기"
+                        Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" Margin="0,0,6,0" />
+                        <TextBlock Text="불러오기" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding SearchCommand}"
+                        Style="{StaticResource EsButton.Primary}"
+                        ToolTip="성경 검색"
+                        AutomationProperties.Name="성경 검색">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" Margin="0,0,6,0" />
+                        <TextBlock Text="검색" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="240" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="PassageTextBox"
+                     Text="{Binding PassageText, Mode=OneWay}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Disabled"
+                     FontSize="16"
+                     Padding="{StaticResource Thickness.Md}"
+                     AutomationProperties.Name="성경 본문" />
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="검색 옵션"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <ComboBox ItemsSource="{Binding MatchModes}"
+                          SelectedItem="{Binding MatchMode, Mode=TwoWay}"
+                          MinHeight="36"
+                          Margin="0,4,0,12"
+                          AutomationProperties.Name="성경 검색 방식" />
+                <CheckBox Content="구절 표시"
+                          IsChecked="{Binding ShowVerses, Mode=TwoWay}"
+                          Margin="0,0,0,18"
+                          AutomationProperties.Name="성경 구절 표시" />
+
+                <TextBlock Text="선택 구절"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <TextBlock Text="{Binding SelectedPassageTitle}"
+                           TextWrapping="Wrap"
+                           Style="{StaticResource Type.Body.Style}"
+                           Foreground="{DynamicResource Brush.Text.Primary}"
+                           Margin="0,4,0,6" />
+                <TextBox Text="{Binding SelectedPassageId, Mode=OneWay}"
+                         TextWrapping="Wrap"
+                         IsReadOnly="True"
+                         MinHeight="76"
+                         AutomationProperties.Name="성경 선택 ID" />
+            </StackPanel>
+        </Grid>
+
+        <DockPanel Grid.Row="3"
+                   Margin="0,18,0,0">
+            <StackPanel DockPanel.Dock="Left">
+                <TextBlock Text="{Binding ValidationMessage}"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Status.Danger}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Button Style="{StaticResource EsButton.Primary}"
+                        Click="Select_Click"
+                        ToolTip="본문에서 선택한 구절 사용"
+                        AutomationProperties.Name="성경 선택 구절 사용"
+                        Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.StatusCheck}" Margin="0,0,6,0" />
+                        <TextBlock Text="선택" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource EsButton.Secondary}"
+                        Click="Close_Click"
+                        ToolTip="닫기"
+                        AutomationProperties.Name="성경 창 닫기">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
+                        <TextBlock Text="닫기" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

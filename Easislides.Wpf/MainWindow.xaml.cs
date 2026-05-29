@@ -55,6 +55,13 @@ public partial class MainWindow : Window
         externalFileWindow.ShowDialog();
     }
 
+    private void OpenBible_Click(object sender, RoutedEventArgs e)
+    {
+        var bibleWindow = _services.GetRequiredService<BibleWindow>();
+        bibleWindow.Owner = this;
+        bibleWindow.ShowDialog();
+    }
+
     private void OpenHelp_Click(object sender, RoutedEventArgs e)
     {
         var helpWindow = _services.GetRequiredService<HelpWindow>();
