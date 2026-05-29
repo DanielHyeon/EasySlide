@@ -173,25 +173,8 @@
                 <ColumnDefinition Width="340" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0"
-                    Background="{DynamicResource Brush.Surface.Card}"
-                    BorderBrush="{DynamicResource Brush.Border.Default}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource CornerRadius.Medium}"
-                    Padding="{StaticResource Thickness.Lg}">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top"
-                               Text="예배 순서"
-                               Style="{StaticResource Type.Title3.Style}"
-                               Foreground="{DynamicResource Brush.Text.Primary}"
-                               Margin="0,0,0,12" />
-                    <ListBox ItemsSource="{Binding Queue}"
-                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                             DisplayMemberPath="Title"
-                             AutomationProperties.Name="예배 순서 목록"
-                             BorderThickness="0" />
-                </DockPanel>
-            </Border>
+            <!-- 예배 순서 목록 — 재사용 컴포지트로 분리(§5.2). DataContext(MainViewModel) 상속. -->
+            <composites:WorshipListPanel Grid.Column="0" />
 
             <Border Grid.Column="2"
                     Background="{DynamicResource Brush.Surface.Card}"

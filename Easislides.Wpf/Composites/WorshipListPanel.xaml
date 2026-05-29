@@ -1,0 +1,29 @@
+<UserControl x:Class="Easislides.Wpf.Composites.WorshipListPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        WorshipListPanel — 계획서 §5.2 재사용 컴포지트(예배 순서 목록 패널).
+        FrmMain 좌측 예배 순서 카드(제목 + 송출 큐 ListBox). 라이브 송출 경로의 일부이므로
+        동작 동등성이 최우선 — View만 분리하고 ViewModel·바인딩은 그대로 둔다.
+        DataContext 는 호스트(MainWindow)에서 상속된 MainViewModel 을 그대로 사용한다.
+    -->
+    <Border Background="{DynamicResource Brush.Surface.Card}"
+            BorderBrush="{DynamicResource Brush.Border.Default}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource CornerRadius.Medium}"
+            Padding="{StaticResource Thickness.Lg}">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Top"
+                       Text="예배 순서"
+                       Style="{StaticResource Type.Title3.Style}"
+                       Foreground="{DynamicResource Brush.Text.Primary}"
+                       Margin="0,0,0,12" />
+            <ListBox ItemsSource="{Binding Queue}"
+                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                     DisplayMemberPath="Title"
+                     AutomationProperties.Name="예배 순서 목록"
+                     BorderThickness="0" />
+        </DockPanel>
+    </Border>
+</UserControl>
