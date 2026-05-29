@@ -55,6 +55,13 @@ public partial class MainWindow : Window
         externalFileWindow.ShowDialog();
     }
 
+    private void OpenImportExport_Click(object sender, RoutedEventArgs e)
+    {
+        var importExportWindow = _services.GetRequiredService<ImportExportWindow>();
+        importExportWindow.Owner = this;
+        importExportWindow.ShowDialog();
+    }
+
     private void OpenBible_Click(object sender, RoutedEventArgs e)
     {
         var bibleWindow = _services.GetRequiredService<BibleWindow>();

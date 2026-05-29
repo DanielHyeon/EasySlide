@@ -1,0 +1,268 @@
+<Window x:Class="Easislides.Wpf.Library.ImportExportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:theme="clr-namespace:Easislides.Wpf.Theme"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="Import/Export"
+        Width="1080"
+        Height="720"
+        MinWidth="920"
+        MinHeight="600"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded">
+    <Grid Margin="{StaticResource Thickness.Lg}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Import/Export"
+                           Style="{StaticResource Type.H2.Style}" />
+                <TextBlock Text="{Binding DatabasePath}"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Command="{Binding LoadCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" Margin="0,0,6,0" />
+                    <TextBlock Text="Reload" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <TabControl Grid.Row="1"
+                    Margin="0,16,0,0">
+            <TabItem Header="Import">
+                <Grid Margin="0,16,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Source"
+                               Style="{StaticResource Type.Caption.Style}" />
+                    <DockPanel Grid.Row="1"
+                               Grid.ColumnSpan="3"
+                               Margin="0,4,0,12">
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal"
+                                    Margin="8,0,0,0">
+                            <Button Click="BrowseImportFile_Click"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.DocumentWord}" Margin="0,0,6,0" />
+                                    <TextBlock Text="File" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="BrowseImportFolder_Click"
+                                    Style="{StaticResource EsButton.Secondary}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.FolderOpen}" Margin="0,0,6,0" />
+                                    <TextBlock Text="Folder" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                        <TextBox Text="{Binding ImportSourcePath, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="36"
+                                 VerticalContentAlignment="Center" />
+                    </DockPanel>
+
+                    <StackPanel Grid.Row="2"
+                                Grid.Column="0">
+                        <TextBlock Text="Source Folders"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <DataGrid ItemsSource="{Binding ImportSourceFolders}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  Margin="0,4,12,0">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header=""
+                                                        Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                        Width="48" />
+                                <DataGridTextColumn Header="Folder"
+                                                    Binding="{Binding Name}"
+                                                    Width="*" />
+                                <DataGridTextColumn Header="Songs"
+                                                    Binding="{Binding SongCount}"
+                                                    Width="80" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2"
+                                Grid.Column="1"
+                                Margin="0,0,12,0">
+                        <TextBlock Text="Target"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <ComboBox ItemsSource="{Binding Folders}"
+                                  SelectedItem="{Binding SelectedTargetFolder}"
+                                  DisplayMemberPath="Name"
+                                  MinHeight="36"
+                                  Margin="0,4,0,12" />
+                        <TextBlock Text="Duplicates"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <ComboBox ItemsSource="{Binding DuplicatePolicies}"
+                                  SelectedItem="{Binding ImportDuplicatePolicy}"
+                                  MinHeight="36"
+                                  Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2"
+                                Grid.Column="2">
+                        <Button Command="{Binding PreviewImportCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" Margin="0,0,6,0" />
+                                <TextBlock Text="Preview" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ImportCommand}"
+                                Style="{StaticResource EsButton.Primary}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionAdd}" Margin="0,0,6,0" />
+                                <TextBlock Text="Import" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Export">
+                <Grid Margin="0,16,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Folder"
+                               Style="{StaticResource Type.Caption.Style}" />
+                    <TextBlock Grid.Column="1"
+                               Text="Format"
+                               Style="{StaticResource Type.Caption.Style}" />
+                    <ComboBox Grid.Row="1"
+                              ItemsSource="{Binding Folders}"
+                              SelectedItem="{Binding SelectedExportFolder}"
+                              DisplayMemberPath="Name"
+                              MinHeight="36"
+                              Margin="0,4,12,12" />
+                    <ComboBox Grid.Row="1"
+                              Grid.Column="1"
+                              ItemsSource="{Binding ExportFormats}"
+                              SelectedItem="{Binding SelectedExportFormat}"
+                              MinHeight="36"
+                              Margin="0,4,12,12" />
+                    <Button Grid.Row="1"
+                            Grid.Column="2"
+                            Command="{Binding RefreshExportCandidatesCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            Margin="0,4,0,12">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" Margin="0,0,6,0" />
+                            <TextBlock Text="Find" />
+                        </StackPanel>
+                    </Button>
+
+                    <DataGrid Grid.Row="2"
+                              Grid.ColumnSpan="3"
+                              ItemsSource="{Binding ExportCandidates}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header=""
+                                                    Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="48" />
+                            <DataGridTextColumn Header="Title"
+                                                Binding="{Binding Title}"
+                                                Width="2*" />
+                            <DataGridTextColumn Header="Folder"
+                                                Binding="{Binding FolderName}"
+                                                Width="*" />
+                            <DataGridTextColumn Header="No"
+                                                Binding="{Binding SongNumber}"
+                                                Width="80" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <DockPanel Grid.Row="3"
+                               Grid.ColumnSpan="3"
+                               Margin="0,12,0,0">
+                        <Button DockPanel.Dock="Right"
+                                Click="BrowseExportPath_Click"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.FolderOpen}" Margin="0,0,6,0" />
+                                <TextBlock Text="Browse" />
+                            </StackPanel>
+                        </Button>
+                        <Button DockPanel.Dock="Right"
+                                Command="{Binding ExportCommand}"
+                                Style="{StaticResource EsButton.Primary}"
+                                Margin="8,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ExportRtf}" Margin="0,0,6,0" />
+                                <TextBlock Text="Export" />
+                            </StackPanel>
+                        </Button>
+                        <TextBox Text="{Binding ExportOutputPath, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="36"
+                                 VerticalContentAlignment="Center" />
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Grid Grid.Row="2"
+              Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="{Binding ValidationMessage}"
+                           Foreground="{DynamicResource Brush.Status.Danger}"
+                           Style="{StaticResource Type.Caption.Style}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           Style="{StaticResource Type.Caption.Style}" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Click="Close_Click"
+                    Style="{StaticResource EsButton.Secondary}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
+                    <TextBlock Text="Close" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>
