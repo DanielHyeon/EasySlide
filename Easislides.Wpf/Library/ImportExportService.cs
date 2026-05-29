@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Easislides.Wpf.Data;
+using OfficeLib;
 
 namespace Easislides.Wpf.Library;
 
@@ -153,6 +154,27 @@ public interface IImportExportService
     string GetDefaultExportPath(string workingFolder, DateOnly date, ExportFormat format);
 }
 
+public interface IDocumentTextExtractor
+{
+    string ExtractText(string path);
+}
+
+public sealed class OfficeDocumentTextExtractor : IDocumentTextExtractor
+{
+    public string ExtractText(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            return "";
+        }
+
+        return NormalizeLineEndings(new WordDoc().GetContents(path)).TrimEnd('\n', '\r');
+    }
+
+    private static string NormalizeLineEndings(string value)
+        => value.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
+}
+
 public sealed class ImportExportService : IImportExportService
 {
     private const string DefaultSourceFolder = "Default Folder";
@@ -160,11 +182,21 @@ public sealed class ImportExportService : IImportExportService
 
     private readonly IAdminDatabaseRepository _adminDatabase;
     private readonly IAdminSongDetailRepository _songDetails;
+    private readonly IDocumentTextExtractor _documentTextExtractor;
 
     public ImportExportService(IAdminDatabaseRepository adminDatabase, IAdminSongDetailRepository songDetails)
+        : this(adminDatabase, songDetails, new OfficeDocumentTextExtractor())
+    {
+    }
+
+    public ImportExportService(
+        IAdminDatabaseRepository adminDatabase,
+        IAdminSongDetailRepository songDetails,
+        IDocumentTextExtractor documentTextExtractor)
     {
         _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
         _songDetails = songDetails ?? throw new ArgumentNullException(nameof(songDetails));
+        _documentTextExtractor = documentTextExtractor ?? throw new ArgumentNullException(nameof(documentTextExtractor));
     }
 
     public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
@@ -450,7 +482,7 @@ public sealed class ImportExportService : IImportExportService
         return GetAvailableFile(path);
     }
 
-    private static LoadedImportSongs LoadImportSongs(string sourcePath, AccessImportMapping? accessMapping = null)
+    private LoadedImportSongs LoadImportSongs(string sourcePath, AccessImportMapping? accessMapping = null)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
@@ -854,7 +886,7 @@ public sealed class ImportExportService : IImportExportService
         return issues;
     }
 
-    private static LoadedImportSongs LoadDocumentFolder(string sourceFolder)
+    private LoadedImportSongs LoadDocumentFolder(string sourceFolder)
     {
         var files = Directory
             .EnumerateFiles(sourceFolder, "*.*", SearchOption.AllDirectories)
@@ -881,10 +913,11 @@ public sealed class ImportExportService : IImportExportService
         return extension is ".txt" or ".doc" or ".docx";
     }
 
-    private static string ExtractDocumentText(string path)
+    private string ExtractDocumentText(string path)
     {
         return Path.GetExtension(path).ToLowerInvariant() switch
         {
+            ".doc" => NormalizeLineEndings(_documentTextExtractor.ExtractText(path)),
             ".docx" => ExtractDocxText(path),
             _ => NormalizeLineEndings(File.ReadAllText(path)),
         };

@@ -41,6 +41,7 @@ public class AppServiceRegistrationTests
             var songDetails = provider.GetRequiredService<IAdminSongDetailRepository>();
             var songMergeService = provider.GetRequiredService<ISongMergeService>();
             var externalFiles = provider.GetRequiredService<IExternalFileOperationService>();
+            var documentTextExtractor = provider.GetRequiredService<IDocumentTextExtractor>();
             var importExportService = provider.GetRequiredService<IImportExportService>();
             var searchUsageService = provider.GetRequiredService<ISearchUsageService>();
             var usageDeleteConfirmation = provider.GetRequiredService<IUsageDeleteConfirmation>();
@@ -88,6 +89,7 @@ public class AppServiceRegistrationTests
             songDetails.Should().BeSameAs(adminRepository);
             songMergeService.Should().BeOfType<SongMergeService>();
             externalFiles.Should().BeOfType<ExternalFileOperationService>();
+            documentTextExtractor.Should().BeOfType<OfficeDocumentTextExtractor>();
             importExportService.Should().BeOfType<ImportExportService>();
             searchUsageService.Should().BeOfType<SearchUsageService>();
             usageDeleteConfirmation.Should().BeOfType<WpfUsageDeleteConfirmation>();

@@ -75,6 +75,7 @@ public partial class App : Application
         services.AddSingleton<IAdminSongDetailRepository>(sp => sp.GetRequiredService<AdminDatabaseRepository>());
         services.AddSingleton<ISongMergeService, SongMergeService>();
         services.AddSingleton<IExternalFileOperationService, ExternalFileOperationService>();
+        services.AddSingleton<IDocumentTextExtractor, OfficeDocumentTextExtractor>();
         services.AddSingleton<IImportExportService, ImportExportService>();
         services.AddSingleton<ISearchUsageService, SearchUsageService>();
         services.AddSingleton<IUsageDeleteConfirmation, WpfUsageDeleteConfirmation>();

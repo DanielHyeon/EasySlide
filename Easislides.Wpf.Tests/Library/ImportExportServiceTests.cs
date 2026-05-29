@@ -165,6 +165,32 @@ public class ImportExportServiceTests
     }
 
     [Fact]
+    public async Task ImportAsync_WhenDocumentFolderContainsDoc_UsesWordDocumentExtractor()
+    {
+        using var fixture = new ImportExportFixture();
+        var sourceFolder = Directory.CreateDirectory(Path.Combine(fixture.Root, "Docs")).FullName;
+        var docPath = Path.Combine(sourceFolder, "Legacy Word.doc");
+        File.WriteAllBytes(docPath, [0xD0, 0xCF, 0x11, 0xE0]);
+        fixture.DocumentTextExtractor.Documents[docPath] = "Verse 1\r\nVerse 2";
+
+        var sut = fixture.CreateService();
+
+        var report = await sut.ImportAsync(new ImportRequest(
+            fixture.AdminDatabasePath,
+            fixture.BackupRoot,
+            sourceFolder,
+            TargetFolderNo: 4,
+            SelectedSourceFolders: ["Documents"],
+            DuplicatePolicy: ImportDuplicatePolicy.SkipExisting));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.DocumentTextExtractor.RequestedPaths.Should().Equal(docPath);
+        fixture.Repository.SavedSongs.Should().ContainSingle();
+        fixture.Repository.SavedSongs[0].Title.Should().Be("Legacy Word");
+        fixture.Repository.SavedSongs[0].Lyrics.Should().Be("Verse 1\nVerse 2");
+    }
+
+    [Fact]
     public async Task GetAccessSchemaAsync_WhenMdbIsSqliteBacked_ReturnsTablesColumnsAndSuggestedMapping()
     {
         using var fixture = new ImportExportFixture();
@@ -348,6 +374,7 @@ public class ImportExportServiceTests
             BackupRoot = Path.Combine(Root, "Backups");
             File.WriteAllText(AdminDatabasePath, "");
             Repository = new FakeAdminRepository();
+            DocumentTextExtractor = new FakeDocumentTextExtractor();
         }
 
         public string Root { get; }
@@ -358,8 +385,10 @@ public class ImportExportServiceTests
 
         public FakeAdminRepository Repository { get; }
 
+        public FakeDocumentTextExtractor DocumentTextExtractor { get; }
+
         public ImportExportService CreateService()
-            => new(Repository, Repository);
+            => new(Repository, Repository, DocumentTextExtractor);
 
         public string WriteLegacyText(string contents)
         {
@@ -421,6 +450,19 @@ public class ImportExportServiceTests
             catch
             {
             }
+        }
+    }
+
+    private sealed class FakeDocumentTextExtractor : IDocumentTextExtractor
+    {
+        public Dictionary<string, string> Documents { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public List<string> RequestedPaths { get; } = [];
+
+        public string ExtractText(string path)
+        {
+            RequestedPaths.Add(path);
+            return Documents.TryGetValue(path, out var text) ? text : "";
         }
     }
 
