@@ -456,34 +456,98 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
-    public void SetContentAsset_BlackoutThenLive_HidesContentDuringBlackout()
+    public void ApplySession_LiveWithPreviewSource_PropagatesToContentImage()
+    {
+        var preview = CreateStubBitmap(width: 1920, height: 1080);
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Slide 3",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemKind: "P",
+            CurrentItemPreviewSource: preview,
+            CurrentItemPreviewFillMode: ImageFillMode.Fit,
+            CurrentItemPreviewPixelWidth: 1920,
+            CurrentItemPreviewPixelHeight: 1080));
+
+        sut.ContentImageSource.Should().BeSameAs(preview);
+        sut.ContentVisibility.Should().Be(Visibility.Visible);
+        sut.ContentWidth.Should().Be(1920);
+        sut.ContentHeight.Should().Be(1080);
+    }
+
+    [Fact]
+    public void ApplySession_StopClearsContentImage()
     {
         var sut = new OutputWindowViewModel();
         sut.ApplyOutput(new OutputWindowState(
             IsOpen: true,
             new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
             new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
-        sut.SetContentAsset(CreateStubBitmap(), pixelWidth: 1920, pixelHeight: 1080);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Slide",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemPreviewSource: CreateStubBitmap(),
+            CurrentItemPreviewPixelWidth: 100,
+            CurrentItemPreviewPixelHeight: 100));
+        sut.ContentImageSource.Should().NotBeNull();
+
+        sut.ApplySession(LiveSessionSnapshot.Off);
+
+        sut.ContentImageSource.Should().BeNull();
+        sut.ContentVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void LiveContentImage_DuringBlackout_BecomesHiddenButPreservesSource()
+    {
+        var preview = CreateStubBitmap(1920, 1080);
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
         sut.ApplySession(new LiveSessionSnapshot(
             LiveState.Active,
             "Slide 1",
             "Display 2",
-            IsBlackout: false));
+            IsBlackout: false,
+            CurrentItemPreviewSource: preview,
+            CurrentItemPreviewPixelWidth: 1920,
+            CurrentItemPreviewPixelHeight: 1080));
         sut.ContentVisibility.Should().Be(Visibility.Visible);
 
+        // LiveSessionService.HideOutput처럼 preview는 보존하면서 상태만 Blackout으로 전이.
         sut.ApplySession(new LiveSessionSnapshot(
             LiveState.Hidden,
             "Slide 1",
             "Display 2",
-            IsBlackout: true));
+            IsBlackout: true,
+            CurrentItemPreviewSource: preview,
+            CurrentItemPreviewPixelWidth: 1920,
+            CurrentItemPreviewPixelHeight: 1080));
 
+        sut.ContentImageSource.Should().BeSameAs(preview);
         sut.ContentVisibility.Should().Be(Visibility.Collapsed);
     }
 
-    private static BitmapSource CreateStubBitmap()
+    private static BitmapSource CreateStubBitmap(int width = 1, int height = 1)
     {
-        var pixels = new byte[] { 0, 0, 0, 255 };
-        var bitmap = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, palette: null, pixels, stride: 4);
+        var stride = width * 4;
+        var pixels = new byte[stride * height];
+        for (var i = 3; i < pixels.Length; i += 4)
+        {
+            pixels[i] = 255;
+        }
+        var bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, palette: null, pixels, stride);
         bitmap.Freeze();
         return bitmap;
     }

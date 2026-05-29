@@ -1,5 +1,8 @@
 using System;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Easislides.Wpf.Controls;
+using Easislides.Wpf.Rendering;
 
 namespace Easislides.Wpf.Shell;
 
@@ -8,7 +11,14 @@ public sealed record LiveSessionSnapshot(
     string CurrentItemTitle,
     string OutputMonitorName,
     bool IsBlackout,
-    string CurrentItemKind = "")
+    string CurrentItemKind = "",
+    // 라이브 큐 항목의 미리보기 이미지(슬라이드 썸네일 등).
+    // 라이브가 아니거나 미리보기가 없는 항목은 null. OutputWindow는 이 값을 받아
+    // SetContentAsset()으로 송출 화면 콘텐츠 슬롯에 적용한다.
+    ImageSource? CurrentItemPreviewSource = null,
+    ImageFillMode CurrentItemPreviewFillMode = ImageFillMode.Fit,
+    int CurrentItemPreviewPixelWidth = 0,
+    int CurrentItemPreviewPixelHeight = 0)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -45,12 +55,29 @@ public sealed class LiveSessionService : ILiveSessionService
     {
         ArgumentNullException.ThrowIfNull(item);
 
+        var (pixelWidth, pixelHeight) = ExtractPixelDimensions(item.PreviewSource);
         Update(new LiveSessionSnapshot(
             LiveState.Active,
             item.Title,
             outputMonitorName,
             IsBlackout: false,
-            item.Kind));
+            item.Kind,
+            item.PreviewSource,
+            item.PreviewFillMode,
+            pixelWidth,
+            pixelHeight));
+    }
+
+    // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를
+    // 정확히 계산하도록 한다. DrawingImage 등 BitmapSource가 아닌 ImageSource는 0으로 두고,
+    // OutputRenderer는 0인 경우 뷰포트 전체를 사용한다.
+    private static (int Width, int Height) ExtractPixelDimensions(ImageSource? source)
+    {
+        if (source is BitmapSource bitmap)
+        {
+            return (bitmap.PixelWidth, bitmap.PixelHeight);
+        }
+        return (0, 0);
     }
 
     public void HideOutput(bool blackout)

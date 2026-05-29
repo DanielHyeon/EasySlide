@@ -255,11 +255,22 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         int pixelHeight,
         ImageFillMode fillMode = ImageFillMode.Fit)
     {
+        AssignContentAsset(source, pixelWidth, pixelHeight, fillMode);
+        RefreshDisplayText();
+    }
+
+    // RefreshDisplayText를 호출하지 않는 내부용 — ApplySession처럼 본인이 직접 Refresh를 부르는
+    // 경로에서 중복 호출을 피하기 위해 분리.
+    private void AssignContentAsset(
+        ImageSource? source,
+        int pixelWidth,
+        int pixelHeight,
+        ImageFillMode fillMode)
+    {
         ContentImageSource = source;
         _contentPixelWidth = pixelWidth;
         _contentPixelHeight = pixelHeight;
         _contentFillMode = fillMode;
-        RefreshDisplayText();
     }
 
     public void ApplySession(LiveSessionSnapshot snapshot)
@@ -267,6 +278,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         _session = snapshot;
         State = snapshot.State;
         CurrentItemTitle = snapshot.CurrentItemTitle;
+        // 라이브 큐 항목이 들고 있던 미리보기 자산을 그대로 송출 콘텐츠 슬롯에 주입.
+        // Stop/Hidden 등으로 snapshot의 PreviewSource가 null이면 자동으로 콘텐츠가 사라진다.
+        AssignContentAsset(
+            snapshot.CurrentItemPreviewSource,
+            snapshot.CurrentItemPreviewPixelWidth,
+            snapshot.CurrentItemPreviewPixelHeight,
+            snapshot.CurrentItemPreviewFillMode);
         RefreshDisplayText();
     }
 
