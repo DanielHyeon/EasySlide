@@ -244,7 +244,7 @@ public partial class LibraryWindow : Window
             return;
         }
 
-        editorViewModel.Load(viewModel.DatabasePath, viewModel.SelectedFolder, song);
+        await editorViewModel.LoadAsync(viewModel.DatabasePath, viewModel.SelectedFolder, song);
         var saved = editorWindow.ShowDialog() == true;
         if (!saved)
         {

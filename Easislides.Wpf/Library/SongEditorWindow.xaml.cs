@@ -17,6 +17,7 @@ public partial class SongEditorWindow : Window
     protected override void OnClosed(System.EventArgs e)
     {
         _viewModel.Saved -= OnSaved;
+        _viewModel.Dispose();
         base.OnClosed(e);
     }
 

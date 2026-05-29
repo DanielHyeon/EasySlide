@@ -2,11 +2,11 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="곡 편집"
-        Width="720"
-        Height="640"
-        MinWidth="620"
-        MinHeight="540"
+        Title="Song Editor"
+        Width="1040"
+        Height="760"
+        MinWidth="860"
+        MinHeight="620"
         Background="{DynamicResource Brush.Surface.Page}"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="{StaticResource Thickness.Xl}">
@@ -16,101 +16,366 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Margin="0,0,0,18">
-            <TextBlock Text="곡 편집"
-                       Style="{StaticResource Type.Title1.Style}"
-                       Foreground="{DynamicResource Brush.Text.Primary}" />
-            <TextBlock Text="{Binding FolderName, StringFormat=폴더: {0}}"
-                       Style="{StaticResource Type.Caption.Style}"
-                       Foreground="{DynamicResource Brush.Text.Secondary}"
-                       Margin="0,6,0,0" />
-        </StackPanel>
-
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <Grid Margin="0,0,0,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="14" />
-                <ColumnDefinition Width="140" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.ColumnSpan="3"
-                        Margin="0,0,0,14">
-                <TextBlock Text="제목"
+            <StackPanel>
+                <TextBlock Text="Song Editor"
+                           Style="{StaticResource Type.Title1.Style}"
+                           Foreground="{DynamicResource Brush.Text.Primary}" />
+                <TextBlock Text="{Binding FolderName, StringFormat=Folder: {0}}"
                            Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         MinHeight="36"
-                         Margin="0,4,0,0"
-                         AutomationProperties.Name="곡 제목" />
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           Margin="0,6,0,0" />
             </StackPanel>
 
-            <StackPanel Grid.Row="1"
-                        Grid.Column="0"
-                        Margin="0,0,0,14">
-                <TextBlock Text="대체 제목"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding AlternateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         MinHeight="36"
-                         Margin="0,4,0,0"
-                         AutomationProperties.Name="대체 제목" />
-            </StackPanel>
+            <Border Grid.Column="1"
+                    Padding="12,8"
+                    CornerRadius="{StaticResource CornerRadius.Small}"
+                    Background="{DynamicResource Brush.Surface.Subtle}"
+                    BorderBrush="{DynamicResource Brush.Status.Warning}"
+                    BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLiveEditWarningVisible}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Warning24"
+                                   Foreground="{DynamicResource Brush.Status.Warning}"
+                                   Margin="0,0,8,0" />
+                    <TextBlock Text="Live output is active. Saving requires confirmation."
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}" />
+                </StackPanel>
+            </Border>
+        </Grid>
 
-            <StackPanel Grid.Row="1"
-                        Grid.Column="2"
-                        Margin="0,0,0,14">
-                <TextBlock Text="번호"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         MinHeight="36"
-                         Margin="0,4,0,0"
-                         AutomationProperties.Name="곡 번호" />
-            </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="18" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Row="2"
-                        Grid.Column="0"
-                        Margin="0,0,0,14">
-                <TextBlock Text="분류"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         MinHeight="36"
-                         Margin="0,4,0,0"
-                         AutomationProperties.Name="분류" />
-            </StackPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="2"
-                        Grid.Column="2"
-                        Margin="0,0,0,14">
-                <TextBlock Text="키"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         MinHeight="36"
-                         Margin="0,4,0,0"
-                         AutomationProperties.Name="키" />
-            </StackPanel>
+                        <StackPanel Grid.ColumnSpan="3"
+                                    Margin="0,0,0,14">
+                            <TextBlock Text="Title"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.Name="Song title" />
+                        </StackPanel>
 
-            <StackPanel Grid.Row="3"
-                        Grid.ColumnSpan="3">
-                <TextBlock Text="가사"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto"
-                         MinHeight="260"
-                         Margin="0,4,0,0"
-                         AutomationProperties.Name="가사" />
-            </StackPanel>
+                        <StackPanel Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="0,0,0,14">
+                            <TextBlock Text="Alternate Title"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <TextBox Text="{Binding AlternateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.Name="Alternate title" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1"
+                                    Grid.Column="2"
+                                    Margin="0,0,0,14">
+                            <TextBlock Text="Number"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.Name="Song number" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2"
+                                    Grid.Column="0"
+                                    Margin="0,0,0,14">
+                            <TextBlock Text="Category"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.Name="Category" />
+                        </StackPanel>
+
+                        <Grid Grid.Row="2"
+                              Grid.Column="2"
+                              Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Key"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="36"
+                                         Margin="0,4,0,0"
+                                         AutomationProperties.Name="Key" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Capo"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBox Text="{Binding Capo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="36"
+                                         Margin="0,4,0,0"
+                                         AutomationProperties.Name="Capo" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Lyrics"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        <TextBox Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 MinHeight="280"
+                                 Margin="0,4,0,0"
+                                 AutomationProperties.Name="Lyrics" />
+                    </StackPanel>
+
+                    <Expander Header="Legacy Metadata"
+                              IsExpanded="True"
+                              Margin="0,0,0,8">
+                        <StackPanel Margin="0,10,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="Writer"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding Writer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="34"
+                                             Margin="0,4,0,0" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2"
+                                            Margin="0,0,0,12">
+                                    <TextBlock Text="Copyright"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding Copyright, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="34"
+                                             Margin="0,4,0,0" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1"
+                                            Margin="0,0,0,12">
+                                    <TextBlock Text="Timing"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding Timing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="34"
+                                             Margin="0,4,0,0" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1"
+                                            Grid.Column="2"
+                                            Margin="0,0,0,12">
+                                    <TextBlock Text="Book Reference"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding BookReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="34"
+                                             Margin="0,4,0,0" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2"
+                                            Margin="0,0,0,12">
+                                    <TextBlock Text="User Reference"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding UserReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="34"
+                                             Margin="0,4,0,0" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2"
+                                            Grid.Column="2"
+                                            Margin="0,0,0,12">
+                                    <TextBlock Text="Licence Admin"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="8" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding LicenceAdmin1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 MinHeight="34" />
+                                        <TextBox Grid.Column="2"
+                                                 Text="{Binding LicenceAdmin2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 MinHeight="34" />
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Sequence / Notations / Format Data"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                       Margin="0,2,0,4" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="78" />
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding Notations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="78" />
+                            </Grid>
+                            <TextBox Text="{Binding FormatData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     MinHeight="72"
+                                     Margin="0,8,0,0" />
+                            <TextBox Text="{Binding SongSettingsData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     MinHeight="72"
+                                     Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Column="2"
+                    CornerRadius="{StaticResource CornerRadius.Medium}"
+                    Background="{DynamicResource Brush.Surface.Card}"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Margin="0,0,0,12">
+                        <TextBlock Text="Preview"
+                                   Style="{StaticResource Type.Title3.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="{Binding PreviewFormatStatus}"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="92" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="92" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox ItemsSource="{Binding PreviewFontFamilyOptions}"
+                                      SelectedItem="{Binding PreviewFontFamilyName, Mode=TwoWay}"
+                                      MinHeight="32"
+                                      AutomationProperties.Name="Preview font family" />
+                            <ComboBox Grid.Column="2"
+                                      ItemsSource="{Binding PreviewFontSizeOptions}"
+                                      SelectedItem="{Binding PreviewMainFontSize, Mode=TwoWay}"
+                                      MinHeight="32"
+                                      AutomationProperties.Name="Preview lyric font size" />
+                            <ComboBox Grid.Column="4"
+                                      ItemsSource="{Binding PreviewFontSizeOptions}"
+                                      SelectedItem="{Binding PreviewNotationFontSize, Mode=TwoWay}"
+                                      MinHeight="32"
+                                      AutomationProperties.Name="Preview metadata font size" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Grid.Row="1"
+                            Background="{Binding PreviewBackgroundHex}"
+                            BorderBrush="{DynamicResource Brush.Border.Default}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource CornerRadius.Small}"
+                            Padding="22">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding PreviewTitle}"
+                                       FontFamily="{Binding PreviewFontFamilyName}"
+                                       FontSize="24"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       Foreground="{Binding PreviewForegroundHex}" />
+                            <TextBlock Grid.Row="1"
+                                       Text="{Binding PreviewLyrics}"
+                                       FontFamily="{Binding PreviewFontFamilyName}"
+                                       FontSize="{Binding PreviewMainFontSize}"
+                                       TextWrapping="Wrap"
+                                       Foreground="{Binding PreviewForegroundHex}"
+                                       Margin="0,18,0,0" />
+                            <TextBlock Grid.Row="2"
+                                       Text="{Binding PreviewMetadata}"
+                                       FontFamily="{Binding PreviewFontFamilyName}"
+                                       FontSize="{Binding PreviewNotationFontSize}"
+                                       TextWrapping="Wrap"
+                                       Opacity="0.72"
+                                       Foreground="{Binding PreviewForegroundHex}"
+                                       Margin="0,18,0,0" />
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Border>
         </Grid>
 
         <DockPanel Grid.Row="2"
@@ -130,21 +395,21 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding SaveCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="곡 저장"
-                        AutomationProperties.Name="곡 저장"
+                        ToolTip="Save song"
+                        AutomationProperties.Name="Save song"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                        <TextBlock Text="저장" />
+                        <TextBlock Text="Save" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
-                        AutomationProperties.Name="곡 편집 창 닫기">
+                        ToolTip="Close"
+                        AutomationProperties.Name="Close song editor">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="Close" />
                     </StackPanel>
                 </Button>
             </StackPanel>

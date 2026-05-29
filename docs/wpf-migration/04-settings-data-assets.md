@@ -207,7 +207,7 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SupportInfoServiceTests|AppServiceRegistrationTests|LegacySettingsMapTests|MigrateLegacyAsync_ImportsRegistrationUser"`: 20개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 30개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 9개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 28개 통과
@@ -216,10 +216,10 @@ DB 검증:
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "BibleRepositoryTests|BibleViewModelTests|AppServiceRegistrationTests"`: 9개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "ImportExportServiceTests|ImportExportViewModelTests|AppServiceRegistrationTests"`: 9개 통과
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 10개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 349개 통과
-- `dotnet test Easislides.sln -c Debug`: 349개 통과
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 353개 통과
+- `dotnet test Easislides.sln -c Debug`: 353개 통과
 - `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 349개 통과
+- `dotnet test Easislides.sln -c Release --no-build`: 353개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:
