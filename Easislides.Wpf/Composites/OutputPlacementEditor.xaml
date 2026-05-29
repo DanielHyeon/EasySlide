@@ -1,0 +1,48 @@
+<UserControl x:Class="Easislides.Wpf.Composites.OutputPlacementEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        OutputPlacementEditor — 계획서 §5.2 재사용 컴포지트(MonitorMapper의 출력 배치 부분).
+        보조 모니터 우선 사용 + 수동 출력 위치(위/왼쪽/폭) 설정.
+        DataContext 는 호스트(SettingsWindow 등)에서 상속된 SettingsWindowViewModel 을 그대로 사용한다
+        (View만 분리, ViewModel·바인딩 동일 — 동작 동등성 우선).
+    -->
+    <StackPanel>
+        <CheckBox IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor}"
+                  Content="보조 모니터 우선 사용"
+                  AutomationProperties.Name="보조 모니터 우선 사용"
+                  MinHeight="{DynamicResource Spacing.TargetMin}" />
+        <Grid Margin="0,4,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                <TextBlock Text="위"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <TextBox Text="{Binding DisplayCustomTop, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource EsTextBox.Default}"
+                         AutomationProperties.Name="출력 모니터 위" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                <TextBlock Text="왼쪽"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <TextBox Text="{Binding DisplayCustomLeft, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource EsTextBox.Default}"
+                         AutomationProperties.Name="출력 모니터 왼쪽" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="폭"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <TextBox Text="{Binding DisplayCustomWidth, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource EsTextBox.Default}"
+                         AutomationProperties.Name="출력 모니터 폭" />
+            </StackPanel>
+        </Grid>
+    </StackPanel>
+</UserControl>
