@@ -24,6 +24,7 @@
                 <ResourceDictionary Source="Controls/EsCommandBar.xaml" />
                 <ResourceDictionary Source="Controls/EsDialog.xaml" />
                 <ResourceDictionary Source="Controls/EsToast.xaml" />
+                <ResourceDictionary Source="Controls/EsDataGrid.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
