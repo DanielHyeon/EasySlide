@@ -1,0 +1,46 @@
+name: CI
+
+# WPF 빌드·테스트(스크린샷 회귀 포함) — 계획서 §9.1 (작업 C).
+# WPF는 Windows 전용이므로 windows 러너에서 실행한다.
+# 스크린샷 회귀 테스트(RenderTargetBitmap 헤드리스 렌더)가 CI에서 동작하는지도 이 잡이 검증한다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: 체크아웃
+        uses: actions/checkout@v4
+
+      - name: .NET SDK 설치 (9.0 + 10.0)
+        # OfficeLib 는 net9.0-windows, 그 외는 net10.0-windows 를 타깃하므로 둘 다 필요.
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+
+      - name: 복원
+        run: dotnet restore Easislides.sln
+
+      - name: 빌드 (Debug)
+        run: dotnet build Easislides.sln -c Debug --no-restore -nologo -v minimal
+
+      - name: 테스트 (Debug)
+        # 스크린샷 기준 이미지가 없을 때 조용히 생성되지 않도록 승인 모드는 켜지 않는다
+        # (EASISLIDES_APPROVE_BASELINES 미설정). 기준 누락 시 테스트가 명시적으로 실패한다.
+        run: dotnet test Easislides.sln -c Debug --no-build -nologo -v minimal
+
+      - name: 스크린샷 진단 산출물 업로드 (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-actuals
+          path: '**/screenshot-actuals/*.png'
+          if-no-files-found: ignore
