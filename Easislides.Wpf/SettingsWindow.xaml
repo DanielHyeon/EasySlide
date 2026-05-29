@@ -65,15 +65,17 @@
                 </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="{StaticResource Thickness.Xl}">
-                        <TextBlock Text="언어"
+                        <TextBlock x:Name="LblLanguage"
+                                   Text="언어"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         <TextBox Text="{Binding Language, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource EsTextBox.Default}"
-                                 AutomationProperties.Name="언어"
+                                 AutomationProperties.LabeledBy="{Binding ElementName=LblLanguage}"
                                  Margin="0,4,0,16" />
 
-                        <TextBlock Text="작업 폴더"
+                        <TextBlock x:Name="LblWorkingFolder"
+                                   Text="작업 폴더"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         <Grid Margin="0,4,0,16">
@@ -83,7 +85,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{Binding WorkingFolder, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource EsTextBox.Default}"
-                                     AutomationProperties.Name="작업 폴더"
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblWorkingFolder}"
                                      Margin="0,0,8,0" />
                             <Button Grid.Column="1"
                                     Command="{Binding BrowseWorkingFolderCommand}"
@@ -108,22 +110,24 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel Margin="{StaticResource Thickness.Xl}">
-                    <TextBlock Text="테마"
+                    <TextBlock x:Name="LblTheme"
+                               Text="테마"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     <ComboBox ItemsSource="{Binding ThemeOptions}"
                               SelectedItem="{Binding Theme, Mode=TwoWay}"
                               Style="{StaticResource EsComboBox.Default}"
-                              AutomationProperties.Name="테마"
+                              AutomationProperties.LabeledBy="{Binding ElementName=LblTheme}"
                               Margin="0,4,0,16" />
 
-                    <TextBlock Text="인터페이스 크기"
+                    <TextBlock x:Name="LblInterfaceSize"
+                               Text="인터페이스 크기"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     <ComboBox ItemsSource="{Binding InterfaceSizeOptions}"
                               SelectedItem="{Binding InterfaceSize, Mode=TwoWay}"
                               Style="{StaticResource EsComboBox.Default}"
-                              AutomationProperties.Name="인터페이스 크기"
+                              AutomationProperties.LabeledBy="{Binding ElementName=LblInterfaceSize}"
                               Margin="0,4,0,16" />
                 </StackPanel>
             </TabItem>
@@ -274,12 +278,13 @@
                              Style="{StaticResource EsTextBox.Default}"
                              AutomationProperties.Name="썸네일 캐시"
                              Margin="0,4,0,16" />
-                    <TextBlock Text="PowerPoint 최대 파일 수"
+                    <TextBlock x:Name="LblPowerPointMaxFiles"
+                               Text="PowerPoint 최대 파일 수"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     <TextBox Text="{Binding PowerPointMaxFiles, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource EsTextBox.Default}"
-                             AutomationProperties.Name="PowerPoint 최대 파일 수"
+                             AutomationProperties.LabeledBy="{Binding ElementName=LblPowerPointMaxFiles}"
                              Margin="0,4,0,16" />
                 </StackPanel>
             </TabItem>
@@ -301,12 +306,13 @@
                               AutomationProperties.Name="미디어 패널 오버레이 숨김"
                               MinHeight="{DynamicResource Spacing.TargetMin}"
                               Margin="0,0,0,16" />
-                    <TextBlock Text="미디어 폴더"
+                    <TextBlock x:Name="LblMediaFolder"
+                               Text="미디어 폴더"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     <TextBox Text="{Binding MediaDirectory, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource EsTextBox.Default}"
-                             AutomationProperties.Name="미디어 폴더"
+                             AutomationProperties.LabeledBy="{Binding ElementName=LblMediaFolder}"
                              Margin="0,4,0,16" />
                     <TextBlock Text="볼륨"
                                Style="{StaticResource Type.Caption.Style}"
@@ -333,12 +339,13 @@
                               AutomationProperties.Name="미디어 음소거"
                               MinHeight="{DynamicResource Spacing.TargetMin}"
                               Margin="0,0,0,16" />
-                    <TextBlock Text="라이브 카메라 번호"
+                    <TextBlock x:Name="LblLiveCameraNumber"
+                               Text="라이브 카메라 번호"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     <TextBox Text="{Binding LiveCameraNumber, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource EsTextBox.Default}"
-                             AutomationProperties.Name="라이브 카메라 번호"
+                             AutomationProperties.LabeledBy="{Binding ElementName=LblLiveCameraNumber}"
                              Margin="0,4,0,16" />
                 </StackPanel>
             </TabItem>

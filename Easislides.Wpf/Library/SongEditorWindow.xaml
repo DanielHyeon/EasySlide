@@ -118,13 +118,14 @@
                         <StackPanel Grid.Row="2"
                                     Grid.Column="0"
                                     Margin="0,0,0,14">
-                            <TextBlock Text="Category"
+                            <TextBlock x:Name="LblCategory"
+                                       Text="Category"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                             <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      MinHeight="36"
                                      Margin="0,4,0,0"
-                                     AutomationProperties.Name="Category" />
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblCategory}" />
                         </StackPanel>
 
                         <Grid Grid.Row="2"
@@ -136,28 +137,31 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Key"
+                                <TextBlock x:Name="LblKey"
+                                           Text="Key"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                 <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          MinHeight="36"
                                          Margin="0,4,0,0"
-                                         AutomationProperties.Name="Key" />
+                                         AutomationProperties.LabeledBy="{Binding ElementName=LblKey}" />
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Capo"
+                                <TextBlock x:Name="LblCapo"
+                                           Text="Capo"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                 <TextBox Text="{Binding Capo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          MinHeight="36"
                                          Margin="0,4,0,0"
-                                         AutomationProperties.Name="Capo" />
+                                         AutomationProperties.LabeledBy="{Binding ElementName=LblCapo}" />
                             </StackPanel>
                         </Grid>
                     </Grid>
 
                     <StackPanel Margin="0,0,0,14">
-                        <TextBlock Text="Lyrics"
+                        <TextBlock x:Name="LblLyrics"
+                                   Text="Lyrics"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         <TextBox Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -166,7 +170,7 @@
                                  VerticalScrollBarVisibility="Auto"
                                  MinHeight="280"
                                  Margin="0,4,0,0"
-                                 AutomationProperties.Name="Lyrics" />
+                                 AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics}" />
                     </StackPanel>
 
                     <Expander Header="Legacy Metadata"
