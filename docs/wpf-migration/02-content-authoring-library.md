@@ -131,8 +131,8 @@ Export Wizard:
 |---|---|---|
 | 도메인 모델 파악 | 부분 완료 | `Module` 구조 확인 |
 | Repository/service 추출 | 부분 구현 | `IAdminDatabaseRepository`/`AdminDatabaseRepository`로 AdminDB schema inventory, `FOLDER`/`SONG` read-only folder/song summary 조회, bundled AdminDB 호환성 검증, folder/song 저장 및 song 이동 write repository backup/transaction/rollback 검증 완료. `LibraryViewModel`이 명시 AdminDB 경로 또는 기존 작업 폴더의 `Admin\Database\EasiSlidesDb.db`를 읽는 UI 경계까지 연결했다. `gf*` 의존 분리와 전체 콘텐츠 CRUD service 계약은 후속 필요 |
-| Library WPF 화면 | 1차 구현 완료 | `LibraryWindow`, `LibraryViewModel` 추가. MainWindow에서 라이브러리 버튼으로 진입하고, AdminDB 폴더 목록, 선택 폴더의 곡 목록, 제목/대체 제목/분류/key/가사 검색, 선택 곡 가사 프리뷰, 경로 누락/파일 누락 상태 메시지를 제공한다. 현재는 read-only browse/search 중심이며 드래그 정렬, soft delete/복구, 복사/이동/병합 명령은 후속 구현 |
-| Item editor | 미완료 | `FrmEditItem` 분석 필요 |
+| Library WPF 화면 | 1차 구현 완료 | `LibraryWindow`, `LibraryViewModel` 추가. MainWindow에서 라이브러리 버튼으로 진입하고, AdminDB 폴더 목록, 선택 폴더의 곡 목록, 제목/대체 제목/분류/key/가사 검색, 선택 곡 가사 프리뷰, 새 곡/편집 진입, 경로 누락/파일 누락 상태 메시지를 제공한다. 현재는 AdminDB song browse/search/edit 중심이며 드래그 정렬, soft delete/복구, 복사/이동/병합 명령은 후속 구현 |
+| Item editor | 부분 구현 | `SongEditorWindow`, `SongEditorViewModel` 추가. 선택 폴더에서 새 곡 생성 또는 선택 곡 편집을 열고 제목/대체 제목/번호/분류/key/가사를 편집한 뒤 `IAdminDatabaseRepository.SaveSongAsync`로 저장한다. 저장 전 제목/AdminDB/폴더 검증, 설정 `DataBackupRoot` 또는 DB sibling `Backups` fallback, 저장 성공 후 목록 reload/선택 복원을 구현했다. `FrmEditItem`의 배경/폰트/포맷 미리보기와 라이브 중 편집 안전 확인은 후속 필요 |
 | Bible editor | 미완료 | `gfBible` 계약화 필요 |
 | Import/Export wizard | 미완료 | 기존 옵션 목록화 필요 |
 | Search/usage inspector | 미완료 | 검색 결과 동등성 테스트 필요 |
@@ -164,7 +164,7 @@ UX 검증:
 자동 테스트:
 
 - Repository 테스트: 샘플 작업 폴더 fixture로 목록 읽기/저장
-- 현재 자동화: `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB와 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, folder upsert, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, song 이동 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. `LibraryViewModelTests`로 명시 AdminDB 경로 로드, 폴더 선택 시 곡 재조회, 제목/대체 제목/분류/가사 검색, AdminDB 경로 누락 상태 메시지를 검증한다. `AppServiceRegistrationTests`는 Library ViewModel/Window 운영 DI 등록을 포함한다.
+- 현재 자동화: `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB와 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary 조회, folder upsert, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, song 이동 transaction rollback 및 backup restore, 운영 DI 등록을 검증한다. `LibraryViewModelTests`로 명시 AdminDB 경로 로드, 폴더 선택 시 곡 재조회, 제목/대체 제목/분류/가사 검색, AdminDB 경로 누락 상태 메시지를 검증한다. `SongEditorViewModelTests`로 기존 곡 편집 필드 로드/dirty state, 저장 시 `SongWriteModel` 매핑과 configured/default backup root, 제목 누락 validation, 신규 곡 insert 후 song id 반영을 검증한다. `AppServiceRegistrationTests`는 Library/SongEditor ViewModel/Window 운영 DI 등록을 포함한다.
 - Parser 테스트: 성경 참조, 가사 구분자, 파일명 규칙
 - Import 테스트: 정상/중복/깨진 파일/빈 폴더
 - Export 테스트: DOC/HTML 결과 메타데이터와 파일 생성 여부
@@ -175,6 +175,8 @@ UX 검증:
 
 - `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "LibraryViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `LibraryViewModelTests`: AdminDB 경로 해석, 폴더/곡 목록 로드, 선택 폴더 재조회, 제목/대체 제목/분류/가사 검색, 경로 누락 메시지 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `SongEditorViewModelTests`: 기존 곡 로드/dirty state, 저장 매핑/백업 루트, 제목 validation, 신규 곡 id 반영 검증
 
 수동 테스트:
 

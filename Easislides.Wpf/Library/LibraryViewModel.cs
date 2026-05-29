@@ -100,6 +100,11 @@ public sealed partial class LibraryViewModel : ObservableObject
         await RunBusyAsync(LoadSongsForSelectedFolderCoreAsync).ConfigureAwait(true);
     }
 
+    public void SelectSongById(int songId)
+    {
+        SelectedSong = Songs.FirstOrDefault(song => song.SongId == songId) ?? SelectedSong;
+    }
+
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
         if (!_suppressSelectionLoad)

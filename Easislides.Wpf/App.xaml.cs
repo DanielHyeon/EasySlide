@@ -87,12 +87,14 @@ public partial class App : Application
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddTransient<MediaPlaybackViewModel>();
         services.AddTransient<LibraryViewModel>();
+        services.AddTransient<SongEditorViewModel>();
         services.AddTransient<SettingsWindowViewModel>();
         services.AddTransient<AboutWindowViewModel>();
         services.AddTransient<HelpWindowViewModel>();
         services.AddTransient<RegistrationWindowViewModel>();
         services.AddTransient<OutputWindow>();
         services.AddTransient<LibraryWindow>();
+        services.AddTransient<SongEditorWindow>();
         services.AddTransient<SettingsWindow>();
         services.AddTransient<AboutWindow>();
         services.AddTransient<HelpWindow>();
