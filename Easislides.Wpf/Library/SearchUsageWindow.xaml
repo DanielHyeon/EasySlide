@@ -198,7 +198,7 @@
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding DeleteSelectedUsageCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
+                                Style="{StaticResource EsButton.Danger}"
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Delete24" Margin="0,0,6,0" />

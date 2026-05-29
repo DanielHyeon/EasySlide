@@ -60,6 +60,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
 
     private readonly ISettingsService _settings;
     private readonly ISearchUsageService _service;
+    private readonly IUsageDeleteConfirmation _deleteConfirmation;
     private UsageReport? _currentUsageReport;
 
     [ObservableProperty] private string _workingFolder = "";
@@ -90,9 +91,18 @@ public sealed partial class SearchUsageViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
 
     public SearchUsageViewModel(ISettingsService settings, ISearchUsageService service)
+        : this(settings, service, new WpfUsageDeleteConfirmation())
+    {
+    }
+
+    public SearchUsageViewModel(
+        ISettingsService settings,
+        ISearchUsageService service,
+        IUsageDeleteConfirmation deleteConfirmation)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _service = service ?? throw new ArgumentNullException(nameof(service));
+        _deleteConfirmation = deleteConfirmation ?? throw new ArgumentNullException(nameof(deleteConfirmation));
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
         SearchSongsCommand = new AsyncRelayCommand(SearchSongsAsync, () => !IsBusy);
         LookupTitlesCommand = new AsyncRelayCommand(LookupTitlesAsync, () => !IsBusy);
@@ -222,8 +232,10 @@ public sealed partial class SearchUsageViewModel : ObservableObject
     public async Task DeleteSelectedUsageAsync()
     {
         ValidationMessage = "";
-        var selectedIds = UsageRecords
+        var selectedRecords = UsageRecords
             .Where(record => record.IsSelected)
+            .ToArray();
+        var selectedIds = selectedRecords
             .Select(record => record.RecordId)
             .ToArray();
         if (selectedIds.Length == 0)
@@ -232,13 +244,33 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             return;
         }
 
+        var confirmed = await _deleteConfirmation.ConfirmAsync(new UsageDeleteConfirmationRequest(
+            selectedIds.Length,
+            UsageFrom,
+            UsageTo,
+            SelectedUsageSession,
+            selectedRecords.Select(record => record.Record).ToArray())).ConfigureAwait(true);
+        if (!confirmed)
+        {
+            StatusMessage = "Usage delete canceled.";
+            return;
+        }
+
+        var deletedCount = 0;
         await RunBusyAsync(async () =>
         {
             var report = await _service.DeleteUsageRecordsAsync(UsageDatabasePath, selectedIds).ConfigureAwait(true);
             StatusMessage = report.Succeeded
                 ? $"{report.DeletedCount} usage records deleted."
                 : FormatIssues(report.Issues, "Usage delete failed.");
+            deletedCount = report.Succeeded ? report.DeletedCount : 0;
         }).ConfigureAwait(true);
+
+        if (deletedCount > 0)
+        {
+            await RefreshUsageAsync().ConfigureAwait(true);
+            StatusMessage = $"{deletedCount} usage records deleted.";
+        }
     }
 
     public async Task ExportUsageReportAsync()

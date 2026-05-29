@@ -78,6 +78,48 @@ public class SearchUsageViewModelTests
         sut.UsageSummary.Should().ContainSingle().Which.Occurrences.Should().Be(2);
     }
 
+    [Fact]
+    public async Task DeleteSelectedUsageAsync_WhenConfirmationDeclines_DoesNotDelete()
+    {
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Confirmation.NextResult = false;
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        await sut.RefreshUsageAsync();
+        sut.UsageRecords[0].IsSelected = true;
+
+        await sut.DeleteSelectedUsageAsync();
+
+        fixture.Confirmation.LastRequest.Should().NotBeNull();
+        fixture.Confirmation.LastRequest!.RecordCount.Should().Be(1);
+        fixture.Confirmation.LastRequest.Session.Should().Be("");
+        fixture.Confirmation.LastRequest.Records.Should().ContainSingle()
+            .Which.RecordId.Should().Be(100);
+        fixture.Service.LastDeletedRecordIds.Should().BeEmpty();
+        fixture.Service.GetUsageCallCount.Should().Be(1);
+        sut.StatusMessage.Should().Be("Usage delete canceled.");
+        sut.UsageRecords.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task DeleteSelectedUsageAsync_WhenConfirmationApproves_DeletesAndRefreshesUsage()
+    {
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Service.UsageRecordsAfterDelete = [];
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        await sut.RefreshUsageAsync();
+        sut.UsageRecords[0].IsSelected = true;
+
+        await sut.DeleteSelectedUsageAsync();
+
+        fixture.Confirmation.LastRequest.Should().NotBeNull();
+        fixture.Service.LastDeletedRecordIds.Should().Equal(100);
+        fixture.Service.GetUsageCallCount.Should().Be(2);
+        sut.UsageRecords.Should().BeEmpty();
+        sut.StatusMessage.Should().Be("1 usage records deleted.");
+    }
+
     private sealed class SearchUsageViewModelFixture : IDisposable
     {
         public SearchUsageViewModelFixture()
@@ -105,8 +147,10 @@ public class SearchUsageViewModelTests
 
         public FakeSearchUsageService Service { get; }
 
+        public FakeUsageDeleteConfirmation Confirmation { get; } = new();
+
         public SearchUsageViewModel CreateViewModel()
-            => new(Settings, Service);
+            => new(Settings, Service, Confirmation);
 
         public void Dispose()
         {
@@ -129,6 +173,10 @@ public class SearchUsageViewModelTests
         public UsageRequest? LastUsageRequest { get; private set; }
 
         public IReadOnlyList<long> LastDeletedRecordIds { get; private set; } = [];
+
+        public int GetUsageCallCount { get; private set; }
+
+        public IReadOnlyList<UsageRecord>? UsageRecordsAfterDelete { get; set; }
 
         public string? LastExportPath { get; private set; }
 
@@ -157,6 +205,13 @@ public class SearchUsageViewModelTests
         public Task<UsageReport> GetUsageAsync(UsageRequest request)
         {
             LastUsageRequest = request;
+            GetUsageCallCount++;
+            var records = LastDeletedRecordIds.Count > 0 && UsageRecordsAfterDelete is not null
+                ? UsageRecordsAfterDelete
+                : [new UsageRecord(100, new DateTime(2026, 5, 1), "Sunday AM", "Amazing Grace", 7, 10, "A1", "A2")];
+            IReadOnlyList<UsageSummary> summary = records.Count == 0
+                ? []
+                : [new UsageSummary("Amazing Grace", 7, 10, 2)];
             return Task.FromResult(new UsageReport(
                 true,
                 request.DatabasePath,
@@ -164,8 +219,8 @@ public class SearchUsageViewModelTests
                 request.To,
                 ["", "Sunday AM"],
                 request.SelectedSession,
-                [new UsageRecord(100, new DateTime(2026, 5, 1), "Sunday AM", "Amazing Grace", 7, 10, "A1", "A2")],
-                [new UsageSummary("Amazing Grace", 7, 10, 2)],
+                records,
+                summary,
                 []));
         }
 
@@ -183,5 +238,18 @@ public class SearchUsageViewModelTests
 
         public string GetDefaultUsageDatabasePath(string workingFolder)
             => Path.Combine(workingFolder, "Admin", "Database", "EsUsage.db");
+    }
+
+    private sealed class FakeUsageDeleteConfirmation : IUsageDeleteConfirmation
+    {
+        public bool NextResult { get; set; } = true;
+
+        public UsageDeleteConfirmationRequest? LastRequest { get; private set; }
+
+        public Task<bool> ConfirmAsync(UsageDeleteConfirmationRequest request)
+        {
+            LastRequest = request;
+            return Task.FromResult(NextResult);
+        }
     }
 }

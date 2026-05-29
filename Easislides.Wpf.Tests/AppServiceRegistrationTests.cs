@@ -43,6 +43,7 @@ public class AppServiceRegistrationTests
             var externalFiles = provider.GetRequiredService<IExternalFileOperationService>();
             var importExportService = provider.GetRequiredService<IImportExportService>();
             var searchUsageService = provider.GetRequiredService<ISearchUsageService>();
+            var usageDeleteConfirmation = provider.GetRequiredService<IUsageDeleteConfirmation>();
             var bibleRepository = provider.GetRequiredService<IBibleRepository>();
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
             var onboarding = provider.GetRequiredService<IOnboardingCoordinator>();
@@ -89,6 +90,7 @@ public class AppServiceRegistrationTests
             externalFiles.Should().BeOfType<ExternalFileOperationService>();
             importExportService.Should().BeOfType<ImportExportService>();
             searchUsageService.Should().BeOfType<SearchUsageService>();
+            usageDeleteConfirmation.Should().BeOfType<WpfUsageDeleteConfirmation>();
             bibleRepository.Should().BeOfType<BibleRepository>();
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
             onboarding.Should().BeOfType<OnboardingCoordinator>();

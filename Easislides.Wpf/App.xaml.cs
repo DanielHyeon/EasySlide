@@ -77,6 +77,7 @@ public partial class App : Application
         services.AddSingleton<IExternalFileOperationService, ExternalFileOperationService>();
         services.AddSingleton<IImportExportService, ImportExportService>();
         services.AddSingleton<ISearchUsageService, SearchUsageService>();
+        services.AddSingleton<IUsageDeleteConfirmation, WpfUsageDeleteConfirmation>();
         services.AddSingleton<IBibleRepository, BibleRepository>();
         services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
