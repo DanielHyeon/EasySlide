@@ -1,9 +1,13 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Threading;
 
 namespace Easislides.Wpf.Controls;
 
@@ -107,7 +111,58 @@ public class EsToast : Control
 
         popup.Child = toast;
         popup.IsOpen = true;
+
+        // 라이브 영역 알림 — 스크린리더가 포커스 없이도 토스트 내용을 즉시 읽도록
+        // LiveRegionChanged 자동화 이벤트를 올린다 (계획서 §7.3).
+        // 팝업이 막 열린 직후엔 토스트가 아직 자동화 트리에 연결되기 전일 수 있으므로,
+        // Loaded 우선순위로 한 단계 미뤄 피어가 준비된 뒤 알림을 올린다.
+        toast.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(toast.RaiseLiveRegionChanged));
+
         toast.ArmClose(popup, dismissAfter);
+    }
+
+    /// <summary>
+    /// 스크린리더에 "이 라이브 영역 내용이 바뀌었다"고 통지한다.
+    /// 듣는 자동화 클라이언트가 없으면 비용 없이 즉시 반환.
+    /// </summary>
+    private void RaiseLiveRegionChanged()
+    {
+        if (!AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
+        {
+            return;
+        }
+
+        var peer = UIElementAutomationPeer.FromElement(this)
+            ?? UIElementAutomationPeer.CreatePeerForElement(this);
+        peer?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+    }
+
+    /// <summary>
+    /// 커스텀 자동화 피어 — 토스트를 Assertive 라이브 영역으로 노출하고
+    /// 제목+본문을 접근성 이름으로 읽어준다 (계획서 §7.3).
+    /// </summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new EsToastAutomationPeer(this);
+
+    private sealed class EsToastAutomationPeer : FrameworkElementAutomationPeer
+    {
+        public EsToastAutomationPeer(EsToast owner) : base(owner)
+        {
+        }
+
+        // 포커스가 없어도 즉시 읽히는 Assertive 라이브 영역.
+        protected override AutomationLiveSetting GetLiveSettingCore() => AutomationLiveSetting.Assertive;
+
+        // 토스트는 본문 텍스트 알림이므로 Text 컨트롤 타입으로 노출.
+        protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Text;
+
+        protected override string GetNameCore()
+        {
+            var toast = (EsToast)Owner;
+            var parts = new[] { toast.Title, toast.Message }
+                .Where(s => !string.IsNullOrWhiteSpace(s));
+            var name = string.Join(". ", parts);
+            return string.IsNullOrWhiteSpace(name) ? base.GetNameCore() : name;
+        }
     }
 
     private void ArmClose(Popup popup, TimeSpan after)
