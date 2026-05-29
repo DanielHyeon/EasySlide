@@ -11,6 +11,9 @@
         Background="{DynamicResource Brush.Surface.Page}"
         WindowStartupLocation="CenterOwner"
         Loaded="Window_Loaded">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
     <Grid Margin="{StaticResource Thickness.Lg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -46,6 +49,7 @@
             <TabItem Header="Import">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -86,7 +90,171 @@
                                  VerticalContentAlignment="Center" />
                     </DockPanel>
 
-                    <StackPanel Grid.Row="2"
+                    <Grid Grid.Row="2"
+                          Grid.ColumnSpan="3"
+                          Margin="0,0,0,12"
+                          Visibility="{Binding IsAccessImportSource, Converter={StaticResource BoolToVisibility}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Access Table"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="Title"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Column="2"
+                                   Text="Lyrics Merge"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Column="3"
+                                   Text="Alt Title"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Column="4"
+                                   Text="Song No."
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Column="5"
+                                   Text="Writer"
+                                   Style="{StaticResource Type.Caption.Style}" />
+
+                        <DockPanel Grid.Row="1"
+                                   Margin="0,4,8,10">
+                            <Button DockPanel.Dock="Right"
+                                    Command="{Binding LoadAccessSchemaCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Margin="6,0,0,0"
+                                    ToolTip="Load MDB schema">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" />
+                            </Button>
+                            <ComboBox ItemsSource="{Binding AccessTables}"
+                                      SelectedItem="{Binding SelectedAccessTable}"
+                                      DisplayMemberPath="Name"
+                                      MinHeight="36" />
+                        </DockPanel>
+                        <ComboBox Grid.Row="1"
+                                  Grid.Column="1"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessTitleColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,10" />
+                        <TextBox Grid.Row="1"
+                                 Grid.Column="2"
+                                 Text="{Binding AccessLyricsColumnsText, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="36"
+                                 VerticalContentAlignment="Center"
+                                 Margin="0,4,8,10" />
+                        <ComboBox Grid.Row="1"
+                                  Grid.Column="3"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessAlternateTitleColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,10" />
+                        <ComboBox Grid.Row="1"
+                                  Grid.Column="4"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessSongNumberColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,10" />
+                        <ComboBox Grid.Row="1"
+                                  Grid.Column="5"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessWriterColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,0,10" />
+
+                        <TextBlock Grid.Row="2"
+                                   Text="Copyright"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="1"
+                                   Text="Key"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="2"
+                                   Text="Timing"
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="3"
+                                   Text="Book Ref."
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="4"
+                                   Text="User Ref."
+                                   Style="{StaticResource Type.Caption.Style}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="5"
+                                   Text="Admin"
+                                   Style="{StaticResource Type.Caption.Style}" />
+
+                        <ComboBox Grid.Row="3"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessCopyrightColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,0" />
+                        <ComboBox Grid.Row="3"
+                                  Grid.Column="1"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessKeyColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,0" />
+                        <ComboBox Grid.Row="3"
+                                  Grid.Column="2"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessTimingColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,0" />
+                        <ComboBox Grid.Row="3"
+                                  Grid.Column="3"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessBookReferenceColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,0" />
+                        <ComboBox Grid.Row="3"
+                                  Grid.Column="4"
+                                  ItemsSource="{Binding AccessColumns}"
+                                  Text="{Binding AccessUserReferenceColumn, UpdateSourceTrigger=PropertyChanged}"
+                                  IsEditable="True"
+                                  MinHeight="36"
+                                  Margin="0,4,8,0" />
+                        <Grid Grid.Row="3"
+                              Grid.Column="5"
+                              Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox ItemsSource="{Binding AccessColumns}"
+                                      Text="{Binding AccessLicenceAdmin1Column, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEditable="True"
+                                      MinHeight="36"
+                                      Margin="0,0,4,0" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AccessColumns}"
+                                      Text="{Binding AccessLicenceAdmin2Column, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEditable="True"
+                                      MinHeight="36" />
+                        </Grid>
+                    </Grid>
+
+                    <StackPanel Grid.Row="3"
                                 Grid.Column="0">
                         <TextBlock Text="Source Folders"
                                    Style="{StaticResource Type.Caption.Style}" />
@@ -109,7 +277,7 @@
                         </DataGrid>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="2"
+                    <StackPanel Grid.Row="3"
                                 Grid.Column="1"
                                 Margin="0,0,12,0">
                         <TextBlock Text="Target"
@@ -127,7 +295,7 @@
                                   Margin="0,4,0,0" />
                     </StackPanel>
 
-                    <StackPanel Grid.Row="2"
+                    <StackPanel Grid.Row="3"
                                 Grid.Column="2">
                         <Button Command="{Binding PreviewImportCommand}"
                                 Style="{StaticResource EsButton.Secondary}"

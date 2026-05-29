@@ -56,6 +56,52 @@ public class ImportExportViewModelTests
     }
 
     [Fact]
+    public async Task PreviewAndImportAsync_WhenAccessSource_UsesHelperMapping()
+    {
+        using var fixture = new ImportExportViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        fixture.Settings.Set(EasiSettingKeys.DataBackupRoot, fixture.BackupRoot);
+        fixture.ImportSourcePath = Path.Combine(fixture.Root, "songs.mdb");
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        sut.ImportSourcePath = fixture.ImportSourcePath;
+
+        await sut.LoadAccessSchemaAsync();
+        sut.AccessTitleColumn = "Name";
+        sut.AccessLyricsColumnsText = "Verse1, Chorus";
+        await sut.PreviewImportAsync();
+        await sut.ImportAsync();
+
+        fixture.Service.SchemaRequestedPath.Should().Be(fixture.ImportSourcePath);
+        fixture.Service.LastPreviewAccessMapping.Should().NotBeNull();
+        fixture.Service.LastPreviewAccessMapping!.TableName.Should().Be("Songs");
+        fixture.Service.LastPreviewAccessMapping.TitleColumn.Should().Be("Name");
+        fixture.Service.LastPreviewAccessMapping.LyricsColumns.Should().Equal("Verse1", "Chorus");
+        fixture.Service.LastImportRequest.Should().NotBeNull();
+        fixture.Service.LastImportRequest!.AccessMapping.Should().Be(fixture.Service.LastPreviewAccessMapping);
+    }
+
+    [Fact]
+    public async Task ImportSourcePathChanged_WhenAccessPathChanges_ClearsLoadedSchema()
+    {
+        using var fixture = new ImportExportViewModelFixture();
+        var sut = fixture.CreateViewModel();
+        sut.ImportSourcePath = Path.Combine(fixture.Root, "songs-a.mdb");
+        await sut.LoadAccessSchemaAsync();
+
+        sut.AccessTables.Should().NotBeEmpty();
+        sut.AccessTitleColumn.Should().Be("Name");
+
+        sut.ImportSourcePath = Path.Combine(fixture.Root, "songs-b.mdb");
+
+        sut.IsAccessImportSource.Should().BeTrue();
+        sut.AccessTables.Should().BeEmpty();
+        sut.AccessColumns.Should().BeEmpty();
+        sut.SelectedAccessTable.Should().BeNull();
+        sut.AccessTitleColumn.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task RefreshExportCandidatesAndExportAsync_UsesCheckedSongsAndFormat()
     {
         using var fixture = new ImportExportViewModelFixture();
@@ -101,7 +147,7 @@ public class ImportExportViewModelTests
 
         public string AdminDatabasePath { get; }
 
-        public string ImportSourcePath { get; }
+        public string ImportSourcePath { get; set; }
 
         public SettingsService Settings { get; }
 
@@ -128,6 +174,10 @@ public class ImportExportViewModelTests
 
         public ExportRequest? LastExportRequest { get; private set; }
 
+        public string SchemaRequestedPath { get; private set; } = "";
+
+        public AccessImportMapping? LastPreviewAccessMapping { get; private set; }
+
         public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
             => Task.FromResult<IReadOnlyList<SongFolderSummary>>(
             [
@@ -135,14 +185,28 @@ public class ImportExportViewModelTests
                 new SongFolderSummary(3, "Evening", true, 0),
             ]);
 
-        public Task<ImportPreview> PreviewImportAsync(string sourcePath)
-            => Task.FromResult(new ImportPreview(
+        public Task<AccessImportSchema> GetAccessSchemaAsync(string sourcePath)
+        {
+            SchemaRequestedPath = sourcePath;
+            return Task.FromResult(new AccessImportSchema(
                 true,
                 sourcePath,
-                ImportSourceKind.EasiSlidesText,
+                [new AccessImportTable("Songs", ["Name", "Verse1", "Chorus"], 1)],
+                new AccessImportMapping("Songs", "Name", ["Verse1"]),
+                []));
+        }
+
+        public Task<ImportPreview> PreviewImportAsync(string sourcePath, AccessImportMapping? accessMapping = null)
+        {
+            LastPreviewAccessMapping = accessMapping;
+            return Task.FromResult(new ImportPreview(
+                true,
+                sourcePath,
+                accessMapping is null ? ImportSourceKind.EasiSlidesText : ImportSourceKind.AccessDatabase,
                 2,
                 [new ImportSourceFolder("Legacy A", 1), new ImportSourceFolder("Legacy B", 1)],
                 []));
+        }
 
         public Task<ImportReport> ImportAsync(ImportRequest request)
         {

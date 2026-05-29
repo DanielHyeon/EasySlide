@@ -165,6 +165,124 @@ public class ImportExportServiceTests
     }
 
     [Fact]
+    public async Task GetAccessSchemaAsync_WhenMdbIsSqliteBacked_ReturnsTablesColumnsAndSuggestedMapping()
+    {
+        using var fixture = new ImportExportFixture();
+        var source = fixture.WriteAccessDatabase(
+            "SONG",
+            [
+                ("TITLE_1", "Alpha"),
+                ("TITLE_2", "Alt"),
+                ("Lyrics", "Line 1"),
+                ("SONG_NUMBER", "7"),
+            ]);
+        var sut = fixture.CreateService();
+
+        var schema = await sut.GetAccessSchemaAsync(source);
+
+        schema.Succeeded.Should().BeTrue();
+        schema.Tables.Should().ContainSingle();
+        schema.Tables[0].Name.Should().Be("SONG");
+        schema.Tables[0].Columns.Should().Contain(["TITLE_1", "Lyrics"]);
+        schema.Tables[0].RowCount.Should().Be(1);
+        schema.SuggestedMapping.Should().NotBeNull();
+        schema.SuggestedMapping!.TableName.Should().Be("SONG");
+        schema.SuggestedMapping.TitleColumn.Should().Be("TITLE_1");
+        schema.SuggestedMapping.LyricsColumns.Should().Equal("Lyrics");
+    }
+
+    [Fact]
+    public async Task PreviewImportAsync_WhenAccessDatabaseUsesDefaultMapping_ReturnsSongsAndSourceTable()
+    {
+        using var fixture = new ImportExportFixture();
+        var source = fixture.WriteAccessDatabase(
+            "SONG",
+            [
+                ("TITLE_1", "Alpha"),
+                ("TITLE_2", "Alt"),
+                ("Lyrics", "Line 1"),
+                ("SONG_NUMBER", "7"),
+            ]);
+        var sut = fixture.CreateService();
+
+        var preview = await sut.PreviewImportAsync(source);
+
+        preview.Succeeded.Should().BeTrue();
+        preview.Kind.Should().Be(ImportSourceKind.AccessDatabase);
+        preview.TotalSongs.Should().Be(1);
+        preview.Folders.Should().ContainSingle(folder => folder.Name == "SONG" && folder.SongCount == 1);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenAccessDatabaseUsesCustomMapping_MergesLyricsAndSavesMetadata()
+    {
+        using var fixture = new ImportExportFixture();
+        var source = fixture.WriteAccessDatabase(
+            "CustomSongs",
+            [
+                ("Name", "Mapped Song"),
+                ("AltName", "Alt"),
+                ("No", "42"),
+                ("Verse1", "Verse line"),
+                ("Chorus", "Chorus line"),
+                ("Author", "Writer"),
+                ("Rights", "Copyright"),
+                ("MusicKey", "G"),
+                ("Tempo", "Fast"),
+                ("BookRef", "Ps 1"),
+                ("UserRef", "CCLI"),
+                ("AdminA", "Lic A"),
+                ("AdminB", "Lic B"),
+                ("msc", "G C"),
+                ("capo", "2"),
+                ("Sequence", "1,c"),
+            ]);
+        var mapping = new AccessImportMapping(
+            "CustomSongs",
+            "Name",
+            ["Verse1", "Chorus"],
+            AlternateTitleColumn: "AltName",
+            SongNumberColumn: "No",
+            WriterColumn: "Author",
+            CopyrightColumn: "Rights",
+            KeyColumn: "MusicKey",
+            TimingColumn: "Tempo",
+            BookReferenceColumn: "BookRef",
+            UserReferenceColumn: "UserRef",
+            LicenceAdmin1Column: "AdminA",
+            LicenceAdmin2Column: "AdminB");
+        var sut = fixture.CreateService();
+
+        var report = await sut.ImportAsync(new ImportRequest(
+            fixture.AdminDatabasePath,
+            fixture.BackupRoot,
+            source,
+            TargetFolderNo: 4,
+            SelectedSourceFolders: ["CustomSongs"],
+            DuplicatePolicy: ImportDuplicatePolicy.SkipExisting,
+            AccessMapping: mapping));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.Repository.SavedSongs.Should().ContainSingle();
+        var saved = fixture.Repository.SavedSongs[0];
+        saved.Title.Should().Be("Mapped Song");
+        saved.AlternateTitle.Should().Be("Alt");
+        saved.SongNumber.Should().Be(42);
+        saved.Lyrics.Should().Be("Verse line\n\nChorus line");
+        saved.Writer.Should().Be("Writer");
+        saved.Copyright.Should().Be("Copyright");
+        saved.Key.Should().Be("G");
+        saved.Timing.Should().Be("Fast");
+        saved.BookReference.Should().Be("Ps 1");
+        saved.UserReference.Should().Be("CCLI");
+        saved.LicenceAdmin1.Should().Be("Lic A");
+        saved.LicenceAdmin2.Should().Be("Lic B");
+        saved.Notations.Should().Be("G C");
+        saved.Capo.Should().Be(2);
+        saved.Sequence.Should().Be("1,c");
+    }
+
+    [Fact]
     public async Task ExportAsync_WritesXmlTextDatabaseHtmlAndRtfOutputs()
     {
         using var fixture = new ImportExportFixture();
@@ -269,6 +387,29 @@ public class ImportExportServiceTests
                   <w:body><w:p><w:r><w:t>{text}</w:t></w:r></w:p></w:body>
                 </w:document>
                 """);
+        }
+
+        public string WriteAccessDatabase(string tableName, IReadOnlyList<(string Column, string Value)> values)
+        {
+            var path = Path.Combine(Root, "import.mdb");
+            using var connection = new SQLiteConnection($"Data Source={path};Version=3;");
+            connection.Open();
+            var columns = string.Join(", ", values.Select(value => $"\"{value.Column}\" TEXT"));
+            using (var create = new SQLiteCommand($"CREATE TABLE \"{tableName}\" ({columns});", connection))
+            {
+                create.ExecuteNonQuery();
+            }
+
+            var columnList = string.Join(", ", values.Select(value => $"\"{value.Column}\""));
+            var parameterList = string.Join(", ", values.Select((_, index) => $"@p{index}"));
+            using var insert = new SQLiteCommand($"INSERT INTO \"{tableName}\" ({columnList}) VALUES ({parameterList});", connection);
+            for (var i = 0; i < values.Count; i++)
+            {
+                insert.Parameters.AddWithValue($"@p{i}", values[i].Value);
+            }
+
+            insert.ExecuteNonQuery();
+            return path;
         }
 
         public void Dispose()

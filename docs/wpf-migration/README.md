@@ -29,8 +29,8 @@
 | WPF 프로젝트 골격 | `Easislides.Wpf` 솔루션 포함, DI, App.xaml, 테마 토큰 구성 | 완료 |
 | 디자인 시스템 | EasiDS 색/타입/간격/반경/모션 토큰, Pretendard 번들, 기본 컨트롤 일부 | 1차 완료, 추가 컨트롤 확장 필요 |
 | PoC | HookManager 호환 PoC, Office COM STA stress PoC 화면 존재 | 구현 완료, 실제 운영 데이터 검증 필요 |
-| 테스트 인프라 | `Easislides.Wpf.Tests`, xUnit/FluentAssertions, 358개 테스트 | 완료 |
-| 실제 기능 이식 | 운영 셸, 출력, 렌더링/미디어, 플랫폼 일부와 SettingsWindow/SettingsService/LegacySettingsMap/RegistryLegacySettingsSource/FileLegacySettingsSource/CompositeLegacySettingsSource/SettingsBootstrapMigrationService/최초 실행 온보딩/도움말·정보·등록 창/LibraryWindow/LibraryViewModel AdminDB browse/search/folder soft delete recover/folder·song reorder 및 drag reorder/FolderEditorWindow folder add edit/SongEditorWindow song edit legacy detail 보존/preview/live safety 저장/SongCopyWindow song copy/SongMoveWindow song move/SongDeleteWindow song soft delete/SongRecoveryWindow song recover/SongMergeWindow smart merge/ExternalFileOperationWindow external file copy move 및 InfoScreen import/ImportExportWindow text XML ESF document-folder import 및 XML ESN ESF HTML RTF export/SearchUsageWindow song search title lookup usage inspector/delete confirmation/BibleWindow bible browse search selection/dual-region preview/live queue insert/자산/DB 마이그레이션 service/AdminDatabaseRepository read/write/detail/folder and song soft delete/recover/reorder backup transaction/운영 데이터 dry-run 리허설 및 SettingsWindow 데이터 탭 실행/요약 표시, 기본 출력 모니터, display/window placement, media audio/directory/live camera, PowerPoint render/cache/module runtime 소비, 운영 셸 한국어 UI copy 회귀 방지가 WPF 경계로 이동 중 | 부분 구현 |
+| 테스트 인프라 | `Easislides.Wpf.Tests`, xUnit/FluentAssertions, 363개 테스트 | 완료 |
+| 실제 기능 이식 | 운영 셸, 출력, 렌더링/미디어, 플랫폼 일부와 SettingsWindow/SettingsService/LegacySettingsMap/RegistryLegacySettingsSource/FileLegacySettingsSource/CompositeLegacySettingsSource/SettingsBootstrapMigrationService/최초 실행 온보딩/도움말·정보·등록 창/LibraryWindow/LibraryViewModel AdminDB browse/search/folder soft delete recover/folder·song reorder 및 drag reorder/FolderEditorWindow folder add edit/SongEditorWindow song edit legacy detail 보존/preview/live safety 저장/SongCopyWindow song copy/SongMoveWindow song move/SongDeleteWindow song soft delete/SongRecoveryWindow song recover/SongMergeWindow smart merge/ExternalFileOperationWindow external file copy move 및 InfoScreen import/ImportExportWindow text XML ESF Access MDB helper document-folder import 및 XML ESN ESF HTML RTF export/SearchUsageWindow song search title lookup usage inspector/delete confirmation/BibleWindow bible browse search selection/dual-region preview/live queue insert/자산/DB 마이그레이션 service/AdminDatabaseRepository read/write/detail/folder and song soft delete/recover/reorder backup transaction/운영 데이터 dry-run 리허설 및 SettingsWindow 데이터 탭 실행/요약 표시, 기본 출력 모니터, display/window placement, media audio/directory/live camera, PowerPoint render/cache/module runtime 소비, 운영 셸 한국어 UI copy 회귀 방지가 WPF 경계로 이동 중 | 부분 구현 |
 | 운영 앱 전환 | WPF 앱은 데모/기반 단계, production entrypoint 아님 | 미완료 |
 
 최근 검증 결과:
@@ -40,7 +40,7 @@ dotnet build Easislides.sln -c Debug
 dotnet test Easislides.sln -c Debug
 ```
 
-결과: 빌드 성공, 테스트 358개 통과. 단, 기존 NetOffice/DirectShow/HookManager 경고는 남아 있다.
+결과: 빌드 성공, 테스트 363개 통과. 단, 기존 NetOffice/DirectShow/HookManager 경고는 남아 있다.
 
 ## 2. 구조 기준 분류
 

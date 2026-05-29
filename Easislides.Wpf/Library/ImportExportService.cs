@@ -66,13 +66,38 @@ public sealed record ImportPreview(
     IReadOnlyList<ImportSourceFolder> Folders,
     IReadOnlyList<ImportExportIssue> Issues);
 
+public sealed record AccessImportTable(string Name, IReadOnlyList<string> Columns, int RowCount);
+
+public sealed record AccessImportMapping(
+    string TableName,
+    string TitleColumn,
+    IReadOnlyList<string> LyricsColumns,
+    string AlternateTitleColumn = "",
+    string SongNumberColumn = "",
+    string WriterColumn = "",
+    string CopyrightColumn = "",
+    string KeyColumn = "",
+    string TimingColumn = "",
+    string BookReferenceColumn = "",
+    string UserReferenceColumn = "",
+    string LicenceAdmin1Column = "",
+    string LicenceAdmin2Column = "");
+
+public sealed record AccessImportSchema(
+    bool Succeeded,
+    string SourcePath,
+    IReadOnlyList<AccessImportTable> Tables,
+    AccessImportMapping? SuggestedMapping,
+    IReadOnlyList<ImportExportIssue> Issues);
+
 public sealed record ImportRequest(
     string DatabasePath,
     string BackupRoot,
     string SourcePath,
     int TargetFolderNo,
     IReadOnlyList<string> SelectedSourceFolders,
-    ImportDuplicatePolicy DuplicatePolicy);
+    ImportDuplicatePolicy DuplicatePolicy,
+    AccessImportMapping? AccessMapping = null);
 
 public sealed record ImportResultItem(string Title, ImportResultKind Kind, string Message);
 
@@ -111,7 +136,9 @@ public interface IImportExportService
 {
     Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath);
 
-    Task<ImportPreview> PreviewImportAsync(string sourcePath);
+    Task<AccessImportSchema> GetAccessSchemaAsync(string sourcePath);
+
+    Task<ImportPreview> PreviewImportAsync(string sourcePath, AccessImportMapping? accessMapping = null);
 
     Task<ImportReport> ImportAsync(ImportRequest request);
 
@@ -143,9 +170,49 @@ public sealed class ImportExportService : IImportExportService
     public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
         => _adminDatabase.GetSongFoldersAsync(databasePath);
 
-    public Task<ImportPreview> PreviewImportAsync(string sourcePath)
+    public Task<AccessImportSchema> GetAccessSchemaAsync(string sourcePath)
     {
-        var loaded = LoadImportSongs(sourcePath);
+        if (string.IsNullOrWhiteSpace(sourcePath))
+        {
+            return Task.FromResult(new AccessImportSchema(
+                false,
+                sourcePath,
+                [],
+                null,
+                [new ImportExportIssue(ImportExportIssueSeverity.Error, "Source path is empty.")]));
+        }
+
+        var fullPath = Path.GetFullPath(sourcePath);
+        if (!File.Exists(fullPath))
+        {
+            return Task.FromResult(new AccessImportSchema(
+                false,
+                fullPath,
+                [],
+                null,
+                [new ImportExportIssue(ImportExportIssueSeverity.Error, "Source file does not exist.")]));
+        }
+
+        try
+        {
+            using var connection = new SQLiteConnection($"Data Source={fullPath};Version=3;");
+            connection.Open();
+            return Task.FromResult(ReadAccessSchema(connection, fullPath));
+        }
+        catch (Exception ex) when (ex is SQLiteException or InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            return Task.FromResult(new AccessImportSchema(
+                false,
+                fullPath,
+                [],
+                null,
+                [new ImportExportIssue(ImportExportIssueSeverity.Error, ex.Message)]));
+        }
+    }
+
+    public Task<ImportPreview> PreviewImportAsync(string sourcePath, AccessImportMapping? accessMapping = null)
+    {
+        var loaded = LoadImportSongs(sourcePath, accessMapping);
         var folders = loaded.Songs
             .GroupBy(song => song.SourceFolder, StringComparer.OrdinalIgnoreCase)
             .Select(group => new ImportSourceFolder(group.Key, group.Count()))
@@ -165,7 +232,7 @@ public sealed class ImportExportService : IImportExportService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var loaded = LoadImportSongs(request.SourcePath);
+        var loaded = LoadImportSongs(request.SourcePath, request.AccessMapping);
         if (!loaded.Succeeded)
         {
             return new ImportReport(false, request.SourcePath, 0, 0, 0, 0, [], loaded.Issues);
@@ -383,7 +450,7 @@ public sealed class ImportExportService : IImportExportService
         return GetAvailableFile(path);
     }
 
-    private static LoadedImportSongs LoadImportSongs(string sourcePath)
+    private static LoadedImportSongs LoadImportSongs(string sourcePath, AccessImportMapping? accessMapping = null)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
@@ -406,7 +473,7 @@ public sealed class ImportExportService : IImportExportService
             ".esn" or ".est" => LoadLegacyText(fullPath),
             ".xml" => LoadXml(fullPath),
             ".esf" => LoadDatabase(fullPath),
-            ".mdb" => Failed(ImportSourceKind.AccessDatabase, fullPath, "Access MDB import requires the legacy helper and is not available in WPF yet."),
+            ".mdb" => LoadAccessDatabase(fullPath, accessMapping),
             _ => Failed(ImportSourceKind.Unknown, fullPath, "Unsupported import source format."),
         };
     }
@@ -593,6 +660,198 @@ public sealed class ImportExportService : IImportExportService
         }
 
         return new LoadedImportSongs(true, ImportSourceKind.EasiSlidesDatabase, songs, []);
+    }
+
+    private static LoadedImportSongs LoadAccessDatabase(string path, AccessImportMapping? accessMapping)
+    {
+        try
+        {
+            using var connection = new SQLiteConnection($"Data Source={path};Version=3;");
+            connection.Open();
+            var schema = ReadAccessSchema(connection, path);
+            if (!schema.Succeeded)
+            {
+                return new LoadedImportSongs(false, ImportSourceKind.AccessDatabase, [], schema.Issues);
+            }
+
+            var mapping = accessMapping ?? schema.SuggestedMapping;
+            if (mapping is null)
+            {
+                return Failed(ImportSourceKind.AccessDatabase, path, "Access MDB helper could not infer a table mapping.");
+            }
+
+            var table = schema.Tables.FirstOrDefault(candidate =>
+                string.Equals(candidate.Name, mapping.TableName, StringComparison.OrdinalIgnoreCase));
+            if (table is null)
+            {
+                return Failed(ImportSourceKind.AccessDatabase, path, $"Access table '{mapping.TableName}' was not found.");
+            }
+
+            var issues = ValidateAccessMapping(table, mapping);
+            if (issues.Count > 0)
+            {
+                return new LoadedImportSongs(false, ImportSourceKind.AccessDatabase, [], issues);
+            }
+
+            var songs = new List<ImportSong>();
+            using var command = new SQLiteCommand($"SELECT * FROM {QuoteSqlIdentifier(table.Name)};", connection);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                songs.Add(new ImportSong(
+                    ImportSourceKind.AccessDatabase,
+                    table.Name,
+                    new SongWriteModel(
+                        SongId: null,
+                        Title: GetString(reader, mapping.TitleColumn),
+                        AlternateTitle: GetOptionalString(reader, mapping.AlternateTitleColumn),
+                        FolderNo: 0,
+                        SongNumber: GetOptionalInt(reader, mapping.SongNumberColumn),
+                        Lyrics: MergeAccessLyrics(reader, mapping.LyricsColumns),
+                        Sequence: GetOptionalString(reader, "Sequence"),
+                        Writer: GetOptionalString(reader, mapping.WriterColumn),
+                        Copyright: GetOptionalString(reader, mapping.CopyrightColumn),
+                        Capo: GetOptionalInt(reader, "capo", -1),
+                        Timing: GetOptionalString(reader, mapping.TimingColumn),
+                        Key: GetOptionalString(reader, mapping.KeyColumn),
+                        Notations: GetOptionalString(reader, "msc"),
+                        LicenceAdmin1: GetOptionalString(reader, mapping.LicenceAdmin1Column),
+                        LicenceAdmin2: GetOptionalString(reader, mapping.LicenceAdmin2Column),
+                        BookReference: GetOptionalString(reader, mapping.BookReferenceColumn),
+                        UserReference: GetOptionalString(reader, mapping.UserReferenceColumn))));
+            }
+
+            return new LoadedImportSongs(true, ImportSourceKind.AccessDatabase, songs, []);
+        }
+        catch (Exception ex) when (ex is SQLiteException or InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            return Failed(ImportSourceKind.AccessDatabase, path, ex.Message);
+        }
+    }
+
+    private static AccessImportSchema ReadAccessSchema(SQLiteConnection connection, string path)
+    {
+        var tables = new List<AccessImportTable>();
+        using (var command = new SQLiteCommand(
+                   "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name COLLATE NOCASE;",
+                   connection))
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                var name = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                if (!string.IsNullOrWhiteSpace(name) &&
+                    !name.StartsWith("msys", StringComparison.OrdinalIgnoreCase))
+                {
+                    tables.Add(new AccessImportTable(name, [], 0));
+                }
+            }
+        }
+
+        var hydrated = tables
+            .Select(table => table with
+            {
+                Columns = GetAccessColumns(connection, table.Name),
+                RowCount = GetAccessRowCount(connection, table.Name),
+            })
+            .ToArray();
+
+        var suggested = BuildSuggestedAccessMapping(hydrated);
+        IReadOnlyList<ImportExportIssue> issues = hydrated.Length == 0
+            ? [new ImportExportIssue(ImportExportIssueSeverity.Error, "Access MDB file does not contain importable tables.")]
+            : [];
+        return new AccessImportSchema(hydrated.Length > 0, path, hydrated, suggested, issues);
+    }
+
+    private static IReadOnlyList<string> GetAccessColumns(SQLiteConnection connection, string tableName)
+    {
+        var columns = new List<string>();
+        using var command = new SQLiteCommand($"PRAGMA table_info({QuoteSqlLiteral(tableName)});", connection);
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var name = reader.IsDBNull(1) ? "" : reader.GetString(1);
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                columns.Add(name);
+            }
+        }
+
+        return columns;
+    }
+
+    private static int GetAccessRowCount(SQLiteConnection connection, string tableName)
+    {
+        using var command = new SQLiteCommand($"SELECT COUNT(*) FROM {QuoteSqlIdentifier(tableName)};", connection);
+        return Convert.ToInt32(command.ExecuteScalar(), CultureInfo.InvariantCulture);
+    }
+
+    private static AccessImportMapping? BuildSuggestedAccessMapping(IReadOnlyList<AccessImportTable> tables)
+    {
+        var table = tables.FirstOrDefault(candidate => string.Equals(candidate.Name, "SONG", StringComparison.OrdinalIgnoreCase))
+            ?? tables.FirstOrDefault();
+        if (table is null)
+        {
+            return null;
+        }
+
+        var title = PickColumn(table.Columns, "TITLE_1", "Title_1", "Title", "Name");
+        var lyrics = PickColumn(table.Columns, "Lyrics", "LYRICS", "Contents", "Body", "Verse1");
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(lyrics))
+        {
+            return null;
+        }
+
+        return new AccessImportMapping(
+            table.Name,
+            title,
+            [lyrics],
+            AlternateTitleColumn: PickColumn(table.Columns, "TITLE_2", "Title_2", "Title2", "AltName", "AlternateTitle"),
+            SongNumberColumn: PickColumn(table.Columns, "SONG_NUMBER", "SongNumber", "Number", "No"),
+            WriterColumn: PickColumn(table.Columns, "writer", "WRITER", "Writer", "Author"),
+            CopyrightColumn: PickColumn(table.Columns, "copyright", "COPYRIGHT", "Copyright", "Rights"),
+            KeyColumn: PickColumn(table.Columns, "key", "KEY", "MusicKey"),
+            TimingColumn: PickColumn(table.Columns, "Timing", "TIMING", "Tempo"),
+            BookReferenceColumn: PickColumn(table.Columns, "BOOK_REFERENCE", "BookReference", "BookRef"),
+            UserReferenceColumn: PickColumn(table.Columns, "USER_REFERENCE", "UserReference", "UserRef"),
+            LicenceAdmin1Column: PickColumn(table.Columns, "LICENCE_ADMIN1", "LicenceAdmin1", "Admin1", "AdminA"),
+            LicenceAdmin2Column: PickColumn(table.Columns, "LICENCE_ADMIN2", "LicenceAdmin2", "Admin2", "AdminB"));
+    }
+
+    private static IReadOnlyList<ImportExportIssue> ValidateAccessMapping(AccessImportTable table, AccessImportMapping mapping)
+    {
+        var issues = new List<ImportExportIssue>();
+        if (!ColumnExists(table.Columns, mapping.TitleColumn))
+        {
+            issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, "Access title column is not selected or does not exist."));
+        }
+
+        if (mapping.LyricsColumns.Count == 0 || mapping.LyricsColumns.Any(column => !ColumnExists(table.Columns, column)))
+        {
+            issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, "Access lyrics merge columns are not selected or do not exist."));
+        }
+
+        foreach (var column in new[]
+                 {
+                     mapping.AlternateTitleColumn,
+                     mapping.SongNumberColumn,
+                     mapping.WriterColumn,
+                     mapping.CopyrightColumn,
+                     mapping.KeyColumn,
+                     mapping.TimingColumn,
+                     mapping.BookReferenceColumn,
+                     mapping.UserReferenceColumn,
+                     mapping.LicenceAdmin1Column,
+                     mapping.LicenceAdmin2Column,
+                 })
+        {
+            if (!string.IsNullOrWhiteSpace(column) && !ColumnExists(table.Columns, column))
+            {
+                issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, $"Access column '{column}' does not exist."));
+            }
+        }
+
+        return issues;
     }
 
     private static LoadedImportSongs LoadDocumentFolder(string sourceFolder)
@@ -949,6 +1208,44 @@ public sealed class ImportExportService : IImportExportService
         var value = GetString(reader, columnName);
         return ToInt(value, fallback);
     }
+
+    private static string GetOptionalString(SQLiteDataReader reader, string columnName)
+        => string.IsNullOrWhiteSpace(columnName) ? "" : GetString(reader, columnName);
+
+    private static int GetOptionalInt(SQLiteDataReader reader, string columnName, int fallback = 0)
+        => string.IsNullOrWhiteSpace(columnName) ? fallback : GetInt(reader, columnName, fallback);
+
+    private static string MergeAccessLyrics(SQLiteDataReader reader, IReadOnlyList<string> columns)
+    {
+        var parts = columns
+            .Select(column => NormalizeLineEndings(GetOptionalString(reader, column)).Trim())
+            .Where(part => !string.IsNullOrWhiteSpace(part));
+        return string.Join("\n\n", parts).TrimEnd('\n', '\r');
+    }
+
+    private static string PickColumn(IReadOnlyList<string> columns, params string[] candidates)
+    {
+        foreach (var candidate in candidates)
+        {
+            var column = columns.FirstOrDefault(value => string.Equals(value, candidate, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(column))
+            {
+                return column;
+            }
+        }
+
+        return "";
+    }
+
+    private static bool ColumnExists(IReadOnlyList<string> columns, string columnName)
+        => !string.IsNullOrWhiteSpace(columnName) &&
+           columns.Any(column => string.Equals(column, columnName, StringComparison.OrdinalIgnoreCase));
+
+    private static string QuoteSqlIdentifier(string value)
+        => "\"" + value.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
+
+    private static string QuoteSqlLiteral(string value)
+        => "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
 
     private static int GetOrdinal(SQLiteDataReader reader, string columnName)
     {

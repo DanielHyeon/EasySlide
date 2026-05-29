@@ -19,9 +19,9 @@
 | 항목 | 결과 |
 |---|---|
 | `dotnet build Easislides.sln -c Debug` | 성공 |
-| `dotnet test Easislides.sln -c Debug` | 358개 통과 |
+| `dotnet test Easislides.sln -c Debug` | 363개 통과 |
 | `dotnet build Easislides.sln -c Release` | 성공 |
-| `dotnet test Easislides.sln -c Release --no-build` | 358개 통과 |
+| `dotnet test Easislides.sln -c Release --no-build` | 363개 통과 |
 | `gstack /qa`, `GSD verify-work` | 현재 작업 환경 PATH에 도구 없음 |
 | WPF 프로젝트 | `Easislides.Wpf` |
 | WPF 테스트 프로젝트 | `Easislides.Wpf.Tests` |
@@ -125,7 +125,7 @@ dotnet test Easislides.sln -c Debug --no-build
 
 `SongCopyViewModel`, `SongMoveViewModel`, `SongDeleteViewModel`, `SongRecoveryViewModel`은 복사/이동/삭제/복구 요청 매핑, configured/default backup root, 대상/선택 validation을 검증한다. `SongMergeViewModel`과 `SongMergeService`는 Source A/B 폴더와 기본/대체 제목 매칭, 후보 선택 validation, legacy `FrmSmartMerge` metadata fallback, `[region 2]` 기반 가사 병합, notation remap, 저장 후 reload 신호를 자동 검증한다. `ExternalFileOperationService`와 `ExternalFileOperationViewModel`은 legacy 외부 폴더 목록, InfoScreen/PowerPoint 외부 폴더 copy/move, ` - Copy (n)` 충돌 파일명, InfoScreen `.esi` 곡 폴더 import, source/destination validation과 완료 이벤트를 자동 검증한다. `ImportExportService`와 `ImportExportViewModel`은 legacy ESN/EST header/body/notation/metadata preview/import, XML replace import, ESF SQLite import/export, TXT/DOCX 폴더 import, XML/ESN/HTML/RTF export 산출물, 중복 정책, source folder 및 export candidate 선택을 자동 검증한다. `SearchUsageService`와 `SearchUsageViewModel`은 legacy `FrmFind`의 제목/가사/번호/참조/관리자/저작권/작가 검색 필드, 폴더/key/timing/notation/수정일 필터, `FrmLookupTitles` Title2 후보, `FrmUsages`의 `EsUsage.db` 기간/세션별 사용 기록, 발생 횟수 집계, 선택 record 삭제 확인 승인/취소 경계, 삭제 후 usage refresh, RTF 보고서 산출물을 자동 검증한다. `BibleRepository`와 `BibleViewModel`은 legacy Biblefolder/성경 DB 로드, 책 목록, 본문 로드, 전체/일부/구문 검색, 선택 구절 ID/title 생성, Region 1/2 버전 변경, dual-region preview 갱신과 완료 이벤트를 자동 검증한다. `MainViewModelTests`는 Bible selection을 현재 예배 순서 다음에 삽입하고 선택 상태/상태 메시지를 갱신하는 경계를 고정한다. `AdminDatabaseRepositoryTests`는 song detail 조회, 삭제 곡 조회, folder soft delete/recover `Use` 토글과 곡 `FOLDERNO` 보존, 일반 이동의 `LastModified` 보존, song soft delete/recover backup/transaction, folder reorder의 `FOLDER`/`SONG.FOLDERNO` staging 갱신, song reorder의 `SONG_NUMBER` 재시퀀싱과 rollback을 검증한다.
 
-`LibraryWindow`는 MainWindow 라이브러리 버튼으로 진입해 browse/search, 폴더 추가/편집 저장 후 reload, 폴더 위아래 및 직접 drag gesture 순서 변경, 새 곡/편집 저장 후 reload, 선택 곡 복사/이동/삭제 후 reload, 곡 위아래 및 직접 drag gesture 순서 변경, 삭제 곡 복구 후 대상 폴더 reload와 곡 선택, 스마트 병합 후 대상 폴더 reload까지 연결되었다. `ExternalFileOperationWindow`는 MainWindow 외부 파일 버튼에서 진입해 InfoScreen/PowerPoint 파일 추가, 외부 폴더 복사/이동, InfoScreen 곡 폴더 가져오기를 연결한다. `ImportExportWindow`는 MainWindow I/O 버튼에서 진입해 ESN/EST/XML/ESF/TXT/DOCX import preview/import, 중복 정책, XML/ESN/ESF/HTML/RTF export를 연결한다. `SearchUsageWindow`는 MainWindow Search 버튼에서 진입해 곡 상세 검색, Title2 후보 조회, usage 기간/세션 조회, 집계/삭제/RTF 보고서 생성을 연결한다. `BibleWindow`는 MainWindow 성경 버튼에서 진입해 성경 버전/책 로드, 본문/검색, 선택 구절 ID/title 생성, Region 1/2 preview, 현재 예배 순서 다음 삽입을 연결한다.
+`LibraryWindow`는 MainWindow 라이브러리 버튼으로 진입해 browse/search, 폴더 추가/편집 저장 후 reload, 폴더 위아래 및 직접 drag gesture 순서 변경, 새 곡/편집 저장 후 reload, 선택 곡 복사/이동/삭제 후 reload, 곡 위아래 및 직접 drag gesture 순서 변경, 삭제 곡 복구 후 대상 폴더 reload와 곡 선택, 스마트 병합 후 대상 폴더 reload까지 연결되었다. `ExternalFileOperationWindow`는 MainWindow 외부 파일 버튼에서 진입해 InfoScreen/PowerPoint 파일 추가, 외부 폴더 복사/이동, InfoScreen 곡 폴더 가져오기를 연결한다. `ImportExportWindow`는 MainWindow I/O 버튼에서 진입해 ESN/EST/XML/ESF/Access MDB/TXT/DOCX import preview/import, MDB table/column helper mapping, 중복 정책, XML/ESN/ESF/HTML/RTF export를 연결한다. `SearchUsageWindow`는 MainWindow Search 버튼에서 진입해 곡 상세 검색, Title2 후보 조회, usage 기간/세션 조회, 집계/삭제/RTF 보고서 생성을 연결한다. `BibleWindow`는 MainWindow 성경 버튼에서 진입해 성경 버전/책 로드, 본문/검색, 선택 구절 ID/title 생성, Region 1/2 preview, 현재 예배 순서 다음 삽입을 연결한다.
 
 수동 게이트:
 
