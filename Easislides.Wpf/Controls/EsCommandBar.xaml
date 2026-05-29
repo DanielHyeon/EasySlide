@@ -1,0 +1,59 @@
+<!--
+    EsCommandBar — 계획서 §5.1, §6.2.1 FrmMain CommandBar
+    변종:
+      - EsCommandBar.Top      : 폼 상단 고정 명령 모음
+      - EsCommandBar.Floating : 떠 있는 명령 모음 (그림자)
+
+    내부는 ToolBar 베이스로 EsButton.IconOnly 등을 사용. overflow는 ToolBar 기본 동작 활용.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+    <Style x:Key="EsCommandBar.Top" TargetType="ToolBar">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="MinHeight" Value="56" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolBar">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+                        <DockPanel LastChildFill="True">
+                            <ToggleButton x:Name="OverflowButton"
+                                          DockPanel.Dock="Right"
+                                          ClickMode="Press"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsOverflowOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Visibility="{Binding HasOverflowItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVis}}"
+                                          Background="Transparent"
+                                          BorderBrush="Transparent"
+                                          Width="32" Height="32"
+                                          Content="…"
+                                          FontSize="16" />
+                            <ToolBarPanel IsItemsHost="True"
+                                          Orientation="Horizontal" />
+                        </DockPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="EsCommandBar.Floating" TargetType="ToolBar" BasedOn="{StaticResource EsCommandBar.Top}">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.15" Color="Black" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,91 @@
+<UserControl x:Class="Easislides.Wpf.Composites.LiveBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Easislides.Wpf.Controls"
+             Visibility="{Binding BarVisibility}"
+             MinHeight="56">
+
+    <!-- LiveBar — 계획서 §6.2.1 FrmMain 상단 56px. Q5 상단 LiveBar 책임. -->
+    <Border>
+        <Border.Style>
+            <Style TargetType="Border">
+                <!-- 디폴트: 액센트 색 baseline -->
+                <Setter Property="Background" Value="{DynamicResource Brush.Accent.Primary}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                <Setter Property="BorderThickness" Value="0,0,0,2" />
+                <Style.Triggers>
+                    <!-- Active: 라이브 색 (Brush.Live.Active) -->
+                    <DataTrigger Binding="{Binding State}" Value="Active">
+                        <Setter Property="Background" Value="{DynamicResource Brush.Live.Active}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Live.Active}" />
+                    </DataTrigger>
+                    <!-- Standby: 노란색 -->
+                    <DataTrigger Binding="{Binding State}" Value="Standby">
+                        <Setter Property="Background" Value="{DynamicResource Brush.Live.Standby}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Live.Standby}" />
+                    </DataTrigger>
+                    <!-- Hidden: 어두운 색 -->
+                    <DataTrigger Binding="{Binding State}" Value="Hidden">
+                        <Setter Property="Background" Value="{DynamicResource Brush.Live.Hidden}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Live.Hidden}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <Grid Margin="20,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 좌: Pulse 인디케이터 + 상태 라벨 -->
+            <controls:EsLiveIndicator Grid.Column="0"
+                                      State="{Binding State}"
+                                      Diameter="14"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,12,0" />
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StateLabel}"
+                       FontFamily="{DynamicResource Font.Primary}"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource Brush.Text.Inverse}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,16,0" />
+
+            <!-- 중앙: 현재 송출 아이템 -->
+            <TextBlock Grid.Column="2"
+                       Text="{Binding CurrentItemTitle}"
+                       FontFamily="{DynamicResource Font.Primary}"
+                       FontSize="16"
+                       FontWeight="Medium"
+                       Foreground="{DynamicResource Brush.Text.Inverse}"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+
+            <!-- 우측: 모니터 + 단축키 힌트 -->
+            <TextBlock Grid.Column="3"
+                       Text="{Binding OutputMonitorName, StringFormat=→ {0}}"
+                       FontFamily="{DynamicResource Font.Primary}"
+                       FontSize="14"
+                       Foreground="{DynamicResource Brush.Text.Inverse}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,20,0"
+                       Opacity="0.9" />
+            <Border Grid.Column="4"
+                    Background="#33FFFFFF"
+                    CornerRadius="{StaticResource CornerRadius.Small}"
+                    Padding="8,4">
+                <TextBlock Text="{Binding ShortcutHint}"
+                           FontFamily="{DynamicResource Font.Mono}"
+                           FontSize="13"
+                           Foreground="{DynamicResource Brush.Text.Inverse}"
+                           VerticalAlignment="Center" />
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>
