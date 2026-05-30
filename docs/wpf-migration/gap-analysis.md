@@ -129,7 +129,7 @@
 ### G-α. 렌더링 충실도 갭 (라이브 핵심 · 최우선)
 - **PPT 슬라이드 렌더**: 🟡 **부분 완료** — 단일 슬라이드는 실제 Office Interop(`OfficePptSession`, STA 워커, JPG export)로 렌더돼 운영자 PowerPoint 탭(`PowerPoint.PreviewImage`)에 표시되고, **GoLive 시 출력 창에도 송출**된다(2026-05-30, 신원 가드로 stale 슬라이드 방지). 출력 창이 열려 있으면 **출력 모니터 해상도(종횡비 보존, 1080p 상한)로 렌더**해 송출을 선명하게 하며, 항목을 먼저 고르고 **출력을 나중에 열어도 그 시점에 재렌더**해 선명함을 보장한다(2026-05-31). **라이브 중 PPT 슬라이드 이동(이전/다음 버튼)** 으로 덱 내 슬라이드를 넘기면 출력도 즉시 갱신된다(2026-05-31: PPT 덱은 자동 다음-항목 이동에서 제외해 선택이 라이브 덱에 머묾, 블랙아웃 중 이동 후 재개 시에도 이동한 슬라이드 송출). **덱 전체 슬라이드 썸네일 스트립**(PowerPoint 탭, 클릭으로 해당 슬라이드 이동·라이브 중이면 출력 갱신, 현재 슬라이드 강조)도 백그라운드 로딩으로 구현됨(2026-05-31). **남은 것(백로그): (1) 썸네일 렌더의 `CancellationToken` 을 `OfficePptSession.ExportSlideAsync` 까지 관통(덱 빠른 전환 시 큐된 stale export 스킵), (2) `PowerPointPreviewViewModel.LoadAsync` 동시 호출 순서 보장(generation/취소), (3) 썸네일·메인 미리보기가 같은 슬라이드를 다른 크기로 이중 렌더(효율).**
 - **미디어 재생 UI**: ✅ **연결 완료(2026-05-30, PR #48)** — orphaned 였던 `MediaPlaybackViewModel` 을 MainWindow Media 탭에 바인딩(G1.2)하고, 라이브 큐 선택→`MediaPlaybackService`→`AttachableMediaPlaybackBackend`(생명주기 브리지)→출력 창 `MediaElement` 로 실제 재생 체인을 연결(트랙1~3). 비-미디어 항목 전환 시 `Unload` 로 출력에서 미디어를 내려 가사 복귀(출력 패리티). **남은 것: 코덱·오디오/싱크·라이브 카메라 캡처의 라이브 패리티 미검증**(아래 출력 렌더 패리티와 함께 G1.4 스크린샷 회귀로 고정 대상).
-- **출력 렌더 패리티**: `OutputWindow` 의 가사/성경/배경 실제 렌더가 레거시(`gfDisplay`/`gfLyrics` GDI+ 경로)와 동등한지 미검증.
+- **출력 렌더 패리티**: 🟡 **부분 검증(G1.4, 2026-05-31)** — 출력 배경(솔리드/세로 그라데이션)은 실제 `OutputWindowViewModel.SceneBackgroundBrush` 를 렌더해 스크린샷 기준(`output-bg-solid`/`output-bg-gradient`)으로 고정(텍스트 없는 결정적 표면). 텍스트·레이아웃 패리티(가사/타이틀·표시 여부·콘텐츠 배치)는 `OutputWindowViewModelTests` 속성 검증이 담당. **남은 것: 레거시 GDI+ 경로(`gfDisplay`/`gfLyrics`)와의 1:1 시각 대조는 미수행(폰트 렌더 비결정성으로 픽셀 비교 부적합), 블랙아웃 등 추가 표면은 후속.**
 
 ### G-β. 미포팅 폼 갭 (기능 부재 — G0 확정)
 - 🔴 **확정 미포팅(7)**: `FrmBackground`(배경 설정), `FrmInfoScreen`(보조 모니터 정보화면), `FrmManageItemLists`(예배 리스트 관리), `FrmPopupText`(팝업 송출), `FrmSingleMonitorAlert`(단일 모니터 경고), `FrmBibleRename`(성경 이름변경), `FrmUpdateFileName`(파일명 갱신).
@@ -155,7 +155,7 @@
 1. ✅ **스크린샷 회귀 PoC**(완료, [screenshot-regression.md](screenshot-regression.md)): 헤드리스 `RenderTargetBitmap` 렌더 + 허용오차 비교 + 승인 기준(light/dark 토큰 스와치) + CI. **G1 이후 모든 렌더 작업의 안전망 확보**. (단 CI 1회차 헤드리스 렌더 가능 여부는 GitHub Actions 실행으로 확정.)
 2. **PPT 썸네일/슬라이드 렌더**: `gf.PreviewPPT.BuildScreenPreDumps`(OfficeLib) 산출을 WPF Preview/썸네일 스트립에 연결. MainWindow PowerPoint 탭 placeholder 대체.
 3. ✅ **미디어 재생 UI 연결**(완료 2026-05-30, PR #48): orphaned `MediaPlaybackViewModel` → MainWindow Media 탭 바인딩(G1.2) + 라이브 큐→서비스→브리지→출력 `MediaElement` 재생 체인(트랙1~3) + 비-미디어 전환 시 `Unload` 가사 복귀. 라이브 코덱/싱크 패리티는 4(스크린샷 회귀)와 함께 검증 예정.
-4. **출력 렌더 패리티 검증**: OutputWindow 가사/성경/배경 렌더를 레거시와 스크린샷 비교로 고정.
+4. ✅ **출력 렌더 패리티 검증**(부분, 2026-05-31): 출력 배경(솔리드/그라데이션)을 스크린샷 기준으로 고정(G1.4). 텍스트는 비결정성으로 제외 — 속성 검증이 담당. 레거시 GDI+ 1:1 대조는 미수행.
 - 게이트: 각 항목 스크린샷 회귀 통과 + `--legacy-ui` 롤백 유지.
 
 ### Phase G2 — 미포팅 폼 (중위험, 1건씩)
@@ -188,7 +188,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] G1.2 후속 선택-후-출력열기 재렌더 — **완료**(2026-05-31: 항목을 먼저 고르고 출력을 나중에 열어도 그 시점에 출력 해상도로 재렌더)
 - [x] G1.2 라이브 중 PPT 슬라이드 이동 — **완료**(2026-05-31: 이전/다음 버튼으로 덱 내 슬라이드 이동 + 라이브 출력 즉시 갱신, PPT 덱은 자동 advance 제외)
 - [x] G1.2 PPT 덱 썸네일 스트립 — **완료**(2026-05-31: PowerPoint 탭에 덱 전체 슬라이드 썸네일·클릭 이동·현재 강조, 백그라운드 로딩). **G1.2 PPT 트랙 사실상 완결**(잔여는 백로그 §G-α)
-- [ ] **다음 착수**: G1.4 출력 렌더 패리티(OutputWindow 가사/배경 스크린샷 기준 확대)
+- [x] G1.4 출력 렌더 패리티(부분) — **완료**(2026-05-31: 출력 배경 솔리드/그라데이션 스크린샷 기준 고정. 텍스트는 비결정성으로 제외, 속성 검증이 담당)
+- [ ] **다음 착수**: UI/UX 갭 분석(FrmMain ↔ MainWindow, 미이식 폼) → 본 문서 §9 등에 반영
 
 ## 7. 참조
 - 도메인 계획: [01-shell-live-operations](01-shell-live-operations.md) ~ [06-verification-test-plan](06-verification-test-plan.md)
