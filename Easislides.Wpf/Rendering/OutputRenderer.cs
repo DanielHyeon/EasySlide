@@ -277,12 +277,12 @@ public sealed class OutputRenderer : IOutputRenderer
     private static bool IsPowerPointKind(string kind)
         => string.Equals(kind, "P", StringComparison.OrdinalIgnoreCase) ||
            string.Equals(kind, "PPT", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(kind, "PowerPoint", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, LiveItemKinds.PowerPoint, StringComparison.OrdinalIgnoreCase) ||
            string.Equals(kind, "Presentation", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsMediaKind(string kind)
         => string.Equals(kind, "M", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(kind, "Media", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(kind, LiveItemKinds.Media, StringComparison.OrdinalIgnoreCase) ||
            string.Equals(kind, "Video", StringComparison.OrdinalIgnoreCase) ||
            string.Equals(kind, "Audio", StringComparison.OrdinalIgnoreCase) ||
            string.Equals(kind, "LiveCamera", StringComparison.OrdinalIgnoreCase) ||

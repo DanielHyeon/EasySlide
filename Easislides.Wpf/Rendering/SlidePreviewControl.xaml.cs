@@ -53,7 +53,7 @@ public partial class SlidePreviewControl : UserControl
             nameof(Kind),
             typeof(string),
             typeof(SlidePreviewControl),
-            new PropertyMetadata("Item"));
+            new PropertyMetadata(LiveItemKinds.Item));
 
     public SlidePreviewControl()
     {

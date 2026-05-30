@@ -137,7 +137,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem(selection.IdString, selection.Title, "Bible");
+        var item = new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible);
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -160,7 +160,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, "Song") { Lyrics = song.Lyrics };
+        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song) { Lyrics = song.Lyrics };
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -171,10 +171,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>PowerPoint 파일을 예배 순서(큐)에 추가(선택 시 썸네일 렌더 디스패치).</summary>
-    public LiveQueueItem? AddPowerPoint(string filePath) => AddExternalFileItem(filePath, "PowerPoint", "PowerPoint 파일");
+    public LiveQueueItem? AddPowerPoint(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.PowerPoint, "PowerPoint 파일");
 
     /// <summary>미디어 파일을 예배 순서(큐)에 추가(선택 시 미디어 Load 디스패치).</summary>
-    public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, "Media", "미디어 파일");
+    public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.Media, "미디어 파일");
 
     private LiveQueueItem? AddExternalFileItem(string filePath, string kind, string label)
     {
@@ -334,7 +334,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 안전 불변식을 호출 메서드 안에서 봉인.
         try
         {
-            if (item is { Kind: "PowerPoint", ContentPath: { Length: > 0 } pptPath })
+            if (item is { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } pptPath })
             {
                 var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
                 await PowerPoint.LoadAsync(pptPath, slide, PptPreviewWidth, PptPreviewHeight).ConfigureAwait(true);
@@ -344,7 +344,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PowerPoint.Clear();
             }
 
-            if (item is { Kind: "Media", ContentPath: { Length: > 0 } mediaPath })
+            if (item is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } mediaPath })
             {
                 Media.Load(new MediaPlaybackRequest(mediaPath, MediaSourceKind.File, TimeSpan.Zero, InferMediaType(mediaPath)));
             }
@@ -644,7 +644,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private static bool IsPowerPointItem(LiveQueueItem item)
         => string.Equals(item.Kind, "P", StringComparison.OrdinalIgnoreCase) ||
            string.Equals(item.Kind, "PPT", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "PowerPoint", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, LiveItemKinds.PowerPoint, StringComparison.OrdinalIgnoreCase) ||
            string.Equals(item.Kind, "Presentation", StringComparison.OrdinalIgnoreCase);
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
@@ -695,9 +695,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         LoadQueue(new[]
         {
-            new LiveQueueItem("sample-welcome", "예배 시작 안내", "Notice"),
-            new LiveQueueItem("sample-song", "주일 찬양 #1", "Song"),
-            new LiveQueueItem("sample-sermon", "말씀 본문", "Bible"),
+            new LiveQueueItem("sample-welcome", "예배 시작 안내", LiveItemKinds.Notice),
+            new LiveQueueItem("sample-song", "주일 찬양 #1", LiveItemKinds.Song),
+            new LiveQueueItem("sample-sermon", "말씀 본문", LiveItemKinds.Bible),
         });
     }
 }
