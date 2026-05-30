@@ -59,6 +59,24 @@
                        MaxWidth="1100"
                        Visibility="{Binding DisplayTitleVisibility}" />
 
+            <!-- 라이브 곡 가사 본문(여러 줄). 본문이 있을 때만 표시되며, 이때 타이틀은 숨겨진다.
+                 송출 텍스트색(SceneForegroundBrush)으로 중앙 정렬해 렌더한다.
+                 1차 슬라이스는 가사 전체를 한 덩어리로 보여준다 — 절 단위 페이지네이션·Next/Prev 이동은 후속(PR B).
+                 그 전까지 긴 가사가 화면 밖으로 잘려 사라지지 않도록 MaxHeight + 말줄임으로 안전하게 클립한다. -->
+            <TextBlock Text="{Binding BodyText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextTrimming="CharacterEllipsis"
+                       FontSize="48"
+                       FontWeight="SemiBold"
+                       LineHeight="60"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       MaxWidth="1160"
+                       MaxHeight="660"
+                       Visibility="{Binding BodyTextVisibility}" />
+
             <!-- 미디어 출력(영상/오디오) — WpfMediaElementPlaybackBackend 가 Source/재생을 제어한다.
                  Source 가 설정될 때만(미디어 항목 송출 시) 표시되어 가사/타이틀을 덮는다(실제 백엔드 트랙 2단계). -->
             <MediaElement x:Name="OutputMediaElement"

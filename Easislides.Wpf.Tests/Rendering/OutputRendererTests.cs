@@ -42,6 +42,62 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_WithBodyText_PassesThroughAndShowsBody()
+    {
+        // 라이브 곡 가사 본문이 씬에 전달되어 출력에 텍스트로 표시(ShowsBodyText)되어야 한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사\n둘째 줄"),
+            Output: output,
+            ViewportWidth: 300,
+            ViewportHeight: 300));
+
+        scene.Kind.Should().Be(OutputSceneKind.Live);
+        scene.BodyText.Should().Be("1절 가사\n둘째 줄");
+        scene.ShowsBodyText.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_ActiveWithoutBody_DoesNotShowBody()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "주보 PPT", "Display 2", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 300,
+            ViewportHeight: 300));
+
+        scene.BodyText.Should().BeEmpty();
+        scene.ShowsBodyText.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CreateScene_Hidden_SuppressesBodyText()
+    {
+        // 숨김 상태에선 본문이 실려 있어도 출력에 노출하지 않는다(Live 가 아니므로).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 300,
+            ViewportHeight: 300));
+
+        scene.Kind.Should().Be(OutputSceneKind.Hidden);
+        scene.BodyText.Should().BeEmpty();
+        scene.ShowsBodyText.Should().BeFalse();
+    }
+
+    [Fact]
     public void CreateScene_Blackout_SuppressesContentAndUsesBlackLabels()
     {
         var sut = CreateRenderer();

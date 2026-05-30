@@ -122,6 +122,48 @@ public class LiveSessionServiceTests
         sut.Current.CurrentItemPreviewPixelHeight.Should().Be(0);
     }
 
+    [Fact]
+    public void GoLive_WithSongLyrics_CarriesDisplayTextWithMarkersStripped()
+    {
+        // 곡 가사가 스냅샷 본문으로 실리되, 작성 마커([1]/[~코드])는 출력용으로 제거된 표시 텍스트여야 한다.
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[~G D]\n[1]\n1절 가사\n둘째 줄\n[2]\n2절 가사",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("1절 가사\n둘째 줄\n\n2절 가사");
+        sut.Current.CurrentItemBodyText.Should().NotContain("[");
+    }
+
+    [Fact]
+    public void GoLive_WithoutLyrics_LeavesBodyTextEmpty()
+    {
+        // 가사 없는 항목(PPT/미디어/공지 등)은 본문이 비어 출력에 텍스트가 나타나지 않는다.
+        var item = new LiveQueueItem("ppt-1", "주보 PPT", LiveItemKinds.PowerPoint);
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Restore_FromHidden_PreservesBodyText()
+    {
+        // 숨김→복귀 시 가사 본문도 보존되어야 직전 곡이 그대로 다시 보인다.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "1절 가사" };
+        var sut = new LiveSessionService();
+        sut.GoLive(item, "모니터 2");
+        sut.HideOutput(blackout: false);
+
+        sut.Restore();
+
+        sut.Current.CurrentItemBodyText.Should().Be("1절 가사");
+    }
+
     private static BitmapSource CreateBitmap(int width, int height)
     {
         var stride = width * 4;

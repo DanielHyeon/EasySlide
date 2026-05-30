@@ -88,9 +88,14 @@ public sealed record OutputSceneSnapshot(
     GapItemMode GapItemOption,
     string GapItemLogoFile,
     bool GapItemUseFade,
-    bool ShowsPanelOverlay)
+    bool ShowsPanelOverlay,
+    // 라이브 곡 가사 본문(출력 중앙 텍스트). Live 가 아니면 빈 문자열이라 출력에 나타나지 않는다.
+    string BodyText = "")
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
+
+    // 가사 본문을 실제로 송출할지 — Live 상태 + 본문이 있을 때만.
+    public bool ShowsBodyText => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText);
 }
 
 public interface IOutputRenderer
@@ -138,7 +143,9 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.GapItemOption,
             liveOutput.GapItemLogoFile,
             liveOutput.GapItemUseFade,
-            ShouldShowPanelOverlay(kind, request.Session, liveOutput));
+            ShouldShowPanelOverlay(kind, request.Session, liveOutput),
+            // 곡 가사 본문은 Live 일 때만 송출(숨김/블랙아웃/대기 상태에선 빈 문자열).
+            kind == OutputSceneKind.Live ? request.Session.CurrentItemBodyText : string.Empty);
     }
 
     private ImagePlacement GetContentPlacement(

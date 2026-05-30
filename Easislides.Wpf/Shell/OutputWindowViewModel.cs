@@ -26,6 +26,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private string _outputMonitorName = string.Empty;
     private string _displayTitle = "STANDBY";
     private string _statusLabel = "STANDBY";
+    private string _bodyText = string.Empty;
     private bool _isBlackout;
     private bool _isOutputOpen;
     private Brush _sceneForegroundBrush;
@@ -34,6 +35,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _notationVisibility = Visibility.Visible;
     private Visibility _panelOverlayVisibility = Visibility.Visible;
     private Visibility _displayTitleVisibility = Visibility.Visible;
+    private Visibility _bodyTextVisibility = Visibility.Collapsed;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -121,6 +123,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _statusLabel;
         private set => SetProperty(ref _statusLabel, value);
+    }
+
+    /// <summary>라이브 곡 가사 본문(출력 화면 중앙 텍스트). 곡이 아니거나 Live 가 아니면 빈 문자열.</summary>
+    public string BodyText
+    {
+        get => _bodyText;
+        private set => SetProperty(ref _bodyText, value);
+    }
+
+    /// <summary>가사 본문 표시 여부(본문이 있을 때만 Visible — 이때 타이틀은 겹침 방지로 숨긴다).</summary>
+    public Visibility BodyTextVisibility
+    {
+        get => _bodyTextVisibility;
+        private set => SetProperty(ref _bodyTextVisibility, value);
     }
 
     public bool IsBlackout
@@ -330,9 +346,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             scene.LyricsMonitorBackgroundIsGradient);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
+        // 곡 가사 본문을 송출 슬롯에 반영. 본문이 보이면 타이틀과 겹치므로 ApplyGapLogo 에서 타이틀을 숨긴다.
+        BodyText = scene.BodyText;
+        var bodyShown = scene.ShowsBodyText;
+        BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
         PanelOverlayVisibility = panelOverlay;
-        ApplyGapLogo(scene, panelOverlay);
+        ApplyGapLogo(scene, panelOverlay, bodyShown);
         BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) ? Visibility.Visible : Visibility.Collapsed;
         ApplyContentPlacement(scene);
     }
@@ -347,8 +367,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         ContentWidth = placement.Width;
         ContentHeight = placement.Height;
 
+        // 가사 본문이 송출 중이면 콘텐츠 이미지는 숨긴다 — 둘이 겹쳐 가사가 읽기 어려워지는 것을 막는다(본문 우선).
+        // 현재 곡은 이미지가 없어 상호배타적이지만, 미래에 한 항목이 본문+이미지를 모두 가질 때를 위한 명시적 가드.
         var hasContent = _contentImageSource is not null
             && scene.ShowsContent
+            && !scene.ShowsBodyText
             && placement.Width > 0
             && placement.Height > 0;
         ContentVisibility = hasContent ? Visibility.Visible : Visibility.Collapsed;
@@ -360,15 +383,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         => kind == OutputSceneKind.Blackout || kind == OutputSceneKind.Hidden;
 
     // GAP 모드(User)에서 로고 파일이 로딩 가능하면 이미지를, 그 외에는 기존 타이틀 텍스트를 표시한다.
-    // 로고가 보이는 동안에는 타이틀 텍스트와 시각적으로 겹치지 않도록 DisplayTitleVisibility를 Collapsed로 둔다.
-    private void ApplyGapLogo(OutputSceneSnapshot scene, Visibility panelOverlay)
+    // 로고나 가사 본문이 보이는 동안에는 타이틀 텍스트와 시각적으로 겹치지 않도록 DisplayTitleVisibility를 Collapsed로 둔다.
+    private void ApplyGapLogo(OutputSceneSnapshot scene, Visibility panelOverlay, bool bodyShown)
     {
         var logo = TryLoadGapLogo(scene);
         GapLogoSource = logo;
         // 패널 오버레이가 숨겨진 상태(예: PPT 라이브)면 로고도 굳이 노출하지 않는다.
         var gapLogoVisible = logo is not null && panelOverlay == Visibility.Visible;
         GapLogoVisibility = gapLogoVisible ? Visibility.Visible : Visibility.Collapsed;
-        DisplayTitleVisibility = gapLogoVisible ? Visibility.Collapsed : panelOverlay;
+        // 가사 본문이 송출 중이면(곡 라이브) 타이틀은 숨겨 본문만 보이게 한다.
+        DisplayTitleVisibility = (gapLogoVisible || bodyShown) ? Visibility.Collapsed : panelOverlay;
     }
 
     private ImageSource? TryLoadGapLogo(OutputSceneSnapshot scene)
