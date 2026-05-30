@@ -965,8 +965,8 @@ namespace Easislides
 				}
 				else if (InItem.Type == "I" && InItem.Format.TempImageFileName == "")
 				{
-					InItem.Format.ShowScreenColour[0] = ShowScreenColour[0];
-					InItem.Format.ShowScreenColour[1] = ShowScreenColour[1];
+					InItem.Format.ShowScreenColour[0] = ShowScreenColour[0].ToArgb();
+					InItem.Format.ShowScreenColour[1] = ShowScreenColour[1].ToArgb();
 					InItem.Format.ShowScreenStyle = ShowScreenStyle;
 				}
 			}
@@ -1028,7 +1028,8 @@ namespace Easislides
 				string text = "";
 				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
 				Graphics g = Graphics.FromImage(image);
-				BackPattern.Fill(ref g, InItem.Format.ShowScreenColour[0], InItem.Format.ShowScreenColour[1], InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref text);
+				// SongFormat 색상은 ARGB int → BackPattern.Fill 이 받는 Color 로 변환.
+				BackPattern.Fill(ref g, Color.FromArgb(InItem.Format.ShowScreenColour[0]), Color.FromArgb(InItem.Format.ShowScreenColour[1]), InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref text);
 				g.Dispose();
 				if (InPic.NewBackgroundPicture != null)
 				{

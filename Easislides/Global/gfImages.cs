@@ -287,8 +287,9 @@ namespace Easislides
 
 		public static void ResetPictureBox(ref SongSettings InItem, ref ImageTransitionControl InScreen, GapType GapItemBackground, ImageTransitionControl.TransitionAction InTransAction)
 		{
-			Color color = InItem.Format.ShowScreenColour[0];
-			Color color2 = InItem.Format.ShowScreenColour[1];
+			// 원래 색상을 잠시 보관했다가 마지막에 복원 — SongFormat 색상이 ARGB int 라 int 로 보관(변환 불필요).
+			int color = InItem.Format.ShowScreenColour[0];
+			int color2 = InItem.Format.ShowScreenColour[1];
 			int showScreenStyle = InItem.Format.ShowScreenStyle;
 			string tempImageFileName = InItem.Format.TempImageFileName;
 			string backgroundPicture = InItem.Format.BackgroundPicture;
@@ -314,8 +315,8 @@ namespace Easislides
 				{
 					case GapType.Black:
 						InItem.UseDefaultFormat = false;
-						InItem.Format.ShowScreenColour[0] = BlackScreenColour;
-						InItem.Format.ShowScreenColour[1] = BlackScreenColour;
+						InItem.Format.ShowScreenColour[0] = BlackScreenColour.ToArgb();
+						InItem.Format.ShowScreenColour[1] = BlackScreenColour.ToArgb();
 						InItem.Format.ShowScreenStyle = 11;
 						InItem.Format.TempImageFileName = "";
 						InItem.Format.BackgroundPicture = "";
@@ -340,8 +341,8 @@ namespace Easislides
 						}
 					case GapType.Default:
 						InItem.UseDefaultFormat = false;
-						InItem.Format.ShowScreenColour[0] = ShowScreenColour[0];
-						InItem.Format.ShowScreenColour[1] = ShowScreenColour[1];
+						InItem.Format.ShowScreenColour[0] = ShowScreenColour[0].ToArgb();
+						InItem.Format.ShowScreenColour[1] = ShowScreenColour[1].ToArgb();
 						InItem.Format.ShowScreenStyle = ShowScreenStyle;
 						InItem.Format.TempImageFileName = BackgroundPicture;
 						InItem.Format.BackgroundPicture = BackgroundPicture;

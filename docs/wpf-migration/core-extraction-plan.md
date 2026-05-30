@@ -47,7 +47,22 @@
 ### Phase 2 — `SongFormat`/`SongLyrics` (System.Drawing 결정 후)
 - 옵션 A: Core 에 `System.Drawing.Common`(크로스플랫폼 패키지) 추가 후 이동.
 - 옵션 B: 도메인 모델에서 `System.Drawing.Color/Font` 를 원시값(ARGB int, 폰트명 string)으로 디커플 후 이동(더 깨끗·권장).
-- 옵션은 Phase 1 완료 후 별도 결정(이 계획의 비범위 — 후속 ADR).
+
+**결정(2026-05): 옵션 B 채택. SongFormat 만 먼저 이동(완료), SongLyrics 는 분리·보류.**
+
+#### Phase 2a — `SongFormat` → Core (완료)
+- `SongFormat` 의 색상 `Color[] ShowScreenColour`/`ShowFontColour` 를 `int[]`(ARGB) 로 디커플 → Core 포터블 유지(System.Drawing 비의존).
+- 경계(legacy WinForms)에서 `Color.FromArgb(int)`/`Color.ToArgb()` 변환. 화면 헤더(번호 26/27/29/30) 영속 정수 포맷 **무변경**(과거 `.ToArgb()` 출력과 비트 동일).
+- 정적 전역 `Gf.ShowScreenColour`/`ShowFontColour`(`gfConstants.cs`)는 **`Color[]` 그대로 유지** — 동명이지만 별개(도메인 필드만 int 화).
+- 사용처 수정: `FrmMain.Events.cs`(ref Color 호출부 → 로컬 변환), `FrmMain.Layout.cs`, `gfImages.cs`, `gfLyrics.cs`, `gfUtility.cs`.
+- 검증: legacy 빌드 0 errors, 전체 테스트 472 green(SongFormat 위치·네임스페이스·`int[]` 고정 테스트 2건 추가).
+
+#### Phase 2b — `SongLyrics` (보류, 별도 PR)
+- **조사 발견(계획서 초기 분류 정정)**: `SongLyrics` 는 순수 도메인 모델이 아니라 **렌더링 핫패스의 런타임 상태 홀더**다.
+  - `Font Font`/`ChorusFont`/`FS_Font`/`FS_ChorusFont` 4개 Font 필드가 `gfDisplay.DrawOneLine`·`gfLyrics.GetOneScreen` 등 GDI+ 그리기 루프에서 직접 사용됨(영속 도메인 값이 아니라 SongFormat 설정으로부터 빌드해 캐싱한 Font).
+  - `FS_ComputedHeight`·`FS_InterlaceGapHeight` 등 계산된 레이아웃 캐시 필드 보유.
+  - `Initialise()` 가 `Gf.DefaultForeColour`(static `Easislides.Gf`) 를 참조 — 계획서 §2.1 분류(★★, Drawing만)와 달리 Gf 강결합 존재.
+- 옵션 B 로 Font 를 원시값(폰트명/크기/스타일)으로 디커플하면 핫패스에서 매 그리기마다 Font **재생성** → 렌더링 동작·성능 회귀 위험. 따라서 Font 캐시 설계(예: Core 는 Drawing-free 디스크립터 보유 + legacy 가 Font 캐시 유지)를 별도 단계로 분리해 안전망(컴포지트·스크린샷) 위에서 진행한다.
 
 ### Phase 3 — `SongSettings` 디커플 후 이동
 - `System.Windows.Forms` 의존(메시지박스/스크린 등)과 `static Easislides.Gf` 호출을 인터페이스/원시값으로 분리한 뒤에만 이동. 가장 큰 작업.

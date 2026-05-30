@@ -75,8 +75,9 @@ namespace Easislides
 			}
 			else if (!UseDefault)
 			{
-				array[0] = InItem.Format.ShowFontColour[0];
-				array[1] = InItem.Format.ShowFontColour[1];
+				// SongFormat 글자색은 ARGB int → Color 로 변환해 Color[] 에 담는다.
+				array[0] = Color.FromArgb(InItem.Format.ShowFontColour[0]);
+				array[1] = Color.FromArgb(InItem.Format.ShowFontColour[1]);
 				array2[0] = InItem.Format.ShowFontAlign[0];
 				array2[1] = InItem.Format.ShowFontAlign[1];
 				array3[0] = InItem.Format.ShowFontBold[0];
@@ -861,8 +862,8 @@ namespace Easislides
 			switch (GapItemOption)
 			{
 				case GapType.Black:
-					InItem.Format.ShowScreenColour[0] = BlackScreenColour;
-					InItem.Format.ShowScreenColour[1] = BlackScreenColour;
+					InItem.Format.ShowScreenColour[0] = BlackScreenColour.ToArgb();
+					InItem.Format.ShowScreenColour[1] = BlackScreenColour.ToArgb();
 					InItem.Format.ShowScreenStyle = 11;
 					InItem.Format.BackgroundPicture = "";
 					break;
@@ -881,8 +882,8 @@ namespace Easislides
 						break;
 					}
 				case GapType.Default:
-					InItem.Format.ShowScreenColour[0] = ShowScreenColour[0];
-					InItem.Format.ShowScreenColour[1] = ShowScreenColour[1];
+					InItem.Format.ShowScreenColour[0] = ShowScreenColour[0].ToArgb();
+					InItem.Format.ShowScreenColour[1] = ShowScreenColour[1].ToArgb();
 					InItem.Format.ShowScreenStyle = ShowScreenStyle;
 					InItem.Format.BackgroundPicture = BackgroundPicture;
 					InItem.Format.BackgroundMode = BackgroundMode;
@@ -893,8 +894,9 @@ namespace Easislides
 			InItem.Format.ShowItemTransition = (GapItemUseFade ? 15 : 0);
 			InItem.Format.ShowSlideTransition = InItem.Format.ShowItemTransition;
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.Append(Convert.ToString(26) + "=" + Convert.ToString(InItem.Format.ShowScreenColour[0].ToArgb()) + '>');
-			stringBuilder.Append(Convert.ToString(27) + "=" + Convert.ToString(InItem.Format.ShowScreenColour[1].ToArgb()) + '>');
+			// SongFormat 색상은 이미 ARGB int — 그대로 직렬화(과거 .ToArgb() 와 동일).
+			stringBuilder.Append(Convert.ToString(26) + "=" + Convert.ToString(InItem.Format.ShowScreenColour[0]) + '>');
+			stringBuilder.Append(Convert.ToString(27) + "=" + Convert.ToString(InItem.Format.ShowScreenColour[1]) + '>');
 			stringBuilder.Append(Convert.ToString(28) + "=" + InItem.Format.ShowScreenStyle.ToString() + '>');
 			stringBuilder.Append(Convert.ToString(50) + "=" + Convert.ToString(InItem.Format.MediaOption) + '>');
 			stringBuilder.Append(Convert.ToString(51) + "=" + InItem.Format.MediaLocation + '>');
@@ -4246,15 +4248,16 @@ namespace Easislides
 			num3 = ExtractNumericData(InItem.Format.HeaderData[25]);
 			InItem.Format.ShowLyrics = (((num3 < 0) | (num3 > 2)) ? ShowLyrics : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[26]);
-			InItem.Format.ShowScreenColour[0] = (((InItem.Format.HeaderData[26] == "") | !ValidateColour(num3)) ? ShowScreenColour[0] : Color.FromArgb(Convert.ToInt32(num3)));
+			// SongFormat 색상은 ARGB int 저장 — Color 결과를 .ToArgb() 로 변환(FromArgb→ToArgb 는 동일 값 왕복).
+			InItem.Format.ShowScreenColour[0] = (((InItem.Format.HeaderData[26] == "") | !ValidateColour(num3)) ? ShowScreenColour[0] : Color.FromArgb(Convert.ToInt32(num3))).ToArgb();
 			num3 = ExtractNumericData(InItem.Format.HeaderData[27]);
-			InItem.Format.ShowScreenColour[1] = (((InItem.Format.HeaderData[27] == "") | !ValidateColour(num3)) ? ShowScreenColour[0] : Color.FromArgb(Convert.ToInt32(num3)));
+			InItem.Format.ShowScreenColour[1] = (((InItem.Format.HeaderData[27] == "") | !ValidateColour(num3)) ? ShowScreenColour[0] : Color.FromArgb(Convert.ToInt32(num3))).ToArgb();
 			num3 = ExtractNumericData(InItem.Format.HeaderData[28]);
 			InItem.Format.ShowScreenStyle = (((num3 < 0) | (num3 > MaxBackgroundStyleIndex)) ? ShowScreenStyle : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[29]);
-			InItem.Format.ShowFontColour[0] = (((InItem.Format.HeaderData[29] == "") | !ValidateColour(num3)) ? ShowFontColour[0] : Color.FromArgb(Convert.ToInt32(num3)));
+			InItem.Format.ShowFontColour[0] = (((InItem.Format.HeaderData[29] == "") | !ValidateColour(num3)) ? ShowFontColour[0] : Color.FromArgb(Convert.ToInt32(num3))).ToArgb();
 			num3 = ExtractNumericData(InItem.Format.HeaderData[30]);
-			InItem.Format.ShowFontColour[1] = (((InItem.Format.HeaderData[30] == "") | !ValidateColour(num3)) ? ShowFontColour[1] : Color.FromArgb(Convert.ToInt32(num3)));
+			InItem.Format.ShowFontColour[1] = (((InItem.Format.HeaderData[30] == "") | !ValidateColour(num3)) ? ShowFontColour[1] : Color.FromArgb(Convert.ToInt32(num3))).ToArgb();
 			num3 = ExtractNumericData(InItem.Format.HeaderData[31]);
 			InItem.Format.ShowFontAlign[0] = (((num3 < 1) | (num3 > 3)) ? ShowFontAlign[0, 0] : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[32]);
