@@ -46,7 +46,11 @@ public partial class MainWindow : Window
     {
         var libraryWindow = _services.GetRequiredService<LibraryWindow>();
         libraryWindow.Owner = this;
-        libraryWindow.ShowDialog();
+        if (libraryWindow.ShowDialog() == true && DataContext is MainViewModel viewModel)
+        {
+            // "라이브에 추가"로 닫혔으면 선택 곡을 예배 순서(큐)에 추가(BibleWindow 흐름과 동일).
+            viewModel.AddSong(libraryWindow.SelectedSongForLive);
+        }
     }
 
     private void OpenExternalFiles_Click(object sender, RoutedEventArgs e)

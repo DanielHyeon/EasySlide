@@ -97,6 +97,21 @@ public partial class LibraryWindow : Window
         await viewModel.RecoverSelectedFolderAsync();
     }
 
+    /// <summary>"라이브에 추가" 로 선택된 곡 — 호출자(MainWindow)가 큐에 추가할 때 읽는다.</summary>
+    public SongSummary? SelectedSongForLive { get; private set; }
+
+    private void AddToLive_Click(object sender, RoutedEventArgs e)
+    {
+        // 선택 곡을 라이브 큐 추가 대상으로 확정하고 창을 닫는다(피커 확정 — BibleWindow 흐름과 동일).
+        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        {
+            return;
+        }
+
+        SelectedSongForLive = viewModel.SelectedSong;
+        DialogResult = true;
+    }
+
     private async void EditSong_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)

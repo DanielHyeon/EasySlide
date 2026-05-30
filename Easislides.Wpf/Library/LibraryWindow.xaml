@@ -230,6 +230,17 @@
                                 </StackPanel>
                             </Button>
 
+                            <Button Style="{StaticResource EsButton.Primary}"
+                                    Click="AddToLive_Click"
+                                    ToolTip="선택 곡을 예배 순서(라이브 큐)에 추가"
+                                    AutomationProperties.Name="선택 곡 라이브에 추가"
+                                    Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Add24" Margin="0,0,6,0" />
+                                    <TextBlock Text="라이브에 추가" />
+                                </StackPanel>
+                            </Button>
+
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="EditSong_Click"
                                     ToolTip="선택 곡 편집"
