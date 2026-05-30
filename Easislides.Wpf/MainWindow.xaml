@@ -208,14 +208,33 @@
                         <TabControl BorderThickness="0"
                                     Background="Transparent">
                             <TabItem Header="Preview">
-                                <rendering:SlidePreviewControl Margin="{StaticResource Thickness.Lg}"
-                                                               Title="{Binding SelectedItem.Title}"
-                                                               Kind="{Binding SelectedItem.Kind}"
-                                                               Source="{Binding SelectedItem.PreviewSource}"
-                                                               FillMode="{Binding SelectedItem.PreviewFillMode}"
-                                                               SlideNumber="{Binding SelectedItem.SlideNumber}"
-                                                               ShowSlideNumber="True"
-                                                               IsSelected="True" />
+                                <Grid Margin="{StaticResource Thickness.Lg}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <rendering:SlidePreviewControl Grid.Row="0"
+                                                                   Title="{Binding SelectedItem.Title}"
+                                                                   Kind="{Binding SelectedItem.Kind}"
+                                                                   Source="{Binding SelectedItem.PreviewSource}"
+                                                                   FillMode="{Binding SelectedItem.PreviewFillMode}"
+                                                                   SlideNumber="{Binding SelectedItem.SlideNumber}"
+                                                                   ShowSlideNumber="True"
+                                                                   IsSelected="True" />
+
+                                    <!-- 선택 곡의 실제 가사 표시(라이브 큐 콘텐츠 plumbing — LiveQueueItem.Lyrics). 가사 없으면 비어 표시. -->
+                                    <ScrollViewer Grid.Row="1"
+                                                  MaxHeight="180"
+                                                  Margin="0,12,0,0"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <TextBlock Text="{Binding SelectedItem.Lyrics}"
+                                                   TextWrapping="Wrap"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                   AutomationProperties.Name="선택 곡 가사" />
+                                    </ScrollViewer>
+                                </Grid>
                             </TabItem>
                             <TabItem Header="PowerPoint"
                                      Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}">

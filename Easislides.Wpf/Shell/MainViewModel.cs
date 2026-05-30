@@ -156,7 +156,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, "Song");
+        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, "Song") { Lyrics = song.Lyrics };
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -214,6 +214,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedOutputDisplay = matching;
     }
 
+    // PPT 미리보기 렌더 크기(썸네일 — 출력 해상도와 무관한 미리보기용 고정값).
+    private const int PptPreviewWidth = 960;
+    private const int PptPreviewHeight = 540;
+
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
         if (_session.Current.State != LiveState.Active)
@@ -221,7 +225,38 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LiveBar.CurrentItemTitle = value?.Title ?? string.Empty;
         }
 
+        // 선택 항목의 실제 콘텐츠를 적절한 미리보기 VM 으로 적재(라이브 큐 콘텐츠 plumbing).
+        // UI 경로라 fire-and-forget; 테스트는 ApplySelectedItemContentAsync 를 직접 await.
+        _ = ApplySelectedItemContentAsync(value);
+
         NotifyCommandStates();
+    }
+
+    /// <summary>
+    /// 선택된 큐 항목의 종류에 따라 콘텐츠를 적재한다(PowerPoint 항목 → 썸네일 렌더, 그 외 → PPT 미리보기 비움).
+    /// 곡 가사는 항목(LiveQueueItem.Lyrics)이 직접 들고 있어 바인딩으로 표시되므로 여기서 추가 적재 불필요.
+    /// (미디어 항목의 Load 디스패치는 후속 — 미디어 추가 경로가 생기면 연결.)
+    /// </summary>
+    public async Task ApplySelectedItemContentAsync(LiveQueueItem? item)
+    {
+        // fire-and-forget(OnSelectedItemChanged)로 호출되므로 예외가 새면 unobserved 가 된다.
+        // 안전 불변식을 호출 메서드 안에서 봉인 — 후속(미디어 디스패치 등)에서 throw 경로가 생겨도 면역.
+        try
+        {
+            if (item is { Kind: "PowerPoint", ContentPath: { Length: > 0 } path })
+            {
+                var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
+                await PowerPoint.LoadAsync(path, slide, PptPreviewWidth, PptPreviewHeight).ConfigureAwait(true);
+            }
+            else
+            {
+                PowerPoint.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"항목 콘텐츠 로드 실패: {ex.Message}";
+        }
     }
 
     private void OpenOutput()
