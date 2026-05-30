@@ -11,7 +11,7 @@
 |---|---|---|
 | 레거시 폼 | **38개** (`Frm*.cs`, partial 제외) | `Easislides/Easislides/Frm*.cs` |
 | WPF 실제 앱 창 | **19개** (+데모/갤러리 5) | `Easislides.Wpf/**/*Window.xaml` |
-| 빌드/테스트 | 0 errors · 474 green (WPF 454 + 분석기 20) | — |
+| 빌드/테스트 | 0 errors · WPF 514 green (2026-05-30, 미디어 트랙3 포함) + 분석기 20 | — |
 | production entrypoint | **레거시(`Easislides.exe`)가 주력** | next-session-plan §B "WPF 아직 production 아님" |
 | 마일스톤(기능 기준) | **M1 도달 / M2 부분 / M3·M4 미달** | 아래 §3·§4 |
 | 알려진 문서 부채 | `Easislides.Wpf/README.md` 가 "Sprint 0 PoC" 로 **stale** | 실제 90 커밋·~6,800줄 XAML |
@@ -137,7 +137,7 @@
 - ✅ **초판 갭에서 정정**: `FrmImportAccessHelper`(→ `ImportSourceKind.AccessDatabase`), `FrmGenerateDoc/Html`(→ `ExportFormat.Rtf/Html`), `FrmImportFolder`(→ `DocumentFolder`), `FrmLookupTitles`(→ `SongSearchFields.Title`), `FrmGetWorkingFolder`(→ Settings) 는 **통합 창에 포함됨**.
 
 ### G-γ. 횡단/인프라 갭
-- **스크린샷 회귀 자동화 부재**(§9.1) — 렌더 충실도/리팩토링 안전망의 전제.
+- ✅ **스크린샷 회귀 자동화 구축 완료**(§9.1, [screenshot-regression.md](screenshot-regression.md)) — 헤드리스 렌더 하니스(`VisualRenderHarness`)·허용오차 비교기(`ImageComparer`)·승인 기준(`ScreenshotBaseline`)·light/dark 토큰 스와치 기준 + CI 워크플로우. 렌더 충실도/리팩토링 안전망의 전제 충족. **남은 것: 주요 컨트롤·창 레이아웃 기준 확대(후속), CI 1회차 헤드리스 렌더 확정.**
 - **문서 부채**: `Easislides.Wpf/README.md` "Sprint 0 PoC" stale → 실제 진척 반영 필요.
 - **운영 전환 게이트 미통과**(B-4): 두 exe + Core.dll 동봉 패키징 + 1시간 예배 리허설.
 
@@ -152,7 +152,7 @@
 - 산출: 확정된 커버리지 매트릭스(이 문서 갱신), 매핑 주석 PR.
 
 ### Phase G1 — 렌더링 충실도 안전망 + 핵심 렌더 (중·고위험)
-1. **스크린샷 회귀 PoC**(§9.1, next-session-plan C): 헤드리스 WPF 렌더 가능성 PoC → 기준 이미지 비교 하니스. **이게 G1 이후 모든 렌더 작업의 안전망**.
+1. ✅ **스크린샷 회귀 PoC**(완료, [screenshot-regression.md](screenshot-regression.md)): 헤드리스 `RenderTargetBitmap` 렌더 + 허용오차 비교 + 승인 기준(light/dark 토큰 스와치) + CI. **G1 이후 모든 렌더 작업의 안전망 확보**. (단 CI 1회차 헤드리스 렌더 가능 여부는 GitHub Actions 실행으로 확정.)
 2. **PPT 썸네일/슬라이드 렌더**: `gf.PreviewPPT.BuildScreenPreDumps`(OfficeLib) 산출을 WPF Preview/썸네일 스트립에 연결. MainWindow PowerPoint 탭 placeholder 대체.
 3. **미디어 재생 UI 연결**: orphaned `MediaPlaybackViewModel` 을 MainWindow Media 탭/전용 컨트롤에 바인딩.
 4. **출력 렌더 패리티 검증**: OutputWindow 가사/성경/배경 렌더를 레거시와 스크린샷 비교로 고정.
@@ -181,7 +181,9 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] ❓ 항목 정밀 검증으로 매트릭스 확정(G0-1) — **완료**(본 문서 §2 evidence·집계 갱신)
 - [x] WPF 창 헤더에 `// 대체: FrmX` 매핑 주석(G0-2) — **완료**
 - [x] README stale 갱신(G0-3) — **완료**
-- [ ] 스크린샷 회귀 PoC 착수 여부 결정(G1.1) — 다음 결정 대상
+- [x] 스크린샷 회귀 PoC(G1.1) — **완료**(인프라·light/dark 기준·CI 구축, [screenshot-regression.md](screenshot-regression.md))
+- [x] 미디어 재생 UI 연결(G1.3) — **완료**(트랙1~3, PR #48: 라이브 큐→서비스→브리지→출력 `MediaElement` + 비-미디어 전환 시 `Unload`)
+- [ ] **다음 결정 대상**: G1.2 PPT 썸네일/슬라이드 렌더(placeholder 대체) 또는 G1.4 출력 렌더 패리티(스크린샷 기준 확대) 중 착수 선택
 
 ## 7. 참조
 - 도메인 계획: [01-shell-live-operations](01-shell-live-operations.md) ~ [06-verification-test-plan](06-verification-test-plan.md)
