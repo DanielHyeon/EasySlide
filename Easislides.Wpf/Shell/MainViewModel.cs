@@ -304,9 +304,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedOutputDisplay = matching;
     }
 
-    // PPT 미리보기 렌더 크기(썸네일 — 출력 해상도와 무관한 미리보기용 고정값).
+    // PPT 렌더 크기 — 출력 창이 닫혀 있을 때의 가벼운 미리보기용 기본값(출력 미송출 상태).
     private const int PptPreviewWidth = 960;
     private const int PptPreviewHeight = 540;
+
+    // 출력 창이 열려 있으면 PPT 를 출력 모니터 해상도로 렌더해 송출을 선명하게 한다.
+    // 다만 4K 등 초고해상도에서 매 선택마다 거대한 JPG 를 만드는 비용을 막기 위해 1080p 로 상한.
+    private const int PptMaxRenderWidth = 1920;
+    private const int PptMaxRenderHeight = 1080;
 
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
@@ -337,7 +342,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (item is { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } pptPath })
             {
                 var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
-                await PowerPoint.LoadAsync(pptPath, slide, PptPreviewWidth, PptPreviewHeight).ConfigureAwait(true);
+                var (renderWidth, renderHeight) = ResolvePptRenderSize();
+                await PowerPoint.LoadAsync(pptPath, slide, renderWidth, renderHeight).ConfigureAwait(true);
             }
             else
             {
@@ -360,6 +366,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             StatusText = $"항목 콘텐츠 로드 실패: {ex.Message}";
         }
+    }
+
+    // PPT 슬라이드 렌더 크기 결정 — 출력 창이 열려 있으면 출력 모니터 해상도(1080p 상한)로 렌더해
+    // GoLive 송출 시 선명하게, 닫혀 있으면 가벼운 미리보기 크기로 렌더한다.
+    // (참고: 출력 창을 항목 선택 뒤에 여는 경우엔 직전 선택은 미리보기 크기로 남는다 — 후속에서 갱신 대상.)
+    private (int Width, int Height) ResolvePptRenderSize()
+    {
+        var current = _output.Current;
+        if (current.IsOpen && current.Display is { } display)
+        {
+            var width = (int)Math.Round(display.Width);
+            var height = (int)Math.Round(display.Height);
+            if (width >= 1 && height >= 1)
+            {
+                // 1080p 상한 — 단, 두 축을 따로 자르면 비-16:9(16:10·울트라와이드) 출력에서
+                // 종횡비가 틀어져 선명도가 되레 나빠진다. 그래서 한 축 기준이 아니라 더 빡빡한 쪽
+                // 비율로 두 축을 함께 축소해 종횡비를 보존한다(상한보다 작으면 그대로 유지).
+                var scale = Math.Min(
+                    (double)PptMaxRenderWidth / width,
+                    (double)PptMaxRenderHeight / height);
+                if (scale < 1.0)
+                {
+                    width = Math.Max(1, (int)Math.Round(width * scale));
+                    height = Math.Max(1, (int)Math.Round(height * scale));
+                }
+
+                return (width, height);
+            }
+        }
+
+        return (PptPreviewWidth, PptPreviewHeight);
     }
 
     /// <summary>확장자로 오디오/비디오를 추정(미디어 요청 MediaType).</summary>
