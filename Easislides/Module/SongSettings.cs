@@ -52,17 +52,12 @@ namespace Easislides.Module
             User_Reference = "";
             Capo = -1;
             FirstShowing = true;
-            SongFormat songFormat = new SongFormat();
-            songFormat.ShowSongHeadings = 1;
-            songFormat.ShowVerticalAlign = 1;
-            songFormat.ShowLeftMargin = 2;
-            songFormat.ShowRightMargin = 2;
-            songFormat.ShowBottomMargin = 0;
-            songFormat.ShowLyrics = 2;
-            songFormat.BackgroundMode = ImageMode.BestFit;
+            // [죽은 코드 제거 — ADR-0008 후속] 원래 여기서 local SongFormat 을 설정했지만
+            // this.Format 에 대입한 적이 없어 전혀 반영되지 않았다(출하 내내 무효). 실제 포맷은
+            // 전역 기본값(gfDisplay: UseDefaultFormat 시 Gf.ShowLyrics 등)과 항목의 저장된
+            // HeaderData 파싱(gfLyrics: ShowLeftMargin/ShowRightMargin/ShowLyrics/ShowItemTransition)
+            // 으로 채워진다. local 을 제거해도 동작 변화 없음(this.Format 은 필드 초기자 new SongFormat() 유지).
             RotateString = "";
-            songFormat.ShowItemTransition = 15;
-            songFormat.ShowSlideTransition = 0;
             UseDefaultFormat = true;
             CompleteLyrics = "";
             FontSizeFactor = 100;
