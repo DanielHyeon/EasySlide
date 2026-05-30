@@ -170,6 +170,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
+    /// <summary>PowerPoint 파일을 예배 순서(큐)에 추가(선택 시 썸네일 렌더 디스패치).</summary>
+    public LiveQueueItem? AddPowerPoint(string filePath) => AddExternalFileItem(filePath, "PowerPoint", "PowerPoint 파일");
+
+    /// <summary>미디어 파일을 예배 순서(큐)에 추가(선택 시 미디어 Load 디스패치).</summary>
+    public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, "Media", "미디어 파일");
+
+    private LiveQueueItem? AddExternalFileItem(string filePath, string kind, string label)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            StatusText = $"선택된 {label}이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var title = Path.GetFileNameWithoutExtension(filePath);
+        var item = new LiveQueueItem($"{kind.ToLowerInvariant()}:{filePath}", title, kind) { ContentPath = filePath };
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"{label} 추가됨: {title}";
+        NotifyCommandStates();
+        return item;
+    }
+
     /// <summary>저장된 예배 순서(워십 리스트) 이름 목록(레거시 FrmManageItemLists 대응 — G2).</summary>
     public IReadOnlyList<string> GetSavedWorshipLists() => _worshipLists.ListNames();
 
@@ -297,30 +323,50 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 선택된 큐 항목의 종류에 따라 콘텐츠를 적재한다(PowerPoint 항목 → 썸네일 렌더, 그 외 → PPT 미리보기 비움).
+    /// 선택된 큐 항목의 종류에 따라 콘텐츠를 적재한다:
+    ///  - PowerPoint 항목 → 썸네일 렌더(PowerPoint.LoadAsync), 그 외 → PPT 미리보기 비움.
+    ///  - Media 항목 → 미디어 재생 VM 에 Load(MediaPlaybackRequest).
     /// 곡 가사는 항목(LiveQueueItem.Lyrics)이 직접 들고 있어 바인딩으로 표시되므로 여기서 추가 적재 불필요.
-    /// (미디어 항목의 Load 디스패치는 후속 — 미디어 추가 경로가 생기면 연결.)
     /// </summary>
     public async Task ApplySelectedItemContentAsync(LiveQueueItem? item)
     {
         // fire-and-forget(OnSelectedItemChanged)로 호출되므로 예외가 새면 unobserved 가 된다.
-        // 안전 불변식을 호출 메서드 안에서 봉인 — 후속(미디어 디스패치 등)에서 throw 경로가 생겨도 면역.
+        // 안전 불변식을 호출 메서드 안에서 봉인.
         try
         {
-            if (item is { Kind: "PowerPoint", ContentPath: { Length: > 0 } path })
+            if (item is { Kind: "PowerPoint", ContentPath: { Length: > 0 } pptPath })
             {
                 var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
-                await PowerPoint.LoadAsync(path, slide, PptPreviewWidth, PptPreviewHeight).ConfigureAwait(true);
+                await PowerPoint.LoadAsync(pptPath, slide, PptPreviewWidth, PptPreviewHeight).ConfigureAwait(true);
             }
             else
             {
                 PowerPoint.Clear();
+            }
+
+            if (item is { Kind: "Media", ContentPath: { Length: > 0 } mediaPath })
+            {
+                Media.Load(new MediaPlaybackRequest(mediaPath, MediaSourceKind.File, TimeSpan.Zero, InferMediaType(mediaPath)));
+            }
+            else if (Media.StopCommand.CanExecute(null))
+            {
+                // 다른 종류 항목으로 넘어가면 직전 미디어를 정지(라이브 중 잔류 재생 방지) — PPT.Clear 와 대칭.
+                Media.StopCommand.Execute(null);
             }
         }
         catch (Exception ex)
         {
             StatusText = $"항목 콘텐츠 로드 실패: {ex.Message}";
         }
+    }
+
+    /// <summary>확장자로 오디오/비디오를 추정(미디어 요청 MediaType).</summary>
+    private static string InferMediaType(string filePath)
+    {
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        return ext is ".mp3" or ".wav" or ".wma" or ".m4a" or ".aac" or ".flac" or ".ogg"
+            ? "Audio"
+            : "Video";
     }
 
     private void OpenOutput()

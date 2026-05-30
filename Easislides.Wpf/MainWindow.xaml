@@ -81,6 +81,16 @@
                             <TextBlock Text="라이브러리" />
                         </StackPanel>
                     </Button>
+                    <Button Click="AddExternalFile_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="PowerPoint/미디어 파일을 예배 순서에 추가"
+                            AutomationProperties.Name="파일 추가"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Add24" Margin="0,0,6,0" />
+                            <TextBlock Text="파일" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenManageWorshipLists_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="예배 순서 저장/불러오기"

@@ -364,6 +364,84 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddPowerPoint_CreatesItemWithContentPathAndKind()
+    {
+        var sut = CreateSut();
+
+        var item = sut.AddPowerPoint(@"C:\decks\sermon.pptx");
+
+        item.Should().NotBeNull();
+        item!.Kind.Should().Be("PowerPoint");
+        item.ContentPath.Should().Be(@"C:\decks\sermon.pptx");
+        item.Title.Should().Be("sermon", "제목은 파일명(확장자 제외)");
+        sut.SelectedItem.Should().Be(item);
+    }
+
+    [Fact]
+    public void AddMedia_CreatesItemWithContentPathAndKind()
+    {
+        var sut = CreateSut();
+
+        var item = sut.AddMedia(@"C:\media\intro.mp4");
+
+        item.Should().NotBeNull();
+        item!.Kind.Should().Be("Media");
+        item.ContentPath.Should().Be(@"C:\media\intro.mp4");
+    }
+
+    [Fact]
+    public void AddMedia_WhenPathBlank_DoesNotChangeQueue()
+    {
+        var sut = CreateSut();
+        var original = sut.Queue.ToArray();
+
+        var item = sut.AddMedia("   ");
+
+        item.Should().BeNull();
+        sut.Queue.Should().Equal(original);
+    }
+
+    [Fact]
+    public async Task ApplySelectedItemContent_MediaItem_LoadsMedia()
+    {
+        // 라이브 큐 plumbing 마무리: Media 항목(ContentPath) 선택 시 미디어 재생 VM 에 Load 디스패치.
+        var sut = CreateSut();
+        var media = new LiveQueueItem("media:1", "Intro", "Media") { ContentPath = @"C:\media\intro.mp4" };
+
+        await sut.ApplySelectedItemContentAsync(media);
+
+        sut.Media.State.Should().Be(MediaPlaybackState.Ready, "미디어 항목 선택 시 Load 발동");
+        sut.Media.Source.Should().Be(@"C:\media\intro.mp4");
+    }
+
+    [Fact]
+    public async Task ApplySelectedItemContent_NonMediaItem_StopsPreviousMedia()
+    {
+        // 라이브 중 잔류 재생 방지: 미디어 재생 후 다른 종류 항목 선택 시 직전 미디어가 정지돼야 함.
+        var sut = CreateSut();
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("media:1", "Intro", "Media") { ContentPath = @"C:\media\intro.mp4" });
+        sut.Media.State.Should().Be(MediaPlaybackState.Ready);
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("song:1", "Song", "Song") { Lyrics = "x" });
+
+        sut.Media.State.Should().Be(MediaPlaybackState.Stopped, "비-미디어 항목 선택 시 직전 미디어 정지");
+    }
+
+    [Fact]
+    public async Task ApplySelectedItemContent_AudioFile_InfersAudioMediaType()
+    {
+        // 확장자 기반 MediaType 추정: .mp3 → Audio.
+        var sut = CreateSut();
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("media:1", "BGM", "Media") { ContentPath = @"C:\media\bgm.mp3" });
+
+        sut.Media.MediaType.Should().Be("Audio");
+    }
+
+    [Fact]
     public void SelectingPowerPointItem_ThroughSetter_DrivesPreviewLoad()
     {
         // fire-and-forget 배선 검증: SelectedItem setter → OnSelectedItemChanged → 디스패치.
