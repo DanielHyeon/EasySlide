@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +44,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _liveCameraSource = MediaPlaybackService.CreateLiveCameraSource(EasiSettingKeys.LiveCameraNumber.DefaultValue);
     private bool _disposed;
 
+    // 현재 라이브 송출 중인 큐 항목의 Id(없으면 null). 슬라이드 이동이 "선택 항목 == 라이브 항목"일 때만
+    // 출력을 갱신하도록 판별하는 데 쓴다.
+    private string? _liveItemId;
+
     /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
     /// (G1.2 / gap-analysis.md §4 G-α — 기존 placeholder 텍스트 대체, 테스트된 VM 의 UI 연결.)
@@ -81,6 +86,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += OnOutputChanged;
         _settings.SettingsChanged += OnSettingsChanged;
+        // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
+        PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
@@ -90,6 +97,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
+        NextSlideCommand = new AsyncRelayCommand(() => ChangeSlideAsync(+1), CanGoNextSlide);
+        PreviousSlideCommand = new AsyncRelayCommand(() => ChangeSlideAsync(-1), CanGoPreviousSlide);
 
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
@@ -111,6 +120,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand PreviousItemCommand { get; }
     public IAsyncRelayCommand HideOutputCommand { get; }
     public IAsyncRelayCommand BlackScreenCommand { get; }
+    public IAsyncRelayCommand NextSlideCommand { get; }
+    public IAsyncRelayCommand PreviousSlideCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
@@ -414,6 +425,61 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return (PptPreviewWidth, PptPreviewHeight);
     }
 
+    // 라이브 슬라이드 이동 — 현재 선택된 PPT 의 미리보기를 인접 슬라이드로 다시 렌더하고,
+    // 그 항목이 라이브 송출 중이면 출력도 그 슬라이드로 즉시 갱신한다(재-GoLive 의식 없이).
+    private async Task ChangeSlideAsync(int delta)
+    {
+        if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path } item)
+        {
+            return;
+        }
+
+        var target = PowerPoint.SlideNumber + delta;
+        if (PowerPoint.State != Rendering.PowerPointPreviewState.Ready
+            || target < 1 || target > PowerPoint.SlideCount)
+        {
+            return;
+        }
+
+        var (width, height) = ResolvePptRenderSize();
+        await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+
+        // 라이브 송출 중이고 이 항목이 송출 항목이면 출력도 새 슬라이드로 갱신.
+        // 블랙아웃/숨김(Hidden)에선 송출을 깨우지 않도록 Active 일 때만 갱신한다.
+        if (_session.Current.State == LiveState.Active && _liveItemId == item.Id)
+        {
+            var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }), monitorName);
+        }
+
+        NotifyCommandStates();
+    }
+
+    private bool CanGoNextSlide()
+        => IsPowerPointSlideNavReady() && PowerPoint.SlideNumber < PowerPoint.SlideCount;
+
+    private bool CanGoPreviousSlide()
+        => IsPowerPointSlideNavReady() && PowerPoint.SlideNumber > 1;
+
+    private bool IsPowerPointSlideNavReady()
+        => SelectedItem is { Kind: LiveItemKinds.PowerPoint } selected
+            && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && PowerPoint.SlideCount > 0
+            // 라이브 중이면 "선택 == 라이브 항목"일 때만 이동 허용 — 선택이 라이브 덱에서 벗어났는데
+            // 버튼만 활성이면(아무 효과 없이 다른 덱 미리보기만 넘김) 혼란하므로 비활성한다.
+            && (_liveItemId is null || _liveItemId == selected.Id);
+
+    // PPT 미리보기 VM 의 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 동기화.
+    private void OnPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(PowerPoint.State)
+            or nameof(PowerPoint.SlideNumber)
+            or nameof(PowerPoint.SlideCount))
+        {
+            NotifyCommandStates();
+        }
+    }
+
     /// <summary>확장자로 오디오/비디오를 추정(미디어 요청 MediaType).</summary>
     private static string InferMediaType(string filePath)
     {
@@ -479,6 +545,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _session.Stop();
         }
 
+        _liveItemId = null;
         LiveBar.OutputMonitorName = string.Empty;
         StatusText = "출력 창 닫힘";
         _telemetry.Record(MainCommandIds.OutputClose, succeeded: true, StatusText);
@@ -520,6 +587,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.Stop();
+        _liveItemId = null;
         StatusText = "라이브 중지";
         _telemetry.Record(MainCommandIds.LiveStop, succeeded: true, StatusText);
         NotifyCommandStates();
@@ -616,6 +684,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        _liveItemId = SelectedItem.Id; // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
         _session.GoLive(ResolveLiveProjection(SelectedItem), monitorName);
         StatusText = $"LIVE: {SelectedItem.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
@@ -630,21 +699,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     //
     // 신원 가드: 렌더는 항목 선택 시 fire-and-forget 로 돌아가므로, 빠른 전환 경쟁에서 PreviewImage 가
     // "다른 항목"의 stale 슬라이드일 수 있다. 그래서 단순히 Ready 인지가 아니라, VM 이 마지막으로 성공
-    // 렌더한 (파일경로, 슬라이드)가 송출 항목과 실제로 일치할 때만 슬라이드를 싣는다. 불일치/미준비면
-    // 타이틀만 송출(안전 강등) — 잘못된 슬라이드가 출력에 나가지 않도록.
+    // 렌더한 파일이 송출 항목의 파일과 일치할 때만 슬라이드를 싣는다(불일치/미준비면 타이틀만 — 안전 강등).
+    // 슬라이드 번호는 PPT VM 의 현재 렌더 슬라이드(PowerPoint.SlideNumber)를 "단일 진실"로 신뢰하고
+    // 송출 항목에도 반영한다 — 라이브 슬라이드 이동으로 item.SlideNumber 와 실제 렌더 슬라이드가 달라져도
+    // (이동한 슬라이드가 그대로 송출되고, 재개·재송출 시에도 일관). 파일이 다르면(cross-item stale) 거른다.
     private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
     {
-        var requestedSlide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
         if (IsPowerPointItem(item)
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && PowerPoint.PreviewImage is not null
-            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase)
-            && PowerPoint.SlideNumber == requestedSlide)
+            && !string.IsNullOrEmpty(item.ContentPath)
+            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
         {
             return item with
             {
                 PreviewSource = PowerPoint.PreviewImage,
                 PreviewFillMode = Rendering.ImageFillMode.Fit,
+                SlideNumber = PowerPoint.SlideNumber,
             };
         }
 
@@ -654,6 +725,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void AdvanceSelectionAfterPublish(LiveQueueItem publishedItem)
     {
         if (!_settings.Get(EasiSettingKeys.AdvanceNextItem))
+        {
+            return;
+        }
+
+        // PPT 덱은 자동 다음-항목 이동에서 제외 — 다중 슬라이드 덱은 다음 항목으로 넘어가지 말고
+        // 그 자리에서 슬라이드를 이동해야 한다(자동 advance 는 곡·공지 같은 단발 항목용).
+        // 또 선택이 라이브 PPT 에 머물러야 라이브 슬라이드 이동 커맨드가 활성으로 유지된다.
+        if (IsPowerPointItem(publishedItem))
         {
             return;
         }
@@ -746,6 +825,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand.NotifyCanExecuteChanged();
         HideOutputCommand.NotifyCanExecuteChanged();
         BlackScreenCommand.NotifyCanExecuteChanged();
+        NextSlideCommand.NotifyCanExecuteChanged();
+        PreviousSlideCommand.NotifyCanExecuteChanged();
     }
 
     private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)
@@ -767,6 +848,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _disposed = true;
         _settings.SettingsChanged -= OnSettingsChanged;
+        PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
         // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나
         // MediaPlaybackViewModel.Dispose 가 멱등이라 안전(테스트는 new 생성이라 이 경로가 유일 해제).
         Media.Dispose();

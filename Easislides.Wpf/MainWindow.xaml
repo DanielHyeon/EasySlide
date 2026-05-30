@@ -274,6 +274,20 @@
                                     <StackPanel Grid.Row="1"
                                                 Margin="0,8,0,0"
                                                 HorizontalAlignment="Center">
+                                        <!-- 슬라이드 이동 — 라이브 송출 중이면 출력도 즉시 갱신(G1.2 라이브 슬라이드 이동). -->
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    Margin="0,0,0,8">
+                                            <Button Command="{Binding PreviousSlideCommand}"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    Margin="0,0,8,0"
+                                                    Content="◀ 이전"
+                                                    AutomationProperties.Name="이전 슬라이드" />
+                                            <Button Command="{Binding NextSlideCommand}"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    Content="다음 ▶"
+                                                    AutomationProperties.Name="다음 슬라이드" />
+                                        </StackPanel>
                                         <TextBlock Text="{Binding PowerPoint.StatusText}"
                                                    HorizontalAlignment="Center"
                                                    Style="{StaticResource Type.Body.Style}"

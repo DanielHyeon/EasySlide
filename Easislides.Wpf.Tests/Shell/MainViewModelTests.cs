@@ -651,6 +651,151 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task NextSlideCommand_AdvancesPreviewToNextSlide()
+    {
+        // 라이브 슬라이드 이동: 선택된 PPT 미리보기를 다음 슬라이드로 다시 렌더(SuccessStub 은 SlideCount=3).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        powerPoint.SlideNumber.Should().Be(1);
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        powerPoint.SlideNumber.Should().Be(2);
+    }
+
+    [Fact]
+    public void SlideNavCommands_RespectDeckBoundaries()
+    {
+        // 첫 슬라이드에선 이전 비활성, 마지막 슬라이드에선 다음 비활성(덱 범위 벗어남 방지).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+
+        powerPoint.SlideNumber.Should().Be(1);
+        sut.PreviousSlideCommand.CanExecute(null).Should().BeFalse("첫 슬라이드에선 이전 비활성");
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task NextSlideCommand_WhileLive_UpdatesOutputToNewSlide()
+    {
+        // 라이브 송출 중 슬라이드 이동 시 출력도 새 슬라이드로 즉시 갱신된다.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemPreviewSource.Should().NotBeNull();
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        powerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
+            "라이브 중 슬라이드 이동 시 출력이 새 슬라이드로 갱신");
+    }
+
+    [Fact]
+    public async Task NextSlideCommand_WhenNotLive_UpdatesPreviewButNotSession()
+    {
+        // 라이브가 아니면 미리보기만 갱신하고 세션(출력)은 건드리지 않는다.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        powerPoint.SlideNumber.Should().Be(2, "미리보기는 갱신");
+        sut.Session.Current.State.Should().Be(LiveState.Off, "라이브가 아니면 세션 변화 없음");
+    }
+
+    [Fact]
+    public async Task PreviousSlideCommand_GoesBackToPriorSlide()
+    {
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        await sut.NextSlideCommand.ExecuteAsync(null);
+        powerPoint.SlideNumber.Should().Be(2);
+
+        await sut.PreviousSlideCommand.ExecuteAsync(null);
+
+        powerPoint.SlideNumber.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SlideNav_WhenSelectionDivergesFromLiveItem_IsDisabled()
+    {
+        // 라이브 항목과 다른 항목을 선택하면(선택이 라이브에서 벗어남) 슬라이드 이동 비활성 —
+        // 라이브 덱이 아닌 항목을 넘겨 라이브 출력이 안 바뀌는 혼란 방지(code-review #1).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        var deckA = new LiveQueueItem("ppt:a", "Deck A", "PowerPoint") { ContentPath = "deckA.pptx" };
+        var deckB = new LiveQueueItem("ppt:b", "Deck B", "PowerPoint") { ContentPath = "deckB.pptx" };
+        sut.LoadQueue(new[] { deckA, deckB });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = deckA;
+        await sut.GoLiveCommand.ExecuteAsync(null); // 라이브 = A
+
+        sut.SelectedItem = deckB; // 선택이 B 로 분기
+
+        sut.NextSlideCommand.CanExecute(null).Should().BeFalse("라이브 항목이 아닌 선택에선 슬라이드 이동 비활성");
+        sut.PreviousSlideCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SlideNav_DuringBlackout_ThenResume_ShowsNavigatedSlide()
+    {
+        // 블랙아웃 중 슬라이드 이동 후 송출 재개(GO) 시, 이동 전 슬라이드나 타이틀이 아니라
+        // 이동한 슬라이드가 송출돼야 한다(code-review #2 — 항목 SlideNumber 미반영으로 인한 타이틀 강등 방지).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);    // 라이브 슬라이드 1
+        await sut.BlackScreenCommand.ExecuteAsync(null); // 블랙아웃(Hidden)
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+
+        await sut.NextSlideCommand.ExecuteAsync(null);   // 슬라이드 2 로 이동(Hidden 이라 출력 갱신 스킵)
+        powerPoint.SlideNumber.Should().Be(2);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);       // 재개 → 현재 슬라이드(2) 송출
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
+            "재개 시 이동한 슬라이드(2)가 송출(타이틀 강등 아님)");
+    }
+
+    [Fact]
+    public async Task GoLive_PowerPointDeck_WithAdvanceNextItem_KeepsSelectionForSlideNav()
+    {
+        // AdvanceNextItem 이 켜져 있어도 PPT 덱 송출 시 다음 항목으로 자동 이동하지 않는다 —
+        // 선택이 라이브 덱에 머물러 그 자리에서 슬라이드를 넘길 수 있어야 하므로(code-review #1/AdvanceNextItem).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(settings: settings, powerPoint: powerPoint);
+        var deck = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        var next = new LiveQueueItem("song:1", "다음 곡", "Song") { Lyrics = "x" };
+        sut.LoadQueue(new[] { deck, next });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = deck;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().Be(deck, "PPT 덱은 자동 다음-항목 이동에서 제외");
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("라이브 PPT 덱에서 슬라이드 이동 활성 유지");
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        powerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
+            "라이브 PPT 슬라이드 이동이 출력을 갱신");
+    }
+
+    [Fact]
     public void SelectingPowerPointItem_ThroughSetter_DrivesPreviewLoad()
     {
         // fire-and-forget 배선 검증: SelectedItem setter → OnSelectedItemChanged → 디스패치.
