@@ -77,4 +77,13 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend
     public void Seek(TimeSpan position) => _inner?.Seek(position);
 
     public void ApplySettings(MediaPlaybackSnapshot snapshot) => _inner?.ApplySettings(snapshot);
+
+    public void Unload()
+    {
+        // 진행 중 미디어 기록을 함께 비운다 — 이후 출력 창이 다시 열려 Attach 되더라도
+        // (Stop 과 달리) 내려간 미디어를 재적재하지 않도록. 출력 패리티: 가사 화면으로 복귀.
+        _lastLoad = null;
+        _intent = MediaPlaybackState.Empty;
+        _inner?.Unload();
+    }
 }

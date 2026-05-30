@@ -151,6 +151,48 @@ public class MediaPlaybackServiceTests
     }
 
     [Fact]
+    public void Unload_ResetsToEmptyAndCallsBackendUnload()
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend);
+        sut.Load(DefaultRequest());
+        sut.Play();
+
+        sut.Unload();
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Empty);
+        sut.Current.Source.Should().BeEmpty();
+        backend.Commands.Should().Equal("Load:intro.mp4", "Play", "Unload");
+    }
+
+    [Fact]
+    public void Unload_WhenAlreadyEmpty_IsNoOp()
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var sut = new MediaPlaybackService(backend);
+
+        sut.Unload();
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Empty);
+        backend.Commands.Should().BeEmpty("비어 있을 때 Unload 는 백엔드를 건드리지 않음");
+    }
+
+    [Fact]
+    public void Unload_WhenBackendThrows_StillResetsToEmpty()
+    {
+        // Unload 는 "무조건 화면에서 내린다"가 본질 — 백엔드 정리가 실패해도 상태는 Empty 로 수렴해야 한다.
+        // (Failed 로 남으면 HasLoadedMedia=false 가 되어 이후 복구가 막히고 영상이 잔류할 수 있음.)
+        var backend = new FakeMediaPlaybackBackend { UnloadException = new MediaPlaybackException("Teardown failed") };
+        var sut = new MediaPlaybackService(backend);
+        sut.Load(DefaultRequest());
+
+        sut.Unload();
+
+        sut.Current.State.Should().Be(MediaPlaybackState.Empty, "백엔드 실패와 무관하게 미디어는 내려져야 함");
+        sut.Current.ErrorMessage.Should().BeNull("Unload 는 Failed 가 아니라 Empty 로 수렴");
+    }
+
+    [Fact]
     public void Seek_ClampsBetweenZeroAndDuration()
     {
         var sut = new MediaPlaybackService();
@@ -314,6 +356,7 @@ public class MediaPlaybackServiceTests
         public Exception? StopException { get; set; }
         public Exception? SeekException { get; set; }
         public Exception? SettingsException { get; set; }
+        public Exception? UnloadException { get; set; }
 
         public void Load(MediaPlaybackSnapshot snapshot)
         {
@@ -368,6 +411,15 @@ public class MediaPlaybackServiceTests
             if (SettingsException is not null)
             {
                 throw SettingsException;
+            }
+        }
+
+        public void Unload()
+        {
+            Commands.Add("Unload");
+            if (UnloadException is not null)
+            {
+                throw UnloadException;
             }
         }
     }

@@ -348,10 +348,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 Media.Load(new MediaPlaybackRequest(mediaPath, MediaSourceKind.File, TimeSpan.Zero, InferMediaType(mediaPath)));
             }
-            else if (Media.StopCommand.CanExecute(null))
+            else
             {
-                // 다른 종류 항목으로 넘어가면 직전 미디어를 정지(라이브 중 잔류 재생 방지) — PPT.Clear 와 대칭.
-                Media.StopCommand.Execute(null);
+                // 다른 종류 항목으로 넘어가면 직전 미디어를 완전히 내린다 — PPT.Clear 와 대칭.
+                // Stop(정지 후 첫 프레임 잔류)이 아니라 Unload 라야 출력 창에서 영상이 사라지고
+                // 그 아래 가사/타이틀이 다시 보인다(출력 패리티). 이미 비어 있으면 내부에서 무시.
+                Media.Unload();
             }
         }
         catch (Exception ex)

@@ -147,11 +147,72 @@ public class AttachableMediaPlaybackBackendTests
         sut.IsAttached.Should().BeFalse();
     }
 
+    [Fact]
+    public void Unload_ForwardsToInner_WhenAttached()
+    {
+        var inner = new RecordingBackend();
+        var sut = new AttachableMediaPlaybackBackend();
+        sut.Attach(inner);
+
+        sut.Unload();
+
+        inner.UnloadCount.Should().Be(1, "부착 상태에선 Unload 를 실제 백엔드로 위임");
+    }
+
+    [Fact]
+    public void Unload_ClearsPendingMedia_SoReAttachDoesNotReplay()
+    {
+        // 미디어 항목 → 다른 종류 항목 전환 시나리오: 부착 전 로드 후 Unload 하면
+        // 이후 출력 창이 열려 Attach 돼도 내려간 미디어를 재적재하지 않아야 한다(가사 화면 유지).
+        var sut = new AttachableMediaPlaybackBackend();
+        sut.Load(ReadyMedia("intro.mp4"));
+
+        sut.Unload();
+
+        var inner = new RecordingBackend();
+        sut.Attach(inner);
+        inner.LoadCount.Should().Be(0, "내려간 미디어는 재부착 시 재적재하지 않음");
+    }
+
+    [Fact]
+    public void Unload_WhileAttached_PreventsReplayOnReAttach()
+    {
+        // 부착 상태에서 Unload → 출력 창을 닫았다(Detach) 다시 열어도(Attach) 미디어가 되살아나지 않아야 한다.
+        // (Unload 가 _lastLoad 를 비웠으므로 — Stop/Detach 와 달리 재적재 대상이 없음.)
+        var sut = new AttachableMediaPlaybackBackend();
+        sut.Load(ReadyMedia("intro.mp4"));
+        sut.Attach(new RecordingBackend());
+
+        sut.Unload();
+        sut.Detach();
+
+        var reopened = new RecordingBackend();
+        sut.Attach(reopened);
+        reopened.LoadCount.Should().Be(0, "Unload 후엔 출력 창 재오픈(재부착) 시에도 재적재하지 않음");
+    }
+
+    [Fact]
+    public void Unload_BeforeAttach_IsSafeNoOp()
+    {
+        var sut = new AttachableMediaPlaybackBackend();
+
+        var act = () => sut.Unload();
+
+        act.Should().NotThrow("부착 전 Unload 도 안전하게 흡수돼야 함");
+        sut.IsAttached.Should().BeFalse();
+    }
+
+    // 실제 서비스(MediaPlaybackService.Load)가 브리지에 넘기는 스냅샷은 항상 State=Ready 다.
+    // 테스트도 같은 형태로 만들어 실제 흐름과 일치시킨다.
+    private static MediaPlaybackSnapshot ReadyMedia(string source)
+        => MediaPlaybackSnapshot.Empty with { State = MediaPlaybackState.Ready, Source = source };
+
     private sealed class RecordingBackend : IMediaPlaybackBackend
     {
         public int LoadCount { get; private set; }
         public int PlayCount { get; private set; }
         public int StopCount { get; private set; }
+        public int UnloadCount { get; private set; }
         public MediaPlaybackSnapshot? LastLoaded { get; private set; }
 
         public void Load(MediaPlaybackSnapshot snapshot)
@@ -175,5 +236,7 @@ public class AttachableMediaPlaybackBackendTests
         public void ApplySettings(MediaPlaybackSnapshot snapshot)
         {
         }
+
+        public void Unload() => UnloadCount++;
     }
 }

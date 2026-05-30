@@ -66,6 +66,22 @@ public class MediaPlaybackViewModelTests
         sut.IsRepeatEnabled.Should().BeTrue();
     }
 
+    [Fact]
+    public void Unload_ResetsStateToEmptyAndDisablesControls()
+    {
+        var service = new MediaPlaybackService();
+        var sut = new MediaPlaybackViewModel(service);
+        sut.Load(DefaultRequest());
+        sut.PlayPauseCommand.Execute(null);
+
+        sut.Unload();
+
+        sut.State.Should().Be(MediaPlaybackState.Empty);
+        sut.Source.Should().BeEmpty();
+        sut.PlayPauseCommand.CanExecute(null).Should().BeFalse("미디어를 내리면 재생 컨트롤이 비활성");
+        sut.StopCommand.CanExecute(null).Should().BeFalse();
+    }
+
     private static MediaPlaybackRequest DefaultRequest(TimeSpan? duration = null)
         => new("intro.mp4", MediaSourceKind.File, duration ?? TimeSpan.FromMinutes(3), "Video");
 }

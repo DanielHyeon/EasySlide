@@ -50,6 +50,9 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
 
     public void Load(MediaPlaybackRequest request) => _playback.Load(request);
 
+    /// <summary>미디어를 완전히 내린다(출력 창에서 영상 제거 → 가사 복귀). 다른 종류 항목으로 전환 시 호출.</summary>
+    public void Unload() => _playback.Unload();
+
     public void Dispose()
     {
         // 멱등 — DI 컨테이너(transient IDisposable 추적)와 MainViewModel 이 모두 해제를 시도할 수 있어
