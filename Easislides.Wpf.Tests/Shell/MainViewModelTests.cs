@@ -281,6 +281,60 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddSong_CarriesLyricsOnQueueItem()
+    {
+        // 콘텐츠 plumbing: 추가 시점에 실제 가사가 큐 항목에 적재되어 선택 시 표시 가능.
+        var sut = CreateSut();
+        var song = new SongSummary(
+            SongId: 9, Title: "Grace", AlternateTitle: "", FolderNo: 1,
+            SongNumber: 1, Category: "", Key: "G", Lyrics: "line one\nline two");
+
+        var inserted = sut.AddSong(song);
+
+        inserted!.Lyrics.Should().Be("line one\nline two");
+    }
+
+    [Fact]
+    public async Task ApplySelectedItemContent_PowerPointItem_DrivesPreviewLoad()
+    {
+        // PowerPoint 항목(ContentPath 보유) 선택 시 PPT 미리보기 LoadAsync 가 발동(콘텐츠 plumbing).
+        // 스텁 서비스가 MissingOffice 를 반환하므로 로드 시도 후 Failed 상태가 된다(=발동 증거).
+        var sut = CreateSut();
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+
+        await sut.ApplySelectedItemContentAsync(ppt);
+
+        sut.PowerPoint.State.Should().Be(PowerPointPreviewState.Failed, "PPT 항목 선택 시 렌더가 시도돼야 함");
+    }
+
+    [Fact]
+    public async Task ApplySelectedItemContent_NonPowerPointItem_ClearsPreview()
+    {
+        // PPT 가 아닌 항목 선택 시 PPT 미리보기를 비운다(이전 PPT 잔상 제거).
+        var sut = CreateSut();
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("song:1", "Song", "Song") { Lyrics = "x" });
+
+        sut.PowerPoint.State.Should().Be(PowerPointPreviewState.Idle, "비-PPT 항목 선택 시 PPT 미리보기는 초기화");
+    }
+
+    [Fact]
+    public void SelectingPowerPointItem_ThroughSetter_DrivesPreviewLoad()
+    {
+        // fire-and-forget 배선 검증: SelectedItem setter → OnSelectedItemChanged → 디스패치.
+        // 스텁 PPT 서비스가 동기(Task.FromResult) 완료라 setter 반환 시점엔 이미 상태가 갱신된다.
+        var sut = CreateSut();
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+
+        sut.SelectedItem = ppt;
+
+        sut.PowerPoint.State.Should().Be(PowerPointPreviewState.Failed, "PPT 항목 선택(setter)이 미리보기 로드를 발동");
+    }
+
+    [Fact]
     public void OpenOutputCommand_UsesPreferredDisplayFromDisplayService()
     {
         var primary = new OutputDisplay("primary", "주 모니터", 0, 0, 1920, 1080, 1, IsPrimary: true);
