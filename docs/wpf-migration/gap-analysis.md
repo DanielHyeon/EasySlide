@@ -82,8 +82,8 @@
 
 | 레거시 폼 | WPF 대응 | 상태 | 비고 |
 |---|---|---|---|
-| `FrmMediaPlayerControl` | `Media/MediaPlaybackService`+`ViewModel` | 🟡 | **서비스/VM 존재하나 어떤 창에도 미바인딩(orphaned)** |
-| `FrmLaunchMediaPlayer` | `Media/*` | 🟡 | 동상 — 재생 UI 미연결 |
+| `FrmMediaPlayerControl` | `Media/MediaPlaybackService`+`ViewModel` | 🟡 | **연결 완료(2026-05-30)**: VM→MainWindow Media 탭 바인딩(G1.2) + 라이브 큐→서비스→브리지→출력 창 `MediaElement` 재생(트랙1~3, PR #48). 비-미디어 전환 시 `Unload`로 가사 복귀. **남은 것: 코덱·오디오/싱크 라이브 패리티 미검증** |
+| `FrmLaunchMediaPlayer` | `Media/*` | 🟡 | 동상 — 위 체인으로 출력 재생 연결됨. 풀스크린 전용 launch UI/라이브 카메라 캡처 경로 패리티 미검증 |
 | `FrmBackground` | — | 🔴 | **배경 설정 대응 없음(확인됨)** |
 
 ### F. 설정 / 데이터 / 자산 (도메인문서 04)
@@ -128,7 +128,7 @@
 
 ### G-α. 렌더링 충실도 갭 (라이브 핵심 · 최우선)
 - **PPT 썸네일/슬라이드 렌더**: `MainWindow` PowerPoint 탭이 `"Decks: {N} / Limit: {M}"` 텍스트 placeholder([MainWindow.xaml:220-236](../../Easislides.Wpf/MainWindow.xaml#L220)). 실제 썸네일 스트립·슬라이드 출력 미구현.
-- **미디어 재생 UI**: `MediaPlaybackService`/`MediaPlaybackViewModel` 는 있으나 **어떤 창에도 바인딩 안 됨**(App.xaml.cs DI 등록만). Media 탭은 디렉터리/카메라 텍스트뿐.
+- **미디어 재생 UI**: ✅ **연결 완료(2026-05-30, PR #48)** — orphaned 였던 `MediaPlaybackViewModel` 을 MainWindow Media 탭에 바인딩(G1.2)하고, 라이브 큐 선택→`MediaPlaybackService`→`AttachableMediaPlaybackBackend`(생명주기 브리지)→출력 창 `MediaElement` 로 실제 재생 체인을 연결(트랙1~3). 비-미디어 항목 전환 시 `Unload` 로 출력에서 미디어를 내려 가사 복귀(출력 패리티). **남은 것: 코덱·오디오/싱크·라이브 카메라 캡처의 라이브 패리티 미검증**(아래 출력 렌더 패리티와 함께 G1.4 스크린샷 회귀로 고정 대상).
 - **출력 렌더 패리티**: `OutputWindow` 의 가사/성경/배경 실제 렌더가 레거시(`gfDisplay`/`gfLyrics` GDI+ 경로)와 동등한지 미검증.
 
 ### G-β. 미포팅 폼 갭 (기능 부재 — G0 확정)
@@ -154,7 +154,7 @@
 ### Phase G1 — 렌더링 충실도 안전망 + 핵심 렌더 (중·고위험)
 1. **스크린샷 회귀 PoC**(§9.1, next-session-plan C): 헤드리스 WPF 렌더 가능성 PoC → 기준 이미지 비교 하니스. **이게 G1 이후 모든 렌더 작업의 안전망**.
 2. **PPT 썸네일/슬라이드 렌더**: `gf.PreviewPPT.BuildScreenPreDumps`(OfficeLib) 산출을 WPF Preview/썸네일 스트립에 연결. MainWindow PowerPoint 탭 placeholder 대체.
-3. **미디어 재생 UI 연결**: orphaned `MediaPlaybackViewModel` 을 MainWindow Media 탭/전용 컨트롤에 바인딩.
+3. ✅ **미디어 재생 UI 연결**(완료 2026-05-30, PR #48): orphaned `MediaPlaybackViewModel` → MainWindow Media 탭 바인딩(G1.2) + 라이브 큐→서비스→브리지→출력 `MediaElement` 재생 체인(트랙1~3) + 비-미디어 전환 시 `Unload` 가사 복귀. 라이브 코덱/싱크 패리티는 4(스크린샷 회귀)와 함께 검증 예정.
 4. **출력 렌더 패리티 검증**: OutputWindow 가사/성경/배경 렌더를 레거시와 스크린샷 비교로 고정.
 - 게이트: 각 항목 스크린샷 회귀 통과 + `--legacy-ui` 롤백 유지.
 
