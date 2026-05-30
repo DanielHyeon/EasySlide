@@ -1,7 +1,7 @@
 using System.Windows.Media;
 using Easislides.Wpf.Rendering;
 
-public sealed record LiveQueueItem(string Id, string Title, string Kind = "Item")
+public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveItemKinds.Item)
 {
     public ImageSource? PreviewSource { get; init; }
 
