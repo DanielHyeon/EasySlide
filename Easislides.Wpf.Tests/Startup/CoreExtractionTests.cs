@@ -71,6 +71,29 @@ public class CoreExtractionTests
     }
 
     [Fact]
+    public void SongSettingsBase_Lives_In_Core_And_Keeps_GUI_State_Out()
+    {
+        // Phase 3(상속 분리): SongSettings 의 포터블 부분만 SongSettingsBase 로 Core 에 둔다.
+        typeof(SongSettingsBase).Assembly.GetName().Name.Should().Be("Easislides.Core",
+            "SongSettingsBase 는 포터블 도메인이므로 Easislides.Core 에 있어야 함");
+        typeof(SongSettingsBase).Namespace.Should().Be("Easislides.Module");
+
+        // 포터블 도메인 필드는 base 에 있어야 함(상속으로 사용처 무변경).
+        typeof(SongSettingsBase).GetField(nameof(SongSettingsBase.Format))!.FieldType
+            .Should().Be(typeof(SongFormat), "Format 은 포터블 SongFormat 이므로 base 소관");
+        typeof(SongSettingsBase).GetField(nameof(SongSettingsBase.Source))!.FieldType
+            .Should().Be(typeof(ItemSource));
+
+        // WinForms ListView / legacy SongLyrics[] / Initialise 는 Core 로 새어들면 안 됨 → legacy 파생 소관.
+        typeof(SongSettingsBase).GetField("LyricsAndNotationsList")
+            .Should().BeNull("WinForms ListView 는 legacy 파생 SongSettings 소관");
+        typeof(SongSettingsBase).GetField("Lyrics")
+            .Should().BeNull("legacy SongLyrics[] 는 legacy 파생 SongSettings 소관");
+        typeof(SongSettingsBase).GetMethod("Initialise")
+            .Should().BeNull("static Gf 결합 Initialise 는 legacy 파생 SongSettings 소관");
+    }
+
+    [Fact]
     public void Core_Does_Not_Reference_WindowsForms_Or_Drawing()
     {
         // Core 는 포터블 도메인이어야 한다(net10.0). WinForms/System.Drawing 결합이 새어들면

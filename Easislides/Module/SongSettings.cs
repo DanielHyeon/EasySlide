@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static Easislides.Gf;
@@ -26,142 +26,19 @@ namespace Easislides.Module
         public string lpszProgressTitle;
     }
 
-    public class SongSettings
+    // 포터블 도메인(SongSettingsBase) + GUI/렌더 런타임 상태(WinForms ListView, legacy SongLyrics 배열) (§9.4 / Phase 3 — 상속 분리).
+    //
+    // 포터블 상태(텍스트·번호·플래그·배열·SongFormat·ItemSource)는 Easislides.Core 의 SongSettingsBase 에 있고,
+    // 이 파생 클래스는 Core 로 옮길 수 없는 결합만 추가한다.
+    //   - LyricsAndNotationsList: System.Windows.Forms.ListView(가사/코드 측정용 런타임 컨트롤).
+    //   - Lyrics: legacy SongLyrics(System.Drawing Font 캐시를 가진 렌더 상태) 4개 배열.
+    //   - Initialise(): static Easislides.Gf.SetListViewColumns 호출 + SongLyrics 생성.
+    // 네임스페이스(Easislides.Module)·이름(SongSettings) 유지 → 기존 사용처 코드 무변경.
+    public class SongSettings : SongSettingsBase
     {
-
-        public ItemSource Source;
-
         public ListView LyricsAndNotationsList = new ListView();
 
-        public string ItemID = "";
-
-        public string InMainItemText = "";
-
-        public string InSubItemItem1Text = "";
-
-        public string Type = "";
-
-        public string Title = "";
-
-        public string Title2 = "";
-
-        public int SongNumber = -1;
-
-        public int FolderNo = 0;
-
-        public int HBR2_FolderNo = 0;
-
-        public string Path = "";
-
-        public string AllLyrics = "";
-
-        public string Notations = "";
-
-        public string OriginalNotations = "";
-
-        public int FontSizeFactor = 0;
-
-        public int HBR2_FontSizeFactor = 0;
-
-        public int Capo = -1;
-
-        public string Copyright = "";
-
-        public string FolderName = "";
-
-        public string Writer = "";
-
-        public string Category = "";
-
-        public string Book_Reference = "";
-
-        public string User_Reference = "";
-
-        public string Timing = "";
-
-        public string MusicKey = "";
-
-        public string RotateString = "";
-
-        public int RotateStyle = 1;
-
-        public int RotateGap = 0;
-
-        public int RotateTotal = 0;
-
-        public string RotateTimings = "";
-
-        public string RotateSequence = "";
-
-        public string Settings = "";
-
-        public int CurSlide = 0;
-
-        public bool CurSlideIsVerse = false;
-
-        public int TotalSlides = 0;
-
-        public bool OutputStyleScreen = false;
-
-        public bool AtLiveScreen = false;
-
-        public int[,] Slide = new int[1001, 8];
-
-        public bool UseDefaultFormat = true;
-
-        public int CurItemNo = 0;
-
-        public int TotalItems = 0;
-
-        public string CompleteLyrics = "";
-
-        public bool FirstShowing = true;
-
-        public bool SplitScreens = true;
-
-        public bool Show_BookName = true;
-
-        public bool Show_LicAdim = true;
-
-        public string Show_LicAdminInfo1 = "";
-
-        public string Show_LicAdminInfo2 = "";
-
-        public string In_LicAdminInfo1 = "";
-
-        public string In_LicAdminInfo2 = "";
-
         public SongLyrics[] Lyrics = new SongLyrics[4];
-
-        public string SongSequence = "";
-
-        public string SongBasicSequence = "";
-
-        public string SongOriginalLoadedSequence = "";
-
-        public int[] SongVerses = new int[100];
-
-        public int[] ChorusSlides = new int[10];
-
-        public bool Verse2Present = false;
-
-        public bool[] VersePresent = new bool[160];
-
-        public int[,] VerseLineLoc = new int[160, 5];
-
-        public bool PrevItemPP = false;
-
-        public string PrevTitle = "";
-
-        public string NextTitle = "";
-
-        public bool GapItemOnDisplay = false;
-
-        public SongFormat Format = new SongFormat();
-
-        public bool isEditable = false;
-
-        public bool isLive = false;
 
         public void Initialise()
         {

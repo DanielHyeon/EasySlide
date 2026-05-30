@@ -68,8 +68,13 @@
   - 색상 소비처 9곳(`gfDisplay` 6, `gfLyrics` 3) 만 `Color.FromArgb`/`.ToArgb` 변환. **Font/TextAlign 핫패스 무변경**.
 - 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 453(WPF) green(SongLyricsBase 위치·색상 int·Font/TextAlign 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0).
 
-### Phase 3 — `SongSettings` 디커플 후 이동
-- `System.Windows.Forms` 의존(메시지박스/스크린 등)과 `static Easislides.Gf` 호출을 인터페이스/원시값으로 분리한 뒤에만 이동. 가장 큰 작업.
+### Phase 3 — `SongSettings` (완료 · 상속 분리 채택)
+- **결정: 상속 분리**(Phase 2b 와 동일 패턴). WinForms/Gf 결합을 "디커플 선행"하는 대신, 포터블 부분만 base 로 떼어 Core 에 둔다.
+  - `Easislides.Core/SongSettingsBase.cs`(namespace `Easislides.Module`): 포터블 필드 전체(string/int/bool/배열, `ItemSource Source`, `SongFormat Format`). 65개 필드, 초기값 그대로.
+  - `Easislides/Module/SongSettings.cs` → `public class SongSettings : SongSettingsBase`: Core 로 못 옮기는 것만 보유 — `ListView LyricsAndNotationsList`(WinForms), `SongLyrics[] Lyrics`(legacy 렌더 상태), `Initialise()`(`static Gf.SetListViewColumns` 호출). 무관한 `SHFILEOPSTRUCT`(P/Invoke)도 이 파일에 잔류.
+  - **필드 타입 변경 없음(순수 relocation)** → 17개 `new SongSettings()` 포함 모든 사용처 무변경.
+- 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 454(WPF) green(SongSettingsBase 위치·`Format`/`Source`·ListView/Lyrics/Initialise 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0 — 필드 분할 67=65+2, 초기값·`Initialise()` 본문 byte-identical 교차검증).
+- 후속(비범위): `Initialise()` 의 local `songFormat` 미대입(기존 죽은 코드)은 relocation 계약 보존 위해 이번엔 손대지 않음 — relocation 단계 종료 후 별도 정리 검토.
 
 ### Phase 4 — WPF 가 Core 소비 / 개념 중복 제거 (선택·후순위)
 - WPF 가 자체 enum 대신 Core enum 을 쓰도록 점진 통합. 회귀 위험이 있어 컴포지트·스크린샷 안전망 위에서 1종씩.
