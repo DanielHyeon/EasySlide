@@ -89,7 +89,10 @@ public partial class App : Application
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
         services.AddSingleton<IOutputWindowService, OutputWindowService>();
-        services.AddSingleton<IMediaPlaybackBackend, NoOpMediaPlaybackBackend>();
+        // 미디어 백엔드 — 생명주기 브리지(출력 창의 MediaElement 가 만들어지면 실제 백엔드를 Attach).
+        // 동일 인스턴스를 IMediaPlaybackBackend(서비스용)과 구체 타입(출력 창 Attach용) 양쪽으로 노출.
+        services.AddSingleton<AttachableMediaPlaybackBackend>();
+        services.AddSingleton<IMediaPlaybackBackend>(sp => sp.GetRequiredService<AttachableMediaPlaybackBackend>());
         services.AddSingleton<IMediaPlaybackService>(sp => new MediaPlaybackService(
             sp.GetRequiredService<IMediaPlaybackBackend>(),
             sp.GetRequiredService<ISettingsService>()));
