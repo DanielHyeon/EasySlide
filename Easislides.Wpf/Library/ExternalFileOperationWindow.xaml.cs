@@ -6,6 +6,7 @@ using Microsoft.Win32;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmCopyMoveExternal(외부 파일 복사/이동).
 public partial class ExternalFileOperationWindow : Window
 {
     private bool _loadedOnce;

@@ -2,6 +2,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmRecoverDeleted(삭제 곡 복구).
 public partial class SongRecoveryWindow : Window
 {
     private readonly SongRecoveryViewModel _viewModel;

@@ -1,7 +1,13 @@
-# Easislides.Wpf (Sprint 0 산출물)
+# Easislides.Wpf (`EasislidesNext.exe`)
 
-> EasiSlides v3.0 UI 마이그레이션의 출발점. WinForms → WPF + Fluent 2 (ADR-0001).
-> 본 프로젝트는 **Sprint 0 PoC 단계** — 정식 마이그레이션은 Sprint 1 이후 진행.
+> EasiSlides v3.0 UI 마이그레이션 신규 빌드. WinForms → WPF + Fluent 2 (ADR-0001).
+>
+> **진행 상태(2026-05-31 기준)**: Sprint 0 PoC 단계를 한참 지나 **운영 셸·19개 창·DI·설정/라이브러리/Import-Export 등 구현 단계**. 단, 레거시(`Easislides.exe`)가 아직 production 주력이고 PPT 썸네일/미디어 렌더 등 일부 미완. 마일스톤 기준 **M1 도달 / M2 부분 / M3·M4 미달**.
+> - **커버리지·갭·구현 계획**: [`docs/wpf-migration/gap-analysis.md`](../docs/wpf-migration/gap-analysis.md) (레거시 38폼 ↔ WPF 19창 매트릭스, ✅20/🟡10/🔴8).
+> - 각 WPF 창 헤더의 `// 레거시 대체: FrmX` 주석으로 대응 폼 추적 가능.
+> - 산출물 분리·안전망: ADR-0007(`--legacy-ui`) · ADR-0008(Core 추출).
+>
+> 아래 디렉터리 구조 등 일부 항목은 Sprint 0 시점 기준이라 최신과 다를 수 있다(전면 갱신은 후속).
 
 ## 디렉터리 구조
 

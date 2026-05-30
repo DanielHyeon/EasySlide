@@ -5,6 +5,7 @@ using Easislides.Wpf.Shell;
 
 namespace Easislides.Wpf;
 
+// 레거시 대체: FrmLyricsScreen(출력 렌더) + FrmShowAlert 오버레이. 정보화면(FrmInfoScreen)은 미포팅(gap-analysis.md §2.A).
 public partial class OutputWindow : Window, IOutputSurface
 {
     private bool _shown;

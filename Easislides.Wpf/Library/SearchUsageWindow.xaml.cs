@@ -4,6 +4,7 @@ using Microsoft.Win32;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체(통합): FrmFind, FrmUsages, FrmLookupTitles(SongSearchFields.Title).
 public partial class SearchUsageWindow : Window
 {
     private bool _loadedOnce;

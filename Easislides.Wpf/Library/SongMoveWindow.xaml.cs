@@ -2,6 +2,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmMove(곡 이동).
 public partial class SongMoveWindow : Window
 {
     private readonly SongMoveViewModel _viewModel;

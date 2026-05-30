@@ -2,6 +2,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmCopy(곡 복사).
 public partial class SongCopyWindow : Window
 {
     private readonly SongCopyViewModel _viewModel;

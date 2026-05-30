@@ -2,6 +2,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmEditItem (+ FrmEditNotes notation 부분 통합).
 public partial class SongEditorWindow : Window
 {
     private readonly SongEditorViewModel _viewModel;
