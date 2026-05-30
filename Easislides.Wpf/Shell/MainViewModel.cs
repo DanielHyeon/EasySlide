@@ -47,6 +47,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public MediaPlaybackViewModel Media { get; }
 
+    /// <summary>
+    /// PPT 미리보기 VM(슬라이드 렌더 이미지·상태). MainWindow PowerPoint 탭이 바인딩한다.
+    /// (G1 / gap-analysis.md §4 G-α — placeholder "Decks: N" 대체, orphaned 렌더 서비스의 UI 연결.)
+    /// </summary>
+    public Rendering.PowerPointPreviewViewModel PowerPoint { get; }
+
     public MainViewModel(
         ILiveSessionService session,
         IOutputWindowService output,
@@ -55,7 +61,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IDisplayService display,
         ICommandCatalog commandCatalog,
         ISettingsService settings,
-        MediaPlaybackViewModel media)
+        MediaPlaybackViewModel media,
+        Rendering.PowerPointPreviewViewModel powerPoint)
     {
         _session = session;
         _output = output;
@@ -65,6 +72,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _commandCatalog = commandCatalog;
         _settings = settings;
         Media = media;
+        PowerPoint = powerPoint;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += (_, _) => NotifyCommandStates();
@@ -512,6 +520,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나
         // MediaPlaybackViewModel.Dispose 가 멱등이라 안전(테스트는 new 생성이라 이 경로가 유일 해제).
         Media.Dispose();
+        // PowerPoint VM 은 이벤트 구독/미관리 자원이 없어 IDisposable 이 아니다 — 의도적으로 해제하지 않음.
     }
 
     private void SeedPlaceholderQueue()
