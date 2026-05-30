@@ -38,7 +38,7 @@
 | `FrmLaunchShow` | `MainWindow` LIVE 흐름 | 🟡 | 풀스크린 launch 통합 추정 ❓ |
 | `FrmShowAlert` | `OutputWindow`(LyricsAlertVisibility) + `EsToast` | 🟡 | 출력 화면 경고 오버레이 존재, 패리티 미검증 |
 | `FrmSingleMonitorAlert` | — | 🔴 | 단일 모니터 경고 — **레거시에서 주석 처리(미사용)**, 저가치 |
-| `FrmPopupText` | — | 🔴 | 팝업 텍스트 송출(38줄, `Gf.popUpText` 저장). WPF 는 OutputWindow 오버레이 인프라 재사용 가능하나 라이브 큐 연동 필요 |
+| `FrmPopupText` | — (포팅 불요) | ⚪ | **분류 정정(#3 조사)**: 출력 송출이 아니라 **필드 텍스트 편집 팝업**. `FrmEditItem`/`FrmInfoScreen`/`FrmMain` 이 작은 단일행 필드값을 `Gf.popUpText` 에 넣고 큰 박스에서 편집 후 되돌려받는 WinForms 워크어라운드. WPF `SongEditorWindow`(18개 TextBox 인라인 편집)로 obsolete → **포팅 불요** |
 
 ### B. 콘텐츠 편집 / 라이브러리 (도메인문서 02)
 
@@ -109,10 +109,11 @@
 |---|---|
 | ✅ 포팅/➕통합 | **20** |
 | 🟡 부분 | **10** |
-| 🔴 미포팅 | **8** (이 중 `FrmSplashScreenOld` 는 포팅 불요) |
+| 🔴 미포팅 | **6** |
+| ⚪ 포팅 불요 | **2** (`FrmSplashScreenOld`, `FrmPopupText`) |
 | **합계** | 38 |
 
-> 초판(추정) 14/12/9 → G0 검증 후 **20/10/8**. Import/Export/Generate/Lookup/작업폴더가 통합 창에 포함됨이 확인되어 ✅가 6 증가.
+> 초판(추정) 14/12/9 → G0 검증 후 20/10/8 → G2 조사 후 **20/10/6 + 포팅불요 2**. `FrmPopupText` 가 출력 송출이 아니라 WPF 에서 obsolete 한 필드 편집 팝업으로 확인되어 포팅 불요로 재분류.
 
 ## 3. 마일스톤 평가 (기능 기준)
 
