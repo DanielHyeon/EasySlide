@@ -21,7 +21,7 @@ public class EsDataGridTests
         => new()
         {
             Source = new Uri(
-                "pack://application:,,,/Easislides.Wpf;component/Controls/EsDataGrid.xaml",
+                "pack://application:,,,/EasislidesNext;component/Controls/EsDataGrid.xaml",
                 UriKind.Absolute),
         };
 

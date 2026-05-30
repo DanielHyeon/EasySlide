@@ -22,7 +22,7 @@ public sealed class WpfApplicationFixture : IDisposable
             // EasiDS 리소스 사전을 코드로 머지 (App.xaml 부트스트랩을 흉내냄)
             app.Resources.MergedDictionaries.Add(new ResourceDictionary
             {
-                Source = new Uri("pack://application:,,,/Easislides.Wpf;component/Theme/EasiDS.xaml", UriKind.Absolute),
+                Source = new Uri("pack://application:,,,/EasislidesNext;component/Theme/EasiDS.xaml", UriKind.Absolute),
             });
         }
     }

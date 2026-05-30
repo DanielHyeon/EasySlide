@@ -10,7 +10,7 @@
     <!-- 폰트 패밀리 (ADR-0003 / Q4 확정) -->
     <!-- Pretendard Variable v1.3.9 번들 (OFL 1.1) — 모든 PC 동일 한글 가독성. -->
     <!-- 폰트 URI 형식: pack://application:,,,/AssemblyName;component/Path/#FontFamilyName -->
-    <FontFamily x:Key="Font.Primary">pack://application:,,,/Easislides.Wpf;component/Assets/Fonts/#Pretendard Variable, Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif</FontFamily>
+    <FontFamily x:Key="Font.Primary">pack://application:,,,/EasislidesNext;component/Assets/Fonts/#Pretendard Variable, Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif</FontFamily>
     <FontFamily x:Key="Font.Mono">Cascadia Code, Consolas, monospace</FontFamily>
 
     <!-- 타입 스케일 (Standard 기본값) — ScaleFactor가 런타임에 곱해짐 -->
