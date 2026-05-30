@@ -1,6 +1,7 @@
 <UserControl x:Class="Easislides.Wpf.Composites.WorshipListPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
 
     <!--
         WorshipListPanel — 계획서 §5.2 재사용 컴포지트(예배 순서 목록 패널).
@@ -19,6 +20,37 @@
                        Style="{StaticResource Type.Title3.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}"
                        Margin="0,0,0,12" />
+
+            <!--
+                예배 순서 도구 막대 — 선택 항목을 위/아래로 이동(재정렬)하거나 큐에서 제거.
+                FrmMain 의 "Move Item Up/Down"·항목 제거에 대응. 아이콘 전용 버튼이라
+                접근성(AutomationProperties.Name)·툴팁을 함께 둔다.
+            -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        Margin="0,12,0,0">
+                <Button Command="{Binding MoveSelectedItemUpCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="선택 항목을 위로 이동"
+                        AutomationProperties.Name="항목 위로 이동"
+                        Margin="0,0,8,0">
+                    <ui:SymbolIcon Symbol="ArrowUp24" />
+                </Button>
+                <Button Command="{Binding MoveSelectedItemDownCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="선택 항목을 아래로 이동"
+                        AutomationProperties.Name="항목 아래로 이동"
+                        Margin="0,0,8,0">
+                    <ui:SymbolIcon Symbol="ArrowDown24" />
+                </Button>
+                <Button Command="{Binding RemoveSelectedItemCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="선택 항목을 예배 순서에서 제거"
+                        AutomationProperties.Name="항목 제거">
+                    <ui:SymbolIcon Symbol="Delete24" />
+                </Button>
+            </StackPanel>
+
             <ListBox ItemsSource="{Binding Queue}"
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      DisplayMemberPath="Title"

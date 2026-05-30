@@ -133,6 +133,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
+        MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
+        MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
+        RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
         // 라이브러리 선택 곡이 바뀌면 "예배 순서에 추가" 활성 상태를 맞춘다.
         Library.PropertyChanged += OnLibraryPropertyChanged;
 
@@ -162,6 +165,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
+    public IRelayCommand MoveSelectedItemUpCommand { get; }
+    public IRelayCommand MoveSelectedItemDownCommand { get; }
+    public IRelayCommand RemoveSelectedItemCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
@@ -219,6 +225,82 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"곡 추가됨: {song.Title}";
         NotifyCommandStates();
         return item;
+    }
+
+    // 예배 순서 항목 이동(↑/↓) — 큐 순서를 재정렬한다(FrmMain Move Item Up/Down). 선택 항목은 유지.
+    // LiveQueueItem 은 값 동등성 record 라 Queue.IndexOf 는 "값이 같은 첫 항목"을 돌려준다.
+    // 같은 곡을 예배 순서에 두 번 넣는 일이 흔하므로(입례·봉헌 등) 선택한 "바로 그 인스턴스"를
+    // 참조 동일성으로 찾아야 엉뚱한 동일-값 항목을 이동/제거하지 않는다.
+    private int IndexOfSelectedReference()
+    {
+        if (SelectedItem is null)
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < Queue.Count; i++)
+        {
+            if (ReferenceEquals(Queue[i], SelectedItem))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void MoveSelectedItem(int delta)
+    {
+        if (SelectedItem is not { } item)
+        {
+            return;
+        }
+
+        var index = IndexOfSelectedReference();
+        var target = index + delta;
+        if (index < 0 || target < 0 || target >= Queue.Count)
+        {
+            return;
+        }
+
+        Queue.Move(index, target);
+        SelectedItem = item; // 같은 항목 유지(이동 후에도 선택 따라감)
+        NotifyCommandStates();
+    }
+
+    private bool CanMoveSelectedItem(int delta)
+    {
+        var index = IndexOfSelectedReference();
+        var target = index + delta;
+        return index >= 0 && target >= 0 && target < Queue.Count;
+    }
+
+    // 예배 순서에서 선택 항목 제거 — 인접 항목을 새로 선택(라이브 송출 자체는 세션이 유지).
+    private void RemoveSelectedItem()
+    {
+        if (SelectedItem is not { } item)
+        {
+            return;
+        }
+
+        var index = IndexOfSelectedReference();
+        if (index < 0)
+        {
+            return;
+        }
+
+        Queue.RemoveAt(index); // 참조로 찾은 정확한 인덱스를 제거(동일-값 중복 안전)
+
+        // 라이브 송출 중인 바로 그 항목을 큐에서 뺐다면, 슬라이드 이동 가드(_liveItemId)가
+        // 큐에 없는 고아 Id 를 기준으로 판단하지 않도록 라이브 추적을 정리한다(세션 송출 자체는 유지).
+        if (_liveItemId == item.Id)
+        {
+            _liveItemId = null;
+        }
+
+        SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(index, Queue.Count - 1)];
+        StatusText = $"항목 제거: {item.Title}";
+        NotifyCommandStates();
     }
 
     /// <summary>PowerPoint 파일을 예배 순서(큐)에 추가(선택 시 썸네일 렌더 디스패치).</summary>
@@ -944,6 +1026,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousSlideCommand.NotifyCanExecuteChanged();
         GoToSlideCommand.NotifyCanExecuteChanged();
         AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
+        MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
+        MoveSelectedItemDownCommand.NotifyCanExecuteChanged();
+        RemoveSelectedItemCommand.NotifyCanExecuteChanged();
     }
 
     private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)

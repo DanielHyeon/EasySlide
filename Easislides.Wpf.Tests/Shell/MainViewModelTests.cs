@@ -296,6 +296,168 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void MoveSelectedItemDown_ReordersQueueAndKeepsSelection()
+    {
+        // 예배 순서 재정렬: 선택 항목을 아래로 한 칸 이동(FrmMain Move Item Down).
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        var c = new LiveQueueItem("c", "C", "Notice");
+        sut.LoadQueue([a, b, c]);
+        sut.SelectedItem = a;
+
+        sut.MoveSelectedItemDownCommand.Execute(null);
+
+        sut.Queue.Should().Equal(b, a, c);
+        sut.SelectedItem.Should().Be(a); // 같은 항목이 계속 선택됨
+    }
+
+    [Fact]
+    public void MoveSelectedItemUp_ReordersQueueAndKeepsSelection()
+    {
+        // 예배 순서 재정렬: 선택 항목을 위로 한 칸 이동(FrmMain Move Item Up).
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        var c = new LiveQueueItem("c", "C", "Notice");
+        sut.LoadQueue([a, b, c]);
+        sut.SelectedItem = c;
+
+        sut.MoveSelectedItemUpCommand.Execute(null);
+
+        sut.Queue.Should().Equal(a, c, b);
+        sut.SelectedItem.Should().Be(c);
+    }
+
+    [Fact]
+    public void MoveSelectedItem_CanExecute_RespectsBoundaries()
+    {
+        // 경계: 첫 항목은 위로 불가, 마지막 항목은 아래로 불가, 선택 없음이면 둘 다 불가.
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        sut.LoadQueue([a, b]);
+
+        sut.SelectedItem = null;
+        sut.MoveSelectedItemUpCommand.CanExecute(null).Should().BeFalse();
+        sut.MoveSelectedItemDownCommand.CanExecute(null).Should().BeFalse();
+
+        sut.SelectedItem = a; // 첫 항목
+        sut.MoveSelectedItemUpCommand.CanExecute(null).Should().BeFalse();
+        sut.MoveSelectedItemDownCommand.CanExecute(null).Should().BeTrue();
+
+        sut.SelectedItem = b; // 마지막 항목
+        sut.MoveSelectedItemUpCommand.CanExecute(null).Should().BeTrue();
+        sut.MoveSelectedItemDownCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void RemoveSelectedItem_RemovesAndSelectsNeighbor()
+    {
+        // 제거 후 같은 인덱스(또는 마지막) 항목을 새로 선택.
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        var c = new LiveQueueItem("c", "C", "Notice");
+        sut.LoadQueue([a, b, c]);
+        sut.SelectedItem = b;
+
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Should().Equal(a, c);
+        sut.SelectedItem.Should().Be(c); // 같은 인덱스(1)의 새 항목
+        sut.StatusText.Should().Contain("항목 제거");
+    }
+
+    [Fact]
+    public void RemoveSelectedItem_WhenLastItem_SelectsNewLast()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        sut.LoadQueue([a, b]);
+        sut.SelectedItem = b; // 마지막
+
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Should().Equal(a);
+        sut.SelectedItem.Should().Be(a);
+    }
+
+    [Fact]
+    public void RemoveSelectedItem_WhenOnlyItem_LeavesEmptyQueueAndNoSelection()
+    {
+        var sut = CreateSut();
+        var only = new LiveQueueItem("a", "A", "Notice");
+        sut.LoadQueue([only]);
+        sut.SelectedItem = only;
+
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Should().BeEmpty();
+        sut.SelectedItem.Should().BeNull();
+        sut.RemoveSelectedItemCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RemoveSelectedItem_WhenItemIsLive_KeepsSessionActive()
+    {
+        // 라이브 송출 중인 항목을 큐에서 제거해도 송출 세션 자체는 유지(큐와 세션은 독립).
+        var sut = CreateSut();
+        var live = new LiveQueueItem("song-1", "입례 찬양");
+        var other = new LiveQueueItem("song-2", "봉헌 찬양");
+        sut.LoadQueue([live, other]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+
+        sut.SelectedItem = live;
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Should().Equal(other);
+        sut.Session.Current.State.Should().Be(LiveState.Active); // 세션은 큐 제거와 무관하게 유지
+    }
+
+    [Fact]
+    public void MoveSelectedItem_WithValueEqualDuplicate_MovesSelectedInstanceByReference()
+    {
+        // LiveQueueItem 은 값 동등성 record. SelectedItem 이 동일-값 중복 중 "특정 인스턴스"를
+        // 가리킬 때, 값 비교(IndexOf)가 아니라 참조로 바로 그 인스턴스를 이동해야 한다.
+        var sut = CreateSut();
+        var anchor = new LiveQueueItem("anchor", "기준 항목", "Notice");
+        var first = new LiveQueueItem("song-x", "동일 찬양");
+        var second = new LiveQueueItem("song-x", "동일 찬양"); // first 와 값 동등, 다른 인스턴스
+        sut.LoadQueue([anchor, first, second]); // 큐를 통제(CreateSut 시드 항목 제거)
+        sut.SelectedItem = second; // anchor 와 값이 달라 정상 할당됨 → 인덱스 2 인스턴스 선택
+
+        // 값 비교라면 IndexOf(second)==1(first) 라 엉뚱한 항목이 움직였겠지만, 참조 기반이면 second 가 이동.
+        sut.MoveSelectedItemUpCommand.CanExecute(null).Should().BeTrue();
+        sut.MoveSelectedItemUpCommand.Execute(null);
+
+        sut.Queue[1].Should().BeSameAs(second);
+        sut.Queue[2].Should().BeSameAs(first);
+    }
+
+    [Fact]
+    public void RemoveSelectedItem_WithValueEqualDuplicate_RemovesSelectedInstanceByReference()
+    {
+        // 동일-값 중복에서 참조로 정확히 선택된 인스턴스를 제거(값 비교면 앞 인스턴스가 지워짐).
+        var sut = CreateSut();
+        var anchor = new LiveQueueItem("anchor", "기준 항목", "Notice");
+        var first = new LiveQueueItem("song-x", "동일 찬양");
+        var second = new LiveQueueItem("song-x", "동일 찬양");
+        sut.LoadQueue([anchor, first, second]); // 큐를 통제(CreateSut 시드 항목 제거)
+        sut.SelectedItem = second; // 인덱스 2 인스턴스
+
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Should().HaveCount(2);
+        sut.Queue[0].Should().BeSameAs(anchor);
+        sut.Queue[1].Should().BeSameAs(first); // second(인덱스 2)가 제거됨(값 비교면 first 가 지워졌을 것)
+    }
+
+    [Fact]
     public async Task ApplySelectedItemContent_PowerPointItem_DrivesPreviewLoad()
     {
         // PowerPoint 항목(ContentPath 보유) 선택 시 PPT 미리보기 LoadAsync 가 발동(콘텐츠 plumbing).
