@@ -63,6 +63,8 @@
 | legacy 빌드 깨짐 | 각 Phase 후 `dotnet build Easislides.sln` + 전체 테스트로 즉시 검증, 단계별 독립 롤백 |
 | Core 에 원치 않는 결합 유입 | Core TFM 을 `net10.0`(비-windows)로 고정 → WinForms/Drawing 결합 타입은 컴파일 자체가 막혀 사전 차단 |
 | 순환 참조 | Core 는 앱을 참조하지 않음(단방향 규칙) |
+| 같은 네임스페이스가 두 어셈블리에 걸침 | **불변식**: 공유 네임스페이스의 동일 타입명은 반드시 **단일 어셈블리에만** 정의(이동 시 원본 삭제 동반). 양쪽에 같은 타입이 생기면 소비자에서 `CS0433` 모호성 에러. Phase 1 은 git mv 로 원본을 제거해 이 규칙을 지킴 |
+| enum 정수값과 영속 데이터 | **경고**: `ItemSource`(0,2,3,…), `SettingsCategory.RotateString=10` 등 명시적 정수값 enum 은 DB/레지스트리/파일에 정수로 저장됐을 수 있다. Core 로 옮길 때 **값/순서를 재배치하지 말 것**(영속 데이터 손상). 이동은 값 무변경(0-line diff)만 허용 |
 
 ## 6. 수용 기준 (Phase 1)
 
