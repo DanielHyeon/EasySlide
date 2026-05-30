@@ -127,6 +127,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
+        RestoreOutputCommand = new RelayCommand(RestoreOutput, () => _session.Current.State == LiveState.Hidden);
         NextSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber + 1), CanGoNextSlide);
         PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
@@ -155,6 +156,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand PreviousItemCommand { get; }
     public IAsyncRelayCommand HideOutputCommand { get; }
     public IAsyncRelayCommand BlackScreenCommand { get; }
+    public IRelayCommand RestoreOutputCommand { get; }
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
@@ -714,6 +716,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    // 숨김/블랙에서 송출 화면 복귀 — 직전 항목을 그대로 다시 보인다(저위험이라 안전 확인 없음).
+    private void RestoreOutput()
+    {
+        _session.Restore();
+        StatusText = "출력 복귀";
+        NotifyCommandStates();
+    }
+
     private async Task<bool> ConfirmLiveSafetyAsync(string actionName, string question, string subtext)
     {
         var ok = await _safetyPrompt.ConfirmAsync(new LiveSafetyRequest(
@@ -929,6 +939,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand.NotifyCanExecuteChanged();
         HideOutputCommand.NotifyCanExecuteChanged();
         BlackScreenCommand.NotifyCanExecuteChanged();
+        RestoreOutputCommand.NotifyCanExecuteChanged();
         NextSlideCommand.NotifyCanExecuteChanged();
         PreviousSlideCommand.NotifyCanExecuteChanged();
         GoToSlideCommand.NotifyCanExecuteChanged();

@@ -539,6 +539,35 @@ public class OutputWindowViewModelTests
         sut.ContentVisibility.Should().Be(Visibility.Collapsed);
     }
 
+    [Fact]
+    public void LiveContentImage_RestoreFromHidden_ShowsSamePreservedContent()
+    {
+        // §7.3-B 복귀: 숨김/블랙에서 Active 로 되돌리면(LiveSessionService.Restore 가 콘텐츠 보존한 채 상태만 전이)
+        // 직전 콘텐츠가 그대로 다시 표시돼야 한다(블랙아웃 오버레이 걷힘 + ContentVisibility 복원).
+        var preview = CreateStubBitmap(1920, 1080);
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "Slide 1", "Display 2", IsBlackout: false,
+            CurrentItemPreviewSource: preview, CurrentItemPreviewPixelWidth: 1920, CurrentItemPreviewPixelHeight: 1080));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden, "Slide 1", "Display 2", IsBlackout: true,
+            CurrentItemPreviewSource: preview, CurrentItemPreviewPixelWidth: 1920, CurrentItemPreviewPixelHeight: 1080));
+        sut.ContentVisibility.Should().Be(Visibility.Collapsed);
+
+        // Restore: 콘텐츠 보존한 채 Active + blackout 해제(Restore() 산출 스냅샷과 동일 형태).
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "Slide 1", "Display 2", IsBlackout: false,
+            CurrentItemPreviewSource: preview, CurrentItemPreviewPixelWidth: 1920, CurrentItemPreviewPixelHeight: 1080));
+
+        sut.ContentImageSource.Should().BeSameAs(preview, "복귀 시 직전 콘텐츠 보존");
+        sut.ContentVisibility.Should().Be(Visibility.Visible, "복귀 시 콘텐츠 다시 표시");
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed, "복귀 시 블랙아웃 오버레이 걷힘");
+    }
+
     private static BitmapSource CreateStubBitmap(int width = 1, int height = 1)
     {
         var stride = width * 4;

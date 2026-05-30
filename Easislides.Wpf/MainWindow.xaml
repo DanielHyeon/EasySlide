@@ -71,6 +71,26 @@
                             <TextBlock Text="Black" />
                         </StackPanel>
                     </Button>
+                    <Button Command="{Binding HideOutputCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="가사/콘텐츠 숨김(배경 유지)"
+                            AutomationProperties.Name="출력 숨김"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="EyeOff24" Margin="0,0,6,0" />
+                            <TextBlock Text="숨김" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding RestoreOutputCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="숨김/검은 화면에서 직전 송출로 복귀"
+                            AutomationProperties.Name="출력 복귀"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Eye24" Margin="0,0,6,0" />
+                            <TextBlock Text="복귀" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenLibrary_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="라이브러리 열기"

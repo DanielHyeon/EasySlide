@@ -42,6 +42,7 @@ public interface ILiveSessionService
 
     void GoLive(LiveQueueItem item, string outputMonitorName);
     void HideOutput(bool blackout);
+    void Restore();
     void Stop();
 }
 
@@ -91,6 +92,22 @@ public sealed class LiveSessionService : ILiveSessionService
         {
             State = LiveState.Hidden,
             IsBlackout = blackout,
+        });
+    }
+
+    // 숨김/블랙아웃에서 송출 화면을 되살린다 — 콘텐츠(가사·슬라이드)는 HideOutput 이 보존하므로
+    // 상태만 Active 로 되돌리고 블랙아웃을 해제하면 직전 항목이 그대로 다시 보인다.
+    public void Restore()
+    {
+        if (Current.State != LiveState.Hidden)
+        {
+            return;
+        }
+
+        Update(Current with
+        {
+            State = LiveState.Active,
+            IsBlackout = false,
         });
     }
 
