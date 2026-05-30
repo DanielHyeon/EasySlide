@@ -88,6 +88,30 @@ public class ScreenshotRegressionTests
         });
     }
 
+    [Fact]
+    public void ColorTokens_Dark_Match_Baseline()
+    {
+        StaHelper.RunOnSta(() =>
+        {
+            // 라이트/다크 양쪽 시각 회귀(계획서 §9.1) — 다크는 별도 기준 이미지로 고정.
+            // 앰비언트 상태(같은 컬렉션 다른 테스트가 바꿔둔 테마)에 의존하지 않도록 명시 고정.
+            var theme = new ThemeService();
+            theme.ApplyTheme(ColorTheme.Dark);
+            theme.ApplyInterfaceSize(InterfaceSize.Standard);
+            try
+            {
+                var png = VisualRenderHarness.RenderToPng(BuildTokenSwatch(SwatchTokens), SwatchWidth, SwatchHeight);
+                ScreenshotBaseline.AssertMatches("color-tokens-dark", png);
+            }
+            finally
+            {
+                // 예외 경로에서도 공유 Application 리소스를 라이트로 복원(후속 테스트 보호).
+                // (각 스크린샷 테스트는 시작 시 자기 테마를 고정하므로 주 방어선은 아니나, 의도-구현 일치.)
+                theme.ApplyTheme(ColorTheme.Light);
+            }
+        });
+    }
+
     /// <summary>토큰 브러시로 채운 가로 균등 스와치(텍스트 없음 → 결정적).</summary>
     private static FrameworkElement BuildTokenSwatch(string[] tokenKeys)
     {
