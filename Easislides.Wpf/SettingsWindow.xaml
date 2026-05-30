@@ -207,6 +207,19 @@
                                          AutomationProperties.Name="가사 모니터 배경색" />
                             </StackPanel>
                         </Grid>
+                        <CheckBox IsChecked="{Binding LyricsMonitorBackgroundIsGradient}"
+                                  Content="가사 배경 세로 그라데이션 사용"
+                                  AutomationProperties.Name="가사 배경 그라데이션 사용"
+                                  Margin="0,8,0,0"
+                                  MinHeight="{DynamicResource Spacing.TargetMin}" />
+                        <StackPanel Margin="0,8,0,0">
+                            <TextBlock Text="가사 배경 그라데이션 끝색 ARGB (그라데이션 사용 시 배경색→끝색)"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <TextBox Text="{Binding LyricsMonitorBackgroundColor2Argb, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource EsTextBox.Default}"
+                                     AutomationProperties.Name="가사 모니터 배경 그라데이션 끝색" />
+                        </StackPanel>
                         <CheckBox IsChecked="{Binding LyricsMonitorShowNotations}"
                                   Content="가사 모니터 코드 표기"
                                   AutomationProperties.Name="가사 모니터 코드 표기"

@@ -552,6 +552,55 @@ public class OutputWindowViewModelTests
         return bitmap;
     }
 
+    [Fact]
+    public void SceneBackgroundBrush_Is_Solid_By_Default()
+    {
+        // G2: 기본 설정은 배경색1==배경색2(-1) → 솔리드(그라데이션 미적용, 회귀 없음).
+        var sut = new OutputWindowViewModel();
+
+        sut.SceneBackgroundBrush.Should().BeOfType<SolidColorBrush>("두 배경색이 같으면 솔리드");
+    }
+
+    [Fact]
+    public void SceneBackgroundBrush_Is_Gradient_When_Background_Colors_Differ()
+    {
+        // G2(FrmBackground 슬라이스): 그라데이션 사용 ON + 배경색1≠배경색2 면 세로 그라데이션 브러시로 송출.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFF112233));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, unchecked((int)0xFF445566));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundIsGradient, true);
+
+        var renderer = new OutputRenderer(new ImageAssetService(), new TransitionEffectService());
+        var sut = new OutputWindowViewModel(renderer, settings);
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+
+        // 타입뿐 아니라 색 순서(배경색→끝색)와 세로 방향(위→아래)까지 고정(회귀 방지).
+        var brush = sut.SceneBackgroundBrush.Should().BeOfType<LinearGradientBrush>("배경색이 다르면 세로 그라데이션").Subject;
+        brush.StartPoint.Should().Be(new Point(0.5, 0), "세로 그라데이션 시작은 위 중앙");
+        brush.EndPoint.Should().Be(new Point(0.5, 1), "세로 그라데이션 끝은 아래 중앙");
+        brush.GradientStops.Should().HaveCount(2);
+        brush.GradientStops[0].Color.Should().Be(Color.FromArgb(0xFF, 0x11, 0x22, 0x33), "시작색=배경색1");
+        brush.GradientStops[1].Color.Should().Be(Color.FromArgb(0xFF, 0x44, 0x55, 0x66), "끝색=배경색2");
+    }
+
+    [Fact]
+    public void SceneBackgroundBrush_Is_Solid_When_Gradient_Disabled_Even_If_Colors_Differ()
+    {
+        // opt-in 시맨틱: 그라데이션 OFF(기본)면 배경색2가 달라도 솔리드(기존 단색 설정 회귀 방지).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFF112233));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, unchecked((int)0xFF445566));
+        // LyricsMonitorBackgroundIsGradient 미설정 → 기본 false
+
+        var renderer = new OutputRenderer(new ImageAssetService(), new TransitionEffectService());
+        var sut = new OutputWindowViewModel(renderer, settings);
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+
+        sut.SceneBackgroundBrush.Should().BeOfType<SolidColorBrush>("그라데이션 OFF면 색이 달라도 솔리드");
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)
