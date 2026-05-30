@@ -18,7 +18,10 @@ public sealed record LiveSessionSnapshot(
     ImageSource? CurrentItemPreviewSource = null,
     ImageFillMode CurrentItemPreviewFillMode = ImageFillMode.Fit,
     int CurrentItemPreviewPixelWidth = 0,
-    int CurrentItemPreviewPixelHeight = 0)
+    int CurrentItemPreviewPixelHeight = 0,
+    // 라이브 곡 항목의 가사 본문(출력 화면 중앙에 텍스트로 송출). 곡이 아니거나 가사가 없으면 빈 문자열.
+    // PPT/미디어처럼 미리보기 이미지로 송출되는 항목은 이 값이 비어 있고, 곡은 반대로 이미지가 비고 본문이 찬다.
+    string CurrentItemBodyText = "")
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -66,7 +69,10 @@ public sealed class LiveSessionService : ILiveSessionService
             item.PreviewSource,
             item.PreviewFillMode,
             pixelWidth,
-            pixelHeight));
+            pixelHeight,
+            // 곡 항목이면 가사를, 그 외(미리보기 이미지로 송출되는 PPT/미디어 등)는 빈 본문을 싣는다.
+            // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
+            CurrentItemBodyText: LyricsDisplayFormatter.ToDisplayText(item.Lyrics)));
     }
 
     // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를

@@ -35,6 +35,38 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_ActiveSong_RendersBodyTextAndHidesTitle()
+    {
+        // 곡 가사가 본문으로 송출되면 출력 중앙에 가사가 보이고, 타이틀은 겹침 방지로 숨겨진다.
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "은혜로다",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemBodyText: "1절 가사\n둘째 줄"));
+
+        sut.BodyText.Should().Be("1절 가사\n둘째 줄");
+        sut.BodyTextVisibility.Should().Be(Visibility.Visible);
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void ApplySession_ActiveWithoutBody_ShowsTitleNotBody()
+    {
+        // 가사가 없으면 본문은 숨고 기존처럼 타이틀이 보인다(PPT/미디어/공지 등).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "주보 PPT", "Display 2", IsBlackout: false));
+
+        sut.BodyText.Should().BeEmpty();
+        sut.BodyTextVisibility.Should().Be(Visibility.Collapsed);
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
     public void ApplySession_Blackout_UsesProtectedBlackScreenLabel()
     {
         var sut = new OutputWindowViewModel();
@@ -480,6 +512,31 @@ public class OutputWindowViewModelTests
         sut.ContentVisibility.Should().Be(Visibility.Visible);
         sut.ContentWidth.Should().Be(1920);
         sut.ContentHeight.Should().Be(1080);
+    }
+
+    [Fact]
+    public void ApplySession_BodyTextSuppressesContentImage()
+    {
+        // 본문(가사)이 있으면 콘텐츠 이미지는 숨긴다(본문 우선 — 가사와 이미지 겹침 방지).
+        var preview = CreateStubBitmap(width: 1920, height: 1080);
+        var sut = new OutputWindowViewModel();
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            new OutputDisplay("d", "d", 0, 0, 1920, 1080, 1),
+            new OutputWindowPlacement(0, 0, 1920, 1080, IsWindowed: false)));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "은혜로다",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemPreviewSource: preview,
+            CurrentItemPreviewPixelWidth: 1920,
+            CurrentItemPreviewPixelHeight: 1080,
+            CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyTextVisibility.Should().Be(Visibility.Visible);
+        sut.ContentVisibility.Should().Be(Visibility.Collapsed, "본문이 보이면 이미지는 숨긴다");
     }
 
     [Fact]
