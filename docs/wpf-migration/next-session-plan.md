@@ -31,7 +31,7 @@
 WPF 앱은 아직 production entrypoint가 아니다(데모/기반 단계).
 
 - **권장 접근**:
-  1. 산출물 분리: `Easislides.exe`(legacy) / `EasislidesNext.exe`(신규) — §9.4. ⏳ 미착수
+  1. ✅ 산출물 분리: `Easislides.exe`(legacy) / `EasislidesNext.exe`(신규) — §9.4. **PR #26**: WPF `AssemblyName=EasislidesNext`(RootNamespace 유지), pack URI·app.manifest·문서 동기화, 산출물명 고정 테스트.
   2. ✅ `--legacy-ui` CLI 안전망 구현(롤백 경로) — ADR-0007 active 단계. **PR #25**: `StartupArguments` 파서 + `LegacyUiLauncher`(legacy exe 별도 프로세스 실행, 실패해도 시작 미크래시) + App 시작 분기. 순수 additive(플래그 없으면 동작 무변경).
   3. 공통 도메인 어셈블리 `Easislides.Core.dll` 추출 검토(양쪽 참조). ⏳ 미착수
   4. 1시간 예배 리허설 시나리오 통과를 전환 게이트로. ⏳ 미착수

@@ -48,8 +48,8 @@ public interface IThemeService
 /// <inheritdoc/>
 public sealed partial class ThemeService : ObservableObject, IThemeService
 {
-    private const string ColorsLightPath = "pack://application:,,,/Easislides.Wpf;component/Theme/Tokens/Colors.Light.xaml";
-    private const string ColorsDarkPath = "pack://application:,,,/Easislides.Wpf;component/Theme/Tokens/Colors.Dark.xaml";
+    private const string ColorsLightPath = "pack://application:,,,/EasislidesNext;component/Theme/Tokens/Colors.Light.xaml";
+    private const string ColorsDarkPath = "pack://application:,,,/EasislidesNext;component/Theme/Tokens/Colors.Dark.xaml";
 
     // 기본 폰트 크기 (Standard 기준) — Typography.xaml과 일치해야 함.
     // ADR-0006: ScaleFactor가 이 값에 곱해져 런타임에 갱신됨.
