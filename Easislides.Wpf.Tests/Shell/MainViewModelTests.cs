@@ -711,6 +711,56 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task SelectingPowerPoint_LoadsThumbnailStrip()
+    {
+        // 덱 선택 시 PowerPoint 탭 썸네일 스트립이 덱 슬라이드 수만큼 채워진다(SuccessStub=3장).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        powerPoint.Thumbnails.Should().HaveCount(3, "덱 슬라이드 수(3)만큼 썸네일 로드");
+    }
+
+    [Fact]
+    public async Task ThumbnailStrip_ReloadsOnDeckSwitchButNotOnSameDeck()
+    {
+        // 같은 덱 재선택(슬라이드 이동/출력열기 재렌더 포함)엔 스트립을 재로드하지 않고,
+        // 다른 덱으로 전환하면 새로 채운다(_thumbnailDeckPath 가드).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+        var firstStrip = powerPoint.Thumbnails.ToArray();
+        firstStrip.Should().HaveCount(3);
+
+        // 같은 덱(같은 ContentPath, 다른 항목 인스턴스) 재선택 → 재로드 안 함(인스턴스 유지)
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1b", "Deck again", "PowerPoint") { ContentPath = "deck.pptx" });
+        powerPoint.Thumbnails.Should().Equal(firstStrip, "같은 덱이면 스트립 재로드 안 함");
+
+        // 다른 덱 전환 → 재로드(새 인스턴스)
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:2", "Other", "PowerPoint") { ContentPath = "other.pptx" });
+        powerPoint.Thumbnails.Should().NotEqual(firstStrip, "다른 덱이면 스트립 재로드");
+    }
+
+    [Fact]
+    public async Task GoToSlideCommand_NavigatesToClickedSlide()
+    {
+        // 썸네일 클릭(슬라이드 번호 인자) → 해당 슬라이드로 이동.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        powerPoint.SlideNumber.Should().Be(1);
+
+        await sut.GoToSlideCommand.ExecuteAsync(3);
+
+        powerPoint.SlideNumber.Should().Be(3);
+    }
+
+    [Fact]
     public async Task PreviousSlideCommand_GoesBackToPriorSlide()
     {
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());

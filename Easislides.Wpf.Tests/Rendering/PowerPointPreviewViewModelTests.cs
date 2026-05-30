@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -67,6 +68,47 @@ public class PowerPointPreviewViewModelTests
         vm.State.Should().Be(PowerPointPreviewState.Idle);
         vm.PreviewImage.Should().BeNull();
         vm.SlideCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task LoadThumbnailsAsync_PopulatesStripWithCurrentHighlighted()
+    {
+        var vm = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
+        await vm.LoadAsync("deck.pptx", slideNumber: 2, pixelWidth: 800, pixelHeight: 600); // 현재 슬라이드 2, 총 3장
+
+        await vm.LoadThumbnailsAsync("deck.pptx", slideCount: 3, thumbnailWidth: 200, thumbnailHeight: 112);
+
+        vm.Thumbnails.Should().HaveCount(3);
+        vm.Thumbnails.Select(t => t.SlideNumber).Should().Equal(1, 2, 3);
+        vm.Thumbnails.Single(t => t.SlideNumber == 2).IsCurrent.Should().BeTrue("현재 슬라이드(2) 강조");
+        vm.Thumbnails.Where(t => t.SlideNumber != 2).Should().OnlyContain(t => !t.IsCurrent);
+    }
+
+    [Fact]
+    public async Task SlideNumberChange_UpdatesThumbnailHighlight()
+    {
+        var vm = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
+        await vm.LoadAsync("deck.pptx", 1, 800, 600);
+        await vm.LoadThumbnailsAsync("deck.pptx", 3, 200, 112);
+        vm.Thumbnails.Single(t => t.SlideNumber == 1).IsCurrent.Should().BeTrue();
+
+        await vm.LoadAsync("deck.pptx", 3, 800, 600); // 슬라이드 3 으로 이동
+
+        vm.Thumbnails.Single(t => t.SlideNumber == 3).IsCurrent.Should().BeTrue("이동 후 강조도 이동");
+        vm.Thumbnails.Single(t => t.SlideNumber == 1).IsCurrent.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Clear_AlsoClearsThumbnails()
+    {
+        var vm = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
+        await vm.LoadAsync("deck.pptx", 1, 800, 600);
+        await vm.LoadThumbnailsAsync("deck.pptx", 3, 200, 112);
+        vm.Thumbnails.Should().NotBeEmpty();
+
+        vm.Clear();
+
+        vm.Thumbnails.Should().BeEmpty("덱 미리보기를 비우면 썸네일 스트립도 비운다");
     }
 
     private static ImageSource CreateDummyImage()
