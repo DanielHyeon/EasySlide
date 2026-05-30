@@ -81,6 +81,16 @@
                             <TextBlock Text="라이브러리" />
                         </StackPanel>
                     </Button>
+                    <Button Click="OpenManageWorshipLists_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="예배 순서 저장/불러오기"
+                            AutomationProperties.Name="예배 순서 관리"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
+                            <TextBlock Text="순서" />
+                        </StackPanel>
+                    </Button>
                     <Button Click="OpenExternalFiles_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="외부 파일 복사/이동"

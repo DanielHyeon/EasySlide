@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,6 +25,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IDisplayService _display;
     private readonly ICommandCatalog _commandCatalog;
     private readonly ISettingsService _settings;
+    private readonly IWorshipListStore _worshipLists;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
@@ -62,7 +64,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ICommandCatalog commandCatalog,
         ISettingsService settings,
         MediaPlaybackViewModel media,
-        Rendering.PowerPointPreviewViewModel powerPoint)
+        Rendering.PowerPointPreviewViewModel powerPoint,
+        IWorshipListStore worshipLists)
     {
         _session = session;
         _output = output;
@@ -71,6 +74,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _display = display;
         _commandCatalog = commandCatalog;
         _settings = settings;
+        _worshipLists = worshipLists;
         Media = media;
         PowerPoint = powerPoint;
 
@@ -164,6 +168,66 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"곡 추가됨: {song.Title}";
         NotifyCommandStates();
         return item;
+    }
+
+    /// <summary>저장된 예배 순서(워십 리스트) 이름 목록(레거시 FrmManageItemLists 대응 — G2).</summary>
+    public IReadOnlyList<string> GetSavedWorshipLists() => _worshipLists.ListNames();
+
+    /// <summary>현재 예배 순서(큐)를 이름으로 저장한다.</summary>
+    public async Task SaveWorshipListAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            StatusText = "저장할 예배 순서 이름을 입력하세요.";
+            return;
+        }
+
+        try
+        {
+            await _worshipLists.SaveAsync(name.Trim(), Queue.ToArray()).ConfigureAwait(true);
+            StatusText = $"예배 순서 저장됨: {name.Trim()} ({Queue.Count}개)";
+        }
+        catch (ArgumentException)
+        {
+            StatusText = "예배 순서 이름에 사용할 수 없는 문자가 있습니다.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // async void 핸들러로 새지 않도록 IO 실패를 status 로 변환(앱 크래시 방지).
+            StatusText = $"예배 순서 저장 실패: {ex.Message}";
+        }
+    }
+
+    /// <summary>저장된 예배 순서를 불러와 현재 큐를 교체한다.</summary>
+    public async Task LoadWorshipListAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        try
+        {
+            var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
+            LoadQueue(items);
+            StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"예배 순서 불러오기 실패: {ex.Message}";
+        }
+    }
+
+    /// <summary>저장된 예배 순서를 삭제한다.</summary>
+    public void DeleteWorshipList(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        _worshipLists.Delete(name.Trim());
+        StatusText = $"예배 순서 삭제됨: {name.Trim()}";
     }
 
     public void BindShortcuts(ShortcutRegistry registry)
