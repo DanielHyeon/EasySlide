@@ -10,6 +10,7 @@ using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Data;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Shell;
@@ -205,6 +206,78 @@ public class MainViewModelTests
         inserted.Should().BeNull();
         sut.Queue.Should().Equal(original);
         sut.StatusText.Should().Be("선택된 성경 구절이 없습니다.");
+    }
+
+    [Fact]
+    public void AddSong_InsertsAfterCurrentSelectionAndSelectsInsertedItem()
+    {
+        // 라이브 큐 plumbing: 라이브러리에서 고른 실제 곡을 예배 순서에 추가(AddBibleSelection 과 동일 규칙).
+        var sut = CreateSut();
+        var opener = new LiveQueueItem("a", "Opening", "Notice");
+        var sermon = new LiveQueueItem("b", "Sermon", "Bible");
+        sut.LoadQueue([opener, sermon]);
+        sut.SelectedItem = opener;
+        var song = new SongSummary(
+            SongId: 42, Title: "Amazing Grace", AlternateTitle: "", FolderNo: 1,
+            SongNumber: 1, Category: "", Key: "G", Lyrics: "Amazing grace...");
+
+        var inserted = sut.AddSong(song);
+
+        inserted.Should().NotBeNull();
+        inserted!.Id.Should().Be("song:42");
+        inserted.Title.Should().Be("Amazing Grace");
+        inserted.Kind.Should().Be("Song");
+        sut.Queue.Should().Equal(opener, inserted, sermon);
+        sut.SelectedItem.Should().Be(inserted);
+        sut.StatusText.Should().Contain("곡 추가됨");
+    }
+
+    [Fact]
+    public void AddSong_WhenNull_DoesNotChangeQueue()
+    {
+        var sut = CreateSut();
+        var original = sut.Queue.ToArray();
+
+        var inserted = sut.AddSong(null);
+
+        inserted.Should().BeNull();
+        sut.Queue.Should().Equal(original);
+        sut.StatusText.Should().Be("선택된 곡이 없습니다.");
+    }
+
+    [Fact]
+    public void AddSong_WhenNoSelection_AppendsToEndOfQueue()
+    {
+        // 선택 항목이 없으면 큐 끝에 추가(insertIndex = Queue.Count 분기).
+        var sut = CreateSut();
+        var first = new LiveQueueItem("a", "First", "Notice");
+        sut.LoadQueue([first]);
+        sut.SelectedItem = null;
+        var song = new SongSummary(
+            SongId: 7, Title: "Hymn", AlternateTitle: "", FolderNo: 1,
+            SongNumber: 1, Category: "", Key: "C", Lyrics: "");
+
+        var inserted = sut.AddSong(song);
+
+        inserted.Should().NotBeNull();
+        sut.Queue.Should().Equal(first, inserted!);
+    }
+
+    [Fact]
+    public void AddSong_WhenTitleBlank_DoesNotChangeQueue()
+    {
+        // 제목이 공백뿐인 곡도 추가하지 않는다(가드 경계).
+        var sut = CreateSut();
+        var original = sut.Queue.ToArray();
+        var song = new SongSummary(
+            SongId: 7, Title: "   ", AlternateTitle: "", FolderNo: 1,
+            SongNumber: 1, Category: "", Key: "", Lyrics: "");
+
+        var inserted = sut.AddSong(song);
+
+        inserted.Should().BeNull();
+        sut.Queue.Should().Equal(original);
+        sut.StatusText.Should().Be("선택된 곡이 없습니다.");
     }
 
     [Fact]

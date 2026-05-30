@@ -143,6 +143,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
+    /// <summary>
+    /// 라이브러리에서 고른 실제 곡을 예배 순서(큐)에 추가한다(라이브 큐 도메인 plumbing — placeholder 대체 기반).
+    /// 선택 항목 바로 뒤에 삽입하고 새 항목을 선택. AddBibleSelection 과 동일 규칙.
+    /// </summary>
+    public LiveQueueItem? AddSong(Data.SongSummary? song)
+    {
+        if (song is null || string.IsNullOrWhiteSpace(song.Title))
+        {
+            StatusText = "선택된 곡이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, "Song");
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"곡 추가됨: {song.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
     public void BindShortcuts(ShortcutRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
