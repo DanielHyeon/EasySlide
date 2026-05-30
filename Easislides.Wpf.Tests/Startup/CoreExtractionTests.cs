@@ -31,6 +31,27 @@ public class CoreExtractionTests
     }
 
     [Fact]
+    public void SongFormat_Lives_In_Easislides_Core_Assembly()
+    {
+        // Phase 2: SongFormat 표시형식 도메인 모델도 공통 어셈블리 Easislides.Core 로 이동(§9.4).
+        typeof(SongFormat).Assembly.GetName().Name.Should().Be("Easislides.Core",
+            "SongFormat 은 Phase 2 에서 Easislides.Core 로 이동해야 함 (§9.4)");
+        typeof(SongFormat).Namespace.Should().Be("Easislides.Module",
+            "네임스페이스 유지 = legacy 사용처 무수정 컴파일");
+    }
+
+    [Fact]
+    public void SongFormat_Colours_Are_Decoupled_From_System_Drawing()
+    {
+        // 옵션 B: 색상은 System.Drawing.Color 가 아니라 ARGB int 로 보관 → Core 포터블 유지.
+        // (Color.ToArgb()/FromArgb(int) 로 경계에서 변환. 영속 데이터(헤더 정수)와도 호환.)
+        typeof(SongFormat).GetField(nameof(SongFormat.ShowScreenColour))!.FieldType
+            .Should().Be(typeof(int[]), "배경색은 ARGB int[] 로 디커플");
+        typeof(SongFormat).GetField(nameof(SongFormat.ShowFontColour))!.FieldType
+            .Should().Be(typeof(int[]), "글자색은 ARGB int[] 로 디커플");
+    }
+
+    [Fact]
     public void Core_Does_Not_Reference_WindowsForms_Or_Drawing()
     {
         // Core 는 포터블 도메인이어야 한다(net10.0). WinForms/System.Drawing 결합이 새어들면

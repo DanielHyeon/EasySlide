@@ -1430,11 +1430,12 @@ namespace Easislides
             stringBuilder.Append(Convert.ToString(23) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowSongHeadingsAlign) + '>');
             stringBuilder.Append(Convert.ToString(22) + "=" + num4.ToString() + '>');
             stringBuilder.Append(Convert.ToString(25) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowLyrics) + '>');
-            stringBuilder.Append(Convert.ToString(26) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowScreenColour[0].ToArgb()) + '>');
-            stringBuilder.Append(Convert.ToString(27) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowScreenColour[1].ToArgb()) + '>');
+            // SongFormat 색상은 이미 ARGB int 라 그대로 직렬화(과거 .ToArgb() 와 동일 값).
+            stringBuilder.Append(Convert.ToString(26) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowScreenColour[0]) + '>');
+            stringBuilder.Append(Convert.ToString(27) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowScreenColour[1]) + '>');
             stringBuilder.Append(Convert.ToString(28) + "=" + Gf.PreviewItem.Format.ShowScreenStyle.ToString() + '>');
-            stringBuilder.Append(Convert.ToString(29) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontColour[0].ToArgb()) + '>');
-            stringBuilder.Append(Convert.ToString(30) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontColour[1].ToArgb()) + '>');
+            stringBuilder.Append(Convert.ToString(29) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontColour[0]) + '>');
+            stringBuilder.Append(Convert.ToString(30) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontColour[1]) + '>');
             stringBuilder.Append(Convert.ToString(31) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontAlign[0]) + '>');
             stringBuilder.Append(Convert.ToString(32) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontAlign[1]) + '>');
             stringBuilder.Append(Convert.ToString(41) + "=" + num.ToString() + '>');
@@ -1485,12 +1486,12 @@ namespace Easislides
                 Gf.UpdatePosUpDowns(ref Ind_Reg1TopUpDown, ref Ind_Reg2TopUpDown, ref Ind_BottomUpDown, ref Gf.PreviewItem.Format.ShowFontVPosition[0], ref Gf.PreviewItem.Format.ShowFontVPosition[1], Gf.PreviewItem.Format.ShowBottomMargin);
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.BackgroundMode == ImageMode.Tile) ? Ind_ImageTile.Name : ((Gf.PreviewItem.Format.BackgroundMode != ImageMode.Centre) ? Ind_ImageBestFit.Name : Ind_ImageCentre.Name), SelectedBtn: ref Ind_ImageMode, InMenuItem1: Ind_ImageTile, InMenuItem2: Ind_ImageCentre, InMenuItem3: Ind_ImageBestFit);
                 Ind_NoImage.Enabled = ((Gf.PreviewItem.Format.BackgroundPicture != "") ? true : false);
-                Ind_BackColour.ForeColor = Gf.PreviewItem.Format.ShowScreenColour[0];
+                Ind_BackColour.ForeColor = Color.FromArgb(Gf.PreviewItem.Format.ShowScreenColour[0]);
                 Ind_R1Bold.Checked = ((Gf.PreviewItem.Format.ShowFontBold[0] > 0) ? true : false);
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.ShowFontItalic[0] > 0 && Gf.PreviewItem.Format.ShowFontItalic[2] > 0) ? Ind_R1Italics1.Name : ((Gf.PreviewItem.Format.ShowFontItalic[2] <= 0) ? Ind_R1Italics0.Name : Ind_R1Italics2.Name), SelectedBtn: ref Ind_R1Italics, InMenuItem1: Ind_R1Italics0, InMenuItem2: Ind_R1Italics1, InMenuItem3: Ind_R1Italics2);
                 Ind_R1Underline.Checked = ((Gf.PreviewItem.Format.ShowFontUnderline[0] > 0) ? true : false);
                 text = ((Gf.PreviewItem.Format.ShowFontAlign[0] == 1) ? Ind_R1AlignLeft.Name : ((Gf.PreviewItem.Format.ShowFontAlign[0] != 2) ? Ind_R1AlignRight.Name : Ind_R1AlignCentre.Name));
-                Ind_R1Colour.ForeColor = Gf.PreviewItem.Format.ShowFontColour[0];
+                Ind_R1Colour.ForeColor = Color.FromArgb(Gf.PreviewItem.Format.ShowFontColour[0]);
                 Gf.AssignDropDownItem(ref Ind_R1Align, text, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
                 Ind_Reg1FontsList.Text = Gf.PreviewItem.Format.ShowFontName[0];
                 Ind_Reg1SizeUpDown.Value = Gf.PreviewItem.Format.ShowFontSize[0];
@@ -1498,7 +1499,7 @@ namespace Easislides
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.ShowFontItalic[1] > 0 && Gf.PreviewItem.Format.ShowFontItalic[3] > 0) ? Ind_R2Italics1.Name : ((Gf.PreviewItem.Format.ShowFontItalic[3] <= 0) ? Ind_R2Italics0.Name : Ind_R2Italics2.Name), SelectedBtn: ref Ind_R2Italics, InMenuItem1: Ind_R2Italics0, InMenuItem2: Ind_R2Italics1, InMenuItem3: Ind_R2Italics2);
                 Ind_R2Underline.Checked = ((Gf.PreviewItem.Format.ShowFontUnderline[1] > 0) ? true : false);
                 text = ((Gf.PreviewItem.Format.ShowFontAlign[1] == 1) ? Ind_R2AlignLeft.Name : ((Gf.PreviewItem.Format.ShowFontAlign[1] != 2) ? Ind_R2AlignRight.Name : Ind_R2AlignCentre.Name));
-                Ind_R2Colour.ForeColor = Gf.PreviewItem.Format.ShowFontColour[1];
+                Ind_R2Colour.ForeColor = Color.FromArgb(Gf.PreviewItem.Format.ShowFontColour[1]);
                 Gf.AssignDropDownItem(ref Ind_R2Align, text, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
                 Ind_Reg2FontsList.Text = Gf.PreviewItem.Format.ShowFontName[1];
                 Ind_Reg2SizeUpDown.Value = Gf.PreviewItem.Format.ShowFontSize[1];
