@@ -127,7 +127,7 @@
 ## 4. 갭 분류 (성격별)
 
 ### G-α. 렌더링 충실도 갭 (라이브 핵심 · 최우선)
-- **PPT 썸네일/슬라이드 렌더**: `MainWindow` PowerPoint 탭이 `"Decks: {N} / Limit: {M}"` 텍스트 placeholder([MainWindow.xaml:220-236](../../Easislides.Wpf/MainWindow.xaml#L220)). 실제 썸네일 스트립·슬라이드 출력 미구현.
+- **PPT 슬라이드 렌더**: 🟡 **부분 완료** — 단일 슬라이드는 실제 Office Interop(`OfficePptSession`, STA 워커, JPG export)로 렌더돼 운영자 PowerPoint 탭(`PowerPoint.PreviewImage`)에 표시되고, **GoLive 시 출력 창에도 송출**된다(2026-05-30, 신원 가드로 stale 슬라이드 방지). **남은 것: (1) 썸네일 스트립(덱 전체 슬라이드) 미구현, (2) 출력은 미리보기 해상도(960×540) 재사용 — 출력 모니터 해상도 재렌더 후속, (3) 라이브 중 슬라이드 이동 시 출력 갱신 후속.**
 - **미디어 재생 UI**: ✅ **연결 완료(2026-05-30, PR #48)** — orphaned 였던 `MediaPlaybackViewModel` 을 MainWindow Media 탭에 바인딩(G1.2)하고, 라이브 큐 선택→`MediaPlaybackService`→`AttachableMediaPlaybackBackend`(생명주기 브리지)→출력 창 `MediaElement` 로 실제 재생 체인을 연결(트랙1~3). 비-미디어 항목 전환 시 `Unload` 로 출력에서 미디어를 내려 가사 복귀(출력 패리티). **남은 것: 코덱·오디오/싱크·라이브 카메라 캡처의 라이브 패리티 미검증**(아래 출력 렌더 패리티와 함께 G1.4 스크린샷 회귀로 고정 대상).
 - **출력 렌더 패리티**: `OutputWindow` 의 가사/성경/배경 실제 렌더가 레거시(`gfDisplay`/`gfLyrics` GDI+ 경로)와 동등한지 미검증.
 
@@ -183,7 +183,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] README stale 갱신(G0-3) — **완료**
 - [x] 스크린샷 회귀 PoC(G1.1) — **완료**(인프라·light/dark 기준·CI 구축, [screenshot-regression.md](screenshot-regression.md))
 - [x] 미디어 재생 UI 연결(G1.3) — **완료**(트랙1~3, PR #48: 라이브 큐→서비스→브리지→출력 `MediaElement` + 비-미디어 전환 시 `Unload`)
-- [ ] **다음 결정 대상**: G1.2 PPT 썸네일/슬라이드 렌더(placeholder 대체) 또는 G1.4 출력 렌더 패리티(스크린샷 기준 확대) 중 착수 선택
+- [x] G1.2 PPT 슬라이드 출력 송출 — **완료**(2026-05-30: 단일 슬라이드 렌더는 기존 완료, GoLive 시 출력 창 송출 추가 + 신원 가드로 stale 방지)
+- [ ] **다음 결정 대상**: PPT 썸네일 스트립/출력 해상도 재렌더(G1.2 후속) 또는 G1.4 출력 렌더 패리티(스크린샷 기준 확대) 중 착수 선택
 
 ## 7. 참조
 - 도메인 계획: [01-shell-live-operations](01-shell-live-operations.md) ~ [06-verification-test-plan](06-verification-test-plan.md)

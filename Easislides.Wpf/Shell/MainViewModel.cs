@@ -564,11 +564,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        _session.GoLive(SelectedItem, monitorName);
+        _session.GoLive(ResolveLiveProjection(SelectedItem), monitorName);
         StatusText = $"LIVE: {SelectedItem.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         AdvanceSelectionAfterPublish(SelectedItem);
         NotifyCommandStates();
+    }
+
+    // 출력 송출 항목 결정 — PPT 항목이고 슬라이드 렌더가 준비됐으면, 미리보기 탭에만 있던
+    // 렌더 이미지를 출력 창에도 송출하도록 PreviewSource 에 실은 복사본을 만든다(G1.2 출력 송출).
+    // LiveQueueItem 은 불변(init) 이므로 큐를 건드리지 않고 with 로 전이 복사본만 만든다.
+    // (복사본은 큐에 넣지 않는다 — IndexOf/자동 다음 항목은 원본 SelectedItem 기준이어야 함.)
+    //
+    // 신원 가드: 렌더는 항목 선택 시 fire-and-forget 로 돌아가므로, 빠른 전환 경쟁에서 PreviewImage 가
+    // "다른 항목"의 stale 슬라이드일 수 있다. 그래서 단순히 Ready 인지가 아니라, VM 이 마지막으로 성공
+    // 렌더한 (파일경로, 슬라이드)가 송출 항목과 실제로 일치할 때만 슬라이드를 싣는다. 불일치/미준비면
+    // 타이틀만 송출(안전 강등) — 잘못된 슬라이드가 출력에 나가지 않도록.
+    private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
+    {
+        var requestedSlide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
+        if (IsPowerPointItem(item)
+            && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && PowerPoint.PreviewImage is not null
+            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase)
+            && PowerPoint.SlideNumber == requestedSlide)
+        {
+            return item with
+            {
+                PreviewSource = PowerPoint.PreviewImage,
+                PreviewFillMode = Rendering.ImageFillMode.Fit,
+            };
+        }
+
+        return item;
     }
 
     private void AdvanceSelectionAfterPublish(LiveQueueItem publishedItem)

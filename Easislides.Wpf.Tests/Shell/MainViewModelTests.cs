@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
@@ -444,6 +445,111 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLive_PowerPointItemWithRenderedSlide_ProjectsSlideToOutput()
+    {
+        // G1.2 출력 송출: 렌더된 PPT 슬라이드가 운영자 미리보기뿐 아니라 GoLive 시 출력 창에도 송출돼야 한다
+        // (지금까지는 출력엔 타이틀만 나갔음 — PreviewSource 가 프로덕션에서 설정되지 않았기 때문).
+        var expectedSlide = new DrawingImage();
+        expectedSlide.Freeze();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => expectedSlide);
+        await powerPoint.LoadAsync("deck.pptx", 1, 960, 540);
+        powerPoint.State.Should().Be(PowerPointPreviewState.Ready);
+
+        var sut = CreateSut(powerPoint: powerPoint);
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        sut.LoadQueue(new[] { ppt });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = ppt;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(expectedSlide,
+            "PPT 항목 GoLive 시 렌더된 슬라이드가 출력 송출 슬롯에 실려야 함");
+        sut.Session.Current.CurrentItemPreviewFillMode.Should().Be(ImageFillMode.Fit, "PPT 슬라이드는 레터박스(Fit) 송출");
+    }
+
+    [Fact]
+    public async Task GoLive_PowerPointItemWithoutReadyRender_ProjectsTitleOnly()
+    {
+        // 렌더 미준비(실패·미적재)면 기존 동작 유지 — 출력엔 타이틀만(슬라이드 미송출).
+        var sut = CreateSut(); // 기본 StubPowerPointRenderService → 렌더 실패(State=Failed)
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        sut.LoadQueue(new[] { ppt });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = ppt;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeNull("렌더 미준비면 슬라이드를 송출하지 않음(타이틀만)");
+    }
+
+    [Fact]
+    public async Task GoLive_PowerPointItem_WhileRenderInFlight_ProjectsTitleNotStaleSlide()
+    {
+        // 라이브 중 빠른 전환 경쟁: 항목 선택 시 렌더는 fire-and-forget 으로 돌아가므로 송출 시점에
+        // 아직 렌더가 끝나지 않았을 수 있다. 이때 (이전 항목의) stale 슬라이드가 아니라 타이틀만 나가야 한다.
+        using var gate = new GatedPowerPointRenderService();
+        var powerPoint = new PowerPointPreviewViewModel(gate, _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        sut.LoadQueue(new[] { ppt });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = ppt; // 렌더 시작 → 게이트에 막혀 Rendering 상태로 멈춤
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        powerPoint.State.Should().Be(PowerPointPreviewState.Rendering, "게이트로 렌더가 미완 상태여야 경쟁을 재현");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeNull("렌더 미완 중엔 슬라이드를 송출하지 않음(타이틀만)");
+
+        gate.Release(); // 정리 — 대기 중 렌더 완료시켜 누수 방지
+    }
+
+    [Fact]
+    public async Task GoLive_SecondPowerPointItem_ProjectsItsOwnSlideNotPrevious()
+    {
+        // 긍정 전환(신원 일치 분기): 두 번째 PPT 항목 송출 시 이전 덱(A)이 아니라 그 항목(B)의
+        // 현재 렌더 슬라이드가 출력에 실려야 한다. 동기 렌더라 선택 즉시 Ready(해당 덱)가 된다.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        var deckA = new LiveQueueItem("ppt:a", "Deck A", "PowerPoint") { ContentPath = "deckA.pptx" };
+        var deckB = new LiveQueueItem("ppt:b", "Deck B", "PowerPoint") { ContentPath = "deckB.pptx" };
+        sut.LoadQueue(new[] { deckA, deckB });
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.SelectedItem = deckA;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = deckB;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        powerPoint.LoadedContentPath.Should().Be("deckB.pptx", "전환 후 B 가 로드됨");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
+            "두 번째 PPT 송출 시 그 항목(B)의 현재 슬라이드가 출력에 실려야 함(A stale 아님)");
+    }
+
+    [Fact]
+    public async Task GoLive_PowerPointAliasKind_DoesNotProjectPreviouslyRenderedSlide()
+    {
+        // "PowerPoint" 정규값만 렌더가 디스패치되지만 IsPowerPointItem 은 별칭("PPT"/"P")도 받는다.
+        // 별칭 항목 선택 시엔 렌더가 안 돌고 미리보기가 비워지므로(Clear), 이전에 렌더된 다른 덱의
+        // 슬라이드가 별칭 항목 타이틀 아래로 잘못 송출되면 안 된다.
+        var firstSlide = Frozen();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => firstSlide);
+        await powerPoint.LoadAsync("deckA.pptx", 1, 960, 540); // 이전 덱 렌더 완료(Ready)
+        powerPoint.State.Should().Be(PowerPointPreviewState.Ready);
+
+        var sut = CreateSut(powerPoint: powerPoint);
+        var alias = new LiveQueueItem("ppt:alias", "Deck B", "PPT") { ContentPath = "deckB.pptx" };
+        sut.LoadQueue(new[] { alias });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = alias;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeNull("별칭 항목은 이전 덱 슬라이드를 송출하지 않음(신원 불일치)");
+    }
+
+    [Fact]
     public void SelectingPowerPointItem_ThroughSetter_DrivesPreviewLoad()
     {
         // fire-and-forget 배선 검증: SelectedItem setter → OnSelectedItemChanged → 디스패치.
@@ -702,13 +808,14 @@ public class MainViewModelTests
         IDisplayService? display = null,
         ICommandCatalog? commandCatalog = null,
         ISettingsService? settings = null,
-        IWorshipListStore? worshipLists = null)
+        IWorshipListStore? worshipLists = null,
+        PowerPointPreviewViewModel? powerPoint = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
         var telemetry = new InMemoryCommandTelemetry();
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
-        var powerPoint = new PowerPointPreviewViewModel(new StubPowerPointRenderService());
+        powerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());
         return new MainViewModel(
             session,
             output,
@@ -743,7 +850,7 @@ public class MainViewModelTests
         public void Delete(string name) => _store.Remove(name);
     }
 
-    // MainViewModel 은 PowerPoint VM 을 노출만 하고 렌더를 호출하지 않으므로, 실패 결과만 내는 스텁이면 충분.
+    // 렌더 실패만 내는 스텁(대부분 테스트는 PPT 렌더 성공이 필요 없음 — 실패 시 타이틀 송출 경로).
     private sealed class StubPowerPointRenderService : IPowerPointRenderService
     {
         public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
@@ -753,6 +860,54 @@ public class MainViewModelTests
         public void ClearCache()
         {
         }
+    }
+
+    // 렌더 성공을 내는 스텁 — 슬라이드 출력 송출(G1.2) 경로 검증용.
+    private sealed class SuccessPowerPointRenderService : IPowerPointRenderService
+    {
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(SuccessResult(request));
+
+        public void ClearCache()
+        {
+        }
+    }
+
+    // 렌더를 게이트로 붙잡아 두는 스텁 — Release() 전까지 미완(Rendering) 상태를 재현(경쟁 테스트용).
+    private sealed class GatedPowerPointRenderService : IPowerPointRenderService, IDisposable
+    {
+        private readonly TaskCompletionSource _gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Release() => _gate.TrySetResult();
+
+        public async Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+        {
+            await _gate.Task.ConfigureAwait(false);
+            return SuccessResult(request);
+        }
+
+        public void ClearCache()
+        {
+        }
+
+        public void Dispose() => _gate.TrySetResult();
+    }
+
+    private static PowerPointRenderResult SuccessResult(PowerPointRenderRequest request)
+        => new(
+            PowerPointRenderErrorKind.None,
+            new PowerPointSlideSnapshot(
+                request.FilePath, request.SlideNumber, SlideCount: 3,
+                request.PixelWidth, request.PixelHeight,
+                ImageBytes: [1, 2, 3], ContentType: "image/jpeg", DateTimeOffset.UnixEpoch),
+            ErrorMessage: null, FromCache: false, Elapsed: TimeSpan.Zero);
+
+    // 테스트용 frozen ImageSource(텍스트/STA 불필요한 DrawingImage — 디코더 주입으로 PreviewImage 대체).
+    private static ImageSource Frozen()
+    {
+        var image = new DrawingImage();
+        image.Freeze();
+        return image;
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt
