@@ -1140,6 +1140,30 @@ public class MainViewModelTests
         sut.ActiveAppearanceName.Should().Be("사용자 지정");
     }
 
+    [Fact]
+    public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
+    {
+        // 인라인 콘텐츠 브라우저(§7.5 P0): 별도 LibraryWindow 없이 라이브러리 선택 곡을 예배 순서에 추가.
+        var sut = CreateSut();
+        sut.Library.SelectedSong = new SongSummary(42, "은혜로다", "", 1, 1, "찬양", "G", "1절 가사");
+
+        sut.AddSelectedLibrarySongCommand.Execute(null);
+
+        sut.Queue.Should().Contain(i => i.Id == "song:42" && i.Title == "은혜로다" && i.Lyrics == "1절 가사");
+        sut.SelectedItem!.Id.Should().Be("song:42", "추가한 곡이 선택됨");
+    }
+
+    [Fact]
+    public void AddSelectedLibrarySongCommand_CanExecute_ReflectsLibrarySelection()
+    {
+        var sut = CreateSut();
+        sut.AddSelectedLibrarySongCommand.CanExecute(null).Should().BeFalse("초기엔 라이브러리 선택 곡 없음");
+
+        sut.Library.SelectedSong = new SongSummary(1, "곡", "", 1, 1, "", "", "");
+
+        sut.AddSelectedLibrarySongCommand.CanExecute(null).Should().BeTrue("곡 선택 시 추가 활성");
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
@@ -1153,6 +1177,9 @@ public class MainViewModelTests
         var telemetry = new InMemoryCommandTelemetry();
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
         powerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());
+        var resolvedSettings = settings ?? TempSettingsFolder.CreateDetachedSettings();
+        // 라이브러리 VM — 테스트는 DB 경로 미설정이라 실제 repo 메서드가 호출되지 않는다(빈 라이브러리).
+        var library = new LibraryViewModel(resolvedSettings, new AdminDatabaseRepository());
         return new MainViewModel(
             session,
             output,
@@ -1160,9 +1187,10 @@ public class MainViewModelTests
             telemetry,
             display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback),
             commandCatalog ?? new CommandCatalog(),
-            settings ?? TempSettingsFolder.CreateDetachedSettings(),
+            resolvedSettings,
             media,
             powerPoint,
+            library,
             worshipLists ?? new InMemoryWorshipListStore());
     }
 

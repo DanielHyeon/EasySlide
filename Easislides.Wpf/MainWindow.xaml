@@ -193,8 +193,76 @@
                 <ColumnDefinition Width="340" />
             </Grid.ColumnDefinitions>
 
-            <!-- 예배 순서 목록 — 재사용 컴포지트로 분리(§5.2). DataContext(MainViewModel) 상속. -->
-            <composites:WorshipListPanel Grid.Column="0" />
+            <!-- 좌측: 예배 순서 + 인라인 라이브러리 브라우저 탭(§7.5 P0 — 별도 LibraryWindow 없이 셸에서 곡 찾아 추가). -->
+            <TabControl Grid.Column="0"
+                        x:Name="LeftBrowserTabs"
+                        SelectionChanged="LeftBrowserTabs_SelectionChanged"
+                        BorderThickness="0"
+                        Background="Transparent">
+                <TabItem Header="예배 순서">
+                    <!-- 재사용 컴포지트(§5.2). DataContext(MainViewModel) 상속. -->
+                    <composites:WorshipListPanel />
+                </TabItem>
+                <TabItem Header="라이브러리"
+                         Tag="Library">
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,0,0,8">
+                            <Button Command="{Binding Library.LoadCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Margin="0,0,8,0"
+                                    Content="불러오기"
+                                    AutomationProperties.Name="라이브러리 불러오기" />
+                            <Button Command="{Binding AddSelectedLibrarySongCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    Content="예배 순서에 추가"
+                                    AutomationProperties.Name="선택 곡을 예배 순서에 추가" />
+                        </StackPanel>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{Binding Library.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="34"
+                                 Margin="0,0,0,8"
+                                 ToolTip="제목·가사·분류 검색"
+                                 AutomationProperties.Name="곡 검색" />
+
+                        <ComboBox Grid.Row="2"
+                                  ItemsSource="{Binding Library.Folders}"
+                                  SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
+                                  DisplayMemberPath="Name"
+                                  MinHeight="34"
+                                  Margin="0,0,0,8"
+                                  AutomationProperties.Name="폴더 선택" />
+
+                        <ListBox Grid.Row="3"
+                                 ItemsSource="{Binding Library.Songs}"
+                                 SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
+                                 DisplayMemberPath="Title"
+                                 AutomationProperties.Name="곡 목록">
+                            <ListBox.InputBindings>
+                                <!-- 더블클릭으로 예배 순서에 추가(선택 후 추가). -->
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                              Command="{Binding AddSelectedLibrarySongCommand}" />
+                            </ListBox.InputBindings>
+                        </ListBox>
+
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding Library.StatusMessage}"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
 
             <Border Grid.Column="2"
                     Background="{DynamicResource Brush.Surface.Card}"
