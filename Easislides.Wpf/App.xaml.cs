@@ -12,6 +12,7 @@ using Easislides.Wpf.Platform;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
+using Easislides.Wpf.Startup;
 using Easislides.Wpf.Support;
 using Easislides.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -143,10 +144,42 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnDomainException;
         TaskScheduler.UnobservedTaskException += OnTaskException;
 
+        var startup = new StartupArguments(e.Args);
+
+        // --legacy-ui 안전망 (ADR-0007): 신규 빌드에서 legacy WinForms 앱으로 즉시 롤백.
+        // legacy 실행 파일을 찾아 시작하면 WPF UI 를 띄우지 않고 종료한다.
+        // 찾지 못하거나 시작에 실패하면 경고 후 신규 UI 로 계속 — 사용자가 빈손이 되지 않도록.
+        // 주의: 이 분기에서는 DI 컨테이너/MainWindow 를 절대 초기화하지 않는다(Launched 시 즉시 종료).
+        // 런처는 결과 enum 으로만 보고하고 throw 하지 않지만, 안전망이 시작을 깨지 않도록 한 번 더 방어.
+        if (startup.UseLegacyUi)
+        {
+            var outcome = LegacyUiLaunchOutcome.LaunchFailed;
+            try
+            {
+                outcome = LegacyUiLauncher.CreateDefault().LaunchIfRequested(true);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LEGACY-UI] 안전망 예외(무시하고 신규 UI 계속): {ex}");
+            }
+
+            if (outcome == LegacyUiLaunchOutcome.Launched)
+            {
+                Shutdown();
+                return;
+            }
+
+            MessageBox.Show(
+                $"이전(legacy) UI({LegacyUiLauncher.LegacyExecutableName})를 시작하지 못했습니다.\n\n신규 UI로 계속 시작합니다.",
+                "EasiSlides — legacy UI",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+
         // DI 컨테이너 구성
         var services = new ServiceCollection();
         var settingsOptions = SettingsServiceOptions.CreateDefault();
-        var useDemo = Array.Exists(e.Args, arg => string.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase));
+        var useDemo = startup.UseDemo;
         ConfigureServices(services, settingsOptions, Current.Dispatcher);
 
         Services = services.BuildServiceProvider();
