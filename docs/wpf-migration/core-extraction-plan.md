@@ -76,8 +76,17 @@
 - 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 454(WPF) green(SongSettingsBase 위치·`Format`/`Source`·ListView/Lyrics/Initialise 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0 — 필드 분할 67=65+2, 초기값·`Initialise()` 본문 byte-identical 교차검증).
 - 후속(비범위): `Initialise()` 의 local `songFormat` 미대입(기존 죽은 코드)은 relocation 계약 보존 위해 이번엔 손대지 않음 — relocation 단계 종료 후 별도 정리 검토.
 
-### Phase 4 — WPF 가 Core 소비 / 개념 중복 제거 (선택·후순위)
-- WPF 가 자체 enum 대신 Core enum 을 쓰도록 점진 통합. 회귀 위험이 있어 컴포지트·스크린샷 안전망 위에서 1종씩.
+### Phase 4 — WPF enum 개념 중복 (완료 · 분리 유지로 종결)
+- **조사 결과**: WPF enum 대부분은 WPF 전용(서비스 계층 Issue/Import/Asset 등)이라 Core 와 무관. Core 와 개념적으로 겹치는 후보 비교:
+
+| Core enum | WPF enum | 일치 | 판정 |
+|---|---|---|---|
+| `GapType`(None=0/Black=1/Default=2/User=3) | `GapItemMode`(동일 값) | 정확 1:1 | `SettingKey<>`·`LegacySettingsMap`·설정 UI 결합 깊음 |
+| `ImageMode`(Tile/Centre/BestFit) | `ImageFillMode`(Fit/Fill/Stretch/Center) | 부분 | 멤버 상이(WPF 풍부) |
+| `PlayState` | `MediaPlaybackState` | 부분 | 멤버 상이 |
+| `MediaBackgroundStyle` | `TransitionBackgroundMode` | 부분 | 상이 |
+
+- **결정: 분리 유지**(ADR-0008). `Easislides.Wpf` 는 Core 를 참조하지 않으며(의도적 디커플, `LegacySettingsMap` 으로 레거시와 경계), 유일 정확 일치인 `GapItemMode` 도 영속화·마이그레이션·UI 에 박혀 있어 통합 시 신규 교차 결합 + 중간 규모 리팩토링 + 회귀 위험 대비 이득이 작다. 향후 신규 공유 개념이 생기면 Core 에 정의하고 양쪽이 소비(소비 시점 참조 원칙).
 
 ## 5. 위험과 완화
 

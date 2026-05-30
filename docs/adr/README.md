@@ -14,6 +14,7 @@
 | [ADR-0005](0005-options-decomposition.md) | FrmOptions 단일 모달 → Settings 페이지 분해 | Accepted | §6.4 |
 | [ADR-0006](0006-senior-mode-token-scale.md) | 시니어 모드 토큰 스케일 함수 (vs 별도 테마) | Accepted | Q2 |
 | [ADR-0007](0007-legacy-ui-safety-net.md) | `--legacy-ui` 안전망 유지 기간 (M3까지) | Accepted | Q8 |
+| [ADR-0008](0008-core-extraction-and-enum-decoupling.md) | `Easislides.Core` 추출 — 상속 분리 & WPF enum 디커플 유지 | Accepted | §9.4 |
 
 ## ADR 작성 규칙
 
