@@ -36,6 +36,13 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     [ObservableProperty] private int _slideNumber;
     [ObservableProperty] private int _slideCount;
 
+    /// <summary>
+    /// 마지막으로 "성공" 렌더한 PPT 파일 경로(없으면 null). 출력 송출 시 신원 확인용 —
+    /// 현재 PreviewImage 가 실제로 어느 파일의 슬라이드인지 확인해, 비동기 렌더 경쟁으로
+    /// 다른 항목의 stale 슬라이드가 잘못 송출되는 것을 막는다. SlideNumber 와 함께 신원을 이룬다.
+    /// </summary>
+    public string? LoadedContentPath { get; private set; }
+
     public PowerPointPreviewViewModel(IPowerPointRenderService render, Func<byte[], ImageSource>? imageDecoder = null)
     {
         _render = render ?? throw new ArgumentNullException(nameof(render));
@@ -78,6 +85,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
             PreviewImage = image;
             SlideNumber = slide.SlideNumber;
             SlideCount = slide.SlideCount;
+            LoadedContentPath = filePath; // 성공 렌더의 신원 기록(출력 송출 시 항목 일치 확인)
             State = PowerPointPreviewState.Ready;
             StatusText = $"슬라이드 {slide.SlideNumber}/{slide.SlideCount}";
         }
@@ -92,6 +100,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         PreviewImage = null;
         SlideNumber = 0;
         SlideCount = 0;
+        LoadedContentPath = null; // 실패 시 신원 무효화 — 이전 성공 슬라이드가 잘못 송출되지 않도록
         State = PowerPointPreviewState.Failed;
         StatusText = status;
     }
@@ -104,6 +113,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         StatusText = "PPT 없음";
         SlideNumber = 0;
         SlideCount = 0;
+        LoadedContentPath = null; // 신원 무효화
     }
 
     /// <summary>렌더된 PNG/JPEG 바이트를 frozen ImageSource 로 디코드(ImageAssetService 와 동일 방식).</summary>
