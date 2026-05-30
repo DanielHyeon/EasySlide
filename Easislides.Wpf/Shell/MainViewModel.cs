@@ -80,6 +80,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public LibraryViewModel Library { get; }
 
+    /// <summary>
+    /// 인라인 성경 브라우저 VM(버전·책·검색·구절). MainWindow 좌측 "성경" 탭이 바인딩한다
+    /// — 별도 BibleWindow 없이 셸에서 구절을 찾아 예배 순서에 추가(§7.5 P0 단일 콘솔 통합).
+    /// </summary>
+    public BibleViewModel Bible { get; }
+
     public MainViewModel(
         ILiveSessionService session,
         IOutputWindowService output,
@@ -91,6 +97,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MediaPlaybackViewModel media,
         Rendering.PowerPointPreviewViewModel powerPoint,
         LibraryViewModel library,
+        BibleViewModel bible,
         IWorshipListStore worshipLists)
     {
         _session = session;
@@ -103,6 +110,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _worshipLists = worshipLists;
         Media = media;
         Library = library;
+        Bible = bible;
         PowerPoint = powerPoint;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
