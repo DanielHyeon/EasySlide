@@ -85,6 +85,7 @@ public interface IMediaPlaybackService
     void Play();
     void Pause();
     void Stop();
+    void Unload();
     void Seek(TimeSpan position);
     void SetVolume(int volume);
     void SetBalance(int balance);
@@ -198,6 +199,30 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
         var next = Current with { State = MediaPlaybackState.Stopped, Position = TimeSpan.Zero };
         TryUpdate(next, _backend.Stop);
+    }
+
+    public void Unload()
+    {
+        // 이미 비어 있으면 할 일 없음(중복 백엔드 호출·이벤트 방지).
+        if (Current.State == MediaPlaybackState.Empty)
+        {
+            return;
+        }
+
+        // Unload 는 "무조건 화면에서 내린다"가 본질이라, Load/Play 같은 "성공 전제" 연산과 달리
+        // 백엔드가 실패해도 상태는 Empty 로 강제한다(그래서 TryUpdate 를 쓰지 않음).
+        // Failed 로 남으면 HasLoadedMedia=false 가 되어 이후 복구 호출이 막히고 영상이 잔류할 수 있다.
+        try
+        {
+            _backend.Unload();
+        }
+        catch (Exception ex)
+        {
+            // 백엔드 정리 실패는 무시 — 출력 패리티(상태 비움)가 우선.
+            System.Diagnostics.Debug.WriteLine($"[MEDIA] Unload 백엔드 정리 실패(무시): {ex.Message}");
+        }
+
+        Update(MediaPlaybackSnapshot.Empty);
     }
 
     public void Seek(TimeSpan position)

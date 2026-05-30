@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Media.Animation;
+using Easislides.Wpf.Media;
 using Easislides.Wpf.Shell;
 
 namespace Easislides.Wpf;
@@ -10,10 +11,21 @@ public partial class OutputWindow : Window, IOutputSurface
 {
     private bool _shown;
     private OutputWindowViewModel? _viewModel;
+    private AttachableMediaPlaybackBackend? _mediaBridge;
 
     public OutputWindow()
     {
         InitializeComponent();
+    }
+
+    /// <summary>
+    /// 출력 창의 MediaElement 를 실제 미디어 백엔드로 감싸 생명주기 브리지에 부착한다
+    /// (실제 미디어 백엔드 트랙 2단계). DI 팩토리가 창 생성 시 호출. 창이 닫히면 OnClosed 에서 분리.
+    /// </summary>
+    public void AttachMedia(AttachableMediaPlaybackBackend bridge)
+    {
+        _mediaBridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
+        bridge.Attach(new WpfMediaElementPlaybackBackend(OutputMediaElement));
     }
 
     public void Bind(OutputWindowViewModel viewModel)
@@ -110,6 +122,11 @@ public partial class OutputWindow : Window, IOutputSurface
             _viewModel.SceneChanged -= OnSceneChanged;
             _viewModel = null;
         }
+
+        // 미디어 브리지 분리 — 이 창의 MediaElement 가 사라지므로 백엔드를 떼어 이후 호출이 죽은 컨트롤에 닿지 않게 한다.
+        _mediaBridge?.Detach();
+        _mediaBridge = null;
+
         _shown = false;
         base.OnClosed(e);
     }

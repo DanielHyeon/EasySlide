@@ -415,9 +415,11 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task ApplySelectedItemContent_NonMediaItem_StopsPreviousMedia()
+    public async Task ApplySelectedItemContent_NonMediaItem_UnloadsPreviousMedia()
     {
-        // 라이브 중 잔류 재생 방지: 미디어 재생 후 다른 종류 항목 선택 시 직전 미디어가 정지돼야 함.
+        // 출력 패리티: 미디어 재생 후 다른 종류 항목 선택 시 직전 미디어를 완전히 내린다(Unload).
+        // Stop(정지 후 첫 프레임 잔류)이 아니라 Empty 상태가 돼야 출력 창에서 영상이 사라지고
+        // 그 아래 가사가 다시 보인다(실제 미디어 백엔드 트랙 3단계).
         var sut = CreateSut();
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("media:1", "Intro", "Media") { ContentPath = @"C:\media\intro.mp4" });
@@ -426,7 +428,7 @@ public class MainViewModelTests
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("song:1", "Song", "Song") { Lyrics = "x" });
 
-        sut.Media.State.Should().Be(MediaPlaybackState.Stopped, "비-미디어 항목 선택 시 직전 미디어 정지");
+        sut.Media.State.Should().Be(MediaPlaybackState.Empty, "비-미디어 항목 선택 시 직전 미디어를 내림(가사 복귀)");
     }
 
     [Fact]

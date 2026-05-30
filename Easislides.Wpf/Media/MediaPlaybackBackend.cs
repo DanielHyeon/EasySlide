@@ -21,6 +21,11 @@ public interface IMediaPlaybackBackend
     void Stop();
     void Seek(TimeSpan position);
     void ApplySettings(MediaPlaybackSnapshot snapshot);
+
+    // 미디어를 화면에서 완전히 내린다(출력 소스 제거). Stop 과 다름:
+    // Stop 은 "처음 위치로 정지(다시 Play 가능, 첫 프레임 유지)"지만,
+    // Unload 는 소스 자체를 비워 출력 창에서 영상이 사라지고 가사가 다시 보이게 한다.
+    void Unload();
 }
 
 public sealed class NoOpMediaPlaybackBackend : IMediaPlaybackBackend
@@ -46,6 +51,10 @@ public sealed class NoOpMediaPlaybackBackend : IMediaPlaybackBackend
     }
 
     public void ApplySettings(MediaPlaybackSnapshot snapshot)
+    {
+    }
+
+    public void Unload()
     {
     }
 }
@@ -79,6 +88,15 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
     }
 
     public void Seek(TimeSpan position) => _element.Position = position;
+
+    public void Unload()
+    {
+        // 소스를 비우면 OutputWindow.xaml 의 트리거(Source==null → Collapsed)가 작동해
+        // 출력 창에서 미디어가 사라지고 그 아래의 가사/타이틀이 다시 보인다.
+        _element.Stop();
+        _element.Source = null;
+        _element.Position = TimeSpan.Zero;
+    }
 
     public void ApplySettings(MediaPlaybackSnapshot snapshot)
     {

@@ -134,7 +134,13 @@ public partial class App : Application
         services.AddTransient<AboutWindow>();
         services.AddTransient<HelpWindow>();
         services.AddTransient<RegistrationWindow>();
-        services.AddSingleton<OutputSurfaceFactory>(sp => () => sp.GetRequiredService<OutputWindow>());
+        services.AddSingleton<OutputSurfaceFactory>(sp => () =>
+        {
+            // 출력 창 생성 시 MediaElement 를 미디어 브리지에 부착(실제 미디어 백엔드 트랙 2단계).
+            var window = sp.GetRequiredService<OutputWindow>();
+            window.AttachMedia(sp.GetRequiredService<AttachableMediaPlaybackBackend>());
+            return window;
+        });
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
         services.AddTransient<MainViewModel>();
         services.AddTransient<MainWindow>();
