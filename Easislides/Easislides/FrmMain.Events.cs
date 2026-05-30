@@ -337,8 +337,13 @@ namespace Easislides
             }
             else if (name == "Ind_BackColour")
             {
-                if (Gf.SelectBackgroundColors(ref Ind_BackColour, ref Gf.PreviewItem.Format.ShowScreenColour[0], ref Gf.PreviewItem.Format.ShowScreenColour[1], ref Gf.PreviewItem.Format.ShowScreenStyle, IsDefault: false))
+                // SongFormat 색상은 ARGB int 로 보관 → Color 로 풀어 대화상자에 넘기고, 성공 시 다시 int 로 저장.
+                Color back0 = Color.FromArgb(Gf.PreviewItem.Format.ShowScreenColour[0]);
+                Color back1 = Color.FromArgb(Gf.PreviewItem.Format.ShowScreenColour[1]);
+                if (Gf.SelectBackgroundColors(ref Ind_BackColour, ref back0, ref back1, ref Gf.PreviewItem.Format.ShowScreenStyle, IsDefault: false))
                 {
+                    Gf.PreviewItem.Format.ShowScreenColour[0] = back0.ToArgb();
+                    Gf.PreviewItem.Format.ShowScreenColour[1] = back1.ToArgb();
                     ClearFormatPicture();
                 }
             }
@@ -402,8 +407,11 @@ namespace Easislides
             }
             else if (name == "Ind_R1Colour")
             {
-                if (Gf.SelectColorFromBtn(ref Ind_R1Colour, ref Gf.PreviewItem.Format.ShowFontColour[0]))
+                // SongFormat 글자색은 ARGB int → Color 로 풀어 선택, 성공 시 다시 int 로 저장.
+                Color r1Colour = Color.FromArgb(Gf.PreviewItem.Format.ShowFontColour[0]);
+                if (Gf.SelectColorFromBtn(ref Ind_R1Colour, ref r1Colour))
                 {
+                    Gf.PreviewItem.Format.ShowFontColour[0] = r1Colour.ToArgb();
                     UpdateFormatData(StartAtFirstSlide: false);
                 }
             }
@@ -417,9 +425,15 @@ namespace Easislides
                 Gf.PreviewItem.Format.ShowFontUnderline[1] = (@checked ? 1 : 0);
                 UpdateFormatData();
             }
-            else if (name == "Ind_R2Colour" && Gf.SelectColorFromBtn(ref Ind_R2Colour, ref Gf.PreviewItem.Format.ShowFontColour[1]))
+            else if (name == "Ind_R2Colour")
             {
-                UpdateFormatData(StartAtFirstSlide: false);
+                // SongFormat 글자색은 ARGB int → Color 로 풀어 선택, 성공 시 다시 int 로 저장.
+                Color r2Colour = Color.FromArgb(Gf.PreviewItem.Format.ShowFontColour[1]);
+                if (Gf.SelectColorFromBtn(ref Ind_R2Colour, ref r2Colour))
+                {
+                    Gf.PreviewItem.Format.ShowFontColour[1] = r2Colour.ToArgb();
+                    UpdateFormatData(StartAtFirstSlide: false);
+                }
             }
         }
 
