@@ -74,6 +74,36 @@ public partial class MainWindow : Window
         searchUsageWindow.ShowDialog();
     }
 
+    private void AddExternalFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "예배 순서에 추가할 파일 선택",
+            Filter = "PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx"
+                + "|미디어 (*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma)|*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            var ext = System.IO.Path.GetExtension(dialog.FileName).ToLowerInvariant();
+            if (ext is ".ppt" or ".pptx")
+            {
+                viewModel.AddPowerPoint(dialog.FileName);
+            }
+            else
+            {
+                viewModel.AddMedia(dialog.FileName);
+            }
+        }
+    }
+
     private void OpenManageWorshipLists_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel viewModel)
