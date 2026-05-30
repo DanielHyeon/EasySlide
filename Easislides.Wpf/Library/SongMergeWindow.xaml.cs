@@ -2,6 +2,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmSmartMerge(스마트 병합).
 public partial class SongMergeWindow : Window
 {
     private readonly SongMergeViewModel _viewModel;

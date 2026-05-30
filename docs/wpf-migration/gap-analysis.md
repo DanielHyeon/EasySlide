@@ -1,8 +1,9 @@
 # WinForms → WPF 마이그레이션 갭 분석 및 구현 계획
 
 > 작성일: 2026-05-31 · 기준: `main` (Core 추출 B-3 #28~33 머지 후)
+> **G0 정밀 검증 완료(2026-05-31)**: 초판의 ❓ 항목을 각 WPF 창/ViewModel/enum 직접 확인으로 확정. 여러 "갭"이 실은 통합 창에 포함됨이 밝혀져 갭이 초판보다 **작아졌다**(아래 §2 evidence 열·§4 반영).
 > 목적: "어디까지 됐나"를 **실제 코드 근거**로 확정하고(레거시 38폼 ↔ WPF 창 커버리지), 남은 갭을 분류·우선순위화한 뒤 안전한 구현 계획을 수립한다.
-> 방법: WPF 창은 매핑 주석이 없어, 매핑은 **창 Title + 기능 + 도메인 문서(01~06) 의도** 기반이다. 추정 항목은 ❓로 표시했고, 정밀 검증은 Phase G0 에 포함한다.
+> 방법: WPF 창은 매핑 주석이 없어, 매핑은 **창 Title + 기능 + enum/서비스 + 도메인 문서(01~06)** 로 확인. 잔여 추정은 ❓로 표시.
 
 ## 0. 한눈에 보기 (정량 현황)
 
@@ -32,11 +33,11 @@
 | 레거시 폼 | WPF 대응 | 상태 | 비고 |
 |---|---|---|---|
 | `FrmMain` | `MainWindow` | 🟡 | 운영 셸·예배순서·Preview·LIVE/Black·모니터선택 O / **PPT·미디어 탭 placeholder** |
-| `FrmLyricsScreen` | `OutputWindow` | 🟡 | 출력 창 존재, 가사 렌더 충실도 ❓ |
-| `FrmInfoScreen` | `OutputWindow`(정보 출력) | 🟡❓ | 별도 정보화면 대응 ❓ |
+| `FrmLyricsScreen` | `OutputWindow` | 🟡 | Scene 렌더(전경/배경 브러시) O, 레거시 GDI+ 패리티 미검증 |
+| `FrmInfoScreen` | — | 🔴 | **정보화면(보조 모니터 다음곡/정보) 대응 없음 — G0 확정**(`OutputSceneKind`=상태값뿐) |
 | `FrmLaunchShow` | `MainWindow` LIVE 흐름 | 🟡 | 풀스크린 launch 통합 추정 ❓ |
-| `FrmShowAlert` | `Controls/EsToast` | 🟡 | 토스트 알림(개념 상이) — 화면 송출 경고 대응 ❓ |
-| `FrmSingleMonitorAlert` | — | 🔴 | 단일 모니터 경고 대응 없음 ❓ |
+| `FrmShowAlert` | `OutputWindow`(LyricsAlertVisibility) + `EsToast` | 🟡 | 출력 화면 경고 오버레이 존재, 패리티 미검증 |
+| `FrmSingleMonitorAlert` | — | 🔴 | 단일 모니터 경고 대응 없음 |
 | `FrmPopupText` | — | 🔴 | 팝업 텍스트 송출 대응 없음 |
 
 ### B. 콘텐츠 편집 / 라이브러리 (도메인문서 02)
@@ -44,11 +45,11 @@
 | 레거시 폼 | WPF 대응 | 상태 | 비고 |
 |---|---|---|---|
 | `FrmEditItem` | `SongEditorWindow` | ✅ | |
-| `FrmEditBibleItem` | `BibleWindow` / `SongEditorWindow` | 🟡❓ | 성경 항목 편집 분담 ❓ |
-| `FrmEditNotes` | — | 🔴 | 코드/노트 편집 전용 대응 없음(SongEditor 에 notation 5참조 — 부분 통합 ❓) |
-| `FrmFind` | `SearchUsageWindow` | ➕✅ | 검색 통합 |
-| `FrmUsages` | `SearchUsageWindow` | ➕✅ | 사용현황 통합 |
-| `FrmLookupTitles` | `SearchUsageWindow` | ➕❓ | 제목 조회 통합 추정 |
+| `FrmEditBibleItem` | `BibleWindow` | 🟡 | BibleWindow 는 성경 검색/버전/미리보기(`MatchMode`/`PreviewRegionXVersion`) — **본문 편집 대응 미확인** |
+| `FrmEditNotes` | `SongEditorWindow`(notation 부분) | 🟡 | 코드/노트 편집 전용 창 없음, SongEditor notation 부분 통합 |
+| `FrmFind` | `SearchUsageWindow` | ➕✅ | `SongSearchFields`(Title/Lyrics/…) |
+| `FrmUsages` | `SearchUsageWindow` | ➕✅ | UsageReport(rtf) |
+| `FrmLookupTitles` | `SearchUsageWindow` | ➕✅ | `SongSearchFields.Title` — **G0 확정** |
 | `FrmSmartMerge` | `SongMergeWindow` | ✅ | |
 | `FrmManageItemLists` | — | 🔴 | 예배 리스트 관리 대응 없음 |
 | (신규 개념) | `LibraryWindow` | ✅ | 라이브러리 허브(신규) |
@@ -62,20 +63,20 @@
 | `FrmCopyMoveExternal` | `ExternalFileOperationWindow` | ✅ | |
 | `FrmRecoverDeleted` | `SongRecoveryWindow` | ✅ | |
 | (곡 삭제) | `SongDeleteWindow` | ✅ | |
-| `FrmRearrangeFolderPositions` | `FolderEditorWindow` | 🟡❓ | 폴더 정렬 통합 추정 |
-| `FrmBibleRename` | — | 🔴❓ | 성경 이름변경 대응 없음 |
-| `FrmUpdateFileName` | — | 🔴❓ | 파일명 갱신 대응 없음 |
+| `FrmRearrangeFolderPositions` | `FolderEditorWindow` | 🟡 | FolderEditor=폴더 생성/이름/번호 — 위치 정렬 전용 기능 미확인 |
+| `FrmBibleRename` | — | 🔴 | 성경 이름변경 대응 없음 — **G0 확정** |
+| `FrmUpdateFileName` | — | 🔴 | 파일명 갱신 대응 없음 — **G0 확정** |
 
 ### D. Import / Export / Generate (도메인문서 02·04)
 
 | 레거시 폼 | WPF 대응 | 상태 | 비고 |
 |---|---|---|---|
-| `FrmImport` | `ImportExportWindow` | ➕✅ | |
-| `FrmExport` | `ImportExportWindow` | ➕✅ | |
-| `FrmGenerateDoc` | `ImportExportWindow` | ➕🟡 | 문서 생성 충실도 ❓ |
-| `FrmGenerateHtml` | `ImportExportWindow` | ➕🟡 | HTML 생성 충실도 ❓ |
-| `FrmImportFolder` | `ImportExportWindow` | 🟡❓ | 폴더 임포트 통합 추정 |
-| `FrmImportAccessHelper` | — | 🔴❓ | Access 임포트 보조 대응 없음 |
+| `FrmImport` | `ImportExportWindow` | ➕✅ | `ImportSourceKind`(Text/Xml/Database) |
+| `FrmExport` | `ImportExportWindow` | ➕✅ | `ExportFormat`(Xml/Text/Database) |
+| `FrmGenerateDoc` | `ImportExportWindow` | ➕✅ | `ExportFormat.Rtf` (문서=RTF) — **G0 확정** |
+| `FrmGenerateHtml` | `ImportExportWindow` | ➕✅ | `ExportFormat.Html` — **G0 확정** |
+| `FrmImportFolder` | `ImportExportWindow` | ➕✅ | `ImportSourceKind.DocumentFolder` — **G0 확정** |
+| `FrmImportAccessHelper` | `ImportExportWindow` | ➕✅ | `ImportSourceKind.AccessDatabase` — **G0 확정**(초판 🔴 정정) |
 
 ### E. 렌더링 / Office / 미디어 (도메인문서 03)
 
@@ -90,7 +91,7 @@
 | 레거시 폼 | WPF 대응 | 상태 | 비고 |
 |---|---|---|---|
 | `FrmOptions` | `SettingsWindow`(분해) | ✅ | ADR-0005 단일모달→Settings 페이지, WPF 31참조 |
-| `FrmGetWorkingFolder` | `WelcomeWindow` | 🟡❓ | 초기 폴더 설정 통합 추정 |
+| `FrmGetWorkingFolder` | `SettingsWindow` | ✅ | 작업 폴더 + `BrowseWorkingFolderCommand` — **G0 확정**(WelcomeWindow 아님) |
 
 ### G. 시작 / 정보 / 기타
 
@@ -99,17 +100,19 @@
 | `FrmAbout` | `AboutWindow` | ✅ | |
 | `FrmHelp` | `HelpWindow` | ✅ | |
 | `FrmRegister` | `RegistrationWindow` | ✅ | |
-| `FrmSplashScreen` | `WelcomeWindow` | 🟡❓ | 스플래시 vs 온보딩(개념 상이) |
-| `FrmSplashScreenOld` | — | 🔴 | 구 스플래시(레거시 잔재, 포팅 불요 가능) |
+| `FrmSplashScreen` | `WelcomeWindow`(개념 상이) | 🟡 | WelcomeWindow=시니어 온보딩(§7.4), 스플래시(로딩) 별개 — 포팅 불요 후보 |
+| `FrmSplashScreenOld` | — | 🔴 | 구 스플래시(레거시 잔재) — **포팅 불요** |
 
-### 집계 (추정 포함)
+### 집계 (G0 검증 후)
 
-| 상태 | 개수(대략) |
+| 상태 | 개수 |
 |---|---|
-| ✅ 포팅/➕통합 | 14 |
-| 🟡 부분 | 12 |
-| 🔴 미포팅 | 9 |
-| (포팅 불요 후보) | `FrmSplashScreenOld` 등 |
+| ✅ 포팅/➕통합 | **20** |
+| 🟡 부분 | **10** |
+| 🔴 미포팅 | **8** (이 중 `FrmSplashScreenOld` 는 포팅 불요) |
+| **합계** | 38 |
+
+> 초판(추정) 14/12/9 → G0 검증 후 **20/10/8**. Import/Export/Generate/Lookup/작업폴더가 통합 창에 포함됨이 확인되어 ✅가 6 증가.
 
 ## 3. 마일스톤 평가 (기능 기준)
 
@@ -127,9 +130,10 @@
 - **미디어 재생 UI**: `MediaPlaybackService`/`MediaPlaybackViewModel` 는 있으나 **어떤 창에도 바인딩 안 됨**(App.xaml.cs DI 등록만). Media 탭은 디렉터리/카메라 텍스트뿐.
 - **출력 렌더 패리티**: `OutputWindow` 의 가사/성경/배경 실제 렌더가 레거시(`gfDisplay`/`gfLyrics` GDI+ 경로)와 동등한지 미검증.
 
-### G-β. 미포팅 폼 갭 (기능 부재)
-- 🔴 확정: `FrmBackground`(배경 설정), `FrmEditNotes`(노트/코드 편집), `FrmManageItemLists`(예배 리스트 관리), `FrmPopupText`(팝업 송출).
-- 🔴 추정(검증 필요): `FrmSingleMonitorAlert`, `FrmBibleRename`, `FrmUpdateFileName`, `FrmImportAccessHelper`.
+### G-β. 미포팅 폼 갭 (기능 부재 — G0 확정)
+- 🔴 **확정 미포팅(7)**: `FrmBackground`(배경 설정), `FrmInfoScreen`(보조 모니터 정보화면), `FrmManageItemLists`(예배 리스트 관리), `FrmPopupText`(팝업 송출), `FrmSingleMonitorAlert`(단일 모니터 경고), `FrmBibleRename`(성경 이름변경), `FrmUpdateFileName`(파일명 갱신).
+- 🟡 부분(전용 창 없음, 통합 일부): `FrmEditNotes`(SongEditor notation 부분), `FrmEditBibleItem`(BibleWindow=선택/미리보기, 본문 편집 미확인).
+- ✅ **초판 갭에서 정정**: `FrmImportAccessHelper`(→ `ImportSourceKind.AccessDatabase`), `FrmGenerateDoc/Html`(→ `ExportFormat.Rtf/Html`), `FrmImportFolder`(→ `DocumentFolder`), `FrmLookupTitles`(→ `SongSearchFields.Title`), `FrmGetWorkingFolder`(→ Settings) 는 **통합 창에 포함됨**.
 
 ### G-γ. 횡단/인프라 갭
 - **스크린샷 회귀 자동화 부재**(§9.1) — 렌더 충실도/리팩토링 안전망의 전제.
@@ -153,13 +157,14 @@
 4. **출력 렌더 패리티 검증**: OutputWindow 가사/성경/배경 렌더를 레거시와 스크린샷 비교로 고정.
 - 게이트: 각 항목 스크린샷 회귀 통과 + `--legacy-ui` 롤백 유지.
 
-### Phase G2 — 미포팅 폼 (중위험, 1건씩)
+### Phase G2 — 미포팅 폼 (중위험, 1건씩) — G0 확정 7건
 - 우선순위: 라이브 사용 빈도 高 → 低.
   1. `FrmBackground`(배경 설정 — 송출 직접 영향) → Settings 또는 전용 창.
-  2. `FrmEditNotes`(노트/코드 편집) → SongEditor 통합 또는 전용.
-  3. `FrmManageItemLists`(예배 리스트 관리).
-  4. 경고/알림(`FrmSingleMonitorAlert`, `FrmPopupText`) → 통합 알림 체계.
-  5. 유틸(`FrmBibleRename`, `FrmUpdateFileName`, `FrmImportAccessHelper`) — 일괄.
+  2. `FrmInfoScreen`(보조 모니터 정보화면 — 다음곡/정보 송출).
+  3. `FrmManageItemLists`(예배 리스트 저장/관리).
+  4. `FrmEditNotes`(노트/코드 편집 — SongEditor notation 확장 또는 전용).
+  5. 경고/알림(`FrmSingleMonitorAlert`, `FrmPopupText`) → 통합 알림 체계.
+  6. 유틸(`FrmBibleRename`, `FrmUpdateFileName`) — 일괄.
 - 각 폼: ViewModel 단위 테스트 우선 → View 구현 → 동작 동등성 확인.
 
 ### Phase G3 — 운영 전환 게이트 (B-4)
@@ -171,10 +176,11 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 ```
 - next-session-plan §2(C 스크린샷 → A 컴포지트 → B 전환)와 정합: **C = G1.1**, **A(컴포지트) = G1 진행 중 병행**, **B = G3**.
 
-## 6. 즉시 액션 (이 PR 범위 외 후속)
-- [ ] README stale 갱신(G0-3)
-- [ ] ❓ 항목 정밀 검증으로 매트릭스 확정(G0-1)
-- [ ] 스크린샷 회귀 PoC 착수 여부 결정(G1.1)
+## 6. 즉시 액션
+- [x] ❓ 항목 정밀 검증으로 매트릭스 확정(G0-1) — **완료**(본 문서 §2 evidence·집계 갱신)
+- [x] WPF 창 헤더에 `// 대체: FrmX` 매핑 주석(G0-2) — **완료**
+- [x] README stale 갱신(G0-3) — **완료**
+- [ ] 스크린샷 회귀 PoC 착수 여부 결정(G1.1) — 다음 결정 대상
 
 ## 7. 참조
 - 도메인 계획: [01-shell-live-operations](01-shell-live-operations.md) ~ [06-verification-test-plan](06-verification-test-plan.md)

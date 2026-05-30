@@ -6,6 +6,7 @@ using Forms = System.Windows.Forms;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체(통합): FrmImport, FrmExport, FrmGenerateDoc(Rtf), FrmGenerateHtml(Html), FrmImportFolder, FrmImportAccessHelper.
 public partial class ImportExportWindow : Window
 {
     private bool _loadedOnce;

@@ -3,6 +3,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmEditBibleItem(성경 검색/버전/미리보기). 본문 편집 대응은 부분(gap-analysis.md §2.B).
 public partial class BibleWindow : Window
 {
     private readonly BibleViewModel _viewModel;

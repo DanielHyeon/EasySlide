@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Easislides.Wpf.Library;
 
+// 신규 라이브러리 허브(레거시 단일 폼 대응 없음) — 곡/폴더 탐색·관리 진입점.
 public partial class LibraryWindow : Window
 {
     private readonly IServiceProvider _services;

@@ -2,6 +2,7 @@ using System.Windows;
 
 namespace Easislides.Wpf.Library;
 
+// 레거시 대체: FrmRearrangeFolderPositions(폴더 생성/이름/번호; 위치 정렬 전용 기능은 부분).
 public partial class FolderEditorWindow : Window
 {
     private readonly FolderEditorViewModel _viewModel;

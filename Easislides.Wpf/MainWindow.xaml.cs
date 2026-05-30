@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Easislides.Wpf;
 
+// 레거시 대체: FrmMain(운영 셸). PPT 썸네일/미디어 탭 렌더는 미완(docs/wpf-migration/gap-analysis.md §4 G-α).
 public partial class MainWindow : Window
 {
     private readonly ShortcutRegistry _shortcuts;

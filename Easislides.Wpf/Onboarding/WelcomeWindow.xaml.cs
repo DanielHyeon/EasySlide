@@ -12,6 +12,8 @@ namespace Easislides.Wpf.Onboarding;
 ///   welcome.ShowDialog(); // 사용자 선택까지 차단
 ///
 /// 최초 실행 시 1회만 표시 — 호출자가 settings.json에 "OnboardingShown=true" 저장 책임.
+///
+/// 레거시 대응: 신규 개념(온보딩). FrmSplashScreen(로딩 스플래시)과는 개념 상이.
 /// </summary>
 public partial class WelcomeWindow : Window
 {
