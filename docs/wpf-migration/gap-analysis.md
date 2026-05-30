@@ -194,6 +194,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.5 P0 — 인라인 **콘텐츠 브라우저(곡)** 1차 — **완료**(2026-05-31: 좌측 "예배 순서"·"라이브러리" 탭, 폴더·곡 검색·더블클릭 추가. 별도 LibraryWindow 없이 셸에서 곡 추가). 모달 LibraryWindow 진입점은 한동안 병존(백로그: 제거/대체).
 - [x] §7.5 P0 — 인라인 **성경 브라우저** 1차 — **완료**(2026-05-31: 좌측 "성경" 탭, BibleVerseFinder 재사용 + 본문 구절 드래그 선택→예배 순서 추가. 별도 BibleWindow 없이 셸에서 성경 추가). → **좌측 단일 콘솔(예배 순서/라이브러리/성경) 완성**
 - [x] §7.3-B 라이브 화면 제어(숨김·복귀) — **완료**(2026-05-31: 운영바에 "숨김"(HideOutput)·"복귀"(Restore, Hidden→Active 콘텐츠 보존) 노출)
+- [x] §7.3-B 예배 순서 항목 이동(↑/↓)·제거 — **완료**(2026-05-31, PR #61: WorshipListPanel ↑/↓/제거 버튼. 값 동등성 record 중복은 ReferenceEquals 기반으로 정확한 인스턴스 이동/제거, 라이브 항목 제거 시 _liveItemId 고아 정리)
 - [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(정렬·헤딩·세분 색 ColorPicker) / Clear·Restart·Refresh / 모달 Library·Bible 진입점 정리
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -245,7 +246,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | Gap/안내 | Gap Item, Alerts(경고 오버레이) | 🟡 출력측 오버레이만, 조작 UI 없음 |
 | 보조 화면 | InfoScr, Copy to InfoScreen, Apply to All Except InfoScreens | 🔴 없음(FrmInfoScreen 미이식) |
 | 미디어 출력 | Play Media (on Output Monitor) | ✅ G1.2 트랙으로 연결 |
-| 항목 이동 | Move Item Up/Down | 🟡 Next/Prev 만, 큐 재정렬 약함 |
+| 항목 이동 | Move Item Up/Down | ✅ 예배 순서 패널 ↑/↓ 이동·제거(2026-05-31, PR #61). 값 동등성 중복은 참조 기반으로 안전 처리 |
 
 #### C. 인라인 콘텐츠 브라우징 (🔴 별도 창으로 분산)
 
