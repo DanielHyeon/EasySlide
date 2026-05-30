@@ -24,6 +24,10 @@ public sealed record LiveOutputRenderSettings(
     bool GapItemUseFade = true,
     int LyricsMonitorTextColorArgb = -16777216,
     int LyricsMonitorBackgroundColorArgb = -1,
+    // 배경 그라데이션 끝색(ARGB). IsGradient=true 일 때 배경색→이 색 세로 그라데이션(FrmBackground 슬라이스 / G2).
+    int LyricsMonitorBackgroundColor2Argb = -1,
+    // 배경 그라데이션 사용 여부(기본 false=솔리드).
+    bool LyricsMonitorBackgroundIsGradient = false,
     bool LyricsMonitorShowNotations = true,
     bool NoPowerPointPanelOverlay = false,
     bool NoMediaPanelOverlay = false)
@@ -42,6 +46,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.GapItemUseFade),
             settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb),
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb),
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient),
             settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
             settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay),
             settings.Get(EasiSettingKeys.NoMediaPanelOverlay));
@@ -77,6 +83,8 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorShowNotations,
     int LyricsMonitorTextColorArgb,
     int LyricsMonitorBackgroundColorArgb,
+    int LyricsMonitorBackgroundColor2Argb,
+    bool LyricsMonitorBackgroundIsGradient,
     GapItemMode GapItemOption,
     string GapItemLogoFile,
     bool GapItemUseFade,
@@ -125,6 +133,8 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorShowNotations,
             liveOutput.LyricsMonitorTextColorArgb,
             liveOutput.LyricsMonitorBackgroundColorArgb,
+            liveOutput.LyricsMonitorBackgroundColor2Argb,
+            liveOutput.LyricsMonitorBackgroundIsGradient,
             liveOutput.GapItemOption,
             liveOutput.GapItemLogoFile,
             liveOutput.GapItemUseFade,

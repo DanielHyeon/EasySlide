@@ -122,6 +122,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private int _displayCustomWidth;
     private int _lyricsMonitorTextColorArgb;
     private int _lyricsMonitorBackgroundColorArgb;
+    private int _lyricsMonitorBackgroundColor2Argb;
+    private bool _lyricsMonitorBackgroundIsGradient;
     private bool _lyricsMonitorShowNotations;
     private bool _usePowerPointTab;
     private bool _noPowerPointPanelOverlay;
@@ -336,6 +338,20 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         get => _lyricsMonitorBackgroundColorArgb;
         set => SetAndPersist(ref _lyricsMonitorBackgroundColorArgb, value, EasiSettingKeys.LyricsMonitorBackgroundColorArgb);
+    }
+
+    /// <summary>배경 그라데이션 끝색(ARGB). 그라데이션 사용 시 배경색→이 색 세로 그라데이션(G2 / FrmBackground 슬라이스).</summary>
+    public int LyricsMonitorBackgroundColor2Argb
+    {
+        get => _lyricsMonitorBackgroundColor2Argb;
+        set => SetAndPersist(ref _lyricsMonitorBackgroundColor2Argb, value, EasiSettingKeys.LyricsMonitorBackgroundColor2Argb);
+    }
+
+    /// <summary>배경 그라데이션 사용 여부(false=솔리드, true=배경색→끝색 세로 그라데이션).</summary>
+    public bool LyricsMonitorBackgroundIsGradient
+    {
+        get => _lyricsMonitorBackgroundIsGradient;
+        set => SetAndPersist(ref _lyricsMonitorBackgroundIsGradient, value, EasiSettingKeys.LyricsMonitorBackgroundIsGradient);
     }
 
     public bool LyricsMonitorShowNotations
@@ -701,6 +717,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             DisplayCustomWidth = current.LiveOutput.DisplayCustomWidth;
             LyricsMonitorTextColorArgb = current.LiveOutput.LyricsMonitorTextColorArgb;
             LyricsMonitorBackgroundColorArgb = current.LiveOutput.LyricsMonitorBackgroundColorArgb;
+            LyricsMonitorBackgroundColor2Argb = current.LiveOutput.LyricsMonitorBackgroundColor2Argb;
+            LyricsMonitorBackgroundIsGradient = current.LiveOutput.LyricsMonitorBackgroundIsGradient;
             LyricsMonitorShowNotations = current.LiveOutput.LyricsMonitorShowNotations;
             UsePowerPointTab = current.PowerPoint.UsePowerPointTab;
             NoPowerPointPanelOverlay = current.PowerPoint.NoPanelOverlay;

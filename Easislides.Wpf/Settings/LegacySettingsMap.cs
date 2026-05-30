@@ -74,6 +74,8 @@ public static class LegacySettingsMap
         Automated("LyricsMonitorBackgroundColorArgb", EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Color, "WPF compatibility", "Current WPF ARGB background color."),
         Automated("LMBackColour", EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Color, "FrmOptions.SaveVariables", "Legacy lyrics monitor background color."),
         Automated("LyricsMonitorBackColour", EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Color, "RegUtil monitors", "Registry-backed lyrics monitor background color."),
+        Automated("LyricsMonitorBackgroundColor2Argb", EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Color, "WPF compatibility", "WPF ARGB background gradient end color (G2 / FrmBackground)."),
+        Automated("LyricsMonitorBackgroundIsGradient", EasiSettingKeys.LyricsMonitorBackgroundIsGradient.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "Whether the lyrics monitor background uses a vertical gradient (G2 / FrmBackground)."),
         Automated("LyricsMonitorShowNotations", EasiSettingKeys.LyricsMonitorShowNotations.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "RegUtil monitors", "Registry-backed lyrics notation toggle."),
         Automated("LMShowNotations", EasiSettingKeys.LyricsMonitorShowNotations.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy lyrics monitor notation toggle."),
 

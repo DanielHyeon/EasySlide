@@ -94,6 +94,10 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> DisplayCustomWidth = new("liveOutput.displayCustomWidth", 100);
     public static readonly SettingKey<int> LyricsMonitorTextColorArgb = new("liveOutput.lyricsMonitorTextColorArgb", -16777216);
     public static readonly SettingKey<int> LyricsMonitorBackgroundColorArgb = new("liveOutput.lyricsMonitorBackgroundColorArgb", -1);
+    // 배경 그라데이션 끝색(ARGB). IsGradient=true 일 때 배경색→이 색 세로 그라데이션 송출(G2 / FrmBackground 슬라이스).
+    public static readonly SettingKey<int> LyricsMonitorBackgroundColor2Argb = new("liveOutput.lyricsMonitorBackgroundColor2Argb", -1);
+    // 배경 그라데이션 사용 여부(기본 false=솔리드). true 면 배경색→끝색 세로 그라데이션.
+    public static readonly SettingKey<bool> LyricsMonitorBackgroundIsGradient = new("liveOutput.lyricsMonitorBackgroundIsGradient", false);
     public static readonly SettingKey<bool> LyricsMonitorShowNotations = new("liveOutput.lyricsMonitorShowNotations", true);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
@@ -132,6 +136,8 @@ public static class EasiSettingKeys
         DisplayCustomWidth,
         LyricsMonitorTextColorArgb,
         LyricsMonitorBackgroundColorArgb,
+        LyricsMonitorBackgroundColor2Argb,
+        LyricsMonitorBackgroundIsGradient,
         LyricsMonitorShowNotations,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
@@ -198,6 +204,12 @@ public sealed record LiveOutputSettings
 
     public int LyricsMonitorBackgroundColorArgb { get; init; } =
         EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue;
+
+    public int LyricsMonitorBackgroundColor2Argb { get; init; } =
+        EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.DefaultValue;
+
+    public bool LyricsMonitorBackgroundIsGradient { get; init; } =
+        EasiSettingKeys.LyricsMonitorBackgroundIsGradient.DefaultValue;
 
     public bool LyricsMonitorShowNotations { get; init; } = EasiSettingKeys.LyricsMonitorShowNotations.DefaultValue;
 }
@@ -875,6 +887,8 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.displayCustomWidth" => snapshot.LiveOutput.DisplayCustomWidth,
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot.LiveOutput.LyricsMonitorTextColorArgb,
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot.LiveOutput.LyricsMonitorBackgroundColorArgb,
+            "liveOutput.lyricsMonitorBackgroundColor2Argb" => snapshot.LiveOutput.LyricsMonitorBackgroundColor2Argb,
+            "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot.LiveOutput.LyricsMonitorBackgroundIsGradient,
             "liveOutput.lyricsMonitorShowNotations" => snapshot.LiveOutput.LyricsMonitorShowNotations,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
@@ -972,6 +986,14 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundColorArgb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBackgroundColor2Argb" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundColor2Argb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundIsGradient = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowNotations" => snapshot with
             {

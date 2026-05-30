@@ -164,6 +164,28 @@ public class OutputRendererTests
         scene.TransitionFrame.Kind.Should().Be(TransitionEffectKind.Fade);
     }
 
+    [Fact]
+    public void CreateScene_Threads_BackgroundGradientColor2()
+    {
+        // G2(FrmBackground 슬라이스): 배경 그라데이션 끝색이 설정→렌더→scene 으로 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFF112233),
+            LyricsMonitorBackgroundColor2Argb: unchecked((int)0xFF445566));
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFF112233));
+        scene.LyricsMonitorBackgroundColor2Argb.Should().Be(unchecked((int)0xFF445566),
+            "그라데이션 끝색이 scene 으로 전달돼야 함");
+    }
+
     private static OutputRenderer CreateRenderer()
         => new(new ImageAssetService(), new TransitionEffectService());
 

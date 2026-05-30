@@ -80,7 +80,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 로더 미주입 시 기본 로더(BitmapImage)로 디스크에서 직접 로드
         _gapLogoLoader = gapLogoLoader ?? DefaultGapLogoLoader;
         _sceneForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
-        _sceneBackgroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColorArgb);
+        _sceneBackgroundBrush = CreateBackgroundBrush(
+            LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColorArgb,
+            LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColor2Argb,
+            LiveOutputRenderSettings.Default.LyricsMonitorBackgroundIsGradient);
         if (_settings is not null)
         {
             _settings.SettingsChanged += OnSettingsChanged;
@@ -321,7 +324,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         DisplayTitle = scene.DisplayTitle;
         StatusLabel = scene.StatusLabel;
         SceneForegroundBrush = CreateBrush(scene.LyricsMonitorTextColorArgb);
-        SceneBackgroundBrush = CreateBrush(scene.LyricsMonitorBackgroundColorArgb);
+        SceneBackgroundBrush = CreateBackgroundBrush(
+            scene.LyricsMonitorBackgroundColorArgb,
+            scene.LyricsMonitorBackgroundColor2Argb,
+            scene.LyricsMonitorBackgroundIsGradient);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -453,14 +459,36 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static Brush CreateBrush(int argb)
+    private static Color ColorFromArgb(int argb)
     {
         var value = unchecked((uint)argb);
-        var brush = new SolidColorBrush(Color.FromArgb(
+        return Color.FromArgb(
             (byte)(value >> 24),
             (byte)(value >> 16),
             (byte)(value >> 8),
-            (byte)value));
+            (byte)value);
+    }
+
+    private static Brush CreateBrush(int argb)
+    {
+        var brush = new SolidColorBrush(ColorFromArgb(argb));
+        brush.Freeze();
+        return brush;
+    }
+
+    // 배경 브러시 — isGradient=true 이고 두 색이 다르면 위→아래 세로 그라데이션, 아니면 솔리드(G2 / FrmBackground 슬라이스).
+    private static Brush CreateBackgroundBrush(int color1Argb, int color2Argb, bool isGradient)
+    {
+        if (!isGradient || color1Argb == color2Argb)
+        {
+            return CreateBrush(color1Argb);
+        }
+
+        var brush = new LinearGradientBrush(
+            ColorFromArgb(color1Argb),
+            ColorFromArgb(color2Argb),
+            new Point(0.5, 0),
+            new Point(0.5, 1));
         brush.Freeze();
         return brush;
     }
