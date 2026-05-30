@@ -236,20 +236,88 @@
                             </TabItem>
                             <TabItem Header="Media"
                                      Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}">
+                                <!-- 미디어 재생 컨트롤 — MediaPlaybackViewModel(Media) 바인딩(G1.2 / gap-analysis.md §4 G-α).
+                                     placeholder 텍스트를 실제 컨트롤 표면으로 대체. 백엔드 NoOp 상태에선 상태·컨트롤이 비활성으로 표시. -->
                                 <Grid Margin="{StaticResource Thickness.Lg}">
-                                    <StackPanel VerticalAlignment="Center"
-                                                HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding MediaDirectory}"
-                                                   HorizontalAlignment="Center"
-                                                   TextAlignment="Center"
-                                                   TextWrapping="Wrap"
-                                                   MaxWidth="520"
-                                                   Style="{StaticResource Type.Body.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
-                                        <TextBlock Text="{Binding LiveCameraSource}"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0,8,0,0"
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Media.StatusText}"
                                                    Style="{StaticResource Type.Title3.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding Media.Source}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                                   Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="1"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Style="{StaticResource Type.BodyLarge.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Secondary}">
+                                        <Run Text="{Binding Media.PositionText, Mode=OneWay}" />
+                                        <Run Text=" / " />
+                                        <Run Text="{Binding Media.DurationText, Mode=OneWay}" />
+                                    </TextBlock>
+
+                                    <StackPanel Grid.Row="2"
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,0,0,12">
+                                        <Button Command="{Binding Media.FastReverseCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                Margin="0,0,8,0"
+                                                Content="◀◀"
+                                                AutomationProperties.Name="되감기" />
+                                        <Button Command="{Binding Media.PlayPauseCommand}"
+                                                Style="{StaticResource EsButton.Primary}"
+                                                Margin="0,0,8,0"
+                                                Content="{Binding Media.PlayPauseLabel}"
+                                                AutomationProperties.Name="재생/일시정지" />
+                                        <Button Command="{Binding Media.StopCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                Margin="0,0,8,0"
+                                                Content="■"
+                                                AutomationProperties.Name="정지" />
+                                        <Button Command="{Binding Media.FastForwardCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                Margin="0,0,8,0"
+                                                Content="▶▶"
+                                                AutomationProperties.Name="빨리감기" />
+                                        <ToggleButton IsChecked="{Binding Media.IsMuted, Mode=OneWay}"
+                                                      Command="{Binding Media.ToggleMuteCommand}"
+                                                      MinHeight="36"
+                                                      Padding="10,0"
+                                                      Margin="0,0,8,0"
+                                                      Content="음소거"
+                                                      AutomationProperties.Name="음소거 토글" />
+                                        <ToggleButton IsChecked="{Binding Media.IsRepeatEnabled, Mode=OneWay}"
+                                                      Command="{Binding Media.ToggleRepeatCommand}"
+                                                      MinHeight="36"
+                                                      Padding="10,0"
+                                                      Content="반복"
+                                                      AutomationProperties.Name="반복 토글" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="3">
+                                        <TextBlock Text="미디어 폴더"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                        <TextBlock Text="{Binding MediaDirectory}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                   Margin="0,0,0,6" />
+                                        <TextBlock Text="{Binding LiveCameraSource}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource Type.Caption.Style}"
                                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                                     </StackPanel>
                                 </Grid>

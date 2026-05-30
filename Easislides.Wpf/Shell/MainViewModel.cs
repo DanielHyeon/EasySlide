@@ -41,6 +41,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _liveCameraSource = MediaPlaybackService.CreateLiveCameraSource(EasiSettingKeys.LiveCameraNumber.DefaultValue);
     private bool _disposed;
 
+    /// <summary>
+    /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
+    /// (G1.2 / gap-analysis.md §4 G-α — 기존 placeholder 텍스트 대체, 테스트된 VM 의 UI 연결.)
+    /// </summary>
+    public MediaPlaybackViewModel Media { get; }
+
     public MainViewModel(
         ILiveSessionService session,
         IOutputWindowService output,
@@ -48,7 +54,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ICommandTelemetry telemetry,
         IDisplayService display,
         ICommandCatalog commandCatalog,
-        ISettingsService settings)
+        ISettingsService settings,
+        MediaPlaybackViewModel media)
     {
         _session = session;
         _output = output;
@@ -57,6 +64,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _display = display;
         _commandCatalog = commandCatalog;
         _settings = settings;
+        Media = media;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += (_, _) => NotifyCommandStates();
@@ -501,6 +509,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _disposed = true;
         _settings.SettingsChanged -= OnSettingsChanged;
+        // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나
+        // MediaPlaybackViewModel.Dispose 가 멱등이라 안전(테스트는 new 생성이라 이 경로가 유일 해제).
+        Media.Dispose();
     }
 
     private void SeedPlaceholderQueue()
