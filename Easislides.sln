@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Easislides.Analyzers", "Eas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Easislides.Analyzers.Tests", "Easislides.Analyzers.Tests\Easislides.Analyzers.Tests.csproj", "{E2A961E5-ED28-440B-9AEA-6B681D04F49A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Easislides.Core", "Easislides.Core\Easislides.Core.csproj", "{9B74F667-F81B-4BAB-93D3-236C2831F45D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,6 +118,18 @@ Global
 		{E2A961E5-ED28-440B-9AEA-6B681D04F49A}.Release|x64.Build.0 = Release|Any CPU
 		{E2A961E5-ED28-440B-9AEA-6B681D04F49A}.Release|x86.ActiveCfg = Release|Any CPU
 		{E2A961E5-ED28-440B-9AEA-6B681D04F49A}.Release|x86.Build.0 = Release|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Debug|x64.Build.0 = Debug|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Debug|x86.Build.0 = Debug|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Release|x64.ActiveCfg = Release|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Release|x64.Build.0 = Release|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Release|x86.ActiveCfg = Release|Any CPU
+		{9B74F667-F81B-4BAB-93D3-236C2831F45D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

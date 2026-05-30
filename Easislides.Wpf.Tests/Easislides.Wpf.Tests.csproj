@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Easislides.Wpf\Easislides.Wpf.csproj" />
+    <!-- B-3 Phase 1: Core 추출 검증(CommonEnum 이 Easislides.Core 에 위치)용 참조. -->
+    <ProjectReference Include="..\Easislides.Core\Easislides.Core.csproj" />
   </ItemGroup>
 
 </Project>
