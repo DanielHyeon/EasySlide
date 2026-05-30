@@ -322,6 +322,48 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task SaveAndLoadWorshipList_RoundTripsQueue()
+    {
+        // G2(ManageItemLists): 현재 예배 순서를 이름으로 저장하고, 비운 뒤 다시 불러오면 동일 항목이 복원된다.
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        sut.LoadQueue([
+            new LiveQueueItem("a", "A", "Song") { Lyrics = "L" },
+            new LiveQueueItem("b", "B", "Bible"),
+        ]);
+
+        await sut.SaveWorshipListAsync("Sunday AM");
+        sut.GetSavedWorshipLists().Should().Contain("Sunday AM");
+
+        sut.LoadQueue([]);
+        await sut.LoadWorshipListAsync("Sunday AM");
+
+        sut.Queue.Select(i => i.Id).Should().Equal("a", "b");
+        sut.Queue[0].Lyrics.Should().Be("L", "콘텐츠(가사)도 함께 영속");
+    }
+
+    [Fact]
+    public async Task SaveWorshipList_WhenNameBlank_DoesNotSave()
+    {
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+
+        await sut.SaveWorshipListAsync("   ");
+
+        sut.GetSavedWorshipLists().Should().BeEmpty();
+        sut.StatusText.Should().Contain("이름을 입력");
+    }
+
+    [Fact]
+    public async Task DeleteWorshipList_RemovesSaved()
+    {
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        await sut.SaveWorshipListAsync("X");
+
+        sut.DeleteWorshipList("X");
+
+        sut.GetSavedWorshipLists().Should().NotContain("X");
+    }
+
+    [Fact]
     public void SelectingPowerPointItem_ThroughSetter_DrivesPreviewLoad()
     {
         // fire-and-forget 배선 검증: SelectedItem setter → OnSelectedItemChanged → 디스패치.
@@ -579,7 +621,8 @@ public class MainViewModelTests
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
         ICommandCatalog? commandCatalog = null,
-        ISettingsService? settings = null)
+        ISettingsService? settings = null,
+        IWorshipListStore? worshipLists = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -595,7 +638,29 @@ public class MainViewModelTests
             commandCatalog ?? new CommandCatalog(),
             settings ?? TempSettingsFolder.CreateDetachedSettings(),
             media,
-            powerPoint);
+            powerPoint,
+            worshipLists ?? new InMemoryWorshipListStore());
+    }
+
+    // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.
+    private sealed class InMemoryWorshipListStore : IWorshipListStore
+    {
+        private readonly Dictionary<string, IReadOnlyList<LiveQueueItem>> _store = new();
+
+        public Task SaveAsync(string name, IReadOnlyList<LiveQueueItem> items, CancellationToken cancellationToken = default)
+        {
+            _store[name] = items.ToArray();
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<LiveQueueItem>> LoadAsync(string name, CancellationToken cancellationToken = default)
+            => Task.FromResult(_store.TryGetValue(name, out var items)
+                ? items
+                : (IReadOnlyList<LiveQueueItem>)Array.Empty<LiveQueueItem>());
+
+        public IReadOnlyList<string> ListNames() => _store.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray();
+
+        public void Delete(string name) => _store.Remove(name);
     }
 
     // MainViewModel 은 PowerPoint VM 을 노출만 하고 렌더를 호출하지 않으므로, 실패 결과만 내는 스텁이면 충분.

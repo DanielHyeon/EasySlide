@@ -74,6 +74,15 @@ public partial class MainWindow : Window
         searchUsageWindow.ShowDialog();
     }
 
+    private void OpenManageWorshipLists_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            var window = new ManageWorshipListsWindow(viewModel) { Owner = this };
+            window.ShowDialog();
+        }
+    }
+
     private void OpenBible_Click(object sender, RoutedEventArgs e)
     {
         var bibleWindow = _services.GetRequiredService<BibleWindow>();

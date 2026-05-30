@@ -95,6 +95,7 @@ public partial class App : Application
             sp.GetRequiredService<ISettingsService>()));
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
+        services.AddSingleton<IWorshipListStore, WorshipListStore>();
         services.AddTransient<MediaPlaybackViewModel>();
         services.AddTransient<PowerPointPreviewViewModel>();
         services.AddTransient<LibraryViewModel>();
