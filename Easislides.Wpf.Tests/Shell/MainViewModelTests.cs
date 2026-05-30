@@ -571,6 +571,41 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OpeningOutput_AfterSelectingPowerPoint_RerendersAtOutputResolution()
+    {
+        // 항목을 먼저 고르고 출력을 나중에 여는 흐름: 출력 열림 시 현재 PPT 를 출력 해상도로 다시 렌더한다
+        // (그렇지 않으면 직전 렌더가 미리보기 크기로 남아 송출이 흐림 — G1.2 후속 완성).
+        var render = new RecordingPowerPointRenderService();
+        var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        sut.LoadQueue(new[] { ppt });
+        sut.SelectedItem = ppt; // 출력 닫힘 → 960×540 렌더
+        render.LastRequest!.PixelWidth.Should().Be(960, "출력 닫힘 상태 선택은 미리보기 크기");
+
+        sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
+        sut.OpenOutputCommand.Execute(null); // 출력 열림 → 현재 PPT 재렌더
+        await Task.Yield();
+
+        render.LastRequest!.PixelWidth.Should().Be(1920, "출력 열림 시 출력 해상도로 재렌더");
+        render.LastRequest.PixelHeight.Should().Be(1080);
+    }
+
+    [Fact]
+    public void OpeningOutput_WithNonPowerPointSelected_DoesNotRerender()
+    {
+        // 가드 회귀: 비-PPT(곡) 항목이 선택돼 있으면 출력 열림이 PPT 재렌더를 유발하지 않는다.
+        var render = new RecordingPowerPointRenderService();
+        var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
+        var song = new LiveQueueItem("song:1", "찬양", "Song") { Lyrics = "x" };
+        sut.LoadQueue(new[] { song });
+        sut.SelectedItem = song;
+
+        sut.OpenOutputCommand.Execute(null);
+
+        render.LastRequest.Should().BeNull("비-PPT 선택 시 출력 열림은 PPT 렌더를 유발하지 않음");
+    }
+
+    [Fact]
     public async Task GoLive_SecondPowerPointItem_ProjectsItsOwnSlideNotPrevious()
     {
         // 긍정 전환(신원 일치 분기): 두 번째 PPT 항목 송출 시 이전 덱(A)이 아니라 그 항목(B)의

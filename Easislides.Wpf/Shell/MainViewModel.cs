@@ -79,7 +79,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PowerPoint = powerPoint;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
-        _output.OutputChanged += (_, _) => NotifyCommandStates();
+        _output.OutputChanged += OnOutputChanged;
         _settings.SettingsChanged += OnSettingsChanged;
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
@@ -368,9 +368,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    private void OnOutputChanged(object? sender, OutputWindowChangedEventArgs e)
+    {
+        NotifyCommandStates();
+
+        // 출력 창이 열리면 현재 선택된 PPT 를 그 해상도로 다시 렌더한다 — 항목을 먼저 고르고
+        // 출력을 나중에 여는 흐름에서도 송출이 선명하도록(직전 렌더가 미리보기 크기로 남는 문제 해소).
+        // 닫힘은 송출하지 않으므로 갱신 불필요(IsOpen 가드). 같은 해상도 갱신은 렌더 캐시가 흡수.
+        // (현재 실효 트리거는 Open 뿐 — MoveTo 는 아직 미배선이나, 추가돼도 같은 가드로 안전.)
+        // 가드는 본문과 동일하게 정규값 Kind 로 매치한다(ApplySelectedItemContentAsync 가 정규값만
+        // 렌더하고 그 외는 PowerPoint.Clear 하므로, 별칭 항목까지 재실행하면 미리보기가 비워짐).
+        if (_output.Current.IsOpen && SelectedItem is { Kind: LiveItemKinds.PowerPoint })
+        {
+            _ = ApplySelectedItemContentAsync(SelectedItem);
+        }
+    }
+
     // PPT 슬라이드 렌더 크기 결정 — 출력 창이 열려 있으면 출력 모니터 해상도(1080p 상한)로 렌더해
     // GoLive 송출 시 선명하게, 닫혀 있으면 가벼운 미리보기 크기로 렌더한다.
-    // (참고: 출력 창을 항목 선택 뒤에 여는 경우엔 직전 선택은 미리보기 크기로 남는다 — 후속에서 갱신 대상.)
     private (int Width, int Height) ResolvePptRenderSize()
     {
         var current = _output.Current;
