@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,23 @@ public enum PowerPointPreviewState
     Failed,
 }
 
+/// <summary>덱 썸네일 스트립의 한 슬라이드(번호 + 작은 이미지 + 현재 슬라이드 여부).</summary>
+public sealed partial class PowerPointSlideThumbnail : ObservableObject
+{
+    public PowerPointSlideThumbnail(int slideNumber, ImageSource image)
+    {
+        SlideNumber = slideNumber;
+        Image = image;
+    }
+
+    public int SlideNumber { get; }
+
+    public ImageSource Image { get; }
+
+    /// <summary>지금 송출/미리보기 중인 슬라이드면 true(스트립에서 강조 표시).</summary>
+    [ObservableProperty] private bool _isCurrent;
+}
+
 /// <summary>
 /// IPowerPointRenderService 를 UI(MainWindow PowerPoint 탭)에 연결하는 미리보기 VM
 /// (G1 / gap-analysis.md §4 G-α).
@@ -29,12 +47,16 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
 {
     private readonly IPowerPointRenderService _render;
     private readonly Func<byte[], ImageSource> _decode;
+    private CancellationTokenSource? _thumbnailCts;
 
     [ObservableProperty] private ImageSource? _previewImage;
     [ObservableProperty] private PowerPointPreviewState _state = PowerPointPreviewState.Idle;
     [ObservableProperty] private string _statusText = "PPT 없음";
     [ObservableProperty] private int _slideNumber;
     [ObservableProperty] private int _slideCount;
+
+    /// <summary>덱 전체 슬라이드 썸네일 스트립(클릭으로 해당 슬라이드 이동). 덱이 바뀔 때 백그라운드로 채워진다.</summary>
+    public ObservableCollection<PowerPointSlideThumbnail> Thumbnails { get; } = new();
 
     /// <summary>
     /// 마지막으로 "성공" 렌더한 PPT 파일 경로(없으면 null). 출력 송출 시 신원 확인용 —
@@ -95,6 +117,77 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 덱 전체 슬라이드 썸네일을 백그라운드로 채운다(덱이 바뀔 때 호출). 작은 고정 크기로 렌더하며,
+    /// 새 호출이 오면 이전 로딩은 취소한다(빠른 덱 전환 대비). 슬라이드 수가 많으면 순차로 채워진다.
+    /// </summary>
+    public async Task LoadThumbnailsAsync(string filePath, int slideCount, int thumbnailWidth, int thumbnailHeight)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        _thumbnailCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _thumbnailCts = cts;
+        var token = cts.Token;
+
+        Thumbnails.Clear();
+
+        // 썸네일은 best-effort 장식이라, fire-and-forget 로 호출돼도(MainViewModel) 어떤 실패든
+        // 앱을 죽이지 않도록 전체를 봉인한다(메인 미리보기는 별개 경로라 영향 없음).
+        try
+        {
+            for (var slide = 1; slide <= slideCount; slide++)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var result = await _render.RenderSlideAsync(
+                    new PowerPointRenderRequest(filePath, slide, thumbnailWidth, thumbnailHeight, TimeSpan.FromSeconds(60)),
+                    token).ConfigureAwait(true);
+
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (result.Succeeded && result.Slide is { } slideSnapshot)
+                {
+                    ImageSource image;
+                    try
+                    {
+                        image = _decode(slideSnapshot.ImageBytes);
+                    }
+                    catch (Exception ex) when (
+                        ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)
+                    {
+                        continue; // 한 장 디코드 실패는 건너뛰고 나머지 썸네일을 계속 채운다.
+                    }
+
+                    Thumbnails.Add(new PowerPointSlideThumbnail(slide, image) { IsCurrent = slide == SlideNumber });
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 취소는 정상 — 다음 로딩이 이어받는다.
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PPT] 썸네일 로드 실패(무시): {ex.Message}");
+        }
+    }
+
+    // 현재 슬라이드가 바뀌면 썸네일 스트립의 강조(IsCurrent)를 갱신한다.
+    partial void OnSlideNumberChanged(int value)
+    {
+        foreach (var thumbnail in Thumbnails)
+        {
+            thumbnail.IsCurrent = thumbnail.SlideNumber == value;
+        }
+    }
+
     private void SetFailed(string status)
     {
         PreviewImage = null;
@@ -108,12 +201,14 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     /// <summary>미리보기를 비우고 초기 상태로(다른 종류 항목 선택 시).</summary>
     public void Clear()
     {
+        _thumbnailCts?.Cancel();
         PreviewImage = null;
         State = PowerPointPreviewState.Idle;
         StatusText = "PPT 없음";
         SlideNumber = 0;
         SlideCount = 0;
         LoadedContentPath = null; // 신원 무효화
+        Thumbnails.Clear();
     }
 
     /// <summary>렌더된 PNG/JPEG 바이트를 frozen ImageSource 로 디코드(ImageAssetService 와 동일 방식).</summary>

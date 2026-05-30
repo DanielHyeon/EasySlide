@@ -97,8 +97,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
-        NextSlideCommand = new AsyncRelayCommand(() => ChangeSlideAsync(+1), CanGoNextSlide);
-        PreviousSlideCommand = new AsyncRelayCommand(() => ChangeSlideAsync(-1), CanGoPreviousSlide);
+        NextSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber + 1), CanGoNextSlide);
+        PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
+        GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
 
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
@@ -122,6 +123,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand BlackScreenCommand { get; }
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
+    public IAsyncRelayCommand<int> GoToSlideCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
@@ -324,6 +326,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptMaxRenderWidth = 1920;
     private const int PptMaxRenderHeight = 1080;
 
+    // 덱 썸네일 스트립의 작은 고정 크기(출력 해상도와 무관 — 16:9).
+    private const int PptThumbnailWidth = 200;
+    private const int PptThumbnailHeight = 112;
+
+    // 현재 썸네일 스트립이 채워진 덱 파일 경로(같은 덱은 재로드 안 함).
+    private string? _thumbnailDeckPath;
+
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
         if (_session.Current.State != LiveState.Active)
@@ -355,10 +364,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
                 var (renderWidth, renderHeight) = ResolvePptRenderSize();
                 await PowerPoint.LoadAsync(pptPath, slide, renderWidth, renderHeight).ConfigureAwait(true);
+
+                // 덱이 바뀌었으면 썸네일 스트립을 백그라운드로 채운다(같은 덱 슬라이드 이동/재렌더 시엔 재로드 안 함).
+                if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready
+                    && !string.Equals(_thumbnailDeckPath, pptPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    _thumbnailDeckPath = pptPath;
+                    _ = PowerPoint.LoadThumbnailsAsync(pptPath, PowerPoint.SlideCount, PptThumbnailWidth, PptThumbnailHeight);
+                }
             }
             else
             {
                 PowerPoint.Clear();
+                _thumbnailDeckPath = null;
             }
 
             if (item is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } mediaPath })
@@ -425,18 +443,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return (PptPreviewWidth, PptPreviewHeight);
     }
 
-    // 라이브 슬라이드 이동 — 현재 선택된 PPT 의 미리보기를 인접 슬라이드로 다시 렌더하고,
+    // 라이브 슬라이드 이동 — 현재 선택된 PPT 의 미리보기를 지정 슬라이드로 다시 렌더하고,
     // 그 항목이 라이브 송출 중이면 출력도 그 슬라이드로 즉시 갱신한다(재-GoLive 의식 없이).
-    private async Task ChangeSlideAsync(int delta)
+    // 이전/다음 버튼과 썸네일 클릭이 모두 이 한 경로를 쓴다.
+    private async Task GoToSlideAsync(int target)
     {
         if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path } item)
         {
             return;
         }
 
-        var target = PowerPoint.SlideNumber + delta;
         if (PowerPoint.State != Rendering.PowerPointPreviewState.Ready
-            || target < 1 || target > PowerPoint.SlideCount)
+            || target < 1 || target > PowerPoint.SlideCount
+            || target == PowerPoint.SlideNumber)
         {
             return;
         }
@@ -454,6 +473,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         NotifyCommandStates();
     }
+
+    private bool CanGoToSlide(int target)
+        => IsPowerPointSlideNavReady() && target >= 1 && target <= PowerPoint.SlideCount;
 
     private bool CanGoNextSlide()
         => IsPowerPointSlideNavReady() && PowerPoint.SlideNumber < PowerPoint.SlideCount;
@@ -827,6 +849,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         BlackScreenCommand.NotifyCanExecuteChanged();
         NextSlideCommand.NotifyCanExecuteChanged();
         PreviousSlideCommand.NotifyCanExecuteChanged();
+        GoToSlideCommand.NotifyCanExecuteChanged();
     }
 
     private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)
