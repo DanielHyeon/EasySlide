@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly ShortcutRegistry _shortcuts;
     private readonly IServiceProvider _services;
     private bool _libraryLoadedOnce;
+    private bool _bibleLoadedOnce;
 
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
@@ -47,18 +48,44 @@ public partial class MainWindow : Window
             return;
         }
 
-        // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피).
-        if (_libraryLoadedOnce
-            || sender is not TabControl { SelectedItem: TabItem { Tag: "Library" } }
+        if (sender is not TabControl { SelectedItem: TabItem tab }
             || DataContext is not MainViewModel viewModel)
         {
             return;
         }
 
-        _libraryLoadedOnce = true;
-        if (viewModel.Library.LoadCommand.CanExecute(null))
+        // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피). 탭별 1회 자동 로드.
+        switch (tab.Tag)
         {
-            viewModel.Library.LoadCommand.Execute(null);
+            case "Library" when !_libraryLoadedOnce:
+                _libraryLoadedOnce = true;
+                if (viewModel.Library.LoadCommand.CanExecute(null))
+                {
+                    viewModel.Library.LoadCommand.Execute(null);
+                }
+
+                break;
+            case "Bible" when !_bibleLoadedOnce:
+                _bibleLoadedOnce = true;
+                _ = viewModel.Bible.LoadAsync(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
+                break;
+        }
+    }
+
+    // 본문에서 드래그 선택한 구절 범위를 BibleSelection 으로 만들어 예배 순서에 추가(BibleWindow Select_Click 과 동일).
+    private void AddBibleVerse_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var selection = viewModel.Bible.BuildSelection(
+            BiblePassageBox.SelectionStart,
+            BiblePassageBox.SelectionLength);
+        if (!string.IsNullOrWhiteSpace(selection.IdString))
+        {
+            viewModel.AddBibleSelection(selection);
         }
     }
 

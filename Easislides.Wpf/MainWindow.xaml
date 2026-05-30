@@ -262,6 +262,54 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
+                <TabItem Header="성경"
+                         Tag="Bible">
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- 버전·책 선택 + 검색 — BibleWindow 와 동일 재사용 컴포지트(DataContext=Bible 로 국한). -->
+                        <composites:BibleVerseFinder Grid.Row="0"
+                                                     DataContext="{Binding Bible}" />
+
+                        <!-- 본문 — 구절 범위를 드래그 선택한 뒤 아래 "선택 구절 추가". -->
+                        <TextBox Grid.Row="1"
+                                 x:Name="BiblePassageBox"
+                                 Text="{Binding Bible.PassageText, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,8,0,0"
+                                 AutomationProperties.Name="성경 본문" />
+
+                        <Button Grid.Row="2"
+                                Click="AddBibleVerse_Click"
+                                Style="{StaticResource EsButton.Primary}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,8,0,0"
+                                Content="선택 구절 추가"
+                                AutomationProperties.Name="선택한 성경 구절을 예배 순서에 추가" />
+
+                        <TextBlock Grid.Row="3"
+                                   Text="{Binding Bible.SelectedPassageTitle}"
+                                   Margin="0,8,0,0"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding Bible.StatusMessage}"
+                                   Margin="0,2,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
             </TabControl>
 
             <Border Grid.Column="2"

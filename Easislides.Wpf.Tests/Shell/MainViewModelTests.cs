@@ -1154,6 +1154,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddBibleSelection_WithEmptyBuildSelection_DoesNotChangeQueue()
+    {
+        // 인라인 성경 글루 안전성(§7.5 P0): 본문/구절 미선택이면 BuildSelection 이 빈 결과를 내고,
+        // AddBibleSelection 이 그것을 무시해 큐가 바뀌지 않는다(미로드 성경에서 BuildSelection 안전).
+        var sut = CreateSut();
+        var before = sut.Queue.Count;
+
+        var empty = sut.Bible.BuildSelection(0, 0); // 성경 미로드 → 빈 선택
+        sut.AddBibleSelection(empty);
+
+        sut.Queue.Count.Should().Be(before, "빈 성경 선택은 예배 순서를 바꾸지 않음");
+    }
+
+    [Fact]
+    public void Exposes_Library_And_Bible_ViewModels_ForInlineBrowsers()
+    {
+        // §7.5 P0 인라인 콘텐츠 브라우저: MainWindow 좌측 "라이브러리"·"성경" 탭이 바인딩할 VM 노출(DI 배선 잠금).
+        var sut = CreateSut();
+
+        sut.Library.Should().NotBeNull("라이브러리 탭이 바인딩할 VM");
+        sut.Bible.Should().NotBeNull("성경 탭이 바인딩할 VM");
+    }
+
+    [Fact]
     public void AddSelectedLibrarySongCommand_CanExecute_ReflectsLibrarySelection()
     {
         var sut = CreateSut();
@@ -1178,8 +1202,9 @@ public class MainViewModelTests
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
         powerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());
         var resolvedSettings = settings ?? TempSettingsFolder.CreateDetachedSettings();
-        // 라이브러리 VM — 테스트는 DB 경로 미설정이라 실제 repo 메서드가 호출되지 않는다(빈 라이브러리).
+        // 라이브러리/성경 VM — 테스트는 작업 폴더/DB 미설정이라 실제 repo 가 데이터를 반환하지 않는다(빈 목록).
         var library = new LibraryViewModel(resolvedSettings, new AdminDatabaseRepository());
+        var bible = new BibleViewModel(resolvedSettings, new BibleRepository());
         return new MainViewModel(
             session,
             output,
@@ -1191,6 +1216,7 @@ public class MainViewModelTests
             media,
             powerPoint,
             library,
+            bible,
             worshipLists ?? new InMemoryWorshipListStore());
     }
 
