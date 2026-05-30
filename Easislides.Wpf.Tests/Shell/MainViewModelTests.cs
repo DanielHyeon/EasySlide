@@ -505,6 +505,72 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task SelectingPowerPoint_WithOutputOpen_RendersAtOutputResolution()
+    {
+        // G1.2 후속(출력 해상도 렌더): 출력 창이 열려 있으면 PPT 를 출력 모니터 해상도로 렌더해
+        // 송출을 선명하게 한다(기존엔 미리보기 960×540 을 업스케일 → 흐림).
+        var render = new RecordingPowerPointRenderService();
+        var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
+        sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        render.LastRequest!.PixelWidth.Should().Be(1920);
+        render.LastRequest.PixelHeight.Should().Be(1080);
+    }
+
+    [Fact]
+    public async Task SelectingPowerPoint_WithOutputClosed_RendersAtPreviewResolution()
+    {
+        // 출력 창이 닫혀 있으면(미송출) 가벼운 미리보기 크기로 렌더한다.
+        var render = new RecordingPowerPointRenderService();
+        var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        render.LastRequest!.PixelWidth.Should().Be(960);
+        render.LastRequest.PixelHeight.Should().Be(540);
+    }
+
+    [Fact]
+    public async Task SelectingPowerPoint_With4kOutput_ClampsRenderTo1080p()
+    {
+        // 초고해상도(4K) 출력에서 매 선택마다 거대한 JPG 를 만들지 않도록 1080p 로 상한.
+        var render = new RecordingPowerPointRenderService();
+        var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
+        sut.SelectedOutputDisplay = new OutputDisplay("d", "4K", 0, 0, 3840, 2160, 1.0);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        render.LastRequest!.PixelWidth.Should().Be(1920);
+        render.LastRequest.PixelHeight.Should().Be(1080);
+    }
+
+    [Fact]
+    public async Task SelectingPowerPoint_WithNon16by9Output_PreservesAspectRatioWithinBounds()
+    {
+        // 비-16:9(16:10) 출력: 두 축을 따로 자르지 않고 종횡비를 보존하며 1080p 상한 안에 맞춘다.
+        var render = new RecordingPowerPointRenderService();
+        var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
+        sut.SelectedOutputDisplay = new OutputDisplay("d", "16:10", 0, 0, 3840, 2400, 1.0);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        var width = render.LastRequest!.PixelWidth;
+        var height = render.LastRequest.PixelHeight;
+        width.Should().BeLessThanOrEqualTo(1920);
+        height.Should().BeLessThanOrEqualTo(1080);
+        ((double)width / height).Should().BeApproximately(3840.0 / 2400.0, 0.01, "종횡비(16:10) 보존");
+    }
+
+    [Fact]
     public async Task GoLive_SecondPowerPointItem_ProjectsItsOwnSlideNotPrevious()
     {
         // 긍정 전환(신원 일치 분기): 두 번째 PPT 항목 송출 시 이전 덱(A)이 아니라 그 항목(B)의
@@ -891,6 +957,23 @@ public class MainViewModelTests
         }
 
         public void Dispose() => _gate.TrySetResult();
+    }
+
+    // 렌더 요청(특히 픽셀 크기)을 기록하는 스텁 — 출력 해상도 렌더(G1.2 후속) 검증용.
+    private sealed class RecordingPowerPointRenderService : IPowerPointRenderService
+    {
+        public PowerPointRenderRequest? LastRequest { get; private set; }
+
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+        {
+            LastRequest = request;
+            return Task.FromResult(new PowerPointRenderResult(
+                PowerPointRenderErrorKind.MissingOffice, Slide: null, ErrorMessage: "rec", FromCache: false, Elapsed: TimeSpan.Zero));
+        }
+
+        public void ClearCache()
+        {
+        }
     }
 
     private static PowerPointRenderResult SuccessResult(PowerPointRenderRequest request)

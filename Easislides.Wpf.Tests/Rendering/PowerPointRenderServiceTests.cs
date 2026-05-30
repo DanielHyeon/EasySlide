@@ -46,6 +46,21 @@ public class PowerPointRenderServiceTests
     }
 
     [Fact]
+    public async Task RenderSlideAsync_WhenPixelSizeDiffers_InvalidatesCache()
+    {
+        // 출력 해상도 렌더(G1.2 후속)의 전제: 같은 파일/슬라이드라도 픽셀 크기가 다르면
+        // 별도 캐시 엔트리로 재렌더돼야 한다(캐시 키에 PixelWidth/Height 포함). 이 불변식 회귀 가드.
+        using var fixture = TempPowerPointFile.Create();
+        var backend = new FakePowerPointRenderBackend();
+        var sut = new PowerPointRenderService(backend);
+
+        await sut.RenderSlideAsync(DefaultRequest(fixture.Path) with { PixelWidth = 960, PixelHeight = 540 });
+        await sut.RenderSlideAsync(DefaultRequest(fixture.Path) with { PixelWidth = 1920, PixelHeight = 1080 });
+
+        backend.CallCount.Should().Be(2, "픽셀 크기가 다르면 캐시 미스로 재렌더");
+    }
+
+    [Fact]
     public async Task RenderSlideAsync_UsesInjectedThumbnailCacheAcrossServiceInstances()
     {
         using var fixture = TempPowerPointFile.Create();
