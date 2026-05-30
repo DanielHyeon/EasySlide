@@ -189,9 +189,116 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] G1.2 라이브 중 PPT 슬라이드 이동 — **완료**(2026-05-31: 이전/다음 버튼으로 덱 내 슬라이드 이동 + 라이브 출력 즉시 갱신, PPT 덱은 자동 advance 제외)
 - [x] G1.2 PPT 덱 썸네일 스트립 — **완료**(2026-05-31: PowerPoint 탭에 덱 전체 슬라이드 썸네일·클릭 이동·현재 강조, 백그라운드 로딩). **G1.2 PPT 트랙 사실상 완결**(잔여는 백로그 §G-α)
 - [x] G1.4 출력 렌더 패리티(부분) — **완료**(2026-05-31: 출력 배경 솔리드/그라데이션 스크린샷 기준 고정. 텍스트는 비결정성으로 제외, 속성 검증이 담당)
-- [ ] **다음 착수**: UI/UX 갭 분석(FrmMain ↔ MainWindow, 미이식 폼) → 본 문서 §9 등에 반영
+- [x] UI/UX 갭 분석(FrmMain ↔ MainWindow, 미이식 폼) — **완료**(2026-05-31, 아래 §7) — 단일 콘솔 통합 설계 제안
+- [ ] **다음 착수(권장)**: §7.5 로드맵 P0 — 인-셸 **콘텐츠 브라우저(폴더+목록)** + **컨텍스트 인스펙터(포맷팅)** 통합
 
-## 7. 참조
+## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
+
+> 작성일 2026-05-31 · 방법: `FrmMain.Designer.cs`(레거시 단일 운영창)와 `MainWindow.xaml`(WPF 셸)의 실제 UI 표면을 추출·대조하고, UI/UX 스킬(ui-ux-pro-max)의 **Data-Dense Dashboard** 패턴·키보드 우선 접근성 가이드를 적용해 현대적 재해석을 제안한다.
+> 사용자 요구: **"흩어진 별도 창이 아니라 FrmMain 처럼 MainWindow 한 곳에서 모든 동작"** + FrmMain 을 현대적으로 더 편리하게.
+
+### 7.1 정량 표면 대조
+
+| 표면 | FrmMain (레거시) | MainWindow (WPF) | 격차 |
+|---|---|---|---|
+| 메뉴 항목 | **136** (MenuStrip 6대 메뉴 File/Edit/View/Output/Tools/Help) | **0** (메뉴바 없음) | 🔴 전면 부재 |
+| 툴바 버튼 | **93** (ToolStrip 30개, 포맷/정렬/색/전환 등) | ~16 하단 액션(대부분 별도 창 오픈) | 🔴 인-셸 포맷팅 0 |
+| 패널/탭 | Panel 57, TabPage 10, TabControl 3, SplitContainer 5(가변 레이아웃) | 3열 고정 그리드 + 탭 3(Preview/PowerPoint/Media) | 🟡 고정·저밀도 |
+| 목록 뷰 | ListView 8 (폴더·곡목록·PPT·이미지·미디어·사용처…) | WorshipListPanel 1 (예배 순서만) | 🔴 인라인 브라우징 부재 |
+| 수치 입력 | NumericUpDown 8 (여백·크기·전환…) | 0 (Settings 창에 분산) | 🔴 |
+
+핵심: MainWindow 는 **얇은 디스패처 셸**이다 — 좌(예배순서)·중(미리보기 탭)·우(운영상태) 3열 + 하단 버튼이 **라이브러리/성경/Search/I-O/외부파일/설정/편집기**를 각각 **모달/별도 창**으로 띄운다. FrmMain 은 그 전부를 **한 창의 패널·탭·메뉴**로 처리했다.
+
+### 7.2 핵심 UX 문제 — 분산 창 vs 단일 콘솔
+
+1. **컨텍스트 단절**: 라이브 송출 중 곡을 고르려면 별도 라이브러리 창을 띄우고(미리보기 가림), 포맷을 바꾸려면 Settings 모달을 연다 — 예배 진행 중 치명적. UX 가이드 *"100 tabs to reach content"* anti-pattern 의 데스크톱판.
+2. **인-셸 렌더링 제어 전무**: 운영자가 라이브 중 즉시 바꾸던 정렬·폰트효과·리전·헤딩·배경·전환·코드/조옮김이 WPF 셸엔 **없다**(일부만 Settings 모달). 워십 운영의 본질 기능.
+3. **저밀도·키보드 미흡**: 3열 고정·여백 큼(데스크톱 운영 콘솔엔 부적합) + 라이브 단축키는 next/prev/black 정도. FrmMain 은 메뉴 가속키·툴바로 키보드 운영이 촘촘했다.
+
+### 7.3 기능 갭 매트릭스 (FrmMain 실제 라벨 기준)
+
+#### A. 인-셸 렌더링/포맷팅 (🔴 거의 전무 — 최우선 통합 대상)
+
+| 기능군 | FrmMain 항목(발췌) | WPF 현황 |
+|---|---|---|
+| 텍스트 정렬 | Align Left/Right/Centre/Top/Bottom, Vertical Alignment | 🔴 없음 |
+| 폰트 효과 | Shadow Font, Outline Font, Italics / No Italics / Chorus Italics Only | 🔴 없음 |
+| 리전(2단) | Region 1/2 Only, Regions 1&2, Interlace, R1/R2 Colour, Region n Align L/R/C, Text Colour As Region 1 | 🔴 없음(렌더는 전경/배경 브러시만) |
+| 헤딩(제목/절) | Show All/No Headings, Heading Align L/R/C/As Region, Heading At First Screen Only, Display Title/Verse Headings | 🔴 없음 |
+| 배경 | Background Colours and Patterns, Background Picture Format(Best Fit/Centre/Tile/Size), No/Transparent/Default Background, Back Colour | 🟡 세로 그라데이션·솔리드만(#38, G1.4), 이미지/패턴/타일 없음 |
+| 전환 효과 | Slide Transition, Item Transition | 🟡 TransitionEffectService 있으나 UI 노출 미약 |
+| 코드/악상 | Show Notations(+in Preview), Transpose Up/Down Semi-Tone, To Capo 0 | 🔴 없음 |
+| 인디케이터 | Show Verse/Slide Indicators, Show Item Number, Show Title, Use Song Numbering | 🔴 없음 |
+| 설정 템플릿 | Save/Load Settings Template, Use Individual Settings, Apply to All Except InfoScreens, Default Layout | 🔴 없음 |
+
+#### B. 라이브 운영 제어 (🟡 핵심 일부만)
+
+| 기능 | FrmMain | WPF |
+|---|---|---|
+| Go LIVE / Black / Next·Prev | Start Show-Go LIVE, Black Screen, Move Next | ✅ 있음 |
+| 화면 제어 | Clear Screen, Hide Text, Refresh Output, Restart Current Item | 🔴 없음(Black 만) |
+| 자동 회전 | Auto Rotate Group/One Item(+Repeat), Stop Auto Rotate, Rotate Style | 🔴 없음 |
+| Gap/안내 | Gap Item, Alerts(경고 오버레이) | 🟡 출력측 오버레이만, 조작 UI 없음 |
+| 보조 화면 | InfoScr, Copy to InfoScreen, Apply to All Except InfoScreens | 🔴 없음(FrmInfoScreen 미이식) |
+| 미디어 출력 | Play Media (on Output Monitor) | ✅ G1.2 트랙으로 연결 |
+| 항목 이동 | Move Item Up/Down | 🟡 Next/Prev 만, 큐 재정렬 약함 |
+
+#### C. 인라인 콘텐츠 브라우징 (🔴 별도 창으로 분산)
+
+| 기능 | FrmMain | WPF |
+|---|---|---|
+| 폴더 트리 + 곡 목록 | Folders + Listing of Selected Folder(2-pane) | 🔴 별도 `LibraryWindow` 모달 |
+| PraiseBook | Add/Manage/Clear PraiseBooks | 🔴 없음 |
+| 워십 세션/최근 | Worship Sessions, Recent Edits, Edit Session Notes | 🔴 없음 |
+| 성경 인라인 | Bibles, Select typed-in reference, Search Phrase, Add Region 2 | 🔴 별도 `BibleWindow` |
+| 이미지/미디어 목록 | Images, Media, Refresh Images Lists, Powerpoint Listing/Preview | 🟡 미디어/PPT 탭은 있으나 폴더 브라우징 없음 |
+
+#### D. 데이터/관리 (✅ 통합 창에 포함 — 단 별도 창)
+Import/Export·Generate RTF/HTML·Copy/Move/Delete·Recover·Smart Merge·Search/Usages 는 §2 매트릭스대로 **WPF 창으로 포팅됨**(미이식 아님). 다만 모두 **별도 다이얼로그** — 7.4 통합 대상.
+
+### 7.4 현대적 재해석 — 단일 콘솔 통합 설계
+
+> 원칙(ui-ux 스킬): **Data-Dense Dashboard**(고밀도·최소 패딩·그리드·최대 가시성) + 키보드 우선 + "색상 단독 의존 금지"(LIVE 상태=아이콘+텍스트) + 비동기 콘텐츠 공간 예약(미리보기/썸네일 레이아웃 점프 방지).
+
+제안 레이아웃 — **3-구역 도킹 콘솔 + 컨텍스트 인스펙터**(별도 창 제거):
+
+```
+┌───────────────────────────────────────── Command/Top bar (LIVE 상태·전역 검색·⌘K 명령 팔레트) ─┐
+│ ┌─ 좌: 콘텐츠 브라우저(도킹) ─┐ ┌─ 중앙: 미리보기/송출 ─┐ ┌─ 우: 컨텍스트 인스펙터 ─┐ │
+│ │ 폴더 트리 + 곡/성경/PPT/   │ │ 라이브 미리보기        │ │ (선택 항목 종류별 탭)    │ │
+│ │ 미디어/이미지 목록 탭       │ │ + PPT 썸네일 스트립     │ │ · 가사: 정렬·폰트·리전·  │ │
+│ │ (인라인 검색·필터)          │ │ + Next/Prev/Go Live    │ │   헤딩·배경·전환·코드    │ │
+│ └────────────────────────────┘ │                        │ │ · PPT: 슬라이드·전환     │ │
+│ ┌─ 하단 좌: 예배 순서 큐(도킹) ─┐ │                        │ │ · 미디어: 재생·볼륨      │ │
+│ │ 드래그 재정렬·자동회전·Gap   │ │                        │ │ · 성경: 버전·구절        │ │
+│ └────────────────────────────┘ └────────────────────────┘ └──────────────────────────┘ │
+└─ 하단: 운영 바(출력 모니터·LIVE/Black/Clear/Hide/Restart·자동회전·InfoScreen) ───────────────┘
+```
+
+핵심 패턴:
+1. **컨텍스트 인스펙터**(우측 도킹): 선택 항목 종류(곡/성경/PPT/미디어)에 따라 **인-셸 포맷팅 컨트롤**을 표시 — §7.3-A 의 정렬·폰트·리전·헤딩·배경·전환·코드/조옮김을 모달 없이 즉시 조작. Settings 모달은 "전역 기본값"만 남기고 **항목별 라이브 조정은 인스펙터**로 이동.
+2. **인라인 콘텐츠 브라우저**(좌측 도킹): `LibraryWindow`/`BibleWindow` 의 폴더-트리+목록을 셸에 도킹(탭: 곡/성경/PPT/미디어/이미지). 더블클릭/Enter 로 큐 추가. 별도 창 제거(검색·필터 인라인).
+3. **명령 팔레트(⌘K/Ctrl+K)**: 136개 메뉴를 단축키+검색 가능한 명령 팔레트로 흡수 — "100탭" 문제 해소, 키보드 우선 운영. 자주 쓰는 라이브 동작은 전역 단축키(이미 `ShortcutRegistry` 존재) 확장.
+4. **도킹/레이아웃 저장**: SplitContainer 의 현대판 — 도킹 패널(접기/크기조절) + "Default Layout"/사용자 레이아웃 저장(FrmMain 의 Default Layout 계승).
+5. **운영 바 강화**: Black 외 Clear/Hide/Restart/Refresh + 자동회전(시작/정지/Repeat) + InfoScreen 토글. 상태는 아이콘+텍스트(색상 단독 금지).
+6. **밀도 상향**: 3열 고정·큰 여백 → 도킹 그리드·조밀 간격(데스크톱 운영 콘솔). 큐는 드래그 재정렬.
+
+### 7.5 우선순위 로드맵 (라이브 운영 가치 기준)
+
+- **P0 (운영 본질·최우선)**
+  - (a) **컨텍스트 인스펙터 + 인-셸 가사 포맷팅**: 정렬·폰트효과·리전·헤딩·배경색 → 라이브 중 모달 없이 조정(§7.3-A). 이미 `LiveOutputRenderSettings`/`OutputWindowViewModel` 가 다수 속성을 보유 → **UI 노출이 갭의 핵심**.
+  - (b) **인라인 콘텐츠 브라우저**: LibraryWindow/BibleWindow 를 좌측 도킹 패널로 흡수(별도 창 제거).
+  - (c) **화면 제어 보강**: Clear/Hide/Restart + InfoScreen 토글.
+- **P1 (운영 편의)**
+  - 명령 팔레트(⌘K) + 단축키 확장 / 자동 회전(Group/One, Repeat, Stop) / 코드 표기·조옮김 인스펙터 / 큐 드래그 재정렬.
+- **P2 (구조·완성)**
+  - 도킹 레이아웃 + 저장(Default/사용자 레이아웃) / 설정 템플릿(Save/Load, Apply to All Except InfoScreens) / PraiseBook·워십 세션·세션 노트 / 배경 이미지·패턴·전환 UI / 미이식 폼(FrmInfoScreen=가사편집기, FrmManageItemLists, FrmBibleRename, FrmUpdateFileName) 통합.
+
+### 7.6 "미이식" 오해 정정
+
+사용자 인상("다른 폼들이 전혀 이식 안 됨")과 달리, §2 매트릭스 기준 **20개가 포팅/통합**됨 — 다만 대부분 **별도 다이얼로그**라 "흩어져" 보인다(통합이 진짜 과제). **실제 미이식(🔴)** 은 6개: `FrmInfoScreen`(실은 7,337줄 가사 편집기), `FrmManageItemLists`, `FrmBibleRename`, `FrmUpdateFileName`, `FrmSingleMonitorAlert`(레거시 미사용), 배경 설정 일부. → 통합(7.4) + 미이식 6 처리가 M3 의 핵심.
+
+## 8. 참조
 - 도메인 계획: [01-shell-live-operations](01-shell-live-operations.md) ~ [06-verification-test-plan](06-verification-test-plan.md)
 - [next-session-plan.md](next-session-plan.md) (남은 백로그 A/B/C)
 - ADR-0001(WPF), ADR-0005(Options 분해), ADR-0007(안전망), ADR-0008(Core 추출)
