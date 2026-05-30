@@ -34,11 +34,11 @@
 |---|---|---|---|
 | `FrmMain` | `MainWindow` | 🟡 | 운영 셸·예배순서·Preview·LIVE/Black·모니터선택 O / **PPT·미디어 탭 placeholder** |
 | `FrmLyricsScreen` | `OutputWindow` | 🟡 | Scene 렌더(전경/배경 브러시) O, 레거시 GDI+ 패리티 미검증 |
-| `FrmInfoScreen` | — | 🔴 | **정보화면(보조 모니터 다음곡/정보) 대응 없음 — G0 확정**(`OutputSceneKind`=상태값뿐) |
+| `FrmInfoScreen` | — | 🔴 | **분류 정정(G2 조사)**: "정보화면"이 아니라 `tbLyrics1/2`+드래그드롭+코드 인디케이터를 가진 **가사 편집기(7,337줄, ~FrmEditItem 급 대형)**. 도메인 B(편집)로 재분류 대상 |
 | `FrmLaunchShow` | `MainWindow` LIVE 흐름 | 🟡 | 풀스크린 launch 통합 추정 ❓ |
 | `FrmShowAlert` | `OutputWindow`(LyricsAlertVisibility) + `EsToast` | 🟡 | 출력 화면 경고 오버레이 존재, 패리티 미검증 |
-| `FrmSingleMonitorAlert` | — | 🔴 | 단일 모니터 경고 대응 없음 |
-| `FrmPopupText` | — | 🔴 | 팝업 텍스트 송출 대응 없음 |
+| `FrmSingleMonitorAlert` | — | 🔴 | 단일 모니터 경고 — **레거시에서 주석 처리(미사용)**, 저가치 |
+| `FrmPopupText` | — | 🔴 | 팝업 텍스트 송출(38줄, `Gf.popUpText` 저장). WPF 는 OutputWindow 오버레이 인프라 재사용 가능하나 라이브 큐 연동 필요 |
 
 ### B. 콘텐츠 편집 / 라이브러리 (도메인문서 02)
 
@@ -157,14 +157,14 @@
 4. **출력 렌더 패리티 검증**: OutputWindow 가사/성경/배경 렌더를 레거시와 스크린샷 비교로 고정.
 - 게이트: 각 항목 스크린샷 회귀 통과 + `--legacy-ui` 롤백 유지.
 
-### Phase G2 — 미포팅 폼 (중위험, 1건씩) — G0 확정 7건
-- 우선순위: 라이브 사용 빈도 高 → 低.
-  1. `FrmBackground`(배경 설정 — 송출 직접 영향) → Settings 또는 전용 창.
-  2. `FrmInfoScreen`(보조 모니터 정보화면 — 다음곡/정보 송출).
-  3. `FrmManageItemLists`(예배 리스트 저장/관리).
-  4. `FrmEditNotes`(노트/코드 편집 — SongEditor notation 확장 또는 전용).
-  5. 경고/알림(`FrmSingleMonitorAlert`, `FrmPopupText`) → 통합 알림 체계.
-  6. 유틸(`FrmBibleRename`, `FrmUpdateFileName`) — 일괄.
+### Phase G2 — 미포팅 폼 (중위험, 1건씩)
+- ✅ **완료**: `FrmBackground` → 가사 배경 세로 그라데이션(#38).
+- **G2 조사 발견(선결 인프라 게이트)**: 남은 폼 대부분이 깔끔한 단일 PR 이 아니라 **선결 인프라**를 요구한다.
+  - `FrmInfoScreen`: 분류 정정 — 7,337줄 **가사 편집기**(FrmEditItem 급). 단일 PR 부적합 → 대형 편집기 마이그레이션으로 별도 트랙.
+  - `FrmManageItemLists`·`FrmPopupText`: WPF 라이브 셸이 **placeholder 큐**(`SeedPlaceholderQueue`)라 실제 항목/큐 도메인 plumbing 선결 필요.
+  - `FrmBibleRename`/`FrmUpdateFileName`: `IBibleRepository`/곡 데이터가 **읽기 전용** → 쓰기(rename) 경로 선결 필요.
+  - `FrmSingleMonitorAlert`: 레거시에서 주석 처리(미사용) — 저가치.
+- **권장 다음 트랙**: (a) 실제 라이브 큐 도메인 plumbing(LiveQueueItem 확장 + 항목 로드) — 다수 라이브-운영 폼의 공통 선결, 또는 (b) 데이터 계층 쓰기 경로(rename/update) — 유틸 폼들의 공통 선결, 또는 (c) 대형 편집기(EditItem/InfoScreen) 마이그레이션 트랙.
 - 각 폼: ViewModel 단위 테스트 우선 → View 구현 → 동작 동등성 확인.
 
 ### Phase G3 — 운영 전환 게이트 (B-4)
