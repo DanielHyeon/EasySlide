@@ -10,6 +10,7 @@ using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Media;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -410,6 +411,32 @@ public class MainViewModelTests
             shortcut.Key == Key.F5);
     }
 
+    [Fact]
+    public void Exposes_Media_PlaybackViewModel()
+    {
+        // G1.2(gap-analysis §4 G-α): orphaned MediaPlaybackViewModel 이 MainViewModel(→ MainWindow Media 탭)에
+        // 연결됐는지 고정. 미디어 미적재 초기엔 Empty 상태(컨트롤 비활성).
+        var sut = CreateSut();
+
+        sut.Media.Should().NotBeNull("Media 탭이 바인딩할 재생 컨트롤 VM 이 노출돼야 함");
+        sut.Media.State.Should().Be(MediaPlaybackState.Empty, "미디어 미적재 초기 상태");
+    }
+
+    [Fact]
+    public void Dispose_Is_Idempotent_With_Media_ViewModel()
+    {
+        // MainViewModel 과 DI 컨테이너가 모두 Media VM 해제를 시도할 수 있어(이중 dispose),
+        // 반복 호출이 예외 없이 안전해야 한다(MediaPlaybackViewModel.Dispose 멱등 가드 검증).
+        var sut = CreateSut();
+
+        var disposeTwice = () =>
+        {
+            sut.Dispose();
+            sut.Dispose();
+        };
+        disposeTwice.Should().NotThrow();
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
@@ -419,6 +446,7 @@ public class MainViewModelTests
         var output = new OutputWindowService();
         var session = new LiveSessionService();
         var telemetry = new InMemoryCommandTelemetry();
+        var media = new MediaPlaybackViewModel(new MediaPlaybackService());
         return new MainViewModel(
             session,
             output,
@@ -426,7 +454,8 @@ public class MainViewModelTests
             telemetry,
             display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback),
             commandCatalog ?? new CommandCatalog(),
-            settings ?? TempSettingsFolder.CreateDetachedSettings());
+            settings ?? TempSettingsFolder.CreateDetachedSettings(),
+            media);
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt

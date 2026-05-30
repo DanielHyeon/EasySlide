@@ -9,6 +9,7 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
 {
     private static readonly TimeSpan DefaultSeekIncrement = TimeSpan.FromSeconds(5);
     private readonly IMediaPlaybackService _playback;
+    private bool _disposed;
 
     [ObservableProperty] private MediaPlaybackState _state = MediaPlaybackState.Empty;
     [ObservableProperty] private string _source = string.Empty;
@@ -49,7 +50,18 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
 
     public void Load(MediaPlaybackRequest request) => _playback.Load(request);
 
-    public void Dispose() => _playback.PlaybackChanged -= OnPlaybackChanged;
+    public void Dispose()
+    {
+        // 멱등 — DI 컨테이너(transient IDisposable 추적)와 MainViewModel 이 모두 해제를 시도할 수 있어
+        // 이중 호출이 가능하다. 가드로 한 번만 정리(향후 비-멱등 정리 추가에도 안전).
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _playback.PlaybackChanged -= OnPlaybackChanged;
+    }
 
     private void OnPlaybackChanged(object? sender, MediaPlaybackChangedEventArgs e)
         => ApplySnapshot(e.Snapshot);
