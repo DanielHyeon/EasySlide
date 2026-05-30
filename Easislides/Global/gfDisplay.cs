@@ -596,7 +596,7 @@ namespace Easislides
 						topPosition = InItem.Lyrics[0].FS_Top + OffsetAfterAlignment + Region1Height + Buffer_LS_Height / BufferLSHeightDivisor30;
 						if (LineBetweenRegions)
 						{
-							OutputOneLineToScreen(InItem, "<<DrawLine>>", MainFont, g, InItem.Lyrics[RegNum].ForeColour, StringAlignment.Center, InUseShadowFont, InUseOutlineFont, fS_Left, topPosition - Buffer_LS_Height / BufferLSHeightDivisor40, fS_Width, 0);
+							OutputOneLineToScreen(InItem, "<<DrawLine>>", MainFont, g, Color.FromArgb(InItem.Lyrics[RegNum].ForeColour), StringAlignment.Center, InUseShadowFont, InUseOutlineFont, fS_Left, topPosition - Buffer_LS_Height / BufferLSHeightDivisor40, fS_Width, 0);
 						}
 						break;
 				}
@@ -761,7 +761,7 @@ namespace Easislides
 			HeightOffset += ((InShowNotations == 1) ? NotationsLineHeight : 0);
 			ActionUndoWordWrapSpacesAtStart(ref ExtractedText, ref ReplacedLog);
 			SubstituteDashes(ref ExtractedText, InShowNotations);
-			int num2 = OutputOneLineToScreen(InItem, ExtractedText, MainFont, g, InLyrics.ForeColour, InLyrics.TextAlign, InUseShadowFont, InUseOutlineFont, InLeft, InTop + HeightOffset, InWidth, 0, (IsWrappedText && WordWrapLeftAlignIndent && InItem.Type != "I" && RegionNumber != 2) ? true : false);
+			int num2 = OutputOneLineToScreen(InItem, ExtractedText, MainFont, g, Color.FromArgb(InLyrics.ForeColour), InLyrics.TextAlign, InUseShadowFont, InUseOutlineFont, InLeft, InTop + HeightOffset, InWidth, 0, (IsWrappedText && WordWrapLeftAlignIndent && InItem.Type != "I" && RegionNumber != 2) ? true : false);
 			if (InShowNotations == 1)
 			{
 				int num3 = (int)MainFont.Size - 2;
@@ -787,7 +787,7 @@ namespace Easislides
 							int iLen = i - StartPos;
 							string text2 = DataUtil.Mid(InText, StartPos, iLen);
 							int num6 = (int)RenderingCache.MeasureString(g, text2, font).Width;
-							OutputOneLineToScreen(InItem, text, NotationsFont, g, InLyrics.ForeColour, StringAlignment.Near, InUseShadowFont, InUseOutlineFont, num2 + num6 + num4, InTop + HeightOffset + NotationsLineTextVOffset, InWidth, 0, (IsWrappedText && WordWrapLeftAlignIndent && InItem.Type != "I") ? true : false);
+							OutputOneLineToScreen(InItem, text, NotationsFont, g, Color.FromArgb(InLyrics.ForeColour), StringAlignment.Near, InUseShadowFont, InUseOutlineFont, num2 + num6 + num4, InTop + HeightOffset + NotationsLineTextVOffset, InWidth, 0, (IsWrappedText && WordWrapLeftAlignIndent && InItem.Type != "I") ? true : false);
 							num4 += (int)((i == EndExtractedTextPos) ? RenderingCache.MeasureString(g, text + "S", NotationsFont).Width : 0f);
 							i = EndExtractedTextPos;
 						}
@@ -975,7 +975,7 @@ namespace Easislides
 			int fS_Width = songLyrics.FS_Width;
 			int fS_Height = songLyrics.FS_Height;
 			Font font = RenderingCache.GetFont(songLyrics.FS_Font.Name, Convert.ToInt32(value), songLyrics.FS_Font.Style);
-			SolidBrush brush = RenderingCache.GetBrush(songLyrics.ForeColour);
+			SolidBrush brush = RenderingCache.GetBrush(Color.FromArgb(songLyrics.ForeColour));
 			int num = fS_Top + fS_Height / 2;
 			g.DrawString(layoutRectangle: new RectangleF(fS_Left, num, fS_Width, fS_Height), s: "Capo " + Convert.ToString(InItem.Capo), font: font, brush: brush, format: StringFormatFar);
 		}
@@ -1536,7 +1536,7 @@ namespace Easislides
 			int num3 = 0;
 			int num4 = 1;
 			int num5 = 0;
-			Color inColour = (PanelTextColourAsRegion1 > 0) ? songLyrics.ForeColour : PanelTextColour;
+			Color inColour = (PanelTextColourAsRegion1 > 0) ? Color.FromArgb(songLyrics.ForeColour) : PanelTextColour;
 			int fS_Left = songLyrics.FS_Left;
 			int fS_Top = songLyrics.FS_Top;
 			int fS_Width = songLyrics.FS_Width;
@@ -1757,7 +1757,7 @@ namespace Easislides
 		{
 			int num = (InItem.Source == ItemSource.WorshipList) ? InItem.CurItemNo : 0;
 			int totalWorshipListItems = TotalWorshipListItems;
-			Color color = (PanelTextColourAsRegion1 > 0) ? InItem.Lyrics[3].ForeColour : PanelTextColour;
+			Color color = (PanelTextColourAsRegion1 > 0) ? Color.FromArgb(InItem.Lyrics[3].ForeColour) : PanelTextColour;
 			StringFormat stringFormat = new StringFormat();
 			string text = "";
 			string text2 = "";

@@ -187,7 +187,7 @@ namespace Easislides
 						fontStyle2 |= FontStyle.Italic;
 					}
 				}
-				InItem.Lyrics[i].ForeColour = array[num10];
+				InItem.Lyrics[i].ForeColour = array[num10].ToArgb();
 				switch ((i == 2) ? num5 : array2[num10])
 				{
 					case 3:
@@ -253,9 +253,9 @@ namespace Easislides
 				InItem.Lyrics[i].Height_R2Bound = Convert.ToInt32((double)InItem.Lyrics[i].FS_Height_R2Bound / num);
 			}
 			i = 3;
-			InItem.Lyrics[i].BackColour = PanelBackColour;
+			InItem.Lyrics[i].BackColour = PanelBackColour.ToArgb();
 			InItem.Lyrics[i].Transparent = ((PanelBackColorAsScreen > 0) ? true : false);
-			InItem.Lyrics[i].ForeColour = ((PaneltextColourAsRegion1 > 0) ? InItem.Lyrics[0].ForeColour : PanelTextColour);
+			InItem.Lyrics[i].ForeColour = ((PaneltextColourAsRegion1 > 0) ? InItem.Lyrics[0].ForeColour : PanelTextColour.ToArgb());
 			InItem.Lyrics[i].FS_Width = buffer_LS_Width - buffer_LS_Width / 50;
 			InItem.Lyrics[i].FS_Left = (buffer_LS_Width - InItem.Lyrics[i].FS_Width) / 2;
 			fontStyle = FontStyle.Regular;

@@ -57,12 +57,16 @@
 - 사용처 수정: `FrmMain.Events.cs`(ref Color 호출부 → 로컬 변환), `FrmMain.Layout.cs`, `gfImages.cs`, `gfLyrics.cs`, `gfUtility.cs`.
 - 검증: legacy 빌드 0 errors, 전체 테스트 472 green(SongFormat 위치·네임스페이스·`int[]` 고정 테스트 2건 추가).
 
-#### Phase 2b — `SongLyrics` (보류, 별도 PR)
+#### Phase 2b — `SongLyrics` (완료 · 상속 분리 채택)
 - **조사 발견(계획서 초기 분류 정정)**: `SongLyrics` 는 순수 도메인 모델이 아니라 **렌더링 핫패스의 런타임 상태 홀더**다.
-  - `Font Font`/`ChorusFont`/`FS_Font`/`FS_ChorusFont` 4개 Font 필드가 `gfDisplay.DrawOneLine`·`gfLyrics.GetOneScreen` 등 GDI+ 그리기 루프에서 직접 사용됨(영속 도메인 값이 아니라 SongFormat 설정으로부터 빌드해 캐싱한 Font).
+  - `Font Font`/`ChorusFont`/`FS_Font`/`FS_ChorusFont` 4개 Font 필드가 `gfDisplay`·`gfLyrics`·`gfUtility` 의 GDI+ 경로에서 `.Name`/`.Style`/`.Size` 로 재사용됨(영속 도메인 값이 아니라 SongFormat 설정으로부터 빌드해 캐싱한 Font).
   - `FS_ComputedHeight`·`FS_InterlaceGapHeight` 등 계산된 레이아웃 캐시 필드 보유.
   - `Initialise()` 가 `Gf.DefaultForeColour`(static `Easislides.Gf`) 를 참조 — 계획서 §2.1 분류(★★, Drawing만)와 달리 Gf 강결합 존재.
-- 옵션 B 로 Font 를 원시값(폰트명/크기/스타일)으로 디커플하면 핫패스에서 매 그리기마다 Font **재생성** → 렌더링 동작·성능 회귀 위험. 따라서 Font 캐시 설계(예: Core 는 Drawing-free 디스크립터 보유 + legacy 가 Font 캐시 유지)를 별도 단계로 분리해 안전망(컴포지트·스크린샷) 위에서 진행한다.
+- **결정: 상속 분리**(전체 원시값화 대신). Font 재생성 회귀 위험을 피하면서 포터블 도메인만 Core 로 옮긴다.
+  - `Easislides.Core/SongLyricsBase.cs`(namespace `Easislides.Module`): 포터블 상태만 — 텍스트·표시여부·좌표 int·레이아웃 캐시 int·`FS_InterlaceLinePattern`. 색상 `BackColour`/`ForeColour` 는 ARGB `int` 로 디커플(SongFormat 과 동일 규칙, 기본값 0 == `default(Color).ToArgb()`).
+  - `Easislides/Module/SongLyrics.cs` → `public class SongLyrics : SongLyricsBase`: GDI+ 캐시(`Font`×4, `StringAlignment TextAlign`)와 `Initialise()` 만 보유. 네임스페이스·클래스명 유지 → 사용처 무변경.
+  - 색상 소비처 9곳(`gfDisplay` 6, `gfLyrics` 3) 만 `Color.FromArgb`/`.ToArgb` 변환. **Font/TextAlign 핫패스 무변경**.
+- 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 453(WPF) green(SongLyricsBase 위치·색상 int·Font/TextAlign 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0).
 
 ### Phase 3 — `SongSettings` 디커플 후 이동
 - `System.Windows.Forms` 의존(메시지박스/스크린 등)과 `static Easislides.Gf` 호출을 인터페이스/원시값으로 분리한 뒤에만 이동. 가장 큰 작업.

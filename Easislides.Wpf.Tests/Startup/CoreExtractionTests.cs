@@ -52,6 +52,25 @@ public class CoreExtractionTests
     }
 
     [Fact]
+    public void SongLyricsBase_Lives_In_Core_And_Keeps_GDIplus_Cache_Out()
+    {
+        // Phase 2b(상속 분리): SongLyrics 의 포터블 부분만 SongLyricsBase 로 Core 에 둔다.
+        typeof(SongLyricsBase).Assembly.GetName().Name.Should().Be("Easislides.Core",
+            "SongLyricsBase 는 포터블 도메인이므로 Easislides.Core 에 있어야 함");
+        typeof(SongLyricsBase).Namespace.Should().Be("Easislides.Module");
+
+        // 색상은 SongFormat 과 동일하게 ARGB int 로 디커플.
+        typeof(SongLyricsBase).GetField(nameof(SongLyricsBase.ForeColour))!.FieldType
+            .Should().Be(typeof(int), "글자색은 ARGB int 로 디커플");
+        typeof(SongLyricsBase).GetField(nameof(SongLyricsBase.BackColour))!.FieldType
+            .Should().Be(typeof(int), "배경색은 ARGB int 로 디커플");
+
+        // GDI+ 렌더 캐시(Font/StringAlignment)는 Core 로 새어들면 안 됨 → legacy 파생 클래스 소관.
+        typeof(SongLyricsBase).GetField("Font").Should().BeNull("Font 캐시는 legacy 파생 SongLyrics 소관");
+        typeof(SongLyricsBase).GetField("TextAlign").Should().BeNull("StringAlignment 는 legacy 파생 SongLyrics 소관");
+    }
+
+    [Fact]
     public void Core_Does_Not_Reference_WindowsForms_Or_Drawing()
     {
         // Core 는 포터블 도메인이어야 한다(net10.0). WinForms/System.Drawing 결합이 새어들면
