@@ -42,7 +42,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _mediaDirectory = EasiSettingKeys.MediaDirectory.DefaultValue;
     [ObservableProperty] private int _liveCameraNumber = EasiSettingKeys.LiveCameraNumber.DefaultValue;
     [ObservableProperty] private string _liveCameraSource = MediaPlaybackService.CreateLiveCameraSource(EasiSettingKeys.LiveCameraNumber.DefaultValue);
+    // 현재 출력 모양과 일치하는 프리셋 이름(없으면 "사용자 지정"). 인스펙터에서 활성 프리셋 강조용.
+    [ObservableProperty] private string _activeAppearanceName = "";
     private bool _disposed;
+
+    /// <summary>
+    /// 인-셸 "출력 모양" 인스펙터 프리셋(글자색 + 배경) — 별도 Settings 모달 없이 MainWindow 에서 즉시 적용,
+    /// 설정→출력 VM(SettingsChanged) 경로로 라이브 반영(§7.5 P0 — 단일 콘솔 통합 첫걸음). 색은 ARGB 정수.
+    /// </summary>
+    public IReadOnlyList<OutputAppearancePreset> OutputAppearancePresets { get; } = new[]
+    {
+        new OutputAppearancePreset("흰 글자 · 검정", unchecked((int)0xFFFFFFFF), unchecked((int)0xFF000000), unchecked((int)0xFF000000), IsGradient: false),
+        new OutputAppearancePreset("흰 글자 · 네이비 그라데이션", unchecked((int)0xFFFFFFFF), unchecked((int)0xFF1B2A4A), unchecked((int)0xFF0A1020), IsGradient: true),
+        new OutputAppearancePreset("검정 글자 · 흰 배경", unchecked((int)0xFF000000), unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), IsGradient: false),
+        new OutputAppearancePreset("노랑 글자 · 진남색", unchecked((int)0xFFFFD24A), unchecked((int)0xFF101830), unchecked((int)0xFF101830), IsGradient: false),
+    };
 
     // 현재 라이브 송출 중인 큐 항목의 Id(없으면 null). 슬라이드 이동이 "선택 항목 == 라이브 항목"일 때만
     // 출력을 갱신하도록 판별하는 데 쓴다.
@@ -100,6 +114,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber + 1), CanGoNextSlide);
         PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
+        ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
 
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
@@ -124,6 +139,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
+    public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
@@ -773,6 +789,40 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             ApplyOperationalSettings(updateStatus: true);
         }
+
+        // 출력 모양(색/그라데이션)은 운영 설정이 아니므로 별도로 활성 프리셋 강조를 갱신
+        // (Settings 창 등 다른 경로에서 바뀌어도 인스펙터가 따라가도록).
+        RefreshActiveAppearance();
+    }
+
+    // 출력 모양 프리셋 적용 — 글자색·배경색·그라데이션 설정을 한 번에 쓴다.
+    // 설정이 바뀌면 출력 VM(OutputWindowViewModel)이 SettingsChanged 로 라이브 출력을 즉시 갱신한다.
+    private void ApplyOutputAppearance(OutputAppearancePreset? preset)
+    {
+        if (preset is null)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, preset.TextArgb);
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, preset.Background1Argb);
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, preset.Background2Argb);
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundIsGradient, preset.IsGradient);
+        RefreshActiveAppearance();
+        StatusText = $"출력 모양: {preset.Name}";
+    }
+
+    // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
+    private void RefreshActiveAppearance()
+    {
+        var text = _settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb);
+        var bg1 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb);
+        var bg2 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb);
+        var gradient = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient);
+
+        var match = OutputAppearancePresets.FirstOrDefault(p =>
+            p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
+        ActiveAppearanceName = match?.Name ?? "사용자 지정";
     }
 
     private void ApplyOperationalSettings(bool updateStatus)
@@ -785,6 +835,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MediaDirectory = _settings.Get(EasiSettingKeys.MediaDirectory);
         LiveCameraNumber = _settings.Get(EasiSettingKeys.LiveCameraNumber);
         LiveCameraSource = MediaPlaybackService.CreateLiveCameraSource(LiveCameraNumber);
+        RefreshActiveAppearance();
         RefreshPowerPointLimitState(updateStatus);
         NotifyCommandStates();
     }

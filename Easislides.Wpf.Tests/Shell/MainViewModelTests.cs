@@ -1099,6 +1099,47 @@ public class MainViewModelTests
         disposeTwice.Should().NotThrow();
     }
 
+    [Fact]
+    public void ApplyOutputAppearanceCommand_WritesColorSettingsAndSetsActiveName()
+    {
+        // 인-셸 출력 모양 인스펙터(§7.5 P0): 프리셋 적용 시 글자색·배경색·그라데이션 설정을 한 번에 쓰고
+        // 활성 모양 이름을 갱신한다(설정→출력 VM 으로 라이브 반영).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var navy = sut.OutputAppearancePresets.Single(p => p.Name.Contains("네이비"));
+
+        sut.ApplyOutputAppearanceCommand.Execute(navy);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(navy.TextArgb);
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(navy.Background1Argb);
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb).Should().Be(navy.Background2Argb);
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient).Should().Be(navy.IsGradient);
+        sut.ActiveAppearanceName.Should().Be(navy.Name);
+    }
+
+    [Fact]
+    public void ActiveAppearanceName_ReflectsCurrentSettingsOnLoad()
+    {
+        // 기본 설정(글자 검정·배경 흰색·그라데이션 off)은 "검정 글자 · 흰 배경" 프리셋과 일치.
+        using var folder = TempSettingsFolder.Create();
+        var sut = CreateSut(settings: folder.CreateSettings());
+
+        sut.ActiveAppearanceName.Should().Be("검정 글자 · 흰 배경");
+    }
+
+    [Fact]
+    public void ActiveAppearanceName_WhenSettingsDoNotMatchAnyPreset_IsCustom()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFF123456)); // 프리셋에 없는 색
+
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveAppearanceName.Should().Be("사용자 지정");
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,

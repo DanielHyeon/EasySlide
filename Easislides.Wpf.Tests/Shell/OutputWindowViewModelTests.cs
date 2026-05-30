@@ -585,6 +585,26 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void SettingsChanged_LiveGradientApply_UpdatesBackgroundImmediately()
+    {
+        // 인-셸 출력 모양 인스펙터 경로(code-review CRITICAL): 이미 구독 중인 VM 에 배경색1/끝색/그라데이션을
+        // 한 키씩 Set 하면(마지막이 IsGradient) 라이브 배경이 즉시 세로 그라데이션으로 갱신돼야 한다.
+        // (끝색·그라데이션 키가 ContainsLiveOutputSetting 화이트리스트에 없어 마지막 Set 이 갱신을 못 받던 버그.)
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFF112233));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, unchecked((int)0xFF445566));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundIsGradient, true);
+
+        sut.SceneBackgroundBrush.Should().BeOfType<LinearGradientBrush>(
+            "끝색·그라데이션 키도 라이브 갱신을 트리거해야 즉시 그라데이션으로 송출");
+    }
+
+    [Fact]
     public void SceneBackgroundBrush_Is_Solid_When_Gradient_Disabled_Even_If_Colors_Differ()
     {
         // opt-in 시맨틱: 그라데이션 OFF(기본)면 배경색2가 달라도 솔리드(기존 단색 설정 회귀 방지).
