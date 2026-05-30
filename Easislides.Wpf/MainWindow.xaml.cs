@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
@@ -14,6 +15,7 @@ public partial class MainWindow : Window
 {
     private readonly ShortcutRegistry _shortcuts;
     private readonly IServiceProvider _services;
+    private bool _libraryLoadedOnce;
 
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
@@ -32,6 +34,31 @@ public partial class MainWindow : Window
         if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
+        }
+    }
+
+    // 라이브러리 탭을 처음 선택할 때 한 번 자동 로드(시작 비용 회피 — 시작 시점엔 DB 를 읽지 않음).
+    private void LeftBrowserTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // TabControl.SelectionChanged 는 내부 Selector(ListBox/ComboBox) 선택에서도 버블링되므로,
+        // 탭 컨트롤 자신의 변경만 처리한다.
+        if (!ReferenceEquals(e.OriginalSource, sender))
+        {
+            return;
+        }
+
+        // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피).
+        if (_libraryLoadedOnce
+            || sender is not TabControl { SelectedItem: TabItem { Tag: "Library" } }
+            || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        _libraryLoadedOnce = true;
+        if (viewModel.Library.LoadCommand.CanExecute(null))
+        {
+            viewModel.Library.LoadCommand.Execute(null);
         }
     }
 

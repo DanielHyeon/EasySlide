@@ -74,6 +74,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public Rendering.PowerPointPreviewViewModel PowerPoint { get; }
 
+    /// <summary>
+    /// 인라인 콘텐츠 브라우저 VM(폴더·곡·검색). MainWindow 좌측 "라이브러리" 탭이 바인딩한다
+    /// — 별도 LibraryWindow 를 열지 않고 셸에서 곡을 찾아 예배 순서에 추가(§7.5 P0 단일 콘솔 통합).
+    /// </summary>
+    public LibraryViewModel Library { get; }
+
     public MainViewModel(
         ILiveSessionService session,
         IOutputWindowService output,
@@ -84,6 +90,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ISettingsService settings,
         MediaPlaybackViewModel media,
         Rendering.PowerPointPreviewViewModel powerPoint,
+        LibraryViewModel library,
         IWorshipListStore worshipLists)
     {
         _session = session;
@@ -95,6 +102,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings = settings;
         _worshipLists = worshipLists;
         Media = media;
+        Library = library;
         PowerPoint = powerPoint;
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
@@ -115,6 +123,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
+        AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
+        // 라이브러리 선택 곡이 바뀌면 "예배 순서에 추가" 활성 상태를 맞춘다.
+        Library.PropertyChanged += OnLibraryPropertyChanged;
 
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
@@ -140,6 +151,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
+    public IRelayCommand AddSelectedLibrarySongCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
@@ -795,6 +807,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshActiveAppearance();
     }
 
+    // 인라인 라이브러리에서 선택한 곡을 예배 순서(큐)에 추가(별도 LibraryWindow 없이). AddSong 재사용.
+    private void AddSelectedLibrarySong() => AddSong(Library.SelectedSong);
+
+    private void OnLibraryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Library.SelectedSong))
+        {
+            AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
+        }
+    }
+
     // 출력 모양 프리셋 적용 — 글자색·배경색·그라데이션 설정을 한 번에 쓴다.
     // 설정이 바뀌면 출력 VM(OutputWindowViewModel)이 SettingsChanged 로 라이브 출력을 즉시 갱신한다.
     private void ApplyOutputAppearance(OutputAppearancePreset? preset)
@@ -901,6 +924,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextSlideCommand.NotifyCanExecuteChanged();
         PreviousSlideCommand.NotifyCanExecuteChanged();
         GoToSlideCommand.NotifyCanExecuteChanged();
+        AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
     }
 
     private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)
@@ -923,6 +947,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _disposed = true;
         _settings.SettingsChanged -= OnSettingsChanged;
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
+        Library.PropertyChanged -= OnLibraryPropertyChanged;
         // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나
         // MediaPlaybackViewModel.Dispose 가 멱등이라 안전(테스트는 new 생성이라 이 경로가 유일 해제).
         Media.Dispose();

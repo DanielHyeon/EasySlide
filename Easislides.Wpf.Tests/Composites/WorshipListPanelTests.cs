@@ -46,13 +46,21 @@ public class WorshipListPanelTests
     }
 
     [Fact]
-    public void MainWindow_Hosts_Composite_At_Column0_And_No_Longer_Inlines_List()
+    public void MainWindow_Hosts_Composite_In_Left_Column0_TabControl_And_No_Longer_Inlines_List()
     {
         var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");
 
         var host = window.Descendants().SingleOrDefault(e => e.Name.LocalName == "WorshipListPanel");
         host.Should().NotBeNull("MainWindow 는 WorshipListPanel 컴포지트를 호스트해야 함");
-        Attr(host!, "Grid.Column").Should().Be("0", "예배 순서 패널은 좌측 column 0 위치를 유지해야 함");
+
+        // §7.5 P0 인라인 브라우저: 좌측 column 0 은 [예배 순서]+[라이브러리] 탭 컨트롤이 차지하고,
+        // 그 안의 "예배 순서" 탭에 컴포지트가 위치한다(예배 순서는 여전히 좌측 column 0 영역).
+        var leftTabs = window.Descendants().SingleOrDefault(
+            e => e.Name.LocalName == "TabControl" && Attr(e, "Name") == "LeftBrowserTabs");
+        leftTabs.Should().NotBeNull("좌측 column 0 은 예배순서/라이브러리 탭 컨트롤");
+        Attr(leftTabs!, "Grid.Column").Should().Be("0", "좌측 탭 컨트롤은 column 0 위치를 유지해야 함");
+        leftTabs!.Descendants().Any(e => e.Name.LocalName == "WorshipListPanel")
+            .Should().BeTrue("WorshipListPanel 은 좌측 탭 컨트롤 안에 위치");
 
         // 라이브 경로 핵심 가드: 호스트에 DataContext 재정의가 없어야 MainViewModel 이 상속되어
         // Queue/SelectedItem 바인딩이 끊기지 않는다(LiveBar 처럼 DataContext 를 가로채면 라이브 선택 사고).
