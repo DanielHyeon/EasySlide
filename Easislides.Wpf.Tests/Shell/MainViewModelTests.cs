@@ -1141,6 +1141,25 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RestoreOutputCommand_RestoresHiddenOutputToActive()
+    {
+        // §7.3-B 라이브 화면 제어: 숨김 후 "복귀"로 직전 송출 상태(Active)로 되돌린다.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.HideOutputCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.RestoreOutputCommand.CanExecute(null).Should().BeTrue("숨김 상태에서 복귀 활성");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.RestoreOutputCommand.CanExecute(null).Should().BeFalse("복귀 후엔 비활성");
+    }
+
+    [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {
         // 인라인 콘텐츠 브라우저(§7.5 P0): 별도 LibraryWindow 없이 라이브러리 선택 곡을 예배 순서에 추가.

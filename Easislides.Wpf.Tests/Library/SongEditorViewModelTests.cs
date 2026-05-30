@@ -400,6 +400,17 @@ public class SongEditorViewModelTests
             SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
         }
 
+        public void Restore()
+        {
+            if (Current.State != LiveState.Hidden)
+            {
+                return;
+            }
+
+            Current = Current with { State = LiveState.Active, IsBlackout = false };
+            SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
+        }
+
         public void Stop()
         {
             Current = LiveSessionSnapshot.Off;

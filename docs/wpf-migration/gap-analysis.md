@@ -193,7 +193,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.5 P0 — 인-셸 **출력 모양 인스펙터**(1차) — **완료**(2026-05-31: MainWindow 우측에서 글자색·배경 프리셋을 모달 없이 즉시 적용→라이브 반영). 단일 콘솔 통합 첫걸음.
 - [x] §7.5 P0 — 인라인 **콘텐츠 브라우저(곡)** 1차 — **완료**(2026-05-31: 좌측 "예배 순서"·"라이브러리" 탭, 폴더·곡 검색·더블클릭 추가. 별도 LibraryWindow 없이 셸에서 곡 추가). 모달 LibraryWindow 진입점은 한동안 병존(백로그: 제거/대체).
 - [x] §7.5 P0 — 인라인 **성경 브라우저** 1차 — **완료**(2026-05-31: 좌측 "성경" 탭, BibleVerseFinder 재사용 + 본문 구절 드래그 선택→예배 순서 추가. 별도 BibleWindow 없이 셸에서 성경 추가). → **좌측 단일 콘솔(예배 순서/라이브러리/성경) 완성**
-- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(정렬·헤딩·세분 색 ColorPicker) / 라이브 화면 제어(Hide·Restart) / 모달 Library·Bible 진입점 정리
+- [x] §7.3-B 라이브 화면 제어(숨김·복귀) — **완료**(2026-05-31: 운영바에 "숨김"(HideOutput)·"복귀"(Restore, Hidden→Active 콘텐츠 보존) 노출)
+- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(정렬·헤딩·세분 색 ColorPicker) / Clear·Restart·Refresh / 모달 Library·Bible 진입점 정리
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
 
@@ -239,7 +240,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | 기능 | FrmMain | WPF |
 |---|---|---|
 | Go LIVE / Black / Next·Prev | Start Show-Go LIVE, Black Screen, Move Next | ✅ 있음 |
-| 화면 제어 | Clear Screen, Hide Text, Refresh Output, Restart Current Item | 🔴 없음(Black 만) |
+| 화면 제어 | Clear Screen, Hide Text, Refresh Output, Restart Current Item | 🟡 Black + **숨김(Hide)·복귀(Restore)** 운영바 노출(2026-05-31). Clear/Restart/Refresh 잔여 |
 | 자동 회전 | Auto Rotate Group/One Item(+Repeat), Stop Auto Rotate, Rotate Style | 🔴 없음 |
 | Gap/안내 | Gap Item, Alerts(경고 오버레이) | 🟡 출력측 오버레이만, 조작 UI 없음 |
 | 보조 화면 | InfoScr, Copy to InfoScreen, Apply to All Except InfoScreens | 🔴 없음(FrmInfoScreen 미이식) |

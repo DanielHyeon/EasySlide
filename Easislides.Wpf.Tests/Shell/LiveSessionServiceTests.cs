@@ -22,6 +22,33 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void Restore_FromHidden_ReturnsToActiveAndClearsBlackoutKeepingContent()
+    {
+        // 숨김/블랙에서 복귀 — 상태만 Active 로 되돌리고 직전 항목(콘텐츠)은 보존(§7.3-B 화면 제어).
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다"), "Display 1");
+        sut.HideOutput(blackout: true);
+        sut.Current.State.Should().Be(LiveState.Hidden);
+
+        sut.Restore();
+
+        sut.Current.State.Should().Be(LiveState.Active);
+        sut.Current.IsBlackout.Should().BeFalse();
+        sut.Current.CurrentItemTitle.Should().Be("은혜로다", "복귀 시 직전 항목 보존");
+    }
+
+    [Fact]
+    public void Restore_WhenNotHidden_IsNoOp()
+    {
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다"), "Display 1");
+
+        sut.Restore();
+
+        sut.Current.State.Should().Be(LiveState.Active, "Active 상태에선 Restore 가 아무 변화 없음");
+    }
+
+    [Fact]
     public void GoLive_UpdatesSnapshotAndRaisesChanged()
     {
         var sut = new LiveSessionService();
