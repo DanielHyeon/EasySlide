@@ -219,18 +219,31 @@
                             </TabItem>
                             <TabItem Header="PowerPoint"
                                      Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}">
+                                <!-- PPT 미리보기 — PowerPointPreviewViewModel(PowerPoint) 바인딩(G1 / gap-analysis.md §4 G-α).
+                                     렌더된 슬라이드 이미지를 표시(미적재 시 상태·덱 정보). placeholder "Decks: N" 대체. -->
                                 <Grid Margin="{StaticResource Thickness.Lg}">
-                                    <StackPanel VerticalAlignment="Center"
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Image Grid.Row="0"
+                                           Source="{Binding PowerPoint.PreviewImage}"
+                                           Stretch="Uniform"
+                                           AutomationProperties.Name="PowerPoint 슬라이드 미리보기" />
+
+                                    <StackPanel Grid.Row="1"
+                                                Margin="0,8,0,0"
                                                 HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding PowerPointFileCount, StringFormat={}Decks: {0}}"
+                                        <TextBlock Text="{Binding PowerPoint.StatusText}"
                                                    HorizontalAlignment="Center"
-                                                   Style="{StaticResource Type.Title3.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
-                                        <TextBlock Text="{Binding PowerPointMaxFiles, StringFormat={}Limit: {0}}"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0,8,0,0"
                                                    Style="{StaticResource Type.Body.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding PowerPointFileCount, StringFormat={}덱: {0}}"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,4,0,0"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     </StackPanel>
                                 </Grid>
                             </TabItem>

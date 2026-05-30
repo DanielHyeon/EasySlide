@@ -11,6 +11,7 @@ using Easislides.Wpf.Library;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Media;
+using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -423,6 +424,16 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void Exposes_PowerPoint_PreviewViewModel()
+    {
+        // G1(gap-analysis §4 G-α): orphaned PowerPoint 렌더 서비스가 MainViewModel(→ MainWindow PowerPoint 탭)에 연결됐는지 고정.
+        var sut = CreateSut();
+
+        sut.PowerPoint.Should().NotBeNull("PowerPoint 탭이 바인딩할 PPT 미리보기 VM 이 노출돼야 함");
+        sut.PowerPoint.State.Should().Be(PowerPointPreviewState.Idle, "PPT 미적재 초기 상태");
+    }
+
+    [Fact]
     public void Dispose_Is_Idempotent_With_Media_ViewModel()
     {
         // MainViewModel 과 DI 컨테이너가 모두 Media VM 해제를 시도할 수 있어(이중 dispose),
@@ -447,6 +458,7 @@ public class MainViewModelTests
         var session = new LiveSessionService();
         var telemetry = new InMemoryCommandTelemetry();
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
+        var powerPoint = new PowerPointPreviewViewModel(new StubPowerPointRenderService());
         return new MainViewModel(
             session,
             output,
@@ -455,7 +467,20 @@ public class MainViewModelTests
             display ?? new FixedDisplayService(OutputDisplay.PrimaryFallback),
             commandCatalog ?? new CommandCatalog(),
             settings ?? TempSettingsFolder.CreateDetachedSettings(),
-            media);
+            media,
+            powerPoint);
+    }
+
+    // MainViewModel 은 PowerPoint VM 을 노출만 하고 렌더를 호출하지 않으므로, 실패 결과만 내는 스텁이면 충분.
+    private sealed class StubPowerPointRenderService : IPowerPointRenderService
+    {
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(new PowerPointRenderResult(
+                PowerPointRenderErrorKind.MissingOffice, Slide: null, ErrorMessage: "stub", FromCache: false, Elapsed: TimeSpan.Zero));
+
+        public void ClearCache()
+        {
+        }
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt
