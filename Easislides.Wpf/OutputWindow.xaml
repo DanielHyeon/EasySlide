@@ -115,6 +115,21 @@
                     </Style>
                 </MediaElement.Style>
             </MediaElement>
+
+            <!-- 위치 인디케이터(절/슬라이드 "N/M") — 우측 하단 모서리. 설정 on + Live + 라벨 존재 시만 표시(§7.3-A). -->
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,24,16"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="#66000000"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding PositionIndicatorVisibility}">
+                <TextBlock Text="{Binding PositionLabel}"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{Binding SceneForegroundBrush}" />
+            </Border>
         </Grid>
 
         <Grid Grid.Row="2"

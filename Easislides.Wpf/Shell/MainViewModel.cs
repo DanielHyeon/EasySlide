@@ -79,6 +79,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsBold = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
     [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
     [ObservableProperty] private bool _activeLyricsShadow = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
+    // 현재 위치 인디케이터 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용).
+    [ObservableProperty] private bool _activeLyricsPositionIndicator = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
 
     // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
@@ -244,6 +246,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
+        ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
@@ -292,6 +295,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
+    public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
@@ -646,7 +650,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_liveItemId != SelectedItem.Id) return;
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        var projection = SelectedItem with { LyricsPageIndex = LyricsPageIndex };
+        // ResolveLiveProjection 경유로 PreviewSource·PositionLabel 등 라이브 장식을 일관되게 얹는다.
+        var projection = ResolveLiveProjection(SelectedItem with { LyricsPageIndex = LyricsPageIndex });
         _session.GoLive(projection, monitorName);
     }
 
@@ -1112,6 +1117,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // (이동한 슬라이드가 그대로 송출되고, 재개·재송출 시에도 일관). 파일이 다르면(cross-item stale) 거른다.
     private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
     {
+        var positionLabel = ComputePositionLabel(item);
+
         if (IsPowerPointItem(item)
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && PowerPoint.PreviewImage is not null
@@ -1123,10 +1130,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PreviewSource = PowerPoint.PreviewImage,
                 PreviewFillMode = Rendering.ImageFillMode.Fit,
                 SlideNumber = PowerPoint.SlideNumber,
+                PositionLabel = positionLabel,
             };
         }
 
-        return item;
+        return item with { PositionLabel = positionLabel };
+    }
+
+    // 위치 라벨 계산(절/슬라이드 "N/M") — 곡=현재 절/총 절, PPT=현재 슬라이드/총 슬라이드.
+    // 단일(총 1)이면 빈 문자열(표시 의미 없음). 출력은 설정 on 일 때만 노출.
+    private string ComputePositionLabel(LiveQueueItem item)
+    {
+        if (IsPowerPointItem(item))
+        {
+            var count = PowerPoint.SlideCount;
+            var current = PowerPoint.SlideNumber;
+            return count > 1 && current >= 1 ? $"{current}/{count}" : string.Empty;
+        }
+
+        if (item.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics))
+        {
+            var count = LyricsDisplayFormatter.ToVersePages(item.Lyrics).Count;
+            return count > 1 ? $"{item.LyricsPageIndex + 1}/{count}" : string.Empty;
+        }
+
+        return string.Empty;
     }
 
     private void AdvanceSelectionAfterPublish(LiveQueueItem publishedItem)
@@ -1278,6 +1306,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var label = key.Id == EasiSettingKeys.LyricsMonitorBold.Id ? "굵게"
             : key.Id == EasiSettingKeys.LyricsMonitorItalic.Id ? "기울임"
             : key.Id == EasiSettingKeys.LyricsMonitorShadow.Id ? "그림자"
+            : key.Id == EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id ? "위치 표시"
             : key.Id;
         StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
     }
@@ -1330,6 +1359,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
         ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);
+        ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveTextColorHex = FormatColorHex(text);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
     }

@@ -44,6 +44,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private FontWeight _bodyFontWeight = FontWeights.SemiBold;
     private FontStyle _bodyFontStyle = FontStyles.Normal;
     private bool _bodyHasShadow;
+    private string _positionLabel = string.Empty;
+    private Visibility _positionIndicatorVisibility = Visibility.Collapsed;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -201,6 +203,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyHasShadow;
         private set => SetProperty(ref _bodyHasShadow, value);
+    }
+
+    /// <summary>위치 인디케이터 텍스트(절/슬라이드 "N/M"). §7.3-A.</summary>
+    public string PositionLabel
+    {
+        get => _positionLabel;
+        private set => SetProperty(ref _positionLabel, value);
+    }
+
+    /// <summary>위치 인디케이터 표시 여부 — 설정 on + Live + 라벨 존재 시에만 Visible.</summary>
+    public Visibility PositionIndicatorVisibility
+    {
+        get => _positionIndicatorVisibility;
+        private set => SetProperty(ref _positionIndicatorVisibility, value);
     }
 
     public bool IsBlackout
@@ -422,6 +438,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyFontWeight = scene.LyricsMonitorBold ? FontWeights.Bold : FontWeights.SemiBold;
         BodyFontStyle = scene.LyricsMonitorItalic ? FontStyles.Italic : FontStyles.Normal;
         BodyHasShadow = scene.LyricsMonitorShadow;
+        PositionLabel = scene.PositionLabel;
+        PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
         var bodyShown = scene.ShowsBodyText;
         BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -645,6 +663,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBold.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShadow.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {
