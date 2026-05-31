@@ -42,7 +42,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off.
     bool LyricsMonitorBold = false,
     bool LyricsMonitorItalic = false,
-    bool LyricsMonitorShadow = false)
+    bool LyricsMonitorShadow = false,
+    // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
+    int LyricsMonitorLineSpacingPercent = 125)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -68,7 +70,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorFontSize),
             settings.Get(EasiSettingKeys.LyricsMonitorBold),
             settings.Get(EasiSettingKeys.LyricsMonitorItalic),
-            settings.Get(EasiSettingKeys.LyricsMonitorShadow));
+            settings.Get(EasiSettingKeys.LyricsMonitorShadow),
+            settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent));
     }
 }
 
@@ -118,7 +121,9 @@ public sealed record OutputSceneSnapshot(
     // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off.
     bool LyricsMonitorBold = false,
     bool LyricsMonitorItalic = false,
-    bool LyricsMonitorShadow = false)
+    bool LyricsMonitorShadow = false,
+    // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
+    int LyricsMonitorLineSpacingPercent = 125)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -179,7 +184,8 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorFontSize,
             liveOutput.LyricsMonitorBold,
             liveOutput.LyricsMonitorItalic,
-            liveOutput.LyricsMonitorShadow);
+            liveOutput.LyricsMonitorShadow,
+            liveOutput.LyricsMonitorLineSpacingPercent);
     }
 
     private ImagePlacement GetContentPlacement(

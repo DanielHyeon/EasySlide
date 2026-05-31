@@ -1667,6 +1667,48 @@ public class MainViewModelTests
         sut.ActiveLyricsShadow.Should().BeFalse();
     }
 
+    // ─── 인-셸 가사 줄 간격 (§7.3-A) ──────────────────────────────────────────
+
+    [Fact]
+    public void IncreaseLyricsLineSpacingCommand_StepsUpAndPersists()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsLineSpacing.Should().Be(125, "기본 125%");
+
+        sut.IncreaseLyricsLineSpacingCommand.Execute(null);
+
+        sut.ActiveLyricsLineSpacing.Should().Be(135, "한 단계 +10");
+        settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent).Should().Be(135);
+    }
+
+    [Fact]
+    public void DecreaseLyricsLineSpacingCommand_StepsDown()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.DecreaseLyricsLineSpacingCommand.Execute(null);
+
+        sut.ActiveLyricsLineSpacing.Should().Be(115, "한 단계 -10");
+    }
+
+    [Fact]
+    public void LyricsLineSpacingCommands_ClampToRange()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorLineSpacingPercent, 100);
+        sut.DecreaseLyricsLineSpacingCommand.CanExecute(null).Should().BeFalse("하한(100%)에서 감소 비활성");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorLineSpacingPercent, 220);
+        sut.IncreaseLyricsLineSpacingCommand.CanExecute(null).Should().BeFalse("상한(220%)에서 증가 비활성");
+    }
+
     [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {

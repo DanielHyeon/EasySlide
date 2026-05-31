@@ -128,6 +128,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorBold = new("liveOutput.lyricsMonitorBold", false);
     public static readonly SettingKey<bool> LyricsMonitorItalic = new("liveOutput.lyricsMonitorItalic", false);
     public static readonly SettingKey<bool> LyricsMonitorShadow = new("liveOutput.lyricsMonitorShadow", false);
+    // 출력 가사 줄 간격(폰트 크기 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125 로 기존 줄높이(폰트×1.25) 보존. 범위 100~220.
+    public static readonly SettingKey<int> LyricsMonitorLineSpacingPercent = new("liveOutput.lyricsMonitorLineSpacingPercent", 125);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
@@ -174,6 +176,7 @@ public static class EasiSettingKeys
         LyricsMonitorBold,
         LyricsMonitorItalic,
         LyricsMonitorShadow,
+        LyricsMonitorLineSpacingPercent,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
@@ -261,6 +264,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorItalic { get; init; } = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
 
     public bool LyricsMonitorShadow { get; init; } = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
+
+    public int LyricsMonitorLineSpacingPercent { get; init; } = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
 }
 
 public sealed record PowerPointSettings
@@ -509,6 +514,14 @@ public sealed class SettingsService : ISettingsService
             min: 24,
             max: 120,
             EasiSettingKeys.LyricsMonitorFontSize.Id,
+            issues);
+
+        // 줄 간격 범위 가드(100~220%) — 폰트 대비 비율. 과소·과대값으로 줄이 겹치거나 벌어지지 않도록.
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorLineSpacingPercent,
+            min: 100,
+            max: 220,
+            EasiSettingKeys.LyricsMonitorLineSpacingPercent.Id,
             issues);
 
         ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
@@ -966,6 +979,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBold" => snapshot.LiveOutput.LyricsMonitorBold,
             "liveOutput.lyricsMonitorItalic" => snapshot.LiveOutput.LyricsMonitorItalic,
             "liveOutput.lyricsMonitorShadow" => snapshot.LiveOutput.LyricsMonitorShadow,
+            "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
@@ -1098,6 +1112,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShadow" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShadow = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorLineSpacingPercent = Cast<int>(keyId, value) },
             },
             "powerPoint.usePowerPointTab" => snapshot with
             {

@@ -201,6 +201,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-A 인-셸 가사 정렬(가로 좌/중/우 + 세로 상/중/하) — **완료**(2026-05-31: `LyricsTextAlignment`/`LyricsVerticalAlignment` 설정 키 + 렌더 스레딩 + `OutputWindowViewModel` enum→WPF(TextAlignment/HorizontalAlignment/VerticalAlignment) 매핑 + 우측 인스펙터 버튼. SettingsChanged 화이트리스트로 라이브 즉시 반영, 기본 Center 로 기존 동작 보존. 테스트 636 green, 두 증분 모두 code-reviewer APPROVE. 가로 증분에서 발견한 영속화 타입스위치 누락 회귀는 세로 증분에 선제 반영해 무회귀)
 - [x] §7.3-A 인-셸 가사 폰트 크기(A−/A+, 24~120px) — **완료**(2026-05-31: `LyricsMonitorFontSize` int 설정→렌더→출력, `BodyFontSize`/`BodyLineHeight`(×1.25) 매핑, 우측 인스펙터 A−/A+ + 현재 px 표시. ±4 step·경계 비활성·Math.Clamp 삼중 가드. 테스트 645 green, code-reviewer Approve + SUGGESTION 2건(비배수 클램프 테스트·배율 상수화) 반영)
 - [x] §7.3-A 인-셸 가사 폰트 효과(굵게·기울임·그림자) — **완료**(2026-05-31: `LyricsMonitorBold/Italic/Shadow` bool 설정→렌더→출력, `BodyFontWeight`(off=SemiBold 보존)/`BodyFontStyle`/`BodyHasShadow`(DropShadowEffect) 매핑, 우측 인스펙터 토글 버튼. 테스트 657 green, code-reviewer Approve + MINOR 2건 반영. 기본 전부 off 로 기존 출력 무변화)
+- [x] §7.3-A 인-셸 가사 줄 간격(−/＋, 100~220%) — **완료**(2026-05-31: `LyricsMonitorLineSpacingPercent` int 설정→렌더→출력, 기존 하드코딩 줄높이(폰트×1.25)를 설정 기반(폰트×%)으로 전환, 기본 125% 로 동작 보존. 우측 인스펙터 −/＋ + 현재 % 표시. 테스트 664 green, code-reviewer Approve)
 - [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(헤딩·세분 색 ColorPicker·Outline 효과) / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
@@ -233,7 +234,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 
 | 기능군 | FrmMain 항목(발췌) | WPF 현황 |
 |---|---|---|
-| 텍스트 정렬·크기 | Align Left/Right/Centre/Top/Bottom, Vertical Alignment, (글자 크기) | ✅ 가로(좌/중/우)+세로(상/중/하) 정렬 + **폰트 크기 A−/A+(24~120px)** 인-셸 인스펙터 완료(2026-05-31, `LyricsTextAlignment`/`LyricsVerticalAlignment`/`LyricsMonitorFontSize` 설정→렌더→출력, 우측 패널·라이브 즉시 반영) |
+| 텍스트 정렬·크기·줄간격 | Align Left/Right/Centre/Top/Bottom, Vertical Alignment, (글자 크기·줄 간격) | ✅ 가로(좌/중/우)+세로(상/중/하) 정렬 + **폰트 크기 A−/A+(24~120px)** + **줄 간격 −/＋(100~220%)** 인-셸 인스펙터 완료(2026-05-31, `LyricsTextAlignment`/`LyricsVerticalAlignment`/`LyricsMonitorFontSize`/`LyricsMonitorLineSpacingPercent` 설정→렌더→출력, 우측 패널·라이브 즉시 반영) |
 | 폰트 효과 | Shadow Font, Outline Font, Italics / No Italics / Chorus Italics Only | 🟡 **굵게·기울임·그림자 토글 완료**(2026-05-31, `LyricsMonitorBold/Italic/Shadow` 설정→렌더→출력, 우측 인스펙터 토글·라이브 즉시 반영, 그림자=DropShadowEffect). Outline·Chorus-only-italics 는 후속 |
 | 리전(2단) | Region 1/2 Only, Regions 1&2, Interlace, R1/R2 Colour, Region n Align L/R/C, Text Colour As Region 1 | 🔴 없음(렌더는 전경/배경 브러시만) |
 | 헤딩(제목/절) | Show All/No Headings, Heading Align L/R/C/As Region, Heading At First Screen Only, Display Title/Verse Headings | 🔴 없음 |

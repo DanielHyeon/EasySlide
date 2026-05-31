@@ -356,6 +356,41 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Threads_LyricsLineSpacing()
+    {
+        // 인-셸 줄 간격(§7.3-A): 설정→렌더→scene 으로 줄 간격(%)이 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorLineSpacingPercent: 150);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorLineSpacingPercent.Should().Be(150);
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsLineSpacingTo125()
+    {
+        // 기본 125% — 기존 줄높이(폰트×1.25) 보존.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.LyricsMonitorLineSpacingPercent.Should().Be(125);
+    }
+
+    [Fact]
     public void CreateScene_DefaultsLyricsFontSizeTo48()
     {
         // 기본 48px — 기존 출력 폰트 크기 보존.
