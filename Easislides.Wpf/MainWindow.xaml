@@ -18,6 +18,13 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </Window.Resources>
 
+    <!-- 전역 단축키: Ctrl+K 로 명령 팔레트 열기(§7.4 — FrmMain 136개 메뉴를 검색 가능한 단일 진입점으로 흡수). -->
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Control" Key="K" Command="{Binding CommandPalette.OpenCommand}" />
+    </Window.InputBindings>
+
+    <!-- 루트를 Grid 로 감싸 명령 팔레트 오버레이를 전체 위에 띄운다(평소엔 숨김). -->
+    <Grid>
     <DockPanel LastChildFill="True">
         <composites:LiveBar DockPanel.Dock="Top"
                             DataContext="{Binding LiveBar}" />
@@ -1075,4 +1082,53 @@
             </Border>
         </Grid>
     </DockPanel>
+
+        <!-- 명령 팔레트 오버레이(§7.4) — CommandPalette.IsOpen 일 때만 표시. 반투명 배경 + 중앙 검색 패널.
+             키 처리(↑↓/Enter/Esc·열림 시 포커스)는 코드비하인드(MainWindow.xaml.cs)가 담당한다. -->
+        <Border x:Name="CommandPaletteOverlay"
+                Background="#99000000"
+                Visibility="{Binding CommandPalette.IsOpen, Converter={StaticResource BoolToVis}}"
+                MouseDown="CommandPaletteOverlay_MouseDown"
+                Panel.ZIndex="100">
+            <Border Width="560"
+                    MaxHeight="420"
+                    VerticalAlignment="Top"
+                    Margin="0,120,0,0"
+                    Background="{DynamicResource Brush.Surface.Card}"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource CornerRadius.Medium}"
+                    Padding="{StaticResource Thickness.Lg}">
+                <DockPanel>
+                    <TextBox x:Name="CommandPaletteSearchBox"
+                             DockPanel.Dock="Top"
+                             Text="{Binding CommandPalette.Query, UpdateSourceTrigger=PropertyChanged}"
+                             PreviewKeyDown="CommandPaletteSearchBox_PreviewKeyDown"
+                             FontSize="16"
+                             Padding="8,6"
+                             Margin="0,0,0,8"
+                             AutomationProperties.Name="명령 검색" />
+                    <ListBox ItemsSource="{Binding CommandPalette.Results}"
+                             SelectedItem="{Binding CommandPalette.SelectedCommand, Mode=TwoWay}"
+                             MouseDoubleClick="CommandPaletteResults_MouseDoubleClick"
+                             MaxHeight="320"
+                             BorderThickness="0"
+                             AutomationProperties.Name="명령 결과 목록">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="2">
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               Style="{StaticResource Type.Body.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Primary}" />
+                                    <TextBlock Text="{Binding Category}"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Border>
+    </Grid>
 </Window>

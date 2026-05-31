@@ -37,6 +37,62 @@ public partial class MainWindow : Window
         _autoRotateTimer = new DispatcherTimer();
         _autoRotateTimer.Tick += (_, _) => _viewModel.AdvanceAutoRotation();
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        // 명령 팔레트(§7.4)가 열리면 검색창에 포커스를 줘 바로 타이핑할 수 있게 한다.
+        CommandPaletteOverlay.IsVisibleChanged += CommandPaletteOverlay_IsVisibleChanged;
+    }
+
+    private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is true)
+        {
+            // 레이아웃·렌더 후 포커스를 줘야 확실히 잡힌다(Input 우선순위로 디스패치).
+            Dispatcher.BeginInvoke(
+                () =>
+                {
+                    CommandPaletteSearchBox.Focus();
+                    CommandPaletteSearchBox.SelectAll();
+                },
+                DispatcherPriority.Input);
+        }
+    }
+
+    // 바깥 반투명 영역을 직접 클릭하면 팔레트를 닫는다(안쪽 패널 클릭은 OriginalSource 가 자식이라 무시).
+    private void CommandPaletteOverlay_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, CommandPaletteOverlay))
+        {
+            _viewModel.CommandPalette.Close();
+        }
+    }
+
+    // 결과 항목 더블클릭 = 실행(키보드 Enter 와 동일 경로).
+    private void CommandPaletteResults_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        => _viewModel.CommandPalette.ExecuteSelectedCommand();
+
+    // 명령 팔레트 검색창 키 처리: ↓/↑ 선택 이동, Enter 실행, Esc 닫기(로직은 VM 에 위임).
+    private void CommandPaletteSearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        var palette = _viewModel.CommandPalette;
+        switch (e.Key)
+        {
+            case Key.Down:
+                palette.SelectNext();
+                e.Handled = true;
+                break;
+            case Key.Up:
+                palette.SelectPrevious();
+                e.Handled = true;
+                break;
+            case Key.Enter:
+                palette.ExecuteSelectedCommand();
+                e.Handled = true;
+                break;
+            case Key.Escape:
+                palette.Close();
+                e.Handled = true;
+                break;
+        }
     }
 
     // VM 의 자동 회전 상태/간격 변화를 받아 타이머를 시작·정지·재설정한다.
@@ -65,6 +121,13 @@ public partial class MainWindow : Window
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         base.OnPreviewKeyDown(e);
+
+        // 명령 팔레트가 열려 검색 중이면 전역 단축키를 막는다 — 검색어에 단축키 조합(예: Ctrl+B)이
+        // 섞여 백그라운드에서 위험 명령이 실행되는 사고 방지(code-review MINOR). 팔레트 키는 검색창이 처리.
+        if (_viewModel.CommandPalette.IsOpen)
+        {
+            return;
+        }
 
         if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
         {

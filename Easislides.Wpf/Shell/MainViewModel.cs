@@ -28,6 +28,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ISettingsService _settings;
     private readonly IWorshipListStore _worshipLists;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
+    // 명령 팔레트 실행에 쓰는 단축키 레지스트리 — BindShortcuts(앱 시작)에서 주입된다. 그 전엔 null.
+    private ShortcutRegistry? _shortcutRegistry;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
@@ -206,6 +208,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public BibleViewModel Bible { get; }
 
+    /// <summary>
+    /// 명령 팔레트 VM(⌘K, §7.4) — 명령 카탈로그를 검색해 단일 진입점으로 실행. MainWindow 오버레이가 바인딩한다.
+    /// </summary>
+    public CommandPaletteViewModel CommandPalette { get; }
+
     public MainViewModel(
         ILiveSessionService session,
         IOutputWindowService output,
@@ -234,6 +241,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Library = library;
         Bible = bible;
         PowerPoint = powerPoint;
+        // 명령 팔레트(⌘K, §7.4) — 카탈로그를 검색해 ShortcutRegistry 바인딩으로 실행.
+        // registry 는 BindShortcuts 에서 주입되므로(앱 시작 시) invoke 는 그 시점 이후 유효하다.
+        CommandPalette = new CommandPaletteViewModel(_commandCatalog, id => _shortcutRegistry?.TryInvoke(id) ?? false);
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += OnOutputChanged;
@@ -613,6 +623,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void BindShortcuts(ShortcutRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);
+
+        // 명령 팔레트가 명령 id 로 실행할 수 있도록 레지스트리를 보관(아래 Bind 들이 id→동작을 등록).
+        _shortcutRegistry = registry;
 
         foreach (var shortcut in ShortcutSettings.ApplyOverrides(
                      _commandCatalog.GetDefaultShortcuts(),
