@@ -62,6 +62,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 출력을 갱신하도록 판별하는 데 쓴다.
     private string? _liveItemId;
 
+    // 절 단위 페이지네이션 상태 — PPT 의 SlideNumber 와 대칭.
+    // LyricsPageIndex: 현재 보여주는 절 인덱스(0-based). LyricsPageCount: 선택 곡의 총 절 수.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LyricsPageLabel))]
+    [NotifyCanExecuteChangedFor(nameof(NextLyricsPageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviousLyricsPageCommand))]
+    private int _lyricsPageIndex;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LyricsPageLabel))]
+    [NotifyCanExecuteChangedFor(nameof(NextLyricsPageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviousLyricsPageCommand))]
+    private int _lyricsPageCount;
+
+    /// <summary>
+    /// 가사 절 페이지 표시 문자열(예: "2/3절"). 단일 절이거나 곡이 아니면 빈 문자열.
+    /// MainWindow Preview 탭에서 절 이동 버튼 옆에 표시한다.
+    /// </summary>
+    public string LyricsPageLabel
+        => LyricsPageCount <= 1
+            ? string.Empty
+            : $"{LyricsPageIndex + 1}/{LyricsPageCount}절";
+
     /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
     /// (G1.2 / gap-analysis.md §4 G-α — 기존 placeholder 텍스트 대체, 테스트된 VM 의 UI 연결.)
@@ -136,6 +159,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
+        NextLyricsPageCommand = new RelayCommand(NextLyricsPage, CanGoNextLyricsPage);
+        PreviousLyricsPageCommand = new RelayCommand(PreviousLyricsPage, CanGoPreviousLyricsPage);
         // 라이브러리 선택 곡이 바뀌면 "예배 순서에 추가" 활성 상태를 맞춘다.
         Library.PropertyChanged += OnLibraryPropertyChanged;
 
@@ -168,6 +193,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
+    public IRelayCommand NextLyricsPageCommand { get; }
+    public IRelayCommand PreviousLyricsPageCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
@@ -460,11 +487,64 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LiveBar.CurrentItemTitle = value?.Title ?? string.Empty;
         }
 
+        // 항목이 바뀌면 가사 페이지를 첫 절로 리셋(PPT 의 SlideNumber 리셋과 대칭).
+        RefreshLyricsPages(value);
+
         // 선택 항목의 실제 콘텐츠를 적절한 미리보기 VM 으로 적재(라이브 큐 콘텐츠 plumbing).
         // UI 경로라 fire-and-forget; 테스트는 ApplySelectedItemContentAsync 를 직접 await.
         _ = ApplySelectedItemContentAsync(value);
 
         NotifyCommandStates();
+    }
+
+    // 선택된 항목의 가사 총 절 수를 갱신하고 현재 페이지를 첫 절로 리셋.
+    // 곡 항목이 아니거나 가사가 없으면 LyricsPageCount=0(절 이동 버튼 비활성).
+    private void RefreshLyricsPages(LiveQueueItem? item)
+    {
+        var count = item?.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics)
+            ? LyricsDisplayFormatter.ToVersePages(item.Lyrics).Count
+            : 0;
+        LyricsPageCount = count;
+        LyricsPageIndex = 0;
+    }
+
+    // 다음 절로 이동 — 라이브 중이고 이 항목이 송출 중일 때만 출력도 즉시 갱신한다.
+    private void NextLyricsPage()
+    {
+        LyricsPageIndex++;
+        PublishLyricsPageIfLive();
+        StatusText = LyricsPageCount > 1
+            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            : StatusText;
+    }
+
+    private bool CanGoNextLyricsPage()
+        => LyricsPageCount > 1 && LyricsPageIndex < LyricsPageCount - 1;
+
+    // 이전 절로 이동.
+    private void PreviousLyricsPage()
+    {
+        LyricsPageIndex--;
+        PublishLyricsPageIfLive();
+        StatusText = LyricsPageCount > 1
+            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            : StatusText;
+    }
+
+    private bool CanGoPreviousLyricsPage()
+        => LyricsPageCount > 1 && LyricsPageIndex > 0;
+
+    // 현재 절 인덱스로 GoLive 를 재호출해 출력을 갱신한다.
+    // 라이브 활성 + 이 항목이 송출 중일 때만 실행(블랙아웃/숨김 중에는 송출 안 깨움).
+    private void PublishLyricsPageIfLive()
+    {
+        if (SelectedItem is null) return;
+        if (_session.Current.State != LiveState.Active) return;
+        if (_liveItemId != SelectedItem.Id) return;
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        var projection = SelectedItem with { LyricsPageIndex = LyricsPageIndex };
+        _session.GoLive(projection, monitorName);
     }
 
     /// <summary>
@@ -835,7 +915,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         _liveItemId = SelectedItem.Id; // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
-        _session.GoLive(ResolveLiveProjection(SelectedItem), monitorName);
+        // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
+        var projection = SelectedItem with { LyricsPageIndex = LyricsPageIndex };
+        _session.GoLive(ResolveLiveProjection(projection), monitorName);
         StatusText = $"LIVE: {SelectedItem.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         AdvanceSelectionAfterPublish(SelectedItem);
@@ -1029,6 +1111,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
         MoveSelectedItemDownCommand.NotifyCanExecuteChanged();
         RemoveSelectedItemCommand.NotifyCanExecuteChanged();
+        NextLyricsPageCommand.NotifyCanExecuteChanged();
+        PreviousLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)

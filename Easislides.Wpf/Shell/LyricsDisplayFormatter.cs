@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Easislides.Wpf.Shell;
@@ -62,6 +63,38 @@ public static class LyricsDisplayFormatter
         }
 
         return output.ToString();
+    }
+
+    /// <summary>
+    /// 가사 전체를 절 단위 페이지 리스트로 분할한다.
+    /// 빈 문자열이거나 변환 결과가 없으면 빈 리스트를 반환한다.
+    /// </summary>
+    public static IReadOnlyList<string> ToVersePages(string? rawLyrics)
+    {
+        var text = ToDisplayText(rawLyrics);
+        if (string.IsNullOrEmpty(text))
+        {
+            return Array.Empty<string>();
+        }
+
+        // ToDisplayText 가 보장하는 절 구분자는 정확히 \n\n 하나.
+        return text.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    /// <summary>
+    /// 지정 인덱스(0-based)의 절 텍스트를 반환한다.
+    /// 범위 밖은 클램프(0 이하 → 첫 절, 총 절 이상 → 마지막 절). 가사가 없으면 빈 문자열.
+    /// </summary>
+    public static string GetVersePage(string? rawLyrics, int pageIndex)
+    {
+        var pages = ToVersePages(rawLyrics);
+        if (pages.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var clamped = Math.Clamp(pageIndex, 0, pages.Count - 1);
+        return pages[clamped];
     }
 
     // 줄 전체가 하나의 대괄호 토큰인지( 예: [1] [Chorus] [~G D] ) — 작성용 마커로 간주.

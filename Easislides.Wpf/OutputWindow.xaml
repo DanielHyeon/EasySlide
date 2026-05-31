@@ -59,10 +59,10 @@
                        MaxWidth="1100"
                        Visibility="{Binding DisplayTitleVisibility}" />
 
-            <!-- 라이브 곡 가사 본문(여러 줄). 본문이 있을 때만 표시되며, 이때 타이틀은 숨겨진다.
-                 송출 텍스트색(SceneForegroundBrush)으로 중앙 정렬해 렌더한다.
-                 1차 슬라이스는 가사 전체를 한 덩어리로 보여준다 — 절 단위 페이지네이션·Next/Prev 이동은 후속(PR B).
-                 그 전까지 긴 가사가 화면 밖으로 잘려 사라지지 않도록 MaxHeight + 말줄임으로 안전하게 클립한다. -->
+            <!-- 라이브 곡 가사 본문(절 단위 페이지네이션 — PR B).
+                 GoLive 시 MainViewModel 이 현재 절(LyricsPageIndex)만 BodyText 에 실어 전달한다.
+                 본문이 있을 때만 표시되며, 이때 타이틀은 숨겨진다.
+                 송출 텍스트색(SceneForegroundBrush)으로 중앙 정렬해 렌더한다. -->
             <TextBlock Text="{Binding BodyText}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"

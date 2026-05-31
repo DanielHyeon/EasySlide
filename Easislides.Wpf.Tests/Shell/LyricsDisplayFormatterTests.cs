@@ -60,4 +60,88 @@ public class LyricsDisplayFormatterTests
     {
         LyricsDisplayFormatter.ToDisplayText(raw).Should().BeEmpty();
     }
+
+    // ─── ToVersePages ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void ToVersePages_SingleVerse_ReturnsSinglePage()
+    {
+        // 절 구분자(\n\n)가 없으면 전체가 하나의 페이지.
+        var raw = "Amazing grace";
+
+        var pages = LyricsDisplayFormatter.ToVersePages(raw);
+
+        pages.Should().ContainSingle().Which.Should().Be("Amazing grace");
+    }
+
+    [Fact]
+    public void ToVersePages_MultipleVerses_ReturnsOnePagePerVerse()
+    {
+        // 마커([ ]) 로 구분된 두 절 → 두 페이지.
+        var raw = "[1]\n첫째 줄\n둘째 줄\n[2]\n셋째 줄";
+
+        var pages = LyricsDisplayFormatter.ToVersePages(raw);
+
+        pages.Should().HaveCount(2);
+        pages[0].Should().Be("첫째 줄\n둘째 줄");
+        pages[1].Should().Be("셋째 줄");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   \n  ")]
+    public void ToVersePages_EmptyOrWhitespace_ReturnsEmpty(string? raw)
+    {
+        LyricsDisplayFormatter.ToVersePages(raw).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ToVersePages_ThreeVerses_ReturnsThreePages()
+    {
+        var raw = "[1]\n1절\n[2]\n2절\n[3]\n3절";
+
+        var pages = LyricsDisplayFormatter.ToVersePages(raw);
+
+        pages.Should().HaveCount(3);
+        pages[0].Should().Be("1절");
+        pages[1].Should().Be("2절");
+        pages[2].Should().Be("3절");
+    }
+
+    // ─── GetVersePage ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void GetVersePage_ValidIndex_ReturnsCorrectPage()
+    {
+        var raw = "[1]\n첫째\n[2]\n둘째\n[3]\n셋째";
+
+        LyricsDisplayFormatter.GetVersePage(raw, 0).Should().Be("첫째");
+        LyricsDisplayFormatter.GetVersePage(raw, 1).Should().Be("둘째");
+        LyricsDisplayFormatter.GetVersePage(raw, 2).Should().Be("셋째");
+    }
+
+    [Fact]
+    public void GetVersePage_NegativeIndex_ClampsToFirst()
+    {
+        var raw = "[1]\n첫째\n[2]\n둘째";
+
+        LyricsDisplayFormatter.GetVersePage(raw, -1).Should().Be("첫째");
+    }
+
+    [Fact]
+    public void GetVersePage_IndexAboveCount_ClampsToLast()
+    {
+        var raw = "[1]\n첫째\n[2]\n둘째";
+
+        LyricsDisplayFormatter.GetVersePage(raw, 99).Should().Be("둘째");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetVersePage_EmptyLyrics_ReturnsEmpty(string? raw)
+    {
+        LyricsDisplayFormatter.GetVersePage(raw, 0).Should().BeEmpty();
+    }
 }

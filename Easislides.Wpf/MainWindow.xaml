@@ -368,6 +368,7 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <rendering:SlidePreviewControl Grid.Row="0"
@@ -381,7 +382,7 @@
 
                                     <!-- 선택 곡의 실제 가사 표시(라이브 큐 콘텐츠 plumbing — LiveQueueItem.Lyrics). 가사 없으면 비어 표시. -->
                                     <ScrollViewer Grid.Row="1"
-                                                  MaxHeight="180"
+                                                  MaxHeight="140"
                                                   Margin="0,12,0,0"
                                                   VerticalScrollBarVisibility="Auto">
                                         <TextBlock Text="{Binding SelectedItem.Lyrics}"
@@ -390,6 +391,31 @@
                                                    Foreground="{DynamicResource Brush.Text.Secondary}"
                                                    AutomationProperties.Name="선택 곡 가사" />
                                     </ScrollViewer>
+
+                                    <!-- 절 단위 페이지네이션 — 이전 절 / 현재 페이지 표시 / 다음 절 (PR B).
+                                         곡 항목이고 절이 2개 이상일 때만 유효(LyricsPageCount>1). -->
+                                    <StackPanel x:Name="LyricsPagePanel"
+                                                Grid.Row="2"
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,6,0,0">
+                                        <Button Command="{Binding PreviousLyricsPageCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                Margin="0,0,8,0"
+                                                Content="◀ 이전 절"
+                                                AutomationProperties.Name="이전 절" />
+                                        <TextBlock Text="{Binding LyricsPageLabel}"
+                                                   VerticalAlignment="Center"
+                                                   MinWidth="40"
+                                                   TextAlignment="Center"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                        <Button Command="{Binding NextLyricsPageCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                Margin="8,0,0,0"
+                                                Content="다음 절 ▶"
+                                                AutomationProperties.Name="다음 절" />
+                                    </StackPanel>
                                 </Grid>
                             </TabItem>
                             <TabItem Header="PowerPoint"
