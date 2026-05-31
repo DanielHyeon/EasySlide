@@ -287,6 +287,29 @@ public class OutputRendererTests
             ViewportHeight: 720));
 
         scene.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Center);
+        scene.LyricsMonitorVerticalAlignment.Should().Be(LyricsVerticalAlignment.Center, "세로 정렬 기본도 가운데");
+    }
+
+    [Theory]
+    [InlineData(LyricsVerticalAlignment.Top)]
+    [InlineData(LyricsVerticalAlignment.Center)]
+    [InlineData(LyricsVerticalAlignment.Bottom)]
+    public void CreateScene_Threads_LyricsVerticalAlignment(LyricsVerticalAlignment alignment)
+    {
+        // 인-셸 가사 세로 정렬(§7.3-A): 설정→렌더→scene 으로 세로 정렬 값이 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorVerticalAlignment: alignment);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorVerticalAlignment.Should().Be(alignment);
     }
 
     [Fact]

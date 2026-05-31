@@ -1526,6 +1526,36 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyLyricsVerticalAlignmentCommand_PersistsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyLyricsVerticalAlignmentCommand.Execute(LyricsVerticalAlignment.Bottom);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment).Should().Be(LyricsVerticalAlignment.Bottom);
+        sut.ActiveLyricsVerticalAlignment.Should().Be(LyricsVerticalAlignment.Bottom);
+    }
+
+    [Fact]
+    public void ActiveLyricsVerticalAlignment_DefaultsCenter()
+    {
+        var sut = CreateSut();
+
+        sut.ActiveLyricsVerticalAlignment.Should().Be(LyricsVerticalAlignment.Center);
+    }
+
+    [Fact]
+    public void LyricsVerticalAlignmentOptions_ExposesTopCenterBottom()
+    {
+        var sut = CreateSut();
+
+        sut.LyricsVerticalAlignmentOptions.Should().BeEquivalentTo(
+            new[] { LyricsVerticalAlignment.Top, LyricsVerticalAlignment.Center, LyricsVerticalAlignment.Bottom });
+    }
+
+    [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {
         // 인라인 콘텐츠 브라우저(§7.5 P0): 별도 LibraryWindow 없이 라이브러리 선택 곡을 예배 순서에 추가.

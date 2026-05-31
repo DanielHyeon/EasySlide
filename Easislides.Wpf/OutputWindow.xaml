@@ -65,7 +65,7 @@
                  정렬은 인-셸 가사 정렬 설정(BodyTextAlignment/BodyHorizontalAlignment)에서 유래(§7.3-A, 기본 가운데). -->
             <TextBlock Text="{Binding BodyText}"
                        HorizontalAlignment="{Binding BodyHorizontalAlignment}"
-                       VerticalAlignment="Center"
+                       VerticalAlignment="{Binding BodyVerticalAlignment}"
                        TextAlignment="{Binding BodyTextAlignment}"
                        TextWrapping="Wrap"
                        TextTrimming="CharacterEllipsis"

@@ -34,7 +34,9 @@ public sealed record LiveOutputRenderSettings(
     bool NoPowerPointPanelOverlay = false,
     bool NoMediaPanelOverlay = false,
     // 출력 가사 가로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
-    LyricsTextAlignment LyricsMonitorTextAlignment = LyricsTextAlignment.Center)
+    LyricsTextAlignment LyricsMonitorTextAlignment = LyricsTextAlignment.Center,
+    // 출력 가사 세로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
+    LyricsVerticalAlignment LyricsMonitorVerticalAlignment = LyricsVerticalAlignment.Center)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -55,7 +57,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
             settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay),
             settings.Get(EasiSettingKeys.NoMediaPanelOverlay),
-            settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment));
+            settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment),
+            settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment));
     }
 }
 
@@ -97,7 +100,9 @@ public sealed record OutputSceneSnapshot(
     // 라이브 곡 가사 본문(출력 중앙 텍스트). Live 가 아니면 빈 문자열이라 출력에 나타나지 않는다.
     string BodyText = "",
     // 출력 가사 가로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
-    LyricsTextAlignment LyricsMonitorTextAlignment = LyricsTextAlignment.Center)
+    LyricsTextAlignment LyricsMonitorTextAlignment = LyricsTextAlignment.Center,
+    // 출력 가사 세로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
+    LyricsVerticalAlignment LyricsMonitorVerticalAlignment = LyricsVerticalAlignment.Center)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -153,7 +158,8 @@ public sealed class OutputRenderer : IOutputRenderer
             ShouldShowPanelOverlay(kind, request.Session, liveOutput),
             // 곡 가사 본문은 Live 일 때만 송출(숨김/블랙아웃/대기 상태에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemBodyText : string.Empty,
-            liveOutput.LyricsMonitorTextAlignment);
+            liveOutput.LyricsMonitorTextAlignment,
+            liveOutput.LyricsMonitorVerticalAlignment);
     }
 
     private ImagePlacement GetContentPlacement(

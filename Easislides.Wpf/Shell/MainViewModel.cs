@@ -48,14 +48,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveLyricsAlignmentLabel))]
     private LyricsTextAlignment _activeLyricsAlignment = EasiSettingKeys.LyricsMonitorTextAlignment.DefaultValue;
+    // 현재 적용된 가사 세로 정렬.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActiveLyricsVerticalAlignmentLabel))]
+    private LyricsVerticalAlignment _activeLyricsVerticalAlignment = EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
     private bool _disposed;
 
-    /// <summary>현재 가사 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
+    /// <summary>현재 가사 가로 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
     public string ActiveLyricsAlignmentLabel
         => ActiveLyricsAlignment switch
         {
             LyricsTextAlignment.Left => "왼쪽",
             LyricsTextAlignment.Right => "오른쪽",
+            _ => "가운데",
+        };
+
+    /// <summary>현재 가사 세로 정렬의 한글 라벨.</summary>
+    public string ActiveLyricsVerticalAlignmentLabel
+        => ActiveLyricsVerticalAlignment switch
+        {
+            LyricsVerticalAlignment.Top => "위",
+            LyricsVerticalAlignment.Bottom => "아래",
             _ => "가운데",
         };
 
@@ -80,6 +93,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LyricsTextAlignment.Left,
         LyricsTextAlignment.Center,
         LyricsTextAlignment.Right,
+    };
+
+    /// <summary>인-셸 가사 세로 정렬 옵션(위/가운데/아래) — 우측 인스펙터 바인딩(§7.3-A).</summary>
+    public IReadOnlyList<LyricsVerticalAlignment> LyricsVerticalAlignmentOptions { get; } = new[]
+    {
+        LyricsVerticalAlignment.Top,
+        LyricsVerticalAlignment.Center,
+        LyricsVerticalAlignment.Bottom,
     };
 
     // 현재 라이브 송출 중인 큐 항목의 Id(없으면 null). 슬라이드 이동이 "선택 항목 == 라이브 항목"일 때만
@@ -183,6 +204,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
+        ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
@@ -221,6 +243,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
+    public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
@@ -1121,12 +1144,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"출력 모양: {preset.Name}";
     }
 
-    // 인-셸 가사 정렬 적용 — 설정을 쓰면 출력 VM 이 SettingsChanged 로 라이브 출력을 즉시 갱신한다(§7.3-A).
+    // 인-셸 가사 가로 정렬 적용 — 설정을 쓰면 출력 VM 이 SettingsChanged 로 라이브 출력을 즉시 갱신한다(§7.3-A).
     private void ApplyLyricsAlignment(LyricsTextAlignment alignment)
     {
         _settings.Set(EasiSettingKeys.LyricsMonitorTextAlignment, alignment);
         ActiveLyricsAlignment = alignment;
         StatusText = $"가사 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
+    }
+
+    // 인-셸 가사 세로 정렬 적용 — 가로 정렬과 동일 경로(설정→출력 VM 라이브 반영).
+    private void ApplyLyricsVerticalAlignment(LyricsVerticalAlignment alignment)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, alignment);
+        ActiveLyricsVerticalAlignment = alignment;
+        StatusText = $"가사 세로 정렬: {alignment switch { LyricsVerticalAlignment.Top => "위", LyricsVerticalAlignment.Bottom => "아래", _ => "가운데" }}";
     }
 
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
@@ -1141,8 +1172,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
         ActiveAppearanceName = match?.Name ?? "사용자 지정";
 
-        // 가사 정렬 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
+        // 가사 정렬(가로/세로) 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
+        ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)

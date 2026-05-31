@@ -46,6 +46,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsVerticalAlignment_PersistsEnumToDiskAndReloads()
+    {
+        // 세로 정렬 enum 디스크 round-trip 고정.
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, LyricsVerticalAlignment.Bottom).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment).Should().Be(LyricsVerticalAlignment.Bottom);
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorVerticalAlignment.Should().Be(LyricsVerticalAlignment.Bottom);
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();

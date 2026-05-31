@@ -77,6 +77,14 @@ public enum LyricsTextAlignment
     Right = 2,
 }
 
+// 출력 화면 가사 세로 정렬(인-셸 가사 정렬 — 레거시 Align Top/Bottom). 기본 Center(기존 동작 보존).
+public enum LyricsVerticalAlignment
+{
+    Top = 0,
+    Center = 1,
+    Bottom = 2,
+}
+
 public static class EasiSettingKeys
 {
     public static readonly SettingKey<string> Language = new("general.language", "ko-KR");
@@ -110,6 +118,9 @@ public static class EasiSettingKeys
     // 출력 가사 가로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center 로 기존 가운데 정렬 동작을 보존.
     public static readonly SettingKey<LyricsTextAlignment> LyricsMonitorTextAlignment =
         new("liveOutput.lyricsMonitorTextAlignment", LyricsTextAlignment.Center);
+    // 출력 가사 세로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center 로 기존 가운데 정렬 동작을 보존.
+    public static readonly SettingKey<LyricsVerticalAlignment> LyricsMonitorVerticalAlignment =
+        new("liveOutput.lyricsMonitorVerticalAlignment", LyricsVerticalAlignment.Center);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
@@ -151,6 +162,7 @@ public static class EasiSettingKeys
         LyricsMonitorBackgroundIsGradient,
         LyricsMonitorShowNotations,
         LyricsMonitorTextAlignment,
+        LyricsMonitorVerticalAlignment,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
@@ -227,6 +239,9 @@ public sealed record LiveOutputSettings
 
     public LyricsTextAlignment LyricsMonitorTextAlignment { get; init; } =
         EasiSettingKeys.LyricsMonitorTextAlignment.DefaultValue;
+
+    public LyricsVerticalAlignment LyricsMonitorVerticalAlignment { get; init; } =
+        EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
 }
 
 public sealed record PowerPointSettings
@@ -462,6 +477,11 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorTextAlignment))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorTextAlignment.Id, "Lyrics text alignment value is not supported."));
+        }
+
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorVerticalAlignment))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, "Lyrics vertical alignment value is not supported."));
         }
 
         ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
@@ -867,6 +887,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<InterfaceSize> sizeKey => sizeKey.Id,
                 SettingKey<GapItemMode> gapItemModeKey => gapItemModeKey.Id,
                 SettingKey<LyricsTextAlignment> alignmentKey => alignmentKey.Id,
+                SettingKey<LyricsVerticalAlignment> verticalAlignmentKey => verticalAlignmentKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
                 SettingKey<double> doubleKey => doubleKey.Id,
@@ -913,6 +934,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot.LiveOutput.LyricsMonitorBackgroundIsGradient,
             "liveOutput.lyricsMonitorShowNotations" => snapshot.LiveOutput.LyricsMonitorShowNotations,
             "liveOutput.lyricsMonitorTextAlignment" => snapshot.LiveOutput.LyricsMonitorTextAlignment,
+            "liveOutput.lyricsMonitorVerticalAlignment" => snapshot.LiveOutput.LyricsMonitorVerticalAlignment,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
@@ -1025,6 +1047,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTextAlignment" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorTextAlignment = Cast<LyricsTextAlignment>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorVerticalAlignment" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorVerticalAlignment = Cast<LyricsVerticalAlignment>(keyId, value) },
             },
             "powerPoint.usePowerPointTab" => snapshot with
             {
