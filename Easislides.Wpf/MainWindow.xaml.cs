@@ -57,6 +57,7 @@ public partial class MainWindow : Window
 
         Bind(MainCommandIds.WindowLibrary, OpenLibrary_Click);
         Bind(MainCommandIds.WindowBible, OpenBible_Click);
+        Bind(MainCommandIds.WindowManageBibleVersions, OpenBibleVersionManager_Click);
         Bind(MainCommandIds.WindowSearch, OpenSearchUsage_Click);
         Bind(MainCommandIds.WindowImportExport, OpenImportExport_Click);
         Bind(MainCommandIds.WindowExternalFiles, OpenExternalFiles_Click);
@@ -312,6 +313,16 @@ public partial class MainWindow : Window
         if (bibleWindow.ShowDialog() == true && DataContext is MainViewModel viewModel)
         {
             viewModel.AddBibleSelection(bibleWindow.SelectedSelection);
+        }
+    }
+
+    // 성경 버전 관리 창(이름 변경) — 셸의 Bible VM 을 공유하므로 변경이 좌측 성경 탭에도 반영된다.
+    private void OpenBibleVersionManager_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            var window = new Easislides.Wpf.Library.BibleVersionManagerWindow(viewModel.Bible) { Owner = this };
+            window.ShowDialog();
         }
     }
 

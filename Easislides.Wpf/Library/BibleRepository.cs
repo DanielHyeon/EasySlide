@@ -73,6 +73,13 @@ public interface IBibleRepository
         string currentIdString,
         BibleVersion region1,
         BibleVersion? region2);
+
+    /// <summary>
+    /// 성경 버전의 표시 이름을 바꾼다(EsBiblesList.db 의 Biblefolder.NAME 컬럼만 UPDATE, 본문 파일은 불변).
+    /// FILENAME 으로 행을 찾는다(버전당 파일 1:1). 새 이름이 비었거나 대상 파일이 없으면 false.
+    /// 고유성(이름 중복) 검증은 호출자(VM)가 한다.
+    /// </summary>
+    bool RenameVersion(string workingFolder, string fileName, string newName);
 }
 
 public sealed class BibleRepository : IBibleRepository
@@ -488,6 +495,38 @@ public sealed class BibleRepository : IBibleRepository
         {
             return false;
         }
+    }
+
+    public bool RenameVersion(string workingFolder, string fileName, string newName)
+    {
+        // 입력이 비면 변경 없음(VM 이 사전 검증하지만 저장소도 방어).
+        if (string.IsNullOrWhiteSpace(workingFolder)
+            || string.IsNullOrWhiteSpace(fileName)
+            || string.IsNullOrWhiteSpace(newName))
+        {
+            return false;
+        }
+
+        var bibleListPath = Path.Combine(Path.GetFullPath(workingFolder), BibleListRelativePath);
+        if (!File.Exists(bibleListPath))
+        {
+            return false;
+        }
+
+        using var connection = OpenConnection(bibleListPath);
+        // 트랜잭션으로 원자적 변경(단일 컬럼 UPDATE 라 본문 파일·다른 행에 영향 없음).
+        using var transaction = connection.BeginTransaction();
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        // DISPLAYORDER >= 0(= GetVersions 가 노출하는 보이는 버전)만 바꾼다.
+        // 숨김(DISPLAYORDER<0) 행은 레거시에서 "삭제 예정" 임시 데이터라 rename 대상이 아니다.
+        // 이렇게 하면 write 대상이 VM 의 중복 검사 집합(보이는 버전)과 정확히 일치한다.
+        command.CommandText = "UPDATE Biblefolder SET NAME = @newName WHERE FILENAME = @fileName AND DISPLAYORDER >= 0;";
+        command.Parameters.AddWithValue("@newName", newName.Trim());
+        command.Parameters.AddWithValue("@fileName", fileName);
+        var affected = command.ExecuteNonQuery();
+        transaction.Commit();
+        return affected > 0;
     }
 
     private static SQLiteConnection OpenConnection(string databasePath)
