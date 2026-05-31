@@ -76,6 +76,21 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public void Preview_UsesFormatDataColors_WhenPresent()
+    {
+        // 곡의 FormatData(레거시 v32)에 글자/배경색이 있으면 미리보기가 그 색(region1)을 쓴다.
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.FormatData = "29=-16777216>26=-1>"; // 글자색 검정, 배경색 흰색.
+
+        sut.PreviewForegroundHex.Should().Be("#FF000000");
+        sut.PreviewBackgroundHex.Should().Be("#FFFFFFFF");
+    }
+
+    [Fact]
     public void Lyrics_DuplicateSectionLabels_ShowsSectionWarning_NonBlocking()
     {
         // Sequence 모델: 절은 1회 정의. 같은 라벨([C]) 두 번 정의 시 비차단 경고를 띄운다(저장은 막지 않음).
