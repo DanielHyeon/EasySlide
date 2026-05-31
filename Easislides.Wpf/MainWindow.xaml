@@ -970,6 +970,52 @@
                                       ToolTip="절/슬라이드 위치 인디케이터 표시(출력 우하단)"
                                       AutomationProperties.Name="위치 인디케이터 토글" />
                     </StackPanel>
+
+                    <!-- 출력 모양 설정 템플릿(§7.3-A) — 현재 모양을 이름으로 저장, 콤보에서 골라 적용/삭제. -->
+                    <TextBlock Text="모양 템플릿"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding NewAppearanceTemplateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="30"
+                                 ToolTip="새 템플릿 이름"
+                                 AutomationProperties.Name="새 모양 템플릿 이름" />
+                        <Button Grid.Column="1"
+                                Command="{Binding SaveAppearanceTemplateCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="6,0,0,0"
+                                Content="저장"
+                                AutomationProperties.Name="모양 템플릿 저장" />
+                    </Grid>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding AppearanceTemplateNames}"
+                                  SelectedItem="{Binding SelectedAppearanceTemplate, Mode=TwoWay}"
+                                  MinHeight="30"
+                                  ToolTip="저장된 템플릿"
+                                  AutomationProperties.Name="저장된 모양 템플릿" />
+                        <Button Grid.Column="1"
+                                Command="{Binding ApplyAppearanceTemplateCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="6,0,0,0"
+                                Content="적용"
+                                AutomationProperties.Name="모양 템플릿 적용" />
+                        <Button Grid.Column="2"
+                                Command="{Binding DeleteAppearanceTemplateCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="6,0,0,0"
+                                Content="삭제"
+                                AutomationProperties.Name="모양 템플릿 삭제" />
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>

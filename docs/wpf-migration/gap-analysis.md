@@ -205,6 +205,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-A 세분 색 직접 지정(글자/배경 hex #RRGGBB) — **완료**(2026-05-31: 기존 색 설정 재사용(신규 키 없음), `ApplyTextColorHexCommand`/`ApplyBackgroundColorHexCommand` + hex 파싱(6자리 불투명, 표시 대칭) + 우측 인스펙터 입력칸·Enter·적용 버튼. 배경은 솔리드 전환. 테스트 672 green, code-reviewer Approve + SUGGESTION(8자리 거부·전환/추종 테스트) 반영)
 - [x] §7.3-A 출력 위치 인디케이터(절/슬라이드 "N/M") — **완료**(2026-06-01: `LyricsMonitorShowPositionIndicator` 설정 + `LiveQueueItem.PositionLabel`→스냅샷 plumbing, `ComputePositionLabel`(곡=절/총절, PPT=슬라이드/총), 출력 우하단 오버레이, 우측 인스펙터 "N/M" 토글. GoLive·절 이동·슬라이드 이동 모두 ResolveLiveProjection 단일 경로로 라벨 갱신. 테스트 680 green, code-reviewer Approve)
 - [x] §7.3-B 자동 회전(Auto Rotate) — **완료**(2026-06-01: `AutoRotateIntervalSeconds` 설정(2~600초) + 운영바 토글. 라이브 곡 절/PPT 슬라이드를 간격마다 자동 전환(끝→처음 순환). 타이머는 View(MainWindow), 로직은 VM(`AdvanceAutoRotation`)으로 분리해 테스트 용이. 숨김/복귀 중 유지, 완전 종료 시 자동 해제. 테스트 687 green, code-reviewer Approve)
+- [x] §7.3-A 출력 모양 설정 템플릿(저장/불러오기) — **완료**(2026-06-01: `AppearanceTemplateStore`(파일 기반·경로안전·원자적 쓰기) + `LyricsAppearanceTemplate`(출력 모양 13개 키 캡처/적용) + 우측 인스펙터 이름 저장·콤보 적용/삭제. 예배별/장소별 프리셋. 테스트 702 green, code-reviewer Approve)
 - [ ] **다음 착수(권장)**: 헤딩(제목/절 표시) / Outline 효과 / 모달 Library·Bible 진입점 정리 / 명령 팔레트(⌘K)
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
@@ -245,7 +246,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | 전환 효과 | Slide Transition, Item Transition | 🟡 TransitionEffectService 있으나 UI 노출 미약 |
 | 코드/악상 | Show Notations(+in Preview), Transpose Up/Down Semi-Tone, To Capo 0 | 🔴 없음 |
 | 인디케이터 | Show Verse/Slide Indicators, Show Item Number, Show Title, Use Song Numbering | 🟡 **절/슬라이드 위치 인디케이터("N/M") 완료**(2026-06-01, `LyricsMonitorShowPositionIndicator` 토글 → 출력 우하단 표시, 곡=절·PPT=슬라이드 위치). Show Item Number·Title·Song Numbering 은 후속 |
-| 설정 템플릿 | Save/Load Settings Template, Use Individual Settings, Apply to All Except InfoScreens, Default Layout | 🔴 없음 |
+| 설정 템플릿 | Save/Load Settings Template, Use Individual Settings, Apply to All Except InfoScreens, Default Layout | 🟡 **출력 모양 템플릿 저장/불러오기 완료**(2026-06-01, `AppearanceTemplateStore` 파일 기반 + 우측 인스펙터 이름 저장·콤보 적용/삭제. 출력 모양 13개 설정을 한 묶음으로 캡처·복원). Use Individual Settings·Default Layout 은 후속 |
 
 #### B. 라이브 운영 제어 (🟡 핵심 일부만)
 
