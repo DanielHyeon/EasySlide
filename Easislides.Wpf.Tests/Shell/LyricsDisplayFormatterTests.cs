@@ -193,6 +193,27 @@ public class LyricsDisplayFormatterTests
         LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("1");
     }
 
+    [Fact]
+    public void FindDuplicateSectionLabels_NormalizesCrlf()
+    {
+        // CRLF 로 저장된 가사도 \n 과 동일하게 라벨 경계를 인식해 중복을 잡는다(정규화 일관성).
+        var lyrics = "[1]\r\nVerse one\r\n[1]\r\nDup";
+
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("1");
+    }
+
+    [Fact]
+    public void ToVersePages_WithSequence_NormalizesCrlfAndMojibake()
+    {
+        // 시퀀스 확장 경로(ParseLabeledSections)도 CRLF·"Â»" 모지바케를 동일하게 정규화한다.
+        var lyrics = "[1]\r\nVerse one Â» G\r\n[C]\r\nChorus";
+
+        var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C");
+
+        // '»' 뒤 코드는 송출용으로 잘리고, CRLF 는 \n 으로 정규화돼 절 경계가 정확히 잡힌다.
+        pages.Should().Equal("Verse one", "Chorus");
+    }
+
     // ─── ToVersePages ────────────────────────────────────────────────────────
 
     [Fact]

@@ -24,12 +24,8 @@ public static class LyricsDisplayFormatter
             return string.Empty;
         }
 
-        // 1) 줄바꿈 정규화(\r\n, \r → \n) + 코드 마커 정규화.
-        //    일부 데이터는 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장될 수 있어 단일 '»'로 모은다.
-        var text = rawLyrics
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace("\r", "\n", StringComparison.Ordinal)
-            .Replace("Â»", "»", StringComparison.Ordinal);
+        // 1) 줄바꿈·코드 마커 정규화(NormalizeText 단일 규칙).
+        var text = NormalizeText(rawLyrics);
 
         // 2) 맨 앞 코드(노테이션) 블록 [~...] 제거.
         var leading = text.TrimStart('\n', ' ', '\t');
@@ -129,10 +125,7 @@ public static class LyricsDisplayFormatter
             return Array.Empty<string>();
         }
 
-        var text = rawLyrics
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace("\r", "\n", StringComparison.Ordinal)
-            .Replace("Â»", "»", StringComparison.Ordinal);
+        var text = NormalizeText(rawLyrics);
 
         var firstSeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var reported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -205,10 +198,7 @@ public static class LyricsDisplayFormatter
             return Array.Empty<(string, string)>();
         }
 
-        var text = rawLyrics
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace("\r", "\n", StringComparison.Ordinal)
-            .Replace("Â»", "»", StringComparison.Ordinal);
+        var text = NormalizeText(rawLyrics);
 
         var sections = new List<(string Label, string Content)>();
         string? currentLabel = null;
@@ -257,6 +247,15 @@ public static class LyricsDisplayFormatter
         Flush();
         return sections;
     }
+
+    // 원시 가사 정규화 — 줄바꿈(\r\n, \r → \n)과 코드 마커를 단일 형태로 모은다.
+    // 일부 데이터는 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장될 수 있어 단일 '»'로 정규화한다.
+    // 모든 가사 진입점(표시 텍스트·절 페이지·중복 검사·미리보기 줄 분리)이 동일 규칙을 쓰도록 한 곳에 모았다.
+    internal static string NormalizeText(string raw)
+        => raw
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal)
+            .Replace("Â»", "»", StringComparison.Ordinal);
 
     // 마커 줄이 라벨 마커( [1] [Chorus] [C] )면 그 라벨, 노테이션 블록([~...])이나 일반 줄이면 null.
     private static string? SectionLabel(string line)
