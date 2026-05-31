@@ -88,7 +88,8 @@ public sealed class CommandCatalog : ICommandCatalog
     {
     }
 
-    internal CommandCatalog(IEnumerable<CommandDescriptor> commands)
+    // 명시적 명령 집합으로 카탈로그를 만든다(명령 팔레트 테스트·커스텀 명령 세트용). 기본 8개 외 주입 가능.
+    public CommandCatalog(IEnumerable<CommandDescriptor> commands)
     {
         ArgumentNullException.ThrowIfNull(commands);
         All = commands.ToList().AsReadOnly();

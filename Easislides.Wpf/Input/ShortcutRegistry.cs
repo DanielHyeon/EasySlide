@@ -75,6 +75,18 @@ public sealed class ShortcutRegistry
         return modifiers;
     }
 
+    // 명령 id 로 바인딩된 동작을 직접 실행한다(명령 팔레트 §7.4 — 키 입력이 아니라 검색·선택으로 실행).
+    // 바인딩이 없거나 동작이 예외를 던지면 false. 단축키 경로(TryHandle)와 동일한 Invoke 를 공유한다.
+    public bool TryInvoke(string commandName)
+    {
+        if (string.IsNullOrWhiteSpace(commandName))
+        {
+            return false;
+        }
+
+        return Invoke(commandName);
+    }
+
     private bool Invoke(string commandName)
     {
         if (!_bindings.TryGetValue(commandName, out var handler))
