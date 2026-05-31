@@ -24,8 +24,12 @@ public static class LyricsDisplayFormatter
             return string.Empty;
         }
 
-        // 1) 줄바꿈 정규화(\r\n, \r → \n).
-        var text = rawLyrics.Replace("\r\n", "\n").Replace("\r", "\n");
+        // 1) 줄바꿈 정규화(\r\n, \r → \n) + 코드 마커 정규화.
+        //    일부 데이터는 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장될 수 있어 단일 '»'로 모은다.
+        var text = rawLyrics
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal)
+            .Replace("Â»", "»", StringComparison.Ordinal);
 
         // 2) 맨 앞 코드(노테이션) 블록 [~...] 제거.
         var leading = text.TrimStart('\n', ' ', '\t');
@@ -44,7 +48,9 @@ public static class LyricsDisplayFormatter
         var pendingBlank = false; // 절 경계(빈 줄)는 "다음 본문 줄" 앞에만 삽입
         foreach (var rawLine in text.Split('\n'))
         {
-            var line = rawLine.TrimEnd();
+            // 줄 안의 '»'(코드/노테이션 마커) 뒤는 회중 화면에 보이지 않게 잘라낸다 — 가사 본문만 남긴다.
+            // (코드는 운영자/연주자용이며, 미리보기에선 흐리게 보여 주지만 출력에선 숨긴다. [~...] 블록 제거와 같은 원칙.)
+            var line = StripInlineNotation(rawLine).TrimEnd();
             if (IsMarkerOnlyLine(line) || string.IsNullOrWhiteSpace(line))
             {
                 // 본문이 한 번이라도 나온 뒤의 경계만 빈 줄 후보로 기록.
@@ -95,6 +101,14 @@ public static class LyricsDisplayFormatter
 
         var clamped = Math.Clamp(pageIndex, 0, pages.Count - 1);
         return pages[clamped];
+    }
+
+    // 줄에서 '»'(코드/노테이션 마커) 이후를 잘라 본문만 남긴다. 마커가 없으면 줄 그대로.
+    // ('»' 정규화는 호출 전에 끝나 있다고 가정 — ToDisplayText 가 "Â»"→"»"로 모은 뒤 호출.)
+    private static string StripInlineNotation(string line)
+    {
+        var markerIndex = line.IndexOf('»'); // '»'
+        return markerIndex < 0 ? line : line[..markerIndex];
     }
 
     // 줄 전체가 하나의 대괄호 토큰인지( 예: [1] [Chorus] [~G D] ) — 작성용 마커로 간주.
