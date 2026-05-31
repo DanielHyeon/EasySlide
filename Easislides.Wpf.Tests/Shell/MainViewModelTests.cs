@@ -149,6 +149,19 @@ public class MainViewModelTests
         sut.LiveCameraSource.Should().Be("<<Capture>>5");
     }
 
+    // ─── 우측 출력 모양 인스펙터 접기/펼치기 (FrmMain식 가변 패널 — 접으면 중앙 확장) ───
+
+    [Fact]
+    public void IsInspectorExpanded_DefaultsTrue_AndToggles()
+    {
+        // 우측 인스펙터는 기본 펼침(FrmMain식 가변 패널). 토글로 접고 펼친다(접으면 중앙이 넓어짐).
+        var sut = CreateSut();
+        sut.IsInspectorExpanded.Should().BeTrue("기본은 펼침");
+
+        sut.IsInspectorExpanded = false;
+        sut.IsInspectorExpanded.Should().BeFalse("접기");
+    }
+
     // ─── 중앙 미리보기 탭 자동 전환 (FrmMain식 멀티페인 — 항목 종류에 맞춰 탭 수동 전환 제거) ───
 
     [Fact]
