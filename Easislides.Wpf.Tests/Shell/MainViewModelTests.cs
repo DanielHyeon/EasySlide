@@ -1667,6 +1667,119 @@ public class MainViewModelTests
         sut.ActiveLyricsShadow.Should().BeFalse();
     }
 
+    // ─── 인-셸 세분 색 직접 지정(hex) (§7.3-A) ────────────────────────────────
+
+    [Fact]
+    public void ApplyTextColorHexCommand_SetsArgbWithFullAlpha()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyTextColorHexCommand.Execute("#FF0000");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(unchecked((int)0xFFFF0000), "빨강 + 알파 FF");
+        sut.ActiveTextColorHex.Should().Be("#FF0000");
+    }
+
+    [Fact]
+    public void ApplyTextColorHexCommand_AcceptsHexWithoutHash()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyTextColorHexCommand.Execute("00FF00");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(unchecked((int)0xFF00FF00));
+    }
+
+    [Fact]
+    public void ApplyTextColorHexCommand_InvalidHex_LeavesSettingAndWarns()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var before = settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb);
+
+        sut.ApplyTextColorHexCommand.Execute("not-a-color");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(before, "잘못된 hex 는 무시");
+        sut.StatusText.Should().Contain("색");
+    }
+
+    [Fact]
+    public void ApplyBackgroundColorHexCommand_SetsSolidBackground()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyBackgroundColorHexCommand.Execute("#000080");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(unchecked((int)0xFF000080));
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb).Should().Be(unchecked((int)0xFF000080), "솔리드라 끝색=시작색");
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient).Should().BeFalse("hex 직접 지정은 솔리드");
+        sut.ActiveBackgroundColorHex.Should().Be("#000080");
+    }
+
+    [Fact]
+    public void ActiveColorHex_ReflectsCurrentSettings()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFFABCDEF));
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveTextColorHex.Should().Be("#ABCDEF");
+    }
+
+    [Fact]
+    public void ApplyTextColorHexCommand_RejectsEightDigitAlphaForSymmetry()
+    {
+        // 표시는 6자리(RGB)이므로 8자리(알파) 입력은 받지 않는다(저장/표시 비대칭 방지).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var before = settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb);
+
+        sut.ApplyTextColorHexCommand.Execute("#80FF0000");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(before, "8자리는 거부");
+    }
+
+    [Fact]
+    public void ApplyBackgroundColorHexCommand_AfterGradientPreset_SwitchesToSolid()
+    {
+        // 그라데이션 프리셋(IsGradient=true) 적용 후 hex 배경을 지정하면 솔리드로 전환된다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var gradientPreset = sut.OutputAppearancePresets.First(p => p.IsGradient);
+        sut.ApplyOutputAppearanceCommand.Execute(gradientPreset);
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient).Should().BeTrue("프리셋이 그라데이션 설정");
+
+        sut.ApplyBackgroundColorHexCommand.Execute("#123456");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient).Should().BeFalse("hex 배경은 솔리드로 전환");
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb).Should().Be(unchecked((int)0xFF123456));
+    }
+
+    [Fact]
+    public void ActiveColorHex_FollowsPresetApplication()
+    {
+        // 프리셋 적용 시에도 hex 표시가 프리셋 색을 따라간다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var preset = sut.OutputAppearancePresets.First(p => p.Name == "검정 글자 · 흰 배경");
+
+        sut.ApplyOutputAppearanceCommand.Execute(preset);
+
+        sut.ActiveTextColorHex.Should().Be("#000000");
+        sut.ActiveBackgroundColorHex.Should().Be("#FFFFFF");
+    }
+
     // ─── 인-셸 가사 줄 간격 (§7.3-A) ──────────────────────────────────────────
 
     [Fact]

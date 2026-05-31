@@ -202,7 +202,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-A 인-셸 가사 폰트 크기(A−/A+, 24~120px) — **완료**(2026-05-31: `LyricsMonitorFontSize` int 설정→렌더→출력, `BodyFontSize`/`BodyLineHeight`(×1.25) 매핑, 우측 인스펙터 A−/A+ + 현재 px 표시. ±4 step·경계 비활성·Math.Clamp 삼중 가드. 테스트 645 green, code-reviewer Approve + SUGGESTION 2건(비배수 클램프 테스트·배율 상수화) 반영)
 - [x] §7.3-A 인-셸 가사 폰트 효과(굵게·기울임·그림자) — **완료**(2026-05-31: `LyricsMonitorBold/Italic/Shadow` bool 설정→렌더→출력, `BodyFontWeight`(off=SemiBold 보존)/`BodyFontStyle`/`BodyHasShadow`(DropShadowEffect) 매핑, 우측 인스펙터 토글 버튼. 테스트 657 green, code-reviewer Approve + MINOR 2건 반영. 기본 전부 off 로 기존 출력 무변화)
 - [x] §7.3-A 인-셸 가사 줄 간격(−/＋, 100~220%) — **완료**(2026-05-31: `LyricsMonitorLineSpacingPercent` int 설정→렌더→출력, 기존 하드코딩 줄높이(폰트×1.25)를 설정 기반(폰트×%)으로 전환, 기본 125% 로 동작 보존. 우측 인스펙터 −/＋ + 현재 % 표시. 테스트 664 green, code-reviewer Approve)
-- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(헤딩·세분 색 ColorPicker·Outline 효과) / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
+- [x] §7.3-A 세분 색 직접 지정(글자/배경 hex #RRGGBB) — **완료**(2026-05-31: 기존 색 설정 재사용(신규 키 없음), `ApplyTextColorHexCommand`/`ApplyBackgroundColorHexCommand` + hex 파싱(6자리 불투명, 표시 대칭) + 우측 인스펙터 입력칸·Enter·적용 버튼. 배경은 솔리드 전환. 테스트 672 green, code-reviewer Approve + SUGGESTION(8자리 거부·전환/추종 테스트) 반영)
+- [ ] **다음 착수(권장)**: 헤딩(제목/절 표시) / Outline 효과 / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -238,7 +239,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | 폰트 효과 | Shadow Font, Outline Font, Italics / No Italics / Chorus Italics Only | 🟡 **굵게·기울임·그림자 토글 완료**(2026-05-31, `LyricsMonitorBold/Italic/Shadow` 설정→렌더→출력, 우측 인스펙터 토글·라이브 즉시 반영, 그림자=DropShadowEffect). Outline·Chorus-only-italics 는 후속 |
 | 리전(2단) | Region 1/2 Only, Regions 1&2, Interlace, R1/R2 Colour, Region n Align L/R/C, Text Colour As Region 1 | 🔴 없음(렌더는 전경/배경 브러시만) |
 | 헤딩(제목/절) | Show All/No Headings, Heading Align L/R/C/As Region, Heading At First Screen Only, Display Title/Verse Headings | 🔴 없음 |
-| 배경 | Background Colours and Patterns, Background Picture Format(Best Fit/Centre/Tile/Size), No/Transparent/Default Background, Back Colour | 🟡 세로 그라데이션·솔리드만(#38, G1.4), 이미지/패턴/타일 없음 |
+| 배경 | Background Colours and Patterns, Background Picture Format(Best Fit/Centre/Tile/Size), No/Transparent/Default Background, Back Colour | 🟡 솔리드·세로 그라데이션 + **글자/배경색 hex 직접 지정**(2026-05-31, 프리셋 4종 + 임의 #RRGGBB 입력) 완료. 이미지/패턴/타일은 후속 |
 | 전환 효과 | Slide Transition, Item Transition | 🟡 TransitionEffectService 있으나 UI 노출 미약 |
 | 코드/악상 | Show Notations(+in Preview), Transpose Up/Down Semi-Tone, To Capo 0 | 🔴 없음 |
 | 인디케이터 | Show Verse/Slide Indicators, Show Item Number, Show Title, Use Song Numbering | 🔴 없음 |
