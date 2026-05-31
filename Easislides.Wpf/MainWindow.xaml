@@ -1180,14 +1180,44 @@
                              AutomationProperties.Name="명령 결과 목록">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="2">
-                                    <TextBlock Text="{Binding DisplayName}"
-                                               Style="{StaticResource Type.Body.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Primary}" />
-                                    <TextBlock Text="{Binding Category}"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                </StackPanel>
+                                <!-- 좌: 명령 이름/분류, 우: 위험 배지(라이브 송출에 영향 주는 주의 명령). -->
+                                <Grid Margin="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding Category}"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    </StackPanel>
+
+                                    <!-- 위험 명령(라이브 중지·검은 화면·출력 닫기·화면 비우기·출력 숨김·Go Live)만 빨간 "위험" 배지.
+                                         한 사람이 라이브 운영 중 실수로 송출을 끊는 일을 줄이려 눈에 띄게 한다(§7.4 후속). -->
+                                    <Border Grid.Column="1"
+                                            Visibility="{Binding IsDangerous, Converter={StaticResource BoolToVis}}"
+                                            Background="{DynamicResource Brush.Status.Danger}"
+                                            CornerRadius="{StaticResource CornerRadius.Small}"
+                                            Padding="6,1"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            ToolTip="라이브 출력에 영향을 주는 주의 명령">
+                                        <!-- Foreground 는 흰색 리터럴 — 배지 배경이 양 테마 모두 진한 빨강이라
+                                             테마 토큰(Inverse: 다크에서 검정)보다 흰색이 대비에 안전. -->
+                                        <TextBlock Text="위험"
+                                                   FontFamily="{DynamicResource Font.Primary}"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   AutomationProperties.Name="위험 명령" />
+                                    </Border>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
