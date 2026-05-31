@@ -2635,8 +2635,55 @@ public class MainViewModelTests
             => throw new ArgumentException("이름에 사용할 수 없는 문자", nameof(newName));
     }
 
-    private static SongDetail SampleSongDetail(int songId, string title, string lyrics)
-        => new(songId, title, "", 1, 0, lyrics, "", "", "", 0, "", "", "", "", "", "", "", "", "", "");
+    // ── 절 순서(Sequence) 모델: 곡 절을 1회 정의하고 시퀀스로 반복 송출 ──
+
+    [Fact]
+    public void AddSong_WithSequence_CarriesSequence_AndPageCountExpands()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+
+        var item = sut.AddSong(song, "1 C 2 C");
+
+        item!.Sequence.Should().Be("1 C 2 C");
+        sut.SelectedItem.Should().BeSameAs(item);
+        sut.LyricsPageCount.Should().Be(4, "절을 1회 정의하고 시퀀스(1 C 2 C)로 4페이지로 펼친다");
+    }
+
+    [Fact]
+    public void AddSong_WithoutSequence_PaginatesLinearly()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+
+        var item = sut.AddSong(song);
+
+        item!.Sequence.Should().BeNull();
+        sut.LyricsPageCount.Should().Be(3, "시퀀스 없으면 선형 3페이지(1·C·2)");
+    }
+
+    [Fact]
+    public async Task AddSearchedSong_CarriesSongDetailSequence_ToQueueItem_AndExpandsPages()
+    {
+        // 종단(통합): 검색 결과 추가 → 상세 로드 → 큐 항목에 절 순서(Sequence)가 실리고 페이지가 펼쳐진다.
+        // (단위 테스트가 AddSong 직접 주입만 검증하면 상세 로드 경로 누락을 못 잡으므로 종단 테스트 필요.)
+        var detail = SampleSongDetail(7, "은혜", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two", sequence: "1 C 2 C");
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail));
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        var result = new SongSearchResult(7, 1, "찬양 폴더", "은혜", "", 12, "", "G", new[] { "Title" }, "");
+        sut.Search.SearchResults.Add(result);
+        sut.SelectedSearchResult = result;
+
+        await sut.AddSearchedSongCommand.ExecuteAsync(null);
+
+        var added = sut.Queue.Single(i => i.Title == "은혜");
+        added.Sequence.Should().Be("1 C 2 C", "상세(SongDetail)의 절 순서가 큐 항목까지 전달돼야 함");
+        sut.SelectedItem.Should().BeSameAs(added);
+        sut.LyricsPageCount.Should().Be(4, "시퀀스(1 C 2 C)로 4페이지로 펼쳐진다");
+    }
+
+    private static SongDetail SampleSongDetail(int songId, string title, string lyrics, string sequence = "")
+        => new(songId, title, "", 1, 0, lyrics, sequence, "", "", 0, "", "", "", "", "", "", "", "", "", "");
 
     // 곡 상세(가사) 조회 스텁 — 검색 결과 SongId → 가사 로드 경로 검증용.
     private sealed class StubSongDetailRepository : IAdminSongDetailRepository

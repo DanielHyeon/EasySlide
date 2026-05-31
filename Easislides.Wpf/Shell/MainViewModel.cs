@@ -434,8 +434,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>
     /// 라이브러리에서 고른 실제 곡을 예배 순서(큐)에 추가한다(라이브 큐 도메인 plumbing — placeholder 대체 기반).
     /// 선택 항목 바로 뒤에 삽입하고 새 항목을 선택. AddBibleSelection 과 동일 규칙.
+    /// sequence: 곡 절 순서(있으면 절을 그 순서로 반복 송출). SongSummary 엔 없어 상세 로드 경로에서 넘긴다.
     /// </summary>
-    public LiveQueueItem? AddSong(Data.SongSummary? song)
+    public LiveQueueItem? AddSong(Data.SongSummary? song, string? sequence = null)
     {
         if (song is null || string.IsNullOrWhiteSpace(song.Title))
         {
@@ -444,7 +445,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song) { Lyrics = song.Lyrics };
+        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song) { Lyrics = song.Lyrics, Sequence = sequence };
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -510,15 +511,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        AddSong(new Data.SongSummary(
-            detail.SongId,
-            detail.Title,
-            detail.AlternateTitle,
-            detail.FolderNo,
-            detail.SongNumber,
-            detail.Category,
-            detail.Key,
-            detail.Lyrics));
+        AddSong(
+            new Data.SongSummary(
+                detail.SongId,
+                detail.Title,
+                detail.AlternateTitle,
+                detail.FolderNo,
+                detail.SongNumber,
+                detail.Category,
+                detail.Key,
+                detail.Lyrics),
+            detail.Sequence); // 곡 절 순서 — 있으면 절을 그 순서로 반복 송출(레거시 인코딩이면 매칭 0→선형 폴백).
     }
 
     // 예배 순서 항목 이동(↑/↓) — 큐 순서를 재정렬한다(FrmMain Move Item Up/Down). 선택 항목은 유지.
@@ -899,7 +902,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RefreshLyricsPages(LiveQueueItem? item)
     {
         var count = item?.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics)
-            ? LyricsDisplayFormatter.ToVersePages(item.Lyrics).Count
+            ? LyricsDisplayFormatter.ToVersePages(item.Lyrics, item.Sequence).Count
             : 0;
         LyricsPageCount = count;
         LyricsPageIndex = 0;
@@ -1471,7 +1474,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (item.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics))
         {
-            var count = LyricsDisplayFormatter.ToVersePages(item.Lyrics).Count;
+            var count = LyricsDisplayFormatter.ToVersePages(item.Lyrics, item.Sequence).Count;
             return count > 1 ? $"{item.LyricsPageIndex + 1}/{count}" : string.Empty;
         }
 

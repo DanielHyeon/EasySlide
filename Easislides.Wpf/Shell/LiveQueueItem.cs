@@ -13,6 +13,13 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     public string? Lyrics { get; init; }
 
     /// <summary>
+    /// 곡 절 순서(Sequence) — 절을 [라벨] 마커로 1회 정의하고 "1 C 2 C" 식으로 순서·반복을 지정(레거시 절 순서 모델).
+    /// 토큰은 쉼표·공백으로 구분하므로 라벨은 공백 없는 한 단어여야 한다(예: [Verse 1] 은 단일 토큰으로 못 부름 → [V1] 처럼).
+    /// 비었거나 라벨과 안 맞으면 가사를 선형으로 페이지네이션(기존 동작). 절 페이지 계산·라이브 투영에 쓰인다.
+    /// </summary>
+    public string? Sequence { get; init; }
+
+    /// <summary>
     /// 가사 절 단위 페이지네이션의 현재 페이지 인덱스(0-based).
     /// GoLive 시 이 절만 출력 화면에 보인다(PR B 절 단위 페이지네이션).
     /// PPT 의 SlideNumber 와 대칭: 큐에는 0 으로 두고, 라이브 투영 시 MainViewModel 이 현재 페이지를 얹는다.
