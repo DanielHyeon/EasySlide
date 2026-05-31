@@ -693,6 +693,50 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"예배 순서 삭제됨: {name.Trim()}";
     }
 
+    /// <summary>
+    /// 저장된 예배 순서의 이름을 바꾼다(레거시 FrmManageItemLists + FrmUpdateFileName 이름 변경 대응).
+    /// 이름이 같으면 변경 없이 성공으로 처리하고, 이미 있는 이름(대소문자 무시)으로는 거부한다.
+    /// 반환값: 실제로 처리됐으면 true, 입력이 잘못됐거나 중복이면 false.
+    /// </summary>
+    public bool RenameWorshipList(string oldName, string newName)
+    {
+        var from = (oldName ?? "").Trim();
+        var to = (newName ?? "").Trim();
+        if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to))
+        {
+            StatusText = "이름이 비어 있어 변경할 수 없습니다.";
+            return false;
+        }
+
+        // 이름이 같으면(대소문자 무시) 바꿀 게 없다 — 성공으로 처리.
+        if (string.Equals(from, to, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // 이미 있는 이름으로는 덮어쓰지 않는다(스토어도 방어하지만 VM 에서 먼저 막아 사용자에게 알린다).
+        if (_worshipLists.ListNames().Any(n => string.Equals(n, to, StringComparison.OrdinalIgnoreCase)))
+        {
+            StatusText = $"이미 있는 이름입니다: {to}";
+            return false;
+        }
+
+        // 사전 검사를 통과해도 스토어가 막을 수 있다(파일명에 못 쓰는 문자/예약명, 검사~이동 사이 경쟁, 쓰기 권한 등).
+        // 이런 예외는 운영자에게 친절한 상태 메시지로 바꿔 보여 주고, 개발자용 예외 창이 뜨지 않게 한다.
+        try
+        {
+            _worshipLists.Rename(from, to);
+        }
+        catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
+        {
+            StatusText = $"이름을 바꾸지 못했습니다: {to}";
+            return false;
+        }
+
+        StatusText = $"예배 순서 이름 변경: {from} → {to}";
+        return true;
+    }
+
     public void BindShortcuts(ShortcutRegistry registry)
     {
         ArgumentNullException.ThrowIfNull(registry);

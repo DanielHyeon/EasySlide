@@ -2512,6 +2512,80 @@ public class MainViewModelTests
         sut.AddSearchedSongCommand.CanExecute(null).Should().BeFalse("선택이 없으면 추가 비활성");
     }
 
+    // ── 후속#3: 예배 순서 이름 변경(레거시 FrmManageItemLists + FrmUpdateFileName(rename) 대응) ──
+
+    [Fact]
+    public async Task RenameWorshipList_RenamesSavedList()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("옛이름", new[] { new LiveQueueItem("a", "A", "Song") });
+        var sut = CreateSut(worshipLists: store);
+
+        var ok = sut.RenameWorshipList("옛이름", "새이름");
+
+        ok.Should().BeTrue("유효한 새 이름이면 변경 성공");
+        store.ListNames().Should().Contain("새이름").And.NotContain("옛이름");
+    }
+
+    [Fact]
+    public async Task RenameWorshipList_ToExistingName_IsRejected()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("A", Array.Empty<LiveQueueItem>());
+        await store.SaveAsync("B", Array.Empty<LiveQueueItem>());
+        var sut = CreateSut(worshipLists: store);
+
+        var ok = sut.RenameWorshipList("A", "B");
+
+        ok.Should().BeFalse("이미 있는 이름으로는 변경 거부(덮어쓰기 방지)");
+        store.ListNames().Should().Contain(new[] { "A", "B" }, "둘 다 그대로 남는다");
+    }
+
+    [Fact]
+    public async Task RenameWorshipList_UnchangedName_IsNoOpSuccess()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일", Array.Empty<LiveQueueItem>());
+        var sut = CreateSut(worshipLists: store);
+
+        var ok = sut.RenameWorshipList("주일", "주일");
+
+        ok.Should().BeTrue("이름이 같으면 변경 없이 성공으로 처리");
+        store.ListNames().Should().ContainSingle().Which.Should().Be("주일");
+    }
+
+    [Fact]
+    public void RenameWorshipList_WhenStoreRejectsName_ReturnsFalse_WithoutCrash()
+    {
+        // 다이얼로그가 못 거른 무효 이름(파일명 불가 문자 등)이나 검사~이동 사이 경쟁으로 스토어가 예외를 던져도,
+        // VM 이 잡아 친절한 상태 메시지로 바꾸고 false 를 돌려준다(개발자용 예외 창 방지).
+        var sut = CreateSut(worshipLists: new ThrowingRenameWorshipListStore());
+
+        var ok = sut.RenameWorshipList("원본", "bad/name");
+
+        ok.Should().BeFalse("스토어가 이름을 거부하면 실패로 처리");
+        sut.StatusText.Should().Contain("바꾸지 못", "운영자에게 친절한 안내(원시 예외 노출 방지)");
+    }
+
+    // Rename 이 항상 예외를 던지는 스토어 — VM 의 예외 흡수 경로 검증용.
+    private sealed class ThrowingRenameWorshipListStore : IWorshipListStore
+    {
+        public Task SaveAsync(string name, IReadOnlyList<LiveQueueItem> items, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task<IReadOnlyList<LiveQueueItem>> LoadAsync(string name, CancellationToken cancellationToken = default)
+            => Task.FromResult((IReadOnlyList<LiveQueueItem>)Array.Empty<LiveQueueItem>());
+
+        public IReadOnlyList<string> ListNames() => Array.Empty<string>();
+
+        public void Delete(string name)
+        {
+        }
+
+        public void Rename(string oldName, string newName)
+            => throw new ArgumentException("이름에 사용할 수 없는 문자", nameof(newName));
+    }
+
     private static SongDetail SampleSongDetail(int songId, string title, string lyrics)
         => new(songId, title, "", 1, 0, lyrics, "", "", "", 0, "", "", "", "", "", "", "", "", "", "");
 
@@ -2591,6 +2665,22 @@ public class MainViewModelTests
         public IReadOnlyList<string> ListNames() => _store.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray();
 
         public void Delete(string name) => _store.Remove(name);
+
+        public void Rename(string oldName, string newName)
+        {
+            if (!_store.TryGetValue(oldName, out var items))
+            {
+                return; // 원본 없음 — 무시(실제 스토어와 동일하게 관대)
+            }
+
+            if (_store.ContainsKey(newName))
+            {
+                throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
+            }
+
+            _store.Remove(oldName);
+            _store[newName] = items;
+        }
     }
 
     // 출력 모양 템플릿 저장/로드 — 파일시스템 없이 인메모리로 검증.

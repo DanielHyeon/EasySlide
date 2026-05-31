@@ -108,6 +108,54 @@ public sealed class WorshipListStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Rename_MovesList_PreservingItems()
+    {
+        var store = new WorshipListStore(_dir);
+        await store.SaveAsync("옛이름", new[] { new LiveQueueItem("song:1", "찬양", "Song") { Lyrics = "은혜" } });
+
+        store.Rename("옛이름", "새이름");
+
+        store.ListNames().Should().Contain("새이름").And.NotContain("옛이름");
+        var loaded = await store.LoadAsync("새이름");
+        loaded.Should().ContainSingle().Which.Lyrics.Should().Be("은혜", "이름만 바뀌고 내용은 보존");
+    }
+
+    [Fact]
+    public async Task Rename_ToExistingName_Throws_NoSilentOverwrite()
+    {
+        var store = new WorshipListStore(_dir);
+        await store.SaveAsync("A", new[] { new LiveQueueItem("a", "A", "Song") });
+        await store.SaveAsync("B", new[] { new LiveQueueItem("b", "B", "Song") });
+
+        var act = () => store.Rename("A", "B");
+
+        act.Should().Throw<ArgumentException>("이미 있는 이름으로 바꾸면 덮어쓰지 않고 거부");
+        store.ListNames().Should().Contain(new[] { "A", "B" }, "둘 다 그대로 남는다");
+    }
+
+    [Fact]
+    public void Rename_MissingSource_NoOp()
+    {
+        var store = new WorshipListStore(_dir);
+
+        var act = () => store.Rename("없는목록", "아무거나");
+
+        act.Should().NotThrow("원본이 없으면 조용히 무시(Delete 와 동일하게 관대)");
+        store.ListNames().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Rename_InvalidNewName_Throws()
+    {
+        var store = new WorshipListStore(_dir);
+        await store.SaveAsync("원본", Array.Empty<LiveQueueItem>());
+
+        var act = () => store.Rename("원본", "bad/name");
+
+        act.Should().Throw<ArgumentException>("새 이름도 경로 안전 검증을 거친다");
+    }
+
+    [Fact]
     public async Task Load_CorruptFile_ReturnsEmpty()
     {
         Directory.CreateDirectory(_dir);
