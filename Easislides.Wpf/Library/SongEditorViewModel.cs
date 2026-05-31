@@ -450,8 +450,13 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         RebuildPreviewLines(Lyrics);
         PreviewMetadata = BuildPreviewMetadata();
         PreviewFormatStatus = BuildPreviewFormatStatus();
-        PreviewForegroundHex = ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb));
-        PreviewBackgroundHex = ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb));
+        // 곡 자체의 포맷(FormatData)에 글자/배경색이 있으면 그 색(region1)으로 미리보기 — 없으면 전역 설정색.
+        // 미리보기엔 색 피커가 없어 사용자 입력과 충돌하지 않는다(레거시 v32 FormatData 디코드 반영).
+        var format = SongFormatData.Parse(FormatData);
+        PreviewForegroundHex = SongFormatData.ArgbToHex(format?.TextColorArgb1)
+            ?? ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb));
+        PreviewBackgroundHex = SongFormatData.ArgbToHex(format?.BackgroundColorArgb1)
+            ?? ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb));
 
         // 같은 절 라벨이 두 번 정의되면 경고(절은 1회 정의 + Sequence 로 반복). 비면 문제 없음.
         var duplicates = Shell.LyricsDisplayFormatter.FindDuplicateSectionLabels(Lyrics);
