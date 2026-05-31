@@ -987,6 +987,35 @@
                                       AutomationProperties.Name="외곽선 효과 토글" />
                     </StackPanel>
 
+                    <!-- 제목 헤딩 정렬(§7.3-A Heading Align) — 헤딩 표시 시 곡 제목을 좌/중/우로. -->
+                    <TextBlock Text="제목 정렬"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,4,0,0">
+                        <Button Command="{Binding ApplyTitleHeadingAlignmentCommand}"
+                                CommandParameter="{x:Static settings:LyricsTextAlignment.Left}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="56"
+                                Margin="0,0,6,0"
+                                Content="왼쪽"
+                                AutomationProperties.Name="제목 왼쪽 정렬" />
+                        <Button Command="{Binding ApplyTitleHeadingAlignmentCommand}"
+                                CommandParameter="{x:Static settings:LyricsTextAlignment.Center}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="56"
+                                Margin="0,0,6,0"
+                                Content="가운데"
+                                AutomationProperties.Name="제목 가운데 정렬" />
+                        <Button Command="{Binding ApplyTitleHeadingAlignmentCommand}"
+                                CommandParameter="{x:Static settings:LyricsTextAlignment.Right}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="56"
+                                Content="오른쪽"
+                                AutomationProperties.Name="제목 오른쪽 정렬" />
+                    </StackPanel>
+
                     <!-- 출력 모양 설정 템플릿(§7.3-A) — 현재 모양을 이름으로 저장, 콤보에서 골라 적용/삭제. -->
                     <TextBlock Text="모양 템플릿"
                                Style="{StaticResource Type.Caption.Style}"

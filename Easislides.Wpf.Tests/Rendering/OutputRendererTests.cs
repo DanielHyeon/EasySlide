@@ -433,6 +433,43 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Threads_TitleHeadingAlignment()
+    {
+        // 제목 헤딩 정렬(§7.3-A): 설정→렌더→scene 으로 헤딩 가로 정렬이 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            ShowLyricsTitleHeading: true, LyricsMonitorTitleHeadingAlignment: LyricsTextAlignment.Left);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Left);
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsTitleHeadingAlignmentToCenter()
+    {
+        // 기본 Center — 기존 헤딩 가운데 정렬 동작 보존.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Center);
+    }
+
+    [Fact]
     public void CreateScene_HidesTitleHeading_WhenSettingOff()
     {
         // 기본 off — 가사가 보여도 제목 헤딩은 숨김(기존 동작: 본문 송출 시 제목 숨김).

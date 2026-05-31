@@ -50,7 +50,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 제목 헤딩(가사 위 상단 배너로 곡 제목) 표시 여부(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsTitleHeading = false,
     // 출력 가사 외곽선(Outline Font) 효과 여부(인-셸 §7.3-A 폰트 효과). 기본 off.
-    bool ShowLyricsOutline = false)
+    bool ShowLyricsOutline = false,
+    // 출력 제목 헤딩 가로 정렬(인-셸 §7.3-A Heading Align). 기본 Center.
+    LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -80,7 +82,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
-            settings.Get(EasiSettingKeys.LyricsMonitorOutline));
+            settings.Get(EasiSettingKeys.LyricsMonitorOutline),
+            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment));
     }
 }
 
@@ -140,7 +143,9 @@ public sealed record OutputSceneSnapshot(
     // 제목 헤딩 표시 설정(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsTitleHeading = false,
     // 가사 외곽선(Outline Font) 효과 설정(인-셸 §7.3-A 폰트 효과). 기본 off.
-    bool ShowLyricsOutline = false)
+    bool ShowLyricsOutline = false,
+    // 제목 헤딩 가로 정렬(인-셸 §7.3-A Heading Align). 기본 Center.
+    LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -218,7 +223,8 @@ public sealed class OutputRenderer : IOutputRenderer
             kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,
             liveOutput.ShowLyricsPositionIndicator,
             liveOutput.ShowLyricsTitleHeading,
-            liveOutput.ShowLyricsOutline);
+            liveOutput.ShowLyricsOutline,
+            liveOutput.LyricsMonitorTitleHeadingAlignment);
     }
 
     private ImagePlacement GetContentPlacement(

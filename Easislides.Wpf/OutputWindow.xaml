@@ -66,9 +66,9 @@
                  헤딩은 1줄(NoWrap+말줄임)로 높이가 결정적이라 예약 여백과 정확히 맞물린다.
                  중앙 DisplayTitle 과는 별개의 TextBlock. -->
             <TextBlock Text="{Binding DisplayTitle}"
-                       HorizontalAlignment="Center"
+                       HorizontalAlignment="{Binding TitleHeadingHorizontalAlignment}"
                        VerticalAlignment="Top"
-                       TextAlignment="Center"
+                       TextAlignment="{Binding TitleHeadingTextAlignment}"
                        TextWrapping="NoWrap"
                        TextTrimming="CharacterEllipsis"
                        Margin="24,28,24,0"
