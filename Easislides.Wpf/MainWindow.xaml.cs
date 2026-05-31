@@ -40,6 +40,26 @@ public partial class MainWindow : Window
 
         // 명령 팔레트(§7.4)가 열리면 검색창에 포커스를 줘 바로 타이핑할 수 있게 한다.
         CommandPaletteOverlay.IsVisibleChanged += CommandPaletteOverlay_IsVisibleChanged;
+
+        // FrmMain식 멀티페인: 좌측 브라우저가 항상 보이므로 시작 시 곡 목록을 채운다(FrmMain 은 곡 목록을 즉시 표시).
+        // 성경은 비용이 커 기존대로 "성경" 탭 첫 선택 시 지연 로드한다.
+        Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e) => EnsureLibraryLoadedOnce();
+
+    // 좌측 브라우저가 항상 보이므로 곡 목록을 1회 채운다. 시작 시(Loaded)와 "라이브러리" 탭 첫 선택 중
+    // 먼저 오는 쪽이 로드하고 _libraryLoadedOnce 로 멱등 보장(WPF 는 Loaded 전에 기본 탭 SelectionChanged 를
+    // 낼 수 있어 두 진입점이 같은 가드를 공유 — 이벤트 순서와 무관하게 정확히 1회).
+    private void EnsureLibraryLoadedOnce()
+    {
+        if (_libraryLoadedOnce || !_viewModel.Library.LoadCommand.CanExecute(null))
+        {
+            return;
+        }
+
+        _libraryLoadedOnce = true;
+        _viewModel.Library.LoadCommand.Execute(null);
     }
 
     private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -154,13 +174,8 @@ public partial class MainWindow : Window
         // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피). 탭별 1회 자동 로드.
         switch (tab.Tag)
         {
-            case "Library" when !_libraryLoadedOnce:
-                _libraryLoadedOnce = true;
-                if (viewModel.Library.LoadCommand.CanExecute(null))
-                {
-                    viewModel.Library.LoadCommand.Execute(null);
-                }
-
+            case "Library":
+                EnsureLibraryLoadedOnce(); // 멱등 — 시작 로드(Loaded)와 동일 가드 공유
                 break;
             case "Bible" when !_bibleLoadedOnce:
                 _bibleLoadedOnce = true;

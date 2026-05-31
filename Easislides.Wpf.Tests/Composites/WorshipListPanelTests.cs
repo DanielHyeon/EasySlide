@@ -46,21 +46,28 @@ public class WorshipListPanelTests
     }
 
     [Fact]
-    public void MainWindow_Hosts_Composite_In_Left_Column0_TabControl_And_No_Longer_Inlines_List()
+    public void MainWindow_Hosts_WorshipPanel_AlwaysVisible_BelowBrowserTabs_InLeftColumn()
     {
         var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");
 
         var host = window.Descendants().SingleOrDefault(e => e.Name.LocalName == "WorshipListPanel");
         host.Should().NotBeNull("MainWindow 는 WorshipListPanel 컴포지트를 호스트해야 함");
 
-        // §7.5 P0 인라인 브라우저: 좌측 column 0 은 [예배 순서]+[라이브러리] 탭 컨트롤이 차지하고,
-        // 그 안의 "예배 순서" 탭에 컴포지트가 위치한다(예배 순서는 여전히 좌측 column 0 영역).
+        // FrmMain식 멀티페인(§7.4): 좌측 column 0 은 [브라우저 탭(라이브러리/성경)] 위 + [예배 순서] 아래로 분리되어
+        // 예배 순서가 탭 전환 없이 "항상" 보인다. 즉 컴포지트는 더 이상 탭 안이 아니라 브라우저 탭과 형제(하단 Row 2).
         var leftTabs = window.Descendants().SingleOrDefault(
             e => e.Name.LocalName == "TabControl" && Attr(e, "Name") == "LeftBrowserTabs");
-        leftTabs.Should().NotBeNull("좌측 column 0 은 예배순서/라이브러리 탭 컨트롤");
-        Attr(leftTabs!, "Grid.Column").Should().Be("0", "좌측 탭 컨트롤은 column 0 위치를 유지해야 함");
+        leftTabs.Should().NotBeNull("좌측 상단은 라이브러리/성경 브라우저 탭 컨트롤");
+        Attr(leftTabs!, "Grid.Row").Should().Be("0", "브라우저 탭은 좌측 상단(Row 0)");
+
+        // 예배 순서는 탭 컨트롤 바깥(형제)에 위치 — 항상 표시. 탭 안에 있으면 탭 전환 시 가려진다.
         leftTabs!.Descendants().Any(e => e.Name.LocalName == "WorshipListPanel")
-            .Should().BeTrue("WorshipListPanel 은 좌측 탭 컨트롤 안에 위치");
+            .Should().BeFalse("예배 순서는 브라우저 탭 안이 아니라 항상 보이는 하단 패널");
+        Attr(host!, "Grid.Row").Should().Be("2", "예배 순서는 좌측 하단(Row 2)에 항상 표시");
+
+        // 컴포지트와 브라우저 탭은 같은 부모(좌측 column 0 Grid)를 공유한다.
+        host!.Parent.Should().BeSameAs(leftTabs!.Parent, "둘 다 좌측 컬럼 Grid 의 자식");
+        Attr(host!.Parent!, "Grid.Column").Should().Be("0", "좌측 컬럼(column 0)에 위치");
 
         // 라이브 경로 핵심 가드: 호스트에 DataContext 재정의가 없어야 MainViewModel 이 상속되어
         // Queue/SelectedItem 바인딩이 끊기지 않는다(LiveBar 처럼 DataContext 를 가로채면 라이브 선택 사고).
