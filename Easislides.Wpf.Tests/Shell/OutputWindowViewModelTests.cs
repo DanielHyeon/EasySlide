@@ -85,6 +85,46 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_Cleared_ShowsBackgroundWithoutBlackOverlayOrContent()
+    {
+        // 비우기(Cleared): 배경 브러시는 그대로 보이고(검정 오버레이 없음), 본문·타이틀·패널은 감춘다.
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden,
+            "은혜로다",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemBodyText: "1절 가사")
+        {
+            IsCleared = true,
+        });
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Cleared);
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed, "비우기는 배경을 보여야 하므로 검정 오버레이 없음");
+        sut.BodyTextVisibility.Should().Be(Visibility.Collapsed);
+        sut.PanelOverlayVisibility.Should().Be(Visibility.Collapsed);
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Collapsed);
+        sut.IsBlackout.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ApplySession_Hidden_StillUsesBlackOverlay()
+    {
+        // 숨김(Hide, Cleared 아님)은 기존대로 검정 오버레이로 덮는다(안전).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden,
+            "은혜로다",
+            "Display 2",
+            IsBlackout: false));
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Hidden);
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
     public void ApplyOutput_Closed_ReturnsToStandby()
     {
         var sut = new OutputWindowViewModel();

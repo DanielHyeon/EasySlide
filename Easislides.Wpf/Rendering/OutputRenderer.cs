@@ -13,7 +13,9 @@ public enum OutputSceneKind
     Ready,
     Live,
     Hidden,
-    Blackout
+    Blackout,
+    // 비우기(레거시 LiveClear) — 콘텐츠는 감추되 배경은 유지. Blackout(완전 검정)과 구별.
+    Cleared
 }
 
 public sealed record LiveOutputRenderSettings(
@@ -212,6 +214,13 @@ public sealed class OutputRenderer : IOutputRenderer
             return OutputSceneKind.Blackout;
         }
 
+        // 비우기(배경 유지)는 검정보다 우선순위가 낮다 — Black 과 동시 설정될 수 없도록 세션이 보장하지만,
+        // 방어적으로 Blackout 을 먼저 확인한 뒤 Cleared 를 판정한다.
+        if (session.State == LiveState.Hidden && session.IsCleared)
+        {
+            return OutputSceneKind.Cleared;
+        }
+
         if (session.State == LiveState.Hidden)
         {
             return OutputSceneKind.Hidden;
@@ -233,6 +242,8 @@ public sealed class OutputRenderer : IOutputRenderer
         {
             OutputSceneKind.Blackout => ("BLACK", "BLACKOUT"),
             OutputSceneKind.Hidden => ("HIDDEN", "HIDDEN"),
+            // 비우기는 배경만 보이므로 타이틀은 비우고 상태 라벨만 둔다(패널 오버레이가 숨겨져 화면엔 안 보임).
+            OutputSceneKind.Cleared => ("", "CLEARED"),
             OutputSceneKind.Live => (string.IsNullOrWhiteSpace(session.CurrentItemTitle) ? "LIVE" : session.CurrentItemTitle, "LIVE"),
             OutputSceneKind.Ready => GetReadyDisplayText(settings),
             _ => ("STANDBY", "STANDBY")
@@ -263,6 +274,12 @@ public sealed class OutputRenderer : IOutputRenderer
         LiveSessionSnapshot session,
         LiveOutputRenderSettings settings)
     {
+        // 비우기 화면은 배경만 깨끗이 보여야 하므로 모니터명/상태 오버레이도 감춘다.
+        if (kind == OutputSceneKind.Cleared)
+        {
+            return false;
+        }
+
         if (kind != OutputSceneKind.Live)
         {
             return true;

@@ -119,6 +119,37 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Cleared_ShowsBackgroundButSuppressesContentAndOverlay()
+    {
+        // 비우기(Cleared): 배경은 유지하되 콘텐츠/본문/패널 오버레이를 모두 감춘다(레거시 LiveClear).
+        // Blackout 과 달리 IsBlackout=false 라 출력 VM 이 검정 오버레이를 덮지 않는다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사")
+            {
+                IsCleared = true,
+            },
+            Output: output,
+            ViewportWidth: 300,
+            ViewportHeight: 300,
+            ContentPixelWidth: 1920,
+            ContentPixelHeight: 1080));
+
+        scene.Kind.Should().Be(OutputSceneKind.Cleared);
+        scene.IsBlackout.Should().BeFalse("비우기는 검정 오버레이를 쓰지 않음");
+        scene.BodyText.Should().BeEmpty("비우기는 본문을 감춤");
+        scene.ShowsBodyText.Should().BeFalse();
+        scene.ShowsContent.Should().BeFalse();
+        scene.ContentPlacement.Should().Be(ImagePlacement.Empty);
+        scene.ShowsPanelOverlay.Should().BeFalse("비우기 화면엔 모니터/상태 오버레이도 감춤");
+        scene.StatusLabel.Should().Be("CLEARED");
+    }
+
+    [Fact]
     public void CreateScene_OutputClosed_ReturnsStandbyScene()
     {
         var sut = CreateRenderer();

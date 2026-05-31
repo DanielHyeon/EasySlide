@@ -81,14 +81,44 @@
                             <TextBlock Text="숨김" />
                         </StackPanel>
                     </Button>
+                    <Button Command="{Binding ClearOutputCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="가사/콘텐츠를 비우고 배경만 송출(검은 화면과 구별)"
+                            AutomationProperties.Name="화면 비우기"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Eraser24" Margin="0,0,6,0" />
+                            <TextBlock Text="비우기" />
+                        </StackPanel>
+                    </Button>
                     <Button Command="{Binding RestoreOutputCommand}"
                             Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="숨김/검은 화면에서 직전 송출로 복귀"
+                            ToolTip="숨김/검은 화면/비우기에서 직전 송출로 복귀"
                             AutomationProperties.Name="출력 복귀"
                             Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Eye24" Margin="0,0,6,0" />
                             <TextBlock Text="복귀" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding RestartCurrentItemCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출"
+                            AutomationProperties.Name="현재 항목 처음으로"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArrowReset24" Margin="0,0,6,0" />
+                            <TextBlock Text="처음으로" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding RefreshOutputCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            ToolTip="출력 화면을 다시 그린다(디스플레이 글리치 복구)"
+                            AutomationProperties.Name="출력 새로고침"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
+                            <TextBlock Text="새로고침" />
                         </StackPanel>
                     </Button>
                     <Button Click="OpenLibrary_Click"

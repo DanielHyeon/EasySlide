@@ -204,4 +204,102 @@ public class LiveSessionServiceTests
         sut.Current.OutputMonitorName.Should().BeEmpty();
         sut.Current.IsBlackout.Should().BeFalse();
     }
+
+    // ─── ClearOutput (배경 유지·콘텐츠 비우기 — 레거시 LiveClear) ──────────────
+
+    [Fact]
+    public void ClearOutput_FromActive_EntersClearedKeepingContentAndNoBlackout()
+    {
+        // 비우기: 콘텐츠는 숨기되 배경은 유지(Black=완전검정과 구별). 콘텐츠는 보존(복귀 대비).
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다") { Lyrics = "1절 가사" }, "Display 1");
+
+        sut.ClearOutput();
+
+        sut.Current.State.Should().Be(LiveState.Hidden);
+        sut.Current.IsCleared.Should().BeTrue();
+        sut.Current.IsBlackout.Should().BeFalse("비우기는 검정이 아니라 배경 유지");
+        sut.Current.CurrentItemBodyText.Should().Be("1절 가사", "복귀 대비 콘텐츠 보존");
+    }
+
+    [Fact]
+    public void ClearOutput_WhenOff_IsNoOp()
+    {
+        var sut = new LiveSessionService();
+
+        sut.ClearOutput();
+
+        sut.Current.State.Should().Be(LiveState.Off);
+        sut.Current.IsCleared.Should().BeFalse();
+    }
+
+    [Fact]
+    public void HideOutput_ResetsClearedFlag()
+    {
+        // Black/Hide 와 Clear 는 상호 배타 — Clear 후 Black 으로 전환하면 IsCleared 가 꺼진다.
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다"), "Display 1");
+        sut.ClearOutput();
+
+        sut.HideOutput(blackout: true);
+
+        sut.Current.IsCleared.Should().BeFalse();
+        sut.Current.IsBlackout.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Restore_FromCleared_ReturnsToActiveAndResetsClearedFlag()
+    {
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다") { Lyrics = "1절 가사" }, "Display 1");
+        sut.ClearOutput();
+
+        sut.Restore();
+
+        sut.Current.State.Should().Be(LiveState.Active);
+        sut.Current.IsCleared.Should().BeFalse();
+        sut.Current.CurrentItemBodyText.Should().Be("1절 가사");
+    }
+
+    [Fact]
+    public void Stop_ClearsClearedFlag()
+    {
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다"), "Display 1");
+        sut.ClearOutput();
+
+        sut.Stop();
+
+        sut.Current.IsCleared.Should().BeFalse();
+    }
+
+    // ─── Refresh (출력 강제 재렌더 — 레거시 RefreshOutput) ─────────────────────
+
+    [Fact]
+    public void Refresh_RaisesSessionChangedWithCurrentSnapshot()
+    {
+        // 새로고침: 스냅샷이 바뀌지 않아도 SessionChanged 를 다시 발생시켜 출력을 강제 재렌더한다.
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다"), "Display 1");
+        var changes = new List<LiveSessionSnapshot>();
+        sut.SessionChanged += (_, e) => changes.Add(e.Snapshot);
+
+        sut.Refresh();
+
+        changes.Should().ContainSingle("Refresh 는 현재 스냅샷으로 한 번 재통지");
+        changes[0].Should().Be(sut.Current);
+    }
+
+    [Fact]
+    public void Refresh_WhenOff_StillRaisesForConsistency()
+    {
+        var sut = new LiveSessionService();
+        var changes = new List<LiveSessionSnapshot>();
+        sut.SessionChanged += (_, e) => changes.Add(e.Snapshot);
+
+        sut.Refresh();
+
+        changes.Should().ContainSingle();
+        changes[0].State.Should().Be(LiveState.Off);
+    }
 }

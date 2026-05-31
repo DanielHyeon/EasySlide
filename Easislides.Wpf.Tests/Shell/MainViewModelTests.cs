@@ -1321,6 +1321,178 @@ public class MainViewModelTests
         sut.RestoreOutputCommand.CanExecute(null).Should().BeFalse("복귀 후엔 비활성");
     }
 
+    // ─── 화면 제어 보강: Clear / Restart / Refresh (§7.3-B) ───────────────────
+
+    [Fact]
+    public async Task ClearOutputCommand_WhenLive_EntersClearedAfterConfirm()
+    {
+        // 비우기: 라이브 중 콘텐츠를 감추되 배경 유지(Cleared). 안전 확인 후 적용.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ClearOutputCommand.CanExecute(null).Should().BeTrue("라이브 중 비우기 활성");
+        await sut.ClearOutputCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsCleared.Should().BeTrue();
+        sut.Session.Current.IsBlackout.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ClearOutputCommand_WhenSafetyDeclined_DoesNotChangeState()
+    {
+        var prompt = new RecordingSafetyPrompt(allow: true);
+        var sut = CreateSut(prompt);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null); // GoLive 는 허용
+        prompt.Allow = false; // 이후 Clear 안전 확인만 거부
+
+        await sut.ClearOutputCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active, "안전 확인 거부 시 비우기 미적용");
+        sut.Session.Current.IsCleared.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ClearOutputCommand_WhenNotLive_IsDisabled()
+    {
+        var sut = CreateSut();
+
+        sut.ClearOutputCommand.CanExecute(null).Should().BeFalse("라이브가 아니면 비우기 비활성");
+    }
+
+    [Fact]
+    public void RestoreOutputCommand_FromCleared_ReturnsToActive()
+    {
+        // 비우기 후에도 "복귀"로 직전 송출(Active)로 되돌린다(Clear 도 Hidden 변형이라 복귀 가능).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        _ = sut.GoLiveCommand.ExecuteAsync(null);
+        _ = sut.ClearOutputCommand.ExecuteAsync(null);
+
+        sut.RestoreOutputCommand.CanExecute(null).Should().BeTrue();
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.IsCleared.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RestartCurrentItemCommand_WhenLiveSongAdvanced_ResetsToFirstVerse()
+    {
+        // 처음으로: 절을 넘긴 라이브 곡을 첫 절(LyricsPageIndex=0)로 되돌려 재송출한다.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절\n[3]\n3절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.NextLyricsPageCommand.Execute(null); // 2절
+        sut.NextLyricsPageCommand.Execute(null); // 3절
+        sut.LyricsPageIndex.Should().Be(2);
+
+        sut.RestartCurrentItemCommand.CanExecute(null).Should().BeTrue();
+        sut.RestartCurrentItemCommand.Execute(null);
+
+        sut.LyricsPageIndex.Should().Be(0, "처음으로 → 첫 절");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("1절", "출력도 첫 절로 재송출");
+    }
+
+    [Fact]
+    public void RestartCurrentItemCommand_WhenNotLive_IsDisabled()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.RestartCurrentItemCommand.CanExecute(null).Should().BeFalse("라이브가 아니면 처음으로 비활성");
+    }
+
+    [Fact]
+    public async Task RestartCurrentItemCommand_WhenCleared_IsDisabled()
+    {
+        // 비우기(Cleared=Hidden) 상태에선 처음으로 비활성 — 먼저 복귀해야 한다(Active 가드).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ClearOutputCommand.ExecuteAsync(null);
+
+        sut.RestartCurrentItemCommand.CanExecute(null).Should().BeFalse("비우기 상태에선 처음으로 비활성");
+    }
+
+    [Fact]
+    public async Task RestartCurrentItemCommand_WhenLivePptOnFirstSlide_RefreshesOutput()
+    {
+        // PPT 덱이 이미 첫 슬라이드면 GoToSlide 가 무시되므로 Refresh 로 강제 재렌더해야 한다(리뷰 #2a).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "주보", "PowerPoint") { ContentPath = "deck.pptx" } });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        powerPoint.SlideNumber.Should().Be(1, "라이브 시작 시 첫 슬라이드");
+
+        var changes = 0;
+        sut.Session.SessionChanged += (_, _) => changes++;
+        sut.RestartCurrentItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.RestartCurrentItemCommand.ExecuteAsync(null);
+
+        changes.Should().BeGreaterThanOrEqualTo(1, "첫 슬라이드 PPT 는 Refresh 로 재렌더");
+    }
+
+    [Fact]
+    public async Task RefreshOutputCommand_AfterClear_ReEmitsClearedSnapshot()
+    {
+        // 비우기 후 새로고침하면 Cleared 스냅샷이 그대로 재통지돼야 한다(Active 로 되돌아가지 않음).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ClearOutputCommand.ExecuteAsync(null);
+
+        LiveSessionSnapshot? last = null;
+        sut.Session.SessionChanged += (_, e) => last = e.Snapshot;
+        sut.RefreshOutputCommand.Execute(null);
+
+        last.Should().NotBeNull();
+        last!.IsCleared.Should().BeTrue("새로고침은 현재(비우기) 상태를 그대로 재통지");
+        last.State.Should().Be(LiveState.Hidden);
+    }
+
+    [Fact]
+    public async Task RefreshOutputCommand_WhenOutputOpen_RaisesSessionRefresh()
+    {
+        // 새로고침: 출력이 열려 있으면 현재 세션을 강제 재통지(재렌더)한다.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        var changes = 0;
+        sut.Session.SessionChanged += (_, _) => changes++;
+        sut.RefreshOutputCommand.CanExecute(null).Should().BeTrue();
+        sut.RefreshOutputCommand.Execute(null);
+
+        changes.Should().Be(1, "새로고침은 세션을 한 번 재통지");
+    }
+
+    [Fact]
+    public void RefreshOutputCommand_WhenOutputClosed_IsDisabled()
+    {
+        var sut = CreateSut();
+
+        sut.RefreshOutputCommand.CanExecute(null).Should().BeFalse("출력 닫힘 상태에선 새로고침 비활성");
+    }
+
     [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {
