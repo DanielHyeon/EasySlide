@@ -178,6 +178,47 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_DefaultFontSize_Is48WithProportionalLineHeight()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        sut.BodyFontSize.Should().Be(48);
+        sut.BodyLineHeight.Should().Be(60, "기본 48px → 줄높이 1.25배 = 60");
+    }
+
+    [Fact]
+    public void ApplySession_MapsFontSizeAndProportionalLineHeight()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 80).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        sut.BodyFontSize.Should().Be(80);
+        sut.BodyLineHeight.Should().Be(100, "80px → 1.25배 = 100");
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesLyricsFontSize()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 36).Succeeded.Should().BeTrue();
+
+        sut.BodyFontSize.Should().Be(36);
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesLyricsVerticalAlignment()
     {
         using var settingsFolder = TempSettingsFolder.Create();

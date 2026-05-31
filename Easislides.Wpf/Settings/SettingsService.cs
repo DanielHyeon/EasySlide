@@ -121,6 +121,8 @@ public static class EasiSettingKeys
     // 출력 가사 세로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center 로 기존 가운데 정렬 동작을 보존.
     public static readonly SettingKey<LyricsVerticalAlignment> LyricsMonitorVerticalAlignment =
         new("liveOutput.lyricsMonitorVerticalAlignment", LyricsVerticalAlignment.Center);
+    // 출력 가사 폰트 크기(px, 인-셸 가사 포맷팅 §7.3-A). 기본 48 로 기존 출력 폰트 크기를 보존. 범위 24~120.
+    public static readonly SettingKey<int> LyricsMonitorFontSize = new("liveOutput.lyricsMonitorFontSize", 48);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
@@ -163,6 +165,7 @@ public static class EasiSettingKeys
         LyricsMonitorShowNotations,
         LyricsMonitorTextAlignment,
         LyricsMonitorVerticalAlignment,
+        LyricsMonitorFontSize,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
@@ -242,6 +245,8 @@ public sealed record LiveOutputSettings
 
     public LyricsVerticalAlignment LyricsMonitorVerticalAlignment { get; init; } =
         EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
+
+    public int LyricsMonitorFontSize { get; init; } = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
 }
 
 public sealed record PowerPointSettings
@@ -483,6 +488,14 @@ public sealed class SettingsService : ISettingsService
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, "Lyrics vertical alignment value is not supported."));
         }
+
+        // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorFontSize,
+            min: 24,
+            max: 120,
+            EasiSettingKeys.LyricsMonitorFontSize.Id,
+            issues);
 
         ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
         RequireRange(
@@ -935,6 +948,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowNotations" => snapshot.LiveOutput.LyricsMonitorShowNotations,
             "liveOutput.lyricsMonitorTextAlignment" => snapshot.LiveOutput.LyricsMonitorTextAlignment,
             "liveOutput.lyricsMonitorVerticalAlignment" => snapshot.LiveOutput.LyricsMonitorVerticalAlignment,
+            "liveOutput.lyricsMonitorFontSize" => snapshot.LiveOutput.LyricsMonitorFontSize,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
@@ -1051,6 +1065,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorVerticalAlignment" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorVerticalAlignment = Cast<LyricsVerticalAlignment>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorFontSize" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorFontSize = Cast<int>(keyId, value) },
             },
             "powerPoint.usePowerPointTab" => snapshot with
             {

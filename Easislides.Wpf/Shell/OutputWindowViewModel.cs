@@ -15,6 +15,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 {
     private const int DefaultViewportWidth = 1280;
     private const int DefaultViewportHeight = 720;
+    // 가사 줄 높이 = 폰트 크기 × 이 비율(가독성). 기본 48px → 60.
+    private const double LineHeightRatio = 1.25;
 
     private readonly IOutputRenderer _renderer;
     private readonly ISettingsService? _settings;
@@ -39,6 +41,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private TextAlignment _bodyTextAlignment = TextAlignment.Center;
     private HorizontalAlignment _bodyHorizontalAlignment = HorizontalAlignment.Center;
     private VerticalAlignment _bodyVerticalAlignment = VerticalAlignment.Center;
+    private double _bodyFontSize = 48;
+    private double _bodyLineHeight = 60;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -161,6 +165,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyVerticalAlignment;
         private set => SetProperty(ref _bodyVerticalAlignment, value);
+    }
+
+    /// <summary>가사 본문 폰트 크기(px) — 인-셸 폰트 크기 설정에서 유래(§7.3-A).</summary>
+    public double BodyFontSize
+    {
+        get => _bodyFontSize;
+        private set => SetProperty(ref _bodyFontSize, value);
+    }
+
+    /// <summary>가사 본문 줄 높이 — 폰트 크기의 1.25배(가독성 비례).</summary>
+    public double BodyLineHeight
+    {
+        get => _bodyLineHeight;
+        private set => SetProperty(ref _bodyLineHeight, value);
     }
 
     public bool IsBlackout
@@ -375,6 +393,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
+        BodyFontSize = scene.LyricsMonitorFontSize;
+        BodyLineHeight = scene.LyricsMonitorFontSize * LineHeightRatio; // 줄 높이는 폰트 크기에 비례(가독성)
         var bodyShown = scene.ShowsBodyText;
         BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -588,9 +608,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundIsGradient.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowNotations.Id, StringComparison.OrdinalIgnoreCase) ||
-                // 인-셸 가사 정렬 변경(가로/세로)도 라이브 출력에 즉시 반영(§7.3-A).
+                // 인-셸 가사 정렬(가로/세로)·폰트 크기 변경도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorFontSize.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {
