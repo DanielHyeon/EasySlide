@@ -373,6 +373,22 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public void Preview_NormalizesMojibakeChordMarker_LikeOutput()
+    {
+        // 미리보기도 출력과 동일하게 "Â»"(U+00C2 U+00BB) 모지바케를 '»'로 모아 코드를 분리한다(마커 해석 일치).
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Lyrics = "은혜로다 Â» G C";
+
+        sut.PreviewLyricLines.Should().ContainSingle();
+        sut.PreviewLyricLines[0].Text.Should().Be("은혜로다", "Â 잔여 없이 본문만");
+        sut.PreviewLyricLines[0].Notation.Should().Be("G C");
+    }
+
+    [Fact]
     public void Preview_LeadingMarker_PutsAllInNotation_WithEmptyText()
     {
         // 경계: 줄이 '»'로 시작하면 본문은 비고 코드만 있다(코드 전용 줄).

@@ -61,6 +61,50 @@ public class LyricsDisplayFormatterTests
         LyricsDisplayFormatter.ToDisplayText(raw).Should().BeEmpty();
     }
 
+    [Fact]
+    public void ToDisplayText_StripsInlineChordNotationAfterMarker()
+    {
+        // '»'(U+00BB)는 코드/노테이션 구분 마커 — 회중 화면엔 가사만 보이고 '»' 뒤 코드는 빠진다([~...] 제거와 동일 원칙).
+        var raw = "Amazing grace » G  C\nHow sweet » D7";
+
+        var display = LyricsDisplayFormatter.ToDisplayText(raw);
+
+        display.Should().Be("Amazing grace\nHow sweet");
+        display.Should().NotContain("»").And.NotContain("G  C").And.NotContain("D7");
+    }
+
+    [Fact]
+    public void ToDisplayText_ChordOnlyLine_IsDroppedAsBoundary()
+    {
+        // '»'로 시작하는(코드 전용) 줄은 본문이 없어 절 경계로 처리(회중 화면에 표시 안 됨).
+        var raw = "» G  C  D\n주 은혜 놀라워";
+
+        var display = LyricsDisplayFormatter.ToDisplayText(raw);
+
+        display.Should().Be("주 은혜 놀라워");
+    }
+
+    [Fact]
+    public void ToDisplayText_ChordOnlyLineBetweenLyrics_SplitsIntoTwoVerses()
+    {
+        // 절 중간의 코드 전용 줄('»'로 시작)은 빈 줄→절 경계로 작동한다(현 정책 고정 — 레거시 writer 는 보통 줄 끝에 ' »'를 붙임).
+        var raw = "첫째\n» G  C\n둘째";
+
+        LyricsDisplayFormatter.ToDisplayText(raw).Should().Be("첫째\n\n둘째");
+    }
+
+    [Fact]
+    public void ToDisplayText_NormalizesMojibakeChordMarker()
+    {
+        // 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장된 데이터도 동일하게 코드 마커로 처리.
+        var raw = "은혜로다 Â» G C";
+
+        var display = LyricsDisplayFormatter.ToDisplayText(raw);
+
+        display.Should().Be("은혜로다");
+        display.Should().NotContain("Â").And.NotContain("»");
+    }
+
     // ─── ToVersePages ────────────────────────────────────────────────────────
 
     [Fact]

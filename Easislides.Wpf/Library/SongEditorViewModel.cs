@@ -522,7 +522,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     {
         var normalized = (lyrics ?? string.Empty)
             .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace('\r', '\n');
+            .Replace('\r', '\n')
+            // 코드 마커 정규화 — 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장된 경우도
+            // 출력 렌더(LyricsDisplayFormatter)와 동일하게 단일 '»'로 모은다(미리보기·출력 마커 해석 일치).
+            .Replace("Â»", "»", StringComparison.Ordinal);
         var firstScreen = normalized
             .Split(["\n\n"], StringSplitOptions.None)
             .Select(screen => screen.Trim('\n'))
@@ -547,8 +550,8 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     }
 
     // 미리보기 줄 목록을 다시 만든다 — 각 줄을 '»' 기준 본문/코드로 나눠 리치 per-line 렌더에 쓴다.
-    // ⚠️ 이건 "미리보기 1차 근사"다: 실제 출력 렌더(LyricsDisplayFormatter)는 아직 '»'를 본문 글자로 그대로 송출하므로,
-    //    미리보기('»' 뒤를 코드로 분리·흐리게)와 출력이 일치하지 않는다. 출력 측 '»' 처리 정렬은 후속 증분 과제.
+    // 출력 렌더(LyricsDisplayFormatter)도 같은 마커 해석으로 '»' 뒤를 처리한다 — 미리보기는 코드를 흐리게 '표시',
+    // 출력은 코드를 '숨김'. 즉 마커 해석은 일치하고 표시 방식만 의도적으로 다르다.
     private void RebuildPreviewLines(string lyrics)
     {
         PreviewLyricLines.Clear();
