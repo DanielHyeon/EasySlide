@@ -18,6 +18,10 @@ public sealed partial class FolderEditorViewModel : ObservableObject
     private readonly IAdminDatabaseRepository _adminDatabase;
     private bool _loading;
 
+    // 다른 폴더들의 이름(자기 자신 제외, 대소문자 무시) — 이름 중복 검증용.
+    // 레거시 이름변경(FrmBibleRename/FrmUpdateFileName)의 고유성 규칙을 폴더 관리에도 적용.
+    private HashSet<string> _otherFolderNames = new(StringComparer.OrdinalIgnoreCase);
+
     [ObservableProperty] private string _databasePath = "";
     [ObservableProperty] private int _folderNo;
     [ObservableProperty] private string _name = "";
@@ -50,7 +54,16 @@ public sealed partial class FolderEditorViewModel : ObservableObject
         try
         {
             DatabasePath = NormalizePath(databasePath);
-            FolderNo = folder?.FolderNo ?? NextFolderNumber(allFolders);
+            var ownFolderNo = folder?.FolderNo ?? NextFolderNumber(allFolders);
+            FolderNo = ownFolderNo;
+            // 자기 자신(같은 FolderNo)을 뺀 나머지 폴더 이름을 모아 둔다 — 저장 시 중복 검증에 쓴다.
+            // NameEntryViewModel 은 "이름 일치"로 자기를 제외하지만, 폴더는 더 안정적인 식별자(FolderNo)로 제외한다
+            // (우연히 같은 이름의 다른 폴더를 자기로 오인하지 않도록). 목적은 같고 기법만 다르다.
+            _otherFolderNames = allFolders
+                .Where(f => f.FolderNo != ownFolderNo)
+                .Select(f => (f.Name ?? "").Trim())
+                .Where(n => n.Length > 0)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             Name = folder?.Name ?? "";
             IsEnabled = folder?.IsEnabled ?? true;
             ValidationMessage = "";
@@ -159,6 +172,13 @@ public sealed partial class FolderEditorViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(Name))
         {
             ValidationMessage = "폴더 이름을 입력하세요.";
+            return false;
+        }
+
+        // 다른 폴더와 이름이 겹치면(대소문자 무시) 거부 — 같은 이름의 폴더가 둘 생기지 않게 한다.
+        if (_otherFolderNames.Contains(Name.Trim()))
+        {
+            ValidationMessage = "이미 있는 폴더 이름입니다. 다른 이름을 입력하세요.";
             return false;
         }
 

@@ -91,6 +91,61 @@ public class FolderEditorViewModelTests
         repository.LastFolder.Should().BeNull();
     }
 
+    [Fact]
+    public async Task SaveAsync_WhenNameDuplicatesAnotherFolder_ShowsValidationAndDoesNotWrite()
+    {
+        // 레거시 이름변경(FrmBibleRename/FrmUpdateFileName)의 고유성 검증을 폴더 관리로 확장 —
+        // 새 폴더를 이미 있는 폴더 이름으로 만들면 거부한다(DB 왕복 전에 친절히 알림).
+        using var fixture = TempFolderEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var existing = new SongFolderSummary(6, "Morning", IsEnabled: true, SongCount: 2);
+        var sut = new FolderEditorViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, null, [existing]);
+        sut.Name = "Morning";
+
+        await sut.SaveAsync();
+
+        sut.ValidationMessage.Should().Contain("이미 있는 폴더 이름");
+        repository.LastFolder.Should().BeNull("중복 이름이면 저장하지 않는다");
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenRenamingToOwnName_IsAllowed()
+    {
+        // 자기 자신의 이름은 중복으로 보지 않는다(기존 폴더를 그대로 저장 가능).
+        using var fixture = TempFolderEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var folder = new SongFolderSummary(3, "Evening", IsEnabled: true, SongCount: 4);
+        var other = new SongFolderSummary(6, "Morning", IsEnabled: true, SongCount: 2);
+        var sut = new FolderEditorViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, folder, [folder, other]);
+        sut.IsEnabled = false; // 이름은 그대로 두고 다른 속성만 변경
+
+        await sut.SaveAsync();
+
+        sut.ValidationMessage.Should().Be("");
+        repository.LastFolder.Should().Be(new SongFolderWriteModel(3, "Evening", false));
+    }
+
+    [Fact]
+    public async Task SaveAsync_DuplicateFolderName_IsCaseInsensitive()
+    {
+        using var fixture = TempFolderEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var existing = new SongFolderSummary(6, "Morning", IsEnabled: true, SongCount: 2);
+        var sut = new FolderEditorViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, null, [existing]);
+        sut.Name = "morning"; // 대소문자만 다른 기존 이름
+
+        await sut.SaveAsync();
+
+        sut.ValidationMessage.Should().Contain("이미 있는 폴더 이름");
+        repository.LastFolder.Should().BeNull();
+    }
+
     private sealed class FakeAdminDatabaseRepository : IAdminDatabaseRepository
     {
         public string LastDatabasePath { get; private set; } = "";
