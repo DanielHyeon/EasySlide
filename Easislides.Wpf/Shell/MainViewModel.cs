@@ -35,6 +35,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
 
+    // 중앙 미리보기 탭 인덱스(0=Preview, 1=PowerPoint, 2=Media) — 선택 항목 종류에 맞춰 자동 전환(FrmMain식 멀티페인).
+    // 운영자가 항목을 고르면 알맞은 미리보기가 바로 보여 수동 탭 전환을 없앤다(§7.4 단일 콘솔).
+    [ObservableProperty] private int _selectedContentTabIndex;
+
     [ObservableProperty] private bool _isPowerPointTabVisible;
     [ObservableProperty] private bool _isPowerPointPanelOverlayEnabled = true;
     [ObservableProperty] private int _powerPointMaxFiles = EasiSettingKeys.PowerPointMaxFiles.DefaultValue;
@@ -697,11 +701,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 항목이 바뀌면 가사 페이지를 첫 절로 리셋(PPT 의 SlideNumber 리셋과 대칭).
         RefreshLyricsPages(value);
 
+        // 항목 종류에 맞춰 중앙 미리보기 탭을 자동 전환(수동 탭 전환 제거 — FrmMain식).
+        UpdateContentTabForItem(value);
+
         // 선택 항목의 실제 콘텐츠를 적절한 미리보기 VM 으로 적재(라이브 큐 콘텐츠 plumbing).
         // UI 경로라 fire-and-forget; 테스트는 ApplySelectedItemContentAsync 를 직접 await.
         _ = ApplySelectedItemContentAsync(value);
 
         NotifyCommandStates();
+    }
+
+    // 선택 항목 종류에 맞는 중앙 탭을 고른다 — PPT→PowerPoint(미리보기+썸네일), 미디어→Media, 그 외(곡/성경/공지)→Preview.
+    // 해당 탭이 설정상 숨겨져 있으면(UsePowerPointTab/UseMediaTab off) Preview(0)로 폴백해 빈 탭을 선택하지 않는다.
+    private void UpdateContentTabForItem(LiveQueueItem? item)
+    {
+        if (item is not null && IsPowerPointItem(item) && IsPowerPointTabVisible)
+        {
+            SelectedContentTabIndex = 1;
+        }
+        else if (item is not null && IsMediaItem(item) && IsMediaTabVisible)
+        {
+            SelectedContentTabIndex = 2;
+        }
+        else
+        {
+            SelectedContentTabIndex = 0;
+        }
     }
 
     // 선택된 항목의 가사 총 절 수를 갱신하고 현재 페이지를 첫 절로 리셋.
@@ -1621,6 +1646,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         AutoRotateIntervalSeconds = _settings.Get(EasiSettingKeys.AutoRotateIntervalSeconds);
         RefreshActiveAppearance();
         RefreshPowerPointLimitState(updateStatus);
+        // 탭 가시성이 바뀌면 현재 선택 항목 기준으로 중앙 탭을 재평가 — 방금 숨겨진 탭이 선택된 채 남아
+        // 빈 패널이 보이는 것을 막는다(WPF 는 가시성 Collapsed 시 선택을 자동으로 풀지 않음, code-review MINOR).
+        UpdateContentTabForItem(SelectedItem);
         NotifyCommandStates();
     }
 
@@ -1665,6 +1693,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
            string.Equals(item.Kind, "PPT", StringComparison.OrdinalIgnoreCase) ||
            string.Equals(item.Kind, LiveItemKinds.PowerPoint, StringComparison.OrdinalIgnoreCase) ||
            string.Equals(item.Kind, "Presentation", StringComparison.OrdinalIgnoreCase);
+
+    // 미디어 항목 판별 — LiveItemKinds.Media + 레거시/별칭(M/Video/Audio/LiveCamera 등). OutputRenderer.IsMediaKind 와 동일 어휘.
+    private static bool IsMediaItem(LiveQueueItem item)
+        => string.Equals(item.Kind, "M", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, LiveItemKinds.Media, StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "Video", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "Audio", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "LiveCamera", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "Live Camera", StringComparison.OrdinalIgnoreCase) ||
+           string.Equals(item.Kind, "CaptureDevice", StringComparison.OrdinalIgnoreCase);
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {

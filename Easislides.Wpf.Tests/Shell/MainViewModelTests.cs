@@ -149,6 +149,80 @@ public class MainViewModelTests
         sut.LiveCameraSource.Should().Be("<<Capture>>5");
     }
 
+    // ─── 중앙 미리보기 탭 자동 전환 (FrmMain식 멀티페인 — 항목 종류에 맞춰 탭 수동 전환 제거) ───
+
+    [Fact]
+    public void SelectingSongItem_SetsCenterTabToPreview()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "찬양", LiveItemKinds.Song) });
+
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectedContentTabIndex.Should().Be(0, "곡은 Preview 탭");
+    }
+
+    [Fact]
+    public void SelectingPowerPointItem_SetsCenterTabToPowerPoint_WhenTabVisible()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.UsePowerPointTab, true).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.IsPowerPointTabVisible.Should().BeTrue();
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt-1", "Deck 1", LiveItemKinds.PowerPoint) });
+
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectedContentTabIndex.Should().Be(1, "PPT 선택 시 PowerPoint(미리보기+썸네일) 탭 자동 전환");
+    }
+
+    [Fact]
+    public void SelectingPowerPointItem_FallsBackToPreview_WhenPowerPointTabHidden()
+    {
+        var sut = CreateSut(); // 기본 UsePowerPointTab=false → 탭 숨김
+        sut.IsPowerPointTabVisible.Should().BeFalse();
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt-1", "Deck 1", LiveItemKinds.PowerPoint) });
+
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectedContentTabIndex.Should().Be(0, "PowerPoint 탭이 숨겨져 있으면 Preview 로 폴백");
+    }
+
+    [Fact]
+    public void HidingPowerPointTabAtRuntime_WhileSelected_FallsBackToPreview()
+    {
+        // code-review MINOR: 운영 중 PowerPoint 탭을 끄면 선택이 숨은 탭(1)에 잔류해 중앙이 비어 보이면 안 됨.
+        // 설정 변경 → ApplyOperationalSettings 가 가시성 갱신 후 현재 항목 기준 탭을 재평가해 Preview(0)로 폴백.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.UsePowerPointTab, true).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt-1", "Deck 1", LiveItemKinds.PowerPoint) });
+        sut.SelectedItem = sut.Queue[0];
+        sut.SelectedContentTabIndex.Should().Be(1);
+
+        settings.Set(EasiSettingKeys.UsePowerPointTab, false).Succeeded.Should().BeTrue();
+
+        sut.IsPowerPointTabVisible.Should().BeFalse();
+        sut.SelectedContentTabIndex.Should().Be(0, "숨겨진 탭이 선택된 채 남으면 안 됨");
+    }
+
+    [Fact]
+    public void SelectingMediaItem_SetsCenterTabToMedia_WhenTabVisible()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.UseMediaTab, true).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.IsMediaTabVisible.Should().BeTrue();
+        sut.LoadQueue(new[] { new LiveQueueItem("media-1", "영상", LiveItemKinds.Media) });
+
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectedContentTabIndex.Should().Be(2, "미디어 선택 시 Media 탭 자동 전환");
+    }
+
     [Fact]
     public void LoadQueue_WhenPowerPointItemsExceedConfiguredLimit_DisablesGoLiveUntilLimitIncreases()
     {

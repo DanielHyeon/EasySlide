@@ -429,8 +429,11 @@
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource CornerRadius.Small}">
+                        <!-- 중앙 미리보기 — 선택 항목 종류에 맞춰 SelectedIndex 가 자동 전환(곡=Preview/PPT=PowerPoint/미디어=Media).
+                             운영자가 탭을 수동으로 누르지 않아도 알맞은 미리보기가 보인다(FrmMain식 멀티페인 §7.4). -->
                         <TabControl BorderThickness="0"
-                                    Background="Transparent">
+                                    Background="Transparent"
+                                    SelectedIndex="{Binding SelectedContentTabIndex, Mode=TwoWay}">
                             <TabItem Header="Preview">
                                 <Grid Margin="{StaticResource Thickness.Lg}">
                                     <Grid.RowDefinitions>
