@@ -357,7 +357,7 @@
                                       ItemsSource="{Binding PreviewFontSizeOptions}"
                                       SelectedItem="{Binding PreviewNotationFontSize, Mode=TwoWay}"
                                       MinHeight="32"
-                                      AutomationProperties.Name="미리보기 메타 글자 크기" />
+                                      AutomationProperties.Name="미리보기 보조(메타·코드) 글자 크기" />
                         </Grid>
                     </StackPanel>
 
@@ -379,13 +379,41 @@
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
                                        Foreground="{Binding PreviewForegroundHex}" />
-                            <TextBlock Grid.Row="1"
-                                       Text="{Binding PreviewLyrics}"
-                                       FontFamily="{Binding PreviewFontFamilyName}"
-                                       FontSize="{Binding PreviewMainFontSize}"
-                                       TextWrapping="Wrap"
-                                       Foreground="{Binding PreviewForegroundHex}"
-                                       Margin="0,18,0,0" />
+                            <!-- 가사 줄 단위 렌더(리치 per-line 1차): 본문은 메인 크기, '»' 뒤 코드/노테이션은 작게·흐리게.
+                                 폰트/색은 TextElement 상속, 코드 크기만 노테이션 크기로 덮는다. 코드가 없으면 코드 칸은 숨김. -->
+                            <ItemsControl Grid.Row="1"
+                                          ItemsSource="{Binding PreviewLyricLines}"
+                                          TextElement.FontFamily="{Binding PreviewFontFamilyName}"
+                                          TextElement.FontSize="{Binding PreviewMainFontSize}"
+                                          TextElement.Foreground="{Binding PreviewForegroundHex}"
+                                          Margin="0,18,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                            <TextBlock Text="{Binding Text}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Notation}"
+                                                       FontSize="{Binding DataContext.PreviewNotationFontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                       Opacity="0.72"
+                                                       Margin="10,0,0,0"
+                                                       VerticalAlignment="Center"
+                                                       TextWrapping="Wrap">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <!-- 코드/노테이션이 없는 줄은 코드 칸을 숨겨 군더더기 여백 제거. -->
+                                                            <DataTrigger Binding="{Binding Notation}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <TextBlock Grid.Row="2"
                                        Text="{Binding PreviewMetadata}"
                                        FontFamily="{Binding PreviewFontFamilyName}"
