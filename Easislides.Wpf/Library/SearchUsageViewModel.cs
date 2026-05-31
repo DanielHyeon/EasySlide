@@ -204,7 +204,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         ValidationMessage = "";
         if (string.IsNullOrWhiteSpace(UsageDatabasePath))
         {
-            ValidationMessage = "Usage database path is empty.";
+            ValidationMessage = "사용 이력 DB 경로가 아직 준비되지 않았습니다.";
             return;
         }
 
@@ -345,7 +345,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             return true;
         }
 
-        ValidationMessage = "AdminDB path is empty.";
+        ValidationMessage = "검색 DB 경로가 아직 준비되지 않았습니다.";
         return false;
     }
 

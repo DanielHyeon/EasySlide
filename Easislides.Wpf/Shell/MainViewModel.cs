@@ -43,6 +43,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(AddSearchedSongCommand))]
     private SongSearchResult? _selectedSearchResult;
 
+    // 검색 탭 "제목" 모드에서 선택한 제목 조회 후보. "예배 순서에 추가"(제목) 활성 여부를 좌우한다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddLookupTitleCommand))]
+    private LookupTitleCandidate? _selectedTitleCandidate;
+
     // 중앙 미리보기 탭 인덱스(0=Preview, 1=PowerPoint, 2=Media) — 선택 항목 종류에 맞춰 자동 전환(FrmMain식 멀티페인).
     // 운영자가 항목을 고르면 알맞은 미리보기가 바로 보여 수동 탭 전환을 없앤다(§7.4 단일 콘솔).
     [ObservableProperty] private int _selectedContentTabIndex;
@@ -316,6 +321,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleAutoRotateCommand = new RelayCommand(ToggleAutoRotate, () => _session.Current.State == LiveState.Active);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         AddSearchedSongCommand = new AsyncRelayCommand(AddSearchedSongAsync, () => SelectedSearchResult is not null);
+        AddLookupTitleCommand = new AsyncRelayCommand(AddLookupTitleAsync, () => SelectedTitleCandidate is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
@@ -325,6 +331,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Library.PropertyChanged += OnLibraryPropertyChanged;
         // 재검색으로 결과가 통째로 교체되면 부모의 선택을 비워 stale 방지(아래 OnSearchResultsChanged 참고).
         Search.SearchResults.CollectionChanged += OnSearchResultsChanged;
+        // 제목 재조회로 후보가 통째로 교체될 때도 동일하게 stale 선택을 정리한다.
+        Search.LookupCandidates.CollectionChanged += OnLookupCandidatesChanged;
 
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
@@ -381,6 +389,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleAutoRotateCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IAsyncRelayCommand AddSearchedSongCommand { get; }
+    public IAsyncRelayCommand AddLookupTitleCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
@@ -459,6 +468,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        await AddSongByIdAsync(result.SongId, result.Title).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// 검색 탭 "제목" 모드에서 고른 제목 후보를 예배 순서에 추가한다(SearchUsageWindow 의 Titles 인라인 흡수).
+    /// 곡 검색과 동일하게 SongId 로 곡 상세(가사)를 불러와 큐에 채운다.
+    /// </summary>
+    private async Task AddLookupTitleAsync()
+    {
+        var candidate = SelectedTitleCandidate;
+        if (candidate is null)
+        {
+            StatusText = "선택된 제목이 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        await AddSongByIdAsync(candidate.SongId, candidate.Title).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// SongId 로 곡 상세(가사 포함)를 불러와 예배 순서에 추가하는 공통 경로.
+    /// 곡 검색·제목 조회 결과 모두 가사를 들고 있지 않으므로, 여기서 한 번만 DB 를 조회해 가사를 채운다.
+    /// </summary>
+    private async Task AddSongByIdAsync(int songId, string fallbackTitle)
+    {
         var databasePath = Search.DatabasePath;
         if (string.IsNullOrWhiteSpace(databasePath))
         {
@@ -467,11 +502,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // 검색 결과엔 가사가 없으므로 SongId 로 곡 상세를 불러와 가사까지 채운 뒤 큐에 추가.
-        var detail = await _songDetail.GetSongDetailAsync(databasePath, result.SongId).ConfigureAwait(true);
+        var detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
         if (detail is null)
         {
-            StatusText = $"곡을 찾을 수 없습니다: {result.Title}";
+            StatusText = $"곡을 찾을 수 없습니다: {fallbackTitle}";
             NotifyCommandStates();
             return;
         }
@@ -1502,6 +1536,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // 제목 후보 목록이 교체되면(재조회) 사라진 선택을 비운다 — OnSearchResultsChanged 와 동일 규칙.
+    private void OnLookupCandidatesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (SelectedTitleCandidate is not null && !Search.LookupCandidates.Contains(SelectedTitleCandidate))
+        {
+            SelectedTitleCandidate = null;
+        }
+    }
+
     // 출력 모양 프리셋 적용 — 글자색·배경색·그라데이션 설정을 한 번에 쓴다.
     // 설정이 바뀌면 출력 VM(OutputWindowViewModel)이 SettingsChanged 로 라이브 출력을 즉시 갱신한다.
     private void ApplyOutputAppearance(OutputAppearancePreset? preset)
@@ -1909,6 +1952,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
         Library.PropertyChanged -= OnLibraryPropertyChanged;
         Search.SearchResults.CollectionChanged -= OnSearchResultsChanged;
+        Search.LookupCandidates.CollectionChanged -= OnLookupCandidatesChanged;
         // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나
         // MediaPlaybackViewModel.Dispose 가 멱등이라 안전(테스트는 new 생성이라 이 경로가 유일 해제).
         Media.Dispose();
