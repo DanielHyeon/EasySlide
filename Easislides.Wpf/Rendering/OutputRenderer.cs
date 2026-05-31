@@ -202,6 +202,22 @@ public sealed class OutputRenderer : IOutputRenderer
         var placement = GetContentPlacement(kind, request, viewportWidth, viewportHeight);
         var transition = CreateTransitionFrame(request, viewportWidth, viewportHeight, kind, liveOutput);
 
+        // 곡별 FormatData 색(있으면)은 Live 일 때만 운영 기본색을 이긴다(레거시 per-song 색).
+        // 비-Live(숨김/블랙아웃/대기)에선 무시 → 운영 기본색 유지.
+        var isLive = kind == OutputSceneKind.Live;
+        var textColorArgb = isLive && request.Session.OverrideTextColorArgb is int songTextColor
+            ? songTextColor
+            : liveOutput.LyricsMonitorTextColorArgb;
+        // 배경 오버라이드가 있으면 솔리드 단색으로 칠한다(끝색=시작색, 그라데이션 해제).
+        var hasBgOverride = isLive && request.Session.OverrideBackgroundColorArgb is int;
+        var bgColorArgb = hasBgOverride
+            ? request.Session.OverrideBackgroundColorArgb!.Value
+            : liveOutput.LyricsMonitorBackgroundColorArgb;
+        var bgColor2Argb = hasBgOverride
+            ? request.Session.OverrideBackgroundColorArgb!.Value
+            : liveOutput.LyricsMonitorBackgroundColor2Argb;
+        var bgIsGradient = !hasBgOverride && liveOutput.LyricsMonitorBackgroundIsGradient;
+
         return new OutputSceneSnapshot(
             kind,
             display.Title,
@@ -214,10 +230,10 @@ public sealed class OutputRenderer : IOutputRenderer
             transition,
             liveOutput.ShowLyricsMonitorAlertBox,
             liveOutput.LyricsMonitorShowNotations,
-            liveOutput.LyricsMonitorTextColorArgb,
-            liveOutput.LyricsMonitorBackgroundColorArgb,
-            liveOutput.LyricsMonitorBackgroundColor2Argb,
-            liveOutput.LyricsMonitorBackgroundIsGradient,
+            textColorArgb,
+            bgColorArgb,
+            bgColor2Argb,
+            bgIsGradient,
             liveOutput.GapItemOption,
             liveOutput.GapItemLogoFile,
             liveOutput.GapItemUseFade,

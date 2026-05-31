@@ -180,6 +180,38 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithSongFormatData_CarriesRegion1OverrideColorsToSnapshot()
+    {
+        // 곡별 FormatData(레거시 v32)에 글자색(29)·배경색(26)이 있으면 region1 색을 스냅샷에 실어
+        // 출력 렌더러가 운영 기본 색 대신 그 곡의 색으로 송출하게 한다(미리보기와 동일 규약).
+        // 29=-65536(불투명 빨강), 26=-16776961(불투명 파랑).
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\n1절 가사",
+            FormatData = "29=-65536>26=-16776961>",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideTextColorArgb.Should().Be(-65536, "29 = region1 글자색");
+        sut.Current.OverrideBackgroundColorArgb.Should().Be(-16776961, "26 = region1 배경색");
+    }
+
+    [Fact]
+    public void GoLive_WithoutFormatData_LeavesOverrideColorsNull()
+    {
+        // FormatData 가 없으면 오버라이드는 null → 렌더러는 운영 기본 색을 그대로 쓴다(무회귀).
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideTextColorArgb.Should().BeNull();
+        sut.Current.OverrideBackgroundColorArgb.Should().BeNull();
+    }
+
+    [Fact]
     public void Restore_FromHidden_PreservesBodyText()
     {
         // 숨김→복귀 시 가사 본문도 보존되어야 직전 곡이 그대로 다시 보인다.

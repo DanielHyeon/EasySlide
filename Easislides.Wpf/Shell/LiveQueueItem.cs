@@ -26,6 +26,12 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// </summary>
     public int LyricsPageIndex { get; init; }
 
+    /// <summary>
+    /// 곡별 출력 포맷(레거시 v32 FORMATDATA, "code=value>…" 사전). 글자·배경색·정렬·폰트를 담는다.
+    /// GoLive 시 파싱돼 그 곡만의 색으로 송출(없으면 운영 기본색). 곡이 아니면 null.
+    /// </summary>
+    public string? FormatData { get; init; }
+
     /// <summary>미디어/PPT 항목의 파일 경로(선택 시 해당 VM 의 LoadAsync 디스패치에 사용).</summary>
     public string? ContentPath { get; init; }
 
