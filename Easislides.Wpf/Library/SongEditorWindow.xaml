@@ -435,6 +435,12 @@
                 <TextBlock Text="{Binding ValidationMessage}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Status.Danger}" />
+                <!-- 중복 절 라벨 경고(저장은 막지 않는 비차단 안내). 비면 공백. -->
+                <TextBlock Text="{Binding SectionWarning}"
+                           TextWrapping="Wrap"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Status.Warning}"
+                           Margin="0,4,0,0" />
                 <TextBlock Text="{Binding StatusMessage}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}"

@@ -156,6 +156,43 @@ public class LyricsDisplayFormatterTests
         LyricsDisplayFormatter.GetVersePage(lyrics, 99, "1 C 2 C").Should().Be("Chorus line");
     }
 
+    // ─── 중복 절 라벨 검증(Sequence 모델: 절은 1회 정의) ──────────────────────
+
+    [Fact]
+    public void FindDuplicateSectionLabels_DetectsRepeatedLabels_CaseInsensitive()
+    {
+        // 절은 한 번만 정의해야 한다(반복은 Sequence 로). 같은 라벨이 두 번 정의되면 둘째가 무시되는 오류.
+        var lyrics = "[1]\nVerse one\n[C]\nChorus\n[c]\nDup chorus\n[2]\nVerse two";
+
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("C");
+    }
+
+    [Fact]
+    public void FindDuplicateSectionLabels_NoDuplicates_ReturnsEmpty()
+    {
+        var lyrics = "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two";
+
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FindDuplicateSectionLabels_ThreeOrMoreDefinitions_ReportedOnce()
+    {
+        // 같은 라벨이 3번 이상 정의돼도 중복은 한 번만 보고(경고 중복 방지).
+        var lyrics = "[C]\nA\n[C]\nB\n[C]\nD";
+
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("C");
+    }
+
+    [Fact]
+    public void FindDuplicateSectionLabels_IgnoresNotationBlocks()
+    {
+        // [~..] 노테이션 블록은 절 라벨이 아니므로 중복 판정에서 제외.
+        var lyrics = "[~G C]\n[1]\nVerse\n[~D]\n[1]\nDup";
+
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("1");
+    }
+
     // ─── ToVersePages ────────────────────────────────────────────────────────
 
     [Fact]
