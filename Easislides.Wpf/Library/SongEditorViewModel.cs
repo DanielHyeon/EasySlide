@@ -534,12 +534,9 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     // 첫 화면(빈 줄로 나뉜 첫 단락)의 표시 줄들 — region 마커 제외, 최대 8줄. 미리보기 문자열·줄 목록의 공통 소스.
     private static string[] BuildFirstScreenLines(string lyrics)
     {
-        var normalized = (lyrics ?? string.Empty)
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace('\r', '\n')
-            // 코드 마커 정규화 — 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장된 경우도
-            // 출력 렌더(LyricsDisplayFormatter)와 동일하게 단일 '»'로 모은다(미리보기·출력 마커 해석 일치).
-            .Replace("Â»", "»", StringComparison.Ordinal);
+        // 출력 렌더와 동일한 정규화 규칙을 공유해 미리보기·출력의 마커 해석이 코드로 일치하도록 한다
+        // (이전엔 같은 Replace 블록을 따로 두어 주석으로만 일치를 보장했음 → LyricsDisplayFormatter.NormalizeText 로 단일화).
+        var normalized = LyricsDisplayFormatter.NormalizeText(lyrics ?? string.Empty);
         var firstScreen = normalized
             .Split(["\n\n"], StringSplitOptions.None)
             .Select(screen => screen.Trim('\n'))
