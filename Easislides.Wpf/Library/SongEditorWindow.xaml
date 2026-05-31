@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="Song Editor"
+        Title="곡 편집기"
         Width="1040"
         Height="760"
         MinWidth="860"
@@ -23,10 +23,10 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="Song Editor"
+                <TextBlock Text="곡 편집기"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
-                <TextBlock Text="{Binding FolderName, StringFormat=Folder: {0}}"
+                <TextBlock Text="{Binding FolderName, StringFormat=폴더: {0}}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}"
                            Margin="0,6,0,0" />
@@ -52,7 +52,7 @@
                     <ui:SymbolIcon Symbol="Warning24"
                                    Foreground="{DynamicResource Brush.Status.Warning}"
                                    Margin="0,0,8,0" />
-                    <TextBlock Text="Live output is active. Saving requires confirmation."
+                    <TextBlock Text="라이브 출력 중입니다. 저장하려면 확인이 필요합니다."
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Primary}" />
                 </StackPanel>
@@ -82,44 +82,47 @@
 
                         <StackPanel Grid.ColumnSpan="3"
                                     Margin="0,0,0,14">
-                            <TextBlock Text="Title"
+                            <TextBlock x:Name="LblTitle"
+                                       Text="제목"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                             <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      MinHeight="36"
                                      Margin="0,4,0,0"
-                                     AutomationProperties.Name="Song title" />
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblTitle}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1"
                                     Grid.Column="0"
                                     Margin="0,0,0,14">
-                            <TextBlock Text="Alternate Title"
+                            <TextBlock x:Name="LblAlternateTitle"
+                                       Text="다른 제목"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                             <TextBox Text="{Binding AlternateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      MinHeight="36"
                                      Margin="0,4,0,0"
-                                     AutomationProperties.Name="Alternate title" />
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblAlternateTitle}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1"
                                     Grid.Column="2"
                                     Margin="0,0,0,14">
-                            <TextBlock Text="Number"
+                            <TextBlock x:Name="LblNumber"
+                                       Text="번호"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                             <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      MinHeight="36"
                                      Margin="0,4,0,0"
-                                     AutomationProperties.Name="Song number" />
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblNumber}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="2"
                                     Grid.Column="0"
                                     Margin="0,0,0,14">
                             <TextBlock x:Name="LblCategory"
-                                       Text="Category"
+                                       Text="분류"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                             <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -138,7 +141,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock x:Name="LblKey"
-                                           Text="Key"
+                                           Text="키"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                 <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -148,7 +151,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock x:Name="LblCapo"
-                                           Text="Capo"
+                                           Text="카포"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                 <TextBox Text="{Binding Capo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -161,7 +164,7 @@
 
                     <StackPanel Margin="0,0,0,14">
                         <TextBlock x:Name="LblLyrics"
-                                   Text="Lyrics"
+                                   Text="가사"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         <TextBox Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -173,7 +176,7 @@
                                  AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics}" />
                     </StackPanel>
 
-                    <Expander Header="Legacy Metadata"
+                    <Expander Header="추가 정보(레거시)"
                               IsExpanded="True"
                               Margin="0,0,0,8">
                         <StackPanel Margin="0,10,0,0">
@@ -191,61 +194,66 @@
                                 </Grid.RowDefinitions>
 
                                 <StackPanel Margin="0,0,0,12">
-                                    <TextBlock Text="Writer"
+                                    <TextBlock x:Name="LblWriter"
+                                               Text="작사·작곡"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Writer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
                                              Margin="0,4,0,0"
-                                             AutomationProperties.Name="작사작곡" />
+                                             AutomationProperties.LabeledBy="{Binding ElementName=LblWriter}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2"
                                             Margin="0,0,0,12">
-                                    <TextBlock Text="Copyright"
+                                    <TextBlock x:Name="LblCopyright"
+                                               Text="저작권"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Copyright, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
                                              Margin="0,4,0,0"
-                                             AutomationProperties.Name="저작권" />
+                                             AutomationProperties.LabeledBy="{Binding ElementName=LblCopyright}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1"
                                             Margin="0,0,0,12">
-                                    <TextBlock Text="Timing"
+                                    <TextBlock x:Name="LblTiming"
+                                               Text="타이밍"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Timing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
                                              Margin="0,4,0,0"
-                                             AutomationProperties.Name="타이밍" />
+                                             AutomationProperties.LabeledBy="{Binding ElementName=LblTiming}" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="1"
                                             Grid.Column="2"
                                             Margin="0,0,0,12">
-                                    <TextBlock Text="Book Reference"
+                                    <TextBlock x:Name="LblBookReference"
+                                               Text="교단 참조"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding BookReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
                                              Margin="0,4,0,0"
-                                             AutomationProperties.Name="교단 참조" />
+                                             AutomationProperties.LabeledBy="{Binding ElementName=LblBookReference}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="2"
                                             Margin="0,0,0,12">
-                                    <TextBlock Text="User Reference"
+                                    <TextBlock x:Name="LblUserReference"
+                                               Text="사용자 참조"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding UserReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              MinHeight="34"
                                              Margin="0,4,0,0"
-                                             AutomationProperties.Name="사용자 참조" />
+                                             AutomationProperties.LabeledBy="{Binding ElementName=LblUserReference}" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="2"
                                             Grid.Column="2"
                                             Margin="0,0,0,12">
-                                    <TextBlock Text="Licence Admin"
+                                    <TextBlock Text="라이선스 관리자"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <Grid Margin="0,4,0,0">
@@ -265,7 +273,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock Text="Sequence / Notations / Format Data"
+                            <TextBlock Text="절 순서 / 코드 표기 / 포맷 데이터"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}"
                                        Margin="0,2,0,4" />
@@ -321,7 +329,7 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="Preview"
+                        <TextBlock Text="미리보기"
                                    Style="{StaticResource Type.Title3.Style}"
                                    Foreground="{DynamicResource Brush.Text.Primary}" />
                         <TextBlock Text="{Binding PreviewFormatStatus}"
@@ -339,17 +347,17 @@
                             <ComboBox ItemsSource="{Binding PreviewFontFamilyOptions}"
                                       SelectedItem="{Binding PreviewFontFamilyName, Mode=TwoWay}"
                                       MinHeight="32"
-                                      AutomationProperties.Name="Preview font family" />
+                                      AutomationProperties.Name="미리보기 글꼴" />
                             <ComboBox Grid.Column="2"
                                       ItemsSource="{Binding PreviewFontSizeOptions}"
                                       SelectedItem="{Binding PreviewMainFontSize, Mode=TwoWay}"
                                       MinHeight="32"
-                                      AutomationProperties.Name="Preview lyric font size" />
+                                      AutomationProperties.Name="미리보기 가사 글자 크기" />
                             <ComboBox Grid.Column="4"
                                       ItemsSource="{Binding PreviewFontSizeOptions}"
                                       SelectedItem="{Binding PreviewNotationFontSize, Mode=TwoWay}"
                                       MinHeight="32"
-                                      AutomationProperties.Name="Preview metadata font size" />
+                                      AutomationProperties.Name="미리보기 메타 글자 크기" />
                         </Grid>
                     </StackPanel>
 
@@ -410,21 +418,21 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding SaveCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="Save song"
-                        AutomationProperties.Name="Save song"
+                        ToolTip="곡 저장"
+                        AutomationProperties.Name="곡 저장"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                        <TextBlock Text="Save" />
+                        <TextBlock Text="저장" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="Close"
-                        AutomationProperties.Name="Close song editor">
+                        ToolTip="닫기"
+                        AutomationProperties.Name="곡 편집기 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="Close" />
+                        <TextBlock Text="닫기" />
                     </StackPanel>
                 </Button>
             </StackPanel>

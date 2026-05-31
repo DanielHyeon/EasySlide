@@ -182,7 +182,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (IsRecoverableSaveException(ex))
         {
-            StatusMessage = $"Unable to load song detail: {ex.Message}";
+            StatusMessage = $"곡 상세를 불러오지 못했습니다: {ex.Message}";
         }
     }
 
@@ -388,7 +388,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
         if (Capo < 0)
         {
-            ValidationMessage = "Capo cannot be negative.";
+            ValidationMessage = "Capo(카포)는 음수가 될 수 없습니다.";
             return false;
         }
 
@@ -407,24 +407,24 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         IsLiveEditWarningVisible = true;
         if (_liveSafetyPrompt is null)
         {
-            StatusMessage = "Save canceled: live edit safety prompt is unavailable.";
+            StatusMessage = "저장 취소: 라이브 편집 안전 확인을 사용할 수 없습니다.";
             return false;
         }
 
         var snapshot = _liveSession!.Current;
-        var title = string.IsNullOrWhiteSpace(Title) ? "this song" : Title.Trim();
+        var title = string.IsNullOrWhiteSpace(Title) ? "이 곡" : Title.Trim();
         var liveTitle = string.IsNullOrWhiteSpace(snapshot.CurrentItemTitle)
-            ? "current output"
+            ? "현재 출력"
             : snapshot.CurrentItemTitle;
         var request = new LiveSafetyRequest(
-            "Save song while live",
-            $"Save changes to \"{title}\" while output is live?",
-            $"Currently showing \"{liveTitle}\" on {snapshot.OutputMonitorName}. The output keeps its current snapshot until you send this item again.",
+            "라이브 중 곡 저장",
+            $"출력이 라이브인 상태에서 \"{title}\" 변경을 저장할까요?",
+            $"지금 {snapshot.OutputMonitorName} 화면에 \"{liveTitle}\"을(를) 송출하고 있습니다. 이 항목을 다시 보내기 전까지 출력은 현재 화면을 유지합니다.",
             TimeSpan.FromSeconds(8));
         var confirmed = await _liveSafetyPrompt.ConfirmAsync(request).ConfigureAwait(true);
         if (!confirmed)
         {
-            StatusMessage = "Save canceled while live.";
+            StatusMessage = "라이브 중 저장을 취소했습니다.";
         }
 
         return confirmed;
@@ -432,7 +432,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     private void RefreshPreview()
     {
-        PreviewTitle = string.IsNullOrWhiteSpace(Title) ? "Untitled song" : Title.Trim();
+        PreviewTitle = string.IsNullOrWhiteSpace(Title) ? "제목 없음" : Title.Trim();
         PreviewLyrics = BuildPreviewLyrics(Lyrics);
         PreviewMetadata = BuildPreviewMetadata();
         PreviewFormatStatus = BuildPreviewFormatStatus();
@@ -445,18 +445,18 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         var parts = new List<string>();
         AddIfPresent(parts, FolderName);
         AddIfPresent(parts, Category);
-        AddIfPresent(parts, string.IsNullOrWhiteSpace(Key) ? "" : $"Key {Key.Trim()}");
+        AddIfPresent(parts, string.IsNullOrWhiteSpace(Key) ? "" : $"키 {Key.Trim()}");
         AddIfPresent(parts, Timing);
         if (Capo > 0)
         {
-            parts.Add($"Capo {Capo}");
+            parts.Add($"카포 {Capo}");
         }
 
         AddIfPresent(parts, Writer);
         AddIfPresent(parts, Copyright);
         AddIfPresent(parts, BookReference);
         AddIfPresent(parts, UserReference);
-        return parts.Count == 0 ? "No metadata" : string.Join(" · ", parts);
+        return parts.Count == 0 ? "메타데이터 없음" : string.Join(" · ", parts);
     }
 
     private string BuildPreviewFormatStatus()
@@ -464,20 +464,20 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         var parts = new List<string>();
         if (!string.IsNullOrWhiteSpace(FormatData))
         {
-            parts.Add("format data");
+            parts.Add("포맷 데이터");
         }
 
         if (!string.IsNullOrWhiteSpace(Notations) || Lyrics.Contains('»'))
         {
-            parts.Add("notation data");
+            parts.Add("코드 표기");
         }
 
         if (!string.IsNullOrWhiteSpace(Sequence))
         {
-            parts.Add("sequence data");
+            parts.Add("절 순서");
         }
 
-        return parts.Count == 0 ? "plain lyrics" : string.Join(" · ", parts);
+        return parts.Count == 0 ? "일반 가사" : string.Join(" · ", parts);
     }
 
     private void OnLiveSessionChanged(object? sender, LiveSessionChangedEventArgs e)
@@ -517,7 +517,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             .FirstOrDefault(screen => !string.IsNullOrWhiteSpace(screen));
         if (string.IsNullOrWhiteSpace(firstScreen))
         {
-            return "No lyrics";
+            return "가사 없음";
         }
 
         var lines = firstScreen
@@ -526,7 +526,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             .Where(line => !IsRegionMarker(line))
             .Take(8)
             .ToArray();
-        return lines.Length == 0 ? "No lyrics" : string.Join(Environment.NewLine, lines);
+        return lines.Length == 0 ? "가사 없음" : string.Join(Environment.NewLine, lines);
     }
 
     private static bool IsRegionMarker(string line)

@@ -92,6 +92,23 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public async Task SaveAsync_WhenCapoNegative_ShowsKoreanValidation_AndDoesNotWrite()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var sut = new SongEditorViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+        sut.Title = "은혜";
+        sut.Capo = -1;
+
+        await sut.SaveAsync();
+
+        sut.ValidationMessage.Should().Be("Capo(카포)는 음수가 될 수 없습니다.", "이식된 곡 편집기의 검증 메시지도 한글이어야 함");
+        repository.LastSong.Should().BeNull("검증 실패 시 저장하지 않는다");
+    }
+
+    [Fact]
     public async Task SaveAsync_WhenBackupRootNotConfigured_UsesDatabaseSiblingBackupsFolder()
     {
         using var fixture = TempSongEditorSettings.Create();
@@ -157,7 +174,7 @@ public class SongEditorViewModelTests
         sut.PreviewTitle.Should().Be("Detailed");
         sut.PreviewLyrics.Should().Contain("Verse one").And.Contain("Line two");
         sut.PreviewMetadata.Should().Contain("D").And.Contain("4/4").And.Contain("Writer");
-        sut.PreviewFormatStatus.Should().Contain("format").And.Contain("notation").And.Contain("sequence");
+        sut.PreviewFormatStatus.Should().Contain("포맷").And.Contain("코드").And.Contain("절");
         sut.PreviewForegroundHex.Should().Be("#FF102030");
         sut.PreviewBackgroundHex.Should().Be("#FFEFE8DD");
         sut.PreviewFontFamilyOptions.Should().Contain("Malgun Gothic");
@@ -235,10 +252,31 @@ public class SongEditorViewModelTests
         await sut.SaveAsync();
 
         prompt.LastRequest.Should().NotBeNull();
-        prompt.LastRequest!.ActionName.Should().Be("Save song while live");
+        prompt.LastRequest!.ActionName.Should().Be("라이브 중 곡 저장");
         repository.LastSong.Should().BeNull();
         sut.IsLiveEditWarningVisible.Should().BeTrue();
-        sut.StatusMessage.Should().Contain("cancel");
+        sut.StatusMessage.Should().Contain("취소");
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenLiveAndSafetyPromptUnavailable_ShowsKoreanStatus_AndDoesNotWrite()
+    {
+        // 라이브 중인데 안전 확인 수단(prompt)이 없으면 저장을 막고, 한글로 안내한다(이식분 메시지 한글화).
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var liveSession = new FakeLiveSessionService
+        {
+            Current = new LiveSessionSnapshot(LiveState.Active, "Live song", "Monitor 2", IsBlackout: false, "Song")
+        };
+        var sut = new SongEditorViewModel(fixture.Settings, repository, repository, liveSession, liveSafetyPrompt: null);
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), Song(10, "Old", folderNo: 1));
+        sut.Title = "Revised";
+
+        await sut.SaveAsync();
+
+        repository.LastSong.Should().BeNull("안전 확인 불가 시 저장하지 않는다");
+        sut.StatusMessage.Should().Contain("사용할 수 없습니다", "한글 안내");
     }
 
     [Fact]
