@@ -20,6 +20,7 @@ public static class MainCommandIds
     // 창 런처(§7.4 — 명령 팔레트로 분리창을 흡수). 실행은 View(MainWindow)가 레지스트리에 등록.
     public const string WindowLibrary = "Window.Library";
     public const string WindowBible = "Window.Bible";
+    public const string WindowManageBibleVersions = "Window.ManageBibleVersions";
     public const string WindowSearch = "Window.Search";
     public const string WindowImportExport = "Window.ImportExport";
     public const string WindowExternalFiles = "Window.ExternalFiles";

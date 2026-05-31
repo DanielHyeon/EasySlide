@@ -75,7 +75,7 @@ public class CommandCatalogTests
 
         foreach (var id in new[]
                  {
-                     MainCommandIds.WindowLibrary, MainCommandIds.WindowBible, MainCommandIds.WindowSearch,
+                     MainCommandIds.WindowLibrary, MainCommandIds.WindowBible, MainCommandIds.WindowManageBibleVersions, MainCommandIds.WindowSearch,
                      MainCommandIds.WindowImportExport, MainCommandIds.WindowExternalFiles,
                      MainCommandIds.WindowManageLists, MainCommandIds.WindowSettings, MainCommandIds.WindowHelp,
                      MainCommandIds.WindowRegistration, MainCommandIds.WindowAbout, MainCommandIds.AddExternalFile,

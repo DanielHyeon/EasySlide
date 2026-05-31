@@ -78,6 +78,74 @@ public sealed partial class BibleViewModel : ObservableObject
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 성경 버전의 표시 이름을 바꾼다(성경 버전 관리 — 레거시 FrmBibleRename 대응).
+    /// 이름이 같으면 변경 없이 성공, 다른 버전과 중복(대소문자 무시)이면 거부.
+    /// 저장소(Biblefolder.NAME UPDATE) 성공 시 목록을 다시 불러오고 같은 버전을 계속 선택한다.
+    /// 반환값: 처리됐으면 true, 입력 오류·중복·저장소 실패면 false.
+    /// </summary>
+    public bool RenameVersion(BibleVersion version, string newName)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        var to = (newName ?? "").Trim();
+        if (to.Length == 0)
+        {
+            ValidationMessage = "버전 이름을 입력하세요.";
+            return false;
+        }
+
+        // 이름이 같으면(대소문자 무시) 바꿀 게 없다 — 성공으로 처리.
+        if (string.Equals(to, version.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // 다른 버전과 이름이 겹치면 거부(자기 자신은 파일명으로 제외).
+        if (Versions.Any(other =>
+                !string.Equals(other.FileName, version.FileName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(other.Name, to, StringComparison.OrdinalIgnoreCase)))
+        {
+            ValidationMessage = "이미 있는 버전 이름입니다. 다른 이름을 입력하세요.";
+            return false;
+        }
+
+        bool renamed;
+        try
+        {
+            renamed = _repository.RenameVersion(WorkingFolder, version.FileName, to);
+        }
+        catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
+        {
+            ValidationMessage = $"버전 이름을 바꾸지 못했습니다: {to}";
+            return false;
+        }
+
+        if (!renamed)
+        {
+            ValidationMessage = $"버전을 찾을 수 없습니다: {version.Name}";
+            return false;
+        }
+
+        // NAME 만 바뀌었으므로 목록을 통째로 재로드하지 않고 해당 레코드만 제자리 교체한다.
+        // (전체 재로드는 GetVersions DB 왕복 + 공유 ComboBox 의 선택 널 깜빡임 + 동일 버전 books 재조회를 유발.)
+        var renamedVersion = version with { Name = to };
+        var index = Versions.IndexOf(version);
+        if (index >= 0)
+        {
+            var wasSelected = ReferenceEquals(SelectedVersion, version);
+            Versions[index] = renamedVersion;
+            if (wasSelected)
+            {
+                // 같은 파일(books/passage 불변)이지만 선택 레코드 참조를 새 이름 레코드로 맞춘다.
+                SelectedVersion = renamedVersion;
+            }
+        }
+
+        ValidationMessage = "";
+        StatusMessage = $"버전 이름 변경: {version.Name} → {to}";
+        return true;
+    }
+
     public Task LoadSelectedBookAsync()
     {
         if (SelectedVersion is null || SelectedBook is null)

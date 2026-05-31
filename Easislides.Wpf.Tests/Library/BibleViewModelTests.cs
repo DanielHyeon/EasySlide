@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Settings;
@@ -130,6 +131,55 @@ public class BibleViewModelTests
         raised!.Selection.Should().Be(selected);
     }
 
+    [Fact]
+    public async Task RenameVersion_RenamesAndReloads_PreservingSelection()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv, fixture.Niv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.RenameVersion(fixture.Kjv, "개역개정");
+
+        ok.Should().BeTrue();
+        repository.LastRenamedFileName.Should().Be("kjv.db");
+        repository.LastRenamedNewName.Should().Be("개역개정");
+        sut.Versions.Should().Contain(v => v.Name == "개역개정").And.NotContain(v => v.Name == "KJV");
+        sut.SelectedVersion!.FileName.Should().Be("kjv.db", "이름 변경 후 같은 버전 선택 유지");
+    }
+
+    [Fact]
+    public async Task RenameVersion_DuplicateName_IsRejected_NoRepoCall()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv, fixture.Niv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.RenameVersion(fixture.Kjv, "NIV");
+
+        ok.Should().BeFalse("이미 있는 버전 이름으로는 거부");
+        repository.LastRenamedFileName.Should().BeNull("중복이면 저장소 호출 안 함");
+        sut.Versions.Should().Contain(v => v.Name == "KJV");
+    }
+
+    [Fact]
+    public async Task RenameVersion_UnchangedName_IsNoOpSuccess()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.RenameVersion(fixture.Kjv, "KJV");
+
+        ok.Should().BeTrue("이름이 같으면 변경 없이 성공으로 처리");
+        repository.LastRenamedFileName.Should().BeNull("변경 없으면 저장소 호출 안 함");
+    }
+
     private sealed class FakeBibleRepository : IBibleRepository
     {
         public IReadOnlyList<BibleVersion> Versions { get; init; } = [];
@@ -148,8 +198,15 @@ public class BibleViewModelTests
 
         public BibleVersion? LastRegion2 { get; private set; }
 
+        public string? LastRenamedFileName { get; private set; }
+
+        public string? LastRenamedNewName { get; private set; }
+
+        // 이름 변경이 재로드에 반영되도록 가변 작업 목록을 둔다(실제 저장소처럼).
+        private List<BibleVersion>? _live;
+
         public IReadOnlyList<BibleVersion> GetVersions(string workingFolder)
-            => Versions;
+            => _live ??= Versions.ToList();
 
         public IReadOnlyList<BibleBook> GetBooks(BibleVersion version)
             => Books;
@@ -199,6 +256,21 @@ public class BibleViewModelTests
             return new BibleSelection(
                 $"{parts[0]};{region1.FileName};{region2?.FileName ?? ""};{tail}",
                 $"{baseTitle} ({suffix})");
+        }
+
+        public bool RenameVersion(string workingFolder, string fileName, string newName)
+        {
+            LastRenamedFileName = fileName;
+            LastRenamedNewName = newName;
+            _live ??= Versions.ToList();
+            var index = _live.FindIndex(v => v.FileName == fileName);
+            if (index < 0 || string.IsNullOrWhiteSpace(newName))
+            {
+                return false;
+            }
+
+            _live[index] = _live[index] with { Name = newName.Trim() };
+            return true;
         }
     }
 

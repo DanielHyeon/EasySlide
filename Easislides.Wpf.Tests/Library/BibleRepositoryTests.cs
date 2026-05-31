@@ -101,6 +101,67 @@ public class BibleRepositoryTests
     }
 
     [Fact]
+    public void RenameVersion_UpdatesNameForMatchingFile()
+    {
+        // 성경 버전 이름 변경 = Biblefolder.NAME 컬럼 UPDATE(본문 파일은 그대로). FILENAME 으로 행을 찾는다.
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),
+            ("NIV", "niv.db", "New International", "C", 4, 120, 2));
+        fixture.CreateBible("kjv.db");
+        fixture.CreateBible("niv.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.RenameVersion(fixture.WorkingFolder, "kjv.db", "개역개정");
+
+        ok.Should().BeTrue();
+        sut.GetVersions(fixture.WorkingFolder).Select(v => v.Name).Should().Equal("개역개정", "NIV");
+    }
+
+    [Fact]
+    public void RenameVersion_UnknownFile_ReturnsFalse_AndLeavesNamesUnchanged()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        fixture.CreateBible("kjv.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.RenameVersion(fixture.WorkingFolder, "ghost.db", "없는버전");
+
+        ok.Should().BeFalse("대상 파일이 없으면 변경 없음");
+        sut.GetVersions(fixture.WorkingFolder).Single().Name.Should().Be("KJV");
+    }
+
+    [Fact]
+    public void RenameVersion_HiddenVersion_IsNotRenamed()
+    {
+        // DISPLAYORDER<0(숨김/삭제 예정) 버전은 GetVersions 가 노출하지 않으므로 rename 대상도 아니다
+        // (write 집합을 보이는 버전으로 한정 — VM 의 중복 검사 집합과 일치).
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("Hidden", "hidden.db", "임시", "C", 0, 90, -1),
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        fixture.CreateBible("kjv.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.RenameVersion(fixture.WorkingFolder, "hidden.db", "바뀐이름");
+
+        ok.Should().BeFalse("숨김 버전은 rename 대상이 아님(DISPLAYORDER>=0 가드)");
+    }
+
+    [Fact]
+    public void RenameVersion_EmptyNewName_ReturnsFalse()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        fixture.CreateBible("kjv.db");
+        var sut = new BibleRepository();
+
+        sut.RenameVersion(fixture.WorkingFolder, "kjv.db", "   ").Should().BeFalse("빈 이름은 거부");
+        sut.GetVersions(fixture.WorkingFolder).Single().Name.Should().Be("KJV");
+    }
+
+    [Fact]
     public void ChangeSelectionVersions_PreservesPassagesAndUpdatesTitleSuffix()
     {
         using var fixture = BibleDatabaseFixture.Create();

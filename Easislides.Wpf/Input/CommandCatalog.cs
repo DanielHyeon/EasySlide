@@ -137,6 +137,12 @@ public sealed class CommandCatalog : ICommandCatalog
             "성경 창을 엽니다(버전·구절 검색).",
             isDangerous: false),
         Command(
+            MainCommandIds.WindowManageBibleVersions,
+            "창",
+            "성경 버전 관리",
+            "성경 버전 이름을 바꿉니다(본문은 그대로).",
+            isDangerous: false),
+        Command(
             MainCommandIds.WindowSearch,
             "창",
             "검색·사용처",
