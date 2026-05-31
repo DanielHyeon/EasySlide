@@ -124,6 +124,56 @@ public class OutputWindowViewModelTests
         sut.BlackoutOverlayVisibility.Should().Be(Visibility.Visible);
     }
 
+    [Theory]
+    [InlineData(LyricsTextAlignment.Left, TextAlignment.Left, HorizontalAlignment.Left)]
+    [InlineData(LyricsTextAlignment.Center, TextAlignment.Center, HorizontalAlignment.Center)]
+    [InlineData(LyricsTextAlignment.Right, TextAlignment.Right, HorizontalAlignment.Right)]
+    public void ApplySession_MapsLyricsAlignmentToWpfAlignments(
+        LyricsTextAlignment alignment, TextAlignment expectedText, HorizontalAlignment expectedHorizontal)
+    {
+        // 인-셸 가사 정렬: 설정 enum → 출력 본문 TextBlock 의 TextAlignment + HorizontalAlignment 매핑.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTextAlignment, alignment).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyTextAlignment.Should().Be(expectedText);
+        sut.BodyHorizontalAlignment.Should().Be(expectedHorizontal);
+    }
+
+    [Fact]
+    public void ApplySession_DefaultLyricsAlignment_IsCenter()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyTextAlignment.Should().Be(TextAlignment.Center);
+        sut.BodyHorizontalAlignment.Should().Be(HorizontalAlignment.Center);
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesLyricsAlignment()
+    {
+        // 인-셸 인스펙터가 정렬 설정을 바꾸면 라이브 출력에 즉시 반영(SettingsChanged 화이트리스트).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorTextAlignment, LyricsTextAlignment.Left).Succeeded.Should().BeTrue();
+
+        sut.BodyTextAlignment.Should().Be(TextAlignment.Left);
+        sut.BodyHorizontalAlignment.Should().Be(HorizontalAlignment.Left);
+    }
+
     [Fact]
     public void ApplyOutput_Closed_ReturnsToStandby()
     {

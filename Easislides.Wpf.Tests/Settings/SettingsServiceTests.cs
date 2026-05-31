@@ -33,6 +33,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsTextAlignment_PersistsEnumToDiskAndReloads()
+    {
+        // 인-셸 가사 정렬 enum 의 디스크 round-trip 고정(JsonStringEnumConverter 역직렬화 경로 검증).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorTextAlignment, LyricsTextAlignment.Right).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorTextAlignment).Should().Be(LyricsTextAlignment.Right);
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Right);
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();

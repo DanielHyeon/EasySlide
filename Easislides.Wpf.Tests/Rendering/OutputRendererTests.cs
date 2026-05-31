@@ -251,6 +251,44 @@ public class OutputRendererTests
         scene.TransitionFrame.Kind.Should().Be(TransitionEffectKind.Fade);
     }
 
+    [Theory]
+    [InlineData(LyricsTextAlignment.Left)]
+    [InlineData(LyricsTextAlignment.Center)]
+    [InlineData(LyricsTextAlignment.Right)]
+    public void CreateScene_Threads_LyricsTextAlignment(LyricsTextAlignment alignment)
+    {
+        // 인-셸 가사 정렬(§7.3-A): 설정→렌더→scene 으로 정렬 값이 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorTextAlignment: alignment);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextAlignment.Should().Be(alignment);
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsLyricsAlignmentToCenter()
+    {
+        // 기본값은 Center — 기존 출력(가운데 정렬) 동작 보존.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Center);
+    }
+
     [Fact]
     public void CreateScene_Threads_BackgroundGradientColor2()
     {
