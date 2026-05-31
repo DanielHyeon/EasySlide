@@ -70,9 +70,10 @@ public sealed class LiveSessionService : ILiveSessionService
             item.PreviewFillMode,
             pixelWidth,
             pixelHeight,
-            // 곡 항목이면 가사를, 그 외(미리보기 이미지로 송출되는 PPT/미디어 등)는 빈 본문을 싣는다.
+            // 곡 항목이면 현재 절(LyricsPageIndex)을, 그 외(PPT/미디어 등)는 빈 본문을 싣는다.
             // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
-            CurrentItemBodyText: LyricsDisplayFormatter.ToDisplayText(item.Lyrics)));
+            // LyricsPageIndex=0 이면 첫 절, GoLive 호출 전에 MainViewModel 이 현재 페이지를 얹어 전달한다.
+            CurrentItemBodyText: LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex)));
     }
 
     // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를

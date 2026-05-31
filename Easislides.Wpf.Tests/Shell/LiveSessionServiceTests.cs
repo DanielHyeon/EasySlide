@@ -123,9 +123,10 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
-    public void GoLive_WithSongLyrics_CarriesDisplayTextWithMarkersStripped()
+    public void GoLive_WithSongLyrics_CarriesFirstVerseByDefault()
     {
-        // 곡 가사가 스냅샷 본문으로 실리되, 작성 마커([1]/[~코드])는 출력용으로 제거된 표시 텍스트여야 한다.
+        // 절 단위 페이지네이션(PR B): LyricsPageIndex=0(기본)이면 첫 절만 출력에 보인다.
+        // 작성 마커([1]/[~코드])는 출력용으로 제거된다.
         var item = new LiveQueueItem("song-3", "은혜로다")
         {
             Lyrics = "[~G D]\n[1]\n1절 가사\n둘째 줄\n[2]\n2절 가사",
@@ -134,8 +135,24 @@ public class LiveSessionServiceTests
 
         sut.GoLive(item, "모니터 2");
 
-        sut.Current.CurrentItemBodyText.Should().Be("1절 가사\n둘째 줄\n\n2절 가사");
+        sut.Current.CurrentItemBodyText.Should().Be("1절 가사\n둘째 줄");
         sut.Current.CurrentItemBodyText.Should().NotContain("[");
+    }
+
+    [Fact]
+    public void GoLive_WithSongLyricsAtPage1_CarriesSecondVerse()
+    {
+        // LyricsPageIndex=1이면 두 번째 절만 출력에 보인다(MainViewModel이 이동 시 얹어 전달).
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[~G D]\n[1]\n1절 가사\n둘째 줄\n[2]\n2절 가사",
+            LyricsPageIndex = 1,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("2절 가사");
     }
 
     [Fact]

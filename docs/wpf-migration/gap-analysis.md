@@ -189,6 +189,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] G1.2 라이브 중 PPT 슬라이드 이동 — **완료**(2026-05-31: 이전/다음 버튼으로 덱 내 슬라이드 이동 + 라이브 출력 즉시 갱신, PPT 덱은 자동 advance 제외)
 - [x] G1.2 PPT 덱 썸네일 스트립 — **완료**(2026-05-31: PowerPoint 탭에 덱 전체 슬라이드 썸네일·클릭 이동·현재 강조, 백그라운드 로딩). **G1.2 PPT 트랙 사실상 완결**(잔여는 백로그 §G-α)
 - [x] G1.4 출력 렌더 패리티(부분) — **완료**(2026-05-31: 출력 배경 솔리드/그라데이션 스크린샷 기준 고정. 텍스트는 비결정성으로 제외, 속성 검증이 담당)
+- [x] G1.4 출력 가사 송출 1차 — **완료**(2026-05-31, PR #63: `LyricsDisplayFormatter.ToDisplayText`로 마커 제거 + `OutputWindow.BodyText` TextBlock 렌더. 곡 항목 GoLive 시 회중 화면에 가사 텍스트 송출, 본문 보일 때 타이틀 자동 숨김.)
+- [x] G1.4 절 단위 페이지네이션 + Next/Prev (PR B) — **완료**(2026-05-31: `LyricsDisplayFormatter.ToVersePages`/`GetVersePage`로 절 단위 분할, `LiveQueueItem.LyricsPageIndex`, `MainViewModel.NextLyricsPageCommand`/`PreviousLyricsPageCommand` + `LyricsPageLabel`. GoLive 시 현재 절만 출력, 라이브 중 이전/다음 절 이동 → 출력 즉시 갱신. MainWindow Preview 탭에 "이전 절/다음 절" 버튼 + 페이지 표시(N/M절). 테스트 591개 Green.)
 - [x] UI/UX 갭 분석(FrmMain ↔ MainWindow, 미이식 폼) — **완료**(2026-05-31, 아래 §7) — 단일 콘솔 통합 설계 제안
 - [x] §7.5 P0 — 인-셸 **출력 모양 인스펙터**(1차) — **완료**(2026-05-31: MainWindow 우측에서 글자색·배경 프리셋을 모달 없이 즉시 적용→라이브 반영). 단일 콘솔 통합 첫걸음.
 - [x] §7.5 P0 — 인라인 **콘텐츠 브라우저(곡)** 1차 — **완료**(2026-05-31: 좌측 "예배 순서"·"라이브러리" 탭, 폴더·곡 검색·더블클릭 추가. 별도 LibraryWindow 없이 셸에서 곡 추가). 모달 LibraryWindow 진입점은 한동안 병존(백로그: 제거/대체).
@@ -196,6 +198,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-B 라이브 화면 제어(숨김·복귀) — **완료**(2026-05-31: 운영바에 "숨김"(HideOutput)·"복귀"(Restore, Hidden→Active 콘텐츠 보존) 노출)
 - [x] §7.3-B 예배 순서 항목 이동(↑/↓)·제거 — **완료**(2026-05-31, PR #61: WorshipListPanel ↑/↓/제거 버튼. 값 동등성 record 중복은 ReferenceEquals 기반으로 정확한 인스턴스 이동/제거, 라이브 항목 제거 시 _liveItemId 고아 정리)
 - [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(정렬·헤딩·세분 색 ColorPicker) / Clear·Restart·Refresh / 모달 Library·Bible 진입점 정리
+- [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
 
