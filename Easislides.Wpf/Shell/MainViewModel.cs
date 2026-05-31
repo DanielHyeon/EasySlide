@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -28,12 +29,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ISettingsService _settings;
     private readonly IWorshipListStore _worshipLists;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
+    // 좌측 "검색" 탭의 교차 검색 결과를 큐에 추가할 때, 결과(SongSearchResult)엔 가사가 없어 SongId 로 곡 상세(가사)를 불러온다.
+    private readonly Data.IAdminSongDetailRepository _songDetail;
     // 명령 팔레트 실행에 쓰는 단축키 레지스트리 — BindShortcuts(앱 시작)에서 주입된다. 그 전엔 null.
     private ShortcutRegistry? _shortcutRegistry;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
+
+    // 좌측 "검색" 탭에서 선택한 교차 검색 결과(폴더 가로지름). "예배 순서에 추가" 활성 여부를 좌우한다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddSearchedSongCommand))]
+    private SongSearchResult? _selectedSearchResult;
 
     // 중앙 미리보기 탭 인덱스(0=Preview, 1=PowerPoint, 2=Media) — 선택 항목 종류에 맞춰 자동 전환(FrmMain식 멀티페인).
     // 운영자가 항목을 고르면 알맞은 미리보기가 바로 보여 수동 탭 전환을 없앤다(§7.4 단일 콘솔).
@@ -217,6 +225,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public BibleViewModel Bible { get; }
 
     /// <summary>
+    /// 인라인 곡 검색 VM(폴더 가로지르는 다중 필드 검색). MainWindow 좌측 "검색" 탭이 바인딩한다
+    /// — 별도 SearchUsageWindow 를 열지 않고 셸에서 곡을 찾아 예배 순서에 추가(§7.4 단일 콘솔 통합).
+    /// (Titles/Usage 같은 관리용 기능은 기존 SearchUsageWindow 에 남겨 두고 팔레트로 연다.)
+    /// </summary>
+    public SearchUsageViewModel Search { get; }
+
+    /// <summary>
     /// 명령 팔레트 VM(⌘K, §7.4) — 명령 카탈로그를 검색해 단일 진입점으로 실행. MainWindow 오버레이가 바인딩한다.
     /// </summary>
     public CommandPaletteViewModel CommandPalette { get; }
@@ -233,8 +248,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Rendering.PowerPointPreviewViewModel powerPoint,
         LibraryViewModel library,
         BibleViewModel bible,
+        SearchUsageViewModel search,
         IWorshipListStore worshipLists,
-        IAppearanceTemplateStore appearanceTemplates)
+        IAppearanceTemplateStore appearanceTemplates,
+        Data.IAdminSongDetailRepository songDetail)
     {
         _session = session;
         _output = output;
@@ -245,9 +262,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings = settings;
         _worshipLists = worshipLists;
         _appearanceTemplates = appearanceTemplates;
+        _songDetail = songDetail;
         Media = media;
         Library = library;
         Bible = bible;
+        Search = search;
         PowerPoint = powerPoint;
         // 명령 팔레트(⌘K, §7.4) — 카탈로그를 검색해 ShortcutRegistry 바인딩으로 실행.
         // registry 는 BindShortcuts 에서 주입되므로(앱 시작 시) invoke 는 그 시점 이후 유효하다.
@@ -296,6 +315,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleTitleHeadingFirstScreenOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, ActiveTitleHeadingFirstScreenOnly));
         ToggleAutoRotateCommand = new RelayCommand(ToggleAutoRotate, () => _session.Current.State == LiveState.Active);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
+        AddSearchedSongCommand = new AsyncRelayCommand(AddSearchedSongAsync, () => SelectedSearchResult is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
@@ -303,6 +323,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousLyricsPageCommand = new RelayCommand(PreviousLyricsPage, CanGoPreviousLyricsPage);
         // 라이브러리 선택 곡이 바뀌면 "예배 순서에 추가" 활성 상태를 맞춘다.
         Library.PropertyChanged += OnLibraryPropertyChanged;
+        // 재검색으로 결과가 통째로 교체되면 부모의 선택을 비워 stale 방지(아래 OnSearchResultsChanged 참고).
+        Search.SearchResults.CollectionChanged += OnSearchResultsChanged;
 
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
@@ -358,6 +380,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleTitleHeadingFirstScreenOnlyCommand { get; }
     public IRelayCommand ToggleAutoRotateCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
+    public IAsyncRelayCommand AddSearchedSongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
@@ -420,6 +443,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"곡 추가됨: {song.Title}";
         NotifyCommandStates();
         return item;
+    }
+
+    /// <summary>
+    /// 좌측 "검색" 탭에서 고른 교차 검색 결과를 예배 순서(큐)에 추가한다(§7.4 단일 콘솔 통합 — 검색 창 인라인 흡수).
+    /// 검색 결과(SongSearchResult)에는 가사가 없으므로, 선택 결과의 SongId 로 곡 상세(가사 포함)를 불러온 뒤 AddSong 으로 채운다.
+    /// </summary>
+    private async Task AddSearchedSongAsync()
+    {
+        var result = SelectedSearchResult;
+        if (result is null)
+        {
+            StatusText = "선택된 검색 결과가 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        var databasePath = Search.DatabasePath;
+        if (string.IsNullOrWhiteSpace(databasePath))
+        {
+            StatusText = "검색 DB 경로가 설정되지 않았습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        // 검색 결과엔 가사가 없으므로 SongId 로 곡 상세를 불러와 가사까지 채운 뒤 큐에 추가.
+        var detail = await _songDetail.GetSongDetailAsync(databasePath, result.SongId).ConfigureAwait(true);
+        if (detail is null)
+        {
+            StatusText = $"곡을 찾을 수 없습니다: {result.Title}";
+            NotifyCommandStates();
+            return;
+        }
+
+        AddSong(new Data.SongSummary(
+            detail.SongId,
+            detail.Title,
+            detail.AlternateTitle,
+            detail.FolderNo,
+            detail.SongNumber,
+            detail.Category,
+            detail.Key,
+            detail.Lyrics));
     }
 
     // 예배 순서 항목 이동(↑/↓) — 큐 순서를 재정렬한다(FrmMain Move Item Up/Down). 선택 항목은 유지.
@@ -1381,6 +1446,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // 재검색을 하면 결과 목록이 통째로 바뀐다(이전 결과를 지우고 새 결과로 채움).
+    // 이때 사라진 옛 결과를 계속 "선택됨"으로 들고 있으면 엉뚱한 곡이 추가될 수 있으니,
+    // 더는 목록에 없는 선택은 여기서 직접 비운다. (화면 바인딩에 기대지 않고 VM 이 스스로 정리 → 테스트도 쉬움.)
+    // 선택을 null 로 바꾸면 [NotifyCanExecuteChangedFor] 가 "예배 순서에 추가" 버튼도 자동으로 끈다.
+    private void OnSearchResultsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (SelectedSearchResult is not null && !Search.SearchResults.Contains(SelectedSearchResult))
+        {
+            SelectedSearchResult = null;
+        }
+    }
+
     // 출력 모양 프리셋 적용 — 글자색·배경색·그라데이션 설정을 한 번에 쓴다.
     // 설정이 바뀌면 출력 VM(OutputWindowViewModel)이 SettingsChanged 로 라이브 출력을 즉시 갱신한다.
     private void ApplyOutputAppearance(OutputAppearancePreset? preset)
@@ -1787,6 +1864,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.SettingsChanged -= OnSettingsChanged;
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
         Library.PropertyChanged -= OnLibraryPropertyChanged;
+        Search.SearchResults.CollectionChanged -= OnSearchResultsChanged;
         // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나
         // MediaPlaybackViewModel.Dispose 가 멱등이라 안전(테스트는 new 생성이라 이 경로가 유일 해제).
         Media.Dispose();

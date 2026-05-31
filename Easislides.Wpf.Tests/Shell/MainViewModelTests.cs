@@ -2432,6 +2432,108 @@ public class MainViewModelTests
         sut.AddSelectedLibrarySongCommand.CanExecute(null).Should().BeTrue("곡 선택 시 추가 활성");
     }
 
+    // ── 후속#1: 검색 창을 좌측 "검색" 탭으로 인라인 흡수(폴더 가로지르는 교차 검색 → 예배 순서 추가) ──
+
+    [Fact]
+    public void Search_IsExposed_ForInlineSearchTab()
+    {
+        var sut = CreateSut();
+        sut.Search.Should().NotBeNull("좌측 '검색' 탭이 바인딩할 교차 검색 VM");
+    }
+
+    [Fact]
+    public void AddSearchedSongCommand_CanExecute_ReflectsSelectedSearchResult()
+    {
+        var sut = CreateSut();
+        sut.AddSearchedSongCommand.CanExecute(null).Should().BeFalse("초기엔 선택된 검색 결과 없음");
+
+        sut.SelectedSearchResult = new SongSearchResult(7, 1, "찬양 폴더", "은혜", "", 12, "", "G", new[] { "Title" }, "");
+
+        sut.AddSearchedSongCommand.CanExecute(null).Should().BeTrue("검색 결과 선택 시 추가 활성");
+    }
+
+    [Fact]
+    public async Task AddSearchedSong_LoadsLyricsBySongId_AndAddsToQueue()
+    {
+        // 검색 결과(SongSearchResult)에는 가사가 없으므로, 선택 결과의 SongId 로 곡 상세(가사 포함)를 불러와 큐에 채워야 한다.
+        var detail = SampleSongDetail(songId: 7, title: "은혜", lyrics: "1절 가사\n2절 가사");
+        var repo = new StubSongDetailRepository(detail);
+        var sut = CreateSut(songDetail: repo);
+
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        var result = new SongSearchResult(7, 1, "찬양 폴더", "은혜", "", 12, "", "G", new[] { "Title" }, "은혜로다");
+        sut.Search.SearchResults.Add(result);
+        sut.SelectedSearchResult = result;
+
+        await sut.AddSearchedSongCommand.ExecuteAsync(null);
+
+        repo.LastSongId.Should().Be(7, "선택한 검색 결과의 SongId 로 상세를 조회");
+        repo.LastDatabasePath.Should().Be(sut.Search.DatabasePath, "검색 VM 의 DB 경로로 조회");
+        sut.Queue.Should().Contain(
+            item => item.Title == "은혜" && item.Lyrics == "1절 가사\n2절 가사",
+            "검색 결과를 가사까지 채워 예배 순서에 추가");
+    }
+
+    [Fact]
+    public async Task AddSearchedSong_WhenDetailMissing_DoesNotAddAndReportsStatus()
+    {
+        // 상세 조회가 null(곡 삭제됨 등)이면 큐에 추가하지 않고 상태만 알린다.
+        var repo = new StubSongDetailRepository(detail: null);
+        var sut = CreateSut(songDetail: repo);
+        var initialCount = sut.Queue.Count;
+
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        var result = new SongSearchResult(99, 1, "찬양 폴더", "없는곡", "", 0, "", "", new[] { "Title" }, "");
+        sut.Search.SearchResults.Add(result);
+        sut.SelectedSearchResult = result;
+
+        await sut.AddSearchedSongCommand.ExecuteAsync(null);
+
+        sut.Queue.Count.Should().Be(initialCount, "상세를 찾지 못하면 큐 변화 없음");
+        sut.StatusText.Should().Contain("없는곡", "어떤 곡을 못 찾았는지 알린다");
+    }
+
+    [Fact]
+    public void Research_ReplacingResults_ClearsStaleSelection_AndDisablesAdd()
+    {
+        // 재검색으로 결과 목록이 통째로 교체(ReplaceWith=Clear+재추가)되면,
+        // 사라진 옛 결과를 가리키던 선택은 VM 이 스스로 비워야 한다(화면 바인딩 비의존).
+        var sut = CreateSut();
+        var first = new SongSearchResult(1, 1, "찬양 폴더", "첫 검색곡", "", 1, "", "", new[] { "Title" }, "");
+        sut.Search.SearchResults.Add(first);
+        sut.SelectedSearchResult = first;
+        sut.AddSearchedSongCommand.CanExecute(null).Should().BeTrue("선택이 있으면 추가 활성");
+
+        // 새 검색 결과로 목록을 통째로 교체(SearchUsageViewModel.SearchSongsAsync 의 ReplaceWith = Clear+재추가 와 동일 시퀀스).
+        sut.Search.SearchResults.Clear();
+        sut.Search.SearchResults.Add(new SongSearchResult(2, 1, "찬양 폴더", "다른 곡", "", 2, "", "", new[] { "Title" }, ""));
+
+        sut.SelectedSearchResult.Should().BeNull("교체로 사라진 선택은 비워져야 한다");
+        sut.AddSearchedSongCommand.CanExecute(null).Should().BeFalse("선택이 없으면 추가 비활성");
+    }
+
+    private static SongDetail SampleSongDetail(int songId, string title, string lyrics)
+        => new(songId, title, "", 1, 0, lyrics, "", "", "", 0, "", "", "", "", "", "", "", "", "", "");
+
+    // 곡 상세(가사) 조회 스텁 — 검색 결과 SongId → 가사 로드 경로 검증용.
+    private sealed class StubSongDetailRepository : IAdminSongDetailRepository
+    {
+        private readonly SongDetail? _detail;
+
+        public StubSongDetailRepository(SongDetail? detail) => _detail = detail;
+
+        public string? LastDatabasePath { get; private set; }
+
+        public int LastSongId { get; private set; }
+
+        public Task<SongDetail?> GetSongDetailAsync(string databasePath, int songId)
+        {
+            LastDatabasePath = databasePath;
+            LastSongId = songId;
+            return Task.FromResult(_detail);
+        }
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
@@ -2439,7 +2541,8 @@ public class MainViewModelTests
         ISettingsService? settings = null,
         IWorshipListStore? worshipLists = null,
         PowerPointPreviewViewModel? powerPoint = null,
-        IAppearanceTemplateStore? appearanceTemplates = null)
+        IAppearanceTemplateStore? appearanceTemplates = null,
+        IAdminSongDetailRepository? songDetail = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -2447,9 +2550,10 @@ public class MainViewModelTests
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
         powerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());
         var resolvedSettings = settings ?? TempSettingsFolder.CreateDetachedSettings();
-        // 라이브러리/성경 VM — 테스트는 작업 폴더/DB 미설정이라 실제 repo 가 데이터를 반환하지 않는다(빈 목록).
+        // 라이브러리/성경/검색 VM — 테스트는 작업 폴더/DB 미설정이라 실제 repo 가 데이터를 반환하지 않는다(빈 목록).
         var library = new LibraryViewModel(resolvedSettings, new AdminDatabaseRepository());
         var bible = new BibleViewModel(resolvedSettings, new BibleRepository());
+        var search = new SearchUsageViewModel(resolvedSettings, new SearchUsageService(new AdminDatabaseRepository()));
         return new MainViewModel(
             session,
             output,
@@ -2462,8 +2566,10 @@ public class MainViewModelTests
             powerPoint,
             library,
             bible,
+            search,
             worshipLists ?? new InMemoryWorshipListStore(),
-            appearanceTemplates ?? new InMemoryAppearanceTemplateStore());
+            appearanceTemplates ?? new InMemoryAppearanceTemplateStore(),
+            songDetail ?? new AdminDatabaseRepository());
     }
 
     // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.
