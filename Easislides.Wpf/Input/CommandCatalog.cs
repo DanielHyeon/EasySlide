@@ -81,6 +81,104 @@ public sealed class CommandCatalog : ICommandCatalog
             "현재 라이브 출력을 검은 화면으로 전환합니다.",
             isDangerous: true,
             new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면")),
+        // 화면 제어 보강(§7.3-B) — 명령 팔레트(⌘K)에서 검색·실행. 단축키는 미배정(필요 시 설정에서 부여).
+        Command(
+            MainCommandIds.LiveClear,
+            "Live",
+            "화면 비우기",
+            "가사/콘텐츠를 비우고 배경만 송출합니다(검은 화면과 구별).",
+            isDangerous: true),
+        Command(
+            MainCommandIds.LiveRestart,
+            "Live",
+            "처음으로",
+            "현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출합니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.LiveRefresh,
+            "Live",
+            "출력 새로고침",
+            "출력 화면을 다시 그립니다(디스플레이 글리치 복구).",
+            isDangerous: false),
+        Command(
+            MainCommandIds.LiveRestore,
+            "Live",
+            "출력 복귀",
+            "숨김/검은 화면/비우기에서 직전 송출로 복귀합니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.LiveAutoRotate,
+            "Live",
+            "자동 회전 토글",
+            "라이브 중 절/슬라이드를 일정 간격으로 자동 전환합니다(§7.3-B).",
+            isDangerous: false),
+        // 창 런처(§7.4) — FrmMain 의 분리 창을 명령 팔레트로 흡수. 실행은 View(MainWindow)가 등록.
+        Command(
+            MainCommandIds.WindowLibrary,
+            "창",
+            "라이브러리 열기",
+            "곡 라이브러리 창을 엽니다(곡 검색·복사·이동·삭제).",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowBible,
+            "창",
+            "성경 열기",
+            "성경 창을 엽니다(버전·구절 검색).",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowSearch,
+            "창",
+            "검색·사용처",
+            "곡 검색 및 사용처 보고 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowImportExport,
+            "창",
+            "가져오기·내보내기",
+            "Import/Export 창을 엽니다(텍스트/XML/DB/RTF/HTML).",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowExternalFiles,
+            "창",
+            "외부 파일 복사·이동",
+            "외부 파일 복사/이동 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowManageLists,
+            "창",
+            "예배 순서 관리",
+            "예배 순서를 저장/불러오는 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowSettings,
+            "창",
+            "설정 열기",
+            "설정 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowHelp,
+            "창",
+            "도움말 열기",
+            "도움말 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowRegistration,
+            "창",
+            "등록 안내",
+            "등록 페이지 안내 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WindowAbout,
+            "창",
+            "정보",
+            "EasiSlides 정보 창을 엽니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.AddExternalFile,
+            "예배 순서",
+            "파일 추가",
+            "PowerPoint/미디어 파일을 예배 순서에 추가합니다.",
+            isDangerous: false),
     };
 
     public CommandCatalog()

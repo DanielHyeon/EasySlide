@@ -33,6 +33,7 @@ public partial class MainWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
         viewModel.BindShortcuts(_shortcuts);
+        BindWindowLaunchers();
 
         _autoRotateTimer = new DispatcherTimer();
         _autoRotateTimer.Tick += (_, _) => _viewModel.AdvanceAutoRotation();
@@ -44,6 +45,26 @@ public partial class MainWindow : Window
         // FrmMain식 멀티페인: 좌측 브라우저가 항상 보이므로 시작 시 곡 목록을 채운다(FrmMain 은 곡 목록을 즉시 표시).
         // 성경은 비용이 커 기존대로 "성경" 탭 첫 선택 시 지연 로드한다.
         Loaded += MainWindow_Loaded;
+    }
+
+    // 창 런처(§7.4) — 명령 팔레트(⌘K)가 분리 창을 열 수 있도록 레지스트리에 등록.
+    // 창 열기는 IServiceProvider/Window 가 필요한 View 책임이라 VM 의 BindShortcuts 가 아닌 여기서 등록한다.
+    // 각 핸들러는 sender/e 를 쓰지 않으므로 빈 RoutedEventArgs 로 호출한다(버튼 클릭과 동일 동작).
+    private void BindWindowLaunchers()
+    {
+        void Bind(string id, RoutedEventHandler handler) => _shortcuts.Bind(id, () => handler(this, new RoutedEventArgs()));
+
+        Bind(MainCommandIds.WindowLibrary, OpenLibrary_Click);
+        Bind(MainCommandIds.WindowBible, OpenBible_Click);
+        Bind(MainCommandIds.WindowSearch, OpenSearchUsage_Click);
+        Bind(MainCommandIds.WindowImportExport, OpenImportExport_Click);
+        Bind(MainCommandIds.WindowExternalFiles, OpenExternalFiles_Click);
+        Bind(MainCommandIds.WindowManageLists, OpenManageWorshipLists_Click);
+        Bind(MainCommandIds.WindowSettings, OpenSettings_Click);
+        Bind(MainCommandIds.WindowHelp, OpenHelp_Click);
+        Bind(MainCommandIds.WindowRegistration, OpenRegistration_Click);
+        Bind(MainCommandIds.WindowAbout, OpenAbout_Click);
+        Bind(MainCommandIds.AddExternalFile, AddExternalFile_Click);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e) => EnsureLibraryLoadedOnce();

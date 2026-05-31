@@ -650,6 +650,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         registry.Bind(MainCommandIds.LivePrevious, () => PreviousItemCommand.Execute(null));
         registry.Bind(MainCommandIds.LiveBlack, () => _ = BlackScreenCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveHide, () => _ = HideOutputCommand.ExecuteAsync(null));
+
+        // 화면 제어 보강(§7.3-B) — 명령 팔레트(⌘K)에서 실행. CanExecute 가 false 면(예: 출력 창 닫힘·라이브 아님)
+        // 실행하지 않아 버튼 비활성과 동일하게 동작한다(code-review MINOR — RelayCommand.Execute 는 CanExecute 를
+        // 자체 검사하지 않으므로 여기서 명시 게이트). IRelayCommand.Execute 는 async 커맨드면 fire-and-forget.
+        void BindGated(string commandId, CommunityToolkit.Mvvm.Input.IRelayCommand command)
+            => registry.Bind(commandId, () =>
+            {
+                if (command.CanExecute(null))
+                {
+                    command.Execute(null);
+                }
+            });
+
+        BindGated(MainCommandIds.LiveClear, ClearOutputCommand);
+        BindGated(MainCommandIds.LiveRestart, RestartCurrentItemCommand);
+        BindGated(MainCommandIds.LiveRefresh, RefreshOutputCommand);
+        BindGated(MainCommandIds.LiveRestore, RestoreOutputCommand);
+        BindGated(MainCommandIds.LiveAutoRotate, ToggleAutoRotateCommand);
     }
 
     public void RefreshOutputDisplays()
