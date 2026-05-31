@@ -118,6 +118,50 @@ public static class LyricsDisplayFormatter
         => GetVersePage(rawLyrics, pageIndex, sequence: null);
 
     /// <summary>
+    /// 중복 정의된 절 라벨을 찾는다(대소문자 무시, 처음 본 표기로 한 번씩, 발견 순서).
+    /// Sequence 모델에선 절을 [라벨] 마커로 한 번만 정의해야 하므로(반복은 Sequence 로), 같은 라벨이 두 번 나오면
+    /// 둘째 정의가 무시되는 작성 오류다 — SongEditor 가 이 결과로 경고를 띄운다(레거시 FrmInfoScreen 중복 절 검증 대응).
+    /// </summary>
+    public static IReadOnlyList<string> FindDuplicateSectionLabels(string? rawLyrics)
+    {
+        if (string.IsNullOrWhiteSpace(rawLyrics))
+        {
+            return Array.Empty<string>();
+        }
+
+        var text = rawLyrics
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal)
+            .Replace("Â»", "»", StringComparison.Ordinal);
+
+        var firstSeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var reported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var duplicates = new List<string>();
+        foreach (var line in text.Split('\n'))
+        {
+            var label = SectionLabel(line);
+            if (label is null)
+            {
+                continue;
+            }
+
+            if (firstSeen.TryGetValue(label, out var original))
+            {
+                if (reported.Add(label))
+                {
+                    duplicates.Add(original); // 처음 본 표기로 한 번만 보고.
+                }
+            }
+            else
+            {
+                firstSeen[label] = label;
+            }
+        }
+
+        return duplicates;
+    }
+
+    /// <summary>
     /// 절 순서(Sequence)로 절을 펼친다. sequence 가 비었거나 매칭되는 절 라벨이 하나도 없으면 null(→ 선형 폴백).
     /// </summary>
     private static IReadOnlyList<string>? TryExpandBySequence(string? rawLyrics, string? sequence)

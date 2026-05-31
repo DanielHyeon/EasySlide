@@ -76,6 +76,33 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public void Lyrics_DuplicateSectionLabels_ShowsSectionWarning_NonBlocking()
+    {
+        // Sequence 모델: 절은 1회 정의. 같은 라벨([C]) 두 번 정의 시 비차단 경고를 띄운다(저장은 막지 않음).
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Lyrics = "[1]\nVerse\n[C]\nChorus\n[C]\nDup chorus";
+
+        sut.SectionWarning.Should().Contain("C").And.Contain("중복");
+    }
+
+    [Fact]
+    public void Lyrics_NoDuplicateSectionLabels_ClearsSectionWarning()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Lyrics = "[1]\nVerse\n[C]\nChorus\n[2]\nVerse two";
+
+        sut.SectionWarning.Should().BeEmpty("중복 라벨이 없으면 경고 없음");
+    }
+
+    [Fact]
     public async Task SaveAsync_WhenTitleMissing_ShowsValidationAndDoesNotWrite()
     {
         using var fixture = TempSongEditorSettings.Create();

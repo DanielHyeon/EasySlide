@@ -63,6 +63,9 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _previewFontFamilyName = "Segoe UI";
     [ObservableProperty] private double _previewMainFontSize = 18;
     [ObservableProperty] private double _previewNotationFontSize = 14;
+
+    /// <summary>중복 정의된 절 라벨 경고(비면 문제 없음). Sequence 모델은 절을 1회 정의해야 하므로 같은 라벨 2회는 작성 오류.</summary>
+    [ObservableProperty] private string _sectionWarning = "";
     [ObservableProperty] private string _statusMessage = "";
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _hasChanges;
@@ -449,6 +452,12 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         PreviewFormatStatus = BuildPreviewFormatStatus();
         PreviewForegroundHex = ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb));
         PreviewBackgroundHex = ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb));
+
+        // 같은 절 라벨이 두 번 정의되면 경고(절은 1회 정의 + Sequence 로 반복). 비면 문제 없음.
+        var duplicates = Shell.LyricsDisplayFormatter.FindDuplicateSectionLabels(Lyrics);
+        SectionWarning = duplicates.Count == 0
+            ? ""
+            : $"중복된 절 표시: {string.Join(", ", duplicates)} — 절은 한 번만 정의하고 Sequence(예: 1 C 2 C)로 반복하세요.";
     }
 
     private string BuildPreviewMetadata()
