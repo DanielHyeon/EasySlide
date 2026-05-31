@@ -21,7 +21,10 @@ public sealed record LiveSessionSnapshot(
     int CurrentItemPreviewPixelHeight = 0,
     // 라이브 곡 항목의 가사 본문(출력 화면 중앙에 텍스트로 송출). 곡이 아니거나 가사가 없으면 빈 문자열.
     // PPT/미디어처럼 미리보기 이미지로 송출되는 항목은 이 값이 비어 있고, 곡은 반대로 이미지가 비고 본문이 찬다.
-    string CurrentItemBodyText = "")
+    string CurrentItemBodyText = "",
+    // 비우기(Clear) 모드 — State=Hidden 이면서 IsBlackout=false 일 때 콘텐츠는 감추되 배경은 유지(레거시 LiveClear).
+    // IsBlackout(완전 검정)과 상호 배타. 기본 false. 출력 렌더러가 Cleared 씬으로 해석한다.
+    bool IsCleared = false)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -45,7 +48,9 @@ public interface ILiveSessionService
 
     void GoLive(LiveQueueItem item, string outputMonitorName);
     void HideOutput(bool blackout);
+    void ClearOutput();
     void Restore();
+    void Refresh();
     void Stop();
 }
 
@@ -99,11 +104,31 @@ public sealed class LiveSessionService : ILiveSessionService
         {
             State = LiveState.Hidden,
             IsBlackout = blackout,
+            // Black/Hide 는 Clear 와 상호 배타 — 전환 시 비우기 플래그를 끈다.
+            IsCleared = false,
         });
     }
 
-    // 숨김/블랙아웃에서 송출 화면을 되살린다 — 콘텐츠(가사·슬라이드)는 HideOutput 이 보존하므로
-    // 상태만 Active 로 되돌리고 블랙아웃을 해제하면 직전 항목이 그대로 다시 보인다.
+    // 화면 비우기(레거시 LiveClear) — 콘텐츠는 감추되 배경은 유지(완전 검정인 Black 과 구별).
+    // State=Hidden + IsCleared=true 로 두어 출력 렌더러가 Cleared 씬(배경만)으로 해석한다.
+    // 콘텐츠(가사·슬라이드 등)는 보존하므로 Restore 시 직전 항목이 그대로 다시 보인다.
+    public void ClearOutput()
+    {
+        if (Current.State == LiveState.Off)
+        {
+            return;
+        }
+
+        Update(Current with
+        {
+            State = LiveState.Hidden,
+            IsBlackout = false,
+            IsCleared = true,
+        });
+    }
+
+    // 숨김/블랙아웃/비우기에서 송출 화면을 되살린다 — 콘텐츠(가사·슬라이드)는 보존되므로
+    // 상태만 Active 로 되돌리고 블랙아웃·비우기 플래그를 해제하면 직전 항목이 그대로 다시 보인다.
     public void Restore()
     {
         if (Current.State != LiveState.Hidden)
@@ -115,8 +140,15 @@ public sealed class LiveSessionService : ILiveSessionService
         {
             State = LiveState.Active,
             IsBlackout = false,
+            IsCleared = false,
         });
     }
+
+    // 출력 강제 재렌더(레거시 RefreshOutput) — 스냅샷이 바뀌지 않아도 현재 상태로 SessionChanged 를
+    // 다시 발생시켜 출력 창이 씬을 다시 그리게 한다(디스플레이 글리치·설정 변경 후 복구용).
+    // Update 의 동등성 가드를 우회해야 하므로 이벤트를 직접 발생시킨다.
+    public void Refresh()
+        => SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
 
     public void Stop() => Update(LiveSessionSnapshot.Off);
 

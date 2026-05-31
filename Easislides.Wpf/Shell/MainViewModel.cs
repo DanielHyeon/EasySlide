@@ -150,7 +150,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
+        ClearOutputCommand = new AsyncRelayCommand(ClearOutputAsync, CanUseLiveSafetyAction);
         RestoreOutputCommand = new RelayCommand(RestoreOutput, () => _session.Current.State == LiveState.Hidden);
+        RestartCurrentItemCommand = new AsyncRelayCommand(RestartCurrentItemAsync, CanRestartCurrentItem);
+        RefreshOutputCommand = new RelayCommand(RefreshOutput, () => _output.Current.IsOpen);
         NextSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber + 1), CanGoNextSlide);
         PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
@@ -184,7 +187,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand PreviousItemCommand { get; }
     public IAsyncRelayCommand HideOutputCommand { get; }
     public IAsyncRelayCommand BlackScreenCommand { get; }
+    public IAsyncRelayCommand ClearOutputCommand { get; }
     public IRelayCommand RestoreOutputCommand { get; }
+    public IAsyncRelayCommand RestartCurrentItemCommand { get; }
+    public IRelayCommand RefreshOutputCommand { get; }
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
@@ -878,11 +884,83 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    // 숨김/블랙에서 송출 화면 복귀 — 직전 항목을 그대로 다시 보인다(저위험이라 안전 확인 없음).
+    // 화면 비우기(레거시 Clear Screen) — 콘텐츠를 감추되 배경은 유지(완전 검정인 Black 과 구별).
+    // Hide/Black 과 동일하게 라이브 안전 확인을 거친다(회중 화면이 즉시 바뀌므로).
+    private async Task ClearOutputAsync()
+    {
+        var ok = await ConfirmLiveSafetyAsync(
+            MainCommandIds.LiveClear,
+            "현재 송출 화면을 비울까요?",
+            "가사·콘텐츠가 사라지고 배경만 남습니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+        if (!ok)
+        {
+            return;
+        }
+
+        _session.ClearOutput();
+        StatusText = "화면 비움(배경 유지)";
+        _telemetry.Record(MainCommandIds.LiveClear, succeeded: true, StatusText);
+        NotifyCommandStates();
+    }
+
+    // 숨김/블랙/비우기에서 송출 화면 복귀 — 직전 항목을 그대로 다시 보인다(저위험이라 안전 확인 없음).
     private void RestoreOutput()
     {
         _session.Restore();
         StatusText = "출력 복귀";
+        NotifyCommandStates();
+    }
+
+    // 현재 항목 처음으로(레거시 Restart Current Item) — 라이브 곡은 첫 절로, PPT 덱은 첫 슬라이드로 되돌려 재송출.
+    // 슬라이드/절 이동과 같은 가드(선택 == 라이브 항목)를 써서 라이브 항목에만 적용한다.
+    //
+    // 안전 확인 정책: Restart 는 안전 확인(5초)을 두지 않는다 — Clear/Hide/Black(화면을 가리는 행위)과 달리
+    // "처음으로"는 다음/이전 절·슬라이드 이동과 같은 *네비게이션* 계열이고(되돌릴 수 있음: 다시 넘기면 됨),
+    // 라이브 글리치 복구처럼 빠른 조작이 중요하므로 즉시 적용한다(Next/Prev 가 무확인인 것과 일관).
+    private async Task RestartCurrentItemAsync()
+    {
+        if (!CanRestartCurrentItem() || SelectedItem is not { } item)
+        {
+            return;
+        }
+
+        if (IsPowerPointItem(item))
+        {
+            // PPT 덱: 첫 슬라이드로. 이미 1번이면 GoToSlideAsync 가 무시하므로(target==현재) Refresh 로 강제 재렌더.
+            if (PowerPoint.SlideNumber <= 1)
+            {
+                _session.Refresh();
+            }
+            else
+            {
+                await GoToSlideAsync(1).ConfigureAwait(true);
+            }
+        }
+        else
+        {
+            // 곡: 첫 절로 되돌려 출력 재송출.
+            LyricsPageIndex = 0;
+            PublishLyricsPageIfLive();
+        }
+
+        StatusText = $"처음으로: {item.Title}";
+        _telemetry.Record(MainCommandIds.LiveRestart, succeeded: true, StatusText);
+        NotifyCommandStates();
+    }
+
+    // 라이브 활성 + 선택이 곧 라이브 항목일 때만 — 슬라이드/절 이동 가드와 동일 철학(엉뚱한 항목 재시작 방지).
+    private bool CanRestartCurrentItem()
+        => _session.Current.State == LiveState.Active
+           && SelectedItem is not null
+           && _liveItemId == SelectedItem.Id;
+
+    // 출력 새로고침(레거시 Refresh Output) — 현재 세션 스냅샷으로 출력 창을 강제 재렌더한다.
+    private void RefreshOutput()
+    {
+        _session.Refresh();
+        StatusText = "출력 새로고침";
+        _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
+        // 사이드이펙트(ApplyLiveSnapshot)에 기대지 않고 명시적으로 커맨드 상태를 갱신(리뷰 #1).
         NotifyCommandStates();
     }
 
@@ -1103,7 +1181,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand.NotifyCanExecuteChanged();
         HideOutputCommand.NotifyCanExecuteChanged();
         BlackScreenCommand.NotifyCanExecuteChanged();
+        ClearOutputCommand.NotifyCanExecuteChanged();
         RestoreOutputCommand.NotifyCanExecuteChanged();
+        RestartCurrentItemCommand.NotifyCanExecuteChanged();
+        RefreshOutputCommand.NotifyCanExecuteChanged();
         NextSlideCommand.NotifyCanExecuteChanged();
         PreviousSlideCommand.NotifyCanExecuteChanged();
         GoToSlideCommand.NotifyCanExecuteChanged();

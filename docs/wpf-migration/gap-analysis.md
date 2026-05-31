@@ -197,7 +197,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.5 P0 — 인라인 **성경 브라우저** 1차 — **완료**(2026-05-31: 좌측 "성경" 탭, BibleVerseFinder 재사용 + 본문 구절 드래그 선택→예배 순서 추가. 별도 BibleWindow 없이 셸에서 성경 추가). → **좌측 단일 콘솔(예배 순서/라이브러리/성경) 완성**
 - [x] §7.3-B 라이브 화면 제어(숨김·복귀) — **완료**(2026-05-31: 운영바에 "숨김"(HideOutput)·"복귀"(Restore, Hidden→Active 콘텐츠 보존) 노출)
 - [x] §7.3-B 예배 순서 항목 이동(↑/↓)·제거 — **완료**(2026-05-31, PR #61: WorshipListPanel ↑/↓/제거 버튼. 값 동등성 record 중복은 ReferenceEquals 기반으로 정확한 인스턴스 이동/제거, 라이브 항목 제거 시 _liveItemId 고아 정리)
-- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(정렬·헤딩·세분 색 ColorPicker) / Clear·Restart·Refresh / 모달 Library·Bible 진입점 정리
+- [x] §7.3-B 화면 제어 보강(비우기·처음으로·새로고침) — **완료**(2026-05-31: 비우기(Clear)=콘텐츠 감추고 배경 유지(`OutputSceneKind.Cleared`/`IsCleared`, Black과 상호배타·복귀 가능), 처음으로(Restart)=라이브 곡 첫 절/PPT 첫 슬라이드 재송출(이미 1슬라이드면 Refresh 폴백), 새로고침(Refresh)=출력 강제 재렌더(SessionChanged 재발생). 테스트 612 green, code-reviewer 3건 반영)
+- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(정렬·헤딩·세분 색 ColorPicker) / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -244,7 +245,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | 기능 | FrmMain | WPF |
 |---|---|---|
 | Go LIVE / Black / Next·Prev | Start Show-Go LIVE, Black Screen, Move Next | ✅ 있음 |
-| 화면 제어 | Clear Screen, Hide Text, Refresh Output, Restart Current Item | 🟡 Black + **숨김(Hide)·복귀(Restore)** 운영바 노출(2026-05-31). Clear/Restart/Refresh 잔여 |
+| 화면 제어 | Clear Screen, Hide Text, Refresh Output, Restart Current Item | ✅ Black + 숨김(Hide)·복귀(Restore) + **비우기(Clear)·처음으로(Restart)·새로고침(Refresh)** 운영바 노출(2026-05-31). 비우기=배경유지(Black과 구별, `OutputSceneKind.Cleared`), 처음으로=라이브 곡 첫 절/PPT 첫 슬라이드 재송출, 새로고침=출력 강제 재렌더 |
 | 자동 회전 | Auto Rotate Group/One Item(+Repeat), Stop Auto Rotate, Rotate Style | 🔴 없음 |
 | Gap/안내 | Gap Item, Alerts(경고 오버레이) | 🟡 출력측 오버레이만, 조작 UI 없음 |
 | 보조 화면 | InfoScr, Copy to InfoScreen, Apply to All Except InfoScreens | 🔴 없음(FrmInfoScreen 미이식) |
@@ -296,7 +297,7 @@ Import/Export·Generate RTF/HTML·Copy/Move/Delete·Recover·Smart Merge·Search
 - **P0 (운영 본질·최우선)**
   - (a) **컨텍스트 인스펙터 + 인-셸 가사 포맷팅**: 정렬·폰트효과·리전·헤딩·배경색 → 라이브 중 모달 없이 조정(§7.3-A). 이미 `LiveOutputRenderSettings`/`OutputWindowViewModel` 가 다수 속성을 보유 → **UI 노출이 갭의 핵심**.
   - (b) **인라인 콘텐츠 브라우저**: LibraryWindow/BibleWindow 를 좌측 도킹 패널로 흡수(별도 창 제거).
-  - (c) **화면 제어 보강**: Clear/Hide/Restart + InfoScreen 토글.
+  - (c) **화면 제어 보강**: ✅ Clear/Hide/Restart/Refresh 완료(2026-05-31). InfoScreen 토글은 FrmInfoScreen 미이식이라 후속.
 - **P1 (운영 편의)**
   - 명령 팔레트(⌘K) + 단축키 확장 / 자동 회전(Group/One, Repeat, Stop) / 코드 표기·조옮김 인스펙터 / 큐 드래그 재정렬.
 - **P2 (구조·완성)**

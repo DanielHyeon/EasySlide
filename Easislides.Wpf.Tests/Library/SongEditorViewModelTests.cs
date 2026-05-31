@@ -396,7 +396,13 @@ public class SongEditorViewModelTests
 
         public void HideOutput(bool blackout)
         {
-            Current = Current with { State = LiveState.Hidden, IsBlackout = blackout };
+            Current = Current with { State = LiveState.Hidden, IsBlackout = blackout, IsCleared = false };
+            SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
+        }
+
+        public void ClearOutput()
+        {
+            Current = Current with { State = LiveState.Hidden, IsBlackout = false, IsCleared = true };
             SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
         }
 
@@ -407,9 +413,12 @@ public class SongEditorViewModelTests
                 return;
             }
 
-            Current = Current with { State = LiveState.Active, IsBlackout = false };
+            Current = Current with { State = LiveState.Active, IsBlackout = false, IsCleared = false };
             SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
         }
+
+        public void Refresh()
+            => SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
 
         public void Stop()
         {

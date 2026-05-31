@@ -379,6 +379,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
     // Blackout(완전 차단) / Hidden(화면 끄기) 모두 송출 화면은 검정으로 덮어야 한다.
     // 두 상태를 시각적으로 구분하는 것은 운영자 패널의 역할이고, 송출 화면은 둘 다 깨끗한 검정이 안전.
+    // 단 Cleared(비우기)는 의도적으로 제외 — 배경을 그대로 보여야 하므로 검정 오버레이를 씌우지 않는다.
     private static bool IsBlackoutOrHidden(OutputSceneKind kind)
         => kind == OutputSceneKind.Blackout || kind == OutputSceneKind.Hidden;
 
