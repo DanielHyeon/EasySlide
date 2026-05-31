@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,12 @@ using Easislides.Wpf.Shell;
 namespace Easislides.Wpf.Library;
 
 public sealed record SongEditorSavedEventArgs(int? SongId, int FolderNo);
+
+/// <summary>
+/// 미리보기 가사 한 줄 — 본문(Text)과 그 줄의 코드/노테이션(Notation, '»' 뒤)을 나눠 담는다.
+/// EasiSlides 가사에서 '»'는 코드/노테이션 구분 마커라, 미리보기에서 코드를 본문과 다른 스타일로 보여 준다(리치 per-line 1차).
+/// </summary>
+public sealed record SongPreviewLine(string Text, string Notation);
 
 public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 {
@@ -93,6 +100,9 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     public event EventHandler<SongEditorSavedEventArgs>? Saved;
 
     public IAsyncRelayCommand SaveCommand { get; }
+
+    /// <summary>미리보기 가사를 줄 단위로(코드/노테이션 분리) 담는다 — 리치 per-line 미리보기 렌더용.</summary>
+    public ObservableCollection<SongPreviewLine> PreviewLyricLines { get; } = new();
 
     public IReadOnlyList<string> PreviewFontFamilyOptions { get; } =
     [
@@ -434,6 +444,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     {
         PreviewTitle = string.IsNullOrWhiteSpace(Title) ? "제목 없음" : Title.Trim();
         PreviewLyrics = BuildPreviewLyrics(Lyrics);
+        RebuildPreviewLines(Lyrics);
         PreviewMetadata = BuildPreviewMetadata();
         PreviewFormatStatus = BuildPreviewFormatStatus();
         PreviewForegroundHex = ToArgbHex(_settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb));
@@ -506,7 +517,8 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     private static string NormalizePath(string? path)
         => string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);
 
-    private static string BuildPreviewLyrics(string lyrics)
+    // 첫 화면(빈 줄로 나뉜 첫 단락)의 표시 줄들 — region 마커 제외, 최대 8줄. 미리보기 문자열·줄 목록의 공통 소스.
+    private static string[] BuildFirstScreenLines(string lyrics)
     {
         var normalized = (lyrics ?? string.Empty)
             .Replace("\r\n", "\n", StringComparison.Ordinal)
@@ -517,16 +529,56 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             .FirstOrDefault(screen => !string.IsNullOrWhiteSpace(screen));
         if (string.IsNullOrWhiteSpace(firstScreen))
         {
-            return "가사 없음";
+            return [];
         }
 
-        var lines = firstScreen
+        return firstScreen
             .Split('\n')
             .Select(line => line.TrimEnd())
             .Where(line => !IsRegionMarker(line))
             .Take(8)
             .ToArray();
+    }
+
+    private static string BuildPreviewLyrics(string lyrics)
+    {
+        var lines = BuildFirstScreenLines(lyrics);
         return lines.Length == 0 ? "가사 없음" : string.Join(Environment.NewLine, lines);
+    }
+
+    // 미리보기 줄 목록을 다시 만든다 — 각 줄을 '»' 기준 본문/코드로 나눠 리치 per-line 렌더에 쓴다.
+    // ⚠️ 이건 "미리보기 1차 근사"다: 실제 출력 렌더(LyricsDisplayFormatter)는 아직 '»'를 본문 글자로 그대로 송출하므로,
+    //    미리보기('»' 뒤를 코드로 분리·흐리게)와 출력이 일치하지 않는다. 출력 측 '»' 처리 정렬은 후속 증분 과제.
+    private void RebuildPreviewLines(string lyrics)
+    {
+        PreviewLyricLines.Clear();
+        var lines = BuildFirstScreenLines(lyrics);
+        if (lines.Length == 0)
+        {
+            PreviewLyricLines.Add(new SongPreviewLine("가사 없음", ""));
+            return;
+        }
+
+        foreach (var line in lines)
+        {
+            PreviewLyricLines.Add(SplitNotation(line));
+        }
+    }
+
+    // '»'(코드/노테이션 마커) 기준으로 한 줄을 본문과 코드로 나눈다. 마커가 없으면 전부 본문.
+    // 정상 데이터는 줄당 마커가 1개다(레거시 writer 가 줄 끝에 ' »' 하나만 붙임). 마커가 여러 개면
+    // 첫 마커로 나누고 나머지는 코드 칸에 그대로 둔다(드문 케이스 — 미리보기라 무해).
+    private static SongPreviewLine SplitNotation(string line)
+    {
+        var markerIndex = line.IndexOf('»');
+        if (markerIndex < 0)
+        {
+            return new SongPreviewLine(line, "");
+        }
+
+        var text = line[..markerIndex].TrimEnd();
+        var notation = line[(markerIndex + 1)..].Trim();
+        return new SongPreviewLine(text, notation);
     }
 
     private static bool IsRegionMarker(string line)

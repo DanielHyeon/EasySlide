@@ -354,6 +354,53 @@ public class SongEditorViewModelTests
             settings,
             formatData);
 
+    [Fact]
+    public void Preview_SplitsChordNotation_PerLine_OnMarker()
+    {
+        // 리치 per-line 미리보기 1차: '»' 뒤 코드/노테이션을 본문과 분리해 줄 단위로 담는다.
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Lyrics = "Amazing grace » G  C\nHow sweet the sound";
+
+        sut.PreviewLyricLines.Should().HaveCount(2);
+        sut.PreviewLyricLines[0].Text.Should().Be("Amazing grace");
+        sut.PreviewLyricLines[0].Notation.Should().Be("G  C", "'»' 뒤는 코드/노테이션");
+        sut.PreviewLyricLines[1].Text.Should().Be("How sweet the sound");
+        sut.PreviewLyricLines[1].Notation.Should().BeEmpty("마커 없는 줄은 전부 본문");
+    }
+
+    [Fact]
+    public void Preview_LeadingMarker_PutsAllInNotation_WithEmptyText()
+    {
+        // 경계: 줄이 '»'로 시작하면 본문은 비고 코드만 있다(코드 전용 줄).
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Lyrics = "» G  C  D";
+
+        sut.PreviewLyricLines.Should().ContainSingle();
+        sut.PreviewLyricLines[0].Text.Should().BeEmpty();
+        sut.PreviewLyricLines[0].Notation.Should().Be("G  C  D");
+    }
+
+    [Fact]
+    public void Preview_EmptyLyrics_ShowsSinglePlaceholderLine()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Lyrics = "   ";
+
+        sut.PreviewLyricLines.Should().ContainSingle().Which.Text.Should().Be("가사 없음");
+    }
+
     private sealed class FakeAdminDatabaseRepository : IAdminDatabaseRepository, IAdminSongDetailRepository
     {
         public string LastDatabasePath { get; private set; } = "";
