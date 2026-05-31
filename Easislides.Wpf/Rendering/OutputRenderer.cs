@@ -38,7 +38,11 @@ public sealed record LiveOutputRenderSettings(
     // 출력 가사 세로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
     LyricsVerticalAlignment LyricsMonitorVerticalAlignment = LyricsVerticalAlignment.Center,
     // 출력 가사 폰트 크기(px, 인-셸 가사 포맷팅 §7.3-A). 기본 48.
-    int LyricsMonitorFontSize = 48)
+    int LyricsMonitorFontSize = 48,
+    // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off.
+    bool LyricsMonitorBold = false,
+    bool LyricsMonitorItalic = false,
+    bool LyricsMonitorShadow = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -61,7 +65,10 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.NoMediaPanelOverlay),
             settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment),
             settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment),
-            settings.Get(EasiSettingKeys.LyricsMonitorFontSize));
+            settings.Get(EasiSettingKeys.LyricsMonitorFontSize),
+            settings.Get(EasiSettingKeys.LyricsMonitorBold),
+            settings.Get(EasiSettingKeys.LyricsMonitorItalic),
+            settings.Get(EasiSettingKeys.LyricsMonitorShadow));
     }
 }
 
@@ -107,7 +114,11 @@ public sealed record OutputSceneSnapshot(
     // 출력 가사 세로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
     LyricsVerticalAlignment LyricsMonitorVerticalAlignment = LyricsVerticalAlignment.Center,
     // 출력 가사 폰트 크기(px, 인-셸 가사 포맷팅 §7.3-A). 기본 48.
-    int LyricsMonitorFontSize = 48)
+    int LyricsMonitorFontSize = 48,
+    // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off.
+    bool LyricsMonitorBold = false,
+    bool LyricsMonitorItalic = false,
+    bool LyricsMonitorShadow = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -165,7 +176,10 @@ public sealed class OutputRenderer : IOutputRenderer
             kind == OutputSceneKind.Live ? request.Session.CurrentItemBodyText : string.Empty,
             liveOutput.LyricsMonitorTextAlignment,
             liveOutput.LyricsMonitorVerticalAlignment,
-            liveOutput.LyricsMonitorFontSize);
+            liveOutput.LyricsMonitorFontSize,
+            liveOutput.LyricsMonitorBold,
+            liveOutput.LyricsMonitorItalic,
+            liveOutput.LyricsMonitorShadow);
     }
 
     private ImagePlacement GetContentPlacement(

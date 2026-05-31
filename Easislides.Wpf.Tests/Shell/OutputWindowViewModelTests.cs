@@ -178,6 +178,52 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_DefaultFontEffects_PreserveCurrentLook()
+    {
+        // 기본: 굵게 off→SemiBold(기존), 기울임 off→Normal, 그림자 off.
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        sut.BodyFontWeight.Should().Be(FontWeights.SemiBold);
+        sut.BodyFontStyle.Should().Be(FontStyles.Normal);
+        sut.BodyHasShadow.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ApplySession_BoldItalicShadowOn_MapsToWpf()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorBold, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorItalic, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorShadow, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        sut.BodyFontWeight.Should().Be(FontWeights.Bold);
+        sut.BodyFontStyle.Should().Be(FontStyles.Italic);
+        sut.BodyHasShadow.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesFontEffects()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorShadow, true).Succeeded.Should().BeTrue();
+
+        sut.BodyHasShadow.Should().BeTrue();
+    }
+
+    [Fact]
     public void ApplySession_DefaultFontSize_Is48WithProportionalLineHeight()
     {
         var sut = new OutputWindowViewModel();

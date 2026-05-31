@@ -309,6 +309,52 @@ public class OutputRendererTests
         scene.LyricsMonitorFontSize.Should().Be(64);
     }
 
+    [Theory]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(true, true, true)]
+    public void CreateScene_Threads_LyricsFontEffects(bool bold, bool italic, bool shadow)
+    {
+        // 인-셸 폰트 효과(§7.3-A): 굵게·기울임·그림자 bool 이 설정→렌더→scene 으로 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorBold: bold,
+            LyricsMonitorItalic: italic,
+            LyricsMonitorShadow: shadow);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().Be(bold);
+        scene.LyricsMonitorItalic.Should().Be(italic);
+        scene.LyricsMonitorShadow.Should().Be(shadow);
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsLyricsFontEffectsToOff()
+    {
+        // 기본 모두 off — 기존 출력(효과 없음) 보존.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.LyricsMonitorBold.Should().BeFalse();
+        scene.LyricsMonitorItalic.Should().BeFalse();
+        scene.LyricsMonitorShadow.Should().BeFalse();
+    }
+
     [Fact]
     public void CreateScene_DefaultsLyricsFontSizeTo48()
     {

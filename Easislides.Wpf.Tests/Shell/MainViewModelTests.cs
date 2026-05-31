@@ -1612,6 +1612,61 @@ public class MainViewModelTests
         settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(120);
     }
 
+    // ─── 인-셸 가사 폰트 효과(굵게·기울임·그림자) (§7.3-A) ─────────────────────
+
+    [Fact]
+    public void ToggleLyricsBoldCommand_FlipsSettingAndActive()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsBold.Should().BeFalse("기본 굵게 off");
+
+        sut.ToggleLyricsBoldCommand.Execute(null);
+
+        sut.ActiveLyricsBold.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorBold).Should().BeTrue();
+
+        sut.ToggleLyricsBoldCommand.Execute(null);
+        sut.ActiveLyricsBold.Should().BeFalse("다시 누르면 off");
+    }
+
+    [Fact]
+    public void ToggleLyricsItalicCommand_FlipsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ToggleLyricsItalicCommand.Execute(null);
+
+        sut.ActiveLyricsItalic.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorItalic).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToggleLyricsShadowCommand_FlipsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ToggleLyricsShadowCommand.Execute(null);
+
+        sut.ActiveLyricsShadow.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorShadow).Should().BeTrue();
+    }
+
+    [Fact]
+    public void FontEffectActiveFlags_ReflectCurrentSettings_DefaultOff()
+    {
+        var sut = CreateSut();
+
+        sut.ActiveLyricsBold.Should().BeFalse();
+        sut.ActiveLyricsItalic.Should().BeFalse();
+        sut.ActiveLyricsShadow.Should().BeFalse();
+    }
+
     [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {

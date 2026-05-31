@@ -70,12 +70,32 @@
                        TextWrapping="Wrap"
                        TextTrimming="CharacterEllipsis"
                        FontSize="{Binding BodyFontSize}"
-                       FontWeight="SemiBold"
+                       FontWeight="{Binding BodyFontWeight}"
+                       FontStyle="{Binding BodyFontStyle}"
                        LineHeight="{Binding BodyLineHeight}"
                        Foreground="{Binding SceneForegroundBrush}"
                        MaxWidth="1160"
                        MaxHeight="660"
-                       Visibility="{Binding BodyTextVisibility}" />
+                       Visibility="{Binding BodyTextVisibility}">
+                <!-- 그림자 효과: BodyHasShadow=true 일 때만 DropShadowEffect 적용(어두운/영상 배경 위 가독성, §7.3-A). -->
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black"
+                                                          BlurRadius="8"
+                                                          ShadowDepth="2"
+                                                          Direction="315"
+                                                          Opacity="0.85" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
 
             <!-- 미디어 출력(영상/오디오) — WpfMediaElementPlaybackBackend 가 Source/재생을 제어한다.
                  Source 가 설정될 때만(미디어 항목 송출 시) 표시되어 가사/타이틀을 덮는다(실제 백엔드 트랙 2단계). -->

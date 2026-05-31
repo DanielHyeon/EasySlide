@@ -820,6 +820,42 @@
                                    Style="{StaticResource Type.Body.Style}"
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                     </StackPanel>
+
+                    <!-- 인-셸 가사 폰트 효과(§7.3-A) — 굵게/기울임/그림자 토글. 그림자는 어두운/영상 배경 가독성. -->
+                    <TextBlock Text="가사 효과"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,4,0,0">
+                        <ToggleButton IsChecked="{Binding ActiveLyricsBold, Mode=OneWay}"
+                                      Command="{Binding ToggleLyricsBoldCommand}"
+                                      MinHeight="36"
+                                      MinWidth="48"
+                                      Padding="8,0"
+                                      Margin="0,0,6,0"
+                                      FontWeight="Bold"
+                                      Content="가"
+                                      ToolTip="가사 굵게"
+                                      AutomationProperties.Name="가사 굵게 토글" />
+                        <ToggleButton IsChecked="{Binding ActiveLyricsItalic, Mode=OneWay}"
+                                      Command="{Binding ToggleLyricsItalicCommand}"
+                                      MinHeight="36"
+                                      MinWidth="48"
+                                      Padding="8,0"
+                                      Margin="0,0,6,0"
+                                      FontStyle="Italic"
+                                      Content="가"
+                                      ToolTip="가사 기울임"
+                                      AutomationProperties.Name="가사 기울임 토글" />
+                        <ToggleButton IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
+                                      Command="{Binding ToggleLyricsShadowCommand}"
+                                      MinHeight="36"
+                                      Padding="10,0"
+                                      Content="그림자"
+                                      ToolTip="가사 그림자(어두운 배경 가독성)"
+                                      AutomationProperties.Name="가사 그림자 토글" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

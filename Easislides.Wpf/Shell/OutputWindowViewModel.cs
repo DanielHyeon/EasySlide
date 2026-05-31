@@ -43,6 +43,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private VerticalAlignment _bodyVerticalAlignment = VerticalAlignment.Center;
     private double _bodyFontSize = 48;
     private double _bodyLineHeight = 60;
+    private FontWeight _bodyFontWeight = FontWeights.SemiBold;
+    private FontStyle _bodyFontStyle = FontStyles.Normal;
+    private bool _bodyHasShadow;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -179,6 +182,27 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyLineHeight;
         private set => SetProperty(ref _bodyLineHeight, value);
+    }
+
+    /// <summary>가사 본문 굵기 — 굵게 on=Bold, off=SemiBold(기존 출력 보존). §7.3-A 폰트 효과.</summary>
+    public FontWeight BodyFontWeight
+    {
+        get => _bodyFontWeight;
+        private set => SetProperty(ref _bodyFontWeight, value);
+    }
+
+    /// <summary>가사 본문 기울임 — on=Italic, off=Normal. §7.3-A 폰트 효과.</summary>
+    public FontStyle BodyFontStyle
+    {
+        get => _bodyFontStyle;
+        private set => SetProperty(ref _bodyFontStyle, value);
+    }
+
+    /// <summary>가사 본문 그림자 표시 여부 — 어두운/영상 배경 위 가독성. XAML 이 DropShadowEffect 적용. §7.3-A.</summary>
+    public bool BodyHasShadow
+    {
+        get => _bodyHasShadow;
+        private set => SetProperty(ref _bodyHasShadow, value);
     }
 
     public bool IsBlackout
@@ -395,6 +419,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
         BodyFontSize = scene.LyricsMonitorFontSize;
         BodyLineHeight = scene.LyricsMonitorFontSize * LineHeightRatio; // 줄 높이는 폰트 크기에 비례(가독성)
+        // 폰트 효과: 굵게 off 는 기존 SemiBold 를 유지(완전 Normal 로 떨어뜨리지 않음).
+        BodyFontWeight = scene.LyricsMonitorBold ? FontWeights.Bold : FontWeights.SemiBold;
+        BodyFontStyle = scene.LyricsMonitorItalic ? FontStyles.Italic : FontStyles.Normal;
+        BodyHasShadow = scene.LyricsMonitorShadow;
         var bodyShown = scene.ShowsBodyText;
         BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -612,6 +640,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorFontSize.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 폰트 효과(굵게/기울임/그림자) 변경도 라이브 출력에 즉시 반영(§7.3-A).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBold.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShadow.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {
