@@ -2682,8 +2682,37 @@ public class MainViewModelTests
         sut.LyricsPageCount.Should().Be(4, "시퀀스(1 C 2 C)로 4페이지로 펼쳐진다");
     }
 
-    private static SongDetail SampleSongDetail(int songId, string title, string lyrics, string sequence = "")
-        => new(songId, title, "", 1, 0, lyrics, sequence, "", "", 0, "", "", "", "", "", "", "", "", "", "");
+    [Fact]
+    public void AddSong_WithFormatData_CarriesFormatData_ToQueueItem()
+    {
+        // 곡별 FormatData(레거시 v32 색·정렬 사전)도 큐 항목까지 실어 라이브 출력이 그 곡의 색으로 송출하게 한다.
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one");
+
+        var item = sut.AddSong(song, sequence: null, formatData: "29=-65536>26=-16776961>");
+
+        item!.FormatData.Should().Be("29=-65536>26=-16776961>");
+    }
+
+    [Fact]
+    public async Task AddSearchedSong_CarriesSongDetailFormatData_ToQueueItem()
+    {
+        // 종단(통합): 검색 결과 추가 → 상세 로드 → 큐 항목에 곡 FormatData 가 실린다(per-song 색 송출의 전제).
+        var detail = SampleSongDetail(7, "은혜", "[1]\nVerse one", formatData: "29=-65536>");
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail));
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        var result = new SongSearchResult(7, 1, "찬양 폴더", "은혜", "", 12, "", "G", new[] { "Title" }, "");
+        sut.Search.SearchResults.Add(result);
+        sut.SelectedSearchResult = result;
+
+        await sut.AddSearchedSongCommand.ExecuteAsync(null);
+
+        var added = sut.Queue.Single(i => i.Title == "은혜");
+        added.FormatData.Should().Be("29=-65536>", "상세(SongDetail)의 FormatData 가 큐 항목까지 전달돼야 함");
+    }
+
+    private static SongDetail SampleSongDetail(int songId, string title, string lyrics, string sequence = "", string formatData = "")
+        => new(songId, title, "", 1, 0, lyrics, sequence, "", "", 0, "", "", "", "", "", "", "", "", "", formatData);
 
     // 곡 상세(가사) 조회 스텁 — 검색 결과 SongId → 가사 로드 경로 검증용.
     private sealed class StubSongDetailRepository : IAdminSongDetailRepository

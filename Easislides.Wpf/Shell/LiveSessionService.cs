@@ -28,7 +28,12 @@ public sealed record LiveSessionSnapshot(
     // 위치 라벨(예: "2/4") — 곡 절/PPT 슬라이드 위치. 단일이면 빈 문자열. 출력은 설정 on 일 때만 표시(§7.3-A).
     string CurrentItemPositionLabel = "",
     // 현재 가사 절 페이지 인덱스(0=첫 절). 제목 헤딩 "첫 화면만" 표시 판정에 쓰임(§7.3-A). 곡이 아니면 0.
-    int CurrentLyricsPageIndex = 0)
+    int CurrentLyricsPageIndex = 0,
+    // 곡별 FormatData(레거시 v32)에서 디코드한 region1 글자색(ARGB). 있으면 출력 렌더러가 운영 기본 글자색 대신 사용.
+    // FormatData 가 없거나 글자색 항목(29)이 없으면 null → 기본색 유지(무회귀).
+    int? OverrideTextColorArgb = null,
+    // 곡별 FormatData region1 배경색(ARGB). 있으면 운영 기본 배경색 대신 사용(솔리드). 없으면 null.
+    int? OverrideBackgroundColorArgb = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -69,6 +74,9 @@ public sealed class LiveSessionService : ILiveSessionService
         ArgumentNullException.ThrowIfNull(item);
 
         var (pixelWidth, pixelHeight) = ExtractPixelDimensions(item.PreviewSource);
+        // 곡별 FormatData(레거시 v32)를 디코드해 region1 글자·배경색을 오버라이드로 싣는다(미리보기와 동일 규약).
+        // 곡이 아니거나 색 항목이 없으면 null → 출력은 운영 기본색을 그대로 쓴다.
+        var format = Library.SongFormatData.Parse(item.FormatData);
         Update(new LiveSessionSnapshot(
             LiveState.Active,
             item.Title,
@@ -85,7 +93,10 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentItemBodyText: LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
             CurrentItemPositionLabel: item.PositionLabel,
             // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
-            CurrentLyricsPageIndex: item.LyricsPageIndex));
+            CurrentLyricsPageIndex: item.LyricsPageIndex,
+            // 곡별 색(있으면) — 렌더러가 Live 일 때 운영 기본색 대신 적용.
+            OverrideTextColorArgb: format?.TextColorArgb1,
+            OverrideBackgroundColorArgb: format?.BackgroundColorArgb1));
     }
 
     // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를

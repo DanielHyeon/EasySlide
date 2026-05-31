@@ -191,6 +191,61 @@ public class OutputRendererTests
         scene.LyricsMonitorShowNotations.Should().BeFalse();
     }
 
+    [Fact]
+    public void CreateScene_Active_WithSongOverrideColors_PrefersSongColorsOverSettings()
+    {
+        // 곡별 FormatData 색이 스냅샷에 실려 오면(OverrideTextColorArgb 등) 운영 기본색 대신
+        // 그 곡의 색으로 송출한다(레거시 per-song 색). 배경은 솔리드(그라데이션 해제)로 칠한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextColorArgb: unchecked((int)0xFF000000),
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFFFFFFF),
+            LyricsMonitorBackgroundColor2Argb: unchecked((int)0xFF333333),
+            LyricsMonitorBackgroundIsGradient: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideTextColorArgb: unchecked((int)0xFFFF0000),
+                OverrideBackgroundColorArgb: unchecked((int)0xFF0000FF)),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextColorArgb.Should().Be(unchecked((int)0xFFFF0000), "곡 글자색이 운영 기본색을 이긴다");
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFF0000FF), "곡 배경색이 운영 기본색을 이긴다");
+        scene.LyricsMonitorBackgroundColor2Argb.Should().Be(unchecked((int)0xFF0000FF), "곡 배경은 솔리드 — 끝색도 동일");
+        scene.LyricsMonitorBackgroundIsGradient.Should().BeFalse("곡 배경 오버라이드는 단색");
+    }
+
+    [Fact]
+    public void CreateScene_Hidden_IgnoresSongOverrideColors()
+    {
+        // 라이브가 아니면(숨김/블랙아웃 등) 곡 색 오버라이드를 적용하지 않는다 — 운영 기본색 유지.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextColorArgb: unchecked((int)0xFF000000),
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFFFFFFF));
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideTextColorArgb: unchecked((int)0xFFFF0000),
+                OverrideBackgroundColorArgb: unchecked((int)0xFF0000FF)),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextColorArgb.Should().Be(unchecked((int)0xFF000000), "Live 가 아니면 기본색");
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFFFFFFFF), "Live 가 아니면 기본색");
+    }
+
     [Theory]
     [InlineData("P", true, false, false)]
     [InlineData("PowerPoint", true, false, false)]

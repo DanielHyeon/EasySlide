@@ -436,7 +436,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 선택 항목 바로 뒤에 삽입하고 새 항목을 선택. AddBibleSelection 과 동일 규칙.
     /// sequence: 곡 절 순서(있으면 절을 그 순서로 반복 송출). SongSummary 엔 없어 상세 로드 경로에서 넘긴다.
     /// </summary>
-    public LiveQueueItem? AddSong(Data.SongSummary? song, string? sequence = null)
+    public LiveQueueItem? AddSong(Data.SongSummary? song, string? sequence = null, string? formatData = null)
     {
         if (song is null || string.IsNullOrWhiteSpace(song.Title))
         {
@@ -445,7 +445,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song) { Lyrics = song.Lyrics, Sequence = sequence };
+        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
+        {
+            Lyrics = song.Lyrics,
+            Sequence = sequence,
+            // 곡별 출력 색(레거시 v32 FormatData) — 있으면 라이브 송출 시 그 곡의 색으로 표시.
+            FormatData = formatData,
+        };
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -521,7 +527,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 detail.Category,
                 detail.Key,
                 detail.Lyrics),
-            detail.Sequence); // 곡 절 순서 — 있으면 절을 그 순서로 반복 송출(레거시 인코딩이면 매칭 0→선형 폴백).
+            detail.Sequence, // 곡 절 순서 — 있으면 절을 그 순서로 반복 송출(레거시 인코딩이면 매칭 0→선형 폴백).
+            detail.FormatData); // 곡별 출력 색(레거시 v32) — 라이브 송출 시 그 곡의 글자·배경색 적용.
     }
 
     // 예배 순서 항목 이동(↑/↓) — 큐 순서를 재정렬한다(FrmMain Move Item Up/Down). 선택 항목은 유지.
