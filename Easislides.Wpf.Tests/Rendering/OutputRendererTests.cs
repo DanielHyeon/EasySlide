@@ -290,6 +290,41 @@ public class OutputRendererTests
         scene.LyricsMonitorVerticalAlignment.Should().Be(LyricsVerticalAlignment.Center, "세로 정렬 기본도 가운데");
     }
 
+    [Fact]
+    public void CreateScene_Threads_LyricsFontSize()
+    {
+        // 인-셸 폰트 크기(§7.3-A): 설정→렌더→scene 으로 폰트 크기(px)가 전달되는지 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 64);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontSize.Should().Be(64);
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsLyricsFontSizeTo48()
+    {
+        // 기본 48px — 기존 출력 폰트 크기 보존.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.LyricsMonitorFontSize.Should().Be(48);
+    }
+
     [Theory]
     [InlineData(LyricsVerticalAlignment.Top)]
     [InlineData(LyricsVerticalAlignment.Center)]

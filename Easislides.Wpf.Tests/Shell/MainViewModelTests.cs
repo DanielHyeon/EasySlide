@@ -1556,6 +1556,63 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void IncreaseLyricsFontSizeCommand_StepsUpAndPersists()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsFontSize.Should().Be(48, "기본 48px");
+
+        sut.IncreaseLyricsFontSizeCommand.Execute(null);
+
+        sut.ActiveLyricsFontSize.Should().Be(52, "한 단계 +4");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(52);
+    }
+
+    [Fact]
+    public void DecreaseLyricsFontSizeCommand_StepsDownAndPersists()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.DecreaseLyricsFontSizeCommand.Execute(null);
+
+        sut.ActiveLyricsFontSize.Should().Be(44, "한 단계 -4");
+    }
+
+    [Fact]
+    public void LyricsFontSizeCommands_ClampToRange()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        // 하한(24) 아래로는 내려가지 않는다.
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 24);
+        sut.DecreaseLyricsFontSizeCommand.CanExecute(null).Should().BeFalse("하한에서 감소 비활성");
+
+        // 상한(120) 위로는 올라가지 않는다.
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 120);
+        sut.IncreaseLyricsFontSizeCommand.CanExecute(null).Should().BeFalse("상한에서 증가 비활성");
+    }
+
+    [Fact]
+    public void IncreaseLyricsFontSizeCommand_FromNonStepValue_ClampsToMax()
+    {
+        // 외부 경로(Settings 창/legacy import)가 4의 배수가 아닌 118 을 넣은 뒤 +4 → 120 으로 클램프(122 아님).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 118);
+
+        sut.IncreaseLyricsFontSizeCommand.Execute(null);
+
+        sut.ActiveLyricsFontSize.Should().Be(120, "118+4=122 는 상한 120 으로 클램프");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(120);
+    }
+
+    [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {
         // 인라인 콘텐츠 브라우저(§7.5 P0): 별도 LibraryWindow 없이 라이브러리 선택 곡을 예배 순서에 추가.

@@ -792,6 +792,34 @@
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
                                Margin="0,4,0,0" />
+
+                    <!-- 인-셸 가사 폰트 크기(§7.3-A) — 작게(-)/크게(+) 단계 조절. -->
+                    <TextBlock Text="가사 크기"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,4,0,0"
+                                VerticalAlignment="Center">
+                        <Button Command="{Binding DecreaseLyricsFontSizeCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="44"
+                                Margin="0,0,6,0"
+                                Content="A−"
+                                ToolTip="가사 글자 작게"
+                                AutomationProperties.Name="가사 글자 작게" />
+                        <Button Command="{Binding IncreaseLyricsFontSizeCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="44"
+                                Margin="0,0,8,0"
+                                Content="A+"
+                                ToolTip="가사 글자 크게"
+                                AutomationProperties.Name="가사 글자 크게" />
+                        <TextBlock Text="{Binding ActiveLyricsFontSize, StringFormat={}{0}px}"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

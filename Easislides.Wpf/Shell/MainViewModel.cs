@@ -52,7 +52,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveLyricsVerticalAlignmentLabel))]
     private LyricsVerticalAlignment _activeLyricsVerticalAlignment = EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
+    // 현재 적용된 가사 폰트 크기(px). +/- 커맨드 활성/비활성 판별에도 쓰인다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsFontSizeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsFontSizeCommand))]
+    private int _activeLyricsFontSize = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
     private bool _disposed;
+
+    // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
+    private const int LyricsFontSizeMin = 24;
+    private const int LyricsFontSizeMax = 120;
+    private const int LyricsFontSizeStep = 4;
 
     /// <summary>현재 가사 가로 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
     public string ActiveLyricsAlignmentLabel
@@ -205,6 +215,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
+        IncreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(+LyricsFontSizeStep), () => ActiveLyricsFontSize < LyricsFontSizeMax);
+        DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
@@ -244,6 +256,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
     public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
+    public IRelayCommand IncreaseLyricsFontSizeCommand { get; }
+    public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
@@ -1160,6 +1174,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 세로 정렬: {alignment switch { LyricsVerticalAlignment.Top => "위", LyricsVerticalAlignment.Bottom => "아래", _ => "가운데" }}";
     }
 
+    // 인-셸 가사 폰트 크기 조절(+/- 단계) — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).
+    private void StepLyricsFontSize(int delta)
+    {
+        var next = Math.Clamp(ActiveLyricsFontSize + delta, LyricsFontSizeMin, LyricsFontSizeMax);
+        if (next == ActiveLyricsFontSize)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorFontSize, next);
+        ActiveLyricsFontSize = next;
+        StatusText = $"가사 크기: {next}px";
+    }
+
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
     private void RefreshActiveAppearance()
     {
@@ -1172,9 +1200,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
         ActiveAppearanceName = match?.Name ?? "사용자 지정";
 
-        // 가사 정렬(가로/세로) 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
+        // 가사 정렬(가로/세로)·폰트 크기 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
+        ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)
