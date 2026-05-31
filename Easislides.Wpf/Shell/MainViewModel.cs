@@ -81,6 +81,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsShadow = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
     // 현재 위치 인디케이터 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용).
     [ObservableProperty] private bool _activeLyricsPositionIndicator = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
+    // 자동 회전 활성 상태(View 가 이 값을 보고 DispatcherTimer 시작/정지). 라이브 종료 시 자동 해제.
+    [ObservableProperty] private bool _isAutoRotating;
+    // 자동 회전 간격(초) — 설정에서 유래, View 타이머가 참조.
+    [ObservableProperty] private int _autoRotateIntervalSeconds = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
 
     // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
@@ -247,6 +251,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
+        ToggleAutoRotateCommand = new RelayCommand(ToggleAutoRotate, () => _session.Current.State == LiveState.Active);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
@@ -296,6 +301,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
+    public IRelayCommand ToggleAutoRotateCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
@@ -640,6 +646,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool CanGoPreviousLyricsPage()
         => LyricsPageCount > 1 && LyricsPageIndex > 0;
+
+    // 자동 회전 토글(레거시 Auto Rotate) — 라이브 중 절/슬라이드를 일정 간격으로 자동 전환.
+    // 실제 타이머는 View(코드비하인드)가 IsAutoRotating 변화를 보고 구동하고, 매 tick 에 AdvanceAutoRotation 을 부른다.
+    private void ToggleAutoRotate()
+    {
+        IsAutoRotating = !IsAutoRotating;
+        StatusText = IsAutoRotating ? $"자동 회전 켬 ({AutoRotateIntervalSeconds}초)" : "자동 회전 끔";
+    }
+
+    /// <summary>
+    /// 자동 회전 한 스텝 — 라이브 곡은 다음 절(끝에서 첫 절로 순환), PPT 덱은 다음 슬라이드(순환).
+    /// View 타이머가 호출. 라이브가 아니거나 선택≠라이브 항목이면 아무것도 하지 않는다.
+    /// </summary>
+    public void AdvanceAutoRotation()
+    {
+        if (_session.Current.State != LiveState.Active) return;
+        if (SelectedItem is not { } item || _liveItemId != item.Id) return;
+
+        if (IsPowerPointItem(item) && PowerPoint.SlideCount > 1)
+        {
+            // 마지막 슬라이드 다음은 첫 슬라이드로 순환.
+            var next = PowerPoint.SlideNumber >= PowerPoint.SlideCount ? 1 : PowerPoint.SlideNumber + 1;
+            _ = GoToSlideAsync(next);
+        }
+        else if (item.Kind == LiveItemKinds.Song && LyricsPageCount > 1)
+        {
+            // 마지막 절 다음은 첫 절로 순환.
+            LyricsPageIndex = LyricsPageIndex + 1 >= LyricsPageCount ? 0 : LyricsPageIndex + 1;
+            PublishLyricsPageIfLive();
+        }
+    }
 
     // 현재 절 인덱스로 GoLive 를 재호출해 출력을 갱신한다.
     // 라이브 활성 + 이 항목이 송출 중일 때만 실행(블랙아웃/숨김 중에는 송출 안 깨움).
@@ -1374,6 +1411,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MediaDirectory = _settings.Get(EasiSettingKeys.MediaDirectory);
         LiveCameraNumber = _settings.Get(EasiSettingKeys.LiveCameraNumber);
         LiveCameraSource = MediaPlaybackService.CreateLiveCameraSource(LiveCameraNumber);
+        AutoRotateIntervalSeconds = _settings.Get(EasiSettingKeys.AutoRotateIntervalSeconds);
         RefreshActiveAppearance();
         RefreshPowerPointLimitState(updateStatus);
         NotifyCommandStates();
@@ -1405,7 +1443,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.UseMediaTab.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.MediaDirectory.Id, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(key, EasiSettingKeys.LiveCameraNumber.Id, StringComparison.OrdinalIgnoreCase))
+                string.Equals(key, EasiSettingKeys.LiveCameraNumber.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.AutoRotateIntervalSeconds.Id, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -1425,6 +1464,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveBar.State = snapshot.State;
         LiveBar.CurrentItemTitle = snapshot.CurrentItemTitle;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;
+        // 자동 회전은 라이브 완전 종료(Stop=Off)에서만 해제한다 — 숨김/검정/비우기(Hidden)는 임시 상태라
+        // 유지하고 복귀(Restore→Active) 시 그대로 이어간다. 숨김 중에는 AdvanceAutoRotation 이 State!=Active 로
+        // no-op 이라 출력을 깨우지 않으므로 회전 상태를 유지해도 안전하다(View 타이머가 IsAutoRotating 을 보고 멈춤).
+        if (snapshot.State == LiveState.Off && IsAutoRotating)
+        {
+            IsAutoRotating = false;
+        }
         NotifyCommandStates();
     }
 
@@ -1450,6 +1496,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RemoveSelectedItemCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
         PreviousLyricsPageCommand.NotifyCanExecuteChanged();
+        ToggleAutoRotateCommand.NotifyCanExecuteChanged();
     }
 
     private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)

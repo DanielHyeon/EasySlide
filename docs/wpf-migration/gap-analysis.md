@@ -204,7 +204,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-A 인-셸 가사 줄 간격(−/＋, 100~220%) — **완료**(2026-05-31: `LyricsMonitorLineSpacingPercent` int 설정→렌더→출력, 기존 하드코딩 줄높이(폰트×1.25)를 설정 기반(폰트×%)으로 전환, 기본 125% 로 동작 보존. 우측 인스펙터 −/＋ + 현재 % 표시. 테스트 664 green, code-reviewer Approve)
 - [x] §7.3-A 세분 색 직접 지정(글자/배경 hex #RRGGBB) — **완료**(2026-05-31: 기존 색 설정 재사용(신규 키 없음), `ApplyTextColorHexCommand`/`ApplyBackgroundColorHexCommand` + hex 파싱(6자리 불투명, 표시 대칭) + 우측 인스펙터 입력칸·Enter·적용 버튼. 배경은 솔리드 전환. 테스트 672 green, code-reviewer Approve + SUGGESTION(8자리 거부·전환/추종 테스트) 반영)
 - [x] §7.3-A 출력 위치 인디케이터(절/슬라이드 "N/M") — **완료**(2026-06-01: `LyricsMonitorShowPositionIndicator` 설정 + `LiveQueueItem.PositionLabel`→스냅샷 plumbing, `ComputePositionLabel`(곡=절/총절, PPT=슬라이드/총), 출력 우하단 오버레이, 우측 인스펙터 "N/M" 토글. GoLive·절 이동·슬라이드 이동 모두 ResolveLiveProjection 단일 경로로 라벨 갱신. 테스트 680 green, code-reviewer Approve)
-- [ ] **다음 착수(권장)**: 헤딩(제목/절 표시) / Outline 효과 / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
+- [x] §7.3-B 자동 회전(Auto Rotate) — **완료**(2026-06-01: `AutoRotateIntervalSeconds` 설정(2~600초) + 운영바 토글. 라이브 곡 절/PPT 슬라이드를 간격마다 자동 전환(끝→처음 순환). 타이머는 View(MainWindow), 로직은 VM(`AdvanceAutoRotation`)으로 분리해 테스트 용이. 숨김/복귀 중 유지, 완전 종료 시 자동 해제. 테스트 687 green, code-reviewer Approve)
+- [ ] **다음 착수(권장)**: 헤딩(제목/절 표시) / Outline 효과 / 모달 Library·Bible 진입점 정리 / 명령 팔레트(⌘K)
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -252,7 +253,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 |---|---|---|
 | Go LIVE / Black / Next·Prev | Start Show-Go LIVE, Black Screen, Move Next | ✅ 있음 |
 | 화면 제어 | Clear Screen, Hide Text, Refresh Output, Restart Current Item | ✅ Black + 숨김(Hide)·복귀(Restore) + **비우기(Clear)·처음으로(Restart)·새로고침(Refresh)** 운영바 노출(2026-05-31). 비우기=배경유지(Black과 구별, `OutputSceneKind.Cleared`), 처음으로=라이브 곡 첫 절/PPT 첫 슬라이드 재송출, 새로고침=출력 강제 재렌더 |
-| 자동 회전 | Auto Rotate Group/One Item(+Repeat), Stop Auto Rotate, Rotate Style | 🔴 없음 |
+| 자동 회전 | Auto Rotate Group/One Item(+Repeat), Stop Auto Rotate, Rotate Style | 🟡 **자동 회전(절/슬라이드 순환) 완료**(2026-06-01, `AutoRotateIntervalSeconds` 설정 + 운영바 "자동회전" 토글, 라이브 곡 절·PPT 슬라이드 자동 전환·끝→처음 순환, 숨김 중 유지·완전 종료 시 해제). Group/One·Rotate Style 세분은 후속 |
 | Gap/안내 | Gap Item, Alerts(경고 오버레이) | 🟡 출력측 오버레이만, 조작 UI 없음 |
 | 보조 화면 | InfoScr, Copy to InfoScreen, Apply to All Except InfoScreens | 🔴 없음(FrmInfoScreen 미이식) |
 | 미디어 출력 | Play Media (on Output Monitor) | ✅ G1.2 트랙으로 연결 |
@@ -305,7 +306,7 @@ Import/Export·Generate RTF/HTML·Copy/Move/Delete·Recover·Smart Merge·Search
   - (b) **인라인 콘텐츠 브라우저**: LibraryWindow/BibleWindow 를 좌측 도킹 패널로 흡수(별도 창 제거).
   - (c) **화면 제어 보강**: ✅ Clear/Hide/Restart/Refresh 완료(2026-05-31). InfoScreen 토글은 FrmInfoScreen 미이식이라 후속.
 - **P1 (운영 편의)**
-  - 명령 팔레트(⌘K) + 단축키 확장 / 자동 회전(Group/One, Repeat, Stop) / 코드 표기·조옮김 인스펙터 / 큐 드래그 재정렬.
+  - 명령 팔레트(⌘K) + 단축키 확장 / ✅ 자동 회전(절·슬라이드 순환, 2026-06-01) — Group/One·Rotate Style 세분 후속 / 코드 표기·조옮김 인스펙터 / 큐 드래그 재정렬.
 - **P2 (구조·완성)**
   - 도킹 레이아웃 + 저장(Default/사용자 레이아웃) / 설정 템플릿(Save/Load, Apply to All Except InfoScreens) / PraiseBook·워십 세션·세션 노트 / 배경 이미지·패턴·전환 UI / 미이식 폼(FrmInfoScreen=가사편집기, FrmManageItemLists, FrmBibleRename, FrmUpdateFileName) 통합.
 

@@ -122,6 +122,18 @@
                             <TextBlock Text="새로고침" />
                         </StackPanel>
                     </Button>
+                    <ToggleButton IsChecked="{Binding IsAutoRotating, Mode=OneWay}"
+                                  Command="{Binding ToggleAutoRotateCommand}"
+                                  MinHeight="36"
+                                  Padding="10,0"
+                                  Margin="0,0,8,0"
+                                  ToolTip="라이브 중 절/슬라이드를 일정 간격으로 자동 전환(§7.3-B)"
+                                  AutomationProperties.Name="자동 회전 토글">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArrowRotateClockwise24" Margin="0,0,6,0" />
+                            <TextBlock Text="자동회전" />
+                        </StackPanel>
+                    </ToggleButton>
                     <Button Click="OpenLibrary_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="라이브러리 열기"

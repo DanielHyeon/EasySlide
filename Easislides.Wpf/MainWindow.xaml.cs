@@ -1,7 +1,9 @@
 using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Shell;
@@ -15,6 +17,10 @@ public partial class MainWindow : Window
 {
     private readonly ShortcutRegistry _shortcuts;
     private readonly IServiceProvider _services;
+    private readonly MainViewModel _viewModel;
+    // 자동 회전 타이머(§7.3-B) — VM 은 로직만 갖고(테스트 용이), 실제 주기 구동은 View 가 맡는다.
+    // IsAutoRotating 이 켜지면 시작, 꺼지면 정지. 매 tick 에 VM.AdvanceAutoRotation 을 호출.
+    private readonly DispatcherTimer _autoRotateTimer;
     private bool _libraryLoadedOnce;
     private bool _bibleLoadedOnce;
 
@@ -24,8 +30,36 @@ public partial class MainWindow : Window
 
         _shortcuts = shortcuts;
         _services = services;
+        _viewModel = viewModel;
         DataContext = viewModel;
         viewModel.BindShortcuts(_shortcuts);
+
+        _autoRotateTimer = new DispatcherTimer();
+        _autoRotateTimer.Tick += (_, _) => _viewModel.AdvanceAutoRotation();
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    // VM 의 자동 회전 상태/간격 변화를 받아 타이머를 시작·정지·재설정한다.
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(MainViewModel.IsAutoRotating) or nameof(MainViewModel.AutoRotateIntervalSeconds))
+        {
+            SyncAutoRotateTimer();
+        }
+    }
+
+    private void SyncAutoRotateTimer()
+    {
+        if (_viewModel.IsAutoRotating)
+        {
+            // 간격은 설정 범위(2~600초)에서 오므로 안전하지만 방어적으로 최소 1초 보장.
+            _autoRotateTimer.Interval = TimeSpan.FromSeconds(Math.Max(1, _viewModel.AutoRotateIntervalSeconds));
+            _autoRotateTimer.Start();
+        }
+        else
+        {
+            _autoRotateTimer.Stop();
+        }
     }
 
     protected override void OnPreviewKeyDown(KeyEventArgs e)
@@ -200,6 +234,9 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _autoRotateTimer.Stop();
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+
         if (DataContext is IDisposable disposable)
         {
             disposable.Dispose();
