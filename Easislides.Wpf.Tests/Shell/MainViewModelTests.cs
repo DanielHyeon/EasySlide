@@ -352,6 +352,129 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void MoveQueueItem_MovesItemToTargetIndex_AndKeepsSelection()
+    {
+        // 드래그 재정렬 코어(§7.5 P1): 항목을 임의 위치로 이동. 첫 항목을 마지막으로.
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        var c = new LiveQueueItem("c", "C", "Notice");
+        sut.LoadQueue([a, b, c]);
+        sut.SelectedItem = a;
+
+        sut.MoveQueueItem(a, 2);
+
+        sut.Queue.Should().Equal(b, c, a);
+        sut.SelectedItem.Should().Be(a, "이동한 항목이 계속 선택됨");
+    }
+
+    [Fact]
+    public void MoveQueueItem_ClampsTargetIndexToBounds()
+    {
+        // 드롭 위치가 범위를 벗어나면(음수/초과) 양끝으로 클램프.
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        var c = new LiveQueueItem("c", "C", "Notice");
+        sut.LoadQueue([a, b, c]);
+
+        sut.MoveQueueItem(b, 99); // 초과 → 마지막으로
+
+        sut.Queue.Should().Equal(a, c, b);
+    }
+
+    [Fact]
+    public void MoveQueueItem_SamePosition_IsNoOp()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        sut.LoadQueue([a, b]);
+
+        sut.MoveQueueItem(a, 0); // 제자리
+
+        sut.Queue.Should().Equal(a, b);
+    }
+
+    [Fact]
+    public void MoveQueueItem_UnknownItem_IsNoOp()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        sut.LoadQueue([a, b]);
+        var stranger = new LiveQueueItem("z", "Z", "Notice");
+
+        sut.MoveQueueItem(stranger, 0); // 큐에 없는 항목 → 무시
+
+        sut.Queue.Should().Equal(a, b);
+    }
+
+    [Fact]
+    public void MoveQueueItem_DuplicateValueItems_MovesExactInstance()
+    {
+        // 값 동등(record) 중복 항목이 있어도 참조로 정확한 인스턴스만 이동.
+        var sut = CreateSut();
+        var first = new LiveQueueItem("dup", "같은 제목", "Notice");
+        var middle = new LiveQueueItem("m", "중간", "Notice");
+        var second = new LiveQueueItem("dup", "같은 제목", "Notice"); // first 와 값 동등, 다른 인스턴스
+        sut.LoadQueue([first, middle, second]);
+
+        sut.MoveQueueItem(second, 0); // 두 번째(뒤) 인스턴스를 맨 앞으로
+
+        sut.Queue[0].Should().BeSameAs(second, "참조로 찾은 정확한 인스턴스가 이동");
+        sut.Queue.Should().Equal(second, first, middle);
+    }
+
+    [Fact]
+    public void MoveQueueItemRelativeTo_NullTarget_MovesToEnd()
+    {
+        // 빈 공간(마지막 항목 아래)에 드롭 → 타깃 null → 맨 끝으로.
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        var c = new LiveQueueItem("c", "C", "Notice");
+        sut.LoadQueue([a, b, c]);
+
+        sut.MoveQueueItemRelativeTo(a, null);
+
+        sut.Queue.Should().Equal(b, c, a);
+    }
+
+    [Fact]
+    public void MoveQueueItemRelativeTo_DuplicateValueTarget_UsesExactInstanceIndex()
+    {
+        // code-review CRITICAL 회귀잠금: 값 동등(record) 중복 타깃이 있어도 드롭 타깃 인덱스를
+        // 참조로 구해야 한다(값 동등성 IndexOf 면 첫 인스턴스 위치로 잘못 감).
+        var sut = CreateSut();
+        var dup0 = new LiveQueueItem("dup", "같은 제목", "Notice");
+        var middle = new LiveQueueItem("m", "중간", "Notice");
+        var dup1 = new LiveQueueItem("dup", "같은 제목", "Notice"); // dup0 와 값 동등, 다른 인스턴스
+        sut.LoadQueue([dup0, middle, dup1]);
+
+        // middle 을 "뒤쪽" 중복 인스턴스(dup1, 인덱스 2) 위치로 이동.
+        sut.MoveQueueItemRelativeTo(middle, dup1);
+
+        // 값 동등성 IndexOf 였다면 dup0(인덱스 0)으로 가 [middle, dup0, dup1] 이 됐을 것.
+        // 참조 기반이면 dup1 의 실제 인덱스(2)로 가 [dup0, dup1, middle].
+        sut.Queue.Should().Equal(dup0, dup1, middle);
+    }
+
+    [Fact]
+    public void MoveQueueItemRelativeTo_TargetNotInQueue_MovesToEnd()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("a", "A", "Notice");
+        var b = new LiveQueueItem("b", "B", "Notice");
+        sut.LoadQueue([a, b]);
+        var stranger = new LiveQueueItem("z", "Z", "Notice");
+
+        sut.MoveQueueItemRelativeTo(a, stranger); // 큐에 없는 타깃 → 맨 끝
+
+        sut.Queue.Should().Equal(b, a);
+    }
+
+    [Fact]
     public void RemoveSelectedItem_RemovesAndSelectsNeighbor()
     {
         // 제거 후 같은 인덱스(또는 마지막) 항목을 새로 선택.

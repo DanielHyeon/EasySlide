@@ -403,22 +403,66 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // LiveQueueItem 은 값 동등성 record 라 Queue.IndexOf 는 "값이 같은 첫 항목"을 돌려준다.
     // 같은 곡을 예배 순서에 두 번 넣는 일이 흔하므로(입례·봉헌 등) 선택한 "바로 그 인스턴스"를
     // 참조 동일성으로 찾아야 엉뚱한 동일-값 항목을 이동/제거하지 않는다.
-    private int IndexOfSelectedReference()
+    private int IndexOfSelectedReference() => IndexOfReference(SelectedItem);
+
+    // 큐에서 특정 인스턴스의 위치를 참조(ReferenceEquals)로 찾는다.
+    // LiveQueueItem 은 record(값 동등성)라 IndexOf 는 같은-값 중복을 구분 못 하므로 참조 비교가 필수.
+    private int IndexOfReference(LiveQueueItem? item)
     {
-        if (SelectedItem is null)
+        if (item is null)
         {
             return -1;
         }
 
         for (var i = 0; i < Queue.Count; i++)
         {
-            if (ReferenceEquals(Queue[i], SelectedItem))
+            if (ReferenceEquals(Queue[i], item))
             {
                 return i;
             }
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// 예배 순서에서 한 항목을 임의 위치로 이동(드래그 재정렬, §7.5 P1).
+    /// 항목은 참조로 찾고(같은-값 중복 안전), 목표 위치는 큐 범위로 클램프한다. 이동한 항목의 선택을 유지.
+    /// </summary>
+    public void MoveQueueItem(LiveQueueItem item, int targetIndex)
+    {
+        var from = IndexOfReference(item);
+        if (from < 0)
+        {
+            return; // 큐에 없는 항목이면 무시(빈 큐도 여기서 걸림 — IndexOfReference 가 -1)
+        }
+
+        var target = Math.Clamp(targetIndex, 0, Queue.Count - 1);
+        if (from == target)
+        {
+            return; // 제자리면 아무 것도 하지 않음(불필요한 컬렉션 이벤트 방지)
+        }
+
+        Queue.Move(from, target);
+        SelectedItem = item; // 이동 후에도 같은 항목이 선택되어 있도록 유지
+        NotifyCommandStates();
+    }
+
+    /// <summary>
+    /// 드롭 위치의 "타깃 항목"을 기준으로 항목을 이동(드래그 재정렬, §7.5 P1).
+    /// 타깃 인덱스도 참조(IndexOfReference)로 구해 같은-값 중복에서 엉뚱한 인스턴스 위치로 가지 않게 한다
+    /// (WPF ItemCollection.IndexOf 는 값 동등성이라 record 중복을 구분 못 함 — code-review CRITICAL 반영).
+    /// target 이 null 이거나 큐에 없으면 맨 끝으로 이동(빈 공간 드롭).
+    /// </summary>
+    public void MoveQueueItemRelativeTo(LiveQueueItem item, LiveQueueItem? target)
+    {
+        var targetIndex = target is null ? Queue.Count - 1 : IndexOfReference(target);
+        if (targetIndex < 0)
+        {
+            targetIndex = Queue.Count - 1; // 타깃이 큐에 없으면 맨 끝
+        }
+
+        MoveQueueItem(item, targetIndex);
     }
 
     private void MoveSelectedItem(int delta)
