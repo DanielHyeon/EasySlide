@@ -156,6 +156,39 @@ public class OutputWindowViewModelTests
 
         sut.BodyTextAlignment.Should().Be(TextAlignment.Center);
         sut.BodyHorizontalAlignment.Should().Be(HorizontalAlignment.Center);
+        sut.BodyVerticalAlignment.Should().Be(VerticalAlignment.Center);
+    }
+
+    [Theory]
+    [InlineData(LyricsVerticalAlignment.Top, VerticalAlignment.Top)]
+    [InlineData(LyricsVerticalAlignment.Center, VerticalAlignment.Center)]
+    [InlineData(LyricsVerticalAlignment.Bottom, VerticalAlignment.Bottom)]
+    public void ApplySession_MapsLyricsVerticalAlignmentToWpf(
+        LyricsVerticalAlignment alignment, VerticalAlignment expected)
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, alignment).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyVerticalAlignment.Should().Be(expected);
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesLyricsVerticalAlignment()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, LyricsVerticalAlignment.Bottom).Succeeded.Should().BeTrue();
+
+        sut.BodyVerticalAlignment.Should().Be(VerticalAlignment.Bottom);
     }
 
     [Fact]

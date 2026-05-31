@@ -38,6 +38,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _bodyTextVisibility = Visibility.Collapsed;
     private TextAlignment _bodyTextAlignment = TextAlignment.Center;
     private HorizontalAlignment _bodyHorizontalAlignment = HorizontalAlignment.Center;
+    private VerticalAlignment _bodyVerticalAlignment = VerticalAlignment.Center;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -153,6 +154,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyHorizontalAlignment;
         private set => SetProperty(ref _bodyHorizontalAlignment, value);
+    }
+
+    /// <summary>가사 본문 블록의 세로 배치(상/중/하) — 화면 위/가운데/아래로 정렬(§7.3-A).</summary>
+    public VerticalAlignment BodyVerticalAlignment
+    {
+        get => _bodyVerticalAlignment;
+        private set => SetProperty(ref _bodyVerticalAlignment, value);
     }
 
     public bool IsBlackout
@@ -366,6 +374,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyText = scene.BodyText;
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
+        BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
         var bodyShown = scene.ShowsBodyText;
         BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -519,6 +528,15 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             _ => HorizontalAlignment.Center,
         };
 
+    // 가사 세로 정렬 enum → WPF VerticalAlignment(본문 블록을 화면 위/가운데/아래로 배치).
+    private static VerticalAlignment ToVerticalAlignment(LyricsVerticalAlignment alignment)
+        => alignment switch
+        {
+            LyricsVerticalAlignment.Top => VerticalAlignment.Top,
+            LyricsVerticalAlignment.Bottom => VerticalAlignment.Bottom,
+            _ => VerticalAlignment.Center,
+        };
+
     private static Color ColorFromArgb(int argb)
     {
         var value = unchecked((uint)argb);
@@ -570,8 +588,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundIsGradient.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowNotations.Id, StringComparison.OrdinalIgnoreCase) ||
-                // 인-셸 가사 정렬 변경도 라이브 출력에 즉시 반영(§7.3-A).
+                // 인-셸 가사 정렬 변경(가로/세로)도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {

@@ -198,8 +198,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-B 라이브 화면 제어(숨김·복귀) — **완료**(2026-05-31: 운영바에 "숨김"(HideOutput)·"복귀"(Restore, Hidden→Active 콘텐츠 보존) 노출)
 - [x] §7.3-B 예배 순서 항목 이동(↑/↓)·제거 — **완료**(2026-05-31, PR #61: WorshipListPanel ↑/↓/제거 버튼. 값 동등성 record 중복은 ReferenceEquals 기반으로 정확한 인스턴스 이동/제거, 라이브 항목 제거 시 _liveItemId 고아 정리)
 - [x] §7.3-B 화면 제어 보강(비우기·처음으로·새로고침) — **완료**(2026-05-31: 비우기(Clear)=콘텐츠 감추고 배경 유지(`OutputSceneKind.Cleared`/`IsCleared`, Black과 상호배타·복귀 가능), 처음으로(Restart)=라이브 곡 첫 절/PPT 첫 슬라이드 재송출(이미 1슬라이드면 Refresh 폴백), 새로고침(Refresh)=출력 강제 재렌더(SessionChanged 재발생). 테스트 612 green, code-reviewer 3건 반영)
-- [x] §7.3-A 인-셸 가사 가로 정렬(좌/중/우) — **완료**(2026-05-31: `LyricsTextAlignment` 설정 키 + 렌더 스레딩 + `OutputWindowViewModel` enum→WPF(TextAlignment/HorizontalAlignment) 매핑 + 우측 인스펙터 버튼. SettingsChanged 화이트리스트로 라이브 즉시 반영, 기본 Center 로 기존 동작 보존. 테스트 625 green, code-reviewer APPROVE + LOW 2건(디스크 round-trip 테스트·Enum.IsDefined 검증) 반영)
-- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(헤딩·세로 정렬·세분 색 ColorPicker) / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
+- [x] §7.3-A 인-셸 가사 정렬(가로 좌/중/우 + 세로 상/중/하) — **완료**(2026-05-31: `LyricsTextAlignment`/`LyricsVerticalAlignment` 설정 키 + 렌더 스레딩 + `OutputWindowViewModel` enum→WPF(TextAlignment/HorizontalAlignment/VerticalAlignment) 매핑 + 우측 인스펙터 버튼. SettingsChanged 화이트리스트로 라이브 즉시 반영, 기본 Center 로 기존 동작 보존. 테스트 636 green, 두 증분 모두 code-reviewer APPROVE. 가로 증분에서 발견한 영속화 타입스위치 누락 회귀는 세로 증분에 선제 반영해 무회귀)
+- [ ] **다음 착수(권장)**: 컨텍스트 인스펙터 확장(헤딩·세분 색 ColorPicker·폰트 크기) / 모달 Library·Bible 진입점 정리 / 자동 회전(Group/One·Repeat·Stop)
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -231,7 +231,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 
 | 기능군 | FrmMain 항목(발췌) | WPF 현황 |
 |---|---|---|
-| 텍스트 정렬 | Align Left/Right/Centre/Top/Bottom, Vertical Alignment | 🟡 가로 정렬(좌/중/우) 인-셸 인스펙터 완료(2026-05-31, `LyricsTextAlignment` 설정→렌더→출력, 우측 패널 버튼). 세로 정렬은 후속 |
+| 텍스트 정렬 | Align Left/Right/Centre/Top/Bottom, Vertical Alignment | ✅ 가로(좌/중/우)+세로(상/중/하) 정렬 인-셸 인스펙터 완료(2026-05-31, `LyricsTextAlignment`/`LyricsVerticalAlignment` 설정→렌더→출력, 우측 패널 버튼·라이브 즉시 반영) |
 | 폰트 효과 | Shadow Font, Outline Font, Italics / No Italics / Chorus Italics Only | 🔴 없음 |
 | 리전(2단) | Region 1/2 Only, Regions 1&2, Interlace, R1/R2 Colour, Region n Align L/R/C, Text Colour As Region 1 | 🔴 없음(렌더는 전경/배경 브러시만) |
 | 헤딩(제목/절) | Show All/No Headings, Heading Align L/R/C/As Region, Heading At First Screen Only, Display Title/Verse Headings | 🔴 없음 |
@@ -296,7 +296,7 @@ Import/Export·Generate RTF/HTML·Copy/Move/Delete·Recover·Smart Merge·Search
 ### 7.5 우선순위 로드맵 (라이브 운영 가치 기준)
 
 - **P0 (운영 본질·최우선)**
-  - (a) **컨텍스트 인스펙터 + 인-셸 가사 포맷팅**: 🟡 진행 중 — **가로 정렬(좌/중/우) 완료**(2026-05-31, 우측 인스펙터 버튼 → 라이브 즉시 반영). 배경색/그라데이션은 출력 모양 프리셋으로 기완료. **잔여: 폰트효과·리전·헤딩·세로 정렬·세분 색 ColorPicker**.
+  - (a) **컨텍스트 인스펙터 + 인-셸 가사 포맷팅**: 🟡 진행 중 — **가로·세로 정렬 완료**(2026-05-31, 우측 인스펙터 버튼 → 라이브 즉시 반영). 배경색/그라데이션은 출력 모양 프리셋으로 기완료. **잔여: 폰트효과·리전·헤딩·세분 색 ColorPicker·폰트 크기**.
   - (b) **인라인 콘텐츠 브라우저**: LibraryWindow/BibleWindow 를 좌측 도킹 패널로 흡수(별도 창 제거).
   - (c) **화면 제어 보강**: ✅ Clear/Hide/Restart/Refresh 완료(2026-05-31). InfoScreen 토글은 FrmInfoScreen 미이식이라 후속.
 - **P1 (운영 편의)**
