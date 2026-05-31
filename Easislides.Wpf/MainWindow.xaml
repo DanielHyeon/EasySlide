@@ -141,6 +141,14 @@
                             <TextBlock Text="자동회전" />
                         </StackPanel>
                     </ToggleButton>
+                    <!-- 우측 인스펙터 접기/펼치기(§7.4 가변 패널) — 접으면 중앙 미리보기가 넓어진다. -->
+                    <ToggleButton IsChecked="{Binding IsInspectorExpanded, Mode=TwoWay}"
+                                  MinHeight="36"
+                                  Padding="10,0"
+                                  Margin="0,0,8,0"
+                                  Content="인스펙터"
+                                  ToolTip="우측 출력 모양 인스펙터 접기/펼치기"
+                                  AutomationProperties.Name="인스펙터 접기 토글" />
                     <Button Click="OpenLibrary_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="라이브러리 열기"
@@ -260,7 +268,8 @@
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="340" />
+                <!-- 우측 인스펙터 컬럼: Auto — 인스펙터를 접으면(Visibility=Collapsed) 0 으로 줄어 중앙이 넓어진다(§7.4 가변 패널). -->
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <!-- 좌측: 상단 콘텐츠 브라우저(라이브러리/성경 탭) + 하단 예배 순서(항상 표시) — FrmMain식 멀티페인.
@@ -686,6 +695,8 @@
             </Border>
 
             <Border Grid.Column="4"
+                    Width="340"
+                    Visibility="{Binding IsInspectorExpanded, Converter={StaticResource BoolToVis}}"
                     Background="{DynamicResource Brush.Surface.Card}"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"

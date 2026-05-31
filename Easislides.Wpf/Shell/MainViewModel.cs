@@ -39,6 +39,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 운영자가 항목을 고르면 알맞은 미리보기가 바로 보여 수동 탭 전환을 없앤다(§7.4 단일 콘솔).
     [ObservableProperty] private int _selectedContentTabIndex;
 
+    // 우측 출력 모양 인스펙터 펼침 여부(FrmMain식 가변 패널, §7.4). 접으면 우측 컬럼이 0 으로 줄어 중앙 미리보기가 넓어진다.
+    // 기본 펼침(true). 운영바 토글로 전환.
+    [ObservableProperty] private bool _isInspectorExpanded = true;
+
     [ObservableProperty] private bool _isPowerPointTabVisible;
     [ObservableProperty] private bool _isPowerPointPanelOverlayEnabled = true;
     [ObservableProperty] private int _powerPointMaxFiles = EasiSettingKeys.PowerPointMaxFiles.DefaultValue;
