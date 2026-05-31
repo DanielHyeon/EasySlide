@@ -433,6 +433,64 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_TitleHeadingFirstScreenOnly_ShowsOnlyOnFirstVerse()
+    {
+        // "At First Screen Only"(§7.3-A): 설정 on 이면 제목 헤딩을 곡 첫 절(pageIndex 0)에만 표시.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            ShowLyricsTitleHeading: true, TitleHeadingFirstScreenOnly: true);
+
+        // 첫 절(pageIndex 0) → 헤딩 표시.
+        var first = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사", CurrentLyricsPageIndex: 0),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+        first.ShowsTitleHeading.Should().BeTrue("첫 절에는 헤딩 표시");
+
+        // 둘째 절(pageIndex 1) → 헤딩 숨김.
+        var second = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "2절 가사", CurrentLyricsPageIndex: 1),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+        second.ShowsTitleHeading.Should().BeFalse("첫 절 이후엔 헤딩 숨김");
+    }
+
+    [Fact]
+    public void CreateScene_TitleHeadingFirstScreenOff_ShowsOnAllVerses()
+    {
+        // 기본 off — 헤딩이 켜져 있으면 모든 절에 표시(기존 동작 보존).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            ShowLyricsTitleHeading: true, TitleHeadingFirstScreenOnly: false);
+
+        var second = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "2절 가사", CurrentLyricsPageIndex: 1),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        second.ShowsTitleHeading.Should().BeTrue("FirstScreenOnly off 면 모든 절에 헤딩");
+    }
+
+    [Fact]
+    public void CreateScene_TitleHeadingOff_FirstScreenOnlyCannotForceHeading()
+    {
+        // 우선순위 잠금(code-review SUGGESTION): 제목 헤딩 자체가 off 면 FirstScreenOnly on·첫 절이어도 헤딩 안 뜸.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            ShowLyricsTitleHeading: false, TitleHeadingFirstScreenOnly: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사", CurrentLyricsPageIndex: 0),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsTitleHeading.Should().BeFalse("헤딩 마스터 토글 off 가 우선");
+    }
+
+    [Fact]
     public void CreateScene_Threads_TitleHeadingAlignment()
     {
         // 제목 헤딩 정렬(§7.3-A): 설정→렌더→scene 으로 헤딩 가로 정렬이 전달되는지 고정.

@@ -735,9 +735,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShadow.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
-                // 제목 헤딩 표시·정렬 토글도 라이브 출력에 즉시 반영(§7.3-A).
+                // 제목 헤딩 표시·정렬·첫화면만 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 외곽선 효과 토글도 라이브 출력에 즉시 반영(§7.3-A 폰트 효과).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorOutline.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
