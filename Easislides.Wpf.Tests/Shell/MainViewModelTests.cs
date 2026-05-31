@@ -1412,6 +1412,27 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void BindShortcuts_BindsOperatorCommandsForPalette()
+    {
+        // §7.4 팔레트 흡수: 화면 제어 보강 명령(비우기/처음으로/새로고침/복귀/자동회전)이 레지스트리에
+        // 바인딩돼 ⌘K(TryInvoke)로 실행 가능해야 한다. 카탈로그에 추가하고 배선을 빠뜨리면 팔레트에서
+        // 선택은 되지만 조용히 무동작하므로, 배선 존재를 잠근다.
+        // 비라이브 SUT 라 CanExecute=false → 게이트로 no-op → TryInvoke 는 true(바인딩 존재·예외 없음).
+        var sut = CreateSut();
+        var registry = new ShortcutRegistry();
+        sut.BindShortcuts(registry);
+
+        foreach (var id in new[]
+                 {
+                     MainCommandIds.LiveClear, MainCommandIds.LiveRestart, MainCommandIds.LiveRefresh,
+                     MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate,
+                 })
+        {
+            registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트에서 실행 가능");
+        }
+    }
+
+    [Fact]
     public void BindShortcuts_AppliesSavedShortcutOverrides()
     {
         using var settingsFolder = TempSettingsFolder.Create();
