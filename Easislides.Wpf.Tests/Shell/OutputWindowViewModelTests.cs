@@ -210,6 +210,55 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_OutlineOff_ShowsPlainBodyNotOutline()
+    {
+        // 기본 off → 일반 본문 렌더러만 보이고 외곽선 렌더러는 숨김(기존 동작 보존).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyHasOutline.Should().BeFalse();
+        sut.BodyTextVisibility.Should().Be(Visibility.Visible, "외곽선 off 면 일반 본문 표시");
+        sut.BodyOutlineVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void ApplySession_OutlineOn_ShowsOutlineBodyNotPlain()
+    {
+        // 외곽선 on → 외곽선 렌더러만 보이고 일반 본문은 숨김(상호배타, 겹침 방지).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorOutline, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyHasOutline.Should().BeTrue();
+        sut.BodyTextVisibility.Should().Be(Visibility.Collapsed, "외곽선 on 이면 일반 본문은 숨김");
+        sut.BodyOutlineVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesOutline()
+    {
+        // 라이브 중 외곽선 토글이 즉시 두 렌더러 가시성에 반영(SettingsChanged 화이트리스트).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+        sut.BodyOutlineVisibility.Should().Be(Visibility.Collapsed);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorOutline, true).Succeeded.Should().BeTrue();
+
+        sut.BodyHasOutline.Should().BeTrue();
+        sut.BodyOutlineVisibility.Should().Be(Visibility.Visible);
+        sut.BodyTextVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
     public void ApplySession_TitleHeadingOn_ShowsTitleAboveBody()
     {
         // 제목 헤딩 설정 on → 가사 본문 송출 중에도 제목을 상단 배너로 노출(본문도 함께 보임).

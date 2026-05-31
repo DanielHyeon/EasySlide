@@ -134,6 +134,9 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorShowPositionIndicator = new("liveOutput.lyricsMonitorShowPositionIndicator", false);
     // 출력 제목 헤딩 표시(가사 위 상단 배너로 곡 제목, 인-셸 §7.3-A). 기본 off → 기존 동작(본문 송출 시 제목 숨김) 보존.
     public static readonly SettingKey<bool> LyricsMonitorShowTitleHeading = new("liveOutput.lyricsMonitorShowTitleHeading", false);
+    // 출력 가사 외곽선(Outline Font) 효과(인-셸 §7.3-A 폰트 효과). 기본 off → 기존 출력 모양 보존.
+    // on 이면 본문을 외곽선 렌더러(OutlinedTextBlock)로 그려 어두운/영상 배경 위 가독성을 높인다.
+    public static readonly SettingKey<bool> LyricsMonitorOutline = new("liveOutput.lyricsMonitorOutline", false);
     // 자동 회전 간격(초, §7.3-B). 라이브 중 절/슬라이드를 이 간격으로 자동 전환. 기본 20초, 범위 2~600.
     public static readonly SettingKey<int> AutoRotateIntervalSeconds = new("liveOutput.autoRotateIntervalSeconds", 20);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
@@ -185,6 +188,7 @@ public static class EasiSettingKeys
         LyricsMonitorLineSpacingPercent,
         LyricsMonitorShowPositionIndicator,
         LyricsMonitorShowTitleHeading,
+        LyricsMonitorOutline,
         AutoRotateIntervalSeconds,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
@@ -279,6 +283,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorShowPositionIndicator { get; init; } = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
 
     public bool LyricsMonitorShowTitleHeading { get; init; } = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
+
+    public bool LyricsMonitorOutline { get; init; } = EasiSettingKeys.LyricsMonitorOutline.DefaultValue;
 
     public int AutoRotateIntervalSeconds { get; init; } = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
 }
@@ -1005,6 +1011,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
+            "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
             "liveOutput.autoRotateIntervalSeconds" => snapshot.LiveOutput.AutoRotateIntervalSeconds,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
@@ -1150,6 +1157,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowTitleHeading = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorOutline" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorOutline = Cast<bool>(keyId, value) },
             },
             "liveOutput.autoRotateIntervalSeconds" => snapshot with
             {

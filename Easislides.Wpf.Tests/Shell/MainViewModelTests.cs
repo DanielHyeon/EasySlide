@@ -1857,6 +1857,24 @@ public class MainViewModelTests
         sut.ActiveLyricsTitleHeading.Should().BeFalse("다시 누르면 off");
     }
 
+    [Fact]
+    public void ToggleLyricsOutlineCommand_FlipsSetting()
+    {
+        // 외곽선 효과 토글: 설정 반전 + 인스펙터 활성 상태 동기화(§7.3-A 폰트 효과).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsOutline.Should().BeFalse("기본 off");
+
+        sut.ToggleLyricsOutlineCommand.Execute(null);
+
+        sut.ActiveLyricsOutline.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorOutline).Should().BeTrue();
+
+        sut.ToggleLyricsOutlineCommand.Execute(null);
+        sut.ActiveLyricsOutline.Should().BeFalse("다시 누르면 off");
+    }
+
     // ─── 출력 모양 설정 템플릿(저장/불러오기) (§7.3-A) ────────────────────────
 
     [Fact]
