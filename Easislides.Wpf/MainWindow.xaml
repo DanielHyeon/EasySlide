@@ -149,14 +149,17 @@
                                   Content="인스펙터"
                                   ToolTip="우측 출력 모양 인스펙터 접기/펼치기"
                                   AutomationProperties.Name="인스펙터 접기 토글" />
-                    <Button Click="OpenLibrary_Click"
+                    <!-- 라이브러리·성경·외부파일·I/O·도움말·등록·정보 런처는 ⌘K 명령 팔레트로 흡수(§7.4 적극 정리).
+                         바에는 자주 쓰는 파일·순서·검색·설정만 남긴다. 핸들러는 BindWindowLaunchers 가 참조. -->
+                    <!-- 명령 팔레트 진입(발견가능성) — 마우스 운영자도 ⌘K 없이 클릭으로 모든 명령/창을 검색·실행. -->
+                    <Button Command="{Binding CommandPalette.OpenCommand}"
                             Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="라이브러리 열기"
-                            AutomationProperties.Name="라이브러리 열기"
+                            ToolTip="모든 명령·창 검색 (Ctrl+K)"
+                            AutomationProperties.Name="명령 팔레트 열기"
                             Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
-                            <TextBlock Text="라이브러리" />
+                            <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
+                            <TextBlock Text="명령 ⌘K" />
                         </StackPanel>
                     </Button>
                     <Button Click="AddExternalFile_Click"
@@ -179,26 +182,6 @@
                             <TextBlock Text="순서" />
                         </StackPanel>
                     </Button>
-                    <Button Click="OpenExternalFiles_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="외부 파일 복사/이동"
-                            AutomationProperties.Name="외부 파일 복사/이동"
-                            Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
-                            <TextBlock Text="외부 파일" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="OpenImportExport_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="Import/Export"
-                            AutomationProperties.Name="Import/Export"
-                            Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ExportRtf}" Margin="0,0,6,0" />
-                            <TextBlock Text="I/O" />
-                        </StackPanel>
-                    </Button>
                     <Button Click="OpenSearchUsage_Click"
                             Style="{StaticResource EsButton.Secondary}"
                             ToolTip="Search and usage"
@@ -207,46 +190,6 @@
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
                             <TextBlock Text="Search" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="OpenBible_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="성경 열기"
-                            AutomationProperties.Name="성경 열기"
-                            Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" Margin="0,0,6,0" />
-                            <TextBlock Text="성경" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="OpenHelp_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="도움말 열기"
-                            AutomationProperties.Name="도움말 열기"
-                            Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="QuestionCircle24" Margin="0,0,6,0" />
-                            <TextBlock Text="도움말" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="OpenRegistration_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="등록 페이지 안내"
-                            AutomationProperties.Name="등록 페이지 안내"
-                            Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                            <TextBlock Text="등록" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="OpenAbout_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            ToolTip="EasiSlides 정보"
-                            AutomationProperties.Name="EasiSlides 정보"
-                            Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Info24" Margin="0,0,6,0" />
-                            <TextBlock Text="정보" />
                         </StackPanel>
                     </Button>
                     <Button Click="OpenSettings_Click"
