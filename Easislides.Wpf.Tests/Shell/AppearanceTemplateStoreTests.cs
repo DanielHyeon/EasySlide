@@ -31,7 +31,8 @@ public class AppearanceTemplateStoreTests
             ShowPositionIndicator: true,
             ShowTitleHeading: true,
             Outline: true,
-            TitleHeadingAlignment: LyricsTextAlignment.Right);
+            TitleHeadingAlignment: LyricsTextAlignment.Right,
+            TitleHeadingFirstScreenOnly: true);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");
@@ -246,6 +247,21 @@ public class AppearanceTemplateStoreTests
         captured.ApplyTo(settings);
 
         settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment).Should().Be(LyricsTextAlignment.Right);
+    }
+
+    [Fact]
+    public void CaptureThenApply_RestoresTitleHeadingFirstScreenOnly()
+    {
+        // 출력 모양 템플릿이 "At First Screen Only" 설정까지 캡처·복원하는지(§7.3-A 신규 필드).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, true);
+        var captured = LyricsAppearanceTemplate.Capture(settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, false);
+        captured.ApplyTo(settings);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly).Should().BeTrue();
     }
 
     private static ISettingsService NewSettings()

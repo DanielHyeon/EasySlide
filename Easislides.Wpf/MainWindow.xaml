@@ -1015,6 +1015,16 @@
                                 Content="오른쪽"
                                 AutomationProperties.Name="제목 오른쪽 정렬" />
                     </StackPanel>
+                    <!-- 제목 헤딩을 곡 첫 절(첫 화면)에만 표시(§7.3-A Heading At First Screen Only). -->
+                    <ToggleButton IsChecked="{Binding ActiveTitleHeadingFirstScreenOnly, Mode=OneWay}"
+                                  Command="{Binding ToggleTitleHeadingFirstScreenOnlyCommand}"
+                                  HorizontalAlignment="Left"
+                                  MinHeight="36"
+                                  Padding="10,0"
+                                  Margin="0,6,0,0"
+                                  Content="첫 절만"
+                                  ToolTip="제목 헤딩을 곡 첫 절(첫 화면)에만 표시(§7.3-A)"
+                                  AutomationProperties.Name="제목 헤딩 첫 화면만 토글" />
 
                     <!-- 출력 모양 설정 템플릿(§7.3-A) — 현재 모양을 이름으로 저장, 콤보에서 골라 적용/삭제. -->
                     <TextBlock Text="모양 템플릿"

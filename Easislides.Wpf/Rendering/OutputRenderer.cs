@@ -52,7 +52,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 가사 외곽선(Outline Font) 효과 여부(인-셸 §7.3-A 폰트 효과). 기본 off.
     bool ShowLyricsOutline = false,
     // 출력 제목 헤딩 가로 정렬(인-셸 §7.3-A Heading Align). 기본 Center.
-    LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center)
+    LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center,
+    // 제목 헤딩을 곡 첫 절(첫 화면)에만 표시(인-셸 §7.3-A Heading At First Screen Only). 기본 off.
+    bool TitleHeadingFirstScreenOnly = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -83,7 +85,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorOutline),
-            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment));
+            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
+            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly));
     }
 }
 
@@ -145,7 +148,12 @@ public sealed record OutputSceneSnapshot(
     // 가사 외곽선(Outline Font) 효과 설정(인-셸 §7.3-A 폰트 효과). 기본 off.
     bool ShowLyricsOutline = false,
     // 제목 헤딩 가로 정렬(인-셸 §7.3-A Heading Align). 기본 Center.
-    LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center)
+    LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center,
+    // 제목 헤딩을 첫 화면(첫 절)에만 표시하는 설정(인-셸 §7.3-A). 기본 off.
+    bool ShowLyricsTitleHeadingFirstScreenOnly = false,
+    // 현재 가사 절 인덱스(0=첫 절) — 오직 ShowsTitleHeading "첫 화면만" 판정 전용(게이트 한정).
+    // 비-Live(Cleared/Blackout 등)나 곡이 아니면 0 으로 들어오므로, 실제 세션 페이지 인덱스로 신뢰하지 말 것.
+    int CurrentLyricsPageIndex = 0)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -157,7 +165,11 @@ public sealed record OutputSceneSnapshot(
 
     // 제목 헤딩을 실제로 노출할지 — 설정 on + 가사 본문 송출 중 + 제목이 있을 때만(가사 위 상단 배너).
     // 본문이 있을 때만 의미 있다(본문 없으면 기존 중앙 제목이 그대로 제목을 담당).
-    public bool ShowsTitleHeading => ShowLyricsTitleHeading && ShowsBodyText && !string.IsNullOrWhiteSpace(DisplayTitle);
+    // "첫 화면만"(FirstScreenOnly)이 켜져 있으면 곡 첫 절(CurrentLyricsPageIndex==0)에서만 표시(§7.3-A).
+    public bool ShowsTitleHeading => ShowLyricsTitleHeading
+        && ShowsBodyText
+        && !string.IsNullOrWhiteSpace(DisplayTitle)
+        && (!ShowLyricsTitleHeadingFirstScreenOnly || CurrentLyricsPageIndex == 0);
 
     // 외곽선 렌더러를 쓸지 — 설정 on + 가사 본문 송출 중일 때만(본문 없으면 의미 없음).
     // on 이면 일반 본문 TextBlock 대신 외곽선 렌더러를 쓰고, off 면 기존 본문 그대로(상호배타).
@@ -224,7 +236,10 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.ShowLyricsPositionIndicator,
             liveOutput.ShowLyricsTitleHeading,
             liveOutput.ShowLyricsOutline,
-            liveOutput.LyricsMonitorTitleHeadingAlignment);
+            liveOutput.LyricsMonitorTitleHeadingAlignment,
+            liveOutput.TitleHeadingFirstScreenOnly,
+            // 현재 절 인덱스는 Live 일 때만 의미 있다(그 외엔 0=첫 화면 취급).
+            kind == OutputSceneKind.Live ? request.Session.CurrentLyricsPageIndex : 0);
     }
 
     private ImagePlacement GetContentPlacement(

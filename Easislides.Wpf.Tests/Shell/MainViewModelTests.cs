@@ -1981,6 +1981,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ToggleTitleHeadingFirstScreenOnlyCommand_FlipsSetting()
+    {
+        // "At First Screen Only" 토글: 설정 반전 + 인스펙터 활성 상태 동기화(§7.3-A).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveTitleHeadingFirstScreenOnly.Should().BeFalse("기본 off");
+
+        sut.ToggleTitleHeadingFirstScreenOnlyCommand.Execute(null);
+
+        sut.ActiveTitleHeadingFirstScreenOnly.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly).Should().BeTrue();
+
+        sut.ToggleTitleHeadingFirstScreenOnlyCommand.Execute(null);
+        sut.ActiveTitleHeadingFirstScreenOnly.Should().BeFalse("다시 누르면 off");
+    }
+
+    [Fact]
     public void ToggleLyricsOutlineCommand_FlipsSetting()
     {
         // 외곽선 효과 토글: 설정 반전 + 인스펙터 활성 상태 동기화(§7.3-A 폰트 효과).

@@ -26,7 +26,9 @@ public sealed record LiveSessionSnapshot(
     // IsBlackout(완전 검정)과 상호 배타. 기본 false. 출력 렌더러가 Cleared 씬으로 해석한다.
     bool IsCleared = false,
     // 위치 라벨(예: "2/4") — 곡 절/PPT 슬라이드 위치. 단일이면 빈 문자열. 출력은 설정 on 일 때만 표시(§7.3-A).
-    string CurrentItemPositionLabel = "")
+    string CurrentItemPositionLabel = "",
+    // 현재 가사 절 페이지 인덱스(0=첫 절). 제목 헤딩 "첫 화면만" 표시 판정에 쓰임(§7.3-A). 곡이 아니면 0.
+    int CurrentLyricsPageIndex = 0)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -81,7 +83,9 @@ public sealed class LiveSessionService : ILiveSessionService
             // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
             // LyricsPageIndex=0 이면 첫 절, GoLive 호출 전에 MainViewModel 이 현재 페이지를 얹어 전달한다.
             CurrentItemBodyText: LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex),
-            CurrentItemPositionLabel: item.PositionLabel));
+            CurrentItemPositionLabel: item.PositionLabel,
+            // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
+            CurrentLyricsPageIndex: item.LyricsPageIndex));
     }
 
     // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를

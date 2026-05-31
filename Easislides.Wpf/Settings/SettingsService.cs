@@ -140,6 +140,9 @@ public static class EasiSettingKeys
     // 출력 제목 헤딩 가로 정렬(인-셸 §7.3-A, 레거시 Heading Align L/C/R). 기본 Center 로 기존 헤딩 가운데 정렬 보존.
     public static readonly SettingKey<LyricsTextAlignment> LyricsMonitorTitleHeadingAlignment =
         new("liveOutput.lyricsMonitorTitleHeadingAlignment", LyricsTextAlignment.Center);
+    // 제목 헤딩을 곡 첫 절(첫 화면)에만 표시(인-셸 §7.3-A, 레거시 Heading At First Screen Only). 기본 off → 모든 절에 표시.
+    public static readonly SettingKey<bool> LyricsMonitorTitleHeadingFirstScreenOnly =
+        new("liveOutput.lyricsMonitorTitleHeadingFirstScreenOnly", false);
     // 자동 회전 간격(초, §7.3-B). 라이브 중 절/슬라이드를 이 간격으로 자동 전환. 기본 20초, 범위 2~600.
     public static readonly SettingKey<int> AutoRotateIntervalSeconds = new("liveOutput.autoRotateIntervalSeconds", 20);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
@@ -193,6 +196,7 @@ public static class EasiSettingKeys
         LyricsMonitorShowTitleHeading,
         LyricsMonitorOutline,
         LyricsMonitorTitleHeadingAlignment,
+        LyricsMonitorTitleHeadingFirstScreenOnly,
         AutoRotateIntervalSeconds,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
@@ -292,6 +296,9 @@ public sealed record LiveOutputSettings
 
     public LyricsTextAlignment LyricsMonitorTitleHeadingAlignment { get; init; } =
         EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.DefaultValue;
+
+    public bool LyricsMonitorTitleHeadingFirstScreenOnly { get; init; } =
+        EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.DefaultValue;
 
     public int AutoRotateIntervalSeconds { get; init; } = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
 }
@@ -1025,6 +1032,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
             "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
             "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot.LiveOutput.LyricsMonitorTitleHeadingAlignment,
+            "liveOutput.lyricsMonitorTitleHeadingFirstScreenOnly" => snapshot.LiveOutput.LyricsMonitorTitleHeadingFirstScreenOnly,
             "liveOutput.autoRotateIntervalSeconds" => snapshot.LiveOutput.AutoRotateIntervalSeconds,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
@@ -1178,6 +1186,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorTitleHeadingAlignment = Cast<LyricsTextAlignment>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorTitleHeadingFirstScreenOnly" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorTitleHeadingFirstScreenOnly = Cast<bool>(keyId, value) },
             },
             "liveOutput.autoRotateIntervalSeconds" => snapshot with
             {
