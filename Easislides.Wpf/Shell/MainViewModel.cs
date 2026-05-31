@@ -44,7 +44,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _liveCameraSource = MediaPlaybackService.CreateLiveCameraSource(EasiSettingKeys.LiveCameraNumber.DefaultValue);
     // 현재 출력 모양과 일치하는 프리셋 이름(없으면 "사용자 지정"). 인스펙터에서 활성 프리셋 강조용.
     [ObservableProperty] private string _activeAppearanceName = "";
+    // 현재 적용된 가사 정렬(인-셸 인스펙터 강조용). 설정에서 유래.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActiveLyricsAlignmentLabel))]
+    private LyricsTextAlignment _activeLyricsAlignment = EasiSettingKeys.LyricsMonitorTextAlignment.DefaultValue;
     private bool _disposed;
+
+    /// <summary>현재 가사 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
+    public string ActiveLyricsAlignmentLabel
+        => ActiveLyricsAlignment switch
+        {
+            LyricsTextAlignment.Left => "왼쪽",
+            LyricsTextAlignment.Right => "오른쪽",
+            _ => "가운데",
+        };
 
     /// <summary>
     /// 인-셸 "출력 모양" 인스펙터 프리셋(글자색 + 배경) — 별도 Settings 모달 없이 MainWindow 에서 즉시 적용,
@@ -56,6 +69,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         new OutputAppearancePreset("흰 글자 · 네이비 그라데이션", unchecked((int)0xFFFFFFFF), unchecked((int)0xFF1B2A4A), unchecked((int)0xFF0A1020), IsGradient: true),
         new OutputAppearancePreset("검정 글자 · 흰 배경", unchecked((int)0xFF000000), unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), IsGradient: false),
         new OutputAppearancePreset("노랑 글자 · 진남색", unchecked((int)0xFFFFD24A), unchecked((int)0xFF101830), unchecked((int)0xFF101830), IsGradient: false),
+    };
+
+    /// <summary>
+    /// 인-셸 가사 정렬 옵션(좌/중/우) — MainWindow 우측 인스펙터가 바인딩. 별도 Settings 모달 없이 즉시 적용,
+    /// 설정→출력 VM(SettingsChanged) 경로로 라이브 반영(§7.3-A / §7.5 P0-a).
+    /// </summary>
+    public IReadOnlyList<LyricsTextAlignment> LyricsAlignmentOptions { get; } = new[]
+    {
+        LyricsTextAlignment.Left,
+        LyricsTextAlignment.Center,
+        LyricsTextAlignment.Right,
     };
 
     // 현재 라이브 송출 중인 큐 항목의 Id(없으면 null). 슬라이드 이동이 "선택 항목 == 라이브 항목"일 때만
@@ -158,6 +182,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
+        ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
@@ -195,6 +220,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
+    public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
@@ -1095,6 +1121,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"출력 모양: {preset.Name}";
     }
 
+    // 인-셸 가사 정렬 적용 — 설정을 쓰면 출력 VM 이 SettingsChanged 로 라이브 출력을 즉시 갱신한다(§7.3-A).
+    private void ApplyLyricsAlignment(LyricsTextAlignment alignment)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorTextAlignment, alignment);
+        ActiveLyricsAlignment = alignment;
+        StatusText = $"가사 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
+    }
+
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
     private void RefreshActiveAppearance()
     {
@@ -1106,6 +1140,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var match = OutputAppearancePresets.FirstOrDefault(p =>
             p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
         ActiveAppearanceName = match?.Name ?? "사용자 지정";
+
+        // 가사 정렬 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
+        ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)

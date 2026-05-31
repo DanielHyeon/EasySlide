@@ -78,6 +78,7 @@ public static class LegacySettingsMap
         Automated("LyricsMonitorBackgroundIsGradient", EasiSettingKeys.LyricsMonitorBackgroundIsGradient.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "Whether the lyrics monitor background uses a vertical gradient (G2 / FrmBackground)."),
         Automated("LyricsMonitorShowNotations", EasiSettingKeys.LyricsMonitorShowNotations.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "RegUtil monitors", "Registry-backed lyrics notation toggle."),
         Automated("LMShowNotations", EasiSettingKeys.LyricsMonitorShowNotations.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy lyrics monitor notation toggle."),
+        Automated("LyricsMonitorTextAlignment", EasiSettingKeys.LyricsMonitorTextAlignment.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Enum, "WPF compatibility", "In-shell lyrics horizontal alignment (left/center/right) — §7.3-A."),
 
         Automated("UsePowerpointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy tab visibility."),
         Automated("UsePowerPointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "WPF compatibility", "Current WPF setting import/export alias."),

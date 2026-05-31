@@ -36,6 +36,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _panelOverlayVisibility = Visibility.Visible;
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _bodyTextVisibility = Visibility.Collapsed;
+    private TextAlignment _bodyTextAlignment = TextAlignment.Center;
+    private HorizontalAlignment _bodyHorizontalAlignment = HorizontalAlignment.Center;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -137,6 +139,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyTextVisibility;
         private set => SetProperty(ref _bodyTextVisibility, value);
+    }
+
+    /// <summary>가사 본문 줄 정렬(좌/중/우) — 인-셸 가사 정렬 설정에서 유래(§7.3-A).</summary>
+    public TextAlignment BodyTextAlignment
+    {
+        get => _bodyTextAlignment;
+        private set => SetProperty(ref _bodyTextAlignment, value);
+    }
+
+    /// <summary>가사 본문 블록의 가로 배치(좌/중/우) — MaxWidth 블록을 화면 좌/중/우로 정렬.</summary>
+    public HorizontalAlignment BodyHorizontalAlignment
+    {
+        get => _bodyHorizontalAlignment;
+        private set => SetProperty(ref _bodyHorizontalAlignment, value);
     }
 
     public bool IsBlackout
@@ -348,6 +364,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
         // 곡 가사 본문을 송출 슬롯에 반영. 본문이 보이면 타이틀과 겹치므로 ApplyGapLogo 에서 타이틀을 숨긴다.
         BodyText = scene.BodyText;
+        BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
+        BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         var bodyShown = scene.ShowsBodyText;
         BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -484,6 +502,23 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    // 가사 정렬 enum → WPF 매핑. TextAlignment 는 줄 내부 정렬, HorizontalAlignment 는 MaxWidth 블록의 화면 배치.
+    private static TextAlignment ToTextAlignment(LyricsTextAlignment alignment)
+        => alignment switch
+        {
+            LyricsTextAlignment.Left => TextAlignment.Left,
+            LyricsTextAlignment.Right => TextAlignment.Right,
+            _ => TextAlignment.Center,
+        };
+
+    private static HorizontalAlignment ToHorizontalAlignment(LyricsTextAlignment alignment)
+        => alignment switch
+        {
+            LyricsTextAlignment.Left => HorizontalAlignment.Left,
+            LyricsTextAlignment.Right => HorizontalAlignment.Right,
+            _ => HorizontalAlignment.Center,
+        };
+
     private static Color ColorFromArgb(int argb)
     {
         var value = unchecked((uint)argb);
@@ -535,6 +570,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundIsGradient.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowNotations.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 인-셸 가사 정렬 변경도 라이브 출력에 즉시 반영(§7.3-A).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorTextAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {

@@ -69,6 +69,14 @@ public enum GapItemMode
     User = 3,
 }
 
+// 출력 화면 가사 가로 정렬(인-셸 가사 정렬 — 레거시 Align Left/Centre/Right). 기본 Center(기존 동작 보존).
+public enum LyricsTextAlignment
+{
+    Left = 0,
+    Center = 1,
+    Right = 2,
+}
+
 public static class EasiSettingKeys
 {
     public static readonly SettingKey<string> Language = new("general.language", "ko-KR");
@@ -99,6 +107,9 @@ public static class EasiSettingKeys
     // 배경 그라데이션 사용 여부(기본 false=솔리드). true 면 배경색→끝색 세로 그라데이션.
     public static readonly SettingKey<bool> LyricsMonitorBackgroundIsGradient = new("liveOutput.lyricsMonitorBackgroundIsGradient", false);
     public static readonly SettingKey<bool> LyricsMonitorShowNotations = new("liveOutput.lyricsMonitorShowNotations", true);
+    // 출력 가사 가로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center 로 기존 가운데 정렬 동작을 보존.
+    public static readonly SettingKey<LyricsTextAlignment> LyricsMonitorTextAlignment =
+        new("liveOutput.lyricsMonitorTextAlignment", LyricsTextAlignment.Center);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
@@ -139,6 +150,7 @@ public static class EasiSettingKeys
         LyricsMonitorBackgroundColor2Argb,
         LyricsMonitorBackgroundIsGradient,
         LyricsMonitorShowNotations,
+        LyricsMonitorTextAlignment,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
@@ -212,6 +224,9 @@ public sealed record LiveOutputSettings
         EasiSettingKeys.LyricsMonitorBackgroundIsGradient.DefaultValue;
 
     public bool LyricsMonitorShowNotations { get; init; } = EasiSettingKeys.LyricsMonitorShowNotations.DefaultValue;
+
+    public LyricsTextAlignment LyricsMonitorTextAlignment { get; init; } =
+        EasiSettingKeys.LyricsMonitorTextAlignment.DefaultValue;
 }
 
 public sealed record PowerPointSettings
@@ -441,6 +456,12 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.GapItemOption))
         {
             issues.Add(Error(EasiSettingKeys.GapItemOption.Id, "Gap item option value is not supported."));
+        }
+
+        // 손상되거나 외부 편집된 settings.json 의 잘못된 정렬 값(예: 정수 99)을 임포트/로드 시 거른다(다른 enum 과 일관).
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorTextAlignment))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorTextAlignment.Id, "Lyrics text alignment value is not supported."));
         }
 
         ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
@@ -845,6 +866,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<ColorTheme> themeKey => themeKey.Id,
                 SettingKey<InterfaceSize> sizeKey => sizeKey.Id,
                 SettingKey<GapItemMode> gapItemModeKey => gapItemModeKey.Id,
+                SettingKey<LyricsTextAlignment> alignmentKey => alignmentKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
                 SettingKey<double> doubleKey => doubleKey.Id,
@@ -890,6 +912,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBackgroundColor2Argb" => snapshot.LiveOutput.LyricsMonitorBackgroundColor2Argb,
             "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot.LiveOutput.LyricsMonitorBackgroundIsGradient,
             "liveOutput.lyricsMonitorShowNotations" => snapshot.LiveOutput.LyricsMonitorShowNotations,
+            "liveOutput.lyricsMonitorTextAlignment" => snapshot.LiveOutput.LyricsMonitorTextAlignment,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
@@ -998,6 +1021,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowNotations" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowNotations = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorTextAlignment" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorTextAlignment = Cast<LyricsTextAlignment>(keyId, value) },
             },
             "powerPoint.usePowerPointTab" => snapshot with
             {

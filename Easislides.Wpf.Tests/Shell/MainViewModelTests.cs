@@ -1493,6 +1493,38 @@ public class MainViewModelTests
         sut.RefreshOutputCommand.CanExecute(null).Should().BeFalse("출력 닫힘 상태에선 새로고침 비활성");
     }
 
+    // ─── 인-셸 가사 정렬 인스펙터 (§7.3-A / §7.5 P0-a) ────────────────────────
+
+    [Fact]
+    public void ApplyLyricsAlignmentCommand_PersistsAlignmentSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyLyricsAlignmentCommand.Execute(LyricsTextAlignment.Left);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment).Should().Be(LyricsTextAlignment.Left);
+        sut.ActiveLyricsAlignment.Should().Be(LyricsTextAlignment.Left);
+    }
+
+    [Fact]
+    public void ActiveLyricsAlignment_ReflectsCurrentSetting_DefaultsCenter()
+    {
+        var sut = CreateSut();
+
+        sut.ActiveLyricsAlignment.Should().Be(LyricsTextAlignment.Center, "기본 정렬은 가운데");
+    }
+
+    [Fact]
+    public void LyricsAlignmentOptions_ExposesThreeOptions()
+    {
+        var sut = CreateSut();
+
+        sut.LyricsAlignmentOptions.Should().BeEquivalentTo(
+            new[] { LyricsTextAlignment.Left, LyricsTextAlignment.Center, LyricsTextAlignment.Right });
+    }
+
     [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {
