@@ -210,6 +210,83 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_TitleHeadingOn_ShowsTitleAboveBody()
+    {
+        // 제목 헤딩 설정 on → 가사 본문 송출 중에도 제목을 상단 배너로 노출(본문도 함께 보임).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.DisplayTitle.Should().Be("은혜로다");
+        sut.TitleHeadingVisibility.Should().Be(Visibility.Visible);
+        sut.BodyTextVisibility.Should().Be(Visibility.Visible, "헤딩과 본문은 함께 보인다");
+    }
+
+    [Fact]
+    public void ApplySession_TitleHeadingOff_HidesHeading()
+    {
+        // 기본 off → 헤딩 숨김(기존 동작: 본문 송출 시 중앙 제목도 숨김).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.TitleHeadingVisibility.Should().Be(Visibility.Collapsed);
+        sut.DisplayTitleVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void ApplySession_TitleHeadingOn_ReservesBodyTopMargin_PreventingOverlap()
+    {
+        // code-review MAJOR 반영: 본문 세로정렬이 "위"여도 헤딩과 겹치지 않도록 본문 상단 여백을 확보.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, LyricsVerticalAlignment.Top).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.TitleHeadingVisibility.Should().Be(Visibility.Visible);
+        sut.BodyVerticalAlignment.Should().Be(VerticalAlignment.Top);
+        sut.BodyContentMargin.Top.Should().BeGreaterThan(0, "헤딩이 보이면 본문 상단 여백을 확보해 겹침 방지");
+    }
+
+    [Fact]
+    public void ApplySession_TitleHeadingOff_NoBodyTopMargin()
+    {
+        // 헤딩 off(기본) → 본문 상단 여백 0(기존 레이아웃 보존).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.TitleHeadingVisibility.Should().Be(Visibility.Collapsed);
+        sut.BodyContentMargin.Top.Should().Be(0, "헤딩이 없으면 본문 여백을 추가하지 않음");
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesTitleHeading()
+    {
+        // 라이브 중 설정 토글이 즉시 헤딩 가시성에 반영(SettingsChanged 화이트리스트).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+        sut.TitleHeadingVisibility.Should().Be(Visibility.Collapsed);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, true).Succeeded.Should().BeTrue();
+
+        sut.TitleHeadingVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesFontEffects()
     {
         using var settingsFolder = TempSettingsFolder.Create();

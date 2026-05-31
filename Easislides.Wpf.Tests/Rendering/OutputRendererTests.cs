@@ -413,6 +413,81 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_ShowsTitleHeading_WhenEnabledAndLiveWithBody()
+    {
+        // 제목 헤딩(§7.3-A): 설정 on + Live + 가사 본문 + 제목 존재 → ShowsTitleHeading true(가사 위 상단 배너).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsTitleHeading: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.DisplayTitle.Should().Be("은혜로다");
+        scene.ShowsTitleHeading.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_HidesTitleHeading_WhenSettingOff()
+    {
+        // 기본 off — 가사가 보여도 제목 헤딩은 숨김(기존 동작: 본문 송출 시 제목 숨김).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsTitleHeading: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsTitleHeading.Should().BeFalse("설정 off 면 제목 헤딩 숨김");
+    }
+
+    [Fact]
+    public void CreateScene_HidesTitleHeading_WhenNoBody()
+    {
+        // 제목 헤딩은 가사 본문이 송출될 때만 의미 있다(본문 없으면 기존 중앙 제목이 담당).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsTitleHeading: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsTitleHeading.Should().BeFalse("본문이 없으면 제목 헤딩 숨김");
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsTitleHeadingOff()
+    {
+        // 기본값 off — 신규 설정이 기존 출력 모양을 바꾸지 않음을 고정.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.ShowLyricsTitleHeading.Should().BeFalse();
+        scene.ShowsTitleHeading.Should().BeFalse();
+    }
+
+    [Fact]
     public void CreateScene_Threads_LyricsLineSpacing()
     {
         // 인-셸 줄 간격(§7.3-A): 설정→렌더→scene 으로 줄 간격(%)이 전달되는지 고정.

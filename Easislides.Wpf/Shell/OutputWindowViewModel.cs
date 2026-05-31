@@ -15,6 +15,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 {
     private const int DefaultViewportWidth = 1280;
     private const int DefaultViewportHeight = 720;
+    // 제목 헤딩 배너가 차지하는 상단 높이(px) — 헤딩 표시 중 본문 상단 여백으로 예약(겹침 방지, §7.3-A).
+    // 헤딩 폰트 40px + 상단 마진 28px + 여유. 헤딩이 1줄(NoWrap)이라 결정적.
+    private const double TitleHeadingReservedHeight = 96;
 
     private readonly IOutputRenderer _renderer;
     private readonly ISettingsService? _settings;
@@ -46,6 +49,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private bool _bodyHasShadow;
     private string _positionLabel = string.Empty;
     private Visibility _positionIndicatorVisibility = Visibility.Collapsed;
+    // 제목 헤딩(가사 위 상단 배너) 가시성 — 기본 숨김(설정 off 일 때 기존 동작 보존). §7.3-A
+    private Visibility _titleHeadingVisibility = Visibility.Collapsed;
+    // 본문 상단 여백 — 제목 헤딩이 보일 때만 헤딩 배너 높이만큼 위를 비워(겹침 방지),
+    // 본문 세로 정렬이 "위"여도 헤딩과 포개지지 않게 한다(§7.3-A code-review MAJOR 반영). 기본 0.
+    private Thickness _bodyContentMargin = new(0);
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -275,6 +283,21 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _displayTitleVisibility, value);
     }
 
+    // 제목 헤딩(가사 위 상단 배너) 가시성 — 설정 on + 가사 본문 송출 중일 때만 Visible(§7.3-A).
+    // 중앙 DisplayTitle 과 별개의 상단 TextBlock 으로, 본문과 겹치지 않게 곡 제목을 보여준다.
+    public Visibility TitleHeadingVisibility
+    {
+        get => _titleHeadingVisibility;
+        private set => SetProperty(ref _titleHeadingVisibility, value);
+    }
+
+    // 본문 TextBlock 의 Margin — 제목 헤딩이 보일 때만 상단 여백을 확보해 헤딩과 겹치지 않게 한다(§7.3-A).
+    public Thickness BodyContentMargin
+    {
+        get => _bodyContentMargin;
+        private set => SetProperty(ref _bodyContentMargin, value);
+    }
+
     public Visibility GapLogoVisibility
     {
         get => _gapLogoVisibility;
@@ -440,6 +463,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyHasShadow = scene.LyricsMonitorShadow;
         PositionLabel = scene.PositionLabel;
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
+        // 제목 헤딩: 설정 on + 가사 본문 송출 중일 때만 상단 배너로 곡 제목 노출(§7.3-A).
+        TitleHeadingVisibility = scene.ShowsTitleHeading ? Visibility.Visible : Visibility.Collapsed;
+        // 헤딩이 보이면 본문 위에 배너 높이만큼 여백을 확보 — 본문 세로정렬이 "위"여도 겹치지 않게 한다.
+        // 헤딩은 1줄(NoWrap)로 높이가 결정적이라 고정 여백으로 충분하다.
+        BodyContentMargin = scene.ShowsTitleHeading ? new Thickness(0, TitleHeadingReservedHeight, 0, 0) : new Thickness(0);
         var bodyShown = scene.ShowsBodyText;
         BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
@@ -665,6 +693,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShadow.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 제목 헤딩 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {

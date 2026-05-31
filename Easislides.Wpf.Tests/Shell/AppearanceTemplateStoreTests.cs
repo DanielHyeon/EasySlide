@@ -28,7 +28,8 @@ public class AppearanceTemplateStoreTests
             Italic: false,
             Shadow: true,
             ShowNotations: false,
-            ShowPositionIndicator: true);
+            ShowPositionIndicator: true,
+            ShowTitleHeading: true);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");
@@ -126,6 +127,55 @@ public class AppearanceTemplateStoreTests
 
         settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(72);
         settings.Get(EasiSettingKeys.LyricsMonitorBold).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Load_OldSchemaJsonWithoutTitleHeading_DefaultsFalse()
+    {
+        // 스키마 진화 안전망(code-review MINOR): ShowTitleHeading 키가 없는 구버전(13필드) JSON 을
+        // 불러오면 기본 false 로 채워져 기존 동작(헤딩 off)을 보존해야 한다.
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        Directory.CreateDirectory(dir.Path);
+        // 구버전 스토어와 동일한 직렬화 형식(enum=숫자, Center=1) — ShowTitleHeading 키만 없는 13필드.
+        var json13 = """
+            {
+              "TextColorArgb": -1,
+              "BackgroundColorArgb": -16777216,
+              "BackgroundColor2Argb": -16777216,
+              "BackgroundIsGradient": false,
+              "TextAlignment": 1,
+              "VerticalAlignment": 1,
+              "FontSize": 48,
+              "LineSpacingPercent": 125,
+              "Bold": false,
+              "Italic": false,
+              "Shadow": false,
+              "ShowNotations": true,
+              "ShowPositionIndicator": false
+            }
+            """;
+        await File.WriteAllTextAsync(Path.Combine(dir.Path, "구버전.json"), json13);
+
+        var loaded = await store.LoadAsync("구버전");
+
+        loaded.Should().NotBeNull();
+        loaded!.ShowTitleHeading.Should().BeFalse("구버전 템플릿은 헤딩 off 로 복원돼 기존 동작 보존");
+    }
+
+    [Fact]
+    public void CaptureThenApply_RestoresTitleHeading()
+    {
+        // 출력 모양 템플릿이 제목 헤딩 표시 설정까지 캡처·복원하는지(§7.3-A 신규 필드).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, true);
+        var captured = LyricsAppearanceTemplate.Capture(settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, false);
+        captured.ApplyTo(settings);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading).Should().BeTrue();
     }
 
     private static ISettingsService NewSettings()

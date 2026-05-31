@@ -206,7 +206,8 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-A 출력 위치 인디케이터(절/슬라이드 "N/M") — **완료**(2026-06-01: `LyricsMonitorShowPositionIndicator` 설정 + `LiveQueueItem.PositionLabel`→스냅샷 plumbing, `ComputePositionLabel`(곡=절/총절, PPT=슬라이드/총), 출력 우하단 오버레이, 우측 인스펙터 "N/M" 토글. GoLive·절 이동·슬라이드 이동 모두 ResolveLiveProjection 단일 경로로 라벨 갱신. 테스트 680 green, code-reviewer Approve)
 - [x] §7.3-B 자동 회전(Auto Rotate) — **완료**(2026-06-01: `AutoRotateIntervalSeconds` 설정(2~600초) + 운영바 토글. 라이브 곡 절/PPT 슬라이드를 간격마다 자동 전환(끝→처음 순환). 타이머는 View(MainWindow), 로직은 VM(`AdvanceAutoRotation`)으로 분리해 테스트 용이. 숨김/복귀 중 유지, 완전 종료 시 자동 해제. 테스트 687 green, code-reviewer Approve)
 - [x] §7.3-A 출력 모양 설정 템플릿(저장/불러오기) — **완료**(2026-06-01: `AppearanceTemplateStore`(파일 기반·경로안전·원자적 쓰기) + `LyricsAppearanceTemplate`(출력 모양 13개 키 캡처/적용) + 우측 인스펙터 이름 저장·콤보 적용/삭제. 예배별/장소별 프리셋. 테스트 702 green, code-reviewer Approve)
-- [ ] **다음 착수(권장)**: 헤딩(제목/절 표시) / Outline 효과 / 모달 Library·Bible 진입점 정리 / 명령 팔레트(⌘K)
+- [x] §7.3-A 출력 제목 헤딩 표시(Show Title Heading) — **완료**(2026-06-01: `LyricsMonitorShowTitleHeading` 토글 → 라이브 곡 가사 본문 위 상단 배너로 곡 제목 송출. 기본 off 로 기존 동작(본문 송출 시 제목 숨김) 보존. 위치 인디케이터와 동일 배선(설정→`LiveOutputRenderSettings`→`OutputSceneSnapshot.ShowsTitleHeading`→`OutputWindowViewModel`→XAML) + SettingsChanged 화이트리스트 라이브 반영 + 우측 인스펙터 "제목" 토글 + 출력 모양 템플릿 14번째 필드. code-review MAJOR(본문 세로정렬=Top 시 겹침)는 헤딩 1줄 고정 + 본문 상단 여백 예약(`BodyContentMargin`)으로 근본 수정. 테스트 714 green, code-reviewer 반영 완료(MAJOR/MINOR/SUGGESTION))
+- [ ] **다음 착수(권장)**: Outline 효과(Outline Font)·Chorus-only-italics / 모달 Library·Bible 진입점 정리 / 명령 팔레트(⌘K) / 큐 드래그 재정렬
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -241,7 +242,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | 텍스트 정렬·크기·줄간격 | Align Left/Right/Centre/Top/Bottom, Vertical Alignment, (글자 크기·줄 간격) | ✅ 가로(좌/중/우)+세로(상/중/하) 정렬 + **폰트 크기 A−/A+(24~120px)** + **줄 간격 −/＋(100~220%)** 인-셸 인스펙터 완료(2026-05-31, `LyricsTextAlignment`/`LyricsVerticalAlignment`/`LyricsMonitorFontSize`/`LyricsMonitorLineSpacingPercent` 설정→렌더→출력, 우측 패널·라이브 즉시 반영) |
 | 폰트 효과 | Shadow Font, Outline Font, Italics / No Italics / Chorus Italics Only | 🟡 **굵게·기울임·그림자 토글 완료**(2026-05-31, `LyricsMonitorBold/Italic/Shadow` 설정→렌더→출력, 우측 인스펙터 토글·라이브 즉시 반영, 그림자=DropShadowEffect). Outline·Chorus-only-italics 는 후속 |
 | 리전(2단) | Region 1/2 Only, Regions 1&2, Interlace, R1/R2 Colour, Region n Align L/R/C, Text Colour As Region 1 | 🔴 없음(렌더는 전경/배경 브러시만) |
-| 헤딩(제목/절) | Show All/No Headings, Heading Align L/R/C/As Region, Heading At First Screen Only, Display Title/Verse Headings | 🔴 없음 |
+| 헤딩(제목/절) | Show All/No Headings, Heading Align L/R/C/As Region, Heading At First Screen Only, Display Title/Verse Headings | 🟡 **제목 헤딩 표시 완료**(2026-06-01, `LyricsMonitorShowTitleHeading` 토글 → 가사 본문 위 상단 배너로 곡 제목 표시. 본문은 헤딩 높이만큼 상단 여백 확보로 겹침 방지, 세로정렬 무관). Heading Align·At First Screen Only·절(Verse) 헤딩은 후속 |
 | 배경 | Background Colours and Patterns, Background Picture Format(Best Fit/Centre/Tile/Size), No/Transparent/Default Background, Back Colour | 🟡 솔리드·세로 그라데이션 + **글자/배경색 hex 직접 지정**(2026-05-31, 프리셋 4종 + 임의 #RRGGBB 입력) 완료. 이미지/패턴/타일은 후속 |
 | 전환 효과 | Slide Transition, Item Transition | 🟡 TransitionEffectService 있으나 UI 노출 미약 |
 | 코드/악상 | Show Notations(+in Preview), Transpose Up/Down Semi-Tone, To Capo 0 | 🔴 없음 |

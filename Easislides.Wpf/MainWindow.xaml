@@ -966,9 +966,17 @@
                                       Command="{Binding ToggleLyricsPositionIndicatorCommand}"
                                       MinHeight="36"
                                       Padding="10,0"
+                                      Margin="0,0,6,0"
                                       Content="N/M"
                                       ToolTip="절/슬라이드 위치 인디케이터 표시(출력 우하단)"
                                       AutomationProperties.Name="위치 인디케이터 토글" />
+                        <ToggleButton IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}"
+                                      Command="{Binding ToggleLyricsTitleHeadingCommand}"
+                                      MinHeight="36"
+                                      Padding="10,0"
+                                      Content="제목"
+                                      ToolTip="곡 제목을 가사 위 상단 배너로 표시(§7.3-A)"
+                                      AutomationProperties.Name="제목 헤딩 토글" />
                     </StackPanel>
 
                     <!-- 출력 모양 설정 템플릿(§7.3-A) — 현재 모양을 이름으로 저장, 콤보에서 골라 적용/삭제. -->

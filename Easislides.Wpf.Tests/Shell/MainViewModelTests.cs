@@ -1839,6 +1839,24 @@ public class MainViewModelTests
         settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator).Should().BeTrue();
     }
 
+    [Fact]
+    public void ToggleLyricsTitleHeadingCommand_FlipsSetting()
+    {
+        // 제목 헤딩 토글: 설정 반전 + 인스펙터 활성 상태 동기화(§7.3-A).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsTitleHeading.Should().BeFalse("기본 off");
+
+        sut.ToggleLyricsTitleHeadingCommand.Execute(null);
+
+        sut.ActiveLyricsTitleHeading.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading).Should().BeTrue();
+
+        sut.ToggleLyricsTitleHeadingCommand.Execute(null);
+        sut.ActiveLyricsTitleHeading.Should().BeFalse("다시 누르면 off");
+    }
+
     // ─── 출력 모양 설정 템플릿(저장/불러오기) (§7.3-A) ────────────────────────
 
     [Fact]
