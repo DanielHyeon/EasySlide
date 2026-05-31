@@ -48,7 +48,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 위치 인디케이터(절/슬라이드 "N/M") 표시 여부(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsPositionIndicator = false,
     // 출력 제목 헤딩(가사 위 상단 배너로 곡 제목) 표시 여부(인-셸 §7.3-A). 기본 off.
-    bool ShowLyricsTitleHeading = false)
+    bool ShowLyricsTitleHeading = false,
+    // 출력 가사 외곽선(Outline Font) 효과 여부(인-셸 §7.3-A 폰트 효과). 기본 off.
+    bool ShowLyricsOutline = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -77,7 +79,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShadow),
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
-            settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading));
+            settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
+            settings.Get(EasiSettingKeys.LyricsMonitorOutline));
     }
 }
 
@@ -135,7 +138,9 @@ public sealed record OutputSceneSnapshot(
     // 위치 인디케이터 표시 설정(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsPositionIndicator = false,
     // 제목 헤딩 표시 설정(인-셸 §7.3-A). 기본 off.
-    bool ShowLyricsTitleHeading = false)
+    bool ShowLyricsTitleHeading = false,
+    // 가사 외곽선(Outline Font) 효과 설정(인-셸 §7.3-A 폰트 효과). 기본 off.
+    bool ShowLyricsOutline = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -148,6 +153,10 @@ public sealed record OutputSceneSnapshot(
     // 제목 헤딩을 실제로 노출할지 — 설정 on + 가사 본문 송출 중 + 제목이 있을 때만(가사 위 상단 배너).
     // 본문이 있을 때만 의미 있다(본문 없으면 기존 중앙 제목이 그대로 제목을 담당).
     public bool ShowsTitleHeading => ShowLyricsTitleHeading && ShowsBodyText && !string.IsNullOrWhiteSpace(DisplayTitle);
+
+    // 외곽선 렌더러를 쓸지 — 설정 on + 가사 본문 송출 중일 때만(본문 없으면 의미 없음).
+    // on 이면 일반 본문 TextBlock 대신 외곽선 렌더러를 쓰고, off 면 기존 본문 그대로(상호배타).
+    public bool UsesBodyOutline => ShowLyricsOutline && ShowsBodyText;
 }
 
 public interface IOutputRenderer
@@ -208,7 +217,8 @@ public sealed class OutputRenderer : IOutputRenderer
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,
             liveOutput.ShowLyricsPositionIndicator,
-            liveOutput.ShowLyricsTitleHeading);
+            liveOutput.ShowLyricsTitleHeading,
+            liveOutput.ShowLyricsOutline);
     }
 
     private ImagePlacement GetContentPlacement(

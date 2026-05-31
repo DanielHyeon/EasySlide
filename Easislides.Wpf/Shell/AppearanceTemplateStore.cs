@@ -16,7 +16,7 @@ namespace Easislides.Wpf.Shell;
 /// <para>
 /// 스키마 진화 주의: positional record 로 역직렬화하므로 향후 필드를 추가하면 구버전 JSON 에는 그 키가 없어
 /// 타입 기본값(0/false/enum 0)이 들어간다. 새 필드 추가 시 기본값이 출력을 깨지 않는지 확인하거나
-/// 캡처 시점 합리적 기본값을 갖도록 한다(현재 14개 필드는 안전 — 신규 ShowTitleHeading 의 기본 false 는 기존 동작 유지).
+/// 캡처 시점 합리적 기본값을 갖도록 한다(현재 15개 필드는 안전 — 신규 ShowTitleHeading/Outline 의 기본 false 는 기존 동작 유지).
 /// </para>
 /// </summary>
 public sealed record LyricsAppearanceTemplate(
@@ -33,9 +33,10 @@ public sealed record LyricsAppearanceTemplate(
     bool Shadow,
     bool ShowNotations,
     bool ShowPositionIndicator,
-    // 기본값 false 는 "구버전(이 키가 없는) JSON 역직렬화 시 헤딩 off 로 안전 복원"을 위한 안전망이다.
+    // 기본값 false 는 "구버전(이 키가 없는) JSON 역직렬화 시 off 로 안전 복원"을 위한 안전망이다.
     // 코드에서 Capture 가 이 인자를 실수로 빠뜨려도 조용히 false 가 되지 않도록 Capture 는 명명 인자로 채운다.
-    bool ShowTitleHeading = false)
+    bool ShowTitleHeading = false,
+    bool Outline = false)
 {
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -56,7 +57,8 @@ public sealed record LyricsAppearanceTemplate(
             settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
             // 명명 인자 — 끝자리 기본값(false)에 묻혀 누락이 무증상 버그가 되는 것을 방지(code-review MINOR).
-            ShowTitleHeading: settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading));
+            ShowTitleHeading: settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
+            Outline: settings.Get(EasiSettingKeys.LyricsMonitorOutline));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -77,6 +79,7 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, ShowNotations);
         settings.Set(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ShowPositionIndicator);
         settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, ShowTitleHeading);
+        settings.Set(EasiSettingKeys.LyricsMonitorOutline, Outline);
     }
 }
 

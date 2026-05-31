@@ -47,6 +47,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private FontWeight _bodyFontWeight = FontWeights.SemiBold;
     private FontStyle _bodyFontStyle = FontStyles.Normal;
     private bool _bodyHasShadow;
+    // 외곽선 효과 사용 여부(§7.3-A). on 이면 본문을 외곽선 렌더러로 그린다(일반 본문과 상호배타).
+    private bool _bodyHasOutline;
+    // 외곽선 렌더러(OutlinedTextBlock) 가시성 — 외곽선 on + 본문 송출 중일 때만 Visible.
+    private Visibility _bodyOutlineVisibility = Visibility.Collapsed;
     private string _positionLabel = string.Empty;
     private Visibility _positionIndicatorVisibility = Visibility.Collapsed;
     // 제목 헤딩(가사 위 상단 배너) 가시성 — 기본 숨김(설정 off 일 때 기존 동작 보존). §7.3-A
@@ -150,11 +154,25 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _bodyText, value);
     }
 
-    /// <summary>가사 본문 표시 여부(본문이 있을 때만 Visible — 이때 타이틀은 겹침 방지로 숨긴다).</summary>
+    /// <summary>일반(외곽선 없는) 가사 본문 표시 여부 — 본문 송출 중 + 외곽선 off 일 때만 Visible(외곽선 렌더러와 상호배타).</summary>
     public Visibility BodyTextVisibility
     {
         get => _bodyTextVisibility;
         private set => SetProperty(ref _bodyTextVisibility, value);
+    }
+
+    /// <summary>외곽선 가사 본문(OutlinedTextBlock) 표시 여부 — 본문 송출 중 + 외곽선 on 일 때만 Visible(§7.3-A).</summary>
+    public Visibility BodyOutlineVisibility
+    {
+        get => _bodyOutlineVisibility;
+        private set => SetProperty(ref _bodyOutlineVisibility, value);
+    }
+
+    /// <summary>가사 외곽선 효과 사용 여부(설정에서 유래, §7.3-A 폰트 효과).</summary>
+    public bool BodyHasOutline
+    {
+        get => _bodyHasOutline;
+        private set => SetProperty(ref _bodyHasOutline, value);
     }
 
     /// <summary>가사 본문 줄 정렬(좌/중/우) — 인-셸 가사 정렬 설정에서 유래(§7.3-A).</summary>
@@ -469,7 +487,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 헤딩은 1줄(NoWrap)로 높이가 결정적이라 고정 여백으로 충분하다.
         BodyContentMargin = scene.ShowsTitleHeading ? new Thickness(0, TitleHeadingReservedHeight, 0, 0) : new Thickness(0);
         var bodyShown = scene.ShowsBodyText;
-        BodyTextVisibility = bodyShown ? Visibility.Visible : Visibility.Collapsed;
+        // 외곽선 효과(§7.3-A): on 이면 외곽선 렌더러만, off 면 일반 본문만 보이게 상호배타로 전환(겹침 방지).
+        // 외곽선 기본 off 라 기존 테스트/동작에선 BodyTextVisibility=bodyShown 그대로다.
+        BodyHasOutline = scene.UsesBodyOutline;
+        BodyTextVisibility = (bodyShown && !scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
+        BodyOutlineVisibility = (bodyShown && scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
         PanelOverlayVisibility = panelOverlay;
         ApplyGapLogo(scene, panelOverlay, bodyShown);
@@ -695,6 +717,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 제목 헤딩 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 외곽선 효과 토글도 라이브 출력에 즉시 반영(§7.3-A 폰트 효과).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorOutline.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {

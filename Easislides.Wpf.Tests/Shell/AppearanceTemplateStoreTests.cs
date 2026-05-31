@@ -29,7 +29,8 @@ public class AppearanceTemplateStoreTests
             Shadow: true,
             ShowNotations: false,
             ShowPositionIndicator: true,
-            ShowTitleHeading: true);
+            ShowTitleHeading: true,
+            Outline: true);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");
@@ -176,6 +177,21 @@ public class AppearanceTemplateStoreTests
         captured.ApplyTo(settings);
 
         settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading).Should().BeTrue();
+    }
+
+    [Fact]
+    public void CaptureThenApply_RestoresOutline()
+    {
+        // 출력 모양 템플릿이 외곽선 효과 설정까지 캡처·복원하는지(§7.3-A 신규 필드).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorOutline, true);
+        var captured = LyricsAppearanceTemplate.Capture(settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorOutline, false);
+        captured.ApplyTo(settings);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorOutline).Should().BeTrue();
     }
 
     private static ISettingsService NewSettings()

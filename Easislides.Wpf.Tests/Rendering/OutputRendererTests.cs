@@ -488,6 +488,62 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Threads_LyricsOutline_WhenLiveWithBody()
+    {
+        // 외곽선 효과(§7.3-A 폰트 효과): 설정 on + Live + 본문 → UsesBodyOutline true.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsOutline: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowLyricsOutline.Should().BeTrue();
+        scene.UsesBodyOutline.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_DefaultsOutlineOff()
+    {
+        // 기본 off — 외곽선 신규 설정이 기존 출력 모양을 바꾸지 않음.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.ShowLyricsOutline.Should().BeFalse();
+        scene.UsesBodyOutline.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CreateScene_HidesOutline_WhenNoBody()
+    {
+        // 외곽선은 가사 본문이 송출될 때만 의미 있다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsOutline: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "주보 PPT", "Display 1", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.UsesBodyOutline.Should().BeFalse("본문이 없으면 외곽선도 적용 안 함");
+    }
+
+    [Fact]
     public void CreateScene_Threads_LyricsLineSpacing()
     {
         // 인-셸 줄 간격(§7.3-A): 설정→렌더→scene 으로 줄 간격(%)이 전달되는지 고정.
