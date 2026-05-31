@@ -80,6 +80,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
     [ObservableProperty] private bool _activeLyricsShadow = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
 
+    // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
+    [ObservableProperty] private string _activeTextColorHex = "#000000";
+    [ObservableProperty] private string _activeBackgroundColorHex = "#FFFFFF";
+
     /// <summary>현재 가사 가로 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
     public string ActiveLyricsAlignmentLabel
         => ActiveLyricsAlignment switch
@@ -235,6 +239,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
         IncreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(+LyricsLineSpacingStep), () => ActiveLyricsLineSpacing < LyricsLineSpacingMax);
         DecreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(-LyricsLineSpacingStep), () => ActiveLyricsLineSpacing > LyricsLineSpacingMin);
+        ApplyTextColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: false));
+        ApplyBackgroundColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: true));
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
@@ -281,6 +287,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
     public IRelayCommand IncreaseLyricsLineSpacingCommand { get; }
     public IRelayCommand DecreaseLyricsLineSpacingCommand { get; }
+    public IRelayCommand<string> ApplyTextColorHexCommand { get; }
+    public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
@@ -1200,6 +1208,66 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 세로 정렬: {alignment switch { LyricsVerticalAlignment.Top => "위", LyricsVerticalAlignment.Bottom => "아래", _ => "가운데" }}";
     }
 
+    // 인-셸 세분 색 직접 지정(hex) — 프리셋 너머 임의 색을 글자색/배경색에 적용(§7.3-A).
+    // 배경은 솔리드로 적용(끝색=시작색, 그라데이션 해제). 잘못된 hex 는 무시하고 상태바로 안내.
+    private void ApplyColorHex(string? hex, bool isBackground)
+    {
+        if (!TryParseHexColor(hex, out var argb))
+        {
+            StatusText = "색 형식이 올바르지 않습니다(예: #1A2B3C).";
+            return;
+        }
+
+        if (isBackground)
+        {
+            _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, argb);
+            _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, argb);
+            _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundIsGradient, false);
+            StatusText = $"배경색: {FormatColorHex(argb)}";
+        }
+        else
+        {
+            _settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, argb);
+            StatusText = $"글자색: {FormatColorHex(argb)}";
+        }
+
+        RefreshActiveAppearance();
+    }
+
+    // "#RRGGBB"/"RRGGBB" → 불투명(알파 FF) ARGB 정수. 실패 시 false.
+    // 인스펙터 표시는 RGB(6자리) 기준이고 모든 색을 불투명으로 다루므로, 표시·입력 대칭을 위해
+    // 8자리(알파 포함)는 일부러 받지 않는다(반투명이 저장되는데 표시는 6자리로 잘리는 비대칭 방지).
+    private static bool TryParseHexColor(string? hex, out int argb)
+    {
+        argb = 0;
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return false;
+        }
+
+        var s = hex.Trim().TrimStart('#');
+        if (s.Length != 6)
+        {
+            return false;
+        }
+
+        if (!uint.TryParse(s, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var rgb))
+        {
+            return false;
+        }
+
+        // 항상 불투명(알파 FF) — 설정 기본값(-16777216=0xFF000000 등)과 동일한 표현.
+        argb = unchecked((int)(0xFF000000u | rgb));
+        return true;
+    }
+
+    // ARGB 정수 → "#RRGGBB"(알파 생략 — 인스펙터 표시는 RGB 만).
+    private static string FormatColorHex(int argb)
+    {
+        var v = unchecked((uint)argb);
+        return $"#{(v >> 16) & 0xFF:X2}{(v >> 8) & 0xFF:X2}{v & 0xFF:X2}";
+    }
+
     // 인-셸 가사 폰트 효과 토글(굵게/기울임/그림자) — 현재 값을 반전해 저장(출력 VM 라이브 반영).
     // Active* 동기화는 RefreshActiveAppearance(SettingsChanged 경유)가 담당하므로 여기선 설정만 뒤집는다.
     private void ToggleLyricsEffect(SettingKey<bool> key, bool current)
@@ -1262,6 +1330,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
         ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);
+        ActiveTextColorHex = FormatColorHex(text);
+        ActiveBackgroundColorHex = FormatColorHex(bg1);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)

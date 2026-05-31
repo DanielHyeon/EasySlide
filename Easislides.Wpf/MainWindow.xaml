@@ -727,6 +727,72 @@
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}" />
 
+                    <!-- 세분 색 직접 지정(§7.3-A) — 프리셋 너머 임의 hex 색. Enter 또는 적용 버튼으로 반영. -->
+                    <TextBlock Text="색 직접 지정 (#RRGGBB)"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="글자"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBox x:Name="TextColorHexBox"
+                                 Grid.Column="1"
+                                 Text="{Binding ActiveTextColorHex, Mode=OneWay}"
+                                 MinHeight="30"
+                                 AutomationProperties.Name="글자색 hex">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return"
+                                            Command="{Binding ApplyTextColorHexCommand}"
+                                            CommandParameter="{Binding Text, ElementName=TextColorHexBox}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <Button Grid.Column="2"
+                                Command="{Binding ApplyTextColorHexCommand}"
+                                CommandParameter="{Binding Text, ElementName=TextColorHexBox}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="6,0,0,0"
+                                Content="적용"
+                                AutomationProperties.Name="글자색 적용" />
+                    </Grid>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="배경"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBox x:Name="BackgroundColorHexBox"
+                                 Grid.Column="1"
+                                 Text="{Binding ActiveBackgroundColorHex, Mode=OneWay}"
+                                 MinHeight="30"
+                                 AutomationProperties.Name="배경색 hex">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return"
+                                            Command="{Binding ApplyBackgroundColorHexCommand}"
+                                            CommandParameter="{Binding Text, ElementName=BackgroundColorHexBox}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <Button Grid.Column="2"
+                                Command="{Binding ApplyBackgroundColorHexCommand}"
+                                CommandParameter="{Binding Text, ElementName=BackgroundColorHexBox}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="6,0,0,0"
+                                Content="적용"
+                                AutomationProperties.Name="배경색 적용" />
+                    </Grid>
+
                     <!-- 인-셸 가사 정렬(§7.3-A) — 모달 없이 좌/중/우 즉시 적용, 라이브 출력에 반영. -->
                     <TextBlock Text="가사 정렬"
                                Style="{StaticResource Type.Caption.Style}"
