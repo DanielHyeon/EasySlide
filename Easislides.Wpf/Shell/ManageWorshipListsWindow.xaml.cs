@@ -52,4 +52,26 @@ public partial class ManageWorshipListsWindow : Window
             RefreshSavedLists();
         }
     }
+
+    // 선택한 예배 순서의 이름을 바꾼다 — 재사용 이름 입력 다이얼로그(고유성 검증)를 띄우고, 확인 시 VM 에 위임.
+    private void Rename_Click(object sender, RoutedEventArgs e)
+    {
+        if (SavedListBox.SelectedItem is not string oldName)
+        {
+            return;
+        }
+
+        // 기존 이름 목록을 넘겨 중복을 막는다(다이얼로그 VM 이 자기 자신은 제외하고 검사).
+        var dialogViewModel = new NameEntryViewModel(
+            "예배 순서 이름 변경",
+            $"'{oldName}'의 새 이름:",
+            oldName,
+            _viewModel.GetSavedWorshipLists());
+        var dialog = new NameEntryWindow(dialogViewModel) { Owner = this };
+        if (dialog.ShowDialog() == true)
+        {
+            _viewModel.RenameWorshipList(oldName, dialog.EnteredName);
+            RefreshSavedLists();
+        }
+    }
 }

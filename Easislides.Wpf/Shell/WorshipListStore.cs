@@ -27,6 +27,9 @@ public interface IWorshipListStore
     IReadOnlyList<string> ListNames();
 
     void Delete(string name);
+
+    /// <summary>저장된 예배 순서의 이름을 바꾼다. 새 이름이 이미 있으면 덮어쓰지 않고 예외(호출자가 고유성 검증).</summary>
+    void Rename(string oldName, string newName);
 }
 
 /// <summary>
@@ -125,6 +128,33 @@ public sealed class WorshipListStore : IWorshipListStore
         {
             File.Delete(path);
         }
+    }
+
+    public void Rename(string oldName, string newName)
+    {
+        // 두 이름 모두 경로 안전 검증을 거친다(무효 문자/예약명/경로 탈출 차단).
+        var oldPath = ResolvePath(oldName);
+        var newPath = ResolvePath(newName);
+
+        // 원본이 없으면 조용히 무시(Delete 와 동일하게 관대 — 이미 지워졌거나 잘못된 호출에도 크래시 없음).
+        if (!File.Exists(oldPath))
+        {
+            return;
+        }
+
+        // 같은 파일(대소문자만 다른 경우 포함)이면 바꿀 게 없다.
+        if (string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // 새 이름이 이미 있으면 덮어쓰지 않고 거부(기존 예배 순서 보호 — 호출자가 사전 검증하지만 스토어도 방어).
+        if (File.Exists(newPath))
+        {
+            throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
+        }
+
+        File.Move(oldPath, newPath);
     }
 
     /// <summary>이름을 안전한 파일 경로로 해석(무효 문자/예약명/길이/경로 탈출 차단).</summary>
