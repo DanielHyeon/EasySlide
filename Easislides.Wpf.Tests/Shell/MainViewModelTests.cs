@@ -1667,6 +1667,117 @@ public class MainViewModelTests
         sut.ActiveLyricsShadow.Should().BeFalse();
     }
 
+    // ─── 자동 회전(Auto Rotate, §7.3-B) ──────────────────────────────────────
+
+    [Fact]
+    public async Task ToggleAutoRotateCommand_WhenLive_EnablesRotation()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleAutoRotateCommand.CanExecute(null).Should().BeTrue("라이브 중 자동 회전 토글 가능");
+        sut.ToggleAutoRotateCommand.Execute(null);
+
+        sut.IsAutoRotating.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToggleAutoRotateCommand_WhenNotLive_IsDisabled()
+    {
+        var sut = CreateSut();
+
+        sut.ToggleAutoRotateCommand.CanExecute(null).Should().BeFalse("라이브가 아니면 자동 회전 비활성");
+    }
+
+    [Fact]
+    public async Task AdvanceAutoRotation_MultiVerseSong_LoopsThroughVerses()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절\n[3]\n3절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.LyricsPageIndex.Should().Be(0);
+
+        sut.AdvanceAutoRotation();
+        sut.LyricsPageIndex.Should().Be(1, "다음 절");
+
+        sut.AdvanceAutoRotation();
+        sut.LyricsPageIndex.Should().Be(2, "다음 절");
+
+        sut.AdvanceAutoRotation();
+        sut.LyricsPageIndex.Should().Be(0, "마지막 절 다음은 첫 절로 순환");
+    }
+
+    [Fact]
+    public async Task AdvanceAutoRotation_MultiSlidePpt_LoopsThroughSlides()
+    {
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        powerPoint.SlideNumber.Should().Be(1);
+
+        sut.AdvanceAutoRotation();
+        powerPoint.SlideNumber.Should().Be(2);
+
+        sut.AdvanceAutoRotation();
+        powerPoint.SlideNumber.Should().Be(3);
+
+        sut.AdvanceAutoRotation();
+        powerPoint.SlideNumber.Should().Be(1, "마지막 슬라이드 다음은 첫 슬라이드로 순환(SlideCount=3)");
+    }
+
+    [Fact]
+    public async Task AutoRotate_StopsWhenLiveEnds()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ToggleAutoRotateCommand.Execute(null);
+        sut.IsAutoRotating.Should().BeTrue();
+
+        await sut.StopLiveCommand.ExecuteAsync(null);
+
+        sut.IsAutoRotating.Should().BeFalse("라이브 종료 시 자동 회전도 자동 해제");
+    }
+
+    [Fact]
+    public async Task AutoRotate_SurvivesHideAndRestore_OnlyStopsOnLiveEnd()
+    {
+        // 숨김/복귀는 임시 상태 — 자동 회전이 꺼지지 않고 이어진다(완전 종료에서만 해제).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ToggleAutoRotateCommand.Execute(null);
+        sut.IsAutoRotating.Should().BeTrue();
+
+        await sut.HideOutputCommand.ExecuteAsync(null);
+        sut.IsAutoRotating.Should().BeTrue("숨김은 임시 상태라 자동 회전 유지");
+
+        sut.RestoreOutputCommand.Execute(null);
+        sut.IsAutoRotating.Should().BeTrue("복귀 후에도 자동 회전 유지");
+    }
+
+    [Fact]
+    public void AutoRotateIntervalSeconds_ReflectsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.AutoRotateIntervalSeconds, 15);
+        var sut = CreateSut(settings: settings);
+
+        sut.AutoRotateIntervalSeconds.Should().Be(15);
+    }
+
     // ─── 출력 위치 인디케이터(절/슬라이드 "N/M") (§7.3-A) ─────────────────────
 
     [Fact]
