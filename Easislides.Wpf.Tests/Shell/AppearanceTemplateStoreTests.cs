@@ -30,7 +30,8 @@ public class AppearanceTemplateStoreTests
             ShowNotations: false,
             ShowPositionIndicator: true,
             ShowTitleHeading: true,
-            Outline: true);
+            Outline: true,
+            TitleHeadingAlignment: LyricsTextAlignment.Right);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");
@@ -165,6 +166,44 @@ public class AppearanceTemplateStoreTests
     }
 
     [Fact]
+    public async Task Load_OldSchemaJsonWithoutTitleHeadingAlignment_DefaultsCenter()
+    {
+        // 스키마 진화 안전망(code-review SUGGESTION): TitleHeadingAlignment 키가 없는 구버전 JSON 을
+        // 불러오면 enum 타입 기본값 0(=Left)이 아니라 record 의 명시 기본값 Center 로 복원돼야 한다.
+        // (이 키만 빠진 15필드 — ShowTitleHeading/Outline 은 있고 정렬만 없음)
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        Directory.CreateDirectory(dir.Path);
+        var json15 = """
+            {
+              "TextColorArgb": -1,
+              "BackgroundColorArgb": -16777216,
+              "BackgroundColor2Argb": -16777216,
+              "BackgroundIsGradient": false,
+              "TextAlignment": 0,
+              "VerticalAlignment": 1,
+              "FontSize": 48,
+              "LineSpacingPercent": 125,
+              "Bold": false,
+              "Italic": false,
+              "Shadow": false,
+              "ShowNotations": true,
+              "ShowPositionIndicator": false,
+              "ShowTitleHeading": true,
+              "Outline": false
+            }
+            """;
+        await File.WriteAllTextAsync(Path.Combine(dir.Path, "구버전2.json"), json15);
+
+        var loaded = await store.LoadAsync("구버전2");
+
+        loaded.Should().NotBeNull();
+        loaded!.TitleHeadingAlignment.Should().Be(
+            LyricsTextAlignment.Center, "키가 없으면 enum 0(Left)이 아니라 명시 기본값 Center 로 복원");
+        loaded.TextAlignment.Should().Be(LyricsTextAlignment.Left, "본문 정렬은 JSON 값(0=Left) 그대로 — 헤딩 정렬과 독립");
+    }
+
+    [Fact]
     public void CaptureThenApply_RestoresTitleHeading()
     {
         // 출력 모양 템플릿이 제목 헤딩 표시 설정까지 캡처·복원하는지(§7.3-A 신규 필드).
@@ -192,6 +231,21 @@ public class AppearanceTemplateStoreTests
         captured.ApplyTo(settings);
 
         settings.Get(EasiSettingKeys.LyricsMonitorOutline).Should().BeTrue();
+    }
+
+    [Fact]
+    public void CaptureThenApply_RestoresTitleHeadingAlignment()
+    {
+        // 출력 모양 템플릿이 제목 헤딩 정렬까지 캡처·복원하는지(§7.3-A 신규 필드).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, LyricsTextAlignment.Right);
+        var captured = LyricsAppearanceTemplate.Capture(settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, LyricsTextAlignment.Center);
+        captured.ApplyTo(settings);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment).Should().Be(LyricsTextAlignment.Right);
     }
 
     private static ISettingsService NewSettings()

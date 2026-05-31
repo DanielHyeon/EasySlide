@@ -1875,6 +1875,30 @@ public class MainViewModelTests
         sut.ActiveLyricsOutline.Should().BeFalse("다시 누르면 off");
     }
 
+    [Theory]
+    [InlineData(LyricsTextAlignment.Left)]
+    [InlineData(LyricsTextAlignment.Right)]
+    [InlineData(LyricsTextAlignment.Center)]
+    public void ApplyTitleHeadingAlignmentCommand_SetsSettingAndActive(LyricsTextAlignment alignment)
+    {
+        // 제목 헤딩 정렬 적용: 설정 저장 + 인스펙터 활성 상태 동기화(§7.3-A).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyTitleHeadingAlignmentCommand.Execute(alignment);
+
+        sut.ActiveTitleHeadingAlignment.Should().Be(alignment);
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment).Should().Be(alignment);
+    }
+
+    [Fact]
+    public void ActiveTitleHeadingAlignment_DefaultsCenter()
+    {
+        var sut = CreateSut();
+        sut.ActiveTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Center, "기본 가운데");
+    }
+
     // ─── 출력 모양 설정 템플릿(저장/불러오기) (§7.3-A) ────────────────────────
 
     [Fact]

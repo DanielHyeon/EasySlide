@@ -88,6 +88,7 @@ public static class LegacySettingsMap
         Automated("LyricsMonitorShowPositionIndicator", EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell verse/slide position indicator (N/M) toggle — §7.3-A."),
         Automated("LyricsMonitorShowTitleHeading", EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell title heading toggle (song title banner above lyrics) — §7.3-A."),
         Automated("LyricsMonitorOutline", EasiSettingKeys.LyricsMonitorOutline.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics outline font toggle (stroked glyphs for legibility) — §7.3-A."),
+        Automated("LyricsMonitorTitleHeadingAlignment", EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Enum, "WPF compatibility", "In-shell title heading horizontal alignment (left/center/right) — §7.3-A heading align."),
         Automated("AutoRotateIntervalSeconds", EasiSettingKeys.AutoRotateIntervalSeconds.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Integer, "WPF compatibility", "Auto-rotate verse/slide interval in seconds (2-600) — §7.3-B."),
 
         Automated("UsePowerpointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy tab visibility."),

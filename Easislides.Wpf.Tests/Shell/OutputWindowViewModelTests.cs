@@ -275,6 +275,42 @@ public class OutputWindowViewModelTests
         sut.BodyTextVisibility.Should().Be(Visibility.Visible, "헤딩과 본문은 함께 보인다");
     }
 
+    [Theory]
+    [InlineData(LyricsTextAlignment.Left, TextAlignment.Left, HorizontalAlignment.Left)]
+    [InlineData(LyricsTextAlignment.Center, TextAlignment.Center, HorizontalAlignment.Center)]
+    [InlineData(LyricsTextAlignment.Right, TextAlignment.Right, HorizontalAlignment.Right)]
+    public void ApplySession_MapsTitleHeadingAlignment(
+        LyricsTextAlignment alignment, TextAlignment expectedText, HorizontalAlignment expectedHorizontal)
+    {
+        // 제목 헤딩 정렬(§7.3-A): 설정 enum → 헤딩 TextBlock 의 TextAlignment + HorizontalAlignment 매핑.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, alignment).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.TitleHeadingTextAlignment.Should().Be(expectedText);
+        sut.TitleHeadingHorizontalAlignment.Should().Be(expectedHorizontal);
+    }
+
+    [Fact]
+    public void ApplySession_DefaultTitleHeadingAlignment_IsCenter()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleHeading, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.TitleHeadingTextAlignment.Should().Be(TextAlignment.Center, "기본 가운데");
+        sut.TitleHeadingHorizontalAlignment.Should().Be(HorizontalAlignment.Center);
+    }
+
     [Fact]
     public void ApplySession_TitleHeadingOff_HidesHeading()
     {

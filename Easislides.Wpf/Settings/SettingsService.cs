@@ -137,6 +137,9 @@ public static class EasiSettingKeys
     // 출력 가사 외곽선(Outline Font) 효과(인-셸 §7.3-A 폰트 효과). 기본 off → 기존 출력 모양 보존.
     // on 이면 본문을 외곽선 렌더러(OutlinedTextBlock)로 그려 어두운/영상 배경 위 가독성을 높인다.
     public static readonly SettingKey<bool> LyricsMonitorOutline = new("liveOutput.lyricsMonitorOutline", false);
+    // 출력 제목 헤딩 가로 정렬(인-셸 §7.3-A, 레거시 Heading Align L/C/R). 기본 Center 로 기존 헤딩 가운데 정렬 보존.
+    public static readonly SettingKey<LyricsTextAlignment> LyricsMonitorTitleHeadingAlignment =
+        new("liveOutput.lyricsMonitorTitleHeadingAlignment", LyricsTextAlignment.Center);
     // 자동 회전 간격(초, §7.3-B). 라이브 중 절/슬라이드를 이 간격으로 자동 전환. 기본 20초, 범위 2~600.
     public static readonly SettingKey<int> AutoRotateIntervalSeconds = new("liveOutput.autoRotateIntervalSeconds", 20);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
@@ -189,6 +192,7 @@ public static class EasiSettingKeys
         LyricsMonitorShowPositionIndicator,
         LyricsMonitorShowTitleHeading,
         LyricsMonitorOutline,
+        LyricsMonitorTitleHeadingAlignment,
         AutoRotateIntervalSeconds,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
@@ -285,6 +289,9 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorShowTitleHeading { get; init; } = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
 
     public bool LyricsMonitorOutline { get; init; } = EasiSettingKeys.LyricsMonitorOutline.DefaultValue;
+
+    public LyricsTextAlignment LyricsMonitorTitleHeadingAlignment { get; init; } =
+        EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.DefaultValue;
 
     public int AutoRotateIntervalSeconds { get; init; } = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
 }
@@ -527,6 +534,11 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorVerticalAlignment))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, "Lyrics vertical alignment value is not supported."));
+        }
+
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorTitleHeadingAlignment))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, "Title heading alignment value is not supported."));
         }
 
         // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
@@ -1012,6 +1024,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
             "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
+            "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot.LiveOutput.LyricsMonitorTitleHeadingAlignment,
             "liveOutput.autoRotateIntervalSeconds" => snapshot.LiveOutput.AutoRotateIntervalSeconds,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
@@ -1161,6 +1174,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorOutline" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorOutline = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorTitleHeadingAlignment = Cast<LyricsTextAlignment>(keyId, value) },
             },
             "liveOutput.autoRotateIntervalSeconds" => snapshot with
             {

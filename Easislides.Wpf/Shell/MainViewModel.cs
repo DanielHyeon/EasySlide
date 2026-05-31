@@ -86,6 +86,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
     [ObservableProperty] private bool _activeLyricsOutline = EasiSettingKeys.LyricsMonitorOutline.DefaultValue;
+    // 현재 제목 헤딩 가로 정렬 상태(인스펙터 정렬 버튼 강조용, §7.3-A Heading Align).
+    [ObservableProperty] private LyricsTextAlignment _activeTitleHeadingAlignment = EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.DefaultValue;
     // 자동 회전 활성 상태(View 가 이 값을 보고 DispatcherTimer 시작/정지). 라이브 종료 시 자동 해제.
     [ObservableProperty] private bool _isAutoRotating;
     // 자동 회전 간격(초) — 설정에서 유래, View 타이머가 참조.
@@ -270,6 +272,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
+        ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
         ToggleAutoRotateCommand = new RelayCommand(ToggleAutoRotate, () => _session.Current.State == LiveState.Active);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
@@ -328,6 +331,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
     public IRelayCommand ToggleLyricsOutlineCommand { get; }
+
+    public IRelayCommand<LyricsTextAlignment> ApplyTitleHeadingAlignmentCommand { get; }
     public IRelayCommand ToggleAutoRotateCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
@@ -1292,6 +1297,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
     }
 
+    // 인-셸 제목 헤딩 가로 정렬 적용 — 가사 정렬과 동일 경로(설정→출력 VM 라이브 반영, §7.3-A Heading Align).
+    private void ApplyTitleHeadingAlignment(LyricsTextAlignment alignment)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, alignment);
+        ActiveTitleHeadingAlignment = alignment;
+        StatusText = $"제목 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
+    }
+
     // 인-셸 가사 세로 정렬 적용 — 가로 정렬과 동일 경로(설정→출력 VM 라이브 반영).
     private void ApplyLyricsVerticalAlignment(LyricsVerticalAlignment alignment)
     {
@@ -1526,6 +1539,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
+        ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);
         ActiveTextColorHex = FormatColorHex(text);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
     }
