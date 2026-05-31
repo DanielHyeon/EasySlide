@@ -217,6 +217,10 @@ public sealed class OutputRenderer : IOutputRenderer
             ? request.Session.OverrideBackgroundColorArgb!.Value
             : liveOutput.LyricsMonitorBackgroundColor2Argb;
         var bgIsGradient = !hasBgOverride && liveOutput.LyricsMonitorBackgroundIsGradient;
+        // 곡별 가로 정렬(있으면)도 Live 일 때만 운영 기본 정렬을 이긴다.
+        var textAlignment = isLive && request.Session.OverrideTextAlignment is LyricsTextAlignment songAlign
+            ? songAlign
+            : liveOutput.LyricsMonitorTextAlignment;
 
         return new OutputSceneSnapshot(
             kind,
@@ -240,7 +244,7 @@ public sealed class OutputRenderer : IOutputRenderer
             ShouldShowPanelOverlay(kind, request.Session, liveOutput),
             // 곡 가사 본문은 Live 일 때만 송출(숨김/블랙아웃/대기 상태에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemBodyText : string.Empty,
-            liveOutput.LyricsMonitorTextAlignment,
+            textAlignment,
             liveOutput.LyricsMonitorVerticalAlignment,
             liveOutput.LyricsMonitorFontSize,
             liveOutput.LyricsMonitorBold,

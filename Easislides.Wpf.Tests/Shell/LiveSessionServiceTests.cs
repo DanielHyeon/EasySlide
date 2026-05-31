@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Windows.Media.Imaging;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -209,6 +210,45 @@ public class LiveSessionServiceTests
 
         sut.Current.OverrideTextColorArgb.Should().BeNull();
         sut.Current.OverrideBackgroundColorArgb.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("31=1>", LyricsTextAlignment.Left)]   // 레거시 1 = Near(왼쪽)
+    [InlineData("31=2>", LyricsTextAlignment.Center)] // 2 = 가운데
+    [InlineData("31=3>", LyricsTextAlignment.Right)]  // 3 = Far(오른쪽)
+    public void GoLive_WithSongFormatDataAlignment_CarriesOverrideAlignment(string formatData, LyricsTextAlignment expected)
+    {
+        // 곡별 FormatData 정렬(31, region1)을 스냅샷에 실어 출력이 그 곡의 정렬로 가사를 송출하게 한다.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사", FormatData = formatData };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideTextAlignment.Should().Be(expected);
+    }
+
+    [Fact]
+    public void GoLive_WithoutAlignmentField_LeavesOverrideAlignmentNull()
+    {
+        // 정렬 항목(31)이 없으면 오버라이드는 null → 운영 기본 정렬 유지(무회귀).
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사", FormatData = "29=-65536>" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideTextAlignment.Should().BeNull();
+    }
+
+    [Fact]
+    public void GoLive_WithOutOfRangeAlignment_LeavesOverrideAlignmentNull()
+    {
+        // 범위 밖 정렬값(31=9)은 디코더가 막아 null → 종단에서도 오버라이드 없음(운영 기본 정렬 유지).
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사", FormatData = "31=9>" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideTextAlignment.Should().BeNull();
     }
 
     [Fact]

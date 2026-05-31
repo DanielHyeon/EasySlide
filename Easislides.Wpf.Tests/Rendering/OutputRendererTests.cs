@@ -246,6 +246,48 @@ public class OutputRendererTests
         scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFFFFFFFF), "Live 가 아니면 기본색");
     }
 
+    [Fact]
+    public void CreateScene_Active_WithSongOverrideAlignment_PrefersSongAlignment()
+    {
+        // 곡별 FormatData 정렬이 스냅샷에 실려 오면 운영 기본 정렬 대신 그 곡의 정렬로 송출한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorTextAlignment: LyricsTextAlignment.Center);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideTextAlignment: LyricsTextAlignment.Right),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Right, "곡 정렬이 운영 기본 정렬을 이긴다");
+    }
+
+    [Fact]
+    public void CreateScene_Hidden_IgnoresSongOverrideAlignment()
+    {
+        // 라이브가 아니면 곡 정렬 오버라이드를 적용하지 않는다 — 운영 기본 정렬 유지.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorTextAlignment: LyricsTextAlignment.Center);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideTextAlignment: LyricsTextAlignment.Right),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Center, "Live 가 아니면 기본 정렬");
+    }
+
     [Theory]
     [InlineData("P", true, false, false)]
     [InlineData("PowerPoint", true, false, false)]

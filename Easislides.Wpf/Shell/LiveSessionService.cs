@@ -3,6 +3,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
@@ -33,7 +34,9 @@ public sealed record LiveSessionSnapshot(
     // FormatData 가 없거나 글자색 항목(29)이 없으면 null → 기본색 유지(무회귀).
     int? OverrideTextColorArgb = null,
     // 곡별 FormatData region1 배경색(ARGB). 있으면 운영 기본 배경색 대신 사용(솔리드). 없으면 null.
-    int? OverrideBackgroundColorArgb = null)
+    int? OverrideBackgroundColorArgb = null,
+    // 곡별 FormatData region1 가로 정렬(31). 있으면 운영 기본 정렬 대신 사용. 없으면 null.
+    LyricsTextAlignment? OverrideTextAlignment = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -96,8 +99,21 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentLyricsPageIndex: item.LyricsPageIndex,
             // 곡별 색(있으면) — 렌더러가 Live 일 때 운영 기본색 대신 적용.
             OverrideTextColorArgb: format?.TextColorArgb1,
-            OverrideBackgroundColorArgb: format?.BackgroundColorArgb1));
+            OverrideBackgroundColorArgb: format?.BackgroundColorArgb1,
+            // 곡별 가로 정렬(있으면) — 레거시 1=왼쪽/2=가운데/3=오른쪽. region1 한정
+            // (region2 정렬(32)은 현재 출력이 단일 정렬 모델이라 미적용 — 이중 언어 출력 도입 시 확장).
+            OverrideTextAlignment: MapAlignment(format?.Alignment1)));
     }
+
+    // 레거시 FormatData 정렬값(1~3) → WPF 가사 정렬 enum. 없거나 범위 밖이면 null(운영 기본 정렬 유지).
+    private static LyricsTextAlignment? MapAlignment(int? legacyAlign)
+        => legacyAlign switch
+        {
+            1 => LyricsTextAlignment.Left,   // Near
+            2 => LyricsTextAlignment.Center,
+            3 => LyricsTextAlignment.Right,  // Far
+            _ => null,
+        };
 
     // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를
     // 정확히 계산하도록 한다. DrawingImage 등 BitmapSource가 아닌 ImageSource는 0으로 두고,
