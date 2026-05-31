@@ -1,0 +1,194 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using Easislides.Wpf.Settings;
+using Easislides.Wpf.Shell;
+using FluentAssertions;
+using Xunit;
+
+namespace Easislides.Wpf.Tests.Shell;
+
+public class AppearanceTemplateStoreTests
+{
+    [Fact]
+    public async Task SaveThenLoad_RoundTripsAllFields()
+    {
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        var template = new LyricsAppearanceTemplate(
+            TextColorArgb: unchecked((int)0xFFFFFFFF),
+            BackgroundColorArgb: unchecked((int)0xFF101830),
+            BackgroundColor2Argb: unchecked((int)0xFF0A1020),
+            BackgroundIsGradient: true,
+            TextAlignment: LyricsTextAlignment.Left,
+            VerticalAlignment: LyricsVerticalAlignment.Bottom,
+            FontSize: 64,
+            LineSpacingPercent: 150,
+            Bold: true,
+            Italic: false,
+            Shadow: true,
+            ShowNotations: false,
+            ShowPositionIndicator: true);
+
+        await store.SaveAsync("주일예배", template);
+        var loaded = await store.LoadAsync("주일예배");
+
+        loaded.Should().Be(template, "모든 필드가 디스크 round-trip 으로 보존");
+    }
+
+    [Fact]
+    public async Task ListNames_ReturnsSavedTemplatesSorted()
+    {
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        await store.SaveAsync("저녁", LyricsAppearanceTemplate.Capture(NewSettings()));
+        await store.SaveAsync("새벽", LyricsAppearanceTemplate.Capture(NewSettings()));
+
+        store.ListNames().Should().Equal("새벽", "저녁");
+    }
+
+    [Fact]
+    public async Task Delete_RemovesTemplate()
+    {
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        await store.SaveAsync("임시", LyricsAppearanceTemplate.Capture(NewSettings()));
+
+        store.Delete("임시");
+
+        store.ListNames().Should().BeEmpty();
+        (await store.LoadAsync("임시")).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task LoadMissing_ReturnsNull()
+    {
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+
+        (await store.LoadAsync("없는템플릿")).Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("..\\escape")]
+    [InlineData("a/b")]
+    [InlineData("CON")]
+    public async Task Save_RejectsUnsafeNames(string name)
+    {
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+
+        var act = async () => await store.SaveAsync(name, LyricsAppearanceTemplate.Capture(NewSettings()));
+
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task LoadCorruptJson_ReturnsNull()
+    {
+        // 손상/비-JSON 파일은 null 로 우아하게 처리(호출자 크래시 방지).
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        Directory.CreateDirectory(dir.Path);
+        await File.WriteAllTextAsync(Path.Combine(dir.Path, "깨진.json"), "{ this is not valid json ");
+
+        (await store.LoadAsync("깨진")).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Save_SameName_Overwrites()
+    {
+        using var dir = new TempDir();
+        var store = new AppearanceTemplateStore(dir.Path);
+        var first = LyricsAppearanceTemplate.Capture(NewSettings()) with { FontSize = 40 };
+        var second = first with { FontSize = 90 };
+
+        await store.SaveAsync("예배", first);
+        await store.SaveAsync("예배", second);
+
+        store.ListNames().Should().ContainSingle();
+        (await store.LoadAsync("예배"))!.FontSize.Should().Be(90, "같은 이름은 덮어씀");
+    }
+
+    [Fact]
+    public void CaptureThenApply_RestoresSettings()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 72);
+        settings.Set(EasiSettingKeys.LyricsMonitorBold, true);
+        var captured = LyricsAppearanceTemplate.Capture(settings);
+
+        // 값을 바꾼 뒤 템플릿을 되적용하면 원래 값으로 복원된다.
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 40);
+        settings.Set(EasiSettingKeys.LyricsMonitorBold, false);
+        captured.ApplyTo(settings);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(72);
+        settings.Get(EasiSettingKeys.LyricsMonitorBold).Should().BeTrue();
+    }
+
+    private static ISettingsService NewSettings()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_TplSettings_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        return new SettingsService(new SettingsServiceOptions(
+            Path.Combine(root, "settings.json"),
+            Path.Combine(root, "Backups")));
+    }
+
+    private sealed class TempSettingsFolder : IDisposable
+    {
+        private TempSettingsFolder(string root)
+        {
+            Root = root;
+            Directory.CreateDirectory(root);
+        }
+
+        public string Root { get; }
+
+        public static TempSettingsFolder Create()
+            => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_TplSettings_{Guid.NewGuid():N}"));
+
+        public ISettingsService CreateSettings()
+            => new SettingsService(new SettingsServiceOptions(
+                Path.Combine(Root, "settings.json"),
+                Path.Combine(Root, "Backups")));
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(Root, recursive: true);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private sealed class TempDir : IDisposable
+    {
+        public TempDir()
+        {
+            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "EasiTpl_" + Guid.NewGuid().ToString("N"));
+        }
+
+        public string Path { get; }
+
+        public void Dispose()
+        {
+            try
+            {
+                if (Directory.Exists(Path))
+                {
+                    Directory.Delete(Path, recursive: true);
+                }
+            }
+            catch (IOException)
+            {
+                // 정리 실패는 테스트 결과에 영향 주지 않음.
+            }
+        }
+    }
+}

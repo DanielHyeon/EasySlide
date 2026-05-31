@@ -1839,6 +1839,87 @@ public class MainViewModelTests
         settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator).Should().BeTrue();
     }
 
+    // ─── 출력 모양 설정 템플릿(저장/불러오기) (§7.3-A) ────────────────────────
+
+    [Fact]
+    public async Task SaveAppearanceTemplateCommand_PersistsCurrentAppearanceUnderName()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 72);
+        var store = new InMemoryAppearanceTemplateStore();
+        var sut = CreateSut(settings: settings, appearanceTemplates: store);
+        sut.NewAppearanceTemplateName = "주일예배";
+
+        await sut.SaveAppearanceTemplateCommand.ExecuteAsync(null);
+
+        sut.AppearanceTemplateNames.Should().Contain("주일예배");
+        (await store.LoadAsync("주일예배"))!.FontSize.Should().Be(72);
+    }
+
+    [Fact]
+    public async Task ApplyAppearanceTemplateCommand_RestoresSavedAppearance()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 80);
+        var store = new InMemoryAppearanceTemplateStore();
+        var sut = CreateSut(settings: settings, appearanceTemplates: store);
+        sut.NewAppearanceTemplateName = "큰글씨";
+        await sut.SaveAppearanceTemplateCommand.ExecuteAsync(null);
+
+        // 폰트를 바꾼 뒤 템플릿을 적용하면 저장 시점 값으로 복원된다.
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 40);
+        sut.SelectedAppearanceTemplate = "큰글씨";
+        await sut.ApplyAppearanceTemplateCommand.ExecuteAsync(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(80);
+        sut.ActiveLyricsFontSize.Should().Be(80, "인스펙터 표시도 복원");
+    }
+
+    [Fact]
+    public async Task DeleteAppearanceTemplateCommand_RemovesTemplate()
+    {
+        var store = new InMemoryAppearanceTemplateStore();
+        var sut = CreateSut(appearanceTemplates: store);
+        sut.NewAppearanceTemplateName = "임시";
+        await sut.SaveAppearanceTemplateCommand.ExecuteAsync(null);
+        sut.SelectedAppearanceTemplate = "임시";
+
+        sut.DeleteAppearanceTemplateCommand.Execute(null);
+
+        sut.AppearanceTemplateNames.Should().NotContain("임시");
+    }
+
+    [Fact]
+    public async Task ApplyAppearanceTemplateCommand_MissingTemplate_WarnsAndRefreshes()
+    {
+        // 외부에서 삭제돼 사라진 템플릿을 적용하면 경고 + 목록 새로고침(크래시 없음).
+        var store = new InMemoryAppearanceTemplateStore();
+        var sut = CreateSut(appearanceTemplates: store);
+        sut.NewAppearanceTemplateName = "사라질것";
+        await sut.SaveAppearanceTemplateCommand.ExecuteAsync(null);
+        sut.SelectedAppearanceTemplate = "사라질것";
+        store.Delete("사라질것"); // VM 모르게 외부 삭제
+
+        await sut.ApplyAppearanceTemplateCommand.ExecuteAsync(null);
+
+        sut.StatusText.Should().Contain("찾을 수 없");
+        sut.AppearanceTemplateNames.Should().NotContain("사라질것", "적용 실패 시 목록 새로고침");
+    }
+
+    [Fact]
+    public async Task SaveAppearanceTemplateCommand_EmptyName_DoesNothing()
+    {
+        var store = new InMemoryAppearanceTemplateStore();
+        var sut = CreateSut(appearanceTemplates: store);
+        sut.NewAppearanceTemplateName = "   ";
+
+        await sut.SaveAppearanceTemplateCommand.ExecuteAsync(null);
+
+        sut.AppearanceTemplateNames.Should().BeEmpty();
+    }
+
     // ─── 인-셸 세분 색 직접 지정(hex) (§7.3-A) ────────────────────────────────
 
     [Fact]
@@ -2048,7 +2129,8 @@ public class MainViewModelTests
         ICommandCatalog? commandCatalog = null,
         ISettingsService? settings = null,
         IWorshipListStore? worshipLists = null,
-        PowerPointPreviewViewModel? powerPoint = null)
+        PowerPointPreviewViewModel? powerPoint = null,
+        IAppearanceTemplateStore? appearanceTemplates = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -2071,7 +2153,8 @@ public class MainViewModelTests
             powerPoint,
             library,
             bible,
-            worshipLists ?? new InMemoryWorshipListStore());
+            worshipLists ?? new InMemoryWorshipListStore(),
+            appearanceTemplates ?? new InMemoryAppearanceTemplateStore());
     }
 
     // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.
@@ -2093,6 +2176,25 @@ public class MainViewModelTests
         public IReadOnlyList<string> ListNames() => _store.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray();
 
         public void Delete(string name) => _store.Remove(name);
+    }
+
+    // 출력 모양 템플릿 저장/로드 — 파일시스템 없이 인메모리로 검증.
+    private sealed class InMemoryAppearanceTemplateStore : IAppearanceTemplateStore
+    {
+        private readonly Dictionary<string, LyricsAppearanceTemplate> _store = new();
+
+        public Task SaveAsync(string name, LyricsAppearanceTemplate template, CancellationToken cancellationToken = default)
+        {
+            _store[name.Trim()] = template;
+            return Task.CompletedTask;
+        }
+
+        public Task<LyricsAppearanceTemplate?> LoadAsync(string name, CancellationToken cancellationToken = default)
+            => Task.FromResult(_store.TryGetValue(name.Trim(), out var t) ? t : null);
+
+        public IReadOnlyList<string> ListNames() => _store.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray();
+
+        public void Delete(string name) => _store.Remove(name.Trim());
     }
 
     // 렌더 실패만 내는 스텁(대부분 테스트는 PPT 렌더 성공이 필요 없음 — 실패 시 타이틀 송출 경로).

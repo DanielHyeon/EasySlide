@@ -27,6 +27,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ICommandCatalog _commandCatalog;
     private readonly ISettingsService _settings;
     private readonly IWorshipListStore _worshipLists;
+    private readonly IAppearanceTemplateStore _appearanceTemplates;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
@@ -89,6 +90,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
     [ObservableProperty] private string _activeBackgroundColorHex = "#FFFFFF";
+
+    // 출력 모양 템플릿(저장/불러오기) — 새 템플릿 이름 입력, 선택된 기존 템플릿.
+    [ObservableProperty] private string _newAppearanceTemplateName = "";
+    [ObservableProperty] private string? _selectedAppearanceTemplate;
+
+    /// <summary>저장된 출력 모양 템플릿 이름 목록(우측 인스펙터 콤보 바인딩, §7.3-A).</summary>
+    public ObservableCollection<string> AppearanceTemplateNames { get; } = new();
 
     /// <summary>현재 가사 가로 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
     public string ActiveLyricsAlignmentLabel
@@ -202,7 +210,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Rendering.PowerPointPreviewViewModel powerPoint,
         LibraryViewModel library,
         BibleViewModel bible,
-        IWorshipListStore worshipLists)
+        IWorshipListStore worshipLists,
+        IAppearanceTemplateStore appearanceTemplates)
     {
         _session = session;
         _output = output;
@@ -212,6 +221,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _commandCatalog = commandCatalog;
         _settings = settings;
         _worshipLists = worshipLists;
+        _appearanceTemplates = appearanceTemplates;
         Media = media;
         Library = library;
         Bible = bible;
@@ -247,6 +257,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DecreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(-LyricsLineSpacingStep), () => ActiveLyricsLineSpacing > LyricsLineSpacingMin);
         ApplyTextColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: false));
         ApplyBackgroundColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: true));
+        SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
+        ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
+        DeleteAppearanceTemplateCommand = new RelayCommand(DeleteAppearanceTemplate, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
@@ -264,6 +277,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyOperationalSettings(updateStatus: false);
         SeedPlaceholderQueue();
         RefreshOutputDisplays();
+        RefreshAppearanceTemplateNames();
     }
 
     public ObservableCollection<LiveQueueItem> Queue { get; } = new();
@@ -297,6 +311,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DecreaseLyricsLineSpacingCommand { get; }
     public IRelayCommand<string> ApplyTextColorHexCommand { get; }
     public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
+    public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
+    public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
+    public IRelayCommand DeleteAppearanceTemplateCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
@@ -1271,6 +1288,104 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, alignment);
         ActiveLyricsVerticalAlignment = alignment;
         StatusText = $"가사 세로 정렬: {alignment switch { LyricsVerticalAlignment.Top => "위", LyricsVerticalAlignment.Bottom => "아래", _ => "가운데" }}";
+    }
+
+    // ─── 출력 모양 설정 템플릿(저장/불러오기) §7.3-A ──────────────────────────
+
+    // SelectedAppearanceTemplate 변경 시 적용/삭제 커맨드 활성 상태를 맞춘다([ObservableProperty] 부분 훅).
+    partial void OnSelectedAppearanceTemplateChanged(string? value)
+    {
+        ApplyAppearanceTemplateCommand.NotifyCanExecuteChanged();
+        DeleteAppearanceTemplateCommand.NotifyCanExecuteChanged();
+    }
+
+    // 현재 출력 모양 전체를 이름으로 저장. 이름이 비면 무시. 저장 후 목록 갱신·선택.
+    private async Task SaveAppearanceTemplateAsync()
+    {
+        var name = NewAppearanceTemplateName?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            StatusText = "저장할 템플릿 이름을 입력하세요.";
+            return;
+        }
+
+        // 같은 이름이면 덮어쓰기(File.Move overwrite) — 사용자가 실수로 프리셋을 잃지 않도록 상태바에 명시.
+        var overwrote = AppearanceTemplateNames.Contains(name);
+        try
+        {
+            await _appearanceTemplates.SaveAsync(name, LyricsAppearanceTemplate.Capture(_settings)).ConfigureAwait(true);
+            RefreshAppearanceTemplateNames();
+            SelectedAppearanceTemplate = name;
+            NewAppearanceTemplateName = "";
+            StatusText = overwrote ? $"출력 모양 템플릿 저장(덮어씀): {name}" : $"출력 모양 템플릿 저장: {name}";
+        }
+        catch (ArgumentException)
+        {
+            StatusText = "템플릿 이름에 사용할 수 없는 문자/형식입니다(100자 이내, 예약명·경로 문자 제외).";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            StatusText = $"템플릿 저장 실패: {ex.Message}";
+        }
+    }
+
+    // 선택된 템플릿을 불러와 출력 모양 설정에 되적용(설정→출력 VM 라이브 반영). 인스펙터 활성 상태도 동기화.
+    private async Task ApplyAppearanceTemplateAsync()
+    {
+        var name = SelectedAppearanceTemplate?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        try
+        {
+            var template = await _appearanceTemplates.LoadAsync(name).ConfigureAwait(true);
+            if (template is null)
+            {
+                StatusText = $"템플릿을 찾을 수 없습니다: {name}";
+                RefreshAppearanceTemplateNames();
+                return;
+            }
+
+            template.ApplyTo(_settings);
+            RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과 등) 동기화
+            StatusText = $"출력 모양 템플릿 적용: {name}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"템플릿 적용 실패: {ex.Message}";
+        }
+    }
+
+    private void DeleteAppearanceTemplate()
+    {
+        var name = SelectedAppearanceTemplate?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        _appearanceTemplates.Delete(name);
+        RefreshAppearanceTemplateNames();
+        SelectedAppearanceTemplate = null;
+        StatusText = $"출력 모양 템플릿 삭제: {name}";
+    }
+
+    private void RefreshAppearanceTemplateNames()
+    {
+        var selected = SelectedAppearanceTemplate;
+        AppearanceTemplateNames.Clear();
+        foreach (var n in _appearanceTemplates.ListNames())
+        {
+            AppearanceTemplateNames.Add(n);
+        }
+
+        // 선택이 여전히 유효하면 유지(목록 새로고침으로 선택이 풀리지 않도록).
+        if (selected is not null && AppearanceTemplateNames.Contains(selected))
+        {
+            SelectedAppearanceTemplate = selected;
+        }
     }
 
     // 인-셸 세분 색 직접 지정(hex) — 프리셋 너머 임의 색을 글자색/배경색에 적용(§7.3-A).
