@@ -64,6 +64,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int LyricsFontSizeMax = 120;
     private const int LyricsFontSizeStep = 4;
 
+    // 현재 폰트 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용). 설정에서 유래.
+    [ObservableProperty] private bool _activeLyricsBold = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
+    [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
+    [ObservableProperty] private bool _activeLyricsShadow = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
+
     /// <summary>현재 가사 가로 정렬의 한글 라벨(인스펙터 "현재 정렬" 표시용).</summary>
     public string ActiveLyricsAlignmentLabel
         => ActiveLyricsAlignment switch
@@ -217,6 +222,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
         IncreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(+LyricsFontSizeStep), () => ActiveLyricsFontSize < LyricsFontSizeMax);
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
+        ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
+        ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
+        ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
@@ -258,6 +266,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
     public IRelayCommand IncreaseLyricsFontSizeCommand { get; }
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
+    public IRelayCommand ToggleLyricsBoldCommand { get; }
+    public IRelayCommand ToggleLyricsItalicCommand { get; }
+    public IRelayCommand ToggleLyricsShadowCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
@@ -1174,6 +1185,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 세로 정렬: {alignment switch { LyricsVerticalAlignment.Top => "위", LyricsVerticalAlignment.Bottom => "아래", _ => "가운데" }}";
     }
 
+    // 인-셸 가사 폰트 효과 토글(굵게/기울임/그림자) — 현재 값을 반전해 저장(출력 VM 라이브 반영).
+    // Active* 동기화는 RefreshActiveAppearance(SettingsChanged 경유)가 담당하므로 여기선 설정만 뒤집는다.
+    private void ToggleLyricsEffect(SettingKey<bool> key, bool current)
+    {
+        var next = !current;
+        _settings.Set(key, next);
+        // 효과별 한글 라벨 — 새 효과를 이 헬퍼로 추가하면 여기에 명시 분기를 더한다(암묵적 fallback 방지).
+        var label = key.Id == EasiSettingKeys.LyricsMonitorBold.Id ? "굵게"
+            : key.Id == EasiSettingKeys.LyricsMonitorItalic.Id ? "기울임"
+            : key.Id == EasiSettingKeys.LyricsMonitorShadow.Id ? "그림자"
+            : key.Id;
+        StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
+    }
+
     // 인-셸 가사 폰트 크기 조절(+/- 단계) — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).
     private void StepLyricsFontSize(int delta)
     {
@@ -1204,6 +1229,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
+        ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
+        ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
+        ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)

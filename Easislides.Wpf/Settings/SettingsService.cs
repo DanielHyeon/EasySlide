@@ -123,6 +123,11 @@ public static class EasiSettingKeys
         new("liveOutput.lyricsMonitorVerticalAlignment", LyricsVerticalAlignment.Center);
     // 출력 가사 폰트 크기(px, 인-셸 가사 포맷팅 §7.3-A). 기본 48 로 기존 출력 폰트 크기를 보존. 범위 24~120.
     public static readonly SettingKey<int> LyricsMonitorFontSize = new("liveOutput.lyricsMonitorFontSize", 48);
+    // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off 로 기존 출력 모양 보존.
+    // Bold off = 기존 SemiBold, Italic off = Normal, Shadow off = 효과 없음.
+    public static readonly SettingKey<bool> LyricsMonitorBold = new("liveOutput.lyricsMonitorBold", false);
+    public static readonly SettingKey<bool> LyricsMonitorItalic = new("liveOutput.lyricsMonitorItalic", false);
+    public static readonly SettingKey<bool> LyricsMonitorShadow = new("liveOutput.lyricsMonitorShadow", false);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
@@ -166,6 +171,9 @@ public static class EasiSettingKeys
         LyricsMonitorTextAlignment,
         LyricsMonitorVerticalAlignment,
         LyricsMonitorFontSize,
+        LyricsMonitorBold,
+        LyricsMonitorItalic,
+        LyricsMonitorShadow,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
@@ -247,6 +255,12 @@ public sealed record LiveOutputSettings
         EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
 
     public int LyricsMonitorFontSize { get; init; } = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
+
+    public bool LyricsMonitorBold { get; init; } = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
+
+    public bool LyricsMonitorItalic { get; init; } = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
+
+    public bool LyricsMonitorShadow { get; init; } = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
 }
 
 public sealed record PowerPointSettings
@@ -949,6 +963,9 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTextAlignment" => snapshot.LiveOutput.LyricsMonitorTextAlignment,
             "liveOutput.lyricsMonitorVerticalAlignment" => snapshot.LiveOutput.LyricsMonitorVerticalAlignment,
             "liveOutput.lyricsMonitorFontSize" => snapshot.LiveOutput.LyricsMonitorFontSize,
+            "liveOutput.lyricsMonitorBold" => snapshot.LiveOutput.LyricsMonitorBold,
+            "liveOutput.lyricsMonitorItalic" => snapshot.LiveOutput.LyricsMonitorItalic,
+            "liveOutput.lyricsMonitorShadow" => snapshot.LiveOutput.LyricsMonitorShadow,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
@@ -1069,6 +1086,18 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorFontSize" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorFontSize = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBold" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBold = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorItalic" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorItalic = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorShadow" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorShadow = Cast<bool>(keyId, value) },
             },
             "powerPoint.usePowerPointTab" => snapshot with
             {

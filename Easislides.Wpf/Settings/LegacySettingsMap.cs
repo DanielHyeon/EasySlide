@@ -81,6 +81,9 @@ public static class LegacySettingsMap
         Automated("LyricsMonitorTextAlignment", EasiSettingKeys.LyricsMonitorTextAlignment.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Enum, "WPF compatibility", "In-shell lyrics horizontal alignment (left/center/right) — §7.3-A."),
         Automated("LyricsMonitorVerticalAlignment", EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Enum, "WPF compatibility", "In-shell lyrics vertical alignment (top/center/bottom) — §7.3-A."),
         Automated("LyricsMonitorFontSize", EasiSettingKeys.LyricsMonitorFontSize.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Integer, "WPF compatibility", "In-shell lyrics font size in px (24-120) — §7.3-A."),
+        Automated("LyricsMonitorBold", EasiSettingKeys.LyricsMonitorBold.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics bold toggle — §7.3-A font effects."),
+        Automated("LyricsMonitorItalic", EasiSettingKeys.LyricsMonitorItalic.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics italic toggle — §7.3-A font effects."),
+        Automated("LyricsMonitorShadow", EasiSettingKeys.LyricsMonitorShadow.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics drop-shadow toggle — §7.3-A font effects."),
 
         Automated("UsePowerpointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy tab visibility."),
         Automated("UsePowerPointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "WPF compatibility", "Current WPF setting import/export alias."),
