@@ -156,6 +156,18 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_CarriesPositionLabelToSnapshot()
+    {
+        // 위치 인디케이터(§7.3-A): 항목의 PositionLabel("2/4" 등)이 스냅샷으로 전달된다.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절\n[2]\n2절", PositionLabel = "1/2" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemPositionLabel.Should().Be("1/2");
+    }
+
+    [Fact]
     public void GoLive_WithoutLyrics_LeavesBodyTextEmpty()
     {
         // 가사 없는 항목(PPT/미디어/공지 등)은 본문이 비어 출력에 텍스트가 나타나지 않는다.

@@ -24,7 +24,9 @@ public sealed record LiveSessionSnapshot(
     string CurrentItemBodyText = "",
     // 비우기(Clear) 모드 — State=Hidden 이면서 IsBlackout=false 일 때 콘텐츠는 감추되 배경은 유지(레거시 LiveClear).
     // IsBlackout(완전 검정)과 상호 배타. 기본 false. 출력 렌더러가 Cleared 씬으로 해석한다.
-    bool IsCleared = false)
+    bool IsCleared = false,
+    // 위치 라벨(예: "2/4") — 곡 절/PPT 슬라이드 위치. 단일이면 빈 문자열. 출력은 설정 on 일 때만 표시(§7.3-A).
+    string CurrentItemPositionLabel = "")
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -78,7 +80,8 @@ public sealed class LiveSessionService : ILiveSessionService
             // 곡 항목이면 현재 절(LyricsPageIndex)을, 그 외(PPT/미디어 등)는 빈 본문을 싣는다.
             // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
             // LyricsPageIndex=0 이면 첫 절, GoLive 호출 전에 MainViewModel 이 현재 페이지를 얹어 전달한다.
-            CurrentItemBodyText: LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex)));
+            CurrentItemBodyText: LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex),
+            CurrentItemPositionLabel: item.PositionLabel));
     }
 
     // PreviewSource가 BitmapSource이면 픽셀 단위 크기를 추출해 OutputRenderer가 ContentPlacement를

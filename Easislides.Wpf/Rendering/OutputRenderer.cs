@@ -44,7 +44,9 @@ public sealed record LiveOutputRenderSettings(
     bool LyricsMonitorItalic = false,
     bool LyricsMonitorShadow = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
-    int LyricsMonitorLineSpacingPercent = 125)
+    int LyricsMonitorLineSpacingPercent = 125,
+    // 출력 위치 인디케이터(절/슬라이드 "N/M") 표시 여부(인-셸 §7.3-A). 기본 off.
+    bool ShowLyricsPositionIndicator = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -71,7 +73,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBold),
             settings.Get(EasiSettingKeys.LyricsMonitorItalic),
             settings.Get(EasiSettingKeys.LyricsMonitorShadow),
-            settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent));
+            settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator));
     }
 }
 
@@ -123,12 +126,19 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorItalic = false,
     bool LyricsMonitorShadow = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
-    int LyricsMonitorLineSpacingPercent = 125)
+    int LyricsMonitorLineSpacingPercent = 125,
+    // 위치 라벨(절/슬라이드 "N/M"). Live 가 아니면 빈 문자열로 들어온다.
+    string PositionLabel = "",
+    // 위치 인디케이터 표시 설정(인-셸 §7.3-A). 기본 off.
+    bool ShowLyricsPositionIndicator = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
     // 가사 본문을 실제로 송출할지 — Live 상태 + 본문이 있을 때만.
     public bool ShowsBodyText => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText);
+
+    // 위치 인디케이터를 실제로 노출할지 — 설정 on + Live + 라벨이 있을 때만.
+    public bool ShowsPositionIndicator => ShowLyricsPositionIndicator && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(PositionLabel);
 }
 
 public interface IOutputRenderer
@@ -185,7 +195,10 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorBold,
             liveOutput.LyricsMonitorItalic,
             liveOutput.LyricsMonitorShadow,
-            liveOutput.LyricsMonitorLineSpacingPercent);
+            liveOutput.LyricsMonitorLineSpacingPercent,
+            // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
+            kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,
+            liveOutput.ShowLyricsPositionIndicator);
     }
 
     private ImagePlacement GetContentPlacement(

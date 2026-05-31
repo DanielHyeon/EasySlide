@@ -356,6 +356,63 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_ShowsPositionIndicator_WhenEnabledAndLiveWithLabel()
+    {
+        // 위치 인디케이터: 설정 on + Live + 라벨 존재 → ShowsPositionIndicator true, 라벨 전달.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsPositionIndicator: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentItemPositionLabel: "2/4"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.PositionLabel.Should().Be("2/4");
+        scene.ShowsPositionIndicator.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_HidesPositionIndicator_WhenSettingOff()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsPositionIndicator: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentItemPositionLabel: "2/4"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsPositionIndicator.Should().BeFalse("설정 off 면 숨김");
+    }
+
+    [Fact]
+    public void CreateScene_HidesPositionIndicator_WhenNotLive()
+    {
+        // 숨김/대기 상태에선 라벨이 있어도 인디케이터를 노출하지 않는다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsPositionIndicator: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Hidden, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemPositionLabel: "2/4"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsPositionIndicator.Should().BeFalse();
+    }
+
+    [Fact]
     public void CreateScene_Threads_LyricsLineSpacing()
     {
         // 인-셸 줄 간격(§7.3-A): 설정→렌더→scene 으로 줄 간격(%)이 전달되는지 고정.

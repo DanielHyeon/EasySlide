@@ -1667,6 +1667,67 @@ public class MainViewModelTests
         sut.ActiveLyricsShadow.Should().BeFalse();
     }
 
+    // ─── 출력 위치 인디케이터(절/슬라이드 "N/M") (§7.3-A) ─────────────────────
+
+    [Fact]
+    public async Task GoLive_MultiVerseSong_CarriesPositionLabel()
+    {
+        // 다절 곡 라이브 시 "1/3" 같은 위치 라벨이 세션 스냅샷에 실린다.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절\n[3]\n3절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("1/3");
+
+        sut.NextLyricsPageCommand.Execute(null);
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3", "절 이동 시 갱신");
+    }
+
+    [Fact]
+    public async Task GoLive_SingleVerseSong_HasEmptyPositionLabel()
+    {
+        // 단일 절 곡은 위치 라벨이 비어 있다(표시 의미 없음).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "한 절뿐" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemPositionLabel.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GoToSlide_MultiSlidePpt_UpdatesPositionLabel()
+    {
+        // PPT 슬라이드 이동 시 위치 라벨이 갱신된다(SuccessStub 은 SlideCount=3).
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("1/3");
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3", "슬라이드 이동 시 위치 라벨 갱신");
+    }
+
+    [Fact]
+    public void ToggleLyricsPositionIndicatorCommand_FlipsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsPositionIndicator.Should().BeFalse("기본 off");
+
+        sut.ToggleLyricsPositionIndicatorCommand.Execute(null);
+
+        sut.ActiveLyricsPositionIndicator.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator).Should().BeTrue();
+    }
+
     // ─── 인-셸 세분 색 직접 지정(hex) (§7.3-A) ────────────────────────────────
 
     [Fact]

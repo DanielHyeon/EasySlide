@@ -22,5 +22,11 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// <summary>미디어/PPT 항목의 파일 경로(선택 시 해당 VM 의 LoadAsync 디스패치에 사용).</summary>
     public string? ContentPath { get; init; }
 
+    /// <summary>
+    /// 라이브 투영 시 MainViewModel 이 계산해 얹는 위치 라벨(예: "2/4"). 곡=절 위치, PPT=슬라이드 위치.
+    /// 단일 절/슬라이드면 빈 문자열. GoLive 가 스냅샷으로 전달, 출력은 설정 on 일 때만 표시(§7.3-A 인디케이터).
+    /// </summary>
+    public string PositionLabel { get; init; } = "";
+
     public override string ToString() => Title;
 }

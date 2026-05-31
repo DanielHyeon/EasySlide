@@ -946,9 +946,17 @@
                                       Command="{Binding ToggleLyricsShadowCommand}"
                                       MinHeight="36"
                                       Padding="10,0"
+                                      Margin="0,0,6,0"
                                       Content="그림자"
                                       ToolTip="가사 그림자(어두운 배경 가독성)"
                                       AutomationProperties.Name="가사 그림자 토글" />
+                        <ToggleButton IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
+                                      Command="{Binding ToggleLyricsPositionIndicatorCommand}"
+                                      MinHeight="36"
+                                      Padding="10,0"
+                                      Content="N/M"
+                                      ToolTip="절/슬라이드 위치 인디케이터 표시(출력 우하단)"
+                                      AutomationProperties.Name="위치 인디케이터 토글" />
                     </StackPanel>
                 </StackPanel>
             </Border>
