@@ -251,6 +251,37 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_LineSpacingSetting_DrivesLineHeight()
+    {
+        // 줄 간격 150% + 폰트 48 → 줄높이 72. 줄 간격이 줄높이를 결정.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 48).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorLineSpacingPercent, 150).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        sut.BodyLineHeight.Should().Be(72, "48 × 150% = 72");
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesLineSpacing()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 40).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorLineSpacingPercent, 200).Succeeded.Should().BeTrue();
+
+        sut.BodyLineHeight.Should().Be(80, "40 × 200% = 80");
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesLyricsFontSize()
     {
         using var settingsFolder = TempSettingsFolder.Create();

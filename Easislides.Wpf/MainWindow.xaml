@@ -821,6 +821,34 @@
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                     </StackPanel>
 
+                    <!-- 인-셸 가사 줄 간격(§7.3-A) — 폰트 대비 % 로 −/+ 조절. -->
+                    <TextBlock Text="줄 간격"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,4,0,0"
+                                VerticalAlignment="Center">
+                        <Button Command="{Binding DecreaseLyricsLineSpacingCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="44"
+                                Margin="0,0,6,0"
+                                Content="−"
+                                ToolTip="줄 간격 좁게"
+                                AutomationProperties.Name="줄 간격 좁게" />
+                        <Button Command="{Binding IncreaseLyricsLineSpacingCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="44"
+                                Margin="0,0,8,0"
+                                Content="＋"
+                                ToolTip="줄 간격 넓게"
+                                AutomationProperties.Name="줄 간격 넓게" />
+                        <TextBlock Text="{Binding ActiveLyricsLineSpacing, StringFormat={}{0}%}"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                    </StackPanel>
+
                     <!-- 인-셸 가사 폰트 효과(§7.3-A) — 굵게/기울임/그림자 토글. 그림자는 어두운/영상 배경 가독성. -->
                     <TextBlock Text="가사 효과"
                                Style="{StaticResource Type.Caption.Style}"

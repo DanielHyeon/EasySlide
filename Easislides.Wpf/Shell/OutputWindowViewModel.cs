@@ -15,8 +15,6 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 {
     private const int DefaultViewportWidth = 1280;
     private const int DefaultViewportHeight = 720;
-    // 가사 줄 높이 = 폰트 크기 × 이 비율(가독성). 기본 48px → 60.
-    private const double LineHeightRatio = 1.25;
 
     private readonly IOutputRenderer _renderer;
     private readonly ISettingsService? _settings;
@@ -418,7 +416,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
         BodyFontSize = scene.LyricsMonitorFontSize;
-        BodyLineHeight = scene.LyricsMonitorFontSize * LineHeightRatio; // 줄 높이는 폰트 크기에 비례(가독성)
+        // 줄 높이 = 폰트 크기 × 줄 간격 비율(설정 %). 기본 125% → 폰트×1.25(기존 동작 보존).
+        BodyLineHeight = scene.LyricsMonitorFontSize * (scene.LyricsMonitorLineSpacingPercent / 100.0);
         // 폰트 효과: 굵게 off 는 기존 SemiBold 를 유지(완전 Normal 로 떨어뜨리지 않음).
         BodyFontWeight = scene.LyricsMonitorBold ? FontWeights.Bold : FontWeights.SemiBold;
         BodyFontStyle = scene.LyricsMonitorItalic ? FontStyles.Italic : FontStyles.Normal;
@@ -640,6 +639,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorFontSize.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 줄 간격 변경도 라이브 출력에 즉시 반영(§7.3-A).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorLineSpacingPercent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 폰트 효과(굵게/기울임/그림자) 변경도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBold.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||

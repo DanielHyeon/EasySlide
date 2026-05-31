@@ -64,6 +64,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int LyricsFontSizeMax = 120;
     private const int LyricsFontSizeStep = 4;
 
+    // 줄 간격 조절 범위·단계(설정 Validate 범위 100~220% 와 일치).
+    private const int LyricsLineSpacingMin = 100;
+    private const int LyricsLineSpacingMax = 220;
+    private const int LyricsLineSpacingStep = 10;
+
+    // 현재 줄 간격(%). +/- 커맨드 활성/비활성 판별에도 쓰인다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsLineSpacingCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsLineSpacingCommand))]
+    private int _activeLyricsLineSpacing = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
+
     // 현재 폰트 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용). 설정에서 유래.
     [ObservableProperty] private bool _activeLyricsBold = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
     [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
@@ -222,6 +233,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
         IncreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(+LyricsFontSizeStep), () => ActiveLyricsFontSize < LyricsFontSizeMax);
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
+        IncreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(+LyricsLineSpacingStep), () => ActiveLyricsLineSpacing < LyricsLineSpacingMax);
+        DecreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(-LyricsLineSpacingStep), () => ActiveLyricsLineSpacing > LyricsLineSpacingMin);
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
@@ -266,6 +279,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
     public IRelayCommand IncreaseLyricsFontSizeCommand { get; }
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
+    public IRelayCommand IncreaseLyricsLineSpacingCommand { get; }
+    public IRelayCommand DecreaseLyricsLineSpacingCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
@@ -1213,6 +1228,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 크기: {next}px";
     }
 
+    // 인-셸 가사 줄 간격 조절(+/- 단계, %) — 폰트 크기 증감과 동일 구조. 범위 클램프 후 설정 저장.
+    private void StepLyricsLineSpacing(int delta)
+    {
+        var next = Math.Clamp(ActiveLyricsLineSpacing + delta, LyricsLineSpacingMin, LyricsLineSpacingMax);
+        if (next == ActiveLyricsLineSpacing)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorLineSpacingPercent, next);
+        ActiveLyricsLineSpacing = next;
+        StatusText = $"줄 간격: {next}%";
+    }
+
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
     private void RefreshActiveAppearance()
     {
@@ -1229,6 +1258,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
+        ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
         ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);

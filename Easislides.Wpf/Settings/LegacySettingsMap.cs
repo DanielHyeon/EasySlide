@@ -84,6 +84,7 @@ public static class LegacySettingsMap
         Automated("LyricsMonitorBold", EasiSettingKeys.LyricsMonitorBold.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics bold toggle — §7.3-A font effects."),
         Automated("LyricsMonitorItalic", EasiSettingKeys.LyricsMonitorItalic.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics italic toggle — §7.3-A font effects."),
         Automated("LyricsMonitorShadow", EasiSettingKeys.LyricsMonitorShadow.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "In-shell lyrics drop-shadow toggle — §7.3-A font effects."),
+        Automated("LyricsMonitorLineSpacingPercent", EasiSettingKeys.LyricsMonitorLineSpacingPercent.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Integer, "WPF compatibility", "In-shell lyrics line spacing as % of font size (100-220) — §7.3-A."),
 
         Automated("UsePowerpointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy tab visibility."),
         Automated("UsePowerPointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "WPF compatibility", "Current WPF setting import/export alias."),
