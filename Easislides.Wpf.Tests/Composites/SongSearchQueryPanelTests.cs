@@ -91,6 +91,25 @@ public class SongSearchQueryPanelTests
     }
 
     [Fact]
+    public void Composite_FieldLabels_AreKorean_UnifiedWithEditor()
+    {
+        // §7.4 후속: 검색 필드 라벨을 곡 편집기(SongEditorWindow)와 동일 한글 용어로 통일.
+        // 이전엔 "Book"/"Title" 등 영어였고 편집기는 "교단 참조"/"제목"이라 같은 필드가 달리 보였다.
+        var composite = LoadXaml("Easislides.Wpf/Composites/SongSearchQueryPanel.xaml");
+
+        var checkboxContents = composite.Descendants()
+            .Where(e => e.Name.LocalName == "CheckBox")
+            .Select(e => Attr(e, "Content"))
+            .Where(content => content.Length > 0)
+            .ToArray();
+
+        // BookReference/UserReference 필드는 편집기와 동일 용어로 통일.
+        checkboxContents.Should().Contain("교단 참조").And.Contain("사용자 참조");
+        // 영어 필드 라벨이 남지 않아야 한다(용어 통일 회귀 방지).
+        checkboxContents.Should().NotContain(new[] { "Book", "User", "Title", "Lyrics", "Writer", "Copyright", "Admin" });
+    }
+
+    [Fact]
     public void Window_Hosts_Composite_And_No_Longer_Inlines_Query_Form()
     {
         var window = LoadXaml("Easislides.Wpf/Library/SearchUsageWindow.xaml");

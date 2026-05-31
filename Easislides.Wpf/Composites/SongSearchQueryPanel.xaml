@@ -8,6 +8,7 @@
         검색어 + 검색 필드 토글 + 조/타이밍 + 플래그 + 수정일 + 폴더 선택 + 검색 실행.
         DataContext 는 호스트(SearchUsageWindow 등)에서 상속된 SearchUsageViewModel 을 그대로 사용한다
         (View만 분리, ViewModel·바인딩 동일 — 동작 동등성 우선).
+        필드 라벨은 곡 편집기(SongEditorWindow)와 동일 한글 용어로 통일한다(제목·가사·교단 참조 등).
     -->
     <Border Background="{DynamicResource Brush.Surface.Card}"
             BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -16,46 +17,46 @@
             Padding="{StaticResource Thickness.Lg}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Text="Query"
+                <TextBlock Text="검색"
                            Style="{StaticResource Type.Title3.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="검색어"
                          Margin="0,10,0,12" />
                 <UniformGrid Columns="2">
-                    <CheckBox Content="Title" IsChecked="{Binding SearchTitle}" Margin="0,0,8,8" />
-                    <CheckBox Content="Lyrics" IsChecked="{Binding SearchLyrics}" Margin="0,0,8,8" />
-                    <CheckBox Content="No." IsChecked="{Binding SearchSongNumber}" Margin="0,0,8,8" />
-                    <CheckBox Content="Book" IsChecked="{Binding SearchBookReference}" Margin="0,0,8,8" />
-                    <CheckBox Content="User" IsChecked="{Binding SearchUserReference}" Margin="0,0,8,8" />
-                    <CheckBox Content="Admin" IsChecked="{Binding SearchLicenceAdmin}" Margin="0,0,8,8" />
-                    <CheckBox Content="Writer" IsChecked="{Binding SearchWriter}" Margin="0,0,8,8" />
-                    <CheckBox Content="Copyright" IsChecked="{Binding SearchCopyright}" Margin="0,0,8,8" />
+                    <CheckBox Content="제목" IsChecked="{Binding SearchTitle}" Margin="0,0,8,8" />
+                    <CheckBox Content="가사" IsChecked="{Binding SearchLyrics}" Margin="0,0,8,8" />
+                    <CheckBox Content="번호" IsChecked="{Binding SearchSongNumber}" Margin="0,0,8,8" />
+                    <CheckBox Content="교단 참조" IsChecked="{Binding SearchBookReference}" Margin="0,0,8,8" />
+                    <CheckBox Content="사용자 참조" IsChecked="{Binding SearchUserReference}" Margin="0,0,8,8" />
+                    <CheckBox Content="라이선스 관리자" IsChecked="{Binding SearchLicenceAdmin}" Margin="0,0,8,8" />
+                    <CheckBox Content="작사·작곡" IsChecked="{Binding SearchWriter}" Margin="0,0,8,8" />
+                    <CheckBox Content="저작권" IsChecked="{Binding SearchCopyright}" Margin="0,0,8,8" />
                 </UniformGrid>
-                <TextBlock Text="Key"
+                <TextBlock Text="키"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}" />
                 <TextBox Text="{Binding SearchKey, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="조(Key) 검색"
                          Margin="0,4,0,10" />
-                <TextBlock Text="Timing"
+                <TextBlock Text="타이밍"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}" />
                 <TextBox Text="{Binding SearchTiming, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="타이밍 검색"
                          Margin="0,4,0,10" />
-                <CheckBox Content="With notations"
+                <CheckBox Content="코드 표기 있음"
                           IsChecked="{Binding NotationsOnly}"
                           Margin="0,0,0,8" />
-                <CheckBox Content="Media items"
+                <CheckBox Content="미디어 항목"
                           IsChecked="{Binding MediaOnly}"
                           Margin="0,0,0,8" />
-                <CheckBox Content="Modified date"
+                <CheckBox Content="수정일"
                           IsChecked="{Binding UseModifiedDates}"
                           Margin="0,0,0,8" />
                 <DatePicker SelectedDate="{Binding ModifiedFrom}" Margin="0,0,0,6" />
                 <DatePicker SelectedDate="{Binding ModifiedTo}" Margin="0,0,0,14" />
-                <TextBlock Text="Folders"
+                <TextBlock Text="폴더"
                            Style="{StaticResource Type.Title3.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}"
                            Margin="0,0,0,8" />
@@ -74,7 +75,7 @@
                         Margin="0,14,0,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                        <TextBlock Text="Search" />
+                        <TextBlock Text="검색" />
                     </StackPanel>
                 </Button>
             </StackPanel>
