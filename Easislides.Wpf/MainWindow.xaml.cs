@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _autoRotateTimer;
     private bool _libraryLoadedOnce;
     private bool _bibleLoadedOnce;
+    private bool _searchLoadedOnce;
 
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
@@ -201,6 +202,10 @@ public partial class MainWindow : Window
             case "Bible" when !_bibleLoadedOnce:
                 _bibleLoadedOnce = true;
                 _ = viewModel.Bible.LoadAsync(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
+                break;
+            case "Search" when !_searchLoadedOnce:
+                _searchLoadedOnce = true;
+                _ = viewModel.Search.LoadAsync(); // 검색 폴더 목록(기본 전체 선택)·DB 경로 로드. 예외는 VM 내부에서 흡수.
                 break;
         }
     }

@@ -337,6 +337,95 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
+                <!-- 검색 탭(§7.4 단일 콘솔 통합 — SearchUsageWindow 의 곡 검색을 인라인 흡수).
+                     폴더를 가로질러(기본 전체 폴더) 제목·가사·번호로 검색 → 더블클릭/버튼으로 예배 순서에 추가.
+                     Titles/Usage 같은 관리 기능은 기존 창에 남겨 두고 명령 팔레트(⌘K)로 연다. -->
+                <TabItem Header="검색"
+                         Tag="Search">
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,0,0,8">
+                            <Button Command="{Binding Search.SearchSongsCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Margin="0,0,8,0"
+                                    Content="교차 검색"
+                                    AutomationProperties.Name="전체 폴더에서 곡 검색" />
+                            <Button Command="{Binding AddSearchedSongCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    Content="예배 순서에 추가"
+                                    AutomationProperties.Name="선택한 검색 결과를 예배 순서에 추가" />
+                        </StackPanel>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="34"
+                                 Margin="0,0,0,8"
+                                 ToolTip="제목·가사·번호로 검색 (Enter 로 실행)"
+                                 AutomationProperties.Name="검색어">
+                            <TextBox.InputBindings>
+                                <!-- Enter 로 즉시 검색 실행. -->
+                                <KeyBinding Key="Return"
+                                            Command="{Binding Search.SearchSongsCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+
+                        <!-- 검색 범위(기본 제목+가사+번호). 폴더는 SearchUsageViewModel 이 기본 전체 선택 → 폴더 가로지름. -->
+                        <StackPanel Grid.Row="2"
+                                    Orientation="Horizontal"
+                                    Margin="0,0,0,8">
+                            <CheckBox Content="제목"
+                                      IsChecked="{Binding Search.SearchTitle}"
+                                      Margin="0,0,12,0"
+                                      AutomationProperties.Name="제목 검색" />
+                            <CheckBox Content="가사"
+                                      IsChecked="{Binding Search.SearchLyrics}"
+                                      Margin="0,0,12,0"
+                                      AutomationProperties.Name="가사 검색" />
+                            <CheckBox Content="번호"
+                                      IsChecked="{Binding Search.SearchSongNumber}"
+                                      AutomationProperties.Name="곡 번호 검색" />
+                        </StackPanel>
+
+                        <ListBox Grid.Row="3"
+                                 ItemsSource="{Binding Search.SearchResults}"
+                                 SelectedItem="{Binding SelectedSearchResult, Mode=TwoWay}"
+                                 AutomationProperties.Name="검색 결과 목록">
+                            <ListBox.InputBindings>
+                                <!-- 더블클릭으로 예배 순서에 추가(선택 후 추가). -->
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                              Command="{Binding AddSearchedSongCommand}" />
+                            </ListBox.InputBindings>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,2">
+                                        <TextBlock Text="{Binding Title}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding FolderName}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding Search.StatusMessage}"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
                 </TabControl>
 
                 <GridSplitter Grid.Row="1"
