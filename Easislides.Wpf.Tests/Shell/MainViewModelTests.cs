@@ -2512,6 +2512,55 @@ public class MainViewModelTests
         sut.AddSearchedSongCommand.CanExecute(null).Should().BeFalse("선택이 없으면 추가 비활성");
     }
 
+    // ── 검색 탭 "제목" 모드 인라인: 제목 조회 결과(LookupTitleCandidate)를 예배 순서에 추가 ──
+
+    [Fact]
+    public void AddLookupTitleCommand_CanExecute_ReflectsSelectedTitleCandidate()
+    {
+        var sut = CreateSut();
+        sut.AddLookupTitleCommand.CanExecute(null).Should().BeFalse("초기엔 선택된 제목 후보 없음");
+
+        sut.SelectedTitleCandidate = new LookupTitleCandidate(7, "은혜", "", 1, "찬양 폴더", "", "");
+
+        sut.AddLookupTitleCommand.CanExecute(null).Should().BeTrue("제목 후보 선택 시 추가 활성");
+    }
+
+    [Fact]
+    public async Task AddLookupTitle_LoadsLyricsBySongId_AndAddsToQueue()
+    {
+        // 제목 조회 결과도 가사가 없으므로 SongId 로 곡 상세(가사)를 불러와 큐에 채운다(곡 검색과 동일 경로 재사용).
+        var detail = SampleSongDetail(songId: 7, title: "은혜", lyrics: "1절 가사\n2절 가사");
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail));
+
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        var candidate = new LookupTitleCandidate(7, "은혜", "", 1, "찬양 폴더", "", "");
+        sut.Search.LookupCandidates.Add(candidate);
+        sut.SelectedTitleCandidate = candidate;
+
+        await sut.AddLookupTitleCommand.ExecuteAsync(null);
+
+        sut.Queue.Should().Contain(
+            item => item.Title == "은혜" && item.Lyrics == "1절 가사\n2절 가사",
+            "제목 후보를 가사까지 채워 예배 순서에 추가");
+    }
+
+    [Fact]
+    public void LookupCandidates_Replaced_ClearsStaleTitleSelection()
+    {
+        // 제목을 다시 조회하면 후보 목록이 통째로 바뀐다 — 사라진 선택은 VM 이 스스로 비운다(곡 검색과 동일 규칙).
+        var sut = CreateSut();
+        var first = new LookupTitleCandidate(1, "첫 제목", "", 1, "폴더", "", "");
+        sut.Search.LookupCandidates.Add(first);
+        sut.SelectedTitleCandidate = first;
+        sut.AddLookupTitleCommand.CanExecute(null).Should().BeTrue();
+
+        sut.Search.LookupCandidates.Clear();
+        sut.Search.LookupCandidates.Add(new LookupTitleCandidate(2, "다른 제목", "", 1, "폴더", "", ""));
+
+        sut.SelectedTitleCandidate.Should().BeNull("교체로 사라진 선택은 비워져야 한다");
+        sut.AddLookupTitleCommand.CanExecute(null).Should().BeFalse();
+    }
+
     // ── 후속#3: 예배 순서 이름 변경(레거시 FrmManageItemLists + FrmUpdateFileName(rename) 대응) ──
 
     [Fact]
