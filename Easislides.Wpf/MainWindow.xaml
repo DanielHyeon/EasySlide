@@ -263,18 +263,23 @@
                 <ColumnDefinition Width="340" />
             </Grid.ColumnDefinitions>
 
-            <!-- 좌측: 예배 순서 + 인라인 라이브러리 브라우저 탭(§7.5 P0 — 별도 LibraryWindow 없이 셸에서 곡 찾아 추가). -->
-            <TabControl Grid.Column="0"
-                        x:Name="LeftBrowserTabs"
-                        SelectionChanged="LeftBrowserTabs_SelectionChanged"
-                        BorderThickness="0"
-                        Background="Transparent">
-                <TabItem Header="예배 순서">
-                    <!-- 재사용 컴포지트(§5.2). DataContext(MainViewModel) 상속. -->
-                    <composites:WorshipListPanel />
-                </TabItem>
-                <TabItem Header="라이브러리"
-                         Tag="Library">
+            <!-- 좌측: 상단 콘텐츠 브라우저(라이브러리/성경 탭) + 하단 예배 순서(항상 표시) — FrmMain식 멀티페인.
+                 곡·성경을 찾으면서 예배 순서를 동시에 보도록 탭 전환을 없앤다(§7.4 단일 콘솔 통합).
+                 GridSplitter 로 두 패널 높이를 운영자가 조절. -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" MinHeight="140" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" MinHeight="160" />
+                </Grid.RowDefinitions>
+
+                <TabControl Grid.Row="0"
+                            x:Name="LeftBrowserTabs"
+                            SelectionChanged="LeftBrowserTabs_SelectionChanged"
+                            BorderThickness="0"
+                            Background="Transparent">
+                    <TabItem Header="라이브러리"
+                             Tag="Library">
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -380,7 +385,20 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
-            </TabControl>
+                </TabControl>
+
+                <GridSplitter Grid.Row="1"
+                              Height="6"
+                              Margin="0,4"
+                              HorizontalAlignment="Stretch"
+                              ResizeDirection="Rows"
+                              ResizeBehavior="PreviousAndNext"
+                              Background="Transparent"
+                              AutomationProperties.Name="브라우저/예배 순서 높이 조절" />
+
+                <!-- 예배 순서 — 항상 보이는 하단 패널(FrmMain 좌측 하단 송출 큐). 재사용 컴포지트(§5.2, DataContext 상속). -->
+                <composites:WorshipListPanel Grid.Row="2" />
+            </Grid>
 
             <Border Grid.Column="2"
                     Background="{DynamicResource Brush.Surface.Card}"
