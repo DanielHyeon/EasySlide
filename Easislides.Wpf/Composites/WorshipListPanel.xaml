@@ -51,10 +51,21 @@
                 </Button>
             </StackPanel>
 
-            <ListBox ItemsSource="{Binding Queue}"
+            <!--
+                예배 순서 목록 — 버튼(↑/↓) 외에 드래그-드롭으로도 재정렬(§7.5 P1).
+                드래그 제스처는 STA 입력이라 코드비하인드에서 처리하고, 실제 순서 변경 로직은
+                MainViewModel.MoveQueueItem(참조 기반·범위 클램프)에 위임한다(자동회전 타이머와 동일 철학).
+            -->
+            <ListBox x:Name="QueueList"
+                     ItemsSource="{Binding Queue}"
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      DisplayMemberPath="Title"
                      AutomationProperties.Name="예배 순서 목록"
+                     AllowDrop="True"
+                     PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
+                     PreviewMouseMove="QueueList_PreviewMouseMove"
+                     DragOver="QueueList_DragOver"
+                     Drop="QueueList_Drop"
                      BorderThickness="0" />
         </DockPanel>
     </Border>

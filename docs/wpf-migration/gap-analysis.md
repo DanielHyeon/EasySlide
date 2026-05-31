@@ -209,7 +209,9 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 - [x] §7.3-A 출력 제목 헤딩 표시(Show Title Heading) — **완료**(2026-06-01: `LyricsMonitorShowTitleHeading` 토글 → 라이브 곡 가사 본문 위 상단 배너로 곡 제목 송출. 기본 off 로 기존 동작(본문 송출 시 제목 숨김) 보존. 위치 인디케이터와 동일 배선(설정→`LiveOutputRenderSettings`→`OutputSceneSnapshot.ShowsTitleHeading`→`OutputWindowViewModel`→XAML) + SettingsChanged 화이트리스트 라이브 반영 + 우측 인스펙터 "제목" 토글 + 출력 모양 템플릿 14번째 필드. code-review MAJOR(본문 세로정렬=Top 시 겹침)는 헤딩 1줄 고정 + 본문 상단 여백 예약(`BodyContentMargin`)으로 근본 수정. 테스트 714 green, code-reviewer 반영 완료(MAJOR/MINOR/SUGGESTION))
 - [x] §7.3-A 출력 가사 외곽선(Outline Font) 효과 — **완료**(2026-06-01: `LyricsMonitorOutline` 토글 → 라이브 가사 글자에 검은 외곽선(어두운/영상 배경 가독성). 신규 `OutlinedTextBlock` 커스텀 컨트롤(`FormattedText.BuildGeometry`+`DrawGeometry(fill,pen)`), 외곽선 off(기본)면 기존 본문 TextBlock 그대로·on이면 외곽선 렌더러로 상호배타 전환(회귀 제로). 폰트는 본문과 동일 상속(`TextElement.FontFamilyProperty` AddOwner), 줄높이 자연값 하한 클램프, 형상 캐시+Freeze. 테스트 728 green, code-reviewer Approve(C-1 글꼴정합/M-1 줄간격/M-2 성능/M-3 렌더테스트 반영). 폰트 효과 그룹(굵게·기울임·그림자·외곽선) 사실상 완결) |
 - [x] §7.3-A 제목 헤딩 정렬(Heading Align 좌/중/우) — **완료**(2026-06-01: `LyricsMonitorTitleHeadingAlignment`(enum, 기본 Center) → 헤딩 배너를 좌/중/우 정렬. 기존 가사 정렬과 동일 배선·`ToTextAlignment`/`ToHorizontalAlignment` 헬퍼 재사용(헤딩/본문 정렬 독립), 우측 인스펙터 "제목 정렬" 버튼 3개. AppearanceTemplate 16번째 필드(기본 Center로 구버전 JSON 안전 복원, 회귀잠금 테스트 추가). 테스트 740 green, code-reviewer Approve(CRITICAL/MAJOR/MINOR 0, FindChangedKeys 타입디스패치·스키마진화 실측 검증))
-- [ ] **다음 착수(권장)**: 모달 Library·Bible 진입점 정리(좌측 도킹으로 흡수) / 명령 팔레트(⌘K) / 큐 드래그 재정렬 / 절(Verse) 헤딩·At First Screen Only
+- [x] §7.5 P1 큐 드래그-드롭 재정렬 — **완료**(2026-06-01: 예배 순서 ListBox 드래그-드롭 재정렬. View=제스처(WorshipListPanel 코드비하인드, 드래그 임계·DragOver 커서·드롭), VM=로직(`MoveQueueItemRelativeTo` 참조 기반 타깃 인덱스 → `MoveQueueItem`). 자동회전 타이머와 동일 분리. 기존 클릭/선택/↑↓ 버튼과 공존. 테스트 748 green, code-reviewer 2라운드(CRITICAL: 드롭 타깃 값 동등성 IndexOf→참조 기반 수정 → Approve))
+- [ ] **버그 후속(code-review 발견)**: `LibraryWindow.xaml.cs:208` 폴더 reorder 가 `Folders.IndexOf(target)`(값 동등성)을 써 동일 중복-오이동 잠재 버그 — 큐와 같은 참조 기반 수정 필요(별도 증분, 지침 #5)
+- [ ] **다음 착수(권장)**: 모달 Library·Bible 진입점 정리(좌측 도킹으로 흡수) / 명령 팔레트(⌘K) / 절(Verse) 헤딩·At First Screen Only
 - [ ] **G1.4 백로그(선택)**: 썸네일 렌더 `CancellationToken` 관통 / `LoadAsync` 동시 호출 순서 보장 / 이중 렌더 효율화 (§G-α 잔여)
 
 ## 7. UI/UX 갭 분석 — FrmMain ↔ MainWindow (단일 콘솔 통합)
@@ -261,7 +263,7 @@ G0 (즉시·저위험) → G1.1 스크린샷 PoC → G1.2~G1.4 렌더 → G2 (1�
 | Gap/안내 | Gap Item, Alerts(경고 오버레이) | 🟡 출력측 오버레이만, 조작 UI 없음 |
 | 보조 화면 | InfoScr, Copy to InfoScreen, Apply to All Except InfoScreens | 🔴 없음(FrmInfoScreen 미이식) |
 | 미디어 출력 | Play Media (on Output Monitor) | ✅ G1.2 트랙으로 연결 |
-| 항목 이동 | Move Item Up/Down | ✅ 예배 순서 패널 ↑/↓ 이동·제거(2026-05-31, PR #61). 값 동등성 중복은 참조 기반으로 안전 처리 |
+| 항목 이동 | Move Item Up/Down | ✅ 예배 순서 패널 ↑/↓ 이동·제거(2026-05-31, PR #61) + **드래그-드롭 재정렬**(2026-06-01, §7.5 P1). 값 동등성 중복은 참조 기반(`IndexOfReference`)으로 안전 처리(드롭 타깃 인덱스도 참조 기반 `MoveQueueItemRelativeTo`) |
 
 #### C. 인라인 콘텐츠 브라우징 (🔴 별도 창으로 분산)
 
