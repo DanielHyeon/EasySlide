@@ -105,6 +105,57 @@ public class LyricsDisplayFormatterTests
         display.Should().NotContain("Â").And.NotContain("»");
     }
 
+    // ─── Sequence(절 순서) 모델 ──────────────────────────────────────────────
+
+    [Fact]
+    public void ToVersePages_WithSequence_DefinesSectionsOnce_RepeatsByOrder()
+    {
+        // 절을 1회 정의([1],[C],[2])하고 시퀀스(1 C 2 C)로 반복 → 후렴(C)이 두 번 나온다(레거시 절 순서 모델).
+        var lyrics = "[1]\nVerse one\n[C]\nChorus line\n[2]\nVerse two";
+
+        var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C 2 C");
+
+        pages.Should().Equal("Verse one", "Chorus line", "Verse two", "Chorus line");
+    }
+
+    [Fact]
+    public void ToVersePages_SequenceTokens_CommaOrSpace_CaseInsensitive()
+    {
+        var lyrics = "[1]\nVerse\n[C]\nChorus";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics, "1, c").Should().Equal("Verse", "Chorus");
+    }
+
+    [Fact]
+    public void ToVersePages_EmptySequence_FallsBackToLinear()
+    {
+        var lyrics = "[1]\nVerse one\n[C]\nChorus line";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics, "")
+            .Should().Equal(LyricsDisplayFormatter.ToVersePages(lyrics));
+    }
+
+    [Fact]
+    public void ToVersePages_SequenceWithNoMatchingLabels_FallsBackToLinear()
+    {
+        // 토큰이 어떤 절 라벨과도 안 맞으면(예: 레거시 char-인코딩 Sequence) 선형으로 안전 폴백 — 오작동 방지.
+        var lyrics = "[1]\nVerse one\n[2]\nVerse two";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics, "X Y Z")
+            .Should().Equal(LyricsDisplayFormatter.ToVersePages(lyrics));
+    }
+
+    [Fact]
+    public void GetVersePage_WithSequence_ReturnsExpandedPageAtIndex()
+    {
+        var lyrics = "[1]\nVerse one\n[C]\nChorus line\n[2]\nVerse two";
+
+        // 시퀀스 "1 C 2 C" 의 3번 인덱스(0-based)는 두 번째 후렴.
+        LyricsDisplayFormatter.GetVersePage(lyrics, 3, "1 C 2 C").Should().Be("Chorus line");
+        // 범위 밖은 클램프.
+        LyricsDisplayFormatter.GetVersePage(lyrics, 99, "1 C 2 C").Should().Be("Chorus line");
+    }
+
     // ─── ToVersePages ────────────────────────────────────────────────────────
 
     [Fact]

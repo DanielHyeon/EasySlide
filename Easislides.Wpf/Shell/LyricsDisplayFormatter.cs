@@ -72,6 +72,14 @@ public static class LyricsDisplayFormatter
     }
 
     /// <summary>
+    /// 절 순서(Sequence)를 적용해 가사를 페이지로 분할한다.
+    /// 절을 [라벨] 마커로 1회 정의하고 sequence(예: "1 C 2 C")로 순서·반복을 지정하는 모델(레거시 절 순서 대응).
+    /// sequence 가 비었거나 어떤 절 라벨과도 안 맞으면(예: 레거시 char-인코딩) 기존 선형 분할로 안전 폴백한다.
+    /// </summary>
+    public static IReadOnlyList<string> ToVersePages(string? rawLyrics, string? sequence)
+        => TryExpandBySequence(rawLyrics, sequence) ?? ToVersePages(rawLyrics);
+
+    /// <summary>
     /// 가사 전체를 절 단위 페이지 리스트로 분할한다.
     /// 빈 문자열이거나 변환 결과가 없으면 빈 리스트를 반환한다.
     /// </summary>
@@ -88,19 +96,134 @@ public static class LyricsDisplayFormatter
     }
 
     /// <summary>
-    /// 지정 인덱스(0-based)의 절 텍스트를 반환한다.
-    /// 범위 밖은 클램프(0 이하 → 첫 절, 총 절 이상 → 마지막 절). 가사가 없으면 빈 문자열.
+    /// 지정 인덱스(0-based)의 절 텍스트를 반환한다(절 순서 Sequence 적용).
+    /// 범위 밖은 클램프. 가사가 없으면 빈 문자열.
     /// </summary>
-    public static string GetVersePage(string? rawLyrics, int pageIndex)
+    public static string GetVersePage(string? rawLyrics, int pageIndex, string? sequence)
     {
-        var pages = ToVersePages(rawLyrics);
+        var pages = ToVersePages(rawLyrics, sequence);
         if (pages.Count == 0)
         {
             return string.Empty;
         }
 
-        var clamped = Math.Clamp(pageIndex, 0, pages.Count - 1);
-        return pages[clamped];
+        return pages[Math.Clamp(pageIndex, 0, pages.Count - 1)];
+    }
+
+    /// <summary>
+    /// 지정 인덱스(0-based)의 절 텍스트를 반환한다.
+    /// 범위 밖은 클램프(0 이하 → 첫 절, 총 절 이상 → 마지막 절). 가사가 없으면 빈 문자열.
+    /// </summary>
+    public static string GetVersePage(string? rawLyrics, int pageIndex)
+        => GetVersePage(rawLyrics, pageIndex, sequence: null);
+
+    /// <summary>
+    /// 절 순서(Sequence)로 절을 펼친다. sequence 가 비었거나 매칭되는 절 라벨이 하나도 없으면 null(→ 선형 폴백).
+    /// </summary>
+    private static IReadOnlyList<string>? TryExpandBySequence(string? rawLyrics, string? sequence)
+    {
+        if (string.IsNullOrWhiteSpace(sequence))
+        {
+            return null;
+        }
+
+        var sections = ParseLabeledSections(rawLyrics);
+        if (sections.Count == 0)
+        {
+            return null;
+        }
+
+        // 시퀀스 토큰: 쉼표/공백 구분, 대소문자 무시로 절 라벨과 매칭.
+        var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+        var pages = new List<string>();
+        foreach (var token in tokens)
+        {
+            foreach (var section in sections)
+            {
+                if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                    && section.Content.Length > 0)
+                {
+                    pages.Add(section.Content);
+                    break;
+                }
+            }
+        }
+
+        // 매칭이 하나도 없으면(레거시 인코딩 등) 선형으로 폴백.
+        return pages.Count > 0 ? pages : null;
+    }
+
+    // 가사를 [라벨] 마커 기준 섹션으로 나눈다 — (라벨, 정리된 본문). 마커 앞 본문이나 라벨 없는 구역은 제외(시퀀스 참조 불가).
+    private static IReadOnlyList<(string Label, string Content)> ParseLabeledSections(string? rawLyrics)
+    {
+        if (string.IsNullOrWhiteSpace(rawLyrics))
+        {
+            return Array.Empty<(string, string)>();
+        }
+
+        var text = rawLyrics
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal)
+            .Replace("Â»", "»", StringComparison.Ordinal);
+
+        var sections = new List<(string Label, string Content)>();
+        string? currentLabel = null;
+        var body = new StringBuilder();
+
+        void Flush()
+        {
+            if (currentLabel is not null)
+            {
+                var content = body.ToString().Trim('\n');
+                sections.Add((currentLabel, content));
+            }
+
+            body.Clear();
+        }
+
+        foreach (var rawLine in text.Split('\n'))
+        {
+            var label = SectionLabel(rawLine);
+            if (label is not null)
+            {
+                Flush();
+                currentLabel = label;
+                continue;
+            }
+
+            if (currentLabel is null)
+            {
+                continue; // 첫 라벨 마커 전의 줄(라벨 없는 머리말)은 시퀀스로 못 부르므로 건너뜀.
+            }
+
+            var line = StripInlineNotation(rawLine).TrimEnd();
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue; // 절 안 빈 줄은 모은 뒤 Trim 으로 정리.
+            }
+
+            if (body.Length > 0)
+            {
+                body.Append('\n');
+            }
+
+            body.Append(line);
+        }
+
+        Flush();
+        return sections;
+    }
+
+    // 마커 줄이 라벨 마커( [1] [Chorus] [C] )면 그 라벨, 노테이션 블록([~...])이나 일반 줄이면 null.
+    private static string? SectionLabel(string line)
+    {
+        if (!IsMarkerOnlyLine(line))
+        {
+            return null;
+        }
+
+        var inner = line.Trim()[1..^1].Trim(); // 대괄호 안.
+        return inner.StartsWith('~') || inner.Length == 0 ? null : inner;
     }
 
     // 줄에서 '»'(코드/노테이션 마커) 이후를 잘라 본문만 남긴다. 마커가 없으면 줄 그대로.
