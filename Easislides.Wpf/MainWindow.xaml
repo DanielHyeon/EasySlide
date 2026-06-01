@@ -39,6 +39,9 @@
                 <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" /></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="PowerPoint 폴더 찾아보기..." Click="OpenPowerPointLibrary_Click">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="라이브러리 열기" Click="OpenLibrary_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Contents}" /></MenuItem.Icon>
                 </MenuItem>

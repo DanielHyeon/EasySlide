@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Easislides.Wpf.Rendering;
 
@@ -25,29 +23,5 @@ public sealed class ImageLibraryService : IImageLibraryService
     };
 
     public IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders)
-    {
-        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
-        {
-            return Array.Empty<string>();
-        }
-
-        try
-        {
-            var option = includeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            return Directory
-                .EnumerateFiles(folderPath, "*", option)
-                .Where(path => ImageExtensions.Contains(Path.GetExtension(path)))
-                .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-        catch (IOException)
-        {
-            // 폴더가 읽기 도중 사라지거나 잠겼으면 빈 목록(운영 중 안전 강등).
-            return Array.Empty<string>();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Array.Empty<string>();
-        }
-    }
+        => FolderFileEnumerator.Enumerate(folderPath, ImageExtensions, includeSubfolders);
 }

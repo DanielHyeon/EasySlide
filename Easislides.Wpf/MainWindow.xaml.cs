@@ -322,6 +322,28 @@ public partial class MainWindow : Window
         }
     }
 
+    // PowerPoint 폴더 브라우저 — 폴더의 PPT 덱을 보고 예배 순서에 추가(FrmMain PowerP 탭 포팅).
+    private void OpenPowerPointLibrary_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
+        var initialFolder = !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder)
+            ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        var pptViewModel = new Easislides.Wpf.Library.PowerPointLibraryViewModel(
+            new Easislides.Wpf.Library.PowerPointLibraryService(),
+            path => viewModel.AddPowerPoint(path), // AddPowerPoint 는 LiveQueueItem 을 반환하므로 람다로 감싼다
+            initialFolder);
+
+        var window = new Easislides.Wpf.Library.PowerPointLibraryWindow(pptViewModel) { Owner = this };
+        window.ShowDialog();
+    }
+
     // 공지 화면(InfoScreen) — 자유 텍스트 안내를 입력해 회중 출력으로 송출(FrmInfoScreen 포팅).
     private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e)
     {
