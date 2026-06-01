@@ -48,6 +48,7 @@
 - (2026-06-01) ✅ 증분 9(PraiseBook) 슬라이스 3 — **찬양집 색인 HTML 내보내기**(FrmMain GenerateIndexReport). PraiseBookIndexExporter(머리글자 그룹·제목·번호 표 HTML, 특수문자 이스케이프=주입 방지)·VM BuildIndexHtml·창 SaveFileDialog 저장(try/catch 안내). 1088 green, code-reviewer Approve(0 critical), 커밋 `21a5c57`.
 - ✅ **절 라벨 직접 점프** — `JumpToLyricsSectionCommand` + SectionJumpBar 로 이미 구현됨(FrmMain PreviewBtnVerse 1~9·c·b 대응). 갭 해소 확인.
 - (2026-06-01) ✅ 증분 10(이미지 perf) — **이미지 갤러리 썸네일 비동기 디코딩**. 목록 즉시 표시 + 백그라운드 디코딩(Task.Run·Freeze) + 재진입 취소 가드(AsyncRelayCommand CancellationToken). 대용량 폴더 UI 멈춤(개선사항.md 병목) 해소. 1090 green, code-reviewer MAJOR(재진입 경쟁) 반영, 커밋 `18c54ce`.
+- (2026-06-01) ✅ 증분 11(InfoScreen) — **공지 화면(자유 텍스트 출력 송출)**(FrmInfoScreen). MainViewModel.PublishNotice/ClearNotice + NoticeScreen VM/Window + 메뉴 "도구 ▸ 공지 화면". code-reviewer MAJOR 2건 근본수정: ①공지 텍스트가 가사 포맷터를 타 마커 손상되던 문제→Notice kind 면 포맷터 우회(verbatim), ②_liveItemId=null 와일드카드로 공지 중 이동 버튼 활성되던 문제→NoticeLiveId 센티넬. 재검증 에이전트로 종결 확인. 1100 green, 커밋 `156c25b`.
 - ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 다음 항목 + 전환 효과(페이드/속도) + 배경 이미지 + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
 - **차기(후속 슬라이스): PraiseBook 명명 저장·관리 영속화 · 이미지 썸네일 비동기 디코딩(대용량) · 50여 종 셰이프/타일 전환 · InfoScreen 편집기 · 절 라벨 점프(P2 백로그).** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
