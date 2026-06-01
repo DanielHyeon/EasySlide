@@ -2721,6 +2721,18 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddSong_CarriesSongNumberToQueueItem()
+    {
+        // 곡 번호가 큐 항목에 실려 출력 "곡 번호 표시"에 쓰인다(데이터가 큐에 들어오는 유일 지점).
+        var sut = CreateSut();
+        var song = new SongSummary(123, "은혜", "", 1, 123, "", "", "[1]\n1절");
+
+        var item = sut.AddSong(song);
+
+        item!.SongNumber.Should().Be(123);
+    }
+
+    [Fact]
     public void AddSong_DualLanguage_AllLabeled_EnablesSectionJump()
     {
         // 전부 라벨링된 이중 언어 곡은 절 라벨 점프가 켜진다(라벨이 페이지와 정렬).

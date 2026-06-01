@@ -33,6 +33,8 @@ public sealed record LiveSessionSnapshot(
     string CurrentItemPositionLabel = "",
     // 현재 가사 절 페이지 인덱스(0=첫 절). 제목 헤딩 "첫 화면만" 표시 판정에 쓰임(§7.3-A). 곡이 아니면 0.
     int CurrentLyricsPageIndex = 0,
+    // 현재 항목의 곡 번호(출력 "곡 번호 표시" 설정 on 일 때 표시). 곡이 아니거나 번호가 없으면 0.
+    int CurrentItemNumber = 0,
     // 곡별 FormatData(레거시 v32)에서 디코드한 region1 글자색(ARGB). 있으면 출력 렌더러가 운영 기본 글자색 대신 사용.
     // FormatData 가 없거나 글자색 항목(29)이 없으면 null → 기본색 유지(무회귀).
     int? OverrideTextColorArgb = null,
@@ -116,6 +118,8 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentItemPositionLabel: item.PositionLabel,
             // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
             CurrentLyricsPageIndex: item.LyricsPageIndex,
+            // 곡 번호(출력 "곡 번호 표시" 설정 on 일 때 표시).
+            CurrentItemNumber: item.SongNumber,
             // 곡별 색(있으면) — 렌더러가 Live 일 때 운영 기본색 대신 적용.
             OverrideTextColorArgb: format?.TextColorArgb1,
             // 이중 언어 Region2 글자색(30) — 있으면 Region2 본문에 적용(없으면 Region1 색 추종).

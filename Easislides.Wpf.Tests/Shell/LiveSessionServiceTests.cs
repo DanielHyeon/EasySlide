@@ -348,6 +348,18 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_CarriesSongNumberToSnapshot()
+    {
+        // 곡 번호가 스냅샷에 실려 출력 "곡 번호 표시"에 쓰인다.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절", SongNumber = 123 };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemNumber.Should().Be(123);
+    }
+
+    [Fact]
     public void GoLive_DualLanguage_CarriesRegion2Font()
     {
         // region2 글꼴명(44)·크기(48, pt→px)를 스냅샷에 싣는다 — 이중 언어 Region2 본문 글꼴 독립.

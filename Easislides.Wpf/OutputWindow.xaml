@@ -218,6 +218,21 @@
                            FontWeight="SemiBold"
                            Foreground="{Binding SceneForegroundBrush}" />
             </Border>
+
+            <!-- 곡 번호(Display Panel "Show Item Number") — 좌측 하단 모서리. 설정 on + Live + 번호 있을 때만 표시. -->
+            <Border HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="24,0,0,16"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="#66000000"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding ItemNumberVisibility}">
+                <TextBlock Text="{Binding ItemNumberText}"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{Binding SceneForegroundBrush}" />
+            </Border>
         </Grid>
 
         <Grid Grid.Row="2"

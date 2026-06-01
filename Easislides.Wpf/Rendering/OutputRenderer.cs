@@ -54,7 +54,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 제목 헤딩 가로 정렬(인-셸 §7.3-A Heading Align). 기본 Center.
     LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center,
     // 제목 헤딩을 곡 첫 절(첫 화면)에만 표시(인-셸 §7.3-A Heading At First Screen Only). 기본 off.
-    bool TitleHeadingFirstScreenOnly = false)
+    bool TitleHeadingFirstScreenOnly = false,
+    // 출력에 곡 번호 표시(FrmMain Show Item Number, Display Panel). 기본 off → 기존 출력 무변화.
+    bool LyricsMonitorShowItemNumber = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -86,7 +88,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorOutline),
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
-            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly));
+            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber));
     }
 }
 
@@ -166,7 +169,11 @@ public sealed record OutputSceneSnapshot(
     LyricsTextAlignment LyricsMonitorTextAlignment2 = LyricsTextAlignment.Center,
     // Region2 본문 글꼴명·크기. 곡별 region2 글꼴(44/48)이 없으면 Region1 글꼴을 추종.
     string LyricsMonitorFontFamily2 = "",
-    int LyricsMonitorFontSize2 = 48)
+    int LyricsMonitorFontSize2 = 48,
+    // 곡 번호 표시 설정(Display Panel). 기본 off.
+    bool ShowLyricsItemNumber = false,
+    // 곡 번호 라벨(예: "123"). Live + 곡 번호>0 일 때만 채워진다.
+    string ItemNumberLabel = "")
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -175,6 +182,9 @@ public sealed record OutputSceneSnapshot(
 
     // Region2(이중 언어 보조) 본문을 송출할지 — Live + Region2 본문이 있을 때만(단일 영역 곡은 false → 무회귀).
     public bool ShowsBodyText2 => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText2);
+
+    // 곡 번호를 실제로 노출할지 — 설정 on + Live + 번호 라벨이 있을 때만(Display Panel).
+    public bool ShowsItemNumber => ShowLyricsItemNumber && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(ItemNumberLabel);
 
     // 위치 인디케이터를 실제로 노출할지 — 설정 on + Live + 라벨이 있을 때만.
     public bool ShowsPositionIndicator => ShowLyricsPositionIndicator && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(PositionLabel);
@@ -313,7 +323,10 @@ public sealed class OutputRenderer : IOutputRenderer
             textColor2Argb,
             textAlignment2,
             fontFamily2,
-            fontSize2Px);
+            fontSize2Px,
+            // 곡 번호 표시(설정) + 라벨(Live + 번호>0). 곡 번호 0이면 빈 문자열 → 미표시.
+            liveOutput.LyricsMonitorShowItemNumber,
+            isLive && request.Session.CurrentItemNumber > 0 ? request.Session.CurrentItemNumber.ToString() : string.Empty);
     }
 
     private ImagePlacement GetContentPlacement(

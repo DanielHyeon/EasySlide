@@ -9,6 +9,9 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
 
     public int SlideNumber { get; init; }
 
+    /// <summary>곡 번호(레거시 SongNumber) — 출력 "곡 번호 표시"(Display Panel) 설정 on 일 때 회중 화면에 표시. 0이면 미표시.</summary>
+    public int SongNumber { get; init; }
+
     /// <summary>곡 항목의 가사(추가 시점에 적재 — 선택 시 미리보기에 표시). 라이브 큐 콘텐츠 plumbing.</summary>
     public string? Lyrics { get; init; }
 
