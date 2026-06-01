@@ -106,6 +106,8 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         TransposeUpCommand = new RelayCommand(() => SetTranspose(TransposeSemitones + 1));
         TransposeDownCommand = new RelayCommand(() => SetTranspose(TransposeSemitones - 1));
         ResetTransposeCommand = new RelayCommand(() => SetTranspose(0));
+        // To Capo 0(레거시) — 카포로 올린 만큼(+Capo 반음) 올려 "카포 없이 치는 실제 코드"를 보여 준다.
+        ToCapoZeroCommand = new RelayCommand(() => SetTranspose(Capo), () => Capo > 0);
         RefreshPreview();
     }
 
@@ -119,6 +121,9 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     public IRelayCommand TransposeDownCommand { get; }
 
     public IRelayCommand ResetTransposeCommand { get; }
+
+    /// <summary>To Capo 0 — 카포 값만큼 올려 카포 없이 치는 실제 코드를 미리보기로 보여 준다(Capo>0 일 때만).</summary>
+    public IRelayCommand ToCapoZeroCommand { get; }
 
     /// <summary>현재 조옮김 표시(예: "+2", "-1", "원조").</summary>
     public string TransposeLabel
@@ -319,7 +324,11 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     partial void OnCopyrightChanged(string value) => MarkChanged();
 
-    partial void OnCapoChanged(int value) => MarkChanged();
+    partial void OnCapoChanged(int value)
+    {
+        MarkChanged();
+        ToCapoZeroCommand.NotifyCanExecuteChanged(); // Capo>0 여부가 바뀌면 To Capo 0 버튼 활성/비활성.
+    }
 
     partial void OnTimingChanged(string value) => MarkChanged();
 
@@ -496,7 +505,14 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         var parts = new List<string>();
         AddIfPresent(parts, FolderName);
         AddIfPresent(parts, Category);
-        AddIfPresent(parts, string.IsNullOrWhiteSpace(Key) ? "" : $"키 {Key.Trim()}");
+        // 키 표시 — 조옮김이 걸려 있으면 "키 G → A"처럼 옮긴 키도 함께 보여 준다(코드와 일관).
+        if (!string.IsNullOrWhiteSpace(Key))
+        {
+            var key = Key.Trim();
+            parts.Add(TransposeSemitones != 0
+                ? $"키 {key} → {Shell.ChordTransposer.Transpose(key, TransposeSemitones)}"
+                : $"키 {key}");
+        }
         AddIfPresent(parts, Timing);
         if (Capo > 0)
         {

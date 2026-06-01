@@ -114,6 +114,38 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public void ToCapoZero_TransposesUpByCapoAmount_AndShowsTransposedKey()
+    {
+        // To Capo 0 = 카포(2)만큼 올려 카포 없이 치는 실제 코드/키를 보여 준다. 미리보기 메타에 옮긴 키도 표시.
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+        sut.Key = "G";
+        sut.Capo = 2;
+        sut.Lyrics = "Amazing » G";
+
+        sut.ToCapoZeroCommand.Execute(null);
+
+        sut.TransposeSemitones.Should().Be(2, "카포 2 → +2 반음");
+        sut.TransposeLabel.Should().Be("+2");
+        sut.PreviewMetadata.Should().Contain("키 G → A", "옮긴 키 표시");
+    }
+
+    [Fact]
+    public void ToCapoZero_DisabledWhenNoCapo()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+
+        sut.Capo = 0;
+
+        sut.ToCapoZeroCommand.CanExecute(null).Should().BeFalse("카포가 없으면 To Capo 0 비활성");
+    }
+
+    [Fact]
     public void Lyrics_DuplicateSectionLabels_ShowsSectionWarning_NonBlocking()
     {
         // Sequence 모델: 절은 1회 정의. 같은 라벨([C]) 두 번 정의 시 비차단 경고를 띄운다(저장은 막지 않음).
