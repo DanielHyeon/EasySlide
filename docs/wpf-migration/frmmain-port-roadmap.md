@@ -38,7 +38,8 @@
 - (2026-06-01) ✅ 증분 5(조옮김) 슬라이스 1 — **ChordTransposer 핵심 로직**(루트·접미사·슬래시·±반음). 1001 green, 커밋 `ad17650`.
 - (2026-06-01) ✅ 증분 5(조옮김) 슬라이스 2 — **SongEditor 미리보기 조옮김 UI**(♯+/♭−/원조, 코드만 이동·저장 가사 불변). 1002 green, 커밋 `557ae6a`.
 - (2026-06-01) ✅ 증분 6(Display Panel) 슬라이스 1 — **출력 곡 번호 표시**(FrmMain "Show Item Number"). 설정·렌더·데이터·VM·XAML·메뉴 토글 종단(15편집, 기본 off 무회귀). 1021 green, code-reviewer Approve, 커밋 `c37d61e`.
-- ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
-- **차기: Display Panel 추가(저작권 — SongSummary 확장 ~18편집 / 이전·다음 항목) · 전환 효과 UI(애니메이션) · 이미지/PraiseBook 인라인 브라우징.** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
+- (2026-06-01) ✅ 증분 6(Display Panel) 슬라이스 2 — **출력 저작권 표시**(FrmMain "Show Copyright Information"). SongSummary.Copyright(GetSongs COPYRIGHT 컬럼) → LiveQueueItem → GoLive → CurrentItemCopyright → ShowsCopyright → OutputWindow 하단 중앙 Border(좌/우 코너 비충돌). 설정·렌더·VM·메뉴 토글 종단(12파일, 기본 off 무회귀). 1025 green, code-reviewer 코너 충돌 MAJOR 수정(우하단→중앙), 커밋 `b0ca00a`.
+- ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
+- **차기: Display Panel 추가(이전·다음 항목 미리보기) · 전환 효과 UI(애니메이션) · 이미지/PraiseBook 인라인 브라우징.** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
 > 현황(정직): FrmMain 전체 포팅은 다증분 장기 과제다. UI/UX 표면(메뉴·단축키·상태바) + 운영 기능(절 점프) + **최대 갭이던 이중언어 송출이 이제 동작**한다(슬라이스 2). 남은 본질 갭: 영역별 스타일 분리·Display Panel·조옮김·전환 UI·이미지/PraiseBook 브라우징. "완벽 포팅"은 증분 3·5~10 완료 시 달성.
