@@ -38,8 +38,10 @@
         </Border>
 
         <Grid Grid.Row="1"
-              x:Name="ContentArea">
-            <!-- Live 콘텐츠 이미지(예: PPT 슬라이드 썸네일). Scene.ContentPlacement 좌표에 절대 배치.
+              x:Name="ContentArea"
+              ClipToBounds="True">
+            <!-- ClipToBounds: 슬라이드 전환 중 콘텐츠가 인접 행(알림/패널 밴드)으로 삐져나오지 않게 자기 행으로 마스킹.
+                 Live 콘텐츠 이미지(예: PPT 슬라이드 썸네일). Scene.ContentPlacement 좌표에 절대 배치.
                  외부에서 SetContentAsset()으로 자산을 주입할 때만 노출. -->
             <Canvas Visibility="{Binding ContentVisibility}"
                     IsHitTestVisible="False">

@@ -85,6 +85,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsMonitorTransitionKind_PersistsEnumToDiskAndReloads()
+    {
+        // 전환 모션 종류(enum)의 디스크 round-trip 고정(JsonStringEnumConverter 경로 + GET/SET 스위치).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorTransitionKind, LyricsTransitionKind.SlideFromRight).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorTransitionKind).Should().Be(LyricsTransitionKind.SlideFromRight);
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorTransitionKind.Should().Be(LyricsTransitionKind.SlideFromRight);
+    }
+
+    [Fact]
     public void Set_LyricsMonitorTransitionSettings_PersistToDiskAndReload()
     {
         // 전환 페이드 사용 여부(bool) + 길이(int)의 디스크 round-trip 고정(GET/SET 스위치 검증, FrmMain 전환 효과).

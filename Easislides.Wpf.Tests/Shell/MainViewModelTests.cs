@@ -853,6 +853,20 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyTransitionKind_PersistsAndUpdatesActiveAndMenuChecks()
+    {
+        var sut = CreateSut();
+        sut.TransitionKindIsFade.Should().BeTrue("기본은 페이드");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.SlideFromRight);
+
+        sut.ActiveTransitionKind.Should().Be(LyricsTransitionKind.SlideFromRight);
+        sut.TransitionKindIsSlideRight.Should().BeTrue();
+        sut.TransitionKindIsFade.Should().BeFalse();
+        sut.StatusText.Should().Contain("슬라이드");
+    }
+
+    [Fact]
     public void PublishNotice_WhenOutputClosed_ReturnsFalseAndStaysOff()
     {
         // 출력 창이 닫혀 있으면 공지 송출은 실패(false)하고 라이브 상태를 바꾸지 않는다.

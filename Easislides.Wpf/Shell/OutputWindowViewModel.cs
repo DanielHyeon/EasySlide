@@ -106,6 +106,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private ImageSource? _cachedBackgroundImageSource;
     private OutputSceneSnapshot _scene;
     private TimeSpan _contentFadeDuration = TimeSpan.FromMilliseconds(250);
+    private LyricsTransitionKind _contentTransitionKind = LyricsTransitionKind.Fade;
     private bool _disposed;
 
     public OutputWindowViewModel()
@@ -164,6 +165,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         ContentFadeDuration = useFade && durationMs > 0
             ? TimeSpan.FromMilliseconds(durationMs)
             : TimeSpan.Zero;
+        // 전환 모션 종류(Fade/Slide). 페이드 off(ContentFadeDuration=0)면 뷰가 즉시 컷하므로 종류는 무시된다.
+        ContentTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind);
     }
 
     public LiveState State
@@ -518,6 +521,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         set => SetProperty(ref _contentFadeDuration, value);
     }
 
+    // 장면 전환 모션 종류(Fade/Slide 4방향). 코드-비하인드가 SceneChanged 시 이 값으로 애니메이션을 고른다.
+    public LyricsTransitionKind ContentTransitionKind
+    {
+        get => _contentTransitionKind;
+        set => SetProperty(ref _contentTransitionKind, value);
+    }
+
     // Scene 변경 알림을 받아 페이드를 트리거할 코드-비하인드/뷰가 구독한다.
     // ViewModel 자체는 WPF 애니메이션을 모르고, 단순히 "장면이 갱신됐다"는 사실만 전달.
     public event EventHandler? SceneChanged;
@@ -846,7 +856,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         {
             var key = changedKeys[i];
             if (string.Equals(key, EasiSettingKeys.LyricsMonitorUseFadeTransition.Id, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(key, EasiSettingKeys.LyricsMonitorTransitionDurationMs.Id, StringComparison.OrdinalIgnoreCase))
+                string.Equals(key, EasiSettingKeys.LyricsMonitorTransitionDurationMs.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorTransitionKind.Id, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

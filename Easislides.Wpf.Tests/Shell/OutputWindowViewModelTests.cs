@@ -310,6 +310,30 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void Constructor_TransitionKind_ReflectsSetting()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, LyricsTransitionKind.SlideFromBottom).Succeeded.Should().BeTrue();
+
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ContentTransitionKind.Should().Be(LyricsTransitionKind.SlideFromBottom);
+    }
+
+    [Fact]
+    public void SettingsChanged_TransitionKind_LiveUpdatesContentTransitionKind()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, LyricsTransitionKind.SlideFromLeft).Succeeded.Should().BeTrue();
+
+        sut.ContentTransitionKind.Should().Be(LyricsTransitionKind.SlideFromLeft);
+    }
+
+    [Fact]
     public void SettingsChanged_TransitionDuration_LiveUpdatesContentFadeDuration()
     {
         // 전환 길이 설정 변경이 라이브로 ContentFadeDuration 에 즉시 반영된다.

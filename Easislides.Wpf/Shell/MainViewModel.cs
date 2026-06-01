@@ -124,6 +124,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionIsFast => ActiveTransitionDurationMs == 150;
     public bool TransitionIsNormal => ActiveTransitionDurationMs == 250;
     public bool TransitionIsSlow => ActiveTransitionDurationMs == 500;
+
+    // 현재 전환 모션 종류(메뉴 체크 바인딩용, Fade/Slide 4방향).
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsFade))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideLeft))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideRight))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideUp))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideDown))]
+    private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
+
+    public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
+    public bool TransitionKindIsSlideLeft => ActiveTransitionKind == LyricsTransitionKind.SlideFromLeft;
+    public bool TransitionKindIsSlideRight => ActiveTransitionKind == LyricsTransitionKind.SlideFromRight;
+    public bool TransitionKindIsSlideUp => ActiveTransitionKind == LyricsTransitionKind.SlideFromTop;
+    public bool TransitionKindIsSlideDown => ActiveTransitionKind == LyricsTransitionKind.SlideFromBottom;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -347,6 +362,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsNextItemCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowNextItem, ActiveLyricsNextItem));
         ToggleFadeTransitionCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorUseFadeTransition, ActiveFadeTransition));
         ApplyTransitionDurationCommand = new RelayCommand<int>(ApplyTransitionDuration);
+        ApplyTransitionKindCommand = new RelayCommand<LyricsTransitionKind>(ApplyTransitionKind);
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
@@ -418,6 +434,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsNextItemCommand { get; }
     public IRelayCommand ToggleFadeTransitionCommand { get; }
     public IRelayCommand<int> ApplyTransitionDurationCommand { get; }
+    public IRelayCommand<LyricsTransitionKind> ApplyTransitionKindCommand { get; }
     public IRelayCommand ClearOutputBackgroundImageCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
@@ -1926,6 +1943,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"전환 길이: {next}ms";
     }
 
+    // 출력 전환 모션 종류 적용(Fade/Slide 4방향). 저장 후 Active 동기화는 RefreshActiveAppearance 가 담당.
+    private void ApplyTransitionKind(LyricsTransitionKind kind)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, kind);
+        ActiveTransitionKind = kind;
+        var label = kind switch
+        {
+            LyricsTransitionKind.Fade => "페이드",
+            LyricsTransitionKind.SlideFromLeft => "슬라이드(왼쪽)",
+            LyricsTransitionKind.SlideFromRight => "슬라이드(오른쪽)",
+            LyricsTransitionKind.SlideFromTop => "슬라이드(위)",
+            LyricsTransitionKind.SlideFromBottom => "슬라이드(아래)",
+            _ => kind.ToString(),
+        };
+        StatusText = $"전환 효과: {label}";
+    }
+
     // 공지 화면 송출(FrmInfoScreen — 자유 텍스트 안내). InfoScreen 창에서 입력한 텍스트를
     // 즉시 회중 출력에 본문으로 송출한다. 출력 창이 열려 있을 때만 동작(닫혀 있으면 false 반환).
     // 공지는 큐 항목이 아니라 일시 라이브 항목이다. _liveItemId 를 센티넬(NoticeLiveId)로 둬
@@ -2036,6 +2070,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsNextItem = _settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem);
         ActiveFadeTransition = _settings.Get(EasiSettingKeys.LyricsMonitorUseFadeTransition);
         ActiveTransitionDurationMs = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs);
+        ActiveTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);

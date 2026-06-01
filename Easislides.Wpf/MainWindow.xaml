@@ -151,6 +151,28 @@
                               IsChecked="{Binding ActiveFadeTransition}"
                               Command="{Binding ToggleFadeTransitionCommand}" />
                     <Separator />
+                    <!-- 전환 모션(Fade/Slide 4방향) — FrmMain 전환 효과 중 구현분. -->
+                    <MenuItem Header="모션: 페이드"
+                              IsChecked="{Binding TransitionKindIsFade}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Fade}" />
+                    <MenuItem Header="모션: 슬라이드 ←(왼쪽에서)"
+                              IsChecked="{Binding TransitionKindIsSlideLeft}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromLeft}" />
+                    <MenuItem Header="모션: 슬라이드 →(오른쪽에서)"
+                              IsChecked="{Binding TransitionKindIsSlideRight}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromRight}" />
+                    <MenuItem Header="모션: 슬라이드 ↑(위에서)"
+                              IsChecked="{Binding TransitionKindIsSlideUp}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromTop}" />
+                    <MenuItem Header="모션: 슬라이드 ↓(아래에서)"
+                              IsChecked="{Binding TransitionKindIsSlideDown}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromBottom}" />
+                    <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"
                               Command="{Binding ApplyTransitionDurationCommand}">
