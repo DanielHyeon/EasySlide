@@ -155,6 +155,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsBowTie))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsHeart))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsWedge))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsSpiral))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsWindMill))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsFanUp))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -184,6 +187,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsBowTie => ActiveTransitionKind == LyricsTransitionKind.BowTie;
     public bool TransitionKindIsHeart => ActiveTransitionKind == LyricsTransitionKind.Heart;
     public bool TransitionKindIsWedge => ActiveTransitionKind == LyricsTransitionKind.Wedge;
+    public bool TransitionKindIsSpiral => ActiveTransitionKind == LyricsTransitionKind.Spiral;
+    public bool TransitionKindIsWindMill => ActiveTransitionKind == LyricsTransitionKind.WindMill;
+    public bool TransitionKindIsFanUp => ActiveTransitionKind == LyricsTransitionKind.FanUp;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -2061,6 +2067,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.BowTie => "나비넥타이(2-레이어)",
             LyricsTransitionKind.Heart => "하트(2-레이어)",
             LyricsTransitionKind.Wedge => "시계 와이프",
+            LyricsTransitionKind.Spiral => "나선",
+            LyricsTransitionKind.WindMill => "바람개비",
+            LyricsTransitionKind.FanUp => "부채 펼침",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

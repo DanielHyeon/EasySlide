@@ -273,6 +273,18 @@
                               IsChecked="{Binding TransitionKindIsWedge}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.Wedge}" />
+                    <MenuItem Header="모션: 나선"
+                              IsChecked="{Binding TransitionKindIsSpiral}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Spiral}" />
+                    <MenuItem Header="모션: 바람개비"
+                              IsChecked="{Binding TransitionKindIsWindMill}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.WindMill}" />
+                    <MenuItem Header="모션: 부채 펼침"
+                              IsChecked="{Binding TransitionKindIsFanUp}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.FanUp}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

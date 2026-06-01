@@ -1013,6 +1013,21 @@ public class MainViewModelTests
         sut.TransitionKindIsWedge.Should().BeTrue();
         sut.TransitionKindIsHeart.Should().BeFalse();
         sut.StatusText.Should().Contain("시계");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Spiral);
+        sut.TransitionKindIsSpiral.Should().BeTrue();
+        sut.TransitionKindIsWedge.Should().BeFalse();
+        sut.StatusText.Should().Contain("나선");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.WindMill);
+        sut.TransitionKindIsWindMill.Should().BeTrue();
+        sut.TransitionKindIsSpiral.Should().BeFalse();
+        sut.StatusText.Should().Contain("바람개비");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.FanUp);
+        sut.TransitionKindIsFanUp.Should().BeTrue();
+        sut.TransitionKindIsWindMill.Should().BeFalse();
+        sut.StatusText.Should().Contain("부채");
     }
 
     [Fact]

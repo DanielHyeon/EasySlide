@@ -178,4 +178,61 @@ public class OutputWindowTileClipTests
         geo.FillContains(new System.Windows.Point(1870, 1030)).Should().BeTrue("우하");
         geo.FillContains(new System.Windows.Point(700, 800)).Should().BeTrue("좌하");
     }
+
+    [Fact]
+    public void BuildWindMill_FullBlade_CoversWholeScreen()
+    {
+        // 날개당 90° 면 4×90=360° → 화면 전체를 덮는다(겹침은 Nonzero 로 메움 → 구멍 없음).
+        var geo = OutputWindow.BuildWindMill(1920, 1080, 90);
+
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심");
+        geo.FillContains(new System.Windows.Point(50, 50)).Should().BeTrue("좌상");
+        geo.FillContains(new System.Windows.Point(1870, 50)).Should().BeTrue("우상");
+        geo.FillContains(new System.Windows.Point(50, 1030)).Should().BeTrue("좌하");
+        geo.FillContains(new System.Windows.Point(1870, 1030)).Should().BeTrue("우하");
+        // 날개끼리 맞닿는 경계선(12·3·6·9시 방향)이 정확히 메워지는지(Nonzero 겹침) — 가장 까다로운 지점.
+        geo.FillContains(new System.Windows.Point(960, 0)).Should().BeTrue("12시 경계선(0·3번 날개 만남)");
+        geo.FillContains(new System.Windows.Point(1920, 540)).Should().BeTrue("3시 경계선(우측 중앙)");
+        geo.FillContains(new System.Windows.Point(960, 1080)).Should().BeTrue("6시 경계선(하단 중앙)");
+        geo.FillContains(new System.Windows.Point(0, 540)).Should().BeTrue("9시 경계선(좌측 중앙)");
+    }
+
+    [Fact]
+    public void BuildWindMill_HalfBlade_LeavesGapsBetweenBlades()
+    {
+        // 날개당 45° 면 4×45=180° 만 덮어 날개 사이 빈 섹터가 남는다(진행 중 모습).
+        var geo = OutputWindow.BuildWindMill(1920, 1080, 45);
+
+        // 12시→1.5시(우상) 날개 안 — 중심에서 약 -67°(위쪽 가까이).
+        geo.FillContains(new System.Windows.Point(1100, 300)).Should().BeTrue("첫 날개 섹터 안");
+        // 1.5시→3시 사이 빈 섹터 — 중심에서 약 -22°(우상, dy<0). 아직 안 덮음.
+        geo.FillContains(new System.Windows.Point(1500, 320)).Should().BeFalse("날개 사이 빈 섹터");
+    }
+
+    [Fact]
+    public void BuildFan_FullAngle_CoversWholeScreen()
+    {
+        // 반각 90° → 좌우 수평까지 180° 펼침 → 하단 중앙 꼭짓점 위 반평면(=화면 전체) 덮음.
+        var geo = OutputWindow.BuildFan(1920, 1080, 90);
+
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심");
+        geo.FillContains(new System.Windows.Point(50, 50)).Should().BeTrue("좌상");
+        geo.FillContains(new System.Windows.Point(1870, 50)).Should().BeTrue("우상");
+        geo.FillContains(new System.Windows.Point(50, 1030)).Should().BeTrue("좌하");
+        geo.FillContains(new System.Windows.Point(1870, 1030)).Should().BeTrue("우하");
+        // 꼭짓점(하단 중앙)과 같은 높이의 좌우 가장자리 — 부채가 수평까지 펼쳐졌는지 확인하는 까다로운 지점.
+        geo.FillContains(new System.Windows.Point(0, 1079)).Should().BeTrue("좌측 하단 모서리");
+        geo.FillContains(new System.Windows.Point(1919, 1079)).Should().BeTrue("우측 하단 모서리");
+    }
+
+    [Fact]
+    public void BuildFan_NarrowAngle_CoversBottomCenterColumnOnly()
+    {
+        // 반각 10° 면 하단 중앙에서 위로 좁은 부채만 덮는다 → 중앙 상단은 안, 좌우 가장자리는 밖.
+        var geo = OutputWindow.BuildFan(1920, 1080, 10);
+
+        geo.FillContains(new System.Windows.Point(960, 300)).Should().BeTrue("하단 중앙 위쪽 좁은 부채 안");
+        geo.FillContains(new System.Windows.Point(100, 300)).Should().BeFalse("좌측 가장자리는 밖");
+        geo.FillContains(new System.Windows.Point(1820, 300)).Should().BeFalse("우측 가장자리는 밖");
+    }
 }

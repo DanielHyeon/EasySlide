@@ -13,10 +13,11 @@ public partial class OutputWindow : Window, IOutputSurface
     private OutputWindowViewModel? _viewModel;
     private AttachableMediaPlaybackBackend? _mediaBridge;
 
-    // 시계 와이프(Wedge) 현재 세션 상태 — 각도 애니메이션이 진행 중인 동안 프레임마다 부채꼴을 다시 만든다.
+    // 시계 와이프(Wedge·Spiral·WindMill·FanUp) 현재 세션 상태 — 각도 애니메이션 동안 프레임마다 도형을 다시 만든다.
     private bool _wedgeActive;
     private double _wedgeW;
     private double _wedgeH;
+    private Settings.LyricsTransitionKind _wedgeKind = Settings.LyricsTransitionKind.Wedge;
 
     // 시계 와이프 진행도(0→1). 애니메이션이 이 DP 를 구동하면 콜백이 매 프레임 부채꼴 클립을 다시 만든다.
     private static readonly DependencyProperty WedgeProgressProperty = DependencyProperty.Register(
@@ -262,8 +263,11 @@ public partial class OutputWindow : Window, IOutputSurface
                 AnimateScaledShapeClip(BuildHeart(w, h), w / 2, h / 2, duration);
                 break;
             case Settings.LyricsTransitionKind.Wedge:
-                // 시계 와이프 — 부채꼴이 0→360° 펼쳐지며 드러난다(360°에서 전체 덮음). 프레임마다 부채꼴 재생성.
-                AnimateWedgeClip(w, h, duration);
+            case Settings.LyricsTransitionKind.Spiral:
+            case Settings.LyricsTransitionKind.WindMill:
+            case Settings.LyricsTransitionKind.FanUp:
+                // 각도 스윕 계열(시계와이프·나선·바람개비·부채) — 프레임마다 도형 재생성. Spiral 은 회전 트랜스폼과 함께.
+                AnimateWedgeClip(kind, w, h, duration);
                 break;
             case Settings.LyricsTransitionKind.DoorsOpen:
                 AnimateTileClip(BuildDoors(w, h, open: true, duration), duration);
@@ -570,41 +574,66 @@ public partial class OutputWindow : Window, IOutputSurface
         });
     }
 
-    // 시계 와이프 부채꼴 지오메트리 — 중심에서 12시 방향으로 시작해 시계방향으로 sweepDeg 만큼 펼친 파이 조각.
-    // 반지름은 모서리 거리+1 이라 sweep≈360 일 때 화면 전체를 덮는다(잔여 마스크 없음, 단일 레이어).
+    // 한 부채꼴 조각(중심 cx,cy·반지름 r·시작각 startRad·펼침 sweepDeg) PathFigure. ArcSegment 가 360°를 못 그리므로 클램프.
+    private static System.Windows.Media.PathFigure BuildWedgeFigure(double cx, double cy, double r, double startRad, double sweepDeg)
+    {
+        var sweep = System.Math.Max(0.01, System.Math.Min(sweepDeg, 359.99));
+        var endRad = startRad + (sweep * System.Math.PI / 180); // 시계방향.
+        var p0 = new System.Windows.Point(cx + (r * System.Math.Cos(startRad)), cy + (r * System.Math.Sin(startRad)));
+        var p1 = new System.Windows.Point(cx + (r * System.Math.Cos(endRad)), cy + (r * System.Math.Sin(endRad)));
+        var fig = new System.Windows.Media.PathFigure { StartPoint = new System.Windows.Point(cx, cy), IsClosed = true };
+        fig.Segments.Add(new System.Windows.Media.LineSegment(p0, true));
+        fig.Segments.Add(new System.Windows.Media.ArcSegment(
+            p1, new System.Windows.Size(r, r), 0, isLargeArc: sweep > 180, System.Windows.Media.SweepDirection.Clockwise, true));
+        return fig;
+    }
+
+    // 시계 와이프 — 중심에서 12시 방향으로 시계방향 sweepDeg 부채꼴. 반지름 모서리거리+1 → sweep≈360 에서 전체 덮음.
     internal static System.Windows.Media.PathGeometry BuildWedge(double w, double h, double sweepDeg)
+    {
+        var r = System.Math.Sqrt((w / 2 * (w / 2)) + (h / 2 * (h / 2))) + 1;
+        var geo = new System.Windows.Media.PathGeometry();
+        geo.Figures.Add(BuildWedgeFigure(w / 2, h / 2, r, -System.Math.PI / 2, sweepDeg));
+        return geo;
+    }
+
+    // 바람개비 — 중심에서 4개 날개(부채꼴)가 90° 간격으로 동시에 sweepPerBladeDeg(0→90) 펼쳐진다. 90°에서 4×90=전체.
+    internal static System.Windows.Media.PathGeometry BuildWindMill(double w, double h, double sweepPerBladeDeg)
     {
         var cx = w / 2;
         var cy = h / 2;
         var r = System.Math.Sqrt((w / 2 * (w / 2)) + (h / 2 * (h / 2))) + 1;
-        // ArcSegment 는 정확히 360°(시작=끝)를 못 그리므로 살짝 못 미치게 클램프.
-        var sweep = System.Math.Max(0.01, System.Math.Min(sweepDeg, 359.99));
-        var startRad = -System.Math.PI / 2;                      // 12시.
-        var endRad = startRad + (sweep * System.Math.PI / 180);  // 시계방향.
-        var p0 = new System.Windows.Point(cx + (r * System.Math.Cos(startRad)), cy + (r * System.Math.Sin(startRad)));
-        var p1 = new System.Windows.Point(cx + (r * System.Math.Cos(endRad)), cy + (r * System.Math.Sin(endRad)));
+        var geo = new System.Windows.Media.PathGeometry { FillRule = System.Windows.Media.FillRule.Nonzero };
+        for (var i = 0; i < 4; i++)
+        {
+            var startRad = (-System.Math.PI / 2) + (i * System.Math.PI / 2); // 12·3·6·9시.
+            geo.Figures.Add(BuildWedgeFigure(cx, cy, r, startRad, sweepPerBladeDeg));
+        }
 
-        var fig = new System.Windows.Media.PathFigure { StartPoint = new System.Windows.Point(cx, cy), IsClosed = true };
-        fig.Segments.Add(new System.Windows.Media.LineSegment(p0, true));
-        fig.Segments.Add(new System.Windows.Media.ArcSegment(
-            p1,
-            new System.Windows.Size(r, r),
-            0,
-            isLargeArc: sweep > 180,
-            System.Windows.Media.SweepDirection.Clockwise,
-            true));
-        var geo = new System.Windows.Media.PathGeometry();
-        geo.Figures.Add(fig);
         return geo;
     }
 
-    // 시계 와이프 시작 — 진행도 DP 를 0→1 로 애니메이션하면 콜백이 매 프레임 부채꼴 클립을 갱신한다.
-    private void AnimateWedgeClip(double w, double h, TimeSpan duration)
+    // 부채(아래 중앙에서 위로 펼침) — 꼭짓점이 화면 하단 중앙, 위쪽(−90°)을 중심으로 ±halfAngle 펼친다.
+    // halfAngle=90° 면 좌우 수평까지 180° → 꼭짓점 위 반평면(=화면 전체)을 덮는다.
+    internal static System.Windows.Media.PathGeometry BuildFan(double w, double h, double halfAngleDeg)
     {
+        var cx = w / 2;
+        var apexY = h;                                                  // 하단 중앙.
+        var r = System.Math.Sqrt((cx * cx) + (h * h)) + 1;             // 꼭짓점→상단 모서리 거리.
+        var startRad = ((-90 - halfAngleDeg) * System.Math.PI) / 180;  // 위(−90°) 기준 좌측.
+        var geo = new System.Windows.Media.PathGeometry();
+        geo.Figures.Add(BuildWedgeFigure(cx, apexY, r, startRad, 2 * halfAngleDeg));
+        return geo;
+    }
+
+    // 시계 와이프(및 변형) 시작 — 진행도 DP 를 0→1 로 애니메이션하면 콜백이 매 프레임 도형 클립을 갱신한다.
+    private void AnimateWedgeClip(Settings.LyricsTransitionKind kind, double w, double h, TimeSpan duration)
+    {
+        _wedgeKind = kind;
         _wedgeW = w;
         _wedgeH = h;
         _wedgeActive = true;
-        ContentArea.Clip = BuildWedge(w, h, 0.01);
+        ContentArea.Clip = BuildWedgeShape(kind, w, h, 0.0);
         var anim = new DoubleAnimation
         {
             From = 0,
@@ -626,6 +655,8 @@ public partial class OutputWindow : Window, IOutputSurface
     }
 
     // 진행 중인 시계 와이프 중단(다른 전환/즉시 컷이 들어올 때) — 애니메이션 멈추고 세션 종료.
+    // 주의: 여기서는 "클립" 클록만 멈춘다. Spiral 의 콘텐츠 회전은 별도 트랜스폼 경로에 있어
+    // 다음 장면의 OnSceneChanged→AnimateAxis(rotate, …, 0) 또는 즉시 컷의 ResetToIdentity 가 0° 로 되돌린다.
     private void StopWedge()
     {
         if (!_wedgeActive)
@@ -646,8 +677,17 @@ public partial class OutputWindow : Window, IOutputSurface
         }
 
         var progress = (double)e.NewValue;
-        window.ContentArea.Clip = BuildWedge(window._wedgeW, window._wedgeH, progress * 360.0);
+        window.ContentArea.Clip = BuildWedgeShape(window._wedgeKind, window._wedgeW, window._wedgeH, progress);
     }
+
+    // 진행도(0→1)에 따라 종류별 부채꼴 도형을 만든다. Wedge/Spiral=0→360° 스윕, WindMill=날개당 0→90°, FanUp=±0→90°.
+    private static System.Windows.Media.Geometry BuildWedgeShape(Settings.LyricsTransitionKind kind, double w, double h, double progress)
+        => kind switch
+        {
+            Settings.LyricsTransitionKind.WindMill => BuildWindMill(w, h, progress * 90.0),
+            Settings.LyricsTransitionKind.FanUp => BuildFan(w, h, progress * 90.0),
+            _ => BuildWedge(w, h, progress * 360.0), // Wedge, Spiral
+        };
 
     // 전환 완료 시 클립을 제거해도 되는지 — 현재 활성 클립이 "내가 건 그 도형"일 때만 true.
     // 그 사이 다음 장면이 새 클립을 걸었으면(다른 참조) 건드리지 않는다(빠른 장면 전환 경쟁 가드).
@@ -670,6 +710,8 @@ public partial class OutputWindow : Window, IOutputSurface
             Settings.LyricsTransitionKind.Spin => (0, 0, 0.7, 0.7, -180),      // 반바퀴 회전+살짝 확대
             Settings.LyricsTransitionKind.FlipHorizontal => (0, 0, 0, 1, 0),   // 가로 0→1(좌우 펼침)
             Settings.LyricsTransitionKind.FlipVertical => (0, 0, 1, 0, 0),     // 세로 0→1(상하 펼침)
+            // Spiral=부채꼴 스윕(클립)에 콘텐츠 한 바퀴 회전을 더해 나선처럼 보이게 한다(클립은 ApplyClipReveal 가 담당).
+            Settings.LyricsTransitionKind.Spiral => (0, 0, 1, 1, -360),
             _ => (0, 0, 1, 1, 0), // Fade — 모든 축 항등(불투명도만)
         };
     }

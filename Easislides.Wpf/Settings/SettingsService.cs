@@ -128,6 +128,10 @@ public enum LyricsTransitionKind
     // 시계 와이프(부채꼴 스윕) — 12시에서 시계방향으로 0→360° 부채꼴이 커지며 새 콘텐츠를 드러낸다.
     // 360°에서 전체를 덮어 단일 레이어로 충분. 각도 애니메이션이라 프레임마다 지오메트리를 다시 만든다.
     Wedge = 26,
+    // 시계 와이프 변형 — Spiral=콘텐츠 회전+부채꼴 스윕, WindMill=4날개 바람개비, FanUp=하단 중앙에서 부채 펼침.
+    Spiral = 27,
+    WindMill = 28,
+    FanUp = 29,
 }
 
 public static class EasiSettingKeys
