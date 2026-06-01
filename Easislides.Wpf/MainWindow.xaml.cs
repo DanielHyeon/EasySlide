@@ -352,7 +352,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        var noticeViewModel = new Easislides.Wpf.Shell.NoticeScreenViewModel(viewModel.PublishNotice, viewModel.ClearNotice);
+        var noticeViewModel = new Easislides.Wpf.Shell.NoticeScreenViewModel(
+            (text, fontSizePt) => viewModel.PublishNotice(text, fontSizePt),
+            viewModel.ClearNotice);
         var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
     }

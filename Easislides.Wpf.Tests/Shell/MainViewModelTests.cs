@@ -949,6 +949,31 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PublishNotice_WithFontSize_CarriesFontOverrideToSnapshot()
+    {
+        // 공지 글자 크기 지정(pt)이 FormatData(47=pt)로 실려 기존 폰트 오버라이드 파이프라인을 타고
+        // 출력 스냅샷의 OverrideFontSizePx 로 반영된다(InfoScreen 큰 글씨).
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+
+        var ok = sut.PublishNotice("크게 보여줄 공지", fontSizePt: 80);
+
+        ok.Should().BeTrue();
+        sut.Session.Current.OverrideFontSizePx.Should().NotBeNull("47=80 FormatData 가 폰트 크기 오버라이드로 디코드됨");
+    }
+
+    [Fact]
+    public void PublishNotice_WithoutFontSize_NoFontOverride()
+    {
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.PublishNotice("기본 크기 공지").Should().BeTrue();
+
+        sut.Session.Current.OverrideFontSizePx.Should().BeNull("크기 미지정이면 출력 기본 글자 크기 사용");
+    }
+
+    [Fact]
     public void PublishNotice_BlankText_ReturnsFalse()
     {
         var sut = CreateSut();

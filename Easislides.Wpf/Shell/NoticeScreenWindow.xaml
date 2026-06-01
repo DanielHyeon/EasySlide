@@ -34,12 +34,22 @@
                  BorderThickness="1"
                  AutomationProperties.Name="공지 문구 입력" />
 
-        <TextBlock Grid.Row="2"
-                   Text="{Binding StatusText}"
-                   Style="{StaticResource Type.Caption.Style}"
-                   Foreground="{DynamicResource Brush.Text.Secondary}"
-                   TextWrapping="Wrap"
-                   Margin="0,8,0,0" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+            <TextBlock Text="글자 크기"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       Margin="0,0,8,0" />
+            <ComboBox ItemsSource="{Binding FontSizePresets}"
+                      SelectedItem="{Binding FontSizePt, Mode=TwoWay}"
+                      Width="90"
+                      AutomationProperties.Name="공지 글자 크기(pt)" />
+            <TextBlock Text="{Binding StatusText}"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="16,0,0,0" />
+        </StackPanel>
 
         <StackPanel Grid.Row="3"
                     Orientation="Horizontal"

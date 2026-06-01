@@ -2001,7 +2001,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 공지는 큐 항목이 아니라 일시 라이브 항목이다. _liveItemId 를 센티넬(NoticeLiveId)로 둬
     // 슬라이드/절 이동 가드(== 선택 항목 ID)가 자연히 false 가 되도록 한다 — null 로 두면 슬라이드 이동
     // 가드의 "라이브 미시작" 와일드카드(_liveItemId is null)에 걸려 의미 없는 이동 버튼이 켜진다.
-    public bool PublishNotice(string text)
+    public bool PublishNotice(string text, int fontSizePt = 0)
     {
         if (string.IsNullOrWhiteSpace(text) || !_output.Current.IsOpen)
         {
@@ -2009,7 +2009,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        var notice = new LiveQueueItem(LiveItemKinds.NoticeLiveId, "공지", LiveItemKinds.Notice) { Lyrics = text };
+        // 글자 크기 지정 시 레거시 FormatData(코드 47=pt)로 실어 기존 곡별 폰트 오버라이드 파이프라인을 그대로 재사용.
+        // 0(미지정)이면 FormatData 없음 → 출력 기본 글자 크기 사용. 디코더가 6~100pt 로 검증한다.
+        var formatData = fontSizePt > 0 ? $"47={fontSizePt}>" : null;
+        var notice = new LiveQueueItem(LiveItemKinds.NoticeLiveId, "공지", LiveItemKinds.Notice)
+        {
+            Lyrics = text,
+            FormatData = formatData,
+        };
         _liveItemId = LiveItemKinds.NoticeLiveId;
         _session.GoLive(notice, monitorName);
         StatusText = "공지 화면 송출";
