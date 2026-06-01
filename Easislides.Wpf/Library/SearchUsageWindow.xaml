@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
-        Title="Search and Usage"
+        Title="검색 및 사용 현황"
         Width="1120"
         Height="720"
         MinWidth="960"
@@ -24,7 +24,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="Search and Usage"
+                <TextBlock Text="검색 및 사용 현황"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <TextBlock Text="{Binding DatabasePath}"
@@ -37,17 +37,17 @@
                     Command="{Binding LoadCommand}"
                     Style="{StaticResource EsButton.Secondary}"
                     VerticalAlignment="Top"
-                    ToolTip="Refresh search data"
-                    AutomationProperties.Name="Refresh search data">
+                    ToolTip="검색 데이터 새로고침"
+                    AutomationProperties.Name="검색 데이터 새로고침">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                    <TextBlock Text="Refresh" />
+                    <TextBlock Text="새로고침" />
                 </StackPanel>
             </Button>
         </Grid>
 
         <TabControl Grid.Row="1">
-            <TabItem Header="Songs">
+            <TabItem Header="곡">
                 <Grid Margin="0,16,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="300" />
@@ -67,18 +67,18 @@
                               HeadersVisibility="Column"
                               GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="2*" />
-                            <DataGridTextColumn Header="Folder" Binding="{Binding FolderName}" Width="*" />
-                            <DataGridTextColumn Header="No." Binding="{Binding SongNumber}" Width="70" />
-                            <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="70" />
-                            <DataGridTextColumn Header="Match" Binding="{Binding MatchingFields[0]}" Width="110" />
-                            <DataGridTextColumn Header="Snippet" Binding="{Binding Snippet}" Width="2*" />
+                            <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="2*" />
+                            <DataGridTextColumn Header="폴더" Binding="{Binding FolderName}" Width="*" />
+                            <DataGridTextColumn Header="번호" Binding="{Binding SongNumber}" Width="70" />
+                            <DataGridTextColumn Header="키" Binding="{Binding Key}" Width="70" />
+                            <DataGridTextColumn Header="일치 항목" Binding="{Binding MatchingFields[0]}" Width="110" />
+                            <DataGridTextColumn Header="발췌" Binding="{Binding Snippet}" Width="2*" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Titles">
+            <TabItem Header="제목">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -93,7 +93,7 @@
                                 Style="{StaticResource EsButton.Primary}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                                <TextBlock Text="Lookup" />
+                                <TextBlock Text="조회" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -104,17 +104,17 @@
                               IsReadOnly="True"
                               CanUserAddRows="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="2*" />
-                            <DataGridTextColumn Header="Alt" Binding="{Binding AlternateTitle}" Width="2*" />
-                            <DataGridTextColumn Header="Folder" Binding="{Binding FolderName}" Width="*" />
-                            <DataGridTextColumn Header="Book" Binding="{Binding BookReference}" Width="*" />
-                            <DataGridTextColumn Header="User" Binding="{Binding UserReference}" Width="*" />
+                            <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="2*" />
+                            <DataGridTextColumn Header="다른 제목" Binding="{Binding AlternateTitle}" Width="2*" />
+                            <DataGridTextColumn Header="폴더" Binding="{Binding FolderName}" Width="*" />
+                            <DataGridTextColumn Header="교단 참조" Binding="{Binding BookReference}" Width="*" />
+                            <DataGridTextColumn Header="사용자 참조" Binding="{Binding UserReference}" Width="*" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Usage">
+            <TabItem Header="사용 현황">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -133,7 +133,7 @@
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                                <TextBlock Text="Load" />
+                                <TextBlock Text="불러오기" />
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding DeleteSelectedUsageCommand}"
@@ -141,7 +141,7 @@
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Delete24" Margin="0,0,6,0" />
-                                <TextBlock Text="Delete" />
+                                <TextBlock Text="삭제" />
                             </StackPanel>
                         </Button>
                         <Button Click="BrowseUsageReport_Click"
@@ -153,10 +153,12 @@
                         </Button>
                         <Button Command="{Binding ExportUsageReportCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
+                                ToolTip="사용 보고서를 RTF로 내보내기"
+                                AutomationProperties.Name="RTF 내보내기"
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Document24" Margin="0,0,6,0" />
-                                <TextBlock Text="RTF" />
+                                <TextBlock Text="RTF 내보내기" />
                             </StackPanel>
                         </Button>
                     </WrapPanel>
@@ -173,10 +175,10 @@
                                   CanUserAddRows="False">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="46" />
-                                <DataGridTextColumn Header="Date" Binding="{Binding WorshipDate, StringFormat=yyyy-MM-dd}" Width="110" IsReadOnly="True" />
-                                <DataGridTextColumn Header="List" Binding="{Binding WorshipList}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="Title" Binding="{Binding SongTitle}" Width="2*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="No." Binding="{Binding SongNumber}" Width="70" IsReadOnly="True" />
+                                <DataGridTextColumn Header="날짜" Binding="{Binding WorshipDate, StringFormat=yyyy-MM-dd}" Width="110" IsReadOnly="True" />
+                                <DataGridTextColumn Header="예배 순서" Binding="{Binding WorshipList}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="제목" Binding="{Binding SongTitle}" Width="2*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="번호" Binding="{Binding SongNumber}" Width="70" IsReadOnly="True" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <DataGrid Grid.Column="2"
@@ -186,9 +188,9 @@
                                   IsReadOnly="True"
                                   CanUserAddRows="False">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Count" Binding="{Binding Occurrences}" Width="80" />
-                                <DataGridTextColumn Header="Title" Binding="{Binding SongTitle}" Width="*" />
-                                <DataGridTextColumn Header="No." Binding="{Binding SongNumber}" Width="70" />
+                                <DataGridTextColumn Header="횟수" Binding="{Binding Occurrences}" Width="80" />
+                                <DataGridTextColumn Header="제목" Binding="{Binding SongTitle}" Width="*" />
+                                <DataGridTextColumn Header="번호" Binding="{Binding SongNumber}" Width="70" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
@@ -209,7 +211,7 @@
                            Margin="0,0,14,0" />
                 <Button Click="Close_Click"
                         Style="{StaticResource EsButton.Secondary}">
-                    <TextBlock Text="Close" />
+                    <TextBlock Text="닫기" />
                 </Button>
             </StackPanel>
         </DockPanel>
