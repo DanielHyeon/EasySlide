@@ -45,6 +45,8 @@
 - (2026-06-01) ✅ 증분 8(이미지) 슬라이스 2 — **이미지 썸네일 갤러리 브라우저**(FrmMain Images 탭). ImageLibraryService(폴더 열거)·ImageLibraryViewModel(Load·적용·하위폴더 토글)·ImageLibraryWindow(WrapPanel 썸네일·폴더 선택·더블클릭 적용). 메뉴 "배경 이미지 ▸ 갤러리에서 선택...". 1053 green, code-reviewer Approve(0 critical, includeSubfolders 체크박스 연결로 해소), 커밋 `76796d6`. **백로그(P2)**: 대용량 폴더 썸네일 비동기/지연 디코딩(현재 동기).
 - (2026-06-01) ✅ 증분 9(PraiseBook) 슬라이스 1 — **찬양집 색인 브라우저**(FrmMain PraiseBook/Listing 초성 그룹핑). PraiseBookIndexService(한글 초성·영문·숫자·기타 그룹화, 가나다 순)·VM·읽기전용 중첩 ItemsControl 창 + 메뉴 "도구 ▸ 찬양집 색인...". 1066 green, code-reviewer Approve(0 critical), 커밋 `96af0d4`.
 - (2026-06-01) ✅ 증분 9(PraiseBook) 슬라이스 2 — **명명 찬양집 저장/관리 영속화**(FrmMain PraiseBookDir). StoreFileNaming(경로 안전 공통 헬퍼 추출, WorshipListStore 도 위임)·PraiseBookStore(JSON 저장/불러오기/목록/삭제/이름변경)·VM SaveAs/Open/Delete + 창 콤보·이름 다이얼로그. 다른 찬양집 이름 충돌 시 실수 덮어쓰기 방지. 1082 green, code-reviewer Approve(0 critical), 커밋 `9fb2376`.
+- (2026-06-01) ✅ 증분 9(PraiseBook) 슬라이스 3 — **찬양집 색인 HTML 내보내기**(FrmMain GenerateIndexReport). PraiseBookIndexExporter(머리글자 그룹·제목·번호 표 HTML, 특수문자 이스케이프=주입 방지)·VM BuildIndexHtml·창 SaveFileDialog 저장(try/catch 안내). 1088 green, code-reviewer Approve(0 critical), 커밋 `21a5c57`.
+- ✅ **절 라벨 직접 점프** — `JumpToLyricsSectionCommand` + SectionJumpBar 로 이미 구현됨(FrmMain PreviewBtnVerse 1~9·c·b 대응). 갭 해소 확인.
 - ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 다음 항목 + 전환 효과(페이드/속도) + 배경 이미지 + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
 - **차기(후속 슬라이스): PraiseBook 명명 저장·관리 영속화 · 이미지 썸네일 비동기 디코딩(대용량) · 50여 종 셰이프/타일 전환 · InfoScreen 편집기 · 절 라벨 점프(P2 백로그).** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
