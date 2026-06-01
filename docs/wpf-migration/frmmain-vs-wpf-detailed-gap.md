@@ -80,7 +80,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_ToZero` | **To Capo 0**(조옮김 정규화) | 🔴 없음 |
 | `Def_Notations`/`Menu_PreviewNotations` | **코드/악상 표시**(+미리보기) | 🔴 없음 |
 | `Ind_CapoUp`/`Ind_CapoDown` | **반음 조옮김 ↑↓** | 🔴 없음 |
-| `Def_BackColour`/`Ind_BackColour` | 배경색+패턴(그라데이션) | 🟡 프리셋4+hex(패턴 없음) |
+| `Def_BackColour`/`Ind_BackColour` | 배경색+패턴(그라데이션) | 🟡 프리셋4+hex+2색 그라데이션(방향 4종: 세로/가로/대각↘/대각↗). 텍스처 패턴만 후속 |
 | `Def_ImageMode`/`Ind_ImageMode` (Tile/Centre/BestFit), `Def_NoImage` | **배경 이미지 표시 모드** | 🟢 LyricsBackgroundMode 4종(Fill=UniformToFill·Fit=BestFit·Center=Centre·Tile) 인스펙터 라디오(ApplyBackgroundModeCommand)→출력 렌더 반영 |
 | `Def_TransItem`/`Def_TransSlides`, `Ind_Trans*` | **항목/슬라이드 전환 효과** | 🟡 출력 메뉴 "전환 효과"(페이드 on/off + 모션 Fade/Slide 4방향 + 속도)로 노출. 항목/슬라이드 개별 전환 분리·전체 효과군은 후속 |
 | `Def_AssignMedia`/`Ind_AssignMedia` (None/AsTitle/Specific/LiveFeed) | 항목 미디어 배정 | 🔴 없음 |
@@ -140,7 +140,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 코드/악상 표시(`ShowNotations`, 미리보기 토글) | 코드 표시(LyricsDisplayFormatter.ExpandNotations) | 🟢 (증분 27) "코드 표시" on 이면 가사 위에 코드 줄 송출 + (증분 30) 라이브 조옮김 ±반음 |
 | 조옮김(Capo ↑/↓, To Capo 0) | `LiveTranspose*Command`(출력 메뉴 "코드 조옮김 ▲/▼/원조") + ExpandNotations transpose | 🟡 (2026-06-01 증분 30) — **라이브 코드 조옮김 ±반음**(코드 표시 on 일 때 송출 코드 이동, 가사 불변). 새 곡 송출 시 원조 초기화. ChordTransposer 재사용 |
 | 항목/슬라이드 전환 효과 선택 | 출력 메뉴 "전환 효과"(페이드 on/off·모션 Fade/Slide 4방향·속도) | 🟡 전환 UI 노출됨(TransitionEffectService 배선). 항목 vs 슬라이드 분리·전체 효과군은 후속 |
-| 배경 색+패턴(그라데이션 2색) | 🟡 프리셋/hex/세로그라데이션 | 🟡(패턴 없음) |
+| 배경 색+패턴(그라데이션 2색) | 🟡 프리셋/hex/2색 그라데이션(방향 4종) | 🟡(텍스처 패턴만 후속) |
 | 배경 이미지 + 표시 모드(Tile/Centre/BestFit/No) | 곡별 FormatData 이미지 + 전역 배경(ImageLibrary 적용) + 표시 모드 4종 | 🟢 모드 선택(Fill/Fit/Center/Tile)·이미지 갤러리 적용·해제 가능 |
 | 정렬 가로 L/C/R · 세로 T/C/B | 🟢 | 🟢 |
 | 폰트 크기/줄간격/Bold/Italic/Shadow/Outline | 🟢(단일 영역) | 🟢 |

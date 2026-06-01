@@ -370,6 +370,29 @@
                               Command="{Binding ApplyBackgroundModeCommand}"
                               CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}" />
                 </MenuItem>
+                <!-- 배경 2색 그라데이션 방향(레거시 Def_BackColour 패턴) — 2색 배경일 때 방향 선택. 기본 세로(위→아래). -->
+                <MenuItem Header="그라데이션 방향">
+                    <MenuItem Header="세로 (위→아래)"
+                              IsCheckable="True"
+                              IsChecked="{Binding GradientDirectionIsVertical}"
+                              Command="{Binding ApplyGradientDirectionCommand}"
+                              CommandParameter="{x:Static settings:LyricsGradientDirection.Vertical}" />
+                    <MenuItem Header="가로 (좌→우)"
+                              IsCheckable="True"
+                              IsChecked="{Binding GradientDirectionIsHorizontal}"
+                              Command="{Binding ApplyGradientDirectionCommand}"
+                              CommandParameter="{x:Static settings:LyricsGradientDirection.Horizontal}" />
+                    <MenuItem Header="대각선 ↘ (좌상→우하)"
+                              IsCheckable="True"
+                              IsChecked="{Binding GradientDirectionIsDiagonalDown}"
+                              Command="{Binding ApplyGradientDirectionCommand}"
+                              CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalDown}" />
+                    <MenuItem Header="대각선 ↗ (좌하→우상)"
+                              IsCheckable="True"
+                              IsChecked="{Binding GradientDirectionIsDiagonalUp}"
+                              Command="{Binding ApplyGradientDirectionCommand}"
+                              CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalUp}" />
+                </MenuItem>
                 <!-- 이중 언어 영역 표시(레거시 Def_ShowRegion1/2/Both) — 둘 다/Region1만/Region2만. 단일 언어 곡엔 영향 없음. -->
                 <MenuItem Header="이중 언어 영역 표시">
                     <MenuItem Header="둘 다"

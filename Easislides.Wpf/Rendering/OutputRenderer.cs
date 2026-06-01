@@ -79,6 +79,8 @@ public sealed record LiveOutputRenderSettings(
     string LyricsMonitorBackgroundImagePath = "",
     // 출력 배경 이미지 표시 모드(FrmMain Def_ImageMode: Tile/Centre/BestFit). 기본 Fill=UniformToFill(무회귀).
     LyricsBackgroundMode LyricsMonitorBackgroundMode = LyricsBackgroundMode.Fill,
+    // 출력 배경 2색 그라데이션 방향(FrmMain Def_BackColour 패턴). 기본 Vertical=위→아래(무회귀).
+    LyricsGradientDirection LyricsMonitorBackgroundGradientDirection = LyricsGradientDirection.Vertical,
     // 이중 언어 영역 표시 모드(FrmMain Def_ShowRegion1/2/Both). 기본 Both=둘 다(무회귀).
     LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both,
     // 강조(굵게·기울임·밑줄)를 후렴 절에만 적용(FrmMain Ind_*Italics 후렴만). 기본 false=전체 절(무회귀).
@@ -129,6 +131,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode),
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection),
             settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay),
             settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorInterlace));
@@ -215,6 +218,8 @@ public sealed record OutputSceneSnapshot(
     string BackgroundImagePath = "",
     // 출력 배경 이미지 표시 모드(채움/맞춤/가운데/타일). VM 이 이 값으로 ImageBrush 의 Stretch·TileMode 를 정한다.
     LyricsBackgroundMode BackgroundMode = LyricsBackgroundMode.Fill,
+    // 출력 배경 2색 그라데이션 방향. VM 이 이 값으로 LinearGradientBrush 의 Start/End 점을 정한다.
+    LyricsGradientDirection BackgroundGradientDirection = LyricsGradientDirection.Vertical,
     // 이중 언어([region 2]) 곡의 Region2(보조 언어) 본문. 단일 영역 곡은 빈 문자열 → Region2 미표시(무회귀).
     string BodyText2 = "",
     // Region2 본문 글자색(ARGB). 곡별 FormatData region2 색(30)이 없으면 Region1 색을 추종.
@@ -443,6 +448,8 @@ public sealed class OutputRenderer : IOutputRenderer
             backgroundImagePath,
             // 배경 이미지 표시 모드(설정값) — 이미지가 있을 때 VM 이 이 값으로 ImageBrush 를 만든다.
             liveOutput.LyricsMonitorBackgroundMode,
+            // 배경 그라데이션 방향(설정값) — VM 이 이 값으로 LinearGradientBrush 의 Start/End 를 정한다.
+            liveOutput.LyricsMonitorBackgroundGradientDirection,
             // Region2(이중 언어) 본문·색·정렬·글꼴 — Live + 이중 언어 곡일 때만 채워진다.
             bodyText2,
             textColor2Argb,

@@ -1500,6 +1500,30 @@ public class OutputWindowViewModelTests
         brush.GradientStops[1].Color.Should().Be(Color.FromArgb(0xFF, 0x44, 0x55, 0x66), "끝색=배경색2");
     }
 
+    [Theory]
+    [InlineData(LyricsGradientDirection.Horizontal, 0.0, 0.5, 1.0, 0.5)]
+    [InlineData(LyricsGradientDirection.DiagonalDown, 0.0, 0.0, 1.0, 1.0)]
+    [InlineData(LyricsGradientDirection.DiagonalUp, 0.0, 1.0, 1.0, 0.0)]
+    public void SceneBackgroundBrush_Gradient_UsesConfiguredDirection(
+        LyricsGradientDirection direction, double sx, double sy, double ex, double ey)
+    {
+        // FrmMain Def_BackColour 패턴 — 그라데이션 방향 설정대로 Start/End 점이 정해진다(세로 기본 외 가로·대각선).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFF112233));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, unchecked((int)0xFF445566));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundIsGradient, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection, direction);
+
+        var renderer = new OutputRenderer(new ImageAssetService(), new TransitionEffectService());
+        var sut = new OutputWindowViewModel(renderer, settings);
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+
+        var brush = sut.SceneBackgroundBrush.Should().BeOfType<LinearGradientBrush>().Subject;
+        brush.StartPoint.Should().Be(new Point(sx, sy));
+        brush.EndPoint.Should().Be(new Point(ex, ey));
+    }
+
     [Fact]
     public void SettingsChanged_LiveGradientApply_UpdatesBackgroundImmediately()
     {

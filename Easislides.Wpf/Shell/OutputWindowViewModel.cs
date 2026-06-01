@@ -163,7 +163,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         _sceneBackgroundBrush = CreateBackgroundBrush(
             LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColorArgb,
             LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColor2Argb,
-            LiveOutputRenderSettings.Default.LyricsMonitorBackgroundIsGradient);
+            LiveOutputRenderSettings.Default.LyricsMonitorBackgroundIsGradient,
+            LiveOutputRenderSettings.Default.LyricsMonitorBackgroundGradientDirection);
         if (_settings is not null)
         {
             _settings.SettingsChanged += OnSettingsChanged;
@@ -753,7 +754,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         SceneBackgroundBrush = CreateBackgroundBrush(
             scene.LyricsMonitorBackgroundColorArgb,
             scene.LyricsMonitorBackgroundColor2Argb,
-            scene.LyricsMonitorBackgroundIsGradient);
+            scene.LyricsMonitorBackgroundIsGradient,
+            scene.BackgroundGradientDirection);
         // Display Panel 밴드 배경 — "패널 투명" on 이면 Transparent, off(기본)면 반투명 검정(무회귀).
         PanelBackgroundBrush = scene.LyricsMonitorPanelTransparent ? Brushes.Transparent : PanelDefaultBrush;
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
@@ -1168,22 +1170,33 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         return brush;
     }
 
-    // 배경 브러시 — isGradient=true 이고 두 색이 다르면 위→아래 세로 그라데이션, 아니면 솔리드(G2 / FrmBackground 슬라이스).
-    private static Brush CreateBackgroundBrush(int color1Argb, int color2Argb, bool isGradient)
+    // 배경 브러시 — isGradient=true 이고 두 색이 다르면 방향(direction)대로 2색 그라데이션, 아니면 솔리드(G2 / FrmBackground 슬라이스).
+    private static Brush CreateBackgroundBrush(int color1Argb, int color2Argb, bool isGradient, Settings.LyricsGradientDirection direction)
     {
         if (!isGradient || color1Argb == color2Argb)
         {
             return CreateBrush(color1Argb);
         }
 
+        var (start, end) = GradientPoints(direction);
         var brush = new LinearGradientBrush(
             ColorFromArgb(color1Argb),
             ColorFromArgb(color2Argb),
-            new Point(0.5, 0),
-            new Point(0.5, 1));
+            start,
+            end);
         brush.Freeze();
         return brush;
     }
+
+    // 그라데이션 방향 → LinearGradientBrush 의 시작/끝 점(상대 좌표 0~1). 기본 Vertical(위→아래)은 기존과 동일.
+    private static (Point Start, Point End) GradientPoints(Settings.LyricsGradientDirection direction)
+        => direction switch
+        {
+            Settings.LyricsGradientDirection.Horizontal => (new Point(0, 0.5), new Point(1, 0.5)),
+            Settings.LyricsGradientDirection.DiagonalDown => (new Point(0, 0), new Point(1, 1)),
+            Settings.LyricsGradientDirection.DiagonalUp => (new Point(0, 1), new Point(1, 0)),
+            _ => (new Point(0.5, 0), new Point(0.5, 1)), // Vertical(기본) — 위→아래.
+        };
 
     private static bool ContainsLiveOutputSetting(IReadOnlyList<string> changedKeys)
     {
@@ -1237,6 +1250,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 // 전역 배경 이미지 경로·표시 모드 변경도 라이브 출력에 즉시 반영(FrmMain Images 탭 / Def_ImageMode).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundImagePath.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundMode.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 배경 그라데이션 방향 변경도 라이브 출력에 즉시 반영(FrmMain Def_BackColour 패턴).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundGradientDirection.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 이중 언어 영역 표시 모드(둘다/Region1만/Region2만)도 라이브 출력에 즉시 반영.
                 string.Equals(key, EasiSettingKeys.LyricsMonitorRegionDisplay.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 제목 헤딩 표시·정렬·첫화면만 토글도 라이브 출력에 즉시 반영(§7.3-A).

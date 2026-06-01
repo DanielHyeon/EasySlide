@@ -95,6 +95,15 @@ public enum LyricsBackgroundMode
     Tile = 3,   // 원본 크기로 바둑판 반복 — TileMode=Tile. 레거시 Tile.
 }
 
+// 출력 배경 2색 그라데이션 방향(레거시 FrmMain Def_BackColour 패턴 대응). 기본 Vertical = 위→아래(기존 동작 보존, 무회귀).
+public enum LyricsGradientDirection
+{
+    Vertical = 0,     // 위→아래(기존 동작). StartPoint(0.5,0)→EndPoint(0.5,1).
+    Horizontal = 1,   // 왼쪽→오른쪽. (0,0.5)→(1,0.5).
+    DiagonalDown = 2, // 좌상→우하 대각선. (0,0)→(1,1).
+    DiagonalUp = 3,   // 좌하→우상 대각선. (0,1)→(1,0).
+}
+
 // 이중 언어 곡의 영역 표시 모드(레거시 FrmMain Def_ShowRegion1/2/Both). 기본 Both = 둘 다 표시(기존 동작 보존, 무회귀).
 // 단일 영역 곡엔 영향 없다(Region2 본문이 없으므로 항상 Region1 만 보인다).
 public enum LyricsRegionDisplay
@@ -242,6 +251,9 @@ public static class EasiSettingKeys
     // 출력 배경 이미지 표시 모드(레거시 Def_ImageMode/Ind_ImageMode: Tile/Centre/BestFit). 기본 Fill=기존 UniformToFill(무회귀).
     public static readonly SettingKey<LyricsBackgroundMode> LyricsMonitorBackgroundMode =
         new("liveOutput.lyricsMonitorBackgroundMode", LyricsBackgroundMode.Fill);
+    // 출력 배경 2색 그라데이션 방향(FrmMain Def_BackColour 패턴). 기본 Vertical = 위→아래(무회귀).
+    public static readonly SettingKey<LyricsGradientDirection> LyricsMonitorBackgroundGradientDirection =
+        new("liveOutput.lyricsMonitorBackgroundGradientDirection", LyricsGradientDirection.Vertical);
     // 이중 언어 영역 표시 모드(레거시 Def_ShowRegion1/2/Both). 기본 Both=둘 다(무회귀).
     public static readonly SettingKey<LyricsRegionDisplay> LyricsMonitorRegionDisplay =
         new("liveOutput.lyricsMonitorRegionDisplay", LyricsRegionDisplay.Both);
@@ -339,6 +351,7 @@ public static class EasiSettingKeys
         // 전역 배경 이미지 경로·표시 모드 — 변경 감지·라이브 반영을 위해 등록.
         LyricsMonitorBackgroundImagePath,
         LyricsMonitorBackgroundMode,
+        LyricsMonitorBackgroundGradientDirection,
         LyricsMonitorRegionDisplay,
         AutoRotateIntervalSeconds,
         UsePowerPointTab,
@@ -466,6 +479,8 @@ public sealed record LiveOutputSettings
     public string LyricsMonitorBackgroundImagePath { get; init; } = EasiSettingKeys.LyricsMonitorBackgroundImagePath.DefaultValue;
 
     public LyricsBackgroundMode LyricsMonitorBackgroundMode { get; init; } = EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
+
+    public LyricsGradientDirection LyricsMonitorBackgroundGradientDirection { get; init; } = EasiSettingKeys.LyricsMonitorBackgroundGradientDirection.DefaultValue;
 
     public LyricsRegionDisplay LyricsMonitorRegionDisplay { get; init; } = EasiSettingKeys.LyricsMonitorRegionDisplay.DefaultValue;
 
@@ -737,6 +752,12 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorBackgroundMode))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorBackgroundMode.Id, "Background image mode value is not supported."));
+        }
+
+        // 그라데이션 방향도 잘못된 값을 거른다(enum 일관).
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorBackgroundGradientDirection))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection.Id, "Background gradient direction value is not supported."));
         }
 
         // 영역 표시 모드도 잘못된 값을 거른다(enum 일관).
@@ -1207,6 +1228,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<LyricsVerticalAlignment> verticalAlignmentKey => verticalAlignmentKey.Id,
                 SettingKey<LyricsTransitionKind> transitionKindKey => transitionKindKey.Id,
                 SettingKey<LyricsBackgroundMode> backgroundModeKey => backgroundModeKey.Id,
+                SettingKey<LyricsGradientDirection> gradientDirectionKey => gradientDirectionKey.Id,
                 SettingKey<LyricsRegionDisplay> regionDisplayKey => regionDisplayKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
@@ -1278,6 +1300,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTransitionKind" => snapshot.LiveOutput.LyricsMonitorTransitionKind,
             "liveOutput.lyricsMonitorBackgroundImagePath" => snapshot.LiveOutput.LyricsMonitorBackgroundImagePath,
             "liveOutput.lyricsMonitorBackgroundMode" => snapshot.LiveOutput.LyricsMonitorBackgroundMode,
+            "liveOutput.lyricsMonitorBackgroundGradientDirection" => snapshot.LiveOutput.LyricsMonitorBackgroundGradientDirection,
             "liveOutput.lyricsMonitorRegionDisplay" => snapshot.LiveOutput.LyricsMonitorRegionDisplay,
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
             "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
@@ -1494,6 +1517,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBackgroundMode" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundMode = Cast<LyricsBackgroundMode>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBackgroundGradientDirection" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundGradientDirection = Cast<LyricsGradientDirection>(keyId, value) },
             },
             "liveOutput.lyricsMonitorRegionDisplay" => snapshot with
             {

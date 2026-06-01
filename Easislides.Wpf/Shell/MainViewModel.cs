@@ -95,6 +95,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsCenter))]
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsTile))]
     private LyricsBackgroundMode _activeBackgroundMode = EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
+    // 현재 적용된 배경 그라데이션 방향(세로/가로/대각↘/대각↗) — 라디오 체크 표시에 쓰인다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GradientDirectionIsVertical))]
+    [NotifyPropertyChangedFor(nameof(GradientDirectionIsHorizontal))]
+    [NotifyPropertyChangedFor(nameof(GradientDirectionIsDiagonalDown))]
+    [NotifyPropertyChangedFor(nameof(GradientDirectionIsDiagonalUp))]
+    private LyricsGradientDirection _activeGradientDirection = EasiSettingKeys.LyricsMonitorBackgroundGradientDirection.DefaultValue;
     // 현재 적용된 이중 언어 영역 표시 모드(둘다/Region1만/Region2만) — 메뉴 체크 표시에 쓰인다.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RegionDisplayIsBoth))]
@@ -462,6 +469,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
         ApplyBackgroundModeCommand = new RelayCommand<LyricsBackgroundMode>(ApplyBackgroundMode);
+        ApplyGradientDirectionCommand = new RelayCommand<LyricsGradientDirection>(ApplyGradientDirection);
         ApplyRegionDisplayCommand = new RelayCommand<LyricsRegionDisplay>(ApplyRegionDisplay);
         IncreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(+LyricsFontSizeStep), () => ActiveLyricsFontSize < LyricsFontSizeMax);
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
@@ -573,6 +581,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool BackgroundModeIsFit => ActiveBackgroundMode == LyricsBackgroundMode.Fit;
     public bool BackgroundModeIsCenter => ActiveBackgroundMode == LyricsBackgroundMode.Center;
     public bool BackgroundModeIsTile => ActiveBackgroundMode == LyricsBackgroundMode.Tile;
+
+    public IRelayCommand<LyricsGradientDirection> ApplyGradientDirectionCommand { get; }
+
+    public bool GradientDirectionIsVertical => ActiveGradientDirection == LyricsGradientDirection.Vertical;
+    public bool GradientDirectionIsHorizontal => ActiveGradientDirection == LyricsGradientDirection.Horizontal;
+    public bool GradientDirectionIsDiagonalDown => ActiveGradientDirection == LyricsGradientDirection.DiagonalDown;
+    public bool GradientDirectionIsDiagonalUp => ActiveGradientDirection == LyricsGradientDirection.DiagonalUp;
 
     /// <summary>이중 언어 영역 표시 모드(둘다/Region1만/Region2만) 적용 — 설정→출력 VM 라이브 반영(레거시 Def_ShowRegion).</summary>
     public IRelayCommand<LyricsRegionDisplay> ApplyRegionDisplayCommand { get; }
@@ -2310,6 +2325,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }}";
     }
 
+    // 배경 그라데이션 방향 적용 — 설정→출력 VM 이 SettingsChanged 로 LinearGradientBrush 를 다시 만들어 즉시 반영(FrmMain Def_BackColour 패턴).
+    private void ApplyGradientDirection(LyricsGradientDirection direction)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection, direction);
+        ActiveGradientDirection = direction;
+        StatusText = $"그라데이션 방향: {direction switch
+        {
+            LyricsGradientDirection.Horizontal => "가로(좌→우)",
+            LyricsGradientDirection.DiagonalDown => "대각선 ↘",
+            LyricsGradientDirection.DiagonalUp => "대각선 ↗",
+            _ => "세로(위→아래)",
+        }}";
+    }
+
     // 이중 언어 영역 표시 모드 적용 — 설정→출력 VM 라이브 반영(레거시 Def_ShowRegion1/2/Both).
     private void ApplyRegionDisplay(LyricsRegionDisplay mode)
     {
@@ -2796,6 +2825,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
         ActiveBackgroundMode = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode);
+        ActiveGradientDirection = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection);
         ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
