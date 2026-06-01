@@ -37,12 +37,12 @@
 | 영역 | 커버리지 | 근거 |
 |---|---|---|
 | 라이브 송출 기본(Go Live/Black/Next·Prev/Clear/Hide/Restart/Refresh) | 🟢 ~80% | WPF 핵심 운영 명령 존재 |
-| **가사 렌더링·포맷팅(Region 1/2·헤딩·정렬·폰트·효과·전환·배경)** | 🔴 **~15%** | **이중 언어·Display Panel·전환·배경모드 전부 없음** |
+| **가사 렌더링·포맷팅(Region 1/2·헤딩·정렬·폰트·효과·전환·배경)** | 🟡 **~60%** | 이중 언어(Region1/2)·표시모드·인터레이스·Display Panel 정보바·전환(페이드/슬라이드)·배경모드 4종·여백·직접수치 모두 구현. 영역별 폰트/크기/세로위치 인스펙터·절 헤딩·AsRegion 정렬·배경 패턴만 후속 |
 | 콘텐츠 브라우징(폴더/곡/성경/PPT/미디어/이미지/InfoScreen/PraiseBook/세션) | 🟡 ~30% | 곡·성경·검색만 인라인; 나머지 미포팅/별도창 |
 | 예배 순서 관리(추가/이동/제거/드래그/자동회전/검증/.esw) | 🟡 ~55% | 기본 OK, 자동회전 세분·검증·legacy v3.2 부족 |
 | 편집(곡/성경/노트/InfoScreen/팝업/인라인 포맷) | 🟡 ~40% | SongEditor 있으나 InfoScreen·노트 전용·인라인 per-item 포맷 부족 |
 | 설정·템플릿 | 🟡 ~35% | 출력모양 템플릿만; Default/Individual·배경패턴·Apply-to-all 없음 |
-| 조옮김·코드·음악 | 🔴 ~5% | Transpose/Capo/Show-Notations 운영 토글 없음 |
+| 조옮김·코드·음악 | 🟡 ~40% | 라이브 코드 조옮김 ±반음(증분30)·코드/악상 표시 토글 구현. To-Capo-0 정규화·Capo 영속·악보 뷰만 후속 |
 | 데이터 작업(Import/Export/Generate/Copy/Move/Delete/Recover/Merge/Usages/Find) | 🟢 ~75% | 별도 창으로 대부분 포팅(통합은 별개) |
 | 키보드/리모컨 후킹 | 🟡 ~40% | 전역 단축키 일부; 절-라벨 점프·미디어 후킹·리모컨 버스 부족 |
 
@@ -81,8 +81,8 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_Notations`/`Menu_PreviewNotations` | **코드/악상 표시**(+미리보기) | 🔴 없음 |
 | `Ind_CapoUp`/`Ind_CapoDown` | **반음 조옮김 ↑↓** | 🔴 없음 |
 | `Def_BackColour`/`Ind_BackColour` | 배경색+패턴(그라데이션) | 🟡 프리셋4+hex(패턴 없음) |
-| `Def_ImageMode`/`Ind_ImageMode` (Tile/Centre/BestFit), `Def_NoImage` | **배경 이미지 표시 모드** | 🔴 곡별 이미지 UniformToFill 고정(모드 선택 없음) |
-| `Def_TransItem`/`Def_TransSlides`, `Ind_Trans*` | **항목/슬라이드 전환 효과** | 🔴 UI 노출 없음(서비스만 존재) |
+| `Def_ImageMode`/`Ind_ImageMode` (Tile/Centre/BestFit), `Def_NoImage` | **배경 이미지 표시 모드** | 🟢 LyricsBackgroundMode 4종(Fill=UniformToFill·Fit=BestFit·Center=Centre·Tile) 인스펙터 라디오(ApplyBackgroundModeCommand)→출력 렌더 반영 |
+| `Def_TransItem`/`Def_TransSlides`, `Ind_Trans*` | **항목/슬라이드 전환 효과** | 🟡 출력 메뉴 "전환 효과"(페이드 on/off + 모션 Fade/Slide 4방향 + 속도)로 노출. 항목/슬라이드 개별 전환 분리·전체 효과군은 후속 |
 | `Def_AssignMedia`/`Ind_AssignMedia` (None/AsTitle/Specific/LiveFeed) | 항목 미디어 배정 | 🔴 없음 |
 | `Ind_LeftUpDown`/`RightUpDown`/`BottomUpDown` | **여백 수치 입력** | 🟢 출력 본문 좌/우/아래 여백(LyricsMonitorBodyLeft/Right/BottomMargin, 0~400px) — 메뉴 "본문 여백" −/+ 로 8px 단위 조절·설정 영속·라이브 즉시 반영. 직접 수치 입력 박스만 후속 |
 | `Def_Panel*` (Show/Title/Copyright/ItemNumber/Slides/PrevNext/Transparent/AsR1/색/폰트 9종+) | Display Panel 항목(곡번호·저작권·다음항목·위치) + 투명 토글 | 🟡 ItemNumber/Copyright/PrevNext/Position(증분6)·**Transparent(증분39)** 구현. Title-on-panel·AsR1·패널 색/폰트는 후속 |
@@ -133,15 +133,15 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | FrmMain 기능 | WPF | 상태 |
 |---|---|---|
 | **Region 1/2 이중 언어**(영역별 색·정렬·폰트·크기·세로위치·굵게·기울임·밑줄) | `SongFormatData`가 region2 필드(27/30/32/44/48)를 **디코드는 하나** GoLive가 region1만 적용 | 🔴 **출력 렌더 0%**(데이터 모델 일부 존재, `[region 2]` 마커 파서·영역별 송출 없음) |
-| Region 인터레이스(줄 교차 송출) | — | 🔴 |
-| Region 표시 모드(1만/2만/둘다) | — | 🔴 |
-| Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | — | 🔴 |
+| Region 인터레이스(줄 교차 송출) | 원문/번역 줄 교차(LyricsMonitorInterlace, 인스펙터 토글) | 🟢 이중언어 Region1/2 줄을 교차 배치해 송출(InterlacedLines) |
+| Region 표시 모드(1만/2만/둘다) | LyricsRegionDisplay(Both/Region1Only/Region2Only, ApplyRegionDisplayCommand) | 🟢 영역 표시 모드 3종 인스펙터 라디오→출력 반영 |
+| Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | 정보 항목(항목번호·저작권·다음항목·위치 N/M) + 투명 토글 | 🟡 정보 항목·투명은 렌더링(증분6/39). 패널 색/폰트 커스터마이즈·제목-온-패널만 후속 |
 | 헤딩(제목/**절 헤딩**, 모드 3종, 정렬 AsR1/AsR2/L/C/R) | 🟡 제목 on/off·L/C/R·첫화면 | 🟡(절 헤딩·AsRegion 없음) |
 | 코드/악상 표시(`ShowNotations`, 미리보기 토글) | 코드 표시(LyricsDisplayFormatter.ExpandNotations) | 🟢 (증분 27) "코드 표시" on 이면 가사 위에 코드 줄 송출 + (증분 30) 라이브 조옮김 ±반음 |
 | 조옮김(Capo ↑/↓, To Capo 0) | `LiveTranspose*Command`(출력 메뉴 "코드 조옮김 ▲/▼/원조") + ExpandNotations transpose | 🟡 (2026-06-01 증분 30) — **라이브 코드 조옮김 ±반음**(코드 표시 on 일 때 송출 코드 이동, 가사 불변). 새 곡 송출 시 원조 초기화. ChordTransposer 재사용 |
-| 항목/슬라이드 전환 효과 선택 | TransitionEffectService 존재 | 🔴 UI 없음 |
+| 항목/슬라이드 전환 효과 선택 | 출력 메뉴 "전환 효과"(페이드 on/off·모션 Fade/Slide 4방향·속도) | 🟡 전환 UI 노출됨(TransitionEffectService 배선). 항목 vs 슬라이드 분리·전체 효과군은 후속 |
 | 배경 색+패턴(그라데이션 2색) | 🟡 프리셋/hex/세로그라데이션 | 🟡(패턴 없음) |
-| 배경 이미지 + 표시 모드(Tile/Centre/BestFit/No) | 🟡 곡별 FormatData 이미지(UniformToFill 고정) | 🟡(모드 선택·라이브러리 적용 없음) |
+| 배경 이미지 + 표시 모드(Tile/Centre/BestFit/No) | 곡별 FormatData 이미지 + 전역 배경(ImageLibrary 적용) + 표시 모드 4종 | 🟢 모드 선택(Fill/Fit/Center/Tile)·이미지 갤러리 적용·해제 가능 |
 | 정렬 가로 L/C/R · 세로 T/C/B | 🟢 | 🟢 |
 | 폰트 크기/줄간격/Bold/Italic/Shadow/Outline | 🟢(단일 영역) | 🟢 |
 | 글꼴명(per-song FormatData 43) | 🟡 곡별만 | 🟡 |
