@@ -337,6 +337,7 @@ public partial class MainWindow : Window
 
         var indexViewModel = new Easislides.Wpf.Library.PraiseBookIndexViewModel(
             new Easislides.Wpf.Library.PraiseBookIndexService(),
+            new Easislides.Wpf.Library.PraiseBookStore(),
             entries);
 
         var window = new Easislides.Wpf.Library.PraiseBookIndexWindow(indexViewModel) { Owner = this };

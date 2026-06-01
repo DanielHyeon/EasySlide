@@ -157,47 +157,6 @@ public sealed class WorshipListStore : IWorshipListStore
         File.Move(oldPath, newPath);
     }
 
-    /// <summary>이름을 안전한 파일 경로로 해석(무효 문자/예약명/길이/경로 탈출 차단).</summary>
-    private string ResolvePath(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("워십 리스트 이름이 비어 있습니다.", nameof(name));
-        }
-
-        var trimmed = name.Trim();
-        if (trimmed.Length > 100
-            || trimmed.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
-            || trimmed.Contains("..", StringComparison.Ordinal)
-            || trimmed.EndsWith('.')
-            || IsReservedDeviceName(trimmed))
-        {
-            throw new ArgumentException($"워십 리스트 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
-        }
-
-        // 정규화 후 의도한 디렉터리 바로 밑인지 최종 확인(블랙리스트 우회까지 막는 화이트리스트 방어선).
-        var full = Path.GetFullPath(Path.Combine(_directory, trimmed + ".json"));
-        var root = Path.GetFullPath(_directory);
-        var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
-        if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new ArgumentException($"워십 리스트 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
-        }
-
-        return full;
-    }
-
-    /// <summary>Windows 예약 디바이스명(CON/PRN/AUX/NUL/COM1-9/LPT1-9) 여부.</summary>
-    private static bool IsReservedDeviceName(string name)
-    {
-        var upper = name.ToUpperInvariant();
-        if (upper is "CON" or "PRN" or "AUX" or "NUL")
-        {
-            return true;
-        }
-
-        return upper.Length == 4
-            && (upper.StartsWith("COM", StringComparison.Ordinal) || upper.StartsWith("LPT", StringComparison.Ordinal))
-            && upper[3] is >= '1' and <= '9';
-    }
+    /// <summary>이름을 안전한 파일 경로로 해석(무효 문자/예약명/길이/경로 탈출 차단 — 공통 헬퍼 위임).</summary>
+    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "예배 순서");
 }
