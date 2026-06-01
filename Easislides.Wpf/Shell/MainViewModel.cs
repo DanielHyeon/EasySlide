@@ -522,6 +522,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
         DeleteAppearanceTemplateCommand = new RelayCommand(DeleteAppearanceTemplate, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
+        ResetOutputAppearanceCommand = new RelayCommand(ResetOutputAppearance);
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
@@ -655,6 +656,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
     public IRelayCommand DeleteAppearanceTemplateCommand { get; }
+    public IRelayCommand ResetOutputAppearanceCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
@@ -2546,6 +2548,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             StatusText = $"템플릿 적용 실패: {ex.Message}";
         }
+    }
+
+    // 출력 모양을 모두 기본값으로 되돌린다(레거시 FrmMain Default Layout). 버튼이 "전체"를 약속하므로 진짜 전체를 리셋한다.
+    // ① 모양 템플릿이 다루는 30개 키(색·정렬·폰트·효과·여백·패널 색/크기/제목·그라데이션·헤딩·영역 간격)는 Defaults 템플릿으로,
+    // ② 템플릿에 없는 나머지 출력 모양 키(전환·배경 모드/이미지·영역 표시·강조 후렴만·인터레이스·패널 투명·Display Panel 토글)는
+    //    여기서 각 SettingKey.DefaultValue 로 직접 리셋한다. 출력 VM 이 SettingsChanged 로 라이브 즉시 반영.
+    private void ResetOutputAppearance()
+    {
+        // ① 템플릿 커버 키.
+        LyricsAppearanceTemplate.Defaults.ApplyTo(_settings);
+
+        // ② 템플릿 밖 출력 모양 키 — "기본값으로 복원"이 전체를 뜻하도록 함께 리셋(인스펙터 같은 패널의 전환·배경·영역표시 등).
+        _settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, EasiSettingKeys.LyricsMonitorTransitionDurationMs.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundMode, EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, EasiSettingKeys.LyricsMonitorBackgroundImagePath.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorRegionDisplay, EasiSettingKeys.LyricsMonitorRegionDisplay.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly, EasiSettingKeys.LyricsMonitorEmphasisChorusOnly.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorInterlace, EasiSettingKeys.LyricsMonitorInterlace.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelTransparent, EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorShowItemNumber, EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorShowCopyright, EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorShowNextItem, EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue);
+
+        RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시 등) 동기화
+        StatusText = "출력 모양 기본값 복원";
     }
 
     private void DeleteAppearanceTemplate()

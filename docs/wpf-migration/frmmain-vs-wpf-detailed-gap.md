@@ -188,7 +188,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 |---|---|---|
 | Options 다이얼로그(`FrmOptions`: 폴더목록/미디어dir·ext/성경목록/히스토리/이중모니터/탭표시) | SettingsWindow | 🟢 |
 | 개별/기본 설정 템플릿(.est) | 출력모양 템플릿 1종 | 🟡 |
-| Use Individual Settings / Apply to All Except InfoScreens / Default Layout | 항목 우클릭 "개별 서식 사용" 토글 + 출력 메뉴 "전 항목에 전역 서식 적용" | 🟡 개별 서식 토글·전 항목 전역 적용 구현. Default Layout(레이아웃 프리셋)만 후속 |
+| Use Individual Settings / Apply to All Except InfoScreens / Default Layout | 개별 서식 토글 + 전 항목 전역 적용 + **출력 모양 기본값 복원(증분72)** | 🟢 개별 서식 토글·전 항목 전역 적용·기본값 복원(Default Layout, 출력 모양 전체 리셋) 모두 구현 |
 | 배경색+패턴/picture mode/transition 저장 | 🟡 일부 | 🟡 |
 | 창 상태(splitter/bounds) 레지스트리 저장 | — | 🟡 일부 |
 

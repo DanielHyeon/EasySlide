@@ -66,6 +66,42 @@ public sealed record LyricsAppearanceTemplate(
     // 이중 언어 영역 간 세로 간격(px, 기본 8) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
     int RegionGapPx = 8)
 {
+    /// <summary>
+    /// 모든 출력 모양 키의 기본값으로 만든 템플릿 — "출력 모양 기본값 복원"(레거시 Default Layout)에 쓴다.
+    /// Capture 와 같은 키 목록을 쓰되 settings.Get 대신 SettingKey.DefaultValue 를 읽어, 설정 기본값과 항상 일치(단일 진실원).
+    /// </summary>
+    public static LyricsAppearanceTemplate Defaults { get; } = new(
+        EasiSettingKeys.LyricsMonitorTextColorArgb.DefaultValue,
+        EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue,
+        EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.DefaultValue,
+        EasiSettingKeys.LyricsMonitorBackgroundIsGradient.DefaultValue,
+        EasiSettingKeys.LyricsMonitorTextAlignment.DefaultValue,
+        EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue,
+        EasiSettingKeys.LyricsMonitorFontSize.DefaultValue,
+        EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue,
+        EasiSettingKeys.LyricsMonitorBold.DefaultValue,
+        EasiSettingKeys.LyricsMonitorItalic.DefaultValue,
+        EasiSettingKeys.LyricsMonitorShadow.DefaultValue,
+        EasiSettingKeys.LyricsMonitorShowNotations.DefaultValue,
+        EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue,
+        ShowTitleHeading: EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue,
+        Outline: EasiSettingKeys.LyricsMonitorOutline.DefaultValue,
+        TitleHeadingAlignment: EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.DefaultValue,
+        TitleHeadingFirstScreenOnly: EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.DefaultValue,
+        Underline: EasiSettingKeys.LyricsMonitorUnderline.DefaultValue,
+        BodyLeftMargin: EasiSettingKeys.LyricsMonitorBodyLeftMargin.DefaultValue,
+        BodyRightMargin: EasiSettingKeys.LyricsMonitorBodyRightMargin.DefaultValue,
+        BodyBottomMargin: EasiSettingKeys.LyricsMonitorBodyBottomMargin.DefaultValue,
+        TitleHeadingFollowBody: EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody.DefaultValue,
+        ShowVerseHeading: EasiSettingKeys.LyricsMonitorShowVerseHeading.DefaultValue,
+        TitleHeadingFollowRegion2: EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.DefaultValue,
+        BackgroundGradientDirection: EasiSettingKeys.LyricsMonitorBackgroundGradientDirection.DefaultValue,
+        PanelColorArgb: EasiSettingKeys.LyricsMonitorPanelColorArgb.DefaultValue,
+        FontSize2: EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue,
+        PanelFontScalePercent: EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue,
+        ShowTitleOnPanel: EasiSettingKeys.LyricsMonitorShowTitleOnPanel.DefaultValue,
+        RegionGapPx: EasiSettingKeys.LyricsMonitorRegionGapPx.DefaultValue);
+
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
     {

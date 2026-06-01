@@ -2118,6 +2118,16 @@
                                 Content="삭제"
                                 AutomationProperties.Name="모양 템플릿 삭제" />
                     </Grid>
+                    <!-- 출력 모양 기본값 복원(FrmMain Default Layout) — 색·정렬·폰트·효과·여백·패널·그라데이션 등 전체를 기본값으로. -->
+                    <Button Command="{Binding ResetOutputAppearanceCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            HorizontalAlignment="Left"
+                            MinHeight="32"
+                            Padding="12,0"
+                            Margin="0,8,0,0"
+                            Content="기본값으로 복원"
+                            ToolTip="출력 모양(색·정렬·폰트·효과·여백·패널·그라데이션 등) 전체를 기본값으로 되돌립니다(레거시 Default Layout)."
+                            AutomationProperties.Name="출력 모양 기본값 복원" />
                 </StackPanel>
             </Border>
         </Grid>

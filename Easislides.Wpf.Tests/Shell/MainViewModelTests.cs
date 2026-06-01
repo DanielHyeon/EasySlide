@@ -659,6 +659,55 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ResetOutputAppearanceCommand_RestoresAppearanceSettingsToDefaults()
+    {
+        // FrmMain Default Layout — 출력 모양(색·효과·여백·패널·간격 등) 전체를 기본값으로 복원.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 90);
+        settings.Set(EasiSettingKeys.LyricsMonitorBold, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, 40);
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, 150);
+        settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, 30);
+        settings.Set(EasiSettingKeys.LyricsMonitorShowTitleOnPanel, true);
+        // 템플릿 밖 키도 변형 — "전체" 리셋이 이들까지 되돌리는지 검증(code-review MAJOR 반영).
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundMode, LyricsBackgroundMode.Tile);
+        settings.Set(EasiSettingKeys.LyricsMonitorRegionDisplay, LyricsRegionDisplay.Region1Only);
+        settings.Set(EasiSettingKeys.LyricsMonitorInterlace, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTransparent, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorShowItemNumber, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, 1000);
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(EasiSettingKeys.LyricsMonitorFontSize.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorBold).Should().Be(EasiSettingKeys.LyricsMonitorBold.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin).Should().Be(EasiSettingKeys.LyricsMonitorBodyLeftMargin.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent).Should().Be(EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx).Should().Be(EasiSettingKeys.LyricsMonitorRegionGapPx.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorShowTitleOnPanel).Should().Be(EasiSettingKeys.LyricsMonitorShowTitleOnPanel.DefaultValue);
+        // 템플릿 밖 키도 기본값으로 복원되어야 한다(진짜 "전체" 리셋).
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode).Should().Be(EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay).Should().Be(EasiSettingKeys.LyricsMonitorRegionDisplay.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorInterlace).Should().Be(EasiSettingKeys.LyricsMonitorInterlace.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent).Should().Be(EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber).Should().Be(EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue);
+        settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs).Should().Be(EasiSettingKeys.LyricsMonitorTransitionDurationMs.DefaultValue);
+        sut.StatusText.Should().Contain("기본값");
+    }
+
+    [Fact]
+    public void AppearanceTemplateDefaults_MatchFreshDefaultSettings()
+    {
+        // Defaults 템플릿이 설정 기본값과 어긋나지 않도록 가드 — 새 출력 모양 키를 Capture 에만 추가하고
+        // Defaults 에 빠뜨리면 이 테스트가 깨진다(단일 진실원 유지).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        LyricsAppearanceTemplate.Defaults.Should().Be(LyricsAppearanceTemplate.Capture(settings));
+    }
+
+    [Fact]
     public void UseIndividualFormattingOff_LiveProjectionDropsPerSongColor()
     {
         // 개별 서식 off → 라이브 송출 시 곡별 FormatData 색(29)이 적용되지 않고 전역 기본색을 쓴다.
