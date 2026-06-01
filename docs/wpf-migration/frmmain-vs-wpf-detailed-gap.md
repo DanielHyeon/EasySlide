@@ -93,11 +93,11 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 ### 2.3 콘텐츠 소스 탭 (FrmMain 7 source 탭 → WPF 3 좌측 탭)
 | FrmMain 탭 | 내용 | WPF |
 |---|---|---|
-| Folders + `SongFolder` + `SongsList` + 정렬(획/CJK단어수/곡번호)·A/B/C 점프 | 곡 폴더·목록 | 🟡 라이브러리 탭(폴더 콤보+검색+ListBox; **정렬·A/B/C 점프·획수 정렬 없음**) |
-| InfoScr(`InfoScreenList`, .esi 편집기) | 보조모니터 정보화면 | 🔴 **미포팅** |
+| Folders + `SongFolder` + `SongsList` + 정렬(획/CJK단어수/곡번호)·A/B/C 점프 | 곡 폴더·목록 | 🟢 라이브러리 탭(폴더 콤보+검색+ListBox + 정렬[원래/제목/곡번호/획수순] + A/B/C 초성 점프 바). CJK 단어수 정렬만 후속 |
+| InfoScr(`InfoScreenList`, .esi 편집기) | 공지 화면(NoticeScreenWindow — 정보화면 텍스트 편집·송출) | 🟡 정보화면 텍스트 편집·송출은 포팅. .esi 목록 관리/풀 편집기(7337줄)는 후속 |
 | PowerP(`PowerpointList`, list/thumbnail) | PPT 파일 브라우징 | 🟡 중앙 PPT 탭은 미리보기만(폴더 브라우징·import 없음) |
 | Bibles(인라인, §4 참조) | 인라인 성경 | 🟡 좌측 성경 탭(단, 이중영역·typed-ref·copy-to-InfoScreen 없음) |
-| Images(`flowLayoutImages`, Scenery/Tiles, 배경 적용) | 배경 이미지 라이브러리 | 🔴 **미포팅** |
+| Images(`flowLayoutImages`, Scenery/Tiles, 배경 적용) | 이미지 갤러리(ImageLibraryWindow — 폴더 썸네일·출력 배경 적용/지우기) | 🟢 폴더 이미지를 썸네일로 보고 출력 배경으로 적용. Scenery/Tiles 카테고리 구분만 후속 |
 | Media(`MediaList`) | 미디어 파일 목록 | 🟡 중앙 Media 탭(폴더 목록 브라우징 없음, NoOp 백엔드) |
 | Default(포맷 탭) | 기본 포맷 전체 | 🔴 인스펙터로 일부 대체 |
 
@@ -119,7 +119,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Clear/Hide text (`LiveClear`/F3) | `ClearOutputCommand`/`HideOutputCommand` | 🟢 |
 | Next/Prev/First/Last/Refresh (`MoveToItem` KeyDirection) | Next/Previous + First/Last Item·Slide·LyricsPage | 🟢 (2026-06-02 증분 37) First/Last 항목 이동 추가(처음/마지막 버튼·메뉴, 라이브면 송출) |
 | Restart Current Item (F5) | `RestartCurrentItemCommand` | 🟢 |
-| 절/슬라이드 라벨 점프(`PreviewBtnVerse_Click` 1~9·p·q·c·t·b·w·e) | — | 🔴 **절 라벨 직접 점프 없음**(순차 이전/다음만) |
+| 절/슬라이드 라벨 점프(`PreviewBtnVerse_Click` 1~9·p·q·c·t·b·w·e) | 절 라벨 점프 바(AvailableSectionLabels·JumpToLyricsSectionCommand) | 🟢 (이전 증분) 곡에 [라벨]이 있으면 절 점프 버튼이 생겨 그 절로 즉시 이동(순차 이전/다음도 유지) |
 | Preview→Output 전송 분리(`btnToOutput`/`btnToOutputMoveNext`/`btnToLive`) | Go LIVE(=btnToOutput/btnToLive) + (증분 55) **송출 후 다음 항목**(btnToOutputMoveNext) | 🟡 송출·송출후다음 2단 전송 명령 제공(자동 다음 설정과 무관). 별도 Preview 모니터(≠출력)는 후속 |
 | **이중 모니터 Preview+Output 동시 송출**(`ShowDualMonitorPP_Preview/_Output`) | — | 🔴 미리보기 ≠ 출력 분리 송출 없음 |
 | 리모컨/런치스크린 명령 버스(`RemoteControlLiveShow` ~25 액션) | 직접 SessionChanged | 🟡 단순화(리모컨/별도 런치윈도우 없음) |
@@ -137,7 +137,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Region 표시 모드(1만/2만/둘다) | — | 🔴 |
 | Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | — | 🔴 |
 | 헤딩(제목/**절 헤딩**, 모드 3종, 정렬 AsR1/AsR2/L/C/R) | 🟡 제목 on/off·L/C/R·첫화면 | 🟡(절 헤딩·AsRegion 없음) |
-| 코드/악상 표시(`ShowNotations`, 미리보기 토글) | — | 🔴 |
+| 코드/악상 표시(`ShowNotations`, 미리보기 토글) | 코드 표시(LyricsDisplayFormatter.ExpandNotations) | 🟢 (증분 27) "코드 표시" on 이면 가사 위에 코드 줄 송출 + (증분 30) 라이브 조옮김 ±반음 |
 | 조옮김(Capo ↑/↓, To Capo 0) | `LiveTranspose*Command`(출력 메뉴 "코드 조옮김 ▲/▼/원조") + ExpandNotations transpose | 🟡 (2026-06-01 증분 30) — **라이브 코드 조옮김 ±반음**(코드 표시 on 일 때 송출 코드 이동, 가사 불변). 새 곡 송출 시 원조 초기화. ChordTransposer 재사용 |
 | 항목/슬라이드 전환 효과 선택 | TransitionEffectService 존재 | 🔴 UI 없음 |
 | 배경 색+패턴(그라데이션 2색) | 🟡 프리셋/hex/세로그라데이션 | 🟡(패턴 없음) |
@@ -153,7 +153,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 |---|---|---|
 | 폴더+곡 목록, 정렬(획수/CJK단어수/곡번호), A/B/C 점프, Use Song Numbering | 라이브러리 탭(폴더+검색+초성 점프+정렬(원래/제목/곡번호/획수)+곡번호 표시) | 🟢 (증분 34) **A/B/C 점프** + (증분 35) **정렬(원래순서/제목/곡번호)** + (증분 36) **Use Song Numbering** + (증분 45) **획수순(한자) 정렬**(zh-Hant ICU 콜레이션=획수 기반, 별도 데이터 불필요). CJK 단어수 정렬만 후속 |
 | **PraiseBooks**(관리/추가/정렬/RTF·HTML/legacy v3.2) | — | 🔴 |
-| **Worship Sessions / Recent Edits / Session Notes** | — | 🔴 |
+| **Worship Sessions / Recent Edits / Session Notes** | 최근 예배 순서(IRecentWorshipLists) + 세션 메모(WorshipSessionNotes — 예배 순서 이름별 키) | 🟢 Recent Edits=최근 예배 순서·Session Notes=세션 메모(예배 순서 이름별 저장) 포팅 완료. Worship Sessions 풀 번들(순서+설정 묶음)만 후속 |
 | Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | — | 🔴 |
 | Media 목록 브라우징 | 중앙 Media 탭 + `MediaLibraryWindow`(폴더 브라우저) | 🟢 (2026-06-01 증분 33) 미디어 폴더 브라우저(동영상·오디오 13확장자, 하위폴더·더블클릭 추가) — PowerPoint 브라우저와 동일 구조 |
 | PowerPoint 목록/썸네일/Import | 중앙 PPT 미리보기 | 🟡 브라우징/Import 없음 |
@@ -170,7 +170,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Gap Item 처리 | GapItem 렌더 | 🟡 조작 UI 약함 |
 | 항목 검증(`ValidateWorshipListItems`: DB존재/PPT설치/삭제됨) | `WorshipListValidator`+도구 메뉴 "예배 순서 검증"+좌측 경고 패널 | 🟡 (2026-06-01 증분 29) — **파일 차원**(깨진/이동·삭제된 PPT·미디어 파일 감지) 구현. 곡 DB 존재 검증은 후속(비동기·DB 의존) |
 | .esw 저장/로드 + **legacy v3.2**(`Load32WorshipList`) | Save/Load(.esw 신규) | 🟡 v3.2 미지원 |
-| 세션 노트 편집 | — | 🔴 |
+| 세션 노트 편집 | 세션 메모 창(WorshipSessionNotesWindow — 예배 순서 이름별 메모 편집·저장) | 🟢 메뉴 "세션 메모..." → 자유 메모 편집, 닫을 때 자동 저장 |
 
 ### 3.5 편집
 | FrmMain | WPF | 상태 |

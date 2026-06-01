@@ -97,3 +97,5 @@
 - **차기(후속 슬라이스): PraiseBook 명명 저장·관리 영속화 · 이미지 썸네일 비동기 디코딩(대용량) · 50여 종 셰이프/타일 전환 · InfoScreen 편집기 · 절 라벨 점프(P2 백로그).** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
 > 현황(정직): FrmMain 전체 포팅은 다증분 장기 과제다. UI/UX 표면(메뉴·단축키·상태바) + 운영 기능(절 점프) + **최대 갭이던 이중언어 송출이 이제 동작**한다(슬라이스 2). 남은 본질 갭: 영역별 스타일 분리·Display Panel·조옮김·전환 UI·이미지/PraiseBook 브라우징. "완벽 포팅"은 증분 3·5~10 완료 시 달성.
+
+- (2026-06-02) 📝 **갭 문서 정직성 재조정(reconciliation)** — 코드 구현이 실제로 끝났는데 갭 문서가 🔴(미포팅)로 남아 있던 stale 마커 8건을 grep/codegraph로 교차 검증 후 정정. 세션 메모 편집(WorshipSessionNotesWindow 존재 → 🟢), 이미지 갤러리(ImageLibraryWindow 존재 → 🟢), 라이브러리 정렬+A/B/C 초성 점프(LibraryViewModel JumpToInitialCommand·SortOptions[원래/제목/곡번호/획수순] 존재 → 🟢), 절/슬라이드 라벨 점프(🟢), 코드/악상 표시(ExpandNotations 존재 → 🟢), Worship Sessions/Recent Edits/Session Notes(🟢), InfoScreen(NoticeScreenWindow 텍스트 편집·송출 존재 → 🟡 부분, .esi 풀 편집기만 후속). **세션 메모 중복 구현을 시작했다가 grep으로 기존 구현을 발견 → 중복 4파일 삭제·DI 롤백한 사건**의 후속 정리. 교훈: 새 기능 착수 전 codegraph/grep 으로 기존 구현 여부 필수 확인. 코드 무변경(문서 전용) → 1434 green·Release 0 errors 유지.
