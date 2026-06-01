@@ -556,6 +556,39 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SelectingBibleItemWithBody_PaginatesByVerse()
+    {
+        // 성경 항목도 곡처럼 절 단위로 페이지네이션된다(예전엔 곡만 — 성경은 본문이 없어 절 이동이 안 됐다).
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("0;kjv.db;;1;1;1;1;3;", "Genesis 1:1-3", LiveItemKinds.Bible)
+        {
+            Lyrics = "1:1 In the beginning\n\n1:2 And the earth\n\n1:3 And God said",
+        };
+        sut.LoadQueue([bible]);
+
+        sut.SelectedItem = bible;
+
+        sut.LyricsPageCount.Should().Be(3);
+        sut.NextLyricsPageCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SelectingDualLanguageBible_CountsVersesWithRegionAwarePages()
+    {
+        // 이중 언어 성경([region 2])은 [region 2] 가 절 경계로 오인되지 않고 영역-인식 페이지 수(2절)로 계산된다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("0;kjv.db;krv.db;43;3;16;3;17;", "John 3:16-17", LiveItemKinds.Bible)
+        {
+            Lyrics = "For God so loved\n[region 2]\n하나님이 세상을\n\nFor God sent\n[region 2]\n하나님이 아들을",
+        };
+        sut.LoadQueue([bible]);
+
+        sut.SelectedItem = bible;
+
+        sut.LyricsPageCount.Should().Be(2);
+    }
+
+    [Fact]
     public void AddSong_InsertsAfterCurrentSelectionAndSelectsInsertedItem()
     {
         // 라이브 큐 plumbing: 라이브러리에서 고른 실제 곡을 예배 순서에 추가(AddBibleSelection 과 동일 규칙).

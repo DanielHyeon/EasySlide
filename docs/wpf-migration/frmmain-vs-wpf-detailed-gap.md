@@ -225,14 +225,14 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 | **Typed reference 입력**("창 1:1-2:3", `BibleUserLookup`+`BibleUserLookupValidation`+Go) | `BibleReferenceParser`+`BibleViewModel.JumpToReference`(성경 탭 입력창+이동/Enter) | ✅ (2026-06-01 증분 28) — "창 1:1-2:3"·"John 3:16"·"1요한 4:7-8" 파싱→책 해석→절 범위 선택→예배순서 추가(드래그 선택과 동일 BuildSelection 경로 재사용) |
 | 구절 검색(phrase, `Bibles_Go`/`BibleVerseSearch`/매치모드) | 매치모드 ComboBox + 검색 | 🟢 |
 | 본문에서 드래그 선택→passage 빌드(`HB_BuildSelectionString`, 순차/임의, max verses) | `PassageText` 드래그 선택→`BibleSelection` | 🟢 |
-| **Add Region 2**(이중언어 번역 합치기, `CMenuBible_AddRegion2`,`AddRegion2ToBiblePassage`,`BuildBibleTextR2SubMenus`) | Region2 **미리보기 콤보만**(PreviewRegion2Version) | 🟡 **출력 이중언어 실 적용 없음**(미리보기 제목/ID만) |
+| **Add Region 2**(이중언어 번역 합치기, `CMenuBible_AddRegion2`,`AddRegion2ToBiblePassage`,`BuildBibleTextR2SubMenus`) | Region2 미리보기 콤보 + **실제 이중언어 송출**(`BibleRepository.ExpandSelection`→`[region 2]` 본문 조립→Region1/Region2 동시 밴드) | 🟢 (2026-06-02 증분 41) **회중 화면에 한/영 두 본문 동시 송출**. 절 단위 페이지(절 이동·위치 라벨)·번역 인용부호 »…« 보존 |
 | **Copy to InfoScreen**(`CMenuBible_CopyInfoScreen`) | 본문 우클릭 "선택 구절 공지 화면으로" (NoticeScreen 편집기 프리필) | 🟢 (2026-06-02 증분 38) |
 | 우클릭 메뉴(SelectAll/Unselect/Add&Show/Copy/AddRegion2/CopyInfoScreen) | 본문 우클릭(전체 선택·복사·예배 순서 추가·공지 화면으로) | 🟡 (2026-06-02 증분 38) 핵심 4항목 제공. AddRegion2 는 후속 |
 | 본문 드래그→예배순서 드롭(`BibleText_MouseDown` DragDrop) | Insert 버튼 | 🟡 드래그 드롭 없음 |
 | 구절 표시 토글(`Bibles_ShowVerses`) | `ShowVerses` CheckBox | 🟢 |
 | 버전 추가/삭제/순서변경/이름변경 | BibleVersionManagerWindow(직전 구현) | 🟢(신규) |
 
-**핵심**: BibleWindow의 "Region 2"는 **미리보기 메타(제목·ID) 생성용**이지, FrmMain처럼 **실제 회중 화면에 한/영(또는 한/중) 두 본문을 동시 송출**하는 기능이 아니다. typed-reference 입력과 copy-to-InfoScreen도 빠져 있어, 성경 운영 깊이는 FrmMain의 일부에 그친다.
+**핵심**(2026-06-02 갱신): typed-reference 입력(증분 28)·copy-to-InfoScreen(증분 38)에 이어 **Region 2 실제 이중언어 송출(증분 41)** 이 동작한다 — 성경 항목이 IdString 만 들고 제목만 송출하던 과거 한계를 넘어, `BibleRepository.ExpandSelection` 이 구절 본문을 절 단위로 펼치고 보조 버전을 `[region 2]` 로 합쳐 **회중 화면에 한/영 두 본문을 동시 송출**한다(곡 이중 언어 렌더 재사용 — 영역별 폰트·정렬·색). 절 이동·위치 라벨·번역 인용부호(»…«) 보존까지 포함. 남은 성경 갭: 본문 드래그→예배순서 드롭, AddRegion2 우클릭 서브메뉴 UI.
 
 ---
 

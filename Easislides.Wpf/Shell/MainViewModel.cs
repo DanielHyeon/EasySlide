@@ -608,7 +608,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible);
+        // 선택 구절을 실제 본문(절 단위 페이지·이중 언어면 보조 언어까지)으로 확장해 항목에 싣는다 —
+        // 예전엔 성경 항목이 제목만 송출했으나 이제 회중 화면에 구절 본문이 보인다. 본문이 비면(파일 없음 등) 제목만(폴백).
+        var body = Bible.ExpandSelectionBody(selection.IdString);
+        var item = new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible)
+        {
+            Lyrics = body,
+        };
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -1184,37 +1190,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // 선택된 항목의 가사 총 절 수를 갱신하고 현재 페이지를 첫 절로 리셋.
-    // 곡 항목이 아니거나 가사가 없으면 LyricsPageCount=0(절 이동 버튼 비활성).
+    // 선택된 항목의 가사/구절 총 절 수를 갱신하고 현재 페이지를 첫 절로 리셋.
+    // 곡·성경이 아니거나 본문이 없으면 LyricsPageCount=0(절 이동 버튼 비활성).
     private void RefreshLyricsPages(LiveQueueItem? item)
     {
-        var isSong = item?.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics);
-        // 이중 언어([region 2]) 곡은 영역-인식 페이지 수(GetRegionPages)를 쓴다 — [region 2] 가 절 경계로
-        // 오인돼 절 수가 부풀던 문제 해소. 단일 영역 곡은 기존 ToVersePages(Sequence 적용) 경로 그대로(무회귀).
-        var dual = isSong && LyricsDisplayFormatter.HasRegion2(item!.Lyrics);
-        LyricsPageCount = !isSong
+        // 절 단위로 페이지네이션되는 항목 = 곡 + 성경(구절 본문). 둘 다 같은 가사 페이지 모델(절 이동·위치 라벨)을 쓴다.
+        var paginated = IsLyricsPaginated(item);
+        // 성경 본문은 인용부호 »…« 가 코드 마커로 오인돼 절 수가 어긋나지 않도록 분할 전 보호한다(본문 추출과 동일 규칙).
+        var lyrics = paginated ? GuardBibleNotation(item!) : null;
+        // 이중 언어([region 2]) 곡·성경은 영역-인식 페이지 수(GetRegionPages)를 쓴다 — [region 2] 가 절 경계로
+        // 오인돼 절 수가 부풀던 문제 해소. 단일 영역은 기존 ToVersePages(Sequence 적용) 경로 그대로(무회귀).
+        var dual = paginated && LyricsDisplayFormatter.HasRegion2(lyrics);
+        LyricsPageCount = !paginated
             ? 0
             : dual
-                ? LyricsDisplayFormatter.GetRegionPages(item!.Lyrics, item.Sequence).Count
-                : LyricsDisplayFormatter.ToVersePages(item!.Lyrics, item.Sequence).Count;
+                ? LyricsDisplayFormatter.GetRegionPages(lyrics, item!.Sequence).Count
+                : LyricsDisplayFormatter.ToVersePages(lyrics, item!.Sequence).Count;
         // 페이지별 절 라벨(절 점프 근거). 단일 영역은 GetSectionLabels, 이중 언어는 region-aware 라벨을 쓰되
         // 페이지 수와 1:1 정렬될 때만 채운다(라벨 없는 머리말 등으로 어긋나면 비워 점프 비활성 — 잘못된 점프 방지).
-        if (!isSong)
+        // 성경 본문엔 [라벨] 마커가 없어 라벨 목록은 비고(절 점프 바 없음), 이전/다음 절 이동만 동작한다.
+        if (!paginated)
         {
             _pageLabels = Array.Empty<string>();
         }
         else if (!dual)
         {
-            _pageLabels = LyricsDisplayFormatter.GetSectionLabels(item!.Lyrics, item.Sequence);
+            _pageLabels = LyricsDisplayFormatter.GetSectionLabels(lyrics, item!.Sequence);
         }
         else
         {
-            var regionLabels = LyricsDisplayFormatter.GetRegionSectionLabels(item!.Lyrics, item.Sequence);
+            var regionLabels = LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, item!.Sequence);
             _pageLabels = regionLabels.Count == LyricsPageCount ? regionLabels : Array.Empty<string>();
         }
         RebuildAvailableSectionLabels();
         LyricsPageIndex = 0;
     }
+
+    // 절 수·본문 계산 전 항목 본문을 정리한다. 성경은 코드 마커(») 규약을 안 쓰므로 인용부호 »…« 를 보호 문자로
+    // 임시 치환해 절 경계·본문이 잘리지 않게 한다. 곡 등 다른 항목은 원본 그대로(무회귀).
+    private static string? GuardBibleNotation(LiveQueueItem item)
+        => item.Kind == LiveItemKinds.Bible
+            ? LyricsDisplayFormatter.GuardLiteralNotation(item.Lyrics)
+            : item.Lyrics;
+
+    // 절 단위로 페이지네이션되는(가사/구절 본문이 있는) 항목인지 — 곡과 성경. 본문 계산·절 이동·위치 라벨의 공통 판정.
+    private static bool IsLyricsPaginated(LiveQueueItem? item)
+        => item is not null
+            && (item.Kind == LiveItemKinds.Song || item.Kind == LiveItemKinds.Bible)
+            && !string.IsNullOrEmpty(item.Lyrics);
 
     // 페이지 라벨에서 중복을 제거(첫 등장 순서)해 점프 버튼 목록을 만든다.
     private void RebuildAvailableSectionLabels()
@@ -1319,9 +1342,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var next = PowerPoint.SlideNumber >= PowerPoint.SlideCount ? 1 : PowerPoint.SlideNumber + 1;
             _ = GoToSlideAsync(next);
         }
-        else if (item.Kind == LiveItemKinds.Song && LyricsPageCount > 1)
+        else if (IsLyricsPaginated(item) && LyricsPageCount > 1)
         {
-            // 마지막 절 다음은 첫 절로 순환.
+            // 곡·성경 모두 절 단위로 회전 — 마지막 절 다음은 첫 절로 순환.
             LyricsPageIndex = LyricsPageIndex + 1 >= LyricsPageCount ? 0 : LyricsPageIndex + 1;
             PublishLyricsPageIfLive();
         }
@@ -1898,9 +1921,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return count > 1 && current >= 1 ? $"{current}/{count}" : string.Empty;
         }
 
-        if (item.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics))
+        if (IsLyricsPaginated(item))
         {
-            var count = LyricsDisplayFormatter.ToVersePages(item.Lyrics, item.Sequence).Count;
+            // 이중 언어(성경/곡)는 영역-인식 페이지 수를 써 RefreshLyricsPages 의 LyricsPageCount 와 어긋나지 않게 한다.
+            // 성경 본문은 동일하게 인용부호를 보호한 뒤 센다(LyricsPageCount 와 같은 입력 → 위치 라벨 N/M 일치).
+            var lyrics = GuardBibleNotation(item);
+            var count = LyricsDisplayFormatter.HasRegion2(lyrics)
+                ? LyricsDisplayFormatter.GetRegionPages(lyrics, item.Sequence).Count
+                : LyricsDisplayFormatter.ToVersePages(lyrics, item.Sequence).Count;
             return count > 1 ? $"{item.LyricsPageIndex + 1}/{count}" : string.Empty;
         }
 

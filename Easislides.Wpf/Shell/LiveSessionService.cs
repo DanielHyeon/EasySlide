@@ -182,11 +182,45 @@ public sealed class LiveSessionService : ILiveSessionService
             return item.Lyrics ?? string.Empty;
         }
 
+        // 성경 본문은 가사 코드 마커(») 규약을 쓰지 않는다 — 코드 전처리(ExpandNotations)를 건너뛰고,
+        // 일부 번역의 인용부호 »…« 가 코드 마커로 오인돼 잘리지 않게 보호한 채 절만 나눈다.
+        if (item.Kind == LiveItemKinds.Bible)
+        {
+            return ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: false);
+        }
+
         // "코드 표시" on 이면 가사 위에 코드 줄을 끼운 전처리 가사를, off 면 원시 가사 그대로(무회귀)를 쓴다.
         var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations, item.TransposeSemitones);
         return LyricsDisplayFormatter.HasRegion2(lyrics)
             ? LyricsDisplayFormatter.GetRegionPage(lyrics, item.LyricsPageIndex, item.Sequence).Region1
             : LyricsDisplayFormatter.GetVersePage(lyrics, item.LyricsPageIndex, item.Sequence);
+    }
+
+    // 성경 한 절(페이지) 본문을 안전하게 추출한다. 성경은 코드 마커(») 규약을 안 쓰므로 코드 전처리를 건너뛰고,
+    // 절 분할(StripInlineNotation 포함) 동안만 '»'를 사적 영역 문자로 보호했다가 결과에서 되돌린다 — 번역 인용부호 보존.
+    // region2=true 면 이중 언어 본문의 보조 언어 절을, false 면 주 언어 절을 돌려준다.
+    private static string ComputeBibleBody(string? body, int pageIndex, bool region2)
+    {
+        if (string.IsNullOrEmpty(body))
+        {
+            return string.Empty;
+        }
+
+        // 먼저 정규화(줄바꿈·"Â»"→"»" 모지바케 정리)한 뒤 '»'를 보호한다 — 보호를 먼저 하면 모지바케 정리가
+        // '»'를 못 찾아 'Â' 가 본문에 남는다(정규화 → 보호 순서라야 송출 본문이 깨끗).
+        var guarded = LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(body));
+        string page;
+        if (LyricsDisplayFormatter.HasRegion2(guarded))
+        {
+            var regionPage = LyricsDisplayFormatter.GetRegionPage(guarded, pageIndex);
+            page = region2 ? regionPage.Region2 : regionPage.Region1;
+        }
+        else
+        {
+            page = region2 ? string.Empty : LyricsDisplayFormatter.GetVersePage(guarded, pageIndex);
+        }
+
+        return LyricsDisplayFormatter.UnguardLiteralNotation(page);
     }
 
     // 현재 절의 Region2(보조 언어) 본문 — 이중 언어 곡일 때만. 단일 영역·비곡은 빈 문자열.
@@ -196,6 +230,12 @@ public sealed class LiveSessionService : ILiveSessionService
         if (item.Kind == LiveItemKinds.Notice)
         {
             return string.Empty;
+        }
+
+        // 성경은 코드 전처리를 건너뛰고 보조 언어(Region2) 절을 인용부호 보호한 채 추출(주 언어 경로와 대칭).
+        if (item.Kind == LiveItemKinds.Bible)
+        {
+            return ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: true);
         }
 
         var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations, item.TransposeSemitones);

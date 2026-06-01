@@ -4,6 +4,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using Easislides.Wpf.Library;
+using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
 
@@ -336,6 +337,92 @@ public class BibleRepositoryTests
 
         changed.IdString.Should().Be("0;kjv.db;niv.db;1;1;1;1;1;");
         changed.Title.Should().Be("Genesis 1:1 (KJV/NIV)");
+    }
+
+    [Fact]
+    public void ExpandSelection_SingleLanguage_ReturnsVerseBodyPaginatedByVerse()
+    {
+        // 예전엔 성경 항목이 제목만 송출했다 — 이제 IdString 을 실제 구절 본문으로 확장해 회중 화면에 보인다.
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateVersion("kjv.db", "KJV");
+        fixture.CreateBible("kjv.db", verses:
+        [
+            (1, 1, 1, "In the beginning God created the heaven and the earth."),
+            (1, 1, 2, "And the earth was without form."),
+            (1, 1, 3, "And God said, Let there be light."),
+        ]);
+        var sut = new BibleRepository();
+
+        // 창세기 1:1-2 (절 번호 표시 on).
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;1;1;2;", showVerses: true);
+
+        body.Should().Be("1:1 In the beginning God created the heaven and the earth.\n\n1:2 And the earth was without form.");
+        body.Should().NotContain("1:3"); // 범위 밖 절은 빠진다.
+        body.Should().NotContain("[region 2]"); // 단일 언어 — 보조 밴드 없음.
+    }
+
+    [Fact]
+    public void ExpandSelection_HidesVerseNumbersWhenShowVersesOff()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateVersion("kjv.db", "KJV");
+        fixture.CreateBible("kjv.db", verses: [(1, 1, 1, "In the beginning.")]);
+        var sut = new BibleRepository();
+
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;1;1;1;", showVerses: false);
+
+        body.Should().Be("In the beginning."); // 절 번호 없이 본문만.
+    }
+
+    [Fact]
+    public void ExpandSelection_DualLanguage_PairsRegionsPerVerse()
+    {
+        // 이중 언어: 주 버전 본문 아래 [region 2] 로 보조 버전 본문을 함께 실어 한/영 동시 송출.
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 80, 1),
+            ("KRV", "krv.db", "개역", "PD", 0, 80, 2));
+        fixture.CreateBible("kjv.db", verses:
+        [
+            (43, 3, 16, "For God so loved the world."),
+            (43, 3, 17, "For God sent not his Son."),
+        ]);
+        fixture.CreateBible("krv.db", verses:
+        [
+            (43, 3, 16, "하나님이 세상을 이처럼 사랑하사."),
+            (43, 3, 17, "하나님이 그 아들을 보내신 것은."),
+        ]);
+        var sut = new BibleRepository();
+
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;krv.db;43;3;16;3;17;", showVerses: true);
+
+        var page0 = LyricsDisplayFormatter.GetRegionPage(body, 0);
+        page0.Region1.Should().Be("3:16 For God so loved the world.");
+        page0.Region2.Should().Be("하나님이 세상을 이처럼 사랑하사."); // 보조 언어엔 절 번호 중복 안 붙임.
+        var page1 = LyricsDisplayFormatter.GetRegionPage(body, 1);
+        page1.Region1.Should().Be("3:17 For God sent not his Son.");
+        page1.Region2.Should().Be("하나님이 그 아들을 보내신 것은.");
+        LyricsDisplayFormatter.HasRegion2(body).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ExpandSelection_MissingVersionFile_ReturnsEmptyForGracefulFallback()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        var sut = new BibleRepository();
+
+        // 버전 파일이 없으면 빈 본문 — 출력은 제목만(우아한 폴백, 예외 없음).
+        sut.ExpandSelection(fixture.WorkingFolder, "0;missing.db;;1;1;1;1;1;", showVerses: true)
+            .Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExpandSelection_InvalidIdString_ReturnsEmpty()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        var sut = new BibleRepository();
+
+        sut.ExpandSelection(fixture.WorkingFolder, "쓰레기", showVerses: true).Should().BeEmpty();
     }
 
     private sealed class BibleDatabaseFixture : IDisposable

@@ -82,6 +82,14 @@ public interface IBibleRepository
         BibleVersion? region2);
 
     /// <summary>
+    /// 성경 선택 IdString 을 회중 화면 본문(절 단위 페이지·이중 언어면 <c>[region 2]</c> 포함) 가사로 확장한다.
+    /// IdString 이 비었거나 형식 오류이거나 버전 파일을 못 찾으면 빈 문자열을 돌려 출력이 제목만 보이게 우아하게 폴백한다.
+    /// 기본 구현은 빈 문자열 — 수많은 테스트 페이크가 일일이 구현하지 않도록 인터페이스 기본 메서드(DIM)로 둔다
+    /// (실제 구절 확장은 <see cref="BibleRepository"/> 가 제공).
+    /// </summary>
+    string ExpandSelection(string workingFolder, string idString, bool showVerses) => string.Empty;
+
+    /// <summary>
     /// 성경 버전의 표시 이름을 바꾼다(EsBiblesList.db 의 Biblefolder.NAME 컬럼만 UPDATE, 본문 파일은 불변).
     /// FILENAME 으로 행을 찾는다(버전당 파일 1:1). 새 이름이 비었거나 대상 파일이 없으면 false.
     /// 고유성(이름 중복) 검증은 호출자(VM)가 한다.
@@ -279,6 +287,62 @@ public sealed class BibleRepository : IBibleRepository
         var baseTitle = StripVersionSuffix(currentTitle);
         var suffix = region2 is null ? region1.Name : $"{region1.Name}/{region2.Name}";
         return new BibleSelection(idString, $"{baseTitle} ({suffix})");
+    }
+
+    public string ExpandSelection(string workingFolder, string idString, bool showVerses)
+    {
+        // IdString 이 비었거나 형식이 어긋나면 빈 본문(출력은 제목만) — 우아한 폴백.
+        if (string.IsNullOrWhiteSpace(workingFolder) || !BibleSelectionId.TryParse(idString, out var selection))
+        {
+            return "";
+        }
+
+        var bibleFolder = Path.Combine(Path.GetFullPath(workingFolder), BibleFolderRelativePath);
+
+        // 주 언어 절: 번호 표시 설정이면 "장:절 본문", 아니면 본문만.
+        var region1Path = Path.Combine(bibleFolder, selection.Region1FileName);
+        var region1 = ReadSelectionVerses(region1Path, selection.Ranges, includeReference: showVerses);
+
+        // 보조 언어 절(이중 언어일 때만): 같은 절 번호를 또 붙이면 중복이라 본문만 싣는다.
+        var region2 = selection.HasRegion2
+            ? ReadSelectionVerses(Path.Combine(bibleFolder, selection.Region2FileName), selection.Ranges, includeReference: false)
+            : Array.Empty<string>();
+
+        return BiblePassageComposer.Compose(region1, region2);
+    }
+
+    // 한 버전 파일에서 선택 범위에 드는 구절 본문을 범위 순서대로 읽어 화면용 줄 목록으로 만든다.
+    // 같은 책을 여러 범위가 참조해도 책당 한 번만 읽도록 캐시한다. 파일이 없으면 빈 목록(상위에서 빈 본문으로 폴백).
+    private static IReadOnlyList<string> ReadSelectionVerses(
+        string filePath,
+        IReadOnlyList<BiblePassageRange> ranges,
+        bool includeReference)
+    {
+        if (!File.Exists(filePath))
+        {
+            return Array.Empty<string>();
+        }
+
+        var rowsByBook = new Dictionary<int, IReadOnlyList<BibleVerseRow>>();
+        var verses = new List<string>();
+        foreach (var range in ranges)
+        {
+            if (!rowsByBook.TryGetValue(range.Book, out var rows))
+            {
+                rows = ReadVerses(filePath, range.Book);
+                rowsByBook[range.Book] = rows;
+            }
+
+            foreach (var row in rows)
+            {
+                if (range.Contains(row.Chapter, row.Verse))
+                {
+                    verses.Add(includeReference ? $"{row.Chapter}:{row.Verse} {row.Text}" : row.Text);
+                }
+            }
+        }
+
+        return verses;
     }
 
     private static BiblePassageResult BuildResult(

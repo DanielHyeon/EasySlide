@@ -454,6 +454,31 @@ public sealed partial class BibleViewModel : ObservableObject
         return null;
     }
 
+    /// <summary>
+    /// 성경 선택(IdString)을 회중 화면 출력 본문(절 단위 페이지·이중 언어면 보조 언어까지) 가사로 확장한다.
+    /// 예전엔 성경 항목이 제목만 송출하고 실제 구절 본문이 화면에 안 나왔다 — 이 메서드가 그 본문을 만들어 준다.
+    /// IdString 은 자기완결적이라 드래그·typed-reference·모달 어느 경로로 만든 선택이든 같은 통로로 확장된다.
+    /// DB/IO 실패는 복구 가능한 예외로 삼켜 빈 본문(제목만)으로 폴백한다.
+    /// </summary>
+    public string ExpandSelectionBody(string idString)
+    {
+        if (string.IsNullOrWhiteSpace(idString))
+        {
+            return "";
+        }
+
+        try
+        {
+            return _repository.ExpandSelection(WorkingFolder, idString, ShowVerses);
+        }
+        // 복구 가능한 DB/IO 예외에 더해, 잘못된 작업 폴더 경로(Path.GetFullPath 의 ArgumentException)도
+        // 빈 본문(제목만)으로 우아하게 폴백한다 — 본문 확장 실패가 예배 순서 추가를 막아선 안 된다.
+        catch (Exception ex) when (IsRecoverableBibleException(ex) || ex is ArgumentException)
+        {
+            return "";
+        }
+    }
+
     public BibleSelection BuildSelection(int selectionStart, int selectionLength)
     {
         if (SelectedVersion is null)

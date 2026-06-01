@@ -759,6 +759,19 @@ public static class LyricsDisplayFormatter
         return inner.StartsWith('~') || inner.Length == 0 ? null : inner;
     }
 
+    // 코드 마커(»)를 쓰지 않는 "순수 본문"(성경 구절 등)을 절 분할에 안전하게 통과시키기 위한 사적 영역(PUA) 보호 문자.
+    // 일부 번역의 인용부호 »…« 가 StripInlineNotation 에 코드 마커로 오인돼 잘리지 않도록, 분할 동안만 이 문자로
+    // 치환했다가(Guard) 결과 본문에서 되돌린다(Unguard). 사용자 텍스트엔 절대 나타나지 않는 U+E000 을 쓴다.
+    private const char LiteralNotationGuard = '\uE000';
+
+    /// <summary>코드 마커 규약을 안 쓰는 본문에서 '»'를 사적 영역 문자로 임시 치환한다(절 분할 전 보호).</summary>
+    public static string GuardLiteralNotation(string? text)
+        => string.IsNullOrEmpty(text) ? string.Empty : text.Replace('»', LiteralNotationGuard);
+
+    /// <summary>Guard 로 치환했던 사적 영역 문자를 다시 '»'로 되돌린다(분할 후 본문 복원).</summary>
+    public static string UnguardLiteralNotation(string? text)
+        => string.IsNullOrEmpty(text) ? string.Empty : text.Replace(LiteralNotationGuard, '»');
+
     // 줄에서 '»'(코드/노테이션 마커) 이후를 잘라 본문만 남긴다. 마커가 없으면 줄 그대로.
     // ('»' 정규화는 호출 전에 끝나 있다고 가정 — ToDisplayText 가 "Â»"→"»"로 모은 뒤 호출.)
     private static string StripInlineNotation(string line)

@@ -34,6 +34,41 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task ExpandSelectionBody_DelegatesToRepositoryWithWorkingFolderAndShowVerses()
+    {
+        // 성경 항목 본문 확장은 저장소에 작업 폴더·절 번호 표시 설정을 그대로 넘겨 위임한다.
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            ExpandedBody = "1:1 In the beginning",
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.ShowVerses = false;
+
+        var body = sut.ExpandSelectionBody("0;kjv.db;;1;1;1;1;1;");
+
+        body.Should().Be("1:1 In the beginning");
+        repository.LastExpandWorkingFolder.Should().Be(Path.GetFullPath(fixture.WorkingFolder));
+        repository.LastExpandIdString.Should().Be("0;kjv.db;;1;1;1;1;1;");
+        repository.LastExpandShowVerses.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ExpandSelectionBody_EmptyId_ReturnsEmptyWithoutCallingRepository()
+    {
+        using var fixture = TempBibleSettings.Create();
+        var repository = new FakeBibleRepository { ExpandedBody = "돌려주면 안 되는 본문" };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+
+        sut.ExpandSelectionBody("   ").Should().BeEmpty();
+        repository.LastExpandIdString.Should().BeNull(); // 빈 IdString 은 저장소 호출 전에 차단.
+    }
+
+    [Fact]
     public async Task SearchAsync_UsesSelectedVersionAndShowsResultSummary()
     {
         using var fixture = TempBibleSettings.Create();
@@ -468,6 +503,23 @@ public class BibleViewModelTests
             return new BibleSelection(
                 $"{parts[0]};{region1.FileName};{region2?.FileName ?? ""};{tail}",
                 $"{baseTitle} ({suffix})");
+        }
+
+        // 성경 본문 확장(ExpandSelection) 위임 검증용 — 넘겨받은 인자를 기록하고 미리 정한 본문을 돌려준다.
+        public string ExpandedBody { get; init; } = "";
+
+        public string? LastExpandWorkingFolder { get; private set; }
+
+        public string? LastExpandIdString { get; private set; }
+
+        public bool LastExpandShowVerses { get; private set; }
+
+        public string ExpandSelection(string workingFolder, string idString, bool showVerses)
+        {
+            LastExpandWorkingFolder = workingFolder;
+            LastExpandIdString = idString;
+            LastExpandShowVerses = showVerses;
+            return ExpandedBody;
         }
 
         public bool RenameVersion(string workingFolder, string fileName, string newName)

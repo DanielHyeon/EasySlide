@@ -158,6 +158,70 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithBibleItem_CarriesVerseBodyNotJustTitle()
+    {
+        // 예전엔 성경 항목이 제목만 송출했다 — 이제 구절 본문이 현재 절로 보인다.
+        var item = new LiveQueueItem("0;kjv.db;;1;1;1;1;2;", "Genesis 1:1-2 (KJV)", LiveItemKinds.Bible)
+        {
+            Lyrics = "1:1 In the beginning\n\n1:2 And the earth",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("1:1 In the beginning"); // 첫 절.
+    }
+
+    [Fact]
+    public void GoLive_WithBibleVerse_PreservesGuillemetQuotes()
+    {
+        // 일부 번역(독일어·프랑스어 등)은 인용부호로 »…« 를 쓴다 — 코드 마커로 오인돼 잘리면 안 된다(성경 본문 보존).
+        var item = new LiveQueueItem("0;luther.db;;1;1;3;1;3;", "1 Mose 1:3", LiveItemKinds.Bible)
+        {
+            Lyrics = "1:3 Und Gott sprach: »Es werde Licht!« Und es ward Licht.",
+            // 코드 표시가 켜져 있어도 성경 본문은 코드 전처리를 타지 않아 그대로 보존돼야 한다.
+            ShowNotations = true,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("1:3 Und Gott sprach: »Es werde Licht!« Und es ward Licht.");
+    }
+
+    [Fact]
+    public void GoLive_WithBibleVerse_NormalizesMojibakeGuillemet()
+    {
+        // 이중 인코딩된 "Â»" 모지바케도 정규화 후 보호하므로 본문엔 깨끗한 »만 남고 'Â'가 새지 않는다.
+        var item = new LiveQueueItem("0;luther.db;;1;1;3;1;3;", "1 Mose 1:3", LiveItemKinds.Bible)
+        {
+            Lyrics = "1:3 Gott sprach: Â»Licht!Â«",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("1:3 Gott sprach: »Licht!Â«");
+        sut.Current.CurrentItemBodyText.Should().NotContain("Â»");
+    }
+
+    [Fact]
+    public void GoLive_WithDualLanguageBible_CarriesBothRegions()
+    {
+        // 이중 언어 성경: 주 언어(Region1)와 보조 언어(Region2)를 같은 절로 함께 송출.
+        var item = new LiveQueueItem("0;kjv.db;krv.db;43;3;16;3;16;", "John 3:16 (KJV/개역)", LiveItemKinds.Bible)
+        {
+            Lyrics = "3:16 For God so loved the world.\n[region 2]\n하나님이 세상을 이처럼 사랑하사.",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("3:16 For God so loved the world.");
+        sut.Current.CurrentItemBodyText2.Should().Be("하나님이 세상을 이처럼 사랑하사.");
+    }
+
+    [Fact]
     public void GoLive_WithShowNotationsOn_PutsChordsAboveLyrics()
     {
         // "코드 표시" on 이면 각 가사 줄 위에 코드 줄이 함께 송출된다(레거시 ShowNotations).
