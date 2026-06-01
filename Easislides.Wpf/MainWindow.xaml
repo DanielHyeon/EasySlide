@@ -257,6 +257,10 @@
                               IsChecked="{Binding TransitionKindIsStar}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.Star}" />
+                    <MenuItem Header="모션: 십자(2-레이어)"
+                              IsChecked="{Binding TransitionKindIsCross}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Cross}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

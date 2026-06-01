@@ -37,6 +37,14 @@
                        Foreground="{DynamicResource Brush.Surface.Page}" />
         </Border>
 
+        <!-- 2-레이어 전환의 뒤 레이어(옛 프레임 스냅샷). 오목 도형 전환(Cross)일 때만 코드-비하인드가 보이게 한다.
+             기본 Collapsed → 단일 레이어 전환에는 렌더되지 않아 무회귀. ContentArea 보다 먼저 선언해 뒤에 깔린다. -->
+        <Image Grid.Row="1"
+               x:Name="PreviousLayer"
+               Stretch="Fill"
+               Visibility="Collapsed"
+               IsHitTestVisible="False" />
+
         <Grid Grid.Row="1"
               x:Name="ContentArea"
               ClipToBounds="True">

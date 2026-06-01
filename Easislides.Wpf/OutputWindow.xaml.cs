@@ -33,6 +33,7 @@ public partial class OutputWindow : Window, IOutputSurface
         // 이전 ViewModel 구독 해제 — 윈도우 재바인딩 가능성에 대비.
         if (_viewModel is not null)
         {
+            _viewModel.SceneChanging -= OnSceneChanging;
             _viewModel.SceneChanged -= OnSceneChanged;
         }
 
@@ -41,7 +42,72 @@ public partial class OutputWindow : Window, IOutputSurface
 
         if (_viewModel is not null)
         {
+            _viewModel.SceneChanging += OnSceneChanging;
             _viewModel.SceneChanged += OnSceneChanged;
+        }
+    }
+
+    // 장면이 바뀌기 직전 — 오목 도형 전환(뒤에 옛 콘텐츠가 보여야 하는 전환)일 때만 ContentArea 의 현재(옛) 프레임을
+    // 스냅샷해 PreviousLayer 에 깐다. 그 외 전환은 PreviousLayer 를 비워 둔다(단일 레이어, 무회귀).
+    private void OnSceneChanging(object? sender, EventArgs e)
+    {
+        if (_viewModel is null
+            || _viewModel.ContentFadeDuration <= TimeSpan.Zero
+            || !RequiresPreviousLayer(_viewModel.ContentTransitionKind)
+            // 영상(MediaElement) 이 송출 중이면 RenderTargetBitmap 이 영상 프레임을 검게 캡처한다(예외가 아니라 검은 비트맵).
+            // → 뒤 레이어가 검은 코너로 보이므로 단일 레이어로 강등한다(옛 프레임 없이 Cross 진행).
+            || OutputMediaElement.Source is not null)
+        {
+            ClearPreviousLayer();
+            return;
+        }
+
+        var snapshot = TrySnapshotContent();
+        if (snapshot is null)
+        {
+            ClearPreviousLayer(); // 스냅샷 자체가 실패(크기 0·예외 등) → 단일 레이어로 강등(옛 프레임 없이 진행).
+            return;
+        }
+
+        PreviousLayer.Source = snapshot;
+        PreviousLayer.Visibility = Visibility.Visible;
+    }
+
+    // 뒤 레이어(옛 프레임)가 필요한 전환 = 끝에 화면 전체를 못 덮는 오목 도형(현재 Cross). 나머지는 불필요.
+    private static bool RequiresPreviousLayer(Settings.LyricsTransitionKind kind)
+        => kind == Settings.LyricsTransitionKind.Cross;
+
+    private void ClearPreviousLayer()
+    {
+        PreviousLayer.Visibility = Visibility.Collapsed;
+        PreviousLayer.Source = null;
+    }
+
+    // ContentArea 의 현재(옛) 비주얼을 비트맵으로 캡처. 크기 0·예외면 null → 단일 레이어 강등.
+    // (영상은 호출 전에 OnSceneChanging 이 걸러낸다 — RTB 가 검게 캡처하므로 별도 처리.)
+    private System.Windows.Media.ImageSource? TrySnapshotContent()
+    {
+        try
+        {
+            var w = (int)ContentArea.ActualWidth;
+            var h = (int)ContentArea.ActualHeight;
+            if (w <= 0 || h <= 0)
+            {
+                return null;
+            }
+
+            // 옛 프레임이 확실히 배치(arrange)된 상태에서 캡처하도록 강제 — 첫 전환/리사이즈 직후 빈 프레임 방지.
+            // (SceneChanging 은 새 콘텐츠 적용 전이라 VM 바인딩을 건드리지 않으므로 재진입 위험 없음.)
+            ContentArea.UpdateLayout();
+
+            var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(w, h, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+            rtb.Render(ContentArea);
+            rtb.Freeze();
+            return rtb;
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -59,10 +125,11 @@ public partial class OutputWindow : Window, IOutputSurface
         var duration = _viewModel.ContentFadeDuration;
         if (duration <= TimeSpan.Zero)
         {
-            // 전환 비활성(즉시 컷): 모든 애니메이션을 멈추고 항등/불투명1/클립 제거로 보장.
+            // 전환 비활성(즉시 컷): 모든 애니메이션을 멈추고 항등/불투명1/클립·뒤 레이어 제거로 보장.
             ContentArea.BeginAnimation(OpacityProperty, null);
             ResetToIdentity(translate, scale, rotate);
             ContentArea.Clip = null;
+            ClearPreviousLayer();
             ContentArea.Opacity = 1.0;
             return;
         }
@@ -159,6 +226,10 @@ public partial class OutputWindow : Window, IOutputSurface
                 // 별을 중심에서 0→1 배율로 키운다. 안쪽 반지름이 모서리 거리보다 커서 배율 1 에서 전체를 덮는다.
                 AnimateScaledShapeClip(BuildStar(w, h), w / 2, h / 2, duration);
                 break;
+            case Settings.LyricsTransitionKind.Cross:
+                // 십자를 중심에서 0→1 배율로 키운다. 코너를 못 덮어 뒤에 옛 프레임(PreviousLayer)이 보인다(2-레이어).
+                AnimateScaledShapeClip(BuildCross(w, h), w / 2, h / 2, duration);
+                break;
             case Settings.LyricsTransitionKind.DoorsOpen:
                 AnimateTileClip(BuildDoors(w, h, open: true, duration), duration);
                 break;
@@ -166,8 +237,9 @@ public partial class OutputWindow : Window, IOutputSurface
                 AnimateTileClip(BuildDoors(w, h, open: false, duration), duration);
                 break;
             default:
-                // 비-클립 종류(Fade/Slide/Zoom/Spin/Flip) — 이전 클립이 남지 않도록 제거.
+                // 비-클립 종류(Fade/Slide/Zoom/Spin/Flip) — 이전 클립·뒤 레이어가 남지 않도록 제거.
                 ContentArea.Clip = null;
+                ClearPreviousLayer();
                 break;
         }
     }
@@ -345,6 +417,21 @@ public partial class OutputWindow : Window, IOutputSurface
         return geo;
     }
 
+    // 십자(플러스) — 전체 너비 가로 막대 + 전체 높이 세로 막대(GeometryGroup). 배율 1 에서 코너는 못 덮으므로
+    // 뒤 레이어(옛 프레임)와 함께 써야 자연스럽다(코너에 옛 화면이 보였다가 완료 시 새 화면으로).
+    internal static System.Windows.Media.GeometryGroup BuildCross(double w, double h)
+    {
+        var cx = w / 2;
+        var cy = h / 2;
+        var barW = w / 3; // 세로 막대 폭.
+        var barH = h / 3; // 가로 막대 높이.
+        // Nonzero: 두 막대가 겹치는 중심(교차)도 채워야 한다(기본 EvenOdd 면 겹친 영역이 구멍이 됨).
+        var group = new System.Windows.Media.GeometryGroup { FillRule = System.Windows.Media.FillRule.Nonzero };
+        group.Children.Add(new System.Windows.Media.RectangleGeometry(new System.Windows.Rect(0, cy - (barH / 2), w, barH)));
+        group.Children.Add(new System.Windows.Media.RectangleGeometry(new System.Windows.Rect(cx - (barW / 2), 0, barW, h)));
+        return group;
+    }
+
     // 양문 열기/닫기 — 좌우 두 사각이 합쳐 화면 전체를 덮는다(끝에 잔여 마스크 없음).
     // open=true: 중심에서 양 끝으로 열림. open=false: 양 끝에서 중심으로 닫힘. 두 문 모두 즉시 시작·전체 길이.
     internal static System.Collections.Generic.List<TileClip> BuildDoors(double w, double h, bool open, TimeSpan duration)
@@ -377,7 +464,15 @@ public partial class OutputWindow : Window, IOutputSurface
             FillBehavior = FillBehavior.HoldEnd,
             EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
         };
-        animX.Completed += (_, _) => { if (ShouldClearClip(ContentArea.Clip, shape)) ContentArea.Clip = null; };
+        animX.Completed += (_, _) =>
+        {
+            // 내 클립이 아직 활성일 때만 정리(빠른 전환 경쟁 가드) — 클립 제거 + 뒤 레이어(2-레이어 Cross 옛 프레임) 숨김.
+            if (ShouldClearClip(ContentArea.Clip, shape))
+            {
+                ContentArea.Clip = null;
+                ClearPreviousLayer();
+            }
+        };
         scale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, animX);
         scale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty, new DoubleAnimation
         {
@@ -530,6 +625,7 @@ public partial class OutputWindow : Window, IOutputSurface
     {
         if (_viewModel is not null)
         {
+            _viewModel.SceneChanging -= OnSceneChanging;
             _viewModel.SceneChanged -= OnSceneChanged;
             _viewModel = null;
         }

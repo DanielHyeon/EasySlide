@@ -993,6 +993,11 @@ public class MainViewModelTests
         sut.TransitionKindIsStar.Should().BeTrue();
         sut.TransitionKindIsDoorsOpen.Should().BeFalse();
         sut.StatusText.Should().Contain("별");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Cross);
+        sut.TransitionKindIsCross.Should().BeTrue();
+        sut.TransitionKindIsStar.Should().BeFalse();
+        sut.StatusText.Should().Contain("십자");
     }
 
     [Fact]

@@ -310,6 +310,22 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_RaisesSceneChanging_BeforeSceneChanged()
+    {
+        // 2-레이어 전환의 전제: 새 콘텐츠가 적용되기 전에 SceneChanging 이 먼저 발화해 뷰가 옛 프레임을 스냅샷할 수 있어야 한다.
+        var sut = new OutputWindowViewModel();
+        var order = new System.Collections.Generic.List<string>();
+        sut.SceneChanging += (_, _) => order.Add("changing");
+        sut.SceneChanged += (_, _) => order.Add("changed");
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        order.Should().Contain("changing").And.Contain("changed");
+        order.IndexOf("changing").Should().BeLessThan(order.IndexOf("changed"), "옛 프레임 스냅샷이 새 적용보다 먼저");
+    }
+
+    [Fact]
     public void Constructor_TransitionKind_ReflectsSetting()
     {
         using var settingsFolder = TempSettingsFolder.Create();

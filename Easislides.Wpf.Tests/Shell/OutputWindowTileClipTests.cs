@@ -115,4 +115,17 @@ public class OutputWindowTileClipTests
             540 + (cornerDist * System.Math.Sin(troughAngle)));
         geo.FillContains(pointAlongTrough).Should().BeTrue("골 방위로 모서리 거리만큼 떨어진 점도 별 안 → 노치 없음");
     }
+
+    [Fact]
+    public void BuildCross_PlusShape_CoversCenterAndBarsButNotCorners()
+    {
+        // 십자는 중심·막대는 덮지만 코너는 못 덮는다 → 끝에 화면 전체를 못 덮음 → 2-레이어(뒤 옛 프레임)가 필요함을 문서화.
+        var geo = OutputWindow.BuildCross(1920, 1080);
+
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심(교차) 포함");
+        geo.FillContains(new System.Windows.Point(960, 0)).Should().BeTrue("세로 막대 상단");
+        geo.FillContains(new System.Windows.Point(0, 540)).Should().BeTrue("가로 막대 좌측");
+        geo.FillContains(new System.Windows.Point(0, 0)).Should().BeFalse("코너는 못 덮음 → 2-레이어 필요");
+        geo.FillContains(new System.Windows.Point(1920, 1080)).Should().BeFalse("반대 코너도 못 덮음");
+    }
 }

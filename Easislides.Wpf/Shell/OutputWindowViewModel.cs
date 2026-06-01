@@ -528,6 +528,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         set => SetProperty(ref _contentTransitionKind, value);
     }
 
+    // 장면이 "바뀌기 직전" 알림 — 새 콘텐츠가 적용되기 전에 발화한다. 2-레이어 전환에서 뷰가 옛 프레임을
+    // 스냅샷해 뒤 레이어로 깔 수 있게 한다(오목 도형 전환 등). 단일 레이어 전환은 이 이벤트를 무시한다.
+    public event EventHandler? SceneChanging;
+
     // Scene 변경 알림을 받아 페이드를 트리거할 코드-비하인드/뷰가 구독한다.
     // ViewModel 자체는 WPF 애니메이션을 모르고, 단순히 "장면이 갱신됐다"는 사실만 전달.
     public event EventHandler? SceneChanged;
@@ -620,6 +624,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
     private void RefreshDisplayText()
     {
+        // 새 콘텐츠를 적용하기 전에 알림 → 뷰가 옛 프레임을 스냅샷할 기회(2-레이어 전환). 단일 레이어는 무시.
+        SceneChanging?.Invoke(this, EventArgs.Empty);
         Scene = CreateScene();
         ApplyScene(Scene);
         // 모든 프로퍼티가 갱신된 뒤에 알림 → 뷰(코드-비하인드)가 fade-in 등 진입 애니메이션을 트리거할 수 있게 한다.

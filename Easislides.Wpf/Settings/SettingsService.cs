@@ -118,6 +118,9 @@ public enum LyricsTransitionKind
     DoorsClose = 21,
     // 별(5각) — 안쪽 반지름(오목 골)을 화면 모서리 거리보다 크게 잡아 배율 1 에서 전체를 덮는다(잔여 마스크 없음).
     Star = 22,
+    // 십자(플러스) — 끝에 코너를 못 덮는 오목 도형이라 2-레이어(뒤에 옛 프레임)로 처리. 새 콘텐츠가 십자로
+    // 드러나고 코너엔 옛 화면이 남았다가 완료 시 새 화면으로 전환된다.
+    Cross = 23,
 }
 
 public static class EasiSettingKeys
