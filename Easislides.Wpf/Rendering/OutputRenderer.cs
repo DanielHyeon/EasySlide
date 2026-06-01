@@ -68,7 +68,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 전역 배경 이미지 경로(FrmMain Images 탭). 비었으면 색 배경. 곡별 배경(61)이 우선.
     string LyricsMonitorBackgroundImagePath = "",
     // 출력 배경 이미지 표시 모드(FrmMain Def_ImageMode: Tile/Centre/BestFit). 기본 Fill=UniformToFill(무회귀).
-    LyricsBackgroundMode LyricsMonitorBackgroundMode = LyricsBackgroundMode.Fill)
+    LyricsBackgroundMode LyricsMonitorBackgroundMode = LyricsBackgroundMode.Fill,
+    // 이중 언어 영역 표시 모드(FrmMain Def_ShowRegion1/2/Both). 기본 Both=둘 다(무회귀).
+    LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -106,7 +108,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright),
             settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath),
-            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode));
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode),
+            settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay));
     }
 }
 
@@ -207,15 +210,24 @@ public sealed record OutputSceneSnapshot(
     // Region1 굵게/기울임/밑줄은 기존 LyricsMonitorBold/Italic/Underline 에 해석돼 실린다(곡별 region1 비트가 전역을 덮어씀).
     bool LyricsMonitorBold2 = false,
     bool LyricsMonitorItalic2 = false,
-    bool LyricsMonitorUnderline2 = false)
+    bool LyricsMonitorUnderline2 = false,
+    // 이중 언어 영역 표시 모드(Both/Region1Only/Region2Only) — 어느 영역을 화면에 보일지. 기본 Both(무회귀).
+    LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
     // 가사 본문을 실제로 송출할지 — Live 상태 + 본문이 있을 때만.
-    public bool ShowsBodyText => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText);
+    // 영역 표시가 "Region2만"이면 Region1 을 숨긴다 — 단 보조 언어(Region2)가 있을 때만(없으면 화면이 비지 않게 Region1 유지).
+    public bool ShowsBodyText => Kind == OutputSceneKind.Live
+        && !string.IsNullOrWhiteSpace(BodyText)
+        && !(LyricsMonitorRegionDisplay == LyricsRegionDisplay.Region2Only && !string.IsNullOrWhiteSpace(BodyText2));
 
     // Region2(이중 언어 보조) 본문을 송출할지 — Live + Region2 본문이 있을 때만(단일 영역 곡은 false → 무회귀).
-    public bool ShowsBodyText2 => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText2);
+    // 영역 표시가 "Region1만"이면 Region2 를 숨긴다 — 단 주 언어(Region1)가 있을 때만(없으면 화면이 비지 않게 Region2 유지).
+    // (ShowsBodyText 의 Region2Only 안전장치와 대칭 — 어느 모드에서도 내용 있는 곡을 빈 화면으로 만들지 않는다.)
+    public bool ShowsBodyText2 => Kind == OutputSceneKind.Live
+        && !string.IsNullOrWhiteSpace(BodyText2)
+        && !(LyricsMonitorRegionDisplay == LyricsRegionDisplay.Region1Only && !string.IsNullOrWhiteSpace(BodyText));
 
     // 곡 번호를 실제로 노출할지 — 설정 on + Live + 번호 라벨이 있을 때만(Display Panel).
     public bool ShowsItemNumber => ShowLyricsItemNumber && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(ItemNumberLabel);
@@ -391,7 +403,9 @@ public sealed class OutputRenderer : IOutputRenderer
             // Region2 굵게·기울임·밑줄(해석된 값) — 이중 언어 보조 본문에 적용.
             region2Bold,
             region2Italic,
-            region2Underline);
+            region2Underline,
+            // 이중 언어 영역 표시 모드(어느 영역을 보일지) — 설정값 그대로.
+            liveOutput.LyricsMonitorRegionDisplay);
     }
 
     private ImagePlacement GetContentPlacement(

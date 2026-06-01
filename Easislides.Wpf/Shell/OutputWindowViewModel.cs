@@ -1136,6 +1136,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 // 전역 배경 이미지 경로·표시 모드 변경도 라이브 출력에 즉시 반영(FrmMain Images 탭 / Def_ImageMode).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundImagePath.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundMode.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 이중 언어 영역 표시 모드(둘다/Region1만/Region2만)도 라이브 출력에 즉시 반영.
+                string.Equals(key, EasiSettingKeys.LyricsMonitorRegionDisplay.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 제목 헤딩 표시·정렬·첫화면만 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, StringComparison.OrdinalIgnoreCase) ||

@@ -66,7 +66,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 
 | FrmMain 컨트롤(발췌) | 기능 | WPF |
 |---|---|---|
-| `Def_ShowRegion1/2/Both`, `Ind_ShowRegion*` | **Region 1만/2만/둘다** 표시 | 🔴 없음(단일 영역만) |
+| `Def_ShowRegion1/2/Both`, `Ind_ShowRegion*` | **Region 1만/2만/둘다** 표시 | 🟢 (증분 51) 출력 메뉴 "이중 언어 영역 표시"(둘다/Region1만/Region2만, 라이브 즉시 반영). 한쪽만 모드여도 다른 쪽이 비면 남은 본문 유지(빈 화면 방지). 전역 설정(Def_); 항목별 Ind_ 는 후속 |
 | `Def_Interlace`/`Ind_Interlace` | **Region 1·2 인터레이스**(줄 교차) | 🔴 없음 |
 | `Def_R1Colour`·`Def_R2Colour`, `Ind_R1/R2Colour` | **영역별** 글자색 | 🟢 (증분 46) 곡 편집기 "영역별 스타일(Region 1/2)" 인스펙터에서 영역별 글자색 지정(FormatData 29/30 인코드)→출력 렌더 적용. Display Panel 전역 기본값 UI는 후속 |
 | `Def_R1Align`·`Def_R2Align` (L/C/R) | **영역별** 정렬 | 🟢 (증분 46) 곡 편집기 인스펙터에서 영역별 정렬(상속/왼쪽/가운데/오른쪽, FormatData 31/32)→출력 렌더 적용 |

@@ -517,6 +517,89 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_RegionDisplayBoth_ShowsBothBands()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegionDisplay: LyricsRegionDisplay.Both);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsBodyText.Should().BeTrue();
+        scene.ShowsBodyText2.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_RegionDisplayRegion1Only_HidesRegion2()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegionDisplay: LyricsRegionDisplay.Region1Only);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsBodyText.Should().BeTrue("Region1 은 표시");
+        scene.ShowsBodyText2.Should().BeFalse("Region1만 → Region2 숨김");
+    }
+
+    [Fact]
+    public void CreateScene_RegionDisplayRegion2Only_HidesRegion1WhenRegion2Present()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegionDisplay: LyricsRegionDisplay.Region2Only);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsBodyText.Should().BeFalse("Region2만 → Region1 숨김");
+        scene.ShowsBodyText2.Should().BeTrue("Region2 표시");
+    }
+
+    [Fact]
+    public void CreateScene_RegionDisplayRegion1Only_OnlyRegion2Body_StillShowsRegion2()
+    {
+        // 주 언어(Region1) 본문이 없고 보조 언어만 있는 드문 곡은 Region1만 모드여도 Region2 를 보여 화면이 비지 않게 한다
+        // (ShowsBodyText 의 Region2Only 안전장치와 대칭 — 내용 있는 곡을 빈 화면으로 만들지 않음).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegionDisplay: LyricsRegionDisplay.Region1Only);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "", CurrentItemBodyText2: "은혜"), // Region1 본문 없음.
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsBodyText.Should().BeFalse("Region1 본문 없음");
+        scene.ShowsBodyText2.Should().BeTrue("주 언어 없음 → Region2 유지(빈 화면 방지)");
+    }
+
+    [Fact]
+    public void CreateScene_RegionDisplayRegion2Only_SingleLanguage_StillShowsRegion1()
+    {
+        // 보조 언어가 없는 단일 언어 곡은 Region2만 모드여도 Region1 을 보여 화면이 비지 않게 한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegionDisplay: LyricsRegionDisplay.Region2Only);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing"), // Region2 본문 없음.
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsBodyText.Should().BeTrue("보조 언어 없음 → Region1 유지(빈 화면 방지)");
+        scene.ShowsBodyText2.Should().BeFalse();
+    }
+
+    [Fact]
     public void CreateScene_Active_Region1Underline_OverridesGlobalSetting()
     {
         // 곡별 region1 밑줄 비트가 켜져 있으면 전역 밑줄(off)을 덮어쓴다.

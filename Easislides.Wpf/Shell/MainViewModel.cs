@@ -95,6 +95,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsCenter))]
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsTile))]
     private LyricsBackgroundMode _activeBackgroundMode = EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
+    // 현재 적용된 이중 언어 영역 표시 모드(둘다/Region1만/Region2만) — 메뉴 체크 표시에 쓰인다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RegionDisplayIsBoth))]
+    [NotifyPropertyChangedFor(nameof(RegionDisplayIsRegion1Only))]
+    [NotifyPropertyChangedFor(nameof(RegionDisplayIsRegion2Only))]
+    private LyricsRegionDisplay _activeRegionDisplay = EasiSettingKeys.LyricsMonitorRegionDisplay.DefaultValue;
     // 현재 적용된 가사 폰트 크기(px). +/- 커맨드 활성/비활성 판별에도 쓰인다.
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsFontSizeCommand))]
@@ -426,6 +432,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
         ApplyBackgroundModeCommand = new RelayCommand<LyricsBackgroundMode>(ApplyBackgroundMode);
+        ApplyRegionDisplayCommand = new RelayCommand<LyricsRegionDisplay>(ApplyRegionDisplay);
         IncreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(+LyricsFontSizeStep), () => ActiveLyricsFontSize < LyricsFontSizeMax);
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
         IncreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(+LyricsLineSpacingStep), () => ActiveLyricsLineSpacing < LyricsLineSpacingMax);
@@ -520,6 +527,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool BackgroundModeIsFit => ActiveBackgroundMode == LyricsBackgroundMode.Fit;
     public bool BackgroundModeIsCenter => ActiveBackgroundMode == LyricsBackgroundMode.Center;
     public bool BackgroundModeIsTile => ActiveBackgroundMode == LyricsBackgroundMode.Tile;
+
+    /// <summary>이중 언어 영역 표시 모드(둘다/Region1만/Region2만) 적용 — 설정→출력 VM 라이브 반영(레거시 Def_ShowRegion).</summary>
+    public IRelayCommand<LyricsRegionDisplay> ApplyRegionDisplayCommand { get; }
+
+    public bool RegionDisplayIsBoth => ActiveRegionDisplay == LyricsRegionDisplay.Both;
+    public bool RegionDisplayIsRegion1Only => ActiveRegionDisplay == LyricsRegionDisplay.Region1Only;
+    public bool RegionDisplayIsRegion2Only => ActiveRegionDisplay == LyricsRegionDisplay.Region2Only;
     public IRelayCommand IncreaseLyricsFontSizeCommand { get; }
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
     public IRelayCommand IncreaseLyricsLineSpacingCommand { get; }
@@ -2162,6 +2176,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }}";
     }
 
+    // 이중 언어 영역 표시 모드 적용 — 설정→출력 VM 라이브 반영(레거시 Def_ShowRegion1/2/Both).
+    private void ApplyRegionDisplay(LyricsRegionDisplay mode)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorRegionDisplay, mode);
+        ActiveRegionDisplay = mode;
+        StatusText = $"영역 표시: {mode switch
+        {
+            LyricsRegionDisplay.Region1Only => "Region 1만",
+            LyricsRegionDisplay.Region2Only => "Region 2만",
+            _ => "둘 다",
+        }}";
+    }
+
     // 인-셸 제목 헤딩 가로 정렬 적용 — 가사 정렬과 동일 경로(설정→출력 VM 라이브 반영, §7.3-A Heading Align).
     private void ApplyTitleHeadingAlignment(LyricsTextAlignment alignment)
     {
@@ -2521,6 +2548,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
         ActiveBackgroundMode = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode);
+        ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);

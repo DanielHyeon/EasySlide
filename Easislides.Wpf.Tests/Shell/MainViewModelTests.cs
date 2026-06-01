@@ -273,6 +273,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyRegionDisplay_PersistsAndUpdatesActiveAndMenuChecks()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.RegionDisplayIsBoth.Should().BeTrue("기본은 둘 다");
+
+        sut.ApplyRegionDisplayCommand.Execute(LyricsRegionDisplay.Region2Only);
+
+        sut.ActiveRegionDisplay.Should().Be(LyricsRegionDisplay.Region2Only);
+        sut.RegionDisplayIsRegion2Only.Should().BeTrue();
+        sut.RegionDisplayIsBoth.Should().BeFalse("이전 둘 다 체크 해제");
+        settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay).Should().Be(LyricsRegionDisplay.Region2Only);
+        sut.StatusText.Should().Contain("Region 2만");
+    }
+
+    [Fact]
     public void ValidateWorshipList_WithMissingFile_ReportsProblemAndStatus()
     {
         // 예배 순서에 깨진 PPT 파일이 있으면 검증이 문제로 잡아내고 상태바에 알린다(예배 중 사고 예방).
