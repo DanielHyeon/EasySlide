@@ -145,6 +145,52 @@
         <composites:LiveBar DockPanel.Dock="Top"
                             DataContext="{Binding LiveBar}" />
 
+        <!-- 하단 상태바(FrmMain StatusStrip 파리티) — 예배 순서 항목 수·현재 절 위치·운영 상태·출력 모니터.
+             기존 VM 상태만 바인딩(Queue.Count·LyricsPageLabel·StatusText·SelectedOutputDisplay). 가장 아래에 깔린다. -->
+        <Border DockPanel.Dock="Bottom"
+                x:Name="StatusBar"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource Brush.Border.Default}"
+                Background="{DynamicResource Brush.Surface.Subtle}"
+                Padding="12,3">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Queue.Count, StringFormat='예배 순서 {0}개'}"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"
+                               AutomationProperties.Name="예배 순서 항목 수" />
+                    <TextBlock Text="{Binding LyricsPageLabel}"
+                               VerticalAlignment="Center"
+                               Margin="14,0,0,0"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               AutomationProperties.Name="현재 절 위치" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding StatusText}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+
+                <TextBlock Grid.Column="2"
+                           Text="{Binding SelectedOutputDisplay.Name}"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           AutomationProperties.Name="출력 모니터" />
+            </Grid>
+        </Border>
+
         <Border DockPanel.Dock="Bottom"
                 BorderThickness="1,1,0,0"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
