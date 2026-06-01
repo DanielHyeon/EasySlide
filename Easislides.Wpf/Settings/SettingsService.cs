@@ -121,6 +121,8 @@ public enum LyricsTransitionKind
     // 십자(플러스) — 끝에 코너를 못 덮는 오목 도형이라 2-레이어(뒤에 옛 프레임)로 처리. 새 콘텐츠가 십자로
     // 드러나고 코너엔 옛 화면이 남았다가 완료 시 새 화면으로 전환된다.
     Cross = 23,
+    // 나비넥타이(좌우 두 삼각형, 상/하 중앙이 오므라듦) — 오목 도형이라 2-레이어로 처리.
+    BowTie = 24,
 }
 
 public static class EasiSettingKeys

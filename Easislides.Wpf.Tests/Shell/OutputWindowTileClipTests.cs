@@ -128,4 +128,17 @@ public class OutputWindowTileClipTests
         geo.FillContains(new System.Windows.Point(0, 0)).Should().BeFalse("코너는 못 덮음 → 2-레이어 필요");
         geo.FillContains(new System.Windows.Point(1920, 1080)).Should().BeFalse("반대 코너도 못 덮음");
     }
+
+    [Fact]
+    public void BuildBowTie_TwoTriangles_CoverSidesNotTopBottomCenter()
+    {
+        // 나비넥타이는 좌/우 삼각형(코너·측면 덮음)이지만 상/하 중앙은 오므라들어 못 덮음 → 2-레이어 필요함을 문서화.
+        var geo = OutputWindow.BuildBowTie(1920, 1080);
+
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심(두 삼각형 만남)");
+        geo.FillContains(new System.Windows.Point(100, 540)).Should().BeTrue("좌측 삼각형 내부");
+        geo.FillContains(new System.Windows.Point(1820, 540)).Should().BeTrue("우측 삼각형 내부");
+        geo.FillContains(new System.Windows.Point(960, 50)).Should().BeFalse("상단 중앙 오므라듦 → 못 덮음");
+        geo.FillContains(new System.Windows.Point(960, 1030)).Should().BeFalse("하단 중앙 오므라듦 → 못 덮음");
+    }
 }

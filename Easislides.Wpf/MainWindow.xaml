@@ -261,6 +261,10 @@
                               IsChecked="{Binding TransitionKindIsCross}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.Cross}" />
+                    <MenuItem Header="모션: 나비넥타이(2-레이어)"
+                              IsChecked="{Binding TransitionKindIsBowTie}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.BowTie}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

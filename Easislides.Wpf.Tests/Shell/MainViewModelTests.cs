@@ -998,6 +998,11 @@ public class MainViewModelTests
         sut.TransitionKindIsCross.Should().BeTrue();
         sut.TransitionKindIsStar.Should().BeFalse();
         sut.StatusText.Should().Contain("십자");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.BowTie);
+        sut.TransitionKindIsBowTie.Should().BeTrue();
+        sut.TransitionKindIsCross.Should().BeFalse();
+        sut.StatusText.Should().Contain("나비넥타이");
     }
 
     [Fact]
