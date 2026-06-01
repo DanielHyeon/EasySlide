@@ -156,4 +156,26 @@ public class OutputWindowTileClipTests
         // 닫힌 단일 도형 — 경계가 유효해야 FillContains 가 동작(폴리라인이 깨지지 않음).
         geo.Figures.Should().ContainSingle().Which.IsClosed.Should().BeTrue();
     }
+
+    [Fact]
+    public void BuildWedge_SmallSweep_CoversTopRightSectorOnly()
+    {
+        // 90° 부채꼴: 12시→3시(우상 사분면) 섹터만 덮는다. 우상은 안, 좌하는 밖.
+        var geo = OutputWindow.BuildWedge(1920, 1080, 90);
+
+        geo.FillContains(new System.Windows.Point(1100, 300)).Should().BeTrue("12~3시 섹터 안(우상)");
+        geo.FillContains(new System.Windows.Point(700, 800)).Should().BeFalse("좌하 섹터는 아직 안 덮음");
+    }
+
+    [Fact]
+    public void BuildWedge_NearFullSweep_CoversWholeScreen()
+    {
+        // 거의 360° 부채꼴은 화면 전체를 덮는다(끝에 잔여 마스크 없음 → 단일 레이어로 충분).
+        var geo = OutputWindow.BuildWedge(1920, 1080, 359.9);
+
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심");
+        geo.FillContains(new System.Windows.Point(50, 50)).Should().BeTrue("좌상");
+        geo.FillContains(new System.Windows.Point(1870, 1030)).Should().BeTrue("우하");
+        geo.FillContains(new System.Windows.Point(700, 800)).Should().BeTrue("좌하");
+    }
 }

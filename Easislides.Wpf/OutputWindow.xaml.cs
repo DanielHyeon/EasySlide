@@ -13,6 +13,22 @@ public partial class OutputWindow : Window, IOutputSurface
     private OutputWindowViewModel? _viewModel;
     private AttachableMediaPlaybackBackend? _mediaBridge;
 
+    // 시계 와이프(Wedge) 현재 세션 상태 — 각도 애니메이션이 진행 중인 동안 프레임마다 부채꼴을 다시 만든다.
+    private bool _wedgeActive;
+    private double _wedgeW;
+    private double _wedgeH;
+
+    // 시계 와이프 진행도(0→1). 애니메이션이 이 DP 를 구동하면 콜백이 매 프레임 부채꼴 클립을 다시 만든다.
+    private static readonly DependencyProperty WedgeProgressProperty = DependencyProperty.Register(
+        nameof(WedgeProgress), typeof(double), typeof(OutputWindow),
+        new PropertyMetadata(0.0, OnWedgeProgressChanged));
+
+    private double WedgeProgress
+    {
+        get => (double)GetValue(WedgeProgressProperty);
+        set => SetValue(WedgeProgressProperty, value);
+    }
+
     public OutputWindow()
     {
         InitializeComponent();
@@ -132,6 +148,7 @@ public partial class OutputWindow : Window, IOutputSurface
             ResetToIdentity(translate, scale, rotate);
             ContentArea.Clip = null;
             ClearPreviousLayer();
+            StopWedge();
             ContentArea.Opacity = 1.0;
             return;
         }
@@ -164,6 +181,10 @@ public partial class OutputWindow : Window, IOutputSurface
         var w = ContentArea.ActualWidth > 0 ? ContentArea.ActualWidth : 1920;
         var h = ContentArea.ActualHeight > 0 ? ContentArea.ActualHeight : 1080;
         var full = new System.Windows.Rect(0, 0, w, h);
+
+        // 진행 중이던 시계 와이프가 있으면 먼저 멈춘다(아래 Wedge 케이스가 다시 시작). 다른 종류면 와이프가 클립을
+        // 계속 덮어쓰지 않게 한다.
+        StopWedge();
 
         switch (kind)
         {
@@ -239,6 +260,10 @@ public partial class OutputWindow : Window, IOutputSurface
             case Settings.LyricsTransitionKind.Heart:
                 // 하트를 중심에서 0→1 배율로 키운다. 위 노치·코너에 옛 프레임이 보인다(2-레이어).
                 AnimateScaledShapeClip(BuildHeart(w, h), w / 2, h / 2, duration);
+                break;
+            case Settings.LyricsTransitionKind.Wedge:
+                // 시계 와이프 — 부채꼴이 0→360° 펼쳐지며 드러난다(360°에서 전체 덮음). 프레임마다 부채꼴 재생성.
+                AnimateWedgeClip(w, h, duration);
                 break;
             case Settings.LyricsTransitionKind.DoorsOpen:
                 AnimateTileClip(BuildDoors(w, h, open: true, duration), duration);
@@ -545,6 +570,85 @@ public partial class OutputWindow : Window, IOutputSurface
         });
     }
 
+    // 시계 와이프 부채꼴 지오메트리 — 중심에서 12시 방향으로 시작해 시계방향으로 sweepDeg 만큼 펼친 파이 조각.
+    // 반지름은 모서리 거리+1 이라 sweep≈360 일 때 화면 전체를 덮는다(잔여 마스크 없음, 단일 레이어).
+    internal static System.Windows.Media.PathGeometry BuildWedge(double w, double h, double sweepDeg)
+    {
+        var cx = w / 2;
+        var cy = h / 2;
+        var r = System.Math.Sqrt((w / 2 * (w / 2)) + (h / 2 * (h / 2))) + 1;
+        // ArcSegment 는 정확히 360°(시작=끝)를 못 그리므로 살짝 못 미치게 클램프.
+        var sweep = System.Math.Max(0.01, System.Math.Min(sweepDeg, 359.99));
+        var startRad = -System.Math.PI / 2;                      // 12시.
+        var endRad = startRad + (sweep * System.Math.PI / 180);  // 시계방향.
+        var p0 = new System.Windows.Point(cx + (r * System.Math.Cos(startRad)), cy + (r * System.Math.Sin(startRad)));
+        var p1 = new System.Windows.Point(cx + (r * System.Math.Cos(endRad)), cy + (r * System.Math.Sin(endRad)));
+
+        var fig = new System.Windows.Media.PathFigure { StartPoint = new System.Windows.Point(cx, cy), IsClosed = true };
+        fig.Segments.Add(new System.Windows.Media.LineSegment(p0, true));
+        fig.Segments.Add(new System.Windows.Media.ArcSegment(
+            p1,
+            new System.Windows.Size(r, r),
+            0,
+            isLargeArc: sweep > 180,
+            System.Windows.Media.SweepDirection.Clockwise,
+            true));
+        var geo = new System.Windows.Media.PathGeometry();
+        geo.Figures.Add(fig);
+        return geo;
+    }
+
+    // 시계 와이프 시작 — 진행도 DP 를 0→1 로 애니메이션하면 콜백이 매 프레임 부채꼴 클립을 갱신한다.
+    private void AnimateWedgeClip(double w, double h, TimeSpan duration)
+    {
+        _wedgeW = w;
+        _wedgeH = h;
+        _wedgeActive = true;
+        ContentArea.Clip = BuildWedge(w, h, 0.01);
+        var anim = new DoubleAnimation
+        {
+            From = 0,
+            To = 1,
+            Duration = new Duration(duration),
+            FillBehavior = FillBehavior.HoldEnd,
+        };
+        anim.Completed += (_, _) =>
+        {
+            if (_wedgeActive)
+            {
+                _wedgeActive = false;
+                // 보류(HoldEnd) 중인 클록을 분리해 DP 를 기본값으로 되돌린다(완료 후 잔여 클록이 남지 않게).
+                BeginAnimation(WedgeProgressProperty, null);
+                ContentArea.Clip = null; // 360° 완료 → 전체 표시.
+            }
+        };
+        BeginAnimation(WedgeProgressProperty, anim);
+    }
+
+    // 진행 중인 시계 와이프 중단(다른 전환/즉시 컷이 들어올 때) — 애니메이션 멈추고 세션 종료.
+    private void StopWedge()
+    {
+        if (!_wedgeActive)
+        {
+            return;
+        }
+
+        _wedgeActive = false;
+        BeginAnimation(WedgeProgressProperty, null);
+    }
+
+    private static void OnWedgeProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var window = (OutputWindow)d;
+        if (!window._wedgeActive)
+        {
+            return; // 세션이 끝났거나 다른 전환으로 교체됨 → 무시(클립 건드리지 않음).
+        }
+
+        var progress = (double)e.NewValue;
+        window.ContentArea.Clip = BuildWedge(window._wedgeW, window._wedgeH, progress * 360.0);
+    }
+
     // 전환 완료 시 클립을 제거해도 되는지 — 현재 활성 클립이 "내가 건 그 도형"일 때만 true.
     // 그 사이 다음 장면이 새 클립을 걸었으면(다른 참조) 건드리지 않는다(빠른 장면 전환 경쟁 가드).
     internal static bool ShouldClearClip(System.Windows.Media.Geometry? activeClip, System.Windows.Media.Geometry myClip)
@@ -684,6 +788,7 @@ public partial class OutputWindow : Window, IOutputSurface
 
     protected override void OnClosed(EventArgs e)
     {
+        StopWedge(); // 진행 중이던 시계 와이프 애니메이션 정리.
         if (_viewModel is not null)
         {
             _viewModel.SceneChanging -= OnSceneChanging;

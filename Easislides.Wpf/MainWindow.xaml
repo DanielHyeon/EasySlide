@@ -269,6 +269,10 @@
                               IsChecked="{Binding TransitionKindIsHeart}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.Heart}" />
+                    <MenuItem Header="모션: 시계 와이프"
+                              IsChecked="{Binding TransitionKindIsWedge}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Wedge}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

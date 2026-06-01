@@ -1008,6 +1008,11 @@ public class MainViewModelTests
         sut.TransitionKindIsHeart.Should().BeTrue();
         sut.TransitionKindIsBowTie.Should().BeFalse();
         sut.StatusText.Should().Contain("하트");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Wedge);
+        sut.TransitionKindIsWedge.Should().BeTrue();
+        sut.TransitionKindIsHeart.Should().BeFalse();
+        sut.StatusText.Should().Contain("시계");
     }
 
     [Fact]

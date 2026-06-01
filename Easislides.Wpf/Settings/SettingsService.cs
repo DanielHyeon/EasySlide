@@ -125,6 +125,9 @@ public enum LyricsTransitionKind
     BowTie = 24,
     // 하트 — 위 노치·코너를 못 덮는 오목 도형이라 2-레이어로 처리. 매개변수 곡선을 폴리라인으로 근사.
     Heart = 25,
+    // 시계 와이프(부채꼴 스윕) — 12시에서 시계방향으로 0→360° 부채꼴이 커지며 새 콘텐츠를 드러낸다.
+    // 360°에서 전체를 덮어 단일 레이어로 충분. 각도 애니메이션이라 프레임마다 지오메트리를 다시 만든다.
+    Wedge = 26,
 }
 
 public static class EasiSettingKeys
