@@ -56,7 +56,9 @@ public sealed record LyricsAppearanceTemplate(
     // 배경 그라데이션 방향(기본 Vertical) — 구버전 JSON 역직렬화 시 기존 동작(세로)으로 안전 복원.
     LyricsGradientDirection BackgroundGradientDirection = LyricsGradientDirection.Vertical,
     // Display Panel 밴드 색(ARGB, 기본 0x66000000=반투명 검정) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
-    int PanelColorArgb = unchecked((int)0x66000000))
+    int PanelColorArgb = unchecked((int)0x66000000),
+    // 보조 영역(Region2) 전역 폰트 크기(px, 기본 0=본문과 동일) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
+    int FontSize2 = 0)
 {
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -89,7 +91,8 @@ public sealed record LyricsAppearanceTemplate(
             ShowVerseHeading: settings.Get(EasiSettingKeys.LyricsMonitorShowVerseHeading),
             TitleHeadingFollowRegion2: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2),
             BackgroundGradientDirection: settings.Get(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection),
-            PanelColorArgb: settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb));
+            PanelColorArgb: settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb),
+            FontSize2: settings.Get(EasiSettingKeys.LyricsMonitorFontSize2));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -122,6 +125,7 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2, TitleHeadingFollowRegion2);
         settings.Set(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection, BackgroundGradientDirection);
         settings.Set(EasiSettingKeys.LyricsMonitorPanelColorArgb, PanelColorArgb);
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize2, FontSize2);
     }
 }
 

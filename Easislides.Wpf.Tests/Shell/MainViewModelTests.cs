@@ -3313,6 +3313,29 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsFontSize2Input_DirectEntry_ZeroIsAuto_ElseClamps()
+    {
+        // FrmMain Ind_Reg2SizeUpDown — 0=본문과 동일(자동) 허용, 1~23→24, >120→120 클램프.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsFontSize2.Should().Be(0, "기본 0=자동");
+
+        sut.LyricsFontSize2Input = 40;
+        sut.ActiveLyricsFontSize2.Should().Be(40, "범위 안 그대로");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize2).Should().Be(40);
+
+        sut.LyricsFontSize2Input = 0;
+        sut.ActiveLyricsFontSize2.Should().Be(0, "0=자동 허용");
+
+        sut.LyricsFontSize2Input = 10;
+        sut.ActiveLyricsFontSize2.Should().Be(24, "1~23 은 하한 24 로 클램프");
+
+        sut.LyricsFontSize2Input = 999;
+        sut.ActiveLyricsFontSize2.Should().Be(120, "상한 120 으로 클램프");
+    }
+
+    [Fact]
     public void LyricsLineSpacingInput_DirectEntry_ClampsAndPersists()
     {
         using var folder = TempSettingsFolder.Create();

@@ -204,6 +204,9 @@ public static class EasiSettingKeys
         new("liveOutput.lyricsMonitorVerticalAlignment", LyricsVerticalAlignment.Center);
     // 출력 가사 폰트 크기(px, 인-셸 가사 포맷팅 §7.3-A). 기본 48 로 기존 출력 폰트 크기를 보존. 범위 24~120.
     public static readonly SettingKey<int> LyricsMonitorFontSize = new("liveOutput.lyricsMonitorFontSize", 48);
+    // 보조 영역(Region2) 전역 폰트 크기(px, FrmMain Ind_Reg2SizeUpDown). 기본 0 = "본문(Region1)과 동일" 자동(무회귀).
+    // 0 이 아니면 이중 언어 곡의 Region2 본문에 이 크기를 적용(곡별 region2 크기 48 오버라이드가 있으면 그게 우선). 범위 0 또는 24~120.
+    public static readonly SettingKey<int> LyricsMonitorFontSize2 = new("liveOutput.lyricsMonitorFontSize2", 0);
     // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off 로 기존 출력 모양 보존.
     // Bold off = 기존 SemiBold, Italic off = Normal, Shadow off = 효과 없음.
     public static readonly SettingKey<bool> LyricsMonitorBold = new("liveOutput.lyricsMonitorBold", false);
@@ -324,6 +327,7 @@ public static class EasiSettingKeys
         LyricsMonitorTextAlignment,
         LyricsMonitorVerticalAlignment,
         LyricsMonitorFontSize,
+        LyricsMonitorFontSize2,
         LyricsMonitorBold,
         LyricsMonitorItalic,
         LyricsMonitorShadow,
@@ -442,6 +446,8 @@ public sealed record LiveOutputSettings
         EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
 
     public int LyricsMonitorFontSize { get; init; } = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
+
+    public int LyricsMonitorFontSize2 { get; init; } = EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue;
 
     public bool LyricsMonitorBold { get; init; } = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
 
@@ -780,6 +786,17 @@ public sealed class SettingsService : ISettingsService
             max: 120,
             EasiSettingKeys.LyricsMonitorFontSize.Id,
             issues);
+
+        // 보조 영역(Region2) 폰트 크기 가드 — 0(자동=본문 동일)은 허용, 그 외엔 24~120px 만 허용.
+        if (candidate.LiveOutput.LyricsMonitorFontSize2 != 0)
+        {
+            RequireRange(
+                candidate.LiveOutput.LyricsMonitorFontSize2,
+                min: 24,
+                max: 120,
+                EasiSettingKeys.LyricsMonitorFontSize2.Id,
+                issues);
+        }
 
         // 줄 간격 범위 가드(100~220%) — 폰트 대비 비율. 과소·과대값으로 줄이 겹치거나 벌어지지 않도록.
         RequireRange(
@@ -1286,6 +1303,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTextAlignment" => snapshot.LiveOutput.LyricsMonitorTextAlignment,
             "liveOutput.lyricsMonitorVerticalAlignment" => snapshot.LiveOutput.LyricsMonitorVerticalAlignment,
             "liveOutput.lyricsMonitorFontSize" => snapshot.LiveOutput.LyricsMonitorFontSize,
+            "liveOutput.lyricsMonitorFontSize2" => snapshot.LiveOutput.LyricsMonitorFontSize2,
             "liveOutput.lyricsMonitorBold" => snapshot.LiveOutput.LyricsMonitorBold,
             "liveOutput.lyricsMonitorItalic" => snapshot.LiveOutput.LyricsMonitorItalic,
             "liveOutput.lyricsMonitorShadow" => snapshot.LiveOutput.LyricsMonitorShadow,
@@ -1441,6 +1459,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorFontSize" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorFontSize = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorFontSize2" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorFontSize2 = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorBold" => snapshot with
             {

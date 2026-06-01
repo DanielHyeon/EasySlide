@@ -40,6 +40,8 @@ public sealed record LiveOutputRenderSettings(
     LyricsVerticalAlignment LyricsMonitorVerticalAlignment = LyricsVerticalAlignment.Center,
     // 출력 가사 폰트 크기(px, 인-셸 가사 포맷팅 §7.3-A). 기본 48.
     int LyricsMonitorFontSize = 48,
+    // 보조 영역(Region2) 전역 폰트 크기(px, FrmMain Ind_Reg2SizeUpDown). 기본 0=본문(Region1)과 동일(무회귀).
+    int LyricsMonitorFontSize2 = 0,
     // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off.
     bool LyricsMonitorBold = false,
     bool LyricsMonitorItalic = false,
@@ -111,6 +113,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment),
             settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment),
             settings.Get(EasiSettingKeys.LyricsMonitorFontSize),
+            settings.Get(EasiSettingKeys.LyricsMonitorFontSize2),
             settings.Get(EasiSettingKeys.LyricsMonitorBold),
             settings.Get(EasiSettingKeys.LyricsMonitorItalic),
             settings.Get(EasiSettingKeys.LyricsMonitorShadow),
@@ -376,9 +379,12 @@ public sealed class OutputRenderer : IOutputRenderer
         var fontFamily2 = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName2)
             ? request.Session.OverrideFontName2!
             : fontFamily;
+        // Region2 폰트 크기 우선순위: 곡별 region2 크기(48) > 전역 region2 크기(설정, 0 이 아니면) > Region1 크기 추종.
         var fontSize2Px = isLive && request.Session.OverrideFontSizePx2 is int songFont2Px
             ? songFont2Px
-            : fontSizePx;
+            : liveOutput.LyricsMonitorFontSize2 > 0
+                ? liveOutput.LyricsMonitorFontSize2
+                : fontSizePx;
         // Region1 굵게/기울임 — 곡별 region1 비트(41)가 켜져 있으면 전역 설정을 덮어쓴다(없으면 전역 그대로).
         var region1Bold = isLive && request.Session.OverrideBold1 == true ? true : liveOutput.LyricsMonitorBold;
         var region1Italic = isLive && request.Session.OverrideItalic1 == true ? true : liveOutput.LyricsMonitorItalic;

@@ -113,6 +113,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsFontSizeCommand))]
     [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsFontSizeCommand))]
     private int _activeLyricsFontSize = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
+    // 현재 보조 영역(Region2) 전역 폰트 크기(px). 0 = 본문(Region1)과 동일(자동). 직접 입력 박스에 바인딩.
+    [ObservableProperty] private int _activeLyricsFontSize2 = EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue;
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -2721,6 +2723,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 폰트 크기가 다른 경로(−/+ 버튼·설정 창·프리셋)로 바뀌어도 입력 박스가 따라가도록 통지.
     partial void OnActiveLyricsFontSizeChanged(int value) => OnPropertyChanged(nameof(LyricsFontSizeInput));
 
+    // 보조 영역(Region2) 전역 폰트 크기 절대값 커밋 — 0(자동=본문 동일)은 허용, 그 외엔 24~120 으로 클램프(FrmMain Ind_Reg2SizeUpDown).
+    private void CommitLyricsFontSize2(int value)
+    {
+        var next = value <= 0 ? 0 : Math.Clamp(value, LyricsFontSizeMin, LyricsFontSizeMax);
+        if (next == ActiveLyricsFontSize2)
+        {
+            OnPropertyChanged(nameof(LyricsFontSize2Input));
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorFontSize2, next);
+        ActiveLyricsFontSize2 = next;
+        StatusText = next == 0 ? "보조영역 크기: 본문과 동일(자동)" : $"보조영역 크기: {next}px";
+    }
+
+    /// <summary>보조 영역(Region2) 폰트 크기 직접 수치 입력. 0=본문과 동일(자동), 그 외 24~120 클램프.</summary>
+    public int LyricsFontSize2Input
+    {
+        get => ActiveLyricsFontSize2;
+        set => CommitLyricsFontSize2(value);
+    }
+
+    partial void OnActiveLyricsFontSize2Changed(int value) => OnPropertyChanged(nameof(LyricsFontSize2Input));
+
     // 인-셸 가사 줄 간격 조절(+/- 단계, %) — 절대값 커밋 함수에 위임(직접 수치 입력과 동일 경로).
     private void StepLyricsLineSpacing(int delta) => CommitLyricsLineSpacing(ActiveLyricsLineSpacing + delta);
 
@@ -2847,6 +2873,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveGradientDirection = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection);
         ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
+        ActiveLyricsFontSize2 = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize2);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);
         ActiveLyricsRightMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin);

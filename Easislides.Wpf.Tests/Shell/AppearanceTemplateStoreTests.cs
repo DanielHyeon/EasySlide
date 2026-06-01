@@ -40,7 +40,8 @@ public class AppearanceTemplateStoreTests
             ShowVerseHeading: true,
             TitleHeadingFollowRegion2: true,
             BackgroundGradientDirection: LyricsGradientDirection.DiagonalDown,
-            PanelColorArgb: unchecked((int)0x66203040));
+            PanelColorArgb: unchecked((int)0x66203040),
+            FontSize2: 36);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

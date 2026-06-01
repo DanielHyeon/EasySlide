@@ -528,6 +528,62 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Region2GlobalFontSize_AppliesWhenSetAndNoSongOverride()
+    {
+        // FrmMain Ind_Reg2SizeUpDown — 전역 region2 크기(설정>0)가 있으면 Region2 본문에 적용(곡별 override 없을 때).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 80, LyricsMonitorFontSize2: 40);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontSize.Should().Be(80, "Region1 은 전역 크기");
+        scene.LyricsMonitorFontSize2.Should().Be(40, "Region2 는 전역 region2 크기");
+    }
+
+    [Fact]
+    public void CreateScene_Region2GlobalFontSize_Zero_FollowsRegion1()
+    {
+        // 전역 region2 크기 0(기본) = 본문(Region1) 크기 추종 — 무회귀.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 80, LyricsMonitorFontSize2: 0);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontSize2.Should().Be(80, "전역 region2 크기 0 → Region1(80) 추종");
+    }
+
+    [Fact]
+    public void CreateScene_Region2GlobalFontSize_SongOverrideTakesPrecedence()
+    {
+        // 우선순위: 곡별 region2 크기(48) > 전역 region2 크기 > Region1.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 80, LyricsMonitorFontSize2: 40);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideFontSizePx2: 60),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontSize2.Should().Be(60, "곡별 region2 크기가 전역(40)을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_Active_Region2Alignment_FallsBackToRegion1WhenNoOverride()
     {
         // region2 정렬 오버라이드가 없으면 Region2 정렬은 Region1 정렬을 추종한다(이중 언어 정렬 일관성).
