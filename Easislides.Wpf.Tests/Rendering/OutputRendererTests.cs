@@ -268,6 +268,40 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2Alignment_FallsBackToRegion1WhenNoOverride()
+    {
+        // region2 정렬 오버라이드가 없으면 Region2 정렬은 Region1 정렬을 추종한다(이중 언어 정렬 일관성).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideTextAlignment: LyricsTextAlignment.Left),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.LyricsMonitorTextAlignment2.Should().Be(LyricsTextAlignment.Left, "region2 정렬 미지정 → region1 정렬 추종");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Alignment_UsesOverrideWhenPresent()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideTextAlignment: LyricsTextAlignment.Left,
+                OverrideTextAlignment2: LyricsTextAlignment.Right),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.LyricsMonitorTextAlignment2.Should().Be(LyricsTextAlignment.Right, "region2 정렬 오버라이드 우선");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideAlignment()
     {
         // 라이브가 아니면 곡 정렬 오버라이드를 적용하지 않는다 — 운영 기본 정렬 유지.

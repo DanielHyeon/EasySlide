@@ -42,6 +42,8 @@ public sealed record LiveSessionSnapshot(
     int? OverrideBackgroundColorArgb = null,
     // 곡별 FormatData region1 가로 정렬(31). 있으면 운영 기본 정렬 대신 사용. 없으면 null.
     LyricsTextAlignment? OverrideTextAlignment = null,
+    // 곡별 FormatData region2 가로 정렬(32). 이중 언어 Region2 본문 정렬. 없으면 null → Region1 정렬 추종.
+    LyricsTextAlignment? OverrideTextAlignment2 = null,
     // 곡별 FormatData region1 폰트명(43). 있으면 운영/테마 기본 글꼴 대신 사용. 비었으면 null → 기본 글꼴 상속(무회귀).
     string? OverrideFontName = null,
     // 곡별 FormatData region1 폰트 크기(47). 레거시 pt 를 WPF px(DIP)로 변환해 싣는다. 없으면 null → 기본 크기 유지.
@@ -116,9 +118,10 @@ public sealed class LiveSessionService : ILiveSessionService
             // 이중 언어 Region2 글자색(30) — 있으면 Region2 본문에 적용(없으면 Region1 색 추종).
             OverrideTextColorArgb2: format?.TextColorArgb2,
             OverrideBackgroundColorArgb: format?.BackgroundColorArgb1,
-            // 곡별 가로 정렬(있으면) — 레거시 1=왼쪽/2=가운데/3=오른쪽. region1 한정
-            // (region2 정렬(32)은 현재 출력이 단일 정렬 모델이라 미적용 — 이중 언어 출력 도입 시 확장).
+            // 곡별 가로 정렬(있으면) — 레거시 1=왼쪽/2=가운데/3=오른쪽.
             OverrideTextAlignment: MapAlignment(format?.Alignment1),
+            // region2 정렬(32) — 이중 언어 Region2 본문에 적용(없으면 Region1 정렬 추종).
+            OverrideTextAlignment2: MapAlignment(format?.Alignment2),
             // 곡별 글꼴명(43)·크기(47, region1). 폰트명은 비면 null(테마 상속), 크기는 레거시 pt→px 변환.
             OverrideFontName: NormalizeFontName(format?.FontName1),
             OverrideFontSizePx: LegacyPointToPixel(format?.FontSize1),

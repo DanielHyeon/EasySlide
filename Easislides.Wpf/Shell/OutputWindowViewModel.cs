@@ -45,6 +45,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _bodyTextVisibility = Visibility.Collapsed;
     private TextAlignment _bodyTextAlignment = TextAlignment.Center;
+    // 이중 언어 Region2 본문 가로 정렬(곡별 region2 정렬 32) — 없으면 Region1 정렬 추종.
+    private TextAlignment _bodyText2Alignment = TextAlignment.Center;
     private HorizontalAlignment _bodyHorizontalAlignment = HorizontalAlignment.Center;
     private VerticalAlignment _bodyVerticalAlignment = VerticalAlignment.Center;
     private double _bodyFontSize = 48;
@@ -198,6 +200,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _sceneForegroundBrush2;
         private set => SetProperty(ref _sceneForegroundBrush2, value);
+    }
+
+    /// <summary>Region2 본문 줄 정렬(좌/중/우) — 곡별 region2 정렬(32) 또는 Region1 정렬 추종.</summary>
+    public TextAlignment BodyText2Alignment
+    {
+        get => _bodyText2Alignment;
+        private set => SetProperty(ref _bodyText2Alignment, value);
     }
 
     /// <summary>외곽선 가사 본문(OutlinedTextBlock) 표시 여부 — 본문 송출 중 + 외곽선 on 일 때만 Visible(§7.3-A).</summary>
@@ -554,6 +563,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyText = scene.BodyText;
         BodyText2 = scene.BodyText2;
         BodyText2Visibility = scene.ShowsBodyText2 ? Visibility.Visible : Visibility.Collapsed;
+        BodyText2Alignment = ToTextAlignment(scene.LyricsMonitorTextAlignment2);
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);

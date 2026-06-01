@@ -161,7 +161,9 @@ public sealed record OutputSceneSnapshot(
     // 이중 언어([region 2]) 곡의 Region2(보조 언어) 본문. 단일 영역 곡은 빈 문자열 → Region2 미표시(무회귀).
     string BodyText2 = "",
     // Region2 본문 글자색(ARGB). 곡별 FormatData region2 색(30)이 없으면 Region1 색을 추종.
-    int LyricsMonitorTextColor2Argb = -16777216)
+    int LyricsMonitorTextColor2Argb = -16777216,
+    // Region2 본문 가로 정렬. 곡별 region2 정렬(32)이 없으면 Region1 정렬을 추종. 기본 Center.
+    LyricsTextAlignment LyricsMonitorTextAlignment2 = LyricsTextAlignment.Center)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -249,6 +251,10 @@ public sealed class OutputRenderer : IOutputRenderer
         var textColor2Argb = isLive && request.Session.OverrideTextColorArgb2 is int songTextColor2
             ? songTextColor2
             : textColorArgb;
+        // Region2 정렬도 Live + 곡별 region2 정렬(32)이 있을 때만, 없으면 Region1 정렬(textAlignment) 추종.
+        var textAlignment2 = isLive && request.Session.OverrideTextAlignment2 is LyricsTextAlignment songAlign2
+            ? songAlign2
+            : textAlignment;
 
         return new OutputSceneSnapshot(
             kind,
@@ -292,9 +298,10 @@ public sealed class OutputRenderer : IOutputRenderer
             fontFamily,
             // 곡별 배경 이미지 경로(Live + 오버라이드 있을 때만). 비었으면 VM 이 색 배경을 유지(무회귀).
             backgroundImagePath,
-            // Region2(이중 언어) 본문·색 — Live + 이중 언어 곡일 때만 채워진다.
+            // Region2(이중 언어) 본문·색·정렬 — Live + 이중 언어 곡일 때만 채워진다.
             bodyText2,
-            textColor2Argb);
+            textColor2Argb,
+            textAlignment2);
     }
 
     private ImagePlacement GetContentPlacement(

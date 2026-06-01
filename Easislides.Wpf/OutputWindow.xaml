@@ -169,9 +169,9 @@
                                             MaxHeight="660"
                                             Visibility="{Binding BodyOutlineVisibility}" />
 
-                <!-- Region2(이중 언어 보조 언어) — 이중 언어 곡일 때만 Region1 아래에 표시. Region2 색(SceneForegroundBrush2). -->
+                <!-- Region2(이중 언어 보조 언어) — 이중 언어 곡일 때만 Region1 아래에 표시. Region2 색·정렬 독립(없으면 Region1 추종). -->
                 <TextBlock Text="{Binding BodyText2}"
-                           TextAlignment="{Binding BodyTextAlignment}"
+                           TextAlignment="{Binding BodyText2Alignment}"
                            TextWrapping="Wrap"
                            TextTrimming="CharacterEllipsis"
                            Margin="0,8,0,0"

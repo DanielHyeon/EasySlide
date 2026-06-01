@@ -331,6 +331,23 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_DualLanguage_CarriesRegion2Alignment()
+    {
+        // region2 정렬(32=3→오른쪽)이 스냅샷에 실린다 — 이중 언어 Region2 본문 정렬 독립.
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\nAmazing grace\n[region 2]\n놀라운 은혜",
+            FormatData = "31=1>32=3>", // region1=왼쪽, region2=오른쪽
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideTextAlignment.Should().Be(LyricsTextAlignment.Left, "31 = region1 정렬");
+        sut.Current.OverrideTextAlignment2.Should().Be(LyricsTextAlignment.Right, "32 = region2 정렬");
+    }
+
+    [Fact]
     public void GoLive_SingleLanguage_LeavesBodyText2Empty()
     {
         var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\nAmazing grace" };
