@@ -1855,6 +1855,57 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void FirstAndLastItemCommands_JumpToEndsOfQueue()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("song-1", "첫 곡");
+        var b = new LiveQueueItem("song-2", "가운데 곡");
+        var c = new LiveQueueItem("song-3", "끝 곡");
+        sut.LoadQueue(new[] { a, b, c });
+        sut.SelectedItem = b;
+
+        sut.LastItemCommand.Execute(null);
+        sut.SelectedItem.Should().Be(c, "마지막 항목으로 이동");
+
+        sut.FirstItemCommand.Execute(null);
+        sut.SelectedItem.Should().Be(a, "첫 항목으로 이동");
+    }
+
+    [Fact]
+    public void FirstAndLastItemCommands_CanExecute_ReflectsPosition()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("song-1", "첫 곡");
+        var b = new LiveQueueItem("song-2", "끝 곡");
+        sut.LoadQueue(new[] { a, b });
+
+        sut.SelectedItem = a; // 첫 항목 → 처음 비활성, 마지막 활성
+        sut.FirstItemCommand.CanExecute(null).Should().BeFalse("이미 첫 항목");
+        sut.LastItemCommand.CanExecute(null).Should().BeTrue();
+
+        sut.SelectedItem = b; // 마지막 항목 → 처음 활성, 마지막 비활성
+        sut.FirstItemCommand.CanExecute(null).Should().BeTrue();
+        sut.LastItemCommand.CanExecute(null).Should().BeFalse("이미 마지막 항목");
+    }
+
+    [Fact]
+    public async Task LastItemCommand_WhenLive_PublishesThatItem()
+    {
+        var sut = CreateSut();
+        var a = new LiveQueueItem("song-1", "입례 찬양");
+        var b = new LiveQueueItem("song-2", "축도 찬양");
+        sut.LoadQueue(new[] { a, b });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = a;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.LastItemCommand.Execute(null);
+
+        sut.SelectedItem.Should().Be(b);
+        sut.Session.Current.CurrentItemTitle.Should().Be("축도 찬양", "라이브 중이면 마지막 항목을 송출");
+    }
+
+    [Fact]
     public async Task BlackScreenCommand_WhenLive_AsksSafetyPromptBeforeChangingState()
     {
         var prompt = new RecordingSafetyPrompt(allow: false);

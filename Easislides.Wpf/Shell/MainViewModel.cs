@@ -408,6 +408,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
         NextItemCommand = new RelayCommand(NextItem, CanMoveNext);
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
+        FirstItemCommand = new RelayCommand(FirstItem, CanMovePrevious);
+        LastItemCommand = new RelayCommand(LastItem, CanMoveNext);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
         ClearOutputCommand = new AsyncRelayCommand(ClearOutputAsync, CanUseLiveSafetyAction);
@@ -489,6 +491,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
     public IRelayCommand PreviousItemCommand { get; }
+    /// <summary>예배 순서의 첫 항목으로 이동(레거시 First). 라이브 중이면 그 항목을 송출.</summary>
+    public IRelayCommand FirstItemCommand { get; }
+    /// <summary>예배 순서의 마지막 항목으로 이동(레거시 Last). 라이브 중이면 그 항목을 송출.</summary>
+    public IRelayCommand LastItemCommand { get; }
     public IAsyncRelayCommand HideOutputCommand { get; }
     public IAsyncRelayCommand BlackScreenCommand { get; }
     public IAsyncRelayCommand ClearOutputCommand { get; }
@@ -1641,6 +1647,38 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // 예배 순서의 첫 항목으로 이동(레거시 First). 이미 첫 항목이거나 큐가 비면 아무것도 안 한다. 라이브면 송출.
+    private void FirstItem()
+    {
+        if (!CanMovePrevious() || Queue.Count == 0)
+        {
+            return;
+        }
+
+        SelectedItem = Queue[0];
+        _telemetry.Record(MainCommandIds.LiveFirst, succeeded: true, SelectedItem!.Title);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishSelectedItem();
+        }
+    }
+
+    // 예배 순서의 마지막 항목으로 이동(레거시 Last). 이미 마지막이거나 큐가 비면 아무것도 안 한다. 라이브면 송출.
+    private void LastItem()
+    {
+        if (!CanMoveNext() || Queue.Count == 0)
+        {
+            return;
+        }
+
+        SelectedItem = Queue[Queue.Count - 1];
+        _telemetry.Record(MainCommandIds.LiveLast, succeeded: true, SelectedItem!.Title);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishSelectedItem();
+        }
+    }
+
     private bool CanUseLiveSafetyAction() => _session.Current.State is LiveState.Active or LiveState.Hidden;
 
     private async Task HideOutputAsync(bool blackout)
@@ -2476,6 +2514,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand.NotifyCanExecuteChanged();
         NextItemCommand.NotifyCanExecuteChanged();
         PreviousItemCommand.NotifyCanExecuteChanged();
+        FirstItemCommand.NotifyCanExecuteChanged();
+        LastItemCommand.NotifyCanExecuteChanged();
         HideOutputCommand.NotifyCanExecuteChanged();
         BlackScreenCommand.NotifyCanExecuteChanged();
         ClearOutputCommand.NotifyCanExecuteChanged();

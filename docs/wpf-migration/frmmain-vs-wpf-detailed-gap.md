@@ -117,7 +117,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Go Live (`GoLive`,`Start_Presentation`,`FrmLaunchShow`) | `GoLiveCommand` + OutputWindow | 🟢 |
 | Black (`LiveBlack`/F9) | `BlackScreenCommand` | 🟢 |
 | Clear/Hide text (`LiveClear`/F3) | `ClearOutputCommand`/`HideOutputCommand` | 🟢 |
-| Next/Prev/First/Last/Refresh (`MoveToItem` KeyDirection) | Next/Previous Item·Slide·LyricsPage | 🟢(First/Last 없음) |
+| Next/Prev/First/Last/Refresh (`MoveToItem` KeyDirection) | Next/Previous + First/Last Item·Slide·LyricsPage | 🟢 (2026-06-02 증분 37) First/Last 항목 이동 추가(처음/마지막 버튼·메뉴, 라이브면 송출) |
 | Restart Current Item (F5) | `RestartCurrentItemCommand` | 🟢 |
 | 절/슬라이드 라벨 점프(`PreviewBtnVerse_Click` 1~9·p·q·c·t·b·w·e) | — | 🔴 **절 라벨 직접 점프 없음**(순차 이전/다음만) |
 | Preview→Output 전송 분리(`btnToOutput`/`btnToOutputMoveNext`/`btnToLive`) | — | 🔴 **Preview/Output 2단 분리 없음**(단일 라이브) |

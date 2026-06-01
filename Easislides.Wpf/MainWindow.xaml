@@ -121,10 +121,12 @@
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.NoRotate}" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
+                <MenuItem Header="처음 항목" Command="{Binding FirstItemCommand}" />
                 <MenuItem Header="다음 항목" Command="{Binding NextItemCommand}" InputGestureText="Space">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="이전 항목" Command="{Binding PreviousItemCommand}" InputGestureText="Shift+Space" />
+                <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
                 <Separator />
                 <MenuItem Header="검은 화면" Command="{Binding BlackScreenCommand}" InputGestureText="F9">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" /></MenuItem.Icon>
@@ -1401,13 +1403,25 @@
                     <StackPanel Grid.Row="2"
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right">
+                        <Button Command="{Binding FirstItemCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Margin="0,0,8,0"
+                                Content="처음"
+                                ToolTip="예배 순서의 첫 항목으로"
+                                AutomationProperties.Name="처음 항목" />
                         <Button Command="{Binding PreviousItemCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Margin="0,0,8,0"
                                 Content="이전" />
                         <Button Command="{Binding NextItemCommand}"
                                 Style="{StaticResource EsButton.Primary}"
+                                Margin="0,0,8,0"
                                 Content="다음" />
+                        <Button Command="{Binding LastItemCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                Content="마지막"
+                                ToolTip="예배 순서의 마지막 항목으로"
+                                AutomationProperties.Name="마지막 항목" />
                     </StackPanel>
                 </Grid>
             </Border>
