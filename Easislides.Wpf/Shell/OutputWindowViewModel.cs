@@ -99,6 +99,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private ImageSource? _cachedGapLogoSource;
     // 곡별 배경 이미지(61) — 색 배경 위에 표시(이미지 우선). 없으면 색 배경만 보인다(무회귀).
     private ImageSource? _sceneBackgroundImageSource;
+    private Brush? _backgroundImageBrush;
     private Visibility _backgroundImageVisibility = Visibility.Collapsed;
     // 배경 이미지 캐시: 같은(해석된) 경로를 매번 다시 디코딩하지 않도록 보관.
     private string? _cachedBackgroundImagePath;
@@ -430,6 +431,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _sceneBackgroundImageSource, value);
     }
 
+    /// <summary>
+    /// 배경 이미지를 표시 모드(채움/맞춤/가운데/타일)에 맞춰 그리는 브러시. 이미지가 없으면 null(색 배경만 보임).
+    /// 출력 창의 배경 Rectangle.Fill 이 이 브러시를 쓴다 — 모드별 Stretch·TileMode 가 브러시에 담겨 있다.
+    /// </summary>
+    public Brush? BackgroundImageBrush
+    {
+        get => _backgroundImageBrush;
+        private set => SetProperty(ref _backgroundImageBrush, value);
+    }
+
     /// <summary>배경 이미지 표시 여부 — 곡별 배경 이미지가 로드됐을 때만 Visible(색 배경 위에 덮음).</summary>
     public Visibility BackgroundImageVisibility
     {
@@ -753,7 +764,55 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         var image = TryLoadBackgroundImage(scene.BackgroundImagePath);
         SceneBackgroundImageSource = image;
+        // 이미지가 있으면 표시 모드(채움/맞춤/가운데/타일)에 맞춘 브러시를 만들어 배경 Rectangle 이 칠한다.
+        BackgroundImageBrush = image is null ? null : BuildBackgroundImageBrush(image, scene.BackgroundMode);
         BackgroundImageVisibility = image is not null ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// 배경 이미지를 표시 모드에 맞춰 그리는 <see cref="ImageBrush"/> 를 만든다(레거시 Def_ImageMode 대응).
+    ///   - Fill: 화면 가득(비율 유지·가장자리 크롭) = UniformToFill. 기존 동작(무회귀).
+    ///   - Fit: 이미지 전체가 보이게(레터박스) = Uniform.
+    ///   - Center: 원본 크기로 가운데 = Stretch 없음.
+    ///   - Tile: 원본 크기로 바둑판 반복 = TileMode.Tile + 이미지 픽셀 크기 뷰포트.
+    /// 만든 브러시는 Freeze 해 렌더 스레드 공유·성능에 안전하게 한다.
+    /// </summary>
+    internal static ImageBrush BuildBackgroundImageBrush(ImageSource image, Settings.LyricsBackgroundMode mode)
+    {
+        var brush = new ImageBrush(image);
+        switch (mode)
+        {
+            case Settings.LyricsBackgroundMode.Fit:
+                brush.Stretch = Stretch.Uniform;
+                break;
+            case Settings.LyricsBackgroundMode.Center:
+                brush.Stretch = Stretch.None;
+                brush.AlignmentX = AlignmentX.Center;
+                brush.AlignmentY = AlignmentY.Center;
+                break;
+            case Settings.LyricsBackgroundMode.Tile:
+                // 원본 픽셀 크기로 바둑판 반복. 절대 단위 뷰포트(이미지 크기)에 TileMode.Tile.
+                // 비-96dpi 이미지에서도 픽셀 단위로 반복되도록 PixelWidth/Height 를 우선 쓴다(없으면 DIP).
+                brush.Stretch = Stretch.None;
+                brush.TileMode = TileMode.Tile;
+                brush.ViewportUnits = BrushMappingMode.Absolute;
+                var tileWidth = image is BitmapSource tileBmp ? tileBmp.PixelWidth : image.Width;
+                var tileHeight = image is BitmapSource tileBmp2 ? tileBmp2.PixelHeight : image.Height;
+                brush.Viewport = new Rect(0, 0, tileWidth, tileHeight);
+                brush.AlignmentX = AlignmentX.Left;
+                brush.AlignmentY = AlignmentY.Top;
+                break;
+            default: // Fill — 기존 동작(화면 가득, 가장자리 크롭).
+                brush.Stretch = Stretch.UniformToFill;
+                break;
+        }
+
+        if (brush.CanFreeze)
+        {
+            brush.Freeze();
+        }
+
+        return brush;
     }
 
     private ImageSource? TryLoadBackgroundImage(string backgroundImagePath)
@@ -1000,8 +1059,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowCopyright.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 다음 항목 표시 토글도 라이브 출력에 즉시 반영(Display Panel PrevNext).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowNextItem.Id, StringComparison.OrdinalIgnoreCase) ||
-                // 전역 배경 이미지 변경도 라이브 출력에 즉시 반영(FrmMain Images 탭).
+                // 전역 배경 이미지 경로·표시 모드 변경도 라이브 출력에 즉시 반영(FrmMain Images 탭 / Def_ImageMode).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundImagePath.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundMode.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 제목 헤딩 표시·정렬·첫화면만 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, StringComparison.OrdinalIgnoreCase) ||

@@ -72,6 +72,29 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Default_LyricsMonitorBackgroundMode_IsFill()
+    {
+        // 배경 표시 모드 기본값은 Fill(=기존 UniformToFill) — 끄면 기존 출력과 동일(무회귀).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorBackgroundMode).Should().Be(LyricsBackgroundMode.Fill);
+    }
+
+    [Fact]
+    public void Set_LyricsMonitorBackgroundMode_PersistsEnumToDiskAndReloads()
+    {
+        // 배경 표시 모드 토글의 디스크 round-trip 고정(GET/SET 스위치 케이스 검증).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorBackgroundMode, LyricsBackgroundMode.Tile).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorBackgroundMode).Should().Be(LyricsBackgroundMode.Tile);
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorBackgroundMode.Should().Be(LyricsBackgroundMode.Tile);
+    }
+
+    [Fact]
     public void Default_LyricsMonitorShowNotations_IsOff()
     {
         // 코드 표시 기본값은 off — 회중 화면은 예부터 코드를 숨겼고, 끄면 본문이 비트 동일(무회귀)이다.

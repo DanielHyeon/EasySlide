@@ -255,6 +255,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyBackgroundMode_PersistsAndUpdatesActiveAndMenuChecks()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.BackgroundModeIsFill.Should().BeTrue("기본은 채움");
+
+        sut.ApplyBackgroundModeCommand.Execute(LyricsBackgroundMode.Tile);
+
+        sut.ActiveBackgroundMode.Should().Be(LyricsBackgroundMode.Tile);
+        sut.BackgroundModeIsTile.Should().BeTrue();
+        sut.BackgroundModeIsFill.Should().BeFalse("이전 채움 체크 해제");
+        settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode).Should().Be(LyricsBackgroundMode.Tile);
+        sut.StatusText.Should().Contain("타일");
+    }
+
+    [Fact]
     public void ValidateWorshipList_WithMissingFile_ReportsProblemAndStatus()
     {
         // 예배 순서에 깨진 PPT 파일이 있으면 검증이 문제로 잡아내고 상태바에 알린다(예배 중 사고 예방).

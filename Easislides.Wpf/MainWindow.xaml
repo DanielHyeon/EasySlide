@@ -316,6 +316,28 @@
                               Click="SelectOutputBackgroundImage_Click" />
                     <MenuItem Header="배경 지우기"
                               Command="{Binding ClearOutputBackgroundImageCommand}" />
+                    <Separator />
+                    <!-- 배경 이미지 표시 모드(레거시 Def_ImageMode: Tile/Centre/BestFit). 기본 채움=UniformToFill. -->
+                    <MenuItem Header="표시 모드: 채움(가득)"
+                              IsCheckable="True"
+                              IsChecked="{Binding BackgroundModeIsFill}"
+                              Command="{Binding ApplyBackgroundModeCommand}"
+                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}" />
+                    <MenuItem Header="표시 모드: 맞춤(전체 보임)"
+                              IsCheckable="True"
+                              IsChecked="{Binding BackgroundModeIsFit}"
+                              Command="{Binding ApplyBackgroundModeCommand}"
+                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}" />
+                    <MenuItem Header="표시 모드: 가운데(원본 크기)"
+                              IsCheckable="True"
+                              IsChecked="{Binding BackgroundModeIsCenter}"
+                              Command="{Binding ApplyBackgroundModeCommand}"
+                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}" />
+                    <MenuItem Header="표시 모드: 타일(반복)"
+                              IsCheckable="True"
+                              IsChecked="{Binding BackgroundModeIsTile}"
+                              Command="{Binding ApplyBackgroundModeCommand}"
+                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}" />
                 </MenuItem>
                 <!-- 코드 조옮김(FrmMain Transpose Up/Down Semi-Tone, To Capo 0) — "코드 표시" on 일 때 송출 코드를 이동.
                      라이브 곡에 즉시 반영(재송출). 새 곡을 송출하면 원조로 초기화된다. -->

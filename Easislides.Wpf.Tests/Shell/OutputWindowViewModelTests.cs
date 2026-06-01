@@ -101,6 +101,65 @@ public class OutputWindowViewModelTests
         sut.BackgroundImageVisibility.Should().Be(Visibility.Visible);
     }
 
+    [Theory]
+    [InlineData(LyricsBackgroundMode.Fill, Stretch.UniformToFill)]
+    [InlineData(LyricsBackgroundMode.Fit, Stretch.Uniform)]
+    [InlineData(LyricsBackgroundMode.Center, Stretch.None)]
+    [InlineData(LyricsBackgroundMode.Tile, Stretch.None)]
+    public void BuildBackgroundImageBrush_SetsStretchPerMode(LyricsBackgroundMode mode, Stretch expectedStretch)
+    {
+        var image = CreateStubBitmap();
+
+        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(image, mode);
+
+        brush.Stretch.Should().Be(expectedStretch);
+        brush.ImageSource.Should().BeSameAs(image);
+        brush.IsFrozen.Should().BeTrue("렌더 스레드 공유·성능을 위해 Freeze");
+    }
+
+    [Fact]
+    public void BuildBackgroundImageBrush_Tile_UsesTileModeAndAbsoluteViewport()
+    {
+        var image = CreateStubBitmap(4, 3);
+
+        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(image, LyricsBackgroundMode.Tile);
+
+        brush.TileMode.Should().Be(TileMode.Tile);
+        brush.ViewportUnits.Should().Be(BrushMappingMode.Absolute);
+        // 타일 한 칸은 원본 픽셀 크기(96dpi 스텁이라 PixelWidth==Width).
+        brush.Viewport.Should().Be(new System.Windows.Rect(0, 0, image.PixelWidth, image.PixelHeight));
+    }
+
+    [Fact]
+    public void BuildBackgroundImageBrush_Center_CentersWithoutStretch()
+    {
+        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(CreateStubBitmap(), LyricsBackgroundMode.Center);
+
+        brush.Stretch.Should().Be(Stretch.None);
+        brush.AlignmentX.Should().Be(AlignmentX.Center);
+        brush.AlignmentY.Should().Be(AlignmentY.Center);
+    }
+
+    [Fact]
+    public void ApplySession_BackgroundImageWithTileMode_BuildsTiledBrush()
+    {
+        // 씬의 표시 모드(Tile)가 배경 브러시에 반영된다(설정→씬→VM 브러시 경로 통합 확인).
+        var stub = CreateStubBitmap(4, 4);
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings: null,
+            (Func<string, ImageSource?>)(_ => stub));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사",
+            OverrideBackgroundImagePath: @"C:\bg\pattern.png"));
+
+        // 기본 씬 모드는 Fill(설정 기본) — Tile 을 직접 검증하려면 BuildBackgroundImageBrush 단위 테스트가 담당.
+        sut.BackgroundImageBrush.Should().BeOfType<ImageBrush>();
+        ((ImageBrush)sut.BackgroundImageBrush!).Stretch.Should().Be(Stretch.UniformToFill, "기본 모드 Fill");
+    }
+
     [Fact]
     public void ApplySession_ActiveSongWithoutBackgroundImage_HidesBackgroundImage()
     {

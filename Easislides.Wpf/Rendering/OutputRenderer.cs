@@ -63,7 +63,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력에 다음 항목 표시(FrmMain Display Panel PrevNext). 기본 off.
     bool LyricsMonitorShowNextItem = false,
     // 출력 전역 배경 이미지 경로(FrmMain Images 탭). 비었으면 색 배경. 곡별 배경(61)이 우선.
-    string LyricsMonitorBackgroundImagePath = "")
+    string LyricsMonitorBackgroundImagePath = "",
+    // 출력 배경 이미지 표시 모드(FrmMain Def_ImageMode: Tile/Centre/BestFit). 기본 Fill=UniformToFill(무회귀).
+    LyricsBackgroundMode LyricsMonitorBackgroundMode = LyricsBackgroundMode.Fill)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -98,7 +100,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber),
             settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright),
             settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem),
-            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath));
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath),
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode));
     }
 }
 
@@ -169,6 +172,8 @@ public sealed record OutputSceneSnapshot(
     string LyricsMonitorFontFamily = "",
     // 출력 배경 이미지 경로(곡별 FormatData 61 오버라이드). 비었으면 색 배경 유지. VM 이 로드해 색 배경 위에 표시.
     string BackgroundImagePath = "",
+    // 출력 배경 이미지 표시 모드(채움/맞춤/가운데/타일). VM 이 이 값으로 ImageBrush 의 Stretch·TileMode 를 정한다.
+    LyricsBackgroundMode BackgroundMode = LyricsBackgroundMode.Fill,
     // 이중 언어([region 2]) 곡의 Region2(보조 언어) 본문. 단일 영역 곡은 빈 문자열 → Region2 미표시(무회귀).
     string BodyText2 = "",
     // Region2 본문 글자색(ARGB). 곡별 FormatData region2 색(30)이 없으면 Region1 색을 추종.
@@ -342,6 +347,8 @@ public sealed class OutputRenderer : IOutputRenderer
             fontFamily,
             // 곡별 배경 이미지 경로(Live + 오버라이드 있을 때만). 비었으면 VM 이 색 배경을 유지(무회귀).
             backgroundImagePath,
+            // 배경 이미지 표시 모드(설정값) — 이미지가 있을 때 VM 이 이 값으로 ImageBrush 를 만든다.
+            liveOutput.LyricsMonitorBackgroundMode,
             // Region2(이중 언어) 본문·색·정렬·글꼴 — Live + 이중 언어 곡일 때만 채워진다.
             bodyText2,
             textColor2Argb,

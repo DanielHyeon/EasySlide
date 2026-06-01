@@ -85,6 +85,16 @@ public enum LyricsVerticalAlignment
     Bottom = 2,
 }
 
+// 출력 배경 이미지 표시 모드(레거시 FrmMain Def_ImageMode/Ind_ImageMode: Tile/Centre/BestFit).
+// 기본 Fill = 기존 UniformToFill(화면 가득, 가장자리 크롭) 동작 보존(무회귀).
+public enum LyricsBackgroundMode
+{
+    Fill = 0,   // 화면을 가득 채우되 비율 유지(가장자리 크롭) — UniformToFill. 기존 동작.
+    Fit = 1,    // 이미지 전체가 보이도록 비율 유지(레터박스) — Uniform. 레거시 BestFit.
+    Center = 2, // 원본 크기로 화면 가운데 — Stretch 없음. 레거시 Centre.
+    Tile = 3,   // 원본 크기로 바둑판 반복 — TileMode=Tile. 레거시 Tile.
+}
+
 // 출력 장면 전환 모션 종류(FrmMain 전환 효과 중 구현분). 기본 Fade(기존 250ms 페이드 동작 보존).
 // Fade=불투명도, Slide*=방향 슬라이드, Zoom*=확대/축소, Spin=회전, Flip*=뒤집기 — 모두 단일 콘텐츠
 // 트랜스폼(Translate/Scale/Rotate) 기반이라 2-레이어 클립 엔진이 필요 없다.
@@ -200,6 +210,9 @@ public static class EasiSettingKeys
     // 출력 전역 배경 이미지 경로(FrmMain Images 탭 — 배경으로 적용). 비었으면 색 배경 유지(무회귀).
     // 곡별 FormatData 61(per-song) 배경이 있으면 그 곡 동안은 곡별 배경이 우선하고, 없으면 이 전역 배경을 쓴다.
     public static readonly SettingKey<string> LyricsMonitorBackgroundImagePath = new("liveOutput.lyricsMonitorBackgroundImagePath", "");
+    // 출력 배경 이미지 표시 모드(레거시 Def_ImageMode/Ind_ImageMode: Tile/Centre/BestFit). 기본 Fill=기존 UniformToFill(무회귀).
+    public static readonly SettingKey<LyricsBackgroundMode> LyricsMonitorBackgroundMode =
+        new("liveOutput.lyricsMonitorBackgroundMode", LyricsBackgroundMode.Fill);
     // 출력 제목 헤딩 표시(가사 위 상단 배너로 곡 제목, 인-셸 §7.3-A). 기본 off → 기존 동작(본문 송출 시 제목 숨김) 보존.
     public static readonly SettingKey<bool> LyricsMonitorShowTitleHeading = new("liveOutput.lyricsMonitorShowTitleHeading", false);
     // 출력 가사 외곽선(Outline Font) 효과(인-셸 §7.3-A 폰트 효과). 기본 off → 기존 출력 모양 보존.
@@ -274,8 +287,9 @@ public static class EasiSettingKeys
         LyricsMonitorUseFadeTransition,
         LyricsMonitorTransitionDurationMs,
         LyricsMonitorTransitionKind,
-        // 전역 배경 이미지 경로 — 변경 감지·라이브 반영을 위해 등록.
+        // 전역 배경 이미지 경로·표시 모드 — 변경 감지·라이브 반영을 위해 등록.
         LyricsMonitorBackgroundImagePath,
+        LyricsMonitorBackgroundMode,
         AutoRotateIntervalSeconds,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
@@ -382,6 +396,8 @@ public sealed record LiveOutputSettings
     public LyricsTransitionKind LyricsMonitorTransitionKind { get; init; } = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public string LyricsMonitorBackgroundImagePath { get; init; } = EasiSettingKeys.LyricsMonitorBackgroundImagePath.DefaultValue;
+
+    public LyricsBackgroundMode LyricsMonitorBackgroundMode { get; init; } = EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
 
     public bool LyricsMonitorShowTitleHeading { get; init; } = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
 
@@ -639,6 +655,12 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorTitleHeadingAlignment))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, "Title heading alignment value is not supported."));
+        }
+
+        // 배경 표시 모드도 잘못된 값(예: 정수 99)을 거른다(정렬 enum 과 일관).
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorBackgroundMode))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorBackgroundMode.Id, "Background image mode value is not supported."));
         }
 
         // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
@@ -1078,6 +1100,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<LyricsTextAlignment> alignmentKey => alignmentKey.Id,
                 SettingKey<LyricsVerticalAlignment> verticalAlignmentKey => verticalAlignmentKey.Id,
                 SettingKey<LyricsTransitionKind> transitionKindKey => transitionKindKey.Id,
+                SettingKey<LyricsBackgroundMode> backgroundModeKey => backgroundModeKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
                 SettingKey<double> doubleKey => doubleKey.Id,
@@ -1138,6 +1161,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTransitionDurationMs" => snapshot.LiveOutput.LyricsMonitorTransitionDurationMs,
             "liveOutput.lyricsMonitorTransitionKind" => snapshot.LiveOutput.LyricsMonitorTransitionKind,
             "liveOutput.lyricsMonitorBackgroundImagePath" => snapshot.LiveOutput.LyricsMonitorBackgroundImagePath,
+            "liveOutput.lyricsMonitorBackgroundMode" => snapshot.LiveOutput.LyricsMonitorBackgroundMode,
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
             "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
             "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot.LiveOutput.LyricsMonitorTitleHeadingAlignment,
@@ -1311,6 +1335,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBackgroundImagePath" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundImagePath = Cast<string>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBackgroundMode" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundMode = Cast<LyricsBackgroundMode>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot with
             {

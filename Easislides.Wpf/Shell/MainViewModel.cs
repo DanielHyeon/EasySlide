@@ -88,6 +88,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveLyricsVerticalAlignmentLabel))]
     private LyricsVerticalAlignment _activeLyricsVerticalAlignment = EasiSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
+    // 현재 적용된 배경 이미지 표시 모드(채움/맞춤/가운데/타일) — 메뉴 체크 표시에 쓰인다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundModeIsFill))]
+    [NotifyPropertyChangedFor(nameof(BackgroundModeIsFit))]
+    [NotifyPropertyChangedFor(nameof(BackgroundModeIsCenter))]
+    [NotifyPropertyChangedFor(nameof(BackgroundModeIsTile))]
+    private LyricsBackgroundMode _activeBackgroundMode = EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
     // 현재 적용된 가사 폰트 크기(px). +/- 커맨드 활성/비활성 판별에도 쓰인다.
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsFontSizeCommand))]
@@ -413,6 +420,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
+        ApplyBackgroundModeCommand = new RelayCommand<LyricsBackgroundMode>(ApplyBackgroundMode);
         IncreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(+LyricsFontSizeStep), () => ActiveLyricsFontSize < LyricsFontSizeMax);
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
         IncreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(+LyricsLineSpacingStep), () => ActiveLyricsLineSpacing < LyricsLineSpacingMax);
@@ -493,6 +501,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
     public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
+
+    /// <summary>배경 이미지 표시 모드(채움/맞춤/가운데/타일) 적용 — 설정→출력 VM 라이브 반영(레거시 Def_ImageMode).</summary>
+    public IRelayCommand<LyricsBackgroundMode> ApplyBackgroundModeCommand { get; }
+
+    public bool BackgroundModeIsFill => ActiveBackgroundMode == LyricsBackgroundMode.Fill;
+    public bool BackgroundModeIsFit => ActiveBackgroundMode == LyricsBackgroundMode.Fit;
+    public bool BackgroundModeIsCenter => ActiveBackgroundMode == LyricsBackgroundMode.Center;
+    public bool BackgroundModeIsTile => ActiveBackgroundMode == LyricsBackgroundMode.Tile;
     public IRelayCommand IncreaseLyricsFontSizeCommand { get; }
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
     public IRelayCommand IncreaseLyricsLineSpacingCommand { get; }
@@ -1985,6 +2001,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
     }
 
+    // 배경 이미지 표시 모드 적용 — 설정을 쓰면 출력 VM 이 SettingsChanged 로 배경 브러시를 다시 만들어 즉시 반영(레거시 Def_ImageMode).
+    private void ApplyBackgroundMode(LyricsBackgroundMode mode)
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundMode, mode);
+        ActiveBackgroundMode = mode;
+        StatusText = $"배경 표시 모드: {mode switch
+        {
+            LyricsBackgroundMode.Fit => "맞춤(전체 보임)",
+            LyricsBackgroundMode.Center => "가운데(원본 크기)",
+            LyricsBackgroundMode.Tile => "타일(반복)",
+            _ => "채움(가득)",
+        }}";
+    }
+
     // 인-셸 제목 헤딩 가로 정렬 적용 — 가사 정렬과 동일 경로(설정→출력 VM 라이브 반영, §7.3-A Heading Align).
     private void ApplyTitleHeadingAlignment(LyricsTextAlignment alignment)
     {
@@ -2341,6 +2371,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 가사 정렬(가로/세로)·폰트 크기 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
+        ActiveBackgroundMode = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
