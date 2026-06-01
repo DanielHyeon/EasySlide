@@ -61,6 +61,8 @@ public sealed record LiveOutputRenderSettings(
     bool ShowLyricsOutline = false,
     // 출력 제목 헤딩 가로 정렬(인-셸 §7.3-A Heading Align). 기본 Center.
     LyricsTextAlignment LyricsMonitorTitleHeadingAlignment = LyricsTextAlignment.Center,
+    // 제목 헤딩이 본문(Region1) 정렬을 따름(FrmMain Def_HeadAlign AsR1). 기본 off → 헤딩 전용 정렬 사용.
+    bool LyricsMonitorTitleHeadingFollowBody = false,
     // 제목 헤딩을 곡 첫 절(첫 화면)에만 표시(인-셸 §7.3-A Heading At First Screen Only). 기본 off.
     bool TitleHeadingFirstScreenOnly = false,
     // 출력에 곡 번호 표시(FrmMain Show Item Number, Display Panel). 기본 off → 기존 출력 무변화.
@@ -114,6 +116,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorOutline),
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
+            settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody),
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber),
             settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright),
@@ -409,7 +412,9 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.ShowLyricsPositionIndicator,
             liveOutput.ShowLyricsTitleHeading,
             liveOutput.ShowLyricsOutline,
-            liveOutput.LyricsMonitorTitleHeadingAlignment,
+            // 헤딩 정렬: "본문 정렬 따름"(FrmMain AsR1) on 이면 본문(Region1)이 실제 쓰는 정렬을 그대로 사용,
+            // off 면 헤딩 전용 정렬(L/C/R). 본문과 같은 resolved textAlignment 를 써서 곡별 override 까지 일치시킨다.
+            liveOutput.LyricsMonitorTitleHeadingFollowBody ? textAlignment : liveOutput.LyricsMonitorTitleHeadingAlignment,
             liveOutput.TitleHeadingFirstScreenOnly,
             // 현재 절 인덱스는 Live 일 때만 의미 있다(그 외엔 0=첫 화면 취급).
             kind == OutputSceneKind.Live ? request.Session.CurrentLyricsPageIndex : 0,

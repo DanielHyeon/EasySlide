@@ -190,6 +190,73 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_TitleHeadingFollowBody_UsesBodyAlignmentForHeading()
+    {
+        // FrmMain Def_HeadAlign AsR1 — 본문 정렬 따름 on 이면 헤딩이 본문(Region1) 정렬을 쓴다(헤딩 전용 정렬 무시).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Left,            // 본문은 왼쪽
+            LyricsMonitorTitleHeadingAlignment: LyricsTextAlignment.Right,   // 헤딩 전용은 오른쪽
+            LyricsMonitorTitleHeadingFollowBody: true);                       // 따름 on → 본문(왼쪽) 사용
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Left, "따름 on 이면 헤딩이 본문(왼쪽) 정렬을 사용");
+    }
+
+    [Fact]
+    public void CreateScene_TitleHeadingFollowBodyOff_UsesOwnHeadingAlignment()
+    {
+        // 기본(off) — 헤딩은 자기 전용 정렬(오른쪽)을 그대로 쓴다(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Left,
+            LyricsMonitorTitleHeadingAlignment: LyricsTextAlignment.Right,
+            LyricsMonitorTitleHeadingFollowBody: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Right, "따름 off 이면 헤딩 전용 정렬(오른쪽) 유지");
+    }
+
+    [Fact]
+    public void CreateScene_TitleHeadingFollowBody_FollowsPerSongOverrideAlignment()
+    {
+        // 가장 미묘한 경로 — 곡별 정렬(OverrideTextAlignment)이 있으면 본문은 그 곡 정렬을 쓰므로,
+        // 헤딩도 "본문 따름" on 일 때 전역 본문 설정이 아닌 그 곡의 정렬(가운데)을 따라야 한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Left,            // 전역 본문은 왼쪽
+            LyricsMonitorTitleHeadingAlignment: LyricsTextAlignment.Right,   // 헤딩 전용은 오른쪽
+            LyricsMonitorTitleHeadingFollowBody: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideTextAlignment: LyricsTextAlignment.Center),         // 곡별 정렬 = 가운데
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Center, "헤딩이 곡별 본문 정렬(가운데)을 따른다(전역 왼쪽 아님)");
+    }
+
+    [Fact]
     public void CreateScene_Active_WithSongOverrideColors_PrefersSongColorsOverSettings()
     {
         // 곡별 FormatData 색이 스냅샷에 실려 오면(OverrideTextColorArgb 등) 운영 기본색 대신

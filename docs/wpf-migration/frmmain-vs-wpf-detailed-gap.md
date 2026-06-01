@@ -74,7 +74,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🔴 단일 크기만 |
 | `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟡 곡별 FormatData 글꼴만(인스펙터 글꼴 선택기 없음) |
 | `Def_Head`/`Ind_Head` (NoTitles/All/FirstScreen) | 헤딩 표시 모드 | 🟡 제목 헤딩 on/off·첫화면만(Verse 헤딩 없음) |
-| `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟡 L/C/R만(AsR1/AsR2 없음) |
+| `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟡 L/C/R + **AsR1(본문 정렬 따름, 곡별 override 포함)** 구현. AsR2(Region2 추종)만 후속 |
 | `Def_VAlign`/`Ind_VAlign` (Top/Centre/Bottom) | 세로 정렬 | 🟢 있음 |
 | `Def_Shadow`/`Def_Outline` | 그림자/외곽선 | 🟢 있음 |
 | `Def_ToZero` | **To Capo 0**(조옮김 정규화) | 🔴 없음 |
