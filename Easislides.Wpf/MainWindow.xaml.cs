@@ -300,6 +300,27 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SelectOutputBackgroundImage_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "출력 배경으로 사용할 이미지 선택",
+            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            viewModel.SetOutputBackgroundImage(dialog.FileName);
+        }
+    }
+
     private void OpenManageWorshipLists_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel viewModel)

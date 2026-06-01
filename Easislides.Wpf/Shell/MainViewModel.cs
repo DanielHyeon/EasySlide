@@ -347,6 +347,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsNextItemCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowNextItem, ActiveLyricsNextItem));
         ToggleFadeTransitionCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorUseFadeTransition, ActiveFadeTransition));
         ApplyTransitionDurationCommand = new RelayCommand<int>(ApplyTransitionDuration);
+        ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
@@ -417,6 +418,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsNextItemCommand { get; }
     public IRelayCommand ToggleFadeTransitionCommand { get; }
     public IRelayCommand<int> ApplyTransitionDurationCommand { get; }
+    public IRelayCommand ClearOutputBackgroundImageCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -1922,6 +1924,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, next);
         ActiveTransitionDurationMs = next;
         StatusText = $"전환 길이: {next}ms";
+    }
+
+    // 전역 출력 배경 이미지 설정(FrmMain Images 탭 — 배경으로 적용). 코드-비하인드의 파일 선택 결과를 받아 저장.
+    // 라이브 출력 VM 이 설정 변경을 즉시 반영해 색 배경 위에 이미지를 깐다(곡별 배경 61 이 있으면 그 곡은 우선).
+    public void SetOutputBackgroundImage(string imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, imagePath);
+        StatusText = $"출력 배경 이미지: {System.IO.Path.GetFileName(imagePath)}";
+    }
+
+    // 전역 출력 배경 이미지 해제 → 색 배경으로 복귀.
+    private void ClearOutputBackgroundImage()
+    {
+        _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, string.Empty);
+        StatusText = "출력 배경 이미지 해제";
     }
 
     // 인-셸 가사 폰트 크기 조절(+/- 단계) — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).

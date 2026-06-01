@@ -115,6 +115,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsMonitorBackgroundImagePath_PersistsToDiskAndReloads()
+    {
+        // 전역 출력 배경 이미지 경로(string)의 디스크 round-trip 고정(GET/SET 스위치 검증, FrmMain Images 탭).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, @"C:\bg\global.png").Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath).Should().Be(@"C:\bg\global.png");
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorBackgroundImagePath.Should().Be(@"C:\bg\global.png");
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();

@@ -170,6 +170,13 @@
                         </MenuItem.CommandParameter>
                     </MenuItem>
                 </MenuItem>
+                <!-- 배경 이미지(FrmMain Images 탭 — 배경 적용). 선택은 파일 대화상자(코드-비하인드), 해제는 커맨드. -->
+                <MenuItem Header="배경 이미지">
+                    <MenuItem Header="이미지 선택..."
+                              Click="SelectOutputBackgroundImage_Click" />
+                    <MenuItem Header="배경 지우기"
+                              Command="{Binding ClearOutputBackgroundImageCommand}" />
+                </MenuItem>
                 <Separator />
                 <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
                 <MenuItem Header="가사 정렬">

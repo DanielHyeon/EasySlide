@@ -534,6 +534,61 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_GlobalBackgroundImage_AppliedWhenNoSongOverride()
+    {
+        // 전역 배경 이미지(Images 탭 설정)가 있고 곡별 배경(61)이 없으면 전역 배경을 씬에 싣는다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBackgroundImagePath: @"C:\bg\global.png");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.BackgroundImagePath.Should().Be(@"C:\bg\global.png", "곡별 배경이 없으면 전역 배경을 적용");
+    }
+
+    [Fact]
+    public void CreateScene_Active_SongBackgroundImage_WinsOverGlobal()
+    {
+        // 곡별 배경(61)이 있으면 전역 배경보다 우선한다(그 곡 동안만).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBackgroundImagePath: @"C:\bg\global.png");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideBackgroundImagePath: @"C:\bg\song.jpg"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.BackgroundImagePath.Should().Be(@"C:\bg\song.jpg", "곡별 배경이 전역 배경을 이긴다");
+    }
+
+    [Fact]
+    public void CreateScene_NotLive_GlobalBackgroundImage_NotApplied()
+    {
+        // Live 가 아니면 전역 배경도 적용하지 않는다(대기/숨김 화면은 색 배경, 무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBackgroundImagePath: @"C:\bg\global.png");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.BackgroundImagePath.Should().BeEmpty("Live 가 아니면 전역 배경 미적용");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongBackgroundImage()
     {
         // 라이브가 아니면 배경 이미지 오버라이드를 적용하지 않는다 — 색 배경 유지.

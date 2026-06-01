@@ -60,7 +60,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력에 저작권 표시(FrmMain Show Copyright Information, Display Panel). 기본 off.
     bool LyricsMonitorShowCopyright = false,
     // 출력에 다음 항목 표시(FrmMain Display Panel PrevNext). 기본 off.
-    bool LyricsMonitorShowNextItem = false)
+    bool LyricsMonitorShowNextItem = false,
+    // 출력 전역 배경 이미지 경로(FrmMain Images 탭). 비었으면 색 배경. 곡별 배경(61)이 우선.
+    string LyricsMonitorBackgroundImagePath = "")
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -95,7 +97,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber),
             settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright),
-            settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem));
+            settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem),
+            settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath));
     }
 }
 
@@ -275,10 +278,13 @@ public sealed class OutputRenderer : IOutputRenderer
         var fontFamily = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName)
             ? request.Session.OverrideFontName!
             : "";
-        // 곡별 배경 이미지(있으면)도 Live 일 때만 적용. 비었으면 빈 문자열 → VM 이 색 배경을 유지(무회귀).
-        var backgroundImagePath = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
-            ? request.Session.OverrideBackgroundImagePath!
-            : "";
+        // 배경 이미지(Live 일 때만): 곡별 배경(FormatData 61)이 있으면 그 곡 동안 우선,
+        // 없으면 전역 배경 이미지(Images 탭 설정)를 쓴다. 둘 다 없으면 빈 문자열 → 색 배경 유지(무회귀).
+        var backgroundImagePath = !isLive
+            ? ""
+            : !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
+                ? request.Session.OverrideBackgroundImagePath!
+                : liveOutput.LyricsMonitorBackgroundImagePath;
         // Region2(이중 언어) 본문은 Live 일 때만 싣는다. Region2 색은 곡별 region2 색(30)이 있으면 그것, 없으면 Region1 색을 추종.
         var bodyText2 = isLive ? request.Session.CurrentItemBodyText2 : string.Empty;
         var textColor2Argb = isLive && request.Session.OverrideTextColorArgb2 is int songTextColor2
