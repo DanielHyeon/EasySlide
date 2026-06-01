@@ -176,6 +176,61 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ValidateWorshipList_WithMissingFile_ReportsProblemAndStatus()
+    {
+        // 예배 순서에 깨진 PPT 파일이 있으면 검증이 문제로 잡아내고 상태바에 알린다(예배 중 사고 예방).
+        var validator = new WorshipListValidator(_ => false); // 모든 파일이 없다고 가정.
+        var sut = CreateSut(worshipValidator: validator);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "정상 곡", LiveItemKinds.Song),
+            new LiveQueueItem("ppt:a", "찬양 PPT", LiveItemKinds.PowerPoint) { ContentPath = @"C:\gone.pptx" },
+        });
+
+        sut.ValidateWorshipListCommand.Execute(null);
+
+        sut.WorshipListProblems.Should().ContainSingle()
+            .Which.Kind.Should().Be(WorshipItemProblemKind.FileNotFound);
+        sut.StatusText.Should().Contain("문제 1건").And.Contain("찬양 PPT");
+        sut.HasWorshipListProblems.Should().BeTrue("경고 패널 표시");
+    }
+
+    [Fact]
+    public void ValidateWorshipList_AllValid_ReportsAllGood()
+    {
+        var validator = new WorshipListValidator(_ => true);
+        var sut = CreateSut(worshipValidator: validator);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "곡", LiveItemKinds.Song),
+            new LiveQueueItem("ppt:a", "PPT", LiveItemKinds.PowerPoint) { ContentPath = @"C:\ok.pptx" },
+        });
+
+        sut.ValidateWorshipListCommand.Execute(null);
+
+        sut.WorshipListProblems.Should().BeEmpty();
+        sut.StatusText.Should().Contain("모든 항목 정상");
+        sut.HasWorshipListProblems.Should().BeFalse("문제 없으면 경고 패널 숨김");
+    }
+
+    [Fact]
+    public void ValidateWorshipList_RerunClearsPreviousProblems()
+    {
+        // 두 번째 검증이 깨끗하면 이전 문제 목록을 비워 누적되지 않는다.
+        var sut = CreateSut(worshipValidator: new WorshipListValidator(_ => false));
+        sut.LoadQueue(new[] { new LiveQueueItem("ppt:a", "PPT", LiveItemKinds.PowerPoint) { ContentPath = @"C:\gone.pptx" } });
+        sut.ValidateWorshipListCommand.Execute(null);
+        sut.WorshipListProblems.Should().ContainSingle();
+
+        // 큐를 정상 항목만으로 바꾸고 다시 검증 → 문제 목록이 비워진다.
+        sut.LoadQueue(new[] { new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) });
+        sut.ValidateWorshipListCommand.Execute(null);
+
+        sut.WorshipListProblems.Should().BeEmpty();
+        sut.HasWorshipListProblems.Should().BeFalse("재검증이 깨끗하면 경고도 사라진다");
+    }
+
+    [Fact]
     public void ToggleShowNotations_WhenNotLive_DoesNothing()
     {
         // 라이브가 아니면 재송출할 곡이 없어 설정만 바뀌고 세션은 Off 그대로다(안전).
@@ -3236,7 +3291,8 @@ public class MainViewModelTests
         PowerPointPreviewViewModel? powerPoint = null,
         IAppearanceTemplateStore? appearanceTemplates = null,
         IAdminSongDetailRepository? songDetail = null,
-        IRecentWorshipLists? recentWorshipLists = null)
+        IRecentWorshipLists? recentWorshipLists = null,
+        WorshipListValidator? worshipValidator = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -3264,7 +3320,8 @@ public class MainViewModelTests
             worshipLists ?? new InMemoryWorshipListStore(),
             appearanceTemplates ?? new InMemoryAppearanceTemplateStore(),
             songDetail ?? new AdminDatabaseRepository(),
-            recentWorshipLists ?? new InMemoryRecentWorshipLists());
+            recentWorshipLists ?? new InMemoryRecentWorshipLists(),
+            worshipValidator);
     }
 
     // 최근 예배 순서 — 파일시스템 없이 인메모리로 검증.

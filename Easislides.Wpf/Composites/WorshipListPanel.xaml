@@ -3,6 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
     <!--
         WorshipListPanel — 계획서 §5.2 재사용 컴포지트(예배 순서 목록 패널).
         FrmMain 좌측 예배 순서 카드(제목 + 송출 큐 ListBox). 라이브 송출 경로의 일부이므로
@@ -49,7 +53,46 @@
                         AutomationProperties.Name="항목 제거">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
+                <Button Command="{Binding ValidateWorshipListCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일을 점검"
+                        AutomationProperties.Name="예배 순서 검증"
+                        Margin="8,0,0,0">
+                    <ui:SymbolIcon Symbol="CheckmarkCircle24" />
+                </Button>
             </StackPanel>
+
+            <!--
+                예배 순서 검증 경고 — 문제(깨진 PPT·미디어 파일)가 있을 때만 보인다(HasWorshipListProblems).
+                StatusText 요약과 달리 전체 문제 항목을 한눈에 보여 운영자가 어느 항목이 깨졌는지 모두 확인하게 한다.
+            -->
+            <Border DockPanel.Dock="Bottom"
+                    Margin="0,12,0,0"
+                    Padding="10,8"
+                    CornerRadius="{StaticResource CornerRadius.Medium}"
+                    Background="{DynamicResource Brush.Surface.Card}"
+                    BorderBrush="{DynamicResource Brush.Live.Active}"
+                    BorderThickness="1"
+                    Visibility="{Binding HasWorshipListProblems, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="{Binding WorshipListProblems.Count, StringFormat='⚠ 검증 문제 {0}건'}"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Live.Active}"
+                               Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding WorshipListProblems}"
+                                  AutomationProperties.Name="예배 순서 검증 문제 목록">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Message}"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                           Margin="0,1,0,1" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
 
             <!--
                 예배 순서 목록 — 버튼(↑/↓) 외에 드래그-드롭으로도 재정렬(§7.5 P1).

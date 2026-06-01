@@ -373,6 +373,13 @@
                 <MenuItem Header="세션 메모..." Click="OpenSessionNotes_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionEdit}" /></MenuItem.Icon>
                 </MenuItem>
+                <Separator />
+                <!-- 예배 순서 검증 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems). -->
+                <MenuItem Header="예배 순서 검증"
+                          Command="{Binding ValidateWorshipListCommand}"
+                          ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일이 없는지 점검합니다.">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.StatusCheck}" /></MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="도움말">

@@ -168,7 +168,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 드래그 소스 다양(곡/Info/PPT/미디어/이미지→배경/성경구절) | 큐 내부 재정렬 | 🟡 외부 소스 드래그 제한 |
 | 자동 회전(One/One-Repeat/Group/Group-Repeat 4종 + Rotate Style) | `ToggleAutoRotate`(단일 간격) | 🟡 4종 세분 없음 |
 | Gap Item 처리 | GapItem 렌더 | 🟡 조작 UI 약함 |
-| 항목 검증(`ValidateWorshipListItems`: DB존재/PPT설치/삭제됨) | — | 🔴 |
+| 항목 검증(`ValidateWorshipListItems`: DB존재/PPT설치/삭제됨) | `WorshipListValidator`+도구 메뉴 "예배 순서 검증"+좌측 경고 패널 | 🟡 (2026-06-01 증분 29) — **파일 차원**(깨진/이동·삭제된 PPT·미디어 파일 감지) 구현. 곡 DB 존재 검증은 후속(비동기·DB 의존) |
 | .esw 저장/로드 + **legacy v3.2**(`Load32WorshipList`) | Save/Load(.esw 신규) | 🟡 v3.2 미지원 |
 | 세션 노트 편집 | — | 🔴 |
 

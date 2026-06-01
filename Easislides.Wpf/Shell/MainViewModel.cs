@@ -29,6 +29,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ISettingsService _settings;
     private readonly IWorshipListStore _worshipLists;
     private readonly IRecentWorshipLists _recentWorshipLists;
+    // 예배 순서 검증기 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems).
+    private readonly WorshipListValidator _worshipValidator;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
     // 좌측 "검색" 탭의 교차 검색 결과를 큐에 추가할 때, 결과(SongSearchResult)엔 가사가 없어 SongId 로 곡 상세(가사)를 불러온다.
     private readonly Data.IAdminSongDetailRepository _songDetail;
@@ -38,6 +40,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
+    // 예배 순서 검증에서 문제가 하나라도 있으면 true — 좌측 패널의 경고 목록 표시 여부에 쓰인다.
+    [ObservableProperty] private bool _hasWorshipListProblems;
 
     // 좌측 "검색" 탭에서 선택한 교차 검색 결과(폴더 가로지름). "예배 순서에 추가" 활성 여부를 좌우한다.
     [ObservableProperty]
@@ -351,7 +355,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IWorshipListStore worshipLists,
         IAppearanceTemplateStore appearanceTemplates,
         Data.IAdminSongDetailRepository songDetail,
-        IRecentWorshipLists recentWorshipLists)
+        IRecentWorshipLists recentWorshipLists,
+        WorshipListValidator? worshipValidator = null)
     {
         _session = session;
         _output = output;
@@ -364,6 +369,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _appearanceTemplates = appearanceTemplates;
         _songDetail = songDetail;
         _recentWorshipLists = recentWorshipLists;
+        // 예배 순서 검증기 — 기본은 실제 파일 존재(File.Exists). 테스트는 가짜 판정을 주입해 디스크 없이 검증.
+        _worshipValidator = worshipValidator ?? new WorshipListValidator();
         Media = media;
         Library = library;
         Bible = bible;
@@ -418,6 +425,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyTransitionKindCommand = new RelayCommand<LyricsTransitionKind>(ApplyTransitionKind);
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
         OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
+        ValidateWorshipListCommand = new RelayCommand(ValidateWorshipList);
         RefreshRecentWorshipLists();
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
@@ -495,6 +503,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>최근 연/저장한 예배 순서 이름(최신순) — 파일 메뉴 "최근 예배 순서" 서브메뉴 바인딩(레거시 Recent Edits).</summary>
     public ObservableCollection<string> RecentWorshipLists { get; } = new();
+
+    /// <summary>예배 순서 검증으로 발견한 문제 목록(없으면 비어 있음) — 도구 메뉴 "예배 순서 검증" 결과.</summary>
+    public ObservableCollection<WorshipItemProblem> WorshipListProblems { get; } = new();
+
+    /// <summary>예배 순서 검증을 실행한다(라이브 송출 전 깨진 PPT·미디어 파일 점검, 레거시 ValidateWorshipListItems).</summary>
+    public IRelayCommand ValidateWorshipListCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -868,6 +882,46 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             RecentWorshipLists.Add(name);
         }
+    }
+
+    /// <summary>
+    /// 예배 순서를 검증해 깨진 PPT·미디어 파일을 찾는다(레거시 ValidateWorshipListItems — 예배 중 사고 예방).
+    /// 결과를 WorshipListProblems 에 채우고 StatusText 로 요약한다. 문제 없으면 "모든 항목 정상".
+    /// </summary>
+    public void ValidateWorshipList()
+    {
+        var problems = _worshipValidator.Validate(Queue);
+        WorshipListProblems.Clear();
+        foreach (var problem in problems)
+        {
+            WorshipListProblems.Add(problem);
+        }
+
+        HasWorshipListProblems = problems.Count > 0;
+
+        if (problems.Count == 0)
+        {
+            StatusText = Queue.Count == 0
+                ? "예배 순서가 비어 있습니다."
+                : $"예배 순서 검증: 모든 항목 정상 ({Queue.Count}개).";
+        }
+        else
+        {
+            // 문제 항목 제목을 앞에서 몇 개만 요약(많으면 "외 N건")해 운영자가 바로 알아보게 한다.
+            var titles = problems.Take(3).Select(p => p.Message);
+            var summary = string.Join(" · ", titles);
+            if (problems.Count > 3)
+            {
+                summary += $" 외 {problems.Count - 3}건";
+            }
+
+            StatusText = $"예배 순서 검증: 문제 {problems.Count}건 — {summary}";
+        }
+
+        // 텔레메트리의 succeeded 는 "검증 명령이 정상 수행됨"을 뜻한다(문제를 찾는 것도 검증의 정상 동작이므로
+        // 문제 발견 = 실패가 아니다). 발견한 문제 수는 StatusText 메시지에 담긴다.
+        _telemetry.Record(MainCommandIds.WorshipListValidate, succeeded: true, StatusText);
+        NotifyCommandStates();
     }
 
     // 최근 예배 순서 메뉴 항목 클릭 → 해당 이름으로 다시 불러온다.
@@ -2305,21 +2359,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return false;
     }
 
+    // 종류 판별은 공용 매처(LiveItemKindMatcher)에 위임 — 별칭 목록을 한 곳에서 관리(예배 순서 검증과 동일 어휘).
     private static bool IsPowerPointItem(LiveQueueItem item)
-        => string.Equals(item.Kind, "P", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "PPT", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, LiveItemKinds.PowerPoint, StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "Presentation", StringComparison.OrdinalIgnoreCase);
+        => LiveItemKindMatcher.IsPowerPoint(item.Kind);
 
-    // 미디어 항목 판별 — LiveItemKinds.Media + 레거시/별칭(M/Video/Audio/LiveCamera 등). OutputRenderer.IsMediaKind 와 동일 어휘.
     private static bool IsMediaItem(LiveQueueItem item)
-        => string.Equals(item.Kind, "M", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, LiveItemKinds.Media, StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "Video", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "Audio", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "LiveCamera", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "Live Camera", StringComparison.OrdinalIgnoreCase) ||
-           string.Equals(item.Kind, "CaptureDevice", StringComparison.OrdinalIgnoreCase);
+        => LiveItemKindMatcher.IsMedia(item.Kind);
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {
