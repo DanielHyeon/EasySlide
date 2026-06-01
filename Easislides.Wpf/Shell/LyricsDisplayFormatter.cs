@@ -5,6 +5,12 @@ using System.Text;
 namespace Easislides.Wpf.Shell;
 
 /// <summary>
+/// 이중 언어 절 페이지 — Region1(주 언어)·Region2(보조 언어) 한 쌍.
+/// 가사에 <c>[region 2]</c> 마커가 없으면 Region2 는 빈 문자열(단일 영역).
+/// </summary>
+public sealed record LyricsRegionPage(string Region1, string Region2);
+
+/// <summary>
 /// 저장된 "원시 가사"(EasiSlides 작성용 마크업 포함)를 송출 화면에 보일 "표시용 텍스트"로 바꾼다.
 /// 회중 화면에는 작성용 마커가 보이면 안 되므로 다음을 제거/정리한다:
 ///   - 맨 앞 코드(노테이션) 블록 <c>[~ ... ]</c> (ImportExportService 가 저장 시 쓰는 형식과 동일)
@@ -112,6 +118,106 @@ public static class LyricsDisplayFormatter
     /// </summary>
     public static string GetVersePage(string? rawLyrics, int pageIndex)
         => GetVersePage(rawLyrics, pageIndex, sequence: null);
+
+    /// <summary>
+    /// 이중 언어(Region 1/2) 절 페이지 — 절 안에서 <c>[region 2]</c> 마커 앞은 Region1, 뒤는 Region2.
+    /// 같은 페이지에 두 영역이 짝지어져 한 화면에 동시 송출(레거시 이중 언어/병렬 본문 대응)된다.
+    /// <c>[region 2]</c> 가 없으면 Region2 는 빈 문자열이고 Region1 은 <see cref="ToVersePages(string?)"/> 와 동일하다(단일 영역 무회귀).
+    /// </summary>
+    public static IReadOnlyList<LyricsRegionPage> GetRegionPages(string? rawLyrics)
+    {
+        if (string.IsNullOrWhiteSpace(rawLyrics))
+        {
+            return Array.Empty<LyricsRegionPage>();
+        }
+
+        // ToDisplayText 1~2단계와 동일: 정규화 + 맨 앞 [~...] 노테이션 블록 제거.
+        var text = NormalizeText(rawLyrics);
+        var leading = text.TrimStart('\n', ' ', '\t');
+        if (leading.StartsWith("[~", StringComparison.Ordinal))
+        {
+            var end = leading.IndexOf(']');
+            if (end > 1)
+            {
+                text = leading[(end + 1)..];
+            }
+        }
+
+        var pages = new List<LyricsRegionPage>();
+        var region1 = new StringBuilder();
+        var region2 = new StringBuilder();
+        var currentRegion = 1; // 절 시작 시 항상 region1.
+        var inVerse = false;
+
+        void Flush()
+        {
+            if (inVerse && (region1.Length > 0 || region2.Length > 0))
+            {
+                pages.Add(new LyricsRegionPage(region1.ToString(), region2.ToString()));
+            }
+
+            region1.Clear();
+            region2.Clear();
+            currentRegion = 1;
+            inVerse = false;
+        }
+
+        foreach (var rawLine in text.Split('\n'))
+        {
+            var line = StripInlineNotation(rawLine).TrimEnd();
+
+            // [region 2]·[region 1] 영역 전환 마커 — 절 경계가 아니며(같은 절 안), 본문에 안 보인다.
+            if (IsRegionMarker(line, 2))
+            {
+                currentRegion = 2;
+                continue;
+            }
+
+            if (IsRegionMarker(line, 1))
+            {
+                currentRegion = 1;
+                continue;
+            }
+
+            // 절 라벨([1],[C] 등) = 절 경계(다음 절은 다시 region1 부터).
+            if (SectionLabel(line) is not null)
+            {
+                Flush();
+                continue;
+            }
+
+            // [~..] 노테이션·빈 줄 = 절 경계(라벨 없는 절 구분).
+            if (IsMarkerOnlyLine(line) || string.IsNullOrWhiteSpace(line))
+            {
+                Flush();
+                continue;
+            }
+
+            inVerse = true;
+            var target = currentRegion == 2 ? region2 : region1;
+            if (target.Length > 0)
+            {
+                target.Append('\n');
+            }
+
+            target.Append(line);
+        }
+
+        Flush();
+        return pages;
+    }
+
+    // 줄이 [region N] 영역 전환 마커인지(대소문자·공백 무시: "[region 2]"·"[Region2]" 모두 인식).
+    private static bool IsRegionMarker(string line, int regionNumber)
+    {
+        if (!IsMarkerOnlyLine(line))
+        {
+            return false;
+        }
+
+        var inner = line.Trim()[1..^1].Trim().ToLowerInvariant().Replace(" ", "", StringComparison.Ordinal);
+        return inner == $"region{regionNumber}";
+    }
 
     /// <summary>
     /// 절 페이지마다의 라벨을 <see cref="ToVersePages(string?,string?)"/> 와 1:1 정렬되게 반환한다(절 라벨 직접 점프용).

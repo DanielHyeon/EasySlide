@@ -1,3 +1,4 @@
+using System.Linq;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -213,6 +214,79 @@ public class LyricsDisplayFormatterTests
         // '»' 뒤 코드는 송출용으로 잘리고, CRLF 는 \n 으로 정규화돼 절 경계가 정확히 잡힌다.
         pages.Should().Equal("Verse one", "Chorus");
     }
+
+    // ─── GetRegionPages(이중 언어 Region 1/2 — [region 2] 마커로 영역 분리) ──────────────────
+
+    [Fact]
+    public void GetRegionPages_SplitsRegion2WithinVerse()
+    {
+        // 절 안에서 [region 2] 마커 앞은 region1, 뒤는 region2 — 같은 페이지의 두 영역(이중 언어 동시 송출).
+        var lyrics = "[1]\nR1 line\n[region 2]\nR2 line\n[2]\nVerse2 only";
+
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
+
+        pages.Should().HaveCount(2);
+        pages[0].Region1.Should().Be("R1 line");
+        pages[0].Region2.Should().Be("R2 line");
+        pages[1].Region1.Should().Be("Verse2 only");
+        pages[1].Region2.Should().BeEmpty("region2 마커가 없는 절은 region2 비어 있음");
+    }
+
+    [Fact]
+    public void GetRegionPages_NoRegion2Marker_Region1MatchesToVersePages()
+    {
+        // [region 2] 마커가 없으면 region1 은 기존 ToVersePages 와 정확히 같고 region2 는 모두 빈 문자열(단일 영역 무회귀).
+        var lyrics = "[1]\nFirst\nSecond\n[2]\nThird";
+
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
+
+        pages.Select(p => p.Region1).Should().Equal(LyricsDisplayFormatter.ToVersePages(lyrics));
+        pages.Should().OnlyContain(p => p.Region2 == string.Empty);
+    }
+
+    [Fact]
+    public void GetRegionPages_Region1MarkerSwitchesBack()
+    {
+        // [region 1] 마커는 다시 region1 로 전환 — 같은 절에서 R1·R2·R1 순서도 정확히 배정.
+        var lyrics = "[1]\nA\n[region 2]\nB\n[region 1]\nC";
+
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
+
+        pages.Should().ContainSingle();
+        pages[0].Region1.Should().Be("A\nC");
+        pages[0].Region2.Should().Be("B");
+    }
+
+    [Fact]
+    public void GetRegionPages_MultilineRegions_PreservedPerRegion()
+    {
+        var lyrics = "[1]\nR1a\nR1b\n[region 2]\nR2a\nR2b";
+
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
+
+        pages.Should().ContainSingle();
+        pages[0].Region1.Should().Be("R1a\nR1b");
+        pages[0].Region2.Should().Be("R2a\nR2b");
+    }
+
+    [Theory]
+    [InlineData("[1]\nA\n[Region 2]\nB")]   // 대문자
+    [InlineData("[1]\nA\n[region2]\nB")]    // 공백 없음
+    public void GetRegionPages_RegionMarker_CaseAndSpacingInsensitive(string lyrics)
+    {
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
+
+        pages.Should().ContainSingle();
+        pages[0].Region1.Should().Be("A");
+        pages[0].Region2.Should().Be("B");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void GetRegionPages_Empty_ReturnsEmpty(string? lyrics)
+        => LyricsDisplayFormatter.GetRegionPages(lyrics).Should().BeEmpty();
 
     // ─── GetSectionLabels(절 라벨 점프용 — 페이지별 라벨, ToVersePages 와 정렬) ───────────────
 
