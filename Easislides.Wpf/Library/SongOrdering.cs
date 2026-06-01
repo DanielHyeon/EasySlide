@@ -18,6 +18,13 @@ public enum LibrarySortMode
 
     /// <summary>곡 번호 오름차순(같은 번호는 제목 순). 번호 0(없음)은 뒤로.</summary>
     Number = 2,
+
+    /// <summary>
+    /// 획수(CJK 한자) 정렬 — 한자를 획수 순으로 묶는다(一·人·三·… 적은 획부터). 번체 중국어(zh-Hant) 콜레이션이
+    /// 획수 기반이라 별도 획수 데이터 없이 ICU 가 제공한다. 한글·영문 제목은 그 문화권 순서를 따르므로
+    /// 한자 곡이 많은 찬양집에서 운영자가 고른다(기본은 Title=가나다 그대로).
+    /// </summary>
+    StrokeCount = 3,
 }
 
 /// <summary>정렬 콤보박스 선택지 — 정렬 모드와 사람이 읽는 라벨.</summary>
@@ -26,6 +33,22 @@ public sealed record LibrarySortOption(LibrarySortMode Mode, string Label);
 /// <summary>곡 목록을 선택한 방식으로 정렬하는 순수 헬퍼 — DB·UI 의존 없이 테스트하기 쉽다.</summary>
 public static class SongOrdering
 {
+    // 획수 정렬용 비교기 — 번체 중국어(zh-Hant) 콜레이션은 한자를 획수 순으로 정렬한다(ICU 제공, 별도 데이터 불필요).
+    // 문화권을 못 찾는 드문 런타임에선 Ordinal 로 폴백한다(정렬이 깨지지 않게).
+    private static readonly StringComparer StrokeComparer = CreateStrokeComparer();
+
+    private static StringComparer CreateStrokeComparer()
+    {
+        try
+        {
+            return StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo("zh-Hant"), ignoreCase: false);
+        }
+        catch (System.Globalization.CultureNotFoundException)
+        {
+            return StringComparer.Ordinal;
+        }
+    }
+
     /// <summary>
     /// 곡들을 <paramref name="mode"/> 로 정렬해 새 리스트로 돌려준다. Original 이면 입력 순서를 그대로 보존한다.
     /// 안정 정렬(OrderBy)이라 같은 키의 상대 순서는 입력 순서를 따른다.
@@ -49,6 +72,13 @@ public static class SongOrdering
                 .OrderBy(s => s.SongNumber <= 0)
                 .ThenBy(s => s.SongNumber)
                 .ThenBy(s => s.Title, StringComparer.Ordinal)
+                .ThenBy(s => s.SongId)
+                .ToList(),
+
+            // 획수 정렬 — 한자를 획수 순으로(zh-Hant 콜레이션). 빈 제목은 뒤로, 동률은 SongId 로 결정적.
+            LibrarySortMode.StrokeCount => songs
+                .OrderBy(s => string.IsNullOrWhiteSpace(s.Title))
+                .ThenBy(s => s.Title, StrokeComparer)
                 .ThenBy(s => s.SongId)
                 .ToList(),
 

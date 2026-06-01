@@ -73,6 +73,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         new LibrarySortOption(LibrarySortMode.Original, "원래 순서"),
         new LibrarySortOption(LibrarySortMode.Title, "제목순"),
         new LibrarySortOption(LibrarySortMode.Number, "곡 번호순"),
+        new LibrarySortOption(LibrarySortMode.StrokeCount, "획수순(한자)"),
     ];
 
     /// <summary>색인 머리글자로 점프 — 그 글자로 시작하는 첫 곡을 선택한다(레거시 FrmMain A/B/C 점프).</summary>
