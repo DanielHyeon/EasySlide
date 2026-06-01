@@ -15,7 +15,10 @@ public sealed record WorshipListItemDto(
     string Kind,
     int SlideNumber,
     string? Lyrics,
-    string? ContentPath);
+    string? ContentPath,
+    // 곡별 서식·개별 서식 사용 — 저장/불러오기 시 보존. 구버전 JSON(이 필드 없음)은 기본값(FormatData null, 개별 서식 true)으로 안전 복원.
+    string? FormatData = null,
+    bool UseIndividualFormatting = true);
 
 /// <summary>예배 순서(워십 리스트)를 이름으로 저장/불러오기/삭제한다(레거시 FrmManageItemLists 대응 — G2).</summary>
 public interface IWorshipListStore
@@ -65,7 +68,7 @@ public sealed class WorshipListStore : IWorshipListStore
         Directory.CreateDirectory(_directory);
 
         var dtos = items
-            .Select(i => new WorshipListItemDto(i.Id, i.Title, i.Kind, i.SlideNumber, i.Lyrics, i.ContentPath))
+            .Select(i => new WorshipListItemDto(i.Id, i.Title, i.Kind, i.SlideNumber, i.Lyrics, i.ContentPath, i.FormatData, i.UseIndividualFormatting))
             .ToArray();
         var json = JsonSerializer.Serialize(dtos, JsonOptions);
 
@@ -102,6 +105,8 @@ public sealed class WorshipListStore : IWorshipListStore
                 SlideNumber = d.SlideNumber,
                 Lyrics = d.Lyrics,
                 ContentPath = d.ContentPath,
+                FormatData = d.FormatData,
+                UseIndividualFormatting = d.UseIndividualFormatting,
             })
             .ToList();
     }

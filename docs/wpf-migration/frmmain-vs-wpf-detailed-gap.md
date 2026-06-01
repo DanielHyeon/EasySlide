@@ -87,7 +87,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Ind_LeftUpDown`/`RightUpDown`/`BottomUpDown` | **여백 수치 입력** | 🔴 없음 |
 | `Def_Panel*` (Show/Title/Copyright/ItemNumber/Slides/PrevNext/Transparent/AsR1/색/폰트 9종+) | Display Panel 항목(곡번호·저작권·다음항목·위치) + 투명 토글 | 🟡 ItemNumber/Copyright/PrevNext/Position(증분6)·**Transparent(증분39)** 구현. Title-on-panel·AsR1·패널 색/폰트는 후속 |
 | `Ind_LoadTemplate`/`SaveTemplate`, `Def_*Template` | 개별/기본 설정 템플릿 | 🟡 출력모양 템플릿 1종만 |
-| `Ind_checkBox` "Use Individual Settings" | **항목별 개별 포맷 vs 기본** | 🔴 없음(전역 설정만) |
+| `Ind_checkBox` "Use Individual Settings" | **항목별 개별 포맷 vs 기본** | 🟢 (증분 54) 예배 순서 항목 우클릭 "개별 서식 사용" 토글 — off 면 그 항목의 FormatData(색·정렬·폰트·배경) 무시하고 전역 기본으로 송출. 라이브 즉시 반영(현재 절 유지)·저장/불러오기 보존(FormatData 도 영속) |
 | `DefApplyDefaultsBtn` "Apply to All Except InfoScreens" | 전 항목 기본 적용 | 🔴 없음 |
 
 ### 2.3 콘텐츠 소스 탭 (FrmMain 7 source 탭 → WPF 3 좌측 탭)

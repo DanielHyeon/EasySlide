@@ -42,6 +42,13 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// </summary>
     public string? FormatData { get; init; }
 
+    /// <summary>
+    /// 항목별 개별 서식 사용(레거시 FrmMain Ind_checkBox "Use Individual Settings"). 기본 true=곡별 FormatData 적용(무회귀).
+    /// false 면 이 항목의 FormatData(색·정렬·폰트·배경)를 무시하고 전역 기본 설정으로 송출한다 — 운영자가 항목별로 끌 수 있다.
+    /// 라이브 투영(ResolveLiveProjection)에서 false 면 FormatData 를 비워 전역색이 적용되게 한다.
+    /// </summary>
+    public bool UseIndividualFormatting { get; init; } = true;
+
     /// <summary>미디어/PPT 항목의 파일 경로(선택 시 해당 VM 의 LoadAsync 디스패치에 사용).</summary>
     public string? ContentPath { get; init; }
 

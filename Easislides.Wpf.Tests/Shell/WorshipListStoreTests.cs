@@ -34,6 +34,43 @@ public sealed class WorshipListStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Save_Then_Load_RoundTripsFormatDataAndIndividualFlag()
+    {
+        // 곡별 서식·개별 서식 사용 플래그가 저장/불러오기로 보존된다.
+        var store = new WorshipListStore(_dir);
+        var items = new[]
+        {
+            new LiveQueueItem("song:1", "찬양", "Song") { FormatData = "29=-1", UseIndividualFormatting = false },
+            new LiveQueueItem("song:2", "찬양2", "Song") { FormatData = "31=2" }, // 개별 서식 기본 true.
+        };
+
+        await store.SaveAsync("주일", items);
+        var loaded = await store.LoadAsync("주일");
+
+        loaded[0].FormatData.Should().Be("29=-1");
+        loaded[0].UseIndividualFormatting.Should().BeFalse();
+        loaded[1].FormatData.Should().Be("31=2");
+        loaded[1].UseIndividualFormatting.Should().BeTrue("기본값");
+    }
+
+    [Fact]
+    public async Task Load_OldJsonWithoutIndividualFields_DefaultsSafely()
+    {
+        // 구버전 JSON(FormatData·UseIndividualFormatting 없음) → 기본값(null·true)으로 안전 복원.
+        var path = System.IO.Path.Combine(_dir, "구버전.json");
+        System.IO.Directory.CreateDirectory(_dir);
+        await System.IO.File.WriteAllTextAsync(path,
+            """[{"Id":"song:1","Title":"찬양","Kind":"Song","SlideNumber":0,"Lyrics":"가사","ContentPath":null}]""");
+        var store = new WorshipListStore(_dir);
+
+        var loaded = await store.LoadAsync("구버전");
+
+        loaded.Should().ContainSingle();
+        loaded[0].FormatData.Should().BeNull();
+        loaded[0].UseIndividualFormatting.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task ListNames_ReturnsSavedNames_Sorted()
     {
         var store = new WorshipListStore(_dir);

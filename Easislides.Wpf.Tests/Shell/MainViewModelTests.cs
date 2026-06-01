@@ -574,6 +574,70 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ToggleUseIndividualFormatting_FlipsFlagOnSelectedItem()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { FormatData = "29=-1", UseIndividualFormatting = true };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+
+        sut.ToggleUseIndividualFormattingCommand.Execute(null);
+
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeFalse();
+        sut.Queue[0].UseIndividualFormatting.Should().BeFalse("큐 항목도 교체됨");
+        sut.StatusText.Should().Contain("전역 기본");
+
+        sut.ToggleUseIndividualFormattingCommand.Execute(null);
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue();
+    }
+
+    [Fact]
+    public void UseIndividualFormattingOff_LiveProjectionDropsPerSongColor()
+    {
+        // 개별 서식 off → 라이브 송출 시 곡별 FormatData 색(29)이 적용되지 않고 전역 기본색을 쓴다.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "1절 가사",
+            FormatData = "29=-1", // region1 글자색 흰색.
+            UseIndividualFormatting = true,
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+
+        sut.GoLiveCommand.Execute(null);
+        session.Current.OverrideTextColorArgb.Should().Be(-1, "개별 서식 on → 곡별 색 적용");
+
+        sut.ToggleUseIndividualFormattingCommand.Execute(null); // off → 재송출.
+        session.Current.OverrideTextColorArgb.Should().BeNull("개별 서식 off → 곡별 색 무시(전역 기본)");
+    }
+
+    [Fact]
+    public void ToggleUseIndividualFormatting_LiveMultiVerse_PreservesCurrentVerse()
+    {
+        // 라이브 다중 절 곡에서 토글해도 현재 절이 유지돼야 한다(0절로 튀지 않음) — 세션의 실제 라이브 절로 재송출.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n1절 가사\n[2]\n2절 가사",
+            FormatData = "29=-1",
+            UseIndividualFormatting = true,
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+        sut.NextLyricsPageCommand.Execute(null); // 2절로 이동(라이브 송출).
+        session.Current.CurrentLyricsPageIndex.Should().Be(1);
+
+        sut.ToggleUseIndividualFormattingCommand.Execute(null); // off → 재송출.
+
+        session.Current.CurrentLyricsPageIndex.Should().Be(1, "현재 절(2절) 유지 — 0절로 튀지 않음");
+        session.Current.OverrideTextColorArgb.Should().BeNull("개별 서식 off → 곡별 색 무시");
+    }
+
+    [Fact]
     public void AddPraiseBookSong_ResolvesLibrarySongByTitleAndNumber_AddsToQueue()
     {
         // 찬양집 색인 더블클릭 → 제목·번호로 현재 라이브러리에서 곡(가사 포함)을 찾아 예배 순서에 추가.
@@ -3639,10 +3703,11 @@ public class MainViewModelTests
         IAdminSongDetailRepository? songDetail = null,
         IRecentWorshipLists? recentWorshipLists = null,
         WorshipListValidator? worshipValidator = null,
+        LiveSessionService? liveSession = null,
         bool seedSampleQueue = true)
     {
         var output = new OutputWindowService();
-        var session = new LiveSessionService();
+        var session = liveSession ?? new LiveSessionService();
         var telemetry = new InMemoryCommandTelemetry();
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
         powerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());

@@ -110,7 +110,17 @@
                          PreviewMouseMove="QueueList_PreviewMouseMove"
                          DragOver="QueueList_DragOver"
                          Drop="QueueList_Drop"
-                         BorderThickness="0" />
+                         BorderThickness="0">
+                    <!-- 항목 우클릭 — 개별 서식 사용 토글(레거시 Ind_checkBox). 끄면 전역 기본 서식으로 송출.
+                         ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="개별 서식 사용"
+                                      IsChecked="{Binding PlacementTarget.DataContext.SelectedItem.UseIndividualFormatting, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                      Command="{Binding PlacementTarget.DataContext.ToggleUseIndividualFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
 
                 <!-- 빈 상태 안내 — 큐가 비어 있을 때만(더미 시드 제거 후 첫 화면). 운영자에게 다음 행동을 알려 준다. -->
                 <TextBlock Text="예배 순서가 비어 있습니다.&#x0a;곡·성경·PowerPoint·미디어를 추가하거나 '최근 예배 순서'에서 불러오세요."

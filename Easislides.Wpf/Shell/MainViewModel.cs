@@ -450,6 +450,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsUnderlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorUnderline, ActiveLyricsUnderline));
         ToggleEmphasisChorusOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly, ActiveLyricsEmphasisChorusOnly));
         ToggleInterlaceCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorInterlace, ActiveLyricsInterlace));
+        ToggleUseIndividualFormattingCommand = new RelayCommand(ToggleUseIndividualFormatting, () => SelectedItem is not null);
         TogglePanelTransparentCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelTransparent, ActiveLyricsPanelTransparent));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
@@ -556,6 +557,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleEmphasisChorusOnlyCommand { get; }
 
     public IRelayCommand ToggleInterlaceCommand { get; }
+
+    /// <summary>선택 항목의 "개별 서식 사용"을 토글한다(레거시 Ind_checkBox). off 면 전역 기본 서식으로 송출.</summary>
+    public IRelayCommand ToggleUseIndividualFormattingCommand { get; }
     /// <summary>Display Panel 배경 투명 토글(레거시 Def_PanelTransparent) — 설정→출력 VM 라이브 반영.</summary>
     public IRelayCommand TogglePanelTransparentCommand { get; }
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
@@ -1956,6 +1960,35 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 슬라이드 번호는 PPT VM 의 현재 렌더 슬라이드(PowerPoint.SlideNumber)를 "단일 진실"로 신뢰하고
     // 송출 항목에도 반영한다 — 라이브 슬라이드 이동으로 item.SlideNumber 와 실제 렌더 슬라이드가 달라져도
     // (이동한 슬라이드가 그대로 송출되고, 재개·재송출 시에도 일관). 파일이 다르면(cross-item stale) 거른다.
+    // 선택 항목의 "개별 서식 사용" 토글(레거시 Ind_checkBox "Use Individual Settings").
+    // 레코드는 불변이라 큐의 해당 인스턴스를 토글된 복사본으로 교체한다(참조 일치로 정확히 그 항목만).
+    // 라이브 항목이면 즉시 재송출해 서식 변화를 화면에 반영한다.
+    private void ToggleUseIndividualFormatting()
+    {
+        if (SelectedItem is not { } item)
+        {
+            return;
+        }
+
+        var index = IndexOfReference(item);
+        if (index < 0)
+        {
+            return;
+        }
+
+        var updated = item with { UseIndividualFormatting = !item.UseIndividualFormatting };
+        Queue[index] = updated;
+        SelectedItem = updated; // 주의: 선택 변경은 RefreshLyricsPages 로 VM 의 LyricsPageIndex 를 0 으로 리셋한다.
+        StatusText = updated.UseIndividualFormatting ? "개별 서식 사용" : "전역 기본 서식 사용";
+
+        // 라이브 송출 중인 항목이면 같은 절로 다시 송출해 서식(색·정렬·폰트·배경)을 즉시 반영한다.
+        // VM 의 LyricsPageIndex(방금 0 으로 리셋됨)가 아니라 세션의 실제 라이브 절을 쓰는 RepublishLiveSongForBodyChange 를
+        // 써야 라이브 화면이 0절로 튀지 않는다(큐의 교체된 인스턴스를 찾아 새 UseIndividualFormatting 플래그를 반영).
+        RepublishLiveSongForBodyChange();
+
+        NotifyCommandStates();
+    }
+
     private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
     {
         var positionLabel = ComputePositionLabel(item);
@@ -1963,6 +1996,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // "코드 표시"(Show Notations) 설정을 투영에 얹는다 — 라이브 본문 계산(ComputeBodyText)이 이 값으로
         // 가사 위 코드 줄을 끼울지 판단한다. 모든 곡 송출 경로가 ResolveLiveProjection 을 거치므로 한 곳에서 일관 적용.
         var showNotations = _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations);
+        // 항목별 "개별 서식 사용"이 꺼져 있으면 곡별 FormatData(색·정렬·폰트·배경)를 비워 전역 기본 설정으로 송출한다.
+        // 기본(true)이면 곡별 서식 그대로(무회귀). 레거시 FrmMain Ind_checkBox "Use Individual Settings" 대응.
+        var formatData = item.UseIndividualFormatting ? item.FormatData : null;
 
         if (IsPowerPointItem(item)
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
@@ -1979,6 +2015,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 NextTitle = nextTitle,
                 ShowNotations = showNotations,
                 TransposeSemitones = LiveTransposeSemitones,
+                FormatData = formatData,
             };
         }
 
@@ -1988,6 +2025,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             NextTitle = nextTitle,
             ShowNotations = showNotations,
             TransposeSemitones = LiveTransposeSemitones,
+            FormatData = formatData,
         };
     }
 
@@ -2662,6 +2700,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void NotifyCommandStates()
     {
+        ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();
         StopLiveCommand.NotifyCanExecuteChanged();
