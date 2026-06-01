@@ -203,7 +203,7 @@ Transpose Up/Down semitone, To Capo 0, Show Notations(+preview), Key/Capo/Timing
 > - 〔조옮김(Capo ↑/↓·To Capo 0)은 SongEditor 미리보기에 이미 있고(증분 5), 라이브 출력 조옮김 연산은 별도 후속.〕
 
 ### 3.8 데이터 작업 (별도 창으로 대부분 포팅)
-Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **단 Compact&Repair, Clear All Formatting, Clear Registry, Listing of Folder는 🔴 미포팅.** (통합=별도창이라 "흩어짐"은 별개 과제.)
+Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **Compact&Repair ✅(2026-06-02 증분 40 — 백업 후 VACUUM, 도구 메뉴 "데이터베이스 압축·정리").** 단 Clear All Formatting, Clear Registry, Listing of Folder는 🔴 미포팅. (통합=별도창이라 "흩어짐"은 별개 과제.)
 
 ### 3.9 키보드/후킹/단축키
 | FrmMain | WPF | 상태 |

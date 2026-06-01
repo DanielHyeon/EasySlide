@@ -102,6 +102,38 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task CompactDatabase_Success_CallsRepositoryAndReportsStatus()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository { CompactSucceeds = true };
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        await sut.CompactDatabaseAsync();
+
+        repository.CompactCalls.Should().Be(1);
+        sut.StatusMessage.Should().Contain("압축했습니다");
+    }
+
+    [Fact]
+    public async Task CompactDatabase_Failure_ReportsFailureStatus()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository { CompactSucceeds = false };
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        await sut.CompactDatabaseAsync();
+
+        repository.CompactCalls.Should().Be(1);
+        sut.StatusMessage.Should().Contain("압축 실패");
+    }
+
+    [Fact]
     public async Task SortMode_TitleAndNumber_ReordersDisplayedSongs_WithoutRefetch()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -632,6 +664,25 @@ public class LibraryViewModelTests
                 order.Select(item => item.SongId).ToArray(),
                 [folderNo],
                 Issues: []));
+        }
+
+        public int CompactCalls { get; private set; }
+
+        public bool CompactSucceeds { get; set; } = true;
+
+        public Task<AdminDatabaseWriteReport> CompactDatabaseAsync(string databasePath, string backupRoot)
+        {
+            CompactCalls++;
+            return Task.FromResult(new AdminDatabaseWriteReport(
+                Succeeded: CompactSucceeds,
+                AdminDatabaseWriteOperation.Compact,
+                databasePath,
+                CompactSucceeds ? Path.Combine(backupRoot, "backup.db") : null,
+                AffectedSongIds: [],
+                AffectedFolderNos: [],
+                Issues: CompactSucceeds
+                    ? []
+                    : [new AdminDatabaseWriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, AdminDatabaseIssueSeverity.Error, "boom")]));
         }
 
         private void SetFolderEnabled(IEnumerable<int> folderNos, bool isEnabled)

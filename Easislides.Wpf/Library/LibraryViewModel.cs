@@ -50,6 +50,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         RecoverSelectedFolderCommand = new AsyncRelayCommand(RecoverSelectedFolderAsync, CanRecoverSelectedFolder);
         MoveSelectedSongUpCommand = new AsyncRelayCommand(MoveSelectedSongUpAsync, CanMoveSelectedSongUp);
         MoveSelectedSongDownCommand = new AsyncRelayCommand(MoveSelectedSongDownAsync, CanMoveSelectedSongDown);
+        CompactDatabaseCommand = new AsyncRelayCommand(CompactDatabaseAsync, () => !IsBusy);
         JumpToInitialCommand = new RelayCommand<string>(JumpToInitial);
         // 곡 번호 표시 초기값을 설정에서 읽는다(백킹 필드 직접 설정 — 생성 시점엔 저장 트리거 불필요).
         _useSongNumbering = _settings.Get(EasiSettingKeys.UseSongNumbering);
@@ -92,6 +93,9 @@ public sealed partial class LibraryViewModel : ObservableObject
     public IAsyncRelayCommand MoveSelectedSongUpCommand { get; }
 
     public IAsyncRelayCommand MoveSelectedSongDownCommand { get; }
+
+    /// <summary>곡 데이터베이스 압축·정리(레거시 Tools Compact &amp; Repair) — 백업 후 VACUUM. 실패 시 복원.</summary>
+    public IAsyncRelayCommand CompactDatabaseCommand { get; }
 
     public async Task LoadAsync()
     {
@@ -356,6 +360,44 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 곡 데이터베이스를 압축·정리한다(레거시 Tools Compact &amp; Repair). 백업을 만든 뒤 VACUUM 으로 빈 공간을
+    /// 회수한다(저장소가 실패 시 백업 복원). DB 경로가 없으면 안내만 한다.
+    /// </summary>
+    public async Task CompactDatabaseAsync()
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var report = await _adminDatabase
+                .CompactDatabaseAsync(DatabasePath, ResolveBackupRoot())
+                .ConfigureAwait(true);
+
+            StatusMessage = report.Succeeded
+                ? "데이터베이스를 압축했습니다(백업을 먼저 만들었습니다)."
+                : FormatWriteFailure("데이터베이스 압축 실패", report);
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = $"데이터베이스 압축 실패: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     public Task MoveSelectedSongToSongAsync(SongSummary targetSong)
         => MoveSelectedSongToIndexAsync(_loadedSongs.ToList().FindIndex(song => song.SongId == targetSong.SongId));
 
@@ -469,6 +511,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         LoadCommand.NotifyCanExecuteChanged();
         LoadSongsForSelectedFolderCommand.NotifyCanExecuteChanged();
+        CompactDatabaseCommand.NotifyCanExecuteChanged();
         NotifyFolderActionCanExecuteChanged();
         NotifyReorderCanExecuteChanged();
     }

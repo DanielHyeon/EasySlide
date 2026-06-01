@@ -480,6 +480,51 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
+    public async Task CompactDatabaseAsync_VacuumsAndCreatesBackup_PreservesData()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertSong(10, "First", folderNo: 1, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.CompactDatabaseAsync(fixture.DatabasePath, fixture.BackupRoot);
+
+        report.Succeeded.Should().BeTrue();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.Compact);
+        report.BackupPath.Should().NotBeNullOrWhiteSpace("압축 전 백업을 만든다");
+        System.IO.File.Exists(report.BackupPath!).Should().BeTrue();
+        // VACUUM 후에도 데이터는 그대로다.
+        fixture.ReadSongInt(10, "SONG_NUMBER").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CompactDatabaseAsync_MissingDatabase_FailsWithoutThrowing()
+    {
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.CompactDatabaseAsync(@"C:\no\such\__missing__.db", System.IO.Path.GetTempPath());
+
+        report.Succeeded.Should().BeFalse();
+        report.Operation.Should().Be(AdminDatabaseWriteOperation.Compact);
+    }
+
+    [Fact]
+    public async Task CompactDatabaseAsync_EmptyBackupRoot_FailsWithoutCompacting()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.CompactDatabaseAsync(fixture.DatabasePath, backupRoot: "");
+
+        report.Succeeded.Should().BeFalse("백업 경로가 없으면 압축하지 않는다(데이터 보호)");
+        report.BackupPath.Should().BeNull();
+        report.Issues.Should().Contain(i => i.Kind == AdminDatabaseWriteIssueKind.InvalidRequest);
+    }
+
+    [Fact]
     public async Task ReorderSongsAsync_RenumbersSongsWithinFolderWithBackup()
     {
         using var fixture = AdminDatabaseFixture.Create();

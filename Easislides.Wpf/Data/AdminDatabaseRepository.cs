@@ -106,6 +106,7 @@ public enum AdminDatabaseWriteOperation
     RecoverSongs,
     ReorderFolders,
     ReorderSongs,
+    Compact,
 }
 
 public enum AdminDatabaseWriteIssueKind
@@ -243,6 +244,24 @@ public interface IAdminDatabaseRepository
         string backupRoot,
         int folderNo,
         IReadOnlyList<SongOrderRequest> order);
+
+    /// <summary>
+    /// 데이터베이스 압축·정리(레거시 Tools "Compact &amp; Repair") — 백업을 먼저 만든 뒤 SQLite VACUUM 으로
+    /// 빈 공간을 회수하고 단편화를 줄인다. 실패하면 백업으로 복원한다.
+    /// 기본 구현은 "지원 안 함" 실패 보고(테스트용 가짜 저장소가 일일이 구현하지 않아도 되게 함 — 실제 저장소는 재정의).
+    /// </summary>
+    Task<AdminDatabaseWriteReport> CompactDatabaseAsync(string databasePath, string backupRoot)
+        => Task.FromResult(new AdminDatabaseWriteReport(
+            Succeeded: false,
+            AdminDatabaseWriteOperation.Compact,
+            databasePath,
+            BackupPath: null,
+            AffectedSongIds: [],
+            AffectedFolderNos: [],
+            Issues: [new AdminDatabaseWriteIssue(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                AdminDatabaseIssueSeverity.Error,
+                "Compaction is not supported by this repository.")]));
 }
 
 public interface IAdminSongDetailRepository
@@ -390,6 +409,67 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             backupRoot,
             AdminDatabaseWriteOperation.ReorderSongs,
             (connection, transaction, outcome) => ReorderSongs(connection, transaction, folderNo, order, outcome)));
+    }
+
+    public Task<AdminDatabaseWriteReport> CompactDatabaseAsync(string databasePath, string backupRoot)
+        => Task.FromResult(CompactDatabase(databasePath, backupRoot));
+
+    // 데이터베이스 압축(VACUUM) — 백업 후 실행. VACUUM 은 트랜잭션 안에서 못 돌리므로 ExecuteWrite(트랜잭션 래핑)를
+    // 쓰지 않고 전용 경로로 처리한다. 실패하면 백업으로 복원한다(다른 쓰기 작업과 동일한 안전 보장).
+    private static AdminDatabaseWriteReport CompactDatabase(string databasePath, string backupRoot)
+    {
+        var inventory = AnalyzeSchema(databasePath);
+        if (!inventory.Succeeded)
+        {
+            return FailedWriteReport(
+                AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath: null,
+                new AdminDatabaseWriteOutcome(), ToWriteIssues(inventory.Issues));
+        }
+
+        if (string.IsNullOrWhiteSpace(backupRoot))
+        {
+            return FailedWriteReport(
+                AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath: null,
+                new AdminDatabaseWriteOutcome(),
+                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, "Backup root cannot be empty.")]);
+        }
+
+        string backupPath;
+        try
+        {
+            backupPath = CreateBackup(inventory.DatabasePath, backupRoot);
+        }
+        catch (Exception ex) when (IsFileSystemException(ex))
+        {
+            return FailedWriteReport(
+                AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath: null,
+                new AdminDatabaseWriteOutcome(),
+                [WriteIssue(AdminDatabaseWriteIssueKind.BackupFailed, $"Unable to create AdminDB backup: {ex.Message}")]);
+        }
+
+        try
+        {
+            using var connection = OpenConnection(inventory.DatabasePath, readOnly: false);
+            using var command = new SQLiteCommand("VACUUM;", connection);
+            command.ExecuteNonQuery();
+        }
+        catch (Exception ex) when (IsSqliteOpenException(ex))
+        {
+            // 압축 실패 — 백업으로 복원하고 실패 보고.
+            return RestoreAndReportFailure(
+                AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath,
+                new AdminDatabaseWriteOutcome(), AdminDatabaseWriteIssueKind.WriteFailed,
+                $"Database compaction failed: {ex.Message}");
+        }
+
+        return new AdminDatabaseWriteReport(
+            Succeeded: true,
+            AdminDatabaseWriteOperation.Compact,
+            inventory.DatabasePath,
+            backupPath,
+            AffectedSongIds: [],
+            AffectedFolderNos: [],
+            Issues: []);
     }
 
     private static AdminDatabaseSchemaInventory AnalyzeSchema(string databasePath)
