@@ -114,6 +114,131 @@ public static class LyricsDisplayFormatter
         => GetVersePage(rawLyrics, pageIndex, sequence: null);
 
     /// <summary>
+    /// 절 페이지마다의 라벨을 <see cref="ToVersePages(string?,string?)"/> 와 1:1 정렬되게 반환한다(절 라벨 직접 점프용).
+    /// 라벨이 없는(빈 줄로만 구분된) 페이지는 빈 문자열. Sequence 적용 시 펼쳐진 순서대로 라벨이 반복된다.
+    /// 운영자가 "후렴(C)으로", "3절로" 즉시 이동(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응)하는 데 쓰인다.
+    /// </summary>
+    public static IReadOnlyList<string> GetSectionLabels(string? rawLyrics, string? sequence)
+    {
+        var pages = BuildLabeledPages(rawLyrics, sequence);
+        var labels = new string[pages.Count];
+        for (var i = 0; i < pages.Count; i++)
+        {
+            labels[i] = pages[i].Label;
+        }
+
+        return labels;
+    }
+
+    // 절 페이지를 (라벨, 본문)으로 만든다 — 본문 순서는 ToVersePages 와 동일하도록 보장(정렬 가드 테스트로 잠금).
+    private static IReadOnlyList<(string Label, string Content)> BuildLabeledPages(string? rawLyrics, string? sequence)
+        => TryExpandLabeledBySequence(rawLyrics, sequence) ?? BuildLinearLabeledPages(rawLyrics);
+
+    // 시퀀스 경로: 각 토큰을 섹션에 매칭 → (섹션 라벨, 본문). 매칭 0이면 null(→ 선형 폴백). TryExpandBySequence 와 동일 매칭 규칙.
+    private static IReadOnlyList<(string Label, string Content)>? TryExpandLabeledBySequence(string? rawLyrics, string? sequence)
+    {
+        if (string.IsNullOrWhiteSpace(sequence))
+        {
+            return null;
+        }
+
+        var sections = ParseLabeledSections(rawLyrics);
+        if (sections.Count == 0)
+        {
+            return null;
+        }
+
+        var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+        var pages = new List<(string Label, string Content)>();
+        foreach (var token in tokens)
+        {
+            foreach (var section in sections)
+            {
+                if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                    && section.Content.Length > 0)
+                {
+                    pages.Add((section.Label, section.Content));
+                    break;
+                }
+            }
+        }
+
+        return pages.Count > 0 ? pages : null;
+    }
+
+    // 선형 경로: ToDisplayText 와 동일한 절 경계 규칙으로 분할하되 각 절의 라벨([X] 마커)을 함께 기록한다.
+    // 본문은 ToVersePages(선형)와 동일해야 한다(정렬 가드). 라벨은 절 시작 직전 마지막으로 본 [X] 마커.
+    private static IReadOnlyList<(string Label, string Content)> BuildLinearLabeledPages(string? rawLyrics)
+    {
+        if (string.IsNullOrWhiteSpace(rawLyrics))
+        {
+            return Array.Empty<(string, string)>();
+        }
+
+        // ToDisplayText 1~2단계와 동일: 정규화 + 맨 앞 [~...] 노테이션 블록 제거.
+        var text = NormalizeText(rawLyrics);
+        var leading = text.TrimStart('\n', ' ', '\t');
+        if (leading.StartsWith("[~", StringComparison.Ordinal))
+        {
+            var end = leading.IndexOf(']');
+            if (end > 1)
+            {
+                text = leading[(end + 1)..];
+            }
+        }
+
+        var pages = new List<(string Label, string Content)>();
+        var current = new StringBuilder();
+        var pendingLabel = ""; // 가장 최근에 본 [X] 라벨(다음 절의 라벨 후보) — 절 경계를 넘어도 유지.
+        var verseLabel = "";   // 현재 모으는 절의 라벨.
+        var inVerse = false;
+
+        void Flush()
+        {
+            if (inVerse && current.Length > 0)
+            {
+                pages.Add((verseLabel, current.ToString()));
+            }
+
+            current.Clear();
+            inVerse = false;
+        }
+
+        foreach (var rawLine in text.Split('\n'))
+        {
+            var line = StripInlineNotation(rawLine).TrimEnd();
+            var label = SectionLabel(line);
+            if (label is not null)
+            {
+                Flush();              // 새 라벨 = 절 경계.
+                pendingLabel = label;
+                continue;
+            }
+
+            if (IsMarkerOnlyLine(line) || string.IsNullOrWhiteSpace(line))
+            {
+                Flush();              // [~..]·빈 줄 = 절 경계(라벨은 유지).
+                continue;
+            }
+
+            if (!inVerse)
+            {
+                inVerse = true;
+                verseLabel = pendingLabel; // 절 시작 시점의 최근 라벨을 절 라벨로.
+            }
+            else
+            {
+                current.Append('\n');
+            }
+
+            current.Append(line);
+        }
+
+        Flush();
+        return pages;
+    }
+
+    /// <summary>
     /// 중복 정의된 절 라벨을 찾는다(대소문자 무시, 처음 본 표기로 한 번씩, 발견 순서).
     /// Sequence 모델에선 절을 [라벨] 마커로 한 번만 정의해야 하므로(반복은 Sequence 로), 같은 라벨이 두 번 나오면
     /// 둘째 정의가 무시되는 작성 오류다 — SongEditor 가 이 결과로 경고를 띄운다(레거시 FrmInfoScreen 중복 절 검증 대응).

@@ -205,6 +205,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? string.Empty
             : $"{LyricsPageIndex + 1}/{LyricsPageCount}절";
 
+    // 현재 곡의 페이지별 절 라벨(ToVersePages 와 1:1 정렬) — 절 라벨 직접 점프(JumpToLyricsSection)의 인덱스 근거.
+    private IReadOnlyList<string> _pageLabels = Array.Empty<string>();
+
+    /// <summary>
+    /// 현재 선택 곡의 절 라벨 목록(중복 제거, 첫 등장 순서). Preview 탭의 절 라벨 점프 버튼이 바인딩한다.
+    /// 곡이 아니거나 라벨이 없으면 비어 있음(레거시 FrmInfoScreen 절 버튼 1~9·c·b 즉시 이동 대응).
+    /// </summary>
+    public ObservableCollection<string> AvailableSectionLabels { get; } = new();
+
     /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
     /// (G1.2 / gap-analysis.md §4 G-α — 기존 placeholder 텍스트 대체, 테스트된 VM 의 UI 연결.)
@@ -326,6 +335,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
         NextLyricsPageCommand = new RelayCommand(NextLyricsPage, CanGoNextLyricsPage);
+        JumpToLyricsSectionCommand = new RelayCommand<string>(JumpToLyricsSection, CanJumpToLyricsSection);
         PreviousLyricsPageCommand = new RelayCommand(PreviousLyricsPage, CanGoPreviousLyricsPage);
         // 라이브러리 선택 곡이 바뀌면 "예배 순서에 추가" 활성 상태를 맞춘다.
         Library.PropertyChanged += OnLibraryPropertyChanged;
@@ -394,6 +404,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand MoveSelectedItemDownCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
     public IRelayCommand NextLyricsPageCommand { get; }
+    public IRelayCommand<string> JumpToLyricsSectionCommand { get; }
     public IRelayCommand PreviousLyricsPageCommand { get; }
 
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
@@ -908,11 +919,70 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 곡 항목이 아니거나 가사가 없으면 LyricsPageCount=0(절 이동 버튼 비활성).
     private void RefreshLyricsPages(LiveQueueItem? item)
     {
-        var count = item?.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics)
-            ? LyricsDisplayFormatter.ToVersePages(item.Lyrics, item.Sequence).Count
+        var isSong = item?.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics);
+        LyricsPageCount = isSong
+            ? LyricsDisplayFormatter.ToVersePages(item!.Lyrics, item.Sequence).Count
             : 0;
-        LyricsPageCount = count;
+        // 페이지별 절 라벨도 함께 갱신 — 절 라벨 점프 버튼 목록·인덱스의 근거(곡 아니면 비움).
+        _pageLabels = isSong
+            ? LyricsDisplayFormatter.GetSectionLabels(item!.Lyrics, item.Sequence)
+            : Array.Empty<string>();
+        RebuildAvailableSectionLabels();
         LyricsPageIndex = 0;
+    }
+
+    // 페이지 라벨에서 중복을 제거(첫 등장 순서)해 점프 버튼 목록을 만든다.
+    private void RebuildAvailableSectionLabels()
+    {
+        AvailableSectionLabels.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var label in _pageLabels)
+        {
+            if (!string.IsNullOrEmpty(label) && seen.Add(label))
+            {
+                AvailableSectionLabels.Add(label);
+            }
+        }
+
+        JumpToLyricsSectionCommand.NotifyCanExecuteChanged();
+    }
+
+    // 절 라벨로 직접 점프 — 그 라벨의 첫 페이지로 이동(레거시 FrmInfoScreen 절 버튼). 라이브 중이면 출력도 즉시 갱신.
+    private void JumpToLyricsSection(string? label)
+    {
+        var index = IndexOfPageLabel(label);
+        if (index < 0)
+        {
+            return; // 없는 라벨은 무시(이동 없음).
+        }
+
+        LyricsPageIndex = index;
+        PublishLyricsPageIfLive();
+        StatusText = LyricsPageCount > 1
+            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            : StatusText;
+    }
+
+    // 점프 가능 여부 — 비어 있지 않은 라벨이 현재 곡의 페이지 라벨에 존재할 때만.
+    private bool CanJumpToLyricsSection(string? label) => IndexOfPageLabel(label) >= 0;
+
+    // 라벨의 첫 페이지 인덱스(대소문자 무시). 없으면 -1. 점프/CanExecute 공통.
+    private int IndexOfPageLabel(string? label)
+    {
+        if (string.IsNullOrEmpty(label))
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < _pageLabels.Count; i++)
+        {
+            if (string.Equals(_pageLabels[i], label, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     // 다음 절로 이동 — 라이브 중이고 이 항목이 송출 중일 때만 출력도 즉시 갱신한다.

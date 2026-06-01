@@ -2662,6 +2662,64 @@ public class MainViewModelTests
         sut.LyricsPageCount.Should().Be(3, "시퀀스 없으면 선형 3페이지(1·C·2)");
     }
 
+    // ── 절 라벨 직접 점프(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응) ──
+
+    [Fact]
+    public void AddSong_WithSequence_ExposesDistinctSectionLabels()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+
+        sut.AddSong(song, "1 C 2 C");
+
+        // 펼친 순서 1 C 2 C 의 중복 제거(첫 등장 순서) → 1, C, 2.
+        sut.AvailableSectionLabels.Should().Equal("1", "C", "2");
+    }
+
+    [Fact]
+    public void JumpToLyricsSection_MovesToFirstPageWithLabel()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        sut.AddSong(song, "1 C 2 C"); // 페이지: 1(0) C(1) 2(2) C(3)
+
+        sut.JumpToLyricsSectionCommand.Execute("C");
+        sut.LyricsPageIndex.Should().Be(1, "첫 후렴(C)은 인덱스 1");
+
+        sut.JumpToLyricsSectionCommand.Execute("2");
+        sut.LyricsPageIndex.Should().Be(2);
+
+        sut.JumpToLyricsSectionCommand.Execute("1");
+        sut.LyricsPageIndex.Should().Be(0);
+    }
+
+    [Fact]
+    public void JumpToLyricsSection_UnknownLabel_DoesNotChangePage()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus");
+        sut.AddSong(song); // 선형: 1(0) C(1)
+        sut.NextLyricsPageCommand.Execute(null); // → 인덱스 1
+
+        sut.JumpToLyricsSectionCommand.Execute("X"); // 없는 라벨
+
+        sut.LyricsPageIndex.Should().Be(1, "없는 라벨은 무시(이동 없음)");
+    }
+
+    [Fact]
+    public void RefreshLyricsPages_NonSongItem_ClearsSectionLabels()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus");
+        sut.AddSong(song, "1 C");
+        sut.AvailableSectionLabels.Should().NotBeEmpty();
+
+        // PPT 항목을 추가·선택하면 곡이 아니므로 절 라벨이 비워진다.
+        sut.AddPowerPoint(@"C:\deck.pptx");
+
+        sut.AvailableSectionLabels.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task AddSearchedSong_CarriesSongDetailSequence_ToQueueItem_AndExpandsPages()
     {

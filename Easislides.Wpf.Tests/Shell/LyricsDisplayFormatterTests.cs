@@ -214,6 +214,61 @@ public class LyricsDisplayFormatterTests
         pages.Should().Equal("Verse one", "Chorus");
     }
 
+    // ─── GetSectionLabels(절 라벨 점프용 — 페이지별 라벨, ToVersePages 와 정렬) ───────────────
+
+    [Fact]
+    public void GetSectionLabels_LinearLabeledVerses_ReturnsLabelPerPage()
+    {
+        var lyrics = "[1]\n첫째 줄\n둘째 줄\n[2]\n셋째 줄";
+
+        LyricsDisplayFormatter.GetSectionLabels(lyrics, sequence: null).Should().Equal("1", "2");
+    }
+
+    [Fact]
+    public void GetSectionLabels_WithSequence_ReturnsLabelPerExpandedPage()
+    {
+        // 절을 1회 정의([1],[C],[2])하고 시퀀스(1 C 2 C)로 반복 → 페이지별 라벨도 같은 순서로 반복.
+        var lyrics = "[1]\nVerse one\n[C]\nChorus line\n[2]\nVerse two";
+
+        var labels = LyricsDisplayFormatter.GetSectionLabels(lyrics, "1 C 2 C");
+        var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C 2 C");
+
+        labels.Should().Equal("1", "C", "2", "C");
+        // 위치 정합: 라벨[i] 가 페이지[i] 의 절을 정확히 가리킨다(점프 인덱스 정확성의 핵심).
+        pages[0].Should().Be("Verse one");
+        pages[System.Array.IndexOf(System.Linq.Enumerable.ToArray(labels), "C")].Should().Be("Chorus line");
+        pages[System.Array.IndexOf(System.Linq.Enumerable.ToArray(labels), "2")].Should().Be("Verse two");
+    }
+
+    [Fact]
+    public void GetSectionLabels_UnlabeledBlankSeparatedVerses_ReturnsEmptyLabels()
+    {
+        // 라벨 없이 빈 줄로만 구분된 절은 라벨이 빈 문자열(점프 버튼 대상 아님).
+        var lyrics = "첫째\n\n둘째";
+
+        LyricsDisplayFormatter.GetSectionLabels(lyrics, sequence: null).Should().Equal("", "");
+    }
+
+    [Theory]
+    [InlineData("[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two", "1 C 2 C")]
+    [InlineData("[1]\nVerse one\n[2]\nVerse two", null)]
+    [InlineData("Amazing grace", null)]
+    [InlineData("[1]\r\nVerse one Â» G\r\n[C]\r\nChorus", "1 C")]
+    public void GetSectionLabels_AlignsWithToVersePages(string lyrics, string? sequence)
+    {
+        // 라벨 배열은 항상 절 페이지와 1:1 정렬돼야 한다(점프 인덱스 정확성의 전제).
+        var labels = LyricsDisplayFormatter.GetSectionLabels(lyrics, sequence);
+        var pages = LyricsDisplayFormatter.ToVersePages(lyrics, sequence);
+
+        labels.Count.Should().Be(pages.Count, "라벨은 페이지마다 정확히 하나");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetSectionLabels_EmptyLyrics_ReturnsEmpty(string? lyrics)
+        => LyricsDisplayFormatter.GetSectionLabels(lyrics, sequence: null).Should().BeEmpty();
+
     // ─── ToVersePages ────────────────────────────────────────────────────────
 
     [Fact]
