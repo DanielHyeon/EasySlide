@@ -23,6 +23,11 @@ public sealed partial class BibleViewModel : ObservableObject
     [ObservableProperty] private BibleVersion? _selectedVersion;
     [ObservableProperty] private BibleBook? _selectedBook;
     [ObservableProperty] private string _searchText = "";
+    // 타이핑한 구절 참조(예: "창 1:1-2:3") — 책·검색 콤보 없이 바로 해당 구절로 점프(레거시 인라인 성경 typed-reference).
+    [ObservableProperty] private string _typedReference = "";
+    // typed-reference 점프가 찾은 본문 범위(시작 오프셋·길이) — 호스트가 본문 박스에서 그 범위를 하이라이트하는 데 쓴다.
+    [ObservableProperty] private int _lastReferenceStart;
+    [ObservableProperty] private int _lastReferenceLength;
     [ObservableProperty] private BibleSearchMatchMode _matchMode = BibleSearchMatchMode.AllWords;
     [ObservableProperty] private bool _showVerses = true;
     [ObservableProperty] private string _passageText = "";
@@ -363,6 +368,90 @@ public sealed partial class BibleViewModel : ObservableObject
             var suffix = _currentResult.WasLimited ? " 결과가 3000개로 제한되었습니다." : "";
             StatusMessage = $"{_currentResult.Locations.Count}개 구절을 찾았습니다.{suffix}";
         });
+    }
+
+    /// <summary>
+    /// 타이핑한 구절(<see cref="TypedReference"/>)을 파싱·해석해 그 범위를 본문에서 선택한다
+    /// (레거시 인라인 성경의 typed-reference "Go" 대응 — "창 1:1-2:3" 같은 입력으로 즉시 점프).
+    /// 성공하면 추가용 <see cref="BibleSelection"/> 을 돌려주고 SelectionChanged 를 알린다(드래그 선택과 동일 경로).
+    /// 실패하면 ValidationMessage 를 채우고 빈 선택을 반환한다.
+    /// </summary>
+    public BibleSelection JumpToReference()
+    {
+        if (SelectedVersion is null)
+        {
+            ValidationMessage = "성경 버전을 선택하세요.";
+            NotifyCommands();
+            return new BibleSelection("", "");
+        }
+
+        // 이전 오류 메시지를 먼저 비운다 — 성공 경로가 BuildSelection 의 내부 동작에 기대지 않고 스스로 깨끗한 상태를 만든다
+        // (다른 VM 작업 ExecuteOperationAsync 와 동일 규칙, 메서드 간 암묵 결합 제거).
+        ValidationMessage = "";
+
+        if (!BibleReferenceParser.TryParse(TypedReference, out var reference))
+        {
+            ValidationMessage = "구절 형식이 올바르지 않습니다 (예: 창 1:1-2:3).";
+            return new BibleSelection("", "");
+        }
+
+        var book = BibleReferenceParser.ResolveBook(Books, reference.BookToken);
+        if (book is null)
+        {
+            ValidationMessage = $"성경 책을 찾을 수 없습니다: {reference.BookToken}";
+            return new BibleSelection("", "");
+        }
+
+        // 해당 책 본문을 불러온다(구절별 위치 정보 포함). DB/IO 실패는 복구 가능한 예외로 안내만 한다.
+        try
+        {
+            SelectedBook = book;
+            _currentResult = _repository.LoadBook(SelectedVersion, book.Number, ShowVerses);
+            PassageText = _currentResult.Text;
+        }
+        catch (Exception ex) when (IsRecoverableBibleException(ex))
+        {
+            StatusMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+            return new BibleSelection("", "");
+        }
+
+        // 시작·끝 절의 본문 위치를 찾아 그 사이 전체를 선택 범위로 만든다.
+        var start = FindLocation(reference.StartChapter, reference.StartVerse);
+        var end = FindLocation(reference.EndChapter, reference.EndVerse);
+        if (start is null || end is null)
+        {
+            ValidationMessage = $"구절을 찾을 수 없습니다: {reference.BookToken} {reference.StartChapter}:{reference.StartVerse}";
+            ClearSelection();
+            return new BibleSelection("", "");
+        }
+
+        var selectionStart = start.Start;
+        var selectionLength = (end.Start + end.Length) - selectionStart;
+        if (selectionLength <= 0)
+        {
+            ValidationMessage = "구절 범위가 올바르지 않습니다.";
+            ClearSelection();
+            return new BibleSelection("", "");
+        }
+
+        // 호스트가 본문 박스에서 이 범위를 하이라이트하도록 기록한다.
+        LastReferenceStart = selectionStart;
+        LastReferenceLength = selectionLength;
+        return BuildSelection(selectionStart, selectionLength);
+    }
+
+    // 현재 불러온 본문(_currentResult)에서 (장,절)에 해당하는 구절 위치를 찾는다. 없으면 null.
+    private BibleVerseLocation? FindLocation(int chapter, int verse)
+    {
+        foreach (var location in _currentResult.Locations)
+        {
+            if (location.Chapter == chapter && location.Verse == verse)
+            {
+                return location;
+            }
+        }
+
+        return null;
     }
 
     public BibleSelection BuildSelection(int selectionStart, int selectionLength)

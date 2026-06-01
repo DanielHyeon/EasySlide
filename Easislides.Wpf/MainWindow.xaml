@@ -703,6 +703,7 @@
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -713,8 +714,30 @@
                         <composites:BibleVerseFinder Grid.Row="0"
                                                      DataContext="{Binding Bible}" />
 
+                        <!-- 구절 직접 입력 점프(typed-reference) — 예: "창 1:1-2:3". Enter 또는 "이동"으로 즉시 추가. -->
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     x:Name="BibleReferenceBox"
+                                     Text="{Binding Bible.TypedReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     KeyDown="BibleReferenceBox_KeyDown"
+                                     MinHeight="36"
+                                     ToolTip="구절을 직접 입력해 바로 추가 (예: 창 1:1-2:3, John 3:16)"
+                                     AutomationProperties.Name="성경 구절 직접 입력" />
+                            <Button Grid.Column="2"
+                                    Click="JumpBibleReference_Click"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Content="이동"
+                                    ToolTip="입력한 구절로 이동해 예배 순서에 추가"
+                                    AutomationProperties.Name="입력한 성경 구절로 이동" />
+                        </Grid>
+
                         <!-- 본문 — 구절 범위를 드래그 선택한 뒤 아래 "선택 구절 추가". -->
-                        <TextBox Grid.Row="1"
+                        <TextBox Grid.Row="2"
                                  x:Name="BiblePassageBox"
                                  Text="{Binding Bible.PassageText, Mode=OneWay}"
                                  IsReadOnly="True"
@@ -724,7 +747,7 @@
                                  Margin="0,8,0,0"
                                  AutomationProperties.Name="성경 본문" />
 
-                        <Button Grid.Row="2"
+                        <Button Grid.Row="3"
                                 Click="AddBibleVerse_Click"
                                 Style="{StaticResource EsButton.Primary}"
                                 HorizontalAlignment="Stretch"
@@ -732,13 +755,13 @@
                                 Content="선택 구절 추가"
                                 AutomationProperties.Name="선택한 성경 구절을 예배 순서에 추가" />
 
-                        <TextBlock Grid.Row="3"
+                        <TextBlock Grid.Row="4"
                                    Text="{Binding Bible.SelectedPassageTitle}"
                                    Margin="0,8,0,0"
                                    TextWrapping="Wrap"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
-                        <TextBlock Grid.Row="4"
+                        <TextBlock Grid.Row="5"
                                    Text="{Binding Bible.StatusMessage}"
                                    Margin="0,2,0,0"
                                    TextTrimming="CharacterEllipsis"

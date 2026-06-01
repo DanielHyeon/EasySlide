@@ -132,6 +132,116 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task JumpToReference_ValidRange_SelectsVerseSpanAndRaisesEvent()
+    {
+        // typed-reference: "Genesis 1:1-2" 를 입력하면 책을 풀고 그 절 범위를 선택해 추가용 BibleSelection 을 돌려준다.
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;2;", "Genesis 1:1-2 (KJV)");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis"), new BibleBook(2, "Exodus")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning\n1:2 And the earth",
+                [
+                    new BibleVerseLocation(0, 1, 1, 1, Start: 0, Length: 20),
+                    new BibleVerseLocation(0, 1, 1, 2, Start: 21, Length: 16),
+                ],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = selection,
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        BibleSelectionChangedEventArgs? raised = null;
+        sut.SelectionChanged += (_, args) => raised = args;
+        await sut.LoadAsync();
+        sut.TypedReference = "Genesis 1:1-2";
+
+        var result = sut.JumpToReference();
+
+        result.Should().Be(selection);
+        sut.SelectedBook.Should().Be(new BibleBook(1, "Genesis"), "참조의 책으로 선택을 옮긴다");
+        repository.LastBuildStart.Should().Be(0, "시작 절(1:1)의 본문 시작 오프셋");
+        repository.LastBuildLength.Should().Be(37, "끝 절(1:2) 끝까지 = 21+16");
+        sut.LastReferenceStart.Should().Be(0);
+        sut.LastReferenceLength.Should().Be(37);
+        raised.Should().NotBeNull();
+        raised!.Selection.Should().Be(selection);
+    }
+
+    [Fact]
+    public async Task JumpToReference_InvalidFormat_SetsValidationAndReturnsEmpty()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv], Books = [new BibleBook(1, "Genesis")] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.TypedReference = "이건구절이아님";
+
+        var result = sut.JumpToReference();
+
+        result.IdString.Should().BeEmpty();
+        sut.ValidationMessage.Should().Contain("형식");
+    }
+
+    [Fact]
+    public async Task JumpToReference_UnknownBook_SetsValidationAndReturnsEmpty()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv], Books = [new BibleBook(1, "Genesis")] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.TypedReference = "Mars 1:1";
+
+        var result = sut.JumpToReference();
+
+        result.IdString.Should().BeEmpty();
+        sut.ValidationMessage.Should().Contain("책을 찾을 수 없습니다");
+    }
+
+    [Fact]
+    public async Task JumpToReference_VerseNotInBook_SetsValidationAndReturnsEmpty()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, Start: 0, Length: 20)],
+                IsSequential: true,
+                WasLimited: false),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.TypedReference = "Genesis 9:9"; // 본문에 없는 절.
+
+        var result = sut.JumpToReference();
+
+        result.IdString.Should().BeEmpty();
+        sut.ValidationMessage.Should().Contain("구절을 찾을 수 없습니다");
+    }
+
+    [Fact]
+    public void JumpToReference_NoVersionSelected_SetsValidationAndReturnsEmpty()
+    {
+        using var fixture = TempBibleSettings.Create();
+        var repository = new FakeBibleRepository(); // LoadAsync 안 함 → SelectedVersion null.
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        sut.TypedReference = "Genesis 1:1";
+
+        var result = sut.JumpToReference();
+
+        result.IdString.Should().BeEmpty();
+        sut.ValidationMessage.Should().Contain("버전을 선택");
+    }
+
+    [Fact]
     public async Task RenameVersion_RenamesAndReloads_PreservingSelection()
     {
         using var fixture = TempBibleSettings.Create();
@@ -291,6 +401,11 @@ public class BibleViewModelTests
 
         public BibleVersion? LastRegion2 { get; private set; }
 
+        // typed-reference 점프가 계산해 넘긴 본문 선택 범위(검증용).
+        public int LastBuildStart { get; private set; } = -1;
+
+        public int LastBuildLength { get; private set; } = -1;
+
         public string? LastRenamedFileName { get; private set; }
 
         public string? LastRenamedNewName { get; private set; }
@@ -327,7 +442,11 @@ public class BibleViewModelTests
             int selectionLength,
             int maxSequentialSelection = 100,
             int maxAdHocSelection = 100)
-            => Selection;
+        {
+            LastBuildStart = selectionStart;
+            LastBuildLength = selectionLength;
+            return Selection;
+        }
 
         public BibleSelection ChangeSelectionVersions(
             string currentTitle,

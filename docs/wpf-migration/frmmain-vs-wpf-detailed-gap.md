@@ -222,7 +222,7 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 | FrmMain 인라인 성경 기능(메서드) | WPF BibleWindow / 성경 탭 | 상태 |
 |---|---|---|
 | 버전 탭 + 책 콤보 선택(`TabBibleVersions`,`BookLookup`) | 버전·책 ComboBox(`BibleVerseFinder`) | 🟢 |
-| **Typed reference 입력**("창 1:1-2:3", `BibleUserLookup`+`BibleUserLookupValidation`+Go) | — | 🔴 **없음** |
+| **Typed reference 입력**("창 1:1-2:3", `BibleUserLookup`+`BibleUserLookupValidation`+Go) | `BibleReferenceParser`+`BibleViewModel.JumpToReference`(성경 탭 입력창+이동/Enter) | ✅ (2026-06-01 증분 28) — "창 1:1-2:3"·"John 3:16"·"1요한 4:7-8" 파싱→책 해석→절 범위 선택→예배순서 추가(드래그 선택과 동일 BuildSelection 경로 재사용) |
 | 구절 검색(phrase, `Bibles_Go`/`BibleVerseSearch`/매치모드) | 매치모드 ComboBox + 검색 | 🟢 |
 | 본문에서 드래그 선택→passage 빌드(`HB_BuildSelectionString`, 순차/임의, max verses) | `PassageText` 드래그 선택→`BibleSelection` | 🟢 |
 | **Add Region 2**(이중언어 번역 합치기, `CMenuBible_AddRegion2`,`AddRegion2ToBiblePassage`,`BuildBibleTextR2SubMenus`) | Region2 **미리보기 콤보만**(PreviewRegion2Version) | 🟡 **출력 이중언어 실 적용 없음**(미리보기 제목/ID만) |

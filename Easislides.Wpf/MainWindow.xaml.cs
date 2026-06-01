@@ -232,6 +232,45 @@ public partial class MainWindow : Window
         }
     }
 
+    // 입력창에서 Enter 를 누르면 "이동"과 동일하게 처리(타이핑→Enter 한 번에 추가).
+    private void BibleReferenceBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            JumpToTypedBibleReference();
+        }
+    }
+
+    private void JumpBibleReference_Click(object sender, RoutedEventArgs e)
+        => JumpToTypedBibleReference();
+
+    // 타이핑한 구절(예: "창 1:1-2:3")로 점프해 본문에서 그 범위를 하이라이트하고 예배 순서에 추가한다.
+    // 드래그 선택 흐름(BuildSelection→AddBibleSelection)과 동일 경로를 재사용한다.
+    private void JumpToTypedBibleReference()
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var selection = viewModel.Bible.JumpToReference();
+        if (string.IsNullOrWhiteSpace(selection.IdString))
+        {
+            return; // 파싱·해석 실패 — VM 이 ValidationMessage 로 안내함.
+        }
+
+        // 찾은 본문 범위를 시각적으로 하이라이트(운영자 확인용).
+        var start = viewModel.Bible.LastReferenceStart;
+        var length = viewModel.Bible.LastReferenceLength;
+        if (length > 0 && start >= 0 && start + length <= BiblePassageBox.Text.Length)
+        {
+            BiblePassageBox.Select(start, length);
+        }
+
+        viewModel.AddBibleSelection(selection);
+    }
+
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
         var settingsWindow = _services.GetRequiredService<SettingsWindow>();
