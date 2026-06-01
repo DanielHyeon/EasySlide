@@ -309,6 +309,27 @@
                            Foreground="{Binding SceneForegroundBrush}" />
             </Border>
 
+            <!-- 정보 패널 곡 제목(Display Panel Def_PanelTitle) — 좌측 상단 모서리. 설정 on + Live + 제목 있을 때만 표시.
+                 상단 우측의 "다음 항목" 밴드와 같은 상단이지만 좌/우로 갈라 겹치지 않는다. 제목은 DisplayTitle 재사용.
+                 주의: 이 패널 제목과 위쪽 "제목 헤딩"(큰 배너)은 둘 다 DisplayTitle 을 쓰는 별개 기능이다. 보통은
+                 제목 헤딩이 가운데 정렬(기본)이라 좌측 패널 제목과 겹치지 않지만, 사용자가 제목 헤딩을 "왼쪽 정렬"로
+                 바꾸고 둘을 동시에 켜면 같은 제목이 좌측 상단에서 겹친다(둘 중 하나만 쓰는 것이 의도된 사용). -->
+            <Border HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="24,16,0,0"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding TitleOnPanelVisibility}">
+                <TextBlock Text="{Binding DisplayTitle}"
+                           FontSize="{Binding PanelSecondaryFontSize}"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="520"
+                           Foreground="{Binding SceneForegroundBrush}" />
+            </Border>
+
             <!-- 곡 번호(Display Panel "Show Item Number") — 좌측 하단 모서리. 설정 on + Live + 번호 있을 때만 표시. -->
             <Border HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"

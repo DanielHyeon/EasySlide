@@ -77,6 +77,8 @@ public sealed record LiveOutputRenderSettings(
     bool TitleHeadingFirstScreenOnly = false,
     // 출력에 곡 번호 표시(FrmMain Show Item Number, Display Panel). 기본 off → 기존 출력 무변화.
     bool LyricsMonitorShowItemNumber = false,
+    // 정보 패널에 곡 제목 표시(FrmMain Def_PanelTitle). 기본 off → 기존 출력 무변화.
+    bool LyricsMonitorShowTitleOnPanel = false,
     // 출력에 저작권 표시(FrmMain Show Copyright Information, Display Panel). 기본 off.
     bool LyricsMonitorShowCopyright = false,
     // 출력에 다음 항목 표시(FrmMain Display Panel PrevNext). 기본 off.
@@ -136,6 +138,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2),
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowTitleOnPanel),
             settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright),
             settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath),
@@ -244,6 +247,8 @@ public sealed record OutputSceneSnapshot(
     int LyricsMonitorFontSize2 = 48,
     // 곡 번호 표시 설정(Display Panel). 기본 off.
     bool ShowLyricsItemNumber = false,
+    // 정보 패널에 곡 제목 표시 설정(FrmMain Def_PanelTitle). 기본 off. 제목은 DisplayTitle 재사용.
+    bool ShowLyricsTitleOnPanel = false,
     // 곡 번호 라벨(예: "123"). Live + 곡 번호>0 일 때만 채워진다.
     string ItemNumberLabel = "",
     // 저작권 표시 설정(Display Panel). 기본 off.
@@ -285,6 +290,9 @@ public sealed record OutputSceneSnapshot(
 
     // 곡 번호를 실제로 노출할지 — 설정 on + Live + 번호 라벨이 있을 때만(Display Panel).
     public bool ShowsItemNumber => ShowLyricsItemNumber && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(ItemNumberLabel);
+
+    // 정보 패널 곡 제목을 실제로 노출할지 — 설정 on + Live + 제목이 있을 때만(FrmMain Def_PanelTitle, 제목은 DisplayTitle).
+    public bool ShowsTitleOnPanel => ShowLyricsTitleOnPanel && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(DisplayTitle);
 
     // 저작권을 실제로 노출할지 — 설정 on + Live + 저작권 문자열이 있을 때만(Display Panel).
     public bool ShowsCopyright => ShowLyricsCopyright && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(CopyrightLabel);
@@ -476,6 +484,7 @@ public sealed class OutputRenderer : IOutputRenderer
             fontSize2Px,
             // 곡 번호 표시(설정) + 라벨(Live + 번호>0). 곡 번호 0이면 빈 문자열 → 미표시.
             liveOutput.LyricsMonitorShowItemNumber,
+            liveOutput.LyricsMonitorShowTitleOnPanel,
             isLive && request.Session.CurrentItemNumber > 0 ? request.Session.CurrentItemNumber.ToString() : string.Empty,
             // 저작권 표시(설정) + 라벨(Live + 저작권 문자열). 비면 미표시.
             liveOutput.LyricsMonitorShowCopyright,

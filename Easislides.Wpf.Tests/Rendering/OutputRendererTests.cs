@@ -1281,6 +1281,45 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_ShowsTitleOnPanel_WhenEnabledAndLiveWithTitle()
+    {
+        // FrmMain Def_PanelTitle — 설정 on + Live + 제목 존재 → ShowsTitleOnPanel true(제목은 DisplayTitle 재사용).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorShowTitleOnPanel: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.DisplayTitle.Should().Be("은혜로다");
+        scene.ShowsTitleOnPanel.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_HidesTitleOnPanel_WhenSettingOffOrNotLive()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        // 설정 off → 숨김
+        var sceneOff = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: new LiveOutputRenderSettings(LyricsMonitorShowTitleOnPanel: false)));
+        sceneOff.ShowsTitleOnPanel.Should().BeFalse("설정 off 면 숨김");
+
+        // 설정 on 이지만 대기(Standby, 비Live) → 숨김
+        var sceneStandby = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Standby, "은혜로다", "Display 1", IsBlackout: false),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: new LiveOutputRenderSettings(LyricsMonitorShowTitleOnPanel: true)));
+        sceneStandby.ShowsTitleOnPanel.Should().BeFalse("Live 가 아니면 숨김");
+    }
+
+    [Fact]
     public void CreateScene_ShowsVerseHeading_WhenEnabledAndLiveWithSectionLabel()
     {
         // 절 헤딩(FrmMain Def_Head All): 설정 on + Live + 섹션 라벨 존재 → ShowsVerseHeading true, 라벨 전달.

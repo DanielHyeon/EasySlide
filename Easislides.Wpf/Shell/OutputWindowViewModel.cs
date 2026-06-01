@@ -92,6 +92,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 곡 번호 표시(Display Panel) — 설정 on + Live + 번호 있을 때만 보인다.
     private string _itemNumberText = string.Empty;
     private Visibility _itemNumberVisibility = Visibility.Collapsed;
+    private Visibility _titleOnPanelVisibility = Visibility.Collapsed;
     private string _copyrightText = string.Empty;
     private Visibility _copyrightVisibility = Visibility.Collapsed;
     private string _nextItemText = string.Empty;
@@ -448,6 +449,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _itemNumberVisibility;
         private set => SetProperty(ref _itemNumberVisibility, value);
+    }
+
+    /// <summary>정보 패널 곡 제목 밴드 표시 여부(FrmMain Def_PanelTitle) — 설정 on + Live + 제목 있을 때만. 텍스트는 DisplayTitle 재사용.</summary>
+    public Visibility TitleOnPanelVisibility
+    {
+        get => _titleOnPanelVisibility;
+        private set => SetProperty(ref _titleOnPanelVisibility, value);
     }
 
     /// <summary>저작권 텍스트(Display Panel "Show Copyright Information").</summary>
@@ -827,6 +835,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         VerseHeadingVisibility = scene.ShowsVerseHeading ? Visibility.Visible : Visibility.Collapsed;
         ItemNumberText = scene.ItemNumberLabel;
         ItemNumberVisibility = scene.ShowsItemNumber ? Visibility.Visible : Visibility.Collapsed;
+        TitleOnPanelVisibility = scene.ShowsTitleOnPanel ? Visibility.Visible : Visibility.Collapsed;
         CopyrightText = scene.CopyrightLabel;
         CopyrightVisibility = scene.ShowsCopyright ? Visibility.Visible : Visibility.Collapsed;
         NextItemText = scene.ShowsNextItem ? $"다음 ▶ {scene.NextItemLabel}" : string.Empty;
@@ -1272,6 +1281,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowVerseHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 곡 번호 표시 토글도 라이브 출력에 즉시 반영(Display Panel).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowItemNumber.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 정보 패널 곡 제목 표시 토글도 라이브 출력에 즉시 반영(Def_PanelTitle).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleOnPanel.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 저작권 표시 토글도 라이브 출력에 즉시 반영(Display Panel).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowCopyright.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 다음 항목 표시 토글도 라이브 출력에 즉시 반영(Display Panel PrevNext).

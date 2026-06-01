@@ -85,7 +85,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_TransItem`/`Def_TransSlides`, `Ind_Trans*` | **항목/슬라이드 전환 효과** | 🟡 출력 메뉴 "전환 효과"(페이드 on/off + 모션 Fade/Slide 4방향 + 속도)로 노출. 항목/슬라이드 개별 전환 분리·전체 효과군은 후속 |
 | `Def_AssignMedia`/`Ind_AssignMedia` (None/AsTitle/Specific/LiveFeed) | 항목 미디어 배정 | 🔴 없음 |
 | `Ind_LeftUpDown`/`RightUpDown`/`BottomUpDown` | **여백 수치 입력** | 🟢 출력 본문 좌/우/아래 여백(LyricsMonitorBodyLeft/Right/BottomMargin, 0~400px) — 메뉴 "본문 여백" −/+ 로 8px 단위 조절·설정 영속·라이브 즉시 반영. 직접 수치 입력 박스만 후속 |
-| `Def_Panel*` (Show/Title/Copyright/ItemNumber/Slides/PrevNext/Transparent/AsR1/색/폰트 9종+) | Display Panel 항목(곡번호·저작권·다음항목·위치) + 투명 토글 + 밴드 색 + 글자 크기 | 🟡 ItemNumber/Copyright/PrevNext/Position(증분6)·Transparent(증분39)·밴드 색(증분63)·**글자 크기 비율(증분65)** 구현. Title-on-panel·AsR1만 후속 |
+| `Def_Panel*` (Show/Title/Copyright/ItemNumber/Slides/PrevNext/Transparent/AsR1/색/폰트 9종+) | Display Panel 항목(곡번호·저작권·다음항목·위치·제목) + 투명 토글 + 밴드 색 + 글자 크기 | 🟢 ItemNumber/Copyright/PrevNext/Position(증분6)·Transparent(증분39)·밴드 색(증분63)·글자 크기(증분65)·**제목 표시(증분66, Def_PanelTitle)** 구현. (패널 AsR1 정렬 추종은 미세 잔여) |
 | `Ind_LoadTemplate`/`SaveTemplate`, `Def_*Template` | 개별/기본 설정 템플릿 | 🟡 출력모양 템플릿 1종만 |
 | `Ind_checkBox` "Use Individual Settings" | **항목별 개별 포맷 vs 기본** | 🟢 (증분 54) 예배 순서 항목 우클릭 "개별 서식 사용" 토글 — off 면 그 항목의 FormatData(색·정렬·폰트·배경) 무시하고 전역 기본으로 송출. 라이브 즉시 반영(현재 절 유지)·저장/불러오기 보존(FormatData 도 영속) |
 | `DefApplyDefaultsBtn` "Apply to All Except InfoScreens" | 전 항목 기본 적용 | 🔴 없음 |
@@ -135,7 +135,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | **Region 1/2 이중 언어**(영역별 색·정렬·폰트·크기·세로위치·굵게·기울임·밑줄) | `SongFormatData`가 region2 필드(27/30/32/44/48)를 **디코드는 하나** GoLive가 region1만 적용 | 🔴 **출력 렌더 0%**(데이터 모델 일부 존재, `[region 2]` 마커 파서·영역별 송출 없음) |
 | Region 인터레이스(줄 교차 송출) | 원문/번역 줄 교차(LyricsMonitorInterlace, 인스펙터 토글) | 🟢 이중언어 Region1/2 줄을 교차 배치해 송출(InterlacedLines) |
 | Region 표시 모드(1만/2만/둘다) | LyricsRegionDisplay(Both/Region1Only/Region2Only, ApplyRegionDisplayCommand) | 🟢 영역 표시 모드 3종 인스펙터 라디오→출력 반영 |
-| Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | 정보 항목(항목번호·저작권·다음항목·위치 N/M) + 투명 토글 + 밴드 색 + 글자 크기 | 🟡 정보 항목·투명·밴드 색·글자 크기 비율은 렌더링(증분6/39/63/65). 제목-온-패널만 후속 |
+| Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | 정보 항목(항목번호·저작권·다음항목·위치 N/M·제목) + 투명 토글 + 밴드 색 + 글자 크기 | 🟢 정보 항목·제목·투명·밴드 색·글자 크기 비율 모두 렌더링(증분6/39/63/65/66) |
 | 헤딩(제목/**절 헤딩**, 모드 3종, 정렬 AsR1/AsR2/L/C/R) | 🟢 제목 on/off·L/C/R·첫화면 + 절 헤딩 + AsR1 + AsR2 — 헤딩 표시/정렬 전부 구현 |
 | 코드/악상 표시(`ShowNotations`, 미리보기 토글) | 코드 표시(LyricsDisplayFormatter.ExpandNotations) | 🟢 (증분 27) "코드 표시" on 이면 가사 위에 코드 줄 송출 + (증분 30) 라이브 조옮김 ±반음 |
 | 조옮김(Capo ↑/↓, To Capo 0) | `LiveTranspose*Command`(출력 메뉴 "코드 조옮김 ▲/▼/원조") + ExpandNotations transpose | 🟡 (2026-06-01 증분 30) — **라이브 코드 조옮김 ±반음**(코드 표시 on 일 때 송출 코드 이동, 가사 불변). 새 곡 송출 시 원조 초기화. ChordTransposer 재사용 |

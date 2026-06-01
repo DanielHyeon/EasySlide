@@ -42,7 +42,8 @@ public class AppearanceTemplateStoreTests
             BackgroundGradientDirection: LyricsGradientDirection.DiagonalDown,
             PanelColorArgb: unchecked((int)0x66203040),
             FontSize2: 36,
-            PanelFontScalePercent: 140);
+            PanelFontScalePercent: 140,
+            ShowTitleOnPanel: true);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

@@ -154,6 +154,10 @@
                 <MenuItem Header="곡 번호 표시"
                           IsChecked="{Binding ActiveLyricsItemNumber}"
                           Command="{Binding ToggleLyricsItemNumberCommand}" />
+                <MenuItem Header="정보 패널에 제목 표시"
+                          IsChecked="{Binding ActiveLyricsTitleOnPanel}"
+                          Command="{Binding ToggleLyricsTitleOnPanelCommand}"
+                          ToolTip="현재 곡 제목을 송출 화면 좌측 상단 정보 밴드에 작게 표시(레거시 Def_PanelTitle)." />
                 <MenuItem Header="저작권 표시"
                           IsChecked="{Binding ActiveLyricsCopyright}"
                           Command="{Binding ToggleLyricsCopyrightCommand}" />
