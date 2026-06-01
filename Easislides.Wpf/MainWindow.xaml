@@ -125,6 +125,12 @@
                 <MenuItem Header="가사 그림자"
                           IsChecked="{Binding ActiveLyricsShadow}"
                           Command="{Binding ToggleLyricsShadowCommand}" />
+                <MenuItem Header="가사 굵게"
+                          IsChecked="{Binding ActiveLyricsBold}"
+                          Command="{Binding ToggleLyricsBoldCommand}" />
+                <MenuItem Header="가사 기울임"
+                          IsChecked="{Binding ActiveLyricsItalic}"
+                          Command="{Binding ToggleLyricsItalicCommand}" />
             </MenuItem>
 
             <MenuItem Header="도구">

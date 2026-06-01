@@ -76,6 +76,8 @@ public class MainMenuBarTests
     [InlineData("ActiveLyricsTitleHeading", "ToggleLyricsTitleHeadingCommand")]
     [InlineData("ActiveLyricsOutline", "ToggleLyricsOutlineCommand")]
     [InlineData("ActiveLyricsShadow", "ToggleLyricsShadowCommand")]
+    [InlineData("ActiveLyricsBold", "ToggleLyricsBoldCommand")]
+    [InlineData("ActiveLyricsItalic", "ToggleLyricsItalicCommand")]
     public void MenuBar_OutputDisplayToggles_BindCheckedAndCommand(string activeProperty, string toggleCommand)
     {
         var xaml = Xaml;
