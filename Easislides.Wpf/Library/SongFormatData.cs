@@ -7,7 +7,7 @@ namespace Easislides.Wpf.Library;
 /// 레거시 v32 FormatData 를 디코드한 곡-레벨 포맷(색·폰트·크기·정렬·배경). 형식은 "코드=값&gt;코드=값&gt;...".
 /// 필드-코드 매핑은 레거시 gfLyrics(HeaderData[n] → 속성)의 권위를 따른다:
 ///   26/27 = 배경색 region1/2(ARGB int), 29/30 = 글자색 region1/2,
-///   43/44 = 폰트명, 47/48 = 글자 크기(6~100), 31/32 = 정렬(1~3), 41 = 글꼴 효과 비트(region1 bit1=Bold·bit2=Italic / region2 bit4·5),
+///   43/44 = 폰트명, 47/48 = 글자 크기(6~100), 31/32 = 정렬(1~3), 41 = 글꼴 효과 비트(0-based: region1 bit0=Bold·bit1=Italic / region2 bit3=Bold·bit4=Italic),
 ///   61 = 배경 이미지 경로, 51 = 미디어 경로.
 /// 곡마다 두 영역(region1/region2 — 이중 언어 등)을 가질 수 있고, 가사의 [region 2] 마커로 줄을 region2 에 배정한다.
 /// 인식 못 한 키/형식은 무시한다(레거시 데이터 견고성). 비었으면 null.
@@ -76,7 +76,7 @@ public sealed record SongFormatData
             }
         }
 
-        // 글꼴 효과 비트(레거시): region1 bit1=Bold, bit2=Italic / region2 bit4=Bold, bit5=Italic. 범위 밖이면 무시.
+        // 글꼴 효과 비트(레거시, 0-based): region1 bit0=Bold·bit1=Italic / region2 bit3=Bold·bit4=Italic. 범위 밖이면 무시.
         var hasBits = effectBits is >= 0 and <= 127;
 
         return new SongFormatData
@@ -100,9 +100,64 @@ public sealed record SongFormatData
         };
     }
 
+    /// <summary>
+    /// 이 포맷을 레거시 v32 FormatData 문자열("코드=값&gt;코드=값&gt;...")로 인코드한다 — Parse 의 역. 빈 항목은 생략한다
+    /// (null 색·크기·정렬, 빈 폰트·경로, 효과 비트 0). Parse(Encode(x)) 가 x 와 같도록 코드 매핑을 정확히 맞춘다.
+    /// 곡별 영역 스타일을 인스펙터에서 편집해 저장할 때 쓴다.
+    /// </summary>
+    public string Encode()
+    {
+        var parts = new System.Collections.Generic.List<string>();
+        void Add(int code, string value) => parts.Add($"{code}={value}");
+        string Num(int n) => n.ToString(CultureInfo.InvariantCulture);
+
+        if (BackgroundColorArgb1 is int bc1) Add(26, Num(bc1));
+        if (BackgroundColorArgb2 is int bc2) Add(27, Num(bc2));
+        if (TextColorArgb1 is int tc1) Add(29, Num(tc1));
+        if (TextColorArgb2 is int tc2) Add(30, Num(tc2));
+        if (Alignment1 is int a1) Add(31, Num(a1));
+        if (Alignment2 is int a2) Add(32, Num(a2));
+
+        // 글꼴 효과 비트(레거시 HeaderData[41]): region1 bit0=Bold·bit1=Italic / region2 bit3=Bold·bit4=Italic.
+        var effectBits = (Bold1 ? 0b0000_0001 : 0)
+                       | (Italic1 ? 0b0000_0010 : 0)
+                       | (Bold2 ? 0b0000_1000 : 0)
+                       | (Italic2 ? 0b0001_0000 : 0);
+        if (effectBits != 0) Add(41, Num(effectBits));
+
+        if (!string.IsNullOrEmpty(FontName1)) Add(43, FontName1);
+        if (!string.IsNullOrEmpty(FontName2)) Add(44, FontName2);
+        if (FontSize1 is int fs1) Add(47, Num(fs1));
+        if (FontSize2 is int fs2) Add(48, Num(fs2));
+        if (!string.IsNullOrEmpty(MediaPath)) Add(51, MediaPath);
+        if (!string.IsNullOrEmpty(BackgroundImagePath)) Add(61, BackgroundImagePath);
+
+        return string.Join(">", parts);
+    }
+
     /// <summary>부호 있는 ARGB 정수를 WPF "#AARRGGBB" 16진 문자열로. null 이면 null.</summary>
     public static string? ArgbToHex(int? argb)
         => argb is null ? null : "#" + unchecked((uint)argb.Value).ToString("X8", CultureInfo.InvariantCulture);
+
+    /// <summary>WPF "#AARRGGBB"(또는 "#RRGGBB") 16진 문자열을 부호 있는 ARGB 정수로. 비거나 형식 오류면 null.</summary>
+    public static int? HexToArgb(string? hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return null;
+        }
+
+        var text = hex.Trim().TrimStart('#');
+        if (text.Length == 6)
+        {
+            text = "FF" + text; // 알파 없으면 불투명으로.
+        }
+
+        return text.Length == 8
+            && uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb)
+            ? unchecked((int)argb)
+            : null;
+    }
 
     private static int? ParseArgb(string value)
         => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : null;

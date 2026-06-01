@@ -34,11 +34,11 @@ public sealed class SongFormatDataTests
         f.Alignment1.Should().Be(2, "31 = region1 정렬");
         f.Alignment2.Should().Be(1, "32 = region2 정렬");
         f.BackgroundImagePath.Should().Be(@"C:\EasiSlides\Images\성경\bible-sermon.jpg", "61 = 배경 이미지");
-        // 실 샘플 41=16=0b10000=bit5 → region2 Italic 만 true(레거시 HeaderData[41] 권위).
+        // 실 샘플 41=16=0b10000=bit4 → region2 Italic 만 true(0-based; 레거시 HeaderData[41] 권위).
         f.Bold1.Should().BeFalse();
         f.Italic1.Should().BeFalse();
         f.Bold2.Should().BeFalse();
-        f.Italic2.Should().BeTrue("41=16 의 bit5 = region2 Italic");
+        f.Italic2.Should().BeTrue("41=16 의 bit4 = region2 Italic");
     }
 
     [Fact]
@@ -80,4 +80,73 @@ public sealed class SongFormatDataTests
         f!.TextColorArgb1.Should().Be(-1);
         f.FontName1.Should().Be("Arial");
     }
+
+    [Fact]
+    public void Encode_ThenParse_RoundTripsAllFields()
+    {
+        // 인스펙터에서 만든 영역별 스타일이 인코드→디코드로 비트 동일하게 보존돼야 한다.
+        var original = new SongFormatData
+        {
+            TextColorArgb1 = -16777216,
+            TextColorArgb2 = -16744193,
+            BackgroundColorArgb1 = -16777056,
+            BackgroundColorArgb2 = 100,
+            FontName1 = "Microsoft Sans Serif",
+            FontName2 = "HY견고딕",
+            FontSize1 = 55,
+            FontSize2 = 44,
+            Alignment1 = 2,
+            Alignment2 = 1,
+            Bold1 = true,
+            Italic1 = false,
+            Bold2 = false,
+            Italic2 = true,
+            BackgroundImagePath = @"C:\EasiSlides\Images\성경\bible.jpg",
+            MediaPath = "clip.mp4",
+        };
+
+        var round = SongFormatData.Parse(original.Encode());
+
+        round.Should().Be(original);
+    }
+
+    [Fact]
+    public void Encode_OmitsEmptyFields()
+    {
+        // 비어 있는(상속) 항목은 인코드 결과에서 빠진다 — region1 글자색만 설정한 경우.
+        var encoded = new SongFormatData { TextColorArgb1 = -1 }.Encode();
+
+        encoded.Should().Be("29=-1");
+        SongFormatData.Parse(encoded)!.TextColorArgb1.Should().Be(-1);
+    }
+
+    [Fact]
+    public void Encode_BoldItalicBits_RoundTrip()
+    {
+        // 효과 비트: region1 Bold+Italic, region2 Bold → 1|2|8 = 11.
+        var encoded = new SongFormatData { Bold1 = true, Italic1 = true, Bold2 = true }.Encode();
+
+        encoded.Should().Contain("41=11");
+        var f = SongFormatData.Parse(encoded)!;
+        f.Bold1.Should().BeTrue();
+        f.Italic1.Should().BeTrue();
+        f.Bold2.Should().BeTrue();
+        f.Italic2.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("#FF000000", -16777216)]
+    [InlineData("#FFFFFFFF", -1)]
+    [InlineData("FFFF00", -256)]     // 알파 생략 → 불투명 노랑(0xFFFFFF00).
+    [InlineData("#80FF0000", 2164195328 - 4294967296)] // 반투명 빨강(부호 변환).
+    public void HexToArgb_ParsesHashAndAlphalessHex(string hex, long expected)
+        => SongFormatData.HexToArgb(hex).Should().Be((int)expected);
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("xyz")]
+    [InlineData("#12")]
+    public void HexToArgb_InvalidOrEmpty_ReturnsNull(string? hex)
+        => SongFormatData.HexToArgb(hex).Should().BeNull();
 }

@@ -281,6 +281,87 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_DecodesRegionStyleInspectorFromFormatData()
+    {
+        // FormatData 의 영역별 코드(29/30 색·31/32 정렬·41 효과비트)가 인스펙터 속성으로 디코드돼야 한다.
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Details[10] = Detail(10, "Styled", folderNo: 2,
+            formatData: "29=-16777216>30=-1>31=2>32=1>41=11>43=Arial>47=40>");
+        var sut = new SongEditorViewModel(fixture.Settings, repository, repository, null, null);
+
+        await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
+
+        // 인스펙터 편집 대상(색·정렬)이 디코드된다.
+        sut.Region1ColorHex.Should().Be("#FF000000");
+        sut.Region2ColorHex.Should().Be("#FFFFFFFF");
+        sut.Region1Alignment.Should().Be(2);
+        sut.Region2Alignment.Should().Be(1);
+        sut.HasChanges.Should().BeFalse("로드는 변경이 아니다");
+    }
+
+    [Fact]
+    public void Load_NewSong_RegionStyleInspectorAllInherit()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), song: null);
+
+        sut.Region1ColorHex.Should().BeEmpty();
+        sut.Region2ColorHex.Should().BeEmpty();
+        sut.Region1Alignment.Should().Be(0); // 상속
+        sut.Region2Alignment.Should().Be(0);
+        sut.FormatData.Should().BeEmpty();
+        sut.HasChanges.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ChangingRegionStyle_EncodesIntoFormatData_PreservingOtherFields_AndMarksDirty()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        // 폰트(43/47)·굵게기울임 비트(41=11: 영역1 Bold+Italic·영역2 Bold)는 인스펙터가 안 건드리는 보존 대상.
+        repository.Details[10] = Detail(10, "Styled", folderNo: 2, formatData: "29=-16777216>41=11>43=Arial>47=40>");
+        var sut = new SongEditorViewModel(fixture.Settings, repository, repository, null, null);
+        await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
+        sut.HasChanges.Should().BeFalse();
+
+        sut.Region2Alignment = 3; // 보조 언어 정렬 = 오른쪽.
+
+        sut.HasChanges.Should().BeTrue();
+        var format = SongFormatData.Parse(sut.FormatData)!;
+        format.Alignment2.Should().Be(3, "새로 정한 영역2 정렬");
+        format.TextColorArgb1.Should().Be(-16777216, "기존 영역1 색 보존");
+        format.FontName1.Should().Be("Arial", "인스펙터가 안 건드린 폰트 보존");
+        format.FontSize1.Should().Be(40, "인스펙터가 안 건드린 크기 보존");
+        format.Bold1.Should().BeTrue("인스펙터가 안 건드린 굵게 비트 보존");
+        format.Italic1.Should().BeTrue();
+        format.Bold2.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ClearingRegionColor_DropsColorCode_ButKeepsPreservedFontAndBackground()
+    {
+        // 색을 비우면(상속) 그 코드만 빠지고, 인스펙터가 안 건드리는 폰트(43)·배경 이미지(61)는 그대로 유지된다.
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Details[10] = Detail(10, "Styled", folderNo: 2, formatData: @"29=-1>43=Arial>61=C:\bg.jpg>");
+        var sut = new SongEditorViewModel(fixture.Settings, repository, repository, null, null);
+        await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
+
+        sut.Region1ColorHex = ""; // 영역1 색을 상속으로.
+
+        var format = SongFormatData.Parse(sut.FormatData)!;
+        format.TextColorArgb1.Should().BeNull("색을 비우면 29 코드가 빠진다");
+        format.FontName1.Should().Be("Arial", "폰트 보존");
+        format.BackgroundImagePath.Should().Be(@"C:\bg.jpg", "배경 이미지 보존");
+    }
+
+    [Fact]
     public async Task SaveAsync_WhenExistingSongLoadedFromDetail_PreservesLegacyFields()
     {
         using var fixture = TempSongEditorSettings.Create();

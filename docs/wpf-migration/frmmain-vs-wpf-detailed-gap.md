@@ -68,8 +68,8 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 |---|---|---|
 | `Def_ShowRegion1/2/Both`, `Ind_ShowRegion*` | **Region 1만/2만/둘다** 표시 | 🔴 없음(단일 영역만) |
 | `Def_Interlace`/`Ind_Interlace` | **Region 1·2 인터레이스**(줄 교차) | 🔴 없음 |
-| `Def_R1Colour`·`Def_R2Colour`, `Ind_R1/R2Colour` | **영역별** 글자색 | 🔴 단일 글자색만 |
-| `Def_R1Align`·`Def_R2Align` (L/C/R) | **영역별** 정렬 | 🔴 단일 정렬만 |
+| `Def_R1Colour`·`Def_R2Colour`, `Ind_R1/R2Colour` | **영역별** 글자색 | 🟢 (증분 46) 곡 편집기 "영역별 스타일(Region 1/2)" 인스펙터에서 영역별 글자색 지정(FormatData 29/30 인코드)→출력 렌더 적용. Display Panel 전역 기본값 UI는 후속 |
+| `Def_R1Align`·`Def_R2Align` (L/C/R) | **영역별** 정렬 | 🟢 (증분 46) 곡 편집기 인스펙터에서 영역별 정렬(상속/왼쪽/가운데/오른쪽, FormatData 31/32)→출력 렌더 적용 |
 | `Ind_R1Bold/Italics(3종)/Underline`, R2 동일 | 영역별 굵게/기울임(없음/전체/후렴만)/밑줄 | 🟡 단일 Bold/Italic만(Underline·ChorusOnly 없음) |
 | `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🔴 단일 크기만 |
 | `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟡 곡별 FormatData 글꼴만(인스펙터 글꼴 선택기 없음) |
