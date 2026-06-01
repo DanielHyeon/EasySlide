@@ -12,7 +12,18 @@ public sealed record CommandDescriptor(
     string DisplayName,
     string Description,
     bool IsDangerous,
-    IReadOnlyList<Shortcut> DefaultShortcuts);
+    IReadOnlyList<Shortcut> DefaultShortcuts)
+{
+    /// <summary>
+    /// 명령 팔레트(⌘K) 결과를 스크린리더가 한 호흡에 읽도록 합성한 항목 레벨 접근성 이름.
+    /// 자식 TextBlock 들의 합성(비결정적)에 기대지 않고 "이름, [위험 명령,] 분류" 순서로 또렷이 읽어 준다.
+    /// 위험 명령은 색 배지뿐 아니라 음성으로도 "위험"을 전달(색에 의존하지 않는 접근성).
+    /// 순서는 이름 먼저 — 목록을 훑을 때 명령명이 1차 식별자라 앞에 두고, 위험·분류는 뒤따른다.
+    /// </summary>
+    public string AccessibleName => IsDangerous
+        ? $"{DisplayName}, 위험 명령, {Category}"
+        : $"{DisplayName}, {Category}";
+}
 
 public interface ICommandCatalog
 {

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Windows.Input;
 using Easislides.Wpf.Input;
@@ -50,6 +51,20 @@ public class CommandCatalogTests
             .And.Match<CommandDescriptor>(command => command.IsDangerous);
         sut.FindById(MainCommandIds.LiveNext).Should().NotBeNull()
             .And.Match<CommandDescriptor>(command => !command.IsDangerous);
+    }
+
+    [Fact]
+    public void AccessibleName_ComposesDisplayNameCategory_AndMarksDanger()
+    {
+        // 팔레트 결과를 스크린리더가 한 호흡에 읽도록 항목 레벨 접근성 이름을 합성한다.
+        // 위험 명령은 "위험 명령" 표시를 포함해 색에 의존하지 않고도 위험을 음성으로 전달한다.
+        var danger = new CommandDescriptor("X", "Live", "라이브 중지", "설명", IsDangerous: true, Array.Empty<Shortcut>());
+        var safe = new CommandDescriptor("Y", "창", "라이브러리 열기", "설명", IsDangerous: false, Array.Empty<Shortcut>());
+
+        // 순서·구분자까지 고정 — "이름, [위험 명령,] 분류" 가 스크린리더 읽기 순서의 계약이다.
+        danger.AccessibleName.Should().Be("라이브 중지, 위험 명령, Live");
+        safe.AccessibleName.Should().Be("라이브러리 열기, 창");
+        safe.AccessibleName.Should().NotContain("위험", "안전한 명령은 위험 표시가 없어야 함");
     }
 
     [Fact]
