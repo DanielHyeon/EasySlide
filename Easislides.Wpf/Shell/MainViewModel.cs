@@ -42,6 +42,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
     // 예배 순서 검증에서 문제가 하나라도 있으면 true — 좌측 패널의 경고 목록 표시 여부에 쓰인다.
     [ObservableProperty] private bool _hasWorshipListProblems;
+    // 라이브 조옮김 반음 수(레거시 Transpose ±Semi-Tone) — 코드 표시가 켜졌을 때 송출 코드를 이동. 0=원조.
+    // 새 곡을 송출하면 0 으로 초기화되어 각 곡이 작성된 키에서 시작한다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LiveTransposeLabel))]
+    private int _liveTransposeSemitones;
 
     // 좌측 "검색" 탭에서 선택한 교차 검색 결과(폴더 가로지름). "예배 순서에 추가" 활성 여부를 좌우한다.
     [ObservableProperty]
@@ -426,6 +431,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
         OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
         ValidateWorshipListCommand = new RelayCommand(ValidateWorshipList);
+        // 라이브 조옮김 ↑/↓/원조 — ±반음 이동(±11 클램프) 후 라이브 곡을 재송출해 코드 줄을 다시 그린다.
+        TransposeLiveUpCommand = new RelayCommand(() => SetLiveTranspose(LiveTransposeSemitones + 1));
+        TransposeLiveDownCommand = new RelayCommand(() => SetLiveTranspose(LiveTransposeSemitones - 1));
+        TransposeLiveResetCommand = new RelayCommand(() => SetLiveTranspose(0));
         RefreshRecentWorshipLists();
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
@@ -509,6 +518,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>예배 순서 검증을 실행한다(라이브 송출 전 깨진 PPT·미디어 파일 점검, 레거시 ValidateWorshipListItems).</summary>
     public IRelayCommand ValidateWorshipListCommand { get; }
+
+    /// <summary>라이브 조옮김 상태 라벨(예: "원조", "조옮김 +2", "조옮김 -1") — 메뉴/툴팁 표시용.</summary>
+    public string LiveTransposeLabel => LiveTransposeSemitones == 0
+        ? "원조"
+        : $"조옮김 {(LiveTransposeSemitones > 0 ? "+" : "")}{LiveTransposeSemitones}";
+
+    /// <summary>라이브 코드 조옮김 ↑(반음 올림, 레거시 Transpose Up Semi-Tone). 코드 표시 on 일 때 송출 코드 이동.</summary>
+    public IRelayCommand TransposeLiveUpCommand { get; }
+
+    /// <summary>라이브 코드 조옮김 ↓(반음 내림, 레거시 Transpose Down Semi-Tone).</summary>
+    public IRelayCommand TransposeLiveDownCommand { get; }
+
+    /// <summary>라이브 코드 조옮김 원조 복귀(0, 레거시 To Capo 0 의 운영 단순화).</summary>
+    public IRelayCommand TransposeLiveResetCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -882,6 +905,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             RecentWorshipLists.Add(name);
         }
+    }
+
+    // 라이브 조옮김 값을 설정한다(±11 반음 클램프). 값이 바뀌면 라이브 곡을 같은 절로 재송출해 코드를 다시 그리고,
+    // 상태바에 현재 조옮김을 알린다. 코드 표시가 꺼져 있으면 코드가 안 보이므로 시각 효과는 없지만 값은 유지된다.
+    private void SetLiveTranspose(int semitones)
+    {
+        // ±11 로 클램프 — 12음 체계에서 ±12 는 옥타브라 원조와 코드가 똑같아진다(라벨만 "조옮김 +12"로 헷갈림).
+        // 그래서 원조와 구별되는 최대 이동인 ±11 까지만 허용한다(ChordTransposer 는 % 12 로 계산).
+        var clamped = Math.Clamp(semitones, -11, 11);
+        if (clamped == LiveTransposeSemitones)
+        {
+            return; // 변화 없음(이미 한계값) — 불필요한 재송출 방지.
+        }
+
+        LiveTransposeSemitones = clamped;
+        RepublishLiveSongForBodyChange();
+        StatusText = LiveTransposeSemitones == 0 ? "조옮김: 원조" : $"조옮김: {LiveTransposeLabel}";
     }
 
     /// <summary>
@@ -1709,6 +1749,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         _liveItemId = SelectedItem.Id; // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
+        // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
+        LiveTransposeSemitones = 0;
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
         var projection = SelectedItem with { LyricsPageIndex = LyricsPageIndex };
         _session.GoLive(ResolveLiveProjection(projection), monitorName);
@@ -1751,10 +1793,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PositionLabel = positionLabel,
                 NextTitle = nextTitle,
                 ShowNotations = showNotations,
+                TransposeSemitones = LiveTransposeSemitones,
             };
         }
 
-        return item with { PositionLabel = positionLabel, NextTitle = nextTitle, ShowNotations = showNotations };
+        return item with
+        {
+            PositionLabel = positionLabel,
+            NextTitle = nextTitle,
+            ShowNotations = showNotations,
+            TransposeSemitones = LiveTransposeSemitones,
+        };
     }
 
     // 다음 예배순서 항목 제목(출력 "다음 항목 표시" Display Panel PrevNext).
@@ -2200,6 +2249,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             FormatData = formatData,
         };
         _liveItemId = LiveItemKinds.NoticeLiveId;
+        // 공지는 가사가 없어 조옮김과 무관하다. 라이브 조옮김 초기화는 곡 송출 진입점인 PublishSelectedItem 한 곳이
+        // 책임진다(여기서 건드리지 않음) — 공지 중 조옮김을 눌러도 RepublishLiveSongForBodyChange 가 센티넬을
+        // 큐에서 못 찾아 무시하므로 안전하다.
         _session.GoLive(notice, monitorName);
         StatusText = "공지 화면 송출";
         NotifyCommandStates();

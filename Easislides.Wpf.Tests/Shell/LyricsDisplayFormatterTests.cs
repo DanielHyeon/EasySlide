@@ -129,6 +129,35 @@ public class LyricsDisplayFormatterTests
     }
 
     [Fact]
+    public void ExpandNotations_OnWithTranspose_ShiftsChordsOnly()
+    {
+        // 조옮김 +2 면 코드(C·G)만 반음 두 칸 올라가고(D·A) 가사는 그대로다.
+        var raw = "Amazing grace » C  G\nHow sweet » D7";
+
+        var expanded = LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true, transposeSemitones: 2);
+
+        expanded.Should().Be("D  A\nAmazing grace\nE7\nHow sweet");
+    }
+
+    [Fact]
+    public void ExpandNotations_OnWithZeroTranspose_KeepsOriginalChords()
+    {
+        var raw = "Amazing grace » C  G";
+
+        LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true, transposeSemitones: 0)
+            .Should().Be("C  G\nAmazing grace");
+    }
+
+    [Fact]
+    public void ExpandNotations_OffWithTranspose_StillReturnsRawUnchanged()
+    {
+        // 코드 표시가 꺼져 있으면 조옮김 값이 있어도 코드가 안 보이므로 원시 그대로(무회귀).
+        var raw = "Amazing grace » C  G";
+
+        LyricsDisplayFormatter.ExpandNotations(raw, showNotations: false, transposeSemitones: 3).Should().Be(raw);
+    }
+
+    [Fact]
     public void ExpandNotations_On_NormalizesMojibakeMarker()
     {
         // "Â»" 모지바케도 on 경로에서 동일하게 코드 마커로 해석해 코드 줄을 올린다.

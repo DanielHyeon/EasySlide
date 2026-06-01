@@ -183,7 +183,7 @@ public sealed class LiveSessionService : ILiveSessionService
         }
 
         // "코드 표시" on 이면 가사 위에 코드 줄을 끼운 전처리 가사를, off 면 원시 가사 그대로(무회귀)를 쓴다.
-        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations);
+        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations, item.TransposeSemitones);
         return LyricsDisplayFormatter.HasRegion2(lyrics)
             ? LyricsDisplayFormatter.GetRegionPage(lyrics, item.LyricsPageIndex, item.Sequence).Region1
             : LyricsDisplayFormatter.GetVersePage(lyrics, item.LyricsPageIndex, item.Sequence);
@@ -198,7 +198,7 @@ public sealed class LiveSessionService : ILiveSessionService
             return string.Empty;
         }
 
-        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations);
+        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations, item.TransposeSemitones);
         return LyricsDisplayFormatter.HasRegion2(lyrics)
             ? LyricsDisplayFormatter.GetRegionPage(lyrics, item.LyricsPageIndex, item.Sequence).Region2
             : string.Empty;

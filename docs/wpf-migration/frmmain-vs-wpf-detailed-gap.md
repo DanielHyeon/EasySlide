@@ -138,7 +138,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | — | 🔴 |
 | 헤딩(제목/**절 헤딩**, 모드 3종, 정렬 AsR1/AsR2/L/C/R) | 🟡 제목 on/off·L/C/R·첫화면 | 🟡(절 헤딩·AsRegion 없음) |
 | 코드/악상 표시(`ShowNotations`, 미리보기 토글) | — | 🔴 |
-| 조옮김(Capo ↑/↓, To Capo 0) | — | 🔴 |
+| 조옮김(Capo ↑/↓, To Capo 0) | `LiveTranspose*Command`(출력 메뉴 "코드 조옮김 ▲/▼/원조") + ExpandNotations transpose | 🟡 (2026-06-01 증분 30) — **라이브 코드 조옮김 ±반음**(코드 표시 on 일 때 송출 코드 이동, 가사 불변). 새 곡 송출 시 원조 초기화. ChordTransposer 재사용 |
 | 항목/슬라이드 전환 효과 선택 | TransitionEffectService 존재 | 🔴 UI 없음 |
 | 배경 색+패턴(그라데이션 2색) | 🟡 프리셋/hex/세로그라데이션 | 🟡(패턴 없음) |
 | 배경 이미지 + 표시 모드(Tile/Centre/BestFit/No) | 🟡 곡별 FormatData 이미지(UniformToFill 고정) | 🟡(모드 선택·라이브러리 적용 없음) |

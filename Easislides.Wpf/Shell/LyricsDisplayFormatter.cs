@@ -696,8 +696,12 @@ public static class LyricsDisplayFormatter
     /// MainViewModel 의 페이지 수 계산(원시 가사 기준)과 본문(전처리 가사 기준)이 어긋나지 않는다.
     /// 그래서 빈 가사·빈 코드 줄은 코드 줄을 넣지 않고 가사만 남겨(끈 것과 동일한 경계) 패리티를 지킨다.
     /// </para>
+    /// <para>
+    /// <paramref name="transposeSemitones"/>(라이브 조옮김, 레거시 Transpose ±Semi-Tone)가 0 이 아니면 끼워 넣는
+    /// 코드 줄을 그만큼 반음 이동한다(가사는 불변). 코드 표시가 꺼져 있으면 코드가 안 보이므로 효과가 없다.
+    /// </para>
     /// </summary>
-    public static string ExpandNotations(string? rawLyrics, bool showNotations)
+    public static string ExpandNotations(string? rawLyrics, bool showNotations, int transposeSemitones = 0)
     {
         // 꺼져 있으면 아무것도 바꾸지 않는다 — 기존 파이프라인이 그대로 코드를 숨겨 무회귀.
         if (!showNotations || string.IsNullOrEmpty(rawLyrics))
@@ -735,7 +739,9 @@ public static class LyricsDisplayFormatter
                 continue;
             }
 
-            sb.Append(chord).Append('\n').Append(lyric); // 코드 줄을 가사 줄 "위"에.
+            // 라이브 조옮김이 걸려 있으면 코드만 ±반음 이동(가사·저장 데이터는 불변). 0 이면 원본 코드 그대로.
+            var shownChord = transposeSemitones == 0 ? chord : ChordTransposer.TransposeLine(chord, transposeSemitones);
+            sb.Append(shownChord).Append('\n').Append(lyric); // 코드 줄을 가사 줄 "위"에.
         }
 
         return sb.ToString();

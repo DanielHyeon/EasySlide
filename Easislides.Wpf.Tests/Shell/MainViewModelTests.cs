@@ -176,6 +176,60 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task TransposeLiveUp_WhileLiveWithNotations_ShiftsLiveChords()
+    {
+        // 코드 표시 on 으로 라이브 중에 "반음 올림"을 누르면 라이브 곡이 재송출되며 코드가 한 칸 올라간다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, true).Succeeded.Should().BeTrue();
+        var song = new LiveQueueItem("song-1", "은혜로다", LiveItemKinds.Song) { Lyrics = "[1]\nAmazing grace » C  G" };
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { song });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("C  G\nAmazing grace", "원조");
+
+        sut.TransposeLiveUpCommand.Execute(null);
+
+        sut.LiveTransposeSemitones.Should().Be(1);
+        sut.LiveTransposeLabel.Should().Be("조옮김 +1");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("C#  G#\nAmazing grace", "반음 올림 후 송출 코드");
+    }
+
+    [Fact]
+    public void TransposeLive_ClampsToElevenSemitones()
+    {
+        var sut = CreateSut();
+
+        for (var i = 0; i < 20; i++)
+        {
+            sut.TransposeLiveUpCommand.Execute(null);
+        }
+
+        sut.LiveTransposeSemitones.Should().Be(11, "±11 반음으로 클램프");
+    }
+
+    [Fact]
+    public async Task GoLive_ResetsTransposeToOriginalKey()
+    {
+        // 새 곡을 송출하면 조옮김이 원조(0)로 초기화되어 각 곡이 작성된 키에서 시작한다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가사 » C" } });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.TransposeLiveUpCommand.Execute(null);
+        sut.LiveTransposeSemitones.Should().Be(1);
+
+        await sut.GoLiveCommand.ExecuteAsync(null); // 다시 송출(새 라이브) → 원조로 초기화.
+
+        sut.LiveTransposeSemitones.Should().Be(0);
+    }
+
+    [Fact]
     public void ValidateWorshipList_WithMissingFile_ReportsProblemAndStatus()
     {
         // 예배 순서에 깨진 PPT 파일이 있으면 검증이 문제로 잡아내고 상태바에 알린다(예배 중 사고 예방).

@@ -49,4 +49,20 @@ public class ChordTransposerTests
         // 코드 줄의 모든 코드 토큰을 조옮김하되 공백(정렬)은 보존.
         ChordTransposer.TransposeLine("G   C   D7", 2).Should().Be("A   D   E7");
     }
+
+    [Fact]
+    public void TransposeLine_WordsNotStartingAtoG_AreLeftAlone()
+    {
+        // H~Z 로 시작하는 단어는 코드 루트가 아니므로 그대로 둔다(코드 칸에 실수로 들어간 일반 단어 방어).
+        ChordTransposer.TransposeLine("Hello world Sing", 2).Should().Be("Hello world Sing");
+    }
+
+    [Fact]
+    public void TransposeLine_WordsStartingAtoG_AreTreatedAsChords_KnownLimitation()
+    {
+        // 알려진 한계(문서화): A~G 로 시작하는 단어는 코드 루트로 인식돼 조옮김된다(예: "Go"→루트 G→+2 "Ao").
+        // 코드 칸('»' 뒤)은 운영자가 코드만 적는 영역이라 실사용엔 문제 없지만, 동작을 핀으로 고정해 둔다.
+        // "Go"→루트 G(+2)="A"+"o", "Fade"→루트 F(+2)="G"+"ade".
+        ChordTransposer.TransposeLine("Go Fade", 2).Should().Be("Ao Gade");
+    }
 }

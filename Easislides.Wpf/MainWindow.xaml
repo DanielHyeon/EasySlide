@@ -317,6 +317,18 @@
                     <MenuItem Header="배경 지우기"
                               Command="{Binding ClearOutputBackgroundImageCommand}" />
                 </MenuItem>
+                <!-- 코드 조옮김(FrmMain Transpose Up/Down Semi-Tone, To Capo 0) — "코드 표시" on 일 때 송출 코드를 이동.
+                     라이브 곡에 즉시 반영(재송출). 새 곡을 송출하면 원조로 초기화된다. -->
+                <MenuItem Header="코드 조옮김">
+                    <MenuItem Header="{Binding LiveTransposeLabel}" IsEnabled="False" />
+                    <Separator />
+                    <MenuItem Header="반음 올림 ▲"
+                              Command="{Binding TransposeLiveUpCommand}" />
+                    <MenuItem Header="반음 내림 ▼"
+                              Command="{Binding TransposeLiveDownCommand}" />
+                    <MenuItem Header="원조 복귀"
+                              Command="{Binding TransposeLiveResetCommand}" />
+                </MenuItem>
                 <Separator />
                 <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
                 <MenuItem Header="가사 정렬">

@@ -53,6 +53,12 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     public bool ShowNotations { get; init; }
 
     /// <summary>
+    /// 라이브 조옮김 반음 수(레거시 Transpose Up/Down Semi-Tone). 코드 표시가 켜졌을 때 송출 코드를 그만큼
+    /// 이동한다(가사·저장 데이터 불변). 0 이면 원조. 라이브 투영 시 MainViewModel 의 현재 조옮김 값을 얹는다.
+    /// </summary>
+    public int TransposeSemitones { get; init; }
+
+    /// <summary>
     /// 라이브 투영 시 MainViewModel 이 계산해 얹는 위치 라벨(예: "2/4"). 곡=절 위치, PPT=슬라이드 위치.
     /// 단일 절/슬라이드면 빈 문자열. GoLive 가 스냅샷으로 전달, 출력은 설정 on 일 때만 표시(§7.3-A 인디케이터).
     /// </summary>

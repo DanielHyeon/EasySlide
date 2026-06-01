@@ -174,6 +174,40 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithShowNotationsAndTranspose_ShiftsLiveChords()
+    {
+        // 코드 표시 on + 조옮김 +2 → 송출 코드만 두 반음 올라간다(C→D, G→A). 가사 불변.
+        var item = new LiveQueueItem("song-3", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nAmazing grace » C  G",
+            ShowNotations = true,
+            TransposeSemitones = 2,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("D  A\nAmazing grace");
+    }
+
+    [Fact]
+    public void GoLive_WithTransposeButNotationsOff_ChordsStayHidden()
+    {
+        // 코드 표시 off 면 조옮김이 있어도 코드는 안 보인다(무회귀).
+        var item = new LiveQueueItem("song-3", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nAmazing grace » C  G",
+            ShowNotations = false,
+            TransposeSemitones = 2,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("Amazing grace");
+    }
+
+    [Fact]
     public void GoLive_WithShowNotationsOn_KeepsSameVersePagination()
     {
         // 코드 줄을 끼워도 절 경계는 그대로라 같은 페이지 인덱스가 같은 절을 가리킨다(코드만 추가).
