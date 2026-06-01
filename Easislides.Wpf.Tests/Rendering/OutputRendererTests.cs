@@ -304,6 +304,42 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_ShowCopyright_ShowsCopyrightWhenLiveAndEnabled()
+    {
+        // 설정 on + Live + 저작권 문자열이 있을 때만 저작권을 노출(Display Panel).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorShowCopyright: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentItemCopyright: "CCLI 12345"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.CopyrightLabel.Should().Be("CCLI 12345");
+        scene.ShowsCopyright.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_ShowCopyrightOff_HidesCopyright()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorShowCopyright: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentItemCopyright: "CCLI 12345"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsCopyright.Should().BeFalse("설정 off 면 저작권 미표시(무회귀)");
+    }
+
+    [Fact]
     public void CreateScene_Active_Region2Font_FallsBackToRegion1()
     {
         // region2 글꼴 오버라이드가 없으면 Region1 글꼴(이름·크기)을 추종한다.

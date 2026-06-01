@@ -107,6 +107,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsPositionIndicator = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
     // 현재 곡 번호 표시 상태(메뉴 체크 바인딩용, Display Panel).
     [ObservableProperty] private bool _activeLyricsItemNumber = EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue;
+    // 현재 저작권 표시 상태(메뉴 체크 바인딩용, Display Panel).
+    [ObservableProperty] private bool _activeLyricsCopyright = EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -326,6 +328,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
+        ToggleLyricsCopyrightCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowCopyright, ActiveLyricsCopyright));
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
@@ -392,6 +395,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsShadowCommand { get; }
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
     public IRelayCommand ToggleLyricsItemNumberCommand { get; }
+    public IRelayCommand ToggleLyricsCopyrightCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -466,6 +470,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Sequence = sequence,
             // 곡 번호(출력 "곡 번호 표시" 설정 on 일 때 회중 화면에 표시).
             SongNumber = song.SongNumber,
+            // 저작권(출력 "저작권 표시" 설정 on 일 때 표시).
+            Copyright = song.Copyright,
             // 곡별 출력 색(레거시 v32 FormatData) — 있으면 라이브 송출 시 그 곡의 색으로 표시.
             FormatData = formatData,
         };
@@ -543,7 +549,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 detail.SongNumber,
                 detail.Category,
                 detail.Key,
-                detail.Lyrics),
+                detail.Lyrics,
+                detail.Copyright), // 저작권 — 출력 "저작권 표시"에 쓰인다.
             detail.Sequence, // 곡 절 순서 — 있으면 절을 그 순서로 반복 송출(레거시 인코딩이면 매칭 0→선형 폴백).
             detail.FormatData); // 곡별 출력 색(레거시 v32) — 라이브 송출 시 그 곡의 글자·배경색 적용.
     }
@@ -1861,6 +1868,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : key.Id == EasiSettingKeys.LyricsMonitorOutline.Id ? "외곽선"
             : key.Id == EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id ? "제목 첫 화면만"
             : key.Id == EasiSettingKeys.LyricsMonitorShowItemNumber.Id ? "곡 번호"
+            : key.Id == EasiSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
             : key.Id;
         StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
     }
@@ -1915,6 +1923,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);
         ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveLyricsItemNumber = _settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber);
+        ActiveLyricsCopyright = _settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);

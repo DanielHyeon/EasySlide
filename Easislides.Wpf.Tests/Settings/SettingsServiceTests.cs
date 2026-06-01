@@ -59,6 +59,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsMonitorShowCopyright_PersistsToDiskAndReloads()
+    {
+        // 저작권 표시 토글의 디스크 round-trip 고정(GET/SET 스위치 케이스 검증, Display Panel).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorShowCopyright, true).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorShowCopyright).Should().BeTrue();
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorShowCopyright.Should().BeTrue();
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();

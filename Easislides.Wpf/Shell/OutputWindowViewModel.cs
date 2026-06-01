@@ -69,6 +69,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 곡 번호 표시(Display Panel) — 설정 on + Live + 번호 있을 때만 보인다.
     private string _itemNumberText = string.Empty;
     private Visibility _itemNumberVisibility = Visibility.Collapsed;
+    private string _copyrightText = string.Empty;
+    private Visibility _copyrightVisibility = Visibility.Collapsed;
     // 제목 헤딩(가사 위 상단 배너) 가시성 — 기본 숨김(설정 off 일 때 기존 동작 보존). §7.3-A
     private Visibility _titleHeadingVisibility = Visibility.Collapsed;
     // 제목 헤딩 가로 정렬(설정에서 유래, §7.3-A Heading Align). 기본 가운데.
@@ -335,6 +337,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _itemNumberVisibility;
         private set => SetProperty(ref _itemNumberVisibility, value);
+    }
+
+    /// <summary>저작권 텍스트(Display Panel "Show Copyright Information").</summary>
+    public string CopyrightText
+    {
+        get => _copyrightText;
+        private set => SetProperty(ref _copyrightText, value);
+    }
+
+    /// <summary>저작권 표시 여부 — 설정 on + Live + 저작권 존재 시에만 Visible.</summary>
+    public Visibility CopyrightVisibility
+    {
+        get => _copyrightVisibility;
+        private set => SetProperty(ref _copyrightVisibility, value);
     }
 
     public bool IsBlackout
@@ -621,6 +637,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
         ItemNumberText = scene.ItemNumberLabel;
         ItemNumberVisibility = scene.ShowsItemNumber ? Visibility.Visible : Visibility.Collapsed;
+        CopyrightText = scene.CopyrightLabel;
+        CopyrightVisibility = scene.ShowsCopyright ? Visibility.Visible : Visibility.Collapsed;
         // 제목 헤딩: 설정 on + 가사 본문 송출 중일 때만 상단 배너로 곡 제목 노출(§7.3-A).
         TitleHeadingVisibility = scene.ShowsTitleHeading ? Visibility.Visible : Visibility.Collapsed;
         // 제목 헤딩 가로 정렬 — 본문 정렬과 동일 enum·헬퍼 재사용(§7.3-A Heading Align).
@@ -907,6 +925,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 곡 번호 표시 토글도 라이브 출력에 즉시 반영(Display Panel).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowItemNumber.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 저작권 표시 토글도 라이브 출력에 즉시 반영(Display Panel).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowCopyright.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 제목 헤딩 표시·정렬·첫화면만 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, StringComparison.OrdinalIgnoreCase) ||

@@ -233,6 +233,24 @@
                            FontWeight="SemiBold"
                            Foreground="{Binding SceneForegroundBrush}" />
             </Border>
+
+            <!-- 저작권(Display Panel "Show Copyright Information") — 하단 중앙(CCLI 푸터 관례).
+                 좌측 하단(곡 번호)·우측 하단(위치 인디케이터)과 겹치지 않게 중앙에 둔다. 설정 on + Live + 저작권 있을 때만 표시. -->
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,16"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="#66000000"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding CopyrightVisibility}">
+                <TextBlock Text="{Binding CopyrightText}"
+                           FontSize="16"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="520"
+                           Foreground="{Binding SceneForegroundBrush}" />
+            </Border>
         </Grid>
 
         <Grid Grid.Row="2"

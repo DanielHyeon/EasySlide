@@ -62,7 +62,9 @@ public sealed record SongSummary(
     int SongNumber,
     string Category,
     string Key,
-    string Lyrics);
+    string Lyrics,
+    // 저작권(CCLI 등) — 출력 "저작권 표시"(Display Panel)에 쓰인다. 기존 8필드 구성과의 호환을 위해 기본값.
+    string Copyright = "");
 
 public sealed record SongDetail(
     int SongId,
@@ -467,7 +469,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 SONG_NUMBER,
                 CATEGORY,
                 "KEY",
-                LYRICS
+                LYRICS,
+                COPYRIGHT
             FROM SONG
             WHERE (@folderNo IS NULL OR FOLDERNO = @folderNo)
             ORDER BY FOLDERNO, SONG_NUMBER, TITLE_1, SONGID;
@@ -486,7 +489,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetInt(reader, "SONG_NUMBER"),
                 GetString(reader, "CATEGORY"),
                 GetString(reader, "KEY"),
-                GetString(reader, "LYRICS")));
+                GetString(reader, "LYRICS"),
+                GetString(reader, "COPYRIGHT")));
         }
 
         return songs;

@@ -177,6 +177,19 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_CopyrightPresentButSettingOff_HidesCopyright()
+    {
+        // 저작권이 있어도 설정(기본 off)이면 표시 안 함 — Collapsed(무회귀 계약).
+        var sut = new OutputWindowViewModel(); // 설정 null → ShowCopyright 기본 off
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절", CurrentItemCopyright: "CCLI 12345"));
+
+        sut.CopyrightVisibility.Should().Be(Visibility.Collapsed, "설정 off 면 저작권 숨김");
+    }
+
+    [Fact]
     public void ApplySession_ActiveWithoutBody_ShowsTitleNotBody()
     {
         // 가사가 없으면 본문은 숨고 기존처럼 타이틀이 보인다(PPT/미디어/공지 등).
