@@ -71,7 +71,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_R1Colour`·`Def_R2Colour`, `Ind_R1/R2Colour` | **영역별** 글자색 | 🟢 (증분 46) 곡 편집기 "영역별 스타일(Region 1/2)" 인스펙터에서 영역별 글자색 지정(FormatData 29/30 인코드)→출력 렌더 적용. Display Panel 전역 기본값 UI는 후속 |
 | `Def_R1Align`·`Def_R2Align` (L/C/R) | **영역별** 정렬 | 🟢 (증분 46) 곡 편집기 인스펙터에서 영역별 정렬(상속/왼쪽/가운데/오른쪽, FormatData 31/32)→출력 렌더 적용 |
 | `Ind_R1Bold/Italics(3종)/Underline`, R2 동일 | 영역별 굵게/기울임(없음/전체/후렴만)/밑줄 | 🟢 (증분 46/47) 영역별 굵게/기울임 + (증분 48~50) 밑줄(전역·영역별·외곽선) + (증분 52) **강조 후렴만**(굵게·기울임·밑줄을 후렴 절에만, [C]/[Chorus]/[후렴] 인식, 이중 언어 라벨↔페이지 정렬 가드). 레거시 비트 한계로 굵게/기울임/밑줄 "끄기"는 전역 추종 |
-| `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🟡 Region1 크기 + Region2 전역 크기(증분64)·곡별 region2 크기 + **영역 간 세로 간격(증분67, Region1↔Region2)** 구현. 영역별 절대 세로위치만 후속 |
+| `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🟢 Region1/2 크기(증분64) + 영역 간 세로 간격(증분67) + **본문 세로 위치 오프셋(증분73, Ind_Reg1TopUpDown — TranslateTransform 위/아래 이동)** 구현 |
 | `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟡 곡별 FormatData 글꼴만(인스펙터 글꼴 선택기 없음) |
 | `Def_Head`/`Ind_Head` (NoTitles/All/FirstScreen) | 헤딩 표시 모드 | 🟢 제목 헤딩 on/off·첫화면만 + **절 헤딩(All — 섹션 라벨 "1절"/"후렴" 표시)** 구현 |
 | `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟢 L/C/R + AsR1(본문 따름) + **AsR2(보조영역 Region2 따름, 우선순위 AsR2>AsR1)** — 5종 전부 구현 |

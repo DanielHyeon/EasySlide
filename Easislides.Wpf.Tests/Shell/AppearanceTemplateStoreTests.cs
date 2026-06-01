@@ -44,7 +44,8 @@ public class AppearanceTemplateStoreTests
             FontSize2: 36,
             PanelFontScalePercent: 140,
             ShowTitleOnPanel: true,
-            RegionGapPx: 24);
+            RegionGapPx: 24,
+            BodyVerticalOffset: -40);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

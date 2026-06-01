@@ -512,6 +512,11 @@
                     <MenuItem Header="{Binding ActiveRegionGap, StringFormat=영역 간 간격: {0}px}" IsEnabled="False" />
                     <MenuItem Header="영역 간격 넓게" Command="{Binding IncreaseRegionGapCommand}" />
                     <MenuItem Header="영역 간격 좁게" Command="{Binding DecreaseRegionGapCommand}" />
+                    <Separator />
+                    <!-- 본문 세로 위치(FrmMain Ind_Reg1TopUpDown) — 정렬 유지한 채 본문을 위/아래로 미세 이동. -->
+                    <MenuItem Header="{Binding ActiveBodyVerticalOffset, StringFormat=본문 세로 위치: {0}px}" IsEnabled="False" />
+                    <MenuItem Header="본문 위로 ▲" Command="{Binding MoveBodyUpCommand}" />
+                    <MenuItem Header="본문 아래로 ▼" Command="{Binding MoveBodyDownCommand}" />
                 </MenuItem>
             </MenuItem>
 

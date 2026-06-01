@@ -933,6 +933,22 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void BodyVerticalOffset_ReflectsSetting()
+    {
+        // FrmMain Ind_Reg1TopUpDown — 본문 세로 오프셋 설정이 BodyVerticalOffset(TranslateTransform.Y)에 반영. 음수=위.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false, CurrentItemBodyText: "1절"));
+        sut.BodyVerticalOffset.Should().Be(0, "기본 0=무이동");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyVerticalOffset, -40).Succeeded.Should().BeTrue();
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false, CurrentItemBodyText: "1절"));
+        sut.BodyVerticalOffset.Should().Be(-40, "위로 40px 이동");
+    }
+
+    [Fact]
     public void BodyText2Margin_ReflectsRegionGapSetting()
     {
         // FrmMain Ind_Reg2TopUpDown — 이중 언어 영역 간 세로 간격 설정이 Region2 블록 위쪽 여백으로 들어간다.

@@ -64,7 +64,9 @@ public sealed record LyricsAppearanceTemplate(
     // 정보 패널 제목 표시(기본 false) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
     bool ShowTitleOnPanel = false,
     // 이중 언어 영역 간 세로 간격(px, 기본 8) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
-    int RegionGapPx = 8)
+    int RegionGapPx = 8,
+    // 본문 세로 위치 오프셋(px, 기본 0) — 구버전 JSON 역직렬화 시 기존 동작(이동 없음)으로 안전 복원.
+    int BodyVerticalOffset = 0)
 {
     /// <summary>
     /// 모든 출력 모양 키의 기본값으로 만든 템플릿 — "출력 모양 기본값 복원"(레거시 Default Layout)에 쓴다.
@@ -100,7 +102,8 @@ public sealed record LyricsAppearanceTemplate(
         FontSize2: EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue,
         PanelFontScalePercent: EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue,
         ShowTitleOnPanel: EasiSettingKeys.LyricsMonitorShowTitleOnPanel.DefaultValue,
-        RegionGapPx: EasiSettingKeys.LyricsMonitorRegionGapPx.DefaultValue);
+        RegionGapPx: EasiSettingKeys.LyricsMonitorRegionGapPx.DefaultValue,
+        BodyVerticalOffset: EasiSettingKeys.LyricsMonitorBodyVerticalOffset.DefaultValue);
 
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -137,7 +140,8 @@ public sealed record LyricsAppearanceTemplate(
             FontSize2: settings.Get(EasiSettingKeys.LyricsMonitorFontSize2),
             PanelFontScalePercent: settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent),
             ShowTitleOnPanel: settings.Get(EasiSettingKeys.LyricsMonitorShowTitleOnPanel),
-            RegionGapPx: settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx));
+            RegionGapPx: settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx),
+            BodyVerticalOffset: settings.Get(EasiSettingKeys.LyricsMonitorBodyVerticalOffset));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -174,6 +178,7 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, PanelFontScalePercent);
         settings.Set(EasiSettingKeys.LyricsMonitorShowTitleOnPanel, ShowTitleOnPanel);
         settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, RegionGapPx);
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyVerticalOffset, BodyVerticalOffset);
     }
 }
 

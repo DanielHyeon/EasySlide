@@ -106,6 +106,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 본문 세로 정렬이 "위"여도 헤딩과 포개지지 않게 한다(§7.3-A code-review MAJOR 반영). 기본 0.
     private Thickness _bodyContentMargin = new(0);
     private Thickness _bodyText2Margin = new(0, 8, 0, 0);
+    private double _bodyVerticalOffset;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
     private Visibility _contentVisibility = Visibility.Collapsed;
@@ -628,6 +629,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _bodyText2Margin, value);
     }
 
+    /// <summary>본문 묶음 세로 위치 오프셋(px, 음수=위) — FrmMain Ind_Reg1TopUpDown. TranslateTransform.Y 에 바인딩. 기본 0.</summary>
+    public double BodyVerticalOffset
+    {
+        get => _bodyVerticalOffset;
+        private set => SetProperty(ref _bodyVerticalOffset, value);
+    }
+
     public Visibility GapLogoVisibility
     {
         get => _gapLogoVisibility;
@@ -817,6 +825,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyFont2Size = scene.LyricsMonitorFontSize2;
         // Region1↔Region2 세로 간격(FrmMain Ind_Reg2TopUpDown) — Region2 블록 위쪽 여백으로 적용. 기본 8=기존(무회귀).
         BodyText2Margin = new Thickness(0, scene.LyricsMonitorRegionGapPx, 0, 0);
+        // 본문 세로 위치 오프셋(FrmMain Ind_Reg1TopUpDown) — TranslateTransform.Y 로 본문 묶음을 위(-)/아래(+)로 옮긴다. 기본 0=무이동.
+        BodyVerticalOffset = scene.LyricsMonitorBodyVerticalOffset;
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
@@ -1272,6 +1282,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBodyBottomMargin.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 이중 언어 영역 간 세로 간격 변경도 라이브 출력에 즉시 반영(FrmMain Ind_Reg2TopUpDown).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorRegionGapPx.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 본문 세로 위치 오프셋 변경도 라이브 출력에 즉시 반영(FrmMain Ind_Reg1TopUpDown).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBodyVerticalOffset.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 폰트 효과(굵게/기울임/그림자) 변경도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBold.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||

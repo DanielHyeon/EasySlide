@@ -3441,6 +3441,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void BodyVerticalOffsetCommands_StepAndClamp()
+    {
+        // FrmMain Ind_Reg1TopUpDown — 본문 위로(-)/아래로(+) 8px 단계, -300~300 클램프.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveBodyVerticalOffset.Should().Be(0, "기본 0");
+
+        sut.MoveBodyDownCommand.Execute(null);
+        sut.ActiveBodyVerticalOffset.Should().Be(8, "아래로 +8");
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyVerticalOffset).Should().Be(8);
+
+        sut.MoveBodyUpCommand.Execute(null);
+        sut.MoveBodyUpCommand.Execute(null);
+        sut.ActiveBodyVerticalOffset.Should().Be(-8, "위로 두 단계 → -8");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyVerticalOffset, 300);
+        sut.MoveBodyDownCommand.CanExecute(null).Should().BeFalse("상한(+300)에서 아래로 비활성");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyVerticalOffset, -300);
+        sut.MoveBodyUpCommand.CanExecute(null).Should().BeFalse("하한(-300)에서 위로 비활성");
+    }
+
+    [Fact]
     public void RegionGapCommands_StepAndClamp()
     {
         // FrmMain Ind_Reg2TopUpDown — +/- 4px 단계, 0~100px 클램프.

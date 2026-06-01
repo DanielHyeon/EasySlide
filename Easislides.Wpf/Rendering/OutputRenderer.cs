@@ -61,6 +61,8 @@ public sealed record LiveOutputRenderSettings(
     int LyricsMonitorBodyBottomMargin = 0,
     // 이중 언어 Region1↔Region2 세로 간격(px, FrmMain Ind_Reg2TopUpDown). 기본 8=기존 간격(무회귀).
     int LyricsMonitorRegionGapPx = 8,
+    // 본문 세로 위치 오프셋(px, FrmMain Ind_Reg1TopUpDown). 음수=위·양수=아래. 기본 0=이동 없음(무회귀).
+    int LyricsMonitorBodyVerticalOffset = 0,
     // 출력 위치 인디케이터(절/슬라이드 "N/M") 표시 여부(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsPositionIndicator = false,
     // 절 헤딩(현재 절의 섹션 라벨 "1절"/"후렴") 표시 여부(FrmMain Def_Head All). 기본 off.
@@ -132,6 +134,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx),
+            settings.Get(EasiSettingKeys.LyricsMonitorBodyVerticalOffset),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
             settings.Get(EasiSettingKeys.LyricsMonitorShowVerseHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
@@ -214,6 +217,8 @@ public sealed record OutputSceneSnapshot(
     int LyricsMonitorBodyBottomMargin = 0,
     // 이중 언어 Region1↔Region2 세로 간격(px, FrmMain Ind_Reg2TopUpDown). 기본 8=기존 간격(무회귀).
     int LyricsMonitorRegionGapPx = 8,
+    // 본문 세로 위치 오프셋(px, FrmMain Ind_Reg1TopUpDown). 음수=위·양수=아래. 기본 0=이동 없음(무회귀).
+    int LyricsMonitorBodyVerticalOffset = 0,
     // 위치 라벨(절/슬라이드 "N/M"). Live 가 아니면 빈 문자열로 들어온다.
     string PositionLabel = "",
     // 위치 인디케이터 표시 설정(인-셸 §7.3-A). 기본 off.
@@ -457,6 +462,7 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorBodyRightMargin,
             liveOutput.LyricsMonitorBodyBottomMargin,
             liveOutput.LyricsMonitorRegionGapPx,
+            liveOutput.LyricsMonitorBodyVerticalOffset,
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,
             liveOutput.ShowLyricsPositionIndicator,
