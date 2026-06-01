@@ -88,7 +88,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_Panel*` (Show/Title/Copyright/ItemNumber/Slides/PrevNext/Transparent/AsR1/색/폰트 9종+) | Display Panel 항목(곡번호·저작권·다음항목·위치·제목) + 투명 토글 + 밴드 색 + 글자 크기 | 🟢 ItemNumber/Copyright/PrevNext/Position(증분6)·Transparent(증분39)·밴드 색(증분63)·글자 크기(증분65)·**제목 표시(증분66, Def_PanelTitle)** 구현. (패널 AsR1 정렬 추종은 미세 잔여) |
 | `Ind_LoadTemplate`/`SaveTemplate`, `Def_*Template` | 개별/기본 설정 템플릿 | 🟡 출력모양 템플릿 1종만 |
 | `Ind_checkBox` "Use Individual Settings" | **항목별 개별 포맷 vs 기본** | 🟢 (증분 54) 예배 순서 항목 우클릭 "개별 서식 사용" 토글 — off 면 그 항목의 FormatData(색·정렬·폰트·배경) 무시하고 전역 기본으로 송출. 라이브 즉시 반영(현재 절 유지)·저장/불러오기 보존(FormatData 도 영속) |
-| `DefApplyDefaultsBtn` "Apply to All Except InfoScreens" | 전 항목 기본 적용 | 🔴 없음 |
+| `DefApplyDefaultsBtn` "Apply to All Except InfoScreens" | 전 항목 기본 적용 | 🟢 (증분71) 출력 메뉴 "전 항목에 전역 서식 적용" — 모든 항목 개별서식 off→전역 통일, 라이브 즉시 반영 |
 
 ### 2.3 콘텐츠 소스 탭 (FrmMain 7 source 탭 → WPF 3 좌측 탭)
 | FrmMain 탭 | 내용 | WPF |
@@ -188,7 +188,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 |---|---|---|
 | Options 다이얼로그(`FrmOptions`: 폴더목록/미디어dir·ext/성경목록/히스토리/이중모니터/탭표시) | SettingsWindow | 🟢 |
 | 개별/기본 설정 템플릿(.est) | 출력모양 템플릿 1종 | 🟡 |
-| Use Individual Settings / Apply to All Except InfoScreens / Default Layout | — | 🔴 |
+| Use Individual Settings / Apply to All Except InfoScreens / Default Layout | 항목 우클릭 "개별 서식 사용" 토글 + 출력 메뉴 "전 항목에 전역 서식 적용" | 🟡 개별 서식 토글·전 항목 전역 적용 구현. Default Layout(레이아웃 프리셋)만 후속 |
 | 배경색+패턴/picture mode/transition 저장 | 🟡 일부 | 🟡 |
 | 창 상태(splitter/bounds) 레지스트리 저장 | — | 🟡 일부 |
 

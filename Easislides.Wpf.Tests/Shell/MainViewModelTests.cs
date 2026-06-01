@@ -628,6 +628,37 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyGlobalFormatToAll_TurnsOffIndividualFormattingOnAllItems_AndKeepsSelection()
+    {
+        // FrmMain "Apply to All Except InfoScreens" — 모든 항목의 개별 서식을 끄고 전역 기본 서식으로 통일.
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:1", "곡A", LiveItemKinds.Song) { FormatData = "29=-1", UseIndividualFormatting = true };
+        var b = new LiveQueueItem("song:2", "곡B", LiveItemKinds.Song) { FormatData = "29=-2", UseIndividualFormatting = true };
+        var c = new LiveQueueItem("verse:1", "성경", LiveItemKinds.Bible) { UseIndividualFormatting = true };
+        sut.LoadQueue([a, b, c]);
+        sut.SelectedItem = sut.Queue[1]; // 곡B 선택
+
+        sut.ApplyGlobalFormatToAllCommand.Execute(null);
+
+        sut.Queue.Should().OnlyContain(i => !i.UseIndividualFormatting, "모든 항목이 전역 서식으로 전환");
+        sut.SelectedItem!.Id.Should().Be("song:2", "선택은 같은 자리(곡B)로 유지");
+        sut.SelectedItem.UseIndividualFormatting.Should().BeFalse("선택 항목도 교체된 새 인스턴스");
+        sut.StatusText.Should().Contain("3개");
+    }
+
+    [Fact]
+    public void ApplyGlobalFormatToAll_WhenAllAlreadyGlobal_IsNoOpWithMessage()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:1", "곡A", LiveItemKinds.Song) { UseIndividualFormatting = false };
+        sut.LoadQueue([a]);
+
+        sut.ApplyGlobalFormatToAllCommand.Execute(null);
+
+        sut.StatusText.Should().Contain("이미");
+    }
+
+    [Fact]
     public void UseIndividualFormattingOff_LiveProjectionDropsPerSongColor()
     {
         // 개별 서식 off → 라이브 송출 시 곡별 FormatData 색(29)이 적용되지 않고 전역 기본색을 쓴다.

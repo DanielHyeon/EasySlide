@@ -457,6 +457,12 @@
                               Command="{Binding TransposeLiveResetCommand}" />
                 </MenuItem>
                 <Separator />
+                <!-- 전 항목에 전역 기본 서식 적용(FrmMain "Apply to All Except InfoScreens") — 모든 항목의 개별 서식을 끄고
+                     운영 기본(인스펙터) 서식으로 송출하게 한다. 곡·성경 텍스트에만 영향. -->
+                <MenuItem Header="전 항목에 전역 서식 적용"
+                          Command="{Binding ApplyGlobalFormatToAllCommand}"
+                          ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
+                <Separator />
                 <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
                 <MenuItem Header="가사 정렬">
                     <MenuItem Header="왼쪽"

@@ -531,6 +531,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleEmphasisChorusOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly, ActiveLyricsEmphasisChorusOnly));
         ToggleInterlaceCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorInterlace, ActiveLyricsInterlace));
         ToggleUseIndividualFormattingCommand = new RelayCommand(ToggleUseIndividualFormatting, () => SelectedItem is not null);
+        ApplyGlobalFormatToAllCommand = new RelayCommand(ApplyGlobalFormatToAll);
         TogglePanelTransparentCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelTransparent, ActiveLyricsPanelTransparent));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsVerseHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowVerseHeading, ActiveLyricsVerseHeading));
@@ -667,6 +668,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>선택 항목의 "개별 서식 사용"을 토글한다(레거시 Ind_checkBox). off 면 전역 기본 서식으로 송출.</summary>
     public IRelayCommand ToggleUseIndividualFormattingCommand { get; }
+    public IRelayCommand ApplyGlobalFormatToAllCommand { get; }
     /// <summary>Display Panel 배경 투명 토글(레거시 Def_PanelTransparent) — 설정→출력 VM 라이브 반영.</summary>
     public IRelayCommand TogglePanelTransparentCommand { get; }
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
@@ -2151,6 +2153,49 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RepublishLiveSongForBodyChange();
 
         NotifyCommandStates();
+    }
+
+    // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
+    // 각 항목의 UseIndividualFormatting 을 false 로 바꿔 곡별 FormatData 대신 운영 기본 서식으로 송출하게 한다.
+    // (이 플래그는 곡·성경 텍스트 항목 송출에만 영향 — PPT/미디어/공지엔 무영향. 레거시 "Except InfoScreens" 와 같은 취지.)
+    private void ApplyGlobalFormatToAll()
+    {
+        if (Queue.Count == 0)
+        {
+            StatusText = "예배 순서가 비어 있습니다.";
+            return;
+        }
+
+        // 선택 항목은 인스턴스가 교체되므로 위치를 잡아 두었다가 같은 자리의 새 인스턴스로 다시 선택한다(선택 유지).
+        var selectedIndex = SelectedItem is { } sel ? IndexOfReference(sel) : -1;
+
+        var changed = 0;
+        for (var i = 0; i < Queue.Count; i++)
+        {
+            var item = Queue[i];
+            if (item.UseIndividualFormatting)
+            {
+                Queue[i] = item with { UseIndividualFormatting = false };
+                changed++;
+            }
+        }
+
+        if (changed == 0)
+        {
+            StatusText = "이미 모든 항목이 전역 기본 서식을 사용 중입니다.";
+            return;
+        }
+
+        // 교체로 끊긴 선택을 같은 자리의 새 인스턴스로 복원(선택이 UI 에서 사라지지 않게).
+        if (selectedIndex >= 0 && selectedIndex < Queue.Count)
+        {
+            SelectedItem = Queue[selectedIndex];
+        }
+
+        // 라이브 항목이면 세션 실제 절로 다시 송출해 새 서식을 즉시 반영(Id 로 큐의 교체 인스턴스를 찾는다).
+        RepublishLiveSongForBodyChange();
+        NotifyCommandStates();
+        StatusText = $"{changed}개 항목에 전역 기본 서식 적용";
     }
 
     private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
