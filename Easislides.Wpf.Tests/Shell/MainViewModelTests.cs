@@ -3267,6 +3267,82 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsFontSizeInput_DirectEntry_ClampsAndPersists()
+    {
+        // FrmMain NumericUpDown 직접 수치 입력 대응 — 범위 안 값은 그대로 저장, 범위 밖은 클램프.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsFontSizeInput = 80;
+        sut.ActiveLyricsFontSize.Should().Be(80, "범위 안(24~120) 값은 그대로 적용");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(80);
+
+        sut.LyricsFontSizeInput = 999;
+        sut.ActiveLyricsFontSize.Should().Be(120, "상한 120px 으로 클램프");
+        sut.LyricsFontSizeInput.Should().Be(120, "입력 박스도 클램프값으로 보정");
+
+        sut.LyricsFontSizeInput = 1;
+        sut.ActiveLyricsFontSize.Should().Be(24, "하한 24px 으로 클램프");
+    }
+
+    [Fact]
+    public void LyricsLineSpacingInput_DirectEntry_ClampsAndPersists()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsLineSpacingInput = 160;
+        sut.ActiveLyricsLineSpacing.Should().Be(160, "범위 안(100~220) 값은 그대로 적용");
+        settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent).Should().Be(160);
+
+        sut.LyricsLineSpacingInput = 9999;
+        sut.ActiveLyricsLineSpacing.Should().Be(220, "상한 220% 로 클램프");
+
+        sut.LyricsLineSpacingInput = 0;
+        sut.ActiveLyricsLineSpacing.Should().Be(100, "하한 100% 로 클램프");
+    }
+
+    [Fact]
+    public void LyricsFontSizeInput_OutOfRangeAtBound_RaisesInputNotificationForSnapBack()
+    {
+        // 이미 상한(120)인데 더 큰 값(999)을 입력하면 값은 안 바뀌지만, 입력 박스를 120 으로 되돌리려면
+        // LyricsFontSizeInput 변경 통지가 반드시 발생해야 한다(빈 set 분기에서 OnPropertyChanged 호출).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.LyricsFontSizeInput = 120; // 상한으로 맞춰 둠
+        var raised = false;
+        sut.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.LyricsFontSizeInput))
+            {
+                raised = true;
+            }
+        };
+
+        sut.LyricsFontSizeInput = 999; // 클램프하면 120 → 값 불변
+
+        sut.ActiveLyricsFontSize.Should().Be(120, "상한에서 값은 변하지 않음");
+        raised.Should().BeTrue("입력 박스를 클램프값으로 되돌리도록 변경 통지가 발생");
+    }
+
+    [Fact]
+    public void LyricsFontSizeInput_StepCommand_KeepsInputInSync()
+    {
+        // −/+ 버튼과 직접 입력이 같은 값을 가리키는지(통지 동기) — 버튼 누른 뒤 Input get 이 따라온다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.LyricsFontSizeInput = 60;
+
+        sut.IncreaseLyricsFontSizeCommand.Execute(null);
+
+        sut.LyricsFontSizeInput.Should().Be(64, "버튼 +4 후 입력 박스도 64");
+    }
+
+    [Fact]
     public void LyricsBodyMarginCommands_StepAndPersist_LeftRightBottom()
     {
         // FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응 — +/- 한 단계(8px)가 설정에 저장된다.

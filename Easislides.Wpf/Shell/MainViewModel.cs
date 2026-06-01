@@ -2628,12 +2628,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = "출력 배경 이미지 해제";
     }
 
-    // 인-셸 가사 폰트 크기 조절(+/- 단계) — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).
-    private void StepLyricsFontSize(int delta)
+    // 인-셸 가사 폰트 크기 조절(+/- 단계) — 절대값 커밋 함수에 위임(직접 수치 입력과 동일 경로).
+    private void StepLyricsFontSize(int delta) => CommitLyricsFontSize(ActiveLyricsFontSize + delta);
+
+    // 인-셸 가사 폰트 크기 절대값 커밋 — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).
+    // −/+ 버튼과 직접 수치 입력(TextBox)이 모두 이 한 경로로 모인다(FrmMain NumericUpDown 직접 입력 대응).
+    private void CommitLyricsFontSize(int value)
     {
-        var next = Math.Clamp(ActiveLyricsFontSize + delta, LyricsFontSizeMin, LyricsFontSizeMax);
+        var next = Math.Clamp(value, LyricsFontSizeMin, LyricsFontSizeMax);
         if (next == ActiveLyricsFontSize)
         {
+            // 범위 밖 값이 입력돼 클램프 후 같아졌으면(예: 999→120, 현재 120) 입력 박스를 클램프값으로 되돌려 표시.
+            OnPropertyChanged(nameof(LyricsFontSizeInput));
             return;
         }
 
@@ -2642,12 +2648,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"가사 크기: {next}px";
     }
 
-    // 인-셸 가사 줄 간격 조절(+/- 단계, %) — 폰트 크기 증감과 동일 구조. 범위 클램프 후 설정 저장.
-    private void StepLyricsLineSpacing(int delta)
+    /// <summary>가사 폰트 크기 직접 수치 입력(TextBox 양방향 바인딩). 범위 밖 값은 클램프되고 입력 박스가 자동 보정된다.</summary>
+    public int LyricsFontSizeInput
     {
-        var next = Math.Clamp(ActiveLyricsLineSpacing + delta, LyricsLineSpacingMin, LyricsLineSpacingMax);
+        get => ActiveLyricsFontSize;
+        set => CommitLyricsFontSize(value);
+    }
+
+    // 폰트 크기가 다른 경로(−/+ 버튼·설정 창·프리셋)로 바뀌어도 입력 박스가 따라가도록 통지.
+    partial void OnActiveLyricsFontSizeChanged(int value) => OnPropertyChanged(nameof(LyricsFontSizeInput));
+
+    // 인-셸 가사 줄 간격 조절(+/- 단계, %) — 절대값 커밋 함수에 위임(직접 수치 입력과 동일 경로).
+    private void StepLyricsLineSpacing(int delta) => CommitLyricsLineSpacing(ActiveLyricsLineSpacing + delta);
+
+    // 인-셸 가사 줄 간격 절대값 커밋(%) — 폰트 크기 커밋과 동일 구조. 범위 클램프 후 설정 저장.
+    private void CommitLyricsLineSpacing(int value)
+    {
+        var next = Math.Clamp(value, LyricsLineSpacingMin, LyricsLineSpacingMax);
         if (next == ActiveLyricsLineSpacing)
         {
+            OnPropertyChanged(nameof(LyricsLineSpacingInput));
             return;
         }
 
@@ -2655,6 +2675,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsLineSpacing = next;
         StatusText = $"줄 간격: {next}%";
     }
+
+    /// <summary>가사 줄 간격(%) 직접 수치 입력(TextBox 양방향 바인딩). 범위 밖 값은 클램프되고 입력 박스가 자동 보정된다.</summary>
+    public int LyricsLineSpacingInput
+    {
+        get => ActiveLyricsLineSpacing;
+        set => CommitLyricsLineSpacing(value);
+    }
+
+    // 줄 간격이 다른 경로로 바뀌어도 입력 박스가 따라가도록 통지.
+    partial void OnActiveLyricsLineSpacingChanged(int value) => OnPropertyChanged(nameof(LyricsLineSpacingInput));
 
     // 본문 왼쪽 여백 조절(+/- 단계, px) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain ShowLeftMargin).
     private void StepLyricsLeftMargin(int delta)

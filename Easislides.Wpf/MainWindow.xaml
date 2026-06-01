@@ -1744,8 +1744,17 @@
                                 Content="A+"
                                 ToolTip="가사 글자 크게"
                                 AutomationProperties.Name="가사 글자 크게" />
-                        <TextBlock Text="{Binding ActiveLyricsFontSize, StringFormat={}{0}px}"
+                        <!-- 직접 수치 입력(FrmMain NumericUpDown 대응) — 범위 밖 값은 자동 클램프, 입력 후 포커스 이동 시 적용. -->
+                        <TextBox Text="{Binding LyricsFontSizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                 MinWidth="48"
+                                 VerticalAlignment="Center"
+                                 VerticalContentAlignment="Center"
+                                 TextAlignment="Right"
+                                 ToolTip="가사 글자 크기 직접 입력 (24~120px) — 숫자가 아니면 빨간 테두리로 표시"
+                                 AutomationProperties.Name="가사 글자 크기 직접 입력" />
+                        <TextBlock Text="px"
                                    VerticalAlignment="Center"
+                                   Margin="4,0,0,0"
                                    Style="{StaticResource Type.Body.Style}"
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                     </StackPanel>
@@ -1772,8 +1781,17 @@
                                 Content="＋"
                                 ToolTip="줄 간격 넓게"
                                 AutomationProperties.Name="줄 간격 넓게" />
-                        <TextBlock Text="{Binding ActiveLyricsLineSpacing, StringFormat={}{0}%}"
+                        <!-- 직접 수치 입력(FrmMain NumericUpDown 대응) — 범위 밖 값은 자동 클램프, 입력 후 포커스 이동 시 적용. -->
+                        <TextBox Text="{Binding LyricsLineSpacingInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                 MinWidth="48"
+                                 VerticalAlignment="Center"
+                                 VerticalContentAlignment="Center"
+                                 TextAlignment="Right"
+                                 ToolTip="가사 줄 간격 직접 입력 (100~220%) — 숫자가 아니면 빨간 테두리로 표시"
+                                 AutomationProperties.Name="가사 줄 간격 직접 입력" />
+                        <TextBlock Text="%"
                                    VerticalAlignment="Center"
+                                   Margin="4,0,0,0"
                                    Style="{StaticResource Type.Body.Style}"
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                     </StackPanel>
