@@ -847,7 +847,7 @@
                                     AutomationProperties.Name="입력한 성경 구절로 이동" />
                         </Grid>
 
-                        <!-- 본문 — 구절 범위를 드래그 선택한 뒤 아래 "선택 구절 추가". -->
+                        <!-- 본문 — 구절 범위를 드래그 선택한 뒤 아래 "선택 구절 추가" 또는 우클릭 메뉴 사용. -->
                         <TextBox Grid.Row="2"
                                  x:Name="BiblePassageBox"
                                  Text="{Binding Bible.PassageText, Mode=OneWay}"
@@ -856,7 +856,18 @@
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"
                                  Margin="0,8,0,0"
-                                 AutomationProperties.Name="성경 본문" />
+                                 AutomationProperties.Name="성경 본문">
+                            <!-- 본문 우클릭 메뉴(레거시 Bible 우클릭) — 전체 선택/복사 + 선택 구절을 예배 순서·공지 화면으로. -->
+                            <TextBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="전체 선택" Click="SelectAllBiblePassage_Click" />
+                                    <MenuItem Header="복사" Click="CopyBiblePassage_Click" />
+                                    <Separator />
+                                    <MenuItem Header="선택 구절 예배 순서에 추가" Click="AddBibleVerse_Click" />
+                                    <MenuItem Header="선택 구절 공지 화면으로..." Click="CopyBibleToInfoScreen_Click" />
+                                </ContextMenu>
+                            </TextBox.ContextMenu>
+                        </TextBox>
 
                         <Button Grid.Row="3"
                                 Click="AddBibleVerse_Click"

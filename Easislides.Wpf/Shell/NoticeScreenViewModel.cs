@@ -26,12 +26,24 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private int _fontSizePt = 40;
 
-    public NoticeScreenViewModel(Func<string, int, bool> publish, Action clear)
+    public NoticeScreenViewModel(Func<string, int, bool> publish, Action clear, string? initialText = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
+        // 초기 텍스트(성경 "공지 화면으로 복사" 등에서 미리 채워 열 때). 비면 빈 편집기로 시작.
+        _text = initialText ?? string.Empty;
         SendCommand = new RelayCommand(Send, () => !string.IsNullOrWhiteSpace(Text));
         ClearCommand = new RelayCommand(Clear);
+    }
+
+    /// <summary>
+    /// "공지 화면으로 복사"에 쓸 텍스트를 고른다 — 드래그 선택이 있으면 그 선택, 없으면 본문 전체.
+    /// 둘 다 공백뿐이면 null(복사할 게 없음). 양끝 공백은 다듬는다. (성경 본문 우클릭 흐름의 순수 결정 로직.)
+    /// </summary>
+    public static string? ResolveCopyText(string? selected, string? full)
+    {
+        var source = string.IsNullOrWhiteSpace(selected) ? full : selected;
+        return string.IsNullOrWhiteSpace(source) ? null : source.Trim();
     }
 
     /// <summary>글자 크기 프리셋(pt) — 콤보 바인딩용(보통 40 / 크게 60 / 아주 크게 80).</summary>

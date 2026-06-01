@@ -427,7 +427,10 @@ public partial class MainWindow : Window
     }
 
     // 공지 화면(InfoScreen) — 자유 텍스트 안내를 입력해 회중 출력으로 송출(FrmInfoScreen 포팅).
-    private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e)
+    private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e) => OpenNoticeScreen(initialText: null);
+
+    // 공지 화면 편집기를 연다(초기 텍스트가 있으면 미리 채워서). 성경 "공지 화면으로 복사"에서 재사용.
+    private void OpenNoticeScreen(string? initialText)
     {
         if (DataContext is not MainViewModel viewModel)
         {
@@ -436,9 +439,33 @@ public partial class MainWindow : Window
 
         var noticeViewModel = new Easislides.Wpf.Shell.NoticeScreenViewModel(
             (text, fontSizePt) => viewModel.PublishNotice(text, fontSizePt),
-            viewModel.ClearNotice);
+            viewModel.ClearNotice,
+            initialText);
         var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
+    }
+
+    // 성경 본문 전체 선택(우클릭 메뉴).
+    private void SelectAllBiblePassage_Click(object sender, RoutedEventArgs e) => BiblePassageBox.SelectAll();
+
+    // 성경 본문에서 선택한 구절을 클립보드로 복사(우클릭 메뉴). 선택이 없으면 아무것도 안 한다.
+    private void CopyBiblePassage_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(BiblePassageBox.SelectedText))
+        {
+            BiblePassageBox.Copy();
+        }
+    }
+
+    // 성경 본문에서 선택한(없으면 전체) 구절을 공지 화면 편집기로 복사해 연다(레거시 Bible 우클릭 Copy to InfoScreen).
+    private void CopyBibleToInfoScreen_Click(object sender, RoutedEventArgs e)
+    {
+        // 선택 우선·없으면 전체·둘 다 비면 null — 순수 결정 로직은 NoticeScreenViewModel.ResolveCopyText(테스트됨).
+        var text = Easislides.Wpf.Shell.NoticeScreenViewModel.ResolveCopyText(BiblePassageBox.SelectedText, BiblePassageBox.Text);
+        if (text is not null)
+        {
+            OpenNoticeScreen(text);
+        }
     }
 
     // 찬양집 색인 — 현재 곡 라이브러리를 머리글자(초성/영문/숫자)별로 묶어 보여 준다(FrmMain PraiseBook/Listing 포팅).

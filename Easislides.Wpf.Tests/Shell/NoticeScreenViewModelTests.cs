@@ -19,6 +19,32 @@ public class NoticeScreenViewModelTests
     }
 
     [Fact]
+    public void InitialText_PrefillsEditor_AndEnablesSend()
+    {
+        // 성경 "공지 화면으로 복사"처럼 초기 텍스트를 주고 열면, 편집기가 채워지고 바로 송출 가능.
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { }, initialText: "창세기 1:1 태초에...");
+
+        sut.Text.Should().Be("창세기 1:1 태초에...");
+        sut.SendCommand.CanExecute(null).Should().BeTrue("초기 텍스트가 있으면 송출 가능");
+    }
+
+    [Fact]
+    public void InitialText_NullOrOmitted_StartsEmpty()
+    {
+        new NoticeScreenViewModel((_, _) => true, () => { }).Text.Should().BeEmpty();
+        new NoticeScreenViewModel((_, _) => true, () => { }, initialText: null).Text.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("창 1:1 선택", "본문 전체", "창 1:1 선택")]  // 선택이 있으면 선택 우선
+    [InlineData("  ", "본문 전체", "본문 전체")]              // 선택이 공백뿐이면 본문 전체
+    [InlineData("", "  은혜  ", "은혜")]                       // 선택 없음 → 본문(양끝 공백 다듬음)
+    [InlineData("", "", null)]                                 // 둘 다 비면 null(복사할 게 없음)
+    [InlineData(null, null, null)]
+    public void ResolveCopyText_PicksSelectionElseFull_TrimsAndNullsEmpty(string? selected, string? full, string? expected)
+        => NoticeScreenViewModel.ResolveCopyText(selected, full).Should().Be(expected);
+
+    [Fact]
     public void Send_InvokesPublishWithTextAndFontSize_AndReportsSuccess()
     {
         var published = new List<(string Text, int FontSize)>();

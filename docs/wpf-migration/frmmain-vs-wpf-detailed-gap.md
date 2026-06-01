@@ -226,8 +226,8 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 | 구절 검색(phrase, `Bibles_Go`/`BibleVerseSearch`/매치모드) | 매치모드 ComboBox + 검색 | 🟢 |
 | 본문에서 드래그 선택→passage 빌드(`HB_BuildSelectionString`, 순차/임의, max verses) | `PassageText` 드래그 선택→`BibleSelection` | 🟢 |
 | **Add Region 2**(이중언어 번역 합치기, `CMenuBible_AddRegion2`,`AddRegion2ToBiblePassage`,`BuildBibleTextR2SubMenus`) | Region2 **미리보기 콤보만**(PreviewRegion2Version) | 🟡 **출력 이중언어 실 적용 없음**(미리보기 제목/ID만) |
-| **Copy to InfoScreen**(`CMenuBible_CopyInfoScreen`) | — | 🔴 |
-| 우클릭 메뉴(SelectAll/Unselect/Add&Show/Copy/AddRegion2/CopyInfoScreen) | — | 🔴 우클릭 없음 |
+| **Copy to InfoScreen**(`CMenuBible_CopyInfoScreen`) | 본문 우클릭 "선택 구절 공지 화면으로" (NoticeScreen 편집기 프리필) | 🟢 (2026-06-02 증분 38) |
+| 우클릭 메뉴(SelectAll/Unselect/Add&Show/Copy/AddRegion2/CopyInfoScreen) | 본문 우클릭(전체 선택·복사·예배 순서 추가·공지 화면으로) | 🟡 (2026-06-02 증분 38) 핵심 4항목 제공. AddRegion2 는 후속 |
 | 본문 드래그→예배순서 드롭(`BibleText_MouseDown` DragDrop) | Insert 버튼 | 🟡 드래그 드롭 없음 |
 | 구절 표시 토글(`Bibles_ShowVerses`) | `ShowVerses` CheckBox | 🟢 |
 | 버전 추가/삭제/순서변경/이름변경 | BibleVersionManagerWindow(직전 구현) | 🟢(신규) |
