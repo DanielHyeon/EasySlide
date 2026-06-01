@@ -52,6 +52,7 @@
 - (2026-06-01) ✅ 증분 12(PowerP) — **PowerPoint 폴더 브라우저**(FrmMain PowerP 탭). FolderFileEnumerator(폴더 열거 공통화, ImageLibraryService 위임)·PowerPointLibraryService(.ppt/.pptx)·VM/Window + 메뉴 "파일 ▸ PowerPoint 폴더 찾아보기". 선택·더블클릭으로 예배 순서 추가. 1109 green, code-reviewer Approve(0 issue), 커밋 `95e2089`.
 - (2026-06-01) ✅ 증분 13(전환 모션) — **출력 전환 슬라이드 4방향**(페이드+좌/우/상/하). enum LyricsTransitionKind 설정 전배선 + OutputWindow TranslateTransform 슬라이드(CubicEase)+ClipToBounds + 메뉴 "전환 효과 ▸ 모션". 기본 Fade=무회귀. 1113 green, code-reviewer Approve(0 critical), 커밋 `5df4e5f`. 셰이프/타일 등 나머지 전환은 P2 백로그.
 - (2026-06-01) ✅ 증분 14(Recent) — **최근 예배 순서**(FrmMain Recent Edits). RecentWorshipListsService(JSON 영속·최신순·중복제거·최대8) + MainViewModel 통합(Save/Load 시 Record)·동적 서브메뉴 "파일 ▸ 최근 예배 순서"·재오픈 명령. DI 등록. 1123 green, code-reviewer Approve(0 critical), 커밋 `2fac483`.
+- (2026-06-01) ✅ 증분 15(InfoScreen 글자) — **공지 화면 글자 크기 선택**(보통40/크게60/아주크게80). 새 plumbing 없이 기존 곡별 폰트 오버라이드(FormatData 47=pt) 재사용 — PublishNotice(text,pt)→OverrideFontSizePx. 프리셋 디코더 범위 회귀 가드. 1127 green, code-reviewer Approve(0 critical), 커밋 `450b0db`.
 - ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 다음 항목 + 전환 효과(페이드/속도) + 배경 이미지 + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
 - **차기(후속 슬라이스): PraiseBook 명명 저장·관리 영속화 · 이미지 썸네일 비동기 디코딩(대용량) · 50여 종 셰이프/타일 전환 · InfoScreen 편집기 · 절 라벨 점프(P2 백로그).** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
