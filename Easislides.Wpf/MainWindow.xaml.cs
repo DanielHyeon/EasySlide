@@ -4,8 +4,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Diagnostics;
+using System.IO;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Support;
 using Microsoft.Extensions.DependencyInjection;
@@ -346,6 +349,133 @@ public partial class MainWindow : Window
         aboutWindow.Owner = this;
         aboutWindow.ShowDialog();
     }
+
+    // ─── 메뉴바(편집) 곡/폴더 관리 창 런처 — 레거시 FrmCopy/Move/Delete/Recover/SmartMerge/RearrangeFolders 대응. ───
+    // 이 창들은 빈 상태로 열면 안 되고 컨텍스트(선택 곡·폴더·DB 경로·폴더 목록)를 주입해야 동작한다.
+    // 셸의 좌측 "라이브러리" 탭이 이미 그 컨텍스트(_viewModel.Library)를 갖고 있어 LibraryWindow 와 동일하게 주입한다.
+    // 곡이 필요한 작업(복사/이동/삭제/폴더정리)은 선택이 없으면 안내만 하고 창을 열지 않는다(빈 창 방지).
+
+    private void SongCopy_Click(object sender, RoutedEventArgs e)
+        => LaunchSongContextWindow<SongCopyWindow, SongCopyViewModel>(
+            "복사할 곡을 라이브러리 탭에서 선택하세요.",
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedFolder!, lib.Folders));
+
+    private void SongMove_Click(object sender, RoutedEventArgs e)
+        => LaunchSongContextWindow<SongMoveWindow, SongMoveViewModel>(
+            "이동할 곡을 라이브러리 탭에서 선택하세요.",
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedFolder!, lib.Folders));
+
+    private void SongDelete_Click(object sender, RoutedEventArgs e)
+        => LaunchSongContextWindow<SongDeleteWindow, SongDeleteViewModel>(
+            "삭제할 곡을 라이브러리 탭에서 선택하세요.",
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedFolder!));
+
+    private void FolderEditor_Click(object sender, RoutedEventArgs e)
+        => LaunchFolderContextWindow<FolderEditorWindow, FolderEditorViewModel>(
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedFolder!, lib.Folders));
+
+    // 복구·병합은 곡 선택이 필요 없고 DB 경로(+폴더 목록)만 있으면 된다 — 셸 라이브러리의 DB 경로를 쓴다.
+    private void SongRecover_Click(object sender, RoutedEventArgs e)
+        => LaunchDatabaseContextWindow<SongRecoveryWindow, SongRecoveryViewModel>(
+            (vm, lib) => vm.Load(lib.DatabasePath));
+
+    private void SongMerge_Click(object sender, RoutedEventArgs e)
+        => LaunchDatabaseContextWindow<SongMergeWindow, SongMergeViewModel>(
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.Folders));
+
+    // 곡 컨텍스트(선택 곡+폴더)가 필요한 창 — 선택이 없으면 안내만 하고 열지 않는다.
+    private async void LaunchSongContextWindow<TWindow, TViewModel>(string noSelectionMessage, Action<TViewModel, LibraryViewModel> load)
+        where TWindow : Window
+        where TViewModel : class
+    {
+        var lib = _viewModel.Library;
+        if (lib.SelectedFolder is null || lib.SelectedSong is null)
+        {
+            lib.StatusMessage = noSelectionMessage;
+            return;
+        }
+
+        if (!TryOpenContextWindow<TWindow, TViewModel>(lib, load))
+        {
+            return;
+        }
+
+        await lib.LoadAsync(); // 작업 반영 — 셸 라이브러리 목록 새로고침.
+    }
+
+    // 폴더 컨텍스트(선택 폴더)가 필요한 창.
+    private async void LaunchFolderContextWindow<TWindow, TViewModel>(Action<TViewModel, LibraryViewModel> load)
+        where TWindow : Window
+        where TViewModel : class
+    {
+        var lib = _viewModel.Library;
+        if (lib.SelectedFolder is null)
+        {
+            lib.StatusMessage = "정리할 폴더를 라이브러리 탭에서 선택하세요.";
+            return;
+        }
+
+        if (!TryOpenContextWindow<TWindow, TViewModel>(lib, load))
+        {
+            return;
+        }
+
+        await lib.LoadAsync();
+    }
+
+    // DB 경로만 필요한 창(복구/병합).
+    private async void LaunchDatabaseContextWindow<TWindow, TViewModel>(Action<TViewModel, LibraryViewModel> load)
+        where TWindow : Window
+        where TViewModel : class
+    {
+        var lib = _viewModel.Library;
+        if (string.IsNullOrWhiteSpace(lib.DatabasePath))
+        {
+            lib.StatusMessage = "AdminDB 경로를 설정에서 먼저 지정하세요.";
+            return;
+        }
+
+        if (!TryOpenContextWindow<TWindow, TViewModel>(lib, load))
+        {
+            return;
+        }
+
+        await lib.LoadAsync();
+    }
+
+    // 공통: DI 로 창을 만들고 VM 에 컨텍스트를 주입한 뒤 모달로 띄운다. 확정(true) 시 true 반환.
+    private bool TryOpenContextWindow<TWindow, TViewModel>(LibraryViewModel lib, Action<TViewModel, LibraryViewModel> load)
+        where TWindow : Window
+        where TViewModel : class
+    {
+        var window = _services.GetRequiredService<TWindow>();
+        window.Owner = this;
+        if (window.DataContext is not TViewModel viewModel)
+        {
+            return false;
+        }
+
+        load(viewModel, lib);
+        return window.ShowDialog() == true;
+    }
+
+    // 보기 메뉴 — 작업 폴더를 탐색기로 연다(레거시 Menu_EasiSlidesFolder 대응).
+    private void OpenEasiSlidesFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var folder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
+        if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
+        {
+            MessageBox.Show(this, "작업 폴더를 찾을 수 없습니다. 설정에서 작업 폴더를 먼저 지정하세요.",
+                "EasiSlides 폴더", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        // UseShellExecute=true 로 탐색기에서 폴더를 연다(경로에 공백이 있어 따옴표로 감싼다).
+        Process.Start(new ProcessStartInfo("explorer.exe", $"\"{folder}\"") { UseShellExecute = true });
+    }
+
+    // 파일 메뉴 — 종료(레거시 Menu_Exit). 창을 닫으면 OnClosed 가 정리한다.
+    private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
     protected override void OnClosed(EventArgs e)
     {
