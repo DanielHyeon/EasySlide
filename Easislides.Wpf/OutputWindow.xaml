@@ -304,7 +304,7 @@
                     IsHitTestVisible="False"
                     Visibility="{Binding PositionIndicatorVisibility}">
                 <TextBlock Text="{Binding PositionLabel}"
-                           FontSize="20"
+                           FontSize="{Binding PanelPrimaryFontSize}"
                            FontWeight="SemiBold"
                            Foreground="{Binding SceneForegroundBrush}" />
             </Border>
@@ -319,7 +319,7 @@
                     IsHitTestVisible="False"
                     Visibility="{Binding ItemNumberVisibility}">
                 <TextBlock Text="{Binding ItemNumberText}"
-                           FontSize="20"
+                           FontSize="{Binding PanelPrimaryFontSize}"
                            FontWeight="SemiBold"
                            Foreground="{Binding SceneForegroundBrush}" />
             </Border>
@@ -335,7 +335,7 @@
                     IsHitTestVisible="False"
                     Visibility="{Binding CopyrightVisibility}">
                 <TextBlock Text="{Binding CopyrightText}"
-                           FontSize="16"
+                           FontSize="{Binding PanelSecondaryFontSize}"
                            TextAlignment="Center"
                            TextWrapping="Wrap"
                            MaxWidth="520"
@@ -355,7 +355,7 @@
                     IsHitTestVisible="False"
                     Visibility="{Binding NextItemVisibility}">
                 <TextBlock Text="{Binding NextItemText}"
-                           FontSize="16"
+                           FontSize="{Binding PanelSecondaryFontSize}"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="420"
                            Foreground="{Binding SceneForegroundBrush}" />

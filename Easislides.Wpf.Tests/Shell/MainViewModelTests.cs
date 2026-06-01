@@ -3313,6 +3313,26 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PanelFontScaleCommands_StepAndClamp()
+    {
+        // FrmMain Def_PanelFont 크기 — +/- 10% 단계, 50~200% 클램프.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActivePanelFontScale.Should().Be(100, "기본 100%");
+
+        sut.IncreasePanelFontScaleCommand.Execute(null);
+        sut.ActivePanelFontScale.Should().Be(110, "한 단계 +10%");
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent).Should().Be(110);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, 200);
+        sut.IncreasePanelFontScaleCommand.CanExecute(null).Should().BeFalse("상한(200%)에서 증가 비활성");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, 50);
+        sut.DecreasePanelFontScaleCommand.CanExecute(null).Should().BeFalse("하한(50%)에서 감소 비활성");
+    }
+
+    [Fact]
     public void LyricsFontSize2Input_DirectEntry_ZeroIsAuto_ElseClamps()
     {
         // FrmMain Ind_Reg2SizeUpDown — 0=본문과 동일(자동) 허용, 1~23→24, >120→120 클램프.

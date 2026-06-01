@@ -182,6 +182,12 @@
                               Command="{Binding ApplyPanelColorHexCommand}"
                               CommandParameter="#103020" />
                 </MenuItem>
+                <!-- 정보 패널 글자 크기(레거시 Def_PanelFont 크기) — 곡번호·저작권·다음항목·위치 텍스트를 비율로 확대/축소. -->
+                <MenuItem Header="정보 패널 글자">
+                    <MenuItem Header="{Binding ActivePanelFontScale, StringFormat=현재 크기: {0}%}" IsEnabled="False" />
+                    <MenuItem Header="크게 (+)" Command="{Binding IncreasePanelFontScaleCommand}" />
+                    <MenuItem Header="작게 (−)" Command="{Binding DecreasePanelFontScaleCommand}" />
+                </MenuItem>
                 <MenuItem Header="제목 헤딩"
                           IsChecked="{Binding ActiveLyricsTitleHeading}"
                           Command="{Binding ToggleLyricsTitleHeadingCommand}" />

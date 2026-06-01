@@ -227,6 +227,10 @@ public static class EasiSettingKeys
     // 알파(반투명)는 밴드 뒤 가사가 비치도록 유지하고 RGB(색조)만 사용자가 바꾼다. 투명 토글 on 이면 이 색 대신 완전 투명.
     public static readonly SettingKey<int> LyricsMonitorPanelColorArgb =
         new("liveOutput.lyricsMonitorPanelColorArgb", unchecked((int)0x66000000));
+    // Display Panel 정보 텍스트(곡번호·저작권·다음항목·위치) 글자 크기 비율(%, FrmMain Def_PanelFont 크기 대응).
+    // 기본 100 = 기존 크기 보존(무회귀). 큰 장소·가독성 위해 확대/축소. 범위 50~200.
+    public static readonly SettingKey<int> LyricsMonitorPanelFontScalePercent =
+        new("liveOutput.lyricsMonitorPanelFontScalePercent", 100);
     // 출력 가사 줄 간격(폰트 크기 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125 로 기존 줄높이(폰트×1.25) 보존. 범위 100~220.
     public static readonly SettingKey<int> LyricsMonitorLineSpacingPercent = new("liveOutput.lyricsMonitorLineSpacingPercent", 125);
     // 출력 본문 좌/우/아래 여백(픽셀) — FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응.
@@ -336,6 +340,7 @@ public static class EasiSettingKeys
         LyricsMonitorInterlace,
         LyricsMonitorPanelTransparent,
         LyricsMonitorPanelColorArgb,
+        LyricsMonitorPanelFontScalePercent,
         LyricsMonitorLineSpacingPercent,
         LyricsMonitorBodyLeftMargin,
         LyricsMonitorBodyRightMargin,
@@ -464,6 +469,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorPanelTransparent { get; init; } = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
 
     public int LyricsMonitorPanelColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorPanelColorArgb.DefaultValue;
+
+    public int LyricsMonitorPanelFontScalePercent { get; init; } = EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue;
 
     public int LyricsMonitorLineSpacingPercent { get; init; } = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
 
@@ -785,6 +792,14 @@ public sealed class SettingsService : ISettingsService
             min: 24,
             max: 120,
             EasiSettingKeys.LyricsMonitorFontSize.Id,
+            issues);
+
+        // Display Panel 글자 크기 비율 가드(50~200%) — 과소·과대값으로 정보 텍스트가 사라지거나 화면을 덮지 않도록.
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorPanelFontScalePercent,
+            min: 50,
+            max: 200,
+            EasiSettingKeys.LyricsMonitorPanelFontScalePercent.Id,
             issues);
 
         // 보조 영역(Region2) 폰트 크기 가드 — 0(자동=본문 동일)은 허용, 그 외엔 24~120px 만 허용.
@@ -1312,6 +1327,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorInterlace" => snapshot.LiveOutput.LyricsMonitorInterlace,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorPanelColorArgb" => snapshot.LiveOutput.LyricsMonitorPanelColorArgb,
+            "liveOutput.lyricsMonitorPanelFontScalePercent" => snapshot.LiveOutput.LyricsMonitorPanelFontScalePercent,
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
             "liveOutput.lyricsMonitorBodyLeftMargin" => snapshot.LiveOutput.LyricsMonitorBodyLeftMargin,
             "liveOutput.lyricsMonitorBodyRightMargin" => snapshot.LiveOutput.LyricsMonitorBodyRightMargin,
@@ -1495,6 +1511,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorPanelColorArgb" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelColorArgb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorPanelFontScalePercent" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelFontScalePercent = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot with
             {

@@ -133,6 +133,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsLineSpacingCommand))]
     private int _activeLyricsLineSpacing = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
 
+    // Display Panel 글자 크기 비율 조절 범위·단계(설정 Validate 범위 50~200% 와 일치). FrmMain Def_PanelFont 크기.
+    private const int LyricsPanelFontScaleMin = 50;
+    private const int LyricsPanelFontScaleMax = 200;
+    private const int LyricsPanelFontScaleStep = 10;
+
+    // 현재 Display Panel 글자 크기 비율(%). +/- 커맨드 활성/비활성 판별에도 쓰인다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreasePanelFontScaleCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreasePanelFontScaleCommand))]
+    private int _activePanelFontScale = EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue;
+
     // 본문 여백 조절 범위·단계(설정 Validate 범위 0~400px 와 일치). FrmMain ShowLeftMargin/Right/Bottom 대응.
     private const int LyricsBodyMarginMin = 0;
     private const int LyricsBodyMarginMax = 400;
@@ -477,6 +488,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
         IncreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(+LyricsLineSpacingStep), () => ActiveLyricsLineSpacing < LyricsLineSpacingMax);
         DecreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(-LyricsLineSpacingStep), () => ActiveLyricsLineSpacing > LyricsLineSpacingMin);
+        // Display Panel 글자 크기 비율 +/- (FrmMain Def_PanelFont 크기).
+        IncreasePanelFontScaleCommand = new RelayCommand(() => StepPanelFontScale(+LyricsPanelFontScaleStep), () => ActivePanelFontScale < LyricsPanelFontScaleMax);
+        DecreasePanelFontScaleCommand = new RelayCommand(() => StepPanelFontScale(-LyricsPanelFontScaleStep), () => ActivePanelFontScale > LyricsPanelFontScaleMin);
         // 본문 좌/우/아래 여백 +/- (FrmMain ShowLeftMargin/Right/Bottom) — 폰트·줄간격 증감과 동일 구조.
         IncreaseLyricsLeftMarginCommand = new RelayCommand(() => StepLyricsLeftMargin(+LyricsBodyMarginStep), () => ActiveLyricsLeftMargin < LyricsBodyMarginMax);
         DecreaseLyricsLeftMarginCommand = new RelayCommand(() => StepLyricsLeftMargin(-LyricsBodyMarginStep), () => ActiveLyricsLeftMargin > LyricsBodyMarginMin);
@@ -602,6 +616,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
     public IRelayCommand IncreaseLyricsLineSpacingCommand { get; }
     public IRelayCommand DecreaseLyricsLineSpacingCommand { get; }
+    public IRelayCommand IncreasePanelFontScaleCommand { get; }
+    public IRelayCommand DecreasePanelFontScaleCommand { get; }
     // 본문 좌/우/아래 여백 +/- (FrmMain ShowLeftMargin/Right/Bottom).
     public IRelayCommand IncreaseLyricsLeftMarginCommand { get; }
     public IRelayCommand DecreaseLyricsLeftMarginCommand { get; }
@@ -2723,6 +2739,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 폰트 크기가 다른 경로(−/+ 버튼·설정 창·프리셋)로 바뀌어도 입력 박스가 따라가도록 통지.
     partial void OnActiveLyricsFontSizeChanged(int value) => OnPropertyChanged(nameof(LyricsFontSizeInput));
 
+    // Display Panel 글자 크기 비율 조절(+/- 단계, %) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Def_PanelFont 크기).
+    private void StepPanelFontScale(int delta)
+    {
+        var next = Math.Clamp(ActivePanelFontScale + delta, LyricsPanelFontScaleMin, LyricsPanelFontScaleMax);
+        if (next == ActivePanelFontScale)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, next);
+        ActivePanelFontScale = next;
+        StatusText = $"패널 글자 크기: {next}%";
+    }
+
     // 보조 영역(Region2) 전역 폰트 크기 절대값 커밋 — 0(자동=본문 동일)은 허용, 그 외엔 24~120 으로 클램프(FrmMain Ind_Reg2SizeUpDown).
     private void CommitLyricsFontSize2(int value)
     {
@@ -2874,6 +2904,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsFontSize2 = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize2);
+        ActivePanelFontScale = _settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);
         ActiveLyricsRightMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin);

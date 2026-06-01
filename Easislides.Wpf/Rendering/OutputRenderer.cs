@@ -51,6 +51,8 @@ public sealed record LiveOutputRenderSettings(
     bool LyricsMonitorPanelTransparent = false,
     // Display Panel 밴드 배경색(ARGB, Def_PanelColour). 기본 0x66000000=반투명 검정(무회귀).
     int LyricsMonitorPanelColorArgb = unchecked((int)0x66000000),
+    // Display Panel 정보 텍스트 글자 크기 비율(%, Def_PanelFont 크기). 기본 100=기존 크기(무회귀).
+    int LyricsMonitorPanelFontScalePercent = 100,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
@@ -120,6 +122,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorUnderline),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent),
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
@@ -195,6 +198,8 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorPanelTransparent = false,
     // Display Panel 밴드 배경색(ARGB, Def_PanelColour). 기본 0x66000000=반투명 검정(무회귀).
     int LyricsMonitorPanelColorArgb = unchecked((int)0x66000000),
+    // Display Panel 정보 텍스트 글자 크기 비율(%, Def_PanelFont 크기). 기본 100=기존 크기(무회귀).
+    int LyricsMonitorPanelFontScalePercent = 100,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
@@ -433,6 +438,7 @@ public sealed class OutputRenderer : IOutputRenderer
             region1Underline,
             liveOutput.LyricsMonitorPanelTransparent,
             liveOutput.LyricsMonitorPanelColorArgb,
+            liveOutput.LyricsMonitorPanelFontScalePercent,
             liveOutput.LyricsMonitorLineSpacingPercent,
             liveOutput.LyricsMonitorBodyLeftMargin,
             liveOutput.LyricsMonitorBodyRightMargin,

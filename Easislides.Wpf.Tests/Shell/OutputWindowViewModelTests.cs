@@ -933,6 +933,26 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void PanelFontSizes_ScaleWithPanelFontScalePercent()
+    {
+        // FrmMain Def_PanelFont 크기 — 패널 글자 크기 비율(%)대로 정보 텍스트 크기가 정해진다(주 20·보조 16 기준).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        // 기본 100% → 기존 크기(무회귀).
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+        sut.PanelPrimaryFontSize.Should().Be(20.0, "기본 100%면 주 텍스트 20");
+        sut.PanelSecondaryFontSize.Should().Be(16.0, "기본 100%면 보조 텍스트 16");
+
+        // 150% → 1.5배.
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, 150).Succeeded.Should().BeTrue();
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+        sut.PanelPrimaryFontSize.Should().Be(30.0, "150%면 주 텍스트 30");
+        sut.PanelSecondaryFontSize.Should().Be(24.0, "150%면 보조 텍스트 24");
+    }
+
+    [Fact]
     public void PanelBackgroundBrush_UsesConfiguredPanelColor_WhenNotTransparent()
     {
         // FrmMain Def_PanelColour — 설정한 패널 색(반투명)이 밴드 배경으로 송출. 투명 토글 off 일 때.

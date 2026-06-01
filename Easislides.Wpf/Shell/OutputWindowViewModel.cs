@@ -125,6 +125,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private ImageSource? _sceneBackgroundImageSource;
     private Brush? _backgroundImageBrush;
     private Brush _panelBackgroundBrush = PanelDefaultBrush;
+    private double _panelPrimaryFontSize = PanelPrimaryBaseFontSize;
+    private double _panelSecondaryFontSize = PanelSecondaryBaseFontSize;
     private Visibility _backgroundImageVisibility = Visibility.Collapsed;
     // 배경 이미지 캐시: 같은(해석된) 경로를 매번 다시 디코딩하지 않도록 보관.
     private string? _cachedBackgroundImagePath;
@@ -536,6 +538,24 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _panelBackgroundBrush, value);
     }
 
+    // Display Panel 정보 텍스트 기본 글자 크기(XAML 하드코딩 값과 동일) — 위치/곡번호=20, 저작권/다음=16.
+    private const double PanelPrimaryBaseFontSize = 20.0;
+    private const double PanelSecondaryBaseFontSize = 16.0;
+
+    /// <summary>위치 인디케이터·곡 번호 글자 크기(기본 20 × 패널 비율). FrmMain Def_PanelFont 크기.</summary>
+    public double PanelPrimaryFontSize
+    {
+        get => _panelPrimaryFontSize;
+        private set => SetProperty(ref _panelPrimaryFontSize, value);
+    }
+
+    /// <summary>저작권·다음 항목 글자 크기(기본 16 × 패널 비율).</summary>
+    public double PanelSecondaryFontSize
+    {
+        get => _panelSecondaryFontSize;
+        private set => SetProperty(ref _panelSecondaryFontSize, value);
+    }
+
     /// <summary>배경 이미지 표시 여부 — 곡별 배경 이미지가 로드됐을 때만 Visible(색 배경 위에 덮음).</summary>
     public Visibility BackgroundImageVisibility
     {
@@ -759,6 +779,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // Display Panel 밴드 배경 — "패널 투명" on 이면 Transparent, off(기본)면 반투명 검정(무회귀).
         // Display Panel 밴드 배경 — "패널 투명" on 이면 완전 투명, off(기본)면 설정한 패널 색(기본 반투명 검정 = 기존 동작).
         PanelBackgroundBrush = scene.LyricsMonitorPanelTransparent ? Brushes.Transparent : CreateBrush(scene.LyricsMonitorPanelColorArgb);
+        // Display Panel 정보 텍스트 글자 크기 — 기본 크기(주 20 / 보조 16)에 설정 비율(%)을 곱한다. 100%=기존 크기(무회귀).
+        var panelScale = scene.LyricsMonitorPanelFontScalePercent / 100.0;
+        PanelPrimaryFontSize = PanelPrimaryBaseFontSize * panelScale;   // 위치 인디케이터·곡 번호
+        PanelSecondaryFontSize = PanelSecondaryBaseFontSize * panelScale; // 저작권·다음 항목
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
@@ -1240,6 +1264,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 밴드 색 변경도 라이브 출력에 즉시 반영(Def_PanelColour).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
+                // Display Panel 글자 크기 비율 변경도 라이브 출력에 즉시 반영(Def_PanelFont 크기).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelFontScalePercent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 절 헤딩 표시 토글도 라이브 출력에 즉시 반영(FrmMain Def_Head All).
