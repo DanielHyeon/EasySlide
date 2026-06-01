@@ -28,6 +28,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ICommandCatalog _commandCatalog;
     private readonly ISettingsService _settings;
     private readonly IWorshipListStore _worshipLists;
+    private readonly IRecentWorshipLists _recentWorshipLists;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
     // 좌측 "검색" 탭의 교차 검색 결과를 큐에 추가할 때, 결과(SongSearchResult)엔 가사가 없어 SongId 로 곡 상세(가사)를 불러온다.
     private readonly Data.IAdminSongDetailRepository _songDetail;
@@ -299,7 +300,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SearchUsageViewModel search,
         IWorshipListStore worshipLists,
         IAppearanceTemplateStore appearanceTemplates,
-        Data.IAdminSongDetailRepository songDetail)
+        Data.IAdminSongDetailRepository songDetail,
+        IRecentWorshipLists recentWorshipLists)
     {
         _session = session;
         _output = output;
@@ -311,6 +313,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _worshipLists = worshipLists;
         _appearanceTemplates = appearanceTemplates;
         _songDetail = songDetail;
+        _recentWorshipLists = recentWorshipLists;
         Media = media;
         Library = library;
         Bible = bible;
@@ -364,6 +367,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyTransitionDurationCommand = new RelayCommand<int>(ApplyTransitionDuration);
         ApplyTransitionKindCommand = new RelayCommand<LyricsTransitionKind>(ApplyTransitionKind);
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
+        OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
+        RefreshRecentWorshipLists();
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
@@ -436,6 +441,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<int> ApplyTransitionDurationCommand { get; }
     public IRelayCommand<LyricsTransitionKind> ApplyTransitionKindCommand { get; }
     public IRelayCommand ClearOutputBackgroundImageCommand { get; }
+    public IAsyncRelayCommand<string> OpenRecentWorshipListCommand { get; }
+
+    /// <summary>최근 연/저장한 예배 순서 이름(최신순) — 파일 메뉴 "최근 예배 순서" 서브메뉴 바인딩(레거시 Recent Edits).</summary>
+    public ObservableCollection<string> RecentWorshipLists { get; } = new();
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -756,6 +765,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             await _worshipLists.SaveAsync(name.Trim(), Queue.ToArray()).ConfigureAwait(true);
+            RecordRecentWorshipList(name.Trim());
             StatusText = $"예배 순서 저장됨: {name.Trim()} ({Queue.Count}개)";
         }
         catch (ArgumentException)
@@ -781,11 +791,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
             LoadQueue(items);
+            RecordRecentWorshipList(name.Trim());
             StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
             StatusText = $"예배 순서 불러오기 실패: {ex.Message}";
+        }
+    }
+
+    // 최근 예배 순서에 이름을 기록하고 메뉴 바인딩 컬렉션을 갱신한다(저장·불러오기 성공 시 호출).
+    private void RecordRecentWorshipList(string name)
+    {
+        _recentWorshipLists.Record(name);
+        RefreshRecentWorshipLists();
+    }
+
+    private void RefreshRecentWorshipLists()
+    {
+        RecentWorshipLists.Clear();
+        foreach (var name in _recentWorshipLists.GetRecent())
+        {
+            RecentWorshipLists.Add(name);
+        }
+    }
+
+    // 최근 예배 순서 메뉴 항목 클릭 → 해당 이름으로 다시 불러온다.
+    private async Task OpenRecentWorshipListAsync(string? name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            await LoadWorshipListAsync(name).ConfigureAwait(true);
         }
     }
 

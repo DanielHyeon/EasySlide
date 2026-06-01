@@ -853,6 +853,61 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task SaveWorshipList_RecordsRecentAndUpdatesCollection()
+    {
+        var recent = new InMemoryRecentWorshipLists();
+        var sut = CreateSut(recentWorshipLists: recent);
+
+        await sut.SaveWorshipListAsync("주일 1부");
+
+        recent.GetRecent().Should().Contain("주일 1부");
+        sut.RecentWorshipLists.Should().Contain("주일 1부");
+    }
+
+    [Fact]
+    public async Task LoadWorshipList_RecordsRecent()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("저녁예배", System.Array.Empty<LiveQueueItem>());
+        var recent = new InMemoryRecentWorshipLists();
+        var sut = CreateSut(worshipLists: store, recentWorshipLists: recent);
+
+        await sut.LoadWorshipListAsync("저녁예배");
+
+        sut.RecentWorshipLists.Should().Contain("저녁예배");
+    }
+
+    [Fact]
+    public async Task OpenRecentWorshipList_ReloadsThatList()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일오전", new[] { new LiveQueueItem("s1", "찬양", LiveItemKinds.Song) });
+        var sut = CreateSut(worshipLists: store);
+
+        await sut.OpenRecentWorshipListCommand.ExecuteAsync("주일오전");
+
+        sut.Queue.Should().ContainSingle(i => i.Title == "찬양");
+    }
+
+    [Fact]
+    public async Task OpenRecentWorshipList_MovesOpenedEntryToFront()
+    {
+        // 최근 항목을 열면 다시 최근 맨 앞으로 올라온다(most-recently-touched).
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("A", System.Array.Empty<LiveQueueItem>());
+        await store.SaveAsync("B", System.Array.Empty<LiveQueueItem>());
+        var recent = new InMemoryRecentWorshipLists();
+        var sut = CreateSut(worshipLists: store, recentWorshipLists: recent);
+        await sut.LoadWorshipListAsync("A"); // recent: A
+        await sut.LoadWorshipListAsync("B"); // recent: B, A
+        sut.RecentWorshipLists.Should().Equal("B", "A");
+
+        await sut.OpenRecentWorshipListCommand.ExecuteAsync("A");
+
+        sut.RecentWorshipLists.Should().Equal("A", "B");
+    }
+
+    [Fact]
     public void ApplyTransitionKind_PersistsAndUpdatesActiveAndMenuChecks()
     {
         var sut = CreateSut();
@@ -2975,7 +3030,8 @@ public class MainViewModelTests
         IWorshipListStore? worshipLists = null,
         PowerPointPreviewViewModel? powerPoint = null,
         IAppearanceTemplateStore? appearanceTemplates = null,
-        IAdminSongDetailRepository? songDetail = null)
+        IAdminSongDetailRepository? songDetail = null,
+        IRecentWorshipLists? recentWorshipLists = null)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -3002,7 +3058,24 @@ public class MainViewModelTests
             search,
             worshipLists ?? new InMemoryWorshipListStore(),
             appearanceTemplates ?? new InMemoryAppearanceTemplateStore(),
-            songDetail ?? new AdminDatabaseRepository());
+            songDetail ?? new AdminDatabaseRepository(),
+            recentWorshipLists ?? new InMemoryRecentWorshipLists());
+    }
+
+    // 최근 예배 순서 — 파일시스템 없이 인메모리로 검증.
+    private sealed class InMemoryRecentWorshipLists : IRecentWorshipLists
+    {
+        private readonly List<string> _items = new();
+
+        public void Record(string name)
+        {
+            var trimmed = name?.Trim();
+            if (string.IsNullOrEmpty(trimmed)) return;
+            _items.RemoveAll(n => string.Equals(n, trimmed, System.StringComparison.OrdinalIgnoreCase));
+            _items.Insert(0, trimmed);
+        }
+
+        public IReadOnlyList<string> GetRecent() => _items.ToArray();
     }
 
     // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.

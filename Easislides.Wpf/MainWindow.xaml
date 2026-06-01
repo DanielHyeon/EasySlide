@@ -45,6 +45,19 @@
                 <MenuItem Header="라이브러리 열기" Click="OpenLibrary_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Contents}" /></MenuItem.Icon>
                 </MenuItem>
+                <!-- 최근 예배 순서(레거시 Recent Edits) — 최신순 이름을 클릭하면 즉시 다시 불러온다. 비어 있으면 비활성. -->
+                <MenuItem Header="최근 예배 순서"
+                          ItemsSource="{Binding RecentWorshipLists}">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.WorshipList}" /></MenuItem.Icon>
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}" />
+                            <Setter Property="Command"
+                                    Value="{Binding DataContext.OpenRecentWorshipListCommand, RelativeSource={RelativeSource AncestorType=Menu}}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="종료" Click="Exit_Click" />
             </MenuItem>
