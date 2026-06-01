@@ -360,6 +360,21 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_NoticeItem_RendersTextVerbatim_NotThroughLyricsFormatter()
+    {
+        // 공지(InfoScreen)는 자유 텍스트라 가사 마커([광고] 같은 마커-only 줄·» 등)를 해석하지 않고
+        // 입력 그대로 본문으로 송출한다(가사 포맷터가 마커 줄을 삭제·손상하지 않도록 우회).
+        var noticeText = "[광고] 점심 식사\n주차장 만차";
+        var item = new LiveQueueItem(LiveItemKinds.NoticeLiveId, "공지", LiveItemKinds.Notice) { Lyrics = noticeText };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be(noticeText, "공지는 가사 마커 해석 없이 그대로 표시");
+        sut.Current.CurrentItemBodyText2.Should().BeEmpty();
+    }
+
+    [Fact]
     public void GoLive_CarriesNextTitleToSnapshot()
     {
         // 다음 항목 제목이 스냅샷에 실려 출력 "다음 항목 표시"(Display Panel PrevNext)에 쓰인다.

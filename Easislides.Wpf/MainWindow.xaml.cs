@@ -322,6 +322,19 @@ public partial class MainWindow : Window
         }
     }
 
+    // 공지 화면(InfoScreen) — 자유 텍스트 안내를 입력해 회중 출력으로 송출(FrmInfoScreen 포팅).
+    private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var noticeViewModel = new Easislides.Wpf.Shell.NoticeScreenViewModel(viewModel.PublishNotice, viewModel.ClearNotice);
+        var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };
+        window.ShowDialog();
+    }
+
     // 찬양집 색인 — 현재 곡 라이브러리를 머리글자(초성/영문/숫자)별로 묶어 보여 준다(FrmMain PraiseBook/Listing 포팅).
     private void OpenPraiseBookIndex_Click(object sender, RoutedEventArgs e)
     {

@@ -1926,6 +1926,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"전환 길이: {next}ms";
     }
 
+    // 공지 화면 송출(FrmInfoScreen — 자유 텍스트 안내). InfoScreen 창에서 입력한 텍스트를
+    // 즉시 회중 출력에 본문으로 송출한다. 출력 창이 열려 있을 때만 동작(닫혀 있으면 false 반환).
+    // 공지는 큐 항목이 아니라 일시 라이브 항목이다. _liveItemId 를 센티넬(NoticeLiveId)로 둬
+    // 슬라이드/절 이동 가드(== 선택 항목 ID)가 자연히 false 가 되도록 한다 — null 로 두면 슬라이드 이동
+    // 가드의 "라이브 미시작" 와일드카드(_liveItemId is null)에 걸려 의미 없는 이동 버튼이 켜진다.
+    public bool PublishNotice(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || !_output.Current.IsOpen)
+        {
+            return false;
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        var notice = new LiveQueueItem(LiveItemKinds.NoticeLiveId, "공지", LiveItemKinds.Notice) { Lyrics = text };
+        _liveItemId = LiveItemKinds.NoticeLiveId;
+        _session.GoLive(notice, monitorName);
+        StatusText = "공지 화면 송출";
+        NotifyCommandStates();
+        return true;
+    }
+
+    // 공지 화면 지우기 — 출력을 검은 화면(숨김)으로 돌려 공지를 내린다(InfoScreen 창의 "지우기").
+    // 출력이 열려 있지 않으면 아무것도 안 한다.
+    public void ClearNotice()
+    {
+        if (!_output.Current.IsOpen)
+        {
+            return;
+        }
+
+        _session.HideOutput(blackout: true);
+        _liveItemId = null;
+        StatusText = "공지 숨김(검은 화면)";
+        NotifyCommandStates();
+    }
+
     // 전역 출력 배경 이미지 설정(FrmMain Images 탭 — 배경으로 적용). 코드-비하인드의 파일 선택 결과를 받아 저장.
     // 라이브 출력 VM 이 설정 변경을 즉시 반영해 색 배경 위에 이미지를 깐다(곡별 배경 61 이 있으면 그 곡은 우선).
     public void SetOutputBackgroundImage(string imagePath)

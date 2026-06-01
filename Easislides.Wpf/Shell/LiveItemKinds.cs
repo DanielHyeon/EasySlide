@@ -11,4 +11,9 @@ public static class LiveItemKinds
     public const string PowerPoint = "PowerPoint";
     public const string Media = "Media";
     public const string Notice = "Notice";
+
+    /// <summary>공지(InfoScreen) 라이브 항목의 고정 ID — 큐의 어떤 항목 ID 와도 겹치지 않는 센티넬.
+    /// 공지 송출 시 _liveItemId 를 이 값으로 두면 슬라이드/절 이동 가드(== 항목 ID)가 자연히 비활성화돼
+    /// 공지가 떠 있는 동안 의미 없는 이동 버튼이 켜지지 않는다(레거시 FrmInfoScreen 의 "모달" 송출 의미).</summary>
+    public const string NoticeLiveId = "notice:live";
 }

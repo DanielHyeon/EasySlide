@@ -229,6 +229,9 @@
                 <MenuItem Header="찬양집 색인..." Click="OpenPraiseBookIndex_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="공지 화면(InfoScreen)..." Click="OpenNoticeScreen_Click">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="도움말">

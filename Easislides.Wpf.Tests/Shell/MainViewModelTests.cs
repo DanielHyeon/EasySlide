@@ -853,6 +853,77 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PublishNotice_WhenOutputClosed_ReturnsFalseAndStaysOff()
+    {
+        // 출력 창이 닫혀 있으면 공지 송출은 실패(false)하고 라이브 상태를 바꾸지 않는다.
+        var sut = CreateSut();
+
+        var ok = sut.PublishNotice("예배 후 다과");
+
+        ok.Should().BeFalse();
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
+    public void PublishNotice_WhenOutputOpen_SendsNoticeBodyLive()
+    {
+        // 출력이 열려 있으면 공지 텍스트가 본문으로 라이브 송출된다(FrmInfoScreen 대응).
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+
+        var ok = sut.PublishNotice("주차장 만차 안내");
+
+        ok.Should().BeTrue();
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("공지");
+        sut.Session.Current.CurrentItemBodyText.Should().Contain("주차장 만차 안내");
+    }
+
+    [Fact]
+    public void PublishNotice_BlankText_ReturnsFalse()
+    {
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.PublishNotice("   ").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task PublishNotice_DisablesPowerPointSlideNav_WhilePptSelected()
+    {
+        // 공지가 떠 있는 동안에는 선택된 PPT 덱의 슬라이드 이동 버튼이 비활성이어야 한다
+        // (_liveItemId 센티넬 → 선택 항목 ID 와 불일치 → 이동 가드 false). null 와일드카드 버그 회귀 방지.
+        var expectedSlide = new DrawingImage();
+        expectedSlide.Freeze();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => expectedSlide);
+        await powerPoint.LoadAsync("deck.pptx", 1, 960, 540); // SlideCount=3, 현재 1
+        var sut = CreateSut(powerPoint: powerPoint);
+        var ppt = new LiveQueueItem("ppt:1", "Deck", LiveItemKinds.PowerPoint) { ContentPath = "deck.pptx" };
+        sut.LoadQueue(new[] { ppt });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = ppt;
+        // 공지 송출 전(라이브 미시작)에는 선택 덱의 다음 슬라이드 이동이 가능(대조군).
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue();
+
+        sut.PublishNotice("공지").Should().BeTrue();
+
+        sut.NextSlideCommand.CanExecute(null).Should().BeFalse("공지 송출 중에는 PPT 슬라이드 이동 비활성");
+    }
+
+    [Fact]
+    public void ClearNotice_HidesOutput()
+    {
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+        sut.PublishNotice("공지").Should().BeTrue();
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+
+        sut.ClearNotice();
+
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "지우기는 출력을 숨김(검은 화면)으로");
+    }
+
+    [Fact]
     public async Task GoLive_PowerPointItemWithRenderedSlide_ProjectsSlideToOutput()
     {
         // G1.2 출력 송출: 렌더된 PPT 슬라이드가 운영자 미리보기뿐 아니라 GoLive 시 출력 창에도 송출돼야 한다
