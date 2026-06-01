@@ -17,6 +17,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
 {
     private readonly IPraiseBookIndexService _indexService;
     private readonly IPraiseBookStore _store;
+    private readonly IPraiseBookIndexExporter _exporter = new PraiseBookIndexExporter();
 
     // 현재 색인 대상 곡 목록(라이브러리에서 받았거나, 저장된 찬양집을 연 결과). 저장 시 이 목록을 쓴다.
     private IReadOnlyList<PraiseBookIndexEntry> _currentEntries;
@@ -55,6 +56,13 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     public IAsyncRelayCommand<string> OpenBookCommand { get; }
 
     public IRelayCommand<string> DeleteBookCommand { get; }
+
+    /// <summary>현재 색인을 인쇄용 HTML 문서 문자열로 만든다(호출부가 파일로 저장). 파일 I/O 없음 → 테스트 가능.</summary>
+    public string BuildIndexHtml()
+    {
+        var title = string.IsNullOrWhiteSpace(CurrentBookName) ? "찬양집 색인" : $"찬양집 — {CurrentBookName}";
+        return _exporter.BuildHtml(title, Groups);
+    }
 
     // 현재 목록을 머리글자 그룹 색인으로 다시 만든다.
     private void RebuildIndex()

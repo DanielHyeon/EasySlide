@@ -103,6 +103,32 @@ public class PraiseBookIndexViewModelTests
     }
 
     [Fact]
+    public void BuildIndexHtml_ReflectsCurrentGroups()
+    {
+        var sut = CreateSut(new FakePraiseBookStore(), new PraiseBookIndexEntry("가나", 7));
+
+        var html = sut.BuildIndexHtml();
+
+        html.Should().Contain("<h2>ㄱ</h2>");
+        html.Should().Contain("가나");
+        html.Should().Contain("7");
+    }
+
+    [Fact]
+    public async Task BuildIndexHtml_AfterOpenBook_UsesBookNameInTitle()
+    {
+        var store = new FakePraiseBookStore();
+        await store.SaveAsync("주일낮", new[] { new PraiseBookIndexEntry("바다", 5) });
+        var sut = CreateSut(store, new PraiseBookIndexEntry("가나", 1));
+        await sut.OpenBookCommand.ExecuteAsync("주일낮");
+
+        var html = sut.BuildIndexHtml();
+
+        html.Should().Contain("주일낮");
+        html.Should().Contain("바다");
+    }
+
+    [Fact]
     public async Task DeleteBook_RemovesFromStoreAndSavedBooks()
     {
         var store = new FakePraiseBookStore();

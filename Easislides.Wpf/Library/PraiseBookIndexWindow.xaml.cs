@@ -62,5 +62,32 @@ public partial class PraiseBookIndexWindow : Window
         }
     }
 
+    private void ExportHtml_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "찬양집 색인 HTML 저장",
+            Filter = "HTML 문서 (*.html)|*.html|모든 파일 (*.*)|*.*",
+            FileName = string.IsNullOrWhiteSpace(_viewModel.CurrentBookName) ? "찬양집색인.html" : $"{_viewModel.CurrentBookName}.html",
+            DefaultExt = ".html",
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            System.IO.File.WriteAllText(dialog.FileName, _viewModel.BuildIndexHtml(), System.Text.Encoding.UTF8);
+            MessageBox.Show(this, $"색인을 저장했습니다:\n{dialog.FileName}", "찬양집 색인 내보내기", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (System.Exception ex)
+        {
+            // 디스크 권한·잠김 등 저장 실패는 사용자에게 알리고 창은 유지(크래시 방지).
+            MessageBox.Show(this, $"저장에 실패했습니다:\n{ex.Message}", "찬양집 색인 내보내기", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 }

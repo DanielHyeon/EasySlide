@@ -113,14 +113,23 @@
                    TextTrimming="CharacterEllipsis"
                    Margin="0,8,0,0" />
 
-        <StackPanel Grid.Row="4"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,16,0,0">
-            <Button Click="Close_Click"
+        <Grid Grid.Row="4" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Click="ExportHtml_Click"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Content="색인 내보내기(HTML)..."
+                    AutomationProperties.Name="찬양집 색인 HTML 내보내기" />
+
+            <Button Grid.Column="2"
+                    Click="Close_Click"
                     Style="{StaticResource EsButton.Primary}"
                     Content="닫기"
                     AutomationProperties.Name="닫기" />
-        </StackPanel>
+        </Grid>
     </Grid>
 </Window>
