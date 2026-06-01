@@ -125,6 +125,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task SendToOutputAndNext_PublishesThenAdvances_EvenWhenAutoAdvanceOff()
+    {
+        // btnToOutputMoveNext: 자동 다음 설정이 꺼져 있어도 송출 후 선택이 다음 항목으로 이동한다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var first = new LiveQueueItem("song-1", "입례 찬양");
+        var second = new LiveQueueItem("song-2", "봉헌 찬양");
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { first, second });
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.SendToOutputAndNextCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemTitle.Should().Be("입례 찬양", "송출된 건 첫 항목");
+        sut.SelectedItem.Should().Be(second, "자동 다음 off 여도 선택이 다음으로 이동");
+    }
+
+    [Fact]
+    public async Task SendToOutputAndNext_LastItem_PublishesButStays()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var only = new LiveQueueItem("song-1", "마지막 찬양");
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { only });
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.SendToOutputAndNextCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemTitle.Should().Be("마지막 찬양");
+        sut.SelectedItem.Should().Be(only, "마지막 항목이면 그대로 머문다");
+    }
+
+    [Fact]
     public async Task GoLive_CarriesNextQueueItemTitleToSession()
     {
         // Display Panel PrevNext: 첫 항목 송출 시 큐의 다음 항목 제목이 세션 스냅샷에 실려야 한다.

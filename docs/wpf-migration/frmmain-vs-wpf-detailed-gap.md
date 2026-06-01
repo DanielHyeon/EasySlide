@@ -120,7 +120,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Next/Prev/First/Last/Refresh (`MoveToItem` KeyDirection) | Next/Previous + First/Last Item·Slide·LyricsPage | 🟢 (2026-06-02 증분 37) First/Last 항목 이동 추가(처음/마지막 버튼·메뉴, 라이브면 송출) |
 | Restart Current Item (F5) | `RestartCurrentItemCommand` | 🟢 |
 | 절/슬라이드 라벨 점프(`PreviewBtnVerse_Click` 1~9·p·q·c·t·b·w·e) | — | 🔴 **절 라벨 직접 점프 없음**(순차 이전/다음만) |
-| Preview→Output 전송 분리(`btnToOutput`/`btnToOutputMoveNext`/`btnToLive`) | — | 🔴 **Preview/Output 2단 분리 없음**(단일 라이브) |
+| Preview→Output 전송 분리(`btnToOutput`/`btnToOutputMoveNext`/`btnToLive`) | Go LIVE(=btnToOutput/btnToLive) + (증분 55) **송출 후 다음 항목**(btnToOutputMoveNext) | 🟡 송출·송출후다음 2단 전송 명령 제공(자동 다음 설정과 무관). 별도 Preview 모니터(≠출력)는 후속 |
 | **이중 모니터 Preview+Output 동시 송출**(`ShowDualMonitorPP_Preview/_Output`) | — | 🔴 미리보기 ≠ 출력 분리 송출 없음 |
 | 리모컨/런치스크린 명령 버스(`RemoteControlLiveShow` ~25 액션) | 직접 SessionChanged | 🟡 단순화(리모컨/별도 런치윈도우 없음) |
 | 출력 모니터에 미디어 재생 분리창(`PlayMediaOnOutputMonitor`,`FrmLaunchMediaPlayer`) | OutputWindow MediaElement | 🟡(전용 풀스크린 런처·top-most 제어 없음) |

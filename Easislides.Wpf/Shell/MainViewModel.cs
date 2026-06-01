@@ -416,6 +416,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
+        SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
         NextItemCommand = new RelayCommand(NextItem, CanMoveNext);
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
@@ -505,6 +506,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand OpenOutputCommand { get; }
     public IAsyncRelayCommand CloseOutputCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
+
+    /// <summary>선택 항목을 출력으로 송출하고 곧바로 다음 항목으로 넘어간다(레거시 btnToOutputMoveNext — 자동 다음 설정과 무관).</summary>
+    public IAsyncRelayCommand SendToOutputAndNextCommand { get; }
     public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
     public IRelayCommand PreviousItemCommand { get; }
@@ -1716,6 +1720,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PublishSelectedItem();
     }
 
+    // 레거시 btnToOutputMoveNext — 선택 항목을 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
+    // 운영자가 "이 항목 보내고 다음 준비"를 한 번에 하는 2단(Preview→Output) 전송 흐름.
+    private async Task SendToOutputAndNextAsync()
+    {
+        if (SelectedItem is null)
+        {
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
+            return;
+        }
+
+        var ok = await ConfirmLiveSafetyAsync(
+            MainCommandIds.LiveGo,
+            $"'{SelectedItem.Title}' 항목을 송출하고 다음 항목으로 넘어갈까요?",
+            "선택 항목이 즉시 출력 화면에 표시되고 선택이 다음 항목으로 이동합니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+        if (!ok)
+        {
+            return;
+        }
+
+        // 자동 advance 를 끈 채 송출한 뒤(중복 이동 방지), 설정과 무관하게 명시적으로 다음 항목으로 이동.
+        var published = SelectedItem;
+        PublishSelectedItem(autoAdvance: false);
+        AdvanceSelectionToNext(published);
+    }
+
     private async Task StopLiveAsync()
     {
         var ok = await ConfirmLiveSafetyAsync(
@@ -1928,7 +1957,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return false;
     }
 
-    private void PublishSelectedItem()
+    // autoAdvance: true 면 "자동 다음 항목" 설정에 따라 선택을 다음으로 옮긴다(기존 동작).
+    // false 면 옮기지 않는다 — "전송 후 다음"(btnToOutputMoveNext) 처럼 호출부가 직접 이동을 제어할 때 쓴다.
+    private void PublishSelectedItem(bool autoAdvance = true)
     {
         if (SelectedItem is null)
         {
@@ -1945,7 +1976,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _session.GoLive(ResolveLiveProjection(projection), monitorName);
         StatusText = $"LIVE: {SelectedItem.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
-        AdvanceSelectionAfterPublish(SelectedItem);
+        if (autoAdvance)
+        {
+            AdvanceSelectionAfterPublish(SelectedItem);
+        }
+
         NotifyCommandStates();
     }
 
@@ -2078,15 +2113,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // PPT 덱은 자동 다음-항목 이동에서 제외 — 다중 슬라이드 덱은 다음 항목으로 넘어가지 말고
-        // 그 자리에서 슬라이드를 이동해야 한다(자동 advance 는 곡·공지 같은 단발 항목용).
-        // 또 선택이 라이브 PPT 에 머물러야 라이브 슬라이드 이동 커맨드가 활성으로 유지된다.
+        AdvanceSelectionToNext(publishedItem);
+    }
+
+    // 선택을 다음 항목으로 옮긴다(설정 무관). 자동 advance(설정 on)와 명시 "전송 후 다음" 모두 이 한 곳을 쓴다.
+    // PPT 덱은 제자리 유지 — 다중 슬라이드 덱은 다음 항목으로 넘어가지 말고 그 자리에서 슬라이드를 이동해야 하고,
+    // 선택이 라이브 PPT 에 머물러야 라이브 슬라이드 이동 커맨드가 활성으로 유지된다.
+    // 인덱스는 참조 일치(IndexOfReference)로 찾는다 — 같은 값 항목이 큐에 여러 번 있어도(입례/봉헌 반복) 정확히 그 인스턴스.
+    private void AdvanceSelectionToNext(LiveQueueItem publishedItem)
+    {
         if (IsPowerPointItem(publishedItem))
         {
             return;
         }
 
-        var index = Queue.IndexOf(publishedItem);
+        var index = IndexOfReference(publishedItem);
         if (index >= 0 && index < Queue.Count - 1)
         {
             SelectedItem = Queue[index + 1];
@@ -2702,6 +2743,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
+        SendToOutputAndNextCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();
         StopLiveCommand.NotifyCanExecuteChanged();
         NextItemCommand.NotifyCanExecuteChanged();
