@@ -20,9 +20,10 @@ namespace Easislides.Wpf.Controls;
 /// </summary>
 public sealed class OutlinedTextBlock : FrameworkElement
 {
-    // 외곽선이 측정 박스 가장자리에서 잘리지 않도록 두는 고정 여백.
-    // 현재 외곽선 두께는 2px(XAML 고정)이라 2px 여백으로 충분. 더 두꺼운 외곽선을 쓰게 되면 두께 절반 이상으로 키울 것.
-    private const double Padding = 2d;
+    // 외곽선·밑줄이 측정 박스 가장자리에서 잘리지 않도록 두는 고정 여백.
+    // 외곽선 두께 2px + 밑줄(stroke 포함)이 글자 하단 가까이 그려지므로, 하단 잘림을 막도록 3px 여백을 둔다.
+    // 더 두꺼운 외곽선을 쓰게 되면 두께 이상으로 키울 것(밑줄 stroke 하단 ~1px 돌출분 포함).
+    private const double Padding = 3d;
 
     // 텍스트/폰트/정렬/폭/줄간격 등 형상에 영향을 주는 속성이 바뀌면 캐시를 비운다.
     private static readonly FrameworkPropertyMetadataOptions ShapeChange =
@@ -72,6 +73,12 @@ public sealed class OutlinedTextBlock : FrameworkElement
     public static readonly DependencyProperty TextAlignmentProperty = DependencyProperty.Register(
         nameof(TextAlignment), typeof(TextAlignment), typeof(OutlinedTextBlock),
         new FrameworkPropertyMetadata(TextAlignment.Center, ShapeChange, OnShapeChanged));
+
+    // 밑줄(§7.3-A) — on 이면 형상(Geometry)에 밑줄을 포함해 외곽선·채움과 같은 색으로 그린다.
+    // 일반 TextBlock 의 TextDecorations 에 대응(외곽선 모드에서도 밑줄을 렌더하기 위함). 형상에 영향 → ShapeChange.
+    public static readonly DependencyProperty UnderlineProperty = DependencyProperty.Register(
+        nameof(Underline), typeof(bool), typeof(OutlinedTextBlock),
+        new FrameworkPropertyMetadata(false, ShapeChange, OnShapeChanged));
 
     public static readonly DependencyProperty MaxTextWidthProperty = DependencyProperty.Register(
         nameof(MaxTextWidth), typeof(double), typeof(OutlinedTextBlock),
@@ -137,6 +144,12 @@ public sealed class OutlinedTextBlock : FrameworkElement
     {
         get => (TextAlignment)GetValue(TextAlignmentProperty);
         set => SetValue(TextAlignmentProperty, value);
+    }
+
+    public bool Underline
+    {
+        get => (bool)GetValue(UnderlineProperty);
+        set => SetValue(UnderlineProperty, value);
     }
 
     public double MaxTextWidth
@@ -237,6 +250,12 @@ public sealed class OutlinedTextBlock : FrameworkElement
         if (MaxTextWidth > 0)
         {
             formatted.MaxTextWidth = MaxTextWidth;
+        }
+
+        // 밑줄 on 이면 형상에 밑줄을 포함시킨다 — BuildGeometry 가 밑줄 사각형까지 만들어 외곽선·채움과 같은 색으로 그려진다.
+        if (Underline)
+        {
+            formatted.SetTextDecorations(TextDecorations.Underline);
         }
 
         // 줄 간격(설정 기반)을 적용하되, FormattedText.LineHeight 는 줄 박스를 강제해

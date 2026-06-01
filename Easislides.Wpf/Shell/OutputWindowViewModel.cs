@@ -63,6 +63,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private bool _bodyHasShadow;
     private TextDecorationCollection? _bodyTextDecorations;
     private TextDecorationCollection? _bodyText2Decorations;
+    private bool _bodyUnderline;
     // 외곽선 효과 사용 여부(§7.3-A). on 이면 본문을 외곽선 렌더러로 그린다(일반 본문과 상호배타).
     private bool _bodyHasOutline;
     // 외곽선 렌더러(OutlinedTextBlock) 가시성 — 외곽선 on + 본문 송출 중일 때만 Visible.
@@ -366,6 +367,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyText2Decorations;
         private set => SetProperty(ref _bodyText2Decorations, value);
+    }
+
+    /// <summary>Region1 밑줄(bool) — 외곽선 모드(OutlinedTextBlock)용. 일반 TextBlock 은 BodyTextDecorations 를, 외곽선 컨트롤은 이 bool 을 쓴다.</summary>
+    public bool BodyUnderline
+    {
+        get => _bodyUnderline;
+        private set => SetProperty(ref _bodyUnderline, value);
     }
 
     /// <summary>위치 인디케이터 텍스트(절/슬라이드 "N/M"). §7.3-A.</summary>
@@ -741,6 +749,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 밑줄 — on 이면 Underline 장식, off 면 null(무회귀). Region1/2 를 영역별로 해석한 값(곡별 비트∥전역∥Region1 추종).
         BodyTextDecorations = scene.LyricsMonitorUnderline ? TextDecorations.Underline : null;
         BodyText2Decorations = scene.LyricsMonitorUnderline2 ? TextDecorations.Underline : null;
+        // 외곽선 모드 컨트롤은 TextDecorations 대신 bool 을 받는다(Region1 밑줄 값).
+        BodyUnderline = scene.LyricsMonitorUnderline;
         PositionLabel = scene.PositionLabel;
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
         ItemNumberText = scene.ItemNumberLabel;

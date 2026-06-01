@@ -172,6 +172,7 @@
                                             FontFamily="{Binding BodyFontFamily}"
                                             FontWeight="{Binding BodyFontWeight}"
                                             FontStyle="{Binding BodyFontStyle}"
+                                            Underline="{Binding BodyUnderline}"
                                             LineHeight="{Binding BodyLineHeight}"
                                             Fill="{Binding SceneForegroundBrush}"
                                             Stroke="Black"

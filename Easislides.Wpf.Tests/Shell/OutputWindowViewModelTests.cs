@@ -502,6 +502,8 @@ public class OutputWindowViewModelTests
         sut.BodyTextDecorations.Should().BeSameAs(System.Windows.TextDecorations.Underline);
         // 전역 밑줄 on → Region2 도 Region1(전역) 추종으로 밑줄.
         sut.BodyText2Decorations.Should().BeSameAs(System.Windows.TextDecorations.Underline);
+        // 외곽선 모드 컨트롤용 bool 도 켜진다.
+        sut.BodyUnderline.Should().BeTrue();
     }
 
     [Fact]
