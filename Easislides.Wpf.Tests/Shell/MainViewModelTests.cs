@@ -556,6 +556,74 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddPraiseBookSong_ResolvesLibrarySongByTitleAndNumber_AddsToQueue()
+    {
+        // 찬양집 색인 더블클릭 → 제목·번호로 현재 라이브러리에서 곡(가사 포함)을 찾아 예배 순서에 추가.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(42, "은혜로다", "", 1, 305, "", "", "1절 가사"));
+
+        var added = sut.AddPraiseBookSong("은혜로다", 305);
+
+        added.Should().NotBeNull();
+        added!.Kind.Should().Be("Song");
+        added.Id.Should().Be("song:42");
+        added.Lyrics.Should().Be("1절 가사");
+        sut.Queue.Should().Contain(added);
+    }
+
+    [Fact]
+    public void AddPraiseBookSong_FallsBackToTitleOnly_WhenNumberMismatch()
+    {
+        // 번호가 안 맞아도(저장된 찬양집·번호 없는 곡) 제목만으로 한 번 더 찾는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(7, "주 은혜", "", 1, 0, "", "", "가사"));
+
+        var added = sut.AddPraiseBookSong("주 은혜", 999);
+
+        added.Should().NotBeNull();
+        added!.Id.Should().Be("song:7");
+    }
+
+    [Fact]
+    public void AddPraiseBookSong_NotInLibrary_DoesNotChangeQueue()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var added = sut.AddPraiseBookSong("없는 곡", 1);
+
+        added.Should().BeNull();
+        sut.Queue.Should().BeEmpty();
+        sut.StatusText.Should().Contain("찾을 수 없습니다");
+    }
+
+    [Fact]
+    public void AddPraiseBookSong_SameTitleDifferentSongs_ResolvesBySongId()
+    {
+        // 같은 제목·번호의 다른 곡(다른 폴더·언어)이 둘 있어도 SongId 로 더블클릭한 바로 그 곡을 정확히 가른다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(1, "주 은혜", "", 1, 305, "", "", "한국어 가사"));
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(2, "주 은혜", "", 2, 305, "", "", "English lyrics"));
+
+        var added = sut.AddPraiseBookSong("주 은혜", 305, songId: 2);
+
+        added!.Id.Should().Be("song:2");
+        added.Lyrics.Should().Be("English lyrics"); // 첫 일치(SongId 1)가 아니라 고른 SongId 2.
+    }
+
+    [Fact]
+    public void AddPraiseBookSong_SavedBookWithoutSongId_FallsBackToTitleAndNumber()
+    {
+        // 저장된 찬양집은 SongId=0 → 제목+번호로 해석(번호로 중복 제목을 가른다).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(1, "동일제목", "", 1, 100, "", "", "A"));
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(2, "동일제목", "", 2, 200, "", "", "B"));
+
+        var added = sut.AddPraiseBookSong("동일제목", 200, songId: 0);
+
+        added!.Id.Should().Be("song:2");
+    }
+
+    [Fact]
     public void AddBibleSelectionRelativeTo_InsertsBeforeTargetItem()
     {
         // 본문 드래그→예배순서 드롭: 떨어뜨린 위치(타깃 항목) 앞에 성경 구절을 끼운다.

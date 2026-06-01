@@ -694,6 +694,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// 찬양집 색인에서 더블클릭한 곡을 예배 순서에 추가한다(FrmMain PraiseBook 인터랙티브 목록 대응).
+    /// 색인 항목엔 가사가 없으므로 현재 라이브러리에서 같은 곡(가사 포함 SongSummary)을 찾아 AddSong 으로 넘긴다.
+    /// 해석 우선순위: ① SongId(있으면 정확 — 같은 제목·번호의 다른 곡/언어를 안전히 가름) → ② 제목+번호 → ③ 제목만
+    /// (저장된 찬양집은 SongId=0 이라 ②③으로 폴백). 라이브러리에 같은 곡이 없으면 안내만 하고 큐는 그대로 둔다.
+    /// </summary>
+    public LiveQueueItem? AddPraiseBookSong(string? title, int songNumber, int songId = 0)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            StatusText = "선택된 곡이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        // ① SongId 정확 일치(가장 안전 — 중복 제목 모호성 없음).
+        var song = songId != 0
+            ? Library.Songs.FirstOrDefault(candidate => candidate.SongId == songId)
+            : null;
+        // ② 제목 + 번호(저장된 찬양집·SongId 없는 경로).
+        song ??= Library.Songs.FirstOrDefault(candidate =>
+            string.Equals(candidate.Title, title, StringComparison.Ordinal)
+            && (songNumber == 0 || candidate.SongNumber == songNumber));
+        // ③ 제목만(번호도 안 맞을 때 마지막 폴백).
+        song ??= Library.Songs.FirstOrDefault(candidate =>
+            string.Equals(candidate.Title, title, StringComparison.Ordinal));
+
+        if (song is null)
+        {
+            StatusText = $"라이브러리에서 곡을 찾을 수 없습니다: {title}";
+            NotifyCommandStates();
+            return null;
+        }
+
+        return AddSong(song);
+    }
+
+    /// <summary>
     /// 좌측 "검색" 탭에서 고른 교차 검색 결과를 예배 순서(큐)에 추가한다(§7.4 단일 콘솔 통합 — 검색 창 인라인 흡수).
     /// 검색 결과(SongSearchResult)에는 가사가 없으므로, 선택 결과의 SongId 로 곡 상세(가사 포함)를 불러온 뒤 AddSong 으로 채운다.
     /// </summary>

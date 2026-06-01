@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Easislides.Wpf.Shell;
 
 namespace Easislides.Wpf.Library;
@@ -17,6 +19,27 @@ public partial class PraiseBookIndexWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = viewModel;
+    }
+
+    /// <summary>
+    /// 더블클릭으로 "예배 순서에 추가" 하려고 고른 색인 항목(곡 제목·번호). 호출부(MainWindow)가 이 값으로
+    /// 라이브러리에서 실제 곡을 찾아 큐에 넣는다. 그냥 닫으면 null(LibraryWindow.SelectedSongForLive 패턴과 동일).
+    /// </summary>
+    public PraiseBookIndexEntry? SelectedEntryForLive { get; private set; }
+
+    // 색인의 한 곡 줄을 더블클릭하면 그 곡을 "라이브에 추가" 후보로 잡고 창을 닫는다(LibraryWindow 추가 흐름과 동일).
+    private void Entry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2)
+        {
+            return; // 단일 클릭은 무시 — 더블클릭만 추가 제스처.
+        }
+
+        if (sender is FrameworkElement { DataContext: PraiseBookIndexEntry entry })
+        {
+            SelectedEntryForLive = entry;
+            DialogResult = true; // ShowDialog 로 연 창은 DialogResult 설정만으로 닫힌다(LibraryWindow 패턴과 동일).
+        }
     }
 
     private async void SaveBook_Click(object sender, RoutedEventArgs e)

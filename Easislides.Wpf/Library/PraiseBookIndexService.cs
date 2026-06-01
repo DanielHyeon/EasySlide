@@ -7,8 +7,12 @@ namespace Easislides.Wpf.Library;
 /// <summary>찬양집 색인의 한 그룹 — 머리글자(초성/영문/숫자/기타)와 그 그룹에 속한 곡들.</summary>
 public sealed record PraiseBookIndexGroup(string Key, IReadOnlyList<PraiseBookIndexEntry> Entries);
 
-/// <summary>찬양집 색인 항목 — 곡 제목과 곡 번호(0이면 번호 없음).</summary>
-public sealed record PraiseBookIndexEntry(string Title, int Number);
+/// <summary>
+/// 찬양집 색인 항목 — 곡 제목과 곡 번호(0이면 번호 없음), 그리고 라이브러리 곡 식별자(SongId).
+/// SongId 는 더블클릭으로 예배 순서에 추가할 때 같은 제목·번호의 다른 곡(다른 폴더·언어)을 정확히 가르는 데 쓴다.
+/// 저장된 찬양집을 다시 열면 SongId 가 0(저장 DTO 는 제목·번호만 보존) → 제목·번호로 폴백 해석(우아한 저하).
+/// </summary>
+public sealed record PraiseBookIndexEntry(string Title, int Number, int SongId = 0);
 
 /// <summary>
 /// 찬양집 색인 생성기(FrmMain "Listing of Selected Folder"/PraiseBook CJK 그룹핑 포팅).

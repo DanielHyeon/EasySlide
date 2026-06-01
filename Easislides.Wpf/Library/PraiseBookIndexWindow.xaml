@@ -18,7 +18,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="곡 목록을 머리글자(ㄱ~ㅎ · A~Z · # · 기타)별로 묶어 보여 주고, 이름 붙여 찬양집으로 저장·불러올 수 있습니다."
+        <TextBlock Text="곡 목록을 머리글자(ㄱ~ㅎ · A~Z · # · 기타)별로 묶어 보여 줍니다. 곡을 더블클릭하면 예배 순서에 추가됩니다. 목록을 이름 붙여 찬양집으로 저장·불러올 수도 있습니다."
                    Style="{StaticResource Type.Caption.Style}"
                    Foreground="{DynamicResource Brush.Text.Tertiary}"
                    TextWrapping="Wrap"
@@ -84,19 +84,25 @@
                             <ItemsControl ItemsSource="{Binding Entries}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="8,2,0,2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding Title}"
-                                                       Foreground="{DynamicResource Brush.Text.Secondary}"
-                                                       TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding Number}"
-                                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                                       Margin="12,0,0,0" />
-                                        </Grid>
+                                        <!-- 곡 한 줄 — 더블클릭하면 예배 순서에 추가(인터랙티브 목록). 줄 전체가 클릭되도록 투명 배경. -->
+                                        <Border Background="Transparent"
+                                                Cursor="Hand"
+                                                ToolTip="더블클릭하면 예배 순서에 추가됩니다"
+                                                MouseLeftButtonDown="Entry_MouseLeftButtonDown">
+                                            <Grid Margin="8,2,0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Title}"
+                                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding Number}"
+                                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                                           Margin="12,0,0,0" />
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

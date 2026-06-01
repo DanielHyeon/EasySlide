@@ -550,7 +550,7 @@ public partial class MainWindow : Window
 
         // 라이브러리 곡 목록 → 색인 항목(제목·번호)으로 변환. 곡 폴더를 안 골랐으면 빈 목록(창이 안내 문구 표시).
         var entries = viewModel.Library.Songs
-            .Select(song => new Easislides.Wpf.Library.PraiseBookIndexEntry(song.Title, song.SongNumber))
+            .Select(song => new Easislides.Wpf.Library.PraiseBookIndexEntry(song.Title, song.SongNumber, song.SongId))
             .ToList();
 
         var indexViewModel = new Easislides.Wpf.Library.PraiseBookIndexViewModel(
@@ -559,7 +559,11 @@ public partial class MainWindow : Window
             entries);
 
         var window = new Easislides.Wpf.Library.PraiseBookIndexWindow(indexViewModel) { Owner = this };
-        window.ShowDialog();
+        // 곡을 더블클릭해 닫혔으면(SelectedEntryForLive) 그 곡을 라이브러리에서 찾아 예배 순서에 추가(인터랙티브 목록).
+        if (window.ShowDialog() == true && window.SelectedEntryForLive is { } entry)
+        {
+            viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
+        }
     }
 
     // 이미지 갤러리 — 폴더의 이미지를 썸네일로 보고 출력 배경으로 적용(FrmMain Images 탭 포팅).
