@@ -955,6 +955,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyTransitionKind_ClipRevealKinds_UpdateMenuChecks()
+    {
+        // 클립(마스크) 리빌 전환(원형/사각/와이프)도 설정·Active·메뉴 체크가 정확히 갱신된다.
+        var sut = CreateSut();
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.RevealCircle);
+        sut.ActiveTransitionKind.Should().Be(LyricsTransitionKind.RevealCircle);
+        sut.TransitionKindIsRevealCircle.Should().BeTrue();
+        sut.TransitionKindIsFade.Should().BeFalse();
+        sut.StatusText.Should().Contain("원형");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.WipeRight);
+        sut.TransitionKindIsWipeRight.Should().BeTrue();
+        sut.TransitionKindIsRevealCircle.Should().BeFalse("이전 원형 체크 해제");
+        sut.StatusText.Should().Contain("와이프");
+    }
+
+    [Fact]
     public void PublishNotice_WhenOutputClosed_ReturnsFalseAndStaysOff()
     {
         // 출력 창이 닫혀 있으면 공지 송출은 실패(false)하고 라이브 상태를 바꾸지 않는다.

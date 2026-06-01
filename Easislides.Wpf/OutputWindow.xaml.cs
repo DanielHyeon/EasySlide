@@ -59,9 +59,10 @@ public partial class OutputWindow : Window, IOutputSurface
         var duration = _viewModel.ContentFadeDuration;
         if (duration <= TimeSpan.Zero)
         {
-            // 전환 비활성(즉시 컷): 모든 애니메이션을 멈추고 항등/불투명1 로 보장.
+            // 전환 비활성(즉시 컷): 모든 애니메이션을 멈추고 항등/불투명1/클립 제거로 보장.
             ContentArea.BeginAnimation(OpacityProperty, null);
             ResetToIdentity(translate, scale, rotate);
+            ContentArea.Clip = null;
             ContentArea.Opacity = 1.0;
             return;
         }
@@ -76,13 +77,99 @@ public partial class OutputWindow : Window, IOutputSurface
         });
 
         // 종류별 시작 트랜스폼 → 항등으로 애니메이션. 항등(시작=끝)인 축은 애니메이션 없이 고정.
+        // 클립 리빌 종류는 모든 트랜스폼이 항등(이동/배율/회전 없음) — 클립 애니메이션으로만 드러난다.
         var start = TransitionStart(_viewModel.ContentTransitionKind);
         AnimateAxis(translate, System.Windows.Media.TranslateTransform.XProperty, start.Tx, 0, duration);
         AnimateAxis(translate, System.Windows.Media.TranslateTransform.YProperty, start.Ty, 0, duration);
         AnimateAxis(scale, System.Windows.Media.ScaleTransform.ScaleXProperty, start.Sx, 1, duration);
         AnimateAxis(scale, System.Windows.Media.ScaleTransform.ScaleYProperty, start.Sy, 1, duration);
         AnimateAxis(rotate, System.Windows.Media.RotateTransform.AngleProperty, start.Angle, 0, duration);
+
+        // 클립(마스크) 리빌 — 클립 종류면 확장 클립을 설정·애니메이션하고, 아니면 클립을 제거한다.
+        ApplyClipReveal(_viewModel.ContentTransitionKind, duration);
     }
+
+    // 클립 리빌: 새 콘텐츠를 확장하는 도형/방향 클립으로 드러낸다(단일 레이어). 비-클립 종류면 Clip 제거.
+    private void ApplyClipReveal(Settings.LyricsTransitionKind kind, TimeSpan duration)
+    {
+        var w = ContentArea.ActualWidth > 0 ? ContentArea.ActualWidth : 1920;
+        var h = ContentArea.ActualHeight > 0 ? ContentArea.ActualHeight : 1080;
+        var full = new System.Windows.Rect(0, 0, w, h);
+
+        switch (kind)
+        {
+            case Settings.LyricsTransitionKind.RevealCircle:
+            {
+                // 중심에서 반지름 0 → 모서리까지(전체 덮음) 커지는 원형 클립.
+                var maxR = Math.Sqrt((w * w) + (h * h)) / 2.0;
+                var ellipse = new System.Windows.Media.EllipseGeometry(new System.Windows.Point(w / 2, h / 2), 0, 0);
+                ContentArea.Clip = ellipse;
+                var anim = new DoubleAnimation
+                {
+                    From = 0,
+                    To = maxR,
+                    Duration = new Duration(duration),
+                    FillBehavior = FillBehavior.HoldEnd,
+                    EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+                };
+                // 끝나면 클립 제거(리사이즈 시 잔여 크롭 방지). 단, 그 사이 다음 장면이 새 클립을 걸었으면
+                // 그 활성 클립을 지우면 안 된다 — 내 도형이 아직 붙어 있을 때만 제거(빠른 장면 전환 경쟁 방지).
+                anim.Completed += (_, _) => { if (ShouldClearClip(ContentArea.Clip, ellipse)) ContentArea.Clip = null; };
+                ellipse.BeginAnimation(System.Windows.Media.EllipseGeometry.RadiusXProperty, anim);
+                ellipse.BeginAnimation(System.Windows.Media.EllipseGeometry.RadiusYProperty, new DoubleAnimation
+                {
+                    From = 0,
+                    To = maxR,
+                    Duration = new Duration(duration),
+                    FillBehavior = FillBehavior.HoldEnd,
+                    EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+                });
+                break;
+            }
+
+            case Settings.LyricsTransitionKind.RevealRectangle:
+                AnimateRectClip(new System.Windows.Rect(w / 2, h / 2, 0, 0), full, duration);
+                break;
+            case Settings.LyricsTransitionKind.WipeRight:
+                AnimateRectClip(new System.Windows.Rect(0, 0, 0, h), full, duration);
+                break;
+            case Settings.LyricsTransitionKind.WipeLeft:
+                AnimateRectClip(new System.Windows.Rect(w, 0, 0, h), full, duration);
+                break;
+            case Settings.LyricsTransitionKind.WipeDown:
+                AnimateRectClip(new System.Windows.Rect(0, 0, w, 0), full, duration);
+                break;
+            case Settings.LyricsTransitionKind.WipeUp:
+                AnimateRectClip(new System.Windows.Rect(0, h, w, 0), full, duration);
+                break;
+            default:
+                // 비-클립 종류(Fade/Slide/Zoom/Spin/Flip) — 이전 클립이 남지 않도록 제거.
+                ContentArea.Clip = null;
+                break;
+        }
+    }
+
+    // 사각형 클립을 from→to(전체)로 RectAnimation. 끝나면 클립 제거.
+    private void AnimateRectClip(System.Windows.Rect from, System.Windows.Rect full, TimeSpan duration)
+    {
+        var rect = new System.Windows.Media.RectangleGeometry(from);
+        ContentArea.Clip = rect;
+        var anim = new RectAnimation
+        {
+            From = from,
+            To = full,
+            Duration = new Duration(duration),
+            FillBehavior = FillBehavior.HoldEnd,
+            EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+        };
+        anim.Completed += (_, _) => { if (ShouldClearClip(ContentArea.Clip, rect)) ContentArea.Clip = null; };
+        rect.BeginAnimation(System.Windows.Media.RectangleGeometry.RectProperty, anim);
+    }
+
+    // 전환 완료 시 클립을 제거해도 되는지 — 현재 활성 클립이 "내가 건 그 도형"일 때만 true.
+    // 그 사이 다음 장면이 새 클립을 걸었으면(다른 참조) 건드리지 않는다(빠른 장면 전환 경쟁 가드).
+    internal static bool ShouldClearClip(System.Windows.Media.Geometry? activeClip, System.Windows.Media.Geometry myClip)
+        => ReferenceEquals(activeClip, myClip);
 
     // 종류별 시작 트랜스폼(이동 px·배율·각도). 끝값은 항상 항등(Tx=Ty=0, Sx=Sy=1, Angle=0).
     private (double Tx, double Ty, double Sx, double Sy, double Angle) TransitionStart(Settings.LyricsTransitionKind kind)

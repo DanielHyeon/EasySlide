@@ -138,6 +138,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsSpin))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsFlipH))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsFlipV))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsRevealCircle))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsRevealRectangle))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeRight))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeLeft))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeDown))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeUp))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -150,6 +156,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsSpin => ActiveTransitionKind == LyricsTransitionKind.Spin;
     public bool TransitionKindIsFlipH => ActiveTransitionKind == LyricsTransitionKind.FlipHorizontal;
     public bool TransitionKindIsFlipV => ActiveTransitionKind == LyricsTransitionKind.FlipVertical;
+    public bool TransitionKindIsRevealCircle => ActiveTransitionKind == LyricsTransitionKind.RevealCircle;
+    public bool TransitionKindIsRevealRectangle => ActiveTransitionKind == LyricsTransitionKind.RevealRectangle;
+    public bool TransitionKindIsWipeRight => ActiveTransitionKind == LyricsTransitionKind.WipeRight;
+    public bool TransitionKindIsWipeLeft => ActiveTransitionKind == LyricsTransitionKind.WipeLeft;
+    public bool TransitionKindIsWipeDown => ActiveTransitionKind == LyricsTransitionKind.WipeDown;
+    public bool TransitionKindIsWipeUp => ActiveTransitionKind == LyricsTransitionKind.WipeUp;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -2010,6 +2022,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.Spin => "회전",
             LyricsTransitionKind.FlipHorizontal => "뒤집기(가로)",
             LyricsTransitionKind.FlipVertical => "뒤집기(세로)",
+            LyricsTransitionKind.RevealCircle => "원형 리빌",
+            LyricsTransitionKind.RevealRectangle => "사각 리빌",
+            LyricsTransitionKind.WipeRight => "와이프(→)",
+            LyricsTransitionKind.WipeLeft => "와이프(←)",
+            LyricsTransitionKind.WipeDown => "와이프(↓)",
+            LyricsTransitionKind.WipeUp => "와이프(↑)",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

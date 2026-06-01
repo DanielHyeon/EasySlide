@@ -101,6 +101,13 @@ public enum LyricsTransitionKind
     Spin = 7,
     FlipHorizontal = 8,
     FlipVertical = 9,
+    // 클립(마스크) 리빌 — 새 콘텐츠가 확장하는 도형/방향 클립으로 드러난다(단일 레이어 Clip 애니메이션).
+    RevealCircle = 10,
+    RevealRectangle = 11,
+    WipeRight = 12,
+    WipeLeft = 13,
+    WipeDown = 14,
+    WipeUp = 15,
 }
 
 public static class EasiSettingKeys

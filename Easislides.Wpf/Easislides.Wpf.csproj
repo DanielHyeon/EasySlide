@@ -19,6 +19,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- 테스트 어셈블리에 internal 멤버 노출(순수 헬퍼 단위 테스트용 — 예: OutputWindow.ShouldClearClip). -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Easislides.Wpf.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- ADR-0001: Fluent 2 컨트롤 라이브러리. EasiDS 토큰으로 비주얼 오버라이딩. -->
     <PackageReference Include="WPF-UI" Version="3.0.5" />
     <!-- MVVM 소스 제너레이터 (ObservableObject, RelayCommand) -->
