@@ -108,6 +108,10 @@ public enum LyricsTransitionKind
     WipeLeft = 13,
     WipeDown = 14,
     WipeUp = 15,
+    // 다중 타일 마스크 — 여러 사각 클립(블라인드 띠/체커 격자)이 동시·교차로 커지며 드러난다(단일 레이어 GeometryGroup).
+    BlindsHorizontal = 16,
+    BlindsVertical = 17,
+    Checkerboard = 18,
 }
 
 public static class EasiSettingKeys

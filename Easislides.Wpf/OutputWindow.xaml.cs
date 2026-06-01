@@ -142,6 +142,15 @@ public partial class OutputWindow : Window, IOutputSurface
             case Settings.LyricsTransitionKind.WipeUp:
                 AnimateRectClip(new System.Windows.Rect(0, h, w, 0), full, duration);
                 break;
+            case Settings.LyricsTransitionKind.BlindsHorizontal:
+                AnimateTileClip(BuildBlinds(w, h, horizontal: true, duration), duration);
+                break;
+            case Settings.LyricsTransitionKind.BlindsVertical:
+                AnimateTileClip(BuildBlinds(w, h, horizontal: false, duration), duration);
+                break;
+            case Settings.LyricsTransitionKind.Checkerboard:
+                AnimateTileClip(BuildCheckerboard(w, h, duration), duration);
+                break;
             default:
                 // 비-클립 종류(Fade/Slide/Zoom/Spin/Flip) — 이전 클립이 남지 않도록 제거.
                 ContentArea.Clip = null;
@@ -164,6 +173,111 @@ public partial class OutputWindow : Window, IOutputSurface
         };
         anim.Completed += (_, _) => { if (ShouldClearClip(ContentArea.Clip, rect)) ContentArea.Clip = null; };
         rect.BeginAnimation(System.Windows.Media.RectangleGeometry.RectProperty, anim);
+    }
+
+    // 한 타일의 클립 애니메이션 사양(시작/끝 사각·시작지연·길이).
+    internal readonly record struct TileClip(
+        System.Windows.Rect From,
+        System.Windows.Rect To,
+        TimeSpan Begin,
+        TimeSpan Duration);
+
+    // 블라인드 띠 — 화면을 N개 가로(또는 세로) 띠로 나눠 각 띠가 두께 0→전체로 동시에 커진다.
+    internal static System.Collections.Generic.List<TileClip> BuildBlinds(double w, double h, bool horizontal, TimeSpan duration)
+    {
+        const int Count = 8;
+        var tiles = new System.Collections.Generic.List<TileClip>(Count);
+        if (horizontal)
+        {
+            var sh = h / Count;
+            for (var i = 0; i < Count; i++)
+            {
+                var y = i * sh;
+                tiles.Add(new TileClip(new System.Windows.Rect(0, y, w, 0), new System.Windows.Rect(0, y, w, sh), TimeSpan.Zero, duration));
+            }
+        }
+        else
+        {
+            var sw = w / Count;
+            for (var i = 0; i < Count; i++)
+            {
+                var x = i * sw;
+                tiles.Add(new TileClip(new System.Windows.Rect(x, 0, 0, h), new System.Windows.Rect(x, 0, sw, h), TimeSpan.Zero, duration));
+            }
+        }
+
+        return tiles;
+    }
+
+    // 체커보드 — 격자 셀이 중심에서 커진다. 짝/홀 셀을 2단계(시작지연)로 나눠 체커 패턴으로 드러난다.
+    internal static System.Collections.Generic.List<TileClip> BuildCheckerboard(double w, double h, TimeSpan duration)
+    {
+        const int Cols = 10;
+        const int Rows = 6;
+        var cw = w / Cols;
+        var ch = h / Rows;
+        var phase = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * 0.45);
+        var cellDur = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * 0.55);
+        var tiles = new System.Collections.Generic.List<TileClip>(Cols * Rows);
+        for (var r = 0; r < Rows; r++)
+        {
+            for (var c = 0; c < Cols; c++)
+            {
+                var cx = c * cw;
+                var cy = r * ch;
+                // 짝 셀은 즉시, 홀 셀은 지연 시작 → 두 단계가 모두 duration 안에 끝난다.
+                var begin = ((r + c) % 2 == 0) ? TimeSpan.Zero : phase;
+                tiles.Add(new TileClip(
+                    new System.Windows.Rect(cx + cw / 2, cy + ch / 2, 0, 0),
+                    new System.Windows.Rect(cx, cy, cw, ch),
+                    begin,
+                    cellDur));
+            }
+        }
+
+        return tiles;
+    }
+
+    // 다중 타일 클립 — 여러 RectangleGeometry 를 GeometryGroup 으로 묶어 각각 from→to 로 RectAnimation.
+    // 모든 타일이 끝나면(카운트다운) 클립 제거. 그 사이 다음 장면이 새 클립을 걸었으면 건드리지 않는다(참조 가드).
+    private void AnimateTileClip(System.Collections.Generic.List<TileClip> tiles, TimeSpan duration)
+    {
+        var group = new System.Windows.Media.GeometryGroup();
+        var rects = new System.Windows.Media.RectangleGeometry[tiles.Count];
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            rects[i] = new System.Windows.Media.RectangleGeometry(tiles[i].From);
+            group.Children.Add(rects[i]);
+        }
+
+        ContentArea.Clip = group;
+
+        // 카운트다운 전제: 각 RectAnimation 은 유한 길이·반복 1회·HoldEnd 라 UI 스레드에서 Completed 가 정확히 1회
+        // 발화한다(BeginTime 지연돼도 마찬가지). 따라서 remaining 은 반드시 0에 도달해 클립이 정리된다.
+        // (RepeatBehavior.Forever 를 넣거나 duration<=0 경로로 들어오면 이 전제가 깨진다 — OnSceneChanged 가
+        //  duration<=0 을 조기 반환하므로 여기엔 항상 양수 길이만 온다.)
+        var remaining = tiles.Count;
+        for (var i = 0; i < tiles.Count; i++)
+        {
+            var anim = new RectAnimation
+            {
+                From = tiles[i].From,
+                To = tiles[i].To,
+                BeginTime = tiles[i].Begin,
+                Duration = new Duration(tiles[i].Duration),
+                FillBehavior = FillBehavior.HoldEnd,
+                EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+            };
+            anim.Completed += (_, _) =>
+            {
+                // 모든 타일이 완료된 마지막 시점에만, 그리고 내 클립이 아직 활성일 때만 제거.
+                if (--remaining == 0 && ShouldClearClip(ContentArea.Clip, group))
+                {
+                    ContentArea.Clip = null;
+                }
+            };
+            rects[i].BeginAnimation(System.Windows.Media.RectangleGeometry.RectProperty, anim);
+        }
     }
 
     // 전환 완료 시 클립을 제거해도 되는지 — 현재 활성 클립이 "내가 건 그 도형"일 때만 true.

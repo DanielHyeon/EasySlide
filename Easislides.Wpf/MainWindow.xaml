@@ -229,6 +229,18 @@
                               IsChecked="{Binding TransitionKindIsWipeUp}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.WipeUp}" />
+                    <MenuItem Header="모션: 블라인드(가로)"
+                              IsChecked="{Binding TransitionKindIsBlindsH}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.BlindsHorizontal}" />
+                    <MenuItem Header="모션: 블라인드(세로)"
+                              IsChecked="{Binding TransitionKindIsBlindsV}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.BlindsVertical}" />
+                    <MenuItem Header="모션: 체커보드"
+                              IsChecked="{Binding TransitionKindIsCheckerboard}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Checkerboard}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

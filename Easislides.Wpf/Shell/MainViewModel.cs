@@ -144,6 +144,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeLeft))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeDown))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsWipeUp))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsBlindsH))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsBlindsV))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsCheckerboard))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -162,6 +165,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsWipeLeft => ActiveTransitionKind == LyricsTransitionKind.WipeLeft;
     public bool TransitionKindIsWipeDown => ActiveTransitionKind == LyricsTransitionKind.WipeDown;
     public bool TransitionKindIsWipeUp => ActiveTransitionKind == LyricsTransitionKind.WipeUp;
+    public bool TransitionKindIsBlindsH => ActiveTransitionKind == LyricsTransitionKind.BlindsHorizontal;
+    public bool TransitionKindIsBlindsV => ActiveTransitionKind == LyricsTransitionKind.BlindsVertical;
+    public bool TransitionKindIsCheckerboard => ActiveTransitionKind == LyricsTransitionKind.Checkerboard;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -2028,6 +2034,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.WipeLeft => "와이프(←)",
             LyricsTransitionKind.WipeDown => "와이프(↓)",
             LyricsTransitionKind.WipeUp => "와이프(↑)",
+            LyricsTransitionKind.BlindsHorizontal => "블라인드(가로)",
+            LyricsTransitionKind.BlindsVertical => "블라인드(세로)",
+            LyricsTransitionKind.Checkerboard => "체커보드",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

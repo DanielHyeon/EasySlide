@@ -970,6 +970,15 @@ public class MainViewModelTests
         sut.TransitionKindIsWipeRight.Should().BeTrue();
         sut.TransitionKindIsRevealCircle.Should().BeFalse("이전 원형 체크 해제");
         sut.StatusText.Should().Contain("와이프");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Checkerboard);
+        sut.TransitionKindIsCheckerboard.Should().BeTrue();
+        sut.TransitionKindIsWipeRight.Should().BeFalse();
+        sut.StatusText.Should().Contain("체커보드");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.BlindsHorizontal);
+        sut.TransitionKindIsBlindsH.Should().BeTrue();
+        sut.StatusText.Should().Contain("블라인드");
     }
 
     [Fact]
