@@ -141,6 +141,56 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithShowNotationsOff_HidesChords()
+    {
+        // "코드 표시" off(기본)면 '»' 뒤 코드는 회중 화면에 안 보인다(가사만).
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\nAmazing grace » G  C\nHow sweet » D7",
+            ShowNotations = false,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("Amazing grace\nHow sweet");
+        sut.Current.CurrentItemBodyText.Should().NotContain("G  C").And.NotContain("»");
+    }
+
+    [Fact]
+    public void GoLive_WithShowNotationsOn_PutsChordsAboveLyrics()
+    {
+        // "코드 표시" on 이면 각 가사 줄 위에 코드 줄이 함께 송출된다(레거시 ShowNotations).
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\nAmazing grace » G  C\nHow sweet » D7",
+            ShowNotations = true,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("G  C\nAmazing grace\nD7\nHow sweet");
+    }
+
+    [Fact]
+    public void GoLive_WithShowNotationsOn_KeepsSameVersePagination()
+    {
+        // 코드 줄을 끼워도 절 경계는 그대로라 같은 페이지 인덱스가 같은 절을 가리킨다(코드만 추가).
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\n1절 » C\n[2]\n2절 » G",
+            LyricsPageIndex = 1,
+            ShowNotations = true,
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("G\n2절", "2절 페이지에 코드 줄이 위에 붙는다");
+    }
+
+    [Fact]
     public void GoLive_WithSongLyricsAtPage1_CarriesSecondVerse()
     {
         // LyricsPageIndex=1이면 두 번째 절만 출력에 보인다(MainViewModel이 이동 시 얹어 전달).

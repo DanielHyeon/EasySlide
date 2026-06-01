@@ -119,6 +119,77 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleShowNotations_WhileLive_RepublishesBodyWithChords()
+    {
+        // 운영 중 "코드 표시"를 켜면 — 색·정렬처럼 렌더만 바뀌는 게 아니라 본문 자체가 달라지므로 —
+        // 현재 라이브 곡이 같은 절로 재송출되며 가사 위에 코드 줄이 붙어야 한다(라이브 즉시 반영).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, false).Succeeded.Should().BeTrue();
+        var song = new LiveQueueItem("song-1", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nAmazing grace » G  C\nHow sweet » D7",
+        };
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { song });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        // off(기본) → 코드 숨김.
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Amazing grace\nHow sweet");
+
+        // 운영 중 토글 → 같은 곡 재송출, 코드 줄이 가사 위에.
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, true).Succeeded.Should().BeTrue();
+
+        sut.Session.Current.CurrentItemBodyText.Should().Be("G  C\nAmazing grace\nD7\nHow sweet");
+    }
+
+    [Fact]
+    public async Task ToggleShowNotations_AfterSelectionMovedOffLive_RepublishesAtLiveVerseNotSelected()
+    {
+        // MAJOR 회귀 방지: 송출 후 선택이 다음 항목으로 자동 이동(AdvanceNextItem)하면 VM 의 LyricsPageIndex 는
+        // 새 선택을 따라 0 으로 리셋된다. "코드 표시" 토글 시 재송출이 VM 값을 쓰면 라이브가 0절로 튄다 →
+        // 세션의 실제 라이브 절(CurrentLyricsPageIndex)을 써야 한다. 라이브 곡이 2절에 머물러 있는지 검증.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, false).Succeeded.Should().BeTrue();
+        var songA = new LiveQueueItem("song-A", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n1절 » C\n[2]\n2절 » G",
+        };
+        var songB = new LiveQueueItem("song-B", "다음 곡", LiveItemKinds.Song) { Lyrics = "[1]\n다른 가사" };
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { songA, songB });
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.NextLyricsPageCommand.Execute(null); // songA 2절로 이동(LyricsPageIndex=1).
+        await sut.GoLiveCommand.ExecuteAsync(null); // songA@2절 송출 → 선택은 songB 로 자동 이동, LyricsPageIndex=0 리셋.
+        sut.SelectedItem.Should().Be(songB);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("2절", "라이브는 songA 2절(코드 off)");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, true).Succeeded.Should().BeTrue();
+
+        // 재송출이 선택(songB·0절)이 아니라 라이브(songA·2절)를 코드 포함으로 다시 그려야 한다.
+        sut.Session.Current.CurrentItemBodyText.Should().Be("G\n2절");
+    }
+
+    [Fact]
+    public void ToggleShowNotations_WhenNotLive_DoesNothing()
+    {
+        // 라이브가 아니면 재송출할 곡이 없어 설정만 바뀌고 세션은 Off 그대로다(안전).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", LiveItemKinds.Song) { Lyrics = "[1]\n가사 » C" } });
+
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, true).Succeeded.Should().BeTrue();
+
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
     public async Task GoLive_LastQueueItem_CarriesEmptyNextTitle()
     {
         // 마지막 항목이면 다음 항목이 없어 빈 문자열 → 출력 미표시(무회귀).

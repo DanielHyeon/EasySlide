@@ -30,7 +30,8 @@ public sealed record LiveOutputRenderSettings(
     int LyricsMonitorBackgroundColor2Argb = -1,
     // 배경 그라데이션 사용 여부(기본 false=솔리드).
     bool LyricsMonitorBackgroundIsGradient = false,
-    bool LyricsMonitorShowNotations = true,
+    // 주의: "코드 표시"(LyricsMonitorShowNotations)는 렌더 설정이 아니다 — 본문 텍스트 자체(코드 줄 포함 여부)를
+    // 바꾸므로 라이브 본문 계산(LiveSessionService.ComputeBodyText) 단계에서 처리한다. 여기(씬 렌더 설정)엔 두지 않는다.
     bool NoPowerPointPanelOverlay = false,
     bool NoMediaPanelOverlay = false,
     // 출력 가사 가로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center.
@@ -80,7 +81,6 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient),
-            settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
             settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay),
             settings.Get(EasiSettingKeys.NoMediaPanelOverlay),
             settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment),
@@ -128,7 +128,6 @@ public sealed record OutputSceneSnapshot(
     ImagePlacement ContentPlacement,
     TransitionEffectFrame TransitionFrame,
     bool ShowsLyricsAlertBox,
-    bool LyricsMonitorShowNotations,
     int LyricsMonitorTextColorArgb,
     int LyricsMonitorBackgroundColorArgb,
     int LyricsMonitorBackgroundColor2Argb,
@@ -313,7 +312,6 @@ public sealed class OutputRenderer : IOutputRenderer
             placement,
             transition,
             liveOutput.ShowLyricsMonitorAlertBox,
-            liveOutput.LyricsMonitorShowNotations,
             textColorArgb,
             bgColorArgb,
             bgColor2Argb,

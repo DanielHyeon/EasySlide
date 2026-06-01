@@ -684,6 +684,63 @@ public static class LyricsDisplayFormatter
             .Replace("\r", "\n", StringComparison.Ordinal)
             .Replace("Â»", "»", StringComparison.Ordinal);
 
+    /// <summary>
+    /// 코드(악상) 표시 전처리 — "코드 표시"(Show Notations) 설정이 켜져 있으면 각 가사 줄의
+    /// '»' 뒤 코드를 가사 줄 "위"에 별도 줄로 끼워 넣어, 회중 화면에 코드가 함께 보이게 한다(레거시 ShowNotations 대응).
+    /// <para>
+    /// 끄면(기본) 원시 가사를 <b>그대로</b> 돌려준다 — 이후 파이프라인의 기존 코드-숨김(StripInlineNotation)이
+    /// 동작해 비트 동일(무회귀)하다. 켜면 <c>가사 » 코드</c> 한 줄을 <c>코드\n가사</c> 두 줄로 바꾼다.
+    /// </para>
+    /// <para>
+    /// 절 경계(빈 줄·[마커] 줄)는 손대지 않으므로 절(페이지) 수가 켜고/끄고에 상관없이 같다 —
+    /// MainViewModel 의 페이지 수 계산(원시 가사 기준)과 본문(전처리 가사 기준)이 어긋나지 않는다.
+    /// 그래서 빈 가사·빈 코드 줄은 코드 줄을 넣지 않고 가사만 남겨(끈 것과 동일한 경계) 패리티를 지킨다.
+    /// </para>
+    /// </summary>
+    public static string ExpandNotations(string? rawLyrics, bool showNotations)
+    {
+        // 꺼져 있으면 아무것도 바꾸지 않는다 — 기존 파이프라인이 그대로 코드를 숨겨 무회귀.
+        if (!showNotations || string.IsNullOrEmpty(rawLyrics))
+        {
+            return rawLyrics ?? string.Empty;
+        }
+
+        var text = NormalizeText(rawLyrics); // 줄바꿈·'Â»' 통일 후 줄 단위로 처리.
+        var sb = new StringBuilder(text.Length + 16);
+        var lines = text.Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (i > 0)
+            {
+                sb.Append('\n');
+            }
+
+            var line = lines[i];
+            var markerIndex = line.IndexOf('»');
+            if (markerIndex < 0)
+            {
+                sb.Append(line); // 코드 마커가 없는 줄(가사·[마커]·빈 줄)은 그대로.
+                continue;
+            }
+
+            var lyric = line[..markerIndex].TrimEnd();
+            var chord = line[(markerIndex + 1)..].Trim();
+            // 코드 줄을 넣지 않고 가사 부분만 남기는 경우(= RAW 의 StripInlineNotation 경계 처리와 동일):
+            //  ① 가사 부분이 비었거나(코드 전용 줄) ② 코드가 비었거나
+            //  ③ 가사 부분이 작성 마커( [1] » G 같은 드문 오작성 )이면 — 절 경계 판정이 RAW 와 같아야
+            //     페이지 수(원시 기준)와 본문(전처리 기준)이 어긋나지 않는다.
+            if (lyric.Length == 0 || chord.Length == 0 || IsMarkerOnlyLine(lyric))
+            {
+                sb.Append(lyric);
+                continue;
+            }
+
+            sb.Append(chord).Append('\n').Append(lyric); // 코드 줄을 가사 줄 "위"에.
+        }
+
+        return sb.ToString();
+    }
+
     // 마커 줄이 라벨 마커( [1] [Chorus] [C] )면 그 라벨, 노테이션 블록([~...])이나 일반 줄이면 null.
     private static string? SectionLabel(string line)
     {

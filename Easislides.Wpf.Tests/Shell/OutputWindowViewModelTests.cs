@@ -748,7 +748,6 @@ public class OutputWindowViewModelTests
         settings.Set(EasiSettingKeys.ShowLyricsMonitorAlertBox, true).Succeeded.Should().BeTrue();
         settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFF102030)).Succeeded.Should().BeTrue();
         settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFFE0D0C0)).Succeeded.Should().BeTrue();
-        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, false).Succeeded.Should().BeTrue();
         var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
 
         sut.ApplySession(new LiveSessionSnapshot(
@@ -760,7 +759,6 @@ public class OutputWindowViewModelTests
         ((SolidColorBrush)sut.SceneForegroundBrush).Color.Should().Be(Color.FromArgb(0xFF, 0x10, 0x20, 0x30));
         ((SolidColorBrush)sut.SceneBackgroundBrush).Color.Should().Be(Color.FromArgb(0xFF, 0xE0, 0xD0, 0xC0));
         sut.LyricsAlertVisibility.Should().Be(Visibility.Visible);
-        sut.NotationVisibility.Should().Be(Visibility.Collapsed);
         sut.Scene.ShowsLyricsAlertBox.Should().BeTrue();
     }
 

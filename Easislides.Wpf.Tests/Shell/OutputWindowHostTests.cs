@@ -72,7 +72,6 @@ public class OutputWindowHostTests
         using var settingsFolder = TempSettingsFolder.Create();
         var settings = settingsFolder.CreateSettings();
         settings.Set(EasiSettingKeys.ShowLyricsMonitorAlertBox, true).Succeeded.Should().BeTrue();
-        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, false).Succeeded.Should().BeTrue();
         var output = new OutputWindowService();
         var session = new LiveSessionService();
         var surfaces = new List<FakeOutputSurface>();
@@ -86,7 +85,6 @@ public class OutputWindowHostTests
         output.Open(OutputDisplay.PrimaryFallback, windowed: true);
 
         surfaces[0].ViewModel!.LyricsAlertVisibility.Should().Be(Visibility.Visible);
-        surfaces[0].ViewModel!.NotationVisibility.Should().Be(Visibility.Collapsed);
     }
 
     [Fact]

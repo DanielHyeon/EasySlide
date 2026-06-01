@@ -175,8 +175,7 @@ public class OutputRendererTests
         var settings = new LiveOutputRenderSettings(
             ShowLyricsMonitorAlertBox: true,
             LyricsMonitorTextColorArgb: unchecked((int)0xFF123456),
-            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFABCDEF),
-            LyricsMonitorShowNotations: false);
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFABCDEF));
 
         var scene = sut.CreateScene(new OutputRenderRequest(
             Session: new LiveSessionSnapshot(LiveState.Active, "Amazing Grace", "Display 2", IsBlackout: false),
@@ -188,7 +187,6 @@ public class OutputRendererTests
         scene.ShowsLyricsAlertBox.Should().BeTrue();
         scene.LyricsMonitorTextColorArgb.Should().Be(unchecked((int)0xFF123456));
         scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFFABCDEF));
-        scene.LyricsMonitorShowNotations.Should().BeFalse();
     }
 
     [Fact]

@@ -195,7 +195,12 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 ### 3.7 조옮김·코드·음악 — 🔴 거의 전무
 Transpose Up/Down semitone, To Capo 0, Show Notations(+preview), Key/Capo/Timing 표시 → **운영 토글 전부 없음**. (Key/Capo/Timing 표시는 SongEditor 미리보기에 일부; Capo는 곡 메타데이터 필드로만 존재해 import/export로 통과될 뿐 라이브 조옮김 연산은 없음.)
 
-> ⚠️ **재검증 중 발견한 실제 결함(2026-06-01)**: `LyricsMonitorShowNotations` **설정 키와 SettingsWindow 체크박스가 존재하지만 mis-bound** 상태다 — `OutputWindow.xaml:225`에서 이 값이 출력의 **상태 라벨("LIVE")만 가릴 뿐**, 가사에 코드/악상을 전혀 렌더하지 않는다(이름과 동작 불일치 = 죽은 설정). FrmMain의 `ShowNotations`(가사 위 코드 표기)와 의미가 다르다. **정석 수정 방향**: ① 이 설정 키를 실제 코드 렌더(또는 미리보기 흐림 표시)에 연결하거나, ② 코드 렌더가 P1 백로그(§7)이므로 그때까지 설정 노출을 보류해 사용자 혼동을 막는다. (gap 항목이자 latent bug로 별도 트래킹 권장.)
+> ✅ **해결됨(2026-06-01, 증분 27)**: 위 mis-bound 결함을 근본 수정하고 실제 코드 렌더(옵션 ①)를 구현했다.
+> - **mis-bind 제거**: 상태 라벨("LIVE")이 더 이상 `LyricsMonitorShowNotations`(NotationVisibility)에 묶이지 않는다 — 라벨은 밴드 가시성(PanelOverlayVisibility)에 위임. 죽은 `NotationVisibility` 속성·씬 필드(`OutputSceneSnapshot`/`LiveOutputRenderSettings`)도 제거(이름·동작 불일치 해소).
+> - **실제 코드 렌더**: `LyricsDisplayFormatter.ExpandNotations` 가 "코드 표시" on 일 때 각 가사 줄의 '»' 뒤 코드를 가사 줄 "위"에 끼워 송출한다(레거시 ShowNotations 대응). 설정은 `LiveQueueItem.ShowNotations`→`ComputeBodyText` 경로로 본문에 반영되고, 운영 중 토글하면 MainViewModel 이 라이브 곡을 같은 절로 재송출한다(라이브 즉시 반영).
+> - **기본 off**(회중 화면은 예부터 코드를 숨김) → 끄면 본문 비트 동일(무회귀). 절(페이지) 수는 켜고/끄고에 무관(코드 줄은 빈 줄·마커가 아니라 절 경계 불변). 단위 테스트로 패리티 고정.
+> - ⚠️ **남은 한계(정직)**: 코드는 가사와 같은 글꼴·문자열로 "윗줄"에 송출된다 — 음절 위 정확한 모노스페이스 정렬(레거시의 픽셀 측정 배치)은 아직 아니다(코드 데이터의 작성 공백에 의존). 정밀 정렬은 후속.
+> - 〔조옮김(Capo ↑/↓·To Capo 0)은 SongEditor 미리보기에 이미 있고(증분 5), 라이브 출력 조옮김 연산은 별도 후속.〕
 
 ### 3.8 데이터 작업 (별도 창으로 대부분 포팅)
 Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **단 Compact&Repair, Clear All Formatting, Clear Registry, Listing of Folder는 🔴 미포팅.** (통합=별도창이라 "흩어짐"은 별개 과제.)

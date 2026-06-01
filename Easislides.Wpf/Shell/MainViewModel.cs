@@ -1679,6 +1679,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var positionLabel = ComputePositionLabel(item);
         var nextTitle = ComputeNextTitle(item);
+        // "코드 표시"(Show Notations) 설정을 투영에 얹는다 — 라이브 본문 계산(ComputeBodyText)이 이 값으로
+        // 가사 위 코드 줄을 끼울지 판단한다. 모든 곡 송출 경로가 ResolveLiveProjection 을 거치므로 한 곳에서 일관 적용.
+        var showNotations = _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations);
 
         if (IsPowerPointItem(item)
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
@@ -1693,10 +1696,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 SlideNumber = PowerPoint.SlideNumber,
                 PositionLabel = positionLabel,
                 NextTitle = nextTitle,
+                ShowNotations = showNotations,
             };
         }
 
-        return item with { PositionLabel = positionLabel, NextTitle = nextTitle };
+        return item with { PositionLabel = positionLabel, NextTitle = nextTitle, ShowNotations = showNotations };
     }
 
     // 다음 예배순서 항목 제목(출력 "다음 항목 표시" Display Panel PrevNext).
@@ -1766,9 +1770,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ApplyOperationalSettings(updateStatus: true);
         }
 
+        // "코드 표시"가 바뀌면 본문 자체(코드 줄 포함 여부)가 달라지므로, 색·정렬처럼 렌더 계층에서
+        // 즉시 반영되지 않는다. 현재 라이브 곡을 같은 절로 다시 송출해 본문을 재계산한다(라이브 즉시 반영).
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.LyricsMonitorShowNotations.Id))
+        {
+            RepublishLiveSongForBodyChange();
+        }
+
         // 출력 모양(색/그라데이션)은 운영 설정이 아니므로 별도로 활성 프리셋 강조를 갱신
         // (Settings 창 등 다른 경로에서 바뀌어도 인스펙터가 따라가도록).
         RefreshActiveAppearance();
+    }
+
+    // 본문 재계산이 필요한 설정(코드 표시 등)이 바뀌었을 때, 현재 라이브 큐 곡을 현재 절 그대로 다시 송출한다.
+    // 라이브가 아니거나, 라이브 항목이 큐에 없거나(공지 센티넬·고아), 곡이 아니면 아무것도 하지 않는다(안전).
+    private void RepublishLiveSongForBodyChange()
+    {
+        if (_session.Current.State != LiveState.Active)
+        {
+            return;
+        }
+
+        var live = Queue.FirstOrDefault(q => q.Id == _liveItemId);
+        if (live is null)
+        {
+            return; // 공지(센티넬)·고아 Id → 본문 재계산 대상 아님.
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        // 라이브 절 인덱스는 "선택 항목"을 따라가는 VM 의 LyricsPageIndex 가 아니라, 세션 스냅샷의
+        // 실제 라이브 절(CurrentLyricsPageIndex)을 쓴다 — 송출 후 선택이 다음 항목으로 자동 이동(AdvanceSelectionAfterPublish)
+        // 했을 수 있어, VM 값을 쓰면 엉뚱한 절(보통 0절)로 튀어 라이브 화면이 어긋난다.
+        var livePageIndex = _session.Current.CurrentLyricsPageIndex;
+        var projection = ResolveLiveProjection(live with { LyricsPageIndex = livePageIndex });
+        _session.GoLive(projection, monitorName);
+    }
+
+    // ChangedKeys 에 특정 키 Id 가 들어 있는지(대소문자 무시). ContainsOperationalSetting 과 동일 규칙.
+    private static bool ContainsKey(IReadOnlyList<string> changedKeys, string keyId)
+    {
+        for (var i = 0; i < changedKeys.Count; i++)
+        {
+            if (string.Equals(changedKeys[i], keyId, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 인라인 라이브러리에서 선택한 곡을 예배 순서(큐)에 추가(별도 LibraryWindow 없이). AddSong 재사용.

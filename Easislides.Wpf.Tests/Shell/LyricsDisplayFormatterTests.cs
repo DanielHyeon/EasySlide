@@ -106,6 +106,89 @@ public class LyricsDisplayFormatterTests
         display.Should().NotContain("Â").And.NotContain("»");
     }
 
+    [Fact]
+    public void ExpandNotations_Off_ReturnsRawUnchanged()
+    {
+        // "코드 표시" off(기본)면 원시 가사를 그대로 돌려준다 — 이후 파이프라인의 코드 숨김이 그대로 동작(무회귀).
+        var raw = "Amazing grace » G  C\nHow sweet » D7";
+
+        LyricsDisplayFormatter.ExpandNotations(raw, showNotations: false).Should().Be(raw);
+    }
+
+    [Fact]
+    public void ExpandNotations_On_PutsChordLineAboveLyric()
+    {
+        // on 이면 '가사 » 코드' 한 줄이 '코드\n가사' 두 줄로 — 코드가 가사 위에 송출된다.
+        var raw = "Amazing grace » G  C\nHow sweet » D7";
+
+        var expanded = LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true);
+
+        expanded.Should().Be("G  C\nAmazing grace\nD7\nHow sweet");
+        // 전처리 결과는 '»'가 사라지므로 이후 ToDisplayText 가 그대로 본문으로 표시한다.
+        LyricsDisplayFormatter.ToDisplayText(expanded).Should().Be("G  C\nAmazing grace\nD7\nHow sweet");
+    }
+
+    [Fact]
+    public void ExpandNotations_On_NormalizesMojibakeMarker()
+    {
+        // "Â»" 모지바케도 on 경로에서 동일하게 코드 마커로 해석해 코드 줄을 올린다.
+        LyricsDisplayFormatter.ExpandNotations("은혜로다 Â» G C", showNotations: true)
+            .Should().Be("G C\n은혜로다");
+    }
+
+    [Fact]
+    public void ExpandNotations_On_LeavesPlainAndMarkerLinesUntouched()
+    {
+        // 코드 마커가 없는 줄(가사·[절 마커]·빈 줄)은 그대로 둔다 → 절 경계 구조 보존.
+        var raw = "[1]\n주 은혜\n\n[2]\n놀라워라";
+
+        LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true).Should().Be(raw);
+    }
+
+    [Fact]
+    public void ExpandNotations_On_DoesNotChangeVerseCount()
+    {
+        // 핵심 패리티: 코드 줄을 끼워도 절(페이지) 수는 그대로다(빈 줄·마커만 절을 가른다).
+        // → MainViewModel 의 페이지 수(원시 기준)와 본문(전처리 기준)이 어긋나지 않는다.
+        var raw = "[1]\n첫 줄 » C\n둘째 줄 » G\n[2]\n셋째 줄 » Am";
+
+        var rawPages = LyricsDisplayFormatter.ToVersePages(raw).Count;
+        var onPages = LyricsDisplayFormatter.ToVersePages(
+            LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true)).Count;
+
+        onPages.Should().Be(rawPages).And.Be(2);
+    }
+
+    [Fact]
+    public void ExpandNotations_On_MarkerLineWithMarkerChar_StaysBoundary()
+    {
+        // 드문 오작성: 가사 부분이 작성 마커인 줄([1] » G)은 코드 줄을 올리지 않고 마커만 남긴다 —
+        // RAW 의 StripInlineNotation 경계 처리와 동일해야 페이지 수(원시)와 본문(전처리)이 어긋나지 않는다.
+        var raw = "[1] » G\n주 은혜";
+
+        var expanded = LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true);
+
+        expanded.Should().Be("[1]\n주 은혜"); // 코드(G)는 빠지고 마커는 남아 절 경계로 작동.
+        // 핵심: 원시 가사와 전처리 가사의 절 수가 동일(둘 다 1절) → 페이지 네비게이션 어긋남 없음.
+        LyricsDisplayFormatter.ToVersePages(raw).Should().HaveCount(1);
+        LyricsDisplayFormatter.ToVersePages(expanded).Should().HaveCount(1);
+        LyricsDisplayFormatter.ToDisplayText(expanded).Should().Be("주 은혜");
+    }
+
+    [Fact]
+    public void ExpandNotations_On_ChordOnlyLine_KeepsBoundaryParityWithOff()
+    {
+        // 코드 전용 줄('» 코드')은 가사가 없으므로 on 에서도 코드 줄을 넣지 않는다(빈 줄=경계 유지).
+        // 그래야 켜고/끄고에 따라 절 경계가 달라지지 않는다.
+        var raw = "첫째\n» G  C\n둘째";
+
+        var expanded = LyricsDisplayFormatter.ExpandNotations(raw, showNotations: true);
+
+        // 코드 전용 줄은 빈 줄로(가사만=빈 문자열) → 끈 것과 동일하게 절이 둘로 갈린다.
+        LyricsDisplayFormatter.ToVersePages(expanded).Should().HaveCount(2);
+        LyricsDisplayFormatter.ToDisplayText(expanded).Should().Be("첫째\n\n둘째");
+    }
+
     // ─── Sequence(절 순서) 모델 ──────────────────────────────────────────────
 
     [Fact]

@@ -72,6 +72,30 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Default_LyricsMonitorShowNotations_IsOff()
+    {
+        // 코드 표시 기본값은 off — 회중 화면은 예부터 코드를 숨겼고, 끄면 본문이 비트 동일(무회귀)이다.
+        // (기본 on 이면 모든 기존 곡이 첫 실행부터 코드를 송출하는 회귀가 생긴다 — 이 핀으로 재발 방지.)
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorShowNotations).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Set_LyricsMonitorShowNotations_PersistsToDiskAndReloads()
+    {
+        // 코드 표시 토글의 디스크 round-trip 고정(GET/SET 스위치 케이스 검증).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorShowNotations, true).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorShowNotations).Should().BeTrue();
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorShowNotations.Should().BeTrue();
+    }
+
+    [Fact]
     public void Set_LyricsMonitorShowNextItem_PersistsToDiskAndReloads()
     {
         // 다음 항목 표시 토글의 디스크 round-trip 고정(GET/SET 스위치 케이스 검증, Display Panel PrevNext).

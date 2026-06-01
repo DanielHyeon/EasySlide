@@ -40,7 +40,6 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Brush _sceneForegroundBrush2;
     private Brush _sceneBackgroundBrush;
     private Visibility _lyricsAlertVisibility = Visibility.Collapsed;
-    private Visibility _notationVisibility = Visibility.Visible;
     private Visibility _panelOverlayVisibility = Visibility.Visible;
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _bodyTextVisibility = Visibility.Collapsed;
@@ -444,12 +443,6 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _lyricsAlertVisibility, value);
     }
 
-    public Visibility NotationVisibility
-    {
-        get => _notationVisibility;
-        private set => SetProperty(ref _notationVisibility, value);
-    }
-
     public Visibility PanelOverlayVisibility
     {
         get => _panelOverlayVisibility;
@@ -659,7 +652,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
-        NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
+        // "코드 표시"(Show Notations)는 더 이상 렌더 계층의 가시성이 아니라 본문 텍스트 자체(코드 줄 포함 여부)로
+        // 반영된다 — 라이브 본문 계산(LiveSessionService.ComputeBodyText)이 처리하고, 설정 변경 시 MainViewModel 이
+        // 라이브 곡을 재송출한다. (과거엔 이 값이 상태 라벨 가시성에 잘못 묶여 있던 결함을 제거.)
         // 곡 가사 본문을 송출 슬롯에 반영. 본문이 보이면 타이틀과 겹치므로 ApplyGapLogo 에서 타이틀을 숨긴다.
         BodyText = scene.BodyText;
         BodyText2 = scene.BodyText2;
@@ -985,7 +980,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 // 화이트리스트에 없으면 갱신을 못 받음). code-review CRITICAL 반영.
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundIsGradient.Id, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(key, EasiSettingKeys.LyricsMonitorShowNotations.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 주의: "코드 표시"(LyricsMonitorShowNotations)는 여기(렌더 계층 화이트리스트)에 두지 않는다 —
+                // 본문 텍스트 자체가 달라지는 설정이라, MainViewModel 이 라이브 곡을 재송출해 본문을 다시 계산한다.
                 // 인-셸 가사 정렬(가로/세로)·폰트 크기 변경도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextAlignment.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorVerticalAlignment.Id, StringComparison.OrdinalIgnoreCase) ||

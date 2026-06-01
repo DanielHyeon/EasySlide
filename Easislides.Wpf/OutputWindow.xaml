@@ -295,12 +295,14 @@
                        Style="{StaticResource Type.Caption.Style}"
                        Foreground="{Binding SceneForegroundBrush}" />
 
+            <!-- 상태 라벨(LIVE/CLEARED/STANDBY 등) — 이 밴드 전체가 PanelOverlayVisibility 로 이미 제어된다.
+                 (과거 결함: "코드 표시" 설정값(NotationVisibility)이 이 라벨을 가리도록 잘못 묶여 있었다 →
+                  기본값(코드 표시 off)에서 LIVE 라벨이 사라지는 버그. 이름·동작 불일치 제거하고 밴드 가시성에 위임.) -->
             <TextBlock Grid.Column="1"
                        Text="{Binding StatusLabel}"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Title3.Style}"
-                       Foreground="{DynamicResource Brush.Live.Active}"
-                       Visibility="{Binding NotationVisibility}" />
+                       Foreground="{DynamicResource Brush.Live.Active}" />
         </Grid>
 
         <!-- Blackout/Hidden 상태에서 모든 행을 덮는 검정 오버레이.

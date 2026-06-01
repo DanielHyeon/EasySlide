@@ -46,6 +46,13 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     public string? ContentPath { get; init; }
 
     /// <summary>
+    /// 코드(악상) 표시 — 출력 "코드 표시"(Show Notations) 설정 on 일 때 true. 가사 줄의 '»' 뒤 코드를
+    /// 가사 위 별도 줄로 송출한다(레거시 ShowNotations 대응). 라이브 투영(ResolveLiveProjection) 시 설정값을 얹는다.
+    /// 기본 false → 코드 숨김(무회귀). 공지(InfoScreen)·비곡 항목은 가사 포맷을 안 타므로 영향 없음.
+    /// </summary>
+    public bool ShowNotations { get; init; }
+
+    /// <summary>
     /// 라이브 투영 시 MainViewModel 이 계산해 얹는 위치 라벨(예: "2/4"). 곡=절 위치, PPT=슬라이드 위치.
     /// 단일 절/슬라이드면 빈 문자열. GoLive 가 스냅샷으로 전달, 출력은 설정 on 일 때만 표시(§7.3-A 인디케이터).
     /// </summary>

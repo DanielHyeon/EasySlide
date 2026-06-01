@@ -163,7 +163,9 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> LyricsMonitorBackgroundColor2Argb = new("liveOutput.lyricsMonitorBackgroundColor2Argb", -1);
     // 배경 그라데이션 사용 여부(기본 false=솔리드). true 면 배경색→끝색 세로 그라데이션.
     public static readonly SettingKey<bool> LyricsMonitorBackgroundIsGradient = new("liveOutput.lyricsMonitorBackgroundIsGradient", false);
-    public static readonly SettingKey<bool> LyricsMonitorShowNotations = new("liveOutput.lyricsMonitorShowNotations", true);
+    // 코드(악상) 표시 — on 이면 가사 줄 위에 '»' 뒤 코드 줄을 회중 화면에 함께 송출(레거시 ShowNotations).
+    // 기본 false: 회중 화면은 예부터 코드를 숨겼고, 끄면 본문이 기존과 비트 동일(무회귀)하다. 연주팀 운영 시에만 켠다.
+    public static readonly SettingKey<bool> LyricsMonitorShowNotations = new("liveOutput.lyricsMonitorShowNotations", false);
     // 출력 가사 가로 정렬(인-셸 가사 정렬 §7.3-A). 기본 Center 로 기존 가운데 정렬 동작을 보존.
     public static readonly SettingKey<LyricsTextAlignment> LyricsMonitorTextAlignment =
         new("liveOutput.lyricsMonitorTextAlignment", LyricsTextAlignment.Center);
