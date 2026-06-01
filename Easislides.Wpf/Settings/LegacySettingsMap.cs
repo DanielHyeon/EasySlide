@@ -43,6 +43,7 @@ public static class LegacySettingsMap
         Automated("RootEasiSlidesDir", EasiSettingKeys.WorkingFolder.Id, SettingsSectionKind.General, LegacySettingValueKind.Path, "Gf.RootEasiSlidesDir", "Legacy working root after Gf.InitEasiSlidesDir."),
         Automated("root_directory", EasiSettingKeys.WorkingFolder.Id, SettingsSectionKind.General, LegacySettingValueKind.Path, "RegUtil config/root_directory", "Registry-backed legacy working root."),
         Automated("OnboardingCompleted", EasiSettingKeys.OnboardingCompleted.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "First-run welcome completion marker."),
+        Automated("UseSongNumbering", EasiSettingKeys.UseSongNumbering.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "Show song numbers in the library song list — FrmMain Edit menu Use Song Numbering."),
         Automated("RegistrationUser", EasiSettingKeys.RegistrationUser.Id, SettingsSectionKind.General, LegacySettingValueKind.String, "RegUtil config/RegistrationUser", "Name displayed at startup and About dialog registration field."),
 
         Automated("Theme", EasiSettingKeys.Theme.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),

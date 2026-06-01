@@ -72,6 +72,27 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Default_UseSongNumbering_IsOff()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.UseSongNumbering).Should().BeFalse("기본은 제목만(무회귀)");
+    }
+
+    [Fact]
+    public void Set_UseSongNumbering_PersistsToDiskAndReloads()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.UseSongNumbering, true).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.UseSongNumbering).Should().BeTrue();
+        ReadSnapshot(fixture.SettingsPath).General.UseSongNumbering.Should().BeTrue();
+    }
+
+    [Fact]
     public void Default_LyricsMonitorBackgroundMode_IsFill()
     {
         // 배경 표시 모드 기본값은 Fill(=기존 UniformToFill) — 끄면 기존 출력과 동일(무회귀).

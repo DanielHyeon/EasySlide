@@ -151,6 +151,8 @@ public static class EasiSettingKeys
         "general.workingFolder",
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "EasiSlides"));
     public static readonly SettingKey<bool> OnboardingCompleted = new("general.onboardingCompleted", false);
+    // 라이브러리 곡 목록에 곡 번호 표시(레거시 Edit 메뉴 "Use Song Numbering"). 기본 off → 제목만(무회귀).
+    public static readonly SettingKey<bool> UseSongNumbering = new("general.useSongNumbering", false);
     public static readonly SettingKey<string> RegistrationUser = new("general.registrationUser", "");
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
@@ -247,6 +249,7 @@ public static class EasiSettingKeys
         Language,
         WorkingFolder,
         OnboardingCompleted,
+        UseSongNumbering,
         RegistrationUser,
         Theme,
         InterfaceSize,
@@ -316,6 +319,8 @@ public sealed record GeneralSettings
     public string WorkingFolder { get; init; } = EasiSettingKeys.WorkingFolder.DefaultValue;
 
     public bool OnboardingCompleted { get; init; } = EasiSettingKeys.OnboardingCompleted.DefaultValue;
+
+    public bool UseSongNumbering { get; init; } = EasiSettingKeys.UseSongNumbering.DefaultValue;
 
     public string RegistrationUser { get; init; } = EasiSettingKeys.RegistrationUser.DefaultValue;
 }
@@ -826,6 +831,10 @@ public sealed class SettingsService : ISettingsService
         {
             General = next.General with { OnboardingCompleted = value },
         });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.UseSongNumbering.Id), next, issues, value => next with
+        {
+            General = next.General with { UseSongNumbering = value },
+        });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.RegistrationUser.Id), next, value => next with
         {
             General = next.General with { RegistrationUser = value },
@@ -1127,6 +1136,7 @@ public sealed class SettingsService : ISettingsService
             "general.language" => snapshot.General.Language,
             "general.workingFolder" => snapshot.General.WorkingFolder,
             "general.onboardingCompleted" => snapshot.General.OnboardingCompleted,
+            "general.useSongNumbering" => snapshot.General.UseSongNumbering,
             "general.registrationUser" => snapshot.General.RegistrationUser,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
@@ -1199,6 +1209,10 @@ public sealed class SettingsService : ISettingsService
             "general.onboardingCompleted" => snapshot with
             {
                 General = snapshot.General with { OnboardingCompleted = Cast<bool>(keyId, value) },
+            },
+            "general.useSongNumbering" => snapshot with
+            {
+                General = snapshot.General with { UseSongNumbering = Cast<bool>(keyId, value) },
             },
             "general.registrationUser" => snapshot with
             {

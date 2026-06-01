@@ -33,6 +33,10 @@ public sealed partial class LibraryViewModel : ObservableObject
     [ObservableProperty] private bool _canRecoverFolder;
     // 곡 목록 정렬 방식(원래순서/제목/곡번호). 기본 Original = DB 순서(무회귀). 바뀌면 목록을 다시 정렬해 표시.
     [ObservableProperty] private LibrarySortMode _sortMode = LibrarySortMode.Original;
+    // 곡 목록에 곡 번호 표시(레거시 Use Song Numbering). 설정과 동기화 — 토글 시 설정에 저장하고 목록 표시를 갱신.
+    // 단일 쓰기 가정: 이 값은 오직 여기(메뉴 토글)에서만 바뀐다. 추후 Settings 창 등 두 번째 쓰기 경로가 생기면
+    // SettingsChanged 를 구독해 백킹 필드를 동기화해야 한다(지금은 구독 불필요).
+    [ObservableProperty] private bool _useSongNumbering;
 
     public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
@@ -47,7 +51,13 @@ public sealed partial class LibraryViewModel : ObservableObject
         MoveSelectedSongUpCommand = new AsyncRelayCommand(MoveSelectedSongUpAsync, CanMoveSelectedSongUp);
         MoveSelectedSongDownCommand = new AsyncRelayCommand(MoveSelectedSongDownAsync, CanMoveSelectedSongDown);
         JumpToInitialCommand = new RelayCommand<string>(JumpToInitial);
+        // 곡 번호 표시 초기값을 설정에서 읽는다(백킹 필드 직접 설정 — 생성 시점엔 저장 트리거 불필요).
+        _useSongNumbering = _settings.Get(EasiSettingKeys.UseSongNumbering);
     }
+
+    // 곡 번호 표시 토글 시 설정에 저장한다(다음 실행에도 유지). 목록 텍스트는 다중 바인딩 변환기가 이 값을 보고 갱신한다.
+    partial void OnUseSongNumberingChanged(bool value)
+        => _settings.Set(EasiSettingKeys.UseSongNumbering, value);
 
     public ObservableCollection<SongFolderSummary> Folders { get; } = new();
 

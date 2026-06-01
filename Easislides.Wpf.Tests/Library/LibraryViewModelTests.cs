@@ -131,6 +131,20 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public void UseSongNumbering_InitializesFromSettings_AndPersistsOnToggle()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.UseSongNumbering, true); // 저장된 값 = on
+        var sut = new LibraryViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+
+        sut.UseSongNumbering.Should().BeTrue("생성 시 설정값을 읽어 초기화");
+
+        sut.UseSongNumbering = false;
+
+        fixture.Settings.Get(EasiSettingKeys.UseSongNumbering).Should().BeFalse("토글하면 설정에 저장(다음 실행 유지)");
+    }
+
+    [Fact]
     public async Task SongMove_DisabledWhileSorted_EnabledInOriginalOrder()
     {
         // 정렬(제목/번호) 중에는 화면 순서와 DB 순서가 달라 수동 이동이 헷갈리므로 이동 버튼을 비활성화한다.

@@ -148,11 +148,13 @@ public class LegacySettingsMapTests
             ["LyricsMonitorTextColour"] = "-65536",
             ["LyricsMonitorBackColour"] = "-1",
             ["LyricsMonitorShowNotations"] = "0",
+            ["UseSongNumbering"] = "1",
         });
 
         var result = await sut.MigrateLegacyAsync(legacy);
 
         result.Succeeded.Should().BeTrue();
+        sut.Get(EasiSettingKeys.UseSongNumbering).Should().BeTrue("레거시 별칭이 곡 번호 표시로 마이그레이션");
         sut.Get(EasiSettingKeys.UsePowerPointTab).Should().BeTrue();
         sut.Get(EasiSettingKeys.NoPowerPointPanelOverlay).Should().BeTrue();
         sut.Get(EasiSettingKeys.PowerPointMaxFiles).Should().Be(80);
