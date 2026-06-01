@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Easislides.Wpf.Library;
 using Easislides.Wpf.Shell;
 
 namespace Easislides.Wpf.Composites;
@@ -60,27 +61,46 @@ public partial class WorshipListPanel : UserControl
         }
     }
 
-    // 드래그가 목록 위를 지날 때 "이동(Move)" 커서를 보여 드롭 가능함을 알린다(운영자 확신·UX).
+    // 드래그가 목록 위를 지날 때 커서로 드롭 가능함을 알린다(운영자 확신·UX).
+    //  - 큐 항목(LiveQueueItem) = 재정렬(Move), 성경 본문 선택(BibleSelection) = 추가(Copy).
     private void QueueList_DragOver(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(typeof(LiveQueueItem))
-            ? DragDropEffects.Move
-            : DragDropEffects.None;
+        if (e.Data.GetDataPresent(typeof(LiveQueueItem)))
+        {
+            e.Effects = DragDropEffects.Move;
+        }
+        else if (e.Data.GetDataPresent(typeof(BibleSelection)))
+        {
+            e.Effects = DragDropEffects.Copy;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+
         e.Handled = true;
     }
 
     // 드롭: 떨어뜨린 위치의 "타깃 항목"을 그대로 VM에 넘긴다(인덱스 계산은 참조-안전한 VM이 전담).
-    // 빈 공간(마지막 항목 아래)에 드롭하면 타깃이 null → VM 이 맨 끝으로 이동.
+    // 빈 공간(마지막 항목 아래)에 드롭하면 타깃이 null → VM 이 맨 끝으로.
+    //  - 큐 항목이면 그 위치로 재정렬, 성경 본문 선택이면 그 위치 앞에 추가(레거시 BibleText DragDrop).
     private void QueueList_Drop(object sender, DragEventArgs e)
     {
-        if (DataContext is not MainViewModel viewModel ||
-            e.Data.GetData(typeof(LiveQueueItem)) is not LiveQueueItem dragged)
+        if (DataContext is not MainViewModel viewModel)
         {
             return;
         }
 
         var targetItem = ItemFromPoint(e.GetPosition(QueueList));
-        viewModel.MoveQueueItemRelativeTo(dragged, targetItem);
+
+        if (e.Data.GetData(typeof(LiveQueueItem)) is LiveQueueItem dragged)
+        {
+            viewModel.MoveQueueItemRelativeTo(dragged, targetItem);
+        }
+        else if (e.Data.GetData(typeof(BibleSelection)) is BibleSelection selection)
+        {
+            viewModel.AddBibleSelectionRelativeTo(selection, targetItem);
+        }
     }
 
     // 주어진 좌표 아래에 있는 ListBoxItem 의 데이터(LiveQueueItem)를 찾는다(없으면 null).

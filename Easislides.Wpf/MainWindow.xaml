@@ -867,6 +867,8 @@
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"
                                  Margin="0,8,0,0"
+                                 PreviewMouseLeftButtonDown="BiblePassageBox_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="BiblePassageBox_PreviewMouseMove"
                                  AutomationProperties.Name="성경 본문">
                             <!-- 본문 우클릭 메뉴(레거시 Bible 우클릭) — 전체 선택/복사 + 선택 구절을 예배 순서·공지 화면으로. -->
                             <TextBox.ContextMenu>

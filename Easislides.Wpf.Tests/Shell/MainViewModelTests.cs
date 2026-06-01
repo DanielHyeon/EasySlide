@@ -556,6 +556,70 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddBibleSelectionRelativeTo_InsertsBeforeTargetItem()
+    {
+        // 본문 드래그→예배순서 드롭: 떨어뜨린 위치(타깃 항목) 앞에 성경 구절을 끼운다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("a", "첫 항목", LiveItemKinds.Song);
+        var second = new LiveQueueItem("b", "둘째 항목", LiveItemKinds.Song);
+        sut.LoadQueue([first, second]);
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+
+        var inserted = sut.AddBibleSelectionRelativeTo(selection, second);
+
+        inserted.Should().NotBeNull();
+        inserted!.Kind.Should().Be("Bible");
+        sut.Queue.Should().Equal(first, inserted, second); // 둘째 항목 "앞"에.
+        sut.SelectedItem.Should().Be(inserted);
+    }
+
+    [Fact]
+    public void AddBibleSelectionRelativeTo_DuplicateValueTarget_UsesExactInstanceIndex()
+    {
+        // 같은 값(제목·Id)의 항목이 큐에 여러 번 있어도, 드롭한 "바로 그 인스턴스" 앞에 끼워야 한다
+        // (record 값-동등 IndexOf 가 첫 일치로 가면 엉뚱한 위치에 들어감 — 참조 일치로 고정).
+        var sut = CreateSut(seedSampleQueue: false);
+        var firstDup = new LiveQueueItem("dup", "반복 찬양", LiveItemKinds.Song);
+        var middle = new LiveQueueItem("mid", "말씀", LiveItemKinds.Bible);
+        var secondDup = new LiveQueueItem("dup", "반복 찬양", LiveItemKinds.Song); // 값은 firstDup 과 동일.
+        sut.LoadQueue([firstDup, middle, secondDup]);
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+
+        var inserted = sut.AddBibleSelectionRelativeTo(selection, secondDup); // 둘째 중복 인스턴스에 드롭.
+
+        // 첫 중복이 아니라 둘째 중복 "앞"에 들어가야 한다.
+        sut.Queue.Should().Equal(firstDup, middle, inserted!, secondDup);
+    }
+
+    [Fact]
+    public void AddBibleSelectionRelativeTo_NullTarget_AppendsToEnd()
+    {
+        // 빈 공간(마지막 항목 아래)에 드롭하면 타깃이 null → 맨 끝에 추가.
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("a", "첫 항목", LiveItemKinds.Song);
+        sut.LoadQueue([first]);
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+
+        var inserted = sut.AddBibleSelectionRelativeTo(selection, null);
+
+        sut.Queue.Should().Equal(first, inserted!);
+    }
+
+    [Fact]
+    public void AddBibleSelectionRelativeTo_EmptySelection_DoesNotChangeQueue()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("a", "첫 항목", LiveItemKinds.Song);
+        sut.LoadQueue([first]);
+
+        var inserted = sut.AddBibleSelectionRelativeTo(new BibleSelection("", ""), first);
+
+        inserted.Should().BeNull();
+        sut.Queue.Should().Equal(first);
+        sut.StatusText.Should().Be("선택된 성경 구절이 없습니다.");
+    }
+
+    [Fact]
     public void SelectingBibleItemWithBody_PaginatesByVerse()
     {
         // 성경 항목도 곡처럼 절 단위로 페이지네이션된다(예전엔 곡만 — 성경은 본문이 없어 절 이동이 안 됐다).

@@ -232,6 +232,54 @@ public partial class MainWindow : Window
         }
     }
 
+    // 성경 본문 드래그-드롭 시작점(왼쪽 버튼 누른 위치)과 무장 여부 — 이미 선택된 글자 위를 눌렀을 때만 드래그를 시작한다
+    // (새 선택 제스처와 충돌하지 않도록). 레거시 인라인 성경의 본문 드래그→예배순서 드롭 대응.
+    private Point _bibleDragStart;
+    private bool _bibleDragArmed;
+
+    // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).
+    private void BiblePassageBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _bibleDragStart = e.GetPosition(null);
+        // snapToText:false 면 글자 위가 아닌 빈 영역(본문 끝 너머 등)에선 -1 → 빈 공간 클릭에서 헛-무장하지 않는다.
+        var index = BiblePassageBox.GetCharacterIndexFromPoint(e.GetPosition(BiblePassageBox), snapToText: false);
+        var selectionStart = BiblePassageBox.SelectionStart;
+        var selectionEnd = selectionStart + BiblePassageBox.SelectionLength;
+        _bibleDragArmed = BiblePassageBox.SelectionLength > 0 && index >= selectionStart && index < selectionEnd;
+    }
+
+    // 임계 거리 이상 움직이면 선택 구절을 BibleSelection 으로 만들어 드래그를 시작한다 — 예배 순서 목록에 드롭하면 추가된다.
+    private void BiblePassageBox_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_bibleDragArmed || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _bibleDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var selection = viewModel.Bible.BuildSelection(
+            BiblePassageBox.SelectionStart,
+            BiblePassageBox.SelectionLength);
+        if (string.IsNullOrWhiteSpace(selection.IdString))
+        {
+            return;
+        }
+
+        _bibleDragArmed = false; // 한 제스처에서 한 번만 시작.
+        DragDrop.DoDragDrop(BiblePassageBox, new DataObject(typeof(BibleSelection), selection), DragDropEffects.Copy);
+    }
+
     // "Region 2(이중 언어)와 함께 추가" 서브메뉴 클릭 — 선택 구절을 클릭한 보조 버전과 합쳐(이중 언어) 예배 순서에 추가한다.
     // 클릭한 메뉴 항목의 DataContext 가 고른 BibleVersion(Region2VersionOptions 의 한 항목)이다.
     private void AddBibleVerseWithRegion2_Click(object sender, RoutedEventArgs e)

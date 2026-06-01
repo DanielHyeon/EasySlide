@@ -601,6 +601,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public LiveQueueItem? AddBibleSelection(BibleSelection selection)
     {
+        var item = CreateBibleItem(selection);
+        if (item is null)
+        {
+            return null;
+        }
+
+        // 선택 항목 바로 뒤에 끼운다(없으면 맨 끝) — 버튼·우클릭·typed 추가의 기존 규칙.
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"성경 구절 추가됨: {selection.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
+    /// <summary>
+    /// 성경 구절을 드롭한 위치(타깃 항목) 앞에 끼운다 — 본문에서 큐로 끌어다 놓는 드래그-드롭 경로(레거시 BibleText DragDrop).
+    /// 타깃이 없으면(빈 공간) 맨 끝에. 항목 생성·본문 확장은 AddBibleSelection 과 동일(CreateBibleItem 공유).
+    /// </summary>
+    public LiveQueueItem? AddBibleSelectionRelativeTo(BibleSelection selection, LiveQueueItem? targetItem)
+    {
+        var item = CreateBibleItem(selection);
+        if (item is null)
+        {
+            return null;
+        }
+
+        // 같은 값(제목·Id)의 항목이 큐에 여러 번 있을 수 있으므로(입례/봉헌 반복 등) 값-동일 IndexOf 가 아니라
+        // 참조 일치(IndexOfReference)로 "드롭한 바로 그 인스턴스"의 위치를 찾는다 — 재정렬(MoveQueueItemRelativeTo)과 동일 규칙.
+        var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
+        var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"성경 구절 추가됨: {selection.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
+    // 성경 선택을 큐 항목으로 만든다(본문 확장 포함). 빈 선택이면 안내 후 null — 삽입 위치는 호출자가 정한다.
+    private LiveQueueItem? CreateBibleItem(BibleSelection selection)
+    {
         if (string.IsNullOrWhiteSpace(selection.IdString) || string.IsNullOrWhiteSpace(selection.Title))
         {
             StatusText = "선택된 성경 구절이 없습니다.";
@@ -611,17 +653,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 선택 구절을 실제 본문(절 단위 페이지·이중 언어면 보조 언어까지)으로 확장해 항목에 싣는다 —
         // 예전엔 성경 항목이 제목만 송출했으나 이제 회중 화면에 구절 본문이 보인다. 본문이 비면(파일 없음 등) 제목만(폴백).
         var body = Bible.ExpandSelectionBody(selection.IdString);
-        var item = new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible)
+        return new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible)
         {
             Lyrics = body,
         };
-        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
-        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
-        Queue.Insert(insertIndex, item);
-        SelectedItem = item;
-        StatusText = $"성경 구절 추가됨: {selection.Title}";
-        NotifyCommandStates();
-        return item;
     }
 
     /// <summary>
