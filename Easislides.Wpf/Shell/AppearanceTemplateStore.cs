@@ -40,7 +40,9 @@ public sealed record LyricsAppearanceTemplate(
     bool ShowTitleHeading = false,
     bool Outline = false,
     LyricsTextAlignment TitleHeadingAlignment = LyricsTextAlignment.Center,
-    bool TitleHeadingFirstScreenOnly = false)
+    bool TitleHeadingFirstScreenOnly = false,
+    // 밑줄(기본 false) — 구버전 JSON(이 키 없음) 역직렬화 시 기존 동작(밑줄 없음)으로 안전 복원.
+    bool Underline = false)
 {
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -64,7 +66,8 @@ public sealed record LyricsAppearanceTemplate(
             ShowTitleHeading: settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
             Outline: settings.Get(EasiSettingKeys.LyricsMonitorOutline),
             TitleHeadingAlignment: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
-            TitleHeadingFirstScreenOnly: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly));
+            TitleHeadingFirstScreenOnly: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
+            Underline: settings.Get(EasiSettingKeys.LyricsMonitorUnderline));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -88,6 +91,7 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorOutline, Outline);
         settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, TitleHeadingAlignment);
         settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, TitleHeadingFirstScreenOnly);
+        settings.Set(EasiSettingKeys.LyricsMonitorUnderline, Underline);
     }
 }
 

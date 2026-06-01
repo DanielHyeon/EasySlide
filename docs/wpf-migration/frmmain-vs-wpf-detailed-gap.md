@@ -70,7 +70,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_Interlace`/`Ind_Interlace` | **Region 1·2 인터레이스**(줄 교차) | 🔴 없음 |
 | `Def_R1Colour`·`Def_R2Colour`, `Ind_R1/R2Colour` | **영역별** 글자색 | 🟢 (증분 46) 곡 편집기 "영역별 스타일(Region 1/2)" 인스펙터에서 영역별 글자색 지정(FormatData 29/30 인코드)→출력 렌더 적용. Display Panel 전역 기본값 UI는 후속 |
 | `Def_R1Align`·`Def_R2Align` (L/C/R) | **영역별** 정렬 | 🟢 (증분 46) 곡 편집기 인스펙터에서 영역별 정렬(상속/왼쪽/가운데/오른쪽, FormatData 31/32)→출력 렌더 적용 |
-| `Ind_R1Bold/Italics(3종)/Underline`, R2 동일 | 영역별 굵게/기울임(없음/전체/후렴만)/밑줄 | 🟢 (증분 46/47) 곡 편집기 인스펙터에서 영역별 굵게/기울임 지정(FormatData 41 비트)→출력 렌더 영역별 적용(Region2 효과는 미지정 시 Region1 추종). Underline·ChorusOnly(후렴만)는 후속. 레거시 비트 한계로 "끄기"는 전역 추종 |
+| `Ind_R1Bold/Italics(3종)/Underline`, R2 동일 | 영역별 굵게/기울임(없음/전체/후렴만)/밑줄 | 🟢 (증분 46/47) 영역별 굵게/기울임(FormatData 41 비트)→출력 렌더 적용. (증분 48) **밑줄 전역 토글**(가사 밑줄, Region1/2 함께 — 단 외곽선 모드는 밑줄 미렌더). ChorusOnly(후렴만)·영역별 밑줄은 후속. 레거시 비트 한계로 굵게/기울임 "끄기"는 전역 추종 |
 | `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🔴 단일 크기만 |
 | `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟡 곡별 FormatData 글꼴만(인스펙터 글꼴 선택기 없음) |
 | `Def_Head`/`Ind_Head` (NoTitles/All/FirstScreen) | 헤딩 표시 모드 | 🟡 제목 헤딩 on/off·첫화면만(Verse 헤딩 없음) |

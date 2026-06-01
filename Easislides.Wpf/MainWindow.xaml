@@ -173,6 +173,9 @@
                 <MenuItem Header="가사 기울임"
                           IsChecked="{Binding ActiveLyricsItalic}"
                           Command="{Binding ToggleLyricsItalicCommand}" />
+                <MenuItem Header="가사 밑줄"
+                          IsChecked="{Binding ActiveLyricsUnderline}"
+                          Command="{Binding ToggleLyricsUnderlineCommand}" />
                 <Separator />
                 <!-- 전환 효과(FrmMain Transition) — 현재 페이드만 구현. 페이드 on/off + 속도 프리셋. -->
                 <MenuItem Header="전환 효과">
@@ -1760,6 +1763,21 @@
                                       Content="가"
                                       ToolTip="가사 기울임"
                                       AutomationProperties.Name="가사 기울임 토글" />
+                        <ToggleButton IsChecked="{Binding ActiveLyricsUnderline, Mode=OneWay}"
+                                      Command="{Binding ToggleLyricsUnderlineCommand}"
+                                      MinHeight="36"
+                                      MinWidth="48"
+                                      Padding="8,0"
+                                      Margin="0,0,6,0"
+                                      Content="가"
+                                      ToolTip="가사 밑줄"
+                                      AutomationProperties.Name="가사 밑줄 토글">
+                            <ToggleButton.ContentTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextDecorations="Underline" />
+                                </DataTemplate>
+                            </ToggleButton.ContentTemplate>
+                        </ToggleButton>
                         <ToggleButton IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
                                       Command="{Binding ToggleLyricsShadowCommand}"
                                       MinHeight="36"

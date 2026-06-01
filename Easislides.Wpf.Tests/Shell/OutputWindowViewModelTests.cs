@@ -488,6 +488,31 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_UnderlineOn_SetsBodyTextDecorations()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorUnderline, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+
+        sut.BodyTextDecorations.Should().BeSameAs(System.Windows.TextDecorations.Underline);
+    }
+
+    [Fact]
+    public void ApplySession_UnderlineOff_BodyTextDecorationsNull()
+    {
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyTextDecorations.Should().BeNull("밑줄 기본 off");
+    }
+
+    [Fact]
     public void ApplySession_OutlineOff_ShowsPlainBodyNotOutline()
     {
         // 기본 off → 일반 본문 렌더러만 보이고 외곽선 렌더러는 숨김(기존 동작 보존).

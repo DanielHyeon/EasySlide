@@ -133,6 +133,21 @@ public class AppearanceTemplateStoreTests
     }
 
     [Fact]
+    public void CaptureThenApply_RestoresUnderline()
+    {
+        // 밑줄도 모양 템플릿에 캡처·복원된다(굵게/기울임/그림자와 동일).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorUnderline, true);
+        var captured = LyricsAppearanceTemplate.Capture(settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorUnderline, false);
+        captured.ApplyTo(settings);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorUnderline).Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Load_OldSchemaJsonWithoutTitleHeading_DefaultsFalse()
     {
         // 스키마 진화 안전망(code-review MINOR): ShowTitleHeading 키가 없는 구버전(13필드) JSON 을

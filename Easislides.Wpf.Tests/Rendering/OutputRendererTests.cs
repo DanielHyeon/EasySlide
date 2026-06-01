@@ -838,6 +838,26 @@ public class OutputRendererTests
         scene.LyricsMonitorBold.Should().BeFalse();
         scene.LyricsMonitorItalic.Should().BeFalse();
         scene.LyricsMonitorShadow.Should().BeFalse();
+        scene.LyricsMonitorUnderline.Should().BeFalse("밑줄 기본 off — 무회귀");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CreateScene_ThreadsLyricsUnderline(bool underline)
+    {
+        // 가사 밑줄 설정이 설정→렌더→scene 으로 전달되는지 고정(전역 효과).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorUnderline: underline);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorUnderline.Should().Be(underline);
     }
 
     [Fact]
