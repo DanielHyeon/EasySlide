@@ -155,6 +155,10 @@ public partial class OutputWindow : Window, IOutputSurface
                 // 다이아몬드(마름모)를 중심에서 0→1 배율로 키운다. 변 길이 (w+h)/2 라 배율 1 에서 화면 전체를 덮는다.
                 AnimateScaledShapeClip(BuildDiamond(w, h), w / 2, h / 2, duration);
                 break;
+            case Settings.LyricsTransitionKind.Star:
+                // 별을 중심에서 0→1 배율로 키운다. 안쪽 반지름이 모서리 거리보다 커서 배율 1 에서 전체를 덮는다.
+                AnimateScaledShapeClip(BuildStar(w, h), w / 2, h / 2, duration);
+                break;
             case Settings.LyricsTransitionKind.DoorsOpen:
                 AnimateTileClip(BuildDoors(w, h, open: true, duration), duration);
                 break;
@@ -303,6 +307,39 @@ public partial class OutputWindow : Window, IOutputSurface
         fig.Segments.Add(new System.Windows.Media.LineSegment(new System.Windows.Point(cx + s, cy), true));
         fig.Segments.Add(new System.Windows.Media.LineSegment(new System.Windows.Point(cx, cy + s), true));
         fig.Segments.Add(new System.Windows.Media.LineSegment(new System.Windows.Point(cx - s, cy), true));
+        var geo = new System.Windows.Media.PathGeometry();
+        geo.Figures.Add(fig);
+        return geo;
+    }
+
+    // 화면을 덮는 5각 별 지오메트리 — 안쪽 반지름(오목 골)을 모서리 거리+1 로 잡아 배율 1 에서 모든 화면점을
+    // 포함한다(별의 가장 안쪽 경계점 = 골이 모서리보다 멀리 있으므로 전체 덮음). 바깥 점은 화면 밖으로 뻗는다.
+    // 애니메이션 중에는 별이 커지는 모습이 보이고, 끝에는 화면을 가득 덮어 잔여 마스크가 없다.
+    internal static System.Windows.Media.PathGeometry BuildStar(double w, double h)
+    {
+        var cx = w / 2;
+        var cy = h / 2;
+        var cornerDist = Math.Sqrt((w / 2 * (w / 2)) + (h / 2 * (h / 2)));
+        var innerR = cornerDist + 1;          // 골(가장 안쪽)이 모서리보다 멀리 → 전체 덮음.
+        var outerR = innerR / 0.382;           // 표준 5각 별 안/바깥 비율(≈0.382)로 뾰족한 별.
+
+        var fig = new System.Windows.Media.PathFigure { IsClosed = true };
+        // 위 꼭짓점부터 시작해 바깥/안쪽을 번갈아 10개 꼭짓점(72°/2=36° 간격).
+        for (var i = 0; i < 10; i++)
+        {
+            var r = (i % 2 == 0) ? outerR : innerR;
+            var angle = (-System.Math.PI / 2) + (i * System.Math.PI / 5); // -90°에서 36°씩.
+            var p = new System.Windows.Point(cx + (r * System.Math.Cos(angle)), cy + (r * System.Math.Sin(angle)));
+            if (i == 0)
+            {
+                fig.StartPoint = p;
+            }
+            else
+            {
+                fig.Segments.Add(new System.Windows.Media.LineSegment(p, true));
+            }
+        }
+
         var geo = new System.Windows.Media.PathGeometry();
         geo.Figures.Add(fig);
         return geo;

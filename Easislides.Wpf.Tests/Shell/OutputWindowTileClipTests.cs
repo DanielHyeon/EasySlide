@@ -91,4 +91,28 @@ public class OutputWindowTileClipTests
         geo.FillContains(new System.Windows.Point(1920, 1080)).Should().BeTrue();
         geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심 포함");
     }
+
+    [Fact]
+    public void BuildStar_CoversScreen_AtFullScale()
+    {
+        // 별의 안쪽 골이 모서리보다 멀어 배율 1 에서 네 모서리·중심·가장자리를 모두 포함 → 전체 덮음(잔여 마스크 없음).
+        var geo = OutputWindow.BuildStar(1920, 1080);
+
+        geo.FillContains(new System.Windows.Point(0, 0)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(1920, 0)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(0, 1080)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(1920, 1080)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(960, 0)).Should().BeTrue("상단 가장자리");
+        geo.FillContains(new System.Windows.Point(0, 540)).Should().BeTrue("좌측 가장자리");
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심");
+
+        // 가장 까다로운 방향(별의 오목 골 방위 = 경계가 중심에 가장 가까운 곳)에서도, 모서리 거리만큼
+        // 떨어진 점이 별 안에 있어야 한다. 골 반지름(innerR=모서리거리+1)이 더 멀기 때문 → 모서리 표본이면 충분함을 문서화.
+        var cornerDist = System.Math.Sqrt((960.0 * 960) + (540.0 * 540));
+        var troughAngle = (-System.Math.PI / 2) + (System.Math.PI / 5); // i=1(첫 오목 골) 방위 = -54°.
+        var pointAlongTrough = new System.Windows.Point(
+            960 + (cornerDist * System.Math.Cos(troughAngle)),
+            540 + (cornerDist * System.Math.Sin(troughAngle)));
+        geo.FillContains(pointAlongTrough).Should().BeTrue("골 방위로 모서리 거리만큼 떨어진 점도 별 안 → 노치 없음");
+    }
 }

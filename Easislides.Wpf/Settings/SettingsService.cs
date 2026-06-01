@@ -116,6 +116,8 @@ public enum LyricsTransitionKind
     Diamond = 19,
     DoorsOpen = 20,
     DoorsClose = 21,
+    // 별(5각) — 안쪽 반지름(오목 골)을 화면 모서리 거리보다 크게 잡아 배율 1 에서 전체를 덮는다(잔여 마스크 없음).
+    Star = 22,
 }
 
 public static class EasiSettingKeys

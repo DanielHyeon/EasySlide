@@ -253,6 +253,10 @@
                               IsChecked="{Binding TransitionKindIsDoorsClose}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsClose}" />
+                    <MenuItem Header="모션: 별"
+                              IsChecked="{Binding TransitionKindIsStar}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Star}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

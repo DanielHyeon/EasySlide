@@ -150,6 +150,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsDiamond))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsDoorsOpen))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsDoorsClose))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsStar))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -174,6 +175,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsDiamond => ActiveTransitionKind == LyricsTransitionKind.Diamond;
     public bool TransitionKindIsDoorsOpen => ActiveTransitionKind == LyricsTransitionKind.DoorsOpen;
     public bool TransitionKindIsDoorsClose => ActiveTransitionKind == LyricsTransitionKind.DoorsClose;
+    public bool TransitionKindIsStar => ActiveTransitionKind == LyricsTransitionKind.Star;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -2046,6 +2048,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.Diamond => "다이아몬드",
             LyricsTransitionKind.DoorsOpen => "양문 열기",
             LyricsTransitionKind.DoorsClose => "양문 닫기",
+            LyricsTransitionKind.Star => "별",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

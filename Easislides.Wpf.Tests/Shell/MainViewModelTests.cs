@@ -988,6 +988,11 @@ public class MainViewModelTests
         sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.DoorsOpen);
         sut.TransitionKindIsDoorsOpen.Should().BeTrue();
         sut.StatusText.Should().Contain("양문");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Star);
+        sut.TransitionKindIsStar.Should().BeTrue();
+        sut.TransitionKindIsDoorsOpen.Should().BeFalse();
+        sut.StatusText.Should().Contain("별");
     }
 
     [Fact]
