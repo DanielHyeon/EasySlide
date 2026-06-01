@@ -112,6 +112,10 @@ public enum LyricsTransitionKind
     BlindsHorizontal = 16,
     BlindsVertical = 17,
     Checkerboard = 18,
+    // 다이아몬드(중심 확대 도형 클립) · 양문 열기/닫기(2분할 클립) — 끝에 화면 전체를 덮어 잔여 마스크 없음.
+    Diamond = 19,
+    DoorsOpen = 20,
+    DoorsClose = 21,
 }
 
 public static class EasiSettingKeys

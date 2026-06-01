@@ -979,6 +979,15 @@ public class MainViewModelTests
         sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.BlindsHorizontal);
         sut.TransitionKindIsBlindsH.Should().BeTrue();
         sut.StatusText.Should().Contain("블라인드");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Diamond);
+        sut.TransitionKindIsDiamond.Should().BeTrue();
+        sut.TransitionKindIsBlindsH.Should().BeFalse();
+        sut.StatusText.Should().Contain("다이아몬드");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.DoorsOpen);
+        sut.TransitionKindIsDoorsOpen.Should().BeTrue();
+        sut.StatusText.Should().Contain("양문");
     }
 
     [Fact]

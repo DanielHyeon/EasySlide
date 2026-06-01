@@ -151,6 +151,16 @@ public partial class OutputWindow : Window, IOutputSurface
             case Settings.LyricsTransitionKind.Checkerboard:
                 AnimateTileClip(BuildCheckerboard(w, h, duration), duration);
                 break;
+            case Settings.LyricsTransitionKind.Diamond:
+                // 다이아몬드(마름모)를 중심에서 0→1 배율로 키운다. 변 길이 (w+h)/2 라 배율 1 에서 화면 전체를 덮는다.
+                AnimateScaledShapeClip(BuildDiamond(w, h), w / 2, h / 2, duration);
+                break;
+            case Settings.LyricsTransitionKind.DoorsOpen:
+                AnimateTileClip(BuildDoors(w, h, open: true, duration), duration);
+                break;
+            case Settings.LyricsTransitionKind.DoorsClose:
+                AnimateTileClip(BuildDoors(w, h, open: false, duration), duration);
+                break;
             default:
                 // 비-클립 종류(Fade/Slide/Zoom/Spin/Flip) — 이전 클립이 남지 않도록 제거.
                 ContentArea.Clip = null;
@@ -278,6 +288,68 @@ public partial class OutputWindow : Window, IOutputSurface
             };
             rects[i].BeginAnimation(System.Windows.Media.RectangleGeometry.RectProperty, anim);
         }
+    }
+
+    // 화면을 덮는 마름모(다이아몬드) 지오메트리 — 꼭짓점은 중심에서 상하좌우 (w+h)/2 거리.
+    // 배율 1 에서 |x-cx|+|y-cy| <= (w+h)/2 영역이 모서리(w/2+h/2)까지 포함 → 화면 전체 덮음(잔여 마스크 없음).
+    internal static System.Windows.Media.PathGeometry BuildDiamond(double w, double h)
+    {
+        var cx = w / 2;
+        var cy = h / 2;
+        // 모서리 L1 거리 = w/2+h/2 = (w+h)/2 이므로 정확히 변 위에 놓인다. +1px 오버스캔으로 모서리를
+        // 변 안쪽으로 밀어 안티에일리어싱 모서리 슬라이버(마지막 1프레임)를 없앤다(code-reviewer MAJOR).
+        var s = (w + h) / 2 + 1;
+        var fig = new System.Windows.Media.PathFigure { StartPoint = new System.Windows.Point(cx, cy - s), IsClosed = true };
+        fig.Segments.Add(new System.Windows.Media.LineSegment(new System.Windows.Point(cx + s, cy), true));
+        fig.Segments.Add(new System.Windows.Media.LineSegment(new System.Windows.Point(cx, cy + s), true));
+        fig.Segments.Add(new System.Windows.Media.LineSegment(new System.Windows.Point(cx - s, cy), true));
+        var geo = new System.Windows.Media.PathGeometry();
+        geo.Figures.Add(fig);
+        return geo;
+    }
+
+    // 양문 열기/닫기 — 좌우 두 사각이 합쳐 화면 전체를 덮는다(끝에 잔여 마스크 없음).
+    // open=true: 중심에서 양 끝으로 열림. open=false: 양 끝에서 중심으로 닫힘. 두 문 모두 즉시 시작·전체 길이.
+    internal static System.Collections.Generic.List<TileClip> BuildDoors(double w, double h, bool open, TimeSpan duration)
+    {
+        var cx = w / 2;
+        return open
+            ? new System.Collections.Generic.List<TileClip>
+            {
+                new(new System.Windows.Rect(cx, 0, 0, h), new System.Windows.Rect(0, 0, cx, h), System.TimeSpan.Zero, duration),
+                new(new System.Windows.Rect(cx, 0, 0, h), new System.Windows.Rect(cx, 0, cx, h), System.TimeSpan.Zero, duration),
+            }
+            : new System.Collections.Generic.List<TileClip>
+            {
+                new(new System.Windows.Rect(0, 0, 0, h), new System.Windows.Rect(0, 0, cx, h), System.TimeSpan.Zero, duration),
+                new(new System.Windows.Rect(w, 0, 0, h), new System.Windows.Rect(cx, 0, cx, h), System.TimeSpan.Zero, duration),
+            };
+    }
+
+    // 중심에서 0→1 배율로 키우는 도형 클립(다이아몬드 등). 끝나면 클립 제거(빠른 전환 경쟁은 참조 가드).
+    private void AnimateScaledShapeClip(System.Windows.Media.Geometry shape, double cx, double cy, TimeSpan duration)
+    {
+        var scale = new System.Windows.Media.ScaleTransform(0, 0, cx, cy);
+        shape.Transform = scale;
+        ContentArea.Clip = shape;
+        var animX = new DoubleAnimation
+        {
+            From = 0,
+            To = 1,
+            Duration = new Duration(duration),
+            FillBehavior = FillBehavior.HoldEnd,
+            EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+        };
+        animX.Completed += (_, _) => { if (ShouldClearClip(ContentArea.Clip, shape)) ContentArea.Clip = null; };
+        scale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, animX);
+        scale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty, new DoubleAnimation
+        {
+            From = 0,
+            To = 1,
+            Duration = new Duration(duration),
+            FillBehavior = FillBehavior.HoldEnd,
+            EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+        });
     }
 
     // 전환 완료 시 클립을 제거해도 되는지 — 현재 활성 클립이 "내가 건 그 도형"일 때만 true.

@@ -147,6 +147,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsBlindsH))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsBlindsV))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsCheckerboard))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsDiamond))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsDoorsOpen))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsDoorsClose))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -168,6 +171,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsBlindsH => ActiveTransitionKind == LyricsTransitionKind.BlindsHorizontal;
     public bool TransitionKindIsBlindsV => ActiveTransitionKind == LyricsTransitionKind.BlindsVertical;
     public bool TransitionKindIsCheckerboard => ActiveTransitionKind == LyricsTransitionKind.Checkerboard;
+    public bool TransitionKindIsDiamond => ActiveTransitionKind == LyricsTransitionKind.Diamond;
+    public bool TransitionKindIsDoorsOpen => ActiveTransitionKind == LyricsTransitionKind.DoorsOpen;
+    public bool TransitionKindIsDoorsClose => ActiveTransitionKind == LyricsTransitionKind.DoorsClose;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -2037,6 +2043,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.BlindsHorizontal => "블라인드(가로)",
             LyricsTransitionKind.BlindsVertical => "블라인드(세로)",
             LyricsTransitionKind.Checkerboard => "체커보드",
+            LyricsTransitionKind.Diamond => "다이아몬드",
+            LyricsTransitionKind.DoorsOpen => "양문 열기",
+            LyricsTransitionKind.DoorsClose => "양문 닫기",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

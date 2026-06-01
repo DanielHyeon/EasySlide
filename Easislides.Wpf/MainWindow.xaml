@@ -241,6 +241,18 @@
                               IsChecked="{Binding TransitionKindIsCheckerboard}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.Checkerboard}" />
+                    <MenuItem Header="모션: 다이아몬드"
+                              IsChecked="{Binding TransitionKindIsDiamond}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Diamond}" />
+                    <MenuItem Header="모션: 양문 열기"
+                              IsChecked="{Binding TransitionKindIsDoorsOpen}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsOpen}" />
+                    <MenuItem Header="모션: 양문 닫기"
+                              IsChecked="{Binding TransitionKindIsDoorsClose}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsClose}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

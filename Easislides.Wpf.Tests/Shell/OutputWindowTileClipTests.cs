@@ -52,4 +52,43 @@ public class OutputWindowTileClipTests
         // 끝 사각 면적 합 = 전체 화면 면적(셀이 격자를 빈틈없이 덮음).
         tiles.Sum(t => t.To.Width * t.To.Height).Should().BeApproximately(1920.0 * 1080.0, 1.0);
     }
+
+    [Fact]
+    public void BuildDoors_Open_TwoHalves_CoverFullWidth_StartHidden()
+    {
+        var doors = OutputWindow.BuildDoors(1920, 1080, open: true, Dur);
+
+        doors.Should().HaveCount(2);
+        doors.Should().OnlyContain(t => t.From.Width == 0, "시작 시 두 문 모두 폭 0(숨김)");
+        // 두 문이 합쳐 전체 너비를 덮는다(각 절반).
+        doors.Sum(t => t.To.Width).Should().BeApproximately(1920, 0.001);
+        doors.Should().OnlyContain(t => t.To.Height == 1080 && t.Duration == Dur);
+    }
+
+    [Fact]
+    public void BuildDoors_Close_StartsAtEdges_MeetAtCenter()
+    {
+        var doors = OutputWindow.BuildDoors(1920, 1080, open: false, Dur);
+
+        doors.Should().HaveCount(2);
+        // 닫기: 한 문은 좌측 끝(x=0)에서, 다른 문은 우측 끝(시작 x=w)에서 시작.
+        doors.Should().Contain(t => t.From.X == 0);
+        doors.Should().Contain(t => t.From.X == 1920);
+        doors.Should().OnlyContain(t => t.From.Width == 0, "닫기도 시작 시 두 문 모두 폭 0(숨김)");
+        doors.Sum(t => t.To.Width).Should().BeApproximately(1920, 0.001);
+    }
+
+    [Fact]
+    public void BuildDiamond_CoversScreen_AtFullScale()
+    {
+        // 마름모가 배율 1 에서 화면 모서리(가장 먼 점)를 포함 → 전체 덮음(잔여 마스크 없음).
+        var geo = OutputWindow.BuildDiamond(1920, 1080);
+
+        // 네 모서리가 모두 마름모 안에 있어야 한다(FillContains).
+        geo.FillContains(new System.Windows.Point(0, 0)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(1920, 0)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(0, 1080)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(1920, 1080)).Should().BeTrue();
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("중심 포함");
+    }
 }
