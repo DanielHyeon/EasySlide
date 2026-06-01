@@ -800,6 +800,21 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void PanelBackgroundBrush_DefaultsToSemiTransparentBlack_AndBecomesTransparentWhenPanelTransparentOn()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Amazing Grace", "Display 2", IsBlackout: false));
+        ((SolidColorBrush)sut.PanelBackgroundBrush).Color.Should().Be(Color.FromArgb(0x66, 0x00, 0x00, 0x00), "기본 반투명 검정");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTransparent, true).Succeeded.Should().BeTrue();
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Amazing Grace", "Display 2", IsBlackout: false));
+        ((SolidColorBrush)sut.PanelBackgroundBrush).Color.Should().Be(Colors.Transparent, "패널 투명 on 이면 Transparent");
+    }
+
+    [Fact]
     public void ApplySession_WithSettingsBackedLyricsMonitorAppearance_UpdatesBrushesAndVisibility()
     {
         using var settingsFolder = TempSettingsFolder.Create();

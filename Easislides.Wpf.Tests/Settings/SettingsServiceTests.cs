@@ -72,6 +72,27 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Default_LyricsMonitorPanelTransparent_IsOff()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorPanelTransparent).Should().BeFalse("기본은 반투명 밴드(무회귀)");
+    }
+
+    [Fact]
+    public void Set_LyricsMonitorPanelTransparent_PersistsToDiskAndReloads()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorPanelTransparent, true).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorPanelTransparent).Should().BeTrue();
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorPanelTransparent.Should().BeTrue();
+    }
+
+    [Fact]
     public void Default_UseSongNumbering_IsOff()
     {
         using var fixture = TempSettingsFolder.Create();

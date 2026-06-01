@@ -220,7 +220,7 @@
                     Margin="0,0,24,16"
                     Padding="10,3"
                     CornerRadius="4"
-                    Background="#66000000"
+                    Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding PositionIndicatorVisibility}">
                 <TextBlock Text="{Binding PositionLabel}"
@@ -235,7 +235,7 @@
                     Margin="24,0,0,16"
                     Padding="10,3"
                     CornerRadius="4"
-                    Background="#66000000"
+                    Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding ItemNumberVisibility}">
                 <TextBlock Text="{Binding ItemNumberText}"
@@ -251,7 +251,7 @@
                     Margin="0,0,0,16"
                     Padding="10,3"
                     CornerRadius="4"
-                    Background="#66000000"
+                    Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding CopyrightVisibility}">
                 <TextBlock Text="{Binding CopyrightText}"
@@ -271,7 +271,7 @@
                     Margin="0,16,24,0"
                     Padding="10,3"
                     CornerRadius="4"
-                    Background="#66000000"
+                    Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding NextItemVisibility}">
                 <TextBlock Text="{Binding NextItemText}"

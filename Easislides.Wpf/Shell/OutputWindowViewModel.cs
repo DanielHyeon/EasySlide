@@ -100,6 +100,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 곡별 배경 이미지(61) — 색 배경 위에 표시(이미지 우선). 없으면 색 배경만 보인다(무회귀).
     private ImageSource? _sceneBackgroundImageSource;
     private Brush? _backgroundImageBrush;
+    private Brush _panelBackgroundBrush = PanelDefaultBrush;
     private Visibility _backgroundImageVisibility = Visibility.Collapsed;
     // 배경 이미지 캐시: 같은(해석된) 경로를 매번 다시 디코딩하지 않도록 보관.
     private string? _cachedBackgroundImagePath;
@@ -441,6 +442,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _backgroundImageBrush, value);
     }
 
+    /// <summary>
+    /// Display Panel(곡번호·저작권·다음항목·위치 인디케이터) 밴드의 배경 브러시 — 기본은 반투명 검정(#66000000),
+    /// "패널 투명"(Def_PanelTransparent) on 이면 Transparent. 4개 밴드가 모두 이 브러시를 쓴다.
+    /// </summary>
+    public Brush PanelBackgroundBrush
+    {
+        get => _panelBackgroundBrush;
+        private set => SetProperty(ref _panelBackgroundBrush, value);
+    }
+
     /// <summary>배경 이미지 표시 여부 — 곡별 배경 이미지가 로드됐을 때만 Visible(색 배경 위에 덮음).</summary>
     public Visibility BackgroundImageVisibility
     {
@@ -660,6 +671,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             scene.LyricsMonitorBackgroundColorArgb,
             scene.LyricsMonitorBackgroundColor2Argb,
             scene.LyricsMonitorBackgroundIsGradient);
+        // Display Panel 밴드 배경 — "패널 투명" on 이면 Transparent, off(기본)면 반투명 검정(무회귀).
+        PanelBackgroundBrush = scene.LyricsMonitorPanelTransparent ? Brushes.Transparent : PanelDefaultBrush;
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
@@ -999,6 +1012,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             (byte)value);
     }
 
+    // Display Panel 밴드의 기본(반투명 검정) 배경 — 기존 XAML 리터럴 #66000000 과 동일. Freeze 해 공유.
+    private static readonly Brush PanelDefaultBrush = CreateFrozenPanelBrush();
+
+    private static Brush CreateFrozenPanelBrush()
+    {
+        var brush = new SolidColorBrush(Color.FromArgb(0x66, 0x00, 0x00, 0x00));
+        brush.Freeze();
+        return brush;
+    }
+
     private static Brush CreateBrush(int argb)
     {
         var brush = new SolidColorBrush(ColorFromArgb(argb));
@@ -1051,6 +1074,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBold.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShadow.Id, StringComparison.OrdinalIgnoreCase) ||
+                // Display Panel 투명 토글도 라이브 출력에 즉시 반영(Def_PanelTransparent).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 곡 번호 표시 토글도 라이브 출력에 즉시 반영(Display Panel).

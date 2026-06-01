@@ -191,6 +191,9 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorBold = new("liveOutput.lyricsMonitorBold", false);
     public static readonly SettingKey<bool> LyricsMonitorItalic = new("liveOutput.lyricsMonitorItalic", false);
     public static readonly SettingKey<bool> LyricsMonitorShadow = new("liveOutput.lyricsMonitorShadow", false);
+    // Display Panel 배경 투명(레거시 Def_PanelTransparent). on 이면 곡번호·저작권·다음항목·위치 인디케이터 밴드의
+    // 어두운 배경(#66000000)을 없애 텍스트가 슬라이드 위에 바로 보인다. 기본 off=기존 반투명 밴드(무회귀).
+    public static readonly SettingKey<bool> LyricsMonitorPanelTransparent = new("liveOutput.lyricsMonitorPanelTransparent", false);
     // 출력 가사 줄 간격(폰트 크기 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125 로 기존 줄높이(폰트×1.25) 보존. 범위 100~220.
     public static readonly SettingKey<int> LyricsMonitorLineSpacingPercent = new("liveOutput.lyricsMonitorLineSpacingPercent", 125);
     // 출력 위치 인디케이터 표시(절/슬라이드 "N/M", 인-셸 §7.3-A). 기본 off.
@@ -275,6 +278,7 @@ public static class EasiSettingKeys
         LyricsMonitorBold,
         LyricsMonitorItalic,
         LyricsMonitorShadow,
+        LyricsMonitorPanelTransparent,
         LyricsMonitorLineSpacingPercent,
         LyricsMonitorShowPositionIndicator,
         // Display Panel 토글들(곡번호·저작권·다음항목) — All 누락 시 FindChangedKeys 가 변경을 못 잡아
@@ -383,6 +387,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorItalic { get; init; } = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
 
     public bool LyricsMonitorShadow { get; init; } = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
+
+    public bool LyricsMonitorPanelTransparent { get; init; } = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
 
     public int LyricsMonitorLineSpacingPercent { get; init; } = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
 
@@ -1162,6 +1168,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBold" => snapshot.LiveOutput.LyricsMonitorBold,
             "liveOutput.lyricsMonitorItalic" => snapshot.LiveOutput.LyricsMonitorItalic,
             "liveOutput.lyricsMonitorShadow" => snapshot.LiveOutput.LyricsMonitorShadow,
+            "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot.LiveOutput.LyricsMonitorShowItemNumber,
@@ -1313,6 +1320,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShadow" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShadow = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorPanelTransparent" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelTransparent = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot with
             {

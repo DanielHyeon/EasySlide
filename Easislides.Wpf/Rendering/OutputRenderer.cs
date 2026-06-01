@@ -44,6 +44,8 @@ public sealed record LiveOutputRenderSettings(
     bool LyricsMonitorBold = false,
     bool LyricsMonitorItalic = false,
     bool LyricsMonitorShadow = false,
+    // Display Panel 배경 투명(Def_PanelTransparent). 기본 false=반투명 밴드(무회귀).
+    bool LyricsMonitorPanelTransparent = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 위치 인디케이터(절/슬라이드 "N/M") 표시 여부(인-셸 §7.3-A). 기본 off.
@@ -91,6 +93,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBold),
             settings.Get(EasiSettingKeys.LyricsMonitorItalic),
             settings.Get(EasiSettingKeys.LyricsMonitorShadow),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent),
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
@@ -151,6 +154,8 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorBold = false,
     bool LyricsMonitorItalic = false,
     bool LyricsMonitorShadow = false,
+    // Display Panel 배경 투명(Def_PanelTransparent). 기본 false=반투명 밴드(무회귀).
+    bool LyricsMonitorPanelTransparent = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 위치 라벨(절/슬라이드 "N/M"). Live 가 아니면 빈 문자열로 들어온다.
@@ -333,6 +338,7 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorBold,
             liveOutput.LyricsMonitorItalic,
             liveOutput.LyricsMonitorShadow,
+            liveOutput.LyricsMonitorPanelTransparent,
             liveOutput.LyricsMonitorLineSpacingPercent,
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,

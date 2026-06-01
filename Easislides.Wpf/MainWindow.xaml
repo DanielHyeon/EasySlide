@@ -154,6 +154,10 @@
                 <MenuItem Header="다음 항목 표시"
                           IsChecked="{Binding ActiveLyricsNextItem}"
                           Command="{Binding ToggleLyricsNextItemCommand}" />
+                <MenuItem Header="정보 패널 투명 배경"
+                          IsChecked="{Binding ActiveLyricsPanelTransparent}"
+                          Command="{Binding TogglePanelTransparentCommand}"
+                          ToolTip="곡번호·저작권·다음항목 밴드의 어두운 배경을 없앱니다(레거시 Transparent)." />
                 <MenuItem Header="제목 헤딩"
                           IsChecked="{Binding ActiveLyricsTitleHeading}"
                           Command="{Binding ToggleLyricsTitleHeadingCommand}" />

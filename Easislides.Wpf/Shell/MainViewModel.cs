@@ -122,6 +122,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsBold = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
     [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
     [ObservableProperty] private bool _activeLyricsShadow = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
+    // 현재 Display Panel 투명 배경 상태(메뉴 체크 바인딩용).
+    [ObservableProperty] private bool _activeLyricsPanelTransparent = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
     // 현재 위치 인디케이터 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용).
     [ObservableProperty] private bool _activeLyricsPositionIndicator = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
     // 현재 곡 번호 표시 상태(메뉴 체크 바인딩용, Display Panel).
@@ -435,6 +437,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
+        TogglePanelTransparentCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelTransparent, ActiveLyricsPanelTransparent));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
         ToggleLyricsCopyrightCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowCopyright, ActiveLyricsCopyright));
@@ -527,6 +530,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
+    /// <summary>Display Panel 배경 투명 토글(레거시 Def_PanelTransparent) — 설정→출력 VM 라이브 반영.</summary>
+    public IRelayCommand TogglePanelTransparentCommand { get; }
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
     public IRelayCommand ToggleLyricsItemNumberCommand { get; }
     public IRelayCommand ToggleLyricsCopyrightCommand { get; }
@@ -2244,6 +2249,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : key.Id == EasiSettingKeys.LyricsMonitorShowItemNumber.Id ? "곡 번호"
             : key.Id == EasiSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
             : key.Id == EasiSettingKeys.LyricsMonitorShowNextItem.Id ? "다음 항목"
+            : key.Id == EasiSettingKeys.LyricsMonitorPanelTransparent.Id ? "패널 투명 배경"
             : key.Id == EasiSettingKeys.LyricsMonitorUseFadeTransition.Id ? "전환 페이드"
             : key.Id;
         StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
@@ -2415,6 +2421,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
         ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);
+        ActiveLyricsPanelTransparent = _settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent);
         ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveLyricsItemNumber = _settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber);
         ActiveLyricsCopyright = _settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright);
