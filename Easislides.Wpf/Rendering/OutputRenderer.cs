@@ -153,7 +153,11 @@ public sealed record OutputSceneSnapshot(
     bool ShowLyricsTitleHeadingFirstScreenOnly = false,
     // 현재 가사 절 인덱스(0=첫 절) — 오직 ShowsTitleHeading "첫 화면만" 판정 전용(게이트 한정).
     // 비-Live(Cleared/Blackout 등)나 곡이 아니면 0 으로 들어오므로, 실제 세션 페이지 인덱스로 신뢰하지 말 것.
-    int CurrentLyricsPageIndex = 0)
+    int CurrentLyricsPageIndex = 0,
+    // 출력 가사 글꼴명(곡별 FormatData 43 오버라이드). 비었으면 테마 기본 글꼴 상속(무회귀). §7.3-A per-song 폰트.
+    string LyricsMonitorFontFamily = "",
+    // 출력 배경 이미지 경로(곡별 FormatData 61 오버라이드). 비었으면 색 배경 유지. VM 이 로드해 색 배경 위에 표시.
+    string BackgroundImagePath = "")
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -221,6 +225,18 @@ public sealed class OutputRenderer : IOutputRenderer
         var textAlignment = isLive && request.Session.OverrideTextAlignment is LyricsTextAlignment songAlign
             ? songAlign
             : liveOutput.LyricsMonitorTextAlignment;
+        // 곡별 폰트 크기(있으면)도 Live 일 때만 운영 기본 크기를 이긴다(레거시 pt→px 는 GoLive 에서 변환됨).
+        var fontSizePx = isLive && request.Session.OverrideFontSizePx is int songFontPx
+            ? songFontPx
+            : liveOutput.LyricsMonitorFontSize;
+        // 곡별 글꼴명(있으면)도 Live 일 때만 적용. 비었으면 빈 문자열 → VM 이 테마 기본 글꼴을 상속(무회귀).
+        var fontFamily = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName)
+            ? request.Session.OverrideFontName!
+            : "";
+        // 곡별 배경 이미지(있으면)도 Live 일 때만 적용. 비었으면 빈 문자열 → VM 이 색 배경을 유지(무회귀).
+        var backgroundImagePath = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
+            ? request.Session.OverrideBackgroundImagePath!
+            : "";
 
         return new OutputSceneSnapshot(
             kind,
@@ -246,7 +262,7 @@ public sealed class OutputRenderer : IOutputRenderer
             kind == OutputSceneKind.Live ? request.Session.CurrentItemBodyText : string.Empty,
             textAlignment,
             liveOutput.LyricsMonitorVerticalAlignment,
-            liveOutput.LyricsMonitorFontSize,
+            fontSizePx,
             liveOutput.LyricsMonitorBold,
             liveOutput.LyricsMonitorItalic,
             liveOutput.LyricsMonitorShadow,
@@ -259,7 +275,11 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorTitleHeadingAlignment,
             liveOutput.TitleHeadingFirstScreenOnly,
             // 현재 절 인덱스는 Live 일 때만 의미 있다(그 외엔 0=첫 화면 취급).
-            kind == OutputSceneKind.Live ? request.Session.CurrentLyricsPageIndex : 0);
+            kind == OutputSceneKind.Live ? request.Session.CurrentLyricsPageIndex : 0,
+            // 곡별 글꼴명(Live + 오버라이드 있을 때만). 비었으면 VM 이 테마 기본 글꼴을 상속(무회귀).
+            fontFamily,
+            // 곡별 배경 이미지 경로(Live + 오버라이드 있을 때만). 비었으면 VM 이 색 배경을 유지(무회귀).
+            backgroundImagePath);
     }
 
     private ImagePlacement GetContentPlacement(

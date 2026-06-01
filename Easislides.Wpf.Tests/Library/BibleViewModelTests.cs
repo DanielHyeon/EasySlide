@@ -180,6 +180,99 @@ public class BibleViewModelTests
         repository.LastRenamedFileName.Should().BeNull("변경 없으면 저장소 호출 안 함");
     }
 
+    [Fact]
+    public async Task MoveVersionDown_ReordersAndPreservesSelection()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv, fixture.Niv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.MoveVersionDown(fixture.Kjv);
+
+        ok.Should().BeTrue();
+        sut.Versions.Select(v => v.FileName).Should().Equal("niv.db", "kjv.db");
+        sut.SelectedVersion!.FileName.Should().Be("kjv.db", "이동 후 같은 버전 선택 유지");
+    }
+
+    [Fact]
+    public async Task MoveVersionUp_AtTop_ReturnsFalse_NoChange()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv, fixture.Niv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.MoveVersionUp(fixture.Kjv);
+
+        ok.Should().BeFalse("맨 위에서는 더 올릴 수 없음");
+        sut.Versions.Select(v => v.FileName).Should().Equal("kjv.db", "niv.db");
+    }
+
+    [Fact]
+    public async Task DeleteVersion_RemovesAndSelectsNeighbor()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv, fixture.Niv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.DeleteVersion(fixture.Kjv);
+
+        ok.Should().BeTrue();
+        sut.Versions.Select(v => v.Name).Should().Equal("NIV");
+        sut.SelectedVersion!.FileName.Should().Be("niv.db", "삭제 후 인접 버전 선택");
+    }
+
+    [Fact]
+    public async Task AddVersion_AddsAndSelectsNewVersion()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv] };
+        repository.Addable.Add(new BibleAddableVersion("niv.db", "NIV", IsHidden: false));
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.AddVersion("niv.db", "NIV");
+
+        ok.Should().BeTrue();
+        sut.Versions.Select(v => v.Name).Should().Equal("KJV", "NIV");
+        sut.SelectedVersion!.FileName.Should().Be("niv.db", "추가 후 새 버전 선택");
+    }
+
+    [Fact]
+    public async Task AddVersion_DuplicateName_IsRejected()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv] };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        var ok = sut.AddVersion("kjv2.db", "KJV");
+
+        ok.Should().BeFalse("보이는 버전과 이름이 겹치면 거부");
+        sut.Versions.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task GetAddableVersions_ReturnsRepositoryCandidates()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository { Versions = [fixture.Kjv] };
+        repository.Addable.Add(new BibleAddableVersion("niv.db", "NIV", IsHidden: false));
+        repository.Addable.Add(new BibleAddableVersion("hidden.db", "임시", IsHidden: true));
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        sut.GetAddableVersions().Select(a => a.FileName).Should().BeEquivalentTo("niv.db", "hidden.db");
+    }
+
     private sealed class FakeBibleRepository : IBibleRepository
     {
         public IReadOnlyList<BibleVersion> Versions { get; init; } = [];
@@ -270,6 +363,64 @@ public class BibleViewModelTests
             }
 
             _live[index] = _live[index] with { Name = newName.Trim() };
+            return true;
+        }
+
+        // 추가 후보(관리 UI 가 GetAddableVersions 로 받는 목록) — 테스트에서 설정.
+        public List<BibleAddableVersion> Addable { get; } = new();
+
+        public bool ReorderVersions(string workingFolder, IReadOnlyList<string> orderedFileNames)
+        {
+            _live ??= Versions.ToList();
+            if (orderedFileNames is null || orderedFileNames.Count == 0)
+            {
+                return false;
+            }
+
+            // 주어진 파일 순서대로 보이는 버전을 재배열(매칭 안 되는 파일은 무시).
+            var reordered = orderedFileNames
+                .Select(file => _live.FirstOrDefault(v => v.FileName == file))
+                .Where(v => v is not null)
+                .Select(v => v!)
+                .ToList();
+            if (reordered.Count == 0)
+            {
+                return false;
+            }
+
+            // 순서에 없던 보이는 버전은 뒤에 그대로 붙인다.
+            reordered.AddRange(_live.Where(v => !reordered.Contains(v)));
+            _live.Clear();
+            _live.AddRange(reordered);
+            return true;
+        }
+
+        public bool DeleteVersion(string workingFolder, string fileName)
+        {
+            _live ??= Versions.ToList();
+            var index = _live.FindIndex(v => v.FileName == fileName);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            _live.RemoveAt(index);
+            return true;
+        }
+
+        public IReadOnlyList<BibleAddableVersion> GetAddableVersions(string workingFolder)
+            => Addable;
+
+        public bool AddVersion(string workingFolder, string fileName, string name)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(name))
+            {
+                return false;
+            }
+
+            _live ??= Versions.ToList();
+            _live.Add(new BibleVersion(_live.Count, name.Trim(), "", "", fileName, fileName, 1, 80, SupportsPartialWordSearch: false));
+            Addable.RemoveAll(a => a.FileName == fileName);
             return true;
         }
     }

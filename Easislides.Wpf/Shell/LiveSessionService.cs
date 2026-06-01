@@ -36,7 +36,14 @@ public sealed record LiveSessionSnapshot(
     // 곡별 FormatData region1 배경색(ARGB). 있으면 운영 기본 배경색 대신 사용(솔리드). 없으면 null.
     int? OverrideBackgroundColorArgb = null,
     // 곡별 FormatData region1 가로 정렬(31). 있으면 운영 기본 정렬 대신 사용. 없으면 null.
-    LyricsTextAlignment? OverrideTextAlignment = null)
+    LyricsTextAlignment? OverrideTextAlignment = null,
+    // 곡별 FormatData region1 폰트명(43). 있으면 운영/테마 기본 글꼴 대신 사용. 비었으면 null → 기본 글꼴 상속(무회귀).
+    string? OverrideFontName = null,
+    // 곡별 FormatData region1 폰트 크기(47). 레거시 pt 를 WPF px(DIP)로 변환해 싣는다. 없으면 null → 기본 크기 유지.
+    int? OverrideFontSizePx = null,
+    // 곡별 FormatData 배경 이미지 경로(61). 있으면 출력이 색 배경 대신(위에) 이미지를 표시. 없으면 null → 색 배경 유지.
+    // 경로 해석·이미지 로딩은 출력 VM 이 담당(렌더러는 순수). 비었으면 null.
+    string? OverrideBackgroundImagePath = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -102,7 +109,34 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideBackgroundColorArgb: format?.BackgroundColorArgb1,
             // 곡별 가로 정렬(있으면) — 레거시 1=왼쪽/2=가운데/3=오른쪽. region1 한정
             // (region2 정렬(32)은 현재 출력이 단일 정렬 모델이라 미적용 — 이중 언어 출력 도입 시 확장).
-            OverrideTextAlignment: MapAlignment(format?.Alignment1)));
+            OverrideTextAlignment: MapAlignment(format?.Alignment1),
+            // 곡별 글꼴명(43)·크기(47, region1). 폰트명은 비면 null(테마 상속), 크기는 레거시 pt→px 변환.
+            OverrideFontName: NormalizeFontName(format?.FontName1),
+            OverrideFontSizePx: LegacyPointToPixel(format?.FontSize1),
+            // 곡별 배경 이미지(61). 비었으면 null(색 배경 유지). 경로 해석·로딩은 출력 VM 이 담당.
+            OverrideBackgroundImagePath: NormalizeImagePath(format?.BackgroundImagePath)));
+    }
+
+    // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.
+    private static string? NormalizeImagePath(string? imagePath)
+        => string.IsNullOrWhiteSpace(imagePath) ? null : imagePath.Trim();
+
+    // 곡별 폰트명 정리 — 공백뿐이거나 비었으면 null(운영/테마 기본 글꼴 상속). 앞뒤 공백 제거.
+    private static string? NormalizeFontName(string? fontName)
+        => string.IsNullOrWhiteSpace(fontName) ? null : fontName.Trim();
+
+    // 레거시 폰트 크기(pt, WinForms 기본 단위)를 WPF px(DIP, 1/96")로 변환한다.
+    // 1pt = 1/72", 1px(DIP) = 1/96" → px = pt × 96/72. 없으면 null(기본 크기 유지).
+    // 디코더가 이미 6~100pt 로 검증하므로 변환 결과는 8~133px 범위 — 그래도 방어적으로 클램프.
+    private static int? LegacyPointToPixel(int? legacyPoint)
+    {
+        if (legacyPoint is not int pt)
+        {
+            return null;
+        }
+
+        var px = (int)Math.Round(pt * 96.0 / 72.0, MidpointRounding.AwayFromZero);
+        return Math.Clamp(px, 8, 240);
     }
 
     // 레거시 FormatData 정렬값(1~3) → WPF 가사 정렬 enum. 없거나 범위 밖이면 null(운영 기본 정렬 유지).

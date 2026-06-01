@@ -146,6 +146,181 @@ public sealed partial class BibleViewModel : ObservableObject
         return true;
     }
 
+    /// <summary>선택 버전을 한 칸 위로 올린다(맨 위면 false). 레거시 성경 버전 순서 변경.</summary>
+    public bool MoveVersionUp(BibleVersion version) => MoveVersion(version, -1);
+
+    /// <summary>선택 버전을 한 칸 아래로 내린다(맨 아래면 false).</summary>
+    public bool MoveVersionDown(BibleVersion version) => MoveVersion(version, +1);
+
+    /// <summary>
+    /// 보이는 버전의 표시 순서를 한 칸 옮긴다(delta=-1 위 / +1 아래). 경계를 벗어나면 변경 없이 false.
+    /// 저장소가 DISPLAYORDER 를 재기록한 뒤 목록을 다시 불러오고 같은 버전을 계속 선택한다.
+    /// </summary>
+    private bool MoveVersion(BibleVersion version, int delta)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        var index = Versions.IndexOf(version);
+        if (index < 0)
+        {
+            // 참조가 달라졌을 수 있어 파일명으로 한 번 더 찾는다(재로드 후 인스턴스 교체 대비).
+            index = IndexOfByFile(version.FileName);
+        }
+
+        var target = index + delta;
+        if (index < 0 || target < 0 || target >= Versions.Count)
+        {
+            return false; // 목록에 없거나 경계 밖 — 변경 없음.
+        }
+
+        var ordered = Versions.Select(v => v.FileName).ToList();
+        (ordered[index], ordered[target]) = (ordered[target], ordered[index]);
+
+        bool reordered;
+        try
+        {
+            reordered = _repository.ReorderVersions(WorkingFolder, ordered);
+        }
+        catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
+        {
+            ValidationMessage = "버전 순서를 바꾸지 못했습니다.";
+            return false;
+        }
+
+        if (!reordered)
+        {
+            ValidationMessage = "버전 순서를 바꾸지 못했습니다.";
+            return false;
+        }
+
+        ReloadPreservingSelection(version.FileName);
+        ValidationMessage = "";
+        StatusMessage = $"버전 순서 변경: {version.Name}";
+        return true;
+    }
+
+    /// <summary>
+    /// 성경 버전을 삭제한다(저장소는 숨김 처리 — 본문 보존, 되돌릴 수 있음). 삭제 후 인접 버전을 선택한다.
+    /// 저장소 실패·없는 버전이면 false.
+    /// </summary>
+    public bool DeleteVersion(BibleVersion version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+
+        // 삭제 후 선택할 인접 버전 파일명을 미리 정한다(다음 것, 없으면 이전 것).
+        var index = IndexOfByFile(version.FileName);
+        string? nextSelection = null;
+        if (index >= 0)
+        {
+            if (index + 1 < Versions.Count)
+            {
+                nextSelection = Versions[index + 1].FileName;
+            }
+            else if (index - 1 >= 0)
+            {
+                nextSelection = Versions[index - 1].FileName;
+            }
+        }
+
+        bool deleted;
+        try
+        {
+            deleted = _repository.DeleteVersion(WorkingFolder, version.FileName);
+        }
+        catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
+        {
+            ValidationMessage = $"버전을 삭제하지 못했습니다: {version.Name}";
+            return false;
+        }
+
+        if (!deleted)
+        {
+            ValidationMessage = $"버전을 삭제하지 못했습니다: {version.Name}";
+            return false;
+        }
+
+        ReloadPreservingSelection(nextSelection);
+        ValidationMessage = "";
+        StatusMessage = $"버전 삭제(숨김): {version.Name}";
+        return true;
+    }
+
+    /// <summary>관리 UI 가 "추가" 후보(숨김 + HolyBibles 신규 파일)를 받는 통로.</summary>
+    public IReadOnlyList<BibleAddableVersion> GetAddableVersions()
+        => _repository.GetAddableVersions(WorkingFolder);
+
+    /// <summary>
+    /// 성경 버전을 추가한다(HolyBibles 의 파일을 보이는 버전으로 등록·숨김 복구). 이름이 비거나 보이는 버전과
+    /// 겹치면(대소문자 무시) 거부. 성공 시 목록을 다시 불러오고 새 버전을 선택한다.
+    /// </summary>
+    public bool AddVersion(string fileName, string name)
+    {
+        var to = (name ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            ValidationMessage = "추가할 성경 파일을 선택하세요.";
+            return false;
+        }
+
+        if (to.Length == 0)
+        {
+            ValidationMessage = "버전 이름을 입력하세요.";
+            return false;
+        }
+
+        // 보이는 버전과 이름이 겹치면 거부(이름 변경과 동일 규칙).
+        if (Versions.Any(other => string.Equals(other.Name, to, StringComparison.OrdinalIgnoreCase)))
+        {
+            ValidationMessage = "이미 있는 버전 이름입니다. 다른 이름을 입력하세요.";
+            return false;
+        }
+
+        bool added;
+        try
+        {
+            added = _repository.AddVersion(WorkingFolder, fileName, to);
+        }
+        catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
+        {
+            ValidationMessage = $"버전을 추가하지 못했습니다: {to}";
+            return false;
+        }
+
+        if (!added)
+        {
+            ValidationMessage = $"버전을 추가하지 못했습니다: {to}";
+            return false;
+        }
+
+        ReloadPreservingSelection(fileName);
+        ValidationMessage = "";
+        StatusMessage = $"버전 추가: {to}";
+        return true;
+    }
+
+    private int IndexOfByFile(string fileName)
+    {
+        for (var i = 0; i < Versions.Count; i++)
+        {
+            if (string.Equals(Versions[i].FileName, fileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    // 저장소가 진실의 원천이므로 추가·삭제·순서 변경 후엔 목록을 통째로 다시 불러온다(인덱스·순서 정합).
+    // 그런 다음 주어진 파일명의 버전을 다시 선택해 운영자의 맥락을 보존한다(없으면 첫 버전).
+    private void ReloadPreservingSelection(string? selectFileName)
+    {
+        Versions.ReplaceWith(_repository.GetVersions(WorkingFolder));
+        var match = selectFileName is null
+            ? null
+            : Versions.FirstOrDefault(v => string.Equals(v.FileName, selectFileName, StringComparison.OrdinalIgnoreCase));
+        SelectedVersion = match ?? (Versions.Count > 0 ? Versions[0] : null);
+    }
+
     public Task LoadSelectedBookAsync()
     {
         if (SelectedVersion is null || SelectedBook is null)

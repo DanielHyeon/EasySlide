@@ -161,6 +161,165 @@ public class BibleRepositoryTests
         sut.GetVersions(fixture.WorkingFolder).Single().Name.Should().Be("KJV");
     }
 
+    // ─── 순서 변경(Reorder) — DISPLAYORDER 재기록 ──────────────────────────────
+    [Fact]
+    public void ReorderVersions_RewritesDisplayOrderToMatchGivenOrder()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),
+            ("NIV", "niv.db", "New International", "C", 4, 120, 2),
+            ("개역", "krv.db", "개역개정", "C", 0, 80, 3));
+        var sut = new BibleRepository();
+
+        var ok = sut.ReorderVersions(fixture.WorkingFolder, new[] { "krv.db", "kjv.db", "niv.db" });
+
+        ok.Should().BeTrue();
+        sut.GetVersions(fixture.WorkingFolder).Select(v => v.Name).Should().Equal("개역", "KJV", "NIV");
+    }
+
+    [Fact]
+    public void ReorderVersions_IgnoresUnknownFilesAndHiddenVersions()
+    {
+        // 알 수 없는 파일(ghost)·숨김 버전(DISPLAYORDER<0)은 순서 대상이 아니다(보이는 버전만 재정렬).
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("Hidden", "hidden.db", "임시", "C", 0, 90, -1),
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),
+            ("NIV", "niv.db", "New International", "C", 4, 120, 2));
+        var sut = new BibleRepository();
+
+        var ok = sut.ReorderVersions(fixture.WorkingFolder, new[] { "niv.db", "ghost.db", "kjv.db" });
+
+        ok.Should().BeTrue();
+        sut.GetVersions(fixture.WorkingFolder).Select(v => v.Name).Should().Equal("NIV", "KJV");
+    }
+
+    [Fact]
+    public void ReorderVersions_EmptyOrder_ReturnsFalse()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        var sut = new BibleRepository();
+
+        sut.ReorderVersions(fixture.WorkingFolder, Array.Empty<string>()).Should().BeFalse("순서가 없으면 변경 없음");
+    }
+
+    // ─── 삭제(숨김) — 비파괴적, 본문 파일 보존 ─────────────────────────────────
+    [Fact]
+    public void DeleteVersion_HidesVersion_PreservesFileAndRemovesFromList()
+    {
+        // 삭제 = DISPLAYORDER<0 으로 숨김(본문 파일·행 보존, 되돌릴 수 있음 — AddVersion 으로 복구). 레거시 "삭제 예정" 의미.
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),
+            ("NIV", "niv.db", "New International", "C", 4, 120, 2));
+        fixture.CreateBible("kjv.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.DeleteVersion(fixture.WorkingFolder, "kjv.db");
+
+        ok.Should().BeTrue();
+        sut.GetVersions(fixture.WorkingFolder).Select(v => v.Name).Should().Equal("NIV");
+        File.Exists(Path.Combine(fixture.BibleFolder, "kjv.db")).Should().BeTrue("삭제는 숨김일 뿐 본문 파일은 보존");
+    }
+
+    [Fact]
+    public void DeleteVersion_UnknownOrAlreadyHidden_ReturnsFalse()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),
+            ("Hidden", "hidden.db", "임시", "C", 0, 90, -1));
+        var sut = new BibleRepository();
+
+        sut.DeleteVersion(fixture.WorkingFolder, "ghost.db").Should().BeFalse("없는 파일은 거부");
+        sut.DeleteVersion(fixture.WorkingFolder, "hidden.db").Should().BeFalse("이미 숨김인 버전은 대상 아님");
+        sut.GetVersions(fixture.WorkingFolder).Single().Name.Should().Be("KJV");
+    }
+
+    // ─── 추가 — 숨김 복구 + HolyBibles 신규 파일 등록 ──────────────────────────
+    [Fact]
+    public void GetAddableVersions_ReturnsHiddenAndNewFiles_ExcludesVisible()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),     // 보임 → 제외
+            ("임시개역", "hidden.db", "임시", "C", 0, 80, -1));    // 숨김 → 포함(재추가)
+        fixture.CreateBible("kjv.db");
+        fixture.CreateBible("hidden.db");
+        fixture.CreateBible("new.db");                              // Biblefolder 행 없음 → 포함(신규)
+        var sut = new BibleRepository();
+
+        var addable = sut.GetAddableVersions(fixture.WorkingFolder);
+
+        addable.Select(a => a.FileName).Should().BeEquivalentTo(new[] { "hidden.db", "new.db" });
+        addable.Single(a => a.FileName == "hidden.db").IsHidden.Should().BeTrue();
+        addable.Single(a => a.FileName == "hidden.db").SuggestedName.Should().Be("임시개역", "숨김 행의 기존 이름을 제안");
+        addable.Single(a => a.FileName == "new.db").IsHidden.Should().BeFalse();
+    }
+
+    [Fact]
+    public void AddVersion_UnhidesHiddenVersion_AppearsAtEndWithName()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("KJV", "kjv.db", "King James", "PD", 0, 500, 1),
+            ("임시", "hidden.db", "임시", "C", 0, 80, -1));
+        fixture.CreateBible("kjv.db");
+        fixture.CreateBible("hidden.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.AddVersion(fixture.WorkingFolder, "hidden.db", "개역개정");
+
+        ok.Should().BeTrue();
+        sut.GetVersions(fixture.WorkingFolder).Select(v => v.Name).Should().Equal("KJV", "개역개정");
+    }
+
+    [Fact]
+    public void AddVersion_NewFile_InsertsRowAtEnd()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        fixture.CreateBible("kjv.db");
+        fixture.CreateBible("niv.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.AddVersion(fixture.WorkingFolder, "niv.db", "NIV");
+
+        ok.Should().BeTrue();
+        var versions = sut.GetVersions(fixture.WorkingFolder);
+        versions.Select(v => v.Name).Should().Equal("KJV", "NIV");
+        versions.Single(v => v.Name == "NIV").FileName.Should().Be("niv.db");
+    }
+
+    [Fact]
+    public void AddVersion_MissingFileOrEmptyName_ReturnsFalse()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        fixture.CreateBible("kjv.db");
+        var sut = new BibleRepository();
+
+        sut.AddVersion(fixture.WorkingFolder, "ghost.db", "유령").Should().BeFalse("HolyBibles 에 파일이 없으면 거부");
+        sut.AddVersion(fixture.WorkingFolder, "kjv.db", "   ").Should().BeFalse("빈 이름은 거부");
+    }
+
+    [Fact]
+    public void AddVersion_AlreadyVisibleFile_ReturnsFalse_AndLeavesRowUnchanged()
+    {
+        // 이미 보이는 버전(DISPLAYORDER>=0)을 다시 추가하면 거부해야 한다 — 기존 이름/순서를 덮어쓰지 않는다.
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 0, 500, 1));
+        fixture.CreateBible("kjv.db");
+        var sut = new BibleRepository();
+
+        var ok = sut.AddVersion(fixture.WorkingFolder, "kjv.db", "다른이름");
+
+        ok.Should().BeFalse("이미 보이는 버전은 추가 대상이 아님");
+        sut.GetVersions(fixture.WorkingFolder).Single().Name.Should().Be("KJV", "기존 이름 보존");
+    }
+
     [Fact]
     public void ChangeSelectionVersions_PreservesPassagesAndUpdatesTitleSuffix()
     {

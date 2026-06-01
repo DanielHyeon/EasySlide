@@ -288,6 +288,90 @@ public class OutputRendererTests
         scene.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Center, "Live 가 아니면 기본 정렬");
     }
 
+    [Fact]
+    public void CreateScene_Active_WithSongOverrideFont_PrefersSongFontOverSettings()
+    {
+        // 곡별 FormatData 폰트명·크기가 스냅샷에 실려 오면 운영 기본 글꼴·크기 대신 그 곡의 것으로 송출한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 48);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideFontName: "Batang",
+                OverrideFontSizePx: 90),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily.Should().Be("Batang", "곡 글꼴이 운영 기본 글꼴을 이긴다");
+        scene.LyricsMonitorFontSize.Should().Be(90, "곡 폰트 크기가 운영 기본 크기를 이긴다");
+    }
+
+    [Fact]
+    public void CreateScene_Hidden_IgnoresSongOverrideFont()
+    {
+        // 라이브가 아니면(숨김 등) 곡 글꼴 오버라이드를 적용하지 않는다 — 운영 기본 글꼴·크기 유지.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 48);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideFontName: "Batang",
+                OverrideFontSizePx: 90),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily.Should().BeEmpty("Live 가 아니면 기본 글꼴(빈 문자열=테마 상속)");
+        scene.LyricsMonitorFontSize.Should().Be(48, "Live 가 아니면 기본 크기");
+    }
+
+    [Fact]
+    public void CreateScene_Active_WithSongBackgroundImage_CarriesImagePath()
+    {
+        // 곡별 FormatData 배경 이미지(61)가 스냅샷에 실려 오면 씬에 경로를 실어 출력이 색 배경 대신 이미지를 표시하게 한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideBackgroundImagePath: @"C:\bg\a.jpg"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.BackgroundImagePath.Should().Be(@"C:\bg\a.jpg", "곡 배경 이미지 경로를 씬에 싣는다");
+    }
+
+    [Fact]
+    public void CreateScene_Hidden_IgnoresSongBackgroundImage()
+    {
+        // 라이브가 아니면 배경 이미지 오버라이드를 적용하지 않는다 — 색 배경 유지.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Hidden, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideBackgroundImagePath: @"C:\bg\a.jpg"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.BackgroundImagePath.Should().BeEmpty("Live 가 아니면 배경 이미지 미적용");
+    }
+
     [Theory]
     [InlineData("P", true, false, false)]
     [InlineData("PowerPoint", true, false, false)]

@@ -17,15 +17,17 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="성경 버전 이름을 바꿀 수 있습니다(본문은 그대로)."
+        <TextBlock Text="성경 버전을 추가·삭제하고 순서를 바꿀 수 있습니다(이름 변경 포함, 본문 파일은 보존)."
                    Style="{StaticResource Type.Caption.Style}"
                    Foreground="{DynamicResource Brush.Text.Tertiary}"
+                   TextWrapping="Wrap"
                    Margin="0,0,0,8" />
 
-        <!-- 버전 목록 — 이름 표시. -->
+        <!-- 버전 목록 — 이름 표시. SelectedItem 을 VM 과 양방향 바인딩해 추가/삭제/이동 후 선택이 따라간다. -->
         <ListBox Grid.Row="1"
                  x:Name="VersionList"
                  ItemsSource="{Binding Versions}"
+                 SelectedItem="{Binding SelectedVersion, Mode=TwoWay}"
                  DisplayMemberPath="Name"
                  AutomationProperties.Name="성경 버전 목록"
                  BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -44,19 +46,48 @@
                        Margin="0,4,0,0" />
         </StackPanel>
 
-        <StackPanel Grid.Row="3"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,16,0,0">
-            <Button Click="Rename_Click"
-                    Style="{StaticResource EsButton.Secondary}"
-                    Margin="0,0,8,0"
-                    Content="이름 변경"
-                    AutomationProperties.Name="선택 버전 이름 변경" />
-            <Button Click="Close_Click"
-                    Style="{StaticResource EsButton.Primary}"
-                    Content="닫기"
-                    AutomationProperties.Name="닫기" />
-        </StackPanel>
+        <Grid Grid.Row="3" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 왼쪽: 순서 이동 + 추가/삭제. -->
+            <StackPanel Orientation="Horizontal">
+                <Button Click="MoveUp_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="0,0,8,0"
+                        Content="↑ 위로"
+                        AutomationProperties.Name="선택 버전 위로 이동" />
+                <Button Click="MoveDown_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="0,0,8,0"
+                        Content="↓ 아래로"
+                        AutomationProperties.Name="선택 버전 아래로 이동" />
+                <Button Click="Add_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="0,0,8,0"
+                        Content="추가"
+                        AutomationProperties.Name="성경 버전 추가" />
+                <Button Click="Delete_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Content="삭제"
+                        AutomationProperties.Name="선택 버전 삭제(숨김)" />
+            </StackPanel>
+
+            <!-- 오른쪽: 이름 변경 + 닫기. -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button Click="Rename_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="0,0,8,0"
+                        Content="이름 변경"
+                        AutomationProperties.Name="선택 버전 이름 변경" />
+                <Button Click="Close_Click"
+                        Style="{StaticResource EsButton.Primary}"
+                        Content="닫기"
+                        AutomationProperties.Name="닫기" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -53,6 +53,87 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_ActiveSongWithFontOverride_MapsBodyFontFamilyAndSize()
+    {
+        // 곡별 FormatData 폰트명/크기 오버라이드가 출력 본문 글꼴·크기에 반영된다(§7.3-A per-song 폰트).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사",
+            OverrideFontName: "Batang",
+            OverrideFontSizePx: 90));
+
+        sut.BodyFontFamily.Should().BeOfType<FontFamily>()
+            .Which.Source.Should().Be("Batang");
+        sut.BodyFontSize.Should().Be(90);
+    }
+
+    [Fact]
+    public void ApplySession_ActiveSongWithoutFontOverride_LeavesBodyFontFamilyInherited()
+    {
+        // 폰트 오버라이드가 없으면 BodyFontFamily 는 UnsetValue → XAML 이 테마 기본 글꼴을 상속(무회귀).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyFontFamily.Should().Be(DependencyProperty.UnsetValue);
+    }
+
+    [Fact]
+    public void ApplySession_ActiveSongWithBackgroundImage_LoadsImageAndShowsItOverColor()
+    {
+        // 곡별 배경 이미지 경로가 실려 오면 로더로 이미지를 읽어 색 배경 위에 표시한다(이미지 우선).
+        var stub = CreateStubBitmap();
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings: null,
+            (Func<string, ImageSource?>)(_ => stub));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사",
+            OverrideBackgroundImagePath: @"C:\bg\sky.jpg"));
+
+        sut.SceneBackgroundImageSource.Should().BeSameAs(stub);
+        sut.BackgroundImageVisibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void ApplySession_ActiveSongWithoutBackgroundImage_HidesBackgroundImage()
+    {
+        // 배경 이미지가 없으면 색 배경만 보인다(이미지 숨김 — 무회귀).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사"));
+
+        sut.SceneBackgroundImageSource.Should().BeNull();
+        sut.BackgroundImageVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void ApplySession_BackgroundImageLoaderReturnsNull_FallsBackToColorBackground()
+    {
+        // 경로가 있어도 로더가 null(파일 없음/디코드 실패)이면 색 배경으로 안전 폴백(이미지 숨김).
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings: null,
+            (Func<string, ImageSource?>)(_ => null));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절 가사",
+            OverrideBackgroundImagePath: @"C:\bg\missing.jpg"));
+
+        sut.SceneBackgroundImageSource.Should().BeNull();
+        sut.BackgroundImageVisibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
     public void ApplySession_ActiveWithoutBody_ShowsTitleNotBody()
     {
         // 가사가 없으면 본문은 숨고 기존처럼 타이틀이 보인다(PPT/미디어/공지 등).

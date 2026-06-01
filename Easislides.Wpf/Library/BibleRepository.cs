@@ -43,6 +43,13 @@ public sealed record BiblePassageResult(
 
 public sealed record BibleSelection(string IdString, string Title);
 
+/// <summary>
+/// 성경 버전 관리에서 "추가" 후보 — HolyBibles 폴더엔 있으나 현재 보이지 않는 버전.
+/// <see cref="IsHidden"/>=true 면 이전에 숨긴(삭제 예정) 버전(재추가 시 기존 이름 제안),
+/// false 면 Biblefolder 에 행이 없는 신규 파일.
+/// </summary>
+public sealed record BibleAddableVersion(string FileName, string SuggestedName, bool IsHidden);
+
 public interface IBibleRepository
 {
     IReadOnlyList<BibleVersion> GetVersions(string workingFolder);
@@ -80,6 +87,30 @@ public interface IBibleRepository
     /// 고유성(이름 중복) 검증은 호출자(VM)가 한다.
     /// </summary>
     bool RenameVersion(string workingFolder, string fileName, string newName);
+
+    /// <summary>
+    /// 보이는 성경 버전의 표시 순서를 바꾼다(Biblefolder.DISPLAYORDER 를 주어진 파일 순서대로 0,1,2,… 재기록).
+    /// 목록에 없는 파일·숨김(DISPLAYORDER&lt;0) 버전은 건드리지 않는다. 매칭된 버전이 하나도 없으면 false.
+    /// </summary>
+    bool ReorderVersions(string workingFolder, IReadOnlyList<string> orderedFileNames);
+
+    /// <summary>
+    /// 성경 버전을 삭제한다 — 실제로는 DISPLAYORDER&lt;0 으로 숨겨 목록에서 제외(본문 파일·행 보존, 비파괴적).
+    /// 되돌리려면 <see cref="AddVersion"/> 으로 재추가. 보이는 버전이 아니거나 없으면 false.
+    /// </summary>
+    bool DeleteVersion(string workingFolder, string fileName);
+
+    /// <summary>
+    /// "추가" 가능한 버전 목록 — HolyBibles 폴더의 성경 파일 중 현재 보이지 않는 것(숨김 행 + 신규 파일).
+    /// 관리 UI 가 이 목록으로 추가 후보를 보여 준다.
+    /// </summary>
+    IReadOnlyList<BibleAddableVersion> GetAddableVersions(string workingFolder);
+
+    /// <summary>
+    /// 성경 버전을 추가(또는 숨김 복구)한다 — HolyBibles 에 파일이 있어야 한다. 숨김 행이 있으면 이름·순서를 되살리고,
+    /// 없으면 새 행을 끝 순서로 INSERT. 파일이 없거나 이름이 비면 false.
+    /// </summary>
+    bool AddVersion(string workingFolder, string fileName, string name);
 }
 
 public sealed class BibleRepository : IBibleRepository
@@ -524,6 +555,222 @@ public sealed class BibleRepository : IBibleRepository
         command.CommandText = "UPDATE Biblefolder SET NAME = @newName WHERE FILENAME = @fileName AND DISPLAYORDER >= 0;";
         command.Parameters.AddWithValue("@newName", newName.Trim());
         command.Parameters.AddWithValue("@fileName", fileName);
+        var affected = command.ExecuteNonQuery();
+        transaction.Commit();
+        return affected > 0;
+    }
+
+    public bool ReorderVersions(string workingFolder, IReadOnlyList<string> orderedFileNames)
+    {
+        if (string.IsNullOrWhiteSpace(workingFolder) || orderedFileNames is null || orderedFileNames.Count == 0)
+        {
+            return false;
+        }
+
+        var bibleListPath = Path.Combine(Path.GetFullPath(workingFolder), BibleListRelativePath);
+        if (!File.Exists(bibleListPath))
+        {
+            return false;
+        }
+
+        using var connection = OpenConnection(bibleListPath);
+        using var transaction = connection.BeginTransaction();
+        var affectedAny = false;
+        var order = 0;
+        foreach (var fileName in orderedFileNames)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                continue;
+            }
+
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            // 보이는 버전(DISPLAYORDER>=0)만 재정렬한다 — 숨김 버전은 그대로 둔다.
+            command.CommandText = "UPDATE Biblefolder SET DISPLAYORDER = @order WHERE FILENAME = @fileName AND DISPLAYORDER >= 0;";
+            command.Parameters.AddWithValue("@order", order);
+            command.Parameters.AddWithValue("@fileName", fileName);
+            // 매칭된 보이는 버전에만 순서 번호를 매겨 조밀하게(0,1,2,…) 유지 — 알 수 없는 파일은 번호를 소모하지 않는다.
+            if (command.ExecuteNonQuery() > 0)
+            {
+                affectedAny = true;
+                order++;
+            }
+        }
+
+        transaction.Commit();
+        return affectedAny;
+    }
+
+    public bool DeleteVersion(string workingFolder, string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(workingFolder) || string.IsNullOrWhiteSpace(fileName))
+        {
+            return false;
+        }
+
+        var bibleListPath = Path.Combine(Path.GetFullPath(workingFolder), BibleListRelativePath);
+        if (!File.Exists(bibleListPath))
+        {
+            return false;
+        }
+
+        using var connection = OpenConnection(bibleListPath);
+        using var transaction = connection.BeginTransaction();
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        // 삭제 = 숨김(DISPLAYORDER=-1). 본문 파일·행은 보존(되돌릴 수 있음). 이미 숨김/없는 행은 매칭 0 → false.
+        command.CommandText = "UPDATE Biblefolder SET DISPLAYORDER = -1 WHERE FILENAME = @fileName AND DISPLAYORDER >= 0;";
+        command.Parameters.AddWithValue("@fileName", fileName);
+        var affected = command.ExecuteNonQuery();
+        transaction.Commit();
+        return affected > 0;
+    }
+
+    public IReadOnlyList<BibleAddableVersion> GetAddableVersions(string workingFolder)
+    {
+        if (string.IsNullOrWhiteSpace(workingFolder))
+        {
+            return [];
+        }
+
+        var root = Path.GetFullPath(workingFolder);
+        var bibleListPath = Path.Combine(root, BibleListRelativePath);
+        var bibleFolder = Path.Combine(root, BibleFolderRelativePath);
+
+        // 현재 보이는 파일명·숨김 행(파일명→이름)을 모은다.
+        var visible = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var hidden = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (File.Exists(bibleListPath))
+        {
+            using var connection = OpenConnection(bibleListPath);
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT NAME, FILENAME, DISPLAYORDER FROM Biblefolder;";
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var fileName = GetString(reader, "FILENAME");
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    continue;
+                }
+
+                if (GetInt(reader, "DISPLAYORDER") >= 0)
+                {
+                    visible.Add(fileName);
+                }
+                else
+                {
+                    hidden[fileName] = GetString(reader, "NAME");
+                }
+            }
+        }
+
+        var result = new List<BibleAddableVersion>();
+        // 숨김 버전(재추가 후보) — 기존 이름을 제안.
+        foreach (var entry in hidden)
+        {
+            if (!visible.Contains(entry.Key))
+            {
+                var suggested = string.IsNullOrWhiteSpace(entry.Value)
+                    ? Path.GetFileNameWithoutExtension(entry.Key)
+                    : entry.Value;
+                result.Add(new BibleAddableVersion(entry.Key, suggested, IsHidden: true));
+            }
+        }
+
+        // HolyBibles 폴더의 신규 파일(Biblefolder 행이 전혀 없는 것) — 파일명을 기본 이름으로 제안.
+        if (Directory.Exists(bibleFolder))
+        {
+            foreach (var path in Directory.EnumerateFiles(bibleFolder, "*.db"))
+            {
+                var fileName = Path.GetFileName(path);
+                if (!visible.Contains(fileName) && !hidden.ContainsKey(fileName))
+                {
+                    result.Add(new BibleAddableVersion(fileName, Path.GetFileNameWithoutExtension(fileName), IsHidden: false));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public bool AddVersion(string workingFolder, string fileName, string name)
+    {
+        if (string.IsNullOrWhiteSpace(workingFolder)
+            || string.IsNullOrWhiteSpace(fileName)
+            || string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+
+        var root = Path.GetFullPath(workingFolder);
+        var bibleListPath = Path.Combine(root, BibleListRelativePath);
+        if (!File.Exists(bibleListPath))
+        {
+            return false;
+        }
+
+        // 본문 파일이 HolyBibles 에 실제로 있어야 추가할 수 있다(빈 버전 방지).
+        var filePath = Path.Combine(root, BibleFolderRelativePath, fileName);
+        if (!File.Exists(filePath))
+        {
+            return false;
+        }
+
+        var trimmed = name.Trim();
+        using var connection = OpenConnection(bibleListPath);
+        using var transaction = connection.BeginTransaction();
+
+        // 새 순서 = 보이는 버전 최대 DISPLAYORDER + 1(끝에 추가). 보이는 버전이 없으면 0.
+        int nextOrder;
+        using (var orderCommand = connection.CreateCommand())
+        {
+            orderCommand.Transaction = transaction;
+            orderCommand.CommandText = "SELECT IFNULL(MAX(DISPLAYORDER), -1) + 1 FROM Biblefolder WHERE DISPLAYORDER >= 0;";
+            nextOrder = Convert.ToInt32(orderCommand.ExecuteScalar());
+        }
+
+        // 같은 파일의 기존 행을 확인한다. 행이 없으면 INSERT, 숨김(DISPLAYORDER<0) 행이면 되살린다(UPDATE).
+        // 이미 보이는 행(DISPLAYORDER>=0)이면 "추가" 대상이 아니므로 거부 — 기존 이름·순서를 덮어쓰지 않는다.
+        int? existingOrder = null;
+        using (var existsCommand = connection.CreateCommand())
+        {
+            existsCommand.Transaction = transaction;
+            existsCommand.CommandText = "SELECT DISPLAYORDER FROM Biblefolder WHERE FILENAME = @fileName LIMIT 1;";
+            existsCommand.Parameters.AddWithValue("@fileName", fileName);
+            var raw = existsCommand.ExecuteScalar();
+            if (raw is not null && raw is not DBNull)
+            {
+                existingOrder = Convert.ToInt32(raw);
+            }
+        }
+
+        if (existingOrder is >= 0)
+        {
+            // 이미 보이는 버전 — 변경 없이 거부(using 이 트랜잭션을 롤백).
+            return false;
+        }
+
+        var rowExists = existingOrder is < 0;
+
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        if (rowExists)
+        {
+            command.CommandText = "UPDATE Biblefolder SET NAME = @name, DISPLAYORDER = @order WHERE FILENAME = @fileName;";
+        }
+        else
+        {
+            command.CommandText = """
+                INSERT INTO Biblefolder (NAME, FILENAME, DESCRIPTION, COPYRIGHT, SONGFOLDER, SIZE, DISPLAYORDER)
+                VALUES (@name, @fileName, '', '', 1, 80, @order);
+                """;
+        }
+
+        command.Parameters.AddWithValue("@name", trimmed);
+        command.Parameters.AddWithValue("@fileName", fileName);
+        command.Parameters.AddWithValue("@order", nextOrder);
         var affected = command.ExecuteNonQuery();
         transaction.Commit();
         return affected > 0;

@@ -252,6 +252,78 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithSongFormatDataFont_CarriesFontNameAndPixelSize()
+    {
+        // 곡별 FormatData 폰트명(43)·크기(47, 레거시 pt)를 스냅샷에 실어 출력이 그 곡의 글꼴로 송출하게 한다.
+        // 레거시 폰트 크기는 pt(WinForms 기본) → WPF px(DIP): 48pt × 96/72 = 64px.
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\n1절 가사",
+            FormatData = "43=Batang>47=48>",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideFontName.Should().Be("Batang", "43 = region1 폰트명");
+        sut.Current.OverrideFontSizePx.Should().Be(64, "47 = region1 폰트 크기(48pt → 64px)");
+    }
+
+    [Fact]
+    public void GoLive_WithoutFontFields_LeavesFontOverridesNull()
+    {
+        // 폰트 항목(43/47)이 없으면 오버라이드는 null → 운영/테마 기본 글꼴·크기 유지(무회귀).
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사", FormatData = "29=-65536>" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideFontName.Should().BeNull();
+        sut.Current.OverrideFontSizePx.Should().BeNull();
+    }
+
+    [Fact]
+    public void GoLive_WithBlankFontName_LeavesFontNameNull()
+    {
+        // 폰트명이 공백뿐이면(43= ) 디코드 후에도 의미 없으므로 null → 기본 글꼴 유지.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사", FormatData = "43=   >47=12>" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideFontName.Should().BeNull("공백 폰트명은 무시");
+        sut.Current.OverrideFontSizePx.Should().Be(16, "12pt → 16px(크기는 유효)");
+    }
+
+    [Fact]
+    public void GoLive_WithSongFormatDataBackgroundImage_CarriesImagePath()
+    {
+        // 곡별 FormatData 배경 이미지(61) 경로를 스냅샷에 실어 출력이 색 배경 대신 그 곡의 이미지를 표시하게 한다.
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\n1절 가사",
+            FormatData = @"61=C:\Backgrounds\sky.jpg>",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideBackgroundImagePath.Should().Be(@"C:\Backgrounds\sky.jpg", "61 = region1 배경 이미지 경로");
+    }
+
+    [Fact]
+    public void GoLive_WithoutBackgroundImage_LeavesOverrideNull()
+    {
+        // 배경 이미지 항목(61)이 없으면 오버라이드는 null → 색 배경 유지(무회귀).
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절 가사", FormatData = "29=-65536>" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideBackgroundImagePath.Should().BeNull();
+    }
+
+    [Fact]
     public void Restore_FromHidden_PreservesBodyText()
     {
         // 숨김→복귀 시 가사 본문도 보존되어야 직전 곡이 그대로 다시 보인다.

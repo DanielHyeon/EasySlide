@@ -44,6 +44,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private VerticalAlignment _bodyVerticalAlignment = VerticalAlignment.Center;
     private double _bodyFontSize = 48;
     private double _bodyLineHeight = 60;
+    // 본문 글꼴 — 곡별 FormatData 폰트명(43) 오버라이드. 오버라이드가 없으면 UnsetValue 로 두어
+    // XAML FontFamily 바인딩이 부모(테마)의 글꼴을 그대로 상속하게 한다(null 로 두면 기본 글꼴로 떨어져 회귀 위험).
+    private object _bodyFontFamily = DependencyProperty.UnsetValue;
     private FontWeight _bodyFontWeight = FontWeights.SemiBold;
     private FontStyle _bodyFontStyle = FontStyles.Normal;
     private bool _bodyHasShadow;
@@ -78,6 +81,12 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // GapLogoLoader 캐시: 같은 경로를 매번 디스크에서 다시 디코딩하지 않도록 보관
     private string? _cachedGapLogoPath;
     private ImageSource? _cachedGapLogoSource;
+    // 곡별 배경 이미지(61) — 색 배경 위에 표시(이미지 우선). 없으면 색 배경만 보인다(무회귀).
+    private ImageSource? _sceneBackgroundImageSource;
+    private Visibility _backgroundImageVisibility = Visibility.Collapsed;
+    // 배경 이미지 캐시: 같은(해석된) 경로를 매번 다시 디코딩하지 않도록 보관.
+    private string? _cachedBackgroundImagePath;
+    private ImageSource? _cachedBackgroundImageSource;
     private OutputSceneSnapshot _scene;
     private TimeSpan _contentFadeDuration = TimeSpan.FromMilliseconds(250);
     private bool _disposed;
@@ -213,6 +222,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _bodyLineHeight, value);
     }
 
+    /// <summary>
+    /// 가사 본문 글꼴(곡별 FormatData 폰트명 43 오버라이드). 오버라이드가 없으면 <see cref="DependencyProperty.UnsetValue"/> —
+    /// XAML FontFamily 바인딩이 UnsetValue 를 받으면 부모(테마)의 글꼴을 상속한다(기존 출력 글꼴 무회귀). §7.3-A per-song 폰트.
+    /// </summary>
+    public object BodyFontFamily
+    {
+        get => _bodyFontFamily;
+        private set => SetProperty(ref _bodyFontFamily, value);
+    }
+
     /// <summary>가사 본문 굵기 — 굵게 on=Bold, off=SemiBold(기존 출력 보존). §7.3-A 폰트 효과.</summary>
     public FontWeight BodyFontWeight
     {
@@ -276,6 +295,23 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _sceneBackgroundBrush;
         private set => SetProperty(ref _sceneBackgroundBrush, value);
+    }
+
+    /// <summary>
+    /// 곡별 배경 이미지(FormatData 61). 있으면 색 배경 위(앞)에 표시해 이미지가 색을 가린다(이미지 우선). §7.3-A 배경.
+    /// 없거나 로드 실패면 null → <see cref="BackgroundImageVisibility"/> 가 Collapsed 가 되어 색 배경만 보인다.
+    /// </summary>
+    public ImageSource? SceneBackgroundImageSource
+    {
+        get => _sceneBackgroundImageSource;
+        private set => SetProperty(ref _sceneBackgroundImageSource, value);
+    }
+
+    /// <summary>배경 이미지 표시 여부 — 곡별 배경 이미지가 로드됐을 때만 Visible(색 배경 위에 덮음).</summary>
+    public Visibility BackgroundImageVisibility
+    {
+        get => _backgroundImageVisibility;
+        private set => SetProperty(ref _backgroundImageVisibility, value);
     }
 
     public Visibility LyricsAlertVisibility
@@ -482,6 +518,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             scene.LyricsMonitorBackgroundColorArgb,
             scene.LyricsMonitorBackgroundColor2Argb,
             scene.LyricsMonitorBackgroundIsGradient);
+        // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
+        ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
         // 곡 가사 본문을 송출 슬롯에 반영. 본문이 보이면 타이틀과 겹치므로 ApplyGapLogo 에서 타이틀을 숨긴다.
@@ -490,6 +528,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
         BodyFontSize = scene.LyricsMonitorFontSize;
+        // 곡별 글꼴명 오버라이드: 있으면 FontFamily, 없으면 UnsetValue → XAML 이 테마 기본 글꼴을 상속(무회귀).
+        BodyFontFamily = string.IsNullOrWhiteSpace(scene.LyricsMonitorFontFamily)
+            ? DependencyProperty.UnsetValue
+            : new FontFamily(scene.LyricsMonitorFontFamily);
         // 줄 높이 = 폰트 크기 × 줄 간격 비율(설정 %). 기본 125% → 폰트×1.25(기존 동작 보존).
         BodyLineHeight = scene.LyricsMonitorFontSize * (scene.LyricsMonitorLineSpacingPercent / 100.0);
         // 폰트 효과: 굵게 off 는 기존 SemiBold 를 유지(완전 Normal 로 떨어뜨리지 않음).
@@ -556,6 +598,53 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         GapLogoVisibility = gapLogoVisible ? Visibility.Visible : Visibility.Collapsed;
         // 가사 본문이 송출 중이면(곡 라이브) 타이틀은 숨겨 본문만 보이게 한다.
         DisplayTitleVisibility = (gapLogoVisible || bodyShown) ? Visibility.Collapsed : panelOverlay;
+    }
+
+    // 곡별 배경 이미지를 로드해 출력에 반영한다. 경로가 비었으면(비-Live·오버라이드 없음) 색 배경만 보인다.
+    // 상대 경로는 작업 폴더 기준으로 해석하고, 로드 실패(파일 없음/디코드 실패)면 null → 색 배경으로 안전 폴백.
+    private void ApplyBackgroundImage(OutputSceneSnapshot scene)
+    {
+        var image = TryLoadBackgroundImage(scene.BackgroundImagePath);
+        SceneBackgroundImageSource = image;
+        BackgroundImageVisibility = image is not null ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private ImageSource? TryLoadBackgroundImage(string backgroundImagePath)
+    {
+        if (string.IsNullOrWhiteSpace(backgroundImagePath))
+        {
+            _cachedBackgroundImagePath = null;
+            _cachedBackgroundImageSource = null;
+            return null;
+        }
+
+        var resolved = ResolveBackgroundImagePath(backgroundImagePath);
+        if (string.Equals(_cachedBackgroundImagePath, resolved, StringComparison.OrdinalIgnoreCase)
+            && _cachedBackgroundImageSource is not null)
+        {
+            return _cachedBackgroundImageSource;
+        }
+
+        // GAP 로고와 동일한 이미지 디코더(_gapLogoLoader)를 재사용 — 경로→ImageSource 변환은 동일하다.
+        var loaded = _gapLogoLoader(resolved);
+        _cachedBackgroundImagePath = resolved;
+        _cachedBackgroundImageSource = loaded;
+        return loaded;
+    }
+
+    // 배경 이미지 경로 해석 — 절대 경로면 그대로, 상대 경로면 작업 폴더 기준으로 합친다.
+    // 작업 폴더를 모르면(설정 없음) 입력 경로를 그대로 쓴다(로더가 존재 여부를 최종 판단).
+    private string ResolveBackgroundImagePath(string rawPath)
+    {
+        if (Path.IsPathRooted(rawPath))
+        {
+            return rawPath;
+        }
+
+        var workingFolder = _settings?.Current.General.WorkingFolder;
+        return string.IsNullOrWhiteSpace(workingFolder)
+            ? rawPath
+            : Path.Combine(workingFolder, rawPath);
     }
 
     private ImageSource? TryLoadGapLogo(OutputSceneSnapshot scene)
