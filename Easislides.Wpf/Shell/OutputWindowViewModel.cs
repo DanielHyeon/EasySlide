@@ -54,6 +54,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 본문 글꼴 — 곡별 FormatData 폰트명(43) 오버라이드. 오버라이드가 없으면 UnsetValue 로 두어
     // XAML FontFamily 바인딩이 부모(테마)의 글꼴을 그대로 상속하게 한다(null 로 두면 기본 글꼴로 떨어져 회귀 위험).
     private object _bodyFontFamily = DependencyProperty.UnsetValue;
+    // 이중 언어 Region2 본문 글꼴·크기(곡별 region2 글꼴 44/48) — 없으면 Region1 글꼴 추종.
+    private object _bodyFont2Family = DependencyProperty.UnsetValue;
+    private double _bodyFont2Size = 48;
     private FontWeight _bodyFontWeight = FontWeights.SemiBold;
     private FontStyle _bodyFontStyle = FontStyles.Normal;
     private bool _bodyHasShadow;
@@ -207,6 +210,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyText2Alignment;
         private set => SetProperty(ref _bodyText2Alignment, value);
+    }
+
+    /// <summary>Region2 본문 글꼴(곡별 region2 폰트명 44) — 없으면 UnsetValue(Region1/테마 글꼴 상속).</summary>
+    public object BodyFont2Family
+    {
+        get => _bodyFont2Family;
+        private set => SetProperty(ref _bodyFont2Family, value);
+    }
+
+    /// <summary>Region2 본문 폰트 크기(px) — 곡별 region2 크기(48) 또는 Region1 크기 추종.</summary>
+    public double BodyFont2Size
+    {
+        get => _bodyFont2Size;
+        private set => SetProperty(ref _bodyFont2Size, value);
     }
 
     /// <summary>외곽선 가사 본문(OutlinedTextBlock) 표시 여부 — 본문 송출 중 + 외곽선 on 일 때만 Visible(§7.3-A).</summary>
@@ -564,6 +581,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyText2 = scene.BodyText2;
         BodyText2Visibility = scene.ShowsBodyText2 ? Visibility.Visible : Visibility.Collapsed;
         BodyText2Alignment = ToTextAlignment(scene.LyricsMonitorTextAlignment2);
+        // Region2 글꼴명: 있으면 FontFamily, 없으면 UnsetValue → XAML 이 Region1/테마 글꼴을 상속.
+        BodyFont2Family = string.IsNullOrWhiteSpace(scene.LyricsMonitorFontFamily2)
+            ? DependencyProperty.UnsetValue
+            : new FontFamily(scene.LyricsMonitorFontFamily2);
+        BodyFont2Size = scene.LyricsMonitorFontSize2;
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);

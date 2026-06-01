@@ -48,6 +48,9 @@ public sealed record LiveSessionSnapshot(
     string? OverrideFontName = null,
     // 곡별 FormatData region1 폰트 크기(47). 레거시 pt 를 WPF px(DIP)로 변환해 싣는다. 없으면 null → 기본 크기 유지.
     int? OverrideFontSizePx = null,
+    // 곡별 FormatData region2 폰트명(44)·크기(48). 이중 언어 Region2 본문 글꼴. 없으면 null → Region1 글꼴 추종.
+    string? OverrideFontName2 = null,
+    int? OverrideFontSizePx2 = null,
     // 곡별 FormatData 배경 이미지 경로(61). 있으면 출력이 색 배경 대신(위에) 이미지를 표시. 없으면 null → 색 배경 유지.
     // 경로 해석·이미지 로딩은 출력 VM 이 담당(렌더러는 순수). 비었으면 null.
     string? OverrideBackgroundImagePath = null)
@@ -125,6 +128,9 @@ public sealed class LiveSessionService : ILiveSessionService
             // 곡별 글꼴명(43)·크기(47, region1). 폰트명은 비면 null(테마 상속), 크기는 레거시 pt→px 변환.
             OverrideFontName: NormalizeFontName(format?.FontName1),
             OverrideFontSizePx: LegacyPointToPixel(format?.FontSize1),
+            // region2 글꼴명(44)·크기(48) — 이중 언어 Region2 본문에 적용(없으면 Region1 글꼴 추종).
+            OverrideFontName2: NormalizeFontName(format?.FontName2),
+            OverrideFontSizePx2: LegacyPointToPixel(format?.FontSize2),
             // 곡별 배경 이미지(61). 비었으면 null(색 배경 유지). 경로 해석·로딩은 출력 VM 이 담당.
             OverrideBackgroundImagePath: NormalizeImagePath(format?.BackgroundImagePath)));
     }

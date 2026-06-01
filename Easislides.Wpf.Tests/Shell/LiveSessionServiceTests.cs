@@ -348,6 +348,23 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_DualLanguage_CarriesRegion2Font()
+    {
+        // region2 글꼴명(44)·크기(48, pt→px)를 스냅샷에 싣는다 — 이중 언어 Region2 본문 글꼴 독립.
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\nAmazing\n[region 2]\n은혜",
+            FormatData = "44=Batang>48=12>",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.OverrideFontName2.Should().Be("Batang", "44 = region2 폰트명");
+        sut.Current.OverrideFontSizePx2.Should().Be(16, "48 = region2 크기(12pt → 16px)");
+    }
+
+    [Fact]
     public void GoLive_SingleLanguage_LeavesBodyText2Empty()
     {
         var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\nAmazing grace" };

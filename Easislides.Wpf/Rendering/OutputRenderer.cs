@@ -163,7 +163,10 @@ public sealed record OutputSceneSnapshot(
     // Region2 본문 글자색(ARGB). 곡별 FormatData region2 색(30)이 없으면 Region1 색을 추종.
     int LyricsMonitorTextColor2Argb = -16777216,
     // Region2 본문 가로 정렬. 곡별 region2 정렬(32)이 없으면 Region1 정렬을 추종. 기본 Center.
-    LyricsTextAlignment LyricsMonitorTextAlignment2 = LyricsTextAlignment.Center)
+    LyricsTextAlignment LyricsMonitorTextAlignment2 = LyricsTextAlignment.Center,
+    // Region2 본문 글꼴명·크기. 곡별 region2 글꼴(44/48)이 없으면 Region1 글꼴을 추종.
+    string LyricsMonitorFontFamily2 = "",
+    int LyricsMonitorFontSize2 = 48)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -255,6 +258,13 @@ public sealed class OutputRenderer : IOutputRenderer
         var textAlignment2 = isLive && request.Session.OverrideTextAlignment2 is LyricsTextAlignment songAlign2
             ? songAlign2
             : textAlignment;
+        // Region2 글꼴명·크기도 Live + 곡별 region2 값(44/48)이 있을 때만, 없으면 Region1 글꼴(fontFamily/fontSizePx) 추종.
+        var fontFamily2 = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName2)
+            ? request.Session.OverrideFontName2!
+            : fontFamily;
+        var fontSize2Px = isLive && request.Session.OverrideFontSizePx2 is int songFont2Px
+            ? songFont2Px
+            : fontSizePx;
 
         return new OutputSceneSnapshot(
             kind,
@@ -298,10 +308,12 @@ public sealed class OutputRenderer : IOutputRenderer
             fontFamily,
             // 곡별 배경 이미지 경로(Live + 오버라이드 있을 때만). 비었으면 VM 이 색 배경을 유지(무회귀).
             backgroundImagePath,
-            // Region2(이중 언어) 본문·색·정렬 — Live + 이중 언어 곡일 때만 채워진다.
+            // Region2(이중 언어) 본문·색·정렬·글꼴 — Live + 이중 언어 곡일 때만 채워진다.
             bodyText2,
             textColor2Argb,
-            textAlignment2);
+            textAlignment2,
+            fontFamily2,
+            fontSize2Px);
     }
 
     private ImagePlacement GetContentPlacement(

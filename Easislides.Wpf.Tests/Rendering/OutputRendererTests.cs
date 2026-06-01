@@ -268,6 +268,44 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2Font_FallsBackToRegion1()
+    {
+        // region2 글꼴 오버라이드가 없으면 Region1 글꼴(이름·크기)을 추종한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontSize: 50);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideFontName: "Batang", OverrideFontSizePx: 90),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily2.Should().Be("Batang", "region2 글꼴 미지정 → region1 글꼴 추종");
+        scene.LyricsMonitorFontSize2.Should().Be(90, "region2 크기 미지정 → region1 크기 추종");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Font_UsesOverrideWhenPresent()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideFontName: "Batang", OverrideFontSizePx: 90,
+                OverrideFontName2: "Gulim", OverrideFontSizePx2: 60),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.LyricsMonitorFontFamily2.Should().Be("Gulim", "region2 글꼴 오버라이드 우선");
+        scene.LyricsMonitorFontSize2.Should().Be(60);
+    }
+
+    [Fact]
     public void CreateScene_Active_Region2Alignment_FallsBackToRegion1WhenNoOverride()
     {
         // region2 정렬 오버라이드가 없으면 Region2 정렬은 Region1 정렬을 추종한다(이중 언어 정렬 일관성).
