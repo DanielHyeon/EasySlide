@@ -144,6 +144,24 @@
                               Command="{Binding ApplyLyricsAlignmentCommand}"
                               CommandParameter="{x:Static settings:LyricsTextAlignment.Right}" />
                 </MenuItem>
+                <!-- 세로 정렬(FrmMain Vertical Alignment Top/Centre/Bottom). -->
+                <MenuItem Header="가사 세로 정렬">
+                    <MenuItem Header="위"
+                              Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                              CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}" />
+                    <MenuItem Header="가운데"
+                              Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                              CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}" />
+                    <MenuItem Header="아래"
+                              Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                              CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}" />
+                </MenuItem>
+                <Separator />
+                <!-- 글자 크기·줄 간격(FrmMain 글자 크기/줄 간격) — 기존 인-셸 명령 재사용. -->
+                <MenuItem Header="글자 크게" Command="{Binding IncreaseLyricsFontSizeCommand}" />
+                <MenuItem Header="글자 작게" Command="{Binding DecreaseLyricsFontSizeCommand}" />
+                <MenuItem Header="줄 간격 늘림" Command="{Binding IncreaseLyricsLineSpacingCommand}" />
+                <MenuItem Header="줄 간격 줄임" Command="{Binding DecreaseLyricsLineSpacingCommand}" />
             </MenuItem>
 
             <MenuItem Header="도구">

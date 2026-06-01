@@ -70,6 +70,15 @@ public class MainMenuBarTests
     public void MenuBar_FileMenuHasExit()
         => Xaml.Should().Contain("Header=\"종료\"", "파일 메뉴에 종료가 있어야 함");
 
+    [Theory]
+    [InlineData("ApplyLyricsVerticalAlignmentCommand")] // 세로 정렬
+    [InlineData("IncreaseLyricsFontSizeCommand")]       // 글자 크게
+    [InlineData("DecreaseLyricsFontSizeCommand")]       // 글자 작게
+    [InlineData("IncreaseLyricsLineSpacingCommand")]    // 줄 간격 늘림
+    [InlineData("DecreaseLyricsLineSpacingCommand")]    // 줄 간격 줄임
+    public void MenuBar_OutputFormattingExtras_WiredToCommands(string command)
+        => Xaml.Should().Contain($"{{Binding {command}}}", $"{command} 메뉴 배선");
+
     [Fact]
     public void MenuBar_HasLyricsAlignmentSubmenu_WiredToAlignmentCommand()
     {
