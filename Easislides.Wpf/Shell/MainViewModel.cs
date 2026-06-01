@@ -124,6 +124,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsLineSpacingCommand))]
     private int _activeLyricsLineSpacing = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
 
+    // 본문 여백 조절 범위·단계(설정 Validate 범위 0~400px 와 일치). FrmMain ShowLeftMargin/Right/Bottom 대응.
+    private const int LyricsBodyMarginMin = 0;
+    private const int LyricsBodyMarginMax = 400;
+    private const int LyricsBodyMarginStep = 8;
+
+    // 현재 본문 좌/우/아래 여백(px). +/- 커맨드 활성/비활성 판별에도 쓰인다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsLeftMarginCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsLeftMarginCommand))]
+    private int _activeLyricsLeftMargin = EasiSettingKeys.LyricsMonitorBodyLeftMargin.DefaultValue;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsRightMarginCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsRightMarginCommand))]
+    private int _activeLyricsRightMargin = EasiSettingKeys.LyricsMonitorBodyRightMargin.DefaultValue;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreaseLyricsBottomMarginCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsBottomMarginCommand))]
+    private int _activeLyricsBottomMargin = EasiSettingKeys.LyricsMonitorBodyBottomMargin.DefaultValue;
+
     // 현재 폰트 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용). 설정에서 유래.
     [ObservableProperty] private bool _activeLyricsBold = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
     [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
@@ -440,6 +461,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DecreaseLyricsFontSizeCommand = new RelayCommand(() => StepLyricsFontSize(-LyricsFontSizeStep), () => ActiveLyricsFontSize > LyricsFontSizeMin);
         IncreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(+LyricsLineSpacingStep), () => ActiveLyricsLineSpacing < LyricsLineSpacingMax);
         DecreaseLyricsLineSpacingCommand = new RelayCommand(() => StepLyricsLineSpacing(-LyricsLineSpacingStep), () => ActiveLyricsLineSpacing > LyricsLineSpacingMin);
+        // 본문 좌/우/아래 여백 +/- (FrmMain ShowLeftMargin/Right/Bottom) — 폰트·줄간격 증감과 동일 구조.
+        IncreaseLyricsLeftMarginCommand = new RelayCommand(() => StepLyricsLeftMargin(+LyricsBodyMarginStep), () => ActiveLyricsLeftMargin < LyricsBodyMarginMax);
+        DecreaseLyricsLeftMarginCommand = new RelayCommand(() => StepLyricsLeftMargin(-LyricsBodyMarginStep), () => ActiveLyricsLeftMargin > LyricsBodyMarginMin);
+        IncreaseLyricsRightMarginCommand = new RelayCommand(() => StepLyricsRightMargin(+LyricsBodyMarginStep), () => ActiveLyricsRightMargin < LyricsBodyMarginMax);
+        DecreaseLyricsRightMarginCommand = new RelayCommand(() => StepLyricsRightMargin(-LyricsBodyMarginStep), () => ActiveLyricsRightMargin > LyricsBodyMarginMin);
+        IncreaseLyricsBottomMarginCommand = new RelayCommand(() => StepLyricsBottomMargin(+LyricsBodyMarginStep), () => ActiveLyricsBottomMargin < LyricsBodyMarginMax);
+        DecreaseLyricsBottomMarginCommand = new RelayCommand(() => StepLyricsBottomMargin(-LyricsBodyMarginStep), () => ActiveLyricsBottomMargin > LyricsBodyMarginMin);
         ApplyTextColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: false));
         ApplyBackgroundColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: true));
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
@@ -547,6 +575,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DecreaseLyricsFontSizeCommand { get; }
     public IRelayCommand IncreaseLyricsLineSpacingCommand { get; }
     public IRelayCommand DecreaseLyricsLineSpacingCommand { get; }
+    // 본문 좌/우/아래 여백 +/- (FrmMain ShowLeftMargin/Right/Bottom).
+    public IRelayCommand IncreaseLyricsLeftMarginCommand { get; }
+    public IRelayCommand DecreaseLyricsLeftMarginCommand { get; }
+    public IRelayCommand IncreaseLyricsRightMarginCommand { get; }
+    public IRelayCommand DecreaseLyricsRightMarginCommand { get; }
+    public IRelayCommand IncreaseLyricsBottomMarginCommand { get; }
+    public IRelayCommand DecreaseLyricsBottomMarginCommand { get; }
     public IRelayCommand<string> ApplyTextColorHexCommand { get; }
     public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
@@ -2621,6 +2656,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"줄 간격: {next}%";
     }
 
+    // 본문 왼쪽 여백 조절(+/- 단계, px) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain ShowLeftMargin).
+    private void StepLyricsLeftMargin(int delta)
+    {
+        var next = Math.Clamp(ActiveLyricsLeftMargin + delta, LyricsBodyMarginMin, LyricsBodyMarginMax);
+        if (next == ActiveLyricsLeftMargin)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, next);
+        ActiveLyricsLeftMargin = next;
+        StatusText = $"본문 왼쪽 여백: {next}px";
+    }
+
+    // 본문 오른쪽 여백 조절(+/- 단계, px) — FrmMain ShowRightMargin.
+    private void StepLyricsRightMargin(int delta)
+    {
+        var next = Math.Clamp(ActiveLyricsRightMargin + delta, LyricsBodyMarginMin, LyricsBodyMarginMax);
+        if (next == ActiveLyricsRightMargin)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorBodyRightMargin, next);
+        ActiveLyricsRightMargin = next;
+        StatusText = $"본문 오른쪽 여백: {next}px";
+    }
+
+    // 본문 아래 여백 조절(+/- 단계, px) — FrmMain ShowBottomMargin.
+    private void StepLyricsBottomMargin(int delta)
+    {
+        var next = Math.Clamp(ActiveLyricsBottomMargin + delta, LyricsBodyMarginMin, LyricsBodyMarginMax);
+        if (next == ActiveLyricsBottomMargin)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorBodyBottomMargin, next);
+        ActiveLyricsBottomMargin = next;
+        StatusText = $"본문 아래 여백: {next}px";
+    }
+
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
     private void RefreshActiveAppearance()
     {
@@ -2640,6 +2717,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
+        ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);
+        ActiveLyricsRightMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin);
+        ActiveLyricsBottomMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin);
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
         ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);

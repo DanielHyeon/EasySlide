@@ -213,6 +213,11 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorPanelTransparent = new("liveOutput.lyricsMonitorPanelTransparent", false);
     // 출력 가사 줄 간격(폰트 크기 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125 로 기존 줄높이(폰트×1.25) 보존. 범위 100~220.
     public static readonly SettingKey<int> LyricsMonitorLineSpacingPercent = new("liveOutput.lyricsMonitorLineSpacingPercent", 125);
+    // 출력 본문 좌/우/아래 여백(픽셀) — FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응.
+    // 본문 묶음을 화면 가장자리에서 안쪽으로 들여써 잘림·치우침을 보정한다. 기본 0=기존 레이아웃(무회귀). 범위 0~400.
+    public static readonly SettingKey<int> LyricsMonitorBodyLeftMargin = new("liveOutput.lyricsMonitorBodyLeftMargin", 0);
+    public static readonly SettingKey<int> LyricsMonitorBodyRightMargin = new("liveOutput.lyricsMonitorBodyRightMargin", 0);
+    public static readonly SettingKey<int> LyricsMonitorBodyBottomMargin = new("liveOutput.lyricsMonitorBodyBottomMargin", 0);
     // 출력 위치 인디케이터 표시(절/슬라이드 "N/M", 인-셸 §7.3-A). 기본 off.
     public static readonly SettingKey<bool> LyricsMonitorShowPositionIndicator = new("liveOutput.lyricsMonitorShowPositionIndicator", false);
     // 출력에 곡 번호 표시(FrmMain "Show Item Number"/"Use Song Numbering", Display Panel). 기본 off → 기존 동작 보존.
@@ -303,6 +308,9 @@ public static class EasiSettingKeys
         LyricsMonitorInterlace,
         LyricsMonitorPanelTransparent,
         LyricsMonitorLineSpacingPercent,
+        LyricsMonitorBodyLeftMargin,
+        LyricsMonitorBodyRightMargin,
+        LyricsMonitorBodyBottomMargin,
         LyricsMonitorShowPositionIndicator,
         // Display Panel 토글들(곡번호·저작권·다음항목) — All 누락 시 FindChangedKeys 가 변경을 못 잡아
         // 메뉴 토글이 라이브 출력에 즉시 반영되지 않는다(다음 GoLive 때까지 지연). 반드시 등록.
@@ -421,6 +429,12 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorPanelTransparent { get; init; } = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
 
     public int LyricsMonitorLineSpacingPercent { get; init; } = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
+
+    public int LyricsMonitorBodyLeftMargin { get; init; } = EasiSettingKeys.LyricsMonitorBodyLeftMargin.DefaultValue;
+
+    public int LyricsMonitorBodyRightMargin { get; init; } = EasiSettingKeys.LyricsMonitorBodyRightMargin.DefaultValue;
+
+    public int LyricsMonitorBodyBottomMargin { get; init; } = EasiSettingKeys.LyricsMonitorBodyBottomMargin.DefaultValue;
 
     public bool LyricsMonitorShowPositionIndicator { get; init; } = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
 
@@ -726,6 +740,26 @@ public sealed class SettingsService : ISettingsService
             min: 100,
             max: 220,
             EasiSettingKeys.LyricsMonitorLineSpacingPercent.Id,
+            issues);
+
+        // 본문 여백 범위 가드(0~400px) — 음수나 화면을 다 덮는 과대값으로 본문이 사라지지 않도록(좌/우/아래 동일).
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorBodyLeftMargin,
+            min: 0,
+            max: 400,
+            EasiSettingKeys.LyricsMonitorBodyLeftMargin.Id,
+            issues);
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorBodyRightMargin,
+            min: 0,
+            max: 400,
+            EasiSettingKeys.LyricsMonitorBodyRightMargin.Id,
+            issues);
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorBodyBottomMargin,
+            min: 0,
+            max: 400,
+            EasiSettingKeys.LyricsMonitorBodyBottomMargin.Id,
             issues);
 
         // 전환 길이 범위 가드(0~2000ms) — 음수/과대값으로 애니메이션이 멈추거나 비현실적으로 길어지지 않도록.
@@ -1212,6 +1246,9 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorInterlace" => snapshot.LiveOutput.LyricsMonitorInterlace,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
+            "liveOutput.lyricsMonitorBodyLeftMargin" => snapshot.LiveOutput.LyricsMonitorBodyLeftMargin,
+            "liveOutput.lyricsMonitorBodyRightMargin" => snapshot.LiveOutput.LyricsMonitorBodyRightMargin,
+            "liveOutput.lyricsMonitorBodyBottomMargin" => snapshot.LiveOutput.LyricsMonitorBodyBottomMargin,
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot.LiveOutput.LyricsMonitorShowItemNumber,
             "liveOutput.lyricsMonitorShowCopyright" => snapshot.LiveOutput.LyricsMonitorShowCopyright,
@@ -1383,6 +1420,18 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorLineSpacingPercent = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBodyLeftMargin" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBodyLeftMargin = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBodyRightMargin" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBodyRightMargin = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBodyBottomMargin" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorBodyBottomMargin = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot with
             {

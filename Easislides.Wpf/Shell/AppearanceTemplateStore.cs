@@ -42,7 +42,11 @@ public sealed record LyricsAppearanceTemplate(
     LyricsTextAlignment TitleHeadingAlignment = LyricsTextAlignment.Center,
     bool TitleHeadingFirstScreenOnly = false,
     // 밑줄(기본 false) — 구버전 JSON(이 키 없음) 역직렬화 시 기존 동작(밑줄 없음)으로 안전 복원.
-    bool Underline = false)
+    bool Underline = false,
+    // 본문 좌/우/아래 여백(px, 기본 0) — 구버전 JSON(이 키 없음) 역직렬화 시 기존 동작(여백 없음)으로 안전 복원.
+    int BodyLeftMargin = 0,
+    int BodyRightMargin = 0,
+    int BodyBottomMargin = 0)
 {
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -67,7 +71,10 @@ public sealed record LyricsAppearanceTemplate(
             Outline: settings.Get(EasiSettingKeys.LyricsMonitorOutline),
             TitleHeadingAlignment: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
             TitleHeadingFirstScreenOnly: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
-            Underline: settings.Get(EasiSettingKeys.LyricsMonitorUnderline));
+            Underline: settings.Get(EasiSettingKeys.LyricsMonitorUnderline),
+            BodyLeftMargin: settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin),
+            BodyRightMargin: settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
+            BodyBottomMargin: settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -92,6 +99,9 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, TitleHeadingAlignment);
         settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, TitleHeadingFirstScreenOnly);
         settings.Set(EasiSettingKeys.LyricsMonitorUnderline, Underline);
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, BodyLeftMargin);
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyRightMargin, BodyRightMargin);
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyBottomMargin, BodyBottomMargin);
     }
 }
 

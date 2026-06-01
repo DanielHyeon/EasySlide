@@ -716,6 +716,42 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_BodyMargins_InsetBodyContent_LeftRightBottom()
+    {
+        // FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응 — 설정한 여백이 본문 묶음 Margin 에 그대로 들어간다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, 40).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyRightMargin, 56).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyBottomMargin, 72).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyContentMargin.Left.Should().Be(40, "왼쪽 여백 설정이 본문 묶음 왼쪽 Margin 으로 들어감");
+        sut.BodyContentMargin.Right.Should().Be(56, "오른쪽 여백 설정이 본문 묶음 오른쪽 Margin 으로 들어감");
+        sut.BodyContentMargin.Bottom.Should().Be(72, "아래 여백 설정이 본문 묶음 아래 Margin 으로 들어감");
+        // 헤딩 off(기본) 이므로 상단 여백은 0 — 좌/우/아래 여백과 독립적임을 확인.
+        sut.BodyContentMargin.Top.Should().Be(0, "헤딩이 없으면 상단 여백은 여전히 0(여백 설정은 좌/우/아래만 영향)");
+    }
+
+    [Fact]
+    public void ApplySession_BodyMargins_Default_NoInset_PreservesLegacyLayout()
+    {
+        // 기본값(0/0/0) 이면 헤딩 off 에서 본문 Margin 이 완전히 0 — 기존 레이아웃 무회귀.
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절 가사"));
+
+        sut.BodyContentMargin.Left.Should().Be(0);
+        sut.BodyContentMargin.Right.Should().Be(0);
+        sut.BodyContentMargin.Bottom.Should().Be(0);
+        sut.BodyContentMargin.Top.Should().Be(0);
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesTitleHeading()
     {
         // 라이브 중 설정 토글이 즉시 헤딩 가시성에 반영(SettingsChanged 화이트리스트).

@@ -84,7 +84,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_ImageMode`/`Ind_ImageMode` (Tile/Centre/BestFit), `Def_NoImage` | **배경 이미지 표시 모드** | 🔴 곡별 이미지 UniformToFill 고정(모드 선택 없음) |
 | `Def_TransItem`/`Def_TransSlides`, `Ind_Trans*` | **항목/슬라이드 전환 효과** | 🔴 UI 노출 없음(서비스만 존재) |
 | `Def_AssignMedia`/`Ind_AssignMedia` (None/AsTitle/Specific/LiveFeed) | 항목 미디어 배정 | 🔴 없음 |
-| `Ind_LeftUpDown`/`RightUpDown`/`BottomUpDown` | **여백 수치 입력** | 🔴 없음 |
+| `Ind_LeftUpDown`/`RightUpDown`/`BottomUpDown` | **여백 수치 입력** | 🟢 출력 본문 좌/우/아래 여백(LyricsMonitorBodyLeft/Right/BottomMargin, 0~400px) — 메뉴 "본문 여백" −/+ 로 8px 단위 조절·설정 영속·라이브 즉시 반영. 직접 수치 입력 박스만 후속 |
 | `Def_Panel*` (Show/Title/Copyright/ItemNumber/Slides/PrevNext/Transparent/AsR1/색/폰트 9종+) | Display Panel 항목(곡번호·저작권·다음항목·위치) + 투명 토글 | 🟡 ItemNumber/Copyright/PrevNext/Position(증분6)·**Transparent(증분39)** 구현. Title-on-panel·AsR1·패널 색/폰트는 후속 |
 | `Ind_LoadTemplate`/`SaveTemplate`, `Def_*Template` | 개별/기본 설정 템플릿 | 🟡 출력모양 템플릿 1종만 |
 | `Ind_checkBox` "Use Individual Settings" | **항목별 개별 포맷 vs 기본** | 🟢 (증분 54) 예배 순서 항목 우클릭 "개별 서식 사용" 토글 — off 면 그 항목의 FormatData(색·정렬·폰트·배경) 무시하고 전역 기본으로 송출. 라이브 즉시 반영(현재 절 유지)·저장/불러오기 보존(FormatData 도 영속) |

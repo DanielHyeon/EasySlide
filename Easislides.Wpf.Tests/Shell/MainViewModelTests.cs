@@ -3267,6 +3267,46 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsBodyMarginCommands_StepAndPersist_LeftRightBottom()
+    {
+        // FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응 — +/- 한 단계(8px)가 설정에 저장된다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsLeftMargin.Should().Be(0, "기본 0px");
+        sut.ActiveLyricsRightMargin.Should().Be(0);
+        sut.ActiveLyricsBottomMargin.Should().Be(0);
+
+        sut.IncreaseLyricsLeftMarginCommand.Execute(null);
+        sut.IncreaseLyricsRightMarginCommand.Execute(null);
+        sut.IncreaseLyricsBottomMarginCommand.Execute(null);
+
+        sut.ActiveLyricsLeftMargin.Should().Be(8, "한 단계 +8px");
+        sut.ActiveLyricsRightMargin.Should().Be(8);
+        sut.ActiveLyricsBottomMargin.Should().Be(8);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin).Should().Be(8);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin).Should().Be(8);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin).Should().Be(8);
+
+        sut.DecreaseLyricsLeftMarginCommand.Execute(null);
+        sut.ActiveLyricsLeftMargin.Should().Be(0, "한 단계 -8px");
+    }
+
+    [Fact]
+    public void LyricsBodyMarginCommands_ClampToRange()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, 0);
+        sut.DecreaseLyricsLeftMarginCommand.CanExecute(null).Should().BeFalse("하한(0px)에서 감소 비활성");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, 400);
+        sut.IncreaseLyricsLeftMarginCommand.CanExecute(null).Should().BeFalse("상한(400px)에서 증가 비활성");
+    }
+
+    [Fact]
     public void AddSelectedLibrarySongCommand_AddsLibrarySelectedSongToQueue()
     {
         // 인라인 콘텐츠 브라우저(§7.5 P0): 별도 LibraryWindow 없이 라이브러리 선택 곡을 예배 순서에 추가.

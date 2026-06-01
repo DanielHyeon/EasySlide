@@ -32,7 +32,10 @@ public class AppearanceTemplateStoreTests
             ShowTitleHeading: true,
             Outline: true,
             TitleHeadingAlignment: LyricsTextAlignment.Right,
-            TitleHeadingFirstScreenOnly: true);
+            TitleHeadingFirstScreenOnly: true,
+            BodyLeftMargin: 40,
+            BodyRightMargin: 56,
+            BodyBottomMargin: 72);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

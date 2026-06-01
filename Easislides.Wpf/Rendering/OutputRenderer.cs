@@ -49,6 +49,10 @@ public sealed record LiveOutputRenderSettings(
     bool LyricsMonitorPanelTransparent = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
+    // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
+    int LyricsMonitorBodyLeftMargin = 0,
+    int LyricsMonitorBodyRightMargin = 0,
+    int LyricsMonitorBodyBottomMargin = 0,
     // 출력 위치 인디케이터(절/슬라이드 "N/M") 표시 여부(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsPositionIndicator = false,
     // 출력 제목 헤딩(가사 위 상단 배너로 곡 제목) 표시 여부(인-셸 §7.3-A). 기본 off.
@@ -103,6 +107,9 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorUnderline),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent),
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
+            settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin),
+            settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
+            settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorOutline),
@@ -170,6 +177,10 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorPanelTransparent = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
+    // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
+    int LyricsMonitorBodyLeftMargin = 0,
+    int LyricsMonitorBodyRightMargin = 0,
+    int LyricsMonitorBodyBottomMargin = 0,
     // 위치 라벨(절/슬라이드 "N/M"). Live 가 아니면 빈 문자열로 들어온다.
     string PositionLabel = "",
     // 위치 인디케이터 표시 설정(인-셸 §7.3-A). 기본 off.
@@ -390,6 +401,9 @@ public sealed class OutputRenderer : IOutputRenderer
             region1Underline,
             liveOutput.LyricsMonitorPanelTransparent,
             liveOutput.LyricsMonitorLineSpacingPercent,
+            liveOutput.LyricsMonitorBodyLeftMargin,
+            liveOutput.LyricsMonitorBodyRightMargin,
+            liveOutput.LyricsMonitorBodyBottomMargin,
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,
             liveOutput.ShowLyricsPositionIndicator,

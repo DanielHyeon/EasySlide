@@ -793,7 +793,15 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         TitleHeadingHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTitleHeadingAlignment);
         // 헤딩이 보이면 본문 위에 배너 높이만큼 여백을 확보 — 본문 세로정렬이 "위"여도 겹치지 않게 한다.
         // 헤딩은 1줄(NoWrap)로 높이가 결정적이라 고정 여백으로 충분하다.
-        BodyContentMargin = scene.ShowsTitleHeading ? new Thickness(0, TitleHeadingReservedHeight, 0, 0) : new Thickness(0);
+        // 본문 묶음 여백 = 사용자 설정 좌/우/아래 여백 + (헤딩이 보이면) 헤딩 높이만큼 상단 확보.
+        // 좌/우/아래는 FrmMain ShowLeftMargin/Right/Bottom 대응 — 가장자리에서 안쪽으로 들여써 잘림·치우침을 보정한다.
+        // 기본값 0/0/0 이면 헤딩 유무에 따라 기존 Thickness(0,heading,0,0)/Thickness(0) 과 완전히 동일(무회귀).
+        var headingTop = scene.ShowsTitleHeading ? TitleHeadingReservedHeight : 0;
+        BodyContentMargin = new Thickness(
+            scene.LyricsMonitorBodyLeftMargin,
+            headingTop,
+            scene.LyricsMonitorBodyRightMargin,
+            scene.LyricsMonitorBodyBottomMargin);
         var bodyShown = scene.ShowsBodyText;
         // 외곽선 효과(§7.3-A): on 이면 외곽선 렌더러만, off 면 일반 본문만 보이게 상호배타로 전환(겹침 방지).
         // 외곽선 기본 off 라 기존 테스트/동작에선 BodyTextVisibility=bodyShown 그대로다.
@@ -1183,6 +1191,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorFontSize.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 줄 간격 변경도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorLineSpacingPercent.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 본문 여백(좌/우/아래) 변경도 라이브 출력에 즉시 반영(FrmMain ShowLeftMargin/Right/Bottom).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBodyLeftMargin.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBodyRightMargin.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorBodyBottomMargin.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 폰트 효과(굵게/기울임/그림자) 변경도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBold.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||

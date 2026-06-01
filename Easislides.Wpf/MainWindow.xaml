@@ -428,6 +428,21 @@
                 <MenuItem Header="글자 작게" Command="{Binding DecreaseLyricsFontSizeCommand}" />
                 <MenuItem Header="줄 간격 늘림" Command="{Binding IncreaseLyricsLineSpacingCommand}" />
                 <MenuItem Header="줄 간격 줄임" Command="{Binding DecreaseLyricsLineSpacingCommand}" />
+                <Separator />
+                <!-- 본문 여백(FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin) — 본문을 가장자리에서 안쪽으로 들여쓴다. -->
+                <MenuItem Header="본문 여백">
+                    <MenuItem Header="{Binding ActiveLyricsLeftMargin, StringFormat=왼쪽 여백: {0}px}" IsEnabled="False" />
+                    <MenuItem Header="왼쪽 여백 넓게" Command="{Binding IncreaseLyricsLeftMarginCommand}" />
+                    <MenuItem Header="왼쪽 여백 좁게" Command="{Binding DecreaseLyricsLeftMarginCommand}" />
+                    <Separator />
+                    <MenuItem Header="{Binding ActiveLyricsRightMargin, StringFormat=오른쪽 여백: {0}px}" IsEnabled="False" />
+                    <MenuItem Header="오른쪽 여백 넓게" Command="{Binding IncreaseLyricsRightMarginCommand}" />
+                    <MenuItem Header="오른쪽 여백 좁게" Command="{Binding DecreaseLyricsRightMarginCommand}" />
+                    <Separator />
+                    <MenuItem Header="{Binding ActiveLyricsBottomMargin, StringFormat=아래 여백: {0}px}" IsEnabled="False" />
+                    <MenuItem Header="아래 여백 넓게" Command="{Binding IncreaseLyricsBottomMarginCommand}" />
+                    <MenuItem Header="아래 여백 좁게" Command="{Binding DecreaseLyricsBottomMarginCommand}" />
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="도구">
