@@ -164,6 +164,24 @@
                           IsChecked="{Binding ActiveLyricsPanelTransparent}"
                           Command="{Binding TogglePanelTransparentCommand}"
                           ToolTip="곡번호·저작권·다음항목 밴드의 어두운 배경을 없앱니다(레거시 Transparent)." />
+                <!-- 정보 패널 밴드 색(레거시 Def_PanelColour) — 색조만 고르고 반투명은 유지(밴드 뒤 가사 비침). 투명 배경 on 이면 무시됨. -->
+                <MenuItem Header="정보 패널 색">
+                    <MenuItem Header="검정 (기본)"
+                              Command="{Binding ApplyPanelColorHexCommand}"
+                              CommandParameter="#000000" />
+                    <MenuItem Header="남색"
+                              Command="{Binding ApplyPanelColorHexCommand}"
+                              CommandParameter="#102040" />
+                    <MenuItem Header="진회색"
+                              Command="{Binding ApplyPanelColorHexCommand}"
+                              CommandParameter="#303030" />
+                    <MenuItem Header="자주"
+                              Command="{Binding ApplyPanelColorHexCommand}"
+                              CommandParameter="#3A1030" />
+                    <MenuItem Header="진녹색"
+                              Command="{Binding ApplyPanelColorHexCommand}"
+                              CommandParameter="#103020" />
+                </MenuItem>
                 <MenuItem Header="제목 헤딩"
                           IsChecked="{Binding ActiveLyricsTitleHeading}"
                           Command="{Binding ToggleLyricsTitleHeadingCommand}" />

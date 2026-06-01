@@ -39,7 +39,8 @@ public class AppearanceTemplateStoreTests
             TitleHeadingFollowBody: true,
             ShowVerseHeading: true,
             TitleHeadingFollowRegion2: true,
-            BackgroundGradientDirection: LyricsGradientDirection.DiagonalDown);
+            BackgroundGradientDirection: LyricsGradientDirection.DiagonalDown,
+            PanelColorArgb: unchecked((int)0x66203040));
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

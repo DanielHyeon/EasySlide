@@ -484,6 +484,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DecreaseLyricsBottomMarginCommand = new RelayCommand(() => StepLyricsBottomMargin(-LyricsBodyMarginStep), () => ActiveLyricsBottomMargin > LyricsBodyMarginMin);
         ApplyTextColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: false));
         ApplyBackgroundColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: true));
+        ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
         DeleteAppearanceTemplateCommand = new RelayCommand(DeleteAppearanceTemplate, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -608,6 +609,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DecreaseLyricsBottomMarginCommand { get; }
     public IRelayCommand<string> ApplyTextColorHexCommand { get; }
     public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
+    public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
     public IRelayCommand DeleteAppearanceTemplateCommand { get; }
@@ -2495,6 +2497,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "#RRGGBB"/"RRGGBB" → 불투명(알파 FF) ARGB 정수. 실패 시 false.
     // 인스펙터 표시는 RGB(6자리) 기준이고 모든 색을 불투명으로 다루므로, 표시·입력 대칭을 위해
     // 8자리(알파 포함)는 일부러 받지 않는다(반투명이 저장되는데 표시는 6자리로 잘리는 비대칭 방지).
+    // Display Panel 밴드 색 적용(FrmMain Def_PanelColour) — 사용자는 RGB(색조)만 고르고,
+    // 밴드 뒤 가사가 비치도록 반투명 알파(0x66)는 항상 유지한다. 설정→출력 VM 라이브 반영.
+    private void ApplyPanelColorHex(string? hex)
+    {
+        if (!TryParseHexColor(hex, out var rgbArgb))
+        {
+            StatusText = "색 형식이 올바르지 않습니다(예: #1A2B3C).";
+            return;
+        }
+
+        // TryParseHexColor 는 불투명(0xFF) 알파를 주므로, RGB 만 떼어 반투명(0x66) 알파와 다시 합친다.
+        var panelArgb = unchecked((int)(0x66000000u | ((uint)rgbArgb & 0x00FFFFFFu)));
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelColorArgb, panelArgb);
+        StatusText = $"패널 색: {FormatColorHex(rgbArgb)} (반투명)";
+        RefreshActiveAppearance();
+    }
+
     private static bool TryParseHexColor(string? hex, out int argb)
     {
         argb = 0;

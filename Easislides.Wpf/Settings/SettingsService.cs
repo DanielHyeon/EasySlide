@@ -220,6 +220,10 @@ public static class EasiSettingKeys
     // Display Panel 배경 투명(레거시 Def_PanelTransparent). on 이면 곡번호·저작권·다음항목·위치 인디케이터 밴드의
     // 어두운 배경(#66000000)을 없애 텍스트가 슬라이드 위에 바로 보인다. 기본 off=기존 반투명 밴드(무회귀).
     public static readonly SettingKey<bool> LyricsMonitorPanelTransparent = new("liveOutput.lyricsMonitorPanelTransparent", false);
+    // Display Panel 밴드 배경색(ARGB, 레거시 Def_PanelColour). 기본 0x66000000=반투명 검정(기존 동작 보존, 무회귀).
+    // 알파(반투명)는 밴드 뒤 가사가 비치도록 유지하고 RGB(색조)만 사용자가 바꾼다. 투명 토글 on 이면 이 색 대신 완전 투명.
+    public static readonly SettingKey<int> LyricsMonitorPanelColorArgb =
+        new("liveOutput.lyricsMonitorPanelColorArgb", unchecked((int)0x66000000));
     // 출력 가사 줄 간격(폰트 크기 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125 로 기존 줄높이(폰트×1.25) 보존. 범위 100~220.
     public static readonly SettingKey<int> LyricsMonitorLineSpacingPercent = new("liveOutput.lyricsMonitorLineSpacingPercent", 125);
     // 출력 본문 좌/우/아래 여백(픽셀) — FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응.
@@ -327,6 +331,7 @@ public static class EasiSettingKeys
         LyricsMonitorEmphasisChorusOnly,
         LyricsMonitorInterlace,
         LyricsMonitorPanelTransparent,
+        LyricsMonitorPanelColorArgb,
         LyricsMonitorLineSpacingPercent,
         LyricsMonitorBodyLeftMargin,
         LyricsMonitorBodyRightMargin,
@@ -451,6 +456,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorInterlace { get; init; } = EasiSettingKeys.LyricsMonitorInterlace.DefaultValue;
 
     public bool LyricsMonitorPanelTransparent { get; init; } = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
+
+    public int LyricsMonitorPanelColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorPanelColorArgb.DefaultValue;
 
     public int LyricsMonitorLineSpacingPercent { get; init; } = EasiSettingKeys.LyricsMonitorLineSpacingPercent.DefaultValue;
 
@@ -1286,6 +1293,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorEmphasisChorusOnly" => snapshot.LiveOutput.LyricsMonitorEmphasisChorusOnly,
             "liveOutput.lyricsMonitorInterlace" => snapshot.LiveOutput.LyricsMonitorInterlace,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
+            "liveOutput.lyricsMonitorPanelColorArgb" => snapshot.LiveOutput.LyricsMonitorPanelColorArgb,
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
             "liveOutput.lyricsMonitorBodyLeftMargin" => snapshot.LiveOutput.LyricsMonitorBodyLeftMargin,
             "liveOutput.lyricsMonitorBodyRightMargin" => snapshot.LiveOutput.LyricsMonitorBodyRightMargin,
@@ -1461,6 +1469,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelTransparent = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorPanelColorArgb" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelColorArgb = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot with
             {

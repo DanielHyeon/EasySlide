@@ -47,6 +47,8 @@ public sealed record LiveOutputRenderSettings(
     bool LyricsMonitorUnderline = false,
     // Display Panel 배경 투명(Def_PanelTransparent). 기본 false=반투명 밴드(무회귀).
     bool LyricsMonitorPanelTransparent = false,
+    // Display Panel 밴드 배경색(ARGB, Def_PanelColour). 기본 0x66000000=반투명 검정(무회귀).
+    int LyricsMonitorPanelColorArgb = unchecked((int)0x66000000),
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
@@ -114,6 +116,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShadow),
             settings.Get(EasiSettingKeys.LyricsMonitorUnderline),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb),
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
@@ -187,6 +190,8 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorUnderline = false,
     // Display Panel 배경 투명(Def_PanelTransparent). 기본 false=반투명 밴드(무회귀).
     bool LyricsMonitorPanelTransparent = false,
+    // Display Panel 밴드 배경색(ARGB, Def_PanelColour). 기본 0x66000000=반투명 검정(무회귀).
+    int LyricsMonitorPanelColorArgb = unchecked((int)0x66000000),
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
@@ -421,6 +426,7 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorShadow,
             region1Underline,
             liveOutput.LyricsMonitorPanelTransparent,
+            liveOutput.LyricsMonitorPanelColorArgb,
             liveOutput.LyricsMonitorLineSpacingPercent,
             liveOutput.LyricsMonitorBodyLeftMargin,
             liveOutput.LyricsMonitorBodyRightMargin,

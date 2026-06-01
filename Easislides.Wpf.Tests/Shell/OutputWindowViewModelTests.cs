@@ -933,6 +933,25 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void PanelBackgroundBrush_UsesConfiguredPanelColor_WhenNotTransparent()
+    {
+        // FrmMain Def_PanelColour — 설정한 패널 색(반투명)이 밴드 배경으로 송출. 투명 토글 off 일 때.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelColorArgb, unchecked((int)0x66102040)).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Amazing Grace", "Display 2", IsBlackout: false));
+
+        ((SolidColorBrush)sut.PanelBackgroundBrush).Color.Should().Be(Color.FromArgb(0x66, 0x10, 0x20, 0x40), "설정한 반투명 남색");
+
+        // 투명 토글이 켜지면 패널 색을 무시하고 완전 투명(우선).
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTransparent, true).Succeeded.Should().BeTrue();
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Amazing Grace", "Display 2", IsBlackout: false));
+        ((SolidColorBrush)sut.PanelBackgroundBrush).Color.Should().Be(Colors.Transparent, "투명 토글이 패널 색보다 우선");
+    }
+
+    [Fact]
     public void ApplySession_WithSettingsBackedLyricsMonitorAppearance_UpdatesBrushesAndVisibility()
     {
         using var settingsFolder = TempSettingsFolder.Create();

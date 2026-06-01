@@ -3114,6 +3114,32 @@ public class MainViewModelTests
     // ─── 인-셸 세분 색 직접 지정(hex) (§7.3-A) ────────────────────────────────
 
     [Fact]
+    public void ApplyPanelColorHexCommand_KeepsSemiTransparentAlpha()
+    {
+        // FrmMain Def_PanelColour — RGB 만 바꾸고 반투명 알파(0x66)는 유지(밴드 뒤 가사 비침).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyPanelColorHexCommand.Execute("#102040");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb).Should().Be(unchecked((int)0x66102040), "RGB=102040 + 반투명 알파 66");
+    }
+
+    [Fact]
+    public void ApplyPanelColorHexCommand_InvalidHex_LeavesSettingUnchanged()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var before = settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb);
+
+        sut.ApplyPanelColorHexCommand.Execute("not-a-color");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb).Should().Be(before, "형식 오류면 변경 없음");
+    }
+
+    [Fact]
     public void ApplyTextColorHexCommand_SetsArgbWithFullAlpha()
     {
         using var folder = TempSettingsFolder.Create();

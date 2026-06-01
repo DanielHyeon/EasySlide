@@ -757,7 +757,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             scene.LyricsMonitorBackgroundIsGradient,
             scene.BackgroundGradientDirection);
         // Display Panel 밴드 배경 — "패널 투명" on 이면 Transparent, off(기본)면 반투명 검정(무회귀).
-        PanelBackgroundBrush = scene.LyricsMonitorPanelTransparent ? Brushes.Transparent : PanelDefaultBrush;
+        // Display Panel 밴드 배경 — "패널 투명" on 이면 완전 투명, off(기본)면 설정한 패널 색(기본 반투명 검정 = 기존 동작).
+        PanelBackgroundBrush = scene.LyricsMonitorPanelTransparent ? Brushes.Transparent : CreateBrush(scene.LyricsMonitorPanelColorArgb);
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
@@ -1237,6 +1238,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorInterlace.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 투명 토글도 라이브 출력에 즉시 반영(Def_PanelTransparent).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
+                // Display Panel 밴드 색 변경도 라이브 출력에 즉시 반영(Def_PanelColour).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 절 헤딩 표시 토글도 라이브 출력에 즉시 반영(FrmMain Def_Head All).
