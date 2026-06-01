@@ -111,6 +111,12 @@
                          DragOver="QueueList_DragOver"
                          Drop="QueueList_Drop"
                          BorderThickness="0">
+                    <!-- 더블클릭으로 그 항목을 라이브 송출(레거시 FrmMain 예배순서 더블클릭 → Go Live).
+                         단일 클릭은 선택만, 더블클릭은 GoLive(안전 확인 5초 후 송출). 드래그 정렬과 공존(이동 없으면 드래그 미발동). -->
+                    <ListBox.InputBindings>
+                        <MouseBinding MouseAction="LeftDoubleClick"
+                                      Command="{Binding GoLiveCommand}" />
+                    </ListBox.InputBindings>
                     <!-- 항목 우클릭 — 개별 서식 사용 토글(레거시 Ind_checkBox). 끄면 전역 기본 서식으로 송출.
                          ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->
                     <ListBox.ContextMenu>
