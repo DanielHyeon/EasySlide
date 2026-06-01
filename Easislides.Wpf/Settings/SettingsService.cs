@@ -238,6 +238,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> LyricsMonitorBodyLeftMargin = new("liveOutput.lyricsMonitorBodyLeftMargin", 0);
     public static readonly SettingKey<int> LyricsMonitorBodyRightMargin = new("liveOutput.lyricsMonitorBodyRightMargin", 0);
     public static readonly SettingKey<int> LyricsMonitorBodyBottomMargin = new("liveOutput.lyricsMonitorBodyBottomMargin", 0);
+    // 이중 언어 곡의 Region1↔Region2 세로 간격(px, FrmMain Ind_Reg2TopUpDown 상대 위치 대응). 기본 8=기존 간격(무회귀). 범위 0~100.
+    public static readonly SettingKey<int> LyricsMonitorRegionGapPx = new("liveOutput.lyricsMonitorRegionGapPx", 8);
     // 출력 위치 인디케이터 표시(절/슬라이드 "N/M", 인-셸 §7.3-A). 기본 off.
     public static readonly SettingKey<bool> LyricsMonitorShowPositionIndicator = new("liveOutput.lyricsMonitorShowPositionIndicator", false);
     // 절 헤딩 표시(현재 절의 섹션 라벨 "1절"/"후렴" 등을 본문 위에 표시, FrmMain Def_Head All). 기본 off.
@@ -347,6 +349,7 @@ public static class EasiSettingKeys
         LyricsMonitorBodyLeftMargin,
         LyricsMonitorBodyRightMargin,
         LyricsMonitorBodyBottomMargin,
+        LyricsMonitorRegionGapPx,
         LyricsMonitorShowPositionIndicator,
         LyricsMonitorShowVerseHeading,
         // Display Panel 토글들(곡번호·저작권·다음항목) — All 누락 시 FindChangedKeys 가 변경을 못 잡아
@@ -482,6 +485,8 @@ public sealed record LiveOutputSettings
     public int LyricsMonitorBodyRightMargin { get; init; } = EasiSettingKeys.LyricsMonitorBodyRightMargin.DefaultValue;
 
     public int LyricsMonitorBodyBottomMargin { get; init; } = EasiSettingKeys.LyricsMonitorBodyBottomMargin.DefaultValue;
+
+    public int LyricsMonitorRegionGapPx { get; init; } = EasiSettingKeys.LyricsMonitorRegionGapPx.DefaultValue;
 
     public bool LyricsMonitorShowPositionIndicator { get; init; } = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
 
@@ -797,6 +802,14 @@ public sealed class SettingsService : ISettingsService
             min: 24,
             max: 120,
             EasiSettingKeys.LyricsMonitorFontSize.Id,
+            issues);
+
+        // 이중 언어 영역 간 세로 간격 가드(0~100px) — 음수나 과대값으로 두 영역이 겹치거나 화면을 벗어나지 않도록.
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorRegionGapPx,
+            min: 0,
+            max: 100,
+            EasiSettingKeys.LyricsMonitorRegionGapPx.Id,
             issues);
 
         // Display Panel 글자 크기 비율 가드(50~200%) — 과소·과대값으로 정보 텍스트가 사라지거나 화면을 덮지 않도록.
@@ -1337,6 +1350,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBodyLeftMargin" => snapshot.LiveOutput.LyricsMonitorBodyLeftMargin,
             "liveOutput.lyricsMonitorBodyRightMargin" => snapshot.LiveOutput.LyricsMonitorBodyRightMargin,
             "liveOutput.lyricsMonitorBodyBottomMargin" => snapshot.LiveOutput.LyricsMonitorBodyBottomMargin,
+            "liveOutput.lyricsMonitorRegionGapPx" => snapshot.LiveOutput.LyricsMonitorRegionGapPx,
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
             "liveOutput.lyricsMonitorShowVerseHeading" => snapshot.LiveOutput.LyricsMonitorShowVerseHeading,
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot.LiveOutput.LyricsMonitorShowItemNumber,
@@ -1537,6 +1551,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBodyBottomMargin" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorBodyBottomMargin = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorRegionGapPx" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorRegionGapPx = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot with
             {

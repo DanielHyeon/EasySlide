@@ -496,6 +496,11 @@
                     <MenuItem Header="{Binding ActiveLyricsBottomMargin, StringFormat=아래 여백: {0}px}" IsEnabled="False" />
                     <MenuItem Header="아래 여백 넓게" Command="{Binding IncreaseLyricsBottomMarginCommand}" />
                     <MenuItem Header="아래 여백 좁게" Command="{Binding DecreaseLyricsBottomMarginCommand}" />
+                    <Separator />
+                    <!-- 이중 언어 영역 간 세로 간격(FrmMain Ind_Reg2TopUpDown) — 원문(Region1)과 번역(Region2) 사이 간격. -->
+                    <MenuItem Header="{Binding ActiveRegionGap, StringFormat=영역 간 간격: {0}px}" IsEnabled="False" />
+                    <MenuItem Header="영역 간격 넓게" Command="{Binding IncreaseRegionGapCommand}" />
+                    <MenuItem Header="영역 간격 좁게" Command="{Binding DecreaseRegionGapCommand}" />
                 </MenuItem>
             </MenuItem>
 

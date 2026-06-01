@@ -43,7 +43,8 @@ public class AppearanceTemplateStoreTests
             PanelColorArgb: unchecked((int)0x66203040),
             FontSize2: 36,
             PanelFontScalePercent: 140,
-            ShowTitleOnPanel: true);
+            ShowTitleOnPanel: true,
+            RegionGapPx: 24);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

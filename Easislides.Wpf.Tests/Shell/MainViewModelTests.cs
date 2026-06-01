@@ -3313,6 +3313,26 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void RegionGapCommands_StepAndClamp()
+    {
+        // FrmMain Ind_Reg2TopUpDown — +/- 4px 단계, 0~100px 클램프.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveRegionGap.Should().Be(8, "기본 8px");
+
+        sut.IncreaseRegionGapCommand.Execute(null);
+        sut.ActiveRegionGap.Should().Be(12, "한 단계 +4px");
+        settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx).Should().Be(12);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, 100);
+        sut.IncreaseRegionGapCommand.CanExecute(null).Should().BeFalse("상한(100px)에서 증가 비활성");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, 0);
+        sut.DecreaseRegionGapCommand.CanExecute(null).Should().BeFalse("하한(0px)에서 감소 비활성");
+    }
+
+    [Fact]
     public void PanelFontScaleCommands_StepAndClamp()
     {
         // FrmMain Def_PanelFont 크기 — +/- 10% 단계, 50~200% 클램프.

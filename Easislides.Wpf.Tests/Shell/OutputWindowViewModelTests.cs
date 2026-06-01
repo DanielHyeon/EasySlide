@@ -933,6 +933,23 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void BodyText2Margin_ReflectsRegionGapSetting()
+    {
+        // FrmMain Ind_Reg2TopUpDown — 이중 언어 영역 간 세로 간격 설정이 Region2 블록 위쪽 여백으로 들어간다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        // 기본 8px → 기존 간격(무회귀).
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false, CurrentItemBodyText: "1절"));
+        sut.BodyText2Margin.Should().Be(new Thickness(0, 8, 0, 0), "기본 8px 간격");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, 32).Succeeded.Should().BeTrue();
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false, CurrentItemBodyText: "1절"));
+        sut.BodyText2Margin.Should().Be(new Thickness(0, 32, 0, 0), "설정한 32px 간격");
+    }
+
+    [Fact]
     public void PanelFontSizes_ScaleWithPanelFontScalePercent()
     {
         // FrmMain Def_PanelFont 크기 — 패널 글자 크기 비율(%)대로 정보 텍스트 크기가 정해진다(주 20·보조 16 기준).

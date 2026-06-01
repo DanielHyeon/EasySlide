@@ -62,7 +62,9 @@ public sealed record LyricsAppearanceTemplate(
     // Display Panel 글자 크기 비율(%, 기본 100=기존 크기) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
     int PanelFontScalePercent = 100,
     // 정보 패널 제목 표시(기본 false) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
-    bool ShowTitleOnPanel = false)
+    bool ShowTitleOnPanel = false,
+    // 이중 언어 영역 간 세로 간격(px, 기본 8) — 구버전 JSON 역직렬화 시 기존 동작으로 안전 복원.
+    int RegionGapPx = 8)
 {
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -98,7 +100,8 @@ public sealed record LyricsAppearanceTemplate(
             PanelColorArgb: settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb),
             FontSize2: settings.Get(EasiSettingKeys.LyricsMonitorFontSize2),
             PanelFontScalePercent: settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent),
-            ShowTitleOnPanel: settings.Get(EasiSettingKeys.LyricsMonitorShowTitleOnPanel));
+            ShowTitleOnPanel: settings.Get(EasiSettingKeys.LyricsMonitorShowTitleOnPanel),
+            RegionGapPx: settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -134,6 +137,7 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorFontSize2, FontSize2);
         settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, PanelFontScalePercent);
         settings.Set(EasiSettingKeys.LyricsMonitorShowTitleOnPanel, ShowTitleOnPanel);
+        settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, RegionGapPx);
     }
 }
 

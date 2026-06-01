@@ -165,6 +165,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(DecreaseLyricsBottomMarginCommand))]
     private int _activeLyricsBottomMargin = EasiSettingKeys.LyricsMonitorBodyBottomMargin.DefaultValue;
 
+    // 이중 언어 영역 간 세로 간격 조절 범위·단계(설정 Validate 범위 0~100px 와 일치). FrmMain Ind_Reg2TopUpDown.
+    private const int LyricsRegionGapMin = 0;
+    private const int LyricsRegionGapMax = 100;
+    private const int LyricsRegionGapStep = 4;
+
+    // 현재 이중 언어 영역 간 세로 간격(px). +/- 커맨드 활성/비활성 판별에도 쓰인다.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(IncreaseRegionGapCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseRegionGapCommand))]
+    private int _activeRegionGap = EasiSettingKeys.LyricsMonitorRegionGapPx.DefaultValue;
+
     // 현재 폰트 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용). 설정에서 유래.
     [ObservableProperty] private bool _activeLyricsBold = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
     [ObservableProperty] private bool _activeLyricsItalic = EasiSettingKeys.LyricsMonitorItalic.DefaultValue;
@@ -500,6 +511,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DecreaseLyricsRightMarginCommand = new RelayCommand(() => StepLyricsRightMargin(-LyricsBodyMarginStep), () => ActiveLyricsRightMargin > LyricsBodyMarginMin);
         IncreaseLyricsBottomMarginCommand = new RelayCommand(() => StepLyricsBottomMargin(+LyricsBodyMarginStep), () => ActiveLyricsBottomMargin < LyricsBodyMarginMax);
         DecreaseLyricsBottomMarginCommand = new RelayCommand(() => StepLyricsBottomMargin(-LyricsBodyMarginStep), () => ActiveLyricsBottomMargin > LyricsBodyMarginMin);
+        // 이중 언어 영역 간 세로 간격 +/- (FrmMain Ind_Reg2TopUpDown).
+        IncreaseRegionGapCommand = new RelayCommand(() => StepRegionGap(+LyricsRegionGapStep), () => ActiveRegionGap < LyricsRegionGapMax);
+        DecreaseRegionGapCommand = new RelayCommand(() => StepRegionGap(-LyricsRegionGapStep), () => ActiveRegionGap > LyricsRegionGapMin);
         ApplyTextColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: false));
         ApplyBackgroundColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: true));
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
@@ -628,6 +642,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DecreaseLyricsRightMarginCommand { get; }
     public IRelayCommand IncreaseLyricsBottomMarginCommand { get; }
     public IRelayCommand DecreaseLyricsBottomMarginCommand { get; }
+    public IRelayCommand IncreaseRegionGapCommand { get; }
+    public IRelayCommand DecreaseRegionGapCommand { get; }
     public IRelayCommand<string> ApplyTextColorHexCommand { get; }
     public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
@@ -2863,6 +2879,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnActiveLyricsRightMarginChanged(int value) => OnPropertyChanged(nameof(LyricsRightMarginInput));
 
+    // 이중 언어 영역 간 세로 간격 조절(+/- 단계, px) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Ind_Reg2TopUpDown).
+    private void StepRegionGap(int delta)
+    {
+        var next = Math.Clamp(ActiveRegionGap + delta, LyricsRegionGapMin, LyricsRegionGapMax);
+        if (next == ActiveRegionGap)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorRegionGapPx, next);
+        ActiveRegionGap = next;
+        StatusText = $"영역 간 간격: {next}px";
+    }
+
     // 본문 아래 여백 조절(+/- 단계) — 절대값 커밋에 위임(FrmMain ShowBottomMargin).
     private void StepLyricsBottomMargin(int delta) => CommitLyricsBottomMargin(ActiveLyricsBottomMargin + delta);
 
@@ -2914,6 +2944,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);
         ActiveLyricsRightMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin);
         ActiveLyricsBottomMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin);
+        ActiveRegionGap = _settings.Get(EasiSettingKeys.LyricsMonitorRegionGapPx);
         ActiveLyricsBold = _settings.Get(EasiSettingKeys.LyricsMonitorBold);
         ActiveLyricsItalic = _settings.Get(EasiSettingKeys.LyricsMonitorItalic);
         ActiveLyricsShadow = _settings.Get(EasiSettingKeys.LyricsMonitorShadow);

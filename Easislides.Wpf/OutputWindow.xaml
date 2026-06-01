@@ -224,7 +224,7 @@
                            TextAlignment="{Binding BodyText2Alignment}"
                            TextWrapping="Wrap"
                            TextTrimming="CharacterEllipsis"
-                           Margin="0,8,0,0"
+                           Margin="{Binding BodyText2Margin}"
                            FontSize="{Binding BodyFont2Size}"
                            FontFamily="{Binding BodyFont2Family}"
                            FontWeight="{Binding BodyFont2Weight}"
