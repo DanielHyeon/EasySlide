@@ -44,11 +44,18 @@ public sealed partial class LibraryViewModel : ObservableObject
         RecoverSelectedFolderCommand = new AsyncRelayCommand(RecoverSelectedFolderAsync, CanRecoverSelectedFolder);
         MoveSelectedSongUpCommand = new AsyncRelayCommand(MoveSelectedSongUpAsync, CanMoveSelectedSongUp);
         MoveSelectedSongDownCommand = new AsyncRelayCommand(MoveSelectedSongDownAsync, CanMoveSelectedSongDown);
+        JumpToInitialCommand = new RelayCommand<string>(JumpToInitial);
     }
 
     public ObservableCollection<SongFolderSummary> Folders { get; } = new();
 
     public ObservableCollection<SongSummary> Songs { get; } = new();
+
+    /// <summary>현재 표시된 곡 목록에 나타나는 머리글자들(가나다→A~Z→#→기타) — A/B/C(초성) 점프 바에 바인딩.</summary>
+    public ObservableCollection<string> AvailableInitials { get; } = new();
+
+    /// <summary>색인 머리글자로 점프 — 그 글자로 시작하는 첫 곡을 선택한다(레거시 FrmMain A/B/C 점프).</summary>
+    public IRelayCommand<string> JumpToInitialCommand { get; }
 
     public IAsyncRelayCommand LoadCommand { get; }
 
@@ -125,6 +132,32 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         SelectedSong = Songs.FirstOrDefault(song => song.SongId == songId) ?? SelectedSong;
     }
+
+    /// <summary>
+    /// 색인 머리글자(예: "ㄱ", "A", "#")로 점프 — 표시된 곡 중 그 머리글자로 시작하는 첫 곡을 선택한다.
+    /// 일치하는 곡이 없거나 빈 글자면 아무것도 하지 않는다(레거시 FrmMain 곡 목록 A/B/C 점프 대응).
+    /// </summary>
+    public void JumpToInitial(string? initial)
+    {
+        if (string.IsNullOrWhiteSpace(initial))
+        {
+            return;
+        }
+
+        // 공백뿐인 제목은 머리글자 목록(OrderedDistinctInitials)에서 제외되므로 점프 대상에서도 똑같이 제외해
+        // 스트립 글자와 점프 결과가 어긋나지 않게 한다(빈 제목이 엉뚱하게 "기타" 점프를 가로채지 않도록).
+        var target = Songs.FirstOrDefault(song =>
+            !string.IsNullOrWhiteSpace(song.Title) &&
+            string.Equals(SongInitialGrouping.GetInitial(song.Title), initial, StringComparison.Ordinal));
+        if (target is not null)
+        {
+            SelectedSong = target;
+        }
+    }
+
+    // 표시된 곡 목록의 머리글자(색인 글자)들을 다시 모은다 — 점프 바에 보일 글자 목록.
+    private void RefreshAvailableInitials()
+        => AvailableInitials.ReplaceWith(SongInitialGrouping.OrderedDistinctInitials(Songs.Select(s => s.Title)));
 
     public bool SelectFolderByNo(int folderNo)
     {
@@ -493,6 +526,7 @@ public sealed partial class LibraryViewModel : ObservableObject
 
         Songs.ReplaceWith(filtered);
         DisplayedSongCount = Songs.Count;
+        RefreshAvailableInitials();
         var selected = SelectedSong;
         SelectedSong = selected is not null && Songs.Contains(selected)
             ? selected
@@ -510,6 +544,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         Folders.Clear();
         Songs.Clear();
+        AvailableInitials.Clear(); // 곡이 없으면 머리글자도 없음 — 점프 바도 함께 비운다(스트립이 stale 로 남지 않게).
         _loadedSongs = [];
         SelectedFolder = null;
         SelectedSong = null;

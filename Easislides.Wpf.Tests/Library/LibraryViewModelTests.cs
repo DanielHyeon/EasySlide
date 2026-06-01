@@ -60,6 +60,88 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task AvailableInitials_ReflectLoadedSongTitles_InIndexOrder()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 3));
+        repository.SongsByFolder[1] = [
+            Song(10, "은혜로다", folderNo: 1),
+            Song(11, "Amazing Grace", folderNo: 1),
+            Song(12, "가나안", folderNo: 1),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        // 가나다(ㄱ,ㅇ) → 영문(A) 순서.
+        sut.AvailableInitials.Should().Equal("ㄱ", "ㅇ", "A");
+    }
+
+    [Fact]
+    public async Task ClearLibrary_EmptiesAvailableInitials_NoStaleStrip()
+    {
+        // 라이브러리를 채운 뒤 DB 경로가 무효가 되어 ClearLibrary 가 돌면, 점프 바도 비워져야 한다(stale 방지).
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 1));
+        repository.SongsByFolder[1] = [Song(10, "은혜로다", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.AvailableInitials.Should().NotBeEmpty("로드 후 머리글자 존재");
+
+        // DB 경로를 없는 파일로 바꾸고 다시 로드 → ClearLibrary 경로.
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, @"C:\no\such\__gone__.db");
+        await sut.LoadAsync();
+
+        sut.AvailableInitials.Should().BeEmpty("곡이 없으면 점프 바도 비어야 함");
+    }
+
+    [Fact]
+    public async Task JumpToInitial_SelectsFirstSongWithThatInitial()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 3));
+        repository.SongsByFolder[1] = [
+            Song(10, "가나안", folderNo: 1),
+            Song(11, "은혜로다", folderNo: 1),
+            Song(12, "은총", folderNo: 1),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        sut.JumpToInitialCommand.Execute("ㅇ");
+
+        sut.SelectedSong!.Title.Should().Be("은혜로다", "ㅇ 으로 시작하는 첫 곡");
+    }
+
+    [Fact]
+    public async Task JumpToInitial_NoMatchOrEmpty_LeavesSelectionUnchanged()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 1));
+        repository.SongsByFolder[1] = [Song(10, "가나안", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        var before = sut.SelectedSong;
+
+        sut.JumpToInitialCommand.Execute("ㅎ"); // 일치 없음
+        sut.JumpToInitialCommand.Execute("");   // 빈 글자
+
+        sut.SelectedSong.Should().Be(before, "일치 없거나 빈 글자면 선택 유지");
+    }
+
+    [Fact]
     public async Task SearchText_FiltersTitleAlternateCategoryAndLyrics()
     {
         using var fixture = TempLibrarySettings.Create();

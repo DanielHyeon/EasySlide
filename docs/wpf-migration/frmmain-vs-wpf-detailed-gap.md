@@ -151,7 +151,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 ### 3.3 콘텐츠 브라우징
 | FrmMain | WPF | 상태 |
 |---|---|---|
-| 폴더+곡 목록, 정렬(획수/CJK단어수/곡번호), A/B/C 점프, Use Song Numbering | 라이브러리 탭(폴더+검색) | 🟡 정렬·점프·번호 없음 |
+| 폴더+곡 목록, 정렬(획수/CJK단어수/곡번호), A/B/C 점프, Use Song Numbering | 라이브러리 탭(폴더+검색+초성 점프 바) | 🟡 (2026-06-01 증분 34) **A/B/C(초성) 점프 추가**(`SongInitialGrouping`+점프 바). 정렬(획수/번호)·Use Song Numbering 은 후속 |
 | **PraiseBooks**(관리/추가/정렬/RTF·HTML/legacy v3.2) | — | 🔴 |
 | **Worship Sessions / Recent Edits / Session Notes** | — | 🔴 |
 | Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | — | 🔴 |

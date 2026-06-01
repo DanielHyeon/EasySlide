@@ -690,6 +690,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -722,7 +723,33 @@
                                   Margin="0,0,0,8"
                                   AutomationProperties.Name="폴더 선택" />
 
-                        <ListBox Grid.Row="3"
+                        <!-- A/B/C(초성) 점프 바 — 표시된 곡의 머리글자를 눌러 그 글자로 시작하는 첫 곡으로 이동(FrmMain 곡 목록 점프).
+                             곡이 없으면 머리글자도 없어 빈 줄이 된다. -->
+                        <ItemsControl Grid.Row="3"
+                                      ItemsSource="{Binding Library.AvailableInitials}"
+                                      Margin="0,0,0,8"
+                                      AutomationProperties.Name="머리글자 점프 바">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding}"
+                                            Command="{Binding DataContext.Library.JumpToInitialCommand,
+                                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource EsButton.Secondary}"
+                                            MinWidth="30"
+                                            Padding="6,2"
+                                            Margin="0,0,4,4"
+                                            ToolTip="이 머리글자로 시작하는 첫 곡으로 이동" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <ListBox Grid.Row="4"
                                  ItemsSource="{Binding Library.Songs}"
                                  SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
                                  DisplayMemberPath="Title"
@@ -734,7 +761,7 @@
                             </ListBox.InputBindings>
                         </ListBox>
 
-                        <TextBlock Grid.Row="4"
+                        <TextBlock Grid.Row="5"
                                    Text="{Binding Library.StatusMessage}"
                                    Margin="0,8,0,0"
                                    TextTrimming="CharacterEllipsis"
