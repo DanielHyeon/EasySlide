@@ -167,6 +167,83 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task BuildSelectionWithRegion2_CombinesPrimaryAndChosenSecondaryVersion()
+    {
+        // 우클릭 "Region 2와 함께 추가" — 드래그 선택 구절을 주 버전(KJV) + 고른 보조 버전(NIV) 이중 언어로 만든다.
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var baseSelection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv, fixture.Niv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 20)],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = baseSelection,
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+
+        var dual = sut.BuildSelectionWithRegion2(selectionStart: 3, selectionLength: 8, fixture.Niv);
+
+        dual.IdString.Should().Be("0;kjv.db;niv.db;1;1;1;1;1;");
+        dual.Title.Should().Be("Genesis 1:1 (KJV/NIV)");
+        sut.StatusMessage.Should().Contain("KJV / NIV");
+    }
+
+    [Fact]
+    public async Task BuildSelectionWithRegion2_SameAsPrimary_FallsBackToSingleLanguage()
+    {
+        // 보조로 주 버전과 같은 것을 고르면 이중 언어가 아니라 단일로 둔다(무의미한 자기 짝 방지).
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var baseSelection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 20)],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = baseSelection,
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+
+        var single = sut.BuildSelectionWithRegion2(selectionStart: 3, selectionLength: 8, fixture.Kjv);
+
+        single.IdString.Should().Be("0;kjv.db;;1;1;1;1;1;"); // 보조 버전 칸이 비어 단일.
+        single.Title.Should().Be("Genesis 1:1 (KJV)");
+    }
+
+    [Fact]
+    public async Task Region2VersionOptions_ExcludesSelectedPrimaryVersion()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv, fixture.Niv],
+            Books = [new BibleBook(1, "Genesis")],
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+
+        // 기본 주 버전 = KJV → 보조 후보엔 NIV 만.
+        sut.Region2VersionOptions.Should().ContainSingle().Which.Should().Be(fixture.Niv);
+
+        sut.SelectedVersion = fixture.Niv; // 주 버전을 NIV 로 바꾸면 후보는 KJV 만.
+        sut.Region2VersionOptions.Should().ContainSingle().Which.Should().Be(fixture.Kjv);
+    }
+
+    [Fact]
     public async Task JumpToReference_ValidRange_SelectsVerseSpanAndRaisesEvent()
     {
         // typed-reference: "Genesis 1:1-2" 를 입력하면 책을 풀고 그 절 범위를 선택해 추가용 BibleSelection 을 돌려준다.

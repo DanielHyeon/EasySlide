@@ -232,6 +232,30 @@ public partial class MainWindow : Window
         }
     }
 
+    // "Region 2(이중 언어)와 함께 추가" 서브메뉴 클릭 — 선택 구절을 클릭한 보조 버전과 합쳐(이중 언어) 예배 순서에 추가한다.
+    // 클릭한 메뉴 항목의 DataContext 가 고른 BibleVersion(Region2VersionOptions 의 한 항목)이다.
+    private void AddBibleVerseWithRegion2_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if ((sender as MenuItem)?.DataContext is not BibleVersion region2)
+        {
+            return;
+        }
+
+        var selection = viewModel.Bible.BuildSelectionWithRegion2(
+            BiblePassageBox.SelectionStart,
+            BiblePassageBox.SelectionLength,
+            region2);
+        if (!string.IsNullOrWhiteSpace(selection.IdString))
+        {
+            viewModel.AddBibleSelection(selection);
+        }
+    }
+
     // 입력창에서 Enter 를 누르면 "이동"과 동일하게 처리(타이핑→Enter 한 번에 추가).
     private void BibleReferenceBox_KeyDown(object sender, KeyEventArgs e)
     {

@@ -875,6 +875,17 @@
                                     <MenuItem Header="복사" Click="CopyBiblePassage_Click" />
                                     <Separator />
                                     <MenuItem Header="선택 구절 예배 순서에 추가" Click="AddBibleVerse_Click" />
+                                    <!-- 레거시 인라인 성경 우클릭 "Add Region 2" — 선택 구절을 고른 보조 버전과 함께(이중 언어) 추가.
+                                         후보는 현재 주 버전을 뺀 나머지 버전들(Region2VersionOptions). PlacementTarget 경유로 VM 에 접근. -->
+                                    <MenuItem Header="선택 구절 Region 2(이중 언어)와 함께 추가"
+                                              ItemsSource="{Binding PlacementTarget.DataContext.Bible.Region2VersionOptions, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                        <MenuItem.ItemContainerStyle>
+                                            <Style TargetType="MenuItem">
+                                                <Setter Property="Header" Value="{Binding Name}" />
+                                                <EventSetter Event="Click" Handler="AddBibleVerseWithRegion2_Click" />
+                                            </Style>
+                                        </MenuItem.ItemContainerStyle>
+                                    </MenuItem>
                                     <MenuItem Header="선택 구절 공지 화면으로..." Click="CopyBibleToInfoScreen_Click" />
                                 </ContextMenu>
                             </TextBox.ContextMenu>

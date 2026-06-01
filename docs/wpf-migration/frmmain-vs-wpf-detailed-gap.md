@@ -227,7 +227,7 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 | 본문에서 드래그 선택→passage 빌드(`HB_BuildSelectionString`, 순차/임의, max verses) | `PassageText` 드래그 선택→`BibleSelection` | 🟢 |
 | **Add Region 2**(이중언어 번역 합치기, `CMenuBible_AddRegion2`,`AddRegion2ToBiblePassage`,`BuildBibleTextR2SubMenus`) | Region2 미리보기 콤보 + **실제 이중언어 송출**(`BibleRepository.ExpandSelection`→`[region 2]` 본문 조립→Region1/Region2 동시 밴드) | 🟢 (2026-06-02 증분 41) **회중 화면에 한/영 두 본문 동시 송출**. 절 단위 페이지(절 이동·위치 라벨)·번역 인용부호 »…« 보존 |
 | **Copy to InfoScreen**(`CMenuBible_CopyInfoScreen`) | 본문 우클릭 "선택 구절 공지 화면으로" (NoticeScreen 편집기 프리필) | 🟢 (2026-06-02 증분 38) |
-| 우클릭 메뉴(SelectAll/Unselect/Add&Show/Copy/AddRegion2/CopyInfoScreen) | 본문 우클릭(전체 선택·복사·예배 순서 추가·공지 화면으로) | 🟡 (2026-06-02 증분 38) 핵심 4항목 제공. AddRegion2 는 후속 |
+| 우클릭 메뉴(SelectAll/Unselect/Add&Show/Copy/AddRegion2/CopyInfoScreen) | 본문 우클릭(전체 선택·복사·예배 순서 추가·**Region 2와 함께 추가 서브메뉴**·공지 화면으로) | 🟢 (2026-06-02 증분 38·42) 핵심 + **AddRegion2 서브메뉴**(보조 버전 목록에서 골라 이중 언어로 추가, 증분 41 본문 송출과 연동) |
 | 본문 드래그→예배순서 드롭(`BibleText_MouseDown` DragDrop) | Insert 버튼 | 🟡 드래그 드롭 없음 |
 | 구절 표시 토글(`Bibles_ShowVerses`) | `ShowVerses` CheckBox | 🟢 |
 | 버전 추가/삭제/순서변경/이름변경 | BibleVersionManagerWindow(직전 구현) | 🟢(신규) |

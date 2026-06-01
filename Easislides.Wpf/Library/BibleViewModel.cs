@@ -56,6 +56,13 @@ public sealed partial class BibleViewModel : ObservableObject
 
     public ObservableCollection<BibleVersion> Versions { get; } = new();
 
+    /// <summary>
+    /// "Region 2(이중 언어)와 함께 추가" 우클릭 서브메뉴에 보일 보조 버전 후보 — 현재 주 버전(SelectedVersion)은 뺀다
+    /// (같은 버전을 보조로 고르면 의미가 없으므로). 주 버전이 바뀌거나 목록이 새로 로드되면 갱신된다.
+    /// </summary>
+    public IEnumerable<BibleVersion> Region2VersionOptions
+        => Versions.Where(version => !Equals(version, SelectedVersion)).ToList();
+
     public ObservableCollection<BibleBook> Books { get; } = new();
 
     public IReadOnlyList<BibleSearchMatchMode> MatchModes { get; } =
@@ -79,6 +86,7 @@ public sealed partial class BibleViewModel : ObservableObject
         StatusMessage = Versions.Count == 0
             ? ""
             : $"{Versions.Count}개 성경 버전을 불러왔습니다.";
+        OnPropertyChanged(nameof(Region2VersionOptions));
         NotifyCommands();
         return Task.CompletedTask;
     }
@@ -144,6 +152,10 @@ public sealed partial class BibleViewModel : ObservableObject
                 // 같은 파일(books/passage 불변)이지만 선택 레코드 참조를 새 이름 레코드로 맞춘다.
                 SelectedVersion = renamedVersion;
             }
+
+            // 이름이 바뀐 버전이 보조 후보(우클릭 서브메뉴)에 보이므로 갱신한다.
+            // (선택 버전이 바뀐 경우는 OnSelectedVersionChanged 가 이미 알리지만, 선택이 아닌 버전 이름 변경도 반영해야 한다.)
+            OnPropertyChanged(nameof(Region2VersionOptions));
         }
 
         ValidationMessage = "";
@@ -324,6 +336,8 @@ public sealed partial class BibleViewModel : ObservableObject
             ? null
             : Versions.FirstOrDefault(v => string.Equals(v.FileName, selectFileName, StringComparison.OrdinalIgnoreCase));
         SelectedVersion = match ?? (Versions.Count > 0 ? Versions[0] : null);
+        // 목록 내용이 바뀌었으므로 보조 버전 후보도 갱신(SelectedVersion 이 값-동일이라 변경 이벤트가 안 날 수 있어 명시적으로).
+        OnPropertyChanged(nameof(Region2VersionOptions));
     }
 
     public Task LoadSelectedBookAsync()
@@ -479,6 +493,48 @@ public sealed partial class BibleViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 드래그 선택한 구절을 주 버전(SelectedVersion)으로 만든 뒤, 고른 보조 버전(region2)을 합쳐
+    /// 이중 언어 선택을 돌려준다(레거시 인라인 성경 우클릭 "Add Region 2" 대응 — 회중 화면에 한/영 동시 송출).
+    /// 보조 버전이 없거나 주 버전과 같으면 단일 언어 선택으로 돌려준다(우아한 폴백).
+    /// 미리보기 콤보 상태는 건드리지 않는다 — 우클릭 한 번으로 즉시 추가하는 경로다.
+    /// </summary>
+    public BibleSelection BuildSelectionWithRegion2(int selectionStart, int selectionLength, BibleVersion? region2)
+    {
+        if (SelectedVersion is null)
+        {
+            ValidationMessage = "성경 버전을 선택하세요.";
+            return new BibleSelection("", "");
+        }
+
+        // 주 버전 기준 단일 선택을 먼저 만든다(드래그 범위 → 구절 IdString).
+        var baseSelection = _repository.BuildSelection(
+            SelectedVersion,
+            Books,
+            _currentResult,
+            selectionStart,
+            selectionLength);
+        if (string.IsNullOrWhiteSpace(baseSelection.IdString))
+        {
+            ValidationMessage = "선택된 구절이 없습니다.";
+            return new BibleSelection("", "");
+        }
+
+        // 같은 버전을 보조로 고르면 의미가 없으므로 단일로 둔다.
+        var effectiveRegion2 = region2 is null || Equals(region2, SelectedVersion) ? null : region2;
+        var dual = _repository.ChangeSelectionVersions(
+            baseSelection.Title,
+            baseSelection.IdString,
+            SelectedVersion,
+            effectiveRegion2);
+
+        ValidationMessage = "";
+        StatusMessage = effectiveRegion2 is null
+            ? "성경 구절을 선택했습니다."
+            : $"이중 언어 구절: {SelectedVersion.Name} / {effectiveRegion2.Name}";
+        return dual;
+    }
+
     public BibleSelection BuildSelection(int selectionStart, int selectionLength)
     {
         if (SelectedVersion is null)
@@ -522,6 +578,8 @@ public sealed partial class BibleViewModel : ObservableObject
         }
 
         UpdatePreviewSelection();
+        // 주 버전이 바뀌면 보조 버전 후보(우클릭 서브메뉴)에서 새 주 버전을 빼야 한다.
+        OnPropertyChanged(nameof(Region2VersionOptions));
         NotifyCommands();
     }
 
