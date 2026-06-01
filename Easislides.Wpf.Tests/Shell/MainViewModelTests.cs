@@ -2720,6 +2720,19 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddSong_DualLanguageWithSequence_PageCountExpandsBySequence()
+    {
+        // 이중 언어 곡 + 시퀀스("1 C 1") → 영역 쌍이 시퀀스 순서로 펼쳐져 3페이지.
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "",
+            "[1]\nVerse R1\n[region 2]\nVerse R2\n[C]\nChorus R1\n[region 2]\nChorus R2");
+
+        sut.AddSong(song, "1 C 1");
+
+        sut.LyricsPageCount.Should().Be(3, "이중 언어도 시퀀스(1 C 1)로 3페이지로 펼쳐진다");
+    }
+
+    [Fact]
     public void RefreshLyricsPages_NonSongItem_ClearsSectionLabels()
     {
         var sut = CreateSut();

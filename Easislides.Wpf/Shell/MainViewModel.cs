@@ -926,7 +926,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LyricsPageCount = !isSong
             ? 0
             : dual
-                ? LyricsDisplayFormatter.GetRegionPages(item!.Lyrics).Count
+                ? LyricsDisplayFormatter.GetRegionPages(item!.Lyrics, item.Sequence).Count
                 : LyricsDisplayFormatter.ToVersePages(item!.Lyrics, item.Sequence).Count;
         // 페이지별 절 라벨 — 단일 영역만 지원(이중 언어 곡의 라벨 점프는 차기 슬라이스). 곡 아니거나 이중 언어면 비움.
         _pageLabels = isSong && !dual

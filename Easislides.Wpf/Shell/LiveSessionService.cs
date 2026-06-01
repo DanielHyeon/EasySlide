@@ -154,14 +154,14 @@ public sealed class LiveSessionService : ILiveSessionService
     //       이중 언어 + Sequence 동시 지원·절 라벨 점프는 차기 슬라이스.
     private static string ComputeBodyText(LiveQueueItem item)
         => LyricsDisplayFormatter.HasRegion2(item.Lyrics)
-            ? LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex).Region1
+            ? LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex, item.Sequence).Region1
             : LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence);
 
     // 현재 절의 Region2(보조 언어) 본문 — 이중 언어 곡일 때만. 단일 영역·비곡은 빈 문자열.
-    // Region1 과 동일 인덱스(GetRegionPage)라 두 영역이 같은 절로 짝지어진다.
+    // Region1 과 동일 인덱스·Sequence(GetRegionPage)라 두 영역이 같은 절로 짝지어진다.
     private static string ComputeBodyText2(LiveQueueItem item)
         => LyricsDisplayFormatter.HasRegion2(item.Lyrics)
-            ? LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex).Region2
+            ? LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex, item.Sequence).Region2
             : string.Empty;
 
     // 레거시 FormatData 정렬값(1~3) → WPF 가사 정렬 enum. 없거나 범위 밖이면 null(운영 기본 정렬 유지).

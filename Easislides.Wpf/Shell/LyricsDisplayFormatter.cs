@@ -226,14 +226,132 @@ public static class LyricsDisplayFormatter
 
     /// <summary>지정 인덱스(0-based, 범위 밖 클램프)의 이중 언어 절 페이지. 가사가 없으면 빈 페이지.</summary>
     public static LyricsRegionPage GetRegionPage(string? rawLyrics, int pageIndex)
+        => GetRegionPage(rawLyrics, pageIndex, sequence: null);
+
+    /// <summary>
+    /// 절 순서(Sequence)를 적용한 이중 언어 절 페이지 — 절을 [라벨]로 1회 정의하고 sequence("1 C 2 C")로 순서·반복을 지정.
+    /// sequence 가 비었거나 어떤 라벨과도 안 맞으면 선형(GetRegionPages(lyrics))으로 안전 폴백(단일 영역 모델과 동일 규칙).
+    /// </summary>
+    public static IReadOnlyList<LyricsRegionPage> GetRegionPages(string? rawLyrics, string? sequence)
+        => TryExpandRegionBySequence(rawLyrics, sequence) ?? GetRegionPages(rawLyrics);
+
+    /// <summary>지정 인덱스(범위 밖 클램프)의 이중 언어 절 페이지(절 순서 Sequence 적용). 가사가 없으면 빈 페이지.</summary>
+    public static LyricsRegionPage GetRegionPage(string? rawLyrics, int pageIndex, string? sequence)
     {
-        var pages = GetRegionPages(rawLyrics);
+        var pages = GetRegionPages(rawLyrics, sequence);
         if (pages.Count == 0)
         {
             return new LyricsRegionPage(string.Empty, string.Empty);
         }
 
         return pages[Math.Clamp(pageIndex, 0, pages.Count - 1)];
+    }
+
+    // 시퀀스로 이중 언어 절을 펼친다. sequence 가 비었거나 매칭 라벨이 없으면 null(→ 선형 폴백). TryExpandBySequence 와 동일 규칙.
+    private static IReadOnlyList<LyricsRegionPage>? TryExpandRegionBySequence(string? rawLyrics, string? sequence)
+    {
+        if (string.IsNullOrWhiteSpace(sequence))
+        {
+            return null;
+        }
+
+        var sections = ParseRegionSections(rawLyrics);
+        if (sections.Count == 0)
+        {
+            return null;
+        }
+
+        var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+        var pages = new List<LyricsRegionPage>();
+        foreach (var token in tokens)
+        {
+            foreach (var section in sections)
+            {
+                if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                    && (section.Region1.Length > 0 || section.Region2.Length > 0))
+                {
+                    pages.Add(new LyricsRegionPage(section.Region1, section.Region2));
+                    break;
+                }
+            }
+        }
+
+        return pages.Count > 0 ? pages : null;
+    }
+
+    // 가사를 [라벨] 섹션으로 나누되 각 섹션 본문을 [region 2] 기준으로 Region1/Region2 로 분리한다(이중 언어 시퀀스 확장용).
+    // 라벨 없는 머리말·라벨 전 줄은 제외(시퀀스로 참조 불가). ParseLabeledSections 의 region-aware 판.
+    private static IReadOnlyList<(string Label, string Region1, string Region2)> ParseRegionSections(string? rawLyrics)
+    {
+        if (string.IsNullOrWhiteSpace(rawLyrics))
+        {
+            return Array.Empty<(string, string, string)>();
+        }
+
+        var text = NormalizeText(rawLyrics);
+        var sections = new List<(string Label, string Region1, string Region2)>();
+        string? currentLabel = null;
+        var region1 = new StringBuilder();
+        var region2 = new StringBuilder();
+        var currentRegion = 1;
+
+        void Flush()
+        {
+            if (currentLabel is not null)
+            {
+                sections.Add((currentLabel, region1.ToString().Trim('\n'), region2.ToString().Trim('\n')));
+            }
+
+            region1.Clear();
+            region2.Clear();
+            currentRegion = 1; // 새 절은 다시 region1.
+        }
+
+        foreach (var rawLine in text.Split('\n'))
+        {
+            var line = StripInlineNotation(rawLine).TrimEnd();
+
+            if (IsRegionMarker(line, 2))
+            {
+                currentRegion = 2;
+                continue;
+            }
+
+            if (IsRegionMarker(line, 1))
+            {
+                currentRegion = 1;
+                continue;
+            }
+
+            var label = SectionLabel(line);
+            if (label is not null)
+            {
+                Flush();
+                currentLabel = label;
+                continue;
+            }
+
+            if (currentLabel is null)
+            {
+                continue; // 첫 라벨 전의 줄은 시퀀스로 못 부르므로 건너뜀.
+            }
+
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue; // 절 안 빈 줄은 모은 뒤 Trim 으로 정리.
+            }
+
+            var target = currentRegion == 2 ? region2 : region1;
+            if (target.Length > 0)
+            {
+                target.Append('\n');
+            }
+
+            target.Append(line);
+        }
+
+        Flush();
+        return sections;
     }
 
     // 줄이 [region N] 영역 전환 마커인지(대소문자·공백 무시: "[region 2]"·"[Region2]" 모두 인식).

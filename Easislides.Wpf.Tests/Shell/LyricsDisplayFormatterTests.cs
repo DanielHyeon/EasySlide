@@ -310,6 +310,47 @@ public class LyricsDisplayFormatterTests
     public void GetRegionPage_EmptyLyrics_ReturnsEmptyPair()
         => LyricsDisplayFormatter.GetRegionPage(null, 0).Should().Be(new LyricsRegionPage("", ""));
 
+    [Fact]
+    public void GetRegionPages_WithSequence_ExpandsRegionPairsByOrder()
+    {
+        // 이중 언어 절을 1회 정의([1],[C])하고 시퀀스(1 C 1)로 순서·반복 → 영역 쌍이 그 순서로 반복.
+        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[C]\nChorus R1\n[region 2]\nChorus R2";
+
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics, "1 C 1");
+
+        pages.Should().HaveCount(3);
+        pages[0].Should().Be(new LyricsRegionPage("Verse1 R1", "Verse1 R2"));
+        pages[1].Should().Be(new LyricsRegionPage("Chorus R1", "Chorus R2"));
+        pages[2].Should().Be(new LyricsRegionPage("Verse1 R1", "Verse1 R2"), "시퀀스로 1절 반복");
+    }
+
+    [Fact]
+    public void GetRegionPages_EmptySequence_FallsBackToLinear()
+    {
+        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2";
+
+        LyricsDisplayFormatter.GetRegionPages(lyrics, "")
+            .Should().Equal(LyricsDisplayFormatter.GetRegionPages(lyrics));
+    }
+
+    [Fact]
+    public void GetRegionPages_SequenceNoMatch_FallsBackToLinear()
+    {
+        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2";
+
+        LyricsDisplayFormatter.GetRegionPages(lyrics, "X Y Z")
+            .Should().Equal(LyricsDisplayFormatter.GetRegionPages(lyrics));
+    }
+
+    [Fact]
+    public void GetRegionPage_WithSequence_ReturnsExpandedPairAtIndex()
+    {
+        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[C]\nChorus R1\n[region 2]\nChorus R2";
+
+        LyricsDisplayFormatter.GetRegionPage(lyrics, 2, "1 C 1").Should().Be(new LyricsRegionPage("Verse1 R1", "Verse1 R2"));
+        LyricsDisplayFormatter.GetRegionPage(lyrics, 99, "1 C 1").Should().Be(new LyricsRegionPage("Verse1 R1", "Verse1 R2"), "범위 밖 클램프");
+    }
+
     // ─── GetSectionLabels(절 라벨 점프용 — 페이지별 라벨, ToVersePages 와 정렬) ───────────────
 
     [Fact]
