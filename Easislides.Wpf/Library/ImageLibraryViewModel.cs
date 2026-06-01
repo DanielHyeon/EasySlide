@@ -21,15 +21,19 @@ public sealed partial class ImageLibraryItem : ObservableObject
     [ObservableProperty]
     private ImageSource? _thumbnail;
 
-    public ImageLibraryItem(string filePath)
+    public ImageLibraryItem(string filePath, string category)
     {
         FilePath = filePath;
         FileName = Path.GetFileName(filePath);
+        Category = category;
     }
 
     public string FilePath { get; }
 
     public string FileName { get; }
+
+    /// <summary>이미지가 속한 카테고리(루트 바로 아래 하위 폴더명, 예: "Scenery"/"Tiles"). 루트 직속이면 "(기본)".</summary>
+    public string Category { get; }
 }
 
 /// <summary>
@@ -58,6 +62,17 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     [ObservableProperty]
     private bool _includeSubfolders;
 
+    // "전체" 카테고리 — 모든 이미지를 보여 준다(필터 없음). 루트 직속 이미지의 카테고리 라벨.
+    public const string AllCategories = "전체";
+    public const string RootCategory = "(기본)";
+
+    // 로드된 전체 이미지(필터 전 원본). Images 는 SelectedCategory 로 거른 부분집합이다.
+    private readonly System.Collections.Generic.List<ImageLibraryItem> _allItems = new();
+
+    // 현재 선택된 카테고리(하위 폴더). "전체"면 모두 표시. 바꾸면 즉시 다시 거른다.
+    [ObservableProperty]
+    private string _selectedCategory = AllCategories;
+
     public ImageLibraryViewModel(
         IImageLibraryService service,
         Func<string, ImageSource?> thumbnailLoader,
@@ -79,6 +94,9 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
     public ObservableCollection<ImageLibraryItem> Images { get; } = new();
 
+    /// <summary>카테고리(하위 폴더) 목록 — "전체" + 발견된 하위 폴더들. 카테고리 콤보에 바인딩(FrmMain Scenery/Tiles).</summary>
+    public ObservableCollection<string> Categories { get; } = new();
+
     public IAsyncRelayCommand LoadCommand { get; }
 
     public IRelayCommand ApplyAsBackgroundCommand { get; }
@@ -88,17 +106,96 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     // 하위 폴더 포함 토글 시 즉시 다시 읽는다(CommunityToolkit 가 생성하는 변경 콜백).
     partial void OnIncludeSubfoldersChanged(bool value) => LoadCommand.Execute(null);
 
+    // 카테고리 선택이 바뀌면 이미 읽은 전체에서 즉시 다시 거른다(재로딩 없이 빠르게).
+    partial void OnSelectedCategoryChanged(string value) => ApplyCategoryFilter();
+
+    // 파일 경로의 카테고리 = 루트(root) 바로 아래 하위 폴더명. 루트 직속이면 "(기본)".
+    // 예: root=Images, 경로=Images/Scenery/sky.jpg → "Scenery". 경로=Images/logo.png → "(기본)".
+    internal static string CategoryOf(string filePath, string root)
+    {
+        if (string.IsNullOrEmpty(root))
+        {
+            return RootCategory;
+        }
+
+        var dir = Path.GetDirectoryName(filePath);
+        if (string.IsNullOrEmpty(dir))
+        {
+            return RootCategory;
+        }
+
+        string rel;
+        try
+        {
+            rel = Path.GetRelativePath(root, dir);
+        }
+        catch (ArgumentException)
+        {
+            return RootCategory; // 다른 드라이브 등 상대경로 불가 → 기본 카테고리.
+        }
+
+        // 루트 직속(".")이거나 루트 밖(".." 또는 "../foo")이면 기본 카테고리. ".."로 시작하는 정상 폴더명(예 "..bar")은
+        // GetRelativePath 가 escape 로 내보내지 않으므로, 정확히 ".." 또는 ".." + 구분자 로 시작할 때만 escape 로 본다.
+        if (rel == "."
+            || rel == ".."
+            || rel.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            || rel.StartsWith(".." + Path.AltDirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            return RootCategory;
+        }
+
+        // 첫 세그먼트만(중첩 하위 폴더는 최상위 카테고리로 묶는다).
+        return rel.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)[0];
+    }
+
+    // _allItems 를 SelectedCategory 로 걸러 Images 에 채운다("전체"면 모두). 썸네일은 같은 인스턴스라 유지된다.
+    private void ApplyCategoryFilter()
+    {
+        Images.Clear();
+        foreach (var item in _allItems)
+        {
+            if (SelectedCategory == AllCategories || item.Category == SelectedCategory)
+            {
+                Images.Add(item);
+            }
+        }
+
+        // 선택한 이미지가 현재 필터(또는 재로드된 목록)에 더는 없으면 선택을 해제한다.
+        // 안 그러면 화면에 안 보이는 항목이 선택된 채로 남아 "배경 적용"이 엉뚱한(숨은) 이미지에 동작한다(code-review MAJOR).
+        if (SelectedImage is not null && !Images.Contains(SelectedImage))
+        {
+            SelectedImage = null;
+        }
+    }
+
     // 현재 폴더의 이미지를 다시 읽는다. 목록(파일명)은 즉시 채우고, 썸네일은 백그라운드에서
     // 디코딩해 하나씩 채워 넣는다 → 대용량 폴더에서도 UI 가 즉시 반응한다.
     // ct: 새 로드(폴더 변경·새로고침·하위포함 토글)가 시작되면 취소돼 이전 실행이 상태를 덮어쓰지 않게 한다.
     private async Task LoadAsync(CancellationToken ct)
     {
         Images.Clear();
+        _allItems.Clear();
         var paths = _service.EnumerateImages(FolderPath, IncludeSubfolders);
-        var items = paths.Select(path => new ImageLibraryItem(path)).ToList();
-        foreach (var item in items)
+        var items = paths.Select(path => new ImageLibraryItem(path, CategoryOf(path, FolderPath))).ToList();
+        _allItems.AddRange(items);
+
+        // 카테고리 콤보 갱신 — "전체" + 발견된 하위 폴더(정렬). 폴더가 바뀌었으니 선택은 "전체"로 초기화.
+        Categories.Clear();
+        Categories.Add(AllCategories);
+        foreach (var category in items.Select(i => i.Category).Distinct().OrderBy(c => c, StringComparer.CurrentCulture))
         {
-            Images.Add(item);
+            Categories.Add(category);
+        }
+
+        // SelectedCategory 를 "전체"로 되돌린다(OnSelectedCategoryChanged → ApplyCategoryFilter 가 Images 를 채운다).
+        // 이미 "전체"면 콜백이 안 울리므로 직접 한 번 거른다.
+        if (SelectedCategory == AllCategories)
+        {
+            ApplyCategoryFilter();
+        }
+        else
+        {
+            SelectedCategory = AllCategories;
         }
 
         StatusText = items.Count == 0

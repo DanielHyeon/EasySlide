@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Rendering;
 using FluentAssertions;
@@ -151,6 +152,74 @@ public class ImageLibraryViewModelTests
         sut.IncludeSubfolders = true;
 
         sut.Images.Should().HaveCount(2, "토글이 Load 를 트리거");
+    }
+
+    [Theory]
+    [InlineData(@"C:\bg\Scenery\sky.jpg", @"C:\bg", "Scenery")]
+    [InlineData(@"C:\bg\Tiles\brick.png", @"C:\bg", "Tiles")]
+    [InlineData(@"C:\bg\logo.png", @"C:\bg", "(기본)")]               // 루트 직속
+    [InlineData(@"C:\bg\Scenery\Sub\deep.jpg", @"C:\bg", "Scenery")]  // 중첩은 최상위 카테고리로
+    public void CategoryOf_DerivesImmediateSubfolderCategory(string path, string root, string expected)
+    {
+        ImageLibraryViewModel.CategoryOf(path, root).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Load_BuildsCategoryListFromSubfolders_WithAllFirst()
+    {
+        // FrmMain Scenery/Tiles — 하위 폴더가 카테고리로 잡히고 "전체"가 맨 앞에 온다.
+        var sut = CreateSut(out _, out _,
+            @"C:\bg\Scenery\a.jpg", @"C:\bg\Tiles\b.png", @"C:\bg\logo.png");
+
+        sut.LoadCommand.Execute(null);
+
+        sut.Categories.Should().StartWith(ImageLibraryViewModel.AllCategories);
+        sut.Categories.Should().Contain(new[] { "Scenery", "Tiles", "(기본)" });
+        sut.Images.Should().HaveCount(3, "기본(전체) 선택이면 모두 표시");
+    }
+
+    [Fact]
+    public void SelectingCategory_FiltersImagesToThatSubfolder()
+    {
+        var sut = CreateSut(out _, out _,
+            @"C:\bg\Scenery\a.jpg", @"C:\bg\Scenery\b.jpg", @"C:\bg\Tiles\c.png");
+        sut.LoadCommand.Execute(null);
+        sut.Images.Should().HaveCount(3, "전체");
+
+        sut.SelectedCategory = "Tiles";
+
+        sut.Images.Should().ContainSingle().Which.FileName.Should().Be("c.png");
+
+        sut.SelectedCategory = ImageLibraryViewModel.AllCategories;
+        sut.Images.Should().HaveCount(3, "전체로 되돌리면 모두");
+    }
+
+    [Fact]
+    public void SelectingCategory_ClearsSelectionWhenSelectedImageFilteredOut()
+    {
+        // code-review MAJOR 반영 — 선택한 이미지가 필터에서 빠지면 선택 해제(숨은 이미지에 배경 적용되는 것 방지).
+        var sut = CreateSut(out _, out _, @"C:\bg\Tiles\t.png", @"C:\bg\Scenery\s.jpg");
+        sut.LoadCommand.Execute(null);
+        sut.SelectedImage = sut.Images.Single(i => i.FileName == "t.png"); // Tiles 선택
+        sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeTrue();
+
+        sut.SelectedCategory = "Scenery"; // Tiles 선택이 필터에서 빠짐
+
+        sut.SelectedImage.Should().BeNull("필터에서 빠진 선택은 해제");
+        sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeFalse("선택 해제 → 적용 불가");
+    }
+
+    [Fact]
+    public void Reload_ResetsCategoryToAll()
+    {
+        var sut = CreateSut(out _, out _, @"C:\bg\Scenery\a.jpg", @"C:\bg\Tiles\b.png");
+        sut.LoadCommand.Execute(null);
+        sut.SelectedCategory = "Tiles";
+
+        sut.LoadCommand.Execute(null); // 새로고침
+
+        sut.SelectedCategory.Should().Be(ImageLibraryViewModel.AllCategories, "재로드 시 카테고리 초기화");
+        sut.Images.Should().HaveCount(2);
     }
 
     [Fact]
