@@ -1344,6 +1344,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedOutputDisplay = matching;
     }
 
+    // 출력 모니터 선택이 바뀌면 — 출력 창이 이미 열려 있을 때 그 모니터로 즉시 창을 옮긴다(레거시 런타임 MoveTo 배선).
+    // 닫혀 있으면 다음 Open 때 반영되므로 아무것도 안 한다.
+    // 이미 같은 모니터(레코드 값 전체 동일 — Id·위치·크기·DPI)면 이동 불필요. OpenOutput 이 Open 직후
+    // SelectedOutputDisplay 를 같은 모니터로 세팅해도 값이 같아 재이동하지 않는다(무한 이동 방지).
+    // 값 전체로 비교하므로 같은 Id 라도 해상도/위치가 바뀐 경우(모니터 재구성)엔 정상적으로 다시 이동한다.
+    partial void OnSelectedOutputDisplayChanged(OutputDisplay? value)
+    {
+        if (value is null || !_output.Current.IsOpen)
+        {
+            return;
+        }
+
+        if (_output.Current.Display is { } current && current == value)
+        {
+            return;
+        }
+
+        _output.MoveTo(value, windowed: true);
+        LiveBar.OutputMonitorName = value.Name;
+        StatusText = $"출력 모니터 이동: {value.Name}";
+    }
+
     // PPT 렌더 크기 — 출력 창이 닫혀 있을 때의 가벼운 미리보기용 기본값(출력 미송출 상태).
     private const int PptPreviewWidth = 960;
     private const int PptPreviewHeight = 540;
@@ -1629,7 +1651,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 출력 창이 열리면 현재 선택된 PPT 를 그 해상도로 다시 렌더한다 — 항목을 먼저 고르고
         // 출력을 나중에 여는 흐름에서도 송출이 선명하도록(직전 렌더가 미리보기 크기로 남는 문제 해소).
         // 닫힘은 송출하지 않으므로 갱신 불필요(IsOpen 가드). 같은 해상도 갱신은 렌더 캐시가 흡수.
-        // (현재 실효 트리거는 Open 뿐 — MoveTo 는 아직 미배선이나, 추가돼도 같은 가드로 안전.)
+        // (트리거는 Open + MoveTo(OnSelectedOutputDisplayChanged) — 둘 다 IsOpen 가드로 안전. MoveTo 시 새 모니터 해상도로 PPT 재렌더.)
         // 가드는 본문과 동일하게 정규값 Kind 로 매치한다(ApplySelectedItemContentAsync 가 정규값만
         // 렌더하고 그 외는 PowerPoint.Clear 하므로, 별칭 항목까지 재실행하면 미리보기가 비워짐).
         if (_output.Current.IsOpen && SelectedItem is { Kind: LiveItemKinds.PowerPoint })

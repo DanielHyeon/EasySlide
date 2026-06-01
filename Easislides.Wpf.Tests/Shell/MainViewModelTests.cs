@@ -3313,6 +3313,36 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SelectedOutputDisplayChange_WhileOpen_MovesOutputToNewMonitor()
+    {
+        // 레거시 런타임 MoveTo — 출력 창이 열린 상태에서 모니터 선택을 바꾸면 그 모니터로 창이 즉시 이동한다.
+        var output = new OutputWindowService();
+        var sut = CreateSut(output: output);
+        sut.OpenOutputCommand.Execute(null);
+        output.Current.IsOpen.Should().BeTrue("출력 창이 열려 있어야 이동 테스트가 의미 있음");
+
+        var second = new OutputDisplay("disp-2", "모니터 2", 1920, 0, 1920, 1080, 1.0);
+        sut.SelectedOutputDisplay = second;
+
+        output.Current.Display!.Id.Should().Be("disp-2", "열린 상태에서 모니터 선택 변경 → 그 모니터로 이동");
+        output.Current.Display.Name.Should().Be("모니터 2");
+        sut.LiveBar.OutputMonitorName.Should().Be("모니터 2", "상태 바도 새 모니터 이름 반영");
+    }
+
+    [Fact]
+    public void SelectedOutputDisplayChange_WhileClosed_DoesNotOpenOrMove()
+    {
+        // 출력 창이 닫혀 있으면 모니터 선택만 바뀌고 창은 열리지 않는다(다음 Open 때 반영).
+        var output = new OutputWindowService();
+        var sut = CreateSut(output: output);
+
+        var second = new OutputDisplay("disp-2", "모니터 2", 1920, 0, 1920, 1080, 1.0);
+        sut.SelectedOutputDisplay = second;
+
+        output.Current.IsOpen.Should().BeFalse("닫힌 상태에선 이동·열림 없음");
+    }
+
+    [Fact]
     public void RegionGapCommands_StepAndClamp()
     {
         // FrmMain Ind_Reg2TopUpDown — +/- 4px 단계, 0~100px 클램프.
@@ -3984,9 +4014,10 @@ public class MainViewModelTests
         IRecentWorshipLists? recentWorshipLists = null,
         WorshipListValidator? worshipValidator = null,
         LiveSessionService? liveSession = null,
+        IOutputWindowService? output = null,
         bool seedSampleQueue = true)
     {
-        var output = new OutputWindowService();
+        output ??= new OutputWindowService();
         var session = liveSession ?? new LiveSessionService();
         var telemetry = new InMemoryCommandTelemetry();
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());

@@ -127,7 +127,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 알림 오버레이(`FrmShowAlert`,message/parental/reference/lyrics) | EsToast/LyricsAlert | 🟡 조작 UI 없음 |
 | Lyrics Monitor 메시지 전송(`OutputTextBoxLM`,`SendLyricsMonitorMessage`) | — | 🔴 없음 |
 | 중/번체 전환(`OutputChineseSwitch`) | — | 🔴 없음 |
-| 런타임 출력 모니터 이동(MoveTo) | — | 🔴 미배선(코드 주석 "MoveTo 아직 미배선") |
+| 런타임 출력 모니터 이동(MoveTo) | 출력 모니터 선택 변경 시 열린 창을 즉시 이동(OnSelectedOutputDisplayChanged→MoveTo) | 🟢 (증분68) 출력 열린 상태에서 모니터 바꾸면 그 모니터로 즉시 이동, 새 해상도로 PPT 재렌더 |
 
 ### 3.2 가사 렌더링·포맷팅 — ★ 최대 갭
 | FrmMain 기능 | WPF | 상태 |
