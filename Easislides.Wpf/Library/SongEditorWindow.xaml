@@ -359,6 +359,37 @@
                                       MinHeight="32"
                                       AutomationProperties.Name="미리보기 보조(메타·코드) 글자 크기" />
                         </Grid>
+
+                        <!-- 코드 조옮김(레거시 Transpose Up/Down Semi-Tone) — 미리보기 코드만 ±반음 이동, 저장 가사 불변. -->
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="조옮김"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                            <Button Command="{Binding TransposeDownCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="36"
+                                    Content="♭ −"
+                                    AutomationProperties.Name="반음 내림" />
+                            <TextBlock Text="{Binding TransposeLabel}"
+                                       VerticalAlignment="Center"
+                                       MinWidth="40"
+                                       Margin="8,0"
+                                       TextAlignment="Center"
+                                       Style="{StaticResource Type.Body.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Primary}" />
+                            <Button Command="{Binding TransposeUpCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="36"
+                                    Margin="0,0,8,0"
+                                    Content="♯ +"
+                                    AutomationProperties.Name="반음 올림" />
+                            <Button Command="{Binding ResetTransposeCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Content="원조"
+                                    AutomationProperties.Name="조옮김 원조로" />
+                        </StackPanel>
                     </StackPanel>
 
                     <Border Grid.Row="1"

@@ -91,6 +91,29 @@ public class SongEditorViewModelTests
     }
 
     [Fact]
+    public void Transpose_ShiftsPreviewChords_WithoutChangingLyrics()
+    {
+        // 조옮김(±반음)은 미리보기 코드만 옮기고 저장 가사(Lyrics)는 바꾸지 않는다(레거시 Transpose Semi-Tone).
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var sut = new SongEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+        sut.Load(fixture.AdminDatabasePath, new SongFolderSummary(1, "Morning", true, 0), null);
+        sut.Lyrics = "Amazing grace » G  C";
+        var originalLyrics = sut.Lyrics;
+
+        sut.TransposeUpCommand.Execute(null); // +1 반음
+        sut.TransposeUpCommand.Execute(null); // +2 반음
+
+        sut.TransposeLabel.Should().Be("+2");
+        sut.PreviewLyricLines.Should().Contain(line => line.Notation.Contains("A") && line.Notation.Contains("D"),
+            "G→A, C→D 로 미리보기 코드가 +2 반음 이동");
+        sut.Lyrics.Should().Be(originalLyrics, "저장 가사는 불변(미리보기 전용)");
+
+        sut.ResetTransposeCommand.Execute(null);
+        sut.TransposeLabel.Should().Be("원조");
+    }
+
+    [Fact]
     public void Lyrics_DuplicateSectionLabels_ShowsSectionWarning_NonBlocking()
     {
         // Sequence 모델: 절은 1회 정의. 같은 라벨([C]) 두 번 정의 시 비차단 경고를 띄운다(저장은 막지 않음).

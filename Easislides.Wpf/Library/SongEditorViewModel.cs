@@ -64,6 +64,11 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private double _previewMainFontSize = 18;
     [ObservableProperty] private double _previewNotationFontSize = 14;
 
+    // 코드 조옮김 반음(미리보기 전용). 변경 시 미리보기만 다시 그린다(곡 dirty 안 됨).
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TransposeLabel))]
+    private int _transposeSemitones;
+
     /// <summary>중복 정의된 절 라벨 경고(비면 문제 없음). Sequence 모델은 절을 1회 정의해야 하므로 같은 라벨 2회는 작성 오류.</summary>
     [ObservableProperty] private string _sectionWarning = "";
     [ObservableProperty] private string _statusMessage = "";
@@ -97,12 +102,30 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         }
 
         SaveCommand = new AsyncRelayCommand(SaveAsync, CanSave);
+        // 코드 조옮김(미리보기 전용 — 저장 가사는 불변). ±반음, 원조 복귀.
+        TransposeUpCommand = new RelayCommand(() => SetTranspose(TransposeSemitones + 1));
+        TransposeDownCommand = new RelayCommand(() => SetTranspose(TransposeSemitones - 1));
+        ResetTransposeCommand = new RelayCommand(() => SetTranspose(0));
         RefreshPreview();
     }
 
     public event EventHandler<SongEditorSavedEventArgs>? Saved;
 
     public IAsyncRelayCommand SaveCommand { get; }
+
+    /// <summary>코드 조옮김 — 미리보기 코드를 ±반음 이동(레거시 Transpose Up/Down Semi-Tone). 저장 가사는 바뀌지 않는다.</summary>
+    public IRelayCommand TransposeUpCommand { get; }
+
+    public IRelayCommand TransposeDownCommand { get; }
+
+    public IRelayCommand ResetTransposeCommand { get; }
+
+    /// <summary>현재 조옮김 표시(예: "+2", "-1", "원조").</summary>
+    public string TransposeLabel
+        => TransposeSemitones == 0 ? "원조" : (TransposeSemitones > 0 ? $"+{TransposeSemitones}" : TransposeSemitones.ToString());
+
+    // 조옮김 값을 -11~+11 반음으로 클램프해 설정(한 옥타브 안). 미리보기만 갱신(곡은 dirty 안 됨).
+    private void SetTranspose(int semitones) => TransposeSemitones = Math.Clamp(semitones, -11, 11);
 
     /// <summary>미리보기 가사를 줄 단위로(코드/노테이션 분리) 담는다 — 리치 per-line 미리보기 렌더용.</summary>
     public ObservableCollection<SongPreviewLine> PreviewLyricLines { get; } = new();
@@ -301,6 +324,9 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     partial void OnTimingChanged(string value) => MarkChanged();
 
     partial void OnNotationsChanged(string value) => MarkChanged();
+
+    // 조옮김은 곡 내용을 바꾸지 않으므로 dirty(MarkChanged) 가 아니라 미리보기만 다시 그린다.
+    partial void OnTransposeSemitonesChanged(int value) => RefreshPreview();
 
     partial void OnLicenceAdmin1Changed(string value) => MarkChanged();
 
@@ -575,7 +601,14 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
         foreach (var line in lines)
         {
-            PreviewLyricLines.Add(SplitNotation(line));
+            var split = SplitNotation(line);
+            // 조옮김이 걸려 있고 코드가 있으면 미리보기 코드만 ±반음 이동(본문·저장 가사는 불변).
+            if (TransposeSemitones != 0 && split.Notation.Length > 0)
+            {
+                split = split with { Notation = Shell.ChordTransposer.TransposeLine(split.Notation, TransposeSemitones) };
+            }
+
+            PreviewLyricLines.Add(split);
         }
     }
 
