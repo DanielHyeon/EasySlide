@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -10,6 +11,21 @@ using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
+
+/// <summary>
+/// 줄 교차(인터레이스) 송출용 한 줄 — 각 줄이 자기 영역(Region1=주 언어/Region2=보조 언어)의
+/// 색·글꼴·크기·굵게·기울임·밑줄·정렬을 그대로 지닌다. 출력의 ItemsControl 이 이 목록을 줄마다 렌더한다.
+/// </summary>
+public sealed record InterlacedLine(
+    string Text,
+    Brush Foreground,
+    object FontFamily,
+    double FontSize,
+    FontWeight FontWeight,
+    FontStyle FontStyle,
+    TextDecorationCollection? TextDecorations,
+    TextAlignment TextAlignment,
+    double LineHeight);
 
 public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 {
@@ -64,6 +80,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private TextDecorationCollection? _bodyTextDecorations;
     private TextDecorationCollection? _bodyText2Decorations;
     private bool _bodyUnderline;
+    private Visibility _interlaceVisibility = Visibility.Collapsed;
     // 외곽선 효과 사용 여부(§7.3-A). on 이면 본문을 외곽선 렌더러로 그린다(일반 본문과 상호배타).
     private bool _bodyHasOutline;
     // 외곽선 렌더러(OutlinedTextBlock) 가시성 — 외곽선 on + 본문 송출 중일 때만 Visible.
@@ -374,6 +391,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyUnderline;
         private set => SetProperty(ref _bodyUnderline, value);
+    }
+
+    /// <summary>줄 교차(인터레이스) 송출 줄 목록 — Region1·Region2 줄을 번갈아 담는다(각 줄이 자기 영역 스타일을 지님). 비-인터레이스 시 빈 목록.</summary>
+    public ObservableCollection<InterlacedLine> InterlacedLines { get; } = new();
+
+    /// <summary>줄 교차 목록의 가시성 — 인터레이스 on + 두 영역이 모두 보일 때만 Visible(그때 기존 두 밴드는 숨김).</summary>
+    public Visibility InterlaceVisibility
+    {
+        get => _interlaceVisibility;
+        private set => SetProperty(ref _interlaceVisibility, value);
     }
 
     /// <summary>위치 인디케이터 텍스트(절/슬라이드 "N/M"). §7.3-A.</summary>
@@ -773,11 +800,49 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyHasOutline = scene.UsesBodyOutline;
         BodyTextVisibility = (bodyShown && !scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
         BodyOutlineVisibility = (bodyShown && scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
+        // 줄 교차(인터레이스): on + 두 영역이 다 보이면 줄을 번갈아 쌓고 기존 두 밴드를 숨긴다(아래에서 가시성 재정의).
+        RebuildInterlacedLines(scene);
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
         PanelOverlayVisibility = panelOverlay;
         ApplyGapLogo(scene, panelOverlay, bodyShown);
         BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) ? Visibility.Visible : Visibility.Collapsed;
         ApplyContentPlacement(scene);
+    }
+
+    // 줄 교차(인터레이스) 줄 목록을 다시 만든다 — Region1·Region2 본문을 줄 단위로 번갈아 쌓는다.
+    // 각 줄은 자기 영역의 색·글꼴·크기·굵게·기울임·밑줄·정렬을 그대로 지닌다(ApplyScene 이 이미 계산한 영역별 VM 값 사용).
+    // 인터레이스 중엔 기존 두 밴드(Region1 일반/외곽선·Region2)를 숨겨 교차 목록만 보이게 한다.
+    private void RebuildInterlacedLines(OutputSceneSnapshot scene)
+    {
+        InterlacedLines.Clear();
+        InterlaceVisibility = scene.ShowsInterlace ? Visibility.Visible : Visibility.Collapsed;
+        if (!scene.ShowsInterlace)
+        {
+            return;
+        }
+
+        var region1Lines = BodyText.Split('\n');
+        var region2Lines = BodyText2.Split('\n');
+        var lineCount = Math.Max(region1Lines.Length, region2Lines.Length);
+        for (var i = 0; i < lineCount; i++)
+        {
+            if (i < region1Lines.Length)
+            {
+                InterlacedLines.Add(new InterlacedLine(region1Lines[i], SceneForegroundBrush, BodyFontFamily, BodyFontSize,
+                    BodyFontWeight, BodyFontStyle, BodyTextDecorations, BodyTextAlignment, BodyLineHeight));
+            }
+
+            if (i < region2Lines.Length)
+            {
+                InterlacedLines.Add(new InterlacedLine(region2Lines[i], SceneForegroundBrush2, BodyFont2Family, BodyFont2Size,
+                    BodyFont2Weight, BodyFont2Style, BodyText2Decorations, BodyText2Alignment, BodyLineHeight));
+            }
+        }
+
+        // 교차 목록이 본문을 담당하므로 기존 밴드는 모두 숨긴다.
+        BodyTextVisibility = Visibility.Collapsed;
+        BodyOutlineVisibility = Visibility.Collapsed;
+        BodyText2Visibility = Visibility.Collapsed;
     }
 
     // Scene.ContentPlacement(픽셀 좌표·크기)를 XAML 바인딩에 노출.
@@ -1125,6 +1190,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorUnderline.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 강조 후렴만 토글도 라이브 출력에 즉시 반영(현재 절이 후렴인지에 따라 강조가 켜지고 꺼진다).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorEmphasisChorusOnly.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 줄 교차(인터레이스) 토글도 라이브 출력에 즉시 반영.
+                string.Equals(key, EasiSettingKeys.LyricsMonitorInterlace.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 투명 토글도 라이브 출력에 즉시 반영(Def_PanelTransparent).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).

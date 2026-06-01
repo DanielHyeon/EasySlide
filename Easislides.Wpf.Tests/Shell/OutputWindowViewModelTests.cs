@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -485,6 +486,57 @@ public class OutputWindowViewModelTests
         sut.BodyFontWeight.Should().Be(FontWeights.Bold);
         sut.BodyFontStyle.Should().Be(FontStyles.Italic);
         sut.BodyHasShadow.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ApplySession_Interlace_BuildsInterleavedLinesAndHidesBands()
+    {
+        // 줄 교차 on + 이중 언어 → Region1·Region2 줄을 번갈아 쌓고 기존 두 밴드를 숨긴다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorInterlace, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "원문1\n원문2", CurrentItemBodyText2: "번역1\n번역2"));
+
+        sut.InterlaceVisibility.Should().Be(Visibility.Visible);
+        sut.InterlacedLines.Select(line => line.Text).Should().Equal("원문1", "번역1", "원문2", "번역2");
+        sut.BodyTextVisibility.Should().Be(Visibility.Collapsed, "교차 목록이 본문을 담당하므로 밴드 숨김");
+        sut.BodyText2Visibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
+    public void ApplySession_InterlaceOff_NoInterleavedLines()
+    {
+        // 기본(off) → 교차 목록 비고 기존 밴드 그대로(무회귀).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "원문", CurrentItemBodyText2: "번역"));
+
+        sut.InterlaceVisibility.Should().Be(Visibility.Collapsed);
+        sut.InterlacedLines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ApplySession_InterlaceOn_SingleLanguage_NoInterleave()
+    {
+        // 보조 언어 본문이 없으면 교차할 게 없으므로 인터레이스 비활성(기존 단일 밴드 렌더).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorInterlace, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "원문만")); // Region2 없음.
+
+        sut.InterlaceVisibility.Should().Be(Visibility.Collapsed);
+        sut.InterlacedLines.Should().BeEmpty();
+        sut.BodyTextVisibility.Should().Be(Visibility.Visible, "단일 언어는 기존 밴드 그대로");
     }
 
     [Fact]

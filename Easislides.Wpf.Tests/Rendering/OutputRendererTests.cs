@@ -564,6 +564,50 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Interlace_BothRegions_ShowsInterlace()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorInterlace: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "원문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsInterlace.Should().BeTrue("인터레이스 on + 두 영역 본문 → 교차");
+    }
+
+    [Fact]
+    public void CreateScene_Interlace_SingleLanguage_NoInterlace()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorInterlace: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "원문만"), // Region2 없음.
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.ShowsInterlace.Should().BeFalse("보조 언어 없음 → 교차할 게 없음");
+    }
+
+    [Fact]
+    public void CreateScene_InterlaceOff_NoInterlace()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "원문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.ShowsInterlace.Should().BeFalse("기본 off → 무회귀");
+    }
+
+    [Fact]
     public void CreateScene_RegionDisplayBoth_ShowsBothBands()
     {
         var sut = CreateRenderer();

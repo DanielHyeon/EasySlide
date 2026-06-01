@@ -72,7 +72,9 @@ public sealed record LiveOutputRenderSettings(
     // 이중 언어 영역 표시 모드(FrmMain Def_ShowRegion1/2/Both). 기본 Both=둘 다(무회귀).
     LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both,
     // 강조(굵게·기울임·밑줄)를 후렴 절에만 적용(FrmMain Ind_*Italics 후렴만). 기본 false=전체 절(무회귀).
-    bool LyricsMonitorEmphasisChorusOnly = false)
+    bool LyricsMonitorEmphasisChorusOnly = false,
+    // 이중 언어 줄 교차(FrmMain Def_Interlace). 기본 false=영역별 블록(무회귀).
+    bool LyricsMonitorInterlace = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -112,7 +114,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode),
             settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay),
-            settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly));
+            settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly),
+            settings.Get(EasiSettingKeys.LyricsMonitorInterlace));
     }
 }
 
@@ -215,7 +218,9 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorItalic2 = false,
     bool LyricsMonitorUnderline2 = false,
     // 이중 언어 영역 표시 모드(Both/Region1Only/Region2Only) — 어느 영역을 화면에 보일지. 기본 Both(무회귀).
-    LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both)
+    LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both,
+    // 이중 언어 줄 교차(인터레이스) — on 이면 Region1·Region2 본문을 줄 단위로 번갈아 송출. 기본 false(영역별 블록).
+    bool LyricsMonitorInterlace = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -224,6 +229,10 @@ public sealed record OutputSceneSnapshot(
     public bool ShowsBodyText => Kind == OutputSceneKind.Live
         && !string.IsNullOrWhiteSpace(BodyText)
         && !(LyricsMonitorRegionDisplay == LyricsRegionDisplay.Region2Only && !string.IsNullOrWhiteSpace(BodyText2));
+
+    // 줄 교차(인터레이스)를 실제로 송출할지 — Live + 인터레이스 on + 두 영역(Region1·Region2)이 모두 보일 때만.
+    // (한쪽만 보이는 영역 표시 모드/단일 언어에선 교차할 게 없으므로 false → 기존 블록 렌더.)
+    public bool ShowsInterlace => LyricsMonitorInterlace && ShowsBodyText && ShowsBodyText2;
 
     // Region2(이중 언어 보조) 본문을 송출할지 — Live + Region2 본문이 있을 때만(단일 영역 곡은 false → 무회귀).
     // 영역 표시가 "Region1만"이면 Region2 를 숨긴다 — 단 주 언어(Region1)가 있을 때만(없으면 화면이 비지 않게 Region2 유지).
@@ -416,7 +425,9 @@ public sealed class OutputRenderer : IOutputRenderer
             region2Italic,
             region2Underline,
             // 이중 언어 영역 표시 모드(어느 영역을 보일지) — 설정값 그대로.
-            liveOutput.LyricsMonitorRegionDisplay);
+            liveOutput.LyricsMonitorRegionDisplay,
+            // 줄 교차(인터레이스) 설정 — VM 이 두 영역 줄을 번갈아 배치할지 판단.
+            liveOutput.LyricsMonitorInterlace);
     }
 
     private ImagePlacement GetContentPlacement(

@@ -179,6 +179,9 @@
                 <MenuItem Header="강조는 후렴만(굵게·기울임·밑줄)"
                           IsChecked="{Binding ActiveLyricsEmphasisChorusOnly}"
                           Command="{Binding ToggleEmphasisChorusOnlyCommand}" />
+                <MenuItem Header="이중 언어 줄 교차(원문/번역 번갈아)"
+                          IsChecked="{Binding ActiveLyricsInterlace}"
+                          Command="{Binding ToggleInterlaceCommand}" />
                 <Separator />
                 <!-- 전환 효과(FrmMain Transition) — 현재 페이드만 구현. 페이드 on/off + 속도 프리셋. -->
                 <MenuItem Header="전환 효과">
