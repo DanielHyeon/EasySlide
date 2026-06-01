@@ -155,7 +155,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | **PraiseBooks**(관리/추가/정렬/RTF·HTML/legacy v3.2) | — | 🔴 |
 | **Worship Sessions / Recent Edits / Session Notes** | — | 🔴 |
 | Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | — | 🔴 |
-| Media 목록 브라우징 | 중앙 Media 탭 | 🟡 폴더 목록 없음 |
+| Media 목록 브라우징 | 중앙 Media 탭 + `MediaLibraryWindow`(폴더 브라우저) | 🟢 (2026-06-01 증분 33) 미디어 폴더 브라우저(동영상·오디오 13확장자, 하위폴더·더블클릭 추가) — PowerPoint 브라우저와 동일 구조 |
 | PowerPoint 목록/썸네일/Import | 중앙 PPT 미리보기 | 🟡 브라우징/Import 없음 |
 | InfoScreens(.esi) 목록·편집 | — | 🔴 |
 | 인라인 성경(§4) | 좌측 성경 탭 + BibleWindow | 🟡 |

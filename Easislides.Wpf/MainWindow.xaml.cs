@@ -400,6 +400,32 @@ public partial class MainWindow : Window
         window.ShowDialog();
     }
 
+    // 미디어 폴더 브라우저 — 폴더의 동영상·오디오를 보고 예배 순서에 추가(FrmMain Media 탭 포팅).
+    private void OpenMediaLibrary_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        // 미디어 폴더는 설정의 MediaDirectory 를 우선 쓰고, 없으면 작업 폴더, 그래도 없으면 내 문서.
+        var settings = _services.GetRequiredService<ISettingsService>();
+        var mediaDir = settings.Get(EasiSettingKeys.MediaDirectory);
+        var workingFolder = settings.Current.General.WorkingFolder;
+        var initialFolder =
+            !string.IsNullOrWhiteSpace(mediaDir) && Directory.Exists(mediaDir) ? mediaDir
+            : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        var mediaViewModel = new Easislides.Wpf.Library.MediaLibraryViewModel(
+            new Easislides.Wpf.Library.MediaLibraryService(),
+            path => viewModel.AddMedia(path), // AddMedia 는 LiveQueueItem 을 반환하므로 람다로 감싼다
+            initialFolder);
+
+        var window = new Easislides.Wpf.Library.MediaLibraryWindow(mediaViewModel) { Owner = this };
+        window.ShowDialog();
+    }
+
     // 공지 화면(InfoScreen) — 자유 텍스트 안내를 입력해 회중 출력으로 송출(FrmInfoScreen 포팅).
     private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e)
     {
