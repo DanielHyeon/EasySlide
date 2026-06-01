@@ -54,6 +54,7 @@
 - (2026-06-01) ✅ 증분 14(Recent) — **최근 예배 순서**(FrmMain Recent Edits). RecentWorshipListsService(JSON 영속·최신순·중복제거·최대8) + MainViewModel 통합(Save/Load 시 Record)·동적 서브메뉴 "파일 ▸ 최근 예배 순서"·재오픈 명령. DI 등록. 1123 green, code-reviewer Approve(0 critical), 커밋 `2fac483`.
 - (2026-06-01) ✅ 증분 15(InfoScreen 글자) — **공지 화면 글자 크기 선택**(보통40/크게60/아주크게80). 새 plumbing 없이 기존 곡별 폰트 오버라이드(FormatData 47=pt) 재사용 — PublishNotice(text,pt)→OverrideFontSizePx. 프리셋 디코더 범위 회귀 가드. 1127 green, code-reviewer Approve(0 critical), 커밋 `450b0db`.
 - (2026-06-01) ✅ 증분 16(세션 메모) — **세션 노트**(FrmMain Session Notes). WorshipSessionNotesService(세션 키별 텍스트 영속, StoreFileNaming 재사용)·MainViewModel.CurrentWorshipListName(메모 키, DI 무변경)·VM/Window + 메뉴 "도구 ▸ 세션 메모". code-reviewer MINOR 2건 반영(IO 실패 거짓성공 방지·공백 판정 일치). 1143 green, 커밋 `c02f744`.
+- (2026-06-01) ✅ 증분 17(전환 확장) — **줌/회전/뒤집기 전환**(트랜스폼 기반). LyricsTransitionKind += ZoomIn/ZoomOut/Spin/FlipH/FlipV. OutputWindow OnSceneChanged 를 TransformGroup{Translate,Scale,Rotate}+중앙 원점으로 재작성(Fade/Slide 무회귀). 메뉴 모션 9종. 1144 green, code-reviewer Clean(무회귀 전수 확인), 커밋 `f653ed5`. **남은 전환**: Circle/Diamond/Blinds/Checkerboard 등 셰이프·타일 마스크 전환은 2-레이어 클립 엔진 필요 → P2.
 - ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 다음 항목 + 전환 효과(페이드/속도) + 배경 이미지 + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
 - **차기(후속 슬라이스): PraiseBook 명명 저장·관리 영속화 · 이미지 썸네일 비동기 디코딩(대용량) · 50여 종 셰이프/타일 전환 · InfoScreen 편집기 · 절 라벨 점프(P2 백로그).** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
