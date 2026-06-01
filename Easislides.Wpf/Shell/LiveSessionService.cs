@@ -100,7 +100,8 @@ public sealed class LiveSessionService : ILiveSessionService
             // 곡 항목이면 현재 절(LyricsPageIndex)을, 그 외(PPT/미디어 등)는 빈 본문을 싣는다.
             // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
             // LyricsPageIndex=0 이면 첫 절, GoLive 호출 전에 MainViewModel 이 현재 페이지를 얹어 전달한다.
-            CurrentItemBodyText: LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
+            // 이중 언어([region 2]) 곡이면 Region1·Region2 를 한 본문에 함께 싣는다(동시 송출).
+            CurrentItemBodyText: ComputeBodyText(item),
             CurrentItemPositionLabel: item.PositionLabel,
             // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
             CurrentLyricsPageIndex: item.LyricsPageIndex,
@@ -137,6 +138,23 @@ public sealed class LiveSessionService : ILiveSessionService
 
         var px = (int)Math.Round(pt * 96.0 / 72.0, MidpointRounding.AwayFromZero);
         return Math.Clamp(px, 8, 240);
+    }
+
+    // 현재 절의 송출 본문을 만든다. 이중 언어([region 2]) 곡이면 Region1·Region2 를 한 줄 띄워 함께 싣고,
+    // 단일 영역 곡은 기존 경로(Sequence 적용 GetVersePage)를 그대로 써 비트 동일(무회귀). 곡이 아니면 빈 문자열.
+    // 주의: 이중 언어 경로는 현재 Sequence 를 무시하고 선형 GetRegionPages 를 쓴다(count·body 동일 소스로 정렬 보장).
+    //       이중 언어 + Sequence 동시 지원과 영역별 스타일(색·폰트 분리)은 차기 슬라이스.
+    private static string ComputeBodyText(LiveQueueItem item)
+    {
+        if (!LyricsDisplayFormatter.HasRegion2(item.Lyrics))
+        {
+            return LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence);
+        }
+
+        var page = LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex);
+        return string.IsNullOrEmpty(page.Region2)
+            ? page.Region1
+            : $"{page.Region1}\n{page.Region2}";
     }
 
     // 레거시 FormatData 정렬값(1~3) → WPF 가사 정렬 enum. 없거나 범위 밖이면 null(운영 기본 정렬 유지).

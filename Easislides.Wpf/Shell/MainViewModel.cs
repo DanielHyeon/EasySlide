@@ -920,11 +920,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RefreshLyricsPages(LiveQueueItem? item)
     {
         var isSong = item?.Kind == LiveItemKinds.Song && !string.IsNullOrEmpty(item.Lyrics);
-        LyricsPageCount = isSong
-            ? LyricsDisplayFormatter.ToVersePages(item!.Lyrics, item.Sequence).Count
-            : 0;
-        // 페이지별 절 라벨도 함께 갱신 — 절 라벨 점프 버튼 목록·인덱스의 근거(곡 아니면 비움).
-        _pageLabels = isSong
+        // 이중 언어([region 2]) 곡은 영역-인식 페이지 수(GetRegionPages)를 쓴다 — [region 2] 가 절 경계로
+        // 오인돼 절 수가 부풀던 문제 해소. 단일 영역 곡은 기존 ToVersePages(Sequence 적용) 경로 그대로(무회귀).
+        var dual = isSong && LyricsDisplayFormatter.HasRegion2(item!.Lyrics);
+        LyricsPageCount = !isSong
+            ? 0
+            : dual
+                ? LyricsDisplayFormatter.GetRegionPages(item!.Lyrics).Count
+                : LyricsDisplayFormatter.ToVersePages(item!.Lyrics, item.Sequence).Count;
+        // 페이지별 절 라벨 — 단일 영역만 지원(이중 언어 곡의 라벨 점프는 차기 슬라이스). 곡 아니거나 이중 언어면 비움.
+        _pageLabels = isSong && !dual
             ? LyricsDisplayFormatter.GetSectionLabels(item!.Lyrics, item.Sequence)
             : Array.Empty<string>();
         RebuildAvailableSectionLabels();

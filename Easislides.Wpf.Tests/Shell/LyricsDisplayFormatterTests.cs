@@ -288,6 +288,28 @@ public class LyricsDisplayFormatterTests
     public void GetRegionPages_Empty_ReturnsEmpty(string? lyrics)
         => LyricsDisplayFormatter.GetRegionPages(lyrics).Should().BeEmpty();
 
+    [Theory]
+    [InlineData("[1]\nA\n[region 2]\nB", true)]
+    [InlineData("[1]\nA\n[2]\nB", false)]
+    [InlineData("Amazing grace", false)]
+    [InlineData(null, false)]
+    public void HasRegion2_DetectsDualLanguage(string? lyrics, bool expected)
+        => LyricsDisplayFormatter.HasRegion2(lyrics).Should().Be(expected);
+
+    [Fact]
+    public void GetRegionPage_ClampsIndexAndReturnsPair()
+    {
+        var lyrics = "[1]\nA\n[region 2]\nB\n[2]\nC";
+
+        LyricsDisplayFormatter.GetRegionPage(lyrics, 0).Should().Be(new LyricsRegionPage("A", "B"));
+        LyricsDisplayFormatter.GetRegionPage(lyrics, 99).Should().Be(new LyricsRegionPage("C", ""), "범위 밖은 마지막 절로 클램프");
+        LyricsDisplayFormatter.GetRegionPage(lyrics, -1).Should().Be(new LyricsRegionPage("A", "B"), "음수는 첫 절로 클램프");
+    }
+
+    [Fact]
+    public void GetRegionPage_EmptyLyrics_ReturnsEmptyPair()
+        => LyricsDisplayFormatter.GetRegionPage(null, 0).Should().Be(new LyricsRegionPage("", ""));
+
     // ─── GetSectionLabels(절 라벨 점프용 — 페이지별 라벨, ToVersePages 와 정렬) ───────────────
 
     [Fact]

@@ -312,6 +312,49 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithDualLanguageLyrics_CombinesRegion1AndRegion2InBody()
+    {
+        // 이중 언어([region 2]) 곡이 라이브로 나가면 Region1·Region2 를 한 본문에 함께 송출(동시 표시).
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\nAmazing grace\n[region 2]\n놀라운 은혜",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("Amazing grace\n놀라운 은혜");
+    }
+
+    [Fact]
+    public void GoLive_DualLanguage_VerseWithoutRegion2_ShowsOnlyRegion1()
+    {
+        // 혼합 곡(1절은 R1/R2, 2절은 R1만) — region2 없는 절은 Region1 만 송출(빈 줄 없이). 정렬 유지.
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\nAmazing grace\n[region 2]\n놀라운 은혜\n[2]\nGrace alone",
+            LyricsPageIndex = 1, // 2절(R2 없음)
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("Grace alone", "region2 없는 절은 Region1 만");
+    }
+
+    [Fact]
+    public void GoLive_SingleLanguageLyrics_BodyUnchanged()
+    {
+        // 단일 영역 곡은 기존 경로 그대로(무회귀) — region2 결합 없음.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\nAmazing grace\n둘째 줄" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText.Should().Be("Amazing grace\n둘째 줄");
+    }
+
+    [Fact]
     public void GoLive_WithoutBackgroundImage_LeavesOverrideNull()
     {
         // 배경 이미지 항목(61)이 없으면 오버라이드는 null → 색 배경 유지(무회귀).

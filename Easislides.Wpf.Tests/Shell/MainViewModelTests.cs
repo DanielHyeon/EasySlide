@@ -2707,6 +2707,19 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddSong_DualLanguage_PageCountUsesRegionPages()
+    {
+        // 이중 언어([region 2]) 곡은 영역-인식 페이지 수를 쓴다 — [region 2] 가 절 경계로 오인돼 절 수가 부풀지 않음.
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nAmazing\n[region 2]\n은혜\n[2]\nGrace\n[region 2]\n주님");
+
+        sut.AddSong(song);
+
+        sut.LyricsPageCount.Should().Be(2, "두 절(각 R1/R2 쌍) → 2페이지(=GetRegionPages 수)");
+        sut.AvailableSectionLabels.Should().BeEmpty("이중 언어 곡의 절 라벨 점프는 차기 슬라이스 — 버튼 미노출");
+    }
+
+    [Fact]
     public void RefreshLyricsPages_NonSongItem_ClearsSectionLabels()
     {
         var sut = CreateSut();

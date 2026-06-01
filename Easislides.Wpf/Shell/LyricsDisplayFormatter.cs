@@ -207,6 +207,35 @@ public static class LyricsDisplayFormatter
         return pages;
     }
 
+    /// <summary>
+    /// 가사에 region2 <b>본문(내용)</b>이 하나라도 있으면 true(= 이중 언어 곡). 마커 유무가 아니라 내용 유무로 판정 —
+    /// <c>[region 2]</c> 마커만 있고 뒤에 글자가 없으면 false(단일 영역으로 안전 폴백).
+    /// </summary>
+    public static bool HasRegion2(string? rawLyrics)
+    {
+        foreach (var page in GetRegionPages(rawLyrics))
+        {
+            if (page.Region2.Length > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>지정 인덱스(0-based, 범위 밖 클램프)의 이중 언어 절 페이지. 가사가 없으면 빈 페이지.</summary>
+    public static LyricsRegionPage GetRegionPage(string? rawLyrics, int pageIndex)
+    {
+        var pages = GetRegionPages(rawLyrics);
+        if (pages.Count == 0)
+        {
+            return new LyricsRegionPage(string.Empty, string.Empty);
+        }
+
+        return pages[Math.Clamp(pageIndex, 0, pages.Count - 1)];
+    }
+
     // 줄이 [region N] 영역 전환 마커인지(대소문자·공백 무시: "[region 2]"·"[Region2]" 모두 인식).
     private static bool IsRegionMarker(string line, int regionNumber)
     {
