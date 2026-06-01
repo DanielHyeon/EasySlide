@@ -439,6 +439,11 @@
                               Command="{Binding ApplyRegionDisplayCommand}"
                               CommandParameter="{x:Static settings:LyricsRegionDisplay.Region2Only}" />
                 </MenuItem>
+                <!-- 코드/악상 표시(FrmMain Def_Notations) — on 이면 송출 가사에 코드 줄을 함께 그린다. 조옮김은 이게 켜져야 의미 있다. -->
+                <MenuItem Header="코드 표시"
+                          IsChecked="{Binding ActiveLyricsNotations}"
+                          Command="{Binding ToggleLyricsNotationsCommand}"
+                          ToolTip="송출 가사에 코드(악보 기호) 줄을 함께 표시(레거시 Def_Notations). 아래 조옮김은 이게 켜져야 적용됨." />
                 <!-- 코드 조옮김(FrmMain Transpose Up/Down Semi-Tone, To Capo 0) — "코드 표시" on 일 때 송출 코드를 이동.
                      라이브 곡에 즉시 반영(재송출). 새 곡을 송출하면 원조로 초기화된다. -->
                 <MenuItem Header="코드 조옮김">

@@ -2730,6 +2730,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ToggleLyricsNotationsCommand_FlipsSettingAndActive()
+    {
+        // FrmMain Def_Notations — "코드 표시" 토글이 설정과 활성 상태를 뒤집는다(켜면 송출 본문에 코드 줄).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsNotations.Should().BeFalse("기본 코드 표시 off");
+
+        sut.ToggleLyricsNotationsCommand.Execute(null);
+
+        sut.ActiveLyricsNotations.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorShowNotations).Should().BeTrue();
+
+        sut.ToggleLyricsNotationsCommand.Execute(null);
+        sut.ActiveLyricsNotations.Should().BeFalse("다시 누르면 off");
+    }
+
+    [Fact]
     public void ToggleLyricsItalicCommand_FlipsSetting()
     {
         using var folder = TempSettingsFolder.Create();

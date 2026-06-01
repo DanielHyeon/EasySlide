@@ -77,9 +77,9 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟢 L/C/R + AsR1(본문 따름) + **AsR2(보조영역 Region2 따름, 우선순위 AsR2>AsR1)** — 5종 전부 구현 |
 | `Def_VAlign`/`Ind_VAlign` (Top/Centre/Bottom) | 세로 정렬 | 🟢 있음 |
 | `Def_Shadow`/`Def_Outline` | 그림자/외곽선 | 🟢 있음 |
-| `Def_ToZero` | **To Capo 0**(조옮김 정규화) | 🔴 없음 |
-| `Def_Notations`/`Menu_PreviewNotations` | **코드/악상 표시**(+미리보기) | 🔴 없음 |
-| `Ind_CapoUp`/`Ind_CapoDown` | **반음 조옮김 ↑↓** | 🔴 없음 |
+| `Def_ToZero` | **To Capo 0**(조옮김 정규화) | 🟢 라이브 "원조 복귀"(TransposeLiveResetCommand, 0 으로 리셋)·새 곡 송출 시 자동 원조 초기화 |
+| `Def_Notations`/`Menu_PreviewNotations` | **코드/악상 표시**(+미리보기) | 🟢 (증분69) 출력 메뉴 "코드 표시" 토글 + ExpandNotations 렌더. 미리보기 전용 토글만 후속 |
+| `Ind_CapoUp`/`Ind_CapoDown` | **반음 조옮김 ↑↓** | 🟢 라이브 코드 조옮김 ▲/▼(±반음, ±11 클램프, ChordTransposer) 메뉴 |
 | `Def_BackColour`/`Ind_BackColour` | 배경색+패턴(그라데이션) | 🟡 프리셋4+hex+2색 그라데이션(방향 4종: 세로/가로/대각↘/대각↗). 텍스처 패턴만 후속 |
 | `Def_ImageMode`/`Ind_ImageMode` (Tile/Centre/BestFit), `Def_NoImage` | **배경 이미지 표시 모드** | 🟢 LyricsBackgroundMode 4종(Fill=UniformToFill·Fit=BestFit·Center=Centre·Tile) 인스펙터 라디오(ApplyBackgroundModeCommand)→출력 렌더 반영 |
 | `Def_TransItem`/`Def_TransSlides`, `Ind_Trans*` | **항목/슬라이드 전환 효과** | 🟡 출력 메뉴 "전환 효과"(페이드 on/off + 모션 Fade/Slide 4방향 + 속도)로 노출. 항목/슬라이드 개별 전환 분리·전체 효과군은 후속 |
@@ -192,8 +192,8 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 배경색+패턴/picture mode/transition 저장 | 🟡 일부 | 🟡 |
 | 창 상태(splitter/bounds) 레지스트리 저장 | — | 🟡 일부 |
 
-### 3.7 조옮김·코드·음악 — 🔴 거의 전무
-Transpose Up/Down semitone, To Capo 0, Show Notations(+preview), Key/Capo/Timing 표시 → **운영 토글 전부 없음**. (Key/Capo/Timing 표시는 SongEditor 미리보기에 일부; Capo는 곡 메타데이터 필드로만 존재해 import/export로 통과될 뿐 라이브 조옮김 연산은 없음.)
+### 3.7 조옮김·코드·음악 — 🟢 핵심 운영 토글 구현(증분27/30/69)
+Transpose Up/Down semitone(▲/▼), To Capo 0(원조 복귀), Show Notations(코드 표시 토글, 증분69) → **출력 메뉴에 운영 토글 모두 노출**. Key/Capo/Timing 표시는 SongEditor 미리보기에 일부; Capo는 곡 메타데이터 필드로 import/export 통과(라이브 조옮김은 코드 표시 on 일 때 ±반음 연산).
 
 > ✅ **해결됨(2026-06-01, 증분 27)**: 위 mis-bound 결함을 근본 수정하고 실제 코드 렌더(옵션 ①)를 구현했다.
 > - **mis-bind 제거**: 상태 라벨("LIVE")이 더 이상 `LyricsMonitorShowNotations`(NotationVisibility)에 묶이지 않는다 — 라벨은 밴드 가시성(PanelOverlayVisibility)에 위임. 죽은 `NotationVisibility` 속성·씬 필드(`OutputSceneSnapshot`/`LiveOutputRenderSettings`)도 제거(이름·동작 불일치 해소).
