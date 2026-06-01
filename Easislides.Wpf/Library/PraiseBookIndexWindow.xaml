@@ -1,0 +1,86 @@
+<Window x:Class="Easislides.Wpf.Library.PraiseBookIndexWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="찬양집 색인 — 머리글자별 곡 목록"
+        Width="520"
+        Height="600"
+        MinWidth="420"
+        MinHeight="420"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="{StaticResource Thickness.Xl}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="현재 곡 라이브러리를 머리글자(ㄱ~ㅎ · A~Z · # · 기타)별로 묶어 보여 줍니다(가나다 순)."
+                   Style="{StaticResource Type.Caption.Style}"
+                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,8" />
+
+        <!-- 머리글자 그룹 → 각 그룹의 곡 제목. ItemsControl 중첩으로 색인 형태로 표시. -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      BorderBrush="{DynamicResource Brush.Border.Default}"
+                      BorderThickness="1">
+            <ItemsControl ItemsSource="{Binding Groups}"
+                          Margin="8"
+                          AutomationProperties.Name="찬양집 색인 그룹">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="{Binding Key}"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource Brush.Text.Primary}"
+                                       Margin="0,0,0,4" />
+                            <Border Height="1"
+                                    Background="{DynamicResource Brush.Border.Default}"
+                                    Margin="0,0,0,4" />
+                            <ItemsControl ItemsSource="{Binding Entries}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="8,2,0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Title}"
+                                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Number}"
+                                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                                       Margin="12,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding StatusText}"
+                   Style="{StaticResource Type.Caption.Style}"
+                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                   Margin="0,8,0,0" />
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <Button Click="Close_Click"
+                    Style="{StaticResource EsButton.Primary}"
+                    Content="닫기"
+                    AutomationProperties.Name="닫기" />
+        </StackPanel>
+    </Grid>
+</Window>

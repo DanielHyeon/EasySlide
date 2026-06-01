@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Settings;
@@ -319,6 +320,27 @@ public partial class MainWindow : Window
         {
             viewModel.SetOutputBackgroundImage(dialog.FileName);
         }
+    }
+
+    // 찬양집 색인 — 현재 곡 라이브러리를 머리글자(초성/영문/숫자)별로 묶어 보여 준다(FrmMain PraiseBook/Listing 포팅).
+    private void OpenPraiseBookIndex_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        // 라이브러리 곡 목록 → 색인 항목(제목·번호)으로 변환. 곡 폴더를 안 골랐으면 빈 목록(창이 안내 문구 표시).
+        var entries = viewModel.Library.Songs
+            .Select(song => new Easislides.Wpf.Library.PraiseBookIndexEntry(song.Title, song.SongNumber))
+            .ToList();
+
+        var indexViewModel = new Easislides.Wpf.Library.PraiseBookIndexViewModel(
+            new Easislides.Wpf.Library.PraiseBookIndexService(),
+            entries);
+
+        var window = new Easislides.Wpf.Library.PraiseBookIndexWindow(indexViewModel) { Owner = this };
+        window.ShowDialog();
     }
 
     // 이미지 갤러리 — 폴더의 이미지를 썸네일로 보고 출력 배경으로 적용(FrmMain Images 탭 포팅).

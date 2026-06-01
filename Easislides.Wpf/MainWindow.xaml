@@ -226,6 +226,9 @@
                 <MenuItem Header="성경 버전 관리" Click="OpenBibleVersionManager_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" /></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="찬양집 색인..." Click="OpenPraiseBookIndex_Click">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="도움말">
