@@ -87,25 +87,25 @@
 
             <MenuItem Header="출력">
                 <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" /></MenuItem.Icon>
-                <MenuItem Header="Go LIVE" Command="{Binding GoLiveCommand}">
+                <MenuItem Header="Go LIVE" Command="{Binding GoLiveCommand}" InputGestureText="F12">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="라이브 중지" Command="{Binding StopLiveCommand}">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.NoRotate}" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="다음 항목" Command="{Binding NextItemCommand}">
+                <MenuItem Header="다음 항목" Command="{Binding NextItemCommand}" InputGestureText="Space">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="이전 항목" Command="{Binding PreviousItemCommand}" />
+                <MenuItem Header="이전 항목" Command="{Binding PreviousItemCommand}" InputGestureText="Shift+Space" />
                 <Separator />
-                <MenuItem Header="검은 화면" Command="{Binding BlackScreenCommand}">
+                <MenuItem Header="검은 화면" Command="{Binding BlackScreenCommand}" InputGestureText="F9">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="화면 비우기" Command="{Binding ClearOutputCommand}">
+                <MenuItem Header="화면 비우기" Command="{Binding ClearOutputCommand}" InputGestureText="F3">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionClear}" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}">
+                <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveHide}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
@@ -130,7 +130,7 @@
 
             <MenuItem Header="도움말">
                 <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Help}" /></MenuItem.Icon>
-                <MenuItem Header="도움말" Click="OpenHelp_Click">
+                <MenuItem Header="도움말" Click="OpenHelp_Click" InputGestureText="F1">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Help}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="등록 안내" Click="OpenRegistration_Click">

@@ -42,6 +42,23 @@ public class CommandCatalogTests
             .OnlyContain(group => group.Count() == 1);
     }
 
+    [Theory]
+    // FrmMain 라이브 운영 F-키 파리티(충돌 없는 키만): F12=Go Live, F9=검은 화면, F3=화면 비우기, F1=도움말.
+    [InlineData(Key.F12, MainCommandIds.LiveGo)]
+    [InlineData(Key.F9, MainCommandIds.LiveBlack)]
+    [InlineData(Key.F3, MainCommandIds.LiveClear)]
+    [InlineData(Key.F1, MainCommandIds.WindowHelp)]
+    public void GetDefaultShortcuts_IncludesFrmMainFunctionKeys(Key key, string commandId)
+    {
+        var sut = new CommandCatalog();
+
+        sut.GetDefaultShortcuts()
+            .Should()
+            .Contain(shortcut => shortcut.Key == key
+                && shortcut.Modifiers == ModifierKeys.None
+                && shortcut.CommandName == commandId);
+    }
+
     [Fact]
     public void FindById_ReturnsDangerMetadataForLiveCommands()
     {

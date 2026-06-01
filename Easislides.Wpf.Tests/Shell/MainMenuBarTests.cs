@@ -70,6 +70,15 @@ public class MainMenuBarTests
     public void MenuBar_FileMenuHasExit()
         => Xaml.Should().Contain("Header=\"종료\"", "파일 메뉴에 종료가 있어야 함");
 
+    [Theory]
+    // FrmMain 라이브 운영 단축키를 메뉴에 힌트로 노출(발견가능성 — 현대적 UX). 실제 키 배선은 CommandCatalog.
+    [InlineData("InputGestureText=\"F12\"")]  // Go LIVE
+    [InlineData("InputGestureText=\"F9\"")]   // 검은 화면
+    [InlineData("InputGestureText=\"F3\"")]   // 화면 비우기
+    [InlineData("InputGestureText=\"F1\"")]   // 도움말
+    public void MenuBar_ShowsFunctionKeyGestureHints(string gesture)
+        => Xaml.Should().Contain(gesture, $"메뉴에 {gesture} 단축키 힌트가 보여야 함");
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

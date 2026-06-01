@@ -55,7 +55,9 @@ public sealed class CommandCatalog : ICommandCatalog
             "Go Live",
             "선택한 항목을 라이브 출력으로 전환합니다.",
             isDangerous: true,
-            new Shortcut(Key.L, ModifierKeys.Control, MainCommandIds.LiveGo, IsGlobal: false, "Go Live")),
+            new Shortcut(Key.L, ModifierKeys.Control, MainCommandIds.LiveGo, IsGlobal: false, "Go Live"),
+            // FrmMain 파리티: F12 = Start Show/Go Live.
+            new Shortcut(Key.F12, ModifierKeys.None, MainCommandIds.LiveGo, IsGlobal: false, "Go Live")),
         Command(
             MainCommandIds.LiveStop,
             "Live",
@@ -91,14 +93,18 @@ public sealed class CommandCatalog : ICommandCatalog
             "검은 화면",
             "현재 라이브 출력을 검은 화면으로 전환합니다.",
             isDangerous: true,
-            new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면")),
-        // 화면 제어 보강(§7.3-B) — 명령 팔레트(⌘K)에서 검색·실행. 단축키는 미배정(필요 시 설정에서 부여).
+            new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면"),
+            // FrmMain 파리티: F9 = Black Screen.
+            new Shortcut(Key.F9, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면")),
+        // 화면 제어 보강(§7.3-B) — 명령 팔레트(⌘K)에서 검색·실행 + FrmMain F3 파리티.
         Command(
             MainCommandIds.LiveClear,
             "Live",
             "화면 비우기",
             "가사/콘텐츠를 비우고 배경만 송출합니다(검은 화면과 구별).",
-            isDangerous: true),
+            isDangerous: true,
+            // FrmMain 파리티: F3 = Clear Screen.
+            new Shortcut(Key.F3, ModifierKeys.None, MainCommandIds.LiveClear, IsGlobal: false, "화면 비우기")),
         Command(
             MainCommandIds.LiveRestart,
             "Live",
@@ -177,7 +183,9 @@ public sealed class CommandCatalog : ICommandCatalog
             "창",
             "도움말 열기",
             "도움말 창을 엽니다.",
-            isDangerous: false),
+            isDangerous: false,
+            // FrmMain 파리티: F1 = Help Contents.
+            new Shortcut(Key.F1, ModifierKeys.None, MainCommandIds.WindowHelp, IsGlobal: false, "도움말")),
         Command(
             MainCommandIds.WindowRegistration,
             "창",
