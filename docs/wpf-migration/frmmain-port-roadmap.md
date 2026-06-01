@@ -41,7 +41,8 @@
 - (2026-06-01) ✅ 증분 6(Display Panel) 슬라이스 2 — **출력 저작권 표시**(FrmMain "Show Copyright Information"). SongSummary.Copyright(GetSongs COPYRIGHT 컬럼) → LiveQueueItem → GoLive → CurrentItemCopyright → ShowsCopyright → OutputWindow 하단 중앙 Border(좌/우 코너 비충돌). 설정·렌더·VM·메뉴 토글 종단(12파일, 기본 off 무회귀). 1025 green, code-reviewer 코너 충돌 MAJOR 수정(우하단→중앙), 커밋 `b0ca00a`.
 - (2026-06-01) ✅ 증분 6(Display Panel) 슬라이스 3 — **출력 다음 항목 표시**(Display Panel PrevNext). MainViewModel.ComputeNextTitle(큐 Id 매칭, 마지막=빈문자열) → ResolveLiveProjection.NextTitle → GoLive → CurrentItemNextTitle → ShowsNextItem → OutputWindow 우측 상단 Border("다음 ▶ ..."). 설정·렌더·VM·메뉴 토글 종단(기본 off 무회귀). 1031 green, code-reviewer Approve(0 critical/major), 커밋 `6efcd90`.
 - (2026-06-01) ✅ 증분 7(전환 효과) 슬라이스 1 — **출력 페이드 전환 UI**(FrmMain 전환 효과, 페이드만 구현). 설정 UseFadeTransition(기본 true=기존 250ms 보존)·TransitionDurationMs(0~2000) + 메뉴 "전환 효과 ▸ 페이드 사용/빠르게·보통·느리게". **근본 버그 수정**: `EasiSettingKeys.All` 누락으로 곡번호·저작권·다음항목 토글이 라이브 즉시 반영 안 되던 잠복 버그(5키 All+LegacyMap 등록, 회귀 가드 추가). 1037 green, code-reviewer Approve(0 critical), 커밋 `94793e0`.
-- ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 다음 항목 + 전환 효과(페이드/속도) + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
-- **차기: 이미지/PraiseBook 인라인 브라우징.** 50여 종 셰이프/타일 전환은 정직하게 미구현(P2 백로그). 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
+- (2026-06-01) ✅ 증분 8(이미지) 슬라이스 1 — **출력 전역 배경 이미지**(FrmMain Images 탭 핵심 기능, 배경 적용). 설정 LyricsMonitorBackgroundImagePath(기본 빈값=무회귀) + 렌더 우선순위(곡별 61 우선, 없으면 전역) + 메뉴 "배경 이미지 ▸ 선택.../지우기". 1041 green, code-reviewer Approve(0 critical), 커밋 `edae914`.
+- ✅ **출력 메뉴 서식 파리티 완비** — 표시 토글 7(위치·곡번호·제목헤딩·외곽선·그림자·굵게·기울임) + 저작권 + 다음 항목 + 전환 효과(페이드/속도) + 배경 이미지 + 가로/세로 정렬 + 글자 크기 + 줄 간격(전부 인스펙터와 동일 설정 공유, 마우스 운영자도 메뉴로 전부 제어).
+- **차기(후속 슬라이스): 이미지 썸네일 갤러리 브라우저(Images 폴더 탐색·미리보기) · PraiseBook 운영 관리 UI(목록·추가·정렬·CJK 그룹핑) · 50여 종 셰이프/타일 전환(P2 백로그).** 각 슬라이스를 단계별 빌드+code-review로 무회귀 검증하며 진행.
 
 > 현황(정직): FrmMain 전체 포팅은 다증분 장기 과제다. UI/UX 표면(메뉴·단축키·상태바) + 운영 기능(절 점프) + **최대 갭이던 이중언어 송출이 이제 동작**한다(슬라이스 2). 남은 본질 갭: 영역별 스타일 분리·Display Panel·조옮김·전환 UI·이미지/PraiseBook 브라우징. "완벽 포팅"은 증분 3·5~10 완료 시 달성.
