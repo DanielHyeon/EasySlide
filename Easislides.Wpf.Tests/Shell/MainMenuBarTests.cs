@@ -70,6 +70,18 @@ public class MainMenuBarTests
     public void MenuBar_FileMenuHasExit()
         => Xaml.Should().Contain("Header=\"종료\"", "파일 메뉴에 종료가 있어야 함");
 
+    [Fact]
+    public void MenuBar_HasLyricsAlignmentSubmenu_WiredToAlignmentCommand()
+    {
+        var xaml = Xaml;
+        xaml.Should().Contain("Header=\"가사 정렬\"", "가사 정렬 서브메뉴가 있어야 함");
+        xaml.Should().Contain("{Binding ApplyLyricsAlignmentCommand}", "정렬 명령에 배선");
+        foreach (var member in new[] { "Left", "Center", "Right" })
+        {
+            xaml.Should().Contain($"{{x:Static settings:LyricsTextAlignment.{member}}}", $"{member} 정렬 파라미터");
+        }
+    }
+
     [Theory]
     // 출력 표시 토글(FrmMain "Show …") — 기존 상태(Active*)에 IsChecked 단방향 + 토글 명령 배선.
     [InlineData("ActiveLyricsPositionIndicator", "ToggleLyricsPositionIndicatorCommand")]

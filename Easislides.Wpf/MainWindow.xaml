@@ -131,6 +131,19 @@
                 <MenuItem Header="가사 기울임"
                           IsChecked="{Binding ActiveLyricsItalic}"
                           Command="{Binding ToggleLyricsItalicCommand}" />
+                <Separator />
+                <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
+                <MenuItem Header="가사 정렬">
+                    <MenuItem Header="왼쪽"
+                              Command="{Binding ApplyLyricsAlignmentCommand}"
+                              CommandParameter="{x:Static settings:LyricsTextAlignment.Left}" />
+                    <MenuItem Header="가운데"
+                              Command="{Binding ApplyLyricsAlignmentCommand}"
+                              CommandParameter="{x:Static settings:LyricsTextAlignment.Center}" />
+                    <MenuItem Header="오른쪽"
+                              Command="{Binding ApplyLyricsAlignmentCommand}"
+                              CommandParameter="{x:Static settings:LyricsTextAlignment.Right}" />
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="도구">
