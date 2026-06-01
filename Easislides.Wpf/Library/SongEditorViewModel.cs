@@ -70,13 +70,15 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     // 인코드는 인스펙터가 안 건드리는 필드(폰트·크기·배경·미디어)를 보존한다(_preservedFormat).
     private SongFormatData _preservedFormat = new();
 
-    // 색·정렬은 출력 렌더가 영역별로 실제 적용한다(OverrideTextColorArgb1/2·정렬). 굵게/기울임은 아직 출력이
-    // 영역별로 분리 적용하지 않으므로(전역 설정만) 인스펙터 편집 대상에서 제외했다 — "안 보이는 효과"를 약속하지 않기 위함.
-    // 단, 기존 곡의 굵게/기울임 비트(41)는 _preservedFormat 로 보존돼 편집해도 사라지지 않는다(영역별 렌더는 후속 증분).
+    // 색·정렬·굵게·기울임 모두 출력 렌더가 영역별로 실제 적용한다(증분 47에서 굵게/기울임 영역별 렌더 배선 완료).
     [ObservableProperty] private string _region1ColorHex = "";
     [ObservableProperty] private string _region2ColorHex = "";
     [ObservableProperty] private int _region1Alignment;   // 0=상속, 1=왼쪽, 2=가운데, 3=오른쪽
     [ObservableProperty] private int _region2Alignment;
+    [ObservableProperty] private bool _region1Bold;
+    [ObservableProperty] private bool _region1Italic;
+    [ObservableProperty] private bool _region2Bold;
+    [ObservableProperty] private bool _region2Italic;
 
     // 코드 조옮김 반음(미리보기 전용). 변경 시 미리보기만 다시 그린다(곡 dirty 안 됨).
     [ObservableProperty]
@@ -382,6 +384,14 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     partial void OnRegion2AlignmentChanged(int value) => RebuildFormatDataFromInspector();
 
+    partial void OnRegion1BoldChanged(bool value) => RebuildFormatDataFromInspector();
+
+    partial void OnRegion1ItalicChanged(bool value) => RebuildFormatDataFromInspector();
+
+    partial void OnRegion2BoldChanged(bool value) => RebuildFormatDataFromInspector();
+
+    partial void OnRegion2ItalicChanged(bool value) => RebuildFormatDataFromInspector();
+
     partial void OnIsBusyChanged(bool value) => SaveCommand.NotifyCanExecuteChanged();
 
     // 로드 시 FormatData 를 인스펙터 속성으로 디코드한다. _loading 중에 호출되므로 속성 변경이 곡을 dirty 로 만들지 않는다.
@@ -394,7 +404,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         Region2ColorHex = SongFormatData.ArgbToHex(format.TextColorArgb2) ?? "";
         Region1Alignment = format.Alignment1 ?? 0;
         Region2Alignment = format.Alignment2 ?? 0;
-        // 굵게/기울임은 인스펙터 편집 대상이 아니다(전역만 렌더) — _preservedFormat 가 기존 비트를 보존한다.
+        Region1Bold = format.Bold1;
+        Region1Italic = format.Italic1;
+        Region2Bold = format.Bold2;
+        Region2Italic = format.Italic2;
     }
 
     // 인스펙터 속성을 FormatData 로 인코드한다(폰트·크기·배경 등 나머지 필드는 _preservedFormat 에서 보존).
@@ -406,13 +419,17 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // 색·정렬만 인스펙터로 갱신하고, 굵게/기울임·폰트·배경 등 나머지는 _preservedFormat 에서 보존한다.
+        // 색·정렬·굵게·기울임을 인스펙터로 갱신하고, 폰트·크기·배경 등 나머지는 _preservedFormat 에서 보존한다.
         var updated = _preservedFormat with
         {
             TextColorArgb1 = SongFormatData.HexToArgb(Region1ColorHex),
             TextColorArgb2 = SongFormatData.HexToArgb(Region2ColorHex),
             Alignment1 = Region1Alignment is >= 1 and <= 3 ? Region1Alignment : null,
             Alignment2 = Region2Alignment is >= 1 and <= 3 ? Region2Alignment : null,
+            Bold1 = Region1Bold,
+            Italic1 = Region1Italic,
+            Bold2 = Region2Bold,
+            Italic2 = Region2Italic,
         };
         _preservedFormat = updated;
         FormatData = updated.Encode(); // OnFormatDataChanged → MarkChanged(dirty + 미리보기 갱신).

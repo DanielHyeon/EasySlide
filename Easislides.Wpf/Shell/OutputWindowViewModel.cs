@@ -58,6 +58,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private double _bodyFont2Size = 48;
     private FontWeight _bodyFontWeight = FontWeights.SemiBold;
     private FontStyle _bodyFontStyle = FontStyles.Normal;
+    private FontWeight _bodyFont2Weight = FontWeights.SemiBold;
+    private FontStyle _bodyFont2Style = FontStyles.Normal;
     private bool _bodyHasShadow;
     // 외곽선 효과 사용 여부(§7.3-A). on 이면 본문을 외곽선 렌더러로 그린다(일반 본문과 상호배타).
     private bool _bodyHasOutline;
@@ -327,6 +329,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyFontStyle;
         private set => SetProperty(ref _bodyFontStyle, value);
+    }
+
+    /// <summary>Region2(이중 언어 보조) 본문 굵게 — 곡별 region2 비트가 있으면 그것, 없으면 Region1 효과를 추종.</summary>
+    public FontWeight BodyFont2Weight
+    {
+        get => _bodyFont2Weight;
+        private set => SetProperty(ref _bodyFont2Weight, value);
+    }
+
+    /// <summary>Region2(이중 언어 보조) 본문 기울임 — 곡별 region2 비트가 있으면 그것, 없으면 Region1 효과를 추종.</summary>
+    public FontStyle BodyFont2Style
+    {
+        get => _bodyFont2Style;
+        private set => SetProperty(ref _bodyFont2Style, value);
     }
 
     /// <summary>가사 본문 그림자 표시 여부 — 어두운/영상 배경 위 가독성. XAML 이 DropShadowEffect 적용. §7.3-A.</summary>
@@ -702,6 +718,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 폰트 효과: 굵게 off 는 기존 SemiBold 를 유지(완전 Normal 로 떨어뜨리지 않음).
         BodyFontWeight = scene.LyricsMonitorBold ? FontWeights.Bold : FontWeights.SemiBold;
         BodyFontStyle = scene.LyricsMonitorItalic ? FontStyles.Italic : FontStyles.Normal;
+        // Region2(이중 언어 보조) 굵게/기울임 — 씬이 영역별로 해석한 값(없으면 Region1 추종)을 적용.
+        BodyFont2Weight = scene.LyricsMonitorBold2 ? FontWeights.Bold : FontWeights.SemiBold;
+        BodyFont2Style = scene.LyricsMonitorItalic2 ? FontStyles.Italic : FontStyles.Normal;
         BodyHasShadow = scene.LyricsMonitorShadow;
         PositionLabel = scene.PositionLabel;
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;

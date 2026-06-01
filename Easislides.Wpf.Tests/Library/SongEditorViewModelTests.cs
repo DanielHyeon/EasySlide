@@ -293,11 +293,15 @@ public class SongEditorViewModelTests
 
         await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
 
-        // 인스펙터 편집 대상(색·정렬)이 디코드된다.
+        // 인스펙터 편집 대상(색·정렬·굵게·기울임)이 디코드된다.
         sut.Region1ColorHex.Should().Be("#FF000000");
         sut.Region2ColorHex.Should().Be("#FFFFFFFF");
         sut.Region1Alignment.Should().Be(2);
         sut.Region2Alignment.Should().Be(1);
+        sut.Region1Bold.Should().BeTrue();   // 41=11 → bit0
+        sut.Region1Italic.Should().BeTrue();  // bit1
+        sut.Region2Bold.Should().BeTrue();    // bit3
+        sut.Region2Italic.Should().BeFalse();
         sut.HasChanges.Should().BeFalse("로드는 변경이 아니다");
     }
 
@@ -323,23 +327,22 @@ public class SongEditorViewModelTests
         using var fixture = TempSongEditorSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         var repository = new FakeAdminDatabaseRepository();
-        // 폰트(43/47)·굵게기울임 비트(41=11: 영역1 Bold+Italic·영역2 Bold)는 인스펙터가 안 건드리는 보존 대상.
-        repository.Details[10] = Detail(10, "Styled", folderNo: 2, formatData: "29=-16777216>41=11>43=Arial>47=40>");
+        // 폰트(43/47)는 인스펙터가 안 건드리는 보존 대상.
+        repository.Details[10] = Detail(10, "Styled", folderNo: 2, formatData: "29=-16777216>43=Arial>47=40>");
         var sut = new SongEditorViewModel(fixture.Settings, repository, repository, null, null);
         await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
         sut.HasChanges.Should().BeFalse();
 
         sut.Region2Alignment = 3; // 보조 언어 정렬 = 오른쪽.
+        sut.Region2Italic = true; // 보조 언어 기울임 켜기(이제 출력이 영역별로 렌더).
 
         sut.HasChanges.Should().BeTrue();
         var format = SongFormatData.Parse(sut.FormatData)!;
         format.Alignment2.Should().Be(3, "새로 정한 영역2 정렬");
+        format.Italic2.Should().BeTrue("새로 켠 영역2 기울임");
         format.TextColorArgb1.Should().Be(-16777216, "기존 영역1 색 보존");
         format.FontName1.Should().Be("Arial", "인스펙터가 안 건드린 폰트 보존");
         format.FontSize1.Should().Be(40, "인스펙터가 안 건드린 크기 보존");
-        format.Bold1.Should().BeTrue("인스펙터가 안 건드린 굵게 비트 보존");
-        format.Italic1.Should().BeTrue();
-        format.Bold2.Should().BeTrue();
     }
 
     [Fact]

@@ -353,6 +353,15 @@
                                           MinHeight="34"
                                           Margin="0,4,0,0"
                                           AutomationProperties.LabeledBy="{Binding ElementName=LblR1Align}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <CheckBox Content="굵게"
+                                              IsChecked="{Binding Region1Bold, Mode=TwoWay}"
+                                              AutomationProperties.Name="Region 1 굵게" />
+                                    <CheckBox Content="기울임"
+                                              IsChecked="{Binding Region1Italic, Mode=TwoWay}"
+                                              Margin="16,0,0,0"
+                                              AutomationProperties.Name="Region 1 기울임" />
+                                </StackPanel>
                             </StackPanel>
 
                             <!-- Region 2 -->
@@ -382,6 +391,15 @@
                                           MinHeight="34"
                                           Margin="0,4,0,0"
                                           AutomationProperties.LabeledBy="{Binding ElementName=LblR2Align}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <CheckBox Content="굵게"
+                                              IsChecked="{Binding Region2Bold, Mode=TwoWay}"
+                                              AutomationProperties.Name="Region 2 굵게" />
+                                    <CheckBox Content="기울임"
+                                              IsChecked="{Binding Region2Italic, Mode=TwoWay}"
+                                              Margin="16,0,0,0"
+                                              AutomationProperties.Name="Region 2 기울임" />
+                                </StackPanel>
                             </StackPanel>
                         </Grid>
                     </Expander>

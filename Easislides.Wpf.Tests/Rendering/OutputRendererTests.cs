@@ -446,6 +446,77 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region1Bold_OverridesGlobalSetting()
+    {
+        // 곡별 region1 굵게 비트가 켜져 있으면 전역 설정(off)을 덮어쓴다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBold: false, LyricsMonitorItalic: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideBold1: true, OverrideItalic1: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeTrue("곡별 region1 굵게가 전역을 덮어씀");
+        scene.LyricsMonitorItalic.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region1Bold_FollowsGlobalWhenNoOverride()
+    {
+        // region1 비트가 없으면 전역 설정(굵게 on)을 그대로 따른다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBold: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeTrue("전역 굵게 추종");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Bold_UsesOverrideWhenPresent()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideBold2: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.LyricsMonitorBold2.Should().BeTrue("곡별 region2 굵게 오버라이드");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Bold_FollowsRegion1WhenNoOverride()
+    {
+        // region2 비트가 없으면 Region1 효과(여기선 region1 굵게 오버라이드)를 추종한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideBold1: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.LyricsMonitorBold2.Should().BeTrue("region2 미지정 → region1 굵게 추종");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideAlignment()
     {
         // 라이브가 아니면 곡 정렬 오버라이드를 적용하지 않는다 — 운영 기본 정렬 유지.

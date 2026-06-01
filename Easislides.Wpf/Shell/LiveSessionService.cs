@@ -59,7 +59,14 @@ public sealed record LiveSessionSnapshot(
     int? OverrideFontSizePx2 = null,
     // 곡별 FormatData 배경 이미지 경로(61). 있으면 출력이 색 배경 대신(위에) 이미지를 표시. 없으면 null → 색 배경 유지.
     // 경로 해석·이미지 로딩은 출력 VM 이 담당(렌더러는 순수). 비었으면 null.
-    string? OverrideBackgroundImagePath = null)
+    string? OverrideBackgroundImagePath = null,
+    // 곡별 FormatData 글꼴 효과 비트(41) — region1/region2 굵게·기울임을 영역별로 출력에 적용한다.
+    // null = 설정(전역) 추종, true = 그 영역만 굵게/기울임. 레거시 비트는 "켜기"만 표현하므로 "끄기"는 전역을 따른다.
+    // Region2 값이 null 이면 Region1 효과를 추종한다(색·정렬·글꼴 추종과 동일 규칙, 해석은 OutputRenderer 가 담당).
+    bool? OverrideBold1 = null,
+    bool? OverrideItalic1 = null,
+    bool? OverrideBold2 = null,
+    bool? OverrideItalic2 = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -144,7 +151,12 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideFontName2: NormalizeFontName(format?.FontName2),
             OverrideFontSizePx2: LegacyPointToPixel(format?.FontSize2),
             // 곡별 배경 이미지(61). 비었으면 null(색 배경 유지). 경로 해석·로딩은 출력 VM 이 담당.
-            OverrideBackgroundImagePath: NormalizeImagePath(format?.BackgroundImagePath)));
+            OverrideBackgroundImagePath: NormalizeImagePath(format?.BackgroundImagePath),
+            // 굵게/기울임 비트(41) — 켜진 영역만 true, 없으면 null(전역/Region1 추종). 출력이 영역별로 적용한다.
+            OverrideBold1: format?.Bold1 == true ? true : null,
+            OverrideItalic1: format?.Italic1 == true ? true : null,
+            OverrideBold2: format?.Bold2 == true ? true : null,
+            OverrideItalic2: format?.Italic2 == true ? true : null));
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.

@@ -199,7 +199,11 @@ public sealed record OutputSceneSnapshot(
     // 다음 항목 표시 설정(Display Panel PrevNext). 기본 off.
     bool ShowLyricsNextItem = false,
     // 다음 항목 제목 라벨. Live + 다음 항목이 있을 때만 채워진다.
-    string NextItemLabel = "")
+    string NextItemLabel = "",
+    // Region2(이중 언어) 굵게·기울임 — 곡별 region2 비트(41)가 있으면 그것, 없으면 Region1 효과를 추종한다(CreateScene 에서 해석).
+    // Region1 굵게/기울임은 기존 LyricsMonitorBold/Italic 에 해석돼 실린다(곡별 region1 비트가 전역을 덮어씀).
+    bool LyricsMonitorBold2 = false,
+    bool LyricsMonitorItalic2 = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -310,6 +314,12 @@ public sealed class OutputRenderer : IOutputRenderer
         var fontSize2Px = isLive && request.Session.OverrideFontSizePx2 is int songFont2Px
             ? songFont2Px
             : fontSizePx;
+        // Region1 굵게/기울임 — 곡별 region1 비트(41)가 켜져 있으면 전역 설정을 덮어쓴다(없으면 전역 그대로).
+        var region1Bold = isLive && request.Session.OverrideBold1 == true ? true : liveOutput.LyricsMonitorBold;
+        var region1Italic = isLive && request.Session.OverrideItalic1 == true ? true : liveOutput.LyricsMonitorItalic;
+        // Region2 굵게/기울임 — 곡별 region2 비트가 있으면 그것, 없으면 Region1 효과를 추종(색·정렬·글꼴 추종과 동일).
+        var region2Bold = isLive ? request.Session.OverrideBold2 ?? region1Bold : region1Bold;
+        var region2Italic = isLive ? request.Session.OverrideItalic2 ?? region1Italic : region1Italic;
 
         return new OutputSceneSnapshot(
             kind,
@@ -335,8 +345,8 @@ public sealed class OutputRenderer : IOutputRenderer
             textAlignment,
             liveOutput.LyricsMonitorVerticalAlignment,
             fontSizePx,
-            liveOutput.LyricsMonitorBold,
-            liveOutput.LyricsMonitorItalic,
+            region1Bold,
+            region1Italic,
             liveOutput.LyricsMonitorShadow,
             liveOutput.LyricsMonitorPanelTransparent,
             liveOutput.LyricsMonitorLineSpacingPercent,
@@ -369,7 +379,10 @@ public sealed class OutputRenderer : IOutputRenderer
             isLive ? request.Session.CurrentItemCopyright : string.Empty,
             // 다음 항목 표시(설정) + 라벨(Live + 다음 항목 제목). 마지막 항목이면 빈 문자열 → 미표시.
             liveOutput.LyricsMonitorShowNextItem,
-            isLive ? request.Session.CurrentItemNextTitle : string.Empty);
+            isLive ? request.Session.CurrentItemNextTitle : string.Empty,
+            // Region2 굵게·기울임(해석된 값) — 이중 언어 보조 본문에 적용.
+            region2Bold,
+            region2Italic);
     }
 
     private ImagePlacement GetContentPlacement(
