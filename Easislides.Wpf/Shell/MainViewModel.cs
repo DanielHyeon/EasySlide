@@ -42,6 +42,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
     // 예배 순서 검증에서 문제가 하나라도 있으면 true — 좌측 패널의 경고 목록 표시 여부에 쓰인다.
     [ObservableProperty] private bool _hasWorshipListProblems;
+    // 예배 순서(큐)가 비어 있으면 true — 좌측 패널의 "비어 있음" 안내 표시 여부. 시작 시 빈 큐(더미 시드 제거).
+    [ObservableProperty] private bool _isQueueEmpty = true;
     // 라이브 조옮김 반음 수(레거시 Transpose ±Semi-Tone) — 코드 표시가 켜졌을 때 송출 코드를 이동. 0=원조.
     // 새 곡을 송출하면 0 으로 초기화되어 각 곡이 작성된 키에서 시작한다.
     [ObservableProperty]
@@ -388,6 +390,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += OnOutputChanged;
         _settings.SettingsChanged += OnSettingsChanged;
+        // 큐가 바뀔 때마다 "비어 있음" 상태를 갱신한다(추가·제거·로드 등 모든 변경 경로를 한 곳에서 반영).
+        Queue.CollectionChanged += (_, _) => IsQueueEmpty = Queue.Count == 0;
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
 
@@ -458,7 +462,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Search.LookupCandidates.CollectionChanged += OnLookupCandidatesChanged;
 
         ApplyOperationalSettings(updateStatus: false);
-        SeedPlaceholderQueue();
+        // 시작 시 큐는 비어 있다 — 과거의 더미 3항목 시드(SeedPlaceholderQueue)를 제거(§7 P0).
+        // 운영자가 곡·성경·파일을 직접 추가하거나 "최근 예배 순서"로 불러온다. 좌측 패널이 빈 상태 안내를 보여 준다.
         RefreshOutputDisplays();
         RefreshAppearanceTemplateNames();
     }
@@ -2487,13 +2492,4 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // PowerPoint VM 은 이벤트 구독/미관리 자원이 없어 IDisposable 이 아니다 — 의도적으로 해제하지 않음.
     }
 
-    private void SeedPlaceholderQueue()
-    {
-        LoadQueue(new[]
-        {
-            new LiveQueueItem("sample-welcome", "예배 시작 안내", LiveItemKinds.Notice),
-            new LiveQueueItem("sample-song", "주일 찬양 #1", LiveItemKinds.Song),
-            new LiveQueueItem("sample-sermon", "말씀 본문", LiveItemKinds.Bible),
-        });
-    }
 }

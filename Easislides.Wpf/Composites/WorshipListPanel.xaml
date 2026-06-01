@@ -99,17 +99,30 @@
                 드래그 제스처는 STA 입력이라 코드비하인드에서 처리하고, 실제 순서 변경 로직은
                 MainViewModel.MoveQueueItem(참조 기반·범위 클램프)에 위임한다(자동회전 타이머와 동일 철학).
             -->
-            <ListBox x:Name="QueueList"
-                     ItemsSource="{Binding Queue}"
-                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                     DisplayMemberPath="Title"
-                     AutomationProperties.Name="예배 순서 목록"
-                     AllowDrop="True"
-                     PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
-                     PreviewMouseMove="QueueList_PreviewMouseMove"
-                     DragOver="QueueList_DragOver"
-                     Drop="QueueList_Drop"
-                     BorderThickness="0" />
+            <Grid>
+                <ListBox x:Name="QueueList"
+                         ItemsSource="{Binding Queue}"
+                         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                         DisplayMemberPath="Title"
+                         AutomationProperties.Name="예배 순서 목록"
+                         AllowDrop="True"
+                         PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
+                         PreviewMouseMove="QueueList_PreviewMouseMove"
+                         DragOver="QueueList_DragOver"
+                         Drop="QueueList_Drop"
+                         BorderThickness="0" />
+
+                <!-- 빈 상태 안내 — 큐가 비어 있을 때만(더미 시드 제거 후 첫 화면). 운영자에게 다음 행동을 알려 준다. -->
+                <TextBlock Text="예배 순서가 비어 있습니다.&#x0a;곡·성경·PowerPoint·미디어를 추가하거나 '최근 예배 순서'에서 불러오세요."
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}"
+                           IsHitTestVisible="False"
+                           Visibility="{Binding IsQueueEmpty, Converter={StaticResource BoolToVis}}" />
+            </Grid>
         </DockPanel>
     </Border>
 </UserControl>

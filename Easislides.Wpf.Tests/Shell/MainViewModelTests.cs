@@ -23,14 +23,39 @@ namespace Easislides.Wpf.Tests.Shell;
 public class MainViewModelTests
 {
     [Fact]
-    public void Constructor_UsesReadableKoreanDefaultStatusAndSampleQueue()
+    public void CreateSut_SeedsSampleQueue_ForTestConvenience()
     {
+        // CreateSut 는 기본으로 샘플 3항목을 시드한다(운영 생성자는 빈 큐로 시작 — 별도 테스트로 검증).
         var sut = CreateSut();
 
         sut.StatusText.Should().Be("3개 항목 로드됨");
         sut.Queue.Select(item => item.Title)
             .Should()
             .Contain(["예배 시작 안내", "주일 찬양 #1", "말씀 본문"]);
+    }
+
+    [Fact]
+    public void Constructor_StartsWithEmptyQueue_NoDummySeed()
+    {
+        // §7 P0: 시작 시 더미 3항목 시드를 제거 — 빈 큐로 시작하고 안내 상태를 노출한다.
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.Queue.Should().BeEmpty();
+        sut.IsQueueEmpty.Should().BeTrue();
+        sut.StatusText.Should().Be("WPF 운영 준비됨", "더미 시드 없이 기본 상태 유지");
+    }
+
+    [Fact]
+    public void IsQueueEmpty_TogglesAsItemsAddedAndCleared()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.IsQueueEmpty.Should().BeTrue();
+
+        sut.LoadQueue(new[] { new LiveQueueItem("a", "곡A", LiveItemKinds.Song) });
+        sut.IsQueueEmpty.Should().BeFalse("항목이 들어오면 비어 있지 않음");
+
+        sut.LoadQueue([]);
+        sut.IsQueueEmpty.Should().BeTrue("모두 비우면 다시 비어 있음");
     }
 
     [Fact]
@@ -3346,7 +3371,8 @@ public class MainViewModelTests
         IAppearanceTemplateStore? appearanceTemplates = null,
         IAdminSongDetailRepository? songDetail = null,
         IRecentWorshipLists? recentWorshipLists = null,
-        WorshipListValidator? worshipValidator = null)
+        WorshipListValidator? worshipValidator = null,
+        bool seedSampleQueue = true)
     {
         var output = new OutputWindowService();
         var session = new LiveSessionService();
@@ -3358,7 +3384,7 @@ public class MainViewModelTests
         var library = new LibraryViewModel(resolvedSettings, new AdminDatabaseRepository());
         var bible = new BibleViewModel(resolvedSettings, new BibleRepository());
         var search = new SearchUsageViewModel(resolvedSettings, new SearchUsageService(new AdminDatabaseRepository()));
-        return new MainViewModel(
+        var vm = new MainViewModel(
             session,
             output,
             prompt ?? new RecordingSafetyPrompt(allow: true),
@@ -3376,6 +3402,20 @@ public class MainViewModelTests
             songDetail ?? new AdminDatabaseRepository(),
             recentWorshipLists ?? new InMemoryRecentWorshipLists(),
             worshipValidator);
+
+        // 운영 기본 큐는 비어 있다(더미 시드 제거). 대부분의 테스트는 Queue[0] 등 채워진 큐를 가정하므로
+        // CreateSut 가 기본으로 샘플 3항목을 시드해 기존 테스트를 보존한다. 빈 큐가 필요하면 seedSampleQueue:false.
+        if (seedSampleQueue)
+        {
+            vm.LoadQueue(new[]
+            {
+                new LiveQueueItem("sample-welcome", "예배 시작 안내", LiveItemKinds.Notice),
+                new LiveQueueItem("sample-song", "주일 찬양 #1", LiveItemKinds.Song),
+                new LiveQueueItem("sample-sermon", "말씀 본문", LiveItemKinds.Bible),
+            });
+        }
+
+        return vm;
     }
 
     // 최근 예배 순서 — 파일시스템 없이 인메모리로 검증.

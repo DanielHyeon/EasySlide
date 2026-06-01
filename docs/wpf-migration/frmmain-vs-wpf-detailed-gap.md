@@ -244,7 +244,7 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 4. **절 라벨 직접 점프 부재** — 운영 중 "후렴으로", "3절로" 즉시 이동(1~9/c/b 버튼)이 없음. 순차 이동만.
 5. **Preview↔Output 2단 운영 부재** — FrmMain은 미리보기에서 준비→출력 전송이 분리. WPF는 단일 라이브라 "다음 곡 미리 준비" 워크플로 약함.
 6. **항목 검증(ValidateWorshipListItems) 부재** — 깨진 PPT/삭제된 곡을 라이브 직전에 거르지 못함(예배 중 사고 위험).
-7. **placeholder 더미 큐** — 시작 시 가짜 항목 3개 시드(`SeedPlaceholderQueue`). 실제 항목/큐 도메인 plumbing 미완.
+7. ~~**placeholder 더미 큐** — 시작 시 가짜 항목 3개 시드(`SeedPlaceholderQueue`).~~ ✅ (2026-06-01 증분 31) 더미 시드 제거 → 빈 큐로 시작 + 좌측 패널 빈 상태 안내(`IsQueueEmpty`). 실제 큐 도메인 plumbing(곡·성경·파일 추가, 최근 예배 순서 불러오기)은 이미 동작.
 8. **PraiseBook 운영 UI·Worship Sessions·Session Notes·Recent Edits 부재** — 곡 라이브러리 운영 보조 기능 부재. (PraiseBook **문서 생성**(RTF/HTML)은 ImportExport에 존재하나, 운영 중 탐색·관리하는 **PraiseBook 목록 UI는 없음**.)
 9. **이미지/배경 라이브러리·배경 표시 모드 부재** — 배경 운영이 곡별 FormatData 이미지(UniformToFill 고정)뿐.
 10. **전환 효과·중번체·Lyrics Monitor 메시지·미디어 전역키** 등 라이브 보조 기능 다수 부재.
