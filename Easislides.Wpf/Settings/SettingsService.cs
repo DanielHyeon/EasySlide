@@ -86,7 +86,9 @@ public enum LyricsVerticalAlignment
 }
 
 // 출력 장면 전환 모션 종류(FrmMain 전환 효과 중 구현분). 기본 Fade(기존 250ms 페이드 동작 보존).
-// Fade=불투명도, Slide*=새 콘텐츠가 해당 방향에서 밀려 들어옴. (셰이프/타일 등 나머지 50여 종은 미구현.)
+// Fade=불투명도, Slide*=방향 슬라이드, Zoom*=확대/축소, Spin=회전, Flip*=뒤집기 — 모두 단일 콘텐츠
+// 트랜스폼(Translate/Scale/Rotate) 기반이라 2-레이어 클립 엔진이 필요 없다.
+// (Circle/Diamond/Blinds/Checkerboard 등 셰이프·타일 마스크 전환은 별도 클립 엔진 필요 → P2 미구현.)
 public enum LyricsTransitionKind
 {
     Fade = 0,
@@ -94,6 +96,11 @@ public enum LyricsTransitionKind
     SlideFromRight = 2,
     SlideFromTop = 3,
     SlideFromBottom = 4,
+    ZoomIn = 5,
+    ZoomOut = 6,
+    Spin = 7,
+    FlipHorizontal = 8,
+    FlipVertical = 9,
 }
 
 public static class EasiSettingKeys

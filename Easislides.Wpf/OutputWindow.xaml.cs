@@ -45,8 +45,9 @@ public partial class OutputWindow : Window, IOutputSurface
         }
     }
 
-    // Scene이 바뀔 때마다 전환 애니메이션을 재생. 종류(Fade/Slide)와 길이는 ViewModel이 제공.
-    // Fade=불투명도 0→1, Slide*=새 콘텐츠가 해당 방향에서 밀려 들어옴(불투명도와 함께).
+    // Scene이 바뀔 때마다 전환 애니메이션을 재생. 종류와 길이는 ViewModel이 제공.
+    // 모든 전환에 불투명도 페이드인을 공통 적용하고, 종류에 따라 Translate/Scale/Rotate 시작값을
+    // 잡아 항등(이동0·배율1·각0)으로 애니메이션한다 → Fade/Slide/Zoom/Spin/Flip 을 한 경로로 처리.
     private void OnSceneChanged(object? sender, EventArgs e)
     {
         if (_viewModel is null)
@@ -54,21 +55,18 @@ public partial class OutputWindow : Window, IOutputSurface
             return;
         }
 
-        var translate = EnsureContentTranslate();
+        var (translate, scale, rotate) = EnsureContentTransforms();
         var duration = _viewModel.ContentFadeDuration;
         if (duration <= TimeSpan.Zero)
         {
-            // 전환 비활성(즉시 컷): 남아 있을 수 있는 애니메이션을 멈추고 기본 위치/불투명도로 보장.
+            // 전환 비활성(즉시 컷): 모든 애니메이션을 멈추고 항등/불투명1 로 보장.
             ContentArea.BeginAnimation(OpacityProperty, null);
-            translate.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
-            translate.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, null);
+            ResetToIdentity(translate, scale, rotate);
             ContentArea.Opacity = 1.0;
-            translate.X = 0;
-            translate.Y = 0;
             return;
         }
 
-        // 모든 전환에 불투명도 페이드인을 공통 적용(슬라이드도 부드럽게 등장).
+        // 공통 불투명도 페이드인(모든 전환을 부드럽게 등장시킨다).
         ContentArea.BeginAnimation(OpacityProperty, new DoubleAnimation
         {
             From = 0.0,
@@ -77,63 +75,102 @@ public partial class OutputWindow : Window, IOutputSurface
             FillBehavior = FillBehavior.HoldEnd,
         });
 
-        // 슬라이드 방향에 따라 시작 오프셋을 잡고 0 으로 애니메이션. Fade 면 오프셋 없음(0→0).
-        var (fromX, fromY) = SlideStartOffset(_viewModel.ContentTransitionKind);
-        AnimateTranslate(translate, System.Windows.Media.TranslateTransform.XProperty, fromX, duration);
-        AnimateTranslate(translate, System.Windows.Media.TranslateTransform.YProperty, fromY, duration);
+        // 종류별 시작 트랜스폼 → 항등으로 애니메이션. 항등(시작=끝)인 축은 애니메이션 없이 고정.
+        var start = TransitionStart(_viewModel.ContentTransitionKind);
+        AnimateAxis(translate, System.Windows.Media.TranslateTransform.XProperty, start.Tx, 0, duration);
+        AnimateAxis(translate, System.Windows.Media.TranslateTransform.YProperty, start.Ty, 0, duration);
+        AnimateAxis(scale, System.Windows.Media.ScaleTransform.ScaleXProperty, start.Sx, 1, duration);
+        AnimateAxis(scale, System.Windows.Media.ScaleTransform.ScaleYProperty, start.Sy, 1, duration);
+        AnimateAxis(rotate, System.Windows.Media.RotateTransform.AngleProperty, start.Angle, 0, duration);
     }
 
-    // 슬라이드 시작 오프셋(px) — 새 콘텐츠가 화면 밖에서 들어오도록. 콘텐츠 영역 크기 기준(없으면 폴백 1920/1080).
-    private (double X, double Y) SlideStartOffset(Settings.LyricsTransitionKind kind)
+    // 종류별 시작 트랜스폼(이동 px·배율·각도). 끝값은 항상 항등(Tx=Ty=0, Sx=Sy=1, Angle=0).
+    private (double Tx, double Ty, double Sx, double Sy, double Angle) TransitionStart(Settings.LyricsTransitionKind kind)
     {
         var w = ContentArea.ActualWidth > 0 ? ContentArea.ActualWidth : 1920;
         var h = ContentArea.ActualHeight > 0 ? ContentArea.ActualHeight : 1080;
         return kind switch
         {
-            Settings.LyricsTransitionKind.SlideFromLeft => (-w, 0),
-            Settings.LyricsTransitionKind.SlideFromRight => (w, 0),
-            Settings.LyricsTransitionKind.SlideFromTop => (0, -h),
-            Settings.LyricsTransitionKind.SlideFromBottom => (0, h),
-            _ => (0, 0), // Fade
+            Settings.LyricsTransitionKind.SlideFromLeft => (-w, 0, 1, 1, 0),
+            Settings.LyricsTransitionKind.SlideFromRight => (w, 0, 1, 1, 0),
+            Settings.LyricsTransitionKind.SlideFromTop => (0, -h, 1, 1, 0),
+            Settings.LyricsTransitionKind.SlideFromBottom => (0, h, 1, 1, 0),
+            Settings.LyricsTransitionKind.ZoomIn => (0, 0, 0.6, 0.6, 0),       // 작게→정상(확대 등장)
+            Settings.LyricsTransitionKind.ZoomOut => (0, 0, 1.4, 1.4, 0),      // 크게→정상(축소 안착)
+            Settings.LyricsTransitionKind.Spin => (0, 0, 0.7, 0.7, -180),      // 반바퀴 회전+살짝 확대
+            Settings.LyricsTransitionKind.FlipHorizontal => (0, 0, 0, 1, 0),   // 가로 0→1(좌우 펼침)
+            Settings.LyricsTransitionKind.FlipVertical => (0, 0, 1, 0, 0),     // 세로 0→1(상하 펼침)
+            _ => (0, 0, 1, 1, 0), // Fade — 모든 축 항등(불투명도만)
         };
     }
 
-    private static void AnimateTranslate(
-        System.Windows.Media.TranslateTransform translate,
-        System.Windows.DependencyProperty axis,
+    private static void AnimateAxis(
+        System.Windows.Media.Animation.IAnimatable target,
+        System.Windows.DependencyProperty property,
         double from,
+        double to,
         TimeSpan duration)
     {
-        if (from == 0)
+        if (from == to)
         {
-            // 이동 없음(Fade) — 잔여 애니메이션 제거 후 0 고정.
-            translate.BeginAnimation(axis, null);
-            if (axis == System.Windows.Media.TranslateTransform.XProperty) translate.X = 0; else translate.Y = 0;
+            // 변화 없는 축 — 잔여 애니메이션 제거 후 항등값 고정(이전 효과가 남지 않게).
+            target.BeginAnimation(property, null);
+            ((System.Windows.DependencyObject)target).SetValue(property, to);
             return;
         }
 
-        translate.BeginAnimation(axis, new DoubleAnimation
+        target.BeginAnimation(property, new DoubleAnimation
         {
             From = from,
-            To = 0,
+            To = to,
             Duration = new Duration(duration),
             FillBehavior = FillBehavior.HoldEnd,
             EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
         });
     }
 
-    // ContentArea 에 슬라이드용 TranslateTransform 을 보장(없으면 생성). 기존 RenderTransform 을 보존하지 않는
-    // 단순 콘텐츠 영역이라 직접 할당해도 안전하다.
-    private System.Windows.Media.TranslateTransform EnsureContentTranslate()
+    private static void ResetToIdentity(
+        System.Windows.Media.TranslateTransform translate,
+        System.Windows.Media.ScaleTransform scale,
+        System.Windows.Media.RotateTransform rotate)
     {
-        if (ContentArea.RenderTransform is System.Windows.Media.TranslateTransform existing)
+        translate.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, null);
+        translate.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, null);
+        scale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, null);
+        scale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty, null);
+        rotate.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, null);
+        translate.X = 0;
+        translate.Y = 0;
+        scale.ScaleX = 1;
+        scale.ScaleY = 1;
+        rotate.Angle = 0;
+    }
+
+    // ContentArea 에 Translate+Scale+Rotate 트랜스폼 그룹을 보장(없으면 생성). Scale/Rotate 가 중앙 기준으로
+    // 동작하도록 RenderTransformOrigin 을 (0.5,0.5)로 둔다(Translate 는 원점 무관).
+    private (System.Windows.Media.TranslateTransform Translate,
+             System.Windows.Media.ScaleTransform Scale,
+             System.Windows.Media.RotateTransform Rotate) EnsureContentTransforms()
+    {
+        if (ContentArea.RenderTransform is System.Windows.Media.TransformGroup existing
+            && existing.Children.Count == 3
+            && existing.Children[0] is System.Windows.Media.TranslateTransform t0
+            && existing.Children[1] is System.Windows.Media.ScaleTransform s0
+            && existing.Children[2] is System.Windows.Media.RotateTransform r0)
         {
-            return existing;
+            return (t0, s0, r0);
         }
 
         var translate = new System.Windows.Media.TranslateTransform();
-        ContentArea.RenderTransform = translate;
-        return translate;
+        var scale = new System.Windows.Media.ScaleTransform(1, 1);
+        var rotate = new System.Windows.Media.RotateTransform(0);
+        var group = new System.Windows.Media.TransformGroup();
+        group.Children.Add(translate);
+        group.Children.Add(scale);
+        group.Children.Add(rotate);
+        ContentArea.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+        ContentArea.RenderTransform = group;
+        return (translate, scale, rotate);
     }
 
     public void ApplyPlacement(OutputWindowPlacement placement)

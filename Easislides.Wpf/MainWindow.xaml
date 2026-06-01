@@ -185,6 +185,26 @@
                               IsChecked="{Binding TransitionKindIsSlideDown}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromBottom}" />
+                    <MenuItem Header="모션: 줌 인"
+                              IsChecked="{Binding TransitionKindIsZoomIn}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.ZoomIn}" />
+                    <MenuItem Header="모션: 줌 아웃"
+                              IsChecked="{Binding TransitionKindIsZoomOut}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.ZoomOut}" />
+                    <MenuItem Header="모션: 회전"
+                              IsChecked="{Binding TransitionKindIsSpin}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Spin}" />
+                    <MenuItem Header="모션: 뒤집기(가로)"
+                              IsChecked="{Binding TransitionKindIsFlipH}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.FlipHorizontal}" />
+                    <MenuItem Header="모션: 뒤집기(세로)"
+                              IsChecked="{Binding TransitionKindIsFlipV}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.FlipVertical}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

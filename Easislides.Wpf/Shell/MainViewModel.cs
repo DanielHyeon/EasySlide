@@ -133,6 +133,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideRight))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideUp))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsSlideDown))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsZoomIn))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsZoomOut))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsSpin))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsFlipH))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsFlipV))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -140,6 +145,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsSlideRight => ActiveTransitionKind == LyricsTransitionKind.SlideFromRight;
     public bool TransitionKindIsSlideUp => ActiveTransitionKind == LyricsTransitionKind.SlideFromTop;
     public bool TransitionKindIsSlideDown => ActiveTransitionKind == LyricsTransitionKind.SlideFromBottom;
+    public bool TransitionKindIsZoomIn => ActiveTransitionKind == LyricsTransitionKind.ZoomIn;
+    public bool TransitionKindIsZoomOut => ActiveTransitionKind == LyricsTransitionKind.ZoomOut;
+    public bool TransitionKindIsSpin => ActiveTransitionKind == LyricsTransitionKind.Spin;
+    public bool TransitionKindIsFlipH => ActiveTransitionKind == LyricsTransitionKind.FlipHorizontal;
+    public bool TransitionKindIsFlipV => ActiveTransitionKind == LyricsTransitionKind.FlipVertical;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -1995,6 +2005,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.SlideFromRight => "슬라이드(오른쪽)",
             LyricsTransitionKind.SlideFromTop => "슬라이드(위)",
             LyricsTransitionKind.SlideFromBottom => "슬라이드(아래)",
+            LyricsTransitionKind.ZoomIn => "줌 인",
+            LyricsTransitionKind.ZoomOut => "줌 아웃",
+            LyricsTransitionKind.Spin => "회전",
+            LyricsTransitionKind.FlipHorizontal => "뒤집기(가로)",
+            LyricsTransitionKind.FlipVertical => "뒤집기(세로)",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

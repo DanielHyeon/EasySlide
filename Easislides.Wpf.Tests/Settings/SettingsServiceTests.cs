@@ -91,10 +91,10 @@ public class SettingsServiceTests
         using var fixture = TempSettingsFolder.Create();
         var sut = fixture.CreateService();
 
-        sut.Set(EasiSettingKeys.LyricsMonitorTransitionKind, LyricsTransitionKind.SlideFromRight).Succeeded.Should().BeTrue();
+        sut.Set(EasiSettingKeys.LyricsMonitorTransitionKind, LyricsTransitionKind.ZoomIn).Succeeded.Should().BeTrue();
 
-        sut.Get(EasiSettingKeys.LyricsMonitorTransitionKind).Should().Be(LyricsTransitionKind.SlideFromRight);
-        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorTransitionKind.Should().Be(LyricsTransitionKind.SlideFromRight);
+        sut.Get(EasiSettingKeys.LyricsMonitorTransitionKind).Should().Be(LyricsTransitionKind.ZoomIn);
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorTransitionKind.Should().Be(LyricsTransitionKind.ZoomIn);
     }
 
     [Fact]

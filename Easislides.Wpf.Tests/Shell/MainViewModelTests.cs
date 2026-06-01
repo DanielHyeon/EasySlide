@@ -934,6 +934,27 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyTransitionKind_TransformKinds_UpdateMenuChecks()
+    {
+        // 트랜스폼 기반 전환(줌/회전/뒤집기)도 설정·Active·메뉴 체크가 정확히 갱신된다.
+        var sut = CreateSut();
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.Spin);
+        sut.ActiveTransitionKind.Should().Be(LyricsTransitionKind.Spin);
+        sut.TransitionKindIsSpin.Should().BeTrue();
+        sut.TransitionKindIsFade.Should().BeFalse();
+        sut.StatusText.Should().Contain("회전");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.ZoomIn);
+        sut.TransitionKindIsZoomIn.Should().BeTrue();
+        sut.TransitionKindIsSpin.Should().BeFalse("이전 회전 체크는 해제");
+
+        sut.ApplyTransitionKindCommand.Execute(LyricsTransitionKind.FlipVertical);
+        sut.TransitionKindIsFlipV.Should().BeTrue();
+        sut.StatusText.Should().Contain("뒤집기");
+    }
+
+    [Fact]
     public void PublishNotice_WhenOutputClosed_ReturnsFalseAndStaysOff()
     {
         // 출력 창이 닫혀 있으면 공지 송출은 실패(false)하고 라이브 상태를 바꾸지 않는다.
