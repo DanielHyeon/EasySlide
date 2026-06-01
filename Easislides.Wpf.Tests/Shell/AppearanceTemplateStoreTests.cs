@@ -37,7 +37,8 @@ public class AppearanceTemplateStoreTests
             BodyRightMargin: 56,
             BodyBottomMargin: 72,
             TitleHeadingFollowBody: true,
-            ShowVerseHeading: true);
+            ShowVerseHeading: true,
+            TitleHeadingFollowRegion2: true);
 
         await store.SaveAsync("주일예배", template);
         var loaded = await store.LoadAsync("주일예배");

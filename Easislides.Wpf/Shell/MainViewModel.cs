@@ -252,6 +252,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeTitleHeadingFirstScreenOnly = EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.DefaultValue;
     // 현재 "헤딩이 본문 정렬 따름"(FrmMain AsR1) 상태 — on 이면 헤딩이 본문(Region1) 정렬을 그대로 사용.
     [ObservableProperty] private bool _activeTitleHeadingFollowBody = EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody.DefaultValue;
+    // 현재 "헤딩이 보조 영역(Region2) 정렬 따름"(FrmMain AsR2) 상태 — on 이면 헤딩이 Region2 정렬을 사용(AsR1 보다 우선).
+    [ObservableProperty] private bool _activeTitleHeadingFollowRegion2 = EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.DefaultValue;
     // 자동 회전 활성 상태(View 가 이 값을 보고 DispatcherTimer 시작/정지). 라이브 종료 시 자동 해제.
     [ObservableProperty] private bool _isAutoRotating;
     // 자동 회전 간격(초) — 설정에서 유래, View 타이머가 참조.
@@ -506,6 +508,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
         ToggleTitleHeadingFirstScreenOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, ActiveTitleHeadingFirstScreenOnly));
         ToggleTitleHeadingFollowBodyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody, ActiveTitleHeadingFollowBody));
+        ToggleTitleHeadingFollowRegion2Command = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2, ActiveTitleHeadingFollowRegion2));
         ToggleAutoRotateCommand = new RelayCommand(ToggleAutoRotate, () => _session.Current.State == LiveState.Active);
         AddSelectedLibrarySongCommand = new RelayCommand(AddSelectedLibrarySong, () => Library.SelectedSong is not null);
         AddSearchedSongCommand = new AsyncRelayCommand(AddSearchedSongAsync, () => SelectedSearchResult is not null);
@@ -649,6 +652,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public IRelayCommand ToggleTitleHeadingFirstScreenOnlyCommand { get; }
     public IRelayCommand ToggleTitleHeadingFollowBodyCommand { get; }
+    public IRelayCommand ToggleTitleHeadingFollowRegion2Command { get; }
     public IRelayCommand ToggleAutoRotateCommand { get; }
     public IRelayCommand AddSelectedLibrarySongCommand { get; }
     public IAsyncRelayCommand AddSearchedSongCommand { get; }
@@ -2512,6 +2516,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : key.Id == EasiSettingKeys.LyricsMonitorOutline.Id ? "외곽선"
             : key.Id == EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id ? "제목 첫 화면만"
             : key.Id == EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody.Id ? "제목 본문 정렬 따름"
+            : key.Id == EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.Id ? "제목 보조영역 정렬 따름"
             : key.Id == EasiSettingKeys.LyricsMonitorShowItemNumber.Id ? "곡 번호"
             : key.Id == EasiSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
             : key.Id == EasiSettingKeys.LyricsMonitorShowNextItem.Id ? "다음 항목"
@@ -2817,6 +2822,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);
         ActiveTitleHeadingFirstScreenOnly = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly);
         ActiveTitleHeadingFollowBody = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody);
+        ActiveTitleHeadingFollowRegion2 = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2);
         ActiveTextColorHex = FormatColorHex(text);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
     }

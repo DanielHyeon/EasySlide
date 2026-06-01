@@ -257,6 +257,55 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_TitleHeadingFollowRegion2_UsesRegion2Alignment()
+    {
+        // FrmMain Def_HeadAlign AsR2 — 보조 영역 따름 on 이면 헤딩이 Region2 정렬(곡별 region2 정렬 32 포함)을 쓴다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Left,            // 본문(Region1)은 왼쪽
+            LyricsMonitorTitleHeadingAlignment: LyricsTextAlignment.Center,  // 헤딩 전용은 가운데
+            LyricsMonitorTitleHeadingFollowRegion2: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                OverrideTextAlignment2: LyricsTextAlignment.Right),         // 곡별 Region2 정렬 = 오른쪽
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Right, "AsR2 on 이면 헤딩이 Region2 정렬(오른쪽)을 사용");
+    }
+
+    [Fact]
+    public void CreateScene_TitleHeadingFollowRegion2_TakesPrecedenceOverFollowBody()
+    {
+        // 우선순위 AsR2 > AsR1 — 둘 다 on 이면 Region2 정렬이 이긴다.
+        // Region2 정렬은 곡별 override(32) 가 있을 때만 Region1 과 달라지므로, 구별을 위해 override 를 준다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Left,            // Region1 왼쪽
+            LyricsMonitorTitleHeadingAlignment: LyricsTextAlignment.Center,
+            LyricsMonitorTitleHeadingFollowBody: true,                       // AsR1 on
+            LyricsMonitorTitleHeadingFollowRegion2: true);                   // AsR2 on → 우선
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                OverrideTextAlignment: LyricsTextAlignment.Left,            // 곡별 Region1 = 왼쪽
+                OverrideTextAlignment2: LyricsTextAlignment.Right),         // 곡별 Region2 = 오른쪽
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTitleHeadingAlignment.Should().Be(LyricsTextAlignment.Right, "AsR2 가 AsR1 보다 우선 — Region2(오른쪽) 사용");
+    }
+
+    [Fact]
     public void CreateScene_Active_WithSongOverrideColors_PrefersSongColorsOverSettings()
     {
         // 곡별 FormatData 색이 스냅샷에 실려 오면(OverrideTextColorArgb 등) 운영 기본색 대신

@@ -74,7 +74,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🔴 단일 크기만 |
 | `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟡 곡별 FormatData 글꼴만(인스펙터 글꼴 선택기 없음) |
 | `Def_Head`/`Ind_Head` (NoTitles/All/FirstScreen) | 헤딩 표시 모드 | 🟢 제목 헤딩 on/off·첫화면만 + **절 헤딩(All — 섹션 라벨 "1절"/"후렴" 표시)** 구현 |
-| `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟡 L/C/R + **AsR1(본문 정렬 따름, 곡별 override 포함)** 구현. AsR2(Region2 추종)만 후속 |
+| `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟢 L/C/R + AsR1(본문 따름) + **AsR2(보조영역 Region2 따름, 우선순위 AsR2>AsR1)** — 5종 전부 구현 |
 | `Def_VAlign`/`Ind_VAlign` (Top/Centre/Bottom) | 세로 정렬 | 🟢 있음 |
 | `Def_Shadow`/`Def_Outline` | 그림자/외곽선 | 🟢 있음 |
 | `Def_ToZero` | **To Capo 0**(조옮김 정규화) | 🔴 없음 |
@@ -136,7 +136,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Region 인터레이스(줄 교차 송출) | 원문/번역 줄 교차(LyricsMonitorInterlace, 인스펙터 토글) | 🟢 이중언어 Region1/2 줄을 교차 배치해 송출(InterlacedLines) |
 | Region 표시 모드(1만/2만/둘다) | LyricsRegionDisplay(Both/Region1Only/Region2Only, ApplyRegionDisplayCommand) | 🟢 영역 표시 모드 3종 인스펙터 라디오→출력 반영 |
 | Display Panel(송출 하단 정보 바: 제목/저작권/항목번호/절·슬라이드/이전·다음, 색·폰트·투명) | 정보 항목(항목번호·저작권·다음항목·위치 N/M) + 투명 토글 | 🟡 정보 항목·투명은 렌더링(증분6/39). 패널 색/폰트 커스터마이즈·제목-온-패널만 후속 |
-| 헤딩(제목/**절 헤딩**, 모드 3종, 정렬 AsR1/AsR2/L/C/R) | 🟡 제목 on/off·L/C/R·첫화면 + 절 헤딩 + AsR1 | 🟡(AsR2[Region2 추종]만 후속) |
+| 헤딩(제목/**절 헤딩**, 모드 3종, 정렬 AsR1/AsR2/L/C/R) | 🟢 제목 on/off·L/C/R·첫화면 + 절 헤딩 + AsR1 + AsR2 — 헤딩 표시/정렬 전부 구현 |
 | 코드/악상 표시(`ShowNotations`, 미리보기 토글) | 코드 표시(LyricsDisplayFormatter.ExpandNotations) | 🟢 (증분 27) "코드 표시" on 이면 가사 위에 코드 줄 송출 + (증분 30) 라이브 조옮김 ±반음 |
 | 조옮김(Capo ↑/↓, To Capo 0) | `LiveTranspose*Command`(출력 메뉴 "코드 조옮김 ▲/▼/원조") + ExpandNotations transpose | 🟡 (2026-06-01 증분 30) — **라이브 코드 조옮김 ±반음**(코드 표시 on 일 때 송출 코드 이동, 가사 불변). 새 곡 송출 시 원조 초기화. ChordTransposer 재사용 |
 | 항목/슬라이드 전환 효과 선택 | 출력 메뉴 "전환 효과"(페이드 on/off·모션 Fade/Slide 4방향·속도) | 🟡 전환 UI 노출됨(TransitionEffectService 배선). 항목 vs 슬라이드 분리·전체 효과군은 후속 |

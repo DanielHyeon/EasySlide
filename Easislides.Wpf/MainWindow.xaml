@@ -1973,6 +1973,16 @@
                                   Content="본문 정렬 따름"
                                   ToolTip="제목 헤딩이 본문(Region1) 가로 정렬을 그대로 따름(FrmMain AsR1). 켜면 위 좌/중/우 설정은 무시"
                                   AutomationProperties.Name="제목 헤딩 본문 정렬 따름 토글" />
+                    <!-- 헤딩이 보조 영역(Region2) 정렬을 따름(FrmMain Def_HeadAlign AsR2) — 이중 언어 곡에서 번역 영역 정렬 추종. AsR1 보다 우선. -->
+                    <ToggleButton IsChecked="{Binding ActiveTitleHeadingFollowRegion2, Mode=OneWay}"
+                                  Command="{Binding ToggleTitleHeadingFollowRegion2Command}"
+                                  HorizontalAlignment="Left"
+                                  MinHeight="36"
+                                  Padding="10,0"
+                                  Margin="0,6,0,0"
+                                  Content="보조영역 정렬 따름"
+                                  ToolTip="제목 헤딩이 보조 영역(Region2) 가로 정렬을 따름(FrmMain AsR2). 이중 언어 곡용. 켜면 본문 정렬 따름·좌/중/우 설정보다 우선"
+                                  AutomationProperties.Name="제목 헤딩 보조영역 정렬 따름 토글" />
 
                     <!-- 출력 모양 설정 템플릿(§7.3-A) — 현재 모양을 이름으로 저장, 콤보에서 골라 적용/삭제. -->
                     <TextBlock Text="모양 템플릿"
