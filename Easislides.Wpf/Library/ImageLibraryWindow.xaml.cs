@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Easislides.Wpf.Library;
 
@@ -45,6 +47,17 @@ public partial class ImageLibraryWindow : Window
         if (_viewModel.ApplyAsBackgroundCommand.CanExecute(null))
         {
             _viewModel.ApplyAsBackgroundCommand.Execute(null);
+        }
+    }
+
+    // 우클릭한 썸네일을 먼저 선택한다 — 컨텍스트 메뉴 "배경으로 적용"이 (직전 선택이 아니라) 우클릭한 그 이미지에 동작하도록.
+    // WPF 기본은 우클릭으로 선택이 안 되므로 직접 컨테이너를 찾아 IsSelected 를 켠다. 썸네일 밖(빈 공간) 우클릭은 무시.
+    private void ImageList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(ImageList, source) is ListBoxItem item)
+        {
+            item.IsSelected = true;
         }
     }
 

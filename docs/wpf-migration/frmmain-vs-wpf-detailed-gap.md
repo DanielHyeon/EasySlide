@@ -154,7 +154,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 폴더+곡 목록, 정렬(획수/CJK단어수/곡번호), A/B/C 점프, Use Song Numbering | 라이브러리 탭(폴더+검색+초성 점프+정렬(원래/제목/곡번호/획수)+곡번호 표시) | 🟢 (증분 34) **A/B/C 점프** + (증분 35) **정렬(원래순서/제목/곡번호)** + (증분 36) **Use Song Numbering** + (증분 45) **획수순(한자) 정렬**(zh-Hant ICU 콜레이션=획수 기반, 별도 데이터 불필요). CJK 단어수 정렬만 후속 |
 | **PraiseBooks**(관리/추가/정렬/RTF·HTML/legacy v3.2) | — | 🔴 |
 | **Worship Sessions / Recent Edits / Session Notes** | 최근 예배 순서(IRecentWorshipLists) + 세션 메모(WorshipSessionNotes — 예배 순서 이름별 키) | 🟢 Recent Edits=최근 예배 순서·Session Notes=세션 메모(예배 순서 이름별 저장) 포팅 완료. Worship Sessions 풀 번들(순서+설정 묶음)만 후속 |
-| Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | 이미지 갤러리(폴더 썸네일·하위폴더 포함·**카테고리[Scenery/Tiles 하위폴더] 필터**·배경 적용/해제·더블클릭 적용) | 🟢 (증분74) 카테고리 필터로 Scenery/Tiles 구분. 우클릭 메뉴만 후속(버튼·더블클릭은 제공) |
+| Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | 이미지 갤러리(폴더 썸네일·하위폴더 포함·카테고리[Scenery/Tiles] 필터·배경 적용/해제·더블클릭·**우클릭 메뉴**) | 🟢 (증분74·75) 카테고리 필터 + 우클릭 "배경으로 적용/해제"(우클릭 항목 선택). Images 트랙 완비 |
 | Media 목록 브라우징 | 중앙 Media 탭 + `MediaLibraryWindow`(폴더 브라우저) | 🟢 (2026-06-01 증분 33) 미디어 폴더 브라우저(동영상·오디오 13확장자, 하위폴더·더블클릭 추가) — PowerPoint 브라우저와 동일 구조 |
 | PowerPoint 목록/썸네일/Import | 중앙 PPT 미리보기 | 🟡 브라우징/Import 없음 |
 | InfoScreens(.esi) 목록·편집 | — | 🔴 |

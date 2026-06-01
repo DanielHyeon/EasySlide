@@ -81,9 +81,20 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  MouseDoubleClick="ImageList_MouseDoubleClick"
+                 PreviewMouseRightButtonDown="ImageList_PreviewMouseRightButtonDown"
                  BorderBrush="{DynamicResource Brush.Border.Default}"
                  BorderThickness="1"
                  AutomationProperties.Name="이미지 썸네일 목록">
+            <!-- 우클릭 메뉴(FrmMain Images 우클릭 배경 적용) — 우클릭한 썸네일을 선택 후 그 이미지에 동작.
+                 ContextMenu 는 별도 트리라 PlacementTarget(ListBox)의 DataContext(VM)로 바인딩한다. -->
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="배경으로 적용"
+                              Command="{Binding PlacementTarget.DataContext.ApplyAsBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                    <MenuItem Header="배경 해제"
+                              Command="{Binding PlacementTarget.DataContext.ClearBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                </ContextMenu>
+            </ListBox.ContextMenu>
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" />
