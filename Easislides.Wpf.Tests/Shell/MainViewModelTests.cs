@@ -2716,7 +2716,24 @@ public class MainViewModelTests
         sut.AddSong(song);
 
         sut.LyricsPageCount.Should().Be(2, "두 절(각 R1/R2 쌍) → 2페이지(=GetRegionPages 수)");
-        sut.AvailableSectionLabels.Should().BeEmpty("이중 언어 곡의 절 라벨 점프는 차기 슬라이스 — 버튼 미노출");
+        // 전부 라벨링된 이중 언어 곡은 절 라벨 점프가 켜진다(라벨이 페이지와 정렬 — 슬라이스 7).
+        sut.AvailableSectionLabels.Should().Equal("1", "2");
+    }
+
+    [Fact]
+    public void AddSong_DualLanguage_AllLabeled_EnablesSectionJump()
+    {
+        // 전부 라벨링된 이중 언어 곡은 절 라벨 점프가 켜진다(라벨이 페이지와 정렬).
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "",
+            "[1]\nV R1\n[region 2]\nV R2\n[C]\nC R1\n[region 2]\nC R2");
+
+        sut.AddSong(song);
+
+        sut.AvailableSectionLabels.Should().Equal("1", "C");
+
+        sut.JumpToLyricsSectionCommand.Execute("C");
+        sut.LyricsPageIndex.Should().Be(1, "후렴(C)은 인덱스 1");
     }
 
     [Fact]

@@ -247,6 +247,55 @@ public static class LyricsDisplayFormatter
         return pages[Math.Clamp(pageIndex, 0, pages.Count - 1)];
     }
 
+    /// <summary>
+    /// 이중 언어 절 페이지의 라벨 목록 — 라벨이 있는(시퀀스 또는 전부 라벨링된) 곡에서 절 점프에 쓴다.
+    /// 정렬 보장이 어려운 경우(라벨 없는 머리말 등)는 호출자가 GetRegionPages 수와 비교해 가드한다(불일치면 점프 비활성).
+    /// </summary>
+    public static IReadOnlyList<string> GetRegionSectionLabels(string? rawLyrics, string? sequence)
+    {
+        var sections = ParseRegionSections(rawLyrics);
+        if (sections.Count == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        // 시퀀스: 토큰 매칭 섹션의 라벨(펼친 순서).
+        if (!string.IsNullOrWhiteSpace(sequence))
+        {
+            var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+            var seqLabels = new List<string>();
+            foreach (var token in tokens)
+            {
+                foreach (var section in sections)
+                {
+                    if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                        && (section.Region1.Length > 0 || section.Region2.Length > 0))
+                    {
+                        seqLabels.Add(section.Label);
+                        break;
+                    }
+                }
+            }
+
+            if (seqLabels.Count > 0)
+            {
+                return seqLabels;
+            }
+        }
+
+        // 선형: 내용이 있는 라벨 섹션의 라벨(순서대로) — 전부 라벨링된 곡이면 GetRegionPages 와 1:1.
+        var labels = new List<string>();
+        foreach (var section in sections)
+        {
+            if (section.Region1.Length > 0 || section.Region2.Length > 0)
+            {
+                labels.Add(section.Label);
+            }
+        }
+
+        return labels;
+    }
+
     // 시퀀스로 이중 언어 절을 펼친다. sequence 가 비었거나 매칭 라벨이 없으면 null(→ 선형 폴백). TryExpandBySequence 와 동일 규칙.
     private static IReadOnlyList<LyricsRegionPage>? TryExpandRegionBySequence(string? rawLyrics, string? sequence)
     {

@@ -928,10 +928,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : dual
                 ? LyricsDisplayFormatter.GetRegionPages(item!.Lyrics, item.Sequence).Count
                 : LyricsDisplayFormatter.ToVersePages(item!.Lyrics, item.Sequence).Count;
-        // 페이지별 절 라벨 — 단일 영역만 지원(이중 언어 곡의 라벨 점프는 차기 슬라이스). 곡 아니거나 이중 언어면 비움.
-        _pageLabels = isSong && !dual
-            ? LyricsDisplayFormatter.GetSectionLabels(item!.Lyrics, item.Sequence)
-            : Array.Empty<string>();
+        // 페이지별 절 라벨(절 점프 근거). 단일 영역은 GetSectionLabels, 이중 언어는 region-aware 라벨을 쓰되
+        // 페이지 수와 1:1 정렬될 때만 채운다(라벨 없는 머리말 등으로 어긋나면 비워 점프 비활성 — 잘못된 점프 방지).
+        if (!isSong)
+        {
+            _pageLabels = Array.Empty<string>();
+        }
+        else if (!dual)
+        {
+            _pageLabels = LyricsDisplayFormatter.GetSectionLabels(item!.Lyrics, item.Sequence);
+        }
+        else
+        {
+            var regionLabels = LyricsDisplayFormatter.GetRegionSectionLabels(item!.Lyrics, item.Sequence);
+            _pageLabels = regionLabels.Count == LyricsPageCount ? regionLabels : Array.Empty<string>();
+        }
         RebuildAvailableSectionLabels();
         LyricsPageIndex = 0;
     }

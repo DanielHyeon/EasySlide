@@ -343,6 +343,26 @@ public class LyricsDisplayFormatterTests
     }
 
     [Fact]
+    public void GetRegionSectionLabels_AllLabeled_AlignsWithRegionPages()
+    {
+        var lyrics = "[1]\nV R1\n[region 2]\nV R2\n[C]\nC R1\n[region 2]\nC R2";
+
+        var labels = LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, sequence: null);
+        var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
+
+        labels.Should().Equal("1", "C");
+        labels.Count.Should().Be(pages.Count, "이중 언어 절 라벨은 페이지와 1:1");
+    }
+
+    [Fact]
+    public void GetRegionSectionLabels_WithSequence_RepeatsByOrder()
+    {
+        var lyrics = "[1]\nV R1\n[region 2]\nV R2\n[C]\nC R1\n[region 2]\nC R2";
+
+        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, "1 C 1 C").Should().Equal("1", "C", "1", "C");
+    }
+
+    [Fact]
     public void GetRegionPage_WithSequence_ReturnsExpandedPairAtIndex()
     {
         var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[C]\nChorus R1\n[region 2]\nChorus R2";
