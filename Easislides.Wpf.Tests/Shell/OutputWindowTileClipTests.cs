@@ -141,4 +141,19 @@ public class OutputWindowTileClipTests
         geo.FillContains(new System.Windows.Point(960, 50)).Should().BeFalse("상단 중앙 오므라듦 → 못 덮음");
         geo.FillContains(new System.Windows.Point(960, 1030)).Should().BeFalse("하단 중앙 오므라듦 → 못 덮음");
     }
+
+    [Fact]
+    public void BuildHeart_CoversCenterNotCorners_IsHeartShaped()
+    {
+        // 하트는 중심·본체는 덮지만 코너·위 노치는 못 덮음 → 2-레이어 필요. 매개변수 곡선 폴리라인이 닫힌 하트.
+        var geo = OutputWindow.BuildHeart(1920, 1080);
+
+        geo.FillContains(new System.Windows.Point(960, 540)).Should().BeTrue("하트 본체 중심 포함");
+        geo.FillContains(new System.Windows.Point(0, 0)).Should().BeFalse("좌상 코너 못 덮음 → 2-레이어 필요");
+        geo.FillContains(new System.Windows.Point(1920, 0)).Should().BeFalse("우상 코너 못 덮음");
+        // 위 중앙(두 봉우리 사이 노치)은 하트 밖.
+        geo.FillContains(new System.Windows.Point(960, 30)).Should().BeFalse("위 노치는 하트 밖");
+        // 닫힌 단일 도형 — 경계가 유효해야 FillContains 가 동작(폴리라인이 깨지지 않음).
+        geo.Figures.Should().ContainSingle().Which.IsClosed.Should().BeTrue();
+    }
 }

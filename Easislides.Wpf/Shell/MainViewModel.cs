@@ -153,6 +153,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsStar))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsCross))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsBowTie))]
+    [NotifyPropertyChangedFor(nameof(TransitionKindIsHeart))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
@@ -180,6 +181,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsStar => ActiveTransitionKind == LyricsTransitionKind.Star;
     public bool TransitionKindIsCross => ActiveTransitionKind == LyricsTransitionKind.Cross;
     public bool TransitionKindIsBowTie => ActiveTransitionKind == LyricsTransitionKind.BowTie;
+    public bool TransitionKindIsHeart => ActiveTransitionKind == LyricsTransitionKind.Heart;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -2055,6 +2057,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LyricsTransitionKind.Star => "별",
             LyricsTransitionKind.Cross => "십자(2-레이어)",
             LyricsTransitionKind.BowTie => "나비넥타이(2-레이어)",
+            LyricsTransitionKind.Heart => "하트(2-레이어)",
             _ => kind.ToString(),
         };
         StatusText = $"전환 효과: {label}";

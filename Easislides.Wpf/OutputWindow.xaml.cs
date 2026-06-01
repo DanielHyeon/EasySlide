@@ -73,9 +73,11 @@ public partial class OutputWindow : Window, IOutputSurface
         PreviousLayer.Visibility = Visibility.Visible;
     }
 
-    // 뒤 레이어(옛 프레임)가 필요한 전환 = 끝에 화면 전체를 못 덮는 오목 도형(Cross·BowTie). 나머지는 불필요.
+    // 뒤 레이어(옛 프레임)가 필요한 전환 = 끝에 화면 전체를 못 덮는 오목 도형(Cross·BowTie·Heart). 나머지는 불필요.
     private static bool RequiresPreviousLayer(Settings.LyricsTransitionKind kind)
-        => kind is Settings.LyricsTransitionKind.Cross or Settings.LyricsTransitionKind.BowTie;
+        => kind is Settings.LyricsTransitionKind.Cross
+            or Settings.LyricsTransitionKind.BowTie
+            or Settings.LyricsTransitionKind.Heart;
 
     private void ClearPreviousLayer()
     {
@@ -233,6 +235,10 @@ public partial class OutputWindow : Window, IOutputSurface
             case Settings.LyricsTransitionKind.BowTie:
                 // 나비넥타이(좌우 삼각형)를 중심에서 0→1 배율로 키운다. 상/하 중앙 오므라듦에 옛 프레임이 보인다(2-레이어).
                 AnimateScaledShapeClip(BuildBowTie(w, h), w / 2, h / 2, duration);
+                break;
+            case Settings.LyricsTransitionKind.Heart:
+                // 하트를 중심에서 0→1 배율로 키운다. 위 노치·코너에 옛 프레임이 보인다(2-레이어).
+                AnimateScaledShapeClip(BuildHeart(w, h), w / 2, h / 2, duration);
                 break;
             case Settings.LyricsTransitionKind.DoorsOpen:
                 AnimateTileClip(BuildDoors(w, h, open: true, duration), duration);
@@ -434,6 +440,39 @@ public partial class OutputWindow : Window, IOutputSurface
         group.Children.Add(new System.Windows.Media.RectangleGeometry(new System.Windows.Rect(0, cy - (barH / 2), w, barH)));
         group.Children.Add(new System.Windows.Media.RectangleGeometry(new System.Windows.Rect(cx - (barW / 2), 0, barW, h)));
         return group;
+    }
+
+    // 하트 — 잘 알려진 매개변수 곡선(x=16sin³t, y=13cos t−5cos2t−2cos3t−cos4t)을 N개 점으로 샘플해 폴리라인으로
+    // 근사한다(베지어 제어점 추정 없이 정확한 하트). 화면 중심에 정렬·스케일하며 y 는 화면 좌표(아래로)에 맞춰 반전.
+    // 위 노치·코너는 못 덮으므로 2-레이어(뒤 옛 프레임)와 함께 쓴다.
+    internal static System.Windows.Media.PathGeometry BuildHeart(double w, double h)
+    {
+        var cx = w / 2;
+        var cy = h / 2;
+        var sx = (w * 1.1) / 32.0; // 매개변수 x 범위 ≈[-16,16](폭 32) → 화면 폭의 1.1배로 확대.
+        var sy = (h * 1.1) / 29.0; // 매개변수 y 범위 ≈[-17,12](높이 29).
+        const int N = 90;
+        var fig = new System.Windows.Media.PathFigure { IsClosed = true };
+        for (var i = 0; i < N; i++)
+        {
+            var t = 2 * System.Math.PI * i / N;
+            var px = 16 * System.Math.Pow(System.Math.Sin(t), 3);
+            var py = (13 * System.Math.Cos(t)) - (5 * System.Math.Cos(2 * t)) - (2 * System.Math.Cos(3 * t)) - System.Math.Cos(4 * t);
+            // 화면 좌표: y 아래로 → 하트가 위를 향하도록 py 부호 반전.
+            var p = new System.Windows.Point(cx + (px * sx), cy - (py * sy));
+            if (i == 0)
+            {
+                fig.StartPoint = p;
+            }
+            else
+            {
+                fig.Segments.Add(new System.Windows.Media.LineSegment(p, true));
+            }
+        }
+
+        var geo = new System.Windows.Media.PathGeometry();
+        geo.Figures.Add(fig);
+        return geo;
     }
 
     // 나비넥타이 — 좌/우 두 삼각형이 중심에서 만난다(상/하 중앙은 오므라들어 못 덮음 → 2-레이어).

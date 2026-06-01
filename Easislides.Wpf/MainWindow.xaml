@@ -265,6 +265,10 @@
                               IsChecked="{Binding TransitionKindIsBowTie}"
                               Command="{Binding ApplyTransitionKindCommand}"
                               CommandParameter="{x:Static settings:LyricsTransitionKind.BowTie}" />
+                    <MenuItem Header="모션: 하트(2-레이어)"
+                              IsChecked="{Binding TransitionKindIsHeart}"
+                              Command="{Binding ApplyTransitionKindCommand}"
+                              CommandParameter="{x:Static settings:LyricsTransitionKind.Heart}" />
                     <Separator />
                     <MenuItem Header="빠르게 (150ms)"
                               IsChecked="{Binding TransitionIsFast}"

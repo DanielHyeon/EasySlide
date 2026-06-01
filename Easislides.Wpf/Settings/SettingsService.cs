@@ -123,6 +123,8 @@ public enum LyricsTransitionKind
     Cross = 23,
     // 나비넥타이(좌우 두 삼각형, 상/하 중앙이 오므라듦) — 오목 도형이라 2-레이어로 처리.
     BowTie = 24,
+    // 하트 — 위 노치·코너를 못 덮는 오목 도형이라 2-레이어로 처리. 매개변수 곡선을 폴리라인으로 근사.
+    Heart = 25,
 }
 
 public static class EasiSettingKeys
