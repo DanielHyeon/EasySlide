@@ -361,6 +361,10 @@
                                               IsChecked="{Binding Region1Italic, Mode=TwoWay}"
                                               Margin="16,0,0,0"
                                               AutomationProperties.Name="Region 1 기울임" />
+                                    <CheckBox Content="밑줄"
+                                              IsChecked="{Binding Region1Underline, Mode=TwoWay}"
+                                              Margin="16,0,0,0"
+                                              AutomationProperties.Name="Region 1 밑줄" />
                                 </StackPanel>
                             </StackPanel>
 
@@ -399,6 +403,10 @@
                                               IsChecked="{Binding Region2Italic, Mode=TwoWay}"
                                               Margin="16,0,0,0"
                                               AutomationProperties.Name="Region 2 기울임" />
+                                    <CheckBox Content="밑줄"
+                                              IsChecked="{Binding Region2Underline, Mode=TwoWay}"
+                                              Margin="16,0,0,0"
+                                              AutomationProperties.Name="Region 2 밑줄" />
                                 </StackPanel>
                             </StackPanel>
                         </Grid>

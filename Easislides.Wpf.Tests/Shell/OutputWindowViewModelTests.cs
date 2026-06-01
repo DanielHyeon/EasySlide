@@ -496,9 +496,12 @@ public class OutputWindowViewModelTests
         var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
 
         sut.ApplySession(new LiveSessionSnapshot(
-            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절", CurrentItemBodyText2: "verse"));
 
         sut.BodyTextDecorations.Should().BeSameAs(System.Windows.TextDecorations.Underline);
+        // 전역 밑줄 on → Region2 도 Region1(전역) 추종으로 밑줄.
+        sut.BodyText2Decorations.Should().BeSameAs(System.Windows.TextDecorations.Underline);
     }
 
     [Fact]

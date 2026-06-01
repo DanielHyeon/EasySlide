@@ -66,7 +66,10 @@ public sealed record LiveSessionSnapshot(
     bool? OverrideBold1 = null,
     bool? OverrideItalic1 = null,
     bool? OverrideBold2 = null,
-    bool? OverrideItalic2 = null)
+    bool? OverrideItalic2 = null,
+    // 밑줄 비트(41 bit2/bit5) — null=전역(Region1)/Region1 추종, true=그 영역 밑줄.
+    bool? OverrideUnderline1 = null,
+    bool? OverrideUnderline2 = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -156,7 +159,9 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideBold1: format?.Bold1 == true ? true : null,
             OverrideItalic1: format?.Italic1 == true ? true : null,
             OverrideBold2: format?.Bold2 == true ? true : null,
-            OverrideItalic2: format?.Italic2 == true ? true : null));
+            OverrideItalic2: format?.Italic2 == true ? true : null,
+            OverrideUnderline1: format?.Underline1 == true ? true : null,
+            OverrideUnderline2: format?.Underline2 == true ? true : null));
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.

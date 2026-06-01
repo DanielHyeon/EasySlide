@@ -203,10 +203,11 @@ public sealed record OutputSceneSnapshot(
     bool ShowLyricsNextItem = false,
     // 다음 항목 제목 라벨. Live + 다음 항목이 있을 때만 채워진다.
     string NextItemLabel = "",
-    // Region2(이중 언어) 굵게·기울임 — 곡별 region2 비트(41)가 있으면 그것, 없으면 Region1 효과를 추종한다(CreateScene 에서 해석).
-    // Region1 굵게/기울임은 기존 LyricsMonitorBold/Italic 에 해석돼 실린다(곡별 region1 비트가 전역을 덮어씀).
+    // Region2(이중 언어) 굵게·기울임·밑줄 — 곡별 region2 비트(41)가 있으면 그것, 없으면 Region1 효과를 추종한다(CreateScene 해석).
+    // Region1 굵게/기울임/밑줄은 기존 LyricsMonitorBold/Italic/Underline 에 해석돼 실린다(곡별 region1 비트가 전역을 덮어씀).
     bool LyricsMonitorBold2 = false,
-    bool LyricsMonitorItalic2 = false)
+    bool LyricsMonitorItalic2 = false,
+    bool LyricsMonitorUnderline2 = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -323,6 +324,9 @@ public sealed class OutputRenderer : IOutputRenderer
         // Region2 굵게/기울임 — 곡별 region2 비트가 있으면 그것, 없으면 Region1 효과를 추종(색·정렬·글꼴 추종과 동일).
         var region2Bold = isLive ? request.Session.OverrideBold2 ?? region1Bold : region1Bold;
         var region2Italic = isLive ? request.Session.OverrideItalic2 ?? region1Italic : region1Italic;
+        // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역, Region2=곡별 비트∥Region1 추종.
+        var region1Underline = isLive && request.Session.OverrideUnderline1 == true ? true : liveOutput.LyricsMonitorUnderline;
+        var region2Underline = isLive ? request.Session.OverrideUnderline2 ?? region1Underline : region1Underline;
 
         return new OutputSceneSnapshot(
             kind,
@@ -351,7 +355,7 @@ public sealed class OutputRenderer : IOutputRenderer
             region1Bold,
             region1Italic,
             liveOutput.LyricsMonitorShadow,
-            liveOutput.LyricsMonitorUnderline,
+            region1Underline,
             liveOutput.LyricsMonitorPanelTransparent,
             liveOutput.LyricsMonitorLineSpacingPercent,
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
@@ -384,9 +388,10 @@ public sealed class OutputRenderer : IOutputRenderer
             // 다음 항목 표시(설정) + 라벨(Live + 다음 항목 제목). 마지막 항목이면 빈 문자열 → 미표시.
             liveOutput.LyricsMonitorShowNextItem,
             isLive ? request.Session.CurrentItemNextTitle : string.Empty,
-            // Region2 굵게·기울임(해석된 값) — 이중 언어 보조 본문에 적용.
+            // Region2 굵게·기울임·밑줄(해석된 값) — 이중 언어 보조 본문에 적용.
             region2Bold,
-            region2Italic);
+            region2Italic,
+            region2Underline);
     }
 
     private ImagePlacement GetContentPlacement(

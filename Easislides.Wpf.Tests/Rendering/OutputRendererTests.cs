@@ -517,6 +517,60 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region1Underline_OverridesGlobalSetting()
+    {
+        // 곡별 region1 밑줄 비트가 켜져 있으면 전역 밑줄(off)을 덮어쓴다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorUnderline: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideUnderline1: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorUnderline.Should().BeTrue("곡별 region1 밑줄이 전역을 덮어씀");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Underline_UsesOverrideWhenPresent()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜",
+                OverrideUnderline2: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720));
+
+        scene.LyricsMonitorUnderline2.Should().BeTrue("곡별 region2 밑줄 오버라이드");
+        scene.LyricsMonitorUnderline.Should().BeFalse("region1 은 밑줄 없음(전역 off)");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Underline_FollowsRegion1WhenNoOverride()
+    {
+        // region2 밑줄 비트가 없으면 Region1 밑줄(여기선 전역 on)을 추종한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorUnderline: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Amazing", CurrentItemBodyText2: "은혜"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorUnderline2.Should().BeTrue("region2 미지정 → region1(전역 on) 추종");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideAlignment()
     {
         // 라이브가 아니면 곡 정렬 오버라이드를 적용하지 않는다 — 운영 기본 정렬 유지.

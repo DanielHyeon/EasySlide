@@ -99,8 +99,10 @@ public sealed class SongFormatDataTests
             Alignment2 = 1,
             Bold1 = true,
             Italic1 = false,
+            Underline1 = true,
             Bold2 = false,
             Italic2 = true,
+            Underline2 = false,
             BackgroundImagePath = @"C:\EasiSlides\Images\성경\bible.jpg",
             MediaPath = "clip.mp4",
         };
@@ -132,6 +134,32 @@ public sealed class SongFormatDataTests
         f.Italic1.Should().BeTrue();
         f.Bold2.Should().BeTrue();
         f.Italic2.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Encode_UnderlineBits_RoundTrip()
+    {
+        // 밑줄 비트: region1 Underline=bit2(4), region2 Underline=bit5(32) → 4|32 = 36.
+        var encoded = new SongFormatData { Underline1 = true, Underline2 = true }.Encode();
+
+        encoded.Should().Contain("41=36");
+        var f = SongFormatData.Parse(encoded)!;
+        f.Underline1.Should().BeTrue();
+        f.Underline2.Should().BeTrue();
+        f.Bold1.Should().BeFalse();
+        f.Italic2.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Encode_AllRegion1Effects_PackBitsCorrectly()
+    {
+        // region1 Bold+Italic+Underline = 1|2|4 = 7(하위 3비트), region2 효과 없음.
+        var encoded = new SongFormatData { Bold1 = true, Italic1 = true, Underline1 = true }.Encode();
+
+        encoded.Should().Contain("41=7");
+        var f = SongFormatData.Parse(encoded)!;
+        f.Underline1.Should().BeTrue();
+        f.Underline2.Should().BeFalse();
     }
 
     [Theory]

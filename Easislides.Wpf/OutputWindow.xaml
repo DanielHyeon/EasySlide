@@ -190,7 +190,7 @@
                            FontFamily="{Binding BodyFont2Family}"
                            FontWeight="{Binding BodyFont2Weight}"
                            FontStyle="{Binding BodyFont2Style}"
-                           TextDecorations="{Binding BodyTextDecorations}"
+                           TextDecorations="{Binding BodyText2Decorations}"
                            LineHeight="{Binding BodyLineHeight}"
                            Foreground="{Binding SceneForegroundBrush2}"
                            MaxHeight="320"

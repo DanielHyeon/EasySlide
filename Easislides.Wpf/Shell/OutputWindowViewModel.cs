@@ -62,6 +62,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private FontStyle _bodyFont2Style = FontStyles.Normal;
     private bool _bodyHasShadow;
     private TextDecorationCollection? _bodyTextDecorations;
+    private TextDecorationCollection? _bodyText2Decorations;
     // 외곽선 효과 사용 여부(§7.3-A). on 이면 본문을 외곽선 렌더러로 그린다(일반 본문과 상호배타).
     private bool _bodyHasOutline;
     // 외곽선 렌더러(OutlinedTextBlock) 가시성 — 외곽선 on + 본문 송출 중일 때만 Visible.
@@ -353,11 +354,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _bodyHasShadow, value);
     }
 
-    /// <summary>가사 본문 밑줄 — on 이면 TextDecorations.Underline, off 면 null(밑줄 없음). Region1/2 본문에 함께 적용(전역 효과).</summary>
+    /// <summary>Region1 본문 밑줄 — on 이면 TextDecorations.Underline, off 면 null. 곡별 region1 비트∥전역으로 해석된 값.</summary>
     public TextDecorationCollection? BodyTextDecorations
     {
         get => _bodyTextDecorations;
         private set => SetProperty(ref _bodyTextDecorations, value);
+    }
+
+    /// <summary>Region2(이중 언어 보조) 본문 밑줄 — 곡별 region2 비트가 있으면 그것, 없으면 Region1 추종으로 해석된 값.</summary>
+    public TextDecorationCollection? BodyText2Decorations
+    {
+        get => _bodyText2Decorations;
+        private set => SetProperty(ref _bodyText2Decorations, value);
     }
 
     /// <summary>위치 인디케이터 텍스트(절/슬라이드 "N/M"). §7.3-A.</summary>
@@ -730,8 +738,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyFont2Weight = scene.LyricsMonitorBold2 ? FontWeights.Bold : FontWeights.SemiBold;
         BodyFont2Style = scene.LyricsMonitorItalic2 ? FontStyles.Italic : FontStyles.Normal;
         BodyHasShadow = scene.LyricsMonitorShadow;
-        // 밑줄 — on 이면 Underline 장식, off 면 null(밑줄 없음, 무회귀). Region1/2 본문 둘 다 같은 값을 쓴다(전역 효과).
+        // 밑줄 — on 이면 Underline 장식, off 면 null(무회귀). Region1/2 를 영역별로 해석한 값(곡별 비트∥전역∥Region1 추종).
         BodyTextDecorations = scene.LyricsMonitorUnderline ? TextDecorations.Underline : null;
+        BodyText2Decorations = scene.LyricsMonitorUnderline2 ? TextDecorations.Underline : null;
         PositionLabel = scene.PositionLabel;
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
         ItemNumberText = scene.ItemNumberLabel;

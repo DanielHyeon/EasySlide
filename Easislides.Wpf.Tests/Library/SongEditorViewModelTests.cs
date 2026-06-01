@@ -287,22 +287,41 @@ public class SongEditorViewModelTests
         using var fixture = TempSongEditorSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         var repository = new FakeAdminDatabaseRepository();
+        // 41=39 = 1|2|4|32 = region1 Bold+Italic+Underline, region2 Underline.
         repository.Details[10] = Detail(10, "Styled", folderNo: 2,
-            formatData: "29=-16777216>30=-1>31=2>32=1>41=11>43=Arial>47=40>");
+            formatData: "29=-16777216>30=-1>31=2>32=1>41=39>43=Arial>47=40>");
         var sut = new SongEditorViewModel(fixture.Settings, repository, repository, null, null);
 
         await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
 
-        // 인스펙터 편집 대상(색·정렬·굵게·기울임)이 디코드된다.
+        // 인스펙터 편집 대상(색·정렬·굵게·기울임·밑줄)이 디코드된다.
         sut.Region1ColorHex.Should().Be("#FF000000");
         sut.Region2ColorHex.Should().Be("#FFFFFFFF");
         sut.Region1Alignment.Should().Be(2);
         sut.Region2Alignment.Should().Be(1);
-        sut.Region1Bold.Should().BeTrue();   // 41=11 → bit0
-        sut.Region1Italic.Should().BeTrue();  // bit1
-        sut.Region2Bold.Should().BeTrue();    // bit3
-        sut.Region2Italic.Should().BeFalse();
+        sut.Region1Bold.Should().BeTrue();       // bit0
+        sut.Region1Italic.Should().BeTrue();      // bit1
+        sut.Region1Underline.Should().BeTrue();   // bit2
+        sut.Region2Bold.Should().BeFalse();       // bit3
+        sut.Region2Italic.Should().BeFalse();     // bit4
+        sut.Region2Underline.Should().BeTrue();   // bit5
         sut.HasChanges.Should().BeFalse("로드는 변경이 아니다");
+    }
+
+    [Fact]
+    public async Task ChangingRegionUnderline_EncodesIntoFormatData()
+    {
+        using var fixture = TempSongEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Details[10] = Detail(10, "Styled", folderNo: 2, formatData: "29=-1>");
+        var sut = new SongEditorViewModel(fixture.Settings, repository, repository, null, null);
+        await sut.LoadAsync(fixture.AdminDatabasePath, new SongFolderSummary(2, "Morning", true, 1), Song(10, "Summary", folderNo: 2));
+
+        sut.Region1Underline = true;
+
+        sut.HasChanges.Should().BeTrue();
+        SongFormatData.Parse(sut.FormatData)!.Underline1.Should().BeTrue();
     }
 
     [Fact]

@@ -77,8 +77,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int _region2Alignment;
     [ObservableProperty] private bool _region1Bold;
     [ObservableProperty] private bool _region1Italic;
+    [ObservableProperty] private bool _region1Underline;
     [ObservableProperty] private bool _region2Bold;
     [ObservableProperty] private bool _region2Italic;
+    [ObservableProperty] private bool _region2Underline;
 
     // 코드 조옮김 반음(미리보기 전용). 변경 시 미리보기만 다시 그린다(곡 dirty 안 됨).
     [ObservableProperty]
@@ -388,9 +390,13 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     partial void OnRegion1ItalicChanged(bool value) => RebuildFormatDataFromInspector();
 
+    partial void OnRegion1UnderlineChanged(bool value) => RebuildFormatDataFromInspector();
+
     partial void OnRegion2BoldChanged(bool value) => RebuildFormatDataFromInspector();
 
     partial void OnRegion2ItalicChanged(bool value) => RebuildFormatDataFromInspector();
+
+    partial void OnRegion2UnderlineChanged(bool value) => RebuildFormatDataFromInspector();
 
     partial void OnIsBusyChanged(bool value) => SaveCommand.NotifyCanExecuteChanged();
 
@@ -406,8 +412,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         Region2Alignment = format.Alignment2 ?? 0;
         Region1Bold = format.Bold1;
         Region1Italic = format.Italic1;
+        Region1Underline = format.Underline1;
         Region2Bold = format.Bold2;
         Region2Italic = format.Italic2;
+        Region2Underline = format.Underline2;
     }
 
     // 인스펙터 속성을 FormatData 로 인코드한다(폰트·크기·배경 등 나머지 필드는 _preservedFormat 에서 보존).
@@ -428,8 +436,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             Alignment2 = Region2Alignment is >= 1 and <= 3 ? Region2Alignment : null,
             Bold1 = Region1Bold,
             Italic1 = Region1Italic,
+            Underline1 = Region1Underline,
             Bold2 = Region2Bold,
             Italic2 = Region2Italic,
+            Underline2 = Region2Underline,
         };
         _preservedFormat = updated;
         FormatData = updated.Encode(); // OnFormatDataChanged → MarkChanged(dirty + 미리보기 갱신).

@@ -7,7 +7,7 @@ namespace Easislides.Wpf.Library;
 /// 레거시 v32 FormatData 를 디코드한 곡-레벨 포맷(색·폰트·크기·정렬·배경). 형식은 "코드=값&gt;코드=값&gt;...".
 /// 필드-코드 매핑은 레거시 gfLyrics(HeaderData[n] → 속성)의 권위를 따른다:
 ///   26/27 = 배경색 region1/2(ARGB int), 29/30 = 글자색 region1/2,
-///   43/44 = 폰트명, 47/48 = 글자 크기(6~100), 31/32 = 정렬(1~3), 41 = 글꼴 효과 비트(0-based: region1 bit0=Bold·bit1=Italic / region2 bit3=Bold·bit4=Italic),
+///   43/44 = 폰트명, 47/48 = 글자 크기(6~100), 31/32 = 정렬(1~3), 41 = 글꼴 효과 비트(0-based: region1 bit0=Bold·bit1=Italic·bit2=Underline / region2 bit3=Bold·bit4=Italic·bit5=Underline),
 ///   61 = 배경 이미지 경로, 51 = 미디어 경로.
 /// 곡마다 두 영역(region1/region2 — 이중 언어 등)을 가질 수 있고, 가사의 [region 2] 마커로 줄을 region2 에 배정한다.
 /// 인식 못 한 키/형식은 무시한다(레거시 데이터 견고성). 비었으면 null.
@@ -26,8 +26,10 @@ public sealed record SongFormatData
     public int? Alignment2 { get; init; }
     public bool Bold1 { get; init; }
     public bool Italic1 { get; init; }
+    public bool Underline1 { get; init; }
     public bool Bold2 { get; init; }
     public bool Italic2 { get; init; }
+    public bool Underline2 { get; init; }
     public string BackgroundImagePath { get; init; } = "";
     public string MediaPath { get; init; } = "";
 
@@ -76,7 +78,7 @@ public sealed record SongFormatData
             }
         }
 
-        // 글꼴 효과 비트(레거시, 0-based): region1 bit0=Bold·bit1=Italic / region2 bit3=Bold·bit4=Italic. 범위 밖이면 무시.
+        // 글꼴 효과 비트(레거시, 0-based): region1 bit0=Bold·bit1=Italic·bit2=Underline / region2 bit3=Bold·bit4=Italic·bit5=Underline. 범위 밖이면 무시.
         var hasBits = effectBits is >= 0 and <= 127;
 
         return new SongFormatData
@@ -91,10 +93,12 @@ public sealed record SongFormatData
             FontSize2 = fontSize2,
             Alignment1 = align1,
             Alignment2 = align2,
-            Bold1 = hasBits && (effectBits & 0b0000_0001) != 0,
-            Italic1 = hasBits && (effectBits & 0b0000_0010) != 0,
-            Bold2 = hasBits && (effectBits & 0b0000_1000) != 0,
-            Italic2 = hasBits && (effectBits & 0b0001_0000) != 0,
+            Bold1 = hasBits && (effectBits & 0b0000_0001) != 0,      // bit0
+            Italic1 = hasBits && (effectBits & 0b0000_0010) != 0,    // bit1
+            Underline1 = hasBits && (effectBits & 0b0000_0100) != 0, // bit2
+            Bold2 = hasBits && (effectBits & 0b0000_1000) != 0,      // bit3
+            Italic2 = hasBits && (effectBits & 0b0001_0000) != 0,    // bit4
+            Underline2 = hasBits && (effectBits & 0b0010_0000) != 0, // bit5
             BackgroundImagePath = backgroundImage,
             MediaPath = media,
         };
@@ -118,11 +122,14 @@ public sealed record SongFormatData
         if (Alignment1 is int a1) Add(31, Num(a1));
         if (Alignment2 is int a2) Add(32, Num(a2));
 
-        // 글꼴 효과 비트(레거시 HeaderData[41]): region1 bit0=Bold·bit1=Italic / region2 bit3=Bold·bit4=Italic.
+        // 글꼴 효과 비트(레거시 HeaderData[41], 0-based): region1 bit0=Bold·bit1=Italic·bit2=Underline /
+        // region2 bit3=Bold·bit4=Italic·bit5=Underline. (region1=하위 3비트, region2=상위 3비트로 대칭.)
         var effectBits = (Bold1 ? 0b0000_0001 : 0)
                        | (Italic1 ? 0b0000_0010 : 0)
+                       | (Underline1 ? 0b0000_0100 : 0)
                        | (Bold2 ? 0b0000_1000 : 0)
-                       | (Italic2 ? 0b0001_0000 : 0);
+                       | (Italic2 ? 0b0001_0000 : 0)
+                       | (Underline2 ? 0b0010_0000 : 0);
         if (effectBits != 0) Add(41, Num(effectBits));
 
         if (!string.IsNullOrEmpty(FontName1)) Add(43, FontName1);
