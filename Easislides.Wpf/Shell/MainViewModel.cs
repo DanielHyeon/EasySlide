@@ -2686,12 +2686,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 줄 간격이 다른 경로로 바뀌어도 입력 박스가 따라가도록 통지.
     partial void OnActiveLyricsLineSpacingChanged(int value) => OnPropertyChanged(nameof(LyricsLineSpacingInput));
 
-    // 본문 왼쪽 여백 조절(+/- 단계, px) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain ShowLeftMargin).
-    private void StepLyricsLeftMargin(int delta)
+    // 본문 왼쪽 여백 조절(+/- 단계) — 절대값 커밋에 위임(직접 수치 입력과 동일 경로, FrmMain ShowLeftMargin).
+    private void StepLyricsLeftMargin(int delta) => CommitLyricsLeftMargin(ActiveLyricsLeftMargin + delta);
+
+    // 본문 왼쪽 여백 절대값 커밋(px) — 범위 클램프 후 설정 저장. −/+ 버튼과 직접 입력이 한 경로로 모인다.
+    private void CommitLyricsLeftMargin(int value)
     {
-        var next = Math.Clamp(ActiveLyricsLeftMargin + delta, LyricsBodyMarginMin, LyricsBodyMarginMax);
+        var next = Math.Clamp(value, LyricsBodyMarginMin, LyricsBodyMarginMax);
         if (next == ActiveLyricsLeftMargin)
         {
+            OnPropertyChanged(nameof(LyricsLeftMarginInput));
             return;
         }
 
@@ -2700,12 +2704,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"본문 왼쪽 여백: {next}px";
     }
 
-    // 본문 오른쪽 여백 조절(+/- 단계, px) — FrmMain ShowRightMargin.
-    private void StepLyricsRightMargin(int delta)
+    /// <summary>본문 왼쪽 여백 직접 수치 입력(TextBox 양방향). 범위 밖 값은 클램프되고 입력 박스가 자동 보정.</summary>
+    public int LyricsLeftMarginInput
     {
-        var next = Math.Clamp(ActiveLyricsRightMargin + delta, LyricsBodyMarginMin, LyricsBodyMarginMax);
+        get => ActiveLyricsLeftMargin;
+        set => CommitLyricsLeftMargin(value);
+    }
+
+    partial void OnActiveLyricsLeftMarginChanged(int value) => OnPropertyChanged(nameof(LyricsLeftMarginInput));
+
+    // 본문 오른쪽 여백 조절(+/- 단계) — 절대값 커밋에 위임(FrmMain ShowRightMargin).
+    private void StepLyricsRightMargin(int delta) => CommitLyricsRightMargin(ActiveLyricsRightMargin + delta);
+
+    private void CommitLyricsRightMargin(int value)
+    {
+        var next = Math.Clamp(value, LyricsBodyMarginMin, LyricsBodyMarginMax);
         if (next == ActiveLyricsRightMargin)
         {
+            OnPropertyChanged(nameof(LyricsRightMarginInput));
             return;
         }
 
@@ -2714,12 +2730,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"본문 오른쪽 여백: {next}px";
     }
 
-    // 본문 아래 여백 조절(+/- 단계, px) — FrmMain ShowBottomMargin.
-    private void StepLyricsBottomMargin(int delta)
+    /// <summary>본문 오른쪽 여백 직접 수치 입력(TextBox 양방향).</summary>
+    public int LyricsRightMarginInput
     {
-        var next = Math.Clamp(ActiveLyricsBottomMargin + delta, LyricsBodyMarginMin, LyricsBodyMarginMax);
+        get => ActiveLyricsRightMargin;
+        set => CommitLyricsRightMargin(value);
+    }
+
+    partial void OnActiveLyricsRightMarginChanged(int value) => OnPropertyChanged(nameof(LyricsRightMarginInput));
+
+    // 본문 아래 여백 조절(+/- 단계) — 절대값 커밋에 위임(FrmMain ShowBottomMargin).
+    private void StepLyricsBottomMargin(int delta) => CommitLyricsBottomMargin(ActiveLyricsBottomMargin + delta);
+
+    private void CommitLyricsBottomMargin(int value)
+    {
+        var next = Math.Clamp(value, LyricsBodyMarginMin, LyricsBodyMarginMax);
         if (next == ActiveLyricsBottomMargin)
         {
+            OnPropertyChanged(nameof(LyricsBottomMarginInput));
             return;
         }
 
@@ -2727,6 +2755,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsBottomMargin = next;
         StatusText = $"본문 아래 여백: {next}px";
     }
+
+    /// <summary>본문 아래 여백 직접 수치 입력(TextBox 양방향).</summary>
+    public int LyricsBottomMarginInput
+    {
+        get => ActiveLyricsBottomMargin;
+        set => CommitLyricsBottomMargin(value);
+    }
+
+    partial void OnActiveLyricsBottomMarginChanged(int value) => OnPropertyChanged(nameof(LyricsBottomMarginInput));
 
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
     private void RefreshActiveAppearance()

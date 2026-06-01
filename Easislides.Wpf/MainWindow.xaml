@@ -1796,6 +1796,57 @@
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                     </StackPanel>
 
+                    <!-- 본문 여백(FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin) — 본문을 가장자리에서 안쪽으로
+                         들여쓴다. 좌/우/아래 3종 직접 수치 입력(0~400px, 범위 밖은 클램프·비숫자는 빨간 테두리). -->
+                    <TextBlock Text="본문 여백(px)"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <!-- 왼쪽 -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="왼쪽"
+                                   VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Text="{Binding LyricsLeftMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                 MinWidth="48" TextAlignment="Right" VerticalContentAlignment="Center"
+                                 ToolTip="본문 왼쪽 여백 (0~400px)"
+                                 AutomationProperties.Name="본문 왼쪽 여백 직접 입력" />
+                        <!-- 오른쪽 -->
+                        <TextBlock Grid.Row="0" Grid.Column="3" Text="오른쪽"
+                                   VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBox Grid.Row="0" Grid.Column="4"
+                                 Text="{Binding LyricsRightMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                 MinWidth="48" TextAlignment="Right" VerticalContentAlignment="Center"
+                                 ToolTip="본문 오른쪽 여백 (0~400px)"
+                                 AutomationProperties.Name="본문 오른쪽 여백 직접 입력" />
+                        <!-- 아래 -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="아래"
+                                   VerticalAlignment="Center" Margin="0,0,6,0"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Text="{Binding LyricsBottomMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                 MinWidth="48" TextAlignment="Right" VerticalContentAlignment="Center"
+                                 ToolTip="본문 아래 여백 (0~400px)"
+                                 AutomationProperties.Name="본문 아래 여백 직접 입력" />
+                    </Grid>
+
                     <!-- 인-셸 가사 폰트 효과(§7.3-A) — 굵게/기울임/그림자 토글. 그림자는 어두운/영상 배경 가독성. -->
                     <TextBlock Text="가사 효과"
                                Style="{StaticResource Type.Caption.Style}"

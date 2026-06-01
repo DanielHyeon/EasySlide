@@ -3343,6 +3343,45 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsBodyMarginInputs_DirectEntry_ClampAndPersist_LeftRightBottom()
+    {
+        // FrmMain ShowLeftMargin/Right/Bottom 직접 수치 입력 — 범위 안 그대로, 범위 밖은 0~400 으로 클램프.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsLeftMarginInput = 40;
+        sut.LyricsRightMarginInput = 56;
+        sut.LyricsBottomMarginInput = 72;
+        sut.ActiveLyricsLeftMargin.Should().Be(40);
+        sut.ActiveLyricsRightMargin.Should().Be(56);
+        sut.ActiveLyricsBottomMargin.Should().Be(72);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin).Should().Be(40);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin).Should().Be(56);
+        settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin).Should().Be(72);
+
+        sut.LyricsLeftMarginInput = 9999;
+        sut.ActiveLyricsLeftMargin.Should().Be(400, "상한 400px 으로 클램프");
+        sut.LyricsLeftMarginInput.Should().Be(400, "입력 박스도 클램프값으로 보정");
+
+        sut.LyricsBottomMarginInput = -50;
+        sut.ActiveLyricsBottomMargin.Should().Be(0, "하한 0px 으로 클램프");
+    }
+
+    [Fact]
+    public void LyricsLeftMarginInput_StepCommand_KeepsInputInSync()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.LyricsLeftMarginInput = 16;
+
+        sut.IncreaseLyricsLeftMarginCommand.Execute(null);
+
+        sut.LyricsLeftMarginInput.Should().Be(24, "버튼 +8 후 입력 박스도 24");
+    }
+
+    [Fact]
     public void LyricsBodyMarginCommands_StepAndPersist_LeftRightBottom()
     {
         // FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin 대응 — +/- 한 단계(8px)가 설정에 저장된다.
