@@ -22,7 +22,10 @@ public sealed record LiveSessionSnapshot(
     int CurrentItemPreviewPixelHeight = 0,
     // 라이브 곡 항목의 가사 본문(출력 화면 중앙에 텍스트로 송출). 곡이 아니거나 가사가 없으면 빈 문자열.
     // PPT/미디어처럼 미리보기 이미지로 송출되는 항목은 이 값이 비어 있고, 곡은 반대로 이미지가 비고 본문이 찬다.
+    // 이중 언어 곡에서는 이 값이 Region1(주 언어), CurrentItemBodyText2 가 Region2(보조 언어)다.
     string CurrentItemBodyText = "",
+    // 이중 언어([region 2]) 곡의 Region2(보조 언어) 본문. 단일 영역 곡·비곡은 빈 문자열(무회귀).
+    string CurrentItemBodyText2 = "",
     // 비우기(Clear) 모드 — State=Hidden 이면서 IsBlackout=false 일 때 콘텐츠는 감추되 배경은 유지(레거시 LiveClear).
     // IsBlackout(완전 검정)과 상호 배타. 기본 false. 출력 렌더러가 Cleared 씬으로 해석한다.
     bool IsCleared = false,
@@ -33,6 +36,8 @@ public sealed record LiveSessionSnapshot(
     // 곡별 FormatData(레거시 v32)에서 디코드한 region1 글자색(ARGB). 있으면 출력 렌더러가 운영 기본 글자색 대신 사용.
     // FormatData 가 없거나 글자색 항목(29)이 없으면 null → 기본색 유지(무회귀).
     int? OverrideTextColorArgb = null,
+    // 곡별 FormatData region2 글자색(30). 이중 언어 곡의 Region2 본문 색. 없으면 null → Region1 색(또는 기본색) 사용.
+    int? OverrideTextColorArgb2 = null,
     // 곡별 FormatData region1 배경색(ARGB). 있으면 운영 기본 배경색 대신 사용(솔리드). 없으면 null.
     int? OverrideBackgroundColorArgb = null,
     // 곡별 FormatData region1 가로 정렬(31). 있으면 운영 기본 정렬 대신 사용. 없으면 null.
@@ -100,13 +105,16 @@ public sealed class LiveSessionService : ILiveSessionService
             // 곡 항목이면 현재 절(LyricsPageIndex)을, 그 외(PPT/미디어 등)는 빈 본문을 싣는다.
             // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
             // LyricsPageIndex=0 이면 첫 절, GoLive 호출 전에 MainViewModel 이 현재 페이지를 얹어 전달한다.
-            // 이중 언어([region 2]) 곡이면 Region1·Region2 를 한 본문에 함께 싣는다(동시 송출).
+            // 이중 언어([region 2]) 곡이면 Region1·Region2 를 각각 싣는다(출력이 영역별 스타일로 동시 송출).
             CurrentItemBodyText: ComputeBodyText(item),
+            CurrentItemBodyText2: ComputeBodyText2(item),
             CurrentItemPositionLabel: item.PositionLabel,
             // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
             CurrentLyricsPageIndex: item.LyricsPageIndex,
             // 곡별 색(있으면) — 렌더러가 Live 일 때 운영 기본색 대신 적용.
             OverrideTextColorArgb: format?.TextColorArgb1,
+            // 이중 언어 Region2 글자색(30) — 있으면 Region2 본문에 적용(없으면 Region1 색 추종).
+            OverrideTextColorArgb2: format?.TextColorArgb2,
             OverrideBackgroundColorArgb: format?.BackgroundColorArgb1,
             // 곡별 가로 정렬(있으면) — 레거시 1=왼쪽/2=가운데/3=오른쪽. region1 한정
             // (region2 정렬(32)은 현재 출력이 단일 정렬 모델이라 미적용 — 이중 언어 출력 도입 시 확장).
@@ -140,22 +148,21 @@ public sealed class LiveSessionService : ILiveSessionService
         return Math.Clamp(px, 8, 240);
     }
 
-    // 현재 절의 송출 본문을 만든다. 이중 언어([region 2]) 곡이면 Region1·Region2 를 한 줄 띄워 함께 싣고,
-    // 단일 영역 곡은 기존 경로(Sequence 적용 GetVersePage)를 그대로 써 비트 동일(무회귀). 곡이 아니면 빈 문자열.
+    // 현재 절의 Region1(주 언어) 본문. 단일 영역 곡은 기존 경로(Sequence 적용 GetVersePage)를 그대로 써 비트 동일(무회귀).
+    // 이중 언어 곡은 영역-인식 GetRegionPage 의 Region1. 곡이 아니면 빈 문자열.
     // 주의: 이중 언어 경로는 현재 Sequence 를 무시하고 선형 GetRegionPages 를 쓴다(count·body 동일 소스로 정렬 보장).
-    //       이중 언어 + Sequence 동시 지원과 영역별 스타일(색·폰트 분리)은 차기 슬라이스.
+    //       이중 언어 + Sequence 동시 지원·절 라벨 점프는 차기 슬라이스.
     private static string ComputeBodyText(LiveQueueItem item)
-    {
-        if (!LyricsDisplayFormatter.HasRegion2(item.Lyrics))
-        {
-            return LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence);
-        }
+        => LyricsDisplayFormatter.HasRegion2(item.Lyrics)
+            ? LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex).Region1
+            : LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence);
 
-        var page = LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex);
-        return string.IsNullOrEmpty(page.Region2)
-            ? page.Region1
-            : $"{page.Region1}\n{page.Region2}";
-    }
+    // 현재 절의 Region2(보조 언어) 본문 — 이중 언어 곡일 때만. 단일 영역·비곡은 빈 문자열.
+    // Region1 과 동일 인덱스(GetRegionPage)라 두 영역이 같은 절로 짝지어진다.
+    private static string ComputeBodyText2(LiveQueueItem item)
+        => LyricsDisplayFormatter.HasRegion2(item.Lyrics)
+            ? LyricsDisplayFormatter.GetRegionPage(item.Lyrics, item.LyricsPageIndex).Region2
+            : string.Empty;
 
     // 레거시 FormatData 정렬값(1~3) → WPF 가사 정렬 enum. 없거나 범위 밖이면 null(운영 기본 정렬 유지).
     private static LyricsTextAlignment? MapAlignment(int? legacyAlign)

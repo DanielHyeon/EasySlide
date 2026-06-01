@@ -108,66 +108,82 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <!-- 라이브 곡 가사 본문(절 단위 페이지네이션 — PR B).
-                 GoLive 시 MainViewModel 이 현재 절(LyricsPageIndex)만 BodyText 에 실어 전달한다.
-                 본문이 있을 때만 표시되며, 이때 타이틀은 숨겨진다.
-                 정렬은 인-셸 가사 정렬 설정(BodyTextAlignment/BodyHorizontalAlignment)에서 유래(§7.3-A, 기본 가운데). -->
-            <TextBlock Text="{Binding BodyText}"
-                       HorizontalAlignment="{Binding BodyHorizontalAlignment}"
-                       VerticalAlignment="{Binding BodyVerticalAlignment}"
-                       TextAlignment="{Binding BodyTextAlignment}"
-                       TextWrapping="Wrap"
-                       TextTrimming="CharacterEllipsis"
-                       Margin="{Binding BodyContentMargin}"
-                       FontSize="{Binding BodyFontSize}"
-                       FontFamily="{Binding BodyFontFamily}"
-                       FontWeight="{Binding BodyFontWeight}"
-                       FontStyle="{Binding BodyFontStyle}"
-                       LineHeight="{Binding BodyLineHeight}"
-                       Foreground="{Binding SceneForegroundBrush}"
-                       MaxWidth="1160"
-                       MaxHeight="660"
-                       Visibility="{Binding BodyTextVisibility}">
-                <!-- 그림자 효과: BodyHasShadow=true 일 때만 DropShadowEffect 적용(어두운/영상 배경 위 가독성, §7.3-A). -->
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
-                                <Setter Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect Color="Black"
-                                                          BlurRadius="8"
-                                                          ShadowDepth="2"
-                                                          Direction="315"
-                                                          Opacity="0.85" />
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+            <!-- 라이브 곡 가사 본문 영역(절 단위 페이지네이션 — PR B + 이중 언어 Region 1/2).
+                 묶음(StackPanel)이 정렬·세로배치·헤딩여백을 갖고, 안에서 Region1(일반/외곽선 상호배타) 위에
+                 Region2(이중 언어 보조, 있을 때만)를 수직으로 쌓아 두 언어를 짝지어 송출한다.
+                 단일 영역 곡은 Region2 가 Collapsed 라 묶음에 Region1 한 줄만 → 기존 레이아웃과 동일(무회귀). -->
+            <StackPanel HorizontalAlignment="{Binding BodyHorizontalAlignment}"
+                        VerticalAlignment="{Binding BodyVerticalAlignment}"
+                        Margin="{Binding BodyContentMargin}"
+                        MaxWidth="1160"
+                        MaxHeight="980"><!-- 이중 언어 두 영역 합산 높이 상한(660+8+320) — 화면 넘침 방지. 단일 영역(660)엔 무영향. -->
+                <!-- Region1 일반 본문 — 외곽선 off 일 때. 정렬은 인-셸 가사 정렬 설정(§7.3-A, 기본 가운데). -->
+                <TextBlock Text="{Binding BodyText}"
+                           TextAlignment="{Binding BodyTextAlignment}"
+                           TextWrapping="Wrap"
+                           TextTrimming="CharacterEllipsis"
+                           FontSize="{Binding BodyFontSize}"
+                           FontFamily="{Binding BodyFontFamily}"
+                           FontWeight="{Binding BodyFontWeight}"
+                           FontStyle="{Binding BodyFontStyle}"
+                           LineHeight="{Binding BodyLineHeight}"
+                           Foreground="{Binding SceneForegroundBrush}"
+                           MaxHeight="660"
+                           Visibility="{Binding BodyTextVisibility}">
+                    <!-- 그림자 효과: BodyHasShadow=true 일 때만 DropShadowEffect 적용(어두운/영상 배경 위 가독성, §7.3-A). -->
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Black"
+                                                              BlurRadius="8"
+                                                              ShadowDepth="2"
+                                                              Direction="315"
+                                                              Opacity="0.85" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
 
-            <!-- 외곽선 가사 본문(§7.3-A 폰트 효과 — Outline Font). 외곽선 효과 on 일 때만 일반 본문 대신 표시(상호배타).
-                 일반 본문과 같은 정렬·폰트·줄간격·여백을 따르며, 글자에 검은 외곽선을 둘러 영상/밝은 배경 위 가독성을 높인다.
-                 Fill=글자색(SceneForegroundBrush), Stroke=검정. -->
-            <controls:OutlinedTextBlock Text="{Binding BodyText}"
-                                        HorizontalAlignment="{Binding BodyHorizontalAlignment}"
-                                        VerticalAlignment="{Binding BodyVerticalAlignment}"
-                                        TextAlignment="{Binding BodyTextAlignment}"
-                                        Margin="{Binding BodyContentMargin}"
-                                        FontSize="{Binding BodyFontSize}"
-                                        FontFamily="{Binding BodyFontFamily}"
-                                        FontWeight="{Binding BodyFontWeight}"
-                                        FontStyle="{Binding BodyFontStyle}"
-                                        LineHeight="{Binding BodyLineHeight}"
-                                        Fill="{Binding SceneForegroundBrush}"
-                                        Stroke="Black"
-                                        StrokeThickness="2"
-                                        MaxTextWidth="1160"
-                                        MaxWidth="1160"
-                                        MaxHeight="660"
-                                        Visibility="{Binding BodyOutlineVisibility}" />
+                <!-- Region1 외곽선 본문(§7.3-A Outline Font) — 외곽선 on 일 때 일반 본문 대신(상호배타).
+                     이 컨트롤은 내부에서 MaxTextWidth(1160) 기준으로 글자를 자가정렬하므로, 정렬을 StackPanel 에 맡기지 않고
+                     기존처럼 명시 HorizontalAlignment·MaxWidth 를 유지한다(외곽선 모드 정렬 시프트 방지, code-review MAJOR 반영). -->
+                <controls:OutlinedTextBlock Text="{Binding BodyText}"
+                                            HorizontalAlignment="{Binding BodyHorizontalAlignment}"
+                                            MaxWidth="1160"
+                                            TextAlignment="{Binding BodyTextAlignment}"
+                                            FontSize="{Binding BodyFontSize}"
+                                            FontFamily="{Binding BodyFontFamily}"
+                                            FontWeight="{Binding BodyFontWeight}"
+                                            FontStyle="{Binding BodyFontStyle}"
+                                            LineHeight="{Binding BodyLineHeight}"
+                                            Fill="{Binding SceneForegroundBrush}"
+                                            Stroke="Black"
+                                            StrokeThickness="2"
+                                            MaxTextWidth="1160"
+                                            MaxHeight="660"
+                                            Visibility="{Binding BodyOutlineVisibility}" />
+
+                <!-- Region2(이중 언어 보조 언어) — 이중 언어 곡일 때만 Region1 아래에 표시. Region2 색(SceneForegroundBrush2). -->
+                <TextBlock Text="{Binding BodyText2}"
+                           TextAlignment="{Binding BodyTextAlignment}"
+                           TextWrapping="Wrap"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,8,0,0"
+                           FontSize="{Binding BodyFontSize}"
+                           FontFamily="{Binding BodyFontFamily}"
+                           FontWeight="{Binding BodyFontWeight}"
+                           FontStyle="{Binding BodyFontStyle}"
+                           LineHeight="{Binding BodyLineHeight}"
+                           Foreground="{Binding SceneForegroundBrush2}"
+                           MaxHeight="320"
+                           Visibility="{Binding BodyText2Visibility}" />
+            </StackPanel>
 
             <!-- 미디어 출력(영상/오디오) — WpfMediaElementPlaybackBackend 가 Source/재생을 제어한다.
                  Source 가 설정될 때만(미디어 항목 송출 시) 표시되어 가사/타이틀을 덮는다(실제 백엔드 트랙 2단계). -->

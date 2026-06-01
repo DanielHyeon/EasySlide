@@ -312,18 +312,33 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
-    public void GoLive_WithDualLanguageLyrics_CombinesRegion1AndRegion2InBody()
+    public void GoLive_WithDualLanguageLyrics_CarriesRegion1AndRegion2Separately()
     {
-        // 이중 언어([region 2]) 곡이 라이브로 나가면 Region1·Region2 를 한 본문에 함께 송출(동시 표시).
+        // 이중 언어([region 2]) 곡이 라이브로 나가면 Region1 은 BodyText, Region2 는 BodyText2 로 따로 실린다
+        // (출력이 영역별 스타일·색으로 동시 송출). region2 색(30)도 함께 적재.
         var item = new LiveQueueItem("song-3", "은혜로다")
         {
             Lyrics = "[1]\nAmazing grace\n[region 2]\n놀라운 은혜",
+            FormatData = "30=-16776961>", // region2 글자색(파랑)
         };
         var sut = new LiveSessionService();
 
         sut.GoLive(item, "모니터 2");
 
-        sut.Current.CurrentItemBodyText.Should().Be("Amazing grace\n놀라운 은혜");
+        sut.Current.CurrentItemBodyText.Should().Be("Amazing grace", "Region1 은 본문1");
+        sut.Current.CurrentItemBodyText2.Should().Be("놀라운 은혜", "Region2 는 본문2");
+        sut.Current.OverrideTextColorArgb2.Should().Be(-16776961, "30 = region2 글자색");
+    }
+
+    [Fact]
+    public void GoLive_SingleLanguage_LeavesBodyText2Empty()
+    {
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\nAmazing grace" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBodyText2.Should().BeEmpty("단일 영역은 Region2 없음(무회귀)");
     }
 
     [Fact]

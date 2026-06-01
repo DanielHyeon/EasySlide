@@ -134,6 +134,36 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_ActiveDualLanguage_ShowsRegion2Body()
+    {
+        // 이중 언어([region 2]) 곡 라이브 → Region2 본문(BodyText2)과 표시가 켜진다(영역별 동시 송출).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "Amazing grace",
+            CurrentItemBodyText2: "놀라운 은혜"));
+
+        sut.BodyText.Should().Be("Amazing grace");
+        sut.BodyText2.Should().Be("놀라운 은혜");
+        sut.BodyText2Visibility.Should().Be(Visibility.Visible);
+    }
+
+    [Fact]
+    public void ApplySession_SingleLanguage_HidesRegion2Body()
+    {
+        // 단일 영역 곡은 Region2 가 비어 Collapsed(무회귀).
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "Amazing grace"));
+
+        sut.BodyText2.Should().BeEmpty();
+        sut.BodyText2Visibility.Should().Be(Visibility.Collapsed);
+    }
+
+    [Fact]
     public void ApplySession_ActiveWithoutBody_ShowsTitleNotBody()
     {
         // 가사가 없으면 본문은 숨고 기존처럼 타이틀이 보인다(PPT/미디어/공지 등).

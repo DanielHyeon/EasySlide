@@ -30,9 +30,14 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private string _displayTitle = "STANDBY";
     private string _statusLabel = "STANDBY";
     private string _bodyText = string.Empty;
+    // 이중 언어 Region2(보조 언어) 본문 + 표시 + 글자색(Region2 색). 단일 영역이면 빈 문자열·Collapsed(무회귀).
+    private string _bodyText2 = string.Empty;
+    private Visibility _bodyText2Visibility = Visibility.Collapsed;
     private bool _isBlackout;
     private bool _isOutputOpen;
     private Brush _sceneForegroundBrush;
+    // Region2(이중 언어 보조 언어) 글자색 브러시 — 곡별 region2 색(30) 또는 Region1 색 추종.
+    private Brush _sceneForegroundBrush2;
     private Brush _sceneBackgroundBrush;
     private Visibility _lyricsAlertVisibility = Visibility.Collapsed;
     private Visibility _notationVisibility = Visibility.Visible;
@@ -116,6 +121,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 로더 미주입 시 기본 로더(BitmapImage)로 디스크에서 직접 로드
         _gapLogoLoader = gapLogoLoader ?? DefaultGapLogoLoader;
         _sceneForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
+        _sceneForegroundBrush2 = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
         _sceneBackgroundBrush = CreateBackgroundBrush(
             LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColorArgb,
             LiveOutputRenderSettings.Default.LyricsMonitorBackgroundColor2Argb,
@@ -171,6 +177,27 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _bodyTextVisibility;
         private set => SetProperty(ref _bodyTextVisibility, value);
+    }
+
+    /// <summary>이중 언어 Region2(보조 언어) 본문. 단일 영역 곡·비곡은 빈 문자열.</summary>
+    public string BodyText2
+    {
+        get => _bodyText2;
+        private set => SetProperty(ref _bodyText2, value);
+    }
+
+    /// <summary>Region2 본문 표시 여부 — 이중 언어 곡 본문 송출 중일 때만 Visible(단일 영역은 Collapsed).</summary>
+    public Visibility BodyText2Visibility
+    {
+        get => _bodyText2Visibility;
+        private set => SetProperty(ref _bodyText2Visibility, value);
+    }
+
+    /// <summary>Region2 글자색 브러시 — 곡별 region2 색(30) 또는 Region1 색 추종.</summary>
+    public Brush SceneForegroundBrush2
+    {
+        get => _sceneForegroundBrush2;
+        private set => SetProperty(ref _sceneForegroundBrush2, value);
     }
 
     /// <summary>외곽선 가사 본문(OutlinedTextBlock) 표시 여부 — 본문 송출 중 + 외곽선 on 일 때만 Visible(§7.3-A).</summary>
@@ -514,6 +541,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         DisplayTitle = scene.DisplayTitle;
         StatusLabel = scene.StatusLabel;
         SceneForegroundBrush = CreateBrush(scene.LyricsMonitorTextColorArgb);
+        SceneForegroundBrush2 = CreateBrush(scene.LyricsMonitorTextColor2Argb);
         SceneBackgroundBrush = CreateBackgroundBrush(
             scene.LyricsMonitorBackgroundColorArgb,
             scene.LyricsMonitorBackgroundColor2Argb,
@@ -524,6 +552,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         NotationVisibility = scene.LyricsMonitorShowNotations ? Visibility.Visible : Visibility.Collapsed;
         // 곡 가사 본문을 송출 슬롯에 반영. 본문이 보이면 타이틀과 겹치므로 ApplyGapLogo 에서 타이틀을 숨긴다.
         BodyText = scene.BodyText;
+        BodyText2 = scene.BodyText2;
+        BodyText2Visibility = scene.ShowsBodyText2 ? Visibility.Visible : Visibility.Collapsed;
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);

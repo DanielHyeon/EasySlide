@@ -157,12 +157,19 @@ public sealed record OutputSceneSnapshot(
     // 출력 가사 글꼴명(곡별 FormatData 43 오버라이드). 비었으면 테마 기본 글꼴 상속(무회귀). §7.3-A per-song 폰트.
     string LyricsMonitorFontFamily = "",
     // 출력 배경 이미지 경로(곡별 FormatData 61 오버라이드). 비었으면 색 배경 유지. VM 이 로드해 색 배경 위에 표시.
-    string BackgroundImagePath = "")
+    string BackgroundImagePath = "",
+    // 이중 언어([region 2]) 곡의 Region2(보조 언어) 본문. 단일 영역 곡은 빈 문자열 → Region2 미표시(무회귀).
+    string BodyText2 = "",
+    // Region2 본문 글자색(ARGB). 곡별 FormatData region2 색(30)이 없으면 Region1 색을 추종.
+    int LyricsMonitorTextColor2Argb = -16777216)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
     // 가사 본문을 실제로 송출할지 — Live 상태 + 본문이 있을 때만.
     public bool ShowsBodyText => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText);
+
+    // Region2(이중 언어 보조) 본문을 송출할지 — Live + Region2 본문이 있을 때만(단일 영역 곡은 false → 무회귀).
+    public bool ShowsBodyText2 => Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(BodyText2);
 
     // 위치 인디케이터를 실제로 노출할지 — 설정 on + Live + 라벨이 있을 때만.
     public bool ShowsPositionIndicator => ShowLyricsPositionIndicator && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(PositionLabel);
@@ -237,6 +244,11 @@ public sealed class OutputRenderer : IOutputRenderer
         var backgroundImagePath = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
             ? request.Session.OverrideBackgroundImagePath!
             : "";
+        // Region2(이중 언어) 본문은 Live 일 때만 싣는다. Region2 색은 곡별 region2 색(30)이 있으면 그것, 없으면 Region1 색을 추종.
+        var bodyText2 = isLive ? request.Session.CurrentItemBodyText2 : string.Empty;
+        var textColor2Argb = isLive && request.Session.OverrideTextColorArgb2 is int songTextColor2
+            ? songTextColor2
+            : textColorArgb;
 
         return new OutputSceneSnapshot(
             kind,
@@ -279,7 +291,10 @@ public sealed class OutputRenderer : IOutputRenderer
             // 곡별 글꼴명(Live + 오버라이드 있을 때만). 비었으면 VM 이 테마 기본 글꼴을 상속(무회귀).
             fontFamily,
             // 곡별 배경 이미지 경로(Live + 오버라이드 있을 때만). 비었으면 VM 이 색 배경을 유지(무회귀).
-            backgroundImagePath);
+            backgroundImagePath,
+            // Region2(이중 언어) 본문·색 — Live + 이중 언어 곡일 때만 채워진다.
+            bodyText2,
+            textColor2Argb);
     }
 
     private ImagePlacement GetContentPlacement(
