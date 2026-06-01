@@ -220,6 +220,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> LyricsMonitorBodyBottomMargin = new("liveOutput.lyricsMonitorBodyBottomMargin", 0);
     // 출력 위치 인디케이터 표시(절/슬라이드 "N/M", 인-셸 §7.3-A). 기본 off.
     public static readonly SettingKey<bool> LyricsMonitorShowPositionIndicator = new("liveOutput.lyricsMonitorShowPositionIndicator", false);
+    // 절 헤딩 표시(현재 절의 섹션 라벨 "1절"/"후렴" 등을 본문 위에 표시, FrmMain Def_Head All). 기본 off.
+    public static readonly SettingKey<bool> LyricsMonitorShowVerseHeading = new("liveOutput.lyricsMonitorShowVerseHeading", false);
     // 출력에 곡 번호 표시(FrmMain "Show Item Number"/"Use Song Numbering", Display Panel). 기본 off → 기존 동작 보존.
     public static readonly SettingKey<bool> LyricsMonitorShowItemNumber = new("liveOutput.lyricsMonitorShowItemNumber", false);
     // 출력에 저작권 표시(FrmMain "Show Copyright Information", Display Panel — CCLI 등 라이선스 표기). 기본 off.
@@ -315,6 +317,7 @@ public static class EasiSettingKeys
         LyricsMonitorBodyRightMargin,
         LyricsMonitorBodyBottomMargin,
         LyricsMonitorShowPositionIndicator,
+        LyricsMonitorShowVerseHeading,
         // Display Panel 토글들(곡번호·저작권·다음항목) — All 누락 시 FindChangedKeys 가 변경을 못 잡아
         // 메뉴 토글이 라이브 출력에 즉시 반영되지 않는다(다음 GoLive 때까지 지연). 반드시 등록.
         LyricsMonitorShowItemNumber,
@@ -441,6 +444,8 @@ public sealed record LiveOutputSettings
     public int LyricsMonitorBodyBottomMargin { get; init; } = EasiSettingKeys.LyricsMonitorBodyBottomMargin.DefaultValue;
 
     public bool LyricsMonitorShowPositionIndicator { get; init; } = EasiSettingKeys.LyricsMonitorShowPositionIndicator.DefaultValue;
+
+    public bool LyricsMonitorShowVerseHeading { get; init; } = EasiSettingKeys.LyricsMonitorShowVerseHeading.DefaultValue;
 
     public bool LyricsMonitorShowItemNumber { get; init; } = EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue;
 
@@ -1257,6 +1262,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorBodyRightMargin" => snapshot.LiveOutput.LyricsMonitorBodyRightMargin,
             "liveOutput.lyricsMonitorBodyBottomMargin" => snapshot.LiveOutput.LyricsMonitorBodyBottomMargin,
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
+            "liveOutput.lyricsMonitorShowVerseHeading" => snapshot.LiveOutput.LyricsMonitorShowVerseHeading,
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot.LiveOutput.LyricsMonitorShowItemNumber,
             "liveOutput.lyricsMonitorShowCopyright" => snapshot.LiveOutput.LyricsMonitorShowCopyright,
             "liveOutput.lyricsMonitorShowNextItem" => snapshot.LiveOutput.LyricsMonitorShowNextItem,
@@ -1444,6 +1450,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowPositionIndicator = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorShowVerseHeading" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowVerseHeading = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot with
             {

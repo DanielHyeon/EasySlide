@@ -48,7 +48,9 @@ public sealed record LyricsAppearanceTemplate(
     int BodyRightMargin = 0,
     int BodyBottomMargin = 0,
     // 헤딩이 본문 정렬을 따름(기본 false) — 구버전 JSON 역직렬화 시 기존 동작(헤딩 전용 정렬)으로 안전 복원.
-    bool TitleHeadingFollowBody = false)
+    bool TitleHeadingFollowBody = false,
+    // 절 헤딩 표시(기본 false) — 구버전 JSON 역직렬화 시 기존 동작(절 헤딩 없음)으로 안전 복원.
+    bool ShowVerseHeading = false)
 {
     /// <summary>현재 설정값에서 템플릿을 캡처한다(인-셸 출력 모양 키 전체).</summary>
     public static LyricsAppearanceTemplate Capture(ISettingsService settings)
@@ -77,7 +79,8 @@ public sealed record LyricsAppearanceTemplate(
             BodyLeftMargin: settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin),
             BodyRightMargin: settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
             BodyBottomMargin: settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin),
-            TitleHeadingFollowBody: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody));
+            TitleHeadingFollowBody: settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody),
+            ShowVerseHeading: settings.Get(EasiSettingKeys.LyricsMonitorShowVerseHeading));
     }
 
     /// <summary>템플릿 값을 설정에 되쓴다(각 키 Set → 출력 VM 이 SettingsChanged 로 라이브 반영).</summary>
@@ -106,6 +109,7 @@ public sealed record LyricsAppearanceTemplate(
         settings.Set(EasiSettingKeys.LyricsMonitorBodyRightMargin, BodyRightMargin);
         settings.Set(EasiSettingKeys.LyricsMonitorBodyBottomMargin, BodyBottomMargin);
         settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody, TitleHeadingFollowBody);
+        settings.Set(EasiSettingKeys.LyricsMonitorShowVerseHeading, ShowVerseHeading);
     }
 }
 

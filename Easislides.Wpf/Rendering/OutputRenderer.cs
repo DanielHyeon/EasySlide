@@ -55,6 +55,8 @@ public sealed record LiveOutputRenderSettings(
     int LyricsMonitorBodyBottomMargin = 0,
     // 출력 위치 인디케이터(절/슬라이드 "N/M") 표시 여부(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsPositionIndicator = false,
+    // 절 헤딩(현재 절의 섹션 라벨 "1절"/"후렴") 표시 여부(FrmMain Def_Head All). 기본 off.
+    bool ShowLyricsVerseHeading = false,
     // 출력 제목 헤딩(가사 위 상단 배너로 곡 제목) 표시 여부(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsTitleHeading = false,
     // 출력 가사 외곽선(Outline Font) 효과 여부(인-셸 §7.3-A 폰트 효과). 기본 off.
@@ -113,6 +115,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyBottomMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowVerseHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading),
             settings.Get(EasiSettingKeys.LyricsMonitorOutline),
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
@@ -188,6 +191,10 @@ public sealed record OutputSceneSnapshot(
     string PositionLabel = "",
     // 위치 인디케이터 표시 설정(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsPositionIndicator = false,
+    // 절 헤딩 라벨(현재 절의 섹션 라벨 "1절"/"후렴"). Live 가 아니면 빈 문자열로 들어온다.
+    string VerseHeadingLabel = "",
+    // 절 헤딩 표시 설정(FrmMain Def_Head All). 기본 off.
+    bool ShowLyricsVerseHeading = false,
     // 제목 헤딩 표시 설정(인-셸 §7.3-A). 기본 off.
     bool ShowLyricsTitleHeading = false,
     // 가사 외곽선(Outline Font) 효과 설정(인-셸 §7.3-A 폰트 효과). 기본 off.
@@ -266,6 +273,9 @@ public sealed record OutputSceneSnapshot(
 
     // 위치 인디케이터를 실제로 노출할지 — 설정 on + Live + 라벨이 있을 때만.
     public bool ShowsPositionIndicator => ShowLyricsPositionIndicator && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(PositionLabel);
+
+    // 절 헤딩을 실제로 노출할지 — 설정 on + Live + 섹션 라벨이 있을 때만(라벨 없는 절은 표시 안 함).
+    public bool ShowsVerseHeading => ShowLyricsVerseHeading && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(VerseHeadingLabel);
 
     // 제목 헤딩을 실제로 노출할지 — 설정 on + 가사 본문 송출 중 + 제목이 있을 때만(가사 위 상단 배너).
     // 본문이 있을 때만 의미 있다(본문 없으면 기존 중앙 제목이 그대로 제목을 담당).
@@ -410,6 +420,9 @@ public sealed class OutputRenderer : IOutputRenderer
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemPositionLabel : string.Empty,
             liveOutput.ShowLyricsPositionIndicator,
+            // 절 헤딩 라벨도 Live 일 때만 의미 있다(섹션 라벨, 그 외엔 빈 문자열).
+            kind == OutputSceneKind.Live ? request.Session.CurrentSectionLabel : string.Empty,
+            liveOutput.ShowLyricsVerseHeading,
             liveOutput.ShowLyricsTitleHeading,
             liveOutput.ShowLyricsOutline,
             // 헤딩 정렬: "본문 정렬 따름"(FrmMain AsR1) on 이면 본문(Region1)이 실제 쓰는 정렬을 그대로 사용,

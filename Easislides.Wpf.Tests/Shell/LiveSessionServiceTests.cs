@@ -174,6 +174,23 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_SetsCurrentSectionLabel_ForVerseHeading()
+    {
+        // 절 헤딩(FrmMain Def_Head All) — 현재 송출 절의 섹션 라벨이 스냅샷에 실린다.
+        // 후렴 판정과 같은 라벨 경로를 재사용하므로, [C] 페이지의 라벨은 후렴 라벨("C")이어야 한다.
+        const string lyrics = "[1]\n첫 절\n[C]\n후렴 가사";
+        var sut = new LiveSessionService();
+
+        var chorusItem = new LiveQueueItem("song-c", "은혜로다", LiveItemKinds.Song) { Lyrics = lyrics, LyricsPageIndex = 1 };
+        sut.GoLive(chorusItem, "모니터 2");
+        sut.Current.CurrentSectionLabel.Should().Be("C", "후렴 페이지의 섹션 라벨");
+
+        var verseItem = new LiveQueueItem("song-v", "은혜로다", LiveItemKinds.Song) { Lyrics = lyrics, LyricsPageIndex = 0 };
+        sut.GoLive(verseItem, "모니터 2");
+        sut.Current.CurrentSectionLabel.Should().Be("1", "1절 페이지의 섹션 라벨");
+    }
+
+    [Fact]
     public void GoLive_NonChorusPage_CurrentPageIsChorusFalse()
     {
         var item = new LiveQueueItem("song-v", "은혜로다", LiveItemKinds.Song)

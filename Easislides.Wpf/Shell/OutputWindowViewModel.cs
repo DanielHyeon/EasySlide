@@ -87,6 +87,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Visibility _bodyOutlineVisibility = Visibility.Collapsed;
     private string _positionLabel = string.Empty;
     private Visibility _positionIndicatorVisibility = Visibility.Collapsed;
+    private string _verseHeadingText = string.Empty;
+    private Visibility _verseHeadingVisibility = Visibility.Collapsed;
     // 곡 번호 표시(Display Panel) — 설정 on + Live + 번호 있을 때만 보인다.
     private string _itemNumberText = string.Empty;
     private Visibility _itemNumberVisibility = Visibility.Collapsed;
@@ -415,6 +417,20 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _positionIndicatorVisibility;
         private set => SetProperty(ref _positionIndicatorVisibility, value);
+    }
+
+    /// <summary>절 헤딩 텍스트(현재 절의 섹션 라벨 "1절"/"후렴"). FrmMain Def_Head All.</summary>
+    public string VerseHeadingText
+    {
+        get => _verseHeadingText;
+        private set => SetProperty(ref _verseHeadingText, value);
+    }
+
+    /// <summary>절 헤딩 표시 여부 — 설정 on + Live + 섹션 라벨 존재 시에만 Visible.</summary>
+    public Visibility VerseHeadingVisibility
+    {
+        get => _verseHeadingVisibility;
+        private set => SetProperty(ref _verseHeadingVisibility, value);
     }
 
     /// <summary>곡 번호 텍스트(Display Panel "Show Item Number").</summary>
@@ -780,6 +796,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyUnderline = scene.LyricsMonitorUnderline;
         PositionLabel = scene.PositionLabel;
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
+        VerseHeadingText = scene.VerseHeadingLabel;
+        VerseHeadingVisibility = scene.ShowsVerseHeading ? Visibility.Visible : Visibility.Collapsed;
         ItemNumberText = scene.ItemNumberLabel;
         ItemNumberVisibility = scene.ShowsItemNumber ? Visibility.Visible : Visibility.Collapsed;
         CopyrightText = scene.CopyrightLabel;
@@ -1208,6 +1226,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 절 헤딩 표시 토글도 라이브 출력에 즉시 반영(FrmMain Def_Head All).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowVerseHeading.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 곡 번호 표시 토글도 라이브 출력에 즉시 반영(Display Panel).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowItemNumber.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 저작권 표시 토글도 라이브 출력에 즉시 반영(Display Panel).

@@ -1176,6 +1176,49 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_ShowsVerseHeading_WhenEnabledAndLiveWithSectionLabel()
+    {
+        // 절 헤딩(FrmMain Def_Head All): 설정 on + Live + 섹션 라벨 존재 → ShowsVerseHeading true, 라벨 전달.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(ShowLyricsVerseHeading: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "후렴 가사", CurrentSectionLabel: "후렴"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.VerseHeadingLabel.Should().Be("후렴");
+        scene.ShowsVerseHeading.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_HidesVerseHeading_WhenSettingOffOrNoLabel()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+
+        // 설정 off → 라벨 있어도 숨김
+        var sceneOff = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "후렴", CurrentSectionLabel: "후렴"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: new LiveOutputRenderSettings(ShowLyricsVerseHeading: false)));
+        sceneOff.ShowsVerseHeading.Should().BeFalse("설정 off 면 숨김");
+
+        // 설정 on 이지만 섹션 라벨 없음(라벨 없는 절) → 숨김
+        var sceneNoLabel = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentSectionLabel: ""),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: new LiveOutputRenderSettings(ShowLyricsVerseHeading: true)));
+        sceneNoLabel.ShowsVerseHeading.Should().BeFalse("섹션 라벨이 없으면 숨김");
+    }
+
+    [Fact]
     public void CreateScene_HidesPositionIndicator_WhenSettingOff()
     {
         var sut = CreateRenderer();

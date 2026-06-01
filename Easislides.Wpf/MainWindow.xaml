@@ -148,6 +148,9 @@
                 <MenuItem Header="위치 인디케이터 (N/M)"
                           IsChecked="{Binding ActiveLyricsPositionIndicator}"
                           Command="{Binding ToggleLyricsPositionIndicatorCommand}" />
+                <MenuItem Header="절 헤딩 (1절/후렴)"
+                          IsChecked="{Binding ActiveLyricsVerseHeading}"
+                          Command="{Binding ToggleLyricsVerseHeadingCommand}" />
                 <MenuItem Header="곡 번호 표시"
                           IsChecked="{Binding ActiveLyricsItemNumber}"
                           Command="{Binding ToggleLyricsItemNumberCommand}" />

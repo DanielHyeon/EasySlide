@@ -118,6 +118,39 @@
                 </TextBlock.Style>
             </TextBlock>
 
+            <!-- 절 헤딩(FrmMain Def_Head All) — 현재 절의 섹션 라벨("1절"/"후렴")을 상단에 작게 표시.
+                 제목 헤딩(위)보다 작은 캡션. 설정 on + Live + 섹션 라벨 있을 때만 보인다(라벨 없는 절은 숨김). -->
+            <TextBlock Text="{Binding VerseHeadingText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top"
+                       TextAlignment="Center"
+                       TextWrapping="NoWrap"
+                       Margin="24,84,24,0"
+                       FontSize="26"
+                       FontWeight="SemiBold"
+                       Opacity="0.85"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       MaxWidth="1160"
+                       Visibility="{Binding VerseHeadingVisibility}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black"
+                                                          BlurRadius="8"
+                                                          ShadowDepth="2"
+                                                          Direction="315"
+                                                          Opacity="0.85" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
             <!-- 라이브 곡 가사 본문 영역(절 단위 페이지네이션 — PR B + 이중 언어 Region 1/2).
                  묶음(StackPanel)이 정렬·세로배치·헤딩여백을 갖고, 안에서 Region1(일반/외곽선 상호배타) 위에
                  Region2(이중 언어 보조, 있을 때만)를 수직으로 쌓아 두 언어를 짝지어 송출한다.
