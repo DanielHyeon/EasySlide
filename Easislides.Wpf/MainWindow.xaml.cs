@@ -322,6 +322,23 @@ public partial class MainWindow : Window
         }
     }
 
+    // 세션 메모 — 현재 예배 세션(예배 순서)의 운영자 메모를 편집·저장(FrmMain Session Notes 포팅).
+    private void OpenSessionNotes_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        // 현재 예배 세션 이름이 없으면(아직 저장/불러오기 전) "일반" 키로 떨어진다(VM 이 처리).
+        var notesViewModel = new Easislides.Wpf.Shell.WorshipSessionNotesViewModel(
+            new Easislides.Wpf.Shell.WorshipSessionNotesService(),
+            viewModel.CurrentWorshipListName);
+
+        var window = new Easislides.Wpf.Shell.WorshipSessionNotesWindow(notesViewModel) { Owner = this };
+        window.ShowDialog();
+    }
+
     // PowerPoint 폴더 브라우저 — 폴더의 PPT 덱을 보고 예배 순서에 추가(FrmMain PowerP 탭 포팅).
     private void OpenPowerPointLibrary_Click(object sender, RoutedEventArgs e)
     {

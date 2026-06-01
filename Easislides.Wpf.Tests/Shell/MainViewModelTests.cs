@@ -865,6 +865,18 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LoadWorshipList_SetsCurrentWorshipListName_ForSessionNotesKey()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일오전", System.Array.Empty<LiveQueueItem>());
+        var sut = CreateSut(worshipLists: store);
+
+        await sut.LoadWorshipListAsync("주일오전");
+
+        sut.CurrentWorshipListName.Should().Be("주일오전");
+    }
+
+    [Fact]
     public async Task LoadWorshipList_RecordsRecent()
     {
         var store = new InMemoryWorshipListStore();

@@ -800,9 +800,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>현재 예배 세션(마지막으로 저장/불러온 예배 순서) 이름 — 세션 메모 키로 쓰인다. 없으면 빈 문자열.</summary>
+    public string CurrentWorshipListName { get; private set; } = string.Empty;
+
     // 최근 예배 순서에 이름을 기록하고 메뉴 바인딩 컬렉션을 갱신한다(저장·불러오기 성공 시 호출).
     private void RecordRecentWorshipList(string name)
     {
+        CurrentWorshipListName = name;
         _recentWorshipLists.Record(name);
         RefreshRecentWorshipLists();
     }
