@@ -111,6 +111,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsCopyright = EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue;
     // 현재 다음 항목 표시 상태(메뉴 체크 바인딩용, Display Panel PrevNext).
     [ObservableProperty] private bool _activeLyricsNextItem = EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue;
+    // 현재 전환 페이드 사용 상태(메뉴 체크 바인딩용, FrmMain 전환 효과).
+    [ObservableProperty] private bool _activeFadeTransition = EasiSettingKeys.LyricsMonitorUseFadeTransition.DefaultValue;
+    // 현재 전환 길이(ms). 메뉴 프리셋(빠르게/보통/느리게) 체크 표시 계산에 쓰인다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TransitionIsFast))]
+    [NotifyPropertyChangedFor(nameof(TransitionIsNormal))]
+    [NotifyPropertyChangedFor(nameof(TransitionIsSlow))]
+    private int _activeTransitionDurationMs = EasiSettingKeys.LyricsMonitorTransitionDurationMs.DefaultValue;
+
+    // 전환 길이 프리셋 메뉴 체크 표시(빠르게 150 / 보통 250 / 느리게 500). 현재 ms 와 일치할 때만 체크.
+    public bool TransitionIsFast => ActiveTransitionDurationMs == 150;
+    public bool TransitionIsNormal => ActiveTransitionDurationMs == 250;
+    public bool TransitionIsSlow => ActiveTransitionDurationMs == 500;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -332,6 +345,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
         ToggleLyricsCopyrightCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowCopyright, ActiveLyricsCopyright));
         ToggleLyricsNextItemCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowNextItem, ActiveLyricsNextItem));
+        ToggleFadeTransitionCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorUseFadeTransition, ActiveFadeTransition));
+        ApplyTransitionDurationCommand = new RelayCommand<int>(ApplyTransitionDuration);
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
@@ -400,6 +415,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsItemNumberCommand { get; }
     public IRelayCommand ToggleLyricsCopyrightCommand { get; }
     public IRelayCommand ToggleLyricsNextItemCommand { get; }
+    public IRelayCommand ToggleFadeTransitionCommand { get; }
+    public IRelayCommand<int> ApplyTransitionDurationCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -1893,8 +1910,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : key.Id == EasiSettingKeys.LyricsMonitorShowItemNumber.Id ? "곡 번호"
             : key.Id == EasiSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
             : key.Id == EasiSettingKeys.LyricsMonitorShowNextItem.Id ? "다음 항목"
+            : key.Id == EasiSettingKeys.LyricsMonitorUseFadeTransition.Id ? "전환 페이드"
             : key.Id;
         StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
+    }
+
+    // 출력 전환(페이드) 길이 프리셋 적용(빠르게 150 / 보통 250 / 느리게 500 ms). 범위(0~2000) 클램프 후 저장.
+    private void ApplyTransitionDuration(int durationMs)
+    {
+        var next = Math.Clamp(durationMs, 0, 2000);
+        _settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, next);
+        ActiveTransitionDurationMs = next;
+        StatusText = $"전환 길이: {next}ms";
     }
 
     // 인-셸 가사 폰트 크기 조절(+/- 단계) — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).
@@ -1949,6 +1976,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsItemNumber = _settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber);
         ActiveLyricsCopyright = _settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright);
         ActiveLyricsNextItem = _settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem);
+        ActiveFadeTransition = _settings.Get(EasiSettingKeys.LyricsMonitorUseFadeTransition);
+        ActiveTransitionDurationMs = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);

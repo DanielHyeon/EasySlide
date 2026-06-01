@@ -143,8 +143,27 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             _settings.SettingsChanged += OnSettingsChanged;
         }
 
+        // 전환(페이드) 설정을 초기 적용 — 설정 미주입(테스트)이면 기본 250ms 유지.
+        ApplyTransitionSettings();
+
         _scene = CreateScene();
         ApplyScene(_scene);
+    }
+
+    // 출력 장면 전환 페이드 길이를 설정에서 읽어 ContentFadeDuration 에 반영한다(FrmMain 전환 효과).
+    // 페이드 off 면 0(즉시 컷), on 이면 설정한 ms. 설정 미주입이면 기본값을 유지한다.
+    private void ApplyTransitionSettings()
+    {
+        if (_settings is null)
+        {
+            return;
+        }
+
+        var useFade = _settings.Get(EasiSettingKeys.LyricsMonitorUseFadeTransition);
+        var durationMs = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs);
+        ContentFadeDuration = useFade && durationMs > 0
+            ? TimeSpan.FromMilliseconds(durationMs)
+            : TimeSpan.Zero;
     }
 
     public LiveState State
@@ -813,6 +832,27 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         {
             RefreshDisplayText();
         }
+
+        // 전환(페이드) 설정 변경은 다음 장면 전환부터 즉시 반영 — 텍스트 재계산은 불필요하고 페이드 길이만 갱신.
+        if (ContainsTransitionSetting(args.ChangedKeys))
+        {
+            ApplyTransitionSettings();
+        }
+    }
+
+    private static bool ContainsTransitionSetting(IReadOnlyList<string> changedKeys)
+    {
+        for (var i = 0; i < changedKeys.Count; i++)
+        {
+            var key = changedKeys[i];
+            if (string.Equals(key, EasiSettingKeys.LyricsMonitorUseFadeTransition.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorTransitionDurationMs.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static int GetViewportWidth(OutputWindowState output)

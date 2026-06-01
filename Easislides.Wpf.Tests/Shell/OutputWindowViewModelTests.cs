@@ -283,6 +283,48 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void Constructor_FadeTransitionOn_UsesConfiguredDuration()
+    {
+        // 전환 페이드 on + 250ms 설정이면 ContentFadeDuration 이 그 길이로 적용된다(FrmMain 전환 효과).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorUseFadeTransition, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, 250).Succeeded.Should().BeTrue();
+
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ContentFadeDuration.Should().Be(TimeSpan.FromMilliseconds(250));
+    }
+
+    [Fact]
+    public void Constructor_FadeTransitionOff_DisablesFade()
+    {
+        // 페이드 off 면 ContentFadeDuration 0 → 즉시 컷(애니메이션 없음).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorUseFadeTransition, false).Succeeded.Should().BeTrue();
+
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ContentFadeDuration.Should().Be(TimeSpan.Zero);
+    }
+
+    [Fact]
+    public void SettingsChanged_TransitionDuration_LiveUpdatesContentFadeDuration()
+    {
+        // 전환 길이 설정 변경이 라이브로 ContentFadeDuration 에 즉시 반영된다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorUseFadeTransition, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, 250).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, 500).Succeeded.Should().BeTrue();
+
+        sut.ContentFadeDuration.Should().Be(TimeSpan.FromMilliseconds(500));
+    }
+
+    [Fact]
     public void ApplySession_DefaultLyricsAlignment_IsCenter()
     {
         var sut = new OutputWindowViewModel();
@@ -622,6 +664,24 @@ public class OutputWindowViewModelTests
 
         sut.BodyTextAlignment.Should().Be(TextAlignment.Left);
         sut.BodyHorizontalAlignment.Should().Be(HorizontalAlignment.Left);
+    }
+
+    [Fact]
+    public void SettingsChanged_RefreshesItemNumberVisibility()
+    {
+        // 회귀 가드: Display Panel 곡 번호 토글이 EasiSettingKeys.All 에 등록돼 있어야
+        // SettingsChanged 가 발화하고 라이브 출력이 즉시 갱신된다(All 누락 시 다음 GoLive 까지 지연됐던 버그).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절", CurrentItemNumber: 123));
+        sut.ItemNumberVisibility.Should().Be(Visibility.Collapsed, "기본 off");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorShowItemNumber, true).Succeeded.Should().BeTrue();
+
+        sut.ItemNumberVisibility.Should().Be(Visibility.Visible, "토글 on 이 라이브로 즉시 반영");
     }
 
     [Fact]

@@ -138,6 +138,11 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorShowCopyright = new("liveOutput.lyricsMonitorShowCopyright", false);
     // 출력에 다음 항목 표시(FrmMain Display Panel PrevNext — 다음 예배순서 항목 제목 미리보기). 기본 off.
     public static readonly SettingKey<bool> LyricsMonitorShowNextItem = new("liveOutput.lyricsMonitorShowNextItem", false);
+    // 출력 장면 전환 시 페이드 효과 사용(FrmMain 전환 효과 — 현재는 Fade 만 구현). 기본 on → 기존 250ms 페이드 동작 보존.
+    // off 면 즉시 컷(애니메이션 없음). 50여 종 셰이프/타일 전환은 미구현이므로 정직하게 페이드 on/off 만 노출.
+    public static readonly SettingKey<bool> LyricsMonitorUseFadeTransition = new("liveOutput.lyricsMonitorUseFadeTransition", true);
+    // 출력 페이드 전환 길이(ms). 기본 250(기존 동작). 범위 0~2000. 0 이면 사실상 즉시 전환.
+    public static readonly SettingKey<int> LyricsMonitorTransitionDurationMs = new("liveOutput.lyricsMonitorTransitionDurationMs", 250);
     // 출력 제목 헤딩 표시(가사 위 상단 배너로 곡 제목, 인-셸 §7.3-A). 기본 off → 기존 동작(본문 송출 시 제목 숨김) 보존.
     public static readonly SettingKey<bool> LyricsMonitorShowTitleHeading = new("liveOutput.lyricsMonitorShowTitleHeading", false);
     // 출력 가사 외곽선(Outline Font) 효과(인-셸 §7.3-A 폰트 효과). 기본 off → 기존 출력 모양 보존.
@@ -199,10 +204,18 @@ public static class EasiSettingKeys
         LyricsMonitorShadow,
         LyricsMonitorLineSpacingPercent,
         LyricsMonitorShowPositionIndicator,
+        // Display Panel 토글들(곡번호·저작권·다음항목) — All 누락 시 FindChangedKeys 가 변경을 못 잡아
+        // 메뉴 토글이 라이브 출력에 즉시 반영되지 않는다(다음 GoLive 때까지 지연). 반드시 등록.
+        LyricsMonitorShowItemNumber,
+        LyricsMonitorShowCopyright,
+        LyricsMonitorShowNextItem,
         LyricsMonitorShowTitleHeading,
         LyricsMonitorOutline,
         LyricsMonitorTitleHeadingAlignment,
         LyricsMonitorTitleHeadingFirstScreenOnly,
+        // 전환 효과(페이드 사용·길이) — 변경 감지·라이브 반영을 위해 등록.
+        LyricsMonitorUseFadeTransition,
+        LyricsMonitorTransitionDurationMs,
         AutoRotateIntervalSeconds,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
@@ -301,6 +314,10 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorShowCopyright { get; init; } = EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue;
 
     public bool LyricsMonitorShowNextItem { get; init; } = EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue;
+
+    public bool LyricsMonitorUseFadeTransition { get; init; } = EasiSettingKeys.LyricsMonitorUseFadeTransition.DefaultValue;
+
+    public int LyricsMonitorTransitionDurationMs { get; init; } = EasiSettingKeys.LyricsMonitorTransitionDurationMs.DefaultValue;
 
     public bool LyricsMonitorShowTitleHeading { get; init; } = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
 
@@ -574,6 +591,14 @@ public sealed class SettingsService : ISettingsService
             min: 100,
             max: 220,
             EasiSettingKeys.LyricsMonitorLineSpacingPercent.Id,
+            issues);
+
+        // 전환 길이 범위 가드(0~2000ms) — 음수/과대값으로 애니메이션이 멈추거나 비현실적으로 길어지지 않도록.
+        RequireRange(
+            candidate.LiveOutput.LyricsMonitorTransitionDurationMs,
+            min: 0,
+            max: 2000,
+            EasiSettingKeys.LyricsMonitorTransitionDurationMs.Id,
             issues);
 
         // 자동 회전 간격 가드(2~600초) — 0/음수로 폭주하거나 비현실적으로 길어지지 않도록.
@@ -1044,6 +1069,8 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot.LiveOutput.LyricsMonitorShowItemNumber,
             "liveOutput.lyricsMonitorShowCopyright" => snapshot.LiveOutput.LyricsMonitorShowCopyright,
             "liveOutput.lyricsMonitorShowNextItem" => snapshot.LiveOutput.LyricsMonitorShowNextItem,
+            "liveOutput.lyricsMonitorUseFadeTransition" => snapshot.LiveOutput.LyricsMonitorUseFadeTransition,
+            "liveOutput.lyricsMonitorTransitionDurationMs" => snapshot.LiveOutput.LyricsMonitorTransitionDurationMs,
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
             "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
             "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot.LiveOutput.LyricsMonitorTitleHeadingAlignment,
@@ -1201,6 +1228,14 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowNextItem" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowNextItem = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorUseFadeTransition" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorUseFadeTransition = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorTransitionDurationMs" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorTransitionDurationMs = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot with
             {

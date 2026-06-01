@@ -85,6 +85,36 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsMonitorTransitionSettings_PersistToDiskAndReload()
+    {
+        // 전환 페이드 사용 여부(bool) + 길이(int)의 디스크 round-trip 고정(GET/SET 스위치 검증, FrmMain 전환 효과).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorUseFadeTransition, false).Succeeded.Should().BeTrue();
+        sut.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, 500).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorUseFadeTransition).Should().BeFalse();
+        sut.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs).Should().Be(500);
+        var snapshot = ReadSnapshot(fixture.SettingsPath);
+        snapshot.LiveOutput.LyricsMonitorUseFadeTransition.Should().BeFalse();
+        snapshot.LiveOutput.LyricsMonitorTransitionDurationMs.Should().Be(500);
+    }
+
+    [Fact]
+    public void Set_LyricsMonitorTransitionDuration_OutOfRange_IsRejected()
+    {
+        // 전환 길이는 0~2000ms 범위 가드. 음수/과대값은 거부되고 이전 값(기본 250) 유지.
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, -50).Succeeded.Should().BeFalse();
+        sut.Set(EasiSettingKeys.LyricsMonitorTransitionDurationMs, 9000).Succeeded.Should().BeFalse();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs).Should().Be(250);
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();

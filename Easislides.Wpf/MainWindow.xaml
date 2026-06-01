@@ -4,6 +4,7 @@
         xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
         xmlns:rendering="clr-namespace:Easislides.Wpf.Rendering"
         xmlns:settings="clr-namespace:Easislides.Wpf.Settings"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:theme="clr-namespace:Easislides.Wpf.Theme"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="EasiSlides v3.0 - WPF 운영 셸"
@@ -140,6 +141,35 @@
                 <MenuItem Header="가사 기울임"
                           IsChecked="{Binding ActiveLyricsItalic}"
                           Command="{Binding ToggleLyricsItalicCommand}" />
+                <Separator />
+                <!-- 전환 효과(FrmMain Transition) — 현재 페이드만 구현. 페이드 on/off + 속도 프리셋. -->
+                <MenuItem Header="전환 효과">
+                    <MenuItem Header="페이드 사용"
+                              IsChecked="{Binding ActiveFadeTransition}"
+                              Command="{Binding ToggleFadeTransitionCommand}" />
+                    <Separator />
+                    <MenuItem Header="빠르게 (150ms)"
+                              IsChecked="{Binding TransitionIsFast}"
+                              Command="{Binding ApplyTransitionDurationCommand}">
+                        <MenuItem.CommandParameter>
+                            <sys:Int32>150</sys:Int32>
+                        </MenuItem.CommandParameter>
+                    </MenuItem>
+                    <MenuItem Header="보통 (250ms)"
+                              IsChecked="{Binding TransitionIsNormal}"
+                              Command="{Binding ApplyTransitionDurationCommand}">
+                        <MenuItem.CommandParameter>
+                            <sys:Int32>250</sys:Int32>
+                        </MenuItem.CommandParameter>
+                    </MenuItem>
+                    <MenuItem Header="느리게 (500ms)"
+                              IsChecked="{Binding TransitionIsSlow}"
+                              Command="{Binding ApplyTransitionDurationCommand}">
+                        <MenuItem.CommandParameter>
+                            <sys:Int32>500</sys:Int32>
+                        </MenuItem.CommandParameter>
+                    </MenuItem>
+                </MenuItem>
                 <Separator />
                 <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
                 <MenuItem Header="가사 정렬">
