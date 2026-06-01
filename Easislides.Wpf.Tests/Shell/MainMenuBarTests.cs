@@ -71,6 +71,19 @@ public class MainMenuBarTests
         => Xaml.Should().Contain("Header=\"종료\"", "파일 메뉴에 종료가 있어야 함");
 
     [Theory]
+    // 출력 표시 토글(FrmMain "Show …") — 기존 상태(Active*)에 IsChecked 단방향 + 토글 명령 배선.
+    [InlineData("ActiveLyricsPositionIndicator", "ToggleLyricsPositionIndicatorCommand")]
+    [InlineData("ActiveLyricsTitleHeading", "ToggleLyricsTitleHeadingCommand")]
+    [InlineData("ActiveLyricsOutline", "ToggleLyricsOutlineCommand")]
+    [InlineData("ActiveLyricsShadow", "ToggleLyricsShadowCommand")]
+    public void MenuBar_OutputDisplayToggles_BindCheckedAndCommand(string activeProperty, string toggleCommand)
+    {
+        var xaml = Xaml;
+        xaml.Should().Contain($"IsChecked=\"{{Binding {activeProperty}}}\"", $"{activeProperty} 체크 상태 바인딩");
+        xaml.Should().Contain($"Command=\"{{Binding {toggleCommand}}}\"", $"{toggleCommand} 토글 명령 배선");
+    }
+
+    [Theory]
     // FrmMain 라이브 운영 단축키를 메뉴에 힌트로 노출(발견가능성 — 현대적 UX). 실제 키 배선은 CommandCatalog.
     [InlineData("InputGestureText=\"F12\"")]  // Go LIVE
     [InlineData("InputGestureText=\"F9\"")]   // 검은 화면
