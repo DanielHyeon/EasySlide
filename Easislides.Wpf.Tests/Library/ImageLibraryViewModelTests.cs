@@ -49,6 +49,55 @@ public class ImageLibraryViewModelTests
     }
 
     [Fact]
+    public async System.Threading.Tasks.Task Load_DecodesThumbnailForEveryImage_OffPopulate()
+    {
+        // 비동기 디코딩: 목록은 즉시(파일명) 채우고, 썸네일 로더는 모든 경로에 대해 호출된다.
+        var requested = new System.Collections.Generic.List<string>();
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg", @"C:\bg\b.png"),
+            path => { requested.Add(path); return null; },
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg");
+
+        await sut.LoadCommand.ExecuteAsync(null);
+
+        requested.Should().BeEquivalentTo(new[] { @"C:\bg\a.jpg", @"C:\bg\b.png" });
+        sut.Images.Should().HaveCount(2);
+        sut.StatusText.Should().Be("2개 이미지");
+    }
+
+    [Fact]
+    public async System.Threading.Tasks.Task Load_WhenReExecuted_CancelsPriorRun_StopsDecodingRemaining()
+    {
+        // 재진입 가드: 첫 로드가 썸네일 디코딩 중일 때 두 번째 로드(Cancel)가 들어오면
+        // 첫 로드는 남은 썸네일을 디코딩하지 않고 조용히 중단한다(상태/목록 경쟁 방지).
+        var gate = new System.Threading.ManualResetEventSlim(false);
+        var requested = new System.Collections.Generic.List<string>();
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg", @"C:\bg\b.jpg", @"C:\bg\c.jpg"),
+            path =>
+            {
+                lock (requested) { requested.Add(path); }
+                gate.Wait(2000); // 첫 항목에서 멈춰 두 번째 로드(취소)가 끼어들 틈을 준다
+                return null;
+            },
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg");
+
+        var task = sut.LoadCommand.ExecuteAsync(null);
+        sut.LoadCommand.Cancel(); // 진행 중 실행 취소(새 로드가 들어온 상황을 모사)
+        gate.Set();
+        await task;
+
+        lock (requested)
+        {
+            requested.Count.Should().BeLessThan(3, "취소 후에는 남은 썸네일을 디코딩하지 않는다");
+        }
+    }
+
+    [Fact]
     public void Load_EmptyFolder_SetsEmptyStatus()
     {
         var sut = CreateSut(out _, out _);

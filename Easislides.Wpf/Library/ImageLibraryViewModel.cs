@@ -1,6 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,23 +12,24 @@ using Easislides.Wpf.Rendering;
 namespace Easislides.Wpf.Library;
 
 /// <summary>
-/// 이미지 갤러리 항목 — 파일 경로·이름과, 지연 로드한 썸네일을 담는다.
-/// 썸네일은 주입된 로더로 만들며(테스트는 null 로더), 로드 실패 시 null → 뷰가 파일명만 보여 준다.
+/// 이미지 갤러리 항목 — 파일 경로·이름과, 비동기로 채워지는 썸네일을 담는다.
+/// 목록은 파일명으로 즉시 채우고, 썸네일은 백그라운드 디코딩 후 채워 넣어(Thumbnail 변경 알림)
+/// 대용량 폴더에서도 UI 가 멈추지 않는다. 디코딩 실패 시 null → 뷰가 파일명만 보여 준다.
 /// </summary>
-public sealed class ImageLibraryItem
+public sealed partial class ImageLibraryItem : ObservableObject
 {
-    public ImageLibraryItem(string filePath, ImageSource? thumbnail)
+    [ObservableProperty]
+    private ImageSource? _thumbnail;
+
+    public ImageLibraryItem(string filePath)
     {
         FilePath = filePath;
         FileName = Path.GetFileName(filePath);
-        Thumbnail = thumbnail;
     }
 
     public string FilePath { get; }
 
     public string FileName { get; }
-
-    public ImageSource? Thumbnail { get; }
 }
 
 /// <summary>
@@ -67,35 +71,63 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         _clearBackground = clearBackground ?? throw new ArgumentNullException(nameof(clearBackground));
         _folderPath = initialFolder ?? string.Empty;
 
-        LoadCommand = new RelayCommand(Load);
+        LoadCommand = new AsyncRelayCommand(LoadAsync);
+        // AsyncRelayCommand 가 재실행 시 이전 실행의 토큰을 취소한다 → LoadAsync 가 중복 실행돼도 경쟁하지 않는다.
         ApplyAsBackgroundCommand = new RelayCommand(ApplyAsBackground, () => SelectedImage is not null);
         ClearBackgroundCommand = new RelayCommand(ClearBackground);
     }
 
     public ObservableCollection<ImageLibraryItem> Images { get; } = new();
 
-    public IRelayCommand LoadCommand { get; }
+    public IAsyncRelayCommand LoadCommand { get; }
 
     public IRelayCommand ApplyAsBackgroundCommand { get; }
 
     public IRelayCommand ClearBackgroundCommand { get; }
 
     // 하위 폴더 포함 토글 시 즉시 다시 읽는다(CommunityToolkit 가 생성하는 변경 콜백).
-    partial void OnIncludeSubfoldersChanged(bool value) => Load();
+    partial void OnIncludeSubfoldersChanged(bool value) => LoadCommand.Execute(null);
 
-    // 현재 폴더의 이미지를 다시 읽어 썸네일 목록을 채운다(폴더 변경·새로고침·하위포함 토글 시 호출).
-    private void Load()
+    // 현재 폴더의 이미지를 다시 읽는다. 목록(파일명)은 즉시 채우고, 썸네일은 백그라운드에서
+    // 디코딩해 하나씩 채워 넣는다 → 대용량 폴더에서도 UI 가 즉시 반응한다.
+    // ct: 새 로드(폴더 변경·새로고침·하위포함 토글)가 시작되면 취소돼 이전 실행이 상태를 덮어쓰지 않게 한다.
+    private async Task LoadAsync(CancellationToken ct)
     {
         Images.Clear();
         var paths = _service.EnumerateImages(FolderPath, IncludeSubfolders);
-        foreach (var path in paths)
+        var items = paths.Select(path => new ImageLibraryItem(path)).ToList();
+        foreach (var item in items)
         {
-            Images.Add(new ImageLibraryItem(path, _thumbnailLoader(path)));
+            Images.Add(item);
         }
 
-        StatusText = Images.Count == 0
+        StatusText = items.Count == 0
             ? "이미지가 없습니다(폴더를 확인하세요)."
-            : $"{Images.Count}개 이미지";
+            : $"{items.Count}개 이미지 — 미리보기 불러오는 중...";
+
+        // 썸네일 디코딩은 무거우므로 백그라운드 스레드에서. 로더는 Freeze 된 이미지를 반환해
+        // 다른 스레드에서 만들어도 UI 바인딩이 안전하다(await 재개는 UI 컨텍스트).
+        // 취소되면(새 로드 시작) 조용히 중단해 옛 실행이 새 목록/상태를 건드리지 않는다.
+        foreach (var item in items)
+        {
+            if (ct.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var thumbnail = await Task.Run(() => _thumbnailLoader(item.FilePath)).ConfigureAwait(true);
+            if (ct.IsCancellationRequested)
+            {
+                return;
+            }
+
+            item.Thumbnail = thumbnail;
+        }
+
+        if (items.Count > 0)
+        {
+            StatusText = $"{items.Count}개 이미지";
+        }
     }
 
     // 선택한 이미지를 출력 전역 배경으로 적용(MainViewModel.SetOutputBackgroundImage 위임).
