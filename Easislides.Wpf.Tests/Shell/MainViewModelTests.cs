@@ -100,6 +100,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLive_CarriesNextQueueItemTitleToSession()
+    {
+        // Display Panel PrevNext: 첫 항목 송출 시 큐의 다음 항목 제목이 세션 스냅샷에 실려야 한다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        // 자동 다음-항목 이동은 끄고(선택이 첫 항목에 머물도록) 다음 항목 제목 계산만 검증.
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var first = new LiveQueueItem("song-1", "입례 찬양");
+        var second = new LiveQueueItem("song-2", "봉헌 찬양");
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { first, second });
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemNextTitle.Should().Be("봉헌 찬양");
+    }
+
+    [Fact]
+    public async Task GoLive_LastQueueItem_CarriesEmptyNextTitle()
+    {
+        // 마지막 항목이면 다음 항목이 없어 빈 문자열 → 출력 미표시(무회귀).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var only = new LiveQueueItem("song-1", "축도 찬양");
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { only });
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.CurrentItemNextTitle.Should().BeEmpty();
+    }
+
+    [Fact]
     public void Constructor_UsesOperationalPowerPointAndMediaSettings()
     {
         using var settingsFolder = TempSettingsFolder.Create();

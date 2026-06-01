@@ -15,6 +15,10 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// <summary>저작권(CCLI 등) — 출력 "저작권 표시"(Display Panel) 설정 on 일 때 표시. 비면 미표시.</summary>
     public string Copyright { get; init; } = "";
 
+    /// <summary>다음 예배순서 항목 제목 — 출력 "다음 항목 표시"(Display Panel PrevNext) 설정 on 일 때 표시.
+    /// GoLive 시 MainViewModel 이 큐에서 다음 항목 제목을 계산해 얹는다. 마지막 항목이면 빈 문자열 → 미표시.</summary>
+    public string NextTitle { get; init; } = "";
+
     /// <summary>곡 항목의 가사(추가 시점에 적재 — 선택 시 미리보기에 표시). 라이브 큐 콘텐츠 plumbing.</summary>
     public string? Lyrics { get; init; }
 

@@ -136,6 +136,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorShowItemNumber = new("liveOutput.lyricsMonitorShowItemNumber", false);
     // 출력에 저작권 표시(FrmMain "Show Copyright Information", Display Panel — CCLI 등 라이선스 표기). 기본 off.
     public static readonly SettingKey<bool> LyricsMonitorShowCopyright = new("liveOutput.lyricsMonitorShowCopyright", false);
+    // 출력에 다음 항목 표시(FrmMain Display Panel PrevNext — 다음 예배순서 항목 제목 미리보기). 기본 off.
+    public static readonly SettingKey<bool> LyricsMonitorShowNextItem = new("liveOutput.lyricsMonitorShowNextItem", false);
     // 출력 제목 헤딩 표시(가사 위 상단 배너로 곡 제목, 인-셸 §7.3-A). 기본 off → 기존 동작(본문 송출 시 제목 숨김) 보존.
     public static readonly SettingKey<bool> LyricsMonitorShowTitleHeading = new("liveOutput.lyricsMonitorShowTitleHeading", false);
     // 출력 가사 외곽선(Outline Font) 효과(인-셸 §7.3-A 폰트 효과). 기본 off → 기존 출력 모양 보존.
@@ -297,6 +299,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorShowItemNumber { get; init; } = EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue;
 
     public bool LyricsMonitorShowCopyright { get; init; } = EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue;
+
+    public bool LyricsMonitorShowNextItem { get; init; } = EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue;
 
     public bool LyricsMonitorShowTitleHeading { get; init; } = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
 
@@ -1039,6 +1043,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
             "liveOutput.lyricsMonitorShowItemNumber" => snapshot.LiveOutput.LyricsMonitorShowItemNumber,
             "liveOutput.lyricsMonitorShowCopyright" => snapshot.LiveOutput.LyricsMonitorShowCopyright,
+            "liveOutput.lyricsMonitorShowNextItem" => snapshot.LiveOutput.LyricsMonitorShowNextItem,
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot.LiveOutput.LyricsMonitorShowTitleHeading,
             "liveOutput.lyricsMonitorOutline" => snapshot.LiveOutput.LyricsMonitorOutline,
             "liveOutput.lyricsMonitorTitleHeadingAlignment" => snapshot.LiveOutput.LyricsMonitorTitleHeadingAlignment,
@@ -1192,6 +1197,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowCopyright" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowCopyright = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorShowNextItem" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowNextItem = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowTitleHeading" => snapshot with
             {

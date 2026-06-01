@@ -251,6 +251,25 @@
                            MaxWidth="520"
                            Foreground="{Binding SceneForegroundBrush}" />
             </Border>
+
+            <!-- 다음 항목(Display Panel PrevNext) — 우측 상단 모서리. 제목 헤딩 기본 정렬이 중앙이라
+                 기본 설정에선 코너가 겹치지 않는다. 단, 사용자가 제목 헤딩을 "우측 정렬"로 바꾸고
+                 다음 항목 표시도 함께 켜면 같은 상단 우측 밴드에서 겹칠 수 있다(두 설정 동시 on + 우측 정렬일 때만).
+                 설정 on + Live + 다음 항목이 있을 때만 표시("다음 ▶ ..."). -->
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,16,24,0"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="#66000000"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding NextItemVisibility}">
+                <TextBlock Text="{Binding NextItemText}"
+                           FontSize="16"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="420"
+                           Foreground="{Binding SceneForegroundBrush}" />
+            </Border>
         </Grid>
 
         <Grid Grid.Row="2"

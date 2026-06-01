@@ -360,6 +360,18 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_CarriesNextTitleToSnapshot()
+    {
+        // 다음 항목 제목이 스냅샷에 실려 출력 "다음 항목 표시"(Display Panel PrevNext)에 쓰인다.
+        var item = new LiveQueueItem("song-3", "은혜로다") { Lyrics = "[1]\n1절", NextTitle = "주 은혜임을" };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemNextTitle.Should().Be("주 은혜임을");
+    }
+
+    [Fact]
     public void GoLive_DualLanguage_CarriesRegion2Font()
     {
         // region2 글꼴명(44)·크기(48, pt→px)를 스냅샷에 싣는다 — 이중 언어 Region2 본문 글꼴 독립.

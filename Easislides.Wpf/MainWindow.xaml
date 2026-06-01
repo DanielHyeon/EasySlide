@@ -122,6 +122,9 @@
                 <MenuItem Header="저작권 표시"
                           IsChecked="{Binding ActiveLyricsCopyright}"
                           Command="{Binding ToggleLyricsCopyrightCommand}" />
+                <MenuItem Header="다음 항목 표시"
+                          IsChecked="{Binding ActiveLyricsNextItem}"
+                          Command="{Binding ToggleLyricsNextItemCommand}" />
                 <MenuItem Header="제목 헤딩"
                           IsChecked="{Binding ActiveLyricsTitleHeading}"
                           Command="{Binding ToggleLyricsTitleHeadingCommand}" />

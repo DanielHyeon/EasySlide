@@ -72,6 +72,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_LyricsMonitorShowNextItem_PersistsToDiskAndReloads()
+    {
+        // 다음 항목 표시 토글의 디스크 round-trip 고정(GET/SET 스위치 케이스 검증, Display Panel PrevNext).
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.LyricsMonitorShowNextItem, true).Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.LyricsMonitorShowNextItem).Should().BeTrue();
+        ReadSnapshot(fixture.SettingsPath).LiveOutput.LyricsMonitorShowNextItem.Should().BeTrue();
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();

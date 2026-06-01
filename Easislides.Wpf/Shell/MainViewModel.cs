@@ -109,6 +109,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeLyricsItemNumber = EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue;
     // 현재 저작권 표시 상태(메뉴 체크 바인딩용, Display Panel).
     [ObservableProperty] private bool _activeLyricsCopyright = EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue;
+    // 현재 다음 항목 표시 상태(메뉴 체크 바인딩용, Display Panel PrevNext).
+    [ObservableProperty] private bool _activeLyricsNextItem = EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
     [ObservableProperty] private bool _activeLyricsTitleHeading = EasiSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
@@ -329,6 +331,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
         ToggleLyricsCopyrightCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowCopyright, ActiveLyricsCopyright));
+        ToggleLyricsNextItemCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowNextItem, ActiveLyricsNextItem));
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
@@ -396,6 +399,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
     public IRelayCommand ToggleLyricsItemNumberCommand { get; }
     public IRelayCommand ToggleLyricsCopyrightCommand { get; }
+    public IRelayCommand ToggleLyricsNextItemCommand { get; }
 
     public IRelayCommand ToggleLyricsTitleHeadingCommand { get; }
 
@@ -1548,6 +1552,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
     {
         var positionLabel = ComputePositionLabel(item);
+        var nextTitle = ComputeNextTitle(item);
 
         if (IsPowerPointItem(item)
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
@@ -1561,10 +1566,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PreviewFillMode = Rendering.ImageFillMode.Fit,
                 SlideNumber = PowerPoint.SlideNumber,
                 PositionLabel = positionLabel,
+                NextTitle = nextTitle,
             };
         }
 
-        return item with { PositionLabel = positionLabel };
+        return item with { PositionLabel = positionLabel, NextTitle = nextTitle };
+    }
+
+    // 다음 예배순서 항목 제목(출력 "다음 항목 표시" Display Panel PrevNext).
+    // 큐에서 현재 항목(Id 기준)의 바로 다음 항목 제목을 찾는다. 마지막이거나 없으면 빈 문자열 → 출력 미표시.
+    // (item 은 with 복사본이라 참조가 다를 수 있어 Id 로 매칭한다. 같은 Id 가 큐에 중복되면 첫 일치의
+    //  다음 항목을 쓴다 — ComputePositionLabel 등 기존 큐 탐색과 동일 가정.)
+    private string ComputeNextTitle(LiveQueueItem item)
+    {
+        for (var i = 0; i < Queue.Count - 1; i++)
+        {
+            if (string.Equals(Queue[i].Id, item.Id, StringComparison.Ordinal))
+            {
+                return Queue[i + 1].Title;
+            }
+        }
+
+        return string.Empty;
     }
 
     // 위치 라벨 계산(절/슬라이드 "N/M") — 곡=현재 절/총 절, PPT=현재 슬라이드/총 슬라이드.
@@ -1869,6 +1892,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : key.Id == EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id ? "제목 첫 화면만"
             : key.Id == EasiSettingKeys.LyricsMonitorShowItemNumber.Id ? "곡 번호"
             : key.Id == EasiSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
+            : key.Id == EasiSettingKeys.LyricsMonitorShowNextItem.Id ? "다음 항목"
             : key.Id;
         StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
     }
@@ -1924,6 +1948,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveLyricsItemNumber = _settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber);
         ActiveLyricsCopyright = _settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright);
+        ActiveLyricsNextItem = _settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);

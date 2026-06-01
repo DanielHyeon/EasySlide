@@ -340,6 +340,42 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_ShowNextItem_ShowsNextTitleWhenLiveAndEnabled()
+    {
+        // 설정 on + Live + 다음 항목 제목이 있을 때만 다음 항목을 노출(Display Panel PrevNext).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorShowNextItem: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentItemNextTitle: "주 은혜임을"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.NextItemLabel.Should().Be("주 은혜임을");
+        scene.ShowsNextItem.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateScene_ShowNextItemOff_HidesNextItem()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorShowNextItem: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentItemNextTitle: "주 은혜임을"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsNextItem.Should().BeFalse("설정 off 면 다음 항목 미표시(무회귀)");
+    }
+
+    [Fact]
     public void CreateScene_Active_Region2Font_FallsBackToRegion1()
     {
         // region2 글꼴 오버라이드가 없으면 Region1 글꼴(이름·크기)을 추종한다.

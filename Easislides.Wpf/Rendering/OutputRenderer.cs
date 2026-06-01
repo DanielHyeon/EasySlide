@@ -58,7 +58,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력에 곡 번호 표시(FrmMain Show Item Number, Display Panel). 기본 off → 기존 출력 무변화.
     bool LyricsMonitorShowItemNumber = false,
     // 출력에 저작권 표시(FrmMain Show Copyright Information, Display Panel). 기본 off.
-    bool LyricsMonitorShowCopyright = false)
+    bool LyricsMonitorShowCopyright = false,
+    // 출력에 다음 항목 표시(FrmMain Display Panel PrevNext). 기본 off.
+    bool LyricsMonitorShowNextItem = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -92,7 +94,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment),
             settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber),
-            settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright));
+            settings.Get(EasiSettingKeys.LyricsMonitorShowCopyright),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem));
     }
 }
 
@@ -180,7 +183,11 @@ public sealed record OutputSceneSnapshot(
     // 저작권 표시 설정(Display Panel). 기본 off.
     bool ShowLyricsCopyright = false,
     // 저작권 라벨(CCLI 등). Live + 저작권 문자열이 있을 때만 채워진다.
-    string CopyrightLabel = "")
+    string CopyrightLabel = "",
+    // 다음 항목 표시 설정(Display Panel PrevNext). 기본 off.
+    bool ShowLyricsNextItem = false,
+    // 다음 항목 제목 라벨. Live + 다음 항목이 있을 때만 채워진다.
+    string NextItemLabel = "")
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -195,6 +202,9 @@ public sealed record OutputSceneSnapshot(
 
     // 저작권을 실제로 노출할지 — 설정 on + Live + 저작권 문자열이 있을 때만(Display Panel).
     public bool ShowsCopyright => ShowLyricsCopyright && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(CopyrightLabel);
+
+    // 다음 항목을 실제로 노출할지 — 설정 on + Live + 다음 항목 제목이 있을 때만(Display Panel PrevNext).
+    public bool ShowsNextItem => ShowLyricsNextItem && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(NextItemLabel);
 
     // 위치 인디케이터를 실제로 노출할지 — 설정 on + Live + 라벨이 있을 때만.
     public bool ShowsPositionIndicator => ShowLyricsPositionIndicator && Kind == OutputSceneKind.Live && !string.IsNullOrWhiteSpace(PositionLabel);
@@ -339,7 +349,10 @@ public sealed class OutputRenderer : IOutputRenderer
             isLive && request.Session.CurrentItemNumber > 0 ? request.Session.CurrentItemNumber.ToString() : string.Empty,
             // 저작권 표시(설정) + 라벨(Live + 저작권 문자열). 비면 미표시.
             liveOutput.LyricsMonitorShowCopyright,
-            isLive ? request.Session.CurrentItemCopyright : string.Empty);
+            isLive ? request.Session.CurrentItemCopyright : string.Empty,
+            // 다음 항목 표시(설정) + 라벨(Live + 다음 항목 제목). 마지막 항목이면 빈 문자열 → 미표시.
+            liveOutput.LyricsMonitorShowNextItem,
+            isLive ? request.Session.CurrentItemNextTitle : string.Empty);
     }
 
     private ImagePlacement GetContentPlacement(
