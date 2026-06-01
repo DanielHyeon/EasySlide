@@ -321,6 +321,53 @@ public partial class MainWindow : Window
         }
     }
 
+    // 이미지 갤러리 — 폴더의 이미지를 썸네일로 보고 출력 배경으로 적용(FrmMain Images 탭 포팅).
+    private void OpenImageLibrary_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        // 시작 폴더: 작업 폴더(있으면), 없으면 사진 폴더. 운영자는 창에서 폴더를 바꿀 수 있다.
+        var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
+        var initialFolder = !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder)
+            ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
+        var libraryViewModel = new Easislides.Wpf.Library.ImageLibraryViewModel(
+            new Easislides.Wpf.Rendering.ImageLibraryService(),
+            LoadThumbnail,
+            viewModel.SetOutputBackgroundImage,
+            () => viewModel.ClearOutputBackgroundImageCommand.Execute(null),
+            initialFolder);
+
+        var window = new Easislides.Wpf.Library.ImageLibraryWindow(libraryViewModel) { Owner = this };
+        window.ShowDialog();
+    }
+
+    // 썸네일 로더 — 140px 폭으로 다운스케일 디코딩해 메모리를 아끼고 빠르게 그린다.
+    // 디코딩 실패(잠김·손상·미지원)면 null → 갤러리는 파일명만 보여 준다(안전 강등).
+    private static System.Windows.Media.ImageSource? LoadThumbnail(string path)
+    {
+        try
+        {
+            var image = new System.Windows.Media.Imaging.BitmapImage();
+            image.BeginInit();
+            image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            image.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreColorProfile;
+            image.DecodePixelWidth = 140;
+            image.UriSource = new Uri(path, UriKind.Absolute);
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private void OpenManageWorshipLists_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel viewModel)
