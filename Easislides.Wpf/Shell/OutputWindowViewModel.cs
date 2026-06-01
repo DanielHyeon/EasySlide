@@ -1123,6 +1123,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorItalic.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShadow.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorUnderline.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 강조 후렴만 토글도 라이브 출력에 즉시 반영(현재 절이 후렴인지에 따라 강조가 켜지고 꺼진다).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorEmphasisChorusOnly.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 투명 토글도 라이브 출력에 즉시 반영(Def_PanelTransparent).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).

@@ -517,6 +517,53 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_EmphasisChorusOnly_NonChorusPage_SuppressesEmphasis()
+    {
+        // 강조 후렴만 on + 현재 절이 후렴 아님 → 전역 굵게가 켜져 있어도 이 절은 강조 끔.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBold: true, LyricsMonitorEmphasisChorusOnly: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentPageIsChorus: false),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeFalse("후렴 아닌 절은 강조 끔");
+    }
+
+    [Fact]
+    public void CreateScene_EmphasisChorusOnly_ChorusPage_KeepsEmphasis()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBold: true, LyricsMonitorEmphasisChorusOnly: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "후렴", CurrentPageIsChorus: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeTrue("후렴 절은 강조 유지");
+    }
+
+    [Fact]
+    public void CreateScene_EmphasisChorusOnlyOff_AlwaysAppliesEmphasis()
+    {
+        // 기본(off)이면 후렴 아닌 절에서도 전역 강조를 그대로 적용(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorBold: true, LyricsMonitorEmphasisChorusOnly: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절", CurrentPageIsChorus: false),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720, LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeTrue("후렴만 off → 전체 절 강조");
+    }
+
+    [Fact]
     public void CreateScene_RegionDisplayBoth_ShowsBothBands()
     {
         var sut = CreateRenderer();

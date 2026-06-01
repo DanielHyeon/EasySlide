@@ -621,4 +621,21 @@ public class LyricsDisplayFormatterTests
     {
         LyricsDisplayFormatter.GetVersePage(raw, 0).Should().BeEmpty();
     }
+
+    [Theory]
+    [InlineData("C", true)]
+    [InlineData("c", true)]
+    [InlineData("Chorus", true)]
+    [InlineData("chorus", true)]
+    [InlineData("Refrain", true)]
+    [InlineData("후렴", true)]
+    [InlineData(" 후렴 ", true)]
+    [InlineData("렴", false)]
+    [InlineData("1", false)]
+    [InlineData("V1", false)]
+    [InlineData("Bridge", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void IsChorusLabel_RecognizesChorusMarkers(string? label, bool expected)
+        => LyricsDisplayFormatter.IsChorusLabel(label).Should().Be(expected);
 }

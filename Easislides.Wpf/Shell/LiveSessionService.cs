@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Easislides.Wpf.Controls;
@@ -69,7 +70,9 @@ public sealed record LiveSessionSnapshot(
     bool? OverrideItalic2 = null,
     // 밑줄 비트(41 bit2/bit5) — null=전역(Region1)/Region1 추종, true=그 영역 밑줄.
     bool? OverrideUnderline1 = null,
-    bool? OverrideUnderline2 = null)
+    bool? OverrideUnderline2 = null,
+    // 현재 송출 중인 절이 후렴([C]/[Chorus]/[후렴])인지 — "강조 후렴만"(ChorusOnly) 효과 판정용. 곡이 아니거나 라벨 없으면 false.
+    bool CurrentPageIsChorus = false)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -161,7 +164,9 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideBold2: format?.Bold2 == true ? true : null,
             OverrideItalic2: format?.Italic2 == true ? true : null,
             OverrideUnderline1: format?.Underline1 == true ? true : null,
-            OverrideUnderline2: format?.Underline2 == true ? true : null));
+            OverrideUnderline2: format?.Underline2 == true ? true : null,
+            // 현재 절이 후렴인지 — 강조 후렴만 효과가 켜졌을 때 출력 렌더가 이 절에 강조를 적용할지 판단한다.
+            CurrentPageIsChorus: ComputeCurrentPageIsChorus(item)));
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.
@@ -259,6 +264,35 @@ public sealed class LiveSessionService : ILiveSessionService
         return LyricsDisplayFormatter.HasRegion2(lyrics)
             ? LyricsDisplayFormatter.GetRegionPage(lyrics, item.LyricsPageIndex, item.Sequence).Region2
             : string.Empty;
+    }
+
+    // 현재 송출 절이 후렴인지 — "강조 후렴만"(ChorusOnly) 효과 판정용. 곡이 아니거나 가사·라벨이 없으면 false.
+    // 절 라벨은 MainViewModel 의 절 라벨 계산과 같은 포맷터 경로(단일=GetSectionLabels, 이중 언어=GetRegionSectionLabels)를 쓴다.
+    private static bool ComputeCurrentPageIsChorus(LiveQueueItem item)
+    {
+        if (item.Kind != LiveItemKinds.Song || string.IsNullOrEmpty(item.Lyrics))
+        {
+            return false;
+        }
+
+        IReadOnlyList<string> labels;
+        if (LyricsDisplayFormatter.HasRegion2(item.Lyrics))
+        {
+            // 이중 언어 라벨(GetRegionSectionLabels)은 라벨 없는 머리말 절을 빠뜨려 페이지와 어긋날 수 있다.
+            // 페이지 수와 1:1 정렬될 때만 신뢰한다(어긋나면 후렴 판정 비활성 — 엉뚱한 절 강조 방지).
+            // MainViewModel.RefreshLyricsPages 의 절 점프 바 가드와 동일 규칙.
+            var regionLabels = LyricsDisplayFormatter.GetRegionSectionLabels(item.Lyrics, item.Sequence);
+            var pageCount = LyricsDisplayFormatter.GetRegionPages(item.Lyrics, item.Sequence).Count;
+            labels = regionLabels.Count == pageCount ? regionLabels : System.Array.Empty<string>();
+        }
+        else
+        {
+            // 단일 영역 라벨은 ToVersePages 와 1:1 정렬이 보장된다(라벨 없는 절은 빈 문자열 → 후렴 아님).
+            labels = LyricsDisplayFormatter.GetSectionLabels(item.Lyrics, item.Sequence);
+        }
+
+        var index = item.LyricsPageIndex;
+        return index >= 0 && index < labels.Count && LyricsDisplayFormatter.IsChorusLabel(labels[index]);
     }
 
     // 레거시 FormatData 정렬값(1~3) → WPF 가사 정렬 enum. 없거나 범위 밖이면 null(운영 기본 정렬 유지).

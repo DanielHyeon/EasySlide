@@ -158,6 +158,54 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_ChorusPage_SetsCurrentPageIsChorus()
+    {
+        // [C] 절을 송출 중이면 CurrentPageIsChorus=true(강조 후렴만 효과 판정).
+        var item = new LiveQueueItem("song-c", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n첫 절\n[C]\n후렴 가사",
+            LyricsPageIndex = 1, // 후렴 페이지.
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentPageIsChorus.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GoLive_NonChorusPage_CurrentPageIsChorusFalse()
+    {
+        var item = new LiveQueueItem("song-v", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n첫 절\n[C]\n후렴 가사",
+            LyricsPageIndex = 0, // 1절(후렴 아님).
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentPageIsChorus.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GoLive_DualLanguageUnlabeledIntro_DoesNotMisdetectChorus()
+    {
+        // 이중 언어 + 라벨 없는 머리말 절이 섞이면 라벨↔페이지가 어긋난다. 그 경우 엉뚱한 절을 후렴으로
+        // 오인하지 않고 후렴 판정을 비활성(false)한다 — 안전 저하(잘못된 강조 방지).
+        var item = new LiveQueueItem("song-dual", "은혜로다", LiveItemKinds.Song)
+        {
+            Lyrics = "머리말 R1\n[region 2]\n머리말 R2\n\n[C]\n후렴 R1\n[region 2]\n후렴 R2",
+            LyricsPageIndex = 1, // 실제 후렴 페이지지만, 라벨 어긋남으로 후렴 판정 비활성.
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentPageIsChorus.Should().BeFalse("라벨↔페이지 어긋남 → 후렴 판정 비활성(안전)");
+    }
+
+    [Fact]
     public void GoLive_WithBibleItem_CarriesVerseBodyNotJustTitle()
     {
         // 예전엔 성경 항목이 제목만 송출했다 — 이제 구절 본문이 현재 절로 보인다.

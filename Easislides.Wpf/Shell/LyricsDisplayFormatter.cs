@@ -747,6 +747,25 @@ public static class LyricsDisplayFormatter
         return sb.ToString();
     }
 
+    /// <summary>
+    /// 절 라벨이 "후렴(Chorus)"을 가리키는지 — "강조를 후렴만"(ChorusOnly) 효과 판정에 쓴다.
+    /// 공백·대소문자 무시. 인식: C·Chorus·Refrain·후렴(흔하고 모호하지 않은 후렴 표기만).
+    /// 한 글자 "렴" 같은 모호한 약어는 절 번호·다른 라벨과 충돌할 수 있어 의도적으로 제외. 그 외(1·2·Bridge 등)는 false.
+    /// </summary>
+    public static bool IsChorusLabel(string? label)
+    {
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            return false;
+        }
+
+        var t = label.Trim();
+        return t.Equals("C", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("Chorus", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("Refrain", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("후렴", StringComparison.Ordinal);
+    }
+
     // 마커 줄이 라벨 마커( [1] [Chorus] [C] )면 그 라벨, 노테이션 블록([~...])이나 일반 줄이면 null.
     private static string? SectionLabel(string line)
     {

@@ -70,7 +70,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 배경 이미지 표시 모드(FrmMain Def_ImageMode: Tile/Centre/BestFit). 기본 Fill=UniformToFill(무회귀).
     LyricsBackgroundMode LyricsMonitorBackgroundMode = LyricsBackgroundMode.Fill,
     // 이중 언어 영역 표시 모드(FrmMain Def_ShowRegion1/2/Both). 기본 Both=둘 다(무회귀).
-    LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both)
+    LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both,
+    // 강조(굵게·기울임·밑줄)를 후렴 절에만 적용(FrmMain Ind_*Italics 후렴만). 기본 false=전체 절(무회귀).
+    bool LyricsMonitorEmphasisChorusOnly = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -109,7 +111,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorShowNextItem),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath),
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode),
-            settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay));
+            settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay),
+            settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly));
     }
 }
 
@@ -339,6 +342,14 @@ public sealed class OutputRenderer : IOutputRenderer
         // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역, Region2=곡별 비트∥Region1 추종.
         var region1Underline = isLive && request.Session.OverrideUnderline1 == true ? true : liveOutput.LyricsMonitorUnderline;
         var region2Underline = isLive ? request.Session.OverrideUnderline2 ?? region1Underline : region1Underline;
+        // "강조 후렴만"이 켜져 있으면 후렴 절에서만 강조(굵게·기울임·밑줄)를 적용한다 — 그 외 절은 강조를 끈다.
+        // off(기본)면 항상 적용(무회귀). 색·정렬은 강조가 아니므로 이 게이트와 무관하게 그대로 둔다.
+        var emphasisActive = !liveOutput.LyricsMonitorEmphasisChorusOnly || (isLive && request.Session.CurrentPageIsChorus);
+        if (!emphasisActive)
+        {
+            region1Bold = region1Italic = region1Underline = false;
+            region2Bold = region2Italic = region2Underline = false;
+        }
 
         return new OutputSceneSnapshot(
             kind,

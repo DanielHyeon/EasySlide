@@ -202,6 +202,9 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> LyricsMonitorShadow = new("liveOutput.lyricsMonitorShadow", false);
     // 가사 본문 밑줄(레거시 Ind_R1/R2Underline). off(기본)=밑줄 없음(무회귀). 전역 효과로 Region1/2 본문에 함께 적용.
     public static readonly SettingKey<bool> LyricsMonitorUnderline = new("liveOutput.lyricsMonitorUnderline", false);
+    // 강조(굵게·기울임·밑줄)를 "후렴만" 적용(레거시 Ind_*Italics 3종 중 후렴만). off(기본)=전체 절에 적용(무회귀).
+    // on 이면 현재 절이 후렴([C]/[Chorus]/[후렴])일 때만 강조하고 그 외 절은 강조를 끈다(곡 강세를 후렴에 모은다).
+    public static readonly SettingKey<bool> LyricsMonitorEmphasisChorusOnly = new("liveOutput.lyricsMonitorEmphasisChorusOnly", false);
     // Display Panel 배경 투명(레거시 Def_PanelTransparent). on 이면 곡번호·저작권·다음항목·위치 인디케이터 밴드의
     // 어두운 배경(#66000000)을 없애 텍스트가 슬라이드 위에 바로 보인다. 기본 off=기존 반투명 밴드(무회귀).
     public static readonly SettingKey<bool> LyricsMonitorPanelTransparent = new("liveOutput.lyricsMonitorPanelTransparent", false);
@@ -293,6 +296,7 @@ public static class EasiSettingKeys
         LyricsMonitorItalic,
         LyricsMonitorShadow,
         LyricsMonitorUnderline,
+        LyricsMonitorEmphasisChorusOnly,
         LyricsMonitorPanelTransparent,
         LyricsMonitorLineSpacingPercent,
         LyricsMonitorShowPositionIndicator,
@@ -405,6 +409,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorShadow { get; init; } = EasiSettingKeys.LyricsMonitorShadow.DefaultValue;
 
     public bool LyricsMonitorUnderline { get; init; } = EasiSettingKeys.LyricsMonitorUnderline.DefaultValue;
+
+    public bool LyricsMonitorEmphasisChorusOnly { get; init; } = EasiSettingKeys.LyricsMonitorEmphasisChorusOnly.DefaultValue;
 
     public bool LyricsMonitorPanelTransparent { get; init; } = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
 
@@ -1196,6 +1202,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorItalic" => snapshot.LiveOutput.LyricsMonitorItalic,
             "liveOutput.lyricsMonitorShadow" => snapshot.LiveOutput.LyricsMonitorShadow,
             "liveOutput.lyricsMonitorUnderline" => snapshot.LiveOutput.LyricsMonitorUnderline,
+            "liveOutput.lyricsMonitorEmphasisChorusOnly" => snapshot.LiveOutput.LyricsMonitorEmphasisChorusOnly,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorLineSpacingPercent" => snapshot.LiveOutput.LyricsMonitorLineSpacingPercent,
             "liveOutput.lyricsMonitorShowPositionIndicator" => snapshot.LiveOutput.LyricsMonitorShowPositionIndicator,
@@ -1353,6 +1360,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorUnderline" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorUnderline = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorEmphasisChorusOnly" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorEmphasisChorusOnly = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot with
             {
