@@ -102,6 +102,87 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task SortMode_TitleAndNumber_ReordersDisplayedSongs_WithoutRefetch()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 3));
+        // 제목 순서와 번호 순서가 달라 정렬 효과를 구분할 수 있게 데이터를 짠다.
+        // (테스트용 FakeAdminDatabaseRepository 는 DB 처럼 번호순으로 돌려준다 → Original=번호순.)
+        repository.SongsByFolder[1] = [
+            Song(10, "다윗의 노래", folderNo: 1, songNumber: 1),
+            Song(11, "가나안", folderNo: 1, songNumber: 2),
+            Song(12, "나의 찬양", folderNo: 1, songNumber: 3),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.Songs.Select(s => s.Title).Should().Equal("다윗의 노래", "가나안", "나의 찬양"); // 원래 순서(=번호순 1,2,3)
+        var fetchesAfterLoad = repository.RequestedFolderNos.Count;
+
+        sut.SortMode = LibrarySortMode.Title;
+        sut.Songs.Select(s => s.Title).Should().Equal("가나안", "나의 찬양", "다윗의 노래"); // 제목순(가<나<다)
+
+        sut.SortMode = LibrarySortMode.Number;
+        sut.Songs.Select(s => s.Title).Should().Equal("다윗의 노래", "가나안", "나의 찬양"); // 번호순(1,2,3)
+
+        repository.RequestedFolderNos.Count.Should().Be(fetchesAfterLoad, "정렬 변경은 DB 재조회 없이 표시만 재정렬");
+    }
+
+    [Fact]
+    public async Task SongMove_DisabledWhileSorted_EnabledInOriginalOrder()
+    {
+        // 정렬(제목/번호) 중에는 화면 순서와 DB 순서가 달라 수동 이동이 헷갈리므로 이동 버튼을 비활성화한다.
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 2));
+        repository.SongsByFolder[1] = [
+            Song(10, "가", folderNo: 1, songNumber: 1),
+            Song(11, "나", folderNo: 1, songNumber: 2),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.SelectedSong = sut.Songs.Last(); // 두 번째 곡 선택 → 원래 순서면 위로 이동 가능.
+        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeTrue("원래 순서에서는 이동 가능");
+
+        sut.SortMode = LibrarySortMode.Title;
+
+        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeFalse("정렬 중에는 이동 비활성");
+        sut.MoveSelectedSongDownCommand.CanExecute(null).Should().BeFalse();
+
+        sut.SortMode = LibrarySortMode.Original;
+        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeTrue("원래 순서로 돌아오면 다시 활성");
+    }
+
+    [Fact]
+    public async Task MoveSelectedSongToIndex_WhileSorted_IsNoOp_DoesNotPersist()
+    {
+        // 드래그 경로(MoveSelectedSongTo*) 도 정렬 중에는 막아야 한다 — CanExecute 우회 방지(심층 방어).
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 2));
+        repository.SongsByFolder[1] = [
+            Song(10, "가", folderNo: 1, songNumber: 1),
+            Song(11, "나", folderNo: 1, songNumber: 2),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.SelectedSong = sut.Songs.First();
+        sut.SortMode = LibrarySortMode.Title;
+        var reordersBefore = repository.ReorderSongsCalls;
+
+        await sut.MoveSelectedSongToEndAsync(); // 드래그-드롭이 호출하는 경로.
+
+        repository.ReorderSongsCalls.Should().Be(reordersBefore, "정렬 중 드래그 이동은 DB 에 저장하지 않음");
+        sut.StatusMessage.Should().Contain("정렬 중에는");
+    }
+
+    [Fact]
     public async Task JumpToInitial_SelectsFirstSongWithThatInitial()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -510,12 +591,15 @@ public class LibraryViewModelTests
                 Issues: []));
         }
 
+        public int ReorderSongsCalls { get; private set; }
+
         public Task<AdminDatabaseWriteReport> ReorderSongsAsync(
             string databasePath,
             string backupRoot,
             int folderNo,
             IReadOnlyList<SongOrderRequest> order)
         {
+            ReorderSongsCalls++;
             LastBackupRoot = backupRoot;
             LastSongFolderNo = folderNo;
             LastSongOrder = order.ToArray();

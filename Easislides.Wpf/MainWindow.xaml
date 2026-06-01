@@ -715,13 +715,28 @@
                                  ToolTip="제목·가사·분류 검색"
                                  AutomationProperties.Name="곡 검색" />
 
-                        <ComboBox Grid.Row="2"
-                                  ItemsSource="{Binding Library.Folders}"
-                                  SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
-                                  DisplayMemberPath="Name"
-                                  MinHeight="34"
-                                  Margin="0,0,0,8"
-                                  AutomationProperties.Name="폴더 선택" />
+                        <Grid Grid.Row="2" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox ItemsSource="{Binding Library.Folders}"
+                                      SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
+                                      DisplayMemberPath="Name"
+                                      MinHeight="34"
+                                      AutomationProperties.Name="폴더 선택" />
+                            <!-- 곡 목록 정렬(FrmMain 곡 목록 정렬) — 원래순서/제목순/곡번호순. 데이터 재조회 없이 표시만 재정렬. -->
+                            <ComboBox Grid.Column="2"
+                                      ItemsSource="{Binding Library.SortOptions}"
+                                      SelectedValue="{Binding Library.SortMode, Mode=TwoWay}"
+                                      SelectedValuePath="Mode"
+                                      DisplayMemberPath="Label"
+                                      MinWidth="110"
+                                      MinHeight="34"
+                                      ToolTip="곡 목록 정렬 방식"
+                                      AutomationProperties.Name="곡 목록 정렬" />
+                        </Grid>
 
                         <!-- A/B/C(초성) 점프 바 — 표시된 곡의 머리글자를 눌러 그 글자로 시작하는 첫 곡으로 이동(FrmMain 곡 목록 점프).
                              곡이 없으면 머리글자도 없어 빈 줄이 된다. -->

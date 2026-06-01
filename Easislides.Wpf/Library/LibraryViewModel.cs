@@ -31,6 +31,8 @@ public sealed partial class LibraryViewModel : ObservableObject
     [ObservableProperty] private int _totalSongCount;
     [ObservableProperty] private bool _canDeleteFolder;
     [ObservableProperty] private bool _canRecoverFolder;
+    // 곡 목록 정렬 방식(원래순서/제목/곡번호). 기본 Original = DB 순서(무회귀). 바뀌면 목록을 다시 정렬해 표시.
+    [ObservableProperty] private LibrarySortMode _sortMode = LibrarySortMode.Original;
 
     public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
@@ -53,6 +55,14 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     /// <summary>현재 표시된 곡 목록에 나타나는 머리글자들(가나다→A~Z→#→기타) — A/B/C(초성) 점프 바에 바인딩.</summary>
     public ObservableCollection<string> AvailableInitials { get; } = new();
+
+    /// <summary>정렬 방식 선택지(콤보박스 바인딩용) — 모드와 한글 라벨 쌍.</summary>
+    public IReadOnlyList<LibrarySortOption> SortOptions { get; } =
+    [
+        new LibrarySortOption(LibrarySortMode.Original, "원래 순서"),
+        new LibrarySortOption(LibrarySortMode.Title, "제목순"),
+        new LibrarySortOption(LibrarySortMode.Number, "곡 번호순"),
+    ];
 
     /// <summary>색인 머리글자로 점프 — 그 글자로 시작하는 첫 곡을 선택한다(레거시 FrmMain A/B/C 점프).</summary>
     public IRelayCommand<string> JumpToInitialCommand { get; }
@@ -349,6 +359,14 @@ public sealed partial class LibraryViewModel : ObservableObject
             return;
         }
 
+        // 수동 이동(위/아래 버튼·드래그 모두)은 "원래 순서"에서만 허용 — 정렬 중에는 화면 순서와 DB 순서가 달라
+        // 엉뚱한 위치에 저장된다. 버튼은 CanExecute 로, 드래그(LibraryWindow)는 모든 이동의 길목인 여기서 막는다(심층 방어).
+        if (SortMode != LibrarySortMode.Original)
+        {
+            StatusMessage = "정렬 중에는 곡을 이동할 수 없습니다. '원래 순서'로 바꾸세요.";
+            return;
+        }
+
         if (!TryEnsureWritableDatabasePath(out var message))
         {
             StatusMessage = message;
@@ -426,6 +444,15 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         ApplySearch();
         UpdateStatus();
+    }
+
+    // 정렬 방식이 바뀌면 현재 목록을 다시 정렬해 표시(데이터 재조회 없이). 정렬 중에는 곡 수동 이동을 막으므로
+    // 이동 버튼 활성 상태도 함께 갱신한다.
+    partial void OnSortModeChanged(LibrarySortMode value)
+    {
+        ApplySearch();
+        UpdateStatus();
+        NotifyReorderCanExecuteChanged();
     }
 
     partial void OnIsBusyChanged(bool value)
@@ -524,7 +551,9 @@ public sealed partial class LibraryViewModel : ObservableObject
             ? _loadedSongs
             : _loadedSongs.Where(song => Matches(song, term)).ToArray();
 
-        Songs.ReplaceWith(filtered);
+        // 검색으로 거른 뒤 선택한 정렬 방식으로 정렬해 표시(Original 이면 입력 순서 그대로 — 무회귀).
+        var ordered = SongOrdering.Order(filtered, SortMode);
+        Songs.ReplaceWith(ordered);
         DisplayedSongCount = Songs.Count;
         RefreshAvailableInitials();
         var selected = SelectedSong;
@@ -611,12 +640,15 @@ public sealed partial class LibraryViewModel : ObservableObject
     private bool CanRecoverSelectedFolder()
         => !IsBusy && SelectedFolder is { IsEnabled: false };
 
+    // 곡 수동 이동(위/아래)은 "원래 순서"에서만 의미가 있다 — 제목순/번호순으로 보고 있을 때는 화면 순서와
+    // DB 순서가 달라 운영자가 보는 이웃과 실제 이동 대상이 어긋난다. 그래서 정렬 중에는 이동을 비활성화한다.
     private bool CanMoveSelectedSongUp()
-        => !IsBusy && SelectedSong is not null && _loadedSongs.ToList().FindIndex(song => song.SongId == SelectedSong.SongId) > 0;
+        => !IsBusy && SortMode == LibrarySortMode.Original && SelectedSong is not null
+           && _loadedSongs.ToList().FindIndex(song => song.SongId == SelectedSong.SongId) > 0;
 
     private bool CanMoveSelectedSongDown()
     {
-        if (IsBusy || SelectedSong is null)
+        if (IsBusy || SortMode != LibrarySortMode.Original || SelectedSong is null)
         {
             return false;
         }
