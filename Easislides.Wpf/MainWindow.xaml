@@ -734,6 +734,17 @@
                             <TextBlock Text="자동회전" />
                         </StackPanel>
                     </ToggleButton>
+                    <!-- 자동 회전 모드(레거시 One/One-Repeat/Group/Group-Repeat) — 끝 절/슬라이드에서의 동작 선택. -->
+                    <ComboBox ItemsSource="{Binding AutoRotateModeOptions}"
+                              SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="Key"
+                              MinHeight="36"
+                              MinWidth="120"
+                              Margin="0,0,8,0"
+                              VerticalContentAlignment="Center"
+                              ToolTip="자동 회전 모드 — 현재 항목 반복 / 한 항목만(끝나면 정지) / 그룹(다음 항목으로) / 그룹 반복"
+                              AutomationProperties.Name="자동 회전 모드" />
                     <!-- 우측 인스펙터 접기/펼치기(§7.4 가변 패널) — 접으면 중앙 미리보기가 넓어진다. -->
                     <ToggleButton IsChecked="{Binding IsInspectorExpanded, Mode=TwoWay}"
                                   MinHeight="36"

@@ -308,6 +308,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isAutoRotating;
     // 자동 회전 간격(초) — 설정에서 유래, View 타이머가 참조.
     [ObservableProperty] private int _autoRotateIntervalSeconds = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
+    // 자동 회전 모드(One/One-Repeat/Group/Group-Repeat) — 설정에서 유래, 콤보 선택에 바인딩. 끝 절/슬라이드 도달 시 동작이 모드별로 다르다.
+    [ObservableProperty] private AutoRotateMode _activeAutoRotateMode = EasiSettingKeys.AutoRotateMode.DefaultValue;
 
     // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
@@ -1587,27 +1589,135 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 자동 회전 한 스텝 — 라이브 곡은 다음 절(끝에서 첫 절로 순환), PPT 덱은 다음 슬라이드(순환).
-    /// View 타이머가 호출. 라이브가 아니거나 선택≠라이브 항목이면 아무것도 하지 않는다.
+    /// 자동 회전 한 스텝(View 타이머가 매 간격마다 호출).
+    /// 먼저 현재 항목 안에서 "다음 절/슬라이드"가 남아 있으면 그것부터 진행한다(모든 모드 공통).
+    /// 현재 항목의 끝(마지막 절/슬라이드 또는 회전할 내부 페이지가 없음)에 다다르면 모드별로 마무리한다
+    /// (OneRepeat=같은 항목 순환, One=정지, Group=다음 항목/끝이면 정지, GroupRepeat=다음 항목/끝이면 첫 항목으로).
+    /// 라이브가 아니거나 선택≠라이브 항목이면 아무것도 하지 않는다.
     /// </summary>
     public void AdvanceAutoRotation()
     {
         if (_session.Current.State != LiveState.Active) return;
         if (SelectedItem is not { } item || _liveItemId != item.Id) return;
 
+        // 1) 현재 항목 안에 다음 슬라이드가 남아 있으면 그것부터(끝 슬라이드면 통과해 2)로).
         if (IsPowerPointItem(item) && PowerPoint.SlideCount > 1)
         {
-            // 마지막 슬라이드 다음은 첫 슬라이드로 순환.
-            var next = PowerPoint.SlideNumber >= PowerPoint.SlideCount ? 1 : PowerPoint.SlideNumber + 1;
-            _ = GoToSlideAsync(next);
+            if (PowerPoint.SlideNumber < PowerPoint.SlideCount)
+            {
+                _ = GoToSlideAsync(PowerPoint.SlideNumber + 1);
+                return;
+            }
+        }
+        // 1) 곡·성경 항목은 절 단위로 — 다음 절이 남아 있으면 그것부터(마지막 절이면 통과해 2)로).
+        else if (IsLyricsPaginated(item) && LyricsPageCount > 1)
+        {
+            if (LyricsPageIndex + 1 < LyricsPageCount)
+            {
+                LyricsPageIndex++;
+                PublishLyricsPageIfLive();
+                return;
+            }
+        }
+
+        // 2) 현재 항목의 끝 — 자동 회전 모드에 따라 마무리.
+        HandleAutoRotationItemEnd(item);
+    }
+
+    // 현재 항목의 마지막 절/슬라이드(또는 회전할 내부 페이지 없음)에 다다랐을 때 모드별 동작.
+    private void HandleAutoRotationItemEnd(LiveQueueItem item)
+    {
+        switch (ActiveAutoRotateMode)
+        {
+            case AutoRotateMode.OneRepeat:
+                // 같은 항목 첫 절/슬라이드로 순환(기존 기본 동작 — 무회귀).
+                RewindCurrentItemToStart(item);
+                break;
+            case AutoRotateMode.One:
+                // 한 항목만 — 끝까지 가면 자동 회전을 멈춘다(반복·항목 이동 없음).
+                IsAutoRotating = false;
+                StatusText = "자동 회전 완료(한 항목)";
+                break;
+            case AutoRotateMode.Group:
+                // 다음 예배 순서 항목으로; 마지막 항목이면 멈춘다.
+                if (!TryAdvanceAutoRotationToNextItem())
+                {
+                    IsAutoRotating = false;
+                    StatusText = "자동 회전 완료(그룹 끝)";
+                }
+                break;
+            case AutoRotateMode.GroupRepeat:
+                // 다음 항목으로; 마지막 항목이면 첫 항목으로 돌아가 계속 순환.
+                if (!TryAdvanceAutoRotationToNextItem())
+                {
+                    RewindAutoRotationToFirstItem();
+                }
+                break;
+        }
+    }
+
+    // 같은 항목의 첫 절/슬라이드로 되돌려 다시 송출(OneRepeat 순환). 단일 페이지 항목은 되돌릴 게 없어 그대로.
+    private void RewindCurrentItemToStart(LiveQueueItem item)
+    {
+        if (IsPowerPointItem(item) && PowerPoint.SlideCount > 1)
+        {
+            _ = GoToSlideAsync(1);
         }
         else if (IsLyricsPaginated(item) && LyricsPageCount > 1)
         {
-            // 곡·성경 모두 절 단위로 회전 — 마지막 절 다음은 첫 절로 순환.
-            LyricsPageIndex = LyricsPageIndex + 1 >= LyricsPageCount ? 0 : LyricsPageIndex + 1;
+            LyricsPageIndex = 0;
             PublishLyricsPageIfLive();
         }
     }
+
+    // 다음 예배 순서 항목으로 이동해 송출. 다음 항목이 있으면 true, 마지막(다음 없음)이면 false.
+    // 자동 회전은 선택을 스스로 관리하므로 PublishSelectedItem 의 자동-다음 선택 이동(autoAdvance)은 끈다.
+    private bool TryAdvanceAutoRotationToNextItem()
+    {
+        if (SelectedItem is null) return false;
+        var index = Queue.IndexOf(SelectedItem);
+        if (index < 0 || index + 1 >= Queue.Count) return false;
+
+        SelectedItem = Queue[index + 1];
+        PublishSelectedItem(autoAdvance: false);
+        return true;
+    }
+
+    // 첫 항목으로 돌아가 송출(GroupRepeat 순환). 큐가 비면 아무것도 안 한다.
+    private void RewindAutoRotationToFirstItem()
+    {
+        if (Queue.Count == 0) return;
+        SelectedItem = Queue[0];
+        PublishSelectedItem(autoAdvance: false);
+    }
+
+    /// <summary>자동 회전 모드 콤보의 (한글 라벨 → 모드) 목록. SelectedValue 로 모드를, DisplayMember 로 라벨을 쓴다.</summary>
+    public IReadOnlyList<KeyValuePair<string, AutoRotateMode>> AutoRotateModeOptions { get; } =
+    [
+        new("현재 항목 반복", AutoRotateMode.OneRepeat),
+        new("한 항목만", AutoRotateMode.One),
+        new("그룹(다음 항목)", AutoRotateMode.Group),
+        new("그룹 반복", AutoRotateMode.GroupRepeat),
+    ];
+
+    /// <summary>자동 회전 모드 선택(콤보 양방향 바인딩). 바뀌면 설정에 저장하고 인스펙터 표시를 동기화한다.</summary>
+    public AutoRotateMode AutoRotateModeInput
+    {
+        get => ActiveAutoRotateMode;
+        set
+        {
+            if (value == ActiveAutoRotateMode)
+            {
+                return;
+            }
+
+            _settings.Set(EasiSettingKeys.AutoRotateMode, value);
+            ActiveAutoRotateMode = value;
+        }
+    }
+
+    // 모드가 다른 경로(설정 동기화 등)로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveAutoRotateModeChanged(AutoRotateMode value) => OnPropertyChanged(nameof(AutoRotateModeInput));
 
     // 현재 절 인덱스로 GoLive 를 재호출해 출력을 갱신한다.
     // 라이브 활성 + 이 항목이 송출 중일 때만 실행(블랙아웃/숨김 중에는 송출 안 깨움).
@@ -3218,6 +3328,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveCameraNumber = _settings.Get(EasiSettingKeys.LiveCameraNumber);
         LiveCameraSource = MediaPlaybackService.CreateLiveCameraSource(LiveCameraNumber);
         AutoRotateIntervalSeconds = _settings.Get(EasiSettingKeys.AutoRotateIntervalSeconds);
+        ActiveAutoRotateMode = _settings.Get(EasiSettingKeys.AutoRotateMode);
         RefreshActiveAppearance();
         RefreshPowerPointLimitState(updateStatus);
         // 탭 가시성이 바뀌면 현재 선택 항목 기준으로 중앙 탭을 재평가 — 방금 숨겨진 탭이 선택된 채 남아

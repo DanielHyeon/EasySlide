@@ -120,6 +120,7 @@ public static class LegacySettingsMap
         Automated("LyricsMonitorTitleHeadingFollowBody", EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "Title heading follows body (Region1) alignment — FrmMain Def_HeadAlign AsR1."),
         Automated("LyricsMonitorTitleHeadingFollowRegion2", EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "Title heading follows secondary region (Region2) alignment — FrmMain Def_HeadAlign AsR2."),
         Automated("AutoRotateIntervalSeconds", EasiSettingKeys.AutoRotateIntervalSeconds.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Integer, "WPF compatibility", "Auto-rotate verse/slide interval in seconds (2-600) — §7.3-B."),
+        Automated("AutoRotateMode", EasiSettingKeys.AutoRotateMode.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Enum, "WPF compatibility", "Auto-rotate mode (OneRepeat/One/Group/GroupRepeat) — FrmMain One/One-Repeat/Group/Group-Repeat."),
 
         Automated("UsePowerpointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy tab visibility."),
         Automated("UsePowerPointTab", EasiSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "WPF compatibility", "Current WPF setting import/export alias."),

@@ -2959,6 +2959,96 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AutoRotateModeInput_DefaultsToOneRepeat_AndPersists()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveAutoRotateMode.Should().Be(AutoRotateMode.OneRepeat, "기본 OneRepeat=기존 동작(무회귀)");
+
+        sut.AutoRotateModeInput = AutoRotateMode.GroupRepeat;
+        settings.Get(EasiSettingKeys.AutoRotateMode).Should().Be(AutoRotateMode.GroupRepeat, "선택이 설정에 저장");
+        sut.ActiveAutoRotateMode.Should().Be(AutoRotateMode.GroupRepeat, "인스펙터 표시도 동기화");
+    }
+
+    [Fact]
+    public async Task AdvanceAutoRotation_OneMode_StopsAtEndOfItem()
+    {
+        // "한 항목만" 모드 — 마지막 절까지 가면 자동 회전을 멈춘다(첫 절로 순환하지 않음).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.AutoRotateMode, AutoRotateMode.One);
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ToggleAutoRotateCommand.Execute(null);
+        sut.IsAutoRotating.Should().BeTrue();
+
+        sut.AdvanceAutoRotation(); // 0 -> 1(마지막 절)
+        sut.LyricsPageIndex.Should().Be(1);
+        sut.IsAutoRotating.Should().BeTrue("아직 마지막 절 송출 중");
+
+        sut.AdvanceAutoRotation(); // 끝 -> One 모드는 정지
+        sut.IsAutoRotating.Should().BeFalse("한 항목만 모드는 끝나면 자동 회전 정지");
+        sut.LyricsPageIndex.Should().Be(1, "정지 시 절은 그대로(첫 절로 순환하지 않음)");
+    }
+
+    [Fact]
+    public async Task AdvanceAutoRotation_GroupMode_AdvancesToNextItemThenStops()
+    {
+        // "그룹" 모드 — 현재 항목 끝나면 다음 예배 순서 항목으로, 마지막 항목 끝나면 멈춘다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.AutoRotateMode, AutoRotateMode.Group);
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song-1", "곡A", "Song") { Lyrics = "[1]\n가사A" }, // 단일 절
+            new LiveQueueItem("song-2", "곡B", "Song") { Lyrics = "[1]\n가사B" },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ToggleAutoRotateCommand.Execute(null);
+
+        sut.AdvanceAutoRotation(); // 곡A(단일 절) 끝 -> 다음 항목(곡B)
+        sut.SelectedItem.Should().Be(sut.Queue[1], "그룹 모드는 다음 항목으로 이동");
+        sut.IsAutoRotating.Should().BeTrue("아직 마지막 항목 아님 → 회전 유지");
+
+        sut.AdvanceAutoRotation(); // 곡B 끝 -> 다음 없음 -> 그룹 끝 정지
+        sut.IsAutoRotating.Should().BeFalse("마지막 항목 끝 → 그룹 모드 정지");
+    }
+
+    [Fact]
+    public async Task AdvanceAutoRotation_GroupRepeatMode_WrapsToFirstItem()
+    {
+        // "그룹 반복" 모드 — 마지막 항목 끝나면 첫 항목으로 돌아가 계속 순환.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.AutoRotateMode, AutoRotateMode.GroupRepeat);
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song-1", "곡A", "Song") { Lyrics = "[1]\n가사A" },
+            new LiveQueueItem("song-2", "곡B", "Song") { Lyrics = "[1]\n가사B" },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ToggleAutoRotateCommand.Execute(null);
+
+        sut.AdvanceAutoRotation(); // 곡A 끝 -> 곡B
+        sut.SelectedItem.Should().Be(sut.Queue[1]);
+
+        sut.AdvanceAutoRotation(); // 곡B 끝 -> 다음 없음 -> 첫 항목(곡A)으로 순환
+        sut.SelectedItem.Should().Be(sut.Queue[0], "그룹 반복은 마지막 항목 끝나면 첫 항목으로 순환");
+        sut.IsAutoRotating.Should().BeTrue("반복 모드라 계속 회전");
+    }
+
+    [Fact]
     public async Task AutoRotate_StopsWhenLiveEnds()
     {
         var sut = CreateSut();

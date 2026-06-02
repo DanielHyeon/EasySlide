@@ -113,6 +113,20 @@ public enum LyricsRegionDisplay
     Region2Only = 2, // Region2 만 표시(주 언어 숨김) — 단, 보조 언어가 없으면 Region1 을 보여 화면이 비지 않게 한다.
 }
 
+// 자동 회전(Auto Rotate) 동작 모드(레거시 FrmMain One/One-Repeat/Group/Group-Repeat).
+// 매 간격마다 다음 절/슬라이드로 넘어가며, 현재 항목의 끝에 다다랐을 때 무엇을 할지가 모드별로 다르다.
+public enum AutoRotateMode
+{
+    // 현재 항목만 순환 반복(끝 절/슬라이드 다음은 같은 항목 첫 절로). 기존 동작 = 기본값(무회귀).
+    OneRepeat = 0,
+    // 현재 항목 한 바퀴만 — 마지막 절/슬라이드까지 가면 자동 회전을 멈춘다(반복·항목 이동 없음).
+    One = 1,
+    // 항목 그룹 순회 — 현재 항목 끝나면 다음 예배 순서 항목으로 넘어가고, 마지막 항목 끝나면 멈춘다.
+    Group = 2,
+    // 항목 그룹 순회 + 반복 — 마지막 항목까지 끝나면 첫 항목으로 돌아가 계속 순환한다.
+    GroupRepeat = 3,
+}
+
 // 출력 장면 전환 모션 종류(FrmMain 전환 효과 중 구현분). 기본 Fade(기존 250ms 페이드 동작 보존).
 // Fade=불투명도, Slide*=방향 슬라이드, Zoom*=확대/축소, Spin=회전, Flip*=뒤집기 — 모두 단일 콘텐츠
 // 트랜스폼(Translate/Scale/Rotate) 기반이라 2-레이어 클립 엔진이 필요 없다.
@@ -300,6 +314,9 @@ public static class EasiSettingKeys
         new("liveOutput.lyricsMonitorTitleHeadingFollowRegion2", false);
     // 자동 회전 간격(초, §7.3-B). 라이브 중 절/슬라이드를 이 간격으로 자동 전환. 기본 20초, 범위 2~600.
     public static readonly SettingKey<int> AutoRotateIntervalSeconds = new("liveOutput.autoRotateIntervalSeconds", 20);
+    // 자동 회전 모드(레거시 One/One-Repeat/Group/Group-Repeat). 기본 OneRepeat=기존 동작(현재 항목만 순환).
+    public static readonly SettingKey<AutoRotateMode> AutoRotateMode =
+        new("liveOutput.autoRotateMode", Easislides.Wpf.Settings.AutoRotateMode.OneRepeat);
     public static readonly SettingKey<bool> UsePowerPointTab = new("powerPoint.usePowerPointTab", false);
     public static readonly SettingKey<bool> NoPowerPointPanelOverlay = new("powerPoint.noPanelOverlay", false);
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
@@ -386,6 +403,7 @@ public static class EasiSettingKeys
         LyricsMonitorBackgroundGradientDirection,
         LyricsMonitorRegionDisplay,
         AutoRotateIntervalSeconds,
+        AutoRotateMode,
         UsePowerPointTab,
         NoPowerPointPanelOverlay,
         PowerPointRenderTimeoutSeconds,
@@ -549,6 +567,8 @@ public sealed record LiveOutputSettings
         EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.DefaultValue;
 
     public int AutoRotateIntervalSeconds { get; init; } = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
+
+    public AutoRotateMode AutoRotateMode { get; init; } = EasiSettingKeys.AutoRotateMode.DefaultValue;
 }
 
 public sealed record PowerPointSettings
@@ -812,6 +832,12 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegionDisplay))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorRegionDisplay.Id, "Region display mode value is not supported."));
+        }
+
+        // 자동 회전 모드도 잘못된 값(예: 정수 99)을 거른다(enum 일관).
+        if (!Enum.IsDefined(candidate.LiveOutput.AutoRotateMode))
+        {
+            issues.Add(Error(EasiSettingKeys.AutoRotateMode.Id, "Auto-rotate mode value is not supported."));
         }
 
         // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
@@ -1313,6 +1339,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<LyricsBackgroundMode> backgroundModeKey => backgroundModeKey.Id,
                 SettingKey<LyricsGradientDirection> gradientDirectionKey => gradientDirectionKey.Id,
                 SettingKey<LyricsRegionDisplay> regionDisplayKey => regionDisplayKey.Id,
+                SettingKey<AutoRotateMode> autoRotateModeKey => autoRotateModeKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
                 SettingKey<double> doubleKey => doubleKey.Id,
@@ -1400,6 +1427,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTitleHeadingFollowBody" => snapshot.LiveOutput.LyricsMonitorTitleHeadingFollowBody,
             "liveOutput.lyricsMonitorTitleHeadingFollowRegion2" => snapshot.LiveOutput.LyricsMonitorTitleHeadingFollowRegion2,
             "liveOutput.autoRotateIntervalSeconds" => snapshot.LiveOutput.AutoRotateIntervalSeconds,
+            "liveOutput.autoRotateMode" => snapshot.LiveOutput.AutoRotateMode,
             "powerPoint.usePowerPointTab" => snapshot.PowerPoint.UsePowerPointTab,
             "powerPoint.noPanelOverlay" => snapshot.PowerPoint.NoPanelOverlay,
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
@@ -1676,6 +1704,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.autoRotateIntervalSeconds" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { AutoRotateIntervalSeconds = Cast<int>(keyId, value) },
+            },
+            "liveOutput.autoRotateMode" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { AutoRotateMode = Cast<AutoRotateMode>(keyId, value) },
             },
             "powerPoint.usePowerPointTab" => snapshot with
             {
