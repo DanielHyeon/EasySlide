@@ -360,18 +360,23 @@ public class NoticeScreenViewModelTests
     [Fact]
     public void AddToQueueCommand_InvokesCallback_WithCurrentText()
     {
-        // "순서에 추가" — 현재 텍스트를 예배 순서 추가 콜백으로 넘긴다.
-        var added = new List<string>();
+        // "순서에 추가" — 현재 텍스트 + 서식(NoticeOptions)을 예배 순서 추가 콜백으로 넘긴다.
+        var added = new List<(string Text, NoticeOptions Options)>();
         var sut = new NoticeScreenViewModel(
-            (_, _) => true, () => { }, addToWorshipQueue: text => { added.Add(text); return true; })
+            (_, _) => true, () => { }, addToWorshipQueue: (text, opts) => { added.Add((text, opts)); return true; })
         {
             Text = "주차 안내",
+            FontSizePt = 60,
+            Bold = true,
         };
 
         sut.AddToQueueCommand.CanExecute(null).Should().BeTrue("콜백 있고 텍스트 있으면 활성");
         sut.AddToQueueCommand.Execute(null);
 
-        added.Should().ContainSingle().Which.Should().Be("주차 안내");
+        added.Should().ContainSingle();
+        added[0].Text.Should().Be("주차 안내");
+        added[0].Options.FontSizePt.Should().Be(60, "서식(크기)도 함께 넘김");
+        added[0].Options.Bold.Should().BeTrue("서식(굵게)도 함께 넘김");
         sut.StatusText.Should().Contain("예배 순서");
     }
 
@@ -387,7 +392,7 @@ public class NoticeScreenViewModelTests
     [Fact]
     public void AddToQueueCommand_DisabledWhenTextEmpty()
     {
-        var sut = new NoticeScreenViewModel((_, _) => true, () => { }, addToWorshipQueue: _ => true);
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { }, addToWorshipQueue: (_, _) => true);
 
         sut.AddToQueueCommand.CanExecute(null).Should().BeFalse("빈 텍스트는 추가 불가");
         sut.Text = "안내";

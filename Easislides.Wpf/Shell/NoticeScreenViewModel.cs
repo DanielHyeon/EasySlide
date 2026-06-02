@@ -19,7 +19,8 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     private readonly Action _clear;
     private readonly IInfoScreenStore _store;
     // 현재 편집 중인 텍스트를 예배 순서(큐)에 항목으로 추가하는 콜백(레거시 InfoScreen 항목). 없으면 "추가" 비활성.
-    private readonly Func<string, bool>? _addToWorshipQueue;
+    // 서식(NoticeOptions)도 함께 넘겨 "송출"과 똑같이 글꼴·색·크기·강조가 큐 항목에 실리게 한다.
+    private readonly Func<string, NoticeOptions, bool>? _addToWorshipQueue;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SendCommand))]
@@ -70,7 +71,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     private string? _selectedScreen;
 
-    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null, Func<string, bool>? addToWorshipQueue = null, IReadOnlyList<string>? fontFamilies = null)
+    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null, Func<string, NoticeOptions, bool>? addToWorshipQueue = null, IReadOnlyList<string>? fontFamilies = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
@@ -152,10 +153,23 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         new KeyValuePair<string, int>("짙은 보라", unchecked((int)0xFF1A0033)),
     };
 
+    // 현재 편집기 상태(크기·정렬·색·배경·강조·글꼴)를 송출 옵션 한 묶음으로 만든다 — "송출"과 "순서에 추가"가 똑같이 쓴다.
+    // 인자를 이름으로 넘겨(같은 타입 인자가 이웃해 있어) 순서가 뒤바뀌어도 조용히 새지 않게 한다.
+    private NoticeOptions CurrentOptions()
+        => new(
+            FontSizePt: FontSizePt,
+            Alignment: Alignment,
+            ColorArgb: ColorArgb,
+            BackgroundColorArgb: BackgroundColorArgb,
+            Bold: Bold,
+            Italic: Italic,
+            Underline: Underline,
+            FontName: FontName);
+
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
     {
-        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline, FontName));
+        var ok = _publish(Text, CurrentOptions());
         StatusText = ok
             ? "공지를 출력에 송출했습니다."
             : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
@@ -176,7 +190,8 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
             return;
         }
 
-        var ok = _addToWorshipQueue(Text);
+        // 서식(글꼴·색·크기·강조)도 함께 넘겨 큐 항목에 실리게 한다 — "송출"과 동일한 모양으로 나중에 송출된다.
+        var ok = _addToWorshipQueue(Text, CurrentOptions());
         StatusText = ok
             ? "예배 순서에 텍스트 항목으로 추가했습니다."
             : "예배 순서에 추가하지 못했습니다.";

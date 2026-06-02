@@ -790,8 +790,8 @@ public partial class MainWindow : Window
             viewModel.ClearNotice,
             initialText,
             store: null,
-            // 예배 순서에 텍스트 항목으로 추가(레거시 InfoScreen 항목) — 추가 성공 시 true.
-            addToWorshipQueue: text => viewModel.AddTextItem(text) is not null,
+            // 예배 순서에 텍스트 항목으로 추가(레거시 InfoScreen 항목) — 서식(NoticeOptions)도 같이 실어 "송출"과 같은 모양으로 추가. 성공 시 true.
+            addToWorshipQueue: (text, options) => viewModel.AddTextItem(text, options) is not null,
             // 글꼴 콤보 목록 — 가사 글꼴 콤보와 같은 목록(추천 앞·설치 글꼴 뒤)을 공유해 글꼴 선택을 일관되게.
             fontFamilies: viewModel.LyricsFontFamilyOptions);
         var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };

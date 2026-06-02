@@ -2089,6 +2089,47 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddTextItem_WithOptions_AttachesFormatData_AndIndividualOn()
+    {
+        // "순서에 추가"가 공지 편집기 서식(크기·색·강조·글꼴)을 항목에 실어야 한다 — FormatData 인코드 + 개별 서식 켜짐(기본 true).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var item = sut.AddTextItem("광고", new NoticeOptions(FontSizePt: 60, ColorArgb: -1, Bold: true, FontName: "나눔고딕"));
+
+        item.Should().NotBeNull();
+        item!.FormatData.Should().NotBeNullOrEmpty("서식이 FormatData 로 실림");
+        item.FormatData!.Should().Contain("47=60", "크기").And.Contain("29=-1", "색").And.Contain("41=1", "굵게 비트").And.Contain("43=나눔고딕", "글꼴");
+        item.UseIndividualFormatting.Should().BeTrue("서식이 송출에 보이도록 개별 서식 켜짐");
+    }
+
+    [Fact]
+    public void AddTextItem_NoOptions_HasNoFormatData_BackCompat()
+    {
+        // 옵션 없이 추가하면(기존 호출·Word 추출 경로) 서식 없음 — 전역 기본으로 송출(무회귀).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var item = sut.AddTextItem("서식 없는 공지");
+
+        item!.FormatData.Should().BeNull("옵션 없으면 FormatData 없음");
+    }
+
+    [Fact]
+    public async Task AddTextItem_FormattedThenPublished_RendersOverrides_EndToEnd()
+    {
+        // 종단: "순서에 추가"로 넣은 서식 텍스트 항목을 나중에 송출하면 그 서식(여기선 배경색)이 라이브에 적용된다
+        // (FormatData → ResolveLiveProjection 이 개별 서식 켜져 있어 보존 → GoLive Kind 무관 파싱 → OverrideBackgroundColorArgb).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        sut.OpenOutputCommand.Execute(null);
+
+        var item = sut.AddTextItem("광고", new NoticeOptions(BackgroundColorArgb: unchecked((int)0xFF000000)));
+        sut.SelectedItem = item;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        session.Current.OverrideBackgroundColorArgb.Should().Be(unchecked((int)0xFF000000), "큐에 넣은 서식이 송출 시 적용");
+    }
+
+    [Fact]
     public void AddWordTextItem_WithText_AddsNoticeItem()
     {
         // Word 문서에서 추출한 본문을 텍스트(공지) 항목으로 추가(레거시 Word 항목). AddTextItem 재사용 — 종류 Notice·본문 전체.

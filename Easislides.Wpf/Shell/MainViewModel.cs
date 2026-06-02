@@ -889,7 +889,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 송출(GoLive)하면 공지 렌더 경로로 그 텍스트가 회중 화면에 표시된다 — NoticeScreen 즉시 송출과 달리 예배 순서에 저장돼
     /// 나중에 다른 항목처럼 골라 송출할 수 있다. 항목 종류는 Notice(공지)라 절·슬라이드 이동과 무관하다.
     /// </summary>
-    public LiveQueueItem? AddTextItem(string? text)
+    public LiveQueueItem? AddTextItem(string? text, NoticeOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -900,10 +900,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var trimmed = text.Trim();
         var title = BuildTextItemTitle(trimmed);
+        // 공지 편집기에서 정한 서식(크기·정렬·색·배경·강조·글꼴)을 곡 FormatData 파이프라인으로 인코드해 항목에 실어 둔다.
+        // 그래야 "송출"뿐 아니라 "순서에 추가"로 큐에 넣은 항목도 나중에 송출될 때 같은 서식으로 보인다(송출 경로는 Kind 무관).
+        // 서식이 없으면(options 미지정 또는 전부 기본) null → 전역 기본 서식으로 송출(무회귀). UseIndividualFormatting 기본 true 라 서식이 있으면 그대로 렌더.
+        var formatData = options is null ? null : BuildNoticeFormatData(options);
         // 고유 Id(센티넬 NoticeLiveId 와 겹치지 않게) — 큐 내 다른 항목과 구별되는 새 식별자.
         var item = new LiveQueueItem($"text:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
         {
             Lyrics = trimmed,
+            FormatData = formatData,
         };
 
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);

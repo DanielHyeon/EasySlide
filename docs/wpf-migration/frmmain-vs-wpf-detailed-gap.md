@@ -96,7 +96,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Folders + `SongFolder` + `SongsList` + 정렬(획/CJK단어수/곡번호)·A/B/C 점프 | 곡 폴더·목록 | 🟢 라이브러리 탭(폴더 콤보+검색+ListBox + 정렬[원래/제목/곡번호/획수순] + A/B/C 초성 점프 바). CJK 단어수 정렬만 후속 |
 | InfoScr(`InfoScreenList`, .esi 편집기) | 공지 화면(NoticeScreenWindow — 텍스트 편집·송출 + **명명 정보화면 저장/불러오기/삭제**) | 🟡 텍스트 편집·송출 + 명명 저장 목록(증분76) 포팅. .esi 풀 편집기(7337줄)·레거시 포맷만 후속 |
 | PowerP(`PowerpointList`, list/thumbnail) | PPT 파일 브라우징 | 🟡 중앙 PPT 탭은 미리보기만(폴더 브라우징·import 없음) |
-| Bibles(인라인, §4 참조) | 인라인 성경 | 🟡 좌측 성경 탭(단, 이중영역·typed-ref·copy-to-InfoScreen 없음) |
+| Bibles(인라인, §4 참조) | 인라인 성경 | 🟡 좌측 성경 탭 + **typed-ref**(BibleViewModel.JumpToReference — "창 1:1-2:3" 직접 입력 점프, BibleReferenceParser) + **copy-to-InfoScreen**(성경 본문 우클릭 "공지 화면으로 복사", ResolveCopyText) 구현. 이중영역(Region2)만 후속 |
 | Images(`flowLayoutImages`, Scenery/Tiles, 배경 적용) | 이미지 갤러리(ImageLibraryWindow — 폴더 썸네일·출력 배경 적용/지우기) | 🟢 폴더 이미지를 썸네일로 보고 출력 배경으로 적용. Scenery/Tiles 카테고리 구분만 후속 |
 | Media(`MediaList`) | 미디어 파일 목록 | 🟡 중앙 Media 탭(폴더 목록 브라우징 없음, NoOp 백엔드) |
 | Default(포맷 탭) | 기본 포맷 전체 | 🔴 인스펙터로 일부 대체 |
@@ -163,7 +163,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 ### 3.4 예배 순서 관리
 | FrmMain | WPF | 상태 |
 |---|---|---|
-| 항목 추가(곡/PPT/성경/텍스트/InfoScreen/Word/미디어/외부파일/.esw 병합) | AddSong/Bible/PowerPoint/Media + 파일추가 + 병합(93) + 텍스트/공지(94) + **Word 문서(증분100)** | 🟡 곡/성경/PPT/미디어/파일/텍스트(공지)/**Word 문서** 추가 + 병합. Word 는 OfficeLib.WordDoc 으로 **본문 텍스트만 추출**해 Notice 항목으로 추가(이미지 페이지 렌더 아님 — 긴 문서는 한 화면, 페이지네이션 후속). legacy .esw(XML) 가져오기는 증분101·102 에서 구현(아래 행 참조) |
+| 항목 추가(곡/PPT/성경/텍스트/InfoScreen/Word/미디어/외부파일/.esw 병합) | AddSong/Bible/PowerPoint/Media + 파일추가 + 병합(93) + 텍스트/공지(94) + **Word 문서(증분100)** | 🟡 곡/성경/PPT/미디어/파일/텍스트(공지)/**Word 문서** 추가 + 병합. Word 는 OfficeLib.WordDoc 으로 **본문 텍스트만 추출**해 Notice 항목으로 추가(이미지 페이지 렌더 아님 — 긴 문서는 한 화면, 페이지네이션 후속). 공지 "순서에 추가"는 **편집기 서식(크기·정렬·색·배경·강조·글꼴)을 항목 FormatData 에 실어**(증분127) 송출과 같은 모양으로 큐에 들어감. legacy .esw(XML) 가져오기는 증분101·102 에서 구현(아래 행 참조) |
 | 이동 ↑↓ / 드래그 재정렬 / 제거 / 전체 비우기 | Move·드래그 + **맨위/맨아래 이동(증분96)** + Remove + 전체 비우기(84)·되돌리기 + 항목 복제(95) | 🟢 이동 ↑↓·**맨 위로/맨 아래로 한 번에**·드래그 재정렬 + 전체 비우기/1단계 되돌리기 + 항목 복제. 모던 재정렬 UX 보강 |
 | 드래그 소스 다양(곡/Info/PPT/미디어/이미지→배경/성경구절) | 큐 내부 재정렬 + 성경 본문→큐(43) + 라이브러리 곡→큐(99) + **탐색기 외부 파일→큐(증분121)** | 🟢 큐 재정렬 + 성경 구절 드래그 + 라이브러리 곡 드래그 + **탐색기에서 PPT/미디어 파일 끌어다 놓기**(확장자 분류 ExternalFileClassifier, PPT/미디어만 추가·모르는 형식 건너뜀+안내·증분122 드롭 위치 앞에 묶음 삽입으로 곡/성경 드래그와 통일) + **증분123 이미지 파일을 미리보기 영역에 드롭→출력 배경 설정**(이미지는 큐 아님). PPT 폴더 import 등 컬렉션 브라우징 외부 드래그만 후속 |
 | 자동 회전(One/One-Repeat/Group/Group-Repeat 4종 + Rotate Style) | `ToggleAutoRotate`(간격) + **4종 모드**(AutoRotateMode 콤보: 현재항목반복/한항목만/그룹/그룹반복) | 🟢 (증분81) 끝 절·슬라이드 도달 시 모드별 동작(반복/정지/다음 항목/첫 항목 순환). Rotate Style 세부만 후속 |
