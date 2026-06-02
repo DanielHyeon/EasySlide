@@ -169,7 +169,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 자동 회전(One/One-Repeat/Group/Group-Repeat 4종 + Rotate Style) | `ToggleAutoRotate`(간격) + **4종 모드**(AutoRotateMode 콤보: 현재항목반복/한항목만/그룹/그룹반복) | 🟢 (증분81) 끝 절·슬라이드 도달 시 모드별 동작(반복/정지/다음 항목/첫 항목 순환). Rotate Style 세부만 후속 |
 | Gap Item 처리 | GapItem 렌더 | 🟡 조작 UI 약함 |
 | 항목 검증(`ValidateWorshipListItems`: DB존재/PPT설치/삭제됨) | `WorshipListValidator`(파일) + **곡 DB 존재 검증(증분98)** + 도구 메뉴 "예배 순서 검증" + 좌측 경고 패널 | 🟢 파일 차원(깨진/이동·삭제된 PPT·미디어) + **곡 DB 존재 검증**(song:{id} 항목이 가사 DB 에 있는지 비동기 점검, 없으면 SongNotInDatabase 경고; DB 경로 없으면 생략하고 상태바에 명시). |
-| .esw 저장/로드 + **legacy v3.2**(`Load32WorshipList`) | Save/Load(.esw 신규) | 🟡 v3.2 미지원 |
+| .esw 저장/로드 + **legacy v3.2**(`Load32WorshipList`) | Save/Load(.esw 신규=JSON) + **legacy .esw 파서(증분101, 1단계)** | 🟡 레거시 .esw 는 바이너리가 아니라 **XML**(FrmMain.LoadIndexFile=XmlTextReader)임을 확인 — 순수 파서 `EswWorshipListParser`(검증된 항목 추출: 종류코드 D/P/B·식별자·제목·폴더·FormatData) 구현·테스트. 종류코드→WPF 항목 매핑·내용 해석(곡 가사 DB/성경 본문)·파일 가져오기 배선은 후속(2단계) |
 | 세션 노트 편집 | 세션 메모 창(WorshipSessionNotesWindow — 예배 순서 이름별 메모 편집·저장) | 🟢 메뉴 "세션 메모..." → 자유 메모 편집, 닫을 때 자동 저장 |
 
 ### 3.5 편집
