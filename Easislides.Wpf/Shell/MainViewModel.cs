@@ -596,6 +596,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemBold2Command = new RelayCommand(ToggleSelectedItemBold2, () => CanEditSelectedItemColor);
         ToggleSelectedItemItalic2Command = new RelayCommand(ToggleSelectedItemItalic2, () => CanEditSelectedItemColor);
         ToggleSelectedItemUnderline2Command = new RelayCommand(ToggleSelectedItemUnderline2, () => CanEditSelectedItemColor);
+        // 이 항목 서식 모두 지우기(레거시 Clear All Formatting) — 항목별 FormatData 전부 제거 → 전역 기본으로 송출. 서식이 있을 때만 활성.
+        ClearSelectedItemFormattingCommand = new RelayCommand(ClearSelectedItemFormatting, () => CanClearSelectedItemFormatting);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -759,6 +761,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleSelectedItemBold2Command { get; }
     public IRelayCommand ToggleSelectedItemItalic2Command { get; }
     public IRelayCommand ToggleSelectedItemUnderline2Command { get; }
+
+    /// <summary>이 항목의 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 모두 지워 전역 기본으로 되돌린다(레거시 Clear All Formatting).</summary>
+    public IRelayCommand ClearSelectedItemFormattingCommand { get; }
+
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -2008,6 +2014,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemSequenceInput));
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
+        OnPropertyChanged(nameof(CanClearSelectedItemFormatting));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
@@ -3004,12 +3011,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool CanEditSelectedItemColor
         => SelectedItem is { Kind: LiveItemKinds.Song or LiveItemKinds.Bible } item && !string.IsNullOrWhiteSpace(item.Lyrics);
 
+    /// <summary>
+    /// "이 항목 서식 모두 지우기"를 누를 수 있는지 — 서식 편집 대상(곡·성경)이면서 실제로 지울 항목별 서식(FormatData)이 있을 때만.
+    /// 서식이 없으면 지울 게 없어 비활성(불필요한 재송출 방지).
+    /// </summary>
+    public bool CanClearSelectedItemFormatting
+        => CanEditSelectedItemColor && !string.IsNullOrEmpty(SelectedItem?.FormatData);
+
+    /// <summary>
+    /// 선택한 항목의 항목별 서식(FormatData 전체 — 색·정렬·크기·글꼴·배경·강조, Region1·Region2)을 모두 지워 전역 기본 서식으로 되돌린다(레거시 Clear All Formatting).
+    /// 빈 <see cref="SongFormatData"/> 로 교체하면 인코딩 결과가 비어 FormatData 가 null 이 되고, 라이브면 즉시 같은 절로 재송출돼 전역 모양으로 바뀐다.
+    /// 개별 서식 사용(UseIndividualFormatting) 플래그는 건드리지 않는다 — FormatData 가 비면 어차피 전역으로 송출되므로 무해하고, 각 facet 해제와 동작이 일관된다.
+    /// </summary>
+    public void ClearSelectedItemFormatting()
+    {
+        if (ApplySelectedSongFormatChange(_ => new SongFormatData(), wantsIndividual: false, out _))
+        {
+            StatusText = "이 항목 서식 모두 지움(전역 기본)";
+        }
+    }
+
     /// <summary>현재 선택한 항목에 적용된 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 기본색 추종).</summary>
     public string SelectedItemTextColorHex
         => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.TextColorArgb1) ?? string.Empty;
 
     /// <summary>
-    /// 선택한 곡 항목의 곡별 서식(FormatData) 중 한 가지만 바꾸는 공통 경로 — 항목별 색·정렬이 공유한다.
+    /// 선택한 항목(<b>곡·성경</b>, 증분128)의 항목별 서식(FormatData) 중 한 가지만 바꾸는 공통 경로 — 항목별 색·정렬·크기·글꼴·배경·강조가 공유한다(이름은 호환을 위해 Song 유지).
     /// <paramref name="mutate"/> 가 현재 <see cref="SongFormatData"/> 를 받아 한 필드 바꾼 값을 돌려주면, 나머지 서식은
     /// 그대로 보존한 채(Parse→with→Encode 왕복) 큐의 그 인스턴스를 교체(참조 일치)·재선택하고 라이브면 즉시 재송출한다.
     /// <paramref name="wantsIndividual"/> 가 true 면(=서식을 켜는 변경) 그 서식이 보이도록 개별 서식 사용을 켠다(끄면 FormatData 무시됨).
@@ -4716,6 +4743,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemBold2Command.NotifyCanExecuteChanged();
         ToggleSelectedItemItalic2Command.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderline2Command.NotifyCanExecuteChanged();
+        ClearSelectedItemFormattingCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

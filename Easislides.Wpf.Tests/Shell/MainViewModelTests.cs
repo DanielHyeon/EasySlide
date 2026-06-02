@@ -5676,6 +5676,73 @@ public class MainViewModelTests
         session.Current.OverrideTextColorArgb.Should().Be(unchecked((int)0xFFFFE066), "성경 항목별 글자색이 라이브에 적용");
     }
 
+    [Fact]
+    public void ClearSelectedItemFormatting_RemovesAllFormatData_RevertsToGlobal()
+    {
+        // "이 항목 서식 모두 지우기" — 여러 항목별 서식(색·정렬)을 준 뒤 한 번에 지우면 FormatData 가 null(전역 기본)로 돌아간다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.SetSelectedItemTextColor("#FFFFE066"); // 노랑
+        sut.SetSelectedItemAlignment("2");          // 가운데
+        sut.SelectedItem!.FormatData.Should().NotBeNullOrEmpty("지우기 전엔 서식 있음");
+
+        sut.ClearSelectedItemFormatting();
+
+        sut.SelectedItem!.FormatData.Should().BeNull("모든 항목별 서식이 제거돼 전역 기본");
+        sut.StatusText.Should().Contain("모두 지움");
+    }
+
+    [Fact]
+    public void CanClearSelectedItemFormatting_OnlyWhenFormatDataPresent()
+    {
+        // 지울 서식이 있을 때만 활성 — 서식 없으면(또는 곡이 아니면) 비활성.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.CanClearSelectedItemFormatting.Should().BeFalse("서식이 없으면 지울 게 없어 비활성");
+        sut.ClearSelectedItemFormattingCommand.CanExecute(null).Should().BeFalse();
+
+        sut.SetSelectedItemTextColor("#FFFFFFFF");
+        sut.CanClearSelectedItemFormatting.Should().BeTrue("서식이 생기면 활성");
+        sut.ClearSelectedItemFormattingCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ClearSelectedItemFormatting_WorksForBibleItem()
+    {
+        // 성경 항목도(증분128) 서식 적용 대상이므로 "모두 지우기"가 동작한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("bible:gen1", "창세기 1:1", LiveItemKinds.Bible)
+        {
+            Lyrics = "태초에 하나님이...",
+            FormatData = "29=-1>31=2>", // 흰색 + 가운데
+        };
+        sut.LoadQueue([bible]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.CanClearSelectedItemFormatting.Should().BeTrue("성경 항목도 서식 있으면 지우기 활성");
+        sut.ClearSelectedItemFormatting();
+
+        sut.SelectedItem!.FormatData.Should().BeNull("성경 항목 서식도 모두 제거");
+    }
+
+    [Fact]
+    public async Task ClearSelectedItemFormatting_WhileLive_RevertsRender_EndToEnd()
+    {
+        // 종단: 라이브 중 "모두 지우기"를 누르면 같은 절로 재송출돼 라이브 오버라이드가 사라진다(전역 기본 복귀).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.OpenOutputCommand.Execute(null);
+        sut.SetSelectedItemTextColor("#FFFFE066"); // 노랑
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        session.Current.OverrideTextColorArgb.Should().Be(unchecked((int)0xFFFFE066), "송출 시 항목별 색 적용 확인");
+
+        sut.ClearSelectedItemFormatting();
+
+        session.Current.OverrideTextColorArgb.Should().BeNull("서식을 지우면 라이브가 전역 기본색으로 복귀");
+    }
+
     // ── 항목별 정렬 인라인 편집(SetSelectedItemAlignment) — 선택한 곡만 가로 정렬(레거시 Ind_ 정렬, 코드31) ──
 
     [Theory]
