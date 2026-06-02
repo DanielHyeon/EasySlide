@@ -8,6 +8,8 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <!-- 항목 종류(곡/성경/PPT/미디어/공지) → Fluent 아이콘 — 목록에서 한눈에 종류 구분(현대 UI). -->
         <conv:KindToSymbolConverter x:Key="KindToSymbol" />
+        <!-- 항목 Id == 라이브 항목 Id → LIVE 표시 가시성(지금 송출 중인 항목 표시). -->
+        <conv:LiveItemBadgeConverter x:Key="LiveBadge" />
     </UserControl.Resources>
 
     <!--
@@ -209,6 +211,25 @@
                                 <TextBlock Text="{Binding Title}"
                                            VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" />
+                                <!-- LIVE 배지 — 이 항목 Id 가 라이브 항목 Id 와 같을 때만 보인다(지금 송출 중인 항목 한눈에).
+                                     라이브 항목 Id 는 ListBox 의 DataContext(MainViewModel)에서 가져온다. 색은 LiveBar 와 같은 라이브 토큰(Brush.Live.Active)으로 통일(테마 일관). -->
+                                <Border Background="{DynamicResource Brush.Live.Active}"
+                                        CornerRadius="3"
+                                        Padding="5,1"
+                                        Margin="8,0,0,0"
+                                        VerticalAlignment="Center">
+                                    <Border.Visibility>
+                                        <MultiBinding Converter="{StaticResource LiveBadge}">
+                                            <Binding Path="Id" />
+                                            <Binding Path="DataContext.LiveItemId" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                        </MultiBinding>
+                                    </Border.Visibility>
+                                    <TextBlock Text="LIVE"
+                                               Foreground="White"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               AutomationProperties.Name="송출 중" />
+                                </Border>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

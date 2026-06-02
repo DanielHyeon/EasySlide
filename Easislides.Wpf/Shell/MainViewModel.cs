@@ -406,6 +406,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 출력을 갱신하도록 판별하는 데 쓴다.
     private string? _liveItemId;
 
+    /// <summary>
+    /// 현재 라이브 송출 중인 큐 항목의 Id(없으면 null). 예배 순서 목록이 "지금 출력 중인 항목"에 LIVE 표시를 붙이는 데 바인딩한다
+    /// (선택 하이라이트는 선택일 뿐 라이브와 다를 수 있어 — 송출 후 다음으로 자동 이동하면 선택≠라이브). 공지 송출 시엔 센티넬(NoticeLiveId)이라 큐 항목과 안 맞아 표시 안 됨.
+    /// </summary>
+    public string? LiveItemId => _liveItemId;
+
+    // _liveItemId 를 바꾸는 단일 통로 — 값이 바뀌면 LiveItemId 변경을 알려 목록의 LIVE 표시가 갱신되게 한다(직접 대입 대신 이걸로).
+    private void SetLiveItemId(string? id)
+    {
+        if (_liveItemId == id)
+        {
+            return;
+        }
+
+        _liveItemId = id;
+        OnPropertyChanged(nameof(LiveItemId));
+    }
+
     // "이 항목 서식 복사"로 담아 둔 항목별 서식(FormatData 문자열). 다른 항목에 "붙여넣기"하면 그대로 적용된다(없으면 null=붙여넣기 비활성).
     private string? _copiedItemFormatData;
 
@@ -1358,7 +1376,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 큐에 없는 고아 Id 를 기준으로 판단하지 않도록 라이브 추적을 정리한다(세션 송출 자체는 유지).
         if (_liveItemId == item.Id)
         {
-            _liveItemId = null;
+            SetLiveItemId(null);
         }
 
         SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(index, Queue.Count - 1)];
@@ -1386,7 +1404,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var count = Queue.Count;
         Queue.Clear();
         SelectedItem = null;
-        _liveItemId = null; // 큐가 비었으니 라이브 추적 정리(큐에 없는 고아 Id 로 슬라이드 가드가 오판하지 않도록)
+        SetLiveItemId(null); // 큐가 비었으니 라이브 추적 정리(큐에 없는 고아 Id 로 슬라이드 가드가 오판하지 않도록)
         StatusText = $"예배 순서 {count}개 항목을 비웠습니다 (되돌리기로 복구 가능)";
         NotifyCommandStates();
     }
@@ -2642,7 +2660,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _session.Stop();
         }
 
-        _liveItemId = null;
+        SetLiveItemId(null);
         LiveBar.OutputMonitorName = string.Empty;
         StatusText = "출력 창 닫힘";
         _telemetry.Record(MainCommandIds.OutputClose, succeeded: true, StatusText);
@@ -2709,7 +2727,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.Stop();
-        _liveItemId = null;
+        SetLiveItemId(null);
         StatusText = "라이브 중지";
         _telemetry.Record(MainCommandIds.LiveStop, succeeded: true, StatusText);
         NotifyCommandStates();
@@ -2920,7 +2938,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        _liveItemId = SelectedItem.Id; // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
+        SetLiveItemId(SelectedItem.Id); // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
         // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
         LiveTransposeSemitones = 0;
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
@@ -4189,7 +4207,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Lyrics = text,
             FormatData = formatData,
         };
-        _liveItemId = LiveItemKinds.NoticeLiveId;
+        SetLiveItemId(LiveItemKinds.NoticeLiveId);
         // 공지는 가사가 없어 조옮김과 무관하다. 라이브 조옮김 초기화는 곡 송출 진입점인 PublishSelectedItem 한 곳이
         // 책임진다(여기서 건드리지 않음) — 공지 중 조옮김을 눌러도 RepublishLiveSongForBodyChange 가 센티넬을
         // 큐에서 못 찾아 무시하므로 안전하다.
@@ -4209,7 +4227,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.HideOutput(blackout: true);
-        _liveItemId = null;
+        SetLiveItemId(null);
         StatusText = "공지 숨김(검은 화면)";
         NotifyCommandStates();
     }

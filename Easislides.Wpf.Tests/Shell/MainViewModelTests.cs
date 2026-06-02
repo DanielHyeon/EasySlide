@@ -89,6 +89,32 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LiveItemId_ReflectsPublishedItem_AndNotifiesAndClearsOnStop()
+    {
+        // 예배 순서 목록의 LIVE 표시 바인딩 소스 — 송출하면 그 항목 Id, 라이브 중지하면 null. 변경 시 PropertyChanged 알림.
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:a", "곡A");
+        var b = new LiveQueueItem("song:b", "곡B");
+        sut.LoadQueue([a, b]);
+        sut.LiveItemId.Should().BeNull("송출 전엔 라이브 항목 없음");
+
+        var notified = new System.Collections.Generic.List<string?>();
+        sut.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(MainViewModel.LiveItemId)) notified.Add(sut.LiveItemId); };
+
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = a;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.LiveItemId.Should().Be("song:a", "송출한 항목 Id 가 라이브 항목");
+        notified.Should().Contain("song:a", "라이브 항목 변경이 통지됨(LIVE 표시 갱신)");
+
+        await sut.StopLiveCommand.ExecuteAsync(null);
+
+        sut.LiveItemId.Should().BeNull("라이브 중지하면 라이브 항목 해제");
+        notified.Should().Contain((string?)null, "해제도 통지됨");
+    }
+
+    [Fact]
     public async Task GoLiveCommand_WhenSafetyPromptDeclines_DoesNotChangeState()
     {
         var prompt = new RecordingSafetyPrompt(allow: false);
