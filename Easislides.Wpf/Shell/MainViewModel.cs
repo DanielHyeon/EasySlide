@@ -573,6 +573,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemAlignmentCommand = new RelayCommand<string?>(SetSelectedItemAlignment, _ => CanEditSelectedItemColor);
         SetSelectedItemFontSizeCommand = new RelayCommand<string?>(SetSelectedItemFontSize, _ => CanEditSelectedItemColor);
         SetSelectedItemFontNameCommand = new RelayCommand<string?>(SetSelectedItemFontName, _ => CanEditSelectedItemColor);
+        SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -718,6 +719,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemAlignmentCommand { get; }
     public IRelayCommand<string?> SetSelectedItemFontSizeCommand { get; }
     public IRelayCommand<string?> SetSelectedItemFontNameCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemBackgroundColorCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1832,6 +1834,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
         OnPropertyChanged(nameof(SelectedItemFontName));
+        OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
 
         NotifyCommandStates();
     }
@@ -2876,6 +2879,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = fontName.Length == 0
                 ? "항목 글꼴: 전역 기본"
                 : $"항목 글꼴: {fontName}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목에 적용된 배경색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 배경 추종).</summary>
+    public string SelectedItemBackgroundColorHex
+        => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundColorArgb1) ?? string.Empty;
+
+    /// <summary>
+    /// 선택한 곡 항목의 배경색(이 항목만)을 바꾼다(레거시 항목별 배경, FormatData 코드 26). hex 가 비거나 형식 오류면 해제해 전역 배경을 따른다.
+    /// 배경을 주면 개별 서식을 켜고, 나머지 곡별 서식(글자색·정렬·크기·글꼴 등)은 보존한다. 송출 시 그 곡 동안 이 배경색으로 표시된다.
+    /// <para>주의: 배경 <b>이미지</b>(전역 또는 곡별 FormatData 61)가 설정돼 있으면 그 이미지가 배경색 위를 덮어 색이 안 보일 수 있다(이미지가 우선).</para>
+    /// </summary>
+    public void SetSelectedItemBackgroundColor(string? hex)
+    {
+        var argb = SongFormatData.HexToArgb(hex); // 비거나 형식 오류면 null = 배경 해제(전역 배경).
+        if (ApplySelectedSongFormatChange(format => format with { BackgroundColorArgb1 = argb }, wantsIndividual: argb is not null, out var turnedOn))
+        {
+            StatusText = argb is null
+                ? "항목 배경색: 전역 기본"
+                : $"항목 배경색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -4254,6 +4277,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemAlignmentCommand.NotifyCanExecuteChanged();
         SetSelectedItemFontSizeCommand.NotifyCanExecuteChanged();
         SetSelectedItemFontNameCommand.NotifyCanExecuteChanged();
+        SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

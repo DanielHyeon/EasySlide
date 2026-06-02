@@ -5431,6 +5431,87 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 글꼴이 붙지 않음");
     }
 
+    // ── 항목별 배경색 인라인 편집(SetSelectedItemBackgroundColor) — 선택한 곡만 배경(레거시 Ind_ 배경, 코드26) ──
+
+    [Fact]
+    public void SetSelectedItemBackgroundColor_WritesFormatDataCode26_AndEnablesIndividual_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemBackgroundColor("#FF000000"); // 검정(ARGB -16777216).
+
+        sut.SelectedItem!.FormatData.Should().Contain("26=-16777216", "코드 26(영역1 배경색)에 검정 인코드");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("배경을 주면 보이도록 개별 서식을 켠다");
+        sut.SelectedItemBackgroundColorHex.Should().Be("#FF000000", "배경 미리보기도 동기화");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundColor_PreservesExistingTextColor()
+    {
+        // 배경만 바꾸고 기존 항목별 글자색(코드29)은 보존한다(공통 헬퍼 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1", // 흰색 글자.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundColor("#FF202020"); // 진회색 배경.
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("26=", "새 배경색 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundColor_EmptyOrInvalid_ClearsToGlobal()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "26=-16777216", // 검정 배경이 이미 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundColor(""); // 전역 기본으로 해제.
+
+        sut.SelectedItemBackgroundColorHex.Should().BeEmpty("배경 해제 → 전역 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("26=", "코드 26(배경)이 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundColor_WhileLive_AppliesOverrideBackground()
+    {
+        // 라이브 송출 중 항목 배경색을 바꾸면 세션 오버라이드 배경이 즉시 반영된다(레거시 per-song 배경).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemBackgroundColor("#FF000000"); // 검정(-16777216).
+
+        session.Current.OverrideBackgroundColorArgb.Should().Be(-16777216, "항목 배경이 라이브 송출에 즉시 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundColor_NonSong_IsNoOpAndCommandDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundColorCommand.CanExecute("#FF000000").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemBackgroundColor("#FF000000");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경이 붙지 않음");
+    }
+
     [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {

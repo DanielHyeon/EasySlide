@@ -263,6 +263,30 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
+                            <!-- 항목별 배경색(이 곡만) — 레거시 Ind_ 배경(FormatData 코드26). 가사가 잘 보이도록 어두운 색 프리셋 + 해제. 곡 항목일 때만 활성.
+                                 참고: 배경 이미지(전역/곡별 코드61)가 있으면 그 이미지가 배경색을 덮어 색이 안 보일 수 있다(이미지 우선). -->
+                            <MenuItem Header="이 항목 배경색"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="검정"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF000000" />
+                                <MenuItem Header="진회색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF202020" />
+                                <MenuItem Header="네이비"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF001A33" />
+                                <MenuItem Header="짙은 보라"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF1A0033" />
+                                <MenuItem Header="짙은 녹색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF002200" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 배경(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>
