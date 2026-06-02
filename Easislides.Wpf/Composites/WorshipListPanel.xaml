@@ -382,6 +382,17 @@
                                               Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                               CommandParameter="" />
                                 </MenuItem>
+                                <MenuItem Header="강조">
+                                    <MenuItem Header="굵게"
+                                              IsChecked="{Binding PlacementTarget.DataContext.SelectedItemBold2, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                              Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemBold2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <MenuItem Header="기울임"
+                                              IsChecked="{Binding PlacementTarget.DataContext.SelectedItemItalic2, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                              Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemItalic2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <MenuItem Header="밑줄"
+                                              IsChecked="{Binding PlacementTarget.DataContext.SelectedItemUnderline2, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                              Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemUnderline2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                </MenuItem>
                             </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>

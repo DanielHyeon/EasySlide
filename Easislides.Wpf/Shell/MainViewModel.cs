@@ -586,6 +586,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 이중 언어(보조 영역 Region2) 글자 크기(코드48)·글꼴(코드44) — 비우면 본문(Region1) 추종. 곡일 때만 활성.
         SetSelectedItemFontSize2Command = new RelayCommand<string?>(SetSelectedItemFontSize2, _ => CanEditSelectedItemColor);
         SetSelectedItemFontName2Command = new RelayCommand<string?>(SetSelectedItemFontName2, _ => CanEditSelectedItemColor);
+        // 이중 언어(보조 영역 Region2) 강조(굵게·기울임·밑줄, 코드41 상위비트 bit3/4/5) — 우클릭 토글. 곡일 때만 활성.
+        ToggleSelectedItemBold2Command = new RelayCommand(ToggleSelectedItemBold2, () => CanEditSelectedItemColor);
+        ToggleSelectedItemItalic2Command = new RelayCommand(ToggleSelectedItemItalic2, () => CanEditSelectedItemColor);
+        ToggleSelectedItemUnderline2Command = new RelayCommand(ToggleSelectedItemUnderline2, () => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -740,6 +744,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemAlignment2Command { get; }
     public IRelayCommand<string?> SetSelectedItemFontSize2Command { get; }
     public IRelayCommand<string?> SetSelectedItemFontName2Command { get; }
+    public IRelayCommand ToggleSelectedItemBold2Command { get; }
+    public IRelayCommand ToggleSelectedItemItalic2Command { get; }
+    public IRelayCommand ToggleSelectedItemUnderline2Command { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1863,6 +1870,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemAlignment2));
         OnPropertyChanged(nameof(SelectedItemFontSize2));
         OnPropertyChanged(nameof(SelectedItemFontName2));
+        OnPropertyChanged(nameof(SelectedItemBold2));
+        OnPropertyChanged(nameof(SelectedItemItalic2));
+        OnPropertyChanged(nameof(SelectedItemUnderline2));
 
         NotifyCommandStates();
     }
@@ -3069,6 +3079,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 : $"보조 영역 글꼴: {fontName}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 굵게(이 항목만) 적용 여부 — 우클릭 메뉴 체크 표시에 바인딩.</summary>
+    public bool SelectedItemBold2 => SongFormatData.Parse(SelectedItem?.FormatData)?.Bold2 ?? false;
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 기울임(이 항목만) 적용 여부.</summary>
+    public bool SelectedItemItalic2 => SongFormatData.Parse(SelectedItem?.FormatData)?.Italic2 ?? false;
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 밑줄(이 항목만) 적용 여부.</summary>
+    public bool SelectedItemUnderline2 => SongFormatData.Parse(SelectedItem?.FormatData)?.Underline2 ?? false;
+
+    /// <summary>선택한 곡 항목의 보조 영역(Region2) 굵게(이 항목만)를 켜고 끈다(레거시 Region2 굵게, FormatData 코드41 bit3).</summary>
+    public void ToggleSelectedItemBold2()
+        => ToggleSelectedItemEmphasis(f => f.Bold2, (f, v) => f with { Bold2 = v }, "보조 영역 굵게");
+
+    /// <summary>선택한 곡 항목의 보조 영역(Region2) 기울임(이 항목만)을 켜고 끈다(레거시 Region2 기울임, FormatData 코드41 bit4).</summary>
+    public void ToggleSelectedItemItalic2()
+        => ToggleSelectedItemEmphasis(f => f.Italic2, (f, v) => f with { Italic2 = v }, "보조 영역 기울임");
+
+    /// <summary>선택한 곡 항목의 보조 영역(Region2) 밑줄(이 항목만)을 켜고 끈다(레거시 Region2 밑줄, FormatData 코드41 bit5).</summary>
+    public void ToggleSelectedItemUnderline2()
+        => ToggleSelectedItemEmphasis(f => f.Underline2, (f, v) => f with { Underline2 = v }, "보조 영역 밑줄");
 
     // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
     // 각 항목의 UseIndividualFormatting 을 false 로 바꿔 곡별 FormatData 대신 운영 기본 서식으로 송출하게 한다.
@@ -4454,6 +4485,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemAlignment2Command.NotifyCanExecuteChanged();
         SetSelectedItemFontSize2Command.NotifyCanExecuteChanged();
         SetSelectedItemFontName2Command.NotifyCanExecuteChanged();
+        ToggleSelectedItemBold2Command.NotifyCanExecuteChanged();
+        ToggleSelectedItemItalic2Command.NotifyCanExecuteChanged();
+        ToggleSelectedItemUnderline2Command.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

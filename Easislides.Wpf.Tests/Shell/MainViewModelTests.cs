@@ -6041,6 +6041,116 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 서식이 붙지 않음");
     }
 
+    // ── 이중 언어 보조 영역(Region2) 항목별 강조(굵게/기울임/밑줄, 코드41 상위비트 bit3/4/5) ──
+
+    [Fact]
+    public void ToggleSelectedItemBold2_TogglesCode41Bit3_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.SelectedItemBold2.Should().BeFalse();
+
+        sut.ToggleSelectedItemBold2(); // 켜기.
+
+        sut.SelectedItem!.FormatData.Should().Contain("41=8", "코드 41 bit3(Region2 굵게) = 8");
+        sut.SelectedItemBold2.Should().BeTrue();
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("켜면 개별 서식을 켠다");
+
+        sut.ToggleSelectedItemBold2(); // 끄기.
+        sut.SelectedItemBold2.Should().BeFalse();
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("41=", "비트 0 → 코드41 제거");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemBold2_CoexistsWithRegion1Bold_InSameCode41()
+    {
+        // 본문 굵게(bit0=1)와 보조 영역 굵게(bit3=8)는 같은 코드41 안에서 독립적으로 공존 → 41=9.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n본문\n[region 2]\n번역",
+            FormatData = "41=1", // 본문 굵게(bit0).
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemBold2(); // 보조 영역 굵게 추가(bit3).
+
+        sut.SelectedItem!.FormatData.Should().Contain("41=9", "본문 굵게(1)+보조 굵게(8)=9");
+        sut.SelectedItemBold.Should().BeTrue("본문 굵게 비트 보존");
+        sut.SelectedItemBold2.Should().BeTrue("보조 영역 굵게 추가됨");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemBold2_Off_PreservesOtherRegion2AndRegion1Bits()
+    {
+        // 본문 굵게(1)+보조 굵게(8)+보조 기울임(16)=41=25 에서 보조 굵게만 끄면 → 41=17(본문 굵게 1 + 보조 기울임 16) 보존.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "41=25", // Bold1(1)+Bold2(8)+Italic2(16).
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemBold2(); // 보조 굵게만 끄기.
+
+        sut.SelectedItem!.FormatData.Should().Contain("41=17", "본문 굵게(1)+보조 기울임(16)=17만 남음");
+        sut.SelectedItemBold.Should().BeTrue("본문 굵게(bit0) 보존");
+        sut.SelectedItemItalic2.Should().BeTrue("보조 기울임(bit4) 보존");
+        sut.SelectedItemBold2.Should().BeFalse("보조 굵게(bit3)만 꺼짐");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemItalic2_PreservesExistingColor()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemItalic2();
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("41=16", "Region2 기울임 bit4=16");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemUnderline2_WhileLive_AppliesOverrideUnderline2()
+    {
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n본문\n[region 2]\n번역" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.ToggleSelectedItemUnderline2();
+
+        session.Current.OverrideUnderline2.Should().Be(true, "보조 영역 밑줄이 라이브 송출에 즉시 반영");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemEmphasis2_NonSong_IsNoOpAndCommandsDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemBold2Command.CanExecute(null).Should().BeFalse();
+        sut.ToggleSelectedItemItalic2Command.CanExecute(null).Should().BeFalse();
+        sut.ToggleSelectedItemUnderline2Command.CanExecute(null).Should().BeFalse();
+
+        sut.ToggleSelectedItemBold2();
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 강조가 붙지 않음");
+    }
+
     [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {
