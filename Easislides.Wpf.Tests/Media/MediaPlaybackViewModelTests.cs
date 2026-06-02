@@ -67,6 +67,32 @@ public class MediaPlaybackViewModelTests
     }
 
     [Fact]
+    public void RestartCommand_SeeksToStartAndPlays()
+    {
+        // 레거시 미디어 Enter 키 = 처음부터 다시 재생: 위치를 0으로 되감고 재생 상태가 된다.
+        var service = new MediaPlaybackService();
+        var sut = new MediaPlaybackViewModel(service);
+        sut.Load(DefaultRequest(duration: TimeSpan.FromSeconds(20)));
+        sut.FastForwardCommand.Execute(null); // 위치 5초로 이동.
+        sut.Position.Should().Be(TimeSpan.FromSeconds(5));
+
+        sut.RestartCommand.Execute(null);
+
+        sut.Position.Should().Be(TimeSpan.Zero, "처음으로 되감음");
+        sut.State.Should().Be(MediaPlaybackState.Playing, "되감고 바로 재생");
+    }
+
+    [Fact]
+    public void RestartCommand_DisabledWhenNoMedia()
+    {
+        // 미디어가 없으면(Empty) 다시재생도 비활성 — 다른 재생 컨트롤과 동일 게이팅.
+        var service = new MediaPlaybackService();
+        var sut = new MediaPlaybackViewModel(service);
+
+        sut.RestartCommand.CanExecute(null).Should().BeFalse("미디어가 없으면 다시재생 비활성");
+    }
+
+    [Fact]
     public void Unload_ResetsStateToEmptyAndDisablesControls()
     {
         var service = new MediaPlaybackService();
@@ -78,8 +104,11 @@ public class MediaPlaybackViewModelTests
 
         sut.State.Should().Be(MediaPlaybackState.Empty);
         sut.Source.Should().BeEmpty();
+        // 미디어 키 4종(Space·Esc/S·Enter·M)이 모두 비활성이어야 "미디어 없으면 Space=다음 항목" 넘김 보장이 성립한다.
         sut.PlayPauseCommand.CanExecute(null).Should().BeFalse("미디어를 내리면 재생 컨트롤이 비활성");
         sut.StopCommand.CanExecute(null).Should().BeFalse();
+        sut.RestartCommand.CanExecute(null).Should().BeFalse();
+        sut.ToggleMuteCommand.CanExecute(null).Should().BeFalse();
     }
 
     private static MediaPlaybackRequest DefaultRequest(TimeSpan? duration = null)

@@ -33,6 +33,7 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
 
         PlayPauseCommand = new RelayCommand(PlayPause, CanUsePlaybackControls);
         StopCommand = new RelayCommand(_playback.Stop, CanUsePlaybackControls);
+        RestartCommand = new RelayCommand(Restart, CanUsePlaybackControls);
         FastForwardCommand = new RelayCommand(() => _playback.Seek(Position + DefaultSeekIncrement), CanUsePlaybackControls);
         FastReverseCommand = new RelayCommand(() => _playback.Seek(Position - DefaultSeekIncrement), CanUsePlaybackControls);
         ToggleMuteCommand = new RelayCommand(() => _playback.SetMuted(!IsMuted), CanUsePlaybackControls);
@@ -43,6 +44,9 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
 
     public IRelayCommand PlayPauseCommand { get; }
     public IRelayCommand StopCommand { get; }
+
+    /// <summary>처음부터 다시 재생(레거시 미디어 플레이어 Enter = Remote_ResumeItemFromStart). 위치를 0으로 되감고 재생한다.</summary>
+    public IRelayCommand RestartCommand { get; }
     public IRelayCommand FastForwardCommand { get; }
     public IRelayCommand FastReverseCommand { get; }
     public IRelayCommand ToggleMuteCommand { get; }
@@ -80,6 +84,13 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
         _playback.Play();
     }
 
+    // 처음부터 다시 재생 — 위치를 0으로 되감고 재생(레거시 Enter 키 동작).
+    private void Restart()
+    {
+        _playback.Seek(TimeSpan.Zero);
+        _playback.Play();
+    }
+
     private bool CanUsePlaybackControls()
         => State is MediaPlaybackState.Ready
             or MediaPlaybackState.Playing
@@ -109,6 +120,7 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
     {
         PlayPauseCommand.NotifyCanExecuteChanged();
         StopCommand.NotifyCanExecuteChanged();
+        RestartCommand.NotifyCanExecuteChanged();
         FastForwardCommand.NotifyCanExecuteChanged();
         FastReverseCommand.NotifyCanExecuteChanged();
         ToggleMuteCommand.NotifyCanExecuteChanged();

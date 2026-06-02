@@ -209,7 +209,7 @@ Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/Sma
 | FrmMain | WPF | 상태 |
 |---|---|---|
 | 전역 후킹 Black(F9/F10), Slide ↑↓(Arrow/Ctrl+Arrow) | ShortcutRegistry 일부 | 🟡 |
-| 미디어플레이어 전역키(Esc/Space/Enter/S/M) | — | 🔴 |
+| 미디어플레이어 전역키(Esc/Space/Enter/S/M) | **증분104**: 순수 MediaPlayerKeyMap+MediaPlayerKeyRouter + RestartCommand | 🟢 라이브로 미디어 재생 중일 때 Space=재생/정지·Enter=처음부터·S/Esc=정지·M=음소거(레거시 FrmMain.HandleMediaPlayerKey 충실). 미디어 없으면 Space=다음 항목 등 평소 단축키 유지(CanExecute 게이팅), 버튼 포커스 시 Space/Enter 는 그 버튼 우선(라우터 가드). 레거시 Esc 의 "영상 숨김→가사 복귀"(Unload)는 후속 |
 | 절 라벨/숫자 키 매핑(`KeyboardMapping`) | **숫자(1~9)·문자(c·b·t·w·e·p·q) 키 → 절 점프(증분91)** — 순수 VerseJumpKeyMap + 포커스 가드 | 🟢 라이브 중 숫자/문자 키로 해당 절·후렴 라벨로 즉시 점프(JumpToLyricsSection 재사용). 텍스트 입력·수식 키·없는 라벨이면 가로채지 않음 |
 | ⌘K 명령 팔레트 | 25개(+항목 복제 Ctrl+D, 증분97) | 🟢(신규, FrmMain엔 없던 개선) — 항목 복제도 Ctrl+D 단축키·팔레트 검색 |
 

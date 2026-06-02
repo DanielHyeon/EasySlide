@@ -210,11 +210,54 @@ public partial class MainWindow : Window
             return;
         }
 
+        // 미디어 플레이어 전역키(레거시 Esc/Space/Enter/S/M) — 라이브로 미디어가 재생 가능할 때만 가로챈다.
+        // 미디어가 없으면 false 라서 Space=다음 항목 같은 평소 단축키가 그대로 동작한다(아래 _shortcuts 로 흘러감).
+        if (TryHandleMediaPlayerKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
         }
     }
+
+    // 미디어 키 처리: 우선순위·포커스·실행가능 판단은 순수 MediaPlayerKeyRouter 가 결정하고, View 는 상황만 모아 넘긴다.
+    // 버튼에 포커스가 있으면 Space/Enter 는 그 버튼을 눌러야 하므로 가로채지 않는다(라우터가 처리).
+    private bool TryHandleMediaPlayerKey(KeyEventArgs e)
+    {
+        var media = _viewModel.Media;
+        var isButtonFocused = Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase;
+
+        var action = MediaPlayerKeyRouter.Resolve(
+            e.Key,
+            Keyboard.Modifiers != ModifierKeys.None,
+            IsTextInputFocused(),
+            isButtonFocused,
+            candidate => MediaCommandFor(media, candidate) is { } command && command.CanExecute(null));
+
+        if (action == MediaPlayerKeyAction.None)
+        {
+            return false;
+        }
+
+        MediaCommandFor(media, action)!.Execute(null);
+        return true;
+    }
+
+    // 미디어 동작 → 해당 명령. 매핑 없으면 null(라우터의 None 과 짝).
+    private static CommunityToolkit.Mvvm.Input.IRelayCommand? MediaCommandFor(
+        Media.MediaPlaybackViewModel media,
+        MediaPlayerKeyAction action) => action switch
+    {
+        MediaPlayerKeyAction.PlayPause => media.PlayPauseCommand,
+        MediaPlayerKeyAction.Stop => media.StopCommand,
+        MediaPlayerKeyAction.Restart => media.RestartCommand,
+        MediaPlayerKeyAction.ToggleMute => media.ToggleMuteCommand,
+        _ => null,
+    };
 
     // 절 점프 키 처리: 수식 키 없음 + 텍스트 입력에 포커스 없음 + 매핑된 라벨이 현재 곡에 존재할 때만 점프.
     private bool TryHandleVerseJumpKey(KeyEventArgs e)
@@ -234,7 +277,8 @@ public partial class MainWindow : Window
         return true;
     }
 
-    // 텍스트 입력 컨트롤(텍스트박스·편집 가능 콤보)에 포커스가 있으면 true — 절 점프 키가 타이핑을 가로채지 않게 한다.
+    // 텍스트 입력 컨트롤(텍스트박스·편집 가능 콤보)에 포커스가 있으면 true — 절 점프 키·미디어 키가 타이핑을 가로채지 않게 한다(공용).
+    // (버튼 포커스 가드는 미디어 키 라우터가 따로 본다 — Space/Enter 가 포커스된 버튼을 눌러야 하므로.)
     // 주의: 메인 창엔 현재 PasswordBox·편집 가능 DataGrid 가 없다(검증됨). 나중에 추가하면
     // PasswordBox(TextBoxBase 비상속) 등을 여기 조건에 더해야 숫자/문자 입력이 절 점프에 가로채이지 않는다.
     private static bool IsTextInputFocused()

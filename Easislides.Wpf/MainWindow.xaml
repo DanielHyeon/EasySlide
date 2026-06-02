@@ -1540,11 +1540,19 @@
                                                 Style="{StaticResource EsButton.Primary}"
                                                 Margin="0,0,8,0"
                                                 Content="{Binding Media.PlayPauseLabel}"
+                                                ToolTip="재생/일시정지 (Space)"
                                                 AutomationProperties.Name="재생/일시정지" />
+                                        <Button Command="{Binding Media.RestartCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                Margin="0,0,8,0"
+                                                Content="↺"
+                                                ToolTip="처음부터 다시 재생 (Enter)"
+                                                AutomationProperties.Name="처음부터 다시 재생" />
                                         <Button Command="{Binding Media.StopCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 Margin="0,0,8,0"
                                                 Content="■"
+                                                ToolTip="정지 (Esc 또는 S)"
                                                 AutomationProperties.Name="정지" />
                                         <Button Command="{Binding Media.FastForwardCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
@@ -1557,6 +1565,7 @@
                                                       Padding="10,0"
                                                       Margin="0,0,8,0"
                                                       Content="음소거"
+                                                      ToolTip="음소거 토글 (M)"
                                                       AutomationProperties.Name="음소거 토글" />
                                         <ToggleButton IsChecked="{Binding Media.IsRepeatEnabled, Mode=OneWay}"
                                                       Command="{Binding Media.ToggleRepeatCommand}"
