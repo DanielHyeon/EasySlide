@@ -29,4 +29,21 @@ public class WorshipItemIconTests
     [Fact]
     public void SymbolForKind_GenericFallback_IsDocumentIcon()
         => EsIcons.GenericItem.Should().Be(SymbolRegular.Document24);
+
+    [Theory]
+    [InlineData(LiveItemKinds.Song, "곡")]
+    [InlineData(LiveItemKinds.Bible, "성경")]
+    [InlineData(LiveItemKinds.PowerPoint, "PowerPoint")]
+    [InlineData(LiveItemKinds.Media, "미디어")]
+    [InlineData(LiveItemKinds.Notice, "공지")]
+    public void KindLabel_MapsEachKindToKoreanLabel(string kind, string expected)
+        => WorshipItemIcon.KindLabel(kind).Should().Be(expected);
+
+    [Theory]
+    [InlineData(LiveItemKinds.Item)]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("UnknownKind")]
+    public void KindLabel_UnknownOrEmpty_FallsBackToItem(string? kind)
+        => WorshipItemIcon.KindLabel(kind).Should().Be("항목");
 }

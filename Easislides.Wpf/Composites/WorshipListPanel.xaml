@@ -10,6 +10,8 @@
         <conv:KindToSymbolConverter x:Key="KindToSymbol" />
         <!-- 항목 Id == 라이브 항목 Id → LIVE 표시 가시성(지금 송출 중인 항목 표시). -->
         <conv:LiveItemBadgeConverter x:Key="LiveBadge" />
+        <!-- 항목 종류 → 한글 라벨 — 툴팁("종류 — 제목")에 쓴다. -->
+        <conv:KindToLabelConverter x:Key="KindToLabel" />
     </UserControl.Resources>
 
     <!--
@@ -222,6 +224,13 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal"
                                         AutomationProperties.Name="{Binding Title}">
+                                <!-- 마우스 올리면 "종류 — 전체 제목" 툴팁 — 아이콘 뜻 설명 + 길어서 잘린 제목 전체 보기. -->
+                                <StackPanel.ToolTip>
+                                    <MultiBinding StringFormat="{}{0} — {1}">
+                                        <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
+                                        <Binding Path="Title" />
+                                    </MultiBinding>
+                                </StackPanel.ToolTip>
                                 <ui:SymbolIcon Symbol="{Binding Kind, Converter={StaticResource KindToSymbol}}"
                                                FontSize="16"
                                                VerticalAlignment="Center"

@@ -22,4 +22,18 @@ public static class WorshipItemIcon
         LiveItemKinds.Notice => EsIcons.Notice,        // 공지(텍스트) — 말풍선 아이콘
         _ => EsIcons.GenericItem,                      // 그 외(Item 등) — 일반 문서 아이콘
     };
+
+    /// <summary>
+    /// 항목 종류를 사람이 읽는 한글 라벨로 — 목록 항목 툴팁("종류 — 제목")에 쓴다(아이콘이 무엇을 뜻하는지 글로도 설명).
+    /// 모르는/빈 종류는 "항목"으로 폴백한다.
+    /// </summary>
+    public static string KindLabel(string? kind) => kind switch
+    {
+        LiveItemKinds.Song => "곡",
+        LiveItemKinds.Bible => "성경",
+        LiveItemKinds.PowerPoint => "PowerPoint",
+        LiveItemKinds.Media => "미디어",
+        LiveItemKinds.Notice => "공지",
+        _ => "항목",
+    };
 }
