@@ -278,6 +278,8 @@ public sealed class LiveSessionService : ILiveSessionService
     // 현재 송출 절의 섹션 라벨(예: "1절", "후렴")을 안전하게 구한다. 곡이 아니거나 가사·라벨이 없으면 빈 문자열.
     // 절 라벨은 MainViewModel 의 절 라벨 계산과 같은 포맷터 경로(단일=GetSectionLabels, 이중 언어=GetRegionSectionLabels)를 쓴다.
     // 후렴 판정("강조 후렴만")과 절 헤딩 표시가 같은 라벨을 보도록 한 곳에서 계산한다(중복·불일치 방지).
+    // 참고: 성경은 절 라벨이 없어 라벨이 항상 빈 문자열 → CurrentPageIsChorus 도 늘 false. 그래서 "강조 후렴만"이 켜지면
+    //       성경 항목별 강조(굵게/기울임/밑줄)는 화면에서 억제된다(성경엔 후렴 개념이 없으니 자연스러운 동작 — 색·정렬·글꼴은 무관하게 적용).
     private static string ComputeCurrentSectionLabel(LiveQueueItem item)
     {
         if (item.Kind != LiveItemKinds.Song || string.IsNullOrEmpty(item.Lyrics))

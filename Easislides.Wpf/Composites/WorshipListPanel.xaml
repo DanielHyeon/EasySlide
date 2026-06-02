@@ -206,7 +206,7 @@
                             <MenuItem Header="개별 서식 사용"
                                       IsChecked="{Binding PlacementTarget.DataContext.SelectedItem.UseIndividualFormatting, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
                                       Command="{Binding PlacementTarget.DataContext.ToggleUseIndividualFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                            <!-- 항목별 글자색(이 곡만) — 레거시 Ind_ 색. 프리셋 색/전역기본을 한 번에. 곡 항목일 때만 활성. -->
+                            <!-- 항목별 글자색(이 항목만) — 레거시 Ind_ 색. 프리셋 색/전역기본을 한 번에. 곡·성경 항목일 때만 활성. -->
                             <MenuItem Header="이 항목 글자색"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
                                 <MenuItem Header="흰색"
@@ -229,7 +229,7 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
-                            <!-- 항목별 가로 정렬(이 곡만) — 레거시 Ind_ 정렬(FormatData 코드31). 곡 항목일 때만 활성. -->
+                            <!-- 항목별 가로 정렬(이 항목만) — 레거시 Ind_ 정렬(FormatData 코드31). 곡·성경 항목일 때만 활성. -->
                             <MenuItem Header="이 항목 정렬"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
                                 <MenuItem Header="왼쪽"
@@ -246,7 +246,7 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="0" />
                             </MenuItem>
-                            <!-- 항목별 글자 크기(이 곡만) — 레거시 Ind_ 크기(FormatData 코드47, pt). 곡 항목일 때만 활성. -->
+                            <!-- 항목별 글자 크기(이 항목만) — 레거시 Ind_ 크기(FormatData 코드47, pt). 곡·성경 항목일 때만 활성. -->
                             <MenuItem Header="이 항목 글자 크기"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
                                 <MenuItem Header="작게 (36pt)"
@@ -266,7 +266,7 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="0" />
                             </MenuItem>
-                            <!-- 항목별 글꼴명(이 곡만) — 레거시 Ind_ 글꼴(FormatData 코드43). 자주 쓰는 한/영 글꼴 빠른 선택 + 해제. 곡 항목일 때만 활성.
+                            <!-- 항목별 글꼴명(이 항목만) — 레거시 Ind_ 글꼴(FormatData 코드43). 자주 쓰는 한/영 글꼴 빠른 선택 + 해제. 곡·성경 항목일 때만 활성.
                                  (인스펙터 전역 글꼴 콤보에는 설치 글꼴 전체가 있고, 여기선 우클릭 빠른 선택용 짧은 목록이다.) -->
                             <MenuItem Header="이 항목 글꼴"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
@@ -290,7 +290,7 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
-                            <!-- 항목별 배경색(이 곡만) — 레거시 Ind_ 배경(FormatData 코드26). 가사가 잘 보이도록 어두운 색 프리셋 + 해제. 곡 항목일 때만 활성.
+                            <!-- 항목별 배경색(이 항목만) — 레거시 Ind_ 배경(FormatData 코드26). 가사가 잘 보이도록 어두운 색 프리셋 + 해제. 곡·성경 항목일 때만 활성.
                                  참고: 배경 이미지(전역/곡별 코드61)가 있으면 그 이미지가 배경색을 덮어 색이 안 보일 수 있다(이미지 우선). -->
                             <MenuItem Header="이 항목 배경색"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
@@ -314,7 +314,7 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
-                            <!-- 항목별 배경 이미지(이 곡만) — 레거시 Ind_ 배경 이미지(FormatData 코드61). 파일 선택은 코드비하인드, 해제는 빈 경로 명령. 곡 항목일 때만 활성. -->
+                            <!-- 항목별 배경 이미지(이 항목만) — 레거시 Ind_ 배경 이미지(FormatData 코드61). 파일 선택은 코드비하인드, 해제는 빈 경로 명령. 곡·성경 항목일 때만 활성. -->
                             <MenuItem Header="이 항목 배경 이미지"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
                                 <MenuItem Header="이미지 선택..." Click="SelectItemBackgroundImage_Click" />
@@ -323,7 +323,7 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
-                            <!-- 항목별 강조(이 곡만) — 레거시 Ind_ 굵게/기울임/밑줄(FormatData 코드41 비트). 체크는 현재 상태(OneWay), 클릭은 토글 명령. 곡 항목일 때만 활성. -->
+                            <!-- 항목별 강조(이 항목만) — 레거시 Ind_ 굵게/기울임/밑줄(FormatData 코드41 비트). 체크는 현재 상태(OneWay), 클릭은 토글 명령. 곡·성경 항목일 때만 활성. -->
                             <MenuItem Header="이 항목 강조"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
                                 <MenuItem Header="굵게"
@@ -337,7 +337,7 @@
                                           Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemUnderlineCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             </MenuItem>
                             <!-- 이중 언어(보조 영역 Region2) 항목별 서식 — 메뉴 비대화 방지를 위해 하나의 상위 메뉴에 모은다(글자색·정렬 완료, 크기·글꼴은 앞으로 여기 추가).
-                                 Region2 서식은 [region 2] 마커가 있는 이중 언어 곡에서만 화면에 보인다. 곡 항목일 때만 활성. -->
+                                 Region2 서식은 [region 2] 마커가 있는 이중 언어 곡·성경(병행 번역)에서만 화면에 보인다. 곡·성경 항목일 때만 활성. -->
                             <MenuItem Header="이중 언어(보조 영역)"
                                       IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
                                 <MenuItem Header="글자색">

@@ -5619,6 +5619,63 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 색이 붙지 않음");
     }
 
+    [Fact]
+    public void CanEditSelectedItemColor_True_ForBibleItemWithBody()
+    {
+        // 성경 항목도 본문(구절)을 송출하므로 항목별 서식 편집 대상 — 곡과 동일(레거시 Ind_* 종류 무관).
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("bible:gen1", "창세기 1:1", LiveItemKinds.Bible) { Lyrics = "태초에 하나님이..." };
+        sut.LoadQueue([bible]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.CanEditSelectedItemColor.Should().BeTrue("성경 항목도 본문이 있으면 서식 편집 가능");
+        sut.SetSelectedItemTextColorCommand.CanExecute("#FFFFFFFF").Should().BeTrue("성경 항목도 명령 활성");
+    }
+
+    [Fact]
+    public void CanEditSelectedItemColor_False_ForBibleItemWithoutBody()
+    {
+        // 본문이 비면(파일 없음 등 폴백으로 제목만) 서식 편집 대상이 아니다(곡과 동일 규칙 — 가사/구절 없으면 불가).
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("bible:empty", "창세기 1:1", LiveItemKinds.Bible) { Lyrics = "   " };
+        sut.LoadQueue([bible]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.CanEditSelectedItemColor.Should().BeFalse("본문 없는 성경 항목은 서식 편집 불가");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_OnBibleItem_WritesFormatData()
+    {
+        // 성경 항목에 항목별 글자색을 주면 곡과 똑같이 FormatData(코드29)에 실리고 개별 서식이 켜진다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("bible:gen1", "창세기 1:1", LiveItemKinds.Bible) { Lyrics = "태초에 하나님이..." };
+        sut.LoadQueue([bible]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemTextColor("#FFFFE066"); // 노랑.
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=", "성경 항목도 코드29 글자색 인코드");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("색을 주면 개별 서식 켜짐");
+    }
+
+    [Fact]
+    public async Task SetSelectedItemColor_OnBibleItem_RendersOverride_EndToEnd()
+    {
+        // 종단: 성경 항목에 준 항목별 글자색이 송출 시 라이브 오버라이드 글자색으로 적용된다(곡과 동일 경로 — GoLive Kind 무관).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var bible = new LiveQueueItem("bible:gen1", "창세기 1:1", LiveItemKinds.Bible) { Lyrics = "태초에 하나님이..." };
+        sut.LoadQueue([bible]);
+        sut.SelectedItem = sut.Queue[0];
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.SetSelectedItemTextColor("#FFFFE066"); // 노랑(0xFFFFE066).
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        session.Current.OverrideTextColorArgb.Should().Be(unchecked((int)0xFFFFE066), "성경 항목별 글자색이 라이브에 적용");
+    }
+
     // ── 항목별 정렬 인라인 편집(SetSelectedItemAlignment) — 선택한 곡만 가로 정렬(레거시 Ind_ 정렬, 코드31) ──
 
     [Theory]

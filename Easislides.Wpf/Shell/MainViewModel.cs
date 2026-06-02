@@ -2004,7 +2004,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // UI 경로라 fire-and-forget; 테스트는 ApplySelectedItemContentAsync 를 직접 await.
         _ = ApplySelectedItemContentAsync(value);
 
-        // 절 순서 입력칸·항목별 색이 새로 선택된 항목을 따라가도록 통지(곡이면 활성, 아니면 비활성).
+        // 절 순서 입력칸(곡만)·항목별 색(곡·성경)이 새로 선택된 항목을 따라가도록 통지(대상이면 활성, 아니면 비활성).
         OnPropertyChanged(nameof(SelectedItemSequenceInput));
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
@@ -2997,11 +2997,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 선택한 곡 항목의 서식(색·정렬 등 이 항목만)을 편집할 수 있는가 — 곡(가사 있음)일 때만 true. 절 순서 편집과 같은 조건.
-    /// 우클릭 "이 항목 글자색"·"이 항목 정렬" 메뉴의 활성화에 공통으로 쓴다(이름은 호환을 위해 Color 유지).
+    /// 선택한 항목에 항목별 서식(색·정렬·크기·글꼴·배경·강조 — 이 항목만)을 편집할 수 있는지 — <b>곡 또는 성경</b> 항목이고 본문(가사/구절)이 있을 때.
+    /// 성경도 본문(구절)을 회중 화면에 렌더하고 송출 경로(GoLive)가 Kind 무관이라, 곡과 똑같이 항목별 서식을 적용할 수 있다(레거시 Ind_* 도 항목 종류 무관).
+    /// 우클릭 "이 항목 글자색"·"이 항목 정렬" 등 메뉴의 활성화에 공통으로 쓴다(이름은 호환을 위해 Color 유지). 절 순서 편집은 곡만이라 별도 조건(CanEditSelectedItemSequence).
     /// </summary>
     public bool CanEditSelectedItemColor
-        => SelectedItem is { Kind: LiveItemKinds.Song } item && !string.IsNullOrWhiteSpace(item.Lyrics);
+        => SelectedItem is { Kind: LiveItemKinds.Song or LiveItemKinds.Bible } item && !string.IsNullOrWhiteSpace(item.Lyrics);
 
     /// <summary>현재 선택한 항목에 적용된 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 기본색 추종).</summary>
     public string SelectedItemTextColorHex
@@ -3022,7 +3023,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         turnedOnIndividual = false;
         if (!CanEditSelectedItemColor || SelectedItem is not { } item)
         {
-            return false; // 곡이 아니거나 선택 없음 — 항목별 서식 편집 대상이 아님.
+            return false; // 곡·성경이 아니거나 선택 없음 — 항목별 서식 편집 대상이 아님.
         }
 
         var current = SongFormatData.Parse(item.FormatData) ?? new SongFormatData();
