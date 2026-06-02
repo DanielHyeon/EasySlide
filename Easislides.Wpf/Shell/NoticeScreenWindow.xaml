@@ -125,6 +125,12 @@
                     Margin="0,0,8,0"
                     Content="송출"
                     AutomationProperties.Name="공지 송출" />
+            <Button Command="{Binding AddToQueueCommand}"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Margin="0,0,8,0"
+                    Content="순서에 추가"
+                    ToolTip="이 텍스트를 예배 순서에 항목으로 추가합니다(즉시 송출과 달리 순서에 저장돼 나중에 송출 가능)."
+                    AutomationProperties.Name="텍스트 항목을 예배 순서에 추가" />
             <Button Command="{Binding ClearCommand}"
                     Style="{StaticResource EsButton.Secondary}"
                     Margin="0,0,8,0"

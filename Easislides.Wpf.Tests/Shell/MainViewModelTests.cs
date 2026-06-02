@@ -1337,6 +1337,49 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddTextItem_AddsNoticeKindItem_WithFirstLineTitle_AndFullBody()
+    {
+        // 자유 텍스트 항목을 예배 순서에 추가 — 종류=Notice, 제목=첫 줄(짧게), 본문(Lyrics)=전체 텍스트.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
+        sut.SelectedItem = sut.Queue[0];
+
+        var item = sut.AddTextItem("주차 안내\n2부 예배 후 주차장을 비워 주세요");
+
+        item.Should().NotBeNull();
+        item!.Kind.Should().Be(LiveItemKinds.Notice, "텍스트 항목은 공지(Notice) 종류로 송출");
+        item.Title.Should().Be("주차 안내", "제목은 첫 줄");
+        item.Lyrics.Should().Be("주차 안내\n2부 예배 후 주차장을 비워 주세요", "본문은 전체 텍스트");
+        item.Id.Should().StartWith("text:", "센티넬과 겹치지 않는 고유 Id");
+        sut.Queue.Should().HaveCount(2);
+        sut.Queue[1].Should().BeSameAs(item, "선택 항목(A) 바로 뒤에 삽입");
+        sut.SelectedItem.Should().BeSameAs(item, "추가 후 새 항목 선택");
+    }
+
+    [Fact]
+    public void AddTextItem_BlankText_IsNoOp()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.AddTextItem("   ").Should().BeNull();
+        sut.AddTextItem(null).Should().BeNull();
+        sut.Queue.Should().BeEmpty("빈 텍스트는 항목을 추가하지 않음");
+    }
+
+    [Fact]
+    public void AddTextItem_LongFirstLine_TruncatesTitleButKeepsFullBody()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var longLine = new string('가', 50);
+
+        var item = sut.AddTextItem(longLine);
+
+        item!.Title.Length.Should().BeLessThan(longLine.Length, "긴 제목은 줄임");
+        item.Title.Should().EndWith("…");
+        item.Lyrics.Should().Be(longLine, "본문은 전체 보존");
+    }
+
+    [Fact]
     public async Task MergeWorshipList_AppendsToCurrentQueue_KeepingExistingItems()
     {
         // 병합은 현재 큐를 지우지 않고 저장된 순서의 항목을 뒤에 이어 붙인다(불러오기=대체와 구별, 레거시 .esw 병합).

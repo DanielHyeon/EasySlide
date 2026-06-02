@@ -216,6 +216,43 @@ public class NoticeScreenViewModelTests
     }
 
     [Fact]
+    public void AddToQueueCommand_InvokesCallback_WithCurrentText()
+    {
+        // "순서에 추가" — 현재 텍스트를 예배 순서 추가 콜백으로 넘긴다.
+        var added = new List<string>();
+        var sut = new NoticeScreenViewModel(
+            (_, _) => true, () => { }, addToWorshipQueue: text => { added.Add(text); return true; })
+        {
+            Text = "주차 안내",
+        };
+
+        sut.AddToQueueCommand.CanExecute(null).Should().BeTrue("콜백 있고 텍스트 있으면 활성");
+        sut.AddToQueueCommand.Execute(null);
+
+        added.Should().ContainSingle().Which.Should().Be("주차 안내");
+        sut.StatusText.Should().Contain("예배 순서");
+    }
+
+    [Fact]
+    public void AddToQueueCommand_DisabledWhenNoCallback()
+    {
+        // 콜백을 주입하지 않으면(즉시 송출 전용으로 열린 경우) "순서에 추가"는 비활성.
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { }) { Text = "공지" };
+
+        sut.AddToQueueCommand.CanExecute(null).Should().BeFalse("콜백 없으면 비활성");
+    }
+
+    [Fact]
+    public void AddToQueueCommand_DisabledWhenTextEmpty()
+    {
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { }, addToWorshipQueue: _ => true);
+
+        sut.AddToQueueCommand.CanExecute(null).Should().BeFalse("빈 텍스트는 추가 불가");
+        sut.Text = "안내";
+        sut.AddToQueueCommand.CanExecute(null).Should().BeTrue("텍스트가 생기면 활성");
+    }
+
+    [Fact]
     public void ClearCommand_InvokesClearCallback()
     {
         var cleared = new List<bool>();

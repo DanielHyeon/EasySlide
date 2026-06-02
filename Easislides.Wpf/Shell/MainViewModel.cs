@@ -819,6 +819,50 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// 자유 텍스트(공지/안내) 항목을 예배 순서(큐)에 추가한다(레거시 InfoScreen 항목). 선택 항목 뒤에 끼우고 새 항목을 선택.
+    /// 송출(GoLive)하면 공지 렌더 경로로 그 텍스트가 회중 화면에 표시된다 — NoticeScreen 즉시 송출과 달리 예배 순서에 저장돼
+    /// 나중에 다른 항목처럼 골라 송출할 수 있다. 항목 종류는 Notice(공지)라 절·슬라이드 이동과 무관하다.
+    /// </summary>
+    public LiveQueueItem? AddTextItem(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            StatusText = "추가할 텍스트가 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var trimmed = text.Trim();
+        var title = BuildTextItemTitle(trimmed);
+        // 고유 Id(센티넬 NoticeLiveId 와 겹치지 않게) — 큐 내 다른 항목과 구별되는 새 식별자.
+        var item = new LiveQueueItem($"text:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
+        {
+            Lyrics = trimmed,
+        };
+
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"텍스트 항목 추가됨: {title}";
+        NotifyCommandStates();
+        return item;
+    }
+
+    // 큐 목록 표시용 짧은 제목 — 첫 줄을 쓰되 너무 길면 줄여 표시(본문 전체는 Lyrics 에 보존).
+    private static string BuildTextItemTitle(string text)
+    {
+        var firstLine = text.Replace("\r", string.Empty).Split('\n')[0].Trim();
+        if (firstLine.Length == 0)
+        {
+            return "텍스트";
+        }
+
+        const int max = 30;
+        return firstLine.Length <= max ? firstLine : firstLine[..max] + "…";
+    }
+
+    /// <summary>
     /// 성경 구절을 드롭한 위치(타깃 항목) 앞에 끼운다 — 본문에서 큐로 끌어다 놓는 드래그-드롭 경로(레거시 BibleText DragDrop).
     /// 타깃이 없으면(빈 공간) 맨 끝에. 항목 생성·본문 확장은 AddBibleSelection 과 동일(CreateBibleItem 공유).
     /// </summary>

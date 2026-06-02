@@ -549,7 +549,10 @@ public partial class MainWindow : Window
         var noticeViewModel = new Easislides.Wpf.Shell.NoticeScreenViewModel(
             (text, options) => viewModel.PublishNotice(text, options),
             viewModel.ClearNotice,
-            initialText);
+            initialText,
+            store: null,
+            // 예배 순서에 텍스트 항목으로 추가(레거시 InfoScreen 항목) — 추가 성공 시 true.
+            addToWorshipQueue: text => viewModel.AddTextItem(text) is not null);
         var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
     }

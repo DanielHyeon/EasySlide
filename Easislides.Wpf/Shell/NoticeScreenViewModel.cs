@@ -18,9 +18,12 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     private readonly Func<string, NoticeOptions, bool> _publish;
     private readonly Action _clear;
     private readonly IInfoScreenStore _store;
+    // 현재 편집 중인 텍스트를 예배 순서(큐)에 항목으로 추가하는 콜백(레거시 InfoScreen 항목). 없으면 "추가" 비활성.
+    private readonly Func<string, bool>? _addToWorshipQueue;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SendCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AddToQueueCommand))]
     private string _text = string.Empty;
 
     [ObservableProperty]
@@ -49,15 +52,18 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     private string? _selectedScreen;
 
-    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null)
+    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null, Func<string, bool>? addToWorshipQueue = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
         _store = store ?? new InfoScreenStore();
+        _addToWorshipQueue = addToWorshipQueue;
         // 초기 텍스트(성경 "공지 화면으로 복사" 등에서 미리 채워 열 때). 비면 빈 편집기로 시작.
         _text = initialText ?? string.Empty;
         SendCommand = new RelayCommand(Send, () => !string.IsNullOrWhiteSpace(Text));
         ClearCommand = new RelayCommand(Clear);
+        // 예배 순서에 텍스트 항목으로 추가(콜백이 주입됐고 텍스트가 있을 때만).
+        AddToQueueCommand = new RelayCommand(AddToQueue, () => _addToWorshipQueue is not null && !string.IsNullOrWhiteSpace(Text));
         // 명명 정보 화면 저장/불러오기/삭제(레거시 InfoScreen .esi 목록의 첫 슬라이스).
         SaveAsCommand = new AsyncRelayCommand(SaveAsAsync, () => !string.IsNullOrWhiteSpace(NewScreenName));
         OpenCommand = new AsyncRelayCommand(OpenAsync, () => !string.IsNullOrWhiteSpace(SelectedScreen));
@@ -90,6 +96,9 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     public IRelayCommand SendCommand { get; }
 
     public IRelayCommand ClearCommand { get; }
+
+    /// <summary>현재 텍스트를 예배 순서(큐)에 항목으로 추가(레거시 InfoScreen 항목). 콜백이 주입됐을 때만 활성.</summary>
+    public IRelayCommand AddToQueueCommand { get; }
 
     /// <summary>정렬 프리셋(라벨·값) — 콤보 바인딩용(기본 0 / 왼쪽 1 / 가운데 2 / 오른쪽 3).</summary>
     public IReadOnlyList<KeyValuePair<string, int>> AlignmentPresets { get; } = new[]
@@ -124,6 +133,20 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     {
         _clear();
         StatusText = "공지를 내렸습니다(검은 화면).";
+    }
+
+    // 현재 텍스트를 예배 순서에 항목으로 추가(즉시 송출과 달리 순서에 저장돼 나중에 송출 가능). 콜백에 위임.
+    private void AddToQueue()
+    {
+        if (_addToWorshipQueue is null)
+        {
+            return;
+        }
+
+        var ok = _addToWorshipQueue(Text);
+        StatusText = ok
+            ? "예배 순서에 텍스트 항목으로 추가했습니다."
+            : "예배 순서에 추가하지 못했습니다.";
     }
 
     // 저장된 정보 화면 이름을 다시 읽어 콤보를 갱신한다.
