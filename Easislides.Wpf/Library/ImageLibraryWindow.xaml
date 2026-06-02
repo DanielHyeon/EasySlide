@@ -71,6 +71,18 @@
                       VerticalAlignment="Center"
                       ToolTip="하위 폴더(Scenery/Tiles 등)로 이미지를 거릅니다. '전체'면 모두 표시."
                       AutomationProperties.Name="이미지 카테고리 필터" />
+            <TextBlock Text="검색:"
+                       VerticalAlignment="Center"
+                       Margin="20,0,6,0"
+                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+            <!-- 검색 상자 — 파일명으로 빠르게 거르기(카테고리 필터와 함께 AND, 대소문자 무시, 비우면 카테고리만). 입력 즉시 갱신. -->
+            <TextBox Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                     MinWidth="160"
+                     VerticalContentAlignment="Center"
+                     BorderBrush="{DynamicResource Brush.Border.Default}"
+                     BorderThickness="1"
+                     ToolTip="파일명으로 검색(대소문자 무시). 비우면 카테고리 필터만 적용."
+                     AutomationProperties.Name="이미지 파일 검색" />
         </StackPanel>
 
         <!-- 썸네일 갤러리 — WrapPanel 로 흐름 배치. 더블클릭으로 즉시 배경 적용. -->

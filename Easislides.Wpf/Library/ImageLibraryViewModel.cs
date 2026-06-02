@@ -73,6 +73,10 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedCategory = AllCategories;
 
+    // 검색어 — 파일명에 이 글자가 든 이미지만 보인다(대소문자 무시). 비우면 카테고리 필터만. 큰 폴더에서 빠르게 찾는 현대 기능(미디어·PPT 브라우저와 동일).
+    [ObservableProperty]
+    private string _filterText = string.Empty;
+
     public ImageLibraryViewModel(
         IImageLibraryService service,
         Func<string, ImageSource?> thumbnailLoader,
@@ -108,6 +112,9 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
     // 카테고리 선택이 바뀌면 이미 읽은 전체에서 즉시 다시 거른다(재로딩 없이 빠르게).
     partial void OnSelectedCategoryChanged(string value) => ApplyCategoryFilter();
+
+    // 검색어가 바뀌면 다시 읽지 않고(폴더 탐색·썸네일 디코딩은 비쌈) 이미 읽어 둔 전체에서 즉시 다시 거른다.
+    partial void OnFilterTextChanged(string value) => ApplyCategoryFilter();
 
     // 파일 경로의 카테고리 = 루트(root) 바로 아래 하위 폴더명. 루트 직속이면 "(기본)".
     // 예: root=Images, 경로=Images/Scenery/sky.jpg → "Scenery". 경로=Images/logo.png → "(기본)".
@@ -148,13 +155,15 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         return rel.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)[0];
     }
 
-    // _allItems 를 SelectedCategory 로 걸러 Images 에 채운다("전체"면 모두). 썸네일은 같은 인스턴스라 유지된다.
+    // _allItems 를 SelectedCategory(카테고리) + FilterText(파일명 검색)로 걸러 Images 에 채운다. 썸네일은 같은 인스턴스라 유지된다.
     private void ApplyCategoryFilter()
     {
         Images.Clear();
         foreach (var item in _allItems)
         {
-            if (SelectedCategory == AllCategories || item.Category == SelectedCategory)
+            var categoryMatch = SelectedCategory == AllCategories || item.Category == SelectedCategory;
+            // 카테고리와 파일명 검색을 모두 만족해야 보인다(둘은 AND). 검색어가 비면 FileNameFilter 가 항상 true → 카테고리만.
+            if (categoryMatch && FileNameFilter.Matches(item.FileName, FilterText))
             {
                 Images.Add(item);
             }

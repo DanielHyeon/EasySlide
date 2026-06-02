@@ -232,4 +232,72 @@ public class ImageLibraryViewModelTests
         cleared.Should().ContainSingle();
         sut.StatusText.Should().Contain("해제");
     }
+
+    [Fact]
+    public void FilterText_NarrowsImagesByFileName()
+    {
+        var sut = CreateSut(out _, out _, @"C:\bg\sunset.jpg", @"C:\bg\mountain.jpg", @"C:\bg\sea.png");
+        sut.LoadCommand.Execute(null);
+        sut.Images.Should().HaveCount(3);
+
+        sut.FilterText = "moun";
+
+        sut.Images.Select(i => i.FileName).Should().Equal("mountain.jpg");
+    }
+
+    [Fact]
+    public void FilterText_ComposesWithCategory_AsAnd()
+    {
+        // 카테고리(하위 폴더) + 파일명 검색은 둘 다 만족해야 보인다(AND).
+        var sut = CreateSut(out _, out _, @"C:\bg\Scenery\sky.jpg", @"C:\bg\Scenery\sea.jpg", @"C:\bg\Tiles\sky.png");
+        sut.LoadCommand.Execute(null);
+
+        sut.SelectedCategory = "Scenery";
+        sut.FilterText = "sky";
+
+        // Scenery 의 sky.jpg 만(Tiles 의 sky.png 는 카테고리에서 빠지고, Scenery 의 sea.jpg 는 검색에서 빠짐).
+        sut.Images.Select(i => i.FileName).Should().Equal("sky.jpg");
+    }
+
+    [Fact]
+    public void FilterText_ExcludingSelected_DeselectsIt()
+    {
+        // 선택한 이미지가 검색에 걸러지면 선택 해제(숨은 이미지에 배경 적용 방지) — 카테고리 필터와 동일 가드.
+        var sut = CreateSut(out _, out _, @"C:\bg\a.jpg", @"C:\bg\b.jpg");
+        sut.LoadCommand.Execute(null);
+        sut.SelectedImage = sut.Images.Single(i => i.FileName == "a.jpg");
+
+        sut.FilterText = "b";
+
+        sut.SelectedImage.Should().BeNull("걸러진 선택은 해제");
+        sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void FilterText_PersistsAcrossReload()
+    {
+        // 검색어는 새로고침(재로드) 후에도 유지된다(카테고리는 폴더가 바뀌니 초기화하지만 검색어는 의도적으로 보존 — 미디어·PPT 와 동일).
+        var sut = CreateSut(out _, out _, @"C:\bg\찬양.jpg", @"C:\bg\기도.jpg");
+        sut.FilterText = "찬양";
+
+        sut.LoadCommand.Execute(null);
+
+        sut.FilterText.Should().Be("찬양", "재로드해도 검색어 유지");
+        sut.Images.Select(i => i.FileName).Should().Equal(new[] { "찬양.jpg" }, "재로드 목록도 검색어로 걸러 보임");
+    }
+
+    [Fact]
+    public void FilterRoundTrip_KeepsSameItemInstance()
+    {
+        // 필터로 숨겼다가 다시 보이게 해도 같은 ImageLibraryItem 인스턴스가 유지된다 —
+        // 이 보장 덕분에 백그라운드로 디코딩된 썸네일(인스턴스에 저장)이 필터 왕복 후에도 그대로 살아 있다(두 목록 패턴의 핵심).
+        var sut = CreateSut(out _, out _, @"C:\bg\a.jpg", @"C:\bg\b.jpg");
+        sut.LoadCommand.Execute(null);
+        var aBefore = sut.Images.Single(i => i.FileName == "a.jpg");
+
+        sut.FilterText = "b"; // a 숨김
+        sut.FilterText = "";  // 다시 보임
+
+        sut.Images.Single(i => i.FileName == "a.jpg").Should().BeSameAs(aBefore, "필터 왕복해도 같은 인스턴스(썸네일 등 상태 유지)");
+    }
 }
