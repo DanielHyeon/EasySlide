@@ -1572,6 +1572,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         BindGated(MainCommandIds.LiveRefresh, RefreshOutputCommand);
         BindGated(MainCommandIds.LiveRestore, RestoreOutputCommand);
         BindGated(MainCommandIds.LiveAutoRotate, ToggleAutoRotateCommand);
+        // 예배 순서 항목 복제(Ctrl+D + 명령 팔레트) — 선택 없으면 CanExecute 가 막아 무동작.
+        BindGated(MainCommandIds.WorshipDuplicateItem, DuplicateSelectedItemCommand);
     }
 
     public void RefreshOutputDisplays()

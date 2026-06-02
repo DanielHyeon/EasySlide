@@ -60,6 +60,21 @@ public class CommandCatalogTests
     }
 
     [Fact]
+    public void DuplicateItem_HasCtrlDShortcut_AndIsInPalette()
+    {
+        // 예배 순서 항목 복제 — Ctrl+D 단축키 + 명령 팔레트(⌘K) 검색·실행(모던 UX 보강).
+        var sut = new CommandCatalog();
+
+        sut.FindById(MainCommandIds.WorshipDuplicateItem).Should().NotBeNull("팔레트에서 복제 명령 실행 가능");
+
+        sut.GetDefaultShortcuts()
+            .Should()
+            .Contain(shortcut => shortcut.Key == Key.D
+                && shortcut.Modifiers == ModifierKeys.Control
+                && shortcut.CommandName == MainCommandIds.WorshipDuplicateItem);
+    }
+
+    [Fact]
     public void FindById_ReturnsDangerMetadataForLiveCommands()
     {
         var sut = new CommandCatalog();

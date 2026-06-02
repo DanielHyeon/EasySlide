@@ -33,4 +33,5 @@ public static class MainCommandIds
     public const string WindowAbout = "Window.About";
     public const string AddExternalFile = "Item.AddExternalFile";
     public const string WorshipListValidate = "WorshipList.Validate";
+    public const string WorshipDuplicateItem = "WorshipList.Duplicate";
 }

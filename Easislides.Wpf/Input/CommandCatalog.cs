@@ -129,6 +129,14 @@ public sealed class CommandCatalog : ICommandCatalog
             "자동 회전 토글",
             "라이브 중 절/슬라이드를 일정 간격으로 자동 전환합니다(§7.3-B).",
             isDangerous: false),
+        // 예배 순서 편집 — 선택 항목 복제(모던 단축키 Ctrl+D + 명령 팔레트 검색). 텍스트박스 타이핑과 충돌하지 않는 수식 키.
+        Command(
+            MainCommandIds.WorshipDuplicateItem,
+            "예배 순서",
+            "항목 복제",
+            "선택한 예배 순서 항목을 같은 내용으로 복제해 바로 뒤에 추가합니다.",
+            isDangerous: false,
+            new Shortcut(Key.D, ModifierKeys.Control, MainCommandIds.WorshipDuplicateItem, IsGlobal: false, "항목 복제")),
         // 창 런처(§7.4) — FrmMain 의 분리 창을 명령 팔레트로 흡수. 실행은 View(MainWindow)가 등록.
         Command(
             MainCommandIds.WindowLibrary,
