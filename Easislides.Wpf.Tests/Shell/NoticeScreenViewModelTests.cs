@@ -15,7 +15,7 @@ public class NoticeScreenViewModelTests
     {
         var dir = Path.Combine(Path.GetTempPath(), $"EasiSlides_ISVM_{Guid.NewGuid():N}");
         var store = new InfoScreenStore(dir);
-        var vm = new NoticeScreenViewModel((_, _, _) => true, () => { }, store: store);
+        var vm = new NoticeScreenViewModel((_, _) => true, () => { }, store: store);
         return (vm, store, dir);
     }
 
@@ -89,7 +89,7 @@ public class NoticeScreenViewModelTests
     [Fact]
     public void SendCommand_DisabledWhenTextEmpty()
     {
-        var sut = new NoticeScreenViewModel((_, _, _) => true, () => { });
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { });
 
         sut.SendCommand.CanExecute(null).Should().BeFalse("빈 문구는 송출 불가");
 
@@ -101,7 +101,7 @@ public class NoticeScreenViewModelTests
     public void InitialText_PrefillsEditor_AndEnablesSend()
     {
         // 성경 "공지 화면으로 복사"처럼 초기 텍스트를 주고 열면, 편집기가 채워지고 바로 송출 가능.
-        var sut = new NoticeScreenViewModel((_, _, _) => true, () => { }, initialText: "창세기 1:1 태초에...");
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { }, initialText: "창세기 1:1 태초에...");
 
         sut.Text.Should().Be("창세기 1:1 태초에...");
         sut.SendCommand.CanExecute(null).Should().BeTrue("초기 텍스트가 있으면 송출 가능");
@@ -110,8 +110,8 @@ public class NoticeScreenViewModelTests
     [Fact]
     public void InitialText_NullOrOmitted_StartsEmpty()
     {
-        new NoticeScreenViewModel((_, _, _) => true, () => { }).Text.Should().BeEmpty();
-        new NoticeScreenViewModel((_, _, _) => true, () => { }, initialText: null).Text.Should().BeEmpty();
+        new NoticeScreenViewModel((_, _) => true, () => { }).Text.Should().BeEmpty();
+        new NoticeScreenViewModel((_, _) => true, () => { }, initialText: null).Text.Should().BeEmpty();
     }
 
     [Theory]
@@ -124,50 +124,57 @@ public class NoticeScreenViewModelTests
         => NoticeScreenViewModel.ResolveCopyText(selected, full).Should().Be(expected);
 
     [Fact]
-    public void Send_InvokesPublishWithTextFontSizeAndAlignment_AndReportsSuccess()
+    public void Send_InvokesPublishWithTextAndOptions_AndReportsSuccess()
     {
-        var published = new List<(string Text, int FontSize, int Alignment)>();
-        var sut = new NoticeScreenViewModel((text, size, align) => { published.Add((text, size, align)); return true; }, () => { })
+        var published = new List<(string Text, NoticeOptions Options)>();
+        var sut = new NoticeScreenViewModel((text, options) => { published.Add((text, options)); return true; }, () => { })
         {
             Text = "주차장 만차 안내",
             FontSizePt = 60,
             Alignment = 1, // 왼쪽
+            ColorArgb = unchecked((int)0xFFFFE066), // 노랑
         };
 
         sut.SendCommand.Execute(null);
 
         published.Should().ContainSingle();
         published[0].Text.Should().Be("주차장 만차 안내");
-        published[0].FontSize.Should().Be(60);
-        published[0].Alignment.Should().Be(1, "정렬도 송출 콜백에 전달");
+        published[0].Options.FontSizePt.Should().Be(60);
+        published[0].Options.Alignment.Should().Be(1, "정렬도 옵션에 전달");
+        published[0].Options.ColorArgb.Should().Be(unchecked((int)0xFFFFE066), "색도 옵션에 전달");
         sut.StatusText.Should().Contain("송출");
     }
 
     [Theory]
-    [InlineData(0, 0, null)]                 // 둘 다 미지정 → FormatData 없음
-    [InlineData(60, 0, "47=60>")]            // 크기만
-    [InlineData(0, 1, "31=1>")]              // 정렬만(왼쪽)
-    [InlineData(60, 2, "47=60>31=2>")]       // 크기+정렬(가운데)
-    [InlineData(40, 9, "47=40>")]            // 정렬 범위 밖(9)은 무시 → 크기만
-    public void BuildNoticeFormatData_ComposesSizeAndAlignment(int size, int align, string? expected)
-        => MainViewModel.BuildNoticeFormatData(size, align).Should().Be(expected);
+    [InlineData(0, 0, 0, null)]                          // 모두 미지정 → FormatData 없음
+    [InlineData(60, 0, 0, "47=60>")]                     // 크기만
+    [InlineData(0, 1, 0, "31=1>")]                       // 정렬만(왼쪽)
+    [InlineData(60, 2, 0, "47=60>31=2>")]                // 크기+정렬(가운데)
+    [InlineData(40, 9, 0, "47=40>")]                     // 정렬 범위 밖(9)은 무시 → 크기만
+    [InlineData(0, 0, -1, "29=-1>")]                     // 색만(흰색 0xFFFFFFFF = -1)
+    [InlineData(60, 2, -1, "47=60>31=2>29=-1>")]         // 크기+정렬+색
+    public void BuildNoticeFormatData_ComposesSizeAlignmentColor(int size, int align, int color, string? expected)
+        => MainViewModel.BuildNoticeFormatData(new NoticeOptions(size, align, color)).Should().Be(expected);
 
     [Fact]
-    public async Task SaveThenOpen_RoundTripsAlignment()
+    public async Task SaveThenOpen_RoundTripsAlignmentAndColor()
     {
         var (vm, _, dir) = CreateWithStore();
         try
         {
-            vm.Text = "왼쪽 정렬 공지";
+            vm.Text = "왼쪽 정렬 노랑 공지";
             vm.Alignment = 1;
-            vm.NewScreenName = "정렬테스트";
+            vm.ColorArgb = unchecked((int)0xFFFFE066);
+            vm.NewScreenName = "서식테스트";
             await vm.SaveAsCommand.ExecuteAsync(null);
 
             vm.Alignment = 0; // 바꿔 둠
-            vm.SelectedScreen = "정렬테스트";
+            vm.ColorArgb = 0;
+            vm.SelectedScreen = "서식테스트";
             await vm.OpenCommand.ExecuteAsync(null);
 
             vm.Alignment.Should().Be(1, "저장된 정렬 복원");
+            vm.ColorArgb.Should().Be(unchecked((int)0xFFFFE066), "저장된 색 복원");
         }
         finally
         {
@@ -178,7 +185,7 @@ public class NoticeScreenViewModelTests
     [Fact]
     public void FontSizePt_DefaultsToNormal_AndPresetsExposed()
     {
-        var sut = new NoticeScreenViewModel((_, _, _) => true, () => { });
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { });
 
         sut.FontSizePt.Should().Be(40);
         sut.FontSizePresets.Should().Equal(40, 60, 80);
@@ -189,7 +196,7 @@ public class NoticeScreenViewModelTests
     {
         // 회귀 가드: 모든 글자 크기 프리셋이 FormatData(47=pt) 디코더 범위(6~100pt) 안에 있어야 한다.
         // 범위 밖 프리셋을 실수로 추가하면 디코더가 조용히 null 로 떨어뜨려 크기 적용이 무시되므로 여기서 막는다.
-        var sut = new NoticeScreenViewModel((_, _, _) => true, () => { });
+        var sut = new NoticeScreenViewModel((_, _) => true, () => { });
 
         foreach (var pt in sut.FontSizePresets)
         {
@@ -201,7 +208,7 @@ public class NoticeScreenViewModelTests
     [Fact]
     public void Send_WhenPublishReturnsFalse_ShowsOutputClosedWarning()
     {
-        var sut = new NoticeScreenViewModel((_, _, _) => false, () => { }) { Text = "공지" };
+        var sut = new NoticeScreenViewModel((_, _) => false, () => { }) { Text = "공지" };
 
         sut.SendCommand.Execute(null);
 
@@ -212,7 +219,7 @@ public class NoticeScreenViewModelTests
     public void ClearCommand_InvokesClearCallback()
     {
         var cleared = new List<bool>();
-        var sut = new NoticeScreenViewModel((_, _, _) => true, () => cleared.Add(true));
+        var sut = new NoticeScreenViewModel((_, _) => true, () => cleared.Add(true));
 
         sut.ClearCommand.Execute(null);
 

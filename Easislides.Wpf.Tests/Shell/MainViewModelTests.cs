@@ -1651,10 +1651,25 @@ public class MainViewModelTests
         var sut = CreateSut();
         sut.OpenOutputCommand.Execute(null);
 
-        var ok = sut.PublishNotice("크게 보여줄 공지", fontSizePt: 80);
+        var ok = sut.PublishNotice("크게 보여줄 공지", new NoticeOptions(FontSizePt: 80));
 
         ok.Should().BeTrue();
         sut.Session.Current.OverrideFontSizePx.Should().NotBeNull("47=80 FormatData 가 폰트 크기 오버라이드로 디코드됨");
+    }
+
+    [Fact]
+    public void PublishNotice_WithAlignmentAndColor_FlowsToOverrides()
+    {
+        // 공지 정렬(31)·색(29)이 FormatData 로 실려 기존 곡별 오버라이드 파이프라인을 타고
+        // 출력 스냅샷의 OverrideTextAlignment·OverrideTextColorArgb 로 반영된다(InfoScreen 정렬·색).
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+
+        var ok = sut.PublishNotice("색·정렬 공지", new NoticeOptions(Alignment: 1, ColorArgb: unchecked((int)0xFFFFE066)));
+
+        ok.Should().BeTrue();
+        sut.Session.Current.OverrideTextAlignment.Should().Be(LyricsTextAlignment.Left, "31=1 → 왼쪽 정렬 오버라이드");
+        sut.Session.Current.OverrideTextColorArgb.Should().Be(unchecked((int)0xFFFFE066), "29=색 → 글자색 오버라이드");
     }
 
     [Fact]

@@ -510,7 +510,7 @@ public partial class MainWindow : Window
         }
 
         var noticeViewModel = new Easislides.Wpf.Shell.NoticeScreenViewModel(
-            (text, fontSizePt, alignment) => viewModel.PublishNotice(text, fontSizePt, alignment),
+            (text, options) => viewModel.PublishNotice(text, options),
             viewModel.ClearNotice,
             initialText);
         var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };

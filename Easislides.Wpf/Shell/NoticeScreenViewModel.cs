@@ -15,7 +15,7 @@ namespace Easislides.Wpf.Shell;
 /// </summary>
 public sealed partial class NoticeScreenViewModel : ObservableObject
 {
-    private readonly Func<string, int, int, bool> _publish;
+    private readonly Func<string, NoticeOptions, bool> _publish;
     private readonly Action _clear;
     private readonly IInfoScreenStore _store;
 
@@ -34,6 +34,10 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private int _alignment;
 
+    // 공지 글자색(ARGB int, 0=기본). 출력에 29= FormatData 로 실린다. 기본 0=출력 기본 글자색.
+    [ObservableProperty]
+    private int _colorArgb;
+
     // 새로 저장할 정보 화면 이름(저장 버튼 활성 판별).
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
@@ -45,7 +49,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     private string? _selectedScreen;
 
-    public NoticeScreenViewModel(Func<string, int, int, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null)
+    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
@@ -96,10 +100,20 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         new KeyValuePair<string, int>("오른쪽", 3),
     };
 
+    /// <summary>글자색 프리셋(라벨·ARGB int) — 콤보 바인딩용(기본 0=출력 기본 / 흰·노랑·하늘·연두).</summary>
+    public IReadOnlyList<KeyValuePair<string, int>> ColorPresets { get; } = new[]
+    {
+        new KeyValuePair<string, int>("기본", 0),
+        new KeyValuePair<string, int>("흰색", unchecked((int)0xFFFFFFFF)),
+        new KeyValuePair<string, int>("노랑", unchecked((int)0xFFFFE066)),
+        new KeyValuePair<string, int>("하늘", unchecked((int)0xFF66CCFF)),
+        new KeyValuePair<string, int>("연두", unchecked((int)0xFF99E066)),
+    };
+
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
     {
-        var ok = _publish(Text, FontSizePt, Alignment);
+        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb));
         StatusText = ok
             ? "공지를 출력에 송출했습니다."
             : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
@@ -133,7 +147,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         try
         {
-            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment)).ConfigureAwait(true);
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -182,6 +196,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         }
 
         Alignment = dto.Alignment; // 0=기본 포함 그대로 복원.
+        ColorArgb = dto.ColorArgb; // 0=기본 포함 그대로 복원.
         StatusText = $"정보 화면 불러옴: {name}";
     }
 
