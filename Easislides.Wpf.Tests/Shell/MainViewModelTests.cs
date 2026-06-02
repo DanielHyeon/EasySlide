@@ -1337,6 +1337,52 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void DuplicateSelectedItem_InsertsCopyWithSameContentNewId_AfterOriginal_AndSelectsIt()
+    {
+        // 선택 항목 복제 — 같은 내용(가사·종류·번호)·새 Id 로 바로 뒤에 삽입하고 복제본을 선택(같은 곡 두 번 부르기 등).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("song:1", "은혜로다", "Song") { Lyrics = "[1]\n가사", SongNumber = 42 },
+            new LiveQueueItem("song:2", "다른 곡", "Song"),
+        ]);
+        sut.SelectedItem = sut.Queue[0];
+
+        var copy = sut.DuplicateSelectedItem();
+
+        copy.Should().NotBeNull();
+        sut.Queue.Should().HaveCount(3);
+        sut.Queue[1].Should().BeSameAs(copy, "원본 바로 뒤에 삽입");
+        sut.Queue[2].Id.Should().Be("song:2", "기존 항목은 뒤로 밀림");
+        copy!.Id.Should().NotBe("song:1", "복제본은 새 Id");
+        copy.Id.Should().StartWith("dup:");
+        copy.Title.Should().Be("은혜로다", "내용은 같음");
+        copy.Lyrics.Should().Be("[1]\n가사");
+        copy.Kind.Should().Be("Song");
+        copy.SongNumber.Should().Be(42, "곡 번호 등 init 속성 모두 복사");
+        sut.SelectedItem.Should().BeSameAs(copy, "복제본을 선택");
+    }
+
+    [Fact]
+    public void DuplicateSelectedItem_NoSelection_IsNoOp()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.DuplicateSelectedItem().Should().BeNull();
+        sut.Queue.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void DuplicateSelectedItemCommand_CanExecute_FollowsSelection()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.DuplicateSelectedItemCommand.CanExecute(null).Should().BeFalse("선택 없으면 비활성");
+
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
+        sut.SelectedItem = sut.Queue[0];
+        sut.DuplicateSelectedItemCommand.CanExecute(null).Should().BeTrue("선택 있으면 활성");
+    }
+
+    [Fact]
     public void AddTextItem_AddsNoticeKindItem_WithFirstLineTitle_AndFullBody()
     {
         // 자유 텍스트 항목을 예배 순서에 추가 — 종류=Notice, 제목=첫 줄(짧게), 본문(Lyrics)=전체 텍스트.

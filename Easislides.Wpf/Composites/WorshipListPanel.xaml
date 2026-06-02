@@ -53,6 +53,14 @@
                         AutomationProperties.Name="항목 제거">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
+                <!-- 선택 항목 복제(같은 곡을 예배 중 두 번 부를 때 등) — 같은 내용·새 Id 로 바로 뒤에 추가. -->
+                <Button Command="{Binding DuplicateSelectedItemCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="8,0,0,0"
+                        ToolTip="선택 항목을 같은 내용으로 복제해 바로 뒤에 추가"
+                        AutomationProperties.Name="선택 항목 복제">
+                    <ui:SymbolIcon Symbol="Copy24" />
+                </Button>
                 <!-- 예배 순서 전체 비우기(레거시 Empty) + 되돌리기 — 실수로 다 지워도 한 번은 복구 가능. -->
                 <Button Command="{Binding ClearWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"

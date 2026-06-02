@@ -614,6 +614,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
+        DuplicateSelectedItemCommand = new RelayCommand(() => DuplicateSelectedItem(), () => SelectedItem is not null);
         ClearWorshipListCommand = new RelayCommand(ClearWorshipList, () => Queue.Count > 0);
         RestoreClearedWorshipListCommand = new RelayCommand(RestoreClearedWorshipList, () => _clearedWorshipBackup.Count > 0);
         NextLyricsPageCommand = new RelayCommand(NextLyricsPage, CanGoNextLyricsPage);
@@ -778,6 +779,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
+    public IRelayCommand DuplicateSelectedItemCommand { get; }
     public IRelayCommand ClearWorshipListCommand { get; }
     public IRelayCommand RestoreClearedWorshipListCommand { get; }
     public IRelayCommand NextLyricsPageCommand { get; }
@@ -1136,6 +1138,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var index = IndexOfSelectedReference();
         var target = index + delta;
         return index >= 0 && target >= 0 && target < Queue.Count;
+    }
+
+    /// <summary>
+    /// 선택한 예배 순서 항목을 같은 내용으로 복제해 바로 뒤에 삽입한다(예: 같은 곡을 예배 중 두 번 부를 때).
+    /// record `with` 로 모든 내용(가사·서식·슬라이드 등)을 복사하되 새 Id 를 부여해 원본과 구별한다
+    /// (중복 Id 로 라이브 추적·재송출이 엉뚱한 인스턴스를 고르지 않도록). 복제본을 새로 선택한다.
+    /// </summary>
+    public LiveQueueItem? DuplicateSelectedItem()
+    {
+        if (SelectedItem is not { } item)
+        {
+            return null;
+        }
+
+        var index = IndexOfSelectedReference();
+        if (index < 0)
+        {
+            return null;
+        }
+
+        // 새 고유 Id — 원본과 값은 같아도 참조·식별자는 달라 라이브 가드/재송출이 정확한 인스턴스를 가린다.
+        var copy = item with { Id = $"dup:{Guid.NewGuid():N}" };
+        Queue.Insert(index + 1, copy);
+        SelectedItem = copy;
+        StatusText = $"항목 복제: {copy.Title}";
+        NotifyCommandStates();
+        return copy;
     }
 
     // 예배 순서에서 선택 항목 제거 — 인접 항목을 새로 선택(라이브 송출 자체는 세션이 유지).
@@ -3794,6 +3823,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
         MoveSelectedItemDownCommand.NotifyCanExecuteChanged();
         RemoveSelectedItemCommand.NotifyCanExecuteChanged();
+        DuplicateSelectedItemCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
