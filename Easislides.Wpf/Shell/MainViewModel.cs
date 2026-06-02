@@ -891,6 +891,38 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
+    /// <summary>
+    /// 라이브러리 곡을 드롭한 위치(타깃 항목) 앞에 끼운다 — 곡 목록에서 큐로 끌어다 놓는 드래그-드롭 경로(레거시 외부 소스 드래그).
+    /// 타깃이 없으면(빈 공간) 맨 끝에. 항목 생성은 AddSong 과 동일하지만 삽입 위치만 타깃 기준이다(라이브러리 곡은 가사를 이미 들고 있어 동기).
+    /// </summary>
+    public LiveQueueItem? AddSongRelativeTo(Data.SongSummary? song, LiveQueueItem? targetItem, string? sequence = null, string? formatData = null)
+    {
+        if (song is null || string.IsNullOrWhiteSpace(song.Title))
+        {
+            StatusText = "선택된 곡이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
+        {
+            Lyrics = song.Lyrics,
+            Sequence = sequence,
+            SongNumber = song.SongNumber,
+            Copyright = song.Copyright,
+            FormatData = formatData,
+        };
+
+        // 참조 일치(IndexOfReference)로 "드롭한 바로 그 인스턴스"의 위치를 찾는다 — 성경 드롭·재정렬과 동일 규칙(같은-값 중복 안전).
+        var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
+        var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"곡 추가됨: {song.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
     // 성경 선택을 큐 항목으로 만든다(본문 확장 포함). 빈 선택이면 안내 후 null — 삽입 위치는 호출자가 정한다.
     private LiveQueueItem? CreateBibleItem(BibleSelection selection)
     {

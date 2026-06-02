@@ -933,6 +933,8 @@
                                  x:Name="LibrarySongList"
                                  ItemsSource="{Binding Library.Songs}"
                                  SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
+                                 PreviewMouseLeftButtonDown="LibrarySongList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="LibrarySongList_PreviewMouseMove"
                                  AutomationProperties.Name="곡 목록">
                             <!-- 곡 한 줄 표시: "곡 번호 표시"(Use Song Numbering) on 이면 "번호. 제목", off 면 제목만.
                                  곡번호표시 값은 ListBox 의 DataContext(Library)에서 읽어, 토글하면 모든 줄이 즉시 갱신된다. -->

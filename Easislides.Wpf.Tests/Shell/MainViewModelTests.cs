@@ -988,6 +988,54 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddSongRelativeTo_InsertsBeforeTarget_WithContent_AndSelectsIt()
+    {
+        // 라이브러리 곡을 드롭한 위치(타깃) 앞에 끼운다(레거시 외부 소스 드래그). 가사·곡번호·저작권 등 내용을 그대로 싣고 복제본을 선택.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("x", "X", "Song"),
+            new LiveQueueItem("y", "Y", "Song"),
+        ]);
+        var target = sut.Queue[1]; // Y
+
+        var song = new SongSummary(
+            SongId: 7, Title: "은혜", AlternateTitle: "", FolderNo: 1,
+            SongNumber: 42, Category: "", Key: "G", Lyrics: "[1]\n가사", Copyright: "(c)2020");
+
+        var added = sut.AddSongRelativeTo(song, target);
+
+        added.Should().NotBeNull();
+        added!.Id.Should().Be("song:7");
+        added.Lyrics.Should().Be("[1]\n가사", "라이브러리 곡은 가사를 그대로 싣는다");
+        added.SongNumber.Should().Be(42);
+        added.Copyright.Should().Be("(c)2020");
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "x", "song:7", "y" }, "타깃(Y) 앞에 삽입");
+        sut.SelectedItem.Should().BeSameAs(added);
+    }
+
+    [Fact]
+    public void AddSongRelativeTo_NullTarget_AppendsToEnd()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("x", "X", "Song")]);
+        var song = new SongSummary(
+            SongId: 7, Title: "은혜", AlternateTitle: "", FolderNo: 1,
+            SongNumber: 0, Category: "", Key: "", Lyrics: "가사");
+
+        sut.AddSongRelativeTo(song, targetItem: null);
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "x", "song:7" }, "타깃 없으면(빈 공간 드롭) 맨 끝");
+    }
+
+    [Fact]
+    public void AddSongRelativeTo_NullSong_IsNoOp()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSongRelativeTo(null, targetItem: null).Should().BeNull();
+        sut.Queue.Should().BeEmpty();
+    }
+
+    [Fact]
     public void AddSong_WhenNull_DoesNotChangeQueue()
     {
         var sut = CreateSut();

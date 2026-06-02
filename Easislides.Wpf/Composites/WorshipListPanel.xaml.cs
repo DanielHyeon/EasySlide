@@ -69,8 +69,10 @@ public partial class WorshipListPanel : UserControl
         {
             e.Effects = DragDropEffects.Move;
         }
-        else if (e.Data.GetDataPresent(typeof(BibleSelection)))
+        else if (e.Data.GetDataPresent(typeof(BibleSelection))
+            || e.Data.GetDataPresent(typeof(Easislides.Wpf.Data.SongSummary)))
         {
+            // 성경 본문 선택·라이브러리 곡 = 큐에 추가(Copy).
             e.Effects = DragDropEffects.Copy;
         }
         else
@@ -100,6 +102,11 @@ public partial class WorshipListPanel : UserControl
         else if (e.Data.GetData(typeof(BibleSelection)) is BibleSelection selection)
         {
             viewModel.AddBibleSelectionRelativeTo(selection, targetItem);
+        }
+        else if (e.Data.GetData(typeof(Easislides.Wpf.Data.SongSummary)) is Easislides.Wpf.Data.SongSummary song)
+        {
+            // 라이브러리 곡 목록에서 끌어다 놓은 곡 — 드롭 위치 앞에 추가(레거시 외부 소스 드래그).
+            viewModel.AddSongRelativeTo(song, targetItem);
         }
     }
 

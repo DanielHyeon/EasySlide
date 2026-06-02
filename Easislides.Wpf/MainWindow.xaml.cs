@@ -273,6 +273,9 @@ public partial class MainWindow : Window
     // (새 선택 제스처와 충돌하지 않도록). 레거시 인라인 성경의 본문 드래그→예배순서 드롭 대응.
     private Point _bibleDragStart;
     private bool _bibleDragArmed;
+    // 라이브러리 곡 목록 → 예배 순서 드래그(레거시 외부 소스 드래그). 항목 위에서 눌러 임계 거리 이상 움직이면 시작.
+    private Point _librarySongDragStart;
+    private bool _librarySongDragArmed;
 
     // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).
     private void BiblePassageBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -315,6 +318,39 @@ public partial class MainWindow : Window
 
         _bibleDragArmed = false; // 한 제스처에서 한 번만 시작.
         DragDrop.DoDragDrop(BiblePassageBox, new DataObject(typeof(BibleSelection), selection), DragDropEffects.Copy);
+    }
+
+    // 곡 목록에서 항목 위를 누르면 드래그 후보로 무장(빈 공간 클릭에선 이전 선택 곡이 끌려가지 않도록 항목 위인지 확인).
+    private void LibrarySongList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _librarySongDragStart = e.GetPosition(null);
+        // 클릭 지점이 실제 곡 항목(ListBoxItem) 위일 때만 무장 — 목록 빈 영역 클릭은 드래그 시작 안 함.
+        _librarySongDragArmed = e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(LibrarySongList, source) is ListBoxItem;
+    }
+
+    // 임계 거리 이상 움직이면 선택된 곡(SongSummary)으로 드래그를 시작한다 — 예배 순서 목록에 드롭하면 그 위치에 추가된다.
+    private void LibrarySongList_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_librarySongDragArmed || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _librarySongDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (DataContext is not MainViewModel viewModel || viewModel.Library.SelectedSong is not { } song)
+        {
+            return;
+        }
+
+        _librarySongDragArmed = false; // 한 제스처에서 한 번만 시작.
+        DragDrop.DoDragDrop(LibrarySongList, new DataObject(typeof(Easislides.Wpf.Data.SongSummary), song), DragDropEffects.Copy);
     }
 
     // "Region 2(이중 언어)와 함께 추가" 서브메뉴 클릭 — 선택 구절을 클릭한 보조 버전과 합쳐(이중 언어) 예배 순서에 추가한다.
