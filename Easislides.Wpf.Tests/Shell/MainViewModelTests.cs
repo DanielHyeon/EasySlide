@@ -382,6 +382,51 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ValidateWorshipList_SongMissingInDb_ReportsSongNotInDatabase()
+    {
+        // 곡 항목(song:{id})이 가사 DB 에 없으면 검증이 SongNotInDatabase 문제로 잡는다(레거시 DB 존재 검증, 증분98).
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail: null)); // 모든 곡이 DB 에 없다고 가정.
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        sut.LoadQueue(new[] { new LiveQueueItem("song:42", "사라진 곡", LiveItemKinds.Song) });
+
+        await sut.ValidateWorshipListAsync();
+
+        sut.WorshipListProblems.Should().ContainSingle()
+            .Which.Kind.Should().Be(WorshipItemProblemKind.SongNotInDatabase);
+        sut.StatusText.Should().Contain("사라진 곡");
+        sut.HasWorshipListProblems.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateWorshipList_SongExistsInDb_NoProblem()
+    {
+        // DB 에 곡이 있으면 문제 없음.
+        var detail = SampleSongDetail(songId: 42, title: "은혜", lyrics: "1절");
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail));
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        sut.LoadQueue(new[] { new LiveQueueItem("song:42", "은혜", LiveItemKinds.Song) });
+
+        await sut.ValidateWorshipListAsync();
+
+        sut.WorshipListProblems.Should().BeEmpty();
+        sut.StatusText.Should().Contain("모든 항목 정상");
+    }
+
+    [Fact]
+    public async Task ValidateWorshipList_NoDbPath_SkipsSongCheck()
+    {
+        // DB 경로가 없으면(설정 전) 곡 DB 검사를 건너뛴다 — 파일 검사만 하던 기존 동작 보존(무회귀).
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail: null)); // null=모두 없음이지만 DB 경로 없어 호출 안 됨
+        // Search.DatabasePath 를 설정하지 않음(빈 값).
+        sut.LoadQueue(new[] { new LiveQueueItem("song:42", "곡", LiveItemKinds.Song) });
+
+        await sut.ValidateWorshipListAsync();
+
+        sut.WorshipListProblems.Should().BeEmpty("DB 경로 없으면 곡 검사 생략 → 곡은 문제로 잡히지 않음");
+        sut.StatusText.Should().Contain("곡 DB 검증 생략", "곡 DB 가 검증되지 않았음을 운영자에게 명시(조용한 생략 방지)");
+    }
+
+    [Fact]
     public void ToggleShowNotations_WhenNotLive_DoesNothing()
     {
         // 라이브가 아니면 재송출할 곡이 없어 설정만 바뀌고 세션은 Off 그대로다(안전).

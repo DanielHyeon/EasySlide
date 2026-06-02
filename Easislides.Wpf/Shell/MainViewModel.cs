@@ -595,7 +595,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyTransitionKindCommand = new RelayCommand<LyricsTransitionKind>(ApplyTransitionKind);
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
         OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
-        ValidateWorshipListCommand = new RelayCommand(ValidateWorshipList);
+        ValidateWorshipListCommand = new AsyncRelayCommand(ValidateWorshipListAsync);
         // 라이브 조옮김 ↑/↓/원조 — ±반음 이동(±11 클램프) 후 라이브 곡을 재송출해 코드 줄을 다시 그린다.
         TransposeLiveUpCommand = new RelayCommand(() => SetLiveTranspose(LiveTransposeSemitones + 1));
         TransposeLiveDownCommand = new RelayCommand(() => SetLiveTranspose(LiveTransposeSemitones - 1));
@@ -748,8 +748,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>예배 순서 검증으로 발견한 문제 목록(없으면 비어 있음) — 도구 메뉴 "예배 순서 검증" 결과.</summary>
     public ObservableCollection<WorshipItemProblem> WorshipListProblems { get; } = new();
 
-    /// <summary>예배 순서 검증을 실행한다(라이브 송출 전 깨진 PPT·미디어 파일 점검, 레거시 ValidateWorshipListItems).</summary>
-    public IRelayCommand ValidateWorshipListCommand { get; }
+    /// <summary>예배 순서 검증을 실행한다(라이브 송출 전 깨진 PPT·미디어 파일 + 곡 DB 존재 점검, 레거시 ValidateWorshipListItems).</summary>
+    public IAsyncRelayCommand ValidateWorshipListCommand { get; }
 
     /// <summary>라이브 조옮김 상태 라벨(예: "원조", "조옮김 +2", "조옮김 -1") — 메뉴/툴팁 표시용.</summary>
     public string LiveTransposeLabel => LiveTransposeSemitones == 0
@@ -1431,9 +1431,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 예배 순서를 검증해 깨진 PPT·미디어 파일을 찾는다(레거시 ValidateWorshipListItems — 예배 중 사고 예방).
     /// 결과를 WorshipListProblems 에 채우고 StatusText 로 요약한다. 문제 없으면 "모든 항목 정상".
     /// </summary>
-    public void ValidateWorshipList()
+    public async Task ValidateWorshipListAsync()
     {
-        var problems = _worshipValidator.Validate(Queue);
+        // 1) 파일 차원 검사(동기) — 깨진/이동·삭제된 PPT·미디어 파일.
+        var problems = _worshipValidator.Validate(Queue).ToList();
+
+        // 2) 곡 DB 존재 검사(비동기·DB 의존) — DB 경로가 있을 때만. song:{id} 항목이 가사 DB 에 아직 있는지 확인한다.
+        //    DB 경로가 없으면(설정 전·테스트) 건너뛴다 — 이 경우 await 에 닿지 않아 동기적으로 완료된다(무회귀).
+        var databasePath = Search.DatabasePath;
+        if (!string.IsNullOrWhiteSpace(databasePath))
+        {
+            foreach (var item in Queue)
+            {
+                if (item is null || !TryGetSongDatabaseId(item, out var songId))
+                {
+                    continue; // 곡(song:{id})이 아니거나 복제(dup:)·텍스트 등은 DB 검사 대상 아님.
+                }
+
+                var detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+                if (detail is null)
+                {
+                    var label = string.IsNullOrWhiteSpace(item.Title) ? item.Id : item.Title;
+                    problems.Add(new WorshipItemProblem(
+                        item, WorshipItemProblemKind.SongNotInDatabase, $"{label}: 곡을 가사 DB 에서 찾을 수 없습니다."));
+                }
+            }
+        }
+
         WorshipListProblems.Clear();
         foreach (var problem in problems)
         {
@@ -1461,10 +1485,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = $"예배 순서 검증: 문제 {problems.Count}건 — {summary}";
         }
 
+        // DB 경로가 없어 곡 DB 검사를 건너뛰었고, 검사 대상 곡이 큐에 있었다면 그 사실을 상태바에 명시한다 —
+        // "모든 항목 정상"만 보고 운영자가 곡 DB 까지 검증된 것으로 오해하지 않도록(리뷰어 지적: 조용한 생략 방지).
+        if (string.IsNullOrWhiteSpace(databasePath)
+            && Queue.Any(i => i is not null && TryGetSongDatabaseId(i, out _)))
+        {
+            StatusText += " (곡 DB 검증 생략 — DB 경로 없음)";
+        }
+
         // 텔레메트리의 succeeded 는 "검증 명령이 정상 수행됨"을 뜻한다(문제를 찾는 것도 검증의 정상 동작이므로
         // 문제 발견 = 실패가 아니다). 발견한 문제 수는 StatusText 메시지에 담긴다.
         _telemetry.Record(MainCommandIds.WorshipListValidate, succeeded: true, StatusText);
         NotifyCommandStates();
+    }
+
+    // 큐 항목 Id 가 "song:{정수}" 형태면 곡 DB Id 를 꺼낸다(AddSong 이 부여한 식별자). 그 외(dup:·text:·bible:·ppt: 등)는 false.
+    // 복제(dup:) 항목은 가사를 이미 들고 있어 DB 검사 대상이 아니므로 자연히 제외된다.
+    private static bool TryGetSongDatabaseId(LiveQueueItem item, out int songId)
+    {
+        songId = 0;
+        const string prefix = "song:";
+        if (item.Id is null || !item.Id.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return int.TryParse(item.Id.AsSpan(prefix.Length), out songId);
     }
 
     // 최근 예배 순서 메뉴 항목 클릭 → 해당 이름으로 다시 불러온다.

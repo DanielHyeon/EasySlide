@@ -11,6 +11,9 @@ public enum WorshipItemProblemKind
 
     /// <summary>연결된 파일(PPT·미디어)이 디스크에 없다 — 이동·삭제·이름변경됐을 가능성.</summary>
     FileNotFound,
+
+    /// <summary>곡 항목인데 가사 DB 에 해당 곡이 없다 — 삭제·이동·DB 교체로 사라졌을 가능성(비동기·DB 의존 검사).</summary>
+    SongNotInDatabase,
 }
 
 /// <summary>예배 순서 검증에서 발견한 문제 하나(어느 항목이 왜 문제인지).</summary>
