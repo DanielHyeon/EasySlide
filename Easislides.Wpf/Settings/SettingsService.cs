@@ -214,6 +214,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> MainWindowMaximized = new("general.mainWindowMaximized", false);
     // 우측 출력 모양 인스펙터 펼침/접힘 상태 저장(레거시 FrmMain 패널 상태). 기본 true=펼침(무회귀). 접어 두면 다음 실행에도 접힌 채 시작.
     public static readonly SettingKey<bool> MainInspectorExpanded = new("general.mainInspectorExpanded", true);
+    // 좌측 브라우저/예배순서 패널의 높이 비율(위 브라우저 패널 %, 레거시 splitter 위치 저장). 0=저장된 적 없음 → XAML 기본(반반).
+    public static readonly SettingKey<int> MainBrowserSplitPercent = new("general.mainBrowserSplitPercent", 0);
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
     public static readonly SettingKey<InterfaceSize> InterfaceSize =
@@ -389,6 +391,7 @@ public static class EasiSettingKeys
         MainWindowHeight,
         MainWindowMaximized,
         MainInspectorExpanded,
+        MainBrowserSplitPercent,
         Theme,
         InterfaceSize,
         DefaultOutputMonitorId,
@@ -499,6 +502,8 @@ public sealed record GeneralSettings
     public bool MainWindowMaximized { get; init; } = EasiSettingKeys.MainWindowMaximized.DefaultValue;
 
     public bool MainInspectorExpanded { get; init; } = EasiSettingKeys.MainInspectorExpanded.DefaultValue;
+
+    public int MainBrowserSplitPercent { get; init; } = EasiSettingKeys.MainBrowserSplitPercent.DefaultValue;
 }
 
 public sealed record AppearanceSettings
@@ -1476,6 +1481,7 @@ public sealed class SettingsService : ISettingsService
             "general.mainWindowHeight" => snapshot.General.MainWindowHeight,
             "general.mainWindowMaximized" => snapshot.General.MainWindowMaximized,
             "general.mainInspectorExpanded" => snapshot.General.MainInspectorExpanded,
+            "general.mainBrowserSplitPercent" => snapshot.General.MainBrowserSplitPercent,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
@@ -1605,6 +1611,10 @@ public sealed class SettingsService : ISettingsService
             "general.mainInspectorExpanded" => snapshot with
             {
                 General = snapshot.General with { MainInspectorExpanded = Cast<bool>(keyId, value) },
+            },
+            "general.mainBrowserSplitPercent" => snapshot with
+            {
+                General = snapshot.General with { MainBrowserSplitPercent = Cast<int>(keyId, value) },
             },
             "appearance.theme" => snapshot with
             {

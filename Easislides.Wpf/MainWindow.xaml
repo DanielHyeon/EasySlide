@@ -824,9 +824,10 @@
                  GridSplitter 로 두 패널 높이를 운영자가 조절. -->
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" MinHeight="140" />
+                    <!-- 브라우저/예배순서 두 패널 높이 비율은 GridSplitter 로 조절하고, 종료 시 비율을 저장해 다음 실행에 복원한다(레거시 splitter 상태). -->
+                    <RowDefinition x:Name="BrowserRow" Height="*" MinHeight="140" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" MinHeight="160" />
+                    <RowDefinition x:Name="WorshipQueueRow" Height="*" MinHeight="160" />
                 </Grid.RowDefinitions>
 
                 <TabControl Grid.Row="0"

@@ -135,4 +135,48 @@ public class WindowPlacementCalculatorTests
             100, 100, 1200, 800, false,
             0, 0, 0, 0, MinWidth, MinHeight).Should().BeNull();
     }
+
+    // ── ComputeSplitPercent: 두 패널 높이 → 위 패널 비율(%) ──────────────────────────
+    private const int SplitMin = 15;
+    private const int SplitMax = 85;
+
+    private static int Split(double top, double bottom)
+        => WindowPlacementCalculator.ComputeSplitPercent(top, bottom, SplitMin, SplitMax);
+
+    [Fact]
+    public void Split_HalfHalf_Returns50()
+    {
+        Split(400, 400).Should().Be(50, "반반이면 50%");
+    }
+
+    [Fact]
+    public void Split_TopLarger_ReturnsProportion()
+    {
+        Split(600, 200).Should().Be(75, "600/(600+200)=75%");
+        Split(300, 700).Should().Be(30, "300/1000=30%");
+    }
+
+    [Fact]
+    public void Split_ZeroTotal_ReturnsZeroSentinel()
+    {
+        // 측정 전(합 0)·음수는 0(저장 안 함) 센티넬.
+        Split(0, 0).Should().Be(0);
+        Split(-10, 400).Should().Be(0, "음수 높이는 비정상 → 0");
+        Split(400, -5).Should().Be(0);
+    }
+
+    [Fact]
+    public void Split_ExtremeRatio_ClampedIntoSafeRange()
+    {
+        // 한 패널이 거의 사라진 비율은 [15,85] 로 클램프해 다음 실행에 패널이 0 으로 복원되지 않게 한다.
+        Split(950, 50).Should().Be(SplitMax, "95% → 상한 85 로 클램프");
+        Split(20, 980).Should().Be(SplitMin, "2% → 하한 15 로 클램프");
+    }
+
+    [Fact]
+    public void Split_ClampedNeverReturnsZeroForValidTotal()
+    {
+        // 합이 양수면(유효) 절대 0(센티넬)을 돌려주지 않아야 한다 — 하한이 15 라 0 위쪽으로 클램프.
+        Split(1, 999).Should().BeGreaterThanOrEqualTo(SplitMin, "유효 입력은 0 센티넬과 겹치지 않음");
+    }
 }

@@ -795,17 +795,78 @@ public partial class MainWindow : Window
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
     // 창 핸들이 만들어진 직후(표시 전) 저장된 크기·위치를 화면 안으로 보정해 복원한다(레거시 FrmMain 창 상태 복원).
+    // 좌측 브라우저/예배순서 패널 높이 비율의 안전 범위(%, 한 패널이 사라지지 않도록 — 행 MinHeight 와 이중 안전).
+    private const int BrowserSplitMinPercent = 15;
+    private const int BrowserSplitMaxPercent = 85;
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
         RestoreWindowPlacement();
+        RestoreBrowserSplit();
     }
 
-    // 닫기 직전에 현재 창 크기·위치·최대화 상태를 설정에 저장한다(다음 실행 때 복원).
+    // 닫기 직전에 현재 창 크기·위치·최대화 상태와 좌측 패널 높이 비율을 설정에 저장한다(다음 실행 때 복원).
     protected override void OnClosing(CancelEventArgs e)
     {
         SaveWindowPlacement();
+        SaveBrowserSplit();
         base.OnClosing(e);
+    }
+
+    private void RestoreBrowserSplit()
+    {
+        if (_settings is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var percent = _settings.Get(EasiSettingKeys.MainBrowserSplitPercent);
+            // 저장된 적 없음(0)이거나 안전 범위 밖이면 XAML 기본 비율(반반)을 그대로 둔다(무회귀).
+            if (percent < BrowserSplitMinPercent || percent > BrowserSplitMaxPercent)
+            {
+                return;
+            }
+
+            // 두 행을 별(star) 비율로 설정 — 측정 전이어도 동작하고, 창 크기가 바뀌어도 비율이 유지된다.
+            BrowserRow.Height = new GridLength(percent, GridUnitType.Star);
+            WorshipQueueRow.Height = new GridLength(100 - percent, GridUnitType.Star);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] 패널 비율 복원 실패: {ex.Message}");
+        }
+    }
+
+    private void SaveBrowserSplit()
+    {
+        if (_settings is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var percent = WindowPlacementCalculator.ComputeSplitPercent(
+                BrowserRow.ActualHeight,
+                WorshipQueueRow.ActualHeight,
+                BrowserSplitMinPercent,
+                BrowserSplitMaxPercent);
+
+            // 0 은 "측정 전/비정상" — 저장하지 않는다(다음 실행은 기존 저장값 또는 기본).
+            if (percent <= 0)
+            {
+                return;
+            }
+
+            _settings.Set(EasiSettingKeys.MainBrowserSplitPercent, percent);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] 패널 비율 저장 실패: {ex.Message}");
+        }
     }
 
     private void RestoreWindowPlacement()

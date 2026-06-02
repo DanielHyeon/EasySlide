@@ -68,4 +68,23 @@ public static class WindowPlacementCalculator
 
         return new WindowPlacement(left, top, width, height, maximized);
     }
+
+    /// <summary>
+    /// 위·아래 두 패널 높이로부터 "위 패널이 차지하는 비율(%)"을 구해 [minPercent, maxPercent] 로 클램프한다.
+    /// 합이 0 이하(아직 레이아웃 측정 전 등)이거나 음수 높이가 끼면 0(= 저장하지 않음)을 돌려준다.
+    /// 한 패널이 0 에 가깝게 찌그러진 채 저장돼 다음 실행에 사라지는 일을 클램프로 막는다(MinHeight 와 이중 안전).
+    /// 주의: 반환 0 을 "저장 안 함" 센티넬로 쓰려면 호출 측이 <paramref name="minPercent"/> ≥ 1 을 넘겨야 한다
+    /// (그래야 유효 입력의 클램프 결과가 0 과 절대 겹치지 않는다 — 현재 호출부는 15 를 넘긴다).
+    /// </summary>
+    public static int ComputeSplitPercent(double topHeight, double bottomHeight, int minPercent, int maxPercent)
+    {
+        var total = topHeight + bottomHeight;
+        if (total <= 0 || topHeight < 0 || bottomHeight < 0)
+        {
+            return 0;
+        }
+
+        var percent = (int)Math.Round(100.0 * topHeight / total);
+        return Math.Clamp(percent, minPercent, maxPercent);
+    }
 }
