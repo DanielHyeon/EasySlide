@@ -102,6 +102,28 @@ public class CommandCatalogTests
     }
 
     [Fact]
+    public void WorshipReorderCommands_InCatalog_WithMoveShortcuts()
+    {
+        // 예배 순서 재정렬 4종이 팔레트(카탈로그)에 있고, 위/아래는 Ctrl+Shift+Up/Down 단축키를 가진다(맨위/맨아래는 팔레트 전용).
+        var sut = new CommandCatalog();
+
+        foreach (var id in new[]
+                 {
+                     MainCommandIds.WorshipMoveItemUp, MainCommandIds.WorshipMoveItemDown,
+                     MainCommandIds.WorshipMoveItemToTop, MainCommandIds.WorshipMoveItemToBottom,
+                 })
+        {
+            sut.FindById(id).Should().NotBeNull($"카탈로그에 {id} 가 있어야 팔레트에서 검색·실행 가능")
+                .And.Match<CommandDescriptor>(c => c.Category == "예배 순서" && !c.IsDangerous);
+        }
+
+        sut.GetDefaultShortcuts().Should().Contain(s =>
+            s.Key == Key.Up && s.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && s.CommandName == MainCommandIds.WorshipMoveItemUp);
+        sut.GetDefaultShortcuts().Should().Contain(s =>
+            s.Key == Key.Down && s.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && s.CommandName == MainCommandIds.WorshipMoveItemDown);
+    }
+
+    [Fact]
     public void FindById_ReturnsDangerMetadataForLiveCommands()
     {
         var sut = new CommandCatalog();

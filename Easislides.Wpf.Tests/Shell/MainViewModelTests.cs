@@ -3305,9 +3305,11 @@ public class MainViewModelTests
                  {
                      MainCommandIds.LiveClear, MainCommandIds.LiveRestart, MainCommandIds.LiveRefresh,
                      MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
+                     MainCommandIds.WorshipMoveItemUp, MainCommandIds.WorshipMoveItemDown,
+                     MainCommandIds.WorshipMoveItemToTop, MainCommandIds.WorshipMoveItemToBottom,
                  })
         {
-            registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트·단축키(F11)로 실행 가능");
+            registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트·단축키로 실행 가능");
         }
     }
 

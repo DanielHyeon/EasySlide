@@ -36,6 +36,11 @@ public static class MainCommandIds
     public const string AddExternalFile = "Item.AddExternalFile";
     public const string WorshipListValidate = "WorshipList.Validate";
     public const string WorshipDuplicateItem = "WorshipList.Duplicate";
+    // 예배 순서 항목 재정렬(레거시 위/아래/맨위/맨아래 버튼) — 팔레트·단축키로도 실행. 위/아래는 Ctrl+Shift+Up/Down.
+    public const string WorshipMoveItemUp = "WorshipList.MoveUp";
+    public const string WorshipMoveItemDown = "WorshipList.MoveDown";
+    public const string WorshipMoveItemToTop = "WorshipList.MoveToTop";
+    public const string WorshipMoveItemToBottom = "WorshipList.MoveToBottom";
     // 레거시 .esw(EasiSlides v3.2) 예배 순서 파일 가져오기(§3.4) — 파일 선택 → 파서 → ImportEswWorshipList.
     public const string ImportLegacyWorshipList = "WorshipList.ImportLegacyEsw";
 }

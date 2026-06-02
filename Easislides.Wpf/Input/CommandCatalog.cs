@@ -162,6 +162,34 @@ public sealed class CommandCatalog : ICommandCatalog
             "선택한 예배 순서 항목을 같은 내용으로 복제해 바로 뒤에 추가합니다.",
             isDangerous: false,
             new Shortcut(Key.D, ModifierKeys.Control, MainCommandIds.WorshipDuplicateItem, IsGlobal: false, "항목 복제")),
+        // 예배 순서 재정렬(레거시 위/아래/맨위/맨아래 버튼) — 팔레트 검색 + 위/아래는 Ctrl+Shift+Up/Down 단축키.
+        // 텍스트박스 편집과 충돌 않는 수식 키 조합(메인 창 텍스트박스는 단일 줄이라 Ctrl+Shift+Arrow 미사용).
+        Command(
+            MainCommandIds.WorshipMoveItemUp,
+            "예배 순서",
+            "항목 위로",
+            "선택한 예배 순서 항목을 한 칸 위로 옮깁니다.",
+            isDangerous: false,
+            new Shortcut(Key.Up, ModifierKeys.Control | ModifierKeys.Shift, MainCommandIds.WorshipMoveItemUp, IsGlobal: false, "항목 위로")),
+        Command(
+            MainCommandIds.WorshipMoveItemDown,
+            "예배 순서",
+            "항목 아래로",
+            "선택한 예배 순서 항목을 한 칸 아래로 옮깁니다.",
+            isDangerous: false,
+            new Shortcut(Key.Down, ModifierKeys.Control | ModifierKeys.Shift, MainCommandIds.WorshipMoveItemDown, IsGlobal: false, "항목 아래로")),
+        Command(
+            MainCommandIds.WorshipMoveItemToTop,
+            "예배 순서",
+            "항목 맨 위로",
+            "선택한 예배 순서 항목을 맨 위로 옮깁니다.",
+            isDangerous: false),
+        Command(
+            MainCommandIds.WorshipMoveItemToBottom,
+            "예배 순서",
+            "항목 맨 아래로",
+            "선택한 예배 순서 항목을 맨 아래로 옮깁니다.",
+            isDangerous: false),
         // 창 런처(§7.4) — FrmMain 의 분리 창을 명령 팔레트로 흡수. 실행은 View(MainWindow)가 등록.
         Command(
             MainCommandIds.WindowLibrary,

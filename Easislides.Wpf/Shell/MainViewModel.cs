@@ -1964,6 +1964,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         BindGated(MainCommandIds.LiveAutoRotate, ToggleAutoRotateCommand);
         // 예배 순서 항목 복제(Ctrl+D + 명령 팔레트) — 선택 없으면 CanExecute 가 막아 무동작.
         BindGated(MainCommandIds.WorshipDuplicateItem, DuplicateSelectedItemCommand);
+        // 예배 순서 재정렬(Ctrl+Shift+Up/Down + 팔레트) — CanExecute(경계·선택 없음)가 막으면 무동작.
+        BindGated(MainCommandIds.WorshipMoveItemUp, MoveSelectedItemUpCommand);
+        BindGated(MainCommandIds.WorshipMoveItemDown, MoveSelectedItemDownCommand);
+        BindGated(MainCommandIds.WorshipMoveItemToTop, MoveSelectedItemToTopCommand);
+        BindGated(MainCommandIds.WorshipMoveItemToBottom, MoveSelectedItemToBottomCommand);
     }
 
     public void RefreshOutputDisplays()
