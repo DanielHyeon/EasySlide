@@ -579,6 +579,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemBoldCommand = new RelayCommand(ToggleSelectedItemBold, () => CanEditSelectedItemColor);
         ToggleSelectedItemItalicCommand = new RelayCommand(ToggleSelectedItemItalic, () => CanEditSelectedItemColor);
         ToggleSelectedItemUnderlineCommand = new RelayCommand(ToggleSelectedItemUnderline, () => CanEditSelectedItemColor);
+        // 이중 언어(보조 영역 Region2) 글자색(FormatData 코드30) — 비우면 본문(Region1) 색 추종. 곡일 때만 활성.
+        SetSelectedItemTextColor2Command = new RelayCommand<string?>(SetSelectedItemTextColor2, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -729,6 +731,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleSelectedItemBoldCommand { get; }
     public IRelayCommand ToggleSelectedItemItalicCommand { get; }
     public IRelayCommand ToggleSelectedItemUnderlineCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemTextColor2Command { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1848,6 +1851,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemBold));
         OnPropertyChanged(nameof(SelectedItemItalic));
         OnPropertyChanged(nameof(SelectedItemUnderline));
+        OnPropertyChanged(nameof(SelectedItemTextColor2Hex));
 
         NotifyCommandStates();
     }
@@ -2975,6 +2979,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>선택한 곡 항목의 밑줄(이 항목만)을 켜고 끈다(레거시 항목별 밑줄, FormatData 코드41 bit2).</summary>
     public void ToggleSelectedItemUnderline()
         => ToggleSelectedItemEmphasis(f => f.Underline1, (f, v) => f with { Underline1 = v }, "밑줄");
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(본문 색 추종).</summary>
+    public string SelectedItemTextColor2Hex
+        => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.TextColorArgb2) ?? string.Empty;
+
+    /// <summary>
+    /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 글자색(이 항목만)을 바꾼다(레거시 항목별 Region2 색, FormatData 코드 30).
+    /// hex 가 비거나 형식 오류면 해제해 본문(Region1) 색을 따른다. 이중 언어 곡([region 2] 마커가 있는 곡)에서만 화면에 보인다 — 단일 언어 곡엔 영향 없음.
+    /// 나머지 곡별 서식(본문 색·정렬·크기·글꼴 등)은 보존한다.
+    /// </summary>
+    public void SetSelectedItemTextColor2(string? hex)
+    {
+        var argb = SongFormatData.HexToArgb(hex); // 비거나 형식 오류면 null = 해제(본문 색 추종).
+        if (ApplySelectedSongFormatChange(format => format with { TextColorArgb2 = argb }, wantsIndividual: argb is not null, out var turnedOn))
+        {
+            StatusText = argb is null
+                ? "보조 영역 글자색: 본문과 동일"
+                : $"보조 영역 글자색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
 
     // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
     // 각 항목의 UseIndividualFormatting 을 false 로 바꿔 곡별 FormatData 대신 운영 기본 서식으로 송출하게 한다.
@@ -4356,6 +4380,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemBoldCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemItalicCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderlineCommand.NotifyCanExecuteChanged();
+        SetSelectedItemTextColor2Command.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
