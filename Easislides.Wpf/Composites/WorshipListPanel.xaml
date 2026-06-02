@@ -169,15 +169,22 @@
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Live.Active}"
                                Margin="0,0,0,4" />
+                    <!-- 문제 한 건을 클릭하면 그 항목을 예배 순서에서 선택해(SelectWorshipProblemItemCommand) 운영자가 바로 가 고치게 한다.
+                         각 문제는 EsButton.Link(평평한 텍스트 버튼)로 보여 일반 경고처럼 보이되 누르면 강조되고 키보드 포커스도 받는다. -->
                     <ItemsControl ItemsSource="{Binding WorshipListProblems}"
                                   AutomationProperties.Name="예배 순서 검증 문제 목록">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Message}"
-                                           TextWrapping="Wrap"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Secondary}"
-                                           Margin="0,1,0,1" />
+                                <Button Style="{StaticResource EsButton.Link}"
+                                        Command="{Binding DataContext.SelectWorshipProblemItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Margin="0,1,0,1"
+                                        ToolTip="클릭하면 이 항목을 예배 순서에서 선택합니다."
+                                        AutomationProperties.Name="{Binding Message}">
+                                    <TextBlock Text="{Binding Message}"
+                                               TextWrapping="Wrap"
+                                               Style="{StaticResource Type.Caption.Style}" />
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

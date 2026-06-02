@@ -125,6 +125,38 @@ public class WorshipListPanelTests
             .Should().BeTrue($"{label} 탭 머리글 텍스트 보존");
     }
 
+    [Fact]
+    public void ValidationProblems_AreClickableButtons_BoundToSelectCommand()
+    {
+        // 증분156 — 검증 문제 목록의 각 항목이 클릭 가능한 버튼(EsButton.Link)이고, 누르면 그 항목을 예배 순서에서 선택하는 커맨드에 바인딩됐는지 검증.
+        var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
+
+        var problemList = composite.Descendants().Single(
+            e => e.Name.LocalName == "ItemsControl" && Attr(e, "ItemsSource").Contains("WorshipListProblems"));
+        var button = problemList.Descendants().Single(e => e.Name.LocalName == "Button");
+
+        Attr(button, "Command").Should().Contain("SelectWorshipProblemItemCommand", "문제 클릭 → 항목 선택 커맨드");
+        Attr(button, "CommandParameter").Should().Contain("Binding", "클릭한 문제(WorshipItemProblem)를 파라미터로 전달");
+        Attr(button, "Style").Should().Contain("EsButton.Link", "평평한 링크 버튼 스타일 사용");
+        // 스크린리더가 문제 메시지를 읽도록 접근성 이름을 메시지에 고정.
+        Attr(button, "AutomationProperties.Name").Should().Contain("Message");
+    }
+
+    [Fact]
+    public void EsButtonLink_StyleExists_FlatAndTransparent()
+    {
+        // 증분156 — 재사용 가능한 모던 링크 버튼 스타일(보더·배경 없는 텍스트 버튼)이 디자인 시스템에 정의됐는지 확인.
+        var dict = LoadXaml("Easislides.Wpf/Controls/EsButton.xaml");
+        var link = dict.Descendants().Single(
+            e => e.Name.LocalName == "Style" && Attr(e, "Key") == "EsButton.Link");
+
+        Attr(link, "TargetType").Should().Be("Button");
+        // 평평함의 핵심: 배경 투명 + 보더 0.
+        var setters = link.Elements().Where(e => e.Name.LocalName == "Setter").ToArray();
+        setters.Should().Contain(s => Attr(s, "Property") == "Background" && Attr(s, "Value") == "Transparent");
+        setters.Should().Contain(s => Attr(s, "Property") == "BorderThickness" && Attr(s, "Value") == "0");
+    }
+
     [Theory]
     // 증분152 — 재정렬/복제 버튼의 접근성 이름이 카탈로그의 "실제" 단축키를 그대로 노출(메뉴·팔레트·Del 버튼과 같은 발견성 패턴).
     // 누군가 카탈로그 단축키를 바꾸면 ShortcutHint 가 달라져 이 테스트가 깨진다 → 버튼 힌트가 거짓이 되는 드리프트를 막는다.

@@ -453,6 +453,79 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SelectWorshipProblemItem_SelectsOffendingQueueItem()
+    {
+        // 증분156 — 검증 문제를 클릭하면 그 항목이 예배 순서에서 선택돼 운영자가 바로 가 고친다.
+        var sut = CreateSut(worshipValidator: new WorshipListValidator(_ => false));
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "정상 곡", LiveItemKinds.Song),
+            new LiveQueueItem("ppt:a", "깨진 PPT", LiveItemKinds.PowerPoint) { ContentPath = @"C:\gone.pptx" },
+        });
+        sut.ValidateWorshipListCommand.Execute(null);
+        var problem = sut.WorshipListProblems.Should().ContainSingle().Subject;
+        sut.SelectedItem = sut.Queue[0]; // 일부러 다른 항목을 선택해 둔다.
+
+        sut.SelectWorshipProblemItemCommand.Execute(problem);
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[1], "문제의 PPT 항목이 선택됨");
+        sut.StatusText.Should().Contain("깨진 PPT");
+    }
+
+    [Fact]
+    public void SelectWorshipProblemItem_MatchesById_AfterInstanceReplaced()
+    {
+        // 검증 후 항목 인스턴스가 교체돼도(서식 편집 등) Id 로 찾아 같은 자리의 현재 인스턴스를 선택한다(참조 stale 회피).
+        var sut = CreateSut(worshipValidator: new WorshipListValidator(_ => false));
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("ppt:a", "깨진 PPT", LiveItemKinds.PowerPoint) { ContentPath = @"C:\gone.pptx" },
+        });
+        sut.ValidateWorshipListCommand.Execute(null);
+        var problem = sut.WorshipListProblems.Single();
+        // 같은 Id 의 새 인스턴스로 교체(검증 시 캡처한 참조와 달라짐).
+        sut.Queue[0] = sut.Queue[0] with { Title = "깨진 PPT(수정본)" };
+
+        sut.SelectWorshipProblemItemCommand.Execute(problem);
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0], "Id 매칭으로 교체된 새 인스턴스를 선택");
+    }
+
+    [Fact]
+    public void SelectWorshipProblemItem_RemovedItem_NoSelectionChange_AndInforms()
+    {
+        // 검증 후 그 항목을 큐에서 제거했다면, 클릭해도 선택은 바뀌지 않고 "이미 제거됨"을 알린다.
+        var sut = CreateSut(worshipValidator: new WorshipListValidator(_ => false));
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "정상 곡", LiveItemKinds.Song),
+            new LiveQueueItem("ppt:a", "깨진 PPT", LiveItemKinds.PowerPoint) { ContentPath = @"C:\gone.pptx" },
+        });
+        sut.ValidateWorshipListCommand.Execute(null);
+        var problem = sut.WorshipListProblems.Single();
+        sut.Queue.RemoveAt(1); // 문제의 PPT 항목 제거.
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectWorshipProblemItemCommand.Execute(problem);
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0], "제거된 항목 클릭은 선택을 바꾸지 않음");
+        sut.StatusText.Should().Contain("이미 예배 순서에서 제거된 항목");
+    }
+
+    [Fact]
+    public void SelectWorshipProblemItem_Null_IsNoOp()
+    {
+        // 파라미터가 null 이면(바인딩 경계) 아무 일도 안 한다(크래시 방지).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) });
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectWorshipProblemItemCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0], "null 은 무동작");
+    }
+
+    [Fact]
     public void ToggleShowNotations_WhenNotLive_DoesNothing()
     {
         // 라이브가 아니면 재송출할 곡이 없어 설정만 바뀌고 세션은 Off 그대로다(안전).

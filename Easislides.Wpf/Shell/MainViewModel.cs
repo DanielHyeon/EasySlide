@@ -441,6 +441,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// 검증 문제 목록에서 한 문제를 클릭하면 그 항목을 예배 순서에서 선택한다 — 운영자가 깨진 PPT·미디어로 바로 가 제거·교체하게 한다.
+    /// 검증 후 항목 인스턴스가 교체됐을 수 있어 참조 대신 <b>Id</b> 로 큐의 현재 인스턴스를 찾는다. 이미 제거된 항목이면 상태바로 알린다.
+    /// </summary>
+    private void SelectWorshipProblemItem(WorshipItemProblem? problem)
+    {
+        if (problem is null)
+        {
+            return;
+        }
+
+        var match = Queue.FirstOrDefault(q => q is not null && string.Equals(q.Id, problem.Item.Id, StringComparison.Ordinal));
+        if (match is null)
+        {
+            StatusText = "이미 예배 순서에서 제거된 항목입니다.";
+            return;
+        }
+
+        SelectedItem = match;
+        StatusText = $"검증 문제 항목 선택: {(string.IsNullOrWhiteSpace(match.Title) ? match.Id : match.Title)}";
+    }
+
     // "이 항목 서식 복사"로 담아 둔 항목별 서식(FormatData 문자열). 다른 항목에 "붙여넣기"하면 그대로 적용된다(없으면 null=붙여넣기 비활성).
     private string? _copiedItemFormatData;
 
@@ -662,6 +684,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         QuickSaveWorshipListCommand = new AsyncRelayCommand(QuickSaveWorshipListAsync);
         // 현재 송출 항목 선택 — 미리보기로 앞서 가다가 라이브 항목으로 선택을 되돌린다(송출 중인 큐 항목 있을 때만).
         SelectLiveItemCommand = new RelayCommand(SelectLiveItem, () => CanSelectLiveItem);
+        // 검증 문제 항목 클릭 → 큐에서 그 항목 선택(깨진 항목으로 바로 이동해 고치도록). 항상 클릭 가능(없는 항목은 메서드가 안내).
+        SelectWorshipProblemItemCommand = new RelayCommand<WorshipItemProblem?>(SelectWorshipProblemItem);
         RefreshSavedWorshipListNames();
         // 대기 화면(Gap) 빠른 조작 — 페이드 토글·로고 지우기(로고 선택은 View 파일 픽커). 모드는 콤보(GapItemModeInput).
         ToggleGapItemUseFadeCommand = new RelayCommand(ToggleGapItemUseFade);
@@ -849,6 +873,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>"현재 송출 항목 선택"을 누를 수 있는지 — 라이브 송출 중이고 그 항목이 큐에 있을 때만(공지 센티넬은 큐에 없어 false).</summary>
     public bool CanSelectLiveItem => Queue.Any(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
+
+    /// <summary>검증 문제 항목을 클릭하면 그 항목을 예배 순서에서 선택한다 — 운영자가 깨진 항목으로 바로 가 고치게(수동 스크롤 없이).</summary>
+    public IRelayCommand<WorshipItemProblem?> SelectWorshipProblemItemCommand { get; }
     public IRelayCommand ToggleGapItemUseFadeCommand { get; }
     public IRelayCommand ClearGapItemLogoFileCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }

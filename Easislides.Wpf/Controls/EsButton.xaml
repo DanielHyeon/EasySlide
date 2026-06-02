@@ -101,6 +101,48 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Link — 보더·배경 없는 텍스트 버튼(목록 안에서 클릭 가능한 항목·인라인 액션).
+         평평하고 왼쪽 정렬이라 일반 글처럼 보이되, 마우스를 올리면 살짝 강조돼 "누를 수 있음"을 알린다.
+         최소 높이/너비를 0 으로 둬 한 줄짜리 경고·링크 목록에 자연스럽게 들어간다. -->
+    <Style x:Key="EsButton.Link" TargetType="Button">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+        <Setter Property="Padding" Value="2,1" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource EsButton.FocusVisual}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="PART_Border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{StaticResource CornerRadius.Small}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="PART_Border" Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Danger — 위험 액션 (삭제) -->
     <Style x:Key="EsButton.Danger" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
         <Setter Property="Background" Value="{DynamicResource Brush.Status.Danger}" />
