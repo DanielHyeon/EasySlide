@@ -1815,6 +1815,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // UI 경로라 fire-and-forget; 테스트는 ApplySelectedItemContentAsync 를 직접 await.
         _ = ApplySelectedItemContentAsync(value);
 
+        // 절 순서 입력칸이 새로 선택된 항목을 따라가도록 통지(곡이면 그 절 순서, 아니면 비활성).
+        OnPropertyChanged(nameof(SelectedItemSequenceInput));
+        OnPropertyChanged(nameof(CanEditSelectedItemSequence));
+
         NotifyCommandStates();
     }
 
@@ -2672,6 +2676,56 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    /// <summary>
+    /// 선택한 곡 항목의 절 순서를 편집할 수 있는가 — 곡(가사 있음)일 때만 true. 성경/PPT/미디어/공지는 절 순서 개념이 없어 false.
+    /// 절 순서 입력칸의 활성화에 바인딩한다.
+    /// </summary>
+    public bool CanEditSelectedItemSequence
+        => SelectedItem is { Kind: LiveItemKinds.Song } item && !string.IsNullOrWhiteSpace(item.Lyrics);
+
+    /// <summary>
+    /// 선택한 곡 항목의 절 순서(레거시 절 순서 모델, LiveQueueItem.Sequence)와 양방향 바인딩. 예: "1 2 C 3 C C"
+    /// — 가사에 [라벨]로 절을 정의한 뒤 라벨을 나열해 부르는 순서·반복을 지정한다(후렴 반복 등). 비우면 가사를 선형으로 페이지네이션(기본).
+    /// </summary>
+    public string SelectedItemSequenceInput
+    {
+        get => SelectedItem?.Sequence ?? string.Empty;
+        set => CommitSelectedItemSequence(value);
+    }
+
+    // 선택 곡 항목의 절 순서를 바꾼다 — 레코드는 불변이라 큐의 그 인스턴스를 새 Sequence 복사본으로 교체(참조 일치로 정확히 그 항목만).
+    // 선택을 교체본으로 바꾸면 RefreshLyricsPages 가 새 절 순서로 절 수·라벨을 다시 계산하고, 라이브 항목이면 즉시 재송출해 반영한다.
+    private void CommitSelectedItemSequence(string? value)
+    {
+        if (!CanEditSelectedItemSequence || SelectedItem is not { } item)
+        {
+            return; // 곡이 아니거나 선택 없음 — 절 순서 편집 대상이 아님.
+        }
+
+        // 빈 입력은 "순서 없음"(null) → 선형 페이지네이션으로 복귀. 앞뒤 공백은 다듬는다.
+        var trimmed = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        if (string.Equals(trimmed ?? string.Empty, item.Sequence ?? string.Empty, StringComparison.Ordinal))
+        {
+            return; // 같은 값이면 무시 — 불필요한 교체·재송출 방지.
+        }
+
+        var index = IndexOfReference(item);
+        if (index < 0)
+        {
+            return;
+        }
+
+        var updated = item with { Sequence = trimmed };
+        Queue[index] = updated;
+        SelectedItem = updated; // 선택 변경 → RefreshLyricsPages 로 새 절 순서 기준 페이지·라벨 재계산(LyricsPageIndex 0 리셋).
+        StatusText = trimmed is null ? "절 순서 해제(선형 송출)" : $"절 순서: {trimmed}";
+
+        // 라이브 송출 중이면 같은 절로 다시 송출해 새 절 순서를 즉시 반영(세션 실제 라이브 절 사용 — 0절로 안 튀게).
+        RepublishLiveSongForBodyChange();
+
+        NotifyCommandStates();
+    }
+
     // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
     // 각 항목의 UseIndividualFormatting 을 false 로 바꿔 곡별 FormatData 대신 운영 기본 서식으로 송출하게 한다.
     // (이 플래그는 곡·성경 텍스트 항목 송출에만 영향 — PPT/미디어/공지엔 무영향. 레거시 "Except InfoScreens" 와 같은 취지.)
@@ -2791,7 +2845,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var count = LyricsDisplayFormatter.HasRegion2(lyrics)
                 ? LyricsDisplayFormatter.GetRegionPages(lyrics, item.Sequence).Count
                 : LyricsDisplayFormatter.ToVersePages(lyrics, item.Sequence).Count;
-            return count > 1 ? $"{item.LyricsPageIndex + 1}/{count}" : string.Empty;
+            // 라이브 절 이동 후 절 순서를 편집해 페이지 수가 줄면 LyricsPageIndex 가 범위를 넘을 수 있어 클램프(예: "4/3" 방지).
+            // 본문은 GetVersePage 가 이미 클램프하므로, 위치 라벨도 같은 마지막 절로 맞춰 일관되게 보여 준다.
+            var position = System.Math.Clamp(item.LyricsPageIndex, 0, count - 1) + 1;
+            return count > 1 ? $"{position}/{count}" : string.Empty;
         }
 
         return string.Empty;

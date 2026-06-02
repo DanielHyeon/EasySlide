@@ -4942,6 +4942,91 @@ public class MainViewModelTests
         sut.LyricsPageCount.Should().Be(3, "시퀀스 없으면 선형 3페이지(1·C·2)");
     }
 
+    // ── 절 순서 인라인 편집(SelectedItemSequenceInput) — 운영자가 선택한 곡의 절 순서를 직접 바꾼다 ──
+
+    [Fact]
+    public void EditSelectedItemSequence_SetsSequence_AndExpandsPages_AndReflectsInInput()
+    {
+        // 곡을 선택하고 절 순서를 입력하면 그 항목 Sequence 가 바뀌고 페이지가 펼쳐지며 입력칸도 동기화된다.
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        sut.AddSong(song); // 선형 3페이지로 추가, 자동 선택.
+        sut.LyricsPageCount.Should().Be(3);
+
+        sut.SelectedItemSequenceInput = "  1 C 2 C  "; // 앞뒤 공백 포함 입력.
+
+        sut.SelectedItem!.Sequence.Should().Be("1 C 2 C", "앞뒤 공백을 다듬어 저장");
+        sut.SelectedItemSequenceInput.Should().Be("1 C 2 C", "입력칸도 교체된 항목을 따라감");
+        sut.LyricsPageCount.Should().Be(4, "절 순서(1 C 2 C)로 4페이지로 펼쳐짐");
+        sut.AvailableSectionLabels.Should().Equal(new[] { "1", "C", "2" }, "편집 후 라벨 점프 바도 새 절 순서에서 재계산됨");
+    }
+
+    [Fact]
+    public void EditSelectedItemSequence_WhileLive_PreservesCurrentVerse()
+    {
+        // 라이브 송출 중 절 순서를 편집해도 현재 절이 유지돼야 한다(0절로 안 튐) — 세션의 실제 라이브 절로 재송출.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n1절 가사\n[2]\n2절 가사",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+        sut.NextLyricsPageCommand.Execute(null); // 2절로 이동(라이브).
+        session.Current.CurrentLyricsPageIndex.Should().Be(1);
+
+        sut.SelectedItemSequenceInput = "1 2 1"; // 절 순서 추가(3페이지) — 현재 절(인덱스 1)은 여전히 유효.
+
+        session.Current.CurrentLyricsPageIndex.Should().Be(1, "현재 절 유지 — 0절로 튀지 않음");
+        sut.LyricsPageCount.Should().Be(3, "새 절 순서(1 2 1)로 3페이지");
+    }
+
+    [Fact]
+    public void EditSelectedItemSequence_Empty_ClearsToLinear()
+    {
+        // 절 순서를 비우면 null 로 되돌아가 선형 페이지네이션으로 복귀한다.
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        sut.AddSong(song, "1 C 2 C");
+        sut.LyricsPageCount.Should().Be(4);
+
+        sut.SelectedItemSequenceInput = "   ";
+
+        sut.SelectedItem!.Sequence.Should().BeNull("공백만이면 순서 해제(null)");
+        sut.LyricsPageCount.Should().Be(3, "선형 3페이지로 복귀");
+    }
+
+    [Fact]
+    public void CanEditSelectedItemSequence_TrueOnlyForSongWithLyrics()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.CanEditSelectedItemSequence.Should().BeFalse("선택 없으면 편집 불가");
+
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.CanEditSelectedItemSequence.Should().BeTrue("가사 있는 곡이면 편집 가능");
+
+        // 곡이 아닌 항목(공지) 선택 → 편집 불가.
+        sut.LoadQueue([new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" }]);
+        sut.SelectedItem = sut.Queue[0];
+        sut.CanEditSelectedItemSequence.Should().BeFalse("곡이 아니면 절 순서 편집 불가");
+    }
+
+    [Fact]
+    public void EditSelectedItemSequence_NonSongSelected_IsNoOp()
+    {
+        // 곡이 아닌 항목이 선택된 상태에서 절 순서 입력은 무시된다(잘못된 항목에 순서가 안 붙음).
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SelectedItemSequenceInput = "1 C 2";
+
+        sut.SelectedItem!.Sequence.Should().BeNull("공지 항목엔 절 순서가 붙지 않음");
+    }
+
     // ── 절 라벨 직접 점프(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응) ──
 
     [Fact]
