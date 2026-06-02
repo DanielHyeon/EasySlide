@@ -72,7 +72,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | `Def_R1Align`·`Def_R2Align` (L/C/R) | **영역별** 정렬 | 🟢 (증분 46) 곡 편집기 인스펙터에서 영역별 정렬(상속/왼쪽/가운데/오른쪽, FormatData 31/32)→출력 렌더 적용 |
 | `Ind_R1Bold/Italics(3종)/Underline`, R2 동일 | 영역별 굵게/기울임(없음/전체/후렴만)/밑줄 | 🟢 (증분 46/47) 영역별 굵게/기울임 + (증분 48~50) 밑줄(전역·영역별·외곽선) + (증분 52) **강조 후렴만**(굵게·기울임·밑줄을 후렴 절에만, [C]/[Chorus]/[후렴] 인식, 이중 언어 라벨↔페이지 정렬 가드). 레거시 비트 한계로 굵게/기울임/밑줄 "끄기"는 전역 추종 |
 | `Ind_Reg1/2SizeUpDown`, `Ind_Reg1/2TopUpDown` | 영역별 폰트 크기·세로위치 | 🟢 Region1/2 크기(증분64) + 영역 간 세로 간격(증분67) + **본문 세로 위치 오프셋(증분73, Ind_Reg1TopUpDown — TranslateTransform 위/아래 이동)** 구현 |
-| `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟡 곡별 FormatData 글꼴만(인스펙터 글꼴 선택기 없음) |
+| `Ind_Reg1/2FontsList` | 영역별 글꼴 | 🟢 인스펙터에 본문(Region1)·보조영역(Region2) **전역 글꼴 선택 콤보**(LyricsMonitorFontFamily/2). **증분103**: 추천 한/영 글꼴 + **설치된 시스템 글꼴 전체**(Fonts.SystemFontFamilies, 추천 앞·설치 정렬 뒤·중복 제거)를 콤보에 노출(편집 콤보라 직접 입력도 가능). 곡별 FormatData 글꼴(43/44)이 있으면 그 곡 우선. 항목별 인스펙터 글꼴(per-item)·한글 표시명 노출은 후속 |
 | `Def_Head`/`Ind_Head` (NoTitles/All/FirstScreen) | 헤딩 표시 모드 | 🟢 제목 헤딩 on/off·첫화면만 + **절 헤딩(All — 섹션 라벨 "1절"/"후렴" 표시)** 구현 |
 | `Def_HeadAlign`/`Ind_HeadAlign` (AsR1/AsR2/L/C/R) | 헤딩 정렬(영역 추종 포함) | 🟢 L/C/R + AsR1(본문 따름) + **AsR2(보조영역 Region2 따름, 우선순위 AsR2>AsR1)** — 5종 전부 구현 |
 | `Def_VAlign`/`Ind_VAlign` (Top/Centre/Bottom) | 세로 정렬 | 🟢 있음 |

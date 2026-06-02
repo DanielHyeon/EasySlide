@@ -3437,8 +3437,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 폰트 크기가 다른 경로(−/+ 버튼·설정 창·프리셋)로 바뀌어도 입력 박스가 따라가도록 통지.
     partial void OnActiveLyricsFontSizeChanged(int value) => OnPropertyChanged(nameof(LyricsFontSizeInput));
 
-    /// <summary>출력 글꼴 콤보의 추천 글꼴 목록(자주 쓰는 한/영 글꼴). 편집 가능 콤보라 목록 밖 글꼴명도 직접 입력할 수 있다.</summary>
-    public IReadOnlyList<string> LyricsFontFamilyOptions { get; } =
+    // 출력 글꼴 콤보의 추천 글꼴(자주 쓰는 한/영). 시스템 글꼴 병합 전 기본값이자, 병합 시 맨 앞 순서.
+    private static readonly string[] CuratedFontFavorites =
     [
         "맑은 고딕",
         "Malgun Gothic",
@@ -3451,6 +3451,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         "Arial",
         "Calibri",
     ];
+
+    /// <summary>
+    /// 출력 글꼴 콤보 목록. 처음엔 추천 글꼴만 담고, 시작 시 View 가 <see cref="MergeInstalledFonts"/> 로
+    /// 설치된 시스템 글꼴 전체를 합친다(추천 앞·설치 정렬 뒤). 편집 가능 콤보라 목록 밖 글꼴명도 직접 입력할 수 있다.
+    /// </summary>
+    public ObservableCollection<string> LyricsFontFamilyOptions { get; } = new(CuratedFontFavorites);
+
+    /// <summary>
+    /// 설치된 시스템 글꼴을 콤보 목록에 합친다(추천 앞·설치 글꼴 가나다/ABC 순 뒤, 대소문자 무시 중복 제거).
+    /// 시작 시 1회 View 가 <c>Fonts.SystemFontFamilies</c> 이름으로 호출한다. 순수 계산은 <see cref="SystemFontCatalog"/> 가
+    /// 맡고, 여기선 결과로 컬렉션 내용을 교체한다(ObservableCollection 변경을 콤보가 받아 즉시 갱신). null/빈 목록이면 추천만 유지.
+    /// </summary>
+    public void MergeInstalledFonts(IEnumerable<string>? installedFamilies)
+    {
+        var merged = SystemFontCatalog.BuildFontFamilyList(installedFamilies, CuratedFontFavorites);
+        LyricsFontFamilyOptions.Clear();
+        foreach (var name in merged)
+        {
+            LyricsFontFamilyOptions.Add(name);
+        }
+    }
 
     /// <summary>
     /// 출력 가사 전역 글꼴명 선택(콤보 양방향 바인딩). 빈 문자열/공백이면 "테마 기본 글꼴 상속"으로 저장(무회귀).

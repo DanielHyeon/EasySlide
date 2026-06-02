@@ -4060,6 +4060,59 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void MergeInstalledFonts_AddsInstalledAfterFavorites_KeepingCuratedFirst()
+    {
+        // 시작 시 설치 글꼴 병합: 추천(맑은 고딕 등)이 맨 앞 그대로, 설치된 새 글꼴은 정렬돼 뒤에 붙는다.
+        var sut = CreateSut();
+
+        sut.MergeInstalledFonts(new[] { "Zapfino", "Comic Sans MS", "Malgun Gothic" });
+
+        sut.LyricsFontFamilyOptions[0].Should().Be("맑은 고딕", "추천 글꼴이 맨 앞 순서 유지");
+        sut.LyricsFontFamilyOptions.Should().ContainInOrder("Comic Sans MS", "Zapfino"); // 설치분은 ABC 순.
+        sut.LyricsFontFamilyOptions.Count(n => n == "Malgun Gothic").Should().Be(1, "추천에 이미 있는 글꼴은 중복 안 됨");
+    }
+
+    [Fact]
+    public void MergeInstalledFonts_PreservesTypedFontSelection()
+    {
+        // 핵심 안전성: 콤보 목록을 교체해도(Clear+Add) 운영자가 고른/입력한 글꼴(Text 바인딩)은 그대로 유지돼야 한다.
+        // 목록에 없는 글꼴명을 직접 입력한 경우(편집 콤보)에도 사라지지 않아야 한다.
+        var sut = CreateSut();
+        sut.LyricsFontFamilyInput = "전혀없는글꼴"; // 목록 밖 직접 입력.
+
+        sut.MergeInstalledFonts(new[] { "Arial", "Tahoma" });
+
+        sut.LyricsFontFamilyInput.Should().Be("전혀없는글꼴", "목록 교체는 입력한 글꼴 선택을 건드리지 않음");
+        sut.ActiveLyricsFontFamily.Should().Be("전혀없는글꼴");
+    }
+
+    [Fact]
+    public void MergeInstalledFonts_CalledTwice_DoesNotAccumulateDuplicates()
+    {
+        // 멱등성: 두 번 병합해도(시작 경로 중복 호출 대비) 목록이 누적·중복되지 않는다(Clear 후 다시 채우므로).
+        var sut = CreateSut();
+
+        sut.MergeInstalledFonts(new[] { "Arial", "Tahoma" });
+        var afterFirst = sut.LyricsFontFamilyOptions.ToList();
+        sut.MergeInstalledFonts(new[] { "Arial", "Tahoma" });
+
+        sut.LyricsFontFamilyOptions.Should().Equal(afterFirst, "같은 입력 재병합은 같은 결과(누적 없음)");
+    }
+
+    [Fact]
+    public void MergeInstalledFonts_NullOrEmpty_KeepsCuratedFavorites()
+    {
+        // 설치 글꼴 열거 실패(null/빈)면 추천 목록을 그대로 유지(무회귀 — 콤보가 비지 않게).
+        var sut = CreateSut();
+        var before = sut.LyricsFontFamilyOptions.ToList();
+
+        sut.MergeInstalledFonts(null);
+
+        sut.LyricsFontFamilyOptions.Should().Equal(before, "null 병합은 추천 목록을 바꾸지 않음");
+        sut.LyricsFontFamilyOptions.Should().Contain("맑은 고딕").And.Contain("Arial");
+    }
+
+    [Fact]
     public void LyricsFontFamily2Input_SetAndClear_PersistsAndTrims()
     {
         // 보조영역(Region2) 전역 글꼴명 입력 — 앞뒤 공백 다듬어 저장, 비우면 본문 글꼴 추종("")으로 저장.

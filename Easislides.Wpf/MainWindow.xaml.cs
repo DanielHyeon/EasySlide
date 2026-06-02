@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private bool _libraryLoadedOnce;
     private bool _bibleLoadedOnce;
     private bool _searchLoadedOnce;
+    private bool _fontsMergedOnce;
 
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
@@ -78,7 +79,27 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.ImportLegacyWorshipList, ImportLegacyWorshipList_Click);
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e) => EnsureLibraryLoadedOnce();
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        EnsureLibraryLoadedOnce();
+        EnsureInstalledFontsMergedOnce();
+    }
+
+    // 시작 시 설치된 시스템 글꼴 전체를 출력 글꼴 콤보에 1회 합친다(추천 글꼴은 그대로 맨 앞).
+    // 글꼴 열거는 View 책임(환경 의존), 병합·정렬·중복 제거 계산은 검증된 VM/SystemFontCatalog 가 맡는다.
+    // 한계: family.Source 는 글꼴의 '불변(영문) 이름'이라 한글 글꼴이 "Malgun Gothic" 처럼 영문명으로 보인다
+    // (한글 표시명 "맑은 고딕" 은 추천 목록에 따로 넣어 맨 앞에 있음). 한글 표시명 전체 노출(family.FamilyNames[ko-kr])은 후속.
+    private void EnsureInstalledFontsMergedOnce()
+    {
+        if (_fontsMergedOnce)
+        {
+            return;
+        }
+
+        _fontsMergedOnce = true;
+        var installed = System.Windows.Media.Fonts.SystemFontFamilies.Select(family => family.Source);
+        _viewModel.MergeInstalledFonts(installed);
+    }
 
     // 좌측 브라우저가 항상 보이므로 곡 목록을 1회 채운다. 시작 시(Loaded)와 "라이브러리" 탭 첫 선택 중
     // 먼저 오는 쪽이 로드하고 _libraryLoadedOnce 로 멱등 보장(WPF 는 Loaded 전에 기본 탭 SelectionChanged 를
