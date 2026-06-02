@@ -28,6 +28,23 @@ public partial class WorshipListPanel : UserControl
         InitializeComponent();
     }
 
+    // 예배 순서 목록에 포커스가 있을 때 Delete 키 = 선택 항목 제거(목록 삭제 표준 키). 판단은 순수 WorshipListKeyMap,
+    // 실제 제거는 검증된 VM.RemoveSelectedItemCommand 에 위임. 컨트롤 레벨 KeyDown 이라 검색창 등 다른 입력의 Delete 는 안 가로챈다.
+    private void QueueList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (Easislides.Wpf.Input.WorshipListKeyMap.IsRemoveSelectedItem(e.Key, Keyboard.Modifiers)
+            && viewModel.RemoveSelectedItemCommand.CanExecute(null))
+        {
+            viewModel.RemoveSelectedItemCommand.Execute(null);
+            e.Handled = true;
+        }
+    }
+
     // 세션 콤보를 열 때 저장된 예배 순서 목록을 새로고침한다(저장·삭제가 다른 창에서 일어나도 항상 최신 목록을 보여 주기 위해).
     // 새로고침 로직은 검증된 VM.RefreshSavedWorshipListNames 가, 여기선 "콤보 열림" 제스처만 감지한다.
     private void SessionCombo_DropDownOpened(object? sender, EventArgs e)

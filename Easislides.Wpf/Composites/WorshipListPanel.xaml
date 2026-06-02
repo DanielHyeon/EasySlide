@@ -106,8 +106,8 @@
                 </Button>
                 <Button Command="{Binding RemoveSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        ToolTip="선택 항목을 예배 순서에서 제거"
-                        AutomationProperties.Name="항목 제거">
+                        ToolTip="선택 항목을 예배 순서에서 제거 (Del)"
+                        AutomationProperties.Name="항목 제거 (Delete 키)">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
                 <!-- 선택 항목 복제(같은 곡을 예배 중 두 번 부를 때 등) — 같은 내용·새 Id 로 바로 뒤에 추가. -->
@@ -202,6 +202,7 @@
                          SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                          AutomationProperties.Name="예배 순서 목록"
                          AllowDrop="True"
+                         KeyDown="QueueList_KeyDown"
                          PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
                          PreviewMouseMove="QueueList_PreviewMouseMove"
                          DragOver="QueueList_DragOver"
