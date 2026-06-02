@@ -883,8 +883,15 @@
                             SelectionChanged="LeftBrowserTabs_SelectionChanged"
                             BorderThickness="0"
                             Background="Transparent">
-                    <TabItem Header="라이브러리"
-                             Tag="Library">
+                    <TabItem Tag="Library"
+                             AutomationProperties.Name="라이브러리">
+                        <!-- 탭 머리글에 Fluent 아이콘 추가(현대 UI 업그레이드) — 라이브러리=찬양 노트북 아이콘. 스크린리더는 탭 이름을 읽게 AutomationProperties.Name 고정. -->
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
+                                <TextBlock Text="라이브러리" />
+                            </StackPanel>
+                        </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -1002,8 +1009,15 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
-                <TabItem Header="성경"
-                         Tag="Bible">
+                <TabItem Tag="Bible"
+                         AutomationProperties.Name="성경">
+                    <!-- 성경 탭 = 책 아이콘. -->
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="성경" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -1101,8 +1115,15 @@
                      서브탭: 곡(폴더 가로지르는 다중 필드 검색) · 제목(제목으로 빠르게 찾기) · 사용(송출 이력 읽기전용).
                      곡·제목 결과는 더블클릭/버튼으로 예배 순서에 추가. 삭제/RTF 내보내기 같은 무거운 관리 기능은
                      기존 SearchUsageWindow 에 남겨 두고 명령 팔레트(⌘K)로 연다. -->
-                <TabItem Header="검색"
-                         Tag="Search">
+                <TabItem Tag="Search"
+                         AutomationProperties.Name="검색">
+                    <!-- 검색 탭 = 돋보기 아이콘. -->
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="검색" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />

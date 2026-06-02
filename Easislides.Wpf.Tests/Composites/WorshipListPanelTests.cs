@@ -87,4 +87,23 @@ public class WorshipListPanelTests
         window.Descendants().Any(e => e.Name.LocalName == "ListBox" && Attr(e, "ItemsSource").Contains("Queue"))
             .Should().BeFalse("송출 큐 ListBox 는 컴포지트로 이동");
     }
+
+    [Theory]
+    // 증분149/150 — 좌측 브라우저 탭(라이브러리/성경/검색)이 Fluent 아이콘 머리글 + 스크린리더용 탭 이름을 가진다(아이콘 업그레이드·a11y).
+    [InlineData("Library", "라이브러리")]
+    [InlineData("Bible", "성경")]
+    [InlineData("Search", "검색")]
+    public void LeftBrowserTabs_HaveIconHeaders_AndAccessibleNames(string tag, string accessibleName)
+    {
+        var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");
+
+        var tab = window.Descendants().Single(e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == tag);
+        // 헤더에 종류 아이콘(SymbolIcon)이 있어야 한다.
+        tab.Descendants().Any(e => e.Name.LocalName == "SymbolIcon").Should().BeTrue($"{tag} 탭 머리글에 아이콘");
+        // 스크린리더가 글리프 대신 탭 이름을 읽도록 AutomationProperties.Name 고정.
+        Attr(tab, "AutomationProperties.Name").Should().Be(accessibleName, "탭 접근성 이름은 한글 라벨");
+        // 머리글 텍스트도 보존(아이콘 옆 글자).
+        tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == accessibleName)
+            .Should().BeTrue($"{tag} 탭 머리글 텍스트 보존");
+    }
 }
