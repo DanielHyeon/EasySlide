@@ -1246,6 +1246,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// 저장된 예배 순서를 현재 큐 "뒤에 이어 붙인다"(불러오기=대체, 병합=추가, 레거시 .esw 병합).
+    /// 현재 진행 중인 순서를 지우지 않고 다른 순서의 항목을 합칠 때 쓴다. 빈 큐에 병합하면 불러오기와 같은 효과(첫 항목 선택).
+    /// 세션 이름(CurrentWorshipListName)은 바꾸지 않는다 — 결과는 두 순서의 조합이라 어느 한쪽 이름이 아니기 때문.
+    /// </summary>
+    public async Task MergeWorshipListAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        try
+        {
+            var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
+            var wasEmpty = Queue.Count == 0;
+            foreach (var item in items)
+            {
+                Queue.Add(item);
+            }
+
+            // 빈 큐에 병합했으면 불러오기처럼 첫 항목을 선택해 둔다(비어 있지 않았으면 현재 선택 유지).
+            if (wasEmpty)
+            {
+                SelectedItem = Queue.FirstOrDefault();
+            }
+
+            StatusText = $"예배 순서 병합: {name.Trim()} ({items.Count}개 추가, 총 {Queue.Count}개)";
+            RefreshPowerPointLimitState(updateStatus: false);
+            NotifyCommandStates();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"예배 순서 병합 실패: {ex.Message}";
+        }
+    }
+
     /// <summary>현재 예배 세션(마지막으로 저장/불러온 예배 순서) 이름 — 세션 메모 키로 쓰인다. 없으면 빈 문자열.</summary>
     public string CurrentWorshipListName { get; private set; } = string.Empty;
 

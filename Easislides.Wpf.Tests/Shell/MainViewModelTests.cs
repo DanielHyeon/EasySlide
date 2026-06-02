@@ -1337,6 +1337,52 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task MergeWorshipList_AppendsToCurrentQueue_KeepingExistingItems()
+    {
+        // 병합은 현재 큐를 지우지 않고 저장된 순서의 항목을 뒤에 이어 붙인다(불러오기=대체와 구별, 레거시 .esw 병합).
+        var sut = CreateSut();
+        sut.LoadQueue([
+            new LiveQueueItem("a", "A", "Song") { Lyrics = "LA" },
+            new LiveQueueItem("b", "B", "Song") { Lyrics = "LB" },
+        ]);
+        await sut.SaveWorshipListAsync("2부");
+        sut.GetSavedWorshipLists().Should().Contain("2부");
+
+        // 현재 큐를 다른 항목으로 바꾼 뒤 "2부"를 병합 → 현재 + 저장분 순서로 합쳐진다.
+        sut.LoadQueue([new LiveQueueItem("c", "C", "Song") { Lyrics = "LC" }]);
+        await sut.MergeWorshipListAsync("2부");
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "c", "a", "b" }, "현재 항목 뒤에 저장분이 추가");
+        sut.SelectedItem!.Id.Should().Be("c", "비어 있지 않았으므로 현재 선택 유지");
+    }
+
+    [Fact]
+    public async Task MergeWorshipList_IntoEmptyQueue_SelectsFirstLikeLoad()
+    {
+        // 빈 큐에 병합하면 불러오기처럼 첫 항목을 선택해 둔다.
+        var sut = CreateSut();
+        sut.LoadQueue([new LiveQueueItem("x", "X", "Song") { Lyrics = "LX" }]);
+        await sut.SaveWorshipListAsync("저녁");
+
+        sut.LoadQueue([]);
+        await sut.MergeWorshipListAsync("저녁");
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "x" });
+        sut.SelectedItem!.Id.Should().Be("x", "빈 큐 병합은 불러오기처럼 첫 항목 선택");
+    }
+
+    [Fact]
+    public async Task MergeWorshipList_BlankName_IsNoOp()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
+
+        await sut.MergeWorshipListAsync("   ");
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "a" }, "빈 이름 병합은 무동작");
+    }
+
+    [Fact]
     public async Task SaveWorshipList_WhenNameBlank_DoesNotSave()
     {
         var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());

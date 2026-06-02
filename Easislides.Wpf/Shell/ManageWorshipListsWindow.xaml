@@ -59,6 +59,12 @@
                     Margin="0,0,8,0"
                     Content="삭제"
                     AutomationProperties.Name="선택 순서 삭제" />
+            <Button Click="Merge_Click"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Margin="0,0,8,0"
+                    Content="병합"
+                    ToolTip="선택 순서를 현재 예배 순서 뒤에 이어 붙입니다(현재 항목 유지). 불러오기는 대체합니다."
+                    AutomationProperties.Name="선택 순서 현재에 병합" />
             <Button Click="Load_Click"
                     Style="{StaticResource EsButton.Primary}"
                     Content="불러오기"

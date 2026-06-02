@@ -44,6 +44,16 @@ public partial class ManageWorshipListsWindow : Window
         }
     }
 
+    // 선택 순서를 현재 큐 뒤에 이어 붙인다(불러오기=대체와 달리 병합=추가, 레거시 .esw 병합).
+    private async void Merge_Click(object sender, RoutedEventArgs e)
+    {
+        if (SavedListBox.SelectedItem is string name)
+        {
+            await _viewModel.MergeWorshipListAsync(name);
+            Close();
+        }
+    }
+
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
         if (SavedListBox.SelectedItem is string name)
