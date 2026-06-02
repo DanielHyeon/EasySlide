@@ -39,6 +39,37 @@ public class CommandPaletteViewModelTests
     }
 
     [Fact]
+    public void HasNoResults_TrueOnlyWhenSearchMatchesNothing()
+    {
+        // "결과 없음" 안내 — 검색어가 비면(전체) false, 매칭 있으면 false, 일치하는 게 없을 때만 true.
+        var sut = CreateSut(out _);
+        sut.Open();
+        sut.HasNoResults.Should().BeFalse("검색어 비면 전체가 보이므로 결과 있음");
+
+        sut.Query = "검은"; // 매칭 1건
+        sut.HasNoResults.Should().BeFalse("일치 명령 있으면 결과 있음");
+
+        sut.Query = "존재하지않는명령어zzz"; // 매칭 0건
+        sut.HasNoResults.Should().BeTrue("일치하는 게 없으면 결과 없음");
+
+        sut.Query = string.Empty; // 다시 전체
+        sut.HasNoResults.Should().BeFalse("검색어 지우면 다시 전체");
+    }
+
+    [Fact]
+    public void HasNoResults_RaisesPropertyChanged_OnQueryChange()
+    {
+        var sut = CreateSut(out _);
+        sut.Open();
+        var notified = new List<bool>();
+        sut.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(CommandPaletteViewModel.HasNoResults)) notified.Add(sut.HasNoResults); };
+
+        sut.Query = "없는명령zzz";
+
+        notified.Should().Contain(true, "결과 없음으로 바뀔 때 통지(안내 가시성 갱신)");
+    }
+
+    [Fact]
     public void Query_FiltersByCategory()
     {
         var sut = CreateSut(out _);

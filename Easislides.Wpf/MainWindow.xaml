@@ -2349,6 +2349,15 @@
                              Padding="8,6"
                              Margin="0,0,0,8"
                              AutomationProperties.Name="명령 검색" />
+                    <!-- 검색 결과 없음 안내 — 검색어와 일치하는 명령이 없을 때만 보인다(현대 팔레트 UX). -->
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="일치하는 명령이 없습니다."
+                               Style="{StaticResource Type.Body.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               HorizontalAlignment="Center"
+                               Margin="0,16,0,4"
+                               AutomationProperties.LiveSetting="Polite"
+                               Visibility="{Binding CommandPalette.HasNoResults, Converter={StaticResource BoolToVis}}" />
                     <ListBox ItemsSource="{Binding CommandPalette.Results}"
                              SelectedItem="{Binding CommandPalette.SelectedCommand, Mode=TwoWay}"
                              MouseDoubleClick="CommandPaletteResults_MouseDoubleClick"

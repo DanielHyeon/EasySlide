@@ -36,6 +36,9 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
     /// <summary>검색 결과(필터링된 명령 목록). 검색어가 비면 전체.</summary>
     public ObservableCollection<CommandDescriptor> Results { get; } = new();
 
+    /// <summary>검색 결과가 하나도 없는지 — "결과 없음" 안내 표시에 바인딩. 검색어가 비면 전체가 보이므로(결과 있음) false.</summary>
+    public bool HasNoResults => Results.Count == 0;
+
     public IRelayCommand OpenCommand { get; }
 
     public IRelayCommand CloseCommand { get; }
@@ -101,6 +104,8 @@ public sealed partial class CommandPaletteViewModel : ObservableObject
         {
             SelectedCommand = Results.Count > 0 ? Results[0] : null;
         }
+
+        OnPropertyChanged(nameof(HasNoResults)); // 결과 개수가 바뀌면 "결과 없음" 안내 가시성 갱신.
     }
 
     private static IEnumerable<CommandDescriptor> Filter(IEnumerable<CommandDescriptor> commands, string query)
