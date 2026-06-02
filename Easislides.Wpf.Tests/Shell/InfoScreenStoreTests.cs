@@ -38,6 +38,35 @@ public sealed class InfoScreenStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Save_Then_Load_RoundTripsEmphasis()
+    {
+        var store = new InfoScreenStore(_dir);
+
+        await store.SaveAsync("강조", new InfoScreenDto("중요 공지", Bold: true, Underline: true));
+        var loaded = await store.LoadAsync("강조");
+
+        loaded!.Bold.Should().BeTrue("굵게도 영속");
+        loaded.Italic.Should().BeFalse("켜지 않은 기울임은 false");
+        loaded.Underline.Should().BeTrue("밑줄도 영속");
+    }
+
+    [Fact]
+    public async Task Load_OldFileWithoutEmphasisField_DefaultsToFalse()
+    {
+        // 강조 필드(Bold/Italic/Underline) 없는 옛 파일도 역직렬화 시 기본 false 로 안전하게 읽힌다(무회귀).
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "옛강조.json");
+        await File.WriteAllTextAsync(path, "{\"Text\":\"옛 공지\",\"FontSize\":40,\"BackgroundColorArgb\":-16777216}");
+
+        var loaded = await new InfoScreenStore(_dir).LoadAsync("옛강조");
+
+        loaded!.BackgroundColorArgb.Should().Be(-16777216, "있는 필드는 읽힘");
+        loaded.Bold.Should().BeFalse("강조 필드 없는 옛 파일은 기본 false");
+        loaded.Italic.Should().BeFalse();
+        loaded.Underline.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task Load_OldFileWithoutBackgroundField_DefaultsToZero()
     {
         // 옛 저장 파일(BackgroundColorArgb 필드 없음)도 JSON 역직렬화 시 기본 0=출력 기본 배경으로 안전하게 읽힌다(무회귀).

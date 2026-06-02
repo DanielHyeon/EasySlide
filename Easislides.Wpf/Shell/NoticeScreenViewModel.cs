@@ -45,6 +45,16 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private int _backgroundColorArgb;
 
+    // 공지 강조 — 굵게/기울임/밑줄. 출력에 41=비트밭(비트0/1/2) FormatData 로 실린다(곡 강조와 동일 파이프라인). 기본 꺼짐.
+    [ObservableProperty]
+    private bool _bold;
+
+    [ObservableProperty]
+    private bool _italic;
+
+    [ObservableProperty]
+    private bool _underline;
+
     // 새로 저장할 정보 화면 이름(저장 버튼 활성 판별).
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
@@ -136,7 +146,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
     {
-        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb, BackgroundColorArgb));
+        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline));
         StatusText = ok
             ? "공지를 출력에 송출했습니다."
             : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
@@ -184,7 +194,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         try
         {
-            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb)).ConfigureAwait(true);
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -235,6 +245,9 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         Alignment = dto.Alignment; // 0=기본 포함 그대로 복원.
         ColorArgb = dto.ColorArgb; // 0=기본 포함 그대로 복원.
         BackgroundColorArgb = dto.BackgroundColorArgb; // 0=기본 포함 그대로 복원(옛 파일은 필드 없어 0).
+        Bold = dto.Bold; // 강조도 그대로 복원(옛 파일은 필드 없어 false).
+        Italic = dto.Italic;
+        Underline = dto.Underline;
         StatusText = $"정보 화면 불러옴: {name}";
     }
 

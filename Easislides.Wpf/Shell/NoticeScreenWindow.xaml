@@ -77,6 +77,24 @@
                       Width="100"
                       ToolTip="공지 배경색(기본=출력 기본 배경)"
                       AutomationProperties.Name="공지 배경색" />
+            <CheckBox Content="굵게"
+                      IsChecked="{Binding Bold, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      Margin="16,0,0,0"
+                      ToolTip="공지 본문 굵게(강조)"
+                      AutomationProperties.Name="공지 굵게" />
+            <CheckBox Content="기울임"
+                      IsChecked="{Binding Italic, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      Margin="10,0,0,0"
+                      ToolTip="공지 본문 기울임(강조)"
+                      AutomationProperties.Name="공지 기울임" />
+            <CheckBox Content="밑줄"
+                      IsChecked="{Binding Underline, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      Margin="10,0,0,0"
+                      ToolTip="공지 본문 밑줄(강조)"
+                      AutomationProperties.Name="공지 밑줄" />
             <TextBlock Text="{Binding StatusText}"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"

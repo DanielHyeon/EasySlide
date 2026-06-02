@@ -3990,6 +3990,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             sb.Append($"26={options.BackgroundColorArgb}>");
         }
 
+        // 코드 41 = 강조 비트밭(곡 강조와 동일 파이프라인) — 비트0=굵게, 비트1=기울임, 비트2=밑줄.
+        // 출력이 라이브에서 OverrideBold1/Italic1/Underline1 로 적용한다(영역1=공지 본문).
+        // 주의: 출력의 "강조 후렴만" 설정이 켜져 있으면 공지(=후렴 아님)에서는 강조가 억제된다(기본은 꺼짐이라 그대로 보인다).
+        var effectBits = (options.Bold ? 1 : 0) | (options.Italic ? 2 : 0) | (options.Underline ? 4 : 0);
+        if (effectBits != 0)
+        {
+            sb.Append($"41={effectBits}>");
+        }
+
         return sb.Length == 0 ? null : sb.ToString();
     }
 

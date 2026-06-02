@@ -637,6 +637,32 @@ public class OutputRendererTests
         scene.LyricsMonitorItalic.Should().BeTrue();
     }
 
+    [Theory]
+    [InlineData(false, true)]   // "강조 후렴만" 꺼짐(기본) → 공지(후렴 아님)도 굵게 렌더
+    [InlineData(true, false)]   // "강조 후렴만" 켜짐 → 공지(후렴 아님)는 굵게 억제
+    public void CreateScene_NoticeStyleRegion1Bold_RendersUnlessChorusOnlyGate(bool chorusOnly, bool expectBold)
+    {
+        // 종단(렌더): 공지 송출이 만드는 라이브 스냅샷(OverrideBold1=true, 본문=공지, 후렴 아님)을 렌더에 통과시켜
+        // 굵게가 실제로 화면에 적용되는지 확인 + "강조 후렴만" 게이트 기본 동작(꺼짐=렌더)을 못박는다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorBold: false, // 전역 굵게는 꺼둠 → 곡별/공지 비트만으로 굵게가 켜지는지 확인.
+            LyricsMonitorEmphasisChorusOnly: chorusOnly);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "공지", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "주차장이 만차입니다",
+                OverrideBold1: true, CurrentPageIsChorus: false),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsBodyText.Should().BeTrue("공지 본문은 화면에 보임");
+        scene.LyricsMonitorBold.Should().Be(expectBold,
+            chorusOnly ? "강조 후렴만 켜짐이면 공지(후렴 아님) 굵게 억제" : "기본(후렴만 꺼짐)이면 공지도 굵게 렌더");
+    }
+
     [Fact]
     public void CreateScene_Active_Region1Bold_FollowsGlobalWhenNoOverride()
     {

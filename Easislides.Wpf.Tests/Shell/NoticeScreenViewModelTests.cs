@@ -89,6 +89,51 @@ public class NoticeScreenViewModelTests
     }
 
     [Fact]
+    public void Send_PassesEmphasis_InNoticeOptions()
+    {
+        // 공지 강조(굵게·기울임·밑줄, 코드41)가 송출 옵션에 실려 출력으로 전달되는지 — 콜백이 받은 NoticeOptions 확인.
+        NoticeOptions? captured = null;
+        var vm = new NoticeScreenViewModel((_, opts) => { captured = opts; return true; }, () => { });
+        vm.Text = "중요 공지";
+        vm.Bold = true;
+        vm.Underline = true; // 기울임은 일부러 끔 → 비트 조합도 정확히 실리는지.
+
+        vm.SendCommand.Execute(null);
+
+        captured.Should().NotBeNull();
+        captured!.Bold.Should().BeTrue("굵게가 옵션에 실림");
+        captured.Italic.Should().BeFalse("끈 기울임은 false 그대로");
+        captured.Underline.Should().BeTrue("밑줄이 옵션에 실림");
+    }
+
+    [Fact]
+    public async Task SaveThenOpen_RoundTripsEmphasis()
+    {
+        var (vm, _, dir) = CreateWithStore();
+        try
+        {
+            vm.Text = "굵게 기울임 공지";
+            vm.Bold = true;
+            vm.Italic = true;
+            vm.NewScreenName = "강조테스트";
+            await vm.SaveAsCommand.ExecuteAsync(null);
+
+            vm.Bold = false; // 편집기 변경 후 불러오면 복원.
+            vm.Italic = false;
+            vm.SelectedScreen = "강조테스트";
+            await vm.OpenCommand.ExecuteAsync(null);
+
+            vm.Bold.Should().BeTrue("저장된 굵게 복원");
+            vm.Italic.Should().BeTrue("저장된 기울임 복원");
+            vm.Underline.Should().BeFalse("켜지 않은 밑줄은 false");
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SaveAsCommand_DisabledWhenNameEmpty()
     {
         var (vm, _, dir) = CreateWithStore();

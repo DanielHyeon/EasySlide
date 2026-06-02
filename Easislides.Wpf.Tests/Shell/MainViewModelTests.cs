@@ -1826,6 +1826,44 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void BuildNoticeFormatData_IncludesEmphasisCode41_WhenSet()
+    {
+        // 공지 강조(굵게·기울임·밑줄)가 코드41 비트밭으로 인코드 — 비트0=굵게(1)+비트2=밑줄(4)=5.
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(Bold: true, Underline: true));
+
+        fd.Should().NotBeNull();
+        fd!.Should().Contain("41=5", "굵게(1)+밑줄(4) 비트 합");
+    }
+
+    [Fact]
+    public void BuildNoticeFormatData_NoEmphasis_OmitsCode41()
+    {
+        // 강조가 하나도 없으면 코드41 을 넣지 않는다(출력 기본 강조 유지).
+        // 문자열 부분일치(NotContain "41=") 대신 디코더로 파싱해 강조가 실제로 비어 있는지 확인 → 코드 배치에 무관한 보증.
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(ColorArgb: -1));
+
+        var parsed = Easislides.Wpf.Library.SongFormatData.Parse(fd ?? "");
+        parsed?.Bold1.Should().NotBe(true, "강조 없으면 굵게 비트 없음");
+        parsed?.Italic1.Should().NotBe(true, "강조 없으면 기울임 비트 없음");
+        parsed?.Underline1.Should().NotBe(true, "강조 없으면 밑줄 비트 없음");
+    }
+
+    [Fact]
+    public void PublishNotice_WithBold_AppliesOverrideBold1_EndToEnd()
+    {
+        // 종단(통합): 공지 굵게가 송출 시 세션 오버라이드 굵게1 로 적용된다(코드41 비트0 → GoLive 가 Kind 무관하게
+        // 파싱 → OverrideBold1 → 출력이 영역1=공지 본문에 region1Bold 로 렌더). 곡 개별서식 런타임 게이트 없음.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        sut.OpenOutputCommand.Execute(null);
+
+        var ok = sut.PublishNotice("중요 공지", new NoticeOptions(Bold: true));
+
+        ok.Should().BeTrue("출력이 열려 있으면 송출 성공");
+        session.Current.OverrideBold1.Should().Be(true, "공지 굵게가 라이브 송출 강조로 적용");
+    }
+
+    [Fact]
     public void AddExternalFilesRelativeTo_SkipsImages_NotQueueItems()
     {
         // 이미지 파일은 큐 항목이 아니라 출력 배경용이므로, 큐에 드롭하면 추가하지 않고 건너뛴다(배경 드롭은 미리보기 영역).
