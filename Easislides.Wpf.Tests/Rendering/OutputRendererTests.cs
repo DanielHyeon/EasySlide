@@ -1559,6 +1559,79 @@ public class OutputRendererTests
         scene.TransitionFrame.Kind.Should().Be(TransitionEffectKind.Fade);
     }
 
+    [Fact]
+    public void CreateScene_ReadyWithBlackGap_PaintsBlackAndHidesOverlay()
+    {
+        // 레거시 Gap=Black: 대기 화면이 운영 기본 배경에 "BLACK" 글자가 아니라 진짜 검은(빈) 화면이어야 한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            GapItemOption: GapItemMode.Black,
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFE0D0C0), // 운영 기본은 베이지 — 검정으로 덮여야 함.
+            LyricsMonitorBackgroundIsGradient: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: LiveSessionSnapshot.Off,
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            TransitionElapsed: TimeSpan.Zero,
+            LiveOutputSettings: settings));
+
+        scene.Kind.Should().Be(OutputSceneKind.Ready);
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFF000000), "Gap=Black 은 진짜 검은 배경");
+        scene.LyricsMonitorBackgroundColor2Argb.Should().Be(unchecked((int)0xFF000000), "단색 검정(끝색도 검정)");
+        scene.LyricsMonitorBackgroundIsGradient.Should().BeFalse("검은 화면은 그라데이션 해제");
+        scene.ShowsPanelOverlay.Should().BeFalse("깨끗한 검은 화면 — 타이틀/상태 오버레이 숨김");
+        scene.DisplayTitle.Should().BeEmpty("검은 화면엔 타이틀 텍스트 없음(Cleared 와 같은 결)");
+    }
+
+    [Fact]
+    public void CreateScene_LiveWithBlackGap_DoesNotForceBlack()
+    {
+        // Gap=Black 검정 강제는 대기(Ready) 상태에만 적용 — 라이브 송출 중엔 Gap 설정과 무관하게 운영/곡 배경을 그대로(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 1");
+        var settings = new LiveOutputRenderSettings(
+            GapItemOption: GapItemMode.Black,
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFE0D0C0));
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(LiveState.Active, "곡", "Display 1", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            TransitionElapsed: TimeSpan.Zero,
+            LiveOutputSettings: settings));
+
+        scene.Kind.Should().Be(OutputSceneKind.Live);
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFFE0D0C0), "라이브에선 Gap=Black 이어도 검정 강제 안 함");
+    }
+
+    [Fact]
+    public void CreateScene_ReadyWithDefaultGap_DoesNotForceBlack_AndKeepsOverlay()
+    {
+        // Black 만 특수 처리 — Default/None 대기 화면은 운영 기본 배경·오버레이를 그대로 유지(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            GapItemOption: GapItemMode.Default,
+            LyricsMonitorBackgroundColorArgb: unchecked((int)0xFFE0D0C0));
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: LiveSessionSnapshot.Off,
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            TransitionElapsed: TimeSpan.Zero,
+            LiveOutputSettings: settings));
+
+        scene.Kind.Should().Be(OutputSceneKind.Ready);
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xFFE0D0C0), "Default 대기는 검정 강제 안 함");
+        scene.ShowsPanelOverlay.Should().BeTrue("Default 대기는 오버레이 유지");
+    }
+
     [Theory]
     [InlineData(LyricsTextAlignment.Left)]
     [InlineData(LyricsTextAlignment.Center)]

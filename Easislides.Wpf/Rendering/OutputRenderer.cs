@@ -409,6 +409,14 @@ public sealed class OutputRenderer : IOutputRenderer
             ? request.Session.OverrideBackgroundColorArgb!.Value
             : liveOutput.LyricsMonitorBackgroundColor2Argb;
         var bgIsGradient = !hasBgOverride && liveOutput.LyricsMonitorBackgroundIsGradient;
+
+        // 대기(Ready) 상태에서 Gap 모드가 Black 이면 화면을 실제 검은색으로 칠한다(레거시 Gap=Black 의 "검은 화면").
+        // 단색 검정·그라데이션 해제 — 운영 기본 배경색 대신 진짜 검정이 보이게(아래에서 오버레이도 숨겨 깨끗한 검은 화면).
+        if (kind == OutputSceneKind.Ready && liveOutput.GapItemOption == GapItemMode.Black)
+        {
+            bgColorArgb = bgColor2Argb = unchecked((int)0xFF000000);
+            bgIsGradient = false;
+        }
         // 곡별 가로 정렬(있으면)도 Live 일 때만 운영 기본 정렬을 이긴다.
         var textAlignment = isLive && request.Session.OverrideTextAlignment is LyricsTextAlignment songAlign
             ? songAlign
@@ -674,7 +682,8 @@ public sealed class OutputRenderer : IOutputRenderer
     private static (string Title, string Status) GetReadyDisplayText(LiveOutputRenderSettings settings)
         => settings.GapItemOption switch
         {
-            GapItemMode.Black => ("BLACK", "GAP"),
+            // Black 은 깨끗한 검은 화면이라 타이틀을 비운다(오버레이도 ShouldShowPanelOverlay 에서 숨김 — Cleared 와 같은 결).
+            GapItemMode.Black => ("", "GAP"),
             GapItemMode.Default => ("OUTPUT READY", "GAP"),
             GapItemMode.User => (GetGapLogoTitle(settings.GapItemLogoFile), "GAP"),
             _ => ("OUTPUT READY", "READY")
@@ -698,6 +707,12 @@ public sealed class OutputRenderer : IOutputRenderer
     {
         // 비우기 화면은 배경만 깨끗이 보여야 하므로 모니터명/상태 오버레이도 감춘다.
         if (kind == OutputSceneKind.Cleared)
+        {
+            return false;
+        }
+
+        // 대기(Ready) + Gap=Black 도 깨끗한 검은 화면이어야 하므로 타이틀/상태 오버레이를 숨긴다(레거시 Gap=Black).
+        if (kind == OutputSceneKind.Ready && settings.GapItemOption == GapItemMode.Black)
         {
             return false;
         }
