@@ -54,7 +54,7 @@
 
 ### 2.1 메뉴바 (FrmMain 52항목 → WPF 0)
 WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트에 없는 FrmMain 메뉴 다수가 미구현 기능이라 흡수 자체가 불가**:
-- File: Worship Sessions / PraiseBooks / Listing of Selected Folder / Recent Edits → **전부 미포팅**
+- File: Worship Sessions / PraiseBooks / Listing of Selected Folder / Recent Edits → PraiseBooks·Recent Edits 는 포팅(증분44/세션), Worship Sessions·Listing of Folder 만 후속
 - Edit: Add/Edit/Copy/Move/Delete/Select All/**Use Song Numbering**/Re-Arrange Song Folders → Use Song Numbering·Select All 등 인-셸 없음
 - View: EasiSlides Folder / **Show Notations in Preview** / Status Bar → 미포팅
 - Output: Start Show(F12)/Preview Go-Live-Move-Next(F11)/Refresh/Black(F9)/**Clear(F3)**/**Restart(F5)** → 단축키 F9/F11/F12/F3/F5 매핑 미검증
@@ -103,7 +103,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 
 ### 2.4 리스트 탭 (FrmMain 2 → WPF 1)
 - Worship List(`WorshipListItems` + 세션 콤보 + 노트) → 🟡 WorshipListPanel(세션 노트·세션 콤보 없음)
-- **Praise Book**(`PraiseBookItems` 인터랙티브 목록 + CJK 그룹핑 + 추가/정렬/Clear/RTF·HTML 생성) → 🟡 **부분**: 인터랙티브 **브라우저/관리 UI는 미포팅(전무)** 이나, **PraiseBook 문서 생성(RTF/HTML, `ImportExportService.PraiseBookExportOptions`·`BuildPraiseBookHeading` 등)은 존재**(`FrmGenerateDoc/Html` 포팅분). 즉 "찬양집을 만들어 출력(문서)"은 가능, "찬양집을 운영 중 탐색·관리"는 불가. (재검증 2026-06-01: `ImportExportService.cs` 확인)
+- **Praise Book**(`PraiseBookItems` 인터랙티브 목록 + CJK 그룹핑 + 추가/정렬/Clear/RTF·HTML 생성) → 🟢 **운영 UI 포팅 완료(증분44, 2026-06-02 재확인)**: PraiseBookIndexWindow(머리글자 CJK 그룹 색인·명명 저장/열기/삭제·HTML 내보내기·곡 더블클릭→예배순서 추가, MainWindow 에서 열림) + 문서 생성(RTF/HTML, `ImportExportService.PraiseBookExportOptions`·`WriteRtf`·`BuildPraiseBookHeading`). 즉 만들어 출력(문서)·운영 중 탐색·관리·저장 모두 가능. 책 안 개별 추가/Clear·legacy v3.2 만 후속. (※ 직전 "브라우저/관리 UI 전무" 표기는 stale 였음 — 코드/증분44 로그로 정정)
 
 ---
 
@@ -152,7 +152,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | FrmMain | WPF | 상태 |
 |---|---|---|
 | 폴더+곡 목록, 정렬(획수/CJK단어수/곡번호), A/B/C 점프, Use Song Numbering | 라이브러리 탭(폴더+검색+초성 점프+정렬(원래/제목/곡번호/획수)+곡번호 표시) | 🟢 (증분 34) **A/B/C 점프** + (증분 35) **정렬(원래순서/제목/곡번호)** + (증분 36) **Use Song Numbering** + (증분 45) **획수순(한자) 정렬**(zh-Hant ICU 콜레이션=획수 기반, 별도 데이터 불필요). CJK 단어수 정렬만 후속 |
-| **PraiseBooks**(관리/추가/정렬/RTF·HTML/legacy v3.2) | — | 🔴 |
+| **PraiseBooks**(관리/추가/정렬/RTF·HTML/legacy v3.2) | 찬양집 색인 창(PraiseBookIndexWindow — 머리글자 CJK 그룹 색인·명명 저장/열기/삭제·HTML 내보내기·곡 더블클릭→예배순서, RTF 는 ImportExportService) | 🟢 (증분44) 운영 UI 포팅 완료(MainWindow 에서 열림). 책 안 개별 추가/Clear·legacy v3.2 만 후속 |
 | **Worship Sessions / Recent Edits / Session Notes** | 최근 예배 순서(IRecentWorshipLists) + 세션 메모(WorshipSessionNotes — 예배 순서 이름별 키) | 🟢 Recent Edits=최근 예배 순서·Session Notes=세션 메모(예배 순서 이름별 저장) 포팅 완료. Worship Sessions 풀 번들(순서+설정 묶음)만 후속 |
 | Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | 이미지 갤러리(폴더 썸네일·하위폴더 포함·카테고리[Scenery/Tiles] 필터·배경 적용/해제·더블클릭·**우클릭 메뉴**) | 🟢 (증분74·75) 카테고리 필터 + 우클릭 "배경으로 적용/해제"(우클릭 항목 선택). Images 트랙 완비 |
 | Media 목록 브라우징 | 중앙 Media 탭 + `MediaLibraryWindow`(폴더 브라우저) | 🟢 (2026-06-01 증분 33) 미디어 폴더 브라우저(동영상·오디오 13확장자, 하위폴더·더블클릭 추가) — PowerPoint 브라우저와 동일 구조 |
