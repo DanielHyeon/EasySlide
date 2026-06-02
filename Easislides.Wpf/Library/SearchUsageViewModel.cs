@@ -90,6 +90,18 @@ public sealed partial class SearchUsageViewModel : ObservableObject
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _isBusy;
 
+    /// <summary>한 번이라도 곡 검색을 실행했는지 — 검색 전 빈 목록과 "검색했는데 결과 없음"을 구분(빈 상태 안내가 검색 전엔 안 뜨도록).</summary>
+    [ObservableProperty] private bool _hasSearched;
+
+    /// <summary>
+    /// 검색을 실행했지만 결과가 하나도 없을 때만 true — 검색 결과 목록의 "결과 없음" 빈 상태 안내 표시에 쓴다.
+    /// 검색 전(HasSearched=false)이나 결과가 있을 때는 false 라, 처음 화면이나 정상 결과에는 안내가 뜨지 않는다.
+    /// </summary>
+    public bool HasNoSearchResults => HasSearched && SearchResults.Count == 0;
+
+    /// <summary>HasSearched 가 바뀌면 빈 상태 표시 여부도 다시 평가하도록 통지.</summary>
+    partial void OnHasSearchedChanged(bool value) => OnPropertyChanged(nameof(HasNoSearchResults));
+
     public SearchUsageViewModel(ISettingsService settings, ISearchUsageService service)
         : this(settings, service, new WpfUsageDeleteConfirmation())
     {
@@ -109,6 +121,8 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         RefreshUsageCommand = new AsyncRelayCommand(RefreshUsageAsync, () => !IsBusy);
         DeleteSelectedUsageCommand = new AsyncRelayCommand(DeleteSelectedUsageAsync, () => !IsBusy);
         ExportUsageReportCommand = new AsyncRelayCommand(ExportUsageReportAsync, () => !IsBusy);
+        // 검색 결과 수가 바뀌면 "결과 없음" 빈 상태 표시 여부도 다시 평가하도록 통지.
+        SearchResults.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoSearchResults));
     }
 
     public ObservableCollection<SelectableSearchFolder> SearchFolders { get; } = new();
@@ -179,6 +193,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
                 UseModifiedDates ? ModifiedTo : null);
             var results = await _service.SearchSongsAsync(request).ConfigureAwait(true);
             SearchResults.ReplaceWith(results);
+            HasSearched = true; // 검색을 실행했음을 표시 — 이제부터 결과 0건이면 "결과 없음" 안내가 뜬다.
             StatusMessage = $"{SearchResults.Count} songs found.";
         }).ConfigureAwait(true);
     }

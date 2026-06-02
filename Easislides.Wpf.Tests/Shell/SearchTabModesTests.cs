@@ -73,6 +73,27 @@ public sealed class SearchTabModesTests
     }
 
     [Fact]
+    public void SongsSubTab_HasEmptyStateOverlay_BoundToHasNoSearchResults()
+    {
+        // 증분154 — 곡 검색 결과가 0건일 때(검색 실행 후) "결과 없음" 빈 상태 안내가 같은 셀에 겹쳐 뜨도록 배선됐는지 검증(모던 빈 상태 UX).
+        var songs = SearchModeTabs().Elements()
+            .Single(e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == "SearchSongs");
+
+        // 빈 상태 TextBlock 이 Search.HasNoSearchResults 가시성에 바인딩되어 있어야 한다.
+        var emptyState = songs.Descendants().SingleOrDefault(
+            e => e.Name.LocalName == "TextBlock" && Attr(e, "Visibility").Contains("HasNoSearchResults"));
+        emptyState.Should().NotBeNull("검색 결과 빈 상태 안내가 HasNoSearchResults 에 바인딩돼야 함");
+        Attr(emptyState!, "Text").Should().Contain("결과가 없습니다", "운영자에게 결과 없음을 안내");
+        // 빈 상태는 클릭을 막지 않아야 한다(아래 목록·더블클릭 추가가 가려지지 않도록).
+        Attr(emptyState!, "IsHitTestVisible").Should().Be("False", "안내는 클릭을 통과시켜야 함");
+        // 안내와 결과 목록이 같은 셀(Row 3)에 겹쳐야 "오버레이"가 성립한다 — 둘 다 Grid.Row=3 인지 고정.
+        var resultList = songs.Descendants().Single(
+            e => e.Name.LocalName == "ListBox" && Attr(e, "ItemsSource").Contains("SearchResults"));
+        Attr(emptyState!, "Grid.Row").Should().Be("3");
+        Attr(resultList, "Grid.Row").Should().Be("3", "안내와 결과 목록이 같은 셀에 겹쳐야 오버레이가 됨");
+    }
+
+    [Fact]
     public void UsageSubTab_BindsUsageRecords_ReadOnly()
     {
         var usage = SearchModeTabs().Elements()

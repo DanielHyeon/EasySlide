@@ -55,6 +55,51 @@ public class SearchUsageViewModelTests
     }
 
     [Fact]
+    public void HasNoSearchResults_IsFalse_BeforeAnySearch()
+    {
+        // 검색 전 첫 화면 — 결과 목록이 비어 있어도 "결과 없음" 안내는 뜨지 않아야 한다(검색을 안 했을 뿐).
+        using var fixture = new SearchUsageViewModelFixture();
+        var sut = fixture.CreateViewModel();
+
+        sut.HasSearched.Should().BeFalse("아직 검색을 실행하지 않음");
+        sut.HasNoSearchResults.Should().BeFalse("검색 전엔 빈 상태 안내가 뜨면 안 됨");
+    }
+
+    [Fact]
+    public async Task HasNoSearchResults_IsTrue_AfterSearchReturnsEmpty()
+    {
+        // 검색을 실행했는데 결과가 0건 → "결과 없음" 안내가 뜬다.
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        fixture.Service.SearchResultsOverride = []; // 결과 없음 강제.
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        sut.SearchText = "없는곡";
+
+        await sut.SearchSongsAsync();
+
+        sut.HasSearched.Should().BeTrue("검색을 실행함");
+        sut.SearchResults.Should().BeEmpty();
+        sut.HasNoSearchResults.Should().BeTrue("검색했는데 결과가 없으면 빈 상태 안내 표시");
+    }
+
+    [Fact]
+    public async Task HasNoSearchResults_IsFalse_AfterSearchReturnsHits()
+    {
+        // 검색 결과가 있으면 "결과 없음" 안내는 뜨지 않는다.
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        sut.SearchText = "grace";
+
+        await sut.SearchSongsAsync();
+
+        sut.SearchResults.Should().NotBeEmpty();
+        sut.HasNoSearchResults.Should().BeFalse("결과가 있으면 빈 상태 안내 숨김");
+    }
+
+    [Fact]
     public async Task RefreshDeleteAndExportUsageAsync_UsesCurrentUsageReport()
     {
         using var fixture = new SearchUsageViewModelFixture();
@@ -186,10 +231,13 @@ public class SearchUsageViewModelTests
                 new SongFolderSummary(2, "Evening", IsEnabled: true, SongCount: 1),
             ]);
 
+        /// <summary>설정하면 검색이 이 결과를 돌려준다(빈 리스트로 "결과 없음" 케이스 테스트). 기본은 Amazing Grace 한 건.</summary>
+        public IReadOnlyList<SongSearchResult>? SearchResultsOverride { get; set; }
+
         public Task<IReadOnlyList<SongSearchResult>> SearchSongsAsync(SongSearchRequest request)
         {
             LastSearchRequest = request;
-            return Task.FromResult<IReadOnlyList<SongSearchResult>>([
+            return Task.FromResult(SearchResultsOverride ?? (IReadOnlyList<SongSearchResult>)[
                 new SongSearchResult(10, 1, "Morning", "Amazing Grace", "", 7, "", "G", ["Title"], "Amazing Grace"),
             ]);
         }

@@ -1205,6 +1205,20 @@
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
+                                    <!-- 검색 결과 빈 상태 안내 — 검색을 "실행했는데" 결과가 0건일 때만(검색 전엔 안 뜸). 같은 셀(Row 3)에 겹쳐 안내한다.
+                                         목록 "뒤"가 아니라 마크업상 ListBox "다음"에 둬, 테마가 ListBox 배경을 칠해도 항상 위에 보이게(z-order 안전). 클릭은 통과(IsHitTestVisible=False)라 더블클릭 추가를 막지 않는다. -->
+                                    <TextBlock Grid.Row="3"
+                                               Text="검색 결과가 없습니다.&#x0a;검색어나 검색 범위(제목·가사·번호)를 바꿔 보세요."
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Margin="16"
+                                               IsHitTestVisible="False"
+                                               Style="{StaticResource Type.Body.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Visibility="{Binding Search.HasNoSearchResults, Converter={StaticResource BoolToVis}}"
+                                               AutomationProperties.Name="검색 결과 없음" />
                                 </Grid>
                             </TabItem>
 
