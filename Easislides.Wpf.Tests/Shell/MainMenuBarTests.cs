@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using FluentAssertions;
 using Xunit;
@@ -149,12 +150,33 @@ public class MainMenuBarTests
 
     [Theory]
     // FrmMain 라이브 운영 단축키를 메뉴에 힌트로 노출(발견가능성 — 현대적 UX). 실제 키 배선은 CommandCatalog.
-    [InlineData("InputGestureText=\"F12\"")]  // Go LIVE
-    [InlineData("InputGestureText=\"F9\"")]   // 검은 화면
-    [InlineData("InputGestureText=\"F3\"")]   // 화면 비우기
-    [InlineData("InputGestureText=\"F1\"")]   // 도움말
+    [InlineData("InputGestureText=\"F12\"")]     // Go LIVE
+    [InlineData("InputGestureText=\"F11\"")]     // 송출 후 다음 항목(증분135)
+    [InlineData("InputGestureText=\"F9\"")]      // 검은 화면
+    [InlineData("InputGestureText=\"F3\"")]      // 화면 비우기
+    [InlineData("InputGestureText=\"F1\"")]      // 도움말
+    [InlineData("InputGestureText=\"Ctrl+R\"")]  // 현재 항목 처음으로(증분136)
+    [InlineData("InputGestureText=\"Ctrl+F5\"")] // 출력 새로고침(증분136)
     public void MenuBar_ShowsFunctionKeyGestureHints(string gesture)
         => Xaml.Should().Contain(gesture, $"메뉴에 {gesture} 단축키 힌트가 보여야 함");
+
+    [Theory]
+    // 메뉴 힌트 문자열이 실제 카탈로그 단축키와 일치해야 한다(둘이 어긋나면 거짓 힌트). 단축키를 바꾸면 이 테스트가 잡는다.
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGoAndNext, "F11")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "Ctrl+R")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRefresh, "Ctrl+F5")]
+    public void MenuGestureHints_MatchActualCatalogShortcut(string commandId, string gesture)
+    {
+        // 카탈로그에 그 명령의 기본 단축키가 있고 표시 문자열이 메뉴 힌트와 같은지.
+        var shortcut = new Easislides.Wpf.Input.CommandCatalog()
+            .GetDefaultShortcuts()
+            .FirstOrDefault(s => s.CommandName == commandId);
+        shortcut.Should().NotBeNull($"{commandId} 에 기본 단축키가 있어야 함");
+        shortcut!.DisplayText.Should().Be(gesture, "메뉴 힌트와 실제 단축키가 일치해야 함(거짓 힌트 방지)");
+
+        // 그리고 메뉴 XAML 에 그 힌트가 실제로 노출돼 있는지.
+        Xaml.Should().Contain($"InputGestureText=\"{gesture}\"", $"{commandId} 메뉴에 {gesture} 힌트 노출");
+    }
 
     private static string FindRepositoryRoot()
     {
