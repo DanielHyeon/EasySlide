@@ -51,6 +51,31 @@ public sealed class InfoScreenStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Save_Then_Load_RoundTripsFontName()
+    {
+        var store = new InfoScreenStore(_dir);
+
+        await store.SaveAsync("글꼴", new InfoScreenDto("글꼴 공지", FontName: "나눔고딕"));
+        var loaded = await store.LoadAsync("글꼴");
+
+        loaded!.FontName.Should().Be("나눔고딕", "글꼴명도 영속");
+    }
+
+    [Fact]
+    public async Task Load_OldFileWithoutFontNameField_DefaultsToNull()
+    {
+        // 글꼴명 필드 없는 옛 파일도 역직렬화 시 기본 null(=전역 글꼴)로 안전하게 읽힌다(무회귀).
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "옛글꼴.json");
+        await File.WriteAllTextAsync(path, "{\"Text\":\"옛 공지\",\"FontSize\":40}");
+
+        var loaded = await new InfoScreenStore(_dir).LoadAsync("옛글꼴");
+
+        loaded!.Text.Should().Be("옛 공지");
+        loaded.FontName.Should().BeNull("필드 없는 옛 파일은 기본 null");
+    }
+
+    [Fact]
     public async Task Load_OldFileWithoutEmphasisField_DefaultsToFalse()
     {
         // 강조 필드(Bold/Italic/Underline) 없는 옛 파일도 역직렬화 시 기본 false 로 안전하게 읽힌다(무회귀).

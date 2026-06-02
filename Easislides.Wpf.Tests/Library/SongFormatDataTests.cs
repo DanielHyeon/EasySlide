@@ -177,4 +177,14 @@ public sealed class SongFormatDataTests
     [InlineData("#12")]
     public void HexToArgb_InvalidOrEmpty_ReturnsNull(string? hex)
         => SongFormatData.HexToArgb(hex).Should().BeNull();
+
+    [Theory]
+    [InlineData(null, "")]                 // null → 빈(전역 글꼴 추종)
+    [InlineData("   ", "")]                // 공백뿐 → 빈
+    [InlineData("나눔고딕", "나눔고딕")]    // 평범한 이름 그대로
+    [InlineData("  맑은 고딕  ", "맑은 고딕")] // 앞뒤 공백 다듬음(가운데 공백 보존)
+    [InlineData("나눔>고딕", "나눔고딕")]    // 구분자 '>' 제거
+    [InlineData("Arial=Bold", "ArialBold")] // 구분자 '=' 제거
+    public void SanitizeFontName_TrimsAndStripsDelimiters(string? input, string expected)
+        => SongFormatData.SanitizeFontName(input).Should().Be(expected);
 }

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Easislides.Wpf.Shell;
 
-/// <summary>정보 화면(공지) 저장 DTO — 본문·글자 크기(0=기본)·가로 정렬(0=기본/1왼쪽/2가운데/3오른쪽)·글자색(ARGB int, 0=기본)·배경색(ARGB int, 0=기본)·굵게·기울임·밑줄. 레거시 InfoScreen(.esi) 보존 필드.
-/// (새 필드는 모두 맨 끝에 기본값으로 추가 — 옛 저장 파일(필드 없음)도 JSON 역직렬화 시 기본값(0/false)으로 안전하게 읽힌다.)</summary>
-public sealed record InfoScreenDto(string Text, int FontSize = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false);
+/// <summary>정보 화면(공지) 저장 DTO — 본문·글자 크기(0=기본)·가로 정렬(0=기본/1왼쪽/2가운데/3오른쪽)·글자색(ARGB int, 0=기본)·배경색(ARGB int, 0=기본)·굵게·기울임·밑줄·글꼴명(빈/null=전역 기본). 레거시 InfoScreen(.esi) 보존 필드.
+/// (새 필드는 모두 맨 끝에 기본값으로 추가 — 옛 저장 파일(필드 없음)도 JSON 역직렬화 시 기본값(0/false/null)으로 안전하게 읽힌다.)</summary>
+public sealed record InfoScreenDto(string Text, int FontSize = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false, string? FontName = null);
 
-/// <summary>공지 송출 옵션 — 글자 크기(pt)·가로 정렬(0기본/1왼쪽/2가운데/3오른쪽)·글자색(ARGB int, 0=기본)·배경색(ARGB int, 0=기본)·굵게·기울임·밑줄(강조).
+/// <summary>공지 송출 옵션 — 글자 크기(pt)·가로 정렬(0기본/1왼쪽/2가운데/3오른쪽)·글자색(ARGB int, 0=기본)·배경색(ARGB int, 0=기본)·굵게·기울임·밑줄(강조)·글꼴명(빈/null=전역 기본).
 /// 송출 콜백 인자를 정수 나열(위치 모호) 대신 이름 있는 레코드로 묶어 인자 순서 실수를 막는다.</summary>
-public sealed record NoticeOptions(int FontSizePt = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false);
+public sealed record NoticeOptions(int FontSizePt = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false, string? FontName = null);
 
 /// <summary>
 /// 명명 정보 화면(공지 텍스트)을 이름으로 저장/불러오기/삭제한다(레거시 FrmInfoScreen 의 .esi 목록 대응의 첫 슬라이스).

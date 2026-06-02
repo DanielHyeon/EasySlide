@@ -134,6 +134,63 @@ public class NoticeScreenViewModelTests
     }
 
     [Fact]
+    public void Send_PassesFontName_InNoticeOptions()
+    {
+        // 공지 글꼴명(코드43)이 송출 옵션에 실려 출력으로 전달되는지.
+        NoticeOptions? captured = null;
+        var vm = new NoticeScreenViewModel((_, opts) => { captured = opts; return true; }, () => { });
+        vm.Text = "공지";
+        vm.FontName = "나눔고딕";
+
+        vm.SendCommand.Execute(null);
+
+        captured.Should().NotBeNull();
+        captured!.FontName.Should().Be("나눔고딕", "글꼴명이 송출 옵션에 실림");
+    }
+
+    [Fact]
+    public async Task SaveThenOpen_RoundTripsFontName()
+    {
+        var (vm, _, dir) = CreateWithStore();
+        try
+        {
+            vm.Text = "글꼴 공지";
+            vm.FontName = "맑은 고딕";
+            vm.NewScreenName = "글꼴테스트";
+            await vm.SaveAsCommand.ExecuteAsync(null);
+
+            vm.FontName = "다른글꼴"; // 편집기 변경 후 불러오면 복원.
+            vm.SelectedScreen = "글꼴테스트";
+            await vm.OpenCommand.ExecuteAsync(null);
+
+            vm.FontName.Should().Be("맑은 고딕", "저장된 글꼴명 복원");
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void FontNameOptions_DefaultsToFavorites_WhenNoneInjected()
+    {
+        // 글꼴 목록을 주입하지 않으면 공유 추천 글꼴 목록을 쓴다(단독·테스트에서도 콤보가 비지 않게).
+        var vm = new NoticeScreenViewModel((_, _) => true, () => { });
+
+        vm.FontNameOptions.Should().BeEquivalentTo(SystemFontCatalog.DefaultFavorites);
+    }
+
+    [Fact]
+    public void FontNameOptions_UsesInjectedList_WhenProvided()
+    {
+        // 호출자가 글꼴 목록(설치 글꼴 합친 것)을 주면 그대로 콤보에 노출.
+        var injected = new[] { "글꼴A", "글꼴B", "글꼴C" };
+        var vm = new NoticeScreenViewModel((_, _) => true, () => { }, fontFamilies: injected);
+
+        vm.FontNameOptions.Should().Equal(injected, "주입한 글꼴 목록 사용");
+    }
+
+    [Fact]
     public void SaveAsCommand_DisabledWhenNameEmpty()
     {
         var (vm, _, dir) = CreateWithStore();

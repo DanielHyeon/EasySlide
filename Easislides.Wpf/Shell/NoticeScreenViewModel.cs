@@ -55,6 +55,10 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private bool _underline;
 
+    // 공지 글꼴명(빈=전역 기본). 출력에 43= FormatData 로 실린다(곡 글꼴과 동일 파이프라인 → OverrideFontName). 편집 콤보라 목록 밖 글꼴도 직접 입력 가능.
+    [ObservableProperty]
+    private string _fontName = string.Empty;
+
     // 새로 저장할 정보 화면 이름(저장 버튼 활성 판별).
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
@@ -66,12 +70,14 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     private string? _selectedScreen;
 
-    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null, Func<string, bool>? addToWorshipQueue = null)
+    public NoticeScreenViewModel(Func<string, NoticeOptions, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null, Func<string, bool>? addToWorshipQueue = null, IReadOnlyList<string>? fontFamilies = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
         _store = store ?? new InfoScreenStore();
         _addToWorshipQueue = addToWorshipQueue;
+        // 글꼴 콤보 목록 — 호출자(MainWindow)가 설치 글꼴 합친 목록을 넘긴다. 없으면(테스트·단독) 추천 글꼴만(공유 목록).
+        FontNameOptions = fontFamilies is { Count: > 0 } ? fontFamilies : SystemFontCatalog.DefaultFavorites;
         // 초기 텍스트(성경 "공지 화면으로 복사" 등에서 미리 채워 열 때). 비면 빈 편집기로 시작.
         _text = initialText ?? string.Empty;
         SendCommand = new RelayCommand(Send, () => !string.IsNullOrWhiteSpace(Text));
@@ -106,6 +112,9 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
     /// <summary>글자 크기 프리셋(pt) — 콤보 바인딩용(보통 40 / 크게 60 / 아주 크게 80).</summary>
     public IReadOnlyList<int> FontSizePresets { get; } = new[] { 40, 60, 80 };
+
+    /// <summary>글꼴 콤보 목록(추천 앞·설치 글꼴 뒤). 생성자에서 주입(없으면 추천 글꼴). 편집 콤보라 목록 밖 글꼴도 직접 입력 가능.</summary>
+    public IReadOnlyList<string> FontNameOptions { get; }
 
     public IRelayCommand SendCommand { get; }
 
@@ -146,7 +155,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
     {
-        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline));
+        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline, FontName));
         StatusText = ok
             ? "공지를 출력에 송출했습니다."
             : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
@@ -194,7 +203,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         try
         {
-            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline)).ConfigureAwait(true);
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline, FontName)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -248,6 +257,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         Bold = dto.Bold; // 강조도 그대로 복원(옛 파일은 필드 없어 false).
         Italic = dto.Italic;
         Underline = dto.Underline;
+        FontName = dto.FontName ?? string.Empty; // 글꼴명 복원(옛 파일은 필드 없어 null → 빈=전역 기본).
         StatusText = $"정보 화면 불러옴: {name}";
     }
 

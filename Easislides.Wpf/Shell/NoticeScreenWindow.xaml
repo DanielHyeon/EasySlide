@@ -35,64 +35,79 @@
                  BorderThickness="1"
                  AutomationProperties.Name="공지 문구 입력" />
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+        <WrapPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
             <TextBlock Text="글자 크기"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
-                       Margin="0,0,8,0" />
+                       Margin="0,0,8,4" />
             <ComboBox ItemsSource="{Binding FontSizePresets}"
                       SelectedItem="{Binding FontSizePt, Mode=TwoWay}"
                       Width="90"
+                      Margin="0,0,0,4"
                       AutomationProperties.Name="공지 글자 크기(pt)" />
+            <TextBlock Text="글꼴"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       Margin="16,0,8,4" />
+            <ComboBox ItemsSource="{Binding FontNameOptions}"
+                      Text="{Binding FontName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      IsEditable="True"
+                      Width="150"
+                      Margin="0,0,0,4"
+                      ToolTip="공지 글꼴(비우면 출력 기본 글꼴). 목록 밖 글꼴명도 직접 입력 가능."
+                      AutomationProperties.Name="공지 글꼴" />
             <TextBlock Text="정렬"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
-                       Margin="16,0,8,0" />
+                       Margin="16,0,8,4" />
             <ComboBox ItemsSource="{Binding AlignmentPresets}"
                       SelectedValue="{Binding Alignment, Mode=TwoWay}"
                       SelectedValuePath="Value"
                       DisplayMemberPath="Key"
                       Width="100"
+                      Margin="0,0,0,4"
                       ToolTip="공지 가로 정렬(기본=출력 기본 정렬)"
                       AutomationProperties.Name="공지 정렬" />
             <TextBlock Text="글자색"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
-                       Margin="16,0,8,0" />
+                       Margin="16,0,8,4" />
             <ComboBox ItemsSource="{Binding ColorPresets}"
                       SelectedValue="{Binding ColorArgb, Mode=TwoWay}"
                       SelectedValuePath="Value"
                       DisplayMemberPath="Key"
                       Width="100"
+                      Margin="0,0,0,4"
                       ToolTip="공지 글자색(기본=출력 기본 글자색)"
                       AutomationProperties.Name="공지 글자색" />
             <TextBlock Text="배경색"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
-                       Margin="16,0,8,0" />
+                       Margin="16,0,8,4" />
             <ComboBox ItemsSource="{Binding BackgroundColorPresets}"
                       SelectedValue="{Binding BackgroundColorArgb, Mode=TwoWay}"
                       SelectedValuePath="Value"
                       DisplayMemberPath="Key"
                       Width="100"
+                      Margin="0,0,0,4"
                       ToolTip="공지 배경색(기본=출력 기본 배경)"
                       AutomationProperties.Name="공지 배경색" />
             <CheckBox Content="굵게"
                       IsChecked="{Binding Bold, Mode=TwoWay}"
                       VerticalAlignment="Center"
-                      Margin="16,0,0,0"
+                      Margin="16,0,0,4"
                       ToolTip="공지 본문 굵게(강조)"
                       AutomationProperties.Name="공지 굵게" />
             <CheckBox Content="기울임"
                       IsChecked="{Binding Italic, Mode=TwoWay}"
                       VerticalAlignment="Center"
-                      Margin="10,0,0,0"
+                      Margin="10,0,0,4"
                       ToolTip="공지 본문 기울임(강조)"
                       AutomationProperties.Name="공지 기울임" />
             <CheckBox Content="밑줄"
                       IsChecked="{Binding Underline, Mode=TwoWay}"
                       VerticalAlignment="Center"
-                      Margin="10,0,0,0"
+                      Margin="10,0,0,4"
                       ToolTip="공지 본문 밑줄(강조)"
                       AutomationProperties.Name="공지 밑줄" />
             <TextBlock Text="{Binding StatusText}"
@@ -100,8 +115,8 @@
                        Style="{StaticResource Type.Caption.Style}"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
                        TextTrimming="CharacterEllipsis"
-                       Margin="16,0,0,0" />
-        </StackPanel>
+                       Margin="16,0,0,4" />
+        </WrapPanel>
 
         <!-- 명명 정보 화면(레거시 InfoScreen .esi 목록) — 현재 본문을 이름으로 저장, 콤보에서 골라 불러오기/삭제. -->
         <Grid Grid.Row="3" Margin="0,8,0,0">

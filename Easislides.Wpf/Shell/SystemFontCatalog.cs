@@ -18,6 +18,24 @@ namespace Easislides.Wpf.Shell;
 public static class SystemFontCatalog
 {
     /// <summary>
+    /// 기본 추천 글꼴(맨 앞에 그 순서대로) — 한/영 대표 글꼴을 운영자가 바로 찾게 한다.
+    /// 출력 가사 글꼴 콤보·공지(InfoScreen) 글꼴 콤보가 함께 쓴다(중복 정의 방지).
+    /// </summary>
+    public static readonly IReadOnlyList<string> DefaultFavorites =
+    [
+        "맑은 고딕",
+        "Malgun Gothic",
+        "나눔고딕",
+        "본고딕",
+        "Noto Sans CJK KR",
+        "굴림",
+        "바탕",
+        "Segoe UI",
+        "Arial",
+        "Calibri",
+    ];
+
+    /// <summary>
     /// 추천 글꼴(앞, 순서 유지) + 설치된 나머지 글꼴(정렬)을 합쳐 콤보용 목록을 만든다.
     /// </summary>
     /// <param name="installedFamilies">설치된 글꼴 이름들(순서 무관, 널 허용). 보통 <c>Fonts.SystemFontFamilies</c> 의 이름.</param>

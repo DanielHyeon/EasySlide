@@ -3116,12 +3116,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public void SetSelectedItemFontName(string? name)
     {
-        // 빈/공백 이름 = 글꼴 해제(전역 글꼴 추종). 앞뒤 공백은 다듬는다.
-        // FormatData 는 "코드=값>코드=값" 형식이라 '>'·'='는 구분자다 — 실제 글꼴명엔 안 쓰이지만, 혹시 섞여 들어오면
-        // 인코딩이 깨져 엉뚱한 코드가 주입되므로 방어적으로 제거한다(공통 포맷 손상 방지).
-        var fontName = string.IsNullOrWhiteSpace(name)
-            ? string.Empty
-            : name.Trim().Replace(">", string.Empty).Replace("=", string.Empty);
+        // 빈/공백 이름 = 글꼴 해제(전역 글꼴 추종). 앞뒤 공백·구분자('>'·'=') 제거는 공통 규약(SanitizeFontName).
+        var fontName = SongFormatData.SanitizeFontName(name);
         if (ApplySelectedSongFormatChange(format => format with { FontName1 = fontName }, wantsIndividual: fontName.Length > 0, out var turnedOn))
         {
             StatusText = fontName.Length == 0
@@ -3999,6 +3995,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             sb.Append($"41={effectBits}>");
         }
 
+        // 코드 43 = 영역1 글꼴명(곡 글꼴과 동일 파이프라인) → 출력이 라이브에서 OverrideFontName 으로 적용(영역1=공지 본문).
+        // 구분자 제거·다듬기는 곡 글꼴과 같은 공통 규약(SanitizeFontName). 비면 생략(전역 글꼴 추종).
+        var fontName = SongFormatData.SanitizeFontName(options.FontName);
+        if (fontName.Length > 0)
+        {
+            sb.Append($"43={fontName}>");
+        }
+
         return sb.Length == 0 ? null : sb.ToString();
     }
 
@@ -4095,19 +4099,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnActiveLyricsFontSizeChanged(int value) => OnPropertyChanged(nameof(LyricsFontSizeInput));
 
     // 출력 글꼴 콤보의 추천 글꼴(자주 쓰는 한/영). 시스템 글꼴 병합 전 기본값이자, 병합 시 맨 앞 순서.
-    private static readonly string[] CuratedFontFavorites =
-    [
-        "맑은 고딕",
-        "Malgun Gothic",
-        "나눔고딕",
-        "본고딕",
-        "Noto Sans CJK KR",
-        "굴림",
-        "바탕",
-        "Segoe UI",
-        "Arial",
-        "Calibri",
-    ];
+    // 추천 글꼴 목록 — 가사·공지 글꼴 콤보가 공유한다(SystemFontCatalog.DefaultFavorites 한 곳에서 정의, 중복 방지).
+    private static readonly IReadOnlyList<string> CuratedFontFavorites = SystemFontCatalog.DefaultFavorites;
 
     /// <summary>
     /// 출력 글꼴 콤보 목록. 처음엔 추천 글꼴만 담고, 시작 시 View 가 <see cref="MergeInstalledFonts"/> 로

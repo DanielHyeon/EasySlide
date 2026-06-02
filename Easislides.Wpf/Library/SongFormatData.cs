@@ -142,6 +142,16 @@ public sealed record SongFormatData
         return string.Join(">", parts);
     }
 
+    /// <summary>
+    /// 글꼴명을 FormatData 에 안전하게 실을 수 있게 다듬는다 — 앞뒤 공백 제거 + 구분자('>'·'=') 제거.
+    /// '>'·'='는 "코드=값>코드=값" 포맷의 구분자라 글꼴명에 섞이면 인코딩이 깨져 엉뚱한 코드가 주입되므로 막는다(실제 글꼴명엔 안 쓰임).
+    /// null/공백뿐이면 빈 문자열(=전역 글꼴 추종). 곡 항목 글꼴(43)·공지 글꼴이 함께 쓰는 공통 규약(중복 방지).
+    /// </summary>
+    public static string SanitizeFontName(string? name)
+        => string.IsNullOrWhiteSpace(name)
+            ? string.Empty
+            : name.Trim().Replace(">", string.Empty).Replace("=", string.Empty);
+
     /// <summary>부호 있는 ARGB 정수를 WPF "#AARRGGBB" 16진 문자열로. null 이면 null.</summary>
     public static string? ArgbToHex(int? argb)
         => argb is null ? null : "#" + unchecked((uint)argb.Value).ToString("X8", CultureInfo.InvariantCulture);

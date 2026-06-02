@@ -1864,6 +1864,53 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void BuildNoticeFormatData_IncludesFontNameCode43_WhenSet()
+    {
+        // 공지 글꼴명이 코드43 으로 인코드 — 다른 코드(크기47)와 함께.
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(FontSizePt: 60, FontName: "나눔고딕"));
+
+        fd.Should().NotBeNull();
+        fd!.Should().Contain("43=나눔고딕", "글꼴명 코드43").And.Contain("47=60", "크기도 함께");
+    }
+
+    [Theory]
+    [InlineData("나눔>고딕", "43=나눔고딕")]   // '>' 제거
+    [InlineData("Arial=Bold", "43=ArialBold")] // '=' 제거
+    [InlineData("  맑은 고딕  ", "43=맑은 고딕")] // 앞뒤 공백 다듬음(가운데 공백은 보존)
+    public void BuildNoticeFormatData_StripsDelimitersFromFontName(string input, string expectedFragment)
+    {
+        // 글꼴명에 구분자('>'·'=')가 섞여도 FormatData 가 깨지지 않게 제거(곡 글꼴 규약과 동일).
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(FontName: input));
+
+        fd.Should().NotBeNull();
+        fd!.Should().Contain(expectedFragment);
+    }
+
+    [Fact]
+    public void BuildNoticeFormatData_BlankFontName_OmitsCode43()
+    {
+        // 글꼴명이 비거나 공백뿐이면 코드43 생략(전역 글꼴 추종).
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(ColorArgb: -1, FontName: "   "));
+
+        (fd ?? "").Should().NotContain("43=", "글꼴 없으면 코드43 생략");
+    }
+
+    [Fact]
+    public void PublishNotice_WithFontName_AppliesOverrideFontName_EndToEnd()
+    {
+        // 종단(통합): 공지 글꼴이 송출 시 세션 오버라이드 글꼴로 적용된다(코드43 → GoLive 가 Kind 무관하게 파싱
+        // → OverrideFontName → 출력이 영역1=공지 본문에 그 글꼴로 렌더).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        sut.OpenOutputCommand.Execute(null);
+
+        var ok = sut.PublishNotice("공지", new NoticeOptions(FontName: "나눔고딕"));
+
+        ok.Should().BeTrue("출력이 열려 있으면 송출 성공");
+        session.Current.OverrideFontName.Should().Be("나눔고딕", "공지 글꼴이 라이브 송출 글꼴로 적용");
+    }
+
+    [Fact]
     public void AddExternalFilesRelativeTo_SkipsImages_NotQueueItems()
     {
         // 이미지 파일은 큐 항목이 아니라 출력 배경용이므로, 큐에 드롭하면 추가하지 않고 건너뛴다(배경 드롭은 미리보기 영역).
