@@ -118,6 +118,14 @@
                         AutomationProperties.Name="선택 항목 복제">
                     <ui:SymbolIcon Symbol="Copy24" />
                 </Button>
+                <!-- 현재 송출 항목 선택 — 미리보기로 앞서 본 뒤 LIVE 배지 항목으로 선택을 되돌린다. 송출 중일 때만 활성. -->
+                <Button Command="{Binding SelectLiveItemCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="8,0,0,0"
+                        ToolTip="현재 송출(LIVE) 중인 항목으로 선택을 되돌립니다"
+                        AutomationProperties.Name="현재 송출 항목 선택">
+                    <ui:SymbolIcon Symbol="Target24" />
+                </Button>
                 <!-- 예배 순서 전체 비우기(레거시 Empty) + 되돌리기 — 실수로 다 지워도 한 번은 복구 가능. -->
                 <Button Command="{Binding ClearWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"

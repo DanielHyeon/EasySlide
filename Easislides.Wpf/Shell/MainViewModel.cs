@@ -426,6 +426,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _liveItemId = id;
         OnPropertyChanged(nameof(LiveItemId));
+        OnPropertyChanged(nameof(CanSelectLiveItem)); // 라이브 항목이 바뀌면 "현재 송출 항목 선택" 활성/비활성도 바뀐다.
+        SelectLiveItemCommand?.NotifyCanExecuteChanged();
+    }
+
+    // 현재 송출 중인 큐 항목을 선택한다(LIVE 배지 항목으로 점프). 라이브가 아니거나 그 항목이 큐에 없으면(공지 센티넬 등) 아무 일도 안 한다.
+    private void SelectLiveItem()
+    {
+        var live = Queue.FirstOrDefault(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
+        if (live is not null)
+        {
+            SelectedItem = live;
+            StatusText = $"현재 송출 항목 선택: {live.Title}";
+        }
     }
 
     // "이 항목 서식 복사"로 담아 둔 항목별 서식(FormatData 문자열). 다른 항목에 "붙여넣기"하면 그대로 적용된다(없으면 null=붙여넣기 비활성).
@@ -551,6 +564,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ClearWorshipListCommand?.NotifyCanExecuteChanged();
             // 큐 내용이 바뀌면 미저장 변경으로 표시 — 불러오기(LoadQueue)·저장·시작은 끝에서 false 로 되돌려 깨끗한 상태로 만든다.
             WorshipListHasUnsavedChanges = true;
+            // 라이브 항목이 큐에서 빠지면 "현재 송출 항목 선택" 가능 여부도 바뀐다.
+            OnPropertyChanged(nameof(CanSelectLiveItem));
+            SelectLiveItemCommand?.NotifyCanExecuteChanged();
         };
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
@@ -639,6 +655,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LoadSelectedWorshipListCommand = new AsyncRelayCommand(LoadSelectedWorshipListAsync, () => !string.IsNullOrWhiteSpace(SelectedSavedWorshipList));
         // 빠른 저장(Ctrl+S) — 현재 세션 이름이 있으면 그 이름으로 덮어 저장. 이름이 없으면(한 번도 저장 안 함) 안내만.
         QuickSaveWorshipListCommand = new AsyncRelayCommand(QuickSaveWorshipListAsync);
+        // 현재 송출 항목 선택 — 미리보기로 앞서 가다가 라이브 항목으로 선택을 되돌린다(송출 중인 큐 항목 있을 때만).
+        SelectLiveItemCommand = new RelayCommand(SelectLiveItem, () => CanSelectLiveItem);
         RefreshSavedWorshipListNames();
         // 대기 화면(Gap) 빠른 조작 — 페이드 토글·로고 지우기(로고 선택은 View 파일 픽커). 모드는 콤보(GapItemModeInput).
         ToggleGapItemUseFadeCommand = new RelayCommand(ToggleGapItemUseFade);
@@ -817,6 +835,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장(이름 없으면 안내). 미저장 변경 표시(● 수정됨)와 짝.</summary>
     public IAsyncRelayCommand QuickSaveWorshipListCommand { get; }
+
+    /// <summary>현재 송출 중인 큐 항목을 선택한다 — 미리보기로 앞서 본 뒤 라이브 항목으로 되돌릴 때(LIVE 배지 항목으로 점프).</summary>
+    public IRelayCommand SelectLiveItemCommand { get; }
+
+    /// <summary>"현재 송출 항목 선택"을 누를 수 있는지 — 라이브 송출 중이고 그 항목이 큐에 있을 때만(공지 센티넬은 큐에 없어 false).</summary>
+    public bool CanSelectLiveItem => Queue.Any(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
     public IRelayCommand ToggleGapItemUseFadeCommand { get; }
     public IRelayCommand ClearGapItemLogoFileCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
@@ -2000,6 +2024,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         BindGated(MainCommandIds.WorshipMoveItemToBottom, MoveSelectedItemToBottomCommand);
         // 빠른 저장(Ctrl+S) — 메서드가 이름 없음/실패를 스스로 안내하므로 게이트 없이 실행(fire-and-forget).
         registry.Bind(MainCommandIds.WorshipQuickSave, () => _ = QuickSaveWorshipListCommand.ExecuteAsync(null));
+        // 현재 송출 항목 선택(팔레트) — CanExecute(송출 중·큐에 있음)가 막으면 무동작.
+        BindGated(MainCommandIds.WorshipSelectLiveItem, SelectLiveItemCommand);
     }
 
     public void RefreshOutputDisplays()

@@ -198,6 +198,13 @@ public sealed class CommandCatalog : ICommandCatalog
             "현재 예배 순서를 지금 세션 이름으로 덮어 저장합니다(이름이 없으면 '순서' 관리 창에서 정하세요).",
             isDangerous: false,
             new Shortcut(Key.S, ModifierKeys.Control, MainCommandIds.WorshipQuickSave, IsGlobal: false, "예배 순서 저장")),
+        // 현재 송출(LIVE) 항목 선택 — 팔레트·버튼. 송출 중이 아니면 CanExecute 가 막는다.
+        Command(
+            MainCommandIds.WorshipSelectLiveItem,
+            "예배 순서",
+            "현재 송출 항목 선택",
+            "지금 송출(LIVE) 중인 항목으로 선택을 되돌립니다(미리보기로 앞서 본 뒤 라이브로 복귀).",
+            isDangerous: false),
         // 창 런처(§7.4) — FrmMain 의 분리 창을 명령 팔레트로 흡수. 실행은 View(MainWindow)가 등록.
         Command(
             MainCommandIds.WindowLibrary,

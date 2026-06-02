@@ -135,6 +135,15 @@ public class CommandCatalogTests
     }
 
     [Fact]
+    public void WorshipSelectLiveItem_InCatalog_ForPalette()
+    {
+        // 현재 송출 항목 선택이 팔레트에 있다(단축키 없이 팔레트·버튼으로 실행).
+        var sut = new CommandCatalog();
+        sut.FindById(MainCommandIds.WorshipSelectLiveItem).Should().NotBeNull()
+            .And.Match<CommandDescriptor>(c => c.Category == "예배 순서" && !c.IsDangerous);
+    }
+
+    [Fact]
     public void FindById_ReturnsDangerMetadataForLiveCommands()
     {
         var sut = new CommandCatalog();

@@ -43,6 +43,8 @@ public static class MainCommandIds
     public const string WorshipMoveItemToBottom = "WorshipList.MoveToBottom";
     // 빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장(미저장 변경 ● 수정됨 과 짝).
     public const string WorshipQuickSave = "WorshipList.QuickSave";
+    // 현재 송출(LIVE) 항목 선택 — 미리보기로 앞서 본 뒤 라이브 항목으로 선택 되돌리기.
+    public const string WorshipSelectLiveItem = "WorshipList.SelectLiveItem";
     // 레거시 .esw(EasiSlides v3.2) 예배 순서 파일 가져오기(§3.4) — 파일 선택 → 파서 → ImportEswWorshipList.
     public const string ImportLegacyWorshipList = "WorshipList.ImportLegacyEsw";
 }

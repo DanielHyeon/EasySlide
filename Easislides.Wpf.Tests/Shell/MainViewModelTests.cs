@@ -1656,6 +1656,49 @@ public class MainViewModelTests
         sut.WorshipListHasUnsavedChanges.Should().BeTrue("저장 안 했으니 여전히 미저장");
     }
 
+    [Fact]
+    public async Task SelectLiveItem_SnapsSelectionBackToLiveItem()
+    {
+        // 증분148 — 미리보기로 앞서 본 뒤 "현재 송출 항목 선택"으로 라이브 항목으로 선택 복귀.
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:a", "1부 찬양", "Song") { Lyrics = "[1]\n가" };
+        var b = new LiveQueueItem("song:b", "2부 찬양", "Song") { Lyrics = "[1]\n나" };
+        sut.LoadQueue([a, b]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null); // A 라이브
+        sut.SelectedItem = sut.Queue[1]; // 미리보기로 B 선택(라이브는 여전히 A)
+        sut.CanSelectLiveItem.Should().BeTrue("송출 중이고 라이브 항목이 큐에 있음");
+
+        sut.SelectLiveItemCommand.Execute(null);
+
+        sut.SelectedItem!.Id.Should().Be("song:a", "선택이 라이브 항목으로 되돌아감");
+        sut.StatusText.Should().Contain("현재 송출 항목");
+    }
+
+    [Fact]
+    public async Task CanSelectLiveItem_FalseWhenNotLive_AndWhenLiveItemRemoved()
+    {
+        // 송출 전이면 비활성. 라이브 항목이 큐에서 빠져도 비활성(큐에 없는 고아 Id 로 점프 시도 안 함).
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("a", "A", "Song") { Lyrics = "[1]\n가" };
+        var b = new LiveQueueItem("b", "B", "Song") { Lyrics = "[1]\n나" };
+        sut.LoadQueue([a, b]);
+        sut.CanSelectLiveItem.Should().BeFalse("송출 전이라 라이브 항목 없음");
+        sut.SelectLiveItemCommand.CanExecute(null).Should().BeFalse();
+
+        // A 를 송출하면 활성.
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.CanSelectLiveItem.Should().BeTrue("송출 중이고 라이브 항목이 큐에 있음");
+
+        // 라이브 항목(A)을 큐에서 제거하면 다시 비활성(큐에 없는 고아 Id).
+        sut.SelectedItem = sut.Queue.First(i => i.Id == "a");
+        sut.RemoveSelectedItemCommand.Execute(null);
+        sut.CanSelectLiveItem.Should().BeFalse("라이브 항목이 큐에서 빠지면 비활성");
+    }
+
     // ── 세션 콤보(예배 순서 빠른 전환) — 콤보로 고르고 명시적 "불러오기"로 적재 ──
 
     [Fact]
@@ -3385,7 +3428,7 @@ public class MainViewModelTests
                      MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
                      MainCommandIds.WorshipMoveItemUp, MainCommandIds.WorshipMoveItemDown,
                      MainCommandIds.WorshipMoveItemToTop, MainCommandIds.WorshipMoveItemToBottom,
-                     MainCommandIds.WorshipQuickSave,
+                     MainCommandIds.WorshipQuickSave, MainCommandIds.WorshipSelectLiveItem,
                  })
         {
             registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트·단축키로 실행 가능");
