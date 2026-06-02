@@ -210,7 +210,7 @@ Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/Sma
 |---|---|---|
 | 전역 후킹 Black(F9/F10), Slide ↑↓(Arrow/Ctrl+Arrow) | ShortcutRegistry 일부 | 🟡 |
 | 미디어플레이어 전역키(Esc/Space/Enter/S/M) | — | 🔴 |
-| 절 라벨/숫자 키 매핑(`KeyboardMapping`) | — | 🔴 |
+| 절 라벨/숫자 키 매핑(`KeyboardMapping`) | **숫자(1~9)·문자(c·b·t·w·e·p·q) 키 → 절 점프(증분91)** — 순수 VerseJumpKeyMap + 포커스 가드 | 🟢 라이브 중 숫자/문자 키로 해당 절·후렴 라벨로 즉시 점프(JumpToLyricsSection 재사용). 텍스트 입력·수식 키·없는 라벨이면 가로채지 않음 |
 | ⌘K 명령 팔레트 | 24개 | 🟢(신규, FrmMain엔 없던 개선) |
 
 ---

@@ -180,11 +180,44 @@ public partial class MainWindow : Window
             return;
         }
 
+        // 절 점프 숫자/문자 키(레거시 PreviewBtnVerse 1~9·c·b 등) — 텍스트 입력 중이 아니고 수식 키가 없을 때만.
+        // 검색창·공지문구·글꼴명 입력에 "1"·"c" 를 칠 때 절이 점프하는 사고를 막기 위해 포커스가 입력 컨트롤이면 건너뛴다.
+        if (TryHandleVerseJumpKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
         }
     }
+
+    // 절 점프 키 처리: 수식 키 없음 + 텍스트 입력에 포커스 없음 + 매핑된 라벨이 현재 곡에 존재할 때만 점프.
+    private bool TryHandleVerseJumpKey(KeyEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.None || IsTextInputFocused())
+        {
+            return false;
+        }
+
+        var label = VerseJumpKeyMap.MapKeyToLabel(e.Key);
+        if (label is null || !_viewModel.JumpToLyricsSectionCommand.CanExecute(label))
+        {
+            return false;
+        }
+
+        _viewModel.JumpToLyricsSectionCommand.Execute(label);
+        return true;
+    }
+
+    // 텍스트 입력 컨트롤(텍스트박스·편집 가능 콤보)에 포커스가 있으면 true — 절 점프 키가 타이핑을 가로채지 않게 한다.
+    // 주의: 메인 창엔 현재 PasswordBox·편집 가능 DataGrid 가 없다(검증됨). 나중에 추가하면
+    // PasswordBox(TextBoxBase 비상속) 등을 여기 조건에 더해야 숫자/문자 입력이 절 점프에 가로채이지 않는다.
+    private static bool IsTextInputFocused()
+        => Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase
+            or System.Windows.Controls.ComboBox { IsEditable: true };
 
     // 라이브러리 탭을 처음 선택할 때 한 번 자동 로드(시작 비용 회피 — 시작 시점엔 DB 를 읽지 않음).
     private void LeftBrowserTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
