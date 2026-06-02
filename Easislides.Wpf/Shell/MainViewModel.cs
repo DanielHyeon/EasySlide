@@ -121,6 +121,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _activeLyricsFontFamily2 = EasiSettingKeys.LyricsMonitorFontFamily2.DefaultValue;
     // 현재 적용된 보조 영역(Region2) 전역 글자색(ARGB). 0=본문(Region1) 색 추종. 색 선택 콤보에 바인딩.
     [ObservableProperty] private int _activeLyricsTextColor2Argb = EasiSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue;
+    // 현재 적용된 보조 영역(Region2) 전역 가로 정렬. FollowRegion1=본문 정렬 추종. 정렬 선택 콤보에 바인딩.
+    [ObservableProperty] private LyricsRegion2Alignment _activeLyricsRegion2Alignment = EasiSettingKeys.LyricsMonitorRegion2Alignment.DefaultValue;
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -2707,6 +2709,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily, EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily2, EasiSettingKeys.LyricsMonitorFontFamily2.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorTextColor2Argb, EasiSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorRegion2Alignment, EasiSettingKeys.LyricsMonitorRegion2Alignment.DefaultValue);
 
         RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시·글꼴 등) 동기화
         StatusText = "출력 모양 기본값 복원";
@@ -3122,6 +3125,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 보조영역 글자색이 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
     partial void OnActiveLyricsTextColor2ArgbChanged(int value) => OnPropertyChanged(nameof(LyricsTextColor2Input));
 
+    /// <summary>보조 영역(Region2) 가로 정렬 콤보의 (라벨 → 모드) 프리셋. FollowRegion1=본문 정렬 추종.</summary>
+    public IReadOnlyList<KeyValuePair<string, LyricsRegion2Alignment>> LyricsRegion2AlignmentPresets { get; } =
+    [
+        new("본문과 동일", LyricsRegion2Alignment.FollowRegion1),
+        new("왼쪽", LyricsRegion2Alignment.Left),
+        new("가운데", LyricsRegion2Alignment.Center),
+        new("오른쪽", LyricsRegion2Alignment.Right),
+    ];
+
+    /// <summary>보조 영역(Region2) 전역 가로 정렬 선택(콤보 양방향 바인딩). FollowRegion1=본문 정렬 추종. 바뀌면 설정 저장(라이브 반영).</summary>
+    public LyricsRegion2Alignment LyricsRegion2AlignmentInput
+    {
+        get => ActiveLyricsRegion2Alignment;
+        set
+        {
+            if (value == ActiveLyricsRegion2Alignment)
+            {
+                return;
+            }
+
+            _settings.Set(EasiSettingKeys.LyricsMonitorRegion2Alignment, value);
+            ActiveLyricsRegion2Alignment = value;
+            StatusText = value == LyricsRegion2Alignment.FollowRegion1
+                ? "보조영역 정렬: 본문과 동일"
+                : $"보조영역 정렬: {value}";
+        }
+    }
+
+    // 보조영역 정렬이 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveLyricsRegion2AlignmentChanged(LyricsRegion2Alignment value) => OnPropertyChanged(nameof(LyricsRegion2AlignmentInput));
+
     // Display Panel 글자 크기 비율 조절(+/- 단계, %) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Def_PanelFont 크기).
     private void StepPanelFontScale(int delta)
     {
@@ -3318,6 +3352,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsFontFamily = _settings.Get(EasiSettingKeys.LyricsMonitorFontFamily);
         ActiveLyricsFontFamily2 = _settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2);
         ActiveLyricsTextColor2Argb = _settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb);
+        ActiveLyricsRegion2Alignment = _settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment);
         ActivePanelFontScale = _settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);

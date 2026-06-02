@@ -3571,6 +3571,55 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsRegion2AlignmentInput_SetAndClear_PersistsAndSyncs()
+    {
+        // 보조영역(Region2) 전역 정렬 — 정렬 지정/추종(FollowRegion1) 전환이 설정에 저장되고 인스펙터가 동기화된다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveLyricsRegion2Alignment.Should().Be(LyricsRegion2Alignment.FollowRegion1, "기본=본문 정렬 추종");
+
+        sut.LyricsRegion2AlignmentInput = LyricsRegion2Alignment.Left;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment).Should().Be(LyricsRegion2Alignment.Left);
+        sut.ActiveLyricsRegion2Alignment.Should().Be(LyricsRegion2Alignment.Left, "인스펙터 표시도 동기화");
+
+        sut.LyricsRegion2AlignmentInput = LyricsRegion2Alignment.FollowRegion1;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment).Should().Be(LyricsRegion2Alignment.FollowRegion1, "추종으로 복귀");
+    }
+
+    [Fact]
+    public void RefreshActiveAppearance_SyncsRegion2AlignmentFromSettings()
+    {
+        // 설정 창 등 다른 경로로 보조영역 정렬이 바뀌어도 인스펙터 표시가 따라가야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorRegion2Alignment, LyricsRegion2Alignment.Right);
+
+        sut.ActiveLyricsRegion2Alignment.Should().Be(LyricsRegion2Alignment.Right, "SettingsChanged 경유로 인스펙터 동기화");
+    }
+
+    [Fact]
+    public void ResetOutputAppearance_RestoresRegion2AlignmentToDefault()
+    {
+        // "기본값으로 복원(전체)" 가 보조영역 정렬까지 기본(FollowRegion1)으로 되돌리는지(증분72 '전체' 정직성).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsRegion2AlignmentInput = LyricsRegion2Alignment.Center;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment).Should().NotBe(LyricsRegion2Alignment.FollowRegion1);
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment).Should().Be(
+            LyricsRegion2Alignment.FollowRegion1, "전체 복원은 보조영역 정렬도 기본(추종)으로");
+        sut.ActiveLyricsRegion2Alignment.Should().Be(LyricsRegion2Alignment.FollowRegion1, "인스펙터 표시도 기본으로");
+    }
+
+    [Fact]
     public void RefreshActiveAppearance_SyncsTextColor2FromSettings()
     {
         // 설정 창 등 다른 경로로 보조영역 색이 바뀌어도 인스펙터 표시가 따라가야 한다.

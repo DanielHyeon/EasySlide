@@ -1120,6 +1120,66 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2_FollowAlignment_FollowsRegion1Alignment()
+    {
+        // 보조영역(Region2) 전역 정렬이 FollowRegion1 이면 본문(Region1) 정렬을 추종한다(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Right,           // 본문 오른쪽
+            LyricsMonitorRegion2Alignment: LyricsRegion2Alignment.FollowRegion1);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextAlignment2.Should().Be(LyricsTextAlignment.Right, "region2 정렬 추종 → region1 정렬");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2_GlobalAlignment_UsedWhenNoSongOverride()
+    {
+        // 보조영역 전역 정렬이 지정되면(추종 아님), 곡별 region2 정렬이 없을 때 그 정렬을 쓴다(본문과 달라도 됨).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextAlignment: LyricsTextAlignment.Right,           // 본문 오른쪽
+            LyricsMonitorRegion2Alignment: LyricsRegion2Alignment.Left);     // 보조영역 왼쪽
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextAlignment.Should().Be(LyricsTextAlignment.Right, "본문은 region1 정렬");
+        scene.LyricsMonitorTextAlignment2.Should().Be(LyricsTextAlignment.Left, "보조영역은 region2 전역 정렬(본문과 별도)");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2_SongAlignment_BeatsGlobalRegion2Alignment()
+    {
+        // 전역 region2 정렬이 있어도 곡별 region2 정렬(32)이 있으면 그 곡 동안은 곡별 정렬이 우선한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegion2Alignment: LyricsRegion2Alignment.Left);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                OverrideTextAlignment2: LyricsTextAlignment.Center),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextAlignment2.Should().Be(LyricsTextAlignment.Center, "곡별 region2 정렬이 전역 region2 정렬을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideFont()
     {
         // 라이브가 아니면(숨김 등) 곡 글꼴 오버라이드를 적용하지 않는다 — 운영 기본 글꼴·크기 유지.

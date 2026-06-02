@@ -104,7 +104,9 @@ public sealed record LiveOutputRenderSettings(
     // 보조 영역(Region2) 전역 글꼴명(FrmMain Ind_Reg2Font). 비었으면 본문(Region1) 글꼴 추종(무회귀). 곡별 글꼴(44)이 우선.
     string LyricsMonitorFontFamily2 = "",
     // 보조 영역(Region2) 전역 글자색(ARGB). 0(투명)=본문(Region1) 색 추종(무회귀). 곡별 색(30)이 우선.
-    int LyricsMonitorTextColor2Argb = 0)
+    int LyricsMonitorTextColor2Argb = 0,
+    // 보조 영역(Region2) 전역 가로 정렬. FollowRegion1=본문 정렬 추종(무회귀). 곡별 정렬(32)이 우선.
+    LyricsRegion2Alignment LyricsMonitorRegion2Alignment = LyricsRegion2Alignment.FollowRegion1)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -161,7 +163,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorInterlace),
             settings.Get(EasiSettingKeys.LyricsMonitorFontFamily),
             settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2),
-            settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb));
+            settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb),
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment));
     }
 }
 
@@ -354,6 +357,15 @@ public sealed class OutputRenderer : IOutputRenderer
         _transitions = transitions ?? throw new ArgumentNullException(nameof(transitions));
     }
 
+    // 보조 영역(Region2) 전역 정렬 enum → 본문에서 쓰는 LyricsTextAlignment 로 변환.
+    // FollowRegion1 은 호출 측에서 이미 걸러지므로(추종 분기) 여기 들어오지 않지만, 안전하게 Center 로 둔다.
+    private static LyricsTextAlignment MapRegion2Alignment(LyricsRegion2Alignment alignment) => alignment switch
+    {
+        LyricsRegion2Alignment.Left => LyricsTextAlignment.Left,
+        LyricsRegion2Alignment.Right => LyricsTextAlignment.Right,
+        _ => LyricsTextAlignment.Center,
+    };
+
     public OutputSceneSnapshot CreateScene(OutputRenderRequest request)
     {
         var viewportWidth = Math.Max(0, request.ViewportWidth);
@@ -407,10 +419,13 @@ public sealed class OutputRenderer : IOutputRenderer
             : liveOutput.LyricsMonitorTextColor2Argb != 0
                 ? liveOutput.LyricsMonitorTextColor2Argb
                 : textColorArgb;
-        // Region2 정렬도 Live + 곡별 region2 정렬(32)이 있을 때만, 없으면 Region1 정렬(textAlignment) 추종.
+        // Region2 정렬 우선순위: 곡별 region2 정렬(32, Live 한정) > 전역 region2 정렬(설정, FollowRegion1 이 아니면) > Region1 정렬 추종.
+        // (글꼴2·크기2·색2 의 "곡별 > 전역(추종 아니면) > Region1 추종" 우선순위와 동일한 구조.)
         var textAlignment2 = isLive && request.Session.OverrideTextAlignment2 is LyricsTextAlignment songAlign2
             ? songAlign2
-            : textAlignment;
+            : liveOutput.LyricsMonitorRegion2Alignment != LyricsRegion2Alignment.FollowRegion1
+                ? MapRegion2Alignment(liveOutput.LyricsMonitorRegion2Alignment)
+                : textAlignment;
         // Region2 글꼴명 우선순위: 곡별 region2 글꼴(44, Live 한정) > 전역 region2 글꼴(설정, 비어있지 않으면) > Region1 글꼴 추종.
         // (폰트 크기2 의 "곡별 > 전역(0 아니면) > Region1 추종" 우선순위와 동일한 구조.)
         var fontFamily2 = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName2)
