@@ -106,4 +106,20 @@ public class WorshipListPanelTests
         tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == accessibleName)
             .Should().BeTrue($"{tag} 탭 머리글 텍스트 보존");
     }
+
+    [Theory]
+    // 증분151 — 중앙 미리보기 탭(Preview/PowerPoint/Media)도 Fluent 아이콘 머리글로 통일(좌측 탭과 일관). Tag 없어 접근성 이름으로 식별.
+    [InlineData("Preview")]
+    [InlineData("PowerPoint")]
+    [InlineData("Media")]
+    public void CentralPreviewTabs_HaveIconHeaders(string label)
+    {
+        var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");
+
+        var tab = window.Descendants().Single(
+            e => e.Name.LocalName == "TabItem" && Attr(e, "AutomationProperties.Name") == label);
+        tab.Descendants().Any(e => e.Name.LocalName == "SymbolIcon").Should().BeTrue($"{label} 탭 머리글에 아이콘");
+        tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == label)
+            .Should().BeTrue($"{label} 탭 머리글 텍스트 보존");
+    }
 }

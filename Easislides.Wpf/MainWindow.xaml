@@ -1376,7 +1376,14 @@
                         <TabControl BorderThickness="0"
                                     Background="Transparent"
                                     SelectedIndex="{Binding SelectedContentTabIndex, Mode=TwoWay}">
-                            <TabItem Header="Preview">
+                            <TabItem AutomationProperties.Name="Preview">
+                                <!-- 중앙 탭도 Fluent 아이콘 머리글로 통일(증분151) — Preview=눈(미리보기) 아이콘. -->
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Preview}" FontSize="15" Margin="0,0,6,0" />
+                                        <TextBlock Text="Preview" />
+                                    </StackPanel>
+                                </TabItem.Header>
                                 <!-- 이미지 파일을 탐색기에서 미리보기 영역에 끌어다 놓으면 출력 배경 이미지로 설정(레거시 이미지→배경 드래그).
                                      Background="Transparent" 라야 빈 여백까지 드롭을 받는다(배경 없는 Panel 은 빈 영역이 히트테스트 안 됨). -->
                                 <Grid Margin="{StaticResource Thickness.Lg}"
@@ -1462,8 +1469,15 @@
                                     </StackPanel>
                                 </Grid>
                             </TabItem>
-                            <TabItem Header="PowerPoint"
-                                     Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}">
+                            <TabItem Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}"
+                                     AutomationProperties.Name="PowerPoint">
+                                <!-- PowerPoint 탭 = 슬라이드 아이콘. -->
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}" FontSize="15" Margin="0,0,6,0" />
+                                        <TextBlock Text="PowerPoint" />
+                                    </StackPanel>
+                                </TabItem.Header>
                                 <!-- PPT 미리보기 — PowerPointPreviewViewModel(PowerPoint) 바인딩(G1 / gap-analysis.md §4 G-α).
                                      렌더된 슬라이드 이미지를 표시(미적재 시 상태·덱 정보). placeholder "Decks: N" 대체. -->
                                 <Grid Margin="{StaticResource Thickness.Lg}">
@@ -1553,8 +1567,15 @@
                                     </StackPanel>
                                 </Grid>
                             </TabItem>
-                            <TabItem Header="Media"
-                                     Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}">
+                            <TabItem Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}"
+                                     AutomationProperties.Name="Media">
+                                <!-- Media 탭 = 비디오 아이콘. -->
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaFile}" FontSize="15" Margin="0,0,6,0" />
+                                        <TextBlock Text="Media" />
+                                    </StackPanel>
+                                </TabItem.Header>
                                 <!-- 미디어 재생 컨트롤 — MediaPlaybackViewModel(Media) 바인딩(G1.2 / gap-analysis.md §4 G-α).
                                      placeholder 텍스트를 실제 컨트롤 표면으로 대체. 백엔드 NoOp 상태에선 상태·컨트롤이 비활성으로 표시. -->
                                 <Grid Margin="{StaticResource Thickness.Lg}">

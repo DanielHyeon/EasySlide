@@ -183,6 +183,9 @@ public static class EsIcons
     /// <summary>PPT Preview — PPT 미리보기 스타일</summary>
     public const SymbolRegular PptPreview = SymbolRegular.SlideContent24;
 
+    /// <summary>Preview — 선택 항목 미리보기(중앙 미리보기 탭)</summary>
+    public const SymbolRegular Preview = SymbolRegular.Eye24;
+
     /// <summary>Media File — 미디어 파일</summary>
     public const SymbolRegular MediaFile = SymbolRegular.Video24;
 
