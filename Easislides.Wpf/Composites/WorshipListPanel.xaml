@@ -202,6 +202,23 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
+                            <!-- 항목별 가로 정렬(이 곡만) — 레거시 Ind_ 정렬(FormatData 코드31). 곡 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 정렬"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="왼쪽"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="1" />
+                                <MenuItem Header="가운데"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="2" />
+                                <MenuItem Header="오른쪽"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="3" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 정렬(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="0" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>

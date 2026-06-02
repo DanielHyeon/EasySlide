@@ -5152,6 +5152,111 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 색이 붙지 않음");
     }
 
+    // ── 항목별 정렬 인라인 편집(SetSelectedItemAlignment) — 선택한 곡만 가로 정렬(레거시 Ind_ 정렬, 코드31) ──
+
+    [Theory]
+    [InlineData("1", 1, "31=1")] // 왼쪽
+    [InlineData("2", 2, "31=2")] // 가운데
+    [InlineData("3", 3, "31=3")] // 오른쪽
+    public void SetSelectedItemAlignment_WritesFormatDataCode31_AndReflects(string param, int expected, string token)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemAlignment(param);
+
+        sut.SelectedItem!.FormatData.Should().Contain(token, "코드 31(영역1 정렬)에 인코드");
+        sut.SelectedItemAlignment.Should().Be(expected, "정렬 미리보기도 동기화");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("정렬을 주면 보이도록 개별 서식을 켠다");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment_PreservesExistingColor()
+    {
+        // 정렬만 바꾸고 기존 항목별 색(코드29)은 보존한다(공통 헬퍼의 Parse→with→Encode 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1", // 흰색이 이미 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemAlignment("2"); // 가운데.
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("31=2", "새 정렬 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment_ZeroOrInvalid_ClearsToGlobal()
+    {
+        // 0/형식오류 정렬은 해제(코드31 제거) → 전역 정렬을 따른다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "31=3", // 오른쪽이 이미 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemAlignment("0");
+
+        sut.SelectedItemAlignment.Should().Be(0, "정렬 해제 → 전역 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("31=", "코드 31(정렬)이 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment_WhileLive_AppliesOverrideAlignment()
+    {
+        // 라이브 송출 중 항목 정렬을 바꾸면 세션의 오버라이드 정렬이 즉시 반영된다(레거시 per-song 정렬).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemAlignment("3"); // 오른쪽.
+
+        session.Current.OverrideTextAlignment.Should().Be(LyricsTextAlignment.Right, "항목 정렬이 라이브 송출에 즉시 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment_SameValue_IsNoOp_DoesNotReplaceItem()
+    {
+        // 이미 같은 정렬이면(레코드 동등) 큐 항목을 교체하지 않는다 — 불필요한 재송출·인스턴스 churn 방지(공통 헬퍼 가드).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "31=2", // 이미 가운데.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+        var before = sut.SelectedItem;
+
+        sut.SetSelectedItemAlignment("2"); // 같은 정렬.
+
+        sut.SelectedItem.Should().BeSameAs(before, "같은 값이면 항목을 새로 만들지 않음(교체 없음)");
+        sut.Queue[0].Should().BeSameAs(before, "큐 안의 인스턴스도 그대로");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment_NonSong_IsNoOpAndCommandDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemAlignmentCommand.CanExecute("2").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemAlignment("2");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 정렬이 붙지 않음");
+    }
+
     // ── 절 라벨 직접 점프(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응) ──
 
     [Fact]

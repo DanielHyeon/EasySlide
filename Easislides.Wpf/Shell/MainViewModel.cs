@@ -568,8 +568,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveBodyUpCommand = new RelayCommand(() => StepBodyVerticalOffset(-LyricsBodyVOffsetStep), () => ActiveBodyVerticalOffset > LyricsBodyVOffsetMin);
         ApplyTextColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: false));
         ApplyBackgroundColorHexCommand = new RelayCommand<string>(hex => ApplyColorHex(hex, isBackground: true));
-        // 선택한 곡 항목의 글자색(이 항목만) — 프리셋 색/전역기본을 우클릭 메뉴에서 적용. 곡일 때만 활성.
+        // 선택한 곡 항목의 글자색·정렬(이 항목만) — 프리셋/전역기본을 우클릭 메뉴에서 적용. 곡일 때만 활성.
         SetSelectedItemTextColorCommand = new RelayCommand<string?>(SetSelectedItemTextColor, _ => CanEditSelectedItemColor);
+        SetSelectedItemAlignmentCommand = new RelayCommand<string?>(SetSelectedItemAlignment, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -712,6 +713,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string> ApplyTextColorHexCommand { get; }
     public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
     public IRelayCommand<string?> SetSelectedItemTextColorCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemAlignmentCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1823,6 +1825,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
+        OnPropertyChanged(nameof(SelectedItemAlignment));
 
         NotifyCommandStates();
     }
@@ -2732,8 +2735,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 선택한 곡 항목의 글자색을 이 항목만 바꿀 수 있는가 — 곡(가사 있음)일 때만 true. 절 순서 편집과 같은 조건.
-    /// 우클릭 "글자색" 프리셋 메뉴의 활성화에 쓴다.
+    /// 선택한 곡 항목의 서식(색·정렬 등 이 항목만)을 편집할 수 있는가 — 곡(가사 있음)일 때만 true. 절 순서 편집과 같은 조건.
+    /// 우클릭 "이 항목 글자색"·"이 항목 정렬" 메뉴의 활성화에 공통으로 쓴다(이름은 호환을 위해 Color 유지).
     /// </summary>
     public bool CanEditSelectedItemColor
         => SelectedItem is { Kind: LiveItemKinds.Song } item && !string.IsNullOrWhiteSpace(item.Lyrics);
@@ -2743,52 +2746,86 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.TextColorArgb1) ?? string.Empty;
 
     /// <summary>
-    /// 선택한 곡 항목의 글자색(이 항목만)을 바꾼다(레거시 항목별 색, FormatData 코드 29). hex 가 비거나 형식 오류면 색을 해제해 전역 기본색을 따른다.
-    /// 곡별 FormatData 의 나머지(배경·정렬·폰트·영역2)는 보존한다(Parse→with→Encode 왕복). 색을 주면 그 곡 동안 보이도록 개별 서식도 켠다.
-    /// 레코드 불변이라 큐의 그 인스턴스를 새 FormatData 복사본으로 교체(참조 일치) → 선택 갱신 → 라이브면 즉시 재송출.
+    /// 선택한 곡 항목의 곡별 서식(FormatData) 중 한 가지만 바꾸는 공통 경로 — 항목별 색·정렬이 공유한다.
+    /// <paramref name="mutate"/> 가 현재 <see cref="SongFormatData"/> 를 받아 한 필드 바꾼 값을 돌려주면, 나머지 서식은
+    /// 그대로 보존한 채(Parse→with→Encode 왕복) 큐의 그 인스턴스를 교체(참조 일치)·재선택하고 라이브면 즉시 재송출한다.
+    /// <paramref name="wantsIndividual"/> 가 true 면(=서식을 켜는 변경) 그 서식이 보이도록 개별 서식 사용을 켠다(끄면 FormatData 무시됨).
+    /// 바뀐 게 없거나(레코드 동등) 편집 대상이 아니면 false 를 돌려준다(상태 메시지는 호출 측이 정한다).
     /// </summary>
-    public void SetSelectedItemTextColor(string? hex)
+    private bool ApplySelectedSongFormatChange(
+        Func<SongFormatData, SongFormatData> mutate,
+        bool wantsIndividual,
+        out bool turnedOnIndividual)
     {
+        turnedOnIndividual = false;
         if (!CanEditSelectedItemColor || SelectedItem is not { } item)
         {
-            return; // 곡이 아니거나 선택 없음 — 항목별 색 편집 대상이 아님.
+            return false; // 곡이 아니거나 선택 없음 — 항목별 서식 편집 대상이 아님.
         }
 
-        var argb = SongFormatData.HexToArgb(hex); // 비거나 형식 오류면 null = 색 해제(전역 기본색).
         var current = SongFormatData.Parse(item.FormatData) ?? new SongFormatData();
-        if (current.TextColorArgb1 == argb)
+        var next = mutate(current);
+        if (next == current)
         {
-            return; // 같은 색이면 무시 — 불필요한 교체·재송출 방지.
+            return false; // 레코드 동등 — 바뀐 게 없으면 무시(불필요한 교체·재송출 방지).
         }
-
-        // 코드 29(영역1 글자색)만 바꾸고 나머지 서식은 그대로 다시 인코드. 결과가 비면 FormatData 는 null(서식 없음).
-        var encoded = (current with { TextColorArgb1 = argb }).Encode();
-        var newFormatData = string.IsNullOrEmpty(encoded) ? null : encoded;
 
         var index = IndexOfReference(item);
         if (index < 0)
         {
-            return;
+            return false;
         }
 
-        // 색을 주면(argb 있음) 그 색이 송출에 보이도록 개별 서식 사용을 켠다(끄면 FormatData 가 무시됨). 해제 시엔 기존 상태 유지.
-        // 운영자가 일부러 개별 서식을 꺼뒀다가 색을 주면 자동으로 켜지므로, 그 사실을 상태줄에 정직하게 알린다.
-        var willEnableIndividual = argb is not null && !item.UseIndividualFormatting;
+        // 결과가 비면 FormatData 는 null(서식 없음). 서식을 켜는 변경이면 개별 서식도 켜서 송출에 보이게 한다.
+        var encoded = next.Encode();
+        turnedOnIndividual = wantsIndividual && !item.UseIndividualFormatting; // 일부러 꺼둔 걸 자동으로 켰는지(상태줄 고지용).
         var updated = item with
         {
-            FormatData = newFormatData,
-            UseIndividualFormatting = argb is null ? item.UseIndividualFormatting : true,
+            FormatData = string.IsNullOrEmpty(encoded) ? null : encoded,
+            UseIndividualFormatting = wantsIndividual ? true : item.UseIndividualFormatting,
         };
         Queue[index] = updated;
-        SelectedItem = updated; // 선택 변경 → 색 미리보기·메뉴 통지.
-        StatusText = argb is null
-            ? "항목 글자색: 전역 기본"
-            : $"항목 글자색: {SongFormatData.ArgbToHex(argb)}{(willEnableIndividual ? " (개별 서식 켜짐)" : "")}";
+        SelectedItem = updated; // 선택 변경 → 미리보기·메뉴 통지.
 
-        // 라이브 송출 중이면 같은 절로 다시 송출해 새 색을 즉시 반영(세션 실제 라이브 절 사용 — 0절로 안 튀게).
+        // 라이브 송출 중이면 같은 절로 다시 송출해 새 서식을 즉시 반영(세션 실제 라이브 절 사용 — 0절로 안 튀게).
         RepublishLiveSongForBodyChange();
 
         NotifyCommandStates();
+        return true;
+    }
+
+    /// <summary>
+    /// 선택한 곡 항목의 글자색(이 항목만)을 바꾼다(레거시 항목별 색, FormatData 코드 29). hex 가 비거나 형식 오류면 색을 해제해 전역 기본색을 따른다.
+    /// 색을 주면 그 곡 동안 보이도록 개별 서식도 켜고(꺼져 있었으면 상태줄에 고지), 나머지 곡별 서식은 보존한다.
+    /// </summary>
+    public void SetSelectedItemTextColor(string? hex)
+    {
+        var argb = SongFormatData.HexToArgb(hex); // 비거나 형식 오류면 null = 색 해제(전역 기본색).
+        if (ApplySelectedSongFormatChange(format => format with { TextColorArgb1 = argb }, wantsIndividual: argb is not null, out var turnedOn))
+        {
+            StatusText = argb is null
+                ? "항목 글자색: 전역 기본"
+                : $"항목 글자색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 가로 정렬(이 항목만) — 레거시 1=왼쪽/2=가운데/3=오른쪽, 없으면 0(전역 정렬 추종).</summary>
+    public int SelectedItemAlignment
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.Alignment1 ?? 0;
+
+    /// <summary>
+    /// 선택한 곡 항목의 가로 정렬(이 항목만)을 바꾼다(레거시 항목별 정렬, FormatData 코드 31). 파라미터 "1"/"2"/"3"=왼쪽/가운데/오른쪽,
+    /// 그 밖(빈·0·오류)이면 정렬을 해제해 전역 정렬을 따른다. 정렬을 주면 개별 서식을 켜고, 나머지 곡별 서식(색·폰트 등)은 보존한다.
+    /// </summary>
+    public void SetSelectedItemAlignment(string? alignmentParam)
+    {
+        // "1"/"2"/"3" 만 유효(왼쪽/가운데/오른쪽), 그 밖은 null = 정렬 해제.
+        int? align = int.TryParse(alignmentParam, out var n) && n is >= 1 and <= 3 ? n : null;
+        if (ApplySelectedSongFormatChange(format => format with { Alignment1 = align }, wantsIndividual: align is not null, out var turnedOn))
+        {
+            var label = align switch { 1 => "왼쪽", 2 => "가운데", 3 => "오른쪽", _ => "전역 기본" };
+            StatusText = $"항목 정렬: {label}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
     }
 
     // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
@@ -4163,6 +4200,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RemoveSelectedItemCommand.NotifyCanExecuteChanged();
         DuplicateSelectedItemCommand.NotifyCanExecuteChanged();
         SetSelectedItemTextColorCommand.NotifyCanExecuteChanged();
+        SetSelectedItemAlignmentCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
