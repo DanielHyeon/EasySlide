@@ -60,6 +60,32 @@ public class CommandCatalogTests
                 && shortcut.CommandName == commandId);
     }
 
+    [Theory]
+    // 화면 제어 명령 현대 단축키: Ctrl+R=처음으로(Restart), Ctrl+F5=출력 새로고침(하드 새로고침 관용). 레거시 F5 충돌 회피.
+    [InlineData(Key.R, MainCommandIds.LiveRestart)]
+    [InlineData(Key.F5, MainCommandIds.LiveRefresh)]
+    public void GetDefaultShortcuts_IncludesModernControlShortcuts(Key key, string commandId)
+    {
+        var sut = new CommandCatalog();
+
+        sut.GetDefaultShortcuts()
+            .Should()
+            .Contain(shortcut => shortcut.Key == key
+                && shortcut.Modifiers == ModifierKeys.Control
+                && shortcut.CommandName == commandId);
+    }
+
+    [Fact]
+    public void CtrlF5_DoesNotCollideWithGlobalF5Next()
+    {
+        // Ctrl+F5(출력 새로고침)와 F5(다음 항목, 전역)는 수식 키가 달라 서로 다른 단축키다(충돌 아님).
+        var sut = new CommandCatalog();
+        var shortcuts = sut.GetDefaultShortcuts();
+
+        shortcuts.Should().Contain(s => s.Key == Key.F5 && s.Modifiers == ModifierKeys.Control && s.CommandName == MainCommandIds.LiveRefresh);
+        shortcuts.Should().Contain(s => s.Key == Key.F5 && s.Modifiers == ModifierKeys.None && s.CommandName == MainCommandIds.LiveNext);
+    }
+
     [Fact]
     public void DuplicateItem_HasCtrlDShortcut_AndIsInPalette()
     {

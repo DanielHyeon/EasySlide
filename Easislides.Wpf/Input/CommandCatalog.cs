@@ -118,13 +118,17 @@ public sealed class CommandCatalog : ICommandCatalog
             "Live",
             "처음으로",
             "현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출합니다.",
-            isDangerous: false),
+            isDangerous: false,
+            // 현대 단축키(니모닉 R=Restart). 레거시 F5=Restart 는 WPF 에서 "다음 항목"으로 재배정됐으므로 충돌 없는 Ctrl+R 사용.
+            new Shortcut(Key.R, ModifierKeys.Control, MainCommandIds.LiveRestart, IsGlobal: false, "처음으로")),
         Command(
             MainCommandIds.LiveRefresh,
             "Live",
             "출력 새로고침",
             "출력 화면을 다시 그립니다(디스플레이 글리치 복구).",
-            isDangerous: false),
+            isDangerous: false,
+            // 현대 단축키 — 새로고침 관용(Ctrl+F5, "하드 새로고침"). 전역 F5(다음 항목)와 수식 키가 달라 충돌하지 않는다.
+            new Shortcut(Key.F5, ModifierKeys.Control, MainCommandIds.LiveRefresh, IsGlobal: false, "출력 새로고침")),
         Command(
             MainCommandIds.LiveRestore,
             "Live",

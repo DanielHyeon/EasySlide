@@ -28,7 +28,7 @@
 | ComboBox | 폼 8 + 툴바 8 = **16** | ~6 (출력모니터/폴더/성경버전·책/검색·매치/템플릿) | |
 | NumericUpDown(여백·크기) | **8** | **5** 직접 수치 입력(가사 크기·줄 간격 + 본문 좌/우/아래 여백 TextBox, 범위 클램프·빨간 테두리 검증) + −/+ 버튼·메뉴 step | 🟢 크기·줄간격·여백 3종 모두 직접 수치 입력 완료(인스펙터 "본문 여백" 섹션) |
 | ContextMenu(우클릭) | **6** (40개 항목) | **0** | 우클릭 운영 전무 |
-| 비툴바 버튼 | **49** (절/슬라이드 점프 16+16, 항목·슬라이드 이동, 전송, LM 등) | 인스펙터/운영바 버튼들 | 절 라벨 점프(1~9·p/q/c/t/b/w/e) 없음 |
+| 비툴바 버튼 | **49** (절/슬라이드 점프 16+16, 항목·슬라이드 이동, 전송, LM 등) | 인스펙터/운영바 버튼들 + **절 라벨 점프 키보드**(VerseJumpKeyMap — 1~9·c·t·b·w·e·p·q, 텍스트 입력 포커스 가드) | 절 라벨 점프 ✅ 키보드로 구현(전용 버튼 행 UI 만 후속). 슬라이드 점프 그리드는 후속 |
 | 탭(TabControl/TabPage) | 3 컨트롤 / **10 탭** (Folders·InfoScr·PowerP·Bibles·Images·Media·Default·WorshipList·PraiseBook + 성경버전) | 좌 3탭(라이브러리/성경/검색) + 중앙 3탭(Preview/PPT/Media) | Images·PraiseBook·InfoScr·Default(포맷) 탭 없음 |
 | SplitContainer(가변 도킹) | **5~6 중첩** | Grid 고정 + GridSplitter 1 + 인스펙터 토글 | 사용자 레이아웃 저장 없음 |
 
