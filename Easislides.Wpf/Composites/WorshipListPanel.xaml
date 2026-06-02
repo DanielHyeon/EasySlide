@@ -79,15 +79,15 @@
                         Margin="0,12,0,0">
                 <Button Command="{Binding MoveSelectedItemUpCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        ToolTip="선택 항목을 위로 이동"
-                        AutomationProperties.Name="항목 위로 이동"
+                        ToolTip="선택 항목을 위로 이동 (Ctrl+Shift+↑)"
+                        AutomationProperties.Name="항목 위로 이동 (Ctrl+Shift+Up)"
                         Margin="0,0,8,0">
                     <ui:SymbolIcon Symbol="ArrowUp24" />
                 </Button>
                 <Button Command="{Binding MoveSelectedItemDownCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        ToolTip="선택 항목을 아래로 이동"
-                        AutomationProperties.Name="항목 아래로 이동"
+                        ToolTip="선택 항목을 아래로 이동 (Ctrl+Shift+↓)"
+                        AutomationProperties.Name="항목 아래로 이동 (Ctrl+Shift+Down)"
                         Margin="0,0,8,0">
                     <ui:SymbolIcon Symbol="ArrowDown24" />
                 </Button>
@@ -116,8 +116,8 @@
                 <Button Command="{Binding DuplicateSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
                         Margin="8,0,0,0"
-                        ToolTip="선택 항목을 같은 내용으로 복제해 바로 뒤에 추가"
-                        AutomationProperties.Name="선택 항목 복제">
+                        ToolTip="선택 항목을 같은 내용으로 복제해 바로 뒤에 추가 (Ctrl+D)"
+                        AutomationProperties.Name="선택 항목 복제 (Ctrl+D)">
                     <ui:SymbolIcon Symbol="Copy24" />
                 </Button>
                 <!-- 현재 송출 항목 선택 — 미리보기로 앞서 본 뒤 LIVE 배지 항목으로 선택을 되돌린다. 송출 중일 때만 활성. -->

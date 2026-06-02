@@ -1,6 +1,8 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Easislides.Wpf.Input;
+using Easislides.Wpf.Shell;
 using Easislides.Wpf.Tests.Accessibility;
 using FluentAssertions;
 using Xunit;
@@ -121,5 +123,28 @@ public class WorshipListPanelTests
         tab.Descendants().Any(e => e.Name.LocalName == "SymbolIcon").Should().BeTrue($"{label} 탭 머리글에 아이콘");
         tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == label)
             .Should().BeTrue($"{label} 탭 머리글 텍스트 보존");
+    }
+
+    [Theory]
+    // 증분152 — 재정렬/복제 버튼의 접근성 이름이 카탈로그의 "실제" 단축키를 그대로 노출(메뉴·팔레트·Del 버튼과 같은 발견성 패턴).
+    // 누군가 카탈로그 단축키를 바꾸면 ShortcutHint 가 달라져 이 테스트가 깨진다 → 버튼 힌트가 거짓이 되는 드리프트를 막는다.
+    [InlineData("MoveSelectedItemUpCommand", MainCommandIds.WorshipMoveItemUp)]
+    [InlineData("MoveSelectedItemDownCommand", MainCommandIds.WorshipMoveItemDown)]
+    [InlineData("DuplicateSelectedItemCommand", MainCommandIds.WorshipDuplicateItem)]
+    public void ReorderAndDuplicateButtons_AccessibleName_CarriesRealCatalogShortcut(string commandBinding, string commandId)
+    {
+        var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
+
+        // 카탈로그의 기본 단축키 표시문자열(예: "Ctrl+Shift+Up", "Ctrl+D") — 버튼 힌트의 정답.
+        var hint = new CommandCatalog().All.Single(c => c.Id == commandId).ShortcutHint;
+        hint.Should().NotBeEmpty("이 명령에 기본 단축키가 있어야 버튼 힌트가 의미를 가진다");
+
+        var button = composite.Descendants().Single(
+            e => e.Name.LocalName == "Button" && Attr(e, "Command").Contains(commandBinding));
+        // 스크린리더가 읽는 접근성 이름이 실제 단축키를 포함해야 한다(글리프 ↑/↓ 대신 카탈로그와 일치하는 Up/Down 표기).
+        Attr(button, "AutomationProperties.Name").Should().Contain(hint,
+            "버튼 접근성 이름이 카탈로그 실제 단축키를 노출해야 한다(드리프트 방지)");
+        // 마우스 사용자용 툴팁도 채워져 있어야 한다(발견성).
+        Attr(button, "ToolTip").Should().NotBeEmpty("재정렬/복제 버튼은 호버 툴팁을 가진다");
     }
 }
