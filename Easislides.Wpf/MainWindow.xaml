@@ -383,6 +383,29 @@
                         </MenuItem.CommandParameter>
                     </MenuItem>
                 </MenuItem>
+                <!-- 대기 화면(Gap)(FrmMain Gap Item) — 라이브 콘텐츠가 없을 때(대기 상태) 보여줄 화면. 모드/페이드/로고를 빠르게 조작. -->
+                <MenuItem Header="대기 화면(Gap)">
+                    <MenuItem Header="모드"
+                              StaysOpenOnClick="True"
+                              ToolTip="대기(라이브 콘텐츠 없음) 상태에서 보여줄 화면: 없음/검정/기본/로고 이미지.">
+                        <ComboBox ItemsSource="{Binding GapItemModeOptions}"
+                                  SelectedValue="{Binding GapItemModeInput, Mode=TwoWay}"
+                                  SelectedValuePath="Value"
+                                  DisplayMemberPath="Key"
+                                  MinWidth="180"
+                                  Margin="4"
+                                  AutomationProperties.Name="대기 화면 Gap 모드" />
+                    </MenuItem>
+                    <MenuItem Header="전환 페이드 사용"
+                              IsChecked="{Binding ActiveGapItemUseFade}"
+                              Command="{Binding ToggleGapItemUseFadeCommand}"
+                              ToolTip="대기 화면으로 들어갈 때 부드럽게 페이드합니다." />
+                    <Separator />
+                    <MenuItem Header="로고 이미지 선택..." Click="SelectGapLogo_Click"
+                              ToolTip="'로고' 모드에서 보여줄 이미지를 고릅니다(고르면 모드도 로고로 바뀜)." />
+                    <MenuItem Header="로고 지우기"
+                              Command="{Binding ClearGapItemLogoFileCommand}" />
+                </MenuItem>
                 <!-- 배경 이미지(FrmMain Images 탭 — 배경 적용). 선택은 파일 대화상자(코드-비하인드), 해제는 커맨드. -->
                 <MenuItem Header="배경 이미지">
                     <MenuItem Header="갤러리에서 선택..."

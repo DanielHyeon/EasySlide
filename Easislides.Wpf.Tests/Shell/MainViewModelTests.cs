@@ -1629,6 +1629,98 @@ public class MainViewModelTests
         sut.SavedWorshipListNames.Should().NotContain("지울것", "삭제 직후 세션 콤보에서 빠짐");
     }
 
+    // ── 대기 화면(Gap) 빠른 조작(출력 메뉴) — 모드 콤보·페이드 토글·로고 픽커 ──
+
+    [Fact]
+    public void GapItemModeInput_PersistsSetting_AndSyncsActive()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.GapItemModeInput = GapItemMode.Black;
+
+        settings.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Black, "설정에 저장");
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.Black, "Active 동기화");
+        sut.StatusText.Should().Contain("검정");
+    }
+
+    [Fact]
+    public void ToggleGapItemUseFade_FlipsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        var before = sut.ActiveGapItemUseFade;
+
+        sut.ToggleGapItemUseFadeCommand.Execute(null);
+
+        sut.ActiveGapItemUseFade.Should().Be(!before, "토글");
+        settings.Get(EasiSettingKeys.GapItemUseFade).Should().Be(!before, "설정 저장");
+        sut.StatusText.Should().Contain("페이드", "상태줄에 페이드 상태 알림");
+    }
+
+    [Fact]
+    public void GapControls_FollowDirectSettingsChange_ViaRefresh()
+    {
+        // 메뉴 외 경로(설정 창=직접 settings.Set)로 Gap 모드가 바뀌면, SettingsChanged→RefreshActiveAppearance 로
+        // 출력 메뉴 표시(Active/Input)가 따라가야 한다(이 재동기화가 깨지기 쉬워 회귀로 고정).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.None, "기본");
+
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.Black); // 설정 창이 바꾼 것처럼.
+
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.Black, "설정 변경을 메뉴가 따라감");
+        sut.GapItemModeInput.Should().Be(GapItemMode.Black, "콤보 입력도 동기화");
+    }
+
+    [Fact]
+    public void SetGapItemLogoFile_PersistsPath_AndAutoSwitchesToUserMode()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.GapItemModeInput = GapItemMode.None; // 로고 아닌 모드에서 시작.
+
+        sut.SetGapItemLogoFile(@"  C:\logos\church.png  ");
+
+        settings.Get(EasiSettingKeys.GapItemLogoFile).Should().Be(@"C:\logos\church.png", "경로 다듬어 저장");
+        sut.ActiveGapItemLogoFile.Should().Be(@"C:\logos\church.png");
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.User, "로고를 고르면 보이도록 모드도 '로고'로 전환");
+        sut.StatusText.Should().Contain("church.png", "상태줄에 고른 로고 파일명 알림");
+    }
+
+    [Fact]
+    public void SetGapItemLogoFile_Blank_ClearsPath_AndKeepsMode()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.SetGapItemLogoFile(@"C:\logos\a.png"); // User 모드 + 경로.
+
+        sut.ClearGapItemLogoFileCommand.Execute(null);
+
+        sut.ActiveGapItemLogoFile.Should().BeEmpty("로고 지움");
+        settings.Get(EasiSettingKeys.GapItemLogoFile).Should().BeEmpty();
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.User, "지워도 모드는 그대로(운영자가 따로 바꿈)");
+    }
+
+    [Fact]
+    public void GapControls_SyncFromSettings_OnRefresh()
+    {
+        // 설정 창 등 다른 경로로 Gap 설정이 바뀌어도 출력 메뉴 표시(Active*)가 따라간다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.Default);
+        settings.Set(EasiSettingKeys.GapItemLogoFile, @"C:\x.png");
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.Default, "초기 동기화");
+        sut.ActiveGapItemLogoFile.Should().Be(@"C:\x.png");
+    }
+
     [Fact]
     public async Task RefreshSavedWorshipListNames_ClearsSelectionWhenNameGone()
     {

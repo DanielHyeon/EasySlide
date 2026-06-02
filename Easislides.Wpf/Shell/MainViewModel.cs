@@ -335,6 +335,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int _autoRotateIntervalSeconds = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
     // 자동 회전 모드(One/One-Repeat/Group/Group-Repeat) — 설정에서 유래, 콤보 선택에 바인딩. 끝 절/슬라이드 도달 시 동작이 모드별로 다르다.
     [ObservableProperty] private AutoRotateMode _activeAutoRotateMode = EasiSettingKeys.AutoRotateMode.DefaultValue;
+    // 대기 화면(Gap) 모드(없음/검정/기본/로고) — 출력 메뉴 "대기 화면(Gap)" 콤보에 바인딩. 설정에서 유래, 출력이 라이브 갱신한다.
+    [ObservableProperty] private GapItemMode _activeGapItemOption = EasiSettingKeys.GapItemOption.DefaultValue;
+    // 대기 화면(Gap) 전환 페이드 사용 여부 — 출력 메뉴 토글.
+    [ObservableProperty] private bool _activeGapItemUseFade = EasiSettingKeys.GapItemUseFade.DefaultValue;
+    // 대기 화면(Gap) "로고" 모드에서 보여줄 이미지 경로 — 출력 메뉴 로고 선택/지우기.
+    [ObservableProperty] private string _activeGapItemLogoFile = EasiSettingKeys.GapItemLogoFile.DefaultValue;
 
     // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
@@ -598,6 +604,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 세션 콤보(예배 순서 빠른 전환) — 콤보에서 고른 저장 목록을 명시적 "불러오기" 버튼으로 적재(자동 적재 안 함 = 실수로 작업물 날림 방지).
         LoadSelectedWorshipListCommand = new AsyncRelayCommand(LoadSelectedWorshipListAsync, () => !string.IsNullOrWhiteSpace(SelectedSavedWorshipList));
         RefreshSavedWorshipListNames();
+        // 대기 화면(Gap) 빠른 조작 — 페이드 토글·로고 지우기(로고 선택은 View 파일 픽커). 모드는 콤보(GapItemModeInput).
+        ToggleGapItemUseFadeCommand = new RelayCommand(ToggleGapItemUseFade);
+        ClearGapItemLogoFileCommand = new RelayCommand(() => SetGapItemLogoFile(null));
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
@@ -756,6 +765,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DeleteAppearanceTemplateCommand { get; }
     public IRelayCommand ResetOutputAppearanceCommand { get; }
     public IAsyncRelayCommand LoadSelectedWorshipListCommand { get; }
+    public IRelayCommand ToggleGapItemUseFadeCommand { get; }
+    public IRelayCommand ClearGapItemLogoFileCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
@@ -2221,6 +2232,70 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 모드가 다른 경로(설정 동기화 등)로 바뀌어도 콤보가 따라가도록 통지.
     partial void OnActiveAutoRotateModeChanged(AutoRotateMode value) => OnPropertyChanged(nameof(AutoRotateModeInput));
+
+    /// <summary>대기 화면(Gap) 모드 콤보의 (한글 라벨 → 모드) 목록 — 출력 메뉴에서 빠르게 고른다.</summary>
+    public IReadOnlyList<KeyValuePair<string, GapItemMode>> GapItemModeOptions { get; } =
+    [
+        new("없음(대기 문구)", GapItemMode.None),
+        new("검정(검은 화면)", GapItemMode.Black),
+        new("기본(대기 문구)", GapItemMode.Default),
+        new("로고 이미지", GapItemMode.User),
+    ];
+
+    /// <summary>대기 화면(Gap) 모드 선택(콤보 양방향). 바뀌면 설정에 저장(출력이 라이브 갱신)하고 Active 동기화.</summary>
+    public GapItemMode GapItemModeInput
+    {
+        get => ActiveGapItemOption;
+        set
+        {
+            if (value == ActiveGapItemOption)
+            {
+                return;
+            }
+
+            _settings.Set(EasiSettingKeys.GapItemOption, value);
+            ActiveGapItemOption = value;
+            var label = GapItemModeOptions.FirstOrDefault(o => o.Value == value).Key;
+            StatusText = $"대기 화면(Gap) 모드: {(string.IsNullOrEmpty(label) ? value.ToString() : label)}";
+        }
+    }
+
+    // 모드가 다른 경로(설정 창 등)로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveGapItemOptionChanged(GapItemMode value) => OnPropertyChanged(nameof(GapItemModeInput));
+
+    /// <summary>대기 화면(Gap) 전환 페이드 사용을 켜고 끈다(출력 메뉴 토글). 설정 저장 → 출력 라이브 갱신.</summary>
+    public void ToggleGapItemUseFade()
+    {
+        var next = !ActiveGapItemUseFade;
+        _settings.Set(EasiSettingKeys.GapItemUseFade, next);
+        ActiveGapItemUseFade = next;
+        StatusText = next ? "대기 화면 페이드: 켜짐" : "대기 화면 페이드: 꺼짐";
+    }
+
+    /// <summary>
+    /// 대기 화면(Gap) "로고" 모드에서 쓸 이미지 경로를 설정한다(출력 메뉴 → 파일 선택은 View). 비우면 로고를 지운다.
+    /// 로고를 고르면 모드도 "로고"(User)로 자동 전환해 바로 보이게 한다. 경로/모드 모두 설정 저장 → 출력 라이브 갱신.
+    /// </summary>
+    public void SetGapItemLogoFile(string? path)
+    {
+        var logo = string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim();
+        _settings.Set(EasiSettingKeys.GapItemLogoFile, logo);
+        ActiveGapItemLogoFile = logo;
+
+        if (logo.Length == 0)
+        {
+            StatusText = "대기 화면 로고: 지움";
+            return;
+        }
+
+        // 로고를 골랐으면 보이도록 모드도 "로고"로 전환(없음/검정이면 로고가 안 보이므로 운영자 의도대로).
+        if (ActiveGapItemOption != GapItemMode.User)
+        {
+            GapItemModeInput = GapItemMode.User;
+        }
+
+        StatusText = $"대기 화면 로고: {System.IO.Path.GetFileName(logo)}";
+    }
 
     // 현재 절 인덱스로 GoLive 를 재호출해 출력을 갱신한다.
     // 라이브 활성 + 이 항목이 송출 중일 때만 실행(블랙아웃/숨김 중에는 송출 안 깨움).
@@ -4404,6 +4479,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTransitionDurationMs = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs);
         ActiveTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind);
         ActiveSlideTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind);
+        // 대기 화면(Gap) 모드·페이드·로고 — 설정 창 등 다른 경로로 바뀌어도 출력 메뉴 표시가 따라가게 동기화.
+        ActiveGapItemOption = _settings.Get(EasiSettingKeys.GapItemOption);
+        ActiveGapItemUseFade = _settings.Get(EasiSettingKeys.GapItemUseFade);
+        ActiveGapItemLogoFile = _settings.Get(EasiSettingKeys.GapItemLogoFile);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);

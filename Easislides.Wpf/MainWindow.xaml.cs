@@ -642,6 +642,28 @@ public partial class MainWindow : Window
         }
     }
 
+    // 대기 화면(Gap) "로고" 이미지 선택 — 파일 선택은 View, 경로 기록·모드 전환은 검증된 VM(SetGapItemLogoFile)이 맡는다.
+    private void SelectGapLogo_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "대기 화면(Gap) 로고로 사용할 이미지 선택",
+            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            viewModel.SetGapItemLogoFile(dialog.FileName);
+        }
+    }
+
     // 세션 메모 — 현재 예배 세션(예배 순서)의 운영자 메모를 편집·저장(FrmMain Session Notes 포팅).
     private void OpenSessionNotes_Click(object sender, RoutedEventArgs e)
     {
