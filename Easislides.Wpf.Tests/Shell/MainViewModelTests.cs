@@ -5803,6 +5803,60 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyCopiedFormatToAll_AppliesToAllSongAndBible_SkipsOthers()
+    {
+        // "복사한 서식을 전 항목에 적용" — 곡·성경 항목엔 모두 적용, PPT/미디어/공지는 건너뛴다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var src = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "47=80>" };
+        var song2 = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n나" };
+        var bible = new LiveQueueItem("bible:1", "창 1:1", LiveItemKinds.Bible) { Lyrics = "태초에..." };
+        var ppt = new LiveQueueItem("ppt:1", "발표.pptx", LiveItemKinds.PowerPoint) { ContentPath = @"C:\발표.pptx" };
+        sut.LoadQueue([src, song2, bible, ppt]);
+
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+        sut.ApplyCopiedFormatToAll();
+
+        // 복사원의 원래 FormatData("47=80>")는 정규화(Parse→Encode)돼 표준형 "47=80"으로 다시 쓰인다(꼬리 '>' 정리).
+        sut.Queue[0].FormatData.Should().Be("47=80", "복사원도 정규화된 표준 서식으로 통일");
+        sut.Queue[1].FormatData.Should().Be("47=80", "곡B 에 적용");
+        sut.Queue[2].FormatData.Should().Be("47=80", "성경에도 적용");
+        sut.Queue[2].UseIndividualFormatting.Should().BeTrue("적용 시 개별 서식 켜짐");
+        sut.Queue[3].FormatData.Should().BeNull("PPT 항목은 건너뜀");
+        sut.StatusText.Should().Contain("항목에 복사한 서식 적용");
+    }
+
+    [Fact]
+    public void CanApplyCopiedFormatToAll_RequiresClipboardAndTargets()
+    {
+        // 담아 둔 서식이 없으면 비활성. 복사 후, 대상(곡·성경)이 있으면 활성.
+        var sut = CreateSut(seedSampleQueue: false);
+        var src = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "29=-1>" };
+        sut.LoadQueue([src]);
+
+        sut.CanApplyCopiedFormatToAll.Should().BeFalse("복사 전엔 비활성");
+
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+        sut.CanApplyCopiedFormatToAll.Should().BeTrue("복사 후 대상 있으면 활성");
+    }
+
+    [Fact]
+    public void ApplyCopiedFormatToAll_NoEligibleTargets_IsNoOp()
+    {
+        // 대상(곡·성경)이 하나도 없으면(PPT 만 있는 큐) 적용할 게 없어 비활성·무동작.
+        var sut = CreateSut(seedSampleQueue: false);
+        var song = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "29=-1>" };
+        sut.LoadQueue([song]);
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+        // 복사 후 큐를 PPT 만으로 교체.
+        sut.LoadQueue([new LiveQueueItem("ppt:1", "p.pptx", LiveItemKinds.PowerPoint) { ContentPath = @"C:\p.pptx" }]);
+
+        sut.CanApplyCopiedFormatToAll.Should().BeFalse("적용 대상 곡·성경이 없으면 비활성");
+    }
+
+    [Fact]
     public void PasteSelectedItemFormatting_ToBibleItem_Works()
     {
         // 곡 서식을 복사해 성경 항목(증분128)에 붙여넣어도 적용된다(서식은 종류 무관).

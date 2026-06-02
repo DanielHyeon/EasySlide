@@ -604,6 +604,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 이 항목 서식 복사/붙여넣기 — 한 항목의 서식을 담아 다른 항목들에 그대로 적용(여러 항목 통일에 편리). 복사는 서식 있을 때, 붙여넣기는 담아둔 서식 있고 대상이 편집 가능할 때.
         CopySelectedItemFormattingCommand = new RelayCommand(CopySelectedItemFormatting, () => CanCopySelectedItemFormatting);
         PasteSelectedItemFormattingCommand = new RelayCommand(PasteSelectedItemFormatting, () => CanPasteSelectedItemFormatting);
+        // 복사한 서식을 전 항목(곡·성경)에 일괄 적용 — 담아 둔 서식 있고 대상 항목 있을 때만 활성.
+        ApplyCopiedFormatToAllCommand = new RelayCommand(ApplyCopiedFormatToAll, () => CanApplyCopiedFormatToAll);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -776,6 +778,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>담아 둔 항목별 서식을 이 항목에 그대로 적용한다(여러 항목 서식 통일).</summary>
     public IRelayCommand PasteSelectedItemFormattingCommand { get; }
+
+    /// <summary>복사해 둔 항목별 서식을 예배 순서의 모든 곡·성경 항목에 한 번에 적용한다.</summary>
+    public IRelayCommand ApplyCopiedFormatToAllCommand { get; }
 
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
@@ -2029,6 +2034,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanClearSelectedItemFormatting));
         OnPropertyChanged(nameof(CanCopySelectedItemFormatting));
         OnPropertyChanged(nameof(CanPasteSelectedItemFormatting));
+        OnPropertyChanged(nameof(CanApplyCopiedFormatToAll));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
@@ -3023,7 +3029,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 우클릭 "이 항목 글자색"·"이 항목 정렬" 등 메뉴의 활성화에 공통으로 쓴다(이름은 호환을 위해 Color 유지). 절 순서 편집은 곡만이라 별도 조건(CanEditSelectedItemSequence).
     /// </summary>
     public bool CanEditSelectedItemColor
-        => SelectedItem is { Kind: LiveItemKinds.Song or LiveItemKinds.Bible } item && !string.IsNullOrWhiteSpace(item.Lyrics);
+        => SelectedItem is { } item && IsPerItemFormattable(item);
+
+    /// <summary>
+    /// 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 적용할 수 있는 항목인지 — <b>곡 또는 성경</b>이고 본문(가사/구절)이 있을 때.
+    /// 선택 항목 게이트(<see cref="CanEditSelectedItemColor"/>)와 전 항목 일괄 적용이 같은 기준을 쓰도록 한 곳에 모은다(중복 방지).
+    /// </summary>
+    private static bool IsPerItemFormattable(LiveQueueItem item)
+        => item.Kind is LiveItemKinds.Song or LiveItemKinds.Bible && !string.IsNullOrWhiteSpace(item.Lyrics);
 
     /// <summary>
     /// "이 항목 서식 모두 지우기"를 누를 수 있는지 — 서식 편집 대상(곡·성경)이면서 실제로 지울 항목별 서식(FormatData)이 있을 때만.
@@ -3085,6 +3098,67 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             StatusText = "이 항목에 서식 붙여넣음";
         }
+    }
+
+    /// <summary>"복사한 서식을 전 항목에 적용"을 누를 수 있는지 — 담아 둔 서식이 있고, 큐에 서식 적용 가능한 항목(곡·성경)이 하나라도 있을 때.</summary>
+    public bool CanApplyCopiedFormatToAll
+        => !string.IsNullOrEmpty(_copiedItemFormatData) && Queue.Any(IsPerItemFormattable);
+
+    /// <summary>
+    /// 복사("이 항목 서식 복사")해 둔 항목별 서식을 예배 순서의 모든 곡·성경 항목(본문 있음)에 한 번에 적용한다 — 여러 곡을 같은 색·글꼴로 빠르게 통일.
+    /// PPT·미디어·공지 항목은 항목별 서식 대상이 아니라 건너뛴다(레거시 "Apply to All Except InfoScreens" 와 같은 취지). 이미 같은 서식인 항목은 바꾸지 않는다(불필요한 재송출 방지).
+    /// 라이브 항목이 영향을 받으면 세션 실제 절로 다시 송출해 즉시 반영한다.
+    /// </summary>
+    public void ApplyCopiedFormatToAll()
+    {
+        if (!CanApplyCopiedFormatToAll)
+        {
+            return;
+        }
+
+        // 담아 둔 서식을 Parse→Encode 로 한 번 정규화한다(잘못된 코드 걸러지고, 비교용 표준 문자열 확보).
+        var encoded = SongFormatData.Parse(_copiedItemFormatData)?.Encode();
+        if (string.IsNullOrEmpty(encoded))
+        {
+            StatusText = "복사한 서식이 비어 있습니다.";
+            return;
+        }
+
+        // 선택 항목은 인스턴스가 교체되므로 위치를 잡아 두었다가 같은 자리의 새 인스턴스로 다시 선택한다(선택 유지).
+        var selectedIndex = SelectedItem is { } sel ? IndexOfReference(sel) : -1;
+
+        var changed = 0;
+        for (var i = 0; i < Queue.Count; i++)
+        {
+            var item = Queue[i];
+            if (!IsPerItemFormattable(item))
+            {
+                continue; // 곡·성경(본문 있음)만 대상 — 나머지는 건너뜀.
+            }
+
+            if (string.Equals(item.FormatData, encoded, StringComparison.Ordinal) && item.UseIndividualFormatting)
+            {
+                continue; // 이미 같은 서식이면 그대로 둔다.
+            }
+
+            Queue[i] = item with { FormatData = encoded, UseIndividualFormatting = true };
+            changed++;
+        }
+
+        if (changed == 0)
+        {
+            StatusText = "이미 모든 대상 항목이 같은 서식을 쓰고 있습니다.";
+            return;
+        }
+
+        if (selectedIndex >= 0 && selectedIndex < Queue.Count)
+        {
+            SelectedItem = Queue[selectedIndex];
+        }
+
+        RepublishLiveSongForBodyChange();
+        NotifyCommandStates();
+        StatusText = $"{changed}개 항목에 복사한 서식 적용";
     }
 
     /// <summary>현재 선택한 항목에 적용된 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 기본색 추종).</summary>
@@ -4802,6 +4876,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearSelectedItemFormattingCommand.NotifyCanExecuteChanged();
         CopySelectedItemFormattingCommand.NotifyCanExecuteChanged();
         PasteSelectedItemFormattingCommand.NotifyCanExecuteChanged();
+        ApplyCopiedFormatToAllCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

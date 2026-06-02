@@ -501,6 +501,10 @@
                 <MenuItem Header="전 항목에 전역 서식 적용"
                           Command="{Binding ApplyGlobalFormatToAllCommand}"
                           ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
+                <!-- 복사한 항목별 서식을 전 항목(곡·성경)에 일괄 적용 — 우클릭 "이 항목 서식 복사"로 담아 둔 서식이 있을 때만 활성. -->
+                <MenuItem Header="복사한 서식을 전 항목에 적용"
+                          Command="{Binding ApplyCopiedFormatToAllCommand}"
+                          ToolTip="우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용(같은 색·글꼴로 통일)." />
                 <Separator />
                 <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
                 <MenuItem Header="가사 정렬">
