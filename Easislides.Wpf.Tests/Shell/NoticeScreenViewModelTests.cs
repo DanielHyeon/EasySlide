@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -7,6 +10,82 @@ namespace Easislides.Wpf.Tests.Shell;
 
 public class NoticeScreenViewModelTests
 {
+    // 임시 폴더 스토어로 명명 정보 화면 저장/불러오기/삭제를 격리 검증.
+    private static (NoticeScreenViewModel Vm, InfoScreenStore Store, string Dir) CreateWithStore()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"EasiSlides_ISVM_{Guid.NewGuid():N}");
+        var store = new InfoScreenStore(dir);
+        var vm = new NoticeScreenViewModel((_, _) => true, () => { }, store: store);
+        return (vm, store, dir);
+    }
+
+    [Fact]
+    public async Task SaveThenOpen_RoundTripsTextAndFontSize()
+    {
+        var (vm, _, dir) = CreateWithStore();
+        try
+        {
+            vm.Text = "예배에 오신 것을 환영합니다";
+            vm.FontSizePt = 60;
+            vm.NewScreenName = "환영 인사";
+            vm.SaveAsCommand.CanExecute(null).Should().BeTrue();
+
+            await vm.SaveAsCommand.ExecuteAsync(null);
+            vm.SavedScreens.Should().Contain("환영 인사");
+
+            // 편집기를 바꾼 뒤 다시 불러오면 저장된 내용으로 복원.
+            vm.Text = "다른 내용";
+            vm.FontSizePt = 40;
+            vm.SelectedScreen = "환영 인사";
+            await vm.OpenCommand.ExecuteAsync(null);
+
+            vm.Text.Should().Be("예배에 오신 것을 환영합니다");
+            vm.FontSizePt.Should().Be(60);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SaveAsCommand_DisabledWhenNameEmpty()
+    {
+        var (vm, _, dir) = CreateWithStore();
+        try
+        {
+            vm.SaveAsCommand.CanExecute(null).Should().BeFalse("이름 없으면 저장 불가");
+            vm.NewScreenName = "광고";
+            vm.SaveAsCommand.CanExecute(null).Should().BeTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task DeleteCommand_RemovesScreenAndClearsSelection()
+    {
+        var (vm, _, dir) = CreateWithStore();
+        try
+        {
+            vm.Text = "지울 공지";
+            vm.NewScreenName = "임시";
+            await vm.SaveAsCommand.ExecuteAsync(null);
+            vm.SelectedScreen = "임시";
+
+            vm.DeleteCommand.Execute(null);
+
+            vm.SavedScreens.Should().NotContain("임시");
+            vm.SelectedScreen.Should().BeNull("삭제 후 선택 해제");
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
     [Fact]
     public void SendCommand_DisabledWhenTextEmpty()
     {

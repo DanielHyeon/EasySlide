@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -14,6 +17,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 {
     private readonly Func<string, int, bool> _publish;
     private readonly Action _clear;
+    private readonly IInfoScreenStore _store;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SendCommand))]
@@ -26,15 +30,41 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private int _fontSizePt = 40;
 
-    public NoticeScreenViewModel(Func<string, int, bool> publish, Action clear, string? initialText = null)
+    // 새로 저장할 정보 화면 이름(저장 버튼 활성 판별).
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
+    private string _newScreenName = string.Empty;
+
+    // 콤보에서 고른 저장된 정보 화면(불러오기·삭제 버튼 활성 판별).
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
+    private string? _selectedScreen;
+
+    public NoticeScreenViewModel(Func<string, int, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
+        _store = store ?? new InfoScreenStore();
         // 초기 텍스트(성경 "공지 화면으로 복사" 등에서 미리 채워 열 때). 비면 빈 편집기로 시작.
         _text = initialText ?? string.Empty;
         SendCommand = new RelayCommand(Send, () => !string.IsNullOrWhiteSpace(Text));
         ClearCommand = new RelayCommand(Clear);
+        // 명명 정보 화면 저장/불러오기/삭제(레거시 InfoScreen .esi 목록의 첫 슬라이스).
+        SaveAsCommand = new AsyncRelayCommand(SaveAsAsync, () => !string.IsNullOrWhiteSpace(NewScreenName));
+        OpenCommand = new AsyncRelayCommand(OpenAsync, () => !string.IsNullOrWhiteSpace(SelectedScreen));
+        DeleteCommand = new RelayCommand(Delete, () => !string.IsNullOrWhiteSpace(SelectedScreen));
+        RefreshSavedScreens();
     }
+
+    /// <summary>저장된 정보 화면 이름 목록 — 콤보에 바인딩.</summary>
+    public ObservableCollection<string> SavedScreens { get; } = new();
+
+    public IAsyncRelayCommand SaveAsCommand { get; }
+
+    public IAsyncRelayCommand OpenCommand { get; }
+
+    public IRelayCommand DeleteCommand { get; }
 
     /// <summary>
     /// "공지 화면으로 복사"에 쓸 텍스트를 고른다 — 드래그 선택이 있으면 그 선택, 없으면 본문 전체.
@@ -67,5 +97,101 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     {
         _clear();
         StatusText = "공지를 내렸습니다(검은 화면).";
+    }
+
+    // 저장된 정보 화면 이름을 다시 읽어 콤보를 갱신한다.
+    private void RefreshSavedScreens()
+    {
+        SavedScreens.Clear();
+        foreach (var name in _store.ListNames())
+        {
+            SavedScreens.Add(name);
+        }
+    }
+
+    // 현재 본문·글자 크기를 이름으로 저장(레거시 InfoScreen .esi 저장). 무효 이름은 안내 후 무동작.
+    private async Task SaveAsAsync()
+    {
+        var name = NewScreenName?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        try
+        {
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt)).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"정보 화면 저장 실패: {ex.Message}";
+            return;
+        }
+
+        RefreshSavedScreens();
+        SelectedScreen = name;
+        StatusText = $"정보 화면 저장됨: {name}";
+    }
+
+    // 고른 정보 화면을 편집기로 불러온다(본문·글자 크기). 파일이 없거나 손상이면 안내.
+    private async Task OpenAsync()
+    {
+        var name = SelectedScreen?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        InfoScreenDto? dto;
+        try
+        {
+            dto = await _store.LoadAsync(name).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"정보 화면 불러오기 실패: {ex.Message}";
+            return;
+        }
+
+        if (dto is null)
+        {
+            // 파일이 외부에서 사라졌으면 목록 갱신 + 선택 해제(삭제 경로와 일관 — 사라진 이름에 Open/Delete 가 계속 활성되지 않도록).
+            StatusText = $"정보 화면을 찾을 수 없습니다: {name}";
+            RefreshSavedScreens();
+            SelectedScreen = null;
+            return;
+        }
+
+        Text = dto.Text;
+        if (dto.FontSize > 0)
+        {
+            FontSizePt = dto.FontSize;
+        }
+
+        StatusText = $"정보 화면 불러옴: {name}";
+    }
+
+    // 고른 정보 화면을 삭제한다(파일 제거). 편집기 내용은 그대로 둔다.
+    private void Delete()
+    {
+        var name = SelectedScreen?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        try
+        {
+            _store.Delete(name);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"정보 화면 삭제 실패: {ex.Message}";
+            return;
+        }
+
+        RefreshSavedScreens();
+        SelectedScreen = null;
+        StatusText = $"정보 화면 삭제됨: {name}";
     }
 }

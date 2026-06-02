@@ -94,7 +94,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | FrmMain 탭 | 내용 | WPF |
 |---|---|---|
 | Folders + `SongFolder` + `SongsList` + 정렬(획/CJK단어수/곡번호)·A/B/C 점프 | 곡 폴더·목록 | 🟢 라이브러리 탭(폴더 콤보+검색+ListBox + 정렬[원래/제목/곡번호/획수순] + A/B/C 초성 점프 바). CJK 단어수 정렬만 후속 |
-| InfoScr(`InfoScreenList`, .esi 편집기) | 공지 화면(NoticeScreenWindow — 정보화면 텍스트 편집·송출) | 🟡 정보화면 텍스트 편집·송출은 포팅. .esi 목록 관리/풀 편집기(7337줄)는 후속 |
+| InfoScr(`InfoScreenList`, .esi 편집기) | 공지 화면(NoticeScreenWindow — 텍스트 편집·송출 + **명명 정보화면 저장/불러오기/삭제**) | 🟡 텍스트 편집·송출 + 명명 저장 목록(증분76) 포팅. .esi 풀 편집기(7337줄)·레거시 포맷만 후속 |
 | PowerP(`PowerpointList`, list/thumbnail) | PPT 파일 브라우징 | 🟡 중앙 PPT 탭은 미리보기만(폴더 브라우징·import 없음) |
 | Bibles(인라인, §4 참조) | 인라인 성경 | 🟡 좌측 성경 탭(단, 이중영역·typed-ref·copy-to-InfoScreen 없음) |
 | Images(`flowLayoutImages`, Scenery/Tiles, 배경 적용) | 이미지 갤러리(ImageLibraryWindow — 폴더 썸네일·출력 배경 적용/지우기) | 🟢 폴더 이미지를 썸네일로 보고 출력 배경으로 적용. Scenery/Tiles 카테고리 구분만 후속 |
@@ -157,7 +157,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Images 라이브러리(Scenery/Tiles, 우클릭 배경 적용) | 이미지 갤러리(폴더 썸네일·하위폴더 포함·카테고리[Scenery/Tiles] 필터·배경 적용/해제·더블클릭·**우클릭 메뉴**) | 🟢 (증분74·75) 카테고리 필터 + 우클릭 "배경으로 적용/해제"(우클릭 항목 선택). Images 트랙 완비 |
 | Media 목록 브라우징 | 중앙 Media 탭 + `MediaLibraryWindow`(폴더 브라우저) | 🟢 (2026-06-01 증분 33) 미디어 폴더 브라우저(동영상·오디오 13확장자, 하위폴더·더블클릭 추가) — PowerPoint 브라우저와 동일 구조 |
 | PowerPoint 목록/썸네일/Import | 중앙 PPT 미리보기 | 🟡 브라우징/Import 없음 |
-| InfoScreens(.esi) 목록·편집 | — | 🔴 |
+| InfoScreens(.esi) 목록·편집 | 명명 정보화면 목록(InfoScreenStore — 이름별 저장/불러오기/삭제, 공지 창 콤보) | 🟡 (증분76) 명명 저장 목록·재사용 첫 슬라이스. 풀 편집기(7337줄)·.esi 레거시 포맷은 후속 |
 | 인라인 성경(§4) | 좌측 성경 탭 + BibleWindow | 🟡 |
 
 ### 3.4 예배 순서 관리

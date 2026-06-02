@@ -15,6 +15,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Text="회중 출력에 표시할 공지(안내) 문구를 입력하고 '송출'을 누르세요. 줄바꿈으로 여러 줄을 보낼 수 있습니다."
@@ -51,7 +52,49 @@
                        Margin="16,0,0,0" />
         </StackPanel>
 
-        <StackPanel Grid.Row="3"
+        <!-- 명명 정보 화면(레거시 InfoScreen .esi 목록) — 현재 본문을 이름으로 저장, 콤보에서 골라 불러오기/삭제. -->
+        <Grid Grid.Row="3" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0"
+                     Text="{Binding NewScreenName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     MinHeight="30"
+                     VerticalContentAlignment="Center"
+                     ToolTip="새 정보 화면 이름"
+                     AutomationProperties.Name="새 정보 화면 이름" />
+            <Button Grid.Column="1"
+                    Command="{Binding SaveAsCommand}"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Margin="6,0,0,0"
+                    Content="저장"
+                    AutomationProperties.Name="정보 화면 저장" />
+            <ComboBox Grid.Column="3"
+                      ItemsSource="{Binding SavedScreens}"
+                      SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
+                      MinHeight="30"
+                      ToolTip="저장된 정보 화면"
+                      AutomationProperties.Name="저장된 정보 화면" />
+            <Button Grid.Column="4"
+                    Command="{Binding OpenCommand}"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Margin="6,0,0,0"
+                    Content="불러오기"
+                    AutomationProperties.Name="정보 화면 불러오기" />
+            <Button Grid.Column="5"
+                    Command="{Binding DeleteCommand}"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Margin="6,0,0,0"
+                    Content="삭제"
+                    AutomationProperties.Name="정보 화면 삭제" />
+        </Grid>
+
+        <StackPanel Grid.Row="4"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">
