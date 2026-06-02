@@ -3984,6 +3984,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             sb.Append($"29={options.ColorArgb}>");
         }
 
+        if (options.BackgroundColorArgb != 0)
+        {
+            // 코드 26 = 영역1 배경색(곡 배경과 동일 파이프라인) → 출력이 라이브에서 OverrideBackgroundColorArgb 로 적용.
+            sb.Append($"26={options.BackgroundColorArgb}>");
+        }
+
         return sb.Length == 0 ? null : sb.ToString();
     }
 

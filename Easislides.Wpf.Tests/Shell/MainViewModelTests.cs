@@ -1790,6 +1790,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void BuildNoticeFormatData_IncludesBackgroundColorCode26_WithOtherCodes()
+    {
+        // 공지 옵션이 곡 FormatData 파이프라인으로 인코드 — 배경색은 코드26, 나머지(크기47·정렬31·글자색29)도 함께.
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(
+            FontSizePt: 60, Alignment: 2, ColorArgb: -1, BackgroundColorArgb: unchecked((int)0xFF000000)));
+
+        fd.Should().NotBeNull();
+        fd!.Should().Contain($"26={unchecked((int)0xFF000000)}", "배경색 코드26");
+        fd.Should().Contain("47=60", "크기").And.Contain("31=2", "정렬").And.Contain("29=-1", "글자색");
+    }
+
+    [Fact]
+    public void BuildNoticeFormatData_NoBackground_OmitsCode26()
+    {
+        // 배경색 기본(0)이면 코드26 을 넣지 않는다(출력 기본 배경 유지).
+        var fd = MainViewModel.BuildNoticeFormatData(new NoticeOptions(ColorArgb: -1));
+
+        (fd ?? "").Should().NotContain("26=", "배경색 없으면 코드26 생략");
+    }
+
+    [Fact]
+    public void PublishNotice_WithBackgroundColor_AppliesOverrideBackground_EndToEnd()
+    {
+        // 종단(통합): 공지 배경색이 송출 시 세션 오버라이드 배경으로 적용된다(BuildNoticeFormatData 코드26 →
+        // GoLive 가 Kind 무관하게 FormatData 파싱 → OverrideBackgroundColorArgb → 출력 렌더). 곡 개별서식 게이트 없음.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        sut.OpenOutputCommand.Execute(null);
+
+        var ok = sut.PublishNotice("광고", new NoticeOptions(BackgroundColorArgb: unchecked((int)0xFF000000)));
+
+        ok.Should().BeTrue("출력이 열려 있으면 송출 성공");
+        session.Current.OverrideBackgroundColorArgb.Should().Be(unchecked((int)0xFF000000), "공지 배경색이 라이브 송출 배경으로 적용");
+    }
+
+    [Fact]
     public void AddExternalFilesRelativeTo_SkipsImages_NotQueueItems()
     {
         // 이미지 파일은 큐 항목이 아니라 출력 배경용이므로, 큐에 드롭하면 추가하지 않고 건너뛴다(배경 드롭은 미리보기 영역).

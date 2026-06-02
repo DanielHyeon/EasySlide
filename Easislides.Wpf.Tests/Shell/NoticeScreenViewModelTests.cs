@@ -49,6 +49,46 @@ public class NoticeScreenViewModelTests
     }
 
     [Fact]
+    public void Send_PassesBackgroundColor_InNoticeOptions()
+    {
+        // 공지 배경색(코드26)이 송출 옵션에 실려 출력으로 전달되는지 — 콜백이 받은 NoticeOptions 를 잡아 확인.
+        NoticeOptions? captured = null;
+        var vm = new NoticeScreenViewModel((_, opts) => { captured = opts; return true; }, () => { });
+        vm.Text = "광고";
+        vm.ColorArgb = unchecked((int)0xFFFFFFFF);
+        vm.BackgroundColorArgb = unchecked((int)0xFF000000); // 검정 배경.
+
+        vm.SendCommand.Execute(null);
+
+        captured.Should().NotBeNull();
+        captured!.BackgroundColorArgb.Should().Be(unchecked((int)0xFF000000), "배경색이 송출 옵션에 실림");
+        captured.ColorArgb.Should().Be(unchecked((int)0xFFFFFFFF), "글자색도 함께");
+    }
+
+    [Fact]
+    public async Task SaveThenOpen_RoundTripsBackgroundColor()
+    {
+        var (vm, _, dir) = CreateWithStore();
+        try
+        {
+            vm.Text = "광고";
+            vm.BackgroundColorArgb = unchecked((int)0xFF202020);
+            vm.NewScreenName = "주보 광고";
+            await vm.SaveAsCommand.ExecuteAsync(null);
+
+            vm.BackgroundColorArgb = 0; // 편집기 변경 후 불러오면 복원.
+            vm.SelectedScreen = "주보 광고";
+            await vm.OpenCommand.ExecuteAsync(null);
+
+            vm.BackgroundColorArgb.Should().Be(unchecked((int)0xFF202020), "배경색도 저장/복원");
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SaveAsCommand_DisabledWhenNameEmpty()
     {
         var (vm, _, dir) = CreateWithStore();

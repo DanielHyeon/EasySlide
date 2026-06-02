@@ -66,6 +66,17 @@
                       Width="100"
                       ToolTip="공지 글자색(기본=출력 기본 글자색)"
                       AutomationProperties.Name="공지 글자색" />
+            <TextBlock Text="배경색"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       Margin="16,0,8,0" />
+            <ComboBox ItemsSource="{Binding BackgroundColorPresets}"
+                      SelectedValue="{Binding BackgroundColorArgb, Mode=TwoWay}"
+                      SelectedValuePath="Value"
+                      DisplayMemberPath="Key"
+                      Width="100"
+                      ToolTip="공지 배경색(기본=출력 기본 배경)"
+                      AutomationProperties.Name="공지 배경색" />
             <TextBlock Text="{Binding StatusText}"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"

@@ -26,6 +26,33 @@ public sealed class InfoScreenStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Save_Then_Load_RoundTripsBackgroundColor()
+    {
+        var store = new InfoScreenStore(_dir);
+
+        await store.SaveAsync("광고", new InfoScreenDto("주보 광고", FontSize: 60, ColorArgb: -1, BackgroundColorArgb: unchecked((int)0xFF202020)));
+        var loaded = await store.LoadAsync("광고");
+
+        loaded!.BackgroundColorArgb.Should().Be(unchecked((int)0xFF202020), "배경색도 영속");
+        loaded.ColorArgb.Should().Be(-1, "글자색도 함께");
+    }
+
+    [Fact]
+    public async Task Load_OldFileWithoutBackgroundField_DefaultsToZero()
+    {
+        // 옛 저장 파일(BackgroundColorArgb 필드 없음)도 JSON 역직렬화 시 기본 0=출력 기본 배경으로 안전하게 읽힌다(무회귀).
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "옛파일.json");
+        await File.WriteAllTextAsync(path, "{\"Text\":\"옛 공지\",\"FontSize\":40,\"Alignment\":1,\"ColorArgb\":-1}");
+
+        var loaded = await new InfoScreenStore(_dir).LoadAsync("옛파일");
+
+        loaded!.Text.Should().Be("옛 공지");
+        loaded.ColorArgb.Should().Be(-1);
+        loaded.BackgroundColorArgb.Should().Be(0, "필드 없는 옛 파일은 기본 0");
+    }
+
+    [Fact]
     public async Task Load_MissingName_ReturnsNull()
     {
         var store = new InfoScreenStore(_dir);

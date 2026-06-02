@@ -41,6 +41,10 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private int _colorArgb;
 
+    // 공지 배경색(ARGB int, 0=기본). 출력에 26= FormatData 로 실린다(곡 배경과 동일 파이프라인). 기본 0=출력 기본 배경.
+    [ObservableProperty]
+    private int _backgroundColorArgb;
+
     // 새로 저장할 정보 화면 이름(저장 버튼 활성 판별).
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
@@ -119,10 +123,20 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         new KeyValuePair<string, int>("연두", unchecked((int)0xFF99E066)),
     };
 
+    /// <summary>배경색 프리셋(라벨·ARGB int) — 콤보 바인딩용(기본 0=출력 기본 / 글자가 잘 보이는 어두운 색).</summary>
+    public IReadOnlyList<KeyValuePair<string, int>> BackgroundColorPresets { get; } = new[]
+    {
+        new KeyValuePair<string, int>("기본", 0),
+        new KeyValuePair<string, int>("검정", unchecked((int)0xFF000000)),
+        new KeyValuePair<string, int>("진회색", unchecked((int)0xFF202020)),
+        new KeyValuePair<string, int>("네이비", unchecked((int)0xFF001A33)),
+        new KeyValuePair<string, int>("짙은 보라", unchecked((int)0xFF1A0033)),
+    };
+
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
     {
-        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb));
+        var ok = _publish(Text, new NoticeOptions(FontSizePt, Alignment, ColorArgb, BackgroundColorArgb));
         StatusText = ok
             ? "공지를 출력에 송출했습니다."
             : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
@@ -170,7 +184,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         try
         {
-            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb)).ConfigureAwait(true);
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -220,6 +234,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         Alignment = dto.Alignment; // 0=기본 포함 그대로 복원.
         ColorArgb = dto.ColorArgb; // 0=기본 포함 그대로 복원.
+        BackgroundColorArgb = dto.BackgroundColorArgb; // 0=기본 포함 그대로 복원(옛 파일은 필드 없어 0).
         StatusText = $"정보 화면 불러옴: {name}";
     }
 
