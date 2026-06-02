@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Easislides.Wpf.Shell;
 
-/// <summary>정보 화면(공지) 저장 DTO — 본문과 글자 크기(0이면 기본 크기). 레거시 InfoScreen(.esi) 텍스트 보존의 최소 필드.</summary>
-public sealed record InfoScreenDto(string Text, int FontSize = 0);
+/// <summary>정보 화면(공지) 저장 DTO — 본문·글자 크기(0=기본)·가로 정렬(0=기본/1왼쪽/2가운데/3오른쪽). 레거시 InfoScreen(.esi) 보존 최소 필드.</summary>
+public sealed record InfoScreenDto(string Text, int FontSize = 0, int Alignment = 0);
 
 /// <summary>
 /// 명명 정보 화면(공지 텍스트)을 이름으로 저장/불러오기/삭제한다(레거시 FrmInfoScreen 의 .esi 목록 대응의 첫 슬라이스).

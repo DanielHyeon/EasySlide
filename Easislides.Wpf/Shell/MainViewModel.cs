@@ -2786,7 +2786,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 공지는 큐 항목이 아니라 일시 라이브 항목이다. _liveItemId 를 센티넬(NoticeLiveId)로 둬
     // 슬라이드/절 이동 가드(== 선택 항목 ID)가 자연히 false 가 되도록 한다 — null 로 두면 슬라이드 이동
     // 가드의 "라이브 미시작" 와일드카드(_liveItemId is null)에 걸려 의미 없는 이동 버튼이 켜진다.
-    public bool PublishNotice(string text, int fontSizePt = 0)
+    // 공지 FormatData 조립(순수 함수) — 글자 크기(47=pt)와 가로 정렬(31=1왼/2가운데/3오른쪽)을 레거시 FormatData 로 싣는다.
+    // 둘 다 미지정이면 null(출력 기본 사용). 곡별 FormatData 오버라이드 파이프라인을 그대로 재사용하므로 공지에도 같은 정렬 렌더가 적용된다.
+    internal static string? BuildNoticeFormatData(int fontSizePt, int alignment)
+    {
+        var sb = new System.Text.StringBuilder();
+        if (fontSizePt > 0)
+        {
+            sb.Append($"47={fontSizePt}>");
+        }
+
+        if (alignment is 1 or 2 or 3)
+        {
+            sb.Append($"31={alignment}>");
+        }
+
+        return sb.Length == 0 ? null : sb.ToString();
+    }
+
+    public bool PublishNotice(string text, int fontSizePt = 0, int alignment = 0)
     {
         if (string.IsNullOrWhiteSpace(text) || !_output.Current.IsOpen)
         {
@@ -2794,9 +2812,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        // 글자 크기 지정 시 레거시 FormatData(코드 47=pt)로 실어 기존 곡별 폰트 오버라이드 파이프라인을 그대로 재사용.
-        // 0(미지정)이면 FormatData 없음 → 출력 기본 글자 크기 사용. 디코더가 6~100pt 로 검증한다.
-        var formatData = fontSizePt > 0 ? $"47={fontSizePt}>" : null;
+        // 글자 크기·정렬을 레거시 FormatData(47=pt·31=정렬)로 실어 기존 곡별 오버라이드 파이프라인을 그대로 재사용.
+        // 둘 다 0(미지정)이면 FormatData 없음 → 출력 기본 크기·정렬 사용. 디코더가 6~100pt·정렬 1~3 으로 검증한다.
+        var formatData = BuildNoticeFormatData(fontSizePt, alignment);
         var notice = new LiveQueueItem(LiveItemKinds.NoticeLiveId, "공지", LiveItemKinds.Notice)
         {
             Lyrics = text,

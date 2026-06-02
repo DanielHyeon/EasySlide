@@ -15,7 +15,7 @@ namespace Easislides.Wpf.Shell;
 /// </summary>
 public sealed partial class NoticeScreenViewModel : ObservableObject
 {
-    private readonly Func<string, int, bool> _publish;
+    private readonly Func<string, int, int, bool> _publish;
     private readonly Action _clear;
     private readonly IInfoScreenStore _store;
 
@@ -30,6 +30,10 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [ObservableProperty]
     private int _fontSizePt = 40;
 
+    // 공지 가로 정렬(0=기본/1왼쪽/2가운데/3오른쪽). 출력에 31= FormatData 로 실린다. 기본 0=출력 기본 정렬.
+    [ObservableProperty]
+    private int _alignment;
+
     // 새로 저장할 정보 화면 이름(저장 버튼 활성 판별).
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveAsCommand))]
@@ -41,7 +45,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     private string? _selectedScreen;
 
-    public NoticeScreenViewModel(Func<string, int, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null)
+    public NoticeScreenViewModel(Func<string, int, int, bool> publish, Action clear, string? initialText = null, IInfoScreenStore? store = null)
     {
         _publish = publish ?? throw new ArgumentNullException(nameof(publish));
         _clear = clear ?? throw new ArgumentNullException(nameof(clear));
@@ -83,10 +87,19 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
     public IRelayCommand ClearCommand { get; }
 
+    /// <summary>정렬 프리셋(라벨·값) — 콤보 바인딩용(기본 0 / 왼쪽 1 / 가운데 2 / 오른쪽 3).</summary>
+    public IReadOnlyList<KeyValuePair<string, int>> AlignmentPresets { get; } = new[]
+    {
+        new KeyValuePair<string, int>("기본", 0),
+        new KeyValuePair<string, int>("왼쪽", 1),
+        new KeyValuePair<string, int>("가운데", 2),
+        new KeyValuePair<string, int>("오른쪽", 3),
+    };
+
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
     {
-        var ok = _publish(Text, FontSizePt);
+        var ok = _publish(Text, FontSizePt, Alignment);
         StatusText = ok
             ? "공지를 출력에 송출했습니다."
             : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
@@ -120,7 +133,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         try
         {
-            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt)).ConfigureAwait(true);
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -168,6 +181,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
             FontSizePt = dto.FontSize;
         }
 
+        Alignment = dto.Alignment; // 0=기본 포함 그대로 복원.
         StatusText = $"정보 화면 불러옴: {name}";
     }
 
