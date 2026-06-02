@@ -28,6 +28,9 @@ public sealed partial class LiveBarViewModel : ObservableObject
     /// <summary>송출 중인 항목의 위치 라벨 (예: 곡 "3/12"·PPT 슬라이드 "5/20"). 단일 페이지/위치 없음이면 빈 문자열 → 자동 숨김.</summary>
     [ObservableProperty] private string _positionLabel = string.Empty;
 
+    /// <summary>다음 송출 예정 항목 제목 (예배 순서에서 현재 항목 바로 다음). 마지막 항목이거나 없으면 빈 문자열 → "다음" 줄 자동 숨김. 운영자가 미리 준비하게.</summary>
+    [ObservableProperty] private string _nextItemTitle = string.Empty;
+
     /// <summary>송출 중인 모니터 식별자 (예: "모니터 2").</summary>
     [ObservableProperty] private string _outputMonitorName = string.Empty;
 

@@ -116,4 +116,15 @@ public class LiveBarViewModelTests
         sut.PositionLabel = "3/12";
         sut.PositionLabel.Should().Be("3/12");
     }
+
+    [Fact]
+    public void NextItemTitle_DefaultsEmpty_AndSettable()
+    {
+        // 다음 예정 항목 — 기본 빈 문자열(마지막/없음→"다음" 줄 숨김), 설정하면 반영.
+        var sut = new LiveBarViewModel();
+        sut.NextItemTitle.Should().BeEmpty("기본은 빈 문자열");
+
+        sut.NextItemTitle = "2부 찬양";
+        sut.NextItemTitle.Should().Be("2부 찬양");
+    }
 }

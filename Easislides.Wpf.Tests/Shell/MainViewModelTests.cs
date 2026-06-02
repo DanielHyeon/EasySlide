@@ -4150,6 +4150,25 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LiveBar_ShowsNextUpItem_AndEmptyOnLastItem()
+    {
+        // 증분143 — 상단 LiveBar 가 다음 예정 항목을 보여 준다(운영자 준비용). 마지막 항목이면 빈 문자열(다음 줄 숨김).
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:a", "1부 찬양", "Song") { Lyrics = "[1]\n가" };
+        var b = new LiveQueueItem("song:b", "2부 찬양", "Song") { Lyrics = "[1]\n나" };
+        sut.LoadQueue([a, b]);
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.SelectedItem = a;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.LiveBar.NextItemTitle.Should().Be("2부 찬양", "현재 항목 다음 항목을 미리 표시");
+
+        sut.SelectedItem = b;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.LiveBar.NextItemTitle.Should().BeEmpty("마지막 항목이면 다음 없음");
+    }
+
+    [Fact]
     public async Task GoLive_SingleVerseSong_HasEmptyPositionLabel()
     {
         // 단일 절 곡은 위치 라벨이 비어 있다(표시 의미 없음).

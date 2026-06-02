@@ -58,15 +58,33 @@
                        VerticalAlignment="Center"
                        Margin="0,0,16,0" />
 
-            <!-- 중앙: 현재 송출 아이템 -->
-            <TextBlock Grid.Column="2"
-                       Text="{Binding CurrentItemTitle}"
-                       FontFamily="{DynamicResource Font.Primary}"
-                       FontSize="16"
-                       FontWeight="Medium"
-                       Foreground="{DynamicResource Brush.Text.Inverse}"
-                       VerticalAlignment="Center"
-                       TextTrimming="CharacterEllipsis" />
+            <!-- 중앙: 현재 송출 아이템 + (아래 작게) 다음 예정 항목 — 운영자가 다음을 미리 본다. -->
+            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                <TextBlock Text="{Binding CurrentItemTitle}"
+                           FontFamily="{DynamicResource Font.Primary}"
+                           FontSize="16"
+                           FontWeight="Medium"
+                           Foreground="{DynamicResource Brush.Text.Inverse}"
+                           TextTrimming="CharacterEllipsis" />
+                <!-- 다음 예정 항목(마지막이거나 없으면 빈 문자열→줄 숨김). 흐리게 작게 — 현재 항목을 가리지 않게. -->
+                <TextBlock Text="{Binding NextItemTitle, StringFormat='다음 ▸ {0}'}"
+                           FontFamily="{DynamicResource Font.Primary}"
+                           FontSize="12"
+                           Foreground="{DynamicResource Brush.Text.Inverse}"
+                           Opacity="0.75"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,1,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding NextItemTitle}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
 
             <!-- 위치 라벨(곡 절 "3/12"·PPT 슬라이드 "5/20") — 현재 송출 항목 안에서 어디인지 한눈에. 빈 문자열이면 알약이 보이지 않게 가린다. -->
             <Border Grid.Column="3"
