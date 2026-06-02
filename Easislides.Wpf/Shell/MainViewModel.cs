@@ -575,6 +575,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemFontNameCommand = new RelayCommand<string?>(SetSelectedItemFontName, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageCommand = new RelayCommand<string?>(SetSelectedItemBackgroundImage, _ => CanEditSelectedItemColor);
+        // 항목별 강조(굵게·기울임·밑줄, FormatData 코드41 비트) — 우클릭 토글. 곡일 때만 활성.
+        ToggleSelectedItemBoldCommand = new RelayCommand(ToggleSelectedItemBold, () => CanEditSelectedItemColor);
+        ToggleSelectedItemItalicCommand = new RelayCommand(ToggleSelectedItemItalic, () => CanEditSelectedItemColor);
+        ToggleSelectedItemUnderlineCommand = new RelayCommand(ToggleSelectedItemUnderline, () => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -722,6 +726,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemFontNameCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundColorCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundImageCommand { get; }
+    public IRelayCommand ToggleSelectedItemBoldCommand { get; }
+    public IRelayCommand ToggleSelectedItemItalicCommand { get; }
+    public IRelayCommand ToggleSelectedItemUnderlineCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1838,6 +1845,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemFontName));
         OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
         OnPropertyChanged(nameof(SelectedItemBackgroundImagePath));
+        OnPropertyChanged(nameof(SelectedItemBold));
+        OnPropertyChanged(nameof(SelectedItemItalic));
+        OnPropertyChanged(nameof(SelectedItemUnderline));
 
         NotifyCommandStates();
     }
@@ -2927,6 +2937,44 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 : $"항목 배경 이미지: {System.IO.Path.GetFileName(imagePath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
+
+    /// <summary>현재 선택한 항목의 굵게(이 항목만) 적용 여부 — 우클릭 강조 메뉴 체크 표시에 바인딩.</summary>
+    public bool SelectedItemBold => SongFormatData.Parse(SelectedItem?.FormatData)?.Bold1 ?? false;
+
+    /// <summary>현재 선택한 항목의 기울임(이 항목만) 적용 여부.</summary>
+    public bool SelectedItemItalic => SongFormatData.Parse(SelectedItem?.FormatData)?.Italic1 ?? false;
+
+    /// <summary>현재 선택한 항목의 밑줄(이 항목만) 적용 여부.</summary>
+    public bool SelectedItemUnderline => SongFormatData.Parse(SelectedItem?.FormatData)?.Underline1 ?? false;
+
+    // 선택 곡 항목의 강조(굵게/기울임/밑줄, FormatData 코드41 비트 중 하나)를 켜고 끈다. 켜면 보이도록 개별 서식도 켠다.
+    // 나머지 강조 비트·다른 서식(색·정렬·크기·글꼴)은 그대로 보존(Encode 가 6비트를 다시 합산). 켜는 쪽일 때만 wantsIndividual=true.
+    // 참고: 출력 "강조 후렴만"(LyricsMonitorEmphasisChorusOnly) 전역 설정이 켜져 있으면, 후렴이 아닌 절에선 이 항목 강조도 가려진다
+    // (OutputRenderer 의 후렴 게이트는 항목별·전역 강조 모두에 동일 적용 — 의도된 전역 우선). 즉 강조가 안 보이면 후렴만 설정을 확인.
+    private void ToggleSelectedItemEmphasis(
+        Func<SongFormatData, bool> current,
+        Func<SongFormatData, bool, SongFormatData> withValue,
+        string label)
+    {
+        var parsed = SongFormatData.Parse(SelectedItem?.FormatData) ?? new SongFormatData();
+        var newValue = !current(parsed);
+        if (ApplySelectedSongFormatChange(format => withValue(format, newValue), wantsIndividual: newValue, out var turnedOn))
+        {
+            StatusText = $"항목 {label}: {(newValue ? "켜짐" : "꺼짐")}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>선택한 곡 항목의 굵게(이 항목만)를 켜고 끈다(레거시 항목별 굵게, FormatData 코드41 bit0).</summary>
+    public void ToggleSelectedItemBold()
+        => ToggleSelectedItemEmphasis(f => f.Bold1, (f, v) => f with { Bold1 = v }, "굵게");
+
+    /// <summary>선택한 곡 항목의 기울임(이 항목만)을 켜고 끈다(레거시 항목별 기울임, FormatData 코드41 bit1).</summary>
+    public void ToggleSelectedItemItalic()
+        => ToggleSelectedItemEmphasis(f => f.Italic1, (f, v) => f with { Italic1 = v }, "기울임");
+
+    /// <summary>선택한 곡 항목의 밑줄(이 항목만)을 켜고 끈다(레거시 항목별 밑줄, FormatData 코드41 bit2).</summary>
+    public void ToggleSelectedItemUnderline()
+        => ToggleSelectedItemEmphasis(f => f.Underline1, (f, v) => f with { Underline1 = v }, "밑줄");
 
     // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
     // 각 항목의 UseIndividualFormatting 을 false 로 바꿔 곡별 FormatData 대신 운영 기본 서식으로 송출하게 한다.
@@ -4305,6 +4353,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemFontNameCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageCommand.NotifyCanExecuteChanged();
+        ToggleSelectedItemBoldCommand.NotifyCanExecuteChanged();
+        ToggleSelectedItemItalicCommand.NotifyCanExecuteChanged();
+        ToggleSelectedItemUnderlineCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

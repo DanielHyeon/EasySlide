@@ -5626,6 +5626,114 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경 이미지가 붙지 않음");
     }
 
+    // ── 항목별 강조 인라인 토글(굵게/기울임/밑줄) — 선택한 곡만(레거시 Ind_ 강조, FormatData 코드41 비트) ──
+
+    [Fact]
+    public void ToggleSelectedItemBold_TogglesCode41Bit0_AndEnablesIndividual_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.SelectedItemBold.Should().BeFalse("처음엔 굵게 아님");
+
+        sut.ToggleSelectedItemBold(); // 켜기.
+
+        sut.SelectedItem!.FormatData.Should().Contain("41=1", "코드 41 bit0(굵게) = 1");
+        sut.SelectedItemBold.Should().BeTrue("미리보기도 켜짐");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("켜면 보이도록 개별 서식을 켠다");
+
+        sut.ToggleSelectedItemBold(); // 다시 끄기.
+
+        sut.SelectedItemBold.Should().BeFalse("다시 끄면 꺼짐");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("41=", "코드 41(강조 비트)이 제거됨");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemBoldAndItalic_CombinesBits()
+    {
+        // 굵게(bit0=1) + 기울임(bit1=2) → 41=3 (비트 합산), 서로의 비트를 보존.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.ToggleSelectedItemBold();
+        sut.ToggleSelectedItemItalic();
+
+        sut.SelectedItem!.FormatData.Should().Contain("41=3", "굵게(1)+기울임(2)=3");
+        sut.SelectedItemBold.Should().BeTrue();
+        sut.SelectedItemItalic.Should().BeTrue();
+        sut.SelectedItemUnderline.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ToggleSelectedItemUnderline_PreservesExistingColor()
+    {
+        // 밑줄만 켜고 기존 항목별 글자색(코드29)은 보존한다(공통 헬퍼 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemUnderline();
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("41=4", "밑줄 bit2=4 추가");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemBold_Off_PreservesOtherEmphasisBit()
+    {
+        // 굵게+기울임이 켜진 상태에서 굵게만 끄면, 기울임 비트(2)는 그대로 남아야 한다(코드41 한 비트만 정확히 제거).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "41=3", // 굵게(1)+기울임(2).
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemBold(); // 굵게만 끄기.
+
+        sut.SelectedItem!.FormatData.Should().Contain("41=2", "굵게만 빠지고 기울임(2)은 남음");
+        sut.SelectedItemBold.Should().BeFalse();
+        sut.SelectedItemItalic.Should().BeTrue("기울임 비트 보존");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemBold_WhileLive_AppliesOverrideBold()
+    {
+        // 라이브 송출 중 굵게를 켜면 세션 오버라이드 굵게가 즉시 반영된다(레거시 per-song 강조).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.ToggleSelectedItemBold();
+
+        session.Current.OverrideBold1.Should().Be(true, "항목 굵게가 라이브 송출에 즉시 반영");
+    }
+
+    [Fact]
+    public void ToggleSelectedItemEmphasis_NonSong_IsNoOpAndCommandsDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ToggleSelectedItemBoldCommand.CanExecute(null).Should().BeFalse("곡이 아니면 비활성");
+        sut.ToggleSelectedItemItalicCommand.CanExecute(null).Should().BeFalse();
+        sut.ToggleSelectedItemUnderlineCommand.CanExecute(null).Should().BeFalse();
+
+        sut.ToggleSelectedItemBold();
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 강조가 붙지 않음");
+    }
+
     [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {

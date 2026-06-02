@@ -296,6 +296,19 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
+                            <!-- 항목별 강조(이 곡만) — 레거시 Ind_ 굵게/기울임/밑줄(FormatData 코드41 비트). 체크는 현재 상태(OneWay), 클릭은 토글 명령. 곡 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 강조"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="굵게"
+                                          IsChecked="{Binding PlacementTarget.DataContext.SelectedItemBold, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                          Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemBoldCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="기울임"
+                                          IsChecked="{Binding PlacementTarget.DataContext.SelectedItemItalic, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                          Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemItalicCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="밑줄"
+                                          IsChecked="{Binding PlacementTarget.DataContext.SelectedItemUnderline, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                          Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemUnderlineCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>
