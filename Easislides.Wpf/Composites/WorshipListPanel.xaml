@@ -239,6 +239,30 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="0" />
                             </MenuItem>
+                            <!-- 항목별 글꼴명(이 곡만) — 레거시 Ind_ 글꼴(FormatData 코드43). 자주 쓰는 한/영 글꼴 빠른 선택 + 해제. 곡 항목일 때만 활성.
+                                 (인스펙터 전역 글꼴 콤보에는 설치 글꼴 전체가 있고, 여기선 우클릭 빠른 선택용 짧은 목록이다.) -->
+                            <MenuItem Header="이 항목 글꼴"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="맑은 고딕"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="맑은 고딕" />
+                                <MenuItem Header="나눔고딕"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="나눔고딕" />
+                                <MenuItem Header="굴림"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="굴림" />
+                                <MenuItem Header="Segoe UI"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="Segoe UI" />
+                                <MenuItem Header="Arial"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="Arial" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 글꼴(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>

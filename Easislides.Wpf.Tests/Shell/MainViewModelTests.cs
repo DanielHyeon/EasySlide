@@ -5348,6 +5348,122 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 크기가 붙지 않음");
     }
 
+    // ── 항목별 글꼴명 인라인 편집(SetSelectedItemFontName) — 선택한 곡만 글꼴(레거시 Ind_ 글꼴, 코드43) ──
+
+    [Fact]
+    public void SetSelectedItemFontName_WritesFormatDataCode43_AndReflects_AndTrims()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemFontName("  맑은 고딕  "); // 앞뒤 공백 포함.
+
+        sut.SelectedItem!.FormatData.Should().Contain("43=맑은 고딕", "코드 43(영역1 글꼴명)에 다듬어 인코드");
+        sut.SelectedItemFontName.Should().Be("맑은 고딕", "글꼴 미리보기도 동기화");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("글꼴을 주면 보이도록 개별 서식을 켠다");
+    }
+
+    [Theory]
+    [InlineData("")]    // 빈 문자열 → 해제
+    [InlineData("   ")] // 공백뿐 → 해제
+    public void SetSelectedItemFontName_BlankClearsToGlobal(string param)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "43=Arial", // 이미 글꼴 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontName(param);
+
+        sut.SelectedItemFontName.Should().BeEmpty("빈/공백 글꼴은 해제 → 전역 글꼴 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("43=", "코드 43(글꼴)이 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName_PreservesExistingColor()
+    {
+        // 글꼴만 바꾸고 기존 항목별 색(코드29)은 보존한다(공통 헬퍼 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1", // 흰색.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontName("나눔고딕");
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("43=나눔고딕", "새 글꼴 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName_WhileLive_AppliesOverrideFontName()
+    {
+        // 라이브 송출 중 항목 글꼴을 바꾸면 세션 오버라이드 글꼴이 즉시 반영된다(레거시 per-song 글꼴).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemFontName("Segoe UI");
+
+        session.Current.OverrideFontName.Should().Be("Segoe UI", "항목 글꼴이 라이브 송출에 즉시 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName_NonSong_IsNoOpAndCommandDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontNameCommand.CanExecute("Arial").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemFontName("Arial");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 글꼴이 붙지 않음");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
+    {
+        // 이미 같은 글꼴이면(레코드 동등, 문자열 "" 센티넬 포함) 큐 항목을 교체하지 않는다(불필요한 재송출 방지).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "43=Arial",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+        var before = sut.SelectedItem;
+
+        sut.SetSelectedItemFontName("Arial"); // 같은 글꼴.
+
+        sut.SelectedItem.Should().BeSameAs(before, "같은 글꼴이면 항목을 새로 만들지 않음(교체 없음)");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName_StripsDelimiterChars_NoFormatCorruption()
+    {
+        // FormatData 구분자('>'·'=')가 글꼴명에 섞여 들어와도 제거해 포맷이 깨지거나 엉뚱한 코드가 주입되지 않게 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemFontName("Foo>29=-1"); // 악성/오타 입력 — '>'·'=' 가 주입 시도.
+
+        sut.SelectedItemFontName.Should().Be("Foo29-1", "구분자('>'·'=')는 제거됨");
+        // 주입이 막혔는지: 글자색(코드29)이 따로 생기지 않아야 한다.
+        sut.SelectedItem!.FormatData.Should().NotContain("29=", "엉뚱한 코드 주입 없음");
+    }
+
     // ── 절 라벨 직접 점프(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응) ──
 
     [Fact]

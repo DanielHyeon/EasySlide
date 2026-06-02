@@ -572,6 +572,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemTextColorCommand = new RelayCommand<string?>(SetSelectedItemTextColor, _ => CanEditSelectedItemColor);
         SetSelectedItemAlignmentCommand = new RelayCommand<string?>(SetSelectedItemAlignment, _ => CanEditSelectedItemColor);
         SetSelectedItemFontSizeCommand = new RelayCommand<string?>(SetSelectedItemFontSize, _ => CanEditSelectedItemColor);
+        SetSelectedItemFontNameCommand = new RelayCommand<string?>(SetSelectedItemFontName, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -716,6 +717,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemTextColorCommand { get; }
     public IRelayCommand<string?> SetSelectedItemAlignmentCommand { get; }
     public IRelayCommand<string?> SetSelectedItemFontSizeCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemFontNameCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1829,6 +1831,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
+        OnPropertyChanged(nameof(SelectedItemFontName));
 
         NotifyCommandStates();
     }
@@ -2849,6 +2852,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = size is null
                 ? "항목 글자 크기: 전역 기본"
                 : $"항목 글자 크기: {size}pt{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 글꼴명(이 항목만). 없으면 빈 문자열(전역 글꼴 추종).</summary>
+    public string SelectedItemFontName
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontName1 ?? string.Empty;
+
+    /// <summary>
+    /// 선택한 곡 항목의 글꼴명(이 항목만)을 바꾼다(레거시 항목별 글꼴, FormatData 코드 43). 이름이 비거나 공백뿐이면 글꼴을 해제해 전역 글꼴을 따른다.
+    /// 글꼴을 주면 개별 서식을 켜고, 나머지 곡별 서식(색·정렬·크기 등)은 보존한다. 송출 시 그 곡 동안 이 글꼴로 표시된다.
+    /// </summary>
+    public void SetSelectedItemFontName(string? name)
+    {
+        // 빈/공백 이름 = 글꼴 해제(전역 글꼴 추종). 앞뒤 공백은 다듬는다.
+        // FormatData 는 "코드=값>코드=값" 형식이라 '>'·'='는 구분자다 — 실제 글꼴명엔 안 쓰이지만, 혹시 섞여 들어오면
+        // 인코딩이 깨져 엉뚱한 코드가 주입되므로 방어적으로 제거한다(공통 포맷 손상 방지).
+        var fontName = string.IsNullOrWhiteSpace(name)
+            ? string.Empty
+            : name.Trim().Replace(">", string.Empty).Replace("=", string.Empty);
+        if (ApplySelectedSongFormatChange(format => format with { FontName1 = fontName }, wantsIndividual: fontName.Length > 0, out var turnedOn))
+        {
+            StatusText = fontName.Length == 0
+                ? "항목 글꼴: 전역 기본"
+                : $"항목 글꼴: {fontName}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -4226,6 +4253,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemTextColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemAlignmentCommand.NotifyCanExecuteChanged();
         SetSelectedItemFontSizeCommand.NotifyCanExecuteChanged();
+        SetSelectedItemFontNameCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
