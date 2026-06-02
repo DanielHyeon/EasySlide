@@ -5257,6 +5257,97 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 정렬이 붙지 않음");
     }
 
+    // ── 항목별 글자 크기 인라인 편집(SetSelectedItemFontSize) — 선택한 곡만 크기(레거시 Ind_ 크기, 코드47 pt) ──
+
+    [Theory]
+    [InlineData("6", 6)]     // 하한 경계(포함)
+    [InlineData("36", 36)]
+    [InlineData("72", 72)]
+    [InlineData("90", 90)]
+    [InlineData("100", 100)] // 상한 경계(포함)
+    public void SetSelectedItemFontSize_WritesFormatDataCode47_AndReflects(string param, int expected)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemFontSize(param);
+
+        sut.SelectedItem!.FormatData.Should().Contain($"47={expected}", "코드 47(영역1 글자 크기)에 인코드");
+        sut.SelectedItemFontSize.Should().Be(expected, "크기 미리보기도 동기화");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("크기를 주면 보이도록 개별 서식을 켠다");
+    }
+
+    [Theory]
+    [InlineData("0")]    // 해제 센티넬
+    [InlineData("5")]    // 범위 밖(6 미만)
+    [InlineData("101")]  // 범위 밖(100 바로 초과 — 상한 경계)
+    [InlineData("200")]  // 범위 밖(100 초과)
+    [InlineData("abc")]  // 숫자 아님
+    public void SetSelectedItemFontSize_InvalidOrOutOfRange_ClearsToGlobal(string param)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "47=54", // 이미 크기 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSize(param);
+
+        sut.SelectedItemFontSize.Should().Be(0, "유효하지 않은 크기는 해제 → 전역 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("47=", "코드 47(크기)이 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize_PreservesExistingColor()
+    {
+        // 크기만 바꾸고 기존 항목별 색(코드29)은 보존한다(공통 헬퍼 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1", // 흰색.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSize("72");
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("47=72", "새 크기 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize_WhileLive_AppliesOverrideSizePx()
+    {
+        // 라이브 송출 중 항목 크기를 바꾸면 세션 오버라이드 크기(pt→px 변환)가 즉시 반영된다.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemFontSize("72"); // 72pt → 72*96/72 = 96px.
+
+        session.Current.OverrideFontSizePx.Should().Be(96, "항목 크기가 pt→px 변환돼 라이브에 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize_NonSong_IsNoOpAndCommandDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSizeCommand.CanExecute("72").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemFontSize("72");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 크기가 붙지 않음");
+    }
+
     // ── 절 라벨 직접 점프(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응) ──
 
     [Fact]

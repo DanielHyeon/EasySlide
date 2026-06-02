@@ -571,6 +571,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 선택한 곡 항목의 글자색·정렬(이 항목만) — 프리셋/전역기본을 우클릭 메뉴에서 적용. 곡일 때만 활성.
         SetSelectedItemTextColorCommand = new RelayCommand<string?>(SetSelectedItemTextColor, _ => CanEditSelectedItemColor);
         SetSelectedItemAlignmentCommand = new RelayCommand<string?>(SetSelectedItemAlignment, _ => CanEditSelectedItemColor);
+        SetSelectedItemFontSizeCommand = new RelayCommand<string?>(SetSelectedItemFontSize, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -714,6 +715,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string> ApplyBackgroundColorHexCommand { get; }
     public IRelayCommand<string?> SetSelectedItemTextColorCommand { get; }
     public IRelayCommand<string?> SetSelectedItemAlignmentCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemFontSizeCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1826,6 +1828,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
+        OnPropertyChanged(nameof(SelectedItemFontSize));
 
         NotifyCommandStates();
     }
@@ -2825,6 +2828,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var label = align switch { 1 => "왼쪽", 2 => "가운데", 3 => "오른쪽", _ => "전역 기본" };
             StatusText = $"항목 정렬: {label}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 글자 크기(이 항목만, 레거시 pt). 없으면 0(전역 크기 추종).</summary>
+    public int SelectedItemFontSize
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontSize1 ?? 0;
+
+    /// <summary>
+    /// 선택한 곡 항목의 글자 크기(이 항목만)를 바꾼다(레거시 항목별 크기, FormatData 코드 47, pt 단위 6~100).
+    /// 파라미터가 6~100 범위 숫자면 그 크기, 그 밖(빈·0·범위 밖·오류)이면 크기를 해제해 전역 크기를 따른다.
+    /// 크기를 주면 개별 서식을 켜고, 나머지 곡별 서식(색·정렬·폰트 등)은 보존한다. 송출 시 pt→px 로 변환돼 적용된다.
+    /// </summary>
+    public void SetSelectedItemFontSize(string? sizeParam)
+    {
+        // 레거시 유효 범위 6~100pt 만 허용, 그 밖은 null = 크기 해제.
+        int? size = int.TryParse(sizeParam, out var n) && n is >= 6 and <= 100 ? n : null;
+        if (ApplySelectedSongFormatChange(format => format with { FontSize1 = size }, wantsIndividual: size is not null, out var turnedOn))
+        {
+            StatusText = size is null
+                ? "항목 글자 크기: 전역 기본"
+                : $"항목 글자 크기: {size}pt{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -4201,6 +4225,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DuplicateSelectedItemCommand.NotifyCanExecuteChanged();
         SetSelectedItemTextColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemAlignmentCommand.NotifyCanExecuteChanged();
+        SetSelectedItemFontSizeCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

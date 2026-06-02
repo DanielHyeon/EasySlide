@@ -219,6 +219,26 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="0" />
                             </MenuItem>
+                            <!-- 항목별 글자 크기(이 곡만) — 레거시 Ind_ 크기(FormatData 코드47, pt). 곡 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 글자 크기"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="작게 (36pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="36" />
+                                <MenuItem Header="보통 (54pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="54" />
+                                <MenuItem Header="크게 (72pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="72" />
+                                <MenuItem Header="아주 크게 (90pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="90" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 크기(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="0" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>
