@@ -100,7 +100,9 @@ public sealed record LiveOutputRenderSettings(
     // 이중 언어 줄 교차(FrmMain Def_Interlace). 기본 false=영역별 블록(무회귀).
     bool LyricsMonitorInterlace = false,
     // 출력 가사 전역 글꼴명(FrmMain Def_FontName). 비었으면 테마 기본 글꼴 상속(무회귀). 곡별 글꼴(43)이 우선.
-    string LyricsMonitorFontFamily = "")
+    string LyricsMonitorFontFamily = "",
+    // 보조 영역(Region2) 전역 글꼴명(FrmMain Ind_Reg2Font). 비었으면 본문(Region1) 글꼴 추종(무회귀). 곡별 글꼴(44)이 우선.
+    string LyricsMonitorFontFamily2 = "")
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -155,7 +157,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay),
             settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorInterlace),
-            settings.Get(EasiSettingKeys.LyricsMonitorFontFamily));
+            settings.Get(EasiSettingKeys.LyricsMonitorFontFamily),
+            settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2));
     }
 }
 
@@ -401,10 +404,13 @@ public sealed class OutputRenderer : IOutputRenderer
         var textAlignment2 = isLive && request.Session.OverrideTextAlignment2 is LyricsTextAlignment songAlign2
             ? songAlign2
             : textAlignment;
-        // Region2 글꼴명·크기도 Live + 곡별 region2 값(44/48)이 있을 때만, 없으면 Region1 글꼴(fontFamily/fontSizePx) 추종.
+        // Region2 글꼴명 우선순위: 곡별 region2 글꼴(44, Live 한정) > 전역 region2 글꼴(설정, 비어있지 않으면) > Region1 글꼴 추종.
+        // (폰트 크기2 의 "곡별 > 전역(0 아니면) > Region1 추종" 우선순위와 동일한 구조.)
         var fontFamily2 = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName2)
             ? request.Session.OverrideFontName2!
-            : fontFamily;
+            : !string.IsNullOrWhiteSpace(liveOutput.LyricsMonitorFontFamily2)
+                ? liveOutput.LyricsMonitorFontFamily2
+                : fontFamily;
         // Region2 폰트 크기 우선순위: 곡별 region2 크기(48) > 전역 region2 크기(설정, 0 이 아니면) > Region1 크기 추종.
         var fontSize2Px = isLive && request.Session.OverrideFontSizePx2 is int songFont2Px
             ? songFont2Px

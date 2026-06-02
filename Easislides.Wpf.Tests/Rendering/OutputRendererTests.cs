@@ -1002,6 +1002,64 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2_NoGlobal_FollowsRegion1Font()
+    {
+        // 보조영역(Region2) 전역 글꼴이 비어 있으면 본문(Region1) 글꼴을 추종한다(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontFamily: "Malgun Gothic");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily2.Should().Be("Malgun Gothic", "region2 전역 글꼴 미지정 → region1 글꼴 추종");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2_GlobalFont_UsedWhenNoSongOverride()
+    {
+        // 보조영역 전역 글꼴이 지정되면, 곡별 region2 글꼴이 없을 때 그 전역 글꼴을 쓴다(본문 글꼴과 달라도 됨).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorFontFamily: "Malgun Gothic",
+            LyricsMonitorFontFamily2: "Gulim");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily.Should().Be("Malgun Gothic", "본문은 region1 전역 글꼴");
+        scene.LyricsMonitorFontFamily2.Should().Be("Gulim", "보조영역은 region2 전역 글꼴(본문과 별도)");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2_SongFont_BeatsGlobalRegion2Font()
+    {
+        // 전역 region2 글꼴이 있어도 곡별 region2 글꼴(44)이 있으면 그 곡 동안은 곡별 글꼴이 우선한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontFamily2: "Gulim");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                OverrideFontName2: "Batang"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily2.Should().Be("Batang", "곡별 region2 글꼴이 전역 region2 글꼴을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideFont()
     {
         // 라이브가 아니면(숨김 등) 곡 글꼴 오버라이드를 적용하지 않는다 — 운영 기본 글꼴·크기 유지.

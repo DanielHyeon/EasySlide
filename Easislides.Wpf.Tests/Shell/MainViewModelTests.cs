@@ -3444,6 +3444,55 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsFontFamily2Input_SetAndClear_PersistsAndTrims()
+    {
+        // 보조영역(Region2) 전역 글꼴명 입력 — 앞뒤 공백 다듬어 저장, 비우면 본문 글꼴 추종("")으로 저장.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsFontFamily2Input = "  Gulim  ";
+        sut.ActiveLyricsFontFamily2.Should().Be("Gulim", "앞뒤 공백을 다듬어 적용");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2).Should().Be("Gulim");
+        sut.LyricsFontFamily2Input.Should().Be("Gulim", "콤보 표시도 동기화");
+
+        sut.LyricsFontFamily2Input = "   ";
+        sut.ActiveLyricsFontFamily2.Should().BeEmpty("공백만이면 본문 글꼴 추종");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void RefreshActiveAppearance_SyncsFontFamily2FromSettings()
+    {
+        // 설정 창 등 다른 경로로 보조영역 전역 글꼴이 바뀌어도 인스펙터 표시가 따라가야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorFontFamily2, "바탕");
+
+        sut.ActiveLyricsFontFamily2.Should().Be("바탕", "SettingsChanged 경유로 인스펙터 동기화");
+    }
+
+    [Fact]
+    public void ResetOutputAppearance_RestoresFontFamily2ToDefault()
+    {
+        // "기본값으로 복원(전체)" 가 보조영역 전역 글꼴까지 기본("")으로 되돌리는지(증분72 '전체' 정직성).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsFontFamily2Input = "Gulim";
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2).Should().Be("Gulim");
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2).Should().Be(
+            EasiSettingKeys.LyricsMonitorFontFamily2.DefaultValue, "전체 복원은 보조영역 글꼴도 기본으로");
+        sut.ActiveLyricsFontFamily2.Should().BeEmpty("인스펙터 표시도 기본으로");
+    }
+
+    [Fact]
     public void RefreshActiveAppearance_SyncsFontFamilyFromSettings()
     {
         // 설정 창 등 다른 경로로 전역 글꼴이 바뀌어도 인스펙터 표시(ActiveLyricsFontFamily)가 따라가야 한다.

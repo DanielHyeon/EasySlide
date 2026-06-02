@@ -1326,6 +1326,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorOutline.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 전역 출력 글꼴명 변경도 라이브 출력에 즉시 반영(FrmMain Def_FontName, 곡별 글꼴이 없을 때).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorFontFamily.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 보조 영역(Region2) 전역 글꼴명 변경도 라이브 출력에 즉시 반영(FrmMain Ind_Reg2Font).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorFontFamily2.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {

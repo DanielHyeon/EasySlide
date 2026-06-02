@@ -117,6 +117,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int _activeLyricsFontSize2 = EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue;
     // 현재 적용된 출력 가사 전역 글꼴명(FrmMain Def_FontName). 빈 문자열=테마 기본 글꼴 상속. 글꼴 선택 콤보에 바인딩.
     [ObservableProperty] private string _activeLyricsFontFamily = EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue;
+    // 현재 적용된 보조 영역(Region2) 전역 글꼴명(FrmMain Ind_Reg2Font). 빈 문자열=본문(Region1) 글꼴 추종. 글꼴 선택 콤보에 바인딩.
+    [ObservableProperty] private string _activeLyricsFontFamily2 = EasiSettingKeys.LyricsMonitorFontFamily2.DefaultValue;
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -2591,6 +2593,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorShowNextItem, EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue);
         // 전역 출력 글꼴명도 함께 기본(테마 상속)으로 — "전체" 복원이 글꼴까지 포함하도록.
         _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily, EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily2, EasiSettingKeys.LyricsMonitorFontFamily2.DefaultValue);
 
         RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시·글꼴 등) 동기화
         StatusText = "출력 모양 기본값 복원";
@@ -2948,6 +2951,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 글꼴명이 다른 경로(설정 창·기본값 복원 등)로 바뀌어도 콤보가 따라가도록 통지.
     partial void OnActiveLyricsFontFamilyChanged(string value) => OnPropertyChanged(nameof(LyricsFontFamilyInput));
 
+    /// <summary>
+    /// 보조 영역(Region2) 전역 글꼴명 선택(콤보 양방향 바인딩). 빈 문자열/공백이면 "본문(Region1) 글꼴 추종"으로 저장(무회귀).
+    /// 곡별 글꼴(FormatData 44)이 있으면 그 곡 동안은 곡별 글꼴이 우선한다.
+    /// </summary>
+    public string LyricsFontFamily2Input
+    {
+        get => ActiveLyricsFontFamily2;
+        set => CommitLyricsFontFamily2(value);
+    }
+
+    // 보조 영역(Region2) 전역 글꼴명 커밋 — 같은 값이면 무시, 다르면 설정 저장(출력 VM 라이브 반영). 앞뒤 공백은 다듬는다.
+    private void CommitLyricsFontFamily2(string? value)
+    {
+        var next = (value ?? string.Empty).Trim();
+        if (string.Equals(next, ActiveLyricsFontFamily2, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily2, next);
+        ActiveLyricsFontFamily2 = next;
+        StatusText = next.Length == 0 ? "보조영역 글꼴: 본문과 동일" : $"보조영역 글꼴: {next}";
+    }
+
+    // 보조영역 글꼴명이 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveLyricsFontFamily2Changed(string value) => OnPropertyChanged(nameof(LyricsFontFamily2Input));
+
     // Display Panel 글자 크기 비율 조절(+/- 단계, %) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Def_PanelFont 크기).
     private void StepPanelFontScale(int delta)
     {
@@ -3142,6 +3172,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsFontSize2 = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize2);
         ActiveLyricsFontFamily = _settings.Get(EasiSettingKeys.LyricsMonitorFontFamily);
+        ActiveLyricsFontFamily2 = _settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2);
         ActivePanelFontScale = _settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);
