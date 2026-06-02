@@ -287,6 +287,19 @@ public class ImageLibraryViewModelTests
     }
 
     [Fact]
+    public async System.Threading.Tasks.Task FilterText_ShowsFilteredCountInStatus()
+    {
+        // 증분134 — 검색·카테고리로 걸러진 개수를 상태줄에 "{보임}/{전체}개" 로 표시(미디어·PPT 와 패리티). 비동기 디코딩과 경쟁 없음.
+        var sut = CreateSut(out _, out _, @"C:\bg\a.jpg", @"C:\bg\b.jpg", @"C:\bg\c.jpg");
+        await sut.LoadCommand.ExecuteAsync(null); // 디코딩까지 완료(null 로더) → "불러오는 중" 꼬리 제거됨
+        sut.StatusText.Should().Be("3개 이미지", "필터 없으면 전체 개수");
+
+        sut.FilterText = "a";
+
+        sut.StatusText.Should().Be("1/3개 이미지(검색·필터)", "걸러진 개수/전체 개수 표시");
+    }
+
+    [Fact]
     public void FilterRoundTrip_KeepsSameItemInstance()
     {
         // 필터로 숨겼다가 다시 보이게 해도 같은 ImageLibraryItem 인스턴스가 유지된다 —

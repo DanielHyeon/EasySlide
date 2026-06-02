@@ -69,6 +69,11 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     // 로드된 전체 이미지(필터 전 원본). Images 는 SelectedCategory 로 거른 부분집합이다.
     private readonly System.Collections.Generic.List<ImageLibraryItem> _allItems = new();
 
+    // 썸네일 백그라운드 디코딩이 진행 중인지 — 상태줄에 "미리보기 불러오는 중" 꼬리를 붙일지 판단.
+    // 상태줄은 동기 필터(ApplyCategoryFilter)와 비동기 로드(LoadAsync) 두 곳이 함께 쓰므로, 한 함수(RefreshStatus)에 모아
+    // 비동기 루프가 필터가 보여 준 개수를 덮어쓰는 경쟁을 없앤다(증분133 리뷰 후속 — 동기 미디어·PPT 와 달리 async 라 이 조율이 필요).
+    private bool _thumbnailsLoading;
+
     // 현재 선택된 카테고리(하위 폴더). "전체"면 모두 표시. 바꾸면 즉시 다시 거른다.
     [ObservableProperty]
     private string _selectedCategory = AllCategories;
@@ -175,6 +180,25 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         {
             SelectedImage = null;
         }
+
+        RefreshStatus(); // 거른 뒤 상태줄을 "{보임}/{전체}개" 로 갱신(검색·카테고리 결과 개수 표시).
+    }
+
+    // 상태줄을 현재 목록 상태로 갱신한다 — 비었으면 안내, 다 보이면 전체 개수, 걸러졌으면 "{보임}/{전체}개",
+    // 디코딩 중이면 "미리보기 불러오는 중" 꼬리. 동기 필터·비동기 로드가 같은 함수를 써서 개수가 서로 덮어쓰지 않게 한다.
+    private void RefreshStatus()
+    {
+        if (_allItems.Count == 0)
+        {
+            StatusText = "이미지가 없습니다(폴더를 확인하세요).";
+            return;
+        }
+
+        var countPart = Images.Count == _allItems.Count
+            ? $"{_allItems.Count}개 이미지"
+            : $"{Images.Count}/{_allItems.Count}개 이미지(검색·필터)";
+
+        StatusText = _thumbnailsLoading ? $"{countPart} — 미리보기 불러오는 중..." : countPart;
     }
 
     // 현재 폴더의 이미지를 다시 읽는다. 목록(파일명)은 즉시 채우고, 썸네일은 백그라운드에서
@@ -182,6 +206,10 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     // ct: 새 로드(폴더 변경·새로고침·하위포함 토글)가 시작되면 취소돼 이전 실행이 상태를 덮어쓰지 않게 한다.
     private async Task LoadAsync(CancellationToken ct)
     {
+        // 디코딩 시작 — 상태줄에 "불러오는 중" 꼬리가 붙는다(완료 시 해제).
+        // 첫 await 이전(동기 구간)에 세팅하는 게 중요하다: 새 로드가 옛 로드를 취소하고 시작할 때, 옛 로드의 멈췄던
+        // 코드가 다시 깨어나기 전에 새 로드가 동기로 이 플래그를 true 로 다시 세워, 플래그가 잘못된 중간 상태로 안 보인다.
+        _thumbnailsLoading = true;
         Images.Clear();
         _allItems.Clear();
         var paths = _service.EnumerateImages(FolderPath, IncludeSubfolders);
@@ -198,6 +226,8 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
         // SelectedCategory 를 "전체"로 되돌린다(OnSelectedCategoryChanged → ApplyCategoryFilter 가 Images 를 채운다).
         // 이미 "전체"면 콜백이 안 울리므로 직접 한 번 거른다.
+        // ApplyCategoryFilter(직접 또는 SelectedCategory 변경 콜백)가 RefreshStatus 를 호출해
+        // "{보임}/{전체}개 — 불러오는 중..." 상태줄을 세운다(아래 별도 StatusText 설정 불필요).
         if (SelectedCategory == AllCategories)
         {
             ApplyCategoryFilter();
@@ -206,10 +236,6 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         {
             SelectedCategory = AllCategories;
         }
-
-        StatusText = items.Count == 0
-            ? "이미지가 없습니다(폴더를 확인하세요)."
-            : $"{items.Count}개 이미지 — 미리보기 불러오는 중...";
 
         // 썸네일 디코딩은 무거우므로 백그라운드 스레드에서. 로더는 Freeze 된 이미지를 반환해
         // 다른 스레드에서 만들어도 UI 바인딩이 안전하다(await 재개는 UI 컨텍스트).
@@ -230,10 +256,9 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
             item.Thumbnail = thumbnail;
         }
 
-        if (items.Count > 0)
-        {
-            StatusText = $"{items.Count}개 이미지";
-        }
+        // 디코딩 완료 — "불러오는 중" 꼬리를 떼고 현재 필터를 반영한 개수로 상태줄을 마무리한다(필터가 보여 준 개수를 덮어쓰지 않음).
+        _thumbnailsLoading = false;
+        RefreshStatus();
     }
 
     // 선택한 이미지를 출력 전역 배경으로 적용(MainViewModel.SetOutputBackgroundImage 위임).
