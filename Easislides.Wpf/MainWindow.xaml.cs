@@ -466,6 +466,7 @@ public partial class MainWindow : Window
         {
             Title = "예배 순서에 추가할 파일 선택",
             Filter = "PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx"
+                + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
                 + "|미디어 (*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma)|*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma"
                 + "|모든 파일 (*.*)|*.*",
             CheckFileExists = true,
@@ -478,11 +479,30 @@ public partial class MainWindow : Window
             {
                 viewModel.AddPowerPoint(dialog.FileName);
             }
+            else if (ext is ".doc" or ".docx")
+            {
+                AddWordDocAsTextItem(viewModel, dialog.FileName);
+            }
             else
             {
                 viewModel.AddMedia(dialog.FileName);
             }
         }
+    }
+
+    // Word 문서를 텍스트 항목으로 예배 순서에 추가한다(레거시 Word 항목 — OfficeLib.WordDoc 이 본문 텍스트를 추출).
+    // 본문 추출(인터롭)은 여기서, 추출 결과를 항목으로 만드는 판단(빈 문서 처리 포함)은 검증된 VM(AddWordTextItem)이 맡는다.
+    private async void AddWordDocAsTextItem(MainViewModel viewModel, string filePath)
+    {
+        viewModel.StatusText = "Word 문서를 읽는 중...";
+        // 상태 메시지가 화면에 먼저 그려질 틈을 준다 — 그러지 않으면 동기 COM 호출이 렌더 전에 UI 를 막아 "읽는 중"이 안 보인다.
+        // (Word COM 은 STA 의존이라 Task.Run(MTA 스레드)으로 옮기지 않고, 렌더 양보 후 UI/STA 스레드에서 그대로 읽는다.)
+        await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
+
+        // OfficeLib.WordDoc.GetContents 는 try/finally 로 COM(Document·Application)을 반드시 해제한다(좀비 프로세스 방지).
+        // Word 미설치·읽기 실패면 빈 문자열을 돌려주고, VM 이 그 경우를 안내 메시지로 처리한다.
+        var text = new OfficeLib.WordDoc().GetContents(filePath);
+        viewModel.AddWordTextItem(text);
     }
 
     private void SelectOutputBackgroundImage_Click(object sender, RoutedEventArgs e)

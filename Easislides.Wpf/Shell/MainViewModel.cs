@@ -855,6 +855,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
+    /// <summary>
+    /// Word 문서에서 추출한 본문 텍스트를 예배 순서에 텍스트(공지) 항목으로 추가한다(레거시 Word 항목 — OfficeLib.WordDoc 추출).
+    /// 추출 결과가 비어 있으면(Word 미설치·읽기 실패·빈 문서) 항목을 만들지 않고 안내만 한다. 본문 적재는 검증된 AddTextItem 재사용.
+    /// (Word 본문 추출 자체는 인터롭이라 View 가 담당하고, 이 메서드는 그 결과를 받아 판단·적재만 한다.)
+    /// </summary>
+    public LiveQueueItem? AddWordTextItem(string? extractedText)
+    {
+        if (string.IsNullOrWhiteSpace(extractedText))
+        {
+            StatusText = "Word 문서를 읽지 못했습니다(Word 설치 필요 또는 빈 문서).";
+            NotifyCommandStates();
+            return null;
+        }
+
+        return AddTextItem(extractedText);
+    }
+
     // 큐 목록 표시용 짧은 제목 — 첫 줄을 쓰되 너무 길면 줄여 표시(본문 전체는 Lyrics 에 보존).
     private static string BuildTextItemTitle(string text)
     {

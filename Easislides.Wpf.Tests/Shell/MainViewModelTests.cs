@@ -1540,6 +1540,35 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddWordTextItem_WithText_AddsNoticeItem()
+    {
+        // Word 문서에서 추출한 본문을 텍스트(공지) 항목으로 추가(레거시 Word 항목). AddTextItem 재사용 — 종류 Notice·본문 전체.
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var item = sut.AddWordTextItem("예배 안내\n오늘 본문은 시편 23편입니다");
+
+        item.Should().NotBeNull();
+        item!.Kind.Should().Be(LiveItemKinds.Notice);
+        item.Title.Should().Be("예배 안내", "제목은 첫 줄");
+        item.Lyrics.Should().Be("예배 안내\n오늘 본문은 시편 23편입니다", "본문 전체");
+        sut.Queue.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void AddWordTextItem_EmptyExtract_ShowsGuidanceAndAddsNothing()
+    {
+        // Word 미설치·읽기 실패·빈 문서면 GetContents 가 빈 문자열 → 항목을 만들지 않고 안내만(graceful).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.AddWordTextItem("").Should().BeNull();
+        sut.AddWordTextItem("   ").Should().BeNull();
+        sut.AddWordTextItem(null).Should().BeNull();
+
+        sut.Queue.Should().BeEmpty("추출 실패 시 항목 추가 안 함");
+        sut.StatusText.Should().Contain("Word 문서를 읽지 못했습니다");
+    }
+
+    [Fact]
     public void AddTextItem_BlankText_IsNoOp()
     {
         var sut = CreateSut(seedSampleQueue: false);
