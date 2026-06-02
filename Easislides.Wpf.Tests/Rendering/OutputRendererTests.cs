@@ -689,6 +689,88 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2Bold_GlobalOn_BoldsRegion2EvenWhenRegion1Plain()
+    {
+        // 전역 region2 굵게=On 이면 본문(Region1)이 보통이어도 보조영역만 굵게 송출된다(번역만 강조 분리).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorBold: false,                                  // 본문 보통
+            LyricsMonitorRegion2Bold: LyricsRegion2Emphasis.On);       // 보조영역 굵게
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeFalse("본문은 보통");
+        scene.LyricsMonitorBold2.Should().BeTrue("보조영역은 전역 region2 굵게=On");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Bold_GlobalOff_PlainRegion2EvenWhenRegion1Bold()
+    {
+        // 전역 region2 굵게=Off 이면 본문(Region1)이 굵게여도 보조영역만 보통으로 송출된다(번역만 보통 분리).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorBold: true,                                   // 본문 굵게
+            LyricsMonitorRegion2Bold: LyricsRegion2Emphasis.Off);     // 보조영역 보통
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold.Should().BeTrue("본문은 굵게");
+        scene.LyricsMonitorBold2.Should().BeFalse("보조영역은 전역 region2 굵게=Off");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Bold_SongBit_BeatsGlobalRegion2Bold()
+    {
+        // 전역 region2 굵게=Off 여도 곡별 region2 굵게 비트가 있으면 그 곡 동안은 곡별 값이 우선한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegion2Bold: LyricsRegion2Emphasis.Off);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                OverrideBold2: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold2.Should().BeTrue("곡별 region2 굵게 비트가 전역 region2 굵게를 이긴다");
+    }
+
+    [Fact]
+    public void CreateScene_Region2Bold_GlobalOn_StillSuppressedByChorusOnlyGateOnNonChorusPage()
+    {
+        // "강조 후렴만"이 켜진 비-후렴 절에서는 전역 region2 굵게=On 도 함께 억제된다(강조 게이트는 출처 무관).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorRegion2Bold: LyricsRegion2Emphasis.On,
+            LyricsMonitorEmphasisChorusOnly: true);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                CurrentPageIsChorus: false),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorBold2.Should().BeFalse("후렴만 강조 게이트가 비-후렴 절에서 전역 region2 굵게도 끈다");
+    }
+
+    [Fact]
     public void CreateScene_EmphasisChorusOnly_NonChorusPage_SuppressesEmphasis()
     {
         // 강조 후렴만 on + 현재 절이 후렴 아님 → 전역 굵게가 켜져 있어도 이 절은 강조 끔.

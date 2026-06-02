@@ -87,6 +87,15 @@ public enum LyricsRegion2Alignment
     Right = 3,
 }
 
+// 보조 영역(Region2) 전역 강조(굵게 등) 3-상태 — bool 은 "추종" 상태가 없어, 본문 추종을 뜻하는 FollowRegion1=0 센티넬을
+// 가진 enum 으로 둔다(정렬2 의 FollowRegion1 센티넬과 같은 개념). 기본 FollowRegion1=본문 효과 추종(무회귀).
+public enum LyricsRegion2Emphasis
+{
+    FollowRegion1 = 0, // 본문(Region1) 효과를 그대로 따름(기본).
+    On = 1,            // 보조 영역에서 강조 켬(본문과 무관하게).
+    Off = 2,           // 보조 영역에서 강조 끔(본문과 무관하게).
+}
+
 // 출력 화면 가사 세로 정렬(인-셸 가사 정렬 — 레거시 Align Top/Bottom). 기본 Center(기존 동작 보존).
 public enum LyricsVerticalAlignment
 {
@@ -218,6 +227,9 @@ public static class EasiSettingKeys
     // 보조 영역(Region2) 전역 가로 정렬(FrmMain Ind_Reg2Align). FollowRegion1=본문 정렬 추종(기본, 무회귀). 곡별 정렬(32)이 우선.
     public static readonly SettingKey<LyricsRegion2Alignment> LyricsMonitorRegion2Alignment =
         new("liveOutput.lyricsMonitorRegion2Alignment", LyricsRegion2Alignment.FollowRegion1);
+    // 보조 영역(Region2) 전역 굵게(FrmMain Ind_Reg2Bold). FollowRegion1=본문 굵게 추종(기본, 무회귀). 곡별 굵게(41 region2)가 우선.
+    public static readonly SettingKey<LyricsRegion2Emphasis> LyricsMonitorRegion2Bold =
+        new("liveOutput.lyricsMonitorRegion2Bold", LyricsRegion2Emphasis.FollowRegion1);
     public static readonly SettingKey<int> LyricsMonitorBackgroundColorArgb = new("liveOutput.lyricsMonitorBackgroundColorArgb", -1);
     // 배경 그라데이션 끝색(ARGB). IsGradient=true 일 때 배경색→이 색 세로 그라데이션 송출(G2 / FrmBackground 슬라이스).
     public static readonly SettingKey<int> LyricsMonitorBackgroundColor2Argb = new("liveOutput.lyricsMonitorBackgroundColor2Argb", -1);
@@ -372,6 +384,7 @@ public static class EasiSettingKeys
         LyricsMonitorTextColorArgb,
         LyricsMonitorTextColor2Argb,
         LyricsMonitorRegion2Alignment,
+        LyricsMonitorRegion2Bold,
         LyricsMonitorBackgroundColorArgb,
         LyricsMonitorBackgroundColor2Argb,
         LyricsMonitorBackgroundIsGradient,
@@ -490,6 +503,8 @@ public sealed record LiveOutputSettings
     public int LyricsMonitorTextColor2Argb { get; init; } = EasiSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue;
 
     public LyricsRegion2Alignment LyricsMonitorRegion2Alignment { get; init; } = EasiSettingKeys.LyricsMonitorRegion2Alignment.DefaultValue;
+
+    public LyricsRegion2Emphasis LyricsMonitorRegion2Bold { get; init; } = EasiSettingKeys.LyricsMonitorRegion2Bold.DefaultValue;
 
     public int LyricsMonitorBackgroundColorArgb { get; init; } =
         EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue;
@@ -866,6 +881,12 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Alignment))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorRegion2Alignment.Id, "Region2 alignment value is not supported."));
+        }
+
+        // 보조 영역(Region2) 전역 굵게(3-상태)도 잘못된 값을 거른다(enum 일관).
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Bold))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorRegion2Bold.Id, "Region2 bold value is not supported."));
         }
 
         // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
@@ -1368,6 +1389,7 @@ public sealed class SettingsService : ISettingsService
                 SettingKey<LyricsGradientDirection> gradientDirectionKey => gradientDirectionKey.Id,
                 SettingKey<LyricsRegionDisplay> regionDisplayKey => regionDisplayKey.Id,
                 SettingKey<LyricsRegion2Alignment> region2AlignmentKey => region2AlignmentKey.Id,
+                SettingKey<LyricsRegion2Emphasis> region2EmphasisKey => region2EmphasisKey.Id,
                 SettingKey<AutoRotateMode> autoRotateModeKey => autoRotateModeKey.Id,
                 SettingKey<bool> boolKey => boolKey.Id,
                 SettingKey<int> intKey => intKey.Id,
@@ -1413,6 +1435,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot.LiveOutput.LyricsMonitorTextColorArgb,
             "liveOutput.lyricsMonitorTextColor2Argb" => snapshot.LiveOutput.LyricsMonitorTextColor2Argb,
             "liveOutput.lyricsMonitorRegion2Alignment" => snapshot.LiveOutput.LyricsMonitorRegion2Alignment,
+            "liveOutput.lyricsMonitorRegion2Bold" => snapshot.LiveOutput.LyricsMonitorRegion2Bold,
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot.LiveOutput.LyricsMonitorBackgroundColorArgb,
             "liveOutput.lyricsMonitorBackgroundColor2Argb" => snapshot.LiveOutput.LyricsMonitorBackgroundColor2Argb,
             "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot.LiveOutput.LyricsMonitorBackgroundIsGradient,
@@ -1563,6 +1586,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorRegion2Alignment" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorRegion2Alignment = Cast<LyricsRegion2Alignment>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorRegion2Bold" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorRegion2Bold = Cast<LyricsRegion2Emphasis>(keyId, value) },
             },
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot with
             {

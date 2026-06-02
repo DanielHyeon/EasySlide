@@ -106,7 +106,9 @@ public sealed record LiveOutputRenderSettings(
     // 보조 영역(Region2) 전역 글자색(ARGB). 0(투명)=본문(Region1) 색 추종(무회귀). 곡별 색(30)이 우선.
     int LyricsMonitorTextColor2Argb = 0,
     // 보조 영역(Region2) 전역 가로 정렬. FollowRegion1=본문 정렬 추종(무회귀). 곡별 정렬(32)이 우선.
-    LyricsRegion2Alignment LyricsMonitorRegion2Alignment = LyricsRegion2Alignment.FollowRegion1)
+    LyricsRegion2Alignment LyricsMonitorRegion2Alignment = LyricsRegion2Alignment.FollowRegion1,
+    // 보조 영역(Region2) 전역 굵게(3-상태). FollowRegion1=본문 굵게 추종(무회귀). 곡별 굵게가 우선.
+    LyricsRegion2Emphasis LyricsMonitorRegion2Bold = LyricsRegion2Emphasis.FollowRegion1)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -164,7 +166,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorFontFamily),
             settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2),
             settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb),
-            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment));
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment),
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold));
     }
 }
 
@@ -366,6 +369,15 @@ public sealed class OutputRenderer : IOutputRenderer
         _ => LyricsTextAlignment.Center,
     };
 
+    // 보조 영역(Region2) 전역 강조 3-상태 → 실제 bool. FollowRegion1 이면 본문 효과(followValue)를 그대로,
+    // On=true, Off=false 로 본문과 무관하게 적용. (정렬2 의 FollowRegion1 분기와 같은 "추종 센티넬" 개념.)
+    private static bool ResolveRegion2Emphasis(LyricsRegion2Emphasis emphasis, bool followValue) => emphasis switch
+    {
+        LyricsRegion2Emphasis.On => true,
+        LyricsRegion2Emphasis.Off => false,
+        _ => followValue,
+    };
+
     public OutputSceneSnapshot CreateScene(OutputRenderRequest request)
     {
         var viewportWidth = Math.Max(0, request.ViewportWidth);
@@ -442,8 +454,11 @@ public sealed class OutputRenderer : IOutputRenderer
         // Region1 굵게/기울임 — 곡별 region1 비트(41)가 켜져 있으면 전역 설정을 덮어쓴다(없으면 전역 그대로).
         var region1Bold = isLive && request.Session.OverrideBold1 == true ? true : liveOutput.LyricsMonitorBold;
         var region1Italic = isLive && request.Session.OverrideItalic1 == true ? true : liveOutput.LyricsMonitorItalic;
-        // Region2 굵게/기울임 — 곡별 region2 비트가 있으면 그것, 없으면 Region1 효과를 추종(색·정렬·글꼴 추종과 동일).
-        var region2Bold = isLive ? request.Session.OverrideBold2 ?? region1Bold : region1Bold;
+        // Region2 굵게 우선순위: 곡별 region2 비트(Live 한정) > 전역 region2 굵게(설정, FollowRegion1 아니면 On/Off) > Region1 효과 추종.
+        // (정렬2·색2·글꼴2 의 "곡별 > 전역(추종 아니면) > Region1 추종" 우선순위와 동일한 구조.)
+        var region2Bold = isLive && request.Session.OverrideBold2 is bool songBold2
+            ? songBold2
+            : ResolveRegion2Emphasis(liveOutput.LyricsMonitorRegion2Bold, region1Bold);
         var region2Italic = isLive ? request.Session.OverrideItalic2 ?? region1Italic : region1Italic;
         // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역, Region2=곡별 비트∥Region1 추종.
         var region1Underline = isLive && request.Session.OverrideUnderline1 == true ? true : liveOutput.LyricsMonitorUnderline;

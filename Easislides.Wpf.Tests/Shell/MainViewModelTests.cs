@@ -3627,6 +3627,55 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsRegion2BoldInput_SetAndClear_PersistsAndSyncs()
+    {
+        // 보조영역(Region2) 전역 굵게(3-상태) — On/Off/추종 전환이 설정에 저장되고 인스펙터가 동기화된다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveLyricsRegion2Bold.Should().Be(LyricsRegion2Emphasis.FollowRegion1, "기본=본문 굵게 추종");
+
+        sut.LyricsRegion2BoldInput = LyricsRegion2Emphasis.On;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold).Should().Be(LyricsRegion2Emphasis.On);
+        sut.ActiveLyricsRegion2Bold.Should().Be(LyricsRegion2Emphasis.On, "인스펙터 표시도 동기화");
+
+        sut.LyricsRegion2BoldInput = LyricsRegion2Emphasis.FollowRegion1;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold).Should().Be(LyricsRegion2Emphasis.FollowRegion1, "추종으로 복귀");
+    }
+
+    [Fact]
+    public void RefreshActiveAppearance_SyncsRegion2BoldFromSettings()
+    {
+        // 설정 창 등 다른 경로로 보조영역 굵게가 바뀌어도 인스펙터 표시가 따라가야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorRegion2Bold, LyricsRegion2Emphasis.Off);
+
+        sut.ActiveLyricsRegion2Bold.Should().Be(LyricsRegion2Emphasis.Off, "SettingsChanged 경유로 인스펙터 동기화");
+    }
+
+    [Fact]
+    public void ResetOutputAppearance_RestoresRegion2BoldToDefault()
+    {
+        // "기본값으로 복원(전체)" 가 보조영역 굵게까지 기본(FollowRegion1)으로 되돌리는지(증분72 '전체' 정직성).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsRegion2BoldInput = LyricsRegion2Emphasis.On;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold).Should().NotBe(LyricsRegion2Emphasis.FollowRegion1);
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold).Should().Be(
+            LyricsRegion2Emphasis.FollowRegion1, "전체 복원은 보조영역 굵게도 기본(추종)으로");
+        sut.ActiveLyricsRegion2Bold.Should().Be(LyricsRegion2Emphasis.FollowRegion1, "인스펙터 표시도 기본으로");
+    }
+
+    [Fact]
     public void LyricsRegion2AlignmentInput_SetAndClear_PersistsAndSyncs()
     {
         // 보조영역(Region2) 전역 정렬 — 정렬 지정/추종(FollowRegion1) 전환이 설정에 저장되고 인스펙터가 동기화된다.
