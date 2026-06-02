@@ -186,6 +186,12 @@ public static class EsIcons
     /// <summary>Media File — 미디어 파일</summary>
     public const SymbolRegular MediaFile = SymbolRegular.Video24;
 
+    /// <summary>Notice / Announcement — 공지(InfoScreen) 텍스트 항목</summary>
+    public const SymbolRegular Notice = SymbolRegular.Comment24;
+
+    /// <summary>Generic Item — 종류 불명 일반 항목(폴백)</summary>
+    public const SymbolRegular GenericItem = SymbolRegular.Document24;
+
     /// <summary>No Rotate / Lock — 회전 잠금</summary>
     public const SymbolRegular NoRotate = SymbolRegular.LockClosed24;
 

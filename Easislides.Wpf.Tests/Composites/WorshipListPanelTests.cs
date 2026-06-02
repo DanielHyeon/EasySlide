@@ -37,8 +37,18 @@ public class WorshipListPanelTests
         var list = composite.Descendants().Single(e => e.Name.LocalName == "ListBox");
         Attr(list, "ItemsSource").Should().Contain("Queue");
         Attr(list, "SelectedItem").Should().Contain("SelectedItem").And.Contain("TwoWay");
-        Attr(list, "DisplayMemberPath").Should().Be("Title");
         Attr(list, "AutomationProperties.Name").Should().Be("예배 순서 목록");
+
+        // 증분137 — 항목 한 줄은 종류 아이콘 + 제목(DisplayMemberPath 대신 ItemTemplate). 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
+        var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "SymbolIcon");
+        Attr(symbolIcon, "Symbol").Should().Contain("Kind").And.Contain("KindToSymbol", "종류 아이콘은 Kind 를 KindToSymbol 변환기로 바인딩");
+        var titleBlock = list.Descendants().Single(
+            e => e.Name.LocalName == "TextBlock" && (Attr(e, "Text")?.Contains("Title") ?? false));
+        Attr(titleBlock, "Text").Should().Contain("Title", "제목은 TextBlock 에 그대로 바인딩");
+        // 행(StackPanel)의 자동화 이름을 제목으로 고정 — 장식 아이콘 글리프 대신 제목만 읽힌다(a11y 무회귀).
+        var rowPanel = list.Descendants().Single(
+            e => e.Name.LocalName == "StackPanel" && (Attr(e, "AutomationProperties.Name")?.Contains("Title") ?? false));
+        Attr(rowPanel, "AutomationProperties.Name").Should().Contain("Title");
 
         // 카드 제목 보존.
         composite.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == "예배 순서")
