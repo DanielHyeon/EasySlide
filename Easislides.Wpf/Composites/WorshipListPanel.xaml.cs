@@ -143,10 +143,9 @@ public partial class WorshipListPanel : UserControl
         }
         else if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
         {
-            // 탐색기 등에서 끌어다 놓은 외부 파일(PPT/미디어) — 확장자별로 큐에 추가(분류·추가는 검증된 VM).
-            // (성경/곡 드래그와 달리 떨어뜨린 위치가 아니라 현재 선택 뒤에 모아 넣는다 — 여러 파일을 한 묶음으로
-            //  연속 추가하는 게 더 자연스럽기 때문. 드롭 위치 정밀 삽입은 후속 백로그.)
-            viewModel.AddExternalFiles(files);
+            // 탐색기 등에서 끌어다 놓은 외부 파일(PPT/미디어) — 떨어뜨린 위치(타깃 항목) 앞에 묶음으로 추가
+            //  (성경/곡 드래그와 동일한 드롭-위치 삽입). 분류·삽입은 참조-안전한 검증된 VM 이 맡는다.
+            viewModel.AddExternalFilesRelativeTo(files, targetItem);
         }
     }
 

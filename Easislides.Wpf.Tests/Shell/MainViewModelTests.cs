@@ -1766,6 +1766,55 @@ public class MainViewModelTests
         sut.Queue.Select(i => i.Id).Should().Equal(
             new[] { "a", "powerpoint:C:\\x.pptx", "media:C:\\y.mp4", "b", "c" },
             "선택(A) 바로 뒤에 PPT·미디어가 순서대로 연속 삽입");
+        sut.SelectedItem!.ContentPath.Should().Be(@"C:\x.pptx", "묶음의 첫 항목 선택(드롭 경로와 동일)");
+    }
+
+    [Fact]
+    public void AddExternalFilesRelativeTo_InsertsBeforeDropTarget_InOrder()
+    {
+        // 떨어뜨린 항목(B) 앞에 PPT·미디어가 순서대로 묶음 삽입(성경/곡 드래그와 동일한 드롭-위치 삽입).
+        var sut = CreateSut(seedSampleQueue: false);
+        var b = new LiveQueueItem("b", "B", LiveItemKinds.Song);
+        sut.LoadQueue([
+            new LiveQueueItem("a", "A", LiveItemKinds.Song),
+            b,
+            new LiveQueueItem("c", "C", LiveItemKinds.Song),
+        ]);
+
+        sut.AddExternalFilesRelativeTo([@"C:\x.pptx", @"C:\y.mp4"], b);
+
+        sut.Queue.Select(i => i.Id).Should().Equal(
+            new[] { "a", "powerpoint:C:\\x.pptx", "media:C:\\y.mp4", "b", "c" },
+            "타깃(B) 바로 앞에 순서대로 연속 삽입");
+        sut.SelectedItem!.ContentPath.Should().Be(@"C:\x.pptx", "묶음의 첫 항목 선택");
+    }
+
+    [Fact]
+    public void AddExternalFilesRelativeTo_NullTarget_AppendsAtEnd()
+    {
+        // 빈 공간(타깃 없음)에 떨어뜨리면 맨 끝에 붙는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("a", "A", LiveItemKinds.Song)]);
+
+        sut.AddExternalFilesRelativeTo([@"C:\x.pptx"], targetItem: null);
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "a", "powerpoint:C:\\x.pptx" }, "맨 끝에 추가");
+    }
+
+    [Fact]
+    public void AddExternalFilesRelativeTo_DuplicateValueTarget_UsesExactInstance()
+    {
+        // 같은 값의 항목이 여러 번 있어도 드롭한 "바로 그 인스턴스" 앞에 끼운다(참조 일치 IndexOfReference).
+        var sut = CreateSut(seedSampleQueue: false);
+        var firstDup = new LiveQueueItem("dup", "반복", LiveItemKinds.Song);
+        var secondDup = new LiveQueueItem("dup", "반복", LiveItemKinds.Song);
+        sut.LoadQueue([firstDup, secondDup]);
+
+        sut.AddExternalFilesRelativeTo([@"C:\x.mp4"], secondDup); // 두 번째 인스턴스 앞에.
+
+        sut.Queue.Should().HaveCount(3);
+        sut.Queue.IndexOf(sut.Queue.First(i => i.Kind == LiveItemKinds.Media))
+            .Should().Be(1, "두 번째 dup 앞(인덱스 1)에 — 값-동등 첫 일치(0)가 아니라");
     }
 
     [Fact]

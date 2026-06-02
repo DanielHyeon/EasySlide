@@ -1393,37 +1393,80 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.Media, "미디어 파일");
 
     /// <summary>
-    /// 탐색기 등에서 끌어다 놓은 외부 파일 여러 개를 확장자에 맞춰 예배 순서에 추가한다(레거시 외부 파일 드래그).
-    /// PowerPoint(.ppt/.pptx)·미디어(영상/오디오)만 추가하고, 모르는 확장자는 건너뛴다(개수를 상태줄에 알린다).
-    /// 추가된 항목 수를 돌려준다. 파일 종류 판별은 순수 <see cref="ExternalFileClassifier"/> 가 맡는다.
+    /// 탐색기 등에서 끌어다 놓은 외부 파일 여러 개를 확장자에 맞춰 예배 순서의 <b>드롭 위치</b>에 추가한다(레거시 외부 파일 드래그).
+    /// <paramref name="targetItem"/> 앞에 끼우고(성경/곡 드래그와 동일), 빈 공간(타깃 없음)에 떨어뜨리면 맨 끝에 붙인다.
+    /// 여러 파일은 순서를 유지한 채 한 묶음으로 연속 삽입한다. PowerPoint·미디어만 추가하고 모르는 확장자는 건너뛴다(개수 안내).
+    /// 추가된 항목 수를 돌려준다. 파일 종류 판별은 순수 <see cref="ExternalFileClassifier"/>, 위치는 참조-안전한 <see cref="IndexOfReference"/>.
     /// </summary>
-    public int AddExternalFiles(IReadOnlyList<string> paths)
+    public int AddExternalFilesRelativeTo(IReadOnlyList<string> paths, LiveQueueItem? targetItem)
     {
         ArgumentNullException.ThrowIfNull(paths);
 
+        // 떨어뜨린 항목(타깃) 앞에 삽입할 위치. 타깃이 없거나 큐에 없으면 맨 끝.
+        var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
+        var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
+
         var added = 0;
         var skipped = 0;
+        LiveQueueItem? firstAdded = null;
         foreach (var path in paths)
         {
-            switch (ExternalFileClassifier.Classify(path))
+            var kind = ExternalFileClassifier.Classify(path) switch
             {
-                case ExternalFileKind.PowerPoint:
-                    if (AddPowerPoint(path) is not null) added++;
-                    break;
-                case ExternalFileKind.Media:
-                    if (AddMedia(path) is not null) added++;
-                    break;
-                default:
-                    skipped++; // 지원하지 않는 확장자 — 추가하지 않음.
-                    break;
+                ExternalFileKind.PowerPoint => LiveItemKinds.PowerPoint,
+                ExternalFileKind.Media => LiveItemKinds.Media,
+                _ => null,
+            };
+
+            if (kind is null)
+            {
+                skipped++; // 지원하지 않는 확장자 — 추가하지 않음.
+                continue;
             }
+
+            var item = CreateExternalFileItem(path, kind);
+            Queue.Insert(insertIndex++, item); // 순서 유지: 다음 파일은 방금 넣은 것 뒤에(타깃 앞에서 묶음 유지).
+            firstAdded ??= item;
+            added++;
         }
 
-        // 마지막에 한 번 더 안내(개별 추가 메시지를 덮어 전체 결과를 보여 준다). 건너뛴 게 있으면 함께 알린다.
+        if (firstAdded is not null)
+        {
+            SelectedItem = firstAdded; // 묶음의 첫 항목 선택(곡/성경 드래그와 같은 결).
+        }
+
         StatusText = skipped > 0
             ? $"외부 파일 {added}개 추가, {skipped}개 건너뜀(지원하지 않는 형식)"
             : $"외부 파일 {added}개 추가";
+        NotifyCommandStates();
         return added;
+    }
+
+    /// <summary>
+    /// 외부 파일들을 현재 선택 뒤에 추가한다(드롭 위치 없는 경로 — 끝이 아니라 선택 뒤). 다중 파일 메뉴 추가 등에 쓸 수 있다.
+    /// 선택은 묶음의 <b>첫</b> 항목에 둔다(AddExternalFilesRelativeTo 와 동일 — 드롭 경로와 결을 맞춤).
+    /// </summary>
+    public int AddExternalFiles(IReadOnlyList<string> paths)
+        => AddExternalFilesRelativeTo(paths, NextAfterSelectedOrNull()); // NextAfterSelectedOrNull 이 선택 없음(null)도 처리.
+
+    // 현재 선택 "다음" 항목을 돌려준다 — 외부 파일을 선택 바로 뒤에 끼우려고 그 다음 항목을 타깃(앞에 삽입)으로 쓴다.
+    // 선택이 마지막이면 다음이 없어 null → 맨 끝에 붙는다(=선택 뒤). 선택 없으면 호출 측에서 null 을 넘겨 끝에 붙는다.
+    private LiveQueueItem? NextAfterSelectedOrNull()
+    {
+        if (SelectedItem is null)
+        {
+            return null;
+        }
+
+        var index = IndexOfReference(SelectedItem);
+        return index >= 0 && index + 1 < Queue.Count ? Queue[index + 1] : null;
+    }
+
+    // 외부 파일 한 개를 큐 항목(LiveQueueItem)으로 만든다(삽입은 안 함). Id="kind:경로", 제목=확장자 뺀 파일명, ContentPath=경로.
+    private static LiveQueueItem CreateExternalFileItem(string filePath, string kind)
+    {
+        var title = Path.GetFileNameWithoutExtension(filePath);
+        return new LiveQueueItem($"{kind.ToLowerInvariant()}:{filePath}", title, kind) { ContentPath = filePath };
     }
 
     private LiveQueueItem? AddExternalFileItem(string filePath, string kind, string label)
@@ -1435,13 +1478,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var title = Path.GetFileNameWithoutExtension(filePath);
-        var item = new LiveQueueItem($"{kind.ToLowerInvariant()}:{filePath}", title, kind) { ContentPath = filePath };
+        var item = CreateExternalFileItem(filePath, kind);
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"{label} 추가됨: {title}";
+        StatusText = $"{label} 추가됨: {item.Title}";
         NotifyCommandStates();
         return item;
     }
