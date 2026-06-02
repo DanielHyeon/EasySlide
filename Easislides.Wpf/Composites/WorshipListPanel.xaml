@@ -422,6 +422,11 @@
                                 </MenuItem>
                             </MenuItem>
                             <Separator />
+                            <!-- 이 항목 서식 복사/붙여넣기 — 한 항목 서식을 담아 다른 항목들에 통일 적용. Command.CanExecute 로 자동 활성/비활성. -->
+                            <MenuItem Header="이 항목 서식 복사"
+                                      Command="{Binding PlacementTarget.DataContext.CopySelectedItemFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <MenuItem Header="이 항목에 서식 붙여넣기"
+                                      Command="{Binding PlacementTarget.DataContext.PasteSelectedItemFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             <!-- 이 항목 서식 모두 지우기(레거시 Clear All Formatting) — 항목별 FormatData 전부 제거 → 전역 기본으로 송출. 지울 서식이 있을 때만 활성. -->
                             <MenuItem Header="이 항목 서식 모두 지우기"
                                       Command="{Binding PlacementTarget.DataContext.ClearSelectedItemFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

@@ -406,6 +406,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 출력을 갱신하도록 판별하는 데 쓴다.
     private string? _liveItemId;
 
+    // "이 항목 서식 복사"로 담아 둔 항목별 서식(FormatData 문자열). 다른 항목에 "붙여넣기"하면 그대로 적용된다(없으면 null=붙여넣기 비활성).
+    private string? _copiedItemFormatData;
+
     // 절 단위 페이지네이션 상태 — PPT 의 SlideNumber 와 대칭.
     // LyricsPageIndex: 현재 보여주는 절 인덱스(0-based). LyricsPageCount: 선택 곡의 총 절 수.
     [ObservableProperty]
@@ -598,6 +601,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemUnderline2Command = new RelayCommand(ToggleSelectedItemUnderline2, () => CanEditSelectedItemColor);
         // 이 항목 서식 모두 지우기(레거시 Clear All Formatting) — 항목별 FormatData 전부 제거 → 전역 기본으로 송출. 서식이 있을 때만 활성.
         ClearSelectedItemFormattingCommand = new RelayCommand(ClearSelectedItemFormatting, () => CanClearSelectedItemFormatting);
+        // 이 항목 서식 복사/붙여넣기 — 한 항목의 서식을 담아 다른 항목들에 그대로 적용(여러 항목 통일에 편리). 복사는 서식 있을 때, 붙여넣기는 담아둔 서식 있고 대상이 편집 가능할 때.
+        CopySelectedItemFormattingCommand = new RelayCommand(CopySelectedItemFormatting, () => CanCopySelectedItemFormatting);
+        PasteSelectedItemFormattingCommand = new RelayCommand(PasteSelectedItemFormatting, () => CanPasteSelectedItemFormatting);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -764,6 +770,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>이 항목의 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 모두 지워 전역 기본으로 되돌린다(레거시 Clear All Formatting).</summary>
     public IRelayCommand ClearSelectedItemFormattingCommand { get; }
+
+    /// <summary>이 항목의 항목별 서식을 클립보드처럼 담아 둔다(다른 항목에 "붙여넣기"로 그대로 적용).</summary>
+    public IRelayCommand CopySelectedItemFormattingCommand { get; }
+
+    /// <summary>담아 둔 항목별 서식을 이 항목에 그대로 적용한다(여러 항목 서식 통일).</summary>
+    public IRelayCommand PasteSelectedItemFormattingCommand { get; }
 
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
@@ -2015,6 +2027,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
         OnPropertyChanged(nameof(CanClearSelectedItemFormatting));
+        OnPropertyChanged(nameof(CanCopySelectedItemFormatting));
+        OnPropertyChanged(nameof(CanPasteSelectedItemFormatting));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
@@ -3028,6 +3042,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(_ => new SongFormatData(), wantsIndividual: false, out _))
         {
             StatusText = "이 항목 서식 모두 지움(전역 기본)";
+        }
+    }
+
+    /// <summary>"이 항목 서식 복사"를 누를 수 있는지 — 복사할 항목별 서식(FormatData)이 있을 때만(지우기와 같은 조건).</summary>
+    public bool CanCopySelectedItemFormatting => CanClearSelectedItemFormatting;
+
+    /// <summary>"이 항목에 서식 붙여넣기"를 누를 수 있는지 — 담아 둔 서식이 있고, 대상이 서식 편집 가능(곡·성경, 본문 있음)일 때만.</summary>
+    public bool CanPasteSelectedItemFormatting
+        => CanEditSelectedItemColor && !string.IsNullOrEmpty(_copiedItemFormatData);
+
+    /// <summary>
+    /// 선택한 항목의 항목별 서식(FormatData)을 클립보드처럼 담아 둔다 — 다른 항목에 "붙여넣기"하면 그대로 적용된다.
+    /// 본문·제목은 복사하지 않고 서식만 담는다(여러 항목을 같은 색·글꼴로 빠르게 통일하는 용도).
+    /// </summary>
+    public void CopySelectedItemFormatting()
+    {
+        if (!CanCopySelectedItemFormatting)
+        {
+            return;
+        }
+
+        _copiedItemFormatData = SelectedItem?.FormatData;
+        StatusText = "이 항목 서식 복사함(다른 항목에 붙여넣기 가능)";
+        NotifyCommandStates(); // 붙여넣기 활성화 통지.
+    }
+
+    /// <summary>
+    /// 담아 둔 항목별 서식을 선택한 항목에 그대로 적용한다(본문은 그대로 두고 서식만 교체). 적용 시 개별 서식을 켜 송출에 보이게 하고, 라이브면 즉시 재송출한다.
+    /// 담아 둔 서식이 없거나(복사 먼저), 대상이 편집 대상이 아니거나, 이미 같은 서식이면 아무 일도 안 한다.
+    /// </summary>
+    public void PasteSelectedItemFormatting()
+    {
+        if (!CanPasteSelectedItemFormatting)
+        {
+            return;
+        }
+
+        // 담아 둔 FormatData 를 그대로 적용 — 헬퍼가 Parse→Encode 왕복으로 안전하게 검증·재인코드한다(잘못된 코드 걸러짐).
+        var pasted = SongFormatData.Parse(_copiedItemFormatData) ?? new SongFormatData();
+        if (ApplySelectedSongFormatChange(_ => pasted, wantsIndividual: true, out _))
+        {
+            StatusText = "이 항목에 서식 붙여넣음";
         }
     }
 
@@ -4744,6 +4800,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemItalic2Command.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderline2Command.NotifyCanExecuteChanged();
         ClearSelectedItemFormattingCommand.NotifyCanExecuteChanged();
+        CopySelectedItemFormattingCommand.NotifyCanExecuteChanged();
+        PasteSelectedItemFormattingCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

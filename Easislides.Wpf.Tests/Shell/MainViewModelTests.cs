@@ -5743,6 +5743,104 @@ public class MainViewModelTests
         session.Current.OverrideTextColorArgb.Should().BeNull("서식을 지우면 라이브가 전역 기본색으로 복귀");
     }
 
+    [Fact]
+    public void CopyPasteSelectedItemFormatting_AppliesSameFormatToAnotherItem()
+    {
+        // 한 곡의 서식(색·정렬)을 복사해 다른 곡에 붙여넣으면 같은 FormatData 가 적용된다(본문은 그대로).
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가사A", FormatData = "29=-1>31=2>" };
+        var b = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n가사B" };
+        sut.LoadQueue([a, b]);
+
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+
+        sut.SelectedItem = sut.Queue[1];
+        sut.CanPasteSelectedItemFormatting.Should().BeTrue("복사한 서식이 있으면 붙여넣기 활성");
+        sut.PasteSelectedItemFormatting();
+
+        sut.Queue[1].FormatData.Should().Contain("29=-1", "색 복사됨").And.Contain("31=2", "정렬 복사됨");
+        sut.Queue[1].Lyrics.Should().Be("[1]\n가사B", "본문은 그대로(서식만 붙여넣음)");
+        sut.Queue[1].UseIndividualFormatting.Should().BeTrue("붙여넣으면 개별 서식 켜짐");
+    }
+
+    [Fact]
+    public void PasteSelectedItemFormatting_FullyReplaces_NotMerges_TargetFormatting()
+    {
+        // 붙여넣기는 대상의 기존 서식을 합치지 않고 통째로 덮어쓴다(레거시 "붙여넣기" 의미). 대상의 옛 색은 사라져야 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var src = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "47=80>" }; // 크기만(색 없음)
+        var dst = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n나", FormatData = "29=-1>31=3>" }; // 흰색+오른쪽
+        sut.LoadQueue([src, dst]);
+
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+        sut.SelectedItem = sut.Queue[1];
+        sut.PasteSelectedItemFormatting();
+
+        sut.Queue[1].FormatData.Should().Contain("47=80", "복사원 크기로 교체");
+        (sut.Queue[1].FormatData ?? "").Should().NotContain("29=", "대상의 옛 색은 합쳐지지 않고 사라짐")
+            .And.NotContain("31=", "대상의 옛 정렬도 사라짐");
+    }
+
+    [Fact]
+    public void CanCopyAndPaste_GatesReflectStateCorrectly()
+    {
+        // 복사: 서식 있을 때만. 붙여넣기: 복사한 게 있고 대상이 편집 가능할 때만.
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가사", FormatData = "29=-1>" };
+        var plain = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([a, plain]);
+
+        sut.SelectedItem = sut.Queue[1]; // 서식 없는 곡
+        sut.CanCopySelectedItemFormatting.Should().BeFalse("서식 없으면 복사 불가");
+        sut.CanPasteSelectedItemFormatting.Should().BeFalse("아직 복사한 게 없으면 붙여넣기 불가");
+
+        sut.SelectedItem = sut.Queue[0]; // 서식 있는 곡
+        sut.CanCopySelectedItemFormatting.Should().BeTrue("서식 있으면 복사 가능");
+        sut.CopySelectedItemFormatting();
+        sut.CanPasteSelectedItemFormatting.Should().BeTrue("복사 후엔 붙여넣기 가능");
+    }
+
+    [Fact]
+    public void PasteSelectedItemFormatting_ToBibleItem_Works()
+    {
+        // 곡 서식을 복사해 성경 항목(증분128)에 붙여넣어도 적용된다(서식은 종류 무관).
+        var sut = CreateSut(seedSampleQueue: false);
+        var song = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가사", FormatData = "47=60>" };
+        var bible = new LiveQueueItem("bible:gen1", "창세기 1:1", LiveItemKinds.Bible) { Lyrics = "태초에..." };
+        sut.LoadQueue([song, bible]);
+
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+        sut.SelectedItem = sut.Queue[1];
+        sut.PasteSelectedItemFormatting();
+
+        sut.Queue[1].FormatData.Should().Contain("47=60", "성경 항목에도 글자 크기 서식 붙여넣음");
+    }
+
+    [Fact]
+    public async Task PasteSelectedItemFormatting_WhileLive_RendersOverride_EndToEnd()
+    {
+        // 종단: 라이브 항목에 서식을 붙여넣으면 즉시 그 서식이 라이브에 적용된다(같은 절 재송출).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var a = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가사", FormatData = "29=-256>" }; // 노랑(0xFFFFFF00=-256)
+        var b = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([a, b]);
+        sut.SelectedItem = sut.Queue[0];
+        sut.CopySelectedItemFormatting();
+
+        sut.SelectedItem = sut.Queue[1];
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        session.Current.OverrideTextColorArgb.Should().BeNull("붙여넣기 전엔 서식 없음");
+
+        sut.PasteSelectedItemFormatting();
+
+        session.Current.OverrideTextColorArgb.Should().Be(-256, "붙여넣은 색이 라이브에 즉시 적용");
+    }
+
     // ── 항목별 정렬 인라인 편집(SetSelectedItemAlignment) — 선택한 곡만 가로 정렬(레거시 Ind_ 정렬, 코드31) ──
 
     [Theory]
