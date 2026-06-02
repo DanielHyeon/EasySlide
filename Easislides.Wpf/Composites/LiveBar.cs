@@ -25,6 +25,9 @@ public sealed partial class LiveBarViewModel : ObservableObject
     /// <summary>송출 중인 아이템 제목 (예: "주일찬양 #3 은혜로다").</summary>
     [ObservableProperty] private string _currentItemTitle = string.Empty;
 
+    /// <summary>송출 중인 항목의 위치 라벨 (예: 곡 "3/12"·PPT 슬라이드 "5/20"). 단일 페이지/위치 없음이면 빈 문자열 → 자동 숨김.</summary>
+    [ObservableProperty] private string _positionLabel = string.Empty;
+
     /// <summary>송출 중인 모니터 식별자 (예: "모니터 2").</summary>
     [ObservableProperty] private string _outputMonitorName = string.Empty;
 
@@ -101,10 +104,11 @@ public partial class LiveBar : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // 송출 상태/현재 아이템/상태 라벨이 바뀌면 스크린리더에 즉시 통지한다.
+        // 송출 상태/현재 아이템/상태 라벨/위치가 바뀌면 스크린리더에 즉시 통지한다.
         if (e.PropertyName is nameof(LiveBarViewModel.State)
             or nameof(LiveBarViewModel.CurrentItemTitle)
-            or nameof(LiveBarViewModel.StateLabel))
+            or nameof(LiveBarViewModel.StateLabel)
+            or nameof(LiveBarViewModel.PositionLabel))
         {
             RaiseLiveRegionChanged();
         }
@@ -153,7 +157,7 @@ public partial class LiveBar : UserControl
                 return base.GetNameCore();
             }
 
-            var parts = new[] { vm.StateLabel, vm.CurrentItemTitle }
+            var parts = new[] { vm.StateLabel, vm.CurrentItemTitle, vm.PositionLabel }
                 .Where(s => !string.IsNullOrWhiteSpace(s));
             var name = string.Join(": ", parts);
             return string.IsNullOrWhiteSpace(name) ? base.GetNameCore() : name;

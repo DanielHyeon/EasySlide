@@ -4134,6 +4134,22 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LiveBar_ShowsLivePosition_AndUpdatesOnVerseNavigation()
+    {
+        // 증분142 — 상단 LiveBar 가 라이브 위치(곡 절 "1/3")를 보여 주고, 절 이동마다 갱신된다(세션 스냅샷→LiveBar.PositionLabel).
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "[1]\n1절\n[2]\n2절\n[3]\n3절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.LiveBar.PositionLabel.Should().Be("1/3", "LiveBar 가 라이브 위치 표시");
+
+        sut.NextLyricsPageCommand.Execute(null);
+        sut.LiveBar.PositionLabel.Should().Be("2/3", "절 이동 시 LiveBar 위치도 갱신");
+    }
+
+    [Fact]
     public async Task GoLive_SingleVerseSong_HasEmptyPositionLabel()
     {
         // 단일 절 곡은 위치 라벨이 비어 있다(표시 의미 없음).

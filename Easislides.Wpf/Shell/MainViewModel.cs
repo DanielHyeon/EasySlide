@@ -4845,6 +4845,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         LiveBar.State = snapshot.State;
         LiveBar.CurrentItemTitle = snapshot.CurrentItemTitle;
+        // 라이브 위치(곡 절 "3/12"·PPT 슬라이드 "5/20") — 절/슬라이드 이동마다 세션이 다시 알려 LiveBar 가 갱신된다(없으면 빈 문자열→숨김).
+        LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;
         // 자동 회전은 라이브 완전 종료(Stop=Off)에서만 해제한다 — 숨김/검정/비우기(Hidden)는 임시 상태라
         // 유지하고 복귀(Restore→Active) 시 그대로 이어간다. 숨김 중에는 AdvanceAutoRotation 이 State!=Active 로

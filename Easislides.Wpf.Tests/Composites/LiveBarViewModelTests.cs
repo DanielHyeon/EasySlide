@@ -105,4 +105,15 @@ public class LiveBarViewModelTests
         var sut = new LiveBarViewModel();
         sut.ShortcutHint.Should().NotBeNullOrEmpty("사용자에게 항상 단축키 안내가 보여야 함");
     }
+
+    [Fact]
+    public void PositionLabel_DefaultsEmpty_AndSettable()
+    {
+        // 라이브 위치 라벨(곡 절·PPT 슬라이드) — 기본 빈 문자열(위치 없음→알약 숨김), 설정하면 반영.
+        var sut = new LiveBarViewModel();
+        sut.PositionLabel.Should().BeEmpty("기본은 빈 문자열");
+
+        sut.PositionLabel = "3/12";
+        sut.PositionLabel.Should().Be("3/12");
+    }
 }

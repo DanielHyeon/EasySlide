@@ -40,6 +40,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <!-- 좌: Pulse 인디케이터 + 상태 라벨 -->
@@ -67,16 +68,39 @@
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis" />
 
+            <!-- 위치 라벨(곡 절 "3/12"·PPT 슬라이드 "5/20") — 현재 송출 항목 안에서 어디인지 한눈에. 빈 문자열이면 알약이 보이지 않게 가린다. -->
+            <Border Grid.Column="3"
+                    Background="#33FFFFFF"
+                    CornerRadius="{StaticResource CornerRadius.Small}"
+                    Padding="8,4"
+                    Margin="12,0,0,0"
+                    VerticalAlignment="Center">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PositionLabel}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding PositionLabel}"
+                           FontFamily="{DynamicResource Font.Mono}"
+                           FontSize="13"
+                           Foreground="{DynamicResource Brush.Text.Inverse}"
+                           VerticalAlignment="Center" />
+            </Border>
+
             <!-- 우측: 모니터 + 단축키 힌트 -->
-            <TextBlock Grid.Column="3"
+            <TextBlock Grid.Column="4"
                        Text="{Binding OutputMonitorName, StringFormat=→ {0}}"
                        FontFamily="{DynamicResource Font.Primary}"
                        FontSize="14"
                        Foreground="{DynamicResource Brush.Text.Inverse}"
                        VerticalAlignment="Center"
-                       Margin="0,0,20,0"
+                       Margin="20,0,20,0"
                        Opacity="0.9" />
-            <Border Grid.Column="4"
+            <Border Grid.Column="5"
                     Background="#33FFFFFF"
                     CornerRadius="{StaticResource CornerRadius.Small}"
                     Padding="8,4">
