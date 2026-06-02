@@ -5027,6 +5027,131 @@ public class MainViewModelTests
         sut.SelectedItem!.Sequence.Should().BeNull("공지 항목엔 절 순서가 붙지 않음");
     }
 
+    // ── 항목별 글자색 인라인 편집(SetSelectedItemTextColor) — 선택한 곡만 색을 바꾼다(레거시 Ind_ 색) ──
+
+    [Fact]
+    public void SetSelectedItemTextColor_WritesFormatDataCode29_AndEnablesIndividual_AndReflectsHex()
+    {
+        // 곡을 선택하고 글자색을 주면 그 항목 FormatData(코드 29)에 색이 실리고, 개별 서식이 켜지며, 색 미리보기도 동기화된다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.SelectedItem!.FormatData.Should().BeNull("처음엔 항목별 색 없음");
+
+        sut.SetSelectedItemTextColor("#FFFFFFFF"); // 흰색(ARGB -1).
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "코드 29(영역1 글자색)에 흰색(-1) 인코드");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("색을 주면 그 색이 보이도록 개별 서식을 켠다");
+        sut.SelectedItemTextColorHex.Should().Be("#FFFFFFFF", "색 미리보기도 교체된 항목을 따라감");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_PreservesOtherFormatData()
+    {
+        // 색만 바꾸고 나머지 곡별 서식(정렬 등)은 보존한다(Parse→with→Encode 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "31=2", // 정렬 가운데(코드 31).
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemTextColor("#FFFF0000"); // 빨강.
+
+        sut.SelectedItem!.FormatData.Should().Contain("31=2", "기존 정렬 서식은 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("29=", "새 글자색도 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_EmptyOrInvalid_ClearsColorToGlobal()
+    {
+        // 빈/형식오류 색을 주면 색을 해제(코드 29 제거) → 전역 기본색을 따른다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1", // 흰색이 이미 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemTextColor(""); // 전역 기본으로 해제.
+
+        sut.SelectedItemTextColorHex.Should().BeEmpty("색 해제 → 전역 기본 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("29=", "코드 29(글자색)가 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_WhileLive_AppliesOverrideColor()
+    {
+        // 라이브 송출 중 항목 글자색을 바꾸면 세션의 오버라이드 색이 즉시 반영된다(레거시 per-song 색).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemTextColor("#FFFFFFFF"); // 흰색(-1).
+
+        session.Current.OverrideTextColorArgb.Should().Be(-1, "항목 글자색이 라이브 송출 색을 즉시 이긴다");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_WhileLiveOnLaterVerse_PreservesVerse()
+    {
+        // 라이브 2절에서 색을 바꿔도 현재 절이 유지돼야 한다(0절로 안 튐) — 절 순서 편집과 같은 재송출 보장.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n1절\n[2]\n2절" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+        sut.NextLyricsPageCommand.Execute(null); // 2절로 이동.
+        session.Current.CurrentLyricsPageIndex.Should().Be(1);
+
+        sut.SetSelectedItemTextColor("#FFFFFFFF");
+
+        session.Current.CurrentLyricsPageIndex.Should().Be(1, "현재 절(2절) 유지 — 0절로 안 튐");
+        session.Current.OverrideTextColorArgb.Should().Be(-1, "그래도 새 색은 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_WhenIndividualWasOff_ReEnablesAndDisclosesInStatus()
+    {
+        // 개별 서식을 꺼둔 항목에 색을 주면 자동으로 켜지고, 상태줄이 그 사실을 정직하게 알린다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            UseIndividualFormatting = false, // 운영자가 일부러 꺼둠.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemTextColor("#FFFFFF00");
+
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("색이 보이도록 자동으로 켬");
+        sut.StatusText.Should().Contain("개별 서식 켜짐", "자동으로 켠 사실을 상태줄에 알림");
+    }
+
+    [Fact]
+    public void SetSelectedItemTextColor_NonSong_IsNoOpAndCommandDisabled()
+    {
+        // 곡이 아닌 항목엔 항목별 색이 붙지 않고, 명령도 비활성.
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.CanEditSelectedItemColor.Should().BeFalse();
+        sut.SetSelectedItemTextColorCommand.CanExecute("#FFFFFFFF").Should().BeFalse("곡이 아니면 명령 비활성");
+
+        sut.SetSelectedItemTextColor("#FFFFFFFF");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 색이 붙지 않음");
+    }
+
     // ── 절 라벨 직접 점프(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응) ──
 
     [Fact]

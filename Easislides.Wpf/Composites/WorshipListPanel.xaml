@@ -179,6 +179,29 @@
                             <MenuItem Header="개별 서식 사용"
                                       IsChecked="{Binding PlacementTarget.DataContext.SelectedItem.UseIndividualFormatting, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
                                       Command="{Binding PlacementTarget.DataContext.ToggleUseIndividualFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <!-- 항목별 글자색(이 곡만) — 레거시 Ind_ 색. 프리셋 색/전역기본을 한 번에. 곡 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 글자색"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="흰색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FFFFFFFF" />
+                                <MenuItem Header="노랑"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FFFFFF00" />
+                                <MenuItem Header="하늘색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF00BFFF" />
+                                <MenuItem Header="연두색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF7CFC00" />
+                                <MenuItem Header="주황색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FFFFA500" />
+                                <Separator />
+                                <MenuItem Header="전역 기본색(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>
