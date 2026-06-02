@@ -1439,6 +1439,68 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// 레거시 .esw(EasiSlides v3.2) 파서 결과를 현재 예배 순서로 가져온다(대체) — 레거시 예배 순서 구조 복원.
+    /// 최선 노력(best-effort): 항목 순서·제목·종류는 복원하고, 곡(D)은 라이브러리에 같은 곡이 있으면 가사까지 채운다.
+    /// PowerPoint·미디어는 파일 참조(ContentPath), 성경·텍스트·InfoScreen·Word 는 제목/참조 수준으로 가져온다
+    /// (곡 가사 DB 조회·성경 본문 확장·정확한 파일 경로 재해석은 후속 — 원본 환경 의존이라 가져오기 후 운영자가 보정).
+    /// </summary>
+    public void ImportEswWorshipList(IReadOnlyList<EswWorshipListItem> items)
+    {
+        ArgumentNullException.ThrowIfNull(items); // LoadQueue 와 동일하게 입력을 방어(널이면 즉시 알림).
+
+        Queue.Clear();
+        foreach (var esw in items)
+        {
+            Queue.Add(BuildEswQueueItem(esw));
+        }
+
+        SelectedItem = Queue.FirstOrDefault();
+        StatusText = $"레거시 예배 순서 가져옴: {Queue.Count}개 항목";
+        // PPT 개수 제한 위반 플래그(HasPowerPointLimitViolation)는 갱신하되 상태줄은 덮지 않는다(updateStatus:false)
+        // — 방금 띄운 "가져옴: N개" 안내를 PPT 경고가 즉시 지우지 않게(위반은 UI 배지로 계속 보인다). LoadQueue(true)와 의도된 차이.
+        RefreshPowerPointLimitState(updateStatus: false);
+        NotifyCommandStates();
+    }
+
+    // .esw 원시 항목 → WPF 큐 항목 매핑(종류 코드별). 내용 해석은 가능한 한(곡=라이브러리 가사), 나머지는 참조/제목 수준.
+    private LiveQueueItem BuildEswQueueItem(EswWorshipListItem esw)
+    {
+        var title = string.IsNullOrWhiteSpace(esw.Title) ? esw.Id : esw.Title;
+        switch (esw.TypeCode.ToUpperInvariant())
+        {
+            case "D": // DB 곡 — 라이브러리에 같은 곡(가사 포함)이 있으면 가사·번호·저작권까지, 없으면 제목만(가사 해석은 후속).
+                if (int.TryParse(esw.Id, out var songId)
+                    && Library.Songs.FirstOrDefault(s => s.SongId == songId) is { } song)
+                {
+                    return new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
+                    {
+                        Lyrics = song.Lyrics,
+                        SongNumber = song.SongNumber,
+                        Copyright = song.Copyright,
+                        FormatData = esw.FormatData,
+                    };
+                }
+
+                return new LiveQueueItem($"song:{esw.Id}", title, LiveItemKinds.Song) { FormatData = esw.FormatData };
+
+            case "P": // PowerPoint — 식별자가 파일 참조. 경로가 안 맞으면 검증이 잡아 운영자가 보정.
+                return new LiveQueueItem($"powerpoint:{esw.Id}", title, LiveItemKinds.PowerPoint)
+                { ContentPath = esw.Id, FormatData = esw.FormatData };
+
+            case "M": // 미디어 — 식별자가 파일 참조.
+                return new LiveQueueItem($"media:{esw.Id}", title, LiveItemKinds.Media)
+                { ContentPath = esw.Id, FormatData = esw.FormatData };
+
+            case "B": // 성경 — 참조+제목(본문 확장은 후속).
+                return new LiveQueueItem($"bible:{esw.Id}", title, LiveItemKinds.Bible) { FormatData = esw.FormatData };
+
+            default: // T(텍스트)·I(InfoScreen)·W(Word)·미상 → 텍스트(공지) 항목으로 제목 표시(정확한 내용 재구성은 후속).
+                return new LiveQueueItem($"esw:{esw.TypeCode}:{esw.Id}", title, LiveItemKinds.Notice)
+                { Lyrics = title, FormatData = esw.FormatData };
+        }
+    }
+
     /// <summary>현재 예배 세션(마지막으로 저장/불러온 예배 순서) 이름 — 세션 메모 키로 쓰인다. 없으면 빈 문자열.</summary>
     public string CurrentWorshipListName { get; private set; } = string.Empty;
 

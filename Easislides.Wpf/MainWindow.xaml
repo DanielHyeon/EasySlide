@@ -41,6 +41,9 @@
                 <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" /></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="레거시 예배 순서(.esw) 가져오기..." Click="ImportLegacyWorshipList_Click">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.FolderOpen}" /></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="PowerPoint 폴더 찾아보기..." Click="OpenPowerPointLibrary_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
                 </MenuItem>

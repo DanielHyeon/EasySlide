@@ -63,6 +63,7 @@ public class MainMenuBarTests
     [InlineData("OpenRegistration_Click")]
     [InlineData("OpenAbout_Click")]
     [InlineData("AddExternalFile_Click")]
+    [InlineData("ImportLegacyWorshipList_Click")]
     public void MenuBar_WiresWindowItemsToClickHandlers(string handler)
         => Xaml.Should().Contain($"Click=\"{handler}\"", $"{handler} 에 배선된 메뉴 항목이 있어야 함");
 

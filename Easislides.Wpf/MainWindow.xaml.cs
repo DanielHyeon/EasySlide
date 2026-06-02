@@ -75,6 +75,7 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.WindowRegistration, OpenRegistration_Click);
         Bind(MainCommandIds.WindowAbout, OpenAbout_Click);
         Bind(MainCommandIds.AddExternalFile, AddExternalFile_Click);
+        Bind(MainCommandIds.ImportLegacyWorshipList, ImportLegacyWorshipList_Click);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e) => EnsureLibraryLoadedOnce();
@@ -488,6 +489,56 @@ public partial class MainWindow : Window
                 viewModel.AddMedia(dialog.FileName);
             }
         }
+    }
+
+    // 레거시 .esw(EasiSlides v3.2) 예배 순서 파일을 열어 현재 예배 순서로 가져온다(§3.4).
+    // 파일 읽기·다이얼로그는 여기서, "XML→원시 항목" 파싱과 "원시 항목→큐" 매핑은 검증된
+    // 순수 코드(EswWorshipListParser.Parse / MainViewModel.ImportEswWorshipList)가 맡는다.
+    private void ImportLegacyWorshipList_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "가져올 레거시 예배 순서(.esw) 선택",
+            Filter = "EasiSlides 예배 순서 (*.esw)|*.esw|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        string xml;
+        try
+        {
+            xml = System.IO.File.ReadAllText(dialog.FileName);
+        }
+        catch (System.IO.IOException ex)
+        {
+            // 파일을 못 읽으면(잠김·권한 등) 조용히 실패하지 않고 운영자에게 알린다.
+            viewModel.StatusText = $"예배 순서 파일을 읽을 수 없습니다: {ex.Message}";
+            return;
+        }
+        catch (System.UnauthorizedAccessException ex)
+        {
+            viewModel.StatusText = $"예배 순서 파일 접근 권한이 없습니다: {ex.Message}";
+            return;
+        }
+
+        var items = EswWorshipListParser.Parse(xml);
+        if (items.Count == 0)
+        {
+            // 빈/손상 파일이면 현재 큐를 지우지 않고 안내만 한다(잘못된 파일로 작업물을 날리지 않게).
+            viewModel.StatusText = "가져올 항목이 없습니다(빈 파일이거나 읽을 수 없는 형식).";
+            return;
+        }
+
+        viewModel.ImportEswWorshipList(items);
     }
 
     // Word 문서를 텍스트 항목으로 예배 순서에 추가한다(레거시 Word 항목 — OfficeLib.WordDoc 이 본문 텍스트를 추출).

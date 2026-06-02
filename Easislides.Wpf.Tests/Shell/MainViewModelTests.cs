@@ -867,6 +867,129 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ImportEswWorshipList_MapsEachTypeCodeToKind_AndReplacesQueue()
+    {
+        // 레거시 .esw 가져오기: 종류 코드(D/P/M/B/T)를 각 WPF 항목 종류로 매핑하고 큐를 통째로 교체한다.
+        var sut = CreateSut(seedSampleQueue: true); // 기존 큐가 있어도 가져오기는 비우고 새로 채운다.
+        var items = new List<EswWorshipListItem>
+        {
+            new("D", "123", "은혜로다", "찬양", ""),
+            new("P", "설교.pptx", "설교 슬라이드", "", ""),
+            new("M", "찬양영상.mp4", "찬양 영상", "", ""),
+            new("B", "창1:1", "창세기 1:1", "성경", ""),
+            new("T", "광고", "광고 안내", "", ""),
+        };
+
+        sut.ImportEswWorshipList(items);
+
+        sut.Queue.Select(i => i.Kind).Should().Equal(
+            LiveItemKinds.Song, LiveItemKinds.PowerPoint, LiveItemKinds.Media, LiveItemKinds.Bible, LiveItemKinds.Notice);
+        sut.Queue.Select(i => i.Title).Should().Equal("은혜로다", "설교 슬라이드", "찬양 영상", "창세기 1:1", "광고 안내");
+        sut.Queue[1].ContentPath.Should().Be("설교.pptx", "PPT 는 파일 참조를 ContentPath 에 보존");
+        sut.Queue[2].ContentPath.Should().Be("찬양영상.mp4", "미디어도 파일 참조 보존");
+        sut.SelectedItem.Should().Be(sut.Queue[0], "가져온 뒤 첫 항목 선택");
+        sut.StatusText.Should().Contain("5개");
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_DbSongInLibrary_FillsLyricsAndNumber()
+    {
+        // 곡(D) 항목이 현재 라이브러리에 같은 SongId 로 있으면 가사·번호·저작권까지 채워 온전한 곡으로 가져온다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.Library.Songs.Add(new Easislides.Wpf.Data.SongSummary(123, "은혜로다", "", 1, 305, "", "", "1절 가사", "CCLI 7"));
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem> { new("D", "123", "은혜로다", "찬양", "") });
+
+        var item = sut.Queue.Single();
+        item.Id.Should().Be("song:123");
+        item.Lyrics.Should().Be("1절 가사", "라이브러리에서 가사를 채움");
+        item.SongNumber.Should().Be(305);
+        item.Copyright.Should().Be("CCLI 7");
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_DbSongNotInLibrary_KeepsTitleOnly()
+    {
+        // 라이브러리에 없으면(가사 미해석) 제목만 가진 곡 항목으로 가져온다 — 운영자가 나중에 가사를 보정.
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem> { new("D", "999", "없는 곡", "찬양", "") });
+
+        var item = sut.Queue.Single();
+        item.Kind.Should().Be(LiveItemKinds.Song);
+        item.Id.Should().Be("song:999");
+        item.Title.Should().Be("없는 곡");
+        item.Lyrics.Should().BeNull("라이브러리에 없으면 가사를 못 채움(제목만)");
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_EmptyTitle_FallsBackToId()
+    {
+        // 제목이 비면 식별자를 제목으로 써서 빈 줄 항목이 생기지 않게 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem> { new("P", "행사.pptx", "", "", "") });
+
+        sut.Queue.Single().Title.Should().Be("행사.pptx");
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_CarriesFormatDataThrough_OnEveryBranch()
+    {
+        // 곡별 출력 서식(FORMATDATA)은 가져올 때 항목에 그대로 실려야 한다 — 색·정렬이 사라지지 않게(회귀 방지).
+        var sut = CreateSut(seedSampleQueue: false);
+        var items = new List<EswWorshipListItem>
+        {
+            new("D", "5", "곡", "찬양", "29=-65536>"),   // 라이브러리에 없어도 FormatData 는 보존.
+            new("P", "행사.pptx", "행사", "", "47=60>"),
+            new("B", "창1:1", "창세기", "성경", "29=-1>"),
+            new("T", "공지", "공지", "", "31=2>"),
+        };
+
+        sut.ImportEswWorshipList(items);
+
+        sut.Queue.Select(i => i.FormatData).Should().Equal("29=-65536>", "47=60>", "29=-1>", "31=2>");
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_DbSongWithNonNumericId_KeepsTitleOnly()
+    {
+        // 식별자가 숫자가 아니면(손상·비정상 ItemID) int 파싱이 실패 → 제목만 가진 곡 항목으로 안전하게(예외 없이).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem> { new("D", "abc", "비정상 식별자 곡", "", "") });
+
+        var item = sut.Queue.Single();
+        item.Kind.Should().Be(LiveItemKinds.Song);
+        item.Id.Should().Be("song:abc", "숫자 파싱 실패 시 식별자 원문을 그대로 보존(가사 미해석)");
+        item.Title.Should().Be("비정상 식별자 곡");
+        item.Lyrics.Should().BeNull("숫자가 아니면 라이브러리 조회를 건너뛴다");
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_Null_Throws()
+    {
+        // 널 입력은 조용히 빈 큐로 만들지 않고 즉시 예외(LoadQueue 와 같은 방어).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var act = () => sut.ImportEswWorshipList(null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void ImportEswWorshipList_Empty_ClearsQueue()
+    {
+        // 빈 목록(읽을 수 없는/빈 .esw)을 가져오면 큐를 비운다 — 이전 내용이 남지 않게.
+        var sut = CreateSut(seedSampleQueue: true);
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem>());
+
+        sut.Queue.Should().BeEmpty();
+        sut.SelectedItem.Should().BeNull();
+    }
+
+    [Fact]
     public void AddBibleSelectionRelativeTo_InsertsBeforeTargetItem()
     {
         // 본문 드래그→예배순서 드롭: 떨어뜨린 위치(타깃 항목) 앞에 성경 구절을 끼운다.

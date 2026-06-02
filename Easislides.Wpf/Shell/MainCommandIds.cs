@@ -34,4 +34,6 @@ public static class MainCommandIds
     public const string AddExternalFile = "Item.AddExternalFile";
     public const string WorshipListValidate = "WorshipList.Validate";
     public const string WorshipDuplicateItem = "WorshipList.Duplicate";
+    // 레거시 .esw(EasiSlides v3.2) 예배 순서 파일 가져오기(§3.4) — 파일 선택 → 파서 → ImportEswWorshipList.
+    public const string ImportLegacyWorshipList = "WorshipList.ImportLegacyEsw";
 }

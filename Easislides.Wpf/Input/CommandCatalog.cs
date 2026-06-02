@@ -212,6 +212,12 @@ public sealed class CommandCatalog : ICommandCatalog
             "파일 추가",
             "PowerPoint/미디어 파일을 예배 순서에 추가합니다.",
             isDangerous: false),
+        Command(
+            MainCommandIds.ImportLegacyWorshipList,
+            "예배 순서",
+            "레거시 예배 순서(.esw) 가져오기",
+            "예전 EasiSlides(.esw) 예배 순서 파일을 열어 현재 예배 순서로 가져옵니다(곡은 라이브러리 가사로 채움).",
+            isDangerous: false),
     };
 
     public CommandCatalog()

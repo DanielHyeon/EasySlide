@@ -163,13 +163,13 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 ### 3.4 예배 순서 관리
 | FrmMain | WPF | 상태 |
 |---|---|---|
-| 항목 추가(곡/PPT/성경/텍스트/InfoScreen/Word/미디어/외부파일/.esw 병합) | AddSong/Bible/PowerPoint/Media + 파일추가 + 병합(93) + 텍스트/공지(94) + **Word 문서(증분100)** | 🟡 곡/성경/PPT/미디어/파일/텍스트(공지)/**Word 문서** 추가 + 병합. Word 는 OfficeLib.WordDoc 으로 **본문 텍스트만 추출**해 Notice 항목으로 추가(이미지 페이지 렌더 아님 — 긴 문서는 한 화면, 페이지네이션 후속). legacy .esw 바이너리만 후속 |
+| 항목 추가(곡/PPT/성경/텍스트/InfoScreen/Word/미디어/외부파일/.esw 병합) | AddSong/Bible/PowerPoint/Media + 파일추가 + 병합(93) + 텍스트/공지(94) + **Word 문서(증분100)** | 🟡 곡/성경/PPT/미디어/파일/텍스트(공지)/**Word 문서** 추가 + 병합. Word 는 OfficeLib.WordDoc 으로 **본문 텍스트만 추출**해 Notice 항목으로 추가(이미지 페이지 렌더 아님 — 긴 문서는 한 화면, 페이지네이션 후속). legacy .esw(XML) 가져오기는 증분101·102 에서 구현(아래 행 참조) |
 | 이동 ↑↓ / 드래그 재정렬 / 제거 / 전체 비우기 | Move·드래그 + **맨위/맨아래 이동(증분96)** + Remove + 전체 비우기(84)·되돌리기 + 항목 복제(95) | 🟢 이동 ↑↓·**맨 위로/맨 아래로 한 번에**·드래그 재정렬 + 전체 비우기/1단계 되돌리기 + 항목 복제. 모던 재정렬 UX 보강 |
 | 드래그 소스 다양(곡/Info/PPT/미디어/이미지→배경/성경구절) | 큐 내부 재정렬 + 성경 본문→큐(43) + **라이브러리 곡→큐(증분99)** | 🟡 큐 재정렬 + 성경 구절 드래그(43) + 라이브러리 곡 목록 드래그→예배 순서 드롭(드롭 위치 앞에 추가). PPT/미디어/이미지 외부 드래그만 후속 |
 | 자동 회전(One/One-Repeat/Group/Group-Repeat 4종 + Rotate Style) | `ToggleAutoRotate`(간격) + **4종 모드**(AutoRotateMode 콤보: 현재항목반복/한항목만/그룹/그룹반복) | 🟢 (증분81) 끝 절·슬라이드 도달 시 모드별 동작(반복/정지/다음 항목/첫 항목 순환). Rotate Style 세부만 후속 |
 | Gap Item 처리 | GapItem 렌더 | 🟡 조작 UI 약함 |
 | 항목 검증(`ValidateWorshipListItems`: DB존재/PPT설치/삭제됨) | `WorshipListValidator`(파일) + **곡 DB 존재 검증(증분98)** + 도구 메뉴 "예배 순서 검증" + 좌측 경고 패널 | 🟢 파일 차원(깨진/이동·삭제된 PPT·미디어) + **곡 DB 존재 검증**(song:{id} 항목이 가사 DB 에 있는지 비동기 점검, 없으면 SongNotInDatabase 경고; DB 경로 없으면 생략하고 상태바에 명시). |
-| .esw 저장/로드 + **legacy v3.2**(`Load32WorshipList`) | Save/Load(.esw 신규=JSON) + **legacy .esw 파서(증분101, 1단계)** | 🟡 레거시 .esw 는 바이너리가 아니라 **XML**(FrmMain.LoadIndexFile=XmlTextReader)임을 확인 — 순수 파서 `EswWorshipListParser`(검증된 항목 추출: 종류코드 D/P/B·식별자·제목·폴더·FormatData) 구현·테스트. 종류코드→WPF 항목 매핑·내용 해석(곡 가사 DB/성경 본문)·파일 가져오기 배선은 후속(2단계) |
+| .esw 저장/로드 + **legacy v3.2**(`Load32WorshipList`) | Save/Load(.esw 신규=JSON) + **legacy .esw 가져오기(증분101 파서 + 증분102 매핑·UI)** | 🟡 레거시 .esw 는 바이너리가 아니라 **XML**(FrmMain.LoadIndexFile=XmlTextReader)임을 확인 — 순수 파서 `EswWorshipListParser`(종류코드 D/P/B/M/T/I/W·식별자·제목·폴더·FormatData 추출) + `ImportEswWorshipList`(종류코드→WPF 항목 매핑: **D→곡**(라이브러리에 같은 SongId 있으면 가사·번호·저작권까지, 없으면 제목만)·**P→PowerPoint**·**M→미디어**(둘 다 파일 참조 ContentPath 보존)·**B→성경 참조**·**T/I/W→텍스트(공지)**) + 파일 메뉴 "레거시 예배 순서(.esw) 가져오기..."(파일 선택→파싱→가져오기, 빈/손상 파일은 현재 큐 보존). **최선 노력**: 항목 순서·제목·종류·곡 가사(라이브러리)는 복원하되, PPT/미디어 경로 재해석·성경 본문 확장·라이브러리에 없는 곡 가사는 가져오기 후 운영자 보정(원본 환경 의존). 신규 .esw=JSON 저장/로드는 별개로 존재 |
 | 세션 노트 편집 | 세션 메모 창(WorshipSessionNotesWindow — 예배 순서 이름별 메모 편집·저장) | 🟢 메뉴 "세션 메모..." → 자유 메모 편집, 닫을 때 자동 저장 |
 
 ### 3.5 편집
