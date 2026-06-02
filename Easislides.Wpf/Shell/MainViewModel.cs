@@ -284,6 +284,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(TransitionKindIsWindMill))]
     [NotifyPropertyChangedFor(nameof(TransitionKindIsFanUp))]
     private LyricsTransitionKind _activeTransitionKind = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
+    // 현재 적용된 슬라이드/절 전환 종류(같은 항목 안 절·슬라이드 이동 때). 항목 전환(_activeTransitionKind)과 별개. 콤보에 바인딩.
+    [ObservableProperty] private LyricsTransitionKind _activeSlideTransitionKind = EasiSettingKeys.LyricsMonitorSlideTransitionKind.DefaultValue;
 
     public bool TransitionKindIsFade => ActiveTransitionKind == LyricsTransitionKind.Fade;
     public bool TransitionKindIsSlideLeft => ActiveTransitionKind == LyricsTransitionKind.SlideFromLeft;
@@ -2946,42 +2948,70 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, kind);
         ActiveTransitionKind = kind;
-        var label = kind switch
-        {
-            LyricsTransitionKind.Fade => "페이드",
-            LyricsTransitionKind.SlideFromLeft => "슬라이드(왼쪽)",
-            LyricsTransitionKind.SlideFromRight => "슬라이드(오른쪽)",
-            LyricsTransitionKind.SlideFromTop => "슬라이드(위)",
-            LyricsTransitionKind.SlideFromBottom => "슬라이드(아래)",
-            LyricsTransitionKind.ZoomIn => "줌 인",
-            LyricsTransitionKind.ZoomOut => "줌 아웃",
-            LyricsTransitionKind.Spin => "회전",
-            LyricsTransitionKind.FlipHorizontal => "뒤집기(가로)",
-            LyricsTransitionKind.FlipVertical => "뒤집기(세로)",
-            LyricsTransitionKind.RevealCircle => "원형 리빌",
-            LyricsTransitionKind.RevealRectangle => "사각 리빌",
-            LyricsTransitionKind.WipeRight => "와이프(→)",
-            LyricsTransitionKind.WipeLeft => "와이프(←)",
-            LyricsTransitionKind.WipeDown => "와이프(↓)",
-            LyricsTransitionKind.WipeUp => "와이프(↑)",
-            LyricsTransitionKind.BlindsHorizontal => "블라인드(가로)",
-            LyricsTransitionKind.BlindsVertical => "블라인드(세로)",
-            LyricsTransitionKind.Checkerboard => "체커보드",
-            LyricsTransitionKind.Diamond => "다이아몬드",
-            LyricsTransitionKind.DoorsOpen => "양문 열기",
-            LyricsTransitionKind.DoorsClose => "양문 닫기",
-            LyricsTransitionKind.Star => "별",
-            LyricsTransitionKind.Cross => "십자(2-레이어)",
-            LyricsTransitionKind.BowTie => "나비넥타이(2-레이어)",
-            LyricsTransitionKind.Heart => "하트(2-레이어)",
-            LyricsTransitionKind.Wedge => "시계 와이프",
-            LyricsTransitionKind.Spiral => "나선",
-            LyricsTransitionKind.WindMill => "바람개비",
-            LyricsTransitionKind.FanUp => "부채 펼침",
-            _ => kind.ToString(),
-        };
-        StatusText = $"전환 효과: {label}";
+        StatusText = $"항목 전환 효과: {TransitionKindLabel(kind)}";
     }
+
+    // 전환 효과 종류 → 한글 라벨(항목 전환 메뉴·슬라이드 전환 콤보 공용).
+    private static string TransitionKindLabel(LyricsTransitionKind kind) => kind switch
+    {
+        LyricsTransitionKind.Fade => "페이드",
+        LyricsTransitionKind.SlideFromLeft => "슬라이드(왼쪽)",
+        LyricsTransitionKind.SlideFromRight => "슬라이드(오른쪽)",
+        LyricsTransitionKind.SlideFromTop => "슬라이드(위)",
+        LyricsTransitionKind.SlideFromBottom => "슬라이드(아래)",
+        LyricsTransitionKind.ZoomIn => "줌 인",
+        LyricsTransitionKind.ZoomOut => "줌 아웃",
+        LyricsTransitionKind.Spin => "회전",
+        LyricsTransitionKind.FlipHorizontal => "뒤집기(가로)",
+        LyricsTransitionKind.FlipVertical => "뒤집기(세로)",
+        LyricsTransitionKind.RevealCircle => "원형 리빌",
+        LyricsTransitionKind.RevealRectangle => "사각 리빌",
+        LyricsTransitionKind.WipeRight => "와이프(→)",
+        LyricsTransitionKind.WipeLeft => "와이프(←)",
+        LyricsTransitionKind.WipeDown => "와이프(↓)",
+        LyricsTransitionKind.WipeUp => "와이프(↑)",
+        LyricsTransitionKind.BlindsHorizontal => "블라인드(가로)",
+        LyricsTransitionKind.BlindsVertical => "블라인드(세로)",
+        LyricsTransitionKind.Checkerboard => "체커보드",
+        LyricsTransitionKind.Diamond => "다이아몬드",
+        LyricsTransitionKind.DoorsOpen => "양문 열기",
+        LyricsTransitionKind.DoorsClose => "양문 닫기",
+        LyricsTransitionKind.Star => "별",
+        LyricsTransitionKind.Cross => "십자(2-레이어)",
+        LyricsTransitionKind.BowTie => "나비넥타이(2-레이어)",
+        LyricsTransitionKind.Heart => "하트(2-레이어)",
+        LyricsTransitionKind.Wedge => "시계 와이프",
+        LyricsTransitionKind.Spiral => "나선",
+        LyricsTransitionKind.WindMill => "바람개비",
+        LyricsTransitionKind.FanUp => "부채 펼침",
+        _ => kind.ToString(),
+    };
+
+    /// <summary>슬라이드/절 전환 콤보의 (라벨 → 종류) 목록(모든 전환 종류). 항목 전환 메뉴와 동일 라벨을 공유한다.</summary>
+    public IReadOnlyList<KeyValuePair<string, LyricsTransitionKind>> TransitionKindOptions { get; } =
+        System.Enum.GetValues<LyricsTransitionKind>()
+            .Select(k => new KeyValuePair<string, LyricsTransitionKind>(TransitionKindLabel(k), k))
+            .ToArray();
+
+    /// <summary>슬라이드/절 전환 종류 선택(콤보 양방향 바인딩). 같은 항목 안 절·슬라이드 이동 때 쓰는 전환. 바뀌면 설정 저장.</summary>
+    public LyricsTransitionKind SlideTransitionKindInput
+    {
+        get => ActiveSlideTransitionKind;
+        set
+        {
+            if (value == ActiveSlideTransitionKind)
+            {
+                return;
+            }
+
+            _settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionKind, value);
+            ActiveSlideTransitionKind = value;
+            StatusText = $"슬라이드 전환 효과: {TransitionKindLabel(value)}";
+        }
+    }
+
+    // 슬라이드 전환 종류가 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveSlideTransitionKindChanged(LyricsTransitionKind value) => OnPropertyChanged(nameof(SlideTransitionKindInput));
 
     // 공지 화면 송출(FrmInfoScreen — 자유 텍스트 안내). InfoScreen 창에서 입력한 텍스트를
     // 즉시 회중 출력에 본문으로 송출한다. 출력 창이 열려 있을 때만 동작(닫혀 있으면 false 반환).
@@ -3558,6 +3588,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveFadeTransition = _settings.Get(EasiSettingKeys.LyricsMonitorUseFadeTransition);
         ActiveTransitionDurationMs = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs);
         ActiveTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind);
+        ActiveSlideTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind);
         ActiveLyricsTitleHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowTitleHeading);
         ActiveLyricsOutline = _settings.Get(EasiSettingKeys.LyricsMonitorOutline);
         ActiveTitleHeadingAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment);

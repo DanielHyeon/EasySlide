@@ -23,6 +23,16 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_CarriesItemIdInSnapshot_ForTransitionItemVsSlideDetection()
+    {
+        // 스냅샷에 항목 Id 를 실어 출력 VM 이 "항목 전환 vs 절·슬라이드 이동"을 구분할 수 있게 한다(증분92).
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-42", "은혜로다"), "Display 1");
+
+        sut.Current.CurrentItemId.Should().Be("song-42", "GoLive 가 항목 Id 를 스냅샷에 실어야 함");
+    }
+
+    [Fact]
     public void Restore_FromHidden_ReturnsToActiveAndClearsBlackoutKeepingContent()
     {
         // 숨김/블랙에서 복귀 — 상태만 Active 로 되돌리고 직전 항목(콘텐츠)은 보존(§7.3-B 화면 제어).

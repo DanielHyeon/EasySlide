@@ -223,7 +223,20 @@
                               IsChecked="{Binding ActiveFadeTransition}"
                               Command="{Binding ToggleFadeTransitionCommand}" />
                     <Separator />
-                    <!-- 전환 모션(Fade/Slide 4방향) — FrmMain 전환 효과 중 구현분. -->
+                    <!-- 슬라이드/절 전환(같은 곡 안 절·슬라이드 이동) — 항목 전환(아래 '모션:' 라디오)과 분리(FrmMain 항목 vs 슬라이드 전환). -->
+                    <MenuItem Header="슬라이드 전환(같은 곡 절·슬라이드 이동)"
+                              StaysOpenOnClick="True"
+                              ToolTip="같은 곡 안에서 절·슬라이드만 바뀔 때 쓰는 전환. 곡→곡 항목 전환은 아래 '모션:' 항목에서 따로 고릅니다.">
+                        <ComboBox ItemsSource="{Binding TransitionKindOptions}"
+                                  SelectedValue="{Binding SlideTransitionKindInput, Mode=TwoWay}"
+                                  SelectedValuePath="Value"
+                                  DisplayMemberPath="Key"
+                                  MinWidth="200"
+                                  Margin="4"
+                                  AutomationProperties.Name="슬라이드/절 전환 효과" />
+                    </MenuItem>
+                    <Separator />
+                    <!-- 항목 전환(곡→곡) 모션(Fade/Slide 4방향 등) — FrmMain 전환 효과 중 구현분. -->
                     <MenuItem Header="모션: 페이드"
                               IsChecked="{Binding TransitionKindIsFade}"
                               Command="{Binding ApplyTransitionKindCommand}"

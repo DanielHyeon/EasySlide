@@ -36,6 +36,38 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_ItemChange_UsesItemTransition_SameItem_UsesSlideTransition()
+    {
+        // 항목 전환(곡→곡)은 항목 전환 효과를, 같은 곡 안 절·슬라이드 이동은 슬라이드 전환 효과를 쓴다(FrmMain 항목 vs 슬라이드 전환 분리).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, LyricsTransitionKind.ZoomIn);     // 항목 전환
+        settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionKind, LyricsTransitionKind.WipeRight); // 슬라이드 전환
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings: settings,
+            (Func<string, ImageSource?>)(_ => null));
+
+        // 첫 송출(항목 A) → 직전 항목 없음 → 항목 전환.
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "곡A", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절", CurrentItemId: "item-A"));
+        sut.ContentTransitionKind.Should().Be(LyricsTransitionKind.ZoomIn, "다른(첫) 항목 → 항목 전환");
+
+        // 같은 항목 A 안에서 절 이동(같은 Id) → 슬라이드 전환.
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "곡A", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "2절", CurrentItemId: "item-A"));
+        sut.ContentTransitionKind.Should().Be(LyricsTransitionKind.WipeRight, "같은 항목 절 이동 → 슬라이드 전환");
+
+        // 다음 항목 B(다른 Id) → 항목 전환.
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "곡B", "Display 2", IsBlackout: false,
+            CurrentItemBodyText: "1절", CurrentItemId: "item-B"));
+        sut.ContentTransitionKind.Should().Be(LyricsTransitionKind.ZoomIn, "다른 항목 → 항목 전환");
+    }
+
+    [Fact]
     public void ApplySession_ActiveSong_RendersBodyTextAndHidesTitle()
     {
         // 곡 가사가 본문으로 송출되면 출력 중앙에 가사가 보이고, 타이틀은 겹침 방지로 숨겨진다.

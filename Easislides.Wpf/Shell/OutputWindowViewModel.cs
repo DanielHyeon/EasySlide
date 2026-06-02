@@ -40,6 +40,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private readonly Func<string, ImageSource?> _gapLogoLoader;
     private LiveState _state = LiveState.Off;
     private LiveSessionSnapshot _session = LiveSessionSnapshot.Off;
+    // 직전 송출 항목의 식별자 — 다음 ApplySession 에서 "항목이 바뀌었는지"를 판별해 전환 효과(항목 vs 슬라이드)를 고른다.
+    private string _previousLiveItemId = string.Empty;
     private OutputWindowState _output = OutputWindowState.Closed;
     private string _currentItemTitle = string.Empty;
     private string _outputMonitorName = string.Empty;
@@ -746,6 +748,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
     public void ApplySession(LiveSessionSnapshot snapshot)
     {
+        // 새 콘텐츠를 적용하기 전에 전환 효과 종류부터 정한다 — 항목이 바뀌면(곡→곡) 항목 전환,
+        // 같은 항목 안에서 절·슬라이드만 바뀌면 슬라이드 전환(FrmMain 항목 vs 슬라이드 전환 분리).
+        UpdateContentTransitionKindForChange(snapshot);
         _session = snapshot;
         State = snapshot.State;
         CurrentItemTitle = snapshot.CurrentItemTitle;
@@ -763,6 +768,28 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         _output = state;
         RefreshDisplayText();
+    }
+
+    // 이번 송출이 "다른 항목으로의 전환"인지(곡→곡) "같은 항목 안 절·슬라이드 이동"인지 판별해
+    // ContentTransitionKind 를 항목 전환/슬라이드 전환 설정 중 알맞은 것으로 정한다. 같은 곡의 절 이동은
+    // 같은 Id 로 재송출되므로 itemChanged=false → 슬라이드 전환을, 다음 곡은 다른 Id → 항목 전환을 쓴다.
+    private void UpdateContentTransitionKindForChange(LiveSessionSnapshot snapshot)
+    {
+        if (_settings is null)
+        {
+            return;
+        }
+
+        var newId = snapshot.CurrentItemId;
+        // 빈 Id(비-라이브·정지)는 항목 전환으로 치지 않는다 — 콘텐츠가 사라지는 경우라 슬라이드 전환으로 둔다.
+        var itemChanged = !string.IsNullOrEmpty(newId)
+            && !string.Equals(newId, _previousLiveItemId, StringComparison.Ordinal);
+
+        ContentTransitionKind = itemChanged
+            ? _settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind)
+            : _settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind);
+
+        _previousLiveItemId = newId;
     }
 
     private void RefreshDisplayText()
@@ -1118,6 +1145,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    // 참고: 슬라이드 전환 종류(LyricsMonitorSlideTransitionKind)는 여기 일부러 넣지 않는다 —
+    // ApplyTransitionSettings 는 "항목 전환" 종류만 읽고, 슬라이드 전환 종류는 매 송출마다
+    // UpdateContentTransitionKindForChange 가 새로 읽어 적용하므로 설정 변경 시 별도 재적용이 필요 없다.
     private static bool ContainsTransitionSetting(IReadOnlyList<string> changedKeys)
     {
         for (var i = 0; i < changedKeys.Count; i++)

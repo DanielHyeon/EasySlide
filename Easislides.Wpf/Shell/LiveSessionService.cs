@@ -75,7 +75,10 @@ public sealed record LiveSessionSnapshot(
     bool CurrentPageIsChorus = false,
     // 현재 송출 절의 섹션 라벨(예: "1절", "후렴", "Verse 2") — "절 헤딩"(FrmMain Def_Head All) 표시용.
     // 곡이 아니거나 라벨이 없으면 빈 문자열. 라벨↔페이지가 어긋나면(이중언어 머리말 절 등) 빈 문자열로 안전 처리.
-    string CurrentSectionLabel = "")
+    string CurrentSectionLabel = "",
+    // 현재 송출 항목의 식별자(LiveQueueItem.Id). 출력 VM 이 "항목이 바뀌었는지(곡→곡)" vs "같은 항목 안에서
+    // 절·슬라이드만 바뀌었는지"를 구분해 전환 효과(항목 전환 vs 슬라이드 전환)를 달리 적용하는 데 쓴다. 비-라이브면 빈 문자열.
+    string CurrentItemId = "")
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -170,7 +173,9 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideUnderline2: format?.Underline2 == true ? true : null,
             // 현재 절이 후렴인지 — 강조 후렴만 효과가 켜졌을 때 출력 렌더가 이 절에 강조를 적용할지 판단한다.
             CurrentPageIsChorus: ComputeCurrentPageIsChorus(item),
-            CurrentSectionLabel: ComputeCurrentSectionLabel(item)));
+            CurrentSectionLabel: ComputeCurrentSectionLabel(item),
+            // 항목 식별자 — 출력 VM 의 "항목 전환 vs 슬라이드 전환" 판별 근거(같은 곡 안 절 이동은 같은 Id 로 재송출됨).
+            CurrentItemId: item.Id));
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.

@@ -328,6 +328,10 @@ public static class EasiSettingKeys
     // 출력 장면 전환 모션 종류(Fade/Slide 4방향). 기본 Fade(기존 동작). UseFadeTransition off 면 모션과 무관하게 즉시 컷.
     public static readonly SettingKey<LyricsTransitionKind> LyricsMonitorTransitionKind =
         new("liveOutput.lyricsMonitorTransitionKind", LyricsTransitionKind.Fade);
+    // 슬라이드/절 전환 모션 종류(FrmMain 항목 vs 슬라이드 전환 분리) — 같은 항목 안에서 절·슬라이드만 바뀔 때 쓰는 전환.
+    // 항목이 바뀔 때(곡→곡)는 위 LyricsMonitorTransitionKind 를 쓴다. 기본 Fade(기존 단일 전환과 동일 = 무회귀).
+    public static readonly SettingKey<LyricsTransitionKind> LyricsMonitorSlideTransitionKind =
+        new("liveOutput.lyricsMonitorSlideTransitionKind", LyricsTransitionKind.Fade);
     // 출력 전역 배경 이미지 경로(FrmMain Images 탭 — 배경으로 적용). 비었으면 색 배경 유지(무회귀).
     // 곡별 FormatData 61(per-song) 배경이 있으면 그 곡 동안은 곡별 배경이 우선하고, 없으면 이 전역 배경을 쓴다.
     public static readonly SettingKey<string> LyricsMonitorBackgroundImagePath = new("liveOutput.lyricsMonitorBackgroundImagePath", "");
@@ -454,6 +458,7 @@ public static class EasiSettingKeys
         LyricsMonitorUseFadeTransition,
         LyricsMonitorTransitionDurationMs,
         LyricsMonitorTransitionKind,
+        LyricsMonitorSlideTransitionKind,
         // 전역 배경 이미지 경로·표시 모드 — 변경 감지·라이브 반영을 위해 등록.
         LyricsMonitorBackgroundImagePath,
         LyricsMonitorBackgroundMode,
@@ -622,6 +627,8 @@ public sealed record LiveOutputSettings
     public int LyricsMonitorTransitionDurationMs { get; init; } = EasiSettingKeys.LyricsMonitorTransitionDurationMs.DefaultValue;
 
     public LyricsTransitionKind LyricsMonitorTransitionKind { get; init; } = EasiSettingKeys.LyricsMonitorTransitionKind.DefaultValue;
+
+    public LyricsTransitionKind LyricsMonitorSlideTransitionKind { get; init; } = EasiSettingKeys.LyricsMonitorSlideTransitionKind.DefaultValue;
 
     public string LyricsMonitorBackgroundImagePath { get; init; } = EasiSettingKeys.LyricsMonitorBackgroundImagePath.DefaultValue;
 
@@ -1535,6 +1542,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorUseFadeTransition" => snapshot.LiveOutput.LyricsMonitorUseFadeTransition,
             "liveOutput.lyricsMonitorTransitionDurationMs" => snapshot.LiveOutput.LyricsMonitorTransitionDurationMs,
             "liveOutput.lyricsMonitorTransitionKind" => snapshot.LiveOutput.LyricsMonitorTransitionKind,
+            "liveOutput.lyricsMonitorSlideTransitionKind" => snapshot.LiveOutput.LyricsMonitorSlideTransitionKind,
             "liveOutput.lyricsMonitorBackgroundImagePath" => snapshot.LiveOutput.LyricsMonitorBackgroundImagePath,
             "liveOutput.lyricsMonitorBackgroundMode" => snapshot.LiveOutput.LyricsMonitorBackgroundMode,
             "liveOutput.lyricsMonitorBackgroundGradientDirection" => snapshot.LiveOutput.LyricsMonitorBackgroundGradientDirection,
@@ -1827,6 +1835,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTransitionKind" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorTransitionKind = Cast<LyricsTransitionKind>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorSlideTransitionKind" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorSlideTransitionKind = Cast<LyricsTransitionKind>(keyId, value) },
             },
             "liveOutput.lyricsMonitorBackgroundImagePath" => snapshot with
             {

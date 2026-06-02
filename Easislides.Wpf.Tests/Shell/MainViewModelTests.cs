@@ -2959,6 +2959,34 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SlideTransitionKindInput_PersistsAndSyncs()
+    {
+        // 슬라이드/절 전환 종류 선택이 설정에 저장되고, SettingsChanged 경유로 인스펙터 표시가 동기화된다(항목 전환과 별개).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveSlideTransitionKind.Should().Be(LyricsTransitionKind.Fade, "기본 Fade(기존 단일 전환과 동일)");
+
+        sut.SlideTransitionKindInput = LyricsTransitionKind.WipeUp;
+        settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind).Should().Be(LyricsTransitionKind.WipeUp);
+        sut.ActiveSlideTransitionKind.Should().Be(LyricsTransitionKind.WipeUp, "인스펙터 표시도 동기화");
+
+        // 다른 경로(설정 직접 변경)도 RefreshActiveAppearance 로 따라간다.
+        settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionKind, LyricsTransitionKind.ZoomOut);
+        sut.ActiveSlideTransitionKind.Should().Be(LyricsTransitionKind.ZoomOut);
+    }
+
+    [Fact]
+    public void TransitionKindOptions_CoversAllKinds()
+    {
+        // 슬라이드 전환 콤보가 모든 전환 종류를 노출하는지(항목 전환 메뉴와 동일 집합).
+        var sut = CreateSut();
+        sut.TransitionKindOptions.Select(o => o.Value)
+            .Should().BeEquivalentTo(System.Enum.GetValues<LyricsTransitionKind>());
+    }
+
+    [Fact]
     public void IsInspectorExpanded_TogglePersists_AndIsRestoredOnConstruction()
     {
         // 인스펙터를 접으면 설정에 저장되고, 같은 설정으로 새 VM 을 만들면 접힌 상태로 복원된다(레거시 패널 상태 저장).
