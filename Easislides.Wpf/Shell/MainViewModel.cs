@@ -1392,6 +1392,40 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>미디어 파일을 예배 순서(큐)에 추가(선택 시 미디어 Load 디스패치).</summary>
     public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.Media, "미디어 파일");
 
+    /// <summary>
+    /// 탐색기 등에서 끌어다 놓은 외부 파일 여러 개를 확장자에 맞춰 예배 순서에 추가한다(레거시 외부 파일 드래그).
+    /// PowerPoint(.ppt/.pptx)·미디어(영상/오디오)만 추가하고, 모르는 확장자는 건너뛴다(개수를 상태줄에 알린다).
+    /// 추가된 항목 수를 돌려준다. 파일 종류 판별은 순수 <see cref="ExternalFileClassifier"/> 가 맡는다.
+    /// </summary>
+    public int AddExternalFiles(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+
+        var added = 0;
+        var skipped = 0;
+        foreach (var path in paths)
+        {
+            switch (ExternalFileClassifier.Classify(path))
+            {
+                case ExternalFileKind.PowerPoint:
+                    if (AddPowerPoint(path) is not null) added++;
+                    break;
+                case ExternalFileKind.Media:
+                    if (AddMedia(path) is not null) added++;
+                    break;
+                default:
+                    skipped++; // 지원하지 않는 확장자 — 추가하지 않음.
+                    break;
+            }
+        }
+
+        // 마지막에 한 번 더 안내(개별 추가 메시지를 덮어 전체 결과를 보여 준다). 건너뛴 게 있으면 함께 알린다.
+        StatusText = skipped > 0
+            ? $"외부 파일 {added}개 추가, {skipped}개 건너뜀(지원하지 않는 형식)"
+            : $"외부 파일 {added}개 추가";
+        return added;
+    }
+
     private LiveQueueItem? AddExternalFileItem(string filePath, string kind, string label)
     {
         if (string.IsNullOrWhiteSpace(filePath))

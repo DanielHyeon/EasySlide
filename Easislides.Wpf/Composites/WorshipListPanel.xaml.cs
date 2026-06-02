@@ -102,9 +102,10 @@ public partial class WorshipListPanel : UserControl
             e.Effects = DragDropEffects.Move;
         }
         else if (e.Data.GetDataPresent(typeof(BibleSelection))
-            || e.Data.GetDataPresent(typeof(Easislides.Wpf.Data.SongSummary)))
+            || e.Data.GetDataPresent(typeof(Easislides.Wpf.Data.SongSummary))
+            || e.Data.GetDataPresent(DataFormats.FileDrop))
         {
-            // 성경 본문 선택·라이브러리 곡 = 큐에 추가(Copy).
+            // 성경 본문 선택·라이브러리 곡·탐색기 외부 파일(PPT/미디어) = 큐에 추가(Copy).
             e.Effects = DragDropEffects.Copy;
         }
         else
@@ -139,6 +140,13 @@ public partial class WorshipListPanel : UserControl
         {
             // 라이브러리 곡 목록에서 끌어다 놓은 곡 — 드롭 위치 앞에 추가(레거시 외부 소스 드래그).
             viewModel.AddSongRelativeTo(song, targetItem);
+        }
+        else if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
+        {
+            // 탐색기 등에서 끌어다 놓은 외부 파일(PPT/미디어) — 확장자별로 큐에 추가(분류·추가는 검증된 VM).
+            // (성경/곡 드래그와 달리 떨어뜨린 위치가 아니라 현재 선택 뒤에 모아 넣는다 — 여러 파일을 한 묶음으로
+            //  연속 추가하는 게 더 자연스럽기 때문. 드롭 위치 정밀 삽입은 후속 백로그.)
+            viewModel.AddExternalFiles(files);
         }
     }
 

@@ -1721,6 +1721,63 @@ public class MainViewModelTests
         sut.ActiveGapItemLogoFile.Should().Be(@"C:\x.png");
     }
 
+    // ── 외부 파일 드래그-드롭(탐색기 → 예배 순서) — PPT/미디어만 추가, 모르는 형식은 건너뜀 ──
+
+    [Fact]
+    public void AddExternalFiles_AddsPowerPointAndMedia_SkipsUnsupported_InOrder()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var added = sut.AddExternalFiles([@"C:\a.pptx", @"C:\b.mp4", @"C:\c.txt", @"C:\d.ppt"]);
+
+        added.Should().Be(3, "PPT 2 + 미디어 1, txt 1 건너뜀");
+        sut.Queue.Select(i => i.Kind).Should().Equal(
+            LiveItemKinds.PowerPoint, LiveItemKinds.Media, LiveItemKinds.PowerPoint);
+        sut.Queue.Select(i => i.ContentPath).Should().Equal(@"C:\a.pptx", @"C:\b.mp4", @"C:\d.ppt");
+        sut.StatusText.Should().Contain("3개 추가").And.Contain("1개 건너뜀");
+    }
+
+    [Fact]
+    public void AddExternalFiles_AllUnsupported_AddsNothing()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var added = sut.AddExternalFiles([@"C:\a.txt", @"C:\b.docx", @"C:\c.png"]);
+
+        added.Should().Be(0);
+        sut.Queue.Should().BeEmpty("지원 안 하는 형식만이면 아무것도 안 추가");
+        sut.StatusText.Should().Contain("0개 추가").And.Contain("3개 건너뜀");
+    }
+
+    [Fact]
+    public void AddExternalFiles_InsertsAfterSelection_KeepingBatchContiguous()
+    {
+        // 비어있지 않은 큐에서 가운데 항목을 고른 뒤 외부 파일을 드롭하면, 그 선택 바로 뒤에 묶음으로 들어간다(연속).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("a", "A", LiveItemKinds.Song),
+            new LiveQueueItem("b", "B", LiveItemKinds.Song),
+            new LiveQueueItem("c", "C", LiveItemKinds.Song),
+        ]);
+        sut.SelectedItem = sut.Queue[0]; // 첫 항목(A) 선택.
+
+        sut.AddExternalFiles([@"C:\x.pptx", @"C:\y.mp4"]);
+
+        sut.Queue.Select(i => i.Id).Should().Equal(
+            new[] { "a", "powerpoint:C:\\x.pptx", "media:C:\\y.mp4", "b", "c" },
+            "선택(A) 바로 뒤에 PPT·미디어가 순서대로 연속 삽입");
+    }
+
+    [Fact]
+    public void AddExternalFiles_OnlySupported_NoSkippedHint()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.AddExternalFiles([@"C:\a.pptx", @"C:\b.wmv"]);
+
+        sut.StatusText.Should().Contain("2개 추가").And.NotContain("건너뜀", "건너뛴 게 없으면 건너뜀 안내 없음");
+    }
+
     [Fact]
     public async Task RefreshSavedWorshipListNames_ClearsSelectionWhenNameGone()
     {
