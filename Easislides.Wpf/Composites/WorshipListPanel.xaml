@@ -349,6 +349,39 @@
                                               Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignment2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                               CommandParameter="0" />
                                 </MenuItem>
+                                <MenuItem Header="글자 크기">
+                                    <MenuItem Header="작게 (36pt)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="36" />
+                                    <MenuItem Header="보통 (54pt)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="54" />
+                                    <MenuItem Header="크게 (72pt)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="72" />
+                                    <Separator />
+                                    <MenuItem Header="본문과 동일(해제)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="0" />
+                                </MenuItem>
+                                <MenuItem Header="글꼴">
+                                    <MenuItem Header="맑은 고딕"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="맑은 고딕" />
+                                    <MenuItem Header="나눔고딕"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="나눔고딕" />
+                                    <MenuItem Header="Segoe UI"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="Segoe UI" />
+                                    <MenuItem Header="Arial"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="Arial" />
+                                    <Separator />
+                                    <MenuItem Header="본문과 동일(해제)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="" />
+                                </MenuItem>
                             </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>

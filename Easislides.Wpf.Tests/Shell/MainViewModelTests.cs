@@ -5900,6 +5900,147 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 정렬이 붙지 않음");
     }
 
+    // ── 이중 언어 보조 영역(Region2) 항목별 글자 크기(코드48)·글꼴(코드44) ──
+
+    [Theory]
+    [InlineData("36", 36)]
+    [InlineData("72", 72)]
+    public void SetSelectedItemFontSize2_WritesFormatDataCode48_AndReflects(string param, int expected)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemFontSize2(param);
+
+        sut.SelectedItem!.FormatData.Should().Contain($"48={expected}", "코드 48(Region2 글자 크기)에 인코드");
+        sut.SelectedItemFontSize2.Should().Be(expected, "보조 영역 크기 미리보기도 동기화");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("크기를 주면 개별 서식을 켠다");
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("5")]
+    [InlineData("abc")]
+    public void SetSelectedItemFontSize2_InvalidOrOutOfRange_ClearsToFollowRegion1(string param)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "48=54",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSize2(param);
+
+        sut.SelectedItemFontSize2.Should().Be(0, "유효하지 않은 크기는 해제 → 본문 크기 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("48=", "코드 48(Region2 크기)이 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize2_WhileLive_AppliesOverrideSize2()
+    {
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n본문\n[region 2]\n번역" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemFontSize2("72"); // 72pt → 96px.
+
+        session.Current.OverrideFontSizePx2.Should().Be(96, "보조 영역 크기가 pt→px 변환돼 라이브에 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName2_WritesFormatDataCode44_AndTrims_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemFontName2("  나눔고딕  ");
+
+        sut.SelectedItem!.FormatData.Should().Contain("44=나눔고딕", "코드 44(Region2 글꼴)에 다듬어 인코드");
+        sut.SelectedItemFontName2.Should().Be("나눔고딕", "보조 영역 글꼴 미리보기도 동기화");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("글꼴을 주면 개별 서식을 켠다");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontName2_Blank_ClearsToFollowRegion1()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "44=Arial",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontName2("   ");
+
+        sut.SelectedItemFontName2.Should().BeEmpty("빈/공백 글꼴은 해제 → 본문 글꼴 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("44=", "코드 44(Region2 글꼴)가 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize2AndName2_PreserveRegion1AndEachOther()
+    {
+        // Region2 크기(48)·글꼴(44)은 본문(47/43)·서로와 무혼선(코드 분리).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "43=굴림>47=60", // 본문 글꼴·크기.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSize2("36");
+        sut.SetSelectedItemFontName2("Arial");
+
+        var fd = sut.SelectedItem!.FormatData ?? "";
+        fd.Should().Contain("43=굴림", "본문 글꼴 보존");
+        fd.Should().Contain("47=60", "본문 크기 보존");
+        fd.Should().Contain("48=36", "Region2 크기");
+        fd.Should().Contain("44=Arial", "Region2 글꼴");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize2_WhenIndividualWasOff_DisclosesAutoEnableInStatus()
+    {
+        // 개별 서식을 꺼둔 항목에 Region2 크기를 주면 자동으로 켜지고, 상태줄이 그 사실을 정직하게 알린다(turnedOn 분기).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            UseIndividualFormatting = false,
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSize2("54");
+
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("크기를 주면 자동으로 켬");
+        sut.StatusText.Should().Contain("54pt").And.Contain("개별 서식 켜짐", "크기와 자동 켬을 상태줄에 알림");
+    }
+
+    [Fact]
+    public void SetSelectedItemFontSize2AndName2_NonSong_CommandsDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemFontSize2Command.CanExecute("72").Should().BeFalse();
+        sut.SetSelectedItemFontName2Command.CanExecute("Arial").Should().BeFalse();
+        sut.SetSelectedItemFontSize2("72");
+        sut.SetSelectedItemFontName2("Arial");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 서식이 붙지 않음");
+    }
+
     [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {

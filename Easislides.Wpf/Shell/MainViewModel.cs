@@ -583,6 +583,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemTextColor2Command = new RelayCommand<string?>(SetSelectedItemTextColor2, _ => CanEditSelectedItemColor);
         // 이중 언어(보조 영역 Region2) 가로 정렬(FormatData 코드32) — 비우면 본문(Region1) 정렬 추종. 곡일 때만 활성.
         SetSelectedItemAlignment2Command = new RelayCommand<string?>(SetSelectedItemAlignment2, _ => CanEditSelectedItemColor);
+        // 이중 언어(보조 영역 Region2) 글자 크기(코드48)·글꼴(코드44) — 비우면 본문(Region1) 추종. 곡일 때만 활성.
+        SetSelectedItemFontSize2Command = new RelayCommand<string?>(SetSelectedItemFontSize2, _ => CanEditSelectedItemColor);
+        SetSelectedItemFontName2Command = new RelayCommand<string?>(SetSelectedItemFontName2, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -735,6 +738,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleSelectedItemUnderlineCommand { get; }
     public IRelayCommand<string?> SetSelectedItemTextColor2Command { get; }
     public IRelayCommand<string?> SetSelectedItemAlignment2Command { get; }
+    public IRelayCommand<string?> SetSelectedItemFontSize2Command { get; }
+    public IRelayCommand<string?> SetSelectedItemFontName2Command { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1856,6 +1861,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemUnderline));
         OnPropertyChanged(nameof(SelectedItemTextColor2Hex));
         OnPropertyChanged(nameof(SelectedItemAlignment2));
+        OnPropertyChanged(nameof(SelectedItemFontSize2));
+        OnPropertyChanged(nameof(SelectedItemFontName2));
 
         NotifyCommandStates();
     }
@@ -3020,6 +3027,46 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var label = align switch { 1 => "왼쪽", 2 => "가운데", 3 => "오른쪽", _ => "본문과 동일" };
             StatusText = $"보조 영역 정렬: {label}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 글자 크기(이 항목만, 레거시 pt). 없으면 0(본문 크기 추종).</summary>
+    public int SelectedItemFontSize2
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontSize2 ?? 0;
+
+    /// <summary>
+    /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 글자 크기(이 항목만)를 바꾼다(레거시 항목별 Region2 크기, FormatData 코드 48, pt 6~100).
+    /// 6~100 범위 숫자면 그 크기, 그 밖(빈·0·범위 밖·오류)이면 해제해 본문(Region1) 크기를 따른다. 이중 언어 곡에서만 화면에 보인다.
+    /// </summary>
+    public void SetSelectedItemFontSize2(string? sizeParam)
+    {
+        int? size = int.TryParse(sizeParam, out var n) && n is >= 6 and <= 100 ? n : null;
+        if (ApplySelectedSongFormatChange(format => format with { FontSize2 = size }, wantsIndividual: size is not null, out var turnedOn))
+        {
+            StatusText = size is null
+                ? "보조 영역 글자 크기: 본문과 동일"
+                : $"보조 영역 글자 크기: {size}pt{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 글꼴명(이 항목만). 없으면 빈 문자열(본문 글꼴 추종).</summary>
+    public string SelectedItemFontName2
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontName2 ?? string.Empty;
+
+    /// <summary>
+    /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 글꼴명(이 항목만)을 바꾼다(레거시 항목별 Region2 글꼴, FormatData 코드 44).
+    /// 이름이 비거나 공백뿐이면 해제해 본문(Region1) 글꼴을 따른다. 이중 언어 곡에서만 화면에 보인다. '>'·'='는 포맷 구분자라 방어적으로 제거.
+    /// </summary>
+    public void SetSelectedItemFontName2(string? name)
+    {
+        var fontName = string.IsNullOrWhiteSpace(name)
+            ? string.Empty
+            : name.Trim().Replace(">", string.Empty).Replace("=", string.Empty);
+        if (ApplySelectedSongFormatChange(format => format with { FontName2 = fontName }, wantsIndividual: fontName.Length > 0, out var turnedOn))
+        {
+            StatusText = fontName.Length == 0
+                ? "보조 영역 글꼴: 본문과 동일"
+                : $"보조 영역 글꼴: {fontName}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -4405,6 +4452,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemUnderlineCommand.NotifyCanExecuteChanged();
         SetSelectedItemTextColor2Command.NotifyCanExecuteChanged();
         SetSelectedItemAlignment2Command.NotifyCanExecuteChanged();
+        SetSelectedItemFontSize2Command.NotifyCanExecuteChanged();
+        SetSelectedItemFontName2Command.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
