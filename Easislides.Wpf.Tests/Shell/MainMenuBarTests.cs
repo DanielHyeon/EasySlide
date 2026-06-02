@@ -178,6 +178,27 @@ public class MainMenuBarTests
         Xaml.Should().Contain($"InputGestureText=\"{gesture}\"", $"{commandId} 메뉴에 {gesture} 힌트 노출");
     }
 
+    [Fact]
+    public void AllMenuGestureHints_AreRealCatalogShortcuts()
+    {
+        // 메뉴에 적힌 모든 InputGestureText 가 실제 카탈로그 단축키의 표시 문자열이어야 한다 — 존재하지 않는 가짜 힌트 방지.
+        // (메뉴 힌트는 하드코딩 문자열이라, 카탈로그에 없는 키를 적어도 빌드는 통과하므로 이 테스트로 막는다.)
+        var catalogDisplayTexts = new Easislides.Wpf.Input.CommandCatalog()
+            .GetDefaultShortcuts()
+            .Select(s => s.DisplayText)
+            .ToHashSet();
+
+        var gestures = System.Text.RegularExpressions.Regex
+            .Matches(Xaml, "InputGestureText=\"([^\"]+)\"")
+            .Select(m => m.Groups[1].Value)
+            .Distinct()
+            .ToList();
+
+        gestures.Should().NotBeEmpty("메뉴에 단축키 힌트가 있어야 함");
+        gestures.Should().OnlyContain(g => catalogDisplayTexts.Contains(g),
+            "메뉴의 모든 단축키 힌트는 실제 카탈로그 단축키여야 한다(가짜 힌트 금지)");
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

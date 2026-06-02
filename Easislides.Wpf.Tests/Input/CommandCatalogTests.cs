@@ -120,10 +120,32 @@ public class CommandCatalogTests
         var danger = new CommandDescriptor("X", "Live", "라이브 중지", "설명", IsDangerous: true, Array.Empty<Shortcut>());
         var safe = new CommandDescriptor("Y", "창", "라이브러리 열기", "설명", IsDangerous: false, Array.Empty<Shortcut>());
 
-        // 순서·구분자까지 고정 — "이름, [위험 명령,] 분류" 가 스크린리더 읽기 순서의 계약이다.
+        // 순서·구분자까지 고정 — "이름, [위험 명령,] 분류" 가 스크린리더 읽기 순서의 계약이다(단축키 없으면 끝에 안 붙는다).
         danger.AccessibleName.Should().Be("라이브 중지, 위험 명령, Live");
         safe.AccessibleName.Should().Be("라이브러리 열기, 창");
         safe.AccessibleName.Should().NotContain("위험", "안전한 명령은 위험 표시가 없어야 함");
+    }
+
+    [Fact]
+    public void ShortcutHint_IsPrimaryShortcutDisplayText_OrEmpty()
+    {
+        // 팔레트 단축키 힌트 — 기본 단축키(첫 번째)의 표시 문자열. 단축키 없으면 빈 문자열(힌트 자동 숨김).
+        var withKey = new CommandDescriptor("X", "Live", "Go Live", "설명", IsDangerous: true,
+            new[] { new Shortcut(Key.L, ModifierKeys.Control, "X", IsGlobal: false, "Go Live") });
+        var noKey = new CommandDescriptor("Y", "창", "라이브러리 열기", "설명", IsDangerous: false, Array.Empty<Shortcut>());
+
+        withKey.ShortcutHint.Should().Be("Ctrl+L", "첫 단축키의 표시 문자열");
+        noKey.ShortcutHint.Should().BeEmpty("단축키 없으면 빈 문자열");
+    }
+
+    [Fact]
+    public void AccessibleName_AppendsShortcut_WhenPresent()
+    {
+        // 단축키가 있으면 스크린리더가 끝에 "단축키 X"로 안내한다(색·시각에 안 기대는 발견가능성). 없으면 안 붙음(위 테스트가 고정).
+        var withKey = new CommandDescriptor("X", "Live", "검은 화면", "설명", IsDangerous: true,
+            new[] { new Shortcut(Key.F9, ModifierKeys.None, "X", IsGlobal: false, "검은 화면") });
+
+        withKey.AccessibleName.Should().Be("검은 화면, 위험 명령, Live, 단축키 F9");
     }
 
     [Fact]

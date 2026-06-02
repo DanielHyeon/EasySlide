@@ -15,14 +15,27 @@ public sealed record CommandDescriptor(
     IReadOnlyList<Shortcut> DefaultShortcuts)
 {
     /// <summary>
-    /// 명령 팔레트(⌘K) 결과를 스크린리더가 한 호흡에 읽도록 합성한 항목 레벨 접근성 이름.
-    /// 자식 TextBlock 들의 합성(비결정적)에 기대지 않고 "이름, [위험 명령,] 분류" 순서로 또렷이 읽어 준다.
-    /// 위험 명령은 색 배지뿐 아니라 음성으로도 "위험"을 전달(색에 의존하지 않는 접근성).
-    /// 순서는 이름 먼저 — 목록을 훑을 때 명령명이 1차 식별자라 앞에 두고, 위험·분류는 뒤따른다.
+    /// 명령 팔레트(⌘K)에 보여 줄 단축키 힌트 — 기본 단축키(첫 번째)의 표시 문자열(예 "Ctrl+L"·"F9"). 단축키가 없으면 빈 문자열.
+    /// 메뉴의 InputGestureText 처럼 발견가능성을 높인다(VS Code 식 — 명령 옆에 단축키 표시).
     /// </summary>
-    public string AccessibleName => IsDangerous
-        ? $"{DisplayName}, 위험 명령, {Category}"
-        : $"{DisplayName}, {Category}";
+    public string ShortcutHint => DefaultShortcuts.Count > 0 ? DefaultShortcuts[0].DisplayText : string.Empty;
+
+    /// <summary>
+    /// 명령 팔레트(⌘K) 결과를 스크린리더가 한 호흡에 읽도록 합성한 항목 레벨 접근성 이름.
+    /// 자식 TextBlock 들의 합성(비결정적)에 기대지 않고 "이름, [위험 명령,] 분류[, 단축키 X]" 순서로 또렷이 읽어 준다.
+    /// 위험 명령은 색 배지뿐 아니라 음성으로도 "위험"을 전달(색에 의존하지 않는 접근성). 단축키가 있으면 끝에 음성으로도 안내한다.
+    /// 순서는 이름 먼저 — 목록을 훑을 때 명령명이 1차 식별자라 앞에 두고, 위험·분류·단축키는 뒤따른다.
+    /// </summary>
+    public string AccessibleName
+    {
+        get
+        {
+            var basePart = IsDangerous
+                ? $"{DisplayName}, 위험 명령, {Category}"
+                : $"{DisplayName}, {Category}";
+            return ShortcutHint.Length > 0 ? $"{basePart}, 단축키 {ShortcutHint}" : basePart;
+        }
+    }
 }
 
 public interface ICommandCatalog

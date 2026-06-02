@@ -2379,27 +2379,36 @@
                                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     </StackPanel>
 
-                                    <!-- 위험 명령(라이브 중지·검은 화면·출력 닫기·화면 비우기·출력 숨김·Go Live)만 빨간 "위험" 배지.
-                                         한 사람이 라이브 운영 중 실수로 송출을 끊는 일을 줄이려 눈에 띄게 한다(§7.4 후속). -->
-                                    <!-- 배지는 순수 시각 표시. 위험 정보는 항목(ListBoxItem)의 AutomationProperties.Name
-                                         (AccessibleName)이 전달하므로, 배지에는 명시적 AutomationProperties.Name 을 두지 않아
-                                         항목을 읽을 때 "위험 명령"이 중복 발화되지 않게 한다(WPF 엔 AccessibilityView=Raw 가 없음). -->
-                                    <Border Grid.Column="1"
-                                            Visibility="{Binding IsDangerous, Converter={StaticResource BoolToVis}}"
-                                            Background="{DynamicResource Brush.Status.Danger}"
-                                            CornerRadius="{StaticResource CornerRadius.Small}"
-                                            Padding="6,1"
-                                            Margin="8,0,0,0"
-                                            VerticalAlignment="Center"
-                                            ToolTip="라이브 출력에 영향을 주는 주의 명령">
-                                        <!-- Foreground 는 흰색 리터럴 — 배지 배경이 양 테마 모두 진한 빨강이라
-                                             테마 토큰(Inverse: 다크에서 검정)보다 흰색이 대비에 안전. -->
-                                        <TextBlock Text="위험"
+                                    <!-- 우측: [단축키 힌트][위험 배지] — 단축키와 위험 표시를 한 줄에 묶는다. -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- 단축키 힌트(VS Code 식) — 명령 옆에 기본 단축키를 흐리게 보여 발견가능성을 높인다.
+                                             단축키 없으면 빈 문자열이라 자동으로 안 보인다. 음성은 항목 AccessibleName 이 전달하므로 여기엔 자동화 이름 없음. -->
+                                        <TextBlock Text="{Binding ShortcutHint}"
                                                    FontFamily="{DynamicResource Font.Primary}"
                                                    FontSize="11"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="White" />
-                                    </Border>
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                        <!-- 위험 명령(라이브 중지·검은 화면·출력 닫기·화면 비우기·출력 숨김·Go Live)만 빨간 "위험" 배지.
+                                             한 사람이 라이브 운영 중 실수로 송출을 끊는 일을 줄이려 눈에 띄게 한다(§7.4 후속). -->
+                                        <!-- 배지는 순수 시각 표시. 위험 정보는 항목(ListBoxItem)의 AutomationProperties.Name
+                                             (AccessibleName)이 전달하므로, 배지에는 명시적 AutomationProperties.Name 을 두지 않아
+                                             항목을 읽을 때 "위험 명령"이 중복 발화되지 않게 한다(WPF 엔 AccessibilityView=Raw 가 없음). -->
+                                        <Border Visibility="{Binding IsDangerous, Converter={StaticResource BoolToVis}}"
+                                                Background="{DynamicResource Brush.Status.Danger}"
+                                                CornerRadius="{StaticResource CornerRadius.Small}"
+                                                Padding="6,1"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                ToolTip="라이브 출력에 영향을 주는 주의 명령">
+                                            <!-- Foreground 는 흰색 리터럴 — 배지 배경이 양 테마 모두 진한 빨강이라
+                                                 테마 토큰(Inverse: 다크에서 검정)보다 흰색이 대비에 안전. -->
+                                            <TextBlock Text="위험"
+                                                       FontFamily="{DynamicResource Font.Primary}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="White" />
+                                        </Border>
+                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
