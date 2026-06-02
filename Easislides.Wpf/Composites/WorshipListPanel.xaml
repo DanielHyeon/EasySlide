@@ -53,6 +53,21 @@
                         AutomationProperties.Name="항목 제거">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
+                <!-- 예배 순서 전체 비우기(레거시 Empty) + 되돌리기 — 실수로 다 지워도 한 번은 복구 가능. -->
+                <Button Command="{Binding ClearWorshipListCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="예배 순서 전체를 비웁니다(되돌리기로 복구 가능)"
+                        AutomationProperties.Name="예배 순서 전체 비우기"
+                        Margin="8,0,0,0">
+                    <ui:SymbolIcon Symbol="Dismiss24" />
+                </Button>
+                <Button Command="{Binding RestoreClearedWorshipListCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="방금 비운 예배 순서를 되돌립니다"
+                        AutomationProperties.Name="예배 순서 되돌리기"
+                        Margin="0,0,8,0">
+                    <ui:SymbolIcon Symbol="ArrowUndo24" />
+                </Button>
                 <Button Command="{Binding ValidateWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"
                         ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일을 점검"

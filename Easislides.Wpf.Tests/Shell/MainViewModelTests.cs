@@ -2959,6 +2959,62 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ClearWorshipList_RemovesAll_AndRestoreBringsThemBack()
+    {
+        // 예배 순서 전체 비우기 → 되돌리기로 같은 항목들이 같은 순서로 복구된다(레거시 Empty→Trash 복구 대응).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song-1", "곡A", "Song") { Lyrics = "가사A" },
+            new LiveQueueItem("song-2", "곡B", "Song") { Lyrics = "가사B" },
+            new LiveQueueItem("song-3", "곡C", "Song") { Lyrics = "가사C" },
+        });
+        sut.Queue.Should().HaveCount(3);
+
+        sut.ClearWorshipListCommand.Execute(null);
+
+        sut.Queue.Should().BeEmpty("전체 비우기 후 큐가 빈다");
+        sut.SelectedItem.Should().BeNull("비운 뒤 선택 없음");
+
+        sut.RestoreClearedWorshipListCommand.Execute(null);
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "song-1", "song-2", "song-3" }, "되돌리기로 같은 순서 복구");
+        sut.SelectedItem.Should().Be(sut.Queue[0], "복구 후 첫 항목 선택");
+    }
+
+    [Fact]
+    public void ClearWorshipList_CanExecute_FollowsQueueAndRestoreFollowsBackup()
+    {
+        // 비우기는 항목이 있을 때만, 되돌리기는 방금 비운 스냅샷이 있을 때만 활성.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.ClearWorshipListCommand.CanExecute(null).Should().BeFalse("빈 큐는 비울 게 없음");
+        sut.RestoreClearedWorshipListCommand.CanExecute(null).Should().BeFalse("복구할 스냅샷 없음");
+
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "곡A", "Song") { Lyrics = "가사A" } });
+        sut.ClearWorshipListCommand.CanExecute(null).Should().BeTrue("항목이 있으면 비울 수 있음");
+
+        sut.ClearWorshipListCommand.Execute(null);
+        sut.ClearWorshipListCommand.CanExecute(null).Should().BeFalse("비운 뒤엔 다시 비울 게 없음");
+        sut.RestoreClearedWorshipListCommand.CanExecute(null).Should().BeTrue("방금 비웠으니 복구 가능");
+
+        sut.RestoreClearedWorshipListCommand.Execute(null);
+        sut.RestoreClearedWorshipListCommand.CanExecute(null).Should().BeFalse("복구 후 스냅샷 비워져 중복 복구 불가");
+        sut.ClearWorshipListCommand.CanExecute(null).Should().BeTrue("복구로 항목이 돌아왔으니 다시 비울 수 있음");
+    }
+
+    [Fact]
+    public void ClearWorshipList_EmptyQueue_IsNoOp()
+    {
+        // 빈 큐에서 비우기를 실행해도 스냅샷이 생기지 않아 되돌리기가 활성화되지 않는다(빈 상태 보호).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.ClearWorshipListCommand.Execute(null);
+
+        sut.Queue.Should().BeEmpty();
+        sut.RestoreClearedWorshipListCommand.CanExecute(null).Should().BeFalse("빈 큐 비우기는 무동작 — 복구할 것 없음");
+    }
+
+    [Fact]
     public void AutoRotateModeInput_DefaultsToOneRepeat_AndPersists()
     {
         using var folder = TempSettingsFolder.Create();

@@ -492,7 +492,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _output.OutputChanged += OnOutputChanged;
         _settings.SettingsChanged += OnSettingsChanged;
         // 큐가 바뀔 때마다 "비어 있음" 상태를 갱신한다(추가·제거·로드 등 모든 변경 경로를 한 곳에서 반영).
-        Queue.CollectionChanged += (_, _) => IsQueueEmpty = Queue.Count == 0;
+        Queue.CollectionChanged += (_, _) =>
+        {
+            IsQueueEmpty = Queue.Count == 0;
+            // 큐가 비거나 차면 "전체 비우기" 가능 여부가 바뀌므로 명령 활성 상태를 갱신(생성 도중엔 명령이 아직 null 일 수 있어 가드).
+            ClearWorshipListCommand?.NotifyCanExecuteChanged();
+        };
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
 
@@ -588,6 +593,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
+        ClearWorshipListCommand = new RelayCommand(ClearWorshipList, () => Queue.Count > 0);
+        RestoreClearedWorshipListCommand = new RelayCommand(RestoreClearedWorshipList, () => _clearedWorshipBackup.Count > 0);
         NextLyricsPageCommand = new RelayCommand(NextLyricsPage, CanGoNextLyricsPage);
         JumpToLyricsSectionCommand = new RelayCommand<string>(JumpToLyricsSection, CanJumpToLyricsSection);
         PreviousLyricsPageCommand = new RelayCommand(PreviousLyricsPage, CanGoPreviousLyricsPage);
@@ -750,6 +757,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
+    public IRelayCommand ClearWorshipListCommand { get; }
+    public IRelayCommand RestoreClearedWorshipListCommand { get; }
     public IRelayCommand NextLyricsPageCommand { get; }
     public IRelayCommand<string> JumpToLyricsSectionCommand { get; }
     public IRelayCommand PreviousLyricsPageCommand { get; }
@@ -1089,6 +1098,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(index, Queue.Count - 1)];
         StatusText = $"항목 제거: {item.Title}";
+        NotifyCommandStates();
+    }
+
+    // 방금 비운 예배 순서를 담아 두는 복구용 스냅샷("휴지통"). "되돌리기"로 한 번 복구할 수 있다.
+    // 레거시 Empty→Trash 폴더 이동의 WPF 대응 — 실제 폴더 대신 세션 내 1단계 실행취소.
+    private readonly List<LiveQueueItem> _clearedWorshipBackup = new();
+
+    // 예배 순서 전체 비우기(레거시 Empty Worship List). 비우기 전에 현재 목록을 스냅샷으로 보관해
+    // "되돌리기"로 복구할 수 있게 한다(실수로 다 지워도 한 번은 되살릴 수 있음).
+    private void ClearWorshipList()
+    {
+        if (Queue.Count == 0)
+        {
+            return;
+        }
+
+        // 복구용 스냅샷 보관(직전 비우기 1회만 복구 가능 — 새로 비우면 이전 스냅샷은 대체된다).
+        _clearedWorshipBackup.Clear();
+        _clearedWorshipBackup.AddRange(Queue);
+
+        var count = Queue.Count;
+        Queue.Clear();
+        SelectedItem = null;
+        _liveItemId = null; // 큐가 비었으니 라이브 추적 정리(큐에 없는 고아 Id 로 슬라이드 가드가 오판하지 않도록)
+        StatusText = $"예배 순서 {count}개 항목을 비웠습니다 (되돌리기로 복구 가능)";
+        NotifyCommandStates();
+    }
+
+    // 방금 비운 예배 순서를 복구(되돌리기). 스냅샷이 있을 때만 동작하고, 복구 후 스냅샷은 비운다(중복 복구 방지).
+    private void RestoreClearedWorshipList()
+    {
+        if (_clearedWorshipBackup.Count == 0)
+        {
+            return;
+        }
+
+        // 방어적: 스냅샷은 비우기 직후(큐가 빈 상태)에만 존재하지만, 혹시 큐에 항목이 있어도
+        // 중복이 쌓이지 않도록 먼저 비우고 복구한다(append 가 아니라 replace 의미를 보장).
+        Queue.Clear();
+        foreach (var item in _clearedWorshipBackup)
+        {
+            Queue.Add(item);
+        }
+
+        var count = _clearedWorshipBackup.Count;
+        _clearedWorshipBackup.Clear();
+        SelectedItem = Queue.FirstOrDefault();
+        StatusText = $"예배 순서 {count}개 항목을 복구했습니다";
         NotifyCommandStates();
     }
 
@@ -3489,6 +3546,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
         MoveSelectedItemDownCommand.NotifyCanExecuteChanged();
         RemoveSelectedItemCommand.NotifyCanExecuteChanged();
+        ClearWorshipListCommand.NotifyCanExecuteChanged();
+        RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
         PreviousLyricsPageCommand.NotifyCanExecuteChanged();
         ToggleAutoRotateCommand.NotifyCanExecuteChanged();

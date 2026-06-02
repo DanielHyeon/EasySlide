@@ -164,7 +164,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | FrmMain | WPF | 상태 |
 |---|---|---|
 | 항목 추가(곡/PPT/성경/텍스트/InfoScreen/Word/미디어/외부파일/.esw 병합) | AddSong/Bible/PowerPoint/Media + 파일추가 | 🟡(Word/InfoScreen/.esw 병합 없음) |
-| 이동 ↑↓ / 드래그 재정렬 / 제거 / 전체 비우기 | Move·Remove·드래그 | 🟢(전체 비우기→Trash 폴더 이동 없음) |
+| 이동 ↑↓ / 드래그 재정렬 / 제거 / 전체 비우기 | Move·Remove·드래그 + **전체 비우기(증분84)·되돌리기(복구)** | 🟢 전체 비우기 + 1단계 되돌리기(레거시 Empty→Trash 복구의 WPF 대응: 실제 폴더 대신 세션 내 실행취소 스냅샷) |
 | 드래그 소스 다양(곡/Info/PPT/미디어/이미지→배경/성경구절) | 큐 내부 재정렬 | 🟡 외부 소스 드래그 제한 |
 | 자동 회전(One/One-Repeat/Group/Group-Repeat 4종 + Rotate Style) | `ToggleAutoRotate`(간격) + **4종 모드**(AutoRotateMode 콤보: 현재항목반복/한항목만/그룹/그룹반복) | 🟢 (증분81) 끝 절·슬라이드 도달 시 모드별 동작(반복/정지/다음 항목/첫 항목 순환). Rotate Style 세부만 후속 |
 | Gap Item 처리 | GapItem 렌더 | 🟡 조작 UI 약함 |
