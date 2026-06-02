@@ -1578,6 +1578,54 @@ public class MainViewModelTests
         sut.Queue[0].Lyrics.Should().Be("L", "콘텐츠(가사)도 함께 영속");
     }
 
+    [Fact]
+    public async Task WorshipListHasUnsavedChanges_TracksDirty_AcrossEditSaveLoad()
+    {
+        // 증분144 — 미저장 변경 표시: 시작 깨끗 → 큐 편집 시 표시 → 저장/불러오기로 깨끗.
+        var sut = CreateSut(seedSampleQueue: false, worshipLists: new InMemoryWorshipListStore());
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("시작 시 미저장 변경 없음");
+
+        sut.AddTextItem("새 항목");
+        sut.WorshipListHasUnsavedChanges.Should().BeTrue("큐를 편집하면 미저장 변경 표시");
+
+        await sut.SaveWorshipListAsync("주일 예배");
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("저장하면 깨끗");
+
+        sut.AddTextItem("또 추가");
+        sut.WorshipListHasUnsavedChanges.Should().BeTrue("다시 편집 → 미저장");
+
+        await sut.LoadWorshipListAsync("주일 예배");
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("불러오면(전체 교체) 깨끗");
+    }
+
+    [Fact]
+    public void WorshipListHasUnsavedChanges_NotSetByGoLiveOrSelection()
+    {
+        // 큐 내용이 안 바뀌는 동작(선택 변경)은 미저장으로 표시하지 않는다 — 큐 편집만 dirty.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song") { Lyrics = "[1]\n가" }, new LiveQueueItem("b", "B", "Song") { Lyrics = "[1]\n나" }]);
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("불러오기 직후 깨끗");
+
+        sut.SelectedItem = sut.Queue[1]; // 선택만 바꿈 — 큐 내용 불변
+
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("선택 변경은 미저장 아님");
+    }
+
+    [Fact]
+    public async Task WorshipListHasUnsavedChanges_NotSetByGoLive()
+    {
+        // 송출(GoLive)은 큐를 안 바꾸고 투영본만 보내므로 미저장으로 표시하지 않는다 — 거짓 양성 방지(불변식 잠금).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song") { Lyrics = "[1]\n가" }]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("불러오기 직후 깨끗");
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("송출은 큐를 안 바꾸므로 미저장 아님");
+    }
+
     // ── 세션 콤보(예배 순서 빠른 전환) — 콤보로 고르고 명시적 "불러오기"로 적재 ──
 
     [Fact]

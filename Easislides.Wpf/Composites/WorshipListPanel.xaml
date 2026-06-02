@@ -24,11 +24,21 @@
             CornerRadius="{StaticResource CornerRadius.Medium}"
             Padding="{StaticResource Thickness.Lg}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Top"
-                       Text="예배 순서"
-                       Style="{StaticResource Type.Title3.Style}"
-                       Foreground="{DynamicResource Brush.Text.Primary}"
-                       Margin="0,0,0,8" />
+            <!-- 제목 + 미저장 변경 표시 — 저장/불러오기 이후 큐를 바꾸면 "● 수정됨"이 떠 저장을 잊지 않게 한다(미저장 아니면=false 면 숨김). -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="예배 순서"
+                           Style="{StaticResource Type.Title3.Style}"
+                           Foreground="{DynamicResource Brush.Text.Primary}"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="● 수정됨"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Status.Warning}"
+                           ToolTip="저장한 이후 예배 순서가 바뀌었습니다. '저장'으로 보존하세요."
+                           AutomationProperties.Name="미저장 변경 있음"
+                           Visibility="{Binding WorshipListHasUnsavedChanges, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
 
             <!--
                 세션 콤보(레거시 FrmMain 세션 콤보) — 저장된 예배 순서를 빠르게 골라 "불러오기"로 적재한다.

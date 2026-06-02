@@ -44,6 +44,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasWorshipListProblems;
     // 예배 순서(큐)가 비어 있으면 true — 좌측 패널의 "비어 있음" 안내 표시 여부. 시작 시 빈 큐(더미 시드 제거).
     [ObservableProperty] private bool _isQueueEmpty = true;
+
+    // 예배 순서가 마지막 저장/불러오기 이후 바뀌었는지(미저장 변경) — 세션 콤보 옆 "● 수정됨" 표시에 바인딩.
+    // 큐 변경(추가·삭제·이동·서식 편집)마다 true, 저장/불러오기/시작 시 false. 운영자가 저장을 잊지 않게 한다.
+    [ObservableProperty] private bool _worshipListHasUnsavedChanges;
     // 라이브 조옮김 반음 수(레거시 Transpose ±Semi-Tone) — 코드 표시가 켜졌을 때 송출 코드를 이동. 0=원조.
     // 새 곡을 송출하면 0 으로 초기화되어 각 곡이 작성된 키에서 시작한다.
     [ObservableProperty]
@@ -545,6 +549,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             IsQueueEmpty = Queue.Count == 0;
             // 큐가 비거나 차면 "전체 비우기" 가능 여부가 바뀌므로 명령 활성 상태를 갱신(생성 도중엔 명령이 아직 null 일 수 있어 가드).
             ClearWorshipListCommand?.NotifyCanExecuteChanged();
+            // 큐 내용이 바뀌면 미저장 변경으로 표시 — 불러오기(LoadQueue)·저장·시작은 끝에서 false 로 되돌려 깨끗한 상태로 만든다.
+            WorshipListHasUnsavedChanges = true;
         };
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
@@ -904,6 +910,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedItem = Queue.FirstOrDefault();
         StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
         RefreshPowerPointLimitState(updateStatus: true);
+        // 전체 교체(불러오기/시작 시드)는 "깨끗한" 상태 — 위 Add 들이 켠 미저장 표시를 끈다(사용자 편집만 미저장으로 남게).
+        WorshipListHasUnsavedChanges = false;
         NotifyCommandStates();
     }
 
@@ -1590,6 +1598,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             await _worshipLists.SaveAsync(name.Trim(), Queue.ToArray()).ConfigureAwait(true);
             RecordRecentWorshipList(name.Trim());
             RefreshSavedWorshipListNames(); // 새로 저장한 목록이 세션 콤보에 바로 보이도록.
+            WorshipListHasUnsavedChanges = false; // 방금 저장했으니 미저장 변경 없음.
             StatusText = $"예배 순서 저장됨: {name.Trim()} ({Queue.Count}개)";
         }
         catch (ArgumentException)
