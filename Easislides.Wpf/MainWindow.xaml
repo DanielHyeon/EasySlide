@@ -1276,6 +1276,19 @@
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
+                                    <!-- 제목 조회 빈 상태 안내 — 조회를 "실행했는데" 후보가 0건일 때만(조회 전엔 안 뜸). 곡 검색 빈 상태와 같은 방식(ListBox 다음·히트테스트 통과). -->
+                                    <TextBlock Grid.Row="2"
+                                               Text="조회된 제목이 없습니다.&#x0a;제목 일부를 바꿔 다시 조회해 보세요."
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Margin="16"
+                                               IsHitTestVisible="False"
+                                               Style="{StaticResource Type.Body.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Visibility="{Binding Search.HasNoLookupResults, Converter={StaticResource BoolToVis}}"
+                                               AutomationProperties.Name="조회 결과 없음" />
                                 </Grid>
                             </TabItem>
 

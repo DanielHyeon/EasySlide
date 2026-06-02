@@ -100,6 +100,51 @@ public class SearchUsageViewModelTests
     }
 
     [Fact]
+    public void HasNoLookupResults_IsFalse_BeforeAnyLookup()
+    {
+        // 제목 조회 전 첫 화면 — 후보 목록이 비어 있어도 "결과 없음" 안내는 뜨지 않아야 한다.
+        using var fixture = new SearchUsageViewModelFixture();
+        var sut = fixture.CreateViewModel();
+
+        sut.HasLookedUp.Should().BeFalse("아직 제목 조회를 실행하지 않음");
+        sut.HasNoLookupResults.Should().BeFalse("조회 전엔 빈 상태 안내가 뜨면 안 됨");
+    }
+
+    [Fact]
+    public async Task HasNoLookupResults_IsTrue_AfterLookupReturnsEmpty()
+    {
+        // 제목 조회를 실행했는데 후보가 0건 → "결과 없음" 안내가 뜬다.
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        fixture.Service.LookupCandidatesOverride = []; // 후보 없음 강제.
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        sut.SearchText = "없는제목";
+
+        await sut.LookupTitlesAsync();
+
+        sut.HasLookedUp.Should().BeTrue("조회를 실행함");
+        sut.LookupCandidates.Should().BeEmpty();
+        sut.HasNoLookupResults.Should().BeTrue("조회했는데 후보가 없으면 빈 상태 안내 표시");
+    }
+
+    [Fact]
+    public async Task HasNoLookupResults_IsFalse_AfterLookupReturnsHits()
+    {
+        // 제목 조회 후보가 있으면 "결과 없음" 안내는 뜨지 않는다.
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var sut = fixture.CreateViewModel();
+        await sut.LoadAsync();
+        sut.SearchText = "grace";
+
+        await sut.LookupTitlesAsync();
+
+        sut.LookupCandidates.Should().NotBeEmpty();
+        sut.HasNoLookupResults.Should().BeFalse("후보가 있으면 빈 상태 안내 숨김");
+    }
+
+    [Fact]
     public async Task RefreshDeleteAndExportUsageAsync_UsesCurrentUsageReport()
     {
         using var fixture = new SearchUsageViewModelFixture();
@@ -242,10 +287,13 @@ public class SearchUsageViewModelTests
             ]);
         }
 
+        /// <summary>설정하면 제목 조회가 이 결과를 돌려준다(빈 리스트로 "결과 없음" 케이스 테스트). 기본은 Amazing Grace 한 건.</summary>
+        public IReadOnlyList<LookupTitleCandidate>? LookupCandidatesOverride { get; set; }
+
         public Task<IReadOnlyList<LookupTitleCandidate>> LookupTitlesAsync(string databasePath, string titlePattern)
         {
             LastLookupPattern = titlePattern;
-            return Task.FromResult<IReadOnlyList<LookupTitleCandidate>>([
+            return Task.FromResult(LookupCandidatesOverride ?? (IReadOnlyList<LookupTitleCandidate>)[
                 new LookupTitleCandidate(10, "Amazing Grace", "", 1, "Morning", "Ps 23", "CCLI"),
             ]);
         }

@@ -94,6 +94,25 @@ public sealed class SearchTabModesTests
     }
 
     [Fact]
+    public void TitlesSubTab_HasEmptyStateOverlay_BoundToHasNoLookupResults()
+    {
+        // 증분155 — 제목 조회 후보가 0건일 때(조회 실행 후) "결과 없음" 안내가 같은 셀에 겹쳐 뜨도록 배선됐는지(곡 검색 빈 상태와 일관).
+        var titles = SearchModeTabs().Elements()
+            .Single(e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == "SearchTitles");
+
+        var emptyState = titles.Descendants().SingleOrDefault(
+            e => e.Name.LocalName == "TextBlock" && Attr(e, "Visibility").Contains("HasNoLookupResults"));
+        emptyState.Should().NotBeNull("제목 조회 빈 상태 안내가 HasNoLookupResults 에 바인딩돼야 함");
+        Attr(emptyState!, "Text").Should().Contain("없습니다", "운영자에게 결과 없음을 안내");
+        Attr(emptyState!, "IsHitTestVisible").Should().Be("False", "안내는 클릭을 통과시켜야 함");
+        // 안내와 후보 목록이 같은 셀(Row 2)에 겹쳐야 오버레이가 성립한다.
+        var lookupList = titles.Descendants().Single(
+            e => e.Name.LocalName == "ListBox" && Attr(e, "ItemsSource").Contains("LookupCandidates"));
+        Attr(emptyState!, "Grid.Row").Should().Be("2");
+        Attr(lookupList, "Grid.Row").Should().Be("2", "안내와 후보 목록이 같은 셀에 겹쳐야 오버레이가 됨");
+    }
+
+    [Fact]
     public void UsageSubTab_BindsUsageRecords_ReadOnly()
     {
         var usage = SearchModeTabs().Elements()

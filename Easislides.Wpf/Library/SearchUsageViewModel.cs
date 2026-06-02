@@ -102,6 +102,18 @@ public sealed partial class SearchUsageViewModel : ObservableObject
     /// <summary>HasSearched 가 바뀌면 빈 상태 표시 여부도 다시 평가하도록 통지.</summary>
     partial void OnHasSearchedChanged(bool value) => OnPropertyChanged(nameof(HasNoSearchResults));
 
+    /// <summary>한 번이라도 제목 조회를 실행했는지 — 조회 전 빈 목록과 "조회했는데 결과 없음"을 구분(곡 검색 HasSearched 와 같은 취지).</summary>
+    [ObservableProperty] private bool _hasLookedUp;
+
+    /// <summary>
+    /// 제목 조회를 실행했지만 후보가 하나도 없을 때만 true — "제목" 서브탭의 "결과 없음" 빈 상태 안내 표시에 쓴다(곡 검색 HasNoSearchResults 와 대칭).
+    /// 조회 전(HasLookedUp=false)이나 후보가 있을 때는 false 라, 처음 화면이나 정상 결과에는 안내가 뜨지 않는다.
+    /// </summary>
+    public bool HasNoLookupResults => HasLookedUp && LookupCandidates.Count == 0;
+
+    /// <summary>HasLookedUp 가 바뀌면 빈 상태 표시 여부도 다시 평가하도록 통지.</summary>
+    partial void OnHasLookedUpChanged(bool value) => OnPropertyChanged(nameof(HasNoLookupResults));
+
     public SearchUsageViewModel(ISettingsService settings, ISearchUsageService service)
         : this(settings, service, new WpfUsageDeleteConfirmation())
     {
@@ -123,6 +135,8 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         ExportUsageReportCommand = new AsyncRelayCommand(ExportUsageReportAsync, () => !IsBusy);
         // 검색 결과 수가 바뀌면 "결과 없음" 빈 상태 표시 여부도 다시 평가하도록 통지.
         SearchResults.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoSearchResults));
+        // 제목 조회 후보 수가 바뀌면 "제목" 서브탭 빈 상태 표시 여부도 다시 평가하도록 통지.
+        LookupCandidates.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoLookupResults));
     }
 
     public ObservableCollection<SelectableSearchFolder> SearchFolders { get; } = new();
@@ -210,6 +224,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         {
             var candidates = await _service.LookupTitlesAsync(DatabasePath, SearchText).ConfigureAwait(true);
             LookupCandidates.ReplaceWith(candidates);
+            HasLookedUp = true; // 조회를 실행했음을 표시 — 이제부터 후보 0건이면 "결과 없음" 안내가 뜬다.
             StatusMessage = $"{LookupCandidates.Count} title candidates found.";
         }).ConfigureAwait(true);
     }
