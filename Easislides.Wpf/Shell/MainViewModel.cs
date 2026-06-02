@@ -581,6 +581,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemUnderlineCommand = new RelayCommand(ToggleSelectedItemUnderline, () => CanEditSelectedItemColor);
         // 이중 언어(보조 영역 Region2) 글자색(FormatData 코드30) — 비우면 본문(Region1) 색 추종. 곡일 때만 활성.
         SetSelectedItemTextColor2Command = new RelayCommand<string?>(SetSelectedItemTextColor2, _ => CanEditSelectedItemColor);
+        // 이중 언어(보조 영역 Region2) 가로 정렬(FormatData 코드32) — 비우면 본문(Region1) 정렬 추종. 곡일 때만 활성.
+        SetSelectedItemAlignment2Command = new RelayCommand<string?>(SetSelectedItemAlignment2, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -732,6 +734,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleSelectedItemItalicCommand { get; }
     public IRelayCommand ToggleSelectedItemUnderlineCommand { get; }
     public IRelayCommand<string?> SetSelectedItemTextColor2Command { get; }
+    public IRelayCommand<string?> SetSelectedItemAlignment2Command { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1852,6 +1855,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemItalic));
         OnPropertyChanged(nameof(SelectedItemUnderline));
         OnPropertyChanged(nameof(SelectedItemTextColor2Hex));
+        OnPropertyChanged(nameof(SelectedItemAlignment2));
 
         NotifyCommandStates();
     }
@@ -2997,6 +3001,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = argb is null
                 ? "보조 영역 글자색: 본문과 동일"
                 : $"보조 영역 글자색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 보조 영역(Region2) 가로 정렬(이 항목만) — 레거시 1=왼쪽/2=가운데/3=오른쪽, 없으면 0(본문 정렬 추종).</summary>
+    public int SelectedItemAlignment2
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.Alignment2 ?? 0;
+
+    /// <summary>
+    /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 가로 정렬(이 항목만)을 바꾼다(레거시 항목별 Region2 정렬, FormatData 코드 32).
+    /// 파라미터 "1"/"2"/"3"=왼쪽/가운데/오른쪽, 그 밖(빈·0·오류)이면 해제해 본문(Region1) 정렬을 따른다. 이중 언어 곡에서만 화면에 보인다.
+    /// </summary>
+    public void SetSelectedItemAlignment2(string? alignmentParam)
+    {
+        // "1"/"2"/"3" 만 유효(왼쪽/가운데/오른쪽), 그 밖은 null = 정렬 해제(본문 정렬 추종).
+        int? align = int.TryParse(alignmentParam, out var n) && n is >= 1 and <= 3 ? n : null;
+        if (ApplySelectedSongFormatChange(format => format with { Alignment2 = align }, wantsIndividual: align is not null, out var turnedOn))
+        {
+            var label = align switch { 1 => "왼쪽", 2 => "가운데", 3 => "오른쪽", _ => "본문과 동일" };
+            StatusText = $"보조 영역 정렬: {label}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -4381,6 +4404,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemItalicCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderlineCommand.NotifyCanExecuteChanged();
         SetSelectedItemTextColor2Command.NotifyCanExecuteChanged();
+        SetSelectedItemAlignment2Command.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

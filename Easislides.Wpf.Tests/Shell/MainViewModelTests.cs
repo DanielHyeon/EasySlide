@@ -5816,6 +5816,90 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 색이 붙지 않음");
     }
 
+    // ── 이중 언어 보조 영역(Region2) 항목별 정렬(SetSelectedItemAlignment2) — 선택한 곡만(레거시 Ind_ Region2 정렬, 코드32) ──
+
+    [Theory]
+    [InlineData("1", 1, "32=1")] // 왼쪽
+    [InlineData("2", 2, "32=2")] // 가운데
+    [InlineData("3", 3, "32=3")] // 오른쪽
+    public void SetSelectedItemAlignment2_WritesFormatDataCode32_AndReflects(string param, int expected, string token)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemAlignment2(param);
+
+        sut.SelectedItem!.FormatData.Should().Contain(token, "코드 32(Region2 정렬)에 인코드");
+        sut.SelectedItemAlignment2.Should().Be(expected, "보조 영역 정렬 미리보기도 동기화");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("정렬을 주면 보이도록 개별 서식을 켠다");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment2_PreservesRegion1Alignment()
+    {
+        // 보조 영역 정렬(코드32)만 바꾸고 본문 정렬(코드31)은 보존한다(공통 헬퍼 왕복 — 코드31/32 분리).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n본문\n[region 2]\n번역",
+            FormatData = "31=2", // 본문 가운데 정렬.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemAlignment2("3"); // 보조 영역 오른쪽.
+
+        sut.SelectedItem!.FormatData.Should().Contain("31=2", "본문(Region1) 정렬 보존");
+        sut.SelectedItem!.FormatData.Should().Contain("32=3", "보조 영역(Region2) 정렬 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment2_ZeroOrInvalid_ClearsToFollowRegion1()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "32=3", // 보조 영역 오른쪽이 이미 지정됨.
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemAlignment2("0");
+
+        sut.SelectedItemAlignment2.Should().Be(0, "해제 → 본문 정렬 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("32=", "코드 32(Region2 정렬)가 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment2_WhileLive_AppliesOverrideAlignment2()
+    {
+        // 라이브 송출 중 보조 영역 정렬을 바꾸면 세션 오버라이드(Region2 정렬)가 즉시 반영된다.
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n본문\n[region 2]\n번역" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemAlignment2("3"); // 오른쪽.
+
+        session.Current.OverrideTextAlignment2.Should().Be(LyricsTextAlignment.Right, "보조 영역 정렬이 라이브 송출에 즉시 반영");
+    }
+
+    [Fact]
+    public void SetSelectedItemAlignment2_NonSong_IsNoOpAndCommandDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemAlignment2Command.CanExecute("2").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemAlignment2("2");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 정렬이 붙지 않음");
+    }
+
     [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {
