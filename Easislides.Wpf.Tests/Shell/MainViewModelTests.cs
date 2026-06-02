@@ -2959,6 +2959,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void IsInspectorExpanded_TogglePersists_AndIsRestoredOnConstruction()
+    {
+        // 인스펙터를 접으면 설정에 저장되고, 같은 설정으로 새 VM 을 만들면 접힌 상태로 복원된다(레거시 패널 상태 저장).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.IsInspectorExpanded.Should().BeTrue("기본 펼침");
+
+        sut.IsInspectorExpanded = false; // 접기
+        settings.Get(EasiSettingKeys.MainInspectorExpanded).Should().BeFalse("접힘 상태가 설정에 저장");
+
+        // 같은 설정을 쓰는 새 VM 은 접힌 상태로 시작.
+        var restored = CreateSut(settings: settings);
+        restored.IsInspectorExpanded.Should().BeFalse("다음 실행에도 접힌 채 복원");
+    }
+
+    [Fact]
     public void ClearWorshipList_RemovesAll_AndRestoreBringsThemBack()
     {
         // 예배 순서 전체 비우기 → 되돌리기로 같은 항목들이 같은 순서로 복구된다(레거시 Empty→Trash 복구 대응).

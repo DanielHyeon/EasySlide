@@ -65,8 +65,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int _selectedContentTabIndex;
 
     // 우측 출력 모양 인스펙터 펼침 여부(FrmMain식 가변 패널, §7.4). 접으면 우측 컬럼이 0 으로 줄어 중앙 미리보기가 넓어진다.
-    // 기본 펼침(true). 운영바 토글로 전환.
+    // 기본 펼침(true). 운영바 토글로 전환. 변경 시 설정에 저장돼 다음 실행에도 접힘/펼침 상태가 유지된다(레거시 패널 상태 저장).
     [ObservableProperty] private bool _isInspectorExpanded = true;
+    // 설정에서 인스펙터 상태를 "복원하는 중"인지 표시 — 복원이 OnChanged 를 울려 같은 값을 되저장하는 군더더기·재진입을 막는다.
+    private bool _isApplyingOperationalSettings;
+
+    // 인스펙터를 접거나 펼치면 그 상태를 설정에 저장한다(다음 실행에도 유지). 단, 복원 중에는 되저장하지 않는다.
+    partial void OnIsInspectorExpandedChanged(bool value)
+    {
+        if (_isApplyingOperationalSettings)
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.MainInspectorExpanded, value);
+    }
 
     [ObservableProperty] private bool _isPowerPointTabVisible;
     [ObservableProperty] private bool _isPowerPointPanelOverlayEnabled = true;
@@ -3557,6 +3570,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ApplyOperationalSettings(bool updateStatus)
     {
+        // 인스펙터 접힘/펼침 상태 복원(레거시 패널 상태 저장). 저장값이 기본과 같으면 OnChanged 가 안 울려 무회귀.
+        // try/finally 로 플래그를 반드시 풀어 준다 — 복원 도중 예외가 나도 플래그가 true 로 갇혀
+        // 이후 모든 토글이 조용히 저장을 멈추는 일이 없게 한다(리뷰어 지적: 가드 플래그 예외 안전).
+        _isApplyingOperationalSettings = true;
+        try
+        {
+            IsInspectorExpanded = _settings.Get(EasiSettingKeys.MainInspectorExpanded);
+        }
+        finally
+        {
+            _isApplyingOperationalSettings = false;
+        }
         IsPowerPointTabVisible = _settings.Get(EasiSettingKeys.UsePowerPointTab);
         IsPowerPointPanelOverlayEnabled = !_settings.Get(EasiSettingKeys.NoPowerPointPanelOverlay);
         PowerPointMaxFiles = _settings.Get(EasiSettingKeys.PowerPointMaxFiles);

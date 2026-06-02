@@ -212,6 +212,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> MainWindowWidth = new("general.mainWindowWidth", 0);
     public static readonly SettingKey<int> MainWindowHeight = new("general.mainWindowHeight", 0);
     public static readonly SettingKey<bool> MainWindowMaximized = new("general.mainWindowMaximized", false);
+    // 우측 출력 모양 인스펙터 펼침/접힘 상태 저장(레거시 FrmMain 패널 상태). 기본 true=펼침(무회귀). 접어 두면 다음 실행에도 접힌 채 시작.
+    public static readonly SettingKey<bool> MainInspectorExpanded = new("general.mainInspectorExpanded", true);
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
     public static readonly SettingKey<InterfaceSize> InterfaceSize =
@@ -386,6 +388,7 @@ public static class EasiSettingKeys
         MainWindowWidth,
         MainWindowHeight,
         MainWindowMaximized,
+        MainInspectorExpanded,
         Theme,
         InterfaceSize,
         DefaultOutputMonitorId,
@@ -494,6 +497,8 @@ public sealed record GeneralSettings
     public int MainWindowHeight { get; init; } = EasiSettingKeys.MainWindowHeight.DefaultValue;
 
     public bool MainWindowMaximized { get; init; } = EasiSettingKeys.MainWindowMaximized.DefaultValue;
+
+    public bool MainInspectorExpanded { get; init; } = EasiSettingKeys.MainInspectorExpanded.DefaultValue;
 }
 
 public sealed record AppearanceSettings
@@ -1470,6 +1475,7 @@ public sealed class SettingsService : ISettingsService
             "general.mainWindowWidth" => snapshot.General.MainWindowWidth,
             "general.mainWindowHeight" => snapshot.General.MainWindowHeight,
             "general.mainWindowMaximized" => snapshot.General.MainWindowMaximized,
+            "general.mainInspectorExpanded" => snapshot.General.MainInspectorExpanded,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
@@ -1595,6 +1601,10 @@ public sealed class SettingsService : ISettingsService
             "general.mainWindowMaximized" => snapshot with
             {
                 General = snapshot.General with { MainWindowMaximized = Cast<bool>(keyId, value) },
+            },
+            "general.mainInspectorExpanded" => snapshot with
+            {
+                General = snapshot.General with { MainInspectorExpanded = Cast<bool>(keyId, value) },
             },
             "appearance.theme" => snapshot with
             {

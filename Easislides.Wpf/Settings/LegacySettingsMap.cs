@@ -50,6 +50,7 @@ public static class LegacySettingsMap
         Automated("MainWindowWidth", EasiSettingKeys.MainWindowWidth.Id, SettingsSectionKind.General, LegacySettingValueKind.Integer, "WPF compatibility", "Main window width in px (0=never saved, use default) — FrmMain window state (registry)."),
         Automated("MainWindowHeight", EasiSettingKeys.MainWindowHeight.Id, SettingsSectionKind.General, LegacySettingValueKind.Integer, "WPF compatibility", "Main window height in px (0=never saved, use default) — FrmMain window state (registry)."),
         Automated("MainWindowMaximized", EasiSettingKeys.MainWindowMaximized.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "Main window maximized state — FrmMain window state (registry)."),
+        Automated("MainInspectorExpanded", EasiSettingKeys.MainInspectorExpanded.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "Right output-appearance inspector expanded/collapsed state — FrmMain panel state (registry)."),
 
         Automated("Theme", EasiSettingKeys.Theme.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),
         Automated("InterfaceSize", EasiSettingKeys.InterfaceSize.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),
