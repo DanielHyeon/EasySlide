@@ -125,6 +125,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LyricsRegion2Alignment _activeLyricsRegion2Alignment = EasiSettingKeys.LyricsMonitorRegion2Alignment.DefaultValue;
     // 현재 적용된 보조 영역(Region2) 전역 굵게(3-상태). FollowRegion1=본문 굵게 추종. 굵게 선택 콤보에 바인딩.
     [ObservableProperty] private LyricsRegion2Emphasis _activeLyricsRegion2Bold = EasiSettingKeys.LyricsMonitorRegion2Bold.DefaultValue;
+    // 현재 적용된 보조 영역(Region2) 전역 기울임(3-상태). FollowRegion1=본문 기울임 추종. 기울임 선택 콤보에 바인딩.
+    [ObservableProperty] private LyricsRegion2Emphasis _activeLyricsRegion2Italic = EasiSettingKeys.LyricsMonitorRegion2Italic.DefaultValue;
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -2770,6 +2772,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorTextColor2Argb, EasiSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorRegion2Alignment, EasiSettingKeys.LyricsMonitorRegion2Alignment.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorRegion2Bold, EasiSettingKeys.LyricsMonitorRegion2Bold.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorRegion2Italic, EasiSettingKeys.LyricsMonitorRegion2Italic.DefaultValue);
 
         RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시·글꼴 등) 동기화
         StatusText = "출력 모양 기본값 복원";
@@ -3249,6 +3252,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 보조영역 굵게가 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
     partial void OnActiveLyricsRegion2BoldChanged(LyricsRegion2Emphasis value) => OnPropertyChanged(nameof(LyricsRegion2BoldInput));
 
+    /// <summary>보조 영역(Region2) 기울임 콤보의 (라벨 → 3-상태) 프리셋. FollowRegion1=본문 기울임 추종.</summary>
+    public IReadOnlyList<KeyValuePair<string, LyricsRegion2Emphasis>> LyricsRegion2ItalicPresets { get; } =
+    [
+        new("본문과 동일", LyricsRegion2Emphasis.FollowRegion1),
+        new("기울임", LyricsRegion2Emphasis.On),
+        new("곧게", LyricsRegion2Emphasis.Off),
+    ];
+
+    /// <summary>보조 영역(Region2) 전역 기울임 선택(콤보 양방향 바인딩). FollowRegion1=본문 기울임 추종. 바뀌면 설정 저장(라이브 반영).</summary>
+    public LyricsRegion2Emphasis LyricsRegion2ItalicInput
+    {
+        get => ActiveLyricsRegion2Italic;
+        set
+        {
+            if (value == ActiveLyricsRegion2Italic)
+            {
+                return;
+            }
+
+            _settings.Set(EasiSettingKeys.LyricsMonitorRegion2Italic, value);
+            ActiveLyricsRegion2Italic = value;
+            StatusText = value switch
+            {
+                LyricsRegion2Emphasis.On => "보조영역 기울임: 켬",
+                LyricsRegion2Emphasis.Off => "보조영역 기울임: 곧게",
+                _ => "보조영역 기울임: 본문과 동일",
+            };
+        }
+    }
+
+    // 보조영역 기울임이 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveLyricsRegion2ItalicChanged(LyricsRegion2Emphasis value) => OnPropertyChanged(nameof(LyricsRegion2ItalicInput));
+
     // Display Panel 글자 크기 비율 조절(+/- 단계, %) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Def_PanelFont 크기).
     private void StepPanelFontScale(int delta)
     {
@@ -3447,6 +3483,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsTextColor2Argb = _settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb);
         ActiveLyricsRegion2Alignment = _settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment);
         ActiveLyricsRegion2Bold = _settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold);
+        ActiveLyricsRegion2Italic = _settings.Get(EasiSettingKeys.LyricsMonitorRegion2Italic);
         ActivePanelFontScale = _settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);

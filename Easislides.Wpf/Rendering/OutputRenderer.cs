@@ -108,7 +108,9 @@ public sealed record LiveOutputRenderSettings(
     // 보조 영역(Region2) 전역 가로 정렬. FollowRegion1=본문 정렬 추종(무회귀). 곡별 정렬(32)이 우선.
     LyricsRegion2Alignment LyricsMonitorRegion2Alignment = LyricsRegion2Alignment.FollowRegion1,
     // 보조 영역(Region2) 전역 굵게(3-상태). FollowRegion1=본문 굵게 추종(무회귀). 곡별 굵게가 우선.
-    LyricsRegion2Emphasis LyricsMonitorRegion2Bold = LyricsRegion2Emphasis.FollowRegion1)
+    LyricsRegion2Emphasis LyricsMonitorRegion2Bold = LyricsRegion2Emphasis.FollowRegion1,
+    // 보조 영역(Region2) 전역 기울임(3-상태). FollowRegion1=본문 기울임 추종(무회귀). 곡별 기울임이 우선.
+    LyricsRegion2Emphasis LyricsMonitorRegion2Italic = LyricsRegion2Emphasis.FollowRegion1)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -167,7 +169,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2),
             settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb),
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment),
-            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold));
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold),
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Italic));
     }
 }
 
@@ -459,7 +462,10 @@ public sealed class OutputRenderer : IOutputRenderer
         var region2Bold = isLive && request.Session.OverrideBold2 is bool songBold2
             ? songBold2
             : ResolveRegion2Emphasis(liveOutput.LyricsMonitorRegion2Bold, region1Bold);
-        var region2Italic = isLive ? request.Session.OverrideItalic2 ?? region1Italic : region1Italic;
+        // Region2 기울임 우선순위도 굵게와 동일: 곡별 비트(Live 한정) > 전역(FollowRegion1 아니면) > Region1 추종.
+        var region2Italic = isLive && request.Session.OverrideItalic2 is bool songItalic2
+            ? songItalic2
+            : ResolveRegion2Emphasis(liveOutput.LyricsMonitorRegion2Italic, region1Italic);
         // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역, Region2=곡별 비트∥Region1 추종.
         var region1Underline = isLive && request.Session.OverrideUnderline1 == true ? true : liveOutput.LyricsMonitorUnderline;
         var region2Underline = isLive ? request.Session.OverrideUnderline2 ?? region1Underline : region1Underline;

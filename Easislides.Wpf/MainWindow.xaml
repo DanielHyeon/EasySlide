@@ -1930,6 +1930,19 @@
                               ToolTip="이중 언어 곡의 보조 영역(번역) 굵게. '본문과 동일'이면 본문(Region1) 굵게를 따릅니다(번역만 보통으로 두는 등 분리 가능). 곡별 굵게가 지정된 곡은 그 값이 우선합니다."
                               AutomationProperties.Name="보조영역 전역 굵게" />
 
+                    <!-- 보조 영역(Region2) 전역 기울임 — 본문과 동일(추종) 또는 별도(기울임/곧게). 곡별 기울임이 있으면 그 곡 우선. -->
+                    <TextBlock Text="보조영역 기울임 (본문과 동일=추종)"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <ComboBox ItemsSource="{Binding LyricsRegion2ItalicPresets}"
+                              SelectedValue="{Binding LyricsRegion2ItalicInput, Mode=TwoWay}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="Key"
+                              Margin="0,4,0,0"
+                              ToolTip="이중 언어 곡의 보조 영역(번역) 기울임. '본문과 동일'이면 본문(Region1) 기울임을 따릅니다(번역만 기울임으로 두는 등 분리 가능). 곡별 기울임이 지정된 곡은 그 값이 우선합니다."
+                              AutomationProperties.Name="보조영역 전역 기울임" />
+
                     <!-- 인-셸 가사 줄 간격(§7.3-A) — 폰트 대비 % 로 −/+ 조절. -->
                     <TextBlock Text="줄 간격"
                                Style="{StaticResource Type.Caption.Style}"

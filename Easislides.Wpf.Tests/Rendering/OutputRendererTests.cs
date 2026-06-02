@@ -771,6 +771,67 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2Italic_GlobalOn_ItalicizesRegion2EvenWhenRegion1Plain()
+    {
+        // 전역 region2 기울임=On 이면 본문(Region1)이 곧게여도 보조영역만 기울임으로 송출된다(번역만 기울임 분리).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorItalic: false,                                 // 본문 곧게
+            LyricsMonitorRegion2Italic: LyricsRegion2Emphasis.On);      // 보조영역 기울임
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorItalic.Should().BeFalse("본문은 곧게");
+        scene.LyricsMonitorItalic2.Should().BeTrue("보조영역은 전역 region2 기울임=On");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Italic_GlobalOff_PlainRegion2EvenWhenRegion1Italic()
+    {
+        // 전역 region2 기울임=Off 이면 본문(Region1)이 기울임이어도 보조영역만 곧게 송출된다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorItalic: true,                                  // 본문 기울임
+            LyricsMonitorRegion2Italic: LyricsRegion2Emphasis.Off);    // 보조영역 곧게
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorItalic.Should().BeTrue("본문은 기울임");
+        scene.LyricsMonitorItalic2.Should().BeFalse("보조영역은 전역 region2 기울임=Off");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Italic_SongBit_BeatsGlobalRegion2Italic()
+    {
+        // 전역 region2 기울임=Off 여도 곡별 region2 기울임 비트가 있으면 그 곡 동안은 곡별 값이 우선한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegion2Italic: LyricsRegion2Emphasis.Off);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                OverrideItalic2: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorItalic2.Should().BeTrue("곡별 region2 기울임 비트가 전역 region2 기울임을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_EmphasisChorusOnly_NonChorusPage_SuppressesEmphasis()
     {
         // 강조 후렴만 on + 현재 절이 후렴 아님 → 전역 굵게가 켜져 있어도 이 절은 강조 끔.
