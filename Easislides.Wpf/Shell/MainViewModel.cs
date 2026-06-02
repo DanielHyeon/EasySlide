@@ -1918,6 +1918,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         registry.Bind(MainCommandIds.OutputOpen, () => OpenOutputCommand.Execute(null));
         registry.Bind(MainCommandIds.OutputClose, () => _ = CloseOutputCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveGo, () => _ = GoLiveCommand.ExecuteAsync(null));
+        // 레거시 F11 = 송출 후 다음 항목(btnToOutputMoveNext). 형제 명령 LiveGo 와 같은 방식으로 바인딩 —
+        // 둘 다 CanGoLive 조건·내부 안전 확인을 SendToOutputAndNextAsync 안에서 처리하므로 여기서 따로 게이트하지 않는다.
+        registry.Bind(MainCommandIds.LiveGoAndNext, () => _ = SendToOutputAndNextCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveStop, () => _ = StopLiveCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveNext, () => NextItemCommand.Execute(null));
         registry.Bind(MainCommandIds.LivePrevious, () => PreviousItemCommand.Execute(null));

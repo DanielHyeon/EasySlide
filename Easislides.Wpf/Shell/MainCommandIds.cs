@@ -5,6 +5,8 @@ public static class MainCommandIds
     public const string OutputOpen = "Output.Open";
     public const string OutputClose = "Output.Close";
     public const string LiveGo = "Live.Go";
+    // 레거시 btnToOutputMoveNext(F11) — 선택 항목을 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).
+    public const string LiveGoAndNext = "Live.GoAndNext";
     public const string LiveStop = "Live.Stop";
     public const string LiveNext = "Live.Next";
     public const string LivePrevious = "Live.Previous";

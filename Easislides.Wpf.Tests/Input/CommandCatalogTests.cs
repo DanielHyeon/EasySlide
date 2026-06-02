@@ -43,8 +43,9 @@ public class CommandCatalogTests
     }
 
     [Theory]
-    // FrmMain 라이브 운영 F-키 파리티(충돌 없는 키만): F12=Go Live, F9=검은 화면, F3=화면 비우기, F1=도움말.
+    // FrmMain 라이브 운영 F-키 파리티(충돌 없는 키만): F12=Go Live, F11=송출 후 다음, F9=검은 화면, F3=화면 비우기, F1=도움말.
     [InlineData(Key.F12, MainCommandIds.LiveGo)]
+    [InlineData(Key.F11, MainCommandIds.LiveGoAndNext)]
     [InlineData(Key.F9, MainCommandIds.LiveBlack)]
     [InlineData(Key.F3, MainCommandIds.LiveClear)]
     [InlineData(Key.F1, MainCommandIds.WindowHelp)]
@@ -112,11 +113,15 @@ public class CommandCatalogTests
                      MainCommandIds.WindowManageLists, MainCommandIds.WindowSettings, MainCommandIds.WindowHelp,
                      MainCommandIds.WindowRegistration, MainCommandIds.WindowAbout, MainCommandIds.AddExternalFile,
                      MainCommandIds.LiveClear, MainCommandIds.LiveRestart, MainCommandIds.LiveRefresh,
-                     MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate,
+                     MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
                  })
         {
             sut.FindById(id).Should().NotBeNull($"카탈로그에 {id} 명령이 있어야 팔레트에서 실행 가능");
         }
+
+        // 송출 후 다음(F11)은 위험 명령(라이브 전환)으로 표시돼 팔레트에서 경고 배지·음성 안내가 붙는다.
+        sut.FindById(MainCommandIds.LiveGoAndNext).Should().NotBeNull()
+            .And.Match<CommandDescriptor>(c => c.IsDangerous, "라이브 송출이라 위험 표시");
 
         // 창 런처는 "창" 카테고리로 묶여 팔레트에서 "창" 검색 시 함께 노출.
         sut.All.Where(c => c.Category == "창").Should().HaveCountGreaterThanOrEqualTo(10);

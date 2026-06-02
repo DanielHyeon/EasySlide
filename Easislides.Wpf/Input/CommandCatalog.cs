@@ -59,6 +59,14 @@ public sealed class CommandCatalog : ICommandCatalog
             // FrmMain 파리티: F12 = Start Show/Go Live.
             new Shortcut(Key.F12, ModifierKeys.None, MainCommandIds.LiveGo, IsGlobal: false, "Go Live")),
         Command(
+            MainCommandIds.LiveGoAndNext,
+            "Live",
+            "송출 후 다음 항목",
+            "선택한 항목을 라이브로 송출하고 곧바로 다음 큐 항목으로 선택을 옮깁니다(레거시 btnToOutputMoveNext).",
+            isDangerous: true,
+            // FrmMain 파리티: F11 = Go Live and Move Next.
+            new Shortcut(Key.F11, ModifierKeys.None, MainCommandIds.LiveGoAndNext, IsGlobal: false, "송출 후 다음 항목")),
+        Command(
             MainCommandIds.LiveStop,
             "Live",
             "라이브 중지",

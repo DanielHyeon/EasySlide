@@ -57,7 +57,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 - File: Worship Sessions / PraiseBooks / Listing of Selected Folder / Recent Edits → PraiseBooks·Recent Edits 는 포팅(증분44/세션), Worship Sessions·Listing of Folder 만 후속
 - Edit: Add/Edit/Copy/Move/Delete/Select All/**Use Song Numbering**/Re-Arrange Song Folders → Use Song Numbering·Select All 등 인-셸 없음
 - View: EasiSlides Folder / **Show Notations in Preview** / Status Bar → 미포팅
-- Output: Start Show(F12)/Preview Go-Live-Move-Next(F11)/Refresh/Black(F9)/**Clear(F3)**/**Restart(F5)** → 단축키 F9/F11/F12/F3/F5 매핑 미검증
+- Output: Start Show(**F12**=Go Live ✅)/Preview Go-Live-Move-Next(**F11**=송출 후 다음, 증분135 ✅)/Refresh/Black(**F9** ✅)/**Clear(F3** ✅)/Restart → F12·F11·F9·F3 매핑 완료(테스트 잠금). F5 는 WPF 에서 "다음 항목"으로 재배정(레거시 Restart 는 ⌘K 팔레트 "처음으로"). Refresh 는 팔레트 "출력 새로고침"(F-키 미배정)
 - Tools: Import/ImportFolder/Export/Recover/Empty/AddToUsages/ViewUsages/SmartMerge/**Compact&Repair**/**Clear All Formatting**/Clear Registry → Compact·ClearAllFormatting·ClearRegistry **미포팅**
 - Help: Contents(F1)/Help-Web/Register/About → 창은 있으나 F1 등 미검증
 

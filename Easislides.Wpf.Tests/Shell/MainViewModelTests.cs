@@ -3278,10 +3278,10 @@ public class MainViewModelTests
         foreach (var id in new[]
                  {
                      MainCommandIds.LiveClear, MainCommandIds.LiveRestart, MainCommandIds.LiveRefresh,
-                     MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate,
+                     MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
                  })
         {
-            registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트에서 실행 가능");
+            registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트·단축키(F11)로 실행 가능");
         }
     }
 
