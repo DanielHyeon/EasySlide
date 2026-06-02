@@ -144,7 +144,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 배경 이미지 + 표시 모드(Tile/Centre/BestFit/No) | 곡별 FormatData 이미지 + 전역 배경(ImageLibrary 적용) + 표시 모드 4종 | 🟢 모드 선택(Fill/Fit/Center/Tile)·이미지 갤러리 적용·해제 가능 |
 | 정렬 가로 L/C/R · 세로 T/C/B | 🟢 | 🟢 |
 | 폰트 크기/줄간격/Bold/Italic/Shadow/Outline | 🟢(단일 영역) | 🟢 |
-| 글꼴명(per-song FormatData 43) | 🟡 곡별만 | 🟡 |
+| 글꼴명(per-song FormatData 43 + 전역 Def_FontName) | 곡별 글꼴(43) + **전역 출력 글꼴 설정**(LyricsMonitorFontFamily, 인스펙터 편집 콤보) | 🟢 곡별 글꼴 > 전역 글꼴 > 테마 기본 우선순위. 비우면 테마 상속(무회귀), "전체 복원"이 글꼴까지 되돌림 |
 | 위치 인디케이터 N/M | 🟢 | 🟢 |
 | 절 단위 페이지네이션 + Sequence 절 순서 | 🟢 | 🟢 |
 

@@ -1324,6 +1324,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 외곽선 효과 토글도 라이브 출력에 즉시 반영(§7.3-A 폰트 효과).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorOutline.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 전역 출력 글꼴명 변경도 라이브 출력에 즉시 반영(FrmMain Def_FontName, 곡별 글꼴이 없을 때).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorFontFamily.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {

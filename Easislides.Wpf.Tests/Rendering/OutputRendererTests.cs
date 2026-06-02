@@ -961,6 +961,47 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_NoSongFont_UsesGlobalFontFamily()
+    {
+        // 곡별 글꼴 오버라이드가 없으면 운영 전역 글꼴(설정)을 송출 글꼴로 쓴다(증분: 전역 출력 글꼴).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontFamily: "Malgun Gothic");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily.Should().Be("Malgun Gothic", "곡 글꼴이 없으면 전역 출력 글꼴을 쓴다");
+    }
+
+    [Fact]
+    public void CreateScene_Active_SongFont_BeatsGlobalFontFamily()
+    {
+        // 전역 글꼴이 있어도 곡별 글꼴(43)이 있으면 그 곡 동안은 곡별 글꼴이 우선한다(곡 우선순위 보존).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorFontFamily: "Malgun Gothic");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "1절 가사",
+                OverrideFontName: "Batang"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorFontFamily.Should().Be("Batang", "곡별 글꼴이 전역 글꼴을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideFont()
     {
         // 라이브가 아니면(숨김 등) 곡 글꼴 오버라이드를 적용하지 않는다 — 운영 기본 글꼴·크기 유지.

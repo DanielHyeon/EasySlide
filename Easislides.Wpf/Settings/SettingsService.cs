@@ -207,6 +207,9 @@ public static class EasiSettingKeys
     // 보조 영역(Region2) 전역 폰트 크기(px, FrmMain Ind_Reg2SizeUpDown). 기본 0 = "본문(Region1)과 동일" 자동(무회귀).
     // 0 이 아니면 이중 언어 곡의 Region2 본문에 이 크기를 적용(곡별 region2 크기 48 오버라이드가 있으면 그게 우선). 범위 0 또는 24~120.
     public static readonly SettingKey<int> LyricsMonitorFontSize2 = new("liveOutput.lyricsMonitorFontSize2", 0);
+    // 출력 가사 전역 글꼴명(레거시 Def_FontName, FrmMain 출력 기본 글꼴). 비었으면 테마 기본 글꼴 상속(무회귀).
+    // 곡별 FormatData 43(per-song) 글꼴이 있으면 그 곡 동안은 곡별 글꼴이 우선하고, 없으면 이 전역 글꼴을 쓴다.
+    public static readonly SettingKey<string> LyricsMonitorFontFamily = new("liveOutput.lyricsMonitorFontFamily", "");
     // 출력 가사 폰트 효과(인-셸 가사 포맷팅 §7.3-A). 모두 기본 off 로 기존 출력 모양 보존.
     // Bold off = 기존 SemiBold, Italic off = Normal, Shadow off = 효과 없음.
     public static readonly SettingKey<bool> LyricsMonitorBold = new("liveOutput.lyricsMonitorBold", false);
@@ -339,6 +342,7 @@ public static class EasiSettingKeys
         LyricsMonitorVerticalAlignment,
         LyricsMonitorFontSize,
         LyricsMonitorFontSize2,
+        LyricsMonitorFontFamily,
         LyricsMonitorBold,
         LyricsMonitorItalic,
         LyricsMonitorShadow,
@@ -463,6 +467,8 @@ public sealed record LiveOutputSettings
     public int LyricsMonitorFontSize { get; init; } = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
 
     public int LyricsMonitorFontSize2 { get; init; } = EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue;
+
+    public string LyricsMonitorFontFamily { get; init; } = EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue;
 
     public bool LyricsMonitorBold { get; init; } = EasiSettingKeys.LyricsMonitorBold.DefaultValue;
 
@@ -1351,6 +1357,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorVerticalAlignment" => snapshot.LiveOutput.LyricsMonitorVerticalAlignment,
             "liveOutput.lyricsMonitorFontSize" => snapshot.LiveOutput.LyricsMonitorFontSize,
             "liveOutput.lyricsMonitorFontSize2" => snapshot.LiveOutput.LyricsMonitorFontSize2,
+            "liveOutput.lyricsMonitorFontFamily" => snapshot.LiveOutput.LyricsMonitorFontFamily,
             "liveOutput.lyricsMonitorBold" => snapshot.LiveOutput.LyricsMonitorBold,
             "liveOutput.lyricsMonitorItalic" => snapshot.LiveOutput.LyricsMonitorItalic,
             "liveOutput.lyricsMonitorShadow" => snapshot.LiveOutput.LyricsMonitorShadow,
@@ -1514,6 +1521,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorFontSize2" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorFontSize2 = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorFontFamily" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorFontFamily = Cast<string>(keyId, value) },
             },
             "liveOutput.lyricsMonitorBold" => snapshot with
             {

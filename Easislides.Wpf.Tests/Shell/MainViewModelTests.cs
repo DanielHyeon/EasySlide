@@ -3426,6 +3426,55 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsFontFamilyInput_SetAndClear_PersistsAndTrims()
+    {
+        // 출력 전역 글꼴명 입력 — 앞뒤 공백은 다듬어 저장, 비우면 기본(테마 상속="") 으로 저장.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsFontFamilyInput = "  Malgun Gothic  ";
+        sut.ActiveLyricsFontFamily.Should().Be("Malgun Gothic", "앞뒤 공백을 다듬어 적용");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily).Should().Be("Malgun Gothic");
+        sut.LyricsFontFamilyInput.Should().Be("Malgun Gothic", "콤보 표시도 동기화");
+
+        sut.LyricsFontFamilyInput = "   ";
+        sut.ActiveLyricsFontFamily.Should().BeEmpty("공백만이면 기본(테마 상속)");
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void RefreshActiveAppearance_SyncsFontFamilyFromSettings()
+    {
+        // 설정 창 등 다른 경로로 전역 글꼴이 바뀌어도 인스펙터 표시(ActiveLyricsFontFamily)가 따라가야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        settings.Set(EasiSettingKeys.LyricsMonitorFontFamily, "나눔고딕");
+
+        sut.ActiveLyricsFontFamily.Should().Be("나눔고딕", "SettingsChanged 경유로 인스펙터 동기화");
+    }
+
+    [Fact]
+    public void ResetOutputAppearance_RestoresFontFamilyToDefault()
+    {
+        // "기본값으로 복원(전체)" 가 전역 글꼴까지 기본(테마 상속="")으로 되돌리는지(증분72 '전체' 정직성).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsFontFamilyInput = "Batang";
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily).Should().Be("Batang");
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorFontFamily).Should().Be(
+            EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue, "전체 복원은 글꼴도 기본으로");
+        sut.ActiveLyricsFontFamily.Should().BeEmpty("인스펙터 표시도 기본으로");
+    }
+
+    [Fact]
     public void SelectedOutputDisplayChange_WhileOpen_MovesOutputToNewMonitor()
     {
         // 레거시 런타임 MoveTo — 출력 창이 열린 상태에서 모니터 선택을 바꾸면 그 모니터로 창이 즉시 이동한다.

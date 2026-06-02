@@ -1834,6 +1834,18 @@
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                     </StackPanel>
 
+                    <!-- 출력 가사 전역 글꼴(FrmMain Def_FontName) — 편집 가능 콤보라 목록 밖 글꼴명도 직접 입력 가능. 비우면 테마 기본 글꼴. 곡별 글꼴(43)이 있으면 그 곡 우선. -->
+                    <TextBlock Text="출력 글꼴 (비우면 기본)"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <ComboBox IsEditable="True"
+                              ItemsSource="{Binding LyricsFontFamilyOptions}"
+                              Text="{Binding LyricsFontFamilyInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                              Margin="0,4,0,0"
+                              ToolTip="회중 출력 가사의 기본 글꼴. 목록에서 고르거나 글꼴명을 직접 입력하세요. 비우면 테마 기본 글꼴을 씁니다. 곡별 글꼴이 지정된 곡은 그 글꼴이 우선합니다."
+                              AutomationProperties.Name="출력 가사 전역 글꼴" />
+
                     <!-- 보조 영역(Region2) 폰트 크기(FrmMain Ind_Reg2SizeUpDown) — 이중 언어 곡의 번역 영역 크기. 0=본문과 동일. -->
                     <TextBlock Text="보조영역 크기 (0=본문과 동일)"
                                Style="{StaticResource Type.Caption.Style}"

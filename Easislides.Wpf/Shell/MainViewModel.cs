@@ -115,6 +115,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private int _activeLyricsFontSize = EasiSettingKeys.LyricsMonitorFontSize.DefaultValue;
     // 현재 보조 영역(Region2) 전역 폰트 크기(px). 0 = 본문(Region1)과 동일(자동). 직접 입력 박스에 바인딩.
     [ObservableProperty] private int _activeLyricsFontSize2 = EasiSettingKeys.LyricsMonitorFontSize2.DefaultValue;
+    // 현재 적용된 출력 가사 전역 글꼴명(FrmMain Def_FontName). 빈 문자열=테마 기본 글꼴 상속. 글꼴 선택 콤보에 바인딩.
+    [ObservableProperty] private string _activeLyricsFontFamily = EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue;
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -2587,8 +2589,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorShowItemNumber, EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowCopyright, EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowNextItem, EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue);
+        // 전역 출력 글꼴명도 함께 기본(테마 상속)으로 — "전체" 복원이 글꼴까지 포함하도록.
+        _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily, EasiSettingKeys.LyricsMonitorFontFamily.DefaultValue);
 
-        RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시 등) 동기화
+        RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시·글꼴 등) 동기화
         StatusText = "출력 모양 기본값 복원";
     }
 
@@ -2902,6 +2906,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 폰트 크기가 다른 경로(−/+ 버튼·설정 창·프리셋)로 바뀌어도 입력 박스가 따라가도록 통지.
     partial void OnActiveLyricsFontSizeChanged(int value) => OnPropertyChanged(nameof(LyricsFontSizeInput));
 
+    /// <summary>출력 글꼴 콤보의 추천 글꼴 목록(자주 쓰는 한/영 글꼴). 편집 가능 콤보라 목록 밖 글꼴명도 직접 입력할 수 있다.</summary>
+    public IReadOnlyList<string> LyricsFontFamilyOptions { get; } =
+    [
+        "맑은 고딕",
+        "Malgun Gothic",
+        "나눔고딕",
+        "본고딕",
+        "Noto Sans CJK KR",
+        "굴림",
+        "바탕",
+        "Segoe UI",
+        "Arial",
+        "Calibri",
+    ];
+
+    /// <summary>
+    /// 출력 가사 전역 글꼴명 선택(콤보 양방향 바인딩). 빈 문자열/공백이면 "테마 기본 글꼴 상속"으로 저장(무회귀).
+    /// 곡별 글꼴(FormatData 43)이 있으면 그 곡 동안은 곡별 글꼴이 우선한다.
+    /// </summary>
+    public string LyricsFontFamilyInput
+    {
+        get => ActiveLyricsFontFamily;
+        set => CommitLyricsFontFamily(value);
+    }
+
+    // 출력 가사 전역 글꼴명 커밋 — 같은 값이면 무시, 다르면 설정 저장(출력 VM 라이브 반영). 앞뒤 공백은 다듬는다.
+    private void CommitLyricsFontFamily(string? value)
+    {
+        var next = (value ?? string.Empty).Trim();
+        if (string.Equals(next, ActiveLyricsFontFamily, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorFontFamily, next);
+        ActiveLyricsFontFamily = next;
+        StatusText = next.Length == 0 ? "출력 글꼴: 기본(테마)" : $"출력 글꼴: {next}";
+    }
+
+    // 글꼴명이 다른 경로(설정 창·기본값 복원 등)로 바뀌어도 콤보가 따라가도록 통지.
+    partial void OnActiveLyricsFontFamilyChanged(string value) => OnPropertyChanged(nameof(LyricsFontFamilyInput));
+
     // Display Panel 글자 크기 비율 조절(+/- 단계, %) — 줄 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Def_PanelFont 크기).
     private void StepPanelFontScale(int delta)
     {
@@ -3095,6 +3141,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
         ActiveLyricsFontSize2 = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize2);
+        ActiveLyricsFontFamily = _settings.Get(EasiSettingKeys.LyricsMonitorFontFamily);
         ActivePanelFontScale = _settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent);
         ActiveLyricsLineSpacing = _settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent);
         ActiveLyricsLeftMargin = _settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin);

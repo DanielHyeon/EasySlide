@@ -98,7 +98,9 @@ public sealed record LiveOutputRenderSettings(
     // 강조(굵게·기울임·밑줄)를 후렴 절에만 적용(FrmMain Ind_*Italics 후렴만). 기본 false=전체 절(무회귀).
     bool LyricsMonitorEmphasisChorusOnly = false,
     // 이중 언어 줄 교차(FrmMain Def_Interlace). 기본 false=영역별 블록(무회귀).
-    bool LyricsMonitorInterlace = false)
+    bool LyricsMonitorInterlace = false,
+    // 출력 가사 전역 글꼴명(FrmMain Def_FontName). 비었으면 테마 기본 글꼴 상속(무회귀). 곡별 글꼴(43)이 우선.
+    string LyricsMonitorFontFamily = "")
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -152,7 +154,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection),
             settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay),
             settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly),
-            settings.Get(EasiSettingKeys.LyricsMonitorInterlace));
+            settings.Get(EasiSettingKeys.LyricsMonitorInterlace),
+            settings.Get(EasiSettingKeys.LyricsMonitorFontFamily));
     }
 }
 
@@ -378,10 +381,10 @@ public sealed class OutputRenderer : IOutputRenderer
         var fontSizePx = isLive && request.Session.OverrideFontSizePx is int songFontPx
             ? songFontPx
             : liveOutput.LyricsMonitorFontSize;
-        // 곡별 글꼴명(있으면)도 Live 일 때만 적용. 비었으면 빈 문자열 → VM 이 테마 기본 글꼴을 상속(무회귀).
+        // 글꼴명 우선순위: 곡별 글꼴(43, Live 일 때만) > 전역 출력 글꼴(설정) > 빈 문자열(VM 이 테마 기본 글꼴 상속, 무회귀).
         var fontFamily = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName)
             ? request.Session.OverrideFontName!
-            : "";
+            : liveOutput.LyricsMonitorFontFamily;
         // 배경 이미지(Live 일 때만): 곡별 배경(FormatData 61)이 있으면 그 곡 동안 우선,
         // 없으면 전역 배경 이미지(Images 탭 설정)를 쓴다. 둘 다 없으면 빈 문자열 → 색 배경 유지(무회귀).
         var backgroundImagePath = !isLive
