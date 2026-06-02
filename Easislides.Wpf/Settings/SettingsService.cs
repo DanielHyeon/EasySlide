@@ -202,6 +202,9 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> DisplayCustomLeft = new("liveOutput.displayCustomLeft", 0);
     public static readonly SettingKey<int> DisplayCustomWidth = new("liveOutput.displayCustomWidth", 100);
     public static readonly SettingKey<int> LyricsMonitorTextColorArgb = new("liveOutput.lyricsMonitorTextColorArgb", -16777216);
+    // 보조 영역(Region2) 전역 글자색(ARGB). 0(투명)=본문(Region1) 색 추종(무회귀, 글꼴2·크기2 의 "0=자동"과 동일 개념).
+    // 곡별 FormatData 30(per-song region2 색)이 있으면 그 곡 동안은 곡별 색이 우선한다.
+    public static readonly SettingKey<int> LyricsMonitorTextColor2Argb = new("liveOutput.lyricsMonitorTextColor2Argb", 0);
     public static readonly SettingKey<int> LyricsMonitorBackgroundColorArgb = new("liveOutput.lyricsMonitorBackgroundColorArgb", -1);
     // 배경 그라데이션 끝색(ARGB). IsGradient=true 일 때 배경색→이 색 세로 그라데이션 송출(G2 / FrmBackground 슬라이스).
     public static readonly SettingKey<int> LyricsMonitorBackgroundColor2Argb = new("liveOutput.lyricsMonitorBackgroundColor2Argb", -1);
@@ -354,6 +357,7 @@ public static class EasiSettingKeys
         DisplayCustomLeft,
         DisplayCustomWidth,
         LyricsMonitorTextColorArgb,
+        LyricsMonitorTextColor2Argb,
         LyricsMonitorBackgroundColorArgb,
         LyricsMonitorBackgroundColor2Argb,
         LyricsMonitorBackgroundIsGradient,
@@ -468,6 +472,8 @@ public sealed record LiveOutputSettings
     public int DisplayCustomWidth { get; init; } = EasiSettingKeys.DisplayCustomWidth.DefaultValue;
 
     public int LyricsMonitorTextColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorTextColorArgb.DefaultValue;
+
+    public int LyricsMonitorTextColor2Argb { get; init; } = EasiSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue;
 
     public int LyricsMonitorBackgroundColorArgb { get; init; } =
         EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue;
@@ -1382,6 +1388,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.displayCustomLeft" => snapshot.LiveOutput.DisplayCustomLeft,
             "liveOutput.displayCustomWidth" => snapshot.LiveOutput.DisplayCustomWidth,
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot.LiveOutput.LyricsMonitorTextColorArgb,
+            "liveOutput.lyricsMonitorTextColor2Argb" => snapshot.LiveOutput.LyricsMonitorTextColor2Argb,
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot.LiveOutput.LyricsMonitorBackgroundColorArgb,
             "liveOutput.lyricsMonitorBackgroundColor2Argb" => snapshot.LiveOutput.LyricsMonitorBackgroundColor2Argb,
             "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot.LiveOutput.LyricsMonitorBackgroundIsGradient,
@@ -1524,6 +1531,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorTextColorArgb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorTextColor2Argb" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorTextColor2Argb = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot with
             {

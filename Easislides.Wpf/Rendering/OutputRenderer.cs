@@ -102,7 +102,9 @@ public sealed record LiveOutputRenderSettings(
     // 출력 가사 전역 글꼴명(FrmMain Def_FontName). 비었으면 테마 기본 글꼴 상속(무회귀). 곡별 글꼴(43)이 우선.
     string LyricsMonitorFontFamily = "",
     // 보조 영역(Region2) 전역 글꼴명(FrmMain Ind_Reg2Font). 비었으면 본문(Region1) 글꼴 추종(무회귀). 곡별 글꼴(44)이 우선.
-    string LyricsMonitorFontFamily2 = "")
+    string LyricsMonitorFontFamily2 = "",
+    // 보조 영역(Region2) 전역 글자색(ARGB). 0(투명)=본문(Region1) 색 추종(무회귀). 곡별 색(30)이 우선.
+    int LyricsMonitorTextColor2Argb = 0)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -158,7 +160,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorEmphasisChorusOnly),
             settings.Get(EasiSettingKeys.LyricsMonitorInterlace),
             settings.Get(EasiSettingKeys.LyricsMonitorFontFamily),
-            settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2));
+            settings.Get(EasiSettingKeys.LyricsMonitorFontFamily2),
+            settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb));
     }
 }
 
@@ -395,11 +398,15 @@ public sealed class OutputRenderer : IOutputRenderer
             : !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
                 ? request.Session.OverrideBackgroundImagePath!
                 : liveOutput.LyricsMonitorBackgroundImagePath;
-        // Region2(이중 언어) 본문은 Live 일 때만 싣는다. Region2 색은 곡별 region2 색(30)이 있으면 그것, 없으면 Region1 색을 추종.
+        // Region2(이중 언어) 본문은 Live 일 때만 싣는다.
         var bodyText2 = isLive ? request.Session.CurrentItemBodyText2 : string.Empty;
+        // Region2 색 우선순위: 곡별 region2 색(30, Live 한정) > 전역 region2 색(설정, 0=투명 아니면) > Region1 색 추종.
+        // (글꼴2·크기2 의 "곡별 > 전역(0 아니면) > Region1 추종" 우선순위와 동일한 구조.)
         var textColor2Argb = isLive && request.Session.OverrideTextColorArgb2 is int songTextColor2
             ? songTextColor2
-            : textColorArgb;
+            : liveOutput.LyricsMonitorTextColor2Argb != 0
+                ? liveOutput.LyricsMonitorTextColor2Argb
+                : textColorArgb;
         // Region2 정렬도 Live + 곡별 region2 정렬(32)이 있을 때만, 없으면 Region1 정렬(textAlignment) 추종.
         var textAlignment2 = isLive && request.Session.OverrideTextAlignment2 is LyricsTextAlignment songAlign2
             ? songAlign2

@@ -1060,6 +1060,66 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2_NoGlobalColor_FollowsRegion1Color()
+    {
+        // 보조영역(Region2) 전역 색이 0(투명)이면 본문(Region1) 색을 추종한다(무회귀).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextColorArgb: unchecked((int)0xFFFFFFFF), // 본문 흰색
+            LyricsMonitorTextColor2Argb: 0);                        // 보조영역 색 미지정
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextColor2Argb.Should().Be(unchecked((int)0xFFFFFFFF), "region2 색 미지정 → region1 색 추종");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2_GlobalColor_UsedWhenNoSongOverride()
+    {
+        // 보조영역 전역 색이 지정되면, 곡별 region2 색이 없을 때 그 색을 쓴다(본문 색과 달라도 됨).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorTextColorArgb: unchecked((int)0xFFFFFFFF), // 본문 흰색
+            LyricsMonitorTextColor2Argb: unchecked((int)0xFFFFE066)); // 보조영역 노랑
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextColorArgb.Should().Be(unchecked((int)0xFFFFFFFF), "본문은 region1 색");
+        scene.LyricsMonitorTextColor2Argb.Should().Be(unchecked((int)0xFFFFE066), "보조영역은 region2 전역 색(본문과 별도)");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2_SongColor_BeatsGlobalRegion2Color()
+    {
+        // 전역 region2 색이 있어도 곡별 region2 색(30)이 있으면 그 곡 동안은 곡별 색이 우선한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorTextColor2Argb: unchecked((int)0xFFFFE066));
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                OverrideTextColorArgb2: unchecked((int)0xFF66CCFF)),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorTextColor2Argb.Should().Be(unchecked((int)0xFF66CCFF), "곡별 region2 색이 전역 region2 색을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_Hidden_IgnoresSongOverrideFont()
     {
         // 라이브가 아니면(숨김 등) 곡 글꼴 오버라이드를 적용하지 않는다 — 운영 기본 글꼴·크기 유지.

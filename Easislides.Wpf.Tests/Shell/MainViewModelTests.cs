@@ -3552,6 +3552,56 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsTextColor2Input_SetAndClear_PersistsAndSyncs()
+    {
+        // 보조영역(Region2) 전역 글자색 — 색 지정/해제(0=본문 추종)가 설정에 저장되고 인스펙터가 동기화된다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveLyricsTextColor2Argb.Should().Be(0, "기본 0=본문 색 추종");
+
+        var yellow = unchecked((int)0xFFFFE066);
+        sut.LyricsTextColor2Input = yellow;
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb).Should().Be(yellow);
+        sut.ActiveLyricsTextColor2Argb.Should().Be(yellow, "인스펙터 표시도 동기화");
+
+        sut.LyricsTextColor2Input = 0;
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb).Should().Be(0, "0=본문 색 추종으로 복귀");
+    }
+
+    [Fact]
+    public void RefreshActiveAppearance_SyncsTextColor2FromSettings()
+    {
+        // 설정 창 등 다른 경로로 보조영역 색이 바뀌어도 인스펙터 표시가 따라가야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        var sky = unchecked((int)0xFF66CCFF);
+        settings.Set(EasiSettingKeys.LyricsMonitorTextColor2Argb, sky);
+
+        sut.ActiveLyricsTextColor2Argb.Should().Be(sky, "SettingsChanged 경유로 인스펙터 동기화");
+    }
+
+    [Fact]
+    public void ResetOutputAppearance_RestoresTextColor2ToDefault()
+    {
+        // "기본값으로 복원(전체)" 가 보조영역 색까지 기본(0=본문 추종)으로 되돌리는지(증분72 '전체' 정직성).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsTextColor2Input = unchecked((int)0xFFFFE066);
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb).Should().NotBe(0);
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb).Should().Be(0, "전체 복원은 보조영역 색도 기본(0)으로");
+        sut.ActiveLyricsTextColor2Argb.Should().Be(0, "인스펙터 표시도 기본으로");
+    }
+
+    [Fact]
     public void RefreshActiveAppearance_SyncsFontFamily2FromSettings()
     {
         // 설정 창 등 다른 경로로 보조영역 전역 글꼴이 바뀌어도 인스펙터 표시가 따라가야 한다.

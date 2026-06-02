@@ -1891,6 +1891,19 @@
                               ToolTip="이중 언어 곡의 보조 영역(번역) 기본 글꼴. 비우면 본문(Region1) 글꼴을 따릅니다. 곡별 글꼴이 지정된 곡은 그 글꼴이 우선합니다."
                               AutomationProperties.Name="보조영역 전역 글꼴" />
 
+                    <!-- 보조 영역(Region2) 전역 글자색 — 본문과 동일(추종) 또는 별도 색. 곡별 색(30)이 있으면 그 곡 우선. -->
+                    <TextBlock Text="보조영역 글자색 (본문과 동일=추종)"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               Margin="0,12,0,0" />
+                    <ComboBox ItemsSource="{Binding LyricsTextColor2Presets}"
+                              SelectedValue="{Binding LyricsTextColor2Input, Mode=TwoWay}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="Key"
+                              Margin="0,4,0,0"
+                              ToolTip="이중 언어 곡의 보조 영역(번역) 글자색. '본문과 동일'이면 본문(Region1) 색을 따릅니다. 곡별 색이 지정된 곡은 그 색이 우선합니다."
+                              AutomationProperties.Name="보조영역 전역 글자색" />
+
                     <!-- 인-셸 가사 줄 간격(§7.3-A) — 폰트 대비 % 로 −/+ 조절. -->
                     <TextBlock Text="줄 간격"
                                Style="{StaticResource Type.Caption.Style}"
