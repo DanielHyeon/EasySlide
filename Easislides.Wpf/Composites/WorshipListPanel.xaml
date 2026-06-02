@@ -287,6 +287,15 @@
                                           Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="" />
                             </MenuItem>
+                            <!-- 항목별 배경 이미지(이 곡만) — 레거시 Ind_ 배경 이미지(FormatData 코드61). 파일 선택은 코드비하인드, 해제는 빈 경로 명령. 곡 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 배경 이미지"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="이미지 선택..." Click="SelectItemBackgroundImage_Click" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 배경(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>

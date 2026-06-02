@@ -574,6 +574,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemFontSizeCommand = new RelayCommand<string?>(SetSelectedItemFontSize, _ => CanEditSelectedItemColor);
         SetSelectedItemFontNameCommand = new RelayCommand<string?>(SetSelectedItemFontName, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
+        SetSelectedItemBackgroundImageCommand = new RelayCommand<string?>(SetSelectedItemBackgroundImage, _ => CanEditSelectedItemColor);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -720,6 +721,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemFontSizeCommand { get; }
     public IRelayCommand<string?> SetSelectedItemFontNameCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundColorCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemBackgroundImageCommand { get; }
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
@@ -1835,6 +1837,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemFontSize));
         OnPropertyChanged(nameof(SelectedItemFontName));
         OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
+        OnPropertyChanged(nameof(SelectedItemBackgroundImagePath));
 
         NotifyCommandStates();
     }
@@ -2899,6 +2902,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = argb is null
                 ? "항목 배경색: 전역 기본"
                 : $"항목 배경색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 배경 이미지 경로(이 항목만). 없으면 빈 문자열(전역 배경 추종).</summary>
+    public string SelectedItemBackgroundImagePath
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImagePath ?? string.Empty;
+
+    /// <summary>
+    /// 선택한 곡 항목의 배경 이미지(이 항목만)를 바꾼다(레거시 항목별 배경 이미지, FormatData 코드 61). 경로가 비거나 공백뿐이면 해제해 전역 배경을 따른다.
+    /// 이미지를 주면 개별 서식을 켜고, 나머지 곡별 서식(색·정렬·크기·글꼴 등)은 보존한다. 송출 시 그 곡 동안 이 이미지가 <b>배경색 위에</b> 표시된다
+    /// (배경색이 설정돼 있어도 이미지가 우선 — <see cref="SetSelectedItemBackgroundColor"/> 와 짝).
+    /// (이미지 파일을 실제로 읽어 그리는 일은 출력 창 VM 이 맡는다 — 여기선 경로만 기록한다.)
+    /// </summary>
+    public void SetSelectedItemBackgroundImage(string? path)
+    {
+        // 빈/공백 경로 = 배경 이미지 해제(전역 배경 추종). 앞뒤 공백은 다듬는다.
+        // '>'는 FormatData 항목 구분자라 윈도우 경로엔 못 쓰지만, 혹시 섞이면 포맷이 깨지므로 방어적으로 제거('='는 경로에 쓰일 수 있어 보존).
+        var imagePath = string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim().Replace(">", string.Empty);
+        if (ApplySelectedSongFormatChange(format => format with { BackgroundImagePath = imagePath }, wantsIndividual: imagePath.Length > 0, out var turnedOn))
+        {
+            StatusText = imagePath.Length == 0
+                ? "항목 배경 이미지: 전역 기본"
+                : $"항목 배경 이미지: {System.IO.Path.GetFileName(imagePath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -4278,6 +4304,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemFontSizeCommand.NotifyCanExecuteChanged();
         SetSelectedItemFontNameCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
+        SetSelectedItemBackgroundImageCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();

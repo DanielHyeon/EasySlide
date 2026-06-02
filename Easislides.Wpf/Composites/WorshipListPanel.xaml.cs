@@ -28,6 +28,28 @@ public partial class WorshipListPanel : UserControl
         InitializeComponent();
     }
 
+    // 우클릭 "이 항목 배경 이미지 → 이미지 선택..." — 파일 선택은 View(코드비하인드)에서, 경로 기록·서식 편집은 검증된 VM 이 맡는다.
+    private void SelectItemBackgroundImage_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel || !viewModel.CanEditSelectedItemColor)
+        {
+            return; // 곡 항목이 아니면(메뉴는 비활성이지만 방어적으로) 무시.
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "이 항목의 배경 이미지 선택",
+            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            viewModel.SetSelectedItemBackgroundImage(dialog.FileName);
+        }
+    }
+
     // 왼쪽 버튼 누름: 어느 항목 위인지 기억하되, 아직 드래그는 시작하지 않는다(클릭/선택과 공존).
     private void QueueList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {

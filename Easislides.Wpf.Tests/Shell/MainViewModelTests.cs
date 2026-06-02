@@ -5512,6 +5512,120 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경이 붙지 않음");
     }
 
+    // ── 항목별 배경 이미지 인라인 편집(SetSelectedItemBackgroundImage) — 선택한 곡만 배경 이미지(레거시 Ind_ 배경 이미지, 코드61) ──
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_WritesFormatDataCode61_AndEnablesIndividual_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemBackgroundImage(@"  C:\bg\worship.jpg  "); // 앞뒤 공백 포함.
+
+        sut.SelectedItem!.FormatData.Should().Contain(@"61=C:\bg\worship.jpg", "코드 61(배경 이미지 경로)에 다듬어 인코드");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("이미지를 주면 보이도록 개별 서식을 켠다");
+        sut.SelectedItemBackgroundImagePath.Should().Be(@"C:\bg\worship.jpg", "경로 미리보기도 동기화");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_PreservesExistingTextColor()
+    {
+        // 배경 이미지만 바꾸고 기존 항목별 글자색(코드29)은 보존한다(공통 헬퍼 왕복).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundImage(@"C:\bg\a.png");
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
+        sut.SelectedItem!.FormatData.Should().Contain(@"61=C:\bg\a.png", "새 배경 이미지 추가");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_Blank_ClearsToGlobal()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = @"61=C:\bg\old.jpg",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundImage("   ");
+
+        sut.SelectedItemBackgroundImagePath.Should().BeEmpty("빈/공백 경로는 해제 → 전역 배경 추종");
+        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("61=", "코드 61(배경 이미지)이 제거됨");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_WhileLive_CarriesOverridePath()
+    {
+        // 라이브 송출 중 항목 배경 이미지를 바꾸면 세션 오버라이드 경로가 즉시 실린다(실제 그리기는 출력 VM 담당).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemBackgroundImage(@"C:\bg\live.png");
+
+        session.Current.OverrideBackgroundImagePath.Should().Be(@"C:\bg\live.png", "항목 배경 이미지 경로가 라이브 세션에 실림");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_StripsDelimiter_NoCodeInjection()
+    {
+        // FormatData 구분자 '>'가 경로에 섞이면 "61=...>29=-1>..." 로 엉뚱한 코드(여기선 글자색29=-1)가 주입될 수 있다 →
+        // '>'를 제거해 한 항목(경로)으로 유지하고 주입을 막는다('='는 경로에 쓰일 수 있어 보존).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+
+        sut.SetSelectedItemBackgroundImage(@"C:\a>29=-1>x.png"); // '>'로 코드29(글자색 -1) 주입 시도.
+
+        sut.SelectedItemTextColorHex.Should().BeEmpty("'>'가 제거돼 코드29(글자색) 주입이 막힘");
+        sut.SelectedItemBackgroundImagePath.Should().Be(@"C:\a29=-1x.png", "'>'만 제거되고 경로는 한 항목으로 유지");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_SamePath_IsNoOp_DoesNotReplaceItem()
+    {
+        // 이미 같은 배경 이미지면(레코드 동등) 큐 항목을 교체하지 않는다(불필요한 재송출 방지).
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = @"61=C:\bg\same.jpg",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+        var before = sut.SelectedItem;
+
+        sut.SetSelectedItemBackgroundImage(@"C:\bg\same.jpg"); // 같은 경로.
+
+        sut.SelectedItem.Should().BeSameAs(before, "같은 경로면 항목을 새로 만들지 않음(교체 없음)");
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImage_NonSong_IsNoOpAndCommandDisabled()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundImageCommand.CanExecute("").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemBackgroundImage(@"C:\bg\x.jpg");
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경 이미지가 붙지 않음");
+    }
+
     [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {
