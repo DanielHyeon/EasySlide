@@ -203,7 +203,7 @@ Transpose Up/Down semitone(▲/▼), To Capo 0(원조 복귀), Show Notations(�
 > - 〔조옮김(Capo ↑/↓·To Capo 0)은 SongEditor 미리보기에 이미 있고(증분 5), 라이브 출력 조옮김 연산은 별도 후속.〕
 
 ### 3.8 데이터 작업 (별도 창으로 대부분 포팅)
-Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **Compact&Repair ✅(2026-06-02 증분 40 — 백업 후 VACUUM, 도구 메뉴 "데이터베이스 압축·정리").** 단 Clear All Formatting, Clear Registry, Listing of Folder는 🔴 미포팅. (통합=별도창이라 "흩어짐"은 별개 과제.)
+Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **Compact&Repair ✅(2026-06-02 증분 40 — 백업 후 VACUUM, 도구 메뉴 "데이터베이스 압축·정리").** **Clear All Formatting ✅(2026-06-03 증분 153 — 예배 순서 우클릭 "전 항목 서식 지우기": 모든 곡·성경 항목의 항목별 FormatData 를 한 번에 비워 전역 기본으로 되돌림. PPT/미디어/공지·이미 서식 없는 항목은 건너뜀, 라이브 항목은 같은 절로 재송출. 단일 항목판 ClearSelectedItemFormatting 과 동일 종단 상태=FormatData null).** 단 Clear Registry, Listing of Folder는 🔴 미포팅. (통합=별도창이라 "흩어짐"은 별개 과제.)
 
 ### 3.9 키보드/후킹/단축키
 | FrmMain | WPF | 상태 |

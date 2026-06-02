@@ -6042,6 +6042,80 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ClearAllItemsFormatting_ClearsAllSongAndBible_SkipsOthersAndUnformatted()
+    {
+        // "전 항목 서식 지우기" — 서식 있는 곡·성경은 모두 전역 기본으로 비우고, PPT/미디어/공지·이미 서식 없는 항목은 건드리지 않는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var song = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "29=-1>" };       // 흰색
+        var bible = new LiveQueueItem("bible:1", "창 1:1", LiveItemKinds.Bible) { Lyrics = "태초에...", FormatData = "31=2>" }; // 가운데
+        var plainSong = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n나" };                          // 서식 없음
+        var ppt = new LiveQueueItem("ppt:1", "발표.pptx", LiveItemKinds.PowerPoint) { ContentPath = @"C:\발표.pptx", FormatData = "29=-1>" };
+        sut.LoadQueue([song, bible, plainSong, ppt]);
+
+        sut.ClearAllItemsFormatting();
+
+        sut.Queue[0].FormatData.Should().BeNull("서식 있던 곡 → 전역 기본으로 비워짐");
+        sut.Queue[1].FormatData.Should().BeNull("서식 있던 성경 → 전역 기본으로 비워짐");
+        sut.Queue[2].FormatData.Should().BeNull("원래 서식 없던 곡은 그대로(여전히 비어 있음)");
+        sut.Queue[3].FormatData.Should().Be("29=-1>", "PPT 는 항목별 서식 대상이 아니라 건드리지 않음");
+        sut.StatusText.Should().Contain("항목 서식 지움");
+        // 지운 직후엔 지울 서식이 더 없으므로 메뉴가 비활성으로 바뀌어야 한다(통지 누락 회귀 방지).
+        sut.CanClearAllItemsFormatting.Should().BeFalse("모두 지운 뒤엔 지울 서식이 없어 비활성");
+        sut.ClearAllItemsFormattingCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void CanClearAllItemsFormatting_OnlyWhenSomeFormattableItemHasFormatData()
+    {
+        // 큐에 지울 서식(곡·성경 FormatData)이 하나라도 있을 때만 활성. PPT 서식이나 빈 큐는 비활성.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.CanClearAllItemsFormatting.Should().BeFalse("빈 큐 → 비활성");
+
+        var plainSong = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n나" };
+        sut.LoadQueue([plainSong]);
+        sut.CanClearAllItemsFormatting.Should().BeFalse("서식 없는 곡만 → 지울 게 없어 비활성");
+        sut.ClearAllItemsFormattingCommand.CanExecute(null).Should().BeFalse();
+
+        var formatted = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "29=-1>" };
+        sut.LoadQueue([plainSong, formatted]);
+        sut.CanClearAllItemsFormatting.Should().BeTrue("서식 있는 곡이 생기면 활성");
+        sut.ClearAllItemsFormattingCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ClearAllItemsFormatting_PreservesSelection()
+    {
+        // 항목 인스턴스가 교체돼도 같은 자리의 항목이 선택으로 유지된다(운영 중 선택 튐 방지).
+        var sut = CreateSut(seedSampleQueue: false);
+        var a = new LiveQueueItem("song:a", "곡A", LiveItemKinds.Song) { Lyrics = "[1]\n가", FormatData = "29=-1>" };
+        var b = new LiveQueueItem("song:b", "곡B", LiveItemKinds.Song) { Lyrics = "[1]\n나", FormatData = "31=2>" };
+        sut.LoadQueue([a, b]);
+        sut.SelectedItem = sut.Queue[1];
+
+        sut.ClearAllItemsFormatting();
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[1], "1번 자리의 새 인스턴스가 다시 선택됨");
+        sut.SelectedItem!.Id.Should().Be("song:b");
+    }
+
+    [Fact]
+    public async Task ClearAllItemsFormatting_WhileLive_RevertsRender_EndToEnd()
+    {
+        // 종단: 라이브 중 "전 항목 서식 지우기"를 누르면 라이브 곡이 같은 절로 재송출돼 항목별 오버라이드가 사라진다(전역 기본 복귀).
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
+        sut.OpenOutputCommand.Execute(null);
+        sut.SetSelectedItemTextColor("#FFFFE066"); // 노랑
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        session.Current.OverrideTextColorArgb.Should().Be(unchecked((int)0xFFFFE066), "송출 시 항목별 색 적용 확인");
+
+        sut.ClearAllItemsFormatting();
+
+        session.Current.OverrideTextColorArgb.Should().BeNull("전 항목 서식을 지우면 라이브가 전역 기본색으로 복귀");
+    }
+
+    [Fact]
     public void PasteSelectedItemFormatting_ToBibleItem_Works()
     {
         // 곡 서식을 복사해 성경 항목(증분128)에 붙여넣어도 적용된다(서식은 종류 무관).

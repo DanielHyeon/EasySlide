@@ -567,6 +567,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // 라이브 항목이 큐에서 빠지면 "현재 송출 항목 선택" 가능 여부도 바뀐다.
             OnPropertyChanged(nameof(CanSelectLiveItem));
             SelectLiveItemCommand?.NotifyCanExecuteChanged();
+            // 항목이 들고 나면 "전 항목 서식 지우기" 가능 여부(큐에 지울 서식 있는 항목 유무)도 바뀐다 — RelayCommand 는 수동 통지 필요.
+            OnPropertyChanged(nameof(CanClearAllItemsFormatting));
+            ClearAllItemsFormattingCommand?.NotifyCanExecuteChanged();
         };
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
@@ -646,6 +649,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PasteSelectedItemFormattingCommand = new RelayCommand(PasteSelectedItemFormatting, () => CanPasteSelectedItemFormatting);
         // 복사한 서식을 전 항목(곡·성경)에 일괄 적용 — 담아 둔 서식 있고 대상 항목 있을 때만 활성.
         ApplyCopiedFormatToAllCommand = new RelayCommand(ApplyCopiedFormatToAll, () => CanApplyCopiedFormatToAll);
+        // 전 항목 서식 한 번에 지우기 — 큐에 지울 서식 있는 곡·성경 항목이 하나라도 있을 때만 활성(전역 기본으로 일괄 리셋).
+        ClearAllItemsFormattingCommand = new RelayCommand(ClearAllItemsFormatting, () => CanClearAllItemsFormatting);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -825,6 +830,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>복사해 둔 항목별 서식을 예배 순서의 모든 곡·성경 항목에 한 번에 적용한다.</summary>
     public IRelayCommand ApplyCopiedFormatToAllCommand { get; }
+
+    /// <summary>예배 순서의 모든 곡·성경 항목에서 항목별 서식을 한 번에 지워 전역 기본으로 되돌린다(레거시 Clear All Formatting 전체판).</summary>
+    public IRelayCommand ClearAllItemsFormattingCommand { get; }
 
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
@@ -2118,6 +2126,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanCopySelectedItemFormatting));
         OnPropertyChanged(nameof(CanPasteSelectedItemFormatting));
         OnPropertyChanged(nameof(CanApplyCopiedFormatToAll));
+        OnPropertyChanged(nameof(CanClearAllItemsFormatting));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
@@ -3242,6 +3251,58 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
         StatusText = $"{changed}개 항목에 복사한 서식 적용";
+    }
+
+    /// <summary>
+    /// "전 항목 서식 지우기"를 누를 수 있는지 — 예배 순서에 실제로 지울 항목별 서식(FormatData)이 있는 곡·성경 항목이 하나라도 있을 때만.
+    /// 지울 서식이 하나도 없으면 비활성(불필요한 일괄 교체·재송출 방지).
+    /// </summary>
+    public bool CanClearAllItemsFormatting
+        => Queue.Any(item => IsPerItemFormattable(item) && !string.IsNullOrEmpty(item.FormatData));
+
+    /// <summary>
+    /// 예배 순서의 모든 곡·성경 항목에서 항목별 서식(FormatData 전체 — 색·정렬·크기·글꼴·배경·강조, Region1·Region2)을 한 번에 지워 전역 기본으로 되돌린다(레거시 Clear All Formatting 전체판).
+    /// PPT·미디어·공지는 항목별 서식 대상이 아니라 건너뛰고, 이미 서식이 없는 항목도 건너뛴다(불필요한 교체 방지 — "복사한 서식 전 항목 적용"과 같은 구조).
+    /// 개별 서식 사용(UseIndividualFormatting) 플래그는 그대로 둔다 — FormatData 가 비면 어차피 전역으로 송출되므로 무해하고, 단일 항목 지우기와 동작이 일관된다.
+    /// 라이브 항목이 영향을 받으면 세션 실제 절로 다시 송출해 즉시 전역 모양으로 바꾼다.
+    /// </summary>
+    public void ClearAllItemsFormatting()
+    {
+        if (!CanClearAllItemsFormatting)
+        {
+            return;
+        }
+
+        // 선택 항목은 인스턴스가 교체되므로 위치를 잡아 두었다가 같은 자리의 새 인스턴스로 다시 선택한다(선택 유지).
+        var selectedIndex = SelectedItem is { } sel ? IndexOfReference(sel) : -1;
+
+        var cleared = 0;
+        for (var i = 0; i < Queue.Count; i++)
+        {
+            var item = Queue[i];
+            // 곡·성경(본문 있음)이면서 실제로 지울 서식이 있는 항목만 — 나머지는 그대로 둔다.
+            if (!IsPerItemFormattable(item) || string.IsNullOrEmpty(item.FormatData))
+            {
+                continue;
+            }
+
+            Queue[i] = item with { FormatData = null }; // 서식 제거 → 전역 기본으로 송출. 개별 서식 플래그는 보존.
+            cleared++;
+        }
+
+        if (cleared == 0)
+        {
+            return; // CanClearAllItemsFormatting 가 true 였으면 여기 안 옴 — 방어적.
+        }
+
+        if (selectedIndex >= 0 && selectedIndex < Queue.Count)
+        {
+            SelectedItem = Queue[selectedIndex];
+        }
+
+        RepublishLiveSongForBodyChange();
+        NotifyCommandStates();
+        StatusText = $"{cleared}개 항목 서식 지움(전역 기본)";
     }
 
     /// <summary>현재 선택한 항목에 적용된 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 기본색 추종).</summary>
@@ -4964,6 +5025,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopySelectedItemFormattingCommand.NotifyCanExecuteChanged();
         PasteSelectedItemFormattingCommand.NotifyCanExecuteChanged();
         ApplyCopiedFormatToAllCommand.NotifyCanExecuteChanged();
+        ClearAllItemsFormattingCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();
         RestoreClearedWorshipListCommand.NotifyCanExecuteChanged();
         NextLyricsPageCommand.NotifyCanExecuteChanged();
