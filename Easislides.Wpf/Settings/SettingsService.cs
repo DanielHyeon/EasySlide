@@ -233,6 +233,9 @@ public static class EasiSettingKeys
     // 보조 영역(Region2) 전역 기울임(FrmMain Ind_Reg2Italic). FollowRegion1=본문 기울임 추종(기본, 무회귀). 곡별 기울임이 우선.
     public static readonly SettingKey<LyricsRegion2Emphasis> LyricsMonitorRegion2Italic =
         new("liveOutput.lyricsMonitorRegion2Italic", LyricsRegion2Emphasis.FollowRegion1);
+    // 보조 영역(Region2) 전역 밑줄(FrmMain Ind_Reg2Underline). FollowRegion1=본문 밑줄 추종(기본, 무회귀). 곡별 밑줄이 우선.
+    public static readonly SettingKey<LyricsRegion2Emphasis> LyricsMonitorRegion2Underline =
+        new("liveOutput.lyricsMonitorRegion2Underline", LyricsRegion2Emphasis.FollowRegion1);
     public static readonly SettingKey<int> LyricsMonitorBackgroundColorArgb = new("liveOutput.lyricsMonitorBackgroundColorArgb", -1);
     // 배경 그라데이션 끝색(ARGB). IsGradient=true 일 때 배경색→이 색 세로 그라데이션 송출(G2 / FrmBackground 슬라이스).
     public static readonly SettingKey<int> LyricsMonitorBackgroundColor2Argb = new("liveOutput.lyricsMonitorBackgroundColor2Argb", -1);
@@ -389,6 +392,7 @@ public static class EasiSettingKeys
         LyricsMonitorRegion2Alignment,
         LyricsMonitorRegion2Bold,
         LyricsMonitorRegion2Italic,
+        LyricsMonitorRegion2Underline,
         LyricsMonitorBackgroundColorArgb,
         LyricsMonitorBackgroundColor2Argb,
         LyricsMonitorBackgroundIsGradient,
@@ -511,6 +515,8 @@ public sealed record LiveOutputSettings
     public LyricsRegion2Emphasis LyricsMonitorRegion2Bold { get; init; } = EasiSettingKeys.LyricsMonitorRegion2Bold.DefaultValue;
 
     public LyricsRegion2Emphasis LyricsMonitorRegion2Italic { get; init; } = EasiSettingKeys.LyricsMonitorRegion2Italic.DefaultValue;
+
+    public LyricsRegion2Emphasis LyricsMonitorRegion2Underline { get; init; } = EasiSettingKeys.LyricsMonitorRegion2Underline.DefaultValue;
 
     public int LyricsMonitorBackgroundColorArgb { get; init; } =
         EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue;
@@ -899,6 +905,12 @@ public sealed class SettingsService : ISettingsService
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Italic))
         {
             issues.Add(Error(EasiSettingKeys.LyricsMonitorRegion2Italic.Id, "Region2 italic value is not supported."));
+        }
+
+        // 보조 영역(Region2) 전역 밑줄(3-상태)도 잘못된 값을 거른다(enum 일관).
+        if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Underline))
+        {
+            issues.Add(Error(EasiSettingKeys.LyricsMonitorRegion2Underline.Id, "Region2 underline value is not supported."));
         }
 
         // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
@@ -1449,6 +1461,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorRegion2Alignment" => snapshot.LiveOutput.LyricsMonitorRegion2Alignment,
             "liveOutput.lyricsMonitorRegion2Bold" => snapshot.LiveOutput.LyricsMonitorRegion2Bold,
             "liveOutput.lyricsMonitorRegion2Italic" => snapshot.LiveOutput.LyricsMonitorRegion2Italic,
+            "liveOutput.lyricsMonitorRegion2Underline" => snapshot.LiveOutput.LyricsMonitorRegion2Underline,
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot.LiveOutput.LyricsMonitorBackgroundColorArgb,
             "liveOutput.lyricsMonitorBackgroundColor2Argb" => snapshot.LiveOutput.LyricsMonitorBackgroundColor2Argb,
             "liveOutput.lyricsMonitorBackgroundIsGradient" => snapshot.LiveOutput.LyricsMonitorBackgroundIsGradient,
@@ -1607,6 +1620,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorRegion2Italic" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorRegion2Italic = Cast<LyricsRegion2Emphasis>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorRegion2Underline" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorRegion2Underline = Cast<LyricsRegion2Emphasis>(keyId, value) },
             },
             "liveOutput.lyricsMonitorBackgroundColorArgb" => snapshot with
             {

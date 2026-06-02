@@ -110,7 +110,9 @@ public sealed record LiveOutputRenderSettings(
     // 보조 영역(Region2) 전역 굵게(3-상태). FollowRegion1=본문 굵게 추종(무회귀). 곡별 굵게가 우선.
     LyricsRegion2Emphasis LyricsMonitorRegion2Bold = LyricsRegion2Emphasis.FollowRegion1,
     // 보조 영역(Region2) 전역 기울임(3-상태). FollowRegion1=본문 기울임 추종(무회귀). 곡별 기울임이 우선.
-    LyricsRegion2Emphasis LyricsMonitorRegion2Italic = LyricsRegion2Emphasis.FollowRegion1)
+    LyricsRegion2Emphasis LyricsMonitorRegion2Italic = LyricsRegion2Emphasis.FollowRegion1,
+    // 보조 영역(Region2) 전역 밑줄(3-상태). FollowRegion1=본문 밑줄 추종(무회귀). 곡별 밑줄이 우선.
+    LyricsRegion2Emphasis LyricsMonitorRegion2Underline = LyricsRegion2Emphasis.FollowRegion1)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -170,7 +172,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorTextColor2Argb),
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment),
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold),
-            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Italic));
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Italic),
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline));
     }
 }
 
@@ -466,9 +469,12 @@ public sealed class OutputRenderer : IOutputRenderer
         var region2Italic = isLive && request.Session.OverrideItalic2 is bool songItalic2
             ? songItalic2
             : ResolveRegion2Emphasis(liveOutput.LyricsMonitorRegion2Italic, region1Italic);
-        // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역, Region2=곡별 비트∥Region1 추종.
+        // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역.
         var region1Underline = isLive && request.Session.OverrideUnderline1 == true ? true : liveOutput.LyricsMonitorUnderline;
-        var region2Underline = isLive ? request.Session.OverrideUnderline2 ?? region1Underline : region1Underline;
+        // Region2 밑줄 우선순위도 굵게·기울임과 동일: 곡별 비트(Live 한정) > 전역(FollowRegion1 아니면) > Region1 추종.
+        var region2Underline = isLive && request.Session.OverrideUnderline2 is bool songUnderline2
+            ? songUnderline2
+            : ResolveRegion2Emphasis(liveOutput.LyricsMonitorRegion2Underline, region1Underline);
         // "강조 후렴만"이 켜져 있으면 후렴 절에서만 강조(굵게·기울임·밑줄)를 적용한다 — 그 외 절은 강조를 끈다.
         // off(기본)면 항상 적용(무회귀). 색·정렬은 강조가 아니므로 이 게이트와 무관하게 그대로 둔다.
         var emphasisActive = !liveOutput.LyricsMonitorEmphasisChorusOnly || (isLive && request.Session.CurrentPageIsChorus);

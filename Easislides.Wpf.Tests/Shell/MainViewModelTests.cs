@@ -3627,6 +3627,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LyricsRegion2UnderlineInput_SetAndClear_PersistsAndSyncs()
+    {
+        // 보조영역(Region2) 전역 밑줄(3-상태) — On/Off/추종 전환이 설정에 저장되고 인스펙터가 동기화된다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ActiveLyricsRegion2Underline.Should().Be(LyricsRegion2Emphasis.FollowRegion1, "기본=본문 밑줄 추종");
+
+        sut.LyricsRegion2UnderlineInput = LyricsRegion2Emphasis.On;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline).Should().Be(LyricsRegion2Emphasis.On);
+        sut.ActiveLyricsRegion2Underline.Should().Be(LyricsRegion2Emphasis.On, "인스펙터 표시도 동기화");
+
+        sut.LyricsRegion2UnderlineInput = LyricsRegion2Emphasis.FollowRegion1;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline).Should().Be(LyricsRegion2Emphasis.FollowRegion1, "추종으로 복귀");
+    }
+
+    [Fact]
+    public void ResetOutputAppearance_RestoresRegion2UnderlineToDefault()
+    {
+        // "기본값으로 복원(전체)" 가 보조영역 밑줄까지 기본(FollowRegion1)으로 되돌리는지(증분72 '전체' 정직성).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.LyricsRegion2UnderlineInput = LyricsRegion2Emphasis.On;
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline).Should().NotBe(LyricsRegion2Emphasis.FollowRegion1);
+
+        sut.ResetOutputAppearanceCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline).Should().Be(
+            LyricsRegion2Emphasis.FollowRegion1, "전체 복원은 보조영역 밑줄도 기본(추종)으로");
+        sut.ActiveLyricsRegion2Underline.Should().Be(LyricsRegion2Emphasis.FollowRegion1, "인스펙터 표시도 기본으로");
+    }
+
+    [Fact]
     public void LyricsRegion2ItalicInput_SetAndClear_PersistsAndSyncs()
     {
         // 보조영역(Region2) 전역 기울임(3-상태) — On/Off/추종 전환이 설정에 저장되고 인스펙터가 동기화된다.

@@ -832,6 +832,67 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_Region2Underline_GlobalOn_UnderlinesRegion2EvenWhenRegion1Plain()
+    {
+        // 전역 region2 밑줄=On 이면 본문(Region1)이 밑줄 없음이어도 보조영역만 밑줄로 송출된다(번역만 밑줄 분리).
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorUnderline: false,                                  // 본문 밑줄 없음
+            LyricsMonitorRegion2Underline: LyricsRegion2Emphasis.On);       // 보조영역 밑줄
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorUnderline.Should().BeFalse("본문은 밑줄 없음");
+        scene.LyricsMonitorUnderline2.Should().BeTrue("보조영역은 전역 region2 밑줄=On");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Underline_GlobalOff_PlainRegion2EvenWhenRegion1Underline()
+    {
+        // 전역 region2 밑줄=Off 이면 본문(Region1)이 밑줄이어도 보조영역만 밑줄 없음으로 송출된다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorUnderline: true,                                   // 본문 밑줄
+            LyricsMonitorRegion2Underline: LyricsRegion2Emphasis.Off);     // 보조영역 없음
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역"),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorUnderline.Should().BeTrue("본문은 밑줄");
+        scene.LyricsMonitorUnderline2.Should().BeFalse("보조영역은 전역 region2 밑줄=Off");
+    }
+
+    [Fact]
+    public void CreateScene_Active_Region2Underline_SongBit_BeatsGlobalRegion2Underline()
+    {
+        // 전역 region2 밑줄=Off 여도 곡별 region2 밑줄 비트가 있으면 그 곡 동안은 곡별 값이 우선한다.
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorRegion2Underline: LyricsRegion2Emphasis.Off);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "은혜로다", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "본문", CurrentItemBodyText2: "번역",
+                OverrideUnderline2: true),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.LyricsMonitorUnderline2.Should().BeTrue("곡별 region2 밑줄 비트가 전역 region2 밑줄을 이긴다");
+    }
+
+    [Fact]
     public void CreateScene_EmphasisChorusOnly_NonChorusPage_SuppressesEmphasis()
     {
         // 강조 후렴만 on + 현재 절이 후렴 아님 → 전역 굵게가 켜져 있어도 이 절은 강조 끔.

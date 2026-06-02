@@ -1336,6 +1336,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorRegion2Bold.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 보조 영역(Region2) 전역 기울임(3-상태) 변경도 라이브 출력에 즉시 반영(FollowRegion1=본문 기울임 추종).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorRegion2Italic.Id, StringComparison.OrdinalIgnoreCase) ||
+                // 보조 영역(Region2) 전역 밑줄(3-상태) 변경도 라이브 출력에 즉시 반영(FollowRegion1=본문 밑줄 추종).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorRegion2Underline.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoPowerPointPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase))
             {
