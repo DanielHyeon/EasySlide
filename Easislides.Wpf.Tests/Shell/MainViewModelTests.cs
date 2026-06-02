@@ -1790,6 +1790,19 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddExternalFilesRelativeTo_SkipsImages_NotQueueItems()
+    {
+        // 이미지 파일은 큐 항목이 아니라 출력 배경용이므로, 큐에 드롭하면 추가하지 않고 건너뛴다(배경 드롭은 미리보기 영역).
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var added = sut.AddExternalFilesRelativeTo([@"C:\bg.png", @"C:\clip.mp4", @"C:\photo.jpg"], targetItem: null);
+
+        added.Should().Be(1, "미디어 1개만 추가, 이미지 2개는 건너뜀");
+        sut.Queue.Should().ContainSingle().Which.Kind.Should().Be(LiveItemKinds.Media);
+        sut.StatusText.Should().Contain("1개 추가").And.Contain("2개 건너뜀");
+    }
+
+    [Fact]
     public void AddExternalFilesRelativeTo_NullTarget_AppendsAtEnd()
     {
         // 빈 공간(타깃 없음)에 떨어뜨리면 맨 끝에 붙는다.

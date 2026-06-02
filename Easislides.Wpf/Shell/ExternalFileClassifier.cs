@@ -3,17 +3,20 @@ using System.Linq;
 
 namespace Easislides.Wpf.Shell;
 
-/// <summary>외부에서 끌어다 놓은 파일이 어떤 예배 순서 항목이 되는지(확장자 기준). 인식 못 하면 Unsupported.</summary>
+/// <summary>외부에서 끌어다 놓은 파일의 종류(확장자 기준). 소비 측이 종류에 맞게 처리한다(큐는 PPT/미디어만, 배경 드롭은 이미지). 인식 못 하면 Unsupported.</summary>
 public enum ExternalFileKind
 {
-    /// <summary>지원하지 않는 확장자 — 큐에 추가하지 않는다.</summary>
+    /// <summary>지원하지 않는 확장자 — 어디에도 쓰지 않는다.</summary>
     Unsupported,
 
-    /// <summary>PowerPoint 파일(.ppt/.pptx) — PowerPoint 항목.</summary>
+    /// <summary>PowerPoint 파일(.ppt/.pptx) — 예배 순서 PowerPoint 항목.</summary>
     PowerPoint,
 
-    /// <summary>미디어 파일(영상/오디오) — 미디어 항목.</summary>
+    /// <summary>미디어 파일(영상/오디오) — 예배 순서 미디어 항목.</summary>
     Media,
+
+    /// <summary>이미지 파일(.jpg/.png 등) — 큐 항목이 아니라 출력 배경 이미지로 쓴다(미리보기 영역에 드롭).</summary>
+    Image,
 }
 
 /// <summary>
@@ -26,8 +29,10 @@ public static class ExternalFileClassifier
     private static readonly string[] PowerPointExtensions = [".ppt", ".pptx"];
     private static readonly string[] MediaExtensions =
         [".mp4", ".avi", ".wmv", ".mov", ".mkv", ".mp3", ".wav", ".wma"];
+    // 출력 배경 드롭에 쓰는 이미지 확장자 — 배경 이미지 선택 대화상자 필터와 같은 집합.
+    private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
 
-    /// <summary>파일 경로의 확장자로 항목 종류를 정한다. 비었거나 모르는 확장자면 <see cref="ExternalFileKind.Unsupported"/>.</summary>
+    /// <summary>파일 경로의 확장자로 파일 종류를 정한다. 비었거나 모르는 확장자면 <see cref="ExternalFileKind.Unsupported"/>.</summary>
     public static ExternalFileKind Classify(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -44,6 +49,11 @@ public static class ExternalFileClassifier
         if (MediaExtensions.Contains(ext))
         {
             return ExternalFileKind.Media;
+        }
+
+        if (ImageExtensions.Contains(ext))
+        {
+            return ExternalFileKind.Image;
         }
 
         return ExternalFileKind.Unsupported;

@@ -1347,7 +1347,13 @@
                                     Background="Transparent"
                                     SelectedIndex="{Binding SelectedContentTabIndex, Mode=TwoWay}">
                             <TabItem Header="Preview">
-                                <Grid Margin="{StaticResource Thickness.Lg}">
+                                <!-- 이미지 파일을 탐색기에서 미리보기 영역에 끌어다 놓으면 출력 배경 이미지로 설정(레거시 이미지→배경 드래그).
+                                     Background="Transparent" 라야 빈 여백까지 드롭을 받는다(배경 없는 Panel 은 빈 영역이 히트테스트 안 됨). -->
+                                <Grid Margin="{StaticResource Thickness.Lg}"
+                                      Background="Transparent"
+                                      AllowDrop="True"
+                                      DragOver="PreviewArea_DragOver"
+                                      Drop="PreviewArea_Drop">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="Auto" />

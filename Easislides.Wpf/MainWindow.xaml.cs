@@ -642,6 +642,51 @@ public partial class MainWindow : Window
         }
     }
 
+    // 미리보기 영역으로 끌고 온 게 이미지 파일이면 "복사(배경 설정)" 커서로 알린다. 그 외(PPT/미디어 등)는 받지 않는다.
+    private void PreviewArea_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = HasDroppedImageFile(e) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    // 이미지 파일을 미리보기 영역에 드롭하면 출력 배경 이미지로 설정한다(레거시 이미지→배경 드래그).
+    // 드래그 제스처·파일 추출은 View, 경로 기록·렌더 반영은 검증된 VM(SetOutputBackgroundImage)이 맡는다.
+    private void PreviewArea_Drop(object sender, DragEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var imagePath = FirstDroppedImagePath(e);
+        if (imagePath is not null)
+        {
+            viewModel.SetOutputBackgroundImage(imagePath);
+        }
+    }
+
+    // 드롭 데이터에 이미지 파일이 하나라도 있는가(확장자 분류는 검증된 ExternalFileClassifier).
+    private static bool HasDroppedImageFile(DragEventArgs e) => FirstDroppedImagePath(e) is not null;
+
+    // 드롭한 파일들 중 첫 이미지 경로(없으면 null).
+    private static string? FirstDroppedImagePath(DragEventArgs e)
+    {
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] files)
+        {
+            return null;
+        }
+
+        foreach (var file in files)
+        {
+            if (Easislides.Wpf.Shell.ExternalFileClassifier.Classify(file) == Easislides.Wpf.Shell.ExternalFileKind.Image)
+            {
+                return file;
+            }
+        }
+
+        return null;
+    }
+
     // 대기 화면(Gap) "로고" 이미지 선택 — 파일 선택은 View, 경로 기록·모드 전환은 검증된 VM(SetGapItemLogoFile)이 맡는다.
     private void SelectGapLogo_Click(object sender, RoutedEventArgs e)
     {
