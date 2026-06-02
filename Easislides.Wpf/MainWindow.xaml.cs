@@ -22,6 +22,8 @@ public partial class MainWindow : Window
     private readonly ShortcutRegistry _shortcuts;
     private readonly IServiceProvider _services;
     private readonly MainViewModel _viewModel;
+    // 창 크기·위치 저장/복원용 설정 서비스(레거시 FrmMain 창 상태 저장 대응).
+    private readonly ISettingsService? _settings;
     // 자동 회전 타이머(§7.3-B) — VM 은 로직만 갖고(테스트 용이), 실제 주기 구동은 View 가 맡는다.
     // IsAutoRotating 이 켜지면 시작, 꺼지면 정지. 매 tick 에 VM.AdvanceAutoRotation 을 호출.
     private readonly DispatcherTimer _autoRotateTimer;
@@ -36,6 +38,8 @@ public partial class MainWindow : Window
         _shortcuts = shortcuts;
         _services = services;
         _viewModel = viewModel;
+        // 설정 서비스(창 배치 저장/복원). 해석 실패해도 창 동작에 지장 없도록 null 허용(복원/저장만 건너뜀).
+        _settings = services?.GetService<ISettingsService>();
         DataContext = viewModel;
         viewModel.BindShortcuts(_shortcuts);
         BindWindowLaunchers();
@@ -789,6 +793,99 @@ public partial class MainWindow : Window
 
     // 파일 메뉴 — 종료(레거시 Menu_Exit). 창을 닫으면 OnClosed 가 정리한다.
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+
+    // 창 핸들이 만들어진 직후(표시 전) 저장된 크기·위치를 화면 안으로 보정해 복원한다(레거시 FrmMain 창 상태 복원).
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        RestoreWindowPlacement();
+    }
+
+    // 닫기 직전에 현재 창 크기·위치·최대화 상태를 설정에 저장한다(다음 실행 때 복원).
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        SaveWindowPlacement();
+        base.OnClosing(e);
+    }
+
+    private void RestoreWindowPlacement()
+    {
+        if (_settings is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var placement = WindowPlacementCalculator.ComputeRestore(
+                _settings.Get(EasiSettingKeys.MainWindowLeft),
+                _settings.Get(EasiSettingKeys.MainWindowTop),
+                _settings.Get(EasiSettingKeys.MainWindowWidth),
+                _settings.Get(EasiSettingKeys.MainWindowHeight),
+                _settings.Get(EasiSettingKeys.MainWindowMaximized),
+                SystemParameters.VirtualScreenLeft,
+                SystemParameters.VirtualScreenTop,
+                SystemParameters.VirtualScreenWidth,
+                SystemParameters.VirtualScreenHeight,
+                MinWidth,
+                MinHeight);
+
+            // 저장된 적 없으면(null) XAML 의 기본 크기·시작 위치를 그대로 둔다(무회귀).
+            if (placement is not { } p)
+            {
+                return;
+            }
+
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = p.Left;
+            Top = p.Top;
+            Width = p.Width;
+            Height = p.Height;
+            if (p.Maximized)
+            {
+                WindowState = WindowState.Maximized;
+            }
+        }
+        catch (Exception ex)
+        {
+            // 창 복원 실패가 시작 자체를 막으면 안 된다 — 기본 배치로 진행.
+            Debug.WriteLine($"[MainWindow] 창 위치 복원 실패: {ex.Message}");
+        }
+    }
+
+    private void SaveWindowPlacement()
+    {
+        if (_settings is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var maximized = WindowState == WindowState.Maximized;
+            // 일반 상태면 현재 좌표·실제 크기를, 최대화/최소화 상태면 RestoreBounds(원래 크기·위치)를 저장한다 —
+            // 그래야 다음에 최대화를 풀었을 때 올바른 크기로 돌아간다.
+            var bounds = WindowState == WindowState.Normal
+                ? new Rect(Left, Top, ActualWidth, ActualHeight)
+                : RestoreBounds;
+
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                return; // 비정상 크기는 저장하지 않음(다음 실행은 기본 배치).
+            }
+
+            _settings.Set(EasiSettingKeys.MainWindowLeft, (int)Math.Round(bounds.Left));
+            _settings.Set(EasiSettingKeys.MainWindowTop, (int)Math.Round(bounds.Top));
+            _settings.Set(EasiSettingKeys.MainWindowWidth, (int)Math.Round(bounds.Width));
+            _settings.Set(EasiSettingKeys.MainWindowHeight, (int)Math.Round(bounds.Height));
+            _settings.Set(EasiSettingKeys.MainWindowMaximized, maximized);
+        }
+        catch (Exception ex)
+        {
+            // 저장 실패는 무시 — 다음 실행은 기본 배치로 시작.
+            Debug.WriteLine($"[MainWindow] 창 위치 저장 실패: {ex.Message}");
+        }
+    }
 
     protected override void OnClosed(EventArgs e)
     {

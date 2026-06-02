@@ -205,6 +205,13 @@ public static class EasiSettingKeys
     // 라이브러리 곡 목록에 곡 번호 표시(레거시 Edit 메뉴 "Use Song Numbering"). 기본 off → 제목만(무회귀).
     public static readonly SettingKey<bool> UseSongNumbering = new("general.useSongNumbering", false);
     public static readonly SettingKey<string> RegistrationUser = new("general.registrationUser", "");
+    // 메인 창 크기·위치 저장(레거시 FrmMain 창 상태 레지스트리 저장). Width/Height=0 이면 "저장된 적 없음" → 기본 크기·중앙.
+    // 닫을 때 복원 좌표(최대화면 RestoreBounds)를 저장하고, 열 때 화면 안으로 보정해 되살린다(모니터 분리·해상도 변경 대비).
+    public static readonly SettingKey<int> MainWindowLeft = new("general.mainWindowLeft", 0);
+    public static readonly SettingKey<int> MainWindowTop = new("general.mainWindowTop", 0);
+    public static readonly SettingKey<int> MainWindowWidth = new("general.mainWindowWidth", 0);
+    public static readonly SettingKey<int> MainWindowHeight = new("general.mainWindowHeight", 0);
+    public static readonly SettingKey<bool> MainWindowMaximized = new("general.mainWindowMaximized", false);
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
     public static readonly SettingKey<InterfaceSize> InterfaceSize =
@@ -374,6 +381,11 @@ public static class EasiSettingKeys
         OnboardingCompleted,
         UseSongNumbering,
         RegistrationUser,
+        MainWindowLeft,
+        MainWindowTop,
+        MainWindowWidth,
+        MainWindowHeight,
+        MainWindowMaximized,
         Theme,
         InterfaceSize,
         DefaultOutputMonitorId,
@@ -472,6 +484,16 @@ public sealed record GeneralSettings
     public bool UseSongNumbering { get; init; } = EasiSettingKeys.UseSongNumbering.DefaultValue;
 
     public string RegistrationUser { get; init; } = EasiSettingKeys.RegistrationUser.DefaultValue;
+
+    public int MainWindowLeft { get; init; } = EasiSettingKeys.MainWindowLeft.DefaultValue;
+
+    public int MainWindowTop { get; init; } = EasiSettingKeys.MainWindowTop.DefaultValue;
+
+    public int MainWindowWidth { get; init; } = EasiSettingKeys.MainWindowWidth.DefaultValue;
+
+    public int MainWindowHeight { get; init; } = EasiSettingKeys.MainWindowHeight.DefaultValue;
+
+    public bool MainWindowMaximized { get; init; } = EasiSettingKeys.MainWindowMaximized.DefaultValue;
 }
 
 public sealed record AppearanceSettings
@@ -1443,6 +1465,11 @@ public sealed class SettingsService : ISettingsService
             "general.onboardingCompleted" => snapshot.General.OnboardingCompleted,
             "general.useSongNumbering" => snapshot.General.UseSongNumbering,
             "general.registrationUser" => snapshot.General.RegistrationUser,
+            "general.mainWindowLeft" => snapshot.General.MainWindowLeft,
+            "general.mainWindowTop" => snapshot.General.MainWindowTop,
+            "general.mainWindowWidth" => snapshot.General.MainWindowWidth,
+            "general.mainWindowHeight" => snapshot.General.MainWindowHeight,
+            "general.mainWindowMaximized" => snapshot.General.MainWindowMaximized,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
@@ -1548,6 +1575,26 @@ public sealed class SettingsService : ISettingsService
             "general.registrationUser" => snapshot with
             {
                 General = snapshot.General with { RegistrationUser = Cast<string>(keyId, value) },
+            },
+            "general.mainWindowLeft" => snapshot with
+            {
+                General = snapshot.General with { MainWindowLeft = Cast<int>(keyId, value) },
+            },
+            "general.mainWindowTop" => snapshot with
+            {
+                General = snapshot.General with { MainWindowTop = Cast<int>(keyId, value) },
+            },
+            "general.mainWindowWidth" => snapshot with
+            {
+                General = snapshot.General with { MainWindowWidth = Cast<int>(keyId, value) },
+            },
+            "general.mainWindowHeight" => snapshot with
+            {
+                General = snapshot.General with { MainWindowHeight = Cast<int>(keyId, value) },
+            },
+            "general.mainWindowMaximized" => snapshot with
+            {
+                General = snapshot.General with { MainWindowMaximized = Cast<bool>(keyId, value) },
             },
             "appearance.theme" => snapshot with
             {

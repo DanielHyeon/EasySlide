@@ -190,7 +190,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | 개별/기본 설정 템플릿(.est) | 출력모양 템플릿 1종 | 🟡 |
 | Use Individual Settings / Apply to All Except InfoScreens / Default Layout | 개별 서식 토글 + 전 항목 전역 적용 + **출력 모양 기본값 복원(증분72)** | 🟢 개별 서식 토글·전 항목 전역 적용·기본값 복원(Default Layout, 출력 모양 전체 리셋) 모두 구현 |
 | 배경색+패턴/picture mode/transition 저장 | 🟡 일부 | 🟡 |
-| 창 상태(splitter/bounds) 레지스트리 저장 | — | 🟡 일부 |
+| 창 상태(splitter/bounds) 레지스트리 저장 | **메인 창 크기·위치·최대화 저장/복원(증분88)** — 화면 밖/모니터 분리/해상도 변경 보정 순수 헬퍼 | 🟡 메인 창 bounds 저장·복원 구현(닫을 때 저장, 열 때 화면 안으로 보정). splitter/인스펙터 폭 저장만 후속 |
 
 ### 3.7 조옮김·코드·음악 — 🟢 핵심 운영 토글 구현(증분27/30/69)
 Transpose Up/Down semitone(▲/▼), To Capo 0(원조 복귀), Show Notations(코드 표시 토글, 증분69) → **출력 메뉴에 운영 토글 모두 노출**. Key/Capo/Timing 표시는 SongEditor 미리보기에 일부; Capo는 곡 메타데이터 필드로 import/export 통과(라이브 조옮김은 코드 표시 on 일 때 ±반음 연산).

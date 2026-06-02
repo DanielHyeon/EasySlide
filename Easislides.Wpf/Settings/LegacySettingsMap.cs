@@ -45,6 +45,11 @@ public static class LegacySettingsMap
         Automated("OnboardingCompleted", EasiSettingKeys.OnboardingCompleted.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "First-run welcome completion marker."),
         Automated("UseSongNumbering", EasiSettingKeys.UseSongNumbering.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "Show song numbers in the library song list — FrmMain Edit menu Use Song Numbering."),
         Automated("RegistrationUser", EasiSettingKeys.RegistrationUser.Id, SettingsSectionKind.General, LegacySettingValueKind.String, "RegUtil config/RegistrationUser", "Name displayed at startup and About dialog registration field."),
+        Automated("MainWindowLeft", EasiSettingKeys.MainWindowLeft.Id, SettingsSectionKind.General, LegacySettingValueKind.Integer, "WPF compatibility", "Main window left coordinate in px (0=never saved) — FrmMain window state (registry)."),
+        Automated("MainWindowTop", EasiSettingKeys.MainWindowTop.Id, SettingsSectionKind.General, LegacySettingValueKind.Integer, "WPF compatibility", "Main window top coordinate in px (0=never saved) — FrmMain window state (registry)."),
+        Automated("MainWindowWidth", EasiSettingKeys.MainWindowWidth.Id, SettingsSectionKind.General, LegacySettingValueKind.Integer, "WPF compatibility", "Main window width in px (0=never saved, use default) — FrmMain window state (registry)."),
+        Automated("MainWindowHeight", EasiSettingKeys.MainWindowHeight.Id, SettingsSectionKind.General, LegacySettingValueKind.Integer, "WPF compatibility", "Main window height in px (0=never saved, use default) — FrmMain window state (registry)."),
+        Automated("MainWindowMaximized", EasiSettingKeys.MainWindowMaximized.Id, SettingsSectionKind.General, LegacySettingValueKind.Boolean, "WPF compatibility", "Main window maximized state — FrmMain window state (registry)."),
 
         Automated("Theme", EasiSettingKeys.Theme.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),
         Automated("InterfaceSize", EasiSettingKeys.InterfaceSize.Id, SettingsSectionKind.Appearance, LegacySettingValueKind.Enum, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),
