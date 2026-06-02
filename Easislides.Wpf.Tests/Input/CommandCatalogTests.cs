@@ -124,6 +124,17 @@ public class CommandCatalogTests
     }
 
     [Fact]
+    public void WorshipQuickSave_InCatalog_WithCtrlS()
+    {
+        // 빠른 저장이 팔레트에 있고 표준 저장 단축키 Ctrl+S 를 가진다.
+        var sut = new CommandCatalog();
+        sut.FindById(MainCommandIds.WorshipQuickSave).Should().NotBeNull()
+            .And.Match<CommandDescriptor>(c => c.Category == "예배 순서" && !c.IsDangerous);
+        sut.GetDefaultShortcuts().Should().Contain(s =>
+            s.Key == Key.S && s.Modifiers == ModifierKeys.Control && s.CommandName == MainCommandIds.WorshipQuickSave);
+    }
+
+    [Fact]
     public void FindById_ReturnsDangerMetadataForLiveCommands()
     {
         var sut = new CommandCatalog();

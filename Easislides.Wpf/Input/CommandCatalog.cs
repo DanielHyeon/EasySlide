@@ -190,6 +190,14 @@ public sealed class CommandCatalog : ICommandCatalog
             "항목 맨 아래로",
             "선택한 예배 순서 항목을 맨 아래로 옮깁니다.",
             isDangerous: false),
+        // 빠른 저장(Ctrl+S, 표준 저장 단축키) — 현재 세션 이름으로 덮어 저장. 미저장 변경(● 수정됨)과 짝.
+        Command(
+            MainCommandIds.WorshipQuickSave,
+            "예배 순서",
+            "예배 순서 저장",
+            "현재 예배 순서를 지금 세션 이름으로 덮어 저장합니다(이름이 없으면 '순서' 관리 창에서 정하세요).",
+            isDangerous: false,
+            new Shortcut(Key.S, ModifierKeys.Control, MainCommandIds.WorshipQuickSave, IsGlobal: false, "예배 순서 저장")),
         // 창 런처(§7.4) — FrmMain 의 분리 창을 명령 팔레트로 흡수. 실행은 View(MainWindow)가 등록.
         Command(
             MainCommandIds.WindowLibrary,

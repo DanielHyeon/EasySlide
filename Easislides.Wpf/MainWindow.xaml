@@ -38,6 +38,11 @@
               AutomationProperties.Name="주 메뉴">
             <MenuItem Header="파일">
                 <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
+                <!-- 빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장. 미저장 변경(● 수정됨)과 짝. -->
+                <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="Save24" /></MenuItem.Icon>
+                </MenuItem>
+                <Separator />
                 <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" /></MenuItem.Icon>
                 </MenuItem>

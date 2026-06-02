@@ -637,6 +637,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ResetOutputAppearanceCommand = new RelayCommand(ResetOutputAppearance);
         // 세션 콤보(예배 순서 빠른 전환) — 콤보에서 고른 저장 목록을 명시적 "불러오기" 버튼으로 적재(자동 적재 안 함 = 실수로 작업물 날림 방지).
         LoadSelectedWorshipListCommand = new AsyncRelayCommand(LoadSelectedWorshipListAsync, () => !string.IsNullOrWhiteSpace(SelectedSavedWorshipList));
+        // 빠른 저장(Ctrl+S) — 현재 세션 이름이 있으면 그 이름으로 덮어 저장. 이름이 없으면(한 번도 저장 안 함) 안내만.
+        QuickSaveWorshipListCommand = new AsyncRelayCommand(QuickSaveWorshipListAsync);
         RefreshSavedWorshipListNames();
         // 대기 화면(Gap) 빠른 조작 — 페이드 토글·로고 지우기(로고 선택은 View 파일 픽커). 모드는 콤보(GapItemModeInput).
         ToggleGapItemUseFadeCommand = new RelayCommand(ToggleGapItemUseFade);
@@ -812,6 +814,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand DeleteAppearanceTemplateCommand { get; }
     public IRelayCommand ResetOutputAppearanceCommand { get; }
     public IAsyncRelayCommand LoadSelectedWorshipListCommand { get; }
+
+    /// <summary>빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장(이름 없으면 안내). 미저장 변경 표시(● 수정됨)와 짝.</summary>
+    public IAsyncRelayCommand QuickSaveWorshipListCommand { get; }
     public IRelayCommand ToggleGapItemUseFadeCommand { get; }
     public IRelayCommand ClearGapItemLogoFileCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
@@ -1612,6 +1617,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// 빠른 저장(Ctrl+S) — 현재 세션 이름(CurrentWorshipListName)으로 곧바로 덮어 저장한다(미저장 변경 표시와 짝).
+    /// 한 번도 저장·불러온 적이 없어 이름이 없으면 저장하지 않고 안내만 한다(이름은 "순서" 관리 창에서 정한다).
+    /// </summary>
+    public async Task QuickSaveWorshipListAsync()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentWorshipListName))
+        {
+            StatusText = "저장할 세션 이름이 없습니다. '순서' 버튼에서 이름을 정해 저장하세요.";
+            return;
+        }
+
+        await SaveWorshipListAsync(CurrentWorshipListName).ConfigureAwait(true);
+    }
+
     /// <summary>저장된 예배 순서를 불러와 현재 큐를 교체한다.</summary>
     public async Task LoadWorshipListAsync(string name)
     {
@@ -1978,6 +1998,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         BindGated(MainCommandIds.WorshipMoveItemDown, MoveSelectedItemDownCommand);
         BindGated(MainCommandIds.WorshipMoveItemToTop, MoveSelectedItemToTopCommand);
         BindGated(MainCommandIds.WorshipMoveItemToBottom, MoveSelectedItemToBottomCommand);
+        // 빠른 저장(Ctrl+S) — 메서드가 이름 없음/실패를 스스로 안내하므로 게이트 없이 실행(fire-and-forget).
+        registry.Bind(MainCommandIds.WorshipQuickSave, () => _ = QuickSaveWorshipListCommand.ExecuteAsync(null));
     }
 
     public void RefreshOutputDisplays()

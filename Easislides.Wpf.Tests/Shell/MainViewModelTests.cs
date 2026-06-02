@@ -1626,6 +1626,36 @@ public class MainViewModelTests
         sut.WorshipListHasUnsavedChanges.Should().BeFalse("송출은 큐를 안 바꾸므로 미저장 아님");
     }
 
+    [Fact]
+    public async Task QuickSave_WithCurrentSession_SavesAndClearsDirty()
+    {
+        // 증분145 — Ctrl+S 빠른 저장: 현재 세션 이름으로 덮어 저장하고 미저장 변경 표시를 끈다.
+        var sut = CreateSut(seedSampleQueue: false, worshipLists: new InMemoryWorshipListStore());
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song") { Lyrics = "[1]\n가" }]);
+        await sut.SaveWorshipListAsync("주일 예배"); // 현재 세션 이름 설정
+        sut.AddTextItem("추가"); // 편집 → 미저장
+        sut.WorshipListHasUnsavedChanges.Should().BeTrue();
+
+        await sut.QuickSaveWorshipListCommand.ExecuteAsync(null);
+
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("빠른 저장 후 깨끗");
+        sut.StatusText.Should().Contain("주일 예배", "현재 세션 이름으로 저장");
+    }
+
+    [Fact]
+    public async Task QuickSave_NoCurrentSession_HintsAndDoesNotSave()
+    {
+        // 한 번도 저장/불러온 적 없어 세션 이름이 없으면 저장하지 않고 안내만(이름은 관리 창에서).
+        var sut = CreateSut(seedSampleQueue: false, worshipLists: new InMemoryWorshipListStore());
+        sut.AddTextItem("이름 없는 항목");
+        sut.CurrentWorshipListName.Should().BeEmpty("아직 저장/불러온 적 없음");
+
+        await sut.QuickSaveWorshipListCommand.ExecuteAsync(null);
+
+        sut.StatusText.Should().Contain("이름", "이름 없으면 안내");
+        sut.WorshipListHasUnsavedChanges.Should().BeTrue("저장 안 했으니 여전히 미저장");
+    }
+
     // ── 세션 콤보(예배 순서 빠른 전환) — 콤보로 고르고 명시적 "불러오기"로 적재 ──
 
     [Fact]
@@ -3355,6 +3385,7 @@ public class MainViewModelTests
                      MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
                      MainCommandIds.WorshipMoveItemUp, MainCommandIds.WorshipMoveItemDown,
                      MainCommandIds.WorshipMoveItemToTop, MainCommandIds.WorshipMoveItemToBottom,
+                     MainCommandIds.WorshipQuickSave,
                  })
         {
             registry.TryInvoke(id).Should().BeTrue($"{id} 가 레지스트리에 바인딩돼 팔레트·단축키로 실행 가능");
