@@ -95,10 +95,10 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 |---|---|---|
 | Folders + `SongFolder` + `SongsList` + 정렬(획/CJK단어수/곡번호)·A/B/C 점프 | 곡 폴더·목록 | 🟢 라이브러리 탭(폴더 콤보+검색+ListBox + 정렬[원래/제목/곡번호/획수순] + A/B/C 초성 점프 바). CJK 단어수 정렬만 후속 |
 | InfoScr(`InfoScreenList`, .esi 편집기) | 공지 화면(NoticeScreenWindow — 텍스트 편집·송출 + **명명 정보화면 저장/불러오기/삭제**) | 🟡 텍스트 편집·송출 + 명명 저장 목록(증분76) 포팅. .esi 풀 편집기(7337줄)·레거시 포맷만 후속 |
-| PowerP(`PowerpointList`, list/thumbnail) | PPT 파일 브라우징 | 🟡 중앙 PPT 탭은 미리보기만(폴더 브라우징·import 없음) |
+| PowerP(`PowerpointList`, list/thumbnail) | PPT 파일 브라우징 | 🟡 중앙 PPT 탭 미리보기 + **PowerPointLibraryWindow**("PowerPoint 폴더 찾아보기" — 폴더 PPT 목록·하위폴더 포함·**파일명 검색**(증분132)·예배 순서 추가). 썸네일 갤러리만 후속 |
 | Bibles(인라인, §4 참조) | 인라인 성경 | 🟡 좌측 성경 탭 + **typed-ref**(BibleViewModel.JumpToReference — "창 1:1-2:3" 직접 입력 점프, BibleReferenceParser) + **copy-to-InfoScreen**(성경 본문 우클릭 "공지 화면으로 복사", ResolveCopyText) 구현. 이중영역(Region2)만 후속 |
 | Images(`flowLayoutImages`, Scenery/Tiles, 배경 적용) | 이미지 갤러리(ImageLibraryWindow — 폴더 썸네일·출력 배경 적용/지우기) | 🟢 폴더 이미지를 썸네일로 보고 출력 배경으로 적용. Scenery/Tiles 카테고리 구분만 후속 |
-| Media(`MediaList`) | 미디어 파일 목록 | 🟡 중앙 Media 탭(폴더 목록 브라우징 없음, NoOp 백엔드) |
+| Media(`MediaList`) | 미디어 파일 목록 | 🟡 중앙 Media 탭(재생 컨트롤) + **MediaLibraryWindow**("미디어 폴더 찾아보기" — 폴더 동영상·오디오 목록·하위폴더 포함·**파일명 검색**(증분132)·예배 순서 추가). 썸네일/미리듣기만 후속 |
 | Default(포맷 탭) | 기본 포맷 전체 | 🔴 인스펙터로 일부 대체 |
 
 ### 2.4 리스트 탭 (FrmMain 2 → WPF 1)

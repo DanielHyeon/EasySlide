@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -29,9 +31,15 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 {
     private readonly IMediaLibraryService _service;
     private readonly Action<string> _addToQueue;
+    // 폴더에서 읽은 전체 미디어(검색 필터 적용 전 원본). 검색 상자는 이 목록에서 걸러 MediaFiles 에 보여 준다.
+    private readonly List<MediaFileItem> _allFiles = new();
 
     [ObservableProperty]
     private string _folderPath = string.Empty;
+
+    // 검색어 — 파일명에 이 글자가 든 미디어만 목록에 보인다(대소문자 무시). 비우면 전부. 큰 폴더에서 빠르게 찾는 현대 기능.
+    [ObservableProperty]
+    private string _filterText = string.Empty;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddSelectedCommand))]
@@ -65,18 +73,49 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
     partial void OnIncludeSubfoldersChanged(bool value) => Load();
 
-    // 현재 폴더의 미디어 파일 목록을 다시 읽는다.
+    // 검색어가 바뀌면 다시 읽지 않고(폴더 탐색은 비쌈) 이미 읽어 둔 전체 목록에서 걸러 보여 준다.
+    partial void OnFilterTextChanged(string value) => ApplyFilter();
+
+    // 현재 폴더의 미디어 파일 목록을 다시 읽는다(전체를 _allFiles 에 담고, 검색어 적용해 화면 목록 구성).
     private void Load()
     {
-        MediaFiles.Clear();
+        _allFiles.Clear();
         foreach (var path in _service.EnumerateMedia(FolderPath, IncludeSubfolders))
         {
-            MediaFiles.Add(new MediaFileItem(path));
+            _allFiles.Add(new MediaFileItem(path));
         }
 
-        StatusText = MediaFiles.Count == 0
-            ? "미디어 파일이 없습니다(폴더를 확인하세요)."
-            : $"{MediaFiles.Count}개 미디어";
+        ApplyFilter();
+    }
+
+    // 검색어로 _allFiles 를 걸러 MediaFiles(화면 목록)를 다시 만든다 — 순수 비교는 FileNameFilter 가 맡는다.
+    private void ApplyFilter()
+    {
+        MediaFiles.Clear();
+        foreach (var file in _allFiles.Where(f => FileNameFilter.Matches(f.FileName, FilterText)))
+        {
+            MediaFiles.Add(file);
+        }
+
+        // 선택한 파일이 걸러져 목록에서 빠지면 선택을 해제한다 — 숨은(안 보이는) 항목이 선택된 채 "추가"되는 사고를 막는다.
+        // ImageLibraryViewModel 와 동일한 가드: 바인딩된 컬렉션을 다시 만들 때 선택 유효성은 VM 이 직접 책임진다(Selector reset 에 기대지 않음).
+        if (SelectedFile is not null && !MediaFiles.Contains(SelectedFile))
+        {
+            SelectedFile = null;
+        }
+
+        if (_allFiles.Count == 0)
+        {
+            StatusText = "미디어 파일이 없습니다(폴더를 확인하세요).";
+        }
+        else if (MediaFiles.Count == _allFiles.Count)
+        {
+            StatusText = $"{_allFiles.Count}개 미디어";
+        }
+        else
+        {
+            StatusText = $"{MediaFiles.Count}/{_allFiles.Count}개 미디어(검색 '{FilterText.Trim()}')";
+        }
     }
 
     // 선택한 미디어를 예배 순서에 추가(MainViewModel.AddMedia 위임).
