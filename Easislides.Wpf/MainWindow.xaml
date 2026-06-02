@@ -1531,48 +1531,68 @@
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Center"
                                                 Margin="0,0,0,12">
+                                        <!-- 미디어 전송 컨트롤 — 텍스트 글리프 대신 Fluent SymbolIcon 으로 현대화(아이콘 업그레이드).
+                                             접근성은 AutomationProperties.Name 으로 유지(스크린리더가 한국어 이름을 읽음). -->
                                         <Button Command="{Binding Media.FastReverseCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 Margin="0,0,8,0"
-                                                Content="◀◀"
-                                                AutomationProperties.Name="되감기" />
+                                                ToolTip="되감기"
+                                                AutomationProperties.Name="되감기">
+                                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaRewind}" />
+                                        </Button>
                                         <Button Command="{Binding Media.PlayPauseCommand}"
                                                 Style="{StaticResource EsButton.Primary}"
                                                 Margin="0,0,8,0"
-                                                Content="{Binding Media.PlayPauseLabel}"
                                                 ToolTip="재생/일시정지 (Space)"
-                                                AutomationProperties.Name="재생/일시정지" />
+                                                AutomationProperties.Name="재생/일시정지">
+                                            <ui:SymbolIcon Symbol="{Binding Media.PlayPauseSymbol}" />
+                                        </Button>
                                         <Button Command="{Binding Media.RestartCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 Margin="0,0,8,0"
-                                                Content="↺"
                                                 ToolTip="처음부터 다시 재생 (Enter)"
-                                                AutomationProperties.Name="처음부터 다시 재생" />
+                                                AutomationProperties.Name="처음부터 다시 재생">
+                                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaRestart}" />
+                                        </Button>
                                         <Button Command="{Binding Media.StopCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 Margin="0,0,8,0"
-                                                Content="■"
                                                 ToolTip="정지 (Esc 또는 S)"
-                                                AutomationProperties.Name="정지" />
+                                                AutomationProperties.Name="정지">
+                                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaStop}" />
+                                        </Button>
                                         <Button Command="{Binding Media.FastForwardCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 Margin="0,0,8,0"
-                                                Content="▶▶"
-                                                AutomationProperties.Name="빨리감기" />
+                                                ToolTip="빨리감기"
+                                                AutomationProperties.Name="빨리감기">
+                                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaFastForward}" />
+                                        </Button>
+                                        <!-- 토글 2종(음소거·반복)은 켜짐/꺼짐 상태가 한눈에 보여야 하므로 아이콘 + 글자 라벨 + 토글 배경.
+                                             음소거 아이콘은 상태 구동(MuteSymbol) — 음소거면 ×스피커, 아니면 소리나는 스피커로 현재 상태를 정직하게 표시. -->
                                         <ToggleButton IsChecked="{Binding Media.IsMuted, Mode=OneWay}"
                                                       Command="{Binding Media.ToggleMuteCommand}"
                                                       MinHeight="36"
                                                       Padding="10,0"
                                                       Margin="0,0,8,0"
-                                                      Content="음소거"
                                                       ToolTip="음소거 토글 (M)"
-                                                      AutomationProperties.Name="음소거 토글" />
+                                                      AutomationProperties.Name="음소거 토글">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon Symbol="{Binding Media.MuteSymbol}" Margin="0,0,6,0" />
+                                                <TextBlock Text="음소거" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </ToggleButton>
                                         <ToggleButton IsChecked="{Binding Media.IsRepeatEnabled, Mode=OneWay}"
                                                       Command="{Binding Media.ToggleRepeatCommand}"
                                                       MinHeight="36"
                                                       Padding="10,0"
-                                                      Content="반복"
-                                                      AutomationProperties.Name="반복 토글" />
+                                                      ToolTip="반복 재생 토글"
+                                                      AutomationProperties.Name="반복 토글">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaRepeat}" Margin="0,0,6,0" />
+                                                <TextBlock Text="반복" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </ToggleButton>
                                     </StackPanel>
 
                                     <StackPanel Grid.Row="3">

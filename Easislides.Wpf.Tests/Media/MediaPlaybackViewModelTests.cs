@@ -67,6 +67,39 @@ public class MediaPlaybackViewModelTests
     }
 
     [Fact]
+    public void PlayPauseSymbol_TogglesWithPlaybackState()
+    {
+        // 재생/일시정지 버튼의 Fluent 아이콘이 상태에 따라 바뀐다(재생 중=일시정지 아이콘, 아니면 재생 아이콘).
+        var service = new MediaPlaybackService();
+        var sut = new MediaPlaybackViewModel(service);
+        sut.PlayPauseSymbol.Should().Be(Easislides.Wpf.Theme.EsIcons.MediaPlay, "미디어 없을 땐 재생 아이콘");
+
+        sut.Load(DefaultRequest());
+        sut.PlayPauseCommand.Execute(null); // 재생 시작.
+        sut.PlayPauseSymbol.Should().Be(Easislides.Wpf.Theme.EsIcons.MediaPause, "재생 중엔 일시정지 아이콘");
+
+        sut.PlayPauseCommand.Execute(null); // 일시정지.
+        sut.PlayPauseSymbol.Should().Be(Easislides.Wpf.Theme.EsIcons.MediaPlay, "일시정지 상태엔 재생 아이콘");
+    }
+
+    [Fact]
+    public void MuteSymbol_TogglesWithMuteState()
+    {
+        // 음소거 토글 아이콘이 상태를 정직하게 보여준다(음소거=×스피커, 아니면 소리나는 스피커).
+        var service = new MediaPlaybackService();
+        var sut = new MediaPlaybackViewModel(service);
+        sut.MuteSymbol.Should().Be(Easislides.Wpf.Theme.EsIcons.MediaUnmute, "기본은 소리 켜짐 아이콘");
+
+        sut.Load(DefaultRequest());
+        sut.ToggleMuteCommand.Execute(null); // 음소거 켜기.
+        sut.IsMuted.Should().BeTrue();
+        sut.MuteSymbol.Should().Be(Easislides.Wpf.Theme.EsIcons.MediaMute, "음소거면 ×스피커 아이콘");
+
+        sut.ToggleMuteCommand.Execute(null); // 음소거 끄기.
+        sut.MuteSymbol.Should().Be(Easislides.Wpf.Theme.EsIcons.MediaUnmute, "음소거 해제면 소리나는 스피커 아이콘");
+    }
+
+    [Fact]
     public void RestartCommand_SeeksToStartAndPlays()
     {
         // 레거시 미디어 Enter 키 = 처음부터 다시 재생: 위치를 0으로 되감고 재생 상태가 된다.

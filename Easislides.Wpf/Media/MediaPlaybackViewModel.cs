@@ -2,6 +2,8 @@ using System;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Easislides.Wpf.Theme;
+using Wpf.Ui.Controls;
 
 namespace Easislides.Wpf.Media;
 
@@ -24,7 +26,12 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
     [ObservableProperty] private bool _isRepeatEnabled;
     [ObservableProperty] private bool _isWidescreen = true;
     [ObservableProperty] private string _statusText = "NO MEDIA";
+    // 재생/일시정지 텍스트("Play"/"Pause"). 버튼은 이제 아이콘(PlayPauseSymbol)을 쓰지만, 자동화·툴팁·향후 용도를 위해 유지.
     [ObservableProperty] private string _playPauseLabel = "Play";
+    // 재생/일시정지 버튼의 Fluent 아이콘 — 재생 중이면 일시정지 아이콘, 아니면 재생 아이콘(레이블과 짝).
+    [ObservableProperty] private SymbolRegular _playPauseSymbol = EsIcons.MediaPlay;
+    // 음소거 토글의 Fluent 아이콘 — 음소거면 ×표시 스피커, 아니면 소리나는 스피커(현재 상태를 정직하게).
+    [ObservableProperty] private SymbolRegular _muteSymbol = EsIcons.MediaUnmute;
 
     public MediaPlaybackViewModel(IMediaPlaybackService playback)
     {
@@ -109,10 +116,12 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
         Volume = snapshot.Volume;
         Balance = snapshot.Balance;
         IsMuted = snapshot.IsMuted;
+        MuteSymbol = snapshot.IsMuted ? EsIcons.MediaMute : EsIcons.MediaUnmute;
         IsRepeatEnabled = snapshot.IsRepeatEnabled;
         IsWidescreen = snapshot.IsWidescreen;
         StatusText = CreateStatusText(snapshot);
         PlayPauseLabel = snapshot.State == MediaPlaybackState.Playing ? "Pause" : "Play";
+        PlayPauseSymbol = snapshot.State == MediaPlaybackState.Playing ? EsIcons.MediaPause : EsIcons.MediaPlay;
         NotifyCommandStates();
     }
 

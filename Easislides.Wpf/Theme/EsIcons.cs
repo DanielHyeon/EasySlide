@@ -62,6 +62,30 @@ public static class EsIcons
     /// <summary>Media Play — 미디어 재생</summary>
     public const SymbolRegular MediaPlay = SymbolRegular.PlayCircle24;
 
+    /// <summary>Media Pause — 미디어 일시정지(재생 토글 시 사용)</summary>
+    public const SymbolRegular MediaPause = SymbolRegular.PauseCircle24;
+
+    /// <summary>Media Stop — 미디어 정지</summary>
+    public const SymbolRegular MediaStop = SymbolRegular.Stop24;
+
+    /// <summary>Media Fast-Forward — 빨리감기</summary>
+    public const SymbolRegular MediaFastForward = SymbolRegular.FastForward24;
+
+    /// <summary>Media Rewind — 되감기</summary>
+    public const SymbolRegular MediaRewind = SymbolRegular.Rewind24;
+
+    /// <summary>Media Restart — 처음부터 다시 재생</summary>
+    public const SymbolRegular MediaRestart = SymbolRegular.ArrowCounterclockwise24;
+
+    /// <summary>Media Mute — 음소거(켜짐)</summary>
+    public const SymbolRegular MediaMute = SymbolRegular.SpeakerMute24;
+
+    /// <summary>Media Unmute — 소리 켜짐(음소거 아님). 음소거 토글이 현재 상태를 정직하게 보여주도록.</summary>
+    public const SymbolRegular MediaUnmute = SymbolRegular.Speaker224;
+
+    /// <summary>Media Repeat — 반복 재생</summary>
+    public const SymbolRegular MediaRepeat = SymbolRegular.ArrowRepeatAll24;
+
     /// <summary>Notebook — 노트북/찬양 가사</summary>
     public const SymbolRegular Notebook = SymbolRegular.Notebook24;
 

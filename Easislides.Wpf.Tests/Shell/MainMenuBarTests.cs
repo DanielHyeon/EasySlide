@@ -72,6 +72,46 @@ public class MainMenuBarTests
         => Xaml.Should().Contain("Header=\"종료\"", "파일 메뉴에 종료가 있어야 함");
 
     [Theory]
+    // 미디어 전송 컨트롤이 텍스트 글리프 대신 Fluent SymbolIcon(EsIcons.Media*)으로 현대화됐는지(아이콘 업그레이드).
+    [InlineData("theme:EsIcons.MediaRewind")]
+    [InlineData("theme:EsIcons.MediaRestart")]
+    [InlineData("theme:EsIcons.MediaStop")]
+    [InlineData("theme:EsIcons.MediaFastForward")]
+    [InlineData("theme:EsIcons.MediaRepeat")]
+    public void MediaControls_UseFluentSymbolIcons(string symbol)
+        => Xaml.Should().Contain(symbol, $"미디어 컨트롤이 {symbol} 아이콘을 써야 함(텍스트 글리프 아님)");
+
+    [Theory]
+    // 상태에 따라 바뀌는 아이콘은 VM 심볼 프로퍼티에 바인딩(재생↔일시정지, 음소거↔소리켜짐).
+    [InlineData("Symbol=\"{Binding Media.PlayPauseSymbol}\"")] // 재생/일시정지
+    [InlineData("Symbol=\"{Binding Media.MuteSymbol}\"")]      // 음소거/소리켜짐
+    public void MediaControls_BindStateDrivenSymbols(string binding)
+        => Xaml.Should().Contain(binding, $"{binding} 상태 구동 아이콘 바인딩이 있어야 함");
+
+    [Theory]
+    // 아이콘 버튼은 스크린리더가 읽을 한국어 접근성 이름이 반드시 남아 있어야 한다(아이콘만 버튼의 전제).
+    [InlineData("되감기")]
+    [InlineData("재생/일시정지")]
+    [InlineData("처음부터 다시 재생")]
+    [InlineData("정지")]
+    [InlineData("빨리감기")]
+    [InlineData("음소거 토글")]
+    [InlineData("반복 토글")]
+    public void MediaControls_KeepAccessibleNames(string name)
+        => Xaml.Should().Contain($"AutomationProperties.Name=\"{name}\"", $"{name} 버튼의 접근성 이름이 남아 있어야 함");
+
+    [Fact]
+    public void MediaControls_DoNotUseLegacyTextGlyphs()
+    {
+        // 옛 텍스트 글리프(◀◀ ▶▶ ■ ↺)가 더는 Content 로 남아 있지 않아야 한다(현대 아이콘으로 교체 확인).
+        var xaml = Xaml;
+        foreach (var glyph in new[] { "Content=\"◀◀\"", "Content=\"▶▶\"", "Content=\"■\"", "Content=\"↺\"" })
+        {
+            xaml.Should().NotContain(glyph, $"옛 글리프 {glyph} 는 Fluent 아이콘으로 교체됐어야 함");
+        }
+    }
+
+    [Theory]
     [InlineData("ApplyLyricsVerticalAlignmentCommand")] // 세로 정렬
     [InlineData("IncreaseLyricsFontSizeCommand")]       // 글자 크게
     [InlineData("DecreaseLyricsFontSizeCommand")]       // 글자 작게
