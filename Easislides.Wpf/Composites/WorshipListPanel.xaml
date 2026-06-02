@@ -47,6 +47,21 @@
                         Margin="0,0,8,0">
                     <ui:SymbolIcon Symbol="ArrowDown24" />
                 </Button>
+                <!-- 맨 위로/맨 아래로 한 번에 이동(여러 번 드래그·클릭 없이, 모던 재정렬 UX). -->
+                <Button Command="{Binding MoveSelectedItemToTopCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="선택 항목을 맨 위로 이동"
+                        AutomationProperties.Name="항목 맨 위로 이동"
+                        Margin="0,0,8,0">
+                    <ui:SymbolIcon Symbol="ArrowUpload24" />
+                </Button>
+                <Button Command="{Binding MoveSelectedItemToBottomCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        ToolTip="선택 항목을 맨 아래로 이동"
+                        AutomationProperties.Name="항목 맨 아래로 이동"
+                        Margin="0,0,8,0">
+                    <ui:SymbolIcon Symbol="ArrowDownload24" />
+                </Button>
                 <Button Command="{Binding RemoveSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
                         ToolTip="선택 항목을 예배 순서에서 제거"

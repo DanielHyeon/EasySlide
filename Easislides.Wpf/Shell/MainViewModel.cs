@@ -613,6 +613,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         AddLookupTitleCommand = new AsyncRelayCommand(AddLookupTitleAsync, () => SelectedTitleCandidate is not null);
         MoveSelectedItemUpCommand = new RelayCommand(() => MoveSelectedItem(-1), () => CanMoveSelectedItem(-1));
         MoveSelectedItemDownCommand = new RelayCommand(() => MoveSelectedItem(+1), () => CanMoveSelectedItem(+1));
+        MoveSelectedItemToTopCommand = new RelayCommand(MoveSelectedItemToTop, () => CanMoveSelectedToBoundary(toTop: true));
+        MoveSelectedItemToBottomCommand = new RelayCommand(MoveSelectedItemToBottom, () => CanMoveSelectedToBoundary(toTop: false));
         RemoveSelectedItemCommand = new RelayCommand(RemoveSelectedItem, () => SelectedItem is not null);
         DuplicateSelectedItemCommand = new RelayCommand(() => DuplicateSelectedItem(), () => SelectedItem is not null);
         ClearWorshipListCommand = new RelayCommand(ClearWorshipList, () => Queue.Count > 0);
@@ -778,6 +780,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand AddLookupTitleCommand { get; }
     public IRelayCommand MoveSelectedItemUpCommand { get; }
     public IRelayCommand MoveSelectedItemDownCommand { get; }
+    public IRelayCommand MoveSelectedItemToTopCommand { get; }
+    public IRelayCommand MoveSelectedItemToBottomCommand { get; }
     public IRelayCommand RemoveSelectedItemCommand { get; }
     public IRelayCommand DuplicateSelectedItemCommand { get; }
     public IRelayCommand ClearWorshipListCommand { get; }
@@ -1138,6 +1142,36 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var index = IndexOfSelectedReference();
         var target = index + delta;
         return index >= 0 && target >= 0 && target < Queue.Count;
+    }
+
+    // 선택 항목을 맨 위로 이동(드래그 여러 번 없이 한 번에, 모던 재정렬 UX). MoveQueueItem 이 참조로 옮기고 선택 유지.
+    private void MoveSelectedItemToTop()
+    {
+        if (SelectedItem is { } item)
+        {
+            MoveQueueItem(item, 0);
+        }
+    }
+
+    // 선택 항목을 맨 아래로 이동.
+    private void MoveSelectedItemToBottom()
+    {
+        if (SelectedItem is { } item)
+        {
+            MoveQueueItem(item, Queue.Count - 1);
+        }
+    }
+
+    // 맨 위로는 첫 항목이 아닐 때만, 맨 아래로는 마지막 항목이 아닐 때만 가능(이미 끝이면 비활성).
+    private bool CanMoveSelectedToBoundary(bool toTop)
+    {
+        var index = IndexOfSelectedReference();
+        if (index < 0)
+        {
+            return false;
+        }
+
+        return toTop ? index > 0 : index < Queue.Count - 1;
     }
 
     /// <summary>
@@ -3822,6 +3856,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
         MoveSelectedItemDownCommand.NotifyCanExecuteChanged();
+        MoveSelectedItemToTopCommand.NotifyCanExecuteChanged();
+        MoveSelectedItemToBottomCommand.NotifyCanExecuteChanged();
         RemoveSelectedItemCommand.NotifyCanExecuteChanged();
         DuplicateSelectedItemCommand.NotifyCanExecuteChanged();
         ClearWorshipListCommand.NotifyCanExecuteChanged();

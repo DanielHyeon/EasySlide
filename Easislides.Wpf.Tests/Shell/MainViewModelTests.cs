@@ -1337,6 +1337,50 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void MoveSelectedItemToTopAndBottom_RepositionsAndKeepsSelection()
+    {
+        // 맨 위로/맨 아래로 한 번에 이동(모던 재정렬). 이동 후에도 같은 항목이 선택되어 있어야 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("a", "A", "Song"),
+            new LiveQueueItem("b", "B", "Song"),
+            new LiveQueueItem("c", "C", "Song"),
+        ]);
+
+        var middle = sut.Queue[1]; // B
+        sut.SelectedItem = middle;
+        sut.MoveSelectedItemToTopCommand.Execute(null);
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "b", "a", "c" }, "B 가 맨 위로");
+        sut.SelectedItem.Should().BeSameAs(middle, "이동 후에도 선택 유지");
+
+        sut.MoveSelectedItemToBottomCommand.Execute(null);
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "a", "c", "b" }, "B 가 맨 아래로");
+        sut.SelectedItem.Should().BeSameAs(middle);
+    }
+
+    [Fact]
+    public void MoveToBoundary_CanExecute_DisabledAtEdges()
+    {
+        // 이미 맨 위면 "맨 위로" 비활성, 맨 아래면 "맨 아래로" 비활성(불필요한 이동 방지).
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("a", "A", "Song"),
+            new LiveQueueItem("b", "B", "Song"),
+        ]);
+
+        sut.SelectedItem = sut.Queue[0]; // 맨 위
+        sut.MoveSelectedItemToTopCommand.CanExecute(null).Should().BeFalse("이미 맨 위");
+        sut.MoveSelectedItemToBottomCommand.CanExecute(null).Should().BeTrue();
+
+        sut.SelectedItem = sut.Queue[1]; // 맨 아래
+        sut.MoveSelectedItemToTopCommand.CanExecute(null).Should().BeTrue();
+        sut.MoveSelectedItemToBottomCommand.CanExecute(null).Should().BeFalse("이미 맨 아래");
+
+        sut.SelectedItem = null;
+        sut.MoveSelectedItemToTopCommand.CanExecute(null).Should().BeFalse("선택 없으면 비활성");
+    }
+
+    [Fact]
     public void DuplicateSelectedItem_InsertsCopyWithSameContentNewId_AfterOriginal_AndSelectsIt()
     {
         // 선택 항목 복제 — 같은 내용(가사·종류·번호)·새 Id 로 바로 뒤에 삽입하고 복제본을 선택(같은 곡 두 번 부르기 등).
