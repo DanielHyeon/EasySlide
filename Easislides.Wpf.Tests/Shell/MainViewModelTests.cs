@@ -1552,6 +1552,100 @@ public class MainViewModelTests
         sut.Queue[0].Lyrics.Should().Be("L", "콘텐츠(가사)도 함께 영속");
     }
 
+    // ── 세션 콤보(예배 순서 빠른 전환) — 콤보로 고르고 명시적 "불러오기"로 적재 ──
+
+    [Fact]
+    public async Task RefreshSavedWorshipListNames_PopulatesFromStore_AndSavePushesNewName()
+    {
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        sut.SavedWorshipListNames.Should().BeEmpty("처음엔 저장된 게 없음");
+
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song") { Lyrics = "L" }]);
+        await sut.SaveWorshipListAsync("주일 1부"); // 저장하면 콤보에 바로 보여야 함.
+
+        sut.SavedWorshipListNames.Should().Contain("주일 1부", "저장 직후 세션 콤보에 반영");
+
+        // 다른 경로(직접 저장)로 추가된 목록도 콤보 열기(Refresh) 시 보인다.
+        await sut.SaveWorshipListAsync("주일 2부");
+        sut.RefreshSavedWorshipListNames();
+        sut.SavedWorshipListNames.Should().Contain(new[] { "주일 1부", "주일 2부" });
+    }
+
+    [Fact]
+    public void LoadSelectedWorshipListCommand_CanExecuteFollowsSelection()
+    {
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeFalse("고른 게 없으면 비활성");
+
+        sut.SelectedSavedWorshipList = "주일 1부";
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeTrue("고르면 활성");
+
+        sut.SelectedSavedWorshipList = "   ";
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeFalse("공백뿐이면 비활성");
+    }
+
+    [Fact]
+    public async Task LoadSelectedWorshipListCommand_LoadsTheSelectedList()
+    {
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        sut.LoadQueue([new LiveQueueItem("x", "X", "Song") { Lyrics = "원본" }]);
+        await sut.SaveWorshipListAsync("주일 1부");
+        sut.LoadQueue([new LiveQueueItem("other", "다른", "Song")]); // 큐를 바꿔 둠.
+
+        sut.SelectedSavedWorshipList = "주일 1부";
+        await sut.LoadSelectedWorshipListCommand.ExecuteAsync(null);
+
+        sut.Queue.Select(i => i.Id).Should().Equal(new[] { "x" }, "콤보로 고른 예배 순서가 적재됨(현재 큐 대체)");
+    }
+
+    [Fact]
+    public async Task RefreshSavedWorshipListNames_KeepsSelectionWhenNameStillPresent()
+    {
+        // 새로고침해도 여전히 있는 선택은 유지돼야 한다(콤보 ItemsSource Clear 로 선택이 풀리는 WPF Selector 동작 대비
+        // — VM 의 캡처/복원 로직을 잠근다. 실제 Selector 널링은 단위 테스트에 안 나타나지만, 복원 의도를 고정).
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
+        await sut.SaveWorshipListAsync("주일 1부");
+        await sut.SaveWorshipListAsync("주일 2부");
+        sut.SelectedSavedWorshipList = "주일 1부";
+
+        sut.RefreshSavedWorshipListNames();
+
+        sut.SelectedSavedWorshipList.Should().Be("주일 1부", "여전히 있는 선택은 유지");
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeTrue("선택 유지 → 불러오기 활성");
+    }
+
+    [Fact]
+    public async Task DeleteWorshipList_RemovesFromSessionCombo()
+    {
+        // 삭제하면 세션 콤보에서도 바로 빠진다(저장 경로와 대칭).
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
+        await sut.SaveWorshipListAsync("지울것");
+        sut.SavedWorshipListNames.Should().Contain("지울것");
+
+        sut.DeleteWorshipList("지울것");
+
+        sut.SavedWorshipListNames.Should().NotContain("지울것", "삭제 직후 세션 콤보에서 빠짐");
+    }
+
+    [Fact]
+    public async Task RefreshSavedWorshipListNames_ClearsSelectionWhenNameGone()
+    {
+        // 고른 목록이 (다른 창에서) 삭제돼 목록에서 사라지면, 콤보 새로고침 시 선택을 비운다(없는 목록 적재 방지).
+        var store = new InMemoryWorshipListStore();
+        var sut = CreateSut(worshipLists: store);
+        sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
+        await sut.SaveWorshipListAsync("임시");
+        sut.SelectedSavedWorshipList = "임시";
+
+        store.Delete("임시"); // 외부 삭제 시뮬레이션.
+        sut.RefreshSavedWorshipListNames();
+
+        sut.SelectedSavedWorshipList.Should().BeNull("사라진 목록은 선택 해제");
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeFalse();
+    }
+
     [Fact]
     public void MoveSelectedItemToTopAndBottom_RepositionsAndKeepsSelection()
     {

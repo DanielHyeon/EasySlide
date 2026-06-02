@@ -28,6 +28,16 @@ public partial class WorshipListPanel : UserControl
         InitializeComponent();
     }
 
+    // 세션 콤보를 열 때 저장된 예배 순서 목록을 새로고침한다(저장·삭제가 다른 창에서 일어나도 항상 최신 목록을 보여 주기 위해).
+    // 새로고침 로직은 검증된 VM.RefreshSavedWorshipListNames 가, 여기선 "콤보 열림" 제스처만 감지한다.
+    private void SessionCombo_DropDownOpened(object? sender, EventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.RefreshSavedWorshipListNames();
+        }
+    }
+
     // 우클릭 "이 항목 배경 이미지 → 이미지 선택..." — 파일 선택은 View(코드비하인드)에서, 경로 기록·서식 편집은 검증된 VM 이 맡는다.
     private void SelectItemBackgroundImage_Click(object sender, RoutedEventArgs e)
     {

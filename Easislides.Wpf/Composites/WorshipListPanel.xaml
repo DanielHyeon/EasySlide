@@ -23,7 +23,34 @@
                        Text="예배 순서"
                        Style="{StaticResource Type.Title3.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}"
-                       Margin="0,0,0,12" />
+                       Margin="0,0,0,8" />
+
+            <!--
+                세션 콤보(레거시 FrmMain 세션 콤보) — 저장된 예배 순서를 빠르게 골라 "불러오기"로 적재한다.
+                실수로 작업물을 날리지 않도록 콤보 선택만으로는 적재하지 않고, 명시적 버튼을 눌러야 적재한다.
+                콤보를 열 때 DropDownOpened 로 목록을 새로고침(코드비하인드 → 검증된 VM.RefreshSavedWorshipListNames).
+            -->
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0"
+                          x:Name="SessionCombo"
+                          DropDownOpened="SessionCombo_DropDownOpened"
+                          ItemsSource="{Binding SavedWorshipListNames}"
+                          SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
+                          ToolTip="저장된 예배 순서를 골라 '불러오기'로 적재합니다. 콤보를 열면 목록이 새로고침됩니다."
+                          AutomationProperties.Name="저장된 예배 순서 선택" />
+                <Button Grid.Column="1"
+                        Command="{Binding LoadSelectedWorshipListCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Margin="8,0,0,0"
+                        ToolTip="선택한 예배 순서를 불러옵니다(현재 큐를 대체)"
+                        AutomationProperties.Name="선택한 예배 순서 불러오기">
+                    <ui:SymbolIcon Symbol="FolderOpen24" />
+                </Button>
+            </Grid>
 
             <!--
                 예배 순서 도구 막대 — 선택 항목을 위/아래로 이동(재정렬)하거나 큐에서 제거.

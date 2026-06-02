@@ -102,7 +102,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 | Default(포맷 탭) | 기본 포맷 전체 | 🔴 인스펙터로 일부 대체 |
 
 ### 2.4 리스트 탭 (FrmMain 2 → WPF 1)
-- Worship List(`WorshipListItems` + 세션 콤보 + 노트) → 🟡 WorshipListPanel(세션 노트·세션 콤보 없음)
+- Worship List(`WorshipListItems` + 세션 콤보 + 노트) → 🟢 WorshipListPanel(세션 노트 + **세션 콤보(증분118 — 저장 목록 빠른 전환, 명시적 "불러오기" 버튼·콤보 열 때 새로고침·선택 캡처/복원)**)
 - **Praise Book**(`PraiseBookItems` 인터랙티브 목록 + CJK 그룹핑 + 추가/정렬/Clear/RTF·HTML 생성) → 🟢 **운영 UI 포팅 완료(증분44, 2026-06-02 재확인)**: PraiseBookIndexWindow(머리글자 CJK 그룹 색인·명명 저장/열기/삭제·HTML 내보내기·곡 더블클릭→예배순서 추가, MainWindow 에서 열림) + 문서 생성(RTF/HTML, `ImportExportService.PraiseBookExportOptions`·`WriteRtf`·`BuildPraiseBookHeading`). 즉 만들어 출력(문서)·운영 중 탐색·관리·저장 모두 가능. 책 안 개별 추가/Clear·legacy v3.2 만 후속. (※ 직전 "브라우저/관리 UI 전무" 표기는 stale 였음 — 코드/증분44 로그로 정정)
 
 ---

@@ -595,6 +595,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
         DeleteAppearanceTemplateCommand = new RelayCommand(DeleteAppearanceTemplate, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
         ResetOutputAppearanceCommand = new RelayCommand(ResetOutputAppearance);
+        // 세션 콤보(예배 순서 빠른 전환) — 콤보에서 고른 저장 목록을 명시적 "불러오기" 버튼으로 적재(자동 적재 안 함 = 실수로 작업물 날림 방지).
+        LoadSelectedWorshipListCommand = new AsyncRelayCommand(LoadSelectedWorshipListAsync, () => !string.IsNullOrWhiteSpace(SelectedSavedWorshipList));
+        RefreshSavedWorshipListNames();
         ToggleLyricsBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorBold, ActiveLyricsBold));
         ToggleLyricsItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorItalic, ActiveLyricsItalic));
         ToggleLyricsShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShadow, ActiveLyricsShadow));
@@ -752,6 +755,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
     public IRelayCommand DeleteAppearanceTemplateCommand { get; }
     public IRelayCommand ResetOutputAppearanceCommand { get; }
+    public IAsyncRelayCommand LoadSelectedWorshipListCommand { get; }
     public IRelayCommand ToggleLyricsBoldCommand { get; }
     public IRelayCommand ToggleLyricsItalicCommand { get; }
     public IRelayCommand ToggleLyricsShadowCommand { get; }
@@ -782,6 +786,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>최근 연/저장한 예배 순서 이름(최신순) — 파일 메뉴 "최근 예배 순서" 서브메뉴 바인딩(레거시 Recent Edits).</summary>
     public ObservableCollection<string> RecentWorshipLists { get; } = new();
+
+    /// <summary>저장된 모든 예배 순서 이름(가나다순) — 예배 순서 패널 세션 콤보 바인딩(레거시 FrmMain 세션 콤보). 콤보 열 때 새로고침된다.</summary>
+    public ObservableCollection<string> SavedWorshipListNames { get; } = new();
+
+    /// <summary>세션 콤보에서 고른 저장 예배 순서 이름. "불러오기" 버튼(LoadSelectedWorshipListCommand)으로 명시적 적재.</summary>
+    [ObservableProperty]
+    private string? _selectedSavedWorshipList;
 
     /// <summary>예배 순서 검증으로 발견한 문제 목록(없으면 비어 있음) — 도구 메뉴 "예배 순서 검증" 결과.</summary>
     public ObservableCollection<WorshipItemProblem> WorshipListProblems { get; } = new();
@@ -1393,6 +1404,45 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>저장된 예배 순서(워십 리스트) 이름 목록(레거시 FrmManageItemLists 대응 — G2).</summary>
     public IReadOnlyList<string> GetSavedWorshipLists() => _worshipLists.ListNames();
 
+    /// <summary>
+    /// 세션 콤보 목록(SavedWorshipListNames)을 저장된 예배 순서 이름으로 새로 채운다. 콤보를 열 때(View) 호출해 항상 최신 목록을 보여 준다.
+    /// 현재 고른 이름이 목록에서 사라졌으면 선택을 비운다(없어진 목록 적재 시도 방지).
+    /// </summary>
+    public void RefreshSavedWorshipListNames()
+    {
+        // 새로고침 전에 현재 선택을 기억한다 — 콤보의 ItemsSource 를 Clear 하면 WPF Selector 가
+        // "선택 항목이 사라졌다"며 SelectedItem 을 null 로 풀어 버리기 때문(TwoWay 라 VM 선택도 함께 풀림).
+        var previousSelection = SelectedSavedWorshipList;
+
+        SavedWorshipListNames.Clear();
+        foreach (var name in _worshipLists.ListNames())
+        {
+            SavedWorshipListNames.Add(name);
+        }
+
+        // 선택했던 이름이 여전히 있으면 되살리고(새로고침으로 선택이 사라지지 않게), 없으면(다른 창에서 삭제 등)
+        // 비운 채로 둔다(없는 목록을 "불러오기"로 가리키지 않게). RefreshAppearanceTemplateNames 와 동일한 캡처/복원 패턴.
+        SelectedSavedWorshipList =
+            previousSelection is not null && SavedWorshipListNames.Contains(previousSelection)
+                ? previousSelection
+                : null;
+    }
+
+    // 세션 콤보에서 고른 예배 순서를 명시적으로 적재한다(콤보 선택만으로는 적재 안 함 — "불러오기" 버튼이 호출).
+    private async Task LoadSelectedWorshipListAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedSavedWorshipList))
+        {
+            return;
+        }
+
+        await LoadWorshipListAsync(SelectedSavedWorshipList).ConfigureAwait(true);
+    }
+
+    // 콤보 선택이 바뀌면 "불러오기" 버튼의 활성 상태를 갱신한다(고른 게 있어야 활성).
+    partial void OnSelectedSavedWorshipListChanged(string? value)
+        => LoadSelectedWorshipListCommand.NotifyCanExecuteChanged();
+
     /// <summary>현재 예배 순서(큐)를 이름으로 저장한다.</summary>
     public async Task SaveWorshipListAsync(string name)
     {
@@ -1406,6 +1456,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             await _worshipLists.SaveAsync(name.Trim(), Queue.ToArray()).ConfigureAwait(true);
             RecordRecentWorshipList(name.Trim());
+            RefreshSavedWorshipListNames(); // 새로 저장한 목록이 세션 콤보에 바로 보이도록.
             StatusText = $"예배 순서 저장됨: {name.Trim()} ({Queue.Count}개)";
         }
         catch (ArgumentException)
@@ -1680,6 +1731,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _worshipLists.Delete(name.Trim());
+        RefreshSavedWorshipListNames(); // 삭제한 목록이 세션 콤보에서 바로 빠지도록(저장 경로와 대칭).
         StatusText = $"예배 순서 삭제됨: {name.Trim()}";
     }
 
@@ -1723,6 +1775,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return false;
         }
 
+        // 선택 중이던 이름이 바뀌었으면 세션 콤보 선택도 새 이름으로 따라가게 먼저 맞춘 뒤 목록을 새로고침한다.
+        if (string.Equals(SelectedSavedWorshipList, from, StringComparison.Ordinal))
+        {
+            SelectedSavedWorshipList = to;
+        }
+
+        RefreshSavedWorshipListNames(); // 바뀐 이름이 세션 콤보에 바로 반영되도록(저장·삭제 경로와 대칭).
         StatusText = $"예배 순서 이름 변경: {from} → {to}";
         return true;
     }
