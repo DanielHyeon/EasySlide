@@ -1001,6 +1001,22 @@
                             </ListBox.InputBindings>
                         </ListBox>
 
+                        <!-- 라이브러리 곡 목록 빈 상태 안내 — 곡을 한 번 불러왔는데(HasLoadedSongs) 표시할 곡이 0건일 때만.
+                             불러오기 전·로딩 중에는 뜨지 않는다. 문구는 상황(빈 폴더 / 검색 0건)에 따라 VM이 정해 준다.
+                             검색 빈 상태(154)와 똑같이 ListBox "다음"에 둬 z-order 안전, 클릭은 통과(IsHitTestVisible=False)라 더블클릭 추가를 막지 않는다. -->
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding Library.LibraryEmptyStateMessage}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Margin="16"
+                                   IsHitTestVisible="False"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   Visibility="{Binding Library.HasLibraryEmptyState, Converter={StaticResource BoolToVis}}"
+                                   AutomationProperties.Name="라이브러리 곡 없음" />
+
                         <TextBlock Grid.Row="5"
                                    Text="{Binding Library.StatusMessage}"
                                    Margin="0,8,0,0"

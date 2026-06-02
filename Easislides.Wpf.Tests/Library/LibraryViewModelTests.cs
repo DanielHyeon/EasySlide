@@ -485,6 +485,101 @@ public class LibraryViewModelTests
         sut.SelectedSong!.SongId.Should().Be(10);
     }
 
+    // ── 증분157: 라이브러리 곡 목록 빈 상태 안내(LibraryEmptyStateMessage / HasLibraryEmptyState) ──
+
+    [Fact]
+    public void LibraryEmptyState_BeforeAnyLoad_IsHidden()
+    {
+        // 아직 한 번도 안 불러온 처음 화면 — 곡이 0건이어도 "곡 없음" 안내를 띄우지 않는다(섣부른 안내 방지).
+        using var fixture = TempLibrarySettings.Create();
+        var sut = new LibraryViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+
+        sut.HasLibraryEmptyState.Should().BeFalse("불러오기 전에는 빈 상태 안내가 뜨면 안 됨");
+        sut.LibraryEmptyStateMessage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LibraryEmptyState_AfterLoadingEmptyFolder_ShowsEmptyFolderMessage()
+    {
+        // 폴더는 불러왔는데 곡이 0건 → "이 폴더에 곡이 없습니다." 안내.
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "빈 폴더", IsEnabled: true, SongCount: 0));
+        // SongsByFolder[1] 을 두지 않음 → GetSongsAsync 가 빈 목록을 돌려준다.
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.Songs.Should().BeEmpty();
+        sut.HasLibraryEmptyState.Should().BeTrue("폴더를 불러왔는데 곡이 0건이면 안내가 떠야 함");
+        sut.LibraryEmptyStateMessage.Should().Be("이 폴더에 곡이 없습니다.");
+    }
+
+    [Fact]
+    public async Task LibraryEmptyState_WhenSearchMatchesNothing_ShowsSearchMessageWithTerm()
+    {
+        // 곡이 있는 폴더를 불러온 뒤 아무 곡과도 안 맞는 검색어 → "'검색어'에 맞는 곡이 없습니다." 안내.
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 1));
+        repository.SongsByFolder[1] = [Song(10, "은혜로다", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.HasLibraryEmptyState.Should().BeFalse("로드 직후엔 곡이 있어 안내가 없어야 함");
+
+        sut.SearchText = "없는검색어zzz";
+
+        sut.Songs.Should().BeEmpty("검색 결과 0건");
+        sut.HasLibraryEmptyState.Should().BeTrue();
+        sut.LibraryEmptyStateMessage.Should().Be("'없는검색어zzz'에 맞는 곡이 없습니다.");
+    }
+
+    [Fact]
+    public async Task LibraryEmptyState_WhenFolderHasSongs_IsHidden()
+    {
+        // 표시할 곡이 있으면 안내는 숨김(빈 문자열).
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 1));
+        repository.SongsByFolder[1] = [Song(10, "은혜로다", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.Songs.Should().NotBeEmpty();
+        sut.HasLibraryEmptyState.Should().BeFalse("곡이 있으면 빈 상태 안내가 뜨면 안 됨");
+        sut.LibraryEmptyStateMessage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LibraryEmptyState_AfterClearLibraryOnInvalidPath_IsHidden_SoStatusBarExplains()
+    {
+        // 곡을 불러온 뒤 DB 경로가 무효가 되어 ClearLibrary 가 돌면, 빈 상태 안내는 숨겨야 한다.
+        // 원인은 "빈 폴더"가 아니라 "경로 없음"이므로, 오해 소지 오버레이 대신 상태바 메시지가 알리도록 한다.
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 1));
+        repository.SongsByFolder[1] = [Song(10, "은혜로다", folderNo: 1)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.HasLoadedSongs.Should().BeTrue("로드 후엔 '불러옴' 상태");
+
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, @"C:\no\such\__gone__.db");
+        await sut.LoadAsync();
+
+        sut.HasLoadedSongs.Should().BeFalse("경로 실패로 비우면 '불러옴' 상태가 해제돼야 함");
+        sut.HasLibraryEmptyState.Should().BeFalse("경로 실패로 비운 라이브러리에는 '곡 없음' 오버레이를 띄우지 않음");
+        sut.LibraryEmptyStateMessage.Should().BeEmpty();
+    }
+
     private static SongSummary Song(
         int id,
         string title,

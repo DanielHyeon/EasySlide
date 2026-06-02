@@ -38,10 +38,16 @@ public sealed partial class LibraryViewModel : ObservableObject
     // SettingsChanged 를 구독해 백킹 필드를 동기화해야 한다(지금은 구독 불필요).
     [ObservableProperty] private bool _useSongNumbering;
 
+    // 곡 목록을 한 번이라도 불러왔는지 — 불러오기 전(처음 화면·로딩 중)에는 "곡 없음" 안내를 띄우지 않기 위함.
+    // 빈 목록이 "아직 안 불러옴"인지 "정말 비었음"인지 구분하는 핵심 플래그(검색 빈 상태 HasSearched 와 같은 취지).
+    [ObservableProperty] private bool _hasLoadedSongs;
+
     public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
+        // 표시 곡 수가 바뀌면 "곡 없음" 빈 상태 안내 표시 여부도 다시 평가하도록 통지.
+        Songs.CollectionChanged += (_, _) => RaiseLibraryEmptyStateChanged();
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
         LoadSongsForSelectedFolderCommand = new AsyncRelayCommand(LoadSongsForSelectedFolderAsync, () => !IsBusy);
         MoveSelectedFolderUpCommand = new AsyncRelayCommand(MoveSelectedFolderUpAsync, CanMoveSelectedFolderUp);
@@ -59,6 +65,46 @@ public sealed partial class LibraryViewModel : ObservableObject
     // 곡 번호 표시 토글 시 설정에 저장한다(다음 실행에도 유지). 목록 텍스트는 다중 바인딩 변환기가 이 값을 보고 갱신한다.
     partial void OnUseSongNumberingChanged(bool value)
         => _settings.Set(EasiSettingKeys.UseSongNumbering, value);
+
+    // ── 라이브러리 곡 목록 빈 상태 안내 (검색 빈 상태 154 / 제목 빈 상태 155 와 같은 취지) ──
+    // 곡을 한 번이라도 불러온(HasLoadedSongs) 뒤에 "표시할 곡이 0건"일 때만 안내 문구를 준다.
+    // 처음 화면(아직 안 불러옴)이나 로딩 중(IsBusy)에는 빈 문자열 → 안내가 섣불리 뜨지 않는다.
+
+    /// <summary>
+    /// 곡 목록이 비었을 때 보여줄 안내 문구. 검색어가 있으면 "검색 결과 없음", 없으면 "빈 폴더" 문구를 돌려준다.
+    /// 불러오기 전·로딩 중·곡이 있을 때는 빈 문자열(안내 숨김).
+    /// </summary>
+    public string LibraryEmptyStateMessage
+    {
+        get
+        {
+            // 로딩 중이거나, 아직 한 번도 안 불러왔거나, 보여줄 곡이 있으면 안내를 띄우지 않는다.
+            if (IsBusy || !HasLoadedSongs || Songs.Count > 0)
+            {
+                return "";
+            }
+
+            var term = SearchText.Trim();
+            return term.Length > 0
+                ? $"'{term}'에 맞는 곡이 없습니다."   // 검색했는데 결과 0건.
+                : "이 폴더에 곡이 없습니다.";          // 폴더는 불러왔는데 곡이 0건.
+        }
+    }
+
+    /// <summary>빈 상태 안내를 표시할지(LibraryEmptyStateMessage 가 비어있지 않은지) — XAML Visibility 바인딩용.</summary>
+    public bool HasLibraryEmptyState => LibraryEmptyStateMessage.Length > 0;
+
+    // 빈 상태 안내는 IsBusy·HasLoadedSongs·Songs·SearchText 4가지 입력으로 정해진다.
+    // 그 입력이 바뀌는 모든 길목(아래 partial 메서드들 + 생성자의 Songs.CollectionChanged)에서 이 통지를 호출해
+    // "모든 입력이 각자 변경을 통지한다"는 단순한 규칙을 지킨다.
+    private void RaiseLibraryEmptyStateChanged()
+    {
+        OnPropertyChanged(nameof(LibraryEmptyStateMessage));
+        OnPropertyChanged(nameof(HasLibraryEmptyState));
+    }
+
+    /// <summary>곡을 처음 불러온 순간(또는 해제 시) 빈 상태 안내 표시 여부를 다시 평가한다.</summary>
+    partial void OnHasLoadedSongsChanged(bool value) => RaiseLibraryEmptyStateChanged();
 
     public ObservableCollection<SongFolderSummary> Folders { get; } = new();
 
@@ -497,6 +543,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         ApplySearch();
         UpdateStatus();
+        RaiseLibraryEmptyStateChanged(); // 검색어가 바뀌면 빈 상태 문구(검색어를 포함)도 다시 평가.
     }
 
     // 정렬 방식이 바뀌면 현재 목록을 다시 정렬해 표시(데이터 재조회 없이). 정렬 중에는 곡 수동 이동을 막으므로
@@ -515,6 +562,9 @@ public sealed partial class LibraryViewModel : ObservableObject
         CompactDatabaseCommand.NotifyCanExecuteChanged();
         NotifyFolderActionCanExecuteChanged();
         NotifyReorderCanExecuteChanged();
+        // 로딩이 끝나면(IsBusy=false) 비로소 "곡 없음" 안내를 평가해 띄운다.
+        // (로딩 중에는 곡 목록이 갱신돼도 안내를 숨기므로, 끝나는 이 시점의 재평가가 꼭 필요하다.)
+        RaiseLibraryEmptyStateChanged();
     }
 
     private async Task LoadSongsForSelectedFolderCoreAsync()
@@ -524,6 +574,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             _loadedSongs = [];
             ApplySearch();
             UpdateStatus();
+            HasLoadedSongs = true; // 불러오기 한 사이클을 마쳤다 — 빈 목록이 "아직 안 불러옴"이 아닌 권위 있는 상태가 된다.
             return;
         }
 
@@ -533,6 +584,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         TotalSongCount = _loadedSongs.Count;
         ApplySearch();
         UpdateStatus();
+        HasLoadedSongs = true; // 폴더의 곡을 불러왔다 — 이제 곡이 0건이면 "이 폴더에 곡이 없습니다" 안내 대상.
     }
 
     private async Task ReloadFoldersAndSelectAsync(int folderNo, int? songId)
@@ -625,6 +677,10 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     private void ClearLibrary(string message)
     {
+        // DB 경로 실패 등으로 라이브러리를 비울 때는 "불러옴" 상태부터 해제한다.
+        // 이래야 바로 아래 Songs.Clear() 통지 시점에도 빈 상태 안내가 잠깐조차 뜨지 않고,
+        // 대신 상태바(StatusMessage)가 진짜 원인(경로 없음 등)을 알린다.
+        HasLoadedSongs = false;
         Folders.Clear();
         Songs.Clear();
         AvailableInitials.Clear(); // 곡이 없으면 머리글자도 없음 — 점프 바도 함께 비운다(스트립이 stale 로 남지 않게).
