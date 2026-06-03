@@ -3798,6 +3798,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// 모든 설정을 기본값으로 초기화한다(레거시 Tools "Clear EasiSlides Registry Settings and Exit" 대응).
+    /// 설정이 꼬여 앱이 이상하게 동작할 때 쓰는 복구 탈출구 — 설정 창을 거치지 않고 한 번에 기본값으로 되돌린다.
+    /// 설정 파일을 기본값으로 덮어써 디스크에 즉시 저장한다(SettingsService.RestoreDefaults). 곡·성경 데이터는 건드리지 않는다.
+    /// 성공 여부를 돌려주며, 성공하면 호출부(View)가 확인 후 앱을 다시 시작한다(레거시는 종료).
+    /// </summary>
+    public bool ResetAllSettingsToDefaults() => _settings.RestoreDefaults().Succeeded;
+
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
     {
         if (ContainsOperationalSetting(args.ChangedKeys))

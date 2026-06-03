@@ -62,7 +62,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 - Edit: Add/Edit/Copy/Move/Delete/Select All/**Use Song Numbering**/Re-Arrange Song Folders → Use Song Numbering·Select All 등 인-셸 없음
 - View: EasiSlides Folder / **Show Notations in Preview** / Status Bar → 미포팅
 - Output: Start Show(**F12**=Go Live ✅)/Preview Go-Live-Move-Next(**F11**=송출 후 다음, 증분135 ✅)/Refresh/Black(**F9** ✅)/**Clear(F3** ✅)/Restart → F12·F11·F9·F3 매핑 완료(테스트 잠금). F5 는 WPF 에서 "다음 항목"으로 재배정(레거시 Restart 는 ⌘K 팔레트 "처음으로"). Refresh 는 팔레트 "출력 새로고침"(F-키 미배정)
-- Tools: Import/ImportFolder/Export/Recover/Empty/AddToUsages/ViewUsages/SmartMerge/**Compact&Repair**/**Clear All Formatting**/Clear Registry → Compact·ClearAllFormatting·ClearRegistry **미포팅**
+- Tools: Import/ImportFolder/Export/Recover/Empty/AddToUsages/ViewUsages/SmartMerge/**Compact&Repair**/**Clear All Formatting**/Clear Registry → Compact·ClearAllFormatting·ClearRegistry **모두 포팅**(증분40·153·159)
 - Help: Contents(F1)/Help-Web/Register/About → 창은 있으나 F1 등 미검증
 
 ### 2.2 인-셸 포맷팅 툴바 (FrmMain `Def_*`/`Ind_*` ~80컨트롤 → WPF 인스펙터 ~15)
@@ -227,7 +227,7 @@ Transpose Up/Down semitone(▲/▼), To Capo 0(원조 복귀), Show Notations(�
 
 ### 3.8 데이터 작업 (별도 창으로 대부분 포팅)
 
-Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **Compact&Repair ✅(2026-06-02 증분 40 — 백업 후 VACUUM, 도구 메뉴 "데이터베이스 압축·정리").** **Clear All Formatting ✅(2026-06-03 증분 153 — 예배 순서 우클릭 "전 항목 서식 지우기": 모든 곡·성경 항목의 항목별 FormatData 를 한 번에 비워 전역 기본으로 되돌림. PPT/미디어/공지·이미 서식 없는 항목은 건너뜀, 라이브 항목은 같은 절로 재송출. 단일 항목판 ClearSelectedItemFormatting 과 동일 종단 상태=FormatData null).** **Listing of Selected Folder ✅(레거시는 증분 44 PraiseBook Index 로 이미 포팅돼 있었음 — "찬양집 색인..." 창이 곧 이 기능: 선택 폴더 곡을 머리글자 색인으로 묶어 파일로 내보냄. 기존 gap "🔴"는 stale. 2026-06-03 증분 158 에서 레거시 형식 파리티로 RTF 내보내기 추가 — 저장 시 확장자 .html/.rtf 로 형식 선택. RTF 는 Word 편집·인쇄용, 한글은 \uN? 유니코드 이스케이프).** 단 Clear Registry 만 🔴 미포팅(레거시 "설정 초기화 후 종료" — 새 아키텍처는 레지스트리 아님, 매핑 설계 필요). (통합=별도창이라 "흩어짐"은 별개 과제.)
+Import/ImportFolder/Export/Generate RTF·HTML/Copy/Move/Delete/Recover/Empty/SmartMerge/Usages/Find → 🟢 WPF 창 존재. **Compact&Repair ✅(2026-06-02 증분 40 — 백업 후 VACUUM, 도구 메뉴 "데이터베이스 압축·정리").** **Clear All Formatting ✅(2026-06-03 증분 153 — 예배 순서 우클릭 "전 항목 서식 지우기": 모든 곡·성경 항목의 항목별 FormatData 를 한 번에 비워 전역 기본으로 되돌림. PPT/미디어/공지·이미 서식 없는 항목은 건너뜀, 라이브 항목은 같은 절로 재송출. 단일 항목판 ClearSelectedItemFormatting 과 동일 종단 상태=FormatData null).** **Listing of Selected Folder ✅(레거시는 증분 44 PraiseBook Index 로 이미 포팅돼 있었음 — "찬양집 색인..." 창이 곧 이 기능: 선택 폴더 곡을 머리글자 색인으로 묶어 파일로 내보냄. 기존 gap "🔴"는 stale. 2026-06-03 증분 158 에서 레거시 형식 파리티로 RTF 내보내기 추가 — 저장 시 확장자 .html/.rtf 로 형식 선택. RTF 는 Word 편집·인쇄용, 한글은 \uN? 유니코드 이스케이프).** **Clear Registry ✅(2026-06-03 증분 159 — 도구 메뉴 "모든 설정 초기화...": 확인 다이얼로그 후 `ISettingsService.RestoreDefaults()` 로 모든 설정을 기본값으로 되돌리고 앱을 다시 시작. 레거시 "Clear Registry Settings and Exit"의 현대화판 — 레지스트리 대신 설정 파일을 기본값으로 동기 저장, 닫을 때 창 위치 저장을 억제해 덮어쓰기 방지(레거시 SaveToRegistryOnClosing=false 와 동일). 곡·성경 데이터는 영향 없음).** **→ §3.8 데이터 작업 메뉴 전부 포팅 완료.** (통합=별도창이라 "흩어짐"은 별개 과제.)
 
 ### 3.9 키보드/후킹/단축키
 

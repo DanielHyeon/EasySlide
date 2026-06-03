@@ -151,6 +151,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ResetAllSettingsToDefaults_RevertsChangedSettings_AndReturnsTrue()
+    {
+        // 증분159 — 레거시 Tools "Clear Registry Settings" 대응. 바꿔 둔 설정이 기본값으로 되돌아오고(디스크 저장 포함)
+        // 성공을 알려야 한다(호출부 View 는 이 결과로 재시작 여부를 정한다).
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var defaultValue = settings.Get(EasiSettingKeys.AdvanceNextItem); // 손대기 전 기본값.
+        settings.Set(EasiSettingKeys.AdvanceNextItem, !defaultValue).Succeeded.Should().BeTrue(); // 기본값과 반대로 바꿔 둔다.
+        settings.Get(EasiSettingKeys.AdvanceNextItem).Should().Be(!defaultValue);
+        var sut = CreateSut(settings: settings);
+
+        var ok = sut.ResetAllSettingsToDefaults();
+
+        ok.Should().BeTrue("기본값 복원이 성공해야 함");
+        settings.Get(EasiSettingKeys.AdvanceNextItem).Should().Be(defaultValue, "초기화로 바꿨던 설정이 기본값으로 되돌아와야 함");
+    }
+
+    [Fact]
     public async Task SendToOutputAndNext_PublishesThenAdvances_EvenWhenAutoAdvanceOff()
     {
         // btnToOutputMoveNext: 자동 다음 설정이 꺼져 있어도 송출 후 선택이 다음 항목으로 이동한다.

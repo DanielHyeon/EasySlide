@@ -605,6 +605,14 @@
                           ToolTip="곡 데이터베이스의 빈 공간을 회수해 파일을 줄입니다(백업을 먼저 만듭니다).">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
                 </MenuItem>
+                <Separator />
+                <!-- 모든 설정 초기화(레거시 Tools "Clear EasiSlides Registry Settings and Exit") — 설정이 꼬여 앱이
+                     이상할 때 쓰는 복구 탈출구. 파괴적(되돌릴 수 없음)이라 확인 다이얼로그를 거치고, 초기화 후 앱을 다시 시작한다. -->
+                <MenuItem Header="모든 설정 초기화..."
+                          Click="ResetAllSettings_Click"
+                          ToolTip="모든 설정을 기본값으로 되돌리고 앱을 다시 시작합니다(곡·성경 데이터는 영향 없음). 설정이 꼬였을 때 쓰는 복구 기능입니다.">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Alert}" /></MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="도움말">

@@ -31,6 +31,9 @@ public partial class MainWindow : Window
     private bool _bibleLoadedOnce;
     private bool _searchLoadedOnce;
     private bool _fontsMergedOnce;
+    // "모든 설정 초기화"(복구)로 닫는 중인가 — true 면 OnClosing 에서 창 위치·패널 비율을 저장하지 않는다
+    // (안 그러면 방금 되돌린 기본값을 닫으면서 다시 덮어쓴다. 레거시 SaveToRegistryOnClosing=false 와 같은 취지).
+    private bool _suppressSettingsSaveOnClose;
 
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
@@ -872,6 +875,75 @@ public partial class MainWindow : Window
         window.ShowDialog();
     }
 
+    // 모든 설정 초기화(레거시 Tools "Clear EasiSlides Registry Settings and Exit") — 설정이 꼬여 앱이 이상할 때
+    // 쓰는 복구 탈출구. 파괴적(되돌릴 수 없음)이라 확인을 받은 뒤, 기본값으로 되돌리고 앱을 다시 시작한다.
+    private void ResetAllSettings_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var confirm = MessageBox.Show(
+            this,
+            "모든 설정을 기본값으로 초기화하고 앱을 다시 시작합니다.\n\n" +
+            "출력 화면·폰트·색·단축키 등 모든 사용자 설정이 사라집니다(곡·성경 데이터는 영향 없음).\n" +
+            "이 작업은 되돌릴 수 없습니다. 계속할까요?",
+            "모든 설정 초기화",
+            MessageBoxButton.OKCancel,
+            MessageBoxImage.Warning,
+            MessageBoxResult.Cancel); // 기본 선택은 '취소' — 실수로 Enter 쳐도 초기화되지 않게.
+        if (confirm != MessageBoxResult.OK)
+        {
+            return;
+        }
+
+        if (!viewModel.ResetAllSettingsToDefaults())
+        {
+            // 설정 파일 쓰기 실패(권한·잠김 등) — 알리고 앱은 그대로 둔다(엉뚱하게 재시작하지 않게).
+            MessageBox.Show(
+                this,
+                "설정 초기화에 실패했습니다(설정 파일 쓰기 권한·잠김을 확인하세요).",
+                "모든 설정 초기화",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
+        // 기본값이 디스크에 저장됐다 — 새 인스턴스를 띄우고 현재 인스턴스를 닫아 깨끗한 상태로 다시 시작한다.
+        // 닫을 때 창 위치·패널 비율을 다시 저장하면 방금 되돌린 기본값이 덮이므로, OnClosing 저장을 끈다(레거시와 동일).
+        _suppressSettingsSaveOnClose = true;
+
+        // 새 인스턴스를 띄워 재시작한다. 실행 파일 경로를 못 찾거나 실행이 실패하면(파일 잠김·정책 차단 등) 자동 재시작은
+        // 포기하되, 설정은 이미 기본값으로 저장됐으니 종료는 그대로 진행하고 수동 재실행을 안내한다(어정쩡한 상태 방지).
+        var restarted = false;
+        var exePath = Environment.ProcessPath;
+        if (!string.IsNullOrEmpty(exePath))
+        {
+            try
+            {
+                Process.Start(exePath);
+                restarted = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[설정 초기화] 재시작 실행 실패: {ex.Message}");
+            }
+        }
+
+        if (!restarted)
+        {
+            MessageBox.Show(
+                this,
+                "설정을 기본값으로 초기화했습니다. 앱을 종료하니 다시 실행해 주세요.",
+                "모든 설정 초기화",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        Application.Current.Shutdown();
+    }
+
     // 썸네일 로더 — 140px 폭으로 다운스케일 디코딩해 메모리를 아끼고 빠르게 그린다.
     // 디코딩 실패(잠김·손상·미지원)면 null → 갤러리는 파일명만 보여 준다(안전 강등).
     private static System.Windows.Media.ImageSource? LoadThumbnail(string path)
@@ -1086,8 +1158,13 @@ public partial class MainWindow : Window
     // 닫기 직전에 현재 창 크기·위치·최대화 상태와 좌측 패널 높이 비율을 설정에 저장한다(다음 실행 때 복원).
     protected override void OnClosing(CancelEventArgs e)
     {
-        SaveWindowPlacement();
-        SaveBrowserSplit();
+        // 모든 설정 초기화(복구)로 닫는 중이면 창 위치·패널 비율을 저장하지 않는다 — 방금 되돌린 기본값을 덮어쓰지 않게.
+        if (!_suppressSettingsSaveOnClose)
+        {
+            SaveWindowPlacement();
+            SaveBrowserSplit();
+        }
+
         base.OnClosing(e);
     }
 
