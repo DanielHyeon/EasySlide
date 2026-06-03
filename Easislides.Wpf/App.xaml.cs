@@ -120,6 +120,7 @@ public partial class App : Application
         services.AddTransient<HelpWindowViewModel>();
         services.AddTransient<RegistrationWindowViewModel>();
         services.AddTransient<OutputWindow>();
+        services.AddTransient<PreviewWindow>();
         services.AddTransient<LibraryWindow>();
         services.AddTransient<FolderEditorWindow>();
         services.AddTransient<SongEditorWindow>();
@@ -145,15 +146,14 @@ public partial class App : Application
         });
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
         // 스테이지(Preview) 모니터 — 회중용 출력과 별개로 워십 리더·밴드가 보는 확인 모니터(gap §3.1).
-        // surface 는 출력 창(OutputWindow)을 그대로 재사용한다(가사 렌더가 동일) — 단 미디어 attach 는 빼고(스테이지는 가사만),
-        // 세션은 PreviewWindowHost 가 정규화(Hidden→Active)해 회중 화면이 검정/비움 중에도 가사를 계속 보여 준다.
+        // surface 는 전용 PreviewWindow(가사 Region1/2 + 시계 + 다음 항목 오버레이) — 같은 OutputWindowViewModel 에
+        // 바인딩하되 출력의 전환 엔진·미디어는 쓰지 않는다. 세션은 PreviewWindowHost 가 정규화(Hidden→Active)해
+        // 회중 화면이 검정/비움 중에도 가사를 계속 보여 준다.
         services.AddSingleton<IPreviewWindowService, PreviewWindowService>();
         services.AddSingleton<PreviewWindowHost>(sp => new PreviewWindowHost(
             sp.GetRequiredService<IPreviewWindowService>(),
             sp.GetRequiredService<ILiveSessionService>(),
-            // surface = OutputWindow 재사용. ⚠️ 출력 factory(위)와 달리 AttachMedia 를 호출하지 말 것 —
-            // AttachableMediaPlaybackBackend 는 싱글톤이라 두 창이 같은 브리지를 다투면 마지막 Attach 가 이긴다(스테이지는 가사만).
-            () => sp.GetRequiredService<OutputWindow>(),
+            () => sp.GetRequiredService<PreviewWindow>(),
             sp.GetRequiredService<IOutputRenderer>(),
             sp.GetRequiredService<ISettingsService>()));
         services.AddTransient<MainViewModel>();

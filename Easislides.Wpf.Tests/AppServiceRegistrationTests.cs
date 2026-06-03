@@ -150,6 +150,9 @@ public class AppServiceRegistrationTests
             previewService.Should().BeOfType<PreviewWindowService>();
             previewService.Current.IsOpen.Should().BeFalse("스테이지 모니터는 기본으로 닫힌 채 시작(사용자가 열기 전)");
 
+            // 증분160-E — 스테이지 전용 창(PreviewWindow)이 DI 에 등록돼 surface factory 가 만들 수 있어야 한다.
+            provider.GetRequiredService<Easislides.Wpf.PreviewWindow>().Should().NotBeNull("스테이지 모니터 창이 DI 에 등록됨");
+
             previewHost.Should().NotBeNull();
             // 같은 설정 인스턴스를 주입받았는지(출력 호스트와 동일 검증).
             var hostSettingsField = typeof(PreviewWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
