@@ -85,13 +85,16 @@ public partial class PraiseBookIndexWindow : Window
         }
     }
 
-    private void ExportHtml_Click(object sender, RoutedEventArgs e)
+    // 색인을 파일로 내보낸다 — 레거시 "Listing of Selected Folder" 처럼 고른 확장자로 형식을 정한다:
+    // .rtf → RTF(Word 편집·인쇄용), 그 외(.html 등) → HTML(브라우저·인쇄용).
+    private void ExportIndex_Click(object sender, RoutedEventArgs e)
     {
+        var baseName = string.IsNullOrWhiteSpace(_viewModel.CurrentBookName) ? "찬양집색인" : _viewModel.CurrentBookName;
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "찬양집 색인 HTML 저장",
-            Filter = "HTML 문서 (*.html)|*.html|모든 파일 (*.*)|*.*",
-            FileName = string.IsNullOrWhiteSpace(_viewModel.CurrentBookName) ? "찬양집색인.html" : $"{_viewModel.CurrentBookName}.html",
+            Title = "찬양집 색인 저장",
+            Filter = "HTML 문서 (*.html)|*.html|서식 있는 텍스트 RTF (*.rtf)|*.rtf|모든 파일 (*.*)|*.*",
+            FileName = $"{baseName}.html",
             DefaultExt = ".html",
         };
 
@@ -102,7 +105,17 @@ public partial class PraiseBookIndexWindow : Window
 
         try
         {
-            System.IO.File.WriteAllText(dialog.FileName, _viewModel.BuildIndexHtml(), System.Text.Encoding.UTF8);
+            var isRtf = string.Equals(System.IO.Path.GetExtension(dialog.FileName), ".rtf", System.StringComparison.OrdinalIgnoreCase);
+            if (isRtf)
+            {
+                // RTF 본문은 \uN? 이스케이프라 전부 ASCII — BOM 없는 UTF-8 로 써 RTF 리더가 머리의 BOM 에 걸리지 않게.
+                System.IO.File.WriteAllText(dialog.FileName, _viewModel.BuildIndexRtf(), new System.Text.UTF8Encoding(false));
+            }
+            else
+            {
+                System.IO.File.WriteAllText(dialog.FileName, _viewModel.BuildIndexHtml(), System.Text.Encoding.UTF8);
+            }
+
             MessageBox.Show(this, $"색인을 저장했습니다:\n{dialog.FileName}", "찬양집 색인 내보내기", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (System.Exception ex)

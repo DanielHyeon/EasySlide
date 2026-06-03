@@ -64,6 +64,13 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         return _exporter.BuildHtml(title, Groups);
     }
 
+    /// <summary>현재 색인을 RTF(Word 편집·인쇄용) 문서 문자열로 만든다(레거시 "Listing of Selected Folder" 형식). 파일 I/O 없음 → 테스트 가능.</summary>
+    public string BuildIndexRtf()
+    {
+        var title = string.IsNullOrWhiteSpace(CurrentBookName) ? "찬양집 색인" : $"찬양집 — {CurrentBookName}";
+        return _exporter.BuildRtf(title, Groups);
+    }
+
     // 현재 목록을 머리글자 그룹 색인으로 다시 만든다.
     private void RebuildIndex()
     {

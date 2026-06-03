@@ -126,10 +126,11 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Button Click="ExportHtml_Click"
+            <Button Click="ExportIndex_Click"
                     Style="{StaticResource EsButton.Secondary}"
-                    Content="색인 내보내기(HTML)..."
-                    AutomationProperties.Name="찬양집 색인 HTML 내보내기" />
+                    Content="색인 내보내기..."
+                    ToolTip="저장 창에서 형식 선택: HTML(브라우저·인쇄) 또는 RTF(Word 편집)"
+                    AutomationProperties.Name="찬양집 색인 내보내기" />
 
             <Button Grid.Column="2"
                     Click="Close_Click"
