@@ -168,6 +168,31 @@ public class AppServiceRegistrationTests
         });
     }
 
+    [Fact]
+    public void ConfigureServices_MainViewModelAndPreviewHost_ShareSamePreviewServiceSingleton()
+    {
+        // 증분160-D — VM 의 스테이지 모니터 열기/닫기 명령이 실제 창을 띄우려면, VM 이 받는 IPreviewWindowService 가
+        // PreviewWindowHost 가 구독하는 그 싱글톤과 같은 인스턴스여야 한다(선택적 생성자 인자라도 DI 가 등록 싱글톤을 주입).
+        // 이게 조용히 깨지면(VM 이 독립 인스턴스를 만들면) Open/Close 가 창을 못 띄우므로 명시적으로 고정한다.
+        StaHelper.RunOnSta(() =>
+        {
+            using var settingsFolder = TempSettingsFolder.Create();
+            var services = new ServiceCollection();
+            var options = new SettingsServiceOptions(settingsFolder.SettingsPath, settingsFolder.BackupRoot);
+
+            App.ConfigureServices(services, options, Dispatcher.CurrentDispatcher);
+
+            using var provider = services.BuildServiceProvider();
+            var previewService = provider.GetRequiredService<IPreviewWindowService>();
+            var mainViewModel = provider.GetRequiredService<MainViewModel>();
+
+            var vmPreviewField = typeof(MainViewModel).GetField("_preview", BindingFlags.Instance | BindingFlags.NonPublic);
+            vmPreviewField.Should().NotBeNull();
+            vmPreviewField!.GetValue(mainViewModel).Should().BeSameAs(previewService,
+                "VM 명령이 호스트가 듣는 같은 서비스를 조작해야 스테이지 창이 실제로 열린다");
+        });
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)

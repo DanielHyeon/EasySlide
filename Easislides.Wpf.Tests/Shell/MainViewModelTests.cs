@@ -7461,6 +7461,72 @@ public class MainViewModelTests
         }
     }
 
+    // ── 증분160-D: 스테이지(Preview) 모니터 선택 + 열기/닫기 ──
+
+    [Fact]
+    public void RefreshPreviewDisplays_PopulatesCandidates_AndSelectsOne()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.PreviewDisplays.Should().NotBeEmpty("스테이지 모니터 후보 목록이 채워져야 함");
+        sut.SelectedPreviewDisplay.Should().NotBeNull("기본 스테이지 모니터가 선택돼야 함");
+    }
+
+    [Fact]
+    public void OpenStageMonitorCommand_OpensPreviewOnSelectedDisplay()
+    {
+        var preview = new PreviewWindowService();
+        var sut = CreateSut(preview: preview, seedSampleQueue: false);
+
+        sut.OpenStageMonitorCommand.Execute(null);
+
+        preview.Current.IsOpen.Should().BeTrue("스테이지 모니터 서비스가 열려야 함");
+        preview.Current.Display.Should().Be(sut.SelectedPreviewDisplay, "선택한 모니터에 열려야 함");
+        sut.IsStageMonitorOpen.Should().BeTrue("VM 의 열림 상태가 따라가야 함");
+    }
+
+    [Fact]
+    public void CloseStageMonitorCommand_ClosesPreview()
+    {
+        var preview = new PreviewWindowService();
+        var sut = CreateSut(preview: preview, seedSampleQueue: false);
+        sut.OpenStageMonitorCommand.Execute(null);
+
+        sut.CloseStageMonitorCommand.Execute(null);
+
+        preview.Current.IsOpen.Should().BeFalse();
+        sut.IsStageMonitorOpen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CloseStageMonitorCommand_DisabledUntilOpen()
+    {
+        var preview = new PreviewWindowService();
+        var sut = CreateSut(preview: preview, seedSampleQueue: false);
+
+        sut.CloseStageMonitorCommand.CanExecute(null).Should().BeFalse("닫혀 있으면 닫기 비활성");
+
+        sut.OpenStageMonitorCommand.Execute(null);
+
+        sut.CloseStageMonitorCommand.CanExecute(null).Should().BeTrue("열리면 닫기 활성");
+    }
+
+    [Fact]
+    public void SelectingDifferentPreviewDisplay_WhileOpen_MovesStageMonitor()
+    {
+        // 스테이지 창이 열린 채 다른 모니터를 고르면 그 모니터로 즉시 옮긴다(출력 모니터 이동과 같은 취지).
+        var primary = new OutputDisplay("p1", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var stage = new OutputDisplay("p2", "Stage", 1920, 0, 1920, 1080, 1);
+        var preview = new PreviewWindowService();
+        var sut = CreateSut(display: new FixedDisplayService(primary, stage), preview: preview, seedSampleQueue: false);
+        sut.OpenStageMonitorCommand.Execute(null); // 기본 선택(primary)에 열림
+
+        sut.SelectedPreviewDisplay = stage;        // 다른 모니터 선택 → 이동
+
+        preview.Current.IsOpen.Should().BeTrue();
+        preview.Current.Display.Should().Be(stage, "열린 채 모니터를 바꾸면 그 모니터로 이동해야 함");
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
@@ -7474,6 +7540,7 @@ public class MainViewModelTests
         WorshipListValidator? worshipValidator = null,
         LiveSessionService? liveSession = null,
         IOutputWindowService? output = null,
+        IPreviewWindowService? preview = null,
         bool seedSampleQueue = true)
     {
         output ??= new OutputWindowService();
@@ -7503,7 +7570,8 @@ public class MainViewModelTests
             appearanceTemplates ?? new InMemoryAppearanceTemplateStore(),
             songDetail ?? new AdminDatabaseRepository(),
             recentWorshipLists ?? new InMemoryRecentWorshipLists(),
-            worshipValidator);
+            worshipValidator,
+            preview);
 
         // 운영 기본 큐는 비어 있다(더미 시드 제거). 대부분의 테스트는 Queue[0] 등 채워진 큐를 가정하므로
         // CreateSut 가 기본으로 샘플 3항목을 시드해 기존 테스트를 보존한다. 빈 큐가 필요하면 seedSampleQueue:false.

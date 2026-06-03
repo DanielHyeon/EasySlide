@@ -22,6 +22,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionService _session;
     private readonly IOutputWindowService _output;
+    // 스테이지(Preview) 모니터 서비스 — 회중용 출력과 별개로 리더·밴드가 보는 확인 모니터를 열고/옮기고/닫는다(gap §3.1).
+    // DI 에선 PreviewWindowHost 와 같은 싱글톤이 주입돼, 여기서 Open/Close 하면 그 호스트가 실제 창을 띄운다.
+    private readonly IPreviewWindowService _preview;
     private readonly ILiveSafetyPrompt _safetyPrompt;
     private readonly ICommandTelemetry _telemetry;
     private readonly IDisplayService _display;
@@ -39,6 +42,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
+    // 스테이지(Preview) 모니터로 선택된 디스플레이 + 창 열림 여부(메뉴·버튼 활성 상태에 쓰임).
+    [ObservableProperty] private OutputDisplay? _selectedPreviewDisplay;
+    [ObservableProperty] private bool _isStageMonitorOpen;
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
     // 예배 순서 검증에서 문제가 하나라도 있으면 true — 좌측 패널의 경고 목록 표시 여부에 쓰인다.
     [ObservableProperty] private bool _hasWorshipListProblems;
@@ -551,10 +557,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IAppearanceTemplateStore appearanceTemplates,
         Data.IAdminSongDetailRepository songDetail,
         IRecentWorshipLists recentWorshipLists,
-        WorshipListValidator? worshipValidator = null)
+        WorshipListValidator? worshipValidator = null,
+        IPreviewWindowService? preview = null)
     {
         _session = session;
         _output = output;
+        // 스테이지 모니터 서비스 — DI 에선 PreviewWindowHost 와 같은 싱글톤이 주입된다(여기서 Open/Close 하면 그 호스트가 창을 띄움).
+        // 테스트에서 미주입이면 독립 인스턴스(상태머신만 — 창 호스트 없이 상태 변화만 검증).
+        _preview = preview ?? new PreviewWindowService();
         _safetyPrompt = safetyPrompt;
         _telemetry = telemetry;
         _display = display;
@@ -577,6 +587,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _session.SessionChanged += (_, e) => ApplyLiveSnapshot(e.Snapshot);
         _output.OutputChanged += OnOutputChanged;
+        _preview.PreviewChanged += OnPreviewChanged;
         _settings.SettingsChanged += OnSettingsChanged;
         // 큐가 바뀔 때마다 "비어 있음" 상태를 갱신한다(추가·제거·로드 등 모든 변경 경로를 한 곳에서 반영).
         Queue.CollectionChanged += (_, _) =>
@@ -598,6 +609,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
+        OpenStageMonitorCommand = new RelayCommand(OpenStageMonitor);
+        CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
@@ -750,11 +763,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 시작 시 큐는 비어 있다 — 과거의 더미 3항목 시드(SeedPlaceholderQueue)를 제거(§7 P0).
         // 운영자가 곡·성경·파일을 직접 추가하거나 "최근 예배 순서"로 불러온다. 좌측 패널이 빈 상태 안내를 보여 준다.
         RefreshOutputDisplays();
+        RefreshPreviewDisplays();
+        IsStageMonitorOpen = _preview.Current.IsOpen;
         RefreshAppearanceTemplateNames();
     }
 
     public ObservableCollection<LiveQueueItem> Queue { get; } = new();
     public ObservableCollection<OutputDisplay> OutputDisplays { get; } = new();
+    // 스테이지(Preview) 모니터 선택 후보 — 출력 모니터 목록과 같은 방식(IDisplayService)으로 채운다.
+    public ObservableCollection<OutputDisplay> PreviewDisplays { get; } = new();
 
     public LiveBarViewModel LiveBar { get; } = new();
 
@@ -762,6 +779,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public IRelayCommand OpenOutputCommand { get; }
     public IAsyncRelayCommand CloseOutputCommand { get; }
+    // 스테이지(Preview) 모니터 열기/닫기 — 선택한 모니터에 풀스크린으로 띄우거나 닫는다(회중 출력엔 영향 없음).
+    public IRelayCommand OpenStageMonitorCommand { get; }
+    public IRelayCommand CloseStageMonitorCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
     /// <summary>선택 항목을 출력으로 송출하고 곧바로 다음 항목으로 넘어간다(레거시 btnToOutputMoveNext — 자동 다음 설정과 무관).</summary>
@@ -2110,6 +2130,72 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _output.MoveTo(value, windowed: true);
         LiveBar.OutputMonitorName = value.Name;
         StatusText = $"출력 모니터 이동: {value.Name}";
+    }
+
+    // 스테이지(Preview) 모니터 선택 후보 목록을 채운다 — 출력 모니터 목록(RefreshOutputDisplays)과 같은 방식.
+    // 아직 영속화 키가 없어 세션 선택만 — 기본 선택은 출력과 같은 선호 모니터 규칙(GetPreferredOutputDisplay)을 재사용한다(사용자가 메뉴에서 바꿀 수 있음).
+    public void RefreshPreviewDisplays()
+    {
+        var preferredId = SelectedPreviewDisplay?.Id;
+        var displays = _display.GetDisplays();
+
+        PreviewDisplays.Clear();
+        foreach (var display in displays)
+        {
+            PreviewDisplays.Add(display);
+        }
+
+        var selected = GetPreferredOutputDisplay(preferredId, displays);
+        var matching = PreviewDisplays.FirstOrDefault(display =>
+            string.Equals(display.Id, selected.Id, StringComparison.OrdinalIgnoreCase)) ?? selected;
+        if (!PreviewDisplays.Contains(matching))
+        {
+            PreviewDisplays.Add(matching);
+        }
+
+        SelectedPreviewDisplay = matching;
+    }
+
+    // 스테이지 모니터를 선택한 디스플레이에 풀스크린(windowed:false)으로 띄운다 — 회중 출력 창과 별개의 창이다.
+    private void OpenStageMonitor()
+    {
+        var display = SelectedPreviewDisplay ?? GetPreferredOutputDisplay(null);
+        _preview.Open(display, windowed: false);
+        SelectedPreviewDisplay = display;
+        StatusText = $"스테이지 모니터 열림: {display.Name}";
+    }
+
+    // 스테이지 모니터를 닫는다 — 회중 출력과 무관(송출 안 함)하므로 출력 닫기(CloseOutputAsync)와 달리 라이브 안전 확인이 필요 없다.
+    private void CloseStageMonitor()
+    {
+        _preview.Close();
+        StatusText = "스테이지 모니터 닫힘";
+    }
+
+    // 스테이지 창 상태(열림/닫힘)가 바뀌면 메뉴·버튼 활성(IsStageMonitorOpen)을 따라가게 한다.
+    private void OnPreviewChanged(object? sender, PreviewWindowChangedEventArgs e)
+        => IsStageMonitorOpen = e.State.IsOpen;
+
+    // 스테이지 모니터로 닫기 명령은 창이 열려 있을 때만 가능 — 상태가 바뀌면 활성 상태를 갱신한다.
+    partial void OnIsStageMonitorOpenChanged(bool value)
+        => CloseStageMonitorCommand.NotifyCanExecuteChanged();
+
+    // 스테이지 모니터 선택이 바뀌면 — 창이 이미 열려 있을 때 그 모니터로 즉시 옮긴다(출력 OnSelectedOutputDisplayChanged 와 같은 취지).
+    // 닫혀 있으면 다음 열기 때 반영되므로 아무것도 안 한다. 같은 모니터(값 전체 동일)면 재이동하지 않는다(무한 이동 방지).
+    partial void OnSelectedPreviewDisplayChanged(OutputDisplay? value)
+    {
+        if (value is null || !_preview.Current.IsOpen)
+        {
+            return;
+        }
+
+        if (_preview.Current.Display is { } current && current == value)
+        {
+            return;
+        }
+
+        _preview.MoveTo(value, windowed: false);
+        StatusText = $"스테이지 모니터 이동: {value.Name}";
     }
 
     // PPT 렌더 크기 — 출력 창이 닫혀 있을 때의 가벼운 미리보기용 기본값(출력 미송출 상태).

@@ -151,6 +151,13 @@
                 <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
                 <MenuItem Header="현재 항목 처음으로" Command="{Binding RestartCurrentItemCommand}" InputGestureText="Ctrl+R" />
                 <Separator />
+                <!-- 스테이지(Preview) 모니터(gap §3.1) — 회중용 출력과 별개로 워십 리더·밴드가 보는 확인 모니터.
+                     선택한 모니터에 풀스크린으로 가사를 띄우되, 회중 화면이 검정/비움이어도 스테이지는 가사를 계속 보여 준다. -->
+                <MenuItem Header="스테이지 모니터 열기" Command="{Binding OpenStageMonitorCommand}">
+                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MonitorDual}" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="스테이지 모니터 닫기" Command="{Binding CloseStageMonitorCommand}" />
+                <Separator />
                 <!-- 출력 표시 토글(FrmMain View/Output "Show …" 토글 대응) — 기존 인-셸 설정·명령 재사용.
                      IsChecked 는 현재 상태(Active*)에 단방향 바인딩, 클릭은 토글 명령이 처리(체크 표시 동기화). -->
                 <MenuItem Header="위치 인디케이터 (N/M)"
@@ -1792,6 +1799,17 @@
                               SelectedItem="{Binding SelectedOutputDisplay, Mode=TwoWay}"
                               DisplayMemberPath="Name"
                               AutomationProperties.Name="출력 모니터 선택"
+                              MinHeight="36"
+                              Margin="0,4,0,16" />
+
+                    <!-- 스테이지(Preview) 모니터 선택 — 회중용 출력과 별개 모니터를 골라 리더 확인용으로 띄운다(gap §3.1). -->
+                    <TextBlock Text="스테이지 모니터"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <ComboBox ItemsSource="{Binding PreviewDisplays}"
+                              SelectedItem="{Binding SelectedPreviewDisplay, Mode=TwoWay}"
+                              DisplayMemberPath="Name"
+                              AutomationProperties.Name="스테이지 모니터 선택"
                               MinHeight="36"
                               Margin="0,4,0,16" />
 
