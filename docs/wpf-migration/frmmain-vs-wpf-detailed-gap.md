@@ -59,11 +59,11 @@
 WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트에 없는 FrmMain 메뉴 다수가 미구현 기능이라 흡수 자체가 불가**:
 
 - File: Worship Sessions / PraiseBooks / Listing of Selected Folder / Recent Edits → PraiseBooks·Recent Edits·Listing of Selected Folder 는 포팅("찬양집 색인..." 창=Listing, 증분44+158), **Worship Sessions 만 후속**
-- Edit: Add/Edit/Copy/Move/Delete/Select All/**Use Song Numbering**/Re-Arrange Song Folders → Use Song Numbering·Select All 등 인-셸 없음
-- View: EasiSlides Folder / **Show Notations in Preview** / Status Bar → 미포팅
+- Edit: Add/Edit/Copy/Move/Delete/Select All/**Use Song Numbering**/Re-Arrange Song Folders → **Use Song Numbering ✅**(보기 메뉴 토글, `Library.UseSongNumbering`)·**Re-Arrange ✅**(라이브러리 폴더 재정렬); 다중선택 Select All 만 후속
+- View: EasiSlides Folder / **Show Notations in Preview** / Status Bar → **EasiSlides Folder ✅**(보기 메뉴 "EasiSlides 폴더 열기", `OpenEasiSlidesFolder_Click`)·**코드/악상 표시 ✅**(출력 토글 `ActiveLyricsNotations`=레거시 Def_Notations); Status Bar 표시 토글·Preview 전용 노테이션만 후속
 - Output: Start Show(**F12**=Go Live ✅)/Preview Go-Live-Move-Next(**F11**=송출 후 다음, 증분135 ✅)/Refresh/Black(**F9** ✅)/**Clear(F3** ✅)/Restart → F12·F11·F9·F3 매핑 완료(테스트 잠금). F5 는 WPF 에서 "다음 항목"으로 재배정(레거시 Restart 는 ⌘K 팔레트 "처음으로"). Refresh 는 팔레트 "출력 새로고침"(F-키 미배정)
 - Tools: Import/ImportFolder/Export/Recover/Empty/AddToUsages/ViewUsages/SmartMerge/**Compact&Repair**/**Clear All Formatting**/Clear Registry → Compact·ClearAllFormatting·ClearRegistry **모두 포팅**(증분40·153·159)
-- Help: Contents(F1)/Help-Web/Register/About → 창은 있으나 F1 등 미검증
+- Help: Contents(F1)/Help-Web/Register/About → 창 존재 + **F1=도움말 ✅**(`CommandCatalog` 등록 + `CommandCatalogTests` F-키 파리티 `[Theory]` 테스트 잠금). Help-Web 만 후속
 
 ### 2.2 인-셸 포맷팅 툴바 (FrmMain `Def_*`/`Ind_*` ~80컨트롤 → WPF 인스펙터 ~15)
 
