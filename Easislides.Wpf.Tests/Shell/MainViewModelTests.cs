@@ -7527,6 +7527,50 @@ public class MainViewModelTests
         preview.Current.Display.Should().Be(stage, "열린 채 모니터를 바꾸면 그 모니터로 이동해야 함");
     }
 
+    [Fact]
+    public void RefreshPreviewDisplays_ReadsSavedPreviewMonitorId_AsDefaultSelection()
+    {
+        // 저장된 스테이지 모니터(PreviewMonitorId)를 다음 실행에서 기본 선택으로 복원한다.
+        var primary = new OutputDisplay("p1", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var stage = new OutputDisplay("p2", "Stage", 1920, 0, 1920, 1080, 1);
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.PreviewMonitorId, "p2").Succeeded.Should().BeTrue();
+
+        var sut = CreateSut(display: new FixedDisplayService(primary, stage), settings: settings, seedSampleQueue: false);
+
+        sut.SelectedPreviewDisplay!.Id.Should().Be("p2", "저장된 스테이지 모니터가 기본 선택돼야 함");
+    }
+
+    [Fact]
+    public void SelectingPreviewDisplay_PersistsPreviewMonitorId()
+    {
+        // 사용자가 콤보에서 스테이지 모니터를 (현재와 다른 걸로) 바꾸면 그 선택을 설정에 저장한다(설정 창 UI 가 없어 콤보 선택에서 바로 영속화).
+        var primary = new OutputDisplay("p1", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var stage = new OutputDisplay("p2", "Stage", 1920, 0, 1920, 1080, 1);
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        var sut = CreateSut(display: new FixedDisplayService(primary, stage), settings: settings, seedSampleQueue: false);
+        // 기본 선택과 다른 모니터를 고른다(같은 걸 다시 세팅하면 변경이 없어 영속화 경로를 안 탄다).
+        var target = sut.PreviewDisplays.First(display => display.Id != sut.SelectedPreviewDisplay!.Id);
+
+        sut.SelectedPreviewDisplay = target;
+
+        settings.Get(EasiSettingKeys.PreviewMonitorId).Should().Be(target.Id, "고른 스테이지 모니터가 설정에 저장돼야 함");
+    }
+
+    [Fact]
+    public void RefreshPreviewDisplays_WhenSavedMonitorDisconnected_DoesNotOverwriteSavedPreference()
+    {
+        // 저장된 스테이지 모니터(p2)가 분리된 채 시작해도 선호를 fallback(primary) 으로 덮어쓰지 않는다 — 재연결 시 복원되도록.
+        var primary = new OutputDisplay("p1", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.PreviewMonitorId, "p2").Succeeded.Should().BeTrue();
+
+        // p2 가 목록에 없음(분리됨) → Refresh 가 fallback(primary) 을 선택하지만 그 선택은 영속화하지 않는다.
+        var sut = CreateSut(display: new FixedDisplayService(primary), settings: settings, seedSampleQueue: false);
+
+        settings.Get(EasiSettingKeys.PreviewMonitorId).Should().Be("p2", "분리된 모니터 선호는 보존돼야 함");
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,

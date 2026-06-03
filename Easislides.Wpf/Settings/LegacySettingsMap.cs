@@ -58,6 +58,8 @@ public static class LegacySettingsMap
 
         Automated("DefaultOutputMonitorId", EasiSettingKeys.DefaultOutputMonitorId.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.String, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("OutputMonitorName", EasiSettingKeys.DefaultOutputMonitorId.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.String, "FrmOptions.SaveVariables", "Legacy dual-monitor output display name."),
+        // 스테이지(Preview) 모니터 Id — WPF 전용(레거시 등가 없음). import/export 라운드트립용 별칭.
+        Automated("PreviewMonitorId", EasiSettingKeys.PreviewMonitorId.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.String, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("UseSafetyConfirmations", EasiSettingKeys.UseSafetyConfirmations.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "WPF compatibility", "No WinForms equivalent; retained for WPF settings import."),
         Automated("ShowLyricsMonitorAlertBox", EasiSettingKeys.ShowLyricsMonitorAlertBox.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy lyrics monitor alert box toggle."),
         Automated("AdvanceNextItem", EasiSettingKeys.AdvanceNextItem.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy automatic next-item behavior."),

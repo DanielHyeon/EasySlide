@@ -39,6 +39,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly Data.IAdminSongDetailRepository _songDetail;
     // 명령 팔레트 실행에 쓰는 단축키 레지스트리 — BindShortcuts(앱 시작)에서 주입된다. 그 전엔 null.
     private ShortcutRegistry? _shortcutRegistry;
+    // 스테이지 모니터 목록 갱신(RefreshPreviewDisplays) 중인가 — 그때의 선택 변경은 사용자 입력이 아니므로
+    // PreviewMonitorId 를 영속화하지 않는다(분리된 모니터 fallback 으로 저장된 선호를 덮어쓰지 않게).
+    private bool _suppressPreviewMonitorPersist;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
@@ -2133,10 +2136,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // 스테이지(Preview) 모니터 선택 후보 목록을 채운다 — 출력 모니터 목록(RefreshOutputDisplays)과 같은 방식.
-    // 아직 영속화 키가 없어 세션 선택만 — 기본 선택은 출력과 같은 선호 모니터 규칙(GetPreferredOutputDisplay)을 재사용한다(사용자가 메뉴에서 바꿀 수 있음).
+    // 기본 선택은 저장된 PreviewMonitorId(있으면) → 없으면 선호 모니터 규칙(GetPreferredOutputDisplay).
     public void RefreshPreviewDisplays()
     {
         var preferredId = SelectedPreviewDisplay?.Id;
+        if (string.IsNullOrWhiteSpace(preferredId))
+        {
+            // 저장된 스테이지 모니터(있으면)를 기본 선택으로 — 다음 실행에도 같은 모니터를 고른다(출력 RefreshOutputDisplays 와 같은 취지).
+            preferredId = _settings.Get(EasiSettingKeys.PreviewMonitorId);
+        }
+
         var displays = _display.GetDisplays();
 
         PreviewDisplays.Clear();
@@ -2153,7 +2162,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             PreviewDisplays.Add(matching);
         }
 
-        SelectedPreviewDisplay = matching;
+        // 목록 갱신으로 인한 선택 변경은 사용자 입력이 아니므로 영속화하지 않는다 — 저장된 모니터가 분리돼
+        // fallback 이 들어와도 저장된 선호(PreviewMonitorId)를 덮어쓰지 않게(재연결 시 복원되도록).
+        _suppressPreviewMonitorPersist = true;
+        try
+        {
+            SelectedPreviewDisplay = matching;
+        }
+        finally
+        {
+            _suppressPreviewMonitorPersist = false;
+        }
     }
 
     // 스테이지 모니터를 선택한 디스플레이에 풀스크린(windowed:false)으로 띄운다 — 회중 출력 창과 별개의 창이다.
@@ -2184,7 +2203,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 닫혀 있으면 다음 열기 때 반영되므로 아무것도 안 한다. 같은 모니터(값 전체 동일)면 재이동하지 않는다(무한 이동 방지).
     partial void OnSelectedPreviewDisplayChanged(OutputDisplay? value)
     {
-        if (value is null || !_preview.Current.IsOpen)
+        if (value is null)
+        {
+            return;
+        }
+
+        // 사용자가 콤보에서 직접 고른 경우에만 영속화한다 — 목록 갱신(RefreshPreviewDisplays)의 프로그램적 선택은 제외해
+        // 분리된 모니터 fallback 으로 저장된 선호를 덮어쓰지 않게. 출력은 설정 창에서 저장하지만 스테이지는 설정 창 UI 가
+        // 없어 여기(콤보 선택)서 바로 영속화한다(다음 실행에도 같은 모니터를 기본 선택).
+        if (!_suppressPreviewMonitorPersist)
+        {
+            _settings.Set(EasiSettingKeys.PreviewMonitorId, value.Id);
+        }
+
+        // 창이 이미 열려 있으면 그 모니터로 즉시 옮긴다(닫혀 있으면 다음 열기 때 반영). 같은 모니터(값 전체 동일)면 재이동 안 함(무한 이동 방지).
+        if (!_preview.Current.IsOpen)
         {
             return;
         }

@@ -221,6 +221,8 @@ public static class EasiSettingKeys
     public static readonly SettingKey<InterfaceSize> InterfaceSize =
         new("appearance.interfaceSize", Easislides.Wpf.Theme.InterfaceSize.Standard);
     public static readonly SettingKey<string> DefaultOutputMonitorId = new("liveOutput.defaultOutputMonitorId", "");
+    // 스테이지(Preview) 모니터 — 마지막으로 고른 모니터 Id 를 기억해 다음 실행에도 같은 모니터를 기본 선택한다(출력 DefaultOutputMonitorId 와 같은 취지).
+    public static readonly SettingKey<string> PreviewMonitorId = new("liveOutput.previewMonitorId", "");
     public static readonly SettingKey<bool> UseSafetyConfirmations = new("liveOutput.useSafetyConfirmations", true);
     public static readonly SettingKey<bool> ShowLyricsMonitorAlertBox = new("liveOutput.showLyricsMonitorAlertBox", false);
     public static readonly SettingKey<bool> AdvanceNextItem = new("liveOutput.advanceNextItem", false);
@@ -399,6 +401,7 @@ public static class EasiSettingKeys
         Theme,
         InterfaceSize,
         DefaultOutputMonitorId,
+        PreviewMonitorId,
         UseSafetyConfirmations,
         ShowLyricsMonitorAlertBox,
         AdvanceNextItem,
@@ -521,6 +524,9 @@ public sealed record AppearanceSettings
 public sealed record LiveOutputSettings
 {
     public string DefaultOutputMonitorId { get; init; } = EasiSettingKeys.DefaultOutputMonitorId.DefaultValue;
+
+    // 스테이지(Preview) 모니터로 마지막에 고른 모니터 Id(없으면 빈 문자열 → 기본 선호 모니터).
+    public string PreviewMonitorId { get; init; } = EasiSettingKeys.PreviewMonitorId.DefaultValue;
 
     public bool UseSafetyConfirmations { get; init; } = EasiSettingKeys.UseSafetyConfirmations.DefaultValue;
 
@@ -880,6 +886,15 @@ public sealed class SettingsService : ISettingsService
             RequireNoControlCharacters(
                 candidate.LiveOutput.DefaultOutputMonitorId,
                 EasiSettingKeys.DefaultOutputMonitorId.Id,
+                issues);
+        }
+
+        // 스테이지(Preview) 모니터 Id 도 출력과 같게 제어문자 검사(손상·편집된 settings.json Import 방어).
+        if (!string.IsNullOrWhiteSpace(candidate.LiveOutput.PreviewMonitorId))
+        {
+            RequireNoControlCharacters(
+                candidate.LiveOutput.PreviewMonitorId,
+                EasiSettingKeys.PreviewMonitorId.Id,
                 issues);
         }
 
@@ -1492,6 +1507,7 @@ public sealed class SettingsService : ISettingsService
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
             "liveOutput.defaultOutputMonitorId" => snapshot.LiveOutput.DefaultOutputMonitorId,
+            "liveOutput.previewMonitorId" => snapshot.LiveOutput.PreviewMonitorId,
             "liveOutput.useSafetyConfirmations" => snapshot.LiveOutput.UseSafetyConfirmations,
             "liveOutput.showLyricsMonitorAlertBox" => snapshot.LiveOutput.ShowLyricsMonitorAlertBox,
             "liveOutput.advanceNextItem" => snapshot.LiveOutput.AdvanceNextItem,
@@ -1635,6 +1651,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.defaultOutputMonitorId" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { DefaultOutputMonitorId = Cast<string>(keyId, value) },
+            },
+            "liveOutput.previewMonitorId" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { PreviewMonitorId = Cast<string>(keyId, value) },
             },
             "liveOutput.useSafetyConfirmations" => snapshot with
             {
