@@ -129,6 +129,45 @@ public class AppServiceRegistrationTests
         });
     }
 
+    [Fact]
+    public void ConfigureServices_RegistersPreviewStageMonitor_ClosedAndSettingsBacked()
+    {
+        // 증분160-C — 스테이지(Preview) 모니터 서비스·호스트가 DI 에 등록되고, 기본으로 닫힌 채 시작하며,
+        // 출력 호스트와 같은 설정 인스턴스를 주입받는지 검증. surface 는 OutputWindow 재사용(여기선 창을 만들지 않으므로 안전).
+        StaHelper.RunOnSta(() =>
+        {
+            using var settingsFolder = TempSettingsFolder.Create();
+            var services = new ServiceCollection();
+            var options = new SettingsServiceOptions(settingsFolder.SettingsPath, settingsFolder.BackupRoot);
+
+            App.ConfigureServices(services, options, Dispatcher.CurrentDispatcher);
+
+            using var provider = services.BuildServiceProvider();
+            var settings = provider.GetRequiredService<ISettingsService>();
+            var previewService = provider.GetRequiredService<IPreviewWindowService>();
+            var previewHost = provider.GetRequiredService<PreviewWindowHost>();
+
+            previewService.Should().BeOfType<PreviewWindowService>();
+            previewService.Current.IsOpen.Should().BeFalse("스테이지 모니터는 기본으로 닫힌 채 시작(사용자가 열기 전)");
+
+            previewHost.Should().NotBeNull();
+            // 같은 설정 인스턴스를 주입받았는지(출력 호스트와 동일 검증).
+            var hostSettingsField = typeof(PreviewWindowHost).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
+            hostSettingsField.Should().NotBeNull();
+            hostSettingsField!.GetValue(previewHost).Should().BeSameAs(settings);
+
+            // 스테이지가 회중과 **같은 라이브 세션·렌더러 싱글톤**을 봐야 한다 — 누군가 AddTransient 로 바꾸면
+            // 스테이지/출력이 서로 다른 세션을 보는 회귀가 생기므로 동일 인스턴스를 고정한다.
+            var hostSessionField = typeof(PreviewWindowHost).GetField("_session", BindingFlags.Instance | BindingFlags.NonPublic);
+            hostSessionField!.GetValue(previewHost).Should().BeSameAs(provider.GetRequiredService<ILiveSessionService>());
+            var hostRendererField = typeof(PreviewWindowHost).GetField("_renderer", BindingFlags.Instance | BindingFlags.NonPublic);
+            hostRendererField!.GetValue(previewHost).Should().BeSameAs(provider.GetRequiredService<IOutputRenderer>());
+
+            // 스테이지 서비스는 싱글톤 — 호스트가 주입받은 것과 컨테이너가 주는 것이 같은 인스턴스.
+            provider.GetRequiredService<IPreviewWindowService>().Should().BeSameAs(previewService);
+        });
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)

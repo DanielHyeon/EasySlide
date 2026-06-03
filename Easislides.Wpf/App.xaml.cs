@@ -144,6 +144,18 @@ public partial class App : Application
             return window;
         });
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
+        // 스테이지(Preview) 모니터 — 회중용 출력과 별개로 워십 리더·밴드가 보는 확인 모니터(gap §3.1).
+        // surface 는 출력 창(OutputWindow)을 그대로 재사용한다(가사 렌더가 동일) — 단 미디어 attach 는 빼고(스테이지는 가사만),
+        // 세션은 PreviewWindowHost 가 정규화(Hidden→Active)해 회중 화면이 검정/비움 중에도 가사를 계속 보여 준다.
+        services.AddSingleton<IPreviewWindowService, PreviewWindowService>();
+        services.AddSingleton<PreviewWindowHost>(sp => new PreviewWindowHost(
+            sp.GetRequiredService<IPreviewWindowService>(),
+            sp.GetRequiredService<ILiveSessionService>(),
+            // surface = OutputWindow 재사용. ⚠️ 출력 factory(위)와 달리 AttachMedia 를 호출하지 말 것 —
+            // AttachableMediaPlaybackBackend 는 싱글톤이라 두 창이 같은 브리지를 다투면 마지막 Attach 가 이긴다(스테이지는 가사만).
+            () => sp.GetRequiredService<OutputWindow>(),
+            sp.GetRequiredService<IOutputRenderer>(),
+            sp.GetRequiredService<ISettingsService>()));
         services.AddTransient<MainViewModel>();
         services.AddTransient<MainWindow>();
         services.AddTransient<DemoWindow>();
@@ -197,6 +209,8 @@ public partial class App : Application
 
         Services = services.BuildServiceProvider();
         _ = Services.GetRequiredService<IOutputWindowHost>();
+        // 스테이지(Preview) 모니터 호스트도 미리 띄워 세션·창 상태 구독을 시작한다(창은 사용자가 열기 전엔 닫힌 채 대기 — 160-D 에서 열기 명령 추가).
+        _ = Services.GetRequiredService<PreviewWindowHost>();
 
         if (!useDemo)
         {
