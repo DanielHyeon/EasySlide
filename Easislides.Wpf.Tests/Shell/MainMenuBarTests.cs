@@ -287,12 +287,29 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"PraiseBook\"", "Praise Book should be a first-screen lower-left role");
         xaml.Should().Contain("x:Name=\"PraiseBookTab\"", "inline Praise Book tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlinePraiseBookSavedBooksCombo\"", "saved Praise Books must be loadable from the main shell");
-        xaml.Should().Contain("ItemsSource=\"{Binding Groups}\"", "Praise Book index groups should render inline");
-        xaml.Should().Contain("MouseLeftButtonDown=\"InlinePraiseBookEntry_MouseLeftButtonDown\"", "double-clicking an index entry should add it to Worship List");
+        xaml.Should().Contain("Tag=\"PraiseBook\"", "PraiseBook combo role should remain explicit");
+        xaml.Should().Contain("x:Name=\"PB_Manage\"", "Praise Book toolbar should expose FrmMain PB_Manage");
+        xaml.Should().Contain("x:Name=\"PB_Add\"", "Praise Book toolbar should expose FrmMain PB_Add");
+        xaml.Should().Contain("x:Name=\"PB_WordCount\"", "Praise Book toolbar should expose FrmMain PB_WordCount");
+        xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
+        xaml.Should().Contain("x:Name=\"PB_Word\"", "Praise Book toolbar should expose FrmMain PB_Word");
+        xaml.Should().Contain("x:Name=\"PB_Html\"", "Praise Book toolbar should expose FrmMain PB_Html");
+        xaml.Should().Contain("x:Name=\"PraiseBookItems\"", "Praise Book entries should render as a FrmMain-style ListView surface");
+        xaml.Should().Contain("Tag=\"PraiseBookItems\"", "PraiseBookItems role should remain explicit");
+        xaml.Should().Contain("ItemsSource=\"{Binding Entries}\"", "flat PraiseBookItems should bind to the current book entries");
+        xaml.Should().Contain("MouseDoubleClick=\"InlinePraiseBookItems_MouseDoubleClick\"", "double-clicking a PraiseBook item should add it to Worship List");
+        xaml.Should().Contain("x:Name=\"CMenuPraiseB\"", "PraiseBookItems should expose the FrmMain context menu");
+        xaml.Should().Contain("x:Name=\"CMenuPraiseB_SelectAll\"", "PraiseBook context menu should expose Select All");
+        xaml.Should().Contain("x:Name=\"CMenuPraiseB_UnselectAll\"", "PraiseBook context menu should expose Unselect All");
+        xaml.Should().Contain("x:Name=\"CMenuPraiseB_Clear\"", "PraiseBook context menu should expose Clear PraiseBook List");
+        xaml.Should().Contain("x:Name=\"CMenuPraiseB_Edit\"", "PraiseBook context menu should expose Edit item");
 
         code.Should().Contain("EnsureInlinePraiseBookLoadedOnce(viewModel)", "Praise Book tab should lazy-load on first selection");
         code.Should().Contain("PraiseBookTab.DataContext = _inlinePraiseBook", "inline Praise Book tab should bind to PraiseBookIndexViewModel");
         code.Should().Contain("InlinePraiseBookOpenBook_Click", "saved Praise Books should open from the inline tab");
+        code.Should().Contain("InlinePraiseBookAddSelected_Click", "PB_Add should add the selected Folders song to the inline PraiseBook");
+        code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
+        code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
     }
 

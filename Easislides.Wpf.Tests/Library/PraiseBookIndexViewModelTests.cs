@@ -50,6 +50,7 @@ public class PraiseBookIndexViewModelTests
             new PraiseBookIndexEntry("하늘", 2));
 
         sut.Groups.Select(g => g.Key).Should().Equal("ㄱ", "ㅎ");
+        sut.Entries.Select(entry => entry.Title).Should().Equal("가나", "하늘");
         sut.StatusText.Should().Contain("2곡");
     }
 
@@ -99,7 +100,49 @@ public class PraiseBookIndexViewModelTests
         await sut.OpenBookCommand.ExecuteAsync("저녁예배");
 
         sut.Groups.Select(g => g.Key).Should().Equal("ㅂ"); // 바다=ㅂ 그룹으로 교체
+        sut.Entries.Should().ContainSingle().Which.Title.Should().Be("바다");
         sut.CurrentBookName.Should().Be("저녁예배");
+    }
+
+    [Fact]
+    public void AddEntry_AppendsToCurrentEntriesAndRebuildsFlatList()
+    {
+        var sut = CreateSut(new FakePraiseBookStore(), new PraiseBookIndexEntry("가나", 1));
+
+        var added = sut.AddEntry(new PraiseBookIndexEntry("하늘", 2, SongId: 9));
+
+        added.Should().BeTrue();
+        sut.Entries.Select(entry => entry.Title).Should().Equal("가나", "하늘");
+        sut.Groups.Select(group => group.Key).Should().Equal("ㄱ", "ㅎ");
+        sut.StatusText.Should().Contain("하늘");
+    }
+
+    [Fact]
+    public void RemoveEntries_RemovesSelectedRowsAndRebuildsGroups()
+    {
+        var sut = CreateSut(
+            new FakePraiseBookStore(),
+            new PraiseBookIndexEntry("가나", 1),
+            new PraiseBookIndexEntry("하늘", 2));
+
+        var removed = sut.RemoveEntries([sut.Entries.Single(entry => entry.Title == "가나")]);
+
+        removed.Should().Be(1);
+        sut.Entries.Should().ContainSingle().Which.Title.Should().Be("하늘");
+        sut.Groups.Select(group => group.Key).Should().Equal("ㅎ");
+    }
+
+    [Fact]
+    public void ClearEntries_EmptiesCurrentBookSurface()
+    {
+        var sut = CreateSut(new FakePraiseBookStore(), new PraiseBookIndexEntry("가나", 1));
+
+        var removed = sut.ClearEntries();
+
+        removed.Should().Be(1);
+        sut.Entries.Should().BeEmpty();
+        sut.Groups.Should().BeEmpty();
+        sut.StatusText.Should().Contain("비웠습니다");
     }
 
     [Fact]

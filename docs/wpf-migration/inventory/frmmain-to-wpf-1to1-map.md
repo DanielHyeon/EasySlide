@@ -70,11 +70,12 @@
 | `WL_Delete` | remove selected | implemented | 3 | keep Delete key tests |
 | `WL_Word`, `WL_Notes` | no full inline target | missing | 5/7 | export/notes decision needed |
 | `CMenuWorship_*` | WPF context menu | partial | 3/4 | select all, clear, edit, play, play on output, usage |
-| `tabPraiseBook` | `Praise Book` tab | partial | 2/3 | real list load and add/delete/export |
-| `PraiseBook` | `InlinePraiseBookSavedBooksCombo` | partial | 2 | verify real praise book source |
-| `PraiseBookItems` | `PraiseBook` grouped list | partial | 3 | exact item list behavior, double-click/add/delete |
-| `PB_Manage`, `PB_Add`, `PB_Delete` | WPF buttons | partial | 3 | management and item operations |
-| `PB_Word`, `PB_Html`, `PB_WordCount` | no full inline target | missing | 5/7 | export/count parity |
+| `tabPraiseBook` | `Praise Book` tab | partial | 2/3 | saved book load plus FrmMain-style item surface now visible; exact legacy `.esp` template management still incomplete |
+| `PraiseBook` | `InlinePraiseBookSavedBooksCombo` (`Tag=PraiseBook`) | partial | 2 | saved PraiseBook names load from WPF store; verify legacy `C:\EasiSlides` `.esp` source |
+| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView, double-click add-to-Worship, delete/clear/select actions exist; exact preview-on-selection and drag insert still incomplete |
+| `PB_Manage`, `PB_Add`, `PB_Delete` | `PB_Manage`, `PB_Add`, `PB_Delete` | partial | 3 | manage window, add selected Folders song, delete selected rows are wired |
+| `PB_Word`, `PB_Html`, `PB_WordCount` | `PB_Word`, `PB_Html`, `PB_WordCount` | partial | 5/7 | HTML/RTF export wired; WordCount button exposed but exact CJK word-count sorting still disabled |
+| `CMenuPraiseB_*` | `CMenuPraiseB`, `CMenuPraiseB_SelectAll`, `CMenuPraiseB_UnselectAll`, `CMenuPraiseB_Clear`, `CMenuPraiseB_Edit` | partial | 3 | menu names/order/actions are wired; edit opens library context rather than direct editor |
 
 ## 4. Preview
 

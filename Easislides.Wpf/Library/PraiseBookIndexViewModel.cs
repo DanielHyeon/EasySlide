@@ -49,6 +49,8 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
 
     public ObservableCollection<PraiseBookIndexGroup> Groups { get; } = new();
 
+    public ObservableCollection<PraiseBookIndexEntry> Entries { get; } = new();
+
     public ObservableCollection<string> SavedBooks { get; } = new();
 
     public IAsyncRelayCommand<string> SaveAsCommand { get; }
@@ -78,8 +80,16 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         var groups = _indexService.BuildIndex(_currentEntries);
         foreach (var group in groups)
         {
-            Groups.Add(group);
+                Groups.Add(group);
         }
+
+        Entries.Clear();
+        foreach (var entry in groups.SelectMany(group => group.Entries))
+        {
+            Entries.Add(entry);
+        }
+
+        _currentEntries = Entries.ToList();
 
         var total = groups.Sum(group => group.Entries.Count);
         StatusText = total == 0
@@ -142,5 +152,70 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
 
         RefreshSavedBooks();
         StatusText = $"찬양집 삭제됨: {name}";
+    }
+
+    public bool AddEntry(PraiseBookIndexEntry? entry)
+    {
+        if (entry is null || string.IsNullOrWhiteSpace(entry.Title))
+        {
+            return false;
+        }
+
+        _currentEntries = _currentEntries.Concat([entry]).ToList();
+        RebuildIndex();
+        StatusText = $"찬양집 항목 추가: {entry.Title}";
+        return true;
+    }
+
+    public int RemoveEntries(IEnumerable<PraiseBookIndexEntry>? entries)
+    {
+        if (entries is null)
+        {
+            return 0;
+        }
+
+        var toRemove = entries.Where(entry => entry is not null).ToList();
+        if (toRemove.Count == 0)
+        {
+            return 0;
+        }
+
+        var remaining = _currentEntries.ToList();
+        var removed = 0;
+        foreach (var entry in toRemove)
+        {
+            var index = remaining.FindIndex(candidate => candidate == entry);
+            if (index < 0)
+            {
+                continue;
+            }
+
+            remaining.RemoveAt(index);
+            removed++;
+        }
+
+        if (removed == 0)
+        {
+            return 0;
+        }
+
+        _currentEntries = remaining;
+        RebuildIndex();
+        StatusText = $"찬양집 항목 삭제: {removed}곡";
+        return removed;
+    }
+
+    public int ClearEntries()
+    {
+        var removed = _currentEntries.Count;
+        if (removed == 0)
+        {
+            return 0;
+        }
+
+        _currentEntries = [];
+        RebuildIndex();
+        StatusText = "찬양집 목록을 비웠습니다.";
+        return removed;
     }
 }

@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Settings;
@@ -1219,6 +1220,54 @@ public partial class MainWindow : Window
         await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name);
     }
 
+    private async void InlinePraiseBookAddSelected_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        EnsureInlinePraiseBookLoadedOnce(viewModel);
+        if (_inlinePraiseBook is null)
+        {
+            return;
+        }
+
+        if (viewModel.Library.SelectedSong is not { } song)
+        {
+            _inlinePraiseBook.StatusText = "추가할 곡을 Folders 탭에서 선택하세요.";
+            return;
+        }
+
+        if (_inlinePraiseBook.AddEntry(new PraiseBookIndexEntry(song.Title, song.SongNumber, song.SongId)))
+        {
+            await SaveInlinePraiseBookIfNamedAsync();
+        }
+    }
+
+    private async void InlinePraiseBookDeleteSelected_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlinePraiseBook is null)
+        {
+            return;
+        }
+
+        var entries = PraiseBookItems.SelectedItems.Cast<PraiseBookIndexEntry>().ToList();
+        if (_inlinePraiseBook.RemoveEntries(entries) > 0)
+        {
+            await SaveInlinePraiseBookIfNamedAsync();
+        }
+    }
+
+    private void InlinePraiseBookItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (PraiseBookItems.SelectedItem is PraiseBookIndexEntry entry
+            && DataContext is MainViewModel viewModel)
+        {
+            viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
+        }
+    }
+
     private void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount != 2
@@ -1229,6 +1278,123 @@ public partial class MainWindow : Window
         }
 
         viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
+    }
+
+    private void CMenuPraiseB_Opened(object sender, RoutedEventArgs e)
+    {
+        var hasItems = _inlinePraiseBook?.Entries.Count > 0;
+        var hasSelection = PraiseBookItems.SelectedItems.Count > 0;
+        var hasSingleSelection = PraiseBookItems.SelectedItems.Count == 1;
+
+        CMenuPraiseB_SelectAll.IsEnabled = hasItems;
+        CMenuPraiseB_UnselectAll.IsEnabled = hasItems;
+        CMenuPraiseB_Clear.IsEnabled = hasItems;
+        CMenuPraiseB_Edit.IsEnabled = hasSingleSelection;
+        PB_Delete.IsEnabled = hasSelection;
+        PB_Word.IsEnabled = hasItems;
+        PB_Html.IsEnabled = hasItems;
+    }
+
+    private void CMenuPraiseB_SelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        PraiseBookItems.SelectAll();
+        PraiseBookItems.Focus();
+    }
+
+    private void CMenuPraiseB_UnselectAll_Click(object sender, RoutedEventArgs e)
+    {
+        PraiseBookItems.SelectedItems.Clear();
+        PraiseBookItems.Focus();
+    }
+
+    private async void CMenuPraiseB_Clear_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlinePraiseBook?.ClearEntries() > 0)
+        {
+            await SaveInlinePraiseBookIfNamedAsync();
+        }
+    }
+
+    private void CMenuPraiseB_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        if (PraiseBookItems.SelectedItem is not PraiseBookIndexEntry entry
+            || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var song = viewModel.Library.Songs.FirstOrDefault(candidate =>
+            entry.SongId > 0
+                ? candidate.SongId == entry.SongId
+                : string.Equals(candidate.Title, entry.Title, StringComparison.OrdinalIgnoreCase)
+                  && (entry.Number <= 0 || candidate.SongNumber == entry.Number));
+        if (song is not null)
+        {
+            viewModel.Library.SelectedSong = song;
+        }
+
+        OpenLibrary_Click(sender, e);
+    }
+
+    private void InlinePraiseBookExportHtml_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlinePraiseBook is null || _inlinePraiseBook.Entries.Count == 0)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "PraiseBook HTML 저장",
+            Filter = "HTML (*.html)|*.html|모든 파일 (*.*)|*.*",
+            FileName = BuildPraiseBookExportFileName(".html"),
+        };
+        if (dialog.ShowDialog(this) == true)
+        {
+            File.WriteAllText(dialog.FileName, _inlinePraiseBook.BuildIndexHtml(), System.Text.Encoding.UTF8);
+            _inlinePraiseBook.StatusText = $"HTML 저장됨: {dialog.FileName}";
+        }
+    }
+
+    private void InlinePraiseBookExportRtf_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlinePraiseBook is null || _inlinePraiseBook.Entries.Count == 0)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "PraiseBook RTF 저장",
+            Filter = "RTF (*.rtf)|*.rtf|모든 파일 (*.*)|*.*",
+            FileName = BuildPraiseBookExportFileName(".rtf"),
+        };
+        if (dialog.ShowDialog(this) == true)
+        {
+            File.WriteAllText(dialog.FileName, _inlinePraiseBook.BuildIndexRtf(), System.Text.Encoding.UTF8);
+            _inlinePraiseBook.StatusText = $"RTF 저장됨: {dialog.FileName}";
+        }
+    }
+
+    private async Task SaveInlinePraiseBookIfNamedAsync()
+    {
+        if (_inlinePraiseBook is not null && !string.IsNullOrWhiteSpace(_inlinePraiseBook.CurrentBookName))
+        {
+            await _inlinePraiseBook.SaveAsCommand.ExecuteAsync(_inlinePraiseBook.CurrentBookName);
+        }
+    }
+
+    private string BuildPraiseBookExportFileName(string extension)
+    {
+        var baseName = string.IsNullOrWhiteSpace(_inlinePraiseBook?.CurrentBookName)
+            ? "PraiseBook"
+            : _inlinePraiseBook.CurrentBookName.Trim();
+        foreach (var invalid in Path.GetInvalidFileNameChars())
+        {
+            baseName = baseName.Replace(invalid, '_');
+        }
+
+        return baseName + extension;
     }
 
     private void OpenImageLibrary_Click(object sender, RoutedEventArgs e)

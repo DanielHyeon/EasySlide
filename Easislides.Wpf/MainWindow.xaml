@@ -1913,69 +1913,174 @@
                             <Grid Grid.Row="0" Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="8" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <ComboBox x:Name="InlinePraiseBookSavedBooksCombo"
+                                          Tag="PraiseBook"
                                           ItemsSource="{Binding SavedBooks}"
-                                          MinHeight="34"
+                                          MinHeight="28"
+                                          Margin="0,0,4,0"
                                           AutomationProperties.Name="Saved Praise Book list" />
+                                <Button Grid.Column="1"
+                                        x:Name="PB_Manage"
+                                        Tag="list"
+                                        Click="OpenPraiseBookIndex_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        MinWidth="28"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
+                                        Content="M"
+                                        ToolTip="Manage PraiseBooks"
+                                        AutomationProperties.Name="Manage PraiseBooks" />
                                 <Button Grid.Column="2"
+                                        x:Name="PB_Add"
+                                        Tag="add"
+                                        Click="InlinePraiseBookAddSelected_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        MinWidth="28"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
+                                        Content="+"
+                                        ToolTip="Add selected song to PraiseBook"
+                                        AutomationProperties.Name="Add to PraiseBook" />
+                                <Button Grid.Column="3"
+                                        x:Name="PB_WordCount"
+                                        Tag="wordcount"
+                                        IsEnabled="False"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        MinWidth="28"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
+                                        Content="#"
+                                        ToolTip="Sort by CJK Word Count"
+                                        AutomationProperties.Name="Sort by CJK Word Count" />
+                                <Button Grid.Column="4"
+                                        x:Name="InlinePraiseBookOpenBookButton"
                                         Click="InlinePraiseBookOpenBook_Click"
                                         Style="{StaticResource EsButton.Secondary}"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
                                         Content="Open"
                                         AutomationProperties.Name="Open selected Praise Book" />
-                                <Button Grid.Column="4"
+                                <Button Grid.Column="5"
                                         Click="InlinePraiseBookRefresh_Click"
                                         Style="{StaticResource EsButton.Secondary}"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
                                         Content="Refresh"
                                         AutomationProperties.Name="Refresh Praise Book index" />
+                                <Button Grid.Column="6"
+                                        x:Name="PB_Delete"
+                                        Tag="delete"
+                                        Click="InlinePraiseBookDeleteSelected_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        MinWidth="28"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
+                                        Content="-"
+                                        ToolTip="Delete"
+                                        AutomationProperties.Name="Delete selected PraiseBook items" />
+                                <Button Grid.Column="7"
+                                        x:Name="PB_Word"
+                                        Tag="word"
+                                        Click="InlinePraiseBookExportRtf_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        MinWidth="28"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Margin="0,0,2,0"
+                                        Content="W"
+                                        ToolTip="Generate RTF Document"
+                                        AutomationProperties.Name="Generate PraiseBook RTF document" />
+                                <Button Grid.Column="8"
+                                        x:Name="PB_Html"
+                                        Tag="ie"
+                                        Click="InlinePraiseBookExportHtml_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        MinWidth="28"
+                                        MinHeight="28"
+                                        Padding="6,0"
+                                        Content="H"
+                                        ToolTip="Generate HTML Document"
+                                        AutomationProperties.Name="Generate PraiseBook HTML document" />
                             </Grid>
 
-                            <ScrollViewer Grid.Row="1"
-                                          VerticalScrollBarVisibility="Auto"
-                                          BorderBrush="{DynamicResource Brush.Border.Default}"
-                                          BorderThickness="1"
-                                          AutomationProperties.Name="Praise Book grouped index">
-                                <ItemsControl ItemsSource="{Binding Groups}"
-                                              Margin="8">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Margin="0,0,0,10">
-                                                <TextBlock Text="{Binding Key}"
-                                                           FontWeight="Bold"
-                                                           Foreground="{DynamicResource Brush.Text.Primary}"
-                                                           Margin="0,0,0,4" />
-                                                <ItemsControl ItemsSource="{Binding Entries}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Border Background="Transparent"
-                                                                    Cursor="Hand"
-                                                                    MouseLeftButtonDown="InlinePraiseBookEntry_MouseLeftButtonDown">
-                                                                <Grid Margin="8,2,0,2">
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*" />
-                                                                        <ColumnDefinition Width="Auto" />
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBlock Text="{Binding Title}"
-                                                                               TextTrimming="CharacterEllipsis"
-                                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                                                    <TextBlock Grid.Column="1"
-                                                                               Text="{Binding Number}"
-                                                                               Margin="12,0,0,0"
-                                                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                                                </Grid>
-                                                            </Border>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
+                            <ListView Grid.Row="1"
+                                      x:Name="PraiseBookItems"
+                                      Tag="PraiseBookItems"
+                                      ItemsSource="{Binding Entries}"
+                                      SelectionMode="Extended"
+                                      BorderThickness="1"
+                                      FontSize="12"
+                                      MouseDoubleClick="InlinePraiseBookItems_MouseDoubleClick"
+                                      AutomationProperties.Name="PraiseBookItems">
+                                <ListView.Resources>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </Style>
+                                    <Style TargetType="{x:Type ListViewItem}">
+                                        <Setter Property="MinHeight" Value="22" />
+                                        <Setter Property="Padding" Value="2,0" />
+                                    </Style>
+                                </ListView.Resources>
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="False">
+                                        <GridViewColumn Width="46">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Number}"
+                                                               TextAlignment="Right"
+                                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="300">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Title}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                                <ListView.ContextMenu>
+                                    <ContextMenu x:Name="CMenuPraiseB"
+                                                 Tag="CMenuPraiseB"
+                                                 Opened="CMenuPraiseB_Opened">
+                                        <MenuItem x:Name="CMenuPraiseB_SelectAll"
+                                                  Tag="CMenuPraiseB_SelectAll"
+                                                  Header="Select _All"
+                                                  Click="CMenuPraiseB_SelectAll_Click" />
+                                        <MenuItem x:Name="CMenuPraiseB_UnselectAll"
+                                                  Tag="CMenuPraiseB_UnselectAll"
+                                                  Header="_Unselect All"
+                                                  Click="CMenuPraiseB_UnselectAll_Click" />
+                                        <MenuItem x:Name="CMenuPraiseB_Clear"
+                                                  Tag="CMenuPraiseB_Clear"
+                                                  Header="Clear PraiseBook List"
+                                                  Click="CMenuPraiseB_Clear_Click" />
+                                        <Separator />
+                                        <MenuItem x:Name="CMenuPraiseB_Edit"
+                                                  Tag="CMenuPraiseB_Edit"
+                                                  Header="Edit item"
+                                                  Click="CMenuPraiseB_Edit_Click" />
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
+                            </ListView>
 
                             <Grid Grid.Row="2" Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions>
