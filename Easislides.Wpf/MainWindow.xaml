@@ -2024,6 +2024,8 @@
                                       SelectionMode="Extended"
                                       BorderThickness="1"
                                       FontSize="12"
+                                      PreviewMouseLeftButtonDown="PraiseBookItems_PreviewMouseLeftButtonDown"
+                                      PreviewMouseMove="PraiseBookItems_PreviewMouseMove"
                                       MouseDoubleClick="InlinePraiseBookItems_MouseDoubleClick"
                                       AutomationProperties.Name="PraiseBookItems">
                                 <ListView.Resources>

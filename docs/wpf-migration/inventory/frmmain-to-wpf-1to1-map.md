@@ -72,7 +72,7 @@
 | `CMenuWorship_*` | WPF context menu | partial | 3/4 | select all, clear, edit, play, play on output, usage |
 | `tabPraiseBook` | `Praise Book` tab | partial | 2/3 | saved book load plus FrmMain-style item surface now visible; DI store now reads legacy `WorkingFolder\Admin\PraiseBooks\*.esp`; exact template management still incomplete |
 | `PraiseBook` | `InlinePraiseBookSavedBooksCombo` (`Tag=PraiseBook`) | partial | 2 | saved PraiseBook names load from WPF JSON plus legacy `C:\EasiSlides\Admin\PraiseBooks\*.esp` via `IPraiseBookStore` |
-| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click add-to-Worship/delete/clear/select exist; exact preview-on-selection and drag insert still incomplete |
+| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click add-to-Worship plus drag insert into Worship List now use the same song-resolution path; exact preview-on-selection still incomplete |
 | `PB_Manage`, `PB_Add`, `PB_Delete` | `PB_Manage`, `PB_Add`, `PB_Delete` | partial | 3 | manage window, add selected Folders song, delete selected rows are wired |
 | `PB_Word`, `PB_Html`, `PB_WordCount` | `PB_Word`, `PB_Html`, `PB_WordCount` | partial | 5/7 | HTML/RTF export wired; WordCount button exposed but exact CJK word-count sorting still disabled |
 | `CMenuPraiseB_*` | `CMenuPraiseB`, `CMenuPraiseB_SelectAll`, `CMenuPraiseB_UnselectAll`, `CMenuPraiseB_Clear`, `CMenuPraiseB_Edit` | partial | 3 | menu names/order/actions are wired; edit opens library context rather than direct editor |
@@ -122,7 +122,7 @@
 | Media double-click add | `MediaList_MouseDoubleClick` | partial | 3 |
 | Bible selected passage drag | `BibleText_MouseDown` with `DragDropSource.BiblePassage` | partial | 3 |
 | Worship List reorder drag | `DragDropSource.WorshipList` | partial | 3 |
-| Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage` | partial | 3 |
+| Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage`, `PraiseBookItems` | partial | 3 |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |
 | Images context menu | `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 |

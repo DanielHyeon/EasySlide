@@ -186,6 +186,16 @@ public class WorshipListPanelTests
     }
 
     [Fact]
+    public void Drop_AcceptsInlinePraiseBookEntry_AndInsertsAtTarget()
+    {
+        var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+
+        code.Should().Contain("typeof(PraiseBookIndexEntry)", "PraiseBookItems drags use a typed payload");
+        code.Should().Contain("AddPraiseBookSongRelativeTo(praiseBookEntry, targetItem)",
+            "PraiseBook drops should reuse song resolution while preserving the Worship List drop position");
+    }
+
+    [Fact]
     public void SessionCombo_LoadsSelectedList_WithEnterAndDoubleClickGestures()
     {
         var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");

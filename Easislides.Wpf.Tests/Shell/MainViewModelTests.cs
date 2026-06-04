@@ -984,6 +984,22 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddPraiseBookSongRelativeTo_InsertsBeforeTarget_UsingSameSongResolution()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = sut.AddTextItem("첫 항목")!;
+        var target = sut.AddTextItem("대상 항목")!;
+        sut.Library.Songs.Add(new SongSummary(9, "찬양", "", 1, 44, "", "", "가사"));
+
+        var added = sut.AddPraiseBookSongRelativeTo(new PraiseBookIndexEntry("찬양", 44, SongId: 9), target);
+
+        added.Should().NotBeNull();
+        sut.Queue.Should().Equal(first, added!, target);
+        added!.Id.Should().Be("song:9");
+        sut.SelectedItem.Should().BeSameAs(added);
+    }
+
+    [Fact]
     public void ImportEswWorshipList_MapsEachTypeCodeToKind_AndReplacesQueue()
     {
         // 레거시 .esw 가져오기: 종류 코드(D/P/M/B/T)를 각 WPF 항목 종류로 매핑하고 큐를 통째로 교체한다.

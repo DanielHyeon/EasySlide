@@ -534,6 +534,8 @@ public partial class MainWindow : Window
     private bool _powerPointDragArmed;
     private Point _mediaDragStart;
     private bool _mediaDragArmed;
+    private Point _praiseBookDragStart;
+    private PraiseBookIndexEntry? _praiseBookDragCandidate;
 
     internal static BibleSelection ResolveBibleSelectionForAdd(
         BibleViewModel bible,
@@ -1266,6 +1268,37 @@ public partial class MainWindow : Window
         {
             viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
         }
+    }
+
+    private void PraiseBookItems_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _praiseBookDragStart = e.GetPosition(null);
+        _praiseBookDragCandidate = e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(PraiseBookItems, source) is ListViewItem { DataContext: PraiseBookIndexEntry entry }
+                ? entry
+                : null;
+    }
+
+    private void PraiseBookItems_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_praiseBookDragCandidate is null || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _praiseBookDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        var entry = _praiseBookDragCandidate;
+        _praiseBookDragCandidate = null;
+        DragDrop.DoDragDrop(
+            PraiseBookItems,
+            new DataObject(typeof(PraiseBookIndexEntry), entry),
+            DragDropEffects.Copy);
     }
 
     private void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

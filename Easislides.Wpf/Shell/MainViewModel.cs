@@ -1309,6 +1309,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public LiveQueueItem? AddPraiseBookSong(string? title, int songNumber, int songId = 0)
     {
+        var song = ResolvePraiseBookSong(title, songNumber, songId);
+        return song is null ? null : AddSong(song);
+    }
+
+    /// <summary>
+    /// 하단 PraiseBook 항목을 예배 순서의 드롭 위치 앞에 끼운다(FrmMain PraiseBookItems → WorshipList drag/drop 대응).
+    /// 곡 해석은 더블클릭 경로와 동일하게 SongId/제목+번호/제목 폴백을 쓰고, 삽입 위치만 타깃 항목 기준으로 보존한다.
+    /// </summary>
+    public LiveQueueItem? AddPraiseBookSongRelativeTo(PraiseBookIndexEntry? entry, LiveQueueItem? targetItem)
+    {
+        if (entry is null)
+        {
+            StatusText = "선택된 곡이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var song = ResolvePraiseBookSong(entry.Title, entry.Number, entry.SongId);
+        return song is null ? null : AddSongRelativeTo(song, targetItem);
+    }
+
+    private Data.SongSummary? ResolvePraiseBookSong(string? title, int songNumber, int songId)
+    {
         if (string.IsNullOrWhiteSpace(title))
         {
             StatusText = "선택된 곡이 없습니다.";
@@ -1335,7 +1358,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        return AddSong(song);
+        return song;
     }
 
     /// <summary>
