@@ -55,6 +55,8 @@
                 <ComboBox Grid.Column="0"
                           x:Name="SessionCombo"
                           DropDownOpened="SessionCombo_DropDownOpened"
+                          KeyDown="SessionCombo_KeyDown"
+                          MouseDoubleClick="SessionCombo_MouseDoubleClick"
                           ItemsSource="{Binding SavedWorshipListNames}"
                           SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
                           ToolTip="저장된 예배 순서를 골라 '불러오기'로 적재합니다. 콤보를 열면 목록이 새로고침됩니다."

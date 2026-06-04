@@ -429,7 +429,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selection = viewModel.Bible.BuildSelection(
+        var selection = ResolveBibleSelectionForAdd(
+            viewModel.Bible,
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength);
         if (!string.IsNullOrWhiteSpace(selection.IdString))
@@ -451,6 +452,24 @@ public partial class MainWindow : Window
     private bool _powerPointDragArmed;
     private Point _mediaDragStart;
     private bool _mediaDragArmed;
+
+    internal static BibleSelection ResolveBibleSelectionForAdd(
+        BibleViewModel bible,
+        int selectionStart,
+        int selectionLength)
+    {
+        ArgumentNullException.ThrowIfNull(bible);
+
+        if (selectionLength > 0)
+        {
+            return bible.BuildSelection(selectionStart, selectionLength);
+        }
+
+        var current = bible.SelectedSelection;
+        return string.IsNullOrWhiteSpace(current.IdString)
+            ? new BibleSelection("", "")
+            : current;
+    }
 
     // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).
     private void BiblePassageBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

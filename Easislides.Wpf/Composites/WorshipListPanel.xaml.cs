@@ -55,6 +55,34 @@ public partial class WorshipListPanel : UserControl
         }
     }
 
+    private void SessionCombo_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Return && TryLoadSelectedWorshipList())
+        {
+            e.Handled = true;
+        }
+    }
+
+    private void SessionCombo_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (TryLoadSelectedWorshipList())
+        {
+            e.Handled = true;
+        }
+    }
+
+    private bool TryLoadSelectedWorshipList()
+    {
+        if (DataContext is not MainViewModel viewModel
+            || !viewModel.LoadSelectedWorshipListCommand.CanExecute(null))
+        {
+            return false;
+        }
+
+        viewModel.LoadSelectedWorshipListCommand.Execute(null);
+        return true;
+    }
+
     // 우클릭 "이 항목 배경 이미지 → 이미지 선택..." — 파일 선택은 View(코드비하인드)에서, 경로 기록·서식 편집은 검증된 VM 이 맡는다.
     private void SelectItemBackgroundImage_Click(object sender, RoutedEventArgs e)
     {

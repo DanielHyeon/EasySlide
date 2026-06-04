@@ -171,6 +171,69 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task MainShellBibleAdd_WithTextRange_BuildsRangeSelection()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 20)],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = selection,
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+
+        var selected = Easislides.Wpf.MainWindow.ResolveBibleSelectionForAdd(
+            sut,
+            selectionStart: 3,
+            selectionLength: 8);
+
+        selected.Should().Be(selection);
+        repository.LastBuildStart.Should().Be(3);
+        repository.LastBuildLength.Should().Be(8);
+    }
+
+    [Fact]
+    public async Task MainShellBibleAdd_WithoutTextRange_UsesCurrentSelection()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 20)],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = selection,
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+        var current = sut.BuildSelection(selectionStart: 3, selectionLength: 8);
+
+        var selected = Easislides.Wpf.MainWindow.ResolveBibleSelectionForAdd(
+            sut,
+            selectionStart: 0,
+            selectionLength: 0);
+
+        selected.Should().Be(current);
+        repository.LastBuildStart.Should().Be(3);
+        repository.LastBuildLength.Should().Be(8);
+    }
+
+    [Fact]
     public async Task BuildSelection_WhenRegionTwoPreviewEnabled_UpdatesPreviewSelectionAndRaisesPreview()
     {
         using var fixture = TempBibleSettings.Create();

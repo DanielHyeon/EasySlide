@@ -173,6 +173,22 @@ public class WorshipListPanelTests
             "InfoScreen drops should preserve the Worship List drop position");
     }
 
+    [Fact]
+    public void SessionCombo_LoadsSelectedList_WithEnterAndDoubleClickGestures()
+    {
+        var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
+        var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+
+        var combo = composite.Descendants().Single(
+            e => e.Name.LocalName == "ComboBox" && Attr(e, "Name") == "SessionCombo");
+
+        Attr(combo, "KeyDown").Should().Be("SessionCombo_KeyDown");
+        Attr(combo, "MouseDoubleClick").Should().Be("SessionCombo_MouseDoubleClick");
+        code.Should().Contain("private bool TryLoadSelectedWorshipList()");
+        code.Should().Contain("LoadSelectedWorshipListCommand.Execute(null)",
+            "Enter/double-click must reuse the same selected-list load path as the explicit button");
+    }
+
     [Theory]
     // 증분152 — 재정렬/복제 버튼의 접근성 이름이 카탈로그의 "실제" 단축키를 그대로 노출(메뉴·팔레트·Del 버튼과 같은 발견성 패턴).
     // 누군가 카탈로그 단축키를 바꾸면 ShortcutHint 가 달라져 이 테스트가 깨진다 → 버튼 힌트가 거짓이 되는 드리프트를 막는다.
