@@ -144,6 +144,52 @@ public class ImageLibraryViewModelTests
     }
 
     [Fact]
+    public void ApplySelectedImage_WithPreviewItem_PrefersItemBackground()
+    {
+        var appliedDefault = new List<string>();
+        var appliedToItem = new List<string>();
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg"),
+            _ => null,
+            path => appliedDefault.Add(path),
+            () => { },
+            initialFolder: @"C:\bg",
+            applyItemBackground: path => appliedToItem.Add(path),
+            canApplyItemBackground: () => true);
+        sut.LoadCommand.Execute(null);
+        sut.SelectedImage = sut.Images[0];
+
+        sut.ApplySelectedImageCommand.Execute(null);
+
+        appliedToItem.Should().ContainSingle().Which.Should().Be(@"C:\bg\a.jpg");
+        appliedDefault.Should().BeEmpty("FrmMain ApplyBackground(..., 2)는 선택 항목이 있으면 Add to Item으로 동작");
+        sut.StatusText.Should().Contain("항목 배경");
+    }
+
+    [Fact]
+    public void ApplySelectedImage_WithoutPreviewItem_FallsBackToDefaultBackground()
+    {
+        var appliedDefault = new List<string>();
+        var appliedToItem = new List<string>();
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg"),
+            _ => null,
+            path => appliedDefault.Add(path),
+            () => { },
+            initialFolder: @"C:\bg",
+            applyItemBackground: path => appliedToItem.Add(path),
+            canApplyItemBackground: () => false);
+        sut.LoadCommand.Execute(null);
+        sut.SelectedImage = sut.Images[0];
+
+        sut.ApplySelectedImageCommand.Execute(null);
+
+        appliedDefault.Should().ContainSingle().Which.Should().Be(@"C:\bg\a.jpg");
+        appliedToItem.Should().BeEmpty();
+        sut.StatusText.Should().Contain("배경 적용");
+    }
+
+    [Fact]
     public void ApplyToItemBackground_WithoutPreviewItem_CannotExecute()
     {
         var appliedToItem = new List<string>();
@@ -169,6 +215,7 @@ public class ImageLibraryViewModelTests
         sut.LoadCommand.Execute(null);
 
         sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeFalse("선택이 없으면 적용 불가");
+        sut.ApplySelectedImageCommand.CanExecute(null).Should().BeFalse("선택이 없으면 FrmMain식 이미지 적용도 불가");
         applied.Should().BeEmpty();
     }
 
@@ -181,6 +228,7 @@ public class ImageLibraryViewModelTests
         sut.SelectedImage = sut.Images[0];
 
         sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeTrue();
+        sut.ApplySelectedImageCommand.CanExecute(null).Should().BeTrue();
     }
 
     [Fact]

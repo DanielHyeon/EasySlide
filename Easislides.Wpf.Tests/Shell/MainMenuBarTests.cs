@@ -371,6 +371,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"InlineImagesList\"", "Images must be visible without opening a modal window");
         xaml.Should().Contain("ItemsSource=\"{Binding Images}\"", "inline Images list reuses ImageLibraryViewModel");
         xaml.Should().Contain("Tag=\"flowLayoutImages\"", "inline Images list should keep the FrmMain flowLayoutImages role");
+        xaml.Should().Contain("KeyDown=\"SourceListAddOnEnter_KeyDown\"", "Images Enter should reuse the left-source add/apply gesture");
+        xaml.Should().Contain("ApplySelectedImageCommand", "inline Images should use FrmMain item-first/default-fallback apply semantics");
         xaml.Should().Contain("ApplyAsBackgroundCommand", "inline Images should apply selected background images");
         xaml.Should().Contain("PreviewMouseLeftButtonDown=\"InlineImagesList_PreviewMouseLeftButtonDown\"",
             "Images rows should arm drag without breaking thumbnail selection");
@@ -401,6 +403,8 @@ public class MainMenuBarTests
         code.Should().Contain("MediaSourceTab.DataContext = _inlineMedia", "inline Media tab should bind to its library VM");
         code.Should().Contain("EnsureInlineImageLoadedOnce(viewModel)", "Images source tab should lazy-load on first selection");
         code.Should().Contain("ImagesSourceTab.DataContext = _inlineImages", "inline Images tab should bind to ImageLibraryViewModel");
+        code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");
+        code.Should().Contain("_inlineImages.ApplySelectedImageCommand.Execute(null)", "Images shared add gesture should follow FrmMain item-first/default-fallback semantics");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImageCommand.Execute(path)", "Images Add to Item should reuse the selected-item background command");
         code.Should().Contain("private ImageLibraryItem? _imageDragCandidate",
             "Images drags should carry the exact thumbnail item pressed, not a stale previous selection");

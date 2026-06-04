@@ -47,9 +47,9 @@
 | `Bibles_Go` | Bible go button | partial | 3 | invoke lookup/search exactly |
 | `TabBibleVersions` | Bible versions UI | partial | 2 | version tabs/list with selected version state |
 | `BibleText` | `BiblePassageBox` + `CMenuBible_*` | partial | 3 | selection, Enter add, FrmMain-named context menu, Add/Region2/Copy/InfoScreen, drag `BiblePassage`; exact rich text styling still incomplete |
-| `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; context menu default/item background is wired; thumbnail drag now emits image `FileDrop` for Preview background drop; folder group parity still incomplete |
+| `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; primary apply now follows FrmMain item-first/default-fallback image background behavior; thumbnail drag emits image `FileDrop` for Preview background drop; folder group parity still incomplete |
 | `ImagesFolder` | image folder selector | partial | 2 | legacy image groups |
-| `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, double-click/default background, item background, refresh menu, and image-to-background drag exist; exact thumbnail sizing and folder-group UI still incomplete |
+| `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, double-click/Enter/Apply use FrmMain item-first/default-fallback background behavior; item/default context menu, refresh menu, and image-to-background drag exist; exact thumbnail sizing and folder-group UI still incomplete |
 | `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, drag insert |
 | `MediaFolder` | media folder selector | partial | 2 | legacy media groups |
 | `MediaList` | `InlineMediaList` | partial | 3 | double-click, Enter add, and drag insert exist; context menu parity incomplete |
@@ -127,7 +127,7 @@
 | Source/PraiseBook Enter add | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `SearchResults`, `LookupCandidates`, `BibleText`, `PraiseBookItems` | partial | 3/6 | source lists reuse `AddSelectedSourceToWorshipListAsync`; PraiseBook Enter reuses the same add path as double-click |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |
-| Images context menu | `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 |
+| Images primary click/context menu | `ApplySelectedImageCommand`, `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 | primary apply matches `ApplyBackground(..., 2)` item-first/default-fallback behavior; context menu still exposes explicit Add to Item/Add to Default/Refresh |
 | Preview keyboard nav | `flowLayoutPreviewLyrics_KeyUp`, `PreviewInfo_KeyUp`, `flowLayoutPreviewPowerPoint_KeyUp` | partial | 6 | PPT thumbnail focus handles arrow/Page/Space/Home/End before global shortcuts; Preview lyrics/info focus now handles verse keys and previous/next page keys; Home/End/item-nav parity still incomplete |
 | Output keyboard nav | `flowLayoutOutputLyrics`, `OutputInfo_KeyUp`, `flowLayoutOutputPowerPoint_KeyUp` | partial | 6 | PPT thumbnail focus handles arrow/Page/Space/Home/End against live Output state; Output lyrics/info focus now handles verse keys and previous/next live page keys without Preview fallthrough; Home/End/item-nav parity still incomplete |
 | Global live shortcuts | `KeyboardActionHandler`, hook handlers | partial | 6 |

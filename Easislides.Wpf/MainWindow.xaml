@@ -1441,12 +1441,13 @@
                                  ItemsSource="{Binding Images}"
                                  SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 KeyDown="SourceListAddOnEnter_KeyDown"
                                  PreviewMouseLeftButtonDown="InlineImagesList_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="InlineImagesList_PreviewMouseMove"
                                  AutomationProperties.Name="Images source thumbnail list">
                             <ListBox.InputBindings>
                                 <MouseBinding MouseAction="LeftDoubleClick"
-                                              Command="{Binding ApplyAsBackgroundCommand}" />
+                                              Command="{Binding ApplySelectedImageCommand}" />
                             </ListBox.InputBindings>
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuImages"
@@ -1511,11 +1512,11 @@
                                         Content="Clear"
                                         Margin="8,0,0,0"
                                         AutomationProperties.Name="Clear output background image" />
-                                <Button Command="{Binding ApplyAsBackgroundCommand}"
+                                <Button Command="{Binding ApplySelectedImageCommand}"
                                         Style="{StaticResource EsButton.Primary}"
                                         Content="Apply"
                                         Margin="8,0,0,0"
-                                        AutomationProperties.Name="Apply selected image as output background" />
+                                        AutomationProperties.Name="Apply selected image like FrmMain" />
                             </StackPanel>
                         </Grid>
                     </Grid>

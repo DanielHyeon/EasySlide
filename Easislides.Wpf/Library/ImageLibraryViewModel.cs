@@ -56,6 +56,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ApplyAsBackgroundCommand))]
     [NotifyCanExecuteChangedFor(nameof(ApplyToItemBackgroundCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ApplySelectedImageCommand))]
     private ImageLibraryItem? _selectedImage;
 
     [ObservableProperty]
@@ -104,6 +105,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         // AsyncRelayCommand 가 재실행 시 이전 실행의 토큰을 취소한다 → LoadAsync 가 중복 실행돼도 경쟁하지 않는다.
+        ApplySelectedImageCommand = new RelayCommand(ApplySelectedImage, () => SelectedImage is not null);
         ApplyAsBackgroundCommand = new RelayCommand(ApplyAsBackground, () => SelectedImage is not null);
         ApplyToItemBackgroundCommand = new RelayCommand(ApplyToItemBackground, () => SelectedImage is not null && _canApplyItemBackground());
         ClearBackgroundCommand = new RelayCommand(ClearBackground);
@@ -115,6 +117,8 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     public ObservableCollection<string> Categories { get; } = new();
 
     public IAsyncRelayCommand LoadCommand { get; }
+
+    public IRelayCommand ApplySelectedImageCommand { get; }
 
     public IRelayCommand ApplyAsBackgroundCommand { get; }
 
@@ -281,6 +285,25 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
         _applyBackground(SelectedImage.FilePath);
         StatusText = $"배경 적용: {SelectedImage.FileName}";
+    }
+
+    // FrmMain ThumbImage_MouseUp → ApplyBackground(..., 2) 대응:
+    // 선택된 예배 항목이 있으면 항목 배경에, 없으면 기본 배경에 적용한다.
+    private void ApplySelectedImage()
+    {
+        if (SelectedImage is null)
+        {
+            return;
+        }
+
+        if (_canApplyItemBackground())
+        {
+            ApplyToItemBackground();
+        }
+        else
+        {
+            ApplyAsBackground();
+        }
     }
 
     // 선택한 이미지를 현재 선택된 예배 항목 배경으로 적용(FrmMain CMenuImages_AddItem).

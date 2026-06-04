@@ -887,6 +887,19 @@ public partial class MainWindow : Window
 
                 break;
 
+            case "ImagesSource":
+                EnsureInlineImageLoadedOnce(viewModel);
+                if (_inlineImages?.ApplySelectedImageCommand.CanExecute(null) == true)
+                {
+                    _inlineImages.ApplySelectedImageCommand.Execute(null);
+                }
+                else
+                {
+                    viewModel.StatusText = "선택된 이미지가 없습니다.";
+                }
+
+                break;
+
             case "Search":
                 if (viewModel.AddSearchedSongCommand.CanExecute(null))
                 {
