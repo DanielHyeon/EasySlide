@@ -26,6 +26,19 @@ public class MainMenuBarTests
         Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "App.xaml.cs"),
         Encoding.UTF8);
 
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
+    }
+
     [Fact]
     public void MainWindow_HasMenuBarWithSixTopLevelMenus()
     {
@@ -191,6 +204,31 @@ public class MainMenuBarTests
         xaml.Should().Contain("<GridView AllowsColumnReorder=\"False\">", "legacy ListView Details behavior should hide headers but keep columns");
         xaml.Should().Contain("PreviewMouseMove=\"LibrarySongList_PreviewMouseMove\"", "song rows should keep drag-to-Worship behavior");
         xaml.Should().Contain("MouseAction=\"LeftDoubleClick\"", "song rows should keep double-click add behavior");
+    }
+
+    [Fact]
+    public void SourceLists_MapPlainEnterToFrmMainAddGesture()
+    {
+        var xaml = Xaml;
+        var code = CodeBehind;
+
+        CountOccurrences(xaml, "KeyDown=\"SourceListAddOnEnter_KeyDown\"")
+            .Should().BeGreaterThanOrEqualTo(6, "Folders, InfoScr, PowerPoint, Media, and search result lists should add with Enter");
+        xaml.Should().Contain("PreviewKeyDown=\"BiblePassageBox_PreviewKeyDown\"",
+            "selected Bible text should add with Enter without waiting for a context menu");
+        xaml.Should().Contain("KeyDown=\"PraiseBookItems_KeyDown\"",
+            "lower-left PraiseBookItems should add the focused selection with Enter");
+
+        code.Should().Contain("private async void SourceListAddOnEnter_KeyDown",
+            "source-list Enter should be handled in MainWindow where the active source tab is known");
+        code.Should().Contain("await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true)",
+            "Enter should reuse the same active-source router as WL_Add");
+        code.Should().Contain("private async void BiblePassageBox_PreviewKeyDown",
+            "Bible passage Enter should be handled before the read-only TextBox consumes it");
+        code.Should().Contain("private void PraiseBookItems_KeyDown",
+            "PraiseBook Enter should be explicitly mapped");
+        code.Should().Contain("AddSelectedPraiseBookEntryToWorshipList",
+            "PraiseBook Enter and double-click should share the same add path");
     }
 
     [Fact]

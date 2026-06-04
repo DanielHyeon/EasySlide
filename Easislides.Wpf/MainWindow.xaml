@@ -1046,6 +1046,7 @@
                                   ItemsSource="{Binding Library.Songs}"
                                   SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
                                   Tag="SongsList"
+                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                   PreviewMouseLeftButtonDown="LibrarySongList_PreviewMouseLeftButtonDown"
                                   PreviewMouseMove="LibrarySongList_PreviewMouseMove"
                                   AutomationProperties.Name="곡 목록"
@@ -1164,6 +1165,7 @@
                                  ItemsSource="{Binding Screens}"
                                  SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
                                  DisplayMemberPath="Name"
+                                 KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlineInfoScreenList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineInfoScreenList_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="InlineInfoScreenList_PreviewMouseMove"
@@ -1238,6 +1240,7 @@
                                  ItemsSource="{Binding Presentations}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  DisplayMemberPath="FileName"
+                                 KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
@@ -1305,6 +1308,7 @@
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"
                                  Margin="0,8,0,0"
+                                 PreviewKeyDown="BiblePassageBox_PreviewKeyDown"
                                  PreviewMouseLeftButtonDown="BiblePassageBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="BiblePassageBox_PreviewMouseMove"
                                  AutomationProperties.Name="성경 본문">
@@ -1575,6 +1579,7 @@
                                  ItemsSource="{Binding MediaFiles}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  DisplayMemberPath="FileName"
+                                 KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlineMediaList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineMediaList_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="InlineMediaList_PreviewMouseMove"
@@ -1698,6 +1703,7 @@
                                     <ListBox Grid.Row="3"
                                              ItemsSource="{Binding Search.SearchResults}"
                                              SelectedItem="{Binding SelectedSearchResult, Mode=TwoWay}"
+                                             KeyDown="SourceListAddOnEnter_KeyDown"
                                              AutomationProperties.Name="검색 결과 목록">
                                         <ListBox.InputBindings>
                                             <MouseBinding MouseAction="LeftDoubleClick"
@@ -1769,6 +1775,7 @@
                                     <ListBox Grid.Row="2"
                                              ItemsSource="{Binding Search.LookupCandidates}"
                                              SelectedItem="{Binding SelectedTitleCandidate, Mode=TwoWay}"
+                                             KeyDown="SourceListAddOnEnter_KeyDown"
                                              AutomationProperties.Name="제목 조회 결과 목록">
                                         <ListBox.InputBindings>
                                             <MouseBinding MouseAction="LeftDoubleClick"
@@ -2027,6 +2034,7 @@
                                       PreviewMouseLeftButtonDown="PraiseBookItems_PreviewMouseLeftButtonDown"
                                       PreviewMouseMove="PraiseBookItems_PreviewMouseMove"
                                       MouseDoubleClick="InlinePraiseBookItems_MouseDoubleClick"
+                                      KeyDown="PraiseBookItems_KeyDown"
                                       AutomationProperties.Name="PraiseBookItems">
                                 <ListView.Resources>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">

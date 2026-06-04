@@ -32,27 +32,27 @@
 | `tabControlSource` | `LeftBrowserTabs` | partial | 1 | enforce exact tab order and tab roles |
 | `tabFolders` | `Folders` tab / `ClassicFoldersSourceGrid` | partial | 2/3 | compact FrmMain-style top strip now exists; context menu/edit commands still incomplete |
 | `SongFolder` | `ClassicSongFolderCombo` (`Tag=SongFolder`) | partial | 2 | first-screen combo is mapped; legacy folder management still lives outside this strip |
-| `SongsList` | `LibrarySongList` (`Tag=SongsList`) | partial | 3 | headerless `ListView/GridView`, selection, double-click, and drag exist; full context menu/edit parity incomplete |
+| `SongsList` | `LibrarySongList` (`Tag=SongsList`) | partial | 3 | headerless `ListView/GridView`, selection, double-click, Enter add, and drag exist; full context menu/edit parity incomplete |
 | `Folders_WordCount` | `ClassicFoldersWordCountMode` (`Tag=Folders_WordCount`) | partial | 5 | stroke-count sort is first-screen; exact check-button behavior still incomplete |
 | `tabFiles` | `InfoScreenSourceTab` | partial | 2/3 | folder selector, list management, import/edit/copy/move/delete |
 | `InfoScreenFolder` | inline InfoScreen folder selector | partial | 2 | load legacy groups/folders |
-| `InfoScreenList` | `InlineInfoScreenList` | partial | 3 | add context menu, edit/manage, drag insert |
+| `InfoScreenList` | `InlineInfoScreenList` | partial | 3 | double-click, Enter add, and drag insert exist; context menu/edit/manage parity incomplete |
 | `tabPowerpoint` | `PowerPointSourceTab` | partial | 2/3/4 | list/preview style, real thumbnails, drag/add |
 | `PowerpointFolder` | inline PowerPoint folder selector | partial | 2 | match legacy folder groups |
-| `PowerpointList` | `InlinePowerPointList` | partial | 3/4 | selection, preview style, context menu, drag insert |
+| `PowerpointList` | `InlinePowerPointList` | partial | 3/4 | selection, double-click, Enter add, and drag insert exist; preview style/context menu incomplete |
 | `PP_ListType` | no exact compact target | missing | 4 | list/preview style toggle |
 | `tabBibles` | `Bibles` tab | partial | 2/3 | full version/book/reference/selection workflow |
 | `BookLookup` | Bible book selector | partial | 2 | load legacy book list per version |
 | `BibleUserLookup` | `BibleReferenceBox` | partial | 2/3 | direct reference and search validation parity |
 | `Bibles_Go` | Bible go button | partial | 3 | invoke lookup/search exactly |
 | `TabBibleVersions` | Bible versions UI | partial | 2 | version tabs/list with selected version state |
-| `BibleText` | `BiblePassageBox` + `CMenuBible_*` | partial | 3 | selection, FrmMain-named context menu, Add/Region2/Copy/InfoScreen, drag `BiblePassage`; exact rich text styling still incomplete |
+| `BibleText` | `BiblePassageBox` + `CMenuBible_*` | partial | 3 | selection, Enter add, FrmMain-named context menu, Add/Region2/Copy/InfoScreen, drag `BiblePassage`; exact rich text styling still incomplete |
 | `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; context menu default/item background is wired; folder group parity still incomplete |
 | `ImagesFolder` | image folder selector | partial | 2 | legacy image groups |
 | `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, default background, item background, refresh menu exist; exact thumbnail sizing and folder-group UI still incomplete |
 | `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, drag insert |
 | `MediaFolder` | media folder selector | partial | 2 | legacy media groups |
-| `MediaList` | `InlineMediaList` | partial | 3 | double-click, keyboard, context menu |
+| `MediaList` | `InlineMediaList` | partial | 3 | double-click, Enter add, and drag insert exist; context menu parity incomplete |
 | `tabDefault` | `DefaultSource` tab / inspector | partial | 5 | full `DefPanel` option parity |
 
 ## 3. Lower Left Lists
@@ -72,7 +72,7 @@
 | `CMenuWorship_*` | WPF context menu | partial | 3/4 | select all, clear, edit, play, play on output, usage |
 | `tabPraiseBook` | `Praise Book` tab | partial | 2/3 | saved book load plus FrmMain-style item surface now visible; DI store now reads legacy `WorkingFolder\Admin\PraiseBooks\*.esp`; exact template management still incomplete |
 | `PraiseBook` | `InlinePraiseBookSavedBooksCombo` (`Tag=PraiseBook`) | partial | 2 | saved PraiseBook names load from WPF JSON plus legacy `C:\EasiSlides\Admin\PraiseBooks\*.esp` via `IPraiseBookStore` |
-| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click add-to-Worship plus drag insert into Worship List now use the same song-resolution path; exact preview-on-selection still incomplete |
+| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click/Enter add-to-Worship plus drag insert into Worship List now use the same song-resolution path; exact preview-on-selection still incomplete |
 | `PB_Manage`, `PB_Add`, `PB_Delete` | `PB_Manage`, `PB_Add`, `PB_Delete` | partial | 3 | manage window, add selected Folders song, delete selected rows are wired |
 | `PB_Word`, `PB_Html`, `PB_WordCount` | `PB_Word`, `PB_Html`, `PB_WordCount` | partial | 5/7 | HTML/RTF export wired; WordCount button exposed but exact CJK word-count sorting still disabled |
 | `CMenuPraiseB_*` | `CMenuPraiseB`, `CMenuPraiseB_SelectAll`, `CMenuPraiseB_UnselectAll`, `CMenuPraiseB_Clear`, `CMenuPraiseB_Edit` | partial | 3 | menu names/order/actions are wired; edit opens library context rather than direct editor |
@@ -123,6 +123,7 @@
 | Bible selected passage drag | `BibleText_MouseDown` with `DragDropSource.BiblePassage` | partial | 3 |
 | Worship List reorder drag | `DragDropSource.WorshipList` | partial | 3 |
 | Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage`, `PraiseBookItems` | partial | 3 |
+| Source/PraiseBook Enter add | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `SearchResults`, `LookupCandidates`, `BibleText`, `PraiseBookItems` | partial | 3/6 | source lists reuse `AddSelectedSourceToWorshipListAsync`; PraiseBook Enter reuses the same add path as double-click |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |
 | Images context menu | `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 |

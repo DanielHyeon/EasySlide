@@ -622,6 +622,31 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void SourceListAddOnEnter_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (!IsPlainEnterKey(e) || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
+    }
+
+    private async void BiblePassageBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (!IsPlainEnterKey(e) || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
+    }
+
+    private static bool IsPlainEnterKey(KeyEventArgs e)
+        => Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Return;
+
     // 성경 본문 드래그-드롭 시작점(왼쪽 버튼 누른 위치)과 무장 여부 — 이미 선택된 글자 위를 눌렀을 때만 드래그를 시작한다
     // (새 선택 제스처와 충돌하지 않도록). 레거시 인라인 성경의 본문 드래그→예배순서 드롭 대응.
     private Point _bibleDragStart;
@@ -1363,6 +1388,20 @@ public partial class MainWindow : Window
     }
 
     private void InlinePraiseBookItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        => AddSelectedPraiseBookEntryToWorshipList();
+
+    private void PraiseBookItems_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (!IsPlainEnterKey(e))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        AddSelectedPraiseBookEntryToWorshipList();
+    }
+
+    private void AddSelectedPraiseBookEntryToWorshipList()
     {
         if (PraiseBookItems.SelectedItem is PraiseBookIndexEntry entry
             && DataContext is MainViewModel viewModel)
