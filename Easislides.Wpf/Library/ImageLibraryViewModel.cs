@@ -46,6 +46,8 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     private readonly IImageLibraryService _service;
     private readonly Func<string, ImageSource?> _thumbnailLoader;
     private readonly Action<string> _applyBackground;
+    private readonly Action<string> _applyItemBackground;
+    private readonly Func<bool> _canApplyItemBackground;
     private readonly Action _clearBackground;
 
     [ObservableProperty]
@@ -53,6 +55,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ApplyAsBackgroundCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ApplyToItemBackgroundCommand))]
     private ImageLibraryItem? _selectedImage;
 
     [ObservableProperty]
@@ -87,17 +90,22 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         Func<string, ImageSource?> thumbnailLoader,
         Action<string> applyBackground,
         Action clearBackground,
-        string initialFolder)
+        string initialFolder,
+        Action<string>? applyItemBackground = null,
+        Func<bool>? canApplyItemBackground = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _thumbnailLoader = thumbnailLoader ?? throw new ArgumentNullException(nameof(thumbnailLoader));
         _applyBackground = applyBackground ?? throw new ArgumentNullException(nameof(applyBackground));
+        _applyItemBackground = applyItemBackground ?? (_ => { });
+        _canApplyItemBackground = canApplyItemBackground ?? (() => false);
         _clearBackground = clearBackground ?? throw new ArgumentNullException(nameof(clearBackground));
         _folderPath = initialFolder ?? string.Empty;
 
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         // AsyncRelayCommand 가 재실행 시 이전 실행의 토큰을 취소한다 → LoadAsync 가 중복 실행돼도 경쟁하지 않는다.
         ApplyAsBackgroundCommand = new RelayCommand(ApplyAsBackground, () => SelectedImage is not null);
+        ApplyToItemBackgroundCommand = new RelayCommand(ApplyToItemBackground, () => SelectedImage is not null && _canApplyItemBackground());
         ClearBackgroundCommand = new RelayCommand(ClearBackground);
     }
 
@@ -109,6 +117,8 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     public IAsyncRelayCommand LoadCommand { get; }
 
     public IRelayCommand ApplyAsBackgroundCommand { get; }
+
+    public IRelayCommand ApplyToItemBackgroundCommand { get; }
 
     public IRelayCommand ClearBackgroundCommand { get; }
 
@@ -271,6 +281,18 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
         _applyBackground(SelectedImage.FilePath);
         StatusText = $"배경 적용: {SelectedImage.FileName}";
+    }
+
+    // 선택한 이미지를 현재 선택된 예배 항목 배경으로 적용(FrmMain CMenuImages_AddItem).
+    private void ApplyToItemBackground()
+    {
+        if (SelectedImage is null || !_canApplyItemBackground())
+        {
+            return;
+        }
+
+        _applyItemBackground(SelectedImage.FilePath);
+        StatusText = $"항목 배경 적용: {SelectedImage.FileName}";
     }
 
     // 출력 배경 이미지 해제(색 배경으로 복귀).

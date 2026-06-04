@@ -1412,6 +1412,7 @@
 
                         <ListBox Grid.Row="3"
                                  x:Name="InlineImagesList"
+                                 Tag="flowLayoutImages"
                                  ItemsSource="{Binding Images}"
                                  SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -1421,9 +1422,21 @@
                                               Command="{Binding ApplyAsBackgroundCommand}" />
                             </ListBox.InputBindings>
                             <ListBox.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Apply as background"
+                                <ContextMenu x:Name="CMenuImages"
+                                             Tag="CMenuImages">
+                                    <MenuItem x:Name="CMenuImages_AddItem"
+                                              Tag="CMenuImages_AddItem"
+                                              Header="Add to Item"
+                                              Command="{Binding PlacementTarget.DataContext.ApplyToItemBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <MenuItem x:Name="CMenuImages_AddDefault"
+                                              Tag="CMenuImages_AddDefault"
+                                              Header="Add to Default"
                                               Command="{Binding PlacementTarget.DataContext.ApplyAsBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuImages_Refresh"
+                                              Tag="CMenuImages_Refresh"
+                                              Header="Refresh Images Lists"
+                                              Command="{Binding PlacementTarget.DataContext.LoadCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                     <MenuItem Header="Clear background"
                                               Command="{Binding PlacementTarget.DataContext.ClearBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 </ContextMenu>

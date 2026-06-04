@@ -200,7 +200,9 @@ public partial class MainWindow : Window
             LoadThumbnail,
             viewModel.SetOutputBackgroundImage,
             () => viewModel.ClearOutputBackgroundImageCommand.Execute(null),
-            ResolveImageInitialFolder());
+            ResolveImageInitialFolder(),
+            path => viewModel.SetSelectedItemBackgroundImageCommand.Execute(path),
+            () => viewModel.SetSelectedItemBackgroundImageCommand.CanExecute(null));
         _inlineImages.IncludeSubfolders = true;
         ImagesSourceTab.DataContext = _inlineImages;
         _inlineImages.LoadCommand.Execute(null);
@@ -1228,7 +1230,9 @@ public partial class MainWindow : Window
             LoadThumbnail,
             viewModel.SetOutputBackgroundImage,
             () => viewModel.ClearOutputBackgroundImageCommand.Execute(null),
-            initialFolder);
+            initialFolder,
+            path => viewModel.SetSelectedItemBackgroundImageCommand.Execute(path),
+            () => viewModel.SetSelectedItemBackgroundImageCommand.CanExecute(null));
 
         var window = new Easislides.Wpf.Library.ImageLibraryWindow(libraryViewModel) { Owner = this };
         window.ShowDialog();

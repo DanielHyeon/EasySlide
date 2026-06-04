@@ -47,9 +47,9 @@
 | `Bibles_Go` | Bible go button | partial | 3 | invoke lookup/search exactly |
 | `TabBibleVersions` | Bible versions UI | partial | 2 | version tabs/list with selected version state |
 | `BibleText` | `BiblePassageBox` | partial | 3 | selection, context menu, drag `BiblePassage` |
-| `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders, thumbnails, context menu, default/item background |
+| `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; context menu default/item background is wired; folder group parity still incomplete |
 | `ImagesFolder` | image folder selector | partial | 2 | legacy image groups |
-| `flowLayoutImages` | `InlineImagesList` | partial | 5 | context menu add item/default/refresh |
+| `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, default background, item background, refresh menu exist; exact thumbnail sizing and folder-group UI still incomplete |
 | `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, drag insert |
 | `MediaFolder` | media folder selector | partial | 2 | legacy media groups |
 | `MediaList` | `InlineMediaList` | partial | 3 | double-click, keyboard, context menu |
@@ -124,7 +124,7 @@
 | Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage` | partial | 3 |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible_*` | missing | 3 |
-| Images context menu | `CMenuImages_*` | missing | 5 |
+| Images context menu | `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 |
 | Preview keyboard nav | `flowLayoutPreviewLyrics_KeyUp`, `PreviewInfo_KeyUp` | partial | 6 |
 | Output keyboard nav | `flowLayoutOutputLyrics`, `OutputInfo_KeyUp` | partial | 6 |
 | Global live shortcuts | `KeyboardActionHandler`, hook handlers | partial | 6 |

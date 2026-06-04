@@ -122,6 +122,47 @@ public class ImageLibraryViewModelTests
     }
 
     [Fact]
+    public void ApplyToItemBackground_WithSelectionAndPreviewItem_InvokesItemCallbackWithPath()
+    {
+        var appliedToItem = new List<string>();
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg"),
+            _ => null,
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg",
+            applyItemBackground: path => appliedToItem.Add(path),
+            canApplyItemBackground: () => true);
+        sut.LoadCommand.Execute(null);
+        sut.SelectedImage = sut.Images[0];
+
+        sut.ApplyToItemBackgroundCommand.CanExecute(null).Should().BeTrue();
+        sut.ApplyToItemBackgroundCommand.Execute(null);
+
+        appliedToItem.Should().ContainSingle().Which.Should().Be(@"C:\bg\a.jpg");
+        sut.StatusText.Should().Contain("항목 배경");
+    }
+
+    [Fact]
+    public void ApplyToItemBackground_WithoutPreviewItem_CannotExecute()
+    {
+        var appliedToItem = new List<string>();
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg"),
+            _ => null,
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg",
+            applyItemBackground: path => appliedToItem.Add(path),
+            canApplyItemBackground: () => false);
+        sut.LoadCommand.Execute(null);
+        sut.SelectedImage = sut.Images[0];
+
+        sut.ApplyToItemBackgroundCommand.CanExecute(null).Should().BeFalse("FrmMain disables Add to Item when no preview item is selected");
+        appliedToItem.Should().BeEmpty();
+    }
+
+    [Fact]
     public void ApplyAsBackground_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var applied, out _, @"C:\bg\a.jpg");
