@@ -384,47 +384,47 @@
                               Margin="0,0,0,12">
                         <WrapPanel Margin="8,6,8,8">
                             <CheckBox Content="No."
-                                      IsChecked="{Binding ExportIncludeSongNumber}"
+                                      IsChecked="{Binding ExportIncludeSongNumber, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Title"
-                                      IsChecked="{Binding ExportIncludeTitle}"
+                                      IsChecked="{Binding ExportIncludeTitle, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Copyright"
-                                      IsChecked="{Binding ExportIncludeCopyright}"
+                                      IsChecked="{Binding ExportIncludeCopyright, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Book Ref."
-                                      IsChecked="{Binding ExportIncludeBookReference}"
+                                      IsChecked="{Binding ExportIncludeBookReference, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="User Ref."
-                                      IsChecked="{Binding ExportIncludeUserReference}"
+                                      IsChecked="{Binding ExportIncludeUserReference, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Key"
-                                      IsChecked="{Binding ExportIncludeKey}"
+                                      IsChecked="{Binding ExportIncludeKey, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Capo"
-                                      IsChecked="{Binding ExportIncludeCapo}"
+                                      IsChecked="{Binding ExportIncludeCapo, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Timing"
-                                      IsChecked="{Binding ExportIncludeTiming}"
+                                      IsChecked="{Binding ExportIncludeTiming, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Chords"
-                                      IsChecked="{Binding ExportIncludeNotations}"
+                                      IsChecked="{Binding ExportIncludeNotations, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Index"
-                                      IsChecked="{Binding ExportIncludeIndex}"
+                                      IsChecked="{Binding ExportIncludeIndex, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                             <CheckBox Content="Page per song"
-                                      IsChecked="{Binding ExportOneSongPerPage}"
+                                      IsChecked="{Binding ExportOneSongPerPage, Mode=TwoWay}"
                                       Margin="0,0,16,6"
                                       MinHeight="28" />
                         </WrapPanel>

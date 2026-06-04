@@ -56,7 +56,7 @@
                     Orientation="Horizontal"
                     Margin="0,0,0,8"
                     VerticalAlignment="Center">
-            <CheckBox IsChecked="{Binding IncludeSubfolders}"
+            <CheckBox IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
                       VerticalAlignment="Center"
                       Content="하위 폴더 포함"
                       Foreground="{DynamicResource Brush.Text.Secondary}"

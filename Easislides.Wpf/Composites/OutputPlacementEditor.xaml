@@ -9,7 +9,7 @@
         (View만 분리, ViewModel·바인딩 동일 — 동작 동등성 우선).
     -->
     <StackPanel>
-        <CheckBox IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor}"
+        <CheckBox IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor, Mode=TwoWay}"
                   Content="보조 모니터 우선 사용"
                   AutomationProperties.Name="보조 모니터 우선 사용"
                   MinHeight="{DynamicResource Spacing.TargetMin}" />

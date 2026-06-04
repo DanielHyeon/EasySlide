@@ -150,15 +150,15 @@
                                  AutomationProperties.Name="기본 출력 모니터"
                                  Margin="0,4,0,16" />
 
-                        <CheckBox IsChecked="{Binding UseSafetyConfirmations}"
+                        <CheckBox IsChecked="{Binding UseSafetyConfirmations, Mode=TwoWay}"
                                   Content="라이브 중 위험 액션 확인"
                                   AutomationProperties.Name="라이브 안전 확인"
                                   MinHeight="{DynamicResource Spacing.TargetMin}" />
-                        <CheckBox IsChecked="{Binding ShowLyricsMonitorAlertBox}"
+                        <CheckBox IsChecked="{Binding ShowLyricsMonitorAlertBox, Mode=TwoWay}"
                                   Content="가사 모니터 알림 표시"
                                   AutomationProperties.Name="가사 모니터 알림 표시"
                                   MinHeight="{DynamicResource Spacing.TargetMin}" />
-                        <CheckBox IsChecked="{Binding AdvanceNextItem}"
+                        <CheckBox IsChecked="{Binding AdvanceNextItem, Mode=TwoWay}"
                                   Content="항목 끝에서 다음 항목 진행"
                                   AutomationProperties.Name="다음 항목 자동 진행"
                                   MinHeight="{DynamicResource Spacing.TargetMin}"
@@ -176,7 +176,7 @@
                                  Style="{StaticResource EsTextBox.Default}"
                                  AutomationProperties.Name="간격 화면 로고 파일"
                                  Margin="0,0,0,8" />
-                        <CheckBox IsChecked="{Binding GapItemUseFade}"
+                        <CheckBox IsChecked="{Binding GapItemUseFade, Mode=TwoWay}"
                                   Content="간격 화면 페이드 전환"
                                   AutomationProperties.Name="간격 화면 페이드 전환"
                                   MinHeight="{DynamicResource Spacing.TargetMin}"
@@ -207,7 +207,7 @@
                                          AutomationProperties.Name="가사 모니터 배경색" />
                             </StackPanel>
                         </Grid>
-                        <CheckBox IsChecked="{Binding LyricsMonitorBackgroundIsGradient}"
+                        <CheckBox IsChecked="{Binding LyricsMonitorBackgroundIsGradient, Mode=TwoWay}"
                                   Content="가사 배경 세로 그라데이션 사용"
                                   AutomationProperties.Name="가사 배경 그라데이션 사용"
                                   Margin="0,8,0,0"
@@ -220,7 +220,7 @@
                                      Style="{StaticResource EsTextBox.Default}"
                                      AutomationProperties.Name="가사 모니터 배경 그라데이션 끝색" />
                         </StackPanel>
-                        <CheckBox IsChecked="{Binding LyricsMonitorShowNotations}"
+                        <CheckBox IsChecked="{Binding LyricsMonitorShowNotations, Mode=TwoWay}"
                                   Content="가사 모니터 코드 표기"
                                   AutomationProperties.Name="가사 모니터 코드 표기"
                                   MinHeight="{DynamicResource Spacing.TargetMin}" />
@@ -236,11 +236,11 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel Margin="{StaticResource Thickness.Xl}">
-                    <CheckBox IsChecked="{Binding UsePowerPointTab}"
+                    <CheckBox IsChecked="{Binding UsePowerPointTab, Mode=TwoWay}"
                               Content="PowerPoint 탭 표시"
                               AutomationProperties.Name="PowerPoint 탭 표시"
                               MinHeight="{DynamicResource Spacing.TargetMin}" />
-                    <CheckBox IsChecked="{Binding NoPowerPointPanelOverlay}"
+                    <CheckBox IsChecked="{Binding NoPowerPointPanelOverlay, Mode=TwoWay}"
                               Content="PowerPoint 송출 패널 오버레이 숨김"
                               AutomationProperties.Name="PowerPoint 패널 오버레이 숨김"
                               MinHeight="{DynamicResource Spacing.TargetMin}"
@@ -278,11 +278,11 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel Margin="{StaticResource Thickness.Xl}">
-                    <CheckBox IsChecked="{Binding UseMediaTab}"
+                    <CheckBox IsChecked="{Binding UseMediaTab, Mode=TwoWay}"
                               Content="미디어 탭 표시"
                               AutomationProperties.Name="미디어 탭 표시"
                               MinHeight="{DynamicResource Spacing.TargetMin}" />
-                    <CheckBox IsChecked="{Binding NoMediaPanelOverlay}"
+                    <CheckBox IsChecked="{Binding NoMediaPanelOverlay, Mode=TwoWay}"
                               Content="미디어 송출 패널 오버레이 숨김"
                               AutomationProperties.Name="미디어 패널 오버레이 숨김"
                               MinHeight="{DynamicResource Spacing.TargetMin}"
@@ -315,7 +315,7 @@
                             IsSnapToTickEnabled="True"
                             AutomationProperties.Name="미디어 밸런스"
                             Margin="0,4,0,16" />
-                    <CheckBox IsChecked="{Binding MediaMuted}"
+                    <CheckBox IsChecked="{Binding MediaMuted, Mode=TwoWay}"
                               Content="음소거"
                               AutomationProperties.Name="미디어 음소거"
                               MinHeight="{DynamicResource Spacing.TargetMin}"
@@ -570,7 +570,7 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel Margin="{StaticResource Thickness.Xl}">
-                    <CheckBox IsChecked="{Binding EnableDiagnostics}"
+                    <CheckBox IsChecked="{Binding EnableDiagnostics, Mode=TwoWay}"
                               Content="진단 로그 활성화"
                               AutomationProperties.Name="진단 로그 활성화"
                               MinHeight="{DynamicResource Spacing.TargetMin}" />

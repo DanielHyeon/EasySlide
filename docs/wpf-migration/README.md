@@ -21,6 +21,7 @@
 | `docs/ui/icon-migration-map.md` | 셸/콘텐츠/설정 | 현행 PNG/BMP → EasiDS 아이콘 키 매핑 |
 | `docs/ui/icon-pipeline.md` | UI 자산 | WPF UI SymbolIcon 우선, SVG/XAML fallback |
 | `docs/form-designer-split-plan.md` | 분석/추적 | WinForms 폼 분해 상태를 WPF 이식 인벤토리의 입력으로 사용 |
+| `docs/wpf-migration/frmmain-ux-alignment-next-steps.md` | 운영 셸 UI/UX | FrmMain을 WPF MainWindow의 운영 콘솔 UX 기준으로 고정하고 다음 작업 정의 |
 
 ## 1. 현재 완료 여부
 

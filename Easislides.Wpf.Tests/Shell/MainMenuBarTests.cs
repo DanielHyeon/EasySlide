@@ -144,7 +144,7 @@ public class MainMenuBarTests
     public void MenuBar_OutputDisplayToggles_BindCheckedAndCommand(string activeProperty, string toggleCommand)
     {
         var xaml = Xaml;
-        xaml.Should().Contain($"IsChecked=\"{{Binding {activeProperty}}}\"", $"{activeProperty} 체크 상태 바인딩");
+        xaml.Should().Contain($"IsChecked=\"{{Binding {activeProperty}, Mode=OneWay}}\"", $"{activeProperty} 체크 상태 바인딩");
         xaml.Should().Contain($"Command=\"{{Binding {toggleCommand}}}\"", $"{toggleCommand} 토글 명령 배선");
     }
 
