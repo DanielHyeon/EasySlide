@@ -105,7 +105,7 @@
 | `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) with `OutputPowerPoint.PreviewImage` overlay | partial | 4 | large output screen now uses independent OutputItem PPT state; exact sizing/frame parity still incomplete |
 | `OutputBtnVerse1..Ending` | `flowLayoutPanel2` + `OutputBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; buttons now call `JumpToOutputLyricsSectionCommand` so live Output lyrics jump independently from Preview selection; shortcut parity still incomplete |
 | `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + item nav commands | partial | 4 | exact live next/prev semantics |
-| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT live slide movement targets OutputItem independently; lyrics live page parity still incomplete |
+| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT slide and live lyrics page movement now target OutputItem independently; shortcut/focus parity still incomplete |
 | `OutputBtnRefAlert` | `OutputBtnRefAlert` disabled placeholder | missing | 5 | reference alert command and output overlay |
 | `OutputBtnMedia` | `OutputBtnMedia` + `Media.PlayPauseCommand` | partial | 5 | direct output media behavior |
 | `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` disabled placeholder | missing | 5 | gap/non-rotate jump |

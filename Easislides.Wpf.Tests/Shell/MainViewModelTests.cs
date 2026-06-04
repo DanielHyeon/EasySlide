@@ -7483,6 +7483,48 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputSlideButtons_WhenLiveLyricsSelectionDiverges_MoveLiveOutputOnly()
+    {
+        // FrmMain 오른쪽 Output 위/아래 버튼: 선택/Preview 항목이 아니라 현재 라이브 가사 페이지를 이동한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Sequence = "1 C 2 C",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.LyricsPageIndex.Should().Be(0, "Preview 선택 변경은 preview 페이지를 첫 절로 둔다");
+
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue();
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 버튼은 선택 항목을 라이브 항목으로 바꾸지 않는다");
+        sut.LyricsPageIndex.Should().Be(0, "Output 버튼은 Preview 페이지 인덱스를 건드리지 않는다");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song", "라이브 항목은 기존 OutputItem 그대로");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "다음 Output 버튼은 라이브 절만 앞으로 넘긴다");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.LiveBar.PositionLabel.Should().Be("2/4");
+
+        sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue();
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.LyricsPageIndex.Should().Be(0);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0, "이전 Output 버튼은 라이브 절만 되돌린다");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse");
+        sut.LiveBar.PositionLabel.Should().Be("1/4");
+    }
+
+    [Fact]
     public void AddSong_DualLanguage_PageCountUsesRegionPages()
     {
         // 이중 언어([region 2]) 곡은 영역-인식 페이지 수를 쓴다 — [region 2] 가 절 경계로 오인돼 절 수가 부풀지 않음.
