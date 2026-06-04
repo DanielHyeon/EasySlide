@@ -699,6 +699,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextOutputSlideCommand = new AsyncRelayCommand(() => GoToOutputSlideAsync(OutputPowerPoint.SlideNumber + 1), CanGoNextOutputSlide);
         PreviousOutputSlideCommand = new AsyncRelayCommand(() => GoToOutputSlideAsync(OutputPowerPoint.SlideNumber - 1), CanGoPreviousOutputSlide);
         GoToOutputSlideCommand = new AsyncRelayCommand<int>(GoToOutputSlideAsync, CanGoToOutputSlide);
+        JumpToOutputLyricsSectionCommand = new RelayCommand<string>(JumpToOutputLyricsSection, CanJumpToOutputLyricsSection);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
@@ -879,6 +880,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextOutputSlideCommand { get; }
     public IAsyncRelayCommand PreviousOutputSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToOutputSlideCommand { get; }
+    public IRelayCommand<string> JumpToOutputLyricsSectionCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
     public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
@@ -2570,36 +2572,40 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 곡·성경이 아니거나 본문이 없으면 LyricsPageCount=0(절 이동 버튼 비활성).
     private void RefreshLyricsPages(LiveQueueItem? item)
     {
-        // 절 단위로 페이지네이션되는 항목 = 곡 + 성경(구절 본문). 둘 다 같은 가사 페이지 모델(절 이동·위치 라벨)을 쓴다.
+        var pageModel = BuildLyricsPageModel(item);
+        LyricsPageCount = pageModel.Count;
+        _pageLabels = pageModel.Labels;
+        RebuildAvailableSectionLabels();
+        LyricsPageIndex = 0;
+    }
+
+    private static (int Count, IReadOnlyList<string> Labels) BuildLyricsPageModel(LiveQueueItem? item)
+    {
         var paginated = IsLyricsPaginated(item);
+        if (!paginated)
+        {
+            return (0, Array.Empty<string>());
+        }
+
         // 성경 본문은 인용부호 »…« 가 코드 마커로 오인돼 절 수가 어긋나지 않도록 분할 전 보호한다(본문 추출과 동일 규칙).
-        var lyrics = paginated ? GuardBibleNotation(item!) : null;
+        var lyrics = GuardBibleNotation(item!);
         // 이중 언어([region 2]) 곡·성경은 영역-인식 페이지 수(GetRegionPages)를 쓴다 — [region 2] 가 절 경계로
         // 오인돼 절 수가 부풀던 문제 해소. 단일 영역은 기존 ToVersePages(Sequence 적용) 경로 그대로(무회귀).
-        var dual = paginated && LyricsDisplayFormatter.HasRegion2(lyrics);
-        LyricsPageCount = !paginated
-            ? 0
-            : dual
-                ? LyricsDisplayFormatter.GetRegionPages(lyrics, item!.Sequence).Count
-                : LyricsDisplayFormatter.ToVersePages(lyrics, item!.Sequence).Count;
+        var dual = LyricsDisplayFormatter.HasRegion2(lyrics);
+        var count = dual
+            ? LyricsDisplayFormatter.GetRegionPages(lyrics, item!.Sequence).Count
+            : LyricsDisplayFormatter.ToVersePages(lyrics, item!.Sequence).Count;
+
         // 페이지별 절 라벨(절 점프 근거). 단일 영역은 GetSectionLabels, 이중 언어는 region-aware 라벨을 쓰되
         // 페이지 수와 1:1 정렬될 때만 채운다(라벨 없는 머리말 등으로 어긋나면 비워 점프 비활성 — 잘못된 점프 방지).
         // 성경 본문엔 [라벨] 마커가 없어 라벨 목록은 비고(절 점프 바 없음), 이전/다음 절 이동만 동작한다.
-        if (!paginated)
+        if (!dual)
         {
-            _pageLabels = Array.Empty<string>();
+            return (count, LyricsDisplayFormatter.GetSectionLabels(lyrics, item!.Sequence));
         }
-        else if (!dual)
-        {
-            _pageLabels = LyricsDisplayFormatter.GetSectionLabels(lyrics, item!.Sequence);
-        }
-        else
-        {
-            var regionLabels = LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, item!.Sequence);
-            _pageLabels = regionLabels.Count == LyricsPageCount ? regionLabels : Array.Empty<string>();
-        }
-        RebuildAvailableSectionLabels();
-        LyricsPageIndex = 0;
+
+        var regionLabels = LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, item!.Sequence);
+        return (count, regionLabels.Count == count ? regionLabels : Array.Empty<string>());
     }
 
     // 절 수·본문 계산 전 항목 본문을 정리한다. 성경은 코드 마커(») 규약을 안 쓰므로 인용부호 »…« 를 보호 문자로
@@ -2629,6 +2635,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         JumpToLyricsSectionCommand.NotifyCanExecuteChanged();
+        JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
     }
 
     // 절 라벨로 직접 점프 — 그 라벨의 첫 페이지로 이동(레거시 FrmInfoScreen 절 버튼). 라이브 중이면 출력도 즉시 갱신.
@@ -2651,16 +2658,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanJumpToLyricsSection(string? label) => IndexOfPageLabel(label) >= 0;
 
     // 라벨의 첫 페이지 인덱스(대소문자 무시). 없으면 -1. 점프/CanExecute 공통.
-    private int IndexOfPageLabel(string? label)
+    private int IndexOfPageLabel(string? label) => IndexOfPageLabel(_pageLabels, label);
+
+    private static int IndexOfPageLabel(IReadOnlyList<string> labels, string? label)
     {
         if (string.IsNullOrEmpty(label))
         {
             return -1;
         }
 
-        for (var i = 0; i < _pageLabels.Count; i++)
+        for (var i = 0; i < labels.Count; i++)
         {
-            if (string.Equals(_pageLabels[i], label, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(labels[i], label, StringComparison.OrdinalIgnoreCase))
             {
                 return i;
             }
@@ -3102,6 +3111,44 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => Queue.FirstOrDefault(item =>
             string.Equals(item.Id, _liveItemId, StringComparison.Ordinal)
             && IsPowerPointItem(item));
+
+    private void JumpToOutputLyricsSection(string? label)
+    {
+        if (GetLiveLyricsItem() is not { } item)
+        {
+            return;
+        }
+
+        var pageModel = BuildLyricsPageModel(item);
+        var target = IndexOfPageLabel(pageModel.Labels, label);
+        if (target < 0)
+        {
+            return;
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        _session.GoLive(ResolveLiveProjection(item with { LyricsPageIndex = target }), monitorName);
+        StatusText = pageModel.Count > 1
+            ? $"Output 가사 {target + 1}/{pageModel.Count}절"
+            : StatusText;
+        NotifyCommandStates();
+    }
+
+    private bool CanJumpToOutputLyricsSection(string? label)
+    {
+        if (_session.Current.State != LiveState.Active || GetLiveLyricsItem() is not { } item)
+        {
+            return false;
+        }
+
+        var pageModel = BuildLyricsPageModel(item);
+        return IndexOfPageLabel(pageModel.Labels, label) >= 0;
+    }
+
+    private LiveQueueItem? GetLiveLyricsItem()
+        => Queue.FirstOrDefault(item =>
+            string.Equals(item.Id, _liveItemId, StringComparison.Ordinal)
+            && IsLyricsPaginated(item));
 
     // PPT 미리보기 VM 의 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 동기화.
     private void OnPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -5531,6 +5578,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextOutputSlideCommand.NotifyCanExecuteChanged();
         PreviousOutputSlideCommand.NotifyCanExecuteChanged();
         GoToOutputSlideCommand.NotifyCanExecuteChanged();
+        JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
         AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
         MoveSelectedItemDownCommand.NotifyCanExecuteChanged();

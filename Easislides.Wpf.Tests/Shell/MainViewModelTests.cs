@@ -7450,6 +7450,39 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task JumpToOutputLyricsSection_WhenSelectionDivergesFromLiveItem_MovesLiveOutputOnly()
+    {
+        // FrmMain 1:1: Output 절 버튼은 Preview 선택 항목이 아니라 현재 라이브 항목(OutputItem)을 움직여야 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Sequence = "1 C 2 C",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.LyricsPageIndex.Should().Be(0, "Preview 선택 변경은 preview 페이지를 첫 절로 둔다");
+
+        sut.JumpToOutputLyricsSectionCommand.CanExecute("C").Should().BeTrue();
+        sut.JumpToOutputLyricsSectionCommand.Execute("C");
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 버튼은 선택 항목을 라이브 항목으로 바꾸지 않는다");
+        sut.LyricsPageIndex.Should().Be(0, "Output 버튼은 Preview 페이지 인덱스를 건드리지 않는다");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song", "라이브 항목은 기존 OutputItem 그대로");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "라이브 A 의 첫 후렴으로 이동");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.LiveBar.PositionLabel.Should().Be("2/4", "Output 라이브 위치 표시만 갱신된다");
+    }
+
+    [Fact]
     public void AddSong_DualLanguage_PageCountUsesRegionPages()
     {
         // 이중 언어([region 2]) 곡은 영역-인식 페이지 수를 쓴다 — [region 2] 가 절 경계로 오인돼 절 수가 부풀지 않음.
