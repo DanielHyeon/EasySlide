@@ -219,30 +219,43 @@ public class MainMenuBarTests
     // FrmMain 라이브 운영 단축키를 메뉴에 힌트로 노출(발견가능성 — 현대적 UX). 실제 키 배선은 CommandCatalog.
     [InlineData("InputGestureText=\"F12\"")]     // Go LIVE
     [InlineData("InputGestureText=\"F11\"")]     // 송출 후 다음 항목(증분135)
+    [InlineData("InputGestureText=\"Space\"")]   // 다음 항목
+    [InlineData("InputGestureText=\"Shift+Space\"")] // 이전 항목
     [InlineData("InputGestureText=\"F9\"")]      // 검은 화면
     [InlineData("InputGestureText=\"F3\"")]      // 화면 비우기
     [InlineData("InputGestureText=\"F1\"")]      // 도움말
     [InlineData("InputGestureText=\"Ctrl+R\"")]  // 현재 항목 처음으로(증분136)
     [InlineData("InputGestureText=\"Ctrl+F5\"")] // 출력 새로고침(증분136)
-    public void MenuBar_ShowsFunctionKeyGestureHints(string gesture)
+    public void MenuBar_ShowsCoreGestureHints(string gesture)
         => Xaml.Should().Contain(gesture, $"메뉴에 {gesture} 단축키 힌트가 보여야 함");
 
     [Theory]
-    // 메뉴 힌트 문자열이 실제 카탈로그 단축키와 일치해야 한다(둘이 어긋나면 거짓 힌트). 단축키를 바꾸면 이 테스트가 잡는다.
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGoAndNext, "F11")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "Ctrl+R")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRefresh, "Ctrl+F5")]
-    public void MenuGestureHints_MatchActualCatalogShortcut(string commandId, string gesture)
+    // 메뉴 힌트 문자열이 실제 카탈로그 단축키와 같은 메뉴 항목의 VM 명령에 일치해야 한다(거짓 힌트·잘못된 항목 부착 방지).
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGo, "F12", "GoLiveCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGoAndNext, "F11", "SendToOutputAndNextCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveNext, "Space", "NextItemCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePrevious, "Shift+Space", "PreviousItemCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveBlack, "F9", "BlackScreenCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveClear, "F3", "ClearOutputCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "Ctrl+R", "RestartCurrentItemCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRefresh, "Ctrl+F5", "RefreshOutputCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.WindowHelp, "F1", "OpenHelp_Click")]
+    public void MenuGestureHints_MatchActualCatalogShortcutAndMenuCommand(
+        string commandId,
+        string gesture,
+        string menuCommandOrClick)
     {
         // 카탈로그에 그 명령의 기본 단축키가 있고 표시 문자열이 메뉴 힌트와 같은지.
-        var shortcut = new Easislides.Wpf.Input.CommandCatalog()
+        var shortcuts = new Easislides.Wpf.Input.CommandCatalog()
             .GetDefaultShortcuts()
-            .FirstOrDefault(s => s.CommandName == commandId);
+            .Where(s => s.CommandName == commandId)
+            .ToList();
+        var shortcut = shortcuts.FirstOrDefault(s => s.DisplayText == gesture);
         shortcut.Should().NotBeNull($"{commandId} 에 기본 단축키가 있어야 함");
-        shortcut!.DisplayText.Should().Be(gesture, "메뉴 힌트와 실제 단축키가 일치해야 함(거짓 힌트 방지)");
 
         // 그리고 메뉴 XAML 에 그 힌트가 실제로 노출돼 있는지.
-        Xaml.Should().Contain($"InputGestureText=\"{gesture}\"", $"{commandId} 메뉴에 {gesture} 힌트 노출");
+        var menuItem = MenuItemOpeningFor(menuCommandOrClick);
+        menuItem.Should().Contain($"InputGestureText=\"{gesture}\"", $"{commandId} 메뉴에 {gesture} 힌트 노출");
     }
 
     [Fact]
@@ -264,6 +277,28 @@ public class MainMenuBarTests
         gestures.Should().NotBeEmpty("메뉴에 단축키 힌트가 있어야 함");
         gestures.Should().OnlyContain(g => catalogDisplayTexts.Contains(g),
             "메뉴의 모든 단축키 힌트는 실제 카탈로그 단축키여야 한다(가짜 힌트 금지)");
+    }
+
+    private static string MenuItemOpeningFor(string commandOrClick)
+    {
+        var xaml = Xaml;
+        var commandBinding = $"Command=\"{{Binding {commandOrClick}}}\"";
+        var clickBinding = $"Click=\"{commandOrClick}\"";
+        var marker = xaml.IndexOf(commandBinding, StringComparison.Ordinal);
+        if (marker < 0)
+        {
+            marker = xaml.IndexOf(clickBinding, StringComparison.Ordinal);
+        }
+
+        marker.Should().BeGreaterThanOrEqualTo(0, $"{commandOrClick} 메뉴 항목이 있어야 함");
+
+        var start = xaml.LastIndexOf("<MenuItem", marker, StringComparison.Ordinal);
+        start.Should().BeGreaterThanOrEqualTo(0, $"{commandOrClick} 는 MenuItem 에 배선돼야 함");
+
+        var end = xaml.IndexOf(">", marker, StringComparison.Ordinal);
+        end.Should().BeGreaterThan(marker, $"{commandOrClick} MenuItem 여는 태그를 찾을 수 있어야 함");
+
+        return xaml[start..(end + 1)];
     }
 
     private static string FindRepositoryRoot()

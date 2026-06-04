@@ -61,6 +61,28 @@ public class CommandCatalogTests
     }
 
     [Theory]
+    // FrmMain 라이브 항목 이동 파리티: Space/Shift+Space 는 로컬 UI 키, F5/F4 는 라이브 운용용 글로벌 키로 유지.
+    [InlineData(Key.Space, ModifierKeys.None, MainCommandIds.LiveNext, false)]
+    [InlineData(Key.Space, ModifierKeys.Shift, MainCommandIds.LivePrevious, false)]
+    [InlineData(Key.F5, ModifierKeys.None, MainCommandIds.LiveNext, true)]
+    [InlineData(Key.F4, ModifierKeys.None, MainCommandIds.LivePrevious, true)]
+    public void GetDefaultShortcuts_IncludesFrmMainNavigationKeys(
+        Key key,
+        ModifierKeys modifiers,
+        string commandId,
+        bool isGlobal)
+    {
+        var sut = new CommandCatalog();
+
+        sut.GetDefaultShortcuts()
+            .Should()
+            .Contain(shortcut => shortcut.Key == key
+                && shortcut.Modifiers == modifiers
+                && shortcut.CommandName == commandId
+                && shortcut.IsGlobal == isGlobal);
+    }
+
+    [Theory]
     // 화면 제어 명령 현대 단축키: Ctrl+R=처음으로(Restart), Ctrl+F5=출력 새로고침(하드 새로고침 관용). 레거시 F5 충돌 회피.
     [InlineData(Key.R, MainCommandIds.LiveRestart)]
     [InlineData(Key.F5, MainCommandIds.LiveRefresh)]
