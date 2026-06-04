@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Easislides.Wpf.Input;
@@ -69,37 +69,40 @@ public class WorshipListPanelTests
         var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");
 
         var host = window.Descendants().SingleOrDefault(e => e.Name.LocalName == "WorshipListPanel");
-        host.Should().NotBeNull("MainWindow 는 WorshipListPanel 컴포지트를 호스트해야 함");
+        host.Should().NotBeNull("MainWindow should host the WorshipListPanel composite");
 
-        // FrmMain식 멀티페인(§7.4): 좌측 column 0 은 [브라우저 탭(라이브러리/성경)] 위 + [예배 순서] 아래로 분리되어
-        // 예배 순서가 탭 전환 없이 "항상" 보인다. 즉 컴포지트는 더 이상 탭 안이 아니라 브라우저 탭과 형제(하단 Row 2).
         var leftTabs = window.Descendants().SingleOrDefault(
             e => e.Name.LocalName == "TabControl" && Attr(e, "Name") == "LeftBrowserTabs");
-        leftTabs.Should().NotBeNull("좌측 상단은 라이브러리/성경 브라우저 탭 컨트롤");
-        Attr(leftTabs!, "Grid.Row").Should().Be("0", "브라우저 탭은 좌측 상단(Row 0)");
-
-        // 예배 순서는 탭 컨트롤 바깥(형제)에 위치 — 항상 표시. 탭 안에 있으면 탭 전환 시 가려진다.
+        leftTabs.Should().NotBeNull("the left upper browser tab control should remain visible");
+        Attr(leftTabs!, "Grid.Row").Should().Be("0", "source browser stays in the upper-left row");
+        Attr(leftTabs!, "TabStripPlacement").Should().Be("Bottom", "FrmMain keeps source tabs on the bottom edge");
         leftTabs!.Descendants().Any(e => e.Name.LocalName == "WorshipListPanel")
-            .Should().BeFalse("예배 순서는 브라우저 탭 안이 아니라 항상 보이는 하단 패널");
-        Attr(host!, "Grid.Row").Should().Be("2", "예배 순서는 좌측 하단(Row 2)에 항상 표시");
+            .Should().BeFalse("Worship List is a lower-left list role, not a source-browser tab");
 
-        // 컴포지트와 브라우저 탭은 같은 부모(좌측 column 0 Grid)를 공유한다.
-        host!.Parent.Should().BeSameAs(leftTabs!.Parent, "둘 다 좌측 컬럼 Grid 의 자식");
-        Attr(host!.Parent!, "Grid.Column").Should().Be("0", "좌측 컬럼(column 0)에 위치");
+        var listTabs = window.Descendants().SingleOrDefault(
+            e => e.Name.LocalName == "TabControl" && Attr(e, "Name") == "LeftListTabs");
+        listTabs.Should().NotBeNull("FrmMain lower-left pane should host Worship List and Praise Book tabs");
+        Attr(listTabs!, "Grid.Row").Should().Be("2", "lower-left list tabs stay in the left lower row");
+        Attr(listTabs!, "TabStripPlacement").Should().Be("Bottom", "FrmMain keeps lower-left list tabs on the bottom edge");
+        listTabs!.Descendants().Any(e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == "WorshipList")
+            .Should().BeTrue("the first lower-left role is Worship List");
+        listTabs!.Descendants().Any(e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == "PraiseBook")
+            .Should().BeTrue("the second lower-left role is Praise Book");
+        listTabs!.Descendants().Any(e => e.Name.LocalName == "WorshipListPanel")
+            .Should().BeTrue("WorshipListPanel is hosted inside the lower-left Worship List tab");
+        Attr(listTabs.Parent!, "Grid.Column").Should().Be("0", "lower-left tabs stay in the left column");
 
-        // 라이브 경로 핵심 가드: 호스트에 DataContext 재정의가 없어야 MainViewModel 이 상속되어
-        // Queue/SelectedItem 바인딩이 끊기지 않는다(LiveBar 처럼 DataContext 를 가로채면 라이브 선택 사고).
-        Attr(host!, "DataContext").Should().BeEmpty("DataContext 상속이 끊기면 라이브 송출 선택이 끊김");
-
-        // 송출 큐 ListBox 는 더 이상 윈도우에 인라인되지 않는다(중복 바인딩 방지).
+        Attr(host!, "DataContext").Should().BeEmpty("DataContext inheritance must keep MainViewModel bindings intact");
         window.Descendants().Any(e => e.Name.LocalName == "ListBox" && Attr(e, "ItemsSource").Contains("Queue"))
-            .Should().BeFalse("송출 큐 ListBox 는 컴포지트로 이동");
+            .Should().BeFalse("the queue ListBox remains inside the composite");
     }
 
     [Theory]
     // 증분149/150 — 좌측 브라우저 탭(라이브러리/성경/검색)이 Fluent 아이콘 머리글 + 스크린리더용 탭 이름을 가진다(아이콘 업그레이드·a11y).
-    [InlineData("Library", "라이브러리")]
-    [InlineData("Bible", "성경")]
+    [InlineData("Folders", "Folders")]
+    [InlineData("Bibles", "Bibles")]
+    [InlineData("ImagesSource", "Images")]
+    [InlineData("DefaultSource", "Default")]
     [InlineData("Search", "검색")]
     public void LeftBrowserTabs_HaveIconHeaders_AndAccessibleNames(string tag, string accessibleName)
     {

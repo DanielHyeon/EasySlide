@@ -32,10 +32,14 @@ public partial class MainWindow : Window
     private bool _searchLoadedOnce;
     private bool _infoScreenSourceLoadedOnce;
     private bool _powerPointSourceLoadedOnce;
+    private bool _imageSourceLoadedOnce;
     private bool _mediaSourceLoadedOnce;
+    private bool _praiseBookSourceLoadedOnce;
     private InfoScreenSourceViewModel? _inlineInfoScreens;
     private PowerPointLibraryViewModel? _inlinePowerPoint;
+    private ImageLibraryViewModel? _inlineImages;
     private MediaLibraryViewModel? _inlineMedia;
+    private PraiseBookIndexViewModel? _inlinePraiseBook;
     private bool _fontsMergedOnce;
     // "모든 설정 초기화"(복구)로 닫는 중인가 — true 면 OnClosing 에서 창 위치·패널 비율을 저장하지 않는다
     // (안 그러면 방금 되돌린 기본값을 닫으면서 다시 덮어쓴다. 레거시 SaveToRegistryOnClosing=false 와 같은 취지).
@@ -183,6 +187,37 @@ public partial class MainWindow : Window
         _inlineMedia.LoadCommand.Execute(null);
     }
 
+    private void EnsureInlineImageLoadedOnce(MainViewModel viewModel)
+    {
+        if (_imageSourceLoadedOnce)
+        {
+            return;
+        }
+
+        _imageSourceLoadedOnce = true;
+        _inlineImages = new ImageLibraryViewModel(
+            new Easislides.Wpf.Rendering.ImageLibraryService(),
+            LoadThumbnail,
+            viewModel.SetOutputBackgroundImage,
+            () => viewModel.ClearOutputBackgroundImageCommand.Execute(null),
+            ResolveImageInitialFolder());
+        _inlineImages.IncludeSubfolders = true;
+        ImagesSourceTab.DataContext = _inlineImages;
+        _inlineImages.LoadCommand.Execute(null);
+    }
+
+    private void EnsureInlinePraiseBookLoadedOnce(MainViewModel viewModel)
+    {
+        if (_praiseBookSourceLoadedOnce)
+        {
+            return;
+        }
+
+        _praiseBookSourceLoadedOnce = true;
+        _inlinePraiseBook = CreatePraiseBookIndexViewModel(viewModel);
+        PraiseBookTab.DataContext = _inlinePraiseBook;
+    }
+
     private string ResolvePowerPointInitialFolder()
     {
         var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
@@ -208,6 +243,30 @@ public partial class MainWindow : Window
             : !string.IsNullOrWhiteSpace(mediaFolder) && Directory.Exists(mediaFolder) ? mediaFolder
             : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
             : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+    }
+
+    private string ResolveImageInitialFolder()
+    {
+        var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
+        var imagesFolder = !string.IsNullOrWhiteSpace(workingFolder)
+            ? Path.Combine(workingFolder, "Images")
+            : string.Empty;
+
+        return !string.IsNullOrWhiteSpace(imagesFolder) && Directory.Exists(imagesFolder) ? imagesFolder
+            : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+    }
+
+    private static PraiseBookIndexViewModel CreatePraiseBookIndexViewModel(MainViewModel viewModel)
+    {
+        var entries = viewModel.Library.Songs
+            .Select(song => new PraiseBookIndexEntry(song.Title, song.SongNumber, song.SongId))
+            .ToList();
+
+        return new PraiseBookIndexViewModel(
+            new PraiseBookIndexService(),
+            new PraiseBookStore(),
+            entries);
     }
 
     private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -399,10 +458,10 @@ public partial class MainWindow : Window
         // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피). 탭별 1회 자동 로드.
         switch (tab.Tag)
         {
-            case "Library":
+            case "Folders":
                 EnsureLibraryLoadedOnce(); // 멱등 — 시작 로드(Loaded)와 동일 가드 공유
                 break;
-            case "Bible":
+            case "Bibles":
                 EnsureBibleLoadedOnce(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
                 break;
             case "InfoScreenSource":
@@ -410,6 +469,9 @@ public partial class MainWindow : Window
                 break;
             case "PowerPointSource":
                 EnsureInlinePowerPointLoadedOnce(viewModel);
+                break;
+            case "ImagesSource":
+                EnsureInlineImageLoadedOnce(viewModel);
                 break;
             case "MediaSource":
                 EnsureInlineMediaLoadedOnce(viewModel);
@@ -422,6 +484,23 @@ public partial class MainWindow : Window
     }
 
     // 본문에서 드래그 선택한 구절 범위를 BibleSelection 으로 만들어 예배 순서에 추가(BibleWindow Select_Click 과 동일).
+    private void LeftListTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!ReferenceEquals(e.OriginalSource, sender))
+        {
+            return;
+        }
+
+        if (sender is not TabControl { SelectedItem: TabItem { Tag: "PraiseBook" } }
+            || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        EnsureLibraryLoadedOnce();
+        EnsureInlinePraiseBookLoadedOnce(viewModel);
+    }
+
     private void AddBibleVerse_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
@@ -1091,6 +1170,46 @@ public partial class MainWindow : Window
     }
 
     // 이미지 갤러리 — 폴더의 이미지를 썸네일로 보고 출력 배경으로 적용(FrmMain Images 탭 포팅).
+    private void InlinePraiseBookRefresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        _inlinePraiseBook = CreatePraiseBookIndexViewModel(viewModel);
+        _praiseBookSourceLoadedOnce = true;
+        PraiseBookTab.DataContext = _inlinePraiseBook;
+    }
+
+    private async void InlinePraiseBookOpenBook_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        EnsureInlinePraiseBookLoadedOnce(viewModel);
+        if (_inlinePraiseBook is null || InlinePraiseBookSavedBooksCombo.SelectedItem is not string name)
+        {
+            return;
+        }
+
+        await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name);
+    }
+
+    private void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2
+            || sender is not FrameworkElement { DataContext: PraiseBookIndexEntry entry }
+            || DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
+    }
+
     private void OpenImageLibrary_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)

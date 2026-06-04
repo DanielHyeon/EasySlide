@@ -1,4 +1,4 @@
-<Window x:Class="Easislides.Wpf.MainWindow"
+﻿<Window x:Class="Easislides.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
@@ -925,15 +925,16 @@
                 <TabControl Grid.Row="0"
                             x:Name="LeftBrowserTabs"
                             SelectionChanged="LeftBrowserTabs_SelectionChanged"
+                            TabStripPlacement="Bottom"
                             BorderThickness="0"
                             Background="Transparent">
-                    <TabItem Tag="Library"
-                             AutomationProperties.Name="라이브러리">
+                    <TabItem Tag="Folders"
+                             AutomationProperties.Name="Folders">
                         <!-- 탭 머리글에 Fluent 아이콘 추가(현대 UI 업그레이드) — 라이브러리=찬양 노트북 아이콘. 스크린리더는 탭 이름을 읽게 AutomationProperties.Name 고정. -->
                         <TabItem.Header>
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
-                                <TextBlock Text="라이브러리" />
+                                <TextBlock Text="Folders" />
                             </StackPanel>
                         </TabItem.Header>
                     <Grid Margin="0,8,0,0">
@@ -1128,13 +1129,87 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
-                <TabItem Tag="Bible"
-                         AutomationProperties.Name="성경">
+                <TabItem Tag="PowerPointSource"
+                         x:Name="PowerPointSourceTab"
+                         AutomationProperties.Name="PowerPoint source">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="PowerPoint" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding FolderPath}"
+                                     IsReadOnly="True"
+                                     MinHeight="34"
+                                     VerticalContentAlignment="Center"
+                                     AutomationProperties.Name="PowerPoint folder path" />
+                            <Button Grid.Column="2"
+                                    Command="{Binding LoadCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Content="Refresh"
+                                    AutomationProperties.Name="Refresh PowerPoint list" />
+                            <Button Grid.Column="4"
+                                    Command="{Binding AddSelectedCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    Content="Add"
+                                    AutomationProperties.Name="Add selected PowerPoint to Worship List" />
+                        </Grid>
+
+                        <CheckBox Grid.Row="1"
+                                  IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
+                                  Content="Include subfolders"
+                                  Margin="0,0,0,8"
+                                  AutomationProperties.Name="Include PowerPoint subfolders" />
+
+                        <TextBox Grid.Row="2"
+                                 Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="34"
+                                 Margin="0,0,0,8"
+                                 ToolTip="Filter by file name"
+                                 AutomationProperties.Name="PowerPoint file filter" />
+
+                        <ListBox Grid.Row="3"
+                                 x:Name="InlinePowerPointList"
+                                 ItemsSource="{Binding Presentations}"
+                                 SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                                 DisplayMemberPath="FileName"
+                                 MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
+                                 PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
+                                 AutomationProperties.Name="PowerPoint source file list" />
+
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding StatusText}"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Tag="Bibles"
+                         AutomationProperties.Name="Bibles">
                     <!-- 성경 탭 = 책 아이콘. -->
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="성경" />
+                            <TextBlock Text="Bibles" />
                         </StackPanel>
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
@@ -1231,13 +1306,13 @@
                     </Grid>
                 </TabItem>
                 <!-- Inline external source tabs restore the FrmMain left-browser PowerP/Media workflow. -->
-                <TabItem Tag="PowerPointSource"
-                         x:Name="PowerPointSourceTab"
-                         AutomationProperties.Name="PowerPoint source">
+                <TabItem Tag="ImagesSource"
+                         x:Name="ImagesSourceTab"
+                         AutomationProperties.Name="Images">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="PowerPoint" />
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PlaceholderNoImage}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="Images" />
                         </StackPanel>
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
@@ -1254,55 +1329,107 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{Binding FolderPath}"
                                      IsReadOnly="True"
                                      MinHeight="34"
                                      VerticalContentAlignment="Center"
-                                     AutomationProperties.Name="PowerPoint folder path" />
+                                     AutomationProperties.Name="Images folder path" />
                             <Button Grid.Column="2"
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
                                     Content="Refresh"
-                                    AutomationProperties.Name="Refresh PowerPoint list" />
-                            <Button Grid.Column="4"
-                                    Command="{Binding AddSelectedCommand}"
-                                    Style="{StaticResource EsButton.Primary}"
-                                    Content="Add"
-                                    AutomationProperties.Name="Add selected PowerPoint to Worship List" />
+                                    AutomationProperties.Name="Refresh Images list" />
                         </Grid>
 
-                        <CheckBox Grid.Row="1"
-                                  IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
-                                  Content="Include subfolders"
-                                  Margin="0,0,0,8"
-                                  AutomationProperties.Name="Include PowerPoint subfolders" />
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    Margin="0,0,0,8">
+                            <CheckBox IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
+                                      Content="Subfolders"
+                                      Margin="0,0,12,0"
+                                      AutomationProperties.Name="Include Images subfolders" />
+                            <ComboBox ItemsSource="{Binding Categories}"
+                                      SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                                      MinWidth="110"
+                                      AutomationProperties.Name="Images category filter" />
+                        </StackPanel>
 
                         <TextBox Grid.Row="2"
                                  Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  MinHeight="34"
                                  Margin="0,0,0,8"
                                  ToolTip="Filter by file name"
-                                 AutomationProperties.Name="PowerPoint file filter" />
+                                 AutomationProperties.Name="Images file filter" />
 
                         <ListBox Grid.Row="3"
-                                 x:Name="InlinePowerPointList"
-                                 ItemsSource="{Binding Presentations}"
-                                 SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
-                                 DisplayMemberPath="FileName"
-                                 MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
-                                 PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
-                                 PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
-                                 AutomationProperties.Name="PowerPoint source file list" />
+                                 x:Name="InlineImagesList"
+                                 ItemsSource="{Binding Images}"
+                                 SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 AutomationProperties.Name="Images source thumbnail list">
+                            <ListBox.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                              Command="{Binding ApplyAsBackgroundCommand}" />
+                            </ListBox.InputBindings>
+                            <ListBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Apply as background"
+                                              Command="{Binding PlacementTarget.DataContext.ApplyAsBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <MenuItem Header="Clear background"
+                                              Command="{Binding PlacementTarget.DataContext.ClearBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Width="116" Margin="4">
+                                        <Border Width="108"
+                                                Height="72"
+                                                Background="{DynamicResource Brush.Surface.Subtle}"
+                                                BorderBrush="{DynamicResource Brush.Border.Default}"
+                                                BorderThickness="1">
+                                            <Image Source="{Binding Thumbnail}"
+                                                   Stretch="Uniform"
+                                                   Margin="2" />
+                                        </Border>
+                                        <TextBlock Text="{Binding FileName}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   TextAlignment="Center"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                   Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
 
-                        <TextBlock Grid.Row="4"
-                                   Text="{Binding StatusText}"
-                                   Margin="0,8,0,0"
-                                   TextTrimming="CharacterEllipsis"
-                                   Style="{StaticResource Type.Caption.Style}"
-                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        <Grid Grid.Row="4" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding StatusText}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Command="{Binding ClearBackgroundCommand}"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        Content="Clear"
+                                        Margin="8,0,0,0"
+                                        AutomationProperties.Name="Clear output background image" />
+                                <Button Command="{Binding ApplyAsBackgroundCommand}"
+                                        Style="{StaticResource EsButton.Primary}"
+                                        Content="Apply"
+                                        Margin="8,0,0,0"
+                                        AutomationProperties.Name="Apply selected image as output background" />
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </TabItem>
                 <TabItem Tag="MediaSource"
@@ -1377,6 +1504,44 @@
                                    TextTrimming="CharacterEllipsis"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Tag="DefaultSource"
+                         AutomationProperties.Name="Default">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArrowReset24" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="Default" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Button Grid.Row="0"
+                                Command="{Binding ResetOutputAppearanceCommand}"
+                                Style="{StaticResource EsButton.Primary}"
+                                HorizontalAlignment="Stretch"
+                                Content="Default Layout"
+                                AutomationProperties.Name="Restore default output layout" />
+                        <Button Grid.Row="1"
+                                Command="{Binding ApplyGlobalFormatToAllCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,8,0,0"
+                                Content="Apply to All"
+                                AutomationProperties.Name="Apply current output format to all Worship List items" />
+                        <Button Grid.Row="2"
+                                Command="{Binding ClearAllItemsFormattingCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,8,0,0"
+                                Content="Clear Item Formats"
+                                AutomationProperties.Name="Clear all item-specific formatting" />
                     </Grid>
                 </TabItem>
                 <!-- Search tab keeps song/title/usage lookup inline in the left rail. -->
@@ -1631,7 +1796,124 @@
                               AutomationProperties.Name="브라우저/예배 순서 높이 조절" />
 
                 <!-- 예배 순서 — 항상 보이는 하단 패널(FrmMain 좌측 하단 송출 큐). 재사용 컴포지트(§5.2, DataContext 상속). -->
-                <composites:WorshipListPanel Grid.Row="2" />
+                <TabControl Grid.Row="2"
+                            x:Name="LeftListTabs"
+                            SelectionChanged="LeftListTabs_SelectionChanged"
+                            TabStripPlacement="Bottom"
+                            BorderThickness="0"
+                            Background="Transparent">
+                    <TabItem Tag="WorshipList"
+                             AutomationProperties.Name="Worship List">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
+                                <TextBlock Text="Worship List" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <composites:WorshipListPanel />
+                    </TabItem>
+                    <TabItem Tag="PraiseBook"
+                             x:Name="PraiseBookTab"
+                             AutomationProperties.Name="Praise Book">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
+                                <TextBlock Text="Praise Book" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ComboBox x:Name="InlinePraiseBookSavedBooksCombo"
+                                          ItemsSource="{Binding SavedBooks}"
+                                          MinHeight="34"
+                                          AutomationProperties.Name="Saved Praise Book list" />
+                                <Button Grid.Column="2"
+                                        Click="InlinePraiseBookOpenBook_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        Content="Open"
+                                        AutomationProperties.Name="Open selected Praise Book" />
+                                <Button Grid.Column="4"
+                                        Click="InlinePraiseBookRefresh_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        Content="Refresh"
+                                        AutomationProperties.Name="Refresh Praise Book index" />
+                            </Grid>
+
+                            <ScrollViewer Grid.Row="1"
+                                          VerticalScrollBarVisibility="Auto"
+                                          BorderBrush="{DynamicResource Brush.Border.Default}"
+                                          BorderThickness="1"
+                                          AutomationProperties.Name="Praise Book grouped index">
+                                <ItemsControl ItemsSource="{Binding Groups}"
+                                              Margin="8">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,0,0,10">
+                                                <TextBlock Text="{Binding Key}"
+                                                           FontWeight="Bold"
+                                                           Foreground="{DynamicResource Brush.Text.Primary}"
+                                                           Margin="0,0,0,4" />
+                                                <ItemsControl ItemsSource="{Binding Entries}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="Transparent"
+                                                                    Cursor="Hand"
+                                                                    MouseLeftButtonDown="InlinePraiseBookEntry_MouseLeftButtonDown">
+                                                                <Grid Margin="8,2,0,2">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="{Binding Title}"
+                                                                               TextTrimming="CharacterEllipsis"
+                                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                                                    <TextBlock Grid.Column="1"
+                                                                               Text="{Binding Number}"
+                                                                               Margin="12,0,0,0"
+                                                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <Grid Grid.Row="2" Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding StatusText}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <Button Grid.Column="1"
+                                        Click="OpenPraiseBookIndex_Click"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        Content="Window"
+                                        Margin="8,0,0,0"
+                                        AutomationProperties.Name="Open Praise Book window" />
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
             </Grid>
 
             <GridSplitter Grid.Column="1"

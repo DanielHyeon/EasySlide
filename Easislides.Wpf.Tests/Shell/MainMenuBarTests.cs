@@ -118,12 +118,41 @@ public class MainMenuBarTests
     {
         var xaml = Xaml;
 
+        xaml.Should().Contain("x:Name=\"ClassicOutputPane\"", "right-top Output pane should stay distinct");
+        xaml.Should().Contain("Grid.Column=\"4\"", "Output panes stay in the right column");
+        xaml.Should().Contain("Grid.Row=\"0\"", "right-top Output pane hosts thumbnails");
         xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
         xaml.Should().Contain("ItemsSource=\"{Binding PowerPoint.Thumbnails}\"", "Output thumbnails must use the PPT thumbnail source");
         xaml.Should().Contain("Command=\"{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}\"",
             "thumbnail clicks should navigate slides");
+        xaml.Should().Contain("x:Name=\"ClassicOutputSlidePane\"", "right-bottom Output pane should stay distinct");
         xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
         xaml.Should().Contain("Source=\"{Binding PowerPoint.PreviewImage}\"", "large Output slide should show the current PPT preview image when available");
+    }
+
+    [Fact]
+    public void LeftBrowserTabs_MatchFrmMainSourceRolesAndOrder()
+    {
+        var xaml = Xaml;
+        xaml.Should().Contain("x:Name=\"LeftBrowserTabs\"", "left source browser stays first-screen");
+        xaml.Should().Contain("TabStripPlacement=\"Bottom\"", "FrmMain source tabs are bottom-aligned");
+
+        var cursor = -1;
+        foreach (var tag in new[]
+        {
+            "Folders",
+            "InfoScreenSource",
+            "PowerPointSource",
+            "Bibles",
+            "ImagesSource",
+            "MediaSource",
+            "DefaultSource",
+        })
+        {
+            var index = xaml.IndexOf($"Tag=\"{tag}\"", StringComparison.Ordinal);
+            index.Should().BeGreaterThan(cursor, $"{tag} should appear in FrmMain source-tab order");
+            cursor = index;
+        }
     }
 
     [Fact]
@@ -151,6 +180,16 @@ public class MainMenuBarTests
         xaml.Should().Contain("ItemsSource=\"{Binding MediaFiles}\"", "inline Media list reuses MediaLibraryViewModel");
         xaml.Should().Contain("MouseDoubleClick=\"InlineMediaList_MouseDoubleClick\"", "double-click should add selected Media");
         xaml.Should().Contain("PreviewMouseMove=\"InlineMediaList_PreviewMouseMove\"", "Media rows should drag into the Worship List");
+
+        xaml.Should().Contain("Tag=\"ImagesSource\"", "FrmMain keeps Images as a main-console source tab");
+        xaml.Should().Contain("x:Name=\"ImagesSourceTab\"", "inline Images tab needs a stable DataContext target");
+        xaml.Should().Contain("x:Name=\"InlineImagesList\"", "Images must be visible without opening a modal window");
+        xaml.Should().Contain("ItemsSource=\"{Binding Images}\"", "inline Images list reuses ImageLibraryViewModel");
+        xaml.Should().Contain("ApplyAsBackgroundCommand", "inline Images should apply selected background images");
+
+        xaml.Should().Contain("Tag=\"DefaultSource\"", "FrmMain keeps Default as a main-console source tab");
+        xaml.Should().Contain("ResetOutputAppearanceCommand", "Default tab restores the default output layout");
+        xaml.Should().Contain("ApplyGlobalFormatToAllCommand", "Default tab can apply the current format globally");
     }
 
     [Fact]
@@ -165,9 +204,32 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");
         code.Should().Contain("MediaSourceTab.DataContext = _inlineMedia", "inline Media tab should bind to its library VM");
+        code.Should().Contain("EnsureInlineImageLoadedOnce(viewModel)", "Images source tab should lazy-load on first selection");
+        code.Should().Contain("ImagesSourceTab.DataContext = _inlineImages", "inline Images tab should bind to ImageLibraryViewModel");
         code.Should().Contain("DataFormats.FileDrop", "source drags must reuse the WorshipListPanel external file drop contract");
         code.Should().Contain("Path.Combine(workingFolder, \"Powerpoint\")", "PowerPoint should prefer the legacy working-folder source directory");
         code.Should().Contain("Path.Combine(workingFolder, \"Media\")", "Media should prefer the legacy working-folder source directory");
+        code.Should().Contain("Path.Combine(workingFolder, \"Images\")", "Images should prefer the legacy working-folder Images directory");
+    }
+
+    [Fact]
+    public void LowerLeftPane_ExposesInlinePraiseBookPeerOfWorshipList()
+    {
+        var xaml = Xaml;
+        var code = CodeBehind;
+
+        xaml.Should().Contain("x:Name=\"LeftListTabs\"", "lower-left FrmMain role split should be explicit");
+        xaml.Should().Contain("Tag=\"WorshipList\"", "Worship List remains the first lower-left role");
+        xaml.Should().Contain("Tag=\"PraiseBook\"", "Praise Book should be a first-screen lower-left role");
+        xaml.Should().Contain("x:Name=\"PraiseBookTab\"", "inline Praise Book tab needs a stable DataContext target");
+        xaml.Should().Contain("x:Name=\"InlinePraiseBookSavedBooksCombo\"", "saved Praise Books must be loadable from the main shell");
+        xaml.Should().Contain("ItemsSource=\"{Binding Groups}\"", "Praise Book index groups should render inline");
+        xaml.Should().Contain("MouseLeftButtonDown=\"InlinePraiseBookEntry_MouseLeftButtonDown\"", "double-clicking an index entry should add it to Worship List");
+
+        code.Should().Contain("EnsureInlinePraiseBookLoadedOnce(viewModel)", "Praise Book tab should lazy-load on first selection");
+        code.Should().Contain("PraiseBookTab.DataContext = _inlinePraiseBook", "inline Praise Book tab should bind to PraiseBookIndexViewModel");
+        code.Should().Contain("InlinePraiseBookOpenBook_Click", "saved Praise Books should open from the inline tab");
+        code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
     }
 
     [Fact]

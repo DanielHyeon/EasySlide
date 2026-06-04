@@ -22,7 +22,7 @@ public sealed class LibraryTabEmptyStateTests
         var repoRoot = XamlAccessibilityScanner.FindRepoRoot();
         var window = XDocument.Load(Path.Combine(repoRoot, "Easislides.Wpf/MainWindow.xaml"), LoadOptions.None);
         return window.Descendants().Single(
-            e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == "Library");
+            e => e.Name.LocalName == "TabItem" && Attr(e, "Tag") == "Folders");
     }
 
     [Fact]
