@@ -85,6 +85,7 @@ public partial class MainWindow : Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         EnsureLibraryLoadedOnce();
+        EnsureBibleLoadedOnce();
         EnsureInstalledFontsMergedOnce();
     }
 
@@ -116,6 +117,17 @@ public partial class MainWindow : Window
 
         _libraryLoadedOnce = true;
         _viewModel.Library.LoadCommand.Execute(null);
+    }
+
+    private void EnsureBibleLoadedOnce()
+    {
+        if (_bibleLoadedOnce)
+        {
+            return;
+        }
+
+        _bibleLoadedOnce = true;
+        _ = _viewModel.Bible.LoadAsync();
     }
 
     private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -310,9 +322,8 @@ public partial class MainWindow : Window
             case "Library":
                 EnsureLibraryLoadedOnce(); // 멱등 — 시작 로드(Loaded)와 동일 가드 공유
                 break;
-            case "Bible" when !_bibleLoadedOnce:
-                _bibleLoadedOnce = true;
-                _ = viewModel.Bible.LoadAsync(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
+            case "Bible":
+                EnsureBibleLoadedOnce(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
                 break;
             case "Search" when !_searchLoadedOnce:
                 _searchLoadedOnce = true;

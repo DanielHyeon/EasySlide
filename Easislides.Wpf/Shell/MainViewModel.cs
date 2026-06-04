@@ -384,6 +384,58 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ => "가운데",
         };
 
+    private async Task<bool> TryLoadLegacyWorshipListAsync(string name)
+    {
+        if (_worshipLists is not ILegacyWorshipListStore legacyStore)
+        {
+            return false;
+        }
+
+        var xml = await legacyStore.LoadLegacyXmlAsync(name).ConfigureAwait(true);
+        if (xml is null)
+        {
+            return false;
+        }
+
+        var items = EswWorshipListParser.Parse(xml);
+        if (items.Count == 0)
+        {
+            StatusText = $"Legacy worship list is empty: {name} (.esw)";
+            return true;
+        }
+
+        ImportEswWorshipList(items);
+        RecordRecentWorshipList(name);
+        WorshipListHasUnsavedChanges = false;
+        StatusText = $"Legacy worship list loaded: {name} ({items.Count} .esw items)";
+        return true;
+    }
+
+    private async Task<bool> TryMergeLegacyWorshipListAsync(string name)
+    {
+        if (_worshipLists is not ILegacyWorshipListStore legacyStore)
+        {
+            return false;
+        }
+
+        var xml = await legacyStore.LoadLegacyXmlAsync(name).ConfigureAwait(true);
+        if (xml is null)
+        {
+            return false;
+        }
+
+        var items = EswWorshipListParser.Parse(xml);
+        if (items.Count == 0)
+        {
+            StatusText = $"Legacy worship list merge skipped: {name} (.esw is empty)";
+            return true;
+        }
+
+        var added = InsertEswWorshipListItems(items, targetItem: null);
+        StatusText = $"Legacy worship list merged: {name} ({added} added, total {Queue.Count})";
+        return true;
+    }
+
     /// <summary>
     /// 인-셸 "출력 모양" 인스펙터 프리셋(글자색 + 배경) — 별도 Settings 모달 없이 MainWindow 에서 즉시 적용,
     /// 설정→출력 VM(SettingsChanged) 경로로 라이브 반영(§7.5 P0 — 단일 콘솔 통합 첫걸음). 색은 ARGB 정수.
@@ -1552,6 +1604,36 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveQueueItem? firstAdded = null;
         foreach (var path in paths)
         {
+            if (IsLegacyWorshipListFile(path))
+            {
+                string xml;
+                try
+                {
+                    xml = File.ReadAllText(path);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                var legacyItems = EswWorshipListParser.Parse(xml);
+                if (legacyItems.Count == 0)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                foreach (var importedItem in legacyItems.Select(BuildEswQueueItem))
+                {
+                    Queue.Insert(insertIndex++, importedItem);
+                    firstAdded ??= importedItem;
+                    added++;
+                }
+
+                continue;
+            }
+
             var kind = ExternalFileClassifier.Classify(path) switch
             {
                 ExternalFileKind.PowerPoint => LiveItemKinds.PowerPoint,
@@ -1724,6 +1806,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
+            if (await TryLoadLegacyWorshipListAsync(name.Trim()).ConfigureAwait(true))
+            {
+                return;
+            }
+
             var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
             LoadQueue(items);
             RecordRecentWorshipList(name.Trim());
@@ -1749,6 +1836,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
+            if (await TryMergeLegacyWorshipListAsync(name.Trim()).ConfigureAwait(true))
+            {
+                return;
+            }
+
             var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
             var wasEmpty = Queue.Count == 0;
             foreach (var item in items)
@@ -1782,21 +1874,77 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ArgumentNullException.ThrowIfNull(items); // LoadQueue 와 동일하게 입력을 방어(널이면 즉시 알림).
 
-        Queue.Clear();
-        foreach (var esw in items)
-        {
-            Queue.Add(BuildEswQueueItem(esw));
-        }
-
-        SelectedItem = Queue.FirstOrDefault();
+        LoadQueue(items.Select(BuildEswQueueItem));
         StatusText = $"레거시 예배 순서 가져옴: {Queue.Count}개 항목";
         // PPT 개수 제한 위반 플래그(HasPowerPointLimitViolation)는 갱신하되 상태줄은 덮지 않는다(updateStatus:false)
         // — 방금 띄운 "가져옴: N개" 안내를 PPT 경고가 즉시 지우지 않게(위반은 UI 배지로 계속 보인다). LoadQueue(true)와 의도된 차이.
-        RefreshPowerPointLimitState(updateStatus: false);
-        NotifyCommandStates();
     }
 
     // .esw 원시 항목 → WPF 큐 항목 매핑(종류 코드별). 내용 해석은 가능한 한(곡=라이브러리 가사), 나머지는 참조/제목 수준.
+    public int ImportEswWorshipListFileRelativeTo(string filePath, LiveQueueItem? targetItem)
+    {
+        if (!IsLegacyWorshipListFile(filePath))
+        {
+            StatusText = "Legacy worship list file (.esw) was not found.";
+            NotifyCommandStates();
+            return 0;
+        }
+
+        string xml;
+        try
+        {
+            xml = File.ReadAllText(filePath);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            StatusText = $"Could not read worship list file: {ex.Message}";
+            NotifyCommandStates();
+            return 0;
+        }
+
+        var items = EswWorshipListParser.Parse(xml);
+        if (items.Count == 0)
+        {
+            StatusText = "Legacy worship list file has no importable items.";
+            NotifyCommandStates();
+            return 0;
+        }
+
+        var added = InsertEswWorshipListItems(items, targetItem);
+        StatusText = $"Legacy worship list added: {Path.GetFileNameWithoutExtension(filePath)} ({added})";
+        return added;
+    }
+
+    private int InsertEswWorshipListItems(IReadOnlyList<EswWorshipListItem> items, LiveQueueItem? targetItem)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+
+        var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
+        var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
+        LiveQueueItem? firstAdded = null;
+        var added = 0;
+        foreach (var item in items.Select(BuildEswQueueItem))
+        {
+            Queue.Insert(insertIndex++, item);
+            firstAdded ??= item;
+            added++;
+        }
+
+        if (firstAdded is not null)
+        {
+            SelectedItem = firstAdded;
+        }
+
+        RefreshPowerPointLimitState(updateStatus: false);
+        NotifyCommandStates();
+        return added;
+    }
+
+    private static bool IsLegacyWorshipListFile(string? filePath)
+        => !string.IsNullOrWhiteSpace(filePath)
+            && string.Equals(Path.GetExtension(filePath), ".esw", StringComparison.OrdinalIgnoreCase)
+            && File.Exists(filePath);
+
     private LiveQueueItem BuildEswQueueItem(EswWorshipListItem esw)
     {
         var title = string.IsNullOrWhiteSpace(esw.Title) ? esw.Id : esw.Title;
@@ -1818,23 +1966,75 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return new LiveQueueItem($"song:{esw.Id}", title, LiveItemKinds.Song) { FormatData = esw.FormatData };
 
             case "P": // PowerPoint — 식별자가 파일 참조. 경로가 안 맞으면 검증이 잡아 운영자가 보정.
-                return new LiveQueueItem($"powerpoint:{esw.Id}", title, LiveItemKinds.PowerPoint)
-                { ContentPath = esw.Id, FormatData = esw.FormatData };
+                var powerPointPath = ResolveLegacyExternalPath(esw);
+                return new LiveQueueItem($"powerpoint:{powerPointPath}", DisplayTitleForPath(title, powerPointPath), LiveItemKinds.PowerPoint)
+                { ContentPath = powerPointPath, FormatData = esw.FormatData };
 
             case "M": // 미디어 — 식별자가 파일 참조.
-                return new LiveQueueItem($"media:{esw.Id}", title, LiveItemKinds.Media)
-                { ContentPath = esw.Id, FormatData = esw.FormatData };
+                var mediaPath = ResolveLegacyExternalPath(esw);
+                return new LiveQueueItem($"media:{mediaPath}", DisplayTitleForPath(title, mediaPath), LiveItemKinds.Media)
+                { ContentPath = mediaPath, FormatData = esw.FormatData };
 
             case "B": // 성경 — 참조+제목(본문 확장은 후속).
-                return new LiveQueueItem($"bible:{esw.Id}", title, LiveItemKinds.Bible) { FormatData = esw.FormatData };
+                return new LiveQueueItem($"bible:{esw.Id}", title, LiveItemKinds.Bible)
+                {
+                    Lyrics = Bible.ExpandSelectionBody(esw.Id),
+                    FormatData = esw.FormatData,
+                };
 
             default: // T(텍스트)·I(InfoScreen)·W(Word)·미상 → 텍스트(공지) 항목으로 제목 표시(정확한 내용 재구성은 후속).
-                return new LiveQueueItem($"esw:{esw.TypeCode}:{esw.Id}", title, LiveItemKinds.Notice)
-                { Lyrics = title, FormatData = esw.FormatData };
+                var contentPath = ResolveLegacyExternalPath(esw);
+                return new LiveQueueItem($"esw:{esw.TypeCode}:{contentPath}", DisplayTitleForPath(title, contentPath), LiveItemKinds.Notice)
+                { ContentPath = contentPath, Lyrics = TryReadTextFile(contentPath) ?? title, FormatData = esw.FormatData };
         }
     }
 
     /// <summary>현재 예배 세션(마지막으로 저장/불러온 예배 순서) 이름 — 세션 메모 키로 쓰인다. 없으면 빈 문자열.</summary>
+    private static string ResolveLegacyExternalPath(EswWorshipListItem esw)
+    {
+        var title = esw.Title?.Trim() ?? string.Empty;
+        if (LooksLikeFilePath(title))
+        {
+            return title;
+        }
+
+        return esw.Id?.Trim() ?? string.Empty;
+    }
+
+    private static string DisplayTitleForPath(string title, string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !LooksLikeFilePath(title))
+        {
+            return string.IsNullOrWhiteSpace(title) ? path : title;
+        }
+
+        var fileName = Path.GetFileName(path);
+        return string.IsNullOrWhiteSpace(fileName) ? title : fileName;
+    }
+
+    private static bool LooksLikeFilePath(string value)
+        => !string.IsNullOrWhiteSpace(value)
+            && (Path.IsPathRooted(value) || !string.IsNullOrWhiteSpace(Path.GetExtension(value)));
+
+    private static string? TryReadTextFile(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)
+            || !File.Exists(path)
+            || !string.Equals(Path.GetExtension(path), ".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        try
+        {
+            return File.ReadAllText(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
     public string CurrentWorshipListName { get; private set; } = string.Empty;
 
     // 최근 예배 순서에 이름을 기록하고 메뉴 바인딩 컬렉션을 갱신한다(저장·불러오기 성공 시 호출).

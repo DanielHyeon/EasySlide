@@ -18,6 +18,10 @@ public class MainMenuBarTests
         Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "MainWindow.xaml"),
         Encoding.UTF8);
 
+    private static string CodeBehind => File.ReadAllText(
+        Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "MainWindow.xaml.cs"),
+        Encoding.UTF8);
+
     [Fact]
     public void MainWindow_HasMenuBarWithSixTopLevelMenus()
     {
@@ -77,6 +81,14 @@ public class MainMenuBarTests
         var stopButton = ButtonBlockFor(operatorBar, "StopLiveCommand");
         stopButton.Should().Contain("Style=\"{StaticResource EsButton.Danger}\"", "Stop Live is a dangerous live action");
         stopButton.Should().NotContain("CloseOutputCommand", "Stop Live must not drift into the Close Output button");
+    }
+
+    [Fact]
+    public void MainWindow_Loaded_PreloadsBibleOnce()
+    {
+        var code = CodeBehind;
+        code.Should().Contain("EnsureBibleLoadedOnce();", "Bible data must be ready from the main shell startup");
+        code.Should().Contain("private void EnsureBibleLoadedOnce()", "Bible startup load should use the same one-shot guard as tab selection");
     }
 
     [Fact]

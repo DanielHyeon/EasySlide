@@ -1670,6 +1670,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LoadWorshipListAsync_LegacyEswName_ImportsFromWorkingFolder()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var workingFolder = Path.Combine(folder.Root, "Work");
+        var legacyDir = Path.Combine(workingFolder, "Admin", "WorshipLists");
+        Directory.CreateDirectory(legacyDir);
+        settings.Set(EasiSettingKeys.WorkingFolder, workingFolder);
+
+        var deckPath = Path.Combine(workingFolder, "Powerpoint", "song.pptx");
+        Directory.CreateDirectory(Path.GetDirectoryName(deckPath)!);
+        await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), $"""
+            <EasiSlides>
+              <ListItem>
+                <Item><ItemID>D123</ItemID><Title1>Song title</Title1><Folder /></Item>
+                <Item><ItemID>P1</ItemID><Title1>{System.Security.SecurityElement.Escape(deckPath)}</Title1><Folder /></Item>
+              </ListItem>
+            </EasiSlides>
+            """);
+        var store = new WorshipListStore(Path.Combine(folder.Root, "JsonLists"), settings);
+        var sut = CreateSut(seedSampleQueue: true, settings: settings, worshipLists: store);
+        sut.Library.Songs.Add(new SongSummary(123, "Loaded song", "", 1, 12, "", "", "loaded lyrics"));
+
+        await sut.LoadWorshipListAsync("1.Sunday");
+
+        sut.Queue.Select(i => i.Kind).Should().Equal(LiveItemKinds.Song, LiveItemKinds.PowerPoint);
+        sut.Queue[0].Lyrics.Should().Be("loaded lyrics");
+        sut.Queue[1].ContentPath.Should().Be(deckPath);
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("legacy load is a clean load, not an edit");
+    }
+
+    [Fact]
     public async Task WorshipListHasUnsavedChanges_TracksDirty_AcrossEditSaveLoad()
     {
         // 증분144 — 미저장 변경 표시: 시작 깨끗 → 큐 편집 시 표시 → 저장/불러오기로 깨끗.
@@ -2025,6 +2057,30 @@ public class MainViewModelTests
             new[] { "a", "powerpoint:C:\\x.pptx", "media:C:\\y.mp4", "b", "c" },
             "타깃(B) 바로 앞에 순서대로 연속 삽입");
         sut.SelectedItem!.ContentPath.Should().Be(@"C:\x.pptx", "묶음의 첫 항목 선택");
+    }
+
+    [Fact]
+    public async Task AddExternalFilesRelativeTo_LegacyEswFile_InsertsParsedItemsBeforeTarget()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var eswPath = Path.Combine(folder.Root, "drop.esw");
+        await File.WriteAllTextAsync(eswPath, """
+            <EasiSlides>
+              <ListItem>
+                <Item><ItemID>D77</ItemID><Title1>Dropped song</Title1><Folder /></Item>
+              </ListItem>
+            </EasiSlides>
+            """);
+        var sut = CreateSut(seedSampleQueue: false);
+        var target = new LiveQueueItem("target", "Target", LiveItemKinds.Notice);
+        sut.LoadQueue([target]);
+        sut.Library.Songs.Add(new SongSummary(77, "Dropped song", "", 1, 77, "", "", "drop lyrics"));
+
+        var added = sut.AddExternalFilesRelativeTo([eswPath], target);
+
+        added.Should().Be(1);
+        sut.Queue.Select(i => i.Title).Should().Equal("Dropped song", "Target");
+        sut.Queue[0].Lyrics.Should().Be("drop lyrics");
     }
 
     [Fact]

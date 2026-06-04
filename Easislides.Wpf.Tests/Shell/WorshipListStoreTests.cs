@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -78,6 +79,36 @@ public sealed class WorshipListStoreTests : IDisposable
         await store.SaveAsync("Alpha", Array.Empty<LiveQueueItem>());
 
         store.ListNames().Should().Equal("Alpha", "Bravo");
+    }
+
+    [Fact]
+    public async Task ListNames_IncludesLegacyEswNames_FromConfiguredWorkingFolder()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_LegacyWL_{Guid.NewGuid():N}");
+        try
+        {
+            var settings = new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups")));
+            settings.Set(EasiSettingKeys.WorkingFolder, root);
+            var legacyDir = Path.Combine(root, "Admin", "WorshipLists");
+            Directory.CreateDirectory(legacyDir);
+            await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), "<EasiSlides />");
+
+            var store = new WorshipListStore(_dir, settings);
+            await store.SaveAsync("WpfJson", Array.Empty<LiveQueueItem>());
+
+            store.ListNames().Should().Contain(new[] { "1.Sunday", "WpfJson" });
+            var xml = await ((ILegacyWorshipListStore)store).LoadLegacyXmlAsync("1.Sunday");
+            xml.Should().Contain("EasiSlides");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 
     [Fact]

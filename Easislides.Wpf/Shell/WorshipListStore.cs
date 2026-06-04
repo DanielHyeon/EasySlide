@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
@@ -35,25 +36,44 @@ public interface IWorshipListStore
     void Rename(string oldName, string newName);
 }
 
+public interface ILegacyWorshipListStore
+{
+    Task<string?> LoadLegacyXmlAsync(string name, CancellationToken cancellationToken = default);
+
+    bool IsLegacyWorshipListPath(string path);
+}
+
 /// <summary>
 /// 워십 리스트를 JSON 파일로 영속화하는 기본 스토어 — `%AppData%/EasislidesNext/WorshipLists/{name}.json`.
 /// 이름은 파일명으로 쓰이므로 무효 문자/경로 구분자를 막아 경로 탈출을 방지한다.
 /// 디렉터리는 생성자 주입 가능(테스트는 임시 폴더 사용).
 /// </summary>
-public sealed class WorshipListStore : IWorshipListStore
+public sealed class WorshipListStore : IWorshipListStore, ILegacyWorshipListStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     private readonly string _directory;
+    private readonly ISettingsService? _settings;
 
     public WorshipListStore()
         : this(DefaultDirectory())
     {
     }
 
+    public WorshipListStore(ISettingsService settings)
+        : this(DefaultDirectory(), settings)
+    {
+    }
+
     public WorshipListStore(string directory)
+        : this(directory, settings: null)
+    {
+    }
+
+    public WorshipListStore(string directory, ISettingsService? settings)
     {
         _directory = directory ?? throw new ArgumentNullException(nameof(directory));
+        _settings = settings;
     }
 
     private static string DefaultDirectory() => Path.Combine(
@@ -113,17 +133,48 @@ public sealed class WorshipListStore : IWorshipListStore
 
     public IReadOnlyList<string> ListNames()
     {
-        if (!Directory.Exists(_directory))
+        var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (Directory.Exists(_directory))
         {
-            return Array.Empty<string>();
+            foreach (var name in Directory.GetFiles(_directory, "*.json")
+                         .Select(Path.GetFileNameWithoutExtension)
+                         .Where(n => !string.IsNullOrEmpty(n))
+                         .Select(n => n!))
+            {
+                names.Add(name);
+            }
         }
 
-        return Directory.GetFiles(_directory, "*.json")
-            .Select(Path.GetFileNameWithoutExtension)
-            .Where(n => !string.IsNullOrEmpty(n))
-            .Select(n => n!)
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+        foreach (var name in EnumerateLegacyNames())
+        {
+            names.Add(name);
+        }
+
+        return names
             .ToArray();
+    }
+
+    public async Task<string?> LoadLegacyXmlAsync(string name, CancellationToken cancellationToken = default)
+    {
+        if (File.Exists(ResolvePath(name)))
+        {
+            return null; // WPF JSON lists win when both stores contain the same display name.
+        }
+
+        var path = ResolveLegacyPath(name);
+        if (path is null || !File.Exists(path))
+        {
+            return null;
+        }
+
+        return await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+    }
+
+    public bool IsLegacyWorshipListPath(string path)
+    {
+        return !string.IsNullOrWhiteSpace(path)
+            && string.Equals(Path.GetExtension(path), ".esw", StringComparison.OrdinalIgnoreCase)
+            && File.Exists(path);
     }
 
     public void Delete(string name)
@@ -164,4 +215,56 @@ public sealed class WorshipListStore : IWorshipListStore
 
     /// <summary>이름을 안전한 파일 경로로 해석(무효 문자/예약명/길이/경로 탈출 차단 — 공통 헬퍼 위임).</summary>
     private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "예배 순서");
+
+    private IEnumerable<string> EnumerateLegacyNames()
+    {
+        var legacyDirectory = LegacyDirectory();
+        if (legacyDirectory is null || !Directory.Exists(legacyDirectory))
+        {
+            return Array.Empty<string>();
+        }
+
+        return Directory.GetFiles(legacyDirectory, "*.esw")
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Select(n => n!);
+    }
+
+    private string? ResolveLegacyPath(string name)
+    {
+        var legacyDirectory = LegacyDirectory();
+        if (legacyDirectory is null || string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        var trimmed = name.Trim();
+        if (trimmed.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || trimmed.Contains("..", StringComparison.Ordinal)
+            || trimmed.EndsWith('.'))
+        {
+            throw new ArgumentException($"예배 순서 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+        }
+
+        var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".esw"));
+        var root = Path.GetFullPath(legacyDirectory);
+        var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
+        if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException($"예배 순서 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
+        }
+
+        return full;
+    }
+
+    private string? LegacyDirectory()
+    {
+        var workingFolder = _settings?.Current.General.WorkingFolder;
+        if (string.IsNullOrWhiteSpace(workingFolder))
+        {
+            return null;
+        }
+
+        return Path.Combine(workingFolder, "Admin", "WorshipLists");
+    }
 }
