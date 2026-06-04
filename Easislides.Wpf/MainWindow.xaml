@@ -2206,7 +2206,7 @@
                                     AutomationProperties.Name="Preview 송출 후 다음" />
                             <Button x:Name="btnToOutput"
                                     Tag="btnToOutput"
-                                    Command="{Binding GoLiveCommand}"
+                                    Command="{Binding CopyPreviewToOutputCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
                                     MinWidth="36"
                                     MinHeight="28"
@@ -2713,7 +2713,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="ClassicOutputPanelDisplayName"
                                    Tag="OutputPanelDisplayName"
-                                   Text="{Binding LiveBar.CurrentItemTitle, TargetNullValue='Output'}"
+                                   Text="{Binding OutputItem.Title, TargetNullValue='Output'}"
                                    VerticalAlignment="Center"
                                    TextTrimming="CharacterEllipsis"
                                    Style="{StaticResource Type.Body.Style}"
@@ -2775,7 +2775,7 @@
                             </Grid.RowDefinitions>
                             <Border Background="#FFF6E600"
                                     Padding="4,2">
-                                <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"
+                                <TextBlock Text="{Binding OutputItem.Title}"
                                            TextTrimming="CharacterEllipsis"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Status.Danger}" />
@@ -3021,7 +3021,7 @@
                                 MouseDown="ClassicKeyboardSurface_MouseDown"
                                 BorderThickness="0,0,8,8">
                             <Grid>
-                                <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"
+                                <TextBlock Text="{Binding OutputItem.Title}"
                                            Margin="36,32,36,0"
                                            VerticalAlignment="Top"
                                            TextWrapping="Wrap"

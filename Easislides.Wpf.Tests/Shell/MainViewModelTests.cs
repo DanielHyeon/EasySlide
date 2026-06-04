@@ -3006,6 +3006,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyPreviewToOutputCommand_PreparesOutputItemWithoutStartingLive()
+    {
+        // FrmMain btnToOutput_Click: PreviewItem -> OutputItem 복사만 하고 GoLive 는 시작하지 않는다.
+        var expectedSlide = new DrawingImage();
+        expectedSlide.Freeze();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => expectedSlide);
+        await powerPoint.LoadAsync("deck.pptx", 1, 960, 540);
+        var sut = CreateSut(powerPoint: powerPoint);
+        var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        sut.LoadQueue(new[] { ppt });
+        sut.SelectedItem = ppt;
+
+        sut.CopyPreviewToOutputCommand.CanExecute(null).Should().BeTrue("Output 창이 열려 있지 않아도 오른쪽 Output 대기 항목은 준비할 수 있어야 함");
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputItem.Should().BeSameAs(ppt);
+        sut.Session.Current.State.Should().Be(LiveState.Off, "btnToOutput 은 라이브 송출을 시작하지 않는다");
+        sut.LiveItemId.Should().BeNull("라이브 항목 표시는 바뀌지 않는다");
+        sut.OutputPowerPoint.PreviewImage.Should().BeSameAs(expectedSlide, "Output 큰 화면은 준비된 OutputItem 슬라이드를 보여야 함");
+        sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
+        sut.StatusText.Should().Be("Output 준비: Deck");
+    }
+
+    [Fact]
     public async Task GoLive_PowerPointItemWithoutReadyRender_ProjectsTitleOnly()
     {
         // 렌더 미준비(실패·미적재)면 기존 동작 유지 — 출력엔 타이틀만(슬라이드 미송출).

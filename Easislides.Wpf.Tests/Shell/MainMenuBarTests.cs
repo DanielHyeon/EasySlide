@@ -470,7 +470,9 @@ public class MainMenuBarTests
             xaml.Should().Contain($"x:Name=\"{strip}\"", $"{strip} should stay attached to the local Preview/Output pane");
         }
 
+        xaml.Should().Contain("{Binding CopyPreviewToOutputCommand}", "FrmMain btnToOutput should copy Preview into Output without starting live");
         xaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "Preview strip exposes send-and-next");
+        xaml.Should().Contain("Text=\"{Binding OutputItem.Title, TargetNullValue='Output'}\"", "Output title should follow the prepared OutputItem, not the selected Preview item");
         xaml.Should().Contain("{Binding BlackScreenCommand}", "Output strip exposes Black");
         xaml.Should().Contain("{Binding ClearOutputCommand}", "Output strip exposes Clear");
         xaml.Should().Contain("{Binding RestoreOutputCommand}", "Output strip exposes Restore");

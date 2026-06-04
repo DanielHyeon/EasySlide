@@ -90,7 +90,7 @@
 | `PreviewBtnItemUp/Down` | `PreviewBtnItemUp/Down` + item nav commands | partial | 4 | exact selection behavior |
 | `PreviewBtnSlideUp/Down` | `PreviewBtnSlideUp/Down` + lyrics page nav commands | partial | 4 | item-type-aware PPT/media/page nav |
 | `btnToLive` | `btnToLive` + `GoLiveCommand` | partial | 4 | exact FrmMain semantics |
-| `btnToOutput` | `btnToOutput` + `GoLiveCommand` | partial | 4 | split "copy to Output" from "start live" if needed |
+| `btnToOutput` | `btnToOutput` + `CopyPreviewToOutputCommand` | partial | 4 | FrmMain `CopyPreviewToOutput` semantics now prepare `OutputItem`/PPT output state without starting live; full OutputItem navigation still incomplete |
 | `btnToOutputMoveNext` | `btnToOutputMoveNext` + `SendToOutputAndNextCommand` | partial | 4 | verify advance behavior |
 | `IndPanel`, `Ind_*` | `IndcbPreviewNotes`, `IndradioButtonText/Format/Info` plus inspector/default source | partial | 5 | first-screen individual format controls and mode switching |
 
@@ -98,7 +98,7 @@
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `OutputPanelDisplayName` | `ClassicOutputPanelDisplayName` (`Tag=OutputPanelDisplayName`) | partial | 4 | live item title role is explicit; exact status columns still incomplete |
+| `OutputPanelDisplayName` | `ClassicOutputPanelDisplayName` (`Tag=OutputPanelDisplayName`) | partial | 4 | title now follows prepared `OutputItem` rather than selected Preview item; exact status columns still incomplete |
 | `OutputInfo` | `ClassicOutputInfo` (`Tag=OutputInfo`) | partial | 4/6 | live info surface is explicit; focused verse keys now call `JumpToOutputLyricsSectionCommand` and cannot fall through to Preview; exact state columns still incomplete |
 | `flowLayoutOutputLyrics` | Output live lyrics surface | partial | 4/6 | focused Output large/info surfaces now route Up/Down/Page/Space to live Output page commands; exact click/highlight behavior still incomplete |
 | `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4/6 | live thumbnail/list role now uses independent OutputItem PPT state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End route to Output-only slide navigation; non-PPT live thumbnail parity still incomplete |

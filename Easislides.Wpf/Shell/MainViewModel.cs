@@ -44,6 +44,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _suppressPreviewMonitorPersist;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
+    [ObservableProperty] private LiveQueueItem? _outputItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     // 스테이지(Preview) 모니터로 선택된 디스플레이 + 창 열림 여부(메뉴·버튼 활성 상태에 쓰임).
     [ObservableProperty] private OutputDisplay? _selectedPreviewDisplay;
@@ -678,6 +679,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
         OpenStageMonitorCommand = new RelayCommand(OpenStageMonitor);
         CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen);
+        CopyPreviewToOutputCommand = new RelayCommand(CopyPreviewToOutput, CanCopyPreviewToOutput);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
@@ -855,6 +857,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 스테이지(Preview) 모니터 열기/닫기 — 선택한 모니터에 풀스크린으로 띄우거나 닫는다(회중 출력엔 영향 없음).
     public IRelayCommand OpenStageMonitorCommand { get; }
     public IRelayCommand CloseStageMonitorCommand { get; }
+    /// <summary>FrmMain btnToOutput: PreviewItem 을 OutputItem 으로 복사하되 라이브 송출은 시작하지 않는다.</summary>
+    public IRelayCommand CopyPreviewToOutputCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
     /// <summary>선택 항목을 출력으로 송출하고 곧바로 다음 항목으로 넘어간다(레거시 btnToOutputMoveNext — 자동 다음 설정과 무관).</summary>
@@ -3327,11 +3331,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         SetLiveItemId(null);
+        OutputItem = null;
         OutputPowerPoint.Clear();
         _outputThumbnailDeckPath = null;
         LiveBar.OutputMonitorName = string.Empty;
         StatusText = "출력 창 닫힘";
         _telemetry.Record(MainCommandIds.OutputClose, succeeded: true, StatusText);
+        NotifyCommandStates();
+    }
+
+    private bool CanCopyPreviewToOutput()
+        => SelectedItem is not null && !HasPowerPointLimitViolation;
+
+    private void CopyPreviewToOutput()
+    {
+        if (SelectedItem is not { } item)
+        {
+            StatusText = "Output으로 복사할 Preview 항목이 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        OutputItem = item;
+        PrepareOutputPowerPointForPublish(item);
+        StatusText = $"Output 준비: {item.Title}";
         NotifyCommandStates();
     }
 
@@ -3608,6 +3631,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        OutputItem = SelectedItem;
         SetLiveItemId(SelectedItem.Id); // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
         PrepareOutputPowerPointForPublish(SelectedItem);
         // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
@@ -4994,6 +5018,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             FormatData = formatData,
         };
         SetLiveItemId(LiveItemKinds.NoticeLiveId);
+        OutputItem = notice;
         OutputPowerPoint.Clear();
         _outputThumbnailDeckPath = null;
         // 공지는 가사가 없어 조옮김과 무관하다. 라이브 조옮김 초기화는 곡 송출 진입점인 PublishSelectedItem 한 곳이
@@ -5646,6 +5671,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void NotifyCommandStates()
     {
         ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
+        CopyPreviewToOutputCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         SendToOutputAndNextCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();
