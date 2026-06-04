@@ -46,7 +46,7 @@
 | `BibleUserLookup` | `BibleReferenceBox` | partial | 2/3 | direct reference and search validation parity |
 | `Bibles_Go` | Bible go button | partial | 3 | invoke lookup/search exactly |
 | `TabBibleVersions` | Bible versions UI | partial | 2 | version tabs/list with selected version state |
-| `BibleText` | `BiblePassageBox` | partial | 3 | selection, context menu, drag `BiblePassage` |
+| `BibleText` | `BiblePassageBox` + `CMenuBible_*` | partial | 3 | selection, FrmMain-named context menu, Add/Region2/Copy/InfoScreen, drag `BiblePassage`; exact rich text styling still incomplete |
 | `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; context menu default/item background is wired; folder group parity still incomplete |
 | `ImagesFolder` | image folder selector | partial | 2 | legacy image groups |
 | `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, default background, item background, refresh menu exist; exact thumbnail sizing and folder-group UI still incomplete |
@@ -123,7 +123,7 @@
 | Worship List reorder drag | `DragDropSource.WorshipList` | partial | 3 |
 | Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage` | partial | 3 |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
-| Bible context menu | `CMenuBible_*` | missing | 3 |
+| Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |
 | Images context menu | `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 |
 | Preview keyboard nav | `flowLayoutPreviewLyrics_KeyUp`, `PreviewInfo_KeyUp` | partial | 6 |
 | Output keyboard nav | `flowLayoutOutputLyrics`, `OutputInfo_KeyUp` | partial | 6 |

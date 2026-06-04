@@ -188,6 +188,31 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void BiblesTab_ExposesFrmMainBibleContextMenu()
+    {
+        var xaml = Xaml;
+        var code = CodeBehind;
+
+        xaml.Should().Contain("Tag=\"Bibles\"", "FrmMain keeps Bibles as a source tab");
+        xaml.Should().Contain("x:Name=\"BiblePassageBox\"", "Bible text should keep a stable selection surface");
+        xaml.Should().Contain("x:Name=\"CMenuBible\"", "Bible text context menu should map to FrmMain CMenuBible");
+        xaml.Should().Contain("Opened=\"BibleContextMenu_Opened\"", "menu enablement should follow FrmMain's opening-time rules");
+        xaml.Should().Contain("x:Name=\"CMenuBible_SelectAll\"", "Bible menu should expose Select All");
+        xaml.Should().Contain("x:Name=\"CMenuBible_UnselectAll\"", "Bible menu should expose Unselect All");
+        xaml.Should().Contain("x:Name=\"CMenuBible_AddShow\"", "Bible menu should expose Add && Show");
+        xaml.Should().Contain("x:Name=\"CMenuBible_AddRegion2\"", "Bible menu should expose Add Region 2");
+        xaml.Should().Contain("ItemsSource=\"{Binding PlacementTarget.DataContext.Bible.Region2VersionOptions, RelativeSource={RelativeSource AncestorType=ContextMenu}}\"",
+            "Add Region 2 should build its submenu from the loaded Bible versions");
+        xaml.Should().Contain("x:Name=\"CMenuBible_Copy\"", "Bible menu should expose Copy");
+        xaml.Should().Contain("x:Name=\"CMenuBible_CopyInfoScreen\"", "Bible menu should expose Copy to InfoScreen");
+
+        code.Should().Contain("private void BibleContextMenu_Opened", "Bible menu should compute enabled states when opened");
+        code.Should().Contain("CMenuBible_AddRegion2.IsEnabled = hasSelection", "Region 2 should require a selected passage");
+        code.Should().Contain("CMenuBible_Copy.IsEnabled = hasSelection", "Copy should require selected passage text");
+        code.Should().Contain("UnselectAllBiblePassage_Click", "Unselect All should clear the Bible text selection");
+    }
+
+    [Fact]
     public void LeftBrowserTabs_ExposeInlinePowerPointAndMediaSources()
     {
         var xaml = Xaml;

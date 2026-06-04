@@ -1310,14 +1310,27 @@
                                  AutomationProperties.Name="성경 본문">
                             <!-- 본문 우클릭 메뉴(레거시 Bible 우클릭) — 전체 선택/복사 + 선택 구절을 예배 순서·공지 화면으로. -->
                             <TextBox.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="전체 선택" Click="SelectAllBiblePassage_Click" />
-                                    <MenuItem Header="복사" Click="CopyBiblePassage_Click" />
+                                <ContextMenu x:Name="CMenuBible"
+                                             Tag="CMenuBible"
+                                             Opened="BibleContextMenu_Opened">
+                                    <MenuItem x:Name="CMenuBible_SelectAll"
+                                              Tag="CMenuBible_SelectAll"
+                                              Header="Select _All"
+                                              Click="SelectAllBiblePassage_Click" />
+                                    <MenuItem x:Name="CMenuBible_UnselectAll"
+                                              Tag="CMenuBible_UnselectAll"
+                                              Header="_Unselect All"
+                                              Click="UnselectAllBiblePassage_Click" />
+                                    <MenuItem x:Name="CMenuBible_AddShow"
+                                              Tag="CMenuBible_AddShow"
+                                              Header="Add &amp; _Show"
+                                              Click="AddBibleVerse_Click" />
                                     <Separator />
-                                    <MenuItem Header="선택 구절 예배 순서에 추가" Click="AddBibleVerse_Click" />
                                     <!-- 레거시 인라인 성경 우클릭 "Add Region 2" — 선택 구절을 고른 보조 버전과 함께(이중 언어) 추가.
                                          후보는 현재 주 버전을 뺀 나머지 버전들(Region2VersionOptions). PlacementTarget 경유로 VM 에 접근. -->
-                                    <MenuItem Header="선택 구절 Region 2(이중 언어)와 함께 추가"
+                                    <MenuItem x:Name="CMenuBible_AddRegion2"
+                                              Tag="CMenuBible_AddRegion2"
+                                              Header="Add _Region 2"
                                               ItemsSource="{Binding PlacementTarget.DataContext.Bible.Region2VersionOptions, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                         <MenuItem.ItemContainerStyle>
                                             <Style TargetType="MenuItem">
@@ -1326,7 +1339,15 @@
                                             </Style>
                                         </MenuItem.ItemContainerStyle>
                                     </MenuItem>
-                                    <MenuItem Header="선택 구절 공지 화면으로..." Click="CopyBibleToInfoScreen_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuBible_Copy"
+                                              Tag="CMenuBible_Copy"
+                                              Header="_Copy"
+                                              Click="CopyBiblePassage_Click" />
+                                    <MenuItem x:Name="CMenuBible_CopyInfoScreen"
+                                              Tag="CMenuBible_CopyInfoScreen"
+                                              Header="Copy to _InfoScreen"
+                                              Click="CopyBibleToInfoScreen_Click" />
                                 </ContextMenu>
                             </TextBox.ContextMenu>
                         </TextBox>

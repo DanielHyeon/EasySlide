@@ -1122,8 +1122,27 @@ public partial class MainWindow : Window
         window.ShowDialog();
     }
 
+    private void BibleContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        var hasText = !string.IsNullOrEmpty(BiblePassageBox.Text);
+        var hasSelection = !string.IsNullOrEmpty(BiblePassageBox.SelectedText);
+
+        CMenuBible_SelectAll.IsEnabled = hasText;
+        CMenuBible_UnselectAll.IsEnabled = hasText;
+        CMenuBible_AddShow.IsEnabled = hasText;
+        CMenuBible_AddRegion2.IsEnabled = hasSelection;
+        CMenuBible_Copy.IsEnabled = hasSelection;
+        CMenuBible_CopyInfoScreen.IsEnabled = hasText;
+    }
+
     // 성경 본문 전체 선택(우클릭 메뉴).
     private void SelectAllBiblePassage_Click(object sender, RoutedEventArgs e) => BiblePassageBox.SelectAll();
+
+    private void UnselectAllBiblePassage_Click(object sender, RoutedEventArgs e)
+    {
+        BiblePassageBox.SelectionLength = 0;
+        BiblePassageBox.Focus();
+    }
 
     // 성경 본문에서 선택한 구절을 클립보드로 복사(우클릭 메뉴). 선택이 없으면 아무것도 안 한다.
     private void CopyBiblePassage_Click(object sender, RoutedEventArgs e)
