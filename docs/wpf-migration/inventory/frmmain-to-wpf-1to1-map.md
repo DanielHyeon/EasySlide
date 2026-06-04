@@ -84,7 +84,7 @@
 | `PreviewPanelDisplayName` | `ClassicPreviewPanelDisplayName` (`Tag=PreviewPanelDisplayName`) | partial | 4 | title role is explicit; exact source/status columns still incomplete |
 | `PreviewInfo` | `ClassicPreviewInfo` (`Tag=PreviewInfo`) | partial | 4 | selected lyrics/info surface is explicit; keyboard handling and source-specific content still incomplete |
 | `flowLayoutPreviewLyrics` | `SlidePreviewControl` plus lyrics text | partial | 4 | click/keyboard/page behavior |
-| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4 | preview thumbnail surface uses `PowerPoint` PreviewItem state; exact key handling still incomplete |
+| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4/6 | preview thumbnail surface uses `PowerPoint` PreviewItem state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End now route to Preview-only slide navigation; exact animation/media trigger parity still incomplete |
 | `PreviewHolder`, `PreviewBack` | `ClassicPreviewHolder` (`Tag=PreviewHolder`) / `ClassicPreviewSlidePane` | partial | 4 | holder role is explicit; background/frame sizing parity still incomplete |
 | `PreviewBtnVerse1..Ending` | `flowLayoutPanel1` + `PreviewBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; verify label casing, shortcut, and live-page parity |
 | `PreviewBtnItemUp/Down` | `PreviewBtnItemUp/Down` + item nav commands | partial | 4 | exact selection behavior |
@@ -101,7 +101,7 @@
 | `OutputPanelDisplayName` | `ClassicOutputPanelDisplayName` (`Tag=OutputPanelDisplayName`) | partial | 4 | live item title role is explicit; exact status columns still incomplete |
 | `OutputInfo` | `ClassicOutputInfo` (`Tag=OutputInfo`) | partial | 4 | live info surface is explicit; key handling and state still incomplete |
 | `flowLayoutOutputLyrics` | Output live lyrics surface | partial | 4 | independent live page nav |
-| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4 | live thumbnail/list role now uses independent OutputItem PPT state; non-PPT live thumbnail parity still incomplete |
+| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4/6 | live thumbnail/list role now uses independent OutputItem PPT state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End route to Output-only slide navigation; non-PPT live thumbnail parity still incomplete |
 | `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) with `OutputPowerPoint.PreviewImage` overlay | partial | 4 | large output screen now uses independent OutputItem PPT state; exact sizing/frame parity still incomplete |
 | `OutputBtnVerse1..Ending` | `flowLayoutPanel2` + `OutputBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; buttons now call `JumpToOutputLyricsSectionCommand` so live Output lyrics jump independently from Preview selection; shortcut parity still incomplete |
 | `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + item nav commands | partial | 4 | exact live next/prev semantics |
@@ -127,8 +127,8 @@
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |
 | Images context menu | `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 |
-| Preview keyboard nav | `flowLayoutPreviewLyrics_KeyUp`, `PreviewInfo_KeyUp` | partial | 6 |
-| Output keyboard nav | `flowLayoutOutputLyrics`, `OutputInfo_KeyUp` | partial | 6 |
+| Preview keyboard nav | `flowLayoutPreviewLyrics_KeyUp`, `PreviewInfo_KeyUp`, `flowLayoutPreviewPowerPoint_KeyUp` | partial | 6 | PPT thumbnail focus now handles arrow/Page/Space/Home/End before global shortcuts; lyrics/info key parity incomplete |
+| Output keyboard nav | `flowLayoutOutputLyrics`, `OutputInfo_KeyUp`, `flowLayoutOutputPowerPoint_KeyUp` | partial | 6 | PPT thumbnail focus now handles arrow/Page/Space/Home/End against live Output state; lyrics/info key parity incomplete |
 | Global live shortcuts | `KeyboardActionHandler`, hook handlers | partial | 6 |
 
 ## 7. Verification Status

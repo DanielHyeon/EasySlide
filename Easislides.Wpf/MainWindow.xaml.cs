@@ -359,6 +359,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        // FrmMain 의 flowLayoutPreviewPowerPoint/flowLayoutOutputPowerPoint_KeyUp 대응:
+        // PPT 썸네일 영역에 포커스가 있으면 방향키/Space/Home/End 는 전역 Space/F 단축키보다
+        // 해당 Preview/Output 슬라이드 네비게이션으로 먼저 처리한다.
+        if (TryHandlePreviewOutputPowerPointKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         // 절 점프 숫자/문자 키(레거시 PreviewBtnVerse 1~9·c·b 등) — 텍스트 입력 중이 아니고 수식 키가 없을 때만.
         // 검색창·공지문구·글꼴명 입력에 "1"·"c" 를 칠 때 절이 점프하는 사고를 막기 위해 포커스가 입력 컨트롤이면 건너뛴다.
         if (TryHandleVerseJumpKey(e))
@@ -378,6 +387,118 @@ public partial class MainWindow : Window
         if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
+        }
+    }
+
+    private bool TryHandlePreviewOutputPowerPointKey(KeyEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.None || IsTextInputFocused())
+        {
+            return false;
+        }
+
+        if (ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin)
+        {
+            return TryExecutePreviewPowerPointKey(e.Key);
+        }
+
+        if (ClassicOutputThumbnailGrid.IsKeyboardFocusWithin || ClassicOutputPowerPointSurface.IsKeyboardFocusWithin)
+        {
+            return TryExecuteOutputPowerPointKey(e.Key);
+        }
+
+        return false;
+    }
+
+    private bool TryExecutePreviewPowerPointKey(Key key)
+    {
+        switch (key)
+        {
+            case Key.Up:
+            case Key.Left:
+            case Key.PageUp:
+                if (_viewModel.PreviousSlideCommand.CanExecute(null))
+                {
+                    _viewModel.PreviousSlideCommand.Execute(null);
+                }
+
+                return true;
+
+            case Key.Down:
+            case Key.Right:
+            case Key.PageDown:
+            case Key.Space:
+                if (_viewModel.NextSlideCommand.CanExecute(null))
+                {
+                    _viewModel.NextSlideCommand.Execute(null);
+                }
+
+                return true;
+
+            case Key.Home:
+                ExecutePreviewSlideJump(1);
+                return true;
+
+            case Key.End:
+                ExecutePreviewSlideJump(_viewModel.PowerPoint.SlideCount);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private void ExecutePreviewSlideJump(int slideNumber)
+    {
+        if (_viewModel.GoToSlideCommand.CanExecute(slideNumber))
+        {
+            _viewModel.GoToSlideCommand.Execute(slideNumber);
+        }
+    }
+
+    private bool TryExecuteOutputPowerPointKey(Key key)
+    {
+        switch (key)
+        {
+            case Key.Up:
+            case Key.Left:
+            case Key.PageUp:
+                if (_viewModel.PreviousOutputSlideCommand.CanExecute(null))
+                {
+                    _viewModel.PreviousOutputSlideCommand.Execute(null);
+                }
+
+                return true;
+
+            case Key.Down:
+            case Key.Right:
+            case Key.PageDown:
+            case Key.Space:
+                if (_viewModel.NextOutputSlideCommand.CanExecute(null))
+                {
+                    _viewModel.NextOutputSlideCommand.Execute(null);
+                }
+
+                return true;
+
+            case Key.Home:
+                ExecuteOutputSlideJump(1);
+                return true;
+
+            case Key.End:
+                ExecuteOutputSlideJump(_viewModel.OutputPowerPoint.SlideCount);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private void ExecuteOutputSlideJump(int slideNumber)
+    {
+        if (_viewModel.GoToOutputSlideCommand.CanExecute(slideNumber))
+        {
+            _viewModel.GoToOutputSlideCommand.Execute(slideNumber);
         }
     }
 

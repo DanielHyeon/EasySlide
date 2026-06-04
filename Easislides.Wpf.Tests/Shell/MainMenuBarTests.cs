@@ -164,6 +164,31 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputPowerPointThumbnails_MapFocusedKeyboardNavigationIndependently()
+    {
+        var code = CodeBehind;
+
+        code.Should().Contain("TryHandlePreviewOutputPowerPointKey(e)",
+            "focused PPT thumbnail keyboard handling should run before global Space/F shortcuts");
+        code.Should().Contain("ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin",
+            "Preview PPT thumbnail focus should be detected separately");
+        code.Should().Contain("ClassicOutputThumbnailGrid.IsKeyboardFocusWithin",
+            "Output PPT thumbnail focus should be detected separately");
+        code.Should().Contain("_viewModel.PreviousSlideCommand.Execute(null)",
+            "Preview Up/Left/PageUp should move only the selected preview deck");
+        code.Should().Contain("_viewModel.NextSlideCommand.Execute(null)",
+            "Preview Down/Right/PageDown/Space should move only the selected preview deck");
+        code.Should().Contain("_viewModel.GoToSlideCommand.Execute(slideNumber)",
+            "Preview Home/End should jump inside the preview deck");
+        code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
+            "Output Up/Left/PageUp should move only the live output deck");
+        code.Should().Contain("_viewModel.NextOutputSlideCommand.Execute(null)",
+            "Output Down/Right/PageDown/Space should move only the live output deck");
+        code.Should().Contain("_viewModel.GoToOutputSlideCommand.Execute(slideNumber)",
+            "Output Home/End should jump inside the live output deck");
+    }
+
+    [Fact]
     public void LeftBrowserTabs_MatchFrmMainSourceRolesAndOrder()
     {
         var xaml = Xaml;
