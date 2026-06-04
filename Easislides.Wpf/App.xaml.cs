@@ -169,6 +169,8 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnDomainException;
         TaskScheduler.UnobservedTaskException += OnTaskException;
 
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         var startup = new StartupArguments(e.Args);
 
         // --legacy-ui 안전망 (ADR-0007): 신규 빌드에서 legacy WinForms 앱으로 즉시 롤백.
@@ -233,6 +235,8 @@ public partial class App : Application
         Window window = useDemo
             ? Services.GetRequiredService<DemoWindow>()
             : Services.GetRequiredService<MainWindow>();
+        MainWindow = window;
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
         window.Show();
 
         if (!useDemo)
