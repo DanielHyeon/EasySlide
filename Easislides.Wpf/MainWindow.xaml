@@ -1069,6 +1069,65 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
+                <TabItem Tag="InfoScreenSource"
+                         x:Name="InfoScreenSourceTab"
+                         AutomationProperties.Name="InfoScr source">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Info}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="InfoScr" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Text="Saved InfoScreens"
+                                       TextTrimming="CharacterEllipsis"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                            <Button Grid.Column="2"
+                                    Command="{Binding LoadCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Content="Refresh"
+                                    AutomationProperties.Name="Refresh InfoScreen list" />
+                            <Button Grid.Column="4"
+                                    Command="{Binding AddSelectedCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    Content="Add"
+                                    AutomationProperties.Name="Add selected InfoScreen to Worship List" />
+                        </Grid>
+
+                        <ListBox Grid.Row="1"
+                                 x:Name="InlineInfoScreenList"
+                                 ItemsSource="{Binding Screens}"
+                                 SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
+                                 DisplayMemberPath="Name"
+                                 MouseDoubleClick="InlineInfoScreenList_MouseDoubleClick"
+                                 PreviewMouseLeftButtonDown="InlineInfoScreenList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="InlineInfoScreenList_PreviewMouseMove"
+                                 AutomationProperties.Name="InfoScreen source list" />
+
+                        <TextBlock Grid.Row="2"
+                                   Text="{Binding StatusText}"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
                 <TabItem Tag="Bible"
                          AutomationProperties.Name="성경">
                     <!-- 성경 탭 = 책 아이콘. -->

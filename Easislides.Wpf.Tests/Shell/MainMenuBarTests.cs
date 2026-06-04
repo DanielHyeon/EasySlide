@@ -131,6 +131,13 @@ public class MainMenuBarTests
     {
         var xaml = Xaml;
 
+        xaml.Should().Contain("Tag=\"InfoScreenSource\"", "FrmMain keeps InfoScr as a main-console source tab");
+        xaml.Should().Contain("x:Name=\"InfoScreenSourceTab\"", "inline InfoScr tab needs a stable DataContext target");
+        xaml.Should().Contain("x:Name=\"InlineInfoScreenList\"", "saved InfoScreens must be visible without opening the editor modal");
+        xaml.Should().Contain("ItemsSource=\"{Binding Screens}\"", "inline InfoScr list reuses InfoScreenSourceViewModel");
+        xaml.Should().Contain("MouseDoubleClick=\"InlineInfoScreenList_MouseDoubleClick\"", "double-click should add selected InfoScreen");
+        xaml.Should().Contain("PreviewMouseMove=\"InlineInfoScreenList_PreviewMouseMove\"", "InfoScreen rows should drag into the Worship List");
+
         xaml.Should().Contain("Tag=\"PowerPointSource\"", "FrmMain keeps PowerPoint as a main-console source tab");
         xaml.Should().Contain("x:Name=\"PowerPointSourceTab\"", "inline PowerPoint tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlinePowerPointList\"", "PowerPoint files must be visible without opening a modal window");
@@ -151,6 +158,9 @@ public class MainMenuBarTests
     {
         var code = CodeBehind;
 
+        code.Should().Contain("EnsureInlineInfoScreenLoadedOnce(viewModel)", "InfoScr source tab should lazy-load on first selection");
+        code.Should().Contain("InfoScreenSourceTab.DataContext = _inlineInfoScreens", "inline InfoScr tab should bind to its source VM");
+        code.Should().Contain("typeof(InfoScreenSelection)", "InfoScr drags should use a typed payload, not arbitrary text");
         code.Should().Contain("EnsureInlinePowerPointLoadedOnce(viewModel)", "PowerPoint source tab should lazy-load on first selection");
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");

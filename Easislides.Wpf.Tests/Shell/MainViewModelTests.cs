@@ -2397,6 +2397,24 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddTextItemRelativeTo_InsertsNoticeBeforeDropTarget_WithOptions()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("a", "A", LiveItemKinds.Song);
+        var target = new LiveQueueItem("b", "B", LiveItemKinds.Song);
+        sut.LoadQueue([first, target]);
+
+        var item = sut.AddTextItemRelativeTo("저장 공지", new NoticeOptions(FontSizePt: 60, Bold: true), target);
+
+        item.Should().NotBeNull();
+        item!.Kind.Should().Be(LiveItemKinds.Notice);
+        item.Lyrics.Should().Be("저장 공지");
+        item.FormatData.Should().Contain("47=60").And.Contain("41=1");
+        sut.Queue.Should().Equal(first, item, target);
+        sut.SelectedItem.Should().BeSameAs(item);
+    }
+
+    [Fact]
     public void AddTextItem_NoOptions_HasNoFormatData_BackCompat()
     {
         // 옵션 없이 추가하면(기존 호출·Word 추출 경로) 서식 없음 — 전역 기본으로 송출(무회귀).

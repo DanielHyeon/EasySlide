@@ -30,8 +30,10 @@ public partial class MainWindow : Window
     private bool _libraryLoadedOnce;
     private bool _bibleLoadedOnce;
     private bool _searchLoadedOnce;
+    private bool _infoScreenSourceLoadedOnce;
     private bool _powerPointSourceLoadedOnce;
     private bool _mediaSourceLoadedOnce;
+    private InfoScreenSourceViewModel? _inlineInfoScreens;
     private PowerPointLibraryViewModel? _inlinePowerPoint;
     private MediaLibraryViewModel? _inlineMedia;
     private bool _fontsMergedOnce;
@@ -148,6 +150,21 @@ public partial class MainWindow : Window
             ResolvePowerPointInitialFolder());
         PowerPointSourceTab.DataContext = _inlinePowerPoint;
         _inlinePowerPoint.LoadCommand.Execute(null);
+    }
+
+    private void EnsureInlineInfoScreenLoadedOnce(MainViewModel viewModel)
+    {
+        if (_infoScreenSourceLoadedOnce)
+        {
+            return;
+        }
+
+        _infoScreenSourceLoadedOnce = true;
+        _inlineInfoScreens = new InfoScreenSourceViewModel(
+            new InfoScreenStore(),
+            selection => viewModel.AddTextItem(selection.Text, selection.Options) is not null);
+        InfoScreenSourceTab.DataContext = _inlineInfoScreens;
+        _inlineInfoScreens.LoadCommand.Execute(null);
     }
 
     private void EnsureInlineMediaLoadedOnce(MainViewModel viewModel)
@@ -388,6 +405,9 @@ public partial class MainWindow : Window
             case "Bible":
                 EnsureBibleLoadedOnce(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
                 break;
+            case "InfoScreenSource":
+                EnsureInlineInfoScreenLoadedOnce(viewModel);
+                break;
             case "PowerPointSource":
                 EnsureInlinePowerPointLoadedOnce(viewModel);
                 break;
@@ -425,6 +445,8 @@ public partial class MainWindow : Window
     // 라이브러리 곡 목록 → 예배 순서 드래그(레거시 외부 소스 드래그). 항목 위에서 눌러 임계 거리 이상 움직이면 시작.
     private Point _librarySongDragStart;
     private bool _librarySongDragArmed;
+    private Point _infoScreenDragStart;
+    private bool _infoScreenDragArmed;
     private Point _powerPointDragStart;
     private bool _powerPointDragArmed;
     private Point _mediaDragStart;
@@ -504,6 +526,53 @@ public partial class MainWindow : Window
 
         _librarySongDragArmed = false; // 한 제스처에서 한 번만 시작.
         DragDrop.DoDragDrop(LibrarySongList, new DataObject(typeof(Easislides.Wpf.Data.SongSummary), song), DragDropEffects.Copy);
+    }
+
+    private void InlineInfoScreenList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (_inlineInfoScreens?.AddSelectedCommand.CanExecute(null) == true)
+        {
+            _inlineInfoScreens.AddSelectedCommand.Execute(null);
+        }
+    }
+
+    private void InlineInfoScreenList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _infoScreenDragStart = e.GetPosition(null);
+        _infoScreenDragArmed = e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(InlineInfoScreenList, source) is ListBoxItem;
+    }
+
+    private async void InlineInfoScreenList_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_infoScreenDragArmed || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _infoScreenDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (_inlineInfoScreens is null)
+        {
+            return;
+        }
+
+        _infoScreenDragArmed = false;
+        var selection = await _inlineInfoScreens.LoadSelectionAsync();
+        if (selection is null)
+        {
+            return;
+        }
+
+        DragDrop.DoDragDrop(
+            InlineInfoScreenList,
+            new DataObject(typeof(InfoScreenSelection), selection),
+            DragDropEffects.Copy);
     }
 
     private void InlinePowerPointList_MouseDoubleClick(object sender, MouseButtonEventArgs e)

@@ -120,9 +120,10 @@ public partial class WorshipListPanel : UserControl
         }
         else if (e.Data.GetDataPresent(typeof(BibleSelection))
             || e.Data.GetDataPresent(typeof(Easislides.Wpf.Data.SongSummary))
+            || e.Data.GetDataPresent(typeof(InfoScreenSelection))
             || e.Data.GetDataPresent(DataFormats.FileDrop))
         {
-            // 성경 본문 선택·라이브러리 곡·탐색기 외부 파일(PPT/미디어) = 큐에 추가(Copy).
+            // 성경 본문 선택·라이브러리 곡·InfoScreen·탐색기 외부 파일(PPT/미디어) = 큐에 추가(Copy).
             e.Effects = DragDropEffects.Copy;
         }
         else
@@ -157,6 +158,11 @@ public partial class WorshipListPanel : UserControl
         {
             // 라이브러리 곡 목록에서 끌어다 놓은 곡 — 드롭 위치 앞에 추가(레거시 외부 소스 드래그).
             viewModel.AddSongRelativeTo(song, targetItem);
+        }
+        else if (e.Data.GetData(typeof(InfoScreenSelection)) is InfoScreenSelection infoScreen)
+        {
+            // InfoScr 소스 탭에서 끌어다 놓은 저장 공지 — 드롭 위치 앞에 추가(레거시 InfoScreenList DragDrop).
+            viewModel.AddTextItemRelativeTo(infoScreen.Text, infoScreen.Options, targetItem);
         }
         else if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
         {

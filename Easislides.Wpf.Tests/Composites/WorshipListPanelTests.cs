@@ -28,6 +28,12 @@ public class WorshipListPanelTests
         return XDocument.Load(Path.Combine(repoRoot, relativePath), LoadOptions.None);
     }
 
+    private static string LoadText(string relativePath)
+    {
+        var repoRoot = XamlAccessibilityScanner.FindRepoRoot();
+        return File.ReadAllText(Path.Combine(repoRoot, relativePath));
+    }
+
     private static string Attr(XElement e, string localName)
         => e.Attributes().FirstOrDefault(a => a.Name.LocalName == localName)?.Value ?? string.Empty;
 
@@ -155,6 +161,16 @@ public class WorshipListPanelTests
         var setters = link.Elements().Where(e => e.Name.LocalName == "Setter").ToArray();
         setters.Should().Contain(s => Attr(s, "Property") == "Background" && Attr(s, "Value") == "Transparent");
         setters.Should().Contain(s => Attr(s, "Property") == "BorderThickness" && Attr(s, "Value") == "0");
+    }
+
+    [Fact]
+    public void Drop_AcceptsInlineInfoScreenSelection_AndInsertsAtTarget()
+    {
+        var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+
+        code.Should().Contain("typeof(InfoScreenSelection)", "InfoScr source drags use a typed payload");
+        code.Should().Contain("AddTextItemRelativeTo(infoScreen.Text, infoScreen.Options, targetItem)",
+            "InfoScreen drops should preserve the Worship List drop position");
     }
 
     [Theory]

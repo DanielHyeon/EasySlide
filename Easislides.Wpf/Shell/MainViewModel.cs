@@ -1079,10 +1079,49 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public LiveQueueItem? AddTextItem(string? text, NoticeOptions? options = null)
     {
+        var item = CreateTextQueueItem(text, options);
+        if (item is null)
+        {
+            NotifyCommandStates();
+            return null;
+        }
+
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"텍스트 항목 추가됨: {item.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
+    /// <summary>
+    /// 자유 텍스트(공지/안내) 항목을 드롭 위치(타깃 항목) 앞에 끼운다 — InfoScr source drag/drop path.
+    /// 타깃이 없으면 맨 끝에 추가한다.
+    /// </summary>
+    public LiveQueueItem? AddTextItemRelativeTo(string? text, NoticeOptions? options, LiveQueueItem? targetItem)
+    {
+        var item = CreateTextQueueItem(text, options);
+        if (item is null)
+        {
+            NotifyCommandStates();
+            return null;
+        }
+
+        var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
+        var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"텍스트 항목 추가됨: {item.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
+    private LiveQueueItem? CreateTextQueueItem(string? text, NoticeOptions? options)
+    {
         if (string.IsNullOrWhiteSpace(text))
         {
             StatusText = "추가할 텍스트가 없습니다.";
-            NotifyCommandStates();
             return null;
         }
 
@@ -1093,19 +1132,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 서식이 없으면(options 미지정 또는 전부 기본) null → 전역 기본 서식으로 송출(무회귀). UseIndividualFormatting 기본 true 라 서식이 있으면 그대로 렌더.
         var formatData = options is null ? null : BuildNoticeFormatData(options);
         // 고유 Id(센티넬 NoticeLiveId 와 겹치지 않게) — 큐 내 다른 항목과 구별되는 새 식별자.
-        var item = new LiveQueueItem($"text:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
+        return new LiveQueueItem($"text:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
         {
             Lyrics = trimmed,
             FormatData = formatData,
         };
-
-        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
-        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
-        Queue.Insert(insertIndex, item);
-        SelectedItem = item;
-        StatusText = $"텍스트 항목 추가됨: {title}";
-        NotifyCommandStates();
-        return item;
     }
 
     /// <summary>
