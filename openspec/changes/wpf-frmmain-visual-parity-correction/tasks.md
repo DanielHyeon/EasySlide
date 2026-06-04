@@ -9,7 +9,7 @@
 - [x] Run full WPF tests.
 - [x] Run main WinForms project build.
 - [x] Relaunch WPF app for interactive visual smoke.
-- [ ] Commit and push.
+- [x] Commit and push.
 
 ## Manual QA Gaps
 
