@@ -171,7 +171,7 @@ public class MainViewModelTests
     [Fact]
     public async Task SendToOutputAndNext_PublishesThenAdvances_EvenWhenAutoAdvanceOff()
     {
-        // btnToOutputMoveNext: 자동 다음 설정이 꺼져 있어도 송출 후 선택이 다음 항목으로 이동한다.
+        // 상단/메뉴 "송출 후 다음": 자동 다음 설정이 꺼져 있어도 라이브 송출 후 선택이 다음 항목으로 이동한다.
         using var settingsFolder = TempSettingsFolder.Create();
         var settings = settingsFolder.CreateSettings();
         settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
@@ -3027,6 +3027,42 @@ public class MainViewModelTests
         sut.OutputPowerPoint.PreviewImage.Should().BeSameAs(expectedSlide, "Output 큰 화면은 준비된 OutputItem 슬라이드를 보여야 함");
         sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
         sut.StatusText.Should().Be("Output 준비: Deck");
+    }
+
+    [Fact]
+    public void CopyPreviewToOutputAndNextCommand_PreparesOutputAndAdvancesPreviewWithoutStartingLive()
+    {
+        // FrmMain btnToOutputMoveNext_Click: CopyPreviewToOutput + PreviewItem NextOne, GoLive 없음.
+        var first = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례" };
+        var second = new LiveQueueItem("song:2", "봉헌 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n봉헌" };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue(new[] { first, second });
+        sut.SelectedItem = first;
+
+        sut.CopyPreviewToOutputAndNextCommand.CanExecute(null).Should().BeTrue();
+        sut.CopyPreviewToOutputAndNextCommand.Execute(null);
+
+        sut.OutputItem.Should().BeSameAs(first, "OutputItem 은 복사 전 Preview 항목이어야 함");
+        sut.SelectedItem.Should().BeSameAs(second, "Preview 선택만 다음 항목으로 이동해야 함");
+        sut.Session.Current.State.Should().Be(LiveState.Off, "btnToOutputMoveNext 는 라이브 송출을 시작하지 않는다");
+        sut.LiveItemId.Should().BeNull("라이브 항목 표시는 바뀌지 않는다");
+        sut.StatusText.Should().Be("Output 준비: 입례 찬양 / Preview 다음: 봉헌 찬양");
+    }
+
+    [Fact]
+    public void CopyPreviewToOutputAndNextCommand_LastItem_PreparesOutputAndKeepsPreviewSelection()
+    {
+        var only = new LiveQueueItem("song:1", "마지막 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n마지막" };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue(new[] { only });
+        sut.SelectedItem = only;
+
+        sut.CopyPreviewToOutputAndNextCommand.Execute(null);
+
+        sut.OutputItem.Should().BeSameAs(only);
+        sut.SelectedItem.Should().BeSameAs(only, "다음 항목이 없으면 Preview 선택은 그대로 둔다");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.StatusText.Should().Be("Output 준비: 마지막 찬양");
     }
 
     [Fact]

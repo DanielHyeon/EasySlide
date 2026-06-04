@@ -471,7 +471,8 @@ public class MainMenuBarTests
         }
 
         xaml.Should().Contain("{Binding CopyPreviewToOutputCommand}", "FrmMain btnToOutput should copy Preview into Output without starting live");
-        xaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "Preview strip exposes send-and-next");
+        xaml.Should().Contain("{Binding CopyPreviewToOutputAndNextCommand}", "FrmMain btnToOutputMoveNext should copy Output and advance Preview without starting live");
+        OperatorBarXaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "fixed operator bar keeps F11 live send-and-next");
         xaml.Should().Contain("Text=\"{Binding OutputItem.Title, TargetNullValue='Output'}\"", "Output title should follow the prepared OutputItem, not the selected Preview item");
         xaml.Should().Contain("{Binding BlackScreenCommand}", "Output strip exposes Black");
         xaml.Should().Contain("{Binding ClearOutputCommand}", "Output strip exposes Clear");

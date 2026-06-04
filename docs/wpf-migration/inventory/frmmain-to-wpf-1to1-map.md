@@ -91,7 +91,7 @@
 | `PreviewBtnSlideUp/Down` | `PreviewBtnSlideUp/Down` + lyrics page nav commands | partial | 4 | item-type-aware PPT/media/page nav |
 | `btnToLive` | `btnToLive` + `GoLiveCommand` | partial | 4 | exact FrmMain semantics |
 | `btnToOutput` | `btnToOutput` + `CopyPreviewToOutputCommand` | partial | 4 | FrmMain `CopyPreviewToOutput` semantics now prepare `OutputItem`/PPT output state without starting live; full OutputItem navigation still incomplete |
-| `btnToOutputMoveNext` | `btnToOutputMoveNext` + `SendToOutputAndNextCommand` | partial | 4 | verify advance behavior |
+| `btnToOutputMoveNext` | `btnToOutputMoveNext` + `CopyPreviewToOutputAndNextCommand` | partial | 4 | FrmMain copy-to-Output plus Preview NextOne now does not start live; focus/OutputItem navigation parity still incomplete |
 | `IndPanel`, `Ind_*` | `IndcbPreviewNotes`, `IndradioButtonText/Format/Info` plus inspector/default source | partial | 5 | first-screen individual format controls and mode switching |
 
 ## 5. Output

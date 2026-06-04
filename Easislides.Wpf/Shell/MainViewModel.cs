@@ -680,6 +680,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenStageMonitorCommand = new RelayCommand(OpenStageMonitor);
         CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen);
         CopyPreviewToOutputCommand = new RelayCommand(CopyPreviewToOutput, CanCopyPreviewToOutput);
+        CopyPreviewToOutputAndNextCommand = new RelayCommand(CopyPreviewToOutputAndNext, CanCopyPreviewToOutput);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
@@ -859,9 +860,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand CloseStageMonitorCommand { get; }
     /// <summary>FrmMain btnToOutput: PreviewItem 을 OutputItem 으로 복사하되 라이브 송출은 시작하지 않는다.</summary>
     public IRelayCommand CopyPreviewToOutputCommand { get; }
+    /// <summary>FrmMain btnToOutputMoveNext: PreviewItem 을 OutputItem 으로 복사하고 Preview 선택만 다음 항목으로 옮긴다.</summary>
+    public IRelayCommand CopyPreviewToOutputAndNextCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
-    /// <summary>선택 항목을 출력으로 송출하고 곧바로 다음 항목으로 넘어간다(레거시 btnToOutputMoveNext — 자동 다음 설정과 무관).</summary>
+    /// <summary>상단/메뉴 F11: 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).</summary>
     public IAsyncRelayCommand SendToOutputAndNextCommand { get; }
     public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
@@ -2329,7 +2332,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         registry.Bind(MainCommandIds.OutputOpen, () => OpenOutputCommand.Execute(null));
         registry.Bind(MainCommandIds.OutputClose, () => _ = CloseOutputCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveGo, () => _ = GoLiveCommand.ExecuteAsync(null));
-        // 레거시 F11 = 송출 후 다음 항목(btnToOutputMoveNext). 형제 명령 LiveGo 와 같은 방식으로 바인딩 —
+        // F11 = 송출 후 다음 항목. 형제 명령 LiveGo 와 같은 방식으로 바인딩 —
         // 둘 다 CanGoLive 조건·내부 안전 확인을 SendToOutputAndNextAsync 안에서 처리하므로 여기서 따로 게이트하지 않는다.
         registry.Bind(MainCommandIds.LiveGoAndNext, () => _ = SendToOutputAndNextCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveStop, () => _ = StopLiveCommand.ExecuteAsync(null));
@@ -3345,17 +3348,55 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void CopyPreviewToOutput()
     {
+        var item = PrepareOutputFromPreview();
+        if (item is null)
+        {
+            return;
+        }
+
+        StatusText = $"Output 준비: {item.Title}";
+        NotifyCommandStates();
+    }
+
+    private void CopyPreviewToOutputAndNext()
+    {
+        var item = PrepareOutputFromPreview();
+        if (item is null)
+        {
+            return;
+        }
+
+        var next = MovePreviewSelectionToNext(item);
+        StatusText = next is null
+            ? $"Output 준비: {item.Title}"
+            : $"Output 준비: {item.Title} / Preview 다음: {next.Title}";
+        NotifyCommandStates();
+    }
+
+    private LiveQueueItem? PrepareOutputFromPreview()
+    {
         if (SelectedItem is not { } item)
         {
             StatusText = "Output으로 복사할 Preview 항목이 없습니다.";
             NotifyCommandStates();
-            return;
+            return null;
         }
 
         OutputItem = item;
         PrepareOutputPowerPointForPublish(item);
-        StatusText = $"Output 준비: {item.Title}";
-        NotifyCommandStates();
+        return item;
+    }
+
+    private LiveQueueItem? MovePreviewSelectionToNext(LiveQueueItem copiedItem)
+    {
+        var index = IndexOfReference(copiedItem);
+        if (index < 0 || index >= Queue.Count - 1)
+        {
+            return null;
+        }
+
+        SelectedItem = Queue[index + 1];
+        return SelectedItem;
     }
 
     private bool CanGoLive()
@@ -3381,8 +3422,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PublishSelectedItem();
     }
 
-    // 레거시 btnToOutputMoveNext — 선택 항목을 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
-    // 운영자가 "이 항목 보내고 다음 준비"를 한 번에 하는 2단(Preview→Output) 전송 흐름.
+    // 상단/메뉴 "송출 후 다음" — 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
+    // FrmMain 지역 btnToOutputMoveNext 의 비송출 복사+다음은 CopyPreviewToOutputAndNextCommand 가 담당한다.
     private async Task SendToOutputAndNextAsync()
     {
         if (SelectedItem is null)
@@ -5672,6 +5713,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputCommand.NotifyCanExecuteChanged();
+        CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         SendToOutputAndNextCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();
