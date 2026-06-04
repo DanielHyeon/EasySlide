@@ -46,6 +46,73 @@ public class MainMenuBarTests
         => Xaml.Should().Contain($"{{Binding {commandName}}}", $"{commandName} 메뉴 항목이 실제 명령에 배선돼야 함");
 
     [Theory]
+    [InlineData("GoLiveCommand")]
+    [InlineData("SendToOutputAndNextCommand")]
+    [InlineData("StopLiveCommand")]
+    [InlineData("BlackScreenCommand")]
+    [InlineData("ClearOutputCommand")]
+    [InlineData("HideOutputCommand")]
+    [InlineData("RestoreOutputCommand")]
+    [InlineData("RestartCurrentItemCommand")]
+    [InlineData("RefreshOutputCommand")]
+    [InlineData("OpenOutputCommand")]
+    [InlineData("CloseOutputCommand")]
+    public void OperatorBar_ExposesCoreLiveCommands(string commandName)
+        => OperatorBarXaml.Should().Contain($"{{Binding {commandName}}}", $"{commandName} 이 메뉴가 아니라 첫 화면 고정 바에 있어야 함");
+
+    [Fact]
+    public void OperatorBar_KeepsStopLiveAsDangerActionBetweenSendAndBlack()
+    {
+        var operatorBar = OperatorBarXaml;
+        var sendIndex = operatorBar.IndexOf("Command=\"{Binding SendToOutputAndNextCommand}\"", StringComparison.Ordinal);
+        var stopIndex = operatorBar.IndexOf("Command=\"{Binding StopLiveCommand}\"", StringComparison.Ordinal);
+        var blackIndex = operatorBar.IndexOf("Command=\"{Binding BlackScreenCommand}\"", StringComparison.Ordinal);
+        var closeIndex = operatorBar.IndexOf("Command=\"{Binding CloseOutputCommand}\"", StringComparison.Ordinal);
+
+        sendIndex.Should().BeGreaterThanOrEqualTo(0, "Send-and-next must stay in the fixed operator bar");
+        stopIndex.Should().BeGreaterThan(sendIndex, "Stop Live should stay beside send-and-next as the immediate stop action");
+        blackIndex.Should().BeGreaterThan(stopIndex, "Stop Live should remain before the other live safety actions");
+        closeIndex.Should().BeGreaterThan(stopIndex, "Stop Live must remain distinct from Close Output");
+
+        var stopButton = ButtonBlockFor(operatorBar, "StopLiveCommand");
+        stopButton.Should().Contain("Style=\"{StaticResource EsButton.Danger}\"", "Stop Live is a dangerous live action");
+        stopButton.Should().NotContain("CloseOutputCommand", "Stop Live must not drift into the Close Output button");
+    }
+
+    private static string OperatorBarXaml
+    {
+        get
+        {
+            var xaml = Xaml;
+            var marker = xaml.IndexOf("x:Name=\"ClassicOperatorBar\"", StringComparison.Ordinal);
+            marker.Should().BeGreaterThanOrEqualTo(0, "the fixed operator bar should have a stable XAML name for drift tests");
+
+            var start = xaml.LastIndexOf("<WrapPanel", marker, StringComparison.Ordinal);
+            start.Should().BeGreaterThanOrEqualTo(0, "ClassicOperatorBar should be a WrapPanel");
+
+            var end = xaml.IndexOf("</WrapPanel>", marker, StringComparison.Ordinal);
+            end.Should().BeGreaterThan(marker, "the fixed operator bar WrapPanel range should be discoverable");
+
+            return xaml[start..end];
+        }
+    }
+
+    private static string ButtonBlockFor(string container, string commandName)
+    {
+        var command = $"Command=\"{{Binding {commandName}}}\"";
+        var marker = container.IndexOf(command, StringComparison.Ordinal);
+        marker.Should().BeGreaterThanOrEqualTo(0, $"{commandName} should be in the fixed operator bar");
+
+        var start = container.LastIndexOf("<Button", marker, StringComparison.Ordinal);
+        start.Should().BeGreaterThanOrEqualTo(0, $"{commandName} should be on a Button");
+
+        var end = container.IndexOf("</Button>", marker, StringComparison.Ordinal);
+        end.Should().BeGreaterThan(marker, $"{commandName} Button should be closed");
+
+        return container[start..(end + "</Button>".Length)];
+    }
+
+    [Theory]
     // 편집/도구/보기/도움말 항목은 DI 창 런처(Click 핸들러)에 배선. 핸들러 미정의면 빌드가 실패(컴파일 가드).
     [InlineData("SongCopy_Click")]
     [InlineData("SongMove_Click")]
