@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 
 namespace Easislides.Wpf.Library;
@@ -39,15 +41,27 @@ public sealed class PraiseBookStore : IPraiseBookStore
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     private readonly string _directory;
+    private readonly ISettingsService? _settings;
 
     public PraiseBookStore()
         : this(DefaultDirectory())
     {
     }
 
+    public PraiseBookStore(ISettingsService settings)
+        : this(DefaultDirectory(), settings)
+    {
+    }
+
     public PraiseBookStore(string directory)
+        : this(directory, settings: null)
+    {
+    }
+
+    public PraiseBookStore(string directory, ISettingsService? settings)
     {
         _directory = directory ?? throw new ArgumentNullException(nameof(directory));
+        _settings = settings;
     }
 
     private static string DefaultDirectory() => Path.Combine(
@@ -73,40 +87,61 @@ public sealed class PraiseBookStore : IPraiseBookStore
     public async Task<IReadOnlyList<PraiseBookIndexEntry>> LoadAsync(string name, CancellationToken cancellationToken = default)
     {
         var path = ResolvePath(name);
-        if (!File.Exists(path))
+        if (File.Exists(path))
+        {
+            var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+            PraiseBookEntryDto[]? dtos;
+            try
+            {
+                dtos = JsonSerializer.Deserialize<PraiseBookEntryDto[]>(json, JsonOptions);
+            }
+            catch (JsonException)
+            {
+                // 손상/비-JSON 파일은 빈 목록으로 우아하게 처리(호출자 크래시 방지).
+                return Array.Empty<PraiseBookIndexEntry>();
+            }
+
+            dtos ??= Array.Empty<PraiseBookEntryDto>();
+            return dtos.Select(d => new PraiseBookIndexEntry(d.Title, d.Number)).ToList();
+        }
+
+        var legacyPath = ResolveLegacyPath(name);
+        if (legacyPath is null || !File.Exists(legacyPath))
         {
             return Array.Empty<PraiseBookIndexEntry>();
         }
 
-        var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
-        PraiseBookEntryDto[]? dtos;
-        try
-        {
-            dtos = JsonSerializer.Deserialize<PraiseBookEntryDto[]>(json, JsonOptions);
-        }
-        catch (JsonException)
-        {
-            // 손상/비-JSON 파일은 빈 목록으로 우아하게 처리(호출자 크래시 방지).
-            return Array.Empty<PraiseBookIndexEntry>();
-        }
-
-        dtos ??= Array.Empty<PraiseBookEntryDto>();
-        return dtos.Select(d => new PraiseBookIndexEntry(d.Title, d.Number)).ToList();
+        var xml = await File.ReadAllTextAsync(legacyPath, cancellationToken).ConfigureAwait(false);
+        return ParseLegacyEsp(xml);
     }
 
     public IReadOnlyList<string> ListNames()
     {
+        var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
         if (!Directory.Exists(_directory))
         {
-            return Array.Empty<string>();
+            foreach (var name in EnumerateLegacyNames())
+            {
+                names.Add(name);
+            }
+
+            return names.ToArray();
         }
 
-        return Directory.GetFiles(_directory, "*.json")
+        foreach (var name in Directory.GetFiles(_directory, "*.json")
             .Select(Path.GetFileNameWithoutExtension)
             .Where(n => !string.IsNullOrEmpty(n))
-            .Select(n => n!)
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+            .Select(n => n!))
+        {
+            names.Add(name);
+        }
+
+        foreach (var name in EnumerateLegacyNames())
+        {
+            names.Add(name);
+        }
+
+        return names.ToArray();
     }
 
     public void Delete(string name)
@@ -116,30 +151,140 @@ public sealed class PraiseBookStore : IPraiseBookStore
         {
             File.Delete(path);
         }
+
+        var legacyPath = ResolveLegacyPath(name);
+        if (legacyPath is not null && File.Exists(legacyPath))
+        {
+            File.Delete(legacyPath);
+        }
     }
 
     public void Rename(string oldName, string newName)
     {
         var oldPath = ResolvePath(oldName);
         var newPath = ResolvePath(newName);
+        var oldLegacyPath = ResolveLegacyPath(oldName);
+        var newLegacyPath = ResolveLegacyPath(newName);
 
-        if (!File.Exists(oldPath))
+        var hasJson = File.Exists(oldPath);
+        var hasLegacy = oldLegacyPath is not null && File.Exists(oldLegacyPath);
+        if (!hasJson && !hasLegacy)
         {
             return;
         }
 
-        if (string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+        if (hasJson && !string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
         {
-            return;
+            if (File.Exists(newPath))
+            {
+                throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
+            }
+
+            File.Move(oldPath, newPath);
         }
 
-        if (File.Exists(newPath))
+        if (hasLegacy && oldLegacyPath is not null && newLegacyPath is not null
+            && !string.Equals(oldLegacyPath, newLegacyPath, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
-        }
+            if (File.Exists(newLegacyPath))
+            {
+                throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
+            }
 
-        File.Move(oldPath, newPath);
+            File.Move(oldLegacyPath, newLegacyPath);
+        }
     }
 
     private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "찬양집");
+
+    private IEnumerable<string> EnumerateLegacyNames()
+    {
+        var legacyDirectory = LegacyDirectory();
+        if (legacyDirectory is null || !Directory.Exists(legacyDirectory))
+        {
+            return Array.Empty<string>();
+        }
+
+        return Directory.GetFiles(legacyDirectory, "*.esp")
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Select(n => n!);
+    }
+
+    private string? ResolveLegacyPath(string name)
+    {
+        var legacyDirectory = LegacyDirectory();
+        if (legacyDirectory is null || string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        var trimmed = name.Trim();
+        if (trimmed.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || trimmed.Contains("..", StringComparison.Ordinal)
+            || trimmed.EndsWith('.'))
+        {
+            throw new ArgumentException($"찬양집 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+        }
+
+        var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".esp"));
+        var root = Path.GetFullPath(legacyDirectory);
+        var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
+        if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException($"찬양집 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
+        }
+
+        return full;
+    }
+
+    private string? LegacyDirectory()
+    {
+        var workingFolder = _settings?.Current.General.WorkingFolder;
+        if (string.IsNullOrWhiteSpace(workingFolder))
+        {
+            return null;
+        }
+
+        return Path.Combine(workingFolder, "Admin", "PraiseBooks");
+    }
+
+    private static IReadOnlyList<PraiseBookIndexEntry> ParseLegacyEsp(string? xml)
+    {
+        if (string.IsNullOrWhiteSpace(xml))
+        {
+            return Array.Empty<PraiseBookIndexEntry>();
+        }
+
+        XDocument document;
+        try
+        {
+            document = XDocument.Parse(xml);
+        }
+        catch (System.Xml.XmlException)
+        {
+            return Array.Empty<PraiseBookIndexEntry>();
+        }
+
+        var entries = new List<PraiseBookIndexEntry>();
+        foreach (var element in document.Descendants("Item"))
+        {
+            var itemId = ((string?)element.Element("ItemID") ?? string.Empty).Trim();
+            var title = ((string?)element.Element("Title1") ?? string.Empty).Trim();
+            if (itemId.Length == 0 || title.Length == 0)
+            {
+                continue;
+            }
+
+            var songIdText = itemId.Length > 1 ? itemId[1..] : string.Empty;
+            var songId = itemId[0] is 'D' or 'd'
+                && int.TryParse(songIdText, out var parsedSongId)
+                    ? parsedSongId
+                    : 0;
+
+            entries.Add(new PraiseBookIndexEntry(title, Number: 0, SongId: songId));
+        }
+
+        return entries;
+    }
 }

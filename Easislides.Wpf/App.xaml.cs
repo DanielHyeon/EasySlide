@@ -99,6 +99,8 @@ public partial class App : Application
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddSingleton<IWorshipListStore, WorshipListStore>();
+        services.AddSingleton<IPraiseBookIndexService, PraiseBookIndexService>();
+        services.AddSingleton<IPraiseBookStore, PraiseBookStore>();
         services.AddSingleton<IRecentWorshipLists, RecentWorshipListsService>();
         services.AddSingleton<IAppearanceTemplateStore, AppearanceTemplateStore>();
         services.AddTransient<MediaPlaybackViewModel>();

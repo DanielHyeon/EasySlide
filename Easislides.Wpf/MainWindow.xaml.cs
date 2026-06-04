@@ -260,15 +260,15 @@ public partial class MainWindow : Window
             : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
     }
 
-    private static PraiseBookIndexViewModel CreatePraiseBookIndexViewModel(MainViewModel viewModel)
+    private PraiseBookIndexViewModel CreatePraiseBookIndexViewModel(MainViewModel viewModel)
     {
         var entries = viewModel.Library.Songs
             .Select(song => new PraiseBookIndexEntry(song.Title, song.SongNumber, song.SongId))
             .ToList();
 
         return new PraiseBookIndexViewModel(
-            new PraiseBookIndexService(),
-            new PraiseBookStore(),
+            _services.GetRequiredService<IPraiseBookIndexService>(),
+            _services.GetRequiredService<IPraiseBookStore>(),
             entries);
     }
 
@@ -1179,8 +1179,8 @@ public partial class MainWindow : Window
             .ToList();
 
         var indexViewModel = new Easislides.Wpf.Library.PraiseBookIndexViewModel(
-            new Easislides.Wpf.Library.PraiseBookIndexService(),
-            new Easislides.Wpf.Library.PraiseBookStore(),
+            _services.GetRequiredService<IPraiseBookIndexService>(),
+            _services.GetRequiredService<IPraiseBookStore>(),
             entries);
 
         var window = new Easislides.Wpf.Library.PraiseBookIndexWindow(indexViewModel) { Owner = this };

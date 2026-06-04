@@ -22,6 +22,10 @@ public class MainMenuBarTests
         Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "MainWindow.xaml.cs"),
         Encoding.UTF8);
 
+    private static string AppCode => File.ReadAllText(
+        Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "App.xaml.cs"),
+        Encoding.UTF8);
+
     [Fact]
     public void MainWindow_HasMenuBarWithSixTopLevelMenus()
     {
@@ -313,6 +317,9 @@ public class MainMenuBarTests
         code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
+        code.Should().Contain("GetRequiredService<IPraiseBookStore>()", "inline and modal PraiseBook surfaces should use the DI store wired to the legacy working folder");
+        code.Should().NotContain("new PraiseBookStore()", "direct construction falls back to AppData and loses C:\\EasiSlides legacy .esp files");
+        AppCode.Should().Contain("services.AddSingleton<IPraiseBookStore, PraiseBookStore>()", "DI must provide the WorkingFolder-aware PraiseBook store at runtime");
     }
 
     [Fact]
