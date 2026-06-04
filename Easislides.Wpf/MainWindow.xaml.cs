@@ -30,6 +30,10 @@ public partial class MainWindow : Window
     private bool _libraryLoadedOnce;
     private bool _bibleLoadedOnce;
     private bool _searchLoadedOnce;
+    private bool _powerPointSourceLoadedOnce;
+    private bool _mediaSourceLoadedOnce;
+    private PowerPointLibraryViewModel? _inlinePowerPoint;
+    private MediaLibraryViewModel? _inlineMedia;
     private bool _fontsMergedOnce;
     // "모든 설정 초기화"(복구)로 닫는 중인가 — true 면 OnClosing 에서 창 위치·패널 비율을 저장하지 않는다
     // (안 그러면 방금 되돌린 기본값을 닫으면서 다시 덮어쓴다. 레거시 SaveToRegistryOnClosing=false 와 같은 취지).
@@ -128,6 +132,65 @@ public partial class MainWindow : Window
 
         _bibleLoadedOnce = true;
         _ = _viewModel.Bible.LoadAsync();
+    }
+
+    private void EnsureInlinePowerPointLoadedOnce(MainViewModel viewModel)
+    {
+        if (_powerPointSourceLoadedOnce)
+        {
+            return;
+        }
+
+        _powerPointSourceLoadedOnce = true;
+        _inlinePowerPoint = new PowerPointLibraryViewModel(
+            new PowerPointLibraryService(),
+            path => viewModel.AddPowerPoint(path),
+            ResolvePowerPointInitialFolder());
+        PowerPointSourceTab.DataContext = _inlinePowerPoint;
+        _inlinePowerPoint.LoadCommand.Execute(null);
+    }
+
+    private void EnsureInlineMediaLoadedOnce(MainViewModel viewModel)
+    {
+        if (_mediaSourceLoadedOnce)
+        {
+            return;
+        }
+
+        _mediaSourceLoadedOnce = true;
+        _inlineMedia = new MediaLibraryViewModel(
+            new MediaLibraryService(),
+            path => viewModel.AddMedia(path),
+            ResolveMediaInitialFolder());
+        MediaSourceTab.DataContext = _inlineMedia;
+        _inlineMedia.LoadCommand.Execute(null);
+    }
+
+    private string ResolvePowerPointInitialFolder()
+    {
+        var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
+        var powerPointFolder = !string.IsNullOrWhiteSpace(workingFolder)
+            ? Path.Combine(workingFolder, "Powerpoint")
+            : string.Empty;
+
+        return !string.IsNullOrWhiteSpace(powerPointFolder) && Directory.Exists(powerPointFolder) ? powerPointFolder
+            : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+    }
+
+    private string ResolveMediaInitialFolder()
+    {
+        var settings = _services.GetRequiredService<ISettingsService>();
+        var mediaDir = settings.Get(EasiSettingKeys.MediaDirectory);
+        var workingFolder = settings.Current.General.WorkingFolder;
+        var mediaFolder = !string.IsNullOrWhiteSpace(workingFolder)
+            ? Path.Combine(workingFolder, "Media")
+            : string.Empty;
+
+        return !string.IsNullOrWhiteSpace(mediaDir) && Directory.Exists(mediaDir) ? mediaDir
+            : !string.IsNullOrWhiteSpace(mediaFolder) && Directory.Exists(mediaFolder) ? mediaFolder
+            : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     }
 
     private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -325,6 +388,12 @@ public partial class MainWindow : Window
             case "Bible":
                 EnsureBibleLoadedOnce(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
                 break;
+            case "PowerPointSource":
+                EnsureInlinePowerPointLoadedOnce(viewModel);
+                break;
+            case "MediaSource":
+                EnsureInlineMediaLoadedOnce(viewModel);
+                break;
             case "Search" when !_searchLoadedOnce:
                 _searchLoadedOnce = true;
                 _ = viewModel.Search.LoadAsync(); // 검색 폴더 목록(기본 전체 선택)·DB 경로 로드. 예외는 VM 내부에서 흡수.
@@ -356,6 +425,10 @@ public partial class MainWindow : Window
     // 라이브러리 곡 목록 → 예배 순서 드래그(레거시 외부 소스 드래그). 항목 위에서 눌러 임계 거리 이상 움직이면 시작.
     private Point _librarySongDragStart;
     private bool _librarySongDragArmed;
+    private Point _powerPointDragStart;
+    private bool _powerPointDragArmed;
+    private Point _mediaDragStart;
+    private bool _mediaDragArmed;
 
     // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).
     private void BiblePassageBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -431,6 +504,88 @@ public partial class MainWindow : Window
 
         _librarySongDragArmed = false; // 한 제스처에서 한 번만 시작.
         DragDrop.DoDragDrop(LibrarySongList, new DataObject(typeof(Easislides.Wpf.Data.SongSummary), song), DragDropEffects.Copy);
+    }
+
+    private void InlinePowerPointList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (_inlinePowerPoint?.AddSelectedCommand.CanExecute(null) == true)
+        {
+            _inlinePowerPoint.AddSelectedCommand.Execute(null);
+        }
+    }
+
+    private void InlineMediaList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (_inlineMedia?.AddSelectedCommand.CanExecute(null) == true)
+        {
+            _inlineMedia.AddSelectedCommand.Execute(null);
+        }
+    }
+
+    private void InlinePowerPointList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _powerPointDragStart = e.GetPosition(null);
+        _powerPointDragArmed = e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(InlinePowerPointList, source) is ListBoxItem;
+    }
+
+    private void InlinePowerPointList_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_powerPointDragArmed || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _powerPointDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (_inlinePowerPoint?.SelectedFile is not { } file)
+        {
+            return;
+        }
+
+        _powerPointDragArmed = false;
+        DragDrop.DoDragDrop(
+            InlinePowerPointList,
+            new DataObject(DataFormats.FileDrop, new[] { file.FilePath }),
+            DragDropEffects.Copy);
+    }
+
+    private void InlineMediaList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _mediaDragStart = e.GetPosition(null);
+        _mediaDragArmed = e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(InlineMediaList, source) is ListBoxItem;
+    }
+
+    private void InlineMediaList_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_mediaDragArmed || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _mediaDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (_inlineMedia?.SelectedFile is not { } file)
+        {
+            return;
+        }
+
+        _mediaDragArmed = false;
+        DragDrop.DoDragDrop(
+            InlineMediaList,
+            new DataObject(DataFormats.FileDrop, new[] { file.FilePath }),
+            DragDropEffects.Copy);
     }
 
     // "Region 2(이중 언어)와 함께 추가" 서브메뉴 클릭 — 선택 구절을 클릭한 보조 버전과 합쳐(이중 언어) 예배 순서에 추가한다.
@@ -748,15 +903,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
-        var initialFolder = !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder)
-            ? workingFolder
-            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
         var pptViewModel = new Easislides.Wpf.Library.PowerPointLibraryViewModel(
             new Easislides.Wpf.Library.PowerPointLibraryService(),
             path => viewModel.AddPowerPoint(path), // AddPowerPoint 는 LiveQueueItem 을 반환하므로 람다로 감싼다
-            initialFolder);
+            ResolvePowerPointInitialFolder());
 
         var window = new Easislides.Wpf.Library.PowerPointLibraryWindow(pptViewModel) { Owner = this };
         window.ShowDialog();
@@ -770,19 +920,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        // 미디어 폴더는 설정의 MediaDirectory 를 우선 쓰고, 없으면 작업 폴더, 그래도 없으면 내 문서.
-        var settings = _services.GetRequiredService<ISettingsService>();
-        var mediaDir = settings.Get(EasiSettingKeys.MediaDirectory);
-        var workingFolder = settings.Current.General.WorkingFolder;
-        var initialFolder =
-            !string.IsNullOrWhiteSpace(mediaDir) && Directory.Exists(mediaDir) ? mediaDir
-            : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
-            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
         var mediaViewModel = new Easislides.Wpf.Library.MediaLibraryViewModel(
             new Easislides.Wpf.Library.MediaLibraryService(),
             path => viewModel.AddMedia(path), // AddMedia 는 LiveQueueItem 을 반환하므로 람다로 감싼다
-            initialFolder);
+            ResolveMediaInitialFolder());
 
         var window = new Easislides.Wpf.Library.MediaLibraryWindow(mediaViewModel) { Owner = this };
         window.ShowDialog();

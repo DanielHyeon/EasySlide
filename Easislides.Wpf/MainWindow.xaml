@@ -1171,10 +1171,156 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
-                <!-- 검색 탭(§7.4 단일 콘솔 통합 — SearchUsageWindow 의 곡/제목/사용을 좌측 레일에 인라인 흡수).
-                     서브탭: 곡(폴더 가로지르는 다중 필드 검색) · 제목(제목으로 빠르게 찾기) · 사용(송출 이력 읽기전용).
-                     곡·제목 결과는 더블클릭/버튼으로 예배 순서에 추가. 삭제/RTF 내보내기 같은 무거운 관리 기능은
-                     기존 SearchUsageWindow 에 남겨 두고 명령 팔레트(⌘K)로 연다. -->
+                <!-- Inline external source tabs restore the FrmMain left-browser PowerP/Media workflow. -->
+                <TabItem Tag="PowerPointSource"
+                         x:Name="PowerPointSourceTab"
+                         AutomationProperties.Name="PowerPoint source">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="PowerPoint" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding FolderPath}"
+                                     IsReadOnly="True"
+                                     MinHeight="34"
+                                     VerticalContentAlignment="Center"
+                                     AutomationProperties.Name="PowerPoint folder path" />
+                            <Button Grid.Column="2"
+                                    Command="{Binding LoadCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Content="Refresh"
+                                    AutomationProperties.Name="Refresh PowerPoint list" />
+                            <Button Grid.Column="4"
+                                    Command="{Binding AddSelectedCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    Content="Add"
+                                    AutomationProperties.Name="Add selected PowerPoint to Worship List" />
+                        </Grid>
+
+                        <CheckBox Grid.Row="1"
+                                  IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
+                                  Content="Include subfolders"
+                                  Margin="0,0,0,8"
+                                  AutomationProperties.Name="Include PowerPoint subfolders" />
+
+                        <TextBox Grid.Row="2"
+                                 Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="34"
+                                 Margin="0,0,0,8"
+                                 ToolTip="Filter by file name"
+                                 AutomationProperties.Name="PowerPoint file filter" />
+
+                        <ListBox Grid.Row="3"
+                                 x:Name="InlinePowerPointList"
+                                 ItemsSource="{Binding Presentations}"
+                                 SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                                 DisplayMemberPath="FileName"
+                                 MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
+                                 PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
+                                 AutomationProperties.Name="PowerPoint source file list" />
+
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding StatusText}"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Tag="MediaSource"
+                         x:Name="MediaSourceTab"
+                         AutomationProperties.Name="Media source">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaFile}" FontSize="15" Margin="0,0,6,0" />
+                            <TextBlock Text="Media" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding FolderPath}"
+                                     IsReadOnly="True"
+                                     MinHeight="34"
+                                     VerticalContentAlignment="Center"
+                                     AutomationProperties.Name="Media folder path" />
+                            <Button Grid.Column="2"
+                                    Command="{Binding LoadCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    Content="Refresh"
+                                    AutomationProperties.Name="Refresh Media list" />
+                            <Button Grid.Column="4"
+                                    Command="{Binding AddSelectedCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    Content="Add"
+                                    AutomationProperties.Name="Add selected Media to Worship List" />
+                        </Grid>
+
+                        <CheckBox Grid.Row="1"
+                                  IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
+                                  Content="Include subfolders"
+                                  Margin="0,0,0,8"
+                                  AutomationProperties.Name="Include Media subfolders" />
+
+                        <TextBox Grid.Row="2"
+                                 Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="34"
+                                 Margin="0,0,0,8"
+                                 ToolTip="Filter by file name"
+                                 AutomationProperties.Name="Media file filter" />
+
+                        <ListBox Grid.Row="3"
+                                 x:Name="InlineMediaList"
+                                 ItemsSource="{Binding MediaFiles}"
+                                 SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                                 DisplayMemberPath="FileName"
+                                 MouseDoubleClick="InlineMediaList_MouseDoubleClick"
+                                 PreviewMouseLeftButtonDown="InlineMediaList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="InlineMediaList_PreviewMouseMove"
+                                 AutomationProperties.Name="Media source file list" />
+
+                        <TextBlock Grid.Row="4"
+                                   Text="{Binding StatusText}"
+                                   Margin="0,8,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </Grid>
+                </TabItem>
+                <!-- Search tab keeps song/title/usage lookup inline in the left rail. -->
                 <TabItem Tag="Search"
                          AutomationProperties.Name="검색">
                     <!-- 검색 탭 = 돋보기 아이콘. -->
