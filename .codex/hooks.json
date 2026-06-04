@@ -1,0 +1,12 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "\"E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/hooks/gsd-check-update.cmd\""
+        }
+      ]
+    }
+  ]
+}

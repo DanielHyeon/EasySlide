@@ -1,0 +1,30 @@
+# GSD Agent Configuration — managed by get-shit-done installer
+# GSD codex_hooks ownership: section
+
+[features]
+hooks = true
+
+[agents.gsd-code-fixer]
+description = "Applies fixes to code review findings from REVIEW.md. Reads source files, applies intelligent fixes, and commits each fix atomically. Spawned by $gsd-code-review --fix."
+config_file = "E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/agents/gsd-code-fixer.toml"
+
+[agents.gsd-code-reviewer]
+description = "Reviews source files for bugs, security issues, and code quality problems. Produces structured REVIEW.md with severity-classified findings. Spawned by $gsd-code-review."
+config_file = "E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/agents/gsd-code-reviewer.toml"
+
+[agents.gsd-executor]
+description = "Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management. Spawned by execute-phase orchestrator or execute-plan command."
+config_file = "E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/agents/gsd-executor.toml"
+
+[agents.gsd-phase-researcher]
+description = "Researches how to implement a phase before planning. Produces RESEARCH.md consumed by gsd-planner. Spawned by $gsd-plan-phase orchestrator."
+config_file = "E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/agents/gsd-phase-researcher.toml"
+
+[agents.gsd-plan-checker]
+description = "Verifies plans will achieve phase goal before execution. Goal-backward analysis of plan quality. Spawned by $gsd-plan-phase orchestrator."
+config_file = "E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/agents/gsd-plan-checker.toml"
+
+[agents.gsd-planner]
+description = "Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by $gsd-plan-phase orchestrator."
+config_file = "E:/WorkSpace/wp-ms/dev/EasiSlides_v2.6.4/.codex/agents/gsd-planner.toml"
+
