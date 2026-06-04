@@ -2928,10 +2928,10 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task PublishNotice_DisablesPowerPointSlideNav_WhilePptSelected()
+    public async Task PublishNotice_KeepsPreviewSlideNavButDisablesOutputSlideNav()
     {
-        // 공지가 떠 있는 동안에는 선택된 PPT 덱의 슬라이드 이동 버튼이 비활성이어야 한다
-        // (_liveItemId 센티넬 → 선택 항목 ID 와 불일치 → 이동 가드 false). null 와일드카드 버그 회귀 방지.
+        // FrmMain 1:1: 공지가 라이브여도 PreviewItem(PPT 선택 덱)은 계속 넘길 수 있다.
+        // 다만 OutputItem 은 공지라서 output 전용 PPT 슬라이드 이동은 비활성이다.
         var expectedSlide = new DrawingImage();
         expectedSlide.Freeze();
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => expectedSlide);
@@ -2946,7 +2946,8 @@ public class MainViewModelTests
 
         sut.PublishNotice("공지").Should().BeTrue();
 
-        sut.NextSlideCommand.CanExecute(null).Should().BeFalse("공지 송출 중에는 PPT 슬라이드 이동 비활성");
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("Preview PPT 조작은 라이브 공지와 독립");
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeFalse("Output PPT 조작은 현재 라이브 항목이 PPT 일 때만 활성");
     }
 
     [Fact]
@@ -2984,6 +2985,8 @@ public class MainViewModelTests
         sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(expectedSlide,
             "PPT 항목 GoLive 시 렌더된 슬라이드가 출력 송출 슬롯에 실려야 함");
         sut.Session.Current.CurrentItemPreviewFillMode.Should().Be(ImageFillMode.Fit, "PPT 슬라이드는 레터박스(Fit) 송출");
+        sut.OutputPowerPoint.PreviewImage.Should().BeSameAs(expectedSlide, "오른쪽 Output 큰 화면도 송출 PPT 상태를 사용해야 함");
+        sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
     }
 
     [Fact]
@@ -3209,6 +3212,7 @@ public class MainViewModelTests
         await sut.NextSlideCommand.ExecuteAsync(null);
 
         powerPoint.SlideNumber.Should().Be(2);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2, "라이브 중 Preview 슬라이드 이동은 Output surface에도 반영");
         sut.Session.Current.State.Should().Be(LiveState.Active);
         sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
             "라이브 중 슬라이드 이동 시 출력이 새 슬라이드로 갱신");
@@ -3293,23 +3297,39 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task SlideNav_WhenSelectionDivergesFromLiveItem_IsDisabled()
+    public async Task SlideNav_WhenSelectionDivergesFromLiveItem_MovesPreviewOnly()
     {
-        // 라이브 항목과 다른 항목을 선택하면(선택이 라이브에서 벗어남) 슬라이드 이동 비활성 —
-        // 라이브 덱이 아닌 항목을 넘겨 라이브 출력이 안 바뀌는 혼란 방지(code-review #1).
-        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(powerPoint: powerPoint);
+        // FrmMain 1:1: PreviewItem 과 OutputItem 이 분리되어야 한다.
+        // 라이브 A 를 유지한 채 B 를 선택하면 Preview 버튼은 B 를 넘기고, Output 버튼은 라이브 A 를 넘긴다.
+        var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: previewPowerPoint, outputPowerPoint: outputPowerPoint);
         var deckA = new LiveQueueItem("ppt:a", "Deck A", "PowerPoint") { ContentPath = "deckA.pptx" };
         var deckB = new LiveQueueItem("ppt:b", "Deck B", "PowerPoint") { ContentPath = "deckB.pptx" };
         sut.LoadQueue(new[] { deckA, deckB });
         sut.OpenOutputCommand.Execute(null);
         sut.SelectedItem = deckA;
         await sut.GoLiveCommand.ExecuteAsync(null); // 라이브 = A
+        var liveSlide = sut.Session.Current.CurrentItemPreviewSource;
 
         sut.SelectedItem = deckB; // 선택이 B 로 분기
 
-        sut.NextSlideCommand.CanExecute(null).Should().BeFalse("라이브 항목이 아닌 선택에선 슬라이드 이동 비활성");
-        sut.PreviousSlideCommand.CanExecute(null).Should().BeFalse();
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("Preview 버튼은 선택된 B 덱을 넘길 수 있어야 함");
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("Output 버튼은 현재 라이브 A 덱을 넘길 수 있어야 함");
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        previewPowerPoint.LoadedContentPath.Should().Be("deckB.pptx");
+        previewPowerPoint.SlideNumber.Should().Be(2);
+        outputPowerPoint.LoadedContentPath.Should().Be("deckA.pptx", "Output surface는 라이브 A 덱을 유지");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(liveSlide, "Preview만 넘기면 라이브 출력은 바뀌지 않음");
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        outputPowerPoint.SlideNumber.Should().Be(2);
+        outputPowerPoint.LoadedContentPath.Should().Be("deckA.pptx");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(outputPowerPoint.PreviewImage,
+            "Output 버튼은 선택 B 가 아니라 라이브 A 덱을 넘겨야 함");
     }
 
     [Fact]
@@ -3675,6 +3695,8 @@ public class MainViewModelTests
 
         sut.PowerPoint.Should().NotBeNull("PowerPoint 탭이 바인딩할 PPT 미리보기 VM 이 노출돼야 함");
         sut.PowerPoint.State.Should().Be(PowerPointPreviewState.Idle, "PPT 미적재 초기 상태");
+        sut.OutputPowerPoint.Should().NotBeSameAs(sut.PowerPoint, "FrmMain PreviewItem/OutputItem 처럼 PPT 상태가 분리돼야 함");
+        sut.OutputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle, "Output PPT 미적재 초기 상태");
     }
 
     [Fact]
@@ -7684,6 +7706,7 @@ public class MainViewModelTests
         ISettingsService? settings = null,
         IWorshipListStore? worshipLists = null,
         PowerPointPreviewViewModel? powerPoint = null,
+        PowerPointPreviewViewModel? outputPowerPoint = null,
         IAppearanceTemplateStore? appearanceTemplates = null,
         IAdminSongDetailRepository? songDetail = null,
         IRecentWorshipLists? recentWorshipLists = null,
@@ -7698,6 +7721,7 @@ public class MainViewModelTests
         var telemetry = new InMemoryCommandTelemetry();
         var media = new MediaPlaybackViewModel(new MediaPlaybackService());
         powerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());
+        outputPowerPoint ??= new PowerPointPreviewViewModel(new StubPowerPointRenderService());
         var resolvedSettings = settings ?? TempSettingsFolder.CreateDetachedSettings();
         // 라이브러리/성경/검색 VM — 테스트는 작업 폴더/DB 미설정이라 실제 repo 가 데이터를 반환하지 않는다(빈 목록).
         var library = new LibraryViewModel(resolvedSettings, new AdminDatabaseRepository());
@@ -7713,6 +7737,7 @@ public class MainViewModelTests
             resolvedSettings,
             media,
             powerPoint,
+            outputPowerPoint,
             library,
             bible,
             search,

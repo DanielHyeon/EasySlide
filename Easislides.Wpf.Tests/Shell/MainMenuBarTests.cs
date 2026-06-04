@@ -136,12 +136,14 @@ public class MainMenuBarTests
         xaml.Should().Contain("Grid.Column=\"4\"", "Output panes stay in the right column");
         xaml.Should().Contain("Grid.Row=\"0\"", "right-top Output pane hosts thumbnails");
         xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
-        xaml.Should().Contain("ItemsSource=\"{Binding PowerPoint.Thumbnails}\"", "Output thumbnails must use the PPT thumbnail source");
-        xaml.Should().Contain("Command=\"{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}\"",
-            "thumbnail clicks should navigate slides");
+        xaml.Should().Contain("ItemsSource=\"{Binding OutputPowerPoint.Thumbnails}\"", "Output thumbnails must use the live/output PPT thumbnail source");
+        xaml.Should().Contain("Command=\"{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}\"",
+            "thumbnail clicks should navigate the output PPT slide, not the selected preview deck");
+        xaml.Should().Contain("Command=\"{Binding PreviousOutputSlideCommand}\"", "Output slide-up button should target the live output deck");
+        xaml.Should().Contain("Command=\"{Binding NextOutputSlideCommand}\"", "Output slide-down button should target the live output deck");
         xaml.Should().Contain("x:Name=\"ClassicOutputSlidePane\"", "right-bottom Output pane should stay distinct");
         xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
-        xaml.Should().Contain("Source=\"{Binding PowerPoint.PreviewImage}\"", "large Output slide should show the current PPT preview image when available");
+        xaml.Should().Contain("Source=\"{Binding OutputPowerPoint.PreviewImage}\"", "large Output slide should show the live/output PPT image when available");
     }
 
     [Fact]

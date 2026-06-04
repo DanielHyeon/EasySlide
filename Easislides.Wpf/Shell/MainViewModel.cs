@@ -576,6 +576,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public Rendering.PowerPointPreviewViewModel PowerPoint { get; }
 
     /// <summary>
+    /// 송출(Output) PPT 상태. FrmMain 의 OutputItem 처럼 Preview 선택 변경과 별개로 현재 라이브 덱/슬라이드를 유지한다.
+    /// </summary>
+    public Rendering.PowerPointPreviewViewModel OutputPowerPoint { get; }
+
+    /// <summary>
     /// 인라인 콘텐츠 브라우저 VM(폴더·곡·검색). MainWindow 좌측 "라이브러리" 탭이 바인딩한다
     /// — 별도 LibraryWindow 를 열지 않고 셸에서 곡을 찾아 예배 순서에 추가(§7.5 P0 단일 콘솔 통합).
     /// </summary>
@@ -609,6 +614,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ISettingsService settings,
         MediaPlaybackViewModel media,
         Rendering.PowerPointPreviewViewModel powerPoint,
+        Rendering.PowerPointPreviewViewModel outputPowerPoint,
         LibraryViewModel library,
         BibleViewModel bible,
         SearchUsageViewModel search,
@@ -640,6 +646,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Bible = bible;
         Search = search;
         PowerPoint = powerPoint;
+        OutputPowerPoint = outputPowerPoint;
         // 명령 팔레트(⌘K, §7.4) — 카탈로그를 검색해 ShortcutRegistry 바인딩으로 실행.
         // registry 는 BindShortcuts 에서 주입되므로(앱 시작 시) invoke 는 그 시점 이후 유효하다.
         CommandPalette = new CommandPaletteViewModel(_commandCatalog, id => _shortcutRegistry?.TryInvoke(id) ?? false);
@@ -665,6 +672,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
+        OutputPowerPoint.PropertyChanged += OnOutputPowerPointPropertyChanged;
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
@@ -688,6 +696,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber + 1), CanGoNextSlide);
         PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
+        NextOutputSlideCommand = new AsyncRelayCommand(() => GoToOutputSlideAsync(OutputPowerPoint.SlideNumber + 1), CanGoNextOutputSlide);
+        PreviousOutputSlideCommand = new AsyncRelayCommand(() => GoToOutputSlideAsync(OutputPowerPoint.SlideNumber - 1), CanGoPreviousOutputSlide);
+        GoToOutputSlideCommand = new AsyncRelayCommand<int>(GoToOutputSlideAsync, CanGoToOutputSlide);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
         ApplyLyricsVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(ApplyLyricsVerticalAlignment);
@@ -865,6 +876,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
+    public IAsyncRelayCommand NextOutputSlideCommand { get; }
+    public IAsyncRelayCommand PreviousOutputSlideCommand { get; }
+    public IAsyncRelayCommand<int> GoToOutputSlideCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
     public IRelayCommand<LyricsVerticalAlignment> ApplyLyricsVerticalAlignmentCommand { get; }
@@ -2483,8 +2497,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptThumbnailWidth = 200;
     private const int PptThumbnailHeight = 112;
 
-    // 현재 썸네일 스트립이 채워진 덱 파일 경로(같은 덱은 재로드 안 함).
+    // 현재 Preview 썸네일 스트립이 채워진 덱 파일 경로(같은 덱은 재로드 안 함).
     private string? _thumbnailDeckPath;
+    // 현재 Output 썸네일 스트립이 가리키는 덱. Preview 선택 변경과 독립적으로 보존한다.
+    private string? _outputThumbnailDeckPath;
 
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
@@ -3016,8 +3032,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 블랙아웃/숨김(Hidden)에선 송출을 깨우지 않도록 Active 일 때만 갱신한다.
         if (_session.Current.State == LiveState.Active && _liveItemId == item.Id)
         {
+            OutputPowerPoint.CopyFrom(PowerPoint);
+            EnsureOutputPowerPointThumbnails(path, OutputPowerPoint.SlideCount);
             var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }), monitorName);
+            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }, OutputPowerPoint), monitorName);
         }
 
         NotifyCommandStates();
@@ -3036,9 +3054,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => SelectedItem is { Kind: LiveItemKinds.PowerPoint } selected
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && PowerPoint.SlideCount > 0
-            // 라이브 중이면 "선택 == 라이브 항목"일 때만 이동 허용 — 선택이 라이브 덱에서 벗어났는데
-            // 버튼만 활성이면(아무 효과 없이 다른 덱 미리보기만 넘김) 혼란하므로 비활성한다.
-            && (_liveItemId is null || _liveItemId == selected.Id);
+            && !string.IsNullOrEmpty(selected.ContentPath);
+
+    private async Task GoToOutputSlideAsync(int target)
+    {
+        if (GetLivePowerPointItem() is not { ContentPath: { Length: > 0 } path } item)
+        {
+            return;
+        }
+
+        if (OutputPowerPoint.State != Rendering.PowerPointPreviewState.Ready
+            || target < 1 || target > OutputPowerPoint.SlideCount
+            || target == OutputPowerPoint.SlideNumber)
+        {
+            return;
+        }
+
+        var (width, height) = ResolvePptRenderSize();
+        await OutputPowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+        EnsureOutputPowerPointThumbnails(path, OutputPowerPoint.SlideCount);
+
+        if (_session.Current.State == LiveState.Active)
+        {
+            var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }, OutputPowerPoint), monitorName);
+        }
+
+        NotifyCommandStates();
+    }
+
+    private bool CanGoToOutputSlide(int target)
+        => IsOutputPowerPointSlideNavReady() && target >= 1 && target <= OutputPowerPoint.SlideCount;
+
+    private bool CanGoNextOutputSlide()
+        => IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber < OutputPowerPoint.SlideCount;
+
+    private bool CanGoPreviousOutputSlide()
+        => IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber > 1;
+
+    private bool IsOutputPowerPointSlideNavReady()
+        => _session.Current.State == LiveState.Active
+            && GetLivePowerPointItem() is { ContentPath.Length: > 0 }
+            && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && OutputPowerPoint.SlideCount > 0;
+
+    private LiveQueueItem? GetLivePowerPointItem()
+        => Queue.FirstOrDefault(item =>
+            string.Equals(item.Id, _liveItemId, StringComparison.Ordinal)
+            && IsPowerPointItem(item));
 
     // PPT 미리보기 VM 의 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 동기화.
     private void OnPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -3046,6 +3109,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (e.PropertyName is nameof(PowerPoint.State)
             or nameof(PowerPoint.SlideNumber)
             or nameof(PowerPoint.SlideCount))
+        {
+            NotifyCommandStates();
+        }
+    }
+
+    private void OnOutputPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(OutputPowerPoint.State)
+            or nameof(OutputPowerPoint.SlideNumber)
+            or nameof(OutputPowerPoint.SlideCount))
         {
             NotifyCommandStates();
         }
@@ -3117,6 +3190,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         SetLiveItemId(null);
+        OutputPowerPoint.Clear();
+        _outputThumbnailDeckPath = null;
         LiveBar.OutputMonitorName = string.Empty;
         StatusText = "출력 창 닫힘";
         _telemetry.Record(MainCommandIds.OutputClose, succeeded: true, StatusText);
@@ -3184,6 +3259,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _session.Stop();
         SetLiveItemId(null);
+        OutputPowerPoint.Clear();
+        _outputThumbnailDeckPath = null;
         StatusText = "라이브 중지";
         _telemetry.Record(MainCommandIds.LiveStop, succeeded: true, StatusText);
         NotifyCommandStates();
@@ -3395,11 +3472,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         SetLiveItemId(SelectedItem.Id); // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
+        PrepareOutputPowerPointForPublish(SelectedItem);
         // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
         LiveTransposeSemitones = 0;
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
         var projection = SelectedItem with { LyricsPageIndex = LyricsPageIndex };
-        _session.GoLive(ResolveLiveProjection(projection), monitorName);
+        _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
         StatusText = $"LIVE: {SelectedItem.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance)
@@ -3410,15 +3488,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    // 출력 송출 항목 결정 — PPT 항목이고 슬라이드 렌더가 준비됐으면, 미리보기 탭에만 있던
-    // 렌더 이미지를 출력 창에도 송출하도록 PreviewSource 에 실은 복사본을 만든다(G1.2 출력 송출).
+    private void PrepareOutputPowerPointForPublish(LiveQueueItem item)
+    {
+        if (IsPowerPointItem(item)
+            && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && !string.IsNullOrEmpty(item.ContentPath)
+            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            OutputPowerPoint.CopyFrom(PowerPoint);
+            EnsureOutputPowerPointThumbnails(item.ContentPath, OutputPowerPoint.SlideCount);
+            return;
+        }
+
+        OutputPowerPoint.Clear();
+        _outputThumbnailDeckPath = null;
+    }
+
+    private void EnsureOutputPowerPointThumbnails(string filePath, int slideCount)
+    {
+        if (slideCount <= 0
+            || string.Equals(_outputThumbnailDeckPath, filePath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _outputThumbnailDeckPath = filePath;
+        _ = OutputPowerPoint.LoadThumbnailsAsync(filePath, slideCount, PptThumbnailWidth, PptThumbnailHeight);
+    }
+
+    // 출력 송출 항목 결정 — PPT 항목이고 지정한 PPT VM(Preview/Output)의 슬라이드 렌더가 준비됐으면
+    // 해당 이미지를 출력 창 PreviewSource 에 실은 복사본을 만든다(G1.2 출력 송출).
     // LiveQueueItem 은 불변(init) 이므로 큐를 건드리지 않고 with 로 전이 복사본만 만든다.
     // (복사본은 큐에 넣지 않는다 — IndexOf/자동 다음 항목은 원본 SelectedItem 기준이어야 함.)
     //
     // 신원 가드: 렌더는 항목 선택 시 fire-and-forget 로 돌아가므로, 빠른 전환 경쟁에서 PreviewImage 가
     // "다른 항목"의 stale 슬라이드일 수 있다. 그래서 단순히 Ready 인지가 아니라, VM 이 마지막으로 성공
     // 렌더한 파일이 송출 항목의 파일과 일치할 때만 슬라이드를 싣는다(불일치/미준비면 타이틀만 — 안전 강등).
-    // 슬라이드 번호는 PPT VM 의 현재 렌더 슬라이드(PowerPoint.SlideNumber)를 "단일 진실"로 신뢰하고
+    // 슬라이드 번호는 PPT VM 의 현재 렌더 슬라이드를 "단일 진실"로 신뢰하고
     // 송출 항목에도 반영한다 — 라이브 슬라이드 이동으로 item.SlideNumber 와 실제 렌더 슬라이드가 달라져도
     // (이동한 슬라이드가 그대로 송출되고, 재개·재송출 시에도 일관). 파일이 다르면(cross-item stale) 거른다.
     // 선택 항목의 "개별 서식 사용" 토글(레거시 Ind_checkBox "Use Individual Settings").
@@ -4042,8 +4148,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"{changed}개 항목에 전역 기본 서식 적용";
     }
 
-    private LiveQueueItem ResolveLiveProjection(LiveQueueItem item)
+    private LiveQueueItem ResolveLiveProjection(
+        LiveQueueItem item,
+        Rendering.PowerPointPreviewViewModel? powerPoint = null)
     {
+        var ppt = powerPoint ?? PowerPoint;
         var positionLabel = ComputePositionLabel(item);
         var nextTitle = ComputeNextTitle(item);
         // "코드 표시"(Show Notations) 설정을 투영에 얹는다 — 라이브 본문 계산(ComputeBodyText)이 이 값으로
@@ -4054,16 +4163,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var formatData = item.UseIndividualFormatting ? item.FormatData : null;
 
         if (IsPowerPointItem(item)
-            && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
-            && PowerPoint.PreviewImage is not null
+            && ppt.State == Rendering.PowerPointPreviewState.Ready
+            && ppt.PreviewImage is not null
             && !string.IsNullOrEmpty(item.ContentPath)
-            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
+            && string.Equals(ppt.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
         {
             return item with
             {
-                PreviewSource = PowerPoint.PreviewImage,
+                PreviewSource = ppt.PreviewImage,
                 PreviewFillMode = Rendering.ImageFillMode.Fit,
-                SlideNumber = PowerPoint.SlideNumber,
+                SlideNumber = ppt.SlideNumber,
                 PositionLabel = positionLabel,
                 NextTitle = nextTitle,
                 ShowNotations = showNotations,
@@ -4748,6 +4857,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             FormatData = formatData,
         };
         SetLiveItemId(LiveItemKinds.NoticeLiveId);
+        OutputPowerPoint.Clear();
+        _outputThumbnailDeckPath = null;
         // 공지는 가사가 없어 조옮김과 무관하다. 라이브 조옮김 초기화는 곡 송출 진입점인 PublishSelectedItem 한 곳이
         // 책임진다(여기서 건드리지 않음) — 공지 중 조옮김을 눌러도 RepublishLiveSongForBodyChange 가 센티넬을
         // 큐에서 못 찾아 무시하므로 안전하다.
@@ -5417,6 +5528,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextSlideCommand.NotifyCanExecuteChanged();
         PreviousSlideCommand.NotifyCanExecuteChanged();
         GoToSlideCommand.NotifyCanExecuteChanged();
+        NextOutputSlideCommand.NotifyCanExecuteChanged();
+        PreviousOutputSlideCommand.NotifyCanExecuteChanged();
+        GoToOutputSlideCommand.NotifyCanExecuteChanged();
         AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();
         MoveSelectedItemDownCommand.NotifyCanExecuteChanged();
@@ -5472,6 +5586,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _disposed = true;
         _settings.SettingsChanged -= OnSettingsChanged;
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
+        OutputPowerPoint.PropertyChanged -= OnOutputPowerPointPropertyChanged;
         Library.PropertyChanged -= OnLibraryPropertyChanged;
         Search.SearchResults.CollectionChanged -= OnSearchResultsChanged;
         Search.LookupCandidates.CollectionChanged -= OnLookupCandidatesChanged;

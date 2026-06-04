@@ -72,6 +72,32 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     }
 
     /// <summary>
+    /// 다른 PPT 미리보기 VM 의 현재 상태를 복사한다. FrmMain 의 PreviewItem/OutputItem 처럼
+    /// 운영자 미리보기와 송출 화면이 서로 다른 덱/슬라이드를 보존해야 할 때 사용한다.
+    /// </summary>
+    public void CopyFrom(PowerPointPreviewViewModel source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        _thumbnailCts?.Cancel();
+        PreviewImage = source.PreviewImage;
+        State = source.State;
+        StatusText = source.StatusText;
+        SlideNumber = source.SlideNumber;
+        SlideCount = source.SlideCount;
+        LoadedContentPath = source.LoadedContentPath;
+
+        Thumbnails.Clear();
+        foreach (var thumbnail in source.Thumbnails)
+        {
+            Thumbnails.Add(new PowerPointSlideThumbnail(thumbnail.SlideNumber, thumbnail.Image)
+            {
+                IsCurrent = thumbnail.IsCurrent
+            });
+        }
+    }
+
+    /// <summary>
     /// PPT 한 슬라이드를 렌더해 미리보기 이미지로 노출. 성공이면 Ready, 실패면 Failed 상태.
     /// (라이브 흐름이 PPT 항목을 송출할 때 호출 — 현재는 placeholder 대체 + 향후 연결 지점.)
     /// </summary>

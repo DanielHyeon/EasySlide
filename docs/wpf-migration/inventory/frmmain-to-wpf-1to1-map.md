@@ -84,7 +84,7 @@
 | `PreviewPanelDisplayName` | `ClassicPreviewPanelDisplayName` (`Tag=PreviewPanelDisplayName`) | partial | 4 | title role is explicit; exact source/status columns still incomplete |
 | `PreviewInfo` | `ClassicPreviewInfo` (`Tag=PreviewInfo`) | partial | 4 | selected lyrics/info surface is explicit; keyboard handling and source-specific content still incomplete |
 | `flowLayoutPreviewLyrics` | `SlidePreviewControl` plus lyrics text | partial | 4 | click/keyboard/page behavior |
-| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4 | preview thumbnail surface is explicit; exact thumbnail selection and key handling still incomplete |
+| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4 | preview thumbnail surface uses `PowerPoint` PreviewItem state; exact key handling still incomplete |
 | `PreviewHolder`, `PreviewBack` | `ClassicPreviewHolder` (`Tag=PreviewHolder`) / `ClassicPreviewSlidePane` | partial | 4 | holder role is explicit; background/frame sizing parity still incomplete |
 | `PreviewBtnVerse1..Ending` | `flowLayoutPanel1` + `PreviewBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; verify label casing, shortcut, and live-page parity |
 | `PreviewBtnItemUp/Down` | `PreviewBtnItemUp/Down` + item nav commands | partial | 4 | exact selection behavior |
@@ -101,11 +101,11 @@
 | `OutputPanelDisplayName` | `ClassicOutputPanelDisplayName` (`Tag=OutputPanelDisplayName`) | partial | 4 | live item title role is explicit; exact status columns still incomplete |
 | `OutputInfo` | `ClassicOutputInfo` (`Tag=OutputInfo`) | partial | 4 | live info surface is explicit; key handling and state still incomplete |
 | `flowLayoutOutputLyrics` | Output live lyrics surface | partial | 4 | independent live page nav |
-| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` | partial | 4 | live thumbnail/list role is explicit; key handling still incomplete |
-| `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) | partial | 4 | large output screen frame roles are explicit; exact sizing/frame parity still incomplete |
+| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4 | live thumbnail/list role now uses independent OutputItem PPT state; non-PPT live thumbnail parity still incomplete |
+| `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) with `OutputPowerPoint.PreviewImage` overlay | partial | 4 | large output screen now uses independent OutputItem PPT state; exact sizing/frame parity still incomplete |
 | `OutputBtnVerse1..Ending` | `flowLayoutPanel2` + `OutputBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; make nav act on live output independently |
 | `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + item nav commands | partial | 4 | exact live next/prev semantics |
-| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + lyrics page nav commands | partial | 4 | exact live slide/PPT semantics |
+| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT live slide movement targets OutputItem independently; lyrics live page parity still incomplete |
 | `OutputBtnRefAlert` | `OutputBtnRefAlert` disabled placeholder | missing | 5 | reference alert command and output overlay |
 | `OutputBtnMedia` | `OutputBtnMedia` + `Media.PlayPauseCommand` | partial | 5 | direct output media behavior |
 | `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` disabled placeholder | missing | 5 | gap/non-rotate jump |

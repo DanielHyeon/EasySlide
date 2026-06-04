@@ -2768,7 +2768,7 @@
                                           Margin="8"
                                           AutomationProperties.Name="Output PowerPoint 썸네일 영역">
                                 <ItemsControl x:Name="ClassicOutputThumbnailGrid"
-                                              ItemsSource="{Binding PowerPoint.Thumbnails}">
+                                              ItemsSource="{Binding OutputPowerPoint.Thumbnails}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel />
@@ -2776,7 +2776,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Command="{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            <Button Command="{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding SlideNumber}"
                                                     Margin="6"
                                                     Padding="0"
@@ -2934,7 +2934,7 @@
                                 AutomationProperties.Name="Output 다음 항목" />
                         <Button x:Name="OutputBtnSlideUp"
                                 Tag="OutputBtnSlideUp"
-                                Command="{Binding PreviousLyricsPageCommand}"
+                                Command="{Binding PreviousOutputSlideCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
@@ -2945,7 +2945,7 @@
                                 AutomationProperties.Name="Output 이전 슬라이드" />
                         <Button x:Name="OutputBtnSlideDown"
                                 Tag="OutputBtnSlideDown"
-                                Command="{Binding NextLyricsPageCommand}"
+                                Command="{Binding NextOutputSlideCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
@@ -3014,7 +3014,7 @@
                             </Grid>
                         </Border>
                         <Image x:Name="ClassicOutputLargeSlideImage"
-                               Source="{Binding PowerPoint.PreviewImage}"
+                               Source="{Binding OutputPowerPoint.PreviewImage}"
                                Stretch="Uniform"
                                AutomationProperties.Name="Output 큰 PowerPoint 슬라이드" />
                     </Grid>

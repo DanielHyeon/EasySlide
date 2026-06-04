@@ -111,6 +111,31 @@ public class PowerPointPreviewViewModelTests
         vm.Thumbnails.Should().BeEmpty("덱 미리보기를 비우면 썸네일 스트립도 비운다");
     }
 
+    [Fact]
+    public async Task CopyFrom_ClonesCurrentSlideAndThumbnailState()
+    {
+        var source = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
+        var target = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
+        await source.LoadAsync("deck.pptx", 2, 800, 600);
+        await source.LoadThumbnailsAsync("deck.pptx", 3, 200, 112);
+
+        target.CopyFrom(source);
+
+        target.State.Should().Be(PowerPointPreviewState.Ready);
+        target.PreviewImage.Should().BeSameAs(source.PreviewImage);
+        target.LoadedContentPath.Should().Be("deck.pptx");
+        target.SlideNumber.Should().Be(2);
+        target.SlideCount.Should().Be(3);
+        target.Thumbnails.Should().HaveCount(3);
+        target.Thumbnails.Should().NotContain(source.Thumbnails[0], "Output thumbnails must not share the mutable collection items with Preview");
+        target.Thumbnails.Single(t => t.SlideNumber == 2).IsCurrent.Should().BeTrue();
+
+        source.Clear();
+
+        target.State.Should().Be(PowerPointPreviewState.Ready, "clearing Preview after publish must not clear Output");
+        target.Thumbnails.Should().HaveCount(3);
+    }
+
     private static ImageSource CreateDummyImage()
     {
         var image = new DrawingImage();
