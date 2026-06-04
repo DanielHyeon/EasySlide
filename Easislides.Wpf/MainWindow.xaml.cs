@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     private bool _imageSourceLoadedOnce;
     private bool _mediaSourceLoadedOnce;
     private bool _praiseBookSourceLoadedOnce;
+    private bool _initialWorshipListLoadedOnce;
     private InfoScreenSourceViewModel? _inlineInfoScreens;
     private PowerPointLibraryViewModel? _inlinePowerPoint;
     private ImageLibraryViewModel? _inlineImages;
@@ -94,11 +95,12 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.ImportLegacyWorshipList, ImportLegacyWorshipList_Click);
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        EnsureLibraryLoadedOnce();
+        await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
         EnsureBibleLoadedOnce();
         EnsureInstalledFontsMergedOnce();
+        await EnsureInitialWorshipListLoadedOnceAsync().ConfigureAwait(true);
     }
 
     // 시작 시 설치된 시스템 글꼴 전체를 출력 글꼴 콤보에 1회 합친다(추천 글꼴은 그대로 맨 앞).
@@ -120,7 +122,7 @@ public partial class MainWindow : Window
     // 좌측 브라우저가 항상 보이므로 곡 목록을 1회 채운다. 시작 시(Loaded)와 "라이브러리" 탭 첫 선택 중
     // 먼저 오는 쪽이 로드하고 _libraryLoadedOnce 로 멱등 보장(WPF 는 Loaded 전에 기본 탭 SelectionChanged 를
     // 낼 수 있어 두 진입점이 같은 가드를 공유 — 이벤트 순서와 무관하게 정확히 1회).
-    private void EnsureLibraryLoadedOnce()
+    private async Task EnsureLibraryLoadedOnceAsync()
     {
         if (_libraryLoadedOnce || !_viewModel.Library.LoadCommand.CanExecute(null))
         {
@@ -128,7 +130,18 @@ public partial class MainWindow : Window
         }
 
         _libraryLoadedOnce = true;
-        _viewModel.Library.LoadCommand.Execute(null);
+        await _viewModel.Library.LoadCommand.ExecuteAsync(null).ConfigureAwait(true);
+    }
+
+    private async Task EnsureInitialWorshipListLoadedOnceAsync()
+    {
+        if (_initialWorshipListLoadedOnce)
+        {
+            return;
+        }
+
+        _initialWorshipListLoadedOnce = true;
+        await _viewModel.LoadInitialSelectedWorshipListIfQueueEmptyAsync().ConfigureAwait(true);
     }
 
     private void EnsureBibleLoadedOnce()
@@ -717,7 +730,7 @@ public partial class MainWindow : Window
             or System.Windows.Controls.ComboBox { IsEditable: true };
 
     // 라이브러리 탭을 처음 선택할 때 한 번 자동 로드(시작 비용 회피 — 시작 시점엔 DB 를 읽지 않음).
-    private void LeftBrowserTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void LeftBrowserTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // TabControl.SelectionChanged 는 내부 Selector(ListBox/ComboBox) 선택에서도 버블링되므로,
         // 탭 컨트롤 자신의 변경만 처리한다.
@@ -736,7 +749,7 @@ public partial class MainWindow : Window
         switch (tab.Tag)
         {
             case "Folders":
-                EnsureLibraryLoadedOnce(); // 멱등 — 시작 로드(Loaded)와 동일 가드 공유
+                await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true); // 멱등 — 시작 로드(Loaded)와 동일 가드 공유
                 break;
             case "Bibles":
                 EnsureBibleLoadedOnce(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
@@ -761,7 +774,7 @@ public partial class MainWindow : Window
     }
 
     // 본문에서 드래그 선택한 구절 범위를 BibleSelection 으로 만들어 예배 순서에 추가(BibleWindow Select_Click 과 동일).
-    private void LeftListTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void LeftListTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!ReferenceEquals(e.OriginalSource, sender))
         {
@@ -774,7 +787,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        EnsureLibraryLoadedOnce();
+        await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
         EnsureInlinePraiseBookLoadedOnce(viewModel);
     }
 
@@ -816,7 +829,7 @@ public partial class MainWindow : Window
         switch (tag)
         {
             case "Folders":
-                EnsureLibraryLoadedOnce();
+                await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
                 viewModel.AddSong(viewModel.Library.SelectedSong);
                 break;
 

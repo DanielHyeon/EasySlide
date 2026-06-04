@@ -39,6 +39,15 @@ public class MainMenuBarTests
         return count;
     }
 
+    private static string SectionBetween(string text, string start, string end)
+    {
+        var startIndex = text.IndexOf(start, StringComparison.Ordinal);
+        startIndex.Should().BeGreaterThanOrEqualTo(0, $"section start '{start}' should exist");
+        var endIndex = text.IndexOf(end, startIndex, StringComparison.Ordinal);
+        endIndex.Should().BeGreaterThan(startIndex, $"section end '{end}' should exist after '{start}'");
+        return text[startIndex..endIndex];
+    }
+
     [Fact]
     public void MainWindow_HasMenuBarWithSixTopLevelMenus()
     {
@@ -427,6 +436,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
         xaml.Should().Contain("x:Name=\"PB_Word\"", "Praise Book toolbar should expose FrmMain PB_Word");
         xaml.Should().Contain("x:Name=\"PB_Html\"", "Praise Book toolbar should expose FrmMain PB_Html");
+        xaml.Should().Contain("Grid.Column=\"8\"", "PB_Html should keep the FrmMain PB_Html button in the toolbar");
+        CountOccurrences(SectionBetween(xaml, "<TabItem Tag=\"PraiseBook\"", "x:Name=\"PraiseBookItems\""), "<ColumnDefinition Width=\"Auto\" />")
+            .Should().BeGreaterThanOrEqualTo(8, "PraiseBook toolbar columns must cover PB_Manage through PB_Html");
         xaml.Should().Contain("x:Name=\"PraiseBookItems\"", "Praise Book entries should render as a FrmMain-style ListView surface");
         xaml.Should().Contain("Tag=\"PraiseBookItems\"", "PraiseBookItems role should remain explicit");
         xaml.Should().Contain("ItemsSource=\"{Binding Entries}\"", "flat PraiseBookItems should bind to the current book entries");

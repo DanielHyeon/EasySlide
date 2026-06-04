@@ -1815,12 +1815,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SavedWorshipListNames.Add(name);
         }
 
-        // 선택했던 이름이 여전히 있으면 되살리고(새로고침으로 선택이 사라지지 않게), 없으면(다른 창에서 삭제 등)
-        // 비운 채로 둔다(없는 목록을 "불러오기"로 가리키지 않게). RefreshAppearanceTemplateNames 와 동일한 캡처/복원 패턴.
+        // 선택했던 이름이 여전히 있으면 되살리고(새로고침으로 선택이 사라지지 않게), 없으면 첫 저장 목록을 고른다.
+        // FrmMain 시작 화면처럼 SessionList 에 기본 목록이 잡혀 있어야 곧바로 불러오기/자동 초기 로드가 가능하다.
         SelectedSavedWorshipList =
             previousSelection is not null && SavedWorshipListNames.Contains(previousSelection)
                 ? previousSelection
-                : null;
+                : SavedWorshipListNames.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// 시작 직후 큐가 비어 있으면 SessionList 의 기본 선택 목록을 한 번 불러온다(FrmMain 시작 화면의 예배 순서 표시 대응).
+    /// 이미 큐가 있으면 운영자가 만든 현재 순서를 보존한다.
+    /// </summary>
+    public async Task<bool> LoadInitialSelectedWorshipListIfQueueEmptyAsync()
+    {
+        if (Queue.Count > 0 || string.IsNullOrWhiteSpace(SelectedSavedWorshipList))
+        {
+            return false;
+        }
+
+        var name = SelectedSavedWorshipList;
+        await LoadWorshipListAsync(name).ConfigureAwait(true);
+        return true;
     }
 
     // 세션 콤보에서 고른 예배 순서를 명시적으로 적재한다(콤보 선택만으로는 적재 안 함 — "불러오기" 버튼이 호출).

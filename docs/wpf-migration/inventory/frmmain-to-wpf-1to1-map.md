@@ -60,9 +60,9 @@
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
 | `tabControlLists` | `LeftListTabs` | partial | 1 | exact visual density and tab behavior |
-| `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load, all toolbar/context commands |
-| `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2 | compact first-screen combo exists; verify actual `C:\EasiSlides\Admin\WorshipLists` list |
-| `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |
+| `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; all toolbar/context commands still incomplete |
+| `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2 | compact first-screen combo exists; startup selects the first saved `C:\EasiSlides\Admin\WorshipLists` entry when no prior selection exists; exact legacy selection persistence still incomplete |
+| `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, startup default `.esw` load, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |
 | `WL_Manage` | manage list command | partial | 3 | direct or WPF equivalent |
 | `WL_Add` | `WL_Add` + `WorshipListPanel_AddSelectedSourceRequested` | partial | 3 | visible lower-left Add button now routes by active `LeftBrowserTabs` source for Folders, Bibles, InfoScreen, PowerPoint, Media, and Search; exact multi-select/source edge cases still incomplete |
 | `WL_Open` | load selected/open file | partial | 2 | exact `.esw`/template flow |
@@ -74,7 +74,7 @@
 | `PraiseBook` | `InlinePraiseBookSavedBooksCombo` (`Tag=PraiseBook`) | partial | 2 | saved PraiseBook names load from WPF JSON plus legacy `C:\EasiSlides\Admin\PraiseBooks\*.esp` via `IPraiseBookStore` |
 | `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click/Enter add-to-Worship plus drag insert into Worship List now use the same song-resolution path; exact preview-on-selection still incomplete |
 | `PB_Manage`, `PB_Add`, `PB_Delete` | `PB_Manage`, `PB_Add`, `PB_Delete` | partial | 3 | manage window, add selected Folders song, delete selected rows are wired |
-| `PB_Word`, `PB_Html`, `PB_WordCount` | `PB_Word`, `PB_Html`, `PB_WordCount` | partial | 5/7 | HTML/RTF export wired; WordCount button exposed but exact CJK word-count sorting still disabled |
+| `PB_Word`, `PB_Html`, `PB_WordCount` | `PB_Word`, `PB_Html`, `PB_WordCount` | partial | 5/7 | HTML/RTF export wired and toolbar column coverage now preserves `PB_Html`; WordCount button exposed but exact CJK word-count sorting still disabled |
 | `CMenuPraiseB_*` | `CMenuPraiseB`, `CMenuPraiseB_SelectAll`, `CMenuPraiseB_UnselectAll`, `CMenuPraiseB_Clear`, `CMenuPraiseB_Edit` | partial | 3 | menu names/order/actions are wired; edit opens library context rather than direct editor |
 
 ## 4. Preview

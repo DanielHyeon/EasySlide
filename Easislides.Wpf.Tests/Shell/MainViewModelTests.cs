@@ -1885,6 +1885,49 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task Constructor_SelectsFirstSavedWorshipListName()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("2.저녁예배", Array.Empty<LiveQueueItem>());
+        await store.SaveAsync("1.주일예배", Array.Empty<LiveQueueItem>());
+
+        var sut = CreateSut(seedSampleQueue: false, worshipLists: store);
+
+        sut.SavedWorshipListNames.Should().Equal("1.주일예배", "2.저녁예배");
+        sut.SelectedSavedWorshipList.Should().Be("1.주일예배", "FrmMain SessionList처럼 시작 시 첫 저장 목록이 잡혀 있어야 함");
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LoadInitialSelectedWorshipListIfQueueEmpty_LoadsDefaultSession()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("1.주일예배", [new LiveQueueItem("song:1", "입례", LiveItemKinds.Song) { Lyrics = "입례 가사" }]);
+        var sut = CreateSut(seedSampleQueue: false, worshipLists: store);
+
+        var loaded = await sut.LoadInitialSelectedWorshipListIfQueueEmptyAsync();
+
+        loaded.Should().BeTrue();
+        sut.Queue.Select(i => i.Title).Should().Equal("입례");
+        sut.CurrentWorshipListName.Should().Be("1.주일예배");
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("초기 자동 로드는 편집이 아니라 깨끗한 로드");
+    }
+
+    [Fact]
+    public async Task LoadInitialSelectedWorshipListIfQueueEmpty_DoesNotReplaceExistingQueue()
+    {
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("1.주일예배", [new LiveQueueItem("song:1", "저장 목록", LiveItemKinds.Song)]);
+        var sut = CreateSut(seedSampleQueue: false, worshipLists: store);
+        sut.LoadQueue([new LiveQueueItem("manual", "수동 작성", LiveItemKinds.Notice)]);
+
+        var loaded = await sut.LoadInitialSelectedWorshipListIfQueueEmptyAsync();
+
+        loaded.Should().BeFalse();
+        sut.Queue.Select(i => i.Title).Should().Equal("수동 작성");
+    }
+
+    [Fact]
     public async Task RefreshSavedWorshipListNames_KeepsSelectionWhenNameStillPresent()
     {
         // 새로고침해도 여전히 있는 선택은 유지돼야 한다(콤보 ItemsSource Clear 로 선택이 풀리는 WPF Selector 동작 대비
