@@ -2261,6 +2261,8 @@
                                                   x:Name="ClassicPreviewInfo"
                                                   Tag="PreviewInfo"
                                                   Margin="0"
+                                                  Focusable="True"
+                                                  MouseDown="ClassicKeyboardSurface_MouseDown"
                                                   VerticalScrollBarVisibility="Auto">
                                         <TextBlock Text="{Binding SelectedItem.Lyrics}"
                                                    TextWrapping="Wrap"
@@ -2555,6 +2557,8 @@
                     Background="#808080"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"
+                    Focusable="True"
+                    MouseDown="ClassicKeyboardSurface_MouseDown"
                     Padding="6">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -2674,6 +2678,8 @@
                                                    x:Name="ClassicPreviewHolder"
                                                    Tag="PreviewHolder"
                                                    Margin="36,0"
+                                                   Focusable="True"
+                                                   MouseDown="ClassicKeyboardSurface_MouseDown"
                                                    Title="{Binding SelectedItem.Title}"
                                                    Kind="{Binding SelectedItem.Kind}"
                                                    Source="{Binding SelectedItem.PreviewSource}"
@@ -2757,7 +2763,9 @@
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1">
                         <Grid x:Name="ClassicOutputInfo"
-                              Tag="OutputInfo">
+                              Tag="OutputInfo"
+                              Focusable="True"
+                              MouseDown="ClassicKeyboardSurface_MouseDown">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -2856,6 +2864,8 @@
                     Background="#808080"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"
+                    Focusable="True"
+                    MouseDown="ClassicKeyboardSurface_MouseDown"
                     Padding="6">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -2998,11 +3008,15 @@
                     <Grid Grid.Row="1"
                           x:Name="ClassicOutputHolder"
                           Tag="OutputHolder"
+                          Focusable="True"
+                          MouseDown="ClassicKeyboardSurface_MouseDown"
                           Margin="80,18">
                         <Border x:Name="ClassicOutputBack"
                                 Tag="OutputBack"
                                 Background="#165D7A"
                                 BorderBrush="#111111"
+                                Focusable="True"
+                                MouseDown="ClassicKeyboardSurface_MouseDown"
                                 BorderThickness="0,0,8,8">
                             <Grid>
                                 <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"

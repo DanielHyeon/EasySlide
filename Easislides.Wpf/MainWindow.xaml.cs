@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.IO;
@@ -368,6 +369,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        // FrmMain 의 PreviewInfo_KeyUp/OutputInfo_KeyUp 대응:
+        // 오른쪽 Preview/Output 가사·큰 화면 표면에 포커스가 있으면 절 키와 이전/다음 키를
+        // 해당 표면의 대상(Preview=선택 항목, Output=라이브 항목)으로 먼저 라우팅한다.
+        if (TryHandleFocusedPreviewOutputLyricsKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         // 절 점프 숫자/문자 키(레거시 PreviewBtnVerse 1~9·c·b 등) — 텍스트 입력 중이 아니고 수식 키가 없을 때만.
         // 검색창·공지문구·글꼴명 입력에 "1"·"c" 를 칠 때 절이 점프하는 사고를 막기 위해 포커스가 입력 컨트롤이면 건너뛴다.
         if (TryHandleVerseJumpKey(e))
@@ -408,6 +418,121 @@ public partial class MainWindow : Window
         }
 
         return false;
+    }
+
+    private bool TryHandleFocusedPreviewOutputLyricsKey(KeyEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.None || IsTextInputFocused())
+        {
+            return false;
+        }
+
+        if (IsOutputLyricsKeyboardFocusWithin())
+        {
+            return TryExecuteOutputLyricsKey(e.Key);
+        }
+
+        if (IsPreviewLyricsKeyboardFocusWithin())
+        {
+            return TryExecutePreviewLyricsKey(e.Key);
+        }
+
+        return false;
+    }
+
+    private bool IsPreviewLyricsKeyboardFocusWithin()
+        => ClassicPreviewInfo.IsKeyboardFocusWithin
+            || ClassicPreviewSlidePane.IsKeyboardFocusWithin
+            || ClassicPreviewHolder.IsKeyboardFocusWithin;
+
+    private bool IsOutputLyricsKeyboardFocusWithin()
+        => ClassicOutputInfo.IsKeyboardFocusWithin
+            || ClassicOutputSlidePane.IsKeyboardFocusWithin
+            || ClassicOutputHolder.IsKeyboardFocusWithin
+            || ClassicOutputBack.IsKeyboardFocusWithin
+            || ClassicOutputLargeSlideImage.IsKeyboardFocusWithin;
+
+    private bool TryExecutePreviewLyricsKey(Key key)
+    {
+        if (TryExecuteVerseJumpKey(key, _viewModel.JumpToLyricsSectionCommand))
+        {
+            return true;
+        }
+
+        return TryExecuteLyricsPageKey(
+            key,
+            _viewModel.PreviousLyricsPageCommand,
+            _viewModel.NextLyricsPageCommand);
+    }
+
+    private bool TryExecuteOutputLyricsKey(Key key)
+    {
+        if (TryExecuteVerseJumpKey(key, _viewModel.JumpToOutputLyricsSectionCommand))
+        {
+            return true;
+        }
+
+        return TryExecuteLyricsPageKey(
+            key,
+            _viewModel.PreviousOutputSlideCommand,
+            _viewModel.NextOutputSlideCommand);
+    }
+
+    private static bool TryExecuteVerseJumpKey(
+        Key key,
+        CommunityToolkit.Mvvm.Input.IRelayCommand<string> command)
+    {
+        var label = VerseJumpKeyMap.MapKeyToLabel(key);
+        if (label is null)
+        {
+            return false;
+        }
+
+        if (command.CanExecute(label))
+        {
+            command.Execute(label);
+        }
+
+        // 포커스된 Output 영역에서 없는 절 키를 눌러도 전역 Preview 절 점프로 흘러가면 안 된다.
+        return true;
+    }
+
+    private static bool TryExecuteLyricsPageKey(
+        Key key,
+        CommunityToolkit.Mvvm.Input.IRelayCommand previousCommand,
+        CommunityToolkit.Mvvm.Input.IRelayCommand nextCommand)
+    {
+        if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase && key == Key.Space)
+        {
+            return false;
+        }
+
+        switch (key)
+        {
+            case Key.Up:
+            case Key.Left:
+            case Key.PageUp:
+                if (previousCommand.CanExecute(null))
+                {
+                    previousCommand.Execute(null);
+                }
+
+                return true;
+
+            case Key.Down:
+            case Key.Right:
+            case Key.PageDown:
+            case Key.Space:
+                if (nextCommand.CanExecute(null))
+                {
+                    nextCommand.Execute(null);
+                }
+
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     private bool TryExecutePreviewPowerPointKey(Key key)
@@ -553,6 +678,34 @@ public partial class MainWindow : Window
 
         _viewModel.JumpToLyricsSectionCommand.Execute(label);
         return true;
+    }
+
+    private void ClassicKeyboardSurface_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (IsInsideButton(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        if (sender is UIElement element && !element.IsKeyboardFocusWithin)
+        {
+            element.Focus();
+        }
+    }
+
+    private static bool IsInsideButton(DependencyObject? source)
+    {
+        while (source is not null)
+        {
+            if (source is System.Windows.Controls.Primitives.ButtonBase)
+            {
+                return true;
+            }
+
+            source = VisualTreeHelper.GetParent(source);
+        }
+
+        return false;
     }
 
     // 텍스트 입력 컨트롤(텍스트박스·편집 가능 콤보)에 포커스가 있으면 true — 절 점프 키·미디어 키가 타이핑을 가로채지 않게 한다(공용).

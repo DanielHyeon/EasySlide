@@ -189,6 +189,56 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputLyricsSurfaces_MapFocusedKeyboardNavigationIndependently()
+    {
+        var xaml = Xaml;
+        var code = CodeBehind;
+
+        foreach (var name in new[]
+        {
+            "ClassicPreviewInfo",
+            "ClassicPreviewSlidePane",
+            "ClassicPreviewHolder",
+            "ClassicOutputInfo",
+            "ClassicOutputSlidePane",
+            "ClassicOutputHolder",
+            "ClassicOutputBack",
+        })
+        {
+            xaml.Should().Contain($"x:Name=\"{name}\"", $"{name} should remain a focusable FrmMain keyboard surface");
+        }
+
+        xaml.Should().Contain("MouseDown=\"ClassicKeyboardSurface_MouseDown\"",
+            "clicking a Preview/Output lyrics surface should give it keyboard focus like FrmMain flow panels");
+
+        var powerPointIndex = code.IndexOf("TryHandlePreviewOutputPowerPointKey(e)", StringComparison.Ordinal);
+        var lyricsIndex = code.IndexOf("TryHandleFocusedPreviewOutputLyricsKey(e)", StringComparison.Ordinal);
+        var globalVerseIndex = code.IndexOf("TryHandleVerseJumpKey(e)", StringComparison.Ordinal);
+
+        lyricsIndex.Should().BeGreaterThan(powerPointIndex,
+            "focused lyrics routing should run after the more-specific PPT thumbnail routing");
+        lyricsIndex.Should().BeLessThan(globalVerseIndex,
+            "focused Output verse keys must not fall through to the global Preview verse jump");
+
+        code.Should().Contain("ClassicPreviewInfo.IsKeyboardFocusWithin",
+            "PreviewInfo focus should route keys to the selected Preview item");
+        code.Should().Contain("ClassicOutputInfo.IsKeyboardFocusWithin",
+            "OutputInfo focus should route keys to the live Output item");
+        code.Should().Contain("_viewModel.JumpToLyricsSectionCommand",
+            "Preview verse keys should keep targeting the selected Preview item");
+        code.Should().Contain("_viewModel.JumpToOutputLyricsSectionCommand",
+            "Output verse keys should target the live Output item independently");
+        code.Should().Contain("_viewModel.PreviousLyricsPageCommand",
+            "Preview Up/PageUp should use the selected item's lyrics-page command");
+        code.Should().Contain("_viewModel.NextLyricsPageCommand",
+            "Preview Down/PageDown/Space should use the selected item's lyrics-page command");
+        code.Should().Contain("_viewModel.PreviousOutputSlideCommand",
+            "Output Up/PageUp should use the live Output navigation command");
+        code.Should().Contain("_viewModel.NextOutputSlideCommand",
+            "Output Down/PageDown/Space should use the live Output navigation command");
+    }
+
+    [Fact]
     public void LeftBrowserTabs_MatchFrmMainSourceRolesAndOrder()
     {
         var xaml = Xaml;
