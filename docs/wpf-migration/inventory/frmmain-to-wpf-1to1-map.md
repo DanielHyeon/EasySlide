@@ -80,38 +80,38 @@
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `PreviewPanelDisplayName` | Preview header | partial | 4 | exact title/source/status columns |
-| `PreviewInfo` | selected lyrics/info text | partial | 4 | keyboard handling and source-specific content |
+| `PreviewPanelDisplayName` | `ClassicPreviewPanelDisplayName` (`Tag=PreviewPanelDisplayName`) | partial | 4 | title role is explicit; exact source/status columns still incomplete |
+| `PreviewInfo` | `ClassicPreviewInfo` (`Tag=PreviewInfo`) | partial | 4 | selected lyrics/info surface is explicit; keyboard handling and source-specific content still incomplete |
 | `flowLayoutPreviewLyrics` | `SlidePreviewControl` plus lyrics text | partial | 4 | click/keyboard/page behavior |
-| `flowLayoutPreviewPowerPoint` | PowerPoint preview tab/thumbnails | partial | 4 | exact thumbnail selection and key handling |
-| `PreviewHolder`, `PreviewBack` | `ClassicPreviewSlidePane` | partial | 4 | sizing/background/frame parity |
-| `PreviewBtnVerse1..Ending` | `SectionJumpBar` | partial | 4/6 | all labels and shortcut parity |
-| `PreviewBtnItemUp/Down` | Preview item nav | partial | 4 | exact selection behavior |
-| `PreviewBtnSlideUp/Down` | Preview slide/page nav | partial | 4 | item-type-aware nav |
-| `btnToLive` | `GoLiveCommand` | partial | 4 | exact FrmMain semantics |
-| `btnToOutput` | send Preview to Output | partial | 4 | separate from Go Live if needed |
-| `btnToOutputMoveNext` | `SendToOutputAndNextCommand` | partial | 4 | verify advance behavior |
-| `IndPanel`, `Ind_*` | inspector/default source | partial | 5 | first-screen individual format controls |
+| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4 | preview thumbnail surface is explicit; exact thumbnail selection and key handling still incomplete |
+| `PreviewHolder`, `PreviewBack` | `ClassicPreviewHolder` (`Tag=PreviewHolder`) / `ClassicPreviewSlidePane` | partial | 4 | holder role is explicit; background/frame sizing parity still incomplete |
+| `PreviewBtnVerse1..Ending` | `flowLayoutPanel1` + `PreviewBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; verify label casing, shortcut, and live-page parity |
+| `PreviewBtnItemUp/Down` | `PreviewBtnItemUp/Down` + item nav commands | partial | 4 | exact selection behavior |
+| `PreviewBtnSlideUp/Down` | `PreviewBtnSlideUp/Down` + lyrics page nav commands | partial | 4 | item-type-aware PPT/media/page nav |
+| `btnToLive` | `btnToLive` + `GoLiveCommand` | partial | 4 | exact FrmMain semantics |
+| `btnToOutput` | `btnToOutput` + `GoLiveCommand` | partial | 4 | split "copy to Output" from "start live" if needed |
+| `btnToOutputMoveNext` | `btnToOutputMoveNext` + `SendToOutputAndNextCommand` | partial | 4 | verify advance behavior |
+| `IndPanel`, `Ind_*` | `IndcbPreviewNotes`, `IndradioButtonText/Format/Info` plus inspector/default source | partial | 5 | first-screen individual format controls and mode switching |
 
 ## 5. Output
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `OutputPanelDisplayName` | Output header | partial | 4 | exact live item/status columns |
-| `OutputInfo` | live item text/info | partial | 4 | key handling and state |
+| `OutputPanelDisplayName` | `ClassicOutputPanelDisplayName` (`Tag=OutputPanelDisplayName`) | partial | 4 | live item title role is explicit; exact status columns still incomplete |
+| `OutputInfo` | `ClassicOutputInfo` (`Tag=OutputInfo`) | partial | 4 | live info surface is explicit; key handling and state still incomplete |
 | `flowLayoutOutputLyrics` | Output live lyrics surface | partial | 4 | independent live page nav |
-| `flowLayoutOutputPowerPoint` | `ClassicOutputThumbnailGrid` | partial | 4 | live slide highlight and key handling |
-| `OutputHolder`, `OutputBack` | `ClassicOutputSlidePane` | partial | 4 | large output screen frame |
-| `OutputBtnVerse1..Ending` | Output section jump bar | missing | 4/6 | live section jump controls |
-| `OutputBtnItemUp/Down` | Output item nav | partial | 4 | exact live next/prev semantics |
-| `OutputBtnSlideUp/Down` | Output slide nav | partial | 4 | exact live slide semantics |
-| `OutputBtnRefAlert` | no direct first-screen target | missing | 5 | reference alert |
-| `OutputBtnMedia` | media command | partial | 5 | direct output media behavior |
-| `OutputBtnJumpToNonRotate` | no direct first-screen target | missing | 5 | gap/non-rotate jump |
-| `cbOutputBlack` | `BlackScreenCommand` buttons | partial | 4/5 | stateful check/toggle parity |
-| `cbOutputClear` | `ClearOutputCommand` buttons | partial | 4/5 | stateful check/toggle parity |
-| `cbGoLive` | live state commands | partial | 4 | exact checked state |
-| `OutputTextBoxLM`, `OutputBtnLMSend/Clear` | no complete target | missing | 5 | live message/lyrics alert |
+| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` | partial | 4 | live thumbnail/list role is explicit; key handling still incomplete |
+| `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) | partial | 4 | large output screen frame roles are explicit; exact sizing/frame parity still incomplete |
+| `OutputBtnVerse1..Ending` | `flowLayoutPanel2` + `OutputBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; make nav act on live output independently |
+| `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + item nav commands | partial | 4 | exact live next/prev semantics |
+| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + lyrics page nav commands | partial | 4 | exact live slide/PPT semantics |
+| `OutputBtnRefAlert` | `OutputBtnRefAlert` disabled placeholder | missing | 5 | reference alert command and output overlay |
+| `OutputBtnMedia` | `OutputBtnMedia` + `Media.PlayPauseCommand` | partial | 5 | direct output media behavior |
+| `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` disabled placeholder | missing | 5 | gap/non-rotate jump |
+| `cbOutputBlack` | `cbOutputBlack` + `BlackScreenCommand` | partial | 4/5 | stateful check/toggle parity |
+| `cbOutputClear` | `cbOutputClear` + `ClearOutputCommand` | partial | 4/5 | stateful check/toggle parity |
+| `cbGoLive` | `cbGoLive` + `RestoreOutputCommand` | partial | 4 | exact checked state/start-show semantics |
+| `OutputTextBoxLM`, `OutputBtnLMSend/Clear` | `OutputTextBoxLM`, `OutputBtnLMSend`, `OutputBtnLMClear` + `OutputLiveMessage` commands | partial | 5 | currently uses Notice publish/clear; implement true lyrics-monitor overlay parity |
 
 ## 6. Gesture Mapping
 

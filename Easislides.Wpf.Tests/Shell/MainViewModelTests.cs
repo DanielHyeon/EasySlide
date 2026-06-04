@@ -2847,6 +2847,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SendLiveMessageCommand_WhenOutputOpen_PublishesOutputLiveMessage()
+    {
+        var sut = CreateSut();
+        sut.OutputLiveMessage = "주차장 만차 안내";
+        sut.SendLiveMessageCommand.CanExecute(null).Should().BeFalse("출력 창이 닫혀 있으면 LM 송출을 막는다");
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.SendLiveMessageCommand.CanExecute(null).Should().BeTrue();
+        sut.SendLiveMessageCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("공지");
+        sut.Session.Current.CurrentItemBodyText.Should().Contain("주차장 만차 안내");
+        sut.StatusText.Should().Contain("라이브 메시지");
+    }
+
+    [Fact]
+    public void ClearLiveMessageCommand_ClearsTextAndHidesNotice()
+    {
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+        sut.OutputLiveMessage = "예배 후 다과";
+        sut.SendLiveMessageCommand.Execute(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+
+        sut.ClearLiveMessageCommand.Execute(null);
+
+        sut.OutputLiveMessage.Should().BeEmpty();
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+    }
+
+    [Fact]
     public void PublishNotice_WithFontSize_CarriesFontOverrideToSnapshot()
     {
         // 공지 글자 크기 지정(pt)이 FormatData(47=pt)로 실려 기존 폰트 오버라이드 파이프라인을 타고

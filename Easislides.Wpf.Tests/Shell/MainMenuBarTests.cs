@@ -286,6 +286,94 @@ public class MainMenuBarTests
         xaml.Should().Contain("{Binding RestoreOutputCommand}", "Output strip exposes Restore");
     }
 
+    [Fact]
+    public void ClassicPreviewAndOutputPanes_ExposeFrmMainControlRoles()
+    {
+        var xaml = Xaml;
+
+        foreach (var role in new[]
+        {
+            "PreviewPanelDisplayName",
+            "PreviewInfo",
+            "flowLayoutPreviewPowerPoint",
+            "PreviewHolder",
+            "OutputPanelDisplayName",
+            "OutputInfo",
+            "flowLayoutOutputPowerPoint",
+            "OutputHolder",
+            "OutputBack",
+        })
+        {
+            xaml.Should().Contain($"Tag=\"{role}\"", $"{role} should remain explicitly mapped to the FrmMain control role");
+        }
+
+        xaml.Should().Contain("x:Name=\"ClassicPreviewPowerPointThumbnailGrid\"",
+            "Preview top pane should expose the PowerPoint thumbnail strip separately from Output");
+        xaml.Should().Contain("x:Name=\"ClassicOutputPowerPointSurface\"",
+            "Output top pane should expose the live PowerPoint thumbnail/list surface");
+        xaml.Should().Contain("x:Name=\"ClassicOutputHolder\"",
+            "Output bottom pane should expose the large output holder surface");
+        xaml.Should().Contain("x:Name=\"ClassicOutputBack\"",
+            "Output bottom pane should expose the large output background surface");
+    }
+
+    [Fact]
+    public void ClassicPreviewAndOutputPanes_ExposeFrmMainOperatorButtonsAndLiveMessage()
+    {
+        var xaml = Xaml;
+
+        foreach (var name in new[]
+        {
+            "btnToLive",
+            "btnToOutputMoveNext",
+            "btnToOutput",
+            "IndcbPreviewNotes",
+            "IndradioButtonText",
+            "IndradioButtonFormat",
+            "IndradioButtonInfo",
+            "PreviewBtnItemUp",
+            "PreviewBtnItemDown",
+            "PreviewBtnSlideUp",
+            "PreviewBtnSlideDown",
+            "flowLayoutPanel1",
+            "PreviewBtnVerse1",
+            "PreviewBtnVerseChorus",
+            "PreviewBtnVerseEnding",
+            "cbOutputBlack",
+            "cbOutputClear",
+            "cbGoLive",
+            "OutputBtnJumpToNonRotate",
+            "OutputBtnMedia",
+            "OutputBtnRefAlert",
+            "OutputBtnItemUp",
+            "OutputBtnItemDown",
+            "OutputBtnSlideUp",
+            "OutputBtnSlideDown",
+            "flowLayoutPanel2",
+            "OutputBtnVerse1",
+            "OutputBtnVerseChorus",
+            "OutputBtnVerseEnding",
+            "panelOutputLM1",
+            "panelOutputLM2",
+            "panelOutputLM3",
+            "OutputTextBoxLM",
+            "OutputBtnLMSend",
+            "OutputBtnLMClear",
+        })
+        {
+            xaml.Should().Contain($"x:Name=\"{name}\"", $"{name} should remain mapped to the FrmMain operator control");
+        }
+
+        xaml.Should().Contain("Text=\"{Binding OutputLiveMessage, UpdateSourceTrigger=PropertyChanged}\"",
+            "OutputTextBoxLM should edit the ViewModel live-message text");
+        xaml.Should().Contain("Command=\"{Binding SendLiveMessageCommand}\"",
+            "OutputBtnLMSend should send the live message");
+        xaml.Should().Contain("Command=\"{Binding ClearLiveMessageCommand}\"",
+            "OutputBtnLMClear should clear the live message");
+        xaml.Should().Contain("Command=\"{Binding Media.PlayPauseCommand}\"",
+            "OutputBtnMedia should use the existing media play/pause command");
+    }
+
     private static string OperatorBarXaml
     {
         get

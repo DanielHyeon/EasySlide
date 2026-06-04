@@ -49,6 +49,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private OutputDisplay? _selectedPreviewDisplay;
     [ObservableProperty] private bool _isStageMonitorOpen;
     [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SendLiveMessageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearLiveMessageCommand))]
+    private string _outputLiveMessage = string.Empty;
     // 예배 순서 검증에서 문제가 하나라도 있으면 true — 좌측 패널의 경고 목록 표시 여부에 쓰인다.
     [ObservableProperty] private bool _hasWorshipListProblems;
     // 예배 순서(큐)가 비어 있으면 true — 좌측 패널의 "비어 있음" 안내 표시 여부. 시작 시 빈 큐(더미 시드 제거).
@@ -676,6 +680,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
         ClearOutputCommand = new AsyncRelayCommand(ClearOutputAsync, CanUseLiveSafetyAction);
+        SendLiveMessageCommand = new RelayCommand(SendLiveMessage, CanSendLiveMessage);
+        ClearLiveMessageCommand = new RelayCommand(ClearLiveMessage, CanClearLiveMessage);
         RestoreOutputCommand = new RelayCommand(RestoreOutput, () => _session.Current.State == LiveState.Hidden);
         RestartCurrentItemCommand = new AsyncRelayCommand(RestartCurrentItemAsync, CanRestartCurrentItem);
         RefreshOutputCommand = new RelayCommand(RefreshOutput, () => _output.Current.IsOpen);
@@ -851,6 +857,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand HideOutputCommand { get; }
     public IAsyncRelayCommand BlackScreenCommand { get; }
     public IAsyncRelayCommand ClearOutputCommand { get; }
+    public IRelayCommand SendLiveMessageCommand { get; }
+    public IRelayCommand ClearLiveMessageCommand { get; }
     public IRelayCommand RestoreOutputCommand { get; }
     public IAsyncRelayCommand RestartCurrentItemCommand { get; }
     public IRelayCommand RefreshOutputCommand { get; }
@@ -4698,6 +4706,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return sb.Length == 0 ? null : sb.ToString();
     }
 
+    private bool CanSendLiveMessage() => _output.Current.IsOpen && !string.IsNullOrWhiteSpace(OutputLiveMessage);
+
+    private bool CanClearLiveMessage() => _output.Current.IsOpen || !string.IsNullOrWhiteSpace(OutputLiveMessage);
+
+    private void SendLiveMessage()
+    {
+        var message = OutputLiveMessage.Trim();
+        if (PublishNotice(message))
+        {
+            StatusText = "라이브 메시지 송출";
+        }
+    }
+
+    private void ClearLiveMessage()
+    {
+        if (_output.Current.IsOpen)
+        {
+            ClearNotice();
+        }
+
+        OutputLiveMessage = string.Empty;
+        NotifyCommandStates();
+    }
+
     public bool PublishNotice(string text, NoticeOptions? options = null)
     {
         options ??= new NoticeOptions();
@@ -5377,6 +5409,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         HideOutputCommand.NotifyCanExecuteChanged();
         BlackScreenCommand.NotifyCanExecuteChanged();
         ClearOutputCommand.NotifyCanExecuteChanged();
+        SendLiveMessageCommand.NotifyCanExecuteChanged();
+        ClearLiveMessageCommand.NotifyCanExecuteChanged();
         RestoreOutputCommand.NotifyCanExecuteChanged();
         RestartCurrentItemCommand.NotifyCanExecuteChanged();
         RefreshOutputCommand.NotifyCanExecuteChanged();
