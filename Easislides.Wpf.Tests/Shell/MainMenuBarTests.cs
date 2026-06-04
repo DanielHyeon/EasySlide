@@ -114,6 +114,20 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicFrmMainConsole_UsesNamedLegacyRegionColumnsAndRows()
+    {
+        var xaml = Xaml;
+
+        xaml.Should().Contain("x:Name=\"ClassicSourceColumn\"", "left source/list column should be explicit for FrmMain 1:1 mapping");
+        xaml.Should().Contain("Width=\"0.75*\"", "left column should scale like the legacy splitter instead of staying a narrow fixed rail");
+        xaml.Should().Contain("MinWidth=\"320\"", "left column should keep the source browser usable at smaller sizes");
+        xaml.Should().Contain("x:Name=\"ClassicPreviewColumn\"", "Preview column should be distinct from Output");
+        xaml.Should().Contain("x:Name=\"ClassicOutputColumn\"", "Output column should be distinct from Preview");
+        xaml.Should().Contain("x:Name=\"ClassicTopControlRow\"", "top text/thumbnail/control row should mirror FrmMain splitContainerPreview/Output Panel1");
+        xaml.Should().Contain("x:Name=\"ClassicBottomScreenRow\"", "bottom screen row should mirror FrmMain splitContainerPreview/Output Panel2");
+    }
+
+    [Fact]
     public void ClassicOutputPane_ShowsPowerPointThumbnailsAndLargeOutputSlide()
     {
         var xaml = Xaml;

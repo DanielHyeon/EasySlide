@@ -897,16 +897,26 @@
         <Grid x:Name="ClassicFrmMainConsole"
               Margin="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="320" />
+                <ColumnDefinition x:Name="ClassicSourceColumn"
+                                  Width="0.75*"
+                                  MinWidth="320" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="ClassicPreviewColumn"
+                                  Width="*"
+                                  MinWidth="280" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="1.35*" />
+                <ColumnDefinition x:Name="ClassicOutputColumn"
+                                  Width="1.35*"
+                                  MinWidth="340" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="1.15*" MinHeight="220" />
+                <RowDefinition x:Name="ClassicTopControlRow"
+                               Height="1.15*"
+                               MinHeight="220" />
                 <RowDefinition Height="6" />
-                <RowDefinition Height="0.85*" MinHeight="260" />
+                <RowDefinition x:Name="ClassicBottomScreenRow"
+                               Height="0.85*"
+                               MinHeight="260" />
             </Grid.RowDefinitions>
 
             <!-- 좌측: 상단 콘텐츠 브라우저(라이브러리/성경 탭) + 하단 예배 순서(항상 표시) — FrmMain식 멀티페인.

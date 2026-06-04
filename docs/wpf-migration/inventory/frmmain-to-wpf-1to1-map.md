@@ -14,16 +14,16 @@
 | FrmMain source | WPF target | Status | Phase | Notes |
 | --- | --- | --- | --- | --- |
 | `toolStripContainerMain` | `MainWindow` root grid/menu/status | partial | 1 | menu/status exist, toolbar parity incomplete |
-| `splitContainerMain.Panel1` | `ClassicSourcePane` | partial | 1 | visible, but exact behavior/data parity incomplete |
-| `splitContainerMain.Panel2` | `ClassicPreviewPane`/`ClassicOutputPane` area | partial | 1 | broad columns exist, exact top/bottom behavior incomplete |
+| `splitContainerMain.Panel1` | `ClassicSourceColumn` / `ClassicSourcePane` | partial | 1 | source/list column now scales by splitter-like proportion; behavior/data parity incomplete |
+| `splitContainerMain.Panel2` | `ClassicPreviewColumn` + `ClassicOutputColumn` | partial | 1 | Preview/Output columns are explicitly named; exact top/bottom behavior incomplete |
 | `splitContainer1.Panel1` | `LeftBrowserTabs` | partial | 1/2/3 | source tabs exist, several are shallow |
 | `splitContainer1.Panel2` | `LeftListTabs` | partial | 1/2/3 | Worship List visible, Praise Book shallow |
-| `splitContainer2.Panel1` | Preview column | partial | 1/4 | Preview exists but legacy controls incomplete |
-| `splitContainer2.Panel2` | Output column | partial | 1/4 | Output exists but live thumbnails/control parity incomplete |
-| `splitContainerPreview.Panel1` | `ClassicPreviewPane` top | partial | 4/5 | needs exact item/slide/section/format controls |
-| `splitContainerPreview.Panel2` | `ClassicPreviewSlidePane` | partial | 4 | needs independent Preview surface behavior |
-| `splitContainerOutput.Panel1` | `ClassicOutputPane` top | partial | 4/5 | needs live output thumbnails/status/buttons |
-| `splitContainerOutput.Panel2` | `ClassicOutputSlidePane` | partial | 4 | needs independent Output large surface |
+| `splitContainer2.Panel1` | `ClassicPreviewColumn` | partial | 1/4 | Preview column is named; legacy controls incomplete |
+| `splitContainer2.Panel2` | `ClassicOutputColumn` | partial | 1/4 | Output column is named; live thumbnails/control parity incomplete |
+| `splitContainerPreview.Panel1` | `ClassicTopControlRow` + `ClassicPreviewPane` | partial | 4/5 | top row is named; needs exact item/slide/section/format controls |
+| `splitContainerPreview.Panel2` | `ClassicBottomScreenRow` + `ClassicPreviewSlidePane` | partial | 4 | bottom row is named; needs independent Preview surface behavior |
+| `splitContainerOutput.Panel1` | `ClassicTopControlRow` + `ClassicOutputPane` | partial | 4/5 | top row is named; needs live output thumbnails/status/buttons |
+| `splitContainerOutput.Panel2` | `ClassicBottomScreenRow` + `ClassicOutputSlidePane` | partial | 4 | bottom row is named; needs independent Output large surface |
 
 ## 2. Source Browser Tabs
 
