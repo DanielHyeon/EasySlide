@@ -112,6 +112,36 @@ public sealed class WorshipListStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task ListNames_UsesRuntimeLegacyWorkingFolderFallback()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_LegacyWLFallback_{Guid.NewGuid():N}");
+        try
+        {
+            var legacyRoot = Path.Combine(root, "LegacyRoot");
+            var legacyDir = Path.Combine(legacyRoot, "Admin", "WorshipLists");
+            Directory.CreateDirectory(legacyDir);
+            await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), "<EasiSlides />");
+            var settings = new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups"),
+                legacyRoot));
+
+            var store = new WorshipListStore(_dir, settings);
+
+            store.ListNames().Should().Contain("1.Sunday");
+            var xml = await ((ILegacyWorshipListStore)store).LoadLegacyXmlAsync("1.Sunday");
+            xml.Should().Contain("EasiSlides");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task Delete_RemovesSavedList()
     {
         var store = new WorshipListStore(_dir);

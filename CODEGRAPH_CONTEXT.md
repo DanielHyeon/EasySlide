@@ -40,3 +40,23 @@ Implementation boundary:
 - Reuse `InfoScreenStore` and `NoticeOptions`.
 - Extend `WorshipListPanel` only to accept `InfoScreenSelection` drops and insert a Notice item at the target position.
 - Do not touch SQLite, Office interop, media playback, output coordinates, or legacy WinForms `FrmMain`.
+
+## wpf-legacy-working-folder-autodetect
+
+Date: 2026-06-04
+
+Task: Make WPF data loaders discover the installed legacy `C:\EasiSlides` working folder when WPF settings are still on the untouched default.
+
+CodeGraph checks:
+
+- `codegraph_context`: Worship List and Bible gaps converge on `SettingsService`, `WorshipListStore`, `BibleViewModel`, and `BibleRepository`.
+- `codegraph_explore`: `WorshipListStore.LegacyDirectory()` reads `_settings.Current.General.WorkingFolder\Admin\WorshipLists`, while `BibleRepository.GetVersions()` reads `workingFolder\Admin\Database\EsBiblesList.db` and `workingFolder\HolyBibles`.
+- `codegraph_search WorkingFolder`: default WPF key is `Documents\EasiSlides`; WPF tests already cover explicit working-folder paths for Bible and legacy Worship List loading.
+- `codegraph_impact WorkingFolder`: broad shared settings surface, so the change is restricted to default/runtime settings resolution and preserves explicit custom paths.
+
+Implementation boundary:
+
+- Add an optional legacy working-folder candidate to `SettingsServiceOptions`.
+- Apply the candidate only when the current working folder is the untouched WPF default and the candidate directory exists.
+- Preserve custom/imported paths.
+- Do not change Bible SQL, Worship List XML parsing, SQLite schema, output coordinates, Office interop, or WinForms.

@@ -34,6 +34,50 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_UsesRuntimeLegacyWorkingFolderFallback()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_BibleFallback_{Guid.NewGuid():N}");
+        try
+        {
+            var legacyRoot = Path.Combine(root, "LegacyRoot");
+            Directory.CreateDirectory(legacyRoot);
+            var settings = new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups"),
+                legacyRoot));
+            var version = new BibleVersion(
+                0,
+                "KJV",
+                "King James",
+                "Public domain",
+                "kjv.db",
+                Path.Combine(legacyRoot, "HolyBibles", "kjv.db"),
+                1,
+                80,
+                SupportsPartialWordSearch: false);
+            var repository = new FakeBibleRepository
+            {
+                Versions = [version],
+                Books = [new BibleBook(1, "Genesis")],
+            };
+            var sut = new BibleViewModel(settings, repository);
+
+            await sut.LoadAsync();
+
+            sut.WorkingFolder.Should().Be(Path.GetFullPath(legacyRoot));
+            sut.SelectedVersion.Should().Be(version);
+            sut.Books.Should().ContainSingle().Which.Name.Should().Be("Genesis");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task ExpandSelectionBody_DelegatesToRepositoryWithWorkingFolderAndShowVerses()
     {
         // 성경 항목 본문 확장은 저장소에 작업 폴더·절 번호 표시 설정을 그대로 넘겨 위임한다.

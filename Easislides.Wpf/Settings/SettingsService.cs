@@ -45,8 +45,10 @@ public sealed record SettingsChangedEventArgs(
     SettingsChangeSource Source,
     string? BackupPath);
 
-public sealed record SettingsServiceOptions(string SettingsFilePath, string BackupRoot)
+public sealed record SettingsServiceOptions(string SettingsFilePath, string BackupRoot, string? LegacyWorkingFolderPath = null)
 {
+    private const string LegacyRootWorkingFolder = @"C:\EasiSlides";
+
     public static SettingsServiceOptions CreateDefault()
     {
         var root = Path.Combine(
@@ -55,7 +57,8 @@ public sealed record SettingsServiceOptions(string SettingsFilePath, string Back
 
         return new SettingsServiceOptions(
             Path.Combine(root, "settings.json"),
-            Path.Combine(root, "Backups"));
+            Path.Combine(root, "Backups"),
+            LegacyRootWorkingFolder);
     }
 }
 
@@ -788,7 +791,8 @@ public sealed class SettingsService : ISettingsService
     {
         _options = options;
         var loaded = LoadCurrent(options.SettingsFilePath);
-        Current = Validate(loaded).Succeeded ? loaded : EasiSettingsSnapshot.CreateDefault();
+        var initial = Validate(loaded).Succeeded ? loaded : EasiSettingsSnapshot.CreateDefault();
+        Current = ApplyLegacyWorkingFolderFallback(initial, options.LegacyWorkingFolderPath);
     }
 
     public EasiSettingsSnapshot Current { get; private set; }
@@ -1118,7 +1122,7 @@ public sealed class SettingsService : ISettingsService
     }
 
     public SettingsResult RestoreDefaults()
-        => ApplySnapshot(EasiSettingsSnapshot.CreateDefault(), SettingsChangeSource.RestoreDefaults, backupPath: null);
+        => ApplySnapshot(CreateRuntimeDefaultSnapshot(), SettingsChangeSource.RestoreDefaults, backupPath: null);
 
     public async Task<SettingsResult> ExportAsync(string destinationPath)
     {
@@ -1393,6 +1397,29 @@ public sealed class SettingsService : ISettingsService
         }
     }
 
+    private EasiSettingsSnapshot CreateRuntimeDefaultSnapshot()
+        => ApplyLegacyWorkingFolderFallback(EasiSettingsSnapshot.CreateDefault(), _options.LegacyWorkingFolderPath);
+
+    private static EasiSettingsSnapshot ApplyLegacyWorkingFolderFallback(
+        EasiSettingsSnapshot snapshot,
+        string? legacyWorkingFolderPath)
+    {
+        if (string.IsNullOrWhiteSpace(legacyWorkingFolderPath)
+            || !Directory.Exists(legacyWorkingFolderPath)
+            || !PathsEqual(snapshot.General.WorkingFolder, EasiSettingKeys.WorkingFolder.DefaultValue))
+        {
+            return snapshot;
+        }
+
+        return snapshot with
+        {
+            General = snapshot.General with
+            {
+                WorkingFolder = NormalizePathForSettings(legacyWorkingFolderPath),
+            },
+        };
+    }
+
     private static async Task<EasiSettingsSnapshot> ReadSnapshotAsync(string path)
     {
         var json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
@@ -1447,6 +1474,38 @@ public sealed class SettingsService : ISettingsService
                 : new Dictionary<string, string>(snapshot.Shortcuts, StringComparer.OrdinalIgnoreCase),
             Advanced = snapshot.Advanced ?? defaults.Advanced,
         };
+    }
+
+    private static bool PathsEqual(string? left, string? right)
+    {
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+        {
+            return string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+        }
+
+        try
+        {
+            return string.Equals(
+                Path.GetFullPath(left.Trim()),
+                Path.GetFullPath(right.Trim()),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return string.Equals(left.Trim(), right.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private static string NormalizePathForSettings(string path)
+    {
+        try
+        {
+            return Path.GetFullPath(path.Trim());
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return path.Trim();
+        }
     }
 
     private static IReadOnlyList<string> FindChangedKeys(EasiSettingsSnapshot previous, EasiSettingsSnapshot current)

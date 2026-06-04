@@ -102,6 +102,46 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Constructor_WhenNoSettingsAndLegacyRootExists_UsesLegacyWorkingFolder()
+    {
+        using var fixture = TempSettingsFolder.Create();
+
+        var sut = fixture.CreateService(fixture.LegacyFolder);
+
+        sut.Get(EasiSettingKeys.WorkingFolder).Should().Be(Path.GetFullPath(fixture.LegacyFolder));
+    }
+
+    [Fact]
+    public void Constructor_WhenStoredDefaultWorkingFolderAndLegacyRootExists_UsesLegacyWorkingFolder()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        File.WriteAllText(fixture.SettingsPath, Serialize(EasiSettingsSnapshot.CreateDefault()));
+
+        var sut = fixture.CreateService(fixture.LegacyFolder);
+
+        sut.Get(EasiSettingKeys.WorkingFolder).Should().Be(Path.GetFullPath(fixture.LegacyFolder));
+    }
+
+    [Fact]
+    public void Constructor_WhenStoredCustomWorkingFolderAndLegacyRootExists_PreservesCustomWorkingFolder()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var customWorkingFolder = Path.Combine(fixture.Root, "CustomWork");
+        var snapshot = EasiSettingsSnapshot.CreateDefault() with
+        {
+            General = EasiSettingsSnapshot.CreateDefault().General with
+            {
+                WorkingFolder = customWorkingFolder,
+            },
+        };
+        File.WriteAllText(fixture.SettingsPath, Serialize(snapshot));
+
+        var sut = fixture.CreateService(fixture.LegacyFolder);
+
+        sut.Get(EasiSettingKeys.WorkingFolder).Should().Be(customWorkingFolder);
+    }
+
+    [Fact]
     public void Set_UseSongNumbering_PersistsToDiskAndReloads()
     {
         using var fixture = TempSettingsFolder.Create();
@@ -414,8 +454,8 @@ public class SettingsServiceTests
         public static TempSettingsFolder Create()
             => new(Path.Combine(Path.GetTempPath(), $"EasiSlides_Settings_{Guid.NewGuid():N}"));
 
-        public SettingsService CreateService()
-            => new(new SettingsServiceOptions(SettingsPath, BackupRoot));
+        public SettingsService CreateService(string? legacyWorkingFolderPath = null)
+            => new(new SettingsServiceOptions(SettingsPath, BackupRoot, legacyWorkingFolderPath));
 
         public void Dispose()
         {
