@@ -47,9 +47,9 @@
 | `Bibles_Go` | Bible go button | partial | 3 | invoke lookup/search exactly |
 | `TabBibleVersions` | Bible versions UI | partial | 2 | version tabs/list with selected version state |
 | `BibleText` | `BiblePassageBox` + `CMenuBible_*` | partial | 3 | selection, Enter add, FrmMain-named context menu, Add/Region2/Copy/InfoScreen, drag `BiblePassage`; exact rich text styling still incomplete |
-| `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; context menu default/item background is wired; folder group parity still incomplete |
+| `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; context menu default/item background is wired; thumbnail drag now emits image `FileDrop` for Preview background drop; folder group parity still incomplete |
 | `ImagesFolder` | image folder selector | partial | 2 | legacy image groups |
-| `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, default background, item background, refresh menu exist; exact thumbnail sizing and folder-group UI still incomplete |
+| `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, double-click/default background, item background, refresh menu, and image-to-background drag exist; exact thumbnail sizing and folder-group UI still incomplete |
 | `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, drag insert |
 | `MediaFolder` | media folder selector | partial | 2 | legacy media groups |
 | `MediaList` | `InlineMediaList` | partial | 3 | double-click, Enter add, and drag insert exist; context menu parity incomplete |
@@ -123,6 +123,7 @@
 | Bible selected passage drag | `BibleText_MouseDown` with `DragDropSource.BiblePassage` | partial | 3 |
 | Worship List reorder drag | `DragDropSource.WorshipList` | partial | 3 |
 | Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage`, `PraiseBookItems` | partial | 3 |
+| Image-to-background drag | `flowLayoutImages` thumbnail drag to preview/background surface | partial | 5 | Inline image thumbnails now drag the exact pressed image as `FileDrop`; Preview area accepts image drops and applies Output background |
 | Source/PraiseBook Enter add | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `SearchResults`, `LookupCandidates`, `BibleText`, `PraiseBookItems` | partial | 3/6 | source lists reuse `AddSelectedSourceToWorshipListAsync`; PraiseBook Enter reuses the same add path as double-click |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |

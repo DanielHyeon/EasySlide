@@ -1441,6 +1441,8 @@
                                  ItemsSource="{Binding Images}"
                                  SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 PreviewMouseLeftButtonDown="InlineImagesList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="InlineImagesList_PreviewMouseMove"
                                  AutomationProperties.Name="Images source thumbnail list">
                             <ListBox.InputBindings>
                                 <MouseBinding MouseAction="LeftDoubleClick"

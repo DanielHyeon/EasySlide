@@ -934,6 +934,8 @@ public partial class MainWindow : Window
     private bool _powerPointDragArmed;
     private Point _mediaDragStart;
     private bool _mediaDragArmed;
+    private Point _imageDragStart;
+    private ImageLibraryItem? _imageDragCandidate;
     private Point _praiseBookDragStart;
     private PraiseBookIndexEntry? _praiseBookDragCandidate;
 
@@ -1157,6 +1159,37 @@ public partial class MainWindow : Window
         DragDrop.DoDragDrop(
             InlineMediaList,
             new DataObject(DataFormats.FileDrop, new[] { file.FilePath }),
+            DragDropEffects.Copy);
+    }
+
+    private void InlineImagesList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _imageDragStart = e.GetPosition(null);
+        _imageDragCandidate = e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(InlineImagesList, source) is ListBoxItem { DataContext: ImageLibraryItem image }
+                ? image
+                : null;
+    }
+
+    private void InlineImagesList_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_imageDragCandidate is null || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        var moved = e.GetPosition(null) - _imageDragStart;
+        if (Math.Abs(moved.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(moved.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        var image = _imageDragCandidate;
+        _imageDragCandidate = null;
+        DragDrop.DoDragDrop(
+            InlineImagesList,
+            new DataObject(DataFormats.FileDrop, new[] { image.FilePath }),
             DragDropEffects.Copy);
     }
 

@@ -363,6 +363,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("ItemsSource=\"{Binding Images}\"", "inline Images list reuses ImageLibraryViewModel");
         xaml.Should().Contain("Tag=\"flowLayoutImages\"", "inline Images list should keep the FrmMain flowLayoutImages role");
         xaml.Should().Contain("ApplyAsBackgroundCommand", "inline Images should apply selected background images");
+        xaml.Should().Contain("PreviewMouseLeftButtonDown=\"InlineImagesList_PreviewMouseLeftButtonDown\"",
+            "Images rows should arm drag without breaking thumbnail selection");
+        xaml.Should().Contain("PreviewMouseMove=\"InlineImagesList_PreviewMouseMove\"",
+            "Images rows should drag into the Preview background drop surface");
         xaml.Should().Contain("x:Name=\"CMenuImages\"", "Images source needs the FrmMain image context menu role");
         xaml.Should().Contain("x:Name=\"CMenuImages_AddItem\"", "Images menu should expose Add to Item");
         xaml.Should().Contain("ApplyToItemBackgroundCommand", "Add to Item should apply the selected image to the selected worship item");
@@ -389,6 +393,14 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlineImageLoadedOnce(viewModel)", "Images source tab should lazy-load on first selection");
         code.Should().Contain("ImagesSourceTab.DataContext = _inlineImages", "inline Images tab should bind to ImageLibraryViewModel");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImageCommand.Execute(path)", "Images Add to Item should reuse the selected-item background command");
+        code.Should().Contain("private ImageLibraryItem? _imageDragCandidate",
+            "Images drags should carry the exact thumbnail item pressed, not a stale previous selection");
+        code.Should().Contain("InlineImagesList_PreviewMouseMove",
+            "Images source rows should start a drag after the normal WPF drag threshold");
+        code.Should().Contain("InlineImagesList,",
+            "Images source drag should originate from the inline Images list");
+        code.Should().Contain("new DataObject(DataFormats.FileDrop, new[] { image.FilePath })",
+            "Images source drags should reuse the same image-file payload accepted by PreviewArea_Drop");
         code.Should().Contain("DataFormats.FileDrop", "source drags must reuse the WorshipListPanel external file drop contract");
         code.Should().Contain("Path.Combine(workingFolder, \"Powerpoint\")", "PowerPoint should prefer the legacy working-folder source directory");
         code.Should().Contain("Path.Combine(workingFolder, \"Media\")", "Media should prefer the legacy working-folder source directory");
