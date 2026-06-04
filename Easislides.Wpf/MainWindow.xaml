@@ -685,14 +685,13 @@
             </Grid>
         </Border>
 
-        <Border DockPanel.Dock="Bottom"
-                BorderThickness="1,1,0,0"
+        <Border DockPanel.Dock="Top"
+                BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
                 Background="{DynamicResource Brush.Surface.Card}"
-                Padding="{StaticResource Thickness.Md}">
+                Padding="4,2">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -700,12 +699,12 @@
                            VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
                            Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Secondary}" />
+                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                           Visibility="Collapsed" />
 
                 <!-- Classic Operator 고정 바 — 한 줄에 다 안 들어오면 접히되 첫 화면에서 사라지지 않는다. -->
                 <WrapPanel x:Name="ClassicOperatorBar"
-                           Grid.Row="1"
-                           Margin="0,8,0,0"
+                           Grid.Row="0"
                            Orientation="Horizontal">
                     <Button Command="{Binding GoLiveCommand}"
                             Style="{StaticResource EsButton.Primary}"
@@ -840,14 +839,6 @@
                               VerticalContentAlignment="Center"
                               ToolTip="자동 회전 모드 — 현재 항목 반복 / 한 항목만(끝나면 정지) / 그룹(다음 항목으로) / 그룹 반복"
                               AutomationProperties.Name="자동 회전 모드" />
-                    <!-- 우측 인스펙터 접기/펼치기(§7.4 가변 패널) — 접으면 중앙 미리보기가 넓어진다. -->
-                    <ToggleButton IsChecked="{Binding IsInspectorExpanded, Mode=TwoWay}"
-                                  MinHeight="36"
-                                  Padding="10,0"
-                                  Margin="0,0,8,6"
-                                  Content="인스펙터"
-                                  ToolTip="우측 출력 모양 인스펙터 접기/펼치기"
-                                  AutomationProperties.Name="인스펙터 접기 토글" />
                     <!-- 명령 팔레트 진입(발견가능성) — 마우스 운영자도 ⌘K 없이 클릭으로 모든 명령/창을 검색·실행. -->
                     <Button Command="{Binding CommandPalette.OpenCommand}"
                             Style="{StaticResource EsButton.Secondary}"
@@ -903,20 +894,27 @@
             </Grid>
         </Border>
 
-        <Grid Margin="{StaticResource Thickness.Xl}">
+        <Grid x:Name="ClassicFrmMainConsole"
+              Margin="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280" />
-                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="6" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="16" />
-                <!-- 우측 인스펙터 컬럼: Auto — 인스펙터를 접으면(Visibility=Collapsed) 0 으로 줄어 중앙이 넓어진다(§7.4 가변 패널). -->
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="1.35*" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1.15*" MinHeight="220" />
+                <RowDefinition Height="6" />
+                <RowDefinition Height="0.85*" MinHeight="260" />
+            </Grid.RowDefinitions>
 
             <!-- 좌측: 상단 콘텐츠 브라우저(라이브러리/성경 탭) + 하단 예배 순서(항상 표시) — FrmMain식 멀티페인.
                  곡·성경을 찾으면서 예배 순서를 동시에 보도록 탭 전환을 없앤다(§7.4 단일 콘솔 통합).
                  GridSplitter 로 두 패널 높이를 운영자가 조절. -->
-            <Grid Grid.Column="0">
+            <Grid x:Name="ClassicSourcePane"
+                  Grid.Column="0"
+                  Grid.RowSpan="3">
                 <Grid.RowDefinitions>
                     <!-- 브라우저/예배순서 두 패널 높이 비율은 GridSplitter 로 조절하고, 종료 시 비율을 저장해 다음 실행에 복원한다(레거시 splitter 상태). -->
                     <RowDefinition x:Name="BrowserRow" Height="*" MinHeight="140" />
@@ -1431,81 +1429,105 @@
                 <composites:WorshipListPanel Grid.Row="2" />
             </Grid>
 
-            <Border Grid.Column="2"
+            <GridSplitter Grid.Column="1"
+                          Grid.RowSpan="3"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource Brush.Border.Default}"
+                          AutomationProperties.Name="소스/Preview 너비 조절" />
+
+            <GridSplitter Grid.Column="3"
+                          Grid.RowSpan="3"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource Brush.Border.Default}"
+                          AutomationProperties.Name="Preview/Output 너비 조절" />
+
+            <GridSplitter Grid.Column="2"
+                          Grid.ColumnSpan="3"
+                          Grid.Row="1"
+                          Height="6"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Rows"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource Brush.Border.Default}"
+                          AutomationProperties.Name="상단 작업/하단 미리보기 높이 조절" />
+
+            <Border x:Name="ClassicPreviewPane"
+                    Grid.Column="2"
+                    Grid.Row="0"
                     Background="{DynamicResource Brush.Surface.Card}"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource CornerRadius.Medium}"
-                    Padding="{StaticResource Thickness.Xl}">
+                    CornerRadius="{StaticResource CornerRadius.Small}"
+                    Padding="4">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Grid>
+                    <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="1" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-
-                        <StackPanel>
-                            <TextBlock Text="Preview 준비"
-                                       Style="{StaticResource Type.Title2.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Primary}" />
-                            <TextBlock Text="{Binding SelectedItem.Title}"
-                                       Style="{StaticResource Type.Body.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Secondary}"
-                                       TextTrimming="CharacterEllipsis"
-                                       Margin="0,4,0,0" />
-                            <TextBlock Text="{Binding LyricsPageLabel}"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                       Margin="0,2,0,0"
-                                       AutomationProperties.Name="Preview 절 위치" />
-                        </StackPanel>
-
-                        <Border Grid.Column="1"
-                                Width="1"
-                                Margin="16,0"
-                                Background="{DynamicResource Brush.Border.Default}" />
-
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="Output 송출"
-                                       Style="{StaticResource Type.Title2.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Primary}" />
-                            <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"
-                                       Style="{StaticResource Type.Body.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Secondary}"
-                                       TextTrimming="CharacterEllipsis"
-                                       Margin="0,4,0,0"
-                                       AutomationProperties.Name="현재 송출 항목" />
-                            <StackPanel Orientation="Horizontal"
-                                        Margin="0,2,0,0">
-                                <TextBlock Text="{Binding LiveBar.StateLabel}"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                           AutomationProperties.Name="라이브 상태" />
-                                <TextBlock Text="  |  "
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <TextBlock Text="{Binding LiveBar.OutputMonitorName}"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                           TextTrimming="CharacterEllipsis"
-                                           AutomationProperties.Name="Output 송출 모니터" />
-                            </StackPanel>
-                        </StackPanel>
+                        <TextBlock Text="⌂"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,4,0"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding SelectedItem.Title, TargetNullValue='Preview'}"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Primary}"
+                                   AutomationProperties.Name="Preview 선택 항목" />
+                        <WrapPanel Grid.Column="2"
+                                   x:Name="ClassicPreviewTopStrip"
+                                   Orientation="Horizontal"
+                                   HorizontalAlignment="Right">
+                            <Button Command="{Binding GoLiveCommand}"
+                                    Style="{StaticResource EsButton.Primary}"
+                                    MinWidth="48"
+                                    MinHeight="28"
+                                    Padding="8,0"
+                                    Margin="4,0,0,0"
+                                    Content="LIVE"
+                                    ToolTip="선택 항목을 라이브로 송출"
+                                    AutomationProperties.Name="Preview Go Live" />
+                            <Button Command="{Binding SendToOutputAndNextCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="36"
+                                    MinHeight="28"
+                                    Padding="8,0"
+                                    Margin="4,0,0,0"
+                                    Content="↷"
+                                    ToolTip="송출 후 다음"
+                                    AutomationProperties.Name="Preview 송출 후 다음" />
+                            <Button Command="{Binding StopLiveCommand}"
+                                    Style="{StaticResource EsButton.Danger}"
+                                    MinWidth="36"
+                                    MinHeight="28"
+                                    Padding="8,0"
+                                    Margin="4,0,0,0"
+                                    ToolTip="현재 라이브 송출 중지"
+                                    AutomationProperties.Name="Preview 라이브 중지">
+                                <ui:SymbolIcon Symbol="Dismiss24" />
+                            </Button>
+                        </WrapPanel>
                     </Grid>
 
                     <Border Grid.Row="1"
-                            Margin="0,20,0,20"
                             Background="{DynamicResource Brush.Surface.Page}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
-                            BorderThickness="1"
-                            CornerRadius="{StaticResource CornerRadius.Small}">
+                            BorderThickness="1">
                         <!-- 중앙 미리보기 — 선택 항목 종류에 맞춰 SelectedIndex 가 자동 전환(곡=Preview/PPT=PowerPoint/미디어=Media).
                              운영자가 탭을 수동으로 누르지 않아도 알맞은 미리보기가 보인다(FrmMain식 멀티페인 §7.4). -->
                         <TabControl BorderThickness="0"
@@ -1527,8 +1549,8 @@
                                       DragOver="PreviewArea_DragOver"
                                       Drop="PreviewArea_Drop">
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="0" />
                                         <RowDefinition Height="*" />
-                                        <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
@@ -1539,12 +1561,12 @@
                                                                    FillMode="{Binding SelectedItem.PreviewFillMode}"
                                                                    SlideNumber="{Binding SelectedItem.SlideNumber}"
                                                                    ShowSlideNumber="True"
-                                                                   IsSelected="True" />
+                                                                   IsSelected="True"
+                                                                   Visibility="Collapsed" />
 
                                     <!-- 선택 곡의 실제 가사 표시(라이브 큐 콘텐츠 plumbing — LiveQueueItem.Lyrics). 가사 없으면 비어 표시. -->
                                     <ScrollViewer Grid.Row="1"
-                                                  MaxHeight="140"
-                                                  Margin="0,12,0,0"
+                                                  Margin="0"
                                                   VerticalScrollBarVisibility="Auto">
                                         <TextBlock Text="{Binding SelectedItem.Lyrics}"
                                                    TextWrapping="Wrap"
@@ -1828,36 +1850,371 @@
                             </TabItem>
                         </TabControl>
                     </Border>
-
-                    <StackPanel Grid.Row="2"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                        <Button Command="{Binding FirstItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Margin="0,0,8,0"
-                                Content="처음"
-                                ToolTip="예배 순서의 첫 항목으로"
-                                AutomationProperties.Name="처음 항목" />
-                        <Button Command="{Binding PreviousItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Margin="0,0,8,0"
-                                Content="이전" />
-                        <Button Command="{Binding NextItemCommand}"
-                                Style="{StaticResource EsButton.Primary}"
-                                Margin="0,0,8,0"
-                                Content="다음" />
-                        <Button Command="{Binding LastItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                Content="마지막"
-                                ToolTip="예배 순서의 마지막 항목으로"
-                                AutomationProperties.Name="마지막 항목" />
-                    </StackPanel>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="4"
+            <Border x:Name="ClassicPreviewSlidePane"
+                    Grid.Column="2"
+                    Grid.Row="2"
+                    Background="#808080"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    Padding="6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel x:Name="ClassicPreviewBottomStrip"
+                               Orientation="Horizontal"
+                               Margin="0,0,0,6">
+                        <Button Command="{Binding PreviousLyricsPageCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="⌃"
+                                ToolTip="이전 절"
+                                AutomationProperties.Name="Preview 이전 절" />
+                        <Button Command="{Binding NextLyricsPageCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="⌄"
+                                ToolTip="다음 절"
+                                AutomationProperties.Name="Preview 다음 절" />
+                        <Button Command="{Binding PreviousSlideCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="◀"
+                                ToolTip="이전 슬라이드"
+                                AutomationProperties.Name="Preview 이전 슬라이드" />
+                        <Button Command="{Binding NextSlideCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,8,0"
+                                Content="▶"
+                                ToolTip="다음 슬라이드"
+                                AutomationProperties.Name="Preview 다음 슬라이드" />
+                        <ItemsControl ItemsSource="{Binding AvailableSectionLabels}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding}"
+                                            Command="{Binding DataContext.JumpToLyricsSectionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource EsButton.Secondary}"
+                                            MinWidth="30"
+                                            MinHeight="28"
+                                            Padding="6,0"
+                                            Margin="0,0,4,0"
+                                            AutomationProperties.Name="{Binding StringFormat='Preview {0} 절로 이동'}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </WrapPanel>
+
+                    <rendering:SlidePreviewControl Grid.Row="1"
+                                                   Margin="36,0"
+                                                   Title="{Binding SelectedItem.Title}"
+                                                   Kind="{Binding SelectedItem.Kind}"
+                                                   Source="{Binding SelectedItem.PreviewSource}"
+                                                   FillMode="{Binding SelectedItem.PreviewFillMode}"
+                                                   SlideNumber="{Binding SelectedItem.SlideNumber}"
+                                                   ShowSlideNumber="True"
+                                                   IsSelected="True" />
+                </Grid>
+            </Border>
+
+            <Border x:Name="ClassicOutputPane"
+                    Grid.Column="4"
+                    Grid.Row="0"
+                    Background="{DynamicResource Brush.Surface.Card}"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource CornerRadius.Small}"
+                    Padding="4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding LiveBar.CurrentItemTitle, TargetNullValue='Output'}"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Primary}"
+                                   AutomationProperties.Name="Output 현재 송출 항목" />
+                        <WrapPanel Grid.Column="1"
+                                   x:Name="ClassicOutputTopStrip"
+                                   Orientation="Horizontal"
+                                   HorizontalAlignment="Right">
+                            <Button Command="{Binding BlackScreenCommand}"
+                                    Style="{StaticResource EsButton.Danger}"
+                                    MinWidth="32"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="4,0,0,0"
+                                    ToolTip="검은 화면"
+                                    AutomationProperties.Name="Output 검은 화면">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
+                            </Button>
+                            <Button Command="{Binding ClearOutputCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="32"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="4,0,0,0"
+                                    Content="Tx"
+                                    ToolTip="화면 비우기"
+                                    AutomationProperties.Name="Output 화면 비우기" />
+                            <Button Command="{Binding RestoreOutputCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="32"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="4,0,0,0"
+                                    Content="LIVE"
+                                    ToolTip="출력 복귀"
+                                    AutomationProperties.Name="Output 복귀" />
+                        </WrapPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource Brush.Surface.Page}"
+                            BorderBrush="{DynamicResource Brush.Border.Default}"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Border Background="#FFF6E600"
+                                    Padding="4,2">
+                                <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Status.Danger}" />
+                            </Border>
+                            <ScrollViewer Grid.Row="1"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Margin="8"
+                                          AutomationProperties.Name="Output PowerPoint 썸네일 영역">
+                                <ItemsControl x:Name="ClassicOutputThumbnailGrid"
+                                              ItemsSource="{Binding PowerPoint.Thumbnails}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding SlideNumber}"
+                                                    Margin="6"
+                                                    Padding="0"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
+                                                    AutomationProperties.Name="{Binding SlideNumber, StringFormat=Output 슬라이드 {0}}">
+                                                <Border BorderThickness="5"
+                                                        Padding="3">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="BorderBrush" Value="Transparent" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="Red" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Grid>
+                                                        <Image Source="{Binding Image}"
+                                                               Width="180"
+                                                               Height="102"
+                                                               Stretch="Uniform" />
+                                                        <TextBlock Text="{Binding SlideNumber}"
+                                                                   HorizontalAlignment="Right"
+                                                                   VerticalAlignment="Top"
+                                                                   MinWidth="18"
+                                                                   TextAlignment="Center"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="Black"
+                                                                   Background="#FFF6E600" />
+                                                    </Grid>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <StackPanel Grid.Row="2"
+                                        Orientation="Horizontal"
+                                        Margin="4,0,4,4">
+                                <TextBlock Text="{Binding LiveBar.StateLabel}"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                           AutomationProperties.Name="Output 라이브 상태" />
+                                <TextBlock Text="  "
+                                           Style="{StaticResource Type.Caption.Style}" />
+                                <TextBlock Text="{Binding LiveBar.OutputMonitorName}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                           AutomationProperties.Name="Output 송출 모니터" />
+                                <TextBlock Text="{Binding LiveBar.PositionLabel, StringFormat='  {0}'}"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                           AutomationProperties.Name="Output 위치" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border x:Name="ClassicOutputSlidePane"
+                    Grid.Column="4"
+                    Grid.Row="2"
+                    Background="#808080"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    Padding="6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel x:Name="ClassicOutputBottomStrip"
+                               Orientation="Horizontal"
+                               Margin="0,0,0,6">
+                        <Button Command="{Binding BlackScreenCommand}"
+                                Style="{StaticResource EsButton.Danger}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                ToolTip="검은 화면"
+                                AutomationProperties.Name="Output 하단 검은 화면">
+                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
+                        </Button>
+                        <Button Command="{Binding ClearOutputCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="Tx"
+                                ToolTip="화면 비우기"
+                                AutomationProperties.Name="Output 하단 화면 비우기" />
+                        <Button Command="{Binding PreviousItemCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="⌃"
+                                ToolTip="이전 항목"
+                                AutomationProperties.Name="Output 이전 항목" />
+                        <Button Command="{Binding NextItemCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="⌄"
+                                ToolTip="다음 항목"
+                                AutomationProperties.Name="Output 다음 항목" />
+                        <Button Command="{Binding PreviousSlideCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="◀"
+                                ToolTip="이전 슬라이드"
+                                AutomationProperties.Name="Output 이전 슬라이드" />
+                        <Button Command="{Binding NextSlideCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                Margin="0,0,4,0"
+                                Content="▶"
+                                ToolTip="다음 슬라이드"
+                                AutomationProperties.Name="Output 다음 슬라이드" />
+                        <Button Command="{Binding RestoreOutputCommand}"
+                                Style="{StaticResource EsButton.Secondary}"
+                                MinWidth="30"
+                                MinHeight="28"
+                                Padding="6,0"
+                                ToolTip="출력 복귀"
+                                AutomationProperties.Name="Output 하단 복귀">
+                            <ui:SymbolIcon Symbol="ArrowReset24" />
+                        </Button>
+                    </WrapPanel>
+
+                    <Grid Grid.Row="1"
+                          Margin="80,18">
+                        <Border Background="#165D7A"
+                                BorderBrush="#111111"
+                                BorderThickness="0,0,8,8">
+                            <Grid>
+                                <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"
+                                           Margin="36,32,36,0"
+                                           VerticalAlignment="Top"
+                                           TextWrapping="Wrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxHeight="160"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#FFF6E600"
+                                           AutomationProperties.Name="Output 슬라이드 현재 항목" />
+                                <TextBlock Text="{Binding LiveBar.StateLabel}"
+                                           Margin="0,0,20,18"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Bottom"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="#FFF6E600" />
+                            </Grid>
+                        </Border>
+                        <Image x:Name="ClassicOutputLargeSlideImage"
+                               Source="{Binding PowerPoint.PreviewImage}"
+                               Stretch="Uniform"
+                               AutomationProperties.Name="Output 큰 PowerPoint 슬라이드" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border x:Name="ClassicInspectorFlyout"
+                    Grid.Column="4"
+                    Grid.RowSpan="3"
                     Width="340"
-                    Visibility="{Binding IsInspectorExpanded, Converter={StaticResource BoolToVis}}"
+                    HorizontalAlignment="Right"
+                    Panel.ZIndex="5"
+                    Visibility="Collapsed"
                     Background="{DynamicResource Brush.Surface.Card}"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"

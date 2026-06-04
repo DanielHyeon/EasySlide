@@ -79,6 +79,63 @@ public class MainMenuBarTests
         stopButton.Should().NotContain("CloseOutputCommand", "Stop Live must not drift into the Close Output button");
     }
 
+    [Fact]
+    public void MainWindow_UsesFrmMainStyleSourcePreviewOutputPanes()
+    {
+        var xaml = Xaml;
+
+        foreach (var pane in new[]
+        {
+            "ClassicFrmMainConsole",
+            "ClassicSourcePane",
+            "ClassicPreviewPane",
+            "ClassicPreviewSlidePane",
+            "ClassicOutputPane",
+            "ClassicOutputSlidePane",
+        })
+        {
+            xaml.Should().Contain($"x:Name=\"{pane}\"", $"{pane} keeps the FrmMain source/preview/output geometry discoverable");
+        }
+
+        xaml.Should().Contain("Grid.Column=\"4\"", "Output should occupy the right-side FrmMain column, not the old inspector slot");
+        xaml.Should().Contain("Grid.Row=\"2\"", "Preview and Output should both have lower slide surfaces like FrmMain");
+    }
+
+    [Fact]
+    public void ClassicOutputPane_ShowsPowerPointThumbnailsAndLargeOutputSlide()
+    {
+        var xaml = Xaml;
+
+        xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
+        xaml.Should().Contain("ItemsSource=\"{Binding PowerPoint.Thumbnails}\"", "Output thumbnails must use the PPT thumbnail source");
+        xaml.Should().Contain("Command=\"{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}\"",
+            "thumbnail clicks should navigate slides");
+        xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
+        xaml.Should().Contain("Source=\"{Binding PowerPoint.PreviewImage}\"", "large Output slide should show the current PPT preview image when available");
+    }
+
+    [Fact]
+    public void ClassicPreviewAndOutputCommandStrips_StayAttachedToTheirPanes()
+    {
+        var xaml = Xaml;
+
+        foreach (var strip in new[]
+        {
+            "ClassicPreviewTopStrip",
+            "ClassicPreviewBottomStrip",
+            "ClassicOutputTopStrip",
+            "ClassicOutputBottomStrip",
+        })
+        {
+            xaml.Should().Contain($"x:Name=\"{strip}\"", $"{strip} should stay attached to the local Preview/Output pane");
+        }
+
+        xaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "Preview strip exposes send-and-next");
+        xaml.Should().Contain("{Binding BlackScreenCommand}", "Output strip exposes Black");
+        xaml.Should().Contain("{Binding ClearOutputCommand}", "Output strip exposes Clear");
+        xaml.Should().Contain("{Binding RestoreOutputCommand}", "Output strip exposes Restore");
+    }
+
     private static string OperatorBarXaml
     {
         get
