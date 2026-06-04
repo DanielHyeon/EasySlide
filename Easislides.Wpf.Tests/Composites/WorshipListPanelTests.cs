@@ -68,6 +68,9 @@ public class WorshipListPanelTests
             .Should().BeTrue("SessionList row should remain a compact FrmMain-style strip");
         composite.Descendants().Any(e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip2")
             .Should().BeTrue("WL_Up/WL_Down/WL_Delete commands should stay in the visible legacy tool strip");
+        var wlAdd = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Add");
+        Attr(wlAdd, "Click").Should().Be("WL_Add_Click", "FrmMain WL_Add should route the current source selection to Worship List");
+        Attr(wlAdd, "AutomationProperties.Name").Should().Contain("예배 순서에 추가");
         composite.Descendants().Any(e => e.Name.LocalName == "ComboBox" && Attr(e, "Tag") == "SessionList")
             .Should().BeTrue("saved worship list combo should retain the FrmMain SessionList role");
     }
@@ -99,6 +102,8 @@ public class WorshipListPanelTests
             .Should().BeTrue("the second lower-left role is Praise Book");
         listTabs!.Descendants().Any(e => e.Name.LocalName == "WorshipListPanel")
             .Should().BeTrue("WorshipListPanel is hosted inside the lower-left Worship List tab");
+        Attr(host!, "AddSelectedSourceRequested").Should().Be("WorshipListPanel_AddSelectedSourceRequested",
+            "WL_Add is a lower-left control, but MainWindow owns the active upper source tab");
         Attr(listTabs.Parent!, "Grid.Column").Should().Be("0", "lower-left tabs stay in the left column");
 
         Attr(host!, "DataContext").Should().BeEmpty("DataContext inheritance must keep MainViewModel bindings intact");

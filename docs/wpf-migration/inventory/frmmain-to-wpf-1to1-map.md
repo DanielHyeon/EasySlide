@@ -64,7 +64,7 @@
 | `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2 | compact first-screen combo exists; verify actual `C:\EasiSlides\Admin\WorshipLists` list |
 | `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |
 | `WL_Manage` | manage list command | partial | 3 | direct or WPF equivalent |
-| `WL_Add` | add selected source command | partial | 3 | source-aware add parity |
+| `WL_Add` | `WL_Add` + `WorshipListPanel_AddSelectedSourceRequested` | partial | 3 | visible lower-left Add button now routes by active `LeftBrowserTabs` source for Folders, Bibles, InfoScreen, PowerPoint, Media, and Search; exact multi-select/source edge cases still incomplete |
 | `WL_Open` | load selected/open file | partial | 2 | exact `.esw`/template flow |
 | `WL_Up`, `WL_Down` | `ClassicWorshipListToolStrip2` move commands/drag reorder | partial | 3 | compact visible toolbar and keyboard paths exist; exact legacy vertical strip layout still incomplete |
 | `WL_Delete` | remove selected | implemented | 3 | keep Delete key tests |

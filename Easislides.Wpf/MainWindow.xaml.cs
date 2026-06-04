@@ -521,6 +521,107 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void WorshipListPanel_AddSelectedSourceRequested(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
+    }
+
+    private async Task AddSelectedSourceToWorshipListAsync(MainViewModel viewModel)
+    {
+        if (LeftBrowserTabs.SelectedItem is not TabItem { Tag: string tag })
+        {
+            viewModel.StatusText = "추가할 소스 탭이 선택되지 않았습니다.";
+            return;
+        }
+
+        switch (tag)
+        {
+            case "Folders":
+                EnsureLibraryLoadedOnce();
+                viewModel.AddSong(viewModel.Library.SelectedSong);
+                break;
+
+            case "Bibles":
+                EnsureBibleLoadedOnce();
+                var selection = ResolveBibleSelectionForAdd(
+                    viewModel.Bible,
+                    BiblePassageBox.SelectionStart,
+                    BiblePassageBox.SelectionLength);
+                if (string.IsNullOrWhiteSpace(selection.IdString))
+                {
+                    viewModel.StatusText = "선택된 성경 구절이 없습니다.";
+                    return;
+                }
+
+                viewModel.AddBibleSelection(selection);
+                break;
+
+            case "InfoScreenSource":
+                EnsureInlineInfoScreenLoadedOnce(viewModel);
+                if (_inlineInfoScreens?.AddSelectedCommand.CanExecute(null) == true)
+                {
+                    await _inlineInfoScreens.AddSelectedCommand.ExecuteAsync(null).ConfigureAwait(true);
+                }
+                else
+                {
+                    viewModel.StatusText = "선택된 InfoScreen 항목이 없습니다.";
+                }
+
+                break;
+
+            case "PowerPointSource":
+                EnsureInlinePowerPointLoadedOnce(viewModel);
+                if (_inlinePowerPoint?.AddSelectedCommand.CanExecute(null) == true)
+                {
+                    _inlinePowerPoint.AddSelectedCommand.Execute(null);
+                }
+                else
+                {
+                    viewModel.StatusText = "선택된 PowerPoint 파일이 없습니다.";
+                }
+
+                break;
+
+            case "MediaSource":
+                EnsureInlineMediaLoadedOnce(viewModel);
+                if (_inlineMedia?.AddSelectedCommand.CanExecute(null) == true)
+                {
+                    _inlineMedia.AddSelectedCommand.Execute(null);
+                }
+                else
+                {
+                    viewModel.StatusText = "선택된 미디어 파일이 없습니다.";
+                }
+
+                break;
+
+            case "Search":
+                if (viewModel.AddSearchedSongCommand.CanExecute(null))
+                {
+                    await viewModel.AddSearchedSongCommand.ExecuteAsync(null).ConfigureAwait(true);
+                }
+                else if (viewModel.AddLookupTitleCommand.CanExecute(null))
+                {
+                    await viewModel.AddLookupTitleCommand.ExecuteAsync(null).ConfigureAwait(true);
+                }
+                else
+                {
+                    viewModel.StatusText = "선택된 검색 결과가 없습니다.";
+                }
+
+                break;
+
+            default:
+                viewModel.StatusText = "현재 소스 탭은 예배 순서 추가 대상이 아닙니다.";
+                break;
+        }
+    }
+
     // 성경 본문 드래그-드롭 시작점(왼쪽 버튼 누른 위치)과 무장 여부 — 이미 선택된 글자 위를 눌렀을 때만 드래그를 시작한다
     // (새 선택 제스처와 충돌하지 않도록). 레거시 인라인 성경의 본문 드래그→예배순서 드롭 대응.
     private Point _bibleDragStart;

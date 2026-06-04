@@ -91,6 +91,17 @@
                         DockPanel.Dock="Top"
                         Orientation="Horizontal"
                         Margin="0,0,0,4">
+                <Button x:Name="WL_Add"
+                        Click="WL_Add_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        ToolTip="현재 선택된 소스 항목을 예배 순서에 추가"
+                        AutomationProperties.Name="현재 소스 항목을 예배 순서에 추가"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="Add24" />
+                </Button>
                 <Button Command="{Binding MoveSelectedItemUpCommand}"
                         Style="{StaticResource EsButton.Secondary}"
                         Width="28"

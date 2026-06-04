@@ -23,9 +23,17 @@ public partial class WorshipListPanel : UserControl
     private Point _dragStartPoint;
     private LiveQueueItem? _dragCandidate;
 
+    public event RoutedEventHandler? AddSelectedSourceRequested;
+
     public WorshipListPanel()
     {
         InitializeComponent();
+    }
+
+    private void WL_Add_Click(object sender, RoutedEventArgs e)
+    {
+        AddSelectedSourceRequested?.Invoke(this, e);
+        e.Handled = true;
     }
 
     // 예배 순서 목록에 포커스가 있을 때 Delete 키 = 선택 항목 제거(목록 삭제 표준 키). 판단은 순수 WorshipListKeyMap,
