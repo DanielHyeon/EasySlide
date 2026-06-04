@@ -30,10 +30,10 @@
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
 | `tabControlSource` | `LeftBrowserTabs` | partial | 1 | enforce exact tab order and tab roles |
-| `tabFolders` | `Folders` tab | partial | 2/3 | real folder data, list columns, double-click, drag, context menu |
-| `SongFolder` | folder selector in Folders tab | partial | 2 | match legacy folder list and selected folder behavior |
-| `SongsList` | `LibrarySongList` | partial | 3 | add legacy columns, selection, double-click, drag insert |
-| `Folders_WordCount` | no exact first-screen target | missing | 5 | add or explicitly defer |
+| `tabFolders` | `Folders` tab / `ClassicFoldersSourceGrid` | partial | 2/3 | compact FrmMain-style top strip now exists; context menu/edit commands still incomplete |
+| `SongFolder` | `ClassicSongFolderCombo` (`Tag=SongFolder`) | partial | 2 | first-screen combo is mapped; legacy folder management still lives outside this strip |
+| `SongsList` | `LibrarySongList` (`Tag=SongsList`) | partial | 3 | headerless `ListView/GridView`, selection, double-click, and drag exist; full context menu/edit parity incomplete |
+| `Folders_WordCount` | `ClassicFoldersWordCountMode` (`Tag=Folders_WordCount`) | partial | 5 | stroke-count sort is first-screen; exact check-button behavior still incomplete |
 | `tabFiles` | `InfoScreenSourceTab` | partial | 2/3 | folder selector, list management, import/edit/copy/move/delete |
 | `InfoScreenFolder` | inline InfoScreen folder selector | partial | 2 | load legacy groups/folders |
 | `InfoScreenList` | `InlineInfoScreenList` | partial | 3 | add context menu, edit/manage, drag insert |
@@ -61,12 +61,12 @@
 | --- | --- | --- | --- | --- |
 | `tabControlLists` | `LeftListTabs` | partial | 1 | exact visual density and tab behavior |
 | `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load, all toolbar/context commands |
-| `SessionList` | saved Worship List combo | partial | 2 | verify actual `C:\EasiSlides\Admin\WorshipLists` list |
-| `WorshipListItems` | `WorshipListPanel.QueueList` | partial | 3/4 | legacy columns/icons, preview/play/play-on-output |
+| `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2 | compact first-screen combo exists; verify actual `C:\EasiSlides\Admin\WorshipLists` list |
+| `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |
 | `WL_Manage` | manage list command | partial | 3 | direct or WPF equivalent |
 | `WL_Add` | add selected source command | partial | 3 | source-aware add parity |
 | `WL_Open` | load selected/open file | partial | 2 | exact `.esw`/template flow |
-| `WL_Up`, `WL_Down` | move commands/drag reorder | partial | 3 | button and keyboard parity |
+| `WL_Up`, `WL_Down` | `ClassicWorshipListToolStrip2` move commands/drag reorder | partial | 3 | compact visible toolbar and keyboard paths exist; exact legacy vertical strip layout still incomplete |
 | `WL_Delete` | remove selected | implemented | 3 | keep Delete key tests |
 | `WL_Word`, `WL_Notes` | no full inline target | missing | 5/7 | export/notes decision needed |
 | `CMenuWorship_*` | WPF context menu | partial | 3/4 | select all, clear, edit, play, play on output, usage |

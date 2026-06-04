@@ -947,9 +947,9 @@
                                 <TextBlock Text="Folders" />
                             </StackPanel>
                         </TabItem.Header>
-                    <Grid Margin="0,8,0,0">
+                    <Grid x:Name="ClassicFoldersSourceGrid"
+                          Margin="3,5,3,0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -957,54 +957,69 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Orientation="Horizontal"
-                                    Margin="0,0,0,8">
-                            <Button Command="{Binding Library.LoadCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Margin="0,0,8,0"
-                                    Content="불러오기"
-                                    AutomationProperties.Name="라이브러리 불러오기" />
-                            <Button Command="{Binding AddSelectedLibrarySongCommand}"
-                                    Style="{StaticResource EsButton.Primary}"
-                                    Content="예배 순서에 추가"
-                                    AutomationProperties.Name="선택 곡을 예배 순서에 추가" />
-                        </StackPanel>
+                        <Grid x:Name="ClassicFoldersTopStrip"
+                              Grid.Row="0"
+                              Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="ClassicSongFolderCombo"
+                                      Tag="SongFolder"
+                                      ItemsSource="{Binding Library.Folders}"
+                                      SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
+                                      DisplayMemberPath="Name"
+                                      MinHeight="28"
+                                      AutomationProperties.Name="폴더 선택" />
+                            <StackPanel x:Name="ClassicFoldersToolStrip"
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Margin="4,0,0,0">
+                                <Button Command="{Binding Library.LoadCommand}"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
+                                        Margin="0,0,3,0"
+                                        ToolTip="라이브러리 불러오기"
+                                        AutomationProperties.Name="라이브러리 불러오기">
+                                    <ui:SymbolIcon Symbol="ArrowClockwise24" />
+                                </Button>
+                                <Button Command="{Binding AddSelectedLibrarySongCommand}"
+                                        Style="{StaticResource EsButton.Secondary}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
+                                        Margin="0,0,3,0"
+                                        ToolTip="선택 곡을 예배 순서에 추가"
+                                        AutomationProperties.Name="선택 곡을 예배 순서에 추가">
+                                    <ui:SymbolIcon Symbol="Add24" />
+                                </Button>
+                                <ComboBox x:Name="ClassicFoldersWordCountMode"
+                                          Tag="Folders_WordCount"
+                                          ItemsSource="{Binding Library.SortOptions}"
+                                          SelectedValue="{Binding Library.SortMode, Mode=TwoWay}"
+                                          SelectedValuePath="Mode"
+                                          DisplayMemberPath="Label"
+                                          MinHeight="28"
+                                          Width="112"
+                                          ToolTip="Folders_WordCount / 곡 목록 정렬"
+                                          AutomationProperties.Name="Folders_WordCount 정렬" />
+                            </StackPanel>
+                        </Grid>
 
                         <TextBox Grid.Row="1"
                                  Text="{Binding Library.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MinHeight="34"
-                                 Margin="0,0,0,8"
+                                 MinHeight="28"
+                                 Margin="0,0,0,4"
                                  ToolTip="제목·가사·분류 검색"
                                  AutomationProperties.Name="곡 검색" />
 
-                        <Grid Grid.Row="2" Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ComboBox ItemsSource="{Binding Library.Folders}"
-                                      SelectedItem="{Binding Library.SelectedFolder, Mode=TwoWay}"
-                                      DisplayMemberPath="Name"
-                                      MinHeight="34"
-                                      AutomationProperties.Name="폴더 선택" />
-                            <!-- 곡 목록 정렬(FrmMain 곡 목록 정렬) — 원래순서/제목순/곡번호순. 데이터 재조회 없이 표시만 재정렬. -->
-                            <ComboBox Grid.Column="2"
-                                      ItemsSource="{Binding Library.SortOptions}"
-                                      SelectedValue="{Binding Library.SortMode, Mode=TwoWay}"
-                                      SelectedValuePath="Mode"
-                                      DisplayMemberPath="Label"
-                                      MinWidth="110"
-                                      MinHeight="34"
-                                      ToolTip="곡 목록 정렬 방식"
-                                      AutomationProperties.Name="곡 목록 정렬" />
-                        </Grid>
-
                         <!-- A/B/C(초성) 점프 바 — 표시된 곡의 머리글자를 눌러 그 글자로 시작하는 첫 곡으로 이동(FrmMain 곡 목록 점프).
                              곡이 없으면 머리글자도 없어 빈 줄이 된다. -->
-                        <ItemsControl Grid.Row="3"
+                        <ItemsControl Grid.Row="2"
                                       ItemsSource="{Binding Library.AvailableInitials}"
-                                      Margin="0,0,0,8"
+                                      Margin="0,0,0,4"
                                       AutomationProperties.Name="머리글자 점프 바">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -1020,46 +1035,69 @@
                                             Style="{StaticResource EsButton.Secondary}"
                                             MinWidth="30"
                                             Padding="6,2"
-                                            Margin="0,0,4,4"
+                                            Margin="0,0,3,3"
                                             ToolTip="이 머리글자로 시작하는 첫 곡으로 이동" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <ListBox Grid.Row="4"
-                                 x:Name="LibrarySongList"
-                                 ItemsSource="{Binding Library.Songs}"
-                                 SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
-                                 PreviewMouseLeftButtonDown="LibrarySongList_PreviewMouseLeftButtonDown"
-                                 PreviewMouseMove="LibrarySongList_PreviewMouseMove"
-                                 AutomationProperties.Name="곡 목록">
+                        <ListView Grid.Row="3"
+                                  x:Name="LibrarySongList"
+                                  ItemsSource="{Binding Library.Songs}"
+                                  SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
+                                  Tag="SongsList"
+                                  PreviewMouseLeftButtonDown="LibrarySongList_PreviewMouseLeftButtonDown"
+                                  PreviewMouseMove="LibrarySongList_PreviewMouseMove"
+                                  AutomationProperties.Name="곡 목록"
+                                  BorderThickness="1"
+                                  FontSize="12"
+                                  HorizontalContentAlignment="Stretch"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListView.Resources>
+                                <Style TargetType="{x:Type GridViewColumnHeader}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </Style>
+                                <Style TargetType="{x:Type ListViewItem}">
+                                    <Setter Property="MinHeight" Value="20" />
+                                    <Setter Property="Padding" Value="2,0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.Resources>
                             <!-- 곡 한 줄 표시: "곡 번호 표시"(Use Song Numbering) on 이면 "번호. 제목", off 면 제목만.
                                  곡번호표시 값은 ListBox 의 DataContext(Library)에서 읽어, 토글하면 모든 줄이 즉시 갱신된다. -->
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock TextTrimming="CharacterEllipsis">
-                                        <TextBlock.Text>
-                                            <MultiBinding Converter="{StaticResource SongRowDisplay}">
-                                                <Binding Path="Title" />
-                                                <Binding Path="SongNumber" />
-                                                <Binding Path="DataContext.Library.UseSongNumbering"
-                                                         RelativeSource="{RelativeSource AncestorType=ListBox}" />
-                                            </MultiBinding>
-                                        </TextBlock.Text>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                            <ListBox.InputBindings>
+                            <ListView.View>
+                                <GridView AllowsColumnReorder="False">
+                                    <GridViewColumn Width="270">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock TextTrimming="CharacterEllipsis">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource SongRowDisplay}">
+                                                            <Binding Path="Title" />
+                                                            <Binding Path="SongNumber" />
+                                                            <Binding Path="DataContext.Library.UseSongNumbering"
+                                                                     RelativeSource="{RelativeSource AncestorType=ListView}" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="70"
+                                                    DisplayMemberBinding="{Binding Category}" />
+                                </GridView>
+                            </ListView.View>
+                            <ListView.InputBindings>
                                 <!-- 더블클릭으로 예배 순서에 추가(선택 후 추가). -->
                                 <MouseBinding MouseAction="LeftDoubleClick"
                                               Command="{Binding AddSelectedLibrarySongCommand}" />
-                            </ListBox.InputBindings>
-                        </ListBox>
+                            </ListView.InputBindings>
+                        </ListView>
 
                         <!-- 라이브러리 곡 목록 빈 상태 안내 — 곡을 한 번 불러왔는데(HasLoadedSongs) 표시할 곡이 0건일 때만.
                              불러오기 전·로딩 중에는 뜨지 않는다. 문구는 상황(빈 폴더 / 검색 0건)에 따라 VM이 정해 준다.
                              검색 빈 상태(154)와 똑같이 ListBox "다음"에 둬 z-order 안전, 클릭은 통과(IsHitTestVisible=False)라 더블클릭 추가를 막지 않는다. -->
-                        <TextBlock Grid.Row="4"
+                        <TextBlock Grid.Row="3"
                                    Text="{Binding Library.LibraryEmptyStateMessage}"
                                    TextWrapping="Wrap"
                                    TextAlignment="Center"
@@ -1072,9 +1110,9 @@
                                    Visibility="{Binding Library.HasLibraryEmptyState, Converter={StaticResource BoolToVis}}"
                                    AutomationProperties.Name="라이브러리 곡 없음" />
 
-                        <TextBlock Grid.Row="5"
+                        <TextBlock Grid.Row="4"
                                    Text="{Binding Library.StatusMessage}"
-                                   Margin="0,8,0,0"
+                                   Margin="0,4,0,0"
                                    TextTrimming="CharacterEllipsis"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />

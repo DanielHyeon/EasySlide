@@ -42,8 +42,9 @@ public sealed class LibraryTabEmptyStateTests
 
         // 안내와 곡 목록이 같은 셀(Row 4)에 겹쳐야 "오버레이"가 성립한다 — 둘 다 Grid.Row=4 인지 고정.
         var songList = library.Descendants().Single(
-            e => e.Name.LocalName == "ListBox" && Attr(e, "Name") == "LibrarySongList");
-        Attr(emptyState!, "Grid.Row").Should().Be("4");
-        Attr(songList, "Grid.Row").Should().Be("4", "안내와 곡 목록이 같은 셀에 겹쳐야 오버레이가 됨");
+            e => e.Name.LocalName == "ListView" && Attr(e, "Name") == "LibrarySongList");
+        Attr(songList, "Tag").Should().Be("SongsList", "WPF Folders list should keep the FrmMain SongsList role visible");
+        Attr(emptyState!, "Grid.Row").Should().Be("3");
+        Attr(songList, "Grid.Row").Should().Be("3", "안내와 곡 목록이 같은 셀에 겹쳐야 오버레이가 됨");
     }
 }

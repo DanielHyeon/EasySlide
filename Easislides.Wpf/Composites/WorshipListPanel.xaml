@@ -20,16 +20,20 @@
         동작 동등성이 최우선 — View만 분리하고 ViewModel·바인딩은 그대로 둔다.
         DataContext 는 호스트(MainWindow)에서 상속된 MainViewModel 을 그대로 사용한다.
     -->
-    <Border Background="{DynamicResource Brush.Surface.Card}"
+    <Border x:Name="ClassicWorshipListPanelFrame"
+            Background="{DynamicResource Brush.Surface.Card}"
             BorderBrush="{DynamicResource Brush.Border.Default}"
             BorderThickness="1"
-            CornerRadius="{StaticResource CornerRadius.Medium}"
-            Padding="{StaticResource Thickness.Lg}">
+            CornerRadius="0"
+            Padding="4">
         <DockPanel>
             <!-- 제목 + 미저장 변경 표시 — 저장/불러오기 이후 큐를 바꾸면 "● 수정됨"이 떠 저장을 잊지 않게 한다(미저장 아니면=false 면 숨김). -->
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+            <StackPanel x:Name="ClassicWorshipListCaptionStrip"
+                        DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        Margin="0,0,0,3">
                 <TextBlock Text="예배 순서"
-                           Style="{StaticResource Type.Title3.Style}"
+                           Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}"
                            VerticalAlignment="Center" />
                 <TextBlock Text="● 수정됨"
@@ -47,24 +51,31 @@
                 실수로 작업물을 날리지 않도록 콤보 선택만으로는 적재하지 않고, 명시적 버튼을 눌러야 적재한다.
                 콤보를 열 때 DropDownOpened 로 목록을 새로고침(코드비하인드 → 검증된 VM.RefreshSavedWorshipListNames).
             -->
-            <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+            <Grid x:Name="ClassicWorshipListSessionStrip"
+                  DockPanel.Dock="Top"
+                  Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0"
                           x:Name="SessionCombo"
+                          Tag="SessionList"
                           DropDownOpened="SessionCombo_DropDownOpened"
                           KeyDown="SessionCombo_KeyDown"
                           MouseDoubleClick="SessionCombo_MouseDoubleClick"
                           ItemsSource="{Binding SavedWorshipListNames}"
                           SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
+                          MinHeight="26"
                           ToolTip="저장된 예배 순서를 골라 '불러오기'로 적재합니다. 콤보를 열면 목록이 새로고침됩니다."
                           AutomationProperties.Name="저장된 예배 순서 선택" />
                 <Button Grid.Column="1"
                         Command="{Binding LoadSelectedWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        Margin="8,0,0,0"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        Margin="4,0,0,0"
                         ToolTip="선택한 예배 순서를 불러옵니다(현재 큐를 대체)"
                         AutomationProperties.Name="선택한 예배 순서 불러오기">
                     <ui:SymbolIcon Symbol="FolderOpen24" />
@@ -76,48 +87,68 @@
                 FrmMain 의 "Move Item Up/Down"·항목 제거에 대응. 아이콘 전용 버튼이라
                 접근성(AutomationProperties.Name)·툴팁을 함께 둔다.
             -->
-            <StackPanel DockPanel.Dock="Bottom"
+            <StackPanel x:Name="ClassicWorshipListToolStrip2"
+                        DockPanel.Dock="Top"
                         Orientation="Horizontal"
-                        Margin="0,12,0,0">
+                        Margin="0,0,0,4">
                 <Button Command="{Binding MoveSelectedItemUpCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="선택 항목을 위로 이동 (Ctrl+Shift+↑)"
                         AutomationProperties.Name="항목 위로 이동 (Ctrl+Shift+Up)"
-                        Margin="0,0,8,0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowUp24" />
                 </Button>
                 <Button Command="{Binding MoveSelectedItemDownCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="선택 항목을 아래로 이동 (Ctrl+Shift+↓)"
                         AutomationProperties.Name="항목 아래로 이동 (Ctrl+Shift+Down)"
-                        Margin="0,0,8,0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowDown24" />
                 </Button>
                 <!-- 맨 위로/맨 아래로 한 번에 이동(여러 번 드래그·클릭 없이, 모던 재정렬 UX). -->
                 <Button Command="{Binding MoveSelectedItemToTopCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="선택 항목을 맨 위로 이동"
                         AutomationProperties.Name="항목 맨 위로 이동"
-                        Margin="0,0,8,0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowUpload24" />
                 </Button>
                 <Button Command="{Binding MoveSelectedItemToBottomCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="선택 항목을 맨 아래로 이동"
                         AutomationProperties.Name="항목 맨 아래로 이동"
-                        Margin="0,0,8,0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowDownload24" />
                 </Button>
                 <Button Command="{Binding RemoveSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="선택 항목을 예배 순서에서 제거 (Del)"
-                        AutomationProperties.Name="항목 제거 (Delete 키)">
+                        AutomationProperties.Name="항목 제거 (Delete 키)"
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
                 <!-- 선택 항목 복제(같은 곡을 예배 중 두 번 부를 때 등) — 같은 내용·새 Id 로 바로 뒤에 추가. -->
                 <Button Command="{Binding DuplicateSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        Margin="8,0,0,0"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        Margin="0,0,3,0"
                         ToolTip="선택 항목을 같은 내용으로 복제해 바로 뒤에 추가 (Ctrl+D)"
                         AutomationProperties.Name="선택 항목 복제 (Ctrl+D)">
                     <ui:SymbolIcon Symbol="Copy24" />
@@ -125,7 +156,10 @@
                 <!-- 현재 송출 항목 선택 — 미리보기로 앞서 본 뒤 LIVE 배지 항목으로 선택을 되돌린다. 송출 중일 때만 활성. -->
                 <Button Command="{Binding SelectLiveItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        Margin="8,0,0,0"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        Margin="0,0,3,0"
                         ToolTip="현재 송출(LIVE) 중인 항목으로 선택을 되돌립니다"
                         AutomationProperties.Name="현재 송출 항목 선택">
                     <ui:SymbolIcon Symbol="Target24" />
@@ -133,23 +167,32 @@
                 <!-- 예배 순서 전체 비우기(레거시 Empty) + 되돌리기 — 실수로 다 지워도 한 번은 복구 가능. -->
                 <Button Command="{Binding ClearWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="예배 순서 전체를 비웁니다(되돌리기로 복구 가능)"
                         AutomationProperties.Name="예배 순서 전체 비우기"
-                        Margin="8,0,0,0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Dismiss24" />
                 </Button>
                 <Button Command="{Binding RestoreClearedWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="방금 비운 예배 순서를 되돌립니다"
                         AutomationProperties.Name="예배 순서 되돌리기"
-                        Margin="0,0,8,0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowUndo24" />
                 </Button>
                 <Button Command="{Binding ValidateWorshipListCommand}"
                         Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
                         ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일을 점검"
                         AutomationProperties.Name="예배 순서 검증"
-                        Margin="8,0,0,0">
+                        Margin="0">
                     <ui:SymbolIcon Symbol="CheckmarkCircle24" />
                 </Button>
             </StackPanel>
@@ -216,69 +259,93 @@
                 MainViewModel.MoveQueueItem(참조 기반·범위 클램프)에 위임한다(자동회전 타이머와 동일 철학).
             -->
             <Grid>
-                <ListBox x:Name="QueueList"
-                         ItemsSource="{Binding Queue}"
-                         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                         AutomationProperties.Name="예배 순서 목록"
-                         AllowDrop="True"
-                         KeyDown="QueueList_KeyDown"
-                         PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
-                         PreviewMouseMove="QueueList_PreviewMouseMove"
-                         DragOver="QueueList_DragOver"
-                         Drop="QueueList_Drop"
-                         BorderThickness="0">
-                    <!-- 항목 한 줄 = [종류 아이콘] + 제목. 종류별 Fluent 아이콘으로 곡/성경/PPT/미디어/공지를 한눈에 구분(현대 UI 업그레이드). -->
-                    <ListBox.ItemTemplate>
-                        <!-- 행의 자동화 이름을 제목으로 고정 — 종류 아이콘은 장식이라 스크린리더가 글리프 대신 제목만 읽게 한다(a11y 무회귀). -->
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal"
-                                        AutomationProperties.Name="{Binding Title}">
-                                <!-- 마우스 올리면 "종류 — 전체 제목" 툴팁 — 아이콘 뜻 설명 + 길어서 잘린 제목 전체 보기. -->
-                                <StackPanel.ToolTip>
-                                    <MultiBinding StringFormat="{}{0} — {1}">
-                                        <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
-                                        <Binding Path="Title" />
-                                    </MultiBinding>
-                                </StackPanel.ToolTip>
-                                <ui:SymbolIcon Symbol="{Binding Kind, Converter={StaticResource KindToSymbol}}"
-                                               FontSize="16"
-                                               VerticalAlignment="Center"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,0,8,0" />
-                                <TextBlock Text="{Binding Title}"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" />
-                                <!-- LIVE 배지 — 이 항목 Id 가 라이브 항목 Id 와 같을 때만 보인다(지금 송출 중인 항목 한눈에).
-                                     라이브 항목 Id 는 ListBox 의 DataContext(MainViewModel)에서 가져온다. 색은 LiveBar 와 같은 라이브 토큰(Brush.Live.Active)으로 통일(테마 일관). -->
-                                <Border Background="{DynamicResource Brush.Live.Active}"
-                                        CornerRadius="3"
-                                        Padding="5,1"
-                                        Margin="8,0,0,0"
-                                        VerticalAlignment="Center">
-                                    <Border.Visibility>
-                                        <MultiBinding Converter="{StaticResource LiveBadge}">
-                                            <Binding Path="Id" />
-                                            <Binding Path="DataContext.LiveItemId" RelativeSource="{RelativeSource AncestorType=ListBox}" />
-                                        </MultiBinding>
-                                    </Border.Visibility>
-                                    <TextBlock Text="LIVE"
-                                               Foreground="White"
-                                               FontSize="10"
-                                               FontWeight="Bold"
-                                               AutomationProperties.Name="송출 중" />
-                                </Border>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
+                <ListView x:Name="QueueList"
+                          ItemsSource="{Binding Queue}"
+                          SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                          Tag="WorshipListItems"
+                          AutomationProperties.Name="예배 순서 목록"
+                          AllowDrop="True"
+                          KeyDown="QueueList_KeyDown"
+                          PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
+                          PreviewMouseMove="QueueList_PreviewMouseMove"
+                          DragOver="QueueList_DragOver"
+                          Drop="QueueList_Drop"
+                          BorderThickness="1"
+                          FontSize="12"
+                          HorizontalContentAlignment="Stretch"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.Resources>
+                        <Style TargetType="{x:Type GridViewColumnHeader}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </Style>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="MinHeight" Value="22" />
+                            <Setter Property="Padding" Value="2,0" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListView.Resources>
+                    <!-- 항목 한 줄 = [종류 아이콘] + 제목 + LIVE. FrmMain ListView Details 처럼 헤더는 숨기고 조밀한 행만 보여 준다. -->
+                    <ListView.View>
+                        <GridView AllowsColumnReorder="False">
+                            <GridViewColumn Width="28">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ui:SymbolIcon Symbol="{Binding Kind, Converter={StaticResource KindToSymbol}}"
+                                                       FontSize="16"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="260">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <!-- 행의 자동화 이름을 제목으로 고정 — 종류 아이콘은 장식이라 스크린리더가 글리프 대신 제목만 읽게 한다(a11y 무회귀). -->
+                                        <StackPanel Orientation="Horizontal"
+                                                    AutomationProperties.Name="{Binding Title}">
+                                            <!-- 마우스 올리면 "종류 — 전체 제목" 툴팁 — 아이콘 뜻 설명 + 길어서 잘린 제목 전체 보기. -->
+                                            <StackPanel.ToolTip>
+                                                <MultiBinding StringFormat="{}{0} — {1}">
+                                                    <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
+                                                    <Binding Path="Title" />
+                                                </MultiBinding>
+                                            </StackPanel.ToolTip>
+                                            <TextBlock Text="{Binding Title}"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <!-- LIVE 배지 — 이 항목 Id 가 라이브 항목 Id 와 같을 때만 보인다(지금 송출 중인 항목 한눈에). -->
+                                            <Border Background="{DynamicResource Brush.Live.Active}"
+                                                    CornerRadius="3"
+                                                    Padding="5,1"
+                                                    Margin="8,0,0,0"
+                                                    VerticalAlignment="Center">
+                                                <Border.Visibility>
+                                                    <MultiBinding Converter="{StaticResource LiveBadge}">
+                                                        <Binding Path="Id" />
+                                                        <Binding Path="DataContext.LiveItemId" RelativeSource="{RelativeSource AncestorType=ListView}" />
+                                                    </MultiBinding>
+                                                </Border.Visibility>
+                                                <TextBlock Text="LIVE"
+                                                           Foreground="White"
+                                                           FontSize="10"
+                                                           FontWeight="Bold"
+                                                           AutomationProperties.Name="송출 중" />
+                                            </Border>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
                     <!-- 더블클릭으로 그 항목을 라이브 송출(레거시 FrmMain 예배순서 더블클릭 → Go Live).
                          단일 클릭은 선택만, 더블클릭은 GoLive(안전 확인 5초 후 송출). 드래그 정렬과 공존(이동 없으면 드래그 미발동). -->
-                    <ListBox.InputBindings>
+                    <ListView.InputBindings>
                         <MouseBinding MouseAction="LeftDoubleClick"
                                       Command="{Binding GoLiveCommand}" />
-                    </ListBox.InputBindings>
+                    </ListView.InputBindings>
                     <!-- 항목 우클릭 — 개별 서식 사용 토글(레거시 Ind_checkBox). 끄면 전역 기본 서식으로 송출.
                          ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->
-                    <ListBox.ContextMenu>
+                    <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="개별 서식 사용"
                                       IsChecked="{Binding PlacementTarget.DataContext.SelectedItem.UseIndividualFormatting, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
@@ -511,8 +578,8 @@
                             <MenuItem Header="전 항목 서식 지우기"
                                       Command="{Binding PlacementTarget.DataContext.ClearAllItemsFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                         </ContextMenu>
-                    </ListBox.ContextMenu>
-                </ListBox>
+                    </ListView.ContextMenu>
+                </ListView>
 
                 <!-- 빈 상태 안내 — 큐가 비어 있을 때만(더미 시드 제거 후 첫 화면). 운영자에게 다음 행동을 알려 준다. -->
                 <TextBlock Text="예배 순서가 비어 있습니다.&#x0a;곡·성경·PowerPoint·미디어를 추가하거나 '최근 예배 순서'에서 불러오세요."

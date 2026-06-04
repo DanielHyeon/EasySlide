@@ -170,6 +170,24 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void FoldersTab_UsesFrmMainSongFolderToolStripAndSongsListRoles()
+    {
+        var xaml = Xaml;
+
+        xaml.Should().Contain("x:Name=\"ClassicFoldersSourceGrid\"", "Folders source should be a named legacy mapping surface");
+        xaml.Should().Contain("x:Name=\"ClassicSongFolderCombo\"", "SongFolder combo should stay visible at the top of Folders");
+        xaml.Should().Contain("Tag=\"SongFolder\"", "SongFolder role should remain explicit without hurting the accessible label");
+        xaml.Should().Contain("x:Name=\"ClassicFoldersToolStrip\"", "Folders toolbar should stay attached to SongFolder like FrmMain");
+        xaml.Should().Contain("Tag=\"Folders_WordCount\"", "Folders_WordCount sorting role should be present on the first-screen toolbar");
+        xaml.Should().Contain("<ListView Grid.Row=\"3\"", "SongsList should render as a compact details-style ListView");
+        xaml.Should().Contain("x:Name=\"LibrarySongList\"", "existing drag and double-click handlers should keep their stable target");
+        xaml.Should().Contain("Tag=\"SongsList\"", "LibrarySongList should be explicitly mapped to FrmMain SongsList");
+        xaml.Should().Contain("<GridView AllowsColumnReorder=\"False\">", "legacy ListView Details behavior should hide headers but keep columns");
+        xaml.Should().Contain("PreviewMouseMove=\"LibrarySongList_PreviewMouseMove\"", "song rows should keep drag-to-Worship behavior");
+        xaml.Should().Contain("MouseAction=\"LeftDoubleClick\"", "song rows should keep double-click add behavior");
+    }
+
+    [Fact]
     public void LeftBrowserTabs_ExposeInlinePowerPointAndMediaSources()
     {
         var xaml = Xaml;

@@ -42,12 +42,14 @@ public class WorshipListPanelTests
     {
         var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
 
-        var list = composite.Descendants().Single(e => e.Name.LocalName == "ListBox");
+        var list = composite.Descendants().Single(
+            e => e.Name.LocalName == "ListView" && Attr(e, "Name") == "QueueList");
         Attr(list, "ItemsSource").Should().Contain("Queue");
         Attr(list, "SelectedItem").Should().Contain("SelectedItem").And.Contain("TwoWay");
         Attr(list, "AutomationProperties.Name").Should().Be("예배 순서 목록");
+        Attr(list, "Tag").Should().Be("WorshipListItems", "WPF queue should keep the FrmMain ListView role visible");
 
-        // 증분137 — 항목 한 줄은 종류 아이콘 + 제목(DisplayMemberPath 대신 ItemTemplate). 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
+        // 증분137 — 항목 한 줄은 종류 아이콘 + 제목. 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
         var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "SymbolIcon");
         Attr(symbolIcon, "Symbol").Should().Contain("Kind").And.Contain("KindToSymbol", "종류 아이콘은 Kind 를 KindToSymbol 변환기로 바인딩");
         var titleBlock = list.Descendants().Single(
@@ -61,6 +63,13 @@ public class WorshipListPanelTests
         // 카드 제목 보존.
         composite.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == "예배 순서")
             .Should().BeTrue("예배 순서 제목 보존");
+
+        composite.Descendants().Any(e => e.Name.LocalName == "Grid" && Attr(e, "Name") == "ClassicWorshipListSessionStrip")
+            .Should().BeTrue("SessionList row should remain a compact FrmMain-style strip");
+        composite.Descendants().Any(e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip2")
+            .Should().BeTrue("WL_Up/WL_Down/WL_Delete commands should stay in the visible legacy tool strip");
+        composite.Descendants().Any(e => e.Name.LocalName == "ComboBox" && Attr(e, "Tag") == "SessionList")
+            .Should().BeTrue("saved worship list combo should retain the FrmMain SessionList role");
     }
 
     [Fact]
