@@ -895,36 +895,24 @@
         </Border>
 
         <Grid x:Name="ClassicFrmMainConsole"
+              Tag="splitContainerMain"
               Margin="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ClassicSourceColumn"
                                   Width="0.75*"
                                   MinWidth="320" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="ClassicPreviewColumn"
-                                  Width="*"
-                                  MinWidth="280" />
-                <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="ClassicOutputColumn"
-                                  Width="1.35*"
-                                  MinWidth="340" />
+                <ColumnDefinition x:Name="ClassicRightColumn"
+                                  Width="2.35*"
+                                  MinWidth="620" />
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition x:Name="ClassicTopControlRow"
-                               Height="1.15*"
-                               MinHeight="220" />
-                <RowDefinition Height="6" />
-                <RowDefinition x:Name="ClassicBottomScreenRow"
-                               Height="0.85*"
-                               MinHeight="260" />
-            </Grid.RowDefinitions>
 
             <!-- 좌측: 상단 콘텐츠 브라우저(라이브러리/성경 탭) + 하단 예배 순서(항상 표시) — FrmMain식 멀티페인.
                  곡·성경을 찾으면서 예배 순서를 동시에 보도록 탭 전환을 없앤다(§7.4 단일 콘솔 통합).
                  GridSplitter 로 두 패널 높이를 운영자가 조절. -->
             <Grid x:Name="ClassicSourcePane"
-                  Grid.Column="0"
-                  Grid.RowSpan="3">
+                  Tag="splitContainer1"
+                  Grid.Column="0">
                 <Grid.RowDefinitions>
                     <!-- 브라우저/예배순서 두 패널 높이 비율은 GridSplitter 로 조절하고, 종료 시 비율을 저장해 다음 실행에 복원한다(레거시 splitter 상태). -->
                     <RowDefinition x:Name="BrowserRow" Height="*" MinHeight="140" />
@@ -934,6 +922,7 @@
 
                 <TabControl Grid.Row="0"
                             x:Name="LeftBrowserTabs"
+                            Tag="tabControlSource"
                             SelectionChanged="LeftBrowserTabs_SelectionChanged"
                             TabStripPlacement="Bottom"
                             BorderThickness="0"
@@ -1890,6 +1879,7 @@
                 <!-- 예배 순서 — 항상 보이는 하단 패널(FrmMain 좌측 하단 송출 큐). 재사용 컴포지트(§5.2, DataContext 상속). -->
                 <TabControl Grid.Row="2"
                             x:Name="LeftListTabs"
+                            Tag="tabControlLists"
                             SelectionChanged="LeftListTabs_SelectionChanged"
                             TabStripPlacement="Bottom"
                             BorderThickness="0"
@@ -2118,24 +2108,47 @@
             </Grid>
 
             <GridSplitter Grid.Column="1"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource Brush.Border.Default}"
+                          AutomationProperties.Name="splitContainerMain 소스/Preview-Output 너비 조절" />
+
+            <!-- splitContainerMain.Panel2 -> splitContainer2:
+                 Preview 컬럼과 Output 컬럼을 좌우로 나누고, 각 컬럼은 상단 제어/하단 화면으로 다시 나뉜다. -->
+            <Grid x:Name="ClassicRightConsole"
+                  Tag="splitContainer2"
+                  Grid.Column="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="ClassicPreviewColumn"
+                                      Width="*"
+                                      MinWidth="280" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition x:Name="ClassicOutputColumn"
+                                      Width="1.35*"
+                                      MinWidth="340" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="ClassicTopControlRow"
+                                   Height="1.15*"
+                                   MinHeight="220" />
+                    <RowDefinition Height="6" />
+                    <RowDefinition x:Name="ClassicBottomScreenRow"
+                                   Height="0.85*"
+                                   MinHeight="260" />
+                </Grid.RowDefinitions>
+
+            <GridSplitter Grid.Column="1"
                           Grid.RowSpan="3"
                           Width="6"
                           HorizontalAlignment="Stretch"
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"
                           Background="{DynamicResource Brush.Border.Default}"
-                          AutomationProperties.Name="소스/Preview 너비 조절" />
+                          AutomationProperties.Name="splitContainer2 Preview/Output 너비 조절" />
 
-            <GridSplitter Grid.Column="3"
-                          Grid.RowSpan="3"
-                          Width="6"
-                          HorizontalAlignment="Stretch"
-                          ResizeDirection="Columns"
-                          ResizeBehavior="PreviousAndNext"
-                          Background="{DynamicResource Brush.Border.Default}"
-                          AutomationProperties.Name="Preview/Output 너비 조절" />
-
-            <GridSplitter Grid.Column="2"
+            <GridSplitter Grid.Column="0"
                           Grid.ColumnSpan="3"
                           Grid.Row="1"
                           Height="6"
@@ -2143,10 +2156,11 @@
                           ResizeDirection="Rows"
                           ResizeBehavior="PreviousAndNext"
                           Background="{DynamicResource Brush.Border.Default}"
-                          AutomationProperties.Name="상단 작업/하단 미리보기 높이 조절" />
+                          AutomationProperties.Name="splitContainerPreview/Output 상하 패널 높이 조절" />
 
             <Border x:Name="ClassicPreviewPane"
-                    Grid.Column="2"
+                    Tag="splitContainerPreview.Panel1"
+                    Grid.Column="0"
                     Grid.Row="0"
                     Background="{DynamicResource Brush.Surface.Card}"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -2556,7 +2570,8 @@
             </Border>
 
             <Border x:Name="ClassicPreviewSlidePane"
-                    Grid.Column="2"
+                    Tag="splitContainerPreview.Panel2"
+                    Grid.Column="0"
                     Grid.Row="2"
                     Background="#808080"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -2695,7 +2710,8 @@
             </Border>
 
             <Border x:Name="ClassicOutputPane"
-                    Grid.Column="4"
+                    Tag="splitContainerOutput.Panel1"
+                    Grid.Column="2"
                     Grid.Row="0"
                     Background="{DynamicResource Brush.Surface.Card}"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -2863,7 +2879,8 @@
             </Border>
 
             <Border x:Name="ClassicOutputSlidePane"
-                    Grid.Column="4"
+                    Tag="splitContainerOutput.Panel2"
+                    Grid.Column="2"
                     Grid.Row="2"
                     Background="#808080"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -3113,7 +3130,7 @@
             </Border>
 
             <Border x:Name="ClassicInspectorFlyout"
-                    Grid.Column="4"
+                    Grid.Column="2"
                     Grid.RowSpan="3"
                     Width="340"
                     HorizontalAlignment="Right"
@@ -3770,6 +3787,7 @@
                             AutomationProperties.Name="출력 모양 기본값 복원" />
                 </StackPanel>
             </Border>
+            </Grid>
         </Grid>
     </DockPanel>
 

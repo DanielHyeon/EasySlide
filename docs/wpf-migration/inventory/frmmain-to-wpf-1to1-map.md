@@ -14,22 +14,22 @@
 | FrmMain source | WPF target | Status | Phase | Notes |
 | --- | --- | --- | --- | --- |
 | `toolStripContainerMain` | `MainWindow` root grid/menu/status | partial | 1 | menu/status exist, toolbar parity incomplete |
-| `splitContainerMain.Panel1` | `ClassicSourceColumn` / `ClassicSourcePane` | partial | 1 | source/list column now scales by splitter-like proportion; behavior/data parity incomplete |
-| `splitContainerMain.Panel2` | `ClassicPreviewColumn` + `ClassicOutputColumn` | partial | 1 | Preview/Output columns are explicitly named; exact top/bottom behavior incomplete |
-| `splitContainer1.Panel1` | `LeftBrowserTabs` | partial | 1/2/3 | source tabs exist, several are shallow |
-| `splitContainer1.Panel2` | `LeftListTabs` | partial | 1/2/3 | Worship List visible, Praise Book shallow |
-| `splitContainer2.Panel1` | `ClassicPreviewColumn` | partial | 1/4 | Preview column is named; legacy controls incomplete |
-| `splitContainer2.Panel2` | `ClassicOutputColumn` | partial | 1/4 | Output column is named; live thumbnails/control parity incomplete |
-| `splitContainerPreview.Panel1` | `ClassicTopControlRow` + `ClassicPreviewPane` | partial | 4/5 | top row is named; needs exact item/slide/section/format controls |
-| `splitContainerPreview.Panel2` | `ClassicBottomScreenRow` + `ClassicPreviewSlidePane` | partial | 4 | bottom row is named; needs independent Preview surface behavior |
-| `splitContainerOutput.Panel1` | `ClassicTopControlRow` + `ClassicOutputPane` | partial | 4/5 | top row is named; needs live output thumbnails/status/buttons |
-| `splitContainerOutput.Panel2` | `ClassicBottomScreenRow` + `ClassicOutputSlidePane` | partial | 4 | bottom row is named; needs independent Output large surface |
+| `splitContainerMain.Panel1` | `ClassicSourceColumn` / `ClassicSourcePane` (`Tag=splitContainer1`) | partial | 1 | source/list column now scales by splitter-like proportion; behavior/data parity incomplete |
+| `splitContainerMain.Panel2` | `ClassicRightColumn` / `ClassicRightConsole` (`Tag=splitContainer2`) | partial | 1 | Preview/Output are now nested under a right splitContainer2-equivalent Grid; exact behavior incomplete |
+| `splitContainer1.Panel1` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1/2/3 | source tabs exist, several are shallow |
+| `splitContainer1.Panel2` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1/2/3 | Worship List visible, Praise Book shallow |
+| `splitContainer2.Panel1` | `ClassicPreviewColumn` | partial | 1/4 | Preview column now lives inside `ClassicRightConsole`; legacy controls incomplete |
+| `splitContainer2.Panel2` | `ClassicOutputColumn` | partial | 1/4 | Output column now lives inside `ClassicRightConsole`; live thumbnails/control parity incomplete |
+| `splitContainerPreview.Panel1` | `ClassicTopControlRow` + `ClassicPreviewPane` (`Tag=splitContainerPreview.Panel1`) | partial | 4/5 | top row is named and tagged; needs exact item/slide/section/format controls |
+| `splitContainerPreview.Panel2` | `ClassicBottomScreenRow` + `ClassicPreviewSlidePane` (`Tag=splitContainerPreview.Panel2`) | partial | 4 | bottom row is named and tagged; needs independent Preview surface behavior |
+| `splitContainerOutput.Panel1` | `ClassicTopControlRow` + `ClassicOutputPane` (`Tag=splitContainerOutput.Panel1`) | partial | 4/5 | top row is named and tagged; needs live output thumbnails/status/buttons |
+| `splitContainerOutput.Panel2` | `ClassicBottomScreenRow` + `ClassicOutputSlidePane` (`Tag=splitContainerOutput.Panel2`) | partial | 4 | bottom row is named and tagged; needs independent Output large surface |
 
 ## 2. Source Browser Tabs
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `tabControlSource` | `LeftBrowserTabs` | partial | 1 | enforce exact tab order and tab roles |
+| `tabControlSource` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1 | tab role is now explicit; enforce exact tab order and source behavior |
 | `tabFolders` | `Folders` tab / `ClassicFoldersSourceGrid` | partial | 2/3 | compact FrmMain-style top strip now exists; context menu/edit commands still incomplete |
 | `SongFolder` | `ClassicSongFolderCombo` (`Tag=SongFolder`) | partial | 2 | first-screen combo is mapped; legacy folder management still lives outside this strip |
 | `SongsList` | `LibrarySongList` (`Tag=SongsList`) | partial | 3 | headerless `ListView/GridView`, selection, double-click, Enter add, and drag exist; full context menu/edit parity incomplete |
@@ -59,7 +59,7 @@
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `tabControlLists` | `LeftListTabs` | partial | 1 | exact visual density and tab behavior |
+| `tabControlLists` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1 | tab role is now explicit; exact visual density and tab behavior still incomplete |
 | `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; all toolbar/context commands still incomplete |
 | `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2 | compact first-screen combo exists; startup selects the first saved `C:\EasiSlides\Admin\WorshipLists` entry when no prior selection exists; exact legacy selection persistence still incomplete |
 | `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, startup default `.esw` load, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |

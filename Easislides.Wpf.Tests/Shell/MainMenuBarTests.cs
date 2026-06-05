@@ -126,6 +126,7 @@ public class MainMenuBarTests
         {
             "ClassicFrmMainConsole",
             "ClassicSourcePane",
+            "ClassicRightConsole",
             "ClassicPreviewPane",
             "ClassicPreviewSlidePane",
             "ClassicOutputPane",
@@ -135,7 +136,9 @@ public class MainMenuBarTests
             xaml.Should().Contain($"x:Name=\"{pane}\"", $"{pane} keeps the FrmMain source/preview/output geometry discoverable");
         }
 
-        xaml.Should().Contain("Grid.Column=\"4\"", "Output should occupy the right-side FrmMain column, not the old inspector slot");
+        xaml.Should().Contain("Tag=\"splitContainerMain\"", "the outer WPF console should explicitly map to FrmMain splitContainerMain");
+        xaml.Should().Contain("Tag=\"splitContainer2\"", "the right Preview/Output console should explicitly map to FrmMain splitContainer2");
+        xaml.Should().Contain("Grid.Column=\"2\"", "Output should occupy the right-side column inside splitContainer2, not the old inspector slot");
         xaml.Should().Contain("Grid.Row=\"2\"", "Preview and Output should both have lower slide surfaces like FrmMain");
     }
 
@@ -145,8 +148,14 @@ public class MainMenuBarTests
         var xaml = Xaml;
 
         xaml.Should().Contain("x:Name=\"ClassicSourceColumn\"", "left source/list column should be explicit for FrmMain 1:1 mapping");
+        xaml.Should().Contain("x:Name=\"ClassicRightColumn\"", "right Preview/Output splitContainer2 column should be explicit");
         xaml.Should().Contain("Width=\"0.75*\"", "left column should scale like the legacy splitter instead of staying a narrow fixed rail");
         xaml.Should().Contain("MinWidth=\"320\"", "left column should keep the source browser usable at smaller sizes");
+        xaml.Should().Contain("Tag=\"splitContainer1\"", "left source/list pane should keep the FrmMain splitContainer1 role");
+        xaml.Should().Contain("Tag=\"tabControlSource\"", "upper-left source tabs should keep the FrmMain tabControlSource role");
+        xaml.Should().Contain("Tag=\"tabControlLists\"", "lower-left list tabs should keep the FrmMain tabControlLists role");
+        xaml.Should().Contain("Tag=\"splitContainerPreview.Panel1\"", "Preview top pane should map to splitContainerPreview.Panel1");
+        xaml.Should().Contain("Tag=\"splitContainerPreview.Panel2\"", "Preview lower pane should map to splitContainerPreview.Panel2");
         xaml.Should().Contain("x:Name=\"ClassicPreviewColumn\"", "Preview column should be distinct from Output");
         xaml.Should().Contain("x:Name=\"ClassicOutputColumn\"", "Output column should be distinct from Preview");
         xaml.Should().Contain("x:Name=\"ClassicTopControlRow\"", "top text/thumbnail/control row should mirror FrmMain splitContainerPreview/Output Panel1");
@@ -159,7 +168,8 @@ public class MainMenuBarTests
         var xaml = Xaml;
 
         xaml.Should().Contain("x:Name=\"ClassicOutputPane\"", "right-top Output pane should stay distinct");
-        xaml.Should().Contain("Grid.Column=\"4\"", "Output panes stay in the right column");
+        xaml.Should().Contain("Tag=\"splitContainerOutput.Panel1\"", "right-top Output pane should map to splitContainerOutput.Panel1");
+        xaml.Should().Contain("Grid.Column=\"2\"", "Output panes stay in the right column inside splitContainer2");
         xaml.Should().Contain("Grid.Row=\"0\"", "right-top Output pane hosts thumbnails");
         xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
         xaml.Should().Contain("ItemsSource=\"{Binding OutputPowerPoint.Thumbnails}\"", "Output thumbnails must use the live/output PPT thumbnail source");
@@ -168,6 +178,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("Command=\"{Binding PreviousOutputSlideCommand}\"", "Output slide-up button should target the live output deck");
         xaml.Should().Contain("Command=\"{Binding NextOutputSlideCommand}\"", "Output slide-down button should target the live output deck");
         xaml.Should().Contain("x:Name=\"ClassicOutputSlidePane\"", "right-bottom Output pane should stay distinct");
+        xaml.Should().Contain("Tag=\"splitContainerOutput.Panel2\"", "right-bottom Output pane should map to splitContainerOutput.Panel2");
         xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
         xaml.Should().Contain("Source=\"{Binding OutputPowerPoint.PreviewImage}\"", "large Output slide should show the live/output PPT image when available");
     }
