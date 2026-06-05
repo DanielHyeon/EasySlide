@@ -2818,36 +2818,39 @@
                             <Button x:Name="btnToLive"
                                     Tag="btnToLive"
                                     Command="{Binding PreviewToLiveCommand}"
-                                    Style="{StaticResource EsButton.Primary}"
-                                    MinWidth="48"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="32"
                                     MinHeight="28"
-                                    Padding="8,0"
+                                    Padding="6,0"
                                     Margin="4,0,0,0"
-                                    Content="LIVE"
                                     ToolTip="선택 항목을 라이브로 송출"
-                                    AutomationProperties.Name="Preview Go Live" />
+                                    AutomationProperties.Name="Preview Go Live">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" />
+                            </Button>
                             <Button x:Name="btnToOutputMoveNext"
                                     Tag="btnToOutputMoveNext"
                                     Command="{Binding CopyPreviewToOutputAndNextCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="36"
+                                    MinWidth="32"
                                     MinHeight="28"
-                                    Padding="8,0"
+                                    Padding="6,0"
                                     Margin="4,0,0,0"
-                                    Content="↷"
                                     ToolTip="Output으로 복사 후 Preview 다음"
-                                    AutomationProperties.Name="Preview Output 복사 후 다음" />
+                                    AutomationProperties.Name="Preview Output 복사 후 다음">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveMoveToOutput}" />
+                            </Button>
                             <Button x:Name="btnToOutput"
                                     Tag="btnToOutput"
                                     Command="{Binding CopyPreviewToOutputCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="36"
+                                    MinWidth="32"
                                     MinHeight="28"
-                                    Padding="8,0"
+                                    Padding="6,0"
                                     Margin="4,0,0,0"
-                                    Content="O"
                                     ToolTip="선택 항목을 Output으로 복사"
-                                    AutomationProperties.Name="Preview Output 복사" />
+                                    AutomationProperties.Name="Preview Output 복사">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" />
+                            </Button>
                         </WrapPanel>
                     </Grid>
 
