@@ -347,24 +347,37 @@ public class WorshipListPanelTests
     {
         var panelCode = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
         var windowCode = LoadText("Easislides.Wpf/MainWindow.xaml.cs");
+        var editorCode = LoadText("Easislides.Wpf/Shell/WorshipTextItemEditorWindow.cs");
 
         panelCode.Should().Contain("private void CMenuWorship_Edit_Click",
             "FrmMain CMenuWorship_Edit should have a lower-left context menu click handler");
         panelCode.Should().Contain("CanEditSelectedWorshipItem",
-            "only DB song rows should enable the current song editor path");
+            "DB song rows plus Bible/Notice text rows should enable the edit path");
+        panelCode.Should().Contain("CanEditTextQueueItem",
+            "Bible/Notice rows should no longer be disabled by the Worship List context menu");
         panelCode.Should().Contain("viewModel.SelectedItem = item",
             "right-clicking a different row should retarget the selected Worship List item before Edit runs");
 
         windowCode.Should().Contain("private async void WorshipListPanel_EditSelectedItemRequested",
             "MainWindow should receive the lower-left edit request");
+        windowCode.Should().Contain("OpenSelectedWorshipItemEditorAsync",
+            "the handler should choose the correct editor for the selected Worship row");
         windowCode.Should().Contain("OpenSelectedWorshipSongEditorAsync",
-            "the handler should use a dedicated selected-Worship-song editor path");
+            "DB songs should still use the dedicated selected-Worship-song editor path");
         windowCode.Should().Contain("GetRequiredService<SongEditorWindow>()",
             "Edit item should reuse the WPF song editor instead of a placeholder");
         windowCode.Should().Contain("editorViewModel.LoadAsync(databasePath, folder, song)",
             "the editor should be loaded with the actual AdminDB song detail");
         windowCode.Should().Contain("viewModel.UpdateSelectedSongQueueItem(updatedSong, editorViewModel.Sequence, editorViewModel.FormatData)",
             "saving should refresh the selected queue row rather than leaving stale lyrics/title in Worship List");
+        windowCode.Should().Contain("WorshipTextItemEditorWindow",
+            "Bible/Notice rows should open an inline text editor instead of being rejected");
+        windowCode.Should().Contain("viewModel.UpdateSelectedTextQueueItem",
+            "saving Bible/Notice edits should replace the selected queue row");
+        editorCode.Should().Contain("Edit Worship List Item")
+            .And.Contain("ItemTitle")
+            .And.Contain("ItemText",
+                "the text editor should expose editable title/body values back to MainWindow");
     }
 
     [Theory]

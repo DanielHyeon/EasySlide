@@ -315,9 +315,16 @@ public partial class WorshipListPanel : UserControl
     }
 
     private static bool CanEditSelectedWorshipItem(LiveQueueItem? item)
+        => CanEditDbSongItem(item) || CanEditTextQueueItem(item);
+
+    private static bool CanEditDbSongItem(LiveQueueItem? item)
         => item is { Kind: LiveItemKinds.Song }
            && item.Id.StartsWith("song:", StringComparison.Ordinal)
            && int.TryParse(item.Id.AsSpan("song:".Length), out _);
+
+    private static bool CanEditTextQueueItem(LiveQueueItem? item)
+        => item is { Kind: LiveItemKinds.Bible or LiveItemKinds.Notice }
+           && !string.IsNullOrWhiteSpace(item.Lyrics);
 
     private void CMenuWorship_SelectAll_Click(object sender, RoutedEventArgs e)
     {

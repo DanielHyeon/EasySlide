@@ -1615,6 +1615,50 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task UpdateSelectedTextQueueItem_ReplacesBibleContent_AndRepublishesLive()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var bible = new LiveQueueItem("bible:gen1", "창세기 1:1", LiveItemKinds.Bible)
+        {
+            Lyrics = "태초에 하나님이 천지를 창조하시니라",
+        };
+        sut.LoadQueue([bible]);
+        sut.SelectedItem = bible;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("태초에 하나님이 천지를 창조하시니라");
+
+        var changed = sut.UpdateSelectedTextQueueItem("창세기 1:1-2", "땅이 혼돈하고 공허하며");
+
+        changed.Should().BeTrue();
+        sut.Queue[0].Should().NotBeSameAs(bible, "LiveQueueItem is immutable, so the selected row should be replaced");
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0]);
+        sut.SelectedItem!.Title.Should().Be("창세기 1:1-2");
+        sut.SelectedItem.Lyrics.Should().Be("땅이 혼돈하고 공허하며");
+        sut.PreviewLyricsText.Should().Be("땅이 혼돈하고 공허하며");
+        sut.OutputItem.Should().BeSameAs(sut.Queue[0], "prepared/live Output item should track the edited row");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("땅이 혼돈하고 공허하며", "editing the live Bible row should refresh Output immediately");
+        sut.StatusText.Should().Contain("예배 순서 항목 갱신");
+    }
+
+    [Fact]
+    public void UpdateSelectedTextQueueItem_NoticeUsesBodyTitleFallback_AndRejectsBlankBody()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("text:1", "Old", LiveItemKinds.Notice) { Lyrics = "Old body" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = notice;
+
+        sut.UpdateSelectedTextQueueItem("   ", "새 공지\n두 번째 줄").Should().BeTrue();
+        sut.SelectedItem!.Title.Should().Be("새 공지", "blank editor titles should fall back to the first body line");
+        sut.SelectedItem.Lyrics.Should().Be("새 공지\n두 번째 줄");
+
+        var unchanged = sut.SelectedItem;
+        sut.UpdateSelectedTextQueueItem("Ignored", "   ").Should().BeFalse();
+        sut.SelectedItem.Should().BeSameAs(unchanged);
+        sut.StatusText.Should().Be("편집할 본문이 없습니다.");
+    }
+
+    [Fact]
     public void MoveSelectedItemDown_ReordersQueueAndKeepsSelection()
     {
         // 예배 순서 재정렬: 선택 항목을 아래로 한 칸 이동(FrmMain Move Item Down).

@@ -1552,6 +1552,57 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    /// <summary>
+    /// 예배 순서에서 선택 중인 성경/공지 본문 항목을 갱신한다(FrmMain CMenuWorship_Edit 의 Bible/text item path 대응).
+    /// </summary>
+    public bool UpdateSelectedTextQueueItem(string? title, string? text)
+    {
+        if (SelectedItem is not { } item || item.Kind is not (LiveItemKinds.Bible or LiveItemKinds.Notice))
+        {
+            StatusText = "편집할 성경/텍스트 항목을 선택하세요.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            StatusText = "편집할 본문이 없습니다.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        var index = IndexOfReference(item);
+        if (index < 0)
+        {
+            StatusText = "선택 항목을 예배 순서에서 찾을 수 없습니다.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        var trimmedText = text.Trim();
+        var updatedTitle = string.IsNullOrWhiteSpace(title)
+            ? BuildTextItemTitle(trimmedText)
+            : title.Trim();
+        var updated = item with
+        {
+            Title = updatedTitle,
+            Lyrics = trimmedText,
+            LyricsPageIndex = 0,
+        };
+
+        Queue[index] = updated;
+        SelectedItem = updated;
+        if (OutputItem is not null && string.Equals(OutputItem.Id, item.Id, StringComparison.Ordinal))
+        {
+            OutputItem = updated;
+        }
+
+        RepublishLiveSongForBodyChange();
+        NotifyCommandStates();
+        StatusText = $"예배 순서 항목 갱신: {updated.Title}";
+        return true;
+    }
+
     public bool CanAddWorshipListSongsToUsages
         => Queue.Any(item => item is { Kind: LiveItemKinds.Song } && TryGetSongDatabaseId(item, out _));
 
@@ -6255,8 +6306,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshActiveAppearance();
     }
 
-    // 본문 재계산이 필요한 설정(코드 표시 등)이 바뀌었을 때, 현재 라이브 큐 곡을 현재 절 그대로 다시 송출한다.
-    // 라이브가 아니거나, 라이브 항목이 큐에 없거나(공지 센티넬·고아), 곡이 아니면 아무것도 하지 않는다(안전).
+    // 본문 재계산이 필요한 설정/편집이 바뀌었을 때, 현재 라이브 큐 항목을 현재 절 그대로 다시 송출한다.
+    // 라이브가 아니거나, 라이브 항목이 큐에 없으면(공지 센티넬·고아) 아무것도 하지 않는다(안전).
     private void RepublishLiveSongForBodyChange()
     {
         if (_session.Current.State != LiveState.Active)

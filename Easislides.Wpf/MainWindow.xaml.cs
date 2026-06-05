@@ -882,10 +882,27 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainViewModel viewModel)
         {
-            await OpenSelectedWorshipSongEditorAsync(viewModel).ConfigureAwait(true);
+            await OpenSelectedWorshipItemEditorAsync(viewModel).ConfigureAwait(true);
         }
 
         e.Handled = true;
+    }
+
+    private async Task OpenSelectedWorshipItemEditorAsync(MainViewModel viewModel)
+    {
+        if (TryGetSelectedWorshipSongId(viewModel.SelectedItem, out _))
+        {
+            await OpenSelectedWorshipSongEditorAsync(viewModel).ConfigureAwait(true);
+            return;
+        }
+
+        if (viewModel.SelectedItem is { Kind: LiveItemKinds.Bible or LiveItemKinds.Notice } item)
+        {
+            OpenSelectedWorshipTextItemEditor(viewModel, item);
+            return;
+        }
+
+        viewModel.StatusText = "편집할 예배 순서 항목을 하나 선택하세요.";
     }
 
     private async Task OpenSelectedWorshipSongEditorAsync(MainViewModel viewModel)
@@ -961,6 +978,19 @@ public partial class MainWindow : Window
         if (editorViewModel.SongId is int savedSongId)
         {
             viewModel.Library.SelectSongById(savedSongId);
+        }
+    }
+
+    private void OpenSelectedWorshipTextItemEditor(MainViewModel viewModel, LiveQueueItem item)
+    {
+        var editorWindow = new WorshipTextItemEditorWindow(item.Title, item.Lyrics ?? string.Empty)
+        {
+            Owner = this,
+        };
+
+        if (editorWindow.ShowDialog() == true)
+        {
+            viewModel.UpdateSelectedTextQueueItem(editorWindow.ItemTitle, editorWindow.ItemText);
         }
     }
 
