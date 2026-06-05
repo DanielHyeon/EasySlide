@@ -275,7 +275,7 @@ public class MainMenuBarTests
         code.Should().Contain("ExecuteCommand(_viewModel.PreviousPreviewItemCommand)",
             "Preview PageUp should move the selected Preview item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.NextPreviewItemCommand)",
-            "Preview PageDown should move the selected Preview item like FrmMain");
+            "Preview PageDown/Tab should move the selected Preview item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.FirstPreviewItemCommand)",
             "Preview Home should move to the first Preview item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.LastPreviewItemCommand)",
@@ -289,7 +289,9 @@ public class MainMenuBarTests
         code.Should().Contain("ExecuteCommand(_viewModel.PreviousOutputItemCommand)",
             "Output PageUp should move the live/prepared Output item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.NextOutputItemCommand)",
-            "Output PageDown should move the live/prepared Output item like FrmMain");
+            "Output PageDown/Tab should move the live/prepared Output item like FrmMain");
+        CountOccurrences(code, "case Key.Tab:").Should().BeGreaterThanOrEqualTo(2,
+            "FrmMain PPT thumbnail focus treats Tab as NextOne for both Preview and Output panels");
         code.Should().Contain("ExecuteCommand(_viewModel.FirstOutputItemCommand)",
             "Output Home should move to the first live/prepared Output item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.LastOutputItemCommand)",

@@ -600,6 +600,7 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.PageDown:
+            case Key.Tab:
                 ExecuteCommand(_viewModel.NextPreviewItemCommand);
                 return true;
 
@@ -658,6 +659,7 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.PageDown:
+            case Key.Tab:
                 ExecuteCommand(_viewModel.NextOutputItemCommand);
                 return true;
 
