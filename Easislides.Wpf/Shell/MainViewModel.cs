@@ -3305,6 +3305,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         RefreshOutputSurfaceText();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        NotifyCommandStates();
     }
 
     private void RefreshOutputSurfaceText()
@@ -3326,7 +3327,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        OutputLyricsText = item.Lyrics ?? string.Empty;
+        OutputLyricsText = BuildOutputSurfaceText(item);
     }
 
     private static string JoinOutputBodyText(string region1, string region2)
@@ -3661,7 +3662,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task GoToOutputSlideAsync(int target)
     {
-        if (GetLivePowerPointItem() is not { ContentPath: { Length: > 0 } path } item)
+        if (GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path } item)
         {
             return;
         }
@@ -3682,6 +3683,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
             _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }, OutputPowerPoint), monitorName);
         }
+        else
+        {
+            OutputItem = item with { SlideNumber = target };
+            StatusText = OutputPowerPoint.SlideCount > 1
+                ? $"Output 슬라이드 {target}/{OutputPowerPoint.SlideCount} 준비"
+                : StatusText;
+        }
 
         NotifyCommandStates();
     }
@@ -3694,7 +3702,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        MoveOutputLyricsPage(_session.Current.CurrentLyricsPageIndex + 1);
+        if (GetOutputLyricsNavigationItem() is { } item)
+        {
+            MoveOutputLyricsPage(GetOutputLyricsPageIndex(item) + 1);
+        }
     }
 
     private async Task PreviousOutputPageAsync()
@@ -3705,23 +3716,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        MoveOutputLyricsPage(_session.Current.CurrentLyricsPageIndex - 1);
+        if (GetOutputLyricsNavigationItem() is { } item)
+        {
+            MoveOutputLyricsPage(GetOutputLyricsPageIndex(item) - 1);
+        }
     }
 
     private void MoveOutputLyricsPage(int target)
     {
-        if (_session.Current.State != LiveState.Active || GetLiveLyricsItem() is not { } item)
+        if (GetOutputLyricsNavigationItem() is not { } item)
         {
             return;
         }
 
         var pageModel = BuildLyricsPageModel(item);
-        if (target < 0 || target >= pageModel.Count || target == _session.Current.CurrentLyricsPageIndex)
+        var current = GetOutputLyricsPageIndex(item);
+        if (target < 0 || target >= pageModel.Count || target == current)
         {
             return;
         }
 
-        PublishOutputLyricsPage(item, target, pageModel.Count);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputLyricsPage(item, target, pageModel.Count);
+            return;
+        }
+
+        PrepareOutputLyricsPage(item, target, pageModel.Count);
     }
 
     private bool CanGoToOutputSlide(int target)
@@ -3736,8 +3757,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             || CanGoPreviousOutputLyricsPage();
 
     private bool IsOutputPowerPointSlideNavReady()
-        => _session.Current.State == LiveState.Active
-            && GetLivePowerPointItem() is { ContentPath.Length: > 0 }
+        => GetOutputPowerPointNavigationItem() is { ContentPath.Length: > 0 }
             && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && OutputPowerPoint.SlideCount > 0;
 
@@ -3750,31 +3770,45 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             string.Equals(item.Id, _liveItemId, StringComparison.Ordinal)
             && IsPowerPointItem(item));
 
+    private LiveQueueItem? GetOutputPowerPointNavigationItem()
+    {
+        if (_session.Current.State == LiveState.Active)
+        {
+            return GetLivePowerPointItem();
+        }
+
+        return _session.Current.State == LiveState.Off
+            && OutputItem is { } output
+            && IsPowerPointItem(output)
+            ? output
+            : null;
+    }
+
     private bool CanGoNextOutputLyricsPage()
     {
-        if (_session.Current.State != LiveState.Active || GetLiveLyricsItem() is not { } item)
+        if (GetOutputLyricsNavigationItem() is not { } item)
         {
             return false;
         }
 
         var pageModel = BuildLyricsPageModel(item);
-        return pageModel.Count > 1 && _session.Current.CurrentLyricsPageIndex < pageModel.Count - 1;
+        return pageModel.Count > 1 && GetOutputLyricsPageIndex(item) < pageModel.Count - 1;
     }
 
     private bool CanGoPreviousOutputLyricsPage()
     {
-        if (_session.Current.State != LiveState.Active || GetLiveLyricsItem() is not { } item)
+        if (GetOutputLyricsNavigationItem() is not { } item)
         {
             return false;
         }
 
         var pageModel = BuildLyricsPageModel(item);
-        return pageModel.Count > 1 && _session.Current.CurrentLyricsPageIndex > 0;
+        return pageModel.Count > 1 && GetOutputLyricsPageIndex(item) > 0;
     }
 
     private void JumpToOutputLyricsSection(string? label)
     {
-        if (GetLiveLyricsItem() is not { } item)
+        if (GetOutputLyricsNavigationItem() is not { } item)
         {
             return;
         }
@@ -3786,7 +3820,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        PublishOutputLyricsPage(item, target, pageModel.Count);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputLyricsPage(item, target, pageModel.Count);
+            return;
+        }
+
+        PrepareOutputLyricsPage(item, target, pageModel.Count);
     }
 
     private void PublishOutputLyricsPage(LiveQueueItem item, int target, int pageCount)
@@ -3801,13 +3841,90 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool CanJumpToOutputLyricsSection(string? label)
     {
-        if (_session.Current.State != LiveState.Active || GetLiveLyricsItem() is not { } item)
+        if (GetOutputLyricsNavigationItem() is not { } item)
         {
             return false;
         }
 
         var pageModel = BuildLyricsPageModel(item);
         return IndexOfPageLabel(pageModel.Labels, label) >= 0;
+    }
+
+    private LiveQueueItem? GetOutputLyricsNavigationItem()
+    {
+        if (_session.Current.State == LiveState.Active)
+        {
+            return GetLiveLyricsItem();
+        }
+
+        return _session.Current.State == LiveState.Off
+            && OutputItem is { } output
+            && IsLyricsPaginated(output)
+            ? output
+            : null;
+    }
+
+    private int GetOutputLyricsPageIndex(LiveQueueItem item)
+        => _session.Current.State == LiveState.Active
+            ? _session.Current.CurrentLyricsPageIndex
+            : item.LyricsPageIndex;
+
+    private void PrepareOutputLyricsPage(LiveQueueItem item, int target, int pageCount)
+    {
+        var updated = item with { LyricsPageIndex = target };
+        OutputItem = updated;
+        OutputLyricsText = BuildOutputSurfaceText(updated);
+        StatusText = pageCount > 1
+            ? $"Output 가사 {target + 1}/{pageCount}절 준비"
+            : StatusText;
+        NotifyCommandStates();
+    }
+
+    private string BuildOutputSurfaceText(LiveQueueItem item)
+    {
+        if (item.Kind == LiveItemKinds.Notice)
+        {
+            return item.Lyrics ?? string.Empty;
+        }
+
+        if (!IsLyricsPaginated(item))
+        {
+            return item.Lyrics ?? string.Empty;
+        }
+
+        var projected = item with
+        {
+            ShowNotations = _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
+            TransposeSemitones = LiveTransposeSemitones,
+        };
+
+        if (projected.Kind == LiveItemKinds.Bible)
+        {
+            var body = LyricsDisplayFormatter.NormalizeText(projected.Lyrics ?? string.Empty);
+            var guarded = LyricsDisplayFormatter.GuardLiteralNotation(body);
+            if (LyricsDisplayFormatter.HasRegion2(guarded))
+            {
+                var page = LyricsDisplayFormatter.GetRegionPage(guarded, projected.LyricsPageIndex, projected.Sequence);
+                return JoinOutputBodyText(
+                    LyricsDisplayFormatter.UnguardLiteralNotation(page.Region1),
+                    LyricsDisplayFormatter.UnguardLiteralNotation(page.Region2));
+            }
+
+            return LyricsDisplayFormatter.UnguardLiteralNotation(
+                LyricsDisplayFormatter.GetVersePage(guarded, projected.LyricsPageIndex, projected.Sequence));
+        }
+
+        var lyrics = LyricsDisplayFormatter.ExpandNotations(
+            projected.Lyrics,
+            projected.ShowNotations,
+            projected.TransposeSemitones);
+        if (LyricsDisplayFormatter.HasRegion2(lyrics))
+        {
+            var page = LyricsDisplayFormatter.GetRegionPage(lyrics, projected.LyricsPageIndex, projected.Sequence);
+            return JoinOutputBodyText(page.Region1, page.Region2);
+        }
+
+        return LyricsDisplayFormatter.GetVersePage(lyrics, projected.LyricsPageIndex, projected.Sequence);
     }
 
     private LiveQueueItem? GetLiveLyricsItem()

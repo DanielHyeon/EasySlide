@@ -3219,14 +3219,14 @@ public class MainViewModelTests
         sut.CopyPreviewToOutputCommand.Execute(null);
 
         sut.OutputItem.Should().BeSameAs(first);
-        sut.OutputLyricsText.Should().Be("[1]\n입례");
+        sut.OutputLyricsText.Should().Be("입례");
         sut.HasOutputLyricsText.Should().BeTrue();
         sut.IsOutputPowerPointContext.Should().BeFalse();
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");
 
         sut.SelectedItem = second;
         sut.OutputItem.Should().BeSameAs(first, "Preview 선택 변경은 준비된 OutputItem 을 바꾸지 않는다");
-        sut.OutputLyricsText.Should().Be("[1]\n입례", "Output 본문도 Preview 선택이 아니라 OutputItem 을 따라야 한다");
+        sut.OutputLyricsText.Should().Be("입례", "Output 본문도 Preview 선택이 아니라 OutputItem 을 따라야 한다");
     }
 
     [Fact]
@@ -8222,6 +8222,82 @@ public class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
         sut.StatusText.Should().Be("Output 준비: Prepared next");
+    }
+
+    [Fact]
+    public async Task OutputSlideButtons_WhenPreparedPowerPointNotLive_MovePreparedOutputOnly()
+    {
+        // FrmMain OutputBtnSlideUp/Down: live 시작 전 btnToOutput 으로 준비한 Output PPT 도 오른쪽 Output 표면에서 넘긴다.
+        var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var prepared = new LiveQueueItem("ppt:prepared", "Prepared deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "prepared.pptx",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([prepared, preview]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("준비된 Output PPT 는 live 전에도 오른쪽 Output 버튼으로 넘길 수 있어야 함");
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output PPT 슬라이드 이동은 Preview 선택을 바꾸지 않는다");
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(prepared.Id);
+        sut.OutputItem.SlideNumber.Should().Be(2);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.State.Should().Be(LiveState.Off, "준비 Output 슬라이드 이동은 라이브를 시작하지 않는다");
+        sut.LiveItemId.Should().BeNull();
+        sut.StatusText.Should().Be("Output 슬라이드 2/3 준비");
+    }
+
+    [Fact]
+    public async Task OutputSlideButtons_WhenPreparedLyricsNotLive_MovePreparedOutputOnly()
+    {
+        // FrmMain OutputBtnSlideUp/Down: live 시작 전 준비 Output 가사도 OutputItem.CurSlide 만 이동한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPrepared verse\n[C]\nPrepared chorus\n[2]\nPrepared verse two",
+            Sequence = "1 C 2",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([prepared, preview]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("준비된 Output 가사는 live 전에도 오른쪽 Output 버튼으로 넘길 수 있어야 함");
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 절 이동은 Preview 선택을 바꾸지 않는다");
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(prepared.Id);
+        sut.OutputItem.LyricsPageIndex.Should().Be(1);
+        sut.OutputLyricsText.Should().Be("Prepared chorus");
+        sut.Session.Current.State.Should().Be(LiveState.Off, "준비 Output 절 이동은 라이브를 시작하지 않는다");
+        sut.LiveItemId.Should().BeNull();
+        sut.StatusText.Should().Be("Output 가사 2/3절 준비");
+
+        sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue();
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.OutputItem!.LyricsPageIndex.Should().Be(0);
+        sut.OutputLyricsText.Should().Be("Prepared verse");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
     }
 
     [Fact]
