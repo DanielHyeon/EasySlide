@@ -2396,6 +2396,7 @@
                                       FontSize="12"
                                       PreviewMouseLeftButtonDown="PraiseBookItems_PreviewMouseLeftButtonDown"
                                       PreviewMouseMove="PraiseBookItems_PreviewMouseMove"
+                                      PreviewMouseRightButtonDown="PraiseBookItems_PreviewMouseRightButtonDown"
                                       MouseDoubleClick="InlinePraiseBookItems_MouseDoubleClick"
                                       KeyDown="PraiseBookItems_KeyDown"
                                       SelectionChanged="PraiseBookItems_SelectionChanged"

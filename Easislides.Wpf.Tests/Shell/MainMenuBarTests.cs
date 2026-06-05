@@ -645,6 +645,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("MouseDoubleClick=\"InlinePraiseBookItems_MouseDoubleClick\"", "double-clicking a PraiseBook item should add it to Worship List");
         xaml.Should().Contain("PreviewMouseLeftButtonDown=\"PraiseBookItems_PreviewMouseLeftButtonDown\"", "PraiseBook rows should arm drag without breaking selection");
         xaml.Should().Contain("PreviewMouseMove=\"PraiseBookItems_PreviewMouseMove\"", "PraiseBook rows should drag into Worship List at a target position");
+        xaml.Should().Contain("PreviewMouseRightButtonDown=\"PraiseBookItems_PreviewMouseRightButtonDown\"", "right-clicking a PraiseBook row should target that row before opening the FrmMain menu");
         xaml.Should().Contain("x:Name=\"CMenuPraiseB\"", "PraiseBookItems should expose the FrmMain context menu");
         xaml.Should().Contain("x:Name=\"CMenuPraiseB_SelectAll\"", "PraiseBook context menu should expose Select All");
         xaml.Should().Contain("x:Name=\"CMenuPraiseB_UnselectAll\"", "PraiseBook context menu should expose Unselect All");
@@ -661,6 +662,10 @@ public class MainMenuBarTests
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
         code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry), entry)", "inline PraiseBook drag should carry the exact selected legacy entry");
+        code.Should().Contain("private void PraiseBookItems_PreviewMouseRightButtonDown", "PraiseBook context menu should select the row under the pointer");
+        code.Should().Contain("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.A", "PraiseBook Ctrl+A should select all entries like FrmMain");
+        code.Should().Contain("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete", "PraiseBook Delete should remove selected entries like FrmMain");
+        code.Should().Contain("DeleteSelectedPraiseBookEntriesAsync", "PB_Delete and Delete key should share one removal path");
         code.Should().Contain("WorshipListPanel_AddSelectedSourceRequested", "WL_Add should be handled in the MainWindow shell");
         code.Should().Contain("WorshipListPanel_EditSelectedItemRequested", "CMenuWorship_Edit should be handled in the MainWindow shell");
         code.Should().Contain("OpenSelectedWorshipSongEditorAsync", "Edit item should open the selected DB song in SongEditorWindow");

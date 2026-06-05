@@ -2531,6 +2531,9 @@ public partial class MainWindow : Window
     }
 
     private async void InlinePraiseBookDeleteSelected_Click(object sender, RoutedEventArgs e)
+        => await DeleteSelectedPraiseBookEntriesAsync().ConfigureAwait(true);
+
+    private async Task DeleteSelectedPraiseBookEntriesAsync()
     {
         if (_inlinePraiseBook is null)
         {
@@ -2540,7 +2543,7 @@ public partial class MainWindow : Window
         var entries = PraiseBookItems.SelectedItems.Cast<PraiseBookIndexEntry>().ToList();
         if (_inlinePraiseBook.RemoveEntries(entries) > 0)
         {
-            await SaveInlinePraiseBookIfNamedAsync();
+            await SaveInlinePraiseBookIfNamedAsync().ConfigureAwait(true);
         }
     }
 
@@ -2549,6 +2552,22 @@ public partial class MainWindow : Window
 
     private async void PraiseBookItems_KeyDown(object sender, KeyEventArgs e)
     {
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.A)
+        {
+            e.Handled = true;
+            PraiseBookItems.SelectAll();
+            PraiseBookItems.Focus();
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete)
+        {
+            e.Handled = true;
+            await DeleteSelectedPraiseBookEntriesAsync().ConfigureAwait(true);
+            PraiseBookItems.Focus();
+            return;
+        }
+
         if (!IsPlainEnterKey(e))
         {
             return;
@@ -2590,6 +2609,18 @@ public partial class MainWindow : Window
             && ItemsControl.ContainerFromElement(PraiseBookItems, source) is ListViewItem { DataContext: PraiseBookIndexEntry entry }
                 ? entry
                 : null;
+    }
+
+    private void PraiseBookItems_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(PraiseBookItems, source) is ListViewItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+        }
+
+        PraiseBookItems.Focus();
     }
 
     private void PraiseBookItems_PreviewMouseMove(object sender, MouseEventArgs e)
