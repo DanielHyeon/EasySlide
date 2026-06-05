@@ -4616,6 +4616,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RefreshHiddenOutputLyricsPage(item, target, pageModel.Count);
+            return;
+        }
+
         PrepareOutputLyricsPage(item, target, pageModel.Count);
     }
 

@@ -8899,6 +8899,46 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task JumpToOutputLyricsSection_WhenBlackHiddenLyricsSelectionDiverges_RefreshesHiddenPayloadOnly()
+    {
+        // FrmMain Output verse buttons update the hidden live payload without restoring Black/Clear.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Sequence = "1 C 2",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.JumpToOutputLyricsSectionCommand.CanExecute("C").Should().BeTrue();
+        sut.JumpToOutputLyricsSectionCommand.Execute("C");
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output verse buttons must not steal Preview selection");
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "Black should remain active while the hidden live payload changes");
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.OutputLyricsText.Should().Be("Live chorus");
+        sut.OutputNavigationPositionLabel.Should().Be("2/3");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus", "restoring Output should show the prepared hidden verse");
+    }
+
+    [Fact]
     public async Task GoToOutputLyricsPageCommand_WhenSelectionDivergesFromLiveItem_MovesLiveOutputOnly()
     {
         // FrmMain flowLayoutOutputLyrics: 카드 클릭은 현재 라이브 OutputItem 절을 이동하고 Preview 선택은 유지한다.
