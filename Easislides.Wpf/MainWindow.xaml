@@ -2500,15 +2500,58 @@
                                                   MouseDown="ClassicKeyboardSurface_MouseDown"
                                                   VerticalScrollBarVisibility="Auto">
                                         <Grid>
-                                            <StackPanel x:Name="flowLayoutPreviewLyrics"
-                                                        Tag="flowLayoutPreviewLyrics"
-                                                        Visibility="{Binding IsPreviewTextMode, Converter={StaticResource BoolToVis}}">
-                                                <TextBlock Text="{Binding SelectedItem.Lyrics}"
-                                                           TextWrapping="Wrap"
-                                                           Style="{StaticResource Type.Body.Style}"
-                                                           Foreground="{DynamicResource Brush.Text.Secondary}"
-                                                           AutomationProperties.Name="선택 곡 가사" />
-                                            </StackPanel>
+                                            <ItemsControl x:Name="flowLayoutPreviewLyrics"
+                                                          Tag="flowLayoutPreviewLyrics"
+                                                          ItemsSource="{Binding PreviewLyricsPages}"
+                                                          Visibility="{Binding IsPreviewTextMode, Converter={StaticResource BoolToVis}}"
+                                                          AutomationProperties.Name="Preview 가사 페이지 영역">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Command="{Binding DataContext.GoToPreviewLyricsPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                CommandParameter="{Binding PageIndex}"
+                                                                Margin="0,0,0,6"
+                                                                Padding="0"
+                                                                HorizontalContentAlignment="Stretch"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Cursor="Hand"
+                                                                ToolTip="{Binding PositionText, StringFormat=Preview {0}}">
+                                                            <Border BorderThickness="2"
+                                                                    Padding="6">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+                                                                        <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                                <Setter Property="BorderBrush" Value="Red" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <Grid>
+                                                                    <Grid.RowDefinitions>
+                                                                        <RowDefinition Height="Auto" />
+                                                                        <RowDefinition Height="*" />
+                                                                    </Grid.RowDefinitions>
+                                                                    <TextBlock Text="{Binding Label}"
+                                                                               HorizontalAlignment="Right"
+                                                                               MinWidth="18"
+                                                                               TextAlignment="Center"
+                                                                               FontWeight="Bold"
+                                                                               Foreground="Black"
+                                                                               Background="#FFF6E600" />
+                                                                    <TextBlock Grid.Row="1"
+                                                                               Text="{Binding BodyText}"
+                                                                               TextWrapping="Wrap"
+                                                                               Style="{StaticResource Type.Body.Style}"
+                                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                                                </Grid>
+                                                            </Border>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
 
                                             <StackPanel x:Name="IndPanel"
                                                         Tag="IndPanel"
@@ -3265,14 +3308,63 @@
                                               VerticalScrollBarVisibility="Auto"
                                               Margin="8"
                                               Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
-                                              AutomationProperties.Name="Output 가사 본문 영역">
-                                    <Border Background="{DynamicResource Brush.Surface.Page}"
-                                            Padding="6">
-                                        <TextBlock Text="{Binding OutputLyricsText}"
-                                                   TextWrapping="Wrap"
-                                                   Style="{StaticResource Type.Body.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                    </Border>
+                                              AutomationProperties.Name="Output 가사 페이지 영역">
+                                    <ItemsControl ItemsSource="{Binding OutputLyricsPages}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding DataContext.GoToOutputLyricsPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding PageIndex}"
+                                                        Margin="6"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand"
+                                                        ToolTip="{Binding PositionText, StringFormat=Output {0}}">
+                                                    <Border BorderThickness="5"
+                                                            Padding="4"
+                                                            Width="180"
+                                                            MinHeight="102">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="BorderBrush" Value="Transparent" />
+                                                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                        <Setter Property="BorderBrush" Value="Red" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="*" />
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Text="{Binding Label}"
+                                                                       HorizontalAlignment="Right"
+                                                                       MinWidth="18"
+                                                                       TextAlignment="Center"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="Black"
+                                                                       Background="#FFF6E600" />
+                                                            <TextBlock Grid.Row="1"
+                                                                       Text="{Binding BodyText}"
+                                                                       TextWrapping="Wrap"
+                                                                       MaxHeight="90"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       Style="{StaticResource Type.Caption.Style}"
+                                                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                                        </Grid>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </ScrollViewer>
 
                                 <ScrollViewer x:Name="ClassicOutputPowerPointSurface"

@@ -26,6 +26,13 @@ public enum PreviewPanelMode
     Info,
 }
 
+public sealed record OperatorLyricsPageCard(
+    int PageIndex,
+    string Label,
+    string PositionText,
+    string BodyText,
+    bool IsCurrent);
+
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionService _session;
@@ -609,6 +616,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> AvailableSectionLabels { get; } = new();
 
     /// <summary>
+    /// FrmMain flowLayoutPreviewLyrics 대응: 선택 Preview 항목의 가사/성경 페이지 카드.
+    /// </summary>
+    public ObservableCollection<OperatorLyricsPageCard> PreviewLyricsPages { get; } = new();
+
+    /// <summary>
+    /// FrmMain flowLayoutOutputLyrics 대응: 현재 준비/라이브 Output 항목의 가사/성경 페이지 카드.
+    /// </summary>
+    public ObservableCollection<OperatorLyricsPageCard> OutputLyricsPages { get; } = new();
+
+    public bool HasPreviewLyricsPages => PreviewLyricsPages.Count > 0;
+
+    public bool HasOutputLyricsPages => OutputLyricsPages.Count > 0;
+
+    /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
     /// (G1.2 / gap-analysis.md §4 G-α — 기존 placeholder 텍스트 대체, 테스트된 VM 의 UI 연결.)
     /// </summary>
@@ -771,6 +792,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextOutputSlideCommand = new AsyncRelayCommand(NextOutputPageAsync, CanGoNextOutputSlide);
         PreviousOutputSlideCommand = new AsyncRelayCommand(PreviousOutputPageAsync, CanGoPreviousOutputSlide);
         GoToOutputSlideCommand = new AsyncRelayCommand<int>(GoToOutputSlideAsync, CanGoToOutputSlide);
+        GoToPreviewLyricsPageCommand = new RelayCommand<int>(GoToPreviewLyricsPage, CanGoToPreviewLyricsPage);
+        GoToOutputLyricsPageCommand = new RelayCommand<int>(GoToOutputLyricsPage, CanGoToOutputLyricsPage);
         JumpToOutputLyricsSectionCommand = new RelayCommand<string>(JumpToOutputLyricsSection, CanJumpToOutputLyricsSection);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
@@ -1009,6 +1032,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextOutputSlideCommand { get; }
     public IAsyncRelayCommand PreviousOutputSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToOutputSlideCommand { get; }
+    public IRelayCommand<int> GoToPreviewLyricsPageCommand { get; }
+    public IRelayCommand<int> GoToOutputLyricsPageCommand { get; }
     public IRelayCommand<string> JumpToOutputLyricsSectionCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
@@ -3144,6 +3169,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _pageLabels = pageModel.Labels;
         RebuildAvailableSectionLabels();
         LyricsPageIndex = 0;
+        RebuildPreviewLyricsPages();
+    }
+
+    partial void OnLyricsPageIndexChanged(int value)
+    {
+        RebuildPreviewLyricsPages();
+        GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnLyricsPageCountChanged(int value)
+    {
+        RebuildPreviewLyricsPages();
+        GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnOutputLyricsTextChanged(string value)
+    {
+        RebuildOutputLyricsPages();
+    }
+
+    partial void OnLiveTransposeSemitonesChanged(int value)
+    {
+        RebuildPreviewLyricsPages();
+        RefreshOutputSurfaceText();
+        RebuildOutputLyricsPages();
     }
 
     private static (int Count, IReadOnlyList<string> Labels) BuildLyricsPageModel(LiveQueueItem? item)
@@ -3203,7 +3253,140 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         JumpToLyricsSectionCommand.NotifyCanExecuteChanged();
         JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
+        GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
     }
+
+    private void RebuildPreviewLyricsPages()
+    {
+        ReplaceLyricsPageCards(
+            PreviewLyricsPages,
+            BuildLyricsPageCards(SelectedItem, IsLyricsPaginated(SelectedItem) ? LyricsPageIndex : 0));
+        OnPropertyChanged(nameof(HasPreviewLyricsPages));
+    }
+
+    private void RebuildOutputLyricsPages()
+    {
+        var item = GetOutputLyricsCardItem();
+        var currentPage = item is not null && IsLyricsPaginated(item)
+            ? GetOutputLyricsPageIndex(item)
+            : 0;
+        ReplaceLyricsPageCards(OutputLyricsPages, BuildLyricsPageCards(item, currentPage));
+        OnPropertyChanged(nameof(HasOutputLyricsPages));
+        GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
+    }
+
+    private static void ReplaceLyricsPageCards(
+        ObservableCollection<OperatorLyricsPageCard> target,
+        IReadOnlyList<OperatorLyricsPageCard> source)
+    {
+        target.Clear();
+        foreach (var card in source)
+        {
+            target.Add(card);
+        }
+    }
+
+    private IReadOnlyList<OperatorLyricsPageCard> BuildLyricsPageCards(LiveQueueItem? item, int currentPage)
+    {
+        if (item is null || string.IsNullOrWhiteSpace(item.Lyrics))
+        {
+            return [];
+        }
+
+        if (!IsLyricsPaginated(item))
+        {
+            return
+            [
+                new OperatorLyricsPageCard(
+                    0,
+                    "",
+                    "",
+                    item.Lyrics,
+                    true),
+            ];
+        }
+
+        var pageModel = BuildLyricsPageModel(item);
+        if (pageModel.Count == 0)
+        {
+            return [];
+        }
+
+        var clamped = Math.Clamp(currentPage, 0, pageModel.Count - 1);
+        var cards = new List<OperatorLyricsPageCard>(pageModel.Count);
+        for (var index = 0; index < pageModel.Count; index++)
+        {
+            var label = pageModel.Labels.Count > index && !string.IsNullOrWhiteSpace(pageModel.Labels[index])
+                ? pageModel.Labels[index]
+                : (index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            cards.Add(new OperatorLyricsPageCard(
+                index,
+                label,
+                $"{index + 1}/{pageModel.Count}",
+                BuildOutputSurfaceText(item with { LyricsPageIndex = index }),
+                index == clamped));
+        }
+
+        return cards;
+    }
+
+    private LiveQueueItem? GetOutputLyricsCardItem()
+    {
+        if (GetOutputLyricsNavigationItem() is { } paginated)
+        {
+            return paginated;
+        }
+
+        return OutputItem is not null
+            && !IsPowerPointItem(OutputItem)
+            && !IsMediaItem(OutputItem)
+            && !string.IsNullOrWhiteSpace(OutputLyricsText)
+            ? OutputItem
+            : null;
+    }
+
+    private void GoToPreviewLyricsPage(int target)
+    {
+        if (!CanGoToPreviewLyricsPage(target))
+        {
+            return;
+        }
+
+        if (!IsLyricsPaginated(SelectedItem) || target == LyricsPageIndex)
+        {
+            RebuildPreviewLyricsPages();
+            return;
+        }
+
+        LyricsPageIndex = target;
+        StatusText = LyricsPageCount > 1
+            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            : StatusText;
+        NotifyCommandStates();
+    }
+
+    private bool CanGoToPreviewLyricsPage(int target)
+        => target >= 0 && target < PreviewLyricsPages.Count;
+
+    private void GoToOutputLyricsPage(int target)
+    {
+        if (!CanGoToOutputLyricsPage(target))
+        {
+            return;
+        }
+
+        if (GetOutputLyricsNavigationItem() is null)
+        {
+            RebuildOutputLyricsPages();
+            return;
+        }
+
+        MoveOutputLyricsPage(target);
+    }
+
+    private bool CanGoToOutputLyricsPage(int target)
+        => target >= 0 && target < OutputLyricsPages.Count;
 
     // Preview 절 라벨로 직접 점프 — 그 라벨의 첫 페이지로 이동한다.
     // FrmMain PreviewItem/OutputItem 분리와 같이, 이 Preview 명령은 live Output 을 즉시 갱신하지 않는다.
@@ -3572,6 +3755,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnOutputItemChanged(LiveQueueItem? value)
     {
         RefreshOutputSurfaceText();
+        RebuildOutputLyricsPages();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
         NotifyCommandStates();
     }
@@ -7117,6 +7301,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveBar.NextItemTitle = snapshot.CurrentItemNextTitle;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;
         RefreshOutputSurfaceText();
+        RebuildOutputLyricsPages();
         // 자동 회전은 라이브 완전 종료(Stop=Off)에서만 해제한다 — 숨김/검정/비우기(Hidden)는 임시 상태라
         // 유지하고 복귀(Restore→Active) 시 그대로 이어간다. 숨김 중에는 AdvanceAutoRotation 이 State!=Active 로
         // no-op 이라 출력을 깨우지 않으므로 회전 상태를 유지해도 안전하다(View 타이머가 IsAutoRotating 을 보고 멈춤).
@@ -7177,6 +7362,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextOutputSlideCommand.NotifyCanExecuteChanged();
         PreviousOutputSlideCommand.NotifyCanExecuteChanged();
         GoToOutputSlideCommand.NotifyCanExecuteChanged();
+        GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
         JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
         AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();

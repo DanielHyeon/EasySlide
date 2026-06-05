@@ -184,7 +184,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("Grid.Row=\"0\"", "right-top Output pane hosts thumbnails");
         xaml.Should().Contain("x:Name=\"flowLayoutOutputLyrics\"", "right-top Output pane should also expose FrmMain flowLayoutOutputLyrics for song/Bible output");
         xaml.Should().Contain("Tag=\"flowLayoutOutputLyrics\"", "the non-PPT Output lyrics role should remain explicit");
-        xaml.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "Output lyrics surface must bind to the prepared/live OutputItem, not the selected Preview lyrics");
+        xaml.Should().Contain("ItemsSource=\"{Binding OutputLyricsPages}\"", "Output lyrics surface should render prepared/live Output pages as FrmMain-style flow items");
+        xaml.Should().Contain("GoToOutputLyricsPageCommand", "Output lyrics page card clicks should navigate the Output item, not the selected Preview item");
         xaml.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "non-PPT Output lyrics should only show when the Output target has lyrics/body text");
         xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
@@ -631,6 +632,10 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("x:Name=\"ClassicPreviewPowerPointThumbnailGrid\"",
             "Preview top pane should expose the PowerPoint thumbnail strip separately from Output");
+        xaml.Should().Contain("ItemsSource=\"{Binding PreviewLyricsPages}\"",
+            "Preview lyrics pane should expose FrmMain-style page cards instead of a raw single lyrics block");
+        xaml.Should().Contain("GoToPreviewLyricsPageCommand",
+            "Preview lyrics page card clicks should move only the selected Preview item");
         xaml.Should().Contain("x:Name=\"ClassicOutputPowerPointSurface\"",
             "Output top pane should expose the live PowerPoint thumbnail/list surface");
         xaml.Should().Contain("x:Name=\"ClassicOutputHolder\"",

@@ -8442,6 +8442,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void GoToPreviewLyricsPageCommand_UpdatesPreviewPageCardsOnly()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        sut.AddSong(song, "1 C 2 C");
+
+        sut.PreviewLyricsPages
+            .Select(card => (card.PageIndex, card.Label, card.PositionText, card.IsCurrent))
+            .Should().Equal(
+                (0, "1", "1/4", true),
+                (1, "C", "2/4", false),
+                (2, "2", "3/4", false),
+                (3, "C", "4/4", false));
+
+        sut.GoToPreviewLyricsPageCommand.CanExecute(2).Should().BeTrue();
+        sut.GoToPreviewLyricsPageCommand.Execute(2);
+
+        sut.LyricsPageIndex.Should().Be(2);
+        sut.PreviewLyricsPages.Single(card => card.PageIndex == 2).IsCurrent.Should().BeTrue();
+        sut.PreviewLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeFalse();
+        sut.OutputLyricsPages.Should().BeEmpty("Preview card navigation should not prepare or move Output");
+    }
+
+    [Fact]
     public async Task JumpToOutputLyricsSection_WhenSelectionDivergesFromLiveItem_MovesLiveOutputOnly()
     {
         // FrmMain 1:1: Output 절 버튼은 Preview 선택 항목이 아니라 현재 라이브 항목(OutputItem)을 움직여야 한다.
@@ -8473,6 +8497,46 @@ public class MainViewModelTests
         sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
         sut.OutputLyricsText.Should().Be("Live chorus", "오른쪽 Output 본문 표면도 라이브 OutputItem 의 현재 절을 따라간다");
         sut.LiveBar.PositionLabel.Should().Be("2/4", "Output 라이브 위치 표시만 갱신된다");
+    }
+
+    [Fact]
+    public async Task GoToOutputLyricsPageCommand_WhenSelectionDivergesFromLiveItem_MovesLiveOutputOnly()
+    {
+        // FrmMain flowLayoutOutputLyrics: 카드 클릭은 현재 라이브 OutputItem 절을 이동하고 Preview 선택은 유지한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Sequence = "1 C 2 C",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.OutputLyricsPages
+            .Select(card => (card.PageIndex, card.Label, card.PositionText, card.IsCurrent))
+            .Should().Equal(
+                (0, "1", "1/4", true),
+                (1, "C", "2/4", false),
+                (2, "2", "3/4", false),
+                (3, "C", "4/4", false));
+
+        sut.GoToOutputLyricsPageCommand.CanExecute(1).Should().BeTrue();
+        sut.GoToOutputLyricsPageCommand.Execute(1);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output card clicks should not steal Preview selection");
+        sut.LyricsPageIndex.Should().Be(0, "Output card clicks should not move the Preview page");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.OutputLyricsText.Should().Be("Live chorus");
+        sut.OutputLyricsPages.Single(card => card.PageIndex == 1).IsCurrent.Should().BeTrue();
+        sut.OutputLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeFalse();
     }
 
     [Fact]
