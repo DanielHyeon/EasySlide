@@ -1122,7 +1122,7 @@
                                   SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
                                   Tag="SongsList"
                                   SelectionMode="Extended"
-                                  KeyDown="SourceListAddOnEnter_KeyDown"
+                                  KeyDown="LibrarySongList_KeyDown"
                                   PreviewMouseLeftButtonDown="LibrarySongList_PreviewMouseLeftButtonDown"
                                   PreviewMouseRightButtonDown="LibrarySongList_PreviewMouseRightButtonDown"
                                   PreviewMouseMove="LibrarySongList_PreviewMouseMove"
@@ -1195,6 +1195,10 @@
                                               Tag="CMenuSongs_Copy"
                                               Header="Copy item"
                                               Click="SongCopy_Click" />
+                                    <MenuItem x:Name="CMenuSongs_Delete"
+                                              Tag="CMenuSongs_Delete"
+                                              Header="Delete item"
+                                              Click="CMenuSongs_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuSongs_Refresh"
                                               Tag="CMenuSongs_Refresh"

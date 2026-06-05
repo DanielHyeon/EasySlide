@@ -505,6 +505,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("PreviewMouseMove=\"LibrarySongList_PreviewMouseMove\"", "song rows should keep drag-to-Worship behavior");
         xaml.Should().Contain("PreviewMouseRightButtonDown=\"LibrarySongList_PreviewMouseRightButtonDown\"",
             "right-clicking a song row should select it before opening CMenuSongs");
+        xaml.Should().Contain("KeyDown=\"LibrarySongList_KeyDown\"",
+            "SongsList should keep FrmMain's Delete-key route separate from the generic Enter-add source handler");
         xaml.Should().Contain("MouseAction=\"LeftDoubleClick\"", "song rows should keep double-click add behavior");
     }
 
@@ -521,6 +523,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuSongs_AddShow\"");
         xaml.Should().Contain("x:Name=\"CMenuSongs_Edit\"");
         xaml.Should().Contain("x:Name=\"CMenuSongs_Copy\"");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_Delete\"");
         xaml.Should().Contain("x:Name=\"CMenuSongs_Refresh\"");
 
         code.Should().Contain("private void LibrarySongList_PreviewMouseRightButtonDown",
@@ -533,6 +536,10 @@ public class MainMenuBarTests
             "Add && Show should publish through the same Preview-to-Live path as the visible FrmMain LIVE button");
         code.Should().Contain("private async Task OpenSelectedLibrarySongEditorAsync",
             "CMenuSongs_Edit should open the selected library song editor, not the Worship List item editor");
+        code.Should().Contain("private void CMenuSongs_Delete_Click",
+            "CMenuSongs_Delete should reuse the main song delete launcher with the selected source song context");
+        code.Should().Contain("SongDelete_Click(sender, e)",
+            "Delete menu and Delete key should share the existing song delete dialog path");
     }
 
     [Fact]
@@ -550,6 +557,8 @@ public class MainMenuBarTests
 
         code.Should().Contain("private async void SourceListAddOnEnter_KeyDown",
             "source-list Enter should be handled in MainWindow where the active source tab is known");
+        code.Should().Contain("private void LibrarySongList_KeyDown",
+            "Folders SongsList needs a dedicated Delete-key path in addition to Enter add");
         code.Should().Contain("await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true)",
             "Enter should reuse the same active-source router as WL_Add");
         code.Should().Contain("private async void BiblePassageBox_PreviewKeyDown",

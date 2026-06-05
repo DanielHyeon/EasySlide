@@ -1169,6 +1169,18 @@ public partial class MainWindow : Window
         await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
     }
 
+    private void LibrarySongList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            e.Handled = true;
+            SongDelete_Click(sender, e);
+            return;
+        }
+
+        SourceListAddOnEnter_KeyDown(sender, e);
+    }
+
     private async void BiblePassageBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (!IsPlainEnterKey(e) || DataContext is not MainViewModel viewModel)
@@ -1325,6 +1337,7 @@ public partial class MainWindow : Window
         CMenuSongs_AddShow.IsEnabled = selectionCount > 0;
         CMenuSongs_Edit.IsEnabled = selectionCount == 1;
         CMenuSongs_Copy.IsEnabled = selectionCount == 1;
+        CMenuSongs_Delete.IsEnabled = selectionCount == 1;
         CMenuSongs_Refresh.IsEnabled = true;
     }
 
@@ -1381,6 +1394,9 @@ public partial class MainWindow : Window
             await viewModel.Library.LoadAsync().ConfigureAwait(true);
         }
     }
+
+    private void CMenuSongs_Delete_Click(object sender, RoutedEventArgs e)
+        => SongDelete_Click(sender, e);
 
     private IReadOnlyList<LiveQueueItem> AddSelectedLibrarySongsToWorshipList(MainViewModel viewModel)
     {
