@@ -3264,6 +3264,27 @@
                                                FontWeight="Bold"
                                                Foreground="#FFF6E600"
                                                AutomationProperties.Name="Output 슬라이드 현재 항목" />
+                                    <TextBlock x:Name="ClassicOutputLargeLyricsText"
+                                               Tag="OutputScreenLyrics"
+                                               Text="{Binding OutputLyricsText}"
+                                               Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
+                                               Margin="36,104,36,68"
+                                               VerticalAlignment="Top"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="48"
+                                               FontWeight="Bold"
+                                               LineHeight="64"
+                                               LineStackingStrategy="BlockLineHeight"
+                                               Foreground="#FFF6E600"
+                                               AutomationProperties.Name="Output 큰 화면 본문" />
+                                    <TextBlock Text="{Binding LiveBar.PositionLabel}"
+                                               Margin="20,0,0,18"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Bottom"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="#FFF6E600"
+                                               AutomationProperties.Name="Output 큰 화면 위치" />
                                     <TextBlock Text="{Binding LiveBar.StateLabel}"
                                                Margin="0,0,20,18"
                                                HorizontalAlignment="Right"
@@ -3274,6 +3295,7 @@
                             </Border>
                             <Image x:Name="ClassicOutputLargeSlideImage"
                                    Source="{Binding OutputPowerPoint.PreviewImage}"
+                                   Visibility="{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}"
                                    Stretch="Uniform"
                                    AutomationProperties.Name="Output 큰 PowerPoint 슬라이드" />
                         </Grid>

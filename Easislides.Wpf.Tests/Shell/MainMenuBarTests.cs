@@ -196,6 +196,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"splitContainerOutput.Panel2\"", "right-bottom Output pane should map to splitContainerOutput.Panel2");
         xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
         xaml.Should().Contain("Source=\"{Binding OutputPowerPoint.PreviewImage}\"", "large Output slide should show the live/output PPT image when available");
+        xaml.Should().Contain("Visibility=\"{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}\"",
+            "the large PPT slide image should not cover non-PPT Output lyrics");
     }
 
     [Fact]
@@ -215,6 +217,10 @@ public class MainMenuBarTests
         output.Should().Contain("Width=\"960\"", "Output screen should use the same 16:9 frame as the live output slide");
         output.Should().Contain("Height=\"540\"", "Output screen should use the same 16:9 frame as the live output slide");
         output.Should().Contain("x:Name=\"ClassicOutputBack\"", "the output background stays inside the fixed frame");
+        output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"", "non-PPT Output lyrics should render in the lower live preview frame");
+        output.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "the lower Output frame should follow OutputItem/live lyrics, not selected Preview lyrics");
+        output.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
+            "the lower Output lyrics layer should only appear for prepared/live text items");
         output.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "the PPT image overlay stays inside the fixed frame");
     }
 
