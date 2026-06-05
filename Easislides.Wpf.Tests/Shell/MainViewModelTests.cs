@@ -9351,6 +9351,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputSlideButtons_SingleSlidePreparedPowerPoint_RemainExecutableLikeFrmMain()
+    {
+        // FrmMain OutputBtnSlideUp/Down 은 단일 슬라이드 덱에서도 버튼이 죽지 않고 현재 슬라이드에 머문다.
+        var previewPowerPoint = new PowerPointPreviewViewModel(new FixedSlideCountPowerPointRenderService(1), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new FixedSlideCountPowerPointRenderService(1), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var prepared = new LiveQueueItem("ppt:prepared", "Single deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "single.pptx",
+        };
+        sut.LoadQueue([prepared]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputPowerPoint.SlideCount.Should().Be(1);
+        sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain leaves Output slide buttons usable even when first and last are the same slide");
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain leaves Output slide buttons usable even when first and last are the same slide");
+
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.SlideNumber.Should().Be(1);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+    }
+
+    [Fact]
     public async Task OutputSlideButtons_WhenBlackHiddenPowerPointSelectionDiverges_MoveHiddenPayloadOnly()
     {
         // FrmMain Output PPT 슬라이드 버튼: Black 중에도 Preview 선택과 별개로 숨겨진 PPT payload 의 슬라이드만 넘긴다.
@@ -9470,6 +9502,33 @@ public class MainViewModelTests
         sut.OutputItem.LyricsPageIndex.Should().Be(2);
         sut.OutputLyricsText.Should().Be("Prepared verse two");
         sut.OutputNavigationPositionLabel.Should().Be("3/3");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task OutputSlideButtons_SinglePagePreparedLyrics_RemainExecutableLikeFrmMain()
+    {
+        // FrmMain OutputBtnSlideUp/Down 은 단일 절 곡에서도 버튼이 죽지 않고 현재 절에 머문다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "Single page song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOnly verse",
+        };
+        sut.LoadQueue([prepared]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputLyricsPages.Should().ContainSingle();
+        sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain leaves Output lyrics buttons usable on the first page");
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain leaves Output lyrics buttons usable on the last page");
+
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.LyricsPageIndex.Should().Be(0);
+        sut.OutputLyricsText.Should().Be("Only verse");
         sut.Session.Current.State.Should().Be(LiveState.Off);
         sut.LiveItemId.Should().BeNull();
     }
@@ -9961,6 +10020,29 @@ public class MainViewModelTests
     {
         public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
             => Task.FromResult(SuccessResult(request));
+
+        public void ClearCache()
+        {
+        }
+    }
+
+    private sealed class FixedSlideCountPowerPointRenderService(int slideCount) : IPowerPointRenderService
+    {
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(new PowerPointRenderResult(
+                PowerPointRenderErrorKind.None,
+                new PowerPointSlideSnapshot(
+                    request.FilePath,
+                    request.SlideNumber,
+                    SlideCount: slideCount,
+                    request.PixelWidth,
+                    request.PixelHeight,
+                    ImageBytes: [1, 2, 3],
+                    ContentType: "image/jpeg",
+                    DateTimeOffset.UnixEpoch),
+                ErrorMessage: null,
+                FromCache: false,
+                Elapsed: TimeSpan.Zero));
 
         public void ClearCache()
         {

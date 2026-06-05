@@ -4520,21 +4520,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => IsOutputPowerPointSlideNavReady() && target >= 1 && target <= OutputPowerPoint.SlideCount;
 
     private bool CanGoNextOutputSlide()
-        => IsOutputPowerPointSlideNavReadyForButtons()
+        => IsOutputPowerPointSlideNavReady()
             || IsOutputLyricsPageNavReady();
 
     private bool CanGoPreviousOutputSlide()
-        => IsOutputPowerPointSlideNavReadyForButtons()
+        => IsOutputPowerPointSlideNavReady()
             || IsOutputLyricsPageNavReady();
+
+    private bool CanMoveOutputSlidePage(int direction)
+    {
+        if (direction > 0)
+        {
+            if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber < OutputPowerPoint.SlideCount)
+            {
+                return true;
+            }
+
+            if (GetOutputLyricsNavigationItem() is { } nextItem)
+            {
+                var pageModel = BuildLyricsPageModel(nextItem);
+                return GetOutputLyricsPageIndex(nextItem) < pageModel.Count - 1;
+            }
+
+            return false;
+        }
+
+        if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber > 1)
+        {
+            return true;
+        }
+
+        if (GetOutputLyricsNavigationItem() is { } previousItem)
+        {
+            return GetOutputLyricsPageIndex(previousItem) > 0;
+        }
+
+        return false;
+    }
 
     private bool IsOutputPowerPointSlideNavReady()
         => GetOutputPowerPointNavigationItem() is { ContentPath.Length: > 0 }
             && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && OutputPowerPoint.SlideCount > 0;
-
-    private bool IsOutputPowerPointSlideNavReadyForButtons()
-        => IsOutputPowerPointSlideNavReady()
-            && OutputPowerPoint.SlideCount > 1;
 
     private LiveQueueItem? GetLiveQueueItem()
         => Queue.FirstOrDefault(item =>
@@ -4567,7 +4594,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var pageModel = BuildLyricsPageModel(item);
-        return pageModel.Count > 1;
+        return pageModel.Count > 0;
     }
 
     private void JumpToOutputLyricsSection(string? label)
@@ -5091,7 +5118,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var slideCommand = direction > 0
                 ? NextOutputSlideCommand
                 : PreviousOutputSlideCommand;
-            if (slideCommand.CanExecute(null))
+            if (CanMoveOutputSlidePage(direction) && slideCommand.CanExecute(null))
             {
                 await slideCommand.ExecuteAsync(null).ConfigureAwait(true);
                 return;
