@@ -3178,15 +3178,59 @@
                              Focusable="True"
                              MouseDown="ClassicKeyboardSurface_MouseDown"
                              AutomationProperties.Name="Preview 16:9 화면 프레임">
-                        <rendering:SlidePreviewControl Width="960"
-                                                       Height="540"
-                                                       Title="{Binding SelectedItem.Title}"
-                                                       Kind="{Binding SelectedItem.Kind}"
-                                                       Source="{Binding SelectedItem.PreviewSource}"
-                                                       FillMode="{Binding SelectedItem.PreviewFillMode}"
-                                                       SlideNumber="{Binding SelectedItem.SlideNumber}"
-                                                       ShowSlideNumber="True"
-                                                       IsSelected="True" />
+                        <Grid Width="960"
+                              Height="540">
+                            <Border x:Name="ClassicPreviewBack"
+                                    Tag="PreviewBack"
+                                    Background="#165D7A"
+                                    BorderBrush="#111111"
+                                    BorderThickness="0,0,8,8"
+                                    Focusable="True"
+                                    MouseDown="ClassicKeyboardSurface_MouseDown">
+                                <Grid>
+                                    <TextBlock Text="{Binding SelectedItem.Title}"
+                                               Margin="36,32,36,0"
+                                               VerticalAlignment="Top"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxHeight="160"
+                                               FontSize="30"
+                                               FontWeight="Bold"
+                                               Foreground="#FFF6E600"
+                                               AutomationProperties.Name="Preview 슬라이드 현재 항목" />
+                                    <TextBlock x:Name="ClassicPreviewLargeLyricsText"
+                                               Tag="PreviewScreenLyrics"
+                                               Text="{Binding PreviewLyricsText}"
+                                               Visibility="{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}"
+                                               Margin="36,104,36,68"
+                                               VerticalAlignment="Top"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="48"
+                                               FontWeight="Bold"
+                                               LineHeight="64"
+                                               LineStackingStrategy="BlockLineHeight"
+                                               Foreground="#FFF6E600"
+                                               AutomationProperties.Name="Preview 큰 화면 본문" />
+                                    <TextBlock Text="{Binding LyricsPageLabel}"
+                                               Margin="20,0,0,18"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Bottom"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="#FFF6E600"
+                                               AutomationProperties.Name="Preview 큰 화면 위치" />
+                                </Grid>
+                            </Border>
+                            <rendering:SlidePreviewControl x:Name="ClassicPreviewLargeSlide"
+                                                           Title="{Binding SelectedItem.Title}"
+                                                           Kind="{Binding SelectedItem.Kind}"
+                                                           Source="{Binding PreviewVisualSource}"
+                                                           FillMode="{Binding SelectedItem.PreviewFillMode}"
+                                                           SlideNumber="{Binding SelectedItem.SlideNumber}"
+                                                           ShowSlideNumber="True"
+                                                           IsSelected="True"
+                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
                     </Viewbox>
                 </Grid>
             </Border>

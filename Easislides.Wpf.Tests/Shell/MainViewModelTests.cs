@@ -8460,6 +8460,9 @@ public class MainViewModelTests
         sut.GoToPreviewLyricsPageCommand.Execute(2);
 
         sut.LyricsPageIndex.Should().Be(2);
+        sut.PreviewLyricsText.Should().Be("Verse two");
+        sut.HasPreviewLyricsText.Should().BeTrue();
+        sut.HasPreviewVisualSource.Should().BeFalse("song lyrics use the PreviewBack text frame until a rendered image source exists");
         sut.PreviewLyricsPages.Single(card => card.PageIndex == 2).IsCurrent.Should().BeTrue();
         sut.PreviewLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeFalse();
         sut.OutputLyricsPages.Should().BeEmpty("Preview card navigation should not prepare or move Output");

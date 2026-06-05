@@ -222,6 +222,15 @@ public class MainMenuBarTests
         preview.Should().Contain("Stretch=\"Uniform\"", "Preview screen should scale as one slide frame instead of stretching to pane shape");
         preview.Should().Contain("Width=\"960\"", "Preview screen should use a fixed 16:9 design surface");
         preview.Should().Contain("Height=\"540\"", "Preview screen should use a fixed 16:9 design surface");
+        preview.Should().Contain("x:Name=\"ClassicPreviewBack\"", "Preview background should stay inside the fixed frame like FrmMain PreviewBack");
+        preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"", "non-PPT Preview lyrics should render in the lower preview frame");
+        preview.Should().Contain("Text=\"{Binding PreviewLyricsText}\"", "the lower Preview frame should follow the selected Preview page text");
+        preview.Should().Contain("Visibility=\"{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}\"",
+            "the lower Preview lyrics layer should only appear for selected text items");
+        preview.Should().Contain("Visibility=\"{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}\"",
+            "image/PPT PreviewSource should cover the text frame only when an actual visual source exists");
+        preview.Should().Contain("Source=\"{Binding PreviewVisualSource}\"",
+            "the large Preview frame should use the rendered PPT/image source rather than only the raw selected item source");
 
         var output = SectionBetween(xaml, "x:Name=\"ClassicOutputHolder\"", "</Viewbox>");
         output.Should().Contain("Tag=\"OutputHolder\"", "Output lower pane should keep the FrmMain OutputHolder role");

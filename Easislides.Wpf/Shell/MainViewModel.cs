@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Composites;
@@ -628,6 +629,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool HasPreviewLyricsPages => PreviewLyricsPages.Count > 0;
 
     public bool HasOutputLyricsPages => OutputLyricsPages.Count > 0;
+
+    public string PreviewLyricsText
+        => PreviewLyricsPages.FirstOrDefault(card => card.IsCurrent)?.BodyText ?? string.Empty;
+
+    public bool HasPreviewLyricsText => !string.IsNullOrWhiteSpace(PreviewLyricsText);
+
+    public ImageSource? PreviewVisualSource
+        => SelectedItem is not null && IsPowerPointItem(SelectedItem)
+            ? PowerPoint.PreviewImage
+            : SelectedItem?.PreviewSource;
+
+    public bool HasPreviewVisualSource => PreviewVisualSource is not null;
 
     /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
@@ -3051,6 +3064,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanApplyCopiedFormatToAll));
         OnPropertyChanged(nameof(CanClearAllItemsFormatting));
         OnPropertyChanged(nameof(PreviewItemInfoText));
+        OnPropertyChanged(nameof(PreviewVisualSource));
+        OnPropertyChanged(nameof(HasPreviewVisualSource));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
@@ -3263,6 +3278,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             PreviewLyricsPages,
             BuildLyricsPageCards(SelectedItem, IsLyricsPaginated(SelectedItem) ? LyricsPageIndex : 0));
         OnPropertyChanged(nameof(HasPreviewLyricsPages));
+        OnPropertyChanged(nameof(PreviewLyricsText));
+        OnPropertyChanged(nameof(HasPreviewLyricsText));
     }
 
     private void RebuildOutputLyricsPages()
@@ -4387,9 +4404,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // PPT 미리보기 VM 의 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 동기화.
     private void OnPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(PowerPoint.PreviewImage))
+        {
+            OnPropertyChanged(nameof(PreviewVisualSource));
+            OnPropertyChanged(nameof(HasPreviewVisualSource));
+        }
+
         if (e.PropertyName is nameof(PowerPoint.State)
             or nameof(PowerPoint.SlideNumber)
-            or nameof(PowerPoint.SlideCount))
+            or nameof(PowerPoint.SlideCount)
+            or nameof(PowerPoint.PreviewImage))
         {
             NotifyCommandStates();
         }
