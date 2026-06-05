@@ -4285,13 +4285,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (IsPowerPointSlideNavReady())
         {
-            await GoToSlideAsync(PowerPoint.SlideNumber + 1).ConfigureAwait(true);
+            await GoToSlideAsync(Math.Min(PowerPoint.SlideNumber + 1, PowerPoint.SlideCount)).ConfigureAwait(true);
             return;
         }
 
-        if (CanGoNextLyricsPage())
+        if (IsPreviewLyricsPageNavReady())
         {
-            NextLyricsPage();
+            GoToPreviewLyricsPage(Math.Min(LyricsPageIndex + 1, LyricsPageCount - 1));
             NotifyCommandStates();
         }
     }
@@ -4300,13 +4300,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (IsPowerPointSlideNavReady())
         {
-            await GoToSlideAsync(PowerPoint.SlideNumber - 1).ConfigureAwait(true);
+            await GoToSlideAsync(Math.Max(PowerPoint.SlideNumber - 1, 1)).ConfigureAwait(true);
             return;
         }
 
-        if (CanGoPreviousLyricsPage())
+        if (IsPreviewLyricsPageNavReady())
         {
-            PreviousLyricsPage();
+            GoToPreviewLyricsPage(Math.Max(LyricsPageIndex - 1, 0));
             NotifyCommandStates();
         }
     }
@@ -4338,18 +4338,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => IsPowerPointSlideNavReady() && target >= 1 && target <= PowerPoint.SlideCount;
 
     private bool CanGoNextSlide()
-        => (IsPowerPointSlideNavReady() && PowerPoint.SlideNumber < PowerPoint.SlideCount)
-            || CanGoNextLyricsPage();
+        => IsPowerPointSlideNavReady()
+            || IsPreviewLyricsPageNavReady();
 
     private bool CanGoPreviousSlide()
-        => (IsPowerPointSlideNavReady() && PowerPoint.SlideNumber > 1)
-            || CanGoPreviousLyricsPage();
+        => IsPowerPointSlideNavReady()
+            || IsPreviewLyricsPageNavReady();
 
     private bool IsPowerPointSlideNavReady()
         => SelectedItem is { Kind: LiveItemKinds.PowerPoint } selected
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && PowerPoint.SlideCount > 0
             && !string.IsNullOrEmpty(selected.ContentPath);
+
+    private bool IsPreviewLyricsPageNavReady()
+        => LyricsPageCount > 0;
 
     private async Task GoToOutputSlideAsync(int target)
     {

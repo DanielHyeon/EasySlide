@@ -4035,16 +4035,25 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SlideNavCommands_RespectDeckBoundaries()
+    public async Task SlideNavCommands_ClampAtDeckBoundariesLikeFrmMain()
     {
-        // 첫 슬라이드에선 이전 비활성, 마지막 슬라이드에선 다음 비활성(덱 범위 벗어남 방지).
+        // FrmMain PreviewBtnSlideUp/Down 은 경계에서도 버튼이 살아 있고 현재 덱 첫/마지막 슬라이드로 clamp 한다.
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
         var sut = CreateSut(powerPoint: powerPoint);
         sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
 
         powerPoint.SlideNumber.Should().Be(1);
-        sut.PreviousSlideCommand.CanExecute(null).Should().BeFalse("첫 슬라이드에선 이전 비활성");
+        sut.PreviousSlideCommand.CanExecute(null).Should().BeTrue("FrmMain처럼 첫 슬라이드에서도 버튼은 살아 있고 첫 슬라이드에 머문다");
         sut.NextSlideCommand.CanExecute(null).Should().BeTrue();
+
+        await sut.PreviousSlideCommand.ExecuteAsync(null);
+        powerPoint.SlideNumber.Should().Be(1);
+
+        await sut.GoToSlideCommand.ExecuteAsync(3);
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("FrmMain처럼 마지막 슬라이드에서도 버튼은 살아 있고 마지막 슬라이드에 머문다");
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+        powerPoint.SlideNumber.Should().Be(3);
     }
 
     [Fact]
@@ -8883,6 +8892,32 @@ public class MainViewModelTests
         sut.LyricsPageIndex.Should().Be(0);
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
         sut.OutputLyricsText.Should().Be("Live verse");
+    }
+
+    [Fact]
+    public async Task PreviewSlideButtons_ClampLyricsAtBoundariesLikeFrmMain()
+    {
+        // FrmMain MoveToSlidePreviewItem 은 첫/마지막 절에서도 버튼을 비활성화하지 않고 현재 경계에 머문다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Sequence = "1 C",
+        };
+        sut.LoadQueue([preview]);
+
+        sut.PreviousSlideCommand.CanExecute(null).Should().BeTrue();
+        await sut.PreviousSlideCommand.ExecuteAsync(null);
+        sut.LyricsPageIndex.Should().Be(0);
+        sut.PreviewNavigationPositionLabel.Should().Be("1/2");
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+        sut.LyricsPageIndex.Should().Be(1);
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue();
+
+        await sut.NextSlideCommand.ExecuteAsync(null);
+        sut.LyricsPageIndex.Should().Be(1);
+        sut.PreviewNavigationPositionLabel.Should().Be("2/2");
     }
 
     [Fact]
