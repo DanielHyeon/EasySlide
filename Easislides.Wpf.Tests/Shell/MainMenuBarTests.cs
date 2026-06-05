@@ -591,6 +591,7 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("{Binding CopyPreviewToOutputCommand}", "FrmMain btnToOutput should copy Preview into Output without starting live");
         xaml.Should().Contain("{Binding CopyPreviewToOutputAndNextCommand}", "FrmMain btnToOutputMoveNext should copy Output and advance Preview without starting live");
+        xaml.Should().Contain("{Binding PreviewToLiveCommand}", "FrmMain btnToLive should use PreviewItem->OutputItem live semantics, separate from the fixed operator GoLive command");
         OperatorBarXaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "fixed operator bar keeps F11 live send-and-next");
         xaml.Should().Contain("Text=\"{Binding DataContext.OutputItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Output'}\"",
             "Output title should follow the prepared OutputItem, not the selected Preview item");

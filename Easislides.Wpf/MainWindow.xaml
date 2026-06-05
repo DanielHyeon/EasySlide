@@ -2416,7 +2416,7 @@
                                    HorizontalAlignment="Right">
                             <Button x:Name="btnToLive"
                                     Tag="btnToLive"
-                                    Command="{Binding GoLiveCommand}"
+                                    Command="{Binding PreviewToLiveCommand}"
                                     Style="{StaticResource EsButton.Primary}"
                                     MinWidth="48"
                                     MinHeight="28"

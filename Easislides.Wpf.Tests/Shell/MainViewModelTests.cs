@@ -3271,6 +3271,74 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyPreviewToOutputCommand_WhenLive_PublishesPreviewToOutputAtCurrentPreviewPage()
+    {
+        // FrmMain btnToOutput_Click: 쇼가 이미 실행 중이면 PreviewItem 복사가 곧 live Output 갱신이다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.NextLyricsPageCommand.Execute(null);
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "btnToOutput 은 Preview 선택을 이동하지 않는다");
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+        sut.OutputLyricsText.Should().Be("Preview chorus");
+    }
+
+    [Fact]
+    public async Task PreviewToLiveCommand_OpensOutputAndPublishesPreviewWithoutAdvancingSelection()
+    {
+        // FrmMain btnToLive_Click: PreviewItem -> OutputItem 복사 후 live 시작. GoLiveCommand 의 자동 다음 선택과 분리된다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var first = new LiveQueueItem("song:first", "입례 찬양", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n입례\n[C]\n후렴",
+        };
+        var second = new LiveQueueItem("song:second", "봉헌 찬양", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n봉헌",
+        };
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        sut.LoadQueue([first, second]);
+        sut.SelectedItem = first;
+        sut.NextLyricsPageCommand.Execute(null);
+
+        sut.PreviewToLiveCommand.CanExecute(null).Should().BeTrue("FrmMain Preview LIVE 버튼은 선택 Preview 항목만 있으면 실행 가능");
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(first, "btnToLive 는 GoLiveCommand 의 자동 다음 이동을 사용하지 않는다");
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.LiveItemId.Should().Be(first.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("입례 찬양");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("후렴");
+        sut.OutputLyricsText.Should().Be("후렴");
+    }
+
+    [Fact]
     public void CopyPreviewToOutputAndNextCommand_PreparesOutputAndAdvancesPreviewWithoutStartingLive()
     {
         // FrmMain btnToOutputMoveNext_Click: CopyPreviewToOutput + PreviewItem NextOne, GoLive 없음.

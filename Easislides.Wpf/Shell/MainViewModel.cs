@@ -714,6 +714,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopyPreviewToOutputAndNextCommand = new RelayCommand(CopyPreviewToOutputAndNext, CanCopyPreviewToOutput);
         CopyPreviewToOutputShortcutCommand = new RelayCommand(CopyPreviewToOutputShortcut, CanCopyPreviewToOutput);
         CopyPreviewToOutputAndClearBlackCommand = new RelayCommand(CopyPreviewToOutputAndClearBlack, CanCopyPreviewToOutput);
+        PreviewToLiveCommand = new AsyncRelayCommand(PreviewToLiveAsync, CanPreviewToLive);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
@@ -928,6 +929,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand CopyPreviewToOutputShortcutCommand { get; }
     /// <summary>FrmMain 글로벌 F7: PreviewItem 을 OutputItem 으로 복사하고 Black 화면을 해제한다.</summary>
     public IRelayCommand CopyPreviewToOutputAndClearBlackCommand { get; }
+    /// <summary>FrmMain btnToLive: PreviewItem 을 OutputItem 으로 복사하고, live off 면 시작, live 중이면 현재 Output 을 갱신한다.</summary>
+    public IAsyncRelayCommand PreviewToLiveCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
     /// <summary>상단/메뉴 F11: 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).</summary>
@@ -4055,6 +4058,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputItemAtPreviewPage(item, MainCommandIds.LivePreviewToOutput);
+            return;
+        }
+
         RefreshHiddenOutputPayload(item, MainCommandIds.LivePreviewToOutput);
         StatusText = $"Output 준비: {item.Title}";
         NotifyCommandStates();
@@ -4068,7 +4077,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        RefreshHiddenOutputPayload(item, MainCommandIds.LivePreviewToOutput);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputItemAtPreviewPage(item, MainCommandIds.LivePreviewToOutput);
+        }
+        else
+        {
+            RefreshHiddenOutputPayload(item, MainCommandIds.LivePreviewToOutput);
+        }
+
         var next = MovePreviewSelectionToNext(item);
         StatusText = next is null
             ? $"Output 준비: {item.Title}"
@@ -4094,10 +4111,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             || (clearBlackAfterCopy && IsOutputBlackActive);
         if (shouldPublish)
         {
-            var previewLyricsPageIndex = ReferenceEquals(item, SelectedItem)
-                ? LyricsPageIndex
-                : item.LyricsPageIndex;
-            PublishOutputItem(item, commandId, previewLyricsPageIndex);
+            PublishOutputItemAtPreviewPage(item, commandId);
             return;
         }
 
@@ -4105,6 +4119,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"Output 준비: {item.Title}";
         NotifyCommandStates();
     }
+
+    private Task PreviewToLiveAsync()
+    {
+        var item = PrepareOutputFromPreview();
+        if (item is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputItemAtPreviewPage(item, MainCommandIds.LiveGo);
+            return Task.CompletedTask;
+        }
+
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RefreshHiddenOutputPayload(item, MainCommandIds.LiveGo);
+            StatusText = $"Output 준비: {item.Title}";
+            NotifyCommandStates();
+            return Task.CompletedTask;
+        }
+
+        if (!_output.Current.IsOpen)
+        {
+            OpenOutput();
+        }
+
+        PublishOutputItemAtPreviewPage(item, MainCommandIds.LiveGo);
+        return Task.CompletedTask;
+    }
+
+    private bool CanPreviewToLive()
+        => CanCopyPreviewToOutput();
+
+    private void PublishOutputItemAtPreviewPage(LiveQueueItem item, string commandId)
+        => PublishOutputItem(item, commandId, GetPreviewLyricsPageIndex(item));
+
+    private int GetPreviewLyricsPageIndex(LiveQueueItem item)
+        => ReferenceEquals(item, SelectedItem)
+            ? LyricsPageIndex
+            : item.LyricsPageIndex;
 
     private bool RefreshHiddenOutputPayload(LiveQueueItem item, string commandId)
     {
@@ -6837,6 +6893,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputShortcutCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputAndClearBlackCommand.NotifyCanExecuteChanged();
+        PreviewToLiveCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();
         PlayOutputMediaCommand.NotifyCanExecuteChanged();
