@@ -632,6 +632,10 @@ public class MainMenuBarTests
             "PowerPoint drag payload should originate from whichever PP_ListType surface is active");
         code.Should().Contain("LaunchExternalFileForEdit(selection[0].FilePath, \"PowerPoint\")",
             "PowerPoint CMenuFiles_Edit should open the selected file like FrmMain PP_Edit_Clicked");
+        code.Should().Contain("OpenExternalFileOperationWindow(ExternalFileItemKind.PowerPoint, ExternalFileOperationKind.Copy, selection.Select(file => file.FilePath))",
+            "PowerPoint CMenuFiles_Copy should seed the FrmCopyMoveExternal replacement with the selected PPT files");
+        code.Should().Contain("viewModel.AddSourceFiles(sourceFiles)",
+            "external-file copy should pass selected source files into the copy/move dialog instead of opening an empty shell");
         code.Should().Contain("Process.Start(new ProcessStartInfo(filePath)",
             "file Edit should shell-open the selected external file instead of being a focus-only no-op");
         code.Should().Contain("UseShellExecute = true",

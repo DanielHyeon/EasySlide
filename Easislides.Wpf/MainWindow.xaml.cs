@@ -1801,7 +1801,38 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CMenuPowerPointFiles_Copy_Click(object sender, RoutedEventArgs e) => GetActivePowerPointList().Focus();
+    private void CMenuPowerPointFiles_Copy_Click(object sender, RoutedEventArgs e)
+    {
+        var activeList = GetActivePowerPointList();
+        var selection = GetInlinePowerPointSelection(activeList);
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "No PowerPoint file selected.";
+            activeList.Focus();
+            return;
+        }
+
+        OpenExternalFileOperationWindow(ExternalFileItemKind.PowerPoint, ExternalFileOperationKind.Copy, selection.Select(file => file.FilePath));
+        activeList.Focus();
+    }
+
+    private bool OpenExternalFileOperationWindow(
+        ExternalFileItemKind itemKind,
+        ExternalFileOperationKind operationKind,
+        IEnumerable<string> sourceFiles)
+    {
+        var externalFileWindow = _services.GetRequiredService<ExternalFileOperationWindow>();
+        externalFileWindow.Owner = this;
+        if (externalFileWindow.DataContext is ExternalFileOperationViewModel viewModel)
+        {
+            viewModel.ItemKind = itemKind;
+            viewModel.OperationKind = operationKind;
+            viewModel.DestinationKind = ExternalFileDestinationKind.ExternalFolder;
+            viewModel.AddSourceFiles(sourceFiles);
+        }
+
+        return externalFileWindow.ShowDialog() == true;
+    }
 
     private void CMenuPowerPointFiles_Refresh_Click(object sender, RoutedEventArgs e)
     {
