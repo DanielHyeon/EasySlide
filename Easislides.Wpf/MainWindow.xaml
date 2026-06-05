@@ -2904,22 +2904,28 @@
                                                           ItemsSource="{Binding PreviewLyricsPages}"
                                                           Visibility="{Binding IsPreviewTextMode, Converter={StaticResource BoolToVis}}"
                                                           AutomationProperties.Name="Preview 가사 페이지 영역">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Button Command="{Binding DataContext.GoToPreviewLyricsPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                 CommandParameter="{Binding PageIndex}"
-                                                                Margin="0,0,0,6"
+                                                                Margin="6"
                                                                 Padding="0"
-                                                                HorizontalContentAlignment="Stretch"
                                                                 Background="Transparent"
                                                                 BorderThickness="0"
                                                                 Cursor="Hand"
                                                                 ToolTip="{Binding PositionText, StringFormat=Preview {0}}">
-                                                            <Border BorderThickness="2"
-                                                                    Padding="6">
+                                                            <Border BorderThickness="5"
+                                                                    Padding="4"
+                                                                    Width="180"
+                                                                    MinHeight="102">
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
-                                                                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+                                                                        <Setter Property="BorderBrush" Value="Transparent" />
                                                                         <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                         <Style.Triggers>
                                                                             <DataTrigger Binding="{Binding IsCurrent}" Value="True">
@@ -2943,7 +2949,9 @@
                                                                     <TextBlock Grid.Row="1"
                                                                                Text="{Binding BodyText}"
                                                                                TextWrapping="Wrap"
-                                                                               Style="{StaticResource Type.Body.Style}"
+                                                                               MaxHeight="90"
+                                                                               TextTrimming="CharacterEllipsis"
+                                                                               Style="{StaticResource Type.Caption.Style}"
                                                                                Foreground="{DynamicResource Brush.Text.Secondary}" />
                                                                 </Grid>
                                                             </Border>
@@ -3287,61 +3295,63 @@
                                         <TextBlock Text="PowerPoint" />
                                     </StackPanel>
                                 </TabItem.Header>
-                                <!-- PPT 미리보기 — PowerPointPreviewViewModel(PowerPoint) 바인딩(G1 / gap-analysis.md §4 G-α).
-                                     렌더된 슬라이드 이미지를 표시(미적재 시 상태·덱 정보). placeholder "Decks: N" 대체. -->
+                                <!-- FrmMain flowLayoutPreviewPowerPoint: 상단은 덱 썸네일 흐름만 담당하고,
+                                     큰 슬라이드는 아래 ClassicPreviewHolder 에서 표시한다. -->
                                 <Grid Margin="{StaticResource Thickness.Lg}">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
-                                    <Image Grid.Row="0"
-                                           Source="{Binding PowerPoint.PreviewImage}"
-                                           Stretch="Uniform"
-                                           AutomationProperties.Name="PowerPoint 슬라이드 미리보기" />
-
-                                    <!-- 덱 전체 슬라이드 썸네일 스트립 — 클릭으로 PreviewItem 슬라이드만 이동. Output은 Output 전용 버튼으로 이동한다. -->
-                                    <ScrollViewer Grid.Row="1"
-                                                  HorizontalScrollBarVisibility="Auto"
-                                                  VerticalScrollBarVisibility="Disabled"
-                                                  Margin="0,8,0,0">
+                                    <ScrollViewer x:Name="ClassicPreviewPowerPointSurface"
+                                                  Tag="flowLayoutPreviewPowerPoint"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  AutomationProperties.Name="Preview PowerPoint 썸네일 영역">
                                         <ItemsControl x:Name="ClassicPreviewPowerPointThumbnailGrid"
-                                                      Tag="flowLayoutPreviewPowerPoint"
                                                       ItemsSource="{Binding PowerPoint.Thumbnails}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" />
+                                                    <WrapPanel />
                                                 </ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Button Command="{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                             CommandParameter="{Binding SlideNumber}"
-                                                            Margin="2,0"
+                                                            Margin="6"
                                                             Padding="0"
                                                             Background="Transparent"
                                                             BorderThickness="0"
                                                             Cursor="Hand"
                                                             ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
                                                             AutomationProperties.Name="{Binding SlideNumber, StringFormat=슬라이드 {0}}">
-                                                        <Border BorderThickness="2"
-                                                                CornerRadius="{StaticResource CornerRadius.Small}"
-                                                                Padding="1">
+                                                        <Border BorderThickness="5"
+                                                                Padding="3">
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
-                                                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+                                                                    <Setter Property="BorderBrush" Value="Transparent" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                                                                            <Setter Property="BorderBrush" Value="Red" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
-                                                            <Image Source="{Binding Image}"
-                                                                   Width="120"
-                                                                   Height="68"
-                                                                   Stretch="Uniform" />
+                                                            <Grid>
+                                                                <Image Source="{Binding Image}"
+                                                                       Width="180"
+                                                                       Height="102"
+                                                                       Stretch="Uniform" />
+                                                                <TextBlock Text="{Binding SlideNumber}"
+                                                                           HorizontalAlignment="Right"
+                                                                           VerticalAlignment="Top"
+                                                                           MinWidth="18"
+                                                                           TextAlignment="Center"
+                                                                           FontWeight="Bold"
+                                                                           Foreground="Black"
+                                                                           Background="#FFF6E600" />
+                                                            </Grid>
                                                         </Border>
                                                     </Button>
                                                 </DataTemplate>
@@ -3349,7 +3359,7 @@
                                         </ItemsControl>
                                     </ScrollViewer>
 
-                                    <StackPanel Grid.Row="2"
+                                    <StackPanel Grid.Row="1"
                                                 Margin="0,8,0,0"
                                                 HorizontalAlignment="Center">
                                         <!-- 슬라이드 이동 — PreviewItem 전용. live Output은 오른쪽 Output 슬라이드 버튼이 담당한다. -->

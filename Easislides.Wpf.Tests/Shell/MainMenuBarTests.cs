@@ -763,10 +763,36 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("x:Name=\"ClassicPreviewPowerPointThumbnailGrid\"",
             "Preview top pane should expose the PowerPoint thumbnail strip separately from Output");
+        xaml.Should().Contain("x:Name=\"ClassicPreviewPowerPointSurface\"",
+            "Preview top pane should expose a named FrmMain-style PowerPoint thumbnail surface");
+        var previewPowerPointSurface = SectionBetween(xaml, "x:Name=\"ClassicPreviewPowerPointSurface\"", "</ScrollViewer>");
+        previewPowerPointSurface.Should().Contain("Tag=\"flowLayoutPreviewPowerPoint\"",
+            "Preview PowerPoint top pane should keep the legacy flowLayoutPreviewPowerPoint role on the scroller surface");
+        previewPowerPointSurface.Should().Contain("<WrapPanel />",
+            "Preview PowerPoint top pane should wrap thumbnails like FrmMain flowLayoutPreviewPowerPoint");
+        previewPowerPointSurface.Should().Contain("Width=\"180\"",
+            "Preview PowerPoint thumbnails should use the same operator-sized card as Output thumbnails");
+        previewPowerPointSurface.Should().Contain("Height=\"102\"",
+            "Preview PowerPoint thumbnails should preserve 16:9 cards instead of the older tiny strip");
+        previewPowerPointSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"Red\" />",
+            "the current Preview PowerPoint thumbnail should use the FrmMain red selected border");
+        previewPowerPointSurface.Should().Contain("Background=\"#FFF6E600\"",
+            "Preview PowerPoint thumbnails should show the FrmMain yellow slide-number badge");
+        previewPowerPointSurface.Should().NotContain("PowerPoint.PreviewImage",
+            "the top Preview pane should be thumbnails only; the large slide belongs to ClassicPreviewHolder");
         xaml.Should().Contain("ItemsSource=\"{Binding PreviewLyricsPages}\"",
             "Preview lyrics pane should expose FrmMain-style page cards instead of a raw single lyrics block");
         xaml.Should().Contain("GoToPreviewLyricsPageCommand",
             "Preview lyrics page card clicks should move only the selected Preview item");
+        var previewLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutPreviewLyrics\"", "x:Name=\"IndPanel\"");
+        previewLyricsSurface.Should().Contain("<WrapPanel />",
+            "Preview lyrics cards should use a FrmMain flow layout rather than a single-column modern list");
+        previewLyricsSurface.Should().Contain("Width=\"180\"",
+            "Preview lyrics cards should visually match Output page cards");
+        previewLyricsSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"Red\" />",
+            "the current Preview lyrics page should use the FrmMain red selected border");
+        previewLyricsSurface.Should().Contain("Background=\"#FFF6E600\"",
+            "Preview lyrics cards should keep the FrmMain yellow page-number badge");
         xaml.Should().Contain("x:Name=\"ClassicOutputPowerPointSurface\"",
             "Output top pane should expose the live PowerPoint thumbnail/list surface");
         xaml.Should().Contain("x:Name=\"ClassicOutputHolder\"",
