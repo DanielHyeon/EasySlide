@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -48,6 +49,58 @@ public partial class WorshipListPanel : UserControl
     {
         OpenSessionNotesRequested?.Invoke(this, e);
         e.Handled = true;
+    }
+
+    private void WL_Word_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (viewModel.Queue.Count == 0)
+        {
+            MessageBox.Show(
+                Window.GetWindow(this),
+                "Can't produce lyrics document because the Worship List is empty!",
+                "Generate RTF Document",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            e.Handled = true;
+            return;
+        }
+
+        var documentName = string.IsNullOrWhiteSpace(viewModel.CurrentWorshipListName)
+            ? "Worship List"
+            : viewModel.CurrentWorshipListName;
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Generate RTF Document",
+            DefaultExt = ".rtf",
+            Filter = "Rich Text Format (*.rtf)|*.rtf|모든 파일 (*.*)|*.*",
+            FileName = BuildWorshipListExportFileName(documentName),
+        };
+
+        if (dialog.ShowDialog(Window.GetWindow(this)) == true)
+        {
+            var exporter = new WorshipListRtfExporter();
+            var rtf = exporter.BuildRtf(documentName, viewModel.Queue.ToArray());
+            File.WriteAllText(dialog.FileName, rtf, new UTF8Encoding(false));
+            viewModel.StatusText = $"Worship List RTF 저장: {dialog.FileName}";
+        }
+
+        e.Handled = true;
+    }
+
+    private static string BuildWorshipListExportFileName(string name)
+    {
+        var safe = string.IsNullOrWhiteSpace(name) ? "Worship List" : name.Trim();
+        foreach (var invalid in Path.GetInvalidFileNameChars())
+        {
+            safe = safe.Replace(invalid, '_');
+        }
+
+        return safe.EndsWith(".rtf", StringComparison.OrdinalIgnoreCase) ? safe : $"{safe}.rtf";
     }
 
     private async void WL_Open_Click(object sender, RoutedEventArgs e)

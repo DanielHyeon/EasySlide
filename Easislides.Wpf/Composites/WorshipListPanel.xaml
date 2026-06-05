@@ -166,6 +166,18 @@
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
+                <Button x:Name="WL_Word"
+                        Tag="WL_Word"
+                        Click="WL_Word_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        ToolTip="Generate RTF Document"
+                        AutomationProperties.Name="예배 순서 RTF 문서 생성"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="DocumentArrowDown24" />
+                </Button>
                 <Button x:Name="WL_Notes"
                         Tag="WL_Notes"
                         Click="WL_Notes_Click"

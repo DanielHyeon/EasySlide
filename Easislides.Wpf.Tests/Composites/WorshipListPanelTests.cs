@@ -78,6 +78,11 @@ public class WorshipListPanelTests
         Attr(wlOpen, "Tag").Should().Be("WL_Open", "FrmMain WL_Open role should be visible in the lower-left toolbar");
         Attr(wlOpen, "Click").Should().Be("WL_Open_Click", "FrmMain WL_Open should open external files from the lower-left toolbar");
         Attr(wlOpen, "AutomationProperties.Name").Should().Contain("외부 파일");
+        var wlWord = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Word");
+        Attr(wlWord, "Tag").Should().Be("WL_Word", "FrmMain WL_Word role should be visible in the lower-left toolbar");
+        Attr(wlWord, "Click").Should().Be("WL_Word_Click", "FrmMain WL_Word should generate an RTF document from the Worship List");
+        Attr(wlWord, "ToolTip").Should().Be("Generate RTF Document");
+        Attr(wlWord, "AutomationProperties.Name").Should().Contain("RTF");
         var wlNotes = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Notes");
         Attr(wlNotes, "Tag").Should().Be("WL_Notes", "FrmMain WL_Notes role should be visible in the lower-left toolbar");
         Attr(wlNotes, "Click").Should().Be("WL_Notes_Click", "FrmMain WL_Notes should open the session notes editor");
@@ -128,6 +133,10 @@ public class WorshipListPanelTests
             .Should().Contain("QueueList.SelectAll()")
             .And.Contain("QueueList.SelectedItems.Clear()",
                 "FrmMain CMenuWorship Select All/Unselect All should change the lower-left Worship List selection")
+            .And.Contain("private void WL_Word_Click",
+                "WL_Word should have a direct lower-left toolbar click handler")
+            .And.Contain("new WorshipListRtfExporter()",
+                "WL_Word should generate an actual RTF document instead of remaining a shell button")
             .And.Contain("public event RoutedEventHandler? EditSelectedItemRequested",
                 "Edit item should route to MainWindow, which owns modal window lifetime")
             .And.Contain("CMenuWorship_Edit.IsEnabled = DataContext is MainViewModel editViewModel",
