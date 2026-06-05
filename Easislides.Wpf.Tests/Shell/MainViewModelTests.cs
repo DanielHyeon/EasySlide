@@ -8940,6 +8940,40 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoToOutputLyricsPageCommand_ClickingCurrentLivePage_RepublishesOutputLyrics()
+    {
+        // FrmMain flowLayoutOutputLyrics card clicks are live-control actions even when the clicked card is already current.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+            Sequence = "1 C",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.Queue[0] = live with { Lyrics = "[1]\nLive verse refreshed\n[C]\nLive chorus" };
+
+        sut.GoToOutputLyricsPageCommand.CanExecute(0).Should().BeTrue();
+        sut.GoToOutputLyricsPageCommand.Execute(0);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "re-clicking the Output card must not steal Preview selection");
+        sut.LyricsPageIndex.Should().Be(0, "re-clicking the Output card must not move Preview");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse refreshed");
+        sut.OutputLyricsText.Should().Be("Live verse refreshed");
+        sut.OutputLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task PreviewSlideButtons_WhenLyricsSelectionDiverges_MovePreviewOnly()
     {
         // FrmMain PreviewBtnSlideUp/Down: 현재 PreviewItem 의 가사 페이지를 이동하고, live OutputItem 은 그대로 둔다.

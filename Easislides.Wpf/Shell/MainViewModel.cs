@@ -4495,8 +4495,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var pageModel = BuildLyricsPageModel(item);
-        var current = GetOutputLyricsPageIndex(item);
-        if (target < 0 || target >= pageModel.Count || target == current)
+        if (target < 0 || target >= pageModel.Count)
         {
             return;
         }
