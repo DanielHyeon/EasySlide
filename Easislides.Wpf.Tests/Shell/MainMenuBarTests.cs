@@ -726,6 +726,9 @@ public class MainMenuBarTests
             "OutputBtnLMSend should send the live message");
         xaml.Should().Contain("Command=\"{Binding ClearLiveMessageCommand}\"",
             "OutputBtnLMClear should clear the live message");
+        xaml.Should().Contain("x:Name=\"IndcbPreviewNotes\"", "IndcbPreviewNotes should remain mapped to the FrmMain Preview notes button");
+        xaml.Should().Contain("Click=\"OpenSessionNotes_Click\"",
+            "IndcbPreviewNotes should open the same session notes editor as Tools and WL_Notes");
         xaml.Should().Contain("Command=\"{Binding ShowPreviewTextModeCommand}\"",
             "IndradioButtonText should switch the Preview top pane to the FrmMain text surface");
         xaml.Should().Contain("Command=\"{Binding ShowPreviewFormatModeCommand}\"",

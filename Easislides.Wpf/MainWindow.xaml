@@ -3061,6 +3061,7 @@
                                Margin="0,0,0,6">
                         <Button x:Name="IndcbPreviewNotes"
                                 Tag="IndcbPreviewNotes"
+                                Click="OpenSessionNotes_Click"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
