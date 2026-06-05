@@ -3702,6 +3702,86 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewToLiveCommand_WhenOutputBlackHidden_RefreshesHiddenPayloadWithoutAdvancingPreview()
+    {
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.NextLyricsPageCommand.Execute(null);
+
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "btnToLive should not use the GoLive auto-next workflow");
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsBlackout.Should().BeTrue("Black should stay active until the operator restores Output");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+        sut.OutputLyricsText.Should().Be("Preview chorus");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.IsBlackout.Should().BeFalse();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+    }
+
+    [Fact]
+    public async Task PreviewToLiveCommand_WhenOutputClearHidden_RefreshesHiddenPayloadWithoutRestoringOutput()
+    {
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ClearOutputCommand.Execute(null);
+
+        sut.SelectedItem = preview;
+
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsCleared.Should().BeTrue("Clear should remain active until the operator restores Output");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
+        sut.OutputLyricsText.Should().Be("Preview verse");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.IsCleared.Should().BeFalse();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
+    }
+
+    [Fact]
     public void CopyPreviewToOutputAndNextCommand_PreparesOutputAndAdvancesPreviewWithoutStartingLive()
     {
         // FrmMain btnToOutputMoveNext_Click: CopyPreviewToOutput + PreviewItem NextOne, GoLive 없음.
