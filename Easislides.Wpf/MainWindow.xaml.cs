@@ -2030,6 +2030,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void PraiseBookItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        if (PraiseBookItems.SelectedItem is PraiseBookIndexEntry entry)
+        {
+            await viewModel.PreviewPraiseBookSongAsync(entry).ConfigureAwait(true);
+            return;
+        }
+
+        await viewModel.PreviewPraiseBookSongAsync(null).ConfigureAwait(true);
+    }
+
     private void PraiseBookItems_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _praiseBookDragStart = e.GetPosition(null);

@@ -1102,6 +1102,66 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewPraiseBookSongAsync_ResolvesSongAndSelectsPreviewWithoutAddingToQueue()
+    {
+        // FrmMain PraiseBookItems_MouseUp → PraiseBookListIndexChanged: 선택한 찬양집 항목을 Worship List 추가 없이 PreviewItem 으로 표시한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.Library.Songs.Add(new SongSummary(
+            42,
+            "은혜로다",
+            "",
+            1,
+            305,
+            "",
+            "",
+            "[1]\n1절 가사\n[C]\n후렴"));
+
+        var preview = await sut.PreviewPraiseBookSongAsync(new PraiseBookIndexEntry("은혜로다", 305, SongId: 42));
+
+        preview.Should().NotBeNull();
+        preview!.Id.Should().Be("praisebook-preview:42", "Preview 전용 항목은 Worship List song:{id} 와 충돌하지 않아야 함");
+        preview.Kind.Should().Be(LiveItemKinds.Song);
+        preview.Lyrics.Should().Be("[1]\n1절 가사\n[C]\n후렴");
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.Queue.Should().BeEmpty("PraiseBook 단일 선택은 예배 순서에 추가하지 않는다");
+        sut.PreviewLyricsText.Should().Be("1절 가사");
+        sut.StatusText.Should().Be("PraiseBook 미리보기: 은혜로다");
+    }
+
+    [Fact]
+    public async Task PreviewPraiseBookSongAsync_WithSongIdLoadsDbDetail_WhenLibrarySongsMissing()
+    {
+        // 저장된 레거시 .esp 항목은 SongId 로 DB detail 을 찾아 Preview 가사·절 순서·FormatData 를 채운다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var workingFolder = Path.Combine(folder.Root, "Work");
+        var databasePath = Path.Combine(workingFolder, "Admin", "Database", "EasiSlidesDb.db");
+        Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+        await File.WriteAllTextAsync(databasePath, "");
+        settings.Set(EasiSettingKeys.WorkingFolder, workingFolder).Succeeded.Should().BeTrue();
+        var repo = new StubSongDetailRepository(SampleSongDetail(
+            77,
+            "DB 찬양",
+            "[1]\n1절\n[C]\n후렴",
+            sequence: "1 C",
+            formatData: "29=-65536>"));
+        var sut = CreateSut(settings: settings, songDetail: repo, seedSampleQueue: false);
+
+        var preview = await sut.PreviewPraiseBookSongAsync(new PraiseBookIndexEntry("Legacy title", 0, SongId: 77));
+
+        preview.Should().NotBeNull();
+        preview!.Id.Should().Be("praisebook-preview:77");
+        preview.Title.Should().Be("DB 찬양");
+        preview.Lyrics.Should().Be("[1]\n1절\n[C]\n후렴");
+        preview.Sequence.Should().Be("1 C");
+        preview.FormatData.Should().Be("29=-65536>");
+        sut.Queue.Should().BeEmpty();
+        sut.PreviewLyricsText.Should().Be("1절");
+        repo.LastDatabasePath.Should().Be(databasePath);
+        repo.LastSongId.Should().Be(77);
+    }
+
+    [Fact]
     public async Task AddPraiseBookSongRelativeToAsync_WithSongIdLoadsDbDetail_AndInsertsBeforeTarget()
     {
         // PraiseBook drag/drop 도 더블클릭과 같은 SongId 해석을 쓰되, 떨어뜨린 위치 앞 삽입 규칙을 유지해야 한다.

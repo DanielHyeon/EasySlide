@@ -2236,6 +2236,7 @@
                                       PreviewMouseMove="PraiseBookItems_PreviewMouseMove"
                                       MouseDoubleClick="InlinePraiseBookItems_MouseDoubleClick"
                                       KeyDown="PraiseBookItems_KeyDown"
+                                      SelectionChanged="PraiseBookItems_SelectionChanged"
                                       AutomationProperties.Name="PraiseBookItems">
                                 <ListView.Resources>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">

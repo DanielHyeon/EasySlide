@@ -1668,6 +1668,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return AddSong(resolved.Song, resolved.Sequence, resolved.FormatData);
     }
 
+    public async Task<LiveQueueItem?> PreviewPraiseBookSongAsync(PraiseBookIndexEntry? entry)
+    {
+        if (entry is null)
+        {
+            SelectedItem = null;
+            StatusText = "PraiseBook 선택 없음";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var resolved = await ResolvePraiseBookSongAsync(entry).ConfigureAwait(true);
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        var item = CreateSongQueueItem(resolved.Song, resolved.Sequence, resolved.FormatData)
+            with { Id = $"praisebook-preview:{resolved.Song.SongId}" };
+        SelectedItem = item;
+        StatusText = $"PraiseBook 미리보기: {item.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
     /// <summary>
     /// 하단 PraiseBook 항목을 예배 순서의 드롭 위치 앞에 끼운다(FrmMain PraiseBookItems → WorshipList drag/drop 대응).
     /// 곡 해석은 더블클릭 경로와 동일하게 SongId/제목+번호/제목 폴백을 쓰고, 삽입 위치만 타깃 항목 기준으로 보존한다.

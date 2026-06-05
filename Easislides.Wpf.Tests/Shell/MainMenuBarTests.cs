@@ -565,6 +565,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"PraiseBookItems\"", "Praise Book entries should render as a FrmMain-style ListView surface");
         xaml.Should().Contain("Tag=\"PraiseBookItems\"", "PraiseBookItems role should remain explicit");
         xaml.Should().Contain("ItemsSource=\"{Binding Entries}\"", "flat PraiseBookItems should bind to the current book entries");
+        xaml.Should().Contain("SelectionChanged=\"PraiseBookItems_SelectionChanged\"", "selecting a PraiseBook row should refresh the Preview item like FrmMain PraiseBookListIndexChanged");
         xaml.Should().Contain("MouseDoubleClick=\"InlinePraiseBookItems_MouseDoubleClick\"", "double-clicking a PraiseBook item should add it to Worship List");
         xaml.Should().Contain("PreviewMouseLeftButtonDown=\"PraiseBookItems_PreviewMouseLeftButtonDown\"", "PraiseBook rows should arm drag without breaking selection");
         xaml.Should().Contain("PreviewMouseMove=\"PraiseBookItems_PreviewMouseMove\"", "PraiseBook rows should drag into Worship List at a target position");
@@ -579,6 +580,8 @@ public class MainMenuBarTests
         code.Should().Contain("InlinePraiseBookOpenBook_Click", "saved Praise Books should open from the inline tab");
         code.Should().Contain("InlinePraiseBookAddSelected_Click", "PB_Add should add the selected Folders song to the inline PraiseBook");
         code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
+        code.Should().Contain("PraiseBookItems_SelectionChanged", "PraiseBook selection should update Preview without requiring double-click");
+        code.Should().Contain("PreviewPraiseBookSongAsync", "PraiseBook selection preview should reuse the same DB/song resolution as add and drag");
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
         code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry), entry)", "inline PraiseBook drag should carry the exact selected legacy entry");
