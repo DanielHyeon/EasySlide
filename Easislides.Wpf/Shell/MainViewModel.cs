@@ -4362,8 +4362,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         if (OutputPowerPoint.State != Rendering.PowerPointPreviewState.Ready
-            || target < 1 || target > OutputPowerPoint.SlideCount
-            || target == OutputPowerPoint.SlideNumber)
+            || target < 1 || target > OutputPowerPoint.SlideCount)
         {
             return;
         }
@@ -4400,13 +4399,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (IsOutputPowerPointSlideNavReady())
         {
-            await GoToOutputSlideAsync(OutputPowerPoint.SlideNumber + 1).ConfigureAwait(true);
+            await GoToOutputSlideAsync(Math.Min(OutputPowerPoint.SlideNumber + 1, OutputPowerPoint.SlideCount)).ConfigureAwait(true);
             return;
         }
 
         if (GetOutputLyricsNavigationItem() is { } item)
         {
-            MoveOutputLyricsPage(GetOutputLyricsPageIndex(item) + 1);
+            var pageModel = BuildLyricsPageModel(item);
+            MoveOutputLyricsPage(Math.Min(GetOutputLyricsPageIndex(item) + 1, pageModel.Count - 1));
         }
     }
 
@@ -4414,13 +4414,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (IsOutputPowerPointSlideNavReady())
         {
-            await GoToOutputSlideAsync(OutputPowerPoint.SlideNumber - 1).ConfigureAwait(true);
+            await GoToOutputSlideAsync(Math.Max(OutputPowerPoint.SlideNumber - 1, 1)).ConfigureAwait(true);
             return;
         }
 
         if (GetOutputLyricsNavigationItem() is { } item)
         {
-            MoveOutputLyricsPage(GetOutputLyricsPageIndex(item) - 1);
+            MoveOutputLyricsPage(Math.Max(GetOutputLyricsPageIndex(item) - 1, 0));
         }
     }
 
@@ -4457,17 +4457,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => IsOutputPowerPointSlideNavReady() && target >= 1 && target <= OutputPowerPoint.SlideCount;
 
     private bool CanGoNextOutputSlide()
-        => (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber < OutputPowerPoint.SlideCount)
-            || CanGoNextOutputLyricsPage();
+        => IsOutputPowerPointSlideNavReadyForButtons()
+            || IsOutputLyricsPageNavReady();
 
     private bool CanGoPreviousOutputSlide()
-        => (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber > 1)
-            || CanGoPreviousOutputLyricsPage();
+        => IsOutputPowerPointSlideNavReadyForButtons()
+            || IsOutputLyricsPageNavReady();
 
     private bool IsOutputPowerPointSlideNavReady()
         => GetOutputPowerPointNavigationItem() is { ContentPath.Length: > 0 }
             && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && OutputPowerPoint.SlideCount > 0;
+
+    private bool IsOutputPowerPointSlideNavReadyForButtons()
+        => IsOutputPowerPointSlideNavReady()
+            && OutputPowerPoint.SlideCount > 1;
 
     private LiveQueueItem? GetLiveQueueItem()
         => Queue.FirstOrDefault(item =>
@@ -4492,7 +4496,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : null;
     }
 
-    private bool CanGoNextOutputLyricsPage()
+    private bool IsOutputLyricsPageNavReady()
     {
         if (GetOutputLyricsNavigationItem() is not { } item)
         {
@@ -4500,18 +4504,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var pageModel = BuildLyricsPageModel(item);
-        return pageModel.Count > 1 && GetOutputLyricsPageIndex(item) < pageModel.Count - 1;
-    }
-
-    private bool CanGoPreviousOutputLyricsPage()
-    {
-        if (GetOutputLyricsNavigationItem() is not { } item)
-        {
-            return false;
-        }
-
-        var pageModel = BuildLyricsPageModel(item);
-        return pageModel.Count > 1 && GetOutputLyricsPageIndex(item) > 0;
+        return pageModel.Count > 1;
     }
 
     private void JumpToOutputLyricsSection(string? label)
@@ -5203,8 +5196,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (OutputItem is { } output)
         {
-            return Queue.FirstOrDefault(item => string.Equals(item.Id, output.Id, StringComparison.Ordinal))
-                ?? output;
+            return output;
         }
 
         return null;

@@ -9226,6 +9226,46 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputSlideButtons_ClampPreparedPowerPointAtBoundariesLikeFrmMain()
+    {
+        // FrmMain MoveToSlide(Gf.OutputItem, PrevOne/NextOne): 첫/마지막 슬라이드에서는 버튼 실행 후 현재 슬라이드에 머문다.
+        var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var prepared = new LiveQueueItem("ppt:prepared", "Prepared deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "prepared.pptx",
+        };
+        sut.LoadQueue([prepared]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain Output slide button remains usable at the first slide");
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.SlideNumber.Should().Be(1);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1);
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.SlideNumber.Should().Be(3);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(3);
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain Output slide button remains usable at the last slide");
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.SlideNumber.Should().Be(3);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(3);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+    }
+
+    [Fact]
     public async Task OutputSlideButtons_WhenBlackHiddenPowerPointSelectionDiverges_MoveHiddenPayloadOnly()
     {
         // FrmMain Output PPT 슬라이드 버튼: Black 중에도 Preview 선택과 별개로 숨겨진 PPT payload 의 슬라이드만 넘긴다.
@@ -9309,6 +9349,44 @@ public class MainViewModelTests
         sut.OutputItem!.LyricsPageIndex.Should().Be(0);
         sut.OutputLyricsText.Should().Be("Prepared verse");
         sut.Session.Current.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
+    public async Task OutputSlideButtons_ClampPreparedLyricsAtBoundariesLikeFrmMain()
+    {
+        // FrmMain OutputBtnSlideUp/Down: 준비 Output 가사도 첫/마지막 절에서 현재 절에 머문다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPrepared verse\n[C]\nPrepared chorus\n[2]\nPrepared verse two",
+            Sequence = "1 C 2",
+        };
+        sut.LoadQueue([prepared]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain Output lyrics button remains usable at the first page");
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.LyricsPageIndex.Should().Be(0);
+        sut.OutputLyricsText.Should().Be("Prepared verse");
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.LyricsPageIndex.Should().Be(2);
+        sut.OutputLyricsText.Should().Be("Prepared verse two");
+        sut.OutputNavigationPositionLabel.Should().Be("3/3");
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("FrmMain Output lyrics button remains usable at the last page");
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputItem.LyricsPageIndex.Should().Be(2);
+        sut.OutputLyricsText.Should().Be("Prepared verse two");
+        sut.OutputNavigationPositionLabel.Should().Be("3/3");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
     }
 
     [Fact]
