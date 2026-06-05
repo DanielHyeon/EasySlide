@@ -2127,6 +2127,33 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task AddWorshipListSongsToUsagesAsync_RecordsDatabaseSongsFromWholeQueue()
+    {
+        // FrmMain AddToUsages 는 선택 행이 아니라 현재 Worship List 전체를 훑고 DB 곡(D/song:{id})만 기록한다.
+        var usage = new RecordingSearchUsageService();
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.WorkingFolder, @"C:\EasiSlides").Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, searchUsageService: usage, seedSampleQueue: false);
+        sut.SelectedSavedWorshipList = "1.주일예배";
+        var first = new LiveQueueItem("song:10", "♪입례", LiveItemKinds.Song) { SongNumber = 7, Lyrics = "[1]\n입례" };
+        var notice = new LiveQueueItem("text:notice", "공지", LiveItemKinds.Notice) { Lyrics = "공지" };
+        var malformed = new LiveQueueItem("song:not-number", "깨진 곡", LiveItemKinds.Song) { Lyrics = "[1]\n깨짐" };
+        var second = new LiveQueueItem("song:11", "봉헌", LiveItemKinds.Song) { SongNumber = 9, Lyrics = "[1]\n봉헌" };
+        sut.LoadQueue([first, notice, malformed, second]);
+        sut.SelectedItem = notice;
+
+        var added = await sut.AddWorshipListSongsToUsagesAsync();
+
+        added.Should().Be(2);
+        usage.LastAddRequest.Should().NotBeNull();
+        usage.LastAddRequest!.DatabasePath.Should().Be(Path.GetFullPath(@"C:\EasiSlides\Admin\Database\EsUsage.db"));
+        usage.LastAddRequest.Records
+            .Select(record => (record.SongId, record.SongTitle, record.SongNumber, record.WorshipList))
+            .Should().Equal((10, "♪입례", 7, "1.주일예배"), (11, "봉헌", 9, "1.주일예배"));
+        sut.StatusText.Should().Be("사용 이력에 DB 곡 2개 추가됨");
+    }
+
+    [Fact]
     public async Task Constructor_SelectsFirstSavedWorshipListName()
     {
         var store = new InMemoryWorshipListStore();
@@ -9061,7 +9088,8 @@ public class MainViewModelTests
         IOutputWindowService? output = null,
         IPreviewWindowService? preview = null,
         Func<string, bool>? worshipMediaLauncher = null,
-        bool seedSampleQueue = true)
+        bool seedSampleQueue = true,
+        ISearchUsageService? searchUsageService = null)
     {
         output ??= new OutputWindowService();
         var session = liveSession ?? new LiveSessionService();
@@ -9073,7 +9101,9 @@ public class MainViewModelTests
         // 라이브러리/성경/검색 VM — 테스트는 작업 폴더/DB 미설정이라 실제 repo 가 데이터를 반환하지 않는다(빈 목록).
         var library = new LibraryViewModel(resolvedSettings, new AdminDatabaseRepository());
         var bible = new BibleViewModel(resolvedSettings, new BibleRepository());
-        var search = new SearchUsageViewModel(resolvedSettings, new SearchUsageService(new AdminDatabaseRepository()));
+        var search = new SearchUsageViewModel(
+            resolvedSettings,
+            searchUsageService ?? new SearchUsageService(new AdminDatabaseRepository()));
         var vm = new MainViewModel(
             session,
             output,
@@ -9162,6 +9192,38 @@ public class MainViewModelTests
             _store.Remove(oldName);
             _store[newName] = items;
         }
+    }
+
+    private sealed class RecordingSearchUsageService : ISearchUsageService
+    {
+        public UsageAddRequest? LastAddRequest { get; private set; }
+
+        public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
+            => Task.FromResult<IReadOnlyList<SongFolderSummary>>([]);
+
+        public Task<IReadOnlyList<SongSearchResult>> SearchSongsAsync(SongSearchRequest request)
+            => Task.FromResult<IReadOnlyList<SongSearchResult>>([]);
+
+        public Task<IReadOnlyList<LookupTitleCandidate>> LookupTitlesAsync(string databasePath, string titlePattern)
+            => Task.FromResult<IReadOnlyList<LookupTitleCandidate>>([]);
+
+        public Task<UsageReport> GetUsageAsync(UsageRequest request)
+            => Task.FromResult(new UsageReport(true, request.DatabasePath, request.From, request.To, [], request.SelectedSession, [], [], []));
+
+        public Task<UsageAddReport> AddUsageRecordsAsync(UsageAddRequest request)
+        {
+            LastAddRequest = request;
+            return Task.FromResult(new UsageAddReport(true, request.DatabasePath, request.Records.Count, []));
+        }
+
+        public Task<UsageDeleteReport> DeleteUsageRecordsAsync(string databasePath, IReadOnlyList<long> recordIds)
+            => Task.FromResult(new UsageDeleteReport(true, databasePath, recordIds.Count, []));
+
+        public Task<UsageExportReport> ExportUsageReportAsync(UsageReport report, string outputPath)
+            => Task.FromResult(new UsageExportReport(true, outputPath, []));
+
+        public string GetDefaultUsageDatabasePath(string workingFolder)
+            => Path.GetFullPath(Path.Combine(workingFolder, "Admin", "Database", "EsUsage.db"));
     }
 
     // 출력 모양 템플릿 저장/로드 — 파일시스템 없이 인메모리로 검증.

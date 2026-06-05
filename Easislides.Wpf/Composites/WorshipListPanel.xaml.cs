@@ -247,18 +247,18 @@ public partial class WorshipListPanel : UserControl
             CMenuWorship_Clear.IsEnabled = viewModel.ClearWorshipListCommand.CanExecute(null);
             CMenuWorship_Play.IsEnabled = viewModel.PlaySelectedWorshipMediaCommand.CanExecute(null);
             CMenuWorship_PlayOnOutput.IsEnabled = viewModel.PlaySelectedWorshipMediaOnOutputCommand.CanExecute(null);
+            CMenuWorship_AddUsages.IsEnabled = viewModel.CanAddWorshipListSongsToUsages;
         }
         else
         {
             CMenuWorship_Clear.IsEnabled = false;
             CMenuWorship_Play.IsEnabled = false;
             CMenuWorship_PlayOnOutput.IsEnabled = false;
+            CMenuWorship_AddUsages.IsEnabled = false;
         }
 
         CMenuWorship_Edit.IsEnabled = DataContext is MainViewModel editViewModel
             && CanEditSelectedWorshipItem(editViewModel.SelectedItem);
-        // Add Songs to Usages still requires the legacy usage flow.
-        CMenuWorship_AddUsages.IsEnabled = false;
     }
 
     private static bool CanEditSelectedWorshipItem(LiveQueueItem? item)
@@ -283,6 +283,16 @@ public partial class WorshipListPanel : UserControl
     private void CMenuWorship_Edit_Click(object sender, RoutedEventArgs e)
     {
         EditSelectedItemRequested?.Invoke(this, e);
+        e.Handled = true;
+    }
+
+    private async void CMenuWorship_AddUsages_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            await viewModel.AddWorshipListSongsToUsagesAsync().ConfigureAwait(true);
+        }
+
         e.Handled = true;
     }
 

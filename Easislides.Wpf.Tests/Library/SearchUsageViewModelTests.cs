@@ -169,6 +169,24 @@ public class SearchUsageViewModelTests
     }
 
     [Fact]
+    public async Task AddUsageRecordsAsync_ResolvesDefaultUsagePathWithoutPriorLoad()
+    {
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var sut = fixture.CreateViewModel();
+
+        var report = await sut.AddUsageRecordsAsync([
+            new UsageAddRecord(new DateTime(2026, 6, 5), "Sunday AM", "Amazing Grace", 7, 10, "A1", "A2"),
+        ]);
+
+        report.Succeeded.Should().BeTrue();
+        fixture.Service.LastAddRequest.Should().NotBeNull();
+        fixture.Service.LastAddRequest!.DatabasePath.Should().Be(Path.GetFullPath(fixture.UsageDatabasePath));
+        fixture.Service.LastAddRequest.Records.Should().ContainSingle().Which.SongId.Should().Be(10);
+        sut.StatusMessage.Should().Be("1 usage records added.");
+    }
+
+    [Fact]
     public async Task DeleteSelectedUsageAsync_WhenConfirmationDeclines_DoesNotDelete()
     {
         using var fixture = new SearchUsageViewModelFixture();
@@ -262,6 +280,8 @@ public class SearchUsageViewModelTests
 
         public UsageRequest? LastUsageRequest { get; private set; }
 
+        public UsageAddRequest? LastAddRequest { get; private set; }
+
         public IReadOnlyList<long> LastDeletedRecordIds { get; private set; } = [];
 
         public int GetUsageCallCount { get; private set; }
@@ -324,6 +344,12 @@ public class SearchUsageViewModelTests
         {
             LastDeletedRecordIds = recordIds;
             return Task.FromResult(new UsageDeleteReport(true, databasePath, recordIds.Count, []));
+        }
+
+        public Task<UsageAddReport> AddUsageRecordsAsync(UsageAddRequest request)
+        {
+            LastAddRequest = request;
+            return Task.FromResult(new UsageAddReport(true, request.DatabasePath, request.Records.Count, []));
         }
 
         public Task<UsageExportReport> ExportUsageReportAsync(UsageReport report, string outputPath)

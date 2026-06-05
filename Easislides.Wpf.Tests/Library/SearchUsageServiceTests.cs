@@ -119,6 +119,43 @@ public class SearchUsageServiceTests
     }
 
     [Fact]
+    public async Task AddUsageRecordsAsync_WritesLegacyUsageRows()
+    {
+        using var fixture = new SearchUsageFixture();
+        var sut = fixture.CreateService();
+        var longSession = new string('S', 60);
+
+        var add = await sut.AddUsageRecordsAsync(new UsageAddRequest(
+            fixture.UsageDatabasePath,
+            [
+                new UsageAddRecord(
+                    new DateTime(2026, 6, 5),
+                    longSession,
+                    "♪Amazing Grace",
+                    7,
+                    10,
+                    "Admin1",
+                    "Admin2"),
+            ]));
+        var report = await sut.GetUsageAsync(new UsageRequest(
+            fixture.UsageDatabasePath,
+            new DateTime(2026, 6, 1),
+            new DateTime(2026, 6, 30),
+            ""));
+
+        add.Succeeded.Should().BeTrue();
+        add.AddedCount.Should().Be(1);
+        var record = report.Records.Should().ContainSingle().Subject;
+        record.WorshipDate.Should().Be(new DateTime(2026, 6, 5));
+        record.WorshipList.Should().HaveLength(50, "FrmMain stores only the first 50 SessionList characters");
+        record.SongTitle.Should().Be("Amazing Grace", "FrmMain strips the music symbol before storing the title");
+        record.SongNumber.Should().Be(7);
+        record.SongId.Should().Be(10);
+        record.Admin1.Should().Be("Admin1");
+        record.Admin2.Should().Be("Admin2");
+    }
+
+    [Fact]
     public async Task DeleteUsageRecordsAsync_RemovesRequestedRows()
     {
         using var fixture = new SearchUsageFixture();

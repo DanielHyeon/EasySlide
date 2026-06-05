@@ -82,6 +82,19 @@ public sealed record UsageRecord(
     string Admin1,
     string Admin2);
 
+public sealed record UsageAddRecord(
+    DateTime WorshipDate,
+    string WorshipList,
+    string SongTitle,
+    int SongNumber,
+    int SongId,
+    string Admin1,
+    string Admin2);
+
+public sealed record UsageAddRequest(
+    string DatabasePath,
+    IReadOnlyList<UsageAddRecord> Records);
+
 public sealed record UsageSummary(
     string SongTitle,
     int SongNumber,
@@ -105,6 +118,12 @@ public sealed record UsageDeleteReport(
     int DeletedCount,
     IReadOnlyList<SearchUsageIssue> Issues);
 
+public sealed record UsageAddReport(
+    bool Succeeded,
+    string DatabasePath,
+    int AddedCount,
+    IReadOnlyList<SearchUsageIssue> Issues);
+
 public sealed record UsageExportReport(
     bool Succeeded,
     string OutputPath,
@@ -119,6 +138,8 @@ public interface ISearchUsageService
     Task<IReadOnlyList<LookupTitleCandidate>> LookupTitlesAsync(string databasePath, string titlePattern);
 
     Task<UsageReport> GetUsageAsync(UsageRequest request);
+
+    Task<UsageAddReport> AddUsageRecordsAsync(UsageAddRequest request);
 
     Task<UsageDeleteReport> DeleteUsageRecordsAsync(string databasePath, IReadOnlyList<long> recordIds);
 
@@ -382,6 +403,61 @@ public sealed class SearchUsageService : ISearchUsageService
         }
     }
 
+    public Task<UsageAddReport> AddUsageRecordsAsync(UsageAddRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (string.IsNullOrWhiteSpace(request.DatabasePath) || !File.Exists(request.DatabasePath))
+        {
+            return Task.FromResult(new UsageAddReport(
+                false,
+                request.DatabasePath,
+                0,
+                [new SearchUsageIssue(SearchUsageIssueSeverity.Error, "Usage database was not found.")]));
+        }
+
+        if (request.Records.Count == 0)
+        {
+            return Task.FromResult(new UsageAddReport(true, request.DatabasePath, 0, []));
+        }
+
+        try
+        {
+            using var connection = new SQLiteConnection($"Data Source={Path.GetFullPath(request.DatabasePath)};Version=3;");
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            var added = 0;
+            foreach (var record in request.Records)
+            {
+                using var command = new SQLiteCommand(
+                    """
+                    INSERT INTO USAGE (WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2)
+                    VALUES (@date, @worshipList, @songTitle, @songNumber, @songId, @admin1, @admin2);
+                    """,
+                    connection,
+                    transaction);
+                command.Parameters.AddWithValue("@date", record.WorshipDate.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                command.Parameters.AddWithValue("@worshipList", Truncate(record.WorshipList, 50));
+                command.Parameters.AddWithValue("@songTitle", RemoveMusicSymbol(Truncate(record.SongTitle, 100)));
+                command.Parameters.AddWithValue("@songNumber", record.SongNumber);
+                command.Parameters.AddWithValue("@songId", record.SongId);
+                command.Parameters.AddWithValue("@admin1", Truncate(record.Admin1, 50));
+                command.Parameters.AddWithValue("@admin2", Truncate(record.Admin2, 50));
+                added += command.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+            return Task.FromResult(new UsageAddReport(true, request.DatabasePath, added, []));
+        }
+        catch (Exception ex) when (IsRecoverable(ex))
+        {
+            return Task.FromResult(new UsageAddReport(
+                false,
+                request.DatabasePath,
+                0,
+                [new SearchUsageIssue(SearchUsageIssueSeverity.Error, ex.Message)]));
+        }
+    }
+
     public Task<UsageExportReport> ExportUsageReportAsync(UsageReport report, string outputPath)
     {
         ArgumentNullException.ThrowIfNull(report);
@@ -626,6 +702,16 @@ public sealed class SearchUsageService : ISearchUsageService
         var normalized = value.Replace("\r\n", "\n").Replace('\r', '\n');
         var firstLine = normalized.Split('\n').FirstOrDefault(line => !string.IsNullOrWhiteSpace(line)) ?? "";
         return firstLine.Length <= 120 ? firstLine : firstLine[..120];
+    }
+
+    private static string Truncate(string? value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "";
+        }
+
+        return value.Length <= maxLength ? value : value[..maxLength];
     }
 
     private static string RemoveMusicSymbol(string value)

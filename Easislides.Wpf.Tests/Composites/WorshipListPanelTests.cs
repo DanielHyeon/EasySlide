@@ -104,7 +104,7 @@ public class WorshipListPanelTests
             ("CMenuWorship_Edit", "Edit item", "CMenuWorship_Edit_Click", ""),
             ("CMenuWorship_Play", "Play Media", "", "PlaySelectedWorshipMediaCommand"),
             ("CMenuWorship_PlayOnOutput", "Play Media on Output Monitor", "", "PlaySelectedWorshipMediaOnOutputCommand"),
-            ("CMenuWorship_AddUsages", "Add Songs to Usages", "", "")
+            ("CMenuWorship_AddUsages", "Add Songs to Usages", "CMenuWorship_AddUsages_Click", "")
         };
 
         foreach (var (name, header, click, command) in expected)
@@ -134,6 +134,10 @@ public class WorshipListPanelTests
                 "Edit item should be enabled only for editable DB song queue rows")
             .And.Contain("EditSelectedItemRequested?.Invoke(this, e)",
                 "the panel should not construct SongEditorWindow directly")
+            .And.Contain("CMenuWorship_AddUsages.IsEnabled = viewModel.CanAddWorshipListSongsToUsages",
+                "Add Songs to Usages should be enabled when the queue contains DB song rows")
+            .And.Contain("AddWorshipListSongsToUsagesAsync()",
+                "the lower-left context menu should invoke the FrmMain AddToUsages parity path")
             .And.Contain("QueueList_PreviewMouseRightButtonDown",
                 "right-click commands should target the row under the pointer");
         composite.ToString().Should().Contain("PlaySelectedWorshipMediaOnOutputCommand",

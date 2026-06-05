@@ -416,7 +416,7 @@
                             <MenuItem x:Name="CMenuWorship_AddUsages"
                                       Header="Add Songs to Usages"
                                       Tag="CMenuWorship_AddUsages"
-                                      IsEnabled="False" />
+                                      Click="CMenuWorship_AddUsages_Click" />
                             <Separator />
 
                             <MenuItem Header="개별 서식 사용"

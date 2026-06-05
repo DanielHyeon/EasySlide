@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -259,6 +260,33 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         }).ConfigureAwait(true);
     }
 
+    public async Task<UsageAddReport> AddUsageRecordsAsync(IReadOnlyList<UsageAddRecord> records)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        ValidationMessage = "";
+        EnsureUsageDatabasePath();
+        if (string.IsNullOrWhiteSpace(UsageDatabasePath))
+        {
+            ValidationMessage = "사용 이력 DB 경로가 아직 준비되지 않았습니다.";
+            return new UsageAddReport(
+                false,
+                UsageDatabasePath,
+                0,
+                [new SearchUsageIssue(SearchUsageIssueSeverity.Error, ValidationMessage)]);
+        }
+
+        var report = new UsageAddReport(true, UsageDatabasePath, 0, []);
+        await RunBusyAsync(async () =>
+        {
+            report = await _service.AddUsageRecordsAsync(new UsageAddRequest(UsageDatabasePath, records)).ConfigureAwait(true);
+            StatusMessage = report.Succeeded
+                ? $"{report.AddedCount} usage records added."
+                : FormatIssues(report.Issues, "Usage add failed.");
+        }).ConfigureAwait(true);
+
+        return report;
+    }
+
     public async Task DeleteSelectedUsageAsync()
     {
         ValidationMessage = "";
@@ -366,6 +394,17 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         return string.IsNullOrWhiteSpace(WorkingFolder)
             ? ""
             : NormalizePath(Path.Combine(WorkingFolder, LegacyAdminDatabaseRelativePath));
+    }
+
+    private void EnsureUsageDatabasePath()
+    {
+        if (!string.IsNullOrWhiteSpace(UsageDatabasePath))
+        {
+            return;
+        }
+
+        WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
+        UsageDatabasePath = _service.GetDefaultUsageDatabasePath(WorkingFolder);
     }
 
     private bool EnsureSearchDatabase()

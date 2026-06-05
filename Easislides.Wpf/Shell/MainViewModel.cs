@@ -1491,6 +1491,99 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    public bool CanAddWorshipListSongsToUsages
+        => Queue.Any(item => item is { Kind: LiveItemKinds.Song } && TryGetSongDatabaseId(item, out _));
+
+    /// <summary>
+    /// FrmMain AddToUsages 대응: 현재 Worship List 전체를 훑어 DB 곡(song:{id})만 USAGE DB 에 기록한다.
+    /// 컨텍스트 메뉴가 선택 행에서 열려도 legacy 는 전체 목록을 기록하므로 WPF 도 같은 범위를 유지한다.
+    /// </summary>
+    public async Task<int> AddWorshipListSongsToUsagesAsync()
+    {
+        if (Queue.Count == 0)
+        {
+            StatusText = "현재 예배 순서에 항목이 없습니다.";
+            NotifyCommandStates();
+            return 0;
+        }
+
+        var songItems = Queue
+            .Where(item => item is { Kind: LiveItemKinds.Song } && TryGetSongDatabaseId(item, out _))
+            .ToArray();
+        if (songItems.Length == 0)
+        {
+            StatusText = "예배 순서에 DB 곡 항목이 없습니다.";
+            NotifyCommandStates();
+            return 0;
+        }
+
+        var records = await BuildUsageAddRecordsAsync(songItems).ConfigureAwait(true);
+        var report = await Search.AddUsageRecordsAsync(records).ConfigureAwait(true);
+        if (!report.Succeeded)
+        {
+            var detail = string.Join(" ", report.Issues.Select(issue => issue.Message).Where(message => !string.IsNullOrWhiteSpace(message)));
+            StatusText = string.IsNullOrWhiteSpace(detail)
+                ? "사용 이력 기록 실패"
+                : $"사용 이력 기록 실패: {detail}";
+            NotifyCommandStates();
+            return 0;
+        }
+
+        StatusText = report.AddedCount == 1
+            ? "사용 이력에 DB 곡 1개 추가됨"
+            : $"사용 이력에 DB 곡 {report.AddedCount}개 추가됨";
+        NotifyCommandStates();
+        return report.AddedCount;
+    }
+
+    private async Task<IReadOnlyList<UsageAddRecord>> BuildUsageAddRecordsAsync(IReadOnlyList<LiveQueueItem> songItems)
+    {
+        var databasePath = ResolveSongDetailDatabasePath();
+        var detailCache = new Dictionary<int, Data.SongDetail?>();
+        var sessionName = ResolveUsageSessionName();
+        var records = new List<UsageAddRecord>(songItems.Count);
+
+        foreach (var item in songItems)
+        {
+            if (item is not { Kind: LiveItemKinds.Song } || !TryGetSongDatabaseId(item, out var songId))
+            {
+                continue;
+            }
+
+            Data.SongDetail? detail = null;
+            if (!string.IsNullOrWhiteSpace(databasePath))
+            {
+                if (!detailCache.TryGetValue(songId, out detail))
+                {
+                    detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+                    detailCache[songId] = detail;
+                }
+            }
+
+            records.Add(new UsageAddRecord(
+                DateTime.Today,
+                sessionName,
+                item.Title,
+                item.SongNumber != 0 ? item.SongNumber : detail?.SongNumber ?? 0,
+                songId,
+                detail?.LicenceAdmin1 ?? "",
+                detail?.LicenceAdmin2 ?? ""));
+        }
+
+        return records;
+    }
+
+    private string ResolveUsageSessionName()
+    {
+        var sessionName = SelectedSavedWorshipList;
+        if (string.IsNullOrWhiteSpace(sessionName))
+        {
+            sessionName = CurrentWorshipListName;
+        }
+
+        return sessionName?.Trim() ?? "";
+    }
+
     /// <summary>
     /// 찬양집 색인에서 더블클릭한 곡을 예배 순서에 추가한다(FrmMain PraiseBook 인터랙티브 목록 대응).
     /// 색인 항목엔 가사가 없으므로 현재 라이브러리에서 같은 곡(가사 포함 SongSummary)을 찾아 AddSong 으로 넘긴다.
