@@ -389,6 +389,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"flowLayoutExternalPowerPoint\"", "preview mode should expose the FrmMain thumbnail-flow role");
         xaml.Should().Contain("Tag=\"flowLayoutExternalPowerPoint\"", "thumbnail flow role should remain explicit");
         xaml.Should().Contain("<WrapPanel Orientation=\"Horizontal\" />", "preview mode should use a flowing thumbnail layout");
+        xaml.Should().Contain("Source=\"{Binding ThumbnailImage}\"", "PowerPoint preview style should render real first-slide thumbnails when available");
+        xaml.Should().Contain("ToolTip=\"{Binding ThumbnailStatus}\"", "PowerPoint thumbnail cards should expose render status without replacing the file name");
         xaml.Should().Contain("IsPreviewStyle", "PowerpointList and flowLayoutExternalPowerPoint should toggle from the same listing style state");
 
         xaml.Should().Contain("Tag=\"MediaSource\"", "FrmMain keeps Media as a main-console source tab");
@@ -432,6 +434,7 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlinePowerPointLoadedOnce(viewModel)", "PowerPoint source tab should lazy-load on first selection");
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");
+        code.Should().Contain("_services.GetService<IPowerPointRenderService>()", "inline PowerPoint preview mode should reuse the shared cached renderer");
         code.Should().Contain("MediaSourceTab.DataContext = _inlineMedia", "inline Media tab should bind to its library VM");
         code.Should().Contain("sender is ListBox powerPointList", "PowerPoint list and preview-list drags should use the actual source surface");
         code.Should().Contain("ItemsControl.ContainerFromElement(powerPointList, source)", "PowerPoint drag arming should work for both list and preview style");

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
+using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Support;
@@ -166,7 +167,8 @@ public partial class MainWindow : Window
         _inlinePowerPoint = new PowerPointLibraryViewModel(
             new PowerPointLibraryService(),
             path => viewModel.AddPowerPoint(path),
-            ResolvePowerPointInitialFolder());
+            ResolvePowerPointInitialFolder(),
+            _services.GetService<IPowerPointRenderService>());
         PowerPointSourceTab.DataContext = _inlinePowerPoint;
         _inlinePowerPoint.LoadCommand.Execute(null);
     }
@@ -1544,7 +1546,8 @@ public partial class MainWindow : Window
         var pptViewModel = new Easislides.Wpf.Library.PowerPointLibraryViewModel(
             new Easislides.Wpf.Library.PowerPointLibraryService(),
             path => viewModel.AddPowerPoint(path), // AddPowerPoint 는 LiveQueueItem 을 반환하므로 람다로 감싼다
-            ResolvePowerPointInitialFolder());
+            ResolvePowerPointInitialFolder(),
+            _services.GetService<IPowerPointRenderService>());
 
         var window = new Easislides.Wpf.Library.PowerPointLibraryWindow(pptViewModel) { Owner = this };
         window.ShowDialog();

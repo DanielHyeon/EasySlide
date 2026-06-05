@@ -1,6 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Media;
 using Easislides.Wpf.Library;
+using Easislides.Wpf.Rendering;
 using FluentAssertions;
 using Xunit;
 
@@ -26,20 +31,64 @@ public class PowerPointLibraryViewModelTests
         public IReadOnlyList<PowerPointFolderItem> EnumerateFolders(string rootFolder) => _folders;
     }
 
+    private sealed class FakeRenderService : IPowerPointRenderService
+    {
+        public List<PowerPointRenderRequest> Requests { get; } = new();
+
+        public Task<PowerPointRenderResult> RenderSlideAsync(
+            PowerPointRenderRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            Requests.Add(request);
+            var slide = new PowerPointSlideSnapshot(
+                request.FilePath,
+                request.SlideNumber,
+                SlideCount: 4,
+                request.PixelWidth,
+                request.PixelHeight,
+                ImageBytes: new byte[] { 1, 2, 3 },
+                ContentType: "image/png",
+                GeneratedAtUtc: System.DateTimeOffset.UnixEpoch);
+
+            return Task.FromResult(new PowerPointRenderResult(
+                PowerPointRenderErrorKind.None,
+                slide,
+                ErrorMessage: null,
+                FromCache: false,
+                Elapsed: System.TimeSpan.Zero));
+        }
+
+        public void ClearCache()
+        {
+        }
+    }
+
+    private static readonly ImageSource DummyImage = CreateDummyImage();
+
     private static PowerPointLibraryViewModel CreateSut(out List<string> added, params string[] paths)
-        => CreateSut(out added, folders: null, paths);
+        => CreateSut(out added, null, paths);
 
     private static PowerPointLibraryViewModel CreateSut(
         out List<string> added,
         IReadOnlyList<PowerPointFolderItem>? folders,
         params string[] paths)
+        => CreateSut(out added, folders, paths, render: null, decoder: null);
+
+    private static PowerPointLibraryViewModel CreateSut(
+        out List<string> added,
+        IReadOnlyList<PowerPointFolderItem>? folders,
+        string[] paths,
+        IPowerPointRenderService? render = null,
+        Func<byte[], ImageSource>? decoder = null)
     {
         var addedLocal = new List<string>();
         added = addedLocal;
         return new PowerPointLibraryViewModel(
             new FakePptService(folders, paths),
             path => addedLocal.Add(path),
-            initialFolder: @"C:\decks");
+            initialFolder: @"C:\decks",
+            render,
+            decoder);
     }
 
     [Fact]
@@ -51,6 +100,28 @@ public class PowerPointLibraryViewModelTests
 
         sut.Presentations.Select(p => p.FileName).Should().Equal("a.pptx", "b.ppt");
         sut.StatusText.Should().Contain("2");
+    }
+
+    [Fact]
+    public async Task LoadThumbnailsAsync_RendersFirstSlideForVisiblePresentations()
+    {
+        var render = new FakeRenderService();
+        var sut = CreateSut(
+            out _,
+            null,
+            new[] { @"C:\decks\a.pptx", @"C:\decks\b.pptx" },
+            render,
+            _ => DummyImage);
+        sut.LoadCommand.Execute(null);
+
+        await sut.LoadThumbnailsAsync();
+
+        render.Requests.Should().HaveCount(2);
+        render.Requests.Select(r => r.FilePath).Should().Equal(@"C:\decks\a.pptx", @"C:\decks\b.pptx");
+        render.Requests.Should().OnlyContain(r => r.SlideNumber == 1);
+        render.Requests.Should().OnlyContain(r => r.PixelWidth == 320 && r.PixelHeight == 180);
+        sut.Presentations.Should().OnlyContain(p => ReferenceEquals(p.ThumbnailImage, DummyImage));
+        sut.Presentations.Should().OnlyContain(p => p.ThumbnailStatus == "슬라이드 1/4");
     }
 
     [Fact]
@@ -191,5 +262,15 @@ public class PowerPointLibraryViewModelTests
         sut.SelectedFile.Should().BeNull("걸러져 사라진 항목은 선택 해제");
         sut.AddSelectedCommand.CanExecute(null).Should().BeFalse();
         added.Should().BeEmpty();
+    }
+
+    private static ImageSource CreateDummyImage()
+    {
+        var image = new DrawingImage(new GeometryDrawing(
+            Brushes.Transparent,
+            null,
+            new RectangleGeometry(new System.Windows.Rect(0, 0, 1, 1))));
+        image.Freeze();
+        return image;
     }
 }

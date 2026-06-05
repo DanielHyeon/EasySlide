@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Easislides.Wpf.Rendering;
 
 namespace Easislides.Wpf.Library;
 
@@ -15,7 +20,7 @@ public enum PowerPointListingStyle
 }
 
 /// <summary>PowerPoint 갤러리 항목 — 파일 경로와 표시용 파일명.</summary>
-public sealed class PowerPointFileItem
+public sealed partial class PowerPointFileItem : ObservableObject
 {
     public PowerPointFileItem(string filePath)
     {
@@ -26,6 +31,12 @@ public sealed class PowerPointFileItem
     public string FilePath { get; }
 
     public string FileName { get; }
+
+    [ObservableProperty]
+    private ImageSource? _thumbnailImage;
+
+    [ObservableProperty]
+    private string _thumbnailStatus = "미리보기 대기";
 }
 
 /// <summary>
@@ -36,8 +47,11 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 {
     private readonly IPowerPointLibraryService _service;
     private readonly Action<string> _addToQueue;
+    private readonly IPowerPointRenderService? _render;
+    private readonly Func<byte[], ImageSource> _decodeThumbnail;
     private readonly string _rootFolderPath;
     private bool _suppressSelectedFolderReload;
+    private CancellationTokenSource? _thumbnailCts;
     // 폴더에서 읽은 전체 PPT(검색 필터 적용 전 원본). 검색 상자는 이 목록에서 걸러 Presentations 에 보여 준다.
     private readonly List<PowerPointFileItem> _allFiles = new();
 
@@ -71,17 +85,21 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     public PowerPointLibraryViewModel(
         IPowerPointLibraryService service,
         Action<string> addToQueue,
-        string initialFolder)
+        string initialFolder,
+        IPowerPointRenderService? render = null,
+        Func<byte[], ImageSource>? thumbnailDecoder = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
+        _render = render;
+        _decodeThumbnail = thumbnailDecoder ?? DecodeImage;
         _rootFolderPath = initialFolder ?? string.Empty;
         _folderPath = _rootFolderPath;
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
-        UseListStyleCommand = new RelayCommand(() => ListingStyle = PowerPointListingStyle.List);
-        UsePreviewStyleCommand = new RelayCommand(() => ListingStyle = PowerPointListingStyle.Preview);
+        UseListStyleCommand = new RelayCommand(UseListStyle);
+        UsePreviewStyleCommand = new RelayCommand(UsePreviewStyle);
 
         BuildFolderGroups();
     }
@@ -121,7 +139,14 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     }
 
     // 검색어가 바뀌면 다시 읽지 않고(폴더 탐색은 비쌈) 이미 읽어 둔 전체 목록에서 걸러 보여 준다.
-    partial void OnFilterTextChanged(string value) => ApplyFilter();
+    partial void OnFilterTextChanged(string value)
+    {
+        ApplyFilter();
+        if (IsPreviewStyle)
+        {
+            _ = LoadThumbnailsAsync();
+        }
+    }
 
     private void BuildFolderGroups()
     {
@@ -146,6 +171,9 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     // 현재 폴더의 PPT 파일 목록을 다시 읽는다(전체를 _allFiles 에 담고, 검색어 적용해 화면 목록 구성).
     private void Load()
     {
+        _thumbnailCts?.Cancel();
+        _thumbnailCts?.Dispose();
+        _thumbnailCts = null;
         _allFiles.Clear();
         foreach (var path in _service.EnumeratePresentations(FolderPath, IncludeSubfolders))
         {
@@ -153,6 +181,10 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         }
 
         ApplyFilter();
+        if (IsPreviewStyle)
+        {
+            _ = LoadThumbnailsAsync();
+        }
     }
 
     // 검색어로 _allFiles 를 걸러 Presentations(화면 목록)를 다시 만든다 — 순수 비교는 FileNameFilter 가 맡는다.
@@ -185,6 +217,89 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         }
     }
 
+    public async Task LoadThumbnailsAsync(CancellationToken cancellationToken = default)
+    {
+        _thumbnailCts?.Cancel();
+        _thumbnailCts?.Dispose();
+        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _thumbnailCts = linkedCts;
+        var token = linkedCts.Token;
+
+        try
+        {
+            foreach (var item in Presentations.ToList())
+            {
+                item.ThumbnailImage = null;
+                item.ThumbnailStatus = _render is null ? "PPT 썸네일 렌더러 없음" : "PPT 썸네일 렌더링 중";
+            }
+
+            if (_render is null)
+            {
+                return;
+            }
+
+            foreach (var item in Presentations.ToList())
+            {
+                token.ThrowIfCancellationRequested();
+                var result = await _render.RenderSlideAsync(
+                    new PowerPointRenderRequest(item.FilePath, 1, 320, 180, TimeSpan.FromSeconds(60)),
+                    token).ConfigureAwait(true);
+
+                token.ThrowIfCancellationRequested();
+                if (!Presentations.Contains(item))
+                {
+                    continue;
+                }
+
+                if (result.Succeeded && result.Slide is { } slide)
+                {
+                    try
+                    {
+                        item.ThumbnailImage = _decodeThumbnail(slide.ImageBytes);
+                        item.ThumbnailStatus = $"슬라이드 1/{slide.SlideCount}";
+                    }
+                    catch (Exception ex) when (
+                        ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)
+                    {
+                        item.ThumbnailStatus = "PPT 썸네일 디코드 실패";
+                    }
+                }
+                else
+                {
+                    item.ThumbnailStatus = result.ErrorMessage ?? "PPT 썸네일 렌더 실패";
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"PowerPoint 썸네일 렌더 실패: {ex.Message}";
+        }
+        finally
+        {
+            if (ReferenceEquals(_thumbnailCts, linkedCts))
+            {
+                _thumbnailCts = null;
+            }
+
+            linkedCts.Dispose();
+        }
+    }
+
+    private void UseListStyle()
+    {
+        ListingStyle = PowerPointListingStyle.List;
+        _thumbnailCts?.Cancel();
+    }
+
+    private void UsePreviewStyle()
+    {
+        ListingStyle = PowerPointListingStyle.Preview;
+        _ = LoadThumbnailsAsync();
+    }
+
     // 선택한 덱을 예배 순서에 추가(MainViewModel.AddPowerPoint 위임).
     private void AddSelected()
     {
@@ -195,5 +310,17 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
         _addToQueue(SelectedFile.FilePath);
         StatusText = $"예배 순서에 추가: {SelectedFile.FileName}";
+    }
+
+    private static ImageSource DecodeImage(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes);
+        var decoder = BitmapDecoder.Create(
+            stream,
+            BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile,
+            BitmapCacheOption.OnLoad);
+        var frame = decoder.Frames[0];
+        frame.Freeze();
+        return frame;
     }
 }

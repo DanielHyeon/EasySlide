@@ -41,7 +41,7 @@
 | `tabPowerpoint` | `PowerPointSourceTab` | partial | 2/3/4 | inline folder combo, list, and preview-style flow exist; import/manage and real first-slide thumbnails still incomplete |
 | `PowerpointFolder` | `PowerpointFolder` (`Tag=PowerpointFolder`) | partial | 2 | root `Powerpoint Items` plus subfolder groups load and selection reloads contents; import/manage/folder edit parity incomplete |
 | `PowerpointList` | `InlinePowerPointList` (`Tag=PowerpointList`) | partial | 3/4 | selection, double-click, Enter add, and drag insert exist; context menu and exact legacy folder-list columns incomplete |
-| `PP_ListType` | `PP_ListType` / `PP_ListStyle` / `PP_PreviewStyle` + `flowLayoutExternalPowerPoint` | partial | 4 | list/preview style toggle now switches WPF list vs thumbnail-flow source surfaces; real PPT first-slide thumbnail rendering/cache still incomplete |
+| `PP_ListType` | `PP_ListType` / `PP_ListStyle` / `PP_PreviewStyle` + `flowLayoutExternalPowerPoint` | partial | 4 | list/preview style toggle switches WPF list vs thumbnail-flow source surfaces; preview flow now requests cached first-slide renders and falls back to the PPT icon on render failure; exact FrmMain thumbnail sizing/cache folder behavior still incomplete |
 | `tabBibles` | `Bibles` tab | partial | 2/3 | full version/book/reference/selection workflow |
 | `BookLookup` | Bible book selector | partial | 2 | load legacy book list per version |
 | `BibleUserLookup` | `BibleReferenceBox` | partial | 2/3 | direct reference and search validation parity |
