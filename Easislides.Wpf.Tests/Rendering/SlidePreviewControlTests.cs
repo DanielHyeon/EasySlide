@@ -71,9 +71,11 @@ public class SlidePreviewControlTests
             Encoding.UTF8);
 
         xaml.Should().Contain("rendering:SlidePreviewControl");
-        xaml.Should().Contain("SelectedItem.PreviewSource");
-        xaml.Should().Contain("SelectedItem.PreviewFillMode");
-        xaml.Should().Contain("SelectedItem.SlideNumber");
+        xaml.Should().Contain("PreviewVisualSource");
+        xaml.Should().Contain("PreviewVisualFillMode");
+        xaml.Should().Contain("PreviewVisualSlideNumber");
+        xaml.Should().Contain("OutputVisualSource");
+        xaml.Should().Contain("OutputVisualSlideNumber");
     }
 
     private static void Arrange(UIElement element, int width, int height)

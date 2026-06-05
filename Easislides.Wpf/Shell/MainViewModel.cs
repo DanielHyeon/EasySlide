@@ -679,6 +679,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? PowerPoint.PreviewImage
             : SelectedItem?.PreviewSource;
 
+    public Rendering.ImageFillMode PreviewVisualFillMode
+        => SelectedItem is not null && IsPowerPointItem(SelectedItem)
+            ? Rendering.ImageFillMode.Fit
+            : SelectedItem?.PreviewFillMode ?? Rendering.ImageFillMode.Fit;
+
+    public int PreviewVisualSlideNumber
+        => SelectedItem is not null && IsPowerPointItem(SelectedItem)
+            ? PowerPoint.SlideNumber
+            : SelectedItem?.SlideNumber ?? 0;
+
+    public string PreviewVisualTitle => SelectedItem?.Title ?? string.Empty;
+
+    public string PreviewVisualKind => SelectedItem?.Kind ?? string.Empty;
+
     public bool HasPreviewVisualSource => PreviewVisualSource is not null;
 
     public ImageSource? OutputVisualSource
@@ -694,6 +708,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public Rendering.ImageFillMode OutputVisualFillMode
         => GetOutputNavigationItem()?.PreviewFillMode ?? Rendering.ImageFillMode.Fit;
+
+    public int OutputVisualSlideNumber
+    {
+        get
+        {
+            var item = GetOutputNavigationItem();
+            return item is not null && IsPowerPointItem(item)
+                ? OutputPowerPoint.SlideNumber
+                : item?.SlideNumber ?? 0;
+        }
+    }
+
+    public string OutputVisualTitle => GetOutputNavigationItem()?.Title ?? string.Empty;
+
+    public string OutputVisualKind => GetOutputNavigationItem()?.Kind ?? string.Empty;
 
     public bool HasOutputVisualSource => OutputVisualSource is not null;
 
@@ -3216,6 +3245,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         NotifyPreviewPanelDisplayProperties();
         OnPropertyChanged(nameof(PreviewVisualSource));
+        OnPropertyChanged(nameof(PreviewVisualFillMode));
+        OnPropertyChanged(nameof(PreviewVisualSlideNumber));
+        OnPropertyChanged(nameof(PreviewVisualTitle));
+        OnPropertyChanged(nameof(PreviewVisualKind));
         OnPropertyChanged(nameof(HasPreviewVisualSource));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
@@ -4046,6 +4079,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
+        OnPropertyChanged(nameof(OutputVisualSlideNumber));
+        OnPropertyChanged(nameof(OutputVisualTitle));
+        OnPropertyChanged(nameof(OutputVisualKind));
         OnPropertyChanged(nameof(HasOutputVisualSource));
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyOutputPanelDisplayProperties();
@@ -4752,6 +4788,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(PowerPoint.PreviewImage))
         {
             OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+            OnPropertyChanged(nameof(PreviewVisualSlideNumber));
+            OnPropertyChanged(nameof(PreviewVisualFillMode));
             NotifyPreviewPanelDisplayProperties();
             NotifyCommandStates();
         }
@@ -4771,6 +4809,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(OutputPowerPoint.PreviewImage))
         {
             OnPropertyChanged(nameof(OutputNavigationPositionLabel));
+            OnPropertyChanged(nameof(OutputVisualSlideNumber));
             NotifyOutputPanelDisplayProperties();
             NotifyCommandStates();
         }
@@ -7834,6 +7873,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyOutputPanelDisplayProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
+        OnPropertyChanged(nameof(OutputVisualSlideNumber));
+        OnPropertyChanged(nameof(OutputVisualTitle));
+        OnPropertyChanged(nameof(OutputVisualKind));
         OnPropertyChanged(nameof(HasOutputVisualSource));
         // 다음 송출 예정 항목 — 운영자가 미리 준비하도록 LiveBar 에 "다음 ▸ X"로 보여 준다(마지막 항목이면 빈 문자열→숨김).
         LiveBar.NextItemTitle = snapshot.CurrentItemNextTitle;

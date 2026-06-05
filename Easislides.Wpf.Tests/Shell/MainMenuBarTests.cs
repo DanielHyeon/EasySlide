@@ -216,6 +216,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"splitContainerOutput.Panel2\"", "right-bottom Output pane should map to splitContainerOutput.Panel2");
         xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
         xaml.Should().Contain("Source=\"{Binding OutputVisualSource}\"", "large Output slide should show the live/output PPT or image visual when available");
+        xaml.Should().Contain("Title=\"{Binding OutputVisualTitle}\"", "large Output slide metadata should follow the prepared/live Output item");
+        xaml.Should().Contain("Kind=\"{Binding OutputVisualKind}\"", "large Output slide kind should not follow the selected Preview item");
+        xaml.Should().Contain("SlideNumber=\"{Binding OutputVisualSlideNumber}\"", "large Output slide number should follow OutputPowerPoint state");
         xaml.Should().Contain("Visibility=\"{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}\"",
             "the large visual layer should only cover the Output text frame when an actual visual source exists");
     }
@@ -263,6 +266,14 @@ public class MainMenuBarTests
             "image/PPT PreviewSource should cover the text frame only when an actual visual source exists");
         preview.Should().Contain("Source=\"{Binding PreviewVisualSource}\"",
             "the large Preview frame should use the rendered PPT/image source rather than only the raw selected item source");
+        preview.Should().Contain("Title=\"{Binding PreviewVisualTitle}\"",
+            "the large Preview frame should use Preview-only item metadata");
+        preview.Should().Contain("Kind=\"{Binding PreviewVisualKind}\"",
+            "the large Preview frame should not borrow Output metadata");
+        preview.Should().Contain("FillMode=\"{Binding PreviewVisualFillMode}\"",
+            "the large Preview frame should use the rendered PPT/image fill mode");
+        preview.Should().Contain("SlideNumber=\"{Binding PreviewVisualSlideNumber}\"",
+            "the large Preview frame should follow the current Preview PPT slide");
 
         var output = SectionBetween(xaml, "x:Name=\"ClassicOutputHolder\"", "</Viewbox>");
         output.Should().Contain("Tag=\"OutputHolder\"", "Output lower pane should keep the FrmMain OutputHolder role");
@@ -281,6 +292,12 @@ public class MainMenuBarTests
             "the lower Output frame should use the prepared/live visual source rather than only the PPT VM");
         output.Should().Contain("FillMode=\"{Binding OutputVisualFillMode}\"",
             "image Output items should keep their FrmMain-style fit/fill mode in the large frame");
+        output.Should().Contain("Title=\"{Binding OutputVisualTitle}\"",
+            "the lower Output frame should keep the prepared/live item title after Preview selection diverges");
+        output.Should().Contain("Kind=\"{Binding OutputVisualKind}\"",
+            "the lower Output frame should keep the prepared/live item kind after Preview selection diverges");
+        output.Should().Contain("SlideNumber=\"{Binding OutputVisualSlideNumber}\"",
+            "the lower Output frame should follow the live/prepared Output PPT slide number");
         output.Should().Contain("Visibility=\"{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}\"",
             "the lower Output visual layer should only appear for prepared/live visual items");
     }

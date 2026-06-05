@@ -4313,6 +4313,31 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewVisualMetadata_FollowsPreviewPowerPointStateAfterThumbnailJump()
+    {
+        // FrmMain Preview 큰 화면은 PreviewItem 의 현재 PPT 슬라이드 상태를 보여야 한다.
+        // 큐 항목 원본 SlideNumber 가 낡아 있어도 썸네일 클릭 후 PowerPoint.SlideNumber 를 따라간다.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, seedSampleQueue: false);
+        var deck = new LiveQueueItem("ppt:preview", "Preview deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "preview.pptx",
+            PreviewFillMode = ImageFillMode.Fill,
+            SlideNumber = 1,
+        };
+        sut.LoadQueue([deck]);
+
+        await sut.GoToSlideCommand.ExecuteAsync(3);
+
+        sut.PreviewVisualTitle.Should().Be("Preview deck");
+        sut.PreviewVisualKind.Should().Be(LiveItemKinds.PowerPoint);
+        sut.PreviewVisualFillMode.Should().Be(ImageFillMode.Fit, "rendered PPT slides are letterboxed even when the source item has an image fill preference");
+        sut.PreviewVisualSlideNumber.Should().Be(3, "the large Preview frame should display the current Preview PPT slide");
+        sut.SelectedItem.Should().BeSameAs(deck);
+        sut.SelectedItem!.SlideNumber.Should().Be(1, "Preview-only PPT navigation should not mutate the queue item");
+    }
+
+    [Fact]
     public async Task PreviousSlideCommand_GoesBackToPriorSlide()
     {
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
@@ -9594,6 +9619,10 @@ public class MainViewModelTests
         sut.OutputItem!.Id.Should().Be(prepared.Id);
         sut.OutputItem.SlideNumber.Should().Be(2);
         sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.OutputVisualTitle.Should().Be("Prepared deck");
+        sut.OutputVisualKind.Should().Be(LiveItemKinds.PowerPoint);
+        sut.OutputVisualSlideNumber.Should().Be(2, "the large Output frame should follow OutputPowerPoint, not the diverged Preview selection");
+        sut.PreviewVisualTitle.Should().Be("Preview song");
         sut.Session.Current.State.Should().Be(LiveState.Off, "준비 Output 슬라이드 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
         sut.StatusText.Should().Be("Output 슬라이드 2/3 준비");
