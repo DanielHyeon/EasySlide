@@ -672,6 +672,12 @@ public class MainMenuBarTests
             "OutputBtnRefAlert should toggle the live reference alert instead of staying a disabled placeholder");
         xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\"",
             "Preview verse buttons should keep moving the selected Preview item");
+        xaml.Should().MatchRegex("x:Name=\"PreviewBtnSlideUp\"\\s+Tag=\"PreviewBtnSlideUp\"\\s+Command=\"\\{Binding PreviousSlideCommand\\}\"",
+            "Preview slide-up should use the item-type-aware Preview slide/page command");
+        xaml.Should().MatchRegex("x:Name=\"PreviewBtnSlideDown\"\\s+Tag=\"PreviewBtnSlideDown\"\\s+Command=\"\\{Binding NextSlideCommand\\}\"",
+            "Preview slide-down should use the item-type-aware Preview slide/page command");
+        xaml.Should().NotMatchRegex("x:Name=\"PreviewBtnSlideDown\"\\s+Tag=\"PreviewBtnSlideDown\"\\s+Command=\"\\{Binding NextLyricsPageCommand\\}\"",
+            "Preview slide buttons must not bypass PPT slide navigation");
         xaml.Should().Contain("x:Name=\"OutputBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToOutputLyricsSectionCommand}\"",
             "Output verse buttons should move the live Output item independently from Preview");
         xaml.Should().NotContain("x:Name=\"OutputBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\"",

@@ -2833,7 +2833,7 @@
                                 AutomationProperties.Name="Preview 다음 항목" />
                         <Button x:Name="PreviewBtnSlideUp"
                                 Tag="PreviewBtnSlideUp"
-                                Command="{Binding PreviousLyricsPageCommand}"
+                                Command="{Binding PreviousSlideCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
@@ -2844,7 +2844,7 @@
                                 AutomationProperties.Name="Preview 이전 슬라이드" />
                         <Button x:Name="PreviewBtnSlideDown"
                                 Tag="PreviewBtnSlideDown"
-                                Command="{Binding NextLyricsPageCommand}"
+                                Command="{Binding NextSlideCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
