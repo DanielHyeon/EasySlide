@@ -273,6 +273,7 @@
                 <ListView x:Name="QueueList"
                           ItemsSource="{Binding Queue}"
                           SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                          SelectionMode="Extended"
                           Tag="WorshipListItems"
                           AutomationProperties.Name="예배 순서 목록"
                           AllowDrop="True"
@@ -357,11 +358,39 @@
                     <!-- 항목 우클릭 — 개별 서식 사용 토글(레거시 Ind_checkBox). 끄면 전역 기본 서식으로 송출.
                          ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->
                     <ListView.ContextMenu>
-                        <ContextMenu>
+                        <ContextMenu x:Name="CMenuWorship"
+                                     Tag="CMenuWorship"
+                                     Opened="CMenuWorship_Opened">
+                            <MenuItem x:Name="CMenuWorship_SelectAll"
+                                      Header="Select All"
+                                      Tag="CMenuWorship_SelectAll"
+                                      Click="CMenuWorship_SelectAll_Click" />
+                            <MenuItem x:Name="CMenuWorship_UnselectAll"
+                                      Header="Unselect All"
+                                      Tag="CMenuWorship_UnselectAll"
+                                      Click="CMenuWorship_UnselectAll_Click" />
+                            <MenuItem x:Name="CMenuWorship_Clear"
+                                      Header="Clear Worship List"
+                                      Tag="CMenuWorship_Clear"
+                                      Command="{Binding PlacementTarget.DataContext.ClearWorshipListCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Separator />
+                            <MenuItem x:Name="CMenuWorship_Edit"
+                                      Header="Edit item"
+                                      Tag="CMenuWorship_Edit"
+                                      IsEnabled="False" />
+                            <MenuItem x:Name="CMenuWorship_Play"
+                                      Header="Play Media"
+                                      Tag="CMenuWorship_Play"
+                                      Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             <MenuItem x:Name="CMenuWorship_PlayOnOutput"
-                                      Header="Play on Output"
+                                      Header="Play Media on Output Monitor"
                                       Tag="CMenuWorship_PlayOnOutput"
                                       Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaOnOutputCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Separator />
+                            <MenuItem x:Name="CMenuWorship_AddUsages"
+                                      Header="Add Songs to Usages"
+                                      Tag="CMenuWorship_AddUsages"
+                                      IsEnabled="False" />
                             <Separator />
 
                             <MenuItem Header="개별 서식 사용"

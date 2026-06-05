@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ISettingsService _settings;
     private readonly IWorshipListStore _worshipLists;
     private readonly IRecentWorshipLists _recentWorshipLists;
+    private readonly Func<string, bool> _worshipMediaLauncher;
     // 예배 순서 검증기 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems).
     private readonly WorshipListValidator _worshipValidator;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
@@ -625,7 +627,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Data.IAdminSongDetailRepository songDetail,
         IRecentWorshipLists recentWorshipLists,
         WorshipListValidator? worshipValidator = null,
-        IPreviewWindowService? preview = null)
+        IPreviewWindowService? preview = null,
+        Func<string, bool>? worshipMediaLauncher = null)
     {
         _session = session;
         _output = output;
@@ -641,6 +644,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _appearanceTemplates = appearanceTemplates;
         _songDetail = songDetail;
         _recentWorshipLists = recentWorshipLists;
+        _worshipMediaLauncher = worshipMediaLauncher ?? LaunchWorshipMediaProcess;
         // 예배 순서 검증기 — 기본은 실제 파일 존재(File.Exists). 테스트는 가짜 판정을 주입해 디스크 없이 검증.
         _worshipValidator = worshipValidator ?? new WorshipListValidator();
         Media = media;
@@ -777,6 +781,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         QuickSaveWorshipListCommand = new AsyncRelayCommand(QuickSaveWorshipListAsync);
         // 현재 송출 항목 선택 — 미리보기로 앞서 가다가 라이브 항목으로 선택을 되돌린다(송출 중인 큐 항목 있을 때만).
         SelectLiveItemCommand = new RelayCommand(SelectLiveItem, () => CanSelectLiveItem);
+        // FrmMain CMenuWorship_Play — Output 이 아닌 일반 미디어 플레이어/연결 앱으로 연결 미디어를 연다.
+        PlaySelectedWorshipMediaCommand = new RelayCommand(
+            PlaySelectedWorshipMedia,
+            CanPlaySelectedWorshipMedia);
         // FrmMain CMenuWorship_PlayOnOutput — 선택 Worship 항목의 연결 미디어를 Output 창에서 즉시 재생한다.
         PlaySelectedWorshipMediaOnOutputCommand = new RelayCommand(
             PlaySelectedWorshipMediaOnOutput,
@@ -992,6 +1000,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>"현재 송출 항목 선택"을 누를 수 있는지 — 라이브 송출 중이고 그 항목이 큐에 있을 때만(공지 센티넬은 큐에 없어 false).</summary>
     public bool CanSelectLiveItem => Queue.Any(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
+
+    /// <summary>FrmMain CMenuWorship_Play: 선택 Worship 항목의 미디어를 기본 앱으로 연다.</summary>
+    public IRelayCommand PlaySelectedWorshipMediaCommand { get; }
 
     /// <summary>FrmMain CMenuWorship_PlayOnOutput: 선택 Worship 항목의 미디어를 Output 창에서 재생한다.</summary>
     public IRelayCommand PlaySelectedWorshipMediaOnOutputCommand { get; }
@@ -3192,8 +3203,45 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private bool CanPlaySelectedWorshipMediaOnOutput()
+    private bool CanPlaySelectedWorshipMedia()
         => SelectedItem is not null;
+
+    private bool CanPlaySelectedWorshipMediaOnOutput()
+        => CanPlaySelectedWorshipMedia();
+
+    private void PlaySelectedWorshipMedia()
+    {
+        if (SelectedItem is not { } item)
+        {
+            StatusText = "재생할 Worship 항목을 선택하세요.";
+            return;
+        }
+
+        var mediaPath = ResolveWorshipOutputMediaPath(item);
+        if (string.IsNullOrWhiteSpace(mediaPath))
+        {
+            StatusText = $"미디어 파일을 찾을 수 없습니다: {item.Title}";
+            return;
+        }
+
+        try
+        {
+            if (_worshipMediaLauncher(mediaPath))
+            {
+                StatusText = $"미디어 재생: {Path.GetFileName(mediaPath)}";
+            }
+            else
+            {
+                StatusText = $"미디어 파일을 열 수 없습니다: {mediaPath}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"미디어 파일을 열 수 없습니다: {ex.Message}";
+        }
+
+        NotifyCommandStates();
+    }
 
     private void PlaySelectedWorshipMediaOnOutput()
     {
@@ -3333,6 +3381,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static string NormalizeWorshipMediaLookupName(string value)
         => new(value.Where(char.IsLetterOrDigit).ToArray());
+
+    private static bool LaunchWorshipMediaProcess(string mediaPath)
+    {
+        Process.Start(new ProcessStartInfo(mediaPath)
+        {
+            UseShellExecute = true,
+            WindowStyle = ProcessWindowStyle.Normal
+        });
+        return true;
+    }
 
     private void OnOutputChanged(object? sender, OutputWindowChangedEventArgs e)
     {
@@ -6195,6 +6253,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
+        PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         SendToOutputAndNextCommand.NotifyCanExecuteChanged();

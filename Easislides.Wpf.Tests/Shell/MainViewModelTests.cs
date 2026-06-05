@@ -5651,6 +5651,35 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PlaySelectedWorshipMediaCommand_SongItem_UsesLinkedMediaLauncher()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var mediaFile = Path.Combine(mediaRoot, "Grace Song.mp4");
+        File.WriteAllText(mediaFile, "test media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var launched = new List<string>();
+        var sut = CreateSut(
+            settings: settings,
+            seedSampleQueue: false,
+            worshipMediaLauncher: path =>
+            {
+                launched.Add(path);
+                return true;
+            });
+        var item = new LiveQueueItem("song:grace", "Grace Song", LiveItemKinds.Song) { Lyrics = "Grace Song lyrics" };
+        sut.LoadQueue([item]);
+
+        sut.PlaySelectedWorshipMediaCommand.CanExecute(null).Should().BeTrue();
+        sut.PlaySelectedWorshipMediaCommand.Execute(null);
+
+        launched.Should().ContainSingle().Which.Should().Be(mediaFile);
+        sut.StatusText.Should().Contain("미디어 재생").And.Contain("Grace Song.mp4");
+    }
+
+    [Fact]
     public void PlaySelectedWorshipMediaOnOutputCommand_SongItem_FindsMediaByTitleInMediaDirectory()
     {
         using var folder = TempSettingsFolder.Create();
@@ -8221,6 +8250,7 @@ public class MainViewModelTests
         LiveSessionService? liveSession = null,
         IOutputWindowService? output = null,
         IPreviewWindowService? preview = null,
+        Func<string, bool>? worshipMediaLauncher = null,
         bool seedSampleQueue = true)
     {
         output ??= new OutputWindowService();
@@ -8253,7 +8283,8 @@ public class MainViewModelTests
             songDetail ?? new AdminDatabaseRepository(),
             recentWorshipLists ?? new InMemoryRecentWorshipLists(),
             worshipValidator,
-            preview);
+            preview,
+            worshipMediaLauncher);
 
         // 운영 기본 큐는 비어 있다(더미 시드 제거). 대부분의 테스트는 Queue[0] 등 채워진 큐를 가정하므로
         // CreateSut 가 기본으로 샘플 3항목을 시드해 기존 테스트를 보존한다. 빈 큐가 필요하면 seedSampleQueue:false.

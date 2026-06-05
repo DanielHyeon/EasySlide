@@ -46,6 +46,7 @@ public class WorshipListPanelTests
             e => e.Name.LocalName == "ListView" && Attr(e, "Name") == "QueueList");
         Attr(list, "ItemsSource").Should().Contain("Queue");
         Attr(list, "SelectedItem").Should().Contain("SelectedItem").And.Contain("TwoWay");
+        Attr(list, "SelectionMode").Should().Be("Extended", "FrmMain WorshipListItems supports multi-select for Select All/Unselect All");
         Attr(list, "AutomationProperties.Name").Should().Be("예배 순서 목록");
         Attr(list, "Tag").Should().Be("WorshipListItems", "WPF queue should keep the FrmMain ListView role visible");
 
@@ -76,16 +77,48 @@ public class WorshipListPanelTests
     }
 
     [Fact]
-    public void ContextMenu_ExposesFrmMainPlayOnOutputCommand()
+    public void ContextMenu_ExposesFrmMainWorshipCommands()
     {
         var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
 
-        var menuItem = composite.Descendants().Single(
-            e => e.Name.LocalName == "MenuItem" && Attr(e, "Name") == "CMenuWorship_PlayOnOutput");
+        var menu = composite.Descendants().Single(
+            e => e.Name.LocalName == "ContextMenu" && Attr(e, "Name") == "CMenuWorship");
+        Attr(menu, "Tag").Should().Be("CMenuWorship");
+        Attr(menu, "Opened").Should().Be("CMenuWorship_Opened");
 
-        Attr(menuItem, "Header").Should().Be("Play on Output");
-        Attr(menuItem, "Tag").Should().Be("CMenuWorship_PlayOnOutput");
-        Attr(menuItem, "Command").Should().Contain("PlaySelectedWorshipMediaOnOutputCommand",
+        var expected = new[]
+        {
+            ("CMenuWorship_SelectAll", "Select All", "CMenuWorship_SelectAll_Click", ""),
+            ("CMenuWorship_UnselectAll", "Unselect All", "CMenuWorship_UnselectAll_Click", ""),
+            ("CMenuWorship_Clear", "Clear Worship List", "", "ClearWorshipListCommand"),
+            ("CMenuWorship_Edit", "Edit item", "", ""),
+            ("CMenuWorship_Play", "Play Media", "", "PlaySelectedWorshipMediaCommand"),
+            ("CMenuWorship_PlayOnOutput", "Play Media on Output Monitor", "", "PlaySelectedWorshipMediaOnOutputCommand"),
+            ("CMenuWorship_AddUsages", "Add Songs to Usages", "", "")
+        };
+
+        foreach (var (name, header, click, command) in expected)
+        {
+            var menuItem = composite.Descendants().Single(
+                e => e.Name.LocalName == "MenuItem" && Attr(e, "Name") == name);
+            Attr(menuItem, "Header").Should().Be(header);
+            Attr(menuItem, "Tag").Should().Be(name);
+            if (!string.IsNullOrEmpty(click))
+            {
+                Attr(menuItem, "Click").Should().Be(click);
+            }
+
+            if (!string.IsNullOrEmpty(command))
+            {
+                Attr(menuItem, "Command").Should().Contain(command);
+            }
+        }
+
+        LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs")
+            .Should().Contain("QueueList.SelectAll()")
+            .And.Contain("QueueList.SelectedItems.Clear()",
+                "FrmMain CMenuWorship Select All/Unselect All should change the lower-left Worship List selection");
+        composite.ToString().Should().Contain("PlaySelectedWorshipMediaOnOutputCommand",
             "FrmMain CMenuWorship_PlayOnOutput should be visible from the lower-left Worship List context menu");
     }
 

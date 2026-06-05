@@ -91,6 +91,44 @@ public partial class WorshipListPanel : UserControl
         return true;
     }
 
+    private void CMenuWorship_Opened(object sender, RoutedEventArgs e)
+    {
+        var hasItems = QueueList.Items.Count > 0;
+        CMenuWorship_SelectAll.IsEnabled = hasItems;
+        CMenuWorship_UnselectAll.IsEnabled = hasItems;
+
+        if (DataContext is MainViewModel viewModel)
+        {
+            CMenuWorship_Clear.IsEnabled = viewModel.ClearWorshipListCommand.CanExecute(null);
+            CMenuWorship_Play.IsEnabled = viewModel.PlaySelectedWorshipMediaCommand.CanExecute(null);
+            CMenuWorship_PlayOnOutput.IsEnabled = viewModel.PlaySelectedWorshipMediaOnOutputCommand.CanExecute(null);
+        }
+        else
+        {
+            CMenuWorship_Clear.IsEnabled = false;
+            CMenuWorship_Play.IsEnabled = false;
+            CMenuWorship_PlayOnOutput.IsEnabled = false;
+        }
+
+        // Edit item/Add Songs to Usages still require their legacy editor/usage flows.
+        CMenuWorship_Edit.IsEnabled = false;
+        CMenuWorship_AddUsages.IsEnabled = false;
+    }
+
+    private void CMenuWorship_SelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        QueueList.SelectAll();
+        QueueList.Focus();
+        e.Handled = true;
+    }
+
+    private void CMenuWorship_UnselectAll_Click(object sender, RoutedEventArgs e)
+    {
+        QueueList.SelectedItems.Clear();
+        QueueList.Focus();
+        e.Handled = true;
+    }
+
     // 우클릭 "이 항목 배경 이미지 → 이미지 선택..." — 파일 선택은 View(코드비하인드)에서, 경로 기록·서식 편집은 검증된 VM 이 맡는다.
     private void SelectItemBackgroundImage_Click(object sender, RoutedEventArgs e)
     {
