@@ -604,6 +604,12 @@ public class MainMenuBarTests
         code.Should().Contain("InlineInfoScreenList.SelectedItems.OfType<InfoScreenSourceItem>()", "InfoScreen multi-select should use the actual selected WPF rows");
         code.Should().Contain("InlineInfoScreenList.SelectAll()", "InfoScreen CMenuFiles_SelectAll should select visible rows");
         code.Should().Contain("InlineInfoScreenList.UnselectAll()", "InfoScreen CMenuFiles_UnselectAll should clear visible rows");
+        code.Should().Contain("await OpenInfoScreenEditorAsync(selection[0].Name).ConfigureAwait(true)",
+            "InfoScreen CMenuFiles_Edit should open the selected saved InfoScreen in the editor like FrmMain EF_Edit_Clicked");
+        code.Should().Contain("noticeViewModel.SelectedScreen = selectedScreenName",
+            "InfoScreen Edit should seed the editor with the selected source item before opening");
+        code.Should().Contain("await noticeViewModel.OpenCommand.ExecuteAsync(null).ConfigureAwait(true)",
+            "InfoScreen Edit should load the selected saved screen through the same editor command users see in the modal");
         code.Should().Contain("EnsureInlinePowerPointLoadedOnce(viewModel)", "PowerPoint source tab should lazy-load on first selection");
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");

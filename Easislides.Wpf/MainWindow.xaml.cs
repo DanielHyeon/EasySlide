@@ -1586,7 +1586,19 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CMenuInfoScreenFiles_Edit_Click(object sender, RoutedEventArgs e) => InlineInfoScreenList.Focus();
+    private async void CMenuInfoScreenFiles_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        var selection = GetInlineInfoScreenSelection();
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "No InfoScreen selected.";
+            InlineInfoScreenList.Focus();
+            return;
+        }
+
+        await OpenInfoScreenEditorAsync(selection[0].Name).ConfigureAwait(true);
+        InlineInfoScreenList.Focus();
+    }
 
     private void CMenuInfoScreenFiles_Copy_Click(object sender, RoutedEventArgs e) => InlineInfoScreenList.Focus();
 
@@ -2444,6 +2456,35 @@ public partial class MainWindow : Window
             fontFamilies: viewModel.LyricsFontFamilyOptions);
         var window = new Easislides.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
+    }
+
+    private async Task OpenInfoScreenEditorAsync(string selectedScreenName)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var noticeViewModel = new NoticeScreenViewModel(
+            (text, options) => viewModel.PublishNotice(text, options),
+            viewModel.ClearNotice,
+            initialText: null,
+            store: _services.GetRequiredService<IInfoScreenStore>(),
+            addToWorshipQueue: (text, options) => viewModel.AddTextItem(text, options) is not null,
+            fontFamilies: viewModel.LyricsFontFamilyOptions);
+        noticeViewModel.SelectedScreen = selectedScreenName;
+        if (noticeViewModel.OpenCommand.CanExecute(null))
+        {
+            await noticeViewModel.OpenCommand.ExecuteAsync(null).ConfigureAwait(true);
+        }
+
+        var window = new NoticeScreenWindow(noticeViewModel) { Owner = this };
+        window.ShowDialog();
+
+        if (_inlineInfoScreens?.LoadCommand.CanExecute(null) == true)
+        {
+            _inlineInfoScreens.LoadCommand.Execute(null);
+        }
     }
 
     private void BibleContextMenu_Opened(object sender, RoutedEventArgs e)
