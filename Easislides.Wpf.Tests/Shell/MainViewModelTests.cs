@@ -4068,6 +4068,108 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task BindShortcuts_LiveNextMovesOutputLyricsBeforePreviewSelection()
+    {
+        // FrmMain Space/F5: live 중에는 선택/Preview 항목이 아니라 현재 Output 절을 먼저 넘긴다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+            Sequence = "1 C",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Sequence = "1 C",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        var registry = new ShortcutRegistry();
+        sut.BindShortcuts(registry);
+
+        registry.TryInvoke(MainCommandIds.LiveNext).Should().BeTrue("Space/F5는 라이브 Output 절 이동 명령에 바인딩돼야 함");
+        await WaitUntilAsync(() => sut.Session.Current.CurrentLyricsPageIndex == 1, "LiveNext는 Preview 선택이 아니라 Output 절을 넘겨야 함");
+
+        sut.SelectedItem.Should().BeSameAs(preview, "라이브 단축키는 Preview 선택을 바꾸지 않는다");
+        sut.LyricsPageIndex.Should().Be(0, "Preview 절 위치도 유지한다");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.OutputLyricsText.Should().Be("Live chorus");
+
+        registry.TryInvoke(MainCommandIds.LivePrevious).Should().BeTrue("Shift+Space/F4도 라이브 Output 절 이동 명령에 바인딩돼야 함");
+        await WaitUntilAsync(() => sut.Session.Current.CurrentLyricsPageIndex == 0, "LivePrevious는 Output 절을 되돌려야 함");
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse");
+        sut.OutputLyricsText.Should().Be("Live verse");
+    }
+
+    [Fact]
+    public async Task BindShortcuts_LiveNextAtEndWithAdvanceNextItemMovesOutputItem()
+    {
+        // FrmMain Space/F5: 현재 Output 항목 끝에서는 AdvanceNextItem 설정이 켜진 경우 다음 Output 항목으로 진행한다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var next = new LiveQueueItem("song:next", "Next song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, next, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        var registry = new ShortcutRegistry();
+        sut.BindShortcuts(registry);
+
+        registry.TryInvoke(MainCommandIds.LiveNext).Should().BeTrue();
+        await WaitUntilAsync(() => sut.Session.Current.CurrentItemTitle == "Next song", "끝 절에서 LiveNext는 다음 Output 항목을 송출해야 함");
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 항목 진행은 Preview 선택을 바꾸지 않는다");
+        sut.OutputItem.Should().BeSameAs(next);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Next verse");
+        sut.OutputLyricsText.Should().Be("Next verse");
+    }
+
+    [Fact]
+    public async Task BindShortcuts_WhenNotLiveFallsBackToPreviewSelection()
+    {
+        // live 전 운영 준비 상태에서는 기존 WPF 조작처럼 Preview 선택 항목을 이동한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song:first", "First song", LiveItemKinds.Song) { Lyrics = "[1]\nFirst" };
+        var second = new LiveQueueItem("song:second", "Second song", LiveItemKinds.Song) { Lyrics = "[1]\nSecond" };
+        sut.LoadQueue([first, second]);
+        sut.SelectedItem = first;
+        var registry = new ShortcutRegistry();
+        sut.BindShortcuts(registry);
+
+        registry.TryInvoke(MainCommandIds.LiveNext).Should().BeTrue();
+        await WaitUntilAsync(() => ReferenceEquals(sut.SelectedItem, second), "live 전 LiveNext는 Preview 선택을 다음 항목으로 옮긴다");
+
+        registry.TryInvoke(MainCommandIds.LivePrevious).Should().BeTrue();
+        await WaitUntilAsync(() => ReferenceEquals(sut.SelectedItem, first), "live 전 LivePrevious는 Preview 선택을 이전 항목으로 옮긴다");
+    }
+
+    [Fact]
     public void BindShortcuts_BindsOperatorCommandsForPalette()
     {
         // §7.4 팔레트 흡수: 화면 제어 보강 명령(비우기/처음으로/새로고침/복귀/자동회전)이 레지스트리에

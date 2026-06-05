@@ -719,6 +719,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
         NextItemCommand = new RelayCommand(NextItem, CanMoveNext);
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
+        LiveNextShortcutCommand = new AsyncRelayCommand(() => ExecuteLiveNavigationShortcutAsync(+1));
+        LivePreviousShortcutCommand = new AsyncRelayCommand(() => ExecuteLiveNavigationShortcutAsync(-1));
         NextOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(+1), CanMoveOutputNext);
         PreviousOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(-1), CanMoveOutputPrevious);
         FirstOutputItemCommand = new AsyncRelayCommand(
@@ -933,6 +935,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
     public IRelayCommand PreviousItemCommand { get; }
+    /// <summary>FrmMain Space/F5: 라이브 중에는 Output 슬라이드/절을 우선 이동하고, 끝에서는 설정에 따라 다음 Output 항목으로 진행한다.</summary>
+    public IAsyncRelayCommand LiveNextShortcutCommand { get; }
+    /// <summary>FrmMain Shift+Space/F4: 라이브 중에는 Output 슬라이드/절을 우선 되돌리고, 처음에서는 설정에 따라 이전 Output 항목으로 진행한다.</summary>
+    public IAsyncRelayCommand LivePreviousShortcutCommand { get; }
     /// <summary>FrmMain OutputBtnItemDown: Preview 선택과 별개로 현재 OutputItem/live 항목을 다음 항목으로 이동한다.</summary>
     public IAsyncRelayCommand NextOutputItemCommand { get; }
     /// <summary>FrmMain OutputBtnItemUp: Preview 선택과 별개로 현재 OutputItem/live 항목을 이전 항목으로 이동한다.</summary>
@@ -2607,8 +2613,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 둘 다 CanGoLive 조건·내부 안전 확인을 SendToOutputAndNextAsync 안에서 처리하므로 여기서 따로 게이트하지 않는다.
         registry.Bind(MainCommandIds.LiveGoAndNext, () => _ = SendToOutputAndNextCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveStop, () => _ = StopLiveCommand.ExecuteAsync(null));
-        registry.Bind(MainCommandIds.LiveNext, () => NextItemCommand.Execute(null));
-        registry.Bind(MainCommandIds.LivePrevious, () => PreviousItemCommand.Execute(null));
+        registry.Bind(MainCommandIds.LiveNext, () => _ = LiveNextShortcutCommand.ExecuteAsync(null));
+        registry.Bind(MainCommandIds.LivePrevious, () => _ = LivePreviousShortcutCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveBlack, () => _ = ToggleOutputBlackCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveHide, () => _ = HideOutputCommand.ExecuteAsync(null));
 
@@ -4232,6 +4238,47 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (SelectedItem is null) return false;
         return Queue.IndexOf(SelectedItem) > 0;
+    }
+
+    private async Task ExecuteLiveNavigationShortcutAsync(int direction)
+    {
+        if (_session.Current.State == LiveState.Active)
+        {
+            var slideCommand = direction > 0
+                ? NextOutputSlideCommand
+                : PreviousOutputSlideCommand;
+            if (slideCommand.CanExecute(null))
+            {
+                await slideCommand.ExecuteAsync(null).ConfigureAwait(true);
+                return;
+            }
+
+            if (_settings.Get(EasiSettingKeys.AdvanceNextItem))
+            {
+                var itemCommand = direction > 0
+                    ? NextOutputItemCommand
+                    : PreviousOutputItemCommand;
+                if (itemCommand.CanExecute(null))
+                {
+                    await itemCommand.ExecuteAsync(null).ConfigureAwait(true);
+                    return;
+                }
+            }
+
+            StatusText = direction > 0
+                ? "Output 다음 슬라이드/절이 없습니다."
+                : "Output 이전 슬라이드/절이 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        var previewCommand = direction > 0
+            ? NextItemCommand
+            : PreviousItemCommand;
+        if (previewCommand.CanExecute(null))
+        {
+            previewCommand.Execute(null);
+        }
     }
 
     private void NextItem()

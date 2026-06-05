@@ -861,8 +861,8 @@ public class MainMenuBarTests
     [InlineData("InputGestureText=\"F11\"")]     // 송출 후 다음 항목(증분135)
     [InlineData("InputGestureText=\"F8\"")]      // Preview를 Output으로 보내기(FrmMain 글로벌)
     [InlineData("InputGestureText=\"F7\"")]      // Preview를 Output으로 보내고 Black 해제(FrmMain 글로벌)
-    [InlineData("InputGestureText=\"Space\"")]   // 다음 항목
-    [InlineData("InputGestureText=\"Shift+Space\"")] // 이전 항목
+    [InlineData("InputGestureText=\"Space\"")]   // 다음 슬라이드/절
+    [InlineData("InputGestureText=\"Shift+Space\"")] // 이전 슬라이드/절
     [InlineData("InputGestureText=\"F9\"")]      // 검은 화면
     [InlineData("InputGestureText=\"F3\"")]      // 화면 비우기
     [InlineData("InputGestureText=\"F1\"")]      // 도움말
@@ -877,8 +877,8 @@ public class MainMenuBarTests
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGoAndNext, "F11", "SendToOutputAndNextCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePreviewToOutput, "F8", "CopyPreviewToOutputShortcutCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePreviewToOutputClearBlack, "F7", "CopyPreviewToOutputAndClearBlackCommand")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveNext, "Space", "NextItemCommand")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePrevious, "Shift+Space", "PreviousItemCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveNext, "Space", "LiveNextShortcutCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePrevious, "Shift+Space", "LivePreviousShortcutCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveBlack, "F9", "ToggleOutputBlackCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveClear, "F3", "ToggleOutputClearCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "Ctrl+R", "RestartCurrentItemCommand")]
