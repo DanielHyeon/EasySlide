@@ -731,6 +731,11 @@ public class MainMenuBarTests
     {
         var xaml = Xaml;
         var code = CodeBehind;
+        var outputTextBoxStart = xaml.IndexOf("x:Name=\"OutputTextBoxLM\"", StringComparison.Ordinal);
+        outputTextBoxStart.Should().BeGreaterThanOrEqualTo(0, "OutputTextBoxLM should remain mapped to FrmMain");
+        var outputTextBoxEnd = xaml.IndexOf("</TextBox>", outputTextBoxStart, StringComparison.Ordinal);
+        outputTextBoxEnd.Should().BeGreaterThan(outputTextBoxStart, "OutputTextBoxLM should host Enter key input bindings");
+        var outputTextBoxXaml = xaml[outputTextBoxStart..outputTextBoxEnd];
 
         foreach (var name in new[]
         {
@@ -785,6 +790,10 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("Text=\"{Binding OutputLiveMessage, UpdateSourceTrigger=PropertyChanged}\"",
             "OutputTextBoxLM should edit the ViewModel live-message text");
+        outputTextBoxXaml.Should().Contain("Key=\"Return\"",
+            "FrmMain OutputTextBoxLM should send the live message when the operator presses Enter");
+        outputTextBoxXaml.Should().Contain("Command=\"{Binding SendLiveMessageCommand}\"",
+            "OutputTextBoxLM Enter should use the same send command as FrmMain");
         xaml.Should().Contain("Command=\"{Binding SendLiveMessageCommand}\"",
             "OutputBtnLMSend should send the live message");
         xaml.Should().Contain("Command=\"{Binding ClearLiveMessageCommand}\"",

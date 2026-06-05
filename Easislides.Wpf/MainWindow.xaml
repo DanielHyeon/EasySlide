@@ -3987,7 +3987,12 @@
                                      BorderThickness="0"
                                      TextWrapping="NoWrap"
                                      VerticalContentAlignment="Center"
-                                     AutomationProperties.Name="라이브 메시지 입력" />
+                                     AutomationProperties.Name="라이브 메시지 입력">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Return"
+                                                Command="{Binding SendLiveMessageCommand}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
                             <StackPanel Grid.Row="1"
                                         Grid.Column="1"
                                         x:Name="panelOutputLM3"
