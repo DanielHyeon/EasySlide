@@ -13,51 +13,66 @@
 
 ## 1. SDD 운영 계약 (최우선 규칙)
 
-스택은 **OpenSpec(계약) + CodeGraph(구조) + GSD(실행) + gstack(품질 게이트)**.
+스택은 **OpenSpec(계약) + CodeGraph(구조) + Superpowers(TDD 실행) + gstack(품질 게이트)**.
 
-> OpenSpec이 결정하고, CodeGraph가 구조를 증명하고, GSD가 실행하며, gstack이 품질을 막는다.
+> OpenSpec은 계약, CodeGraph는 증거, Superpowers는 TDD 실행, gstack은 차단 게이트다.
 
 | 계층 | 도구 | 책임 |
 | --- | --- | --- |
 | 계약 | OpenSpec | 요구사항·변경 사유·설계·수용 기준·승인 이력 (`openspec/changes/<id>/`) |
 | 구조 | CodeGraph | 심볼·caller/callee·영향 범위·테스트 영향도 |
-| 실행 | GSD | phase 분할·계획·구현·검증·ship (`.planning/`) |
+| 실행 | Superpowers | OpenSpec `tasks.md`의 Phase를 하나씩 TDD로 구현·디버깅·1차 리뷰 |
 | 품질 | gstack | `/gstack-guard /gstack-freeze /gstack-review /gstack-cso /gstack-qa /gstack-ship` (계획용 `/gstack-spec /gstack-autoplan`은 OpenSpec 대체 아님, 아이디어 검토용만) |
 
-**도구 상태(2026-06-04 설치·검증 완료)**: 4계층 전부 설치·활성.
-CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(`openspec/`, 커맨드 `/opsx:*`) · GSD 1.2.0(커맨드 `/gsd:*`) · gstack(`/gstack-*` 52스킬, `--prefix` 설치). 런타임: Node 24.16 / npm 11.13 / bun 1.3.14. Claude·Codex 양쪽 구성됨.
+**도구 상태(2026-06-04 설치·검증 완료 / 2026-06-05 운영 정책 반영)**:
+CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(`openspec/`, 커맨드 `/opsx:*`) · gstack(`/gstack-*` 52스킬, `--prefix` 설치). GSD 1.2.0(커맨드 `/gsd:*`)은 설치되어 있어도 정식 실행 계층이 아니라 Phase 문서화 참고용으로만 사용한다. Superpowers는 에이전트의 TDD/debugging/review 실행 레이어로 사용하며, 설치되지 않은 환경에서는 동일 규칙을 수동으로 적용한다. 런타임: Node 24.16 / npm 11.13 / bun 1.3.14. Claude·Codex 양쪽 구성됨.
 
 ### 우선순위 (충돌 시 위가 이김)
 1. `openspec/changes/<change>/{proposal,design,tasks,codegraph-impact}.md`
 2. `openspec/specs/` · `openspec/config.yaml`
 3. CodeGraph impact 결과
-4. GSD phase plan / `.planning/STATE.md`
+4. Superpowers TDD 실행 결과 / phase별 검증 증거
 5. gstack 리뷰 결과
 
 ### Hard Rules
 - 승인된 OpenSpec change 없이 production code를 바꾸지 않는다.
 - CodeGraph impact 없이 공유 심볼(헬퍼·Interop·DB)을 고치지 않는다.
 - public API/스펙 변경엔 spec delta, DB 변경엔 rollback 계획을 동반한다.
-- GSD phase는 merge 가능한 작은 단위로만 실행한다 (UI·Interop·DB·리팩터를 한 phase에 섞지 않는다).
+- Phase 계획은 OpenSpec `tasks.md`가 소유한다. 각 Phase는 merge 가능한 작은 단위여야 하며 UI·Interop·DB·리팩터를 한 Phase에 섞지 않는다.
+- Superpowers는 승인된 Phase 하나만 TDD로 실행한다. Phase를 임의로 추가하거나 OpenSpec의 scope, non-goals, acceptance criteria를 바꾸지 않는다.
+- GSD 산출물과 `.planning/`은 OpenSpec을 대체하지 않는다. 필요 시 과거 phase 참고 자료로만 사용한다.
 - 검증 증거 없는 "완료" 보고 금지. 다 안 했으면 다 했다고 하지 않는다.
 - Claude와 Codex가 같은 브랜치의 같은 파일을 동시에 수정하지 않는다(Single Writer).
 
 ### 표준 워크플로우 (실제 커맨드명)
 ```
 /opsx:explore → /opsx:propose <id>  →  CodeGraph impact 작성  →  사람 승인
-/gsd:phase → /gsd:plan-phase <N>
-/gstack-guard → /gstack-freeze <허용 경로> → /gsd:execute-phase <N>   (간단 변경은 /opsx:apply)
-/gstack-review → /gstack-cso → /gstack-qa → /gsd:verify-work <N>
+OpenSpec tasks.md에 Phase plan 작성 (Goal / Scope / Tasks / DoD / Tests / Constraints)
+/gstack-guard → /gstack-freeze <허용 경로> → Superpowers로 Phase <N>만 TDD 실행
+/gstack-review → /gstack-cso → /gstack-qa → OpenSpec DoD 확인
 /opsx:sync → /opsx:archive → /gstack-ship
 ```
 구현 세션과 리뷰 세션을 분리하고, 긴 작업 뒤 `/clear` 후 review-only로 검증한다. (gstack 명령은 모두 `/gstack-` 접두사 — flat `/review` 등 내장 스킬과 충돌 회피)
+`/gstack-ship`은 자동 push/deploy가 아니라 ship 가능 여부 확인 게이트로 다룬다. 실제 push/deploy는 사람이 diff·테스트 결과 승인 후 수행한다.
+
+### GSD Phase 흡수 원칙
+GSD는 정식 실행 계층으로 사용하지 않는다. 다만 GSD의 **phase-based execution pattern**은 OpenSpec `tasks.md`에 흡수한다.
+
+각 OpenSpec change는 Phase 단위 implementation plan을 포함해야 한다.
+- Phase 0: baseline·impact 확인
+- Phase 1: acceptance criteria별 실패 테스트 작성 및 expected fail 확인
+- Phase 2: 테스트를 통과시키는 최소 production code 구현
+- Phase 3: CodeGraph 영향 테스트·통합·회귀 검증
+- Phase 4: Superpowers 1차 리뷰 + gstack review/cso/qa/ship gate
+
+각 Phase는 `Goal`, `Scope`, `Tasks`, `DoD`, `Tests`, `Constraints`를 명시한다. Superpowers에는 "OpenSpec `tasks.md`의 Phase N만 실행하라"고 지시하고, Phase DoD 충족 후 멈춘다.
 
 ### 변경 위험도별 강도
-| 유형 | OpenSpec | CodeGraph | GSD | gstack |
+| 유형 | OpenSpec | CodeGraph | Superpowers / Phase | gstack |
 | --- | --- | --- | --- | --- |
 | Small(문구·단일 검증) | light | search/affected | 생략/light | 생략 |
-| Normal(서비스 일부) | full | impact/context | plan+exec+verify | review |
-| High-risk(DB·송출 좌표·Interop) | full | impact+callers+affected | full | guard+review+cso+qa |
+| Normal(서비스 일부) | full | impact/context | Phase plan + TDD exec + verify | review |
+| High-risk(DB·송출 좌표·Interop) | full | impact+callers+affected | full TDD + Phase stop point | guard+review+cso+qa |
 | Hotfix | 사후 sync 필수 | impact 최소 | verify 중심 | review |
 
 ### EasiSlides OpenSpec change에 반드시 답할 것
@@ -72,10 +87,11 @@ dotnet test Easislides.Wpf.Tests                                # 전체 green �
 - 구현 후 `code-reviewer` 에이전트 또는 `/gstack-review`·`/gstack-cso`. Release 빌드 시 DLL/BAML 심볼 반영 확인.
 - 수동 송출 QA: 찬양·성경 검색 / WorshipList 전환 / PPT 썸네일 생성 / 싱글·멀티·None·수동좌표 송출 / PowerPoint·Word 좀비 프로세스 미발생 / SQLite·MariaDB 동기화 회귀 없음.
 
-### TDD 게이트 (완화 — 2026-06-04, 기본 정책)
+### Superpowers TDD 게이트 (완화 — 2026-06-04, 기본 정책)
 테스트/마커 요구는 **새로운 동작 또는 기존 동작의 변경에만** 적용한다(휴리스틱). 사소한 리팩터까지 전부 테스트를 요구하던 엄격 모드를 완화함.
 - **면제(테스트 불요)**: 순수 리네임·서식·주석·코드 이동·import 정리 등 **동작 불변 리팩터링**, 설정/문서 변경.
 - **요구**: 새 기능, 버그 수정, 로직·계약·경계 조건이 바뀌는 변경.
+- **Phase 실행 규칙**: 요구 대상 변경은 Superpowers가 먼저 실패 테스트를 작성하고 expected fail을 확인한 뒤 최소 구현으로 통과시킨다.
 - **비상 탈출구**: 면제 대상인데 도구/리뷰가 테스트를 요구하면 커밋에 `Test-Needed: no` 트레일러 + 한 줄 사유로 통과.
 - 경계가 모호하면 테스트 추가 쪽으로. **불변 규칙은 유지** — 빌드 + `dotnet test` green 유지, "검증 증거 없는 완료 보고 금지".
 
@@ -93,7 +109,7 @@ Easislides/HookManager/  전역 키보드/마우스 후킹
 OfficeLib/               PPT/Word Interop 래퍼(BuildScreenPreDumps 등)
 Easislides.Wpf/          WPF 포팅(신규) + Easislides.Wpf.Tests
 docs/adr/, docs/wpf-migration/   ADR·갭분석·로드맵(포팅 설계 산출물)
-openspec/, .planning/    SDD 산출물(OpenSpec change / GSD phase)
+openspec/, .planning/    SDD 산출물(OpenSpec change / legacy GSD phase 참고)
 ```
 
 **FrmMain** = 거대 partial: `FrmMain.cs`(~8.8k줄, 핸들러) · `.Designer.cs` · `.Fields.cs` · `.Events.cs` · `.Layout.cs` · `.Logic.cs`(~3.1k줄, 비즈니스 로직).
@@ -118,7 +134,7 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 
 ## 4. CodeGraph 우선 규칙
 
-`.codegraph/codegraph.db` (AST 심볼 그래프, MCP `codegraph_*`). 파일을 직접 읽기 전 **먼저 조회**.
+`.codegraph/codegraph.db` (AST 심볼 그래프, MCP `codegraph_*`). 구조 질문은 파일을 직접 읽기 전 **먼저 조회**. 단, 문자열·문구·로그·주석 같은 literal 확인이나 이미 특정 파일이 열린 경우는 `rg`/파일 읽기가 우선이다.
 
 | 의도 | 도구 |
 | --- | --- |
@@ -129,7 +145,7 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 | 흐름 추적(A→B) | `codegraph_trace` |
 | 여러 심볼 본문 일괄 | `codegraph_explore` |
 
-**금지**: `grep -r "함수명"`(→ search), 파일 전체 읽어 import 추적(→ callers), 관련 파일 수동 탐색(→ context). 결과는 강력한 힌트이나 dynamic/DI/reflection은 테스트로 보완. 인덱스는 수정 후 자동 sync(PostToolUse 훅), 수동 시 `codegraph sync`.
+**금지**: 심볼 찾기용 `grep -r "함수명"`(→ search), 파일 전체 읽어 import 추적(→ callers), 관련 파일 수동 탐색(→ context). 결과는 강력한 힌트이나 dynamic/DI/reflection은 테스트로 보완. 인덱스는 수정 후 자동 sync(PostToolUse 훅), 수동 시 `codegraph sync`.
 
 ---
 
@@ -159,4 +175,4 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 | 전역 키보드 후킹 | `HookManager/HookManager.cs` |
 | 다이얼로그 | `Easislides/Easislides/Frm*.cs` (Bible/Find/Import/Export/Options 등) |
 | 포팅 설계 | `docs/adr/*`, `docs/wpf-migration/*` |
-| SDD 산출물 | `openspec/changes/*`, `.planning/phases/*` |
+| SDD 산출물 | `openspec/changes/*`, `.planning/phases/*`(legacy/reference) |
