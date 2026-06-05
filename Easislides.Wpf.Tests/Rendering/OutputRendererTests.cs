@@ -215,6 +215,31 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_ActiveWithLyricsAlertMessage_ThreadsLyricsMonitorOverlay()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active,
+                "찬양",
+                "Display 2",
+                IsBlackout: false,
+                CurrentItemKind: LiveItemKinds.Song,
+                CurrentItemBodyText: "주님을 찬양합니다",
+                LyricsAlertMessage: "주차장 만차 안내"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.ShowsLyricsAlertMessage.Should().BeTrue();
+        scene.ShowsLiveLyricsAlertMessage.Should().BeTrue();
+        scene.LyricsAlertMessage.Should().Be("주차장 만차 안내");
+        scene.BodyText.Should().Contain("주님을 찬양합니다");
+    }
+
+    [Fact]
     public void CreateScene_TitleHeadingFollowBody_UsesBodyAlignmentForHeading()
     {
         // FrmMain Def_HeadAlign AsR1 — 본문 정렬 따름 on 이면 헤딩이 본문(Region1) 정렬을 쓴다(헤딩 전용 정렬 무시).

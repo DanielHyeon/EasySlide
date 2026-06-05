@@ -79,6 +79,9 @@ public sealed record LiveSessionSnapshot(
     // 현재 송출 항목의 식별자(LiveQueueItem.Id). 출력 VM 이 "항목이 바뀌었는지(곡→곡)" vs "같은 항목 안에서
     // 절·슬라이드만 바뀌었는지"를 구분해 전환 효과(항목 전환 vs 슬라이드 전환)를 달리 적용하는 데 쓴다. 비-라이브면 빈 문자열.
     string CurrentItemId = "",
+    // FrmMain OutputTextBoxLM/OutputBtnLMSend: 현재 송출 항목을 유지한 채 Lyrics Monitor 상단 알림줄에 표시할 임시 메시지.
+    // 항목 자체를 Notice로 바꾸지 않는 별도 오버레이 상태다.
+    string LyricsAlertMessage = "",
     // FrmMain OutputBtnRefAlert/QueryShowActive: 현재 송출 내용을 유지한 채 구절/제목 알림 오버레이만 토글한다.
     bool IsReferenceAlertVisible = false,
     string ReferenceAlertText = "")
@@ -109,6 +112,7 @@ public interface ILiveSessionService
     void ClearOutput();
     void Restore();
     void Refresh();
+    void SetLyricsAlertMessage(string text);
     void SetReferenceAlert(bool visible, string text);
     void Stop();
 }
@@ -385,6 +389,7 @@ public sealed class LiveSessionService : ILiveSessionService
             IsCleared = false,
             IsReferenceAlertVisible = false,
             ReferenceAlertText = string.Empty,
+            LyricsAlertMessage = string.Empty,
         });
     }
 
@@ -405,6 +410,7 @@ public sealed class LiveSessionService : ILiveSessionService
             IsCleared = true,
             IsReferenceAlertVisible = false,
             ReferenceAlertText = string.Empty,
+            LyricsAlertMessage = string.Empty,
         });
     }
 
@@ -430,6 +436,19 @@ public sealed class LiveSessionService : ILiveSessionService
     // Update 의 동등성 가드를 우회해야 하므로 이벤트를 직접 발생시킨다.
     public void Refresh()
         => SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
+
+    public void SetLyricsAlertMessage(string text)
+    {
+        if (Current.State == LiveState.Off)
+        {
+            return;
+        }
+
+        Update(Current with
+        {
+            LyricsAlertMessage = NormalizeLyricsAlertMessage(text),
+        });
+    }
 
     public void SetReferenceAlert(bool visible, string text)
     {
@@ -468,4 +487,7 @@ public sealed class LiveSessionService : ILiveSessionService
 
         return trimmed.Length <= 50 ? trimmed : trimmed[..50];
     }
+
+    private static string NormalizeLyricsAlertMessage(string text)
+        => text.Trim();
 }

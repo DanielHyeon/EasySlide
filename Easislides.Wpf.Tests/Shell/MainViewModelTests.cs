@@ -3175,27 +3175,46 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SendLiveMessageCommand_WhenOutputOpen_PublishesOutputLiveMessage()
+    public async Task SendLiveMessageCommand_WhenOutputLive_ShowsLyricsMonitorMessageWithoutReplacingLiveItem()
     {
         var sut = CreateSut();
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "찬양", LiveItemKinds.Song)
+            {
+                Lyrics = "[1]\n주님을 찬양합니다",
+            },
+        });
         sut.OutputLiveMessage = "주차장 만차 안내";
         sut.SendLiveMessageCommand.CanExecute(null).Should().BeFalse("출력 창이 닫혀 있으면 LM 송출을 막는다");
         sut.OpenOutputCommand.Execute(null);
+        sut.SendLiveMessageCommand.CanExecute(null).Should().BeFalse("라이브 항목이 없으면 기존 송출 위에 얹을 LM 메시지가 없다");
+        await sut.GoLiveCommand.ExecuteAsync(null);
 
         sut.SendLiveMessageCommand.CanExecute(null).Should().BeTrue();
         sut.SendLiveMessageCommand.Execute(null);
 
         sut.Session.Current.State.Should().Be(LiveState.Active);
-        sut.Session.Current.CurrentItemTitle.Should().Be("공지");
-        sut.Session.Current.CurrentItemBodyText.Should().Contain("주차장 만차 안내");
+        sut.Session.Current.CurrentItemTitle.Should().Be("찬양");
+        sut.Session.Current.CurrentItemKind.Should().Be(LiveItemKinds.Song);
+        sut.Session.Current.CurrentItemBodyText.Should().Contain("주님을 찬양합니다");
+        sut.Session.Current.LyricsAlertMessage.Should().Be("주차장 만차 안내");
         sut.StatusText.Should().Contain("라이브 메시지");
     }
 
     [Fact]
-    public void ClearLiveMessageCommand_ClearsTextAndHidesNotice()
+    public async Task ClearLiveMessageCommand_ClearsTextAndKeepsCurrentLiveItem()
     {
         var sut = CreateSut();
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "찬양", LiveItemKinds.Song)
+            {
+                Lyrics = "[1]\n주님을 찬양합니다",
+            },
+        });
         sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
         sut.OutputLiveMessage = "예배 후 다과";
         sut.SendLiveMessageCommand.Execute(null);
         sut.Session.Current.State.Should().Be(LiveState.Active);
@@ -3203,7 +3222,9 @@ public class MainViewModelTests
         sut.ClearLiveMessageCommand.Execute(null);
 
         sut.OutputLiveMessage.Should().BeEmpty();
-        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("찬양");
+        sut.Session.Current.LyricsAlertMessage.Should().BeEmpty();
     }
 
     [Fact]

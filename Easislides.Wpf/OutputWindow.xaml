@@ -30,7 +30,7 @@
                 MinHeight="36"
                 Background="{DynamicResource Brush.Live.Active}"
                 Visibility="{Binding LyricsAlertVisibility}">
-            <TextBlock Text="{Binding StatusLabel}"
+            <TextBlock Text="{Binding LyricsAlertText}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"

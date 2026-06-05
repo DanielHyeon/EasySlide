@@ -6691,24 +6691,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return sb.Length == 0 ? null : sb.ToString();
     }
 
-    private bool CanSendLiveMessage() => _output.Current.IsOpen && !string.IsNullOrWhiteSpace(OutputLiveMessage);
+    private bool CanSendLiveMessage()
+        => _output.Current.IsOpen
+            && _session.Current.State != LiveState.Off
+            && !string.IsNullOrWhiteSpace(OutputLiveMessage);
 
     private bool CanClearLiveMessage() => _output.Current.IsOpen || !string.IsNullOrWhiteSpace(OutputLiveMessage);
 
     private void SendLiveMessage()
     {
         var message = OutputLiveMessage.Trim();
-        if (PublishNotice(message))
-        {
-            StatusText = "라이브 메시지 송출";
-        }
+        _session.SetLyricsAlertMessage(message);
+        OutputLiveMessage = message;
+        StatusText = "라이브 메시지 표시";
+        NotifyCommandStates();
     }
 
     private void ClearLiveMessage()
     {
         if (_output.Current.IsOpen)
         {
-            ClearNotice();
+            _session.SetLyricsAlertMessage(string.Empty);
         }
 
         OutputLiveMessage = string.Empty;

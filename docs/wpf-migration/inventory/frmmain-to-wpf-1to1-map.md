@@ -113,7 +113,7 @@
 | `cbOutputBlack` | `cbOutputBlack` + bottom/menu/F9/F10 Output Black toggle + `ToggleOutputBlackCommand` / `IsOutputBlackActive` | partial | 4/5/6 | top, bottom, menu, F9, F10, and palette paths now behave as checked toggles that call Black and restore on second click; exact legacy remote/icon flash sync still incomplete |
 | `cbOutputClear` | `cbOutputClear` + bottom/menu/F3 Output Clear toggle + `ToggleOutputClearCommand` / `IsOutputClearActive` | partial | 4/5/6 | top, bottom, menu, F3, and palette paths now behave as checked toggles that call Clear and restore on second click; exact legacy remote/icon flash sync still incomplete |
 | `cbGoLive` | `cbGoLive` + bottom/menu/F12 Output live toggle + `ToggleOutputLiveCommand` / `IsOutputLiveActive` | partial | 4/6 | top, bottom, menu, F12, and palette paths now expose live checked state, start from Off, restore from Hidden, and stop from Active; exact legacy start-show edge cases remain incomplete |
-| `OutputTextBoxLM`, `OutputBtnLMSend/Clear` | `OutputTextBoxLM`, `OutputBtnLMSend`, `OutputBtnLMClear` + `OutputLiveMessage` commands | partial | 5 | currently uses Notice publish/clear; implement true lyrics-monitor overlay parity |
+| `OutputTextBoxLM`, `OutputBtnLMSend/Clear` | `OutputTextBoxLM`, `OutputBtnLMSend`, `OutputBtnLMClear` + `OutputLiveMessage` commands | partial | 5 | LM send/clear now updates a separate lyrics-monitor alert overlay on the current live item instead of replacing the live item with a Notice; exact legacy alert styling/flash/duration options remain incomplete |
 
 ## 6. Gesture Mapping
 

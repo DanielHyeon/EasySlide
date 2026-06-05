@@ -301,7 +301,10 @@ public sealed record OutputSceneSnapshot(
     bool LyricsMonitorInterlace = false,
     // FrmMain OutputBtnRefAlert/QueryShowActive — 현재 송출 위에 구절/제목 알림 오버레이를 토글한다.
     bool ShowsReferenceAlert = false,
-    string ReferenceAlertText = "")
+    string ReferenceAlertText = "",
+    // FrmMain OutputTextBoxLM/OutputBtnLMSend — 현재 송출 위의 lyrics monitor 메시지 바.
+    bool ShowsLyricsAlertMessage = false,
+    string LyricsAlertMessage = "")
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -355,6 +358,10 @@ public sealed record OutputSceneSnapshot(
     public bool ShowsLiveReferenceAlert => ShowsReferenceAlert
         && Kind == OutputSceneKind.Live
         && !string.IsNullOrWhiteSpace(ReferenceAlertText);
+
+    public bool ShowsLiveLyricsAlertMessage => ShowsLyricsAlertMessage
+        && Kind == OutputSceneKind.Live
+        && !string.IsNullOrWhiteSpace(LyricsAlertMessage);
 }
 
 public interface IOutputRenderer
@@ -586,7 +593,9 @@ public sealed class OutputRenderer : IOutputRenderer
             // 줄 교차(인터레이스) 설정 — VM 이 두 영역 줄을 번갈아 배치할지 판단.
             liveOutput.LyricsMonitorInterlace,
             isLive && request.Session.IsReferenceAlertVisible,
-            isLive ? request.Session.ReferenceAlertText : string.Empty);
+            isLive ? request.Session.ReferenceAlertText : string.Empty,
+            isLive && !string.IsNullOrWhiteSpace(request.Session.LyricsAlertMessage),
+            isLive ? request.Session.LyricsAlertMessage : string.Empty);
     }
 
     private ImagePlacement GetContentPlacement(

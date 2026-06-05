@@ -1078,6 +1078,25 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_WithLyricsAlertMessage_ShowsLyricsMonitorMessageBar()
+    {
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "찬양",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemKind: LiveItemKinds.Song,
+            CurrentItemBodyText: "주님을 찬양합니다",
+            LyricsAlertMessage: "주차장 만차 안내"));
+
+        sut.LyricsAlertVisibility.Should().Be(Visibility.Visible);
+        sut.LyricsAlertText.Should().Be("주차장 만차 안내");
+        sut.BodyText.Should().Contain("주님을 찬양합니다");
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesSettingsBackedLyricsMonitorAppearance()
     {
         using var settingsFolder = TempSettingsFolder.Create();
