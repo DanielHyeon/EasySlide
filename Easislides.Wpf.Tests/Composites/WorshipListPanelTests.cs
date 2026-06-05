@@ -216,19 +216,31 @@ public class WorshipListPanelTests
     }
 
     [Theory]
-    // 증분151 — 중앙 미리보기 탭(Preview/PowerPoint/Media)도 Fluent 아이콘 머리글로 통일(좌측 탭과 일관). Tag 없어 접근성 이름으로 식별.
+    // FrmMain 1:1 — 중앙 Preview/PowerPoint/Media 전환은 내부 상태 전환이고, 운영자-facing 탭 헤더를 렌더링하지 않는다.
     [InlineData("Preview")]
     [InlineData("PowerPoint")]
     [InlineData("Media")]
-    public void CentralPreviewTabs_HaveIconHeaders(string label)
+    public void CentralPreviewTabs_AreHiddenFrmMainContentSwitcher(string label)
     {
         var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");
 
+        var switcher = window.Descendants().Single(
+            e => e.Name.LocalName == "TabControl" && Attr(e, "SelectedIndex").Contains("SelectedContentTabIndex"));
+        Attr(switcher, "Style").Should().Be("{StaticResource EsTabView.FrmMainContentSwitch}",
+            "FrmMain right Preview top pane switches content without showing operator-facing tabs");
+
         var tab = window.Descendants().Single(
             e => e.Name.LocalName == "TabItem" && Attr(e, "AutomationProperties.Name") == label);
-        tab.Descendants().Any(e => e.Name.LocalName == "SymbolIcon").Should().BeTrue($"{label} 탭 머리글에 아이콘");
         tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == label)
-            .Should().BeTrue($"{label} 탭 머리글 텍스트 보존");
+            .Should().BeTrue($"{label} content-switch header metadata 보존");
+
+        var dictionary = LoadXaml("Easislides.Wpf/Controls/EsTabView.xaml");
+        var switcherStyle = dictionary.Descendants().Single(
+            e => e.Name.LocalName == "Style" && Attr(e, "Key") == "EsTabView.FrmMainContentSwitch");
+        switcherStyle.Descendants().Any(e => e.Name.LocalName == "TabPanel")
+            .Should().BeFalse("FrmMain Preview top pane must not render Preview/PowerPoint/Media tab headers");
+        switcherStyle.Descendants().Any(e => e.Name.LocalName == "ContentPresenter" && Attr(e, "ContentSource") == "SelectedContent")
+            .Should().BeTrue("the selected Preview/PowerPoint/Media surface still needs to render");
     }
 
     [Fact]

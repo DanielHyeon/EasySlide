@@ -2828,13 +2828,13 @@
                             Background="{DynamicResource Brush.Surface.Page}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1">
-                        <!-- 중앙 미리보기 — 선택 항목 종류에 맞춰 SelectedIndex 가 자동 전환(곡=Preview/PPT=PowerPoint/미디어=Media).
-                             운영자가 탭을 수동으로 누르지 않아도 알맞은 미리보기가 보인다(FrmMain식 멀티페인 §7.4). -->
+                        <!-- FrmMain Preview top pane: 선택 항목 종류에 맞춰 내부 content만 전환하고, 운영자-facing 탭 헤더는 렌더링하지 않는다. -->
                         <TabControl BorderThickness="0"
                                     Background="Transparent"
+                                    Style="{StaticResource EsTabView.FrmMainContentSwitch}"
                                     SelectedIndex="{Binding SelectedContentTabIndex, Mode=TwoWay}">
                             <TabItem AutomationProperties.Name="Preview">
-                                <!-- 중앙 탭도 Fluent 아이콘 머리글로 통일(증분151) — Preview=눈(미리보기) 아이콘. -->
+                                <!-- 내부 content-switch metadata; 헤더는 FrmMainContentSwitch 템플릿에서 숨겨진다. -->
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Preview}" FontSize="15" Margin="0,0,6,0" />
@@ -3262,7 +3262,7 @@
                             </TabItem>
                             <TabItem Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}"
                                      AutomationProperties.Name="PowerPoint">
-                                <!-- PowerPoint 탭 = 슬라이드 아이콘. -->
+                                <!-- 내부 content-switch metadata; 헤더는 FrmMainContentSwitch 템플릿에서 숨겨진다. -->
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}" FontSize="15" Margin="0,0,6,0" />
@@ -3364,7 +3364,7 @@
                             </TabItem>
                             <TabItem Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}"
                                      AutomationProperties.Name="Media">
-                                <!-- Media 탭 = 비디오 아이콘. -->
+                                <!-- 내부 content-switch metadata; 헤더는 FrmMainContentSwitch 템플릿에서 숨겨진다. -->
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaFile}" FontSize="15" Margin="0,0,6,0" />
