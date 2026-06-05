@@ -307,6 +307,28 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewPowerPointTopPane_IsThumbnailsOnlyLikeFrmMainFlowLayout()
+    {
+        var xaml = Xaml;
+
+        var previewPowerPointPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicPreviewPowerPointSurface\"",
+            "AutomationProperties.Name=\"Media\"");
+
+        previewPowerPointPane.Should().Contain("Tag=\"flowLayoutPreviewPowerPoint\"",
+            "the Preview PowerPoint top pane should keep the legacy flowLayoutPreviewPowerPoint role");
+        previewPowerPointPane.Should().NotContain("PreviousSlideCommand",
+            "Preview slide navigation belongs to the lower FrmMain strip buttons, not a modern duplicate panel");
+        previewPowerPointPane.Should().NotContain("NextSlideCommand",
+            "Preview slide navigation belongs to the lower FrmMain strip buttons, not a modern duplicate panel");
+        previewPowerPointPane.Should().NotContain("PowerPoint.StatusText",
+            "FrmMain flowLayoutPreviewPowerPoint is a thumbnail surface, not a separate status panel");
+        previewPowerPointPane.Should().NotContain("PowerPointFileCount",
+            "FrmMain flowLayoutPreviewPowerPoint is a thumbnail surface, not a separate deck-count panel");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputLyricsSurfaces_MapFocusedKeyboardNavigationIndependently()
     {
         var xaml = Xaml;

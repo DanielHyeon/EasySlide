@@ -3271,11 +3271,6 @@
                                 <!-- FrmMain flowLayoutPreviewPowerPoint: 상단은 덱 썸네일 흐름만 담당하고,
                                      큰 슬라이드는 아래 ClassicPreviewHolder 에서 표시한다. -->
                                 <Grid Margin="{StaticResource Thickness.Lg}">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
                                     <ScrollViewer x:Name="ClassicPreviewPowerPointSurface"
                                                   Tag="flowLayoutPreviewPowerPoint"
                                                   HorizontalScrollBarVisibility="Disabled"
@@ -3331,34 +3326,6 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </ScrollViewer>
-
-                                    <StackPanel Grid.Row="1"
-                                                Margin="0,8,0,0"
-                                                HorizontalAlignment="Center">
-                                        <!-- 슬라이드 이동 — PreviewItem 전용. live Output은 오른쪽 Output 슬라이드 버튼이 담당한다. -->
-                                        <StackPanel Orientation="Horizontal"
-                                                    HorizontalAlignment="Center"
-                                                    Margin="0,0,0,8">
-                                            <Button Command="{Binding PreviousSlideCommand}"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    Margin="0,0,8,0"
-                                                    Content="◀ 이전"
-                                                    AutomationProperties.Name="이전 슬라이드" />
-                                            <Button Command="{Binding NextSlideCommand}"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    Content="다음 ▶"
-                                                    AutomationProperties.Name="다음 슬라이드" />
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding PowerPoint.StatusText}"
-                                                   HorizontalAlignment="Center"
-                                                   Style="{StaticResource Type.Body.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
-                                        <TextBlock Text="{Binding PowerPointFileCount, StringFormat={}덱: {0}}"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0,4,0,0"
-                                                   Style="{StaticResource Type.Caption.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                    </StackPanel>
                                 </Grid>
                             </TabItem>
                             <TabItem Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}"
