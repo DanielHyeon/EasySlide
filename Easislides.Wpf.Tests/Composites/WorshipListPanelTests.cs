@@ -72,6 +72,10 @@ public class WorshipListPanelTests
         var wlAdd = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Add");
         Attr(wlAdd, "Click").Should().Be("WL_Add_Click", "FrmMain WL_Add should route the current source selection to Worship List");
         Attr(wlAdd, "AutomationProperties.Name").Should().Contain("예배 순서에 추가");
+        var wlOpen = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Open");
+        Attr(wlOpen, "Tag").Should().Be("WL_Open", "FrmMain WL_Open role should be visible in the lower-left toolbar");
+        Attr(wlOpen, "Click").Should().Be("WL_Open_Click", "FrmMain WL_Open should open external files from the lower-left toolbar");
+        Attr(wlOpen, "AutomationProperties.Name").Should().Contain("외부 파일");
         composite.Descendants().Any(e => e.Name.LocalName == "ComboBox" && Attr(e, "Tag") == "SessionList")
             .Should().BeTrue("saved worship list combo should retain the FrmMain SessionList role");
     }
@@ -266,6 +270,25 @@ public class WorshipListPanelTests
         code.Should().Contain("private bool TryLoadSelectedWorshipList()");
         code.Should().Contain("LoadSelectedWorshipListCommand.Execute(null)",
             "selection/Enter/double-click must reuse the same selected-list load path as the explicit button");
+    }
+
+    [Fact]
+    public void WlOpen_AddsExternalFiles_FromLowerLeftToolbar()
+    {
+        var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+
+        code.Should().Contain("private async void WL_Open_Click",
+            "FrmMain WL_Open should be implemented in the lower-left Worship List panel");
+        code.Should().Contain("*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw",
+            "WL_Open should expose the legacy external-file filter family");
+        code.Should().Contain("Multiselect = true",
+            "the toolbar path should support adding several external files in one operation");
+        code.Should().Contain("AddExternalFiles(new[] { fileName })",
+            "PPT, media, and .esw files should use the same tested insertion path in the chosen file order");
+        code.Should().Contain("AddWordTextItem(text)",
+            "Word documents should become text/notice queue items like the existing menu path");
+        code.Should().Contain("ExtractLegacyInfoScreenText",
+            "legacy .esi files should be accepted as InfoScreen text rather than silently skipped");
     }
 
     [Theory]

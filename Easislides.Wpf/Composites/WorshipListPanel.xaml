@@ -103,6 +103,18 @@
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Add24" />
                 </Button>
+                <Button x:Name="WL_Open"
+                        Tag="WL_Open"
+                        Click="WL_Open_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        ToolTip="외부 파일을 선택해 예배 순서에 추가"
+                        AutomationProperties.Name="외부 파일을 예배 순서에 추가"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="FolderOpen24" />
+                </Button>
                 <Button Command="{Binding MoveSelectedItemUpCommand}"
                         Style="{StaticResource EsButton.Secondary}"
                         Width="28"

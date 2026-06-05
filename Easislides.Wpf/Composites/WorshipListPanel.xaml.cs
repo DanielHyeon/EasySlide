@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Shell;
 
@@ -35,6 +40,113 @@ public partial class WorshipListPanel : UserControl
     {
         AddSelectedSourceRequested?.Invoke(this, e);
         e.Handled = true;
+    }
+
+    private async void WL_Open_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "예배 순서에 추가할 외부 파일 선택",
+            Filter = "Valid External Files (*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw"
+                + "|PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx"
+                + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
+                + "|Text/InfoScreen (*.txt;*.esi)|*.txt;*.esi"
+                + "|Worship Lists (*.esw)|*.esw"
+                + "|미디어 (*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma)|*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+            Multiselect = true,
+        };
+
+        if (dialog.ShowDialog(Window.GetWindow(this)) != true)
+        {
+            return;
+        }
+
+        await AddExternalFilesFromToolbarAsync(viewModel, dialog.FileNames).ConfigureAwait(true);
+        e.Handled = true;
+    }
+
+    private async Task AddExternalFilesFromToolbarAsync(MainViewModel viewModel, IReadOnlyList<string> fileNames)
+    {
+        foreach (var fileName in fileNames)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            if (extension is ".doc" or ".docx")
+            {
+                await AddWordDocumentAsync(viewModel, fileName).ConfigureAwait(true);
+            }
+            else if (extension is ".txt" or ".esi")
+            {
+                await AddTextFileAsNoticeAsync(viewModel, fileName).ConfigureAwait(true);
+            }
+            else
+            {
+                viewModel.AddExternalFiles(new[] { fileName });
+            }
+        }
+    }
+
+    private async Task AddWordDocumentAsync(MainViewModel viewModel, string fileName)
+    {
+        viewModel.StatusText = "Word 문서를 읽는 중...";
+        await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
+
+        var text = new OfficeLib.WordDoc().GetContents(fileName);
+        viewModel.AddWordTextItem(text);
+    }
+
+    private static async Task AddTextFileAsNoticeAsync(MainViewModel viewModel, string fileName)
+    {
+        try
+        {
+            var text = await File.ReadAllTextAsync(fileName).ConfigureAwait(true);
+            viewModel.AddTextItem(ExtractLegacyInfoScreenText(text));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            viewModel.StatusText = $"텍스트 파일을 읽을 수 없습니다: {ex.Message}";
+        }
+    }
+
+    private static string ExtractLegacyInfoScreenText(string text)
+    {
+        try
+        {
+            var document = XDocument.Parse(text, LoadOptions.PreserveWhitespace);
+            var item = document.Descendants().FirstOrDefault(element =>
+                string.Equals(element.Name.LocalName, "Item", StringComparison.OrdinalIgnoreCase));
+            var contents = item?.Elements().FirstOrDefault(element =>
+                string.Equals(element.Name.LocalName, "Contents", StringComparison.OrdinalIgnoreCase))?.Value.Trim();
+            if (!string.IsNullOrWhiteSpace(contents))
+            {
+                return NormalizeLegacyInfoScreenText(contents);
+            }
+        }
+        catch (System.Xml.XmlException)
+        {
+        }
+
+        return NormalizeLegacyInfoScreenText(text);
+    }
+
+    private static string NormalizeLegacyInfoScreenText(string text)
+    {
+        var normalized = text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
+        if (!normalized.StartsWith("[", StringComparison.Ordinal))
+        {
+            return normalized;
+        }
+
+        var close = normalized.IndexOf(']', StringComparison.Ordinal);
+        return close >= 0 && close < normalized.Length - 1
+            ? normalized[(close + 1)..].TrimStart('\n')
+            : normalized;
     }
 
     // 예배 순서 목록에 포커스가 있을 때 Delete 키 = 선택 항목 제거(목록 삭제 표준 키). 판단은 순수 WorshipListKeyMap,

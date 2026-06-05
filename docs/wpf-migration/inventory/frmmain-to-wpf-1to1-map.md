@@ -61,12 +61,12 @@
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
 | `tabControlLists` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1 | tab role is now explicit; exact visual density and tab behavior still incomplete |
-| `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; DB song items now resolve lyrics by `SongId` from `C:\EasiSlides\Admin\Database\EasiSlidesDb.db`; all toolbar/context commands still incomplete |
+| `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; DB song items now resolve lyrics by `SongId` from `C:\EasiSlides\Admin\Database\EasiSlidesDb.db`; first-screen `WL_Open` external-file add is wired; remaining toolbar/context commands still incomplete |
 | `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2/6 | compact first-screen combo exists; startup selects/loads the first saved `C:\EasiSlides\Admin\WorshipLists` entry when no prior selection exists; user selection now immediately loads the chosen list while Enter/double-click/button remain backup paths; exact legacy selection persistence still incomplete |
 | `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, extended multi-select, startup default `.esw` load with DB-backed song lyrics, drag reorder, double-click Go Live, and context menu exist; `CMenuWorship_SelectAll/UnselectAll/Clear/Play/PlayOnOutput` now route to WPF handlers/commands; preview/edit/usage parity incomplete |
 | `WL_Manage` | manage list command | partial | 3 | direct or WPF equivalent |
 | `WL_Add` | `WL_Add` + `WorshipListPanel_AddSelectedSourceRequested` | partial | 3 | visible lower-left Add button now routes by active `LeftBrowserTabs` source for Folders, Bibles, InfoScreen, PowerPoint, Media, and Search; exact multi-select/source edge cases still incomplete |
-| `WL_Open` | load selected/open file | partial | 2 | exact `.esw`/template flow |
+| `WL_Open` | `WL_Open` button in `WorshipListPanel` + external-file dialog | partial | 2/3 | lower-left toolbar now opens the FrmMain external-file picker path for PPT, media, `.esw`, Word, `.txt`, and `.esi`; PPT/media/`.esw` reuse `AddExternalFiles`, Word becomes a notice via `AddWordTextItem`, and `.txt`/`.esi` become notice text. Exact template/import folder defaults still incomplete |
 | `WL_Up`, `WL_Down` | `ClassicWorshipListToolStrip2` move commands/drag reorder | partial | 3 | compact visible toolbar and keyboard paths exist; exact legacy vertical strip layout still incomplete |
 | `WL_Delete` | remove selected | implemented | 3 | keep Delete key tests |
 | `WL_Word`, `WL_Notes` | no full inline target | missing | 5/7 | export/notes decision needed |
