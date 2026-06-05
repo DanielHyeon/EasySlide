@@ -393,6 +393,20 @@ public class MainMenuBarTests
             "Preview verse keys should keep targeting the selected Preview item");
         code.Should().Contain("_viewModel.JumpToOutputLyricsSectionCommand",
             "Output verse keys should target the live Output item independently");
+        code.Should().Contain("var modifiers = Keyboard.Modifiers;",
+            "focused key routing should capture the current modifier state before dispatch");
+        code.Should().Contain("AllowsFrmMainVerseKeyModifiers(modifiers)",
+            "focused FrmMain Preview/Output surfaces should allow Shift verse shortcuts while still blocking Ctrl/Alt/Win");
+        code.Should().Contain("TryExecutePreviewLyricsKey(e.Key, modifiers)",
+            "Preview lyrics focus should pass Shift state into legacy verse shortcut mapping");
+        code.Should().Contain("TryExecuteOutputLyricsKey(e.Key, modifiers)",
+            "Output lyrics focus should pass Shift state into legacy verse shortcut mapping");
+        code.Should().Contain("TryExecutePreviewPowerPointKey(e.Key, modifiers)",
+            "Preview PPT thumbnail focus should preserve FrmMain shifted verse shortcut handling");
+        code.Should().Contain("TryExecuteOutputPowerPointKey(e.Key, modifiers)",
+            "Output PPT thumbnail focus should preserve FrmMain shifted verse shortcut handling");
+        code.Should().Contain("VerseJumpKeyMap.MapKeyToLabel(key, modifiers)",
+            "legacy shortcut mapping should distinguish Shift+B/P/W/Q/T from bare letter keys");
         code.Should().Contain("_viewModel.PreviousLyricsPageCommand",
             "Preview Up/PageUp should use the selected item's lyrics-page command");
         code.Should().Contain("_viewModel.NextLyricsPageCommand",

@@ -432,19 +432,20 @@ public partial class MainWindow : Window
 
     private bool TryHandlePreviewOutputPowerPointKey(KeyEventArgs e)
     {
-        if (Keyboard.Modifiers != ModifierKeys.None || IsTextInputFocused())
+        var modifiers = Keyboard.Modifiers;
+        if (!AllowsFrmMainVerseKeyModifiers(modifiers) || IsTextInputFocused())
         {
             return false;
         }
 
         if (ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin)
         {
-            return TryExecutePreviewPowerPointKey(e.Key);
+            return TryExecutePreviewPowerPointKey(e.Key, modifiers);
         }
 
         if (ClassicOutputThumbnailGrid.IsKeyboardFocusWithin || ClassicOutputPowerPointSurface.IsKeyboardFocusWithin)
         {
-            return TryExecuteOutputPowerPointKey(e.Key);
+            return TryExecuteOutputPowerPointKey(e.Key, modifiers);
         }
 
         return false;
@@ -452,19 +453,20 @@ public partial class MainWindow : Window
 
     private bool TryHandleFocusedPreviewOutputLyricsKey(KeyEventArgs e)
     {
-        if (Keyboard.Modifiers != ModifierKeys.None || IsTextInputFocused())
+        var modifiers = Keyboard.Modifiers;
+        if (!AllowsFrmMainVerseKeyModifiers(modifiers) || IsTextInputFocused())
         {
             return false;
         }
 
         if (IsOutputLyricsKeyboardFocusWithin())
         {
-            return TryExecuteOutputLyricsKey(e.Key);
+            return TryExecuteOutputLyricsKey(e.Key, modifiers);
         }
 
         if (IsPreviewLyricsKeyboardFocusWithin())
         {
-            return TryExecutePreviewLyricsKey(e.Key);
+            return TryExecutePreviewLyricsKey(e.Key, modifiers);
         }
 
         return false;
@@ -483,9 +485,9 @@ public partial class MainWindow : Window
             || ClassicOutputBack.IsKeyboardFocusWithin
             || ClassicOutputLargeSlideImage.IsKeyboardFocusWithin;
 
-    private bool TryExecutePreviewLyricsKey(Key key)
+    private bool TryExecutePreviewLyricsKey(Key key, ModifierKeys modifiers)
     {
-        if (TryExecuteVerseJumpKey(key, _viewModel.JumpToLyricsSectionCommand))
+        if (TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToLyricsSectionCommand))
         {
             return true;
         }
@@ -496,9 +498,9 @@ public partial class MainWindow : Window
             _viewModel.NextLyricsPageCommand);
     }
 
-    private bool TryExecuteOutputLyricsKey(Key key)
+    private bool TryExecuteOutputLyricsKey(Key key, ModifierKeys modifiers)
     {
-        if (TryExecuteVerseJumpKey(key, _viewModel.JumpToOutputLyricsSectionCommand))
+        if (TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToOutputLyricsSectionCommand))
         {
             return true;
         }
@@ -511,9 +513,10 @@ public partial class MainWindow : Window
 
     private static bool TryExecuteVerseJumpKey(
         Key key,
+        ModifierKeys modifiers,
         CommunityToolkit.Mvvm.Input.IRelayCommand<string> command)
     {
-        var label = VerseJumpKeyMap.MapKeyToLabel(key);
+        var label = VerseJumpKeyMap.MapKeyToLabel(key, modifiers);
         if (label is null)
         {
             return false;
@@ -527,6 +530,9 @@ public partial class MainWindow : Window
         // 포커스된 Output 영역에서 없는 절 키를 눌러도 전역 Preview 절 점프로 흘러가면 안 된다.
         return true;
     }
+
+    private static bool AllowsFrmMainVerseKeyModifiers(ModifierKeys modifiers)
+        => (modifiers & ~ModifierKeys.Shift) == ModifierKeys.None;
 
     private static bool TryExecuteLyricsPageKey(
         Key key,
@@ -566,7 +572,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool TryExecutePreviewPowerPointKey(Key key)
+    private bool TryExecutePreviewPowerPointKey(Key key, ModifierKeys modifiers)
     {
         switch (key)
         {
@@ -613,7 +619,7 @@ public partial class MainWindow : Window
                 return true;
 
             default:
-                return false;
+                return TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToLyricsSectionCommand);
         }
     }
 
@@ -625,7 +631,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool TryExecuteOutputPowerPointKey(Key key)
+    private bool TryExecuteOutputPowerPointKey(Key key, ModifierKeys modifiers)
     {
         switch (key)
         {
@@ -672,7 +678,7 @@ public partial class MainWindow : Window
                 return true;
 
             default:
-                return false;
+                return TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToOutputLyricsSectionCommand);
         }
     }
 
@@ -738,12 +744,13 @@ public partial class MainWindow : Window
     // 절 점프 키 처리: 수식 키 없음 + 텍스트 입력에 포커스 없음 + 매핑된 라벨이 현재 곡에 존재할 때만 점프.
     private bool TryHandleVerseJumpKey(KeyEventArgs e)
     {
-        if (Keyboard.Modifiers != ModifierKeys.None || IsTextInputFocused())
+        var modifiers = Keyboard.Modifiers;
+        if (!AllowsFrmMainVerseKeyModifiers(modifiers) || IsTextInputFocused())
         {
             return false;
         }
 
-        var label = VerseJumpKeyMap.MapKeyToLabel(e.Key);
+        var label = VerseJumpKeyMap.MapKeyToLabel(e.Key, modifiers);
         if (label is null || !_viewModel.JumpToLyricsSectionCommand.CanExecute(label))
         {
             return false;
