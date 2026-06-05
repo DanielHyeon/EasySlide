@@ -892,7 +892,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void ToggleUseIndividualFormatting_LiveMultiVerse_PreservesCurrentVerse()
+    public async Task ToggleUseIndividualFormatting_LiveMultiVerse_PreservesCurrentVerse()
     {
         // 라이브 다중 절 곡에서 토글해도 현재 절이 유지돼야 한다(0절로 튀지 않음) — 세션의 실제 라이브 절로 재송출.
         var session = new LiveSessionService();
@@ -906,7 +906,7 @@ public class MainViewModelTests
         sut.LoadQueue([item]);
         sut.SelectedItem = item;
         sut.GoLiveCommand.Execute(null);
-        sut.NextLyricsPageCommand.Execute(null); // 2절로 이동(라이브 송출).
+        await sut.NextOutputSlideCommand.ExecuteAsync(null); // 2절로 이동(라이브 송출).
         session.Current.CurrentLyricsPageIndex.Should().Be(1);
 
         sut.ToggleUseIndividualFormattingCommand.Execute(null); // off → 재송출.
@@ -3385,7 +3385,8 @@ public class MainViewModelTests
         // 긍정 전환(신원 일치 분기): 두 번째 PPT 항목 송출 시 이전 덱(A)이 아니라 그 항목(B)의
         // 현재 렌더 슬라이드가 출력에 실려야 한다. 동기 렌더라 선택 즉시 Ready(해당 덱)가 된다.
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(powerPoint: powerPoint);
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
         var deckA = new LiveQueueItem("ppt:a", "Deck A", "PowerPoint") { ContentPath = "deckA.pptx" };
         var deckB = new LiveQueueItem("ppt:b", "Deck B", "PowerPoint") { ContentPath = "deckB.pptx" };
         sut.LoadQueue(new[] { deckA, deckB });
@@ -3427,7 +3428,7 @@ public class MainViewModelTests
     [Fact]
     public async Task NextSlideCommand_AdvancesPreviewToNextSlide()
     {
-        // 라이브 슬라이드 이동: 선택된 PPT 미리보기를 다음 슬라이드로 다시 렌더(SuccessStub 은 SlideCount=3).
+        // Preview 슬라이드 이동: 선택된 PPT 미리보기를 다음 슬라이드로 다시 렌더(SuccessStub 은 SlideCount=3).
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
         var sut = CreateSut(powerPoint: powerPoint);
         sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
@@ -3452,23 +3453,34 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task NextSlideCommand_WhileLive_UpdatesOutputToNewSlide()
+    public async Task NextSlideCommand_WhileLive_UpdatesPreviewOnly()
     {
-        // 라이브 송출 중 슬라이드 이동 시 출력도 새 슬라이드로 즉시 갱신된다.
+        // FrmMain 1:1: Preview 슬라이드 버튼은 live Output 을 몰래 넘기지 않는다.
+        // Output 을 넘기려면 오른쪽 Output 전용 버튼을 눌러야 한다.
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(powerPoint: powerPoint);
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
         sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
         sut.OpenOutputCommand.Execute(null);
         await sut.GoLiveCommand.ExecuteAsync(null);
-        sut.Session.Current.CurrentItemPreviewSource.Should().NotBeNull();
+        var liveSlide = sut.Session.Current.CurrentItemPreviewSource;
+        var outputSlide = sut.OutputPowerPoint.PreviewImage;
+        liveSlide.Should().NotBeNull();
 
         await sut.NextSlideCommand.ExecuteAsync(null);
 
         powerPoint.SlideNumber.Should().Be(2);
-        sut.OutputPowerPoint.SlideNumber.Should().Be(2, "라이브 중 Preview 슬라이드 이동은 Output surface에도 반영");
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1, "Preview 슬라이드 이동은 Output surface를 바꾸지 않는다");
+        sut.OutputPowerPoint.PreviewImage.Should().BeSameAs(outputSlide);
         sut.Session.Current.State.Should().Be(LiveState.Active);
-        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
-            "라이브 중 슬라이드 이동 시 출력이 새 슬라이드로 갱신");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(liveSlide,
+            "Preview만 넘기면 live 출력 이미지는 유지된다");
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(sut.OutputPowerPoint.PreviewImage,
+            "Output 전용 버튼을 눌렀을 때만 live 출력이 새 슬라이드로 이동한다");
     }
 
     [Fact]
@@ -3617,7 +3629,8 @@ public class MainViewModelTests
         var settings = folder.CreateSettings();
         settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(settings: settings, powerPoint: powerPoint);
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(settings: settings, powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
         var deck = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
         var next = new LiveQueueItem("song:1", "다음 곡", "Song") { Lyrics = "x" };
         sut.LoadQueue(new[] { deck, next });
@@ -3627,13 +3640,22 @@ public class MainViewModelTests
         await sut.GoLiveCommand.ExecuteAsync(null);
 
         sut.SelectedItem.Should().Be(deck, "PPT 덱은 자동 다음-항목 이동에서 제외");
-        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("라이브 PPT 덱에서 슬라이드 이동 활성 유지");
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("라이브 PPT 덱이 선택되어 있어도 Preview 이동은 가능");
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("live PPT 덱은 Output 전용 슬라이드 이동도 가능");
+        var liveSlide = sut.Session.Current.CurrentItemPreviewSource;
 
         await sut.NextSlideCommand.ExecuteAsync(null);
 
         powerPoint.SlideNumber.Should().Be(2);
-        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(powerPoint.PreviewImage,
-            "라이브 PPT 슬라이드 이동이 출력을 갱신");
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1, "Preview 슬라이드 이동은 live Output 덱을 넘기지 않는다");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(liveSlide,
+            "AdvanceNextItem 이 켜져 있어도 Preview와 Output은 분리된다");
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(sut.OutputPowerPoint.PreviewImage,
+            "Output 전용 버튼이 live PPT 슬라이드를 넘긴다");
     }
 
     [Fact]
@@ -4099,14 +4121,16 @@ public class MainViewModelTests
         sut.OpenOutputCommand.Execute(null);
         sut.SelectedItem = sut.Queue[0];
         await sut.GoLiveCommand.ExecuteAsync(null);
-        sut.NextLyricsPageCommand.Execute(null); // 2절
-        sut.NextLyricsPageCommand.Execute(null); // 3절
-        sut.LyricsPageIndex.Should().Be(2);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null); // 2절
+        await sut.NextOutputSlideCommand.ExecuteAsync(null); // 3절
+        sut.LyricsPageIndex.Should().Be(0, "Output 절 이동은 Preview 절 위치를 바꾸지 않는다");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(2);
 
         sut.RestartCurrentItemCommand.CanExecute(null).Should().BeTrue();
-        sut.RestartCurrentItemCommand.Execute(null);
+        await sut.RestartCurrentItemCommand.ExecuteAsync(null);
 
-        sut.LyricsPageIndex.Should().Be(0, "처음으로 → 첫 절");
+        sut.LyricsPageIndex.Should().Be(0, "Preview 절 위치는 유지");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0, "처음으로 → 첫 절");
         sut.Session.Current.CurrentItemBodyText.Should().Be("1절", "출력도 첫 절로 재송출");
     }
 
@@ -4139,7 +4163,8 @@ public class MainViewModelTests
     {
         // PPT 덱이 이미 첫 슬라이드면 GoToSlide 가 무시되므로 Refresh 로 강제 재렌더해야 한다(리뷰 #2a).
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(powerPoint: powerPoint);
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
         sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "주보", "PowerPoint") { ContentPath = "deck.pptx" } });
         sut.OpenOutputCommand.Execute(null);
         await sut.GoLiveCommand.ExecuteAsync(null);
@@ -4440,35 +4465,71 @@ public class MainViewModelTests
         sut.SelectedItem = sut.Queue[0];
         await sut.GoLiveCommand.ExecuteAsync(null);
         sut.LyricsPageIndex.Should().Be(0);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
 
         sut.AdvanceAutoRotation();
-        sut.LyricsPageIndex.Should().Be(1, "다음 절");
+        sut.LyricsPageIndex.Should().Be(0, "자동 회전은 Preview 절 위치를 바꾸지 않는다");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "다음 Output 절");
 
         sut.AdvanceAutoRotation();
-        sut.LyricsPageIndex.Should().Be(2, "다음 절");
+        sut.LyricsPageIndex.Should().Be(0, "Preview 절 위치는 계속 유지");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(2, "다음 Output 절");
 
         sut.AdvanceAutoRotation();
-        sut.LyricsPageIndex.Should().Be(0, "마지막 절 다음은 첫 절로 순환");
+        sut.LyricsPageIndex.Should().Be(0, "마지막 절 다음도 Preview 절 위치를 바꾸지 않는다");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0, "마지막 Output 절 다음은 첫 절로 순환");
+    }
+
+    [Fact]
+    public async Task AdvanceAutoRotation_WhenPreviewSelectionDiverges_MovesLiveOutputOnly()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[2]\nLive verse two",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[2]\nPreview verse two",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.AdvanceAutoRotation();
+
+        sut.SelectedItem.Should().BeSameAs(preview, "자동 회전은 운영자가 보고 있는 Preview 선택을 빼앗지 않는다");
+        sut.LyricsPageIndex.Should().Be(0, "자동 회전은 Preview 절 위치를 바꾸지 않는다");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song", "현재 live Output 항목을 유지한다");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "live Output 절만 다음으로 넘긴다");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse two");
     }
 
     [Fact]
     public async Task AdvanceAutoRotation_MultiSlidePpt_LoopsThroughSlides()
     {
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(powerPoint: powerPoint);
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
         sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
         sut.OpenOutputCommand.Execute(null);
         await sut.GoLiveCommand.ExecuteAsync(null);
         powerPoint.SlideNumber.Should().Be(1);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1);
 
         sut.AdvanceAutoRotation();
-        powerPoint.SlideNumber.Should().Be(2);
+        powerPoint.SlideNumber.Should().Be(1, "자동 회전은 Preview PPT 슬라이드를 바꾸지 않는다");
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
 
         sut.AdvanceAutoRotation();
-        powerPoint.SlideNumber.Should().Be(3);
+        powerPoint.SlideNumber.Should().Be(1, "Preview PPT 슬라이드는 계속 유지");
+        sut.OutputPowerPoint.SlideNumber.Should().Be(3);
 
         sut.AdvanceAutoRotation();
-        powerPoint.SlideNumber.Should().Be(1, "마지막 슬라이드 다음은 첫 슬라이드로 순환(SlideCount=3)");
+        powerPoint.SlideNumber.Should().Be(1, "Preview PPT 슬라이드는 계속 유지");
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1, "마지막 Output 슬라이드 다음은 첫 슬라이드로 순환(SlideCount=3)");
     }
 
     [Fact]
@@ -4603,12 +4664,14 @@ public class MainViewModelTests
         sut.IsAutoRotating.Should().BeTrue();
 
         sut.AdvanceAutoRotation(); // 0 -> 1(마지막 절)
-        sut.LyricsPageIndex.Should().Be(1);
+        sut.LyricsPageIndex.Should().Be(0, "자동 회전은 Preview 절 위치를 바꾸지 않는다");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
         sut.IsAutoRotating.Should().BeTrue("아직 마지막 절 송출 중");
 
         sut.AdvanceAutoRotation(); // 끝 -> One 모드는 정지
         sut.IsAutoRotating.Should().BeFalse("한 항목만 모드는 끝나면 자동 회전 정지");
-        sut.LyricsPageIndex.Should().Be(1, "정지 시 절은 그대로(첫 절로 순환하지 않음)");
+        sut.LyricsPageIndex.Should().Be(0, "정지 시에도 Preview 절 위치는 그대로");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "정지 시 Output 절은 그대로(첫 절로 순환하지 않음)");
     }
 
     [Fact]
@@ -4723,7 +4786,7 @@ public class MainViewModelTests
 
         sut.Session.Current.CurrentItemPositionLabel.Should().Be("1/3");
 
-        sut.NextLyricsPageCommand.Execute(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
         sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3", "절 이동 시 갱신");
     }
 
@@ -4739,7 +4802,7 @@ public class MainViewModelTests
 
         sut.LiveBar.PositionLabel.Should().Be("1/3", "LiveBar 가 라이브 위치 표시");
 
-        sut.NextLyricsPageCommand.Execute(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
         sut.LiveBar.PositionLabel.Should().Be("2/3", "절 이동 시 LiveBar 위치도 갱신");
     }
 
@@ -4776,19 +4839,20 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task GoToSlide_MultiSlidePpt_UpdatesPositionLabel()
+    public async Task GoToOutputSlide_MultiSlidePpt_UpdatesPositionLabel()
     {
         // PPT 슬라이드 이동 시 위치 라벨이 갱신된다(SuccessStub 은 SlideCount=3).
         var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
-        var sut = CreateSut(powerPoint: powerPoint);
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
         sut.LoadQueue(new[] { new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" } });
         sut.OpenOutputCommand.Execute(null);
         await sut.GoLiveCommand.ExecuteAsync(null);
         sut.Session.Current.CurrentItemPositionLabel.Should().Be("1/3");
 
-        await sut.NextSlideCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
 
-        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3", "슬라이드 이동 시 위치 라벨 갱신");
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3", "Output 슬라이드 이동 시 위치 라벨 갱신");
     }
 
     [Fact]
@@ -6086,7 +6150,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void EditSelectedItemSequence_WhileLive_PreservesCurrentVerse()
+    public async Task EditSelectedItemSequence_WhileLive_PreservesCurrentVerse()
     {
         // 라이브 송출 중 절 순서를 편집해도 현재 절이 유지돼야 한다(0절로 안 튐) — 세션의 실제 라이브 절로 재송출.
         var session = new LiveSessionService();
@@ -6098,7 +6162,7 @@ public class MainViewModelTests
         sut.LoadQueue([item]);
         sut.SelectedItem = item;
         sut.GoLiveCommand.Execute(null);
-        sut.NextLyricsPageCommand.Execute(null); // 2절로 이동(라이브).
+        await sut.NextOutputSlideCommand.ExecuteAsync(null); // 2절로 이동(라이브).
         session.Current.CurrentLyricsPageIndex.Should().Be(1);
 
         sut.SelectedItemSequenceInput = "1 2 1"; // 절 순서 추가(3페이지) — 현재 절(인덱스 1)은 여전히 유효.
@@ -6223,7 +6287,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemTextColor_WhileLiveOnLaterVerse_PreservesVerse()
+    public async Task SetSelectedItemTextColor_WhileLiveOnLaterVerse_PreservesVerse()
     {
         // 라이브 2절에서 색을 바꿔도 현재 절이 유지돼야 한다(0절로 안 튐) — 절 순서 편집과 같은 재송출 보장.
         var session = new LiveSessionService();
@@ -6232,7 +6296,7 @@ public class MainViewModelTests
         sut.LoadQueue([item]);
         sut.SelectedItem = item;
         sut.GoLiveCommand.Execute(null);
-        sut.NextLyricsPageCommand.Execute(null); // 2절로 이동.
+        await sut.NextOutputSlideCommand.ExecuteAsync(null); // 2절로 이동.
         session.Current.CurrentLyricsPageIndex.Should().Be(1);
 
         sut.SetSelectedItemTextColor("#FFFFFFFF");

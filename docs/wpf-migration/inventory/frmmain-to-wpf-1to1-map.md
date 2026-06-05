@@ -14,16 +14,17 @@
 | FrmMain source | WPF target | Status | Phase | Notes |
 | --- | --- | --- | --- | --- |
 | `toolStripContainerMain` | `MainWindow` root grid/menu/status | partial | 1 | menu/status exist, toolbar parity incomplete |
+| `Main_NoRotate`, `Main_RotateStyle`, `Main_Rotate0..3` | `ToggleAutoRotateCommand`, `AutoRotateModeInput`, `AutoRotateModeOptions` | partial | 4/6 | auto-rotation now advances the live Output item rather than the selected Preview item, including diverged Preview selection; exact FrmMain toolbar icon/check/dropdown parity still incomplete |
 | `splitContainerMain.Panel1` | `ClassicSourceColumn` / `ClassicSourcePane` (`Tag=splitContainer1`) | partial | 1 | source/list column now scales by splitter-like proportion; behavior/data parity incomplete |
 | `splitContainerMain.Panel2` | `ClassicRightColumn` / `ClassicRightConsole` (`Tag=splitContainer2`) | partial | 1 | Preview/Output are now nested under a right splitContainer2-equivalent Grid; exact behavior incomplete |
 | `splitContainer1.Panel1` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1/2/3 | source tabs exist, several are shallow |
 | `splitContainer1.Panel2` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1/2/3 | Worship List visible, Praise Book shallow |
-| `splitContainer2.Panel1` | `ClassicPreviewColumn` | partial | 1/4 | Preview column now lives inside `ClassicRightConsole`; legacy controls incomplete |
-| `splitContainer2.Panel2` | `ClassicOutputColumn` | partial | 1/4 | Output column now lives inside `ClassicRightConsole`; live thumbnails/control parity incomplete |
+| `splitContainer2.Panel1` | `ClassicPreviewColumn` | partial | 1/4 | Preview column now lives inside `ClassicRightConsole`; Preview slide/lyrics navigation is separated from live Output; legacy controls incomplete |
+| `splitContainer2.Panel2` | `ClassicOutputColumn` | partial | 1/4 | Output column now lives inside `ClassicRightConsole`; live PPT/lyrics navigation and position labels use independent Output state; non-PPT live thumbnail/control parity incomplete |
 | `splitContainerPreview.Panel1` | `ClassicTopControlRow` + `ClassicPreviewPane` (`Tag=splitContainerPreview.Panel1`) | partial | 4/5 | top row is named and tagged; needs exact item/slide/section/format controls |
-| `splitContainerPreview.Panel2` | `ClassicBottomScreenRow` + `ClassicPreviewSlidePane` (`Tag=splitContainerPreview.Panel2`) | partial | 4 | bottom row is named and tagged; needs independent Preview surface behavior |
-| `splitContainerOutput.Panel1` | `ClassicTopControlRow` + `ClassicOutputPane` (`Tag=splitContainerOutput.Panel1`) | partial | 4/5 | top row is named and tagged; needs live output thumbnails/status/buttons |
-| `splitContainerOutput.Panel2` | `ClassicBottomScreenRow` + `ClassicOutputSlidePane` (`Tag=splitContainerOutput.Panel2`) | partial | 4 | bottom row is named and tagged; needs independent Output large surface |
+| `splitContainerPreview.Panel2` | `ClassicBottomScreenRow` + `ClassicPreviewSlidePane` (`Tag=splitContainerPreview.Panel2`) | partial | 4 | bottom row is named and tagged; Preview PPT/lyrics navigation no longer mutates live Output; background/frame sizing parity still incomplete |
+| `splitContainerOutput.Panel1` | `ClassicTopControlRow` + `ClassicOutputPane` (`Tag=splitContainerOutput.Panel1`) | partial | 4/5 | top row is named and tagged; live PPT thumbnails, Output slide buttons, Output lyrics buttons, and Output position labels now use OutputItem state; non-PPT live thumbnails/status still incomplete |
+| `splitContainerOutput.Panel2` | `ClassicBottomScreenRow` + `ClassicOutputSlidePane` (`Tag=splitContainerOutput.Panel2`) | partial | 4 | bottom row is named and tagged; large Output PPT screen uses independent OutputItem state and stays separate from Preview; exact sizing/frame parity still incomplete |
 
 ## 2. Source Browser Tabs
 
@@ -84,11 +85,11 @@
 | `PreviewPanelDisplayName` | `ClassicPreviewPanelDisplayName` (`Tag=PreviewPanelDisplayName`) | partial | 4 | title role is explicit; exact source/status columns still incomplete |
 | `PreviewInfo` | `ClassicPreviewInfo` (`Tag=PreviewInfo`) | partial | 4/6 | selected lyrics/info surface is explicit; focused verse keys and Up/Down/Page/Space now route to Preview lyrics commands; source-specific content still incomplete |
 | `flowLayoutPreviewLyrics` | `SlidePreviewControl` plus lyrics text | partial | 4/6 | focused Preview surface now accepts keyboard focus and routes page/verse keys; exact click/highlight/page behavior still incomplete |
-| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4/6 | preview thumbnail surface uses `PowerPoint` PreviewItem state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End now route to Preview-only slide navigation; exact animation/media trigger parity still incomplete |
+| `flowLayoutPreviewPowerPoint` | `ClassicPreviewPowerPointThumbnailGrid` (`Tag=flowLayoutPreviewPowerPoint`) | partial | 4/6 | preview thumbnail surface uses `PowerPoint` PreviewItem state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End now route to Preview-only slide navigation and do not advance live Output; exact animation/media trigger parity still incomplete |
 | `PreviewHolder`, `PreviewBack` | `ClassicPreviewHolder` (`Tag=PreviewHolder`) / `ClassicPreviewSlidePane` | partial | 4 | holder role is explicit; background/frame sizing parity still incomplete |
-| `PreviewBtnVerse1..Ending` | `flowLayoutPanel1` + `PreviewBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; verify label casing, shortcut, and live-page parity |
+| `PreviewBtnVerse1..Ending` | `flowLayoutPanel1` + `PreviewBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; Preview verse navigation is Preview-only; verify label casing and shortcut parity |
 | `PreviewBtnItemUp/Down` | `PreviewBtnItemUp/Down` + item nav commands | partial | 4 | exact selection behavior |
-| `PreviewBtnSlideUp/Down` | `PreviewBtnSlideUp/Down` + lyrics page nav commands | partial | 4 | item-type-aware PPT/media/page nav |
+| `PreviewBtnSlideUp/Down` | `PreviewBtnSlideUp/Down` + lyrics page/PPT preview nav commands | partial | 4 | moves PreviewItem only; item-type-aware media/page edge cases still incomplete |
 | `btnToLive` | `btnToLive` + `GoLiveCommand` | partial | 4 | exact FrmMain semantics |
 | `btnToOutput` | `btnToOutput` + `CopyPreviewToOutputCommand` | partial | 4 | FrmMain `CopyPreviewToOutput` semantics now prepare `OutputItem`/PPT output state without starting live; full OutputItem navigation still incomplete |
 | `btnToOutputMoveNext` | `btnToOutputMoveNext` + `CopyPreviewToOutputAndNextCommand` | partial | 4 | FrmMain copy-to-Output plus Preview NextOne now does not start live; focus/OutputItem navigation parity still incomplete |
@@ -101,11 +102,11 @@
 | `OutputPanelDisplayName` | `ClassicOutputPanelDisplayName` (`Tag=OutputPanelDisplayName`) | partial | 4 | title now follows prepared `OutputItem` rather than selected Preview item; exact status columns still incomplete |
 | `OutputInfo` | `ClassicOutputInfo` (`Tag=OutputInfo`) | partial | 4/6 | live info surface is explicit; focused verse keys now call `JumpToOutputLyricsSectionCommand` and cannot fall through to Preview; exact state columns still incomplete |
 | `flowLayoutOutputLyrics` | Output live lyrics surface | partial | 4/6 | focused Output large/info surfaces now route Up/Down/Page/Space to live Output page commands; exact click/highlight behavior still incomplete |
-| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4/6 | live thumbnail/list role now uses independent OutputItem PPT state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End route to Output-only slide navigation; non-PPT live thumbnail parity still incomplete |
-| `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) with `OutputPowerPoint.PreviewImage` overlay | partial | 4 | large output screen now uses independent OutputItem PPT state; exact sizing/frame parity still incomplete |
+| `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4/6 | live thumbnail/list role now uses independent OutputItem PPT state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End route to Output-only slide navigation; Output PPT position labels update from `OutputPowerPoint`; non-PPT live thumbnail parity still incomplete |
+| `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) with `OutputPowerPoint.PreviewImage` overlay | partial | 4 | large output screen now uses independent OutputItem PPT state and is not changed by Preview slide navigation; exact sizing/frame parity still incomplete |
 | `OutputBtnVerse1..Ending` | `flowLayoutPanel2` + `OutputBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; buttons now call `JumpToOutputLyricsSectionCommand` so live Output lyrics jump independently from Preview selection; shortcut parity still incomplete |
 | `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + item nav commands | partial | 4 | exact live next/prev semantics |
-| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT slide and live lyrics page movement now target OutputItem independently; shortcut/focus parity still incomplete |
+| `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT slide and live lyrics page movement now target OutputItem independently, including when Preview selection diverges; shortcut/focus parity still incomplete |
 | `OutputBtnRefAlert` | `OutputBtnRefAlert` + `ToggleOutputReferenceAlertCommand` + output `ReferenceAlertVisibility/Text` overlay | partial | 4/5 | toggles current live title/reference overlay like `QueryShowActive`; legacy reference source/pick/scroll/flash/duration options still incomplete |
 | `OutputBtnMedia` | `OutputBtnMedia` + `Media.PlayPauseCommand` | partial | 5 | direct output media behavior |
 | `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` disabled placeholder | missing | 5 | gap/non-rotate jump |

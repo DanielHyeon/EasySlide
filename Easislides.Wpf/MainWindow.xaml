@@ -2363,7 +2363,7 @@
                                            Stretch="Uniform"
                                            AutomationProperties.Name="PowerPoint 슬라이드 미리보기" />
 
-                                    <!-- 덱 전체 슬라이드 썸네일 스트립 — 클릭으로 해당 슬라이드 이동(라이브 중이면 출력도 갱신). -->
+                                    <!-- 덱 전체 슬라이드 썸네일 스트립 — 클릭으로 PreviewItem 슬라이드만 이동. Output은 Output 전용 버튼으로 이동한다. -->
                                     <ScrollViewer Grid.Row="1"
                                                   HorizontalScrollBarVisibility="Auto"
                                                   VerticalScrollBarVisibility="Disabled"
@@ -2414,7 +2414,7 @@
                                     <StackPanel Grid.Row="2"
                                                 Margin="0,8,0,0"
                                                 HorizontalAlignment="Center">
-                                        <!-- 슬라이드 이동 — 라이브 송출 중이면 출력도 즉시 갱신(G1.2 라이브 슬라이드 이동). -->
+                                        <!-- 슬라이드 이동 — PreviewItem 전용. live Output은 오른쪽 Output 슬라이드 버튼이 담당한다. -->
                                         <StackPanel Orientation="Horizontal"
                                                     HorizontalAlignment="Center"
                                                     Margin="0,0,0,8">

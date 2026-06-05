@@ -2852,7 +2852,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
     }
 
-    // 절 라벨로 직접 점프 — 그 라벨의 첫 페이지로 이동(레거시 FrmInfoScreen 절 버튼). 라이브 중이면 출력도 즉시 갱신.
+    // Preview 절 라벨로 직접 점프 — 그 라벨의 첫 페이지로 이동한다.
+    // FrmMain PreviewItem/OutputItem 분리와 같이, 이 Preview 명령은 live Output 을 즉시 갱신하지 않는다.
     private void JumpToLyricsSection(string? label)
     {
         var index = IndexOfPageLabel(label);
@@ -2862,7 +2863,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         LyricsPageIndex = index;
-        PublishLyricsPageIfLive();
         StatusText = LyricsPageCount > 1
             ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
             : StatusText;
@@ -2892,11 +2892,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return -1;
     }
 
-    // 다음 절로 이동 — 라이브 중이고 이 항목이 송출 중일 때만 출력도 즉시 갱신한다.
+    // Preview 다음 절로 이동 — Output 은 Output 전용 명령으로만 이동한다.
     private void NextLyricsPage()
     {
         LyricsPageIndex++;
-        PublishLyricsPageIfLive();
         StatusText = LyricsPageCount > 1
             ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
             : StatusText;
@@ -2909,7 +2908,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void PreviousLyricsPage()
     {
         LyricsPageIndex--;
-        PublishLyricsPageIfLive();
         StatusText = LyricsPageCount > 1
             ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
             : StatusText;
@@ -2931,29 +2929,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 먼저 현재 항목 안에서 "다음 절/슬라이드"가 남아 있으면 그것부터 진행한다(모든 모드 공통).
     /// 현재 항목의 끝(마지막 절/슬라이드 또는 회전할 내부 페이지가 없음)에 다다르면 모드별로 마무리한다
     /// (OneRepeat=같은 항목 순환, One=정지, Group=다음 항목/끝이면 정지, GroupRepeat=다음 항목/끝이면 첫 항목으로).
-    /// 라이브가 아니거나 선택≠라이브 항목이면 아무것도 하지 않는다.
+    /// 라이브가 아니거나 현재 라이브 항목을 큐에서 찾을 수 없으면 아무것도 하지 않는다.
     /// </summary>
     public void AdvanceAutoRotation()
     {
         if (_session.Current.State != LiveState.Active) return;
-        if (SelectedItem is not { } item || _liveItemId != item.Id) return;
+        if (GetLiveQueueItem() is not { } item) return;
 
-        // 1) 현재 항목 안에 다음 슬라이드가 남아 있으면 그것부터(끝 슬라이드면 통과해 2)로).
-        if (IsPowerPointItem(item) && PowerPoint.SlideCount > 1)
+        // 1) live Output 항목 안에 다음 슬라이드가 남아 있으면 그것부터(끝 슬라이드면 통과해 2)로).
+        if (IsPowerPointItem(item) && IsOutputPowerPointSlideNavReady())
         {
-            if (PowerPoint.SlideNumber < PowerPoint.SlideCount)
+            if (OutputPowerPoint.SlideNumber < OutputPowerPoint.SlideCount)
             {
-                _ = GoToSlideAsync(PowerPoint.SlideNumber + 1);
+                _ = GoToOutputSlideAsync(OutputPowerPoint.SlideNumber + 1);
                 return;
             }
         }
-        // 1) 곡·성경 항목은 절 단위로 — 다음 절이 남아 있으면 그것부터(마지막 절이면 통과해 2)로).
-        else if (IsLyricsPaginated(item) && LyricsPageCount > 1)
+        // 1) live 곡·성경 항목은 절 단위로 — 다음 절이 남아 있으면 그것부터(마지막 절이면 통과해 2)로).
+        else if (IsLyricsPaginated(item))
         {
-            if (LyricsPageIndex + 1 < LyricsPageCount)
+            var pageModel = BuildLyricsPageModel(item);
+            if (pageModel.Count > 1 && _session.Current.CurrentLyricsPageIndex + 1 < pageModel.Count)
             {
-                LyricsPageIndex++;
-                PublishLyricsPageIfLive();
+                PublishOutputLyricsPage(item, _session.Current.CurrentLyricsPageIndex + 1, pageModel.Count);
                 return;
             }
         }
@@ -2997,23 +2995,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 같은 항목의 첫 절/슬라이드로 되돌려 다시 송출(OneRepeat 순환). 단일 페이지 항목은 되돌릴 게 없어 그대로.
     private void RewindCurrentItemToStart(LiveQueueItem item)
     {
-        if (IsPowerPointItem(item) && PowerPoint.SlideCount > 1)
+        if (IsPowerPointItem(item) && IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideCount > 1)
         {
-            _ = GoToSlideAsync(1);
+            _ = GoToOutputSlideAsync(1);
         }
-        else if (IsLyricsPaginated(item) && LyricsPageCount > 1)
+        else if (IsLyricsPaginated(item))
         {
-            LyricsPageIndex = 0;
-            PublishLyricsPageIfLive();
+            var pageModel = BuildLyricsPageModel(item);
+            if (pageModel.Count > 1)
+            {
+                PublishOutputLyricsPage(item, 0, pageModel.Count);
+            }
         }
     }
 
     // 다음 예배 순서 항목으로 이동해 송출. 다음 항목이 있으면 true, 마지막(다음 없음)이면 false.
-    // 자동 회전은 선택을 스스로 관리하므로 PublishSelectedItem 의 자동-다음 선택 이동(autoAdvance)은 끈다.
+    // 자동 회전은 live Output 항목 기준으로 다음을 계산하고, 선택은 송출할 다음 항목으로만 이동한다.
     private bool TryAdvanceAutoRotationToNextItem()
     {
-        if (SelectedItem is null) return false;
-        var index = Queue.IndexOf(SelectedItem);
+        var live = GetLiveQueueItem();
+        if (live is null) return false;
+        var index = Queue.IndexOf(live);
         if (index < 0 || index + 1 >= Queue.Count) return false;
 
         SelectedItem = Queue[index + 1];
@@ -3121,20 +3123,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"대기 화면 로고: {System.IO.Path.GetFileName(logo)}";
     }
 
-    // 현재 절 인덱스로 GoLive 를 재호출해 출력을 갱신한다.
-    // 라이브 활성 + 이 항목이 송출 중일 때만 실행(블랙아웃/숨김 중에는 송출 안 깨움).
-    private void PublishLyricsPageIfLive()
-    {
-        if (SelectedItem is null) return;
-        if (_session.Current.State != LiveState.Active) return;
-        if (_liveItemId != SelectedItem.Id) return;
-
-        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        // ResolveLiveProjection 경유로 PreviewSource·PositionLabel 등 라이브 장식을 일관되게 얹는다.
-        var projection = ResolveLiveProjection(SelectedItem with { LyricsPageIndex = LyricsPageIndex });
-        _session.GoLive(projection, monitorName);
-    }
-
     /// <summary>
     /// 선택된 큐 항목의 종류에 따라 콘텐츠를 적재한다:
     ///  - PowerPoint 항목 → 썸네일 렌더(PowerPoint.LoadAsync), 그 외 → PPT 미리보기 비움.
@@ -3231,12 +3219,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return (PptPreviewWidth, PptPreviewHeight);
     }
 
-    // 라이브 슬라이드 이동 — 현재 선택된 PPT 의 미리보기를 지정 슬라이드로 다시 렌더하고,
-    // 그 항목이 라이브 송출 중이면 출력도 그 슬라이드로 즉시 갱신한다(재-GoLive 의식 없이).
-    // 이전/다음 버튼과 썸네일 클릭이 모두 이 한 경로를 쓴다.
+    // Preview 슬라이드 이동 — 현재 선택된 PPT 의 미리보기만 지정 슬라이드로 다시 렌더한다.
+    // FrmMain 처럼 PreviewItem 과 OutputItem 을 분리해야 하므로, 선택 항목이 현재 live 항목과 같더라도
+    // Output 은 여기서 갱신하지 않는다. live Output 이동은 GoToOutputSlideAsync 전용 경로가 맡는다.
     private async Task GoToSlideAsync(int target)
     {
-        if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path } item)
+        if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
         {
             return;
         }
@@ -3250,16 +3238,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var (width, height) = ResolvePptRenderSize();
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
-
-        // 라이브 송출 중이고 이 항목이 송출 항목이면 출력도 새 슬라이드로 갱신.
-        // 블랙아웃/숨김(Hidden)에선 송출을 깨우지 않도록 Active 일 때만 갱신한다.
-        if (_session.Current.State == LiveState.Active && _liveItemId == item.Id)
-        {
-            OutputPowerPoint.CopyFrom(PowerPoint);
-            EnsureOutputPowerPointThumbnails(path, OutputPowerPoint.SlideCount);
-            var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }, OutputPowerPoint), monitorName);
-        }
 
         NotifyCommandStates();
     }
@@ -3360,6 +3338,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             && GetLivePowerPointItem() is { ContentPath.Length: > 0 }
             && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && OutputPowerPoint.SlideCount > 0;
+
+    private LiveQueueItem? GetLiveQueueItem()
+        => Queue.FirstOrDefault(item =>
+            string.Equals(item.Id, _liveItemId, StringComparison.Ordinal));
 
     private LiveQueueItem? GetLivePowerPointItem()
         => Queue.FirstOrDefault(item =>
@@ -3788,21 +3770,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (IsPowerPointItem(item))
         {
-            // PPT 덱: 첫 슬라이드로. 이미 1번이면 GoToSlideAsync 가 무시하므로(target==현재) Refresh 로 강제 재렌더.
-            if (PowerPoint.SlideNumber <= 1)
+            // PPT 덱: live Output 첫 슬라이드로. 이미 1번이면 GoToOutputSlideAsync 가 무시하므로(target==현재) Refresh 로 강제 재렌더.
+            if (OutputPowerPoint.SlideNumber <= 1)
             {
                 _session.Refresh();
             }
             else
             {
-                await GoToSlideAsync(1).ConfigureAwait(true);
+                await GoToOutputSlideAsync(1).ConfigureAwait(true);
             }
         }
         else
         {
-            // 곡: 첫 절로 되돌려 출력 재송출.
-            LyricsPageIndex = 0;
-            PublishLyricsPageIfLive();
+            // 곡: live Output 첫 절로 되돌려 출력 재송출. Preview 절 인덱스는 건드리지 않는다.
+            var pageModel = BuildLyricsPageModel(item);
+            if (pageModel.Count > 0)
+            {
+                PublishOutputLyricsPage(item, 0, pageModel.Count);
+            }
         }
 
         StatusText = $"처음으로: {item.Title}";
@@ -3857,7 +3842,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         OutputItem = SelectedItem;
-        SetLiveItemId(SelectedItem.Id); // 라이브 항목 기록(슬라이드 이동이 출력을 갱신할지 판별)
+        SetLiveItemId(SelectedItem.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
         PrepareOutputPowerPointForPublish(SelectedItem);
         // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
         LiveTransposeSemitones = 0;
@@ -3911,7 +3896,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "다른 항목"의 stale 슬라이드일 수 있다. 그래서 단순히 Ready 인지가 아니라, VM 이 마지막으로 성공
     // 렌더한 파일이 송출 항목의 파일과 일치할 때만 슬라이드를 싣는다(불일치/미준비면 타이틀만 — 안전 강등).
     // 슬라이드 번호는 PPT VM 의 현재 렌더 슬라이드를 "단일 진실"로 신뢰하고
-    // 송출 항목에도 반영한다 — 라이브 슬라이드 이동으로 item.SlideNumber 와 실제 렌더 슬라이드가 달라져도
+    // 송출 항목에도 반영한다 — Output 전용 슬라이드 이동으로 item.SlideNumber 와 실제 렌더 슬라이드가 달라져도
     // (이동한 슬라이드가 그대로 송출되고, 재개·재송출 시에도 일관). 파일이 다르면(cross-item stale) 거른다.
     // 선택 항목의 "개별 서식 사용" 토글(레거시 Ind_checkBox "Use Individual Settings").
     // 레코드는 불변이라 큐의 해당 인스턴스를 토글된 복사본으로 교체한다(참조 일치로 정확히 그 항목만).
@@ -4539,7 +4524,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Rendering.PowerPointPreviewViewModel? powerPoint = null)
     {
         var ppt = powerPoint ?? PowerPoint;
-        var positionLabel = ComputePositionLabel(item);
+        var positionLabel = ComputePositionLabel(item, ppt);
         var nextTitle = ComputeNextTitle(item);
         // "코드 표시"(Show Notations) 설정을 투영에 얹는다 — 라이브 본문 계산(ComputeBodyText)이 이 값으로
         // 가사 위 코드 줄을 끼울지 판단한다. 모든 곡 송출 경로가 ResolveLiveProjection 을 거치므로 한 곳에서 일관 적용.
@@ -4596,12 +4581,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 위치 라벨 계산(절/슬라이드 "N/M") — 곡=현재 절/총 절, PPT=현재 슬라이드/총 슬라이드.
     // 단일(총 1)이면 빈 문자열(표시 의미 없음). 출력은 설정 on 일 때만 노출.
-    private string ComputePositionLabel(LiveQueueItem item)
+    private string ComputePositionLabel(
+        LiveQueueItem item,
+        Rendering.PowerPointPreviewViewModel? powerPoint = null)
     {
         if (IsPowerPointItem(item))
         {
-            var count = PowerPoint.SlideCount;
-            var current = PowerPoint.SlideNumber;
+            var ppt = powerPoint ?? PowerPoint;
+            var count = ppt.SlideCount;
+            var current = ppt.SlideNumber;
             return count > 1 && current >= 1 ? $"{current}/{count}" : string.Empty;
         }
 
@@ -4634,7 +4622,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 선택을 다음 항목으로 옮긴다(설정 무관). 자동 advance(설정 on)와 명시 "전송 후 다음" 모두 이 한 곳을 쓴다.
     // PPT 덱은 제자리 유지 — 다중 슬라이드 덱은 다음 항목으로 넘어가지 말고 그 자리에서 슬라이드를 이동해야 하고,
-    // 선택이 라이브 PPT 에 머물러야 라이브 슬라이드 이동 커맨드가 활성으로 유지된다.
+    // live Output PPT 는 Output 전용 슬라이드 버튼으로 따로 넘긴다.
     // 인덱스는 참조 일치(IndexOfReference)로 찾는다 — 같은 값 항목이 큐에 여러 번 있어도(입례/봉헌 반복) 정확히 그 인스턴스.
     private void AdvanceSelectionToNext(LiveQueueItem publishedItem)
     {
