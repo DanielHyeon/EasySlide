@@ -670,8 +670,14 @@ public class MainMenuBarTests
             "Output reference alert button should keep its FrmMain control name");
         xaml.Should().Contain("Command=\"{Binding ToggleOutputReferenceAlertCommand}\"",
             "OutputBtnRefAlert should toggle the live reference alert instead of staying a disabled placeholder");
+        xaml.Should().Contain("x:Key=\"ClassicVerseJumpButton\"",
+            "FrmMain section buttons should have a dedicated style that can hide unavailable sections");
+        xaml.Should().Contain("<Setter Property=\"Visibility\" Value=\"Collapsed\" />",
+            "Unavailable section buttons should collapse like FrmMain Visible=false verse buttons");
         xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\"",
             "Preview verse buttons should keep moving the selected Preview item");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\" CommandParameter=\"1\" Style=\"{StaticResource ClassicVerseJumpButton}\"",
+            "Preview verse buttons should hide when the selected Preview item does not expose that section");
         xaml.Should().MatchRegex("x:Name=\"PreviewBtnSlideUp\"\\s+Tag=\"PreviewBtnSlideUp\"\\s+Command=\"\\{Binding PreviousSlideCommand\\}\"",
             "Preview slide-up should use the item-type-aware Preview slide/page command");
         xaml.Should().MatchRegex("x:Name=\"PreviewBtnSlideDown\"\\s+Tag=\"PreviewBtnSlideDown\"\\s+Command=\"\\{Binding NextSlideCommand\\}\"",
@@ -680,6 +686,8 @@ public class MainMenuBarTests
             "Preview slide buttons must not bypass PPT slide navigation");
         xaml.Should().Contain("x:Name=\"OutputBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToOutputLyricsSectionCommand}\"",
             "Output verse buttons should move the live Output item independently from Preview");
+        xaml.Should().Contain("x:Name=\"OutputBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToOutputLyricsSectionCommand}\" CommandParameter=\"1\" Style=\"{StaticResource ClassicVerseJumpButton}\"",
+            "Output verse buttons should hide when the prepared/live Output item does not expose that section");
         xaml.Should().NotContain("x:Name=\"OutputBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\"",
             "Output verse buttons must not be wired back to the selected Preview item");
     }
