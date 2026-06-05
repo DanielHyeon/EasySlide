@@ -1600,7 +1600,7 @@ public partial class MainWindow : Window
         InlineInfoScreenList.Focus();
     }
 
-    private void CMenuInfoScreenFiles_Copy_Click(object sender, RoutedEventArgs e)
+    private async void CMenuInfoScreenFiles_Copy_Click(object sender, RoutedEventArgs e)
     {
         var selection = GetInlineInfoScreenSelection();
         if (selection.Count == 0)
@@ -1610,10 +1610,21 @@ public partial class MainWindow : Window
             return;
         }
 
-        var sourceFiles = ResolveInlineInfoScreenSourceFiles(selection);
+        IReadOnlyList<string> sourceFiles;
+        try
+        {
+            sourceFiles = await ResolveInlineInfoScreenSourceFilesAsync(selection).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
+        {
+            _viewModel.StatusText = $"InfoScreen copy source could not be prepared: {ex.Message}";
+            InlineInfoScreenList.Focus();
+            return;
+        }
+
         if (sourceFiles.Count == 0)
         {
-            _viewModel.StatusText = "No legacy InfoScreen .esi file selected.";
+            _viewModel.StatusText = "No copyable InfoScreen selected.";
             InlineInfoScreenList.Focus();
             return;
         }
@@ -1622,64 +1633,24 @@ public partial class MainWindow : Window
         InlineInfoScreenList.Focus();
     }
 
-    private IReadOnlyList<string> ResolveInlineInfoScreenSourceFiles(IReadOnlyList<InfoScreenSourceItem> selection)
+    private async Task<IReadOnlyList<string>> ResolveInlineInfoScreenSourceFilesAsync(IReadOnlyList<InfoScreenSourceItem> selection)
     {
-        var workingFolder = _settings?.Current.General.WorkingFolder;
-        if (string.IsNullOrWhiteSpace(workingFolder))
+        var store = _services.GetRequiredService<IInfoScreenStore>();
+        var exportRoot = Path.Combine(Path.GetTempPath(), "EasislidesNext", "InfoScreenCopy");
+        var sourceFiles = new List<string>();
+
+        foreach (var screen in selection)
         {
-            return Array.Empty<string>();
+            var sourceFile = await store.PrepareCopySourceFileAsync(screen.Name, exportRoot).ConfigureAwait(true);
+            if (!string.IsNullOrWhiteSpace(sourceFile))
+            {
+                sourceFiles.Add(sourceFile);
+            }
         }
 
-        var root = Path.Combine(workingFolder, "InfoScreens");
-        return selection
-            .Select(screen => ResolveInlineInfoScreenSourceFile(root, screen.Name))
-            .Where(path => path is not null)
-            .Select(path => path!)
+        return sourceFiles
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-    }
-
-    private static string? ResolveInlineInfoScreenSourceFile(string root, string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return null;
-        }
-
-        var trimmed = name.Trim();
-        var extension = Path.GetExtension(trimmed);
-        if (!string.IsNullOrEmpty(extension)
-            && !string.Equals(extension, ".esi", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var relative = string.IsNullOrEmpty(extension) ? trimmed + ".esi" : trimmed;
-        if (!IsSafeInfoScreenRelativePath(relative))
-        {
-            return null;
-        }
-
-        var rootFull = Path.GetFullPath(root);
-        var rootPrefix = rootFull.EndsWith(Path.DirectorySeparatorChar)
-            ? rootFull
-            : rootFull + Path.DirectorySeparatorChar;
-        var path = Path.GetFullPath(Path.Combine(rootFull, relative));
-        return path.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase) && File.Exists(path)
-            ? path
-            : null;
-    }
-
-    private static bool IsSafeInfoScreenRelativePath(string relative)
-    {
-        var parts = relative.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length > 0
-            && parts.All(part =>
-                part.Length > 0
-                && part != "."
-                && part != ".."
-                && part.IndexOfAny(Path.GetInvalidFileNameChars()) < 0
-                && !part.EndsWith(".", StringComparison.Ordinal));
     }
 
     private void CMenuInfoScreenFiles_Refresh_Click(object sender, RoutedEventArgs e)

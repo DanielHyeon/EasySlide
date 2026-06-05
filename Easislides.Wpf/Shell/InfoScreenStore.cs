@@ -28,6 +28,8 @@ public interface IInfoScreenStore
 
     Task<InfoScreenDto?> LoadAsync(string name, CancellationToken cancellationToken = default);
 
+    Task<string?> PrepareCopySourceFileAsync(string name, string exportDirectory, CancellationToken cancellationToken = default);
+
     System.Collections.Generic.IReadOnlyList<string> ListNames();
 
     void Delete(string name);
@@ -108,6 +110,40 @@ public sealed class InfoScreenStore : IInfoScreenStore
         }
 
         return await LoadLegacyAsync(legacyPath, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<string?> PrepareCopySourceFileAsync(string name, string exportDirectory, CancellationToken cancellationToken = default)
+    {
+        var legacyPath = ResolveLegacyPath(name);
+        if (legacyPath is not null && File.Exists(legacyPath))
+        {
+            return legacyPath;
+        }
+
+        if (string.IsNullOrWhiteSpace(exportDirectory))
+        {
+            throw new ArgumentException("Export directory is required.", nameof(exportDirectory));
+        }
+
+        var jsonPath = TryResolvePath(name);
+        if (jsonPath is null || !File.Exists(jsonPath))
+        {
+            return null;
+        }
+
+        var screen = await LoadAsync(name, cancellationToken).ConfigureAwait(false);
+        if (screen is null)
+        {
+            return null;
+        }
+
+        Directory.CreateDirectory(exportDirectory);
+        var exportPath = Path.Combine(exportDirectory, SanitizeExportFileName(name) + ".esi");
+        var tempPath = $"{exportPath}.{Guid.NewGuid():N}.tmp";
+        var document = CreateLegacyExportDocument(name, screen);
+        await File.WriteAllTextAsync(tempPath, document.ToString(SaveOptions.None), cancellationToken).ConfigureAwait(false);
+        File.Move(tempPath, exportPath, overwrite: true);
+        return exportPath;
     }
 
     public System.Collections.Generic.IReadOnlyList<string> ListNames()
@@ -230,6 +266,27 @@ public sealed class InfoScreenStore : IInfoScreenStore
         return string.IsNullOrWhiteSpace(directory)
             ? name
             : Path.Combine(directory, name);
+    }
+
+    private static XDocument CreateLegacyExportDocument(string name, InfoScreenDto screen)
+        => new(
+            new XDeclaration("1.0", "utf-8", null),
+            new XElement("EasiSlides",
+                new XElement("Item",
+                    new XElement("Title1", name),
+                    new XElement("Contents", screen.Text ?? string.Empty))));
+
+    private static string SanitizeExportFileName(string name)
+    {
+        var value = Path.GetFileNameWithoutExtension((name ?? string.Empty).Trim());
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            value = "InfoScreen";
+        }
+
+        var invalid = Path.GetInvalidFileNameChars();
+        var sanitized = new string(value.Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray()).Trim(' ', '.');
+        return string.IsNullOrWhiteSpace(sanitized) ? "InfoScreen" : sanitized;
     }
 
     private static async Task<InfoScreenDto?> LoadLegacyAsync(string path, CancellationToken cancellationToken)

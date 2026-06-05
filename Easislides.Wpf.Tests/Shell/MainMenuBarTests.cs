@@ -610,12 +610,14 @@ public class MainMenuBarTests
             "InfoScreen Edit should seed the editor with the selected source item before opening");
         code.Should().Contain("await noticeViewModel.OpenCommand.ExecuteAsync(null).ConfigureAwait(true)",
             "InfoScreen Edit should load the selected saved screen through the same editor command users see in the modal");
-        code.Should().Contain("ResolveInlineInfoScreenSourceFiles(selection)",
-            "InfoScreen CMenuFiles_Copy should resolve selected legacy .esi source files instead of staying a focus-only no-op");
+        code.Should().Contain("ResolveInlineInfoScreenSourceFilesAsync(selection)",
+            "InfoScreen CMenuFiles_Copy should prepare selected source files instead of staying a focus-only no-op");
+        code.Should().Contain("store.PrepareCopySourceFileAsync(screen.Name, exportRoot)",
+            "InfoScreen CMenuFiles_Copy should pass legacy .esi files through and export WPF JSON screens to copyable .esi files");
         code.Should().Contain("OpenExternalFileOperationWindow(ExternalFileItemKind.InfoScreen, ExternalFileOperationKind.Copy, sourceFiles)",
             "InfoScreen CMenuFiles_Copy should seed the FrmCopyMoveExternal replacement with selected .esi files");
-        code.Should().Contain("Path.Combine(workingFolder, \"InfoScreens\")",
-            "InfoScreen file copy should prefer the legacy working-folder InfoScreens directory");
+        code.Should().Contain("Path.Combine(Path.GetTempPath(), \"EasislidesNext\", \"InfoScreenCopy\")",
+            "InfoScreen file copy should keep WPF JSON exports available while the external copy dialog runs");
         code.Should().Contain("EnsureInlinePowerPointLoadedOnce(viewModel)", "PowerPoint source tab should lazy-load on first selection");
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");

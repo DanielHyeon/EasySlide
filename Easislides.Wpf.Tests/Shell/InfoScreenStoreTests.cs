@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
@@ -161,6 +162,72 @@ public sealed class InfoScreenStoreTests : IDisposable
             if (Directory.Exists(root))
             {
                 Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PrepareCopySourceFileAsync_JsonScreen_ExportsLegacyEsi()
+    {
+        var store = new InfoScreenStore(_dir);
+        await store.SaveAsync("JsonNotice", new InfoScreenDto("Line 1\r\nLine 2", FontSize: 44));
+        var exportDir = Path.Combine(Path.GetTempPath(), $"EasiSlides_IS_Copy_{Guid.NewGuid():N}");
+
+        try
+        {
+            var path = await store.PrepareCopySourceFileAsync("JsonNotice", exportDir);
+
+            path.Should().NotBeNull();
+            File.Exists(path!).Should().BeTrue();
+            Path.GetExtension(path!).Should().Be(".esi");
+
+            var document = XDocument.Load(path!);
+            var item = document.Root!.Element("Item");
+            item.Should().NotBeNull();
+            item!.Element("Title1")!.Value.Should().Be("JsonNotice");
+            item.Element("Contents")!.Value.Replace("\r\n", "\n", StringComparison.Ordinal).Should().Be("Line 1\nLine 2");
+        }
+        finally
+        {
+            if (Directory.Exists(exportDir))
+            {
+                Directory.Delete(exportDir, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task PrepareCopySourceFileAsync_LegacyScreen_ReturnsExistingEsiFile()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_LegacyInfoCopy_{Guid.NewGuid():N}");
+        var exportDir = Path.Combine(Path.GetTempPath(), $"EasiSlides_IS_Copy_{Guid.NewGuid():N}");
+        try
+        {
+            var settings = new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups")));
+            settings.Set(EasiSettingKeys.WorkingFolder, root);
+            var legacyPath = Path.Combine(root, "InfoScreens", "A", "Legacy.esi");
+            Directory.CreateDirectory(Path.GetDirectoryName(legacyPath)!);
+            await File.WriteAllTextAsync(legacyPath, "[1]\nLegacy notice");
+
+            var store = new InfoScreenStore(_dir, settings);
+
+            var path = await store.PrepareCopySourceFileAsync(Path.Combine("A", "Legacy"), exportDir);
+
+            path.Should().Be(legacyPath);
+            Directory.Exists(exportDir).Should().BeFalse("legacy files should be passed through without temp export");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+
+            if (Directory.Exists(exportDir))
+            {
+                Directory.Delete(exportDir, recursive: true);
             }
         }
     }
