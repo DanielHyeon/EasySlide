@@ -140,6 +140,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PanelDisplayTexts_ExposePreviewAndOutputSourceAndStatusCells()
+    {
+        // FrmMain PreviewPanelDisplayName/OutputPanelDisplayName 은 단순 제목 라벨이 아니라
+        // 현재 대상의 종류와 Preview/Output 위치 상태를 같은 행에서 보여 준다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.PreviewPanelSourceText.Should().Be("Preview");
+        sut.PreviewPanelStatusText.Should().Be("대기");
+        sut.OutputPanelSourceText.Should().Be("Output");
+        sut.OutputPanelStatusText.Should().Be("대기");
+
+        var item = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n입례\n[C]\n후렴",
+            Sequence = "1 C",
+        };
+        sut.LoadQueue([item]);
+
+        sut.PreviewPanelSourceText.Should().Be("곡");
+        sut.PreviewPanelStatusText.Should().Be("선택 1/2");
+
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputPanelSourceText.Should().Be("곡");
+        sut.OutputPanelStatusText.Should().Be("준비 1/2");
+
+        var notified = new List<string?>();
+        sut.PropertyChanged += (_, e) => notified.Add(e.PropertyName);
+
+        sut.GoToPreviewLyricsPageCommand.Execute(1);
+
+        sut.PreviewPanelStatusText.Should().Be("선택 2/2");
+        sut.OutputPanelStatusText.Should().Be("준비 1/2", "Preview 절 이동은 준비된 Output 표시 행을 움직이지 않는다");
+        notified.Should().Contain(nameof(MainViewModel.PreviewPanelStatusText));
+    }
+
+    [Fact]
     public async Task GoLiveCommand_RequiresSelectionAndOpenOutput()
     {
         var sut = CreateSut();

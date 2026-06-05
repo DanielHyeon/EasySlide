@@ -714,8 +714,16 @@ public class MainMenuBarTests
             "the single display-name row should stay selected like the legacy ListView item");
         xaml.Should().Contain("Text=\"{Binding DataContext.SelectedItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Preview'}\"",
             "Preview title row should bind to the selected Preview item through the list control");
+        xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Preview title row should expose a FrmMain-style source/type cell");
+        xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Preview title row should expose a FrmMain-style status/position cell");
         xaml.Should().Contain("Text=\"{Binding DataContext.OutputItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Output'}\"",
             "Output title row should bind to the prepared/live Output item through the list control");
+        xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Output title row should expose a FrmMain-style source/type cell");
+        xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Output title row should expose a FrmMain-style status/live cell");
     }
 
     [Fact]

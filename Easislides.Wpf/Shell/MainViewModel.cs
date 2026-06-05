@@ -209,6 +209,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
     public bool HasOutputLyricsText => !string.IsNullOrWhiteSpace(OutputLyricsText);
 
+    /// <summary>FrmMain PreviewPanelDisplayName 출처 셀: 선택된 Preview 항목의 legacy 종류.</summary>
+    public string PreviewPanelSourceText => BuildPanelSourceText(SelectedItem, "Preview");
+
+    /// <summary>FrmMain PreviewPanelDisplayName 상태 셀: Preview 전용 절/슬라이드 위치.</summary>
+    public string PreviewPanelStatusText => BuildPreviewPanelStatusText();
+
+    /// <summary>FrmMain OutputPanelDisplayName 출처 셀: 준비/라이브 Output 항목의 legacy 종류.</summary>
+    public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), "Output");
+
+    /// <summary>FrmMain OutputPanelDisplayName 상태 셀: Output 전용 준비/LIVE/숨김 상태와 위치.</summary>
+    public string OutputPanelStatusText => BuildOutputPanelStatusText(GetOutputNavigationItem());
+
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -3182,6 +3194,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanClearAllItemsFormatting));
         OnPropertyChanged(nameof(PreviewItemInfoText));
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+        NotifyPreviewPanelDisplayProperties();
         OnPropertyChanged(nameof(PreviewVisualSource));
         OnPropertyChanged(nameof(HasPreviewVisualSource));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
@@ -3203,6 +3216,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemUnderline2));
 
         NotifyCommandStates();
+    }
+
+    private void NotifyPreviewPanelDisplayProperties()
+    {
+        OnPropertyChanged(nameof(PreviewPanelSourceText));
+        OnPropertyChanged(nameof(PreviewPanelStatusText));
+    }
+
+    private void NotifyOutputPanelDisplayProperties()
+    {
+        OnPropertyChanged(nameof(OutputPanelSourceText));
+        OnPropertyChanged(nameof(OutputPanelStatusText));
     }
 
     private static string BuildPreviewItemInfoText(LiveQueueItem? item)
@@ -3258,6 +3283,59 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return string.Join(Environment.NewLine, lines);
     }
 
+    private static string BuildPanelSourceText(LiveQueueItem? item, string fallback)
+        => item?.Kind switch
+        {
+            LiveItemKinds.Song => "곡",
+            LiveItemKinds.Bible => "성경",
+            LiveItemKinds.PowerPoint => "PowerPoint",
+            LiveItemKinds.Media => "미디어",
+            LiveItemKinds.Notice => "공지",
+            null => fallback,
+            "" => fallback,
+            _ => "항목",
+        };
+
+    private string BuildPreviewPanelStatusText()
+    {
+        if (SelectedItem is null)
+        {
+            return "대기";
+        }
+
+        var position = PreviewNavigationPositionLabel;
+        return string.IsNullOrWhiteSpace(position)
+            ? "선택"
+            : $"선택 {position}";
+    }
+
+    private string BuildOutputPanelStatusText(LiveQueueItem? item)
+    {
+        if (item is null)
+        {
+            return _session.Current.State == LiveState.Off
+                ? "대기"
+                : BuildOutputLiveStateText();
+        }
+
+        var state = BuildOutputLiveStateText();
+        var position = OutputNavigationPositionLabel;
+        return string.IsNullOrWhiteSpace(position)
+            ? state
+            : $"{state} {position}";
+    }
+
+    private string BuildOutputLiveStateText()
+        => _session.Current.State switch
+        {
+            LiveState.Active => "LIVE",
+            LiveState.Hidden when _session.Current.IsBlackout => "BLACK",
+            LiveState.Hidden when _session.Current.IsCleared => "CLEAR",
+            LiveState.Hidden => "HIDDEN",
+            LiveState.Standby => "STANDBY",
+            _ => "준비",
+        };
+
     private static int CountNonEmptyLines(string value)
         => value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Length;
 
@@ -3310,6 +3388,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         RebuildPreviewLyricsPages();
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+        NotifyPreviewPanelDisplayProperties();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
@@ -3317,6 +3396,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         RebuildPreviewLyricsPages();
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+        NotifyPreviewPanelDisplayProperties();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
@@ -3899,6 +3979,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputVisualFillMode));
         OnPropertyChanged(nameof(HasOutputVisualSource));
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
+        NotifyOutputPanelDisplayProperties();
         NotifyCommandStates();
     }
 
@@ -4564,6 +4645,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(PowerPoint.PreviewImage))
         {
             OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+            NotifyPreviewPanelDisplayProperties();
             NotifyCommandStates();
         }
     }
@@ -4582,6 +4664,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(OutputPowerPoint.PreviewImage))
         {
             OnPropertyChanged(nameof(OutputNavigationPositionLabel));
+            NotifyOutputPanelDisplayProperties();
             NotifyCommandStates();
         }
     }
@@ -7568,6 +7651,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 라이브 위치(곡 절 "3/12"·PPT 슬라이드 "5/20") — 절/슬라이드 이동마다 세션이 다시 알려 LiveBar 가 갱신된다(없으면 빈 문자열→숨김).
         LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
+        NotifyOutputPanelDisplayProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
         OnPropertyChanged(nameof(HasOutputVisualSource));
@@ -7592,6 +7676,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputBlackActive));
         OnPropertyChanged(nameof(IsOutputClearActive));
         OnPropertyChanged(nameof(IsOutputLiveActive));
+        NotifyOutputPanelDisplayProperties();
     }
 
     private void NotifyCommandStates()

@@ -2526,6 +2526,8 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="76" />
+                                        <ColumnDefinition Width="96" />
                                     </Grid.ColumnDefinitions>
                                     <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Preview}"
                                                    FontSize="15"
@@ -2537,6 +2539,20 @@
                                                TextTrimming="CharacterEllipsis"
                                                Style="{StaticResource Type.Body.Style}"
                                                Foreground="{DynamicResource Brush.Text.Primary}" />
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding DataContext.PreviewPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    <TextBlock Grid.Column="3"
+                                               Text="{Binding DataContext.PreviewPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Right"
+                                               TextTrimming="CharacterEllipsis"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
                                 </Grid>
                             </ListViewItem>
                         </ListView>
@@ -3473,6 +3489,8 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="76" />
+                                        <ColumnDefinition Width="96" />
                                     </Grid.ColumnDefinitions>
                                     <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}"
                                                    FontSize="15"
@@ -3484,6 +3502,20 @@
                                                TextTrimming="CharacterEllipsis"
                                                Style="{StaticResource Type.Body.Style}"
                                                Foreground="{DynamicResource Brush.Text.Primary}" />
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding DataContext.OutputPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    <TextBlock Grid.Column="3"
+                                               Text="{Binding DataContext.OutputPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Right"
+                                               TextTrimming="CharacterEllipsis"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
                                 </Grid>
                             </ListViewItem>
                         </ListView>
