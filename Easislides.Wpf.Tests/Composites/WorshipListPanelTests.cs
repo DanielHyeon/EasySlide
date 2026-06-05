@@ -358,6 +358,11 @@ public class WorshipListPanelTests
             "DB song rows plus Bible/Notice text rows should enable the edit path");
         panelCode.Should().Contain("CanEditTextQueueItem",
             "Bible/Notice rows should no longer be disabled by the Worship List context menu");
+        panelCode.Should().Contain("CanEditExternalQueueItem",
+            "PowerPoint/Media rows with ContentPath should also enable the legacy Edit item path");
+        panelCode.Should().Contain("LiveItemKindMatcher.IsPowerPoint")
+            .And.Contain("LiveItemKindMatcher.IsMedia",
+                "external Worship items should be recognized with the same kind aliases used by the shell");
         panelCode.Should().Contain("viewModel.SelectedItem = item",
             "right-clicking a different row should retarget the selected Worship List item before Edit runs");
 
@@ -377,6 +382,8 @@ public class WorshipListPanelTests
             "Bible/Notice rows should open an inline text editor instead of being rejected");
         windowCode.Should().Contain("viewModel.UpdateSelectedTextQueueItem",
             "saving Bible/Notice edits should replace the selected queue row");
+        windowCode.Should().Contain("viewModel.EditSelectedExternalWorshipItem",
+            "PPT/Media Worship rows should not fall through to the generic rejected selection status");
         editorCode.Should().Contain("Edit Worship List Item")
             .And.Contain("ItemTitle")
             .And.Contain("ItemText",

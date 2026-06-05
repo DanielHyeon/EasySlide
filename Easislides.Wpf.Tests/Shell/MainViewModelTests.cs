@@ -6527,6 +6527,75 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void EditSelectedExternalWorshipItem_PowerPointItem_UsesEditLauncher()
+    {
+        // FrmMain CMenuWorship_Edit -> UseCorrectEditor(P): 선택한 PPT 파일을 외부 편집기로 연다.
+        using var folder = TempSettingsFolder.Create();
+        var deckFile = Path.Combine(folder.Root, "sermon.pptx");
+        File.WriteAllText(deckFile, "ppt placeholder");
+        var launched = new List<string>();
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            worshipItemEditLauncher: path =>
+            {
+                launched.Add(path);
+                return true;
+            });
+        var item = new LiveQueueItem($"ppt:{deckFile}", "sermon", LiveItemKinds.PowerPoint) { ContentPath = deckFile };
+        sut.LoadQueue([item]);
+
+        sut.CanEditSelectedExternalWorshipItem.Should().BeTrue();
+        sut.EditSelectedExternalWorshipItem().Should().BeTrue();
+
+        launched.Should().ContainSingle().Which.Should().Be(deckFile);
+        sut.StatusText.Should().Contain("PowerPoint 편집 열기").And.Contain("sermon.pptx");
+    }
+
+    [Fact]
+    public void EditSelectedExternalWorshipItem_MediaItem_UsesEditLauncher()
+    {
+        // WPF parity slice: 미디어 Worship 항목도 Edit item 이 빈 동작이 아니라 연결된 파일을 연다.
+        using var folder = TempSettingsFolder.Create();
+        var mediaFile = Path.Combine(folder.Root, "intro.mp4");
+        File.WriteAllText(mediaFile, "media placeholder");
+        var launched = new List<string>();
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            worshipItemEditLauncher: path =>
+            {
+                launched.Add(path);
+                return true;
+            });
+        var item = new LiveQueueItem($"media:{mediaFile}", "intro", LiveItemKinds.Media) { ContentPath = mediaFile };
+        sut.LoadQueue([item]);
+
+        sut.CanEditSelectedExternalWorshipItem.Should().BeTrue();
+        sut.EditSelectedExternalWorshipItem().Should().BeTrue();
+
+        launched.Should().ContainSingle().Which.Should().Be(mediaFile);
+        sut.StatusText.Should().Contain("미디어 편집 열기").And.Contain("intro.mp4");
+    }
+
+    [Fact]
+    public void EditSelectedExternalWorshipItem_MissingFile_ReportsLegacyStyleMissingFile()
+    {
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            worshipItemEditLauncher: _ => throw new InvalidOperationException("launcher should not run"));
+        var item = new LiveQueueItem("ppt:missing", "missing deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = @"Z:\missing\sermon.pptx",
+        };
+        sut.LoadQueue([item]);
+
+        sut.CanEditSelectedExternalWorshipItem.Should().BeTrue("the menu should open and report the missing file like FrmMain");
+        sut.EditSelectedExternalWorshipItem().Should().BeFalse();
+
+        sut.StatusText.Should().Contain("PowerPoint 파일을 찾을 수 없습니다")
+            .And.Contain(@"Z:\missing\sermon.pptx");
+    }
+
+    [Fact]
     public void PlaySelectedWorshipMediaOnOutputCommand_SongItem_FindsMediaByTitleInMediaDirectory()
     {
         using var folder = TempSettingsFolder.Create();
@@ -9700,6 +9769,7 @@ public class MainViewModelTests
         IOutputWindowService? output = null,
         IPreviewWindowService? preview = null,
         Func<string, bool>? worshipMediaLauncher = null,
+        Func<string, bool>? worshipItemEditLauncher = null,
         bool seedSampleQueue = true,
         ISearchUsageService? searchUsageService = null)
     {
@@ -9736,7 +9806,8 @@ public class MainViewModelTests
             recentWorshipLists ?? new InMemoryRecentWorshipLists(),
             worshipValidator,
             preview,
-            worshipMediaLauncher);
+            worshipMediaLauncher,
+            worshipItemEditLauncher);
 
         // 운영 기본 큐는 비어 있다(더미 시드 제거). 대부분의 테스트는 Queue[0] 등 채워진 큐를 가정하므로
         // CreateSut 가 기본으로 샘플 3항목을 시드해 기존 테스트를 보존한다. 빈 큐가 필요하면 seedSampleQueue:false.

@@ -315,7 +315,7 @@ public partial class WorshipListPanel : UserControl
     }
 
     private static bool CanEditSelectedWorshipItem(LiveQueueItem? item)
-        => CanEditDbSongItem(item) || CanEditTextQueueItem(item);
+        => CanEditDbSongItem(item) || CanEditTextQueueItem(item) || CanEditExternalQueueItem(item);
 
     private static bool CanEditDbSongItem(LiveQueueItem? item)
         => item is { Kind: LiveItemKinds.Song }
@@ -325,6 +325,11 @@ public partial class WorshipListPanel : UserControl
     private static bool CanEditTextQueueItem(LiveQueueItem? item)
         => item is { Kind: LiveItemKinds.Bible or LiveItemKinds.Notice }
            && !string.IsNullOrWhiteSpace(item.Lyrics);
+
+    private static bool CanEditExternalQueueItem(LiveQueueItem? item)
+        => item is not null
+           && (LiveItemKindMatcher.IsPowerPoint(item.Kind) || LiveItemKindMatcher.IsMedia(item.Kind))
+           && !string.IsNullOrWhiteSpace(item.ContentPath);
 
     private void CMenuWorship_SelectAll_Click(object sender, RoutedEventArgs e)
     {

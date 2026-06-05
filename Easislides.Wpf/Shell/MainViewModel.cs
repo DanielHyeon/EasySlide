@@ -49,6 +49,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IWorshipListStore _worshipLists;
     private readonly IRecentWorshipLists _recentWorshipLists;
     private readonly Func<string, bool> _worshipMediaLauncher;
+    private readonly Func<string, bool> _worshipItemEditLauncher;
     // 예배 순서 검증기 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems).
     private readonly WorshipListValidator _worshipValidator;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
@@ -757,7 +758,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IRecentWorshipLists recentWorshipLists,
         WorshipListValidator? worshipValidator = null,
         IPreviewWindowService? preview = null,
-        Func<string, bool>? worshipMediaLauncher = null)
+        Func<string, bool>? worshipMediaLauncher = null,
+        Func<string, bool>? worshipItemEditLauncher = null)
     {
         _session = session;
         _output = output;
@@ -774,6 +776,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _songDetail = songDetail;
         _recentWorshipLists = recentWorshipLists;
         _worshipMediaLauncher = worshipMediaLauncher ?? LaunchWorshipMediaProcess;
+        _worshipItemEditLauncher = worshipItemEditLauncher ?? LaunchWorshipItemEditProcess;
         // 예배 순서 검증기 — 기본은 실제 파일 존재(File.Exists). 테스트는 가짜 판정을 주입해 디스크 없이 검증.
         _worshipValidator = worshipValidator ?? new WorshipListValidator();
         Media = media;
@@ -3203,6 +3206,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemSequenceInput));
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
+        OnPropertyChanged(nameof(CanEditSelectedExternalWorshipItem));
         OnPropertyChanged(nameof(CanClearSelectedItemFormatting));
         OnPropertyChanged(nameof(CanCopySelectedItemFormatting));
         OnPropertyChanged(nameof(CanPasteSelectedItemFormatting));
@@ -3986,6 +3990,55 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    public bool CanEditSelectedExternalWorshipItem
+        => SelectedItem is { } item
+           && (IsPowerPointItem(item) || IsMediaItem(item))
+           && !string.IsNullOrWhiteSpace(item.ContentPath);
+
+    public bool EditSelectedExternalWorshipItem()
+    {
+        if (SelectedItem is not { } item || !(IsPowerPointItem(item) || IsMediaItem(item)))
+        {
+            StatusText = "편집할 외부 예배 순서 항목을 선택하세요.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        var label = IsPowerPointItem(item) ? "PowerPoint" : "미디어";
+        if (string.IsNullOrWhiteSpace(item.ContentPath))
+        {
+            StatusText = $"{label} 파일 경로가 없습니다: {item.Title}";
+            NotifyCommandStates();
+            return false;
+        }
+
+        if (!TryResolveExistingFile(item.ContentPath, out var resolvedPath))
+        {
+            StatusText = $"{label} 파일을 찾을 수 없습니다: {item.ContentPath}";
+            NotifyCommandStates();
+            return false;
+        }
+
+        try
+        {
+            if (_worshipItemEditLauncher(resolvedPath))
+            {
+                StatusText = $"{label} 편집 열기: {Path.GetFileName(resolvedPath)}";
+                NotifyCommandStates();
+                return true;
+            }
+
+            StatusText = $"{label} 파일을 열 수 없습니다: {resolvedPath}";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"{label} 파일을 열 수 없습니다: {ex.Message}";
+        }
+
+        NotifyCommandStates();
+        return false;
+    }
+
     partial void OnOutputItemChanged(LiveQueueItem? value)
     {
         RefreshOutputSurfaceText();
@@ -4226,6 +4279,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private static bool LaunchWorshipMediaProcess(string mediaPath)
     {
         Process.Start(new ProcessStartInfo(mediaPath)
+        {
+            UseShellExecute = true,
+            WindowStyle = ProcessWindowStyle.Normal
+        });
+        return true;
+    }
+
+    private static bool LaunchWorshipItemEditProcess(string filePath)
+    {
+        Process.Start(new ProcessStartInfo(filePath)
         {
             UseShellExecute = true,
             WindowStyle = ProcessWindowStyle.Normal

@@ -903,6 +903,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (viewModel.CanEditSelectedExternalWorshipItem)
+        {
+            viewModel.EditSelectedExternalWorshipItem();
+            return;
+        }
+
         viewModel.StatusText = "편집할 예배 순서 항목을 하나 선택하세요.";
     }
 
