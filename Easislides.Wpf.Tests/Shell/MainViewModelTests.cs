@@ -5631,6 +5631,47 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PlaySelectedWorshipMediaOnOutputCommand_MediaItem_OpensOutputAndStartsMedia()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaFile = Path.Combine(folder.Root, "welcome.mp4");
+        File.WriteAllText(mediaFile, "test media placeholder");
+        var output = new OutputWindowService();
+        var sut = CreateSut(output: output, seedSampleQueue: false);
+        var item = new LiveQueueItem($"media:{mediaFile}", "welcome", LiveItemKinds.Media) { ContentPath = mediaFile };
+        sut.LoadQueue([item]);
+
+        sut.PlaySelectedWorshipMediaOnOutputCommand.CanExecute(null).Should().BeTrue();
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+
+        output.Current.IsOpen.Should().BeTrue("FrmMain Play on Output opens/uses the output target");
+        sut.Media.Source.Should().Be(mediaFile);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("welcome.mp4");
+    }
+
+    [Fact]
+    public void PlaySelectedWorshipMediaOnOutputCommand_SongItem_FindsMediaByTitleInMediaDirectory()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var mediaFile = Path.Combine(mediaRoot, "Grace Song.mp4");
+        File.WriteAllText(mediaFile, "test media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var item = new LiveQueueItem("song:grace", "Grace Song", LiveItemKinds.Song) { Lyrics = "Grace Song lyrics" };
+        sut.LoadQueue([item]);
+
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+
+        sut.Media.Source.Should().Be(mediaFile);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.StatusText.Should().Contain("Grace Song.mp4");
+    }
+
+    [Fact]
     public void BodyVerticalOffsetCommands_StepAndClamp()
     {
         // FrmMain Ind_Reg1TopUpDown — 본문 위로(-)/아래로(+) 8px 단계, -300~300 클램프.

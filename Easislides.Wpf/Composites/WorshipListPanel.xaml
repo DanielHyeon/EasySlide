@@ -358,6 +358,12 @@
                          ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->
                     <ListView.ContextMenu>
                         <ContextMenu>
+                            <MenuItem x:Name="CMenuWorship_PlayOnOutput"
+                                      Header="Play on Output"
+                                      Tag="CMenuWorship_PlayOnOutput"
+                                      Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaOnOutputCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Separator />
+
                             <MenuItem Header="개별 서식 사용"
                                       IsChecked="{Binding PlacementTarget.DataContext.SelectedItem.UseIndividualFormatting, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
                                       Command="{Binding PlacementTarget.DataContext.ToggleUseIndividualFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

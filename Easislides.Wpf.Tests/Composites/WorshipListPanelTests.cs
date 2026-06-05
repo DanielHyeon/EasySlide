@@ -76,6 +76,20 @@ public class WorshipListPanelTests
     }
 
     [Fact]
+    public void ContextMenu_ExposesFrmMainPlayOnOutputCommand()
+    {
+        var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
+
+        var menuItem = composite.Descendants().Single(
+            e => e.Name.LocalName == "MenuItem" && Attr(e, "Name") == "CMenuWorship_PlayOnOutput");
+
+        Attr(menuItem, "Header").Should().Be("Play on Output");
+        Attr(menuItem, "Tag").Should().Be("CMenuWorship_PlayOnOutput");
+        Attr(menuItem, "Command").Should().Contain("PlaySelectedWorshipMediaOnOutputCommand",
+            "FrmMain CMenuWorship_PlayOnOutput should be visible from the lower-left Worship List context menu");
+    }
+
+    [Fact]
     public void MainWindow_Hosts_WorshipPanel_AlwaysVisible_BelowBrowserTabs_InLeftColumn()
     {
         var window = LoadXaml("Easislides.Wpf/MainWindow.xaml");

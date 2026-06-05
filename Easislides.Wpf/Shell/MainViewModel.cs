@@ -777,6 +777,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         QuickSaveWorshipListCommand = new AsyncRelayCommand(QuickSaveWorshipListAsync);
         // 현재 송출 항목 선택 — 미리보기로 앞서 가다가 라이브 항목으로 선택을 되돌린다(송출 중인 큐 항목 있을 때만).
         SelectLiveItemCommand = new RelayCommand(SelectLiveItem, () => CanSelectLiveItem);
+        // FrmMain CMenuWorship_PlayOnOutput — 선택 Worship 항목의 연결 미디어를 Output 창에서 즉시 재생한다.
+        PlaySelectedWorshipMediaOnOutputCommand = new RelayCommand(
+            PlaySelectedWorshipMediaOnOutput,
+            CanPlaySelectedWorshipMediaOnOutput);
         // 검증 문제 항목 클릭 → 큐에서 그 항목 선택(깨진 항목으로 바로 이동해 고치도록). 항상 클릭 가능(없는 항목은 메서드가 안내).
         SelectWorshipProblemItemCommand = new RelayCommand<WorshipItemProblem?>(SelectWorshipProblemItem);
         RefreshSavedWorshipListNames();
@@ -988,6 +992,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>"현재 송출 항목 선택"을 누를 수 있는지 — 라이브 송출 중이고 그 항목이 큐에 있을 때만(공지 센티넬은 큐에 없어 false).</summary>
     public bool CanSelectLiveItem => Queue.Any(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
+
+    /// <summary>FrmMain CMenuWorship_PlayOnOutput: 선택 Worship 항목의 미디어를 Output 창에서 재생한다.</summary>
+    public IRelayCommand PlaySelectedWorshipMediaOnOutputCommand { get; }
 
     /// <summary>검증 문제 항목을 클릭하면 그 항목을 예배 순서에서 선택한다 — 운영자가 깨진 항목으로 바로 가 고치게(수동 스크롤 없이).</summary>
     public IRelayCommand<WorshipItemProblem?> SelectWorshipProblemItemCommand { get; }
@@ -2719,6 +2726,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptThumbnailWidth = 200;
     private const int PptThumbnailHeight = 112;
 
+    private static readonly string[] WorshipOutputMediaExtensions =
+    [
+        ".mp4", ".m4v", ".mov", ".avi", ".wmv", ".mpg", ".mpeg", ".mkv", ".webm",
+        ".mp3", ".wav", ".wma", ".m4a", ".aac", ".flac", ".ogg"
+    ];
+
     // 현재 Preview 썸네일 스트립이 채워진 덱 파일 경로(같은 덱은 재로드 안 함).
     private string? _thumbnailDeckPath;
     // 현재 Output 썸네일 스트립이 가리키는 덱. Preview 선택 변경과 독립적으로 보존한다.
@@ -3178,6 +3191,148 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = $"항목 콘텐츠 로드 실패: {ex.Message}";
         }
     }
+
+    private bool CanPlaySelectedWorshipMediaOnOutput()
+        => SelectedItem is not null;
+
+    private void PlaySelectedWorshipMediaOnOutput()
+    {
+        if (SelectedItem is not { } item)
+        {
+            StatusText = "Output으로 재생할 Worship 항목을 선택하세요.";
+            return;
+        }
+
+        var mediaPath = ResolveWorshipOutputMediaPath(item);
+        if (string.IsNullOrWhiteSpace(mediaPath))
+        {
+            StatusText = $"Output 미디어 파일을 찾을 수 없습니다: {item.Title}";
+            return;
+        }
+
+        if (!_output.Current.IsOpen)
+        {
+            OpenOutput();
+        }
+
+        Media.Load(new MediaPlaybackRequest(
+            mediaPath,
+            MediaSourceKind.File,
+            TimeSpan.Zero,
+            InferMediaType(mediaPath)));
+
+        if (Media.PlayPauseCommand.CanExecute(null))
+        {
+            Media.PlayPauseCommand.Execute(null);
+        }
+
+        StatusText = $"Output 미디어 재생: {Path.GetFileName(mediaPath)}";
+        NotifyCommandStates();
+    }
+
+    private string? ResolveWorshipOutputMediaPath(LiveQueueItem item)
+    {
+        if (IsMediaItem(item) && TryResolveExistingFile(item.ContentPath, out var directMediaPath))
+        {
+            return directMediaPath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.ContentPath)
+            && IsSupportedWorshipOutputMediaFile(item.ContentPath)
+            && TryResolveExistingFile(item.ContentPath, out var contentMediaPath))
+        {
+            return contentMediaPath;
+        }
+
+        return FindWorshipOutputMediaByTitle(item.Title);
+    }
+
+    private string? FindWorshipOutputMediaByTitle(string title)
+    {
+        var root = ResolveWorshipOutputMediaRoot();
+        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(title))
+        {
+            return null;
+        }
+
+        foreach (var extension in WorshipOutputMediaExtensions)
+        {
+            var direct = Path.Combine(root, $"{title}{extension}");
+            if (File.Exists(direct))
+            {
+                return direct;
+            }
+        }
+
+        var normalizedTitle = NormalizeWorshipMediaLookupName(title);
+        if (string.IsNullOrWhiteSpace(normalizedTitle))
+        {
+            return null;
+        }
+
+        try
+        {
+            return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
+                .Where(IsSupportedWorshipOutputMediaFile)
+                .FirstOrDefault(file => string.Equals(
+                    NormalizeWorshipMediaLookupName(Path.GetFileNameWithoutExtension(file)),
+                    normalizedTitle,
+                    StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"Output 미디어 폴더 검색 실패: {ex.Message}";
+            return null;
+        }
+    }
+
+    private string? ResolveWorshipOutputMediaRoot()
+    {
+        var candidates = new[]
+        {
+            MediaDirectory,
+            _settings.Get(EasiSettingKeys.MediaDirectory),
+            Path.Combine(_settings.Current.General.WorkingFolder, "Media")
+        };
+
+        return candidates
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Select(path => path.Trim())
+            .FirstOrDefault(Directory.Exists);
+    }
+
+    private static bool TryResolveExistingFile(string? path, out string resolvedPath)
+    {
+        resolvedPath = string.Empty;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var candidate = Path.IsPathFullyQualified(path)
+                ? path
+                : Path.GetFullPath(path);
+            if (!File.Exists(candidate))
+            {
+                return false;
+            }
+
+            resolvedPath = candidate;
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsSupportedWorshipOutputMediaFile(string filePath)
+        => WorshipOutputMediaExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
+
+    private static string NormalizeWorshipMediaLookupName(string value)
+        => new(value.Where(char.IsLetterOrDigit).ToArray());
 
     private void OnOutputChanged(object? sender, OutputWindowChangedEventArgs e)
     {
@@ -6040,6 +6195,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
+        PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         SendToOutputAndNextCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();
