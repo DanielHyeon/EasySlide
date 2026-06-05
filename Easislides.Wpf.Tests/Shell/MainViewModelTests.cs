@@ -7727,6 +7727,42 @@ public class MainViewModelTests
         sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경이 붙지 않음");
     }
 
+    // ── FrmMain Ind_LoadTemplate/Ind_SaveTemplate — .est ListHeader/FormatData 를 선택 항목에 적용/저장 ──
+
+    [Fact]
+    public void ApplySelectedItemFormatDataTemplate_PreservesRawLegacyCodes_AndEnablesIndividual()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사",
+            FormatData = "29=-1>",
+            UseIndividualFormatting = false,
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        var applied = sut.ApplySelectedItemFormatDataTemplate(" 29=-65536>62=2>999=preserve> ");
+
+        applied.Should().BeTrue();
+        sut.SelectedItem!.FormatData.Should().Be("29=-65536>62=2>999=preserve>", "알 수 없는 레거시 코드도 템플릿 왕복에서 보존");
+        sut.SelectedItem.UseIndividualFormatting.Should().BeTrue("템플릿 적용은 FrmMain처럼 개별 서식을 켠다");
+        sut.SelectedItemTextColorHex.Should().Be("#FFFF0000", "알려진 코드 29는 즉시 미리보기 속성에 반영");
+    }
+
+    [Fact]
+    public void ApplySelectedItemFormatDataTemplate_NonFormattableItem_IsNoOp()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.ApplySelectedItemFormatDataTemplate("29=-1>").Should().BeFalse();
+
+        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 개별 설정 템플릿을 붙이지 않음");
+    }
+
     // ── 항목별 배경 이미지 인라인 편집(SetSelectedItemBackgroundImage) — 선택한 곡만 배경 이미지(레거시 Ind_ 배경 이미지, 코드61) ──
 
     [Fact]

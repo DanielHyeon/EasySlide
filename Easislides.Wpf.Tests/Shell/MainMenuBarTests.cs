@@ -686,6 +686,10 @@ public class MainMenuBarTests
             "IndradioButtonText",
             "IndradioButtonFormat",
             "IndradioButtonInfo",
+            "panelIndTemplate",
+            "toolStripIndTemplates",
+            "Ind_LoadTemplate",
+            "Ind_SaveTemplate",
             "Ind_BackColour",
             "Ind_BackImageSelect",
             "Ind_NoImage",
@@ -763,6 +767,16 @@ public class MainMenuBarTests
             "IndPanel should expose item-specific text color controls");
         xaml.Should().Contain("Command=\"{Binding ClearSelectedItemFormattingCommand}\"",
             "IndPanel should expose item-specific formatting clear");
+        xaml.Should().Contain("Click=\"LoadPreviewItemTemplate_Click\"",
+            "Ind_LoadTemplate should load FrmMain .est individual settings templates");
+        xaml.Should().Contain("Click=\"SavePreviewItemTemplate_Click\"",
+            "Ind_SaveTemplate should save FrmMain .est individual settings templates");
+        code.Should().Contain("IndividualFormatTemplateFile.LoadFormatData(dialog.FileName)",
+            "Preview Set template load should read ListHeader/FormatData from legacy .est files");
+        code.Should().Contain("viewModel.ApplySelectedItemFormatDataTemplate(formatData)",
+            "Preview Set template load should apply raw FormatData to the selected item");
+        code.Should().Contain("IndividualFormatTemplateFile.SaveFormatData(dialog.FileName, viewModel.SelectedItemFormatData)",
+            "Preview Set template save should write the selected item's raw FormatData");
         xaml.Should().Contain("Text=\"{Binding SelectedItemBackgroundImagePath, Mode=OneWay}\"",
             "IndPanel should show the current selected-item background image path");
         xaml.Should().Contain("Click=\"SelectPreviewItemBackgroundImage_Click\"",

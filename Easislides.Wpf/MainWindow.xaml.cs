@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 using Easislides.Wpf.Data;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
@@ -275,6 +276,18 @@ public partial class MainWindow : Window
         return !string.IsNullOrWhiteSpace(imagesFolder) && Directory.Exists(imagesFolder) ? imagesFolder
             : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
             : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+    }
+
+    private string ResolveSettingsTemplateInitialFolder()
+    {
+        var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
+        var templatesFolder = !string.IsNullOrWhiteSpace(workingFolder)
+            ? Path.Combine(workingFolder, "Admin", "Templates", "SettingsTemplates")
+            : string.Empty;
+
+        return !string.IsNullOrWhiteSpace(templatesFolder) && Directory.Exists(templatesFolder) ? templatesFolder
+            : !string.IsNullOrWhiteSpace(workingFolder) && Directory.Exists(workingFolder) ? workingFolder
+            : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     }
 
     private PraiseBookIndexViewModel CreatePraiseBookIndexViewModel(MainViewModel viewModel)
@@ -1635,6 +1648,84 @@ public partial class MainWindow : Window
         {
             viewModel.SetSelectedItemBackgroundImage(dialog.FileName);
         }
+    }
+
+    private void LoadPreviewItemTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel || !viewModel.CanEditSelectedItemColor)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Load Individual Settings from a Template",
+            Filter = IndividualFormatTemplateFile.DialogFilter,
+            InitialDirectory = ResolveSettingsTemplateInitialFolder(),
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            var formatData = IndividualFormatTemplateFile.LoadFormatData(dialog.FileName);
+            viewModel.StatusText = viewModel.ApplySelectedItemFormatDataTemplate(formatData)
+                ? $"개별 설정 템플릿 불러옴: {Path.GetFileName(dialog.FileName)}"
+                : "개별 설정 템플릿을 적용할 수 없습니다.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or XmlException)
+        {
+            viewModel.StatusText = $"개별 설정 템플릿을 읽을 수 없습니다: {ex.Message}";
+        }
+    }
+
+    private void SavePreviewItemTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel || !viewModel.CanEditSelectedItemColor)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Save Current Individual Settings to a Template",
+            Filter = IndividualFormatTemplateFile.DialogFilter,
+            InitialDirectory = ResolveSettingsTemplateInitialFolder(),
+            FileName = BuildPreviewItemTemplateFileName(viewModel.SelectedItem?.Title, ".est"),
+            OverwritePrompt = true,
+            AddExtension = true,
+            DefaultExt = ".est",
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            IndividualFormatTemplateFile.SaveFormatData(dialog.FileName, viewModel.SelectedItemFormatData);
+            viewModel.StatusText = $"개별 설정 템플릿 저장됨: {Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            viewModel.StatusText = $"개별 설정 템플릿을 저장할 수 없습니다: {ex.Message}";
+        }
+    }
+
+    private static string BuildPreviewItemTemplateFileName(string? title, string extension)
+    {
+        var baseName = string.IsNullOrWhiteSpace(title) ? "IndividualSettings" : title.Trim();
+        foreach (var invalid in Path.GetInvalidFileNameChars())
+        {
+            baseName = baseName.Replace(invalid, '_');
+        }
+
+        return baseName + extension;
     }
 
     // 미리보기 영역으로 끌고 온 게 이미지 파일이면 "복사(배경 설정)" 커서로 알린다. 그 외(PPT/미디어 등)는 받지 않는다.

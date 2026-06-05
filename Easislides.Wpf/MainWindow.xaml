@@ -2564,6 +2564,32 @@
                                                           Margin="0,0,0,8"
                                                           AutomationProperties.Name="개별 서식 사용" />
 
+                                                <Border x:Name="panelIndTemplate"
+                                                        Tag="panelIndTemplate"
+                                                        Margin="0,0,0,8">
+                                                    <WrapPanel x:Name="toolStripIndTemplates"
+                                                               Tag="toolStripIndTemplates">
+                                                        <Button x:Name="Ind_LoadTemplate"
+                                                                Tag="Ind_LoadTemplate"
+                                                                Content="Load Template"
+                                                                Click="LoadPreviewItemTemplate_Click"
+                                                                IsEnabled="{Binding CanEditSelectedItemColor}"
+                                                                Style="{StaticResource EsButton.Secondary}"
+                                                                MinWidth="104"
+                                                                Margin="0,0,4,4"
+                                                                AutomationProperties.Name="개별 설정 템플릿 불러오기" />
+                                                        <Button x:Name="Ind_SaveTemplate"
+                                                                Tag="Ind_SaveTemplate"
+                                                                Content="Save Template"
+                                                                Click="SavePreviewItemTemplate_Click"
+                                                                IsEnabled="{Binding CanEditSelectedItemColor}"
+                                                                Style="{StaticResource EsButton.Secondary}"
+                                                                MinWidth="104"
+                                                                Margin="0,0,4,4"
+                                                                AutomationProperties.Name="개별 설정 템플릿 저장" />
+                                                    </WrapPanel>
+                                                </Border>
+
                                                 <GroupBox x:Name="IndgroupBox1"
                                                           Tag="IndgroupBox1"
                                                           Header="Text"

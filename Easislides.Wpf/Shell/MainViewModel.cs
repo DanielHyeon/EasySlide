@@ -3096,6 +3096,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemFontName));
         OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
         OnPropertyChanged(nameof(SelectedItemBackgroundImagePath));
+        OnPropertyChanged(nameof(SelectedItemFormatData));
         OnPropertyChanged(nameof(SelectedItemBold));
         OnPropertyChanged(nameof(SelectedItemItalic));
         OnPropertyChanged(nameof(SelectedItemUnderline));
@@ -5453,6 +5454,52 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public bool CanClearSelectedItemFormatting
         => CanEditSelectedItemColor && !string.IsNullOrEmpty(SelectedItem?.FormatData);
+
+    /// <summary>현재 선택 항목의 원본 FormatData 문자열 — FrmMain 개별 설정 템플릿(.est) 저장에 사용한다.</summary>
+    public string SelectedItemFormatData => SelectedItem?.FormatData ?? string.Empty;
+
+    /// <summary>
+    /// FrmMain Ind_LoadTemplate 경로: .est 의 ListHeader/FormatData 를 선택 항목에 그대로 적용한다.
+    /// 알 수 없는 레거시 코드도 잃지 않도록 Parse/Encode 왕복을 하지 않고 원본 문자열을 보존한다.
+    /// </summary>
+    public bool ApplySelectedItemFormatDataTemplate(string? formatData)
+    {
+        if (!CanEditSelectedItemColor || SelectedItem is not { } item)
+        {
+            return false;
+        }
+
+        var normalized = NormalizeTemplateFormatData(formatData);
+        var encoded = string.IsNullOrEmpty(normalized) ? null : normalized;
+        if (string.Equals(item.FormatData, encoded, StringComparison.Ordinal) && item.UseIndividualFormatting)
+        {
+            return false;
+        }
+
+        var index = IndexOfReference(item);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        var updated = item with
+        {
+            FormatData = encoded,
+            UseIndividualFormatting = true,
+        };
+        Queue[index] = updated;
+        SelectedItem = updated;
+
+        RepublishLiveSongForBodyChange();
+        NotifyCommandStates();
+        StatusText = encoded is null
+            ? "개별 설정 템플릿 적용: 빈 서식"
+            : "개별 설정 템플릿 적용";
+        return true;
+    }
+
+    private static string NormalizeTemplateFormatData(string? formatData)
+        => string.IsNullOrWhiteSpace(formatData) ? string.Empty : formatData.Trim();
 
     /// <summary>
     /// 선택한 항목의 항목별 서식(FormatData 전체 — 색·정렬·크기·글꼴·배경·강조, Region1·Region2)을 모두 지워 전역 기본 서식으로 되돌린다(레거시 Clear All Formatting).
