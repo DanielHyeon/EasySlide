@@ -26,6 +26,10 @@ public class MainMenuBarTests
         Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "App.xaml.cs"),
         Encoding.UTF8);
 
+    private static string TabViewXaml => File.ReadAllText(
+        Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "Controls", "EsTabView.xaml"),
+        Encoding.UTF8);
+
     private static int CountOccurrences(string text, string value)
     {
         var count = 0;
@@ -361,6 +365,14 @@ public class MainMenuBarTests
         var xaml = Xaml;
         xaml.Should().Contain("x:Name=\"LeftBrowserTabs\"", "left source browser stays first-screen");
         xaml.Should().Contain("TabStripPlacement=\"Bottom\"", "FrmMain source tabs are bottom-aligned");
+        xaml.Should().Contain("Style=\"{StaticResource EsTabView.FrmMainBottom}\"",
+            "LeftBrowserTabs must use a compact bottom tab template instead of the large WPF UI tab header layout");
+
+        var tabs = TabViewXaml;
+        tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottom\"", "FrmMain source/list tabs need their own compact bottom style");
+        tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottomItem\"", "FrmMain tabs need compact item chrome");
+        tabs.Should().Contain("PART_SelectedContentHost", "the FrmMain tab template should render selected content separately from the bottom tab strip");
+        tabs.Should().Contain("Grid.Row=\"1\"", "the FrmMain tab template should dock the header strip below selected content");
 
         var cursor = -1;
         foreach (var tag in new[]
@@ -378,6 +390,25 @@ public class MainMenuBarTests
             index.Should().BeGreaterThan(cursor, $"{tag} should appear in FrmMain source-tab order");
             cursor = index;
         }
+    }
+
+    [Fact]
+    public void LeftListTabs_UseSameFrmMainCompactBottomTabTemplate()
+    {
+        var xaml = Xaml;
+        xaml.Should().Contain("x:Name=\"LeftListTabs\"", "lower-left Worship/Praise tabs stay first-screen");
+        xaml.Should().Contain("Tag=\"tabControlLists\"", "lower-left tabs should keep the FrmMain tabControlLists role");
+
+        var leftListTabsStart = xaml.IndexOf("x:Name=\"LeftListTabs\"", StringComparison.Ordinal);
+        leftListTabsStart.Should().BeGreaterThanOrEqualTo(0);
+        var leftListTabsEnd = xaml.IndexOf("<TabItem Tag=\"WorshipList\"", leftListTabsStart, StringComparison.Ordinal);
+        leftListTabsEnd.Should().BeGreaterThan(leftListTabsStart);
+        var leftListTabsDeclaration = xaml[leftListTabsStart..leftListTabsEnd];
+
+        leftListTabsDeclaration.Should().Contain("TabStripPlacement=\"Bottom\"",
+            "FrmMain lower-left tabs are bottom-aligned");
+        leftListTabsDeclaration.Should().Contain("Style=\"{StaticResource EsTabView.FrmMainBottom}\"",
+            "the Worship List/Praise Book tabs should not render as large modern header buttons");
     }
 
     [Fact]

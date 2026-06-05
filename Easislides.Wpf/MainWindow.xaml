@@ -1014,16 +1014,13 @@
                             Tag="tabControlSource"
                             SelectionChanged="LeftBrowserTabs_SelectionChanged"
                             TabStripPlacement="Bottom"
+                            Style="{StaticResource EsTabView.FrmMainBottom}"
                             BorderThickness="0"
                             Background="Transparent">
                     <TabItem Tag="Folders"
                              AutomationProperties.Name="Folders">
-                        <!-- 탭 머리글에 Fluent 아이콘 추가(현대 UI 업그레이드) — 라이브러리=찬양 노트북 아이콘. 스크린리더는 탭 이름을 읽게 AutomationProperties.Name 고정. -->
                         <TabItem.Header>
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
-                                <TextBlock Text="Folders" />
-                            </StackPanel>
+                            <TextBlock Text="Folders" />
                         </TabItem.Header>
                     <Grid x:Name="ClassicFoldersSourceGrid"
                           Margin="3,5,3,0">
@@ -1235,10 +1232,7 @@
                          x:Name="InfoScreenSourceTab"
                          AutomationProperties.Name="InfoScr source">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Info}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="InfoScr" />
-                        </StackPanel>
+                        <TextBlock Text="InfoScr" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1329,10 +1323,7 @@
                          x:Name="PowerPointSourceTab"
                          AutomationProperties.Name="PowerPoint source">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="PowerPoint" />
-                        </StackPanel>
+                        <TextBlock Text="PowerPoint" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1586,10 +1577,7 @@
                          AutomationProperties.Name="Bibles">
                     <!-- 성경 탭 = 책 아이콘. -->
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="Bibles" />
-                        </StackPanel>
+                        <TextBlock Text="Bibles" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1711,10 +1699,7 @@
                          x:Name="ImagesSourceTab"
                          AutomationProperties.Name="Images">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PlaceholderNoImage}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="Images" />
-                        </StackPanel>
+                        <TextBlock Text="Images" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1853,10 +1838,7 @@
                          x:Name="MediaSourceTab"
                          AutomationProperties.Name="Media source">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaFile}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="Media" />
-                        </StackPanel>
+                        <TextBlock Text="Media" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1955,10 +1937,7 @@
                 <TabItem Tag="DefaultSource"
                          AutomationProperties.Name="Default">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowReset24" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="Default" />
-                        </StackPanel>
+                        <TextBlock Text="Default" />
                     </TabItem.Header>
                     <ScrollViewer x:Name="DefPanel"
                                   Tag="DefPanel"
@@ -2212,12 +2191,8 @@
                 <!-- Search tab keeps song/title/usage lookup inline in the left rail. -->
                 <TabItem Tag="Search"
                          AutomationProperties.Name="검색">
-                    <!-- 검색 탭 = 돋보기 아이콘. -->
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" FontSize="15" Margin="0,0,6,0" />
-                            <TextBlock Text="검색" />
-                        </StackPanel>
+                        <TextBlock Text="검색" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -2468,15 +2443,13 @@
                             Tag="tabControlLists"
                             SelectionChanged="LeftListTabs_SelectionChanged"
                             TabStripPlacement="Bottom"
+                            Style="{StaticResource EsTabView.FrmMainBottom}"
                             BorderThickness="0"
                             Background="Transparent">
                     <TabItem Tag="WorshipList"
                              AutomationProperties.Name="Worship List">
                         <TabItem.Header>
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
-                                <TextBlock Text="Worship List" />
-                            </StackPanel>
+                            <TextBlock Text="Worship List" />
                         </TabItem.Header>
                         <composites:WorshipListPanel AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested"
                                                      OpenSessionNotesRequested="WorshipListPanel_OpenSessionNotesRequested"
@@ -2486,10 +2459,7 @@
                              x:Name="PraiseBookTab"
                              AutomationProperties.Name="Praise Book">
                         <TabItem.Header>
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Notebook}" FontSize="15" Margin="0,0,6,0" />
-                                <TextBlock Text="Praise Book" />
-                            </StackPanel>
+                            <TextBlock Text="Praise Book" />
                         </TabItem.Header>
                         <Grid Margin="0,8,0,0">
                             <Grid.RowDefinitions>

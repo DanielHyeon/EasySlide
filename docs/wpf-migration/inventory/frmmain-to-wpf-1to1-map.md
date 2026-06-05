@@ -17,8 +17,8 @@
 | `Main_NoRotate`, `Main_RotateStyle`, `Main_Rotate0..3` | `ToggleAutoRotateCommand`, `AutoRotateModeInput`, `AutoRotateModeOptions` | partial | 4/6 | auto-rotation now advances the live Output item rather than the selected Preview item, including diverged Preview selection; exact FrmMain toolbar icon/check/dropdown parity still incomplete |
 | `splitContainerMain.Panel1` | `ClassicSourceColumn` / `ClassicSourcePane` (`Tag=splitContainer1`) | partial | 1 | source/list column now scales by splitter-like proportion; behavior/data parity incomplete |
 | `splitContainerMain.Panel2` | `ClassicRightColumn` / `ClassicRightConsole` (`Tag=splitContainer2`) | partial | 1 | Preview/Output are now nested under a right splitContainer2-equivalent Grid; exact behavior incomplete |
-| `splitContainer1.Panel1` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1/2/3 | source tabs exist, several are shallow |
-| `splitContainer1.Panel2` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1/2/3 | Worship List visible, Praise Book shallow |
+| `splitContainer1.Panel1` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1/2/3 | source tabs now use FrmMain-style compact bottom text tabs; several source behaviors are still shallow |
+| `splitContainer1.Panel2` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1/2/3 | Worship List/Praise Book now use FrmMain-style compact bottom text tabs; Praise Book/manage details are still partial |
 | `splitContainer2.Panel1` | `ClassicPreviewColumn` | partial | 1/4 | Preview column now lives inside `ClassicRightConsole`; Preview slide/lyrics navigation is separated from live Output; legacy controls incomplete |
 | `splitContainer2.Panel2` | `ClassicOutputColumn` | partial | 1/4 | Output column now lives inside `ClassicRightConsole`; live PPT/lyrics navigation and position labels use independent Output state; non-PPT live thumbnail/control parity incomplete |
 | `splitContainerPreview.Panel1` | `ClassicTopControlRow` + `ClassicPreviewPane` (`Tag=splitContainerPreview.Panel1`) | partial | 4/5 | top row is named and tagged; needs exact item/slide/section/format controls |
@@ -30,7 +30,7 @@
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `tabControlSource` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1 | tab role is now explicit; enforce exact tab order and source behavior |
+| `tabControlSource` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1 | tab role/order is explicit and compact bottom text tab styling is applied; exact source behavior remains incomplete |
 | `tabFolders` | `Folders` tab / `ClassicFoldersSourceGrid` | partial | 2/3 | compact FrmMain-style top strip now exists; context menu/edit commands still incomplete |
 | `SongFolder` | `ClassicSongFolderCombo` (`Tag=SongFolder`) | partial | 2 | first-screen combo is mapped; legacy folder management still lives outside this strip |
 | `SongsList` | `LibrarySongList` (`Tag=SongsList`) | partial | 3/6 | headerless `ListView/GridView`, extended multi-select, double-click, Enter add, drag, right-click row targeting, and FrmMain `CMenuSongs` Select/Unselect/Add && Show/Edit/Copy/Refresh surface exist; Add && Show publishes the first newly added row through Preview-to-Live; exact delete/shortcut and post-edit refresh edge cases still incomplete |
@@ -60,7 +60,7 @@
 
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
-| `tabControlLists` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1 | tab role is now explicit; exact visual density and tab behavior still incomplete |
+| `tabControlLists` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1 | compact bottom text tab styling is applied; exact list commands, density, and behavior still incomplete |
 | `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; DB song items now resolve lyrics by `SongId` from `C:\EasiSlides\Admin\Database\EasiSlidesDb.db`; first-screen `WL_Open` external-file add is wired; remaining toolbar/context commands still incomplete |
 | `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2/6 | compact first-screen combo exists; startup selects/loads the first saved `C:\EasiSlides\Admin\WorshipLists` entry when no prior selection exists; user selection now immediately loads the chosen list while Enter/double-click/button remain backup paths; exact legacy selection persistence still incomplete |
 | `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, extended multi-select, startup default `.esw` load with DB-backed song lyrics, drag reorder, double-click Go Live, and context menu exist; `CMenuWorship_SelectAll/UnselectAll/Clear/Play/PlayOnOutput` now route to WPF handlers/commands; `CMenuWorship_Edit` now targets the right-clicked DB song row via the WPF song editor, Bible/Notice rows via a title/body text editor, and ContentPath-backed PPT/media rows via an external file edit launcher; `CMenuWorship_AddUsages` now scans the full current Worship List and records DB song rows to `Admin\Database\EsUsage.db`; exact legacy media assignment dialog parity still incomplete |
