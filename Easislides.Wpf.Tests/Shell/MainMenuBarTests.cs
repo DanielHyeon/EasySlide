@@ -171,7 +171,14 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"splitContainerOutput.Panel1\"", "right-top Output pane should map to splitContainerOutput.Panel1");
         xaml.Should().Contain("Grid.Column=\"2\"", "Output panes stay in the right column inside splitContainer2");
         xaml.Should().Contain("Grid.Row=\"0\"", "right-top Output pane hosts thumbnails");
+        xaml.Should().Contain("x:Name=\"flowLayoutOutputLyrics\"", "right-top Output pane should also expose FrmMain flowLayoutOutputLyrics for song/Bible output");
+        xaml.Should().Contain("Tag=\"flowLayoutOutputLyrics\"", "the non-PPT Output lyrics role should remain explicit");
+        xaml.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "Output lyrics surface must bind to the prepared/live OutputItem, not the selected Preview lyrics");
+        xaml.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
+            "non-PPT Output lyrics should only show when the Output target has lyrics/body text");
         xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
+        xaml.Should().Contain("Visibility=\"{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}\"",
+            "PPT thumbnails should show for the OutputItem context rather than every selected Preview item");
         xaml.Should().Contain("ItemsSource=\"{Binding OutputPowerPoint.Thumbnails}\"", "Output thumbnails must use the live/output PPT thumbnail source");
         xaml.Should().Contain("Command=\"{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}\"",
             "thumbnail clicks should navigate the output PPT slide, not the selected preview deck");
@@ -248,6 +255,7 @@ public class MainMenuBarTests
             "ClassicPreviewSlidePane",
             "ClassicPreviewHolder",
             "ClassicOutputInfo",
+            "flowLayoutOutputLyrics",
             "ClassicOutputSlidePane",
             "ClassicOutputHolder",
             "ClassicOutputBack",
@@ -272,6 +280,8 @@ public class MainMenuBarTests
             "PreviewInfo focus should route keys to the selected Preview item");
         code.Should().Contain("ClassicOutputInfo.IsKeyboardFocusWithin",
             "OutputInfo focus should route keys to the live Output item");
+        code.Should().Contain("flowLayoutOutputLyrics.IsKeyboardFocusWithin",
+            "Output lyrics flow focus should route keys to the live Output item");
         code.Should().Contain("_viewModel.JumpToLyricsSectionCommand",
             "Preview verse keys should keep targeting the selected Preview item");
         code.Should().Contain("_viewModel.JumpToOutputLyricsSectionCommand",

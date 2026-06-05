@@ -3207,6 +3207,29 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void CopyPreviewToOutputCommand_PreparesLyricsOutputSurfaceWithoutStartingLive()
+    {
+        // FrmMain OutputInfo/flowLayoutOutputLyrics: btnToOutput 은 선택 Preview 가사를 오른쪽 Output 표면에 준비한다.
+        var first = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례" };
+        var second = new LiveQueueItem("song:2", "봉헌 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n봉헌" };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([first, second]);
+        sut.SelectedItem = first;
+
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.OutputLyricsText.Should().Be("[1]\n입례");
+        sut.HasOutputLyricsText.Should().BeTrue();
+        sut.IsOutputPowerPointContext.Should().BeFalse();
+        sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");
+
+        sut.SelectedItem = second;
+        sut.OutputItem.Should().BeSameAs(first, "Preview 선택 변경은 준비된 OutputItem 을 바꾸지 않는다");
+        sut.OutputLyricsText.Should().Be("[1]\n입례", "Output 본문도 Preview 선택이 아니라 OutputItem 을 따라야 한다");
+    }
+
+    [Fact]
     public void CopyPreviewToOutputAndNextCommand_PreparesOutputAndAdvancesPreviewWithoutStartingLive()
     {
         // FrmMain btnToOutputMoveNext_Click: CopyPreviewToOutput + PreviewItem NextOne, GoLive 없음.
@@ -8038,6 +8061,7 @@ public class MainViewModelTests
         sut.Session.Current.CurrentItemTitle.Should().Be("Live song", "라이브 항목은 기존 OutputItem 그대로");
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "라이브 A 의 첫 후렴으로 이동");
         sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.OutputLyricsText.Should().Be("Live chorus", "오른쪽 Output 본문 표면도 라이브 OutputItem 의 현재 절을 따라간다");
         sut.LiveBar.PositionLabel.Should().Be("2/4", "Output 라이브 위치 표시만 갱신된다");
     }
 
@@ -8062,6 +8086,7 @@ public class MainViewModelTests
 
         sut.SelectedItem = preview;
         sut.LyricsPageIndex.Should().Be(0, "Preview 선택 변경은 preview 페이지를 첫 절로 둔다");
+        sut.OutputLyricsText.Should().Be("Live verse", "Output 본문은 Preview 선택과 독립적으로 라이브 첫 절을 유지한다");
 
         sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue();
         await sut.NextOutputSlideCommand.ExecuteAsync(null);
@@ -8071,6 +8096,7 @@ public class MainViewModelTests
         sut.Session.Current.CurrentItemTitle.Should().Be("Live song", "라이브 항목은 기존 OutputItem 그대로");
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1, "다음 Output 버튼은 라이브 절만 앞으로 넘긴다");
         sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.OutputLyricsText.Should().Be("Live chorus");
         sut.LiveBar.PositionLabel.Should().Be("2/4");
 
         sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue();
@@ -8080,6 +8106,7 @@ public class MainViewModelTests
         sut.LyricsPageIndex.Should().Be(0);
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0, "이전 Output 버튼은 라이브 절만 되돌린다");
         sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse");
+        sut.OutputLyricsText.Should().Be("Live verse");
         sut.LiveBar.PositionLabel.Should().Be("1/4");
     }
 

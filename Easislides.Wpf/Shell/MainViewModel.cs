@@ -46,7 +46,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _suppressPreviewMonitorPersist;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
-    [ObservableProperty] private LiveQueueItem? _outputItem;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOutputPowerPointContext))]
+    private LiveQueueItem? _outputItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     // 스테이지(Preview) 모니터로 선택된 디스플레이 + 창 열림 여부(메뉴·버튼 활성 상태에 쓰임).
     [ObservableProperty] private OutputDisplay? _selectedPreviewDisplay;
@@ -106,6 +108,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int _powerPointMaxFiles = EasiSettingKeys.PowerPointMaxFiles.DefaultValue;
     [ObservableProperty] private int _powerPointFileCount;
     [ObservableProperty] private bool _hasPowerPointLimitViolation;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOutputLyricsText))]
+    private string _outputLyricsText = string.Empty;
     [ObservableProperty] private bool _isMediaTabVisible;
     [ObservableProperty] private bool _isMediaPanelOverlayEnabled = true;
     [ObservableProperty] private string _mediaDirectory = EasiSettingKeys.MediaDirectory.DefaultValue;
@@ -171,6 +176,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmMain cbGoLive 체크 상태: 현재 출력이 라이브로 표시 중인가.</summary>
     public bool IsOutputLiveActive => _session.Current.State == LiveState.Active;
+
+    /// <summary>FrmMain flowLayoutOutputPowerPoint 표시 대상인가.</summary>
+    public bool IsOutputPowerPointContext => OutputItem is not null && IsPowerPointItem(OutputItem);
+
+    /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
+    public bool HasOutputLyricsText => !string.IsNullOrWhiteSpace(OutputLyricsText);
 
     private bool _disposed;
 
@@ -506,6 +517,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _liveItemId = id;
         OnPropertyChanged(nameof(LiveItemId));
         OnPropertyChanged(nameof(CanSelectLiveItem)); // 라이브 항목이 바뀌면 "현재 송출 항목 선택" 활성/비활성도 바뀐다.
+        RefreshOutputSurfaceText();
         SelectLiveItemCommand?.NotifyCanExecuteChanged();
     }
 
@@ -3283,6 +3295,49 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         NotifyCommandStates();
+    }
+
+    partial void OnOutputItemChanged(LiveQueueItem? value)
+    {
+        RefreshOutputSurfaceText();
+        OnPropertyChanged(nameof(IsOutputPowerPointContext));
+    }
+
+    private void RefreshOutputSurfaceText()
+    {
+        if (OutputItem is not { } item || IsPowerPointItem(item) || IsMediaItem(item))
+        {
+            OutputLyricsText = string.Empty;
+            return;
+        }
+
+        if (_session.Current.State != LiveState.Off
+            && string.Equals(item.Id, _liveItemId, StringComparison.Ordinal))
+        {
+            var liveText = JoinOutputBodyText(_session.Current.CurrentItemBodyText, _session.Current.CurrentItemBodyText2);
+            if (!string.IsNullOrWhiteSpace(liveText))
+            {
+                OutputLyricsText = liveText;
+                return;
+            }
+        }
+
+        OutputLyricsText = item.Lyrics ?? string.Empty;
+    }
+
+    private static string JoinOutputBodyText(string region1, string region2)
+    {
+        if (string.IsNullOrWhiteSpace(region2))
+        {
+            return region1;
+        }
+
+        if (string.IsNullOrWhiteSpace(region1))
+        {
+            return region2;
+        }
+
+        return $"{region1}{Environment.NewLine}{Environment.NewLine}{region2}";
     }
 
     private void PlaySelectedWorshipMediaOnOutput()
@@ -6493,6 +6548,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 다음 송출 예정 항목 — 운영자가 미리 준비하도록 LiveBar 에 "다음 ▸ X"로 보여 준다(마지막 항목이면 빈 문자열→숨김).
         LiveBar.NextItemTitle = snapshot.CurrentItemNextTitle;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;
+        RefreshOutputSurfaceText();
         // 자동 회전은 라이브 완전 종료(Stop=Off)에서만 해제한다 — 숨김/검정/비우기(Hidden)는 임시 상태라
         // 유지하고 복귀(Restore→Active) 시 그대로 이어간다. 숨김 중에는 AdvanceAutoRotation 이 State!=Active 로
         // no-op 이라 출력을 깨우지 않으므로 회전 상태를 유지해도 안전하다(View 타이머가 IsAutoRotating 을 보고 멈춤).

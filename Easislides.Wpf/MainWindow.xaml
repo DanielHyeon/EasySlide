@@ -2986,62 +2986,81 @@
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Status.Danger}" />
                             </Border>
-                            <ScrollViewer Grid.Row="1"
-                                          x:Name="ClassicOutputPowerPointSurface"
-                                          Tag="flowLayoutOutputPowerPoint"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          VerticalScrollBarVisibility="Auto"
-                                          Margin="8"
-                                          AutomationProperties.Name="Output PowerPoint 썸네일 영역">
-                                <ItemsControl x:Name="ClassicOutputThumbnailGrid"
-                                              ItemsSource="{Binding OutputPowerPoint.Thumbnails}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                    CommandParameter="{Binding SlideNumber}"
-                                                    Margin="6"
-                                                    Padding="0"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
-                                                    AutomationProperties.Name="{Binding SlideNumber, StringFormat=Output 슬라이드 {0}}">
-                                                <Border BorderThickness="5"
-                                                        Padding="3">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="BorderBrush" Value="Transparent" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                    <Setter Property="BorderBrush" Value="Red" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <Grid>
-                                                        <Image Source="{Binding Image}"
-                                                               Width="180"
-                                                               Height="102"
-                                                               Stretch="Uniform" />
-                                                        <TextBlock Text="{Binding SlideNumber}"
-                                                                   HorizontalAlignment="Right"
-                                                                   VerticalAlignment="Top"
-                                                                   MinWidth="18"
-                                                                   TextAlignment="Center"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="Black"
-                                                                   Background="#FFF6E600" />
-                                                    </Grid>
-                                                </Border>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
+                            <Grid Grid.Row="1">
+                                <ScrollViewer x:Name="flowLayoutOutputLyrics"
+                                              Tag="flowLayoutOutputLyrics"
+                                              Focusable="True"
+                                              MouseDown="ClassicKeyboardSurface_MouseDown"
+                                              VerticalScrollBarVisibility="Auto"
+                                              Margin="8"
+                                              Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
+                                              AutomationProperties.Name="Output 가사 본문 영역">
+                                    <Border Background="{DynamicResource Brush.Surface.Page}"
+                                            Padding="6">
+                                        <TextBlock Text="{Binding OutputLyricsText}"
+                                                   TextWrapping="Wrap"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    </Border>
+                                </ScrollViewer>
+
+                                <ScrollViewer x:Name="ClassicOutputPowerPointSurface"
+                                              Tag="flowLayoutOutputPowerPoint"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              VerticalScrollBarVisibility="Auto"
+                                              Margin="8"
+                                              Visibility="{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}"
+                                              AutomationProperties.Name="Output PowerPoint 썸네일 영역">
+                                    <ItemsControl x:Name="ClassicOutputThumbnailGrid"
+                                                  ItemsSource="{Binding OutputPowerPoint.Thumbnails}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding SlideNumber}"
+                                                        Margin="6"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
+                                                        AutomationProperties.Name="{Binding SlideNumber, StringFormat=Output 슬라이드 {0}}">
+                                                    <Border BorderThickness="5"
+                                                            Padding="3">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="BorderBrush" Value="Transparent" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                        <Setter Property="BorderBrush" Value="Red" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Image Source="{Binding Image}"
+                                                                   Width="180"
+                                                                   Height="102"
+                                                                   Stretch="Uniform" />
+                                                            <TextBlock Text="{Binding SlideNumber}"
+                                                                       HorizontalAlignment="Right"
+                                                                       VerticalAlignment="Top"
+                                                                       MinWidth="18"
+                                                                       TextAlignment="Center"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="Black"
+                                                                       Background="#FFF6E600" />
+                                                        </Grid>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
                             <StackPanel Grid.Row="2"
                                         Orientation="Horizontal"
                                         Margin="4,0,4,4">
