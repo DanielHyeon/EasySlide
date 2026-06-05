@@ -1196,11 +1196,15 @@
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding FolderPath}"
-                                     IsReadOnly="True"
-                                     MinHeight="34"
-                                     VerticalContentAlignment="Center"
-                                     AutomationProperties.Name="PowerPoint folder path" />
+                            <ComboBox x:Name="PowerpointFolder"
+                                      Tag="PowerpointFolder"
+                                      ItemsSource="{Binding FolderGroups}"
+                                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"
+                                      MinHeight="34"
+                                      VerticalContentAlignment="Center"
+                                      ToolTip="{Binding FolderPath}"
+                                      AutomationProperties.Name="PowerPoint folder selector" />
                             <Button Grid.Column="2"
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"

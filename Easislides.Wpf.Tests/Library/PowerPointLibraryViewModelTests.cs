@@ -11,16 +11,33 @@ public class PowerPointLibraryViewModelTests
     private sealed class FakePptService : IPowerPointLibraryService
     {
         private readonly IReadOnlyList<string> _paths;
-        public FakePptService(params string[] paths) => _paths = paths;
+        private readonly IReadOnlyList<PowerPointFolderItem> _folders;
+
+        public FakePptService(IReadOnlyList<PowerPointFolderItem>? folders = null, params string[] paths)
+        {
+            _paths = paths;
+            _folders = folders ?? new[] { new PowerPointFolderItem("Powerpoint Items", @"C:\decks") };
+        }
+
+        public string? LastEnumeratedFolder { get; private set; }
+
         public IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders) => _paths;
+
+        public IReadOnlyList<PowerPointFolderItem> EnumerateFolders(string rootFolder) => _folders;
     }
 
     private static PowerPointLibraryViewModel CreateSut(out List<string> added, params string[] paths)
+        => CreateSut(out added, folders: null, paths);
+
+    private static PowerPointLibraryViewModel CreateSut(
+        out List<string> added,
+        IReadOnlyList<PowerPointFolderItem>? folders,
+        params string[] paths)
     {
         var addedLocal = new List<string>();
         added = addedLocal;
         return new PowerPointLibraryViewModel(
-            new FakePptService(paths),
+            new FakePptService(folders, paths),
             path => addedLocal.Add(path),
             initialFolder: @"C:\decks");
     }
@@ -91,12 +108,46 @@ public class PowerPointLibraryViewModelTests
     }
 
     [Fact]
+    public void Constructor_BuildsFrmMainPowerpointFolderGroups_WithoutLoadingFiles()
+    {
+        var folders = new[]
+        {
+            new PowerPointFolderItem("Powerpoint Items", @"C:\decks"),
+            new PowerPointFolderItem(@"\찬양", @"C:\decks\찬양"),
+        };
+
+        var sut = CreateSut(out _, folders, @"C:\decks\찬양\a.pptx");
+
+        sut.FolderGroups.Select(f => f.DisplayName).Should().Equal("Powerpoint Items", @"\찬양");
+        sut.SelectedFolder.Should().Be(folders[0]);
+        sut.FolderPath.Should().Be(@"C:\decks");
+        sut.IncludeSubfolders.Should().BeTrue("FrmMain Powerpoint folder contents include nested folders");
+        sut.Presentations.Should().BeEmpty("constructor should not load files before the source tab is opened");
+    }
+
+    [Fact]
+    public void SelectingPowerpointFolder_UpdatesFolderPath_AndReloadsList()
+    {
+        var folders = new[]
+        {
+            new PowerPointFolderItem("Powerpoint Items", @"C:\decks"),
+            new PowerPointFolderItem(@"\찬양", @"C:\decks\찬양"),
+        };
+        var sut = CreateSut(out _, folders, @"C:\decks\찬양\a.pptx");
+
+        sut.SelectedFolder = folders[1];
+
+        sut.FolderPath.Should().Be(@"C:\decks\찬양");
+        sut.Presentations.Select(p => p.FileName).Should().Equal("a.pptx");
+    }
+
+    [Fact]
     public void TogglingIncludeSubfolders_ReloadsList()
     {
         var sut = CreateSut(out _, @"C:\decks\a.pptx", @"C:\decks\sub\b.pptx");
         sut.Presentations.Should().BeEmpty("아직 Load 전");
 
-        sut.IncludeSubfolders = true;
+        sut.IncludeSubfolders = false;
 
         sut.Presentations.Should().HaveCount(2);
     }

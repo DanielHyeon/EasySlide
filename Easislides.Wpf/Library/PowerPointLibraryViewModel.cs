@@ -36,11 +36,16 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 {
     private readonly IPowerPointLibraryService _service;
     private readonly Action<string> _addToQueue;
+    private readonly string _rootFolderPath;
+    private bool _suppressSelectedFolderReload;
     // 폴더에서 읽은 전체 PPT(검색 필터 적용 전 원본). 검색 상자는 이 목록에서 걸러 Presentations 에 보여 준다.
     private readonly List<PowerPointFileItem> _allFiles = new();
 
     [ObservableProperty]
     private string _folderPath = string.Empty;
+
+    [ObservableProperty]
+    private PowerPointFolderItem? _selectedFolder;
 
     // 검색어 — 파일명에 이 글자가 든 PPT 만 목록에 보인다(대소문자 무시). 비우면 전부. 큰 폴더에서 빠르게 찾는 현대 기능.
     [ObservableProperty]
@@ -53,9 +58,9 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     [ObservableProperty]
     private string _statusText = string.Empty;
 
-    // 하위 폴더 포함 토글 시 즉시 다시 읽는다.
+    // FrmMain ShowPowerpointFolderContents 는 선택 폴더 아래를 재귀로 훑는다. 기본 true 로 맞춘다.
     [ObservableProperty]
-    private bool _includeSubfolders;
+    private bool _includeSubfolders = true;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsListStyle))]
@@ -70,13 +75,18 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
-        _folderPath = initialFolder ?? string.Empty;
+        _rootFolderPath = initialFolder ?? string.Empty;
+        _folderPath = _rootFolderPath;
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
         UseListStyleCommand = new RelayCommand(() => ListingStyle = PowerPointListingStyle.List);
         UsePreviewStyleCommand = new RelayCommand(() => ListingStyle = PowerPointListingStyle.Preview);
+
+        BuildFolderGroups();
     }
+
+    public ObservableCollection<PowerPointFolderItem> FolderGroups { get; } = new();
 
     public ObservableCollection<PowerPointFileItem> Presentations { get; } = new();
 
@@ -96,8 +106,42 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
     partial void OnIncludeSubfoldersChanged(bool value) => Load();
 
+    partial void OnSelectedFolderChanged(PowerPointFolderItem? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        FolderPath = value.FolderPath;
+        if (!_suppressSelectedFolderReload)
+        {
+            Load();
+        }
+    }
+
     // 검색어가 바뀌면 다시 읽지 않고(폴더 탐색은 비쌈) 이미 읽어 둔 전체 목록에서 걸러 보여 준다.
     partial void OnFilterTextChanged(string value) => ApplyFilter();
+
+    private void BuildFolderGroups()
+    {
+        _suppressSelectedFolderReload = true;
+        try
+        {
+            FolderGroups.Clear();
+            foreach (var folder in _service.EnumerateFolders(_rootFolderPath))
+            {
+                FolderGroups.Add(folder);
+            }
+
+            SelectedFolder = FolderGroups.FirstOrDefault();
+            FolderPath = SelectedFolder?.FolderPath ?? _rootFolderPath;
+        }
+        finally
+        {
+            _suppressSelectedFolderReload = false;
+        }
+    }
 
     // 현재 폴더의 PPT 파일 목록을 다시 읽는다(전체를 _allFiles 에 담고, 검색어 적용해 화면 목록 구성).
     private void Load()

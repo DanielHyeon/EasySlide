@@ -373,6 +373,9 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("Tag=\"PowerPointSource\"", "FrmMain keeps PowerPoint as a main-console source tab");
         xaml.Should().Contain("x:Name=\"PowerPointSourceTab\"", "inline PowerPoint tab needs a stable DataContext target");
+        xaml.Should().Contain("x:Name=\"PowerpointFolder\"", "PowerPoint source should expose the FrmMain PowerpointFolder combo role");
+        xaml.Should().Contain("ItemsSource=\"{Binding FolderGroups}\"", "PowerpointFolder should list the root and subfolder groups");
+        xaml.Should().Contain("SelectedItem=\"{Binding SelectedFolder, Mode=TwoWay}\"", "selecting a PowerpointFolder should reload that source folder");
         xaml.Should().Contain("x:Name=\"InlinePowerPointList\"", "PowerPoint files must be visible without opening a modal window");
         xaml.Should().Contain("Tag=\"PowerpointList\"", "PowerpointList should keep the FrmMain list role");
         xaml.Should().Contain("ItemsSource=\"{Binding Presentations}\"", "inline PowerPoint list reuses PowerPointLibraryViewModel");

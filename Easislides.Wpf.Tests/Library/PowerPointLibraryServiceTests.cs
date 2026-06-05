@@ -62,6 +62,33 @@ public class PowerPointLibraryServiceTests : IDisposable
         sut.EnumeratePresentations(@"C:\no\such\__missing__", includeSubfolders: false).Should().BeEmpty();
     }
 
+    [Fact]
+    public void EnumerateFolders_ReturnsRootAndSubfolders_AsFrmMainPowerpointFolderGroups()
+    {
+        Directory.CreateDirectory(Path.Combine(_dir, "찬양"));
+        Directory.CreateDirectory(Path.Combine(_dir, "찬양", "절기"));
+        Directory.CreateDirectory(Path.Combine(_dir, "말씀"));
+        var sut = new PowerPointLibraryService();
+
+        var result = sut.EnumerateFolders(_dir);
+
+        result.Select(f => f.DisplayName).Should().Equal(
+            "Powerpoint Items",
+            @"\말씀",
+            @"\찬양",
+            @"\찬양\절기");
+        result[0].FolderPath.Should().Be(Path.GetFullPath(_dir));
+        result.Select(f => f.FolderPath).Should().OnlyContain(path => Directory.Exists(path));
+    }
+
+    [Fact]
+    public void EnumerateFolders_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new PowerPointLibraryService();
+
+        sut.EnumerateFolders(@"C:\no\such\__missing__").Should().BeEmpty();
+    }
+
     public void Dispose()
     {
         try { Directory.Delete(_dir, recursive: true); } catch { }
