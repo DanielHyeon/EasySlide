@@ -1749,7 +1749,45 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CMenuPowerPointFiles_Edit_Click(object sender, RoutedEventArgs e) => GetActivePowerPointList().Focus();
+    private void CMenuPowerPointFiles_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        var activeList = GetActivePowerPointList();
+        var selection = GetInlinePowerPointSelection(activeList);
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "No PowerPoint file selected.";
+            activeList.Focus();
+            return;
+        }
+
+        LaunchExternalFileForEdit(selection[0].FilePath, "PowerPoint");
+        activeList.Focus();
+    }
+
+    private bool LaunchExternalFileForEdit(string filePath, string sourceName)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            _viewModel.StatusText = $"{sourceName} file not found: {filePath}";
+            return false;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(filePath)
+            {
+                UseShellExecute = true
+            });
+            _viewModel.StatusText = $"{sourceName} edit opened: {Path.GetFileName(filePath)}";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _viewModel.StatusText = $"{sourceName} file could not be opened: {ex.Message}";
+            Debug.WriteLine($"[MainWindow] {sourceName} edit launch failed: {ex.Message}");
+            return false;
+        }
+    }
 
     private void CMenuPowerPointFiles_Copy_Click(object sender, RoutedEventArgs e) => GetActivePowerPointList().Focus();
 

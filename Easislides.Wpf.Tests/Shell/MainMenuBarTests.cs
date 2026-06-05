@@ -624,6 +624,12 @@ public class MainMenuBarTests
         code.Should().Contain("DragDrop.DoDragDrop(", "PowerPoint drag payload should still use WPF drag/drop");
         code.Should().Contain("            powerPointList,",
             "PowerPoint drag payload should originate from whichever PP_ListType surface is active");
+        code.Should().Contain("LaunchExternalFileForEdit(selection[0].FilePath, \"PowerPoint\")",
+            "PowerPoint CMenuFiles_Edit should open the selected file like FrmMain PP_Edit_Clicked");
+        code.Should().Contain("Process.Start(new ProcessStartInfo(filePath)",
+            "file Edit should shell-open the selected external file instead of being a focus-only no-op");
+        code.Should().Contain("UseShellExecute = true",
+            "external file Edit should use the Windows shell association like legacy Edit_Item");
         code.Should().Contain("EnsureInlineImageLoadedOnce(viewModel)", "Images source tab should lazy-load on first selection");
         code.Should().Contain("ImagesSourceTab.DataContext = _inlineImages", "inline Images tab should bind to ImageLibraryViewModel");
         code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");
