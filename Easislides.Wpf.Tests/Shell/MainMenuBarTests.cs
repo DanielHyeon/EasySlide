@@ -184,6 +184,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("Grid.Row=\"0\"", "right-top Output pane hosts thumbnails");
         xaml.Should().Contain("x:Name=\"flowLayoutOutputLyrics\"", "right-top Output pane should also expose FrmMain flowLayoutOutputLyrics for song/Bible output");
         xaml.Should().Contain("Tag=\"flowLayoutOutputLyrics\"", "the non-PPT Output lyrics role should remain explicit");
+        xaml.Should().Contain("<ItemsControl x:Name=\"flowLayoutOutputLyrics\"",
+            "FrmMain flowLayoutOutputLyrics should map to the clickable Output page-card surface, not only the outer scroller");
+        xaml.Should().Contain("x:Name=\"ClassicOutputLyricsScrollViewer\"",
+            "the Output page-card surface should keep a separate named scroller around the FrmMain flow layout");
         xaml.Should().Contain("ItemsSource=\"{Binding OutputLyricsPages}\"", "Output lyrics surface should render prepared/live Output pages as FrmMain-style flow items");
         xaml.Should().Contain("GoToOutputLyricsPageCommand", "Output lyrics page card clicks should navigate the Output item, not the selected Preview item");
         xaml.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",

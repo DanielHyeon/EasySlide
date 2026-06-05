@@ -3619,15 +3619,18 @@
                                            Foreground="{DynamicResource Brush.Status.Danger}" />
                             </Border>
                             <Grid Grid.Row="1">
-                                <ScrollViewer x:Name="flowLayoutOutputLyrics"
-                                              Tag="flowLayoutOutputLyrics"
+                                <ScrollViewer x:Name="ClassicOutputLyricsScrollViewer"
                                               Focusable="True"
                                               MouseDown="ClassicKeyboardSurface_MouseDown"
                                               VerticalScrollBarVisibility="Auto"
                                               Margin="8"
                                               Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
                                               AutomationProperties.Name="Output 가사 페이지 영역">
-                                    <ItemsControl ItemsSource="{Binding OutputLyricsPages}">
+                                    <ItemsControl x:Name="flowLayoutOutputLyrics"
+                                                  Tag="flowLayoutOutputLyrics"
+                                                  Focusable="True"
+                                                  MouseDown="ClassicKeyboardSurface_MouseDown"
+                                                  ItemsSource="{Binding OutputLyricsPages}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <WrapPanel />
