@@ -30,6 +30,7 @@ public partial class WorshipListPanel : UserControl
     private bool _refreshingSessionCombo;
 
     public event RoutedEventHandler? AddSelectedSourceRequested;
+    public event RoutedEventHandler? OpenSessionNotesRequested;
 
     public WorshipListPanel()
     {
@@ -39,6 +40,12 @@ public partial class WorshipListPanel : UserControl
     private void WL_Add_Click(object sender, RoutedEventArgs e)
     {
         AddSelectedSourceRequested?.Invoke(this, e);
+        e.Handled = true;
+    }
+
+    private void WL_Notes_Click(object sender, RoutedEventArgs e)
+    {
+        OpenSessionNotesRequested?.Invoke(this, e);
         e.Handled = true;
     }
 

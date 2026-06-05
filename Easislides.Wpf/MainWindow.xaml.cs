@@ -821,6 +821,9 @@ public partial class MainWindow : Window
         await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
     }
 
+    private void WorshipListPanel_OpenSessionNotesRequested(object sender, RoutedEventArgs e)
+        => OpenSessionNotes_Click(sender, e);
+
     private async Task AddSelectedSourceToWorshipListAsync(MainViewModel viewModel)
     {
         if (LeftBrowserTabs.SelectedItem is not TabItem { Tag: string tag })

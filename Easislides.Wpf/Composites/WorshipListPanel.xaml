@@ -166,6 +166,18 @@
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
+                <Button x:Name="WL_Notes"
+                        Tag="WL_Notes"
+                        Click="WL_Notes_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        ToolTip="세션 메모 편집"
+                        AutomationProperties.Name="세션 메모 편집"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="Edit24" />
+                </Button>
                 <!-- 선택 항목 복제(같은 곡을 예배 중 두 번 부를 때 등) — 같은 내용·새 Id 로 바로 뒤에 추가. -->
                 <Button Command="{Binding DuplicateSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"

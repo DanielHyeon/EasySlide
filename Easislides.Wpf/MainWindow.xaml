@@ -2072,7 +2072,8 @@
                                 <TextBlock Text="Worship List" />
                             </StackPanel>
                         </TabItem.Header>
-                        <composites:WorshipListPanel AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested" />
+                        <composites:WorshipListPanel AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested"
+                                                     OpenSessionNotesRequested="WorshipListPanel_OpenSessionNotesRequested" />
                     </TabItem>
                     <TabItem Tag="PraiseBook"
                              x:Name="PraiseBookTab"

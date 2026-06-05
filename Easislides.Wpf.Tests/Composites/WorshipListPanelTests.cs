@@ -76,6 +76,10 @@ public class WorshipListPanelTests
         Attr(wlOpen, "Tag").Should().Be("WL_Open", "FrmMain WL_Open role should be visible in the lower-left toolbar");
         Attr(wlOpen, "Click").Should().Be("WL_Open_Click", "FrmMain WL_Open should open external files from the lower-left toolbar");
         Attr(wlOpen, "AutomationProperties.Name").Should().Contain("외부 파일");
+        var wlNotes = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Notes");
+        Attr(wlNotes, "Tag").Should().Be("WL_Notes", "FrmMain WL_Notes role should be visible in the lower-left toolbar");
+        Attr(wlNotes, "Click").Should().Be("WL_Notes_Click", "FrmMain WL_Notes should open the session notes editor");
+        Attr(wlNotes, "AutomationProperties.Name").Should().Contain("세션 메모");
         composite.Descendants().Any(e => e.Name.LocalName == "ComboBox" && Attr(e, "Tag") == "SessionList")
             .Should().BeTrue("saved worship list combo should retain the FrmMain SessionList role");
     }
@@ -155,6 +159,8 @@ public class WorshipListPanelTests
             .Should().BeTrue("WorshipListPanel is hosted inside the lower-left Worship List tab");
         Attr(host!, "AddSelectedSourceRequested").Should().Be("WorshipListPanel_AddSelectedSourceRequested",
             "WL_Add is a lower-left control, but MainWindow owns the active upper source tab");
+        Attr(host!, "OpenSessionNotesRequested").Should().Be("WorshipListPanel_OpenSessionNotesRequested",
+            "WL_Notes is a lower-left control, but MainWindow owns modal window launch/ownership");
         Attr(listTabs.Parent!, "Grid.Column").Should().Be("0", "lower-left tabs stay in the left column");
 
         Attr(host!, "DataContext").Should().BeEmpty("DataContext inheritance must keep MainViewModel bindings intact");
@@ -289,6 +295,26 @@ public class WorshipListPanelTests
             "Word documents should become text/notice queue items like the existing menu path");
         code.Should().Contain("ExtractLegacyInfoScreenText",
             "legacy .esi files should be accepted as InfoScreen text rather than silently skipped");
+    }
+
+    [Fact]
+    public void WlNotes_RoutesToSessionNotesWindow_FromLowerLeftToolbar()
+    {
+        var panelCode = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+        var windowCode = LoadText("Easislides.Wpf/MainWindow.xaml.cs");
+
+        panelCode.Should().Contain("public event RoutedEventHandler? OpenSessionNotesRequested",
+            "WL_Notes should raise an event to the owning MainWindow");
+        panelCode.Should().Contain("private void WL_Notes_Click",
+            "WL_Notes should have a direct lower-left toolbar click handler");
+        panelCode.Should().Contain("OpenSessionNotesRequested?.Invoke(this, e)",
+            "the panel should not construct the modal directly; MainWindow owns the current session and Owner window");
+        windowCode.Should().Contain("private void WorshipListPanel_OpenSessionNotesRequested",
+            "MainWindow should receive the lower-left WL_Notes event");
+        windowCode.Should().Contain("=> OpenSessionNotes_Click(sender, e)",
+            "menu and lower-left WL_Notes button should reuse the same session-notes window path");
+        windowCode.Should().Contain("new Easislides.Wpf.Shell.WorshipSessionNotesViewModel",
+            "the shared path should create the existing session notes VM");
     }
 
     [Theory]
