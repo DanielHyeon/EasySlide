@@ -3230,6 +3230,47 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyPreviewToOutputCommand_WhenBlackHidden_RefreshesHiddenPayloadWithoutRestoring()
+    {
+        // FrmMain btnToOutput: Black 상태에서 다음 OutputItem 을 준비하면 복귀될 payload 는 바뀌되 화면은 계속 숨겨져야 한다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.NextLyricsPageCommand.Execute(null);
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "btnToOutput 은 Black 상태를 해제하지 않는다");
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.IsOutputBlackActive.Should().BeTrue();
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+        sut.OutputLyricsText.Should().Be("Preview chorus");
+
+        sut.RestoreOutputCommand.Execute(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song", "복귀 시 준비한 OutputItem 이 송출되어야 한다");
+    }
+
+    [Fact]
     public void CopyPreviewToOutputAndNextCommand_PreparesOutputAndAdvancesPreviewWithoutStartingLive()
     {
         // FrmMain btnToOutputMoveNext_Click: CopyPreviewToOutput + PreviewItem NextOne, GoLive 없음.
@@ -3296,6 +3337,40 @@ public class MainViewModelTests
         sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
         sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+    }
+
+    [Fact]
+    public async Task CopyPreviewToOutputShortcut_WhenClearHidden_RefreshesPayloadWithoutRestoring()
+    {
+        // F8 은 Clear 상태를 해제하지 않지만, 복귀될 Output payload 는 현재 Preview 로 갱신해야 한다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.CopyPreviewToOutputShortcutCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "F8 은 Clear 상태를 해제하지 않는다");
+        sut.Session.Current.IsCleared.Should().BeTrue();
+        sut.IsOutputClearActive.Should().BeTrue();
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
     }
 
     [Fact]

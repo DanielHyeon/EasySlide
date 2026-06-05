@@ -695,6 +695,23 @@ public class SongEditorViewModelTests
             SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
         }
 
+        public void UpdateHiddenContent(LiveQueueItem item, string outputMonitorName)
+        {
+            if (Current.State != LiveState.Hidden)
+            {
+                return;
+            }
+
+            Current = Current with
+            {
+                CurrentItemTitle = item.Title,
+                OutputMonitorName = outputMonitorName,
+                CurrentItemKind = item.Kind,
+                CurrentItemId = item.Id,
+            };
+            SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
+        }
+
         public void HideOutput(bool blackout)
         {
             Current = Current with { State = LiveState.Hidden, IsBlackout = blackout, IsCleared = false };

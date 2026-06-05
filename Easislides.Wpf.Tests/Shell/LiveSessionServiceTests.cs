@@ -89,6 +89,51 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void UpdateHiddenContent_ReplacesPayloadWithoutRestoringOutput()
+    {
+        // FrmMain btnToOutput/F8: Black/Clear 로 숨긴 동안에도 다음 복귀 payload 는 새 OutputItem 으로 바뀌어야 한다.
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-live", "이전 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n이전 절" }, "모니터 1");
+        sut.HideOutput(blackout: true);
+        var changes = new List<LiveSessionSnapshot>();
+        sut.SessionChanged += (_, e) => changes.Add(e.Snapshot);
+
+        sut.UpdateHiddenContent(
+            new LiveQueueItem("song-next", "다음 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n다음 절" },
+            "모니터 2");
+
+        sut.Current.State.Should().Be(LiveState.Hidden, "payload refresh must not flash live output");
+        sut.Current.IsBlackout.Should().BeTrue("Black 상태는 유지");
+        sut.Current.IsCleared.Should().BeFalse();
+        sut.Current.CurrentItemTitle.Should().Be("다음 찬양");
+        sut.Current.CurrentItemBodyText.Should().Be("다음 절");
+        sut.Current.CurrentItemId.Should().Be("song-next");
+        sut.Current.OutputMonitorName.Should().Be("모니터 2");
+        changes.Should().ContainSingle().Which.State.Should().Be(LiveState.Hidden);
+
+        sut.Restore();
+        sut.Current.State.Should().Be(LiveState.Active);
+        sut.Current.CurrentItemTitle.Should().Be("다음 찬양", "복귀 시 갱신된 payload 가 살아나야 함");
+    }
+
+    [Fact]
+    public void UpdateHiddenContent_PreservesClearedState()
+    {
+        var sut = new LiveSessionService();
+        sut.GoLive(new LiveQueueItem("song-live", "이전 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n이전 절" }, "모니터 1");
+        sut.ClearOutput();
+
+        sut.UpdateHiddenContent(
+            new LiveQueueItem("song-next", "다음 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n다음 절" },
+            "모니터 1");
+
+        sut.Current.State.Should().Be(LiveState.Hidden);
+        sut.Current.IsCleared.Should().BeTrue("Clear 상태는 유지");
+        sut.Current.IsBlackout.Should().BeFalse();
+        sut.Current.CurrentItemTitle.Should().Be("다음 찬양");
+    }
+
+    [Fact]
     public void BlackoutOutput_MarksHiddenAndBlackout()
     {
         var sut = new LiveSessionService();

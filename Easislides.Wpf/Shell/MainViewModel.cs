@@ -4049,6 +4049,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        RefreshHiddenOutputPayload(item, MainCommandIds.LivePreviewToOutput);
         StatusText = $"Output 준비: {item.Title}";
         NotifyCommandStates();
     }
@@ -4061,6 +4062,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        RefreshHiddenOutputPayload(item, MainCommandIds.LivePreviewToOutput);
         var next = MovePreviewSelectionToNext(item);
         StatusText = next is null
             ? $"Output 준비: {item.Title}"
@@ -4093,8 +4095,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        RefreshHiddenOutputPayload(item, commandId);
         StatusText = $"Output 준비: {item.Title}";
         NotifyCommandStates();
+    }
+
+    private bool RefreshHiddenOutputPayload(LiveQueueItem item, string commandId)
+    {
+        if (_session.Current.State != LiveState.Hidden)
+        {
+            return false;
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        var lyricsPageIndex = ReferenceEquals(item, SelectedItem)
+            ? LyricsPageIndex
+            : item.LyricsPageIndex;
+        var projection = item with { LyricsPageIndex = lyricsPageIndex };
+        if (IsPowerPointItem(item) && OutputPowerPoint.SlideNumber > 0)
+        {
+            projection = projection with { SlideNumber = OutputPowerPoint.SlideNumber };
+        }
+
+        SetLiveItemId(item.Id);
+        LiveTransposeSemitones = 0;
+        _session.UpdateHiddenContent(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
+        _telemetry.Record(commandId, succeeded: true, $"{item.Title} (hidden)");
+        return true;
     }
 
     private LiveQueueItem? PrepareOutputFromPreview()

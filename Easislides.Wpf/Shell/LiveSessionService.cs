@@ -104,6 +104,7 @@ public interface ILiveSessionService
     LiveSessionSnapshot Current { get; }
 
     void GoLive(LiveQueueItem item, string outputMonitorName);
+    void UpdateHiddenContent(LiveQueueItem item, string outputMonitorName);
     void HideOutput(bool blackout);
     void ClearOutput();
     void Restore();
@@ -122,15 +123,46 @@ public sealed class LiveSessionService : ILiveSessionService
     {
         ArgumentNullException.ThrowIfNull(item);
 
+        Update(CreateSnapshot(
+            item,
+            outputMonitorName,
+            LiveState.Active,
+            isBlackout: false,
+            isCleared: false));
+    }
+
+    public void UpdateHiddenContent(LiveQueueItem item, string outputMonitorName)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        if (Current.State != LiveState.Hidden)
+        {
+            return;
+        }
+
+        Update(CreateSnapshot(
+            item,
+            outputMonitorName,
+            LiveState.Hidden,
+            Current.IsBlackout,
+            Current.IsCleared));
+    }
+
+    private static LiveSessionSnapshot CreateSnapshot(
+        LiveQueueItem item,
+        string outputMonitorName,
+        LiveState state,
+        bool isBlackout,
+        bool isCleared)
+    {
         var (pixelWidth, pixelHeight) = ExtractPixelDimensions(item.PreviewSource);
         // 곡별 FormatData(레거시 v32)를 디코드해 region1 글자·배경색을 오버라이드로 싣는다(미리보기와 동일 규약).
         // 곡이 아니거나 색 항목이 없으면 null → 출력은 운영 기본색을 그대로 쓴다.
         var format = Library.SongFormatData.Parse(item.FormatData);
-        Update(new LiveSessionSnapshot(
-            LiveState.Active,
+        return new LiveSessionSnapshot(
+            state,
             item.Title,
             outputMonitorName,
-            IsBlackout: false,
+            IsBlackout: isBlackout,
             item.Kind,
             item.PreviewSource,
             item.PreviewFillMode,
@@ -142,6 +174,7 @@ public sealed class LiveSessionService : ILiveSessionService
             // 이중 언어([region 2]) 곡이면 Region1·Region2 를 각각 싣는다(출력이 영역별 스타일로 동시 송출).
             CurrentItemBodyText: ComputeBodyText(item),
             CurrentItemBodyText2: ComputeBodyText2(item),
+            IsCleared: isCleared,
             CurrentItemPositionLabel: item.PositionLabel,
             // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
             CurrentLyricsPageIndex: item.LyricsPageIndex,
@@ -179,7 +212,7 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentPageIsChorus: ComputeCurrentPageIsChorus(item),
             CurrentSectionLabel: ComputeCurrentSectionLabel(item),
             // 항목 식별자 — 출력 VM 의 "항목 전환 vs 슬라이드 전환" 판별 근거(같은 곡 안 절 이동은 같은 Id 로 재송출됨).
-            CurrentItemId: item.Id));
+            CurrentItemId: item.Id);
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.
