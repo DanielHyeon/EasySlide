@@ -2723,10 +2723,9 @@
                     Tag="splitContainerPreview.Panel1"
                     Grid.Column="0"
                     Grid.Row="0"
-                    Background="{DynamicResource Brush.Surface.Card}"
+                    Background="White"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource CornerRadius.Small}"
                     Padding="4">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -3700,10 +3699,9 @@
                     Tag="splitContainerOutput.Panel1"
                     Grid.Column="2"
                     Grid.Row="0"
-                    Background="{DynamicResource Brush.Surface.Card}"
+                    Background="White"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
                     BorderThickness="1"
-                    CornerRadius="{StaticResource CornerRadius.Small}"
                     Padding="4">
                 <Grid>
                     <Grid.RowDefinitions>

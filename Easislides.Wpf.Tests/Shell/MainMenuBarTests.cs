@@ -817,6 +817,38 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicRightPanes_UseFrmMainFlatSplitPanelChrome()
+    {
+        var xaml = Xaml;
+
+        foreach (var pane in new[]
+        {
+            "ClassicPreviewPane",
+            "ClassicOutputPane",
+        })
+        {
+            var section = SectionBetween(xaml, $"x:Name=\"{pane}\"", "Padding=\"4\">");
+            section.Should().Contain("Background=\"White\"",
+                $"{pane} is the white top half of the FrmMain split panel, not a modern card");
+            section.Should().Contain("BorderThickness=\"1\"", $"{pane} keeps the WinForms-like splitter border");
+            section.Should().NotContain("CornerRadius=", $"{pane} should stay square like FrmMain panels");
+        }
+
+        foreach (var pane in new[]
+        {
+            "ClassicPreviewSlidePane",
+            "ClassicOutputSlidePane",
+        })
+        {
+            var section = SectionBetween(xaml, $"x:Name=\"{pane}\"", "Padding=\"6\">");
+            section.Should().Contain("Background=\"#808080\"",
+                $"{pane} keeps the legacy grey lower screen work area");
+            section.Should().Contain("BorderThickness=\"1\"", $"{pane} keeps the WinForms-like splitter border");
+            section.Should().NotContain("CornerRadius=", $"{pane} should stay square like FrmMain panels");
+        }
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputPanes_ExposeFrmMainControlRoles()
     {
         var xaml = Xaml;
