@@ -192,6 +192,26 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputLargeScreens_KeepFrmMainSixteenNineFrames()
+    {
+        var xaml = Xaml;
+
+        var preview = SectionBetween(xaml, "x:Name=\"ClassicPreviewHolder\"", "</Viewbox>");
+        preview.Should().Contain("Tag=\"PreviewHolder\"", "Preview lower pane should keep the FrmMain PreviewHolder role");
+        preview.Should().Contain("Stretch=\"Uniform\"", "Preview screen should scale as one slide frame instead of stretching to pane shape");
+        preview.Should().Contain("Width=\"960\"", "Preview screen should use a fixed 16:9 design surface");
+        preview.Should().Contain("Height=\"540\"", "Preview screen should use a fixed 16:9 design surface");
+
+        var output = SectionBetween(xaml, "x:Name=\"ClassicOutputHolder\"", "</Viewbox>");
+        output.Should().Contain("Tag=\"OutputHolder\"", "Output lower pane should keep the FrmMain OutputHolder role");
+        output.Should().Contain("Stretch=\"Uniform\"", "Output screen should scale as one slide frame instead of stretching to pane shape");
+        output.Should().Contain("Width=\"960\"", "Output screen should use the same 16:9 frame as the live output slide");
+        output.Should().Contain("Height=\"540\"", "Output screen should use the same 16:9 frame as the live output slide");
+        output.Should().Contain("x:Name=\"ClassicOutputBack\"", "the output background stays inside the fixed frame");
+        output.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "the PPT image overlay stays inside the fixed frame");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputPowerPointThumbnails_MapFocusedKeyboardNavigationIndependently()
     {
         var code = CodeBehind;

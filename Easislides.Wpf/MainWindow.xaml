@@ -2809,19 +2809,24 @@
                         </WrapPanel>
                     </WrapPanel>
 
-                    <rendering:SlidePreviewControl Grid.Row="1"
-                                                   x:Name="ClassicPreviewHolder"
-                                                   Tag="PreviewHolder"
-                                                   Margin="36,0"
-                                                   Focusable="True"
-                                                   MouseDown="ClassicKeyboardSurface_MouseDown"
-                                                   Title="{Binding SelectedItem.Title}"
-                                                   Kind="{Binding SelectedItem.Kind}"
-                                                   Source="{Binding SelectedItem.PreviewSource}"
-                                                   FillMode="{Binding SelectedItem.PreviewFillMode}"
-                                                   SlideNumber="{Binding SelectedItem.SlideNumber}"
-                                                   ShowSlideNumber="True"
-                                                   IsSelected="True" />
+                    <Viewbox Grid.Row="1"
+                             x:Name="ClassicPreviewHolder"
+                             Tag="PreviewHolder"
+                             Margin="36,0"
+                             Stretch="Uniform"
+                             Focusable="True"
+                             MouseDown="ClassicKeyboardSurface_MouseDown"
+                             AutomationProperties.Name="Preview 16:9 화면 프레임">
+                        <rendering:SlidePreviewControl Width="960"
+                                                       Height="540"
+                                                       Title="{Binding SelectedItem.Title}"
+                                                       Kind="{Binding SelectedItem.Kind}"
+                                                       Source="{Binding SelectedItem.PreviewSource}"
+                                                       FillMode="{Binding SelectedItem.PreviewFillMode}"
+                                                       SlideNumber="{Binding SelectedItem.SlideNumber}"
+                                                       ShowSlideNumber="True"
+                                                       IsSelected="True" />
+                    </Viewbox>
                 </Grid>
             </Border>
 
@@ -3142,43 +3147,48 @@
                         </WrapPanel>
                     </WrapPanel>
 
-                    <Grid Grid.Row="1"
-                          x:Name="ClassicOutputHolder"
-                          Tag="OutputHolder"
-                          Focusable="True"
-                          MouseDown="ClassicKeyboardSurface_MouseDown"
-                          Margin="80,18">
-                        <Border x:Name="ClassicOutputBack"
-                                Tag="OutputBack"
-                                Background="#165D7A"
-                                BorderBrush="#111111"
-                                Focusable="True"
-                                MouseDown="ClassicKeyboardSurface_MouseDown"
-                                BorderThickness="0,0,8,8">
-                            <Grid>
-                                <TextBlock Text="{Binding OutputItem.Title}"
-                                           Margin="36,32,36,0"
-                                           VerticalAlignment="Top"
-                                           TextWrapping="Wrap"
-                                           TextTrimming="CharacterEllipsis"
-                                           MaxHeight="160"
-                                           FontSize="30"
-                                           FontWeight="Bold"
-                                           Foreground="#FFF6E600"
-                                           AutomationProperties.Name="Output 슬라이드 현재 항목" />
-                                <TextBlock Text="{Binding LiveBar.StateLabel}"
-                                           Margin="0,0,20,18"
-                                           HorizontalAlignment="Right"
-                                           VerticalAlignment="Bottom"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="#FFF6E600" />
-                            </Grid>
-                        </Border>
-                        <Image x:Name="ClassicOutputLargeSlideImage"
-                               Source="{Binding OutputPowerPoint.PreviewImage}"
-                               Stretch="Uniform"
-                               AutomationProperties.Name="Output 큰 PowerPoint 슬라이드" />
-                    </Grid>
+                    <Viewbox Grid.Row="1"
+                             x:Name="ClassicOutputHolder"
+                             Tag="OutputHolder"
+                             Margin="80,18"
+                             Stretch="Uniform"
+                             Focusable="True"
+                             MouseDown="ClassicKeyboardSurface_MouseDown"
+                             AutomationProperties.Name="Output 16:9 화면 프레임">
+                        <Grid Width="960"
+                              Height="540">
+                            <Border x:Name="ClassicOutputBack"
+                                    Tag="OutputBack"
+                                    Background="#165D7A"
+                                    BorderBrush="#111111"
+                                    Focusable="True"
+                                    MouseDown="ClassicKeyboardSurface_MouseDown"
+                                    BorderThickness="0,0,8,8">
+                                <Grid>
+                                    <TextBlock Text="{Binding OutputItem.Title}"
+                                               Margin="36,32,36,0"
+                                               VerticalAlignment="Top"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxHeight="160"
+                                               FontSize="30"
+                                               FontWeight="Bold"
+                                               Foreground="#FFF6E600"
+                                               AutomationProperties.Name="Output 슬라이드 현재 항목" />
+                                    <TextBlock Text="{Binding LiveBar.StateLabel}"
+                                               Margin="0,0,20,18"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Bottom"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="#FFF6E600" />
+                                </Grid>
+                            </Border>
+                            <Image x:Name="ClassicOutputLargeSlideImage"
+                                   Source="{Binding OutputPowerPoint.PreviewImage}"
+                                   Stretch="Uniform"
+                                   AutomationProperties.Name="Output 큰 PowerPoint 슬라이드" />
+                        </Grid>
+                    </Viewbox>
 
                     <Border Grid.Row="2"
                             x:Name="panelOutputLM1"
