@@ -4358,6 +4358,72 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewItemCommands_WhenLiveSelectionDiverges_MovePreviewOnly()
+    {
+        // FrmMain PreviewBtnItemUp/Down: Gf.PreviewItem 만 이동하고 현재 live OutputItem 은 바꾸지 않는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        var nextPreview = new LiveQueueItem("song:next-preview", "Next preview", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext preview verse",
+        };
+        sut.LoadQueue([live, preview, nextPreview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.NextPreviewItemCommand.CanExecute(null).Should().BeTrue();
+        sut.NextPreviewItemCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(nextPreview);
+        sut.OutputItem.Should().BeSameAs(live, "Preview item buttons must not copy the new Preview selection into Output");
+        sut.LiveItemId.Should().Be(live.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse");
+        sut.StatusText.Should().Be("Preview 선택: Next preview");
+
+        sut.PreviousPreviewItemCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().BeSameAs(live);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+    }
+
+    [Fact]
+    public void PreviewItemCommands_ClampAtListBoundariesLikeFrmMain()
+    {
+        // FrmMain 버튼은 경계에서도 비활성화 대신 첫/마지막 항목을 그대로 선택 유지한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song:first", "첫 곡");
+        var last = new LiveQueueItem("song:last", "끝 곡");
+        sut.LoadQueue([first, last]);
+
+        sut.SelectedItem = first;
+        sut.PreviousPreviewItemCommand.CanExecute(null).Should().BeTrue();
+        sut.PreviousPreviewItemCommand.Execute(null);
+        sut.SelectedItem.Should().BeSameAs(first);
+
+        sut.LastPreviewItemCommand.Execute(null);
+        sut.SelectedItem.Should().BeSameAs(last);
+
+        sut.NextPreviewItemCommand.CanExecute(null).Should().BeTrue();
+        sut.NextPreviewItemCommand.Execute(null);
+        sut.SelectedItem.Should().BeSameAs(last);
+
+        sut.FirstPreviewItemCommand.Execute(null);
+        sut.SelectedItem.Should().BeSameAs(first);
+    }
+
+    [Fact]
     public void FirstAndLastItemCommands_JumpToEndsOfQueue()
     {
         var sut = CreateSut();

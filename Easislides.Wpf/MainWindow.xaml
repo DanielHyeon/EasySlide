@@ -3321,7 +3321,7 @@
                                       AutomationProperties.Name="Preview Info 모드" />
                         <Button x:Name="PreviewBtnItemUp"
                                 Tag="PreviewBtnItemUp"
-                                Command="{Binding PreviousItemCommand}"
+                                Command="{Binding PreviousPreviewItemCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
@@ -3332,7 +3332,7 @@
                                 AutomationProperties.Name="Preview 이전 항목" />
                         <Button x:Name="PreviewBtnItemDown"
                                 Tag="PreviewBtnItemDown"
-                                Command="{Binding NextItemCommand}"
+                                Command="{Binding NextPreviewItemCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"

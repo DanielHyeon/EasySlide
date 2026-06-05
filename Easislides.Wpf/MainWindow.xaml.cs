@@ -596,19 +596,19 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.PageUp:
-                ExecuteCommand(_viewModel.PreviousItemCommand);
+                ExecuteCommand(_viewModel.PreviousPreviewItemCommand);
                 return true;
 
             case Key.PageDown:
-                ExecuteCommand(_viewModel.NextItemCommand);
+                ExecuteCommand(_viewModel.NextPreviewItemCommand);
                 return true;
 
             case Key.Home:
-                ExecuteCommand(_viewModel.FirstItemCommand);
+                ExecuteCommand(_viewModel.FirstPreviewItemCommand);
                 return true;
 
             case Key.End:
-                ExecuteCommand(_viewModel.LastItemCommand);
+                ExecuteCommand(_viewModel.LastPreviewItemCommand);
                 return true;
 
             default:

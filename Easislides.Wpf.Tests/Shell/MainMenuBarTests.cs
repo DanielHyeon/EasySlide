@@ -70,8 +70,8 @@ public class MainMenuBarTests
     [InlineData("RestoreOutputCommand")]
     [InlineData("RestartCurrentItemCommand")]
     [InlineData("RefreshOutputCommand")]
-    [InlineData("NextItemCommand")]
-    [InlineData("PreviousItemCommand")]
+    [InlineData("LiveNextShortcutCommand")]
+    [InlineData("LivePreviousShortcutCommand")]
     public void MenuBar_WiresOutputItemsToRealCommands(string commandName)
         => Xaml.Should().Contain($"{{Binding {commandName}}}", $"{commandName} 메뉴 항목이 실제 명령에 배선돼야 함");
 
@@ -272,13 +272,13 @@ public class MainMenuBarTests
             "Preview Down/Space should move only the selected preview deck");
         code.Should().Contain("_viewModel.GoToSlideCommand.Execute(slideNumber)",
             "Preview Left/Right should jump inside the preview deck");
-        code.Should().Contain("ExecuteCommand(_viewModel.PreviousItemCommand)",
+        code.Should().Contain("ExecuteCommand(_viewModel.PreviousPreviewItemCommand)",
             "Preview PageUp should move the selected Preview item like FrmMain");
-        code.Should().Contain("ExecuteCommand(_viewModel.NextItemCommand)",
+        code.Should().Contain("ExecuteCommand(_viewModel.NextPreviewItemCommand)",
             "Preview PageDown should move the selected Preview item like FrmMain");
-        code.Should().Contain("ExecuteCommand(_viewModel.FirstItemCommand)",
+        code.Should().Contain("ExecuteCommand(_viewModel.FirstPreviewItemCommand)",
             "Preview Home should move to the first Preview item like FrmMain");
-        code.Should().Contain("ExecuteCommand(_viewModel.LastItemCommand)",
+        code.Should().Contain("ExecuteCommand(_viewModel.LastPreviewItemCommand)",
             "Preview End should move to the last Preview item like FrmMain");
         code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
             "Output Up should move only the live output deck");
@@ -864,6 +864,12 @@ public class MainMenuBarTests
             "Preview verse buttons should keep moving the selected Preview item");
         xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\" CommandParameter=\"1\" Style=\"{StaticResource ClassicVerseJumpButton}\"",
             "Preview verse buttons should hide when the selected Preview item does not expose that section");
+        xaml.Should().MatchRegex("x:Name=\"PreviewBtnItemUp\"\\s+Tag=\"PreviewBtnItemUp\"\\s+Command=\"\\{Binding PreviousPreviewItemCommand\\}\"",
+            "Preview item-up should move only the selected Preview item and not publish live Output");
+        xaml.Should().MatchRegex("x:Name=\"PreviewBtnItemDown\"\\s+Tag=\"PreviewBtnItemDown\"\\s+Command=\"\\{Binding NextPreviewItemCommand\\}\"",
+            "Preview item-down should move only the selected Preview item and not publish live Output");
+        xaml.Should().NotMatchRegex("x:Name=\"PreviewBtnItemDown\"\\s+Tag=\"PreviewBtnItemDown\"\\s+Command=\"\\{Binding NextItemCommand\\}\"",
+            "Preview item buttons must not use the global live-aware item command");
         xaml.Should().MatchRegex("x:Name=\"PreviewBtnSlideUp\"\\s+Tag=\"PreviewBtnSlideUp\"\\s+Command=\"\\{Binding PreviousSlideCommand\\}\"",
             "Preview slide-up should use the item-type-aware Preview slide/page command");
         xaml.Should().MatchRegex("x:Name=\"PreviewBtnSlideDown\"\\s+Tag=\"PreviewBtnSlideDown\"\\s+Command=\"\\{Binding NextSlideCommand\\}\"",

@@ -804,6 +804,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // 항목이 들고 나면 "전 항목 서식 지우기" 가능 여부(큐에 지울 서식 있는 항목 유무)도 바뀐다 — RelayCommand 는 수동 통지 필요.
             OnPropertyChanged(nameof(CanClearAllItemsFormatting));
             ClearAllItemsFormattingCommand?.NotifyCanExecuteChanged();
+            NextPreviewItemCommand?.NotifyCanExecuteChanged();
+            PreviousPreviewItemCommand?.NotifyCanExecuteChanged();
+            FirstPreviewItemCommand?.NotifyCanExecuteChanged();
+            LastPreviewItemCommand?.NotifyCanExecuteChanged();
         };
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
@@ -826,6 +830,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
         NextItemCommand = new RelayCommand(NextItem, CanMoveNext);
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
+        NextPreviewItemCommand = new RelayCommand(() => MovePreviewItem(+1), CanMovePreviewItem);
+        PreviousPreviewItemCommand = new RelayCommand(() => MovePreviewItem(-1), CanMovePreviewItem);
+        FirstPreviewItemCommand = new RelayCommand(() => MovePreviewItemToIndex(0), CanMovePreviewItem);
+        LastPreviewItemCommand = new RelayCommand(() => MovePreviewItemToIndex(Queue.Count - 1), CanMovePreviewItem);
         LiveNextShortcutCommand = new AsyncRelayCommand(() => ExecuteLiveNavigationShortcutAsync(+1));
         LivePreviousShortcutCommand = new AsyncRelayCommand(() => ExecuteLiveNavigationShortcutAsync(-1));
         NextOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(+1), CanMoveOutputNext);
@@ -1060,6 +1068,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
     public IRelayCommand PreviousItemCommand { get; }
+    /// <summary>FrmMain PreviewBtnItemDown: live Output 과 별개로 Preview 선택만 다음 항목으로 이동한다.</summary>
+    public IRelayCommand NextPreviewItemCommand { get; }
+    /// <summary>FrmMain PreviewBtnItemUp: live Output 과 별개로 Preview 선택만 이전 항목으로 이동한다.</summary>
+    public IRelayCommand PreviousPreviewItemCommand { get; }
+    /// <summary>FrmMain Preview PPT focus Home: live Output 과 별개로 첫 Preview 항목을 선택한다.</summary>
+    public IRelayCommand FirstPreviewItemCommand { get; }
+    /// <summary>FrmMain Preview PPT focus End: live Output 과 별개로 마지막 Preview 항목을 선택한다.</summary>
+    public IRelayCommand LastPreviewItemCommand { get; }
     /// <summary>FrmMain Space/F5: 라이브 중에는 Output 슬라이드/절을 우선 이동하고, 끝에서는 설정에 따라 다음 Output 항목으로 진행한다.</summary>
     public IAsyncRelayCommand LiveNextShortcutCommand { get; }
     /// <summary>FrmMain Shift+Space/F4: 라이브 중에는 Output 슬라이드/절을 우선 되돌리고, 처음에서는 설정에 따라 이전 Output 항목으로 진행한다.</summary>
@@ -5080,6 +5096,65 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    private bool CanMovePreviewItem()
+        => Queue.Count > 0;
+
+    private void MovePreviewItem(int delta)
+    {
+        if (Queue.Count == 0)
+        {
+            return;
+        }
+
+        var index = GetPreviewSelectionIndex();
+        var targetIndex = delta < 0
+            ? Math.Max(index - 1, 0)
+            : Math.Min(index + 1, Queue.Count - 1);
+        if (index < 0)
+        {
+            targetIndex = 0;
+        }
+
+        MovePreviewItemToIndex(targetIndex);
+    }
+
+    private void MovePreviewItemToIndex(int targetIndex)
+    {
+        if (Queue.Count == 0)
+        {
+            return;
+        }
+
+        var clamped = Math.Clamp(targetIndex, 0, Queue.Count - 1);
+        SelectedItem = Queue[clamped];
+        StatusText = $"Preview 선택: {SelectedItem.Title}";
+        NotifyCommandStates();
+    }
+
+    private int GetPreviewSelectionIndex()
+    {
+        if (SelectedItem is null)
+        {
+            return -1;
+        }
+
+        var index = IndexOfReference(SelectedItem);
+        if (index >= 0)
+        {
+            return index;
+        }
+
+        for (var i = 0; i < Queue.Count; i++)
+        {
+            if (string.Equals(Queue[i].Id, SelectedItem.Id, StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     private bool CanMoveOutputNext()
         => TryGetOutputNavigationIndex(out var index) && index < Queue.Count - 1;
 
@@ -7696,6 +7771,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand.NotifyCanExecuteChanged();
         NextItemCommand.NotifyCanExecuteChanged();
         PreviousItemCommand.NotifyCanExecuteChanged();
+        NextPreviewItemCommand.NotifyCanExecuteChanged();
+        PreviousPreviewItemCommand.NotifyCanExecuteChanged();
+        FirstPreviewItemCommand.NotifyCanExecuteChanged();
+        LastPreviewItemCommand.NotifyCanExecuteChanged();
         NextOutputItemCommand.NotifyCanExecuteChanged();
         PreviousOutputItemCommand.NotifyCanExecuteChanged();
         FirstOutputItemCommand.NotifyCanExecuteChanged();
