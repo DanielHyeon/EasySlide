@@ -492,6 +492,17 @@ public partial class MainWindow : Window
             return true;
         }
 
+        switch (key)
+        {
+            case Key.Home:
+                ExecuteCommand(_viewModel.FirstPreviewItemCommand);
+                return true;
+
+            case Key.End:
+                ExecuteCommand(_viewModel.LastPreviewItemCommand);
+                return true;
+        }
+
         return TryExecuteLyricsPageKey(
             key,
             _viewModel.PreviousLyricsPageCommand,
@@ -503,6 +514,17 @@ public partial class MainWindow : Window
         if (TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToOutputLyricsSectionCommand))
         {
             return true;
+        }
+
+        switch (key)
+        {
+            case Key.Home:
+                ExecuteCommand(_viewModel.FirstOutputItemCommand);
+                return true;
+
+            case Key.End:
+                ExecuteCommand(_viewModel.LastOutputItemCommand);
+                return true;
         }
 
         return TryExecuteLyricsPageKey(

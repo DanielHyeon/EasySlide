@@ -415,6 +415,24 @@ public class MainMenuBarTests
             "Output Up/PageUp should use the live Output navigation command");
         code.Should().Contain("_viewModel.NextOutputSlideCommand",
             "Output Down/PageDown/Space should use the live Output navigation command");
+
+        var previewLyricsRouting = SectionBetween(
+            code,
+            "private bool TryExecutePreviewLyricsKey",
+            "private bool TryExecuteOutputLyricsKey");
+        previewLyricsRouting.Should().Contain("ExecuteCommand(_viewModel.FirstPreviewItemCommand)",
+            "Preview lyrics focus Home should move the selected Preview context to the first item like FrmMain focused panes");
+        previewLyricsRouting.Should().Contain("ExecuteCommand(_viewModel.LastPreviewItemCommand)",
+            "Preview lyrics focus End should move the selected Preview context to the last item like FrmMain focused panes");
+
+        var outputLyricsRouting = SectionBetween(
+            code,
+            "private bool TryExecuteOutputLyricsKey",
+            "private static bool TryExecuteVerseJumpKey");
+        outputLyricsRouting.Should().Contain("ExecuteCommand(_viewModel.FirstOutputItemCommand)",
+            "Output lyrics focus Home should move the live/prepared Output context to the first item, not the selected Preview item");
+        outputLyricsRouting.Should().Contain("ExecuteCommand(_viewModel.LastOutputItemCommand)",
+            "Output lyrics focus End should move the live/prepared Output context to the last item, not the selected Preview item");
     }
 
     [Fact]
