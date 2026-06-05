@@ -721,6 +721,16 @@ public class SongEditorViewModelTests
         public void Refresh()
             => SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
 
+        public void SetReferenceAlert(bool visible, string text)
+        {
+            Current = Current with
+            {
+                IsReferenceAlertVisible = visible,
+                ReferenceAlertText = visible ? text : string.Empty,
+            };
+            SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
+        }
+
         public void Stop()
         {
             Current = LiveSessionSnapshot.Off;

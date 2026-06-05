@@ -190,6 +190,31 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_ActiveWithReferenceAlert_ThreadsReferenceOverlay()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active,
+                "요한복음 3:16",
+                "Display 2",
+                IsBlackout: false,
+                CurrentItemBodyText: "하나님이 세상을 이처럼 사랑하사",
+                IsReferenceAlertVisible: true,
+                ReferenceAlertText: "요한복음 3:16"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720));
+
+        scene.ShowsReferenceAlert.Should().BeTrue();
+        scene.ShowsLiveReferenceAlert.Should().BeTrue();
+        scene.ReferenceAlertText.Should().Be("요한복음 3:16");
+        scene.BodyText.Should().Contain("하나님이 세상을 이처럼 사랑하사");
+    }
+
+    [Fact]
     public void CreateScene_TitleHeadingFollowBody_UsesBodyAlignmentForHeading()
     {
         // FrmMain Def_HeadAlign AsR1 — 본문 정렬 따름 on 이면 헤딩이 본문(Region1) 정렬을 쓴다(헤딩 전용 정렬 무시).

@@ -299,6 +299,25 @@
                 </MediaElement.Style>
             </MediaElement>
 
+            <!-- FrmMain OutputBtnRefAlert / ImageTransitionControl Ref overlay.
+                 현재 송출 내용은 그대로 두고 제목/구절 한 줄만 임시로 띄우는 토글 오버레이다. -->
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="24,0,24,54"
+                    Padding="16,5"
+                    CornerRadius="3"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding ReferenceAlertVisibility}">
+                <TextBlock Text="{Binding ReferenceAlertText}"
+                           FontSize="{Binding PanelPrimaryFontSize}"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           TextWrapping="NoWrap"
+                           MaxWidth="860"
+                           Foreground="{Binding SceneForegroundBrush}" />
+            </Border>
+
             <!-- 위치 인디케이터(절/슬라이드 "N/M") — 우측 하단 모서리. 설정 on + Live + 라벨 존재 시만 표시(§7.3-A). -->
             <Border HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"

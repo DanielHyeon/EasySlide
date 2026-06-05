@@ -78,7 +78,10 @@ public sealed record LiveSessionSnapshot(
     string CurrentSectionLabel = "",
     // 현재 송출 항목의 식별자(LiveQueueItem.Id). 출력 VM 이 "항목이 바뀌었는지(곡→곡)" vs "같은 항목 안에서
     // 절·슬라이드만 바뀌었는지"를 구분해 전환 효과(항목 전환 vs 슬라이드 전환)를 달리 적용하는 데 쓴다. 비-라이브면 빈 문자열.
-    string CurrentItemId = "")
+    string CurrentItemId = "",
+    // FrmMain OutputBtnRefAlert/QueryShowActive: 현재 송출 내용을 유지한 채 구절/제목 알림 오버레이만 토글한다.
+    bool IsReferenceAlertVisible = false,
+    string ReferenceAlertText = "")
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -105,6 +108,7 @@ public interface ILiveSessionService
     void ClearOutput();
     void Restore();
     void Refresh();
+    void SetReferenceAlert(bool visible, string text);
     void Stop();
 }
 
@@ -346,6 +350,8 @@ public sealed class LiveSessionService : ILiveSessionService
             IsBlackout = blackout,
             // Black/Hide 는 Clear 와 상호 배타 — 전환 시 비우기 플래그를 끈다.
             IsCleared = false,
+            IsReferenceAlertVisible = false,
+            ReferenceAlertText = string.Empty,
         });
     }
 
@@ -364,6 +370,8 @@ public sealed class LiveSessionService : ILiveSessionService
             State = LiveState.Hidden,
             IsBlackout = false,
             IsCleared = true,
+            IsReferenceAlertVisible = false,
+            ReferenceAlertText = string.Empty,
         });
     }
 
@@ -390,6 +398,20 @@ public sealed class LiveSessionService : ILiveSessionService
     public void Refresh()
         => SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
 
+    public void SetReferenceAlert(bool visible, string text)
+    {
+        if (Current.State != LiveState.Active)
+        {
+            return;
+        }
+
+        Update(Current with
+        {
+            IsReferenceAlertVisible = visible,
+            ReferenceAlertText = visible ? NormalizeReferenceAlertText(text) : string.Empty,
+        });
+    }
+
     public void Stop() => Update(LiveSessionSnapshot.Off);
 
     private void Update(LiveSessionSnapshot snapshot)
@@ -401,5 +423,16 @@ public sealed class LiveSessionService : ILiveSessionService
 
         Current = snapshot;
         SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(snapshot));
+    }
+
+    private static string NormalizeReferenceAlertText(string text)
+    {
+        var trimmed = text.Trim();
+        if (trimmed.Length == 0)
+        {
+            return " ";
+        }
+
+        return trimmed.Length <= 50 ? trimmed : trimmed[..50];
     }
 }

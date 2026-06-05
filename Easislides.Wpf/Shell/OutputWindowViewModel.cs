@@ -58,6 +58,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Brush _sceneForegroundBrush2;
     private Brush _sceneBackgroundBrush;
     private Visibility _lyricsAlertVisibility = Visibility.Collapsed;
+    private Visibility _referenceAlertVisibility = Visibility.Collapsed;
+    private string _referenceAlertText = string.Empty;
     private Visibility _panelOverlayVisibility = Visibility.Visible;
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _bodyTextVisibility = Visibility.Collapsed;
@@ -581,6 +583,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _lyricsAlertVisibility, value);
     }
 
+    public Visibility ReferenceAlertVisibility
+    {
+        get => _referenceAlertVisibility;
+        private set => SetProperty(ref _referenceAlertVisibility, value);
+    }
+
+    public string ReferenceAlertText
+    {
+        get => _referenceAlertText;
+        private set => SetProperty(ref _referenceAlertText, value);
+    }
+
     public Visibility PanelOverlayVisibility
     {
         get => _panelOverlayVisibility;
@@ -837,6 +851,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox ? Visibility.Visible : Visibility.Collapsed;
+        ReferenceAlertVisibility = scene.ShowsLiveReferenceAlert ? Visibility.Visible : Visibility.Collapsed;
+        ReferenceAlertText = scene.ShowsLiveReferenceAlert ? scene.ReferenceAlertText : string.Empty;
         // "코드 표시"(Show Notations)는 더 이상 렌더 계층의 가시성이 아니라 본문 텍스트 자체(코드 줄 포함 여부)로
         // 반영된다 — 라이브 본문 계산(LiveSessionService.ComputeBodyText)이 처리하고, 설정 변경 시 MainViewModel 이
         // 라이브 곡을 재송출한다. (과거엔 이 값이 상태 라벨 가시성에 잘못 묶여 있던 결함을 제거.)

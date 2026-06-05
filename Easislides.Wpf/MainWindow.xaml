@@ -2906,13 +2906,13 @@
                         </Button>
                         <Button x:Name="OutputBtnRefAlert"
                                 Tag="OutputBtnRefAlert"
+                                Command="{Binding ToggleOutputReferenceAlertCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
                                 Padding="6,0"
                                 Margin="0,0,4,0"
                                 Content="!"
-                                IsEnabled="False"
                                 ToolTip="성경 구절 알림"
                                 AutomationProperties.Name="Output 구절 알림" />
                         <Button Command="{Binding BlackScreenCommand}"

@@ -298,7 +298,10 @@ public sealed record OutputSceneSnapshot(
     // 이중 언어 영역 표시 모드(Both/Region1Only/Region2Only) — 어느 영역을 화면에 보일지. 기본 Both(무회귀).
     LyricsRegionDisplay LyricsMonitorRegionDisplay = LyricsRegionDisplay.Both,
     // 이중 언어 줄 교차(인터레이스) — on 이면 Region1·Region2 본문을 줄 단위로 번갈아 송출. 기본 false(영역별 블록).
-    bool LyricsMonitorInterlace = false)
+    bool LyricsMonitorInterlace = false,
+    // FrmMain OutputBtnRefAlert/QueryShowActive — 현재 송출 위에 구절/제목 알림 오버레이를 토글한다.
+    bool ShowsReferenceAlert = false,
+    string ReferenceAlertText = "")
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -348,6 +351,10 @@ public sealed record OutputSceneSnapshot(
     // 외곽선 렌더러를 쓸지 — 설정 on + 가사 본문 송출 중일 때만(본문 없으면 의미 없음).
     // on 이면 일반 본문 TextBlock 대신 외곽선 렌더러를 쓰고, off 면 기존 본문 그대로(상호배타).
     public bool UsesBodyOutline => ShowLyricsOutline && ShowsBodyText;
+
+    public bool ShowsLiveReferenceAlert => ShowsReferenceAlert
+        && Kind == OutputSceneKind.Live
+        && !string.IsNullOrWhiteSpace(ReferenceAlertText);
 }
 
 public interface IOutputRenderer
@@ -577,7 +584,9 @@ public sealed class OutputRenderer : IOutputRenderer
             // 이중 언어 영역 표시 모드(어느 영역을 보일지) — 설정값 그대로.
             liveOutput.LyricsMonitorRegionDisplay,
             // 줄 교차(인터레이스) 설정 — VM 이 두 영역 줄을 번갈아 배치할지 판단.
-            liveOutput.LyricsMonitorInterlace);
+            liveOutput.LyricsMonitorInterlace,
+            isLive && request.Session.IsReferenceAlertVisible,
+            isLive ? request.Session.ReferenceAlertText : string.Empty);
     }
 
     private ImagePlacement GetContentPlacement(

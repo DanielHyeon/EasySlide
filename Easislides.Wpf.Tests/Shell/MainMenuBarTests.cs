@@ -581,6 +581,10 @@ public class MainMenuBarTests
             "OutputBtnLMClear should clear the live message");
         xaml.Should().Contain("Command=\"{Binding Media.PlayPauseCommand}\"",
             "OutputBtnMedia should use the existing media play/pause command");
+        xaml.Should().Contain("x:Name=\"OutputBtnRefAlert\"",
+            "Output reference alert button should keep its FrmMain control name");
+        xaml.Should().Contain("Command=\"{Binding ToggleOutputReferenceAlertCommand}\"",
+            "OutputBtnRefAlert should toggle the live reference alert instead of staying a disabled placeholder");
         xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\"",
             "Preview verse buttons should keep moving the selected Preview item");
         xaml.Should().Contain("x:Name=\"OutputBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToOutputLyricsSectionCommand}\"",

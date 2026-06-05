@@ -693,6 +693,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearOutputCommand = new AsyncRelayCommand(ClearOutputAsync, CanUseLiveSafetyAction);
         SendLiveMessageCommand = new RelayCommand(SendLiveMessage, CanSendLiveMessage);
         ClearLiveMessageCommand = new RelayCommand(ClearLiveMessage, CanClearLiveMessage);
+        ToggleOutputReferenceAlertCommand = new RelayCommand(ToggleOutputReferenceAlert, CanToggleOutputReferenceAlert);
         RestoreOutputCommand = new RelayCommand(RestoreOutput, () => _session.Current.State == LiveState.Hidden);
         RestartCurrentItemCommand = new AsyncRelayCommand(RestartCurrentItemAsync, CanRestartCurrentItem);
         RefreshOutputCommand = new RelayCommand(RefreshOutput, () => _output.Current.IsOpen);
@@ -878,6 +879,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand ClearOutputCommand { get; }
     public IRelayCommand SendLiveMessageCommand { get; }
     public IRelayCommand ClearLiveMessageCommand { get; }
+    public IRelayCommand ToggleOutputReferenceAlertCommand { get; }
     public IRelayCommand RestoreOutputCommand { get; }
     public IAsyncRelayCommand RestartCurrentItemCommand { get; }
     public IRelayCommand RefreshOutputCommand { get; }
@@ -5057,6 +5059,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    private bool CanToggleOutputReferenceAlert()
+        => _output.Current.IsOpen && _session.Current.State == LiveState.Active;
+
+    private void ToggleOutputReferenceAlert()
+    {
+        var show = !_session.Current.IsReferenceAlertVisible;
+        var text = show ? ResolveReferenceAlertText(_session.Current) : string.Empty;
+        _session.SetReferenceAlert(show, text);
+        StatusText = show ? "구절 알림 표시" : "구절 알림 숨김";
+        NotifyCommandStates();
+    }
+
+    private static string ResolveReferenceAlertText(LiveSessionSnapshot snapshot)
+    {
+        if (!string.IsNullOrWhiteSpace(snapshot.CurrentItemTitle))
+        {
+            return snapshot.CurrentItemTitle;
+        }
+
+        if (!string.IsNullOrWhiteSpace(snapshot.CurrentSectionLabel))
+        {
+            return snapshot.CurrentSectionLabel;
+        }
+
+        return snapshot.CurrentItemPositionLabel;
+    }
+
     public bool PublishNotice(string text, NoticeOptions? options = null)
     {
         options ??= new NoticeOptions();
@@ -5743,6 +5772,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearOutputCommand.NotifyCanExecuteChanged();
         SendLiveMessageCommand.NotifyCanExecuteChanged();
         ClearLiveMessageCommand.NotifyCanExecuteChanged();
+        ToggleOutputReferenceAlertCommand.NotifyCanExecuteChanged();
         RestoreOutputCommand.NotifyCanExecuteChanged();
         RestartCurrentItemCommand.NotifyCanExecuteChanged();
         RefreshOutputCommand.NotifyCanExecuteChanged();

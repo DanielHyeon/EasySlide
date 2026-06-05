@@ -2938,6 +2938,36 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenLive_TogglesCurrentOutputTitle()
+    {
+        var sut = CreateSut();
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("bible:john-3-16", "요한복음 3:16", LiveItemKinds.Bible)
+            {
+                Lyrics = "하나님이 세상을 이처럼 사랑하사",
+            },
+        });
+
+        sut.ToggleOutputReferenceAlertCommand.CanExecute(null).Should().BeFalse("출력 창과 라이브가 모두 켜진 뒤에만 동작");
+        sut.OpenOutputCommand.Execute(null);
+        sut.ToggleOutputReferenceAlertCommand.CanExecute(null).Should().BeFalse("출력 창만 열린 상태에서는 reference alert를 띄우지 않는다");
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleOutputReferenceAlertCommand.CanExecute(null).Should().BeTrue();
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
+        sut.Session.Current.ReferenceAlertText.Should().Be("요한복음 3:16");
+        sut.Session.Current.CurrentItemBodyText.Should().Contain("하나님이 세상을 이처럼 사랑하사", "본문 송출은 유지되어야 한다");
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeFalse();
+        sut.Session.Current.ReferenceAlertText.Should().BeEmpty();
+    }
+
+    [Fact]
     public void PublishNotice_WithFontSize_CarriesFontOverrideToSnapshot()
     {
         // 공지 글자 크기 지정(pt)이 FormatData(47=pt)로 실려 기존 폰트 오버라이드 파이프라인을 타고

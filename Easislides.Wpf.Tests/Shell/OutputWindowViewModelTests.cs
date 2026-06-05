@@ -1059,6 +1059,25 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_WithReferenceAlert_ShowsReferenceOverlayText()
+    {
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()));
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "요한복음 3:16",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemBodyText: "하나님이 세상을 이처럼 사랑하사",
+            IsReferenceAlertVisible: true,
+            ReferenceAlertText: "요한복음 3:16"));
+
+        sut.ReferenceAlertVisibility.Should().Be(Visibility.Visible);
+        sut.ReferenceAlertText.Should().Be("요한복음 3:16");
+        sut.BodyText.Should().Contain("하나님이 세상을 이처럼 사랑하사");
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesSettingsBackedLyricsMonitorAppearance()
     {
         using var settingsFolder = TempSettingsFolder.Create();
