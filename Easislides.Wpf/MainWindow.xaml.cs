@@ -2490,6 +2490,12 @@ public partial class MainWindow : Window
     }
 
     private async void InlinePraiseBookOpenBook_Click(object sender, RoutedEventArgs e)
+        => await OpenSelectedInlinePraiseBookAsync().ConfigureAwait(true);
+
+    private async void InlinePraiseBookSavedBooksCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => await OpenSelectedInlinePraiseBookAsync().ConfigureAwait(true);
+
+    private async Task OpenSelectedInlinePraiseBookAsync()
     {
         if (DataContext is not MainViewModel viewModel)
         {

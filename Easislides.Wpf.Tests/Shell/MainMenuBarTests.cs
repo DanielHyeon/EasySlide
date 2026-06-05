@@ -659,12 +659,20 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"PraiseBookTab\"", "inline Praise Book tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlinePraiseBookSavedBooksCombo\"", "saved Praise Books must be loadable from the main shell");
         xaml.Should().Contain("Tag=\"PraiseBook\"", "PraiseBook combo role should remain explicit");
+        xaml.Should().Contain("SelectionChanged=\"InlinePraiseBookSavedBooksCombo_SelectionChanged\"",
+            "FrmMain PraiseBook_SelectedIndexChanged should open the selected praise book without requiring a separate Open click");
         xaml.Should().Contain("x:Name=\"PB_Manage\"", "Praise Book toolbar should expose FrmMain PB_Manage");
+        xaml.Should().Contain("Tag=\"PB_Manage\"", "PB_Manage should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Add\"", "Praise Book toolbar should expose FrmMain PB_Add");
+        xaml.Should().Contain("Tag=\"PB_Add\"", "PB_Add should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_WordCount\"", "Praise Book toolbar should expose FrmMain PB_WordCount");
+        xaml.Should().Contain("Tag=\"PB_WordCount\"", "PB_WordCount should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
+        xaml.Should().Contain("Tag=\"PB_Delete\"", "PB_Delete should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Word\"", "Praise Book toolbar should expose FrmMain PB_Word");
+        xaml.Should().Contain("Tag=\"PB_Word\"", "PB_Word should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Html\"", "Praise Book toolbar should expose FrmMain PB_Html");
+        xaml.Should().Contain("Tag=\"PB_Html\"", "PB_Html should keep the legacy toolbar role tag");
         xaml.Should().Contain("Grid.Column=\"8\"", "PB_Html should keep the FrmMain PB_Html button in the toolbar");
         CountOccurrences(SectionBetween(xaml, "<TabItem Tag=\"PraiseBook\"", "x:Name=\"PraiseBookItems\""), "<ColumnDefinition Width=\"Auto\" />")
             .Should().BeGreaterThanOrEqualTo(8, "PraiseBook toolbar columns must cover PB_Manage through PB_Html");
@@ -685,6 +693,9 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlinePraiseBookLoadedOnce(viewModel)", "Praise Book tab should lazy-load on first selection");
         code.Should().Contain("PraiseBookTab.DataContext = _inlinePraiseBook", "inline Praise Book tab should bind to PraiseBookIndexViewModel");
         code.Should().Contain("InlinePraiseBookOpenBook_Click", "saved Praise Books should open from the inline tab");
+        code.Should().Contain("InlinePraiseBookSavedBooksCombo_SelectionChanged", "selecting a saved PraiseBook should open it like FrmMain");
+        code.Should().Contain("OpenSelectedInlinePraiseBookAsync", "combo selection and Open button should share one open path");
+        code.Should().Contain("await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name)", "inline PraiseBook selection should use the real ViewModel open command");
         code.Should().Contain("InlinePraiseBookAddSelected_Click", "PB_Add should add the selected Folders song to the inline PraiseBook");
         code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
         code.Should().Contain("PraiseBookItems_SelectionChanged", "PraiseBook selection should update Preview without requiring double-click");

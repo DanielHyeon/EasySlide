@@ -2513,12 +2513,13 @@
                                 <ComboBox x:Name="InlinePraiseBookSavedBooksCombo"
                                           Tag="PraiseBook"
                                           ItemsSource="{Binding SavedBooks}"
+                                          SelectionChanged="InlinePraiseBookSavedBooksCombo_SelectionChanged"
                                           MinHeight="28"
                                           Margin="0,0,4,0"
                                           AutomationProperties.Name="Saved Praise Book list" />
                                 <Button Grid.Column="1"
                                         x:Name="PB_Manage"
-                                        Tag="list"
+                                        Tag="PB_Manage"
                                         Click="OpenPraiseBookIndex_Click"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
@@ -2530,7 +2531,7 @@
                                         AutomationProperties.Name="Manage PraiseBooks" />
                                 <Button Grid.Column="2"
                                         x:Name="PB_Add"
-                                        Tag="add"
+                                        Tag="PB_Add"
                                         Click="InlinePraiseBookAddSelected_Click"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
@@ -2542,7 +2543,7 @@
                                         AutomationProperties.Name="Add to PraiseBook" />
                                 <Button Grid.Column="3"
                                         x:Name="PB_WordCount"
-                                        Tag="wordcount"
+                                        Tag="PB_WordCount"
                                         IsEnabled="False"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
@@ -2571,7 +2572,7 @@
                                         AutomationProperties.Name="Refresh Praise Book index" />
                                 <Button Grid.Column="6"
                                         x:Name="PB_Delete"
-                                        Tag="delete"
+                                        Tag="PB_Delete"
                                         Click="InlinePraiseBookDeleteSelected_Click"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
@@ -2583,7 +2584,7 @@
                                         AutomationProperties.Name="Delete selected PraiseBook items" />
                                 <Button Grid.Column="7"
                                         x:Name="PB_Word"
-                                        Tag="word"
+                                        Tag="PB_Word"
                                         Click="InlinePraiseBookExportRtf_Click"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
@@ -2595,7 +2596,7 @@
                                         AutomationProperties.Name="Generate PraiseBook RTF document" />
                                 <Button Grid.Column="8"
                                         x:Name="PB_Html"
-                                        Tag="ie"
+                                        Tag="PB_Html"
                                         Click="InlinePraiseBookExportHtml_Click"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
