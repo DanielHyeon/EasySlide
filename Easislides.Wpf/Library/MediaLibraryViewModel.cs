@@ -126,7 +126,28 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
             return;
         }
 
-        _addToQueue(SelectedFile.FilePath);
-        StatusText = $"예배 순서에 추가: {SelectedFile.FileName}";
+        AddFiles(new[] { SelectedFile });
+    }
+
+    /// <summary>FrmMain MediaList multi-select add: 선택된 모든 미디어 파일을 현재 순서대로 예배 순서에 추가한다.</summary>
+    public int AddFiles(IEnumerable<MediaFileItem> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+
+        var selection = files.Where(file => file is not null).ToList();
+        if (selection.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var file in selection)
+        {
+            _addToQueue(file.FilePath);
+        }
+
+        StatusText = selection.Count == 1
+            ? $"예배 순서에 추가: {selection[0].FileName}"
+            : $"예배 순서에 추가: {selection.Count}개 미디어";
+        return selection.Count;
     }
 }

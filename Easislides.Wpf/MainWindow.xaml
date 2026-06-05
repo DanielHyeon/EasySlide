@@ -1775,12 +1775,40 @@
                                  x:Name="InlineMediaList"
                                  ItemsSource="{Binding MediaFiles}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                                 SelectionMode="Extended"
                                  DisplayMemberPath="FileName"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlineMediaList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineMediaList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseRightButtonDown="InlineMediaList_PreviewMouseRightButtonDown"
                                  PreviewMouseMove="InlineMediaList_PreviewMouseMove"
-                                 AutomationProperties.Name="Media source file list" />
+                                 AutomationProperties.Name="Media source file list">
+                            <ListBox.ContextMenu>
+                                <ContextMenu x:Name="CMenuFiles"
+                                             Tag="CMenuFiles">
+                                    <MenuItem x:Name="CMenuFiles_SelectAll"
+                                              Header="Select _All"
+                                              Click="CMenuFiles_SelectAll_Click" />
+                                    <MenuItem x:Name="CMenuFiles_UnselectAll"
+                                              Header="_Unselect All"
+                                              Click="CMenuFiles_UnselectAll_Click" />
+                                    <MenuItem x:Name="CMenuFiles_AddShow"
+                                              Header="Add &amp;&amp; _Show"
+                                              Click="CMenuFiles_AddShow_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuFiles_Edit"
+                                              Header="Edit"
+                                              Click="CMenuFiles_Edit_Click" />
+                                    <MenuItem x:Name="CMenuFiles_Copy"
+                                              Header="Copy"
+                                              Click="CMenuFiles_Copy_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuFiles_Refresh"
+                                              Header="Refresh"
+                                              Click="CMenuFiles_Refresh_Click" />
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
+                        </ListBox>
 
                         <TextBlock Grid.Row="4"
                                    Text="{Binding StatusText}"

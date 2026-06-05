@@ -60,6 +60,30 @@ public class MediaLibraryViewModelTests
     }
 
     [Fact]
+    public void AddFiles_WithSeveralSelections_InvokesCallbackForEachInOrder()
+    {
+        var sut = CreateSut(out var added, @"C:\media\a.mp4", @"C:\media\b.mp3", @"C:\media\c.mp4");
+        sut.LoadCommand.Execute(null);
+
+        var count = sut.AddFiles(new[] { sut.MediaFiles[0], sut.MediaFiles[2] });
+
+        count.Should().Be(2);
+        added.Should().Equal(@"C:\media\a.mp4", @"C:\media\c.mp4");
+        sut.StatusText.Should().Contain("2개 미디어");
+    }
+
+    [Fact]
+    public void AddFiles_WithEmptySelection_DoesNotInvokeCallback()
+    {
+        var sut = CreateSut(out var added, @"C:\media\a.mp4");
+
+        var count = sut.AddFiles(Enumerable.Empty<MediaFileItem>());
+
+        count.Should().Be(0);
+        added.Should().BeEmpty();
+    }
+
+    [Fact]
     public void AddSelected_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var added, @"C:\media\a.mp4");

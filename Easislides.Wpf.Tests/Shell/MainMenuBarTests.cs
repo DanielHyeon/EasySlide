@@ -480,8 +480,18 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"MediaSourceTab\"", "inline Media tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlineMediaList\"", "Media files must be visible without opening a modal window");
         xaml.Should().Contain("ItemsSource=\"{Binding MediaFiles}\"", "inline Media list reuses MediaLibraryViewModel");
+        xaml.Should().Contain("SelectionMode=\"Extended\"", "MediaList should preserve FrmMain multi-select behavior");
         xaml.Should().Contain("MouseDoubleClick=\"InlineMediaList_MouseDoubleClick\"", "double-click should add selected Media");
+        xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlineMediaList_PreviewMouseRightButtonDown\"",
+            "right-clicking a Media row should select it before opening CMenuFiles");
         xaml.Should().Contain("PreviewMouseMove=\"InlineMediaList_PreviewMouseMove\"", "Media rows should drag into the Worship List");
+        xaml.Should().Contain("x:Name=\"CMenuFiles\"", "MediaList should expose the FrmMain shared file context menu role");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_SelectAll\"", "CMenuFiles should expose Select All");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_UnselectAll\"", "CMenuFiles should expose Unselect All");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_AddShow\"", "CMenuFiles should expose Add && Show");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_Edit\"", "CMenuFiles should keep the legacy Edit item");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_Copy\"", "CMenuFiles should keep the legacy Copy item");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_Refresh\"", "CMenuFiles should expose Refresh");
 
         xaml.Should().Contain("Tag=\"ImagesSource\"", "FrmMain keeps Images as a main-console source tab");
         xaml.Should().Contain("x:Name=\"ImagesSourceTab\"", "inline Images tab needs a stable DataContext target");
@@ -519,6 +529,12 @@ public class MainMenuBarTests
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");
         code.Should().Contain("_services.GetService<IPowerPointRenderService>()", "inline PowerPoint preview mode should reuse the shared cached renderer");
         code.Should().Contain("MediaSourceTab.DataContext = _inlineMedia", "inline Media tab should bind to its library VM");
+        code.Should().Contain("AddInlineMediaSelectionToWorshipList", "Media Enter/WL_Add/context menu should route through the multi-select add path");
+        code.Should().Contain("InlineMediaList.SelectedItems.OfType<MediaFileItem>()", "Media multi-select should use the actual selected WPF rows");
+        code.Should().Contain("InlineMediaList.SelectAll()", "CMenuFiles_SelectAll should select the visible MediaList rows");
+        code.Should().Contain("InlineMediaList.UnselectAll()", "CMenuFiles_UnselectAll should clear the visible MediaList selection");
+        code.Should().Contain("PreviewToLiveCommand.ExecuteAsync(null)", "CMenuFiles_AddShow should send the newly-added selection live when possible");
+        code.Should().Contain("selection.Select(file => file.FilePath).ToArray()", "Media drag should carry every selected file like FrmMain MediaList.ItemDrag");
         code.Should().Contain("sender is ListBox powerPointList", "PowerPoint list and preview-list drags should use the actual source surface");
         code.Should().Contain("ItemsControl.ContainerFromElement(powerPointList, source)", "PowerPoint drag arming should work for both list and preview style");
         code.Should().Contain("DragDrop.DoDragDrop(", "PowerPoint drag payload should still use WPF drag/drop");

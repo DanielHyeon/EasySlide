@@ -51,9 +51,9 @@
 | `tabImages` | `ImagesSourceTab` | partial | 2/5 | real folders/thumbnails exist; primary apply now follows FrmMain item-first/default-fallback image background behavior; thumbnail drag emits image `FileDrop` for Preview background drop; folder group parity still incomplete |
 | `ImagesFolder` | image folder selector | partial | 2 | legacy image groups |
 | `flowLayoutImages` | `InlineImagesList` (`Tag=flowLayoutImages`) | partial | 5 | thumbnails, double-click/Enter/Apply use FrmMain item-first/default-fallback background behavior; item/default context menu, refresh menu, and image-to-background drag exist; exact thumbnail sizing and folder-group UI still incomplete |
-| `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, drag insert |
+| `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, multi-select add/drag, and FrmMain `CMenuFiles` Select/Unselect/Add && Show/Refresh are wired; exact folder-group UI and Edit/Copy parity remain incomplete |
 | `MediaFolder` | media folder selector | partial | 2 | legacy media groups |
-| `MediaList` | `InlineMediaList` | partial | 3 | double-click, Enter add, and drag insert exist; context menu parity incomplete |
+| `MediaList` | `InlineMediaList` + `CMenuFiles_*` | partial | 3 | extended multi-select, right-click row selection, double-click/Enter/WL_Add multi-add, multi-file drag insert, and `CMenuFiles_SelectAll/UnselectAll/AddShow/Refresh` exist; exact legacy columns plus Edit/Copy side effects remain incomplete |
 | `tabDefault` | `DefaultSource` tab / inspector | partial | 5 | full `DefPanel` option parity |
 
 ## 3. Lower Left Lists
@@ -120,10 +120,11 @@
 | Gesture | FrmMain source | WPF status | Phase |
 | --- | --- | --- | --- |
 | Song double-click add | `SongsList` | partial | 3 |
-| Media double-click add | `MediaList_MouseDoubleClick` | partial | 3 |
+| Media double-click add | `MediaList_MouseDoubleClick` | implemented | 3 | double-click now routes through the same multi-select Media add path used by Enter/WL_Add |
 | Bible selected passage drag | `BibleText_MouseDown` with `DragDropSource.BiblePassage` | implemented | 3 | typed `BibleSelection` drag inserts at Worship List drop target |
 | Worship List reorder drag | `DragDropSource.WorshipList` | implemented | 3 | `LiveQueueItem` drag/drop reorders by reference, preserving duplicate queue items |
 | Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage`, `PraiseBookItems` | implemented | 3 | typed/file-drop payloads insert before the drop target; PraiseBook now resolves legacy `SongId` through the Admin DB when needed |
+| Media file context menu | `CMenuFiles_SelectAll`, `CMenuFiles_UnselectAll`, `CMenuFiles_AddShow`, `CMenuFiles_Edit`, `CMenuFiles_Copy`, `CMenuFiles_Refresh` on `MediaList` | partial | 3/4 | WPF `CMenuFiles` now exposes the legacy names/order on `InlineMediaList`; Select/Unselect, Add && Show, Refresh, right-click row selection, and multi-select add are wired. Edit/Copy stay visible but no-op for Media, matching the legacy handler's Media branch gap |
 | Image-to-background drag | `flowLayoutImages` thumbnail drag to preview/background surface | partial | 5 | Inline image thumbnails now drag the exact pressed image as `FileDrop`; Preview area accepts image drops and applies Output background |
 | Source/PraiseBook Enter add | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `SearchResults`, `LookupCandidates`, `BibleText`, `PraiseBookItems` | implemented | 3/6 | source lists reuse `AddSelectedSourceToWorshipListAsync`; PraiseBook Enter reuses DB-backed add path as double-click; broader focus/shortcut parity remains Phase 6 |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 | Select/Unselect/Clear/Play/Play-on-Output map to WPF handlers/commands; right-click Edit opens the song editor for DB songs and a title/body editor for Bible/Notice rows; Add Songs to Usages records current-list DB song rows to the legacy usage DB. PPT/media external edit remains partial |

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -1086,11 +1087,7 @@ public partial class MainWindow : Window
 
             case "MediaSource":
                 EnsureInlineMediaLoadedOnce(viewModel);
-                if (_inlineMedia?.AddSelectedCommand.CanExecute(null) == true)
-                {
-                    _inlineMedia.AddSelectedCommand.Execute(null);
-                }
-                else
+                if (AddInlineMediaSelectionToWorshipList().Count == 0)
                 {
                     viewModel.StatusText = "선택된 미디어 파일이 없습니다.";
                 }
@@ -1326,10 +1323,7 @@ public partial class MainWindow : Window
 
     private void InlineMediaList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (_inlineMedia?.AddSelectedCommand.CanExecute(null) == true)
-        {
-            _inlineMedia.AddSelectedCommand.Execute(null);
-        }
+        AddInlineMediaSelectionToWorshipList();
     }
 
     private void InlinePowerPointList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1379,6 +1373,22 @@ public partial class MainWindow : Window
             && ItemsControl.ContainerFromElement(InlineMediaList, source) is ListBoxItem;
     }
 
+    private void InlineMediaList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(InlineMediaList, source) is ListBoxItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+            if (item.DataContext is MediaFileItem file && _inlineMedia is not null)
+            {
+                _inlineMedia.SelectedFile = file;
+            }
+        }
+
+        InlineMediaList.Focus();
+    }
+
     private void InlineMediaList_PreviewMouseMove(object sender, MouseEventArgs e)
     {
         if (!_mediaDragArmed || e.LeftButton != MouseButtonState.Pressed)
@@ -1393,7 +1403,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_inlineMedia?.SelectedFile is not { } file)
+        var selection = GetInlineMediaSelection();
+        if (selection.Count == 0)
         {
             return;
         }
@@ -1401,8 +1412,107 @@ public partial class MainWindow : Window
         _mediaDragArmed = false;
         DragDrop.DoDragDrop(
             InlineMediaList,
-            new DataObject(DataFormats.FileDrop, new[] { file.FilePath }),
+            new DataObject(DataFormats.FileDrop, selection.Select(file => file.FilePath).ToArray()),
             DragDropEffects.Copy);
+    }
+
+    private IReadOnlyList<MediaFileItem> GetInlineMediaSelection()
+    {
+        var selection = InlineMediaList.SelectedItems.OfType<MediaFileItem>().ToList();
+        if (selection.Count == 0 && _inlineMedia?.SelectedFile is { } selectedFile)
+        {
+            selection.Add(selectedFile);
+        }
+
+        return selection;
+    }
+
+    private IReadOnlyList<LiveQueueItem> AddInlineMediaSelectionToWorshipList()
+    {
+        var selection = GetInlineMediaSelection();
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "선택된 미디어 파일이 없습니다.";
+            return Array.Empty<LiveQueueItem>();
+        }
+
+        var added = new List<LiveQueueItem>();
+        foreach (var file in selection)
+        {
+            if (_viewModel.AddMedia(file.FilePath) is { } item)
+            {
+                added.Add(item);
+            }
+        }
+
+        if (added.Count == 0)
+        {
+            return added;
+        }
+
+        _viewModel.SelectedItem = added[0];
+        if (_inlineMedia is not null)
+        {
+            _inlineMedia.StatusText = added.Count == 1
+                ? $"예배 순서에 추가: {selection[0].FileName}"
+                : $"예배 순서에 추가: {added.Count}개 미디어";
+        }
+
+        _viewModel.StatusText = added.Count == 1
+            ? $"미디어 파일 추가됨: {added[0].Title}"
+            : $"{added.Count}개 미디어 파일 추가됨";
+        return added;
+    }
+
+    private void CMenuFiles_SelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        InlineMediaList.SelectAll();
+        InlineMediaList.Focus();
+    }
+
+    private void CMenuFiles_UnselectAll_Click(object sender, RoutedEventArgs e)
+    {
+        InlineMediaList.UnselectAll();
+        if (_inlineMedia is not null)
+        {
+            _inlineMedia.SelectedFile = null;
+        }
+
+        InlineMediaList.Focus();
+    }
+
+    private async void CMenuFiles_AddShow_Click(object sender, RoutedEventArgs e)
+    {
+        var added = AddInlineMediaSelectionToWorshipList();
+        if (added.Count == 0)
+        {
+            return;
+        }
+
+        if (_viewModel.PreviewToLiveCommand.CanExecute(null))
+        {
+            await _viewModel.PreviewToLiveCommand.ExecuteAsync(null).ConfigureAwait(true);
+        }
+    }
+
+    private void CMenuFiles_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        InlineMediaList.Focus();
+    }
+
+    private void CMenuFiles_Copy_Click(object sender, RoutedEventArgs e)
+    {
+        InlineMediaList.Focus();
+    }
+
+    private void CMenuFiles_Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlineMedia?.LoadCommand.CanExecute(null) == true)
+        {
+            _inlineMedia.LoadCommand.Execute(null);
+        }
+
+        InlineMediaList.Focus();
     }
 
     private void InlineImagesList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
