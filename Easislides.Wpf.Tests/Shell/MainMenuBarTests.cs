@@ -849,6 +849,27 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputBottomStrips_UseFrmMainWhiteToolbarRows()
+    {
+        var xaml = Xaml;
+
+        foreach (var pair in new[]
+        {
+            ("ClassicPreviewBottomStripHost", "ClassicPreviewBottomStrip"),
+            ("ClassicOutputBottomStripHost", "ClassicOutputBottomStrip"),
+        })
+        {
+            var host = SectionBetween(xaml, $"x:Name=\"{pair.Item1}\"", $"</Border>");
+            host.Should().Contain("Background=\"White\"",
+                $"{pair.Item1} should separate controls from the grey screen work area like FrmMain");
+            host.Should().Contain("BorderThickness=\"0,0,0,1\"",
+                $"{pair.Item1} should draw the thin divider above the grey screen work area");
+            host.Should().Contain($"x:Name=\"{pair.Item2}\"",
+                $"{pair.Item2} should remain inside the white toolbar row");
+        }
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputPanes_ExposeFrmMainControlRoles()
     {
         var xaml = Xaml;

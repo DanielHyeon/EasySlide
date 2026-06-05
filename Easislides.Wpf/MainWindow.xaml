@@ -3506,129 +3506,135 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <WrapPanel x:Name="ClassicPreviewBottomStrip"
-                               Orientation="Horizontal"
-                               Margin="0,0,0,6">
-                        <Button x:Name="IndcbPreviewNotes"
-                                Tag="IndcbPreviewNotes"
-                                Click="OpenSessionNotes_Click"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="N"
-                                ToolTip="세션 노트"
-                                AutomationProperties.Name="Preview 세션 노트" />
-                        <ToggleButton x:Name="IndradioButtonText"
-                                      Tag="IndradioButtonText"
-                                      Command="{Binding ShowPreviewTextModeCommand}"
-                                      IsChecked="{Binding IsPreviewTextMode, Mode=OneWay}"
-                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                      MinWidth="42"
-                                      MinHeight="28"
-                                      Padding="6,0"
-                                      Margin="0,0,4,0"
-                                      Content="Text"
-                                      ToolTip="텍스트 보기"
-                                      AutomationProperties.Name="Preview Text 모드" />
-                        <ToggleButton x:Name="IndradioButtonFormat"
-                                      Tag="IndradioButtonFormat"
-                                      Command="{Binding ShowPreviewFormatModeCommand}"
-                                      IsChecked="{Binding IsPreviewFormatMode, Mode=OneWay}"
-                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                      MinWidth="36"
-                                      MinHeight="28"
-                                      Padding="6,0"
-                                      Margin="0,0,4,0"
-                                      Content="Set"
-                                      ToolTip="서식 설정"
-                                      AutomationProperties.Name="Preview Set 모드" />
-                        <ToggleButton x:Name="IndradioButtonInfo"
-                                      Tag="IndradioButtonInfo"
-                                      Command="{Binding ShowPreviewInfoModeCommand}"
-                                      IsChecked="{Binding IsPreviewInfoMode, Mode=OneWay}"
-                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                      MinWidth="38"
-                                      MinHeight="28"
-                                      Padding="6,0"
-                                      Margin="0,0,4,0"
-                                      Content="Info"
-                                      ToolTip="항목 정보"
-                                      AutomationProperties.Name="Preview Info 모드" />
-                        <Button x:Name="PreviewBtnItemUp"
-                                Tag="PreviewBtnItemUp"
-                                Command="{Binding PreviousPreviewItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="⌃"
-                                ToolTip="이전 항목"
-                                AutomationProperties.Name="Preview 이전 항목" />
-                        <Button x:Name="PreviewBtnItemDown"
-                                Tag="PreviewBtnItemDown"
-                                Command="{Binding NextPreviewItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="⌄"
-                                ToolTip="다음 항목"
-                                AutomationProperties.Name="Preview 다음 항목" />
-                        <Button x:Name="PreviewBtnSlideUp"
-                                Tag="PreviewBtnSlideUp"
-                                Command="{Binding PreviousSlideCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="◀"
-                                ToolTip="이전 슬라이드"
-                                AutomationProperties.Name="Preview 이전 슬라이드" />
-                        <Button x:Name="PreviewBtnSlideDown"
-                                Tag="PreviewBtnSlideDown"
-                                Command="{Binding NextSlideCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,8,0"
-                                Content="▶"
-                                ToolTip="다음 슬라이드"
-                                AutomationProperties.Name="Preview 다음 슬라이드" />
-                        <TextBlock x:Name="ClassicPreviewPositionLabel"
-                                   Text="{Binding PreviewNavigationPositionLabel}"
-                                   MinWidth="36"
-                                   Margin="0,0,8,0"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Center"
-                                   Style="{StaticResource Type.Caption.Style}"
-                                   Foreground="{DynamicResource Brush.Text.Secondary}"
-                                   AutomationProperties.Name="Preview 현재 위치" />
-                        <WrapPanel x:Name="flowLayoutPanel1"
-                                   Tag="flowLayoutPanel1">
-                            <Button x:Name="PreviewBtnVerse1" Tag="1" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="1" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="1" AutomationProperties.Name="Preview 1절" />
-                            <Button x:Name="PreviewBtnVerse2" Tag="2" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="2" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="2" AutomationProperties.Name="Preview 2절" />
-                            <Button x:Name="PreviewBtnVerse3" Tag="3" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="3" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="3" AutomationProperties.Name="Preview 3절" />
-                            <Button x:Name="PreviewBtnVerse4" Tag="4" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="4" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="4" AutomationProperties.Name="Preview 4절" />
-                            <Button x:Name="PreviewBtnVerse5" Tag="5" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="5" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="5" AutomationProperties.Name="Preview 5절" />
-                            <Button x:Name="PreviewBtnVerse6" Tag="6" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="6" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="6" AutomationProperties.Name="Preview 6절" />
-                            <Button x:Name="PreviewBtnVerse7" Tag="7" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="7" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="7" AutomationProperties.Name="Preview 7절" />
-                            <Button x:Name="PreviewBtnVerse8" Tag="8" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="8" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="8" AutomationProperties.Name="Preview 8절" />
-                            <Button x:Name="PreviewBtnVerse9" Tag="9" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="9" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="9" AutomationProperties.Name="Preview 9절" />
-                            <Button x:Name="PreviewBtnVersePreChorus" Tag="111" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="p" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="p" AutomationProperties.Name="Preview pre-chorus" />
-                            <Button x:Name="PreviewBtnVersePreChorus2" Tag="112" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="q" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="q" AutomationProperties.Name="Preview pre-chorus 2" />
-                            <Button x:Name="PreviewBtnVerseChorus" Tag="0" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="c" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="c" AutomationProperties.Name="Preview chorus" />
-                            <Button x:Name="PreviewBtnVerseChorus2" Tag="102" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="t" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="t" AutomationProperties.Name="Preview chorus 2" />
-                            <Button x:Name="PreviewBtnVerseBridge" Tag="100" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="b" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="b" AutomationProperties.Name="Preview bridge" />
-                            <Button x:Name="PreviewBtnVerseBridge2" Tag="103" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="w" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="w" AutomationProperties.Name="Preview bridge 2" />
-                            <Button x:Name="PreviewBtnVerseEnding" Tag="101" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="e" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Content="e" AutomationProperties.Name="Preview ending" />
+                    <Border x:Name="ClassicPreviewBottomStripHost"
+                            Background="White"
+                            BorderBrush="{DynamicResource Brush.Border.Default}"
+                            BorderThickness="0,0,0,1"
+                            Margin="-6,-6,-6,6"
+                            Padding="6,6,6,5">
+                        <WrapPanel x:Name="ClassicPreviewBottomStrip"
+                                   Orientation="Horizontal">
+                            <Button x:Name="IndcbPreviewNotes"
+                                    Tag="IndcbPreviewNotes"
+                                    Click="OpenSessionNotes_Click"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="N"
+                                    ToolTip="세션 노트"
+                                    AutomationProperties.Name="Preview 세션 노트" />
+                            <ToggleButton x:Name="IndradioButtonText"
+                                          Tag="IndradioButtonText"
+                                          Command="{Binding ShowPreviewTextModeCommand}"
+                                          IsChecked="{Binding IsPreviewTextMode, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="42"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="0,0,4,0"
+                                          Content="Text"
+                                          ToolTip="텍스트 보기"
+                                          AutomationProperties.Name="Preview Text 모드" />
+                            <ToggleButton x:Name="IndradioButtonFormat"
+                                          Tag="IndradioButtonFormat"
+                                          Command="{Binding ShowPreviewFormatModeCommand}"
+                                          IsChecked="{Binding IsPreviewFormatMode, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="36"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="0,0,4,0"
+                                          Content="Set"
+                                          ToolTip="서식 설정"
+                                          AutomationProperties.Name="Preview Set 모드" />
+                            <ToggleButton x:Name="IndradioButtonInfo"
+                                          Tag="IndradioButtonInfo"
+                                          Command="{Binding ShowPreviewInfoModeCommand}"
+                                          IsChecked="{Binding IsPreviewInfoMode, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="38"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="0,0,4,0"
+                                          Content="Info"
+                                          ToolTip="항목 정보"
+                                          AutomationProperties.Name="Preview Info 모드" />
+                            <Button x:Name="PreviewBtnItemUp"
+                                    Tag="PreviewBtnItemUp"
+                                    Command="{Binding PreviousPreviewItemCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="⌃"
+                                    ToolTip="이전 항목"
+                                    AutomationProperties.Name="Preview 이전 항목" />
+                            <Button x:Name="PreviewBtnItemDown"
+                                    Tag="PreviewBtnItemDown"
+                                    Command="{Binding NextPreviewItemCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="⌄"
+                                    ToolTip="다음 항목"
+                                    AutomationProperties.Name="Preview 다음 항목" />
+                            <Button x:Name="PreviewBtnSlideUp"
+                                    Tag="PreviewBtnSlideUp"
+                                    Command="{Binding PreviousSlideCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="◀"
+                                    ToolTip="이전 슬라이드"
+                                    AutomationProperties.Name="Preview 이전 슬라이드" />
+                            <Button x:Name="PreviewBtnSlideDown"
+                                    Tag="PreviewBtnSlideDown"
+                                    Command="{Binding NextSlideCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,8,0"
+                                    Content="▶"
+                                    ToolTip="다음 슬라이드"
+                                    AutomationProperties.Name="Preview 다음 슬라이드" />
+                            <TextBlock x:Name="ClassicPreviewPositionLabel"
+                                       Text="{Binding PreviewNavigationPositionLabel}"
+                                       MinWidth="36"
+                                       Margin="0,0,8,0"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       AutomationProperties.Name="Preview 현재 위치" />
+                            <WrapPanel x:Name="flowLayoutPanel1"
+                                       Tag="flowLayoutPanel1">
+                                <Button x:Name="PreviewBtnVerse1" Tag="1" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="1" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="1" AutomationProperties.Name="Preview 1절" />
+                                <Button x:Name="PreviewBtnVerse2" Tag="2" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="2" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="2" AutomationProperties.Name="Preview 2절" />
+                                <Button x:Name="PreviewBtnVerse3" Tag="3" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="3" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="3" AutomationProperties.Name="Preview 3절" />
+                                <Button x:Name="PreviewBtnVerse4" Tag="4" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="4" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="4" AutomationProperties.Name="Preview 4절" />
+                                <Button x:Name="PreviewBtnVerse5" Tag="5" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="5" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="5" AutomationProperties.Name="Preview 5절" />
+                                <Button x:Name="PreviewBtnVerse6" Tag="6" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="6" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="6" AutomationProperties.Name="Preview 6절" />
+                                <Button x:Name="PreviewBtnVerse7" Tag="7" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="7" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="7" AutomationProperties.Name="Preview 7절" />
+                                <Button x:Name="PreviewBtnVerse8" Tag="8" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="8" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="8" AutomationProperties.Name="Preview 8절" />
+                                <Button x:Name="PreviewBtnVerse9" Tag="9" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="9" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="9" AutomationProperties.Name="Preview 9절" />
+                                <Button x:Name="PreviewBtnVersePreChorus" Tag="111" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="p" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="p" AutomationProperties.Name="Preview pre-chorus" />
+                                <Button x:Name="PreviewBtnVersePreChorus2" Tag="112" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="q" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="q" AutomationProperties.Name="Preview pre-chorus 2" />
+                                <Button x:Name="PreviewBtnVerseChorus" Tag="0" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="c" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="c" AutomationProperties.Name="Preview chorus" />
+                                <Button x:Name="PreviewBtnVerseChorus2" Tag="102" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="t" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="t" AutomationProperties.Name="Preview chorus 2" />
+                                <Button x:Name="PreviewBtnVerseBridge" Tag="100" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="b" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="b" AutomationProperties.Name="Preview bridge" />
+                                <Button x:Name="PreviewBtnVerseBridge2" Tag="103" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="w" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="w" AutomationProperties.Name="Preview bridge 2" />
+                                <Button x:Name="PreviewBtnVerseEnding" Tag="101" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="e" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Content="e" AutomationProperties.Name="Preview ending" />
+                            </WrapPanel>
                         </WrapPanel>
-                    </WrapPanel>
+                    </Border>
 
                     <Viewbox Grid.Row="1"
                              x:Name="ClassicPreviewHolder"
@@ -3987,148 +3993,154 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <WrapPanel x:Name="ClassicOutputBottomStrip"
-                               Orientation="Horizontal"
-                               Margin="0,0,0,6">
-                        <Button x:Name="OutputBtnJumpToNonRotate"
-                                Tag="OutputBtnJumpToNonRotate"
-                                Command="{Binding JumpToNextNonRotateOutputItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="J"
-                                ToolTip="회전 제외 항목으로 이동"
-                                AutomationProperties.Name="Output 회전 제외 항목 이동" />
-                        <Button x:Name="OutputBtnMedia"
-                                Tag="OutputBtnMedia"
-                                Command="{Binding PlayOutputMediaCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                ToolTip="미디어 재생/일시정지"
-                                AutomationProperties.Name="Output 미디어 재생 일시정지">
-                            <ui:SymbolIcon Symbol="{Binding Media.PlayPauseSymbol}" />
-                        </Button>
-                        <Button x:Name="OutputBtnRefAlert"
-                                Tag="OutputBtnRefAlert"
-                                Command="{Binding ToggleOutputReferenceAlertCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="!"
-                                ToolTip="성경 구절 알림"
-                                AutomationProperties.Name="Output 구절 알림" />
-                        <ToggleButton Command="{Binding ToggleOutputBlackCommand}"
-                                      IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
-                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                      MinWidth="30"
-                                      MinHeight="28"
-                                      Padding="6,0"
-                                      Margin="0,0,4,0"
-                                      ToolTip="검은 화면"
-                                      AutomationProperties.Name="Output 하단 검은 화면">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
-                        </ToggleButton>
-                        <ToggleButton Command="{Binding ToggleOutputClearCommand}"
-                                      IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
-                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                      MinWidth="30"
-                                      MinHeight="28"
-                                      Padding="6,0"
-                                      Margin="0,0,4,0"
-                                      Content="Tx"
-                                      ToolTip="화면 비우기"
-                                      AutomationProperties.Name="Output 하단 화면 비우기" />
-                        <Button x:Name="OutputBtnItemUp"
-                                Tag="OutputBtnItemUp"
-                                Command="{Binding PreviousOutputItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="⌃"
-                                ToolTip="이전 항목"
-                                AutomationProperties.Name="Output 이전 항목" />
-                        <Button x:Name="OutputBtnItemDown"
-                                Tag="OutputBtnItemDown"
-                                Command="{Binding NextOutputItemCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="⌄"
-                                ToolTip="다음 항목"
-                                AutomationProperties.Name="Output 다음 항목" />
-                        <Button x:Name="OutputBtnSlideUp"
-                                Tag="OutputBtnSlideUp"
-                                Command="{Binding PreviousOutputSlideCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="◀"
-                                ToolTip="이전 슬라이드"
-                                AutomationProperties.Name="Output 이전 슬라이드" />
-                        <Button x:Name="OutputBtnSlideDown"
-                                Tag="OutputBtnSlideDown"
-                                Command="{Binding NextOutputSlideCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="▶"
-                                ToolTip="다음 슬라이드"
-                                AutomationProperties.Name="Output 다음 슬라이드" />
-                        <TextBlock x:Name="ClassicOutputPositionLabel"
-                                   Text="{Binding OutputNavigationPositionLabel}"
-                                   MinWidth="36"
-                                   Margin="0,0,4,0"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Center"
-                                   Style="{StaticResource Type.Caption.Style}"
-                                   Foreground="{DynamicResource Brush.Text.Secondary}"
-                                   AutomationProperties.Name="Output 현재 위치" />
-                        <ToggleButton Command="{Binding ToggleOutputLiveCommand}"
-                                      IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
-                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                      MinWidth="30"
-                                      MinHeight="28"
-                                      Padding="6,0"
-                                      ToolTip="출력 복귀"
-                                      AutomationProperties.Name="Output 하단 복귀">
-                            <ui:SymbolIcon Symbol="ArrowReset24" />
-                        </ToggleButton>
-                        <WrapPanel x:Name="flowLayoutPanel2"
-                                   Tag="flowLayoutPanel2"
-                                   Margin="4,0,0,0">
-                            <Button x:Name="OutputBtnVerse1" Tag="1" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="1" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="1" AutomationProperties.Name="Output 1절" />
-                            <Button x:Name="OutputBtnVerse2" Tag="2" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="2" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="2" AutomationProperties.Name="Output 2절" />
-                            <Button x:Name="OutputBtnVerse3" Tag="3" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="3" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="3" AutomationProperties.Name="Output 3절" />
-                            <Button x:Name="OutputBtnVerse4" Tag="4" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="4" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="4" AutomationProperties.Name="Output 4절" />
-                            <Button x:Name="OutputBtnVerse5" Tag="5" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="5" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="5" AutomationProperties.Name="Output 5절" />
-                            <Button x:Name="OutputBtnVerse6" Tag="6" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="6" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="6" AutomationProperties.Name="Output 6절" />
-                            <Button x:Name="OutputBtnVerse7" Tag="7" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="7" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="7" AutomationProperties.Name="Output 7절" />
-                            <Button x:Name="OutputBtnVerse8" Tag="8" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="8" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="8" AutomationProperties.Name="Output 8절" />
-                            <Button x:Name="OutputBtnVerse9" Tag="9" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="9" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="9" AutomationProperties.Name="Output 9절" />
-                            <Button x:Name="OutputBtnVersePreChorus" Tag="111" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="p" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="p" AutomationProperties.Name="Output pre-chorus" />
-                            <Button x:Name="OutputBtnVersePreChorus2" Tag="112" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="q" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="q" AutomationProperties.Name="Output pre-chorus 2" />
-                            <Button x:Name="OutputBtnVerseChorus" Tag="0" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="c" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="c" AutomationProperties.Name="Output chorus" />
-                            <Button x:Name="OutputBtnVerseChorus2" Tag="102" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="t" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="t" AutomationProperties.Name="Output chorus 2" />
-                            <Button x:Name="OutputBtnVerseBridge" Tag="100" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="b" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="b" AutomationProperties.Name="Output bridge" />
-                            <Button x:Name="OutputBtnVerseBridge2" Tag="103" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="w" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="w" AutomationProperties.Name="Output bridge 2" />
-                            <Button x:Name="OutputBtnVerseEnding" Tag="101" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="e" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Content="e" AutomationProperties.Name="Output ending" />
+                    <Border x:Name="ClassicOutputBottomStripHost"
+                            Background="White"
+                            BorderBrush="{DynamicResource Brush.Border.Default}"
+                            BorderThickness="0,0,0,1"
+                            Margin="-6,-6,-6,6"
+                            Padding="6,6,6,5">
+                        <WrapPanel x:Name="ClassicOutputBottomStrip"
+                                   Orientation="Horizontal">
+                            <Button x:Name="OutputBtnJumpToNonRotate"
+                                    Tag="OutputBtnJumpToNonRotate"
+                                    Command="{Binding JumpToNextNonRotateOutputItemCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="J"
+                                    ToolTip="회전 제외 항목으로 이동"
+                                    AutomationProperties.Name="Output 회전 제외 항목 이동" />
+                            <Button x:Name="OutputBtnMedia"
+                                    Tag="OutputBtnMedia"
+                                    Command="{Binding PlayOutputMediaCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    ToolTip="미디어 재생/일시정지"
+                                    AutomationProperties.Name="Output 미디어 재생 일시정지">
+                                <ui:SymbolIcon Symbol="{Binding Media.PlayPauseSymbol}" />
+                            </Button>
+                            <Button x:Name="OutputBtnRefAlert"
+                                    Tag="OutputBtnRefAlert"
+                                    Command="{Binding ToggleOutputReferenceAlertCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="!"
+                                    ToolTip="성경 구절 알림"
+                                    AutomationProperties.Name="Output 구절 알림" />
+                            <ToggleButton Command="{Binding ToggleOutputBlackCommand}"
+                                          IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="30"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="0,0,4,0"
+                                          ToolTip="검은 화면"
+                                          AutomationProperties.Name="Output 하단 검은 화면">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
+                            </ToggleButton>
+                            <ToggleButton Command="{Binding ToggleOutputClearCommand}"
+                                          IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="30"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="0,0,4,0"
+                                          Content="Tx"
+                                          ToolTip="화면 비우기"
+                                          AutomationProperties.Name="Output 하단 화면 비우기" />
+                            <Button x:Name="OutputBtnItemUp"
+                                    Tag="OutputBtnItemUp"
+                                    Command="{Binding PreviousOutputItemCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="⌃"
+                                    ToolTip="이전 항목"
+                                    AutomationProperties.Name="Output 이전 항목" />
+                            <Button x:Name="OutputBtnItemDown"
+                                    Tag="OutputBtnItemDown"
+                                    Command="{Binding NextOutputItemCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="⌄"
+                                    ToolTip="다음 항목"
+                                    AutomationProperties.Name="Output 다음 항목" />
+                            <Button x:Name="OutputBtnSlideUp"
+                                    Tag="OutputBtnSlideUp"
+                                    Command="{Binding PreviousOutputSlideCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="◀"
+                                    ToolTip="이전 슬라이드"
+                                    AutomationProperties.Name="Output 이전 슬라이드" />
+                            <Button x:Name="OutputBtnSlideDown"
+                                    Tag="OutputBtnSlideDown"
+                                    Command="{Binding NextOutputSlideCommand}"
+                                    Style="{StaticResource EsButton.Secondary}"
+                                    MinWidth="30"
+                                    MinHeight="28"
+                                    Padding="6,0"
+                                    Margin="0,0,4,0"
+                                    Content="▶"
+                                    ToolTip="다음 슬라이드"
+                                    AutomationProperties.Name="Output 다음 슬라이드" />
+                            <TextBlock x:Name="ClassicOutputPositionLabel"
+                                       Text="{Binding OutputNavigationPositionLabel}"
+                                       MinWidth="36"
+                                       Margin="0,0,4,0"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       AutomationProperties.Name="Output 현재 위치" />
+                            <ToggleButton Command="{Binding ToggleOutputLiveCommand}"
+                                          IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="30"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          ToolTip="출력 복귀"
+                                          AutomationProperties.Name="Output 하단 복귀">
+                                <ui:SymbolIcon Symbol="ArrowReset24" />
+                            </ToggleButton>
+                            <WrapPanel x:Name="flowLayoutPanel2"
+                                       Tag="flowLayoutPanel2"
+                                       Margin="4,0,0,0">
+                                <Button x:Name="OutputBtnVerse1" Tag="1" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="1" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="1" AutomationProperties.Name="Output 1절" />
+                                <Button x:Name="OutputBtnVerse2" Tag="2" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="2" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="2" AutomationProperties.Name="Output 2절" />
+                                <Button x:Name="OutputBtnVerse3" Tag="3" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="3" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="3" AutomationProperties.Name="Output 3절" />
+                                <Button x:Name="OutputBtnVerse4" Tag="4" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="4" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="4" AutomationProperties.Name="Output 4절" />
+                                <Button x:Name="OutputBtnVerse5" Tag="5" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="5" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="5" AutomationProperties.Name="Output 5절" />
+                                <Button x:Name="OutputBtnVerse6" Tag="6" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="6" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="6" AutomationProperties.Name="Output 6절" />
+                                <Button x:Name="OutputBtnVerse7" Tag="7" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="7" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="7" AutomationProperties.Name="Output 7절" />
+                                <Button x:Name="OutputBtnVerse8" Tag="8" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="8" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="8" AutomationProperties.Name="Output 8절" />
+                                <Button x:Name="OutputBtnVerse9" Tag="9" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="9" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="9" AutomationProperties.Name="Output 9절" />
+                                <Button x:Name="OutputBtnVersePreChorus" Tag="111" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="p" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="p" AutomationProperties.Name="Output pre-chorus" />
+                                <Button x:Name="OutputBtnVersePreChorus2" Tag="112" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="q" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="q" AutomationProperties.Name="Output pre-chorus 2" />
+                                <Button x:Name="OutputBtnVerseChorus" Tag="0" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="c" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="c" AutomationProperties.Name="Output chorus" />
+                                <Button x:Name="OutputBtnVerseChorus2" Tag="102" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="t" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="t" AutomationProperties.Name="Output chorus 2" />
+                                <Button x:Name="OutputBtnVerseBridge" Tag="100" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="b" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="b" AutomationProperties.Name="Output bridge" />
+                                <Button x:Name="OutputBtnVerseBridge2" Tag="103" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="w" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="w" AutomationProperties.Name="Output bridge 2" />
+                                <Button x:Name="OutputBtnVerseEnding" Tag="101" Command="{Binding JumpToOutputLyricsSectionCommand}" CommandParameter="e" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Content="e" AutomationProperties.Name="Output ending" />
+                            </WrapPanel>
                         </WrapPanel>
-                    </WrapPanel>
+                    </Border>
 
                     <Viewbox Grid.Row="1"
                              x:Name="ClassicOutputHolder"
