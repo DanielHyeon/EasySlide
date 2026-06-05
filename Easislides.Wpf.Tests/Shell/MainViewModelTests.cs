@@ -1488,6 +1488,73 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void UpdateSelectedSongQueueItem_ReplacesSelectedDbSongContent_AndKeepsSelection()
+    {
+        // FrmMain CMenuWorship_Edit 대응: 곡 편집기 저장 후 선택된 예배순서 행의 제목/가사/번호/저작권을 새 값으로 갱신한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:42", "Old title", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOld lyrics",
+            Sequence = "1",
+            SongNumber = 1,
+            Copyright = "old",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.WorshipListHasUnsavedChanges = false;
+        var song = new SongSummary(42, "New title", "", 1, 77, "", "G", "[1]\nNew lyrics", "(c) new");
+
+        var changed = sut.UpdateSelectedSongQueueItem(song, " 1 C ", "29=-1>");
+
+        changed.Should().BeTrue();
+        sut.Queue[0].Should().NotBeSameAs(item, "LiveQueueItem is immutable, so the selected row should be replaced");
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0], "selection should follow the replacement row");
+        sut.SelectedItem!.Title.Should().Be("New title");
+        sut.SelectedItem.Lyrics.Should().Be("[1]\nNew lyrics");
+        sut.SelectedItem.Sequence.Should().Be("1 C", "editor sequence should be trimmed before storing in the queue row");
+        sut.SelectedItem.SongNumber.Should().Be(77);
+        sut.SelectedItem.Copyright.Should().Be("(c) new");
+        sut.SelectedItem.FormatData.Should().Be("29=-1>", "empty queue rows should inherit the saved DB song format");
+        sut.WorshipListHasUnsavedChanges.Should().BeTrue("editing a Worship List row should mark the list dirty");
+        sut.StatusText.Should().Contain("예배 순서 항목 갱신");
+    }
+
+    [Fact]
+    public void UpdateSelectedSongQueueItem_PreservesExistingQueueFormatOverride()
+    {
+        // .esw/항목별 서식이 이미 있는 행은 곡 편집기의 DB FormatData 로 덮어쓰지 않는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:42", "Old title", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOld lyrics",
+            FormatData = "31=2>",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        var song = new SongSummary(42, "New title", "", 1, 1, "", "", "[1]\nNew lyrics");
+
+        var changed = sut.UpdateSelectedSongQueueItem(song, sequence: null, formatData: "29=-1>");
+
+        changed.Should().BeTrue();
+        sut.SelectedItem!.FormatData.Should().Be("31=2>", "existing Worship List item formatting should remain item-specific");
+    }
+
+    [Fact]
+    public void UpdateSelectedSongQueueItem_NonSongSelection_IsNoOp()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("text:1", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = notice;
+
+        var changed = sut.UpdateSelectedSongQueueItem(new SongSummary(42, "New", "", 1, 1, "", "", "lyrics"), null, null);
+
+        changed.Should().BeFalse();
+        sut.SelectedItem.Should().BeSameAs(notice);
+        sut.StatusText.Should().Be("편집할 곡 항목을 선택하세요.");
+    }
+
+    [Fact]
     public void MoveSelectedItemDown_ReordersQueueAndKeepsSelection()
     {
         // 예배 순서 재정렬: 선택 항목을 아래로 한 칸 이동(FrmMain Move Item Down).

@@ -31,6 +31,7 @@ public partial class WorshipListPanel : UserControl
 
     public event RoutedEventHandler? AddSelectedSourceRequested;
     public event RoutedEventHandler? OpenSessionNotesRequested;
+    public event RoutedEventHandler? EditSelectedItemRequested;
 
     public WorshipListPanel()
     {
@@ -254,10 +255,16 @@ public partial class WorshipListPanel : UserControl
             CMenuWorship_PlayOnOutput.IsEnabled = false;
         }
 
-        // Edit item/Add Songs to Usages still require their legacy editor/usage flows.
-        CMenuWorship_Edit.IsEnabled = false;
+        CMenuWorship_Edit.IsEnabled = DataContext is MainViewModel editViewModel
+            && CanEditSelectedWorshipItem(editViewModel.SelectedItem);
+        // Add Songs to Usages still requires the legacy usage flow.
         CMenuWorship_AddUsages.IsEnabled = false;
     }
+
+    private static bool CanEditSelectedWorshipItem(LiveQueueItem? item)
+        => item is { Kind: LiveItemKinds.Song }
+           && item.Id.StartsWith("song:", StringComparison.Ordinal)
+           && int.TryParse(item.Id.AsSpan("song:".Length), out _);
 
     private void CMenuWorship_SelectAll_Click(object sender, RoutedEventArgs e)
     {
@@ -270,6 +277,12 @@ public partial class WorshipListPanel : UserControl
     {
         QueueList.SelectedItems.Clear();
         QueueList.Focus();
+        e.Handled = true;
+    }
+
+    private void CMenuWorship_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        EditSelectedItemRequested?.Invoke(this, e);
         e.Handled = true;
     }
 
@@ -300,6 +313,22 @@ public partial class WorshipListPanel : UserControl
     {
         _dragStartPoint = e.GetPosition(null);
         _dragCandidate = ItemFromPoint(e.GetPosition(QueueList));
+    }
+
+    // 우클릭 메뉴 대상도 FrmMain처럼 "마우스 아래 항목"으로 맞춘다. 기존 선택과 다른 항목을 우클릭해도 Edit/Play가 그 행에 적용된다.
+    private void QueueList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var item = ItemFromPoint(e.GetPosition(QueueList));
+        if (item is null)
+        {
+            return;
+        }
+
+        QueueList.SelectedItem = item;
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.SelectedItem = item;
+        }
     }
 
     // 임계 거리 이상 움직이면 드래그를 시작 — 항목 인스턴스를 데이터로 실어 보낸다.

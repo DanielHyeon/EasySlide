@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Easislides.Wpf.Data;
 using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Rendering;
@@ -863,6 +864,126 @@ public partial class MainWindow : Window
 
     private void WorshipListPanel_OpenSessionNotesRequested(object sender, RoutedEventArgs e)
         => OpenSessionNotes_Click(sender, e);
+
+    private async void WorshipListPanel_EditSelectedItemRequested(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            await OpenSelectedWorshipSongEditorAsync(viewModel).ConfigureAwait(true);
+        }
+
+        e.Handled = true;
+    }
+
+    private async Task OpenSelectedWorshipSongEditorAsync(MainViewModel viewModel)
+    {
+        if (!TryGetSelectedWorshipSongId(viewModel.SelectedItem, out var songId))
+        {
+            viewModel.StatusText = "편집할 DB 곡 항목을 하나 선택하세요.";
+            return;
+        }
+
+        await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
+
+        var databasePath = ResolveSongEditorDatabasePath(viewModel);
+        if (string.IsNullOrWhiteSpace(databasePath))
+        {
+            viewModel.StatusText = "AdminDB 경로를 찾을 수 없어 곡을 편집할 수 없습니다.";
+            return;
+        }
+
+        var detailRepository = _services.GetRequiredService<IAdminSongDetailRepository>();
+        var detail = await detailRepository.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        if (detail is null)
+        {
+            viewModel.StatusText = $"편집할 곡을 찾을 수 없습니다: {songId}";
+            return;
+        }
+
+        var folder = viewModel.Library.Folders.FirstOrDefault(f => f.FolderNo == detail.FolderNo)
+            ?? new SongFolderSummary(detail.FolderNo, $"Folder {detail.FolderNo}", true, 0);
+        var song = new SongSummary(
+            detail.SongId,
+            detail.Title,
+            detail.AlternateTitle,
+            detail.FolderNo,
+            detail.SongNumber,
+            detail.Category,
+            detail.Key,
+            detail.Lyrics,
+            detail.Copyright);
+
+        var editorWindow = _services.GetRequiredService<SongEditorWindow>();
+        editorWindow.Owner = this;
+        if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
+        {
+            viewModel.StatusText = "곡 편집기를 초기화할 수 없습니다.";
+            return;
+        }
+
+        await editorViewModel.LoadAsync(databasePath, folder, song).ConfigureAwait(true);
+        if (editorWindow.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var updatedSong = new SongSummary(
+            editorViewModel.SongId ?? song.SongId,
+            editorViewModel.Title,
+            editorViewModel.AlternateTitle,
+            editorViewModel.FolderNo,
+            editorViewModel.SongNumber,
+            editorViewModel.Category,
+            editorViewModel.Key,
+            editorViewModel.Lyrics,
+            editorViewModel.Copyright);
+        viewModel.UpdateSelectedSongQueueItem(updatedSong, editorViewModel.Sequence, editorViewModel.FormatData);
+
+        await viewModel.Library.LoadAsync().ConfigureAwait(true);
+        if (viewModel.Library.SelectFolderByNo(editorViewModel.FolderNo))
+        {
+            await viewModel.Library.LoadSongsForSelectedFolderAsync().ConfigureAwait(true);
+        }
+
+        if (editorViewModel.SongId is int savedSongId)
+        {
+            viewModel.Library.SelectSongById(savedSongId);
+        }
+    }
+
+    private string ResolveSongEditorDatabasePath(MainViewModel viewModel)
+    {
+        if (!string.IsNullOrWhiteSpace(viewModel.Library.DatabasePath) && File.Exists(viewModel.Library.DatabasePath))
+        {
+            return viewModel.Library.DatabasePath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(viewModel.Search.DatabasePath) && File.Exists(viewModel.Search.DatabasePath))
+        {
+            return viewModel.Search.DatabasePath;
+        }
+
+        var workingFolder = _settings?.Current.General.WorkingFolder;
+        if (!string.IsNullOrWhiteSpace(workingFolder))
+        {
+            var databasePath = Path.Combine(workingFolder, "Admin", "Database", "EasiSlidesDb.db");
+            if (File.Exists(databasePath))
+            {
+                return databasePath;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static bool TryGetSelectedWorshipSongId(LiveQueueItem? item, out int songId)
+    {
+        songId = 0;
+        const string prefix = "song:";
+        return item is { Kind: LiveItemKinds.Song }
+            && item.Id.StartsWith(prefix, StringComparison.Ordinal)
+            && int.TryParse(item.Id.AsSpan(prefix.Length), out songId);
+    }
 
     private async Task AddSelectedSourceToWorshipListAsync(MainViewModel viewModel)
     {

@@ -1440,6 +1440,58 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// 예배 순서에서 선택 중인 DB 곡 항목을 곡 편집기 저장 결과로 갱신한다(FrmMain CMenuWorship_Edit → Edit item 대응).
+    /// 같은 곡이 여러 번 들어간 예배 순서에서도 선택한 인스턴스만 바꾸기 위해 참조 일치로 위치를 찾는다.
+    /// </summary>
+    public bool UpdateSelectedSongQueueItem(Data.SongSummary song, string? sequence, string? formatData)
+    {
+        ArgumentNullException.ThrowIfNull(song);
+
+        if (SelectedItem is not { Kind: LiveItemKinds.Song } item || !TryGetSongDatabaseId(item, out var selectedSongId))
+        {
+            StatusText = "편집할 곡 항목을 선택하세요.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        if (selectedSongId != song.SongId)
+        {
+            StatusText = "편집한 곡과 선택 항목이 일치하지 않습니다.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        var index = IndexOfReference(item);
+        if (index < 0)
+        {
+            StatusText = "선택 항목을 예배 순서에서 찾을 수 없습니다.";
+            NotifyCommandStates();
+            return false;
+        }
+
+        var normalizedSequence = string.IsNullOrWhiteSpace(sequence) ? null : sequence.Trim();
+        var editorFormatData = string.IsNullOrWhiteSpace(formatData) ? null : formatData;
+        var updated = item with
+        {
+            Title = song.Title,
+            Lyrics = song.Lyrics,
+            Sequence = normalizedSequence,
+            SongNumber = song.SongNumber,
+            Copyright = song.Copyright,
+            // 이미 예배순서 항목에 서식이 있으면 .esw/항목별 override 로 보고 보존한다.
+            // 서식이 비어 있던 항목만 DB 곡 편집기의 FormatData 를 따라간다.
+            FormatData = string.IsNullOrWhiteSpace(item.FormatData) ? editorFormatData : item.FormatData,
+        };
+
+        Queue[index] = updated;
+        SelectedItem = updated;
+        RepublishLiveSongForBodyChange();
+        NotifyCommandStates();
+        StatusText = $"예배 순서 항목 갱신: {song.Title}";
+        return true;
+    }
+
+    /// <summary>
     /// 찬양집 색인에서 더블클릭한 곡을 예배 순서에 추가한다(FrmMain PraiseBook 인터랙티브 목록 대응).
     /// 색인 항목엔 가사가 없으므로 현재 라이브러리에서 같은 곡(가사 포함 SongSummary)을 찾아 AddSong 으로 넘긴다.
     /// 해석 우선순위: ① SongId(있으면 정확 — 같은 제목·번호의 다른 곡/언어를 안전히 가름) → ② 제목+번호 → ③ 제목만

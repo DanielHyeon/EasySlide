@@ -49,6 +49,8 @@ public class WorshipListPanelTests
         Attr(list, "SelectionMode").Should().Be("Extended", "FrmMain WorshipListItems supports multi-select for Select All/Unselect All");
         Attr(list, "AutomationProperties.Name").Should().Be("예배 순서 목록");
         Attr(list, "Tag").Should().Be("WorshipListItems", "WPF queue should keep the FrmMain ListView role visible");
+        Attr(list, "PreviewMouseRightButtonDown").Should().Be("QueueList_PreviewMouseRightButtonDown",
+            "right-click should select the row under the mouse before context-menu commands run");
 
         // 증분137 — 항목 한 줄은 종류 아이콘 + 제목. 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
         var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "SymbolIcon");
@@ -99,7 +101,7 @@ public class WorshipListPanelTests
             ("CMenuWorship_SelectAll", "Select All", "CMenuWorship_SelectAll_Click", ""),
             ("CMenuWorship_UnselectAll", "Unselect All", "CMenuWorship_UnselectAll_Click", ""),
             ("CMenuWorship_Clear", "Clear Worship List", "", "ClearWorshipListCommand"),
-            ("CMenuWorship_Edit", "Edit item", "", ""),
+            ("CMenuWorship_Edit", "Edit item", "CMenuWorship_Edit_Click", ""),
             ("CMenuWorship_Play", "Play Media", "", "PlaySelectedWorshipMediaCommand"),
             ("CMenuWorship_PlayOnOutput", "Play Media on Output Monitor", "", "PlaySelectedWorshipMediaOnOutputCommand"),
             ("CMenuWorship_AddUsages", "Add Songs to Usages", "", "")
@@ -125,7 +127,15 @@ public class WorshipListPanelTests
         LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs")
             .Should().Contain("QueueList.SelectAll()")
             .And.Contain("QueueList.SelectedItems.Clear()",
-                "FrmMain CMenuWorship Select All/Unselect All should change the lower-left Worship List selection");
+                "FrmMain CMenuWorship Select All/Unselect All should change the lower-left Worship List selection")
+            .And.Contain("public event RoutedEventHandler? EditSelectedItemRequested",
+                "Edit item should route to MainWindow, which owns modal window lifetime")
+            .And.Contain("CMenuWorship_Edit.IsEnabled = DataContext is MainViewModel editViewModel",
+                "Edit item should be enabled only for editable DB song queue rows")
+            .And.Contain("EditSelectedItemRequested?.Invoke(this, e)",
+                "the panel should not construct SongEditorWindow directly")
+            .And.Contain("QueueList_PreviewMouseRightButtonDown",
+                "right-click commands should target the row under the pointer");
         composite.ToString().Should().Contain("PlaySelectedWorshipMediaOnOutputCommand",
             "FrmMain CMenuWorship_PlayOnOutput should be visible from the lower-left Worship List context menu");
     }
@@ -161,6 +171,8 @@ public class WorshipListPanelTests
             "WL_Add is a lower-left control, but MainWindow owns the active upper source tab");
         Attr(host!, "OpenSessionNotesRequested").Should().Be("WorshipListPanel_OpenSessionNotesRequested",
             "WL_Notes is a lower-left control, but MainWindow owns modal window launch/ownership");
+        Attr(host!, "EditSelectedItemRequested").Should().Be("WorshipListPanel_EditSelectedItemRequested",
+            "FrmMain CMenuWorship_Edit should open the item editor through the owning MainWindow");
         Attr(listTabs.Parent!, "Grid.Column").Should().Be("0", "lower-left tabs stay in the left column");
 
         Attr(host!, "DataContext").Should().BeEmpty("DataContext inheritance must keep MainViewModel bindings intact");
@@ -315,6 +327,31 @@ public class WorshipListPanelTests
             "menu and lower-left WL_Notes button should reuse the same session-notes window path");
         windowCode.Should().Contain("new Easislides.Wpf.Shell.WorshipSessionNotesViewModel",
             "the shared path should create the existing session notes VM");
+    }
+
+    [Fact]
+    public void WlEdit_RoutesSelectedDbSong_ToSongEditorWindow()
+    {
+        var panelCode = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+        var windowCode = LoadText("Easislides.Wpf/MainWindow.xaml.cs");
+
+        panelCode.Should().Contain("private void CMenuWorship_Edit_Click",
+            "FrmMain CMenuWorship_Edit should have a lower-left context menu click handler");
+        panelCode.Should().Contain("CanEditSelectedWorshipItem",
+            "only DB song rows should enable the current song editor path");
+        panelCode.Should().Contain("viewModel.SelectedItem = item",
+            "right-clicking a different row should retarget the selected Worship List item before Edit runs");
+
+        windowCode.Should().Contain("private async void WorshipListPanel_EditSelectedItemRequested",
+            "MainWindow should receive the lower-left edit request");
+        windowCode.Should().Contain("OpenSelectedWorshipSongEditorAsync",
+            "the handler should use a dedicated selected-Worship-song editor path");
+        windowCode.Should().Contain("GetRequiredService<SongEditorWindow>()",
+            "Edit item should reuse the WPF song editor instead of a placeholder");
+        windowCode.Should().Contain("editorViewModel.LoadAsync(databasePath, folder, song)",
+            "the editor should be loaded with the actual AdminDB song detail");
+        windowCode.Should().Contain("viewModel.UpdateSelectedSongQueueItem(updatedSong, editorViewModel.Sequence, editorViewModel.FormatData)",
+            "saving should refresh the selected queue row rather than leaving stale lyrics/title in Worship List");
     }
 
     [Theory]

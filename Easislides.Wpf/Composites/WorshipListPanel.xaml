@@ -304,6 +304,7 @@
                           AllowDrop="True"
                           KeyDown="QueueList_KeyDown"
                           PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
+                          PreviewMouseRightButtonDown="QueueList_PreviewMouseRightButtonDown"
                           PreviewMouseMove="QueueList_PreviewMouseMove"
                           DragOver="QueueList_DragOver"
                           Drop="QueueList_Drop"
@@ -402,7 +403,7 @@
                             <MenuItem x:Name="CMenuWorship_Edit"
                                       Header="Edit item"
                                       Tag="CMenuWorship_Edit"
-                                      IsEnabled="False" />
+                                      Click="CMenuWorship_Edit_Click" />
                             <MenuItem x:Name="CMenuWorship_Play"
                                       Header="Play Media"
                                       Tag="CMenuWorship_Play"

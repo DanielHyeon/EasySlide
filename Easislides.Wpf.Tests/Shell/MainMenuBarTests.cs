@@ -533,6 +533,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"WorshipList\"", "Worship List remains the first lower-left role");
         xaml.Should().Contain("AddSelectedSourceRequested=\"WorshipListPanel_AddSelectedSourceRequested\"",
             "FrmMain WL_Add should route through MainWindow because the active source tab lives there");
+        xaml.Should().Contain("EditSelectedItemRequested=\"WorshipListPanel_EditSelectedItemRequested\"",
+            "FrmMain CMenuWorship_Edit should route through MainWindow because the song editor is a modal shell window");
         xaml.Should().Contain("Tag=\"PraiseBook\"", "Praise Book should be a first-screen lower-left role");
         xaml.Should().Contain("x:Name=\"PraiseBookTab\"", "inline Praise Book tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlinePraiseBookSavedBooksCombo\"", "saved Praise Books must be loadable from the main shell");
@@ -567,6 +569,9 @@ public class MainMenuBarTests
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
         code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry), entry)", "inline PraiseBook drag should carry the exact selected legacy entry");
         code.Should().Contain("WorshipListPanel_AddSelectedSourceRequested", "WL_Add should be handled in the MainWindow shell");
+        code.Should().Contain("WorshipListPanel_EditSelectedItemRequested", "CMenuWorship_Edit should be handled in the MainWindow shell");
+        code.Should().Contain("OpenSelectedWorshipSongEditorAsync", "Edit item should open the selected DB song in SongEditorWindow");
+        code.Should().Contain("UpdateSelectedSongQueueItem", "saving the editor should refresh the Worship List row");
         code.Should().Contain("AddSelectedSourceToWorshipListAsync", "WL_Add should dispatch by active source tab");
         code.Should().Contain("GetRequiredService<IPraiseBookStore>()", "inline and modal PraiseBook surfaces should use the DI store wired to the legacy working folder");
         code.Should().NotContain("new PraiseBookStore()", "direct construction falls back to AppData and loses C:\\EasiSlides legacy .esp files");
