@@ -563,12 +563,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(LyricsPageLabel))]
     [NotifyCanExecuteChangedFor(nameof(NextLyricsPageCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviousLyricsPageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(NextSlideCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviousSlideCommand))]
     private int _lyricsPageIndex;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LyricsPageLabel))]
     [NotifyCanExecuteChangedFor(nameof(NextLyricsPageCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviousLyricsPageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(NextSlideCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviousSlideCommand))]
     private int _lyricsPageCount;
 
     /// <summary>
@@ -734,8 +738,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RestoreOutputCommand = new RelayCommand(RestoreOutput, () => _session.Current.State == LiveState.Hidden);
         RestartCurrentItemCommand = new AsyncRelayCommand(RestartCurrentItemAsync, CanRestartCurrentItem);
         RefreshOutputCommand = new RelayCommand(RefreshOutput, () => _output.Current.IsOpen);
-        NextSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber + 1), CanGoNextSlide);
-        PreviousSlideCommand = new AsyncRelayCommand(() => GoToSlideAsync(PowerPoint.SlideNumber - 1), CanGoPreviousSlide);
+        NextSlideCommand = new AsyncRelayCommand(NextPreviewPageAsync, CanGoNextSlide);
+        PreviousSlideCommand = new AsyncRelayCommand(PreviousPreviewPageAsync, CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
         NextOutputSlideCommand = new AsyncRelayCommand(NextOutputPageAsync, CanGoNextOutputSlide);
         PreviousOutputSlideCommand = new AsyncRelayCommand(PreviousOutputPageAsync, CanGoPreviousOutputSlide);
@@ -3583,7 +3587,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return (PptPreviewWidth, PptPreviewHeight);
     }
 
-    // Preview 슬라이드 이동 — 현재 선택된 PPT 의 미리보기만 지정 슬라이드로 다시 렌더한다.
+    // Preview 하단 슬라이드 버튼 — FrmMain MoveToSlide(Gf.PreviewItem, ...)처럼 현재 PreviewItem 내부에서만 이동한다.
+    // PPT 는 슬라이드 렌더를 넘기고, 곡/성경은 Preview 가사 페이지를 넘긴다. Output/live 는 건드리지 않는다.
+    private async Task NextPreviewPageAsync()
+    {
+        if (IsPowerPointSlideNavReady())
+        {
+            await GoToSlideAsync(PowerPoint.SlideNumber + 1).ConfigureAwait(true);
+            return;
+        }
+
+        if (CanGoNextLyricsPage())
+        {
+            NextLyricsPage();
+            NotifyCommandStates();
+        }
+    }
+
+    private async Task PreviousPreviewPageAsync()
+    {
+        if (IsPowerPointSlideNavReady())
+        {
+            await GoToSlideAsync(PowerPoint.SlideNumber - 1).ConfigureAwait(true);
+            return;
+        }
+
+        if (CanGoPreviousLyricsPage())
+        {
+            PreviousLyricsPage();
+            NotifyCommandStates();
+        }
+    }
+
+    // Preview PPT 썸네일/키보드 직접 이동 — 현재 선택된 PPT 의 미리보기만 지정 슬라이드로 다시 렌더한다.
     // FrmMain 처럼 PreviewItem 과 OutputItem 을 분리해야 하므로, 선택 항목이 현재 live 항목과 같더라도
     // Output 은 여기서 갱신하지 않는다. live Output 이동은 GoToOutputSlideAsync 전용 경로가 맡는다.
     private async Task GoToSlideAsync(int target)
@@ -3610,10 +3646,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => IsPowerPointSlideNavReady() && target >= 1 && target <= PowerPoint.SlideCount;
 
     private bool CanGoNextSlide()
-        => IsPowerPointSlideNavReady() && PowerPoint.SlideNumber < PowerPoint.SlideCount;
+        => (IsPowerPointSlideNavReady() && PowerPoint.SlideNumber < PowerPoint.SlideCount)
+            || CanGoNextLyricsPage();
 
     private bool CanGoPreviousSlide()
-        => IsPowerPointSlideNavReady() && PowerPoint.SlideNumber > 1;
+        => (IsPowerPointSlideNavReady() && PowerPoint.SlideNumber > 1)
+            || CanGoPreviousLyricsPage();
 
     private bool IsPowerPointSlideNavReady()
         => SelectedItem is { Kind: LiveItemKinds.PowerPoint } selected

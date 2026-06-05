@@ -8066,6 +8066,46 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewSlideButtons_WhenLyricsSelectionDiverges_MovePreviewOnly()
+    {
+        // FrmMain PreviewBtnSlideUp/Down: 현재 PreviewItem 의 가사 페이지를 이동하고, live OutputItem 은 그대로 둔다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus\n[2]\nPreview verse two",
+            Sequence = "1 C 2",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.LyricsPageIndex.Should().Be(0, "Preview 선택 변경은 preview 페이지를 첫 절로 둔다");
+        sut.OutputLyricsText.Should().Be("Live verse", "Output 본문은 라이브 곡 첫 절을 유지한다");
+
+        sut.NextSlideCommand.CanExecute(null).Should().BeTrue("Preview 슬라이드 버튼은 곡 절 이동에도 활성화");
+        await sut.NextSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.LyricsPageIndex.Should().Be(1, "Preview 다음 슬라이드 버튼은 선택 곡의 다음 절로 이동");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0, "Preview 이동은 라이브 Output 절을 바꾸지 않는다");
+        sut.OutputLyricsText.Should().Be("Live verse");
+
+        sut.PreviousSlideCommand.CanExecute(null).Should().BeTrue();
+        await sut.PreviousSlideCommand.ExecuteAsync(null);
+
+        sut.LyricsPageIndex.Should().Be(0);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
+        sut.OutputLyricsText.Should().Be("Live verse");
+    }
+
+    [Fact]
     public async Task OutputSlideButtons_WhenLiveLyricsSelectionDiverges_MoveLiveOutputOnly()
     {
         // FrmMain 오른쪽 Output 위/아래 버튼: 선택/Preview 항목이 아니라 현재 라이브 가사 페이지를 이동한다.
