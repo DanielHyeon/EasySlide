@@ -91,7 +91,7 @@
 | `PreviewBtnItemUp/Down` | `PreviewBtnItemUp/Down` + item nav commands | partial | 4 | exact selection behavior |
 | `PreviewBtnSlideUp/Down` | `PreviewBtnSlideUp/Down` + lyrics page/PPT preview nav commands | partial | 4 | moves PreviewItem only; item-type-aware media/page edge cases still incomplete |
 | `btnToLive` | `btnToLive` + `GoLiveCommand` | partial | 4 | exact FrmMain semantics |
-| `btnToOutput` | `btnToOutput` + `CopyPreviewToOutputCommand` | partial | 4 | FrmMain `CopyPreviewToOutput` semantics now prepare `OutputItem`/PPT output state without starting live; full OutputItem navigation still incomplete |
+| `btnToOutput` | `btnToOutput` + `CopyPreviewToOutputCommand` | partial | 4 | FrmMain `CopyPreviewToOutput` semantics now prepare `OutputItem`/PPT output state without starting live; `OutputBtnItemUp/Down` can move the prepared OutputItem independently; focus parity still incomplete |
 | `btnToOutputMoveNext` | `btnToOutputMoveNext` + `CopyPreviewToOutputAndNextCommand` | partial | 4 | FrmMain copy-to-Output plus Preview NextOne now does not start live; focus/OutputItem navigation parity still incomplete |
 | `IndPanel`, `Ind_*` | `IndcbPreviewNotes`, `IndradioButtonText/Format/Info` plus inspector/default source | partial | 5 | first-screen individual format controls and mode switching |
 
@@ -105,7 +105,7 @@
 | `flowLayoutOutputPowerPoint` | `ClassicOutputPowerPointSurface` (`Tag=flowLayoutOutputPowerPoint`) / `ClassicOutputThumbnailGrid` bound to `OutputPowerPoint.Thumbnails` | partial | 4/6 | live thumbnail/list role now uses independent OutputItem PPT state; focused Up/Down/Left/Right/PageUp/PageDown/Space/Home/End route to Output-only slide navigation; Output PPT position labels update from `OutputPowerPoint`; non-PPT live thumbnail parity still incomplete |
 | `OutputHolder`, `OutputBack` | `ClassicOutputHolder` (`Tag=OutputHolder`) / `ClassicOutputBack` (`Tag=OutputBack`) with `OutputPowerPoint.PreviewImage` overlay | partial | 4 | large output screen now uses independent OutputItem PPT state and is not changed by Preview slide navigation; exact sizing/frame parity still incomplete |
 | `OutputBtnVerse1..Ending` | `flowLayoutPanel2` + `OutputBtnVerse1..Ending` | partial | 4/6 | static buttons are visible; buttons now call `JumpToOutputLyricsSectionCommand` so live Output lyrics jump independently from Preview selection; shortcut parity still incomplete |
-| `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + item nav commands | partial | 4 | exact live next/prev semantics |
+| `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + `PreviousOutputItemCommand` / `NextOutputItemCommand` | partial | 4 | live/prepared OutputItem next/prev now uses OutputItem/live id independently from Preview selection; exact keyboard/focus parity still incomplete |
 | `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT slide and live lyrics page movement now target OutputItem independently, including when Preview selection diverges; shortcut/focus parity still incomplete |
 | `OutputBtnRefAlert` | `OutputBtnRefAlert` + `ToggleOutputReferenceAlertCommand` + output `ReferenceAlertVisibility/Text` overlay | partial | 4/5 | toggles current live title/reference overlay like `QueryShowActive`; legacy reference source/pick/scroll/flash/duration options still incomplete |
 | `OutputBtnMedia` | `OutputBtnMedia` + `Media.PlayPauseCommand` | partial | 5 | direct output media behavior |

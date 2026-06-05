@@ -7842,6 +7842,80 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputItemButtons_WhenLiveSelectionDiverges_MoveLiveOutputOnly()
+    {
+        // FrmMain OutputBtnItemUp/Down: Preview 선택 항목이 아니라 현재 OutputItem/live 항목을 이동한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var next = new LiveQueueItem("song:next", "Next live", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, next, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.NextOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 항목 이동은 Preview 선택을 바꾸지 않는다");
+        sut.OutputItem.Should().BeSameAs(next, "OutputItem 만 다음 항목으로 이동한다");
+        sut.LiveItemId.Should().Be(next.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Next live");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Next verse");
+
+        sut.PreviousOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.PreviousOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().BeSameAs(live);
+        sut.LiveItemId.Should().Be(live.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+    }
+
+    [Fact]
+    public async Task OutputItemButtons_WhenPreparedButNotLive_MovePreparedOutputOnly()
+    {
+        // FrmMain btnToOutput 로 준비한 OutputItem 도 live 시작 없이 Output 영역 안에서만 이전/다음 항목으로 이동한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPrepared verse",
+        };
+        var next = new LiveQueueItem("song:next", "Prepared next", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([prepared, next, preview]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.NextOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "준비 Output 이동은 Preview 선택을 건드리지 않는다");
+        sut.OutputItem.Should().BeSameAs(next);
+        sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비 이동은 라이브를 시작하지 않는다");
+        sut.LiveItemId.Should().BeNull();
+        sut.StatusText.Should().Be("Output 준비: Prepared next");
+    }
+
+    [Fact]
     public void AddSong_DualLanguage_PageCountUsesRegionPages()
     {
         // 이중 언어([region 2]) 곡은 영역-인식 페이지 수를 쓴다 — [region 2] 가 절 경계로 오인돼 절 수가 부풀지 않음.

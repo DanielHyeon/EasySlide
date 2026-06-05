@@ -687,6 +687,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
         NextItemCommand = new RelayCommand(NextItem, CanMoveNext);
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
+        NextOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(+1), CanMoveOutputNext);
+        PreviousOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(-1), CanMoveOutputPrevious);
         FirstItemCommand = new RelayCommand(FirstItem, CanMovePrevious);
         LastItemCommand = new RelayCommand(LastItem, CanMoveNext);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
@@ -871,6 +873,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand StopLiveCommand { get; }
     public IRelayCommand NextItemCommand { get; }
     public IRelayCommand PreviousItemCommand { get; }
+    /// <summary>FrmMain OutputBtnItemDown: Preview 선택과 별개로 현재 OutputItem/live 항목을 다음 항목으로 이동한다.</summary>
+    public IAsyncRelayCommand NextOutputItemCommand { get; }
+    /// <summary>FrmMain OutputBtnItemUp: Preview 선택과 별개로 현재 OutputItem/live 항목을 이전 항목으로 이동한다.</summary>
+    public IAsyncRelayCommand PreviousOutputItemCommand { get; }
     /// <summary>예배 순서의 첫 항목으로 이동(레거시 First). 라이브 중이면 그 항목을 송출.</summary>
     public IRelayCommand FirstItemCommand { get; }
     /// <summary>예배 순서의 마지막 항목으로 이동(레거시 Last). 라이브 중이면 그 항목을 송출.</summary>
@@ -3676,6 +3682,127 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    private bool CanMoveOutputNext()
+        => TryGetOutputNavigationIndex(out var index) && index < Queue.Count - 1;
+
+    private bool CanMoveOutputPrevious()
+        => TryGetOutputNavigationIndex(out var index) && index > 0;
+
+    private bool TryGetOutputNavigationIndex(out int index)
+    {
+        index = -1;
+        var item = GetOutputNavigationItem();
+        if (item is null)
+        {
+            return false;
+        }
+
+        index = IndexOfReference(item);
+        if (index >= 0)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < Queue.Count; i++)
+        {
+            if (string.Equals(Queue[i].Id, item.Id, StringComparison.Ordinal))
+            {
+                index = i;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private LiveQueueItem? GetOutputNavigationItem()
+    {
+        if (_session.Current.State != LiveState.Off && GetLiveQueueItem() is { } live)
+        {
+            return live;
+        }
+
+        if (OutputItem is { } output)
+        {
+            return Queue.FirstOrDefault(item => string.Equals(item.Id, output.Id, StringComparison.Ordinal))
+                ?? output;
+        }
+
+        return null;
+    }
+
+    private async Task MoveOutputItemAsync(int delta)
+    {
+        if (!TryGetOutputNavigationIndex(out var index))
+        {
+            return;
+        }
+
+        var targetIndex = index + delta;
+        if (targetIndex < 0 || targetIndex >= Queue.Count)
+        {
+            return;
+        }
+
+        var target = Queue[targetIndex];
+        await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputItem(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious);
+            return;
+        }
+
+        StatusText = $"Output 준비: {target.Title}";
+        NotifyCommandStates();
+    }
+
+    private async Task PrepareOutputItemForNavigationAsync(LiveQueueItem item)
+    {
+        OutputItem = item;
+
+        if (!IsPowerPointItem(item) || string.IsNullOrEmpty(item.ContentPath))
+        {
+            OutputPowerPoint.Clear();
+            _outputThumbnailDeckPath = null;
+            return;
+        }
+
+        if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            OutputPowerPoint.CopyFrom(PowerPoint);
+            EnsureOutputPowerPointThumbnails(item.ContentPath, OutputPowerPoint.SlideCount);
+            return;
+        }
+
+        var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
+        var (width, height) = ResolvePptRenderSize();
+        await OutputPowerPoint.LoadAsync(item.ContentPath, slide, width, height).ConfigureAwait(true);
+        if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready)
+        {
+            EnsureOutputPowerPointThumbnails(item.ContentPath, OutputPowerPoint.SlideCount);
+        }
+    }
+
+    private void PublishOutputItem(LiveQueueItem item, string commandId)
+    {
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        OutputItem = item;
+        SetLiveItemId(item.Id);
+        LiveTransposeSemitones = 0;
+
+        var projection = item with { LyricsPageIndex = 0 };
+        if (IsPowerPointItem(item) && OutputPowerPoint.SlideNumber > 0)
+        {
+            projection = projection with { SlideNumber = OutputPowerPoint.SlideNumber };
+        }
+
+        _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
+        StatusText = $"LIVE: {item.Title}";
+        _telemetry.Record(commandId, succeeded: true, item.Title);
+        NotifyCommandStates();
+    }
+
     // 예배 순서의 첫 항목으로 이동(레거시 First). 이미 첫 항목이거나 큐가 비면 아무것도 안 한다. 라이브면 송출.
     private void FirstItem()
     {
@@ -5919,6 +6046,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopLiveCommand.NotifyCanExecuteChanged();
         NextItemCommand.NotifyCanExecuteChanged();
         PreviousItemCommand.NotifyCanExecuteChanged();
+        NextOutputItemCommand.NotifyCanExecuteChanged();
+        PreviousOutputItemCommand.NotifyCanExecuteChanged();
         FirstItemCommand.NotifyCanExecuteChanged();
         LastItemCommand.NotifyCanExecuteChanged();
         HideOutputCommand.NotifyCanExecuteChanged();

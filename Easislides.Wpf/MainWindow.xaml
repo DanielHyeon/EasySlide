@@ -2953,7 +2953,7 @@
                                 AutomationProperties.Name="Output 하단 화면 비우기" />
                         <Button x:Name="OutputBtnItemUp"
                                 Tag="OutputBtnItemUp"
-                                Command="{Binding PreviousItemCommand}"
+                                Command="{Binding PreviousOutputItemCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"
@@ -2964,7 +2964,7 @@
                                 AutomationProperties.Name="Output 이전 항목" />
                         <Button x:Name="OutputBtnItemDown"
                                 Tag="OutputBtnItemDown"
-                                Command="{Binding NextItemCommand}"
+                                Command="{Binding NextOutputItemCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
                                 MinWidth="30"
                                 MinHeight="28"

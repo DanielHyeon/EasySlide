@@ -175,6 +175,14 @@ public class MainMenuBarTests
         xaml.Should().Contain("ItemsSource=\"{Binding OutputPowerPoint.Thumbnails}\"", "Output thumbnails must use the live/output PPT thumbnail source");
         xaml.Should().Contain("Command=\"{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}\"",
             "thumbnail clicks should navigate the output PPT slide, not the selected preview deck");
+        var outputItemUp = SectionBetween(xaml, "x:Name=\"OutputBtnItemUp\"", "x:Name=\"OutputBtnItemDown\"");
+        outputItemUp.Should().Contain("Command=\"{Binding PreviousOutputItemCommand}\"",
+            "Output item-up button should target the live/prepared OutputItem, not the selected Preview item");
+        outputItemUp.Should().NotContain("PreviousItemCommand");
+        var outputItemDown = SectionBetween(xaml, "x:Name=\"OutputBtnItemDown\"", "x:Name=\"OutputBtnSlideUp\"");
+        outputItemDown.Should().Contain("Command=\"{Binding NextOutputItemCommand}\"",
+            "Output item-down button should target the live/prepared OutputItem, not the selected Preview item");
+        outputItemDown.Should().NotContain("NextItemCommand");
         xaml.Should().Contain("Command=\"{Binding PreviousOutputSlideCommand}\"", "Output slide-up button should target the live output deck");
         xaml.Should().Contain("Command=\"{Binding NextOutputSlideCommand}\"", "Output slide-down button should target the live output deck");
         xaml.Should().Contain("x:Name=\"ClassicOutputSlidePane\"", "right-bottom Output pane should stay distinct");
