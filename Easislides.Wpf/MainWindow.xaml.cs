@@ -556,8 +556,6 @@ public partial class MainWindow : Window
         switch (key)
         {
             case Key.Up:
-            case Key.Left:
-            case Key.PageUp:
                 if (_viewModel.PreviousSlideCommand.CanExecute(null))
                 {
                     _viewModel.PreviousSlideCommand.Execute(null);
@@ -566,8 +564,6 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.Down:
-            case Key.Right:
-            case Key.PageDown:
             case Key.Space:
                 if (_viewModel.NextSlideCommand.CanExecute(null))
                 {
@@ -576,12 +572,28 @@ public partial class MainWindow : Window
 
                 return true;
 
-            case Key.Home:
+            case Key.Left:
                 ExecutePreviewSlideJump(1);
                 return true;
 
-            case Key.End:
+            case Key.Right:
                 ExecutePreviewSlideJump(_viewModel.PowerPoint.SlideCount);
+                return true;
+
+            case Key.PageUp:
+                ExecuteCommand(_viewModel.PreviousItemCommand);
+                return true;
+
+            case Key.PageDown:
+                ExecuteCommand(_viewModel.NextItemCommand);
+                return true;
+
+            case Key.Home:
+                ExecuteCommand(_viewModel.FirstItemCommand);
+                return true;
+
+            case Key.End:
+                ExecuteCommand(_viewModel.LastItemCommand);
                 return true;
 
             default:
@@ -602,8 +614,6 @@ public partial class MainWindow : Window
         switch (key)
         {
             case Key.Up:
-            case Key.Left:
-            case Key.PageUp:
                 if (_viewModel.PreviousOutputSlideCommand.CanExecute(null))
                 {
                     _viewModel.PreviousOutputSlideCommand.Execute(null);
@@ -612,8 +622,6 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.Down:
-            case Key.Right:
-            case Key.PageDown:
             case Key.Space:
                 if (_viewModel.NextOutputSlideCommand.CanExecute(null))
                 {
@@ -622,12 +630,28 @@ public partial class MainWindow : Window
 
                 return true;
 
-            case Key.Home:
+            case Key.Left:
                 ExecuteOutputSlideJump(1);
                 return true;
 
-            case Key.End:
+            case Key.Right:
                 ExecuteOutputSlideJump(_viewModel.OutputPowerPoint.SlideCount);
+                return true;
+
+            case Key.PageUp:
+                ExecuteCommand(_viewModel.PreviousOutputItemCommand);
+                return true;
+
+            case Key.PageDown:
+                ExecuteCommand(_viewModel.NextOutputItemCommand);
+                return true;
+
+            case Key.Home:
+                ExecuteCommand(_viewModel.FirstOutputItemCommand);
+                return true;
+
+            case Key.End:
+                ExecuteCommand(_viewModel.LastOutputItemCommand);
                 return true;
 
             default:
@@ -640,6 +664,22 @@ public partial class MainWindow : Window
         if (_viewModel.GoToOutputSlideCommand.CanExecute(slideNumber))
         {
             _viewModel.GoToOutputSlideCommand.Execute(slideNumber);
+        }
+    }
+
+    private static void ExecuteCommand(CommunityToolkit.Mvvm.Input.IRelayCommand command)
+    {
+        if (command.CanExecute(null))
+        {
+            command.Execute(null);
+        }
+    }
+
+    private static void ExecuteCommand(CommunityToolkit.Mvvm.Input.IAsyncRelayCommand command)
+    {
+        if (command.CanExecute(null))
+        {
+            command.Execute(null);
         }
     }
 

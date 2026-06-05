@@ -36,12 +36,15 @@ public class ImageLibraryViewModelTests
             initialFolder: @"C:\bg");
     }
 
+    private static void Load(ImageLibraryViewModel sut)
+        => sut.LoadCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+
     [Fact]
     public void Load_PopulatesImagesFromService()
     {
         var sut = CreateSut(out _, out _, @"C:\bg\a.jpg", @"C:\bg\b.png");
 
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.Images.Should().HaveCount(2);
         sut.Images[0].FileName.Should().Be("a.jpg");
@@ -103,7 +106,7 @@ public class ImageLibraryViewModelTests
     {
         var sut = CreateSut(out _, out _);
 
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.Images.Should().BeEmpty();
         sut.StatusText.Should().Contain("없습니다");
@@ -113,7 +116,7 @@ public class ImageLibraryViewModelTests
     public void ApplyAsBackground_WithSelection_InvokesCallbackWithPath()
     {
         var sut = CreateSut(out var applied, out _, @"C:\bg\a.jpg");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images[0];
 
         sut.ApplyAsBackgroundCommand.Execute(null);
@@ -133,7 +136,7 @@ public class ImageLibraryViewModelTests
             initialFolder: @"C:\bg",
             applyItemBackground: path => appliedToItem.Add(path),
             canApplyItemBackground: () => true);
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images[0];
 
         sut.ApplyToItemBackgroundCommand.CanExecute(null).Should().BeTrue();
@@ -156,7 +159,7 @@ public class ImageLibraryViewModelTests
             initialFolder: @"C:\bg",
             applyItemBackground: path => appliedToItem.Add(path),
             canApplyItemBackground: () => true);
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images[0];
 
         sut.ApplySelectedImageCommand.Execute(null);
@@ -179,7 +182,7 @@ public class ImageLibraryViewModelTests
             initialFolder: @"C:\bg",
             applyItemBackground: path => appliedToItem.Add(path),
             canApplyItemBackground: () => false);
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images[0];
 
         sut.ApplySelectedImageCommand.Execute(null);
@@ -201,7 +204,7 @@ public class ImageLibraryViewModelTests
             initialFolder: @"C:\bg",
             applyItemBackground: path => appliedToItem.Add(path),
             canApplyItemBackground: () => false);
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images[0];
 
         sut.ApplyToItemBackgroundCommand.CanExecute(null).Should().BeFalse("FrmMain disables Add to Item when no preview item is selected");
@@ -212,7 +215,7 @@ public class ImageLibraryViewModelTests
     public void ApplyAsBackground_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var applied, out _, @"C:\bg\a.jpg");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeFalse("선택이 없으면 적용 불가");
         sut.ApplySelectedImageCommand.CanExecute(null).Should().BeFalse("선택이 없으면 FrmMain식 이미지 적용도 불가");
@@ -223,7 +226,7 @@ public class ImageLibraryViewModelTests
     public void SelectingImage_EnablesApplyCommand()
     {
         var sut = CreateSut(out _, out _, @"C:\bg\a.jpg");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.SelectedImage = sut.Images[0];
 
@@ -260,7 +263,7 @@ public class ImageLibraryViewModelTests
         var sut = CreateSut(out _, out _,
             @"C:\bg\Scenery\a.jpg", @"C:\bg\Tiles\b.png", @"C:\bg\logo.png");
 
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.Categories.Should().StartWith(ImageLibraryViewModel.AllCategories);
         sut.Categories.Should().Contain(new[] { "Scenery", "Tiles", "(기본)" });
@@ -272,7 +275,7 @@ public class ImageLibraryViewModelTests
     {
         var sut = CreateSut(out _, out _,
             @"C:\bg\Scenery\a.jpg", @"C:\bg\Scenery\b.jpg", @"C:\bg\Tiles\c.png");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.Images.Should().HaveCount(3, "전체");
 
         sut.SelectedCategory = "Tiles";
@@ -288,7 +291,7 @@ public class ImageLibraryViewModelTests
     {
         // code-review MAJOR 반영 — 선택한 이미지가 필터에서 빠지면 선택 해제(숨은 이미지에 배경 적용되는 것 방지).
         var sut = CreateSut(out _, out _, @"C:\bg\Tiles\t.png", @"C:\bg\Scenery\s.jpg");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images.Single(i => i.FileName == "t.png"); // Tiles 선택
         sut.ApplyAsBackgroundCommand.CanExecute(null).Should().BeTrue();
 
@@ -302,10 +305,10 @@ public class ImageLibraryViewModelTests
     public void Reload_ResetsCategoryToAll()
     {
         var sut = CreateSut(out _, out _, @"C:\bg\Scenery\a.jpg", @"C:\bg\Tiles\b.png");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedCategory = "Tiles";
 
-        sut.LoadCommand.Execute(null); // 새로고침
+        Load(sut); // 새로고침
 
         sut.SelectedCategory.Should().Be(ImageLibraryViewModel.AllCategories, "재로드 시 카테고리 초기화");
         sut.Images.Should().HaveCount(2);
@@ -326,7 +329,7 @@ public class ImageLibraryViewModelTests
     public void FilterText_NarrowsImagesByFileName()
     {
         var sut = CreateSut(out _, out _, @"C:\bg\sunset.jpg", @"C:\bg\mountain.jpg", @"C:\bg\sea.png");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.Images.Should().HaveCount(3);
 
         sut.FilterText = "moun";
@@ -339,7 +342,7 @@ public class ImageLibraryViewModelTests
     {
         // 카테고리(하위 폴더) + 파일명 검색은 둘 다 만족해야 보인다(AND).
         var sut = CreateSut(out _, out _, @"C:\bg\Scenery\sky.jpg", @"C:\bg\Scenery\sea.jpg", @"C:\bg\Tiles\sky.png");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.SelectedCategory = "Scenery";
         sut.FilterText = "sky";
@@ -353,7 +356,7 @@ public class ImageLibraryViewModelTests
     {
         // 선택한 이미지가 검색에 걸러지면 선택 해제(숨은 이미지에 배경 적용 방지) — 카테고리 필터와 동일 가드.
         var sut = CreateSut(out _, out _, @"C:\bg\a.jpg", @"C:\bg\b.jpg");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         sut.SelectedImage = sut.Images.Single(i => i.FileName == "a.jpg");
 
         sut.FilterText = "b";
@@ -369,7 +372,7 @@ public class ImageLibraryViewModelTests
         var sut = CreateSut(out _, out _, @"C:\bg\찬양.jpg", @"C:\bg\기도.jpg");
         sut.FilterText = "찬양";
 
-        sut.LoadCommand.Execute(null);
+        Load(sut);
 
         sut.FilterText.Should().Be("찬양", "재로드해도 검색어 유지");
         sut.Images.Select(i => i.FileName).Should().Equal(new[] { "찬양.jpg" }, "재로드 목록도 검색어로 걸러 보임");
@@ -394,7 +397,7 @@ public class ImageLibraryViewModelTests
         // 필터로 숨겼다가 다시 보이게 해도 같은 ImageLibraryItem 인스턴스가 유지된다 —
         // 이 보장 덕분에 백그라운드로 디코딩된 썸네일(인스턴스에 저장)이 필터 왕복 후에도 그대로 살아 있다(두 목록 패턴의 핵심).
         var sut = CreateSut(out _, out _, @"C:\bg\a.jpg", @"C:\bg\b.jpg");
-        sut.LoadCommand.Execute(null);
+        Load(sut);
         var aBefore = sut.Images.Single(i => i.FileName == "a.jpg");
 
         sut.FilterText = "b"; // a 숨김

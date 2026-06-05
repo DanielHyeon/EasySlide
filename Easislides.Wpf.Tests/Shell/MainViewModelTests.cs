@@ -8225,6 +8225,73 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputItemHomeEndCommands_WhenPreparedButNotLive_MovePreparedOutputOnly()
+    {
+        // FrmMain flowLayoutOutputPowerPoint Home/End: Preview 선택과 별개로 준비된 OutputItem 을 첫/마지막 항목으로 이동한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song:first", "First output", LiveItemKinds.Song) { Lyrics = "[1]\nFirst" };
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song) { Lyrics = "[1]\nPrepared" };
+        var last = new LiveQueueItem("song:last", "Last output", LiveItemKinds.Song) { Lyrics = "[1]\nLast" };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song) { Lyrics = "[1]\nPreview" };
+        sut.LoadQueue([first, prepared, preview, last]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.FirstOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.FirstOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output Home 은 Preview 선택을 바꾸지 않는다");
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+        sut.StatusText.Should().Be("Output 준비: First output");
+
+        sut.LastOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.LastOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().BeSameAs(last, "FrmMain Output End 는 Output context 를 마지막 항목으로 이동한다");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+        sut.StatusText.Should().Be("Output 준비: Last output");
+    }
+
+    [Fact]
+    public async Task OutputItemHomeEndCommands_WhenLiveSelectionDiverges_MoveLiveOutputOnly()
+    {
+        // FrmMain Output PPT focus Home/End: 라이브 중이면 Preview 선택이 아니라 현재 live Output context 를 첫/마지막 항목으로 송출한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song:first", "First output", LiveItemKinds.Song) { Lyrics = "[1]\nFirst" };
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song) { Lyrics = "[1]\nLive" };
+        var last = new LiveQueueItem("song:last", "Last output", LiveItemKinds.Song) { Lyrics = "[1]\nLast" };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song) { Lyrics = "[1]\nPreview" };
+        sut.LoadQueue([first, live, preview, last]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.SelectedItem = preview;
+
+        sut.FirstOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.FirstOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output Home 은 Preview 선택을 바꾸지 않는다");
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.LiveItemId.Should().Be(first.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("First output");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("First");
+
+        sut.LastOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.LastOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().BeSameAs(last, "FrmMain Output End 는 live Output context 를 마지막 항목으로 송출한다");
+        sut.LiveItemId.Should().Be(last.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Last output");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Last");
+    }
+
+    [Fact]
     public async Task OutputSlideButtons_WhenPreparedPowerPointNotLive_MovePreparedOutputOnly()
     {
         // FrmMain OutputBtnSlideUp/Down: live 시작 전 btnToOutput 으로 준비한 Output PPT 도 오른쪽 Output 표면에서 넘긴다.

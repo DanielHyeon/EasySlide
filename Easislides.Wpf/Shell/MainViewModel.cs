@@ -721,6 +721,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         NextOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(+1), CanMoveOutputNext);
         PreviousOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(-1), CanMoveOutputPrevious);
+        FirstOutputItemCommand = new AsyncRelayCommand(
+            () => MoveOutputItemToIndexAsync(0, MainCommandIds.LiveFirst),
+            CanMoveOutputPrevious);
+        LastOutputItemCommand = new AsyncRelayCommand(
+            () => MoveOutputItemToIndexAsync(Queue.Count - 1, MainCommandIds.LiveLast),
+            CanMoveOutputNext);
         JumpToNextNonRotateOutputItemCommand = new AsyncRelayCommand(
             JumpToNextNonRotateOutputItemAsync,
             CanJumpToNextNonRotateOutputItem);
@@ -931,6 +937,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextOutputItemCommand { get; }
     /// <summary>FrmMain OutputBtnItemUp: Preview 선택과 별개로 현재 OutputItem/live 항목을 이전 항목으로 이동한다.</summary>
     public IAsyncRelayCommand PreviousOutputItemCommand { get; }
+    /// <summary>FrmMain Output PPT focus Home: Preview 선택과 별개로 현재 Output/live context 를 첫 항목으로 이동한다.</summary>
+    public IAsyncRelayCommand FirstOutputItemCommand { get; }
+    /// <summary>FrmMain Output PPT focus End: Preview 선택과 별개로 현재 Output/live context 를 마지막 항목으로 이동한다.</summary>
+    public IAsyncRelayCommand LastOutputItemCommand { get; }
     /// <summary>FrmMain OutputBtnJumpToNonRotate: 현재 OutputItem/live 이후의 다음 비회전 항목으로 이동한다.</summary>
     public IAsyncRelayCommand JumpToNextNonRotateOutputItemCommand { get; }
     /// <summary>예배 순서의 첫 항목으로 이동(레거시 First). 라이브 중이면 그 항목을 송출.</summary>
@@ -4304,6 +4314,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    private async Task MoveOutputItemToIndexAsync(int targetIndex, string commandId)
+    {
+        if (!TryGetOutputNavigationIndex(out var index))
+        {
+            return;
+        }
+
+        if (targetIndex < 0 || targetIndex >= Queue.Count || targetIndex == index)
+        {
+            return;
+        }
+
+        var target = Queue[targetIndex];
+        await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputItem(target, commandId);
+            return;
+        }
+
+        StatusText = $"Output 준비: {target.Title}";
+        NotifyCommandStates();
+    }
+
     private async Task PrepareOutputItemForNavigationAsync(LiveQueueItem item)
     {
         OutputItem = item;
@@ -6740,6 +6774,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand.NotifyCanExecuteChanged();
         NextOutputItemCommand.NotifyCanExecuteChanged();
         PreviousOutputItemCommand.NotifyCanExecuteChanged();
+        FirstOutputItemCommand.NotifyCanExecuteChanged();
+        LastOutputItemCommand.NotifyCanExecuteChanged();
         JumpToNextNonRotateOutputItemCommand.NotifyCanExecuteChanged();
         FirstItemCommand.NotifyCanExecuteChanged();
         LastItemCommand.NotifyCanExecuteChanged();

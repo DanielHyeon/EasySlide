@@ -236,17 +236,33 @@ public class MainMenuBarTests
         code.Should().Contain("ClassicOutputThumbnailGrid.IsKeyboardFocusWithin",
             "Output PPT thumbnail focus should be detected separately");
         code.Should().Contain("_viewModel.PreviousSlideCommand.Execute(null)",
-            "Preview Up/Left/PageUp should move only the selected preview deck");
+            "Preview Up should move only the selected preview deck");
         code.Should().Contain("_viewModel.NextSlideCommand.Execute(null)",
-            "Preview Down/Right/PageDown/Space should move only the selected preview deck");
+            "Preview Down/Space should move only the selected preview deck");
         code.Should().Contain("_viewModel.GoToSlideCommand.Execute(slideNumber)",
-            "Preview Home/End should jump inside the preview deck");
+            "Preview Left/Right should jump inside the preview deck");
+        code.Should().Contain("ExecuteCommand(_viewModel.PreviousItemCommand)",
+            "Preview PageUp should move the selected Preview item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.NextItemCommand)",
+            "Preview PageDown should move the selected Preview item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.FirstItemCommand)",
+            "Preview Home should move to the first Preview item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.LastItemCommand)",
+            "Preview End should move to the last Preview item like FrmMain");
         code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
-            "Output Up/Left/PageUp should move only the live output deck");
+            "Output Up should move only the live output deck");
         code.Should().Contain("_viewModel.NextOutputSlideCommand.Execute(null)",
-            "Output Down/Right/PageDown/Space should move only the live output deck");
+            "Output Down/Space should move only the live output deck");
         code.Should().Contain("_viewModel.GoToOutputSlideCommand.Execute(slideNumber)",
-            "Output Home/End should jump inside the live output deck");
+            "Output Left/Right should jump inside the live output deck");
+        code.Should().Contain("ExecuteCommand(_viewModel.PreviousOutputItemCommand)",
+            "Output PageUp should move the live/prepared Output item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.NextOutputItemCommand)",
+            "Output PageDown should move the live/prepared Output item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.FirstOutputItemCommand)",
+            "Output Home should move to the first live/prepared Output item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.LastOutputItemCommand)",
+            "Output End should move to the last live/prepared Output item like FrmMain");
     }
 
     [Fact]
@@ -565,7 +581,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("{Binding CopyPreviewToOutputCommand}", "FrmMain btnToOutput should copy Preview into Output without starting live");
         xaml.Should().Contain("{Binding CopyPreviewToOutputAndNextCommand}", "FrmMain btnToOutputMoveNext should copy Output and advance Preview without starting live");
         OperatorBarXaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "fixed operator bar keeps F11 live send-and-next");
-        xaml.Should().Contain("Text=\"{Binding OutputItem.Title, TargetNullValue='Output'}\"", "Output title should follow the prepared OutputItem, not the selected Preview item");
+        xaml.Should().Contain("Text=\"{Binding DataContext.OutputItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Output'}\"",
+            "Output title should follow the prepared OutputItem, not the selected Preview item");
         xaml.Should().Contain("{Binding ToggleOutputBlackCommand}", "Output strip exposes FrmMain-style checked Black toggle");
         xaml.Should().Contain("IsChecked=\"{Binding IsOutputBlackActive, Mode=OneWay}\"", "Black toggle should reflect the current live blackout state");
         xaml.Should().Contain("{Binding ToggleOutputClearCommand}", "Output strip exposes FrmMain-style checked Clear toggle");
@@ -603,6 +620,16 @@ public class MainMenuBarTests
             "Output bottom pane should expose the large output holder surface");
         xaml.Should().Contain("x:Name=\"ClassicOutputBack\"",
             "Output bottom pane should expose the large output background surface");
+        xaml.Should().Contain("x:Key=\"ClassicPanelDisplayList\"",
+            "PreviewPanelDisplayName and OutputPanelDisplayName should render as FrmMain-style list rows, not plain labels");
+        xaml.Should().Contain("Style=\"{StaticResource ClassicPanelDisplayList}\"",
+            "both panel display-name controls should use the legacy list-row visual treatment");
+        xaml.Should().Contain("SelectedIndex=\"0\"",
+            "the single display-name row should stay selected like the legacy ListView item");
+        xaml.Should().Contain("Text=\"{Binding DataContext.SelectedItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Preview'}\"",
+            "Preview title row should bind to the selected Preview item through the list control");
+        xaml.Should().Contain("Text=\"{Binding DataContext.OutputItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Output'}\"",
+            "Output title row should bind to the prepared/live Output item through the list control");
     }
 
     [Fact]
