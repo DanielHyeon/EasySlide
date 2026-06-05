@@ -561,8 +561,34 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuImages_Refresh\"", "Images menu should expose Refresh Images Lists");
 
         xaml.Should().Contain("Tag=\"DefaultSource\"", "FrmMain keeps Default as a main-console source tab");
+        xaml.Should().Contain("x:Name=\"DefPanel\"", "Default source should expose the legacy FrmMain DefPanel role inline");
+        xaml.Should().Contain("Tag=\"DefPanel\"", "Default source should keep the legacy DefPanel tag for 1:1 UI inventory");
+        xaml.Should().Contain("x:Name=\"DefgroupBox1\"", "DefPanel should surface the legacy text/default-format group");
+        xaml.Should().Contain("x:Name=\"DefgroupBox2\"", "DefPanel should surface the legacy background/transition group");
+        xaml.Should().Contain("x:Name=\"DefgroupBox3\"", "DefPanel should surface the legacy apply/reset group");
+        xaml.Should().Contain("x:Name=\"Def_Head\"", "Default tab should expose FrmMain Def_Head");
+        xaml.Should().Contain("ToggleLyricsTitleHeadingCommand", "Def_Head should connect to the real title heading toggle");
+        xaml.Should().Contain("x:Name=\"Def_Outline\"", "Default tab should expose FrmMain Def_Outline");
+        xaml.Should().Contain("ToggleLyricsOutlineCommand", "Def_Outline should connect to the real outline toggle");
+        xaml.Should().Contain("x:Name=\"Def_Shadow\"", "Default tab should expose FrmMain Def_Shadow");
+        xaml.Should().Contain("ToggleLyricsShadowCommand", "Def_Shadow should connect to the real shadow toggle");
+        xaml.Should().Contain("x:Name=\"Def_Notations\"", "Default tab should expose FrmMain Def_Notations");
+        xaml.Should().Contain("ToggleLyricsNotationsCommand", "Def_Notations should connect to the real chord display toggle");
+        xaml.Should().Contain("x:Name=\"Def_ToZero\"", "Default tab should expose FrmMain Def_ToZero");
+        xaml.Should().Contain("TransposeLiveResetCommand", "Def_ToZero should connect to the live transpose reset");
+        xaml.Should().Contain("x:Name=\"Def_R1Align\"", "Default tab should expose Region1 alignment controls");
+        xaml.Should().Contain("ApplyLyricsAlignmentCommand", "Def_R1Align should use the shared lyrics alignment command");
+        xaml.Should().Contain("x:Name=\"Def_Region\"", "Default tab should expose region display controls");
+        xaml.Should().Contain("ApplyRegionDisplayCommand", "Def_Region should use the shared region display command");
+        xaml.Should().Contain("x:Name=\"Def_NoImage\"", "Default tab should expose FrmMain Def_NoImage");
+        xaml.Should().Contain("ClearOutputBackgroundImageCommand", "Def_NoImage should clear the default output background");
+        xaml.Should().Contain("ApplyBackgroundModeCommand", "Default tab should expose FrmMain background image modes");
+        xaml.Should().Contain("x:Name=\"Def_Transition\"", "Default tab should expose transition defaults inline");
+        xaml.Should().Contain("ToggleFadeTransitionCommand", "Default transition controls should toggle fade");
+        xaml.Should().Contain("ApplyTransitionDurationCommand", "Default transition controls should expose duration presets");
         xaml.Should().Contain("ResetOutputAppearanceCommand", "Default tab restores the default output layout");
         xaml.Should().Contain("ApplyGlobalFormatToAllCommand", "Default tab can apply the current format globally");
+        xaml.Should().Contain("ClearAllItemsFormattingCommand", "Default tab can clear item-specific formatting overrides");
     }
 
     [Fact]

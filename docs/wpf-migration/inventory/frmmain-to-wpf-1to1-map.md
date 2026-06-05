@@ -54,7 +54,7 @@
 | `tabMedia` | `MediaSourceTab` | partial | 2/3 | real folders, import, double-click, multi-select add/drag, and FrmMain `CMenuFiles` Select/Unselect/Add && Show/Refresh are wired; exact folder-group UI and Edit/Copy parity remain incomplete |
 | `MediaFolder` | media folder selector | partial | 2 | legacy media groups |
 | `MediaList` | `InlineMediaList` + `CMenuFiles_*` | partial | 3 | extended multi-select, right-click row selection, double-click/Enter/WL_Add multi-add, multi-file drag insert, and `CMenuFiles_SelectAll/UnselectAll/AddShow/Refresh` exist; exact legacy columns plus Edit/Copy side effects remain incomplete |
-| `tabDefault` | `DefaultSource` tab / inspector | partial | 5 | full `DefPanel` option parity |
+| `tabDefault` | `DefaultSource` tab / inspector | partial | 5 | inline `DefPanel` now exposes FrmMain-named text/effect/notation/alignment/region/background/transition/apply controls wired to real commands; remaining exact `Def_*` geometry, color/font pickers, vertical alignment, and all legacy default options still incomplete |
 
 ## 3. Lower Left Lists
 

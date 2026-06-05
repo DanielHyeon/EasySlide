@@ -1960,35 +1960,254 @@
                             <TextBlock Text="Default" />
                         </StackPanel>
                     </TabItem.Header>
-                    <Grid Margin="0,8,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                    <ScrollViewer x:Name="DefPanel"
+                                  Tag="DefPanel"
+                                  Margin="0,8,0,0"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <GroupBox x:Name="DefgroupBox1"
+                                      Tag="DefgroupBox1"
+                                      Header="Text"
+                                      Padding="8"
+                                      Margin="0,0,0,8">
+                                <StackPanel>
+                                    <WrapPanel>
+                                        <ToggleButton x:Name="Def_Head"
+                                                      IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsTitleHeadingCommand}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Head"
+                                                      ToolTip="FrmMain Def_Head"
+                                                      AutomationProperties.Name="Def Head title heading" />
+                                        <ToggleButton x:Name="Def_Outline"
+                                                      IsChecked="{Binding ActiveLyricsOutline, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsOutlineCommand}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Outline"
+                                                      ToolTip="FrmMain Def_Outline"
+                                                      AutomationProperties.Name="Def Outline lyrics effect" />
+                                        <ToggleButton x:Name="Def_Shadow"
+                                                      IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsShadowCommand}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Shadow"
+                                                      ToolTip="FrmMain Def_Shadow"
+                                                      AutomationProperties.Name="Def Shadow lyrics effect" />
+                                        <ToggleButton x:Name="Def_Notations"
+                                                      IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsNotationsCommand}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Chords"
+                                                      ToolTip="FrmMain Def_Notations"
+                                                      AutomationProperties.Name="Def Notations chord display" />
+                                        <Button x:Name="Def_ToZero"
+                                                Command="{Binding TransposeLiveResetCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="To 0"
+                                                ToolTip="FrmMain Def_ToZero"
+                                                AutomationProperties.Name="Def ToZero transpose reset" />
+                                    </WrapPanel>
 
-                        <Button Grid.Row="0"
-                                Command="{Binding ResetOutputAppearanceCommand}"
-                                Style="{StaticResource EsButton.Primary}"
-                                HorizontalAlignment="Stretch"
-                                Content="Default Layout"
-                                AutomationProperties.Name="Restore default output layout" />
-                        <Button Grid.Row="1"
-                                Command="{Binding ApplyGlobalFormatToAllCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                HorizontalAlignment="Stretch"
-                                Margin="0,8,0,0"
-                                Content="Apply to All"
-                                AutomationProperties.Name="Apply current output format to all Worship List items" />
-                        <Button Grid.Row="2"
-                                Command="{Binding ClearAllItemsFormattingCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                HorizontalAlignment="Stretch"
-                                Margin="0,8,0,0"
-                                Content="Clear Item Formats"
-                                AutomationProperties.Name="Clear all item-specific formatting" />
-                    </Grid>
+                                    <TextBlock Text="Align"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_R1Align"
+                                               Tag="Def_R1Align">
+                                        <Button Command="{Binding ApplyLyricsAlignmentCommand}"
+                                                CommandParameter="{x:Static settings:LyricsTextAlignment.Left}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinWidth="56"
+                                                MinHeight="30"
+                                                Margin="0,0,6,6"
+                                                Content="Left"
+                                                AutomationProperties.Name="Def Region1 left align" />
+                                        <Button Command="{Binding ApplyLyricsAlignmentCommand}"
+                                                CommandParameter="{x:Static settings:LyricsTextAlignment.Center}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinWidth="56"
+                                                MinHeight="30"
+                                                Margin="0,0,6,6"
+                                                Content="Center"
+                                                AutomationProperties.Name="Def Region1 center align" />
+                                        <Button Command="{Binding ApplyLyricsAlignmentCommand}"
+                                                CommandParameter="{x:Static settings:LyricsTextAlignment.Right}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinWidth="56"
+                                                MinHeight="30"
+                                                Margin="0,0,6,6"
+                                                Content="Right"
+                                                AutomationProperties.Name="Def Region1 right align" />
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Region"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_Region"
+                                               Tag="Def_Region">
+                                        <Button Command="{Binding ApplyRegionDisplayCommand}"
+                                                CommandParameter="{x:Static settings:LyricsRegionDisplay.Both}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Both"
+                                                AutomationProperties.Name="Def Region both" />
+                                        <Button Command="{Binding ApplyRegionDisplayCommand}"
+                                                CommandParameter="{x:Static settings:LyricsRegionDisplay.Region1Only}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="R1"
+                                                AutomationProperties.Name="Def Region one only" />
+                                        <Button Command="{Binding ApplyRegionDisplayCommand}"
+                                                CommandParameter="{x:Static settings:LyricsRegionDisplay.Region2Only}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="R2"
+                                                AutomationProperties.Name="Def Region two only" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox x:Name="DefgroupBox2"
+                                      Tag="DefgroupBox2"
+                                      Header="Background / Transition"
+                                      Padding="8"
+                                      Margin="0,0,0,8">
+                                <StackPanel>
+                                    <WrapPanel>
+                                        <Button x:Name="Def_NoImage"
+                                                Command="{Binding ClearOutputBackgroundImageCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="No Image"
+                                                ToolTip="FrmMain Def_NoImage"
+                                                AutomationProperties.Name="Def NoImage clear output background" />
+                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Fill"
+                                                AutomationProperties.Name="Def background fill" />
+                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Fit"
+                                                AutomationProperties.Name="Def background fit" />
+                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Center"
+                                                AutomationProperties.Name="Def background center" />
+                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Tile"
+                                                AutomationProperties.Name="Def background tile" />
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Transition"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_Transition"
+                                               Tag="Def_Transition">
+                                        <ToggleButton IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}"
+                                                      Command="{Binding ToggleFadeTransitionCommand}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Fade"
+                                                      AutomationProperties.Name="Def fade transition" />
+                                        <Button Command="{Binding ApplyTransitionDurationCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="150">
+                                            <Button.CommandParameter>
+                                                <sys:Int32>150</sys:Int32>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                        <Button Command="{Binding ApplyTransitionDurationCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="250">
+                                            <Button.CommandParameter>
+                                                <sys:Int32>250</sys:Int32>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                        <Button Command="{Binding ApplyTransitionDurationCommand}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="500">
+                                            <Button.CommandParameter>
+                                                <sys:Int32>500</sys:Int32>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox x:Name="DefgroupBox3"
+                                      Tag="DefgroupBox3"
+                                      Header="Apply"
+                                      Padding="8">
+                                <StackPanel>
+                                    <Button Command="{Binding ResetOutputAppearanceCommand}"
+                                            Style="{StaticResource EsButton.Primary}"
+                                            HorizontalAlignment="Stretch"
+                                            Content="Default Layout"
+                                            AutomationProperties.Name="Restore default output layout" />
+                                    <Button Command="{Binding ApplyGlobalFormatToAllCommand}"
+                                            Style="{StaticResource EsButton.Secondary}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,8,0,0"
+                                            Content="Apply to All"
+                                            AutomationProperties.Name="Apply current output format to all Worship List items" />
+                                    <Button Command="{Binding ClearAllItemsFormattingCommand}"
+                                            Style="{StaticResource EsButton.Secondary}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,8,0,0"
+                                            Content="Clear Item Formats"
+                                            AutomationProperties.Name="Clear all item-specific formatting" />
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
+                    </ScrollViewer>
                 </TabItem>
                 <!-- Search tab keeps song/title/usage lookup inline in the left rail. -->
                 <TabItem Tag="Search"
