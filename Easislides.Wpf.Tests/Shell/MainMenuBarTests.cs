@@ -389,9 +389,39 @@ public class MainMenuBarTests
         xaml.Should().Contain("<ListView Grid.Row=\"3\"", "SongsList should render as a compact details-style ListView");
         xaml.Should().Contain("x:Name=\"LibrarySongList\"", "existing drag and double-click handlers should keep their stable target");
         xaml.Should().Contain("Tag=\"SongsList\"", "LibrarySongList should be explicitly mapped to FrmMain SongsList");
+        xaml.Should().Contain("SelectionMode=\"Extended\"", "FrmMain SongsList supports multi-select add/context gestures");
         xaml.Should().Contain("<GridView AllowsColumnReorder=\"False\">", "legacy ListView Details behavior should hide headers but keep columns");
         xaml.Should().Contain("PreviewMouseMove=\"LibrarySongList_PreviewMouseMove\"", "song rows should keep drag-to-Worship behavior");
+        xaml.Should().Contain("PreviewMouseRightButtonDown=\"LibrarySongList_PreviewMouseRightButtonDown\"",
+            "right-clicking a song row should select it before opening CMenuSongs");
         xaml.Should().Contain("MouseAction=\"LeftDoubleClick\"", "song rows should keep double-click add behavior");
+    }
+
+    [Fact]
+    public void FoldersTab_ExposesFrmMainSongsContextMenu()
+    {
+        var xaml = Xaml;
+        var code = CodeBehind;
+
+        xaml.Should().Contain("x:Name=\"CMenuSongs\"", "Folders SongsList should expose the legacy song context menu");
+        xaml.Should().Contain("Opened=\"CMenuSongs_Opened\"", "CMenuSongs should compute item enablement at open time like FrmMain");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_SelectAll\"");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_UnselectAll\"");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_AddShow\"");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_Edit\"");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_Copy\"");
+        xaml.Should().Contain("x:Name=\"CMenuSongs_Refresh\"");
+
+        code.Should().Contain("private void LibrarySongList_PreviewMouseRightButtonDown",
+            "right-click commands should target the song row under the pointer");
+        code.Should().Contain("private async void CMenuSongs_AddShow_Click",
+            "Add && Show should route from the FrmMain song context menu");
+        code.Should().Contain("viewModel.SelectedItem = added[0]",
+            "FrmMain CMenuSongs_AddShow sends the first newly added Worship List row live");
+        code.Should().Contain("await viewModel.PreviewToLiveCommand.ExecuteAsync(null).ConfigureAwait(true)",
+            "Add && Show should publish through the same Preview-to-Live path as the visible FrmMain LIVE button");
+        code.Should().Contain("private async Task OpenSelectedLibrarySongEditorAsync",
+            "CMenuSongs_Edit should open the selected library song editor, not the Worship List item editor");
     }
 
     [Fact]

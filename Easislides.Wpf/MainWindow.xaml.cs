@@ -1242,6 +1242,22 @@ public partial class MainWindow : Window
             && ItemsControl.ContainerFromElement(LibrarySongList, source) is ListBoxItem;
     }
 
+    private void LibrarySongList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(LibrarySongList, source) is ListBoxItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+            if (item.DataContext is SongSummary song && DataContext is MainViewModel viewModel)
+            {
+                viewModel.Library.SelectedSong = song;
+            }
+        }
+
+        LibrarySongList.Focus();
+    }
+
     // 임계 거리 이상 움직이면 선택된 곡(SongSummary)으로 드래그를 시작한다 — 예배 순서 목록에 드롭하면 그 위치에 추가된다.
     private void LibrarySongList_PreviewMouseMove(object sender, MouseEventArgs e)
     {
@@ -1264,6 +1280,155 @@ public partial class MainWindow : Window
 
         _librarySongDragArmed = false; // 한 제스처에서 한 번만 시작.
         DragDrop.DoDragDrop(LibrarySongList, new DataObject(typeof(Easislides.Wpf.Data.SongSummary), song), DragDropEffects.Copy);
+    }
+
+    private void CMenuSongs_Opened(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var hasItems = LibrarySongList.Items.Count > 0;
+        var selectionCount = GetLibrarySongSelection(viewModel).Count;
+        CMenuSongs_SelectAll.IsEnabled = hasItems;
+        CMenuSongs_UnselectAll.IsEnabled = selectionCount > 0;
+        CMenuSongs_AddShow.IsEnabled = selectionCount > 0;
+        CMenuSongs_Edit.IsEnabled = selectionCount == 1;
+        CMenuSongs_Copy.IsEnabled = selectionCount == 1;
+        CMenuSongs_Refresh.IsEnabled = true;
+    }
+
+    private void CMenuSongs_SelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        LibrarySongList.SelectAll();
+        LibrarySongList.Focus();
+    }
+
+    private void CMenuSongs_UnselectAll_Click(object sender, RoutedEventArgs e)
+    {
+        LibrarySongList.UnselectAll();
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.Library.SelectedSong = null;
+        }
+
+        LibrarySongList.Focus();
+    }
+
+    private async void CMenuSongs_AddShow_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var added = AddSelectedLibrarySongsToWorshipList(viewModel);
+        if (added.Count == 0)
+        {
+            viewModel.StatusText = "Add && Show 할 곡을 선택하세요.";
+            return;
+        }
+
+        viewModel.SelectedItem = added[0];
+        if (viewModel.PreviewToLiveCommand.CanExecute(null))
+        {
+            await viewModel.PreviewToLiveCommand.ExecuteAsync(null).ConfigureAwait(true);
+        }
+    }
+
+    private async void CMenuSongs_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            await OpenSelectedLibrarySongEditorAsync(viewModel).ConfigureAwait(true);
+        }
+    }
+
+    private async void CMenuSongs_Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            await viewModel.Library.LoadAsync().ConfigureAwait(true);
+        }
+    }
+
+    private IReadOnlyList<LiveQueueItem> AddSelectedLibrarySongsToWorshipList(MainViewModel viewModel)
+    {
+        var songs = GetLibrarySongSelection(viewModel);
+        if (songs.Count == 0)
+        {
+            return Array.Empty<LiveQueueItem>();
+        }
+
+        var added = new List<LiveQueueItem>(songs.Count);
+        foreach (var song in songs)
+        {
+            if (viewModel.AddSong(song) is { } item)
+            {
+                added.Add(item);
+            }
+        }
+
+        return added;
+    }
+
+    private IReadOnlyList<SongSummary> GetLibrarySongSelection(MainViewModel viewModel)
+    {
+        var selected = LibrarySongList.SelectedItems
+            .OfType<SongSummary>()
+            .DistinctBy(song => song.SongId)
+            .OrderBy(song =>
+            {
+                var index = viewModel.Library.Songs.IndexOf(song);
+                return index < 0 ? int.MaxValue : index;
+            })
+            .ToList();
+
+        if (selected.Count == 0 && viewModel.Library.SelectedSong is { } selectedSong)
+        {
+            selected.Add(selectedSong);
+        }
+
+        return selected;
+    }
+
+    private async Task OpenSelectedLibrarySongEditorAsync(MainViewModel viewModel)
+    {
+        var library = viewModel.Library;
+        if (library.SelectedFolder is null)
+        {
+            library.StatusMessage = "편집할 폴더를 선택하세요.";
+            return;
+        }
+
+        if (library.SelectedSong is null)
+        {
+            library.StatusMessage = "편집할 곡을 선택하세요.";
+            return;
+        }
+
+        var editorWindow = _services.GetRequiredService<SongEditorWindow>();
+        editorWindow.Owner = this;
+        if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
+        {
+            library.StatusMessage = "곡 편집기를 초기화할 수 없습니다.";
+            return;
+        }
+
+        await editorViewModel.LoadAsync(library.DatabasePath, library.SelectedFolder, library.SelectedSong)
+            .ConfigureAwait(true);
+        if (editorWindow.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var songId = editorViewModel.SongId;
+        await library.LoadSongsForSelectedFolderAsync().ConfigureAwait(true);
+        if (songId is not null)
+        {
+            library.SelectSongById(songId.Value);
+        }
     }
 
     private async void InlineInfoScreenList_MouseDoubleClick(object sender, MouseButtonEventArgs e)

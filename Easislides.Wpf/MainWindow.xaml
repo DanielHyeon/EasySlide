@@ -1124,8 +1124,10 @@
                                   ItemsSource="{Binding Library.Songs}"
                                   SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
                                   Tag="SongsList"
+                                  SelectionMode="Extended"
                                   KeyDown="SourceListAddOnEnter_KeyDown"
                                   PreviewMouseLeftButtonDown="LibrarySongList_PreviewMouseLeftButtonDown"
+                                  PreviewMouseRightButtonDown="LibrarySongList_PreviewMouseRightButtonDown"
                                   PreviewMouseMove="LibrarySongList_PreviewMouseMove"
                                   AutomationProperties.Name="곡 목록"
                                   BorderThickness="1"
@@ -1171,6 +1173,38 @@
                                 <MouseBinding MouseAction="LeftDoubleClick"
                                               Command="{Binding AddSelectedLibrarySongCommand}" />
                             </ListView.InputBindings>
+                            <ListView.ContextMenu>
+                                <ContextMenu x:Name="CMenuSongs"
+                                             Tag="CMenuSongs"
+                                             Opened="CMenuSongs_Opened">
+                                    <MenuItem x:Name="CMenuSongs_SelectAll"
+                                              Tag="CMenuSongs_SelectAll"
+                                              Header="Select _All"
+                                              Click="CMenuSongs_SelectAll_Click" />
+                                    <MenuItem x:Name="CMenuSongs_UnselectAll"
+                                              Tag="CMenuSongs_UnselectAll"
+                                              Header="_Unselect All"
+                                              Click="CMenuSongs_UnselectAll_Click" />
+                                    <MenuItem x:Name="CMenuSongs_AddShow"
+                                              Tag="CMenuSongs_AddShow"
+                                              Header="Add &amp;&amp; _Show"
+                                              Click="CMenuSongs_AddShow_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuSongs_Edit"
+                                              Tag="CMenuSongs_Edit"
+                                              Header="Edit item"
+                                              Click="CMenuSongs_Edit_Click" />
+                                    <MenuItem x:Name="CMenuSongs_Copy"
+                                              Tag="CMenuSongs_Copy"
+                                              Header="Copy item"
+                                              Click="SongCopy_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuSongs_Refresh"
+                                              Tag="CMenuSongs_Refresh"
+                                              Header="Refresh"
+                                              Click="CMenuSongs_Refresh_Click" />
+                                </ContextMenu>
+                            </ListView.ContextMenu>
                         </ListView>
 
                         <!-- 라이브러리 곡 목록 빈 상태 안내 — 곡을 한 번 불러왔는데(HasLoadedSongs) 표시할 곡이 0건일 때만.
