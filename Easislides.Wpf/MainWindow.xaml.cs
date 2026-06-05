@@ -1125,12 +1125,18 @@ public partial class MainWindow : Window
     private void InlinePowerPointList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _powerPointDragStart = e.GetPosition(null);
-        _powerPointDragArmed = e.OriginalSource is DependencyObject source
-            && ItemsControl.ContainerFromElement(InlinePowerPointList, source) is ListBoxItem;
+        _powerPointDragArmed = sender is ListBox powerPointList
+            && e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(powerPointList, source) is ListBoxItem;
     }
 
     private void InlinePowerPointList_PreviewMouseMove(object sender, MouseEventArgs e)
     {
+        if (sender is not ListBox powerPointList)
+        {
+            return;
+        }
+
         if (!_powerPointDragArmed || e.LeftButton != MouseButtonState.Pressed)
         {
             return;
@@ -1145,12 +1151,13 @@ public partial class MainWindow : Window
 
         if (_inlinePowerPoint?.SelectedFile is not { } file)
         {
+            _powerPointDragArmed = false;
             return;
         }
 
         _powerPointDragArmed = false;
         DragDrop.DoDragDrop(
-            InlinePowerPointList,
+            powerPointList,
             new DataObject(DataFormats.FileDrop, new[] { file.FilePath }),
             DragDropEffects.Copy);
     }

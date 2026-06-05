@@ -8,6 +8,12 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Easislides.Wpf.Library;
 
+public enum PowerPointListingStyle
+{
+    List = 0,
+    Preview = 1,
+}
+
 /// <summary>PowerPoint 갤러리 항목 — 파일 경로와 표시용 파일명.</summary>
 public sealed class PowerPointFileItem
 {
@@ -51,6 +57,12 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     [ObservableProperty]
     private bool _includeSubfolders;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsListStyle))]
+    [NotifyPropertyChangedFor(nameof(IsPreviewStyle))]
+    [NotifyPropertyChangedFor(nameof(ListingStyleLabel))]
+    private PowerPointListingStyle _listingStyle = PowerPointListingStyle.List;
+
     public PowerPointLibraryViewModel(
         IPowerPointLibraryService service,
         Action<string> addToQueue,
@@ -62,6 +74,8 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
+        UseListStyleCommand = new RelayCommand(() => ListingStyle = PowerPointListingStyle.List);
+        UsePreviewStyleCommand = new RelayCommand(() => ListingStyle = PowerPointListingStyle.Preview);
     }
 
     public ObservableCollection<PowerPointFileItem> Presentations { get; } = new();
@@ -69,6 +83,16 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     public IRelayCommand LoadCommand { get; }
 
     public IRelayCommand AddSelectedCommand { get; }
+
+    public IRelayCommand UseListStyleCommand { get; }
+
+    public IRelayCommand UsePreviewStyleCommand { get; }
+
+    public bool IsListStyle => ListingStyle == PowerPointListingStyle.List;
+
+    public bool IsPreviewStyle => ListingStyle == PowerPointListingStyle.Preview;
+
+    public string ListingStyleLabel => IsPreviewStyle ? "Preview" : "List";
 
     partial void OnIncludeSubfoldersChanged(bool value) => Load();
 

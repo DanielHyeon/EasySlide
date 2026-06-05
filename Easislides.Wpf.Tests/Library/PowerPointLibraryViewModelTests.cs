@@ -70,6 +70,27 @@ public class PowerPointLibraryViewModelTests
     }
 
     [Fact]
+    public void ListingStyle_DefaultsToList_AndCanSwitchToPreview()
+    {
+        var sut = CreateSut(out _, @"C:\decks\a.pptx");
+
+        sut.ListingStyle.Should().Be(PowerPointListingStyle.List);
+        sut.IsListStyle.Should().BeTrue();
+        sut.IsPreviewStyle.Should().BeFalse();
+        sut.ListingStyleLabel.Should().Be("List");
+
+        sut.UsePreviewStyleCommand.Execute(null);
+
+        sut.ListingStyle.Should().Be(PowerPointListingStyle.Preview);
+        sut.IsListStyle.Should().BeFalse();
+        sut.IsPreviewStyle.Should().BeTrue();
+        sut.ListingStyleLabel.Should().Be("Preview");
+
+        sut.UseListStyleCommand.Execute(null);
+        sut.ListingStyle.Should().Be(PowerPointListingStyle.List);
+    }
+
+    [Fact]
     public void TogglingIncludeSubfolders_ReloadsList()
     {
         var sut = CreateSut(out _, @"C:\decks\a.pptx", @"C:\decks\sub\b.pptx");

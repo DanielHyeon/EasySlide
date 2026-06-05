@@ -38,10 +38,10 @@
 | `tabFiles` | `InfoScreenSourceTab` | partial | 2/3 | DI-backed store now reads WPF JSON plus legacy `C:\EasiSlides\InfoScreens\*.esi`; folder selector/list management/import/edit/copy/move/delete still incomplete |
 | `InfoScreenFolder` | inline InfoScreen folder selector | partial | 2 | legacy root/subfolder `.esi` names load as relative names; exact FrmMain folder combo still missing |
 | `InfoScreenList` | `InlineInfoScreenList` | partial | 3 | legacy `.esi` content loads into add/drag flow; double-click, Enter add, and drag insert exist; context menu/edit/manage parity incomplete |
-| `tabPowerpoint` | `PowerPointSourceTab` | partial | 2/3/4 | list/preview style, real thumbnails, drag/add |
+| `tabPowerpoint` | `PowerPointSourceTab` | partial | 2/3/4 | inline list plus preview-style flow exist; folder groups, import/manage, and real first-slide thumbnails still incomplete |
 | `PowerpointFolder` | inline PowerPoint folder selector | partial | 2 | match legacy folder groups |
-| `PowerpointList` | `InlinePowerPointList` | partial | 3/4 | selection, double-click, Enter add, and drag insert exist; preview style/context menu incomplete |
-| `PP_ListType` | no exact compact target | missing | 4 | list/preview style toggle |
+| `PowerpointList` | `InlinePowerPointList` (`Tag=PowerpointList`) | partial | 3/4 | selection, double-click, Enter add, and drag insert exist; context menu and exact legacy folder-list columns incomplete |
+| `PP_ListType` | `PP_ListType` / `PP_ListStyle` / `PP_PreviewStyle` + `flowLayoutExternalPowerPoint` | partial | 4 | list/preview style toggle now switches WPF list vs thumbnail-flow source surfaces; real PPT first-slide thumbnail rendering/cache still incomplete |
 | `tabBibles` | `Bibles` tab | partial | 2/3 | full version/book/reference/selection workflow |
 | `BookLookup` | Bible book selector | partial | 2 | load legacy book list per version |
 | `BibleUserLookup` | `BibleReferenceBox` | partial | 2/3 | direct reference and search validation parity |
