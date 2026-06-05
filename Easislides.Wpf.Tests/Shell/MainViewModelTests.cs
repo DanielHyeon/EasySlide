@@ -6645,6 +6645,22 @@ public class MainViewModelTests
         sut.Media.Source.Should().NotBe(previewMedia);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing);
         sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("Output Song.mp4");
+
+        sut.PlayOutputMediaCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(previewItem, "Output media pause must still leave the Preview selection alone");
+        sut.OutputItem.Should().BeSameAs(outputItem);
+        sut.Media.Source.Should().Be(outputMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Paused, "FrmMain OutputBtnMedia maps to the live media pause/resume action for the current Output item");
+        sut.StatusText.Should().Contain("Output 미디어 일시정지").And.Contain("Output Song.mp4");
+
+        sut.PlayOutputMediaCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(previewItem);
+        sut.OutputItem.Should().BeSameAs(outputItem);
+        sut.Media.Source.Should().Be(outputMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("Output Song.mp4");
     }
 
     [Fact]
