@@ -8690,6 +8690,46 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputSlideButtons_WhenBlackHiddenLyricsSelectionDiverges_MoveHiddenPayloadOnly()
+    {
+        // FrmMain OutputBtnSlideUp/Down: Black/Clear 중에도 화면을 깨우지 않고 복귀될 live 절만 넘긴다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Sequence = "1 C 2",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("숨김 중에도 Output 가사 버튼은 hidden live payload 를 넘길 수 있어야 함");
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 버튼은 Preview 선택을 바꾸지 않는다");
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "Black 상태를 해제하지 않는다");
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus");
+        sut.OutputLyricsText.Should().Be("Live chorus");
+        sut.OutputNavigationPositionLabel.Should().Be("2/3");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live chorus", "복귀 시 숨김 중 넘긴 절이 표시되어야 한다");
+    }
+
+    [Fact]
     public async Task OutputItemButtons_WhenLiveSelectionDiverges_MoveLiveOutputOnly()
     {
         // FrmMain OutputBtnItemUp/Down: Preview 선택 항목이 아니라 현재 OutputItem/live 항목을 이동한다.
@@ -8729,6 +8769,49 @@ public class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(live);
         sut.LiveItemId.Should().Be(live.Id);
         sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+    }
+
+    [Fact]
+    public async Task OutputItemButtons_WhenBlackHiddenSelectionDiverges_MoveHiddenPayloadOnly()
+    {
+        // FrmMain OutputBtnItemUp/Down: Black 중에도 Preview 선택이 아니라 숨겨진 OutputItem 을 다음 항목으로 준비한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var next = new LiveQueueItem("song:next", "Next live", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, next, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.NextOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output 항목 이동은 Preview 선택을 건드리지 않는다");
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "Black 상태를 해제하지 않는다");
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.OutputItem.Should().BeSameAs(next);
+        sut.LiveItemId.Should().Be(next.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Next live");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Next verse");
+        sut.StatusText.Should().Be("Output 숨김 준비: Next live");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Next live", "복귀 시 숨김 중 준비한 항목이 표시되어야 한다");
     }
 
     [Fact]
@@ -8864,6 +8947,52 @@ public class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Off, "준비 Output 슬라이드 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
         sut.StatusText.Should().Be("Output 슬라이드 2/3 준비");
+    }
+
+    [Fact]
+    public async Task OutputSlideButtons_WhenBlackHiddenPowerPointSelectionDiverges_MoveHiddenPayloadOnly()
+    {
+        // FrmMain Output PPT 슬라이드 버튼: Black 중에도 Preview 선택과 별개로 숨겨진 PPT payload 의 슬라이드만 넘긴다.
+        var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var live = new LiveQueueItem("ppt:live", "Live deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "live.pptx",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.NextOutputSlideCommand.CanExecute(null).Should().BeTrue("숨김 중에도 Output PPT 슬라이드 버튼은 hidden live payload 를 넘길 수 있어야 함");
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "Black 상태를 해제하지 않는다");
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live deck");
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3");
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(live.Id);
+        sut.OutputItem.SlideNumber.Should().Be(2);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.OutputNavigationPositionLabel.Should().Be("2/3");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3", "복귀 시 숨김 중 넘긴 PPT 슬라이드가 표시되어야 한다");
     }
 
     [Fact]

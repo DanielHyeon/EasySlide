@@ -4180,6 +4180,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
             _session.GoLive(ResolveLiveProjection(item with { SlideNumber = target }, OutputPowerPoint), monitorName);
         }
+        else if (_session.Current.State == LiveState.Hidden)
+        {
+            var updated = item with { SlideNumber = target };
+            RefreshHiddenOutputPayloadAtCurrentPosition(updated, MainCommandIds.LivePreviewToOutput);
+            StatusText = OutputPowerPoint.SlideCount > 1
+                ? $"Output 슬라이드 {target}/{OutputPowerPoint.SlideCount} 숨김 준비"
+                : StatusText;
+        }
         else
         {
             OutputItem = item with { SlideNumber = target };
@@ -4239,6 +4247,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RefreshHiddenOutputLyricsPage(item, target, pageModel.Count);
+            return;
+        }
+
         PrepareOutputLyricsPage(item, target, pageModel.Count);
     }
 
@@ -4269,7 +4283,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private LiveQueueItem? GetOutputPowerPointNavigationItem()
     {
-        if (_session.Current.State == LiveState.Active)
+        if (_session.Current.State is LiveState.Active or LiveState.Hidden)
         {
             return GetLivePowerPointItem();
         }
@@ -4349,7 +4363,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private LiveQueueItem? GetOutputLyricsNavigationItem()
     {
-        if (_session.Current.State == LiveState.Active)
+        if (_session.Current.State is LiveState.Active or LiveState.Hidden)
         {
             return GetLiveLyricsItem();
         }
@@ -4362,9 +4376,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private int GetOutputLyricsPageIndex(LiveQueueItem item)
-        => _session.Current.State == LiveState.Active
+        => _session.Current.State is LiveState.Active or LiveState.Hidden
             ? _session.Current.CurrentLyricsPageIndex
             : item.LyricsPageIndex;
+
+    private void RefreshHiddenOutputLyricsPage(LiveQueueItem item, int target, int pageCount)
+    {
+        var updated = item with { LyricsPageIndex = target };
+        RefreshHiddenOutputPayloadAtCurrentPosition(updated, MainCommandIds.LivePreviewToOutput);
+        StatusText = pageCount > 1
+            ? $"Output 가사 {target + 1}/{pageCount}절 숨김 준비"
+            : StatusText;
+    }
 
     private void PrepareOutputLyricsPage(LiveQueueItem item, int target, int pageCount)
     {
@@ -4673,6 +4696,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    private bool RefreshHiddenOutputPayloadAtCurrentPosition(LiveQueueItem item, string commandId)
+    {
+        if (_session.Current.State != LiveState.Hidden)
+        {
+            return false;
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        OutputItem = item;
+        SetLiveItemId(item.Id);
+        LiveTransposeSemitones = 0;
+        _session.UpdateHiddenContent(ResolveLiveProjection(item, OutputPowerPoint), monitorName);
+        _telemetry.Record(commandId, succeeded: true, $"{item.Title} (hidden)");
+        return true;
+    }
+
     private LiveQueueItem? PrepareOutputFromPreview()
     {
         if (SelectedItem is not { } item)
@@ -4927,6 +4966,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RefreshHiddenOutputPayload(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious);
+            StatusText = $"Output 숨김 준비: {target.Title}";
+            NotifyCommandStates();
+            return;
+        }
+
         StatusText = $"Output 준비: {target.Title}";
         NotifyCommandStates();
     }
@@ -4948,6 +4995,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_session.Current.State == LiveState.Active)
         {
             PublishOutputItem(target, commandId);
+            return;
+        }
+
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RefreshHiddenOutputPayload(target, commandId);
+            StatusText = $"Output 숨김 준비: {target.Title}";
+            NotifyCommandStates();
             return;
         }
 
@@ -5015,6 +5070,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_session.Current.State == LiveState.Active)
         {
             PublishOutputItem(target, MainCommandIds.LiveNext);
+            return;
+        }
+
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RefreshHiddenOutputPayload(target, MainCommandIds.LiveNext);
+            StatusText = $"Output 회전 제외 항목 숨김 준비: {target.Title}";
+            NotifyCommandStates();
             return;
         }
 
