@@ -814,12 +814,12 @@ public class MainMenuBarTests
 
     [Theory]
     // 메뉴 힌트 문자열이 실제 카탈로그 단축키와 같은 메뉴 항목의 VM 명령에 일치해야 한다(거짓 힌트·잘못된 항목 부착 방지).
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGo, "F12", "GoLiveCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGo, "F12", "ToggleOutputLiveCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGoAndNext, "F11", "SendToOutputAndNextCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveNext, "Space", "NextItemCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePrevious, "Shift+Space", "PreviousItemCommand")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveBlack, "F9", "BlackScreenCommand")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveClear, "F3", "ClearOutputCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveBlack, "F9", "ToggleOutputBlackCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveClear, "F3", "ToggleOutputClearCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "Ctrl+R", "RestartCurrentItemCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRefresh, "Ctrl+F5", "RefreshOutputCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.WindowHelp, "F1", "OpenHelp_Click")]
@@ -839,6 +839,19 @@ public class MainMenuBarTests
         // 그리고 메뉴 XAML 에 그 힌트가 실제로 노출돼 있는지.
         var menuItem = MenuItemOpeningFor(menuCommandOrClick);
         menuItem.Should().Contain($"InputGestureText=\"{gesture}\"", $"{commandId} 메뉴에 {gesture} 힌트 노출");
+    }
+
+    [Theory]
+    [InlineData("ToggleOutputLiveCommand", "IsOutputLiveActive")]
+    [InlineData("ToggleOutputBlackCommand", "IsOutputBlackActive")]
+    [InlineData("ToggleOutputClearCommand", "IsOutputClearActive")]
+    public void OutputLiveSafetyMenuItems_AreCheckedFrmMainToggles(string command, string activeProperty)
+    {
+        var menuItem = MenuItemOpeningFor(command);
+
+        menuItem.Should().Contain("IsCheckable=\"True\"", $"{command} 메뉴는 FrmMain CheckBox/Menu checked 상태를 보여야 함");
+        menuItem.Should().Contain($"IsChecked=\"{{Binding {activeProperty}, Mode=OneWay}}\"",
+            $"{command} 메뉴는 {activeProperty} 상태를 반영해야 함");
     }
 
     [Fact]

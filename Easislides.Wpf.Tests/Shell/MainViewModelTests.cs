@@ -3928,6 +3928,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task BindShortcuts_LiveSafetyKeysUseFrmMainCheckedToggleSemantics()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song-1", "은혜로다", LiveItemKinds.Song) { Lyrics = "[1]\n가사" },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        var registry = new ShortcutRegistry();
+        sut.BindShortcuts(registry);
+
+        registry.TryInvoke(MainCommandIds.LiveGo).Should().BeTrue("F12/팔레트 Go LIVE가 토글 명령에 바인딩돼야 함");
+        await WaitUntilAsync(() => sut.IsOutputLiveActive, "F12 첫 실행은 라이브를 시작해야 함");
+
+        registry.TryInvoke(MainCommandIds.LiveBlack).Should().BeTrue("F9/팔레트 Black은 토글 명령에 바인딩돼야 함");
+        await WaitUntilAsync(() => sut.IsOutputBlackActive && !sut.IsOutputLiveActive, "F9 첫 실행은 Black checked 상태여야 함");
+
+        registry.TryInvoke(MainCommandIds.LiveBlack).Should().BeTrue("F9 두 번째 실행도 같은 토글 경로여야 함");
+        await WaitUntilAsync(() => sut.IsOutputLiveActive && !sut.IsOutputBlackActive, "F9 재실행은 FrmMain처럼 Black을 해제하고 복귀해야 함");
+
+        registry.TryInvoke(MainCommandIds.LiveClear).Should().BeTrue("F3/팔레트 Clear는 토글 명령에 바인딩돼야 함");
+        await WaitUntilAsync(() => sut.IsOutputClearActive && !sut.IsOutputLiveActive, "F3 첫 실행은 Clear checked 상태여야 함");
+
+        registry.TryInvoke(MainCommandIds.LiveClear).Should().BeTrue("F3 두 번째 실행도 같은 토글 경로여야 함");
+        await WaitUntilAsync(() => sut.IsOutputLiveActive && !sut.IsOutputClearActive, "F3 재실행은 FrmMain처럼 Clear를 해제하고 복귀해야 함");
+
+        registry.TryInvoke(MainCommandIds.LiveGo).Should().BeTrue("F12는 active 상태에서 checked GoLive 해제도 수행해야 함");
+        await WaitUntilAsync(() => sut.Session.Current.State == LiveState.Off && !sut.IsOutputLiveActive, "F12 재실행은 라이브를 중지해야 함");
+    }
+
+    [Fact]
     public void BindShortcuts_AppliesSavedShortcutOverrides()
     {
         using var settingsFolder = TempSettingsFolder.Create();
@@ -8213,6 +8245,16 @@ public class MainViewModelTests
 
     private static SongDetail SampleSongDetail(int songId, string title, string lyrics, string sequence = "", string formatData = "")
         => new(songId, title, "", 1, 0, lyrics, sequence, "", "", 0, "", "", "", "", "", "", "", "", "", formatData);
+
+    private static async Task WaitUntilAsync(Func<bool> condition, string because)
+    {
+        for (var attempt = 0; attempt < 50 && !condition(); attempt++)
+        {
+            await Task.Delay(10);
+        }
+
+        condition().Should().BeTrue(because);
+    }
 
     // 곡 상세(가사) 조회 스텁 — 검색 결과 SongId → 가사 로드 경로 검증용.
     private sealed class StubSongDetailRepository : IAdminSongDetailRepository

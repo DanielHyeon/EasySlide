@@ -164,7 +164,11 @@
 
             <MenuItem Header="출력">
                 <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" /></MenuItem.Icon>
-                <MenuItem Header="Go LIVE" Command="{Binding GoLiveCommand}" InputGestureText="F12">
+                <MenuItem Header="Go LIVE"
+                          Command="{Binding ToggleOutputLiveCommand}"
+                          IsCheckable="True"
+                          IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
+                          InputGestureText="F12">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="송출 후 다음 항목" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11">
@@ -181,10 +185,18 @@
                 <MenuItem Header="이전 항목" Command="{Binding PreviousItemCommand}" InputGestureText="Shift+Space" />
                 <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
                 <Separator />
-                <MenuItem Header="검은 화면" Command="{Binding BlackScreenCommand}" InputGestureText="F9">
+                <MenuItem Header="검은 화면"
+                          Command="{Binding ToggleOutputBlackCommand}"
+                          IsCheckable="True"
+                          IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
+                          InputGestureText="F9">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="화면 비우기" Command="{Binding ClearOutputCommand}" InputGestureText="F3">
+                <MenuItem Header="화면 비우기"
+                          Command="{Binding ToggleOutputClearCommand}"
+                          IsCheckable="True"
+                          IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
+                          InputGestureText="F3">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionClear}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
