@@ -2465,7 +2465,6 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <Grid Grid.Row="0" Margin="0,0,0,8">
@@ -3919,25 +3918,6 @@
                                     </ItemsControl>
                                 </ScrollViewer>
                             </Grid>
-                            <StackPanel Grid.Row="2"
-                                        Orientation="Horizontal"
-                                        Margin="4,0,4,4">
-                                <TextBlock Text="{Binding LiveBar.StateLabel}"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                           AutomationProperties.Name="Output 라이브 상태" />
-                                <TextBlock Text="  "
-                                           Style="{StaticResource Type.Caption.Style}" />
-                                <TextBlock Text="{Binding LiveBar.OutputMonitorName}"
-                                           TextTrimming="CharacterEllipsis"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Secondary}"
-                                           AutomationProperties.Name="Output 송출 모니터" />
-                                <TextBlock Text="{Binding OutputNavigationPositionLabel, StringFormat='  {0}'}"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                           AutomationProperties.Name="Output 위치" />
-                            </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>

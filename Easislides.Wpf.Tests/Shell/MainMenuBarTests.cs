@@ -221,6 +221,28 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicOutputTopPane_DoesNotAddModernStatusFooterBelowFrmMainFlowSurfaces()
+    {
+        var xaml = Xaml;
+
+        var outputTopPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicOutputInfo\"",
+            "x:Name=\"ClassicOutputSlidePane\"");
+
+        outputTopPane.Should().Contain("x:Name=\"flowLayoutOutputLyrics\"",
+            "Output top pane should keep the FrmMain lyrics flow surface");
+        outputTopPane.Should().Contain("x:Name=\"ClassicOutputPowerPointSurface\"",
+            "Output top pane should keep the FrmMain PowerPoint flow surface");
+        outputTopPane.Should().NotContain("LiveBar.StateLabel",
+            "the right-top Output pane should not add a modern status footer below the FrmMain flow surfaces");
+        outputTopPane.Should().NotContain("LiveBar.OutputMonitorName",
+            "monitor status belongs to the operator/status surfaces, not an extra row under flowLayoutOutputPowerPoint");
+        outputTopPane.Should().NotContain("OutputNavigationPositionLabel, StringFormat",
+            "position is already exposed in OutputPanelDisplayName and the lower Output frame");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputLargeScreens_KeepFrmMainSixteenNineFrames()
     {
         var xaml = Xaml;
