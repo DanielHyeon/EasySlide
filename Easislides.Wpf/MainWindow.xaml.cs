@@ -1720,10 +1720,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void InlinePraiseBookItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        => AddSelectedPraiseBookEntryToWorshipList();
+    private async void InlinePraiseBookItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        => await AddSelectedPraiseBookEntryToWorshipListAsync().ConfigureAwait(true);
 
-    private void PraiseBookItems_KeyDown(object sender, KeyEventArgs e)
+    private async void PraiseBookItems_KeyDown(object sender, KeyEventArgs e)
     {
         if (!IsPlainEnterKey(e))
         {
@@ -1731,15 +1731,15 @@ public partial class MainWindow : Window
         }
 
         e.Handled = true;
-        AddSelectedPraiseBookEntryToWorshipList();
+        await AddSelectedPraiseBookEntryToWorshipListAsync().ConfigureAwait(true);
     }
 
-    private void AddSelectedPraiseBookEntryToWorshipList()
+    private async Task AddSelectedPraiseBookEntryToWorshipListAsync()
     {
         if (PraiseBookItems.SelectedItem is PraiseBookIndexEntry entry
             && DataContext is MainViewModel viewModel)
         {
-            viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
+            await viewModel.AddPraiseBookSongAsync(entry).ConfigureAwait(true);
         }
     }
 
@@ -1774,7 +1774,7 @@ public partial class MainWindow : Window
             DragDropEffects.Copy);
     }
 
-    private void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private async void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount != 2
             || sender is not FrameworkElement { DataContext: PraiseBookIndexEntry entry }
@@ -1783,7 +1783,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId);
+        await viewModel.AddPraiseBookSongAsync(entry).ConfigureAwait(true);
     }
 
     private void CMenuPraiseB_Opened(object sender, RoutedEventArgs e)

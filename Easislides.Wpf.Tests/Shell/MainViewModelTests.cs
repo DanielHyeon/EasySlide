@@ -1000,6 +1000,69 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task AddPraiseBookSongAsync_WithSongIdLoadsDbDetail_WhenLibrarySongsMissing()
+    {
+        // 레거시 .esp 찬양책은 SongId 를 들고 들어온다. 현재 Folders 탭의 곡 목록에 없어도 Admin DB 에서 가사·순서·서식을 채워야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var workingFolder = Path.Combine(folder.Root, "Work");
+        var databasePath = Path.Combine(workingFolder, "Admin", "Database", "EasiSlidesDb.db");
+        Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+        await File.WriteAllTextAsync(databasePath, "");
+        settings.Set(EasiSettingKeys.WorkingFolder, workingFolder).Succeeded.Should().BeTrue();
+        var repo = new StubSongDetailRepository(SampleSongDetail(
+            77,
+            "DB 찬양",
+            "[1]\n1절\n[C]\n후렴",
+            sequence: "1 C",
+            formatData: "29=-65536>"));
+        var sut = CreateSut(settings: settings, songDetail: repo, seedSampleQueue: false);
+
+        var added = await sut.AddPraiseBookSongAsync(new PraiseBookIndexEntry("Legacy title", 0, SongId: 77));
+
+        added.Should().NotBeNull();
+        added!.Id.Should().Be("song:77");
+        added.Title.Should().Be("DB 찬양");
+        added.Lyrics.Should().Be("[1]\n1절\n[C]\n후렴");
+        added.Sequence.Should().Be("1 C");
+        added.FormatData.Should().Be("29=-65536>");
+        repo.LastDatabasePath.Should().Be(databasePath);
+        repo.LastSongId.Should().Be(77);
+    }
+
+    [Fact]
+    public async Task AddPraiseBookSongRelativeToAsync_WithSongIdLoadsDbDetail_AndInsertsBeforeTarget()
+    {
+        // PraiseBook drag/drop 도 더블클릭과 같은 SongId 해석을 쓰되, 떨어뜨린 위치 앞 삽입 규칙을 유지해야 한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var workingFolder = Path.Combine(folder.Root, "Work");
+        var databasePath = Path.Combine(workingFolder, "Admin", "Database", "EasiSlidesDb.db");
+        Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+        await File.WriteAllTextAsync(databasePath, "");
+        settings.Set(EasiSettingKeys.WorkingFolder, workingFolder).Succeeded.Should().BeTrue();
+        var repo = new StubSongDetailRepository(SampleSongDetail(
+            88,
+            "드롭 찬양",
+            "[1]\n드롭 가사",
+            sequence: "1",
+            formatData: "26=-16776961>"));
+        var sut = CreateSut(settings: settings, songDetail: repo, seedSampleQueue: false);
+        var first = sut.AddTextItem("첫 항목")!;
+        var target = sut.AddTextItem("대상 항목")!;
+
+        var added = await sut.AddPraiseBookSongRelativeToAsync(new PraiseBookIndexEntry("저장 제목", 0, SongId: 88), target);
+
+        added.Should().NotBeNull();
+        sut.Queue.Should().Equal(first, added!, target);
+        added!.Id.Should().Be("song:88");
+        added.Lyrics.Should().Be("[1]\n드롭 가사");
+        added.Sequence.Should().Be("1");
+        added.FormatData.Should().Be("26=-16776961>");
+        sut.SelectedItem.Should().BeSameAs(added);
+    }
+
+    [Fact]
     public void ImportEswWorshipList_MapsEachTypeCodeToKind_AndReplacesQueue()
     {
         // 레거시 .esw 가져오기: 종류 코드(D/P/M/B/T)를 각 WPF 항목 종류로 매핑하고 큐를 통째로 교체한다.

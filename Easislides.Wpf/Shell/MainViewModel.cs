@@ -1323,6 +1323,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return song is null ? null : AddSong(song);
     }
 
+    public async Task<LiveQueueItem?> AddPraiseBookSongAsync(PraiseBookIndexEntry? entry)
+    {
+        var resolved = await ResolvePraiseBookSongAsync(entry).ConfigureAwait(true);
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        return AddSong(resolved.Song, resolved.Sequence, resolved.FormatData);
+    }
+
     /// <summary>
     /// 하단 PraiseBook 항목을 예배 순서의 드롭 위치 앞에 끼운다(FrmMain PraiseBookItems → WorshipList drag/drop 대응).
     /// 곡 해석은 더블클릭 경로와 동일하게 SongId/제목+번호/제목 폴백을 쓰고, 삽입 위치만 타깃 항목 기준으로 보존한다.
@@ -1338,6 +1349,55 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var song = ResolvePraiseBookSong(entry.Title, entry.Number, entry.SongId);
         return song is null ? null : AddSongRelativeTo(song, targetItem);
+    }
+
+    public async Task<LiveQueueItem?> AddPraiseBookSongRelativeToAsync(PraiseBookIndexEntry? entry, LiveQueueItem? targetItem)
+    {
+        var resolved = await ResolvePraiseBookSongAsync(entry).ConfigureAwait(true);
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        return AddSongRelativeTo(resolved.Song, targetItem, resolved.Sequence, resolved.FormatData);
+    }
+
+    private async Task<ResolvedPraiseBookSong?> ResolvePraiseBookSongAsync(PraiseBookIndexEntry? entry)
+    {
+        if (entry is null || string.IsNullOrWhiteSpace(entry.Title))
+        {
+            StatusText = "선택된 곡이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        if (entry.SongId != 0)
+        {
+            var databasePath = ResolveSongDetailDatabasePath();
+            if (!string.IsNullOrWhiteSpace(databasePath))
+            {
+                var detail = await _songDetail.GetSongDetailAsync(databasePath, entry.SongId).ConfigureAwait(true);
+                if (detail is not null)
+                {
+                    return new ResolvedPraiseBookSong(
+                        new Data.SongSummary(
+                            detail.SongId,
+                            detail.Title,
+                            detail.AlternateTitle,
+                            detail.FolderNo,
+                            detail.SongNumber,
+                            detail.Category,
+                            detail.Key,
+                            detail.Lyrics,
+                            detail.Copyright),
+                        string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
+                        string.IsNullOrWhiteSpace(detail.FormatData) ? null : detail.FormatData);
+                }
+            }
+        }
+
+        var song = ResolvePraiseBookSong(entry.Title, entry.Number, entry.SongId);
+        return song is null ? null : new ResolvedPraiseBookSong(song, null, null);
     }
 
     private Data.SongSummary? ResolvePraiseBookSong(string? title, int songNumber, int songId)
@@ -1370,6 +1430,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         return song;
     }
+
+    private sealed record ResolvedPraiseBookSong(Data.SongSummary Song, string? Sequence, string? FormatData);
 
     /// <summary>
     /// 좌측 "검색" 탭에서 고른 교차 검색 결과를 예배 순서(큐)에 추가한다(§7.4 단일 콘솔 통합 — 검색 창 인라인 흡수).

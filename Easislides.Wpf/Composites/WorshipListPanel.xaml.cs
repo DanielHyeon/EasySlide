@@ -174,7 +174,7 @@ public partial class WorshipListPanel : UserControl
     // 드롭: 떨어뜨린 위치의 "타깃 항목"을 그대로 VM에 넘긴다(인덱스 계산은 참조-안전한 VM이 전담).
     // 빈 공간(마지막 항목 아래)에 드롭하면 타깃이 null → VM 이 맨 끝으로.
     //  - 큐 항목이면 그 위치로 재정렬, 성경 본문 선택이면 그 위치 앞에 추가(레거시 BibleText DragDrop).
-    private void QueueList_Drop(object sender, DragEventArgs e)
+    private async void QueueList_Drop(object sender, DragEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
         {
@@ -204,7 +204,7 @@ public partial class WorshipListPanel : UserControl
         else if (e.Data.GetData(typeof(PraiseBookIndexEntry)) is PraiseBookIndexEntry praiseBookEntry)
         {
             // 하단 PraiseBook 항목을 예배 순서에 드롭 — 더블클릭 추가와 같은 곡 해석을 쓰되 드롭 위치를 보존한다.
-            viewModel.AddPraiseBookSongRelativeTo(praiseBookEntry, targetItem);
+            await viewModel.AddPraiseBookSongRelativeToAsync(praiseBookEntry, targetItem).ConfigureAwait(true);
         }
         else if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
         {

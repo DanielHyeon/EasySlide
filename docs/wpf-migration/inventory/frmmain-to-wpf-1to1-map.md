@@ -72,7 +72,7 @@
 | `CMenuWorship_*` | WPF context menu | partial | 3/4 | select all, clear, edit, play, play on output, usage |
 | `tabPraiseBook` | `Praise Book` tab | partial | 2/3 | saved book load plus FrmMain-style item surface now visible; DI store now reads legacy `WorkingFolder\Admin\PraiseBooks\*.esp`; exact template management still incomplete |
 | `PraiseBook` | `InlinePraiseBookSavedBooksCombo` (`Tag=PraiseBook`) | partial | 2 | saved PraiseBook names load from WPF JSON plus legacy `C:\EasiSlides\Admin\PraiseBooks\*.esp` via `IPraiseBookStore` |
-| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click/Enter add-to-Worship plus drag insert into Worship List now use the same song-resolution path; exact preview-on-selection still incomplete |
+| `PraiseBookItems` | `PraiseBookItems` (`Tag=PraiseBookItems`) | partial | 3 | flat headerless ListView opens legacy `.esp` items with `SongId` from `ItemID`; double-click/Enter add-to-Worship plus drag insert into Worship List now use DB-backed `SongId` resolution; exact preview-on-selection still incomplete |
 | `PB_Manage`, `PB_Add`, `PB_Delete` | `PB_Manage`, `PB_Add`, `PB_Delete` | partial | 3 | manage window, add selected Folders song, delete selected rows are wired |
 | `PB_Word`, `PB_Html`, `PB_WordCount` | `PB_Word`, `PB_Html`, `PB_WordCount` | partial | 5/7 | HTML/RTF export wired and toolbar column coverage now preserves `PB_Html`; WordCount button exposed but exact CJK word-count sorting still disabled |
 | `CMenuPraiseB_*` | `CMenuPraiseB`, `CMenuPraiseB_SelectAll`, `CMenuPraiseB_UnselectAll`, `CMenuPraiseB_Clear`, `CMenuPraiseB_Edit` | partial | 3 | menu names/order/actions are wired; edit opens library context rather than direct editor |
@@ -120,11 +120,11 @@
 | --- | --- | --- | --- |
 | Song double-click add | `SongsList` | partial | 3 |
 | Media double-click add | `MediaList_MouseDoubleClick` | partial | 3 |
-| Bible selected passage drag | `BibleText_MouseDown` with `DragDropSource.BiblePassage` | partial | 3 |
-| Worship List reorder drag | `DragDropSource.WorshipList` | partial | 3 |
-| Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage`, `PraiseBookItems` | partial | 3 |
+| Bible selected passage drag | `BibleText_MouseDown` with `DragDropSource.BiblePassage` | implemented | 3 | typed `BibleSelection` drag inserts at Worship List drop target |
+| Worship List reorder drag | `DragDropSource.WorshipList` | implemented | 3 | `LiveQueueItem` drag/drop reorders by reference, preserving duplicate queue items |
+| Source-to-Worship drag | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `BiblePassage`, `PraiseBookItems` | implemented | 3 | typed/file-drop payloads insert before the drop target; PraiseBook now resolves legacy `SongId` through the Admin DB when needed |
 | Image-to-background drag | `flowLayoutImages` thumbnail drag to preview/background surface | partial | 5 | Inline image thumbnails now drag the exact pressed image as `FileDrop`; Preview area accepts image drops and applies Output background |
-| Source/PraiseBook Enter add | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `SearchResults`, `LookupCandidates`, `BibleText`, `PraiseBookItems` | partial | 3/6 | source lists reuse `AddSelectedSourceToWorshipListAsync`; PraiseBook Enter reuses the same add path as double-click |
+| Source/PraiseBook Enter add | `SongsList`, `InfoScreenList`, `PowerpointList`, `MediaList`, `SearchResults`, `LookupCandidates`, `BibleText`, `PraiseBookItems` | implemented | 3/6 | source lists reuse `AddSelectedSourceToWorshipListAsync`; PraiseBook Enter reuses DB-backed add path as double-click; broader focus/shortcut parity remains Phase 6 |
 | Worship List context menu | `CMenuWorship_*` | partial | 3/4 |
 | Bible context menu | `CMenuBible`, `CMenuBible_SelectAll`, `CMenuBible_UnselectAll`, `CMenuBible_AddShow`, `CMenuBible_AddRegion2`, `CMenuBible_Copy`, `CMenuBible_CopyInfoScreen` | partial | 3 | names/order/actions and opening enable rules are wired; exact legacy keyboard accelerators and rich-text menu state still incomplete |
 | Images primary click/context menu | `ApplySelectedImageCommand`, `CMenuImages`, `CMenuImages_AddItem`, `CMenuImages_AddDefault`, `CMenuImages_Refresh` | partial | 5 | primary apply matches `ApplyBackground(..., 2)` item-first/default-fallback behavior; context menu still exposes explicit Add to Item/Add to Default/Refresh |

@@ -196,7 +196,7 @@ public class WorshipListPanelTests
         var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
 
         code.Should().Contain("typeof(PraiseBookIndexEntry)", "PraiseBookItems drags use a typed payload");
-        code.Should().Contain("AddPraiseBookSongRelativeTo(praiseBookEntry, targetItem)",
+        code.Should().Contain("AddPraiseBookSongRelativeToAsync(praiseBookEntry, targetItem)",
             "PraiseBook drops should reuse song resolution while preserving the Worship List drop position");
     }
 

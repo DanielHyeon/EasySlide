@@ -320,7 +320,7 @@ public class MainMenuBarTests
             "Enter should reuse the same active-source router as WL_Add");
         code.Should().Contain("private async void BiblePassageBox_PreviewKeyDown",
             "Bible passage Enter should be handled before the read-only TextBox consumes it");
-        code.Should().Contain("private void PraiseBookItems_KeyDown",
+        code.Should().Contain("private async void PraiseBookItems_KeyDown",
             "PraiseBook Enter should be explicitly mapped");
         code.Should().Contain("AddSelectedPraiseBookEntryToWorshipList",
             "PraiseBook Enter and double-click should share the same add path");
