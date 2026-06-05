@@ -451,8 +451,15 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"InfoScreenSourceTab\"", "inline InfoScr tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlineInfoScreenList\"", "saved InfoScreens must be visible without opening the editor modal");
         xaml.Should().Contain("ItemsSource=\"{Binding Screens}\"", "inline InfoScr list reuses InfoScreenSourceViewModel");
+        xaml.Should().Contain("SelectionMode=\"Extended\"", "InfoScreenList should preserve FrmMain multi-select behavior");
         xaml.Should().Contain("MouseDoubleClick=\"InlineInfoScreenList_MouseDoubleClick\"", "double-click should add selected InfoScreen");
+        xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlineInfoScreenList_PreviewMouseRightButtonDown\"",
+            "right-clicking an InfoScreen row should select it before opening CMenuFiles");
         xaml.Should().Contain("PreviewMouseMove=\"InlineInfoScreenList_PreviewMouseMove\"", "InfoScreen rows should drag into the Worship List");
+        xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles\"", "InfoScreenList should expose the FrmMain shared file context menu role");
+        xaml.Should().Contain("Tag=\"CMenuFiles_SelectAll\"", "InfoScreen CMenuFiles should expose Select All with the legacy role");
+        xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_AddShow\"", "InfoScreen CMenuFiles should expose Add && Show");
+        xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_Refresh\"", "InfoScreen CMenuFiles should expose Refresh");
 
         xaml.Should().Contain("Tag=\"PowerPointSource\"", "FrmMain keeps PowerPoint as a main-console source tab");
         xaml.Should().Contain("x:Name=\"PowerPointSourceTab\"", "inline PowerPoint tab needs a stable DataContext target");
@@ -462,8 +469,13 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"InlinePowerPointList\"", "PowerPoint files must be visible without opening a modal window");
         xaml.Should().Contain("Tag=\"PowerpointList\"", "PowerpointList should keep the FrmMain list role");
         xaml.Should().Contain("ItemsSource=\"{Binding Presentations}\"", "inline PowerPoint list reuses PowerPointLibraryViewModel");
+        xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlinePowerPointList_PreviewMouseRightButtonDown\"",
+            "right-clicking a PowerPoint row should select it before opening CMenuFiles");
         xaml.Should().Contain("MouseDoubleClick=\"InlinePowerPointList_MouseDoubleClick\"", "double-click should add selected PowerPoint");
         xaml.Should().Contain("PreviewMouseMove=\"InlinePowerPointList_PreviewMouseMove\"", "PowerPoint rows should drag into the Worship List");
+        xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles\"", "PowerpointList should expose the FrmMain shared file context menu role");
+        xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_AddShow\"", "PowerPoint CMenuFiles should expose Add && Show");
+        xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_Refresh\"", "PowerPoint CMenuFiles should expose Refresh");
         xaml.Should().Contain("x:Name=\"PP_ListType\"", "PowerPoint source needs the FrmMain PP_ListType dropdown role");
         xaml.Should().Contain("x:Name=\"PP_ListStyle\"", "PP_ListType should expose FrmMain list style");
         xaml.Should().Contain("x:Name=\"PP_PreviewStyle\"", "PP_ListType should expose FrmMain preview style");
@@ -471,6 +483,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("UsePreviewStyleCommand", "PP_PreviewStyle should switch to thumbnail preview mode");
         xaml.Should().Contain("x:Name=\"flowLayoutExternalPowerPoint\"", "preview mode should expose the FrmMain thumbnail-flow role");
         xaml.Should().Contain("Tag=\"flowLayoutExternalPowerPoint\"", "thumbnail flow role should remain explicit");
+        xaml.Should().Contain("x:Name=\"CMenuPowerPointPreviewFiles\"", "PowerPoint preview flow should expose the same CMenuFiles actions");
         xaml.Should().Contain("<WrapPanel Orientation=\"Horizontal\" />", "preview mode should use a flowing thumbnail layout");
         xaml.Should().Contain("Source=\"{Binding ThumbnailImage}\"", "PowerPoint preview style should render real first-slide thumbnails when available");
         xaml.Should().Contain("ToolTip=\"{Binding ThumbnailStatus}\"", "PowerPoint thumbnail cards should expose render status without replacing the file name");
@@ -524,10 +537,19 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlineInfoScreenLoadedOnce(viewModel)", "InfoScr source tab should lazy-load on first selection");
         code.Should().Contain("InfoScreenSourceTab.DataContext = _inlineInfoScreens", "inline InfoScr tab should bind to its source VM");
         code.Should().Contain("typeof(InfoScreenSelection)", "InfoScr drags should use a typed payload, not arbitrary text");
+        code.Should().Contain("typeof(InfoScreenSelection[])", "InfoScr multi-select drags should carry a typed selection array");
+        code.Should().Contain("AddInlineInfoScreenSelectionToWorshipListAsync", "InfoScreen Enter/WL_Add/context menu should route through the multi-select add path");
+        code.Should().Contain("InlineInfoScreenList.SelectedItems.OfType<InfoScreenSourceItem>()", "InfoScreen multi-select should use the actual selected WPF rows");
+        code.Should().Contain("InlineInfoScreenList.SelectAll()", "InfoScreen CMenuFiles_SelectAll should select visible rows");
+        code.Should().Contain("InlineInfoScreenList.UnselectAll()", "InfoScreen CMenuFiles_UnselectAll should clear visible rows");
         code.Should().Contain("EnsureInlinePowerPointLoadedOnce(viewModel)", "PowerPoint source tab should lazy-load on first selection");
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");
         code.Should().Contain("_services.GetService<IPowerPointRenderService>()", "inline PowerPoint preview mode should reuse the shared cached renderer");
+        code.Should().Contain("AddInlinePowerPointSelectionToWorshipList", "PowerPoint Enter/WL_Add/context menu should route through the multi-select add path");
+        code.Should().Contain("SelectedItems.OfType<PowerPointFileItem>()", "PowerPoint multi-select should use the actual selected WPF rows");
+        code.Should().Contain("GetActivePowerPointList().SelectAll()", "PowerPoint CMenuFiles_SelectAll should target the visible list/preview surface");
+        code.Should().Contain("flowLayoutExternalPowerPoint.UnselectAll()", "PowerPoint CMenuFiles_UnselectAll should clear preview-flow selection too");
         code.Should().Contain("MediaSourceTab.DataContext = _inlineMedia", "inline Media tab should bind to its library VM");
         code.Should().Contain("AddInlineMediaSelectionToWorshipList", "Media Enter/WL_Add/context menu should route through the multi-select add path");
         code.Should().Contain("InlineMediaList.SelectedItems.OfType<MediaFileItem>()", "Media multi-select should use the actual selected WPF rows");

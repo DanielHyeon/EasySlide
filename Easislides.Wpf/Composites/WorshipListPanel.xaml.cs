@@ -438,6 +438,7 @@ public partial class WorshipListPanel : UserControl
         else if (e.Data.GetDataPresent(typeof(BibleSelection))
             || e.Data.GetDataPresent(typeof(Easislides.Wpf.Data.SongSummary))
             || e.Data.GetDataPresent(typeof(InfoScreenSelection))
+            || e.Data.GetDataPresent(typeof(InfoScreenSelection[]))
             || e.Data.GetDataPresent(typeof(PraiseBookIndexEntry))
             || e.Data.GetDataPresent(DataFormats.FileDrop))
         {
@@ -481,6 +482,24 @@ public partial class WorshipListPanel : UserControl
         {
             // InfoScr 소스 탭에서 끌어다 놓은 저장 공지 — 드롭 위치 앞에 추가(레거시 InfoScreenList DragDrop).
             viewModel.AddTextItemRelativeTo(infoScreen.Text, infoScreen.Options, targetItem);
+        }
+        else if (e.Data.GetData(typeof(InfoScreenSelection[])) is InfoScreenSelection[] infoScreens)
+        {
+            // InfoScr 다중 선택 드래그 — FrmMain ListView.SelectedItems 처럼 선택된 저장 공지를 순서대로 같은 타깃 앞에 묶음 삽입.
+            LiveQueueItem? firstAdded = null;
+            foreach (var selectedInfoScreen in infoScreens)
+            {
+                var added = viewModel.AddTextItemRelativeTo(
+                    selectedInfoScreen.Text,
+                    selectedInfoScreen.Options,
+                    targetItem);
+                firstAdded ??= added;
+            }
+
+            if (firstAdded is not null)
+            {
+                viewModel.SelectedItem = firstAdded;
+            }
         }
         else if (e.Data.GetData(typeof(PraiseBookIndexEntry)) is PraiseBookIndexEntry praiseBookEntry)
         {

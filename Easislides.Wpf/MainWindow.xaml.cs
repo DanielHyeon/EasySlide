@@ -1061,11 +1061,7 @@ public partial class MainWindow : Window
 
             case "InfoScreenSource":
                 EnsureInlineInfoScreenLoadedOnce(viewModel);
-                if (_inlineInfoScreens?.AddSelectedCommand.CanExecute(null) == true)
-                {
-                    await _inlineInfoScreens.AddSelectedCommand.ExecuteAsync(null).ConfigureAwait(true);
-                }
-                else
+                if ((await AddInlineInfoScreenSelectionToWorshipListAsync().ConfigureAwait(true)).Count == 0)
                 {
                     viewModel.StatusText = "선택된 InfoScreen 항목이 없습니다.";
                 }
@@ -1074,11 +1070,7 @@ public partial class MainWindow : Window
 
             case "PowerPointSource":
                 EnsureInlinePowerPointLoadedOnce(viewModel);
-                if (_inlinePowerPoint?.AddSelectedCommand.CanExecute(null) == true)
-                {
-                    _inlinePowerPoint.AddSelectedCommand.Execute(null);
-                }
-                else
+                if (AddInlinePowerPointSelectionToWorshipList().Count == 0)
                 {
                     viewModel.StatusText = "선택된 PowerPoint 파일이 없습니다.";
                 }
@@ -1266,19 +1258,30 @@ public partial class MainWindow : Window
         DragDrop.DoDragDrop(LibrarySongList, new DataObject(typeof(Easislides.Wpf.Data.SongSummary), song), DragDropEffects.Copy);
     }
 
-    private void InlineInfoScreenList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-        if (_inlineInfoScreens?.AddSelectedCommand.CanExecute(null) == true)
-        {
-            _inlineInfoScreens.AddSelectedCommand.Execute(null);
-        }
-    }
+    private async void InlineInfoScreenList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        => await AddInlineInfoScreenSelectionToWorshipListAsync().ConfigureAwait(true);
 
     private void InlineInfoScreenList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _infoScreenDragStart = e.GetPosition(null);
         _infoScreenDragArmed = e.OriginalSource is DependencyObject source
             && ItemsControl.ContainerFromElement(InlineInfoScreenList, source) is ListBoxItem;
+    }
+
+    private void InlineInfoScreenList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(InlineInfoScreenList, source) is ListBoxItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+            if (item.DataContext is InfoScreenSourceItem screen && _inlineInfoScreens is not null)
+            {
+                _inlineInfoScreens.SelectedScreen = screen;
+            }
+        }
+
+        InlineInfoScreenList.Focus();
     }
 
     private async void InlineInfoScreenList_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -1301,25 +1304,131 @@ public partial class MainWindow : Window
         }
 
         _infoScreenDragArmed = false;
-        var selection = await _inlineInfoScreens.LoadSelectionAsync();
-        if (selection is null)
+        var selections = await LoadInlineInfoScreenSelectionsAsync().ConfigureAwait(true);
+        if (selections.Count == 0)
         {
             return;
         }
 
+        var data = selections.Count == 1
+            ? new DataObject(typeof(InfoScreenSelection), selections[0])
+            : new DataObject(typeof(InfoScreenSelection[]), selections.ToArray());
         DragDrop.DoDragDrop(
             InlineInfoScreenList,
-            new DataObject(typeof(InfoScreenSelection), selection),
+            data,
             DragDropEffects.Copy);
     }
 
-    private void InlinePowerPointList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    private IReadOnlyList<InfoScreenSourceItem> GetInlineInfoScreenSelection()
     {
-        if (_inlinePowerPoint?.AddSelectedCommand.CanExecute(null) == true)
+        var selection = InlineInfoScreenList.SelectedItems.OfType<InfoScreenSourceItem>().ToList();
+        if (selection.Count == 0 && _inlineInfoScreens?.SelectedScreen is { } selectedScreen)
         {
-            _inlinePowerPoint.AddSelectedCommand.Execute(null);
+            selection.Add(selectedScreen);
+        }
+
+        return selection;
+    }
+
+    private async Task<IReadOnlyList<InfoScreenSelection>> LoadInlineInfoScreenSelectionsAsync()
+    {
+        if (_inlineInfoScreens is null)
+        {
+            return Array.Empty<InfoScreenSelection>();
+        }
+
+        var loaded = new List<InfoScreenSelection>();
+        foreach (var screen in GetInlineInfoScreenSelection())
+        {
+            var selection = await _inlineInfoScreens.LoadSelectionAsync(screen).ConfigureAwait(true);
+            if (selection is not null)
+            {
+                loaded.Add(selection);
+            }
+        }
+
+        return loaded;
+    }
+
+    private async Task<IReadOnlyList<LiveQueueItem>> AddInlineInfoScreenSelectionToWorshipListAsync()
+    {
+        var selections = await LoadInlineInfoScreenSelectionsAsync().ConfigureAwait(true);
+        if (selections.Count == 0)
+        {
+            _viewModel.StatusText = "선택된 InfoScreen 항목이 없습니다.";
+            return Array.Empty<LiveQueueItem>();
+        }
+
+        var added = new List<LiveQueueItem>();
+        foreach (var selection in selections)
+        {
+            if (_viewModel.AddTextItem(selection.Text, selection.Options) is { } item)
+            {
+                added.Add(item);
+            }
+        }
+
+        if (added.Count == 0)
+        {
+            return added;
+        }
+
+        _viewModel.SelectedItem = added[0];
+        if (_inlineInfoScreens is not null)
+        {
+            _inlineInfoScreens.StatusText = added.Count == 1
+                ? $"Added to Worship List: {selections[0].Name}"
+                : $"Added to Worship List: {added.Count} InfoScreens";
+        }
+
+        _viewModel.StatusText = added.Count == 1
+            ? $"InfoScreen 추가됨: {added[0].Title}"
+            : $"{added.Count}개 InfoScreen 추가됨";
+        return added;
+    }
+
+    private void CMenuInfoScreenFiles_SelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        InlineInfoScreenList.SelectAll();
+        InlineInfoScreenList.Focus();
+    }
+
+    private void CMenuInfoScreenFiles_UnselectAll_Click(object sender, RoutedEventArgs e)
+    {
+        InlineInfoScreenList.UnselectAll();
+        if (_inlineInfoScreens is not null)
+        {
+            _inlineInfoScreens.SelectedScreen = null;
+        }
+
+        InlineInfoScreenList.Focus();
+    }
+
+    private async void CMenuInfoScreenFiles_AddShow_Click(object sender, RoutedEventArgs e)
+    {
+        var added = await AddInlineInfoScreenSelectionToWorshipListAsync().ConfigureAwait(true);
+        if (added.Count > 0 && _viewModel.PreviewToLiveCommand.CanExecute(null))
+        {
+            await _viewModel.PreviewToLiveCommand.ExecuteAsync(null).ConfigureAwait(true);
         }
     }
+
+    private void CMenuInfoScreenFiles_Edit_Click(object sender, RoutedEventArgs e) => InlineInfoScreenList.Focus();
+
+    private void CMenuInfoScreenFiles_Copy_Click(object sender, RoutedEventArgs e) => InlineInfoScreenList.Focus();
+
+    private void CMenuInfoScreenFiles_Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlineInfoScreens?.LoadCommand.CanExecute(null) == true)
+        {
+            _inlineInfoScreens.LoadCommand.Execute(null);
+        }
+
+        InlineInfoScreenList.Focus();
+    }
+
+    private void InlinePowerPointList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        => AddInlinePowerPointSelectionToWorshipList(sender as ListBox);
 
     private void InlineMediaList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -1332,6 +1441,27 @@ public partial class MainWindow : Window
         _powerPointDragArmed = sender is ListBox powerPointList
             && e.OriginalSource is DependencyObject source
             && ItemsControl.ContainerFromElement(powerPointList, source) is ListBoxItem;
+    }
+
+    private void InlinePowerPointList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not ListBox powerPointList)
+        {
+            return;
+        }
+
+        if (e.OriginalSource is DependencyObject source
+            && ItemsControl.ContainerFromElement(powerPointList, source) is ListBoxItem item)
+        {
+            item.IsSelected = true;
+            item.Focus();
+            if (item.DataContext is PowerPointFileItem file && _inlinePowerPoint is not null)
+            {
+                _inlinePowerPoint.SelectedFile = file;
+            }
+        }
+
+        powerPointList.Focus();
     }
 
     private void InlinePowerPointList_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -1353,7 +1483,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_inlinePowerPoint?.SelectedFile is not { } file)
+        var selection = GetInlinePowerPointSelection(powerPointList);
+        if (selection.Count == 0)
         {
             _powerPointDragArmed = false;
             return;
@@ -1362,8 +1493,101 @@ public partial class MainWindow : Window
         _powerPointDragArmed = false;
         DragDrop.DoDragDrop(
             powerPointList,
-            new DataObject(DataFormats.FileDrop, new[] { file.FilePath }),
+            new DataObject(DataFormats.FileDrop, selection.Select(file => file.FilePath).ToArray()),
             DragDropEffects.Copy);
+    }
+
+    private ListBox GetActivePowerPointList()
+        => _inlinePowerPoint?.IsPreviewStyle == true ? flowLayoutExternalPowerPoint : InlinePowerPointList;
+
+    private IReadOnlyList<PowerPointFileItem> GetInlinePowerPointSelection(ListBox? powerPointList = null)
+    {
+        var activeList = powerPointList ?? GetActivePowerPointList();
+        var selection = activeList.SelectedItems.OfType<PowerPointFileItem>().ToList();
+        if (selection.Count == 0 && _inlinePowerPoint?.SelectedFile is { } selectedFile)
+        {
+            selection.Add(selectedFile);
+        }
+
+        return selection;
+    }
+
+    private IReadOnlyList<LiveQueueItem> AddInlinePowerPointSelectionToWorshipList(ListBox? powerPointList = null)
+    {
+        var selection = GetInlinePowerPointSelection(powerPointList);
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "선택된 PowerPoint 파일이 없습니다.";
+            return Array.Empty<LiveQueueItem>();
+        }
+
+        var added = new List<LiveQueueItem>();
+        foreach (var file in selection)
+        {
+            if (_viewModel.AddPowerPoint(file.FilePath) is { } item)
+            {
+                added.Add(item);
+            }
+        }
+
+        if (added.Count == 0)
+        {
+            return added;
+        }
+
+        _viewModel.SelectedItem = added[0];
+        if (_inlinePowerPoint is not null)
+        {
+            _inlinePowerPoint.StatusText = added.Count == 1
+                ? $"예배 순서에 추가: {selection[0].FileName}"
+                : $"예배 순서에 추가: {added.Count}개 PowerPoint";
+        }
+
+        _viewModel.StatusText = added.Count == 1
+            ? $"PowerPoint 파일 추가됨: {added[0].Title}"
+            : $"{added.Count}개 PowerPoint 파일 추가됨";
+        return added;
+    }
+
+    private void CMenuPowerPointFiles_SelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        GetActivePowerPointList().SelectAll();
+        GetActivePowerPointList().Focus();
+    }
+
+    private void CMenuPowerPointFiles_UnselectAll_Click(object sender, RoutedEventArgs e)
+    {
+        InlinePowerPointList.UnselectAll();
+        flowLayoutExternalPowerPoint.UnselectAll();
+        if (_inlinePowerPoint is not null)
+        {
+            _inlinePowerPoint.SelectedFile = null;
+        }
+
+        GetActivePowerPointList().Focus();
+    }
+
+    private async void CMenuPowerPointFiles_AddShow_Click(object sender, RoutedEventArgs e)
+    {
+        var added = AddInlinePowerPointSelectionToWorshipList();
+        if (added.Count > 0 && _viewModel.PreviewToLiveCommand.CanExecute(null))
+        {
+            await _viewModel.PreviewToLiveCommand.ExecuteAsync(null).ConfigureAwait(true);
+        }
+    }
+
+    private void CMenuPowerPointFiles_Edit_Click(object sender, RoutedEventArgs e) => GetActivePowerPointList().Focus();
+
+    private void CMenuPowerPointFiles_Copy_Click(object sender, RoutedEventArgs e) => GetActivePowerPointList().Focus();
+
+    private void CMenuPowerPointFiles_Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlinePowerPoint?.LoadCommand.CanExecute(null) == true)
+        {
+            _inlinePowerPoint.LoadCommand.Execute(null);
+        }
+
+        GetActivePowerPointList().Focus();
     }
 
     private void InlineMediaList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

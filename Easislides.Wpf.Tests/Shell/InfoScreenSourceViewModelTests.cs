@@ -79,6 +79,22 @@ public sealed class InfoScreenSourceViewModelTests : IDisposable
         sut.StatusText.Should().Contain("empty");
     }
 
+    [Fact]
+    public async Task LoadSelectionAsync_WithExplicitItem_LoadsThatSavedInfoScreen()
+    {
+        var store = new InfoScreenStore(_dir);
+        await store.SaveAsync("첫 공지", new InfoScreenDto("첫 내용"));
+        await store.SaveAsync("둘째 공지", new InfoScreenDto("둘째 내용"));
+        var sut = CreateSut(store, out _);
+        sut.Load();
+
+        var selection = await sut.LoadSelectionAsync(sut.Screens.Single(screen => screen.Name == "둘째 공지"));
+
+        selection.Should().NotBeNull();
+        selection!.Name.Should().Be("둘째 공지");
+        selection.Text.Should().Be("둘째 내용");
+    }
+
     private static InfoScreenSourceViewModel CreateSut(InfoScreenStore store, out List<InfoScreenSelection> added)
     {
         var addedLocal = new List<InfoScreenSelection>();

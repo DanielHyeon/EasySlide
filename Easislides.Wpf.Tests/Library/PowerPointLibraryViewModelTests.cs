@@ -148,6 +148,30 @@ public class PowerPointLibraryViewModelTests
     }
 
     [Fact]
+    public void AddFiles_WithSeveralSelections_InvokesCallbackForEachInOrder()
+    {
+        var sut = CreateSut(out var added, @"C:\decks\a.pptx", @"C:\decks\b.ppt", @"C:\decks\c.pptx");
+        sut.LoadCommand.Execute(null);
+
+        var count = sut.AddFiles(new[] { sut.Presentations[0], sut.Presentations[2] });
+
+        count.Should().Be(2);
+        added.Should().Equal(@"C:\decks\a.pptx", @"C:\decks\c.pptx");
+        sut.StatusText.Should().Contain("2개 PowerPoint");
+    }
+
+    [Fact]
+    public void AddFiles_WithEmptySelection_DoesNotInvokeCallback()
+    {
+        var sut = CreateSut(out var added, @"C:\decks\a.pptx");
+
+        var count = sut.AddFiles(Enumerable.Empty<PowerPointFileItem>());
+
+        count.Should().Be(0);
+        added.Should().BeEmpty();
+    }
+
+    [Fact]
     public void AddSelected_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var added, @"C:\decks\a.pptx");

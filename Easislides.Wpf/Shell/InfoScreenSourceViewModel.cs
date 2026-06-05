@@ -64,27 +64,32 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
     }
 
     public async Task<InfoScreenSelection?> LoadSelectionAsync(CancellationToken cancellationToken = default)
+        => await LoadSelectionAsync(SelectedScreen, cancellationToken).ConfigureAwait(true);
+
+    public async Task<InfoScreenSelection?> LoadSelectionAsync(
+        InfoScreenSourceItem? screen,
+        CancellationToken cancellationToken = default)
     {
-        if (SelectedScreen is null)
+        if (screen is null)
         {
             StatusText = "No InfoScreen selected.";
             return null;
         }
 
-        var dto = await _store.LoadAsync(SelectedScreen.Name, cancellationToken).ConfigureAwait(true);
+        var dto = await _store.LoadAsync(screen.Name, cancellationToken).ConfigureAwait(true);
         if (dto is null)
         {
-            StatusText = $"InfoScreen not found: {SelectedScreen.Name}";
+            StatusText = $"InfoScreen not found: {screen.Name}";
             return null;
         }
 
         if (string.IsNullOrWhiteSpace(dto.Text))
         {
-            StatusText = $"InfoScreen is empty: {SelectedScreen.Name}";
+            StatusText = $"InfoScreen is empty: {screen.Name}";
             return null;
         }
 
-        return new InfoScreenSelection(SelectedScreen.Name, dto.Text.Trim(), ToNoticeOptions(dto));
+        return new InfoScreenSelection(screen.Name, dto.Text.Trim(), ToNoticeOptions(dto));
     }
 
     internal static NoticeOptions ToNoticeOptions(InfoScreenDto dto)

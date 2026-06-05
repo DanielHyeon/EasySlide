@@ -1242,12 +1242,46 @@
                                  x:Name="InlineInfoScreenList"
                                  ItemsSource="{Binding Screens}"
                                  SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
+                                 SelectionMode="Extended"
                                  DisplayMemberPath="Name"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlineInfoScreenList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineInfoScreenList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseRightButtonDown="InlineInfoScreenList_PreviewMouseRightButtonDown"
                                  PreviewMouseMove="InlineInfoScreenList_PreviewMouseMove"
-                                 AutomationProperties.Name="InfoScreen source list" />
+                                 AutomationProperties.Name="InfoScreen source list">
+                            <ListBox.ContextMenu>
+                                <ContextMenu x:Name="CMenuInfoScreenFiles"
+                                             Tag="CMenuFiles">
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_SelectAll"
+                                              Tag="CMenuFiles_SelectAll"
+                                              Header="Select _All"
+                                              Click="CMenuInfoScreenFiles_SelectAll_Click" />
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_UnselectAll"
+                                              Tag="CMenuFiles_UnselectAll"
+                                              Header="_Unselect All"
+                                              Click="CMenuInfoScreenFiles_UnselectAll_Click" />
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_AddShow"
+                                              Tag="CMenuFiles_AddShow"
+                                              Header="Add &amp;&amp; _Show"
+                                              Click="CMenuInfoScreenFiles_AddShow_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_Edit"
+                                              Tag="CMenuFiles_Edit"
+                                              Header="Edit"
+                                              Click="CMenuInfoScreenFiles_Edit_Click" />
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_Copy"
+                                              Tag="CMenuFiles_Copy"
+                                              Header="Copy"
+                                              Click="CMenuInfoScreenFiles_Copy_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_Refresh"
+                                              Tag="CMenuFiles_Refresh"
+                                              Header="Refresh"
+                                              Click="CMenuInfoScreenFiles_Refresh_Click" />
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
+                        </ListBox>
 
                         <TextBlock Grid.Row="2"
                                    Text="{Binding StatusText}"
@@ -1352,12 +1386,45 @@
                                  Tag="PowerpointList"
                                  ItemsSource="{Binding Presentations}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                                 SelectionMode="Extended"
                                  DisplayMemberPath="FileName"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseRightButtonDown="InlinePowerPointList_PreviewMouseRightButtonDown"
                                  PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
                                  AutomationProperties.Name="PowerPoint source file list">
+                            <ListBox.ContextMenu>
+                                <ContextMenu x:Name="CMenuPowerPointFiles"
+                                             Tag="CMenuFiles">
+                                    <MenuItem x:Name="CMenuPowerPointFiles_SelectAll"
+                                              Tag="CMenuFiles_SelectAll"
+                                              Header="Select _All"
+                                              Click="CMenuPowerPointFiles_SelectAll_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointFiles_UnselectAll"
+                                              Tag="CMenuFiles_UnselectAll"
+                                              Header="_Unselect All"
+                                              Click="CMenuPowerPointFiles_UnselectAll_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointFiles_AddShow"
+                                              Tag="CMenuFiles_AddShow"
+                                              Header="Add &amp;&amp; _Show"
+                                              Click="CMenuPowerPointFiles_AddShow_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuPowerPointFiles_Edit"
+                                              Tag="CMenuFiles_Edit"
+                                              Header="Edit"
+                                              Click="CMenuPowerPointFiles_Edit_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointFiles_Copy"
+                                              Tag="CMenuFiles_Copy"
+                                              Header="Copy"
+                                              Click="CMenuPowerPointFiles_Copy_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuPowerPointFiles_Refresh"
+                                              Tag="CMenuFiles_Refresh"
+                                              Header="Refresh"
+                                              Click="CMenuPowerPointFiles_Refresh_Click" />
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
                             <ListBox.Style>
                                 <Style TargetType="{x:Type ListBox}">
                                     <Setter Property="Visibility" Value="Visible" />
@@ -1375,12 +1442,45 @@
                                  Tag="flowLayoutExternalPowerPoint"
                                  ItemsSource="{Binding Presentations}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                                 SelectionMode="Extended"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseRightButtonDown="InlinePowerPointList_PreviewMouseRightButtonDown"
                                  PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  AutomationProperties.Name="PowerPoint source preview list">
+                            <ListBox.ContextMenu>
+                                <ContextMenu x:Name="CMenuPowerPointPreviewFiles"
+                                             Tag="CMenuFiles">
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_SelectAll"
+                                              Tag="CMenuFiles_SelectAll"
+                                              Header="Select _All"
+                                              Click="CMenuPowerPointFiles_SelectAll_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_UnselectAll"
+                                              Tag="CMenuFiles_UnselectAll"
+                                              Header="_Unselect All"
+                                              Click="CMenuPowerPointFiles_UnselectAll_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_AddShow"
+                                              Tag="CMenuFiles_AddShow"
+                                              Header="Add &amp;&amp; _Show"
+                                              Click="CMenuPowerPointFiles_AddShow_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_Edit"
+                                              Tag="CMenuFiles_Edit"
+                                              Header="Edit"
+                                              Click="CMenuPowerPointFiles_Edit_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_Copy"
+                                              Tag="CMenuFiles_Copy"
+                                              Header="Copy"
+                                              Click="CMenuPowerPointFiles_Copy_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_Refresh"
+                                              Tag="CMenuFiles_Refresh"
+                                              Header="Refresh"
+                                              Click="CMenuPowerPointFiles_Refresh_Click" />
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
                             <ListBox.Style>
                                 <Style TargetType="{x:Type ListBox}">
                                     <Setter Property="Visibility" Value="Collapsed" />

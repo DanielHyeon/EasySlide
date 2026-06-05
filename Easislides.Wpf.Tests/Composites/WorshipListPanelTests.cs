@@ -268,8 +268,11 @@ public class WorshipListPanelTests
         var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
 
         code.Should().Contain("typeof(InfoScreenSelection)", "InfoScr source drags use a typed payload");
+        code.Should().Contain("typeof(InfoScreenSelection[])", "InfoScr multi-select drags use a typed payload array");
         code.Should().Contain("AddTextItemRelativeTo(infoScreen.Text, infoScreen.Options, targetItem)",
             "InfoScreen drops should preserve the Worship List drop position");
+        code.Should().Contain("foreach (var selectedInfoScreen in infoScreens)",
+            "InfoScreen multi-select drops should insert every selected saved notice");
     }
 
     [Fact]
