@@ -5701,6 +5701,37 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PlayOutputMediaCommand_UsesOutputItemWhenPreviewSelectionDiffers()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var previewMedia = Path.Combine(mediaRoot, "Preview Song.mp4");
+        var outputMedia = Path.Combine(mediaRoot, "Output Song.mp4");
+        File.WriteAllText(previewMedia, "preview media placeholder");
+        File.WriteAllText(outputMedia, "output media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var output = new OutputWindowService();
+        var sut = CreateSut(settings: settings, output: output, seedSampleQueue: false);
+        var previewItem = new LiveQueueItem("song:preview", "Preview Song", LiveItemKinds.Song) { Lyrics = "Preview lyrics" };
+        var outputItem = new LiveQueueItem("song:output", "Output Song", LiveItemKinds.Song) { Lyrics = "Output lyrics" };
+        sut.LoadQueue([previewItem, outputItem]);
+        sut.SelectedItem.Should().BeSameAs(previewItem, "Preview selection stays on the left/Preview item");
+        sut.OutputItem = outputItem;
+
+        sut.PlayOutputMediaCommand.CanExecute(null).Should().BeTrue();
+        sut.PlayOutputMediaCommand.Execute(null);
+
+        output.Current.IsOpen.Should().BeTrue("FrmMain OutputBtnMedia operates against the output monitor");
+        sut.SelectedItem.Should().BeSameAs(previewItem, "Output media control must not advance or replace Preview selection");
+        sut.Media.Source.Should().Be(outputMedia);
+        sut.Media.Source.Should().NotBe(previewMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("Output Song.mp4");
+    }
+
+    [Fact]
     public void BodyVerticalOffsetCommands_StepAndClamp()
     {
         // FrmMain Ind_Reg1TopUpDown — 본문 위로(-)/아래로(+) 8px 단계, -300~300 클램프.
@@ -7983,6 +8014,41 @@ public class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
         sut.StatusText.Should().Be("Output 준비: Prepared next");
+    }
+
+    [Fact]
+    public async Task JumpToNextNonRotateOutputItemCommand_SkipsRotatingLyricsAndMovesPreparedOutputOnly()
+    {
+        // FrmMain OutputBtnJumpToNonRotate: Preview 선택이 아니라 현재 Output 문맥에서 다음 회전 제외 항목을 찾는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPrepared verse",
+        };
+        var rotating = new LiveQueueItem("song:rotating", "Rotating song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nVerse one\n[2]\nVerse two",
+        };
+        var nonRotating = new LiveQueueItem("notice:target", "Target notice", LiveItemKinds.Notice)
+        {
+            Lyrics = "Target notice body",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([prepared, rotating, nonRotating, preview]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.JumpToNextNonRotateOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.JumpToNextNonRotateOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output jump must not change Preview selection");
+        sut.OutputItem.Should().BeSameAs(nonRotating, "multi-page lyrics are rotating in the current WPF model, so the notice is the next non-rotate item");
+        sut.Session.Current.State.Should().Be(LiveState.Off, "prepared Output jump does not start live output");
+        sut.StatusText.Should().Be("Output 회전 제외 항목 준비: Target notice");
     }
 
     [Fact]

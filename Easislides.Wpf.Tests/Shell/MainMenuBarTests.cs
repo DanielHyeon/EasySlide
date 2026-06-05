@@ -598,8 +598,14 @@ public class MainMenuBarTests
             "OutputBtnLMSend should send the live message");
         xaml.Should().Contain("Command=\"{Binding ClearLiveMessageCommand}\"",
             "OutputBtnLMClear should clear the live message");
-        xaml.Should().Contain("Command=\"{Binding Media.PlayPauseCommand}\"",
-            "OutputBtnMedia should use the existing media play/pause command");
+        xaml.Should().Contain("Command=\"{Binding JumpToNextNonRotateOutputItemCommand}\"",
+            "OutputBtnJumpToNonRotate should jump within the independent Output/live queue context");
+        xaml.Should().NotContain("x:Name=\"OutputBtnJumpToNonRotate\"\r\n                                Tag=\"OutputBtnJumpToNonRotate\"\r\n                                Style=\"{StaticResource EsButton.Secondary}\"\r\n                                MinWidth=\"30\"\r\n                                MinHeight=\"28\"\r\n                                Padding=\"6,0\"\r\n                                Margin=\"0,0,4,0\"\r\n                                Content=\"J\"\r\n                                IsEnabled=\"False\"",
+            "OutputBtnJumpToNonRotate must not remain a disabled placeholder");
+        xaml.Should().Contain("Command=\"{Binding PlayOutputMediaCommand}\"",
+            "OutputBtnMedia should use the current Output/live item rather than the selected Preview media");
+        xaml.Should().NotContain("x:Name=\"OutputBtnMedia\"\r\n                                Tag=\"OutputBtnMedia\"\r\n                                Command=\"{Binding Media.PlayPauseCommand}\"",
+            "OutputBtnMedia must not fall back to Preview-loaded media playback");
         xaml.Should().Contain("x:Name=\"OutputBtnRefAlert\"",
             "Output reference alert button should keep its FrmMain control name");
         xaml.Should().Contain("Command=\"{Binding ToggleOutputReferenceAlertCommand}\"",

@@ -108,8 +108,8 @@
 | `OutputBtnItemUp/Down` | `OutputBtnItemUp/Down` + `PreviousOutputItemCommand` / `NextOutputItemCommand` | partial | 4 | live/prepared OutputItem next/prev now uses OutputItem/live id independently from Preview selection; exact keyboard/focus parity still incomplete |
 | `OutputBtnSlideUp/Down` | `OutputBtnSlideUp/Down` + `PreviousOutputSlideCommand` / `NextOutputSlideCommand` | partial | 4 | PPT slide and live lyrics page movement now target OutputItem independently, including when Preview selection diverges; shortcut/focus parity still incomplete |
 | `OutputBtnRefAlert` | `OutputBtnRefAlert` + `ToggleOutputReferenceAlertCommand` + output `ReferenceAlertVisibility/Text` overlay | partial | 4/5 | toggles current live title/reference overlay like `QueryShowActive`; legacy reference source/pick/scroll/flash/duration options still incomplete |
-| `OutputBtnMedia` | `OutputBtnMedia` + `Media.PlayPauseCommand` | partial | 5 | direct output media behavior |
-| `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` disabled placeholder | missing | 5 | gap/non-rotate jump |
+| `OutputBtnMedia` | `OutputBtnMedia` + `PlayOutputMediaCommand` | partial | 4/5 | button now resolves the current OutputItem/live item independently from Preview selection, opens Output if needed, and loads/toggles the matching media file; exact legacy live-show remote pause/play edge cases still incomplete |
+| `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` + `JumpToNextNonRotateOutputItemCommand` | partial | 4/5 | placeholder is now wired; it moves the independent Output/live context to the next item that is non-rotating in WPF's current page/slide model; legacy `RotateStyle`/`RotateGap`/`RotateTimings` and Gap pre-roll semantics still need metadata parity |
 | `cbOutputBlack` | `cbOutputBlack` + `BlackScreenCommand` | partial | 4/5 | stateful check/toggle parity |
 | `cbOutputClear` | `cbOutputClear` + `ClearOutputCommand` | partial | 4/5 | stateful check/toggle parity |
 | `cbGoLive` | `cbGoLive` + `RestoreOutputCommand` | partial | 4 | exact checked state/start-show semantics |

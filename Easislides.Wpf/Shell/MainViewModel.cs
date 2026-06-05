@@ -693,6 +693,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand = new RelayCommand(PreviousItem, CanMovePrevious);
         NextOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(+1), CanMoveOutputNext);
         PreviousOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(-1), CanMoveOutputPrevious);
+        JumpToNextNonRotateOutputItemCommand = new AsyncRelayCommand(
+            JumpToNextNonRotateOutputItemAsync,
+            CanJumpToNextNonRotateOutputItem);
         FirstItemCommand = new RelayCommand(FirstItem, CanMovePrevious);
         LastItemCommand = new RelayCommand(LastItem, CanMoveNext);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
@@ -789,6 +792,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PlaySelectedWorshipMediaOnOutputCommand = new RelayCommand(
             PlaySelectedWorshipMediaOnOutput,
             CanPlaySelectedWorshipMediaOnOutput);
+        // FrmMain OutputBtnMedia — Preview 선택이 아니라 현재 OutputItem/live 항목의 미디어를 재생/일시정지한다.
+        PlayOutputMediaCommand = new RelayCommand(
+            PlayOutputMedia,
+            CanPlayOutputMedia);
         // 검증 문제 항목 클릭 → 큐에서 그 항목 선택(깨진 항목으로 바로 이동해 고치도록). 항상 클릭 가능(없는 항목은 메서드가 안내).
         SelectWorshipProblemItemCommand = new RelayCommand<WorshipItemProblem?>(SelectWorshipProblemItem);
         RefreshSavedWorshipListNames();
@@ -889,6 +896,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextOutputItemCommand { get; }
     /// <summary>FrmMain OutputBtnItemUp: Preview 선택과 별개로 현재 OutputItem/live 항목을 이전 항목으로 이동한다.</summary>
     public IAsyncRelayCommand PreviousOutputItemCommand { get; }
+    /// <summary>FrmMain OutputBtnJumpToNonRotate: 현재 OutputItem/live 이후의 다음 비회전 항목으로 이동한다.</summary>
+    public IAsyncRelayCommand JumpToNextNonRotateOutputItemCommand { get; }
     /// <summary>예배 순서의 첫 항목으로 이동(레거시 First). 라이브 중이면 그 항목을 송출.</summary>
     public IRelayCommand FirstItemCommand { get; }
     /// <summary>예배 순서의 마지막 항목으로 이동(레거시 Last). 라이브 중이면 그 항목을 송출.</summary>
@@ -1006,6 +1015,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmMain CMenuWorship_PlayOnOutput: 선택 Worship 항목의 미디어를 Output 창에서 재생한다.</summary>
     public IRelayCommand PlaySelectedWorshipMediaOnOutputCommand { get; }
+
+    /// <summary>FrmMain OutputBtnMedia: 현재 Output/live 항목의 미디어를 Output 창에서 재생/일시정지한다.</summary>
+    public IRelayCommand PlayOutputMediaCommand { get; }
 
     /// <summary>검증 문제 항목을 클릭하면 그 항목을 예배 순서에서 선택한다 — 운영자가 깨진 항목으로 바로 가 고치게(수동 스크롤 없이).</summary>
     public IRelayCommand<WorshipItemProblem?> SelectWorshipProblemItemCommand { get; }
@@ -3209,6 +3221,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanPlaySelectedWorshipMediaOnOutput()
         => CanPlaySelectedWorshipMedia();
 
+    private bool CanPlayOutputMedia()
+        => GetOutputNavigationItem() is not null;
+
     private void PlaySelectedWorshipMedia()
     {
         if (SelectedItem is not { } item)
@@ -3263,6 +3278,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OpenOutput();
         }
 
+        OutputItem = item;
         Media.Load(new MediaPlaybackRequest(
             mediaPath,
             MediaSourceKind.File,
@@ -3275,6 +3291,53 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         StatusText = $"Output 미디어 재생: {Path.GetFileName(mediaPath)}";
+        NotifyCommandStates();
+    }
+
+    private void PlayOutputMedia()
+    {
+        if (GetOutputNavigationItem() is not { } item)
+        {
+            StatusText = "Output 미디어를 재생할 항목이 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        var mediaPath = ResolveWorshipOutputMediaPath(item);
+        if (string.IsNullOrWhiteSpace(mediaPath))
+        {
+            StatusText = $"Output 미디어 파일을 찾을 수 없습니다: {item.Title}";
+            NotifyCommandStates();
+            return;
+        }
+
+        if (!_output.Current.IsOpen)
+        {
+            OpenOutput();
+        }
+
+        OutputItem = item;
+        var shouldLoad = !string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
+            || Media.State is MediaPlaybackState.Empty or MediaPlaybackState.Failed;
+        if (shouldLoad)
+        {
+            Media.Load(new MediaPlaybackRequest(
+                mediaPath,
+                MediaSourceKind.File,
+                TimeSpan.Zero,
+                InferMediaType(mediaPath)));
+        }
+
+        if (!Media.PlayPauseCommand.CanExecute(null))
+        {
+            StatusText = $"Output 미디어를 제어할 수 없습니다: {Path.GetFileName(mediaPath)}";
+            NotifyCommandStates();
+            return;
+        }
+
+        Media.PlayPauseCommand.Execute(null);
+        var action = Media.State == MediaPlaybackState.Playing ? "재생" : "일시정지";
+        StatusText = $"Output 미디어 {action}: {Path.GetFileName(mediaPath)}";
         NotifyCommandStates();
     }
 
@@ -3901,6 +3964,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanMoveOutputPrevious()
         => TryGetOutputNavigationIndex(out var index) && index > 0;
 
+    private bool CanJumpToNextNonRotateOutputItem()
+        => TryFindNextNonRotatingOutputItem(out _);
+
     private bool TryGetOutputNavigationIndex(out int index)
     {
         index = -1;
@@ -4014,6 +4080,86 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"LIVE: {item.Title}";
         _telemetry.Record(commandId, succeeded: true, item.Title);
         NotifyCommandStates();
+    }
+
+    private async Task JumpToNextNonRotateOutputItemAsync()
+    {
+        if (!TryFindNextNonRotatingOutputItem(out var target))
+        {
+            StatusText = "다음 회전 제외 Output 항목이 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        if (_session.Current.State == LiveState.Active)
+        {
+            PublishOutputItem(target, MainCommandIds.LiveNext);
+            return;
+        }
+
+        StatusText = $"Output 회전 제외 항목 준비: {target.Title}";
+        NotifyCommandStates();
+    }
+
+    private bool TryFindNextNonRotatingOutputItem(out LiveQueueItem target)
+    {
+        target = null!;
+        if (!TryGetOutputNavigationIndex(out var index))
+        {
+            return false;
+        }
+
+        for (var i = index + 1; i < Queue.Count; i++)
+        {
+            if (IsNonRotatingOutputItem(Queue[i]))
+            {
+                target = Queue[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsNonRotatingOutputItem(LiveQueueItem item)
+    {
+        if (IsPowerPointItem(item))
+        {
+            return TryGetKnownPowerPointSlideCount(item, out var slideCount) && slideCount <= 1;
+        }
+
+        if (IsLyricsPaginated(item))
+        {
+            return BuildLyricsPageModel(item).Count <= 1;
+        }
+
+        return true;
+    }
+
+    private bool TryGetKnownPowerPointSlideCount(LiveQueueItem item, out int slideCount)
+    {
+        slideCount = 0;
+        if (string.IsNullOrWhiteSpace(item.ContentPath))
+        {
+            return true;
+        }
+
+        if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && string.Equals(OutputPowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            slideCount = OutputPowerPoint.SlideCount;
+            return true;
+        }
+
+        if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready
+            && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            slideCount = PowerPoint.SlideCount;
+            return true;
+        }
+
+        return false;
     }
 
     // 예배 순서의 첫 항목으로 이동(레거시 First). 이미 첫 항목이거나 큐가 비면 아무것도 안 한다. 라이브면 송출.
@@ -6255,6 +6401,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();
+        PlayOutputMediaCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         SendToOutputAndNextCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();
@@ -6263,6 +6410,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousItemCommand.NotifyCanExecuteChanged();
         NextOutputItemCommand.NotifyCanExecuteChanged();
         PreviousOutputItemCommand.NotifyCanExecuteChanged();
+        JumpToNextNonRotateOutputItemCommand.NotifyCanExecuteChanged();
         FirstItemCommand.NotifyCanExecuteChanged();
         LastItemCommand.NotifyCanExecuteChanged();
         HideOutputCommand.NotifyCanExecuteChanged();
