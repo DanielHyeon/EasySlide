@@ -78,6 +78,33 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_WhenRepositoryFails_ReportsValidationAndClearsState()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            GetVersionsException = new InvalidOperationException("broken bible database"),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.Versions.Should().BeEmpty();
+        sut.Books.Should().BeEmpty();
+        sut.SelectedVersion.Should().BeNull();
+        sut.SelectedBook.Should().BeNull();
+        sut.PassageText.Should().BeEmpty();
+        sut.SelectedSelection.IdString.Should().BeEmpty();
+        sut.ValidationMessage.Should().Contain("성경 데이터를 불러오지 못했습니다")
+            .And.Contain("broken bible database");
+        sut.IsBusy.Should().BeFalse();
+        sut.LoadSelectedBookCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
     public async Task ExpandSelectionBody_DelegatesToRepositoryWithWorkingFolderAndShowVerses()
     {
         // 성경 항목 본문 확장은 저장소에 작업 폴더·절 번호 표시 설정을 그대로 넘겨 위임한다.
@@ -608,6 +635,8 @@ public class BibleViewModelTests
 
         public IReadOnlyList<BibleBook> Books { get; init; } = [];
 
+        public Exception? GetVersionsException { get; init; }
+
         public BiblePassageResult LoadedBook { get; init; } = new("", [], IsSequential: true, WasLimited: false);
 
         public BiblePassageResult SearchResult { get; init; } = new("", [], IsSequential: false, WasLimited: false);
@@ -633,7 +662,14 @@ public class BibleViewModelTests
         private List<BibleVersion>? _live;
 
         public IReadOnlyList<BibleVersion> GetVersions(string workingFolder)
-            => _live ??= Versions.ToList();
+        {
+            if (GetVersionsException is not null)
+            {
+                throw GetVersionsException;
+            }
+
+            return _live ??= Versions.ToList();
+        }
 
         public IReadOnlyList<BibleBook> GetBooks(BibleVersion version)
             => Books;

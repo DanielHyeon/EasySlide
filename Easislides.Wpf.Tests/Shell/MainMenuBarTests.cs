@@ -91,6 +91,17 @@ public class MainMenuBarTests
         => OperatorBarXaml.Should().Contain($"{{Binding {commandName}}}", $"{commandName} 이 메뉴가 아니라 첫 화면 고정 바에 있어야 함");
 
     [Fact]
+    public void BibleSourceLoad_RetriesWhenInitialLoadFindsNoVersions()
+    {
+        // FrmMain 1:1: 성경 데이터 로드가 실패하거나 0건이면 탭 재선택/추가 시 다시 시도해야 한다.
+        // `_bibleLoadedOnce = true` 를 선반영하면 현장에서는 빈 성경 탭이 고정된다.
+        CodeBehind.Should().Contain("private async Task EnsureBibleLoadedOnceAsync()");
+        CodeBehind.Should().Contain("_bibleLoadedOnce = _viewModel.Bible.Versions.Count > 0;");
+        CodeBehind.Should().NotContain("_bibleLoadedOnce = true;");
+        CodeBehind.Should().Contain("await EnsureBibleLoadedOnceAsync().ConfigureAwait(true);");
+    }
+
+    [Fact]
     public void OperatorBar_KeepsStopLiveAsDangerActionBetweenSendAndBlack()
     {
         var operatorBar = OperatorBarXaml;
@@ -113,8 +124,8 @@ public class MainMenuBarTests
     public void MainWindow_Loaded_PreloadsBibleOnce()
     {
         var code = CodeBehind;
-        code.Should().Contain("EnsureBibleLoadedOnce();", "Bible data must be ready from the main shell startup");
-        code.Should().Contain("private void EnsureBibleLoadedOnce()", "Bible startup load should use the same one-shot guard as tab selection");
+        code.Should().Contain("await EnsureBibleLoadedOnceAsync().ConfigureAwait(true);", "Bible data must be ready from the main shell startup");
+        code.Should().Contain("private async Task EnsureBibleLoadedOnceAsync()", "Bible startup load should use the same retry-aware guard as tab selection");
     }
 
     [Fact]

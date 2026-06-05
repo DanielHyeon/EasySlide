@@ -74,20 +74,49 @@ public sealed partial class BibleViewModel : ObservableObject
 
     public Task LoadAsync()
     {
-        WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
-        Versions.ReplaceWith(_repository.GetVersions(WorkingFolder));
-        SelectedVersion = Versions.Count > 0 ? Versions[0] : null;
-        PreviewRegion1Version = SelectedVersion;
-        PreviewRegion2Version = Versions.FirstOrDefault(version => !Equals(version, PreviewRegion1Version));
-        LoadBooksForSelectedVersion();
-        ValidationMessage = Versions.Count == 0
-            ? "성경 목록 데이터베이스를 찾을 수 없습니다."
-            : "";
-        StatusMessage = Versions.Count == 0
-            ? ""
-            : $"{Versions.Count}개 성경 버전을 불러왔습니다.";
-        OnPropertyChanged(nameof(Region2VersionOptions));
-        NotifyCommands();
+        if (IsBusy)
+        {
+            return Task.CompletedTask;
+        }
+
+        IsBusy = true;
+        try
+        {
+            ValidationMessage = "";
+            WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
+            Versions.ReplaceWith(_repository.GetVersions(WorkingFolder));
+            SelectedVersion = Versions.Count > 0 ? Versions[0] : null;
+            PreviewRegion1Version = SelectedVersion;
+            PreviewRegion2Version = Versions.FirstOrDefault(version => !Equals(version, PreviewRegion1Version));
+            LoadBooksForSelectedVersion();
+            ValidationMessage = Versions.Count == 0
+                ? "성경 목록 데이터베이스를 찾을 수 없습니다."
+                : "";
+            StatusMessage = Versions.Count == 0
+                ? ""
+                : $"{Versions.Count}개 성경 버전을 불러왔습니다.";
+        }
+        catch (Exception ex) when (IsRecoverableBibleException(ex) || ex is ArgumentException)
+        {
+            Versions.Clear();
+            Books.Clear();
+            SelectedVersion = null;
+            SelectedBook = null;
+            PreviewRegion1Version = null;
+            PreviewRegion2Version = null;
+            PassageText = "";
+            _currentResult = new BiblePassageResult("", [], IsSequential: true, WasLimited: false);
+            ClearSelection();
+            ValidationMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+            StatusMessage = "";
+        }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(Region2VersionOptions));
+            NotifyCommands();
+        }
+
         return Task.CompletedTask;
     }
 

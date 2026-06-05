@@ -99,7 +99,7 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
-        EnsureBibleLoadedOnce();
+        await EnsureBibleLoadedOnceAsync().ConfigureAwait(true);
         EnsureInstalledFontsMergedOnce();
         await EnsureInitialWorshipListLoadedOnceAsync().ConfigureAwait(true);
     }
@@ -145,15 +145,15 @@ public partial class MainWindow : Window
         await _viewModel.LoadInitialSelectedWorshipListIfQueueEmptyAsync().ConfigureAwait(true);
     }
 
-    private void EnsureBibleLoadedOnce()
+    private async Task EnsureBibleLoadedOnceAsync()
     {
         if (_bibleLoadedOnce)
         {
             return;
         }
 
-        _bibleLoadedOnce = true;
-        _ = _viewModel.Bible.LoadAsync();
+        await _viewModel.Bible.LoadAsync().ConfigureAwait(true);
+        _bibleLoadedOnce = _viewModel.Bible.Versions.Count > 0;
     }
 
     private void EnsureInlinePowerPointLoadedOnce(MainViewModel viewModel)
@@ -795,7 +795,7 @@ public partial class MainWindow : Window
                 await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true); // 멱등 — 시작 로드(Loaded)와 동일 가드 공유
                 break;
             case "Bibles":
-                EnsureBibleLoadedOnce(); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
+                await EnsureBibleLoadedOnceAsync().ConfigureAwait(true); // 버전·책 로드(작업 폴더 기준). 예외는 VM 내부에서 흡수.
                 break;
             case "InfoScreenSource":
                 EnsureInlineInfoScreenLoadedOnce(viewModel);
@@ -880,7 +880,7 @@ public partial class MainWindow : Window
                 break;
 
             case "Bibles":
-                EnsureBibleLoadedOnce();
+                await EnsureBibleLoadedOnceAsync().ConfigureAwait(true);
                 var selection = ResolveBibleSelectionForAdd(
                     viewModel.Bible,
                     BiblePassageBox.SelectionStart,
