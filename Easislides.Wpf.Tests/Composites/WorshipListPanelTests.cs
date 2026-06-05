@@ -248,7 +248,7 @@ public class WorshipListPanelTests
     }
 
     [Fact]
-    public void SessionCombo_LoadsSelectedList_WithEnterAndDoubleClickGestures()
+    public void SessionCombo_LoadsSelectedList_WithSelectionEnterAndDoubleClickGestures()
     {
         var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
         var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
@@ -256,11 +256,16 @@ public class WorshipListPanelTests
         var combo = composite.Descendants().Single(
             e => e.Name.LocalName == "ComboBox" && Attr(e, "Name") == "SessionCombo");
 
+        Attr(combo, "SelectionChanged").Should().Be("SessionCombo_SelectionChanged");
         Attr(combo, "KeyDown").Should().Be("SessionCombo_KeyDown");
         Attr(combo, "MouseDoubleClick").Should().Be("SessionCombo_MouseDoubleClick");
+        code.Should().Contain("private bool _refreshingSessionCombo;");
+        code.Should().Contain("private void SessionCombo_SelectionChanged");
+        code.Should().Contain("sender is not ComboBox { IsKeyboardFocusWithin: true }",
+            "initial binding and refresh-driven selection changes must not replace the current Worship List");
         code.Should().Contain("private bool TryLoadSelectedWorshipList()");
         code.Should().Contain("LoadSelectedWorshipListCommand.Execute(null)",
-            "Enter/double-click must reuse the same selected-list load path as the explicit button");
+            "selection/Enter/double-click must reuse the same selected-list load path as the explicit button");
     }
 
     [Theory]

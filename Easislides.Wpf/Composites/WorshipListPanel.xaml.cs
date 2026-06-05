@@ -22,6 +22,7 @@ public partial class WorshipListPanel : UserControl
     // 드래그 시작 후보 지점(왼쪽 버튼 누른 위치)과 드래그 대상 항목. 임계 거리 이전엔 단순 클릭으로 둔다.
     private Point _dragStartPoint;
     private LiveQueueItem? _dragCandidate;
+    private bool _refreshingSessionCombo;
 
     public event RoutedEventHandler? AddSelectedSourceRequested;
 
@@ -59,7 +60,31 @@ public partial class WorshipListPanel : UserControl
     {
         if (DataContext is MainViewModel viewModel)
         {
-            viewModel.RefreshSavedWorshipListNames();
+            _refreshingSessionCombo = true;
+            try
+            {
+                viewModel.RefreshSavedWorshipListNames();
+            }
+            finally
+            {
+                _refreshingSessionCombo = false;
+            }
+        }
+    }
+
+    private void SessionCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingSessionCombo
+            || !ReferenceEquals(e.OriginalSource, sender)
+            || e.AddedItems.Count == 0
+            || sender is not ComboBox { IsKeyboardFocusWithin: true })
+        {
+            return;
+        }
+
+        if (TryLoadSelectedWorshipList())
+        {
+            e.Handled = true;
         }
     }
 

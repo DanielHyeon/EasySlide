@@ -47,8 +47,8 @@
             </StackPanel>
 
             <!--
-                세션 콤보(레거시 FrmMain 세션 콤보) — 저장된 예배 순서를 빠르게 골라 "불러오기"로 적재한다.
-                실수로 작업물을 날리지 않도록 콤보 선택만으로는 적재하지 않고, 명시적 버튼을 눌러야 적재한다.
+                세션 콤보(레거시 FrmMain 세션 콤보) — 저장된 예배 순서를 고르면 바로 적재한다.
+                버튼/Enter/더블클릭도 같은 로드 경로를 유지해 키보드·마우스 운영 흐름을 모두 보존한다.
                 콤보를 열 때 DropDownOpened 로 목록을 새로고침(코드비하인드 → 검증된 VM.RefreshSavedWorshipListNames).
             -->
             <Grid x:Name="ClassicWorshipListSessionStrip"
@@ -62,12 +62,13 @@
                           x:Name="SessionCombo"
                           Tag="SessionList"
                           DropDownOpened="SessionCombo_DropDownOpened"
+                          SelectionChanged="SessionCombo_SelectionChanged"
                           KeyDown="SessionCombo_KeyDown"
                           MouseDoubleClick="SessionCombo_MouseDoubleClick"
                           ItemsSource="{Binding SavedWorshipListNames}"
                           SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
                           MinHeight="26"
-                          ToolTip="저장된 예배 순서를 골라 '불러오기'로 적재합니다. 콤보를 열면 목록이 새로고침됩니다."
+                          ToolTip="저장된 예배 순서를 고르면 바로 불러옵니다. 콤보를 열면 목록이 새로고침됩니다."
                           AutomationProperties.Name="저장된 예배 순서 선택" />
                 <Button Grid.Column="1"
                         Command="{Binding LoadSelectedWorshipListCommand}"
