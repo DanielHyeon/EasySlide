@@ -675,6 +675,7 @@ public class MainMenuBarTests
     public void ClassicPreviewAndOutputPanes_ExposeFrmMainOperatorButtonsAndLiveMessage()
     {
         var xaml = Xaml;
+        var code = CodeBehind;
 
         foreach (var name in new[]
         {
@@ -685,6 +686,9 @@ public class MainMenuBarTests
             "IndradioButtonText",
             "IndradioButtonFormat",
             "IndradioButtonInfo",
+            "Ind_BackColour",
+            "Ind_BackImageSelect",
+            "Ind_NoImage",
             "PreviewBtnItemUp",
             "PreviewBtnItemDown",
             "PreviewBtnSlideUp",
@@ -759,6 +763,16 @@ public class MainMenuBarTests
             "IndPanel should expose item-specific text color controls");
         xaml.Should().Contain("Command=\"{Binding ClearSelectedItemFormattingCommand}\"",
             "IndPanel should expose item-specific formatting clear");
+        xaml.Should().Contain("Text=\"{Binding SelectedItemBackgroundImagePath, Mode=OneWay}\"",
+            "IndPanel should show the current selected-item background image path");
+        xaml.Should().Contain("Click=\"SelectPreviewItemBackgroundImage_Click\"",
+            "IndPanel should let operators choose a per-item background image from the first-screen Preview Set panel");
+        xaml.Should().Contain("Command=\"{Binding SetSelectedItemBackgroundImageCommand}\"",
+            "Ind_NoImage should clear the selected item's background image through the same VM command as the Worship List menu");
+        code.Should().Contain("private void SelectPreviewItemBackgroundImage_Click",
+            "Preview Set item-image selection should be handled by the main shell view");
+        code.Should().Contain("viewModel.SetSelectedItemBackgroundImage(dialog.FileName)",
+            "Preview Set image selection should write FormatData code 61 via the verified VM method");
         xaml.Should().Contain("Text=\"{Binding PreviewItemInfoText}\"",
             "PreviewInfo should show selected Preview item metadata instead of remaining blank");
         xaml.Should().Contain("Command=\"{Binding JumpToNextNonRotateOutputItemCommand}\"",

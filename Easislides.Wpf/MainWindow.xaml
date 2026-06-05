@@ -2700,7 +2700,8 @@
                                                                     MinWidth="62"
                                                                     Margin="0,0,4,4" />
                                                         </WrapPanel>
-                                                        <WrapPanel>
+                                                        <WrapPanel x:Name="Ind_BackColour"
+                                                                   Tag="Ind_BackColour">
                                                             <Button Content="Blue"
                                                                     Command="{Binding SetSelectedItemBackgroundColorCommand}"
                                                                     CommandParameter="#FF0B5B7A"
@@ -2720,6 +2721,47 @@
                                                                     MinWidth="62"
                                                                     Margin="0,0,4,4" />
                                                         </WrapPanel>
+                                                        <Grid Margin="0,6,0,0"
+                                                              IsEnabled="{Binding CanEditSelectedItemColor}">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="Image"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="0,0,6,0"
+                                                                       Style="{StaticResource Type.Caption.Style}"
+                                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                                            <TextBox Grid.Column="1"
+                                                                     Text="{Binding SelectedItemBackgroundImagePath, Mode=OneWay}"
+                                                                     IsReadOnly="True"
+                                                                     MinWidth="120"
+                                                                     Height="26"
+                                                                     Margin="0,0,4,0"
+                                                                     ToolTip="{Binding SelectedItemBackgroundImagePath}"
+                                                                     AutomationProperties.Name="선택 항목 배경 이미지 경로" />
+                                                            <Button x:Name="Ind_BackImageSelect"
+                                                                    Grid.Column="2"
+                                                                    Tag="Ind_BackImageSelect"
+                                                                    Content="Select..."
+                                                                    Click="SelectPreviewItemBackgroundImage_Click"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="64"
+                                                                    Margin="0,0,4,0"
+                                                                    AutomationProperties.Name="선택 항목 배경 이미지 선택" />
+                                                            <Button x:Name="Ind_NoImage"
+                                                                    Grid.Column="3"
+                                                                    Tag="Ind_NoImage"
+                                                                    Content="No Image"
+                                                                    Command="{Binding SetSelectedItemBackgroundImageCommand}"
+                                                                    CommandParameter=""
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="76"
+                                                                    AutomationProperties.Name="선택 항목 배경 이미지 해제" />
+                                                        </Grid>
                                                     </StackPanel>
                                                 </GroupBox>
 

@@ -1616,6 +1616,27 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SelectPreviewItemBackgroundImage_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel || !viewModel.CanEditSelectedItemColor)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "이 항목의 배경 이미지 선택",
+            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            viewModel.SetSelectedItemBackgroundImage(dialog.FileName);
+        }
+    }
+
     // 미리보기 영역으로 끌고 온 게 이미지 파일이면 "복사(배경 설정)" 커서로 알린다. 그 외(PPT/미디어 등)는 받지 않는다.
     private void PreviewArea_DragOver(object sender, DragEventArgs e)
     {
