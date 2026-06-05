@@ -19,6 +19,13 @@ using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
+public enum PreviewPanelMode
+{
+    Text,
+    Format,
+    Info,
+}
+
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionService _session;
@@ -85,6 +92,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 중앙 미리보기 탭 인덱스(0=Preview, 1=PowerPoint, 2=Media) — 선택 항목 종류에 맞춰 자동 전환(FrmMain식 멀티페인).
     // 운영자가 항목을 고르면 알맞은 미리보기가 바로 보여 수동 탭 전환을 없앤다(§7.4 단일 콘솔).
     [ObservableProperty] private int _selectedContentTabIndex;
+
+    // FrmMain Preview 하단 Text/Set/Info 버튼 상태. WinForms 는 RadioButton(Appearance=Button)으로
+    // flowLayoutPreviewLyrics / IndPanel / PreviewInfo 중 하나만 보이게 한다.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPreviewTextMode))]
+    [NotifyPropertyChangedFor(nameof(IsPreviewFormatMode))]
+    [NotifyPropertyChangedFor(nameof(IsPreviewInfoMode))]
+    private PreviewPanelMode _previewPanelMode = PreviewPanelMode.Text;
 
     // 우측 출력 모양 인스펙터 펼침 여부(FrmMain식 가변 패널, §7.4). 접으면 우측 컬럼이 0 으로 줄어 중앙 미리보기가 넓어진다.
     // 기본 펼침(true). 운영바 토글로 전환. 변경 시 설정에 저장돼 다음 실행에도 접힘/펼침 상태가 유지된다(레거시 패널 상태 저장).
@@ -714,6 +729,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopyPreviewToOutputAndNextCommand = new RelayCommand(CopyPreviewToOutputAndNext, CanCopyPreviewToOutput);
         CopyPreviewToOutputShortcutCommand = new RelayCommand(CopyPreviewToOutputShortcut, CanCopyPreviewToOutput);
         CopyPreviewToOutputAndClearBlackCommand = new RelayCommand(CopyPreviewToOutputAndClearBlack, CanCopyPreviewToOutput);
+        ShowPreviewTextModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Text));
+        ShowPreviewFormatModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Format));
+        ShowPreviewInfoModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Info));
         PreviewToLiveCommand = new AsyncRelayCommand(PreviewToLiveAsync, CanPreviewToLive);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
@@ -916,6 +934,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ILiveSessionService Session => _session;
 
+    public bool IsPreviewTextMode => PreviewPanelMode == PreviewPanelMode.Text;
+
+    public bool IsPreviewFormatMode => PreviewPanelMode == PreviewPanelMode.Format;
+
+    public bool IsPreviewInfoMode => PreviewPanelMode == PreviewPanelMode.Info;
+
+    public string PreviewItemInfoText => BuildPreviewItemInfoText(SelectedItem);
+
     public IRelayCommand OpenOutputCommand { get; }
     public IAsyncRelayCommand CloseOutputCommand { get; }
     // 스테이지(Preview) 모니터 열기/닫기 — 선택한 모니터에 풀스크린으로 띄우거나 닫는다(회중 출력엔 영향 없음).
@@ -929,6 +955,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand CopyPreviewToOutputShortcutCommand { get; }
     /// <summary>FrmMain 글로벌 F7: PreviewItem 을 OutputItem 으로 복사하고 Black 화면을 해제한다.</summary>
     public IRelayCommand CopyPreviewToOutputAndClearBlackCommand { get; }
+    /// <summary>FrmMain IndradioButtonText: Preview 상단을 가사 텍스트 보기로 전환한다.</summary>
+    public IRelayCommand ShowPreviewTextModeCommand { get; }
+    /// <summary>FrmMain IndradioButtonFormat: Preview 상단을 항목별 서식(IndPanel) 보기로 전환한다.</summary>
+    public IRelayCommand ShowPreviewFormatModeCommand { get; }
+    /// <summary>FrmMain IndradioButtonInfo: Preview 상단을 항목 정보(PreviewInfo) 보기로 전환한다.</summary>
+    public IRelayCommand ShowPreviewInfoModeCommand { get; }
     /// <summary>FrmMain btnToLive: PreviewItem 을 OutputItem 으로 복사하고, live off 면 시작, live 중이면 현재 Output 을 갱신한다.</summary>
     public IAsyncRelayCommand PreviewToLiveCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
@@ -2848,6 +2880,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanPasteSelectedItemFormatting));
         OnPropertyChanged(nameof(CanApplyCopiedFormatToAll));
         OnPropertyChanged(nameof(CanClearAllItemsFormatting));
+        OnPropertyChanged(nameof(PreviewItemInfoText));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
         OnPropertyChanged(nameof(SelectedItemFontSize));
@@ -2866,6 +2899,77 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemUnderline2));
 
         NotifyCommandStates();
+    }
+
+    private static string BuildPreviewItemInfoText(LiveQueueItem? item)
+    {
+        if (item is null)
+        {
+            return "선택 항목 없음";
+        }
+
+        var lines = new List<string>
+        {
+            $"제목: {item.Title}",
+            $"종류: {item.Kind}",
+            $"ID: {item.Id}",
+            $"개별 서식: {(item.UseIndividualFormatting ? "켬" : "끔")}",
+        };
+
+        if (item.SongNumber > 0)
+        {
+            lines.Add($"곡 번호: {item.SongNumber}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.ContentPath))
+        {
+            lines.Add($"파일: {item.ContentPath}");
+        }
+
+        if (item.SlideNumber > 0)
+        {
+            lines.Add($"슬라이드: {item.SlideNumber}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.Sequence))
+        {
+            lines.Add($"절 순서: {item.Sequence}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.Copyright))
+        {
+            lines.Add($"저작권: {item.Copyright}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.FormatData))
+        {
+            lines.Add($"서식 데이터: {item.FormatData}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.Lyrics))
+        {
+            lines.Add($"가사 줄: {CountNonEmptyLines(item.Lyrics)}");
+        }
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    private static int CountNonEmptyLines(string value)
+        => value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Length;
+
+    private void ShowPreviewPanelMode(PreviewPanelMode mode)
+    {
+        if (PreviewPanelMode != mode)
+        {
+            PreviewPanelMode = mode;
+            return;
+        }
+
+        // ToggleButton 은 이미 켜진 버튼을 다시 누르면 로컬 IsChecked 가 false 로 떨어질 수 있다.
+        // 값은 그대로라도 파생 상태를 다시 알려 FrmMain RadioButton처럼 항상 한 모드가 눌린 상태를 유지한다.
+        OnPropertyChanged(nameof(IsPreviewTextMode));
+        OnPropertyChanged(nameof(IsPreviewFormatMode));
+        OnPropertyChanged(nameof(IsPreviewInfoMode));
     }
 
     // 선택 항목 종류에 맞는 중앙 탭을 고른다 — PPT→PowerPoint(미리보기+썸네일), 미디어→Media, 그 외(곡/성경/공지)→Preview.

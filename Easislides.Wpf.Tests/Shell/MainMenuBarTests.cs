@@ -697,6 +697,38 @@ public class MainMenuBarTests
             "OutputBtnLMSend should send the live message");
         xaml.Should().Contain("Command=\"{Binding ClearLiveMessageCommand}\"",
             "OutputBtnLMClear should clear the live message");
+        xaml.Should().Contain("Command=\"{Binding ShowPreviewTextModeCommand}\"",
+            "IndradioButtonText should switch the Preview top pane to the FrmMain text surface");
+        xaml.Should().Contain("Command=\"{Binding ShowPreviewFormatModeCommand}\"",
+            "IndradioButtonFormat should switch the Preview top pane to the FrmMain IndPanel formatting surface");
+        xaml.Should().Contain("Command=\"{Binding ShowPreviewInfoModeCommand}\"",
+            "IndradioButtonInfo should switch the Preview top pane to the FrmMain PreviewInfo surface");
+        xaml.Should().Contain("IsChecked=\"{Binding IsPreviewTextMode, Mode=OneWay}\"",
+            "the Text mode button should reflect the active Preview panel mode");
+        xaml.Should().Contain("IsChecked=\"{Binding IsPreviewFormatMode, Mode=OneWay}\"",
+            "the Set mode button should reflect the active Preview panel mode");
+        xaml.Should().Contain("IsChecked=\"{Binding IsPreviewInfoMode, Mode=OneWay}\"",
+            "the Info mode button should reflect the active Preview panel mode");
+        xaml.Should().Contain("x:Name=\"flowLayoutPreviewLyrics\"",
+            "the Preview text mode should expose the legacy lyrics surface role");
+        xaml.Should().Contain("x:Name=\"IndPanel\"",
+            "the Preview Set mode should expose the legacy individual-format panel role");
+        xaml.Should().Contain("x:Name=\"Ind_checkBox\"",
+            "the Preview Set mode should expose the legacy individual-format checkbox");
+        xaml.Should().Contain("Visibility=\"{Binding IsPreviewTextMode, Converter={StaticResource BoolToVis}}\"",
+            "only the text surface should show in Text mode");
+        xaml.Should().Contain("Visibility=\"{Binding IsPreviewFormatMode, Converter={StaticResource BoolToVis}}\"",
+            "only the format surface should show in Set mode");
+        xaml.Should().Contain("Visibility=\"{Binding IsPreviewInfoMode, Converter={StaticResource BoolToVis}}\"",
+            "only the info surface should show in Info mode");
+        xaml.Should().Contain("Command=\"{Binding ToggleUseIndividualFormattingCommand}\"",
+            "Ind_checkBox should toggle the selected item's individual formatting");
+        xaml.Should().Contain("Command=\"{Binding SetSelectedItemTextColorCommand}\"",
+            "IndPanel should expose item-specific text color controls");
+        xaml.Should().Contain("Command=\"{Binding ClearSelectedItemFormattingCommand}\"",
+            "IndPanel should expose item-specific formatting clear");
+        xaml.Should().Contain("Text=\"{Binding PreviewItemInfoText}\"",
+            "PreviewInfo should show selected Preview item metadata instead of remaining blank");
         xaml.Should().Contain("Command=\"{Binding JumpToNextNonRotateOutputItemCommand}\"",
             "OutputBtnJumpToNonRotate should jump within the independent Output/live queue context");
         xaml.Should().NotContain("x:Name=\"OutputBtnJumpToNonRotate\"\r\n                                Tag=\"OutputBtnJumpToNonRotate\"\r\n                                Style=\"{StaticResource EsButton.Secondary}\"\r\n                                MinWidth=\"30\"\r\n                                MinHeight=\"28\"\r\n                                Padding=\"6,0\"\r\n                                Margin=\"0,0,4,0\"\r\n                                Content=\"J\"\r\n                                IsEnabled=\"False\"",

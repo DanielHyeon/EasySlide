@@ -2498,11 +2498,222 @@
                                                   Focusable="True"
                                                   MouseDown="ClassicKeyboardSurface_MouseDown"
                                                   VerticalScrollBarVisibility="Auto">
-                                        <TextBlock Text="{Binding SelectedItem.Lyrics}"
-                                                   TextWrapping="Wrap"
-                                                   Style="{StaticResource Type.Body.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Secondary}"
-                                                   AutomationProperties.Name="선택 곡 가사" />
+                                        <Grid>
+                                            <StackPanel x:Name="flowLayoutPreviewLyrics"
+                                                        Tag="flowLayoutPreviewLyrics"
+                                                        Visibility="{Binding IsPreviewTextMode, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="{Binding SelectedItem.Lyrics}"
+                                                           TextWrapping="Wrap"
+                                                           Style="{StaticResource Type.Body.Style}"
+                                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                           AutomationProperties.Name="선택 곡 가사" />
+                                            </StackPanel>
+
+                                            <StackPanel x:Name="IndPanel"
+                                                        Tag="IndPanel"
+                                                        Visibility="{Binding IsPreviewFormatMode, Converter={StaticResource BoolToVis}}">
+                                                <CheckBox x:Name="Ind_checkBox"
+                                                          Tag="Ind_checkBox"
+                                                          Command="{Binding ToggleUseIndividualFormattingCommand}"
+                                                          IsChecked="{Binding SelectedItem.UseIndividualFormatting, Mode=OneWay}"
+                                                          Content="Use Individual Settings"
+                                                          Margin="0,0,0,8"
+                                                          AutomationProperties.Name="개별 서식 사용" />
+
+                                                <GroupBox x:Name="IndgroupBox1"
+                                                          Tag="IndgroupBox1"
+                                                          Header="Text"
+                                                          Margin="0,0,0,8">
+                                                    <StackPanel Margin="8">
+                                                        <WrapPanel Margin="0,0,0,6">
+                                                            <Button Content="Yellow"
+                                                                    Command="{Binding SetSelectedItemTextColorCommand}"
+                                                                    CommandParameter="#FFFFFF00"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="58"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="White"
+                                                                    Command="{Binding SetSelectedItemTextColorCommand}"
+                                                                    CommandParameter="#FFFFFFFF"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="58"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Red"
+                                                                    Command="{Binding SetSelectedItemTextColorCommand}"
+                                                                    CommandParameter="#FFFF4040"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="52"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Default"
+                                                                    Command="{Binding SetSelectedItemTextColorCommand}"
+                                                                    CommandParameter="{x:Null}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="62"
+                                                                    Margin="0,0,4,4" />
+                                                        </WrapPanel>
+                                                        <WrapPanel>
+                                                            <Button Content="Bold"
+                                                                    Command="{Binding ToggleSelectedItemBoldCommand}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="54"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Italic"
+                                                                    Command="{Binding ToggleSelectedItemItalicCommand}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="54"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Underline"
+                                                                    Command="{Binding ToggleSelectedItemUnderlineCommand}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="76"
+                                                                    Margin="0,0,4,4" />
+                                                        </WrapPanel>
+                                                    </StackPanel>
+                                                </GroupBox>
+
+                                                <GroupBox x:Name="IndgroupBox2"
+                                                          Tag="IndgroupBox2"
+                                                          Header="Align / Size"
+                                                          Margin="0,0,0,8">
+                                                    <StackPanel Margin="8">
+                                                        <WrapPanel Margin="0,0,0,6">
+                                                            <Button Content="Left"
+                                                                    Command="{Binding SetSelectedItemAlignmentCommand}"
+                                                                    CommandParameter="1"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="52"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Center"
+                                                                    Command="{Binding SetSelectedItemAlignmentCommand}"
+                                                                    CommandParameter="2"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="62"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Right"
+                                                                    Command="{Binding SetSelectedItemAlignmentCommand}"
+                                                                    CommandParameter="3"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="56"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Default"
+                                                                    Command="{Binding SetSelectedItemAlignmentCommand}"
+                                                                    CommandParameter="{x:Null}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="62"
+                                                                    Margin="0,0,4,4" />
+                                                        </WrapPanel>
+                                                        <WrapPanel>
+                                                            <Button Content="36"
+                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
+                                                                    CommandParameter="36"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="44"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="48"
+                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
+                                                                    CommandParameter="48"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="44"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="60"
+                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
+                                                                    CommandParameter="60"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="44"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Default"
+                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
+                                                                    CommandParameter="{x:Null}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="62"
+                                                                    Margin="0,0,4,4" />
+                                                        </WrapPanel>
+                                                    </StackPanel>
+                                                </GroupBox>
+
+                                                <GroupBox x:Name="IndgroupBox3"
+                                                          Tag="IndgroupBox3"
+                                                          Header="Font / Back"
+                                                          Margin="0,0,0,8">
+                                                    <StackPanel Margin="8">
+                                                        <WrapPanel Margin="0,0,0,6">
+                                                            <Button Content="Malgun"
+                                                                    Command="{Binding SetSelectedItemFontNameCommand}"
+                                                                    CommandParameter="맑은 고딕"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="64"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Arial"
+                                                                    Command="{Binding SetSelectedItemFontNameCommand}"
+                                                                    CommandParameter="Arial"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="56"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Default"
+                                                                    Command="{Binding SetSelectedItemFontNameCommand}"
+                                                                    CommandParameter="{x:Null}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="62"
+                                                                    Margin="0,0,4,4" />
+                                                        </WrapPanel>
+                                                        <WrapPanel>
+                                                            <Button Content="Blue"
+                                                                    Command="{Binding SetSelectedItemBackgroundColorCommand}"
+                                                                    CommandParameter="#FF0B5B7A"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="56"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Black"
+                                                                    Command="{Binding SetSelectedItemBackgroundColorCommand}"
+                                                                    CommandParameter="#FF000000"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="56"
+                                                                    Margin="0,0,4,4" />
+                                                            <Button Content="Default"
+                                                                    Command="{Binding SetSelectedItemBackgroundColorCommand}"
+                                                                    CommandParameter="{x:Null}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="62"
+                                                                    Margin="0,0,4,4" />
+                                                        </WrapPanel>
+                                                    </StackPanel>
+                                                </GroupBox>
+
+                                                <GroupBox x:Name="IndgroupBox4"
+                                                          Tag="IndgroupBox4"
+                                                          Header="Copy / Clear">
+                                                    <WrapPanel Margin="8">
+                                                        <Button Content="Copy"
+                                                                Command="{Binding CopySelectedItemFormattingCommand}"
+                                                                Style="{StaticResource EsButton.Secondary}"
+                                                                MinWidth="56"
+                                                                Margin="0,0,4,4" />
+                                                        <Button Content="Paste"
+                                                                Command="{Binding PasteSelectedItemFormattingCommand}"
+                                                                Style="{StaticResource EsButton.Secondary}"
+                                                                MinWidth="56"
+                                                                Margin="0,0,4,4" />
+                                                        <Button Content="All"
+                                                                Command="{Binding ApplyCopiedFormatToAllCommand}"
+                                                                Style="{StaticResource EsButton.Secondary}"
+                                                                MinWidth="48"
+                                                                Margin="0,0,4,4" />
+                                                        <Button Content="Clear"
+                                                                Command="{Binding ClearSelectedItemFormattingCommand}"
+                                                                Style="{StaticResource EsButton.Secondary}"
+                                                                MinWidth="56"
+                                                                Margin="0,0,4,4" />
+                                                    </WrapPanel>
+                                                </GroupBox>
+                                            </StackPanel>
+
+                                            <TextBlock Text="{Binding PreviewItemInfoText}"
+                                                       Visibility="{Binding IsPreviewInfoMode, Converter={StaticResource BoolToVis}}"
+                                                       TextWrapping="Wrap"
+                                                       Style="{StaticResource Type.Body.Style}"
+                                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                                       AutomationProperties.Name="Preview 항목 정보" />
+                                        </Grid>
                                     </ScrollViewer>
 
                                     <!-- 절 이동 영역(Row 2): 절 라벨 직접 점프 버튼 + 순차 이전/다음 절 네비. -->
@@ -2814,36 +3025,42 @@
                                 Content="N"
                                 ToolTip="세션 노트"
                                 AutomationProperties.Name="Preview 세션 노트" />
-                        <Button x:Name="IndradioButtonText"
-                                Tag="IndradioButtonText"
-                                Style="{StaticResource EsButton.Primary}"
-                                MinWidth="42"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="Text"
-                                ToolTip="텍스트 보기"
-                                AutomationProperties.Name="Preview Text 모드" />
-                        <Button x:Name="IndradioButtonFormat"
-                                Tag="IndradioButtonFormat"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="36"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="Set"
-                                ToolTip="서식 설정"
-                                AutomationProperties.Name="Preview Set 모드" />
-                        <Button x:Name="IndradioButtonInfo"
-                                Tag="IndradioButtonInfo"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="38"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="Info"
-                                ToolTip="항목 정보"
-                                AutomationProperties.Name="Preview Info 모드" />
+                        <ToggleButton x:Name="IndradioButtonText"
+                                      Tag="IndradioButtonText"
+                                      Command="{Binding ShowPreviewTextModeCommand}"
+                                      IsChecked="{Binding IsPreviewTextMode, Mode=OneWay}"
+                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                      MinWidth="42"
+                                      MinHeight="28"
+                                      Padding="6,0"
+                                      Margin="0,0,4,0"
+                                      Content="Text"
+                                      ToolTip="텍스트 보기"
+                                      AutomationProperties.Name="Preview Text 모드" />
+                        <ToggleButton x:Name="IndradioButtonFormat"
+                                      Tag="IndradioButtonFormat"
+                                      Command="{Binding ShowPreviewFormatModeCommand}"
+                                      IsChecked="{Binding IsPreviewFormatMode, Mode=OneWay}"
+                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                      MinWidth="36"
+                                      MinHeight="28"
+                                      Padding="6,0"
+                                      Margin="0,0,4,0"
+                                      Content="Set"
+                                      ToolTip="서식 설정"
+                                      AutomationProperties.Name="Preview Set 모드" />
+                        <ToggleButton x:Name="IndradioButtonInfo"
+                                      Tag="IndradioButtonInfo"
+                                      Command="{Binding ShowPreviewInfoModeCommand}"
+                                      IsChecked="{Binding IsPreviewInfoMode, Mode=OneWay}"
+                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                      MinWidth="38"
+                                      MinHeight="28"
+                                      Padding="6,0"
+                                      Margin="0,0,4,0"
+                                      Content="Info"
+                                      ToolTip="항목 정보"
+                                      AutomationProperties.Name="Preview Info 모드" />
                         <Button x:Name="PreviewBtnItemUp"
                                 Tag="PreviewBtnItemUp"
                                 Command="{Binding PreviousItemCommand}"

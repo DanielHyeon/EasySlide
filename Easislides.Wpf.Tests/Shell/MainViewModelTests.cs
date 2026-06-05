@@ -69,6 +69,77 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PreviewPanelMode_DefaultsToText_AndCommandsSwitchModes()
+    {
+        // FrmMain Preview 하단 Text/Set/Info 버튼은 서로 배타적인 상단 패널 모드다.
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.PreviewPanelMode.Should().Be(PreviewPanelMode.Text);
+        sut.IsPreviewTextMode.Should().BeTrue();
+        sut.IsPreviewFormatMode.Should().BeFalse();
+        sut.IsPreviewInfoMode.Should().BeFalse();
+
+        sut.ShowPreviewFormatModeCommand.Execute(null);
+
+        sut.PreviewPanelMode.Should().Be(PreviewPanelMode.Format);
+        sut.IsPreviewTextMode.Should().BeFalse();
+        sut.IsPreviewFormatMode.Should().BeTrue();
+        sut.IsPreviewInfoMode.Should().BeFalse();
+
+        sut.ShowPreviewInfoModeCommand.Execute(null);
+
+        sut.PreviewPanelMode.Should().Be(PreviewPanelMode.Info);
+        sut.IsPreviewInfoMode.Should().BeTrue();
+
+        sut.ShowPreviewTextModeCommand.Execute(null);
+
+        sut.PreviewPanelMode.Should().Be(PreviewPanelMode.Text);
+        sut.IsPreviewTextMode.Should().BeTrue();
+    }
+
+    [Fact]
+    public void PreviewPanelMode_ReclickingActiveMode_ReemitsCheckedState()
+    {
+        // WPF ToggleButton 은 같은 버튼 재클릭 시 로컬 체크가 꺼질 수 있으므로 VM 이 파생 상태를 재통지해야 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var notifications = new List<string?>();
+        sut.PropertyChanged += (_, e) => notifications.Add(e.PropertyName);
+
+        sut.ShowPreviewTextModeCommand.Execute(null);
+
+        notifications.Should().Contain(nameof(MainViewModel.IsPreviewTextMode));
+        sut.IsPreviewTextMode.Should().BeTrue("FrmMain RadioButton처럼 Text 모드가 계속 눌린 상태여야 함");
+    }
+
+    [Fact]
+    public void PreviewItemInfoText_ReflectsSelectedPreviewItem()
+    {
+        // FrmMain DisplayItemInfo(..., PreviewInfo) 대응: Info 모드가 선택 항목의 실제 메타데이터를 보여야 한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.PreviewItemInfoText.Should().Be("선택 항목 없음");
+        var item = new LiveQueueItem("song:42", "은혜", LiveItemKinds.Song)
+        {
+            SongNumber = 42,
+            Lyrics = "[1]\n가사",
+            Sequence = "1 C",
+            FormatData = "29=-1",
+            UseIndividualFormatting = false,
+            Copyright = "CCLI 123",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.PreviewItemInfoText.Should().Contain("제목: 은혜");
+        sut.PreviewItemInfoText.Should().Contain("종류: Song");
+        sut.PreviewItemInfoText.Should().Contain("ID: song:42");
+        sut.PreviewItemInfoText.Should().Contain("개별 서식: 끔");
+        sut.PreviewItemInfoText.Should().Contain("곡 번호: 42");
+        sut.PreviewItemInfoText.Should().Contain("절 순서: 1 C");
+        sut.PreviewItemInfoText.Should().Contain("서식 데이터: 29=-1");
+        sut.PreviewItemInfoText.Should().Contain("가사 줄: 2");
+    }
+
+    [Fact]
     public async Task GoLiveCommand_RequiresSelectionAndOpenOutput()
     {
         var sut = CreateSut();
