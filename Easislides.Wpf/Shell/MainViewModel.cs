@@ -5129,7 +5129,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var itemCommand = direction > 0
                     ? NextOutputItemCommand
                     : PreviousOutputItemCommand;
-                if (itemCommand.CanExecute(null))
+                if (CanMoveOutputItem(direction) && itemCommand.CanExecute(null))
                 {
                     await itemCommand.ExecuteAsync(null).ConfigureAwait(true);
                     return;
@@ -5242,10 +5242,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanMoveOutputNext()
-        => TryGetOutputNavigationIndex(out var index) && index < Queue.Count - 1;
+        => CanUseOutputItemNavigation();
 
     private bool CanMoveOutputPrevious()
-        => TryGetOutputNavigationIndex(out var index) && index > 0;
+        => CanUseOutputItemNavigation();
+
+    private bool CanUseOutputItemNavigation()
+        => Queue.Count > 0 && TryGetOutputNavigationIndex(out _);
+
+    private bool CanMoveOutputItem(int delta)
+    {
+        if (!TryGetOutputNavigationIndex(out var index))
+        {
+            return false;
+        }
+
+        return delta > 0
+            ? index < Queue.Count - 1
+            : index > 0;
+    }
 
     private bool CanJumpToNextNonRotateOutputItem()
         => TryFindNextNonRotatingOutputItem(out _);
@@ -5299,8 +5314,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var targetIndex = index + delta;
-        if (targetIndex < 0 || targetIndex >= Queue.Count)
+        var targetIndex = Math.Clamp(index + delta, 0, Queue.Count - 1);
+        if (targetIndex == index)
         {
             return;
         }

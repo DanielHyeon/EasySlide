@@ -9208,6 +9208,60 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputItemButtons_SinglePreparedItem_RemainExecutableLikeFrmMain()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var only = new LiveQueueItem("song:only", "Only output", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOnly verse",
+        };
+        sut.LoadQueue([only]);
+        sut.SelectedItem = only;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.PreviousOutputItemCommand.CanExecute(null).Should().BeTrue("FrmMain keeps Output item buttons usable even when there is only one item");
+        sut.NextOutputItemCommand.CanExecute(null).Should().BeTrue("FrmMain keeps Output item buttons usable even when there is only one item");
+
+        await sut.PreviousOutputItemCommand.ExecuteAsync(null);
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().BeSameAs(only);
+        sut.OutputLyricsText.Should().Be("Only verse");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task OutputItemButtons_PreparedOutputBoundaries_RemainExecutableAndClampLikeFrmMain()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song:first", "First output", LiveItemKinds.Song) { Lyrics = "[1]\nFirst" };
+        var last = new LiveQueueItem("song:last", "Last output", LiveItemKinds.Song) { Lyrics = "[1]\nLast" };
+        sut.LoadQueue([first, last]);
+        sut.SelectedItem = first;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.PreviousOutputItemCommand.CanExecute(null).Should().BeTrue("FrmMain clamps at the first Output item instead of disabling the button");
+        await sut.PreviousOutputItemCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+
+        sut.NextOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        sut.OutputItem.Should().BeSameAs(last);
+
+        sut.NextOutputItemCommand.CanExecute(null).Should().BeTrue("FrmMain clamps at the last Output item instead of disabling the button");
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        sut.OutputItem.Should().BeSameAs(last);
+
+        sut.PreviousOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.PreviousOutputItemCommand.ExecuteAsync(null);
+        sut.OutputItem.Should().BeSameAs(first);
+    }
+
+    [Fact]
     public async Task OutputItemHomeEndCommands_WhenPreparedButNotLive_MovePreparedOutputOnly()
     {
         // FrmMain flowLayoutOutputPowerPoint Home/End: Preview 선택과 별개로 준비된 OutputItem 을 첫/마지막 항목으로 이동한다.
