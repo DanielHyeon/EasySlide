@@ -43,9 +43,13 @@ public class CommandCatalogTests
     }
 
     [Theory]
-    // FrmMain 라이브 운영 F-키 파리티(충돌 없는 키만): F12=Go Live, F11=송출 후 다음, F9=검은 화면, F3=화면 비우기, F1=도움말.
+    // FrmMain 라이브 운영 F-키 파리티: F12=Go Live, F11=송출 후 다음, F8=Preview→Output,
+    // F7=Preview→Output+Black 해제, F10/F9=검은 화면, F3=화면 비우기, F1=도움말.
     [InlineData(Key.F12, MainCommandIds.LiveGo)]
     [InlineData(Key.F11, MainCommandIds.LiveGoAndNext)]
+    [InlineData(Key.F8, MainCommandIds.LivePreviewToOutput)]
+    [InlineData(Key.F7, MainCommandIds.LivePreviewToOutputClearBlack)]
+    [InlineData(Key.F10, MainCommandIds.LiveBlack)]
     [InlineData(Key.F9, MainCommandIds.LiveBlack)]
     [InlineData(Key.F3, MainCommandIds.LiveClear)]
     [InlineData(Key.F1, MainCommandIds.WindowHelp)]
@@ -226,6 +230,7 @@ public class CommandCatalogTests
                      MainCommandIds.WindowRegistration, MainCommandIds.WindowAbout, MainCommandIds.AddExternalFile,
                      MainCommandIds.LiveClear, MainCommandIds.LiveRestart, MainCommandIds.LiveRefresh,
                      MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
+                     MainCommandIds.LivePreviewToOutput, MainCommandIds.LivePreviewToOutputClearBlack,
                  })
         {
             sut.FindById(id).Should().NotBeNull($"카탈로그에 {id} 명령이 있어야 팔레트에서 실행 가능");

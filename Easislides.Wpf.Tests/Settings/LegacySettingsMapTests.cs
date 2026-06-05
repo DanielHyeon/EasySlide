@@ -193,7 +193,7 @@ public class LegacySettingsMapTests
 
         result.Succeeded.Should().BeTrue();
         sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
-            GlobalSlot(MainCommandIds.LiveGo),
+            GlobalSlot(MainCommandIds.LivePreviewToOutputClearBlack),
             "F7"));
         sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
             GlobalSlot(MainCommandIds.LiveBlack),
@@ -238,7 +238,7 @@ public class LegacySettingsMapTests
             issue.Key == "GlobalHookKey_Arrow" &&
             issue.Severity == SettingsIssueSeverity.Warning);
         sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
-            GlobalSlot(MainCommandIds.LiveGo),
+            GlobalSlot(MainCommandIds.LivePreviewToOutput),
             "F8"));
         sut.Current.Shortcuts.Should().Contain(new KeyValuePair<string, string>(
             GlobalSlot(MainCommandIds.LiveBlack),

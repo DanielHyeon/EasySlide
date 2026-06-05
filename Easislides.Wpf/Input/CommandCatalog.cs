@@ -80,6 +80,20 @@ public sealed class CommandCatalog : ICommandCatalog
             // FrmMain 파리티: F11 = Go Live and Move Next.
             new Shortcut(Key.F11, ModifierKeys.None, MainCommandIds.LiveGoAndNext, IsGlobal: false, "송출 후 다음 항목")),
         Command(
+            MainCommandIds.LivePreviewToOutputClearBlack,
+            "Live",
+            "Preview를 Output으로 보내고 Black 해제",
+            "FrmMain 글로벌 F7: Preview 항목을 Output으로 복사하고 검은 화면을 해제합니다.",
+            isDangerous: true,
+            new Shortcut(Key.F7, ModifierKeys.None, MainCommandIds.LivePreviewToOutputClearBlack, IsGlobal: true, "Preview→Output + Black 해제")),
+        Command(
+            MainCommandIds.LivePreviewToOutput,
+            "Live",
+            "Preview를 Output으로 보내기",
+            "FrmMain 글로벌 F8: Preview 항목을 Output으로 복사합니다. 라이브 중이면 현재 Preview를 재송출합니다.",
+            isDangerous: true,
+            new Shortcut(Key.F8, ModifierKeys.None, MainCommandIds.LivePreviewToOutput, IsGlobal: true, "Preview→Output")),
+        Command(
             MainCommandIds.LiveStop,
             "Live",
             "라이브 중지",
@@ -116,7 +130,9 @@ public sealed class CommandCatalog : ICommandCatalog
             isDangerous: true,
             new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면"),
             // FrmMain 파리티: F9 = Black Screen.
-            new Shortcut(Key.F9, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면")),
+            new Shortcut(Key.F9, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면"),
+            // FrmMain 글로벌 훅 파리티: F10 도 Black Screen 토글.
+            new Shortcut(Key.F10, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: true, "검은 화면")),
         // 화면 제어 보강(§7.3-B) — 명령 팔레트(⌘K)에서 검색·실행 + FrmMain F3 파리티.
         Command(
             MainCommandIds.LiveClear,

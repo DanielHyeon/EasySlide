@@ -3243,6 +3243,72 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyPreviewToOutputShortcut_WhenLive_PublishesPreviewToOutputAtCurrentPreviewPage()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.NextLyricsPageCommand.Execute(null);
+        sut.CopyPreviewToOutputShortcutCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "F8은 Preview 선택을 이동하지 않는다");
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+    }
+
+    [Fact]
+    public async Task CopyPreviewToOutputAndClearBlackCommand_WhenBlack_PublishesPreviewAndRestoresLive()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        sut.IsOutputBlackActive.Should().BeTrue();
+
+        sut.SelectedItem = preview;
+        sut.CopyPreviewToOutputAndClearBlackCommand.Execute(null);
+
+        sut.IsOutputBlackActive.Should().BeFalse("F7은 FrmMain처럼 Black을 해제한다");
+        sut.IsOutputLiveActive.Should().BeTrue();
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
+    }
+
+    [Fact]
     public async Task GoLive_PowerPointItemWithoutReadyRender_ProjectsTitleOnly()
     {
         // 렌더 미준비(실패·미적재)면 기존 동작 유지 — 출력엔 타이틀만(슬라이드 미송출).
@@ -3918,6 +3984,7 @@ public class MainViewModelTests
                  {
                      MainCommandIds.LiveClear, MainCommandIds.LiveRestart, MainCommandIds.LiveRefresh,
                      MainCommandIds.LiveRestore, MainCommandIds.LiveAutoRotate, MainCommandIds.LiveGoAndNext,
+                     MainCommandIds.LivePreviewToOutput, MainCommandIds.LivePreviewToOutputClearBlack,
                      MainCommandIds.WorshipMoveItemUp, MainCommandIds.WorshipMoveItemDown,
                      MainCommandIds.WorshipMoveItemToTop, MainCommandIds.WorshipMoveItemToBottom,
                      MainCommandIds.WorshipQuickSave, MainCommandIds.WorshipSelectLiveItem,
@@ -3967,7 +4034,7 @@ public class MainViewModelTests
         var catalog = new CommandCatalog();
         var defaultShortcut = catalog.GetDefaultShortcuts()
             .Single(shortcut => shortcut.CommandName == MainCommandIds.LiveNext && shortcut.IsGlobal);
-        settings.SetShortcutOverride(ShortcutSettings.GetSlotId(defaultShortcut), "F8");
+        settings.SetShortcutOverride(ShortcutSettings.GetSlotId(defaultShortcut), "F6");
         var sut = CreateSut(commandCatalog: catalog, settings: settings);
         var registry = new ShortcutRegistry();
 
@@ -3976,7 +4043,7 @@ public class MainViewModelTests
         registry.All.Should().Contain(shortcut =>
             shortcut.CommandName == MainCommandIds.LiveNext &&
             shortcut.IsGlobal &&
-            shortcut.Key == Key.F8);
+            shortcut.Key == Key.F6);
         registry.All.Should().NotContain(shortcut =>
             shortcut.CommandName == MainCommandIds.LiveNext &&
             shortcut.IsGlobal &&

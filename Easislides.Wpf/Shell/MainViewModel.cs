@@ -696,6 +696,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen);
         CopyPreviewToOutputCommand = new RelayCommand(CopyPreviewToOutput, CanCopyPreviewToOutput);
         CopyPreviewToOutputAndNextCommand = new RelayCommand(CopyPreviewToOutputAndNext, CanCopyPreviewToOutput);
+        CopyPreviewToOutputShortcutCommand = new RelayCommand(CopyPreviewToOutputShortcut, CanCopyPreviewToOutput);
+        CopyPreviewToOutputAndClearBlackCommand = new RelayCommand(CopyPreviewToOutputAndClearBlack, CanCopyPreviewToOutput);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
         StopLiveCommand = new AsyncRelayCommand(StopLiveAsync, () => _session.Current.State != LiveState.Off);
@@ -898,6 +900,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand CopyPreviewToOutputCommand { get; }
     /// <summary>FrmMain btnToOutputMoveNext: PreviewItem 을 OutputItem 으로 복사하고 Preview 선택만 다음 항목으로 옮긴다.</summary>
     public IRelayCommand CopyPreviewToOutputAndNextCommand { get; }
+    /// <summary>FrmMain 글로벌 F8: PreviewItem 을 OutputItem 으로 복사하고, 라이브 중이면 현재 Preview 를 재송출한다.</summary>
+    public IRelayCommand CopyPreviewToOutputShortcutCommand { get; }
+    /// <summary>FrmMain 글로벌 F7: PreviewItem 을 OutputItem 으로 복사하고 Black 화면을 해제한다.</summary>
+    public IRelayCommand CopyPreviewToOutputAndClearBlackCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
     /// <summary>상단/메뉴 F11: 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).</summary>
@@ -2593,6 +2599,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             });
 
         BindGated(MainCommandIds.LiveClear, ToggleOutputClearCommand);
+        BindGated(MainCommandIds.LivePreviewToOutput, CopyPreviewToOutputShortcutCommand);
+        BindGated(MainCommandIds.LivePreviewToOutputClearBlack, CopyPreviewToOutputAndClearBlackCommand);
         BindGated(MainCommandIds.LiveRestart, RestartCurrentItemCommand);
         BindGated(MainCommandIds.LiveRefresh, RefreshOutputCommand);
         BindGated(MainCommandIds.LiveRestore, RestoreOutputCommand);
@@ -3840,6 +3848,35 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    private void CopyPreviewToOutputShortcut()
+        => CopyPreviewToOutputFromShortcut(clearBlackAfterCopy: false, MainCommandIds.LivePreviewToOutput);
+
+    private void CopyPreviewToOutputAndClearBlack()
+        => CopyPreviewToOutputFromShortcut(clearBlackAfterCopy: true, MainCommandIds.LivePreviewToOutputClearBlack);
+
+    private void CopyPreviewToOutputFromShortcut(bool clearBlackAfterCopy, string commandId)
+    {
+        var item = PrepareOutputFromPreview();
+        if (item is null)
+        {
+            return;
+        }
+
+        var shouldPublish = _session.Current.State == LiveState.Active
+            || (clearBlackAfterCopy && IsOutputBlackActive);
+        if (shouldPublish)
+        {
+            var previewLyricsPageIndex = ReferenceEquals(item, SelectedItem)
+                ? LyricsPageIndex
+                : item.LyricsPageIndex;
+            PublishOutputItem(item, commandId, previewLyricsPageIndex);
+            return;
+        }
+
+        StatusText = $"Output 준비: {item.Title}";
+        NotifyCommandStates();
+    }
+
     private LiveQueueItem? PrepareOutputFromPreview()
     {
         if (SelectedItem is not { } item)
@@ -4085,14 +4122,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void PublishOutputItem(LiveQueueItem item, string commandId)
+    private void PublishOutputItem(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         OutputItem = item;
         SetLiveItemId(item.Id);
         LiveTransposeSemitones = 0;
 
-        var projection = item with { LyricsPageIndex = 0 };
+        var projection = item with { LyricsPageIndex = lyricsPageIndex };
         if (IsPowerPointItem(item) && OutputPowerPoint.SlideNumber > 0)
         {
             projection = projection with { SlideNumber = OutputPowerPoint.SlideNumber };
@@ -6479,6 +6516,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleUseIndividualFormattingCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
+        CopyPreviewToOutputShortcutCommand.NotifyCanExecuteChanged();
+        CopyPreviewToOutputAndClearBlackCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();
         PlayOutputMediaCommand.NotifyCanExecuteChanged();

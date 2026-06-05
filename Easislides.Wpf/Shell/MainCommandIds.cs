@@ -7,6 +7,10 @@ public static class MainCommandIds
     public const string LiveGo = "Live.Go";
     // 레거시 btnToOutputMoveNext(F11) — 선택 항목을 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).
     public const string LiveGoAndNext = "Live.GoAndNext";
+    // 레거시 글로벌 F8 — PreviewItem 을 OutputItem 으로 복사한다. 라이브 중이면 현재 Preview 를 Output 으로 재송출한다.
+    public const string LivePreviewToOutput = "Live.PreviewToOutput";
+    // 레거시 글로벌 F7 — PreviewItem 을 OutputItem 으로 복사하고 Black 화면을 해제한다.
+    public const string LivePreviewToOutputClearBlack = "Live.PreviewToOutputClearBlack";
     public const string LiveStop = "Live.Stop";
     public const string LiveNext = "Live.Next";
     public const string LivePrevious = "Live.Previous";

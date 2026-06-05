@@ -444,14 +444,14 @@ public class SettingsWindowViewModelTests
         using var fixture = SettingsFixture.Create();
         var sut = fixture.CreateViewModel();
         var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
-        item.CustomGesture = "F8";
+        item.CustomGesture = "F6";
 
         var result = sut.SaveShortcut(item);
 
         result.Succeeded.Should().BeTrue();
-        item.CustomGesture.Should().Be("F8");
-        item.EffectiveGesture.Should().Be("F8");
-        fixture.Settings.Current.Shortcuts[item.SlotId].Should().Be("F8");
+        item.CustomGesture.Should().Be("F6");
+        item.EffectiveGesture.Should().Be("F6");
+        fixture.Settings.Current.Shortcuts[item.SlotId].Should().Be("F6");
         sut.StatusMessage.Should().Contain("단축키");
     }
 
@@ -476,7 +476,7 @@ public class SettingsWindowViewModelTests
         using var fixture = SettingsFixture.Create();
         var sut = fixture.CreateViewModel();
         var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
-        item.CustomGesture = "F8";
+        item.CustomGesture = "F6";
         sut.SaveShortcut(item);
 
         var result = sut.ResetShortcut(item);

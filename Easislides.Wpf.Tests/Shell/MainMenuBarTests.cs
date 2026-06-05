@@ -802,6 +802,8 @@ public class MainMenuBarTests
     // FrmMain 라이브 운영 단축키를 메뉴에 힌트로 노출(발견가능성 — 현대적 UX). 실제 키 배선은 CommandCatalog.
     [InlineData("InputGestureText=\"F12\"")]     // Go LIVE
     [InlineData("InputGestureText=\"F11\"")]     // 송출 후 다음 항목(증분135)
+    [InlineData("InputGestureText=\"F8\"")]      // Preview를 Output으로 보내기(FrmMain 글로벌)
+    [InlineData("InputGestureText=\"F7\"")]      // Preview를 Output으로 보내고 Black 해제(FrmMain 글로벌)
     [InlineData("InputGestureText=\"Space\"")]   // 다음 항목
     [InlineData("InputGestureText=\"Shift+Space\"")] // 이전 항목
     [InlineData("InputGestureText=\"F9\"")]      // 검은 화면
@@ -816,6 +818,8 @@ public class MainMenuBarTests
     // 메뉴 힌트 문자열이 실제 카탈로그 단축키와 같은 메뉴 항목의 VM 명령에 일치해야 한다(거짓 힌트·잘못된 항목 부착 방지).
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGo, "F12", "ToggleOutputLiveCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveGoAndNext, "F11", "SendToOutputAndNextCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePreviewToOutput, "F8", "CopyPreviewToOutputShortcutCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePreviewToOutputClearBlack, "F7", "CopyPreviewToOutputAndClearBlackCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveNext, "Space", "NextItemCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePrevious, "Shift+Space", "PreviousItemCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveBlack, "F9", "ToggleOutputBlackCommand")]

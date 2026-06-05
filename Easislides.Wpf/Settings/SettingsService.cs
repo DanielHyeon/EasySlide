@@ -2190,12 +2190,12 @@ public sealed class SettingsService : ISettingsService
         var hasF8 = TryGetLegacyBool(source, "GlobalHookKey_F8", issues, out var useF8);
         if (hasF7 && useF7)
         {
-            PutShortcutOverride(shortcuts, MainCommandIds.LiveGo, isGlobal: true, "F7");
+            PutShortcutOverride(shortcuts, MainCommandIds.LivePreviewToOutputClearBlack, isGlobal: true, "F7");
             changed = true;
         }
         else if (hasF8 && useF8)
         {
-            PutShortcutOverride(shortcuts, MainCommandIds.LiveGo, isGlobal: true, "F8");
+            PutShortcutOverride(shortcuts, MainCommandIds.LivePreviewToOutput, isGlobal: true, "F8");
             changed = true;
         }
 
