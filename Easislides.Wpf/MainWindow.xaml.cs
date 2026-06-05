@@ -1975,11 +1975,29 @@ public partial class MainWindow : Window
 
     private void CMenuFiles_Edit_Click(object sender, RoutedEventArgs e)
     {
+        var selection = GetInlineMediaSelection();
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "No media file selected.";
+            InlineMediaList.Focus();
+            return;
+        }
+
+        LaunchExternalFileForEdit(selection[0].FilePath, "Media");
         InlineMediaList.Focus();
     }
 
     private void CMenuFiles_Copy_Click(object sender, RoutedEventArgs e)
     {
+        var selection = GetInlineMediaSelection();
+        if (selection.Count == 0)
+        {
+            _viewModel.StatusText = "No media file selected.";
+            InlineMediaList.Focus();
+            return;
+        }
+
+        OpenExternalFileOperationWindow(ExternalFileItemKind.Media, ExternalFileOperationKind.Copy, selection.Select(file => file.FilePath));
         InlineMediaList.Focus();
     }
 

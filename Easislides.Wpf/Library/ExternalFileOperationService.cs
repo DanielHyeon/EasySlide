@@ -12,6 +12,7 @@ public enum ExternalFileItemKind
 {
     InfoScreen,
     PowerPoint,
+    Media,
 }
 
 public enum ExternalFileOperationKind
@@ -98,7 +99,7 @@ public sealed class ExternalFileOperationService : IExternalFileOperationService
         }
 
         var root = Path.Combine(Path.GetFullPath(workingFolder), GetRootDirectoryName(itemKind));
-        var displayRoot = itemKind == ExternalFileItemKind.InfoScreen ? "InfoScreen Items" : "Powerpoint Items";
+        var displayRoot = GetDisplayRootName(itemKind);
         var folders = new List<ExternalFileFolder>
         {
             new(0, displayRoot, EnsureTrailingSeparator(root)),
@@ -369,7 +370,22 @@ public sealed class ExternalFileOperationService : IExternalFileOperationService
     }
 
     private static string GetRootDirectoryName(ExternalFileItemKind itemKind)
-        => itemKind == ExternalFileItemKind.InfoScreen ? "InfoScreens" : "Powerpoint";
+        => itemKind switch
+        {
+            ExternalFileItemKind.InfoScreen => "InfoScreens",
+            ExternalFileItemKind.PowerPoint => "Powerpoint",
+            ExternalFileItemKind.Media => "Media",
+            _ => throw new ArgumentOutOfRangeException(nameof(itemKind), itemKind, null),
+        };
+
+    private static string GetDisplayRootName(ExternalFileItemKind itemKind)
+        => itemKind switch
+        {
+            ExternalFileItemKind.InfoScreen => "InfoScreen Items",
+            ExternalFileItemKind.PowerPoint => "Powerpoint Items",
+            ExternalFileItemKind.Media => "Media Items",
+            _ => throw new ArgumentOutOfRangeException(nameof(itemKind), itemKind, null),
+        };
 
     private static string EnsureTrailingSeparator(string path)
     {

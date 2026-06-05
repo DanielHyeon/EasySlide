@@ -58,7 +58,7 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
     public ObservableCollection<SongFolderSummary> SongFolders { get; } = new();
 
     public IReadOnlyList<ExternalFileItemKind> ItemKinds { get; } =
-        [ExternalFileItemKind.InfoScreen, ExternalFileItemKind.PowerPoint];
+        [ExternalFileItemKind.InfoScreen, ExternalFileItemKind.PowerPoint, ExternalFileItemKind.Media];
 
     public IReadOnlyList<ExternalFileOperationKind> OperationKinds { get; } =
         [ExternalFileOperationKind.Copy, ExternalFileOperationKind.Move];

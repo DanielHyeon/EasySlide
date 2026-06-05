@@ -625,6 +625,10 @@ public class MainMenuBarTests
         code.Should().Contain("InlineMediaList.UnselectAll()", "CMenuFiles_UnselectAll should clear the visible MediaList selection");
         code.Should().Contain("PreviewToLiveCommand.ExecuteAsync(null)", "CMenuFiles_AddShow should send the newly-added selection live when possible");
         code.Should().Contain("selection.Select(file => file.FilePath).ToArray()", "Media drag should carry every selected file like FrmMain MediaList.ItemDrag");
+        code.Should().Contain("LaunchExternalFileForEdit(selection[0].FilePath, \"Media\")",
+            "Media CMenuFiles_Edit should shell-open the selected file like FrmMain media file edit");
+        code.Should().Contain("OpenExternalFileOperationWindow(ExternalFileItemKind.Media, ExternalFileOperationKind.Copy, selection.Select(file => file.FilePath))",
+            "Media CMenuFiles_Copy should seed the FrmCopyMoveExternal replacement with selected media files");
         code.Should().Contain("sender is ListBox powerPointList", "PowerPoint list and preview-list drags should use the actual source surface");
         code.Should().Contain("ItemsControl.ContainerFromElement(powerPointList, source)", "PowerPoint drag arming should work for both list and preview style");
         code.Should().Contain("DragDrop.DoDragDrop(", "PowerPoint drag payload should still use WPF drag/drop");

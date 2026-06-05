@@ -49,9 +49,7 @@ public partial class ExternalFileOperationWindow : Window
         var dialog = new OpenFileDialog
         {
             Multiselect = true,
-            Filter = viewModel.ItemKind == ExternalFileItemKind.InfoScreen
-                ? "InfoScreen (*.esi)|*.esi|All files (*.*)|*.*"
-                : "PowerPoint (*.ppt;*.pptx;*.pps;*.ppsx)|*.ppt;*.pptx;*.pps;*.ppsx|All files (*.*)|*.*",
+            Filter = GetFileDialogFilter(viewModel.ItemKind),
             InitialDirectory = ResolveInitialDirectory(viewModel),
         };
 
@@ -70,6 +68,15 @@ public partial class ExternalFileOperationWindow : Window
     {
         DialogResult = true;
     }
+
+    private static string GetFileDialogFilter(ExternalFileItemKind itemKind)
+        => itemKind switch
+        {
+            ExternalFileItemKind.InfoScreen => "InfoScreen (*.esi)|*.esi|All files (*.*)|*.*",
+            ExternalFileItemKind.PowerPoint => "PowerPoint (*.ppt;*.pptx;*.pps;*.ppsx)|*.ppt;*.pptx;*.pps;*.ppsx|All files (*.*)|*.*",
+            ExternalFileItemKind.Media => "Media (*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg;*.mp4;*.wmv;*.avi;*.mov;*.mkv)|*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg;*.mp4;*.wmv;*.avi;*.mov;*.mkv|All files (*.*)|*.*",
+            _ => "All files (*.*)|*.*",
+        };
 
     private static string ResolveInitialDirectory(ExternalFileOperationViewModel viewModel)
     {

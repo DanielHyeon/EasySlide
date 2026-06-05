@@ -144,6 +144,25 @@ public class ExternalFileOperationServiceTests
         folders.Should().OnlyContain(folder => folder.Path.EndsWith(Path.DirectorySeparatorChar));
     }
 
+    [Fact]
+    public void GetFolders_Media_ReturnsLegacyMediaRootAndSortedSubfolderNames()
+    {
+        using var fixture = TempExternalFiles.Create();
+        Directory.CreateDirectory(Path.Combine(fixture.WorkingRoot, "Media", "Video"));
+        Directory.CreateDirectory(Path.Combine(fixture.WorkingRoot, "Media", "Audio", "Loops"));
+        var sut = new ExternalFileOperationService(new FakeAdminRepository());
+
+        var folders = sut.GetFolders(fixture.WorkingRoot, ExternalFileItemKind.Media);
+
+        folders.Select(folder => folder.Name).Should().Equal(
+            "Media Items",
+            "\\Audio",
+            "\\Audio\\Loops",
+            "\\Video");
+        folders[0].Path.Should().Be(Path.Combine(Path.GetFullPath(fixture.WorkingRoot), "Media") + Path.DirectorySeparatorChar);
+        folders.Should().OnlyContain(folder => folder.Path.EndsWith(Path.DirectorySeparatorChar));
+    }
+
     private sealed class FakeAdminRepository : IAdminDatabaseRepository
     {
         public List<SongWriteModel> SavedSongs { get; } = [];

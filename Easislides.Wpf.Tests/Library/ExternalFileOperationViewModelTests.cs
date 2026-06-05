@@ -13,6 +13,21 @@ namespace Easislides.Wpf.Tests.Library;
 public class ExternalFileOperationViewModelTests
 {
     [Fact]
+    public void ItemKinds_IncludeMediaForFrmMainCopyMoveParity()
+    {
+        using var fixture = TempExternalOperationSettings.Create();
+        var sut = new ExternalFileOperationViewModel(
+            fixture.Settings,
+            new FakeAdminRepository(),
+            new FakeExternalFileOperationService());
+
+        sut.ItemKinds.Should().Equal(
+            ExternalFileItemKind.InfoScreen,
+            ExternalFileItemKind.PowerPoint,
+            ExternalFileItemKind.Media);
+    }
+
+    [Fact]
     public async Task LoadAsync_DerivesLegacyFoldersAndAdminSongFolders()
     {
         using var fixture = TempExternalOperationSettings.Create();
