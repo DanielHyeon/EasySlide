@@ -3375,7 +3375,7 @@ public class MainViewModelTests
     public void CopyPreviewToOutputCommand_PreparesLyricsOutputSurfaceWithoutStartingLive()
     {
         // FrmMain OutputInfo/flowLayoutOutputLyrics: btnToOutput 은 선택 Preview 가사를 오른쪽 Output 표면에 준비한다.
-        var first = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례" };
+        var first = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례\n[2]\n축도" };
         var second = new LiveQueueItem("song:2", "봉헌 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n봉헌" };
         var sut = CreateSut(seedSampleQueue: false);
         sut.LoadQueue([first, second]);
@@ -3386,12 +3386,14 @@ public class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(first);
         sut.OutputLyricsText.Should().Be("입례");
         sut.HasOutputLyricsText.Should().BeTrue();
+        sut.OutputNavigationPositionLabel.Should().Be("1/2", "prepared OutputItem should expose its own page position even while live is off");
         sut.IsOutputPowerPointContext.Should().BeFalse();
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");
 
         sut.SelectedItem = second;
         sut.OutputItem.Should().BeSameAs(first, "Preview 선택 변경은 준비된 OutputItem 을 바꾸지 않는다");
         sut.OutputLyricsText.Should().Be("입례", "Output 본문도 Preview 선택이 아니라 OutputItem 을 따라야 한다");
+        sut.OutputNavigationPositionLabel.Should().Be("1/2", "prepared Output position should not follow later Preview selection");
     }
 
     [Fact]
@@ -8463,6 +8465,8 @@ public class MainViewModelTests
         sut.PreviewLyricsText.Should().Be("Verse two");
         sut.HasPreviewLyricsText.Should().BeTrue();
         sut.HasPreviewVisualSource.Should().BeFalse("song lyrics use the PreviewBack text frame until a rendered image source exists");
+        sut.PreviewNavigationPositionLabel.Should().Be("3/4", "Preview position should follow the selected Preview page");
+        sut.OutputNavigationPositionLabel.Should().BeEmpty("Preview card navigation should not create an Output position");
         sut.PreviewLyricsPages.Single(card => card.PageIndex == 2).IsCurrent.Should().BeTrue();
         sut.PreviewLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeFalse();
         sut.OutputLyricsPages.Should().BeEmpty("Preview card navigation should not prepare or move Output");
@@ -8538,6 +8542,7 @@ public class MainViewModelTests
         sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
         sut.OutputLyricsText.Should().Be("Live chorus");
+        sut.OutputNavigationPositionLabel.Should().Be("2/4", "Output position should follow the live Output page, not the Preview page");
         sut.OutputLyricsPages.Single(card => card.PageIndex == 1).IsCurrent.Should().BeTrue();
         sut.OutputLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeFalse();
     }

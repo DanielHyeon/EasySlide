@@ -3149,6 +3149,15 @@
                                 Content="▶"
                                 ToolTip="다음 슬라이드"
                                 AutomationProperties.Name="Preview 다음 슬라이드" />
+                        <TextBlock x:Name="ClassicPreviewPositionLabel"
+                                   Text="{Binding PreviewNavigationPositionLabel}"
+                                   MinWidth="36"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   AutomationProperties.Name="Preview 현재 위치" />
                         <WrapPanel x:Name="flowLayoutPanel1"
                                    Tag="flowLayoutPanel1">
                             <Button x:Name="PreviewBtnVerse1" Tag="1" Command="{Binding JumpToLyricsSectionCommand}" CommandParameter="1" Style="{StaticResource ClassicVerseJumpButton}" MinWidth="24" MinHeight="28" Padding="4,0" Margin="0,0,2,0" Content="1" AutomationProperties.Name="Preview 1절" />
@@ -3212,7 +3221,7 @@
                                                LineStackingStrategy="BlockLineHeight"
                                                Foreground="#FFF6E600"
                                                AutomationProperties.Name="Preview 큰 화면 본문" />
-                                    <TextBlock Text="{Binding LyricsPageLabel}"
+                                    <TextBlock Text="{Binding PreviewNavigationPositionLabel}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
                                                VerticalAlignment="Bottom"
@@ -3482,7 +3491,7 @@
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Secondary}"
                                            AutomationProperties.Name="Output 송출 모니터" />
-                                <TextBlock Text="{Binding LiveBar.PositionLabel, StringFormat='  {0}'}"
+                                <TextBlock Text="{Binding OutputNavigationPositionLabel, StringFormat='  {0}'}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}"
                                            AutomationProperties.Name="Output 위치" />
@@ -3611,6 +3620,15 @@
                                 Content="▶"
                                 ToolTip="다음 슬라이드"
                                 AutomationProperties.Name="Output 다음 슬라이드" />
+                        <TextBlock x:Name="ClassicOutputPositionLabel"
+                                   Text="{Binding OutputNavigationPositionLabel}"
+                                   MinWidth="36"
+                                   Margin="0,0,4,0"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   AutomationProperties.Name="Output 현재 위치" />
                         <ToggleButton Command="{Binding ToggleOutputLiveCommand}"
                                       IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
                                       Style="{StaticResource ClassicOutputToggleButton}"
@@ -3685,7 +3703,7 @@
                                                LineStackingStrategy="BlockLineHeight"
                                                Foreground="#FFF6E600"
                                                AutomationProperties.Name="Output 큰 화면 본문" />
-                                    <TextBlock Text="{Binding LiveBar.PositionLabel}"
+                                    <TextBlock Text="{Binding OutputNavigationPositionLabel}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
                                                VerticalAlignment="Bottom"

@@ -225,6 +225,8 @@ public class MainMenuBarTests
         preview.Should().Contain("x:Name=\"ClassicPreviewBack\"", "Preview background should stay inside the fixed frame like FrmMain PreviewBack");
         preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"", "non-PPT Preview lyrics should render in the lower preview frame");
         preview.Should().Contain("Text=\"{Binding PreviewLyricsText}\"", "the lower Preview frame should follow the selected Preview page text");
+        preview.Should().Contain("Text=\"{Binding PreviewNavigationPositionLabel}\"",
+            "the lower Preview frame should show the selected Preview page/slide position");
         preview.Should().Contain("Visibility=\"{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}\"",
             "the lower Preview lyrics layer should only appear for selected text items");
         preview.Should().Contain("Visibility=\"{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}\"",
@@ -240,6 +242,8 @@ public class MainMenuBarTests
         output.Should().Contain("x:Name=\"ClassicOutputBack\"", "the output background stays inside the fixed frame");
         output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"", "non-PPT Output lyrics should render in the lower live preview frame");
         output.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "the lower Output frame should follow OutputItem/live lyrics, not selected Preview lyrics");
+        output.Should().Contain("Text=\"{Binding OutputNavigationPositionLabel}\"",
+            "the lower Output frame should show prepared/live Output page or slide position");
         output.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "the lower Output lyrics layer should only appear for prepared/live text items");
         output.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "the PPT image overlay stays inside the fixed frame");
@@ -616,6 +620,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("IsChecked=\"{Binding IsOutputClearActive, Mode=OneWay}\"", "Clear toggle should reflect the current live clear state");
         xaml.Should().Contain("{Binding ToggleOutputLiveCommand}", "Output strip exposes FrmMain-style checked GoLive toggle");
         xaml.Should().Contain("IsChecked=\"{Binding IsOutputLiveActive, Mode=OneWay}\"", "GoLive toggle should reflect the current live active state");
+        xaml.Should().Contain("x:Name=\"ClassicPreviewPositionLabel\"", "Preview strip should expose the current Preview page/slide position");
+        xaml.Should().Contain("Text=\"{Binding PreviewNavigationPositionLabel}\"", "Preview position should follow Preview navigation only");
+        xaml.Should().Contain("x:Name=\"ClassicOutputPositionLabel\"", "Output strip should expose the current Output page/slide position");
+        xaml.Should().Contain("Text=\"{Binding OutputNavigationPositionLabel}\"", "Output position should follow prepared/live Output navigation only");
     }
 
     [Fact]
@@ -681,6 +689,7 @@ public class MainMenuBarTests
             "PreviewBtnItemDown",
             "PreviewBtnSlideUp",
             "PreviewBtnSlideDown",
+            "ClassicPreviewPositionLabel",
             "flowLayoutPanel1",
             "PreviewBtnVerse1",
             "PreviewBtnVerseChorus",
@@ -695,6 +704,7 @@ public class MainMenuBarTests
             "OutputBtnItemDown",
             "OutputBtnSlideUp",
             "OutputBtnSlideDown",
+            "ClassicOutputPositionLabel",
             "flowLayoutPanel2",
             "OutputBtnVerse1",
             "OutputBtnVerseChorus",

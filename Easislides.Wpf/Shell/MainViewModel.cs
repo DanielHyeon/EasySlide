@@ -635,6 +635,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool HasPreviewLyricsText => !string.IsNullOrWhiteSpace(PreviewLyricsText);
 
+    public string PreviewNavigationPositionLabel
+        => SelectedItem is null
+            ? string.Empty
+            : ComputePositionLabel(
+                SelectedItem with { LyricsPageIndex = LyricsPageIndex },
+                PowerPoint);
+
+    public string OutputNavigationPositionLabel
+    {
+        get
+        {
+            if (_session.Current.State != LiveState.Off
+                && !string.IsNullOrWhiteSpace(LiveBar.PositionLabel))
+            {
+                return LiveBar.PositionLabel;
+            }
+
+            return GetOutputNavigationItem() is { } item
+                ? ComputePositionLabel(item, OutputPowerPoint)
+                : string.Empty;
+        }
+    }
+
     public ImageSource? PreviewVisualSource
         => SelectedItem is not null && IsPowerPointItem(SelectedItem)
             ? PowerPoint.PreviewImage
@@ -3064,6 +3087,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanApplyCopiedFormatToAll));
         OnPropertyChanged(nameof(CanClearAllItemsFormatting));
         OnPropertyChanged(nameof(PreviewItemInfoText));
+        OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         OnPropertyChanged(nameof(PreviewVisualSource));
         OnPropertyChanged(nameof(HasPreviewVisualSource));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
@@ -3190,12 +3214,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnLyricsPageIndexChanged(int value)
     {
         RebuildPreviewLyricsPages();
+        OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnLyricsPageCountChanged(int value)
     {
         RebuildPreviewLyricsPages();
+        OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
@@ -3774,6 +3800,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshOutputSurfaceText();
         RebuildOutputLyricsPages();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyCommandStates();
     }
 
@@ -4415,6 +4442,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(PowerPoint.SlideCount)
             or nameof(PowerPoint.PreviewImage))
         {
+            OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
             NotifyCommandStates();
         }
     }
@@ -4425,6 +4453,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(OutputPowerPoint.SlideNumber)
             or nameof(OutputPowerPoint.SlideCount))
         {
+            OnPropertyChanged(nameof(OutputNavigationPositionLabel));
             NotifyCommandStates();
         }
     }
@@ -7321,6 +7350,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveBar.CurrentItemTitle = snapshot.CurrentItemTitle;
         // 라이브 위치(곡 절 "3/12"·PPT 슬라이드 "5/20") — 절/슬라이드 이동마다 세션이 다시 알려 LiveBar 가 갱신된다(없으면 빈 문자열→숨김).
         LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
+        OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         // 다음 송출 예정 항목 — 운영자가 미리 준비하도록 LiveBar 에 "다음 ▸ X"로 보여 준다(마지막 항목이면 빈 문자열→숨김).
         LiveBar.NextItemTitle = snapshot.CurrentItemNextTitle;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;
