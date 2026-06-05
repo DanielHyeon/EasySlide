@@ -101,6 +101,7 @@ public partial class App : Application
         services.AddSingleton<IWorshipListStore, WorshipListStore>();
         services.AddSingleton<IPraiseBookIndexService, PraiseBookIndexService>();
         services.AddSingleton<IPraiseBookStore, PraiseBookStore>();
+        services.AddSingleton<IInfoScreenStore, InfoScreenStore>();
         services.AddSingleton<IRecentWorshipLists, RecentWorshipListsService>();
         services.AddSingleton<IAppearanceTemplateStore, AppearanceTemplateStore>();
         services.AddTransient<MediaPlaybackViewModel>();

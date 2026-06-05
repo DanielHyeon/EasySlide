@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
@@ -39,15 +42,27 @@ public sealed class InfoScreenStore : IInfoScreenStore
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     private readonly string _directory;
+    private readonly ISettingsService? _settings;
 
     public InfoScreenStore()
-        : this(DefaultDirectory())
+        : this(DefaultDirectory(), settings: null)
+    {
+    }
+
+    public InfoScreenStore(ISettingsService settings)
+        : this(DefaultDirectory(), settings)
     {
     }
 
     public InfoScreenStore(string directory)
+        : this(directory, settings: null)
+    {
+    }
+
+    public InfoScreenStore(string directory, ISettingsService? settings)
     {
         _directory = directory ?? throw new ArgumentNullException(nameof(directory));
+        _settings = settings;
     }
 
     private static string DefaultDirectory() => Path.Combine(
@@ -71,47 +86,218 @@ public sealed class InfoScreenStore : IInfoScreenStore
 
     public async Task<InfoScreenDto?> LoadAsync(string name, CancellationToken cancellationToken = default)
     {
-        var path = ResolvePath(name);
-        if (!File.Exists(path))
+        var path = TryResolvePath(name);
+        if (path is not null && File.Exists(path))
+        {
+            var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return JsonSerializer.Deserialize<InfoScreenDto>(json, JsonOptions);
+            }
+            catch (JsonException)
+            {
+                // 손상/비-JSON 파일은 null 로 우아하게 처리(호출자 크래시 방지).
+                return null;
+            }
+        }
+
+        var legacyPath = ResolveLegacyPath(name);
+        if (legacyPath is null || !File.Exists(legacyPath))
         {
             return null;
         }
 
-        var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
-        try
-        {
-            return JsonSerializer.Deserialize<InfoScreenDto>(json, JsonOptions);
-        }
-        catch (JsonException)
-        {
-            // 손상/비-JSON 파일은 null 로 우아하게 처리(호출자 크래시 방지).
-            return null;
-        }
+        return await LoadLegacyAsync(legacyPath, cancellationToken).ConfigureAwait(false);
     }
 
     public System.Collections.Generic.IReadOnlyList<string> ListNames()
     {
-        if (!Directory.Exists(_directory))
+        var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (Directory.Exists(_directory))
         {
-            return Array.Empty<string>();
+            foreach (var name in Directory.GetFiles(_directory, "*.json")
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(n => !string.IsNullOrEmpty(n))
+                .Select(n => n!))
+            {
+                names.Add(name);
+            }
         }
 
-        return Directory.GetFiles(_directory, "*.json")
-            .Select(Path.GetFileNameWithoutExtension)
-            .Where(n => !string.IsNullOrEmpty(n))
-            .Select(n => n!)
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        foreach (var name in EnumerateLegacyNames())
+        {
+            names.Add(name);
+        }
+
+        return names.ToArray();
     }
 
     public void Delete(string name)
     {
-        var path = ResolvePath(name);
-        if (File.Exists(path))
+        var path = TryResolvePath(name);
+        if (path is not null && File.Exists(path))
         {
             File.Delete(path);
         }
     }
 
     private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "정보 화면");
+
+    private string? TryResolvePath(string name)
+    {
+        try
+        {
+            return ResolvePath(name);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    private IEnumerable<string> EnumerateLegacyNames()
+    {
+        var legacyDirectory = LegacyDirectory();
+        if (legacyDirectory is null || !Directory.Exists(legacyDirectory))
+        {
+            return Array.Empty<string>();
+        }
+
+        try
+        {
+            return Directory.EnumerateFiles(legacyDirectory, "*.esi", SearchOption.AllDirectories)
+                .Select(path => LegacyNameFromPath(legacyDirectory, path))
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(n => n!)
+                .ToArray();
+        }
+        catch (Exception ex) when (IsRecoverableFileException(ex))
+        {
+            return Array.Empty<string>();
+        }
+    }
+
+    private string? ResolveLegacyPath(string name)
+    {
+        var legacyDirectory = LegacyDirectory();
+        if (legacyDirectory is null || string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        var trimmed = name.Trim();
+        var extension = Path.GetExtension(trimmed);
+        if (!string.IsNullOrEmpty(extension)
+            && !string.Equals(extension, ".esi", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var relative = string.IsNullOrEmpty(extension) ? trimmed + ".esi" : trimmed;
+        if (!IsSafeLegacyRelativePath(relative))
+        {
+            return null;
+        }
+
+        var full = Path.GetFullPath(Path.Combine(legacyDirectory, relative));
+        var root = Path.GetFullPath(legacyDirectory);
+        var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
+        return full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase) ? full : null;
+    }
+
+    private string? LegacyDirectory()
+    {
+        var workingFolder = _settings?.Current.General.WorkingFolder;
+        if (string.IsNullOrWhiteSpace(workingFolder))
+        {
+            return null;
+        }
+
+        return Path.Combine(workingFolder, "InfoScreens");
+    }
+
+    private static string? LegacyNameFromPath(string legacyDirectory, string path)
+    {
+        var relative = Path.GetRelativePath(legacyDirectory, path);
+        var directory = Path.GetDirectoryName(relative);
+        var name = Path.GetFileNameWithoutExtension(relative);
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        return string.IsNullOrWhiteSpace(directory)
+            ? name
+            : Path.Combine(directory, name);
+    }
+
+    private static async Task<InfoScreenDto?> LoadLegacyAsync(string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var text = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+            var contents = TryReadLegacyXmlContents(text) ?? text;
+            return new InfoScreenDto(NormalizeLegacyInfoFileContents(contents));
+        }
+        catch (Exception ex) when (IsRecoverableFileException(ex))
+        {
+            return null;
+        }
+    }
+
+    private static string? TryReadLegacyXmlContents(string text)
+    {
+        try
+        {
+            var document = XDocument.Parse(text, LoadOptions.PreserveWhitespace);
+            var item = document.Descendants().FirstOrDefault(element =>
+                string.Equals(element.Name.LocalName, "Item", StringComparison.OrdinalIgnoreCase));
+            return item is null ? null : ReadElement(item, "Contents");
+        }
+        catch (System.Xml.XmlException)
+        {
+            return null;
+        }
+    }
+
+    private static string ReadElement(XElement parent, string name)
+        => parent.Elements().FirstOrDefault(element =>
+            string.Equals(element.Name.LocalName, name, StringComparison.OrdinalIgnoreCase))?.Value.Trim() ?? "";
+
+    private static string NormalizeLegacyInfoFileContents(string text)
+    {
+        var normalized = text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
+        if (!normalized.StartsWith("[", StringComparison.Ordinal))
+        {
+            return normalized;
+        }
+
+        var close = normalized.IndexOf(']', StringComparison.Ordinal);
+        return close >= 0 && close < normalized.Length - 1
+            ? normalized[(close + 1)..].TrimStart('\n')
+            : normalized;
+    }
+
+    private static bool IsSafeLegacyRelativePath(string relative)
+    {
+        var parts = relative.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return false;
+        }
+
+        return parts.All(part =>
+            part.Length > 0
+            && part != "."
+            && part != ".."
+            && part.IndexOfAny(Path.GetInvalidFileNameChars()) < 0
+            && !part.EndsWith(".", StringComparison.Ordinal));
+    }
+
+    private static bool IsRecoverableFileException(Exception ex)
+        => ex is IOException
+            or UnauthorizedAccessException
+            or InvalidOperationException
+            or NotSupportedException;
 }

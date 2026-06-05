@@ -1718,6 +1718,47 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LoadWorshipListAsync_LegacyEswName_LoadsDbSongDetailById()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var workingFolder = Path.Combine(folder.Root, "Work");
+        var legacyDir = Path.Combine(workingFolder, "Admin", "WorshipLists");
+        var databasePath = Path.Combine(workingFolder, "Admin", "Database", "EasiSlidesDb.db");
+        Directory.CreateDirectory(legacyDir);
+        Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+        await File.WriteAllTextAsync(databasePath, "");
+        settings.Set(EasiSettingKeys.WorkingFolder, workingFolder);
+        await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), """
+            <EasiSlides>
+              <ListItem>
+                <Item>
+                  <ItemID>D123</ItemID>
+                  <Title1>Old title</Title1>
+                  <Folder>다른 폴더</Folder>
+                  <FormatData>29=-65536&gt;</FormatData>
+                </Item>
+              </ListItem>
+            </EasiSlides>
+            """);
+        var store = new WorshipListStore(Path.Combine(folder.Root, "JsonLists"), settings);
+        var detail = SampleSongDetail(123, "DB title", "DB lyrics", sequence: "1 C", formatData: "47=60>");
+        var repo = new StubSongDetailRepository(detail);
+        var sut = CreateSut(seedSampleQueue: true, settings: settings, worshipLists: store, songDetail: repo);
+        sut.Library.DatabasePath = databasePath;
+
+        await sut.LoadWorshipListAsync("1.Sunday");
+
+        repo.LastDatabasePath.Should().Be(databasePath);
+        repo.LastSongId.Should().Be(123);
+        var item = sut.Queue.Single();
+        item.Title.Should().Be("DB title", "legacy .esw D items should resolve from Admin DB, not only the selected Folders list");
+        item.Lyrics.Should().Be("DB lyrics");
+        item.Sequence.Should().Be("1 C");
+        item.FormatData.Should().Be("29=-65536>", "per-worship-list item formatting should override stored song default formatting");
+    }
+
+    [Fact]
     public async Task WorshipListHasUnsavedChanges_TracksDirty_AcrossEditSaveLoad()
     {
         // 증분144 — 미저장 변경 표시: 시작 깨끗 → 큐 편집 시 표시 → 저장/불러오기로 깨끗.

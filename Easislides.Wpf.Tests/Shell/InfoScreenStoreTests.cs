@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -121,6 +122,47 @@ public sealed class InfoScreenStoreTests : IDisposable
         await store.SaveAsync("광고", new InfoScreenDto("이번 주 광고"));
 
         store.ListNames().Should().BeEquivalentTo(new[] { "광고", "헌금 안내" }, o => o.WithStrictOrdering());
+    }
+
+    [Fact]
+    public async Task ListNames_IncludesLegacyEsiNames_FromConfiguredWorkingFolder()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_LegacyInfo_{Guid.NewGuid():N}");
+        try
+        {
+            var settings = new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups")));
+            settings.Set(EasiSettingKeys.WorkingFolder, root);
+            var legacyDir = Path.Combine(root, "InfoScreens");
+            var childDir = Path.Combine(legacyDir, "A");
+            Directory.CreateDirectory(childDir);
+            await File.WriteAllTextAsync(
+                Path.Combine(legacyDir, "공지.esi"),
+                """
+                <EasiSlides>
+                  <Item>
+                    <Contents>[1]
+                환영합니다</Contents>
+                  </Item>
+                </EasiSlides>
+                """);
+            await File.WriteAllTextAsync(Path.Combine(childDir, "하위공지.esi"), "[1]\n하위 안내");
+
+            var store = new InfoScreenStore(_dir, settings);
+            await store.SaveAsync("WpfJson", new InfoScreenDto("json"));
+
+            store.ListNames().Should().Contain(new[] { "공지", Path.Combine("A", "하위공지"), "WpfJson" });
+            (await store.LoadAsync("공지"))!.Text.Should().Be("환영합니다");
+            (await store.LoadAsync(Path.Combine("A", "하위공지")))!.Text.Should().Be("하위 안내");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 
     [Fact]

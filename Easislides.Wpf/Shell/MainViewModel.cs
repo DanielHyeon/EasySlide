@@ -409,7 +409,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return true;
         }
 
-        ImportEswWorshipList(items);
+        var queueItems = await BuildEswQueueItemsAsync(items).ConfigureAwait(true);
+        LoadQueue(queueItems);
         RecordRecentWorshipList(name);
         WorshipListHasUnsavedChanges = false;
         StatusText = $"Legacy worship list loaded: {name} ({items.Count} .esw items)";
@@ -436,7 +437,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return true;
         }
 
-        var added = InsertEswWorshipListItems(items, targetItem: null);
+        var added = await InsertEswWorshipListItemsAsync(items, targetItem: null).ConfigureAwait(true);
         StatusText = $"Legacy worship list merged: {name} ({added} added, total {Queue.Count})";
         return true;
     }
@@ -2043,6 +2044,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return added;
     }
 
+    private async Task<int> InsertEswWorshipListItemsAsync(IReadOnlyList<EswWorshipListItem> items, LiveQueueItem? targetItem)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+
+        var queueItems = await BuildEswQueueItemsAsync(items).ConfigureAwait(true);
+        var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
+        var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
+        LiveQueueItem? firstAdded = null;
+        foreach (var item in queueItems)
+        {
+            Queue.Insert(insertIndex++, item);
+            firstAdded ??= item;
+        }
+
+        if (firstAdded is not null)
+        {
+            SelectedItem = firstAdded;
+        }
+
+        RefreshPowerPointLimitState(updateStatus: false);
+        NotifyCommandStates();
+        return queueItems.Count;
+    }
+
     private static bool IsLegacyWorshipListFile(string? filePath)
         => !string.IsNullOrWhiteSpace(filePath)
             && string.Equals(Path.GetExtension(filePath), ".esw", StringComparison.OrdinalIgnoreCase)
@@ -2090,6 +2115,85 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return new LiveQueueItem($"esw:{esw.TypeCode}:{contentPath}", DisplayTitleForPath(title, contentPath), LiveItemKinds.Notice)
                 { ContentPath = contentPath, Lyrics = TryReadTextFile(contentPath) ?? title, FormatData = esw.FormatData };
         }
+    }
+
+    private async Task<IReadOnlyList<LiveQueueItem>> BuildEswQueueItemsAsync(IReadOnlyList<EswWorshipListItem> items)
+    {
+        var queueItems = new List<LiveQueueItem>(items.Count);
+        foreach (var item in items)
+        {
+            queueItems.Add(await BuildEswQueueItemAsync(item).ConfigureAwait(true));
+        }
+
+        return queueItems;
+    }
+
+    private async Task<LiveQueueItem> BuildEswQueueItemAsync(EswWorshipListItem esw)
+    {
+        if (!string.Equals(esw.TypeCode, "D", StringComparison.OrdinalIgnoreCase)
+            || !int.TryParse(esw.Id, out var songId))
+        {
+            return BuildEswQueueItem(esw);
+        }
+
+        var databasePath = ResolveSongDetailDatabasePath();
+        if (!string.IsNullOrWhiteSpace(databasePath))
+        {
+            var detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+            if (detail is not null)
+            {
+                return CreateSongQueueItem(
+                    new Data.SongSummary(
+                        detail.SongId,
+                        detail.Title,
+                        detail.AlternateTitle,
+                        detail.FolderNo,
+                        detail.SongNumber,
+                        detail.Category,
+                        detail.Key,
+                        detail.Lyrics,
+                        detail.Copyright),
+                    string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
+                    string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData);
+            }
+        }
+
+        return BuildEswQueueItem(esw);
+    }
+
+    private LiveQueueItem CreateSongQueueItem(Data.SongSummary song, string? sequence = null, string? formatData = null)
+        => new($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
+        {
+            Lyrics = song.Lyrics,
+            Sequence = sequence,
+            SongNumber = song.SongNumber,
+            Copyright = song.Copyright,
+            FormatData = formatData,
+        };
+
+    private string ResolveSongDetailDatabasePath()
+    {
+        if (!string.IsNullOrWhiteSpace(Library.DatabasePath) && File.Exists(Library.DatabasePath))
+        {
+            return Library.DatabasePath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Search.DatabasePath) && File.Exists(Search.DatabasePath))
+        {
+            return Search.DatabasePath;
+        }
+
+        var workingFolder = _settings.Current.General.WorkingFolder;
+        if (!string.IsNullOrWhiteSpace(workingFolder))
+        {
+            var databasePath = Path.Combine(workingFolder, "Admin", "Database", "EasiSlidesDb.db");
+            if (File.Exists(databasePath))
+            {
+                return databasePath;
+            }
+        }
+
+        return "";
     }
 
     /// <summary>현재 예배 세션(마지막으로 저장/불러온 예배 순서) 이름 — 세션 메모 키로 쓰인다. 없으면 빈 문자열.</summary>

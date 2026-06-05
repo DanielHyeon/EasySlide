@@ -34,9 +34,9 @@
 | `SongFolder` | `ClassicSongFolderCombo` (`Tag=SongFolder`) | partial | 2 | first-screen combo is mapped; legacy folder management still lives outside this strip |
 | `SongsList` | `LibrarySongList` (`Tag=SongsList`) | partial | 3 | headerless `ListView/GridView`, selection, double-click, Enter add, and drag exist; full context menu/edit parity incomplete |
 | `Folders_WordCount` | `ClassicFoldersWordCountMode` (`Tag=Folders_WordCount`) | partial | 5 | stroke-count sort is first-screen; exact check-button behavior still incomplete |
-| `tabFiles` | `InfoScreenSourceTab` | partial | 2/3 | folder selector, list management, import/edit/copy/move/delete |
-| `InfoScreenFolder` | inline InfoScreen folder selector | partial | 2 | load legacy groups/folders |
-| `InfoScreenList` | `InlineInfoScreenList` | partial | 3 | double-click, Enter add, and drag insert exist; context menu/edit/manage parity incomplete |
+| `tabFiles` | `InfoScreenSourceTab` | partial | 2/3 | DI-backed store now reads WPF JSON plus legacy `C:\EasiSlides\InfoScreens\*.esi`; folder selector/list management/import/edit/copy/move/delete still incomplete |
+| `InfoScreenFolder` | inline InfoScreen folder selector | partial | 2 | legacy root/subfolder `.esi` names load as relative names; exact FrmMain folder combo still missing |
+| `InfoScreenList` | `InlineInfoScreenList` | partial | 3 | legacy `.esi` content loads into add/drag flow; double-click, Enter add, and drag insert exist; context menu/edit/manage parity incomplete |
 | `tabPowerpoint` | `PowerPointSourceTab` | partial | 2/3/4 | list/preview style, real thumbnails, drag/add |
 | `PowerpointFolder` | inline PowerPoint folder selector | partial | 2 | match legacy folder groups |
 | `PowerpointList` | `InlinePowerPointList` | partial | 3/4 | selection, double-click, Enter add, and drag insert exist; preview style/context menu incomplete |
@@ -60,9 +60,9 @@
 | FrmMain control | WPF target | Status | Phase | Required next work |
 | --- | --- | --- | --- | --- |
 | `tabControlLists` | `LeftListTabs` (`Tag=tabControlLists`) | partial | 1 | tab role is now explicit; exact visual density and tab behavior still incomplete |
-| `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; all toolbar/context commands still incomplete |
+| `tabWorshipList` | `Worship List` tab | partial | 2/3 | real `.esw` load is wired; startup now loads the selected saved list when the queue is empty; DB song items now resolve lyrics by `SongId` from `C:\EasiSlides\Admin\Database\EasiSlidesDb.db`; all toolbar/context commands still incomplete |
 | `SessionList` | `SessionCombo` (`Tag=SessionList`) | partial | 2 | compact first-screen combo exists; startup selects the first saved `C:\EasiSlides\Admin\WorshipLists` entry when no prior selection exists; exact legacy selection persistence still incomplete |
-| `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, startup default `.esw` load, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |
+| `WorshipListItems` | `WorshipListPanel.QueueList` (`Tag=WorshipListItems`) | partial | 3/4 | headerless `ListView/GridView`, startup default `.esw` load with DB-backed song lyrics, drag reorder, double-click Go Live, and context menu exist; preview/play-on-output parity incomplete |
 | `WL_Manage` | manage list command | partial | 3 | direct or WPF equivalent |
 | `WL_Add` | `WL_Add` + `WorshipListPanel_AddSelectedSourceRequested` | partial | 3 | visible lower-left Add button now routes by active `LeftBrowserTabs` source for Folders, Bibles, InfoScreen, PowerPoint, Media, and Search; exact multi-select/source edge cases still incomplete |
 | `WL_Open` | load selected/open file | partial | 2 | exact `.esw`/template flow |
