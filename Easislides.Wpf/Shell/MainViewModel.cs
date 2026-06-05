@@ -162,6 +162,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LyricsRegion2Emphasis _activeLyricsRegion2Italic = EasiSettingKeys.LyricsMonitorRegion2Italic.DefaultValue;
     // 현재 적용된 보조 영역(Region2) 전역 밑줄(3-상태). FollowRegion1=본문 밑줄 추종. 밑줄 선택 콤보에 바인딩.
     [ObservableProperty] private LyricsRegion2Emphasis _activeLyricsRegion2Underline = EasiSettingKeys.LyricsMonitorRegion2Underline.DefaultValue;
+
+    /// <summary>FrmMain cbOutputBlack 체크 상태: 현재 출력이 검은 화면으로 숨겨져 있는가.</summary>
+    public bool IsOutputBlackActive => _session.Current.State == LiveState.Hidden && _session.Current.IsBlackout;
+
+    /// <summary>FrmMain cbOutputClear 체크 상태: 현재 출력이 배경만 남기고 비워져 있는가.</summary>
+    public bool IsOutputClearActive => _session.Current.State == LiveState.Hidden && _session.Current.IsCleared;
+
+    /// <summary>FrmMain cbGoLive 체크 상태: 현재 출력이 라이브로 표시 중인가.</summary>
+    public bool IsOutputLiveActive => _session.Current.State == LiveState.Active;
+
     private bool _disposed;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
@@ -701,6 +711,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
         BlackScreenCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: true), CanUseLiveSafetyAction);
         ClearOutputCommand = new AsyncRelayCommand(ClearOutputAsync, CanUseLiveSafetyAction);
+        ToggleOutputBlackCommand = new AsyncRelayCommand(ToggleOutputBlackAsync, CanUseLiveSafetyAction);
+        ToggleOutputClearCommand = new AsyncRelayCommand(ToggleOutputClearAsync, CanUseLiveSafetyAction);
+        ToggleOutputLiveCommand = new AsyncRelayCommand(ToggleOutputLiveAsync, CanToggleOutputLive);
         SendLiveMessageCommand = new RelayCommand(SendLiveMessage, CanSendLiveMessage);
         ClearLiveMessageCommand = new RelayCommand(ClearLiveMessage, CanClearLiveMessage);
         ToggleOutputReferenceAlertCommand = new RelayCommand(ToggleOutputReferenceAlert, CanToggleOutputReferenceAlert);
@@ -905,6 +918,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand HideOutputCommand { get; }
     public IAsyncRelayCommand BlackScreenCommand { get; }
     public IAsyncRelayCommand ClearOutputCommand { get; }
+    /// <summary>FrmMain cbOutputBlack: 체크하면 Black, 체크 해제하면 Restore.</summary>
+    public IAsyncRelayCommand ToggleOutputBlackCommand { get; }
+    /// <summary>FrmMain cbOutputClear: 체크하면 Clear, 체크 해제하면 Restore.</summary>
+    public IAsyncRelayCommand ToggleOutputClearCommand { get; }
+    /// <summary>FrmMain cbGoLive: Off 에서는 GoLive, Hidden 에서는 Restore, Active 에서는 Stop.</summary>
+    public IAsyncRelayCommand ToggleOutputLiveCommand { get; }
     public IRelayCommand SendLiveMessageCommand { get; }
     public IRelayCommand ClearLiveMessageCommand { get; }
     public IRelayCommand ToggleOutputReferenceAlertCommand { get; }
@@ -3864,6 +3883,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             "선택 항목이 즉시 출력 화면에 표시됩니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
+            NotifyOutputLiveSafetyProperties();
             return;
         }
 
@@ -3886,6 +3906,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             "선택 항목이 즉시 출력 화면에 표시되고 선택이 다음 항목으로 이동합니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
+            NotifyOutputLiveSafetyProperties();
             return;
         }
 
@@ -3903,6 +3924,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             "출력 화면이 대기 상태로 돌아갑니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
+            NotifyOutputLiveSafetyProperties();
             return;
         }
 
@@ -4196,6 +4218,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool CanUseLiveSafetyAction() => _session.Current.State is LiveState.Active or LiveState.Hidden;
 
+    private bool CanToggleOutputLive()
+        => _session.Current.State is LiveState.Active or LiveState.Hidden || CanGoLive();
+
+    private async Task ToggleOutputBlackAsync()
+    {
+        if (IsOutputBlackActive)
+        {
+            RestoreOutput();
+            return;
+        }
+
+        await HideOutputAsync(blackout: true).ConfigureAwait(true);
+    }
+
+    private async Task ToggleOutputClearAsync()
+    {
+        if (IsOutputClearActive)
+        {
+            RestoreOutput();
+            return;
+        }
+
+        await ClearOutputAsync().ConfigureAwait(true);
+    }
+
+    private async Task ToggleOutputLiveAsync()
+    {
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            RestoreOutput();
+            return;
+        }
+
+        if (_session.Current.State == LiveState.Active)
+        {
+            await StopLiveAsync().ConfigureAwait(true);
+            return;
+        }
+
+        if (CanGoLive())
+        {
+            await GoLiveAsync().ConfigureAwait(true);
+            return;
+        }
+
+        NotifyOutputLiveSafetyProperties();
+    }
+
     private async Task HideOutputAsync(bool blackout)
     {
         var actionName = blackout ? MainCommandIds.LiveBlack : MainCommandIds.LiveHide;
@@ -4205,6 +4275,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             "라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
+            NotifyOutputLiveSafetyProperties();
             return;
         }
 
@@ -4224,6 +4295,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             "가사·콘텐츠가 사라지고 배경만 남습니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
+            NotifyOutputLiveSafetyProperties();
             return;
         }
 
@@ -6391,7 +6463,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             IsAutoRotating = false;
         }
+        NotifyOutputLiveSafetyProperties();
         NotifyCommandStates();
+    }
+
+    private void NotifyOutputLiveSafetyProperties()
+    {
+        OnPropertyChanged(nameof(IsOutputBlackActive));
+        OnPropertyChanged(nameof(IsOutputClearActive));
+        OnPropertyChanged(nameof(IsOutputLiveActive));
     }
 
     private void NotifyCommandStates()
@@ -6416,6 +6496,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         HideOutputCommand.NotifyCanExecuteChanged();
         BlackScreenCommand.NotifyCanExecuteChanged();
         ClearOutputCommand.NotifyCanExecuteChanged();
+        ToggleOutputBlackCommand.NotifyCanExecuteChanged();
+        ToggleOutputClearCommand.NotifyCanExecuteChanged();
+        ToggleOutputLiveCommand.NotifyCanExecuteChanged();
         SendLiveMessageCommand.NotifyCanExecuteChanged();
         ClearLiveMessageCommand.NotifyCanExecuteChanged();
         ToggleOutputReferenceAlertCommand.NotifyCanExecuteChanged();

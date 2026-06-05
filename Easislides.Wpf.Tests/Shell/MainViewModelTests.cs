@@ -4113,6 +4113,48 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputSafetyToggleCommands_TrackFrmMainCheckedStates()
+    {
+        // FrmMain cbOutputBlack/cbOutputClear/cbGoLive 는 체크 상태 자체가 현재 출력 상태다.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.IsOutputLiveActive.Should().BeTrue();
+        sut.IsOutputBlackActive.Should().BeFalse();
+        sut.IsOutputClearActive.Should().BeFalse();
+
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.IsOutputBlackActive.Should().BeTrue();
+        sut.IsOutputLiveActive.Should().BeFalse();
+
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active, "checked Black toggle clicked again should restore");
+        sut.IsOutputBlackActive.Should().BeFalse();
+        sut.IsOutputLiveActive.Should().BeTrue();
+
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsCleared.Should().BeTrue();
+        sut.IsOutputClearActive.Should().BeTrue();
+        sut.IsOutputLiveActive.Should().BeFalse();
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active, "checked GoLive toggle restores Hidden/Clear");
+        sut.IsOutputClearActive.Should().BeFalse();
+        sut.IsOutputLiveActive.Should().BeTrue();
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Off, "checked GoLive toggle clicked while active stops live");
+        sut.IsOutputLiveActive.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task RestartCurrentItemCommand_WhenLiveSongAdvanced_ResetsToFirstVerse()
     {
         // 처음으로: 절을 넘긴 라이브 곡을 첫 절(LyricsPageIndex=0)로 되돌려 재송출한다.

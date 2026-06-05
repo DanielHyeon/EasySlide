@@ -110,9 +110,9 @@
 | `OutputBtnRefAlert` | `OutputBtnRefAlert` + `ToggleOutputReferenceAlertCommand` + output `ReferenceAlertVisibility/Text` overlay | partial | 4/5 | toggles current live title/reference overlay like `QueryShowActive`; legacy reference source/pick/scroll/flash/duration options still incomplete |
 | `OutputBtnMedia` | `OutputBtnMedia` + `PlayOutputMediaCommand` | partial | 4/5 | button now resolves the current OutputItem/live item independently from Preview selection, opens Output if needed, and loads/toggles the matching media file; exact legacy live-show remote pause/play edge cases still incomplete |
 | `OutputBtnJumpToNonRotate` | `OutputBtnJumpToNonRotate` + `JumpToNextNonRotateOutputItemCommand` | partial | 4/5 | placeholder is now wired; it moves the independent Output/live context to the next item that is non-rotating in WPF's current page/slide model; legacy `RotateStyle`/`RotateGap`/`RotateTimings` and Gap pre-roll semantics still need metadata parity |
-| `cbOutputBlack` | `cbOutputBlack` + `BlackScreenCommand` | partial | 4/5 | stateful check/toggle parity |
-| `cbOutputClear` | `cbOutputClear` + `ClearOutputCommand` | partial | 4/5 | stateful check/toggle parity |
-| `cbGoLive` | `cbGoLive` + `RestoreOutputCommand` | partial | 4 | exact checked state/start-show semantics |
+| `cbOutputBlack` | `cbOutputBlack` + bottom Output Black toggle + `ToggleOutputBlackCommand` / `IsOutputBlackActive` | partial | 4/5 | top and bottom Output controls now behave as checked toggles that call Black and restore on second click; exact legacy remote/menu icon sync still incomplete |
+| `cbOutputClear` | `cbOutputClear` + bottom Output Clear toggle + `ToggleOutputClearCommand` / `IsOutputClearActive` | partial | 4/5 | top and bottom Output controls now behave as checked toggles that call Clear and restore on second click; exact legacy remote/menu icon sync still incomplete |
+| `cbGoLive` | `cbGoLive` + bottom Output live toggle + `ToggleOutputLiveCommand` / `IsOutputLiveActive` | partial | 4 | top and bottom Output controls now expose live checked state, start from Off, restore from Hidden, and stop from Active; exact legacy start-show edge cases remain incomplete |
 | `OutputTextBoxLM`, `OutputBtnLMSend/Clear` | `OutputTextBoxLM`, `OutputBtnLMSend`, `OutputBtnLMClear` + `OutputLiveMessage` commands | partial | 5 | currently uses Notice publish/clear; implement true lyrics-monitor overlay parity |
 
 ## 6. Gesture Mapping

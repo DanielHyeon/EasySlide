@@ -19,6 +19,48 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:SongRowDisplayConverter x:Key="SongRowDisplay" />
+        <Style x:Key="ClassicOutputToggleButton" TargetType="ToggleButton">
+            <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Button.FontSize}" />
+            <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource EsButton.FocusVisual}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="PART_Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{StaticResource CornerRadius.Medium}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Accent.Primary}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Inverse}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <!-- 전역 단축키: Ctrl+K 로 명령 팔레트 열기(§7.4 — FrmMain 136개 메뉴를 검색 가능한 단일 진입점으로 흡수). -->
@@ -2862,40 +2904,43 @@
                                    x:Name="ClassicOutputTopStrip"
                                    Orientation="Horizontal"
                                    HorizontalAlignment="Right">
-                            <Button x:Name="cbOutputBlack"
-                                    Tag="cbOutputBlack"
-                                    Command="{Binding BlackScreenCommand}"
-                                    Style="{StaticResource EsButton.Danger}"
-                                    MinWidth="32"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="4,0,0,0"
-                                    ToolTip="검은 화면"
-                                    AutomationProperties.Name="Output 검은 화면">
+                            <ToggleButton x:Name="cbOutputBlack"
+                                          Tag="cbOutputBlack"
+                                          Command="{Binding ToggleOutputBlackCommand}"
+                                          IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="32"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="4,0,0,0"
+                                          ToolTip="검은 화면"
+                                          AutomationProperties.Name="Output 검은 화면">
                                 <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
-                            </Button>
-                            <Button x:Name="cbOutputClear"
-                                    Tag="cbOutputClear"
-                                    Command="{Binding ClearOutputCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="32"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="4,0,0,0"
-                                    Content="Tx"
-                                    ToolTip="화면 비우기"
-                                    AutomationProperties.Name="Output 화면 비우기" />
-                            <Button x:Name="cbGoLive"
-                                    Tag="cbGoLive"
-                                    Command="{Binding RestoreOutputCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="32"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="4,0,0,0"
-                                    Content="LIVE"
-                                    ToolTip="출력 복귀"
-                                    AutomationProperties.Name="Output 복귀" />
+                            </ToggleButton>
+                            <ToggleButton x:Name="cbOutputClear"
+                                          Tag="cbOutputClear"
+                                          Command="{Binding ToggleOutputClearCommand}"
+                                          IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="32"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="4,0,0,0"
+                                          Content="Tx"
+                                          ToolTip="화면 비우기"
+                                          AutomationProperties.Name="Output 화면 비우기" />
+                            <ToggleButton x:Name="cbGoLive"
+                                          Tag="cbGoLive"
+                                          Command="{Binding ToggleOutputLiveCommand}"
+                                          IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="32"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="4,0,0,0"
+                                          Content="LIVE"
+                                          ToolTip="출력 복귀"
+                                          AutomationProperties.Name="Output 복귀" />
                         </WrapPanel>
                     </Grid>
 
@@ -3053,25 +3098,27 @@
                                 Content="!"
                                 ToolTip="성경 구절 알림"
                                 AutomationProperties.Name="Output 구절 알림" />
-                        <Button Command="{Binding BlackScreenCommand}"
-                                Style="{StaticResource EsButton.Danger}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                ToolTip="검은 화면"
-                                AutomationProperties.Name="Output 하단 검은 화면">
+                        <ToggleButton Command="{Binding ToggleOutputBlackCommand}"
+                                      IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
+                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                      MinWidth="30"
+                                      MinHeight="28"
+                                      Padding="6,0"
+                                      Margin="0,0,4,0"
+                                      ToolTip="검은 화면"
+                                      AutomationProperties.Name="Output 하단 검은 화면">
                             <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
-                        </Button>
-                        <Button Command="{Binding ClearOutputCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                Margin="0,0,4,0"
-                                Content="Tx"
-                                ToolTip="화면 비우기"
-                                AutomationProperties.Name="Output 하단 화면 비우기" />
+                        </ToggleButton>
+                        <ToggleButton Command="{Binding ToggleOutputClearCommand}"
+                                      IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
+                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                      MinWidth="30"
+                                      MinHeight="28"
+                                      Padding="6,0"
+                                      Margin="0,0,4,0"
+                                      Content="Tx"
+                                      ToolTip="화면 비우기"
+                                      AutomationProperties.Name="Output 하단 화면 비우기" />
                         <Button x:Name="OutputBtnItemUp"
                                 Tag="OutputBtnItemUp"
                                 Command="{Binding PreviousOutputItemCommand}"
@@ -3116,15 +3163,16 @@
                                 Content="▶"
                                 ToolTip="다음 슬라이드"
                                 AutomationProperties.Name="Output 다음 슬라이드" />
-                        <Button Command="{Binding RestoreOutputCommand}"
-                                Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="30"
-                                MinHeight="28"
-                                Padding="6,0"
-                                ToolTip="출력 복귀"
-                                AutomationProperties.Name="Output 하단 복귀">
+                        <ToggleButton Command="{Binding ToggleOutputLiveCommand}"
+                                      IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
+                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                      MinWidth="30"
+                                      MinHeight="28"
+                                      Padding="6,0"
+                                      ToolTip="출력 복귀"
+                                      AutomationProperties.Name="Output 하단 복귀">
                             <ui:SymbolIcon Symbol="ArrowReset24" />
-                        </Button>
+                        </ToggleButton>
                         <WrapPanel x:Name="flowLayoutPanel2"
                                    Tag="flowLayoutPanel2"
                                    Margin="4,0,0,0">

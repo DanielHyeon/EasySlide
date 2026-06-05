@@ -550,9 +550,12 @@ public class MainMenuBarTests
         xaml.Should().Contain("{Binding CopyPreviewToOutputAndNextCommand}", "FrmMain btnToOutputMoveNext should copy Output and advance Preview without starting live");
         OperatorBarXaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "fixed operator bar keeps F11 live send-and-next");
         xaml.Should().Contain("Text=\"{Binding OutputItem.Title, TargetNullValue='Output'}\"", "Output title should follow the prepared OutputItem, not the selected Preview item");
-        xaml.Should().Contain("{Binding BlackScreenCommand}", "Output strip exposes Black");
-        xaml.Should().Contain("{Binding ClearOutputCommand}", "Output strip exposes Clear");
-        xaml.Should().Contain("{Binding RestoreOutputCommand}", "Output strip exposes Restore");
+        xaml.Should().Contain("{Binding ToggleOutputBlackCommand}", "Output strip exposes FrmMain-style checked Black toggle");
+        xaml.Should().Contain("IsChecked=\"{Binding IsOutputBlackActive, Mode=OneWay}\"", "Black toggle should reflect the current live blackout state");
+        xaml.Should().Contain("{Binding ToggleOutputClearCommand}", "Output strip exposes FrmMain-style checked Clear toggle");
+        xaml.Should().Contain("IsChecked=\"{Binding IsOutputClearActive, Mode=OneWay}\"", "Clear toggle should reflect the current live clear state");
+        xaml.Should().Contain("{Binding ToggleOutputLiveCommand}", "Output strip exposes FrmMain-style checked GoLive toggle");
+        xaml.Should().Contain("IsChecked=\"{Binding IsOutputLiveActive, Mode=OneWay}\"", "GoLive toggle should reflect the current live active state");
     }
 
     [Fact]
