@@ -3469,6 +3469,8 @@ public class MainViewModelTests
             "PPT 항목 GoLive 시 렌더된 슬라이드가 출력 송출 슬롯에 실려야 함");
         sut.Session.Current.CurrentItemPreviewFillMode.Should().Be(ImageFillMode.Fit, "PPT 슬라이드는 레터박스(Fit) 송출");
         sut.OutputPowerPoint.PreviewImage.Should().BeSameAs(expectedSlide, "오른쪽 Output 큰 화면도 송출 PPT 상태를 사용해야 함");
+        sut.OutputVisualSource.Should().BeSameAs(expectedSlide, "Output 큰 화면의 공통 시각 레이어도 송출 PPT 상태를 사용해야 함");
+        sut.HasOutputVisualSource.Should().BeTrue();
         sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
     }
 
@@ -3492,8 +3494,41 @@ public class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Off, "btnToOutput 은 라이브 송출을 시작하지 않는다");
         sut.LiveItemId.Should().BeNull("라이브 항목 표시는 바뀌지 않는다");
         sut.OutputPowerPoint.PreviewImage.Should().BeSameAs(expectedSlide, "Output 큰 화면은 준비된 OutputItem 슬라이드를 보여야 함");
+        sut.OutputVisualSource.Should().BeSameAs(expectedSlide, "Output visual surface should use the prepared Output PPT image");
+        sut.OutputVisualFillMode.Should().Be(ImageFillMode.Fit);
         sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
         sut.StatusText.Should().Be("Output 준비: Deck");
+    }
+
+    [Fact]
+    public void CopyPreviewToOutputCommand_PreparesImageVisualOutputSurfaceWithoutStartingLive()
+    {
+        var expectedImage = new DrawingImage();
+        expectedImage.Freeze();
+        var image = new LiveQueueItem("image:1", "성전 배경", LiveItemKinds.Item)
+        {
+            PreviewSource = expectedImage,
+            PreviewFillMode = ImageFillMode.Fill,
+        };
+        var next = new LiveQueueItem("song:2", "다음 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n다음" };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([image, next]);
+        sut.SelectedItem = image;
+
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputItem.Should().BeSameAs(image);
+        sut.OutputVisualSource.Should().BeSameAs(expectedImage,
+            "FrmMain Output 큰 화면은 PPT뿐 아니라 준비된 이미지/시각 항목도 표시해야 함");
+        sut.OutputVisualFillMode.Should().Be(ImageFillMode.Fill);
+        sut.HasOutputVisualSource.Should().BeTrue();
+        sut.OutputLyricsText.Should().BeEmpty();
+        sut.HasOutputLyricsText.Should().BeFalse();
+        sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");
+
+        sut.SelectedItem = next;
+        sut.OutputVisualSource.Should().BeSameAs(expectedImage,
+            "Preview 선택 변경은 준비된 Output 시각 항목을 바꾸지 않는다");
     }
 
     [Fact]

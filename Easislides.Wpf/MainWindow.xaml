@@ -3788,11 +3788,11 @@
                                                Foreground="#FFF6E600" />
                                 </Grid>
                             </Border>
-                            <Image x:Name="ClassicOutputLargeSlideImage"
-                                   Source="{Binding OutputPowerPoint.PreviewImage}"
-                                   Visibility="{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}"
-                                   Stretch="Uniform"
-                                   AutomationProperties.Name="Output 큰 PowerPoint 슬라이드" />
+                            <rendering:SlidePreviewControl x:Name="ClassicOutputLargeSlideImage"
+                                                           Source="{Binding OutputVisualSource}"
+                                                           FillMode="{Binding OutputVisualFillMode}"
+                                                           Visibility="{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}"
+                                                           AutomationProperties.Name="Output 큰 시각 자료" />
                         </Grid>
                     </Viewbox>
 

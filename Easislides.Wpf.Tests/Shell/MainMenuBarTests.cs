@@ -207,9 +207,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"ClassicOutputSlidePane\"", "right-bottom Output pane should stay distinct");
         xaml.Should().Contain("Tag=\"splitContainerOutput.Panel2\"", "right-bottom Output pane should map to splitContainerOutput.Panel2");
         xaml.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "right-bottom Output pane should expose the large slide surface");
-        xaml.Should().Contain("Source=\"{Binding OutputPowerPoint.PreviewImage}\"", "large Output slide should show the live/output PPT image when available");
-        xaml.Should().Contain("Visibility=\"{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}\"",
-            "the large PPT slide image should not cover non-PPT Output lyrics");
+        xaml.Should().Contain("Source=\"{Binding OutputVisualSource}\"", "large Output slide should show the live/output PPT or image visual when available");
+        xaml.Should().Contain("Visibility=\"{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}\"",
+            "the large visual layer should only cover the Output text frame when an actual visual source exists");
     }
 
     [Fact]
@@ -246,7 +246,13 @@ public class MainMenuBarTests
             "the lower Output frame should show prepared/live Output page or slide position");
         output.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "the lower Output lyrics layer should only appear for prepared/live text items");
-        output.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "the PPT image overlay stays inside the fixed frame");
+        output.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "the visual overlay stays inside the fixed frame");
+        output.Should().Contain("Source=\"{Binding OutputVisualSource}\"",
+            "the lower Output frame should use the prepared/live visual source rather than only the PPT VM");
+        output.Should().Contain("FillMode=\"{Binding OutputVisualFillMode}\"",
+            "image Output items should keep their FrmMain-style fit/fill mode in the large frame");
+        output.Should().Contain("Visibility=\"{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}\"",
+            "the lower Output visual layer should only appear for prepared/live visual items");
     }
 
     [Fact]

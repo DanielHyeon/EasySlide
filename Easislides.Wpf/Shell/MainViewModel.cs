@@ -63,6 +63,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOutputPowerPointContext))]
+    [NotifyPropertyChangedFor(nameof(OutputVisualSource))]
+    [NotifyPropertyChangedFor(nameof(OutputVisualFillMode))]
+    [NotifyPropertyChangedFor(nameof(HasOutputVisualSource))]
     private LiveQueueItem? _outputItem;
     [ObservableProperty] private OutputDisplay? _selectedOutputDisplay;
     // 스테이지(Preview) 모니터로 선택된 디스플레이 + 창 열림 여부(메뉴·버튼 활성 상태에 쓰임).
@@ -664,6 +667,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : SelectedItem?.PreviewSource;
 
     public bool HasPreviewVisualSource => PreviewVisualSource is not null;
+
+    public ImageSource? OutputVisualSource
+    {
+        get
+        {
+            var item = GetOutputNavigationItem();
+            return item is not null && IsPowerPointItem(item)
+                ? OutputPowerPoint.PreviewImage
+                : item?.PreviewSource;
+        }
+    }
+
+    public Rendering.ImageFillMode OutputVisualFillMode
+        => GetOutputNavigationItem()?.PreviewFillMode ?? Rendering.ImageFillMode.Fit;
+
+    public bool HasOutputVisualSource => OutputVisualSource is not null;
 
     /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
@@ -3876,6 +3895,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshOutputSurfaceText();
         RebuildOutputLyricsPages();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        OnPropertyChanged(nameof(OutputVisualSource));
+        OnPropertyChanged(nameof(OutputVisualFillMode));
+        OnPropertyChanged(nameof(HasOutputVisualSource));
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyCommandStates();
     }
@@ -4548,9 +4570,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnOutputPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(OutputPowerPoint.PreviewImage))
+        {
+            OnPropertyChanged(nameof(OutputVisualSource));
+            OnPropertyChanged(nameof(HasOutputVisualSource));
+        }
+
         if (e.PropertyName is nameof(OutputPowerPoint.State)
             or nameof(OutputPowerPoint.SlideNumber)
-            or nameof(OutputPowerPoint.SlideCount))
+            or nameof(OutputPowerPoint.SlideCount)
+            or nameof(OutputPowerPoint.PreviewImage))
         {
             OnPropertyChanged(nameof(OutputNavigationPositionLabel));
             NotifyCommandStates();
@@ -7539,6 +7568,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 라이브 위치(곡 절 "3/12"·PPT 슬라이드 "5/20") — 절/슬라이드 이동마다 세션이 다시 알려 LiveBar 가 갱신된다(없으면 빈 문자열→숨김).
         LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
+        OnPropertyChanged(nameof(OutputVisualSource));
+        OnPropertyChanged(nameof(OutputVisualFillMode));
+        OnPropertyChanged(nameof(HasOutputVisualSource));
         // 다음 송출 예정 항목 — 운영자가 미리 준비하도록 LiveBar 에 "다음 ▸ X"로 보여 준다(마지막 항목이면 빈 문자열→숨김).
         LiveBar.NextItemTitle = snapshot.CurrentItemNextTitle;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;
