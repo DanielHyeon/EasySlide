@@ -576,6 +576,27 @@ public class MainMenuBarTests
         var code = CodeBehind;
 
         xaml.Should().Contain("Tag=\"Bibles\"", "FrmMain keeps Bibles as a source tab");
+        xaml.Should().Contain("x:Name=\"BookLookup\"", "Bibles tab should expose the FrmMain book selector role");
+        xaml.Should().Contain("Tag=\"BookLookup\"", "BookLookup role should be explicit for 1:1 mapping");
+        xaml.Should().Contain("SelectedItem=\"{Binding Bible.SelectedBook, Mode=TwoWay}\"",
+            "changing BookLookup should move the selected Bible book, not require a detached modal flow");
+        xaml.Should().Contain("x:Name=\"BibleUserLookup\"", "Bibles tab should expose the FrmMain typed-reference textbox role");
+        xaml.Should().Contain("Tag=\"BibleUserLookup\"", "typed reference input should keep the legacy BibleUserLookup role");
+        xaml.Should().Contain("KeyDown=\"BibleReferenceBox_KeyDown\"", "BibleUserLookup Enter should submit like FrmMain");
+        xaml.Should().Contain("x:Name=\"Bibles_Go\"", "Bibles tab should expose the FrmMain Go toolstrip button role");
+        xaml.Should().Contain("Tag=\"Bibles_Go\"", "Go button should keep the legacy Bibles_Go role");
+        xaml.Should().Contain("Click=\"JumpBibleReference_Click\"", "Bibles_Go should submit the typed reference");
+        xaml.Should().Contain("x:Name=\"Bibles_ShowVerses\"", "Bibles tab should expose the FrmMain show-verses toggle role");
+        xaml.Should().Contain("Tag=\"Bibles_ShowVerses\"", "Show-verses toggle should keep the legacy role");
+        xaml.Should().Contain("IsChecked=\"{Binding Bible.ShowVerses, Mode=TwoWay}\"",
+            "Bibles_ShowVerses should drive the same VM state used by passage loading");
+        xaml.Should().Contain("x:Name=\"TabBibleVersions\"", "Bibles tab should expose the FrmMain version-tab role");
+        xaml.Should().Contain("Tag=\"TabBibleVersions\"", "version selector should keep the legacy TabBibleVersions role");
+        xaml.Should().Contain("ItemsSource=\"{Binding Bible.Versions}\"",
+            "TabBibleVersions should be backed by the loaded legacy Bible versions");
+        xaml.Should().Contain("SelectedItem=\"{Binding Bible.SelectedVersion, Mode=TwoWay}\"",
+            "changing TabBibleVersions should change the active Bible version");
+        xaml.Should().Contain("Tag=\"BibleText\"", "Bible text surface should keep the FrmMain BibleText role");
         xaml.Should().Contain("x:Name=\"BiblePassageBox\"", "Bible text should keep a stable selection surface");
         xaml.Should().Contain("x:Name=\"CMenuBible\"", "Bible text context menu should map to FrmMain CMenuBible");
         xaml.Should().Contain("Opened=\"BibleContextMenu_Opened\"", "menu enablement should follow FrmMain's opening-time rules");

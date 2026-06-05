@@ -89,6 +89,11 @@ public sealed partial class BibleViewModel : ObservableObject
             PreviewRegion1Version = SelectedVersion;
             PreviewRegion2Version = Versions.FirstOrDefault(version => !Equals(version, PreviewRegion1Version));
             LoadBooksForSelectedVersion();
+            if (SelectedVersion is not null && SelectedBook is not null)
+            {
+                LoadSelectedBookCore();
+            }
+
             ValidationMessage = Versions.Count == 0
                 ? "성경 목록 데이터베이스를 찾을 수 없습니다."
                 : "";
@@ -380,9 +385,7 @@ public sealed partial class BibleViewModel : ObservableObject
 
         return ExecuteOperationAsync(() =>
         {
-            _currentResult = _repository.LoadBook(SelectedVersion, SelectedBook.Number, ShowVerses);
-            PassageText = _currentResult.Text;
-            ClearSelection();
+            LoadSelectedBookCore();
             StatusMessage = $"{_currentResult.Locations.Count}개 구절을 불러왔습니다.";
         });
     }
@@ -613,7 +616,13 @@ public sealed partial class BibleViewModel : ObservableObject
     }
 
     partial void OnSelectedBookChanged(BibleBook? value)
-        => NotifyCommands();
+    {
+        NotifyCommands();
+        _ = ReloadSelectedBookAfterSelectionChangeAsync();
+    }
+
+    partial void OnShowVersesChanged(bool value)
+        => _ = ReloadSelectedBookAfterSelectionChangeAsync();
 
     partial void OnPreviewRegion1VersionChanged(BibleVersion? value)
         => UpdatePreviewSelection();
@@ -651,6 +660,28 @@ public sealed partial class BibleViewModel : ObservableObject
         }
 
         return Task.CompletedTask;
+    }
+
+    private Task ReloadSelectedBookAfterSelectionChangeAsync()
+    {
+        if (IsBusy || SelectedVersion is null || SelectedBook is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return LoadSelectedBookAsync();
+    }
+
+    private void LoadSelectedBookCore()
+    {
+        if (SelectedVersion is null || SelectedBook is null)
+        {
+            return;
+        }
+
+        _currentResult = _repository.LoadBook(SelectedVersion, SelectedBook.Number, ShowVerses);
+        PassageText = _currentResult.Text;
+        ClearSelection();
     }
 
     private void LoadBooksForSelectedVersion()

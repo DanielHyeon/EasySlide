@@ -1586,42 +1586,76 @@
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!-- 버전·책 선택 + 검색 — BibleWindow 와 동일 재사용 컴포지트(DataContext=Bible 로 국한). -->
-                        <composites:BibleVerseFinder Grid.Row="0"
-                                                     DataContext="{Binding Bible}" />
-
-                        <!-- 구절 직접 입력 점프(typed-reference) — 예: "창 1:1-2:3". Enter 또는 "이동"으로 즉시 추가. -->
-                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                        <!-- FrmMain Bibles top strip: BookLookup + BibleUserLookup + Bibles_ShowVerses/Bibles_Go. -->
+                        <Grid Grid.Row="0" Margin="0,0,0,4">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="7*" />
+                                <ColumnDefinition Width="2" />
+                                <ColumnDefinition Width="5*" />
+                                <ColumnDefinition Width="2" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="2" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0"
-                                     x:Name="BibleReferenceBox"
+
+                            <ComboBox Grid.Column="0"
+                                      x:Name="BookLookup"
+                                      Tag="BookLookup"
+                                      ItemsSource="{Binding Bible.Books}"
+                                      SelectedItem="{Binding Bible.SelectedBook, Mode=TwoWay}"
+                                      DisplayMemberPath="Name"
+                                      MinHeight="28"
+                                      FontSize="12"
+                                      AutomationProperties.Name="성경 책" />
+
+                            <TextBox Grid.Column="2"
+                                     x:Name="BibleUserLookup"
+                                     Tag="BibleUserLookup"
                                      Text="{Binding Bible.TypedReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      KeyDown="BibleReferenceBox_KeyDown"
-                                     MinHeight="36"
-                                     ToolTip="구절을 직접 입력해 바로 추가 (예: 창 1:1-2:3, John 3:16)"
+                                     MinHeight="28"
+                                     FontSize="12"
+                                     ToolTip="구절 직접 입력 (예: 창 1:1-2:3, John 3:16)"
                                      AutomationProperties.Name="성경 구절 직접 입력" />
-                            <Button Grid.Column="2"
+
+                            <ToggleButton Grid.Column="4"
+                                          x:Name="Bibles_ShowVerses"
+                                          Tag="Bibles_ShowVerses"
+                                          IsChecked="{Binding Bible.ShowVerses, Mode=TwoWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="28"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          ToolTip="절 번호 표시 전환"
+                                          AutomationProperties.Name="성경 절 번호 표시">
+                                <TextBlock Text="V" FontWeight="Bold" />
+                            </ToggleButton>
+
+                            <Button Grid.Column="6"
+                                    x:Name="Bibles_Go"
+                                    Tag="Bibles_Go"
                                     Click="JumpBibleReference_Click"
                                     Style="{StaticResource EsButton.Secondary}"
-                                    Content="이동"
-                                    ToolTip="입력한 구절로 이동해 예배 순서에 추가"
-                                    AutomationProperties.Name="입력한 성경 구절로 이동" />
+                                    MinWidth="28"
+                                    MinHeight="28"
+                                    Padding="4,0"
+                                    ToolTip="입력한 구절로 이동"
+                                    AutomationProperties.Name="입력한 성경 구절로 이동">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.BibleGo}" />
+                            </Button>
                         </Grid>
 
                         <!-- 본문 — 구절 범위를 드래그 선택한 뒤 아래 "선택 구절 추가" 또는 우클릭 메뉴 사용. -->
-                        <TextBox Grid.Row="2"
+                        <TextBox Grid.Row="1"
                                  x:Name="BiblePassageBox"
+                                 Tag="BibleText"
                                  Text="{Binding Bible.PassageText, Mode=OneWay}"
                                  IsReadOnly="True"
                                  TextWrapping="Wrap"
@@ -1675,6 +1709,30 @@
                                 </ContextMenu>
                             </TextBox.ContextMenu>
                         </TextBox>
+
+                        <TabControl Grid.Row="2"
+                                    x:Name="TabBibleVersions"
+                                    Tag="TabBibleVersions"
+                                    ItemsSource="{Binding Bible.Versions}"
+                                    SelectedItem="{Binding Bible.SelectedVersion, Mode=TwoWay}"
+                                    TabStripPlacement="Bottom"
+                                    Style="{StaticResource EsTabView.FrmMainBottom}"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    MinHeight="26"
+                                    Margin="0,4,0,0"
+                                    AutomationProperties.Name="성경 버전">
+                            <TabControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </TabControl.ItemTemplate>
+                            <TabControl.ContentTemplate>
+                                <DataTemplate>
+                                    <Grid Height="0" />
+                                </DataTemplate>
+                            </TabControl.ContentTemplate>
+                        </TabControl>
 
                         <Button Grid.Row="3"
                                 Click="AddBibleVerse_Click"

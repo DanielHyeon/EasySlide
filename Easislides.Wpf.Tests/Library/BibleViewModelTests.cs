@@ -78,6 +78,83 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_LoadsCurrentBookTextLikeFrmMainBibleTab()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "1:1 In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 20)],
+                IsSequential: true,
+                WasLimited: false),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.PassageText.Should().Be("1:1 In the beginning");
+        repository.LastLoadedBookNumber.Should().Be(1);
+        repository.LastLoadedShowVerses.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ChangingSelectedBook_LoadsBookTextImmediatelyLikeBookLookupChanged()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var exodus = new BibleBook(2, "Exodus");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis"), exodus],
+            LoadedBook = new BiblePassageResult(
+                "2:1 Now these are the names",
+                [new BibleVerseLocation(0, 2, 1, 1, 0, 27)],
+                IsSequential: true,
+                WasLimited: false),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        repository.ResetLoadBookTracking();
+
+        sut.SelectedBook = exodus;
+
+        sut.PassageText.Should().Be("2:1 Now these are the names");
+        repository.LastLoadedBookNumber.Should().Be(2);
+        repository.LoadBookCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ChangingShowVerses_ReloadsCurrentBookLikeBiblesShowVerses()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                "In the beginning",
+                [new BibleVerseLocation(0, 1, 1, 1, 0, 16)],
+                IsSequential: true,
+                WasLimited: false),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        repository.ResetLoadBookTracking();
+
+        sut.ShowVerses = false;
+
+        repository.LastLoadedBookNumber.Should().Be(1);
+        repository.LastLoadedShowVerses.Should().BeFalse();
+        repository.LoadBookCallCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task LoadAsync_WhenRepositoryFails_ReportsValidationAndClearsState()
     {
         using var fixture = TempBibleSettings.Create();
@@ -643,6 +720,12 @@ public class BibleViewModelTests
 
         public BibleSelection Selection { get; init; } = new("", "");
 
+        public int LoadBookCallCount { get; private set; }
+
+        public int LastLoadedBookNumber { get; private set; } = -1;
+
+        public bool LastLoadedShowVerses { get; private set; }
+
         public string LastSearchText { get; private set; } = "";
 
         public BibleVersion? LastRegion1 { get; private set; }
@@ -675,7 +758,19 @@ public class BibleViewModelTests
             => Books;
 
         public BiblePassageResult LoadBook(BibleVersion version, int bookNumber, bool showVerses)
-            => LoadedBook;
+        {
+            LoadBookCallCount++;
+            LastLoadedBookNumber = bookNumber;
+            LastLoadedShowVerses = showVerses;
+            return LoadedBook;
+        }
+
+        public void ResetLoadBookTracking()
+        {
+            LoadBookCallCount = 0;
+            LastLoadedBookNumber = -1;
+            LastLoadedShowVerses = false;
+        }
 
         public BiblePassageResult Search(
             BibleVersion version,
