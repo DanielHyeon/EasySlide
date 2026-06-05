@@ -3802,6 +3802,87 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyPreviewToOutputAndNextCommand_WhenLive_PublishesPreviewAndAdvancesPreviewOnly()
+    {
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        var next = new LiveQueueItem("song:next", "Next song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext verse",
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([live, preview, next]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.NextLyricsPageCommand.Execute(null);
+
+        sut.CopyPreviewToOutputAndNextCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(next, "FrmMain btnToOutputMoveNext advances only Preview after copying");
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
+        sut.OutputLyricsText.Should().Be("Preview chorus");
+        sut.PreviewLyricsText.Should().Be("Next verse");
+        sut.StatusText.Should().Be("Output 준비: Preview song / Preview 다음: Next song");
+    }
+
+    [Fact]
+    public async Task CopyPreviewToOutputAndNextCommand_WhenBlackHidden_RefreshesHiddenPayloadAndAdvancesPreviewOnly()
+    {
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        var next = new LiveQueueItem("song:next", "Next song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nNext verse",
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([live, preview, next]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.CopyPreviewToOutputAndNextCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(next);
+        sut.OutputItem.Should().BeSameAs(preview);
+        sut.LiveItemId.Should().Be(preview.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
+        sut.OutputLyricsText.Should().Be("Preview verse");
+        sut.PreviewLyricsText.Should().Be("Next verse");
+
+        sut.RestoreOutputCommand.Execute(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
+    }
+
+    [Fact]
     public void CopyPreviewToOutputAndNextCommand_LastItem_PreparesOutputAndKeepsPreviewSelection()
     {
         var only = new LiveQueueItem("song:1", "마지막 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n마지막" };
