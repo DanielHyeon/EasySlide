@@ -5703,6 +5703,45 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AutoRotateModeOptions_ExposeFrmMainRotateStyleOrderAndTags()
+    {
+        var sut = CreateSut();
+
+        sut.AutoRotateModeOptions.Select(option => new
+        {
+            option.Name,
+            option.Text,
+            option.LegacyTag,
+            option.Value,
+        }).Should().Equal(
+            new { Name = "Main_Rotate0", Text = "Auto Rotate One Item", LegacyTag = "0", Value = AutoRotateMode.One },
+            new { Name = "Main_Rotate1", Text = "Auto Rotate One Item - Repeat", LegacyTag = "1", Value = AutoRotateMode.OneRepeat },
+            new { Name = "Main_Rotate2", Text = "Auto Rotate Group", LegacyTag = "2", Value = AutoRotateMode.Group },
+            new { Name = "Main_Rotate3", Text = "Auto Rotate Group - Repeat", LegacyTag = "3", Value = AutoRotateMode.GroupRepeat });
+    }
+
+    [Fact]
+    public async Task MainNoRotateChecked_FollowsFrmMainStopAutoRotateSemantics()
+    {
+        var sut = CreateSut();
+        sut.IsNoRotateChecked.Should().BeTrue("FrmMain Main_NoRotate is checked while auto-rotate is stopped");
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "Song", "Song") { Lyrics = "[1]\nVerse" } });
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleAutoRotateCommand.Execute(null);
+
+        sut.IsAutoRotating.Should().BeTrue();
+        sut.IsNoRotateChecked.Should().BeFalse("Main_NoRotate should uncheck while auto-rotate is running");
+
+        sut.ToggleAutoRotateCommand.Execute(null);
+
+        sut.IsAutoRotating.Should().BeFalse();
+        sut.IsNoRotateChecked.Should().BeTrue("Main_NoRotate should check again after stopping auto-rotate");
+    }
+
+    [Fact]
     public async Task AdvanceAutoRotation_OneMode_StopsAtEndOfItem()
     {
         // "한 항목만" 모드 — 마지막 절까지 가면 자동 회전을 멈춘다(첫 절로 순환하지 않음).

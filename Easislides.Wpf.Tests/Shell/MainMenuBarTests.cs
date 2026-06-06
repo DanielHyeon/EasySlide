@@ -125,6 +125,23 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void OperatorBar_ExposesFrmMainAutoRotateControlsByLegacyNames()
+    {
+        var operatorBar = OperatorBarXaml;
+
+        operatorBar.Should().Contain("x:Name=\"Main_NoRotate\"", "FrmMain top toolbar uses Main_NoRotate for Stop Auto Rotate");
+        operatorBar.Should().Contain("Tag=\"Main_NoRotate\"", "the WPF control should preserve the legacy toolbar role");
+        operatorBar.Should().Contain("IsChecked=\"{Binding IsNoRotateChecked, Mode=OneWay}\"",
+            "FrmMain Main_NoRotate is checked when auto-rotate is off, not when it is running");
+        operatorBar.Should().Contain("x:Name=\"Main_RotateStyle\"", "FrmMain top toolbar uses Main_RotateStyle for the rotate-style dropdown");
+        operatorBar.Should().Contain("Tag=\"Main_RotateStyle\"", "the WPF dropdown should preserve the legacy toolbar role");
+        operatorBar.Should().Contain("DisplayMemberPath=\"Text\"", "the dropdown should display the legacy menu text");
+        operatorBar.Should().Contain("Tag\" Value=\"{Binding LegacyTag}\"", "Main_Rotate0..3 legacy tags should be preserved on dropdown items");
+        operatorBar.Should().Contain("AutomationProperties.Name\" Value=\"{Binding Name}\"",
+            "dropdown items should expose Main_Rotate0..3 names for parity tests and accessibility");
+    }
+
+    [Fact]
     public void MainWindow_Loaded_PreloadsBibleOnce()
     {
         var code = CodeBehind;

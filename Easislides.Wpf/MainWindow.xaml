@@ -905,29 +905,40 @@
                             <TextBlock Text="출력 닫기" />
                         </StackPanel>
                     </Button>
-                    <ToggleButton IsChecked="{Binding IsAutoRotating, Mode=OneWay}"
+                    <ToggleButton x:Name="Main_NoRotate"
+                                  Tag="Main_NoRotate"
+                                  IsChecked="{Binding IsNoRotateChecked, Mode=OneWay}"
                                   Command="{Binding ToggleAutoRotateCommand}"
-                                  MinHeight="36"
-                                  Padding="10,0"
-                                  Margin="0,0,8,6"
-                                  ToolTip="라이브 중 절/슬라이드를 일정 간격으로 자동 전환(§7.3-B)"
-                                  AutomationProperties.Name="자동 회전 토글">
+                                  MinWidth="30"
+                                  MinHeight="28"
+                                  Padding="6,0"
+                                  Margin="0,0,4,6"
+                                  ToolTip="Stop Auto Rotate"
+                                  AutomationProperties.Name="Main_NoRotate Stop Auto Rotate">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowRotateClockwise24" Margin="0,0,6,0" />
-                            <TextBlock Text="자동회전" />
+                            <ui:SymbolIcon Symbol="ArrowRotateClockwise24" />
                         </StackPanel>
                     </ToggleButton>
-                    <!-- 자동 회전 모드(레거시 One/One-Repeat/Group/Group-Repeat) — 끝 절/슬라이드에서의 동작 선택. -->
-                    <ComboBox ItemsSource="{Binding AutoRotateModeOptions}"
+                    <!-- FrmMain Main_RotateStyle: legacy One/One-Repeat/Group/Group-Repeat dropdown. -->
+                    <ComboBox x:Name="Main_RotateStyle"
+                              Tag="Main_RotateStyle"
+                              ItemsSource="{Binding AutoRotateModeOptions}"
                               SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
                               SelectedValuePath="Value"
-                              DisplayMemberPath="Key"
-                              MinHeight="36"
-                              MinWidth="120"
+                              DisplayMemberPath="Text"
+                              MinHeight="28"
+                              MinWidth="176"
                               Margin="0,0,8,6"
                               VerticalContentAlignment="Center"
-                              ToolTip="자동 회전 모드 — 현재 항목 반복 / 한 항목만(끝나면 정지) / 그룹(다음 항목으로) / 그룹 반복"
-                              AutomationProperties.Name="자동 회전 모드" />
+                              ToolTip="Rotate Style"
+                              AutomationProperties.Name="Main_RotateStyle Rotate Style">
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Tag" Value="{Binding LegacyTag}" />
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
                     <!-- 명령 팔레트 진입(발견가능성) — 마우스 운영자도 ⌘K 없이 클릭으로 모든 명령/창을 검색·실행. -->
                     <Button Command="{Binding CommandPalette.OpenCommand}"
                             Style="{StaticResource EsButton.Secondary}"

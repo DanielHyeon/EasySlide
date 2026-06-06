@@ -30,6 +30,8 @@ public enum PreviewPanelMode
     Info,
 }
 
+public sealed record AutoRotateModeOption(string Name, string Text, string LegacyTag, AutoRotateMode Value);
+
 public sealed record OperatorLyricsPageCard(
     int PageIndex,
     string Label,
@@ -465,7 +467,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 현재 "헤딩이 보조 영역(Region2) 정렬 따름"(FrmMain AsR2) 상태 — on 이면 헤딩이 Region2 정렬을 사용(AsR1 보다 우선).
     [ObservableProperty] private bool _activeTitleHeadingFollowRegion2 = EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.DefaultValue;
     // 자동 회전 활성 상태(View 가 이 값을 보고 DispatcherTimer 시작/정지). 라이브 종료 시 자동 해제.
-    [ObservableProperty] private bool _isAutoRotating;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNoRotateChecked))]
+    private bool _isAutoRotating;
     // 자동 회전 간격(초) — 설정에서 유래, View 타이머가 참조.
     [ObservableProperty] private int _autoRotateIntervalSeconds = EasiSettingKeys.AutoRotateIntervalSeconds.DefaultValue;
     // 자동 회전 모드(One/One-Repeat/Group/Group-Repeat) — 설정에서 유래, 콤보 선택에 바인딩. 끝 절/슬라이드 도달 시 동작이 모드별로 다르다.
@@ -3931,13 +3935,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PublishSelectedItem(autoAdvance: false);
     }
 
-    /// <summary>자동 회전 모드 콤보의 (한글 라벨 → 모드) 목록. SelectedValue 로 모드를, DisplayMember 로 라벨을 쓴다.</summary>
-    public IReadOnlyList<KeyValuePair<string, AutoRotateMode>> AutoRotateModeOptions { get; } =
+    public bool IsNoRotateChecked => !IsAutoRotating;
+
+    /// <summary>FrmMain Main_RotateStyle dropdown items in legacy order.</summary>
+    public IReadOnlyList<AutoRotateModeOption> AutoRotateModeOptions { get; } =
     [
-        new("현재 항목 반복", AutoRotateMode.OneRepeat),
-        new("한 항목만", AutoRotateMode.One),
-        new("그룹(다음 항목)", AutoRotateMode.Group),
-        new("그룹 반복", AutoRotateMode.GroupRepeat),
+        new("Main_Rotate0", "Auto Rotate One Item", "0", AutoRotateMode.One),
+        new("Main_Rotate1", "Auto Rotate One Item - Repeat", "1", AutoRotateMode.OneRepeat),
+        new("Main_Rotate2", "Auto Rotate Group", "2", AutoRotateMode.Group),
+        new("Main_Rotate3", "Auto Rotate Group - Repeat", "3", AutoRotateMode.GroupRepeat),
     ];
 
     /// <summary>자동 회전 모드 선택(콤보 양방향 바인딩). 바뀌면 설정에 저장하고 인스펙터 표시를 동기화한다.</summary>

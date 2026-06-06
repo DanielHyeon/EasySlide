@@ -14,7 +14,7 @@
 | FrmMain source | WPF target | Status | Phase | Notes |
 | --- | --- | --- | --- | --- |
 | `toolStripContainerMain` | `MainWindow` root grid/menu/status | partial | 1 | menu/status exist, toolbar parity incomplete |
-| `Main_NoRotate`, `Main_RotateStyle`, `Main_Rotate0..3` | `ToggleAutoRotateCommand`, `AutoRotateModeInput`, `AutoRotateModeOptions` | partial | 4/6 | auto-rotation now advances the live Output item rather than the selected Preview item, including diverged Preview selection; exact FrmMain toolbar icon/check/dropdown parity still incomplete |
+| `Main_NoRotate`, `Main_RotateStyle`, `Main_Rotate0..3` | `Main_NoRotate` + `IsNoRotateChecked` + `ToggleAutoRotateCommand`; `Main_RotateStyle` + `AutoRotateModeOptions` (`Main_Rotate0..3`) | partial | 4/6 | auto-rotation advances the live Output item rather than the selected Preview item, including diverged Preview selection; the first-screen toolbar now preserves the legacy `Main_NoRotate` checked-off semantics plus `Main_RotateStyle` dropdown order/text/tags for `Main_Rotate0..3`; exact legacy icon artwork and broader focus parity still incomplete |
 | `splitContainerMain.Panel1` | `ClassicSourceColumn` / `ClassicSourcePane` (`Tag=splitContainer1`) | partial | 1 | source/list column now scales by splitter-like proportion; behavior/data parity incomplete |
 | `splitContainerMain.Panel2` | `ClassicRightColumn` / `ClassicRightConsole` (`Tag=splitContainer2`) | partial | 1 | Preview/Output are now nested under a right splitContainer2-equivalent Grid; exact behavior incomplete |
 | `splitContainer1.Panel1` | `LeftBrowserTabs` (`Tag=tabControlSource`) | partial | 1/2/3 | source tabs now use FrmMain-style compact bottom text tabs; several source behaviors are still shallow |
