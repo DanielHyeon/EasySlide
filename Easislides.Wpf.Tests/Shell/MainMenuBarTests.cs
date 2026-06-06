@@ -575,6 +575,8 @@ public class MainMenuBarTests
             "Preview Home should move to the first Preview item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.LastPreviewItemCommand)",
             "Preview End should move to the last Preview item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.ToggleAutoRotateCommand)",
+            "Preview/Output PPT focus should keep FrmMain A auto-rotate toggling in the local keyboard path");
         code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
             "Output Up should move only the live output deck");
         code.Should().Contain("_viewModel.NextOutputSlideCommand.Execute(null)",
@@ -593,6 +595,12 @@ public class MainMenuBarTests
             "Output Home should move to the first live/prepared Output item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.LastOutputItemCommand)",
             "Output End should move to the last live/prepared Output item like FrmMain");
+        code.Should().Contain("ExecuteCommand(_viewModel.ToggleOutputReferenceAlertCommand)",
+            "Output PPT focus Z should map to FrmMain QueryShowActive/reference alert");
+        code.Should().Contain("ExecuteCommand(_viewModel.JumpToNextNonRotateOutputItemCommand)",
+            "Output PPT focus J should map to FrmMain GotoNextNonRotateItem for the live/prepared Output context");
+        code.Should().Contain("ExecuteCommand(_viewModel.PlayOutputMediaCommand)",
+            "Output PPT focus M should map to FrmMain live media pause/play instead of falling through to Preview");
     }
 
     [Fact]

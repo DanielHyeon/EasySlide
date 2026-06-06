@@ -654,6 +654,10 @@ public partial class MainWindow : Window
                 ExecuteCommand(_viewModel.LastPreviewItemCommand);
                 return true;
 
+            case Key.A:
+                ExecuteCommand(_viewModel.ToggleAutoRotateCommand);
+                return true;
+
             default:
                 return TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToLyricsSectionCommand);
         }
@@ -722,6 +726,22 @@ public partial class MainWindow : Window
 
             case Key.End:
                 ExecuteCommand(_viewModel.LastOutputItemCommand);
+                return true;
+
+            case Key.Z:
+                ExecuteCommand(_viewModel.ToggleOutputReferenceAlertCommand);
+                return true;
+
+            case Key.A:
+                ExecuteCommand(_viewModel.ToggleAutoRotateCommand);
+                return true;
+
+            case Key.J:
+                ExecuteCommand(_viewModel.JumpToNextNonRotateOutputItemCommand);
+                return true;
+
+            case Key.M:
+                ExecuteCommand(_viewModel.PlayOutputMediaCommand);
                 return true;
 
             default:
