@@ -806,6 +806,38 @@ public partial class MainWindow : Window
         }
     }
 
+    private void FocusPreviewArea_Click(object sender, RoutedEventArgs e)
+        => FocusPreviewArea();
+
+    private void FocusOutputArea_Click(object sender, RoutedEventArgs e)
+        => FocusOutputArea();
+
+    private void FocusPreviewArea()
+    {
+        if (!TryFocusClassicSurface(ClassicPreviewInfo))
+        {
+            TryFocusClassicSurface(ClassicPreviewSlidePane);
+        }
+    }
+
+    private void FocusOutputArea()
+    {
+        if (!TryFocusClassicSurface(ClassicOutputInfo))
+        {
+            TryFocusClassicSurface(ClassicOutputSlidePane);
+        }
+    }
+
+    private static bool TryFocusClassicSurface(UIElement element)
+    {
+        if (!element.Focusable || !element.IsVisible)
+        {
+            return false;
+        }
+
+        return element.Focus();
+    }
+
     private static bool IsInsideButton(DependencyObject? source)
     {
         while (source is not null)

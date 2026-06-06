@@ -3071,6 +3071,7 @@
                             <Button x:Name="btnToOutputMoveNext"
                                     Tag="btnToOutputMoveNext"
                                     Command="{Binding CopyPreviewToOutputAndNextCommand}"
+                                    Click="FocusOutputArea_Click"
                                     Style="{StaticResource EsButton.Secondary}"
                                     MinWidth="32"
                                     MinHeight="28"
@@ -3953,7 +3954,8 @@
                             Margin="-6,-6,-6,6"
                             Padding="6,6,6,5">
                         <WrapPanel x:Name="ClassicPreviewBottomStrip"
-                                   Orientation="Horizontal">
+                                   Orientation="Horizontal"
+                                   ButtonBase.Click="FocusPreviewArea_Click">
                             <Button x:Name="IndcbPreviewNotes"
                                     Tag="IndcbPreviewNotes"
                                     Click="OpenSessionNotes_Click"
@@ -4450,6 +4452,7 @@
                                     <Button x:Name="OutputBtnMediaInline"
                                             Tag="OutputBtnMedia"
                                             Command="{Binding PlayOutputMediaCommand}"
+                                            Click="FocusOutputArea_Click"
                                             Style="{StaticResource EsButton.Secondary}"
                                             MinWidth="30"
                                             MinHeight="26"
@@ -4509,7 +4512,8 @@
                             Margin="-6,-6,-6,6"
                             Padding="6,6,6,5">
                         <WrapPanel x:Name="ClassicOutputBottomStrip"
-                                   Orientation="Horizontal">
+                                   Orientation="Horizontal"
+                                   ButtonBase.Click="FocusOutputArea_Click">
                             <Button x:Name="OutputBtnJumpToNonRotate"
                                     Tag="OutputBtnJumpToNonRotate"
                                     Command="{Binding JumpToNextNonRotateOutputItemCommand}"

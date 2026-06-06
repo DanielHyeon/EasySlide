@@ -758,6 +758,42 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputLocalButtons_ReturnFocusToFrmMainAreas()
+    {
+        var xaml = Xaml;
+        var code = CodeBehind;
+
+        var previewBottomStrip = SectionBetween(xaml, "x:Name=\"ClassicPreviewBottomStrip\"", "x:Name=\"ClassicPreviewPositionLabel\"");
+        previewBottomStrip.Should().Contain("ButtonBase.Click=\"FocusPreviewArea_Click\"",
+            "FrmMain PreviewBtnUpDown_Click/PreviewBtnVerse_Click calls FocusPreviewArea after local Preview buttons");
+
+        var outputBottomStrip = SectionBetween(xaml, "x:Name=\"ClassicOutputBottomStrip\"", "x:Name=\"ClassicOutputPositionLabel\"");
+        outputBottomStrip.Should().Contain("ButtonBase.Click=\"FocusOutputArea_Click\"",
+            "FrmMain OutputBtnUpDown_Click/OutputBtnVerse_Click/OutputBtnMedia_Click calls FocusOutputArea after local Output buttons");
+
+        var copyAndNext = SectionBetween(xaml, "x:Name=\"btnToOutputMoveNext\"", "x:Name=\"btnToOutput\"");
+        copyAndNext.Should().Contain("Click=\"FocusOutputArea_Click\"",
+            "FrmMain btnToOutputMoveNext_Click copies Preview, advances Preview, then focuses OutputInfo");
+
+        var inlineMedia = SectionBetween(xaml, "x:Name=\"OutputBtnMediaInline\"", "x:Name=\"ClassicOutputSlidePane\"");
+        inlineMedia.Should().Contain("Click=\"FocusOutputArea_Click\"",
+            "the top Output media surface should keep the same Output focus return as OutputBtnMedia");
+
+        code.Should().Contain("private void FocusPreviewArea_Click");
+        code.Should().Contain("private void FocusOutputArea_Click");
+        code.Should().Contain("private void FocusPreviewArea()");
+        code.Should().Contain("TryFocusClassicSurface(ClassicPreviewInfo)",
+            "WPF Preview focus should target the PreviewInfo keyboard surface like FrmMain FocusPreviewArea");
+        code.Should().Contain("TryFocusClassicSurface(ClassicPreviewSlidePane)",
+            "PowerPoint/media preview modes need a visible lower Preview fallback when PreviewInfo is hidden");
+        code.Should().Contain("private void FocusOutputArea()");
+        code.Should().Contain("TryFocusClassicSurface(ClassicOutputInfo)",
+            "WPF Output focus should target the OutputInfo keyboard surface like FrmMain FocusOutputArea");
+        code.Should().Contain("TryFocusClassicSurface(ClassicOutputSlidePane)",
+            "Output should still regain a keyboard surface if the upper pane is not visible");
+    }
+
+    [Fact]
     public void LeftBrowserTabs_MatchFrmMainSourceRolesAndOrder()
     {
         var xaml = Xaml;
