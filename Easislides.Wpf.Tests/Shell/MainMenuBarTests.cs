@@ -601,6 +601,8 @@ public class MainMenuBarTests
             "Preview End should move to the last Preview item like FrmMain");
         code.Should().Contain("ExecuteCommand(_viewModel.ToggleAutoRotateCommand)",
             "Preview/Output PPT focus should keep FrmMain A auto-rotate toggling in the local keyboard path");
+        code.Should().Contain("ExecuteCommand(_viewModel.ToggleGapItemOptionCommand)",
+            "Preview/Output focus should keep FrmMain G gap toggle in the local keyboard path");
         code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
             "Output Up should move only the live output deck");
         code.Should().Contain("_viewModel.NextOutputSlideCommand.Execute(null)",

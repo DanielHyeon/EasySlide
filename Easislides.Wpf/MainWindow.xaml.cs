@@ -561,6 +561,10 @@ public partial class MainWindow : Window
 
         switch (key)
         {
+            case Key.G:
+                ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
+                return true;
+
             case Key.Home:
                 ExecuteCommand(_viewModel.FirstPreviewItemCommand);
                 return true;
@@ -585,6 +589,10 @@ public partial class MainWindow : Window
 
         switch (key)
         {
+            case Key.G:
+                ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
+                return true;
+
             case Key.Home:
                 ExecuteCommand(_viewModel.FirstOutputItemCommand);
                 return true;
@@ -714,6 +722,10 @@ public partial class MainWindow : Window
                 ExecuteCommand(_viewModel.ToggleAutoRotateCommand);
                 return true;
 
+            case Key.G:
+                ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
+                return true;
+
             default:
                 return TryExecuteVerseJumpKey(key, modifiers, _viewModel.JumpToLyricsSectionCommand);
         }
@@ -790,6 +802,10 @@ public partial class MainWindow : Window
 
             case Key.A:
                 ExecuteCommand(_viewModel.ToggleAutoRotateCommand);
+                return true;
+
+            case Key.G:
+                ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
                 return true;
 
             case Key.J:

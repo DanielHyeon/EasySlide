@@ -2405,6 +2405,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ToggleGapItemOptionCommand_TogglesCurrentGapModeOffAndRestoresItLikeFrmMainG()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.GapItemOption, GapItemMode.Default);
+        var sut = CreateSut(settings: settings);
+
+        sut.ToggleGapItemOptionCommand.Execute(null);
+
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.None);
+        settings.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.None);
+
+        sut.ToggleGapItemOptionCommand.Execute(null);
+
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.Default);
+        settings.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Default);
+    }
+
+    [Fact]
+    public void ToggleGapItemOptionCommand_WhenNoAlternateMode_KeepsGapNone()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ToggleGapItemOptionCommand.Execute(null);
+
+        sut.ActiveGapItemOption.Should().Be(GapItemMode.None);
+        settings.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.None);
+    }
+
+    [Fact]
     public void ToggleGapItemUseFade_FlipsSetting()
     {
         using var folder = TempSettingsFolder.Create();

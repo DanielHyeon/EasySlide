@@ -495,6 +495,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activeGapItemUseFade = EasiSettingKeys.GapItemUseFade.DefaultValue;
     // 대기 화면(Gap) "로고" 모드에서 보여줄 이미지 경로 — 출력 메뉴 로고 선택/지우기.
     [ObservableProperty] private string _activeGapItemLogoFile = EasiSettingKeys.GapItemLogoFile.DefaultValue;
+    private GapItemMode _alternateGapItemOption = GapItemMode.None;
 
     // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
@@ -972,6 +973,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         JumpToNextNonRotateOutputItemCommand = new AsyncRelayCommand(
             JumpToNextNonRotateOutputItemAsync,
             CanJumpToNextNonRotateOutputItem);
+        ToggleGapItemOptionCommand = new RelayCommand(ToggleGapItemOption);
         FirstItemCommand = new RelayCommand(FirstItem, CanMovePrevious);
         LastItemCommand = new RelayCommand(LastItem, CanMoveNext);
         HideOutputCommand = new AsyncRelayCommand(() => HideOutputAsync(blackout: false), CanUseLiveSafetyAction);
@@ -1229,6 +1231,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand LastOutputItemCommand { get; }
     /// <summary>FrmMain OutputBtnJumpToNonRotate: 현재 OutputItem/live 이후의 다음 비회전 항목으로 이동한다.</summary>
     public IAsyncRelayCommand JumpToNextNonRotateOutputItemCommand { get; }
+    /// <summary>FrmMain focused G key: toggle Gap item mode between None and the previous non-None mode.</summary>
+    public IRelayCommand ToggleGapItemOptionCommand { get; }
     /// <summary>예배 순서의 첫 항목으로 이동(레거시 First). 라이브 중이면 그 항목을 송출.</summary>
     public IRelayCommand FirstItemCommand { get; }
     /// <summary>예배 순서의 마지막 항목으로 이동(레거시 Last). 라이브 중이면 그 항목을 송출.</summary>
@@ -4093,6 +4097,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 모드가 다른 경로(설정 창 등)로 바뀌어도 콤보가 따라가도록 통지.
     partial void OnActiveGapItemOptionChanged(GapItemMode value) => OnPropertyChanged(nameof(GapItemModeInput));
+
+    /// <summary>FrmMain G key: temporarily disables the current Gap item mode, then restores it on the next press.</summary>
+    public void ToggleGapItemOption()
+    {
+        if (ActiveGapItemOption == GapItemMode.None)
+        {
+            var restore = _alternateGapItemOption;
+            _alternateGapItemOption = GapItemMode.None;
+            GapItemModeInput = restore;
+        }
+        else
+        {
+            _alternateGapItemOption = ActiveGapItemOption;
+            GapItemModeInput = GapItemMode.None;
+        }
+
+        StatusText = ActiveGapItemOption == GapItemMode.None
+            ? "Gap item off"
+            : $"Gap item restored: {ActiveGapItemOption}";
+    }
 
     /// <summary>대기 화면(Gap) 전환 페이드 사용을 켜고 끈다(출력 메뉴 토글). 설정 저장 → 출력 라이브 갱신.</summary>
     public void ToggleGapItemUseFade()
