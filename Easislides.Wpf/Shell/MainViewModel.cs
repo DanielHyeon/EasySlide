@@ -176,6 +176,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsCenter))]
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsTile))]
     private LyricsBackgroundMode _activeBackgroundMode = EasiSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanClearOutputBackgroundImage))]
+    [NotifyPropertyChangedFor(nameof(OutputBackgroundNoImageToolTip))]
+    [NotifyCanExecuteChangedFor(nameof(ClearOutputBackgroundImageCommand))]
+    private string _activeOutputBackgroundImagePath = EasiSettingKeys.LyricsMonitorBackgroundImagePath.DefaultValue;
     // 현재 적용된 배경 그라데이션 방향(세로/가로/대각↘/대각↗) — 라디오 체크 표시에 쓰인다.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(GradientDirectionIsVertical))]
@@ -1093,7 +1098,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleFadeTransitionCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorUseFadeTransition, ActiveFadeTransition));
         ApplyTransitionDurationCommand = new RelayCommand<int>(ApplyTransitionDuration);
         ApplyTransitionKindCommand = new RelayCommand<LyricsTransitionKind>(ApplyTransitionKind);
-        ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage);
+        ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage, () => CanClearOutputBackgroundImage);
         OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
         ValidateWorshipListCommand = new AsyncRelayCommand(ValidateWorshipListAsync);
         // 라이브 조옮김 ↑/↓/원조 — ±반음 이동(±11 클램프) 후 라이브 곡을 재송출해 코드 줄을 다시 그린다.
@@ -1245,6 +1250,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool BackgroundModeIsFit => ActiveBackgroundMode == LyricsBackgroundMode.Fit;
     public bool BackgroundModeIsCenter => ActiveBackgroundMode == LyricsBackgroundMode.Center;
     public bool BackgroundModeIsTile => ActiveBackgroundMode == LyricsBackgroundMode.Tile;
+    public bool CanClearOutputBackgroundImage => !string.IsNullOrWhiteSpace(ActiveOutputBackgroundImagePath);
+    public string OutputBackgroundNoImageToolTip => CanClearOutputBackgroundImage
+        ? $"Remove Default Background '{ActiveOutputBackgroundImagePath}'"
+        : "No Default Background";
 
     public IRelayCommand<LyricsGradientDirection> ApplyGradientDirectionCommand { get; }
 
@@ -3361,6 +3370,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemFontName));
         OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
         OnPropertyChanged(nameof(SelectedItemBackgroundImagePath));
+        OnPropertyChanged(nameof(CanClearSelectedItemBackgroundImage));
+        OnPropertyChanged(nameof(SelectedItemBackgroundNoImageToolTip));
         OnPropertyChanged(nameof(SelectedItemFormatData));
         OnPropertyChanged(nameof(SelectedItemBold));
         OnPropertyChanged(nameof(SelectedItemItalic));
@@ -6587,6 +6598,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>현재 선택한 항목의 배경 이미지 경로(이 항목만). 없으면 빈 문자열(전역 배경 추종).</summary>
     public string SelectedItemBackgroundImagePath
         => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImagePath ?? string.Empty;
+    public bool CanClearSelectedItemBackgroundImage
+        => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemBackgroundImagePath);
+    public string SelectedItemBackgroundNoImageToolTip => CanClearSelectedItemBackgroundImage
+        ? $"Remove Item Background '{SelectedItemBackgroundImagePath}'"
+        : "No Item Background";
 
     /// <summary>
     /// 선택한 곡 항목의 배경 이미지(이 항목만)를 바꾼다(레거시 항목별 배경 이미지, FormatData 코드 61). 경로가 비거나 공백뿐이면 해제해 전역 배경을 따른다.
@@ -6601,6 +6617,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var imagePath = string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim().Replace(">", string.Empty);
         if (ApplySelectedSongFormatChange(format => format with { BackgroundImagePath = imagePath }, wantsIndividual: imagePath.Length > 0, out var turnedOn))
         {
+            OnPropertyChanged(nameof(CanClearSelectedItemBackgroundImage));
+            OnPropertyChanged(nameof(SelectedItemBackgroundNoImageToolTip));
             StatusText = imagePath.Length == 0
                 ? "항목 배경 이미지: 전역 기본"
                 : $"항목 배경 이미지: {System.IO.Path.GetFileName(imagePath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
@@ -7567,13 +7585,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, imagePath);
+        ActiveOutputBackgroundImagePath = imagePath;
         StatusText = $"출력 배경 이미지: {System.IO.Path.GetFileName(imagePath)}";
     }
 
     // 전역 출력 배경 이미지 해제 → 색 배경으로 복귀.
     private void ClearOutputBackgroundImage()
     {
+        if (!CanClearOutputBackgroundImage)
+        {
+            return;
+        }
+
         _settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, string.Empty);
+        ActiveOutputBackgroundImagePath = string.Empty;
         StatusText = "출력 배경 이미지 해제";
     }
 
@@ -8036,6 +8061,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorTextAlignment);
         ActiveLyricsVerticalAlignment = _settings.Get(EasiSettingKeys.LyricsMonitorVerticalAlignment);
         ActiveBackgroundMode = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundMode);
+        ActiveOutputBackgroundImagePath = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundImagePath);
         ActiveGradientDirection = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundGradientDirection);
         ActiveRegionDisplay = _settings.Get(EasiSettingKeys.LyricsMonitorRegionDisplay);
         ActiveLyricsFontSize = _settings.Get(EasiSettingKeys.LyricsMonitorFontSize);
@@ -8276,6 +8302,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemBold2Command.NotifyCanExecuteChanged();
         ToggleSelectedItemItalic2Command.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderline2Command.NotifyCanExecuteChanged();
+        ClearOutputBackgroundImageCommand.NotifyCanExecuteChanged();
         ClearSelectedItemFormattingCommand.NotifyCanExecuteChanged();
         CopySelectedItemFormattingCommand.NotifyCanExecuteChanged();
         PasteSelectedItemFormattingCommand.NotifyCanExecuteChanged();

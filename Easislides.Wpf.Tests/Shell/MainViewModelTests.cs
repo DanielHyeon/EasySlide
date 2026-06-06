@@ -8472,6 +8472,57 @@ public class MainViewModelTests
     // ── 항목별 배경 이미지 인라인 편집(SetSelectedItemBackgroundImage) — 선택한 곡만 배경 이미지(레거시 Ind_ 배경 이미지, 코드61) ──
 
     [Fact]
+    public void ClearOutputBackgroundImageCommand_DisabledUntilDefaultBackgroundExists()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.CanClearOutputBackgroundImage.Should().BeFalse();
+        sut.ClearOutputBackgroundImageCommand.CanExecute(null).Should().BeFalse();
+        sut.OutputBackgroundNoImageToolTip.Should().Be("No Default Background");
+
+        sut.SetOutputBackgroundImage(@"C:\bg\default.jpg");
+
+        sut.ActiveOutputBackgroundImagePath.Should().Be(@"C:\bg\default.jpg");
+        sut.CanClearOutputBackgroundImage.Should().BeTrue();
+        sut.ClearOutputBackgroundImageCommand.CanExecute(null).Should().BeTrue();
+        sut.OutputBackgroundNoImageToolTip.Should().Be(@"Remove Default Background 'C:\bg\default.jpg'");
+
+        sut.ClearOutputBackgroundImageCommand.Execute(null);
+
+        sut.ActiveOutputBackgroundImagePath.Should().BeEmpty();
+        sut.CanClearOutputBackgroundImage.Should().BeFalse();
+        sut.ClearOutputBackgroundImageCommand.CanExecute(null).Should().BeFalse();
+        sut.OutputBackgroundNoImageToolTip.Should().Be("No Default Background");
+    }
+
+    [Fact]
+    public void SelectedItemBackgroundNoImageState_FollowsSelectedFormatData()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nVerse",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.CanClearSelectedItemBackgroundImage.Should().BeFalse();
+        sut.SelectedItemBackgroundNoImageToolTip.Should().Be("No Item Background");
+
+        sut.SetSelectedItemBackgroundImage(@"C:\bg\item.jpg");
+
+        sut.SelectedItemBackgroundImagePath.Should().Be(@"C:\bg\item.jpg");
+        sut.CanClearSelectedItemBackgroundImage.Should().BeTrue();
+        sut.SelectedItemBackgroundNoImageToolTip.Should().Be(@"Remove Item Background 'C:\bg\item.jpg'");
+
+        sut.SetSelectedItemBackgroundImage("");
+
+        sut.SelectedItemBackgroundImagePath.Should().BeEmpty();
+        sut.CanClearSelectedItemBackgroundImage.Should().BeFalse();
+        sut.SelectedItemBackgroundNoImageToolTip.Should().Be("No Item Background");
+    }
+
+    [Fact]
     public void SetSelectedItemBackgroundImage_WritesFormatDataCode61_AndEnablesIndividual_AndReflects()
     {
         var sut = CreateSut(seedSampleQueue: false);

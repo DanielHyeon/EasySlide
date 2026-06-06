@@ -899,6 +899,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("ApplyRegionDisplayCommand", "Def_Region should use the shared region display command");
         xaml.Should().Contain("x:Name=\"Def_NoImage\"", "Default tab should expose FrmMain Def_NoImage");
         xaml.Should().Contain("ClearOutputBackgroundImageCommand", "Def_NoImage should clear the default output background");
+        xaml.Should().Contain("IsEnabled=\"{Binding CanClearOutputBackgroundImage}\"", "Def_NoImage should mirror FrmMain disabled state when no default image exists");
+        xaml.Should().Contain("ToolTip=\"{Binding OutputBackgroundNoImageToolTip}\"", "Def_NoImage should expose FrmMain-style current-background feedback");
         xaml.Should().Contain("ApplyBackgroundModeCommand", "Default tab should expose FrmMain background image modes");
         xaml.Should().Contain("x:Name=\"Def_Transition\"", "Default tab should expose transition defaults inline");
         xaml.Should().Contain("ToggleFadeTransitionCommand", "Default transition controls should toggle fade");
@@ -1369,6 +1371,10 @@ public class MainMenuBarTests
             "IndPanel should let operators choose a per-item background image from the first-screen Preview Set panel");
         xaml.Should().Contain("Command=\"{Binding SetSelectedItemBackgroundImageCommand}\"",
             "Ind_NoImage should clear the selected item's background image through the same VM command as the Worship List menu");
+        xaml.Should().Contain("IsEnabled=\"{Binding CanClearSelectedItemBackgroundImage}\"",
+            "Ind_NoImage should mirror FrmMain disabled state when the selected item has no background image");
+        xaml.Should().Contain("ToolTip=\"{Binding SelectedItemBackgroundNoImageToolTip}\"",
+            "Ind_NoImage should expose selected-item background feedback");
         code.Should().Contain("private void SelectPreviewItemBackgroundImage_Click",
             "Preview Set item-image selection should be handled by the main shell view");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImage(dialog.FileName)",

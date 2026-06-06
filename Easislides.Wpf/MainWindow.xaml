@@ -2325,12 +2325,14 @@
                                     <WrapPanel>
                                         <Button x:Name="Def_NoImage"
                                                 Command="{Binding ClearOutputBackgroundImageCommand}"
+                                                IsEnabled="{Binding CanClearOutputBackgroundImage}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
                                                 Content="No Image"
-                                                ToolTip="FrmMain Def_NoImage"
+                                                ToolTip="{Binding OutputBackgroundNoImageToolTip}"
+                                                ToolTipService.ShowOnDisabled="True"
                                                 AutomationProperties.Name="Def NoImage clear output background" />
                                         <Button Command="{Binding ApplyBackgroundModeCommand}"
                                                 CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}"
@@ -3416,8 +3418,11 @@
                                                                     Content="No Image"
                                                                     Command="{Binding SetSelectedItemBackgroundImageCommand}"
                                                                     CommandParameter=""
+                                                                    IsEnabled="{Binding CanClearSelectedItemBackgroundImage}"
                                                                     Style="{StaticResource EsButton.Secondary}"
                                                                     MinWidth="76"
+                                                                    ToolTip="{Binding SelectedItemBackgroundNoImageToolTip}"
+                                                                    ToolTipService.ShowOnDisabled="True"
                                                                     AutomationProperties.Name="선택 항목 배경 이미지 해제" />
                                                         </Grid>
                                                     </StackPanel>
