@@ -237,6 +237,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> DisplayCustomLeft = new("liveOutput.displayCustomLeft", 0);
     public static readonly SettingKey<int> DisplayCustomWidth = new("liveOutput.displayCustomWidth", 100);
     public static readonly SettingKey<int> LyricsMonitorTextColorArgb = new("liveOutput.lyricsMonitorTextColorArgb", -16777216);
+    public static readonly SettingKey<int> LyricsMonitorHighlightColorArgb = new("liveOutput.lyricsMonitorHighlightColorArgb", -65536);
     // 보조 영역(Region2) 전역 글자색(ARGB). 0(투명)=본문(Region1) 색 추종(무회귀, 글꼴2·크기2 의 "0=자동"과 동일 개념).
     // 곡별 FormatData 30(per-song region2 색)이 있으면 그 곡 동안은 곡별 색이 우선한다.
     public static readonly SettingKey<int> LyricsMonitorTextColor2Argb = new("liveOutput.lyricsMonitorTextColor2Argb", 0);
@@ -423,6 +424,7 @@ public static class EasiSettingKeys
         DisplayCustomLeft,
         DisplayCustomWidth,
         LyricsMonitorTextColorArgb,
+        LyricsMonitorHighlightColorArgb,
         LyricsMonitorTextColor2Argb,
         LyricsMonitorRegion2Alignment,
         LyricsMonitorRegion2Bold,
@@ -565,6 +567,8 @@ public sealed record LiveOutputSettings
     public int DisplayCustomWidth { get; init; } = EasiSettingKeys.DisplayCustomWidth.DefaultValue;
 
     public int LyricsMonitorTextColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorTextColorArgb.DefaultValue;
+
+    public int LyricsMonitorHighlightColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorHighlightColorArgb.DefaultValue;
 
     public int LyricsMonitorTextColor2Argb { get; init; } = EasiSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue;
 
@@ -1293,6 +1297,10 @@ public sealed class SettingsService : ISettingsService
         {
             LiveOutput = next.LiveOutput with { LyricsMonitorTextColorArgb = value },
         });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorHighlightColorArgb.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { LyricsMonitorHighlightColorArgb = value },
+        });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { LyricsMonitorBackgroundColorArgb = value },
@@ -1630,6 +1638,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.displayCustomLeft" => snapshot.LiveOutput.DisplayCustomLeft,
             "liveOutput.displayCustomWidth" => snapshot.LiveOutput.DisplayCustomWidth,
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot.LiveOutput.LyricsMonitorTextColorArgb,
+            "liveOutput.lyricsMonitorHighlightColorArgb" => snapshot.LiveOutput.LyricsMonitorHighlightColorArgb,
             "liveOutput.lyricsMonitorTextColor2Argb" => snapshot.LiveOutput.LyricsMonitorTextColor2Argb,
             "liveOutput.lyricsMonitorRegion2Alignment" => snapshot.LiveOutput.LyricsMonitorRegion2Alignment,
             "liveOutput.lyricsMonitorRegion2Bold" => snapshot.LiveOutput.LyricsMonitorRegion2Bold,
@@ -1815,6 +1824,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorTextColorArgb = Cast<int>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorHighlightColorArgb" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorHighlightColorArgb = Cast<int>(keyId, value) },
             },
             "liveOutput.lyricsMonitorTextColor2Argb" => snapshot with
             {

@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
@@ -59,6 +60,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Brush _sceneBackgroundBrush;
     private Visibility _lyricsAlertVisibility = Visibility.Collapsed;
     private string _lyricsAlertText = string.Empty;
+    private Brush _lyricsAlertForegroundBrush = CreateBrush(EasiSettingKeys.LyricsMonitorHighlightColorArgb.DefaultValue);
+    private Brush _lyricsAlertBackgroundBrush = CreateBrush(EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue);
     private Visibility _referenceAlertVisibility = Visibility.Collapsed;
     private string _referenceAlertText = string.Empty;
     private Visibility _panelOverlayVisibility = Visibility.Visible;
@@ -142,6 +145,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private OutputSceneSnapshot _scene;
     private TimeSpan _contentFadeDuration = TimeSpan.FromMilliseconds(250);
     private LyricsTransitionKind _contentTransitionKind = LyricsTransitionKind.Fade;
+    private readonly DispatcherTimer _lyricsAlertFlashTimer;
+    private bool _lastShowsLiveLyricsAlertMessage;
+    private string _lastLyricsAlertMessage = string.Empty;
+    private bool _lyricsAlertFlashAlternate;
+    private int _lyricsAlertFlashCount;
     private bool _disposed;
 
     public OutputWindowViewModel()
@@ -166,6 +174,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _settings = settings;
+        _lyricsAlertFlashTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _lyricsAlertFlashTimer.Tick += (_, _) => AdvanceLyricsAlertFlash();
         // 로더 미주입 시 기본 로더(BitmapImage)로 디스크에서 직접 로드
         _gapLogoLoader = gapLogoLoader ?? DefaultGapLogoLoader;
         _sceneForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
@@ -590,6 +600,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _lyricsAlertText, value);
     }
 
+    public Brush LyricsAlertForegroundBrush
+    {
+        get => _lyricsAlertForegroundBrush;
+        private set => SetProperty(ref _lyricsAlertForegroundBrush, value);
+    }
+
+    public Brush LyricsAlertBackgroundBrush
+    {
+        get => _lyricsAlertBackgroundBrush;
+        private set => SetProperty(ref _lyricsAlertBackgroundBrush, value);
+    }
+
     public Visibility ReferenceAlertVisibility
     {
         get => _referenceAlertVisibility;
@@ -861,6 +883,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             ? Visibility.Visible
             : Visibility.Collapsed;
         LyricsAlertText = scene.ShowsLiveLyricsAlertMessage ? scene.LyricsAlertMessage : scene.StatusLabel;
+        UpdateLyricsAlertBrushes(scene);
         ReferenceAlertVisibility = scene.ShowsLiveReferenceAlert ? Visibility.Visible : Visibility.Collapsed;
         ReferenceAlertText = scene.ShowsLiveReferenceAlert ? scene.ReferenceAlertText : string.Empty;
         // "코드 표시"(Show Notations)는 더 이상 렌더 계층의 가시성이 아니라 본문 텍스트 자체(코드 줄 포함 여부)로
@@ -1138,6 +1161,75 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         return loaded;
     }
 
+    private void UpdateLyricsAlertBrushes(OutputSceneSnapshot scene)
+    {
+        if (!scene.ShowsLiveLyricsAlertMessage)
+        {
+            _lyricsAlertFlashTimer.Stop();
+            _lastShowsLiveLyricsAlertMessage = false;
+            _lastLyricsAlertMessage = string.Empty;
+            LyricsAlertForegroundBrush = CreateBrush(unchecked((int)0xFFFFFFFF));
+            LyricsAlertBackgroundBrush = CreateBrush(unchecked((int)0xFF008000));
+            return;
+        }
+
+        var messageChanged = !_lastShowsLiveLyricsAlertMessage
+            || !string.Equals(_lastLyricsAlertMessage, scene.LyricsAlertMessage, StringComparison.Ordinal);
+
+        _lastShowsLiveLyricsAlertMessage = true;
+        _lastLyricsAlertMessage = scene.LyricsAlertMessage;
+
+        if (messageChanged)
+        {
+            ResetLyricsAlertFlash();
+            _lyricsAlertFlashTimer.Start();
+            return;
+        }
+
+        ApplyLyricsAlertFlashBrushes();
+    }
+
+    private void ResetLyricsAlertFlash()
+    {
+        _lyricsAlertFlashCount = 0;
+        _lyricsAlertFlashAlternate = false;
+        ApplyLyricsAlertFlashBrushes();
+    }
+
+    private void AdvanceLyricsAlertFlash()
+    {
+        if (!_lastShowsLiveLyricsAlertMessage)
+        {
+            _lyricsAlertFlashTimer.Stop();
+            return;
+        }
+
+        _lyricsAlertFlashAlternate = !_lyricsAlertFlashAlternate;
+        ApplyLyricsAlertFlashBrushes();
+        _lyricsAlertFlashCount++;
+
+        if (_lyricsAlertFlashCount > 3)
+        {
+            _lyricsAlertFlashCount = 0;
+            _lyricsAlertFlashTimer.Stop();
+        }
+    }
+
+    internal void AdvanceLyricsAlertFlashForTest() => AdvanceLyricsAlertFlash();
+
+    private void ApplyLyricsAlertFlashBrushes()
+    {
+        LyricsAlertForegroundBrush = CreateBrush(_lyricsAlertFlashAlternate
+            ? GetIntSetting(EasiSettingKeys.LyricsMonitorTextColorArgb)
+            : GetIntSetting(EasiSettingKeys.LyricsMonitorHighlightColorArgb));
+        LyricsAlertBackgroundBrush = CreateBrush(_lyricsAlertFlashAlternate
+            ? unchecked((int)0xFFFF0000)
+            : GetIntSetting(EasiSettingKeys.LyricsMonitorBackgroundColorArgb));
+    }
+
+    private int GetIntSetting(SettingKey<int> key)
+        => _settings is null ? key.DefaultValue : _settings.Get(key);
+
     public void Dispose()
     {
         if (_disposed)
@@ -1146,6 +1238,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         }
 
         _disposed = true;
+        _lyricsAlertFlashTimer.Stop();
         if (_settings is not null)
         {
             _settings.SettingsChanged -= OnSettingsChanged;
@@ -1318,6 +1411,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.GapItemLogoFile.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.GapItemUseFade.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorTextColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorHighlightColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorBackgroundColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 배경 끝색·그라데이션 여부도 출력 배경에 직접 영향 — 누락 시 그라데이션 설정 변경이
                 // 라이브로 즉시 반영되지 않는다(인-셸 출력 모양 인스펙터가 한 키씩 Set 하므로 마지막 키가

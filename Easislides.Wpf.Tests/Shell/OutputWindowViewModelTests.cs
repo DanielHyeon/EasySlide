@@ -1125,6 +1125,34 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_WithLyricsAlertMessage_FlashesLikeFrmMainLyricsMonitorAlert()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFF102030)).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorHighlightColorArgb, unchecked((int)0xFF00FF00)).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFFE0D0C0)).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Praise",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemKind: LiveItemKinds.Song,
+            CurrentItemBodyText: "Praise text",
+            LyricsAlertMessage: "Parking is full"));
+
+        ((SolidColorBrush)sut.LyricsAlertForegroundBrush).Color.Should().Be(Color.FromArgb(0xFF, 0x00, 0xFF, 0x00));
+        ((SolidColorBrush)sut.LyricsAlertBackgroundBrush).Color.Should().Be(Color.FromArgb(0xFF, 0xE0, 0xD0, 0xC0));
+
+        sut.AdvanceLyricsAlertFlashForTest();
+
+        ((SolidColorBrush)sut.LyricsAlertForegroundBrush).Color.Should().Be(Color.FromArgb(0xFF, 0x10, 0x20, 0x30));
+        ((SolidColorBrush)sut.LyricsAlertBackgroundBrush).Color.Should().Be(Colors.Red);
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesSettingsBackedLyricsMonitorAppearance()
     {
         using var settingsFolder = TempSettingsFolder.Create();

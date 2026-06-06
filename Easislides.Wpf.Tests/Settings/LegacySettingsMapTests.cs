@@ -82,6 +82,8 @@ public class LegacySettingsMapTests
             .Should().Contain(["DMOption1Width", "DualMonitorOptionCustomWidth"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorTextColorArgb.Id)
             .Should().Contain(["LMTextColour", "LyricsMonitorTextColour"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorHighlightColorArgb.Id)
+            .Should().Contain(["LMHighlightColour", "LyricsMonitorHighlightColour"]);
     }
 
     [Fact]
@@ -155,6 +157,7 @@ public class LegacySettingsMapTests
             ["DualMonitorOptionCustomLeft"] = "-240",
             ["DualMonitorOptionCustomWidth"] = "1920",
             ["LyricsMonitorTextColour"] = "-65536",
+            ["LyricsMonitorHighlightColour"] = "-16711936",
             ["LyricsMonitorBackColour"] = "-1",
             ["LyricsMonitorShowNotations"] = "0",
             ["UseSongNumbering"] = "1",
@@ -184,6 +187,7 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.DisplayCustomLeft).Should().Be(-240);
         sut.Get(EasiSettingKeys.DisplayCustomWidth).Should().Be(1920);
         sut.Get(EasiSettingKeys.LyricsMonitorTextColorArgb).Should().Be(-65536);
+        sut.Get(EasiSettingKeys.LyricsMonitorHighlightColorArgb).Should().Be(unchecked((int)0xFF00FF00));
         sut.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(-1);
         sut.Get(EasiSettingKeys.LyricsMonitorShowNotations).Should().BeFalse();
     }

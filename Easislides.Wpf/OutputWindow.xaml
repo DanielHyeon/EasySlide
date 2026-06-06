@@ -28,13 +28,13 @@
 
         <Border Grid.Row="0"
                 MinHeight="36"
-                Background="{DynamicResource Brush.Live.Active}"
+                Background="{Binding LyricsAlertBackgroundBrush}"
                 Visibility="{Binding LyricsAlertVisibility}">
             <TextBlock Text="{Binding LyricsAlertText}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"
-                       Foreground="{DynamicResource Brush.Surface.Page}" />
+                       Foreground="{Binding LyricsAlertForegroundBrush}" />
         </Border>
 
         <!-- 2-레이어 전환의 뒤 레이어(옛 프레임 스냅샷). 오목 도형 전환(Cross)일 때만 코드-비하인드가 보이게 한다.
