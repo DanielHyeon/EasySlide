@@ -33,6 +33,10 @@ public sealed record SongFormatData
     public bool Underline2 { get; init; }
     public string BackgroundImagePath { get; init; } = "";
     public LyricsBackgroundMode? BackgroundImageMode { get; init; }
+    public LyricsVerticalAlignment? VerticalAlignment { get; init; }
+    public int? BodyLeftMargin { get; init; }
+    public int? BodyRightMargin { get; init; }
+    public int? BodyBottomMargin { get; init; }
     public string MediaPath { get; init; } = "";
     public string ItemTransitionName { get; init; } = "";
     public string SlideTransitionName { get; init; } = "";
@@ -47,8 +51,10 @@ public sealed record SongFormatData
 
         int? textColor1 = null, textColor2 = null, backColor1 = null, backColor2 = null;
         int? fontSize1 = null, fontSize2 = null, align1 = null, align2 = null;
+        int? bodyLeftMargin = null, bodyRightMargin = null, bodyBottomMargin = null;
         string font1 = "", font2 = "", backgroundImage = "", media = "", itemTransition = "", slideTransition = "";
         LyricsBackgroundMode? backgroundImageMode = null;
+        LyricsVerticalAlignment? verticalAlignment = null;
         var effectBits = 0;
 
         foreach (var entry in formatData.Split('>'))
@@ -81,6 +87,10 @@ public sealed record SongFormatData
                 case 51: media = value; break;
                 case 61: backgroundImage = value; break;
                 case 62: backgroundImageMode = ParseLegacyBackgroundImageMode(value); break;
+                case 63: verticalAlignment = ParseLegacyVerticalAlignment(value); break;
+                case 64: bodyLeftMargin = ParseLegacyMargin(value, max: 40); break;
+                case 65: bodyRightMargin = ParseLegacyMargin(value, max: 40); break;
+                case 66: bodyBottomMargin = ParseLegacyMargin(value, max: 100); break;
                 case 72: itemTransition = SanitizeTransitionName(value); break;
                 case 73: slideTransition = SanitizeTransitionName(value); break;
             }
@@ -109,6 +119,10 @@ public sealed record SongFormatData
             Underline2 = hasBits && (effectBits & 0b0010_0000) != 0, // bit5
             BackgroundImagePath = backgroundImage,
             BackgroundImageMode = backgroundImageMode,
+            VerticalAlignment = verticalAlignment,
+            BodyLeftMargin = bodyLeftMargin,
+            BodyRightMargin = bodyRightMargin,
+            BodyBottomMargin = bodyBottomMargin,
             MediaPath = media,
             ItemTransitionName = itemTransition,
             SlideTransitionName = slideTransition,
@@ -150,6 +164,10 @@ public sealed record SongFormatData
         if (!string.IsNullOrEmpty(MediaPath)) Add(51, MediaPath);
         if (!string.IsNullOrEmpty(BackgroundImagePath)) Add(61, BackgroundImagePath);
         if (ToLegacyBackgroundImageMode(BackgroundImageMode) is int bgMode) Add(62, Num(bgMode));
+        if (ToLegacyVerticalAlignment(VerticalAlignment) is int valign) Add(63, Num(valign));
+        if (ToLegacyMargin(BodyLeftMargin, max: 40) is int left) Add(64, Num(left));
+        if (ToLegacyMargin(BodyRightMargin, max: 40) is int right) Add(65, Num(right));
+        if (ToLegacyMargin(BodyBottomMargin, max: 100) is int bottom) Add(66, Num(bottom));
         if (!string.IsNullOrEmpty(ItemTransitionName)) Add(72, SanitizeTransitionName(ItemTransitionName));
         if (!string.IsNullOrEmpty(SlideTransitionName)) Add(73, SanitizeTransitionName(SlideTransitionName));
 
@@ -218,6 +236,33 @@ public sealed record SongFormatData
             LyricsBackgroundMode.Fit => 2,
             _ => null,
         };
+
+    private static LyricsVerticalAlignment? ParseLegacyVerticalAlignment(string value)
+        => ParseInt(value) switch
+        {
+            0 => LyricsVerticalAlignment.Top,
+            1 => LyricsVerticalAlignment.Center,
+            2 => LyricsVerticalAlignment.Bottom,
+            _ => null,
+        };
+
+    private static int? ToLegacyVerticalAlignment(LyricsVerticalAlignment? alignment)
+        => alignment switch
+        {
+            LyricsVerticalAlignment.Top => 0,
+            LyricsVerticalAlignment.Center => 1,
+            LyricsVerticalAlignment.Bottom => 2,
+            _ => null,
+        };
+
+    private static int? ParseLegacyMargin(string value, int max)
+    {
+        var parsed = ParseInt(value);
+        return parsed is int n && n >= 0 && n <= max ? n : null;
+    }
+
+    private static int? ToLegacyMargin(int? value, int max)
+        => value is int n && n >= 0 && n <= max ? n : null;
 
     // 폰트 크기는 레거시에서 6~100 만 유효(그 밖은 기본값으로 폴백 → 여기선 무시).
     private static int? ParseFontSize(string value)

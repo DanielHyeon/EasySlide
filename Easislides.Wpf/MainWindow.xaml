@@ -3357,6 +3357,120 @@
                                                     </StackPanel>
                                                 </GroupBox>
 
+                                                <GroupBox x:Name="IndgroupBoxPosition"
+                                                          Tag="IndgroupBoxPosition"
+                                                          Header="Position"
+                                                          Margin="0,0,0,8">
+                                                    <StackPanel Margin="8">
+                                                        <WrapPanel x:Name="Ind_VAlign"
+                                                                   Tag="Ind_VAlign"
+                                                                   Margin="0,0,0,6"
+                                                                   IsEnabled="{Binding CanEditSelectedItemColor}">
+                                                            <ToggleButton x:Name="Ind_VAlignTop"
+                                                                          Tag="0"
+                                                                          Content="Top"
+                                                                          IsChecked="{Binding SelectedItemVerticalAlignmentIsTop, Mode=OneWay}"
+                                                                          Command="{Binding SetSelectedItemVerticalAlignmentCommand}"
+                                                                          CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}"
+                                                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                                                          MinWidth="54"
+                                                                          Height="26"
+                                                                          Padding="8,0"
+                                                                          Margin="0,0,4,4"
+                                                                          AutomationProperties.Name="선택 항목 위쪽 정렬" />
+                                                            <ToggleButton x:Name="Ind_VAlignCentre"
+                                                                          Tag="1"
+                                                                          Content="Centre"
+                                                                          IsChecked="{Binding SelectedItemVerticalAlignmentIsCenter, Mode=OneWay}"
+                                                                          Command="{Binding SetSelectedItemVerticalAlignmentCommand}"
+                                                                          CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}"
+                                                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                                                          MinWidth="66"
+                                                                          Height="26"
+                                                                          Padding="8,0"
+                                                                          Margin="0,0,4,4"
+                                                                          AutomationProperties.Name="선택 항목 세로 가운데 정렬" />
+                                                            <ToggleButton x:Name="Ind_VAlignBottom"
+                                                                          Tag="2"
+                                                                          Content="Bottom"
+                                                                          IsChecked="{Binding SelectedItemVerticalAlignmentIsBottom, Mode=OneWay}"
+                                                                          Command="{Binding SetSelectedItemVerticalAlignmentCommand}"
+                                                                          CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}"
+                                                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                                                          MinWidth="70"
+                                                                          Height="26"
+                                                                          Padding="8,0"
+                                                                          Margin="0,0,4,4"
+                                                                          AutomationProperties.Name="선택 항목 아래쪽 정렬" />
+                                                        </WrapPanel>
+                                                        <Grid IsEnabled="{Binding CanEditSelectedItemColor}">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="12" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="6" />
+                                                                <RowDefinition Height="Auto" />
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Grid.Row="0"
+                                                                       Grid.Column="0"
+                                                                       Text="Left"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="0,0,6,0"
+                                                                       Style="{StaticResource Type.Caption.Style}"
+                                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                                            <TextBox x:Name="Ind_LeftUpDown"
+                                                                     Grid.Row="0"
+                                                                     Grid.Column="1"
+                                                                     Tag="Ind_LeftUpDown"
+                                                                     Text="{Binding SelectedItemLeftMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                                                     MinWidth="44"
+                                                                     Height="26"
+                                                                     TextAlignment="Right"
+                                                                     VerticalContentAlignment="Center"
+                                                                     AutomationProperties.Name="선택 항목 왼쪽 여백" />
+                                                            <TextBlock Grid.Row="0"
+                                                                       Grid.Column="3"
+                                                                       Text="Right"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="0,0,6,0"
+                                                                       Style="{StaticResource Type.Caption.Style}"
+                                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                                            <TextBox x:Name="Ind_RightUpDown"
+                                                                     Grid.Row="0"
+                                                                     Grid.Column="4"
+                                                                     Tag="Ind_RightUpDown"
+                                                                     Text="{Binding SelectedItemRightMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                                                     MinWidth="44"
+                                                                     Height="26"
+                                                                     TextAlignment="Right"
+                                                                     VerticalContentAlignment="Center"
+                                                                     AutomationProperties.Name="선택 항목 오른쪽 여백" />
+                                                            <TextBlock Grid.Row="2"
+                                                                       Grid.Column="0"
+                                                                       Text="Bottom"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="0,0,6,0"
+                                                                       Style="{StaticResource Type.Caption.Style}"
+                                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                                            <TextBox x:Name="Ind_BottomUpDown"
+                                                                     Grid.Row="2"
+                                                                     Grid.Column="1"
+                                                                     Tag="Ind_BottomUpDown"
+                                                                     Text="{Binding SelectedItemBottomMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                                                     MinWidth="44"
+                                                                     Height="26"
+                                                                     TextAlignment="Right"
+                                                                     VerticalContentAlignment="Center"
+                                                                     AutomationProperties.Name="선택 항목 아래 여백" />
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </GroupBox>
+
                                                 <GroupBox x:Name="IndgroupBox3"
                                                           Tag="IndgroupBox3"
                                                           Header="Font / Back"

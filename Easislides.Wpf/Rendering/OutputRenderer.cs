@@ -435,6 +435,18 @@ public sealed class OutputRenderer : IOutputRenderer
         var textAlignment = isLive && request.Session.OverrideTextAlignment is LyricsTextAlignment songAlign
             ? songAlign
             : liveOutput.LyricsMonitorTextAlignment;
+        var verticalAlignment = isLive && request.Session.OverrideVerticalAlignment is LyricsVerticalAlignment songVerticalAlign
+            ? songVerticalAlign
+            : liveOutput.LyricsMonitorVerticalAlignment;
+        var bodyLeftMargin = isLive && request.Session.OverrideBodyLeftMargin is int songLeftMargin
+            ? songLeftMargin
+            : liveOutput.LyricsMonitorBodyLeftMargin;
+        var bodyRightMargin = isLive && request.Session.OverrideBodyRightMargin is int songRightMargin
+            ? songRightMargin
+            : liveOutput.LyricsMonitorBodyRightMargin;
+        var bodyBottomMargin = isLive && request.Session.OverrideBodyBottomMargin is int songBottomMargin
+            ? songBottomMargin
+            : liveOutput.LyricsMonitorBodyBottomMargin;
         // 곡별 폰트 크기(있으면)도 Live 일 때만 운영 기본 크기를 이긴다(레거시 pt→px 는 GoLive 에서 변환됨).
         var fontSizePx = isLive && request.Session.OverrideFontSizePx is int songFontPx
             ? songFontPx
@@ -533,7 +545,7 @@ public sealed class OutputRenderer : IOutputRenderer
             // 곡 가사 본문은 Live 일 때만 송출(숨김/블랙아웃/대기 상태에선 빈 문자열).
             kind == OutputSceneKind.Live ? request.Session.CurrentItemBodyText : string.Empty,
             textAlignment,
-            liveOutput.LyricsMonitorVerticalAlignment,
+            verticalAlignment,
             fontSizePx,
             region1Bold,
             region1Italic,
@@ -543,9 +555,9 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorPanelColorArgb,
             liveOutput.LyricsMonitorPanelFontScalePercent,
             liveOutput.LyricsMonitorLineSpacingPercent,
-            liveOutput.LyricsMonitorBodyLeftMargin,
-            liveOutput.LyricsMonitorBodyRightMargin,
-            liveOutput.LyricsMonitorBodyBottomMargin,
+            bodyLeftMargin,
+            bodyRightMargin,
+            bodyBottomMargin,
             liveOutput.LyricsMonitorRegionGapPx,
             liveOutput.LyricsMonitorBodyVerticalOffset,
             // 위치 라벨은 Live 일 때만 의미 있다(숨김/대기에선 빈 문자열).

@@ -520,6 +520,24 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_WithSongFormatDataVerticalAlignmentAndMargins_CarriesOutputPositionOverrides()
+    {
+        var item = new LiveQueueItem("song-3", "Song")
+        {
+            Lyrics = "[1]\nbody",
+            FormatData = "63=2>64=4>65=5>66=6>",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "Display 1");
+
+        sut.Current.OverrideVerticalAlignment.Should().Be(LyricsVerticalAlignment.Bottom);
+        sut.Current.OverrideBodyLeftMargin.Should().Be(4);
+        sut.Current.OverrideBodyRightMargin.Should().Be(5);
+        sut.Current.OverrideBodyBottomMargin.Should().Be(6);
+    }
+
+    [Fact]
     public void GoLive_WithSongFormatDataFont_CarriesFontNameAndPixelSize()
     {
         // 곡별 FormatData 폰트명(43)·크기(47, 레거시 pt)를 스냅샷에 실어 출력이 그 곡의 글꼴로 송출하게 한다.

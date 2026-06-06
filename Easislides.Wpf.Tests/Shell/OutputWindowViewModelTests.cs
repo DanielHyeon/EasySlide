@@ -784,6 +784,34 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_PerSongVerticalAlignmentAndMargins_OverrideGlobalSettings()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorVerticalAlignment, LyricsVerticalAlignment.Top).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyLeftMargin, 40).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyRightMargin, 56).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorBodyBottomMargin, 72).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Song",
+            "Display 1",
+            IsBlackout: false,
+            CurrentItemBodyText: "body",
+            OverrideVerticalAlignment: LyricsVerticalAlignment.Bottom,
+            OverrideBodyLeftMargin: 4,
+            OverrideBodyRightMargin: 5,
+            OverrideBodyBottomMargin: 6));
+
+        sut.BodyVerticalAlignment.Should().Be(VerticalAlignment.Bottom);
+        sut.BodyContentMargin.Left.Should().Be(4);
+        sut.BodyContentMargin.Right.Should().Be(5);
+        sut.BodyContentMargin.Bottom.Should().Be(6);
+    }
+
+    [Fact]
     public void SettingsChanged_RefreshesTitleHeading()
     {
         // 라이브 중 설정 토글이 즉시 헤딩 가시성에 반영(SettingsChanged 화이트리스트).

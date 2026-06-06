@@ -1031,6 +1031,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageCommand = new RelayCommand<string?>(SetSelectedItemBackgroundImage, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageModeCommand = new RelayCommand<LyricsBackgroundMode>(SetSelectedItemBackgroundImageMode, _ => CanEditSelectedItemColor);
+        SetSelectedItemVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(SetSelectedItemVerticalAlignment, _ => CanEditSelectedItemColor);
+        SetSelectedItemLeftMarginCommand = new RelayCommand<string?>(SetSelectedItemLeftMargin, _ => CanEditSelectedItemColor);
+        SetSelectedItemRightMarginCommand = new RelayCommand<string?>(SetSelectedItemRightMargin, _ => CanEditSelectedItemColor);
+        SetSelectedItemBottomMarginCommand = new RelayCommand<string?>(SetSelectedItemBottomMargin, _ => CanEditSelectedItemColor);
         SetSelectedItemTransitionCommand = new RelayCommand<TransitionEffectKind>(SetSelectedItemTransition, _ => CanEditSelectedItemColor);
         SetSelectedSlideTransitionCommand = new RelayCommand<TransitionEffectKind>(SetSelectedSlideTransition, _ => CanEditSelectedItemColor);
         // 항목별 강조(굵게·기울임·밑줄, FormatData 코드41 비트) — 우클릭 토글. 곡일 때만 활성.
@@ -1304,6 +1308,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemBackgroundColorCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundImageCommand { get; }
     public IRelayCommand<LyricsBackgroundMode> SetSelectedItemBackgroundImageModeCommand { get; }
+    public IRelayCommand<LyricsVerticalAlignment> SetSelectedItemVerticalAlignmentCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemLeftMarginCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemRightMarginCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemBottomMarginCommand { get; }
     public IRelayCommand ToggleSelectedItemBoldCommand { get; }
     public IRelayCommand ToggleSelectedItemItalicCommand { get; }
     public IRelayCommand ToggleSelectedItemUnderlineCommand { get; }
@@ -3393,6 +3401,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemBackgroundModeIsFit));
         OnPropertyChanged(nameof(SelectedItemBackgroundModeIsCenter));
         OnPropertyChanged(nameof(SelectedItemBackgroundModeIsTile));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignment));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsTop));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsCenter));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsBottom));
+        OnPropertyChanged(nameof(SelectedItemLeftMarginInput));
+        OnPropertyChanged(nameof(SelectedItemRightMarginInput));
+        OnPropertyChanged(nameof(SelectedItemBottomMarginInput));
         OnPropertyChanged(nameof(CanClearSelectedItemBackgroundImage));
         OnPropertyChanged(nameof(SelectedItemBackgroundNoImageToolTip));
         OnPropertyChanged(nameof(SelectedItemFormatData));
@@ -6634,6 +6649,91 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool SelectedItemBackgroundModeIsCenter => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Center;
     public bool SelectedItemBackgroundModeIsTile => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Tile;
 
+    public LyricsVerticalAlignment SelectedItemVerticalAlignment
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.VerticalAlignment ?? ActiveLyricsVerticalAlignment;
+
+    public bool SelectedItemVerticalAlignmentIsTop => SelectedItemVerticalAlignment == LyricsVerticalAlignment.Top;
+    public bool SelectedItemVerticalAlignmentIsCenter => SelectedItemVerticalAlignment == LyricsVerticalAlignment.Center;
+    public bool SelectedItemVerticalAlignmentIsBottom => SelectedItemVerticalAlignment == LyricsVerticalAlignment.Bottom;
+
+    public int SelectedItemLeftMarginInput
+    {
+        get => SongFormatData.Parse(SelectedItem?.FormatData)?.BodyLeftMargin ?? 0;
+        set => SetSelectedItemLeftMargin(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    public int SelectedItemRightMarginInput
+    {
+        get => SongFormatData.Parse(SelectedItem?.FormatData)?.BodyRightMargin ?? 0;
+        set => SetSelectedItemRightMargin(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    public int SelectedItemBottomMarginInput
+    {
+        get => SongFormatData.Parse(SelectedItem?.FormatData)?.BodyBottomMargin ?? 0;
+        set => SetSelectedItemBottomMargin(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    public void SetSelectedItemVerticalAlignment(LyricsVerticalAlignment alignment)
+    {
+        if (ApplySelectedSongFormatChange(format => format with { VerticalAlignment = alignment }, wantsIndividual: true, out var turnedOn))
+        {
+            OnPropertyChanged(nameof(SelectedItemVerticalAlignment));
+            OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsTop));
+            OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsCenter));
+            OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsBottom));
+            StatusText = $"Item vertical align: {alignment}{(turnedOn ? " (individual formatting on)" : "")}";
+        }
+    }
+
+    public void SetSelectedItemLeftMargin(string? marginParam)
+        => SetSelectedItemMargin(
+            marginParam,
+            max: 40,
+            (format, margin) => format with { BodyLeftMargin = margin },
+            "left margin",
+            nameof(SelectedItemLeftMarginInput));
+
+    public void SetSelectedItemRightMargin(string? marginParam)
+        => SetSelectedItemMargin(
+            marginParam,
+            max: 40,
+            (format, margin) => format with { BodyRightMargin = margin },
+            "right margin",
+            nameof(SelectedItemRightMarginInput));
+
+    public void SetSelectedItemBottomMargin(string? marginParam)
+        => SetSelectedItemMargin(
+            marginParam,
+            max: 100,
+            (format, margin) => format with { BodyBottomMargin = margin },
+            "bottom margin",
+            nameof(SelectedItemBottomMarginInput));
+
+    private void SetSelectedItemMargin(
+        string? marginParam,
+        int max,
+        Func<SongFormatData, int?, SongFormatData> mutate,
+        string label,
+        string inputPropertyName)
+    {
+        var margin = ParseSelectedItemMargin(marginParam, max);
+        if (ApplySelectedSongFormatChange(format => mutate(format, margin), wantsIndividual: margin is not null, out var turnedOn))
+        {
+            OnPropertyChanged(inputPropertyName);
+            StatusText = margin is null
+                ? $"Item {label}: default"
+                : $"Item {label}: {margin}{(turnedOn ? " (individual formatting on)" : "")}";
+        }
+    }
+
+    private static int? ParseSelectedItemMargin(string? marginParam, int max)
+        => int.TryParse(marginParam, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var n)
+            && n >= 0
+            && n <= max
+                ? n
+                : null;
+
     /// <summary>
     /// 선택한 곡 항목의 배경 이미지(이 항목만)를 바꾼다(레거시 항목별 배경 이미지, FormatData 코드 61). 경로가 비거나 공백뿐이면 해제해 전역 배경을 따른다.
     /// 이미지를 주면 개별 서식을 켜고, 나머지 곡별 서식(색·정렬·크기·글꼴 등)은 보존한다. 송출 시 그 곡 동안 이 이미지가 <b>배경색 위에</b> 표시된다
@@ -7162,6 +7262,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // ─── 출력 모양 설정 템플릿(저장/불러오기) §7.3-A ──────────────────────────
 
     // SelectedAppearanceTemplate 변경 시 적용/삭제 커맨드 활성 상태를 맞춘다([ObservableProperty] 부분 훅).
+    partial void OnActiveLyricsVerticalAlignmentChanged(LyricsVerticalAlignment value)
+    {
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignment));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsTop));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsCenter));
+        OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsBottom));
+    }
+
     partial void OnSelectedAppearanceTemplateChanged(string? value)
     {
         ApplyAppearanceTemplateCommand.NotifyCanExecuteChanged();
@@ -8561,6 +8669,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageModeCommand.NotifyCanExecuteChanged();
+        SetSelectedItemVerticalAlignmentCommand.NotifyCanExecuteChanged();
+        SetSelectedItemLeftMarginCommand.NotifyCanExecuteChanged();
+        SetSelectedItemRightMarginCommand.NotifyCanExecuteChanged();
+        SetSelectedItemBottomMarginCommand.NotifyCanExecuteChanged();
         SetSelectedItemTransitionCommand.NotifyCanExecuteChanged();
         SetSelectedSlideTransitionCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemBoldCommand.NotifyCanExecuteChanged();

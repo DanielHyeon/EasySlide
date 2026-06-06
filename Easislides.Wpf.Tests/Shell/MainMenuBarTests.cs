@@ -1280,6 +1280,10 @@ public class MainMenuBarTests
             "Ind_BackColour",
             "Ind_BackImageSelect",
             "Ind_NoImage",
+            "Ind_VAlign",
+            "Ind_LeftUpDown",
+            "Ind_RightUpDown",
+            "Ind_BottomUpDown",
             "PreviewBtnItemUp",
             "PreviewBtnItemDown",
             "PreviewBtnSlideUp",
@@ -1390,6 +1394,16 @@ public class MainMenuBarTests
             "Ind_ImageMode options should write FormatData code 62 through the selected-item VM command");
         xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Tile}\"",
             "Ind_ImageTile should map to the WPF Tile mode before encoding legacy 62=0");
+        xaml.Should().Contain("Command=\"{Binding SetSelectedItemVerticalAlignmentCommand}\"",
+            "Ind_VAlign should write FormatData code 63 through the selected-item VM command");
+        xaml.Should().Contain("IsChecked=\"{Binding SelectedItemVerticalAlignmentIsCenter, Mode=OneWay}\"",
+            "Ind_VAlign centre should reflect the selected item's current vertical alignment");
+        xaml.Should().Contain("Text=\"{Binding SelectedItemLeftMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}\"",
+            "Ind_LeftUpDown should write FormatData code 64 through the selected-item VM path");
+        xaml.Should().Contain("Text=\"{Binding SelectedItemRightMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}\"",
+            "Ind_RightUpDown should write FormatData code 65 through the selected-item VM path");
+        xaml.Should().Contain("Text=\"{Binding SelectedItemBottomMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}\"",
+            "Ind_BottomUpDown should write FormatData code 66 through the selected-item VM path");
         xaml.Should().Contain("x:Name=\"Ind_TransItem\"",
             "IndPanel should expose FrmMain's selected-item transition combo");
         xaml.Should().Contain("x:Name=\"Ind_TransSlides\"",

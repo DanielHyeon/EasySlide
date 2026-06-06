@@ -85,7 +85,11 @@ public sealed record LiveSessionSnapshot(
     string LyricsAlertMessage = "",
     // FrmMain OutputBtnRefAlert/QueryShowActive: 현재 송출 내용을 유지한 채 구절/제목 알림 오버레이만 토글한다.
     bool IsReferenceAlertVisible = false,
-    string ReferenceAlertText = "")
+    string ReferenceAlertText = "",
+    LyricsVerticalAlignment? OverrideVerticalAlignment = null,
+    int? OverrideBodyLeftMargin = null,
+    int? OverrideBodyRightMargin = null,
+    int? OverrideBodyBottomMargin = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -218,7 +222,11 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentPageIsChorus: ComputeCurrentPageIsChorus(item),
             CurrentSectionLabel: ComputeCurrentSectionLabel(item),
             // 항목 식별자 — 출력 VM 의 "항목 전환 vs 슬라이드 전환" 판별 근거(같은 곡 안 절 이동은 같은 Id 로 재송출됨).
-            CurrentItemId: item.Id);
+            CurrentItemId: item.Id,
+            OverrideVerticalAlignment: format?.VerticalAlignment,
+            OverrideBodyLeftMargin: format?.BodyLeftMargin,
+            OverrideBodyRightMargin: format?.BodyRightMargin,
+            OverrideBodyBottomMargin: format?.BodyBottomMargin);
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.

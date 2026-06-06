@@ -9262,6 +9262,82 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SetSelectedItemVerticalAlignment_WritesFormatDataCode63_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "Song", "", 1, 1, "", "", "[1]\nbody"));
+
+        sut.SetSelectedItemVerticalAlignment(LyricsVerticalAlignment.Bottom);
+
+        sut.SelectedItem!.FormatData.Should().Contain("63=2", "code 63 stores FrmMain Ind_VAlign selection index");
+        sut.SelectedItemVerticalAlignment.Should().Be(LyricsVerticalAlignment.Bottom);
+        sut.SelectedItemVerticalAlignmentIsBottom.Should().BeTrue();
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetSelectedItemMargins_WriteFormatDataCodes64To66_AndReflect()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "Song", "", 1, 1, "", "", "[1]\nbody"));
+
+        sut.SetSelectedItemLeftMargin("4");
+        sut.SetSelectedItemRightMargin("5");
+        sut.SetSelectedItemBottomMargin("6");
+
+        var formatData = sut.SelectedItem!.FormatData ?? "";
+        formatData.Should().Contain("64=4", "code 64 stores FrmMain Ind_LeftUpDown");
+        formatData.Should().Contain("65=5", "code 65 stores FrmMain Ind_RightUpDown");
+        formatData.Should().Contain("66=6", "code 66 stores FrmMain Ind_BottomUpDown");
+        sut.SelectedItemLeftMarginInput.Should().Be(4);
+        sut.SelectedItemRightMarginInput.Should().Be(5);
+        sut.SelectedItemBottomMarginInput.Should().Be(6);
+    }
+
+    [Fact]
+    public void SetSelectedItemMargins_InvalidOrOutOfRange_ClearCodes()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nbody",
+            FormatData = "64=4>65=5>66=6",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemLeftMargin("41");
+        sut.SetSelectedItemRightMargin("-1");
+        sut.SetSelectedItemBottomMargin("101");
+
+        var formatData = sut.SelectedItem!.FormatData ?? "";
+        formatData.Should().NotContain("64=");
+        formatData.Should().NotContain("65=");
+        formatData.Should().NotContain("66=");
+    }
+
+    [Fact]
+    public void SetSelectedItemPositionWhileLive_AppliesSessionOverrides()
+    {
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "Song", LiveItemKinds.Song) { Lyrics = "[1]\nbody" };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemVerticalAlignment(LyricsVerticalAlignment.Top);
+        sut.SetSelectedItemLeftMargin("4");
+        sut.SetSelectedItemRightMargin("5");
+        sut.SetSelectedItemBottomMargin("6");
+
+        session.Current.OverrideVerticalAlignment.Should().Be(LyricsVerticalAlignment.Top);
+        session.Current.OverrideBodyLeftMargin.Should().Be(4);
+        session.Current.OverrideBodyRightMargin.Should().Be(5);
+        session.Current.OverrideBodyBottomMargin.Should().Be(6);
+    }
+
+    [Fact]
     public void SetSelectedItemFontName_SameName_IsNoOp_DoesNotReplaceItem()
     {
         // 이미 같은 글꼴이면(레코드 동등, 문자열 "" 센티넬 포함) 큐 항목을 교체하지 않는다(불필요한 재송출 방지).

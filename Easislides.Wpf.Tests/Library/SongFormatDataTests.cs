@@ -36,6 +36,10 @@ public sealed class SongFormatDataTests
         f.Alignment2.Should().Be(1, "32 = region2 정렬");
         f.BackgroundImagePath.Should().Be(@"C:\EasiSlides\Images\성경\bible-sermon.jpg", "61 = 배경 이미지");
         f.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Fit, "62=2 = legacy BestFit");
+        f.VerticalAlignment.Should().Be(LyricsVerticalAlignment.Center, "63=1 = FrmMain Ind_VAlign centre");
+        f.BodyLeftMargin.Should().Be(2, "64 = FrmMain Ind_LeftUpDown");
+        f.BodyRightMargin.Should().Be(2, "65 = FrmMain Ind_RightUpDown");
+        f.BodyBottomMargin.Should().Be(0, "66 = FrmMain Ind_BottomUpDown");
         f.ItemTransitionName.Should().Be("None", "72 = FrmMain item transition display text");
         f.SlideTransitionName.Should().Be("None", "73 = FrmMain slide transition display text");
         // 실 샘플 41=16=0b10000=bit4 → region2 Italic 만 true(0-based; 레거시 HeaderData[41] 권위).
@@ -109,6 +113,10 @@ public sealed class SongFormatDataTests
             Underline2 = false,
             BackgroundImagePath = @"C:\EasiSlides\Images\성경\bible.jpg",
             BackgroundImageMode = LyricsBackgroundMode.Center,
+            VerticalAlignment = LyricsVerticalAlignment.Bottom,
+            BodyLeftMargin = 4,
+            BodyRightMargin = 5,
+            BodyBottomMargin = 6,
             MediaPath = "clip.mp4",
             ItemTransitionName = "Fade",
             SlideTransitionName = "Zoom Out",
@@ -135,6 +143,45 @@ public sealed class SongFormatDataTests
     public void Encode_BackgroundImageMode62_MapsToLegacyImageMode(LyricsBackgroundMode mode, string expected)
     {
         new SongFormatData { BackgroundImageMode = mode }.Encode().Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("63=0>", LyricsVerticalAlignment.Top)]
+    [InlineData("63=1>", LyricsVerticalAlignment.Center)]
+    [InlineData("63=2>", LyricsVerticalAlignment.Bottom)]
+    public void Parse_VerticalAlignment63_MapsLegacySelectionIndex(string raw, LyricsVerticalAlignment expected)
+    {
+        SongFormatData.Parse(raw)!.VerticalAlignment.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Encode_VerticalAlignmentAndMargins_UsesLegacy63To66()
+    {
+        var encoded = new SongFormatData
+        {
+            VerticalAlignment = LyricsVerticalAlignment.Top,
+            BodyLeftMargin = 40,
+            BodyRightMargin = 12,
+            BodyBottomMargin = 100,
+        }.Encode();
+
+        encoded.Should().Be("63=0>64=40>65=12>66=100");
+        var round = SongFormatData.Parse(encoded)!;
+        round.VerticalAlignment.Should().Be(LyricsVerticalAlignment.Top);
+        round.BodyLeftMargin.Should().Be(40);
+        round.BodyRightMargin.Should().Be(12);
+        round.BodyBottomMargin.Should().Be(100);
+    }
+
+    [Fact]
+    public void Parse_OutOfRangeVerticalAlignmentAndMargins_IgnoresInvalidLegacyValues()
+    {
+        var parsed = SongFormatData.Parse("63=9>64=41>65=-1>66=101>")!;
+
+        parsed.VerticalAlignment.Should().BeNull();
+        parsed.BodyLeftMargin.Should().BeNull();
+        parsed.BodyRightMargin.Should().BeNull();
+        parsed.BodyBottomMargin.Should().BeNull();
     }
 
     [Fact]
