@@ -70,6 +70,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOutputPowerPointContext))]
     [NotifyPropertyChangedFor(nameof(IsOutputMediaContext))]
+    [NotifyPropertyChangedFor(nameof(IsOutputVisualContext))]
     [NotifyPropertyChangedFor(nameof(OutputMediaTitle))]
     [NotifyPropertyChangedFor(nameof(OutputMediaSourceText))]
     [NotifyPropertyChangedFor(nameof(OutputMediaStatusText))]
@@ -147,6 +148,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasPowerPointLimitViolation;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasOutputLyricsText))]
+    [NotifyPropertyChangedFor(nameof(IsOutputVisualContext))]
     private string _outputLyricsText = string.Empty;
     [ObservableProperty] private bool _isMediaTabVisible;
     [ObservableProperty] private bool _isMediaPanelOverlayEnabled = true;
@@ -785,6 +787,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string OutputVisualKind => GetOutputNavigationItem()?.Kind ?? string.Empty;
 
     public bool HasOutputVisualSource => OutputVisualSource is not null;
+
+    public bool IsOutputVisualContext
+        => HasOutputVisualSource
+            && !IsOutputPowerPointContext
+            && !IsOutputMediaContext
+            && !HasOutputLyricsText;
 
     /// <summary>
     /// 미디어 재생 컨트롤 VM(상태·위치·볼륨·재생/정지/탐색). MainWindow Media 탭이 바인딩한다.
@@ -3368,6 +3376,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void NotifyOutputMediaProperties()
     {
         OnPropertyChanged(nameof(IsOutputMediaContext));
+        OnPropertyChanged(nameof(IsOutputVisualContext));
         OnPropertyChanged(nameof(OutputMediaTitle));
         OnPropertyChanged(nameof(OutputMediaSourceText));
         OnPropertyChanged(nameof(OutputMediaStatusText));
@@ -3547,6 +3556,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnOutputLyricsTextChanged(string value)
     {
         RebuildOutputLyricsPages();
+        OnPropertyChanged(nameof(IsOutputVisualContext));
     }
 
     partial void OnMediaDirectoryChanged(string value)
@@ -4259,6 +4269,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputVisualTitle));
         OnPropertyChanged(nameof(OutputVisualKind));
         OnPropertyChanged(nameof(HasOutputVisualSource));
+        OnPropertyChanged(nameof(IsOutputVisualContext));
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyOutputPanelDisplayProperties();
         NotifyCommandStates();
@@ -4977,6 +4988,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(OutputVisualSource));
             OnPropertyChanged(nameof(HasOutputVisualSource));
+            OnPropertyChanged(nameof(IsOutputVisualContext));
         }
 
         if (e.PropertyName is nameof(OutputPowerPoint.State)
@@ -8111,6 +8123,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputVisualTitle));
         OnPropertyChanged(nameof(OutputVisualKind));
         OnPropertyChanged(nameof(HasOutputVisualSource));
+        OnPropertyChanged(nameof(IsOutputVisualContext));
         // 다음 송출 예정 항목 — 운영자가 미리 준비하도록 LiveBar 에 "다음 ▸ X"로 보여 준다(마지막 항목이면 빈 문자열→숨김).
         LiveBar.NextItemTitle = snapshot.CurrentItemNextTitle;
         LiveBar.OutputMonitorName = snapshot.OutputMonitorName;

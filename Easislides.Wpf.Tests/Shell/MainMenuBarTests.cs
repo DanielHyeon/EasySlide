@@ -22,6 +22,10 @@ public class MainMenuBarTests
         Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "MainWindow.xaml.cs"),
         Encoding.UTF8);
 
+    private static string MainViewModelCode => File.ReadAllText(
+        Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "Shell", "MainViewModel.cs"),
+        Encoding.UTF8);
+
     private static string AppCode => File.ReadAllText(
         Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "App.xaml.cs"),
         Encoding.UTF8);
@@ -360,6 +364,46 @@ public class MainMenuBarTests
             "the Output media button icon should follow the prepared/live Output media source, not whatever Preview/media source is currently loaded");
         outputTopPane.Should().NotContain("Symbol=\"{Binding Media.PlayPauseSymbol}\"",
             "FrmMain OutputBtnMedia must not visually follow the generic Preview/media playback state");
+    }
+
+    [Fact]
+    public void ClassicOutputTopPane_ExposesVisualSurfaceForNonPptOutputItems()
+    {
+        var xaml = Xaml;
+        var code = MainViewModelCode;
+
+        var outputTopPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicOutputInfo\"",
+            "x:Name=\"ClassicOutputSlidePane\"");
+
+        var visualSurface = SectionBetween(
+            outputTopPane,
+            "x:Name=\"ClassicOutputVisualSurface\"",
+            "x:Name=\"ClassicOutputMediaSurface\"");
+
+        visualSurface.Should().Contain("Tag=\"flowLayoutOutputVisual\"",
+            "FrmMain OutputInfo needs a non-PPT visual flow surface instead of a blank top pane");
+        visualSurface.Should().Contain("Visibility=\"{Binding IsOutputVisualContext, Converter={StaticResource BoolToVis}}\"",
+            "visual cards should follow the prepared/live Output item only");
+        visualSurface.Should().Contain("<WrapPanel>",
+            "the non-PPT visual surface should keep the same flow layout shape as the legacy Output panes");
+        visualSurface.Should().Contain("Source=\"{Binding OutputVisualSource}\"",
+            "the top visual card should show the live/output image source");
+        visualSurface.Should().Contain("FillMode=\"{Binding OutputVisualFillMode}\"",
+            "image fill should follow the live/output item format");
+        visualSurface.Should().Contain("Title=\"{Binding OutputVisualTitle}\"",
+            "visual metadata should follow Output, not Preview");
+        visualSurface.Should().Contain("Kind=\"{Binding OutputVisualKind}\"",
+            "visual type metadata should follow Output, not Preview");
+        visualSurface.Should().Contain("SlideNumber=\"{Binding OutputVisualSlideNumber}\"",
+            "visual slide metadata should follow the Output navigation context");
+
+        code.Should().Contain("public bool IsOutputVisualContext",
+            "the top visual surface needs a dedicated non-PPT/non-media/non-lyrics Output context");
+        code.Should().Contain("&& !IsOutputPowerPointContext");
+        code.Should().Contain("&& !IsOutputMediaContext");
+        code.Should().Contain("&& !HasOutputLyricsText");
     }
 
     [Fact]
@@ -1128,6 +1172,7 @@ public class MainMenuBarTests
             "OutputPanelDisplayName",
             "OutputInfo",
             "flowLayoutOutputPowerPoint",
+            "flowLayoutOutputVisual",
             "OutputHolder",
             "OutputBack",
         })
