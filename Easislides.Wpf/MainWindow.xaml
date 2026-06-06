@@ -1493,6 +1493,7 @@
                 </TabItem>
                 <TabItem Tag="PowerPointSource"
                          x:Name="PowerPointSourceTab"
+                         Visibility="{Binding DataContext.IsPowerPointTabVisible, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"
                          AutomationProperties.Name="PowerPoint source">
                     <TabItem.Header>
                         <TextBlock Text="PowerP" />
@@ -2069,6 +2070,7 @@
                 </TabItem>
                 <TabItem Tag="MediaSource"
                          x:Name="MediaSourceTab"
+                         Visibility="{Binding DataContext.IsMediaTabVisible, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"
                          AutomationProperties.Name="Media source">
                     <TabItem.Header>
                         <TextBlock Text="Media" />
@@ -3662,8 +3664,7 @@
 
                                 </Grid>
                             </TabItem>
-                            <TabItem Visibility="{Binding IsPowerPointTabVisible, Converter={StaticResource BoolToVis}}"
-                                     AutomationProperties.Name="PowerPoint">
+                            <TabItem AutomationProperties.Name="PowerPoint">
                                 <!-- 내부 content-switch metadata; 헤더는 FrmMainContentSwitch 템플릿에서 숨겨진다. -->
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">
@@ -3739,8 +3740,7 @@
                                     </ScrollViewer>
                                 </Grid>
                             </TabItem>
-                            <TabItem Visibility="{Binding IsMediaTabVisible, Converter={StaticResource BoolToVis}}"
-                                     AutomationProperties.Name="Media">
+                            <TabItem AutomationProperties.Name="Media">
                                 <!-- 내부 content-switch metadata; 헤더는 FrmMainContentSwitch 템플릿에서 숨겨진다. -->
                                 <TabItem.Header>
                                     <StackPanel Orientation="Horizontal">

@@ -1057,6 +1057,8 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("Tag=\"PowerPointSource\"", "FrmMain keeps PowerPoint as a main-console source tab");
         xaml.Should().Contain("x:Name=\"PowerPointSourceTab\"", "inline PowerPoint tab needs a stable DataContext target");
+        xaml.Should().Contain("DataContext.IsPowerPointTabVisible",
+            "FrmMain UsePowerpointTab controls the left PowerPoint source tab, not the right worship-item preview surface");
         xaml.Should().Contain("x:Name=\"PowerpointFolder\"", "PowerPoint source should expose the FrmMain PowerpointFolder combo role");
         xaml.Should().Contain("ItemsSource=\"{Binding FolderGroups}\"", "PowerpointFolder should list the root and subfolder groups");
         xaml.Should().Contain("SelectedItem=\"{Binding SelectedFolder, Mode=TwoWay}\"", "selecting a PowerpointFolder should reload that source folder");
@@ -1093,9 +1095,14 @@ public class MainMenuBarTests
             "source PowerPoint preview thumbnails should not stay at the old fixed WPF card width");
         sourcePowerPointPreviewFlow.Should().NotContain("Height=\"82\"",
             "source PowerPoint preview thumbnails should not stay at the old fixed WPF image height");
+        var rightPowerPointPreviewTab = SectionBetween(xaml, "AutomationProperties.Name=\"PowerPoint\"", "x:Name=\"ClassicPreviewPowerPointSurface\"");
+        rightPowerPointPreviewTab.Should().NotContain("IsPowerPointTabVisible",
+            "right PreviewItem PowerPoint thumbnails must remain available even when the left source tab is hidden");
 
         xaml.Should().Contain("Tag=\"MediaSource\"", "FrmMain keeps Media as a main-console source tab");
         xaml.Should().Contain("x:Name=\"MediaSourceTab\"", "inline Media tab needs a stable DataContext target");
+        xaml.Should().Contain("DataContext.IsMediaTabVisible",
+            "FrmMain UseMediaTab controls the left Media source tab, not the right worship-item preview surface");
         xaml.Should().Contain("x:Name=\"InlineMediaList\"", "Media files must be visible without opening a modal window");
         xaml.Should().Contain("ItemsSource=\"{Binding MediaFiles}\"", "inline Media list reuses MediaLibraryViewModel");
         xaml.Should().Contain("SelectionMode=\"Extended\"", "MediaList should preserve FrmMain multi-select behavior");
@@ -1110,6 +1117,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuFiles_Edit\"", "CMenuFiles should keep the legacy Edit item");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Copy\"", "CMenuFiles should keep the legacy Copy item");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Refresh\"", "CMenuFiles should expose Refresh");
+        var rightMediaPreviewTab = SectionBetween(xaml, "AutomationProperties.Name=\"Media\"", "Media.FastReverseCommand");
+        rightMediaPreviewTab.Should().NotContain("IsMediaTabVisible",
+            "right PreviewItem media surface must remain available even when the left source tab is hidden");
 
         xaml.Should().Contain("Tag=\"ImagesSource\"", "FrmMain keeps Images as a main-console source tab");
         xaml.Should().Contain("x:Name=\"ImagesSourceTab\"", "inline Images tab needs a stable DataContext target");

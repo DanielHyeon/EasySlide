@@ -774,7 +774,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SelectingPowerPointItem_FallsBackToPreview_WhenPowerPointTabHidden()
+    public void SelectingPowerPointItem_SetsCenterTabToPowerPoint_WhenSourceTabHidden()
     {
         var sut = CreateSut(); // 기본 UsePowerPointTab=false → 탭 숨김
         sut.IsPowerPointTabVisible.Should().BeFalse();
@@ -782,11 +782,11 @@ public class MainViewModelTests
 
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SelectedContentTabIndex.Should().Be(0, "PowerPoint 탭이 숨겨져 있으면 Preview 로 폴백");
+        sut.SelectedContentTabIndex.Should().Be(1, "FrmMain keeps the right PowerPoint preview flow even when the left source tab is hidden");
     }
 
     [Fact]
-    public void HidingPowerPointTabAtRuntime_WhileSelected_FallsBackToPreview()
+    public void HidingPowerPointSourceTabAtRuntime_WhileSelected_KeepsPowerPointPreviewSelected()
     {
         // code-review MINOR: 운영 중 PowerPoint 탭을 끄면 선택이 숨은 탭(1)에 잔류해 중앙이 비어 보이면 안 됨.
         // 설정 변경 → ApplyOperationalSettings 가 가시성 갱신 후 현재 항목 기준 탭을 재평가해 Preview(0)로 폴백.
@@ -801,7 +801,7 @@ public class MainViewModelTests
         settings.Set(EasiSettingKeys.UsePowerPointTab, false).Succeeded.Should().BeTrue();
 
         sut.IsPowerPointTabVisible.Should().BeFalse();
-        sut.SelectedContentTabIndex.Should().Be(0, "숨겨진 탭이 선택된 채 남으면 안 됨");
+        sut.SelectedContentTabIndex.Should().Be(1, "hiding the left source tab must not hide the selected worship PPT preview flow");
     }
 
     [Fact]

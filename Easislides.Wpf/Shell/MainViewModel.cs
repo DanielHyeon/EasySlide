@@ -3603,11 +3603,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 해당 탭이 설정상 숨겨져 있으면(UsePowerPointTab/UseMediaTab off) Preview(0)로 폴백해 빈 탭을 선택하지 않는다.
     private void UpdateContentTabForItem(LiveQueueItem? item)
     {
-        if (item is not null && IsPowerPointItem(item) && IsPowerPointTabVisible)
+        if (item is not null && IsPowerPointItem(item))
         {
             SelectedContentTabIndex = 1;
         }
-        else if (item is not null && IsMediaItem(item) && IsMediaTabVisible)
+        else if (item is not null && IsMediaItem(item))
         {
             SelectedContentTabIndex = 2;
         }
