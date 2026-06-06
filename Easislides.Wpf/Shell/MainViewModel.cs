@@ -2978,9 +2978,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task ValidateWorshipListAsync()
     {
+        var problems = await GetWorshipListProblemsAsync().ConfigureAwait(true);
+        ApplyWorshipListValidationResults(problems);
+
+        // 텔레메트리의 succeeded 는 "검증 명령이 정상 수행됨"을 뜻한다(문제를 찾는 것도 검증의 정상 동작이므로
+        // 문제 발견 = 실패가 아니다). 발견한 문제 수는 StatusText 메시지에 담긴다.
+        _telemetry.Record(MainCommandIds.WorshipListValidate, succeeded: true, StatusText);
+        NotifyCommandStates();
+    }
+
+    private async Task<IReadOnlyList<WorshipItemProblem>> GetWorshipListProblemsAsync()
+    {
         // 1) 파일 차원 검사(동기) — 깨진/이동·삭제된 PPT·미디어 파일.
         var problems = _worshipValidator.Validate(Queue).ToList();
-
         // 2) 곡 DB 존재 검사(비동기·DB 의존) — DB 경로가 있을 때만. song:{id} 항목이 가사 DB 에 아직 있는지 확인한다.
         //    DB 경로가 없으면(설정 전·테스트) 건너뛴다 — 이 경우 await 에 닿지 않아 동기적으로 완료된다(무회귀).
         var databasePath = Search.DatabasePath;
@@ -3002,6 +3012,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             }
         }
+
+        return problems;
+    }
+
+    private void ApplyWorshipListValidationResults(IReadOnlyList<WorshipItemProblem> problems)
+    {
+        var databasePath = Search.DatabasePath;
 
         WorshipListProblems.Clear();
         foreach (var problem in problems)
@@ -3037,11 +3054,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             StatusText += " (곡 DB 검증 생략 — DB 경로 없음)";
         }
-
-        // 텔레메트리의 succeeded 는 "검증 명령이 정상 수행됨"을 뜻한다(문제를 찾는 것도 검증의 정상 동작이므로
-        // 문제 발견 = 실패가 아니다). 발견한 문제 수는 StatusText 메시지에 담긴다.
-        _telemetry.Record(MainCommandIds.WorshipListValidate, succeeded: true, StatusText);
-        NotifyCommandStates();
     }
 
     // 큐 항목 Id 가 "song:{정수}" 형태면 곡 DB Id 를 꺼낸다(AddSong 이 부여한 식별자). 그 외(dup:·text:·bible:·ppt: 등)는 false.
@@ -5507,6 +5519,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "Output 항목 없음");
             NotifyOutputLiveSafetyProperties();
+            return;
+        }
+
+        var problems = await GetWorshipListProblemsAsync().ConfigureAwait(true);
+        ApplyWorshipListValidationResults(problems);
+        if (problems.Count > 0)
+        {
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, StatusText);
+            NotifyOutputLiveSafetyProperties();
+            NotifyCommandStates();
             return;
         }
 

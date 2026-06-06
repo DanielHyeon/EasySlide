@@ -5323,6 +5323,37 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputLiveCommand_WhenWorshipListValidationFails_DoesNotStartShowLikeFrmMain()
+    {
+        var prompt = new RecordingSafetyPrompt(allow: true);
+        var sut = CreateSut(
+            prompt,
+            worshipValidator: new WorshipListValidator(_ => false),
+            seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "준비된 Output", LiveItemKinds.Song) { Lyrics = "[1]\n준비" };
+        var broken = new LiveQueueItem("ppt:broken", "깨진 찬양 PPT", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = @"C:\missing-deck.pptx",
+        };
+        sut.LoadQueue([prepared, broken]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Off, "FrmMain Start_Presentation stops when ValidateWorshipListItems finds a broken list item");
+        sut.IsOutputLiveActive.Should().BeFalse();
+        sut.LiveItemId.Should().BeNull();
+        sut.OutputItem.Should().BeSameAs(prepared, "the prepared Output item stays staged, but the show does not start");
+        sut.WorshipListProblems.Should().ContainSingle()
+            .Which.Kind.Should().Be(WorshipItemProblemKind.FileNotFound);
+        sut.HasWorshipListProblems.Should().BeTrue();
+        sut.StatusText.Should().Contain("문제 1건").And.Contain("깨진 찬양 PPT");
+        prompt.Requests.Should().BeEmpty("validation fails before the WPF live safety confirmation is shown");
+    }
+
+    [Fact]
     public async Task RestartCurrentItemCommand_WhenLiveSongAdvanced_ResetsToFirstVerse()
     {
         // 처음으로: 절을 넘긴 라이브 곡을 첫 절(LyricsPageIndex=0)로 되돌려 재송출한다.
