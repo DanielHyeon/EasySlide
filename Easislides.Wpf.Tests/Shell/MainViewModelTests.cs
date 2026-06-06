@@ -3956,6 +3956,53 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyPreviewToOutputAndNextCommand_SourcePowerPointPreview_AdvancesFromCurrentWorshipSelection()
+    {
+        // FrmMain btnToOutputMoveNext_Click: external PowerPoint PreviewItem is copied, then ManualMoveToItem moves the Worship List selection.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var first = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례" };
+        var second = new LiveQueueItem("song:2", "봉헌 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n봉헌" };
+        var sut = CreateSut(seedSampleQueue: false, powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
+        sut.LoadQueue([first, second]);
+        sut.SelectedItem = first;
+        await sut.PreviewExternalPowerPointSourceAsync(@"C:\decks\external.pptx");
+
+        sut.CopyPreviewToOutputAndNextCommand.Execute(null);
+
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Kind.Should().Be(LiveItemKinds.PowerPoint);
+        sut.OutputItem.ContentPath.Should().Be(@"C:\decks\external.pptx");
+        sut.OutputPowerPoint.LoadedContentPath.Should().Be(@"C:\decks\external.pptx");
+        sut.SelectedItem.Should().BeSameAs(second, "source PreviewItem is not in Queue, so Next follows the current Worship List selection like FrmMain");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SendToOutputAndNextCommand_SourcePowerPointPreview_PublishesSourceAndAdvancesWorshipSelection()
+    {
+        // FrmMain Menu_PreviewGoLiveNext_Click copies the external Preview item, moves Preview selection, then starts live.
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var first = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례" };
+        var second = new LiveQueueItem("song:2", "봉헌 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n봉헌" };
+        var sut = CreateSut(seedSampleQueue: false, powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
+        sut.LoadQueue([first, second]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = first;
+        await sut.PreviewExternalPowerPointSourceAsync(@"C:\decks\external.pptx");
+
+        await sut.SendToOutputAndNextCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("external");
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.ContentPath.Should().Be(@"C:\decks\external.pptx");
+        sut.SelectedItem.Should().BeSameAs(second, "Live+Next should still move the Worship List preview selection after publishing a source preview");
+    }
+
+    [Fact]
     public async Task CopyPreviewToOutputShortcut_WhenLive_PublishesPreviewToOutputAtCurrentPreviewPage()
     {
         using var settingsFolder = TempSettingsFolder.Create();

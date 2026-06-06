@@ -5457,6 +5457,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem? MovePreviewSelectionToNext(LiveQueueItem copiedItem)
     {
         var index = IndexOfReference(copiedItem);
+        if (index < 0 && SelectedItem is not null)
+        {
+            index = IndexOfReference(SelectedItem);
+        }
+
         if (index < 0 || index >= Queue.Count - 1)
         {
             return null;
@@ -5516,6 +5521,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ReferenceEquals(published, SelectedItem))
         {
             AdvanceSelectionToNext(published);
+        }
+        else
+        {
+            MovePreviewSelectionToNext(published);
         }
     }
 
