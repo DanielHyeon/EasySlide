@@ -1255,6 +1255,26 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ImportEswWorshipList_TextFileTitlePath_ReadsLegacyKoreanAnsiContent()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var textPath = Path.Combine(folder.Root, "ansi-notice.txt");
+        File.WriteAllBytes(textPath, [0xB0, 0xA1, 0xB3, 0xAA, 0xB4, 0xD9]); // CP949: \uAC00\uB098\uB2E4
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem>
+        {
+            new("T", "1", textPath, "", ""),
+        });
+
+        var item = sut.Queue.Single();
+        item.Kind.Should().Be(LiveItemKinds.Notice);
+        item.ContentPath.Should().Be(textPath);
+        item.Title.Should().Be("ansi-notice.txt");
+        item.Lyrics.Should().Be("\uAC00\uB098\uB2E4", "FrmMain text-file worship items often use Korean ANSI/CP949 files");
+    }
+
+    [Fact]
     public void ImportEswWorshipList_DbSongInLibrary_FillsLyricsAndNumber()
     {
         // 곡(D) 항목이 현재 라이브러리에 같은 SongId 로 있으면 가사·번호·저작권까지 채워 온전한 곡으로 가져온다.

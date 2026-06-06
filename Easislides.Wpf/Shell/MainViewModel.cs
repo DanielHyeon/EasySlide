@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -2821,12 +2822,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            return File.ReadAllText(path);
+            var bytes = File.ReadAllBytes(path);
+            var text = DecodeUtf8OrBomText(bytes);
+            if (!text.Contains('\uFFFD', StringComparison.Ordinal))
+            {
+                return text;
+            }
+
+            var legacyText = LegacyKoreanEncoding.Value.GetString(bytes);
+            return legacyText.Contains('\uFFFD', StringComparison.Ordinal) ? text : legacyText;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             return null;
         }
+    }
+
+    private static readonly Lazy<Encoding> LegacyKoreanEncoding = new(() =>
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(949);
+    });
+
+    private static string DecodeUtf8OrBomText(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        return reader.ReadToEnd();
     }
 
     public string CurrentWorshipListName { get; private set; } = string.Empty;
