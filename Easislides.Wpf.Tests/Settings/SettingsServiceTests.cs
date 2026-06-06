@@ -303,6 +303,24 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_PraiseBookCjkGroupStyle_PersistsFrmMainWordCountSortMode()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.PraiseBookCjkGroupStyle).Should().Be(0);
+        sut.Set(EasiSettingKeys.PraiseBookCjkGroupStyle, 1).Succeeded.Should().BeTrue();
+        sut.Get(EasiSettingKeys.PraiseBookCjkGroupStyle).Should().Be(1);
+        ReadSnapshot(fixture.SettingsPath).Data.PraiseBookCjkGroupStyle.Should().Be(1);
+
+        var invalid = sut.Set(EasiSettingKeys.PraiseBookCjkGroupStyle, 2);
+
+        invalid.Succeeded.Should().BeFalse();
+        invalid.Issues.Should().Contain(issue => issue.Key == EasiSettingKeys.PraiseBookCjkGroupStyle.Id);
+        sut.Get(EasiSettingKeys.PraiseBookCjkGroupStyle).Should().Be(1);
+    }
+
+    [Fact]
     public void RestoreDefaults_RevertsChangedValuesAndPersistsDefaultSnapshot()
     {
         using var fixture = TempSettingsFolder.Create();

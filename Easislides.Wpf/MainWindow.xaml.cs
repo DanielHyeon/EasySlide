@@ -345,7 +345,29 @@ public partial class MainWindow : Window
         return new PraiseBookIndexViewModel(
             _services.GetRequiredService<IPraiseBookIndexService>(),
             _services.GetRequiredService<IPraiseBookStore>(),
-            entries);
+            entries,
+            initialWordCountSort: ResolveInitialPraiseBookWordCountSort(),
+            wordCountSortChanged: SavePraiseBookCjkGroupStyle);
+    }
+
+    private bool ResolveInitialPraiseBookWordCountSort()
+    {
+        if (_settings is not null)
+        {
+            return _settings.Get(EasiSettingKeys.PraiseBookCjkGroupStyle) == (int)PraiseBookSortMode.WordCount;
+        }
+
+        var legacy = _services.GetService<ILegacySettingsSource>();
+        return legacy?.TryGetString("PB_CJKGroupStyle", out var raw) == true
+            && int.TryParse(raw, out var value)
+            && value == (int)PraiseBookSortMode.WordCount;
+    }
+
+    private void SavePraiseBookCjkGroupStyle(bool isWordCountSortEnabled)
+    {
+        _settings?.Set(
+            EasiSettingKeys.PraiseBookCjkGroupStyle,
+            isWordCountSortEnabled ? (int)PraiseBookSortMode.WordCount : (int)PraiseBookSortMode.Alpha);
     }
 
     private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -3038,7 +3060,9 @@ public partial class MainWindow : Window
         var indexViewModel = new Easislides.Wpf.Library.PraiseBookIndexViewModel(
             _services.GetRequiredService<IPraiseBookIndexService>(),
             _services.GetRequiredService<IPraiseBookStore>(),
-            entries);
+            entries,
+            initialWordCountSort: ResolveInitialPraiseBookWordCountSort(),
+            wordCountSortChanged: SavePraiseBookCjkGroupStyle);
 
         var window = new Easislides.Wpf.Library.PraiseBookIndexWindow(indexViewModel) { Owner = this };
         // 곡을 더블클릭해 닫혔으면(SelectedEntryForLive) 그 곡을 라이브러리에서 찾아 예배 순서에 추가(인터랙티브 목록).

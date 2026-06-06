@@ -164,6 +164,8 @@ public static class LegacySettingsMap
         Automated("LiveCamMute", EasiSettingKeys.MediaMuted.Id, SettingsSectionKind.Media, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy live camera mute checkbox."),
         Automated("LiveCamNumber", EasiSettingKeys.LiveCameraNumber.Id, SettingsSectionKind.Media, LegacySettingValueKind.Integer, "FrmOptions.SaveVariables", "Legacy camera device index."),
 
+        Automated("PraiseBookCjkGroupStyle", EasiSettingKeys.PraiseBookCjkGroupStyle.Id, SettingsSectionKind.Data, LegacySettingValueKind.Integer, "WPF compatibility", "Current WPF inline PraiseBook alpha/word-count sort alias."),
+        Automated("PB_CJKGroupStyle", EasiSettingKeys.PraiseBookCjkGroupStyle.Id, SettingsSectionKind.Data, LegacySettingValueKind.Integer, "FrmMain SetSortButtonPB", "Legacy PraiseBook sort: 0=alpha, 1=CJK word count."),
         Automated("AdminDatabasePath", EasiSettingKeys.AdminDatabasePath.Id, SettingsSectionKind.Data, LegacySettingValueKind.Path, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("DBFileName", EasiSettingKeys.AdminDatabasePath.Id, SettingsSectionKind.Data, LegacySettingValueKind.Path, "Gf.DBFileName", "Legacy SQLite database file path."),
         Automated("DataBackupRoot", EasiSettingKeys.DataBackupRoot.Id, SettingsSectionKind.Data, LegacySettingValueKind.Path, "WPF compatibility", "Current WPF setting import/export alias."),

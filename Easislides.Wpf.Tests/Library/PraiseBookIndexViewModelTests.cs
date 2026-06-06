@@ -136,6 +136,42 @@ public class PraiseBookIndexViewModelTests
     }
 
     [Fact]
+    public void Constructor_WhenInitialWordCountSortIsTrue_BuildsWordCountIndex()
+    {
+        var sut = new PraiseBookIndexViewModel(
+            new PraiseBookIndexService(),
+            new FakePraiseBookStore(),
+            [
+                new PraiseBookIndexEntry("\uAC00\uB098\uB2E4", 1),
+                new PraiseBookIndexEntry("\uAC00", 2),
+            ],
+            initialWordCountSort: true);
+
+        sut.IsWordCountSortEnabled.Should().BeTrue();
+        sut.Groups.Select(group => group.Key).Should().Equal("001", "003");
+        sut.Entries.Select(entry => entry.Title).Should().Equal("\uAC00", "\uAC00\uB098\uB2E4");
+    }
+
+    [Fact]
+    public void ToggleWordCountSort_NotifiesPersistenceCallback()
+    {
+        bool? persisted = null;
+        var sut = new PraiseBookIndexViewModel(
+            new PraiseBookIndexService(),
+            new FakePraiseBookStore(),
+            [new PraiseBookIndexEntry("\uAC00", 1)],
+            wordCountSortChanged: enabled => persisted = enabled);
+
+        sut.ToggleWordCountSort();
+
+        persisted.Should().BeTrue();
+
+        sut.ToggleWordCountSort();
+
+        persisted.Should().BeFalse();
+    }
+
+    [Fact]
     public void RemoveEntries_RemovesSelectedRowsAndRebuildsGroups()
     {
         var sut = CreateSut(

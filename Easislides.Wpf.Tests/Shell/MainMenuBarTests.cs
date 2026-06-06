@@ -1267,6 +1267,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"PB_WordCount\"", "Praise Book toolbar should expose FrmMain PB_WordCount");
         xaml.Should().Contain("Tag=\"PB_WordCount\"", "PB_WordCount should keep the legacy toolbar role tag");
         xaml.Should().Contain("Click=\"PB_WordCount_Click\"", "PB_WordCount should toggle the inline PraiseBook CJK Word Count sort instead of being a placeholder");
+        xaml.Should().Contain("<ToggleButton Grid.Column=\"3\"", "PB_WordCount should expose FrmMain CheckOnClick-style state");
+        xaml.Should().Contain("IsChecked=\"{Binding IsWordCountSortEnabled, Mode=OneWay}\"", "PB_WordCount should show the current CJK Word Count sort state");
         SectionBetween(xaml, "x:Name=\"PB_WordCount\"", "x:Name=\"InlinePraiseBookOpenBookButton\"")
             .Should().NotContain("IsEnabled=\"False\"", "PB_WordCount must remain usable like FrmMain CheckOnClick");
         xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
@@ -1302,6 +1304,9 @@ public class MainMenuBarTests
         code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
         code.Should().Contain("PB_WordCount_Click", "PB_WordCount should be wired to a real sort toggle path");
         code.Should().Contain("ToggleWordCountSort", "PB_WordCount should rebuild the current PraiseBook list using the VM sort mode");
+        code.Should().Contain("ResolveInitialPraiseBookWordCountSort()", "inline PraiseBook should restore FrmMain PB_CJKGroupStyle on launch");
+        code.Should().Contain("EasiSettingKeys.PraiseBookCjkGroupStyle", "PB_WordCount should persist FrmMain CJK group style in WPF settings");
+        code.Should().Contain("wordCountSortChanged: SavePraiseBookCjkGroupStyle", "PB_WordCount clicks should survive the next WPF launch");
         code.Should().Contain("PraiseBookItems_SelectionChanged", "PraiseBook selection should update Preview without requiring double-click");
         code.Should().Contain("PreviewPraiseBookSongAsync", "PraiseBook selection preview should reuse the same DB/song resolution as add and drag");
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");

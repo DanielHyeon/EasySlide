@@ -70,6 +70,8 @@ public class LegacySettingsMapTests
             .Should().Contain(["PowerPointMaxFiles", "PowerpointMaxFiles", "PP_MaxFiles"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointSourceListingStyle.Id)
             .Should().Contain(["PowerPointSourceListingStyle", "ExternalListing"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PraiseBookCjkGroupStyle.Id)
+            .Should().Contain(["PraiseBookCjkGroupStyle", "PB_CJKGroupStyle"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaDirectory.Id)
             .Should().Contain(["MediaDirectory", "MediaDir", "media_dir"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
@@ -135,6 +137,7 @@ public class LegacySettingsMapTests
             ["NoPowerpointPanelOverlay"] = "1",
             ["PowerpointMaxFiles"] = "80",
             ["ExternalListing"] = "1",
+            ["PB_CJKGroupStyle"] = "1",
             ["UseMediaTab"] = "1",
             ["NoMediaPanelOverlay"] = "1",
             ["media_dir"] = mediaFolder,
@@ -162,6 +165,7 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.NoPowerPointPanelOverlay).Should().BeTrue();
         sut.Get(EasiSettingKeys.PowerPointMaxFiles).Should().Be(80);
         sut.Get(EasiSettingKeys.PowerPointSourceListingStyle).Should().Be(1);
+        sut.Get(EasiSettingKeys.PraiseBookCjkGroupStyle).Should().Be(1);
         sut.Get(EasiSettingKeys.UseMediaTab).Should().BeTrue();
         sut.Get(EasiSettingKeys.NoMediaPanelOverlay).Should().BeTrue();
         sut.Get(EasiSettingKeys.MediaDirectory).Should().Be(mediaFolder);

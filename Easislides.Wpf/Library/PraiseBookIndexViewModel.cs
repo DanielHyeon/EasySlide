@@ -18,6 +18,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     private readonly IPraiseBookIndexService _indexService;
     private readonly IPraiseBookStore _store;
     private readonly IPraiseBookIndexExporter _exporter = new PraiseBookIndexExporter();
+    private readonly Action<bool>? _wordCountSortChanged;
 
     // 현재 색인 대상 곡 목록(라이브러리에서 받았거나, 저장된 찬양집을 연 결과). 저장 시 이 목록을 쓴다.
     private IReadOnlyList<PraiseBookIndexEntry> _currentEntries;
@@ -34,13 +35,17 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     public PraiseBookIndexViewModel(
         IPraiseBookIndexService indexService,
         IPraiseBookStore store,
-        IEnumerable<PraiseBookIndexEntry> songs)
+        IEnumerable<PraiseBookIndexEntry> songs,
+        bool initialWordCountSort = false,
+        Action<bool>? wordCountSortChanged = null)
     {
         _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
         _store = store ?? throw new ArgumentNullException(nameof(store));
         ArgumentNullException.ThrowIfNull(songs);
 
         _currentEntries = songs.ToList();
+        _wordCountSortChanged = wordCountSortChanged;
+        _isWordCountSortEnabled = initialWordCountSort;
 
         SaveAsCommand = new AsyncRelayCommand<string>(SaveAsAsync);
         OpenBookCommand = new AsyncRelayCommand<string>(OpenBookAsync);
@@ -106,6 +111,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     {
         IsWordCountSortEnabled = !IsWordCountSortEnabled;
         RebuildIndex();
+        _wordCountSortChanged?.Invoke(IsWordCountSortEnabled);
         StatusText = IsWordCountSortEnabled
             ? "찬양집 정렬: CJK Word Count"
             : "찬양집 정렬: 가나다순";
