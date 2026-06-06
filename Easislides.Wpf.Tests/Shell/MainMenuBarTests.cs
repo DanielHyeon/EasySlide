@@ -1462,6 +1462,68 @@ public class MainMenuBarTests
             "Output verse buttons must not be wired back to the selected Preview item");
     }
 
+    [Fact]
+    public void ClassicPreviewAndOutputBottomStrips_UseFrmMainLegacyButtonGeometry()
+    {
+        var xaml = Xaml;
+        var verseStyle = SectionBetween(xaml, "x:Key=\"ClassicVerseJumpButton\"", "</Style>");
+        verseStyle.Should().Contain("<Setter Property=\"Width\" Value=\"19\" />",
+            "FrmMain Preview/Output verse buttons are 19 px wide by default");
+        verseStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />",
+            "FrmMain Preview/Output bottom-strip buttons are 33 px tall");
+        verseStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />",
+            "legacy verse buttons are dense flush buttons, not padded WPF buttons");
+        verseStyle.Should().Contain("<Setter Property=\"Margin\" Value=\"0\" />",
+            "legacy verse buttons dock directly next to one another");
+
+        var wideVerseStyle = SectionBetween(xaml, "x:Key=\"ClassicVerseJumpWideButton\"", "</Style>");
+        wideVerseStyle.Should().Contain("<Setter Property=\"Width\" Value=\"23\" />",
+            "FrmMain uses a wider button for the 'w' bridge-2 section");
+
+        var stripButtonStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripButton\"", "</Style>");
+        stripButtonStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
+        stripButtonStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
+        stripButtonStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
+
+        var stripToggleStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripToggleButton\"", "</Style>");
+        stripToggleStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
+        stripToggleStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
+        stripToggleStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
+
+        foreach (var name in new[]
+        {
+            "PreviewBtnVerse1", "PreviewBtnVerse2", "PreviewBtnVerse3", "PreviewBtnVerse4", "PreviewBtnVerse5",
+            "PreviewBtnVerse6", "PreviewBtnVerse7", "PreviewBtnVerse8", "PreviewBtnVerse9",
+            "PreviewBtnVersePreChorus", "PreviewBtnVersePreChorus2", "PreviewBtnVerseChorus",
+            "PreviewBtnVerseChorus2", "PreviewBtnVerseBridge", "PreviewBtnVerseEnding",
+            "OutputBtnVerse1", "OutputBtnVerse2", "OutputBtnVerse3", "OutputBtnVerse4", "OutputBtnVerse5",
+            "OutputBtnVerse6", "OutputBtnVerse7", "OutputBtnVerse8", "OutputBtnVerse9",
+            "OutputBtnVersePreChorus", "OutputBtnVersePreChorus2", "OutputBtnVerseChorus",
+            "OutputBtnVerseChorus2", "OutputBtnVerseBridge", "OutputBtnVerseEnding",
+        })
+        {
+            var block = SelfClosingControlBlock(xaml, name);
+            block.Should().Contain("Style=\"{StaticResource ClassicVerseJumpButton}\"");
+            block.Should().NotContain("MinWidth=\"24\"");
+            block.Should().NotContain("MinHeight=\"28\"");
+        }
+
+        foreach (var name in new[] { "PreviewBtnVerseBridge2", "OutputBtnVerseBridge2" })
+        {
+            SelfClosingControlBlock(xaml, name).Should().Contain("Style=\"{StaticResource ClassicVerseJumpWideButton}\"");
+        }
+
+        foreach (var name in new[] { "PreviewBtnItemUp", "PreviewBtnItemDown", "PreviewBtnSlideUp", "PreviewBtnSlideDown", "OutputBtnItemUp", "OutputBtnItemDown", "OutputBtnSlideUp", "OutputBtnSlideDown" })
+        {
+            SelfClosingControlBlock(xaml, name).Should().Contain("Style=\"{StaticResource ClassicOperatorStripButton}\"");
+        }
+
+        SelfClosingControlBlock(xaml, "IndcbPreviewNotes").Should().Contain("Width=\"33\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonText").Should().Contain("Width=\"46\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonFormat").Should().Contain("Width=\"40\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonInfo").Should().Contain("Width=\"45\"");
+    }
+
     private static string OperatorBarXaml
     {
         get
@@ -1511,6 +1573,17 @@ public class MainMenuBarTests
         end.Should().BeGreaterThan(marker, $"{commandName} Button should be closed");
 
         return container[start..(end + "</Button>".Length)];
+    }
+
+    private static string SelfClosingControlBlock(string xaml, string name)
+    {
+        var marker = xaml.IndexOf($"x:Name=\"{name}\"", StringComparison.Ordinal);
+        marker.Should().BeGreaterThanOrEqualTo(0, $"{name} should have a stable XAML name");
+
+        var end = xaml.IndexOf("/>", marker, StringComparison.Ordinal);
+        end.Should().BeGreaterThan(marker, $"{name} should be represented by a self-closing XAML control in this structure test");
+
+        return xaml[marker..end];
     }
 
     [Theory]
