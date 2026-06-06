@@ -655,8 +655,13 @@ public class MainMenuBarTests
     public void ClassicPreviewAndOutputPowerPointThumbnails_UseFrmMainThreeColumnSizing()
     {
         var xaml = Xaml;
+        var mainViewModel = MainViewModelCode;
         xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
             "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
+        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 960",
+            "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
+        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 720",
+            "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
 
         var previewPowerPointPane = SectionBetween(
             xaml,
@@ -677,6 +682,8 @@ public class MainMenuBarTests
                 "thumbnail height should use the legacy 4:3 canvas height");
             pane.Should().Contain("Stretch=\"Uniform\"",
                 "the exported slide image should fit inside the legacy 4:3 thumbnail canvas");
+            pane.Should().Contain("RenderOptions.BitmapScalingMode=\"HighQuality\"",
+                "WPF should downscale the high-resolution PPT export cleanly instead of nearest-neighbor blurring");
             pane.Should().Contain("Background=\"White\"",
                 "legacy PPT thumbnail canvases draw the slide over a white card surface");
         }
@@ -1021,6 +1028,18 @@ public class MainMenuBarTests
             "changing TabBibleVersions should change the active Bible version");
         xaml.Should().Contain("Tag=\"BibleText\"", "Bible text surface should keep the FrmMain BibleText role");
         xaml.Should().Contain("x:Name=\"BiblePassageBox\"", "Bible text should keep a stable selection surface");
+        xaml.Should().Contain("PreviewMouseLeftButtonUp=\"BiblePassageBox_PreviewMouseLeftButtonUp\"",
+            "FrmMain BibleText_MouseUp rebuilds the selected passage after a click/shift-click");
+        xaml.Should().Contain("x:Name=\"Bibles_AddSelected\"",
+            "FrmMain exposes Bible add as a small lower strip icon, not a large primary button");
+        xaml.Should().Contain("Tag=\"Bibles_AddSelected\"",
+            "the selected-passage add icon should keep a stable legacy role for mapping/UAT");
+        xaml.Should().Contain("Style=\"{StaticResource ClassicOperatorStripButton}\"",
+            "Bible add should use the same compact operator strip button scale as FrmMain lower icons");
+        xaml.Should().Contain("Symbol=\"{x:Static theme:EsIcons.ActionAdd}\"",
+            "the compact add affordance should be an icon, matching the FrmMain lower tool strip");
+        xaml.Should().NotContain("Content=\"선택 구절 추가\"",
+            "the Bible tab should not use a large text button for the selected-passage add path");
         xaml.Should().Contain("x:Name=\"CMenuBible\"", "Bible text context menu should map to FrmMain CMenuBible");
         xaml.Should().Contain("Opened=\"BibleContextMenu_Opened\"", "menu enablement should follow FrmMain's opening-time rules");
         xaml.Should().Contain("x:Name=\"CMenuBible_SelectAll\"", "Bible menu should expose Select All");
@@ -1033,6 +1052,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuBible_CopyInfoScreen\"", "Bible menu should expose Copy to InfoScreen");
 
         code.Should().Contain("private void BibleContextMenu_Opened", "Bible menu should compute enabled states when opened");
+        code.Should().Contain("TrySelectVerseAtOffset", "mouse-up should snap the clicked Bible verse into the current selection");
+        code.Should().Contain("ModifierKeys.Shift", "Shift+click should extend the Bible verse selection like FrmMain text selection");
+        code.Should().Contain("PreviewBibleSelection(viewModel.Bible.SelectedSelection)",
+            "click selection should refresh Preview before the separate AddFromHolyBible path inserts into Worship List");
         code.Should().Contain("CMenuBible_AddRegion2.IsEnabled = hasSelection", "Region 2 should require a selected passage");
         code.Should().Contain("CMenuBible_Copy.IsEnabled = hasSelection", "Copy should require selected passage text");
         code.Should().Contain("UnselectAllBiblePassage_Click", "Unselect All should clear the Bible text selection");

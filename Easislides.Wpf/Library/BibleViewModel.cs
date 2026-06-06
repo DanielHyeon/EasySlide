@@ -18,6 +18,7 @@ public sealed partial class BibleViewModel : ObservableObject
     private readonly IBibleRepository _repository;
     private BiblePassageResult _currentResult = new("", [], IsSequential: true, WasLimited: false);
     private BibleSelection _baseSelection = new("", "");
+    private int? _verseSelectionAnchorIndex;
 
     [ObservableProperty] private string _workingFolder = "";
     [ObservableProperty] private BibleVersion? _selectedVersion;
@@ -600,6 +601,92 @@ public sealed partial class BibleViewModel : ObservableObject
         return selected;
     }
 
+    public bool TrySelectVerseAtOffset(int charIndex, bool extendSelection, out int selectionStart, out int selectionLength)
+    {
+        selectionStart = 0;
+        selectionLength = 0;
+
+        if (string.IsNullOrEmpty(PassageText) || _currentResult.Locations.Count == 0)
+        {
+            ValidationMessage = "선택된 구절이 없습니다.";
+            NotifyCommands();
+            return false;
+        }
+
+        var clickedIndex = FindVerseLocationIndexAtOffset(charIndex);
+        if (clickedIndex < 0)
+        {
+            ValidationMessage = "선택된 구절이 없습니다.";
+            NotifyCommands();
+            return false;
+        }
+
+        if (!extendSelection ||
+            _verseSelectionAnchorIndex is not { } anchorIndex ||
+            anchorIndex < 0 ||
+            anchorIndex >= _currentResult.Locations.Count)
+        {
+            _verseSelectionAnchorIndex = clickedIndex;
+        }
+
+        var firstIndex = Math.Min(_verseSelectionAnchorIndex.Value, clickedIndex);
+        var lastIndex = Math.Max(_verseSelectionAnchorIndex.Value, clickedIndex);
+        var first = _currentResult.Locations[firstIndex];
+        var last = _currentResult.Locations[lastIndex];
+
+        selectionStart = Math.Max(0, Math.Min(first.Start, PassageText.Length));
+        var selectionEnd = Math.Max(selectionStart, Math.Min(last.Start + last.Length, PassageText.Length));
+        selectionLength = selectionEnd - selectionStart;
+        while (selectionLength > 0 && IsLineBreak(PassageText[selectionStart + selectionLength - 1]))
+        {
+            selectionLength--;
+        }
+
+        if (selectionLength <= 0)
+        {
+            ValidationMessage = "선택된 구절이 없습니다.";
+            NotifyCommands();
+            return false;
+        }
+
+        var selection = BuildSelection(selectionStart, selectionLength);
+        return !string.IsNullOrWhiteSpace(selection.IdString);
+    }
+
+    private int FindVerseLocationIndexAtOffset(int charIndex)
+    {
+        if (_currentResult.Locations.Count == 0 || string.IsNullOrEmpty(PassageText))
+        {
+            return -1;
+        }
+
+        var maxIndex = Math.Max(PassageText.Length - 1, 0);
+        var boundedIndex = Math.Max(0, Math.Min(charIndex, maxIndex));
+        for (var i = 0; i < _currentResult.Locations.Count; i++)
+        {
+            var location = _currentResult.Locations[i];
+            var start = Math.Max(0, Math.Min(location.Start, PassageText.Length));
+            var end = Math.Max(start + 1, Math.Min(location.Start + location.Length, PassageText.Length));
+            if (boundedIndex >= start && boundedIndex < end)
+            {
+                return i;
+            }
+        }
+
+        for (var i = _currentResult.Locations.Count - 1; i >= 0; i--)
+        {
+            if (_currentResult.Locations[i].Start <= boundedIndex)
+            {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    private static bool IsLineBreak(char value)
+        => value is '\r' or '\n';
+
     partial void OnSelectedVersionChanged(BibleVersion? value)
     {
         LoadBooksForSelectedVersion();
@@ -701,6 +788,7 @@ public sealed partial class BibleViewModel : ObservableObject
     private void ClearSelection()
     {
         _baseSelection = new BibleSelection("", "");
+        _verseSelectionAnchorIndex = null;
         SelectedSelection = new BibleSelection("", "");
         SelectedPassageId = "";
         SelectedPassageTitle = "";

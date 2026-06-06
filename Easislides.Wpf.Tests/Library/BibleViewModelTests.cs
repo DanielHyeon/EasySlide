@@ -275,6 +275,96 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task TrySelectVerseAtOffset_ClicksSingleVerseAndSnapsTextSelection()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var text = "1:1 In the beginning\r\n1:2 And the earth\r\n1:3 Then God said";
+        var verse1Start = text.IndexOf("1:1", StringComparison.Ordinal);
+        var verse2Start = text.IndexOf("1:2", StringComparison.Ordinal);
+        var verse3Start = text.IndexOf("1:3", StringComparison.Ordinal);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                text,
+                [
+                    new BibleVerseLocation(0, 1, 1, 1, verse1Start, verse2Start - verse1Start),
+                    new BibleVerseLocation(0, 1, 1, 2, verse2Start, verse3Start - verse2Start),
+                    new BibleVerseLocation(0, 1, 1, 3, verse3Start, text.Length - verse3Start),
+                ],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = new BibleSelection("0;kjv.db;;1;1;2;1;2;", "Genesis 1:2 (KJV)"),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+
+        var clicked = sut.TrySelectVerseAtOffset(
+            text.IndexOf("earth", StringComparison.Ordinal),
+            extendSelection: false,
+            out var selectionStart,
+            out var selectionLength);
+
+        clicked.Should().BeTrue();
+        selectionStart.Should().Be(verse2Start);
+        selectionLength.Should().Be("1:2 And the earth".Length);
+        repository.LastBuildStart.Should().Be(selectionStart);
+        repository.LastBuildLength.Should().Be(selectionLength);
+        sut.SelectedPassageTitle.Should().Be("Genesis 1:2 (KJV)");
+    }
+
+    [Fact]
+    public async Task TrySelectVerseAtOffset_ShiftClickExtendsFromAnchorToClickedVerse()
+    {
+        using var fixture = TempBibleSettings.Create();
+        fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        var text = "1:1 In the beginning\r\n1:2 And the earth\r\n1:3 Then God said";
+        var verse1Start = text.IndexOf("1:1", StringComparison.Ordinal);
+        var verse2Start = text.IndexOf("1:2", StringComparison.Ordinal);
+        var verse3Start = text.IndexOf("1:3", StringComparison.Ordinal);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv],
+            Books = [new BibleBook(1, "Genesis")],
+            LoadedBook = new BiblePassageResult(
+                text,
+                [
+                    new BibleVerseLocation(0, 1, 1, 1, verse1Start, verse2Start - verse1Start),
+                    new BibleVerseLocation(0, 1, 1, 2, verse2Start, verse3Start - verse2Start),
+                    new BibleVerseLocation(0, 1, 1, 3, verse3Start, text.Length - verse3Start),
+                ],
+                IsSequential: true,
+                WasLimited: false),
+            Selection = new BibleSelection("0;kjv.db;;1;1;1;1;3;", "Genesis 1:1-3 (KJV)"),
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        await sut.LoadSelectedBookAsync();
+
+        sut.TrySelectVerseAtOffset(
+            text.IndexOf("beginning", StringComparison.Ordinal),
+            extendSelection: false,
+            out _,
+            out _).Should().BeTrue();
+
+        var clicked = sut.TrySelectVerseAtOffset(
+            text.IndexOf("said", StringComparison.Ordinal),
+            extendSelection: true,
+            out var selectionStart,
+            out var selectionLength);
+
+        clicked.Should().BeTrue();
+        selectionStart.Should().Be(verse1Start);
+        selectionLength.Should().Be(text.Length);
+        repository.LastBuildStart.Should().Be(selectionStart);
+        repository.LastBuildLength.Should().Be(selectionLength);
+        sut.SelectedPassageTitle.Should().Be("Genesis 1:1-3 (KJV)");
+    }
+
+    [Fact]
     public async Task MainShellBibleAdd_WithTextRange_BuildsRangeSelection()
     {
         using var fixture = TempBibleSettings.Create();

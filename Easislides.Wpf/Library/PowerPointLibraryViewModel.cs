@@ -45,6 +45,9 @@ public sealed partial class PowerPointFileItem : ObservableObject
 /// </summary>
 public sealed partial class PowerPointLibraryViewModel : ObservableObject
 {
+    private const int ThumbnailPixelWidth = 960;
+    private const int ThumbnailPixelHeight = 720;
+
     private readonly IPowerPointLibraryService _service;
     private readonly Action<string> _addToQueue;
     private readonly IPowerPointRenderService? _render;
@@ -249,7 +252,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
             {
                 token.ThrowIfCancellationRequested();
                 var result = await _render.RenderSlideAsync(
-                    new PowerPointRenderRequest(item.FilePath, 1, 320, 180, TimeSpan.FromSeconds(60)),
+                    new PowerPointRenderRequest(item.FilePath, 1, ThumbnailPixelWidth, ThumbnailPixelHeight, TimeSpan.FromSeconds(60)),
                     token).ConfigureAwait(true);
 
                 token.ThrowIfCancellationRequested();

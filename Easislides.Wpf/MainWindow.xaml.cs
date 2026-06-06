@@ -1546,6 +1546,7 @@ public partial class MainWindow : Window
     // (새 선택 제스처와 충돌하지 않도록). 레거시 인라인 성경의 본문 드래그→예배순서 드롭 대응.
     private Point _bibleDragStart;
     private bool _bibleDragArmed;
+    private bool _bibleDragStarted;
     // 라이브러리 곡 목록 → 예배 순서 드래그(레거시 외부 소스 드래그). 항목 위에서 눌러 임계 거리 이상 움직이면 시작.
     private Point _librarySongDragStart;
     private bool _librarySongDragArmed;
@@ -1581,12 +1582,48 @@ public partial class MainWindow : Window
     // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).
     private void BiblePassageBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        _bibleDragStarted = false;
         _bibleDragStart = e.GetPosition(null);
         // snapToText:false 면 글자 위가 아닌 빈 영역(본문 끝 너머 등)에선 -1 → 빈 공간 클릭에서 헛-무장하지 않는다.
         var index = BiblePassageBox.GetCharacterIndexFromPoint(e.GetPosition(BiblePassageBox), snapToText: false);
         var selectionStart = BiblePassageBox.SelectionStart;
         var selectionEnd = selectionStart + BiblePassageBox.SelectionLength;
         _bibleDragArmed = BiblePassageBox.SelectionLength > 0 && index >= selectionStart && index < selectionEnd;
+    }
+
+    // 왼쪽 버튼 해제: FrmMain BibleText_MouseUp처럼 클릭한 절을 선택 구절로 다시 만들고 Preview에 반영한다.
+    private void BiblePassageBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_bibleDragStarted)
+        {
+            _bibleDragStarted = false;
+            _bibleDragArmed = false;
+            return;
+        }
+
+        if (DataContext is not MainViewModel viewModel)
+        {
+            _bibleDragArmed = false;
+            return;
+        }
+
+        var index = BiblePassageBox.GetCharacterIndexFromPoint(e.GetPosition(BiblePassageBox), snapToText: false);
+        if (index < 0)
+        {
+            _bibleDragArmed = false;
+            return;
+        }
+
+        var extendSelection = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+        if (viewModel.Bible.TrySelectVerseAtOffset(index, extendSelection, out var selectionStart, out var selectionLength))
+        {
+            BiblePassageBox.Select(selectionStart, selectionLength);
+            BiblePassageBox.Focus();
+            viewModel.PreviewBibleSelection(viewModel.Bible.SelectedSelection);
+            e.Handled = true;
+        }
+
+        _bibleDragArmed = false;
     }
 
     // 임계 거리 이상 움직이면 선택 구절을 BibleSelection 으로 만들어 드래그를 시작한다 — 예배 순서 목록에 드롭하면 추가된다.
@@ -1617,6 +1654,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        _bibleDragStarted = true;
         _bibleDragArmed = false; // 한 제스처에서 한 번만 시작.
         DragDrop.DoDragDrop(BiblePassageBox, new DataObject(typeof(BibleSelection), selection), DragDropEffects.Copy);
     }

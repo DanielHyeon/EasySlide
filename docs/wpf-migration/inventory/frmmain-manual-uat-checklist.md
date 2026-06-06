@@ -33,10 +33,12 @@
 | UAT-121 | PowerPoint 탭 열기 | PPT folders/files are populated | |
 | UAT-122 | PPT preview/list style | thumbnails or list style matches selected mode | |
 | UAT-123 | PPT add/drag | selected PPT is inserted into Worship List and Preview shows first slide | |
+| UAT-124 | PPT thumbnail sharpness | left source, Preview, and Output PPT thumbnails render as clear 4:3 images, not blurry low-resolution exports | |
 | UAT-131 | Bibles 탭 열기 | Bible versions, books, and text area are populated | |
 | UAT-132 | Bible direct lookup | reference such as `사도행전 9:31` selects/shows verses | |
 | UAT-133 | Bible passage add | selected verses are added to Worship List | |
 | UAT-134 | Bible passage drag | selected verses can be dragged into desired Worship List position | |
+| UAT-135 | Bible click and Shift-click selection | clicking a verse selects that verse, Shift+click extends multiple verses, and the compact lower add icon inserts the selected range into Worship List | |
 | UAT-141 | Images 탭 열기 | image folders and thumbnails are populated | |
 | UAT-142 | Apply image background | selected image changes item/default/output background as expected | |
 | UAT-151 | Media 탭 열기 | media folders and files are populated | |

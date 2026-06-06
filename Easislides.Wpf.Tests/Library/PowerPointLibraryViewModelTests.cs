@@ -119,7 +119,7 @@ public class PowerPointLibraryViewModelTests
         render.Requests.Should().HaveCount(2);
         render.Requests.Select(r => r.FilePath).Should().Equal(@"C:\decks\a.pptx", @"C:\decks\b.pptx");
         render.Requests.Should().OnlyContain(r => r.SlideNumber == 1);
-        render.Requests.Should().OnlyContain(r => r.PixelWidth == 320 && r.PixelHeight == 180);
+        render.Requests.Should().OnlyContain(r => r.PixelWidth == 960 && r.PixelHeight == 720);
         sut.Presentations.Should().OnlyContain(p => ReferenceEquals(p.ThumbnailImage, DummyImage));
         sut.Presentations.Should().OnlyContain(p => p.ThumbnailStatus == "슬라이드 1/4");
     }
