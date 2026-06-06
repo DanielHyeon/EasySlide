@@ -1695,20 +1695,21 @@
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Width="176"
-                                            MinHeight="116"
+                                    <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                            MinHeight="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                             Margin="4"
-                                            Padding="8"
+                                            Padding="4"
                                             Background="{DynamicResource Brush.Surface.Card}"
                                             BorderBrush="{DynamicResource Brush.Border.Default}"
                                             BorderThickness="1"
                                             CornerRadius="3">
                                         <Grid>
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="82" />
+                                                <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
                                             <Border Grid.Row="0"
+                                                    Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                     Background="{DynamicResource Brush.Surface.Page}"
                                                     BorderBrush="{DynamicResource Brush.Border.Muted}"
                                                     BorderThickness="1"

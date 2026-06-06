@@ -1075,6 +1075,15 @@ public class MainMenuBarTests
         xaml.Should().Contain("Source=\"{Binding ThumbnailImage}\"", "PowerPoint preview style should render real first-slide thumbnails when available");
         xaml.Should().Contain("ToolTip=\"{Binding ThumbnailStatus}\"", "PowerPoint thumbnail cards should expose render status without replacing the file name");
         xaml.Should().Contain("IsPreviewStyle", "PowerpointList and flowLayoutExternalPowerPoint should toggle from the same listing style state");
+        var sourcePowerPointPreviewFlow = SectionBetween(xaml, "x:Name=\"flowLayoutExternalPowerPoint\"", "<TextBlock Grid.Row=\"4\"");
+        sourcePowerPointPreviewFlow.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
+            "left PowerPoint preview flow should use the same FrmMain three-column thumbnail sizing as the right panes");
+        sourcePowerPointPreviewFlow.Should().Contain("ConverterParameter=Height",
+            "left PowerPoint preview thumbnails should preserve FrmMain's 4:3 thumbnail canvas");
+        sourcePowerPointPreviewFlow.Should().NotContain("Width=\"176\"",
+            "source PowerPoint preview thumbnails should not stay at the old fixed WPF card width");
+        sourcePowerPointPreviewFlow.Should().NotContain("Height=\"82\"",
+            "source PowerPoint preview thumbnails should not stay at the old fixed WPF image height");
 
         xaml.Should().Contain("Tag=\"MediaSource\"", "FrmMain keeps Media as a main-console source tab");
         xaml.Should().Contain("x:Name=\"MediaSourceTab\"", "inline Media tab needs a stable DataContext target");
