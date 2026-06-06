@@ -2563,7 +2563,7 @@ public partial class MainWindow : Window
             BiblePassageBox.Select(start, length);
         }
 
-        viewModel.AddBibleSelection(selection);
+        viewModel.PreviewBibleSelection(selection);
     }
 
     internal static bool ShouldFallbackTypedBibleLookupToSearch(string? text)

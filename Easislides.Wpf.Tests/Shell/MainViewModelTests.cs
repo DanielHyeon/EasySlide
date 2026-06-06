@@ -880,6 +880,29 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PreviewBibleSelection_PreparesPreviewWithoutAddingToWorshipList()
+    {
+        var sut = CreateSut();
+        var opener = new LiveQueueItem("song-1", "Opening Song", LiveItemKinds.Song);
+        var sermon = new LiveQueueItem("sermon", "Sermon", LiveItemKinds.Notice);
+        sut.LoadQueue([opener, sermon]);
+        sut.SelectedItem = opener;
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
+
+        var preview = sut.PreviewBibleSelection(selection);
+
+        preview.Should().NotBeNull();
+        preview!.Id.Should().Be(selection.IdString);
+        preview.Title.Should().Be(selection.Title);
+        preview.Kind.Should().Be(LiveItemKinds.Bible);
+        sut.Queue.Should().Equal([opener, sermon], "FrmMain Bibles_Go selects/previews the typed passage but AddFromHolyBible adds it later");
+        sut.SelectedItem.Should().Be(opener);
+        sut.PreviewPanelTitleText.Should().Be(selection.Title);
+        sut.PreviewPanelSourceText.Should().NotBe("Preview");
+        sut.StatusText.Should().Be($"Preview Bible: {selection.Title}");
+    }
+
+    [Fact]
     public void ToggleUseIndividualFormatting_FlipsFlagOnSelectedItem()
     {
         var sut = CreateSut(seedSampleQueue: false);

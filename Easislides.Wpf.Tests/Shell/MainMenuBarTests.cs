@@ -1003,6 +1003,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("Click=\"JumpBibleReference_Click\"", "Bibles_Go should submit the typed reference");
         code.Should().Contain("ShouldFallbackTypedBibleLookupToSearch",
             "Bibles_Go should fall back to Bible search when typed text is not a direct verse reference, like FrmMain BibleUserLookup_Submit");
+        code.Should().Contain("PreviewBibleSelection(selection)",
+            "Bibles_Go should select/preview the typed passage like FrmMain; AddFromHolyBible is the separate Worship List add path");
         code.Should().Contain("Bible.SearchText = typedLookup",
             "typed Bible search fallback should reuse the Bible tab search text");
         code.Should().Contain("Bible.SearchCommand.ExecuteAsync",
@@ -1526,8 +1528,8 @@ public class MainMenuBarTests
             "both panel display-name controls should use the legacy list-row visual treatment");
         xaml.Should().Contain("SelectedIndex=\"0\"",
             "the single display-name row should stay selected like the legacy ListView item");
-        xaml.Should().Contain("Text=\"{Binding DataContext.SelectedItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Preview'}\"",
-            "Preview title row should bind to the selected Preview item through the list control");
+        xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Preview title row should bind to the effective Preview item, including source-preview items that are not yet in Worship List");
         xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
             "Preview title row should expose a FrmMain-style source/type cell");
         xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",

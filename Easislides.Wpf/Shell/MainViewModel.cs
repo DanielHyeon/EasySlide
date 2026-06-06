@@ -286,8 +286,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsOutputHeaderTextVisible => HasOutputLyricsText && !IsOutputPowerPointContext;
 
+    public string PreviewPanelTitleText => PreviewItem?.Title ?? "Preview";
+
     /// <summary>FrmMain PreviewPanelDisplayName 출처 셀: 선택된 Preview 항목의 legacy 종류.</summary>
-    public string PreviewPanelSourceText => BuildPanelSourceText(SelectedItem, "Preview");
+    public string PreviewPanelSourceText => BuildPanelSourceText(PreviewItem, "Preview");
 
     /// <summary>FrmMain PreviewPanelDisplayName 상태 셀: Preview 전용 절/슬라이드 위치.</summary>
     public string PreviewPanelStatusText => BuildPreviewPanelStatusText();
@@ -1502,6 +1504,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
         StatusText = $"성경 구절 추가됨: {selection.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
+    public LiveQueueItem? PreviewBibleSelection(BibleSelection selection)
+    {
+        var item = CreateBibleItem(selection);
+        if (item is null)
+        {
+            return null;
+        }
+
+        _sourcePreviewItem = item;
+        RefreshLyricsPages(item);
+        UpdateContentTabForItem(item);
+        StatusText = $"Preview Bible: {selection.Title}";
+        NotifyPreviewItemProperties();
         NotifyCommandStates();
         return item;
     }
@@ -3460,6 +3479,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void NotifyPreviewPanelDisplayProperties()
     {
+        OnPropertyChanged(nameof(PreviewPanelTitleText));
         OnPropertyChanged(nameof(PreviewPanelSourceText));
         OnPropertyChanged(nameof(PreviewPanelStatusText));
     }
