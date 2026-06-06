@@ -388,6 +388,8 @@ public class MainMenuBarTests
             "visual cards should follow the prepared/live Output item only");
         visualSurface.Should().Contain("<WrapPanel>",
             "the non-PPT visual surface should keep the same flow layout shape as the legacy Output panes");
+        visualSurface.Should().Contain("Command=\"{Binding RefreshOutputVisualCommand}\"",
+            "clicking the non-PPT visual thumbnail should act on the current Output visual item instead of being static chrome");
         visualSurface.Should().Contain("Source=\"{Binding OutputVisualSource}\"",
             "the top visual card should show the live/output image source");
         visualSurface.Should().Contain("FillMode=\"{Binding OutputVisualFillMode}\"",

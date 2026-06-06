@@ -221,7 +221,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool IsOutputLiveActive => _session.Current.State == LiveState.Active;
 
     /// <summary>FrmMain flowLayoutOutputPowerPoint 표시 대상인가.</summary>
-    public bool IsOutputPowerPointContext => OutputItem is not null && IsPowerPointItem(OutputItem);
+    public bool IsOutputPowerPointContext => GetOutputPowerPointNavigationItem() is not null;
 
     public bool IsOutputMediaContext => TryGetOutputMediaContext(out _, out _);
 
@@ -617,8 +617,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _liveItemId = id;
         OnPropertyChanged(nameof(LiveItemId));
         OnPropertyChanged(nameof(CanSelectLiveItem)); // 라이브 항목이 바뀌면 "현재 송출 항목 선택" 활성/비활성도 바뀐다.
+        OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        OnPropertyChanged(nameof(OutputVisualSource));
+        OnPropertyChanged(nameof(OutputVisualFillMode));
+        OnPropertyChanged(nameof(OutputVisualSlideNumber));
+        OnPropertyChanged(nameof(OutputVisualTitle));
+        OnPropertyChanged(nameof(OutputVisualKind));
+        OnPropertyChanged(nameof(HasOutputVisualSource));
+        OnPropertyChanged(nameof(IsOutputVisualContext));
+        OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         RefreshOutputSurfaceText();
         NotifyOutputMediaProperties();
+        NotifyOutputPanelDisplayProperties();
         SelectLiveItemCommand?.NotifyCanExecuteChanged();
     }
 
@@ -962,6 +972,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RestoreOutputCommand = new RelayCommand(RestoreOutput, () => _session.Current.State == LiveState.Hidden);
         RestartCurrentItemCommand = new AsyncRelayCommand(RestartCurrentItemAsync, CanRestartCurrentItem);
         RefreshOutputCommand = new RelayCommand(RefreshOutput, () => _output.Current.IsOpen);
+        RefreshOutputVisualCommand = new RelayCommand(RefreshOutputVisual, CanRefreshOutputVisual);
         NextSlideCommand = new AsyncRelayCommand(NextPreviewPageAsync, CanGoNextSlide);
         PreviousSlideCommand = new AsyncRelayCommand(PreviousPreviewPageAsync, CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
@@ -1210,6 +1221,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand RestoreOutputCommand { get; }
     public IAsyncRelayCommand RestartCurrentItemCommand { get; }
     public IRelayCommand RefreshOutputCommand { get; }
+    public IRelayCommand RefreshOutputVisualCommand { get; }
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
@@ -5981,6 +5993,44 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    private bool CanRefreshOutputVisual()
+        => IsOutputVisualContext;
+
+    private void RefreshOutputVisual()
+    {
+        if (!CanRefreshOutputVisual() || GetOutputNavigationItem() is not { } item)
+        {
+            return;
+        }
+
+        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        if (_session.Current.State == LiveState.Active)
+        {
+            OutputItem = item;
+            SetLiveItemId(item.Id);
+            _session.GoLive(ResolveLiveProjection(item), monitorName);
+            StatusText = $"Output visual refreshed: {item.Title}";
+            _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
+            NotifyCommandStates();
+            return;
+        }
+
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            OutputItem = item;
+            SetLiveItemId(item.Id);
+            _session.UpdateHiddenContent(ResolveLiveProjection(item), monitorName);
+            StatusText = $"Output visual refreshed while hidden: {item.Title}";
+            _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
+            NotifyCommandStates();
+            return;
+        }
+
+        OutputItem = item;
+        StatusText = $"Output visual ready: {item.Title}";
+        NotifyCommandStates();
+    }
+
     private async Task<bool> ConfirmLiveSafetyAsync(string actionName, string question, string subtext)
     {
         var ok = await _safetyPrompt.ConfirmAsync(new LiveSafetyRequest(
@@ -8115,6 +8165,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 라이브 위치(곡 절 "3/12"·PPT 슬라이드 "5/20") — 절/슬라이드 이동마다 세션이 다시 알려 LiveBar 가 갱신된다(없으면 빈 문자열→숨김).
         LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
+        OnPropertyChanged(nameof(IsOutputPowerPointContext));
         NotifyOutputPanelDisplayProperties();
         NotifyOutputMediaProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
@@ -8159,6 +8210,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();
         PlayOutputMediaCommand.NotifyCanExecuteChanged();
+        RefreshOutputVisualCommand.NotifyCanExecuteChanged();
         GoLiveCommand.NotifyCanExecuteChanged();
         SendToOutputAndNextCommand.NotifyCanExecuteChanged();
         CloseOutputCommand.NotifyCanExecuteChanged();

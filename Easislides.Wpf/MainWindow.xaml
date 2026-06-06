@@ -4179,43 +4179,51 @@
                                               Visibility="{Binding IsOutputVisualContext, Converter={StaticResource BoolToVis}}"
                                               AutomationProperties.Name="Output 시각 자료 영역">
                                     <WrapPanel>
-                                        <Border Width="190"
-                                                MinHeight="140"
+                                        <Button Command="{Binding RefreshOutputVisualCommand}"
                                                 Margin="6"
-                                                Padding="4"
-                                                Background="{DynamicResource Brush.Surface.Page}"
-                                                BorderBrush="Red"
-                                                BorderThickness="5">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="102" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <rendering:SlidePreviewControl Title="{Binding OutputVisualTitle}"
-                                                                               Kind="{Binding OutputVisualKind}"
-                                                                               Source="{Binding OutputVisualSource}"
-                                                                               FillMode="{Binding OutputVisualFillMode}"
-                                                                               SlideNumber="{Binding OutputVisualSlideNumber}"
-                                                                               Width="180"
-                                                                               Height="102"
-                                                                               IsHitTestVisible="False"
-                                                                               AutomationProperties.Name="Output 시각 자료 썸네일" />
-                                                <TextBlock Grid.Row="1"
-                                                           Text="{Binding OutputVisualTitle}"
-                                                           Margin="0,5,0,0"
-                                                           TextWrapping="Wrap"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           MaxHeight="32"
-                                                           Style="{StaticResource Type.Caption.StrongStyle}"
-                                                           Foreground="{DynamicResource Brush.Text.Primary}" />
-                                                <TextBlock Grid.Row="2"
-                                                           Text="{Binding OutputVisualKind}"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           Style="{StaticResource Type.Caption.Style}"
-                                                           Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                            </Grid>
-                                        </Border>
+                                                Padding="0"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                ToolTip="Output 시각 자료 새로고침"
+                                                AutomationProperties.Name="Output 시각 자료 새로고침">
+                                            <Border Width="190"
+                                                    MinHeight="140"
+                                                    Padding="4"
+                                                    Background="{DynamicResource Brush.Surface.Page}"
+                                                    BorderBrush="Red"
+                                                    BorderThickness="5">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="102" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <rendering:SlidePreviewControl Title="{Binding OutputVisualTitle}"
+                                                                                   Kind="{Binding OutputVisualKind}"
+                                                                                   Source="{Binding OutputVisualSource}"
+                                                                                   FillMode="{Binding OutputVisualFillMode}"
+                                                                                   SlideNumber="{Binding OutputVisualSlideNumber}"
+                                                                                   Width="180"
+                                                                                   Height="102"
+                                                                                   IsHitTestVisible="False"
+                                                                                   AutomationProperties.Name="Output 시각 자료 썸네일" />
+                                                    <TextBlock Grid.Row="1"
+                                                               Text="{Binding OutputVisualTitle}"
+                                                               Margin="0,5,0,0"
+                                                               TextWrapping="Wrap"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               MaxHeight="32"
+                                                               Style="{StaticResource Type.Caption.StrongStyle}"
+                                                               Foreground="{DynamicResource Brush.Text.Primary}" />
+                                                    <TextBlock Grid.Row="2"
+                                                               Text="{Binding OutputVisualKind}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Style="{StaticResource Type.Caption.Style}"
+                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                                </Grid>
+                                            </Border>
+                                        </Button>
                                     </WrapPanel>
                                 </ScrollViewer>
                             </Grid>

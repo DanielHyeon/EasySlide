@@ -3589,6 +3589,39 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RefreshOutputVisualCommand_WhenLiveVisualSelectionDiverges_ReemitsOutputVisualOnly()
+    {
+        var expectedImage = new DrawingImage();
+        expectedImage.Freeze();
+        var liveVisual = new LiveQueueItem("image:live", "Live visual", LiveItemKinds.Item)
+        {
+            PreviewSource = expectedImage,
+            PreviewFillMode = ImageFillMode.Fill,
+        };
+        var previewSong = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([liveVisual, previewSong]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = liveVisual;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.SelectedItem = previewSong;
+
+        sut.RefreshOutputVisualCommand.CanExecute(null).Should().BeTrue();
+        sut.RefreshOutputVisualCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(previewSong, "Output visual thumbnail clicks must not steal the Preview selection");
+        sut.OutputItem.Should().BeSameAs(liveVisual);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live visual");
+        sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(expectedImage);
+        sut.OutputVisualSource.Should().BeSameAs(expectedImage);
+        sut.StatusText.Should().Contain("Output visual refreshed");
+    }
+
+    [Fact]
     public void CopyPreviewToOutputCommand_PreparesLyricsOutputSurfaceWithoutStartingLive()
     {
         // FrmMain OutputInfo/flowLayoutOutputLyrics: btnToOutput 은 선택 Preview 가사를 오른쪽 Output 표면에 준비한다.
