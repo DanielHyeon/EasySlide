@@ -129,6 +129,21 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void OperatorBar_UsesFrmMainCompactIconStrip()
+    {
+        var operatorBar = OperatorBarXaml;
+
+        operatorBar.Should().Contain("Style=\"{StaticResource ClassicOperatorStripButton}\"",
+            "the first-screen operator bar should use the same compact icon-button density as FrmMain strips");
+        operatorBar.Should().NotContain("<StackPanel Orientation=\"Horizontal\">",
+            "large text buttons make the WPF shell drift away from FrmMain's one-line toolstrip density");
+        operatorBar.Should().NotContain("<TextBlock Text=\"Go Live\"",
+            "Go Live stays discoverable through tooltip/automation name while the visible strip remains compact");
+        operatorBar.Should().NotContain("<TextBlock Text=\"송출+다음\"",
+            "send-and-next should not consume a large text-button width on the first viewport");
+    }
+
+    [Fact]
     public void OperatorBar_ExposesFrmMainAutoRotateControlsByLegacyNames()
     {
         var operatorBar = ToolStripMainXaml;

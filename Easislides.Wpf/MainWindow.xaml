@@ -1038,170 +1038,132 @@
                     </Button>
                 </WrapPanel>
 
-                <!-- Classic Operator 고정 바 — 한 줄에 다 안 들어오면 접히되 첫 화면에서 사라지지 않는다. -->
+                <!-- Classic Operator 고정 바 — FrmMain toolstrip처럼 조밀한 아이콘 바를 유지한다. -->
                 <WrapPanel x:Name="ClassicOperatorBar"
                            Grid.Row="1"
                            Orientation="Horizontal">
                     <Button Command="{Binding GoLiveCommand}"
-                            Style="{StaticResource EsButton.Primary}"
-                            Margin="0,0,8,6"
+                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Margin="0,0,2,0"
                             ToolTip="선택 항목을 라이브로 송출 (F12)"
                             AutomationProperties.Name="Go Live">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="VideoClip24" Margin="0,0,6,0" />
-                            <TextBlock Text="Go Live" />
-                        </StackPanel>
+                        <ui:SymbolIcon Symbol="VideoClip24" />
                     </Button>
                     <Button Command="{Binding SendToOutputAndNextCommand}"
-                            Style="{StaticResource EsButton.Primary}"
-                            Margin="0,0,8,6"
+                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Margin="0,0,2,0"
                             ToolTip="선택 항목을 송출하고 곧바로 다음 항목으로 이동 (F11)"
                             AutomationProperties.Name="송출 후 다음 항목">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" Margin="0,0,6,0" />
-                            <TextBlock Text="송출+다음" />
-                        </StackPanel>
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" />
                     </Button>
                     <Button Command="{Binding StopLiveCommand}"
                             Style="{StaticResource EsButton.Danger}"
-                            Margin="0,0,8,6"
+                            Width="30"
+                            Height="33"
+                            MinWidth="0"
+                            MinHeight="0"
+                            Padding="0"
+                            Margin="0,0,2,0"
                             ToolTip="현재 라이브 송출을 중지"
                             AutomationProperties.Name="라이브 중지">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                            <TextBlock Text="중지" />
-                        </StackPanel>
+                        <ui:SymbolIcon Symbol="Dismiss24" />
                     </Button>
                     <Button Command="{Binding BlackScreenCommand}"
                             Style="{StaticResource EsButton.Danger}"
-                            Margin="0,0,8,6"
+                            Width="30"
+                            Height="33"
+                            MinWidth="0"
+                            MinHeight="0"
+                            Padding="0"
+                            Margin="0,0,2,0"
                             ToolTip="검은 화면으로 전환 (F9)"
                             AutomationProperties.Name="검은 화면">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="EyeOff24" Margin="0,0,6,0" />
-                            <TextBlock Text="Black" />
-                        </StackPanel>
+                        <ui:SymbolIcon Symbol="EyeOff24" />
                     </Button>
                     <Button Command="{Binding ClearOutputCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="가사/콘텐츠를 비우고 배경만 송출 (F3)"
                             AutomationProperties.Name="화면 비우기"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Eraser24" Margin="0,0,6,0" />
-                            <TextBlock Text="Clear" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Eraser24" />
                     </Button>
                     <Button Command="{Binding HideOutputCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="가사/콘텐츠 숨김(배경 유지)"
                             AutomationProperties.Name="출력 숨김"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="EyeOff24" Margin="0,0,6,0" />
-                            <TextBlock Text="숨김" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="EyeOff24" />
                     </Button>
                     <Button Command="{Binding RestoreOutputCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="숨김/검은 화면/비우기에서 직전 송출로 복귀"
                             AutomationProperties.Name="출력 복귀"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Eye24" Margin="0,0,6,0" />
-                            <TextBlock Text="복귀" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Eye24" />
                     </Button>
                     <Button Command="{Binding RestartCurrentItemCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출"
                             AutomationProperties.Name="현재 항목 처음으로"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowReset24" Margin="0,0,6,0" />
-                            <TextBlock Text="처음으로" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="ArrowReset24" />
                     </Button>
                     <Button Command="{Binding RefreshOutputCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="출력 화면을 다시 그린다(디스플레이 글리치 복구)"
                             AutomationProperties.Name="출력 새로고침"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                            <TextBlock Text="새로고침" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="ArrowSync24" />
                     </Button>
                     <Button Command="{Binding OpenOutputCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
-                            Margin="0,0,8,6"
+                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Margin="0,0,2,0"
                             ToolTip="선택한 모니터에 출력 창 열기"
                             AutomationProperties.Name="출력 열기">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="WindowNew24" Margin="0,0,6,0" />
-                            <TextBlock Text="출력 열기" />
-                        </StackPanel>
+                        <ui:SymbolIcon Symbol="WindowNew24" />
                     </Button>
                     <Button Command="{Binding CloseOutputCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
-                            Margin="0,0,8,6"
+                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Margin="0,0,8,0"
                             ToolTip="출력 창 닫기"
                             AutomationProperties.Name="출력 닫기">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                            <TextBlock Text="출력 닫기" />
-                        </StackPanel>
+                        <ui:SymbolIcon Symbol="Dismiss24" />
                     </Button>
                     <!-- 명령 팔레트 진입(발견가능성) — 마우스 운영자도 ⌘K 없이 클릭으로 모든 명령/창을 검색·실행. -->
                     <Button Command="{Binding CommandPalette.OpenCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="모든 명령·창 검색 (Ctrl+K)"
                             AutomationProperties.Name="명령 팔레트 열기"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                            <TextBlock Text="명령 ⌘K" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Search24" />
                     </Button>
                     <Button Click="AddExternalFile_Click"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="PowerPoint/미디어 파일을 예배 순서에 추가"
                             AutomationProperties.Name="파일 추가"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Add24" Margin="0,0,6,0" />
-                            <TextBlock Text="파일" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Add24" />
                     </Button>
                     <Button Click="OpenManageWorshipLists_Click"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="예배 순서 저장/불러오기"
                             AutomationProperties.Name="예배 순서 관리"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                            <TextBlock Text="순서" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Save24" />
                     </Button>
                     <Button Click="OpenSearchUsage_Click"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="검색 및 사용처"
                             AutomationProperties.Name="검색 및 사용처"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                            <TextBlock Text="검색" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Search24" />
                     </Button>
                     <Button Click="OpenSettings_Click"
-                            Style="{StaticResource EsButton.Secondary}"
+                            Style="{StaticResource ClassicOperatorStripButton}"
                             ToolTip="설정 열기"
                             AutomationProperties.Name="설정 열기"
-                            Margin="0,0,8,6">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Settings24" Margin="0,0,6,0" />
-                            <TextBlock Text="설정" />
-                        </StackPanel>
+                            Margin="0,0,2,0">
+                        <ui:SymbolIcon Symbol="Settings24" />
                     </Button>
                 </WrapPanel>
             </Grid>
