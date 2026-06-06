@@ -5474,6 +5474,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanGoLive()
         => PreviewItem is not null && _output.Current.IsOpen && !HasPowerPointLimitViolation;
 
+    private bool CanStartOutputLive()
+        => _output.Current.IsOpen && GetOutputLiveStartItem() is not null && !HasPowerPointLimitViolation;
+
+    private LiveQueueItem? GetOutputLiveStartItem()
+        => OutputItem ?? Queue.FirstOrDefault();
+
     private async Task GoLiveAsync()
     {
         if (PreviewItem is not { } item)
@@ -5493,6 +5499,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         PublishSelectedItem();
+    }
+
+    private async Task StartOutputLiveAsync()
+    {
+        if (GetOutputLiveStartItem() is not { } item)
+        {
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "Output 항목 없음");
+            NotifyOutputLiveSafetyProperties();
+            return;
+        }
+
+        var ok = await ConfirmLiveSafetyAsync(
+            MainCommandIds.LiveGo,
+            $"'{item.Title}' Output 항목으로 쇼를 시작할까요?",
+            "현재 준비된 Output 항목이 즉시 출력 화면에 표시됩니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+        if (!ok)
+        {
+            NotifyOutputLiveSafetyProperties();
+            return;
+        }
+
+        await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);
+        var prepared = OutputItem ?? item;
+        var lyricsPageIndex = IsLyricsPaginated(prepared) ? GetOutputLyricsPageIndex(prepared) : 0;
+        PublishOutputItem(prepared, MainCommandIds.LiveGo, lyricsPageIndex);
     }
 
     // 상단/메뉴 "송출 후 다음" — 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
@@ -6039,7 +6070,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanUseLiveSafetyAction() => _session.Current.State is LiveState.Active or LiveState.Hidden;
 
     private bool CanToggleOutputLive()
-        => _session.Current.State is LiveState.Active or LiveState.Hidden || CanGoLive();
+        => _session.Current.State is LiveState.Active or LiveState.Hidden || CanStartOutputLive();
 
     private async Task ToggleOutputBlackAsync()
     {
@@ -6077,9 +6108,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (CanGoLive())
+        if (CanStartOutputLive())
         {
-            await GoLiveAsync().ConfigureAwait(true);
+            await StartOutputLiveAsync().ConfigureAwait(true);
             return;
         }
 

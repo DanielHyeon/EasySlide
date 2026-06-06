@@ -5281,6 +5281,48 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputLiveCommand_WhenPreparedOutputDiffersFromPreview_StartsPreparedOutputLikeFrmMain()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var prepared = new LiveQueueItem("song:prepared", "준비된 Output", LiveItemKinds.Song) { Lyrics = "[1]\n준비" };
+        var preview = new LiveQueueItem("song:preview", "현재 Preview", LiveItemKinds.Song) { Lyrics = "[1]\n미리보기" };
+        sut.LoadQueue([prepared, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("준비된 Output");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("준비");
+        sut.OutputItem.Should().BeSameAs(prepared);
+        sut.LiveItemId.Should().Be(prepared.Id);
+        sut.SelectedItem.Should().BeSameAs(preview, "FrmMain cbGoLive starts the prepared Output item without moving the Preview selection");
+    }
+
+    [Fact]
+    public async Task ToggleOutputLiveCommand_WhenNoPreparedOutput_StartsFirstWorshipItemLikeFrmMain()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song:first", "첫 예배 항목", LiveItemKinds.Song) { Lyrics = "[1]\n첫 항목" };
+        var preview = new LiveQueueItem("song:preview", "현재 Preview", LiveItemKinds.Song) { Lyrics = "[1]\n미리보기" };
+        sut.LoadQueue([first, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("첫 예배 항목");
+        sut.Session.Current.CurrentItemBodyText.Should().Be("첫 항목");
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.LiveItemId.Should().Be(first.Id);
+        sut.SelectedItem.Should().BeSameAs(preview, "FrmMain Start_Presentation loads Worship List item 1 when OutputItem is empty");
+    }
+
+    [Fact]
     public async Task RestartCurrentItemCommand_WhenLiveSongAdvanced_ResetsToFirstVerse()
     {
         // 처음으로: 절을 넘긴 라이브 곡을 첫 절(LyricsPageIndex=0)로 되돌려 재송출한다.
