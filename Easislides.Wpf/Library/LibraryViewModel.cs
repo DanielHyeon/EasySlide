@@ -194,7 +194,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             _suppressSelectionLoad = true;
             try
             {
-                SelectedFolder = Folders.FirstOrDefault();
+                SelectedFolder = ResolveInitialSelectedFolder();
             }
             finally
             {
@@ -559,6 +559,11 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
+        if (value is not null)
+        {
+            _settings.Set(EasiSettingKeys.SelectedSongFolderNo, value.FolderNo);
+        }
+
         ApplySelectedFolderSortMode();
         NotifyReorderCanExecuteChanged();
         NotifyFolderActionCanExecuteChanged();
@@ -605,6 +610,30 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     private static LibrarySortMode ResolveFolderGroupStyleSortMode(SongFolderSummary? folder)
         => folder?.GroupStyle == 1 ? LibrarySortMode.WordCount : LibrarySortMode.StrokeCount;
+
+    private SongFolderSummary? ResolveInitialSelectedFolder()
+    {
+        var savedFolderNo = _settings.Get(EasiSettingKeys.SelectedSongFolderNo);
+        if (savedFolderNo > 0)
+        {
+            var saved = Folders.FirstOrDefault(folder => folder.FolderNo == savedFolderNo);
+            if (saved is not null)
+            {
+                return saved;
+            }
+        }
+
+        return Folders.FirstOrDefault(IsPreferredInitialFolder)
+            ?? Folders.FirstOrDefault(folder => folder.IsEnabled && !IsRecycleFolder(folder))
+            ?? Folders.FirstOrDefault(folder => folder.IsEnabled)
+            ?? Folders.FirstOrDefault();
+    }
+
+    private static bool IsPreferredInitialFolder(SongFolderSummary folder)
+        => folder.IsEnabled && folder.SongCount > 0 && !IsRecycleFolder(folder);
+
+    private static bool IsRecycleFolder(SongFolderSummary folder)
+        => string.Equals(folder.Name.Trim(), "Recycle Folder", StringComparison.OrdinalIgnoreCase);
 
     private async Task PersistSelectedFolderGroupStyleAsync(int groupStyle)
     {

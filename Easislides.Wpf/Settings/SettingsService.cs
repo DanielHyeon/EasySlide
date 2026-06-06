@@ -389,6 +389,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> MediaMuted = new("media.muted", false);
     public static readonly SettingKey<int> LiveCameraNumber = new("media.liveCameraNumber", 1);
     public static readonly SettingKey<int> PraiseBookCjkGroupStyle = new("data.praiseBookCjkGroupStyle", 0);
+    public static readonly SettingKey<int> SelectedSongFolderNo = new("data.selectedSongFolderNo", 0);
     public static readonly SettingKey<string> AdminDatabasePath = new("data.adminDatabasePath", "");
     public static readonly SettingKey<string> DataBackupRoot = new("data.backupRoot", "");
     public static readonly SettingKey<bool> EnableDiagnostics = new("advanced.enableDiagnostics", false);
@@ -494,6 +495,7 @@ public static class EasiSettingKeys
         MediaMuted,
         LiveCameraNumber,
         PraiseBookCjkGroupStyle,
+        SelectedSongFolderNo,
         AdminDatabasePath,
         DataBackupRoot,
         EnableDiagnostics,
@@ -717,6 +719,8 @@ public sealed record MediaSettings
 public sealed record DataSettings
 {
     public int PraiseBookCjkGroupStyle { get; init; } = EasiSettingKeys.PraiseBookCjkGroupStyle.DefaultValue;
+
+    public int SelectedSongFolderNo { get; init; } = EasiSettingKeys.SelectedSongFolderNo.DefaultValue;
 
     public string AdminDatabasePath { get; init; } = EasiSettingKeys.AdminDatabasePath.DefaultValue;
 
@@ -1130,6 +1134,12 @@ public sealed class SettingsService : ISettingsService
             max: 1,
             EasiSettingKeys.PraiseBookCjkGroupStyle.Id,
             issues);
+        RequireRange(
+            candidate.Data.SelectedSongFolderNo,
+            min: 0,
+            max: 999999,
+            EasiSettingKeys.SelectedSongFolderNo.Id,
+            issues);
         ValidatePath(candidate.Data.AdminDatabasePath, EasiSettingKeys.AdminDatabasePath.Id, issues, allowEmpty: true);
         ValidatePath(candidate.Data.BackupRoot, EasiSettingKeys.DataBackupRoot.Id, issues, allowEmpty: true);
 
@@ -1346,6 +1356,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PraiseBookCjkGroupStyle.Id), next, issues, value => next with
         {
             Data = next.Data with { PraiseBookCjkGroupStyle = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.SelectedSongFolderNo.Id), next, issues, value => next with
+        {
+            Data = next.Data with { SelectedSongFolderNo = value },
         });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AdminDatabasePath.Id), next, value => next with
         {
@@ -1684,6 +1698,7 @@ public sealed class SettingsService : ISettingsService
             "media.muted" => snapshot.Media.Muted,
             "media.liveCameraNumber" => snapshot.Media.LiveCameraNumber,
             "data.praiseBookCjkGroupStyle" => snapshot.Data.PraiseBookCjkGroupStyle,
+            "data.selectedSongFolderNo" => snapshot.Data.SelectedSongFolderNo,
             "data.adminDatabasePath" => snapshot.Data.AdminDatabasePath,
             "data.backupRoot" => snapshot.Data.BackupRoot,
             "advanced.enableDiagnostics" => snapshot.Advanced.EnableDiagnostics,
@@ -2072,6 +2087,10 @@ public sealed class SettingsService : ISettingsService
             "data.praiseBookCjkGroupStyle" => snapshot with
             {
                 Data = snapshot.Data with { PraiseBookCjkGroupStyle = Cast<int>(keyId, value) },
+            },
+            "data.selectedSongFolderNo" => snapshot with
+            {
+                Data = snapshot.Data with { SelectedSongFolderNo = Cast<int>(keyId, value) },
             },
             "data.adminDatabasePath" => snapshot with
             {

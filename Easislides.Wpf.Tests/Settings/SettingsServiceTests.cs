@@ -321,6 +321,24 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_SelectedSongFolderNo_PersistsFrmMainCurrentSourceFolder()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.SelectedSongFolderNo).Should().Be(0);
+        sut.Set(EasiSettingKeys.SelectedSongFolderNo, 12).Succeeded.Should().BeTrue();
+        sut.Get(EasiSettingKeys.SelectedSongFolderNo).Should().Be(12);
+        ReadSnapshot(fixture.SettingsPath).Data.SelectedSongFolderNo.Should().Be(12);
+
+        var invalid = sut.Set(EasiSettingKeys.SelectedSongFolderNo, -1);
+
+        invalid.Succeeded.Should().BeFalse();
+        invalid.Issues.Should().Contain(issue => issue.Key == EasiSettingKeys.SelectedSongFolderNo.Id);
+        sut.Get(EasiSettingKeys.SelectedSongFolderNo).Should().Be(12);
+    }
+
+    [Fact]
     public void RestoreDefaults_RevertsChangedValuesAndPersistsDefaultSnapshot()
     {
         using var fixture = TempSettingsFolder.Create();

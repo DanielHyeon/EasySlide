@@ -38,6 +38,49 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_RestoresFrmMainSelectedSongFolderFromSettings()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        fixture.Settings.Set(EasiSettingKeys.SelectedSongFolderNo, 2);
+        var repository = new FakeAdminDatabaseRepository();
+        var recycle = new SongFolderSummary(1, "Recycle Folder", IsEnabled: true, SongCount: 0);
+        var hymnal = new SongFolderSummary(2, "새찬송가", IsEnabled: true, SongCount: 1);
+        var gospel = new SongFolderSummary(3, "복음성가", IsEnabled: true, SongCount: 1);
+        repository.Folders.AddRange([recycle, hymnal, gospel]);
+        repository.SongsByFolder[2] = [Song(20, "Saved Folder Song", folderNo: 2)];
+        repository.SongsByFolder[3] = [Song(30, "Other Folder Song", folderNo: 3)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.SelectedFolder.Should().Be(hymnal);
+        sut.Songs.Select(song => song.Title).Should().Equal("Saved Folder Song");
+        repository.RequestedFolderNos.Should().Contain(2);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenNoSavedFolder_StartsFromFirstOperationalFolderAndPersistsIt()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        var recycle = new SongFolderSummary(1, "Recycle Folder", IsEnabled: true, SongCount: 0);
+        var hymnal = new SongFolderSummary(2, "새찬송가", IsEnabled: true, SongCount: 1);
+        repository.Folders.AddRange([recycle, hymnal]);
+        repository.SongsByFolder[2] = [Song(20, "Operational Folder Song", folderNo: 2)];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.SelectedFolder.Should().Be(hymnal);
+        sut.Songs.Select(song => song.Title).Should().Equal("Operational Folder Song");
+        fixture.Settings.Get(EasiSettingKeys.SelectedSongFolderNo).Should().Be(2);
+    }
+
+    [Fact]
     public async Task LoadSongsForSelectedFolderAsync_WhenSelectionChanges_LoadsThatFolder()
     {
         using var fixture = TempLibrarySettings.Create();
