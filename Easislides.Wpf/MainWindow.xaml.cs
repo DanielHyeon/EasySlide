@@ -182,9 +182,23 @@ public partial class MainWindow : Window
             new PowerPointLibraryService(),
             path => viewModel.AddPowerPoint(path),
             ResolvePowerPointInitialFolder(),
-            _services.GetService<IPowerPointRenderService>());
+            _services.GetService<IPowerPointRenderService>(),
+            initialListingStyle: ResolveInitialPowerPointListingStyle());
         PowerPointSourceTab.DataContext = _inlinePowerPoint;
         _inlinePowerPoint.LoadCommand.Execute(null);
+    }
+
+    private PowerPointListingStyle ResolveInitialPowerPointListingStyle()
+    {
+        var legacy = _services.GetService<ILegacySettingsSource>();
+        if (legacy?.TryGetString("ExternalListing", out var raw) == true
+            && int.TryParse(raw, out var value)
+            && value == 1)
+        {
+            return PowerPointListingStyle.Preview;
+        }
+
+        return PowerPointListingStyle.List;
     }
 
     private void EnsureInlineInfoScreenLoadedOnce(MainViewModel viewModel)
@@ -920,6 +934,11 @@ public partial class MainWindow : Window
         }
 
         // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피). 탭별 1회 자동 로드.
+        if (!ReferenceEquals(tab, SearchSourceTab) && SearchSourceTab.Visibility == Visibility.Visible)
+        {
+            SearchSourceTab.Visibility = Visibility.Collapsed;
+        }
+
         switch (tab.Tag)
         {
             case "Folders":
@@ -1113,6 +1132,7 @@ public partial class MainWindow : Window
 
         viewModel.Search.SearchText = phrase;
         await EnsureSearchLoadedOnceAsync(viewModel).ConfigureAwait(true);
+        SearchSourceTab.Visibility = Visibility.Visible;
         LeftBrowserTabs.SelectedItem = SearchSourceTab;
 
         if (viewModel.Search.SearchSongsCommand.CanExecute(null))
@@ -1979,6 +1999,16 @@ public partial class MainWindow : Window
 
     private void InlinePowerPointList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         => AddInlinePowerPointSelectionToWorshipList(sender as ListBox);
+
+    private async void InlinePowerPointList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_inlinePowerPoint?.SelectedFile is not { } file)
+        {
+            return;
+        }
+
+        await _viewModel.PreviewExternalPowerPointSourceAsync(file.FilePath).ConfigureAwait(true);
+    }
 
     private void InlineMediaList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {

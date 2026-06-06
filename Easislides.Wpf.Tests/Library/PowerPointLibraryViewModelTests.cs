@@ -203,6 +203,20 @@ public class PowerPointLibraryViewModelTests
     }
 
     [Fact]
+    public void Constructor_CanStartInLegacyPreviewStyle()
+    {
+        var sut = new PowerPointLibraryViewModel(
+            new FakePptService(paths: new[] { @"C:\decks\a.pptx" }),
+            _ => { },
+            initialFolder: @"C:\decks",
+            initialListingStyle: PowerPointListingStyle.Preview);
+
+        sut.ListingStyle.Should().Be(PowerPointListingStyle.Preview);
+        sut.IsPreviewStyle.Should().BeTrue();
+        sut.ListingStyleLabel.Should().Be("Preview");
+    }
+
+    [Fact]
     public void Constructor_BuildsFrmMainPowerpointFolderGroups_WithoutLoadingFiles()
     {
         var folders = new[]

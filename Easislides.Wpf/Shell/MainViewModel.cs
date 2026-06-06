@@ -737,10 +737,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool HasPreviewLyricsText => !string.IsNullOrWhiteSpace(PreviewLyricsText);
 
     public string PreviewNavigationPositionLabel
-        => SelectedItem is null
+        => PreviewItem is null
             ? string.Empty
             : ComputePositionLabel(
-                SelectedItem with { LyricsPageIndex = LyricsPageIndex },
+                PreviewItem with { LyricsPageIndex = LyricsPageIndex },
                 PowerPoint);
 
     public string OutputNavigationPositionLabel
@@ -760,23 +760,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     public ImageSource? PreviewVisualSource
-        => SelectedItem is not null && IsPowerPointItem(SelectedItem)
+        => PreviewItem is not null && IsPowerPointItem(PreviewItem)
             ? PowerPoint.PreviewImage
-            : SelectedItem?.PreviewSource;
+            : PreviewItem?.PreviewSource;
 
     public Rendering.ImageFillMode PreviewVisualFillMode
-        => SelectedItem is not null && IsPowerPointItem(SelectedItem)
+        => PreviewItem is not null && IsPowerPointItem(PreviewItem)
             ? Rendering.ImageFillMode.Fit
-            : SelectedItem?.PreviewFillMode ?? Rendering.ImageFillMode.Fit;
+            : PreviewItem?.PreviewFillMode ?? Rendering.ImageFillMode.Fit;
 
     public int PreviewVisualSlideNumber
-        => SelectedItem is not null && IsPowerPointItem(SelectedItem)
+        => PreviewItem is not null && IsPowerPointItem(PreviewItem)
             ? PowerPoint.SlideNumber
-            : SelectedItem?.SlideNumber ?? 0;
+            : PreviewItem?.SlideNumber ?? 0;
 
-    public string PreviewVisualTitle => SelectedItem?.Title ?? string.Empty;
+    public string PreviewVisualTitle => PreviewItem?.Title ?? string.Empty;
 
-    public string PreviewVisualKind => SelectedItem?.Kind ?? string.Empty;
+    public string PreviewVisualKind => PreviewItem?.Kind ?? string.Empty;
 
     public bool HasPreviewVisualSource => PreviewVisualSource is not null;
 
@@ -1175,7 +1175,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsPreviewInfoMode => PreviewPanelMode == PreviewPanelMode.Info;
 
-    public string PreviewItemInfoText => BuildPreviewItemInfoText(SelectedItem);
+    public string PreviewItemInfoText => BuildPreviewItemInfoText(PreviewItem);
 
     public IRelayCommand OpenOutputCommand { get; }
     public IAsyncRelayCommand CloseOutputCommand { get; }
@@ -3357,9 +3357,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string? _thumbnailDeckPath;
     // 현재 Output 썸네일 스트립이 가리키는 덱. Preview 선택 변경과 독립적으로 보존한다.
     private string? _outputThumbnailDeckPath;
+    private LiveQueueItem? _sourcePreviewItem;
+
+    private LiveQueueItem? PreviewItem => _sourcePreviewItem ?? SelectedItem;
 
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
+        _sourcePreviewItem = null;
+
         if (_session.Current.State != LiveState.Active)
         {
             LiveBar.CurrentItemTitle = value?.Title ?? string.Empty;
@@ -3522,7 +3527,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private string BuildPreviewPanelStatusText()
     {
-        if (SelectedItem is null)
+        if (PreviewItem is not { } item)
         {
             return "대기";
         }
@@ -3706,9 +3711,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void RebuildPreviewLyricsPages()
     {
+        var item = PreviewItem;
         ReplaceLyricsPageCards(
             PreviewLyricsPages,
-            BuildLyricsPageCards(SelectedItem, IsLyricsPaginated(SelectedItem) ? LyricsPageIndex : 0));
+            BuildLyricsPageCards(item, IsLyricsPaginated(item) ? LyricsPageIndex : 0));
         OnPropertyChanged(nameof(HasPreviewLyricsPages));
         OnPropertyChanged(nameof(PreviewLyricsText));
         OnPropertyChanged(nameof(HasPreviewLyricsText));
@@ -4116,6 +4122,57 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     ///  - Media 항목 → 미디어 재생 VM 에 Load(MediaPlaybackRequest).
     /// 곡 가사는 항목(LiveQueueItem.Lyrics)이 직접 들고 있어 바인딩으로 표시되므로 여기서 추가 적재 불필요.
     /// </summary>
+    public async Task PreviewExternalPowerPointSourceAsync(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            StatusText = "Preview PowerPoint file path is empty.";
+            NotifyCommandStates();
+            return;
+        }
+
+        var item = CreateExternalFileItem(filePath, LiveItemKinds.PowerPoint);
+        _sourcePreviewItem = item;
+        RefreshLyricsPages(item);
+        UpdateContentTabForItem(item);
+        NotifyPreviewItemProperties();
+
+        try
+        {
+            var (renderWidth, renderHeight) = ResolvePptRenderSize();
+            await PowerPoint.LoadAsync(filePath, 1, renderWidth, renderHeight).ConfigureAwait(true);
+            if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready)
+            {
+                _thumbnailDeckPath = filePath;
+                _ = PowerPoint.LoadThumbnailsAsync(filePath, PowerPoint.SlideCount, PptThumbnailWidth, PptThumbnailHeight);
+            }
+
+            StatusText = $"Preview PowerPoint: {item.Title}";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Preview PowerPoint load failed: {ex.Message}";
+        }
+        finally
+        {
+            NotifyPreviewItemProperties();
+            NotifyCommandStates();
+        }
+    }
+
+    private void NotifyPreviewItemProperties()
+    {
+        OnPropertyChanged(nameof(PreviewItemInfoText));
+        OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+        NotifyPreviewPanelDisplayProperties();
+        OnPropertyChanged(nameof(PreviewVisualSource));
+        OnPropertyChanged(nameof(PreviewVisualFillMode));
+        OnPropertyChanged(nameof(PreviewVisualSlideNumber));
+        OnPropertyChanged(nameof(PreviewVisualTitle));
+        OnPropertyChanged(nameof(PreviewVisualKind));
+        OnPropertyChanged(nameof(HasPreviewVisualSource));
+    }
+
     public async Task ApplySelectedItemContentAsync(LiveQueueItem? item)
     {
         // fire-and-forget(OnSelectedItemChanged)로 호출되므로 예외가 새면 unobserved 가 된다.
@@ -4673,7 +4730,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Output 은 여기서 갱신하지 않는다. live Output 이동은 GoToOutputSlideAsync 전용 경로가 맡는다.
     private async Task GoToSlideAsync(int target)
     {
-        if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
+        if (PreviewItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
         {
             return;
         }
@@ -4695,7 +4752,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // WPF currently has a static-slide renderer, so replay means force-rendering the selected Preview slide again.
     private async Task ReplayPreviewPowerPointSlideAsync(int target)
     {
-        if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
+        if (PreviewItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
         {
             return;
         }
@@ -4727,7 +4784,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             || IsPreviewLyricsPageNavReady();
 
     private bool IsPowerPointSlideNavReady()
-        => SelectedItem is { Kind: LiveItemKinds.PowerPoint } selected
+        => PreviewItem is { Kind: LiveItemKinds.PowerPoint } selected
             && PowerPoint.State == Rendering.PowerPointPreviewState.Ready
             && PowerPoint.SlideCount > 0
             && !string.IsNullOrEmpty(selected.ContentPath);
@@ -5198,7 +5255,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanCopyPreviewToOutput()
-        => SelectedItem is not null && !HasPowerPointLimitViolation;
+        => PreviewItem is not null && !HasPowerPointLimitViolation;
 
     private void CopyPreviewToOutput()
     {
@@ -5273,6 +5330,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private Task PreviewToLiveAsync()
     {
         var item = PrepareOutputFromPreview();
+        return PreviewToLiveAsync(item);
+    }
+
+    private Task PreviewToLiveAsync(LiveQueueItem? item)
+    {
         if (item is null)
         {
             return Task.CompletedTask;
@@ -5302,7 +5364,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanWorshipListDoubleClick()
-        => SelectedItem is { } item && (IsMediaItem(item) || CanCopyPreviewToOutput());
+        => SelectedItem is { } item && (IsMediaItem(item) || !HasPowerPointLimitViolation);
 
     private Task WorshipListDoubleClickAsync()
     {
@@ -5319,7 +5381,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return Task.CompletedTask;
         }
 
-        return PreviewToLiveAsync();
+        return PreviewToLiveAsync(PrepareOutputFromItem(item));
     }
 
     private bool CanPreviewToLive()
@@ -5375,13 +5437,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private LiveQueueItem? PrepareOutputFromPreview()
     {
-        if (SelectedItem is not { } item)
+        if (PreviewItem is not { } item)
         {
             StatusText = "Output으로 복사할 Preview 항목이 없습니다.";
             NotifyCommandStates();
             return null;
         }
 
+        return PrepareOutputFromItem(item);
+    }
+
+    private LiveQueueItem PrepareOutputFromItem(LiveQueueItem item)
+    {
         OutputItem = item;
         PrepareOutputPowerPointForPublish(item);
         return item;
@@ -5400,11 +5467,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanGoLive()
-        => SelectedItem is not null && _output.Current.IsOpen && !HasPowerPointLimitViolation;
+        => PreviewItem is not null && _output.Current.IsOpen && !HasPowerPointLimitViolation;
 
     private async Task GoLiveAsync()
     {
-        if (SelectedItem is null)
+        if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
             return;
@@ -5412,7 +5479,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var ok = await ConfirmLiveSafetyAsync(
             MainCommandIds.LiveGo,
-            $"'{SelectedItem.Title}' 항목을 라이브로 송출할까요?",
+            $"'{item.Title}' 항목을 라이브로 송출할까요?",
             "선택 항목이 즉시 출력 화면에 표시됩니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
@@ -5427,7 +5494,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // FrmMain 지역 btnToOutputMoveNext 의 비송출 복사+다음은 CopyPreviewToOutputAndNextCommand 가 담당한다.
     private async Task SendToOutputAndNextAsync()
     {
-        if (SelectedItem is null)
+        if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
             return;
@@ -5435,7 +5502,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var ok = await ConfirmLiveSafetyAsync(
             MainCommandIds.LiveGo,
-            $"'{SelectedItem.Title}' 항목을 송출하고 다음 항목으로 넘어갈까요?",
+            $"'{item.Title}' 항목을 송출하고 다음 항목으로 넘어갈까요?",
             "선택 항목이 즉시 출력 화면에 표시되고 선택이 다음 항목으로 이동합니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
         if (!ok)
         {
@@ -5444,9 +5511,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         // 자동 advance 를 끈 채 송출한 뒤(중복 이동 방지), 설정과 무관하게 명시적으로 다음 항목으로 이동.
-        var published = SelectedItem;
+        var published = item;
         PublishSelectedItem(autoAdvance: false);
-        AdvanceSelectionToNext(published);
+        if (ReferenceEquals(published, SelectedItem))
+        {
+            AdvanceSelectionToNext(published);
+        }
     }
 
     private async Task StopLiveAsync()
@@ -6171,26 +6241,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // false 면 옮기지 않는다 — "전송 후 다음"(btnToOutputMoveNext) 처럼 호출부가 직접 이동을 제어할 때 쓴다.
     private void PublishSelectedItem(bool autoAdvance = true)
     {
-        if (SelectedItem is null)
+        if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
             return;
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        OutputItem = SelectedItem;
-        SetLiveItemId(SelectedItem.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
-        PrepareOutputPowerPointForPublish(SelectedItem);
+        OutputItem = item;
+        SetLiveItemId(item.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
+        PrepareOutputPowerPointForPublish(item);
         // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
         LiveTransposeSemitones = 0;
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
-        var projection = SelectedItem with { LyricsPageIndex = LyricsPageIndex };
+        var projection = item with { LyricsPageIndex = GetPreviewLyricsPageIndex(item) };
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        StatusText = $"LIVE: {SelectedItem.Title}";
+        StatusText = $"LIVE: {item.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
-        if (autoAdvance)
+        if (autoAdvance && ReferenceEquals(item, SelectedItem))
         {
-            AdvanceSelectionAfterPublish(SelectedItem);
+            AdvanceSelectionAfterPublish(item);
         }
 
         NotifyCommandStates();

@@ -1493,7 +1493,7 @@
                          x:Name="PowerPointSourceTab"
                          AutomationProperties.Name="PowerPoint source">
                     <TabItem.Header>
-                        <TextBlock Text="PowerPoint" />
+                        <TextBlock Text="PowerP" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1583,6 +1583,7 @@
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  SelectionMode="Extended"
                                  DisplayMemberPath="FileName"
+                                 SelectionChanged="InlinePowerPointList_SelectionChanged"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
@@ -1638,6 +1639,7 @@
                                  ItemsSource="{Binding Presentations}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  SelectionMode="Extended"
+                                 SelectionChanged="InlinePowerPointList_SelectionChanged"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
@@ -2443,6 +2445,7 @@
                 <!-- Search tab keeps song/title/usage lookup inline in the left rail. -->
                 <TabItem x:Name="SearchSourceTab"
                          Tag="Search"
+                         Visibility="Collapsed"
                          AutomationProperties.Name="검색">
                     <TabItem.Header>
                         <TextBlock Text="검색" />

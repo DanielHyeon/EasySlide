@@ -75,13 +75,13 @@
     <!-- =============== Pills Tab (알약 모양) =============== -->
     <Style x:Key="EsTabView.FrmMainBottomItem" TargetType="TabItem">
         <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="Padding" Value="4,1" />
         <Setter Property="Margin" Value="0" />
-        <Setter Property="MinHeight" Value="22" />
+        <Setter Property="MinHeight" Value="20" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">

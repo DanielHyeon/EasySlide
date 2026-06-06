@@ -87,7 +87,8 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         Action<string> addToQueue,
         string initialFolder,
         IPowerPointRenderService? render = null,
-        Func<byte[], ImageSource>? thumbnailDecoder = null)
+        Func<byte[], ImageSource>? thumbnailDecoder = null,
+        PowerPointListingStyle initialListingStyle = PowerPointListingStyle.List)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
@@ -95,6 +96,9 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         _decodeThumbnail = thumbnailDecoder ?? DecodeImage;
         _rootFolderPath = initialFolder ?? string.Empty;
         _folderPath = _rootFolderPath;
+        _listingStyle = initialListingStyle is PowerPointListingStyle.Preview
+            ? PowerPointListingStyle.Preview
+            : PowerPointListingStyle.List;
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);

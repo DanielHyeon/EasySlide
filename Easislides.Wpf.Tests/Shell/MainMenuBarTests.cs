@@ -222,6 +222,9 @@ public class MainMenuBarTests
         toolStrip.Should().Contain("PreviewKeyDown=\"Main_QuickFind_PreviewKeyDown\"",
             "pressing Enter in QuickFind should run the search without opening a modal");
         xaml.Should().Contain("x:Name=\"SearchSourceTab\"", "QuickFind should be able to switch to the inline Search source tab");
+        SectionBetween(xaml, "x:Name=\"SearchSourceTab\"", "<TabItem.Header>")
+            .Should().Contain("Visibility=\"Collapsed\"",
+                "the WPF-only inline Search tab should not push FrmMain's Default source tab out of the normal tab strip");
     }
 
     [Fact]
@@ -235,8 +238,12 @@ public class MainMenuBarTests
             "Search source data should be awaited instead of fire-and-forget");
         code.Should().Contain("private async Task ExecuteMainQuickFindAsync()",
             "Main_Find and QuickFind Enter should share one execution path");
+        code.Should().Contain("SearchSourceTab.Visibility = Visibility.Visible",
+            "QuickFind should reveal the hidden inline Search tab only when the operator actually searches");
         code.Should().Contain("LeftBrowserTabs.SelectedItem = SearchSourceTab",
             "QuickFind should reveal the inline Search tab after running");
+        code.Should().Contain("SearchSourceTab.Visibility = Visibility.Collapsed",
+            "returning to a FrmMain source tab should hide the WPF-only Search tab again");
         code.Should().Contain("await viewModel.Search.SearchSongsCommand.ExecuteAsync(null).ConfigureAwait(true)",
             "QuickFind should execute the existing song search command");
         code.Should().Contain("Main_QuickFind.Items.Insert(0, phrase)",
@@ -834,8 +841,15 @@ public class MainMenuBarTests
         var tabs = TabViewXaml;
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottom\"", "FrmMain source/list tabs need their own compact bottom style");
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottomItem\"", "FrmMain tabs need compact item chrome");
+        tabs.Should().Contain("<Setter Property=\"FontSize\" Value=\"11\" />",
+            "FrmMain bottom tabs need WinForms-density labels so all source roles, including Default, fit in the left pane");
+        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"4,1\" />",
+            "FrmMain bottom tabs should not carry WPF padding that pushes Default out of the visible strip");
         tabs.Should().Contain("PART_SelectedContentHost", "the FrmMain tab template should render selected content separately from the bottom tab strip");
         tabs.Should().Contain("Grid.Row=\"1\"", "the FrmMain tab template should dock the header strip below selected content");
+        SectionBetween(xaml, "Tag=\"PowerPointSource\"", "</TabItem.Header>")
+            .Should().Contain("Text=\"PowerP\"",
+                "FrmMain tabPowerpoint.Text is the compact 'PowerP' label, which keeps Default visible in the left source strip");
 
         var cursor = -1;
         foreach (var tag in new[]
@@ -853,6 +867,11 @@ public class MainMenuBarTests
             index.Should().BeGreaterThan(cursor, $"{tag} should appear in FrmMain source-tab order");
             cursor = index;
         }
+
+        var defaultIndex = xaml.IndexOf("Tag=\"DefaultSource\"", StringComparison.Ordinal);
+        var searchIndex = xaml.IndexOf("x:Name=\"SearchSourceTab\"", StringComparison.Ordinal);
+        searchIndex.Should().BeGreaterThan(defaultIndex,
+            "the WPF-only Search source must stay after FrmMain's visible Default tab");
     }
 
     [Fact]
@@ -1035,6 +1054,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"InlinePowerPointList\"", "PowerPoint files must be visible without opening a modal window");
         xaml.Should().Contain("Tag=\"PowerpointList\"", "PowerpointList should keep the FrmMain list role");
         xaml.Should().Contain("ItemsSource=\"{Binding Presentations}\"", "inline PowerPoint list reuses PowerPointLibraryViewModel");
+        xaml.Should().Contain("SelectionChanged=\"InlinePowerPointList_SelectionChanged\"",
+            "selecting a source PowerPoint should update Preview like FrmMain PowerpointListIndexChanged");
         xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlinePowerPointList_PreviewMouseRightButtonDown\"",
             "right-clicking a PowerPoint row should select it before opening CMenuFiles");
         xaml.Should().Contain("MouseDoubleClick=\"InlinePowerPointList_MouseDoubleClick\"", "double-click should add selected PowerPoint");
@@ -1157,6 +1178,10 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");
         code.Should().Contain("_services.GetService<IPowerPointRenderService>()", "inline PowerPoint preview mode should reuse the shared cached renderer");
+        code.Should().Contain("ResolveInitialPowerPointListingStyle()", "inline PowerPoint should honor legacy ExternalListing when choosing list vs preview mode");
+        code.Should().Contain("TryGetString(\"ExternalListing\"", "FrmMain persists PP_ListType in options/ExternalListing");
+        code.Should().Contain("PreviewExternalPowerPointSourceAsync(file.FilePath)",
+            "left PowerPoint selection should feed the Preview PowerPoint renderer without adding to Worship List");
         code.Should().Contain("AddInlinePowerPointSelectionToWorshipList", "PowerPoint Enter/WL_Add/context menu should route through the multi-select add path");
         code.Should().Contain("SelectedItems.OfType<PowerPointFileItem>()", "PowerPoint multi-select should use the actual selected WPF rows");
         code.Should().Contain("GetActivePowerPointList().SelectAll()", "PowerPoint CMenuFiles_SelectAll should target the visible list/preview surface");
