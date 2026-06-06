@@ -127,7 +127,7 @@ public class MainMenuBarTests
     [Fact]
     public void OperatorBar_ExposesFrmMainAutoRotateControlsByLegacyNames()
     {
-        var operatorBar = OperatorBarXaml;
+        var operatorBar = ToolStripMainXaml;
 
         operatorBar.Should().Contain("x:Name=\"Main_NoRotate\"", "FrmMain top toolbar uses Main_NoRotate for Stop Auto Rotate");
         operatorBar.Should().Contain("Tag=\"Main_NoRotate\"", "the WPF control should preserve the legacy toolbar role");
@@ -139,6 +139,76 @@ public class MainMenuBarTests
         operatorBar.Should().Contain("Tag\" Value=\"{Binding LegacyTag}\"", "Main_Rotate0..3 legacy tags should be preserved on dropdown items");
         operatorBar.Should().Contain("AutomationProperties.Name\" Value=\"{Binding Name}\"",
             "dropdown items should expose Main_Rotate0..3 names for parity tests and accessibility");
+    }
+
+    [Fact]
+    public void MainWindow_ExposesFrmMainToolStripMainWithQuickFind()
+    {
+        var xaml = Xaml;
+        var toolStrip = ToolStripMainXaml;
+
+        xaml.Should().Contain("x:Name=\"toolStripContainerMain\"", "FrmMain top toolbar container should be explicit in the WPF shell");
+        xaml.Should().Contain("Tag=\"toolStripContainerMain\"", "the WPF toolbar row should preserve the legacy mapping role");
+
+        foreach (var controlName in new[]
+        {
+            "Main_New",
+            "Main_Edit",
+            "Main_Copy",
+            "Main_Move",
+            "Main_Delete",
+            "Main_Media",
+            "Main_Refresh",
+            "Main_Options",
+            "Main_NoRotate",
+            "Main_RotateStyle",
+            "Main_Alerts",
+            "Main_Chinese",
+            "Main_Find",
+            "Main_QuickFind",
+            "Main_JumpA",
+            "Main_JumpB",
+            "Main_JumpC",
+        })
+        {
+            toolStrip.Should().Contain($"x:Name=\"{controlName}\"", $"{controlName} should be present on the FrmMain-compatible top toolStripMain");
+            toolStrip.Should().Contain($"Tag=\"{controlName}\"", $"{controlName} should keep its legacy role tag");
+        }
+
+        toolStrip.Should().Contain("Click=\"Main_New_Click\"", "Main_New should open the inline song editor path from the shell");
+        toolStrip.Should().Contain("Click=\"Main_Edit_Click\"", "Main_Edit should edit the selected source or Worship List item");
+        toolStrip.Should().Contain("Click=\"Main_Refresh_Click\"", "Main_Refresh should reload the active left source");
+        toolStrip.Should().Contain("Click=\"Main_Find_Click\"", "Main_Find should execute the top QuickFind search");
+        toolStrip.Should().Contain("IsEditable=\"True\"", "FrmMain Main_QuickFind is a typed phrase box");
+        toolStrip.Should().Contain("Text=\"{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}\"",
+            "QuickFind should use the existing SearchUsageViewModel phrase");
+        toolStrip.Should().Contain("Width=\"130\"", "FrmMain Main_QuickFind uses a compact 130px toolbar width");
+        toolStrip.Should().Contain("PreviewKeyDown=\"Main_QuickFind_PreviewKeyDown\"",
+            "pressing Enter in QuickFind should run the search without opening a modal");
+        xaml.Should().Contain("x:Name=\"SearchSourceTab\"", "QuickFind should be able to switch to the inline Search source tab");
+    }
+
+    [Fact]
+    public void MainWindow_WiresFrmMainQuickFindToInlineSearch()
+    {
+        var code = CodeBehind;
+
+        code.Should().Contain("private async Task EnsureSearchLoadedOnceAsync(MainViewModel viewModel)",
+            "Search tab and QuickFind should share a single awaited load guard");
+        code.Should().Contain("await viewModel.Search.LoadAsync().ConfigureAwait(true)",
+            "Search source data should be awaited instead of fire-and-forget");
+        code.Should().Contain("private async Task ExecuteMainQuickFindAsync()",
+            "Main_Find and QuickFind Enter should share one execution path");
+        code.Should().Contain("LeftBrowserTabs.SelectedItem = SearchSourceTab",
+            "QuickFind should reveal the inline Search tab after running");
+        code.Should().Contain("await viewModel.Search.SearchSongsCommand.ExecuteAsync(null).ConfigureAwait(true)",
+            "QuickFind should execute the existing song search command");
+        code.Should().Contain("Main_QuickFind.Items.Insert(0, phrase)",
+            "successful phrases should be kept in the toolbar combo history");
+        code.Should().Contain("private async void Main_QuickFind_PreviewKeyDown",
+            "the typed toolbar phrase should respond to Enter");
+        code.Should().Contain("e.Key != Key.Enter",
+            "non-Enter keys should not trigger the top search");
     }
 
     [Fact]
@@ -1305,6 +1375,24 @@ public class MainMenuBarTests
 
             var end = xaml.IndexOf("</WrapPanel>", marker, StringComparison.Ordinal);
             end.Should().BeGreaterThan(marker, "the fixed operator bar WrapPanel range should be discoverable");
+
+            return xaml[start..end];
+        }
+    }
+
+    private static string ToolStripMainXaml
+    {
+        get
+        {
+            var xaml = Xaml;
+            var marker = xaml.IndexOf("x:Name=\"toolStripMain\"", StringComparison.Ordinal);
+            marker.Should().BeGreaterThanOrEqualTo(0, "FrmMain top toolStripMain should have a stable XAML name for drift tests");
+
+            var start = xaml.LastIndexOf("<WrapPanel", marker, StringComparison.Ordinal);
+            start.Should().BeGreaterThanOrEqualTo(0, "toolStripMain should be a WrapPanel");
+
+            var end = xaml.IndexOf("</WrapPanel>", marker, StringComparison.Ordinal);
+            end.Should().BeGreaterThan(marker, "the top toolStripMain WrapPanel range should be discoverable");
 
             return xaml[start..end];
         }

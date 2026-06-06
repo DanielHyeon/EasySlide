@@ -159,6 +159,17 @@ public partial class MainWindow : Window
         _bibleLoadedOnce = _viewModel.Bible.Versions.Count > 0;
     }
 
+    private async Task EnsureSearchLoadedOnceAsync(MainViewModel viewModel)
+    {
+        if (_searchLoadedOnce)
+        {
+            return;
+        }
+
+        _searchLoadedOnce = true;
+        await viewModel.Search.LoadAsync().ConfigureAwait(true);
+    }
+
     private void EnsureInlinePowerPointLoadedOnce(MainViewModel viewModel)
     {
         if (_powerPointSourceLoadedOnce)
@@ -855,11 +866,195 @@ public partial class MainWindow : Window
             case "MediaSource":
                 EnsureInlineMediaLoadedOnce(viewModel);
                 break;
-            case "Search" when !_searchLoadedOnce:
-                _searchLoadedOnce = true;
-                _ = viewModel.Search.LoadAsync(); // 검색 폴더 목록(기본 전체 선택)·DB 경로 로드. 예외는 VM 내부에서 흡수.
+            case "Search":
+                await EnsureSearchLoadedOnceAsync(viewModel).ConfigureAwait(true);
                 break;
         }
+    }
+
+    private async void Main_New_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
+
+        var library = viewModel.Library;
+        if (library.SelectedFolder is null && library.Folders.FirstOrDefault() is { } firstFolder)
+        {
+            library.SelectedFolder = firstFolder;
+        }
+
+        if (library.SelectedFolder is null)
+        {
+            library.StatusMessage = "New song needs a selected folder.";
+            viewModel.StatusText = library.StatusMessage;
+            return;
+        }
+
+        var editorWindow = _services.GetRequiredService<SongEditorWindow>();
+        editorWindow.Owner = this;
+        if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
+        {
+            library.StatusMessage = "Song editor could not be initialized.";
+            viewModel.StatusText = library.StatusMessage;
+            return;
+        }
+
+        await editorViewModel.LoadAsync(library.DatabasePath, library.SelectedFolder, song: null).ConfigureAwait(true);
+        if (editorWindow.ShowDialog() != true)
+        {
+            return;
+        }
+
+        await library.LoadAsync().ConfigureAwait(true);
+        if (library.SelectFolderByNo(editorViewModel.FolderNo))
+        {
+            await library.LoadSongsForSelectedFolderAsync().ConfigureAwait(true);
+        }
+
+        if (editorViewModel.SongId is int savedSongId)
+        {
+            library.SelectSongById(savedSongId);
+        }
+    }
+
+    private async void Main_Edit_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
+        if (viewModel.Library.SelectedSong is not null)
+        {
+            await OpenSelectedLibrarySongEditorAsync(viewModel).ConfigureAwait(true);
+            return;
+        }
+
+        await OpenSelectedWorshipItemEditorAsync(viewModel).ConfigureAwait(true);
+    }
+
+    private async void Main_Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            await RefreshActiveSourceAsync(viewModel).ConfigureAwait(true);
+        }
+    }
+
+    private async Task RefreshActiveSourceAsync(MainViewModel viewModel)
+    {
+        var tag = LeftBrowserTabs.SelectedItem is TabItem selectedTab ? selectedTab.Tag as string : null;
+        switch (tag)
+        {
+            case "Folders":
+                await viewModel.Library.LoadAsync().ConfigureAwait(true);
+                break;
+            case "Bibles":
+                _bibleLoadedOnce = false;
+                await EnsureBibleLoadedOnceAsync().ConfigureAwait(true);
+                break;
+            case "InfoScreenSource":
+                EnsureInlineInfoScreenLoadedOnce(viewModel);
+                if (_inlineInfoScreens?.LoadCommand.CanExecute(null) == true)
+                {
+                    _inlineInfoScreens.LoadCommand.Execute(null);
+                }
+                break;
+            case "PowerPointSource":
+                EnsureInlinePowerPointLoadedOnce(viewModel);
+                if (_inlinePowerPoint?.LoadCommand.CanExecute(null) == true)
+                {
+                    _inlinePowerPoint.LoadCommand.Execute(null);
+                }
+                break;
+            case "ImagesSource":
+                EnsureInlineImageLoadedOnce(viewModel);
+                if (_inlineImages?.LoadCommand.CanExecute(null) == true)
+                {
+                    _inlineImages.LoadCommand.Execute(null);
+                }
+                break;
+            case "MediaSource":
+                EnsureInlineMediaLoadedOnce(viewModel);
+                if (_inlineMedia?.LoadCommand.CanExecute(null) == true)
+                {
+                    _inlineMedia.LoadCommand.Execute(null);
+                }
+                break;
+            case "Search":
+                _searchLoadedOnce = false;
+                await EnsureSearchLoadedOnceAsync(viewModel).ConfigureAwait(true);
+                if (!string.IsNullOrWhiteSpace(viewModel.Search.SearchText)
+                    && viewModel.Search.SearchSongsCommand.CanExecute(null))
+                {
+                    await viewModel.Search.SearchSongsCommand.ExecuteAsync(null).ConfigureAwait(true);
+                }
+                break;
+            default:
+                if (viewModel.RefreshOutputCommand.CanExecute(null))
+                {
+                    viewModel.RefreshOutputCommand.Execute(null);
+                }
+                break;
+        }
+    }
+
+    private void Main_Alerts_Click(object sender, RoutedEventArgs e)
+        => OpenSessionNotes_Click(sender, e);
+
+    private async void Main_Find_Click(object sender, RoutedEventArgs e)
+        => await ExecuteMainQuickFindAsync().ConfigureAwait(true);
+
+    private async void Main_QuickFind_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await ExecuteMainQuickFindAsync().ConfigureAwait(true);
+    }
+
+    private async Task ExecuteMainQuickFindAsync()
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var phrase = (Main_QuickFind.Text ?? viewModel.Search.SearchText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(phrase))
+        {
+            viewModel.StatusText = "Search Phrase를 입력하세요.";
+            Main_QuickFind.Focus();
+            Main_QuickFind.IsDropDownOpen = true;
+            return;
+        }
+
+        viewModel.Search.SearchText = phrase;
+        await EnsureSearchLoadedOnceAsync(viewModel).ConfigureAwait(true);
+        LeftBrowserTabs.SelectedItem = SearchSourceTab;
+
+        if (viewModel.Search.SearchSongsCommand.CanExecute(null))
+        {
+            await viewModel.Search.SearchSongsCommand.ExecuteAsync(null).ConfigureAwait(true);
+        }
+
+        Main_QuickFind.Items.Remove(phrase);
+        Main_QuickFind.Items.Insert(0, phrase);
+        while (Main_QuickFind.Items.Count > 20)
+        {
+            Main_QuickFind.Items.RemoveAt(Main_QuickFind.Items.Count - 1);
+        }
+
+        Main_QuickFind.IsDropDownOpen = false;
+        Main_QuickFind.Focus();
     }
 
     // 본문에서 드래그 선택한 구절 범위를 BibleSelection 으로 만들어 예배 순서에 추가(BibleWindow Select_Click 과 동일).

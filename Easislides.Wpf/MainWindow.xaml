@@ -775,12 +775,15 @@
         </Border>
 
         <Border DockPanel.Dock="Top"
+                x:Name="toolStripContainerMain"
+                Tag="toolStripContainerMain"
                 BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
                 Background="{DynamicResource Brush.Surface.Card}"
                 Padding="4,2">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -791,9 +794,219 @@
                            Foreground="{DynamicResource Brush.Text.Secondary}"
                            Visibility="Collapsed" />
 
+                <WrapPanel x:Name="toolStripMain"
+                           Tag="toolStripMain"
+                           Grid.Row="0"
+                           Orientation="Horizontal"
+                           Margin="0,0,0,2">
+                    <Button x:Name="Main_New"
+                            Tag="Main_New"
+                            Click="Main_New_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="New"
+                            AutomationProperties.Name="Main_New New">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" />
+                    </Button>
+                    <Button x:Name="Main_Edit"
+                            Tag="Main_Edit"
+                            Click="Main_Edit_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="Edit"
+                            AutomationProperties.Name="Main_Edit Edit">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionEdit}" />
+                    </Button>
+                    <Button x:Name="Main_Copy"
+                            Tag="Main_Copy"
+                            Click="SongCopy_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="Copy"
+                            AutomationProperties.Name="Main_Copy Copy">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionCopy}" />
+                    </Button>
+                    <Button x:Name="Main_Move"
+                            Tag="Main_Move"
+                            Click="SongMove_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="Move"
+                            AutomationProperties.Name="Main_Move Move">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionMove}" />
+                    </Button>
+                    <Button x:Name="Main_Delete"
+                            Tag="Main_Delete"
+                            Click="SongDelete_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,8,0"
+                            ToolTip="Delete"
+                            AutomationProperties.Name="Main_Delete Delete">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionDelete}" />
+                    </Button>
+                    <Button x:Name="Main_Media"
+                            Tag="Main_Media"
+                            Click="OpenMediaLibrary_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="Play Media"
+                            AutomationProperties.Name="Main_Media Play Media">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaPlay}" />
+                    </Button>
+                    <Button x:Name="Main_Refresh"
+                            Tag="Main_Refresh"
+                            Click="Main_Refresh_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,8,0"
+                            ToolTip="Refresh"
+                            AutomationProperties.Name="Main_Refresh Refresh">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" />
+                    </Button>
+                    <Button x:Name="Main_Options"
+                            Tag="Main_Options"
+                            Click="OpenSettings_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,8,0"
+                            ToolTip="Options"
+                            AutomationProperties.Name="Main_Options Options">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Settings}" />
+                    </Button>
+                    <ToggleButton x:Name="Main_NoRotate"
+                                  Tag="Main_NoRotate"
+                                  IsChecked="{Binding IsNoRotateChecked, Mode=OneWay}"
+                                  Command="{Binding ToggleAutoRotateCommand}"
+                                  MinWidth="30"
+                                  MinHeight="28"
+                                  Padding="6,0"
+                                  Margin="0,0,2,0"
+                                  ToolTip="Stop Auto Rotate"
+                                  AutomationProperties.Name="Main_NoRotate Stop Auto Rotate">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.NoRotate}" />
+                    </ToggleButton>
+                    <ComboBox x:Name="Main_RotateStyle"
+                              Tag="Main_RotateStyle"
+                              ItemsSource="{Binding AutoRotateModeOptions}"
+                              SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="Text"
+                              MinHeight="28"
+                              MinWidth="176"
+                              Margin="0,0,8,0"
+                              VerticalContentAlignment="Center"
+                              ToolTip="Rotate Style"
+                              AutomationProperties.Name="Main_RotateStyle Rotate Style">
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Tag" Value="{Binding LegacyTag}" />
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
+                    <Button x:Name="Main_Alerts"
+                            Tag="Main_Alerts"
+                            Click="Main_Alerts_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="Alerts"
+                            AutomationProperties.Name="Main_Alerts Alerts">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Alert}" />
+                    </Button>
+                    <Button x:Name="Main_Chinese"
+                            Tag="Main_Chinese"
+                            Command="{Binding ToggleRegionDisplayCommand}"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,8,0"
+                            ToolTip="Trad/Simp Chinese"
+                            AutomationProperties.Name="Main_Chinese Trad/Simp Chinese">
+                        <ui:SymbolIcon Symbol="Translate24" />
+                    </Button>
+                    <Button x:Name="Main_Find"
+                            Tag="Main_Find"
+                            Click="Main_Find_Click"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="Find"
+                            AutomationProperties.Name="Main_Find Find">
+                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" />
+                    </Button>
+                    <ComboBox x:Name="Main_QuickFind"
+                              Tag="Main_QuickFind"
+                              IsEditable="True"
+                              Text="{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              MaxDropDownHeight="260"
+                              MinHeight="28"
+                              Width="130"
+                              Margin="0,0,8,0"
+                              PreviewKeyDown="Main_QuickFind_PreviewKeyDown"
+                              ToolTip="Enter phrase and press Keyboard Enter key"
+                              AutomationProperties.Name="Main_QuickFind Search Phrase" />
+                    <Button x:Name="Main_JumpA"
+                            Tag="Main_JumpA"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="구찬송가">
+                        <TextBlock Text="구찬송가" />
+                    </Button>
+                    <Button x:Name="Main_JumpB"
+                            Tag="Main_JumpB"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            Margin="0,0,2,0"
+                            ToolTip="새찬송가">
+                        <TextBlock Text="새찬송가" />
+                    </Button>
+                    <Button x:Name="Main_JumpC"
+                            Tag="Main_JumpC"
+                            Style="{StaticResource EsButton.Secondary}"
+                            MinWidth="30"
+                            MinHeight="28"
+                            Padding="6,0"
+                            ToolTip="개역개정">
+                        <TextBlock Text="개역개정" />
+                    </Button>
+                </WrapPanel>
+
                 <!-- Classic Operator 고정 바 — 한 줄에 다 안 들어오면 접히되 첫 화면에서 사라지지 않는다. -->
                 <WrapPanel x:Name="ClassicOperatorBar"
-                           Grid.Row="0"
+                           Grid.Row="1"
                            Orientation="Horizontal">
                     <Button Command="{Binding GoLiveCommand}"
                             Style="{StaticResource EsButton.Primary}"
@@ -905,40 +1118,6 @@
                             <TextBlock Text="출력 닫기" />
                         </StackPanel>
                     </Button>
-                    <ToggleButton x:Name="Main_NoRotate"
-                                  Tag="Main_NoRotate"
-                                  IsChecked="{Binding IsNoRotateChecked, Mode=OneWay}"
-                                  Command="{Binding ToggleAutoRotateCommand}"
-                                  MinWidth="30"
-                                  MinHeight="28"
-                                  Padding="6,0"
-                                  Margin="0,0,4,6"
-                                  ToolTip="Stop Auto Rotate"
-                                  AutomationProperties.Name="Main_NoRotate Stop Auto Rotate">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowRotateClockwise24" />
-                        </StackPanel>
-                    </ToggleButton>
-                    <!-- FrmMain Main_RotateStyle: legacy One/One-Repeat/Group/Group-Repeat dropdown. -->
-                    <ComboBox x:Name="Main_RotateStyle"
-                              Tag="Main_RotateStyle"
-                              ItemsSource="{Binding AutoRotateModeOptions}"
-                              SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
-                              SelectedValuePath="Value"
-                              DisplayMemberPath="Text"
-                              MinHeight="28"
-                              MinWidth="176"
-                              Margin="0,0,8,6"
-                              VerticalContentAlignment="Center"
-                              ToolTip="Rotate Style"
-                              AutomationProperties.Name="Main_RotateStyle Rotate Style">
-                        <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem">
-                                <Setter Property="Tag" Value="{Binding LegacyTag}" />
-                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
                     <!-- 명령 팔레트 진입(발견가능성) — 마우스 운영자도 ⌘K 없이 클릭으로 모든 명령/창을 검색·실행. -->
                     <Button Command="{Binding CommandPalette.OpenCommand}"
                             Style="{StaticResource EsButton.Secondary}"
@@ -2262,7 +2441,8 @@
                     </ScrollViewer>
                 </TabItem>
                 <!-- Search tab keeps song/title/usage lookup inline in the left rail. -->
-                <TabItem Tag="Search"
+                <TabItem x:Name="SearchSourceTab"
+                         Tag="Search"
                          AutomationProperties.Name="검색">
                     <TabItem.Header>
                         <TextBlock Text="검색" />

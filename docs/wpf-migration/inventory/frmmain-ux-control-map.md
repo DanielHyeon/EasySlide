@@ -49,7 +49,7 @@ WPF `MainWindow`를 새 대시보드가 아니라 기존 `FrmMain` 운영 콘솔
 
 | FrmMain 컨트롤/메뉴 | 역할 | WPF 대응 | 판정 | 우선순위 |
 | --- | --- | --- | --- | --- |
-| `Main_QuickFind`, `Main_Find`, `Menu_Find` | 빠른 곡 검색 | 좌측 라이브러리/검색 탭, 검색 창 | 유지 | P0 |
+| `Main_QuickFind`, `Main_Find`, `Menu_Find` | 빠른 곡 검색 | `toolStripMain`의 `Main_QuickFind`/`Main_Find`가 inline `Search` 탭의 `SearchUsageViewModel.SearchSongsCommand`를 실행 | 유지 | P0 |
 | `BibleUserLookup`, `Bibles_Go`, `BookLookup`, `BibleText` | 성경 검색/본문 | 좌측 성경 탭, Bible 창 | 유지 | P1 |
 | `PowerpointFolder`, `PP_OpenFolder`, `PP_Import` | PPT 탐색/추가 | 파일 추가 버튼, PowerPoint library/window | WPF식 개선 | P1 |
 | `MediaFolder`, `Media_Import`, `MediaList` | 미디어 탐색/추가 | 파일 추가 버튼, Media tab/window | WPF식 개선 | P1 |
