@@ -3980,6 +3980,54 @@
                                     </ItemsControl>
                                 </ScrollViewer>
                             </Grid>
+                            <Border x:Name="ClassicOutputMediaSurface"
+                                    Tag="flowLayoutOutputMedia"
+                                    Grid.Row="2"
+                                    Background="White"
+                                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                                    BorderThickness="0,1,0,0"
+                                    Padding="6,5"
+                                    Visibility="{Binding IsOutputMediaContext, Converter={StaticResource BoolToVis}}"
+                                    AutomationProperties.Name="Output 미디어 영역">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="OutputBtnMediaInline"
+                                            Tag="OutputBtnMedia"
+                                            Command="{Binding PlayOutputMediaCommand}"
+                                            Style="{StaticResource EsButton.Secondary}"
+                                            MinWidth="30"
+                                            MinHeight="26"
+                                            Padding="6,0"
+                                            Margin="0,0,6,0"
+                                            ToolTip="미디어 재생/일시정지"
+                                            AutomationProperties.Name="Output 미디어 재생 일시정지">
+                                        <ui:SymbolIcon Symbol="{Binding Media.PlayPauseSymbol}" />
+                                    </Button>
+                                    <StackPanel Grid.Column="1"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding OutputMediaTitle}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource Type.Caption.StrongStyle}"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBlock Text="{Binding OutputMediaSourceText}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource Type.Caption.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding OutputMediaStatusText}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
+                                               TextAlignment="Right"
+                                               TextTrimming="CharacterEllipsis"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                </Grid>
+                            </Border>
                         </Grid>
                     </Border>
                 </Grid>

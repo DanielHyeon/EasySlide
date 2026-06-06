@@ -246,6 +246,32 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicOutputTopPane_ExposesMediaSurfaceForOutputBtnMedia()
+    {
+        var xaml = Xaml;
+
+        var outputTopPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicOutputInfo\"",
+            "x:Name=\"ClassicOutputSlidePane\"");
+
+        outputTopPane.Should().Contain("x:Name=\"ClassicOutputMediaSurface\"",
+            "FrmMain OutputInfo must expose a visible media context instead of leaving the pane blank");
+        outputTopPane.Should().Contain("Tag=\"flowLayoutOutputMedia\"",
+            "the non-PPT media surface should be explicitly mapped alongside flowLayoutOutputLyrics/PowerPoint");
+        outputTopPane.Should().Contain("Visibility=\"{Binding IsOutputMediaContext, Converter={StaticResource BoolToVis}}\"",
+            "media context visibility should follow the prepared/live Output item");
+        outputTopPane.Should().Contain("Text=\"{Binding OutputMediaTitle}\"",
+            "the media surface should display the Output item title");
+        outputTopPane.Should().Contain("Text=\"{Binding OutputMediaSourceText}\"",
+            "the media surface should display the resolved media file selected for Output");
+        outputTopPane.Should().Contain("Text=\"{Binding OutputMediaStatusText}\"",
+            "the media surface should display the current Output media playback state");
+        outputTopPane.Should().Contain("Command=\"{Binding PlayOutputMediaCommand}\"",
+            "the top Output media surface should control the same live/prepared Output media as OutputBtnMedia");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputLargeScreens_KeepFrmMainSixteenNineFrames()
     {
         var xaml = Xaml;

@@ -6850,6 +6850,40 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void OutputMediaSurface_FollowsOutputItemWhenPreviewSelectionDiffers()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var previewMedia = Path.Combine(mediaRoot, "Preview Song.mp4");
+        var outputMedia = Path.Combine(mediaRoot, "Output Song.mp4");
+        File.WriteAllText(previewMedia, "preview media placeholder");
+        File.WriteAllText(outputMedia, "output media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var output = new OutputWindowService();
+        var sut = CreateSut(settings: settings, output: output, seedSampleQueue: false);
+        var previewItem = new LiveQueueItem("song:preview", "Preview Song", LiveItemKinds.Song) { Lyrics = "Preview lyrics" };
+        var outputItem = new LiveQueueItem("song:output", "Output Song", LiveItemKinds.Song) { Lyrics = "Output lyrics" };
+        sut.LoadQueue([previewItem, outputItem]);
+        sut.OutputItem = outputItem;
+
+        sut.SelectedItem.Should().BeSameAs(previewItem);
+        sut.IsOutputMediaContext.Should().BeTrue("FrmMain OutputInfo should show media controls for the prepared/live Output item");
+        sut.OutputMediaTitle.Should().Be("Output Song");
+        sut.OutputMediaSourceText.Should().Be(outputMedia);
+        sut.OutputMediaSourceText.Should().NotBe(previewMedia);
+
+        sut.PlayOutputMediaCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(previewItem, "Output media surface must not steal Preview selection");
+        sut.OutputItem.Should().BeSameAs(outputItem);
+        sut.OutputMediaTitle.Should().Be("Output Song");
+        sut.OutputMediaSourceText.Should().Be(outputMedia);
+        sut.OutputMediaStatusText.Should().Contain("PLAYING").And.Contain("Output Song.mp4");
+    }
+
+    [Fact]
     public void BodyVerticalOffsetCommands_StepAndClamp()
     {
         // FrmMain Ind_Reg1TopUpDown — 본문 위로(-)/아래로(+) 8px 단계, -300~300 클램프.

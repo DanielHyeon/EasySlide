@@ -64,6 +64,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOutputPowerPointContext))]
+    [NotifyPropertyChangedFor(nameof(IsOutputMediaContext))]
+    [NotifyPropertyChangedFor(nameof(OutputMediaTitle))]
+    [NotifyPropertyChangedFor(nameof(OutputMediaSourceText))]
+    [NotifyPropertyChangedFor(nameof(OutputMediaStatusText))]
     [NotifyPropertyChangedFor(nameof(OutputVisualSource))]
     [NotifyPropertyChangedFor(nameof(OutputVisualFillMode))]
     [NotifyPropertyChangedFor(nameof(HasOutputVisualSource))]
@@ -140,7 +144,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string _outputLyricsText = string.Empty;
     [ObservableProperty] private bool _isMediaTabVisible;
     [ObservableProperty] private bool _isMediaPanelOverlayEnabled = true;
-    [ObservableProperty] private string _mediaDirectory = EasiSettingKeys.MediaDirectory.DefaultValue;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOutputMediaContext))]
+    [NotifyPropertyChangedFor(nameof(OutputMediaSourceText))]
+    [NotifyPropertyChangedFor(nameof(OutputMediaStatusText))]
+    private string _mediaDirectory = EasiSettingKeys.MediaDirectory.DefaultValue;
     [ObservableProperty] private int _liveCameraNumber = EasiSettingKeys.LiveCameraNumber.DefaultValue;
     [ObservableProperty] private string _liveCameraSource = MediaPlaybackService.CreateLiveCameraSource(EasiSettingKeys.LiveCameraNumber.DefaultValue);
     // 현재 출력 모양과 일치하는 프리셋 이름(없으면 "사용자 지정"). 인스펙터에서 활성 프리셋 강조용.
@@ -206,6 +214,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmMain flowLayoutOutputPowerPoint 표시 대상인가.</summary>
     public bool IsOutputPowerPointContext => OutputItem is not null && IsPowerPointItem(OutputItem);
+
+    public bool IsOutputMediaContext => TryGetOutputMediaContext(out _, out _);
+
+    public string OutputMediaTitle
+        => TryGetOutputMediaContext(out var item, out _) ? item.Title : string.Empty;
+
+    public string OutputMediaSourceText
+        => TryGetOutputMediaContext(out _, out var mediaPath) ? mediaPath : string.Empty;
+
+    public string OutputMediaStatusText
+    {
+        get
+        {
+            if (!TryGetOutputMediaContext(out _, out var mediaPath))
+            {
+                return string.Empty;
+            }
+
+            var status = string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
+                ? Media.StatusText
+                : "READY";
+            var fileName = Path.GetFileName(mediaPath);
+            return string.IsNullOrWhiteSpace(fileName)
+                ? status
+                : $"{status} | {fileName}";
+        }
+    }
 
     /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
     public bool HasOutputLyricsText => !string.IsNullOrWhiteSpace(OutputLyricsText);
@@ -557,6 +592,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(LiveItemId));
         OnPropertyChanged(nameof(CanSelectLiveItem)); // 라이브 항목이 바뀌면 "현재 송출 항목 선택" 활성/비활성도 바뀐다.
         RefreshOutputSurfaceText();
+        NotifyOutputMediaProperties();
         SelectLiveItemCommand?.NotifyCanExecuteChanged();
     }
 
@@ -844,6 +880,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // PPT 렌더 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 맞춘다.
         PowerPoint.PropertyChanged += OnPowerPointPropertyChanged;
         OutputPowerPoint.PropertyChanged += OnOutputPowerPointPropertyChanged;
+        Media.PropertyChanged += OnMediaPropertyChanged;
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
@@ -3283,6 +3320,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputPanelStatusText));
     }
 
+    private void NotifyOutputMediaProperties()
+    {
+        OnPropertyChanged(nameof(IsOutputMediaContext));
+        OnPropertyChanged(nameof(OutputMediaTitle));
+        OnPropertyChanged(nameof(OutputMediaSourceText));
+        OnPropertyChanged(nameof(OutputMediaStatusText));
+    }
+
     private static string BuildPreviewItemInfoText(LiveQueueItem? item)
     {
         if (item is null)
@@ -3456,6 +3501,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnOutputLyricsTextChanged(string value)
     {
         RebuildOutputLyricsPages();
+    }
+
+    partial void OnMediaDirectoryChanged(string value)
+    {
+        NotifyOutputMediaProperties();
+        PlayOutputMediaCommand?.NotifyCanExecuteChanged();
     }
 
     partial void OnLiveTransposeSemitonesChanged(int value)
@@ -3987,7 +4038,83 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => CanPlaySelectedWorshipMedia();
 
     private bool CanPlayOutputMedia()
-        => GetOutputNavigationItem() is not null;
+        => TryGetOutputMediaContext(out _, out _);
+
+    private bool TryGetOutputMediaContext(out LiveQueueItem item, out string mediaPath)
+    {
+        item = null!;
+        mediaPath = string.Empty;
+
+        if (GetOutputNavigationItem() is not { } outputItem)
+        {
+            return false;
+        }
+
+        var resolved = TryResolveWorshipOutputMediaPathForDisplay(outputItem);
+        if (string.IsNullOrWhiteSpace(resolved))
+        {
+            return false;
+        }
+
+        item = outputItem;
+        mediaPath = resolved;
+        return true;
+    }
+
+    private string? TryResolveWorshipOutputMediaPathForDisplay(LiveQueueItem item)
+    {
+        if (IsMediaItem(item) && TryResolveExistingFile(item.ContentPath, out var directMediaPath))
+        {
+            return directMediaPath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.ContentPath)
+            && IsSupportedWorshipOutputMediaFile(item.ContentPath)
+            && TryResolveExistingFile(item.ContentPath, out var contentMediaPath))
+        {
+            return contentMediaPath;
+        }
+
+        return TryFindWorshipOutputMediaByTitleForDisplay(item.Title);
+    }
+
+    private string? TryFindWorshipOutputMediaByTitleForDisplay(string title)
+    {
+        var root = ResolveWorshipOutputMediaRoot();
+        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(title))
+        {
+            return null;
+        }
+
+        foreach (var extension in WorshipOutputMediaExtensions)
+        {
+            var direct = Path.Combine(root, $"{title}{extension}");
+            if (File.Exists(direct))
+            {
+                return direct;
+            }
+        }
+
+        var normalizedTitle = NormalizeWorshipMediaLookupName(title);
+        if (string.IsNullOrWhiteSpace(normalizedTitle))
+        {
+            return null;
+        }
+
+        try
+        {
+            return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
+                .Where(IsSupportedWorshipOutputMediaFile)
+                .FirstOrDefault(file => string.Equals(
+                    NormalizeWorshipMediaLookupName(Path.GetFileNameWithoutExtension(file)),
+                    normalizedTitle,
+                    StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
 
     private void PlaySelectedWorshipMedia()
     {
@@ -4077,6 +4204,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshOutputSurfaceText();
         RebuildOutputLyricsPages();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        NotifyOutputMediaProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
         OnPropertyChanged(nameof(OutputVisualSlideNumber));
@@ -4812,6 +4940,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(OutputVisualSlideNumber));
             NotifyOutputPanelDisplayProperties();
             NotifyCommandStates();
+        }
+    }
+
+    private void OnMediaPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(Media.Source)
+            or nameof(Media.State)
+            or nameof(Media.StatusText))
+        {
+            OnPropertyChanged(nameof(OutputMediaStatusText));
         }
     }
 
@@ -7871,6 +8009,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyOutputPanelDisplayProperties();
+        NotifyOutputMediaProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
         OnPropertyChanged(nameof(OutputVisualSlideNumber));
@@ -8006,6 +8145,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.SettingsChanged -= OnSettingsChanged;
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
         OutputPowerPoint.PropertyChanged -= OnOutputPowerPointPropertyChanged;
+        Media.PropertyChanged -= OnMediaPropertyChanged;
         Library.PropertyChanged -= OnLibraryPropertyChanged;
         Search.SearchResults.CollectionChanged -= OnSearchResultsChanged;
         Search.LookupCandidates.CollectionChanged -= OnLookupCandidatesChanged;
