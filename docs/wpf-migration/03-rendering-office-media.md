@@ -152,7 +152,7 @@ Office 검증:
 - 실패 PPT 후 다음 정상 PPT 렌더가 가능한지 확인.
 - PowerPoint 프로세스 잔존 여부 확인.
 - UI 버튼 클릭과 로그 갱신이 렌더 중에도 응답하는지 확인.
-- 현재 1차 자동 검증은 fake backend 기반 service contract로 수행한다. 실제 PowerPoint 설치 환경에서는 `OfficePowerPointRenderBackend`와 `OfficePptSession.ExportSlideAsync`를 사용해 JPG export를 수행한다.
+- 현재 1차 자동 검증은 fake backend 기반 service contract로 수행한다. 실제 PowerPoint 설치 환경에서는 `OfficePowerPointRenderBackend`와 `OfficePptSession.ExportSlideAsync`를 사용해 PNG export를 수행한다.
 
 미디어 검증:
 

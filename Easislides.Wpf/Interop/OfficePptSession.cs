@@ -104,7 +104,7 @@ public sealed class OfficePptSession : IDisposable
             _ = _ppt.Presentations.Count;
 
             _Presentation? presentation = null;
-            var tempFile = Path.Combine(Path.GetTempPath(), $"EasiSlidesPpt_{Guid.NewGuid():N}.jpg");
+            var tempFile = Path.Combine(Path.GetTempPath(), $"EasiSlidesPpt_{Guid.NewGuid():N}.png");
 
             try
             {
@@ -115,8 +115,8 @@ public sealed class OfficePptSession : IDisposable
                     throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {slideCount}.");
                 }
 
-                presentation.Slides[slideNumber].Export(tempFile, "JPG", width, height);
-                return new OfficePptSlideExport(slideCount, File.ReadAllBytes(tempFile), "image/jpeg");
+                presentation.Slides[slideNumber].Export(tempFile, "PNG", width, height);
+                return new OfficePptSlideExport(slideCount, File.ReadAllBytes(tempFile), "image/png");
             }
             finally
             {

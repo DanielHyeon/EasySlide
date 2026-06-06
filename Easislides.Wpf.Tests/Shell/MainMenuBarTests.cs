@@ -660,9 +660,9 @@ public class MainMenuBarTests
         var mainViewModel = MainViewModelCode;
         xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
             "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
-        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 960",
+        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 1280",
             "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
-        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 720",
+        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 960",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
 
         var previewPowerPointPane = SectionBetween(
