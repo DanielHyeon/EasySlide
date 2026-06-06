@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:theme="clr-namespace:Easislides.Wpf.Theme"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="EasiSlides v3.0 - WPF 운영 셸"
+        Title="EasiSlides"
         Width="1180"
         Height="760"
         MinWidth="1180"
@@ -130,15 +130,15 @@
     <!-- 루트를 Grid 로 감싸 명령 팔레트 오버레이를 전체 위에 띄운다(평소엔 숨김). -->
     <Grid>
     <DockPanel LastChildFill="True">
-        <!-- FrmMain 메뉴바(File/Edit/View/Output/Tools/Help) 현대적 포팅(EsIcons + wpfui 테마).
+        <!-- FrmMain 메뉴바(File/Edit/View/Output/Tools/Help) 포팅.
              모든 항목은 실제 MainViewModel 명령 또는 DI 창 런처(Click)에 배선 — dead UI 없음.
              출력 항목은 명령 CanExecute 로 라이브 상태에 따라 자동 활성/비활성. -->
         <Menu DockPanel.Dock="Top"
               Background="{DynamicResource Brush.Surface.Card}"
-              Padding="4,2"
+              FontSize="12"
+              Padding="0"
               AutomationProperties.Name="주 메뉴">
-            <MenuItem Header="파일">
-                <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
+            <MenuItem Header="File">
                 <!-- 빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장. 미저장 변경(● 수정됨)과 짝. -->
                 <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="Save24" /></MenuItem.Icon>
@@ -176,8 +176,7 @@
                 <MenuItem Header="종료" Click="Exit_Click" />
             </MenuItem>
 
-            <MenuItem Header="편집">
-                <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionEdit}" /></MenuItem.Icon>
+            <MenuItem Header="Edit">
                 <MenuItem Header="곡 복사" Click="SongCopy_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionCopy}" /></MenuItem.Icon>
                 </MenuItem>
@@ -203,8 +202,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="보기">
-                <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MonitorSingle}" /></MenuItem.Icon>
+            <MenuItem Header="View">
                 <MenuItem Header="설정" Click="OpenSettings_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Settings}" /></MenuItem.Icon>
                 </MenuItem>
@@ -221,8 +219,7 @@
                           IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
             </MenuItem>
 
-            <MenuItem Header="출력">
-                <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" /></MenuItem.Icon>
+            <MenuItem Header="Output">
                 <MenuItem Header="Go LIVE"
                           Command="{Binding ToggleOutputLiveCommand}"
                           IsCheckable="True"
@@ -698,8 +695,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="도구">
-                <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+            <MenuItem Header="Tools">
                 <MenuItem Header="가져오기·내보내기" Click="OpenImportExport_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ExportRtf}" /></MenuItem.Icon>
                 </MenuItem>
@@ -745,8 +741,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="도움말">
-                <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Help}" /></MenuItem.Icon>
+            <MenuItem Header="Help">
                 <MenuItem Header="도움말" Click="OpenHelp_Click" InputGestureText="F1">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Help}" /></MenuItem.Icon>
                 </MenuItem>

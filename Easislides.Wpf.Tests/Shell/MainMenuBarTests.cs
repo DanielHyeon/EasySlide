@@ -60,12 +60,16 @@ public class MainMenuBarTests
     public void MainWindow_HasMenuBarWithSixTopLevelMenus()
     {
         var xaml = Xaml;
-        xaml.Should().Contain("<Menu", "FrmMain 메뉴바를 현대적 WPF Menu 로 포팅");
-        // 6 대메뉴(한글 현대화) — FrmMain File/Edit/View/Output/Tools/Help 대응.
-        foreach (var header in new[] { "파일", "편집", "보기", "출력", "도구", "도움말" })
+        xaml.Should().Contain("<Menu", "FrmMain menu bar should be ported as a WPF Menu");
+        foreach (var header in new[] { "File", "Edit", "View", "Output", "Tools", "Help" })
         {
-            xaml.Should().Contain($"Header=\"{header}\"", $"{header} 대메뉴가 있어야 함");
+            xaml.Should().Contain($"Header=\"{header}\"", $"{header} should match the FrmMain top-level menu label");
         }
+
+        xaml.Should().NotContain("Header=\"파일\"");
+        xaml.Should().NotContain("Header=\"편집\"");
+        xaml.Should().NotContain("Header=\"보기\"");
+        xaml.Should().NotContain("Header=\"출력\"><MenuItem.Icon>");
     }
 
     [Theory]

@@ -9,13 +9,20 @@ namespace Easislides.Wpf.Tests.Shell;
 public class MainWindowCopyTests
 {
     [Fact]
-    public void MainWindowXaml_UsesReadableKoreanOperationalLabels()
+    public void MainWindowXaml_UsesFrmMainWindowChromeAndReadableOperationalLabels()
     {
         var xaml = File.ReadAllText(
             Path.Combine(FindRepositoryRoot(), "Easislides.Wpf", "MainWindow.xaml"),
             Encoding.UTF8);
 
-        xaml.Should().Contain("EasiSlides v3.0 - WPF 운영 셸");
+        xaml.Should().Contain("Title=\"EasiSlides\"");
+        xaml.Should().Contain("Header=\"File\"");
+        xaml.Should().Contain("Header=\"Edit\"");
+        xaml.Should().Contain("Header=\"View\"");
+        xaml.Should().Contain("Header=\"Output\"");
+        xaml.Should().Contain("Header=\"Tools\"");
+        xaml.Should().Contain("Header=\"Help\"");
+        xaml.Should().NotContain("EasiSlides v3.0 - WPF 운영 셸");
         xaml.Should().Contain("출력 열기");
         xaml.Should().Contain("출력 닫기");
         xaml.Should().Contain("설정");
