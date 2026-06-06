@@ -1236,16 +1236,18 @@
                                         AutomationProperties.Name="선택 곡을 예배 순서에 추가">
                                     <ui:SymbolIcon Symbol="Add24" />
                                 </Button>
-                                <ComboBox x:Name="ClassicFoldersWordCountMode"
-                                          Tag="Folders_WordCount"
-                                          ItemsSource="{Binding Library.SortOptions}"
-                                          SelectedValue="{Binding Library.SortMode, Mode=TwoWay}"
-                                          SelectedValuePath="Mode"
-                                          DisplayMemberPath="Label"
-                                          MinHeight="28"
-                                          Width="112"
-                                          ToolTip="Folders_WordCount / 곡 목록 정렬"
-                                          AutomationProperties.Name="Folders_WordCount 정렬" />
+                                <ToggleButton x:Name="Folders_WordCount"
+                                              Tag="Folders_WordCount"
+                                              IsChecked="{Binding Library.IsWordCountSortEnabled, Mode=TwoWay}"
+                                              IsEnabled="{Binding Library.IsFolderWordCountSortAvailable}"
+                                              Style="{StaticResource ClassicTopToolStripToggleButton}"
+                                              Width="28"
+                                              Height="28"
+                                              Margin="0,0,3,0"
+                                              Padding="0"
+                                              Content="#"
+                                              ToolTip="Folders_WordCount / CJK Word Count 정렬"
+                                              AutomationProperties.Name="Folders_WordCount" />
                             </StackPanel>
                         </Grid>
 

@@ -64,7 +64,12 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     // 곡 번호 표시 토글 시 설정에 저장한다(다음 실행에도 유지). 목록 텍스트는 다중 바인딩 변환기가 이 값을 보고 갱신한다.
     partial void OnUseSongNumberingChanged(bool value)
-        => _settings.Set(EasiSettingKeys.UseSongNumbering, value);
+    {
+        _settings.Set(EasiSettingKeys.UseSongNumbering, value);
+        ApplySelectedFolderSortMode();
+        OnPropertyChanged(nameof(IsFolderWordCountSortAvailable));
+        OnPropertyChanged(nameof(IsWordCountSortEnabled));
+    }
 
     // ── 라이브러리 곡 목록 빈 상태 안내 (검색 빈 상태 154 / 제목 빈 상태 155 와 같은 취지) ──
     // 곡을 한 번이라도 불러온(HasLoadedSongs) 뒤에 "표시할 곡이 0건"일 때만 안내 문구를 준다.
@@ -120,7 +125,33 @@ public sealed partial class LibraryViewModel : ObservableObject
         new LibrarySortOption(LibrarySortMode.Title, "제목순"),
         new LibrarySortOption(LibrarySortMode.Number, "곡 번호순"),
         new LibrarySortOption(LibrarySortMode.StrokeCount, "획수순(한자)"),
+        new LibrarySortOption(LibrarySortMode.WordCount, "글자 수순"),
     ];
+
+    public bool IsWordCountSortEnabled
+    {
+        get => SortMode == LibrarySortMode.WordCount;
+        set => _ = SetFolderWordCountSortEnabledAsync(value);
+    }
+
+    public bool IsFolderWordCountSortAvailable => !UseSongNumbering;
+
+    public async Task SetFolderWordCountSortEnabledAsync(bool value)
+    {
+        if (!IsFolderWordCountSortAvailable)
+        {
+            OnPropertyChanged(nameof(IsWordCountSortEnabled));
+            return;
+        }
+
+        var nextMode = value ? LibrarySortMode.WordCount : LibrarySortMode.StrokeCount;
+        if (SortMode != nextMode)
+        {
+            SortMode = nextMode;
+        }
+
+        await PersistSelectedFolderGroupStyleAsync(value ? 1 : 0).ConfigureAwait(true);
+    }
 
     /// <summary>색인 머리글자로 점프 — 그 글자로 시작하는 첫 곡을 선택한다(레거시 FrmMain A/B/C 점프).</summary>
     public IRelayCommand<string> JumpToInitialCommand { get; }
@@ -528,6 +559,7 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
+        ApplySelectedFolderSortMode();
         NotifyReorderCanExecuteChanged();
         NotifyFolderActionCanExecuteChanged();
         if (!_suppressSelectionLoad)
@@ -553,6 +585,95 @@ public sealed partial class LibraryViewModel : ObservableObject
         ApplySearch();
         UpdateStatus();
         NotifyReorderCanExecuteChanged();
+        OnPropertyChanged(nameof(IsWordCountSortEnabled));
+    }
+
+    private void ApplySelectedFolderSortMode()
+    {
+        var nextMode = UseSongNumbering
+            ? LibrarySortMode.Number
+            : ResolveFolderGroupStyleSortMode(SelectedFolder);
+        if (SortMode != nextMode)
+        {
+            SortMode = nextMode;
+        }
+        else
+        {
+            OnPropertyChanged(nameof(IsWordCountSortEnabled));
+        }
+    }
+
+    private static LibrarySortMode ResolveFolderGroupStyleSortMode(SongFolderSummary? folder)
+        => folder?.GroupStyle == 1 ? LibrarySortMode.WordCount : LibrarySortMode.StrokeCount;
+
+    private async Task PersistSelectedFolderGroupStyleAsync(int groupStyle)
+    {
+        if (SelectedFolder is null)
+        {
+            return;
+        }
+
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+
+        var normalizedGroupStyle = groupStyle == 1 ? 1 : 0;
+        var selected = SelectedFolder;
+        try
+        {
+            var report = await _adminDatabase
+                .SaveFolderAsync(
+                    DatabasePath,
+                    ResolveBackupRoot(),
+                    new SongFolderWriteModel(
+                        selected.FolderNo,
+                        selected.Name,
+                        selected.IsEnabled,
+                        normalizedGroupStyle))
+                .ConfigureAwait(true);
+
+            if (!report.Succeeded)
+            {
+                StatusMessage = FormatWriteFailure("폴더 정렬 저장 실패", report);
+                return;
+            }
+
+            ReplaceSelectedFolder(selected with { GroupStyle = normalizedGroupStyle });
+            StatusMessage = normalizedGroupStyle == 1
+                ? "곡 목록 정렬: CJK Word Count"
+                : "곡 목록 정렬: CJK Stroke Count";
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = $"폴더 정렬 저장 실패: {ex.Message}";
+        }
+    }
+
+    private void ReplaceSelectedFolder(SongFolderSummary updated)
+    {
+        var selected = SelectedFolder;
+        if (selected is null)
+        {
+            return;
+        }
+
+        var index = Folders.IndexOf(selected);
+        if (index >= 0)
+        {
+            Folders[index] = updated;
+        }
+
+        _suppressSelectionLoad = true;
+        try
+        {
+            SelectedFolder = updated;
+        }
+        finally
+        {
+            _suppressSelectionLoad = false;
+        }
     }
 
     partial void OnIsBusyChanged(bool value)

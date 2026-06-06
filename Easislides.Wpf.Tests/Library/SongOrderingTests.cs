@@ -88,6 +88,24 @@ public class SongOrderingTests
     }
 
     [Fact]
+    public void Order_WordCount_SortsByLegacyCjkWordCountThenStrokeCount()
+    {
+        // FrmMain FillList: WordCount = ORDER BY cjk_wordcount, cjk_strokecount.
+        // 짧은 CJK 제목이 먼저 오고, 같은 글자 수 안에서는 획수/제목 키로 결정된다.
+        var songs = new[]
+        {
+            Song("가나다라"),
+            Song("가"),
+            Song("가나"),
+            Song("Amazing"),
+            Song("나"),
+        };
+
+        SongOrdering.Order(songs, LibrarySortMode.WordCount)
+            .Select(s => s.Title).Should().Equal("Amazing", "가", "나", "가나", "가나다라");
+    }
+
+    [Fact]
     public void Order_IsStable_ForEqualKeys()
     {
         // 같은 번호(5)의 두 곡은 제목 순(갑→을) — ThenBy(Title) 로 결정적.

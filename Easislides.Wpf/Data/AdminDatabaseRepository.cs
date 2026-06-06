@@ -52,7 +52,8 @@ public sealed record SongFolderSummary(
     int FolderNo,
     string Name,
     bool IsEnabled,
-    int SongCount);
+    int SongCount,
+    int GroupStyle = 0);
 
 public sealed record SongSummary(
     int SongId,
@@ -130,7 +131,8 @@ public sealed record AdminDatabaseWriteIssue(
 public sealed record SongFolderWriteModel(
     int FolderNo,
     string Name,
-    bool IsEnabled);
+    bool IsEnabled,
+    int GroupStyle = 0);
 
 public sealed record SongWriteModel(
     int? SongId,
@@ -508,12 +510,14 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
     {
         EnsureCompatible(databasePath);
         using var connection = OpenConnection(Path.GetFullPath(databasePath), readOnly: true);
+        var folderColumns = ReadColumnMap(connection, "FOLDER");
         using var command = new SQLiteCommand(
-            """
+            $"""
             SELECT
                 f.FolderNo,
                 f.Name,
                 f.Use,
+                {SelectColumn(folderColumns, "GroupStyle", "GroupStyle", "f")},
                 COUNT(s.SONGID) AS SongCount
             FROM FOLDER f
             LEFT JOIN SONG s ON s.FOLDERNO = f.FolderNo
@@ -529,7 +533,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetInt(reader, "FolderNo"),
                 GetString(reader, "Name"),
                 ParseEnabled(GetString(reader, "Use")),
-                GetInt(reader, "SongCount")));
+                GetInt(reader, "SongCount"),
+                GetInt(reader, "GroupStyle")));
         }
 
         return folders;
@@ -766,24 +771,74 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         SongFolderWriteModel folder,
         AdminDatabaseWriteOutcome outcome)
     {
+        var folderColumns = ReadColumnMap(connection, "FOLDER");
         using var existsCommand = new SQLiteCommand(
-            "SELECT COUNT(*) FROM FOLDER WHERE FolderNo = @folderNo;",
+            $"SELECT COUNT(*) FROM FOLDER WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @folderNo;",
             connection,
             transaction);
         existsCommand.Parameters.AddWithValue("@folderNo", folder.FolderNo);
         var exists = Convert.ToInt32(existsCommand.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
+        var hasGroupStyle = folderColumns.TryGetValue("GroupStyle", out var groupStyleColumn);
+        var commandText = exists
+            ? BuildFolderUpdateSql(folderColumns, hasGroupStyle, groupStyleColumn)
+            : BuildFolderInsertSql(folderColumns, hasGroupStyle, groupStyleColumn);
         using var command = new SQLiteCommand(
-            exists
-                ? "UPDATE FOLDER SET Name = @name, Use = @use WHERE FolderNo = @folderNo;"
-                : "INSERT INTO FOLDER (FolderNo, Name, Use) VALUES (@folderNo, @name, @use);",
+            commandText,
             connection,
             transaction);
         command.Parameters.AddWithValue("@folderNo", folder.FolderNo);
         command.Parameters.AddWithValue("@name", Normalize(folder.Name));
         command.Parameters.AddWithValue("@use", folder.IsEnabled ? "True" : "False");
+        if (hasGroupStyle)
+        {
+            command.Parameters.AddWithValue("@groupStyle", NormalizeLegacyFolderGroupStyle(folder.GroupStyle));
+        }
+
         command.ExecuteNonQuery();
         outcome.FolderNos.Add(folder.FolderNo);
     }
+
+    private static string BuildFolderUpdateSql(
+        IReadOnlyDictionary<string, string> folderColumns,
+        bool hasGroupStyle,
+        string? groupStyleColumn)
+    {
+        var assignments = new List<string>
+        {
+            $"{QuoteIdentifier(folderColumns["Name"])} = @name",
+            $"{QuoteIdentifier(folderColumns["Use"])} = @use",
+        };
+        if (hasGroupStyle && groupStyleColumn is not null)
+        {
+            assignments.Add($"{QuoteIdentifier(groupStyleColumn)} = @groupStyle");
+        }
+
+        return $"UPDATE FOLDER SET {string.Join(", ", assignments)} WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @folderNo;";
+    }
+
+    private static string BuildFolderInsertSql(
+        IReadOnlyDictionary<string, string> folderColumns,
+        bool hasGroupStyle,
+        string? groupStyleColumn)
+    {
+        var columns = new List<string>
+        {
+            QuoteIdentifier(folderColumns["FolderNo"]),
+            QuoteIdentifier(folderColumns["Name"]),
+            QuoteIdentifier(folderColumns["Use"]),
+        };
+        var values = new List<string> { "@folderNo", "@name", "@use" };
+        if (hasGroupStyle && groupStyleColumn is not null)
+        {
+            columns.Add(QuoteIdentifier(groupStyleColumn));
+            values.Add("@groupStyle");
+        }
+
+        return $"INSERT INTO FOLDER ({string.Join(", ", columns)}) VALUES ({string.Join(", ", values)});";
+    }
+
+    private static int NormalizeLegacyFolderGroupStyle(int groupStyle)
+        => groupStyle == 1 ? 1 : 0;
 
     private static void SoftDeleteFolders(
         SQLiteConnection connection,
@@ -1527,9 +1582,13 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
     private static string QuoteIdentifier(string identifier)
         => "\"" + identifier.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
 
-    private static string SelectColumn(IReadOnlyDictionary<string, string> columns, string columnName, string alias)
+    private static string SelectColumn(
+        IReadOnlyDictionary<string, string> columns,
+        string columnName,
+        string alias,
+        string? qualifier = null)
         => columns.TryGetValue(columnName, out var actualName)
-            ? $"{QuoteIdentifier(actualName)} AS {QuoteIdentifier(alias)}"
+            ? $"{(qualifier is null ? "" : QuoteIdentifier(qualifier) + ".")}{QuoteIdentifier(actualName)} AS {QuoteIdentifier(alias)}"
             : $"NULL AS {QuoteIdentifier(alias)}";
 
     private static string GetString(SQLiteDataReader reader, string name)

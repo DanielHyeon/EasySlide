@@ -7,8 +7,7 @@ using Xunit;
 namespace Easislides.Wpf.Tests.Shell;
 
 /// <summary>
-/// 절 라벨 직접 점프 버튼 행(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응)이 Preview 탭에 배선됐는지 잠근다.
-/// AvailableSectionLabels 를 ItemsSource 로, JumpToLyricsSectionCommand 를 라벨 파라미터로 호출하는 구조를 검증.
+/// 절 라벨 직접 점프 버튼 행(레거시 FrmMain Preview 절 버튼 1~9·c·b 대응)이 Preview 하단 조작 스트립에 배선됐는지 잠근다.
 /// </summary>
 public class LyricsSectionJumpUiTests
 {
@@ -17,19 +16,26 @@ public class LyricsSectionJumpUiTests
         Encoding.UTF8);
 
     [Fact]
-    public void Preview_HasSectionJumpBarBoundToAvailableSectionLabels()
+    public void Preview_HasFrmMainFixedSectionJumpButtons()
     {
         var xaml = Xaml;
-        xaml.Should().Contain("x:Name=\"SectionJumpBar\"", "절 라벨 점프 바가 있어야 함");
-        xaml.Should().Contain("ItemsSource=\"{Binding AvailableSectionLabels}\"", "라벨 목록에 바인딩");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\"", "FrmMain fixed verse 1 button should be present");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerseChorus\"", "FrmMain fixed chorus button should be present");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerseBridge\"", "FrmMain fixed bridge button should be present");
+        xaml.Should().NotContain("x:Name=\"SectionJumpBar\"",
+            "FrmMain keeps fixed verse buttons in the lower Preview operator strip, not a generated WPF-only jump bar");
     }
 
     [Fact]
-    public void SectionJumpBar_InvokesJumpCommandWithLabelParameter()
+    public void PreviewFixedSectionButtons_InvokeJumpCommandWithLegacyParameters()
     {
         var xaml = Xaml;
-        xaml.Should().Contain("JumpToLyricsSectionCommand", "라벨 버튼이 절 점프 명령에 배선");
-        xaml.Should().Contain("CommandParameter=\"{Binding}\"", "라벨 자체를 점프 파라미터로 전달");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerse1\" Tag=\"1\" Command=\"{Binding JumpToLyricsSectionCommand}\" CommandParameter=\"1\"",
+            "verse 1 should use FrmMain's fixed jump parameter");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerseChorus\" Tag=\"0\" Command=\"{Binding JumpToLyricsSectionCommand}\" CommandParameter=\"c\"",
+            "chorus should use FrmMain's fixed jump parameter");
+        xaml.Should().Contain("x:Name=\"PreviewBtnVerseBridge\" Tag=\"100\" Command=\"{Binding JumpToLyricsSectionCommand}\" CommandParameter=\"b\"",
+            "bridge should use FrmMain's fixed jump parameter");
     }
 
     private static string FindRepositoryRoot()

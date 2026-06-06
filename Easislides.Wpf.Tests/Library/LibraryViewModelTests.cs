@@ -150,7 +150,7 @@ public class LibraryViewModelTests
         ];
         var sut = new LibraryViewModel(fixture.Settings, repository);
         await sut.LoadAsync();
-        sut.Songs.Select(s => s.Title).Should().Equal("다윗의 노래", "가나안", "나의 찬양"); // 원래 순서(=번호순 1,2,3)
+        sut.Songs.Select(s => s.Title).Should().Equal("가나안", "나의 찬양", "다윗의 노래"); // FrmMain 기본 Alpha = cjk_strokecount
         var fetchesAfterLoad = repository.RequestedFolderNos.Count;
 
         sut.SortMode = LibrarySortMode.Title;
@@ -177,6 +177,92 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task IsWordCountSortEnabled_TogglesFrmMainFoldersWordCountMode()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 4));
+        repository.SongsByFolder[1] = [
+            Song(10, "가나다라", folderNo: 1),
+            Song(11, "가", folderNo: 1),
+            Song(12, "가나", folderNo: 1),
+            Song(13, "Amazing", folderNo: 1),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        var fetchesAfterLoad = repository.RequestedFolderNos.Count;
+
+        await sut.SetFolderWordCountSortEnabledAsync(true);
+
+        sut.SortMode.Should().Be(LibrarySortMode.WordCount);
+        sut.IsWordCountSortEnabled.Should().BeTrue();
+        sut.Songs.Select(s => s.Title).Should().Equal("Amazing", "가", "가나", "가나다라");
+        repository.RequestedFolderNos.Count.Should().Be(fetchesAfterLoad, "FrmMain Folders_WordCount toggles the current list without refetching");
+
+        await sut.SetFolderWordCountSortEnabledAsync(false);
+
+        sut.SortMode.Should().Be(LibrarySortMode.StrokeCount, "FrmMain unchecked Folders_WordCount returns to Alpha/cjk_strokecount ordering");
+        sut.IsWordCountSortEnabled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task FolderGroupStyle_RestoresAndPersistsFoldersWordCountMode()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 2, GroupStyle: 1));
+        repository.SongsByFolder[1] = [
+            Song(10, "가나다", folderNo: 1),
+            Song(11, "가", folderNo: 1),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.IsWordCountSortEnabled.Should().BeTrue("FrmMain restores FOLDER.GroupStyle=WordCount when the folder is selected");
+        sut.SortMode.Should().Be(LibrarySortMode.WordCount);
+
+        await sut.SetFolderWordCountSortEnabledAsync(false);
+
+        repository.LastFolder.Should().NotBeNull();
+        repository.LastFolder!.FolderNo.Should().Be(1);
+        repository.LastFolder.GroupStyle.Should().Be(0, "FrmMain writes Alpha=0 back to the current folder");
+        repository.Folders[0].GroupStyle.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task UseSongNumbering_ForcesNumberSortAndDisablesFoldersWordCount()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 2, GroupStyle: 1));
+        repository.SongsByFolder[1] = [
+            Song(10, "가나다", folderNo: 1, songNumber: 2),
+            Song(11, "가", folderNo: 1, songNumber: 1),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.SortMode.Should().Be(LibrarySortMode.WordCount);
+
+        sut.UseSongNumbering = true;
+
+        sut.IsFolderWordCountSortAvailable.Should().BeFalse("FrmMain disables Folders_WordCount when Use Song Numbering is on");
+        sut.IsWordCountSortEnabled.Should().BeFalse();
+        sut.SortMode.Should().Be(LibrarySortMode.Number, "FrmMain FillList orders by song_number while Use Song Numbering is on");
+
+        sut.UseSongNumbering = false;
+
+        sut.IsFolderWordCountSortAvailable.Should().BeTrue();
+        sut.SortMode.Should().Be(LibrarySortMode.WordCount, "turning numbering off restores the selected folder's GroupStyle");
+    }
+
+    [Fact]
     public async Task SongMove_DisabledWhileSorted_EnabledInOriginalOrder()
     {
         // 정렬(제목/번호) 중에는 화면 순서와 DB 순서가 달라 수동 이동이 헷갈리므로 이동 버튼을 비활성화한다.
@@ -191,6 +277,7 @@ public class LibraryViewModelTests
         ];
         var sut = new LibraryViewModel(fixture.Settings, repository);
         await sut.LoadAsync();
+        sut.SortMode = LibrarySortMode.Original;
         sut.SelectedSong = sut.Songs.Last(); // 두 번째 곡 선택 → 원래 순서면 위로 이동 가능.
         sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeTrue("원래 순서에서는 이동 가능");
 
@@ -246,7 +333,7 @@ public class LibraryViewModelTests
 
         sut.JumpToInitialCommand.Execute("ㅇ");
 
-        sut.SelectedSong!.Title.Should().Be("은혜로다", "ㅇ 으로 시작하는 첫 곡");
+        sut.SelectedSong!.Title.Should().Be("은총", "FrmMain Alpha(cjk_strokecount) 정렬에서 ㅇ 으로 시작하는 첫 곡");
     }
 
     [Fact]
@@ -440,6 +527,7 @@ public class LibraryViewModelTests
         ];
         var sut = new LibraryViewModel(fixture.Settings, repository);
         await sut.LoadAsync();
+        sut.SortMode = LibrarySortMode.Original;
         sut.SelectedSong = sut.Songs[2];
 
         await sut.MoveSelectedSongUpAsync();
@@ -472,6 +560,7 @@ public class LibraryViewModelTests
         ];
         var sut = new LibraryViewModel(fixture.Settings, repository);
         await sut.LoadAsync();
+        sut.SortMode = LibrarySortMode.Original;
         sut.SelectedSong = sut.Songs[0];
 
         await sut.MoveSelectedSongToIndexAsync(2);
@@ -607,6 +696,8 @@ public class LibraryViewModelTests
 
         public IReadOnlyList<FolderOrderRequest> LastFolderOrder { get; private set; } = [];
 
+        public SongFolderWriteModel? LastFolder { get; private set; }
+
         public int LastSongFolderNo { get; private set; }
 
         public IReadOnlyList<SongOrderRequest> LastSongOrder { get; private set; } = [];
@@ -642,7 +733,34 @@ public class LibraryViewModelTests
             => throw new NotSupportedException();
 
         public Task<AdminDatabaseWriteReport> SaveFolderAsync(string databasePath, string backupRoot, SongFolderWriteModel folder)
-            => throw new NotSupportedException();
+        {
+            LastBackupRoot = backupRoot;
+            LastFolder = folder;
+            var index = Folders.FindIndex(item => item.FolderNo == folder.FolderNo);
+            var updated = new SongFolderSummary(
+                folder.FolderNo,
+                folder.Name,
+                folder.IsEnabled,
+                index >= 0 ? Folders[index].SongCount : 0,
+                folder.GroupStyle);
+            if (index >= 0)
+            {
+                Folders[index] = updated;
+            }
+            else
+            {
+                Folders.Add(updated);
+            }
+
+            return Task.FromResult(new AdminDatabaseWriteReport(
+                Succeeded: true,
+                AdminDatabaseWriteOperation.SaveFolder,
+                databasePath,
+                Path.Combine(backupRoot, "backup.db"),
+                AffectedSongIds: [],
+                AffectedFolderNos: [folder.FolderNo],
+                Issues: []));
+        }
 
         public Task<AdminDatabaseWriteReport> SoftDeleteFoldersAsync(
             string databasePath,

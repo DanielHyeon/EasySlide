@@ -25,6 +25,11 @@ public enum LibrarySortMode
     /// 한자 곡이 많은 찬양집에서 운영자가 고른다(기본은 Title=가나다 그대로).
     /// </summary>
     StrokeCount = 3,
+
+    /// <summary>
+    /// FrmMain `Folders_WordCount` 체크 상태 — `cjk_wordcount, cjk_strokecount` 순으로 묶는다.
+    /// </summary>
+    WordCount = 4,
 }
 
 /// <summary>정렬 콤보박스 선택지 — 정렬 모드와 사람이 읽는 라벨.</summary>
@@ -82,8 +87,39 @@ public static class SongOrdering
                 .ThenBy(s => s.SongId)
                 .ToList(),
 
+            // FrmMain FillList WordCount 경로 — cjk_wordcount 로 먼저 묶고, 같은 글자 수는 cjk_strokecount 순서.
+            LibrarySortMode.WordCount => songs
+                .OrderBy(s => string.IsNullOrWhiteSpace(s.Title))
+                .ThenBy(s => BuildLegacyCjkWordCountKey(s.Title), StringComparer.Ordinal)
+                .ThenBy(s => s.Title, StrokeComparer)
+                .ThenBy(s => s.SongId)
+                .ToList(),
+
             // 원래 순서 — 입력 그대로(복사본).
             _ => songs.ToList(),
         };
+    }
+
+    private static string BuildLegacyCjkWordCountKey(string title)
+    {
+        if (string.IsNullOrEmpty(title) || title[0] is > '\0' and < (char)128)
+        {
+            return "000";
+        }
+
+        var length = title.Length;
+        var parenthesisIndex = title.IndexOf('(', StringComparison.Ordinal);
+        if (parenthesisIndex > 0)
+        {
+            length = parenthesisIndex - 1;
+        }
+
+        var spaceIndex = title.IndexOf(' ', StringComparison.Ordinal);
+        if (spaceIndex > 0 && spaceIndex - 1 < length)
+        {
+            length = spaceIndex - 1;
+        }
+
+        return Math.Max(length, 0).ToString("000", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

@@ -904,7 +904,14 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"ClassicSongFolderCombo\"", "SongFolder combo should stay visible at the top of Folders");
         xaml.Should().Contain("Tag=\"SongFolder\"", "SongFolder role should remain explicit without hurting the accessible label");
         xaml.Should().Contain("x:Name=\"ClassicFoldersToolStrip\"", "Folders toolbar should stay attached to SongFolder like FrmMain");
+        xaml.Should().Contain("x:Name=\"Folders_WordCount\"", "Folders_WordCount should keep the exact FrmMain check-button name");
         xaml.Should().Contain("Tag=\"Folders_WordCount\"", "Folders_WordCount sorting role should be present on the first-screen toolbar");
+        xaml.Should().Contain("IsChecked=\"{Binding Library.IsWordCountSortEnabled, Mode=TwoWay}\"",
+            "Folders_WordCount should toggle FrmMain's alpha/word-count sort instead of using a WPF-only combo");
+        xaml.Should().Contain("IsEnabled=\"{Binding Library.IsFolderWordCountSortAvailable}\"",
+            "FrmMain disables Folders_WordCount while Use Song Numbering is enabled");
+        xaml.Should().NotContain("x:Name=\"ClassicFoldersWordCountMode\"",
+            "FrmMain exposes Folders_WordCount as a check button, not a sort-mode combo");
         xaml.Should().Contain("<ListView Grid.Row=\"3\"", "SongsList should render as a compact details-style ListView");
         xaml.Should().Contain("x:Name=\"LibrarySongList\"", "existing drag and double-click handlers should keep their stable target");
         xaml.Should().Contain("Tag=\"SongsList\"", "LibrarySongList should be explicitly mapped to FrmMain SongsList");
