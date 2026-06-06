@@ -8679,6 +8679,51 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LegacyTransitionOptions_ExposeFrmMainTransitionList()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.LegacyTransitionOptions.Should().HaveCount(58);
+        sut.LegacyTransitionOptions[0].Should().Be(new TransitionEffectDescriptor(TransitionEffectKind.None, "None", 0, TransitionMotionKind.None));
+        sut.LegacyTransitionOptions[15].DisplayName.Should().Be("Fade");
+        sut.LegacyTransitionOptions[^1].Should().Be(new TransitionEffectDescriptor(TransitionEffectKind.ZoomOut, "Zoom Out", 57, TransitionMotionKind.Zoom));
+    }
+
+    [Fact]
+    public void SetDefaultTransitions_PersistLegacyNamesAndExistingMotionSettings()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+
+        sut.SetDefaultItemTransition(TransitionEffectKind.DoorsOpen);
+        sut.SetDefaultSlideTransition(TransitionEffectKind.ZoomOut);
+
+        settings.Get(EasiSettingKeys.LyricsMonitorItemTransitionName).Should().Be("Doors Open");
+        settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionName).Should().Be("Zoom Out");
+        settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind).Should().Be(LyricsTransitionKind.DoorsOpen);
+        settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind).Should().Be(LyricsTransitionKind.ZoomOut);
+        sut.DefaultItemTransitionKind.Should().Be(TransitionEffectKind.DoorsOpen);
+        sut.DefaultSlideTransitionKind.Should().Be(TransitionEffectKind.ZoomOut);
+    }
+
+    [Fact]
+    public void SetSelectedItemTransitions_WriteFormatData72And73_AndReflect()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "Song", "", 1, 1, "", "", "[1]\nVerse"));
+
+        sut.SetSelectedItemTransition(TransitionEffectKind.Fade);
+        sut.SetSelectedSlideTransition(TransitionEffectKind.RevealLeftRight);
+
+        sut.SelectedItem!.FormatData.Should().Contain("72=Fade");
+        sut.SelectedItem!.FormatData.Should().Contain("73=Reveal Left Right");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue();
+        sut.SelectedItemTransitionKind.Should().Be(TransitionEffectKind.Fade);
+        sut.SelectedSlideTransitionKind.Should().Be(TransitionEffectKind.RevealLeftRight);
+    }
+
+    [Fact]
     public void SetSelectedItemBackgroundImage_NonSong_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);

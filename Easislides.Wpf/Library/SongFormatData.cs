@@ -34,6 +34,8 @@ public sealed record SongFormatData
     public string BackgroundImagePath { get; init; } = "";
     public LyricsBackgroundMode? BackgroundImageMode { get; init; }
     public string MediaPath { get; init; } = "";
+    public string ItemTransitionName { get; init; } = "";
+    public string SlideTransitionName { get; init; } = "";
 
     /// <summary>FormatData 문자열을 디코드한다. 비었으면 null. 인식 못 한 키/형식은 건너뛴다.</summary>
     public static SongFormatData? Parse(string? formatData)
@@ -45,7 +47,7 @@ public sealed record SongFormatData
 
         int? textColor1 = null, textColor2 = null, backColor1 = null, backColor2 = null;
         int? fontSize1 = null, fontSize2 = null, align1 = null, align2 = null;
-        string font1 = "", font2 = "", backgroundImage = "", media = "";
+        string font1 = "", font2 = "", backgroundImage = "", media = "", itemTransition = "", slideTransition = "";
         LyricsBackgroundMode? backgroundImageMode = null;
         var effectBits = 0;
 
@@ -79,6 +81,8 @@ public sealed record SongFormatData
                 case 51: media = value; break;
                 case 61: backgroundImage = value; break;
                 case 62: backgroundImageMode = ParseLegacyBackgroundImageMode(value); break;
+                case 72: itemTransition = SanitizeTransitionName(value); break;
+                case 73: slideTransition = SanitizeTransitionName(value); break;
             }
         }
 
@@ -106,6 +110,8 @@ public sealed record SongFormatData
             BackgroundImagePath = backgroundImage,
             BackgroundImageMode = backgroundImageMode,
             MediaPath = media,
+            ItemTransitionName = itemTransition,
+            SlideTransitionName = slideTransition,
         };
     }
 
@@ -144,6 +150,8 @@ public sealed record SongFormatData
         if (!string.IsNullOrEmpty(MediaPath)) Add(51, MediaPath);
         if (!string.IsNullOrEmpty(BackgroundImagePath)) Add(61, BackgroundImagePath);
         if (ToLegacyBackgroundImageMode(BackgroundImageMode) is int bgMode) Add(62, Num(bgMode));
+        if (!string.IsNullOrEmpty(ItemTransitionName)) Add(72, SanitizeTransitionName(ItemTransitionName));
+        if (!string.IsNullOrEmpty(SlideTransitionName)) Add(73, SanitizeTransitionName(SlideTransitionName));
 
         return string.Join(">", parts);
     }
@@ -154,6 +162,11 @@ public sealed record SongFormatData
     /// null/공백뿐이면 빈 문자열(=전역 글꼴 추종). 곡 항목 글꼴(43)·공지 글꼴이 함께 쓰는 공통 규약(중복 방지).
     /// </summary>
     public static string SanitizeFontName(string? name)
+        => string.IsNullOrWhiteSpace(name)
+            ? string.Empty
+            : name.Trim().Replace(">", string.Empty).Replace("=", string.Empty);
+
+    public static string SanitizeTransitionName(string? name)
         => string.IsNullOrWhiteSpace(name)
             ? string.Empty
             : name.Trim().Replace(">", string.Empty).Replace("=", string.Empty);

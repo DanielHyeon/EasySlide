@@ -36,6 +36,8 @@ public sealed class SongFormatDataTests
         f.Alignment2.Should().Be(1, "32 = region2 정렬");
         f.BackgroundImagePath.Should().Be(@"C:\EasiSlides\Images\성경\bible-sermon.jpg", "61 = 배경 이미지");
         f.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Fit, "62=2 = legacy BestFit");
+        f.ItemTransitionName.Should().Be("None", "72 = FrmMain item transition display text");
+        f.SlideTransitionName.Should().Be("None", "73 = FrmMain slide transition display text");
         // 실 샘플 41=16=0b10000=bit4 → region2 Italic 만 true(0-based; 레거시 HeaderData[41] 권위).
         f.Bold1.Should().BeFalse();
         f.Italic1.Should().BeFalse();
@@ -108,6 +110,8 @@ public sealed class SongFormatDataTests
             BackgroundImagePath = @"C:\EasiSlides\Images\성경\bible.jpg",
             BackgroundImageMode = LyricsBackgroundMode.Center,
             MediaPath = "clip.mp4",
+            ItemTransitionName = "Fade",
+            SlideTransitionName = "Zoom Out",
         };
 
         var round = SongFormatData.Parse(original.Encode());
@@ -131,6 +135,21 @@ public sealed class SongFormatDataTests
     public void Encode_BackgroundImageMode62_MapsToLegacyImageMode(LyricsBackgroundMode mode, string expected)
     {
         new SongFormatData { BackgroundImageMode = mode }.Encode().Should().Be(expected);
+    }
+
+    [Fact]
+    public void Encode_ItemAndSlideTransitionText_UsesLegacy72And73()
+    {
+        var encoded = new SongFormatData
+        {
+            ItemTransitionName = "Doors Open",
+            SlideTransitionName = "Reveal Left Right",
+        }.Encode();
+
+        encoded.Should().Be("72=Doors Open>73=Reveal Left Right");
+        var round = SongFormatData.Parse(encoded)!;
+        round.ItemTransitionName.Should().Be("Doors Open");
+        round.SlideTransitionName.Should().Be("Reveal Left Right");
     }
 
     [Fact]

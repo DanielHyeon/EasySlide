@@ -17,6 +17,7 @@ using Easislides.Wpf.Input;
 using Easislides.Wpf.Library;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
+using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Theme;
 using Wpf.Ui.Controls;
@@ -41,6 +42,10 @@ public sealed record OperatorLyricsPageCard(
 
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
+    private static readonly ITransitionEffectService LegacyTransitionEffectService = new TransitionEffectService();
+    private static readonly IReadOnlyList<TransitionEffectDescriptor> LegacyTransitionDescriptors =
+        LegacyTransitionEffectService.GetEffects();
+
     private readonly ILiveSessionService _session;
     private readonly IOutputWindowService _output;
     // 스테이지(Preview) 모니터 서비스 — 회중용 출력과 별개로 리더·밴드가 보는 확인 모니터를 열고/옮기고/닫는다(gap §3.1).
@@ -1026,6 +1031,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageCommand = new RelayCommand<string?>(SetSelectedItemBackgroundImage, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageModeCommand = new RelayCommand<LyricsBackgroundMode>(SetSelectedItemBackgroundImageMode, _ => CanEditSelectedItemColor);
+        SetSelectedItemTransitionCommand = new RelayCommand<TransitionEffectKind>(SetSelectedItemTransition, _ => CanEditSelectedItemColor);
+        SetSelectedSlideTransitionCommand = new RelayCommand<TransitionEffectKind>(SetSelectedSlideTransition, _ => CanEditSelectedItemColor);
         // 항목별 강조(굵게·기울임·밑줄, FormatData 코드41 비트) — 우클릭 토글. 곡일 때만 활성.
         ToggleSelectedItemBoldCommand = new RelayCommand(ToggleSelectedItemBold, () => CanEditSelectedItemColor);
         ToggleSelectedItemItalicCommand = new RelayCommand(ToggleSelectedItemItalic, () => CanEditSelectedItemColor);
@@ -1099,6 +1106,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleFadeTransitionCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorUseFadeTransition, ActiveFadeTransition));
         ApplyTransitionDurationCommand = new RelayCommand<int>(ApplyTransitionDuration);
         ApplyTransitionKindCommand = new RelayCommand<LyricsTransitionKind>(ApplyTransitionKind);
+        SetDefaultItemTransitionCommand = new RelayCommand<TransitionEffectKind>(SetDefaultItemTransition);
+        SetDefaultSlideTransitionCommand = new RelayCommand<TransitionEffectKind>(SetDefaultSlideTransition);
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage, () => CanClearOutputBackgroundImage);
         OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
         ValidateWorshipListCommand = new AsyncRelayCommand(ValidateWorshipListAsync);
@@ -1375,6 +1384,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleFadeTransitionCommand { get; }
     public IRelayCommand<int> ApplyTransitionDurationCommand { get; }
     public IRelayCommand<LyricsTransitionKind> ApplyTransitionKindCommand { get; }
+    public IRelayCommand<TransitionEffectKind> SetDefaultItemTransitionCommand { get; }
+    public IRelayCommand<TransitionEffectKind> SetDefaultSlideTransitionCommand { get; }
+    public IRelayCommand<TransitionEffectKind> SetSelectedItemTransitionCommand { get; }
+    public IRelayCommand<TransitionEffectKind> SetSelectedSlideTransitionCommand { get; }
     public IRelayCommand ClearOutputBackgroundImageCommand { get; }
     public IAsyncRelayCommand<string> OpenRecentWorshipListCommand { get; }
 
@@ -3351,6 +3364,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemSequenceInput));
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
+        OnPropertyChanged(nameof(SelectedItemTransitionKind));
+        OnPropertyChanged(nameof(SelectedItemTransitionKindInput));
+        OnPropertyChanged(nameof(SelectedSlideTransitionKind));
+        OnPropertyChanged(nameof(SelectedSlideTransitionKindInput));
         OnPropertyChanged(nameof(CanEditSelectedExternalWorshipItem));
         OnPropertyChanged(nameof(CanClearSelectedItemFormatting));
         OnPropertyChanged(nameof(CanCopySelectedItemFormatting));
@@ -7395,7 +7412,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ApplyTransitionKind(LyricsTransitionKind kind)
     {
         _settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, kind);
+        _settings.Set(EasiSettingKeys.LyricsMonitorItemTransitionName, LegacyTransitionDisplayName(MapLyricsTransitionToEffect(kind)));
         ActiveTransitionKind = kind;
+        OnPropertyChanged(nameof(DefaultItemTransitionKind));
+        OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
         StatusText = $"항목 전환 효과: {TransitionKindLabel(kind)}";
     }
 
@@ -7441,6 +7461,199 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             .Select(k => new KeyValuePair<string, LyricsTransitionKind>(TransitionKindLabel(k), k))
             .ToArray();
 
+    public IReadOnlyList<TransitionEffectDescriptor> LegacyTransitionOptions => LegacyTransitionDescriptors;
+
+    public TransitionEffectKind DefaultItemTransitionKind
+        => ResolveLegacyTransitionName(
+            _settings.Get(EasiSettingKeys.LyricsMonitorItemTransitionName),
+            MapLyricsTransitionToEffect(_settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind)));
+
+    public TransitionEffectKind DefaultSlideTransitionKind
+        => ResolveLegacyTransitionName(
+            _settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionName),
+            MapLyricsTransitionToEffect(_settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind)));
+
+    public TransitionEffectKind DefaultItemTransitionKindInput
+    {
+        get => DefaultItemTransitionKind;
+        set => SetDefaultItemTransition(value);
+    }
+
+    public TransitionEffectKind DefaultSlideTransitionKindInput
+    {
+        get => DefaultSlideTransitionKind;
+        set => SetDefaultSlideTransition(value);
+    }
+
+    public TransitionEffectKind SelectedItemTransitionKind
+        => ResolveLegacyTransitionName(
+            SongFormatData.Parse(SelectedItem?.FormatData)?.ItemTransitionName,
+            DefaultItemTransitionKind);
+
+    public TransitionEffectKind SelectedSlideTransitionKind
+        => ResolveLegacyTransitionName(
+            SongFormatData.Parse(SelectedItem?.FormatData)?.SlideTransitionName,
+            DefaultSlideTransitionKind);
+
+    public TransitionEffectKind SelectedItemTransitionKindInput
+    {
+        get => SelectedItemTransitionKind;
+        set => SetSelectedItemTransition(value);
+    }
+
+    public TransitionEffectKind SelectedSlideTransitionKindInput
+    {
+        get => SelectedSlideTransitionKind;
+        set => SetSelectedSlideTransition(value);
+    }
+
+    public void SetDefaultItemTransition(TransitionEffectKind kind)
+    {
+        kind = NormalizeLegacyTransitionKind(kind);
+        var displayName = LegacyTransitionDisplayName(kind);
+        var motionKind = MapTransitionEffectToLyricsKind(kind);
+        _settings.Set(EasiSettingKeys.LyricsMonitorItemTransitionName, displayName);
+        _settings.Set(EasiSettingKeys.LyricsMonitorTransitionKind, motionKind);
+        ActiveTransitionKind = motionKind;
+        OnPropertyChanged(nameof(DefaultItemTransitionKind));
+        OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
+        StatusText = $"Item transition: {displayName}";
+    }
+
+    public void SetDefaultSlideTransition(TransitionEffectKind kind)
+    {
+        kind = NormalizeLegacyTransitionKind(kind);
+        var displayName = LegacyTransitionDisplayName(kind);
+        var motionKind = MapTransitionEffectToLyricsKind(kind);
+        _settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionName, displayName);
+        _settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionKind, motionKind);
+        ActiveSlideTransitionKind = motionKind;
+        OnPropertyChanged(nameof(DefaultSlideTransitionKind));
+        OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
+        OnPropertyChanged(nameof(SlideTransitionKindInput));
+        StatusText = $"Slide transition: {displayName}";
+    }
+
+    public void SetSelectedItemTransition(TransitionEffectKind kind)
+    {
+        kind = NormalizeLegacyTransitionKind(kind);
+        var displayName = LegacyTransitionDisplayName(kind);
+        if (ApplySelectedSongFormatChange(format => format with { ItemTransitionName = displayName }, wantsIndividual: true, out var turnedOn))
+        {
+            OnPropertyChanged(nameof(SelectedItemTransitionKind));
+            OnPropertyChanged(nameof(SelectedItemTransitionKindInput));
+            StatusText = $"Item transition: {displayName}{(turnedOn ? " (individual formatting on)" : "")}";
+        }
+    }
+
+    public void SetSelectedSlideTransition(TransitionEffectKind kind)
+    {
+        kind = NormalizeLegacyTransitionKind(kind);
+        var displayName = LegacyTransitionDisplayName(kind);
+        if (ApplySelectedSongFormatChange(format => format with { SlideTransitionName = displayName }, wantsIndividual: true, out var turnedOn))
+        {
+            OnPropertyChanged(nameof(SelectedSlideTransitionKind));
+            OnPropertyChanged(nameof(SelectedSlideTransitionKindInput));
+            StatusText = $"Slide transition: {displayName}{(turnedOn ? " (individual formatting on)" : "")}";
+        }
+    }
+
+    private static TransitionEffectKind NormalizeLegacyTransitionKind(TransitionEffectKind kind)
+        => LegacyTransitionDescriptors.Any(effect => effect.Kind == kind) ? kind : TransitionEffectKind.None;
+
+    private static string LegacyTransitionDisplayName(TransitionEffectKind kind)
+        => LegacyTransitionEffectService.GetDisplayName(NormalizeLegacyTransitionKind(kind));
+
+    private static TransitionEffectKind ResolveLegacyTransitionName(string? displayName, TransitionEffectKind fallback)
+    {
+        var normalized = displayName?.Trim();
+        if (!string.IsNullOrEmpty(normalized))
+        {
+            var match = LegacyTransitionDescriptors.FirstOrDefault(effect =>
+                string.Equals(effect.DisplayName, normalized, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+                return match.Kind;
+            }
+        }
+
+        return NormalizeLegacyTransitionKind(fallback);
+    }
+
+    private static LyricsTransitionKind MapTransitionEffectToLyricsKind(TransitionEffectKind kind)
+        => NormalizeLegacyTransitionKind(kind) switch
+        {
+            TransitionEffectKind.BlindsHorizontal => LyricsTransitionKind.BlindsHorizontal,
+            TransitionEffectKind.BlindsVertical => LyricsTransitionKind.BlindsVertical,
+            TransitionEffectKind.BowTie => LyricsTransitionKind.BowTie,
+            TransitionEffectKind.Checkerboard or TransitionEffectKind.Dissolve or TransitionEffectKind.Mesh or TransitionEffectKind.Mosaic
+                => LyricsTransitionKind.Checkerboard,
+            TransitionEffectKind.Circle or TransitionEffectKind.Oval => LyricsTransitionKind.RevealCircle,
+            TransitionEffectKind.CircularWipe or TransitionEffectKind.Wedge => LyricsTransitionKind.Wedge,
+            TransitionEffectKind.Cross => LyricsTransitionKind.Cross,
+            TransitionEffectKind.Diamond => LyricsTransitionKind.Diamond,
+            TransitionEffectKind.DoorsOpen => LyricsTransitionKind.DoorsOpen,
+            TransitionEffectKind.DoorsClose => LyricsTransitionKind.DoorsClose,
+            TransitionEffectKind.FanUp => LyricsTransitionKind.FanUp,
+            TransitionEffectKind.FlipHorizontal => LyricsTransitionKind.FlipHorizontal,
+            TransitionEffectKind.FlipVertical => LyricsTransitionKind.FlipVertical,
+            TransitionEffectKind.Heart => LyricsTransitionKind.Heart,
+            TransitionEffectKind.InTop or TransitionEffectKind.InTopLeft or TransitionEffectKind.InTopRight or TransitionEffectKind.OutTop or TransitionEffectKind.OutTopLeft or TransitionEffectKind.OutTopRight
+                => LyricsTransitionKind.SlideFromTop,
+            TransitionEffectKind.InLeft or TransitionEffectKind.OutLeft => LyricsTransitionKind.SlideFromLeft,
+            TransitionEffectKind.InRight or TransitionEffectKind.OutRight => LyricsTransitionKind.SlideFromRight,
+            TransitionEffectKind.InBottom or TransitionEffectKind.InBottomLeft or TransitionEffectKind.InBottomRight or TransitionEffectKind.OutBottom or TransitionEffectKind.OutBottomLeft or TransitionEffectKind.OutBottomRight
+                => LyricsTransitionKind.SlideFromBottom,
+            TransitionEffectKind.RandomBars => LyricsTransitionKind.BlindsHorizontal,
+            TransitionEffectKind.Rectangle or TransitionEffectKind.RectangleIn => LyricsTransitionKind.RevealRectangle,
+            TransitionEffectKind.RevealTopDown or TransitionEffectKind.Descend or TransitionEffectKind.StretchVertical => LyricsTransitionKind.WipeDown,
+            TransitionEffectKind.RevealLeftRight or TransitionEffectKind.StretchHorizontal => LyricsTransitionKind.WipeRight,
+            TransitionEffectKind.RevealRightLeft => LyricsTransitionKind.WipeLeft,
+            TransitionEffectKind.RevealDownUp or TransitionEffectKind.Ascend or TransitionEffectKind.Scroll => LyricsTransitionKind.WipeUp,
+            TransitionEffectKind.Spin => LyricsTransitionKind.Spin,
+            TransitionEffectKind.Spiral => LyricsTransitionKind.Spiral,
+            TransitionEffectKind.Star => LyricsTransitionKind.Star,
+            TransitionEffectKind.WindMill => LyricsTransitionKind.WindMill,
+            TransitionEffectKind.ZoomAway or TransitionEffectKind.ZoomOut or TransitionEffectKind.Away => LyricsTransitionKind.ZoomOut,
+            TransitionEffectKind.ZoomIn or TransitionEffectKind.GentleZoom => LyricsTransitionKind.ZoomIn,
+            _ => LyricsTransitionKind.Fade,
+        };
+
+    private static TransitionEffectKind MapLyricsTransitionToEffect(LyricsTransitionKind kind)
+        => kind switch
+        {
+            LyricsTransitionKind.SlideFromLeft => TransitionEffectKind.InLeft,
+            LyricsTransitionKind.SlideFromRight => TransitionEffectKind.InRight,
+            LyricsTransitionKind.SlideFromTop => TransitionEffectKind.InTop,
+            LyricsTransitionKind.SlideFromBottom => TransitionEffectKind.InBottom,
+            LyricsTransitionKind.ZoomIn => TransitionEffectKind.ZoomIn,
+            LyricsTransitionKind.ZoomOut => TransitionEffectKind.ZoomOut,
+            LyricsTransitionKind.Spin => TransitionEffectKind.Spin,
+            LyricsTransitionKind.FlipHorizontal => TransitionEffectKind.FlipHorizontal,
+            LyricsTransitionKind.FlipVertical => TransitionEffectKind.FlipVertical,
+            LyricsTransitionKind.RevealCircle => TransitionEffectKind.Circle,
+            LyricsTransitionKind.RevealRectangle => TransitionEffectKind.Rectangle,
+            LyricsTransitionKind.WipeRight => TransitionEffectKind.RevealLeftRight,
+            LyricsTransitionKind.WipeLeft => TransitionEffectKind.RevealRightLeft,
+            LyricsTransitionKind.WipeDown => TransitionEffectKind.RevealTopDown,
+            LyricsTransitionKind.WipeUp => TransitionEffectKind.RevealDownUp,
+            LyricsTransitionKind.BlindsHorizontal => TransitionEffectKind.BlindsHorizontal,
+            LyricsTransitionKind.BlindsVertical => TransitionEffectKind.BlindsVertical,
+            LyricsTransitionKind.Checkerboard => TransitionEffectKind.Checkerboard,
+            LyricsTransitionKind.Diamond => TransitionEffectKind.Diamond,
+            LyricsTransitionKind.DoorsOpen => TransitionEffectKind.DoorsOpen,
+            LyricsTransitionKind.DoorsClose => TransitionEffectKind.DoorsClose,
+            LyricsTransitionKind.Star => TransitionEffectKind.Star,
+            LyricsTransitionKind.Cross => TransitionEffectKind.Cross,
+            LyricsTransitionKind.BowTie => TransitionEffectKind.BowTie,
+            LyricsTransitionKind.Heart => TransitionEffectKind.Heart,
+            LyricsTransitionKind.Wedge => TransitionEffectKind.Wedge,
+            LyricsTransitionKind.Spiral => TransitionEffectKind.Spiral,
+            LyricsTransitionKind.WindMill => TransitionEffectKind.WindMill,
+            LyricsTransitionKind.FanUp => TransitionEffectKind.FanUp,
+            _ => TransitionEffectKind.Fade,
+        };
+
     /// <summary>슬라이드/절 전환 종류 선택(콤보 양방향 바인딩). 같은 항목 안 절·슬라이드 이동 때 쓰는 전환. 바뀌면 설정 저장.</summary>
     public LyricsTransitionKind SlideTransitionKindInput
     {
@@ -7453,13 +7666,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             _settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionKind, value);
+            _settings.Set(EasiSettingKeys.LyricsMonitorSlideTransitionName, LegacyTransitionDisplayName(MapLyricsTransitionToEffect(value)));
             ActiveSlideTransitionKind = value;
+            OnPropertyChanged(nameof(DefaultSlideTransitionKind));
+            OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
             StatusText = $"슬라이드 전환 효과: {TransitionKindLabel(value)}";
         }
     }
 
     // 슬라이드 전환 종류가 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
-    partial void OnActiveSlideTransitionKindChanged(LyricsTransitionKind value) => OnPropertyChanged(nameof(SlideTransitionKindInput));
+    partial void OnActiveTransitionKindChanged(LyricsTransitionKind value)
+    {
+        OnPropertyChanged(nameof(DefaultItemTransitionKind));
+        OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
+    }
+
+    partial void OnActiveSlideTransitionKindChanged(LyricsTransitionKind value)
+    {
+        OnPropertyChanged(nameof(SlideTransitionKindInput));
+        OnPropertyChanged(nameof(DefaultSlideTransitionKind));
+        OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
+    }
 
     // 공지 화면 송출(FrmInfoScreen — 자유 텍스트 안내). InfoScreen 창에서 입력한 텍스트를
     // 즉시 회중 출력에 본문으로 송출한다. 출력 창이 열려 있을 때만 동작(닫혀 있으면 false 반환).
@@ -8135,6 +8362,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTransitionDurationMs = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionDurationMs);
         ActiveTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorTransitionKind);
         ActiveSlideTransitionKind = _settings.Get(EasiSettingKeys.LyricsMonitorSlideTransitionKind);
+        OnPropertyChanged(nameof(DefaultItemTransitionKind));
+        OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
+        OnPropertyChanged(nameof(DefaultSlideTransitionKind));
+        OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
         // 대기 화면(Gap) 모드·페이드·로고 — 설정 창 등 다른 경로로 바뀌어도 출력 메뉴 표시가 따라가게 동기화.
         ActiveGapItemOption = _settings.Get(EasiSettingKeys.GapItemOption);
         ActiveGapItemUseFade = _settings.Get(EasiSettingKeys.GapItemUseFade);
@@ -8330,6 +8561,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageModeCommand.NotifyCanExecuteChanged();
+        SetSelectedItemTransitionCommand.NotifyCanExecuteChanged();
+        SetSelectedSlideTransitionCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemBoldCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemItalicCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderlineCommand.NotifyCanExecuteChanged();

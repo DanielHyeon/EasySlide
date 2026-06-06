@@ -903,8 +903,11 @@ public class MainMenuBarTests
         xaml.Should().Contain("ToolTip=\"{Binding OutputBackgroundNoImageToolTip}\"", "Def_NoImage should expose FrmMain-style current-background feedback");
         xaml.Should().Contain("ApplyBackgroundModeCommand", "Default tab should expose FrmMain background image modes");
         xaml.Should().Contain("x:Name=\"Def_Transition\"", "Default tab should expose transition defaults inline");
-        xaml.Should().Contain("ToggleFadeTransitionCommand", "Default transition controls should toggle fade");
-        xaml.Should().Contain("ApplyTransitionDurationCommand", "Default transition controls should expose duration presets");
+        xaml.Should().Contain("x:Name=\"Def_TransItem\"", "Default tab should expose FrmMain's item transition combo");
+        xaml.Should().Contain("x:Name=\"Def_TransSlides\"", "Default tab should expose FrmMain's slide transition combo");
+        xaml.Should().Contain("ItemsSource=\"{Binding LegacyTransitionOptions}\"", "transition combos should use the FrmMain 58-effect list");
+        xaml.Should().Contain("SelectedValue=\"{Binding DefaultItemTransitionKindInput, Mode=TwoWay}\"", "Def_TransItem should persist the default item transition");
+        xaml.Should().Contain("SelectedValue=\"{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}\"", "Def_TransSlides should persist the default slide transition");
         xaml.Should().Contain("ResetOutputAppearanceCommand", "Default tab restores the default output layout");
         xaml.Should().Contain("ApplyGlobalFormatToAllCommand", "Default tab can apply the current format globally");
         xaml.Should().Contain("ClearAllItemsFormattingCommand", "Default tab can clear item-specific formatting overrides");
@@ -1387,6 +1390,14 @@ public class MainMenuBarTests
             "Ind_ImageMode options should write FormatData code 62 through the selected-item VM command");
         xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Tile}\"",
             "Ind_ImageTile should map to the WPF Tile mode before encoding legacy 62=0");
+        xaml.Should().Contain("x:Name=\"Ind_TransItem\"",
+            "IndPanel should expose FrmMain's selected-item transition combo");
+        xaml.Should().Contain("x:Name=\"Ind_TransSlides\"",
+            "IndPanel should expose FrmMain's selected-slide transition combo");
+        xaml.Should().Contain("SelectedValue=\"{Binding SelectedItemTransitionKindInput, Mode=TwoWay}\"",
+            "Ind_TransItem should reflect FormatData 72");
+        xaml.Should().Contain("SelectedValue=\"{Binding SelectedSlideTransitionKindInput, Mode=TwoWay}\"",
+            "Ind_TransSlides should write FormatData 73 through the selected-item VM path");
         code.Should().Contain("private void SelectPreviewItemBackgroundImage_Click",
             "Preview Set item-image selection should be handled by the main shell view");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImage(dialog.FileName)",

@@ -2374,6 +2374,28 @@
                                                Margin="0,2,0,4" />
                                     <WrapPanel x:Name="Def_Transition"
                                                Tag="Def_Transition">
+                                        <ComboBox x:Name="Def_TransItem"
+                                                  Tag="Def_TransItem"
+                                                  ItemsSource="{Binding LegacyTransitionOptions}"
+                                                  DisplayMemberPath="DisplayName"
+                                                  SelectedValuePath="Kind"
+                                                  SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}"
+                                                  MinWidth="132"
+                                                  Height="30"
+                                                  Margin="0,0,6,6"
+                                                  ToolTip="Item Transition"
+                                                  AutomationProperties.Name="Def item transition" />
+                                        <ComboBox x:Name="Def_TransSlides"
+                                                  Tag="Def_TransSlides"
+                                                  ItemsSource="{Binding LegacyTransitionOptions}"
+                                                  DisplayMemberPath="DisplayName"
+                                                  SelectedValuePath="Kind"
+                                                  SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}"
+                                                  MinWidth="132"
+                                                  Height="30"
+                                                  Margin="0,0,6,6"
+                                                  ToolTip="Slide Transition"
+                                                  AutomationProperties.Name="Def slide transition" />
                                         <ToggleButton IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}"
                                                       Command="{Binding ToggleFadeTransitionCommand}"
                                                       MinHeight="30"
@@ -3471,6 +3493,38 @@
                                                                           AutomationProperties.Name="선택 항목 배경 이미지 타일" />
                                                         </WrapPanel>
                                                     </StackPanel>
+                                                </GroupBox>
+
+                                                <GroupBox x:Name="IndgroupBoxTransition"
+                                                          Tag="IndgroupBoxTransition"
+                                                          Header="Transition">
+                                                    <WrapPanel x:Name="Ind_Transition"
+                                                               Tag="Ind_Transition"
+                                                               Margin="8"
+                                                               IsEnabled="{Binding CanEditSelectedItemColor}">
+                                                        <ComboBox x:Name="Ind_TransItem"
+                                                                  Tag="Ind_TransItem"
+                                                                  ItemsSource="{Binding LegacyTransitionOptions}"
+                                                                  DisplayMemberPath="DisplayName"
+                                                                  SelectedValuePath="Kind"
+                                                                  SelectedValue="{Binding SelectedItemTransitionKindInput, Mode=TwoWay}"
+                                                                  MinWidth="132"
+                                                                  Height="26"
+                                                                  Margin="0,0,4,4"
+                                                                  ToolTip="Item Transition"
+                                                                  AutomationProperties.Name="선택 항목 전환" />
+                                                        <ComboBox x:Name="Ind_TransSlides"
+                                                                  Tag="Ind_TransSlides"
+                                                                  ItemsSource="{Binding LegacyTransitionOptions}"
+                                                                  DisplayMemberPath="DisplayName"
+                                                                  SelectedValuePath="Kind"
+                                                                  SelectedValue="{Binding SelectedSlideTransitionKindInput, Mode=TwoWay}"
+                                                                  MinWidth="132"
+                                                                  Height="26"
+                                                                  Margin="0,0,4,4"
+                                                                  ToolTip="Slide Transition"
+                                                                  AutomationProperties.Name="선택 항목 슬라이드 전환" />
+                                                    </WrapPanel>
                                                 </GroupBox>
 
                                                 <GroupBox x:Name="IndgroupBox4"
