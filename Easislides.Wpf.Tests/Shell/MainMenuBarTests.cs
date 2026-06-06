@@ -179,6 +179,8 @@ public class MainMenuBarTests
             "toolStripMain toggles should use the same dense top toolbar chrome");
         toolStrip.Should().Contain("Style=\"{StaticResource ClassicTopToolStripTextButton}\"",
             "the FrmMain jump buttons should stay compact even though they show text");
+        toolStrip.Should().Contain("Style=\"{StaticResource ClassicTopToolStripComboBox}\"",
+            "toolbar combo boxes should use a small font/padding so their text is not clipped at compact height");
         toolStrip.Should().NotContain("Style=\"{StaticResource EsButton.Secondary}\"",
             "default WPF buttons make the top toolbar visibly taller than FrmMain");
         toolStrip.Should().NotContain("MinHeight=\"28\"",

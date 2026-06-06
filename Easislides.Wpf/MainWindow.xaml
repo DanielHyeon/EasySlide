@@ -131,6 +131,14 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="Margin" Value="0,0,2,0" />
         </Style>
+        <Style x:Key="ClassicTopToolStripComboBox"
+               TargetType="ComboBox">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="3,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
         <Style x:Key="ClassicTopOperatorStripButton"
                TargetType="Button"
                BasedOn="{StaticResource ClassicOperatorStripButton}">
@@ -938,14 +946,13 @@
                     </ToggleButton>
                     <ComboBox x:Name="Main_RotateStyle"
                               Tag="Main_RotateStyle"
+                              Style="{StaticResource ClassicTopToolStripComboBox}"
                               ItemsSource="{Binding AutoRotateModeOptions}"
                               SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
                               SelectedValuePath="Value"
                               DisplayMemberPath="Text"
-                              Height="24"
                               MinWidth="176"
                               Margin="0,0,8,0"
-                              VerticalContentAlignment="Center"
                               ToolTip="Rotate Style"
                               AutomationProperties.Name="Main_RotateStyle Rotate Style">
                         <ComboBox.ItemContainerStyle>
@@ -982,10 +989,10 @@
                     </Button>
                     <ComboBox x:Name="Main_QuickFind"
                               Tag="Main_QuickFind"
+                              Style="{StaticResource ClassicTopToolStripComboBox}"
                               IsEditable="True"
                               Text="{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               MaxDropDownHeight="260"
-                              Height="24"
                               Width="130"
                               Margin="0,0,8,0"
                               PreviewKeyDown="Main_QuickFind_PreviewKeyDown"
