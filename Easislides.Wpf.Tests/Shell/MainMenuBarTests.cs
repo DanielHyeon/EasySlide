@@ -1389,6 +1389,8 @@ public class MainMenuBarTests
             "Output reference alert button should keep its FrmMain control name");
         xaml.Should().Contain("Command=\"{Binding ToggleOutputReferenceAlertCommand}\"",
             "OutputBtnRefAlert should toggle the live reference alert instead of staying a disabled placeholder");
+        xaml.Should().Contain("IsChecked=\"{Binding IsOutputReferenceAlertActive, Mode=OneWay}\"",
+            "OutputBtnRefAlert should visibly reflect the current live reference-alert state like the other FrmMain Output toggles");
         xaml.Should().Contain("x:Key=\"ClassicVerseJumpButton\"",
             "FrmMain section buttons should have a dedicated style that can hide unavailable sections");
         xaml.Should().Contain("<Setter Property=\"Visibility\" Value=\"Collapsed\" />",

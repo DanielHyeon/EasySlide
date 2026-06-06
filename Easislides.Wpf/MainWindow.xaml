@@ -4328,17 +4328,18 @@
                                     AutomationProperties.Name="Output 미디어 재생 일시정지">
                                 <ui:SymbolIcon Symbol="{Binding OutputMediaPlayPauseSymbol}" />
                             </Button>
-                            <Button x:Name="OutputBtnRefAlert"
-                                    Tag="OutputBtnRefAlert"
-                                    Command="{Binding ToggleOutputReferenceAlertCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="30"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="0,0,4,0"
-                                    Content="!"
-                                    ToolTip="성경 구절 알림"
-                                    AutomationProperties.Name="Output 구절 알림" />
+                            <ToggleButton x:Name="OutputBtnRefAlert"
+                                          Tag="OutputBtnRefAlert"
+                                          Command="{Binding ToggleOutputReferenceAlertCommand}"
+                                          IsChecked="{Binding IsOutputReferenceAlertActive, Mode=OneWay}"
+                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                          MinWidth="30"
+                                          MinHeight="28"
+                                          Padding="6,0"
+                                          Margin="0,0,4,0"
+                                          Content="!"
+                                          ToolTip="성경 구절 알림"
+                                          AutomationProperties.Name="Output 구절 알림" />
                             <ToggleButton Command="{Binding ToggleOutputBlackCommand}"
                                           IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
                                           Style="{StaticResource ClassicOutputToggleButton}"

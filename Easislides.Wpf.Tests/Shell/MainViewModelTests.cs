@@ -3401,6 +3401,7 @@ public class MainViewModelTests
         });
 
         sut.ToggleOutputReferenceAlertCommand.CanExecute(null).Should().BeFalse("출력 창과 라이브가 모두 켜진 뒤에만 동작");
+        sut.IsOutputReferenceAlertActive.Should().BeFalse();
         sut.OpenOutputCommand.Execute(null);
         sut.ToggleOutputReferenceAlertCommand.CanExecute(null).Should().BeFalse("출력 창만 열린 상태에서는 reference alert를 띄우지 않는다");
         await sut.GoLiveCommand.ExecuteAsync(null);
@@ -3408,12 +3409,14 @@ public class MainViewModelTests
         sut.ToggleOutputReferenceAlertCommand.CanExecute(null).Should().BeTrue();
         sut.ToggleOutputReferenceAlertCommand.Execute(null);
 
+        sut.IsOutputReferenceAlertActive.Should().BeTrue("OutputBtnRefAlert is a checked live-control toggle in FrmMain");
         sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
         sut.Session.Current.ReferenceAlertText.Should().Be("요한복음 3:16");
         sut.Session.Current.CurrentItemBodyText.Should().Contain("하나님이 세상을 이처럼 사랑하사", "본문 송출은 유지되어야 한다");
 
         sut.ToggleOutputReferenceAlertCommand.Execute(null);
 
+        sut.IsOutputReferenceAlertActive.Should().BeFalse();
         sut.Session.Current.IsReferenceAlertVisible.Should().BeFalse();
         sut.Session.Current.ReferenceAlertText.Should().BeEmpty();
     }

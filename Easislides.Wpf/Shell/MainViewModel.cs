@@ -220,6 +220,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain cbGoLive 체크 상태: 현재 출력이 라이브로 표시 중인가.</summary>
     public bool IsOutputLiveActive => _session.Current.State == LiveState.Active;
 
+    /// <summary>FrmMain OutputBtnRefAlert 상태: 현재 라이브 출력의 구절/제목 알림 오버레이가 표시 중인가.</summary>
+    public bool IsOutputReferenceAlertActive => _session.Current.IsReferenceAlertVisible;
+
     /// <summary>FrmMain flowLayoutOutputPowerPoint 표시 대상인가.</summary>
     public bool IsOutputPowerPointContext => GetOutputPowerPointNavigationItem() is not null;
 
@@ -8196,6 +8199,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputBlackActive));
         OnPropertyChanged(nameof(IsOutputClearActive));
         OnPropertyChanged(nameof(IsOutputLiveActive));
+        OnPropertyChanged(nameof(IsOutputReferenceAlertActive));
         NotifyOutputPanelDisplayProperties();
     }
 
