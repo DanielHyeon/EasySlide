@@ -533,14 +533,32 @@ public class MainMenuBarTests
     [Fact]
     public void ClassicPreviewAndOutputPowerPointThumbnails_MapFocusedKeyboardNavigationIndependently()
     {
+        var xaml = Xaml;
         var code = CodeBehind;
+
+        foreach (var name in new[]
+        {
+            "ClassicPreviewPowerPointSurface",
+            "ClassicOutputPowerPointSurface",
+        })
+        {
+            var surface = SectionBetween(xaml, $"x:Name=\"{name}\"", "AutomationProperties.Name=");
+            surface.Should().Contain("Focusable=\"True\"",
+                $"{name} should accept focus when the operator clicks the FrmMain PowerPoint flow-panel background");
+            surface.Should().Contain("MouseDown=\"ClassicKeyboardSurface_MouseDown\"",
+                $"{name} should focus itself on background clicks so the next key stays in the same Preview/Output panel");
+        }
 
         code.Should().Contain("TryHandlePreviewOutputPowerPointKey(e)",
             "focused PPT thumbnail keyboard handling should run before global Space/F shortcuts");
         code.Should().Contain("ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin",
             "Preview PPT thumbnail focus should be detected separately");
+        code.Should().Contain("ClassicPreviewPowerPointSurface.IsKeyboardFocusWithin",
+            "Preview PPT surface focus should also route keys like FrmMain flowLayoutPreviewPowerPoint");
         code.Should().Contain("ClassicOutputThumbnailGrid.IsKeyboardFocusWithin",
             "Output PPT thumbnail focus should be detected separately");
+        code.Should().Contain("ClassicOutputPowerPointSurface.IsKeyboardFocusWithin",
+            "Output PPT surface focus should route keys like FrmMain flowLayoutOutputPowerPoint");
         code.Should().Contain("_viewModel.PreviousSlideCommand.Execute(null)",
             "Preview Up should move only the selected preview deck");
         code.Should().Contain("_viewModel.NextSlideCommand.Execute(null)",

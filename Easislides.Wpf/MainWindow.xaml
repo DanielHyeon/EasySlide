@@ -3738,6 +3738,8 @@
                                 <Grid Margin="{StaticResource Thickness.Lg}">
                                     <ScrollViewer x:Name="ClassicPreviewPowerPointSurface"
                                                   Tag="flowLayoutPreviewPowerPoint"
+                                                  Focusable="True"
+                                                  MouseDown="ClassicKeyboardSurface_MouseDown"
                                                   HorizontalScrollBarVisibility="Disabled"
                                                   VerticalScrollBarVisibility="Auto"
                                                   AutomationProperties.Name="Preview PowerPoint 썸네일 영역">
@@ -4311,6 +4313,8 @@
 
                                 <ScrollViewer x:Name="ClassicOutputPowerPointSurface"
                                               Tag="flowLayoutOutputPowerPoint"
+                                              Focusable="True"
+                                              MouseDown="ClassicKeyboardSurface_MouseDown"
                                               HorizontalScrollBarVisibility="Disabled"
                                               VerticalScrollBarVisibility="Auto"
                                               Margin="8"

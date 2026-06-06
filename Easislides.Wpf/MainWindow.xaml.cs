@@ -449,7 +449,7 @@ public partial class MainWindow : Window
             return false;
         }
 
-        if (ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin)
+        if (ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin || ClassicPreviewPowerPointSurface.IsKeyboardFocusWithin)
         {
             return TryExecutePreviewPowerPointKey(e.Key, modifiers);
         }
