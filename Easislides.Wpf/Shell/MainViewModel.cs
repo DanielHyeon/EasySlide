@@ -5467,7 +5467,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanJumpToNextNonRotateOutputItem()
-        => TryFindNextNonRotatingOutputItem(out _);
+    {
+        if (!TryGetOutputNavigationIndex(out var index))
+        {
+            return false;
+        }
+
+        for (var i = index + 1; i < Queue.Count; i++)
+        {
+            if (IsKnownOrPotentialNonRotatingOutputItem(Queue[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private bool TryGetOutputNavigationIndex(out int index)
     {
@@ -5625,7 +5640,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task JumpToNextNonRotateOutputItemAsync()
     {
-        if (!TryFindNextNonRotatingOutputItem(out var target))
+        var target = await FindNextNonRotatingOutputItemAsync().ConfigureAwait(true);
+        if (target is null)
         {
             StatusText = "다음 회전 제외 Output 항목이 없습니다.";
             NotifyCommandStates();
@@ -5651,24 +5667,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    private bool TryFindNextNonRotatingOutputItem(out LiveQueueItem target)
+    private async Task<LiveQueueItem?> FindNextNonRotatingOutputItemAsync()
     {
-        target = null!;
         if (!TryGetOutputNavigationIndex(out var index))
         {
-            return false;
+            return null;
         }
 
+        var restoreItem = GetOutputNavigationItem();
         for (var i = index + 1; i < Queue.Count; i++)
         {
-            if (IsNonRotatingOutputItem(Queue[i]))
+            if (await IsNonRotatingOutputItemAsync(Queue[i]).ConfigureAwait(true))
             {
-                target = Queue[i];
-                return true;
+                return Queue[i];
             }
         }
 
-        return false;
+        if (restoreItem is not null && !ReferenceEquals(OutputItem, restoreItem))
+        {
+            await PrepareOutputItemForNavigationAsync(restoreItem).ConfigureAwait(true);
+        }
+
+        return null;
+    }
+
+    private async Task<bool> IsNonRotatingOutputItemAsync(LiveQueueItem item)
+    {
+        if (!IsPowerPointItem(item))
+        {
+            return IsNonRotatingOutputItem(item);
+        }
+
+        if (TryGetKnownPowerPointSlideCount(item, out var slideCount))
+        {
+            return slideCount <= 1;
+        }
+
+        await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);
+        return TryGetKnownPowerPointSlideCount(item, out slideCount) && slideCount <= 1;
+    }
+
+    private bool IsKnownOrPotentialNonRotatingOutputItem(LiveQueueItem item)
+    {
+        if (!IsPowerPointItem(item))
+        {
+            return IsNonRotatingOutputItem(item);
+        }
+
+        return !TryGetKnownPowerPointSlideCount(item, out var slideCount) || slideCount <= 1;
     }
 
     private bool IsNonRotatingOutputItem(LiveQueueItem item)

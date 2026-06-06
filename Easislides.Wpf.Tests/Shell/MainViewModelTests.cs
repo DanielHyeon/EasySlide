@@ -9941,6 +9941,70 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task JumpToNextNonRotateOutputItemCommand_InspectsUnknownSingleSlidePowerPointCandidate()
+    {
+        // FrmMain 은 Worship List 의 다음 항목이 PPT 여도 Output 문맥에서 열어 본 뒤 회전 제외 대상인지 판단한다.
+        var previewPowerPoint = new PowerPointPreviewViewModel(new FixedSlideCountPowerPointRenderService(1), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new FixedSlideCountPowerPointRenderService(1), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPrepared verse",
+        };
+        var singleSlideDeck = new LiveQueueItem("ppt:single", "Single slide deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "single.pptx",
+        };
+        var laterNotice = new LiveQueueItem("notice:later", "Later notice", LiveItemKinds.Notice)
+        {
+            Lyrics = "Later notice body",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        sut.LoadQueue([prepared, singleSlideDeck, laterNotice, preview]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.JumpToNextNonRotateOutputItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.JumpToNextNonRotateOutputItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output jump must not change Preview selection");
+        sut.OutputItem.Should().BeSameAs(singleSlideDeck, "a single-slide PPT is the next non-rotating Output item");
+        sut.OutputPowerPoint.LoadedContentPath.Should().Be("single.pptx");
+        sut.OutputPowerPoint.SlideCount.Should().Be(1);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1);
+        sut.Session.Current.State.Should().Be(LiveState.Off, "prepared Output jump does not start live output");
+        sut.StatusText.Should().Be("Output 회전 제외 항목 준비: Single slide deck");
+    }
+
+    [Fact]
+    public void JumpToNextNonRotateOutputItemCommand_CanExecuteAllowsUnloadedPowerPointCandidate()
+    {
+        // 아직 렌더하지 않은 PPT 는 클릭 시점에 Output 후보로 검사해야 하므로 버튼을 미리 죽이면 안 된다.
+        var outputPowerPoint = new PowerPointPreviewViewModel(new FixedSlideCountPowerPointRenderService(1), _ => Frozen());
+        var sut = CreateSut(seedSampleQueue: false, outputPowerPoint: outputPowerPoint);
+        var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPrepared verse",
+        };
+        var singleSlideDeck = new LiveQueueItem("ppt:single", "Single slide deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "single.pptx",
+        };
+        sut.LoadQueue([prepared, singleSlideDeck]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.JumpToNextNonRotateOutputItemCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
     public void AddSong_DualLanguage_PageCountUsesRegionPages()
     {
         // 이중 언어([region 2]) 곡은 영역-인식 페이지 수를 쓴다 — [region 2] 가 절 경계로 오인돼 절 수가 부풀지 않음.
