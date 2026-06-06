@@ -1446,6 +1446,14 @@ public class MainMenuBarTests
         previewLyricsSurface.Should().NotContain("Width=\"180\"");
         previewLyricsSurface.Should().NotContain("MaxHeight=\"90\"");
         previewLyricsSurface.Should().NotContain("Text=\"{Binding Label}\"");
+        xaml.Should().NotContain("x:Name=\"SectionJumpBar\"",
+            "FrmMain keeps verse jump buttons in the lower Preview operator strip, not inside the top text preview surface");
+        xaml.Should().NotContain("x:Name=\"LyricsPagePanel\"",
+            "FrmMain uses PreviewBtnSlideUp/Down for sequential page movement instead of large WPF-only text-pane buttons");
+        xaml.Should().NotContain("Command=\"{Binding PreviousLyricsPageCommand}\"",
+            "top-pane lyrics navigation should not bypass the FrmMain Preview slide/page strip");
+        xaml.Should().NotContain("Command=\"{Binding NextLyricsPageCommand}\"",
+            "top-pane lyrics navigation should not bypass the FrmMain Preview slide/page strip");
         xaml.Should().Contain("x:Name=\"ClassicOutputPowerPointSurface\"",
             "Output top pane should expose the live PowerPoint thumbnail/list surface");
         xaml.Should().Contain("x:Name=\"ClassicOutputHolder\"",
