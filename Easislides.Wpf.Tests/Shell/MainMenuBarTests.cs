@@ -137,7 +137,7 @@ public class MainMenuBarTests
     {
         var operatorBar = OperatorBarXaml;
 
-        operatorBar.Should().Contain("Style=\"{StaticResource ClassicOperatorStripButton}\"",
+        operatorBar.Should().Contain("Style=\"{StaticResource ClassicTopOperatorStripButton}\"",
             "the first-screen operator bar should use the same compact icon-button density as FrmMain strips");
         operatorBar.Should().NotContain("<StackPanel Orientation=\"Horizontal\">",
             "large text buttons make the WPF shell drift away from FrmMain's one-line toolstrip density");
@@ -172,6 +172,17 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("x:Name=\"toolStripContainerMain\"", "FrmMain top toolbar container should be explicit in the WPF shell");
         xaml.Should().Contain("Tag=\"toolStripContainerMain\"", "the WPF toolbar row should preserve the legacy mapping role");
+        xaml.Should().Contain("Padding=\"2,1\"", "the top toolbar container should stay close to FrmMain's dense toolstrip height");
+        toolStrip.Should().Contain("Style=\"{StaticResource ClassicTopToolStripButton}\"",
+            "toolStripMain icon buttons should not use the taller WPF default button chrome");
+        toolStrip.Should().Contain("Style=\"{StaticResource ClassicTopToolStripToggleButton}\"",
+            "toolStripMain toggles should use the same dense top toolbar chrome");
+        toolStrip.Should().Contain("Style=\"{StaticResource ClassicTopToolStripTextButton}\"",
+            "the FrmMain jump buttons should stay compact even though they show text");
+        toolStrip.Should().NotContain("Style=\"{StaticResource EsButton.Secondary}\"",
+            "default WPF buttons make the top toolbar visibly taller than FrmMain");
+        toolStrip.Should().NotContain("MinHeight=\"28\"",
+            "legacy toolbar controls should not carry the old WPF minimum height");
 
         foreach (var controlName in new[]
         {

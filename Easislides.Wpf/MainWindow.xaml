@@ -105,6 +105,38 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="Margin" Value="0" />
         </Style>
+        <Style x:Key="ClassicTopToolStripButton"
+               TargetType="Button"
+               BasedOn="{StaticResource EsButton.Secondary}">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinWidth" Value="24" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="3,0" />
+            <Setter Property="Margin" Value="0,0,2,0" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="ClassicTopToolStripTextButton"
+               TargetType="Button"
+               BasedOn="{StaticResource ClassicTopToolStripButton}">
+            <Setter Property="MinWidth" Value="52" />
+            <Setter Property="Padding" Value="5,0" />
+        </Style>
+        <Style x:Key="ClassicTopToolStripToggleButton"
+               TargetType="ToggleButton"
+               BasedOn="{StaticResource ClassicOutputToggleButton}">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,2,0" />
+        </Style>
+        <Style x:Key="ClassicTopOperatorStripButton"
+               TargetType="Button"
+               BasedOn="{StaticResource ClassicOperatorStripButton}">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="24" />
+        </Style>
         <Style x:Key="ClassicPanelDisplayList" TargetType="ListView">
             <Setter Property="Height" Value="28" />
             <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
@@ -809,7 +841,7 @@
                 BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
                 Background="{DynamicResource Brush.Surface.Card}"
-                Padding="4,2">
+                Padding="2,1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -827,15 +859,11 @@
                            Tag="toolStripMain"
                            Grid.Row="0"
                            Orientation="Horizontal"
-                           Margin="0,0,0,2">
+                           Margin="0">
                     <Button x:Name="Main_New"
                             Tag="Main_New"
                             Click="Main_New_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="New"
                             AutomationProperties.Name="Main_New New">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" />
@@ -843,11 +871,7 @@
                     <Button x:Name="Main_Edit"
                             Tag="Main_Edit"
                             Click="Main_Edit_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Edit"
                             AutomationProperties.Name="Main_Edit Edit">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionEdit}" />
@@ -855,11 +879,7 @@
                     <Button x:Name="Main_Copy"
                             Tag="Main_Copy"
                             Click="SongCopy_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Copy"
                             AutomationProperties.Name="Main_Copy Copy">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionCopy}" />
@@ -867,11 +887,7 @@
                     <Button x:Name="Main_Move"
                             Tag="Main_Move"
                             Click="SongMove_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Move"
                             AutomationProperties.Name="Main_Move Move">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionMove}" />
@@ -879,10 +895,7 @@
                     <Button x:Name="Main_Delete"
                             Tag="Main_Delete"
                             Click="SongDelete_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="Delete"
                             AutomationProperties.Name="Main_Delete Delete">
@@ -891,11 +904,7 @@
                     <Button x:Name="Main_Media"
                             Tag="Main_Media"
                             Click="OpenMediaLibrary_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Play Media"
                             AutomationProperties.Name="Main_Media Play Media">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaPlay}" />
@@ -903,10 +912,7 @@
                     <Button x:Name="Main_Refresh"
                             Tag="Main_Refresh"
                             Click="Main_Refresh_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="Refresh"
                             AutomationProperties.Name="Main_Refresh Refresh">
@@ -915,10 +921,7 @@
                     <Button x:Name="Main_Options"
                             Tag="Main_Options"
                             Click="OpenSettings_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="Options"
                             AutomationProperties.Name="Main_Options Options">
@@ -928,10 +931,7 @@
                                   Tag="Main_NoRotate"
                                   IsChecked="{Binding IsNoRotateChecked, Mode=OneWay}"
                                   Command="{Binding ToggleAutoRotateCommand}"
-                                  MinWidth="30"
-                                  MinHeight="28"
-                                  Padding="6,0"
-                                  Margin="0,0,2,0"
+                                  Style="{StaticResource ClassicTopToolStripToggleButton}"
                                   ToolTip="Stop Auto Rotate"
                                   AutomationProperties.Name="Main_NoRotate Stop Auto Rotate">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.NoRotate}" />
@@ -942,7 +942,7 @@
                               SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
                               SelectedValuePath="Value"
                               DisplayMemberPath="Text"
-                              MinHeight="28"
+                              Height="24"
                               MinWidth="176"
                               Margin="0,0,8,0"
                               VerticalContentAlignment="Center"
@@ -958,11 +958,7 @@
                     <Button x:Name="Main_Alerts"
                             Tag="Main_Alerts"
                             Click="Main_Alerts_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Alerts"
                             AutomationProperties.Name="Main_Alerts Alerts">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Alert}" />
@@ -970,10 +966,7 @@
                     <Button x:Name="Main_Chinese"
                             Tag="Main_Chinese"
                             Command="{Binding ToggleRegionDisplayCommand}"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="Trad/Simp Chinese"
                             AutomationProperties.Name="Main_Chinese Trad/Simp Chinese">
@@ -982,11 +975,7 @@
                     <Button x:Name="Main_Find"
                             Tag="Main_Find"
                             Click="Main_Find_Click"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Find"
                             AutomationProperties.Name="Main_Find Find">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" />
@@ -996,7 +985,7 @@
                               IsEditable="True"
                               Text="{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               MaxDropDownHeight="260"
-                              MinHeight="28"
+                              Height="24"
                               Width="130"
                               Margin="0,0,8,0"
                               PreviewKeyDown="Main_QuickFind_PreviewKeyDown"
@@ -1004,30 +993,19 @@
                               AutomationProperties.Name="Main_QuickFind Search Phrase" />
                     <Button x:Name="Main_JumpA"
                             Tag="Main_JumpA"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripTextButton}"
                             ToolTip="구찬송가">
                         <TextBlock Text="구찬송가" />
                     </Button>
                     <Button x:Name="Main_JumpB"
                             Tag="Main_JumpB"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
-                            Margin="0,0,2,0"
+                            Style="{StaticResource ClassicTopToolStripTextButton}"
                             ToolTip="새찬송가">
                         <TextBlock Text="새찬송가" />
                     </Button>
                     <Button x:Name="Main_JumpC"
                             Tag="Main_JumpC"
-                            Style="{StaticResource EsButton.Secondary}"
-                            MinWidth="30"
-                            MinHeight="28"
-                            Padding="6,0"
+                            Style="{StaticResource ClassicTopToolStripTextButton}"
                             ToolTip="개역개정">
                         <TextBlock Text="개역개정" />
                     </Button>
@@ -1038,14 +1016,14 @@
                            Grid.Row="1"
                            Orientation="Horizontal">
                     <Button Command="{Binding GoLiveCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             Margin="0,0,2,0"
                             ToolTip="선택 항목을 라이브로 송출 (F12)"
                             AutomationProperties.Name="Go Live">
                         <ui:SymbolIcon Symbol="VideoClip24" />
                     </Button>
                     <Button Command="{Binding SendToOutputAndNextCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             Margin="0,0,2,0"
                             ToolTip="선택 항목을 송출하고 곧바로 다음 항목으로 이동 (F11)"
                             AutomationProperties.Name="송출 후 다음 항목">
@@ -1053,8 +1031,8 @@
                     </Button>
                     <Button Command="{Binding StopLiveCommand}"
                             Style="{StaticResource EsButton.Danger}"
-                            Width="30"
-                            Height="33"
+                            Width="26"
+                            Height="24"
                             MinWidth="0"
                             MinHeight="0"
                             Padding="0"
@@ -1065,8 +1043,8 @@
                     </Button>
                     <Button Command="{Binding BlackScreenCommand}"
                             Style="{StaticResource EsButton.Danger}"
-                            Width="30"
-                            Height="33"
+                            Width="26"
+                            Height="24"
                             MinWidth="0"
                             MinHeight="0"
                             Padding="0"
@@ -1076,49 +1054,49 @@
                         <ui:SymbolIcon Symbol="EyeOff24" />
                     </Button>
                     <Button Command="{Binding ClearOutputCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="가사/콘텐츠를 비우고 배경만 송출 (F3)"
                             AutomationProperties.Name="화면 비우기"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="Eraser24" />
                     </Button>
                     <Button Command="{Binding HideOutputCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="가사/콘텐츠 숨김(배경 유지)"
                             AutomationProperties.Name="출력 숨김"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="EyeOff24" />
                     </Button>
                     <Button Command="{Binding RestoreOutputCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="숨김/검은 화면/비우기에서 직전 송출로 복귀"
                             AutomationProperties.Name="출력 복귀"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="Eye24" />
                     </Button>
                     <Button Command="{Binding RestartCurrentItemCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출"
                             AutomationProperties.Name="현재 항목 처음으로"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="ArrowReset24" />
                     </Button>
                     <Button Command="{Binding RefreshOutputCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="출력 화면을 다시 그린다(디스플레이 글리치 복구)"
                             AutomationProperties.Name="출력 새로고침"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="ArrowSync24" />
                     </Button>
                     <Button Command="{Binding OpenOutputCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             Margin="0,0,2,0"
                             ToolTip="선택한 모니터에 출력 창 열기"
                             AutomationProperties.Name="출력 열기">
                         <ui:SymbolIcon Symbol="WindowNew24" />
                     </Button>
                     <Button Command="{Binding CloseOutputCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="출력 창 닫기"
                             AutomationProperties.Name="출력 닫기">
@@ -1126,35 +1104,35 @@
                     </Button>
                     <!-- 명령 팔레트 진입(발견가능성) — 마우스 운영자도 ⌘K 없이 클릭으로 모든 명령/창을 검색·실행. -->
                     <Button Command="{Binding CommandPalette.OpenCommand}"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="모든 명령·창 검색 (Ctrl+K)"
                             AutomationProperties.Name="명령 팔레트 열기"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="Search24" />
                     </Button>
                     <Button Click="AddExternalFile_Click"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="PowerPoint/미디어 파일을 예배 순서에 추가"
                             AutomationProperties.Name="파일 추가"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="Add24" />
                     </Button>
                     <Button Click="OpenManageWorshipLists_Click"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="예배 순서 저장/불러오기"
                             AutomationProperties.Name="예배 순서 관리"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="Save24" />
                     </Button>
                     <Button Click="OpenSearchUsage_Click"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="검색 및 사용처"
                             AutomationProperties.Name="검색 및 사용처"
                             Margin="0,0,2,0">
                         <ui:SymbolIcon Symbol="Search24" />
                     </Button>
                     <Button Click="OpenSettings_Click"
-                            Style="{StaticResource ClassicOperatorStripButton}"
+                            Style="{StaticResource ClassicTopOperatorStripButton}"
                             ToolTip="설정 열기"
                             AutomationProperties.Name="설정 열기"
                             Margin="0,0,2,0">
