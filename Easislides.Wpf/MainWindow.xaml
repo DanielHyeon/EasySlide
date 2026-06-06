@@ -2034,14 +2034,16 @@
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Width="116" Margin="4">
-                                        <Border Width="108"
-                                                Height="72"
+                                    <StackPanel Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                Margin="4">
+                                        <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                 Background="{DynamicResource Brush.Surface.Subtle}"
                                                 BorderBrush="{DynamicResource Brush.Border.Default}"
                                                 BorderThickness="1">
                                             <Image Source="{Binding Thumbnail}"
                                                    Stretch="Uniform"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
                                                    Margin="2" />
                                         </Border>
                                         <TextBlock Text="{Binding FileName}"

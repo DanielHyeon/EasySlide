@@ -1196,6 +1196,19 @@ public class MainMenuBarTests
         xaml.Should().Contain("ApplyToItemBackgroundCommand", "Add to Item should apply the selected image to the selected worship item");
         xaml.Should().Contain("x:Name=\"CMenuImages_AddDefault\"", "Images menu should expose Add to Default");
         xaml.Should().Contain("x:Name=\"CMenuImages_Refresh\"", "Images menu should expose Refresh Images Lists");
+        var imagesSource = SectionBetween(xaml, "x:Name=\"InlineImagesList\"", "<Grid Grid.Row=\"4\" Margin=\"0,8,0,0\">");
+        imagesSource.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
+            "FrmMain flowLayoutImages uses the same three-column thumbnail formula as PowerPoint thumbnails");
+        imagesSource.Should().Contain("ConverterParameter=Height",
+            "FrmMain image thumbnails use 4:3 height from the calculated thumbnail width");
+        imagesSource.Should().Contain("Width=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyPowerPointThumbnailSize}}\"",
+            "image thumbnail cards should react to the current Images source pane width");
+        imagesSource.Should().NotContain("Width=\"116\"",
+            "fixed WPF image cards break FrmMain flowLayoutImages three-column sizing");
+        imagesSource.Should().NotContain("Width=\"108\"",
+            "fixed thumbnail image width keeps Images thumbnails too small on wider panes");
+        imagesSource.Should().NotContain("Height=\"72\"",
+            "fixed thumbnail image height keeps Images thumbnails below FrmMain's 4:3 sizing");
 
         xaml.Should().Contain("Tag=\"DefaultSource\"", "FrmMain keeps Default as a main-console source tab");
         xaml.Should().Contain("x:Name=\"DefPanel\"", "Default source should expose the legacy FrmMain DefPanel role inline");
