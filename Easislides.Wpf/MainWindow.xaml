@@ -3797,6 +3797,11 @@
                                                             Cursor="Hand"
                                                             ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
                                                             AutomationProperties.Name="{Binding SlideNumber, StringFormat=슬라이드 {0}}">
+                                                        <Button.InputBindings>
+                                                            <MouseBinding MouseAction="LeftDoubleClick"
+                                                                          Command="{Binding DataContext.ReplayPreviewPowerPointSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                          CommandParameter="{Binding SlideNumber}" />
+                                                        </Button.InputBindings>
                                                         <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
                                                                 Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                                 BorderThickness="5"
@@ -4376,6 +4381,11 @@
                                                         BorderThickness="0"
                                                         ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
                                                         AutomationProperties.Name="{Binding SlideNumber, StringFormat=Output 슬라이드 {0}}">
+                                                    <Button.InputBindings>
+                                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                                      Command="{Binding DataContext.ReplayOutputPowerPointSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                      CommandParameter="{Binding SlideNumber}" />
+                                                    </Button.InputBindings>
                                                     <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
                                                             Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                             BorderThickness="5"

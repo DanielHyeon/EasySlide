@@ -989,9 +989,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextSlideCommand = new AsyncRelayCommand(NextPreviewPageAsync, CanGoNextSlide);
         PreviousSlideCommand = new AsyncRelayCommand(PreviousPreviewPageAsync, CanGoPreviousSlide);
         GoToSlideCommand = new AsyncRelayCommand<int>(GoToSlideAsync, CanGoToSlide);
+        ReplayPreviewPowerPointSlideCommand = new AsyncRelayCommand<int>(ReplayPreviewPowerPointSlideAsync, CanGoToSlide);
         NextOutputSlideCommand = new AsyncRelayCommand(NextOutputPageAsync, CanGoNextOutputSlide);
         PreviousOutputSlideCommand = new AsyncRelayCommand(PreviousOutputPageAsync, CanGoPreviousOutputSlide);
         GoToOutputSlideCommand = new AsyncRelayCommand<int>(GoToOutputSlideAsync, CanGoToOutputSlide);
+        ReplayOutputPowerPointSlideCommand = new AsyncRelayCommand<int>(ReplayOutputPowerPointSlideAsync, CanGoToOutputSlide);
         GoToPreviewLyricsPageCommand = new RelayCommand<int>(GoToPreviewLyricsPage, CanGoToPreviewLyricsPage);
         GoToOutputLyricsPageCommand = new RelayCommand<int>(GoToOutputLyricsPage, CanGoToOutputLyricsPage);
         JumpToOutputLyricsSectionCommand = new RelayCommand<string>(JumpToOutputLyricsSection, CanJumpToOutputLyricsSection);
@@ -1247,9 +1249,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand NextSlideCommand { get; }
     public IAsyncRelayCommand PreviousSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToSlideCommand { get; }
+    public IAsyncRelayCommand<int> ReplayPreviewPowerPointSlideCommand { get; }
     public IAsyncRelayCommand NextOutputSlideCommand { get; }
     public IAsyncRelayCommand PreviousOutputSlideCommand { get; }
     public IAsyncRelayCommand<int> GoToOutputSlideCommand { get; }
+    public IAsyncRelayCommand<int> ReplayOutputPowerPointSlideCommand { get; }
     public IRelayCommand<int> GoToPreviewLyricsPageCommand { get; }
     public IRelayCommand<int> GoToOutputLyricsPageCommand { get; }
     public IRelayCommand<string> JumpToOutputLyricsSectionCommand { get; }
@@ -4684,6 +4688,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    // FrmMain PPT thumbnail DoubleClick retriggers the current ImageCanvas.
+    // WPF currently has a static-slide renderer, so replay means force-rendering the selected Preview slide again.
+    private async Task ReplayPreviewPowerPointSlideAsync(int target)
+    {
+        if (SelectedItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
+        {
+            return;
+        }
+
+        if (PowerPoint.State != Rendering.PowerPointPreviewState.Ready
+            || target < 1 || target > PowerPoint.SlideCount)
+        {
+            return;
+        }
+
+        var (width, height) = ResolvePptRenderSize();
+        await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+        StatusText = PowerPoint.SlideCount > 1
+            ? $"Preview PPT slide {target}/{PowerPoint.SlideCount} replayed"
+            : "Preview PPT slide replayed";
+
+        NotifyCommandStates();
+    }
+
     private bool CanGoToSlide(int target)
         => IsPowerPointSlideNavReady() && target >= 1 && target <= PowerPoint.SlideCount;
 
@@ -4743,6 +4771,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         NotifyCommandStates();
+    }
+
+    // Output replay shares the live/prepared Output slide path so Active/Hidden/Off states stay independent from Preview.
+    private async Task ReplayOutputPowerPointSlideAsync(int target)
+    {
+        await GoToOutputSlideAsync(target).ConfigureAwait(true);
+        if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber == target)
+        {
+            StatusText = OutputPowerPoint.SlideCount > 1
+                ? $"Output PPT slide {target}/{OutputPowerPoint.SlideCount} replayed"
+                : "Output PPT slide replayed";
+            NotifyCommandStates();
+        }
     }
 
     private async Task NextOutputPageAsync()
@@ -8649,9 +8690,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NextSlideCommand.NotifyCanExecuteChanged();
         PreviousSlideCommand.NotifyCanExecuteChanged();
         GoToSlideCommand.NotifyCanExecuteChanged();
+        ReplayPreviewPowerPointSlideCommand.NotifyCanExecuteChanged();
         NextOutputSlideCommand.NotifyCanExecuteChanged();
         PreviousOutputSlideCommand.NotifyCanExecuteChanged();
         GoToOutputSlideCommand.NotifyCanExecuteChanged();
+        ReplayOutputPowerPointSlideCommand.NotifyCanExecuteChanged();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
         GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
         JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();

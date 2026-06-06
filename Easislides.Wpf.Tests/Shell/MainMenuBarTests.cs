@@ -594,6 +594,29 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputPowerPointThumbnails_MapFrmMainDoubleClickReplayGesture()
+    {
+        var xaml = Xaml;
+        var previewPowerPointPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicPreviewPowerPointSurface\"",
+            "AutomationProperties.Name=\"Media\"");
+        var outputPowerPointPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicOutputPowerPointSurface\"",
+            "x:Name=\"ClassicOutputVisualSurface\"");
+
+        previewPowerPointPane.Should().Contain("MouseAction=\"LeftDoubleClick\"",
+            "FrmMain ImageCanvas thumbnails wire DoubleClick in addition to MouseUp");
+        previewPowerPointPane.Should().Contain("ReplayPreviewPowerPointSlideCommand",
+            "Preview thumbnail double-click should replay the selected Preview PPT slide without touching Output");
+        outputPowerPointPane.Should().Contain("MouseAction=\"LeftDoubleClick\"",
+            "FrmMain output thumbnails wire DoubleClick in addition to MouseUp");
+        outputPowerPointPane.Should().Contain("ReplayOutputPowerPointSlideCommand",
+            "Output thumbnail double-click should replay the live/prepared Output PPT slide");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputLyricsSurfaces_MapFocusedKeyboardNavigationIndependently()
     {
         var xaml = Xaml;

@@ -4276,6 +4276,36 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ReplayPreviewPowerPointSlideCommand_CurrentSlide_RerendersPreviewOnly()
+    {
+        var render = new SuccessPowerPointRenderService();
+        var powerPoint = new PowerPointPreviewViewModel(render, _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var deck = new LiveQueueItem("ppt:preview", "Preview deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "preview.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.SelectedItem = deck;
+        await sut.ApplySelectedItemContentAsync(deck);
+        render.RequestCount.Should().BeGreaterThan(0);
+        var requestsBeforeReplay = render.RequestCount;
+
+        await sut.ReplayPreviewPowerPointSlideCommand.ExecuteAsync(1);
+
+        render.RequestCount.Should().Be(requestsBeforeReplay + 1,
+            "FrmMain thumbnail double-click re-triggers the selected PPT slide even when it is already current");
+        powerPoint.SlideNumber.Should().Be(1);
+        outputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle,
+            "Preview thumbnail replay must not touch the independent Output surface");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
     public async Task NextSlideCommand_WhileLive_UpdatesPreviewOnly()
     {
         // FrmMain 1:1: Preview 슬라이드 버튼은 live Output 을 몰래 넘기지 않는다.
@@ -10023,6 +10053,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ReplayOutputPowerPointSlideCommand_CurrentPreparedSlide_RerendersPreparedOutput()
+    {
+        var outputRender = new SuccessPowerPointRenderService();
+        var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(outputRender, _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint);
+        var prepared = new LiveQueueItem("ppt:prepared", "Prepared deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "prepared.pptx",
+        };
+        sut.LoadQueue([prepared]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        await sut.GoToOutputSlideCommand.ExecuteAsync(2);
+        outputRender.RequestCount.Should().BeGreaterThan(0);
+        var requestsBeforeReplay = outputRender.RequestCount;
+
+        await sut.ReplayOutputPowerPointSlideCommand.ExecuteAsync(2);
+
+        outputRender.RequestCount.Should().Be(requestsBeforeReplay + 1,
+            "FrmMain Output thumbnail double-click re-triggers the current output PPT slide");
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(prepared.Id);
+        sut.OutputItem.SlideNumber.Should().Be(2);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
     public async Task OutputSlideButtons_ClampPreparedPowerPointAtBoundariesLikeFrmMain()
     {
         // FrmMain MoveToSlide(Gf.OutputItem, PrevOne/NextOne): 첫/마지막 슬라이드에서는 버튼 실행 후 현재 슬라이드에 머문다.
@@ -10794,8 +10856,16 @@ public class MainViewModelTests
     // 렌더 성공을 내는 스텁 — 슬라이드 출력 송출(G1.2) 경로 검증용.
     private sealed class SuccessPowerPointRenderService : IPowerPointRenderService
     {
+        public int RequestCount { get; private set; }
+
+        public PowerPointRenderRequest? LastRequest { get; private set; }
+
         public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
-            => Task.FromResult(SuccessResult(request));
+        {
+            RequestCount++;
+            LastRequest = request;
+            return Task.FromResult(SuccessResult(request));
+        }
 
         public void ClearCache()
         {
