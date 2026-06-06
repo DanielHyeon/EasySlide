@@ -4349,15 +4349,15 @@
                                                 Cursor="Hand"
                                                 ToolTip="Output 시각 자료 새로고침"
                                                 AutomationProperties.Name="Output 시각 자료 새로고침">
-                                            <Border Width="190"
-                                                    MinHeight="140"
+                                            <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                    MinHeight="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                     Padding="4"
                                                     Background="{DynamicResource Brush.Surface.Page}"
                                                     BorderBrush="Red"
                                                     BorderThickness="5">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
-                                                        <RowDefinition Height="102" />
+                                                        <RowDefinition Height="Auto" />
                                                         <RowDefinition Height="Auto" />
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
@@ -4366,8 +4366,8 @@
                                                                                    Source="{Binding OutputVisualSource}"
                                                                                    FillMode="{Binding OutputVisualFillMode}"
                                                                                    SlideNumber="{Binding OutputVisualSlideNumber}"
-                                                                                   Width="180"
-                                                                                   Height="102"
+                                                                                   Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                                                   Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                                                    IsHitTestVisible="False"
                                                                                    AutomationProperties.Name="Output 시각 자료 썸네일" />
                                                     <TextBlock Grid.Row="1"

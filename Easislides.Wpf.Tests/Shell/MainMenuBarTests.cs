@@ -695,6 +695,29 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicOutputVisualThumbnails_UseFrmMainThreeColumnSizing()
+    {
+        var xaml = Xaml;
+        var visualSurface = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicOutputVisualSurface\"",
+            "x:Name=\"ClassicOutputMediaSurface\"");
+
+        visualSurface.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
+            "non-PPT Output visual thumbnails should use the same FrmMain three-column flow sizing as PPT thumbnails");
+        visualSurface.Should().Contain("ConverterParameter=Height",
+            "non-PPT Output visual thumbnails should keep the same 4:3 canvas as FrmMain thumbnail panes");
+        visualSurface.Should().Contain("Width=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}\"",
+            "the visual card width should react to the current Output flow panel width");
+        visualSurface.Should().Contain("Height=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}\"",
+            "the visual preview image should share the legacy thumbnail height");
+        visualSurface.Should().NotContain("Width=\"190\"",
+            "fixed WPF visual cards leave the right Output pane unlike FrmMain's responsive thumbnail flow");
+        visualSurface.Should().NotContain("Height=\"102\"",
+            "fixed WPF visual preview height keeps image thumbnails too small and blurry");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputPowerPointThumbnails_MapFrmMainDoubleClickReplayGesture()
     {
         var xaml = Xaml;
