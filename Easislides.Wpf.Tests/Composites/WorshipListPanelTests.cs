@@ -294,8 +294,14 @@ public class WorshipListPanelTests
         var code = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
 
         code.Should().Contain("typeof(PraiseBookIndexEntry)", "PraiseBookItems drags use a typed payload");
+        code.Should().Contain("typeof(PraiseBookIndexEntry[])",
+            "multi-selected PraiseBookItems drags should use an ordered typed payload array");
         code.Should().Contain("AddPraiseBookSongRelativeToAsync(praiseBookEntry, targetItem)",
             "PraiseBook drops should reuse song resolution while preserving the Worship List drop position");
+        code.Should().Contain("foreach (var selectedPraiseBookEntry in praiseBookEntries)",
+            "multi-selected PraiseBook drops should insert every selected row");
+        code.Should().Contain("firstAdded ??= added",
+            "multi-selected PraiseBook drops should restore selection to the first inserted row like the other grouped drop paths");
     }
 
     [Fact]

@@ -445,6 +445,7 @@ public partial class WorshipListPanel : UserControl
             || e.Data.GetDataPresent(typeof(InfoScreenSelection))
             || e.Data.GetDataPresent(typeof(InfoScreenSelection[]))
             || e.Data.GetDataPresent(typeof(PraiseBookIndexEntry))
+            || e.Data.GetDataPresent(typeof(PraiseBookIndexEntry[]))
             || e.Data.GetDataPresent(DataFormats.FileDrop))
         {
             // 성경 본문 선택·라이브러리 곡·InfoScreen·PraiseBook·탐색기 외부 파일(PPT/미디어) = 큐에 추가(Copy).
@@ -510,6 +511,20 @@ public partial class WorshipListPanel : UserControl
         {
             // 하단 PraiseBook 항목을 예배 순서에 드롭 — 더블클릭 추가와 같은 곡 해석을 쓰되 드롭 위치를 보존한다.
             await viewModel.AddPraiseBookSongRelativeToAsync(praiseBookEntry, targetItem).ConfigureAwait(true);
+        }
+        else if (e.Data.GetData(typeof(PraiseBookIndexEntry[])) is PraiseBookIndexEntry[] praiseBookEntries)
+        {
+            LiveQueueItem? firstAdded = null;
+            foreach (var selectedPraiseBookEntry in praiseBookEntries)
+            {
+                var added = await viewModel.AddPraiseBookSongRelativeToAsync(selectedPraiseBookEntry, targetItem).ConfigureAwait(true);
+                firstAdded ??= added;
+            }
+
+            if (firstAdded is not null)
+            {
+                viewModel.SelectedItem = firstAdded;
+            }
         }
         else if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
         {

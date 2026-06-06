@@ -1050,7 +1050,15 @@ public class MainMenuBarTests
         code.Should().Contain("PreviewPraiseBookSongAsync", "PraiseBook selection preview should reuse the same DB/song resolution as add and drag");
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
-        code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry), entry)", "inline PraiseBook drag should carry the exact selected legacy entry");
+        code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry), selection[0])", "inline PraiseBook drag should carry the exact selected legacy entry");
+        code.Should().Contain("GetPraiseBookSelection(_praiseBookDragCandidate)",
+            "inline PraiseBook drag should preserve multi-selected rows instead of collapsing to the pressed row");
+        code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry[]), selection.ToArray())",
+            "multi-selected PraiseBook rows should travel to Worship List as one ordered payload");
+        code.Should().Contain("foreach (var entry in GetPraiseBookSelection())",
+            "PraiseBook Enter/double-click should add all selected rows in list order");
+        code.Should().Contain("_inlinePraiseBook.Entries.IndexOf(entry)",
+            "multi-selected PraiseBook rows should be ordered by the visible PraiseBook list, not by click history");
         code.Should().Contain("private void PraiseBookItems_PreviewMouseRightButtonDown", "PraiseBook context menu should select the row under the pointer");
         code.Should().Contain("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.A", "PraiseBook Ctrl+A should select all entries like FrmMain");
         code.Should().Contain("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete", "PraiseBook Delete should remove selected entries like FrmMain");

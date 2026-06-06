@@ -3015,10 +3015,23 @@ public partial class MainWindow : Window
 
     private async Task AddSelectedPraiseBookEntryToWorshipListAsync()
     {
-        if (PraiseBookItems.SelectedItem is PraiseBookIndexEntry entry
-            && DataContext is MainViewModel viewModel)
+        if (DataContext is not MainViewModel viewModel)
         {
-            await viewModel.AddPraiseBookSongAsync(entry).ConfigureAwait(true);
+            return;
+        }
+
+        var added = new List<LiveQueueItem>();
+        foreach (var entry in GetPraiseBookSelection())
+        {
+            if (await viewModel.AddPraiseBookSongAsync(entry).ConfigureAwait(true) is { } item)
+            {
+                added.Add(item);
+            }
+        }
+
+        if (added.Count > 0)
+        {
+            viewModel.SelectedItem = added[0];
         }
     }
 
@@ -3073,12 +3086,52 @@ public partial class MainWindow : Window
             return;
         }
 
-        var entry = _praiseBookDragCandidate;
+        var selection = GetPraiseBookSelection(_praiseBookDragCandidate);
+        if (selection.Count == 0)
+        {
+            _praiseBookDragCandidate = null;
+            return;
+        }
+
         _praiseBookDragCandidate = null;
+        var data = selection.Count == 1
+            ? new DataObject(typeof(PraiseBookIndexEntry), selection[0])
+            : new DataObject(typeof(PraiseBookIndexEntry[]), selection.ToArray());
         DragDrop.DoDragDrop(
             PraiseBookItems,
-            new DataObject(typeof(PraiseBookIndexEntry), entry),
+            data,
             DragDropEffects.Copy);
+    }
+
+    private IReadOnlyList<PraiseBookIndexEntry> GetPraiseBookSelection(PraiseBookIndexEntry? preferredEntry = null)
+    {
+        var selection = PraiseBookItems.SelectedItems
+            .OfType<PraiseBookIndexEntry>()
+            .ToList();
+
+        if (preferredEntry is not null && !selection.Contains(preferredEntry))
+        {
+            selection.Clear();
+            selection.Add(preferredEntry);
+        }
+
+        if (selection.Count == 0 && PraiseBookItems.SelectedItem is PraiseBookIndexEntry selected)
+        {
+            selection.Add(selected);
+        }
+
+        if (_inlinePraiseBook is null || selection.Count <= 1)
+        {
+            return selection;
+        }
+
+        return selection
+            .OrderBy(entry =>
+            {
+                var index = _inlinePraiseBook.Entries.IndexOf(entry);
+                return index < 0 ? int.MaxValue : index;
+            })
+            .ToArray();
     }
 
     private async void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
