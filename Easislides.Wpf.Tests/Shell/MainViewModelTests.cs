@@ -6840,6 +6840,69 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task WorshipListDoubleClickCommand_MediaItem_UsesLegacyMediaLauncherOnly()
+    {
+        // FrmMain WorshipListItems_DoubleClick: PreviewItem.Type == "M" 이면 RunProcess(mediaPath) 후
+        // CopyPreviewToOutput/GoLive 흐름을 타지 않는다.
+        using var folder = TempSettingsFolder.Create();
+        var mediaFile = Path.Combine(folder.Root, "intro.mp4");
+        File.WriteAllText(mediaFile, "test media placeholder");
+        var output = new OutputWindowService();
+        var launched = new List<string>();
+        var sut = CreateSut(
+            output: output,
+            seedSampleQueue: false,
+            worshipMediaLauncher: path =>
+            {
+                launched.Add(path);
+                return true;
+            });
+        var item = new LiveQueueItem($"media:{mediaFile}", "intro", LiveItemKinds.Media) { ContentPath = mediaFile };
+        sut.LoadQueue([item]);
+
+        sut.WorshipListDoubleClickCommand.CanExecute(null).Should().BeTrue();
+        await sut.WorshipListDoubleClickCommand.ExecuteAsync(null);
+
+        launched.Should().ContainSingle().Which.Should().Be(mediaFile);
+        output.Current.IsOpen.Should().BeFalse("legacy media double-click launches the file instead of opening the Output monitor");
+        sut.OutputItem.Should().BeNull("media double-click must not copy Preview to Output");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.StatusText.Should().Contain("미디어 재생").And.Contain("intro.mp4");
+    }
+
+    [Fact]
+    public async Task WorshipListDoubleClickCommand_NonMedia_UsesPreviewItemToLiveFlowWithoutAutoAdvance()
+    {
+        // 일반 Worship row 더블클릭은 FrmMain PreviewItemToLive: Preview -> Output 복사 후 live 시작/갱신.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var output = new OutputWindowService();
+        var first = new LiveQueueItem("song:first", "입례 찬양", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n입례\n[C]\n후렴",
+        };
+        var second = new LiveQueueItem("song:second", "봉헌 찬양", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n봉헌",
+        };
+        var sut = CreateSut(settings: settings, output: output, seedSampleQueue: false);
+        sut.LoadQueue([first, second]);
+        sut.SelectedItem = first;
+        sut.NextLyricsPageCommand.Execute(null);
+
+        await sut.WorshipListDoubleClickCommand.ExecuteAsync(null);
+
+        output.Current.IsOpen.Should().BeTrue();
+        sut.SelectedItem.Should().BeSameAs(first, "PreviewItemToLive does not use GoLiveCommand's auto-next selection workflow");
+        sut.OutputItem.Should().BeSameAs(first);
+        sut.LiveItemId.Should().Be(first.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("후렴");
+    }
+
+    [Fact]
     public void EditSelectedExternalWorshipItem_PowerPointItem_UsesEditLauncher()
     {
         // FrmMain CMenuWorship_Edit -> UseCorrectEditor(P): 선택한 PPT 파일을 외부 편집기로 연다.

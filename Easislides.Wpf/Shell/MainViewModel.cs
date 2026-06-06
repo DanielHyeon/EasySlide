@@ -948,6 +948,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowPreviewTextModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Text));
         ShowPreviewFormatModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Format));
         ShowPreviewInfoModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Info));
+        WorshipListDoubleClickCommand = new AsyncRelayCommand(WorshipListDoubleClickAsync, CanWorshipListDoubleClick);
         PreviewToLiveCommand = new AsyncRelayCommand(PreviewToLiveAsync, CanPreviewToLive);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
@@ -1197,6 +1198,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ShowPreviewInfoModeCommand { get; }
     /// <summary>FrmMain btnToLive: PreviewItem 을 OutputItem 으로 복사하고, live off 면 시작, live 중이면 현재 Output 을 갱신한다.</summary>
     public IAsyncRelayCommand PreviewToLiveCommand { get; }
+    /// <summary>FrmMain WorshipListItems_DoubleClick: media 는 실행, 그 외 항목은 PreviewItemToLive 흐름.</summary>
+    public IAsyncRelayCommand WorshipListDoubleClickCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
     /// <summary>상단/메뉴 F11: 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).</summary>
@@ -5298,6 +5301,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return Task.CompletedTask;
     }
 
+    private bool CanWorshipListDoubleClick()
+        => SelectedItem is { } item && (IsMediaItem(item) || CanCopyPreviewToOutput());
+
+    private Task WorshipListDoubleClickAsync()
+    {
+        if (SelectedItem is not { } item)
+        {
+            StatusText = "더블클릭할 Worship 항목을 선택하세요.";
+            NotifyCommandStates();
+            return Task.CompletedTask;
+        }
+
+        if (IsMediaItem(item))
+        {
+            PlaySelectedWorshipMedia();
+            return Task.CompletedTask;
+        }
+
+        return PreviewToLiveAsync();
+    }
+
     private bool CanPreviewToLive()
         => CanCopyPreviewToOutput();
 
@@ -8653,6 +8677,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopyPreviewToOutputAndNextCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputShortcutCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputAndClearBlackCommand.NotifyCanExecuteChanged();
+        WorshipListDoubleClickCommand.NotifyCanExecuteChanged();
         PreviewToLiveCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();

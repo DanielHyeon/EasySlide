@@ -387,11 +387,11 @@
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
-                    <!-- 더블클릭은 FrmMain WorshipListItems_DoubleClick/PreviewItemToLive 흐름:
-                         Preview 항목을 OutputItem 으로 복사하고, live off 면 Output 을 열어 송출하며, live 중이면 Output 만 갱신한다. -->
+                    <!-- 더블클릭은 FrmMain WorshipListItems_DoubleClick:
+                         media 는 파일 실행, 그 외 항목은 PreviewItemToLive 흐름으로 OutputItem 복사/송출한다. -->
                     <ListView.InputBindings>
                         <MouseBinding MouseAction="LeftDoubleClick"
-                                      Command="{Binding PreviewToLiveCommand}" />
+                                      Command="{Binding WorshipListDoubleClickCommand}" />
                     </ListView.InputBindings>
                     <!-- 항목 우클릭 — 개별 서식 사용 토글(레거시 Ind_checkBox). 끄면 전역 기본 서식으로 송출.
                          ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->

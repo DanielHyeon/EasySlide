@@ -52,9 +52,9 @@ public class WorshipListPanelTests
         Attr(list, "PreviewMouseRightButtonDown").Should().Be("QueueList_PreviewMouseRightButtonDown",
             "right-click should select the row under the mouse before context-menu commands run");
         var doubleClick = list.Descendants().Single(e => e.Name.LocalName == "MouseBinding" && Attr(e, "MouseAction") == "LeftDoubleClick");
-        Attr(doubleClick, "Command").Should().Contain("PreviewToLiveCommand")
+        Attr(doubleClick, "Command").Should().Contain("WorshipListDoubleClickCommand")
             .And.NotContain("GoLiveCommand",
-                "FrmMain WorshipListItems_DoubleClick routes through PreviewItemToLive, not the top-level GoLive auto-advance workflow");
+                "FrmMain WorshipListItems_DoubleClick has a media special case and otherwise routes through PreviewItemToLive, not the top-level GoLive auto-advance workflow");
 
         // 증분137 — 항목 한 줄은 종류 아이콘 + 제목. 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
         var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "SymbolIcon");
