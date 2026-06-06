@@ -2358,30 +2358,38 @@ public partial class MainWindow : Window
     }
 
     // 입력창에서 Enter 를 누르면 "이동"과 동일하게 처리(타이핑→Enter 한 번에 추가).
-    private void BibleReferenceBox_KeyDown(object sender, KeyEventArgs e)
+    private async void BibleReferenceBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
             e.Handled = true;
-            JumpToTypedBibleReference();
+            await JumpToTypedBibleReferenceAsync().ConfigureAwait(true);
         }
     }
 
-    private void JumpBibleReference_Click(object sender, RoutedEventArgs e)
-        => JumpToTypedBibleReference();
+    private async void JumpBibleReference_Click(object sender, RoutedEventArgs e)
+        => await JumpToTypedBibleReferenceAsync().ConfigureAwait(true);
 
     // 타이핑한 구절(예: "창 1:1-2:3")로 점프해 본문에서 그 범위를 하이라이트하고 예배 순서에 추가한다.
     // 드래그 선택 흐름(BuildSelection→AddBibleSelection)과 동일 경로를 재사용한다.
-    private void JumpToTypedBibleReference()
+    private async Task JumpToTypedBibleReferenceAsync()
     {
         if (DataContext is not MainViewModel viewModel)
         {
             return;
         }
 
+        var typedLookup = (viewModel.Bible.TypedReference ?? string.Empty).Trim();
         var selection = viewModel.Bible.JumpToReference();
         if (string.IsNullOrWhiteSpace(selection.IdString))
         {
+            if (ShouldFallbackTypedBibleLookupToSearch(typedLookup)
+                && viewModel.Bible.SearchCommand.CanExecute(null))
+            {
+                viewModel.Bible.SearchText = typedLookup;
+                await viewModel.Bible.SearchCommand.ExecuteAsync(null).ConfigureAwait(true);
+            }
+
             return; // 파싱·해석 실패 — VM 이 ValidationMessage 로 안내함.
         }
 
@@ -2394,6 +2402,25 @@ public partial class MainWindow : Window
         }
 
         viewModel.AddBibleSelection(selection);
+    }
+
+    internal static bool ShouldFallbackTypedBibleLookupToSearch(string? text)
+    {
+        var typedLookup = (text ?? string.Empty).Trim();
+        if (typedLookup.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var c in typedLookup)
+        {
+            if (char.IsLetter(c))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void OpenSettings_Click(object sender, RoutedEventArgs e)

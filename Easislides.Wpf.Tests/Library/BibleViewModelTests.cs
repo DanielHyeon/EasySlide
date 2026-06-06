@@ -337,6 +337,21 @@ public class BibleViewModelTests
         repository.LastBuildLength.Should().Be(8);
     }
 
+    [Theory]
+    [InlineData("steadfast love")]
+    [InlineData("Mars 1:1")]
+    [InlineData("요한")]
+    public void MainShellBibleLookupFallback_DetectsTextSearchLikeFrmMain(string text)
+        => Easislides.Wpf.MainWindow.ShouldFallbackTypedBibleLookupToSearch(text).Should().BeTrue();
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("1:1-2")]
+    [InlineData("12 34")]
+    public void MainShellBibleLookupFallback_DoesNotSearchBlankOrNumberOnlyInput(string text)
+        => Easislides.Wpf.MainWindow.ShouldFallbackTypedBibleLookupToSearch(text).Should().BeFalse();
+
     [Fact]
     public async Task BuildSelection_WhenRegionTwoPreviewEnabled_UpdatesPreviewSelectionAndRaisesPreview()
     {

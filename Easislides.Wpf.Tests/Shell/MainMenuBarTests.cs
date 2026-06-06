@@ -875,6 +875,12 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"Bibles_Go\"", "Bibles tab should expose the FrmMain Go toolstrip button role");
         xaml.Should().Contain("Tag=\"Bibles_Go\"", "Go button should keep the legacy Bibles_Go role");
         xaml.Should().Contain("Click=\"JumpBibleReference_Click\"", "Bibles_Go should submit the typed reference");
+        code.Should().Contain("ShouldFallbackTypedBibleLookupToSearch",
+            "Bibles_Go should fall back to Bible search when typed text is not a direct verse reference, like FrmMain BibleUserLookup_Submit");
+        code.Should().Contain("Bible.SearchText = typedLookup",
+            "typed Bible search fallback should reuse the Bible tab search text");
+        code.Should().Contain("Bible.SearchCommand.ExecuteAsync",
+            "typed Bible search fallback should run the same Bible search command as the main Bible search UI");
         xaml.Should().Contain("x:Name=\"Bibles_ShowVerses\"", "Bibles tab should expose the FrmMain show-verses toggle role");
         xaml.Should().Contain("Tag=\"Bibles_ShowVerses\"", "Show-verses toggle should keep the legacy role");
         xaml.Should().Contain("IsChecked=\"{Binding Bible.ShowVerses, Mode=TwoWay}\"",
