@@ -564,6 +564,10 @@ public partial class MainWindow : Window
                 ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
                 return true;
 
+            case Key.J:
+                ExecuteCommand(_viewModel.JumpToNextNonRotatePreviewItemCommand);
+                return true;
+
             case Key.Home:
                 ExecuteCommand(_viewModel.FirstPreviewItemCommand);
                 return true;
@@ -723,6 +727,10 @@ public partial class MainWindow : Window
 
             case Key.G:
                 ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
+                return true;
+
+            case Key.J:
+                ExecuteCommand(_viewModel.JumpToNextNonRotatePreviewItemCommand);
                 return true;
 
             default:

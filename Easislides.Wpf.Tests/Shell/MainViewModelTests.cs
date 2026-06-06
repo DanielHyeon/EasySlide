@@ -4812,6 +4812,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task JumpToNextNonRotatePreviewItemCommand_SkipsRotatingLyricsAndMovesPreviewOnly()
+    {
+        // FrmMain focused Preview J uses GotoNextNonRotateItem(Gf.PreviewItem): it moves Preview selection only.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse",
+        };
+        var rotatingLyrics = new LiveQueueItem("song:rotating", "Rotating lyrics", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nFirst page\n[2]\nSecond page",
+        };
+        var target = new LiveQueueItem("notice:target", "Target notice", LiveItemKinds.Notice)
+        {
+            Lyrics = "Target notice body",
+        };
+
+        sut.LoadQueue([live, preview, rotatingLyrics, target]);
+        sut.SelectedItem = live;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        sut.JumpToNextNonRotatePreviewItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.JumpToNextNonRotatePreviewItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(target, "Preview J should move within the selected Preview context");
+        sut.OutputItem.Should().BeSameAs(live, "Preview J must not copy the new Preview selection into Output");
+        sut.Session.Current.State.Should().Be(LiveState.Off, "prepared Output should stay off");
+        sut.StatusText.Should().Be("Preview 회전 제외 항목 선택: Target notice");
+    }
+
+    [Fact]
     public void FirstAndLastItemCommands_JumpToEndsOfQueue()
     {
         var sut = CreateSut();

@@ -967,6 +967,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousPreviewItemCommand = new RelayCommand(() => MovePreviewItem(-1), CanMovePreviewItem);
         FirstPreviewItemCommand = new RelayCommand(() => MovePreviewItemToIndex(0), CanMovePreviewItem);
         LastPreviewItemCommand = new RelayCommand(() => MovePreviewItemToIndex(Queue.Count - 1), CanMovePreviewItem);
+        JumpToNextNonRotatePreviewItemCommand = new AsyncRelayCommand(
+            JumpToNextNonRotatePreviewItemAsync,
+            CanJumpToNextNonRotatePreviewItem);
         LiveNextShortcutCommand = new AsyncRelayCommand(() => ExecuteLiveNavigationShortcutAsync(+1));
         LivePreviousShortcutCommand = new AsyncRelayCommand(() => ExecuteLiveNavigationShortcutAsync(-1));
         NextOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(+1), CanMoveOutputNext);
@@ -1224,6 +1227,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand FirstPreviewItemCommand { get; }
     /// <summary>FrmMain Preview PPT focus End: live Output 과 별개로 마지막 Preview 항목을 선택한다.</summary>
     public IRelayCommand LastPreviewItemCommand { get; }
+    /// <summary>FrmMain focused Preview J: move the selected Preview context to the next non-rotating item.</summary>
+    public IAsyncRelayCommand JumpToNextNonRotatePreviewItemCommand { get; }
     /// <summary>FrmMain Space/F5: 라이브 중에는 Output 슬라이드/절을 우선 이동하고, 끝에서는 설정에 따라 다음 Output 항목으로 진행한다.</summary>
     public IAsyncRelayCommand LiveNextShortcutCommand { get; }
     /// <summary>FrmMain Shift+Space/F4: 라이브 중에는 Output 슬라이드/절을 우선 되돌리고, 처음에서는 설정에 따라 이전 Output 항목으로 진행한다.</summary>
@@ -5795,6 +5800,70 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return -1;
     }
 
+    private bool CanJumpToNextNonRotatePreviewItem()
+    {
+        var index = GetPreviewSelectionIndex();
+        if (index < 0)
+        {
+            return false;
+        }
+
+        for (var i = index + 1; i < Queue.Count; i++)
+        {
+            if (IsKnownOrPotentialNonRotatingOutputItem(Queue[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task JumpToNextNonRotatePreviewItemAsync()
+    {
+        var target = await FindNextNonRotatingPreviewItemAsync().ConfigureAwait(true);
+        if (target is null)
+        {
+            StatusText = "다음 회전 제외 Preview 항목이 없습니다.";
+            NotifyCommandStates();
+            return;
+        }
+
+        MovePreviewItemToIndex(IndexOfReference(target));
+        StatusText = $"Preview 회전 제외 항목 선택: {target.Title}";
+        NotifyCommandStates();
+    }
+
+    private async Task<LiveQueueItem?> FindNextNonRotatingPreviewItemAsync()
+    {
+        var index = GetPreviewSelectionIndex();
+        if (index < 0)
+        {
+            return null;
+        }
+
+        var inspectedPowerPoint = false;
+        for (var i = index + 1; i < Queue.Count; i++)
+        {
+            var candidate = Queue[i];
+            var hadKnownSlideCount = !IsPowerPointItem(candidate)
+                || TryGetKnownPowerPointSlideCount(candidate, out _);
+            if (await IsNonRotatingPreviewItemAsync(candidate).ConfigureAwait(true))
+            {
+                return candidate;
+            }
+
+            inspectedPowerPoint |= IsPowerPointItem(candidate) && !hadKnownSlideCount;
+        }
+
+        if (inspectedPowerPoint)
+        {
+            await ApplySelectedItemContentAsync(SelectedItem).ConfigureAwait(true);
+        }
+
+        return null;
+    }
+
     private bool CanMoveOutputNext()
         => CanUseOutputItemNavigation();
 
@@ -6054,6 +6123,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);
+        return TryGetKnownPowerPointSlideCount(item, out slideCount) && slideCount <= 1;
+    }
+
+    private async Task<bool> IsNonRotatingPreviewItemAsync(LiveQueueItem item)
+    {
+        if (!IsPowerPointItem(item))
+        {
+            return IsNonRotatingOutputItem(item);
+        }
+
+        if (TryGetKnownPowerPointSlideCount(item, out var slideCount))
+        {
+            return slideCount <= 1;
+        }
+
+        if (string.IsNullOrWhiteSpace(item.ContentPath))
+        {
+            return true;
+        }
+
+        var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
+        var (width, height) = ResolvePptRenderSize();
+        await PowerPoint.LoadAsync(item.ContentPath, slide, width, height).ConfigureAwait(true);
         return TryGetKnownPowerPointSlideCount(item, out slideCount) && slideCount <= 1;
     }
 
@@ -8876,6 +8968,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousPreviewItemCommand.NotifyCanExecuteChanged();
         FirstPreviewItemCommand.NotifyCanExecuteChanged();
         LastPreviewItemCommand.NotifyCanExecuteChanged();
+        JumpToNextNonRotatePreviewItemCommand.NotifyCanExecuteChanged();
         NextOutputItemCommand.NotifyCanExecuteChanged();
         PreviousOutputItemCommand.NotifyCanExecuteChanged();
         FirstOutputItemCommand.NotifyCanExecuteChanged();

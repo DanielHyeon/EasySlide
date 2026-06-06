@@ -603,6 +603,8 @@ public class MainMenuBarTests
             "Preview/Output PPT focus should keep FrmMain A auto-rotate toggling in the local keyboard path");
         code.Should().Contain("ExecuteCommand(_viewModel.ToggleGapItemOptionCommand)",
             "Preview/Output focus should keep FrmMain G gap toggle in the local keyboard path");
+        code.Should().Contain("ExecuteCommand(_viewModel.JumpToNextNonRotatePreviewItemCommand)",
+            "Preview PPT focus J should map to FrmMain GotoNextNonRotateItem for the selected Preview context");
         code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
             "Output Up should move only the live output deck");
         code.Should().Contain("_viewModel.NextOutputSlideCommand.Execute(null)",
@@ -814,6 +816,8 @@ public class MainMenuBarTests
             "Preview lyrics focus Home should move the selected Preview context to the first item like FrmMain focused panes");
         previewLyricsRouting.Should().Contain("ExecuteCommand(_viewModel.LastPreviewItemCommand)",
             "Preview lyrics focus End should move the selected Preview context to the last item like FrmMain focused panes");
+        previewLyricsRouting.Should().Contain("ExecuteCommand(_viewModel.JumpToNextNonRotatePreviewItemCommand)",
+            "Preview lyrics focus J should move to the next non-rotating Preview item like FrmMain focused panes");
 
         var outputLyricsRouting = SectionBetween(
             code,
