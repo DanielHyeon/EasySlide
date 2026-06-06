@@ -618,12 +618,15 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.Down:
-            case Key.Space:
                 if (_viewModel.NextSlideCommand.CanExecute(null))
                 {
                     _viewModel.NextSlideCommand.Execute(null);
                 }
 
+                return true;
+
+            case Key.Space:
+                ExecutePreviewSlideReplay(_viewModel.PowerPoint.SlideNumber);
                 return true;
 
             case Key.Left:
@@ -664,6 +667,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ExecutePreviewSlideReplay(int slideNumber)
+    {
+        if (_viewModel.ReplayPreviewPowerPointSlideCommand.CanExecute(slideNumber))
+        {
+            _viewModel.ReplayPreviewPowerPointSlideCommand.Execute(slideNumber);
+        }
+    }
+
     private bool TryExecuteOutputPowerPointKey(Key key, ModifierKeys modifiers)
     {
         switch (key)
@@ -677,12 +688,15 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.Down:
-            case Key.Space:
                 if (_viewModel.NextOutputSlideCommand.CanExecute(null))
                 {
                     _viewModel.NextOutputSlideCommand.Execute(null);
                 }
 
+                return true;
+
+            case Key.Space:
+                ExecuteOutputSlideReplay(_viewModel.OutputPowerPoint.SlideNumber);
                 return true;
 
             case Key.Left:
@@ -720,6 +734,14 @@ public partial class MainWindow : Window
         if (_viewModel.GoToOutputSlideCommand.CanExecute(slideNumber))
         {
             _viewModel.GoToOutputSlideCommand.Execute(slideNumber);
+        }
+    }
+
+    private void ExecuteOutputSlideReplay(int slideNumber)
+    {
+        if (_viewModel.ReplayOutputPowerPointSlideCommand.CanExecute(slideNumber))
+        {
+            _viewModel.ReplayOutputPowerPointSlideCommand.Execute(slideNumber);
         }
     }
 

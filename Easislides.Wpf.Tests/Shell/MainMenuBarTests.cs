@@ -562,7 +562,9 @@ public class MainMenuBarTests
         code.Should().Contain("_viewModel.PreviousSlideCommand.Execute(null)",
             "Preview Up should move only the selected preview deck");
         code.Should().Contain("_viewModel.NextSlideCommand.Execute(null)",
-            "Preview Down/Space should move only the selected preview deck");
+            "Preview Down should move only the selected preview deck");
+        code.Should().Contain("_viewModel.ReplayPreviewPowerPointSlideCommand.Execute(slideNumber)",
+            "Preview Space should replay the current PPT slide like FrmMain KeyDirection.SpaceOne/SafePlayNext instead of moving to the next slide");
         code.Should().Contain("_viewModel.GoToSlideCommand.Execute(slideNumber)",
             "Preview Left/Right should jump inside the preview deck");
         code.Should().Contain("ExecuteCommand(_viewModel.PreviousPreviewItemCommand)",
@@ -576,7 +578,9 @@ public class MainMenuBarTests
         code.Should().Contain("_viewModel.PreviousOutputSlideCommand.Execute(null)",
             "Output Up should move only the live output deck");
         code.Should().Contain("_viewModel.NextOutputSlideCommand.Execute(null)",
-            "Output Down/Space should move only the live output deck");
+            "Output Down should move only the live output deck");
+        code.Should().Contain("_viewModel.ReplayOutputPowerPointSlideCommand.Execute(slideNumber)",
+            "Output Space should replay/republish the current Output PPT slide like FrmMain live PPT Space instead of moving Preview or advancing the slide");
         code.Should().Contain("_viewModel.GoToOutputSlideCommand.Execute(slideNumber)",
             "Output Left/Right should jump inside the live output deck");
         code.Should().Contain("ExecuteCommand(_viewModel.PreviousOutputItemCommand)",
