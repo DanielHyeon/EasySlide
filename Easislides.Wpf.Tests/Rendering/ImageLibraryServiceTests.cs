@@ -84,6 +84,36 @@ public class ImageLibraryServiceTests
     }
 
     [Fact]
+    public void EnumerateFolders_ReturnsFrmMainImageFolderGroups()
+    {
+        using var folder = new TempFolder();
+        Directory.CreateDirectory(System.IO.Path.Combine(folder.Path, "Scenery"));
+        Directory.CreateDirectory(System.IO.Path.Combine(folder.Path, "Tiles"));
+        Directory.CreateDirectory(System.IO.Path.Combine(folder.Path, "Custom"));
+        Directory.CreateDirectory(System.IO.Path.Combine(folder.Path, "Custom", "Deep"));
+        var sut = new ImageLibraryService();
+
+        var result = sut.EnumerateFolders(folder.Path);
+
+        result.Select(f => f.DisplayName).Should().Equal(
+            "Scenery",
+            "Tiles",
+            "Images",
+            @"\Custom",
+            @"\Custom\Deep");
+        result[0].FolderPath.Should().Be(System.IO.Path.Combine(System.IO.Path.GetFullPath(folder.Path), "Scenery"));
+        result[2].FolderPath.Should().Be(System.IO.Path.GetFullPath(folder.Path));
+    }
+
+    [Fact]
+    public void EnumerateFolders_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImageLibraryService();
+
+        sut.EnumerateFolders(@"C:\no\such\folder\__missing__").Should().BeEmpty();
+    }
+
+    [Fact]
     public void EnumerateImages_BlankFolder_ReturnsEmpty()
     {
         var sut = new ImageLibraryService();

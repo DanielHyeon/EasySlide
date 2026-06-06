@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Easislides.Wpf.Rendering;
+
+public sealed record ImageFolderItem(string DisplayName, string FolderPath);
 
 /// <summary>
 /// 이미지 폴더 탐색기(FrmMain Images 탭 포팅) — 지정한 폴더의 이미지 파일 경로 목록을 돌려준다.
@@ -12,6 +16,8 @@ public interface IImageLibraryService
 {
     /// <summary>폴더 안 이미지 파일 경로를 이름순으로 돌려준다. 폴더가 없으면 빈 목록.</summary>
     IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders);
+
+    IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder);
 }
 
 public sealed class ImageLibraryService : IImageLibraryService
@@ -24,4 +30,49 @@ public sealed class ImageLibraryService : IImageLibraryService
 
     public IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders)
         => FolderFileEnumerator.Enumerate(folderPath, ImageExtensions, includeSubfolders);
+
+    public IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder)
+    {
+        if (string.IsNullOrWhiteSpace(rootFolder) || !Directory.Exists(rootFolder))
+        {
+            return Array.Empty<ImageFolderItem>();
+        }
+
+        var root = Path.GetFullPath(rootFolder);
+        var scenery = Path.Combine(root, "Scenery");
+        var tiles = Path.Combine(root, "Tiles");
+        var folders = new List<ImageFolderItem>
+        {
+            new("Scenery", scenery),
+            new("Tiles", tiles),
+            new("Images", root),
+        };
+
+        var legacyBuiltIns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            Path.GetFullPath(scenery),
+            Path.GetFullPath(tiles),
+        };
+
+        try
+        {
+            folders.AddRange(Directory
+                .EnumerateDirectories(root, "*", SearchOption.AllDirectories)
+                .OrderBy(path => RelativeFolderName(root, path), StringComparer.OrdinalIgnoreCase)
+                .Where(path => !legacyBuiltIns.Contains(Path.GetFullPath(path)))
+                .Take(252)
+                .Select(path => new ImageFolderItem("\\" + RelativeFolderName(root, path), path)));
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+
+        return folders;
+    }
+
+    private static string RelativeFolderName(string root, string path)
+        => Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '\\');
 }

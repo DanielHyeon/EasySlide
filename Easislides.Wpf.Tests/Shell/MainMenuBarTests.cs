@@ -1129,6 +1129,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("DataContext.IsMediaTabVisible",
             "FrmMain UseMediaTab controls the left Media source tab, not the right worship-item preview surface");
         xaml.Should().Contain("x:Name=\"InlineMediaList\"", "Media files must be visible without opening a modal window");
+        xaml.Should().Contain("x:Name=\"MediaFolder\"", "Media source should expose FrmMain's MediaFolder selector inline");
+        xaml.Should().Contain("ItemsSource=\"{Binding FolderGroups}\"", "MediaFolder should list the root and subfolder groups");
+        xaml.Should().Contain("SelectedItem=\"{Binding SelectedFolder, Mode=TwoWay}\"", "MediaFolder selection should drive the displayed folder contents");
         xaml.Should().Contain("ItemsSource=\"{Binding MediaFiles}\"", "inline Media list reuses MediaLibraryViewModel");
         xaml.Should().Contain("SelectionMode=\"Extended\"", "MediaList should preserve FrmMain multi-select behavior");
         xaml.Should().Contain("MouseDoubleClick=\"InlineMediaList_MouseDoubleClick\"", "double-click should add selected Media");
@@ -1149,6 +1152,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"ImagesSource\"", "FrmMain keeps Images as a main-console source tab");
         xaml.Should().Contain("x:Name=\"ImagesSourceTab\"", "inline Images tab needs a stable DataContext target");
         xaml.Should().Contain("x:Name=\"InlineImagesList\"", "Images must be visible without opening a modal window");
+        xaml.Should().Contain("x:Name=\"ImagesFolder\"", "Images source should expose FrmMain's ImagesFolder selector inline");
+        xaml.Should().Contain("ItemsSource=\"{Binding FolderGroups}\"", "ImagesFolder should list Scenery/Tiles/Images plus subfolder groups");
+        xaml.Should().Contain("SelectedItem=\"{Binding SelectedFolder, Mode=TwoWay}\"", "ImagesFolder selection should drive the displayed thumbnails");
         xaml.Should().Contain("ItemsSource=\"{Binding Images}\"", "inline Images list reuses ImageLibraryViewModel");
         xaml.Should().Contain("Tag=\"flowLayoutImages\"", "inline Images list should keep the FrmMain flowLayoutImages role");
         xaml.Should().Contain("KeyDown=\"SourceListAddOnEnter_KeyDown\"", "Images Enter should reuse the left-source add/apply gesture");

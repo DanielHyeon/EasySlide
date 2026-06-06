@@ -13,10 +13,28 @@ public class ImageLibraryViewModelTests
     private sealed class FakeImageLibraryService : IImageLibraryService
     {
         private readonly IReadOnlyList<string> _paths;
+        private readonly IReadOnlyList<ImageFolderItem> _folders;
 
-        public FakeImageLibraryService(params string[] paths) => _paths = paths;
+        public FakeImageLibraryService(params string[] paths)
+            : this(new[] { new ImageFolderItem("Images", @"C:\bg") }, paths)
+        {
+        }
 
-        public IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders) => _paths;
+        public FakeImageLibraryService(IReadOnlyList<ImageFolderItem> folders, params string[] paths)
+        {
+            _paths = paths;
+            _folders = folders;
+        }
+
+        public string? LastEnumeratedFolder { get; private set; }
+
+        public IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders)
+        {
+            LastEnumeratedFolder = folderPath;
+            return _paths;
+        }
+
+        public IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder) => _folders;
     }
 
     private static ImageLibraryViewModel CreateSut(
@@ -244,6 +262,54 @@ public class ImageLibraryViewModelTests
         sut.IncludeSubfolders = true;
 
         sut.Images.Should().HaveCount(2, "토글이 Load 를 트리거");
+    }
+
+    [Fact]
+    public void Constructor_BuildsFrmMainImagesFolderGroups_WithoutLoadingFiles()
+    {
+        var folders = new[]
+        {
+            new ImageFolderItem("Scenery", @"C:\bg\Scenery"),
+            new ImageFolderItem("Tiles", @"C:\bg\Tiles"),
+            new ImageFolderItem("Images", @"C:\bg"),
+            new ImageFolderItem(@"\Custom", @"C:\bg\Custom"),
+        };
+
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(folders, @"C:\bg\Custom\a.jpg"),
+            _ => null,
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg");
+
+        sut.FolderGroups.Select(f => f.DisplayName).Should().Equal("Scenery", "Tiles", "Images", @"\Custom");
+        sut.SelectedFolder.Should().Be(folders[0]);
+        sut.FolderPath.Should().Be(@"C:\bg\Scenery");
+        sut.IncludeSubfolders.Should().BeFalse("FrmMain ImagesFolder shows the selected folder contents only");
+        sut.Images.Should().BeEmpty("constructor should not load thumbnails before the Images tab is opened");
+    }
+
+    [Fact]
+    public void SelectingImagesFolder_UpdatesFolderPath_AndReloadsThumbnails()
+    {
+        var folders = new[]
+        {
+            new ImageFolderItem("Scenery", @"C:\bg\Scenery"),
+            new ImageFolderItem("Tiles", @"C:\bg\Tiles"),
+        };
+        var service = new FakeImageLibraryService(folders, @"C:\bg\Tiles\tile.jpg");
+        var sut = new ImageLibraryViewModel(
+            service,
+            _ => null,
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg");
+
+        sut.SelectedFolder = folders[1];
+
+        sut.FolderPath.Should().Be(@"C:\bg\Tiles");
+        service.LastEnumeratedFolder.Should().Be(@"C:\bg\Tiles");
+        sut.Images.Select(i => i.FileName).Should().Equal("tile.jpg");
     }
 
     [Theory]

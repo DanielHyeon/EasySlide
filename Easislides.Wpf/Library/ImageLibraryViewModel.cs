@@ -49,9 +49,14 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     private readonly Action<string> _applyItemBackground;
     private readonly Func<bool> _canApplyItemBackground;
     private readonly Action _clearBackground;
+    private readonly string _rootFolderPath;
+    private bool _suppressSelectedFolderReload;
 
     [ObservableProperty]
     private string _folderPath = string.Empty;
+
+    [ObservableProperty]
+    private ImageFolderItem? _selectedFolder;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ApplyAsBackgroundCommand))]
@@ -101,7 +106,8 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         _applyItemBackground = applyItemBackground ?? (_ => { });
         _canApplyItemBackground = canApplyItemBackground ?? (() => false);
         _clearBackground = clearBackground ?? throw new ArgumentNullException(nameof(clearBackground));
-        _folderPath = initialFolder ?? string.Empty;
+        _rootFolderPath = initialFolder ?? string.Empty;
+        _folderPath = _rootFolderPath;
 
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         // AsyncRelayCommand 가 재실행 시 이전 실행의 토큰을 취소한다 → LoadAsync 가 중복 실행돼도 경쟁하지 않는다.
@@ -109,7 +115,11 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         ApplyAsBackgroundCommand = new RelayCommand(ApplyAsBackground, () => SelectedImage is not null);
         ApplyToItemBackgroundCommand = new RelayCommand(ApplyToItemBackground, () => SelectedImage is not null && _canApplyItemBackground());
         ClearBackgroundCommand = new RelayCommand(ClearBackground);
+
+        BuildFolderGroups();
     }
+
+    public ObservableCollection<ImageFolderItem> FolderGroups { get; } = new();
 
     public ObservableCollection<ImageLibraryItem> Images { get; } = new();
 
@@ -129,11 +139,45 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     // 하위 폴더 포함 토글 시 즉시 다시 읽는다(CommunityToolkit 가 생성하는 변경 콜백).
     partial void OnIncludeSubfoldersChanged(bool value) => LoadCommand.Execute(null);
 
+    partial void OnSelectedFolderChanged(ImageFolderItem? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        FolderPath = value.FolderPath;
+        if (!_suppressSelectedFolderReload)
+        {
+            LoadCommand.Execute(null);
+        }
+    }
+
     // 카테고리 선택이 바뀌면 이미 읽은 전체에서 즉시 다시 거른다(재로딩 없이 빠르게).
     partial void OnSelectedCategoryChanged(string value) => ApplyCategoryFilter();
 
     // 검색어가 바뀌면 다시 읽지 않고(폴더 탐색·썸네일 디코딩은 비쌈) 이미 읽어 둔 전체에서 즉시 다시 거른다.
     partial void OnFilterTextChanged(string value) => ApplyCategoryFilter();
+
+    private void BuildFolderGroups()
+    {
+        _suppressSelectedFolderReload = true;
+        try
+        {
+            FolderGroups.Clear();
+            foreach (var folder in _service.EnumerateFolders(_rootFolderPath))
+            {
+                FolderGroups.Add(folder);
+            }
+
+            SelectedFolder = FolderGroups.FirstOrDefault();
+            FolderPath = SelectedFolder?.FolderPath ?? _rootFolderPath;
+        }
+        finally
+        {
+            _suppressSelectedFolderReload = false;
+        }
+    }
 
     // 파일 경로의 카테고리 = 루트(root) 바로 아래 하위 폴더명. 루트 직속이면 "(기본)".
     // 예: root=Images, 경로=Images/Scenery/sky.jpg → "Scenery". 경로=Images/logo.png → "(기본)".

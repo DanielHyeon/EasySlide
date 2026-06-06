@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Easislides.Wpf.Rendering;
 
 namespace Easislides.Wpf.Library;
+
+public sealed record MediaFolderItem(string DisplayName, string FolderPath);
 
 /// <summary>
 /// 미디어 폴더 탐색기(FrmMain Media 탭 포팅) — 폴더의 동영상·오디오 파일 경로를 이름순으로 돌려준다.
@@ -12,6 +16,8 @@ namespace Easislides.Wpf.Library;
 public interface IMediaLibraryService
 {
     IReadOnlyList<string> EnumerateMedia(string folderPath, bool includeSubfolders);
+
+    IReadOnlyList<MediaFolderItem> EnumerateFolders(string rootFolder);
 }
 
 public sealed class MediaLibraryService : IMediaLibraryService
@@ -26,4 +32,38 @@ public sealed class MediaLibraryService : IMediaLibraryService
 
     public IReadOnlyList<string> EnumerateMedia(string folderPath, bool includeSubfolders)
         => FolderFileEnumerator.Enumerate(folderPath, MediaExtensions, includeSubfolders);
+
+    public IReadOnlyList<MediaFolderItem> EnumerateFolders(string rootFolder)
+    {
+        if (string.IsNullOrWhiteSpace(rootFolder) || !Directory.Exists(rootFolder))
+        {
+            return Array.Empty<MediaFolderItem>();
+        }
+
+        var root = Path.GetFullPath(rootFolder);
+        var folders = new List<MediaFolderItem>
+        {
+            new("Media Files", root),
+        };
+
+        try
+        {
+            folders.AddRange(Directory
+                .EnumerateDirectories(root, "*", SearchOption.AllDirectories)
+                .OrderBy(path => RelativeFolderName(root, path), StringComparer.OrdinalIgnoreCase)
+                .Take(254)
+                .Select(path => new MediaFolderItem("\\" + RelativeFolderName(root, path), path)));
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+
+        return folders;
+    }
+
+    private static string RelativeFolderName(string root, string path)
+        => Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '\\');
 }

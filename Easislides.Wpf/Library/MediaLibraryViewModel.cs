@@ -31,11 +31,16 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 {
     private readonly IMediaLibraryService _service;
     private readonly Action<string> _addToQueue;
+    private readonly string _rootFolderPath;
+    private bool _suppressSelectedFolderReload;
     // 폴더에서 읽은 전체 미디어(검색 필터 적용 전 원본). 검색 상자는 이 목록에서 걸러 MediaFiles 에 보여 준다.
     private readonly List<MediaFileItem> _allFiles = new();
 
     [ObservableProperty]
     private string _folderPath = string.Empty;
+
+    [ObservableProperty]
+    private MediaFolderItem? _selectedFolder;
 
     // 검색어 — 파일명에 이 글자가 든 미디어만 목록에 보인다(대소문자 무시). 비우면 전부. 큰 폴더에서 빠르게 찾는 현대 기능.
     [ObservableProperty]
@@ -59,11 +64,16 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
-        _folderPath = initialFolder ?? string.Empty;
+        _rootFolderPath = initialFolder ?? string.Empty;
+        _folderPath = _rootFolderPath;
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
+
+        BuildFolderGroups();
     }
+
+    public ObservableCollection<MediaFolderItem> FolderGroups { get; } = new();
 
     public ObservableCollection<MediaFileItem> MediaFiles { get; } = new();
 
@@ -75,6 +85,40 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
     // 검색어가 바뀌면 다시 읽지 않고(폴더 탐색은 비쌈) 이미 읽어 둔 전체 목록에서 걸러 보여 준다.
     partial void OnFilterTextChanged(string value) => ApplyFilter();
+
+    partial void OnSelectedFolderChanged(MediaFolderItem? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        FolderPath = value.FolderPath;
+        if (!_suppressSelectedFolderReload)
+        {
+            Load();
+        }
+    }
+
+    private void BuildFolderGroups()
+    {
+        _suppressSelectedFolderReload = true;
+        try
+        {
+            FolderGroups.Clear();
+            foreach (var folder in _service.EnumerateFolders(_rootFolderPath))
+            {
+                FolderGroups.Add(folder);
+            }
+
+            SelectedFolder = FolderGroups.FirstOrDefault();
+            FolderPath = SelectedFolder?.FolderPath ?? _rootFolderPath;
+        }
+        finally
+        {
+            _suppressSelectedFolderReload = false;
+        }
+    }
 
     // 현재 폴더의 미디어 파일 목록을 다시 읽는다(전체를 _allFiles 에 담고, 검색어 적용해 화면 목록 구성).
     private void Load()

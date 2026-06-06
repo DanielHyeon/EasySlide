@@ -268,7 +268,6 @@ public partial class MainWindow : Window
             ResolveImageInitialFolder(),
             path => viewModel.SetSelectedItemBackgroundImageCommand.Execute(path),
             () => viewModel.SetSelectedItemBackgroundImageCommand.CanExecute(null));
-        _inlineImages.IncludeSubfolders = true;
         ImagesSourceTab.DataContext = _inlineImages;
         _inlineImages.LoadCommand.Execute(null);
     }

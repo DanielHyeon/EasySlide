@@ -11,8 +11,28 @@ public class MediaLibraryViewModelTests
     private sealed class FakeMediaService : IMediaLibraryService
     {
         private readonly IReadOnlyList<string> _paths;
-        public FakeMediaService(params string[] paths) => _paths = paths;
-        public IReadOnlyList<string> EnumerateMedia(string folderPath, bool includeSubfolders) => _paths;
+        private readonly IReadOnlyList<MediaFolderItem> _folders;
+
+        public FakeMediaService(params string[] paths)
+            : this(new[] { new MediaFolderItem("Media Files", @"C:\media") }, paths)
+        {
+        }
+
+        public FakeMediaService(IReadOnlyList<MediaFolderItem> folders, params string[] paths)
+        {
+            _paths = paths;
+            _folders = folders;
+        }
+
+        public string? LastEnumeratedFolder { get; private set; }
+
+        public IReadOnlyList<string> EnumerateMedia(string folderPath, bool includeSubfolders)
+        {
+            LastEnumeratedFolder = folderPath;
+            return _paths;
+        }
+
+        public IReadOnlyList<MediaFolderItem> EnumerateFolders(string rootFolder) => _folders;
     }
 
     private static MediaLibraryViewModel CreateSut(out List<string> added, params string[] paths)
@@ -102,6 +122,48 @@ public class MediaLibraryViewModelTests
         sut.IncludeSubfolders = true;
 
         sut.MediaFiles.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void Constructor_BuildsFrmMainMediaFolderGroups_WithoutLoadingFiles()
+    {
+        var folders = new[]
+        {
+            new MediaFolderItem("Media Files", @"C:\media"),
+            new MediaFolderItem(@"\찬양", @"C:\media\찬양"),
+        };
+
+        var sut = new MediaLibraryViewModel(
+            new FakeMediaService(folders, @"C:\media\찬양\a.mp4"),
+            _ => { },
+            initialFolder: @"C:\media");
+
+        sut.FolderGroups.Select(f => f.DisplayName).Should().Equal("Media Files", @"\찬양");
+        sut.SelectedFolder.Should().Be(folders[0]);
+        sut.FolderPath.Should().Be(@"C:\media");
+        sut.IncludeSubfolders.Should().BeFalse("FrmMain MediaFolder lists only the selected folder contents");
+        sut.MediaFiles.Should().BeEmpty("constructor should not load files before the Media tab is opened");
+    }
+
+    [Fact]
+    public void SelectingMediaFolder_UpdatesFolderPath_AndReloadsList()
+    {
+        var folders = new[]
+        {
+            new MediaFolderItem("Media Files", @"C:\media"),
+            new MediaFolderItem(@"\찬양", @"C:\media\찬양"),
+        };
+        var service = new FakeMediaService(folders, @"C:\media\찬양\a.mp4");
+        var sut = new MediaLibraryViewModel(
+            service,
+            _ => { },
+            initialFolder: @"C:\media");
+
+        sut.SelectedFolder = folders[1];
+
+        sut.FolderPath.Should().Be(@"C:\media\찬양");
+        service.LastEnumeratedFolder.Should().Be(@"C:\media\찬양");
+        sut.MediaFiles.Select(f => f.FileName).Should().Equal("a.mp4");
     }
 
     [Fact]
