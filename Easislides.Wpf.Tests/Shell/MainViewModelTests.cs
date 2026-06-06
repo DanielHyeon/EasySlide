@@ -8622,6 +8622,63 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SetSelectedItemBackgroundImageMode_WritesFormatDataCode62_AndReflects()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "Song", "", 1, 1, "", "", "[1]\nVerse"));
+
+        sut.SelectedItemBackgroundModeIsFit.Should().BeTrue("no 62 defaults to legacy Best Fit");
+
+        sut.SetSelectedItemBackgroundImageMode(LyricsBackgroundMode.Tile);
+
+        sut.SelectedItem!.FormatData.Should().Contain("62=0", "legacy ImageMode.Tile is stored as 0");
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue();
+        sut.SelectedItemBackgroundImageMode.Should().Be(LyricsBackgroundMode.Tile);
+        sut.SelectedItemBackgroundModeIsTile.Should().BeTrue();
+        sut.SelectedItemBackgroundModeIsFit.Should().BeFalse();
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImageMode_PreservesImagePathAndTextColor()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:1", "Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nVerse",
+            FormatData = @"29=-1>61=C:\bg\old.jpg>",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.SetSelectedItemBackgroundImageMode(LyricsBackgroundMode.Center);
+
+        sut.SelectedItem!.FormatData.Should().Contain("29=-1");
+        sut.SelectedItem!.FormatData.Should().Contain(@"61=C:\bg\old.jpg");
+        sut.SelectedItem!.FormatData.Should().Contain("62=1", "legacy ImageMode.Centre is stored as 1");
+        sut.SelectedItemBackgroundModeIsCenter.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetSelectedItemBackgroundImageMode_WhileLive_CarriesOverrideMode()
+    {
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+        var item = new LiveQueueItem("song:1", "Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nVerse",
+            FormatData = @"61=C:\bg\live.png>",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+        sut.GoLiveCommand.Execute(null);
+
+        sut.SetSelectedItemBackgroundImageMode(LyricsBackgroundMode.Center);
+
+        session.Current.OverrideBackgroundImagePath.Should().Be(@"C:\bg\live.png");
+        session.Current.OverrideBackgroundImageMode.Should().Be(LyricsBackgroundMode.Center);
+    }
+
+    [Fact]
     public void SetSelectedItemBackgroundImage_NonSong_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);

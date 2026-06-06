@@ -570,13 +570,14 @@ public class LiveSessionServiceTests
         var item = new LiveQueueItem("song-3", "은혜로다")
         {
             Lyrics = "[1]\n1절 가사",
-            FormatData = @"61=C:\Backgrounds\sky.jpg>",
+            FormatData = @"61=C:\Backgrounds\sky.jpg>62=0>",
         };
         var sut = new LiveSessionService();
 
         sut.GoLive(item, "모니터 2");
 
         sut.Current.OverrideBackgroundImagePath.Should().Be(@"C:\Backgrounds\sky.jpg", "61 = region1 배경 이미지 경로");
+        sut.Current.OverrideBackgroundImageMode.Should().Be(LyricsBackgroundMode.Tile, "62=0 = legacy Tile Image");
     }
 
     [Fact]

@@ -1539,6 +1539,28 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_Active_SongBackgroundImageMode_WinsOverGlobalMode()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(
+            LyricsMonitorBackgroundImagePath: @"C:\bg\global.png",
+            LyricsMonitorBackgroundMode: LyricsBackgroundMode.Fill);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active, "Song", "Display 2", IsBlackout: false,
+                CurrentItemBodyText: "Verse",
+                OverrideBackgroundImagePath: @"C:\bg\song.jpg",
+                OverrideBackgroundImageMode: LyricsBackgroundMode.Tile),
+            Output: output, ViewportWidth: 1280, ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.BackgroundImagePath.Should().Be(@"C:\bg\song.jpg");
+        scene.BackgroundMode.Should().Be(LyricsBackgroundMode.Tile, "song FormatData 62 should drive the song background image brush");
+    }
+
+    [Fact]
     public void CreateScene_NotLive_GlobalBackgroundImage_NotApplied()
     {
         // Live 가 아니면 전역 배경도 적용하지 않는다(대기/숨김 화면은 색 배경, 무회귀).

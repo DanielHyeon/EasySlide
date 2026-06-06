@@ -1025,6 +1025,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemFontNameCommand = new RelayCommand<string?>(SetSelectedItemFontName, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageCommand = new RelayCommand<string?>(SetSelectedItemBackgroundImage, _ => CanEditSelectedItemColor);
+        SetSelectedItemBackgroundImageModeCommand = new RelayCommand<LyricsBackgroundMode>(SetSelectedItemBackgroundImageMode, _ => CanEditSelectedItemColor);
         // 항목별 강조(굵게·기울임·밑줄, FormatData 코드41 비트) — 우클릭 토글. 곡일 때만 활성.
         ToggleSelectedItemBoldCommand = new RelayCommand(ToggleSelectedItemBold, () => CanEditSelectedItemColor);
         ToggleSelectedItemItalicCommand = new RelayCommand(ToggleSelectedItemItalic, () => CanEditSelectedItemColor);
@@ -1293,6 +1294,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemFontNameCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundColorCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundImageCommand { get; }
+    public IRelayCommand<LyricsBackgroundMode> SetSelectedItemBackgroundImageModeCommand { get; }
     public IRelayCommand ToggleSelectedItemBoldCommand { get; }
     public IRelayCommand ToggleSelectedItemItalicCommand { get; }
     public IRelayCommand ToggleSelectedItemUnderlineCommand { get; }
@@ -3370,6 +3372,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemFontName));
         OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
         OnPropertyChanged(nameof(SelectedItemBackgroundImagePath));
+        OnPropertyChanged(nameof(SelectedItemBackgroundImageMode));
+        OnPropertyChanged(nameof(SelectedItemBackgroundModeIsFit));
+        OnPropertyChanged(nameof(SelectedItemBackgroundModeIsCenter));
+        OnPropertyChanged(nameof(SelectedItemBackgroundModeIsTile));
         OnPropertyChanged(nameof(CanClearSelectedItemBackgroundImage));
         OnPropertyChanged(nameof(SelectedItemBackgroundNoImageToolTip));
         OnPropertyChanged(nameof(SelectedItemFormatData));
@@ -6604,6 +6610,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ? $"Remove Item Background '{SelectedItemBackgroundImagePath}'"
         : "No Item Background";
 
+    public LyricsBackgroundMode SelectedItemBackgroundImageMode
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fit;
+
+    public bool SelectedItemBackgroundModeIsFit => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Fit;
+    public bool SelectedItemBackgroundModeIsCenter => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Center;
+    public bool SelectedItemBackgroundModeIsTile => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Tile;
+
     /// <summary>
     /// 선택한 곡 항목의 배경 이미지(이 항목만)를 바꾼다(레거시 항목별 배경 이미지, FormatData 코드 61). 경로가 비거나 공백뿐이면 해제해 전역 배경을 따른다.
     /// 이미지를 주면 개별 서식을 켜고, 나머지 곡별 서식(색·정렬·크기·글꼴 등)은 보존한다. 송출 시 그 곡 동안 이 이미지가 <b>배경색 위에</b> 표시된다
@@ -6622,6 +6635,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = imagePath.Length == 0
                 ? "항목 배경 이미지: 전역 기본"
                 : $"항목 배경 이미지: {System.IO.Path.GetFileName(imagePath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    /// <summary>현재 선택한 항목의 배경 이미지 표시 모드(FormatData 62)를 바꾼다.</summary>
+    public void SetSelectedItemBackgroundImageMode(LyricsBackgroundMode mode)
+    {
+        if (mode is not (LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center or LyricsBackgroundMode.Tile))
+        {
+            return;
+        }
+
+        if (ApplySelectedSongFormatChange(format => format with { BackgroundImageMode = mode }, wantsIndividual: true, out var turnedOn))
+        {
+            OnPropertyChanged(nameof(SelectedItemBackgroundImageMode));
+            OnPropertyChanged(nameof(SelectedItemBackgroundModeIsFit));
+            OnPropertyChanged(nameof(SelectedItemBackgroundModeIsCenter));
+            OnPropertyChanged(nameof(SelectedItemBackgroundModeIsTile));
+            var label = mode switch
+            {
+                LyricsBackgroundMode.Tile => "Tile Image",
+                LyricsBackgroundMode.Center => "Centre Image",
+                _ => "Best Fit Image",
+            };
+            StatusText = $"Item background picture format: {label}{(turnedOn ? " (individual formatting on)" : "")}";
         }
     }
 
@@ -8292,6 +8329,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemFontNameCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageCommand.NotifyCanExecuteChanged();
+        SetSelectedItemBackgroundImageModeCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemBoldCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemItalicCommand.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderlineCommand.NotifyCanExecuteChanged();

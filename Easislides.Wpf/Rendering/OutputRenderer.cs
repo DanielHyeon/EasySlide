@@ -450,6 +450,11 @@ public sealed class OutputRenderer : IOutputRenderer
             : !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
                 ? request.Session.OverrideBackgroundImagePath!
                 : liveOutput.LyricsMonitorBackgroundImagePath;
+        var backgroundMode = isLive
+            && !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
+            && request.Session.OverrideBackgroundImageMode is LyricsBackgroundMode songBackgroundMode
+                ? songBackgroundMode
+                : liveOutput.LyricsMonitorBackgroundMode;
         // Region2(이중 언어) 본문은 Live 일 때만 싣는다.
         var bodyText2 = isLive ? request.Session.CurrentItemBodyText2 : string.Empty;
         // Region2 색 우선순위: 곡별 region2 색(30, Live 한정) > 전역 region2 색(설정, 0=투명 아니면) > Region1 색 추종.
@@ -565,7 +570,7 @@ public sealed class OutputRenderer : IOutputRenderer
             // 곡별 배경 이미지 경로(Live + 오버라이드 있을 때만). 비었으면 VM 이 색 배경을 유지(무회귀).
             backgroundImagePath,
             // 배경 이미지 표시 모드(설정값) — 이미지가 있을 때 VM 이 이 값으로 ImageBrush 를 만든다.
-            liveOutput.LyricsMonitorBackgroundMode,
+            backgroundMode,
             // 배경 그라데이션 방향(설정값) — VM 이 이 값으로 LinearGradientBrush 의 Start/End 를 정한다.
             liveOutput.LyricsMonitorBackgroundGradientDirection,
             // Region2(이중 언어) 본문·색·정렬·글꼴 — Live + 이중 언어 곡일 때만 채워진다.

@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Library;
 
@@ -31,6 +32,7 @@ public sealed record SongFormatData
     public bool Italic2 { get; init; }
     public bool Underline2 { get; init; }
     public string BackgroundImagePath { get; init; } = "";
+    public LyricsBackgroundMode? BackgroundImageMode { get; init; }
     public string MediaPath { get; init; } = "";
 
     /// <summary>FormatData 문자열을 디코드한다. 비었으면 null. 인식 못 한 키/형식은 건너뛴다.</summary>
@@ -44,6 +46,7 @@ public sealed record SongFormatData
         int? textColor1 = null, textColor2 = null, backColor1 = null, backColor2 = null;
         int? fontSize1 = null, fontSize2 = null, align1 = null, align2 = null;
         string font1 = "", font2 = "", backgroundImage = "", media = "";
+        LyricsBackgroundMode? backgroundImageMode = null;
         var effectBits = 0;
 
         foreach (var entry in formatData.Split('>'))
@@ -75,6 +78,7 @@ public sealed record SongFormatData
                 case 48: fontSize2 = ParseFontSize(value); break;
                 case 51: media = value; break;
                 case 61: backgroundImage = value; break;
+                case 62: backgroundImageMode = ParseLegacyBackgroundImageMode(value); break;
             }
         }
 
@@ -100,6 +104,7 @@ public sealed record SongFormatData
             Italic2 = hasBits && (effectBits & 0b0001_0000) != 0,    // bit4
             Underline2 = hasBits && (effectBits & 0b0010_0000) != 0, // bit5
             BackgroundImagePath = backgroundImage,
+            BackgroundImageMode = backgroundImageMode,
             MediaPath = media,
         };
     }
@@ -138,6 +143,7 @@ public sealed record SongFormatData
         if (FontSize2 is int fs2) Add(48, Num(fs2));
         if (!string.IsNullOrEmpty(MediaPath)) Add(51, MediaPath);
         if (!string.IsNullOrEmpty(BackgroundImagePath)) Add(61, BackgroundImagePath);
+        if (ToLegacyBackgroundImageMode(BackgroundImageMode) is int bgMode) Add(62, Num(bgMode));
 
         return string.Join(">", parts);
     }
@@ -181,6 +187,24 @@ public sealed record SongFormatData
 
     private static int? ParseInt(string value)
         => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : null;
+
+    private static LyricsBackgroundMode? ParseLegacyBackgroundImageMode(string value)
+        => ParseInt(value) switch
+        {
+            0 => LyricsBackgroundMode.Tile,
+            1 => LyricsBackgroundMode.Center,
+            2 => LyricsBackgroundMode.Fit,
+            _ => null,
+        };
+
+    private static int? ToLegacyBackgroundImageMode(LyricsBackgroundMode? mode)
+        => mode switch
+        {
+            LyricsBackgroundMode.Tile => 0,
+            LyricsBackgroundMode.Center => 1,
+            LyricsBackgroundMode.Fit => 2,
+            _ => null,
+        };
 
     // 폰트 크기는 레거시에서 6~100 만 유효(그 밖은 기본값으로 폴백 → 여기선 무시).
     private static int? ParseFontSize(string value)

@@ -161,7 +161,7 @@ UI/UX 규칙:
 | 개별 서식 | `Ind_Region`, `Ind_VAlign`, `Ind_R1Align`, `Ind_R2Align`, `Ind_Head` | Preview 선택 항목에 적용되는 고정 패널 |
 | 개별 글꼴 | `Ind_Reg1FontsList`, `Ind_Reg2FontsList`, size/top/bottom/left/right numeric | 현재 항목 개별 서식 편집 |
 | 개별 효과 | `Ind_Shadow`, `Ind_Outline`, `Ind_Interlace`, `Ind_Notations` | 토글 상태가 Preview에 즉시 반영 |
-| 개별 배경 | `Ind_ImageMode`, `Ind_NoImage`, `Ind_BackColour`, `Ind_AssignMedia` | 배경 이미지/색상/미디어 연결 |
+| 개별 배경 | `Ind_ImageMode`, `Ind_NoImage`, `Ind_BackColour`, `Ind_AssignMedia` | 배경 이미지/색상/미디어 연결. `Ind_ImageTile/Centre/BestFit`는 FormatData 62와 Output 배경 이미지 모드까지 연결 |
 | 기본 서식 | `DefPanel`, `Def_*` | Default 탭에서 전역 기본값 편집 |
 | 전환 | `Ind_TransItem`, `Ind_TransSlides`, `Def_TransItem`, `Def_TransSlides` | 항목/슬라이드 전환 구분 유지 |
 

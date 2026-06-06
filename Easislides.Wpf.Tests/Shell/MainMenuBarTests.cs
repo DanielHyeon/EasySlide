@@ -1375,6 +1375,18 @@ public class MainMenuBarTests
             "Ind_NoImage should mirror FrmMain disabled state when the selected item has no background image");
         xaml.Should().Contain("ToolTip=\"{Binding SelectedItemBackgroundNoImageToolTip}\"",
             "Ind_NoImage should expose selected-item background feedback");
+        xaml.Should().Contain("x:Name=\"Ind_ImageMode\"",
+            "IndPanel should expose FrmMain's item background image format control");
+        xaml.Should().Contain("x:Name=\"Ind_ImageTile\"",
+            "Ind_ImageMode should keep FrmMain's Tile Image option");
+        xaml.Should().Contain("x:Name=\"Ind_ImageCentre\"",
+            "Ind_ImageMode should keep FrmMain's Centre Image option");
+        xaml.Should().Contain("x:Name=\"Ind_ImageBestFit\"",
+            "Ind_ImageMode should keep FrmMain's Best Fit Image option");
+        xaml.Should().Contain("Command=\"{Binding SetSelectedItemBackgroundImageModeCommand}\"",
+            "Ind_ImageMode options should write FormatData code 62 through the selected-item VM command");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Tile}\"",
+            "Ind_ImageTile should map to the WPF Tile mode before encoding legacy 62=0");
         code.Should().Contain("private void SelectPreviewItemBackgroundImage_Click",
             "Preview Set item-image selection should be handled by the main shell view");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImage(dialog.FileName)",

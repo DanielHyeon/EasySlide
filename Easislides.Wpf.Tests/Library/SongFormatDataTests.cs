@@ -1,4 +1,5 @@
 using Easislides.Wpf.Library;
+using Easislides.Wpf.Settings;
 using FluentAssertions;
 using Xunit;
 
@@ -34,6 +35,7 @@ public sealed class SongFormatDataTests
         f.Alignment1.Should().Be(2, "31 = region1 정렬");
         f.Alignment2.Should().Be(1, "32 = region2 정렬");
         f.BackgroundImagePath.Should().Be(@"C:\EasiSlides\Images\성경\bible-sermon.jpg", "61 = 배경 이미지");
+        f.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Fit, "62=2 = legacy BestFit");
         // 실 샘플 41=16=0b10000=bit4 → region2 Italic 만 true(0-based; 레거시 HeaderData[41] 권위).
         f.Bold1.Should().BeFalse();
         f.Italic1.Should().BeFalse();
@@ -104,12 +106,31 @@ public sealed class SongFormatDataTests
             Italic2 = true,
             Underline2 = false,
             BackgroundImagePath = @"C:\EasiSlides\Images\성경\bible.jpg",
+            BackgroundImageMode = LyricsBackgroundMode.Center,
             MediaPath = "clip.mp4",
         };
 
         var round = SongFormatData.Parse(original.Encode());
 
         round.Should().Be(original);
+    }
+
+    [Theory]
+    [InlineData("62=0>", LyricsBackgroundMode.Tile)]
+    [InlineData("62=1>", LyricsBackgroundMode.Center)]
+    [InlineData("62=2>", LyricsBackgroundMode.Fit)]
+    public void Parse_BackgroundImageMode62_MapsLegacyImageMode(string raw, LyricsBackgroundMode expected)
+    {
+        SongFormatData.Parse(raw)!.BackgroundImageMode.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(LyricsBackgroundMode.Tile, "62=0")]
+    [InlineData(LyricsBackgroundMode.Center, "62=1")]
+    [InlineData(LyricsBackgroundMode.Fit, "62=2")]
+    public void Encode_BackgroundImageMode62_MapsToLegacyImageMode(LyricsBackgroundMode mode, string expected)
+    {
+        new SongFormatData { BackgroundImageMode = mode }.Encode().Should().Be(expected);
     }
 
     [Fact]

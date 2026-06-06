@@ -3425,6 +3425,51 @@
                                                                     ToolTipService.ShowOnDisabled="True"
                                                                     AutomationProperties.Name="선택 항목 배경 이미지 해제" />
                                                         </Grid>
+                                                        <WrapPanel x:Name="Ind_ImageMode"
+                                                                   Tag="Ind_ImageMode"
+                                                                   Margin="0,6,0,0"
+                                                                   IsEnabled="{Binding CanEditSelectedItemColor}"
+                                                                   ToolTip="Background Picture Format">
+                                                            <ToggleButton x:Name="Ind_ImageBestFit"
+                                                                          Tag="2"
+                                                                          Content="Best Fit"
+                                                                          IsChecked="{Binding SelectedItemBackgroundModeIsFit, Mode=OneWay}"
+                                                                          Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
+                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
+                                                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                                                          MinWidth="66"
+                                                                          Height="26"
+                                                                          Padding="8,0"
+                                                                          Margin="0,0,4,4"
+                                                                          ToolTip="Best Fit Image"
+                                                                          AutomationProperties.Name="선택 항목 배경 이미지 맞춤" />
+                                                            <ToggleButton x:Name="Ind_ImageCentre"
+                                                                          Tag="1"
+                                                                          Content="Centre"
+                                                                          IsChecked="{Binding SelectedItemBackgroundModeIsCenter, Mode=OneWay}"
+                                                                          Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
+                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
+                                                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                                                          MinWidth="62"
+                                                                          Height="26"
+                                                                          Padding="8,0"
+                                                                          Margin="0,0,4,4"
+                                                                          ToolTip="Centre Image"
+                                                                          AutomationProperties.Name="선택 항목 배경 이미지 가운데" />
+                                                            <ToggleButton x:Name="Ind_ImageTile"
+                                                                          Tag="0"
+                                                                          Content="Tile"
+                                                                          IsChecked="{Binding SelectedItemBackgroundModeIsTile, Mode=OneWay}"
+                                                                          Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
+                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}"
+                                                                          Style="{StaticResource ClassicOutputToggleButton}"
+                                                                          MinWidth="52"
+                                                                          Height="26"
+                                                                          Padding="8,0"
+                                                                          Margin="0,0,4,4"
+                                                                          ToolTip="Tile Image"
+                                                                          AutomationProperties.Name="선택 항목 배경 이미지 타일" />
+                                                        </WrapPanel>
                                                     </StackPanel>
                                                 </GroupBox>
 
