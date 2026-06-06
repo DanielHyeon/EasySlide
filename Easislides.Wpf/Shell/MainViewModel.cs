@@ -18,6 +18,8 @@ using Easislides.Wpf.Library;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Theme;
+using Wpf.Ui.Controls;
 
 namespace Easislides.Wpf.Shell;
 
@@ -69,6 +71,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(OutputMediaTitle))]
     [NotifyPropertyChangedFor(nameof(OutputMediaSourceText))]
     [NotifyPropertyChangedFor(nameof(OutputMediaStatusText))]
+    [NotifyPropertyChangedFor(nameof(OutputMediaPlayPauseSymbol))]
     [NotifyPropertyChangedFor(nameof(OutputVisualSource))]
     [NotifyPropertyChangedFor(nameof(OutputVisualFillMode))]
     [NotifyPropertyChangedFor(nameof(HasOutputVisualSource))]
@@ -240,6 +243,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return string.IsNullOrWhiteSpace(fileName)
                 ? status
                 : $"{status} | {fileName}";
+        }
+    }
+
+    public SymbolRegular OutputMediaPlayPauseSymbol
+    {
+        get
+        {
+            if (!TryGetOutputMediaContext(out _, out var mediaPath))
+            {
+                return EsIcons.MediaPlay;
+            }
+
+            return string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
+                && Media.State == MediaPlaybackState.Playing
+                    ? EsIcons.MediaPause
+                    : EsIcons.MediaPlay;
         }
     }
 
@@ -3348,6 +3367,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputMediaTitle));
         OnPropertyChanged(nameof(OutputMediaSourceText));
         OnPropertyChanged(nameof(OutputMediaStatusText));
+        OnPropertyChanged(nameof(OutputMediaPlayPauseSymbol));
     }
 
     private static string BuildPreviewItemInfoText(LiveQueueItem? item)
@@ -4972,6 +4992,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             or nameof(Media.StatusText))
         {
             OnPropertyChanged(nameof(OutputMediaStatusText));
+            OnPropertyChanged(nameof(OutputMediaPlayPauseSymbol));
         }
     }
 

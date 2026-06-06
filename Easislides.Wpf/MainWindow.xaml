@@ -4005,7 +4005,7 @@
                                             Margin="0,0,6,0"
                                             ToolTip="미디어 재생/일시정지"
                                             AutomationProperties.Name="Output 미디어 재생 일시정지">
-                                        <ui:SymbolIcon Symbol="{Binding Media.PlayPauseSymbol}" />
+                                        <ui:SymbolIcon Symbol="{Binding OutputMediaPlayPauseSymbol}" />
                                     </Button>
                                     <StackPanel Grid.Column="1"
                                                 VerticalAlignment="Center">
@@ -4079,7 +4079,7 @@
                                     Margin="0,0,4,0"
                                     ToolTip="미디어 재생/일시정지"
                                     AutomationProperties.Name="Output 미디어 재생 일시정지">
-                                <ui:SymbolIcon Symbol="{Binding Media.PlayPauseSymbol}" />
+                                <ui:SymbolIcon Symbol="{Binding OutputMediaPlayPauseSymbol}" />
                             </Button>
                             <Button x:Name="OutputBtnRefAlert"
                                     Tag="OutputBtnRefAlert"

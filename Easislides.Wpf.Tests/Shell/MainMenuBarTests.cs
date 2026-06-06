@@ -269,6 +269,10 @@ public class MainMenuBarTests
             "the media surface should display the current Output media playback state");
         outputTopPane.Should().Contain("Command=\"{Binding PlayOutputMediaCommand}\"",
             "the top Output media surface should control the same live/prepared Output media as OutputBtnMedia");
+        outputTopPane.Should().Contain("Symbol=\"{Binding OutputMediaPlayPauseSymbol}\"",
+            "the Output media button icon should follow the prepared/live Output media source, not whatever Preview/media source is currently loaded");
+        outputTopPane.Should().NotContain("Symbol=\"{Binding Media.PlayPauseSymbol}\"",
+            "FrmMain OutputBtnMedia must not visually follow the generic Preview/media playback state");
     }
 
     [Fact]
@@ -1235,6 +1239,8 @@ public class MainMenuBarTests
             "OutputBtnJumpToNonRotate must not remain a disabled placeholder");
         xaml.Should().Contain("Command=\"{Binding PlayOutputMediaCommand}\"",
             "OutputBtnMedia should use the current Output/live item rather than the selected Preview media");
+        xaml.Should().Contain("Symbol=\"{Binding OutputMediaPlayPauseSymbol}\"",
+            "OutputBtnMedia should expose an Output-specific play/pause icon");
         xaml.Should().NotContain("x:Name=\"OutputBtnMedia\"\r\n                                Tag=\"OutputBtnMedia\"\r\n                                Command=\"{Binding Media.PlayPauseCommand}\"",
             "OutputBtnMedia must not fall back to Preview-loaded media playback");
         xaml.Should().Contain("x:Name=\"OutputBtnRefAlert\"",

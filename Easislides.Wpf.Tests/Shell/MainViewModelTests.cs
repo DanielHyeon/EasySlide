@@ -15,6 +15,7 @@ using Easislides.Wpf.Data;
 using Easislides.Wpf.Media;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Shell;
+using Easislides.Wpf.Theme;
 using FluentAssertions;
 using Xunit;
 
@@ -6901,6 +6902,40 @@ public class MainViewModelTests
         sut.OutputMediaTitle.Should().Be("Output Song");
         sut.OutputMediaSourceText.Should().Be(outputMedia);
         sut.OutputMediaStatusText.Should().Contain("PLAYING").And.Contain("Output Song.mp4");
+    }
+
+    [Fact]
+    public void OutputMediaPlayPauseSymbol_FollowsOutputMediaPathNotPreviewPlayback()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var previewMedia = Path.Combine(mediaRoot, "Preview Song.mp4");
+        var outputMedia = Path.Combine(mediaRoot, "Output Song.mp4");
+        File.WriteAllText(previewMedia, "preview media placeholder");
+        File.WriteAllText(outputMedia, "output media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var previewItem = new LiveQueueItem("song:preview", "Preview Song", LiveItemKinds.Song) { Lyrics = "Preview lyrics" };
+        var outputItem = new LiveQueueItem("song:output", "Output Song", LiveItemKinds.Song) { Lyrics = "Output lyrics" };
+        sut.LoadQueue([previewItem, outputItem]);
+        sut.OutputItem = outputItem;
+
+        sut.Media.Load(new MediaPlaybackRequest(previewMedia, MediaSourceKind.File, TimeSpan.Zero, "Video"));
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.Media.Source.Should().Be(previewMedia);
+
+        sut.OutputMediaPlayPauseSymbol.Should().Be(EsIcons.MediaPlay,
+            "FrmMain OutputBtnMedia should not show pause just because a different Preview/media source is playing");
+
+        sut.PlayOutputMediaCommand.Execute(null);
+
+        sut.Media.Source.Should().Be(outputMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.OutputMediaPlayPauseSymbol.Should().Be(EsIcons.MediaPause,
+            "once the current Output media is playing, OutputBtnMedia should show the pause action");
     }
 
     [Fact]
