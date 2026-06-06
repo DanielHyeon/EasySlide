@@ -3589,6 +3589,7 @@ public class MainViewModelTests
         sut.OutputVisualSource.Should().BeSameAs(expectedSlide, "Output visual surface should use the prepared Output PPT image");
         sut.OutputVisualFillMode.Should().Be(ImageFillMode.Fit);
         sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
+        sut.IsOutputHeaderTextVisible.Should().BeFalse("FrmMain flowLayoutOutputPowerPoint uses the panel display row for the deck title, not an extra yellow lyrics header");
         sut.StatusText.Should().Be("Output 준비: Deck");
     }
 
@@ -3616,6 +3617,7 @@ public class MainViewModelTests
         sut.HasOutputVisualSource.Should().BeTrue();
         sut.OutputLyricsText.Should().BeEmpty();
         sut.HasOutputLyricsText.Should().BeFalse();
+        sut.IsOutputHeaderTextVisible.Should().BeFalse("visual-only Output surfaces should not show the lyrics title strip");
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");
 
         sut.SelectedItem = next;
@@ -3671,6 +3673,7 @@ public class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(first);
         sut.OutputLyricsText.Should().Be("입례");
         sut.HasOutputLyricsText.Should().BeTrue();
+        sut.IsOutputHeaderTextVisible.Should().BeTrue("lyrics Output keeps FrmMain's yellow current text/title strip");
         sut.OutputNavigationPositionLabel.Should().Be("1/2", "prepared OutputItem should expose its own page position even while live is off");
         sut.IsOutputPowerPointContext.Should().BeFalse();
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");

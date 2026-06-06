@@ -74,6 +74,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOutputPowerPointContext))]
+    [NotifyPropertyChangedFor(nameof(IsOutputHeaderTextVisible))]
     [NotifyPropertyChangedFor(nameof(IsOutputMediaContext))]
     [NotifyPropertyChangedFor(nameof(IsOutputVisualContext))]
     [NotifyPropertyChangedFor(nameof(OutputMediaTitle))]
@@ -153,6 +154,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasPowerPointLimitViolation;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasOutputLyricsText))]
+    [NotifyPropertyChangedFor(nameof(IsOutputHeaderTextVisible))]
     [NotifyPropertyChangedFor(nameof(IsOutputVisualContext))]
     private string _outputLyricsText = string.Empty;
     [ObservableProperty] private bool _isMediaTabVisible;
@@ -281,6 +283,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
     public bool HasOutputLyricsText => !string.IsNullOrWhiteSpace(OutputLyricsText);
+
+    public bool IsOutputHeaderTextVisible => HasOutputLyricsText && !IsOutputPowerPointContext;
 
     /// <summary>FrmMain PreviewPanelDisplayName 출처 셀: 선택된 Preview 항목의 legacy 종류.</summary>
     public string PreviewPanelSourceText => BuildPanelSourceText(SelectedItem, "Preview");
@@ -632,6 +636,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(LiveItemId));
         OnPropertyChanged(nameof(CanSelectLiveItem)); // 라이브 항목이 바뀌면 "현재 송출 항목 선택" 활성/비활성도 바뀐다.
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        OnPropertyChanged(nameof(IsOutputHeaderTextVisible));
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
         OnPropertyChanged(nameof(OutputVisualSlideNumber));
@@ -4426,6 +4431,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshOutputSurfaceText();
         RebuildOutputLyricsPages();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        OnPropertyChanged(nameof(IsOutputHeaderTextVisible));
         NotifyOutputMediaProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
         OnPropertyChanged(nameof(OutputVisualFillMode));
@@ -8792,6 +8798,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveBar.PositionLabel = snapshot.CurrentItemPositionLabel;
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
+        OnPropertyChanged(nameof(IsOutputHeaderTextVisible));
         NotifyOutputPanelDisplayProperties();
         NotifyOutputMediaProperties();
         OnPropertyChanged(nameof(OutputVisualSource));
