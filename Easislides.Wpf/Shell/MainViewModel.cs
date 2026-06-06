@@ -6186,15 +6186,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    // 현재 항목 처음으로(레거시 Restart Current Item) — 라이브 곡은 첫 절로, PPT 덱은 첫 슬라이드로 되돌려 재송출.
-    // 슬라이드/절 이동과 같은 가드(선택 == 라이브 항목)를 써서 라이브 항목에만 적용한다.
+    // 현재 항목 처음으로(레거시 Restart Current Item) — Preview 선택이 아니라 현재 Output/live 항목을
+    // 첫 절/첫 슬라이드로 되돌려 재송출한다.
     //
     // 안전 확인 정책: Restart 는 안전 확인(5초)을 두지 않는다 — Clear/Hide/Black(화면을 가리는 행위)과 달리
     // "처음으로"는 다음/이전 절·슬라이드 이동과 같은 *네비게이션* 계열이고(되돌릴 수 있음: 다시 넘기면 됨),
     // 라이브 글리치 복구처럼 빠른 조작이 중요하므로 즉시 적용한다(Next/Prev 가 무확인인 것과 일관).
     private async Task RestartCurrentItemAsync()
     {
-        if (!CanRestartCurrentItem() || SelectedItem is not { } item)
+        if (!CanRestartCurrentItem() || GetOutputNavigationItem() is not { } item)
         {
             return;
         }
@@ -6226,11 +6226,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    // 라이브 활성 + 선택이 곧 라이브 항목일 때만 — 슬라이드/절 이동 가드와 동일 철학(엉뚱한 항목 재시작 방지).
+    // 라이브 활성 + 현재 Output/live 항목이 있을 때만. Preview 선택이 다른 항목을 보고 있어도 오른쪽
+    // Output "처음으로"는 live Output 항목에 작용해야 한다(FrmMain Output 영역 분리).
     private bool CanRestartCurrentItem()
         => _session.Current.State == LiveState.Active
-           && SelectedItem is not null
-           && _liveItemId == SelectedItem.Id;
+           && GetOutputNavigationItem() is not null;
 
     // 출력 새로고침(레거시 Refresh Output) — 현재 세션 스냅샷으로 출력 창을 강제 재렌더한다.
     private void RefreshOutput()

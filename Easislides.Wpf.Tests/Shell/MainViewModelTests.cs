@@ -5376,6 +5376,39 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RestartCurrentItemCommand_WhenPreviewSelectionDiverges_RestartsLiveOutputOnly()
+    {
+        // FrmMain 오른쪽 Output "현재 항목 처음으로"는 Preview 선택이 아니라 현재 live Output 항목에 작용한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive 1\n[2]\nLive 2\n[3]\nLive 3",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview 1\n[2]\nPreview 2",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        sut.SelectedItem = preview;
+
+        sut.RestartCurrentItemCommand.CanExecute(null).Should().BeTrue("Output restart should remain available when Preview is on another item");
+        await sut.RestartCurrentItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output command must not move the Preview selection");
+        sut.LyricsPageIndex.Should().Be(0, "Preview page remains on the selected Preview item");
+        sut.LiveItemId.Should().Be(live.Id);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Live 1");
+        sut.StatusText.Should().Be("처음으로: Live song");
+    }
+
+    [Fact]
     public void RestartCurrentItemCommand_WhenNotLive_IsDisabled()
     {
         var sut = CreateSut();
