@@ -10195,6 +10195,31 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputItemHomeEndCommands_SinglePreparedItem_RemainExecutableLikeFrmMain()
+    {
+        // FrmMain Output focus Home/End keys still route even when first and last are the same item; WPF should clamp, not disable.
+        var sut = CreateSut(seedSampleQueue: false);
+        var only = new LiveQueueItem("song:only", "Only output", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOnly",
+        };
+        sut.LoadQueue([only]);
+        sut.SelectedItem = only;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.FirstOutputItemCommand.CanExecute(null).Should().BeTrue("FrmMain keeps Output Home usable at the first item");
+        sut.LastOutputItemCommand.CanExecute(null).Should().BeTrue("FrmMain keeps Output End usable at the last item");
+
+        await sut.FirstOutputItemCommand.ExecuteAsync(null);
+        await sut.LastOutputItemCommand.ExecuteAsync(null);
+
+        sut.OutputItem.Should().BeSameAs(only);
+        sut.SelectedItem.Should().BeSameAs(only);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.LiveItemId.Should().BeNull();
+    }
+
+    [Fact]
     public async Task OutputItemHomeEndCommands_WhenLiveSelectionDiverges_MoveLiveOutputOnly()
     {
         // FrmMain Output PPT focus Home/End: 라이브 중이면 Preview 선택이 아니라 현재 live Output context 를 첫/마지막 항목으로 송출한다.

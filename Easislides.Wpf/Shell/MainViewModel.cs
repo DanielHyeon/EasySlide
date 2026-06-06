@@ -965,10 +965,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousOutputItemCommand = new AsyncRelayCommand(() => MoveOutputItemAsync(-1), CanMoveOutputPrevious);
         FirstOutputItemCommand = new AsyncRelayCommand(
             () => MoveOutputItemToIndexAsync(0, MainCommandIds.LiveFirst),
-            CanMoveOutputPrevious);
+            CanUseOutputItemNavigation);
         LastOutputItemCommand = new AsyncRelayCommand(
             () => MoveOutputItemToIndexAsync(Queue.Count - 1, MainCommandIds.LiveLast),
-            CanMoveOutputNext);
+            CanUseOutputItemNavigation);
         JumpToNextNonRotateOutputItemCommand = new AsyncRelayCommand(
             JumpToNextNonRotateOutputItemAsync,
             CanJumpToNextNonRotateOutputItem);
