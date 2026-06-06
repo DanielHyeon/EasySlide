@@ -3329,7 +3329,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // PPT 렌더 크기 — 출력 창이 닫혀 있을 때의 가벼운 미리보기용 기본값(출력 미송출 상태).
     private const int PptPreviewWidth = 960;
-    private const int PptPreviewHeight = 540;
+    private const int PptPreviewHeight = 720;
 
     // 출력 창이 열려 있으면 PPT 를 출력 모니터 해상도로 렌더해 송출을 선명하게 한다.
     // 다만 4K 등 초고해상도에서 매 선택마다 거대한 JPG 를 만드는 비용을 막기 위해 1080p 로 상한.

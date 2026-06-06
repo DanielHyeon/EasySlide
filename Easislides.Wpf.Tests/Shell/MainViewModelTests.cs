@@ -4095,7 +4095,7 @@ public class MainViewModelTests
     public async Task SelectingPowerPoint_WithOutputOpen_RendersAtOutputResolution()
     {
         // G1.2 후속(출력 해상도 렌더): 출력 창이 열려 있으면 PPT 를 출력 모니터 해상도로 렌더해
-        // 송출을 선명하게 한다(기존엔 미리보기 960×540 을 업스케일 → 흐림).
+        // 송출을 선명하게 한다(기존엔 미리보기 960×720 을 업스케일 → 흐림).
         var render = new RecordingPowerPointRenderService();
         var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
         sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
@@ -4119,7 +4119,7 @@ public class MainViewModelTests
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
         render.LastRequest!.PixelWidth.Should().Be(960);
-        render.LastRequest.PixelHeight.Should().Be(540);
+        render.LastRequest.PixelHeight.Should().Be(720);
     }
 
     [Fact]
@@ -4166,8 +4166,9 @@ public class MainViewModelTests
         var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
         var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
         sut.LoadQueue(new[] { ppt });
-        sut.SelectedItem = ppt; // 출력 닫힘 → 960×540 렌더
+        sut.SelectedItem = ppt; // 출력 닫힘 → 960×720 렌더
         render.LastRequest!.PixelWidth.Should().Be(960, "출력 닫힘 상태 선택은 미리보기 크기");
+        render.LastRequest.PixelHeight.Should().Be(720, "출력 닫힘 상태 선택은 FrmMain 4:3 미리보기 높이");
 
         sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
         sut.OpenOutputCommand.Execute(null); // 출력 열림 → 현재 PPT 재렌더

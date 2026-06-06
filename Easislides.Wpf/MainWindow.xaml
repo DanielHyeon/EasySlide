@@ -19,6 +19,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:LegacyPowerPointThumbnailSizeConverter x:Key="LegacyPowerPointThumbnailSize" />
+        <converters:LegacySampleScreenSizeConverter x:Key="LegacySampleScreenSize" />
         <converters:SongRowDisplayConverter x:Key="SongRowDisplay" />
         <Style x:Key="ClassicOutputToggleButton" TargetType="ToggleButton">
             <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
@@ -4078,16 +4079,30 @@
                         </WrapPanel>
                     </Border>
 
-                    <Viewbox Grid.Row="1"
-                             x:Name="ClassicPreviewHolder"
+                    <Grid Grid.Row="1"
+                          x:Name="ClassicPreviewSampleScreenHost">
+                    <Viewbox x:Name="ClassicPreviewHolder"
                              Tag="PreviewHolder"
-                             Margin="36,0"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
                              Stretch="Uniform"
                              Focusable="True"
                              MouseDown="ClassicKeyboardSurface_MouseDown"
-                             AutomationProperties.Name="Preview 16:9 화면 프레임">
+                             AutomationProperties.Name="Preview 4:3 화면 프레임">
+                        <Viewbox.Width>
+                            <MultiBinding Converter="{StaticResource LegacySampleScreenSize}">
+                                <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualWidth" />
+                                <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualHeight" />
+                            </MultiBinding>
+                        </Viewbox.Width>
+                        <Viewbox.Height>
+                            <MultiBinding Converter="{StaticResource LegacySampleScreenSize}" ConverterParameter="Height">
+                                <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualWidth" />
+                                <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualHeight" />
+                            </MultiBinding>
+                        </Viewbox.Height>
                         <Grid Width="960"
-                              Height="540">
+                              Height="720">
                             <Border x:Name="ClassicPreviewBack"
                                     Tag="PreviewBack"
                                     Background="#165D7A"
@@ -4140,6 +4155,7 @@
                                                            Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" />
                         </Grid>
                     </Viewbox>
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -4638,16 +4654,30 @@
                         </WrapPanel>
                     </Border>
 
-                    <Viewbox Grid.Row="1"
-                             x:Name="ClassicOutputHolder"
+                    <Grid Grid.Row="1"
+                          x:Name="ClassicOutputSampleScreenHost">
+                    <Viewbox x:Name="ClassicOutputHolder"
                              Tag="OutputHolder"
-                             Margin="80,18"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
                              Stretch="Uniform"
                              Focusable="True"
                              MouseDown="ClassicKeyboardSurface_MouseDown"
-                             AutomationProperties.Name="Output 16:9 화면 프레임">
+                             AutomationProperties.Name="Output 4:3 화면 프레임">
+                        <Viewbox.Width>
+                            <MultiBinding Converter="{StaticResource LegacySampleScreenSize}">
+                                <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualWidth" />
+                                <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualHeight" />
+                            </MultiBinding>
+                        </Viewbox.Width>
+                        <Viewbox.Height>
+                            <MultiBinding Converter="{StaticResource LegacySampleScreenSize}" ConverterParameter="Height">
+                                <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualWidth" />
+                                <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualHeight" />
+                            </MultiBinding>
+                        </Viewbox.Height>
                         <Grid Width="960"
-                              Height="540">
+                              Height="720">
                             <Border x:Name="ClassicOutputBack"
                                     Tag="OutputBack"
                                     Background="#165D7A"
@@ -4705,6 +4735,7 @@
                                                            AutomationProperties.Name="Output 큰 시각 자료" />
                         </Grid>
                     </Viewbox>
+                    </Grid>
 
                     <Border Grid.Row="2"
                             x:Name="panelOutputLM1"

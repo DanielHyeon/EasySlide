@@ -409,15 +409,21 @@ public class MainMenuBarTests
     }
 
     [Fact]
-    public void ClassicPreviewAndOutputLargeScreens_KeepFrmMainSixteenNineFrames()
+    public void ClassicPreviewAndOutputLargeScreens_UseFrmMainFourByThreeSampleScreenSizing()
     {
         var xaml = Xaml;
 
         var preview = SectionBetween(xaml, "x:Name=\"ClassicPreviewHolder\"", "</Viewbox>");
         preview.Should().Contain("Tag=\"PreviewHolder\"", "Preview lower pane should keep the FrmMain PreviewHolder role");
         preview.Should().Contain("Stretch=\"Uniform\"", "Preview screen should scale as one slide frame instead of stretching to pane shape");
-        preview.Should().Contain("Width=\"960\"", "Preview screen should use a fixed 16:9 design surface");
-        preview.Should().Contain("Height=\"540\"", "Preview screen should use a fixed 16:9 design surface");
+        xaml.Should().Contain("x:Name=\"ClassicPreviewSampleScreenHost\"",
+            "Preview screen sizing should be based on the actual lower pane like FrmMain panelPreviewBottom");
+        preview.Should().Contain("Converter=\"{StaticResource LegacySampleScreenSize}\"",
+            "Preview screen should use FrmMain ResizeSampleScreen width/height calculations");
+        preview.Should().Contain("ConverterParameter=\"Height\"",
+            "Preview screen height should use the FrmMain 4:3 sample-screen formula");
+        preview.Should().Contain("Width=\"960\"", "Preview screen should keep a 4:3 design surface");
+        preview.Should().Contain("Height=\"720\"", "Preview screen should keep a 4:3 design surface");
         preview.Should().Contain("x:Name=\"ClassicPreviewBack\"", "Preview background should stay inside the fixed frame like FrmMain PreviewBack");
         preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"", "non-PPT Preview lyrics should render in the lower preview frame");
         preview.Should().Contain("Text=\"{Binding PreviewLyricsText}\"", "the lower Preview frame should follow the selected Preview page text");
@@ -441,8 +447,14 @@ public class MainMenuBarTests
         var output = SectionBetween(xaml, "x:Name=\"ClassicOutputHolder\"", "</Viewbox>");
         output.Should().Contain("Tag=\"OutputHolder\"", "Output lower pane should keep the FrmMain OutputHolder role");
         output.Should().Contain("Stretch=\"Uniform\"", "Output screen should scale as one slide frame instead of stretching to pane shape");
-        output.Should().Contain("Width=\"960\"", "Output screen should use the same 16:9 frame as the live output slide");
-        output.Should().Contain("Height=\"540\"", "Output screen should use the same 16:9 frame as the live output slide");
+        xaml.Should().Contain("x:Name=\"ClassicOutputSampleScreenHost\"",
+            "Output screen sizing should be based on the actual lower pane like FrmMain panelOutputBottom");
+        output.Should().Contain("Converter=\"{StaticResource LegacySampleScreenSize}\"",
+            "Output screen should use FrmMain ResizeSampleScreen width/height calculations");
+        output.Should().Contain("ConverterParameter=\"Height\"",
+            "Output screen height should use the FrmMain 4:3 sample-screen formula");
+        output.Should().Contain("Width=\"960\"", "Output screen should keep a 4:3 design surface");
+        output.Should().Contain("Height=\"720\"", "Output screen should keep a 4:3 design surface");
         output.Should().Contain("x:Name=\"ClassicOutputBack\"", "the output background stays inside the fixed frame");
         output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"", "non-PPT Output lyrics should render in the lower live preview frame");
         output.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "the lower Output frame should follow OutputItem/live lyrics, not selected Preview lyrics");
