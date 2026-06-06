@@ -285,6 +285,24 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_PowerPointSourceListingStyle_PersistsFrmMainListPreviewMode()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.PowerPointSourceListingStyle).Should().Be(-1);
+        sut.Set(EasiSettingKeys.PowerPointSourceListingStyle, 1).Succeeded.Should().BeTrue();
+        sut.Get(EasiSettingKeys.PowerPointSourceListingStyle).Should().Be(1);
+        ReadSnapshot(fixture.SettingsPath).PowerPoint.SourceListingStyle.Should().Be(1);
+
+        var invalid = sut.Set(EasiSettingKeys.PowerPointSourceListingStyle, 2);
+
+        invalid.Succeeded.Should().BeFalse();
+        invalid.Issues.Should().Contain(issue => issue.Key == EasiSettingKeys.PowerPointSourceListingStyle.Id);
+        sut.Get(EasiSettingKeys.PowerPointSourceListingStyle).Should().Be(1);
+    }
+
+    [Fact]
     public void RestoreDefaults_RevertsChangedValuesAndPersistsDefaultSnapshot()
     {
         using var fixture = TempSettingsFolder.Create();

@@ -49,6 +49,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     private readonly Action<string> _addToQueue;
     private readonly IPowerPointRenderService? _render;
     private readonly Func<byte[], ImageSource> _decodeThumbnail;
+    private readonly Action<PowerPointListingStyle>? _listingStyleChanged;
     private readonly string _rootFolderPath;
     private bool _suppressSelectedFolderReload;
     private CancellationTokenSource? _thumbnailCts;
@@ -88,12 +89,14 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         string initialFolder,
         IPowerPointRenderService? render = null,
         Func<byte[], ImageSource>? thumbnailDecoder = null,
-        PowerPointListingStyle initialListingStyle = PowerPointListingStyle.List)
+        PowerPointListingStyle initialListingStyle = PowerPointListingStyle.List,
+        Action<PowerPointListingStyle>? listingStyleChanged = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
         _render = render;
         _decodeThumbnail = thumbnailDecoder ?? DecodeImage;
+        _listingStyleChanged = listingStyleChanged;
         _rootFolderPath = initialFolder ?? string.Empty;
         _folderPath = _rootFolderPath;
         _listingStyle = initialListingStyle is PowerPointListingStyle.Preview
@@ -295,12 +298,14 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     private void UseListStyle()
     {
         ListingStyle = PowerPointListingStyle.List;
+        _listingStyleChanged?.Invoke(ListingStyle);
         _thumbnailCts?.Cancel();
     }
 
     private void UsePreviewStyle()
     {
         ListingStyle = PowerPointListingStyle.Preview;
+        _listingStyleChanged?.Invoke(ListingStyle);
         _ = LoadThumbnailsAsync();
     }
 

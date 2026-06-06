@@ -184,7 +184,12 @@ public class PowerPointLibraryViewModelTests
     [Fact]
     public void ListingStyle_DefaultsToList_AndCanSwitchToPreview()
     {
-        var sut = CreateSut(out _, @"C:\decks\a.pptx");
+        var changed = new List<PowerPointListingStyle>();
+        var sut = new PowerPointLibraryViewModel(
+            new FakePptService(paths: new[] { @"C:\decks\a.pptx" }),
+            _ => { },
+            initialFolder: @"C:\decks",
+            listingStyleChanged: changed.Add);
 
         sut.ListingStyle.Should().Be(PowerPointListingStyle.List);
         sut.IsListStyle.Should().BeTrue();
@@ -197,9 +202,11 @@ public class PowerPointLibraryViewModelTests
         sut.IsListStyle.Should().BeFalse();
         sut.IsPreviewStyle.Should().BeTrue();
         sut.ListingStyleLabel.Should().Be("Preview");
+        changed.Should().ContainSingle().Which.Should().Be(PowerPointListingStyle.Preview);
 
         sut.UseListStyleCommand.Execute(null);
         sut.ListingStyle.Should().Be(PowerPointListingStyle.List);
+        changed.Should().Equal(PowerPointListingStyle.Preview, PowerPointListingStyle.List);
     }
 
     [Fact]

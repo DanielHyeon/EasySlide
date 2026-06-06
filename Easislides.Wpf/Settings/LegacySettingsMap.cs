@@ -148,6 +148,8 @@ public static class LegacySettingsMap
         Automated("PowerPointMaxFiles", EasiSettingKeys.PowerPointMaxFiles.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("PowerpointMaxFiles", EasiSettingKeys.PowerPointMaxFiles.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "RegUtil options", "Registry-backed legacy PowerPoint max files limit."),
         Automated("PP_MaxFiles", EasiSettingKeys.PowerPointMaxFiles.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "FrmOptions.SaveVariables", "Legacy PowerPoint recent/max files limit."),
+        Automated("PowerPointSourceListingStyle", EasiSettingKeys.PowerPointSourceListingStyle.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "WPF compatibility", "Current WPF source list/thumbnail mode alias."),
+        Automated("ExternalListing", EasiSettingKeys.PowerPointSourceListingStyle.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "FrmMain PP_Style_DropDownItemClicked", "Legacy left PowerPoint list style: 0=list, 1=thumbnail preview."),
 
         Automated("UseMediaTab", EasiSettingKeys.UseMediaTab.Id, SettingsSectionKind.Media, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy media tab visibility."),
         Automated("NoMediaPanelOverlay", EasiSettingKeys.NoMediaPanelOverlay.Id, SettingsSectionKind.Media, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy media overlay behavior."),

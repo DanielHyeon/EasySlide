@@ -380,6 +380,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
     public static readonly SettingKey<int> ThumbnailCacheMegabytes = new("powerPoint.thumbnailCacheMegabytes", 256);
     public static readonly SettingKey<int> PowerPointMaxFiles = new("powerPoint.maxFiles", 20);
+    public static readonly SettingKey<int> PowerPointSourceListingStyle = new("powerPoint.sourceListingStyle", -1);
     public static readonly SettingKey<bool> UseMediaTab = new("media.useMediaTab", false);
     public static readonly SettingKey<bool> NoMediaPanelOverlay = new("media.noPanelOverlay", false);
     public static readonly SettingKey<string> MediaDirectory = new("media.directory", "");
@@ -483,6 +484,7 @@ public static class EasiSettingKeys
         PowerPointRenderTimeoutSeconds,
         ThumbnailCacheMegabytes,
         PowerPointMaxFiles,
+        PowerPointSourceListingStyle,
         UseMediaTab,
         NoMediaPanelOverlay,
         MediaDirectory,
@@ -689,6 +691,8 @@ public sealed record PowerPointSettings
     public int ThumbnailCacheMegabytes { get; init; } = EasiSettingKeys.ThumbnailCacheMegabytes.DefaultValue;
 
     public int MaxFiles { get; init; } = EasiSettingKeys.PowerPointMaxFiles.DefaultValue;
+
+    public int SourceListingStyle { get; init; } = EasiSettingKeys.PowerPointSourceListingStyle.DefaultValue;
 }
 
 public sealed record MediaSettings
@@ -1106,6 +1110,12 @@ public sealed class SettingsService : ISettingsService
             max: 100,
             EasiSettingKeys.PowerPointMaxFiles.Id,
             issues);
+        RequireRange(
+            candidate.PowerPoint.SourceListingStyle,
+            min: -1,
+            max: 1,
+            EasiSettingKeys.PowerPointSourceListingStyle.Id,
+            issues);
         ValidatePath(candidate.Media.Directory, EasiSettingKeys.MediaDirectory.Id, issues, allowEmpty: true);
         RequireRange(candidate.Media.Volume, min: 0.0, max: 1.0, EasiSettingKeys.MediaVolume.Id, issues);
         RequireRange(candidate.Media.Balance, min: -1.0, max: 1.0, EasiSettingKeys.MediaBalance.Id, issues);
@@ -1290,6 +1300,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointMaxFiles.Id), next, issues, value => next with
         {
             PowerPoint = next.PowerPoint with { MaxFiles = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PowerPointSourceListingStyle.Id), next, issues, value => next with
+        {
+            PowerPoint = next.PowerPoint with { SourceListingStyle = value },
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.UseMediaTab.Id), next, issues, value => next with
         {
@@ -1647,6 +1661,7 @@ public sealed class SettingsService : ISettingsService
             "powerPoint.renderTimeoutSeconds" => snapshot.PowerPoint.RenderTimeoutSeconds,
             "powerPoint.thumbnailCacheMegabytes" => snapshot.PowerPoint.ThumbnailCacheMegabytes,
             "powerPoint.maxFiles" => snapshot.PowerPoint.MaxFiles,
+            "powerPoint.sourceListingStyle" => snapshot.PowerPoint.SourceListingStyle,
             "media.useMediaTab" => snapshot.Media.UseMediaTab,
             "media.noPanelOverlay" => snapshot.Media.NoPanelOverlay,
             "media.directory" => snapshot.Media.Directory,
@@ -2006,6 +2021,10 @@ public sealed class SettingsService : ISettingsService
             "powerPoint.maxFiles" => snapshot with
             {
                 PowerPoint = snapshot.PowerPoint with { MaxFiles = Cast<int>(keyId, value) },
+            },
+            "powerPoint.sourceListingStyle" => snapshot with
+            {
+                PowerPoint = snapshot.PowerPoint with { SourceListingStyle = Cast<int>(keyId, value) },
             },
             "media.useMediaTab" => snapshot with
             {

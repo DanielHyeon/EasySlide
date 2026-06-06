@@ -183,13 +183,28 @@ public partial class MainWindow : Window
             path => viewModel.AddPowerPoint(path),
             ResolvePowerPointInitialFolder(),
             _services.GetService<IPowerPointRenderService>(),
-            initialListingStyle: ResolveInitialPowerPointListingStyle());
+            initialListingStyle: ResolveInitialPowerPointListingStyle(),
+            listingStyleChanged: SavePowerPointSourceListingStyle);
         PowerPointSourceTab.DataContext = _inlinePowerPoint;
         _inlinePowerPoint.LoadCommand.Execute(null);
     }
 
     private PowerPointListingStyle ResolveInitialPowerPointListingStyle()
     {
+        if (_settings is not null)
+        {
+            var saved = _settings.Get(EasiSettingKeys.PowerPointSourceListingStyle);
+            if (saved == (int)PowerPointListingStyle.Preview)
+            {
+                return PowerPointListingStyle.Preview;
+            }
+
+            if (saved == (int)PowerPointListingStyle.List)
+            {
+                return PowerPointListingStyle.List;
+            }
+        }
+
         var legacy = _services.GetService<ILegacySettingsSource>();
         if (legacy?.TryGetString("ExternalListing", out var raw) == true
             && int.TryParse(raw, out var value)
@@ -199,6 +214,11 @@ public partial class MainWindow : Window
         }
 
         return PowerPointListingStyle.List;
+    }
+
+    private void SavePowerPointSourceListingStyle(PowerPointListingStyle style)
+    {
+        _settings?.Set(EasiSettingKeys.PowerPointSourceListingStyle, (int)style);
     }
 
     private void EnsureInlineInfoScreenLoadedOnce(MainViewModel viewModel)
@@ -2882,7 +2902,9 @@ public partial class MainWindow : Window
             new Easislides.Wpf.Library.PowerPointLibraryService(),
             path => viewModel.AddPowerPoint(path), // AddPowerPoint 는 LiveQueueItem 을 반환하므로 람다로 감싼다
             ResolvePowerPointInitialFolder(),
-            _services.GetService<IPowerPointRenderService>());
+            _services.GetService<IPowerPointRenderService>(),
+            initialListingStyle: ResolveInitialPowerPointListingStyle(),
+            listingStyleChanged: SavePowerPointSourceListingStyle);
 
         var window = new Easislides.Wpf.Library.PowerPointLibraryWindow(pptViewModel) { Owner = this };
         window.ShowDialog();
