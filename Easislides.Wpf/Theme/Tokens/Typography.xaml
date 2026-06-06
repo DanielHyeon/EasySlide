@@ -70,5 +70,10 @@
         <Setter Property="FontSize" Value="{DynamicResource Type.Caption.FontSize}" />
         <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Regular}" />
     </Style>
+    <Style x:Key="Type.Caption.StrongStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Caption.FontSize}" />
+        <Setter Property="FontWeight" Value="{StaticResource Type.Weight.Semibold}" />
+    </Style>
 
 </ResourceDictionary>

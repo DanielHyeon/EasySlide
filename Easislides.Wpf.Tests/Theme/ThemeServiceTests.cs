@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using Easislides.Wpf.Theme;
 using FluentAssertions;
 using Xunit;
@@ -48,6 +49,15 @@ public class ThemeServiceTests
         sut.ApplyInterfaceSize(InterfaceSize.Senior);
 
         raised.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TypographyResources_ExposeCaptionStrongStyleUsedByMainWindow()
+    {
+        var style = Application.Current.Resources["Type.Caption.StrongStyle"];
+
+        style.Should().BeOfType<Style>();
+        ((Style)style).TargetType.Should().Be(typeof(TextBlock));
     }
 
     [Fact]
