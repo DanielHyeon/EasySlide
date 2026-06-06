@@ -493,6 +493,29 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputLargeScreens_DoNotOverlayItemTitlesOnLyricsFrames()
+    {
+        var xaml = Xaml;
+
+        var preview = SectionBetween(xaml, "x:Name=\"ClassicPreviewHolder\"", "</Viewbox>");
+        var output = SectionBetween(xaml, "x:Name=\"ClassicOutputHolder\"", "</Viewbox>");
+
+        preview.Should().NotContain("Text=\"{Binding SelectedItem.Title}\"",
+            "FrmMain's lower Preview sample screen shows the song/Bible body, not a separate item-title overlay");
+        preview.Should().NotContain("AutomationProperties.Name=\"Preview 슬라이드 현재 항목\"");
+        preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"");
+        preview.Should().Contain("Margin=\"36,48,36,68\"",
+            "without the WPF title overlay, lyrics should start near the top of the 4:3 frame like FrmMain");
+
+        output.Should().NotContain("Text=\"{Binding OutputItem.Title}\"",
+            "FrmMain's lower Output sample screen follows the live/prepared body instead of drawing a title overlay");
+        output.Should().NotContain("AutomationProperties.Name=\"Output 슬라이드 현재 항목\"");
+        output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"");
+        output.Should().Contain("Margin=\"36,48,36,68\"",
+            "Output lyrics should use the same title-free 4:3 frame geometry as Preview");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputPowerPointThumbnails_MapFocusedKeyboardNavigationIndependently()
     {
         var code = CodeBehind;
