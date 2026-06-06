@@ -287,6 +287,21 @@ public class MainMenuBarTests
         xaml.Should().Contain("GoToOutputLyricsPageCommand", "Output lyrics page card clicks should navigate the Output item, not the selected Preview item");
         xaml.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "non-PPT Output lyrics should only show when the Output target has lyrics/body text");
+        var outputLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutOutputLyrics\"", "</ScrollViewer>");
+        outputLyricsSurface.Should().Contain("<StackPanel />",
+            "FrmMain flowLayoutOutputLyrics stacks RichTextBox rows vertically through DockStyle.Top");
+        outputLyricsSurface.Should().Contain("Converter=\"{StaticResource LegacyLyricsRichTextBoxWidth}\"",
+            "Output lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
+        outputLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
+            "Output lyrics rows should show the full RichTextBox body without a separate page badge");
+        outputLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#FFFFFF00\" />",
+            "the current Output lyrics row should use FrmMain's selected-slide yellow background");
+        outputLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"Red\" />",
+            "the current Output lyrics row should use FrmMain's selected-slide red text");
+        outputLyricsSurface.Should().NotContain("<WrapPanel />");
+        outputLyricsSurface.Should().NotContain("Width=\"180\"");
+        outputLyricsSurface.Should().NotContain("MaxHeight=\"90\"");
+        outputLyricsSurface.Should().NotContain("Text=\"{Binding Label}\"");
         xaml.Should().Contain("x:Name=\"ClassicOutputThumbnailGrid\"", "right-top Output pane should match FrmMain PPT thumbnail mode");
         xaml.Should().Contain("Visibility=\"{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}\"",
             "PPT thumbnails should show for the OutputItem context rather than every selected Preview item");
@@ -1267,14 +1282,20 @@ public class MainMenuBarTests
         xaml.Should().Contain("GoToPreviewLyricsPageCommand",
             "Preview lyrics page card clicks should move only the selected Preview item");
         var previewLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutPreviewLyrics\"", "x:Name=\"IndPanel\"");
-        previewLyricsSurface.Should().Contain("<WrapPanel />",
-            "Preview lyrics cards should use a FrmMain flow layout rather than a single-column modern list");
-        previewLyricsSurface.Should().Contain("Width=\"180\"",
-            "Preview lyrics cards should visually match Output page cards");
-        previewLyricsSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"Red\" />",
-            "the current Preview lyrics page should use the FrmMain red selected border");
-        previewLyricsSurface.Should().Contain("Background=\"#FFF6E600\"",
-            "Preview lyrics cards should keep the FrmMain yellow page-number badge");
+        previewLyricsSurface.Should().Contain("<StackPanel />",
+            "FrmMain flowLayoutPreviewLyrics stacks RichTextBox rows vertically through DockStyle.Top");
+        previewLyricsSurface.Should().Contain("Converter=\"{StaticResource LegacyLyricsRichTextBoxWidth}\"",
+            "Preview lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
+        previewLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
+            "Preview lyrics rows should show the full RichTextBox body without a separate page badge");
+        previewLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#FFFFFF00\" />",
+            "the current Preview lyrics row should use FrmMain's selected-slide yellow background");
+        previewLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"Red\" />",
+            "the current Preview lyrics row should use FrmMain's selected-slide red text");
+        previewLyricsSurface.Should().NotContain("<WrapPanel />");
+        previewLyricsSurface.Should().NotContain("Width=\"180\"");
+        previewLyricsSurface.Should().NotContain("MaxHeight=\"90\"");
+        previewLyricsSurface.Should().NotContain("Text=\"{Binding Label}\"");
         xaml.Should().Contain("x:Name=\"ClassicOutputPowerPointSurface\"",
             "Output top pane should expose the live PowerPoint thumbnail/list surface");
         xaml.Should().Contain("x:Name=\"ClassicOutputHolder\"",

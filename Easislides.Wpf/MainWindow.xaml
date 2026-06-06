@@ -19,6 +19,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:LegacyPowerPointThumbnailSizeConverter x:Key="LegacyPowerPointThumbnailSize" />
+        <converters:LegacyLyricsRichTextBoxWidthConverter x:Key="LegacyLyricsRichTextBoxWidth" />
         <converters:LegacySampleScreenSizeConverter x:Key="LegacySampleScreenSize" />
         <converters:SongRowDisplayConverter x:Key="SongRowDisplay" />
         <Style x:Key="ClassicOutputToggleButton" TargetType="ToggleButton">
@@ -3188,54 +3189,53 @@
                                                           AutomationProperties.Name="Preview 가사 페이지 영역">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
-                                                        <WrapPanel />
+                                                        <StackPanel />
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Button Command="{Binding DataContext.GoToPreviewLyricsPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                 CommandParameter="{Binding PageIndex}"
-                                                                Margin="6"
+                                                                Margin="0"
                                                                 Padding="0"
-                                                                Background="Transparent"
                                                                 BorderThickness="0"
+                                                                HorizontalContentAlignment="Stretch"
                                                                 Cursor="Hand"
                                                                 ToolTip="{Binding PositionText, StringFormat=Preview {0}}">
-                                                            <Border BorderThickness="5"
-                                                                    Padding="4"
-                                                                    Width="180"
-                                                                    MinHeight="102">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                            <Setter Property="Foreground" Value="Red" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <Border BorderThickness="0"
+                                                                    Padding="4,3"
+                                                                    MinHeight="24">
+                                                                <Border.Width>
+                                                                    <Binding Path="ActualWidth"
+                                                                             RelativeSource="{RelativeSource AncestorType=ScrollViewer}"
+                                                                             Converter="{StaticResource LegacyLyricsRichTextBoxWidth}" />
+                                                                </Border.Width>
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
-                                                                        <Setter Property="BorderBrush" Value="Transparent" />
                                                                         <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                         <Style.Triggers>
                                                                             <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                                <Setter Property="BorderBrush" Value="Red" />
+                                                                                <Setter Property="Background" Value="#FFFFFF00" />
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Border.Style>
-                                                                <Grid>
-                                                                    <Grid.RowDefinitions>
-                                                                        <RowDefinition Height="Auto" />
-                                                                        <RowDefinition Height="*" />
-                                                                    </Grid.RowDefinitions>
-                                                                    <TextBlock Text="{Binding Label}"
-                                                                               HorizontalAlignment="Right"
-                                                                               MinWidth="18"
-                                                                               TextAlignment="Center"
-                                                                               FontWeight="Bold"
-                                                                               Foreground="Black"
-                                                                               Background="#FFF6E600" />
-                                                                    <TextBlock Grid.Row="1"
-                                                                               Text="{Binding BodyText}"
-                                                                               TextWrapping="Wrap"
-                                                                               MaxHeight="90"
-                                                                               TextTrimming="CharacterEllipsis"
-                                                                               Style="{StaticResource Type.Caption.Style}"
-                                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                                                </Grid>
+                                                                <TextBlock Text="{Binding BodyText}"
+                                                                           TextWrapping="Wrap"
+                                                                           FontFamily="Microsoft Sans Serif"
+                                                                           FontSize="13"
+                                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                                             </Border>
                                                         </Button>
                                                     </DataTemplate>
@@ -4298,54 +4298,53 @@
                                                   ItemsSource="{Binding OutputLyricsPages}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <WrapPanel />
+                                                <StackPanel />
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Button Command="{Binding DataContext.GoToOutputLyricsPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                         CommandParameter="{Binding PageIndex}"
-                                                        Margin="6"
+                                                        Margin="0"
                                                         Padding="0"
-                                                        Background="Transparent"
                                                         BorderThickness="0"
+                                                        HorizontalContentAlignment="Stretch"
                                                         Cursor="Hand"
                                                         ToolTip="{Binding PositionText, StringFormat=Output {0}}">
-                                                    <Border BorderThickness="5"
-                                                            Padding="4"
-                                                            Width="180"
-                                                            MinHeight="102">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                    <Setter Property="Foreground" Value="Red" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <Border BorderThickness="0"
+                                                            Padding="4,3"
+                                                            MinHeight="24">
+                                                        <Border.Width>
+                                                            <Binding Path="ActualWidth"
+                                                                     RelativeSource="{RelativeSource AncestorType=ScrollViewer}"
+                                                                     Converter="{StaticResource LegacyLyricsRichTextBoxWidth}" />
+                                                        </Border.Width>
                                                         <Border.Style>
                                                             <Style TargetType="Border">
-                                                                <Setter Property="BorderBrush" Value="Transparent" />
                                                                 <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                        <Setter Property="BorderBrush" Value="Red" />
+                                                                        <Setter Property="Background" Value="#FFFFFF00" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </Border.Style>
-                                                        <Grid>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition Height="Auto" />
-                                                                <RowDefinition Height="*" />
-                                                            </Grid.RowDefinitions>
-                                                            <TextBlock Text="{Binding Label}"
-                                                                       HorizontalAlignment="Right"
-                                                                       MinWidth="18"
-                                                                       TextAlignment="Center"
-                                                                       FontWeight="Bold"
-                                                                       Foreground="Black"
-                                                                       Background="#FFF6E600" />
-                                                            <TextBlock Grid.Row="1"
-                                                                       Text="{Binding BodyText}"
-                                                                       TextWrapping="Wrap"
-                                                                       MaxHeight="90"
-                                                                       TextTrimming="CharacterEllipsis"
-                                                                       Style="{StaticResource Type.Caption.Style}"
-                                                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                                        </Grid>
+                                                        <TextBlock Text="{Binding BodyText}"
+                                                                   TextWrapping="Wrap"
+                                                                   FontFamily="Microsoft Sans Serif"
+                                                                   FontSize="13"
+                                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                                     </Border>
                                                 </Button>
                                             </DataTemplate>
