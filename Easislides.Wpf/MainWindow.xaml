@@ -18,6 +18,7 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:LegacyPowerPointThumbnailSizeConverter x:Key="LegacyPowerPointThumbnailSize" />
         <converters:SongRowDisplayConverter x:Key="SongRowDisplay" />
         <Style x:Key="ClassicOutputToggleButton" TargetType="ToggleButton">
             <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
@@ -3795,8 +3796,11 @@
                                                             Cursor="Hand"
                                                             ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
                                                             AutomationProperties.Name="{Binding SlideNumber, StringFormat=슬라이드 {0}}">
-                                                        <Border BorderThickness="5"
-                                                                Padding="3">
+                                                        <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                                Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
+                                                                BorderThickness="5"
+                                                                Background="White"
+                                                                Padding="0">
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderBrush" Value="Transparent" />
@@ -3809,8 +3813,6 @@
                                                             </Border.Style>
                                                             <Grid>
                                                                 <Image Source="{Binding Image}"
-                                                                       Width="180"
-                                                                       Height="102"
                                                                        Stretch="Uniform" />
                                                                 <TextBlock Text="{Binding SlideNumber}"
                                                                            HorizontalAlignment="Right"
@@ -4359,8 +4361,11 @@
                                                         BorderThickness="0"
                                                         ToolTip="{Binding SlideNumber, StringFormat=슬라이드 {0}}"
                                                         AutomationProperties.Name="{Binding SlideNumber, StringFormat=Output 슬라이드 {0}}">
-                                                    <Border BorderThickness="5"
-                                                            Padding="3">
+                                                    <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                            Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
+                                                            BorderThickness="5"
+                                                            Background="White"
+                                                            Padding="0">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="BorderBrush" Value="Transparent" />
@@ -4373,8 +4378,6 @@
                                                         </Border.Style>
                                                         <Grid>
                                                             <Image Source="{Binding Image}"
-                                                                   Width="180"
-                                                                   Height="102"
                                                                    Stretch="Uniform" />
                                                             <TextBlock Text="{Binding SlideNumber}"
                                                                        HorizontalAlignment="Right"

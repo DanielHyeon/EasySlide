@@ -531,6 +531,42 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void ClassicPreviewAndOutputPowerPointThumbnails_UseFrmMainThreeColumnSizing()
+    {
+        var xaml = Xaml;
+        xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
+            "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
+
+        var previewPowerPointPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicPreviewPowerPointSurface\"",
+            "AutomationProperties.Name=\"Media\"");
+        var outputPowerPointPane = SectionBetween(
+            xaml,
+            "x:Name=\"ClassicOutputPowerPointSurface\"",
+            "x:Name=\"ClassicOutputVisualSurface\"");
+
+        foreach (var pane in new[] { previewPowerPointPane, outputPowerPointPane })
+        {
+            pane.Should().Contain("Path=ActualWidth",
+                "thumbnail size should react to the current flow panel width like FrmMain");
+            pane.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
+                "thumbnail width should use the legacy (panelWidth - 35) / 3 formula");
+            pane.Should().Contain("ConverterParameter=Height",
+                "thumbnail height should use the legacy 4:3 canvas height");
+            pane.Should().Contain("Stretch=\"Uniform\"",
+                "the exported slide image should fit inside the legacy 4:3 thumbnail canvas");
+            pane.Should().Contain("Background=\"White\"",
+                "legacy PPT thumbnail canvases draw the slide over a white card surface");
+        }
+
+        previewPowerPointPane.Should().NotContain("Width=\"180\"");
+        previewPowerPointPane.Should().NotContain("Height=\"102\"");
+        outputPowerPointPane.Should().NotContain("Width=\"180\"");
+        outputPowerPointPane.Should().NotContain("Height=\"102\"");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputLyricsSurfaces_MapFocusedKeyboardNavigationIndependently()
     {
         var xaml = Xaml;
@@ -1204,10 +1240,10 @@ public class MainMenuBarTests
             "Preview PowerPoint top pane should keep the legacy flowLayoutPreviewPowerPoint role on the scroller surface");
         previewPowerPointSurface.Should().Contain("<WrapPanel />",
             "Preview PowerPoint top pane should wrap thumbnails like FrmMain flowLayoutPreviewPowerPoint");
-        previewPowerPointSurface.Should().Contain("Width=\"180\"",
-            "Preview PowerPoint thumbnails should use the same operator-sized card as Output thumbnails");
-        previewPowerPointSurface.Should().Contain("Height=\"102\"",
-            "Preview PowerPoint thumbnails should preserve 16:9 cards instead of the older tiny strip");
+        previewPowerPointSurface.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
+            "Preview PowerPoint thumbnails should use the FrmMain three-column flow sizing formula");
+        previewPowerPointSurface.Should().Contain("ConverterParameter=Height",
+            "Preview PowerPoint thumbnail height should preserve the FrmMain 4:3 canvas formula");
         previewPowerPointSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"Red\" />",
             "the current Preview PowerPoint thumbnail should use the FrmMain red selected border");
         previewPowerPointSurface.Should().Contain("Background=\"#FFF6E600\"",
