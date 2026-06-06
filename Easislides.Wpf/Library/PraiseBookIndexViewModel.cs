@@ -28,6 +28,9 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     [ObservableProperty]
     private string _currentBookName = string.Empty;
 
+    [ObservableProperty]
+    private bool _isWordCountSortEnabled;
+
     public PraiseBookIndexViewModel(
         IPraiseBookIndexService indexService,
         IPraiseBookStore store,
@@ -77,7 +80,9 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     private void RebuildIndex()
     {
         Groups.Clear();
-        var groups = _indexService.BuildIndex(_currentEntries);
+        var groups = _indexService.BuildIndex(
+            _currentEntries,
+            IsWordCountSortEnabled ? PraiseBookSortMode.WordCount : PraiseBookSortMode.Alpha);
         foreach (var group in groups)
         {
                 Groups.Add(group);
@@ -95,6 +100,15 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         StatusText = total == 0
             ? "색인할 곡이 없습니다(곡 폴더를 먼저 선택하세요)."
             : $"{total}곡 · {groups.Count}개 머리글자 그룹";
+    }
+
+    public void ToggleWordCountSort()
+    {
+        IsWordCountSortEnabled = !IsWordCountSortEnabled;
+        RebuildIndex();
+        StatusText = IsWordCountSortEnabled
+            ? "찬양집 정렬: CJK Word Count"
+            : "찬양집 정렬: 가나다순";
     }
 
     // 저장된 찬양집 이름 목록을 새로고침(저장/삭제/이름변경 후 호출).

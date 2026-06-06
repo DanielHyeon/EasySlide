@@ -875,6 +875,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"PB_Add\"", "PB_Add should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_WordCount\"", "Praise Book toolbar should expose FrmMain PB_WordCount");
         xaml.Should().Contain("Tag=\"PB_WordCount\"", "PB_WordCount should keep the legacy toolbar role tag");
+        xaml.Should().Contain("Click=\"PB_WordCount_Click\"", "PB_WordCount should toggle the inline PraiseBook CJK Word Count sort instead of being a placeholder");
+        SectionBetween(xaml, "x:Name=\"PB_WordCount\"", "x:Name=\"InlinePraiseBookOpenBookButton\"")
+            .Should().NotContain("IsEnabled=\"False\"", "PB_WordCount must remain usable like FrmMain CheckOnClick");
         xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
         xaml.Should().Contain("Tag=\"PB_Delete\"", "PB_Delete should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Word\"", "Praise Book toolbar should expose FrmMain PB_Word");
@@ -906,6 +909,8 @@ public class MainMenuBarTests
         code.Should().Contain("await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name)", "inline PraiseBook selection should use the real ViewModel open command");
         code.Should().Contain("InlinePraiseBookAddSelected_Click", "PB_Add should add the selected Folders song to the inline PraiseBook");
         code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
+        code.Should().Contain("PB_WordCount_Click", "PB_WordCount should be wired to a real sort toggle path");
+        code.Should().Contain("ToggleWordCountSort", "PB_WordCount should rebuild the current PraiseBook list using the VM sort mode");
         code.Should().Contain("PraiseBookItems_SelectionChanged", "PraiseBook selection should update Preview without requiring double-click");
         code.Should().Contain("PreviewPraiseBookSongAsync", "PraiseBook selection preview should reuse the same DB/song resolution as add and drag");
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");

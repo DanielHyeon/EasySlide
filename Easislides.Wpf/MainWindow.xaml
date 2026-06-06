@@ -2575,7 +2575,7 @@
                                 <Button Grid.Column="3"
                                         x:Name="PB_WordCount"
                                         Tag="PB_WordCount"
-                                        IsEnabled="False"
+                                        Click="PB_WordCount_Click"
                                         Style="{StaticResource EsButton.Secondary}"
                                         MinWidth="28"
                                         MinHeight="28"

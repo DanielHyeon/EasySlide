@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Easislides.Wpf.Library;
@@ -14,6 +15,13 @@ public sealed record PraiseBookIndexGroup(string Key, IReadOnlyList<PraiseBookIn
 /// </summary>
 public sealed record PraiseBookIndexEntry(string Title, int Number, int SongId = 0);
 
+/// <summary>FrmMain PraiseBook `PB_WordCount` 정렬 모드.</summary>
+public enum PraiseBookSortMode
+{
+    Alpha = 0,
+    WordCount = 1,
+}
+
 /// <summary>
 /// 찬양집 색인 생성기(FrmMain "Listing of Selected Folder"/PraiseBook CJK 그룹핑 포팅).
 /// 곡 제목의 머리글자로 한글 초성(ㄱ~ㅎ)·영문(A~Z)·숫자(#)·기타로 묶어 가나다 순 색인을 만든다.
@@ -21,14 +29,25 @@ public sealed record PraiseBookIndexEntry(string Title, int Number, int SongId =
 /// </summary>
 public interface IPraiseBookIndexService
 {
-    IReadOnlyList<PraiseBookIndexGroup> BuildIndex(IEnumerable<PraiseBookIndexEntry> songs);
+    IReadOnlyList<PraiseBookIndexGroup> BuildIndex(
+        IEnumerable<PraiseBookIndexEntry> songs,
+        PraiseBookSortMode sortMode = PraiseBookSortMode.Alpha);
 }
 
 public sealed class PraiseBookIndexService : IPraiseBookIndexService
 {
-    public IReadOnlyList<PraiseBookIndexGroup> BuildIndex(IEnumerable<PraiseBookIndexEntry> songs)
+    private static readonly StringComparer StrokeComparer = CreateStrokeComparer();
+
+    public IReadOnlyList<PraiseBookIndexGroup> BuildIndex(
+        IEnumerable<PraiseBookIndexEntry> songs,
+        PraiseBookSortMode sortMode = PraiseBookSortMode.Alpha)
     {
         ArgumentNullException.ThrowIfNull(songs);
+
+        if (sortMode == PraiseBookSortMode.WordCount)
+        {
+            return BuildWordCountIndex(songs);
+        }
 
         var groups = new Dictionary<string, List<PraiseBookIndexEntry>>();
         foreach (var song in songs)
@@ -56,5 +75,57 @@ public sealed class PraiseBookIndexService : IPraiseBookIndexService
                 pair.Key,
                 pair.Value.OrderBy(e => e.Title, StringComparer.Ordinal).ToList()))
             .ToList();
+    }
+
+    private static IReadOnlyList<PraiseBookIndexGroup> BuildWordCountIndex(IEnumerable<PraiseBookIndexEntry> songs)
+    {
+        var ordered = songs
+            .Where(song => song is not null && !string.IsNullOrWhiteSpace(song.Title))
+            .OrderBy(song => BuildLegacyWordCountKey(song.Title), StringComparer.Ordinal)
+            .ThenBy(song => song.Title, StrokeComparer)
+            .ThenBy(song => song.Number <= 0)
+            .ThenBy(song => song.Number)
+            .ThenBy(song => song.SongId)
+            .ToList();
+
+        return ordered
+            .GroupBy(song => BuildLegacyWordCountKey(song.Title))
+            .Select(group => new PraiseBookIndexGroup(group.Key, group.ToList()))
+            .ToList();
+    }
+
+    private static string BuildLegacyWordCountKey(string title)
+    {
+        var trimmed = title.Trim();
+        if (trimmed.Length == 0 || trimmed[0] is > '\0' and < '\u0080')
+        {
+            return "000";
+        }
+
+        var count = trimmed.IndexOf('(') - 1;
+        if (count < 0)
+        {
+            count = trimmed.Length;
+        }
+
+        var spaceCount = trimmed.IndexOf(' ') - 1;
+        if (spaceCount > 0 && spaceCount < count)
+        {
+            count = spaceCount;
+        }
+
+        return count.ToString("000", CultureInfo.InvariantCulture);
+    }
+
+    private static StringComparer CreateStrokeComparer()
+    {
+        try
+        {
+            return StringComparer.Create(CultureInfo.GetCultureInfo("zh-Hant"), ignoreCase: false);
+        }
+        catch (CultureNotFoundException)
+        {
+            return StringComparer.Ordinal;
+        }
     }
 }

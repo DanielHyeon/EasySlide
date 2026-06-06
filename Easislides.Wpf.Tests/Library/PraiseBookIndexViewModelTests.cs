@@ -118,6 +118,24 @@ public class PraiseBookIndexViewModelTests
     }
 
     [Fact]
+    public void ToggleWordCountSort_RebuildsCurrentBookLikeFrmMainPBWordCount()
+    {
+        var sut = CreateSut(
+            new FakePraiseBookStore(),
+            new PraiseBookIndexEntry("가나다", 1),
+            new PraiseBookIndexEntry("나", 2),
+            new PraiseBookIndexEntry("가나", 3));
+        sut.Entries.Select(entry => entry.Title).Should().Equal("가나", "가나다", "나");
+
+        sut.ToggleWordCountSort();
+
+        sut.IsWordCountSortEnabled.Should().BeTrue();
+        sut.Groups.Select(group => group.Key).Should().Equal("001", "002", "003");
+        sut.Entries.Select(entry => entry.Title).Should().Equal("나", "가나", "가나다");
+        sut.StatusText.Should().Contain("CJK Word Count");
+    }
+
+    [Fact]
     public void RemoveEntries_RemovesSelectedRowsAndRebuildsGroups()
     {
         var sut = CreateSut(

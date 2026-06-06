@@ -94,6 +94,20 @@ public class PraiseBookIndexServiceTests
     }
 
     [Fact]
+    public void BuildIndex_WordCountMode_GroupsAndOrdersByLegacyCjkWordCount()
+    {
+        var sut = new PraiseBookIndexService();
+
+        var groups = sut.BuildIndex(
+            new[] { Song("가나다"), Song("Alpha"), Song("나"), Song("가나") },
+            PraiseBookSortMode.WordCount);
+
+        groups.Select(g => g.Key).Should().Equal("000", "001", "002", "003");
+        groups.SelectMany(g => g.Entries).Select(e => e.Title)
+            .Should().Equal("Alpha", "나", "가나", "가나다");
+    }
+
+    [Fact]
     public void BuildIndex_SkipsBlankTitles()
     {
         var sut = new PraiseBookIndexService();

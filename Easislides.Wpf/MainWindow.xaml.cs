@@ -2760,6 +2760,17 @@ public partial class MainWindow : Window
         }
     }
 
+    private void PB_WordCount_Click(object sender, RoutedEventArgs e)
+    {
+        if (_inlinePraiseBook is null)
+        {
+            return;
+        }
+
+        _inlinePraiseBook.ToggleWordCountSort();
+        PraiseBookItems.Focus();
+    }
+
     private async void InlinePraiseBookDeleteSelected_Click(object sender, RoutedEventArgs e)
         => await DeleteSelectedPraiseBookEntriesAsync().ConfigureAwait(true);
 
