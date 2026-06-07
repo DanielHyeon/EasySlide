@@ -1712,10 +1712,21 @@
                                             MinHeight="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                             Margin="4"
                                             Padding="4"
-                                            Background="{DynamicResource Brush.Surface.Card}"
-                                            BorderBrush="{DynamicResource Brush.Border.Default}"
-                                            BorderThickness="1"
                                             CornerRadius="3">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                        <Setter Property="Background" Value="White" />
+                                                        <Setter Property="BorderBrush" Value="Red" />
+                                                        <Setter Property="BorderThickness" Value="5" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />

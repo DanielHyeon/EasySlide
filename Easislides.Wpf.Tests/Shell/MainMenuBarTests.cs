@@ -1165,6 +1165,12 @@ public class MainMenuBarTests
             "left PowerPoint preview flow should use the same FrmMain three-column thumbnail sizing as the right panes");
         sourcePowerPointPreviewFlow.Should().Contain("ConverterParameter=Height",
             "left PowerPoint preview thumbnails should preserve FrmMain's 4:3 thumbnail canvas");
+        sourcePowerPointPreviewFlow.Should().Contain("AncestorType=ListBoxItem",
+            "left PowerPoint preview thumbnails should react to the actual selected card");
+        sourcePowerPointPreviewFlow.Should().Contain("BorderBrush\" Value=\"Red\"",
+            "the selected PowerPoint source thumbnail should use the same strong red selection cue as FrmMain thumbnail flows");
+        sourcePowerPointPreviewFlow.Should().Contain("BorderThickness\" Value=\"5\"",
+            "the selected PowerPoint source thumbnail should thicken its frame instead of relying on a faint default ListBox selection");
         sourcePowerPointPreviewFlow.Should().NotContain("Width=\"176\"",
             "source PowerPoint preview thumbnails should not stay at the old fixed WPF card width");
         sourcePowerPointPreviewFlow.Should().NotContain("Height=\"82\"",
