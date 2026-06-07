@@ -21,6 +21,12 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
 {
     private const string LegacyAdminDatabaseRelativePath = @"Admin\Database\EasiSlidesDb.db";
 
+    private static readonly IReadOnlyList<ExternalFileDestinationKind> ExternalFolderOnlyDestinationKinds =
+        [ExternalFileDestinationKind.ExternalFolder];
+
+    private static readonly IReadOnlyList<ExternalFileDestinationKind> InfoScreenCopyDestinationKinds =
+        [ExternalFileDestinationKind.ExternalFolder, ExternalFileDestinationKind.SongFolder];
+
     private readonly ISettingsService _settings;
     private readonly IAdminDatabaseRepository _adminDatabase;
     private readonly IExternalFileOperationService _externalFiles;
@@ -63,8 +69,11 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
     public IReadOnlyList<ExternalFileOperationKind> OperationKinds { get; } =
         [ExternalFileOperationKind.Copy, ExternalFileOperationKind.Move];
 
-    public IReadOnlyList<ExternalFileDestinationKind> DestinationKinds { get; } =
-        [ExternalFileDestinationKind.ExternalFolder, ExternalFileDestinationKind.SongFolder];
+    public bool CanUseSongFolderDestination =>
+        OperationKind == ExternalFileOperationKind.Copy && ItemKind == ExternalFileItemKind.InfoScreen;
+
+    public IReadOnlyList<ExternalFileDestinationKind> DestinationKinds =>
+        CanUseSongFolderDestination ? InfoScreenCopyDestinationKinds : ExternalFolderOnlyDestinationKinds;
 
     public IAsyncRelayCommand ExecuteCommand { get; }
 
@@ -153,14 +162,26 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
     partial void OnItemKindChanged(ExternalFileItemKind value)
     {
         RefreshExternalFolders();
+        RefreshDestinationOptions();
         NotifyCommands();
     }
 
     partial void OnOperationKindChanged(ExternalFileOperationKind value)
-        => NotifyCommands();
+    {
+        RefreshDestinationOptions();
+        NotifyCommands();
+    }
 
     partial void OnDestinationKindChanged(ExternalFileDestinationKind value)
-        => NotifyCommands();
+    {
+        if (!DestinationKinds.Contains(value))
+        {
+            DestinationKind = ExternalFileDestinationKind.ExternalFolder;
+            return;
+        }
+
+        NotifyCommands();
+    }
 
     partial void OnSelectedSourceFileChanged(ExternalFileItem? value)
         => NotifyCommands();
@@ -243,6 +264,17 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
     {
         ExternalFolders.ReplaceWith(_externalFiles.GetFolders(WorkingFolder, ItemKind));
         SelectedExternalFolder = ExternalFolders.FirstOrDefault();
+    }
+
+    private void RefreshDestinationOptions()
+    {
+        OnPropertyChanged(nameof(CanUseSongFolderDestination));
+        OnPropertyChanged(nameof(DestinationKinds));
+
+        if (!DestinationKinds.Contains(DestinationKind))
+        {
+            DestinationKind = ExternalFileDestinationKind.ExternalFolder;
+        }
     }
 
     private async Task LoadSongFoldersAsync()

@@ -150,6 +150,7 @@
                          DisplayMemberPath="Name"
                          MinHeight="180"
                          Margin="0,4,0,0"
+                         IsEnabled="{Binding CanUseSongFolderDestination}"
                          AutomationProperties.Name="곡 대상 폴더" />
             </StackPanel>
         </Grid>

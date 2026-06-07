@@ -28,6 +28,63 @@ public class ExternalFileOperationViewModelTests
     }
 
     [Fact]
+    public void DestinationKinds_CopyInfoScreen_AllowsExternalFolderAndSongFolder()
+    {
+        using var fixture = TempExternalOperationSettings.Create();
+        var sut = new ExternalFileOperationViewModel(
+            fixture.Settings,
+            new FakeAdminRepository(),
+            new FakeExternalFileOperationService());
+
+        sut.OperationKind.Should().Be(ExternalFileOperationKind.Copy);
+        sut.ItemKind.Should().Be(ExternalFileItemKind.InfoScreen);
+        sut.DestinationKinds.Should().Equal(
+            ExternalFileDestinationKind.ExternalFolder,
+            ExternalFileDestinationKind.SongFolder);
+        sut.CanUseSongFolderDestination.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(ExternalFileItemKind.PowerPoint)]
+    [InlineData(ExternalFileItemKind.Media)]
+    public void DestinationKinds_CopyExternalFiles_LocksToExternalFolder(ExternalFileItemKind itemKind)
+    {
+        using var fixture = TempExternalOperationSettings.Create();
+        var sut = new ExternalFileOperationViewModel(
+            fixture.Settings,
+            new FakeAdminRepository(),
+            new FakeExternalFileOperationService())
+        {
+            DestinationKind = ExternalFileDestinationKind.SongFolder,
+        };
+
+        sut.ItemKind = itemKind;
+
+        sut.DestinationKinds.Should().Equal(ExternalFileDestinationKind.ExternalFolder);
+        sut.DestinationKind.Should().Be(ExternalFileDestinationKind.ExternalFolder);
+        sut.CanUseSongFolderDestination.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DestinationKinds_MoveInfoScreen_LocksToExternalFolder()
+    {
+        using var fixture = TempExternalOperationSettings.Create();
+        var sut = new ExternalFileOperationViewModel(
+            fixture.Settings,
+            new FakeAdminRepository(),
+            new FakeExternalFileOperationService())
+        {
+            DestinationKind = ExternalFileDestinationKind.SongFolder,
+        };
+
+        sut.OperationKind = ExternalFileOperationKind.Move;
+
+        sut.DestinationKinds.Should().Equal(ExternalFileDestinationKind.ExternalFolder);
+        sut.DestinationKind.Should().Be(ExternalFileDestinationKind.ExternalFolder);
+        sut.CanUseSongFolderDestination.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task LoadAsync_DerivesLegacyFoldersAndAdminSongFolders()
     {
         using var fixture = TempExternalOperationSettings.Create();
@@ -97,7 +154,7 @@ public class ExternalFileOperationViewModelTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenMoveUsesSongFolderDestination_ShowsValidation()
+    public async Task ExecuteAsync_WhenMoveAttemptsSongFolderDestination_ResetsToExternalFolder()
     {
         using var fixture = TempExternalOperationSettings.Create();
         fixture.Settings.Set(EasiSettingKeys.WorkingFolder, fixture.WorkingFolder);
@@ -116,7 +173,9 @@ public class ExternalFileOperationViewModelTests
 
         await sut.ExecuteAsync();
 
-        sut.ValidationMessage.Should().Be("곡 폴더로 가져오기는 InfoScreen 복사에서만 사용할 수 있습니다.");
+        sut.DestinationKind.Should().Be(ExternalFileDestinationKind.ExternalFolder);
+        sut.CanUseSongFolderDestination.Should().BeFalse();
+        sut.ValidationMessage.Should().NotBeEmpty();
         service.LastRequest.Should().BeNull();
     }
 
