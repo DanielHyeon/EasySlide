@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Easislides.Wpf.Support;
 
 namespace Easislides.Wpf.Library;
 
@@ -31,6 +32,7 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 {
     private readonly IMediaLibraryService _service;
     private readonly Action<string> _addToQueue;
+    private readonly Func<string, bool> _deleteFile;
     private readonly string _rootFolderPath;
     private bool _suppressSelectedFolderReload;
     // 폴더에서 읽은 전체 미디어(검색 필터 적용 전 원본). 검색 상자는 이 목록에서 걸러 MediaFiles 에 보여 준다.
@@ -48,6 +50,7 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddSelectedCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedCommand))]
     private MediaFileItem? _selectedFile;
 
     [ObservableProperty]
@@ -60,15 +63,18 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
     public MediaLibraryViewModel(
         IMediaLibraryService service,
         Action<string> addToQueue,
-        string initialFolder)
+        string initialFolder,
+        Func<string, bool>? deleteFile = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
+        _deleteFile = deleteFile ?? RecycleBinFileDeleter.Delete;
         _rootFolderPath = initialFolder ?? string.Empty;
         _folderPath = _rootFolderPath;
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
+        DeleteSelectedCommand = new RelayCommand(DeleteSelected, () => SelectedFile is not null);
 
         BuildFolderGroups();
     }
@@ -80,6 +86,8 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
     public IRelayCommand LoadCommand { get; }
 
     public IRelayCommand AddSelectedCommand { get; }
+
+    public IRelayCommand DeleteSelectedCommand { get; }
 
     partial void OnIncludeSubfoldersChanged(bool value) => Load();
 
@@ -193,5 +201,55 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
             ? $"예배 순서에 추가: {selection[0].FileName}"
             : $"예배 순서에 추가: {selection.Count}개 미디어";
         return selection.Count;
+    }
+
+    private void DeleteSelected()
+    {
+        if (SelectedFile is not null)
+        {
+            DeleteFiles([SelectedFile]);
+        }
+    }
+
+    public int DeleteFiles(IEnumerable<MediaFileItem> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+
+        var selection = files
+            .Where(file => file is not null)
+            .GroupBy(file => file.FilePath, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToList();
+        if (selection.Count == 0)
+        {
+            return 0;
+        }
+
+        var deletedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in selection)
+        {
+            if (_deleteFile(file.FilePath))
+            {
+                deletedPaths.Add(file.FilePath);
+            }
+        }
+
+        if (deletedPaths.Count == 0)
+        {
+            StatusText = "No media file deleted.";
+            return 0;
+        }
+
+        _allFiles.RemoveAll(file => deletedPaths.Contains(file.FilePath));
+        if (SelectedFile is not null && deletedPaths.Contains(SelectedFile.FilePath))
+        {
+            SelectedFile = null;
+        }
+
+        ApplyFilter();
+        StatusText = deletedPaths.Count == 1
+            ? $"Deleted media: {Path.GetFileName(deletedPaths.First())}"
+            : $"Deleted {deletedPaths.Count} media files.";
+        return deletedPaths.Count;
     }
 }

@@ -2177,6 +2177,18 @@ public partial class MainWindow : Window
     private void InlinePowerPointList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         => AddInlinePowerPointSelectionToWorshipList(sender as ListBox);
 
+    private void InlinePowerPointList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            e.Handled = true;
+            DeleteInlinePowerPointSelection(sender as ListBox);
+            return;
+        }
+
+        SourceListAddOnEnter_KeyDown(sender, e);
+    }
+
     private async void InlinePowerPointList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_inlinePowerPoint?.SelectedFile is not { } file)
@@ -2190,6 +2202,18 @@ public partial class MainWindow : Window
     private void InlineMediaList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         AddInlineMediaSelectionToWorshipList();
+    }
+
+    private void InlineMediaList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            e.Handled = true;
+            DeleteInlineMediaSelection();
+            return;
+        }
+
+        SourceListAddOnEnter_KeyDown(sender, e);
     }
 
     private void InlinePowerPointList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -2388,6 +2412,43 @@ public partial class MainWindow : Window
         activeList.Focus();
     }
 
+    private void CMenuPowerPointFiles_Delete_Click(object sender, RoutedEventArgs e)
+        => DeleteInlinePowerPointSelection();
+
+    private void DeleteInlinePowerPointSelection(ListBox? powerPointList = null)
+    {
+        var activeList = powerPointList ?? GetActivePowerPointList();
+        var selection = GetInlinePowerPointSelection(activeList);
+        if (_inlinePowerPoint is null || selection.Count == 0)
+        {
+            _viewModel.StatusText = "No PowerPoint file selected.";
+            activeList.Focus();
+            return;
+        }
+
+        var message = selection.Count == 1
+            ? $"Delete selected PowerPoint file '{selection[0].FileName}'?"
+            : $"Delete selected {selection.Count} PowerPoint files?";
+        if (MessageBox.Show(
+                message,
+                "Delete PowerPoint file(s)",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            activeList.Focus();
+            return;
+        }
+
+        var deleted = _inlinePowerPoint.DeleteFiles(selection);
+        _viewModel.StatusText = deleted switch
+        {
+            0 => "No PowerPoint file deleted.",
+            1 => "Deleted 1 PowerPoint file.",
+            _ => $"Deleted {deleted} PowerPoint files.",
+        };
+        activeList.Focus();
+    }
+
     private bool OpenExternalFileOperationWindow(
         ExternalFileItemKind itemKind,
         ExternalFileOperationKind operationKind,
@@ -2570,6 +2631,42 @@ public partial class MainWindow : Window
         }
 
         OpenExternalFileOperationWindow(ExternalFileItemKind.Media, ExternalFileOperationKind.Copy, selection.Select(file => file.FilePath));
+        InlineMediaList.Focus();
+    }
+
+    private void CMenuFiles_Delete_Click(object sender, RoutedEventArgs e)
+        => DeleteInlineMediaSelection();
+
+    private void DeleteInlineMediaSelection()
+    {
+        var selection = GetInlineMediaSelection();
+        if (_inlineMedia is null || selection.Count == 0)
+        {
+            _viewModel.StatusText = "No media file selected.";
+            InlineMediaList.Focus();
+            return;
+        }
+
+        var message = selection.Count == 1
+            ? $"Delete selected media file '{selection[0].FileName}'?"
+            : $"Delete selected {selection.Count} media files?";
+        if (MessageBox.Show(
+                message,
+                "Delete media file(s)",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            InlineMediaList.Focus();
+            return;
+        }
+
+        var deleted = _inlineMedia.DeleteFiles(selection);
+        _viewModel.StatusText = deleted switch
+        {
+            0 => "No media file deleted.",
+            1 => "Deleted 1 media file.",
+            _ => $"Deleted {deleted} media files.",
+        };
         InlineMediaList.Focus();
     }
 

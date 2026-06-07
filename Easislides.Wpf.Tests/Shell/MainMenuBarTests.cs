@@ -1029,7 +1029,11 @@ public class MainMenuBarTests
         var code = CodeBehind;
 
         CountOccurrences(xaml, "KeyDown=\"SourceListAddOnEnter_KeyDown\"")
-            .Should().BeGreaterThanOrEqualTo(6, "Folders, InfoScr, PowerPoint, Media, and search result lists should add with Enter");
+            .Should().BeGreaterThanOrEqualTo(3, "source lists without a Delete-specific wrapper should add with Enter directly");
+        xaml.Should().Contain("KeyDown=\"InlinePowerPointList_KeyDown\"",
+            "PowerPoint needs a Delete-specific key wrapper that still routes plain Enter to the FrmMain add gesture");
+        xaml.Should().Contain("KeyDown=\"InlineMediaList_KeyDown\"",
+            "Media needs a Delete-specific key wrapper that still routes plain Enter to the FrmMain add gesture");
         xaml.Should().Contain("PreviewKeyDown=\"BiblePassageBox_PreviewKeyDown\"",
             "selected Bible text should add with Enter without waiting for a context menu");
         xaml.Should().Contain("KeyDown=\"PraiseBookItems_KeyDown\"",
@@ -1039,6 +1043,10 @@ public class MainMenuBarTests
             "source-list Enter should be handled in MainWindow where the active source tab is known");
         code.Should().Contain("private void LibrarySongList_KeyDown",
             "Folders SongsList needs a dedicated Delete-key path in addition to Enter add");
+        code.Should().Contain("private void InlinePowerPointList_KeyDown",
+            "PowerPoint source files need a dedicated Delete-key path in addition to Enter add");
+        code.Should().Contain("private void InlineMediaList_KeyDown",
+            "Media source files need a dedicated Delete-key path in addition to Enter add");
         code.Should().Contain("await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true)",
             "Enter should reuse the same active-source router as WL_Add");
         code.Should().Contain("private async void BiblePassageBox_PreviewKeyDown",
@@ -1169,6 +1177,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"InlinePowerPointList\"", "PowerPoint files must be visible without opening a modal window");
         xaml.Should().Contain("Tag=\"PowerpointList\"", "PowerpointList should keep the FrmMain list role");
         xaml.Should().Contain("ItemsSource=\"{Binding Presentations}\"", "inline PowerPoint list reuses PowerPointLibraryViewModel");
+        xaml.Should().Contain("KeyDown=\"InlinePowerPointList_KeyDown\"", "PowerPoint Delete should share FrmMain PP_Delete_Clicked flow");
         xaml.Should().Contain("SelectionChanged=\"InlinePowerPointList_SelectionChanged\"",
             "selecting a source PowerPoint should update Preview like FrmMain PowerpointListIndexChanged");
         xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlinePowerPointList_PreviewMouseRightButtonDown\"",
@@ -1177,6 +1186,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("PreviewMouseMove=\"InlinePowerPointList_PreviewMouseMove\"", "PowerPoint rows should drag into the Worship List");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles\"", "PowerpointList should expose the FrmMain shared file context menu role");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_AddShow\"", "PowerPoint CMenuFiles should expose Add && Show");
+        xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_Delete\"", "PowerPoint CMenuFiles should expose Delete like FrmMain");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_Refresh\"", "PowerPoint CMenuFiles should expose Refresh");
         xaml.Should().Contain("x:Name=\"PP_ListType\"", "PowerPoint source needs the FrmMain PP_ListType dropdown role");
         xaml.Should().Contain("x:Name=\"PP_ListStyle\"", "PP_ListType should expose FrmMain list style");
@@ -1219,6 +1229,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("SelectedItem=\"{Binding SelectedFolder, Mode=TwoWay}\"", "MediaFolder selection should drive the displayed folder contents");
         xaml.Should().Contain("ItemsSource=\"{Binding MediaFiles}\"", "inline Media list reuses MediaLibraryViewModel");
         xaml.Should().Contain("SelectionMode=\"Extended\"", "MediaList should preserve FrmMain multi-select behavior");
+        xaml.Should().Contain("KeyDown=\"InlineMediaList_KeyDown\"", "Media Delete should share the external file delete flow");
         xaml.Should().Contain("MouseDoubleClick=\"InlineMediaList_MouseDoubleClick\"", "double-click should add selected Media");
         xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlineMediaList_PreviewMouseRightButtonDown\"",
             "right-clicking a Media row should select it before opening CMenuFiles");
@@ -1229,6 +1240,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuFiles_AddShow\"", "CMenuFiles should expose Add && Show");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Edit\"", "CMenuFiles should keep the legacy Edit item");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Copy\"", "CMenuFiles should keep the legacy Copy item");
+        xaml.Should().Contain("x:Name=\"CMenuFiles_Delete\"", "CMenuFiles should keep the legacy Delete item");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Refresh\"", "CMenuFiles should expose Refresh");
         var rightMediaPreviewTab = SectionBetween(xaml, "AutomationProperties.Name=\"Media\"", "Media.FastReverseCommand");
         rightMediaPreviewTab.Should().NotContain("IsMediaTabVisible",

@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Rendering;
+using Easislides.Wpf.Support;
 
 namespace Easislides.Wpf.Library;
 
@@ -53,6 +54,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     private readonly IPowerPointRenderService? _render;
     private readonly Func<byte[], ImageSource> _decodeThumbnail;
     private readonly Action<PowerPointListingStyle>? _listingStyleChanged;
+    private readonly Func<string, bool> _deleteFile;
     private readonly string _rootFolderPath;
     private bool _suppressSelectedFolderReload;
     private CancellationTokenSource? _thumbnailCts;
@@ -71,6 +73,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddSelectedCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedCommand))]
     private PowerPointFileItem? _selectedFile;
 
     [ObservableProperty]
@@ -93,13 +96,15 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         IPowerPointRenderService? render = null,
         Func<byte[], ImageSource>? thumbnailDecoder = null,
         PowerPointListingStyle initialListingStyle = PowerPointListingStyle.List,
-        Action<PowerPointListingStyle>? listingStyleChanged = null)
+        Action<PowerPointListingStyle>? listingStyleChanged = null,
+        Func<string, bool>? deleteFile = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
         _render = render;
         _decodeThumbnail = thumbnailDecoder ?? DecodeImage;
         _listingStyleChanged = listingStyleChanged;
+        _deleteFile = deleteFile ?? RecycleBinFileDeleter.Delete;
         _rootFolderPath = initialFolder ?? string.Empty;
         _folderPath = _rootFolderPath;
         _listingStyle = initialListingStyle is PowerPointListingStyle.Preview
@@ -108,6 +113,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
+        DeleteSelectedCommand = new RelayCommand(DeleteSelected, () => SelectedFile is not null);
         UseListStyleCommand = new RelayCommand(UseListStyle);
         UsePreviewStyleCommand = new RelayCommand(UsePreviewStyle);
 
@@ -121,6 +127,8 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     public IRelayCommand LoadCommand { get; }
 
     public IRelayCommand AddSelectedCommand { get; }
+
+    public IRelayCommand DeleteSelectedCommand { get; }
 
     public IRelayCommand UseListStyleCommand { get; }
 
@@ -343,6 +351,61 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
             ? $"예배 순서에 추가: {selection[0].FileName}"
             : $"예배 순서에 추가: {selection.Count}개 PowerPoint";
         return selection.Count;
+    }
+
+    private void DeleteSelected()
+    {
+        if (SelectedFile is not null)
+        {
+            DeleteFiles([SelectedFile]);
+        }
+    }
+
+    public int DeleteFiles(IEnumerable<PowerPointFileItem> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+
+        var selection = files
+            .Where(file => file is not null)
+            .GroupBy(file => file.FilePath, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToList();
+        if (selection.Count == 0)
+        {
+            return 0;
+        }
+
+        var deletedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in selection)
+        {
+            if (_deleteFile(file.FilePath))
+            {
+                deletedPaths.Add(file.FilePath);
+            }
+        }
+
+        if (deletedPaths.Count == 0)
+        {
+            StatusText = "No PowerPoint file deleted.";
+            return 0;
+        }
+
+        _allFiles.RemoveAll(file => deletedPaths.Contains(file.FilePath));
+        if (SelectedFile is not null && deletedPaths.Contains(SelectedFile.FilePath))
+        {
+            SelectedFile = null;
+        }
+
+        ApplyFilter();
+        if (IsPreviewStyle)
+        {
+            _ = LoadThumbnailsAsync();
+        }
+
+        StatusText = deletedPaths.Count == 1
+            ? $"Deleted PowerPoint: {Path.GetFileName(deletedPaths.First())}"
+            : $"Deleted {deletedPaths.Count} PowerPoint files.";
+        return deletedPaths.Count;
     }
 
     private static ImageSource DecodeImage(byte[] bytes)

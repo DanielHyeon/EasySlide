@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Easislides.Wpf.Settings;
+using Easislides.Wpf.Support;
 
 namespace Easislides.Wpf.Shell;
 
@@ -64,7 +64,7 @@ public sealed class InfoScreenStore : IInfoScreenStore
     }
 
     public InfoScreenStore(string directory, ISettingsService? settings)
-        : this(directory, settings, SendFileToRecycleBin)
+        : this(directory, settings, RecycleBinFileDeleter.Delete)
     {
     }
 
@@ -368,50 +368,4 @@ public sealed class InfoScreenStore : IInfoScreenStore
             or UnauthorizedAccessException
             or InvalidOperationException
             or NotSupportedException;
-
-    private static bool SendFileToRecycleBin(string path)
-    {
-        if (!File.Exists(path))
-        {
-            return false;
-        }
-
-        try
-        {
-            var operation = new SHFILEOPSTRUCT
-            {
-                hwnd = IntPtr.Zero,
-                wFunc = 3,
-                pFrom = path + '\0' + '\0',
-                pTo = null,
-                fFlags = 0x40 | 0x10 | 0x04 | 0x0400,
-                fAnyOperationsAborted = false,
-                hNameMappings = IntPtr.Zero,
-                lpszProgressTitle = null,
-            };
-
-            var result = SHFileOperation(ref operation);
-            return result == 0 && !operation.fAnyOperationsAborted && !File.Exists(path);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-    private static extern int SHFileOperation(ref SHFILEOPSTRUCT lpFileOp);
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    private struct SHFILEOPSTRUCT
-    {
-        public IntPtr hwnd;
-        public uint wFunc;
-        public string pFrom;
-        public string? pTo;
-        public ushort fFlags;
-        [MarshalAs(UnmanagedType.Bool)] public bool fAnyOperationsAborted;
-        public IntPtr hNameMappings;
-        public string? lpszProgressTitle;
-    }
 }

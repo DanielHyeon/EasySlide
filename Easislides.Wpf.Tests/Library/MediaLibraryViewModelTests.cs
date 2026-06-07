@@ -104,6 +104,30 @@ public class MediaLibraryViewModelTests
     }
 
     [Fact]
+    public void DeleteFiles_WithSeveralSelections_DeletesAndRemovesVisibleRows()
+    {
+        var deleted = new List<string>();
+        var sut = new MediaLibraryViewModel(
+            new FakeMediaService(@"C:\media\a.mp4", @"C:\media\b.mp3", @"C:\media\c.mp4"),
+            _ => { },
+            initialFolder: @"C:\media",
+            deleteFile: path =>
+            {
+                deleted.Add(path);
+                return true;
+            });
+        sut.LoadCommand.Execute(null);
+
+        var count = sut.DeleteFiles(new[] { sut.MediaFiles[0], sut.MediaFiles[2] });
+
+        count.Should().Be(2);
+        deleted.Should().Equal(@"C:\media\a.mp4", @"C:\media\c.mp4");
+        sut.MediaFiles.Select(file => file.FilePath).Should().Equal(@"C:\media\b.mp3");
+        sut.SelectedFile.Should().BeNull();
+        sut.StatusText.Should().Contain("2");
+    }
+
+    [Fact]
     public void AddSelected_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var added, @"C:\media\a.mp4");

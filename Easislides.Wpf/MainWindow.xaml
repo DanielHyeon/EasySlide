@@ -1601,7 +1601,7 @@
                                  SelectionMode="Extended"
                                  DisplayMemberPath="FileName"
                                  SelectionChanged="InlinePowerPointList_SelectionChanged"
-                                 KeyDown="SourceListAddOnEnter_KeyDown"
+                                 KeyDown="InlinePowerPointList_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
                                  PreviewMouseRightButtonDown="InlinePowerPointList_PreviewMouseRightButtonDown"
@@ -1631,6 +1631,10 @@
                                               Tag="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuPowerPointFiles_Copy_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointFiles_Delete"
+                                              Tag="CMenuFiles_Delete"
+                                              Header="Delete"
+                                              Click="CMenuPowerPointFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuPowerPointFiles_Refresh"
                                               Tag="CMenuFiles_Refresh"
@@ -1657,7 +1661,7 @@
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  SelectionMode="Extended"
                                  SelectionChanged="InlinePowerPointList_SelectionChanged"
-                                 KeyDown="SourceListAddOnEnter_KeyDown"
+                                 KeyDown="InlinePowerPointList_KeyDown"
                                  MouseDoubleClick="InlinePowerPointList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlinePowerPointList_PreviewMouseLeftButtonDown"
                                  PreviewMouseRightButtonDown="InlinePowerPointList_PreviewMouseRightButtonDown"
@@ -1688,6 +1692,10 @@
                                               Tag="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuPowerPointFiles_Copy_Click" />
+                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_Delete"
+                                              Tag="CMenuFiles_Delete"
+                                              Header="Delete"
+                                              Click="CMenuPowerPointFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuPowerPointPreviewFiles_Refresh"
                                               Tag="CMenuFiles_Refresh"
@@ -2170,7 +2178,7 @@
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  SelectionMode="Extended"
                                  DisplayMemberPath="FileName"
-                                 KeyDown="SourceListAddOnEnter_KeyDown"
+                                 KeyDown="InlineMediaList_KeyDown"
                                  MouseDoubleClick="InlineMediaList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineMediaList_PreviewMouseLeftButtonDown"
                                  PreviewMouseRightButtonDown="InlineMediaList_PreviewMouseRightButtonDown"
@@ -2195,6 +2203,10 @@
                                     <MenuItem x:Name="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuFiles_Copy_Click" />
+                                    <MenuItem x:Name="CMenuFiles_Delete"
+                                              Tag="CMenuFiles_Delete"
+                                              Header="Delete"
+                                              Click="CMenuFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuFiles_Refresh"
                                               Header="Refresh"

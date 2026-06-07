@@ -172,6 +172,30 @@ public class PowerPointLibraryViewModelTests
     }
 
     [Fact]
+    public void DeleteFiles_WithSeveralSelections_DeletesAndRemovesVisibleRows()
+    {
+        var deleted = new List<string>();
+        var sut = new PowerPointLibraryViewModel(
+            new FakePptService(paths: new[] { @"C:\decks\a.pptx", @"C:\decks\b.ppt", @"C:\decks\c.pptx" }),
+            _ => { },
+            initialFolder: @"C:\decks",
+            deleteFile: path =>
+            {
+                deleted.Add(path);
+                return true;
+            });
+        sut.LoadCommand.Execute(null);
+
+        var count = sut.DeleteFiles(new[] { sut.Presentations[0], sut.Presentations[2] });
+
+        count.Should().Be(2);
+        deleted.Should().Equal(@"C:\decks\a.pptx", @"C:\decks\c.pptx");
+        sut.Presentations.Select(file => file.FilePath).Should().Equal(@"C:\decks\b.ppt");
+        sut.SelectedFile.Should().BeNull();
+        sut.StatusText.Should().Contain("2");
+    }
+
+    [Fact]
     public void AddSelected_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var added, @"C:\decks\a.pptx");
