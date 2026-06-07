@@ -77,6 +77,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(IsOutputHeaderTextVisible))]
     [NotifyPropertyChangedFor(nameof(IsOutputMediaContext))]
     [NotifyPropertyChangedFor(nameof(IsOutputVisualContext))]
+    [NotifyPropertyChangedFor(nameof(OutputPanelTitleText))]
     [NotifyPropertyChangedFor(nameof(OutputMediaTitle))]
     [NotifyPropertyChangedFor(nameof(OutputMediaSourceText))]
     [NotifyPropertyChangedFor(nameof(OutputMediaStatusText))]
@@ -301,6 +302,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmMain PreviewPanelDisplayName 상태 셀: Preview 전용 절/슬라이드 위치.</summary>
     public string PreviewPanelStatusText => BuildPreviewPanelStatusText();
+
+    /// <summary>FrmMain OutputPanelDisplayName 제목 셀: 준비/라이브 Output 항목의 현재 제목.</summary>
+    public string OutputPanelTitleText => GetOutputNavigationItem()?.Title ?? "Output";
 
     /// <summary>FrmMain OutputPanelDisplayName 출처 셀: 준비/라이브 Output 항목의 legacy 종류.</summary>
     public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), "Output");
@@ -3508,6 +3512,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void NotifyOutputPanelDisplayProperties()
     {
+        OnPropertyChanged(nameof(OutputPanelTitleText));
         OnPropertyChanged(nameof(OutputPanelSourceText));
         OnPropertyChanged(nameof(OutputPanelStatusText));
     }

@@ -1513,8 +1513,8 @@ public class MainMenuBarTests
         xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToOutput""[^>]*>\s*<ui:SymbolIcon",
             "FrmMain Preview copy-to-Output command should remain a compact icon button");
         OperatorBarXaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "fixed operator bar keeps F11 live send-and-next");
-        xaml.Should().Contain("Text=\"{Binding DataContext.OutputItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Output'}\"",
-            "Output title should follow the prepared OutputItem, not the selected Preview item");
+        xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Output title should follow the prepared/live Output navigation item, not the selected Preview item");
         xaml.Should().Contain("{Binding ToggleOutputBlackCommand}", "Output strip exposes FrmMain-style checked Black toggle");
         xaml.Should().Contain("IsChecked=\"{Binding IsOutputBlackActive, Mode=OneWay}\"", "Black toggle should reflect the current live blackout state");
         xaml.Should().Contain("{Binding ToggleOutputClearCommand}", "Output strip exposes FrmMain-style checked Clear toggle");
@@ -1666,8 +1666,8 @@ public class MainMenuBarTests
             "Preview title row should expose a FrmMain-style source/type cell");
         xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
             "Preview title row should expose a FrmMain-style status/position cell");
-        xaml.Should().Contain("Text=\"{Binding DataContext.OutputItem.Title, RelativeSource={RelativeSource AncestorType=ListView}, TargetNullValue='Output'}\"",
-            "Output title row should bind to the prepared/live Output item through the list control");
+        xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+            "Output title row should bind to the effective prepared/live Output item through the same navigation source as the source/status cells");
         xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
             "Output title row should expose a FrmMain-style source/type cell");
         xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",

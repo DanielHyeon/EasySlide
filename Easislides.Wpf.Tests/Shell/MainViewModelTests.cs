@@ -40,6 +40,8 @@ public class MainViewModelTests
     {
         // §7 P0: 시작 시 더미 3항목 시드를 제거 — 빈 큐로 시작하고 안내 상태를 노출한다.
         var sut = CreateSut(seedSampleQueue: false);
+        sut.PreviewPanelTitleText.Should().Be("Preview");
+        sut.OutputPanelTitleText.Should().Be("Output");
 
         sut.Queue.Should().BeEmpty();
         sut.IsQueueEmpty.Should().BeTrue();
@@ -128,6 +130,7 @@ public class MainViewModelTests
             Copyright = "CCLI 123",
         };
         sut.LoadQueue([item]);
+        sut.PreviewPanelTitleText.Should().Be(item.Title);
         sut.SelectedItem = sut.Queue[0];
 
         sut.PreviewItemInfoText.Should().Contain("제목: 은혜");
@@ -162,6 +165,7 @@ public class MainViewModelTests
         sut.PreviewPanelStatusText.Should().Be("선택 1/2");
 
         sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.OutputPanelTitleText.Should().Be(item.Title);
 
         sut.OutputPanelSourceText.Should().Be("곡");
         sut.OutputPanelStatusText.Should().Be("준비 1/2");
