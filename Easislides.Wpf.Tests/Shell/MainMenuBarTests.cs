@@ -1772,6 +1772,8 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("Text=\"{Binding OutputLiveMessage, UpdateSourceTrigger=PropertyChanged}\"",
             "OutputTextBoxLM should edit the ViewModel live-message text");
+        xaml.Should().Contain("Visibility=\"{Binding IsOutputLiveMessagePanelVisible, Converter={StaticResource BoolToVis}}\"",
+            "panelOutputLM1 should follow FrmMain SetTabsVisibility via ShowLyricsMonitorAlertBox instead of always occupying the Output pane");
         outputTextBoxXaml.Should().Contain("Key=\"Return\"",
             "FrmMain OutputTextBoxLM should send the live message when the operator presses Enter");
         outputTextBoxXaml.Should().Contain("Command=\"{Binding SendLiveMessageCommand}\"",

@@ -4726,6 +4726,7 @@
                     <Border Grid.Row="2"
                             x:Name="panelOutputLM1"
                             Tag="panelOutputLM1"
+                            Visibility="{Binding IsOutputLiveMessagePanelVisible, Converter={StaticResource BoolToVis}}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1"
                             Background="{DynamicResource Brush.Surface.Page}"

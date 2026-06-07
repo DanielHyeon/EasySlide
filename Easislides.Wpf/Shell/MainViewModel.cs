@@ -236,6 +236,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain OutputBtnRefAlert 상태: 현재 라이브 출력의 구절/제목 알림 오버레이가 표시 중인가.</summary>
     public bool IsOutputReferenceAlertActive => _session.Current.IsReferenceAlertVisible;
 
+    /// <summary>FrmMain panelOutputLM1 visibility follows ShowLyricsMonitorAlertBox.</summary>
+    public bool IsOutputLiveMessagePanelVisible => _settings.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox);
+
     /// <summary>FrmMain flowLayoutOutputPowerPoint 표시 대상인가.</summary>
     public bool IsOutputPowerPointContext => GetOutputPowerPointNavigationItem() is not null;
 
@@ -7535,6 +7538,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ContainsKey(args.ChangedKeys, EasiSettingKeys.LyricsMonitorShowNotations.Id))
         {
             RepublishLiveSongForBodyChange();
+        }
+
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.ShowLyricsMonitorAlertBox.Id))
+        {
+            OnPropertyChanged(nameof(IsOutputLiveMessagePanelVisible));
         }
 
         // 출력 모양(색/그라데이션)은 운영 설정이 아니므로 별도로 활성 프리셋 강조를 갱신

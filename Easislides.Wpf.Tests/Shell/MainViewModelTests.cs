@@ -3423,6 +3423,23 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void OutputLiveMessagePanelVisibility_FollowsShowLyricsMonitorAlertBoxSetting()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.ShowLyricsMonitorAlertBox, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var notifications = new List<string?>();
+        sut.PropertyChanged += (_, e) => notifications.Add(e.PropertyName);
+
+        sut.IsOutputLiveMessagePanelVisible.Should().BeFalse("FrmMain hides panelOutputLM1 when the lyrics-monitor alert box is disabled");
+
+        settings.Set(EasiSettingKeys.ShowLyricsMonitorAlertBox, true).Succeeded.Should().BeTrue();
+
+        sut.IsOutputLiveMessagePanelVisible.Should().BeTrue();
+        notifications.Should().Contain(nameof(MainViewModel.IsOutputLiveMessagePanelVisible));
+    }
+
+    [Fact]
     public async Task ClearLiveMessageCommand_ClearsTextAndKeepsCurrentLiveItem()
     {
         var sut = CreateSut();
