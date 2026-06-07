@@ -7406,6 +7406,43 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void OutputMediaStatusText_WhenOutputMediaHasDuration_ShowsAndUpdatesTiming()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var outputMedia = Path.Combine(mediaRoot, "Output Song.mp4");
+        File.WriteAllText(outputMedia, "output media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var output = new LiveQueueItem("media:output", "Output Song", LiveItemKinds.Media)
+        {
+            ContentPath = outputMedia,
+        };
+        sut.LoadQueue([output]);
+        sut.OutputItem = output;
+        sut.Media.Load(new MediaPlaybackRequest(outputMedia, MediaSourceKind.File, TimeSpan.FromSeconds(125), "Video"));
+
+        var changes = 0;
+        sut.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.OutputMediaStatusText))
+            {
+                changes++;
+            }
+        };
+
+        sut.OutputMediaStatusText.Should().Contain("READY 00:00/02:05").And.Contain("Output Song.mp4");
+
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.FastForwardCommand.Execute(null);
+
+        sut.OutputMediaStatusText.Should().Contain("PLAYING 00:05/02:05").And.Contain("Output Song.mp4");
+        changes.Should().BeGreaterThanOrEqualTo(2, "playback state and seek updates should refresh the FrmMain-style output media status");
+    }
+
+    [Fact]
     public void OutputMediaPlayPauseSymbol_FollowsOutputMediaPathNotPreviewPlayback()
     {
         using var folder = TempSettingsFolder.Create();

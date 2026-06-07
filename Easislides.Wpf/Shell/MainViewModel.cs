@@ -256,7 +256,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             var status = string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
-                ? Media.StatusText
+                ? BuildOutputMediaStatusText()
                 : "READY";
             var fileName = Path.GetFileName(mediaPath);
             return string.IsNullOrWhiteSpace(fileName)
@@ -279,6 +279,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     ? EsIcons.MediaPause
                     : EsIcons.MediaPlay;
         }
+    }
+
+    private string BuildOutputMediaStatusText()
+    {
+        var status = Media.StatusText;
+        return Media.Duration > TimeSpan.Zero
+            ? $"{status} {Media.PositionText}/{Media.DurationText}"
+            : status;
     }
 
     /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
@@ -5239,7 +5247,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (e.PropertyName is nameof(Media.Source)
             or nameof(Media.State)
-            or nameof(Media.StatusText))
+            or nameof(Media.StatusText)
+            or nameof(Media.Position)
+            or nameof(Media.Duration)
+            or nameof(Media.PositionText)
+            or nameof(Media.DurationText))
         {
             OnPropertyChanged(nameof(OutputMediaStatusText));
             OnPropertyChanged(nameof(OutputMediaPlayPauseSymbol));
