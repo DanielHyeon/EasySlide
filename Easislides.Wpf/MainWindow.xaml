@@ -3190,6 +3190,9 @@
                                         <Grid>
                                             <ItemsControl x:Name="flowLayoutPreviewLyrics"
                                                           Tag="flowLayoutPreviewLyrics"
+                                                          Focusable="True"
+                                                          MouseDown="FlowLayoutPreviewLyrics_MouseDown"
+                                                          MinHeight="{Binding Path=ActualHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                                           ItemsSource="{Binding PreviewLyricsPages}"
                                                           Visibility="{Binding IsPreviewTextMode, Converter={StaticResource BoolToVis}}"
                                                           AutomationProperties.Name="Preview 가사 페이지 영역">
@@ -4250,7 +4253,8 @@
                                     <ItemsControl x:Name="flowLayoutOutputLyrics"
                                                   Tag="flowLayoutOutputLyrics"
                                                   Focusable="True"
-                                                  MouseDown="ClassicKeyboardSurface_MouseDown"
+                                                  MouseDown="FlowLayoutOutputLyrics_MouseDown"
+                                                  MinHeight="{Binding Path=ActualHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                                   ItemsSource="{Binding OutputLyricsPages}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>

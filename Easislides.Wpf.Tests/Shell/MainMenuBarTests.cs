@@ -324,6 +324,8 @@ public class MainMenuBarTests
             "the Output page-card surface should keep a separate named scroller around the FrmMain flow layout");
         xaml.Should().Contain("ItemsSource=\"{Binding OutputLyricsPages}\"", "Output lyrics surface should render prepared/live Output pages as FrmMain-style flow items");
         xaml.Should().Contain("GoToOutputLyricsPageCommand", "Output lyrics page card clicks should navigate the Output item, not the selected Preview item");
+        xaml.Should().Contain("MouseDown=\"FlowLayoutOutputLyrics_MouseDown\"",
+            "FrmMain flowLayoutOutputLyrics blank-surface clicks should jump to the last Output page, not only focus the pane");
         xaml.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "non-PPT Output lyrics should only show when the Output target has lyrics/body text");
         var outputLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutOutputLyrics\"", "</ScrollViewer>");
@@ -673,9 +675,9 @@ public class MainMenuBarTests
         var mainViewModel = MainViewModelCode;
         xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
             "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
-        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 2560",
+        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 3840",
             "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
-        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 1920",
+        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 2880",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
 
         var previewPowerPointPane = SectionBetween(
@@ -1653,6 +1655,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("GoToPreviewLyricsPageCommand",
             "Preview lyrics page card clicks should move only the selected Preview item");
         var previewLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutPreviewLyrics\"", "x:Name=\"IndPanel\"");
+        previewLyricsSurface.Should().Contain("MouseDown=\"FlowLayoutPreviewLyrics_MouseDown\"",
+            "FrmMain flowLayoutPreviewLyrics blank-surface clicks should jump to the last Preview page");
         previewLyricsSurface.Should().Contain("<StackPanel />",
             "FrmMain flowLayoutPreviewLyrics stacks RichTextBox rows vertically through DockStyle.Top");
         previewLyricsSurface.Should().Contain("Converter=\"{StaticResource LegacyLyricsRichTextBoxWidth}\"",

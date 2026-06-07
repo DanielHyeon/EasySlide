@@ -933,6 +933,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private void FlowLayoutPreviewLyrics_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (IsInsideButton(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        FocusPreviewArea();
+        ExecuteCommand(_viewModel.GoToLastPreviewLyricsPageCommand);
+        e.Handled = true;
+    }
+
+    private void FlowLayoutOutputLyrics_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (IsInsideButton(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        FocusOutputArea();
+        ExecuteCommand(_viewModel.GoToLastOutputLyricsPageCommand);
+        e.Handled = true;
+    }
+
     private void FocusPreviewArea_Click(object sender, RoutedEventArgs e)
         => FocusPreviewArea();
 

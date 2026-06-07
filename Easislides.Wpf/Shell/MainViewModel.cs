@@ -1024,6 +1024,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ReplayOutputPowerPointSlideCommand = new AsyncRelayCommand<int>(ReplayOutputPowerPointSlideAsync, CanGoToOutputSlide);
         GoToPreviewLyricsPageCommand = new RelayCommand<int>(GoToPreviewLyricsPage, CanGoToPreviewLyricsPage);
         GoToOutputLyricsPageCommand = new RelayCommand<int>(GoToOutputLyricsPage, CanGoToOutputLyricsPage);
+        GoToLastPreviewLyricsPageCommand = new RelayCommand(GoToLastPreviewLyricsPage, () => PreviewLyricsPages.Count > 0);
+        GoToLastOutputLyricsPageCommand = new RelayCommand(GoToLastOutputLyricsPage, () => OutputLyricsPages.Count > 0);
         JumpToOutputLyricsSectionCommand = new RelayCommand<string>(JumpToOutputLyricsSection, CanJumpToOutputLyricsSection);
         ApplyOutputAppearanceCommand = new RelayCommand<OutputAppearancePreset>(ApplyOutputAppearance);
         ApplyLyricsAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyLyricsAlignment);
@@ -1290,6 +1292,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand<int> ReplayOutputPowerPointSlideCommand { get; }
     public IRelayCommand<int> GoToPreviewLyricsPageCommand { get; }
     public IRelayCommand<int> GoToOutputLyricsPageCommand { get; }
+    public IRelayCommand GoToLastPreviewLyricsPageCommand { get; }
+    public IRelayCommand GoToLastOutputLyricsPageCommand { get; }
     public IRelayCommand<string> JumpToOutputLyricsSectionCommand { get; }
     public IRelayCommand<OutputAppearancePreset> ApplyOutputAppearanceCommand { get; }
     public IRelayCommand<LyricsTextAlignment> ApplyLyricsAlignmentCommand { get; }
@@ -3404,8 +3408,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptMaxRenderHeight = 1080;
 
     // 덱 썸네일 스트립 원본은 FrmMain PPT 캔버스와 같은 4:3 고해상도로 렌더링한 뒤 화면에서 축소한다.
-    private const int PptThumbnailWidth = 2560;
-    private const int PptThumbnailHeight = 1920;
+    private const int PptThumbnailWidth = 3840;
+    private const int PptThumbnailHeight = 2880;
 
     private static readonly string[] WorshipOutputMediaExtensions =
     [
@@ -3690,6 +3694,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         NotifyPreviewPanelDisplayProperties();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnLyricsPageCountChanged(int value)
@@ -3698,6 +3703,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         NotifyPreviewPanelDisplayProperties();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnOutputLyricsTextChanged(string value)
@@ -3778,6 +3784,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
         GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastOutputLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     private void RebuildPreviewLyricsPages()
@@ -3789,6 +3797,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasPreviewLyricsPages));
         OnPropertyChanged(nameof(PreviewLyricsText));
         OnPropertyChanged(nameof(HasPreviewLyricsText));
+        GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastPreviewLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     private void RebuildOutputLyricsPages()
@@ -3800,6 +3810,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ReplaceLyricsPageCards(OutputLyricsPages, BuildLyricsPageCards(item, currentPage));
         OnPropertyChanged(nameof(HasOutputLyricsPages));
         GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastOutputLyricsPageCommand.NotifyCanExecuteChanged();
     }
 
     private static void ReplaceLyricsPageCards(
@@ -3895,6 +3906,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanGoToPreviewLyricsPage(int target)
         => target >= 0 && target < PreviewLyricsPages.Count;
 
+    private void GoToLastPreviewLyricsPage()
+    {
+        var target = PreviewLyricsPages.Count - 1;
+        if (target >= 0)
+        {
+            GoToPreviewLyricsPage(target);
+        }
+    }
+
     private void GoToOutputLyricsPage(int target)
     {
         if (!CanGoToOutputLyricsPage(target))
@@ -3913,6 +3933,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool CanGoToOutputLyricsPage(int target)
         => target >= 0 && target < OutputLyricsPages.Count;
+
+    private void GoToLastOutputLyricsPage()
+    {
+        var target = OutputLyricsPages.Count - 1;
+        if (target >= 0)
+        {
+            GoToOutputLyricsPage(target);
+        }
+    }
 
     // Preview 절 라벨로 직접 점프 — 그 라벨의 첫 페이지로 이동한다.
     // FrmMain PreviewItem/OutputItem 분리와 같이, 이 Preview 명령은 live Output 을 즉시 갱신하지 않는다.
@@ -9102,6 +9131,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ReplayOutputPowerPointSlideCommand.NotifyCanExecuteChanged();
         GoToPreviewLyricsPageCommand.NotifyCanExecuteChanged();
         GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastPreviewLyricsPageCommand.NotifyCanExecuteChanged();
+        GoToLastOutputLyricsPageCommand.NotifyCanExecuteChanged();
         JumpToOutputLyricsSectionCommand.NotifyCanExecuteChanged();
         AddSelectedLibrarySongCommand.NotifyCanExecuteChanged();
         MoveSelectedItemUpCommand.NotifyCanExecuteChanged();

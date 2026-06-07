@@ -4488,8 +4488,8 @@ public class MainViewModelTests
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
         powerPoint.Thumbnails.Should().HaveCount(3, "덱 슬라이드 수(3)만큼 썸네일 로드");
-        render.LastRequest!.PixelWidth.Should().Be(2560, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
-        render.LastRequest.PixelHeight.Should().Be(1920);
+        render.LastRequest!.PixelWidth.Should().Be(3840, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
+        render.LastRequest.PixelHeight.Should().Be(2880);
     }
 
     [Fact]
@@ -4534,8 +4534,8 @@ public class MainViewModelTests
 
         powerPoint.Thumbnails.Should().HaveCount(3, "FrmMain rebuilds the visible flow panel when thumbnails are missing");
         render.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        render.LastRequest!.PixelWidth.Should().Be(2560);
-        render.LastRequest.PixelHeight.Should().Be(1920);
+        render.LastRequest!.PixelWidth.Should().Be(3840);
+        render.LastRequest.PixelHeight.Should().Be(2880);
     }
 
     [Fact]
@@ -4559,8 +4559,8 @@ public class MainViewModelTests
 
         sut.OutputPowerPoint.Thumbnails.Should().HaveCount(3, "Output flowLayoutPowerPoint should refill independently of Preview");
         outputRender.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        outputRender.LastRequest!.PixelWidth.Should().Be(2560);
-        outputRender.LastRequest.PixelHeight.Should().Be(1920);
+        outputRender.LastRequest!.PixelWidth.Should().Be(3840);
+        outputRender.LastRequest.PixelHeight.Should().Be(2880);
     }
 
     [Fact]
@@ -10088,6 +10088,71 @@ public class MainViewModelTests
         sut.OutputNavigationPositionLabel.Should().Be("2/4", "Output position should follow the live Output page, not the Preview page");
         sut.OutputLyricsPages.Single(card => card.PageIndex == 1).IsCurrent.Should().BeTrue();
         sut.OutputLyricsPages.Single(card => card.PageIndex == 0).IsCurrent.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GoToLastPreviewLyricsPageCommand_WhenSelectionDiverges_MovesPreviewOnly()
+    {
+        // FrmMain flowLayoutPreviewLyrics 빈 영역 클릭: PreviewItem 의 마지막 절로 이동하고 live Output 은 건드리지 않는다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus\n[2]\nPreview verse two",
+            Sequence = "1 C 2",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.GoToLastPreviewLyricsPageCommand.CanExecute(null).Should().BeTrue();
+        sut.GoToLastPreviewLyricsPageCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.LyricsPageIndex.Should().Be(2);
+        sut.PreviewLyricsText.Should().Be("Preview verse two");
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
+        sut.OutputLyricsText.Should().Be("Live verse");
+    }
+
+    [Fact]
+    public async Task GoToLastOutputLyricsPageCommand_WhenSelectionDivergesFromLiveItem_MovesLiveOutputOnly()
+    {
+        // FrmMain flowLayoutOutputLyrics 빈 영역 클릭: live OutputItem 의 마지막 절로 이동하고 Preview 선택은 유지한다.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Sequence = "1 C 2 C",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+
+        sut.GoToLastOutputLyricsPageCommand.CanExecute(null).Should().BeTrue();
+        sut.GoToLastOutputLyricsPageCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview);
+        sut.LyricsPageIndex.Should().Be(0);
+        sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(3);
+        sut.OutputLyricsText.Should().Be("Live chorus");
+        sut.OutputNavigationPositionLabel.Should().Be("4/4");
+        sut.OutputLyricsPages.Single(card => card.PageIndex == 3).IsCurrent.Should().BeTrue();
     }
 
     [Fact]
