@@ -1596,6 +1596,10 @@ public partial class MainWindow : Window
         var selectionStart = BiblePassageBox.SelectionStart;
         var selectionEnd = selectionStart + BiblePassageBox.SelectionLength;
         _bibleDragArmed = BiblePassageBox.SelectionLength > 0 && index >= selectionStart && index < selectionEnd;
+        if (_bibleDragArmed)
+        {
+            e.Handled = true;
+        }
     }
 
     // 왼쪽 버튼 해제: FrmMain BibleText_MouseUp처럼 클릭한 절을 선택 구절로 다시 만들고 Preview에 반영한다.
@@ -1614,7 +1618,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var index = BiblePassageBox.GetCharacterIndexFromPoint(e.GetPosition(BiblePassageBox), snapToText: false);
+        var index = GetBiblePassageCharacterIndex(e.GetPosition(BiblePassageBox));
         if (index < 0)
         {
             _bibleDragArmed = false;
@@ -1631,6 +1635,14 @@ public partial class MainWindow : Window
         }
 
         _bibleDragArmed = false;
+    }
+
+    private int GetBiblePassageCharacterIndex(Point position)
+    {
+        var index = BiblePassageBox.GetCharacterIndexFromPoint(position, snapToText: false);
+        return index >= 0
+            ? index
+            : BiblePassageBox.GetCharacterIndexFromPoint(position, snapToText: true);
     }
 
     // 임계 거리 이상 움직이면 선택 구절을 BibleSelection 으로 만들어 드래그를 시작한다 — 예배 순서 목록에 드롭하면 추가된다.

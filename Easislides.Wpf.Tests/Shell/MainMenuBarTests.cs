@@ -660,9 +660,9 @@ public class MainMenuBarTests
         var mainViewModel = MainViewModelCode;
         xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
             "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
-        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 1280",
+        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 1920",
             "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
-        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 960",
+        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 1440",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
 
         var previewPowerPointPane = SectionBetween(
@@ -1078,8 +1078,21 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuBible_Copy\"", "Bible menu should expose Copy");
         xaml.Should().Contain("x:Name=\"CMenuBible_CopyInfoScreen\"", "Bible menu should expose Copy to InfoScreen");
 
+        var bibleMouseDownHandler = SectionBetween(
+            code,
+            "private void BiblePassageBox_PreviewMouseLeftButtonDown",
+            "private void BiblePassageBox_PreviewMouseLeftButtonUp");
+        var bibleMouseUpHandler = SectionBetween(
+            code,
+            "private void BiblePassageBox_PreviewMouseLeftButtonUp",
+            "private int GetBiblePassageCharacterIndex");
+
         code.Should().Contain("private void BibleContextMenu_Opened", "Bible menu should compute enabled states when opened");
-        code.Should().Contain("TrySelectVerseAtOffset", "mouse-up should snap the clicked Bible verse into the current selection");
+        bibleMouseUpHandler.Should().Contain("TrySelectVerseAtOffset", "mouse-up should snap the clicked Bible verse into the current selection");
+        bibleMouseUpHandler.Should().Contain("GetBiblePassageCharacterIndex", "mouse-up should use the FrmMain-style nearest-verse click resolver");
+        code.Should().Contain("snapToText: true", "BibleText clicks on the right side of a verse line should still snap to the nearest verse");
+        bibleMouseDownHandler.Should().Contain("if (_bibleDragArmed)", "pressing inside an existing Bible selection should preserve the selected passage");
+        bibleMouseDownHandler.Should().Contain("e.Handled = true;", "pressing inside an existing Bible selection should not let TextBox collapse the selected passage before drag/add");
         code.Should().Contain("ModifierKeys.Shift", "Shift+click should extend the Bible verse selection like FrmMain text selection");
         code.Should().Contain("PreviewBibleSelection(viewModel.Bible.SelectedSelection)",
             "click selection should refresh Preview before the separate AddFromHolyBible path inserts into Worship List");

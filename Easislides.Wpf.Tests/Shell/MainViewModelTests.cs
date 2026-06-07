@@ -4459,13 +4459,16 @@ public class MainViewModelTests
     public async Task SelectingPowerPoint_LoadsThumbnailStrip()
     {
         // 덱 선택 시 PowerPoint 탭 썸네일 스트립이 덱 슬라이드 수만큼 채워진다(SuccessStub=3장).
-        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var render = new SuccessPowerPointRenderService();
+        var powerPoint = new PowerPointPreviewViewModel(render, _ => Frozen());
         var sut = CreateSut(powerPoint: powerPoint);
 
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
         powerPoint.Thumbnails.Should().HaveCount(3, "덱 슬라이드 수(3)만큼 썸네일 로드");
+        render.LastRequest!.PixelWidth.Should().Be(1920, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
+        render.LastRequest.PixelHeight.Should().Be(1440);
     }
 
     [Fact]
