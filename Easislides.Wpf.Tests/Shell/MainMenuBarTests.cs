@@ -857,6 +857,9 @@ public class MainMenuBarTests
         var previewBottomStrip = SectionBetween(xaml, "x:Name=\"ClassicPreviewBottomStrip\"", "x:Name=\"ClassicPreviewPositionLabel\"");
         previewBottomStrip.Should().Contain("ButtonBase.Click=\"FocusPreviewArea_Click\"",
             "FrmMain PreviewBtnUpDown_Click/PreviewBtnVerse_Click calls FocusPreviewArea after local Preview buttons");
+        var previewMediaTransportControls = SectionBetween(xaml, "<StackPanel Grid.Row=\"2\"", "<StackPanel Grid.Row=\"3\">");
+        previewMediaTransportControls.Should().Contain("ButtonBase.Click=\"FocusPreviewArea_Click\"",
+            "FrmMain Preview media transport controls should leave keyboard navigation on Preview");
 
         var outputBottomStrip = SectionBetween(xaml, "x:Name=\"ClassicOutputBottomStrip\"", "x:Name=\"ClassicOutputPositionLabel\"");
         outputBottomStrip.Should().Contain("ButtonBase.Click=\"FocusOutputArea_Click\"",
@@ -1222,6 +1225,9 @@ public class MainMenuBarTests
         var rightMediaPreviewTab = SectionBetween(xaml, "AutomationProperties.Name=\"Media\"", "Media.FastReverseCommand");
         rightMediaPreviewTab.Should().NotContain("IsMediaTabVisible",
             "right PreviewItem media surface must remain available even when the left source tab is hidden");
+        var rightMediaTransportControls = SectionBetween(xaml, "<StackPanel Grid.Row=\"2\"", "<StackPanel Grid.Row=\"3\">");
+        rightMediaTransportControls.Should().Contain("ButtonBase.Click=\"FocusPreviewArea_Click\"",
+            "FrmMain media preview controls return focus to the Preview keyboard surface after local transport actions");
 
         xaml.Should().Contain("Tag=\"ImagesSource\"", "FrmMain keeps Images as a main-console source tab");
         xaml.Should().Contain("x:Name=\"ImagesSourceTab\"", "inline Images tab needs a stable DataContext target");

@@ -3822,7 +3822,8 @@
                                     <StackPanel Grid.Row="2"
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Center"
-                                                Margin="0,0,0,12">
+                                                Margin="0,0,0,12"
+                                                ButtonBase.Click="FocusPreviewArea_Click">
                                         <!-- 미디어 전송 컨트롤 — 텍스트 글리프 대신 Fluent SymbolIcon 으로 현대화(아이콘 업그레이드).
                                              접근성은 AutomationProperties.Name 으로 유지(스크린리더가 한국어 이름을 읽음). -->
                                         <Button Command="{Binding Media.FastReverseCommand}"
