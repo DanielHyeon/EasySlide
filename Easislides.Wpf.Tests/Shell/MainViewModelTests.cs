@@ -5506,6 +5506,46 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RestartCurrentItemCommand_WhenLiveMediaSelectionDiverges_RestartsOutputMediaOnly()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var outputMedia = Path.Combine(mediaRoot, "Output Song.mp4");
+        File.WriteAllText(outputMedia, "output media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:output", "Output Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOutput lyrics",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview lyrics",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.PlayOutputMediaCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Paused);
+        sut.SelectedItem = preview;
+
+        sut.RestartCurrentItemCommand.CanExecute(null).Should().BeTrue();
+        await sut.RestartCurrentItemCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output restart must not move the Preview selection");
+        sut.OutputItem.Should().BeSameAs(live);
+        sut.LiveItemId.Should().Be(live.Id);
+        sut.Media.Source.Should().Be(outputMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.StatusText.Should().Contain("Output media restarted").And.Contain("Output Song.mp4");
+    }
+
+    [Fact]
     public void RestartCurrentItemCommand_WhenNotLive_IsDisabled()
     {
         var sut = CreateSut();

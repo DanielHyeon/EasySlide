@@ -6353,6 +6353,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 await GoToOutputSlideAsync(1).ConfigureAwait(true);
             }
         }
+        else if (TryRestartOutputMedia(item))
+        {
+            _telemetry.Record(MainCommandIds.LiveRestart, succeeded: true, StatusText);
+            NotifyCommandStates();
+            return;
+        }
         else
         {
             // 곡: live Output 첫 절로 되돌려 출력 재송출. Preview 절 인덱스는 건드리지 않는다.
@@ -6370,6 +6376,41 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 라이브 활성 + 현재 Output/live 항목이 있을 때만. Preview 선택이 다른 항목을 보고 있어도 오른쪽
     // Output "처음으로"는 live Output 항목에 작용해야 한다(FrmMain Output 영역 분리).
+    private bool TryRestartOutputMedia(LiveQueueItem item)
+    {
+        if (!TryGetOutputMediaContext(out var mediaItem, out var mediaPath)
+            || !string.Equals(mediaItem.Id, item.Id, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (!_output.Current.IsOpen)
+        {
+            OpenOutput();
+        }
+
+        OutputItem = item;
+        if (!string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
+            || Media.State is MediaPlaybackState.Empty or MediaPlaybackState.Failed)
+        {
+            Media.Load(new MediaPlaybackRequest(
+                mediaPath,
+                MediaSourceKind.File,
+                TimeSpan.Zero,
+                InferMediaType(mediaPath)));
+        }
+
+        if (!Media.RestartCommand.CanExecute(null))
+        {
+            StatusText = $"Output media cannot restart: {Path.GetFileName(mediaPath)}";
+            return true;
+        }
+
+        Media.RestartCommand.Execute(null);
+        StatusText = $"Output media restarted: {Path.GetFileName(mediaPath)}";
+        return true;
+    }
+
     private bool CanRestartCurrentItem()
         => _session.Current.State == LiveState.Active
            && GetOutputNavigationItem() is not null;
