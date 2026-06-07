@@ -1876,7 +1876,12 @@ public partial class MainWindow : Window
         }
 
         var songId = editorViewModel.SongId;
-        await library.LoadSongsForSelectedFolderAsync().ConfigureAwait(true);
+        await library.LoadAsync().ConfigureAwait(true);
+        if (library.SelectFolderByNo(editorViewModel.FolderNo))
+        {
+            await library.LoadSongsForSelectedFolderAsync().ConfigureAwait(true);
+        }
+
         if (songId is not null)
         {
             library.SelectSongById(songId.Value);

@@ -985,6 +985,15 @@ public class MainMenuBarTests
             "Add && Show should publish through the same Preview-to-Live path as the visible FrmMain LIVE button");
         code.Should().Contain("private async Task OpenSelectedLibrarySongEditorAsync",
             "CMenuSongs_Edit should open the selected library song editor, not the Worship List item editor");
+        SectionBetween(code, "private async Task OpenSelectedLibrarySongEditorAsync", "private async void InlineInfoScreenList_MouseDoubleClick")
+            .Should().Contain("await library.LoadAsync().ConfigureAwait(true)",
+                "after editing, SongsList should refresh folder metadata in case the song moved folders");
+        SectionBetween(code, "private async Task OpenSelectedLibrarySongEditorAsync", "private async void InlineInfoScreenList_MouseDoubleClick")
+            .Should().Contain("library.SelectFolderByNo(editorViewModel.FolderNo)",
+                "after editing, SongsList should return to the edited song's folder like FrmMain source edit flow");
+        SectionBetween(code, "private async Task OpenSelectedLibrarySongEditorAsync", "private async void InlineInfoScreenList_MouseDoubleClick")
+            .Should().Contain("library.SelectSongById(songId.Value)",
+                "after editing, SongsList should reselect the edited song");
         code.Should().Contain("private void CMenuSongs_Delete_Click",
             "CMenuSongs_Delete should reuse the main song delete launcher with the selected source song context");
         code.Should().Contain("SongDelete_Click(sender, e)",
