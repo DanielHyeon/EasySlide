@@ -95,6 +95,16 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="Margin" Value="0" />
         </Style>
+        <Style x:Key="ClassicOperatorStripDangerButton"
+               TargetType="Button"
+               BasedOn="{StaticResource EsButton.Danger}">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="33" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+        </Style>
         <Style x:Key="ClassicOperatorStripToggleButton"
                TargetType="ToggleButton"
                BasedOn="{StaticResource ClassicOutputToggleButton}">
@@ -4497,6 +4507,33 @@
                                           Content="!"
                                           ToolTip="성경 구절 알림"
                                           AutomationProperties.Name="Output 구절 알림" />
+                            <Button x:Name="OutputBtnStopLive"
+                                    Tag="StopLiveCommand"
+                                    Command="{Binding StopLiveCommand}"
+                                    Style="{StaticResource ClassicOperatorStripDangerButton}"
+                                    Width="31"
+                                    ToolTip="라이브 중지"
+                                    AutomationProperties.Name="Output 라이브 중지">
+                                <ui:SymbolIcon Symbol="Dismiss24" />
+                            </Button>
+                            <Button x:Name="OutputBtnRestartCurrentItem"
+                                    Tag="Menu_RestartCurrentItem"
+                                    Command="{Binding RestartCurrentItemCommand}"
+                                    Style="{StaticResource ClassicOperatorStripButton}"
+                                    Width="31"
+                                    ToolTip="현재 항목 처음으로"
+                                    AutomationProperties.Name="Output 현재 항목 처음으로">
+                                <ui:SymbolIcon Symbol="ArrowReset24" />
+                            </Button>
+                            <Button x:Name="OutputBtnRefresh"
+                                    Tag="Menu_RefreshOutput"
+                                    Command="{Binding RefreshOutputCommand}"
+                                    Style="{StaticResource ClassicOperatorStripButton}"
+                                    Width="31"
+                                    ToolTip="출력 새로고침"
+                                    AutomationProperties.Name="Output 새로고침">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" />
+                            </Button>
                             <ToggleButton Command="{Binding ToggleOutputBlackCommand}"
                                           IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
                                           Style="{StaticResource ClassicOperatorStripToggleButton}"

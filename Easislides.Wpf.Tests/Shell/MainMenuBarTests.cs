@@ -1657,6 +1657,9 @@ public class MainMenuBarTests
             "OutputBtnJumpToNonRotate",
             "OutputBtnMedia",
             "OutputBtnRefAlert",
+            "OutputBtnStopLive",
+            "OutputBtnRestartCurrentItem",
+            "OutputBtnRefresh",
             "OutputBtnItemUp",
             "OutputBtnItemDown",
             "OutputBtnSlideUp",
@@ -1843,6 +1846,11 @@ public class MainMenuBarTests
         stripButtonStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
         stripButtonStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
 
+        var stripDangerButtonStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripDangerButton\"", "</Style>");
+        stripDangerButtonStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
+        stripDangerButtonStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
+        stripDangerButtonStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
+
         var stripToggleStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripToggleButton\"", "</Style>");
         stripToggleStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
         stripToggleStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
@@ -1880,6 +1888,29 @@ public class MainMenuBarTests
         SelfClosingControlBlock(xaml, "IndradioButtonText").Should().Contain("Width=\"46\"");
         SelfClosingControlBlock(xaml, "IndradioButtonFormat").Should().Contain("Width=\"40\"");
         SelfClosingControlBlock(xaml, "IndradioButtonInfo").Should().Contain("Width=\"45\"");
+    }
+
+    [Fact]
+    public void ClassicOutputBottomStrip_ExposesLocalStopRestartAndRefreshLiveControls()
+    {
+        var strip = SectionBetween(Xaml, "x:Name=\"ClassicOutputBottomStrip\"", "x:Name=\"flowLayoutPanel2\"");
+
+        strip.Should().Contain("x:Name=\"OutputBtnStopLive\"",
+            "Stop Live should be reachable from the local Output operator strip, not only the global bar");
+        strip.Should().Contain("Command=\"{Binding StopLiveCommand}\"");
+        strip.Should().Contain("Style=\"{StaticResource ClassicOperatorStripDangerButton}\"",
+            "stopping live output is a dangerous action even in the compact FrmMain strip");
+        strip.Should().Contain("x:Name=\"OutputBtnRestartCurrentItem\"");
+        strip.Should().Contain("Command=\"{Binding RestartCurrentItemCommand}\"",
+            "Restart Current Item should act on the live/prepared Output item from the Output strip");
+        strip.Should().Contain("x:Name=\"OutputBtnRefresh\"");
+        strip.Should().Contain("Command=\"{Binding RefreshOutputCommand}\"",
+            "Refresh Output should be available in the same local Output control band as slide/item navigation");
+
+        var stopIndex = strip.IndexOf("x:Name=\"OutputBtnStopLive\"", StringComparison.Ordinal);
+        var blackIndex = strip.IndexOf("ToggleOutputBlackCommand", StringComparison.Ordinal);
+        stopIndex.Should().BeGreaterThanOrEqualTo(0);
+        blackIndex.Should().BeGreaterThan(stopIndex, "Stop Live should stay next to Output live-safety controls");
     }
 
     private static string OperatorBarXaml
