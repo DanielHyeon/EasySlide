@@ -546,6 +546,8 @@ public partial class MainWindow : Window
     private bool IsOutputLyricsKeyboardFocusWithin()
         => ClassicOutputInfo.IsKeyboardFocusWithin
             || flowLayoutOutputLyrics.IsKeyboardFocusWithin
+            || ClassicOutputVisualSurface.IsKeyboardFocusWithin
+            || ClassicOutputMediaSurface.IsKeyboardFocusWithin
             || ClassicOutputSlidePane.IsKeyboardFocusWithin
             || ClassicOutputHolder.IsKeyboardFocusWithin
             || ClassicOutputBack.IsKeyboardFocusWithin

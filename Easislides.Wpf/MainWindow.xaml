@@ -4359,6 +4359,8 @@
 
                                 <ScrollViewer x:Name="ClassicOutputVisualSurface"
                                               Tag="flowLayoutOutputVisual"
+                                              Focusable="True"
+                                              MouseDown="ClassicKeyboardSurface_MouseDown"
                                               HorizontalScrollBarVisibility="Disabled"
                                               VerticalScrollBarVisibility="Auto"
                                               Margin="8"
@@ -4416,6 +4418,8 @@
                             <Border x:Name="ClassicOutputMediaSurface"
                                     Tag="flowLayoutOutputMedia"
                                     Grid.Row="2"
+                                    Focusable="True"
+                                    MouseDown="ClassicKeyboardSurface_MouseDown"
                                     Background="White"
                                     BorderBrush="{DynamicResource Brush.Border.Default}"
                                     BorderThickness="0,1,0,0"

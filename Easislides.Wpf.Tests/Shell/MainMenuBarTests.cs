@@ -418,6 +418,15 @@ public class MainMenuBarTests
             "the Output media button icon should follow the prepared/live Output media source, not whatever Preview/media source is currently loaded");
         outputTopPane.Should().NotContain("Symbol=\"{Binding Media.PlayPauseSymbol}\"",
             "FrmMain OutputBtnMedia must not visually follow the generic Preview/media playback state");
+
+        var mediaSurface = SectionBetween(
+            outputTopPane,
+            "x:Name=\"ClassicOutputMediaSurface\"",
+            "x:Name=\"OutputBtnMediaInline\"");
+        mediaSurface.Should().Contain("Focusable=\"True\"",
+            "clicking the Output media status strip should keep keyboard navigation on OutputInfo like FrmMain");
+        mediaSurface.Should().Contain("MouseDown=\"ClassicKeyboardSurface_MouseDown\"",
+            "Output media status clicks should not fall back to global/Preview keyboard routing");
     }
 
     [Fact]
@@ -454,6 +463,10 @@ public class MainMenuBarTests
             "visual type metadata should follow Output, not Preview");
         visualSurface.Should().Contain("SlideNumber=\"{Binding OutputVisualSlideNumber}\"",
             "visual slide metadata should follow the Output navigation context");
+        visualSurface.Should().Contain("Focusable=\"True\"",
+            "clicking a non-PPT visual Output card surface should keep keyboard navigation on Output");
+        visualSurface.Should().Contain("MouseDown=\"ClassicKeyboardSurface_MouseDown\"",
+            "non-PPT visual Output surface clicks should route later keys to Output, not Preview");
 
         code.Should().Contain("public bool IsOutputVisualContext",
             "the top visual surface needs a dedicated non-PPT/non-media/non-lyrics Output context");
@@ -755,6 +768,8 @@ public class MainMenuBarTests
             "ClassicPreviewHolder",
             "ClassicOutputInfo",
             "flowLayoutOutputLyrics",
+            "ClassicOutputVisualSurface",
+            "ClassicOutputMediaSurface",
             "ClassicOutputSlidePane",
             "ClassicOutputHolder",
             "ClassicOutputBack",
@@ -781,6 +796,10 @@ public class MainMenuBarTests
             "OutputInfo focus should route keys to the live Output item");
         code.Should().Contain("flowLayoutOutputLyrics.IsKeyboardFocusWithin",
             "Output lyrics flow focus should route keys to the live Output item");
+        code.Should().Contain("ClassicOutputVisualSurface.IsKeyboardFocusWithin",
+            "Output visual surface focus should route keys to the live Output item");
+        code.Should().Contain("ClassicOutputMediaSurface.IsKeyboardFocusWithin",
+            "Output media surface focus should route keys to the live Output item");
         code.Should().Contain("_viewModel.JumpToLyricsSectionCommand",
             "Preview verse keys should keep targeting the selected Preview item");
         code.Should().Contain("_viewModel.JumpToOutputLyricsSectionCommand",
