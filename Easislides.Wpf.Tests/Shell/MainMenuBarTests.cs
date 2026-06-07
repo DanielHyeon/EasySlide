@@ -1416,6 +1416,13 @@ public class MainMenuBarTests
         code.Should().Contain("PraiseBookItems_SelectionChanged", "PraiseBook selection should update Preview without requiring double-click");
         code.Should().Contain("PreviewPraiseBookSongAsync", "PraiseBook selection preview should reuse the same DB/song resolution as add and drag");
         code.Should().Contain("CMenuPraiseB_Opened", "PraiseBook context menu should refresh enabled states on open");
+        code.Should().Contain("private async void CMenuPraiseB_Edit_Click", "PraiseBook Edit should run the actual editor path");
+        code.Should().Contain("OpenPraiseBookSongEditorAsync", "CMenuPraiseB_Edit should resolve the PraiseBook row before editing");
+        code.Should().Contain("ResolvePraiseBookSongId", "PraiseBook Edit should prefer the legacy SongId carried by the row");
+        code.Should().Contain("GetRequiredService<SongEditorWindow>()",
+            "PraiseBook Edit should open SongEditorWindow directly instead of only opening Library context");
+        SectionBetween(code, "private async void CMenuPraiseB_Edit_Click", "private void InlinePraiseBookExportHtml_Click")
+            .Should().NotContain("OpenLibrary_Click", "FrmMain CMenuPraiseB_Edit goes straight to Edit_Item for the selected PraiseBook song");
         code.Should().Contain("viewModel.AddPraiseBookSong(entry.Title, entry.Number, entry.SongId)", "inline Praise Book entries should reuse the existing add path");
         code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry), selection[0])", "inline PraiseBook drag should carry the exact selected legacy entry");
         code.Should().Contain("GetPraiseBookSelection(_praiseBookDragCandidate)",

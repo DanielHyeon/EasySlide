@@ -3434,7 +3434,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CMenuPraiseB_Edit_Click(object sender, RoutedEventArgs e)
+    private async void CMenuPraiseB_Edit_Click(object sender, RoutedEventArgs e)
     {
         if (PraiseBookItems.SelectedItem is not PraiseBookIndexEntry entry
             || DataContext is not MainViewModel viewModel)
@@ -3442,17 +3442,84 @@ public partial class MainWindow : Window
             return;
         }
 
-        var song = viewModel.Library.Songs.FirstOrDefault(candidate =>
-            entry.SongId > 0
-                ? candidate.SongId == entry.SongId
-                : string.Equals(candidate.Title, entry.Title, StringComparison.OrdinalIgnoreCase)
-                  && (entry.Number <= 0 || candidate.SongNumber == entry.Number));
-        if (song is not null)
+        await OpenPraiseBookSongEditorAsync(viewModel, entry).ConfigureAwait(true);
+    }
+
+    private async Task OpenPraiseBookSongEditorAsync(MainViewModel viewModel, PraiseBookIndexEntry entry)
+    {
+        await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
+        var songId = ResolvePraiseBookSongId(viewModel, entry);
+        if (songId <= 0)
         {
-            viewModel.Library.SelectedSong = song;
+            viewModel.StatusText = "Select one Praise Book song to edit.";
+            return;
         }
 
-        OpenLibrary_Click(sender, e);
+        var databasePath = ResolveSongEditorDatabasePath(viewModel);
+        if (string.IsNullOrWhiteSpace(databasePath))
+        {
+            viewModel.StatusText = "AdminDB path is not available for Praise Book editing.";
+            return;
+        }
+
+        var detailRepository = _services.GetRequiredService<IAdminSongDetailRepository>();
+        var detail = await detailRepository.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        if (detail is null)
+        {
+            viewModel.StatusText = $"Praise Book song was not found: {songId}";
+            return;
+        }
+
+        var folder = viewModel.Library.Folders.FirstOrDefault(f => f.FolderNo == detail.FolderNo)
+            ?? new SongFolderSummary(detail.FolderNo, $"Folder {detail.FolderNo}", true, 0);
+        var song = new SongSummary(
+            detail.SongId,
+            detail.Title,
+            detail.AlternateTitle,
+            detail.FolderNo,
+            detail.SongNumber,
+            detail.Category,
+            detail.Key,
+            detail.Lyrics,
+            detail.Copyright);
+
+        var editorWindow = _services.GetRequiredService<SongEditorWindow>();
+        editorWindow.Owner = this;
+        if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
+        {
+            viewModel.StatusText = "Song editor could not be initialized.";
+            return;
+        }
+
+        await editorViewModel.LoadAsync(databasePath, folder, song).ConfigureAwait(true);
+        if (editorWindow.ShowDialog() != true)
+        {
+            return;
+        }
+
+        await viewModel.Library.LoadAsync().ConfigureAwait(true);
+        if (viewModel.Library.SelectFolderByNo(editorViewModel.FolderNo))
+        {
+            await viewModel.Library.LoadSongsForSelectedFolderAsync().ConfigureAwait(true);
+        }
+
+        if (editorViewModel.SongId is int savedSongId)
+        {
+            viewModel.Library.SelectSongById(savedSongId);
+        }
+    }
+
+    private static int ResolvePraiseBookSongId(MainViewModel viewModel, PraiseBookIndexEntry entry)
+    {
+        if (entry.SongId > 0)
+        {
+            return entry.SongId;
+        }
+
+        var song = viewModel.Library.Songs.FirstOrDefault(candidate =>
+            string.Equals(candidate.Title, entry.Title, StringComparison.OrdinalIgnoreCase)
+            && (entry.Number <= 0 || candidate.SongNumber == entry.Number));
+        return song?.SongId ?? 0;
     }
 
     private void InlinePraiseBookExportHtml_Click(object sender, RoutedEventArgs e)
