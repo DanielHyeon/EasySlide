@@ -3412,6 +3412,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string? _outputThumbnailDeckPath;
     private LiveQueueItem? _sourcePreviewItem;
 
+    private static bool ShouldReloadPowerPointThumbnails(
+        Rendering.PowerPointPreviewViewModel viewModel,
+        string? currentDeckPath,
+        string filePath,
+        int slideCount)
+        => slideCount > 0
+           && (!string.Equals(currentDeckPath, filePath, StringComparison.OrdinalIgnoreCase)
+               || viewModel.Thumbnails.Count != slideCount);
+
     private LiveQueueItem? PreviewItem => _sourcePreviewItem ?? SelectedItem;
 
     partial void OnSelectedItemChanged(LiveQueueItem? value)
@@ -4261,7 +4270,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
                 // 덱이 바뀌었으면 썸네일 스트립을 백그라운드로 채운다(같은 덱 슬라이드 이동/재렌더 시엔 재로드 안 함).
                 if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready
-                    && !string.Equals(_thumbnailDeckPath, pptPath, StringComparison.OrdinalIgnoreCase))
+                    && ShouldReloadPowerPointThumbnails(PowerPoint, _thumbnailDeckPath, pptPath, PowerPoint.SlideCount))
                 {
                     _thumbnailDeckPath = pptPath;
                     _ = PowerPoint.LoadThumbnailsAsync(pptPath, PowerPoint.SlideCount, PptThumbnailWidth, PptThumbnailHeight);
@@ -6571,8 +6580,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void EnsureOutputPowerPointThumbnails(string filePath, int slideCount)
     {
-        if (slideCount <= 0
-            || string.Equals(_outputThumbnailDeckPath, filePath, StringComparison.OrdinalIgnoreCase))
+        if (!ShouldReloadPowerPointThumbnails(OutputPowerPoint, _outputThumbnailDeckPath, filePath, slideCount))
         {
             return;
         }

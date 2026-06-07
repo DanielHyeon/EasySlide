@@ -4495,6 +4495,54 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ThumbnailStrip_ReloadsSameDeckWhenStripIsIncomplete()
+    {
+        var render = new SuccessPowerPointRenderService();
+        var powerPoint = new PowerPointPreviewViewModel(render, _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint);
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
+        powerPoint.Thumbnails.Should().HaveCount(3);
+
+        powerPoint.Thumbnails.RemoveAt(0);
+        var requestCountBeforeReload = render.RequestCount;
+
+        await sut.ApplySelectedItemContentAsync(
+            new LiveQueueItem("ppt:1b", "Deck again", "PowerPoint") { ContentPath = "deck.pptx" });
+
+        powerPoint.Thumbnails.Should().HaveCount(3, "FrmMain rebuilds the visible flow panel when thumbnails are missing");
+        render.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
+        render.LastRequest!.PixelWidth.Should().Be(1920);
+        render.LastRequest.PixelHeight.Should().Be(1440);
+    }
+
+    [Fact]
+    public async Task OutputThumbnailStrip_ReloadsSameDeckWhenStripIsIncomplete()
+    {
+        var previewRender = new SuccessPowerPointRenderService();
+        var outputRender = new SuccessPowerPointRenderService();
+        var powerPoint = new PowerPointPreviewViewModel(previewRender, _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(outputRender, _ => Frozen());
+        var sut = CreateSut(powerPoint: powerPoint, outputPowerPoint: outputPowerPoint);
+        var deck = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
+        sut.LoadQueue([deck]);
+        sut.SelectedItem = deck;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.OutputPowerPoint.Thumbnails.Should().HaveCount(3);
+
+        sut.OutputPowerPoint.Thumbnails.Clear();
+        var requestCountBeforeReload = outputRender.RequestCount;
+
+        await sut.GoToOutputSlideCommand.ExecuteAsync(2);
+
+        sut.OutputPowerPoint.Thumbnails.Should().HaveCount(3, "Output flowLayoutPowerPoint should refill independently of Preview");
+        outputRender.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
+        outputRender.LastRequest!.PixelWidth.Should().Be(1920);
+        outputRender.LastRequest.PixelHeight.Should().Be(1440);
+    }
+
+    [Fact]
     public async Task GoToSlideCommand_NavigatesToClickedSlide()
     {
         // 썸네일 클릭(슬라이드 번호 인자) → 해당 슬라이드로 이동.
