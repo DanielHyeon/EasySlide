@@ -4471,8 +4471,8 @@ public class MainViewModelTests
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
         powerPoint.Thumbnails.Should().HaveCount(3, "덱 슬라이드 수(3)만큼 썸네일 로드");
-        render.LastRequest!.PixelWidth.Should().Be(1920, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
-        render.LastRequest.PixelHeight.Should().Be(1440);
+        render.LastRequest!.PixelWidth.Should().Be(2560, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
+        render.LastRequest.PixelHeight.Should().Be(1920);
     }
 
     [Fact]
@@ -4517,8 +4517,8 @@ public class MainViewModelTests
 
         powerPoint.Thumbnails.Should().HaveCount(3, "FrmMain rebuilds the visible flow panel when thumbnails are missing");
         render.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        render.LastRequest!.PixelWidth.Should().Be(1920);
-        render.LastRequest.PixelHeight.Should().Be(1440);
+        render.LastRequest!.PixelWidth.Should().Be(2560);
+        render.LastRequest.PixelHeight.Should().Be(1920);
     }
 
     [Fact]
@@ -4542,8 +4542,8 @@ public class MainViewModelTests
 
         sut.OutputPowerPoint.Thumbnails.Should().HaveCount(3, "Output flowLayoutPowerPoint should refill independently of Preview");
         outputRender.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        outputRender.LastRequest!.PixelWidth.Should().Be(1920);
-        outputRender.LastRequest.PixelHeight.Should().Be(1440);
+        outputRender.LastRequest!.PixelWidth.Should().Be(2560);
+        outputRender.LastRequest.PixelHeight.Should().Be(1920);
     }
 
     [Fact]

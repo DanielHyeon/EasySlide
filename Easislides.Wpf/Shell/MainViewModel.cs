@@ -3401,8 +3401,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptMaxRenderHeight = 1080;
 
     // 덱 썸네일 스트립 원본은 FrmMain PPT 캔버스와 같은 4:3 고해상도로 렌더링한 뒤 화면에서 축소한다.
-    private const int PptThumbnailWidth = 1920;
-    private const int PptThumbnailHeight = 1440;
+    private const int PptThumbnailWidth = 2560;
+    private const int PptThumbnailHeight = 1920;
 
     private static readonly string[] WorshipOutputMediaExtensions =
     [
