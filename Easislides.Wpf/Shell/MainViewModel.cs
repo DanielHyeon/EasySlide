@@ -6418,8 +6418,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 출력 새로고침(레거시 Refresh Output) — 현재 세션 스냅샷으로 출력 창을 강제 재렌더한다.
     private void RefreshOutput()
     {
+        var shouldResumeOutputMedia = Media.State == MediaPlaybackState.Playing;
         _session.Refresh();
         StatusText = "출력 새로고침";
+        if (TryRefreshOutputMedia(shouldResumeOutputMedia, out var refreshedMediaName))
+        {
+            StatusText = $"Output media refreshed: {refreshedMediaName}";
+        }
+
         _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
         // 사이드이펙트(ApplyLiveSnapshot)에 기대지 않고 명시적으로 커맨드 상태를 갱신(리뷰 #1).
         NotifyCommandStates();
@@ -6427,6 +6433,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool CanRefreshOutputVisual()
         => IsOutputVisualContext;
+
+    private bool TryRefreshOutputMedia(bool shouldResume, out string mediaFileName)
+    {
+        mediaFileName = string.Empty;
+        if (!TryGetOutputMediaContext(out var item, out var mediaPath))
+        {
+            return false;
+        }
+
+        OutputItem = item;
+        Media.Load(new MediaPlaybackRequest(
+            mediaPath,
+            MediaSourceKind.File,
+            TimeSpan.Zero,
+            InferMediaType(mediaPath)));
+
+        if (shouldResume && Media.PlayPauseCommand.CanExecute(null))
+        {
+            Media.PlayPauseCommand.Execute(null);
+        }
+
+        mediaFileName = Path.GetFileName(mediaPath);
+        return true;
+    }
 
     private void RefreshOutputVisual()
     {

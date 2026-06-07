@@ -5628,6 +5628,48 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RefreshOutputCommand_WhenLiveMediaSelectionDiverges_ReloadsOutputMediaOnly()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var previewMedia = Path.Combine(mediaRoot, "Preview Song.mp4");
+        var outputMedia = Path.Combine(mediaRoot, "Output Song.mp4");
+        File.WriteAllText(previewMedia, "preview media placeholder");
+        File.WriteAllText(outputMedia, "output media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var live = new LiveQueueItem("song:output", "Output Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nOutput lyrics",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview Song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview lyrics",
+        };
+        sut.LoadQueue([live, preview]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.SelectedItem = preview;
+        sut.Media.Load(new MediaPlaybackRequest(previewMedia, MediaSourceKind.File, TimeSpan.Zero, "Video"));
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.Source.Should().Be(previewMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+
+        sut.RefreshOutputCommand.CanExecute(null).Should().BeTrue();
+        sut.RefreshOutputCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(preview, "Output refresh must not move the Preview selection");
+        sut.OutputItem.Should().BeSameAs(live);
+        sut.LiveItemId.Should().Be(live.Id);
+        sut.Media.Source.Should().Be(outputMedia);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing, "FrmMain Refresh Output refreshes the live media window without stopping an active media item");
+        sut.StatusText.Should().Contain("Output media refreshed").And.Contain("Output Song.mp4");
+    }
+
+    [Fact]
     public void RefreshOutputCommand_WhenOutputClosed_IsDisabled()
     {
         var sut = CreateSut();
