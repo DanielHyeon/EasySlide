@@ -92,6 +92,18 @@
                         DockPanel.Dock="Top"
                         Orientation="Horizontal"
                         Margin="0,0,0,4">
+                <Button x:Name="WL_Manage"
+                        Tag="WL_Manage"
+                        Click="WL_Manage_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        ToolTip="Manage Worship Lists"
+                        AutomationProperties.Name="Manage Worship Lists"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="Settings24" />
+                </Button>
                 <Button x:Name="WL_Add"
                         Click="WL_Add_Click"
                         Style="{StaticResource EsButton.Secondary}"

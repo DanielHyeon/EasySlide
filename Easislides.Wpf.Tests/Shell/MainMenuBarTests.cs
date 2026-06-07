@@ -1422,6 +1422,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"WorshipList\"", "Worship List remains the first lower-left role");
         xaml.Should().Contain("AddSelectedSourceRequested=\"WorshipListPanel_AddSelectedSourceRequested\"",
             "FrmMain WL_Add should route through MainWindow because the active source tab lives there");
+        xaml.Should().Contain("ManageWorshipListsRequested=\"WorshipListPanel_ManageWorshipListsRequested\"",
+            "FrmMain WL_Manage should be available from the lower-left Worship List toolbar, not only top menu/toolbar");
         xaml.Should().Contain("EditSelectedItemRequested=\"WorshipListPanel_EditSelectedItemRequested\"",
             "FrmMain CMenuWorship_Edit should route through MainWindow because the song editor is a modal shell window");
         xaml.Should().Contain("Tag=\"PraiseBook\"", "Praise Book should be a first-screen lower-left role");
@@ -1502,6 +1504,7 @@ public class MainMenuBarTests
         code.Should().Contain("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete", "PraiseBook Delete should remove selected entries like FrmMain");
         code.Should().Contain("DeleteSelectedPraiseBookEntriesAsync", "PB_Delete and Delete key should share one removal path");
         code.Should().Contain("WorshipListPanel_AddSelectedSourceRequested", "WL_Add should be handled in the MainWindow shell");
+        code.Should().Contain("WorshipListPanel_ManageWorshipListsRequested", "WL_Manage should be handled in the MainWindow shell");
         code.Should().Contain("WorshipListPanel_EditSelectedItemRequested", "CMenuWorship_Edit should be handled in the MainWindow shell");
         code.Should().Contain("OpenSelectedWorshipSongEditorAsync", "Edit item should open the selected DB song in SongEditorWindow");
         code.Should().Contain("UpdateSelectedSongQueueItem", "saving the editor should refresh the Worship List row");

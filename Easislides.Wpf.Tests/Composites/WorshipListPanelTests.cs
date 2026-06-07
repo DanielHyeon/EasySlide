@@ -75,6 +75,10 @@ public class WorshipListPanelTests
             .Should().BeTrue("SessionList row should remain a compact FrmMain-style strip");
         composite.Descendants().Any(e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip2")
             .Should().BeTrue("WL_Up/WL_Down/WL_Delete commands should stay in the visible legacy tool strip");
+        var wlManage = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Manage");
+        Attr(wlManage, "Tag").Should().Be("WL_Manage", "FrmMain WL_Manage role should be visible in the lower-left toolbar");
+        Attr(wlManage, "Click").Should().Be("WL_Manage_Click", "FrmMain WL_Manage should open the worship-list manager from the lower-left toolbar");
+        Attr(wlManage, "AutomationProperties.Name").Should().Be("Manage Worship Lists");
         var wlAdd = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Add");
         Attr(wlAdd, "Click").Should().Be("WL_Add_Click", "FrmMain WL_Add should route the current source selection to Worship List");
         Attr(wlAdd, "AutomationProperties.Name").Should().Contain("예배 순서에 추가");
@@ -186,6 +190,8 @@ public class WorshipListPanelTests
             .Should().BeTrue("WorshipListPanel is hosted inside the lower-left Worship List tab");
         Attr(host!, "AddSelectedSourceRequested").Should().Be("WorshipListPanel_AddSelectedSourceRequested",
             "WL_Add is a lower-left control, but MainWindow owns the active upper source tab");
+        Attr(host!, "ManageWorshipListsRequested").Should().Be("WorshipListPanel_ManageWorshipListsRequested",
+            "WL_Manage is a lower-left control, but MainWindow owns modal window launch/ownership");
         Attr(host!, "OpenSessionNotesRequested").Should().Be("WorshipListPanel_OpenSessionNotesRequested",
             "WL_Notes is a lower-left control, but MainWindow owns modal window launch/ownership");
         Attr(host!, "EditSelectedItemRequested").Should().Be("WorshipListPanel_EditSelectedItemRequested",
@@ -366,6 +372,24 @@ public class WorshipListPanelTests
             "menu and lower-left WL_Notes button should reuse the same session-notes window path");
         windowCode.Should().Contain("new Easislides.Wpf.Shell.WorshipSessionNotesViewModel",
             "the shared path should create the existing session notes VM");
+    }
+
+    [Fact]
+    public void WlManage_RoutesToManageWorshipListsWindow_FromLowerLeftToolbar()
+    {
+        var panelCode = LoadText("Easislides.Wpf/Composites/WorshipListPanel.xaml.cs");
+        var windowCode = LoadText("Easislides.Wpf/MainWindow.xaml.cs");
+
+        panelCode.Should().Contain("public event RoutedEventHandler? ManageWorshipListsRequested",
+            "WL_Manage should raise an event to the owning MainWindow");
+        panelCode.Should().Contain("private void WL_Manage_Click",
+            "WL_Manage should have a direct lower-left toolbar click handler");
+        panelCode.Should().Contain("ManageWorshipListsRequested?.Invoke(this, e)",
+            "the panel should not construct the modal directly; MainWindow owns the current view model and Owner window");
+        windowCode.Should().Contain("private void WorshipListPanel_ManageWorshipListsRequested",
+            "MainWindow should receive the lower-left WL_Manage event");
+        windowCode.Should().Contain("=> OpenManageWorshipLists_Click(sender, e)",
+            "menu, top toolbar, and lower-left WL_Manage should reuse the same ManageWorshipListsWindow path");
     }
 
     [Fact]

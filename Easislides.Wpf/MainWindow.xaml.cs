@@ -1267,6 +1267,9 @@ public partial class MainWindow : Window
         await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
     }
 
+    private void WorshipListPanel_ManageWorshipListsRequested(object sender, RoutedEventArgs e)
+        => OpenManageWorshipLists_Click(sender, e);
+
     private void WorshipListPanel_OpenSessionNotesRequested(object sender, RoutedEventArgs e)
         => OpenSessionNotes_Click(sender, e);
 

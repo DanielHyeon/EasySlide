@@ -2767,6 +2767,7 @@
                             <TextBlock Text="Worship List" />
                         </TabItem.Header>
                         <composites:WorshipListPanel AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested"
+                                                     ManageWorshipListsRequested="WorshipListPanel_ManageWorshipListsRequested"
                                                      OpenSessionNotesRequested="WorshipListPanel_OpenSessionNotesRequested"
                                                      EditSelectedItemRequested="WorshipListPanel_EditSelectedItemRequested" />
                     </TabItem>
