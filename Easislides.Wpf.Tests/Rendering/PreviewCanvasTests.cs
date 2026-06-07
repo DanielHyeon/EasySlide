@@ -26,6 +26,19 @@ public class PreviewCanvasTests
     }
 
     [Fact]
+    public void Constructor_UsesHighQualityBitmapScalingForPptThumbnails()
+    {
+        StaHelper.RunOnSta(() =>
+        {
+            var sut = new PreviewCanvas();
+
+            RenderOptions.GetBitmapScalingMode(sut).Should().Be(
+                BitmapScalingMode.HighQuality,
+                "PPT preview/output thumbnail canvases should downscale high-resolution exports cleanly");
+        });
+    }
+
+    [Fact]
     public void GetCurrentPlacement_Fill_CoversViewport()
     {
         StaHelper.RunOnSta(() =>

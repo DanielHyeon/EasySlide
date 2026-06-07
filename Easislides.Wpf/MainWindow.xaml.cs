@@ -71,6 +71,10 @@ public partial class MainWindow : Window
 
         // 명령 팔레트(§7.4)가 열리면 검색창에 포커스를 줘 바로 타이핑할 수 있게 한다.
         CommandPaletteOverlay.IsVisibleChanged += CommandPaletteOverlay_IsVisibleChanged;
+        BiblePassageBox.AddHandler(
+            UIElement.MouseLeftButtonUpEvent,
+            new MouseButtonEventHandler(BiblePassageBox_MouseLeftButtonUpAfterTextBox),
+            handledEventsToo: true);
 
         // FrmMain식 멀티페인: 좌측 브라우저가 항상 보이므로 시작 시 곡 목록을 채운다(FrmMain 은 곡 목록을 즉시 표시).
         // 성경은 비용이 커 기존대로 "성경" 탭 첫 선택 시 지연 로드한다.
@@ -1605,7 +1609,7 @@ public partial class MainWindow : Window
     }
 
     // 왼쪽 버튼 해제: FrmMain BibleText_MouseUp처럼 클릭한 절을 선택 구절로 다시 만들고 Preview에 반영한다.
-    private void BiblePassageBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private void BiblePassageBox_MouseLeftButtonUpAfterTextBox(object sender, MouseButtonEventArgs e)
     {
         if (_bibleDragStarted)
         {

@@ -80,6 +80,7 @@ public sealed class PreviewCanvas : FrameworkElement
         Cursor = Cursors.Hand;
         Focusable = true;
         SnapsToDevicePixels = true;
+        RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);
     }
 
     public ImageSource? Source

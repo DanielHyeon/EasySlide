@@ -1086,8 +1086,14 @@ public class MainMenuBarTests
             "changing TabBibleVersions should change the active Bible version");
         xaml.Should().Contain("Tag=\"BibleText\"", "Bible text surface should keep the FrmMain BibleText role");
         xaml.Should().Contain("x:Name=\"BiblePassageBox\"", "Bible text should keep a stable selection surface");
-        xaml.Should().Contain("PreviewMouseLeftButtonUp=\"BiblePassageBox_PreviewMouseLeftButtonUp\"",
+        code.Should().Contain("BiblePassageBox.AddHandler",
+            "Bible click selection should register a handled-events mouse-up hook");
+        code.Should().Contain("UIElement.MouseLeftButtonUpEvent",
+            "Bible click selection should run even when the WPF TextBox consumes the normal MouseLeftButtonUp event");
+        code.Should().Contain("new MouseButtonEventHandler(BiblePassageBox_MouseLeftButtonUpAfterTextBox)",
             "FrmMain BibleText_MouseUp rebuilds the selected passage after a click/shift-click");
+        code.Should().Contain("handledEventsToo: true",
+            "Bible click selection must be handled after TextBox selection plumbing for reliable verse clicks");
         xaml.Should().Contain("x:Name=\"Bibles_AddSelected\"",
             "FrmMain exposes Bible add as a small lower strip icon, not a large primary button");
         xaml.Should().Contain("Tag=\"Bibles_AddSelected\"",
@@ -1112,10 +1118,10 @@ public class MainMenuBarTests
         var bibleMouseDownHandler = SectionBetween(
             code,
             "private void BiblePassageBox_PreviewMouseLeftButtonDown",
-            "private void BiblePassageBox_PreviewMouseLeftButtonUp");
+            "private void BiblePassageBox_MouseLeftButtonUpAfterTextBox");
         var bibleMouseUpHandler = SectionBetween(
             code,
-            "private void BiblePassageBox_PreviewMouseLeftButtonUp",
+            "private void BiblePassageBox_MouseLeftButtonUpAfterTextBox",
             "private int GetBiblePassageCharacterIndex");
 
         code.Should().Contain("private void BibleContextMenu_Opened", "Bible menu should compute enabled states when opened");
