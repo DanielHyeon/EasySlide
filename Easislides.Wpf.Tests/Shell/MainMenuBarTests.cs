@@ -1205,6 +1205,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("PreviewMouseMove=\"InlineImagesList_PreviewMouseMove\"",
             "Images rows should drag into the Preview background drop surface");
         xaml.Should().Contain("x:Name=\"CMenuImages\"", "Images source needs the FrmMain image context menu role");
+        xaml.Should().Contain("Opened=\"CMenuImages_Opened\"", "Images menu should refresh Add to Item availability when opened like FrmMain CMenuImages_Opening");
         xaml.Should().Contain("x:Name=\"CMenuImages_AddItem\"", "Images menu should expose Add to Item");
         xaml.Should().Contain("ApplyToItemBackgroundCommand", "Add to Item should apply the selected image to the selected worship item");
         xaml.Should().Contain("x:Name=\"CMenuImages_AddDefault\"", "Images menu should expose Add to Default");
@@ -1331,6 +1332,8 @@ public class MainMenuBarTests
         code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");
         code.Should().Contain("_inlineImages.ApplySelectedImageCommand.Execute(null)", "Images shared add gesture should follow FrmMain item-first/default-fallback semantics");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImageCommand.Execute(path)", "Images Add to Item should reuse the selected-item background command");
+        code.Should().Contain("CMenuImages_Opened", "Images context menu should mirror FrmMain CMenuImages_Opening timing");
+        code.Should().Contain("_inlineImages?.RefreshItemBackgroundCommandState()", "opening CMenuImages should requery Add to Item enablement");
         code.Should().Contain("private ImageLibraryItem? _imageDragCandidate",
             "Images drags should carry the exact thumbnail item pressed, not a stale previous selection");
         code.Should().Contain("InlineImagesList_PreviewMouseMove",

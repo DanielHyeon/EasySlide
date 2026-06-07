@@ -136,6 +136,9 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
     public IRelayCommand ClearBackgroundCommand { get; }
 
+    public void RefreshItemBackgroundCommandState()
+        => ApplyToItemBackgroundCommand.NotifyCanExecuteChanged();
+
     // 하위 폴더 포함 토글 시 즉시 다시 읽는다(CommunityToolkit 가 생성하는 변경 콜백).
     partial void OnIncludeSubfoldersChanged(bool value) => LoadCommand.Execute(null);
 

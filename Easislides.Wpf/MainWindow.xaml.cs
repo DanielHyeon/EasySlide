@@ -1745,6 +1745,9 @@ public partial class MainWindow : Window
         CMenuSongs_Refresh.IsEnabled = true;
     }
 
+    private void CMenuImages_Opened(object sender, RoutedEventArgs e)
+        => _inlineImages?.RefreshItemBackgroundCommandState();
+
     private void CMenuSongs_SelectAll_Click(object sender, RoutedEventArgs e)
     {
         LibrarySongList.SelectAll();

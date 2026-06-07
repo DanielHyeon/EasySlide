@@ -2019,7 +2019,8 @@
                             </ListBox.InputBindings>
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuImages"
-                                             Tag="CMenuImages">
+                                             Tag="CMenuImages"
+                                             Opened="CMenuImages_Opened">
                                     <MenuItem x:Name="CMenuImages_AddItem"
                                               Tag="CMenuImages_AddItem"
                                               Header="Add to Item"

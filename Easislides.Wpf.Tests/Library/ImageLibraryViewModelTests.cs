@@ -230,6 +230,32 @@ public class ImageLibraryViewModelTests
     }
 
     [Fact]
+    public void RefreshItemBackgroundCommandState_RequeriesPreviewItemAvailability()
+    {
+        var canApplyItemBackground = false;
+        var sut = new ImageLibraryViewModel(
+            new FakeImageLibraryService(@"C:\bg\a.jpg"),
+            _ => null,
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg",
+            applyItemBackground: _ => { },
+            canApplyItemBackground: () => canApplyItemBackground);
+        Load(sut);
+        sut.SelectedImage = sut.Images[0];
+
+        var raised = false;
+        sut.ApplyToItemBackgroundCommand.CanExecuteChanged += (_, _) => raised = true;
+        sut.ApplyToItemBackgroundCommand.CanExecute(null).Should().BeFalse();
+
+        canApplyItemBackground = true;
+        sut.RefreshItemBackgroundCommandState();
+
+        raised.Should().BeTrue("FrmMain recalculates CMenuImages_AddItem when the image menu opens");
+        sut.ApplyToItemBackgroundCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
     public void ApplyAsBackground_WithoutSelection_CannotExecute()
     {
         var sut = CreateSut(out var applied, out _, @"C:\bg\a.jpg");
