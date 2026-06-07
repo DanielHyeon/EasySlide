@@ -1529,6 +1529,18 @@ public partial class MainWindow : Window
         await AddSelectedSourceToWorshipListAsync(viewModel).ConfigureAwait(true);
     }
 
+    private void InlineInfoScreenList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            e.Handled = true;
+            DeleteInlineInfoScreenSelection();
+            return;
+        }
+
+        SourceListAddOnEnter_KeyDown(sender, e);
+    }
+
     private void LibrarySongList_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.None)
@@ -2093,6 +2105,42 @@ public partial class MainWindow : Window
         }
 
         OpenExternalFileOperationWindow(ExternalFileItemKind.InfoScreen, ExternalFileOperationKind.Copy, sourceFiles);
+        InlineInfoScreenList.Focus();
+    }
+
+    private void CMenuInfoScreenFiles_Delete_Click(object sender, RoutedEventArgs e)
+        => DeleteInlineInfoScreenSelection();
+
+    private void DeleteInlineInfoScreenSelection()
+    {
+        var selection = GetInlineInfoScreenSelection();
+        if (_inlineInfoScreens is null || selection.Count == 0)
+        {
+            _viewModel.StatusText = "No InfoScreen selected.";
+            InlineInfoScreenList.Focus();
+            return;
+        }
+
+        var message = selection.Count == 1
+            ? $"Delete selected InfoScreen '{selection[0].Name}'?"
+            : $"Delete selected {selection.Count} InfoScreens?";
+        if (MessageBox.Show(
+                message,
+                "Delete InfoScreen(s)",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            InlineInfoScreenList.Focus();
+            return;
+        }
+
+        var deleted = _inlineInfoScreens.DeleteScreens(selection);
+        _viewModel.StatusText = deleted switch
+        {
+            0 => "No InfoScreen deleted.",
+            1 => "Deleted 1 InfoScreen.",
+            _ => $"Deleted {deleted} InfoScreens.",
+        };
         InlineInfoScreenList.Focus();
     }
 

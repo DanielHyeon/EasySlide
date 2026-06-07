@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -33,6 +35,7 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
 
         LoadCommand = new RelayCommand(Load);
         AddSelectedCommand = new AsyncRelayCommand(AddSelectedAsync, CanAddSelected);
+        DeleteSelectedCommand = new RelayCommand(DeleteSelected, CanAddSelected);
     }
 
     public ObservableCollection<InfoScreenSourceItem> Screens { get; } = new();
@@ -41,8 +44,13 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
 
     public IAsyncRelayCommand AddSelectedCommand { get; }
 
+    public IRelayCommand DeleteSelectedCommand { get; }
+
     partial void OnSelectedScreenChanged(InfoScreenSourceItem? value)
-        => AddSelectedCommand.NotifyCanExecuteChanged();
+    {
+        AddSelectedCommand.NotifyCanExecuteChanged();
+        DeleteSelectedCommand.NotifyCanExecuteChanged();
+    }
 
     public void Load()
     {
@@ -116,6 +124,49 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
         if (_addToQueue(selection))
         {
             StatusText = $"Added to Worship List: {selection.Name}";
+        }
+    }
+
+    public int DeleteScreens(IEnumerable<InfoScreenSourceItem> screens)
+    {
+        ArgumentNullException.ThrowIfNull(screens);
+
+        var names = screens
+            .Select(screen => screen.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (names.Length == 0)
+        {
+            StatusText = "No InfoScreen selected.";
+            return 0;
+        }
+
+        var deleted = 0;
+        foreach (var name in names)
+        {
+            if (_store.Delete(name))
+            {
+                deleted++;
+            }
+        }
+
+        Load();
+        StatusText = deleted switch
+        {
+            0 => "No InfoScreen deleted.",
+            1 => $"Deleted InfoScreen: {names[0]}",
+            _ => $"Deleted {deleted} InfoScreens.",
+        };
+        return deleted;
+    }
+
+    private void DeleteSelected()
+    {
+        if (SelectedScreen is not null)
+        {
+            DeleteScreens([SelectedScreen]);
         }
     }
 }

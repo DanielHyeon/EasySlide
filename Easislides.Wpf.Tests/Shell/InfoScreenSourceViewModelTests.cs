@@ -64,6 +64,33 @@ public sealed class InfoScreenSourceViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task DeleteScreens_RemovesSelectedScreensAndReloadsList()
+    {
+        var store = new InfoScreenStore(_dir, settings: null, deleteFile: path =>
+        {
+            File.Delete(path);
+            return true;
+        });
+        await store.SaveAsync("First notice", new InfoScreenDto("first"));
+        await store.SaveAsync("Second notice", new InfoScreenDto("second"));
+        await store.SaveAsync("Keep notice", new InfoScreenDto("keep"));
+        var sut = CreateSut(store, out _);
+        sut.Load();
+        var selected = sut.Screens
+            .Where(screen => screen.Name.Contains("notice", StringComparison.OrdinalIgnoreCase)
+                && screen.Name != "Keep notice")
+            .ToArray();
+
+        var deleted = sut.DeleteScreens(selected);
+
+        deleted.Should().Be(2);
+        sut.Screens.Select(screen => screen.Name).Should().Equal("Keep notice");
+        sut.StatusText.Should().Contain("2");
+        (await store.LoadAsync("First notice")).Should().BeNull();
+        (await store.LoadAsync("Second notice")).Should().BeNull();
+    }
+
+    [Fact]
     public async Task LoadSelectionAsync_RejectsEmptySavedText()
     {
         var store = new InfoScreenStore(_dir);

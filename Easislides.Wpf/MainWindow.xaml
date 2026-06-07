@@ -1454,7 +1454,7 @@
                                  SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
                                  SelectionMode="Extended"
                                  DisplayMemberPath="Name"
-                                 KeyDown="SourceListAddOnEnter_KeyDown"
+                                 KeyDown="InlineInfoScreenList_KeyDown"
                                  MouseDoubleClick="InlineInfoScreenList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineInfoScreenList_PreviewMouseLeftButtonDown"
                                  PreviewMouseRightButtonDown="InlineInfoScreenList_PreviewMouseRightButtonDown"
@@ -1484,6 +1484,10 @@
                                               Tag="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuInfoScreenFiles_Copy_Click" />
+                                    <MenuItem x:Name="CMenuInfoScreenFiles_Delete"
+                                              Tag="CMenuFiles_Delete"
+                                              Header="Delete"
+                                              Click="CMenuInfoScreenFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuInfoScreenFiles_Refresh"
                                               Tag="CMenuFiles_Refresh"

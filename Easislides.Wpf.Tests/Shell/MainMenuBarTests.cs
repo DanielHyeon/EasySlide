@@ -1148,6 +1148,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"InlineInfoScreenList\"", "saved InfoScreens must be visible without opening the editor modal");
         xaml.Should().Contain("ItemsSource=\"{Binding Screens}\"", "inline InfoScr list reuses InfoScreenSourceViewModel");
         xaml.Should().Contain("SelectionMode=\"Extended\"", "InfoScreenList should preserve FrmMain multi-select behavior");
+        xaml.Should().Contain("KeyDown=\"InlineInfoScreenList_KeyDown\"", "InfoScreenList Delete should share FrmMain EF_Delete_Clicked flow");
         xaml.Should().Contain("MouseDoubleClick=\"InlineInfoScreenList_MouseDoubleClick\"", "double-click should add selected InfoScreen");
         xaml.Should().Contain("PreviewMouseRightButtonDown=\"InlineInfoScreenList_PreviewMouseRightButtonDown\"",
             "right-clicking an InfoScreen row should select it before opening CMenuFiles");
@@ -1155,6 +1156,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles\"", "InfoScreenList should expose the FrmMain shared file context menu role");
         xaml.Should().Contain("Tag=\"CMenuFiles_SelectAll\"", "InfoScreen CMenuFiles should expose Select All with the legacy role");
         xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_AddShow\"", "InfoScreen CMenuFiles should expose Add && Show");
+        xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_Delete\"", "InfoScreen CMenuFiles should expose Delete like FrmMain");
         xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_Refresh\"", "InfoScreen CMenuFiles should expose Refresh");
 
         xaml.Should().Contain("Tag=\"PowerPointSource\"", "FrmMain keeps PowerPoint as a main-console source tab");
@@ -1333,6 +1335,10 @@ public class MainMenuBarTests
             "InfoScreen CMenuFiles_Copy should seed the FrmCopyMoveExternal replacement with selected .esi files");
         code.Should().Contain("Path.Combine(Path.GetTempPath(), \"EasislidesNext\", \"InfoScreenCopy\")",
             "InfoScreen file copy should keep WPF JSON exports available while the external copy dialog runs");
+        code.Should().Contain("DeleteInlineInfoScreenSelection()",
+            "InfoScreen Delete key and CMenuFiles_Delete should share one multi-select delete path");
+        code.Should().Contain("_inlineInfoScreens.DeleteScreens(selection)",
+            "InfoScreen deletion should flow through the source VM so its list reloads after delete");
         code.Should().Contain("EnsureInlinePowerPointLoadedOnce(viewModel)", "PowerPoint source tab should lazy-load on first selection");
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");

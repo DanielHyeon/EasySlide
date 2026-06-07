@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ public interface IInfoScreenStore
 
     System.Collections.Generic.IReadOnlyList<string> ListNames();
 
-    void Delete(string name);
+    bool Delete(string name);
 }
 
 /// <summary>
@@ -45,6 +46,7 @@ public sealed class InfoScreenStore : IInfoScreenStore
 
     private readonly string _directory;
     private readonly ISettingsService? _settings;
+    private readonly Func<string, bool> _deleteFile;
 
     public InfoScreenStore()
         : this(DefaultDirectory(), settings: null)
@@ -62,9 +64,15 @@ public sealed class InfoScreenStore : IInfoScreenStore
     }
 
     public InfoScreenStore(string directory, ISettingsService? settings)
+        : this(directory, settings, SendFileToRecycleBin)
+    {
+    }
+
+    internal InfoScreenStore(string directory, ISettingsService? settings, Func<string, bool> deleteFile)
     {
         _directory = directory ?? throw new ArgumentNullException(nameof(directory));
         _settings = settings;
+        _deleteFile = deleteFile ?? throw new ArgumentNullException(nameof(deleteFile));
     }
 
     private static string DefaultDirectory() => Path.Combine(
@@ -169,13 +177,16 @@ public sealed class InfoScreenStore : IInfoScreenStore
         return names.ToArray();
     }
 
-    public void Delete(string name)
+    public bool Delete(string name)
     {
         var path = TryResolvePath(name);
         if (path is not null && File.Exists(path))
         {
-            File.Delete(path);
+            return _deleteFile(path);
         }
+
+        var legacyPath = ResolveLegacyPath(name);
+        return legacyPath is not null && File.Exists(legacyPath) && _deleteFile(legacyPath);
     }
 
     private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "정보 화면");
@@ -357,4 +368,50 @@ public sealed class InfoScreenStore : IInfoScreenStore
             or UnauthorizedAccessException
             or InvalidOperationException
             or NotSupportedException;
+
+    private static bool SendFileToRecycleBin(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var operation = new SHFILEOPSTRUCT
+            {
+                hwnd = IntPtr.Zero,
+                wFunc = 3,
+                pFrom = path + '\0' + '\0',
+                pTo = null,
+                fFlags = 0x40 | 0x10 | 0x04 | 0x0400,
+                fAnyOperationsAborted = false,
+                hNameMappings = IntPtr.Zero,
+                lpszProgressTitle = null,
+            };
+
+            var result = SHFileOperation(ref operation);
+            return result == 0 && !operation.fAnyOperationsAborted && !File.Exists(path);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+    private static extern int SHFileOperation(ref SHFILEOPSTRUCT lpFileOp);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    private struct SHFILEOPSTRUCT
+    {
+        public IntPtr hwnd;
+        public uint wFunc;
+        public string pFrom;
+        public string? pTo;
+        public ushort fFlags;
+        [MarshalAs(UnmanagedType.Bool)] public bool fAnyOperationsAborted;
+        public IntPtr hNameMappings;
+        public string? lpszProgressTitle;
+    }
 }

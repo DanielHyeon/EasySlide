@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -253,6 +254,62 @@ public sealed class InfoScreenStoreTests : IDisposable
 
         store.ListNames().Should().NotContain("임시");
         (await store.LoadAsync("임시")).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Delete_UsesConfiguredFileDeleteForJsonScreen()
+    {
+        var deletedPaths = new List<string>();
+        var store = new InfoScreenStore(_dir, settings: null, deleteFile: path =>
+        {
+            deletedPaths.Add(path);
+            File.Delete(path);
+            return true;
+        });
+        await store.SaveAsync("JsonDelete", new InfoScreenDto("delete me"));
+
+        var deleted = store.Delete("JsonDelete");
+
+        deleted.Should().BeTrue();
+        deletedPaths.Should().ContainSingle(path => path.EndsWith("JsonDelete.json", StringComparison.Ordinal));
+        store.ListNames().Should().NotContain("JsonDelete");
+    }
+
+    [Fact]
+    public async Task Delete_RemovesLegacyEsiFromConfiguredWorkingFolder()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"EasiSlides_LegacyInfoDelete_{Guid.NewGuid():N}");
+        try
+        {
+            var settings = new SettingsService(new SettingsServiceOptions(
+                Path.Combine(root, "settings.json"),
+                Path.Combine(root, "Backups")));
+            settings.Set(EasiSettingKeys.WorkingFolder, root);
+            var legacyPath = Path.Combine(root, "InfoScreens", "A", "LegacyDelete.esi");
+            Directory.CreateDirectory(Path.GetDirectoryName(legacyPath)!);
+            await File.WriteAllTextAsync(legacyPath, "[1]\nLegacy delete");
+            var deletedPaths = new List<string>();
+            var store = new InfoScreenStore(_dir, settings, path =>
+            {
+                deletedPaths.Add(path);
+                File.Delete(path);
+                return true;
+            });
+
+            var deleted = store.Delete(Path.Combine("A", "LegacyDelete"));
+
+            deleted.Should().BeTrue();
+            deletedPaths.Should().ContainSingle(path => path == legacyPath);
+            File.Exists(legacyPath).Should().BeFalse();
+            store.ListNames().Should().NotContain(Path.Combine("A", "LegacyDelete"));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 
     public void Dispose()
