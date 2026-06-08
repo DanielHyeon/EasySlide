@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8496,12 +8497,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var show = !_session.Current.IsReferenceAlertVisible;
         var text = show ? ResolveReferenceAlertText(_session.Current) : string.Empty;
+        if (show && string.IsNullOrWhiteSpace(text))
+        {
+            _session.SetReferenceAlert(visible: false, string.Empty);
+            StatusText = "구절 알림 없음";
+            NotifyCommandStates();
+            return;
+        }
+
         _session.SetReferenceAlert(show, text);
         StatusText = show ? "구절 알림 표시" : "구절 알림 숨김";
         NotifyCommandStates();
     }
 
-    private static string ResolveReferenceAlertText(LiveSessionSnapshot snapshot)
+    private string ResolveReferenceAlertText(LiveSessionSnapshot snapshot)
+    {
+        return NormalizeReferenceAlertSource(_settings.Get(EasiSettingKeys.ReferenceAlertSource)) switch
+        {
+            0 => string.Empty,
+            2 when snapshot.CurrentItemNumber > 0 => snapshot.CurrentItemNumber.ToString(CultureInfo.InvariantCulture),
+            _ => ResolveReferenceAlertFallbackText(snapshot),
+        };
+    }
+
+    private static int NormalizeReferenceAlertSource(int value)
+        => value is >= 0 and <= 4 ? value : EasiSettingKeys.ReferenceAlertSource.DefaultValue;
+
+    private static string ResolveReferenceAlertFallbackText(LiveSessionSnapshot snapshot)
     {
         if (!string.IsNullOrWhiteSpace(snapshot.CurrentItemTitle))
         {

@@ -39,6 +39,7 @@ public class LegacySettingsMapTests
             "NoPowerpointPanelOverlay",
             "UseMediaTab",
             "ShowLyricsMonitorAlertBox",
+            "ReferenceAlertSource",
             "AdvanceNextItem",
             "GapItemOption",
             "DMAlwaysUseSecondaryMonitor",
@@ -148,6 +149,7 @@ public class LegacySettingsMapTests
             ["media_dir"] = mediaFolder,
             ["LiveCamNumber"] = "3",
             ["ShowLyricsMonitorAlertBox"] = "1",
+            ["ReferenceAlertSource"] = "2",
             ["AdvanceNextItem"] = "yes",
             ["GapItemOption"] = "2",
             ["GapItemLogoFile"] = logoFile,
@@ -178,6 +180,7 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.MediaDirectory).Should().Be(mediaFolder);
         sut.Get(EasiSettingKeys.LiveCameraNumber).Should().Be(3);
         sut.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox).Should().BeTrue();
+        sut.Get(EasiSettingKeys.ReferenceAlertSource).Should().Be(2);
         sut.Get(EasiSettingKeys.AdvanceNextItem).Should().BeTrue();
         sut.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Default);
         sut.Get(EasiSettingKeys.GapItemLogoFile).Should().Be(logoFile);
