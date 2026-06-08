@@ -6566,6 +6566,35 @@ public class MainViewModelTests
         settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment).Should().Be(alignment);
     }
 
+    [Theory]
+    [InlineData("AsR1", true, false, LyricsTextAlignment.Center)]
+    [InlineData("AsR2", false, true, LyricsTextAlignment.Center)]
+    [InlineData("Left", false, false, LyricsTextAlignment.Left)]
+    [InlineData("Centre", false, false, LyricsTextAlignment.Center)]
+    [InlineData("Right", false, false, LyricsTextAlignment.Right)]
+    public void ApplyTitleHeadingLegacyModeCommand_MapsFrmMainDefHeadAlignExclusiveModes(
+        string mode,
+        bool expectedFollowBody,
+        bool expectedFollowRegion2,
+        LyricsTextAlignment expectedAlignment)
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2, true);
+        settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, LyricsTextAlignment.Right);
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyTitleHeadingLegacyModeCommand.Execute(mode);
+
+        sut.ActiveTitleHeadingFollowBody.Should().Be(expectedFollowBody);
+        sut.ActiveTitleHeadingFollowRegion2.Should().Be(expectedFollowRegion2);
+        sut.ActiveTitleHeadingAlignment.Should().Be(expectedAlignment);
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody).Should().Be(expectedFollowBody);
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2).Should().Be(expectedFollowRegion2);
+        settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment).Should().Be(expectedAlignment);
+    }
+
     [Fact]
     public void ActiveTitleHeadingAlignment_DefaultsCenter()
     {

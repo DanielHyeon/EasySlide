@@ -1161,6 +1161,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsTitleHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowTitleHeading, ActiveLyricsTitleHeading));
         ToggleLyricsOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorOutline, ActiveLyricsOutline));
         ApplyTitleHeadingAlignmentCommand = new RelayCommand<LyricsTextAlignment>(ApplyTitleHeadingAlignment);
+        ApplyTitleHeadingLegacyModeCommand = new RelayCommand<string?>(ApplyTitleHeadingLegacyMode);
         ToggleTitleHeadingFirstScreenOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly, ActiveTitleHeadingFirstScreenOnly));
         ToggleTitleHeadingFollowBodyCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody, ActiveTitleHeadingFollowBody));
         ToggleTitleHeadingFollowRegion2Command = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2, ActiveTitleHeadingFollowRegion2));
@@ -1485,6 +1486,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ToggleLyricsOutlineCommand { get; }
 
     public IRelayCommand<LyricsTextAlignment> ApplyTitleHeadingAlignmentCommand { get; }
+
+    public IRelayCommand<string?> ApplyTitleHeadingLegacyModeCommand { get; }
 
     public IRelayCommand ToggleTitleHeadingFirstScreenOnlyCommand { get; }
     public IRelayCommand ToggleTitleHeadingFollowBodyCommand { get; }
@@ -7759,6 +7762,56 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, alignment);
         ActiveTitleHeadingAlignment = alignment;
         StatusText = $"제목 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
+    }
+
+    // FrmMain Def_HeadAlign 드롭다운은 AsR1/AsR2/Left/Centre/Right 중 하나만 선택한다.
+    // WPF 설정은 follow bool 2개 + 직접 정렬 enum으로 나뉘므로 여기서 배타 상태로 맞춘다.
+    private void ApplyTitleHeadingLegacyMode(string? mode)
+    {
+        var normalized = (mode ?? string.Empty).Trim();
+        var followBody = false;
+        var followRegion2 = false;
+        var alignment = LyricsTextAlignment.Center;
+        string label;
+
+        if (string.Equals(normalized, "AsR1", StringComparison.OrdinalIgnoreCase))
+        {
+            followBody = true;
+            label = "Region 1 정렬 따름";
+        }
+        else if (string.Equals(normalized, "AsR2", StringComparison.OrdinalIgnoreCase))
+        {
+            followRegion2 = true;
+            label = "Region 2 정렬 따름";
+        }
+        else if (string.Equals(normalized, "Left", StringComparison.OrdinalIgnoreCase))
+        {
+            alignment = LyricsTextAlignment.Left;
+            label = "왼쪽";
+        }
+        else if (string.Equals(normalized, "Centre", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(normalized, "Center", StringComparison.OrdinalIgnoreCase))
+        {
+            label = "가운데";
+        }
+        else if (string.Equals(normalized, "Right", StringComparison.OrdinalIgnoreCase))
+        {
+            alignment = LyricsTextAlignment.Right;
+            label = "오른쪽";
+        }
+        else
+        {
+            StatusText = "제목 정렬 선택을 인식할 수 없습니다.";
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody, followBody);
+        _settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2, followRegion2);
+        _settings.Set(EasiSettingKeys.LyricsMonitorTitleHeadingAlignment, alignment);
+        ActiveTitleHeadingFollowBody = followBody;
+        ActiveTitleHeadingFollowRegion2 = followRegion2;
+        ActiveTitleHeadingAlignment = alignment;
+        StatusText = $"제목 정렬: {label}";
     }
 
     // 인-셸 가사 세로 정렬 적용 — 가로 정렬과 동일 경로(설정→출력 VM 라이브 반영).

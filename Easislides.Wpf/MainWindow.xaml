@@ -2291,6 +2291,64 @@
                                                 AutomationProperties.Name="Def ToZero transpose reset" />
                                     </WrapPanel>
 
+                                    <TextBlock Text="Heading Align"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_HeadAlign"
+                                               Tag="Def_HeadAlign">
+                                        <Button x:Name="Def_HeadAlignAsR1"
+                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
+                                                CommandParameter="AsR1"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="As R1"
+                                                ToolTip="FrmMain Def_HeadAlignAsR1"
+                                                AutomationProperties.Name="Def heading align as Region 1" />
+                                        <Button x:Name="Def_HeadAlignAsR2"
+                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
+                                                CommandParameter="AsR2"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="As R2"
+                                                ToolTip="FrmMain Def_HeadAlignAsR2"
+                                                AutomationProperties.Name="Def heading align as Region 2" />
+                                        <Button x:Name="Def_HeadAlignLeft"
+                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
+                                                CommandParameter="Left"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Left"
+                                                ToolTip="FrmMain Def_HeadAlignLeft"
+                                                AutomationProperties.Name="Def heading align left" />
+                                        <Button x:Name="Def_HeadAlignCentre"
+                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
+                                                CommandParameter="Centre"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Centre"
+                                                ToolTip="FrmMain Def_HeadAlignCentre"
+                                                AutomationProperties.Name="Def heading align centre" />
+                                        <Button x:Name="Def_HeadAlignRight"
+                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
+                                                CommandParameter="Right"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Right"
+                                                ToolTip="FrmMain Def_HeadAlignRight"
+                                                AutomationProperties.Name="Def heading align right" />
+                                    </WrapPanel>
+
                                     <TextBlock Text="Align"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}"
@@ -2321,6 +2379,70 @@
                                                 Margin="0,0,6,6"
                                                 Content="Right"
                                                 AutomationProperties.Name="Def Region1 right align" />
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Region 1 Colour"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_R1Colour"
+                                               Tag="Def_R1Colour">
+                                        <Button Command="{Binding ApplyTextColorHexCommand}"
+                                                CommandParameter="#FFFFFF"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="White"
+                                                ToolTip="FrmMain Def_R1Colour white"
+                                                AutomationProperties.Name="Def Region1 text colour white" />
+                                        <Button Command="{Binding ApplyTextColorHexCommand}"
+                                                CommandParameter="#FFFF00"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Yellow"
+                                                ToolTip="FrmMain Def_R1Colour yellow"
+                                                AutomationProperties.Name="Def Region1 text colour yellow" />
+                                        <Button Command="{Binding ApplyTextColorHexCommand}"
+                                                CommandParameter="#000000"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Black"
+                                                ToolTip="FrmMain Def_R1Colour black"
+                                                AutomationProperties.Name="Def Region1 text colour black" />
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Region 2 Align / Colour"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel Tag="toolStripDef2">
+                                        <ComboBox x:Name="Def_R2Align"
+                                                  Tag="Def_R2Align"
+                                                  ItemsSource="{Binding LyricsRegion2AlignmentPresets}"
+                                                  SelectedValue="{Binding LyricsRegion2AlignmentInput, Mode=TwoWay}"
+                                                  SelectedValuePath="Value"
+                                                  DisplayMemberPath="Key"
+                                                  MinWidth="118"
+                                                  Height="30"
+                                                  Margin="0,0,6,6"
+                                                  ToolTip="FrmMain Def_R2Align"
+                                                  AutomationProperties.Name="Def Region2 alignment" />
+                                        <ComboBox x:Name="Def_R2Colour"
+                                                  Tag="Def_R2Colour"
+                                                  ItemsSource="{Binding LyricsTextColor2Presets}"
+                                                  SelectedValue="{Binding LyricsTextColor2Input, Mode=TwoWay}"
+                                                  SelectedValuePath="Value"
+                                                  DisplayMemberPath="Key"
+                                                  MinWidth="118"
+                                                  Height="30"
+                                                  Margin="0,0,6,6"
+                                                  ToolTip="FrmMain Def_R2Colour"
+                                                  AutomationProperties.Name="Def Region2 text colour" />
                                     </WrapPanel>
 
                                     <TextBlock Text="Vertical"
