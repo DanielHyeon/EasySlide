@@ -2323,6 +2323,41 @@
                                                 AutomationProperties.Name="Def Region1 right align" />
                                     </WrapPanel>
 
+                                    <TextBlock Text="Vertical"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_VAlign"
+                                               Tag="Def_VAlign">
+                                        <Button x:Name="Def_VAlignTop"
+                                                Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                                                CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinWidth="56"
+                                                MinHeight="30"
+                                                Margin="0,0,6,6"
+                                                Content="Top"
+                                                AutomationProperties.Name="Def vertical align top" />
+                                        <Button x:Name="Def_VAlignCentre"
+                                                Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                                                CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinWidth="56"
+                                                MinHeight="30"
+                                                Margin="0,0,6,6"
+                                                Content="Centre"
+                                                AutomationProperties.Name="Def vertical align centre" />
+                                        <Button x:Name="Def_VAlignBottom"
+                                                Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                                                CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinWidth="56"
+                                                MinHeight="30"
+                                                Margin="0,0,6,6"
+                                                Content="Bottom"
+                                                AutomationProperties.Name="Def vertical align bottom" />
+                                    </WrapPanel>
+
                                     <TextBlock Text="Region"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}"

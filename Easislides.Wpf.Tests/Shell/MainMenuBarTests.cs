@@ -1304,6 +1304,14 @@ public class MainMenuBarTests
         xaml.Should().Contain("TransposeLiveResetCommand", "Def_ToZero should connect to the live transpose reset");
         xaml.Should().Contain("x:Name=\"Def_R1Align\"", "Default tab should expose Region1 alignment controls");
         xaml.Should().Contain("ApplyLyricsAlignmentCommand", "Def_R1Align should use the shared lyrics alignment command");
+        xaml.Should().Contain("x:Name=\"Def_VAlign\"", "Default tab should expose FrmMain Def_VAlign");
+        xaml.Should().Contain("x:Name=\"Def_VAlignTop\"", "Def_VAlign should expose FrmMain top alignment");
+        xaml.Should().Contain("x:Name=\"Def_VAlignCentre\"", "Def_VAlign should expose FrmMain centre alignment");
+        xaml.Should().Contain("x:Name=\"Def_VAlignBottom\"", "Def_VAlign should expose FrmMain bottom alignment");
+        xaml.Should().Contain("ApplyLyricsVerticalAlignmentCommand", "Def_VAlign should use the shared vertical alignment command");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsVerticalAlignment.Top}\"", "Def_VAlignTop should map to the top vertical setting");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsVerticalAlignment.Center}\"", "Def_VAlignCentre should map to the centre vertical setting");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsVerticalAlignment.Bottom}\"", "Def_VAlignBottom should map to the bottom vertical setting");
         xaml.Should().Contain("x:Name=\"Def_Region\"", "Default tab should expose region display controls");
         xaml.Should().Contain("ApplyRegionDisplayCommand", "Def_Region should use the shared region display command");
         xaml.Should().Contain("x:Name=\"Def_NoImage\"", "Default tab should expose FrmMain Def_NoImage");
