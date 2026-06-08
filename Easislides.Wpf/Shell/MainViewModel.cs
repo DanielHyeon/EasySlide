@@ -521,9 +521,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _activeGapItemLogoFile = EasiSettingKeys.GapItemLogoFile.DefaultValue;
     private GapItemMode _alternateGapItemOption = GapItemMode.None;
 
-    // 현재 글자색/배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
+    // 현재 글자색/배경색/Display Panel 배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
     [ObservableProperty] private string _activeTextColorHex = "#000000";
     [ObservableProperty] private string _activeBackgroundColorHex = "#FFFFFF";
+    [ObservableProperty] private string _activePanelColorHex = "#000000";
 
     // 출력 모양 템플릿(저장/불러오기) — 새 템플릿 이름 입력, 선택된 기존 템플릿.
     [ObservableProperty] private string _newAppearanceTemplateName = "";
@@ -8989,6 +8990,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var bg1 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb);
         var bg2 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb);
         var gradient = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient);
+        var panel = _settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb);
 
         var match = OutputAppearancePresets.FirstOrDefault(p =>
             p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
@@ -9052,6 +9054,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTitleHeadingFollowRegion2 = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2);
         ActiveTextColorHex = FormatColorHex(text);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
+        ActivePanelColorHex = FormatColorHex(panel);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)

@@ -2714,6 +2714,33 @@
                                                       Content="Transp"
                                                       ToolTip="Display Panel Transparent"
                                                       AutomationProperties.Name="Def PanelTransparent transparent background" />
+                                        <WrapPanel Tag="Def_PanelBackColour"
+                                                   Margin="0,0,6,6">
+                                            <TextBox x:Name="Def_PanelBackColourHex"
+                                                     Text="{Binding ActivePanelColorHex, Mode=OneWay}"
+                                                     Width="76"
+                                                     MinHeight="30"
+                                                     VerticalContentAlignment="Center"
+                                                     Margin="0,0,4,0"
+                                                     ToolTip="Display Panel Back Colour"
+                                                     AutomationProperties.Name="Def PanelBackColour hex">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Return"
+                                                                Command="{Binding ApplyPanelColorHexCommand}"
+                                                                CommandParameter="{Binding Text, ElementName=Def_PanelBackColourHex}" />
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                            <Button x:Name="Def_PanelBackColour"
+                                                    Tag="Def_PanelBackColour"
+                                                    Command="{Binding ApplyPanelColorHexCommand}"
+                                                    CommandParameter="{Binding Text, ElementName=Def_PanelBackColourHex}"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    MinHeight="30"
+                                                    Padding="9,0"
+                                                    Content="Back"
+                                                    ToolTip="Display Panel Back Colour"
+                                                    AutomationProperties.Name="Def PanelBackColour apply" />
+                                        </WrapPanel>
                                         <WrapPanel x:Name="Def_PanelFont"
                                                    Tag="Def_PanelFont"
                                                    Margin="0,0,0,6">

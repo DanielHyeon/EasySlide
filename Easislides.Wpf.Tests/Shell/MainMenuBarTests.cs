@@ -1362,6 +1362,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("ToggleLyricsNextItemCommand", "Def_PanelPrevNext should toggle the next-item display");
         xaml.Should().Contain("x:Name=\"Def_PanelTransparent\"", "Default tab should expose FrmMain Def_PanelTransparent");
         xaml.Should().Contain("TogglePanelTransparentCommand", "Def_PanelTransparent should toggle the display-panel background");
+        xaml.Should().Contain("x:Name=\"Def_PanelBackColour\"", "Default tab should expose FrmMain Def_PanelBackColour");
+        xaml.Should().Contain("x:Name=\"Def_PanelBackColourHex\"", "Def_PanelBackColour should show the current panel background hex");
+        xaml.Should().Contain("ActivePanelColorHex", "Def_PanelBackColour should reflect the current display-panel band color");
+        xaml.Should().Contain("ApplyPanelColorHexCommand", "Def_PanelBackColour should apply the real display-panel band color setting");
         xaml.Should().Contain("x:Name=\"Def_PanelFont\"", "Default tab should expose FrmMain Def_PanelFont");
         xaml.Should().Contain("IncreasePanelFontScaleCommand", "Def_PanelFont should expose the panel font increase path");
         xaml.Should().Contain("DecreasePanelFontScaleCommand", "Def_PanelFont should expose the panel font decrease path");

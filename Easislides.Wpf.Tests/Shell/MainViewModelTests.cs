@@ -6696,6 +6696,7 @@ public class MainViewModelTests
         sut.ApplyPanelColorHexCommand.Execute("#102040");
 
         settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb).Should().Be(unchecked((int)0x66102040), "RGB=102040 + 반투명 알파 66");
+        sut.ActivePanelColorHex.Should().Be("#102040");
     }
 
     [Fact]
@@ -6771,9 +6772,11 @@ public class MainViewModelTests
         using var folder = TempSettingsFolder.Create();
         var settings = folder.CreateSettings();
         settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFFABCDEF));
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelColorArgb, unchecked((int)0x66112233));
         var sut = CreateSut(settings: settings);
 
         sut.ActiveTextColorHex.Should().Be("#ABCDEF");
+        sut.ActivePanelColorHex.Should().Be("#112233");
     }
 
     [Fact]
