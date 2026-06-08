@@ -120,7 +120,10 @@ public sealed record LiveOutputRenderSettings(
     // 보조 영역(Region2) 전역 기울임(3-상태). FollowRegion1=본문 기울임 추종(무회귀). 곡별 기울임이 우선.
     LyricsRegion2Emphasis LyricsMonitorRegion2Italic = LyricsRegion2Emphasis.FollowRegion1,
     // 보조 영역(Region2) 전역 밑줄(3-상태). FollowRegion1=본문 밑줄 추종(무회귀). 곡별 밑줄이 우선.
-    LyricsRegion2Emphasis LyricsMonitorRegion2Underline = LyricsRegion2Emphasis.FollowRegion1)
+    LyricsRegion2Emphasis LyricsMonitorRegion2Underline = LyricsRegion2Emphasis.FollowRegion1,
+    bool ReferenceAlertScroll = true,
+    bool ReferenceAlertFlash = false,
+    bool ReferenceAlertTransparent = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -187,7 +190,10 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Alignment),
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Bold),
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Italic),
-            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline));
+            settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline),
+            settings.Get(EasiSettingKeys.ReferenceAlertScroll),
+            settings.Get(EasiSettingKeys.ReferenceAlertFlash),
+            settings.Get(EasiSettingKeys.ReferenceAlertTransparent));
     }
 }
 
@@ -323,7 +329,10 @@ public sealed record OutputSceneSnapshot(
     string ReferenceAlertText = "",
     // FrmMain OutputTextBoxLM/OutputBtnLMSend — 현재 송출 위의 lyrics monitor 메시지 바.
     bool ShowsLyricsAlertMessage = false,
-    string LyricsAlertMessage = "")
+    string LyricsAlertMessage = "",
+    bool ReferenceAlertScroll = true,
+    bool ReferenceAlertFlash = false,
+    bool ReferenceAlertTransparent = false)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -639,7 +648,10 @@ public sealed class OutputRenderer : IOutputRenderer
             isLive && request.Session.IsReferenceAlertVisible,
             isLive ? request.Session.ReferenceAlertText : string.Empty,
             isLive && !string.IsNullOrWhiteSpace(request.Session.LyricsAlertMessage),
-            isLive ? request.Session.LyricsAlertMessage : string.Empty);
+            isLive ? request.Session.LyricsAlertMessage : string.Empty,
+            liveOutput.ReferenceAlertScroll,
+            liveOutput.ReferenceAlertFlash,
+            liveOutput.ReferenceAlertTransparent);
     }
 
     private ImagePlacement GetContentPlacement(

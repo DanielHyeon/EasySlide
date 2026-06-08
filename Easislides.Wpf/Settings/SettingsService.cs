@@ -232,6 +232,12 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> ReferenceAlertSource = new("liveOutput.referenceAlertSource", 1);
     // FrmOptions ReferenceAlertDuration. Legacy registry accepts 1..999 seconds; FrmOptions UI normally caps at 60.
     public static readonly SettingKey<int> ReferenceAlertDurationSeconds = new("liveOutput.referenceAlertDurationSeconds", 20);
+    // FrmOptions ReferenceAlertStyle bit 1. Text enters as a left-to-right reveal in legacy; WPF marquee rendering is tracked separately.
+    public static readonly SettingKey<bool> ReferenceAlertScroll = new("liveOutput.referenceAlertScroll", true);
+    // FrmOptions ReferenceAlertStyle bit 2. WPF flashes the reference overlay brushes while the alert is visible.
+    public static readonly SettingKey<bool> ReferenceAlertFlash = new("liveOutput.referenceAlertFlash", false);
+    // FrmOptions ReferenceAlertStyle bit 3. Removes the reference overlay background band.
+    public static readonly SettingKey<bool> ReferenceAlertTransparent = new("liveOutput.referenceAlertTransparent", false);
     public static readonly SettingKey<bool> AdvanceNextItem = new("liveOutput.advanceNextItem", false);
     public static readonly SettingKey<GapItemMode> GapItemOption = new("liveOutput.gapItemOption", GapItemMode.None);
     public static readonly SettingKey<string> GapItemLogoFile = new("liveOutput.gapItemLogoFile", "");
@@ -434,6 +440,9 @@ public static class EasiSettingKeys
         ShowLyricsMonitorAlertBox,
         ReferenceAlertSource,
         ReferenceAlertDurationSeconds,
+        ReferenceAlertScroll,
+        ReferenceAlertFlash,
+        ReferenceAlertTransparent,
         AdvanceNextItem,
         GapItemOption,
         GapItemLogoFile,
@@ -577,6 +586,12 @@ public sealed record LiveOutputSettings
     public int ReferenceAlertSource { get; init; } = EasiSettingKeys.ReferenceAlertSource.DefaultValue;
 
     public int ReferenceAlertDurationSeconds { get; init; } = EasiSettingKeys.ReferenceAlertDurationSeconds.DefaultValue;
+
+    public bool ReferenceAlertScroll { get; init; } = EasiSettingKeys.ReferenceAlertScroll.DefaultValue;
+
+    public bool ReferenceAlertFlash { get; init; } = EasiSettingKeys.ReferenceAlertFlash.DefaultValue;
+
+    public bool ReferenceAlertTransparent { get; init; } = EasiSettingKeys.ReferenceAlertTransparent.DefaultValue;
 
     public bool AdvanceNextItem { get; init; } = EasiSettingKeys.AdvanceNextItem.DefaultValue;
 
@@ -1317,6 +1332,19 @@ public sealed class SettingsService : ISettingsService
         {
             LiveOutput = next.LiveOutput with { ReferenceAlertDurationSeconds = value },
         });
+        next = ApplyLegacyReferenceAlertStyle(legacySettings, next, issues);
+        next = ApplyLegacyBool(legacySettings, ["ReferenceAlertScroll"], next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertScroll = value },
+        });
+        next = ApplyLegacyBool(legacySettings, ["ReferenceAlertFlash"], next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertFlash = value },
+        });
+        next = ApplyLegacyBool(legacySettings, ["ReferenceAlertTransparent"], next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertTransparent = value },
+        });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AdvanceNextItem.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { AdvanceNextItem = value },
@@ -1687,6 +1715,9 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.showLyricsMonitorAlertBox" => snapshot.LiveOutput.ShowLyricsMonitorAlertBox,
             "liveOutput.referenceAlertSource" => snapshot.LiveOutput.ReferenceAlertSource,
             "liveOutput.referenceAlertDurationSeconds" => snapshot.LiveOutput.ReferenceAlertDurationSeconds,
+            "liveOutput.referenceAlertScroll" => snapshot.LiveOutput.ReferenceAlertScroll,
+            "liveOutput.referenceAlertFlash" => snapshot.LiveOutput.ReferenceAlertFlash,
+            "liveOutput.referenceAlertTransparent" => snapshot.LiveOutput.ReferenceAlertTransparent,
             "liveOutput.advanceNextItem" => snapshot.LiveOutput.AdvanceNextItem,
             "liveOutput.gapItemOption" => snapshot.LiveOutput.GapItemOption,
             "liveOutput.gapItemLogoFile" => snapshot.LiveOutput.GapItemLogoFile,
@@ -1860,6 +1891,18 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.referenceAlertDurationSeconds" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { ReferenceAlertDurationSeconds = Cast<int>(keyId, value) },
+            },
+            "liveOutput.referenceAlertScroll" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertScroll = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.referenceAlertFlash" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertFlash = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.referenceAlertTransparent" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertTransparent = Cast<bool>(keyId, value) },
             },
             "liveOutput.advanceNextItem" => snapshot with
             {
@@ -2237,6 +2280,33 @@ public sealed class SettingsService : ISettingsService
         EasiSettingsSnapshot current,
         Func<string, EasiSettingsSnapshot> apply)
         => ApplyLegacyString(source, [legacyKey], current, apply);
+
+    private static EasiSettingsSnapshot ApplyLegacyReferenceAlertStyle(
+        ILegacySettingsSource source,
+        EasiSettingsSnapshot current,
+        ICollection<SettingsIssue> issues)
+    {
+        if (!TryGetLegacyString(source, ["ReferenceAlertStyle"], out var raw, out var matchedKey))
+        {
+            return current;
+        }
+
+        if (!int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var style))
+        {
+            issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid reference-alert style bitfield."));
+            return current;
+        }
+
+        return current with
+        {
+            LiveOutput = current.LiveOutput with
+            {
+                ReferenceAlertScroll = (style & 1) != 0,
+                ReferenceAlertFlash = (style & 2) != 0,
+                ReferenceAlertTransparent = (style & 4) != 0,
+            },
+        };
+    }
 
     private static EasiSettingsSnapshot ApplyLegacyString(
         ILegacySettingsSource source,

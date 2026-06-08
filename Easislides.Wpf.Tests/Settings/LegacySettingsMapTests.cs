@@ -41,6 +41,7 @@ public class LegacySettingsMapTests
             "ShowLyricsMonitorAlertBox",
             "ReferenceAlertSource",
             "ReferenceAlertDuration",
+            "ReferenceAlertStyle",
             "AdvanceNextItem",
             "GapItemOption",
             "DMAlwaysUseSecondaryMonitor",
@@ -84,6 +85,12 @@ public class LegacySettingsMapTests
             .Should().Contain(["DMOption1Width", "DualMonitorOptionCustomWidth"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertDurationSeconds.Id)
             .Should().Contain(["ReferenceAlertDuration", "ReferenceAlertDurationSeconds"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertScroll.Id)
+            .Should().Contain(["ReferenceAlertStyle", "ReferenceAlertScroll"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertFlash.Id)
+            .Should().Contain(["ReferenceAlertStyle", "ReferenceAlertFlash"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertTransparent.Id)
+            .Should().Contain(["ReferenceAlertStyle", "ReferenceAlertTransparent"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorTextColorArgb.Id)
             .Should().Contain(["LMTextColour", "LyricsMonitorTextColour"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorHighlightColorArgb.Id)
@@ -154,6 +161,7 @@ public class LegacySettingsMapTests
             ["ShowLyricsMonitorAlertBox"] = "1",
             ["ReferenceAlertSource"] = "2",
             ["ReferenceAlertDuration"] = "7",
+            ["ReferenceAlertStyle"] = "6",
             ["AdvanceNextItem"] = "yes",
             ["GapItemOption"] = "2",
             ["GapItemLogoFile"] = logoFile,
@@ -186,6 +194,9 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox).Should().BeTrue();
         sut.Get(EasiSettingKeys.ReferenceAlertSource).Should().Be(2);
         sut.Get(EasiSettingKeys.ReferenceAlertDurationSeconds).Should().Be(7);
+        sut.Get(EasiSettingKeys.ReferenceAlertScroll).Should().BeFalse();
+        sut.Get(EasiSettingKeys.ReferenceAlertFlash).Should().BeTrue();
+        sut.Get(EasiSettingKeys.ReferenceAlertTransparent).Should().BeTrue();
         sut.Get(EasiSettingKeys.AdvanceNextItem).Should().BeTrue();
         sut.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Default);
         sut.Get(EasiSettingKeys.GapItemLogoFile).Should().Be(logoFile);

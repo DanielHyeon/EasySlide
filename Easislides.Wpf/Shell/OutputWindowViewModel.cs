@@ -64,6 +64,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private Brush _lyricsAlertBackgroundBrush = CreateBrush(EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue);
     private Visibility _referenceAlertVisibility = Visibility.Collapsed;
     private string _referenceAlertText = string.Empty;
+    private Brush _referenceAlertForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
+    private Brush _referenceAlertBackgroundBrush = PanelDefaultBrush;
     private Visibility _panelOverlayVisibility = Visibility.Visible;
     private Visibility _displayTitleVisibility = Visibility.Visible;
     private Visibility _bodyTextVisibility = Visibility.Collapsed;
@@ -151,10 +153,15 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private TimeSpan _contentFadeDuration = TimeSpan.FromMilliseconds(250);
     private LyricsTransitionKind _contentTransitionKind = LyricsTransitionKind.Fade;
     private readonly DispatcherTimer _lyricsAlertFlashTimer;
+    private readonly DispatcherTimer _referenceAlertFlashTimer;
     private bool _lastShowsLiveLyricsAlertMessage;
     private string _lastLyricsAlertMessage = string.Empty;
     private bool _lyricsAlertFlashAlternate;
     private int _lyricsAlertFlashCount;
+    private bool _lastShowsLiveReferenceAlert;
+    private string _lastReferenceAlertText = string.Empty;
+    private bool _referenceAlertFlashAlternate;
+    private int _referenceAlertFlashCount;
     private bool _disposed;
 
     public OutputWindowViewModel()
@@ -181,6 +188,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         _settings = settings;
         _lyricsAlertFlashTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _lyricsAlertFlashTimer.Tick += (_, _) => AdvanceLyricsAlertFlash();
+        _referenceAlertFlashTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _referenceAlertFlashTimer.Tick += (_, _) => AdvanceReferenceAlertFlash();
         // 로더 미주입 시 기본 로더(BitmapImage)로 디스크에서 직접 로드
         _gapLogoLoader = gapLogoLoader ?? DefaultGapLogoLoader;
         _sceneForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
@@ -660,6 +669,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _referenceAlertText, value);
     }
 
+    public Brush ReferenceAlertForegroundBrush
+    {
+        get => _referenceAlertForegroundBrush;
+        private set => SetProperty(ref _referenceAlertForegroundBrush, value);
+    }
+
+    public Brush ReferenceAlertBackgroundBrush
+    {
+        get => _referenceAlertBackgroundBrush;
+        private set => SetProperty(ref _referenceAlertBackgroundBrush, value);
+    }
+
     public Visibility PanelOverlayVisibility
     {
         get => _panelOverlayVisibility;
@@ -927,6 +948,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         UpdateLyricsAlertBrushes(scene);
         ReferenceAlertVisibility = scene.ShowsLiveReferenceAlert ? Visibility.Visible : Visibility.Collapsed;
         ReferenceAlertText = scene.ShowsLiveReferenceAlert ? scene.ReferenceAlertText : string.Empty;
+        UpdateReferenceAlertBrushes(scene);
         // "코드 표시"(Show Notations)는 더 이상 렌더 계층의 가시성이 아니라 본문 텍스트 자체(코드 줄 포함 여부)로
         // 반영된다 — 라이브 본문 계산(LiveSessionService.ComputeBodyText)이 처리하고, 설정 변경 시 MainViewModel 이
         // 라이브 곡을 재송출한다. (과거엔 이 값이 상태 라벨 가시성에 잘못 묶여 있던 결함을 제거.)
@@ -1268,6 +1290,90 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             : GetIntSetting(EasiSettingKeys.LyricsMonitorBackgroundColorArgb));
     }
 
+    private void UpdateReferenceAlertBrushes(OutputSceneSnapshot scene)
+    {
+        if (!scene.ShowsLiveReferenceAlert)
+        {
+            _referenceAlertFlashTimer.Stop();
+            _lastShowsLiveReferenceAlert = false;
+            _lastReferenceAlertText = string.Empty;
+            _referenceAlertFlashAlternate = false;
+            _referenceAlertFlashCount = 0;
+            ApplyReferenceAlertBrushes(scene);
+            return;
+        }
+
+        var alertChanged = !_lastShowsLiveReferenceAlert
+            || !string.Equals(_lastReferenceAlertText, scene.ReferenceAlertText, StringComparison.Ordinal);
+
+        _lastShowsLiveReferenceAlert = true;
+        _lastReferenceAlertText = scene.ReferenceAlertText;
+
+        if (!scene.ReferenceAlertFlash)
+        {
+            _referenceAlertFlashTimer.Stop();
+            _referenceAlertFlashAlternate = false;
+            _referenceAlertFlashCount = 0;
+            ApplyReferenceAlertBrushes(scene);
+            return;
+        }
+
+        if (alertChanged)
+        {
+            ResetReferenceAlertFlash(scene);
+            _referenceAlertFlashTimer.Start();
+            return;
+        }
+
+        ApplyReferenceAlertBrushes(scene);
+    }
+
+    private void ResetReferenceAlertFlash(OutputSceneSnapshot scene)
+    {
+        _referenceAlertFlashCount = 0;
+        _referenceAlertFlashAlternate = false;
+        ApplyReferenceAlertBrushes(scene);
+    }
+
+    private void AdvanceReferenceAlertFlash()
+    {
+        if (!_lastShowsLiveReferenceAlert)
+        {
+            _referenceAlertFlashTimer.Stop();
+            return;
+        }
+
+        _referenceAlertFlashAlternate = !_referenceAlertFlashAlternate;
+        ApplyReferenceAlertBrushes(Scene);
+        _referenceAlertFlashCount++;
+
+        if (_referenceAlertFlashCount > 3)
+        {
+            _referenceAlertFlashCount = 0;
+            _referenceAlertFlashTimer.Stop();
+        }
+    }
+
+    internal void AdvanceReferenceAlertFlashForTest() => AdvanceReferenceAlertFlash();
+
+    private void ApplyReferenceAlertBrushes(OutputSceneSnapshot scene)
+    {
+        var normalBackground = scene.ReferenceAlertTransparent ? Brushes.Transparent : PanelBackgroundBrush;
+        if (!scene.ReferenceAlertFlash || !_referenceAlertFlashAlternate)
+        {
+            ReferenceAlertForegroundBrush = PanelForegroundBrush;
+            ReferenceAlertBackgroundBrush = normalBackground;
+            return;
+        }
+
+        ReferenceAlertForegroundBrush = scene.ReferenceAlertTransparent
+            ? CreateBrush(unchecked((int)0xFFFF0000))
+            : CreateBrush(unchecked((int)0xFFFFFFFF));
+        ReferenceAlertBackgroundBrush = scene.ReferenceAlertTransparent
+            ? Brushes.Transparent
+            : CreateBrush(unchecked((int)0xFFFF0000));
+    }
+
     private int GetIntSetting(SettingKey<int> key)
         => _settings is null ? key.DefaultValue : _settings.Get(key);
 
@@ -1280,6 +1386,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
         _disposed = true;
         _lyricsAlertFlashTimer.Stop();
+        _referenceAlertFlashTimer.Stop();
         if (_settings is not null)
         {
             _settings.SettingsChanged -= OnSettingsChanged;
@@ -1448,6 +1555,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         {
             var key = changedKeys[i];
             if (string.Equals(key, EasiSettingKeys.ShowLyricsMonitorAlertBox.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.ReferenceAlertScroll.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.ReferenceAlertFlash.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.ReferenceAlertTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.GapItemOption.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.GapItemLogoFile.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.GapItemUseFade.Id, StringComparison.OrdinalIgnoreCase) ||

@@ -1145,6 +1145,56 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplySession_WithReferenceAlertTransparentStyle_UsesTransparentReferenceBackground()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertTransparent, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "요한복음 3:16",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemBodyText: "하나님이 세상을 이처럼 사랑하사",
+            IsReferenceAlertVisible: true,
+            ReferenceAlertText: "요한복음 3:16"));
+
+        sut.ReferenceAlertVisibility.Should().Be(Visibility.Visible);
+        ((SolidColorBrush)sut.ReferenceAlertBackgroundBrush).Color.Should().Be(Colors.Transparent);
+    }
+
+    [Fact]
+    public void ApplySession_WithReferenceAlertFlashStyle_FlashesReferenceOverlayBrushes()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertFlash, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelColorArgb, unchecked((int)0x66102040)).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1, false).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorArgb, unchecked((int)0xFF112233)).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "요한복음 3:16",
+            "Display 2",
+            IsBlackout: false,
+            CurrentItemBodyText: "하나님이 세상을 이처럼 사랑하사",
+            IsReferenceAlertVisible: true,
+            ReferenceAlertText: "요한복음 3:16"));
+
+        ((SolidColorBrush)sut.ReferenceAlertBackgroundBrush).Color.Should().Be(Color.FromArgb(0x66, 0x10, 0x20, 0x40));
+        ((SolidColorBrush)sut.ReferenceAlertForegroundBrush).Color.Should().Be(Color.FromArgb(0xFF, 0x11, 0x22, 0x33));
+
+        sut.AdvanceReferenceAlertFlashForTest();
+
+        ((SolidColorBrush)sut.ReferenceAlertBackgroundBrush).Color.Should().Be(Colors.Red);
+        ((SolidColorBrush)sut.ReferenceAlertForegroundBrush).Color.Should().Be(Colors.White);
+    }
+
+    [Fact]
     public void ApplySession_WithLyricsAlertMessage_ShowsLyricsMonitorMessageBar()
     {
         var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()));
