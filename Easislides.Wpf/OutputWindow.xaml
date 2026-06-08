@@ -311,11 +311,13 @@
                     Visibility="{Binding ReferenceAlertVisibility}">
                 <TextBlock Text="{Binding ReferenceAlertText}"
                            FontSize="{Binding PanelPrimaryFontSize}"
-                           FontWeight="SemiBold"
+                           FontWeight="{Binding PanelPrimaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
                            MaxWidth="860"
-                           Foreground="{Binding SceneForegroundBrush}" />
+                           Foreground="{Binding PanelForegroundBrush}" />
             </Border>
 
             <!-- 위치 인디케이터(절/슬라이드 "N/M") — 우측 하단 모서리. 설정 on + Live + 라벨 존재 시만 표시(§7.3-A). -->
@@ -329,8 +331,10 @@
                     Visibility="{Binding PositionIndicatorVisibility}">
                 <TextBlock Text="{Binding PositionLabel}"
                            FontSize="{Binding PanelPrimaryFontSize}"
-                           FontWeight="SemiBold"
-                           Foreground="{Binding SceneForegroundBrush}" />
+                           FontWeight="{Binding PanelPrimaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
+                           Foreground="{Binding PanelForegroundBrush}" />
             </Border>
 
             <!-- 정보 패널 곡 제목(Display Panel Def_PanelTitle) — 좌측 상단 모서리. 설정 on + Live + 제목 있을 때만 표시.
@@ -348,10 +352,12 @@
                     Visibility="{Binding TitleOnPanelVisibility}">
                 <TextBlock Text="{Binding DisplayTitle}"
                            FontSize="{Binding PanelSecondaryFontSize}"
-                           FontWeight="SemiBold"
+                           FontWeight="{Binding PanelPrimaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="520"
-                           Foreground="{Binding SceneForegroundBrush}" />
+                           Foreground="{Binding PanelForegroundBrush}" />
             </Border>
 
             <!-- 곡 번호(Display Panel "Show Item Number") — 좌측 하단 모서리. 설정 on + Live + 번호 있을 때만 표시. -->
@@ -365,8 +371,10 @@
                     Visibility="{Binding ItemNumberVisibility}">
                 <TextBlock Text="{Binding ItemNumberText}"
                            FontSize="{Binding PanelPrimaryFontSize}"
-                           FontWeight="SemiBold"
-                           Foreground="{Binding SceneForegroundBrush}" />
+                           FontWeight="{Binding PanelPrimaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
+                           Foreground="{Binding PanelForegroundBrush}" />
             </Border>
 
             <!-- 저작권(Display Panel "Show Copyright Information") — 하단 중앙(CCLI 푸터 관례).
@@ -381,10 +389,13 @@
                     Visibility="{Binding CopyrightVisibility}">
                 <TextBlock Text="{Binding CopyrightText}"
                            FontSize="{Binding PanelSecondaryFontSize}"
+                           FontWeight="{Binding PanelSecondaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
                            TextAlignment="Center"
                            TextWrapping="Wrap"
                            MaxWidth="520"
-                           Foreground="{Binding SceneForegroundBrush}" />
+                           Foreground="{Binding PanelForegroundBrush}" />
             </Border>
 
             <!-- 다음 항목(Display Panel PrevNext) — 우측 상단 모서리. 제목 헤딩 기본 정렬이 중앙이라
@@ -401,9 +412,12 @@
                     Visibility="{Binding NextItemVisibility}">
                 <TextBlock Text="{Binding NextItemText}"
                            FontSize="{Binding PanelSecondaryFontSize}"
+                           FontWeight="{Binding PanelSecondaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="420"
-                           Foreground="{Binding SceneForegroundBrush}" />
+                           Foreground="{Binding PanelForegroundBrush}" />
             </Border>
         </Grid>
 

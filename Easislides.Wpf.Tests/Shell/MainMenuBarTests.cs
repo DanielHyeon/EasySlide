@@ -1375,6 +1375,18 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"Def_PanelFont\"", "Default tab should expose FrmMain Def_PanelFont");
         xaml.Should().Contain("IncreasePanelFontScaleCommand", "Def_PanelFont should expose the panel font increase path");
         xaml.Should().Contain("DecreasePanelFontScaleCommand", "Def_PanelFont should expose the panel font decrease path");
+        xaml.Should().Contain("x:Name=\"Def_PanelAsR1\"", "Default tab should expose FrmMain Def_PanelAsR1");
+        xaml.Should().Contain("TogglePanelTextColorAsRegion1Command", "Def_PanelAsR1 should switch panel text between Region1 and dedicated panel color");
+        xaml.Should().Contain("x:Name=\"Def_PanelTextColour\"", "Default tab should expose FrmMain Def_PanelTextColour");
+        xaml.Should().Contain("x:Name=\"Def_PanelTextColourHex\"", "Def_PanelTextColour should show the current panel text hex");
+        xaml.Should().Contain("ActivePanelTextColorHex", "Def_PanelTextColour should reflect the current display-panel text color");
+        xaml.Should().Contain("ApplyPanelTextColorHexCommand", "Def_PanelTextColour should apply the real display-panel text color setting");
+        xaml.Should().Contain("x:Name=\"Def_PanelFontBold\"", "Default tab should expose FrmMain Def_PanelFontBold");
+        xaml.Should().Contain("TogglePanelFontBoldCommand", "Def_PanelFontBold should affect display-panel text");
+        xaml.Should().Contain("x:Name=\"Def_PanelFontItalics\"", "Default tab should expose FrmMain Def_PanelFontItalics");
+        xaml.Should().Contain("TogglePanelFontItalicCommand", "Def_PanelFontItalics should affect display-panel text");
+        xaml.Should().Contain("x:Name=\"Def_PanelFontUnderline\"", "Default tab should expose FrmMain Def_PanelFontUnderline");
+        xaml.Should().Contain("TogglePanelFontUnderlineCommand", "Def_PanelFontUnderline should affect display-panel text");
         xaml.Should().Contain("ResetOutputAppearanceCommand", "Default tab restores the default output layout");
         xaml.Should().Contain("ApplyGlobalFormatToAllCommand", "Default tab can apply the current format globally");
         xaml.Should().Contain("ClearAllItemsFormattingCommand", "Default tab can clear item-specific formatting overrides");

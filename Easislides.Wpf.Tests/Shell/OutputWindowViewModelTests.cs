@@ -1046,6 +1046,45 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void PanelForegroundBrush_FollowsRegion1ByDefault_AndUsesPanelTextColorWhenAsR1Off()
+    {
+        // FrmMain Def_PanelAsR1 + Def_PanelTextColour — 기본은 Region1 글자색 추종, AsR1 off 면 패널 전용 색.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFFFFFF00)).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorArgb, unchecked((int)0xFF00CCFF)).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+        ((SolidColorBrush)sut.PanelForegroundBrush).Color.Should().Be(Color.FromRgb(0xFF, 0xFF, 0x00),
+            "기본 Def_PanelAsR1 on 은 본문 Region1 색을 따른다");
+
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1, false).Succeeded.Should().BeTrue();
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+        ((SolidColorBrush)sut.PanelForegroundBrush).Color.Should().Be(Color.FromRgb(0x00, 0xCC, 0xFF),
+            "Def_PanelAsR1 off 이면 Def_PanelTextColour 색을 사용한다");
+    }
+
+    [Fact]
+    public void PanelFontStyle_ReflectsPanelFontToggles()
+    {
+        // FrmMain Def_PanelFontBold/Italics/Underline — Display Panel 텍스트 스타일 전용 토글.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelBold, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelItalic, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelUnderline, true).Succeeded.Should().BeTrue();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+
+        sut.PanelPrimaryFontWeight.Should().Be(FontWeights.Bold);
+        sut.PanelSecondaryFontWeight.Should().Be(FontWeights.Bold);
+        sut.PanelFontStyle.Should().Be(FontStyles.Italic);
+        sut.PanelTextDecorations.Should().BeSameAs(TextDecorations.Underline);
+    }
+
+    [Fact]
     public void PanelBackgroundBrush_UsesConfiguredPanelColor_WhenNotTransparent()
     {
         // FrmMain Def_PanelColour — 설정한 패널 색(반투명)이 밴드 배경으로 송출. 투명 토글 off 일 때.

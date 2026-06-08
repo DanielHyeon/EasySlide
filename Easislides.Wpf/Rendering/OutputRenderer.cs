@@ -55,6 +55,12 @@ public sealed record LiveOutputRenderSettings(
     int LyricsMonitorPanelColorArgb = unchecked((int)0x66000000),
     // Display Panel 정보 텍스트 글자 크기 비율(%, Def_PanelFont 크기). 기본 100=기존 크기(무회귀).
     int LyricsMonitorPanelFontScalePercent = 100,
+    // Display Panel 글자색/효과(Def_PanelAsR1, Def_PanelTextColour, Def_PanelFont B/I/U).
+    bool LyricsMonitorPanelTextColorFollowRegion1 = true,
+    int LyricsMonitorPanelTextColorArgb = -16777216,
+    bool LyricsMonitorPanelBold = false,
+    bool LyricsMonitorPanelItalic = false,
+    bool LyricsMonitorPanelUnderline = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
@@ -146,6 +152,11 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorArgb),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelBold),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelItalic),
+            settings.Get(EasiSettingKeys.LyricsMonitorPanelUnderline),
             settings.Get(EasiSettingKeys.LyricsMonitorLineSpacingPercent),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyLeftMargin),
             settings.Get(EasiSettingKeys.LyricsMonitorBodyRightMargin),
@@ -233,6 +244,11 @@ public sealed record OutputSceneSnapshot(
     int LyricsMonitorPanelColorArgb = unchecked((int)0x66000000),
     // Display Panel 정보 텍스트 글자 크기 비율(%, Def_PanelFont 크기). 기본 100=기존 크기(무회귀).
     int LyricsMonitorPanelFontScalePercent = 100,
+    // Display Panel 최종 글자색/효과. 글자색은 AsR1 설정을 반영해 이미 해석된 값이다.
+    int LyricsMonitorPanelTextColorArgb = -16777216,
+    bool LyricsMonitorPanelBold = false,
+    bool LyricsMonitorPanelItalic = false,
+    bool LyricsMonitorPanelUnderline = false,
     // 출력 가사 줄 간격(폰트 대비 %, 인-셸 가사 포맷팅 §7.3-A). 기본 125.
     int LyricsMonitorLineSpacingPercent = 125,
     // 출력 본문 좌/우/아래 여백(px) — FrmMain ShowLeftMargin/Right/Bottom. 기본 0=기존 레이아웃(무회귀).
@@ -526,6 +542,10 @@ public sealed class OutputRenderer : IOutputRenderer
             region2Bold = region2Italic = region2Underline = false;
         }
 
+        var panelTextColorArgb = liveOutput.LyricsMonitorPanelTextColorFollowRegion1
+            ? textColorArgb
+            : liveOutput.LyricsMonitorPanelTextColorArgb;
+
         return new OutputSceneSnapshot(
             kind,
             display.Title,
@@ -557,6 +577,10 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorPanelTransparent,
             liveOutput.LyricsMonitorPanelColorArgb,
             liveOutput.LyricsMonitorPanelFontScalePercent,
+            panelTextColorArgb,
+            liveOutput.LyricsMonitorPanelBold,
+            liveOutput.LyricsMonitorPanelItalic,
+            liveOutput.LyricsMonitorPanelUnderline,
             liveOutput.LyricsMonitorLineSpacingPercent,
             bodyLeftMargin,
             bodyRightMargin,

@@ -2741,6 +2741,77 @@
                                                     ToolTip="Display Panel Back Colour"
                                                     AutomationProperties.Name="Def PanelBackColour apply" />
                                         </WrapPanel>
+                                        <ToggleButton x:Name="Def_PanelAsR1"
+                                                      IsChecked="{Binding ActivePanelTextColorAsRegion1, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelTextColorAsRegion1Command}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="As R1"
+                                                      ToolTip="Display Panel Text Colour As Region 1"
+                                                      AutomationProperties.Name="Def PanelAsR1 text colour follows Region1" />
+                                        <WrapPanel Tag="Def_PanelTextColour"
+                                                   Margin="0,0,6,6">
+                                            <TextBox x:Name="Def_PanelTextColourHex"
+                                                     Text="{Binding ActivePanelTextColorHex, Mode=OneWay}"
+                                                     Width="76"
+                                                     MinHeight="30"
+                                                     VerticalContentAlignment="Center"
+                                                     Margin="0,0,4,0"
+                                                     ToolTip="Display Panel Text Colour"
+                                                     AutomationProperties.Name="Def PanelTextColour hex">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Return"
+                                                                Command="{Binding ApplyPanelTextColorHexCommand}"
+                                                                CommandParameter="{Binding Text, ElementName=Def_PanelTextColourHex}" />
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                            <Button x:Name="Def_PanelTextColour"
+                                                    Tag="Def_PanelTextColour"
+                                                    Command="{Binding ApplyPanelTextColorHexCommand}"
+                                                    CommandParameter="{Binding Text, ElementName=Def_PanelTextColourHex}"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    MinHeight="30"
+                                                    Padding="9,0"
+                                                    Content="Text"
+                                                    ToolTip="Display Panel Text Colour"
+                                                    AutomationProperties.Name="Def PanelTextColour apply" />
+                                        </WrapPanel>
+                                        <ToggleButton x:Name="Def_PanelFontBold"
+                                                      IsChecked="{Binding ActivePanelFontBold, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelFontBoldCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="B"
+                                                      FontWeight="Bold"
+                                                      ToolTip="Display Panel Font Bold"
+                                                      AutomationProperties.Name="Def PanelFont bold" />
+                                        <ToggleButton x:Name="Def_PanelFontItalics"
+                                                      IsChecked="{Binding ActivePanelFontItalic, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelFontItalicCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="I"
+                                                      FontStyle="Italic"
+                                                      ToolTip="Display Panel Font Italics"
+                                                      AutomationProperties.Name="Def PanelFont italics" />
+                                        <ToggleButton x:Name="Def_PanelFontUnderline"
+                                                      IsChecked="{Binding ActivePanelFontUnderline, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelFontUnderlineCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      ToolTip="Display Panel Font Underline"
+                                                      AutomationProperties.Name="Def PanelFont underline">
+                                            <TextBlock Text="U"
+                                                       TextDecorations="Underline" />
+                                        </ToggleButton>
                                         <WrapPanel x:Name="Def_PanelFont"
                                                    Tag="Def_PanelFont"
                                                    Margin="0,0,0,6">

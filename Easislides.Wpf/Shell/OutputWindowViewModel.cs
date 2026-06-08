@@ -136,8 +136,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private ImageSource? _sceneBackgroundImageSource;
     private Brush? _backgroundImageBrush;
     private Brush _panelBackgroundBrush = PanelDefaultBrush;
+    private Brush _panelForegroundBrush = CreateBrush(LiveOutputRenderSettings.Default.LyricsMonitorTextColorArgb);
     private double _panelPrimaryFontSize = PanelPrimaryBaseFontSize;
     private double _panelSecondaryFontSize = PanelSecondaryBaseFontSize;
+    private FontWeight _panelPrimaryFontWeight = FontWeights.SemiBold;
+    private FontWeight _panelSecondaryFontWeight = FontWeights.Normal;
+    private FontStyle _panelFontStyle = FontStyles.Normal;
+    private TextDecorationCollection? _panelTextDecorations;
     private Visibility _backgroundImageVisibility = Visibility.Collapsed;
     // 배경 이미지 캐시: 같은(해석된) 경로를 매번 다시 디코딩하지 않도록 보관.
     private string? _cachedBackgroundImagePath;
@@ -563,6 +568,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _panelBackgroundBrush, value);
     }
 
+    /// <summary>Display Panel 전용 글자색 — 기본은 Region1 글자색 추종, AsR1 off 면 패널 전용 색.</summary>
+    public Brush PanelForegroundBrush
+    {
+        get => _panelForegroundBrush;
+        private set => SetProperty(ref _panelForegroundBrush, value);
+    }
+
     // Display Panel 정보 텍스트 기본 글자 크기(XAML 하드코딩 값과 동일) — 위치/곡번호=20, 저작권/다음=16.
     private const double PanelPrimaryBaseFontSize = 20.0;
     private const double PanelSecondaryBaseFontSize = 16.0;
@@ -579,6 +591,30 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         get => _panelSecondaryFontSize;
         private set => SetProperty(ref _panelSecondaryFontSize, value);
+    }
+
+    public FontWeight PanelPrimaryFontWeight
+    {
+        get => _panelPrimaryFontWeight;
+        private set => SetProperty(ref _panelPrimaryFontWeight, value);
+    }
+
+    public FontWeight PanelSecondaryFontWeight
+    {
+        get => _panelSecondaryFontWeight;
+        private set => SetProperty(ref _panelSecondaryFontWeight, value);
+    }
+
+    public FontStyle PanelFontStyle
+    {
+        get => _panelFontStyle;
+        private set => SetProperty(ref _panelFontStyle, value);
+    }
+
+    public TextDecorationCollection? PanelTextDecorations
+    {
+        get => _panelTextDecorations;
+        private set => SetProperty(ref _panelTextDecorations, value);
     }
 
     /// <summary>배경 이미지 표시 여부 — 곡별 배경 이미지가 로드됐을 때만 Visible(색 배경 위에 덮음).</summary>
@@ -877,6 +913,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var panelScale = scene.LyricsMonitorPanelFontScalePercent / 100.0;
         PanelPrimaryFontSize = PanelPrimaryBaseFontSize * panelScale;   // 위치 인디케이터·곡 번호
         PanelSecondaryFontSize = PanelSecondaryBaseFontSize * panelScale; // 저작권·다음 항목
+        PanelForegroundBrush = CreateBrush(scene.LyricsMonitorPanelTextColorArgb);
+        PanelPrimaryFontWeight = scene.LyricsMonitorPanelBold ? FontWeights.Bold : FontWeights.SemiBold;
+        PanelSecondaryFontWeight = scene.LyricsMonitorPanelBold ? FontWeights.Bold : FontWeights.Normal;
+        PanelFontStyle = scene.LyricsMonitorPanelItalic ? FontStyles.Italic : FontStyles.Normal;
+        PanelTextDecorations = scene.LyricsMonitorPanelUnderline ? TextDecorations.Underline : null;
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox || scene.ShowsLiveLyricsAlertMessage
@@ -1451,6 +1492,12 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 글자 크기 비율 변경도 라이브 출력에 즉시 반영(Def_PanelFont 크기).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelFontScalePercent.Id, StringComparison.OrdinalIgnoreCase) ||
+                // Display Panel 글자색/효과도 라이브 출력에 즉시 반영(Def_PanelAsR1/TextColour/Font B-I-U).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTextColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelBold.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelItalic.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelUnderline.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 절 헤딩 표시 토글도 라이브 출력에 즉시 반영(FrmMain Def_Head All).

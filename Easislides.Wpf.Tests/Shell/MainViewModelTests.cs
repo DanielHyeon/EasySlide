@@ -5994,6 +5994,21 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void TogglePanelTextColorAsRegion1Command_FlipsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActivePanelTextColorAsRegion1.Should().BeTrue("기본은 현재 WPF처럼 Region1 글자색을 따른다");
+
+        sut.TogglePanelTextColorAsRegion1Command.Execute(null);
+
+        sut.ActivePanelTextColorAsRegion1.Should().BeFalse();
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1).Should().BeFalse();
+        sut.StatusText.Should().Contain("패널 글자색 Region1");
+    }
+
+    [Fact]
     public void ToggleLyricsDisplayPanelCommand_FlipsSetting()
     {
         using var folder = TempSettingsFolder.Create();
@@ -6710,6 +6725,20 @@ public class MainViewModelTests
         sut.ApplyPanelColorHexCommand.Execute("not-a-color");
 
         settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb).Should().Be(before, "형식 오류면 변경 없음");
+    }
+
+    [Fact]
+    public void ApplyPanelTextColorHexCommand_SetsPanelTextColor()
+    {
+        // FrmMain Def_PanelTextColour — 패널 전용 글자색은 완전 불투명 ARGB 로 저장한다.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.ApplyPanelTextColorHexCommand.Execute("#88CC00");
+
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorArgb).Should().Be(unchecked((int)0xFF88CC00));
+        sut.ActivePanelTextColorHex.Should().Be("#88CC00");
     }
 
     [Fact]
@@ -7704,6 +7733,25 @@ public class MainViewModelTests
 
         settings.Set(EasiSettingKeys.LyricsMonitorPanelFontScalePercent, 50);
         sut.DecreasePanelFontScaleCommand.CanExecute(null).Should().BeFalse("하한(50%)에서 감소 비활성");
+    }
+
+    [Fact]
+    public void TogglePanelFontCommands_FlipSettings()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+
+        sut.TogglePanelFontBoldCommand.Execute(null);
+        sut.TogglePanelFontItalicCommand.Execute(null);
+        sut.TogglePanelFontUnderlineCommand.Execute(null);
+
+        sut.ActivePanelFontBold.Should().BeTrue();
+        sut.ActivePanelFontItalic.Should().BeTrue();
+        sut.ActivePanelFontUnderline.Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelBold).Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelItalic).Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelUnderline).Should().BeTrue();
     }
 
     [Fact]

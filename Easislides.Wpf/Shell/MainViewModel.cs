@@ -345,6 +345,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(DecreasePanelFontScaleCommand))]
     private int _activePanelFontScale = EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue;
 
+    [ObservableProperty] private bool _activePanelTextColorAsRegion1 = EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.DefaultValue;
+    [ObservableProperty] private bool _activePanelFontBold = EasiSettingKeys.LyricsMonitorPanelBold.DefaultValue;
+    [ObservableProperty] private bool _activePanelFontItalic = EasiSettingKeys.LyricsMonitorPanelItalic.DefaultValue;
+    [ObservableProperty] private bool _activePanelFontUnderline = EasiSettingKeys.LyricsMonitorPanelUnderline.DefaultValue;
+
     // 본문 여백 조절 범위·단계(설정 Validate 범위 0~400px 와 일치). FrmMain ShowLeftMargin/Right/Bottom 대응.
     private const int LyricsBodyMarginMin = 0;
     private const int LyricsBodyMarginMax = 400;
@@ -525,6 +530,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _activeTextColorHex = "#000000";
     [ObservableProperty] private string _activeBackgroundColorHex = "#FFFFFF";
     [ObservableProperty] private string _activePanelColorHex = "#000000";
+    [ObservableProperty] private string _activePanelTextColorHex = "#000000";
 
     // 출력 모양 템플릿(저장/불러오기) — 새 템플릿 이름 입력, 선택된 기존 템플릿.
     [ObservableProperty] private string _newAppearanceTemplateName = "";
@@ -1100,6 +1106,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 전 항목 서식 한 번에 지우기 — 큐에 지울 서식 있는 곡·성경 항목이 하나라도 있을 때만 활성(전역 기본으로 일괄 리셋).
         ClearAllItemsFormattingCommand = new RelayCommand(ClearAllItemsFormatting, () => CanClearAllItemsFormatting);
         ApplyPanelColorHexCommand = new RelayCommand<string>(ApplyPanelColorHex);
+        ApplyPanelTextColorHexCommand = new RelayCommand<string>(ApplyPanelTextColorHex);
         SaveAppearanceTemplateCommand = new AsyncRelayCommand(SaveAppearanceTemplateAsync);
         ApplyAppearanceTemplateCommand = new AsyncRelayCommand(ApplyAppearanceTemplateAsync, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
         DeleteAppearanceTemplateCommand = new RelayCommand(DeleteAppearanceTemplate, () => !string.IsNullOrWhiteSpace(SelectedAppearanceTemplate));
@@ -1140,6 +1147,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyGlobalFormatToAllCommand = new RelayCommand(ApplyGlobalFormatToAll);
         ToggleLyricsDisplayPanelCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowDisplayPanel, ActiveLyricsDisplayPanel));
         TogglePanelTransparentCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelTransparent, ActiveLyricsPanelTransparent));
+        TogglePanelTextColorAsRegion1Command = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1, ActivePanelTextColorAsRegion1));
+        TogglePanelFontBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelBold, ActivePanelFontBold));
+        TogglePanelFontItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelItalic, ActivePanelFontItalic));
+        TogglePanelFontUnderlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelUnderline, ActivePanelFontUnderline));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsVerseHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowVerseHeading, ActiveLyricsVerseHeading));
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
@@ -1389,6 +1400,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand ClearAllItemsFormattingCommand { get; }
 
     public IRelayCommand<string> ApplyPanelColorHexCommand { get; }
+
+    public IRelayCommand<string> ApplyPanelTextColorHexCommand { get; }
+
     public IAsyncRelayCommand SaveAppearanceTemplateCommand { get; }
     public IAsyncRelayCommand ApplyAppearanceTemplateCommand { get; }
     public IRelayCommand DeleteAppearanceTemplateCommand { get; }
@@ -1436,6 +1450,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>Display Panel 배경 투명 토글(레거시 Def_PanelTransparent) — 설정→출력 VM 라이브 반영.</summary>
     public IRelayCommand TogglePanelTransparentCommand { get; }
+
+    public IRelayCommand TogglePanelTextColorAsRegion1Command { get; }
+    public IRelayCommand TogglePanelFontBoldCommand { get; }
+    public IRelayCommand TogglePanelFontItalicCommand { get; }
+    public IRelayCommand TogglePanelFontUnderlineCommand { get; }
+
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
     public IRelayCommand ToggleLyricsVerseHeadingCommand { get; }
     public IRelayCommand ToggleLyricsItemNumberCommand { get; }
@@ -7924,6 +7944,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorInterlace, EasiSettingKeys.LyricsMonitorInterlace.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowDisplayPanel, EasiSettingKeys.LyricsMonitorShowDisplayPanel.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorPanelTransparent, EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1, EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorArgb, EasiSettingKeys.LyricsMonitorPanelTextColorArgb.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelBold, EasiSettingKeys.LyricsMonitorPanelBold.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelItalic, EasiSettingKeys.LyricsMonitorPanelItalic.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelUnderline, EasiSettingKeys.LyricsMonitorPanelUnderline.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowItemNumber, EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowCopyright, EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowNextItem, EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue);
@@ -8016,6 +8041,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshActiveAppearance();
     }
 
+    private void ApplyPanelTextColorHex(string? hex)
+    {
+        if (!TryParseHexColor(hex, out var argb))
+        {
+            StatusText = "색 형식이 올바르지 않습니다(예: #1A2B3C).";
+            return;
+        }
+
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorArgb, argb);
+        StatusText = $"패널 글자색: {FormatColorHex(argb)}";
+        RefreshActiveAppearance();
+    }
+
     private static bool TryParseHexColor(string? hex, out int argb)
     {
         argb = 0;
@@ -8074,6 +8112,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : key.Id == EasiSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
             : key.Id == EasiSettingKeys.LyricsMonitorShowNextItem.Id ? "다음 항목"
             : key.Id == EasiSettingKeys.LyricsMonitorPanelTransparent.Id ? "패널 투명 배경"
+            : key.Id == EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.Id ? "패널 글자색 Region1 추종"
+            : key.Id == EasiSettingKeys.LyricsMonitorPanelBold.Id ? "패널 굵게"
+            : key.Id == EasiSettingKeys.LyricsMonitorPanelItalic.Id ? "패널 기울임"
+            : key.Id == EasiSettingKeys.LyricsMonitorPanelUnderline.Id ? "패널 밑줄"
             : key.Id == EasiSettingKeys.LyricsMonitorUseFadeTransition.Id ? "전환 페이드"
             : key.Id;
         StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
@@ -8997,6 +9039,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var bg2 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb);
         var gradient = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient);
         var panel = _settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb);
+        var panelText = _settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorArgb);
 
         var match = OutputAppearancePresets.FirstOrDefault(p =>
             p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
@@ -9034,6 +9077,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsInterlace = _settings.Get(EasiSettingKeys.LyricsMonitorInterlace);
         ActiveLyricsDisplayPanel = _settings.Get(EasiSettingKeys.LyricsMonitorShowDisplayPanel);
         ActiveLyricsPanelTransparent = _settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent);
+        ActivePanelTextColorAsRegion1 = _settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1);
+        ActivePanelFontBold = _settings.Get(EasiSettingKeys.LyricsMonitorPanelBold);
+        ActivePanelFontItalic = _settings.Get(EasiSettingKeys.LyricsMonitorPanelItalic);
+        ActivePanelFontUnderline = _settings.Get(EasiSettingKeys.LyricsMonitorPanelUnderline);
         ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveLyricsVerseHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowVerseHeading);
         ActiveLyricsItemNumber = _settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber);
@@ -9061,6 +9108,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTextColorHex = FormatColorHex(text);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
         ActivePanelColorHex = FormatColorHex(panel);
+        ActivePanelTextColorHex = FormatColorHex(panelText);
     }
 
     private void ApplyOperationalSettings(bool updateStatus)
