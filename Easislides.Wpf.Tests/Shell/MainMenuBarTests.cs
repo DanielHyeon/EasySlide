@@ -1134,6 +1134,23 @@ public class MainMenuBarTests
             "Bible add should only switch the lower tab when a verse was actually added");
         code.Should().Contain("ShowWorshipListTab();",
             "Bible add and Region 2 add paths should share the same lower Worship List reveal behavior");
+        var addSelectedSourceRouter = SectionBetween(
+            code,
+            "private async Task AddSelectedSourceToWorshipListAsync",
+            "private async void SourceListAddOnEnter_KeyDown");
+        var biblesAddRoute = SectionBetween(addSelectedSourceRouter, "case \"Bibles\":", "case \"InfoScreenSource\":");
+        biblesAddRoute.Should().Contain("await EnsureBibleLoadedOnceAsync().ConfigureAwait(true)",
+            "WL_Add should load the inline Bible source before resolving the selected passage");
+        biblesAddRoute.Should().Contain("ResolveBibleSelectionForAdd",
+            "WL_Add should use the current Bible text selection or clicked verse selection");
+        biblesAddRoute.Should().Contain("BiblePassageBox.SelectionStart",
+            "the compact lower add icon should read the same BibleText selection surface as FrmMain");
+        biblesAddRoute.Should().Contain("BiblePassageBox.SelectionLength",
+            "multi-verse Shift-click ranges should be preserved when the lower add icon is pressed");
+        biblesAddRoute.Should().Contain("PreviewAndAddBibleSelection(viewModel, selection)",
+            "WL_Add should preview and insert the selected Bible passage through the shared add path");
+        biblesAddRoute.Should().Contain("ShowWorshipListTab();",
+            "after a successful WL_Add Bible insert, the lower-left Worship List tab should be visible");
         xaml.Should().Contain("x:Name=\"CMenuBible\"", "Bible text context menu should map to FrmMain CMenuBible");
         xaml.Should().Contain("Opened=\"BibleContextMenu_Opened\"", "menu enablement should follow FrmMain's opening-time rules");
         xaml.Should().Contain("x:Name=\"CMenuBible_SelectAll\"", "Bible menu should expose Select All");
@@ -1160,7 +1177,9 @@ public class MainMenuBarTests
         code.Should().Contain("snapToText: true", "BibleText clicks on the right side of a verse line should still snap to the nearest verse");
         bibleMouseDownHandler.Should().Contain("if (_bibleDragArmed)", "pressing inside an existing Bible selection should preserve the selected passage");
         bibleMouseDownHandler.Should().Contain("e.Handled = true;", "pressing inside an existing Bible selection should not let TextBox collapse the selected passage before drag/add");
-        code.Should().Contain("ModifierKeys.Shift", "Shift+click should extend the Bible verse selection like FrmMain text selection");
+        bibleMouseUpHandler.Should().Contain("ModifierKeys.Shift", "Shift+click should extend the Bible verse selection like FrmMain text selection");
+        bibleMouseUpHandler.Should().Contain("BiblePassageBox.Select(selectionStart, selectionLength)",
+            "the visual BibleText selection should snap to the selected verse or Shift-click range before adding");
         code.Should().Contain("PreviewBibleSelection(viewModel.Bible.SelectedSelection)",
             "click selection should refresh Preview before the separate AddFromHolyBible path inserts into Worship List");
         code.Should().Contain("CMenuBible_AddRegion2.IsEnabled = hasSelection", "Region 2 should require a selected passage");

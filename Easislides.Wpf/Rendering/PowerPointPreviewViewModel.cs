@@ -157,7 +157,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 덱 전체 슬라이드 썸네일을 백그라운드로 채운다(덱이 바뀔 때 호출). 작은 고정 크기로 렌더하며,
+    /// 덱 전체 슬라이드 썸네일을 백그라운드로 채운다(덱이 바뀔 때 호출). FrmMain처럼 고해상도 4:3 이미지로 렌더한 뒤 UI에서 축소하며,
     /// 새 호출이 오면 이전 로딩은 취소한다(빠른 덱 전환 대비). 슬라이드 수가 많으면 순차로 채워진다.
     /// </summary>
     public async Task LoadThumbnailsAsync(string filePath, int slideCount, int thumbnailWidth, int thumbnailHeight)
