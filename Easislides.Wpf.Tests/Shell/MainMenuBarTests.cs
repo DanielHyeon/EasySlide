@@ -707,6 +707,10 @@ public class MainMenuBarTests
                 "the exported slide image should fit inside the legacy 4:3 thumbnail canvas");
             pane.Should().Contain("RenderOptions.BitmapScalingMode=\"HighQuality\"",
                 "WPF should downscale the high-resolution PPT export cleanly instead of nearest-neighbor blurring");
+            pane.Should().Contain("SnapsToDevicePixels=\"True\"",
+                "PPT thumbnail borders/images should land on whole pixels so high-resolution exports do not look softened");
+            pane.Should().Contain("UseLayoutRounding=\"True\"",
+                "PPT thumbnails should avoid fractional layout scaling that makes FrmMain-style slide thumbnails look low-resolution");
             pane.Should().Contain("Background=\"White\"",
                 "legacy PPT thumbnail canvases draw the slide over a white card surface");
         }
