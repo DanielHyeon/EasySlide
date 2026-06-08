@@ -4258,15 +4258,15 @@ public class MainViewModelTests
     [Fact]
     public async Task SelectingPowerPoint_WithOutputClosed_RendersAtPreviewResolution()
     {
-        // 출력 창이 닫혀 있으면(미송출) 가벼운 미리보기 크기로 렌더한다.
+        // 출력 창이 닫혀 있어도 FrmMain처럼 고해상도 원본을 렌더한 뒤 화면에서 축소한다.
         var render = new RecordingPowerPointRenderService();
         var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
 
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
-        render.LastRequest!.PixelWidth.Should().Be(1280);
-        render.LastRequest.PixelHeight.Should().Be(960);
+        render.LastRequest!.PixelWidth.Should().Be(3840);
+        render.LastRequest.PixelHeight.Should().Be(2880);
     }
 
     [Fact]
@@ -4313,9 +4313,9 @@ public class MainViewModelTests
         var sut = CreateSut(powerPoint: new PowerPointPreviewViewModel(render, _ => Frozen()));
         var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
         sut.LoadQueue(new[] { ppt });
-        sut.SelectedItem = ppt; // 출력 닫힘 → 1280×960 렌더
-        render.LastRequest!.PixelWidth.Should().Be(1280, "출력 닫힘 상태 선택은 미리보기 크기");
-        render.LastRequest.PixelHeight.Should().Be(960, "출력 닫힘 상태 선택은 FrmMain 4:3 미리보기 높이");
+        sut.SelectedItem = ppt; // 출력 닫힘 → FrmMain식 고해상도 Preview 렌더
+        render.LastRequest!.PixelWidth.Should().Be(3840, "출력 닫힘 상태 선택도 고해상도 Preview 렌더");
+        render.LastRequest.PixelHeight.Should().Be(2880, "출력 닫힘 상태 선택은 FrmMain 4:3 고해상도 높이");
 
         sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
         sut.OpenOutputCommand.Execute(null); // 출력 열림 → 현재 PPT 재렌더

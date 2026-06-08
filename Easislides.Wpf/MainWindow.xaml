@@ -2398,7 +2398,8 @@
                                       Padding="8"
                                       Margin="0,0,0,8">
                                 <StackPanel>
-                                    <WrapPanel>
+                                    <WrapPanel x:Name="Def_ImageMode"
+                                               Tag="Def_ImageMode">
                                         <Button x:Name="Def_NoImage"
                                                 Command="{Binding ClearOutputBackgroundImageCommand}"
                                                 IsEnabled="{Binding CanClearOutputBackgroundImage}"
@@ -2410,31 +2411,8 @@
                                                 ToolTip="{Binding OutputBackgroundNoImageToolTip}"
                                                 ToolTipService.ShowOnDisabled="True"
                                                 AutomationProperties.Name="Def NoImage clear output background" />
-                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="Fill"
-                                                AutomationProperties.Name="Def background fill" />
-                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="Fit"
-                                                AutomationProperties.Name="Def background fit" />
-                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="Center"
-                                                AutomationProperties.Name="Def background center" />
-                                        <Button Command="{Binding ApplyBackgroundModeCommand}"
+                                        <Button x:Name="Def_ImageTile"
+                                                Command="{Binding ApplyBackgroundModeCommand}"
                                                 CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 MinHeight="30"
@@ -2442,6 +2420,33 @@
                                                 Margin="0,0,6,6"
                                                 Content="Tile"
                                                 AutomationProperties.Name="Def background tile" />
+                                        <Button x:Name="Def_ImageCentre"
+                                                Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Centre"
+                                                AutomationProperties.Name="Def background centre" />
+                                        <Button x:Name="Def_ImageBestFit"
+                                                Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Best Fit"
+                                                AutomationProperties.Name="Def background best fit" />
+                                        <Button x:Name="Def_ImageFill"
+                                                Command="{Binding ApplyBackgroundModeCommand}"
+                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="Fill"
+                                                AutomationProperties.Name="Def background fill" />
                                     </WrapPanel>
 
                                     <TextBlock Text="Transition"

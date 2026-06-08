@@ -1318,7 +1318,15 @@ public class MainMenuBarTests
         xaml.Should().Contain("ClearOutputBackgroundImageCommand", "Def_NoImage should clear the default output background");
         xaml.Should().Contain("IsEnabled=\"{Binding CanClearOutputBackgroundImage}\"", "Def_NoImage should mirror FrmMain disabled state when no default image exists");
         xaml.Should().Contain("ToolTip=\"{Binding OutputBackgroundNoImageToolTip}\"", "Def_NoImage should expose FrmMain-style current-background feedback");
+        xaml.Should().Contain("x:Name=\"Def_ImageMode\"", "Default tab should expose FrmMain Def_ImageMode");
+        xaml.Should().Contain("Tag=\"Def_ImageMode\"", "Def_ImageMode should keep the legacy role tag");
+        xaml.Should().Contain("x:Name=\"Def_ImageTile\"", "Def_ImageMode should expose FrmMain Tile Image option");
+        xaml.Should().Contain("x:Name=\"Def_ImageCentre\"", "Def_ImageMode should expose FrmMain Centre Image option");
+        xaml.Should().Contain("x:Name=\"Def_ImageBestFit\"", "Def_ImageMode should expose FrmMain Best Fit Image option");
         xaml.Should().Contain("ApplyBackgroundModeCommand", "Default tab should expose FrmMain background image modes");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Tile}\"", "Def_ImageTile should map to the tile setting");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Center}\"", "Def_ImageCentre should map to the centre setting");
+        xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Fit}\"", "Def_ImageBestFit should map to the best-fit setting");
         xaml.Should().Contain("x:Name=\"Def_Transition\"", "Default tab should expose transition defaults inline");
         xaml.Should().Contain("x:Name=\"Def_TransItem\"", "Default tab should expose FrmMain's item transition combo");
         xaml.Should().Contain("x:Name=\"Def_TransSlides\"", "Default tab should expose FrmMain's slide transition combo");

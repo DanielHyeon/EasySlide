@@ -2765,10 +2765,7 @@ public partial class MainWindow : Window
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength,
             region2);
-        if (!string.IsNullOrWhiteSpace(selection.IdString))
-        {
-            viewModel.AddBibleSelection(selection);
-        }
+        PreviewAndAddBibleSelection(viewModel, selection);
     }
 
     // 입력창에서 Enter 를 누르면 "이동"과 동일하게 처리(타이핑→Enter 한 번에 추가).
