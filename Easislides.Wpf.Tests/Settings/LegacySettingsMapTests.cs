@@ -40,6 +40,11 @@ public class LegacySettingsMapTests
             "UseMediaTab",
             "ShowLyricsMonitorAlertBox",
             "ReferenceAlertSource",
+            "ReferenceAlertUsePick",
+            "ReferenceAlertBlankIfPickNotFound",
+            "ReferenceAlertPickName",
+            "ReferenceAlertPickSubstitute",
+            "ReferenceAlertPickSeparator",
             "ReferenceAlertDuration",
             "ReferenceAlertStyle",
             "AdvanceNextItem",
@@ -85,6 +90,16 @@ public class LegacySettingsMapTests
             .Should().Contain(["DMOption1Width", "DualMonitorOptionCustomWidth"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertDurationSeconds.Id)
             .Should().Contain(["ReferenceAlertDuration", "ReferenceAlertDurationSeconds"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertUsePick.Id)
+            .Should().Contain(["ReferenceAlertUsePick"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertBlankIfPickNotFound.Id)
+            .Should().Contain(["ReferenceAlertBlankIfPickNotFound"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertPickName.Id)
+            .Should().Contain(["ReferenceAlertPickName"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertPickSubstitute.Id)
+            .Should().Contain(["ReferenceAlertPickSubstitute"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertPickSeparator.Id)
+            .Should().Contain(["ReferenceAlertPickSeparator"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertScroll.Id)
             .Should().Contain(["ReferenceAlertStyle", "ReferenceAlertScroll"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertFlash.Id)
@@ -160,6 +175,11 @@ public class LegacySettingsMapTests
             ["LiveCamNumber"] = "3",
             ["ShowLyricsMonitorAlertBox"] = "1",
             ["ReferenceAlertSource"] = "2",
+            ["ReferenceAlertUsePick"] = "1",
+            ["ReferenceAlertBlankIfPickNotFound"] = "1",
+            ["ReferenceAlertPickName"] = "No.",
+            ["ReferenceAlertPickSubstitute"] = "#",
+            ["ReferenceAlertPickSeparator"] = "/,",
             ["ReferenceAlertDuration"] = "7",
             ["ReferenceAlertStyle"] = "6",
             ["AdvanceNextItem"] = "yes",
@@ -193,6 +213,11 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.LiveCameraNumber).Should().Be(3);
         sut.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox).Should().BeTrue();
         sut.Get(EasiSettingKeys.ReferenceAlertSource).Should().Be(2);
+        sut.Get(EasiSettingKeys.ReferenceAlertUsePick).Should().BeTrue();
+        sut.Get(EasiSettingKeys.ReferenceAlertBlankIfPickNotFound).Should().BeTrue();
+        sut.Get(EasiSettingKeys.ReferenceAlertPickName).Should().Be("No.");
+        sut.Get(EasiSettingKeys.ReferenceAlertPickSubstitute).Should().Be("#");
+        sut.Get(EasiSettingKeys.ReferenceAlertPickSeparator).Should().Be("/,");
         sut.Get(EasiSettingKeys.ReferenceAlertDurationSeconds).Should().Be(7);
         sut.Get(EasiSettingKeys.ReferenceAlertScroll).Should().BeFalse();
         sut.Get(EasiSettingKeys.ReferenceAlertFlash).Should().BeTrue();

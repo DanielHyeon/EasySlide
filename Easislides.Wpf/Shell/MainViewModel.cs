@@ -8642,7 +8642,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private string ResolveReferenceAlertText(LiveSessionSnapshot snapshot)
     {
-        return NormalizeReferenceAlertSource(_settings.Get(EasiSettingKeys.ReferenceAlertSource)) switch
+        var text = NormalizeReferenceAlertSource(_settings.Get(EasiSettingKeys.ReferenceAlertSource)) switch
         {
             0 => string.Empty,
             2 when snapshot.CurrentItemNumber > 0 => snapshot.CurrentItemNumber.ToString(CultureInfo.InvariantCulture),
@@ -8650,6 +8650,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             4 => snapshot.CurrentItemUserReference,
             _ => ResolveReferenceAlertFallbackText(snapshot),
         };
+
+        return ApplyReferenceAlertPickFilter(text);
     }
 
     private static int NormalizeReferenceAlertSource(int value)
@@ -8671,6 +8673,51 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         return snapshot.CurrentItemPositionLabel;
+    }
+
+    private string ApplyReferenceAlertPickFilter(string text)
+    {
+        if (!_settings.Get(EasiSettingKeys.ReferenceAlertUsePick)
+            || string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
+
+        var pickName = _settings.Get(EasiSettingKeys.ReferenceAlertPickName);
+        if (string.IsNullOrEmpty(pickName))
+        {
+            return text;
+        }
+
+        var pickStart = text.IndexOf(pickName, StringComparison.CurrentCulture);
+        if (pickStart < 0)
+        {
+            return _settings.Get(EasiSettingKeys.ReferenceAlertBlankIfPickNotFound)
+                ? string.Empty
+                : text;
+        }
+
+        var valueStart = pickStart + pickName.Length;
+        var substitute = _settings.Get(EasiSettingKeys.ReferenceAlertPickSubstitute);
+        if (valueStart >= text.Length)
+        {
+            return substitute;
+        }
+
+        var prefix = string.IsNullOrEmpty(substitute) ? pickName : substitute;
+        var separator = _settings.Get(EasiSettingKeys.ReferenceAlertPickSeparator);
+        if (string.IsNullOrEmpty(separator))
+        {
+            return prefix + text[valueStart..];
+        }
+
+        var valueEnd = text.IndexOfAny(separator.ToCharArray(), valueStart);
+        if (valueEnd < 0)
+        {
+            valueEnd = text.Length;
+        }
+
+        return prefix + text[valueStart..valueEnd];
     }
 
     public bool PublishNotice(string text, NoticeOptions? options = null)

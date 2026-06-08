@@ -3667,6 +3667,59 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenPickConfigured_ExtractsLegacyPickSegment()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertSource, 1).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertUsePick, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertPickName, "No.").Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertPickSubstitute, "#").Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertPickSeparator, "/,").Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:136", "찬송 No.136/입례", LiveItemKinds.Song)
+            {
+                Lyrics = "[1]\n가나안 혼인잔치",
+                SongNumber = 136,
+            },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
+        sut.Session.Current.ReferenceAlertText.Should().Be("#136");
+    }
+
+    [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenPickMissingAndBlankConfigured_DoesNotShowOverlay()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertSource, 1).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertUsePick, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertBlankIfPickNotFound, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.ReferenceAlertPickName, "No.").Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:1", "Amazing Grace", LiveItemKinds.Song)
+            {
+                Lyrics = "[1]\nAmazing grace",
+                SongNumber = 1,
+            },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeFalse();
+        sut.Session.Current.ReferenceAlertText.Should().BeEmpty();
+    }
+
+    [Fact]
     public void PublishNotice_WithFontSize_CarriesFontOverrideToSnapshot()
     {
         // 공지 글자 크기 지정(pt)이 FormatData(47=pt)로 실려 기존 폰트 오버라이드 파이프라인을 타고

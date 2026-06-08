@@ -230,6 +230,11 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> ShowLyricsMonitorAlertBox = new("liveOutput.showLyricsMonitorAlertBox", false);
     // FrmOptions Reference_Source0..4. 0=None, 1=Song Title, 2=Song Number, 3=Book Reference, 4=User Reference.
     public static readonly SettingKey<int> ReferenceAlertSource = new("liveOutput.referenceAlertSource", 1);
+    public static readonly SettingKey<bool> ReferenceAlertUsePick = new("liveOutput.referenceAlertUsePick", false);
+    public static readonly SettingKey<bool> ReferenceAlertBlankIfPickNotFound = new("liveOutput.referenceAlertBlankIfPickNotFound", false);
+    public static readonly SettingKey<string> ReferenceAlertPickName = new("liveOutput.referenceAlertPickName", "");
+    public static readonly SettingKey<string> ReferenceAlertPickSubstitute = new("liveOutput.referenceAlertPickSubstitute", "");
+    public static readonly SettingKey<string> ReferenceAlertPickSeparator = new("liveOutput.referenceAlertPickSeparator", ",");
     // FrmOptions ReferenceAlertDuration. Legacy registry accepts 1..999 seconds; FrmOptions UI normally caps at 60.
     public static readonly SettingKey<int> ReferenceAlertDurationSeconds = new("liveOutput.referenceAlertDurationSeconds", 20);
     // FrmOptions ReferenceAlertStyle bit 1. Text enters as a left-to-right reveal in legacy; WPF marquee rendering is tracked separately.
@@ -439,6 +444,11 @@ public static class EasiSettingKeys
         UseSafetyConfirmations,
         ShowLyricsMonitorAlertBox,
         ReferenceAlertSource,
+        ReferenceAlertUsePick,
+        ReferenceAlertBlankIfPickNotFound,
+        ReferenceAlertPickName,
+        ReferenceAlertPickSubstitute,
+        ReferenceAlertPickSeparator,
         ReferenceAlertDurationSeconds,
         ReferenceAlertScroll,
         ReferenceAlertFlash,
@@ -584,6 +594,16 @@ public sealed record LiveOutputSettings
     public bool ShowLyricsMonitorAlertBox { get; init; } = EasiSettingKeys.ShowLyricsMonitorAlertBox.DefaultValue;
 
     public int ReferenceAlertSource { get; init; } = EasiSettingKeys.ReferenceAlertSource.DefaultValue;
+
+    public bool ReferenceAlertUsePick { get; init; } = EasiSettingKeys.ReferenceAlertUsePick.DefaultValue;
+
+    public bool ReferenceAlertBlankIfPickNotFound { get; init; } = EasiSettingKeys.ReferenceAlertBlankIfPickNotFound.DefaultValue;
+
+    public string ReferenceAlertPickName { get; init; } = EasiSettingKeys.ReferenceAlertPickName.DefaultValue;
+
+    public string ReferenceAlertPickSubstitute { get; init; } = EasiSettingKeys.ReferenceAlertPickSubstitute.DefaultValue;
+
+    public string ReferenceAlertPickSeparator { get; init; } = EasiSettingKeys.ReferenceAlertPickSeparator.DefaultValue;
 
     public int ReferenceAlertDurationSeconds { get; init; } = EasiSettingKeys.ReferenceAlertDurationSeconds.DefaultValue;
 
@@ -1146,6 +1166,9 @@ public sealed class SettingsService : ISettingsService
             max: 999,
             EasiSettingKeys.ReferenceAlertDurationSeconds.Id,
             issues);
+        RequireNoControlCharacters(candidate.LiveOutput.ReferenceAlertPickName, EasiSettingKeys.ReferenceAlertPickName.Id, issues);
+        RequireNoControlCharacters(candidate.LiveOutput.ReferenceAlertPickSubstitute, EasiSettingKeys.ReferenceAlertPickSubstitute.Id, issues);
+        RequireNoControlCharacters(candidate.LiveOutput.ReferenceAlertPickSeparator, EasiSettingKeys.ReferenceAlertPickSeparator.Id, issues);
 
         ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
         RequireRange(
@@ -1327,6 +1350,26 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertSource.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { ReferenceAlertSource = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertUsePick.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertUsePick = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertBlankIfPickNotFound.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertBlankIfPickNotFound = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertPickName.Id), next, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertPickName = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertPickSubstitute.Id), next, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertPickSubstitute = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertPickSeparator.Id), next, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertPickSeparator = value },
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertDurationSeconds.Id), next, issues, value => next with
         {
@@ -1714,6 +1757,11 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.useSafetyConfirmations" => snapshot.LiveOutput.UseSafetyConfirmations,
             "liveOutput.showLyricsMonitorAlertBox" => snapshot.LiveOutput.ShowLyricsMonitorAlertBox,
             "liveOutput.referenceAlertSource" => snapshot.LiveOutput.ReferenceAlertSource,
+            "liveOutput.referenceAlertUsePick" => snapshot.LiveOutput.ReferenceAlertUsePick,
+            "liveOutput.referenceAlertBlankIfPickNotFound" => snapshot.LiveOutput.ReferenceAlertBlankIfPickNotFound,
+            "liveOutput.referenceAlertPickName" => snapshot.LiveOutput.ReferenceAlertPickName,
+            "liveOutput.referenceAlertPickSubstitute" => snapshot.LiveOutput.ReferenceAlertPickSubstitute,
+            "liveOutput.referenceAlertPickSeparator" => snapshot.LiveOutput.ReferenceAlertPickSeparator,
             "liveOutput.referenceAlertDurationSeconds" => snapshot.LiveOutput.ReferenceAlertDurationSeconds,
             "liveOutput.referenceAlertScroll" => snapshot.LiveOutput.ReferenceAlertScroll,
             "liveOutput.referenceAlertFlash" => snapshot.LiveOutput.ReferenceAlertFlash,
@@ -1887,6 +1935,26 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.referenceAlertSource" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { ReferenceAlertSource = Cast<int>(keyId, value) },
+            },
+            "liveOutput.referenceAlertUsePick" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertUsePick = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.referenceAlertBlankIfPickNotFound" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertBlankIfPickNotFound = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.referenceAlertPickName" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertPickName = Cast<string>(keyId, value) },
+            },
+            "liveOutput.referenceAlertPickSubstitute" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertPickSubstitute = Cast<string>(keyId, value) },
+            },
+            "liveOutput.referenceAlertPickSeparator" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertPickSeparator = Cast<string>(keyId, value) },
             },
             "liveOutput.referenceAlertDurationSeconds" => snapshot with
             {
