@@ -15,6 +15,12 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// <summary>저작권(CCLI 등) — 출력 "저작권 표시"(Display Panel) 설정 on 일 때 표시. 비면 미표시.</summary>
     public string Copyright { get; init; } = "";
 
+    /// <summary>레거시 BOOK_REFERENCE — FrmOptions Reference_Source3(Book Reference) 알림에 사용.</summary>
+    public string BookReference { get; init; } = "";
+
+    /// <summary>레거시 USER_REFERENCE — FrmOptions Reference_Source4(User Reference) 알림에 사용.</summary>
+    public string UserReference { get; init; } = "";
+
     /// <summary>다음 예배순서 항목 제목 — 출력 "다음 항목 표시"(Display Panel PrevNext) 설정 on 일 때 표시.
     /// GoLive 시 MainViewModel 이 큐에서 다음 항목 제목을 계산해 얹는다. 마지막 항목이면 빈 문자열 → 미표시.</summary>
     public string NextTitle { get; init; } = "";

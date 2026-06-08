@@ -38,6 +38,9 @@ public sealed record LiveSessionSnapshot(
     int CurrentItemNumber = 0,
     // 현재 항목의 저작권(출력 "저작권 표시" 설정 on 일 때 표시). 곡이 아니거나 저작권이 없으면 빈 문자열.
     string CurrentItemCopyright = "",
+    // 레거시 BOOK_REFERENCE/USER_REFERENCE — Reference alert source 3/4 에 사용.
+    string CurrentItemBookReference = "",
+    string CurrentItemUserReference = "",
     // 다음 예배순서 항목 제목(출력 "다음 항목 표시" 설정 on 일 때 표시). 마지막 항목이면 빈 문자열.
     string CurrentItemNextTitle = "",
     // 곡별 FormatData(레거시 v32)에서 디코드한 region1 글자색(ARGB). 있으면 출력 렌더러가 운영 기본 글자색 대신 사용.
@@ -191,6 +194,8 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentItemNumber: item.SongNumber,
             // 저작권(출력 "저작권 표시" 설정 on 일 때 표시).
             CurrentItemCopyright: item.Copyright,
+            CurrentItemBookReference: item.BookReference,
+            CurrentItemUserReference: item.UserReference,
             // 다음 항목 제목(출력 "다음 항목 표시" 설정 on 일 때 표시).
             CurrentItemNextTitle: item.NextTitle,
             // 곡별 색(있으면) — 렌더러가 Live 일 때 운영 기본색 대신 적용.

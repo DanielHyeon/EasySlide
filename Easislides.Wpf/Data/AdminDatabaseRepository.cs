@@ -65,7 +65,10 @@ public sealed record SongSummary(
     string Key,
     string Lyrics,
     // 저작권(CCLI 등) — 출력 "저작권 표시"(Display Panel)에 쓰인다. 기존 8필드 구성과의 호환을 위해 기본값.
-    string Copyright = "");
+    string Copyright = "",
+    // 레거시 BOOK_REFERENCE/USER_REFERENCE — FrmMain Reference alert source 3/4 에 쓰인다.
+    string BookReference = "",
+    string UserReference = "");
 
 public sealed record SongDetail(
     int SongId,
@@ -544,21 +547,24 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
     {
         EnsureCompatible(databasePath);
         using var connection = OpenConnection(Path.GetFullPath(databasePath), readOnly: true);
+        var columns = ReadColumnMap(connection, "SONG");
         using var command = new SQLiteCommand(
-            """
+            $"""
             SELECT
-                SONGID,
-                TITLE_1,
-                TITLE_2,
-                FOLDERNO,
-                SONG_NUMBER,
-                CATEGORY,
-                "KEY",
-                LYRICS,
-                COPYRIGHT
+                {SelectColumn(columns, "SONGID", "SONGID")},
+                {SelectColumn(columns, "TITLE_1", "TITLE_1")},
+                {SelectColumn(columns, "TITLE_2", "TITLE_2")},
+                {SelectColumn(columns, "FOLDERNO", "FOLDERNO")},
+                {SelectColumn(columns, "SONG_NUMBER", "SONG_NUMBER")},
+                {SelectColumn(columns, "CATEGORY", "CATEGORY")},
+                {SelectColumn(columns, "KEY", "KEY")},
+                {SelectColumn(columns, "LYRICS", "LYRICS")},
+                {SelectColumn(columns, "COPYRIGHT", "COPYRIGHT")},
+                {SelectColumn(columns, "BOOK_REFERENCE", "BOOK_REFERENCE")},
+                {SelectColumn(columns, "USER_REFERENCE", "USER_REFERENCE")}
             FROM SONG
-            WHERE (@folderNo IS NULL OR FOLDERNO = @folderNo)
-            ORDER BY FOLDERNO, SONG_NUMBER, TITLE_1, SONGID;
+            WHERE (@folderNo IS NULL OR {QuoteIdentifier(columns["FOLDERNO"])} = @folderNo)
+            ORDER BY {QuoteIdentifier(columns["FOLDERNO"])}, {QuoteIdentifier(columns["SONG_NUMBER"])}, {QuoteIdentifier(columns["TITLE_1"])}, {QuoteIdentifier(columns["SONGID"])};
             """,
             connection);
         command.Parameters.AddWithValue("@folderNo", folderNo is null ? DBNull.Value : folderNo.Value);
@@ -575,7 +581,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetString(reader, "CATEGORY"),
                 GetString(reader, "KEY"),
                 GetString(reader, "LYRICS"),
-                GetString(reader, "COPYRIGHT")));
+                GetString(reader, "COPYRIGHT"),
+                GetString(reader, "BOOK_REFERENCE"),
+                GetString(reader, "USER_REFERENCE")));
         }
 
         return songs;

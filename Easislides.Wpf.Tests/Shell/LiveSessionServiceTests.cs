@@ -647,6 +647,23 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_CarriesReferenceAlertSourcesToSnapshot()
+    {
+        var item = new LiveQueueItem("song-3", "은혜로다")
+        {
+            Lyrics = "[1]\n1절",
+            BookReference = "시편 23",
+            UserReference = "입례",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 2");
+
+        sut.Current.CurrentItemBookReference.Should().Be("시편 23");
+        sut.Current.CurrentItemUserReference.Should().Be("입례");
+    }
+
+    [Fact]
     public void GoLive_NoticeItem_RendersTextVerbatim_NotThroughLyricsFormatter()
     {
         // 공지(InfoScreen)는 자유 텍스트라 가사 마커([광고] 같은 마커-only 줄·» 등)를 해석하지 않고

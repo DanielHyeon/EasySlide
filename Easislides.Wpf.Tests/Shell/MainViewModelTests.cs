@@ -3542,6 +3542,54 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenSourceIsBookReference_UsesBookReference()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertSource, 3).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:23", "여호와는 나의 목자", LiveItemKinds.Song)
+            {
+                Lyrics = "[1]\n여호와는 나의 목자시니",
+                BookReference = "시편 23",
+                UserReference = "입례",
+            },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
+        sut.Session.Current.ReferenceAlertText.Should().Be("시편 23", "FrmOptions Reference_Source3 is Book Reference");
+    }
+
+    [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenSourceIsUserReference_UsesUserReference()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertSource, 4).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("song:23", "여호와는 나의 목자", LiveItemKinds.Song)
+            {
+                Lyrics = "[1]\n여호와는 나의 목자시니",
+                BookReference = "시편 23",
+                UserReference = "입례",
+            },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
+        sut.Session.Current.ReferenceAlertText.Should().Be("입례", "FrmOptions Reference_Source4 is User Reference");
+    }
+
+    [Fact]
     public async Task ToggleOutputReferenceAlertCommand_WhenSourceIsNone_DoesNotShowBlankOverlay()
     {
         var settings = TempSettingsFolder.CreateDetachedSettings();
@@ -11248,6 +11296,29 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void AddSong_CarriesReferenceAlertSourcesToQueueItem()
+    {
+        var sut = CreateSut();
+        var song = new SongSummary(
+            23,
+            "여호와는 나의 목자",
+            "",
+            1,
+            23,
+            "",
+            "",
+            "[1]\n여호와는 나의 목자시니",
+            Copyright: "",
+            BookReference: "시편 23",
+            UserReference: "입례");
+
+        var item = sut.AddSong(song);
+
+        item!.BookReference.Should().Be("시편 23");
+        item.UserReference.Should().Be("입례");
+    }
+
+    [Fact]
     public void AddSong_DualLanguage_AllLabeled_EnablesSectionJump()
     {
         // 전부 라벨링된 이중 언어 곡은 절 라벨 점프가 켜진다(라벨이 페이지와 정렬).
@@ -11339,8 +11410,37 @@ public class MainViewModelTests
         added.FormatData.Should().Be("29=-65536>", "상세(SongDetail)의 FormatData 가 큐 항목까지 전달돼야 함");
     }
 
-    private static SongDetail SampleSongDetail(int songId, string title, string lyrics, string sequence = "", string formatData = "")
-        => new(songId, title, "", 1, 0, lyrics, sequence, "", "", 0, "", "", "", "", "", "", "", "", "", formatData);
+    [Fact]
+    public async Task AddSearchedSong_CarriesSongDetailReferenceSources_ToQueueItem()
+    {
+        var detail = SampleSongDetail(
+            7,
+            "은혜",
+            "[1]\nVerse one",
+            bookReference: "시편 23",
+            userReference: "입례");
+        var sut = CreateSut(songDetail: new StubSongDetailRepository(detail));
+        sut.Search.DatabasePath = @"C:\work\Admin\Database\EasiSlidesDb.db";
+        var result = new SongSearchResult(7, 1, "찬양 폴더", "은혜", "", 12, "", "G", new[] { "Title" }, "");
+        sut.Search.SearchResults.Add(result);
+        sut.SelectedSearchResult = result;
+
+        await sut.AddSearchedSongCommand.ExecuteAsync(null);
+
+        var added = sut.Queue.Single(i => i.Title == "은혜");
+        added.BookReference.Should().Be("시편 23");
+        added.UserReference.Should().Be("입례");
+    }
+
+    private static SongDetail SampleSongDetail(
+        int songId,
+        string title,
+        string lyrics,
+        string sequence = "",
+        string formatData = "",
+        string bookReference = "",
+        string userReference = "")
+        => new(songId, title, "", 1, 0, lyrics, sequence, "", "", 0, "", "", "", "", "", "", bookReference, userReference, "", formatData);
 
     private static async Task WaitUntilAsync(Func<bool> condition, string because)
     {

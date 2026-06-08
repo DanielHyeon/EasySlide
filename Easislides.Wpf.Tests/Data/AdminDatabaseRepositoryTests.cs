@@ -93,7 +93,17 @@ public class AdminDatabaseRepositoryTests
         fixture.CreateLegacySchema();
         fixture.InsertFolder(1, "Morning", use: "True");
         fixture.InsertFolder(2, "Evening", use: "True");
-        fixture.InsertSong(11, "Second", folderNo: 1, songNumber: 2, title2: "Alt", category: "Praise", key: "G", lyrics: "Line 2");
+        fixture.InsertSong(
+            11,
+            "Second",
+            folderNo: 1,
+            songNumber: 2,
+            title2: "Alt",
+            category: "Praise",
+            key: "G",
+            lyrics: "Line 2",
+            bookReference: "시편 23",
+            userReference: "입례");
         fixture.InsertSong(10, "First", folderNo: 1, songNumber: 1, lyrics: "Line 1");
         fixture.InsertSong(12, "Other Folder", folderNo: 2, songNumber: 1);
         var sut = new AdminDatabaseRepository();
@@ -107,6 +117,8 @@ public class AdminDatabaseRepositoryTests
         songs[1].AlternateTitle.Should().Be("Alt");
         songs[1].Category.Should().Be("Praise");
         songs[1].Key.Should().Be("G");
+        songs[1].BookReference.Should().Be("시편 23");
+        songs[1].UserReference.Should().Be("입례");
     }
 
     [Fact]

@@ -1707,7 +1707,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 라이브러리 곡을 드롭한 위치(타깃 항목) 앞에 끼운다 — 곡 목록에서 큐로 끌어다 놓는 드래그-드롭 경로(레거시 외부 소스 드래그).
     /// 타깃이 없으면(빈 공간) 맨 끝에. 항목 생성은 AddSong 과 동일하지만 삽입 위치만 타깃 기준이다(라이브러리 곡은 가사를 이미 들고 있어 동기).
     /// </summary>
-    public LiveQueueItem? AddSongRelativeTo(Data.SongSummary? song, LiveQueueItem? targetItem, string? sequence = null, string? formatData = null)
+    public LiveQueueItem? AddSongRelativeTo(
+        Data.SongSummary? song,
+        LiveQueueItem? targetItem,
+        string? sequence = null,
+        string? formatData = null,
+        string? bookReference = null,
+        string? userReference = null)
     {
         if (song is null || string.IsNullOrWhiteSpace(song.Title))
         {
@@ -1723,6 +1729,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
             FormatData = formatData,
+            BookReference = bookReference ?? song.BookReference,
+            UserReference = userReference ?? song.UserReference,
         };
 
         // 참조 일치(IndexOfReference)로 "드롭한 바로 그 인스턴스"의 위치를 찾는다 — 성경 드롭·재정렬과 동일 규칙(같은-값 중복 안전).
@@ -1759,7 +1767,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 선택 항목 바로 뒤에 삽입하고 새 항목을 선택. AddBibleSelection 과 동일 규칙.
     /// sequence: 곡 절 순서(있으면 절을 그 순서로 반복 송출). SongSummary 엔 없어 상세 로드 경로에서 넘긴다.
     /// </summary>
-    public LiveQueueItem? AddSong(Data.SongSummary? song, string? sequence = null, string? formatData = null)
+    public LiveQueueItem? AddSong(
+        Data.SongSummary? song,
+        string? sequence = null,
+        string? formatData = null,
+        string? bookReference = null,
+        string? userReference = null)
     {
         if (song is null || string.IsNullOrWhiteSpace(song.Title))
         {
@@ -1778,6 +1791,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Copyright = song.Copyright,
             // 곡별 출력 색(레거시 v32 FormatData) — 있으면 라이브 송출 시 그 곡의 색으로 표시.
             FormatData = formatData,
+            // 레거시 BOOK_REFERENCE/USER_REFERENCE — OutputBtnRefAlert source 3/4.
+            BookReference = bookReference ?? song.BookReference,
+            UserReference = userReference ?? song.UserReference,
         };
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
@@ -1827,6 +1843,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Sequence = normalizedSequence,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
+            BookReference = song.BookReference,
+            UserReference = song.UserReference,
             // 이미 예배순서 항목에 서식이 있으면 .esw/항목별 override 로 보고 보존한다.
             // 서식이 비어 있던 항목만 DB 곡 편집기의 FormatData 를 따라간다.
             FormatData = string.IsNullOrWhiteSpace(item.FormatData) ? editorFormatData : item.FormatData,
@@ -2023,7 +2041,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = CreateSongQueueItem(resolved.Song, resolved.Sequence, resolved.FormatData)
+        var item = CreateSongQueueItem(
+                resolved.Song,
+                resolved.Sequence,
+                resolved.FormatData,
+                resolved.BookReference,
+                resolved.UserReference)
             with { Id = $"praisebook-preview:{resolved.Song.SongId}" };
         SelectedItem = item;
         StatusText = $"PraiseBook 미리보기: {item.Title}";
@@ -2056,7 +2079,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        return AddSongRelativeTo(resolved.Song, targetItem, resolved.Sequence, resolved.FormatData);
+        return AddSongRelativeTo(
+            resolved.Song,
+            targetItem,
+            resolved.Sequence,
+            resolved.FormatData,
+            resolved.BookReference,
+            resolved.UserReference);
     }
 
     private async Task<ResolvedPraiseBookSong?> ResolvePraiseBookSongAsync(PraiseBookIndexEntry? entry)
@@ -2088,13 +2117,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                             detail.Lyrics,
                             detail.Copyright),
                         string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
-                        string.IsNullOrWhiteSpace(detail.FormatData) ? null : detail.FormatData);
+                        string.IsNullOrWhiteSpace(detail.FormatData) ? null : detail.FormatData,
+                        detail.BookReference,
+                        detail.UserReference);
                 }
             }
         }
 
         var song = ResolvePraiseBookSong(entry.Title, entry.Number, entry.SongId);
-        return song is null ? null : new ResolvedPraiseBookSong(song, null, null);
+        return song is null ? null : new ResolvedPraiseBookSong(song, null, null, null, null);
     }
 
     private Data.SongSummary? ResolvePraiseBookSong(string? title, int songNumber, int songId)
@@ -2128,7 +2159,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return song;
     }
 
-    private sealed record ResolvedPraiseBookSong(Data.SongSummary Song, string? Sequence, string? FormatData);
+    private sealed record ResolvedPraiseBookSong(
+        Data.SongSummary Song,
+        string? Sequence,
+        string? FormatData,
+        string? BookReference,
+        string? UserReference);
 
     /// <summary>
     /// 좌측 "검색" 탭에서 고른 교차 검색 결과를 예배 순서(큐)에 추가한다(§7.4 단일 콘솔 통합 — 검색 창 인라인 흡수).
@@ -2198,7 +2234,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 detail.Lyrics,
                 detail.Copyright), // 저작권 — 출력 "저작권 표시"에 쓰인다.
             detail.Sequence, // 곡 절 순서 — 있으면 절을 그 순서로 반복 송출(레거시 인코딩이면 매칭 0→선형 폴백).
-            detail.FormatData); // 곡별 출력 색(레거시 v32) — 라이브 송출 시 그 곡의 글자·배경색 적용.
+            detail.FormatData, // 곡별 출력 색(레거시 v32) — 라이브 송출 시 그 곡의 글자·배경색 적용.
+            detail.BookReference,
+            detail.UserReference);
     }
 
     // 예배 순서 항목 이동(↑/↓) — 큐 순서를 재정렬한다(FrmMain Move Item Up/Down). 선택 항목은 유지.
@@ -2846,6 +2884,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                         Lyrics = song.Lyrics,
                         SongNumber = song.SongNumber,
                         Copyright = song.Copyright,
+                        BookReference = song.BookReference,
+                        UserReference = song.UserReference,
                         FormatData = esw.FormatData,
                     };
                 }
@@ -2913,14 +2953,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                         detail.Lyrics,
                         detail.Copyright),
                     string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
-                    string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData);
+                    string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData,
+                    detail.BookReference,
+                    detail.UserReference);
             }
         }
 
         return BuildEswQueueItem(esw);
     }
 
-    private LiveQueueItem CreateSongQueueItem(Data.SongSummary song, string? sequence = null, string? formatData = null)
+    private LiveQueueItem CreateSongQueueItem(
+        Data.SongSummary song,
+        string? sequence = null,
+        string? formatData = null,
+        string? bookReference = null,
+        string? userReference = null)
         => new($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
         {
             Lyrics = song.Lyrics,
@@ -2928,6 +2975,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
             FormatData = formatData,
+            BookReference = bookReference ?? song.BookReference,
+            UserReference = userReference ?? song.UserReference,
         };
 
     private string ResolveSongDetailDatabasePath()
@@ -8516,6 +8565,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             0 => string.Empty,
             2 when snapshot.CurrentItemNumber > 0 => snapshot.CurrentItemNumber.ToString(CultureInfo.InvariantCulture),
+            3 => snapshot.CurrentItemBookReference,
+            4 => snapshot.CurrentItemUserReference,
             _ => ResolveReferenceAlertFallbackText(snapshot),
         };
     }
