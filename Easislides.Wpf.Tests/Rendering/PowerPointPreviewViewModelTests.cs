@@ -128,6 +128,22 @@ public class PowerPointPreviewViewModelTests
     }
 
     [Fact]
+    public async Task LoadThumbnailsAsync_StoresRenderedPixelSizeForQualityReloads()
+    {
+        var render = new StubRenderService(success: true);
+        var vm = new PowerPointPreviewViewModel(render, _ => DummyImage);
+
+        await vm.LoadThumbnailsAsync("deck.pptx", 3, 200, 112);
+
+        render.Requests.Should().OnlyContain(request =>
+            request.PixelWidth == 3840 &&
+            request.PixelHeight == 2880);
+        vm.Thumbnails.Should().OnlyContain(thumbnail =>
+            thumbnail.PixelWidth == 3840 &&
+            thumbnail.PixelHeight == 2880);
+    }
+
+    [Fact]
     public async Task CopyFrom_ClonesCurrentSlideAndThumbnailState()
     {
         var source = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
@@ -145,6 +161,7 @@ public class PowerPointPreviewViewModelTests
         target.Thumbnails.Should().HaveCount(3);
         target.Thumbnails.Should().NotContain(source.Thumbnails[0], "Output thumbnails must not share the mutable collection items with Preview");
         target.Thumbnails.Single(t => t.SlideNumber == 2).IsCurrent.Should().BeTrue();
+        target.Thumbnails.Should().OnlyContain(t => t.PixelWidth == 3840 && t.PixelHeight == 2880);
 
         source.Clear();
 

@@ -3443,7 +3443,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int slideCount)
         => slideCount > 0
            && (!string.Equals(currentDeckPath, filePath, StringComparison.OrdinalIgnoreCase)
-               || viewModel.Thumbnails.Count != slideCount);
+               || viewModel.Thumbnails.Count != slideCount
+               || HasLowResolutionPowerPointThumbnails(viewModel));
+
+    private static bool HasLowResolutionPowerPointThumbnails(Rendering.PowerPointPreviewViewModel viewModel)
+        => viewModel.Thumbnails.Any(thumbnail =>
+            thumbnail.PixelWidth < PptThumbnailWidth ||
+            thumbnail.PixelHeight < PptThumbnailHeight);
 
     private LiveQueueItem? PreviewItem => _sourcePreviewItem ?? SelectedItem;
 

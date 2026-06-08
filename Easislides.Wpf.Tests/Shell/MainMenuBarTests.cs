@@ -679,6 +679,12 @@ public class MainMenuBarTests
             "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
         mainViewModel.Should().Contain("private const int PptThumbnailHeight = 2880",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
+        mainViewModel.Should().Contain("HasLowResolutionPowerPointThumbnails(viewModel)",
+            "same-deck thumbnail strips should still reload if an older low-resolution render is present");
+        mainViewModel.Should().Contain("thumbnail.PixelWidth < PptThumbnailWidth",
+            "thumbnail reload decisions should inspect the rendered source width, not only slide count");
+        mainViewModel.Should().Contain("thumbnail.PixelHeight < PptThumbnailHeight",
+            "thumbnail reload decisions should inspect the rendered source height, not only slide count");
 
         var previewPowerPointPane = SectionBetween(
             xaml,

@@ -21,15 +21,21 @@ public enum PowerPointPreviewState
 /// <summary>덱 썸네일 스트립의 한 슬라이드(번호 + 작은 이미지 + 현재 슬라이드 여부).</summary>
 public sealed partial class PowerPointSlideThumbnail : ObservableObject
 {
-    public PowerPointSlideThumbnail(int slideNumber, ImageSource image)
+    public PowerPointSlideThumbnail(int slideNumber, ImageSource image, int pixelWidth = 0, int pixelHeight = 0)
     {
         SlideNumber = slideNumber;
         Image = image;
+        PixelWidth = pixelWidth;
+        PixelHeight = pixelHeight;
     }
 
     public int SlideNumber { get; }
 
     public ImageSource Image { get; }
+
+    public int PixelWidth { get; }
+
+    public int PixelHeight { get; }
 
     /// <summary>지금 송출/미리보기 중인 슬라이드면 true(스트립에서 강조 표시).</summary>
     [ObservableProperty] private bool _isCurrent;
@@ -93,7 +99,11 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         Thumbnails.Clear();
         foreach (var thumbnail in source.Thumbnails)
         {
-            Thumbnails.Add(new PowerPointSlideThumbnail(thumbnail.SlideNumber, thumbnail.Image)
+            Thumbnails.Add(new PowerPointSlideThumbnail(
+                thumbnail.SlideNumber,
+                thumbnail.Image,
+                thumbnail.PixelWidth,
+                thumbnail.PixelHeight)
             {
                 IsCurrent = thumbnail.IsCurrent
             });
@@ -196,7 +206,14 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
                         continue; // 한 장 디코드 실패는 건너뛰고 나머지 썸네일을 계속 채운다.
                     }
 
-                    Thumbnails.Add(new PowerPointSlideThumbnail(slide, image) { IsCurrent = slide == SlideNumber });
+                    Thumbnails.Add(new PowerPointSlideThumbnail(
+                        slide,
+                        image,
+                        slideSnapshot.PixelWidth,
+                        slideSnapshot.PixelHeight)
+                    {
+                        IsCurrent = slide == SlideNumber
+                    });
                 }
             }
         }
