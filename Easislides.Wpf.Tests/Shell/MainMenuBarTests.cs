@@ -1398,6 +1398,11 @@ public class MainMenuBarTests
         xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Tile}\"", "Def_ImageTile should map to the tile setting");
         xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Center}\"", "Def_ImageCentre should map to the centre setting");
         xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Fit}\"", "Def_ImageBestFit should map to the best-fit setting");
+        var defImageMode = SectionBetween(xaml, "x:Name=\"Def_ImageMode\"", "x:Name=\"Def_BackColour\"");
+        defImageMode.Should().NotContain("x:Name=\"Def_ImageFill\"",
+            "FrmMain Def_ImageMode only exposes NoImage, Tile, Centre, and Best Fit on the first-screen Default tab");
+        defImageMode.Should().NotContain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Fill}\"",
+            "the WPF-only fill mode belongs outside FrmMain's compact Def_ImageMode surface");
         xaml.Should().Contain("x:Name=\"Def_Transition\"", "Default tab should expose transition defaults inline");
         xaml.Should().Contain("x:Name=\"Def_TransItem\"", "Default tab should expose FrmMain's item transition combo");
         xaml.Should().Contain("x:Name=\"Def_TransSlides\"", "Default tab should expose FrmMain's slide transition combo");

@@ -2573,15 +2573,6 @@
                                                 Margin="0,0,6,6"
                                                 Content="Best Fit"
                                                 AutomationProperties.Name="Def background best fit" />
-                                        <Button x:Name="Def_ImageFill"
-                                                Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="Fill"
-                                                AutomationProperties.Name="Def background fill" />
                                     </WrapPanel>
 
                                     <TextBlock Text="Background Colour"
