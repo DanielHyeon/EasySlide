@@ -1275,7 +1275,10 @@ public partial class MainWindow : Window
             viewModel.Bible,
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength);
-        PreviewAndAddBibleSelection(viewModel, selection);
+        if (PreviewAndAddBibleSelection(viewModel, selection) is not null)
+        {
+            ShowWorshipListTab();
+        }
     }
 
     private async void WorshipListPanel_AddSelectedSourceRequested(object sender, RoutedEventArgs e)
@@ -1477,7 +1480,10 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                PreviewAndAddBibleSelection(viewModel, selection);
+                if (PreviewAndAddBibleSelection(viewModel, selection) is not null)
+                {
+                    ShowWorshipListTab();
+                }
                 break;
 
             case "InfoScreenSource":
@@ -1639,6 +1645,9 @@ public partial class MainWindow : Window
 
         return viewModel.AddBibleSelection(selection);
     }
+
+    private void ShowWorshipListTab()
+        => LeftListTabs.SelectedItem = WorshipListTab;
 
     // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).
     private void BiblePassageBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -2765,7 +2774,10 @@ public partial class MainWindow : Window
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength,
             region2);
-        PreviewAndAddBibleSelection(viewModel, selection);
+        if (PreviewAndAddBibleSelection(viewModel, selection) is not null)
+        {
+            ShowWorshipListTab();
+        }
     }
 
     // 입력창에서 Enter 를 누르면 "이동"과 동일하게 처리(타이핑→Enter 한 번에 추가).

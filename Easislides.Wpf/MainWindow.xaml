@@ -1728,7 +1728,8 @@
                                             MinHeight="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                             Margin="4"
                                             Padding="4"
-                                            CornerRadius="3">
+                                            CornerRadius="3"
+                                            SnapsToDevicePixels="True">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
@@ -1753,7 +1754,8 @@
                                                     Background="{DynamicResource Brush.Surface.Page}"
                                                     BorderBrush="{DynamicResource Brush.Border.Muted}"
                                                     BorderThickness="1"
-                                                    ToolTip="{Binding ThumbnailStatus}">
+                                                    ToolTip="{Binding ThumbnailStatus}"
+                                                    SnapsToDevicePixels="True">
                                                 <Grid>
                                                     <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PowerPointSlide}"
                                                                    FontSize="34"
@@ -1762,7 +1764,8 @@
                                                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
                                                     <Image Source="{Binding ThumbnailImage}"
                                                            Stretch="Uniform"
-                                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                                           SnapsToDevicePixels="True" />
                                                 </Grid>
                                             </Border>
                                             <TextBlock Grid.Row="1"
@@ -3127,6 +3130,7 @@
                             BorderThickness="0"
                             Background="Transparent">
                     <TabItem Tag="WorshipList"
+                             x:Name="WorshipListTab"
                              AutomationProperties.Name="Worship List">
                         <TabItem.Header>
                             <TextBlock Text="Worship List" />

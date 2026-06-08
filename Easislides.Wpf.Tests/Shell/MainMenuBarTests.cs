@@ -1120,6 +1120,16 @@ public class MainMenuBarTests
             "the compact add affordance should be an icon, matching the FrmMain lower tool strip");
         xaml.Should().NotContain("Content=\"선택 구절 추가\"",
             "the Bible tab should not use a large text button for the selected-passage add path");
+        xaml.Should().Contain("x:Name=\"WorshipListTab\"",
+            "after adding a Bible selection the lower-left Worship List tab must be addressable and visible");
+        code.Should().Contain("private void ShowWorshipListTab()",
+            "Bible add paths should reveal the lower-left Worship List where the new verse is inserted");
+        code.Should().Contain("LeftListTabs.SelectedItem = WorshipListTab",
+            "the WPF shell should switch back from Praise Book to Worship List after a successful Bible add");
+        code.Should().Contain("if (PreviewAndAddBibleSelection(viewModel, selection) is not null)",
+            "Bible add should only switch the lower tab when a verse was actually added");
+        code.Should().Contain("ShowWorshipListTab();",
+            "Bible add and Region 2 add paths should share the same lower Worship List reveal behavior");
         xaml.Should().Contain("x:Name=\"CMenuBible\"", "Bible text context menu should map to FrmMain CMenuBible");
         xaml.Should().Contain("Opened=\"BibleContextMenu_Opened\"", "menu enablement should follow FrmMain's opening-time rules");
         xaml.Should().Contain("x:Name=\"CMenuBible_SelectAll\"", "Bible menu should expose Select All");
@@ -1213,6 +1223,10 @@ public class MainMenuBarTests
             "left PowerPoint preview flow should use the same FrmMain three-column thumbnail sizing as the right panes");
         sourcePowerPointPreviewFlow.Should().Contain("ConverterParameter=Height",
             "left PowerPoint preview thumbnails should preserve FrmMain's 4:3 thumbnail canvas");
+        sourcePowerPointPreviewFlow.Should().Contain("RenderOptions.BitmapScalingMode=\"HighQuality\"",
+            "left PowerPoint preview thumbnails should downscale high-resolution slide exports cleanly");
+        sourcePowerPointPreviewFlow.Should().Contain("SnapsToDevicePixels=\"True\"",
+            "left PowerPoint preview thumbnails should avoid subpixel blurring inside FrmMain-style cards");
         sourcePowerPointPreviewFlow.Should().Contain("AncestorType=ListBoxItem",
             "left PowerPoint preview thumbnails should react to the actual selected card");
         sourcePowerPointPreviewFlow.Should().Contain("BorderBrush\" Value=\"Red\"",
