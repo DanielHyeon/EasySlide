@@ -60,6 +60,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IRecentWorshipLists _recentWorshipLists;
     private readonly Func<string, bool> _worshipMediaLauncher;
     private readonly Func<string, bool> _worshipItemEditLauncher;
+    private readonly IPowerPointSlideShowControl _powerPointSlideShow;
     // 예배 순서 검증기 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems).
     private readonly WorshipListValidator _worshipValidator;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
@@ -902,7 +903,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         WorshipListValidator? worshipValidator = null,
         IPreviewWindowService? preview = null,
         Func<string, bool>? worshipMediaLauncher = null,
-        Func<string, bool>? worshipItemEditLauncher = null)
+        Func<string, bool>? worshipItemEditLauncher = null,
+        IPowerPointSlideShowControl? powerPointSlideShow = null)
     {
         _session = session;
         _output = output;
@@ -920,6 +922,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _recentWorshipLists = recentWorshipLists;
         _worshipMediaLauncher = worshipMediaLauncher ?? LaunchWorshipMediaProcess;
         _worshipItemEditLauncher = worshipItemEditLauncher ?? LaunchWorshipItemEditProcess;
+        _powerPointSlideShow = powerPointSlideShow ?? NullPowerPointSlideShowControl.Instance;
         // 예배 순서 검증기 — 기본은 실제 파일 존재(File.Exists). 테스트는 가짜 판정을 주입해 디스크 없이 검증.
         _worshipValidator = worshipValidator ?? new WorshipListValidator();
         Media = media;
@@ -4886,11 +4889,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var (width, height) = ResolvePptRenderSize();
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+        await TriggerPowerPointSlideShowNextAsync(
+            path,
+            target,
+            PowerPointSlideShowTarget.Preview).ConfigureAwait(true);
         StatusText = PowerPoint.SlideCount > 1
             ? $"Preview PPT slide {target}/{PowerPoint.SlideCount} replayed"
             : "Preview PPT slide replayed";
 
         NotifyCommandStates();
+    }
+
+    private async Task TriggerPowerPointSlideShowNextAsync(
+        string filePath,
+        int slideNumber,
+        PowerPointSlideShowTarget target)
+    {
+        try
+        {
+            await _powerPointSlideShow.TriggerNextAsync(
+                new PowerPointSlideShowRequest(filePath, slideNumber, target)).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PPT] Slide show trigger failed: {ex.Message}");
+        }
     }
 
     private bool CanGoToSlide(int target)
@@ -4957,9 +4980,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Output replay shares the live/prepared Output slide path so Active/Hidden/Off states stay independent from Preview.
     private async Task ReplayOutputPowerPointSlideAsync(int target)
     {
+        if (GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path })
+        {
+            return;
+        }
+
         await GoToOutputSlideAsync(target).ConfigureAwait(true);
         if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber == target)
         {
+            await TriggerPowerPointSlideShowNextAsync(
+                path,
+                target,
+                PowerPointSlideShowTarget.Output).ConfigureAwait(true);
             StatusText = OutputPowerPoint.SlideCount > 1
                 ? $"Output PPT slide {target}/{OutputPowerPoint.SlideCount} replayed"
                 : "Output PPT slide replayed";

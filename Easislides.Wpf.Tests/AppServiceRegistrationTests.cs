@@ -35,6 +35,7 @@ public class AppServiceRegistrationTests
             var settings = provider.GetRequiredService<ISettingsService>();
             var legacySettings = provider.GetRequiredService<ILegacySettingsSource>();
             var service = provider.GetRequiredService<IPowerPointRenderService>();
+            var slideShowControl = provider.GetRequiredService<IPowerPointSlideShowControl>();
             var mediaPlayback = provider.GetRequiredService<IMediaPlaybackService>();
             var placement = provider.GetRequiredService<IWindowPlacementService>();
             var adminRepository = provider.GetRequiredService<IAdminDatabaseRepository>();
@@ -70,6 +71,7 @@ public class AppServiceRegistrationTests
             var outputHost = provider.GetRequiredService<IOutputWindowHost>();
 
             service.Should().BeOfType<PowerPointRenderService>();
+            slideShowControl.Should().BeOfType<OfficePowerPointSlideShowControl>();
             var settingsField = typeof(PowerPointRenderService).GetField("_settings", BindingFlags.Instance | BindingFlags.NonPublic);
             settingsField.Should().NotBeNull();
             settingsField!.GetValue(service).Should().BeSameAs(settings);

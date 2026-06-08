@@ -1275,10 +1275,7 @@ public partial class MainWindow : Window
             viewModel.Bible,
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength);
-        if (!string.IsNullOrWhiteSpace(selection.IdString))
-        {
-            viewModel.AddBibleSelection(selection);
-        }
+        PreviewAndAddBibleSelection(viewModel, selection);
     }
 
     private async void WorshipListPanel_AddSelectedSourceRequested(object sender, RoutedEventArgs e)
@@ -1480,7 +1477,7 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                viewModel.AddBibleSelection(selection);
+                PreviewAndAddBibleSelection(viewModel, selection);
                 break;
 
             case "InfoScreenSource":
@@ -1629,6 +1626,18 @@ public partial class MainWindow : Window
         return string.IsNullOrWhiteSpace(current.IdString)
             ? new BibleSelection("", "")
             : current;
+    }
+
+    internal static LiveQueueItem? PreviewAndAddBibleSelection(MainViewModel viewModel, BibleSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(viewModel);
+
+        if (!string.IsNullOrWhiteSpace(selection.IdString))
+        {
+            viewModel.PreviewBibleSelection(selection);
+        }
+
+        return viewModel.AddBibleSelection(selection);
     }
 
     // 왼쪽 버튼 누름: 누른 지점이 "현재 선택 범위 안"이면 드래그 후보로 무장(밖이면 새 선택 제스처이므로 무장 안 함).

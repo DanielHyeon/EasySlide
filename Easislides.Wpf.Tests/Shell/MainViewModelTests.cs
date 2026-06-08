@@ -907,6 +907,27 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void MainShellBibleAddIcon_PreviewsSelectionAndAddsToWorshipList()
+    {
+        // FrmMain AddFromHolyBible first refreshes the selected passage/Preview state, then inserts at GetWorshipListNextSelectedLoc().
+        var sut = CreateSut(seedSampleQueue: false);
+        var opener = new LiveQueueItem("song-1", "Opening Song", LiveItemKinds.Song);
+        var sermon = new LiveQueueItem("sermon", "Sermon", LiveItemKinds.Notice);
+        sut.LoadQueue([opener, sermon]);
+        sut.SelectedItem = opener;
+        var selection = new BibleSelection("0;kjv.db;;1;1;1;1;2;", "Genesis 1:1-2 (KJV)");
+
+        var inserted = Easislides.Wpf.MainWindow.PreviewAndAddBibleSelection(sut, selection);
+
+        inserted.Should().NotBeNull();
+        sut.Queue.Should().Equal(opener, inserted!, sermon);
+        sut.SelectedItem.Should().Be(inserted);
+        sut.PreviewPanelTitleText.Should().Be(selection.Title);
+        sut.PreviewVisualTitle.Should().Be(selection.Title);
+        sut.StatusText.Should().Contain("성경 구절 추가됨");
+    }
+
+    [Fact]
     public void ToggleUseIndividualFormatting_FlipsFlagOnSelectedItem()
     {
         var sut = CreateSut(seedSampleQueue: false);
@@ -4429,6 +4450,35 @@ public class MainViewModelTests
         outputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle,
             "Preview thumbnail replay must not touch the independent Output surface");
         sut.Session.Current.State.Should().Be(LiveState.Off);
+    }
+
+    [Fact]
+    public async Task ReplayPreviewPowerPointSlideCommand_RequestsPreviewSlideShowNext()
+    {
+        // FrmMain PowerPointImage_DoubleClick(PP_Preview): set CurSlide, then SafePlayNext(slide).
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        var render = new SuccessPowerPointRenderService();
+        var powerPoint = new PowerPointPreviewViewModel(render, _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var deck = new LiveQueueItem("ppt:preview", "Preview deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "preview.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.SelectedItem = deck;
+        await sut.ApplySelectedItemContentAsync(deck);
+
+        await sut.ReplayPreviewPowerPointSlideCommand.ExecuteAsync(2);
+
+        slideShow.Requests.Should().ContainSingle().Which.Should().Be(
+            new PowerPointSlideShowRequest("preview.pptx", 2, PowerPointSlideShowTarget.Preview));
+        outputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle,
+            "Preview thumbnail double-click should not address the independent Output target");
     }
 
     [Fact]
@@ -10676,6 +10726,39 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ReplayOutputPowerPointSlideCommand_RequestsOutputSlideShowNext()
+    {
+        // FrmMain PowerPointImage_DoubleClick(PP_Output): set OutputItem.CurSlide, then SafePlayNext(slide).
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: previewPowerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var prepared = new LiveQueueItem("ppt:prepared", "Prepared deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "prepared.pptx",
+        };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nPreview",
+        };
+        sut.LoadQueue([prepared, preview]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        sut.SelectedItem = preview;
+
+        await sut.ReplayOutputPowerPointSlideCommand.ExecuteAsync(2);
+
+        slideShow.Requests.Should().ContainSingle().Which.Should().Be(
+            new PowerPointSlideShowRequest("prepared.pptx", 2, PowerPointSlideShowTarget.Output));
+        sut.SelectedItem.Should().BeSameAs(preview,
+            "Output PPT thumbnail double-click must not steal the Preview selection");
+    }
+
+    [Fact]
     public async Task OutputSlideButtons_ClampPreparedPowerPointAtBoundariesLikeFrmMain()
     {
         // FrmMain MoveToSlide(Gf.OutputItem, PrevOne/NextOne): 첫/마지막 슬라이드에서는 버튼 실행 후 현재 슬라이드에 머문다.
@@ -11274,6 +11357,7 @@ public class MainViewModelTests
         IPreviewWindowService? preview = null,
         Func<string, bool>? worshipMediaLauncher = null,
         Func<string, bool>? worshipItemEditLauncher = null,
+        IPowerPointSlideShowControl? powerPointSlideShow = null,
         bool seedSampleQueue = true,
         ISearchUsageService? searchUsageService = null)
     {
@@ -11311,7 +11395,8 @@ public class MainViewModelTests
             worshipValidator,
             preview,
             worshipMediaLauncher,
-            worshipItemEditLauncher);
+            worshipItemEditLauncher,
+            powerPointSlideShow);
 
         // 운영 기본 큐는 비어 있다(더미 시드 제거). 대부분의 테스트는 Queue[0] 등 채워진 큐를 가정하므로
         // CreateSut 가 기본으로 샘플 3항목을 시드해 기존 테스트를 보존한다. 빈 큐가 필요하면 seedSampleQueue:false.
@@ -11345,6 +11430,19 @@ public class MainViewModelTests
     }
 
     // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.
+    private sealed class RecordingPowerPointSlideShowControl : IPowerPointSlideShowControl
+    {
+        public List<PowerPointSlideShowRequest> Requests { get; } = new();
+
+        public Task TriggerNextAsync(
+            PowerPointSlideShowRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            Requests.Add(request);
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class InMemoryWorshipListStore : IWorshipListStore
     {
         private readonly Dictionary<string, IReadOnlyList<LiveQueueItem>> _store = new();

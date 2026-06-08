@@ -136,6 +136,82 @@ public sealed class OfficePptSession : IDisposable
     }
 
     /// <summary>현재 세션 종료 — STA 스레드에서 Quit + ReleaseComObject.</summary>
+    public Task<bool> TriggerSlideShowNextAsync(
+        string filePath,
+        int slideNumber,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentOutOfRangeException.ThrowIfLessThan(slideNumber, 1);
+
+        var fullPath = Path.GetFullPath(filePath);
+        return RunOnStaAsync(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _ppt ??= new Application();
+            _ = _ppt.Presentations.Count;
+
+            _Presentation? presentation = null;
+            for (var i = 1; i <= _ppt.Presentations.Count; i++)
+            {
+                var candidate = _ppt.Presentations[i];
+                if (string.Equals(Path.GetFullPath(candidate.FullName), fullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    presentation = candidate;
+                    break;
+                }
+            }
+
+            presentation ??= _ppt.Presentations.Open(
+                fullPath,
+                MsoTriState.msoFalse,
+                MsoTriState.msoFalse,
+                MsoTriState.msoFalse);
+
+            if (slideNumber > presentation.Slides.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
+            }
+
+            SlideShowWindow? slideShowWindow = null;
+            try
+            {
+                slideShowWindow = presentation.SlideShowWindow;
+            }
+            catch (COMException)
+            {
+            }
+
+            slideShowWindow ??= presentation.SlideShowSettings.Run();
+            if (slideShowWindow is null)
+            {
+                return false;
+            }
+
+            var view = slideShowWindow.View;
+            if (view.Slide.SlideIndex != slideNumber)
+            {
+                view.GotoSlide(slideNumber, MsoTriState.msoTrue);
+            }
+
+            slideShowWindow.Activate();
+            var totalClicks = view.Slide.TimeLine.MainSequence.Count;
+            var currentIndex = view.GetClickIndex();
+            if (currentIndex < totalClicks)
+            {
+                view.Next();
+            }
+            else
+            {
+                view.GotoClick(0);
+                view.Next();
+            }
+
+            return true;
+        });
+    }
+
     public Task CloseAsync() => RunOnStaAsync(() =>
     {
         if (_ppt is not null)

@@ -85,6 +85,7 @@ public partial class App : Application
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
             sp.GetRequiredService<IPowerPointRenderBackend>(),
             sp.GetRequiredService<ISettingsService>()));
+        services.AddSingleton<IPowerPointSlideShowControl, OfficePowerPointSlideShowControl>();
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
