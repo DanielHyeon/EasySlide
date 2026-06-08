@@ -498,6 +498,13 @@ public partial class MainWindow : Window
             return;
         }
 
+        // FrmMain focus safety: while the operator is typing in QuickFind, Bible lookup,
+        // live message, or editable setting fields, global live shortcuts must not fire.
+        if (IsTextInputFocused())
+        {
+            return;
+        }
+
         if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;

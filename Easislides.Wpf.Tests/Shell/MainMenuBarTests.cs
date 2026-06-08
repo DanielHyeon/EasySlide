@@ -861,6 +861,30 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void MainWindow_GlobalLiveShortcuts_DoNotRunWhileTypingInTextInputs()
+    {
+        var code = CodeBehind;
+        var onPreviewKeyDown = SectionBetween(
+            code,
+            "protected override void OnPreviewKeyDown",
+            "private bool TryHandlePreviewOutputPowerPointKey");
+
+        var textInputGuardIndex = onPreviewKeyDown.IndexOf("if (IsTextInputFocused())", StringComparison.Ordinal);
+        var shortcutRouterIndex = onPreviewKeyDown.IndexOf("_shortcuts.TryHandle(e.Key, Keyboard.Modifiers)", StringComparison.Ordinal);
+
+        textInputGuardIndex.Should().BeGreaterThanOrEqualTo(0,
+            "FrmMain live shortcuts should not fire while the operator is typing in QuickFind, Bible lookup, live message, or setting fields");
+        textInputGuardIndex.Should().BeLessThan(shortcutRouterIndex,
+            "text input focus must block the final global ShortcutRegistry route for F12/F11/F9/F3/Space");
+        onPreviewKeyDown[textInputGuardIndex..shortcutRouterIndex].Should().Contain("return;",
+            "typing should leave the key to the focused input control instead of marking it as a global live shortcut");
+        code.Should().Contain("Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase",
+            "TextBox and RichTextBox-style fields should count as text input focus");
+        code.Should().Contain("System.Windows.Controls.ComboBox { IsEditable: true }",
+            "editable combo boxes such as font selectors should count as text input focus");
+    }
+
+    [Fact]
     public void ClassicPreviewAndOutputLocalButtons_ReturnFocusToFrmMainAreas()
     {
         var xaml = Xaml;
