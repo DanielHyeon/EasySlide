@@ -330,6 +330,10 @@
                 <Separator />
                 <!-- 출력 표시 토글(FrmMain View/Output "Show …" 토글 대응) — 기존 인-셸 설정·명령 재사용.
                      IsChecked 는 현재 상태(Active*)에 단방향 바인딩, 클릭은 토글 명령이 처리(체크 표시 동기화). -->
+                <MenuItem Header="정보 패널 표시"
+                          IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}"
+                          Command="{Binding ToggleLyricsDisplayPanelCommand}"
+                          ToolTip="Display Panel 전체 표시/숨김(레거시 Def_PanelShow)." />
                 <MenuItem Header="위치 인디케이터 (N/M)"
                           IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
                           Command="{Binding ToggleLyricsPositionIndicatorCommand}" />
@@ -2470,6 +2474,107 @@
                                                 <sys:Int32>500</sys:Int32>
                                             </Button.CommandParameter>
                                         </Button>
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Display Panel"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,8,0,4" />
+                                    <WrapPanel x:Name="Def_DisplayPanel"
+                                               Tag="toolStripDef6">
+                                        <ToggleButton x:Name="Def_PanelShow"
+                                                      IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsDisplayPanelCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Panel"
+                                                      ToolTip="Show Display Panel"
+                                                      AutomationProperties.Name="Def PanelShow display panel" />
+                                        <ToggleButton x:Name="Def_PanelTitle"
+                                                      IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsTitleOnPanelCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Title"
+                                                      ToolTip="Show Title"
+                                                      AutomationProperties.Name="Def PanelTitle show title" />
+                                        <ToggleButton x:Name="Def_PanelSong"
+                                                      IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsItemNumberCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Item"
+                                                      ToolTip="Show Item Number"
+                                                      AutomationProperties.Name="Def PanelSong show item number" />
+                                        <ToggleButton x:Name="Def_PanelSlides"
+                                                      IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsPositionIndicatorCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Slides"
+                                                      ToolTip="Show Verse/Slide Indicators"
+                                                      AutomationProperties.Name="Def PanelSlides show verse slide indicators" />
+                                        <ToggleButton x:Name="Def_PanelCopyright"
+                                                      IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsCopyrightCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Copy"
+                                                      ToolTip="Show Copyright Information"
+                                                      AutomationProperties.Name="Def PanelCopyright show copyright" />
+                                        <ToggleButton x:Name="Def_PanelPrevNext"
+                                                      IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}"
+                                                      Command="{Binding ToggleLyricsNextItemCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="PrevNext"
+                                                      ToolTip="Show Previous/Next Item"
+                                                      AutomationProperties.Name="Def PanelPrevNext show previous next item" />
+                                        <ToggleButton x:Name="Def_PanelTransparent"
+                                                      IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelTransparentCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="Transp"
+                                                      ToolTip="Display Panel Transparent"
+                                                      AutomationProperties.Name="Def PanelTransparent transparent background" />
+                                        <WrapPanel x:Name="Def_PanelFont"
+                                                   Tag="Def_PanelFont"
+                                                   Margin="0,0,0,6">
+                                            <Button Command="{Binding DecreasePanelFontScaleCommand}"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    MinHeight="30"
+                                                    Padding="9,0"
+                                                    Margin="0,0,4,0"
+                                                    Content="A-"
+                                                    AutomationProperties.Name="Decrease Display Panel font" />
+                                            <TextBlock Text="{Binding ActivePanelFontScale, StringFormat={}{0}%}"
+                                                       MinWidth="44"
+                                                       VerticalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       Style="{StaticResource Type.Caption.Style}" />
+                                            <Button Command="{Binding IncreasePanelFontScaleCommand}"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    MinHeight="30"
+                                                    Padding="9,0"
+                                                    Margin="4,0,6,0"
+                                                    Content="A+"
+                                                    AutomationProperties.Name="Increase Display Panel font" />
+                                        </WrapPanel>
                                     </WrapPanel>
                                 </StackPanel>
                             </GroupBox>

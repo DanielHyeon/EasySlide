@@ -291,6 +291,9 @@ public static class EasiSettingKeys
     // 이중 언어 줄 교차(인터레이스, 레거시 Def_Interlace). on 이면 Region1·Region2 본문을 줄 단위로 번갈아 송출한다
     // (원문 줄 → 번역 줄 → 원문 줄 …). 기본 off=영역별 블록(Region1 위, Region2 아래, 무회귀). 두 영역이 다 보일 때만 의미.
     public static readonly SettingKey<bool> LyricsMonitorInterlace = new("liveOutput.lyricsMonitorInterlace", false);
+    // Display Panel 전체 표시(레거시 Def_PanelShow). off 이면 제목/상태/곡번호/저작권/다음항목/위치 밴드 전체를 숨긴다.
+    // 기본 on=현재 WPF 오버레이 표시 동작 보존(무회귀).
+    public static readonly SettingKey<bool> LyricsMonitorShowDisplayPanel = new("liveOutput.lyricsMonitorShowDisplayPanel", true);
     // Display Panel 배경 투명(레거시 Def_PanelTransparent). on 이면 곡번호·저작권·다음항목·위치 인디케이터 밴드의
     // 어두운 배경(#66000000)을 없애 텍스트가 슬라이드 위에 바로 보인다. 기본 off=기존 반투명 밴드(무회귀).
     public static readonly SettingKey<bool> LyricsMonitorPanelTransparent = new("liveOutput.lyricsMonitorPanelTransparent", false);
@@ -446,6 +449,7 @@ public static class EasiSettingKeys
         LyricsMonitorUnderline,
         LyricsMonitorEmphasisChorusOnly,
         LyricsMonitorInterlace,
+        LyricsMonitorShowDisplayPanel,
         LyricsMonitorPanelTransparent,
         LyricsMonitorPanelColorArgb,
         LyricsMonitorPanelFontScalePercent,
@@ -616,6 +620,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorEmphasisChorusOnly { get; init; } = EasiSettingKeys.LyricsMonitorEmphasisChorusOnly.DefaultValue;
 
     public bool LyricsMonitorInterlace { get; init; } = EasiSettingKeys.LyricsMonitorInterlace.DefaultValue;
+
+    public bool LyricsMonitorShowDisplayPanel { get; init; } = EasiSettingKeys.LyricsMonitorShowDisplayPanel.DefaultValue;
 
     public bool LyricsMonitorPanelTransparent { get; init; } = EasiSettingKeys.LyricsMonitorPanelTransparent.DefaultValue;
 
@@ -1660,6 +1666,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorUnderline" => snapshot.LiveOutput.LyricsMonitorUnderline,
             "liveOutput.lyricsMonitorEmphasisChorusOnly" => snapshot.LiveOutput.LyricsMonitorEmphasisChorusOnly,
             "liveOutput.lyricsMonitorInterlace" => snapshot.LiveOutput.LyricsMonitorInterlace,
+            "liveOutput.lyricsMonitorShowDisplayPanel" => snapshot.LiveOutput.LyricsMonitorShowDisplayPanel,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorPanelColorArgb" => snapshot.LiveOutput.LyricsMonitorPanelColorArgb,
             "liveOutput.lyricsMonitorPanelFontScalePercent" => snapshot.LiveOutput.LyricsMonitorPanelFontScalePercent,
@@ -1912,6 +1919,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorInterlace" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorInterlace = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorShowDisplayPanel" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorShowDisplayPanel = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot with
             {

@@ -47,6 +47,8 @@ public sealed record LiveOutputRenderSettings(
     bool LyricsMonitorItalic = false,
     bool LyricsMonitorShadow = false,
     bool LyricsMonitorUnderline = false,
+    // Display Panel 전체 표시(Def_PanelShow). 기본 true=기존 WPF 패널 오버레이 표시 보존.
+    bool LyricsMonitorShowDisplayPanel = true,
     // Display Panel 배경 투명(Def_PanelTransparent). 기본 false=반투명 밴드(무회귀).
     bool LyricsMonitorPanelTransparent = false,
     // Display Panel 밴드 배경색(ARGB, Def_PanelColour). 기본 0x66000000=반투명 검정(무회귀).
@@ -140,6 +142,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorItalic),
             settings.Get(EasiSettingKeys.LyricsMonitorShadow),
             settings.Get(EasiSettingKeys.LyricsMonitorUnderline),
+            settings.Get(EasiSettingKeys.LyricsMonitorShowDisplayPanel),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelTransparent),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelColorArgb),
             settings.Get(EasiSettingKeys.LyricsMonitorPanelFontScalePercent),
@@ -748,6 +751,11 @@ public sealed class OutputRenderer : IOutputRenderer
 
         // 대기(Ready) + Gap=Black 도 깨끗한 검은 화면이어야 하므로 타이틀/상태 오버레이를 숨긴다(레거시 Gap=Black).
         if (kind == OutputSceneKind.Ready && settings.GapItemOption == GapItemMode.Black)
+        {
+            return false;
+        }
+
+        if (!settings.LyricsMonitorShowDisplayPanel)
         {
             return false;
         }

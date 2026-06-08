@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,6 +86,21 @@ public class PowerPointPreviewViewModelTests
     }
 
     [Fact]
+    public async Task LoadThumbnailsAsync_ClampsSmallRequestsToFrmMainHighResolution()
+    {
+        var render = new StubRenderService(success: true);
+        var vm = new PowerPointPreviewViewModel(render, _ => DummyImage);
+        await vm.LoadAsync("deck.pptx", slideNumber: 1, pixelWidth: 800, pixelHeight: 600);
+        render.Requests.Clear();
+
+        await vm.LoadThumbnailsAsync("deck.pptx", slideCount: 3, thumbnailWidth: 200, thumbnailHeight: 112);
+
+        render.Requests.Should().HaveCount(3);
+        render.Requests.Should().OnlyContain(r => r.PixelWidth == 3840 && r.PixelHeight == 2880,
+            "FrmMain-style PPT thumbnails should be rendered at high resolution and then downscaled by WPF");
+    }
+
+    [Fact]
     public async Task SlideNumberChange_UpdatesThumbnailHighlight()
     {
         var vm = new PowerPointPreviewViewModel(new StubRenderService(success: true), _ => DummyImage);
@@ -149,8 +165,11 @@ public class PowerPointPreviewViewModelTests
 
         public StubRenderService(bool success) => _success = success;
 
+        public List<PowerPointRenderRequest> Requests { get; } = new();
+
         public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
         {
+            Requests.Add(request);
             if (!_success)
             {
                 return Task.FromResult(new PowerPointRenderResult(

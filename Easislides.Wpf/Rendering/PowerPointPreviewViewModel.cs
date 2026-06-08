@@ -45,6 +45,9 @@ public sealed partial class PowerPointSlideThumbnail : ObservableObject
 /// </summary>
 public sealed partial class PowerPointPreviewViewModel : ObservableObject
 {
+    private const int MinimumThumbnailPixelWidth = 3840;
+    private const int MinimumThumbnailPixelHeight = 2880;
+
     private readonly IPowerPointRenderService _render;
     private readonly Func<byte[], ImageSource> _decode;
     private CancellationTokenSource? _thumbnailCts;
@@ -151,6 +154,8 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
+        var renderWidth = Math.Max(MinimumThumbnailPixelWidth, thumbnailWidth);
+        var renderHeight = Math.Max(MinimumThumbnailPixelHeight, thumbnailHeight);
         _thumbnailCts?.Cancel();
         var cts = new CancellationTokenSource();
         _thumbnailCts = cts;
@@ -170,7 +175,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
                 }
 
                 var result = await _render.RenderSlideAsync(
-                    new PowerPointRenderRequest(filePath, slide, thumbnailWidth, thumbnailHeight, TimeSpan.FromSeconds(60)),
+                    new PowerPointRenderRequest(filePath, slide, renderWidth, renderHeight, TimeSpan.FromSeconds(60)),
                     token).ConfigureAwait(true);
 
                 if (token.IsCancellationRequested)

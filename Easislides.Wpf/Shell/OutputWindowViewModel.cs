@@ -1443,6 +1443,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorEmphasisChorusOnly.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 줄 교차(인터레이스) 토글도 라이브 출력에 즉시 반영.
                 string.Equals(key, EasiSettingKeys.LyricsMonitorInterlace.Id, StringComparison.OrdinalIgnoreCase) ||
+                // Display Panel 전체 표시 토글도 라이브 출력에 즉시 반영(Def_PanelShow).
+                string.Equals(key, EasiSettingKeys.LyricsMonitorShowDisplayPanel.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 투명 토글도 라이브 출력에 즉시 반영(Def_PanelTransparent).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTransparent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 밴드 색 변경도 라이브 출력에 즉시 반영(Def_PanelColour).

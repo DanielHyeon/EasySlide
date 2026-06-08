@@ -1631,6 +1631,33 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void CreateScene_HidesPanelOverlay_WhenDisplayPanelDisabled()
+    {
+        var sut = CreateRenderer();
+        var output = OpenOutput("Display 2");
+        var settings = new LiveOutputRenderSettings(LyricsMonitorShowDisplayPanel: false);
+
+        var scene = sut.CreateScene(new OutputRenderRequest(
+            Session: new LiveSessionSnapshot(
+                LiveState.Active,
+                "Live Item",
+                "Display 2",
+                IsBlackout: false,
+                CurrentItemBodyText: "1절 가사"),
+            Output: output,
+            ViewportWidth: 1280,
+            ViewportHeight: 720,
+            LiveOutputSettings: settings));
+
+        scene.ShowsPanelOverlay.Should().BeFalse("FrmMain Def_PanelShow off hides the whole Display Panel");
+        scene.ShowsTitleOnPanel.Should().BeFalse();
+        scene.ShowsItemNumber.Should().BeFalse();
+        scene.ShowsCopyright.Should().BeFalse();
+        scene.ShowsNextItem.Should().BeFalse();
+        scene.ShowsPositionIndicator.Should().BeFalse();
+    }
+
+    [Fact]
     public void CreateScene_ReadyWithUserGap_UsesGapLogoAndFadeSettings()
     {
         var sut = CreateRenderer();

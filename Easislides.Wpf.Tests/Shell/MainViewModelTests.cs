@@ -5994,6 +5994,21 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ToggleLyricsDisplayPanelCommand_FlipsSetting()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings);
+        sut.ActiveLyricsDisplayPanel.Should().BeTrue("FrmMain Def_PanelShow defaults to visible");
+
+        sut.ToggleLyricsDisplayPanelCommand.Execute(null);
+
+        sut.ActiveLyricsDisplayPanel.Should().BeFalse();
+        settings.Get(EasiSettingKeys.LyricsMonitorShowDisplayPanel).Should().BeFalse();
+        sut.StatusText.Should().Contain("정보 패널 표시").And.NotContain("liveOutput", "원시 설정 ID 가 새지 않고 한글 라벨 표시");
+    }
+
+    [Fact]
     public void FontEffectActiveFlags_ReflectCurrentSettings_DefaultOff()
     {
         var sut = CreateSut();
