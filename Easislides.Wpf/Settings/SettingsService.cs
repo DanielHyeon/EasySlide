@@ -228,8 +228,10 @@ public static class EasiSettingKeys
     public static readonly SettingKey<string> PreviewMonitorId = new("liveOutput.previewMonitorId", "");
     public static readonly SettingKey<bool> UseSafetyConfirmations = new("liveOutput.useSafetyConfirmations", true);
     public static readonly SettingKey<bool> ShowLyricsMonitorAlertBox = new("liveOutput.showLyricsMonitorAlertBox", false);
-    // FrmOptions Reference_Source0..4. WPF currently supports 0=None, 1=Song Title, 2=Song Number; 3/4 need legacy reference fields.
+    // FrmOptions Reference_Source0..4. 0=None, 1=Song Title, 2=Song Number, 3=Book Reference, 4=User Reference.
     public static readonly SettingKey<int> ReferenceAlertSource = new("liveOutput.referenceAlertSource", 1);
+    // FrmOptions ReferenceAlertDuration. Legacy registry accepts 1..999 seconds; FrmOptions UI normally caps at 60.
+    public static readonly SettingKey<int> ReferenceAlertDurationSeconds = new("liveOutput.referenceAlertDurationSeconds", 20);
     public static readonly SettingKey<bool> AdvanceNextItem = new("liveOutput.advanceNextItem", false);
     public static readonly SettingKey<GapItemMode> GapItemOption = new("liveOutput.gapItemOption", GapItemMode.None);
     public static readonly SettingKey<string> GapItemLogoFile = new("liveOutput.gapItemLogoFile", "");
@@ -431,6 +433,7 @@ public static class EasiSettingKeys
         UseSafetyConfirmations,
         ShowLyricsMonitorAlertBox,
         ReferenceAlertSource,
+        ReferenceAlertDurationSeconds,
         AdvanceNextItem,
         GapItemOption,
         GapItemLogoFile,
@@ -572,6 +575,8 @@ public sealed record LiveOutputSettings
     public bool ShowLyricsMonitorAlertBox { get; init; } = EasiSettingKeys.ShowLyricsMonitorAlertBox.DefaultValue;
 
     public int ReferenceAlertSource { get; init; } = EasiSettingKeys.ReferenceAlertSource.DefaultValue;
+
+    public int ReferenceAlertDurationSeconds { get; init; } = EasiSettingKeys.ReferenceAlertDurationSeconds.DefaultValue;
 
     public bool AdvanceNextItem { get; init; } = EasiSettingKeys.AdvanceNextItem.DefaultValue;
 
@@ -1120,6 +1125,12 @@ public sealed class SettingsService : ISettingsService
             max: 600,
             EasiSettingKeys.AutoRotateIntervalSeconds.Id,
             issues);
+        RequireRange(
+            candidate.LiveOutput.ReferenceAlertDurationSeconds,
+            min: 1,
+            max: 999,
+            EasiSettingKeys.ReferenceAlertDurationSeconds.Id,
+            issues);
 
         ValidatePath(candidate.LiveOutput.GapItemLogoFile, EasiSettingKeys.GapItemLogoFile.Id, issues, allowEmpty: true);
         RequireRange(
@@ -1301,6 +1312,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertSource.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { ReferenceAlertSource = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertDurationSeconds.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { ReferenceAlertDurationSeconds = value },
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AdvanceNextItem.Id), next, issues, value => next with
         {
@@ -1671,6 +1686,7 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.useSafetyConfirmations" => snapshot.LiveOutput.UseSafetyConfirmations,
             "liveOutput.showLyricsMonitorAlertBox" => snapshot.LiveOutput.ShowLyricsMonitorAlertBox,
             "liveOutput.referenceAlertSource" => snapshot.LiveOutput.ReferenceAlertSource,
+            "liveOutput.referenceAlertDurationSeconds" => snapshot.LiveOutput.ReferenceAlertDurationSeconds,
             "liveOutput.advanceNextItem" => snapshot.LiveOutput.AdvanceNextItem,
             "liveOutput.gapItemOption" => snapshot.LiveOutput.GapItemOption,
             "liveOutput.gapItemLogoFile" => snapshot.LiveOutput.GapItemLogoFile,
@@ -1840,6 +1856,10 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.referenceAlertSource" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { ReferenceAlertSource = Cast<int>(keyId, value) },
+            },
+            "liveOutput.referenceAlertDurationSeconds" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { ReferenceAlertDurationSeconds = Cast<int>(keyId, value) },
             },
             "liveOutput.advanceNextItem" => snapshot with
             {

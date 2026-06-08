@@ -3519,6 +3519,60 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenDurationConfigured_AutoHidesAfterDelay()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.ReferenceAlertDurationSeconds, 7).Succeeded.Should().BeTrue();
+        var scheduler = new RecordingReferenceAlertDelay();
+        var sut = CreateSut(settings: settings, referenceAlertDelayScheduler: scheduler.Schedule);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("bible:john-3-16", "요한복음 3:16", LiveItemKinds.Bible)
+            {
+                Lyrics = "하나님이 세상을 이처럼 사랑하사",
+            },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        scheduler.Delays.Should().ContainSingle().Which.Should().Be(TimeSpan.FromSeconds(7));
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
+
+        scheduler.Fire();
+
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeFalse("FrmMain hides the reference alert after ReferenceAlertDuration");
+        sut.Session.Current.ReferenceAlertText.Should().BeEmpty();
+        sut.IsOutputReferenceAlertActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ToggleOutputReferenceAlertCommand_WhenManuallyHidden_CancelsPendingDuration()
+    {
+        var scheduler = new RecordingReferenceAlertDelay();
+        var sut = CreateSut(referenceAlertDelayScheduler: scheduler.Schedule);
+        sut.LoadQueue(new[]
+        {
+            new LiveQueueItem("bible:john-3-16", "요한복음 3:16", LiveItemKinds.Bible)
+            {
+                Lyrics = "하나님이 세상을 이처럼 사랑하사",
+            },
+        });
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeTrue();
+
+        sut.ToggleOutputReferenceAlertCommand.Execute(null);
+
+        scheduler.DisposeCount.Should().BeGreaterThan(0);
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeFalse();
+        scheduler.Fire();
+        sut.Session.Current.IsReferenceAlertVisible.Should().BeFalse("a canceled duration must not re-enter the live alert path");
+    }
+
+    [Fact]
     public async Task ToggleOutputReferenceAlertCommand_WhenSourceIsSongNumber_UsesSongNumber()
     {
         var settings = TempSettingsFolder.CreateDetachedSettings();
@@ -11599,6 +11653,7 @@ public class MainViewModelTests
         Func<string, bool>? worshipMediaLauncher = null,
         Func<string, bool>? worshipItemEditLauncher = null,
         IPowerPointSlideShowControl? powerPointSlideShow = null,
+        Func<TimeSpan, Action, IDisposable>? referenceAlertDelayScheduler = null,
         bool seedSampleQueue = true,
         ISearchUsageService? searchUsageService = null)
     {
@@ -11637,7 +11692,8 @@ public class MainViewModelTests
             preview,
             worshipMediaLauncher,
             worshipItemEditLauncher,
-            powerPointSlideShow);
+            powerPointSlideShow,
+            referenceAlertDelayScheduler ?? ((_, _) => NoopDisposable.Instance));
 
         // 운영 기본 큐는 비어 있다(더미 시드 제거). 대부분의 테스트는 Queue[0] 등 채워진 큐를 가정하므로
         // CreateSut 가 기본으로 샘플 3항목을 시드해 기존 테스트를 보존한다. 빈 큐가 필요하면 seedSampleQueue:false.
@@ -11652,6 +11708,66 @@ public class MainViewModelTests
         }
 
         return vm;
+    }
+
+    private sealed class NoopDisposable : IDisposable
+    {
+        public static readonly NoopDisposable Instance = new();
+
+        private NoopDisposable()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class RecordingReferenceAlertDelay
+    {
+        private ScheduledReferenceAlertDelay? _current;
+
+        public List<TimeSpan> Delays { get; } = new();
+
+        public int DisposeCount { get; private set; }
+
+        public IDisposable Schedule(TimeSpan delay, Action callback)
+        {
+            Delays.Add(delay);
+            _current = new ScheduledReferenceAlertDelay(callback, () => DisposeCount++);
+            return _current;
+        }
+
+        public void Fire()
+        {
+            _current?.Fire();
+        }
+    }
+
+    private sealed class ScheduledReferenceAlertDelay(Action callback, Action onDispose) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Fire()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            callback();
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            onDispose();
+        }
     }
 
     // 최근 예배 순서 — 파일시스템 없이 인메모리로 검증.

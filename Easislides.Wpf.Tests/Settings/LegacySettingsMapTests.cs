@@ -40,6 +40,7 @@ public class LegacySettingsMapTests
             "UseMediaTab",
             "ShowLyricsMonitorAlertBox",
             "ReferenceAlertSource",
+            "ReferenceAlertDuration",
             "AdvanceNextItem",
             "GapItemOption",
             "DMAlwaysUseSecondaryMonitor",
@@ -81,6 +82,8 @@ public class LegacySettingsMapTests
             .Should().Contain(["DMAlwaysUseSecondaryMonitor", "AlwaysTryDualMonitor"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomWidth.Id)
             .Should().Contain(["DMOption1Width", "DualMonitorOptionCustomWidth"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ReferenceAlertDurationSeconds.Id)
+            .Should().Contain(["ReferenceAlertDuration", "ReferenceAlertDurationSeconds"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorTextColorArgb.Id)
             .Should().Contain(["LMTextColour", "LyricsMonitorTextColour"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorHighlightColorArgb.Id)
@@ -150,6 +153,7 @@ public class LegacySettingsMapTests
             ["LiveCamNumber"] = "3",
             ["ShowLyricsMonitorAlertBox"] = "1",
             ["ReferenceAlertSource"] = "2",
+            ["ReferenceAlertDuration"] = "7",
             ["AdvanceNextItem"] = "yes",
             ["GapItemOption"] = "2",
             ["GapItemLogoFile"] = logoFile,
@@ -181,6 +185,7 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.LiveCameraNumber).Should().Be(3);
         sut.Get(EasiSettingKeys.ShowLyricsMonitorAlertBox).Should().BeTrue();
         sut.Get(EasiSettingKeys.ReferenceAlertSource).Should().Be(2);
+        sut.Get(EasiSettingKeys.ReferenceAlertDurationSeconds).Should().Be(7);
         sut.Get(EasiSettingKeys.AdvanceNextItem).Should().BeTrue();
         sut.Get(EasiSettingKeys.GapItemOption).Should().Be(GapItemMode.Default);
         sut.Get(EasiSettingKeys.GapItemLogoFile).Should().Be(logoFile);

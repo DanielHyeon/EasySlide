@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Easislides.Wpf.Composites;
@@ -62,6 +63,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly Func<string, bool> _worshipMediaLauncher;
     private readonly Func<string, bool> _worshipItemEditLauncher;
     private readonly IPowerPointSlideShowControl _powerPointSlideShow;
+    private readonly Func<TimeSpan, Action, IDisposable> _referenceAlertDelayScheduler;
     // 예배 순서 검증기 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems).
     private readonly WorshipListValidator _worshipValidator;
     private readonly IAppearanceTemplateStore _appearanceTemplates;
@@ -318,6 +320,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string OutputPanelStatusText => BuildOutputPanelStatusText(GetOutputNavigationItem());
 
     private bool _disposed;
+    private IDisposable? _referenceAlertHideDelay;
+    private int _referenceAlertHideGeneration;
 
     // 폰트 크기 조절 범위·단계(설정 Validate 범위 24~120 과 일치).
     private const int LyricsFontSizeMin = 24;
@@ -914,7 +918,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IPreviewWindowService? preview = null,
         Func<string, bool>? worshipMediaLauncher = null,
         Func<string, bool>? worshipItemEditLauncher = null,
-        IPowerPointSlideShowControl? powerPointSlideShow = null)
+        IPowerPointSlideShowControl? powerPointSlideShow = null,
+        Func<TimeSpan, Action, IDisposable>? referenceAlertDelayScheduler = null)
     {
         _session = session;
         _output = output;
@@ -933,6 +938,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _worshipMediaLauncher = worshipMediaLauncher ?? LaunchWorshipMediaProcess;
         _worshipItemEditLauncher = worshipItemEditLauncher ?? LaunchWorshipItemEditProcess;
         _powerPointSlideShow = powerPointSlideShow ?? NullPowerPointSlideShowControl.Instance;
+        _referenceAlertDelayScheduler = referenceAlertDelayScheduler ?? ScheduleReferenceAlertHideWithDispatcher;
         // 예배 순서 검증기 — 기본은 실제 파일 존재(File.Exists). 테스트는 가짜 판정을 주입해 디스크 없이 검증.
         _worshipValidator = worshipValidator ?? new WorshipListValidator();
         Media = media;
@@ -8548,6 +8554,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var text = show ? ResolveReferenceAlertText(_session.Current) : string.Empty;
         if (show && string.IsNullOrWhiteSpace(text))
         {
+            CancelReferenceAlertAutoHide();
             _session.SetReferenceAlert(visible: false, string.Empty);
             StatusText = "구절 알림 없음";
             NotifyCommandStates();
@@ -8555,8 +8562,82 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.SetReferenceAlert(show, text);
+        if (show)
+        {
+            ScheduleReferenceAlertAutoHide();
+        }
+        else
+        {
+            CancelReferenceAlertAutoHide();
+        }
+
         StatusText = show ? "구절 알림 표시" : "구절 알림 숨김";
         NotifyCommandStates();
+    }
+
+    private void ScheduleReferenceAlertAutoHide()
+    {
+        CancelReferenceAlertAutoHide();
+
+        var generation = ++_referenceAlertHideGeneration;
+        var seconds = NormalizeReferenceAlertDurationSeconds(
+            _settings.Get(EasiSettingKeys.ReferenceAlertDurationSeconds));
+        _referenceAlertHideDelay = _referenceAlertDelayScheduler(
+            TimeSpan.FromSeconds(seconds),
+            () => HideReferenceAlertIfCurrent(generation));
+    }
+
+    private void HideReferenceAlertIfCurrent(int generation)
+    {
+        if (generation != _referenceAlertHideGeneration)
+        {
+            return;
+        }
+
+        CancelReferenceAlertAutoHide();
+        if (_session.Current is not { State: LiveState.Active, IsReferenceAlertVisible: true })
+        {
+            return;
+        }
+
+        _session.SetReferenceAlert(visible: false, string.Empty);
+        StatusText = "구절 알림 숨김";
+        NotifyCommandStates();
+    }
+
+    private void CancelReferenceAlertAutoHide()
+    {
+        _referenceAlertHideGeneration++;
+        _referenceAlertHideDelay?.Dispose();
+        _referenceAlertHideDelay = null;
+    }
+
+    private static IDisposable ScheduleReferenceAlertHideWithDispatcher(TimeSpan delay, Action callback)
+    {
+        var timer = new DispatcherTimer { Interval = delay };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            callback();
+        };
+        timer.Start();
+        return new DispatcherTimerHandle(timer);
+    }
+
+    private sealed class DispatcherTimerHandle(DispatcherTimer timer) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            timer.Stop();
+        }
     }
 
     private string ResolveReferenceAlertText(LiveSessionSnapshot snapshot)
@@ -8573,6 +8654,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static int NormalizeReferenceAlertSource(int value)
         => value is >= 0 and <= 4 ? value : EasiSettingKeys.ReferenceAlertSource.DefaultValue;
+
+    private static int NormalizeReferenceAlertDurationSeconds(int value)
+        => value is >= 1 and <= 999 ? value : EasiSettingKeys.ReferenceAlertDurationSeconds.DefaultValue;
 
     private static string ResolveReferenceAlertFallbackText(LiveSessionSnapshot snapshot)
     {
@@ -9261,6 +9345,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {
+        if (snapshot.State != LiveState.Active || !snapshot.IsReferenceAlertVisible)
+        {
+            CancelReferenceAlertAutoHide();
+        }
+
         LiveBar.State = snapshot.State;
         LiveBar.CurrentItemTitle = snapshot.CurrentItemTitle;
         // 라이브 위치(곡 절 "3/12"·PPT 슬라이드 "5/20") — 절/슬라이드 이동마다 세션이 다시 알려 LiveBar 가 갱신된다(없으면 빈 문자열→숨김).
@@ -9419,6 +9508,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _disposed = true;
+        CancelReferenceAlertAutoHide();
         _settings.SettingsChanged -= OnSettingsChanged;
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
         OutputPowerPoint.PropertyChanged -= OnOutputPowerPointPropertyChanged;
