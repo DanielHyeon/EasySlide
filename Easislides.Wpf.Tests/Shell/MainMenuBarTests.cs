@@ -2026,6 +2026,15 @@ public class MainMenuBarTests
             "Ind_ImageMode options should write FormatData code 62 through the selected-item VM command");
         xaml.Should().Contain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Tile}\"",
             "Ind_ImageTile should map to the WPF Tile mode before encoding legacy 62=0");
+        var indImageMode = SectionBetween(xaml, "x:Name=\"Ind_ImageMode\"", "</WrapPanel>");
+        indImageMode.IndexOf("x:Name=\"Ind_ImageTile\"", StringComparison.Ordinal).Should()
+            .BeLessThan(indImageMode.IndexOf("x:Name=\"Ind_ImageCentre\"", StringComparison.Ordinal),
+                "FrmMain Ind_ImageMode dropdown order is Tile, Centre, Best Fit");
+        indImageMode.IndexOf("x:Name=\"Ind_ImageCentre\"", StringComparison.Ordinal).Should()
+            .BeLessThan(indImageMode.IndexOf("x:Name=\"Ind_ImageBestFit\"", StringComparison.Ordinal),
+                "FrmMain Ind_ImageMode dropdown order is Tile, Centre, Best Fit");
+        indImageMode.Should().NotContain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Fill}\"",
+            "FrmMain Ind_ImageMode FormatData 62 only supports Tile, Centre, and Best Fit");
         xaml.Should().Contain("Command=\"{Binding SetSelectedItemVerticalAlignmentCommand}\"",
             "Ind_VAlign should write FormatData code 63 through the selected-item VM command");
         xaml.Should().Contain("IsChecked=\"{Binding SelectedItemVerticalAlignmentIsCenter, Mode=OneWay}\"",
