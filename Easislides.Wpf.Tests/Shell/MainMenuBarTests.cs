@@ -1168,6 +1168,7 @@ public class MainMenuBarTests
     public void LeftBrowserTabs_ExposeInlinePowerPointAndMediaSources()
     {
         var xaml = Xaml;
+        var code = CodeBehind;
 
         xaml.Should().Contain("Tag=\"InfoScreenSource\"", "FrmMain keeps InfoScr as a main-console source tab");
         xaml.Should().Contain("x:Name=\"InfoScreenSourceTab\"", "inline InfoScr tab needs a stable DataContext target");
@@ -1333,6 +1334,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("ApplyLyricsAlignmentCommand", "Def_R1Align should use the shared lyrics alignment command");
         xaml.Should().Contain("x:Name=\"Def_R1Colour\"", "Default tab should expose FrmMain Def_R1Colour");
         xaml.Should().Contain("ApplyTextColorHexCommand", "Def_R1Colour should use the real default text colour command");
+        xaml.Should().Contain("x:Name=\"Def_R1ColourCustom\"", "Default tab should expose the FrmMain custom text colour picker path");
+        xaml.Should().Contain("Click=\"PickDefaultTextColor_Click\"", "Def_R1Colour custom should open a real colour picker");
+        code.Should().Contain("private void PickDefaultTextColor_Click", "Def_R1Colour custom should have a code-behind handler");
+        code.Should().Contain("viewModel.ApplyTextColorHexCommand.Execute(hex)", "Def_R1Colour custom should apply the picked colour through the VM command");
         xaml.Should().Contain("x:Name=\"Def_R2Align\"", "Default tab should expose FrmMain Def_R2Align");
         xaml.Should().Contain("ItemsSource=\"{Binding LyricsRegion2AlignmentPresets}\"", "Def_R2Align should use the real Region2 alignment presets");
         xaml.Should().Contain("SelectedValue=\"{Binding LyricsRegion2AlignmentInput, Mode=TwoWay}\"", "Def_R2Align should persist the Region2 default alignment");
@@ -1353,6 +1358,14 @@ public class MainMenuBarTests
         xaml.Should().Contain("ClearOutputBackgroundImageCommand", "Def_NoImage should clear the default output background");
         xaml.Should().Contain("IsEnabled=\"{Binding CanClearOutputBackgroundImage}\"", "Def_NoImage should mirror FrmMain disabled state when no default image exists");
         xaml.Should().Contain("ToolTip=\"{Binding OutputBackgroundNoImageToolTip}\"", "Def_NoImage should expose FrmMain-style current-background feedback");
+        xaml.Should().Contain("x:Name=\"Def_BackColour\"", "Default tab should expose FrmMain Def_BackColour");
+        xaml.Should().Contain("x:Name=\"Def_BackColourHex\"", "Def_BackColour should show the current default background hex");
+        xaml.Should().Contain("ActiveBackgroundColorHex", "Def_BackColour should reflect the current default background colour");
+        xaml.Should().Contain("ApplyBackgroundColorHexCommand", "Def_BackColour should apply the real default background colour setting");
+        xaml.Should().Contain("x:Name=\"Def_BackColourCustom\"", "Def_BackColour should expose the FrmMain custom picker path");
+        xaml.Should().Contain("Click=\"PickDefaultBackgroundColor_Click\"", "Def_BackColour custom should open a real colour picker");
+        code.Should().Contain("private void PickDefaultBackgroundColor_Click", "Def_BackColour custom should have a code-behind handler");
+        code.Should().Contain("viewModel.ApplyBackgroundColorHexCommand.Execute(hex)", "Def_BackColour custom should apply the picked colour through the VM command");
         xaml.Should().Contain("x:Name=\"Def_ImageMode\"", "Default tab should expose FrmMain Def_ImageMode");
         xaml.Should().Contain("Tag=\"Def_ImageMode\"", "Def_ImageMode should keep the legacy role tag");
         xaml.Should().Contain("x:Name=\"Def_ImageTile\"", "Def_ImageMode should expose FrmMain Tile Image option");
@@ -1386,6 +1399,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"Def_PanelBackColourHex\"", "Def_PanelBackColour should show the current panel background hex");
         xaml.Should().Contain("ActivePanelColorHex", "Def_PanelBackColour should reflect the current display-panel band color");
         xaml.Should().Contain("ApplyPanelColorHexCommand", "Def_PanelBackColour should apply the real display-panel band color setting");
+        xaml.Should().Contain("x:Name=\"Def_PanelBackColourCustom\"", "Def_PanelBackColour should expose the FrmMain custom picker path");
+        xaml.Should().Contain("Click=\"PickPanelBackColor_Click\"", "Def_PanelBackColour custom should open a real colour picker");
+        code.Should().Contain("private void PickPanelBackColor_Click", "Def_PanelBackColour custom should have a code-behind handler");
+        code.Should().Contain("viewModel.ApplyPanelColorHexCommand.Execute(hex)", "Def_PanelBackColour custom should apply through the VM command");
         xaml.Should().Contain("x:Name=\"Def_PanelFont\"", "Default tab should expose FrmMain Def_PanelFont");
         xaml.Should().Contain("IncreasePanelFontScaleCommand", "Def_PanelFont should expose the panel font increase path");
         xaml.Should().Contain("DecreasePanelFontScaleCommand", "Def_PanelFont should expose the panel font decrease path");
@@ -1395,6 +1412,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"Def_PanelTextColourHex\"", "Def_PanelTextColour should show the current panel text hex");
         xaml.Should().Contain("ActivePanelTextColorHex", "Def_PanelTextColour should reflect the current display-panel text color");
         xaml.Should().Contain("ApplyPanelTextColorHexCommand", "Def_PanelTextColour should apply the real display-panel text color setting");
+        xaml.Should().Contain("x:Name=\"Def_PanelTextColourCustom\"", "Def_PanelTextColour should expose the FrmMain custom picker path");
+        xaml.Should().Contain("Click=\"PickPanelTextColor_Click\"", "Def_PanelTextColour custom should open a real colour picker");
+        code.Should().Contain("private void PickPanelTextColor_Click", "Def_PanelTextColour custom should have a code-behind handler");
+        code.Should().Contain("viewModel.ApplyPanelTextColorHexCommand.Execute(hex)", "Def_PanelTextColour custom should apply through the VM command");
         xaml.Should().Contain("x:Name=\"Def_PanelFontBold\"", "Default tab should expose FrmMain Def_PanelFontBold");
         xaml.Should().Contain("TogglePanelFontBoldCommand", "Def_PanelFontBold should affect display-panel text");
         xaml.Should().Contain("x:Name=\"Def_PanelFontItalics\"", "Default tab should expose FrmMain Def_PanelFontItalics");
@@ -1404,6 +1425,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("ResetOutputAppearanceCommand", "Default tab restores the default output layout");
         xaml.Should().Contain("ApplyGlobalFormatToAllCommand", "Default tab can apply the current format globally");
         xaml.Should().Contain("ClearAllItemsFormattingCommand", "Default tab can clear item-specific formatting overrides");
+        code.Should().Contain("FormsColorDialog", "FrmMain-style custom colour picker paths should use the Windows colour dialog");
+        code.Should().Contain("private bool TryPickColor", "colour picker handlers should share one guarded dialog path");
+        code.Should().Contain("private static bool TryParseDialogColor", "colour picker should seed the dialog from existing hex values");
     }
 
     [Fact]
@@ -1814,6 +1838,7 @@ public class MainMenuBarTests
             "Ind_LoadTemplate",
             "Ind_SaveTemplate",
             "Ind_BackColour",
+            "Ind_BackColourCustom",
             "Ind_BackImageSelect",
             "Ind_NoImage",
             "Ind_VAlign",
@@ -1901,6 +1926,20 @@ public class MainMenuBarTests
             "Ind_checkBox should toggle the selected item's individual formatting");
         xaml.Should().Contain("Command=\"{Binding SetSelectedItemTextColorCommand}\"",
             "IndPanel should expose item-specific text color controls");
+        xaml.Should().Contain("x:Name=\"Ind_TextColourCustom\"",
+            "IndPanel should expose the FrmMain item-specific custom text colour picker");
+        xaml.Should().Contain("Click=\"PickSelectedItemTextColor_Click\"",
+            "item-specific text colour custom should open a real colour picker");
+        code.Should().Contain("private void PickSelectedItemTextColor_Click",
+            "item-specific text colour custom should have a code-behind handler");
+        code.Should().Contain("viewModel.SetSelectedItemTextColorCommand.Execute(hex)",
+            "item-specific text colour custom should apply through the selected-item VM command");
+        xaml.Should().Contain("Click=\"PickSelectedItemBackgroundColor_Click\"",
+            "item-specific background colour custom should open a real colour picker");
+        code.Should().Contain("private void PickSelectedItemBackgroundColor_Click",
+            "item-specific background colour custom should have a code-behind handler");
+        code.Should().Contain("viewModel.SetSelectedItemBackgroundColorCommand.Execute(hex)",
+            "item-specific background colour custom should apply through the selected-item VM command");
         xaml.Should().Contain("Command=\"{Binding ClearSelectedItemFormattingCommand}\"",
             "IndPanel should expose item-specific formatting clear");
         xaml.Should().Contain("Click=\"LoadPreviewItemTemplate_Click\"",

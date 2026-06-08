@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,6 +20,9 @@ using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Support;
 using Microsoft.Extensions.DependencyInjection;
+using DrawingColor = System.Drawing.Color;
+using FormsColorDialog = System.Windows.Forms.ColorDialog;
+using FormsDialogResult = System.Windows.Forms.DialogResult;
 
 namespace Easislides.Wpf;
 
@@ -3025,6 +3029,103 @@ public partial class MainWindow : Window
         {
             viewModel.SetSelectedItemBackgroundImage(dialog.FileName);
         }
+    }
+
+    private void PickDefaultTextColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActiveTextColorHex, out var hex))
+        {
+            viewModel.ApplyTextColorHexCommand.Execute(hex);
+        }
+    }
+
+    private void PickDefaultBackgroundColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActiveBackgroundColorHex, out var hex))
+        {
+            viewModel.ApplyBackgroundColorHexCommand.Execute(hex);
+        }
+    }
+
+    private void PickPanelBackColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActivePanelColorHex, out var hex))
+        {
+            viewModel.ApplyPanelColorHexCommand.Execute(hex);
+        }
+    }
+
+    private void PickPanelTextColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActivePanelTextColorHex, out var hex))
+        {
+            viewModel.ApplyPanelTextColorHexCommand.Execute(hex);
+        }
+    }
+
+    private void PickSelectedItemTextColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel
+            && viewModel.CanEditSelectedItemColor
+            && TryPickColor(viewModel.SelectedItemTextColorHex, out var hex))
+        {
+            viewModel.SetSelectedItemTextColorCommand.Execute(hex);
+        }
+    }
+
+    private void PickSelectedItemBackgroundColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel
+            && viewModel.CanEditSelectedItemColor
+            && TryPickColor(viewModel.SelectedItemBackgroundColorHex, out var hex))
+        {
+            viewModel.SetSelectedItemBackgroundColorCommand.Execute(hex);
+        }
+    }
+
+    private bool TryPickColor(string? currentHex, out string hex)
+    {
+        using var dialog = new FormsColorDialog
+        {
+            AllowFullOpen = true,
+            AnyColor = true,
+            FullOpen = true,
+        };
+
+        if (TryParseDialogColor(currentHex, out var current))
+        {
+            dialog.Color = current;
+        }
+
+        if (dialog.ShowDialog() == FormsDialogResult.OK)
+        {
+            hex = $"#{dialog.Color.R:X2}{dialog.Color.G:X2}{dialog.Color.B:X2}";
+            return true;
+        }
+
+        hex = string.Empty;
+        return false;
+    }
+
+    private static bool TryParseDialogColor(string? hex, out DrawingColor color)
+    {
+        color = default;
+        var value = (hex ?? string.Empty).Trim().TrimStart('#');
+        if (value.Length == 8)
+        {
+            value = value[2..];
+        }
+
+        if (value.Length != 6
+            || !int.TryParse(value[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var r)
+            || !int.TryParse(value[2..4], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var g)
+            || !int.TryParse(value[4..6], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
+        {
+            return false;
+        }
+
+        color = DrawingColor.FromArgb(r, g, b);
+        return true;
     }
 
     private void LoadPreviewItemTemplate_Click(object sender, RoutedEventArgs e)

@@ -2417,6 +2417,16 @@
                                                 Content="Black"
                                                 ToolTip="FrmMain Def_R1Colour black"
                                                 AutomationProperties.Name="Def Region1 text colour black" />
+                                        <Button x:Name="Def_R1ColourCustom"
+                                                Tag="Def_R1ColourCustom"
+                                                Click="PickDefaultTextColor_Click"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="..."
+                                                ToolTip="FrmMain Def_R1Colour custom"
+                                                AutomationProperties.Name="Def Region1 custom text colour" />
                                     </WrapPanel>
 
                                     <TextBlock Text="Region 2 Align / Colour"
@@ -2572,6 +2582,49 @@
                                                 Margin="0,0,6,6"
                                                 Content="Fill"
                                                 AutomationProperties.Name="Def background fill" />
+                                    </WrapPanel>
+
+                                    <TextBlock Text="Background Colour"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_BackColour"
+                                               Tag="Def_BackColour">
+                                        <TextBox x:Name="Def_BackColourHex"
+                                                 Text="{Binding ActiveBackgroundColorHex, Mode=OneWay}"
+                                                 Width="76"
+                                                 MinHeight="30"
+                                                 VerticalContentAlignment="Center"
+                                                 Margin="0,0,4,6"
+                                                 ToolTip="FrmMain Def_BackColour"
+                                                 AutomationProperties.Name="Def background colour hex">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Key="Return"
+                                                            Command="{Binding ApplyBackgroundColorHexCommand}"
+                                                            CommandParameter="{Binding Text, ElementName=Def_BackColourHex}" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                        <Button x:Name="Def_BackColourApply"
+                                                Tag="Def_BackColour"
+                                                Command="{Binding ApplyBackgroundColorHexCommand}"
+                                                CommandParameter="{Binding Text, ElementName=Def_BackColourHex}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,4,6"
+                                                Content="Back"
+                                                ToolTip="Apply FrmMain Def_BackColour"
+                                                AutomationProperties.Name="Def background colour apply" />
+                                        <Button x:Name="Def_BackColourCustom"
+                                                Tag="Def_BackColourCustom"
+                                                Click="PickDefaultBackgroundColor_Click"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="..."
+                                                ToolTip="FrmMain Def_BackColour custom"
+                                                AutomationProperties.Name="Def background custom colour" />
                                     </WrapPanel>
 
                                     <TextBlock Text="Transition"
@@ -2743,6 +2796,16 @@
                                                     Content="Back"
                                                     ToolTip="Display Panel Back Colour"
                                                     AutomationProperties.Name="Def PanelBackColour apply" />
+                                            <Button x:Name="Def_PanelBackColourCustom"
+                                                    Tag="Def_PanelBackColourCustom"
+                                                    Click="PickPanelBackColor_Click"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    MinHeight="30"
+                                                    Padding="9,0"
+                                                    Margin="4,0,0,0"
+                                                    Content="..."
+                                                    ToolTip="Display Panel Back Colour custom"
+                                                    AutomationProperties.Name="Def PanelBackColour custom" />
                                         </WrapPanel>
                                         <ToggleButton x:Name="Def_PanelAsR1"
                                                       IsChecked="{Binding ActivePanelTextColorAsRegion1, Mode=OneWay}"
@@ -2780,6 +2843,16 @@
                                                     Content="Text"
                                                     ToolTip="Display Panel Text Colour"
                                                     AutomationProperties.Name="Def PanelTextColour apply" />
+                                            <Button x:Name="Def_PanelTextColourCustom"
+                                                    Tag="Def_PanelTextColourCustom"
+                                                    Click="PickPanelTextColor_Click"
+                                                    Style="{StaticResource EsButton.Secondary}"
+                                                    MinHeight="30"
+                                                    Padding="9,0"
+                                                    Margin="4,0,0,0"
+                                                    Content="..."
+                                                    ToolTip="Display Panel Text Colour custom"
+                                                    AutomationProperties.Name="Def PanelTextColour custom" />
                                         </WrapPanel>
                                         <ToggleButton x:Name="Def_PanelFontBold"
                                                       IsChecked="{Binding ActivePanelFontBold, Mode=OneWay}"
@@ -3687,6 +3760,16 @@
                                                                     Style="{StaticResource EsButton.Secondary}"
                                                                     MinWidth="62"
                                                                     Margin="0,0,4,4" />
+                                                            <Button x:Name="Ind_TextColourCustom"
+                                                                    Tag="Ind_TextColourCustom"
+                                                                    Content="..."
+                                                                    Click="PickSelectedItemTextColor_Click"
+                                                                    IsEnabled="{Binding CanEditSelectedItemColor}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="38"
+                                                                    Margin="0,0,4,4"
+                                                                    ToolTip="FrmMain Ind_R1Colour custom"
+                                                                    AutomationProperties.Name="선택 항목 사용자 글자색" />
                                                         </WrapPanel>
                                                         <WrapPanel>
                                                             <Button Content="Bold"
@@ -3927,6 +4010,16 @@
                                                                     Style="{StaticResource EsButton.Secondary}"
                                                                     MinWidth="62"
                                                                     Margin="0,0,4,4" />
+                                                            <Button x:Name="Ind_BackColourCustom"
+                                                                    Tag="Ind_BackColourCustom"
+                                                                    Content="..."
+                                                                    Click="PickSelectedItemBackgroundColor_Click"
+                                                                    IsEnabled="{Binding CanEditSelectedItemColor}"
+                                                                    Style="{StaticResource EsButton.Secondary}"
+                                                                    MinWidth="38"
+                                                                    Margin="0,0,4,4"
+                                                                    ToolTip="FrmMain Ind_BackColour custom"
+                                                                    AutomationProperties.Name="선택 항목 사용자 배경색" />
                                                         </WrapPanel>
                                                         <Grid Margin="0,6,0,0"
                                                               IsEnabled="{Binding CanEditSelectedItemColor}">
