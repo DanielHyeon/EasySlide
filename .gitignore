@@ -123,6 +123,8 @@ package-lock.json
 #Python
 /venv
 .venv
+__pycache__/
+*.py[cod]
 
 ## C# / .NET / Visual Studio
 # Build results
