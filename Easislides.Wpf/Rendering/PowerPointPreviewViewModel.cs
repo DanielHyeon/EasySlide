@@ -51,8 +51,8 @@ public sealed partial class PowerPointSlideThumbnail : ObservableObject
 /// </summary>
 public sealed partial class PowerPointPreviewViewModel : ObservableObject
 {
-    private const int MinimumThumbnailPixelWidth = 3840;
-    private const int MinimumThumbnailPixelHeight = 2880;
+    private const int MinimumThumbnailPixelWidth = 4096;
+    private const int MinimumThumbnailPixelHeight = 3072;
 
     private readonly IPowerPointRenderService _render;
     private readonly Func<byte[], ImageSource> _decode;

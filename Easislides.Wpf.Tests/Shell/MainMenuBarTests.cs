@@ -675,9 +675,9 @@ public class MainMenuBarTests
         var mainViewModel = MainViewModelCode;
         xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
             "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
-        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 3840",
+        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 4096",
             "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
-        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 2880",
+        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 3072",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
         mainViewModel.Should().Contain("HasLowResolutionPowerPointThumbnails(viewModel)",
             "same-deck thumbnail strips should still reload if an older low-resolution render is present");
@@ -1130,6 +1130,10 @@ public class MainMenuBarTests
             "changing TabBibleVersions should change the active Bible version");
         xaml.Should().Contain("Tag=\"BibleText\"", "Bible text surface should keep the FrmMain BibleText role");
         xaml.Should().Contain("x:Name=\"BiblePassageBox\"", "Bible text should keep a stable selection surface");
+        xaml.Should().Contain("IsInactiveSelectionHighlightEnabled=\"True\"",
+            "FrmMain BibleText.HideSelection=false keeps the selected verses visible after the operator clicks the lower add icon");
+        xaml.Should().Contain("SelectionOpacity=\"0.55\"",
+            "selected Bible verses should stay visibly marked while preserving text readability");
         code.Should().Contain("BiblePassageBox.AddHandler",
             "Bible click selection should register a handled-events mouse-up hook");
         code.Should().Contain("UIElement.MouseLeftButtonUpEvent",

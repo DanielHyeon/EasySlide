@@ -1870,6 +1870,8 @@
                                  Tag="BibleText"
                                  Text="{Binding Bible.PassageText, Mode=OneWay}"
                                  IsReadOnly="True"
+                                 IsInactiveSelectionHighlightEnabled="True"
+                                 SelectionOpacity="0.55"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"

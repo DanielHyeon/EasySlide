@@ -96,7 +96,7 @@ public class PowerPointPreviewViewModelTests
         await vm.LoadThumbnailsAsync("deck.pptx", slideCount: 3, thumbnailWidth: 200, thumbnailHeight: 112);
 
         render.Requests.Should().HaveCount(3);
-        render.Requests.Should().OnlyContain(r => r.PixelWidth == 3840 && r.PixelHeight == 2880,
+        render.Requests.Should().OnlyContain(r => r.PixelWidth == 4096 && r.PixelHeight == 3072,
             "FrmMain-style PPT thumbnails should be rendered at high resolution and then downscaled by WPF");
     }
 
@@ -136,11 +136,11 @@ public class PowerPointPreviewViewModelTests
         await vm.LoadThumbnailsAsync("deck.pptx", 3, 200, 112);
 
         render.Requests.Should().OnlyContain(request =>
-            request.PixelWidth == 3840 &&
-            request.PixelHeight == 2880);
+            request.PixelWidth == 4096 &&
+            request.PixelHeight == 3072);
         vm.Thumbnails.Should().OnlyContain(thumbnail =>
-            thumbnail.PixelWidth == 3840 &&
-            thumbnail.PixelHeight == 2880);
+            thumbnail.PixelWidth == 4096 &&
+            thumbnail.PixelHeight == 3072);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class PowerPointPreviewViewModelTests
         target.Thumbnails.Should().HaveCount(3);
         target.Thumbnails.Should().NotContain(source.Thumbnails[0], "Output thumbnails must not share the mutable collection items with Preview");
         target.Thumbnails.Single(t => t.SlideNumber == 2).IsCurrent.Should().BeTrue();
-        target.Thumbnails.Should().OnlyContain(t => t.PixelWidth == 3840 && t.PixelHeight == 2880);
+        target.Thumbnails.Should().OnlyContain(t => t.PixelWidth == 4096 && t.PixelHeight == 3072);
 
         source.Clear();
 

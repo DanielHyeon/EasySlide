@@ -3497,8 +3497,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // PPT 렌더 크기 — FrmMain ImageCanvas처럼 고해상도 원본을 렌더한 뒤 화면에서 축소한다.
-    private const int PptPreviewWidth = 3840;
-    private const int PptPreviewHeight = 2880;
+    private const int PptPreviewWidth = 4096;
+    private const int PptPreviewHeight = 3072;
 
     // 출력 창이 열려 있으면 PPT 를 출력 모니터 해상도로 렌더해 송출을 선명하게 한다.
     // 다만 4K 등 초고해상도에서 매 선택마다 거대한 JPG 를 만드는 비용을 막기 위해 1080p 로 상한.
@@ -3506,8 +3506,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptMaxRenderHeight = 1080;
 
     // 덱 썸네일 스트립 원본은 FrmMain PPT 캔버스와 같은 4:3 고해상도로 렌더링한 뒤 화면에서 축소한다.
-    private const int PptThumbnailWidth = 3840;
-    private const int PptThumbnailHeight = 2880;
+    private const int PptThumbnailWidth = 4096;
+    private const int PptThumbnailHeight = 3072;
 
     private static readonly string[] WorshipOutputMediaExtensions =
     [

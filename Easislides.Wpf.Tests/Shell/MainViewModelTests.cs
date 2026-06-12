@@ -4466,8 +4466,8 @@ public class MainViewModelTests
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
-        render.LastRequest!.PixelWidth.Should().Be(3840);
-        render.LastRequest.PixelHeight.Should().Be(2880);
+        render.LastRequest!.PixelWidth.Should().Be(4096);
+        render.LastRequest.PixelHeight.Should().Be(3072);
     }
 
     [Fact]
@@ -4515,8 +4515,8 @@ public class MainViewModelTests
         var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
         sut.LoadQueue(new[] { ppt });
         sut.SelectedItem = ppt; // 출력 닫힘 → FrmMain식 고해상도 Preview 렌더
-        render.LastRequest!.PixelWidth.Should().Be(3840, "출력 닫힘 상태 선택도 고해상도 Preview 렌더");
-        render.LastRequest.PixelHeight.Should().Be(2880, "출력 닫힘 상태 선택은 FrmMain 4:3 고해상도 높이");
+        render.LastRequest!.PixelWidth.Should().Be(4096, "출력 닫힘 상태 선택도 고해상도 Preview 렌더");
+        render.LastRequest.PixelHeight.Should().Be(3072, "출력 닫힘 상태 선택은 FrmMain 4:3 고해상도 높이");
 
         sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
         sut.OpenOutputCommand.Execute(null); // 출력 열림 → 현재 PPT 재렌더
@@ -4739,8 +4739,8 @@ public class MainViewModelTests
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
         powerPoint.Thumbnails.Should().HaveCount(3, "덱 슬라이드 수(3)만큼 썸네일 로드");
-        render.LastRequest!.PixelWidth.Should().Be(3840, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
-        render.LastRequest.PixelHeight.Should().Be(2880);
+        render.LastRequest!.PixelWidth.Should().Be(4096, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
+        render.LastRequest.PixelHeight.Should().Be(3072);
     }
 
     [Fact]
@@ -4785,8 +4785,8 @@ public class MainViewModelTests
 
         powerPoint.Thumbnails.Should().HaveCount(3, "FrmMain rebuilds the visible flow panel when thumbnails are missing");
         render.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        render.LastRequest!.PixelWidth.Should().Be(3840);
-        render.LastRequest.PixelHeight.Should().Be(2880);
+        render.LastRequest!.PixelWidth.Should().Be(4096);
+        render.LastRequest.PixelHeight.Should().Be(3072);
     }
 
     [Fact]
@@ -4810,8 +4810,8 @@ public class MainViewModelTests
 
         sut.OutputPowerPoint.Thumbnails.Should().HaveCount(3, "Output flowLayoutPowerPoint should refill independently of Preview");
         outputRender.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        outputRender.LastRequest!.PixelWidth.Should().Be(3840);
-        outputRender.LastRequest.PixelHeight.Should().Be(2880);
+        outputRender.LastRequest!.PixelWidth.Should().Be(4096);
+        outputRender.LastRequest.PixelHeight.Should().Be(3072);
     }
 
     [Fact]
