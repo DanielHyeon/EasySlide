@@ -420,6 +420,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<int> LiveCameraNumber = new("media.liveCameraNumber", 1);
     public static readonly SettingKey<int> PraiseBookCjkGroupStyle = new("data.praiseBookCjkGroupStyle", 0);
     public static readonly SettingKey<string> CurrentPraiseBookName = new("data.currentPraiseBookName", "");
+    public static readonly SettingKey<string> CurrentWorshipListName = new("data.currentWorshipListName", "");
     public static readonly SettingKey<int> SelectedSongFolderNo = new("data.selectedSongFolderNo", 0);
     public static readonly SettingKey<string> AdminDatabasePath = new("data.adminDatabasePath", "");
     public static readonly SettingKey<string> DataBackupRoot = new("data.backupRoot", "");
@@ -545,6 +546,7 @@ public static class EasiSettingKeys
         LiveCameraNumber,
         PraiseBookCjkGroupStyle,
         CurrentPraiseBookName,
+        CurrentWorshipListName,
         SelectedSongFolderNo,
         AdminDatabasePath,
         DataBackupRoot,
@@ -808,6 +810,8 @@ public sealed record DataSettings
     public int PraiseBookCjkGroupStyle { get; init; } = EasiSettingKeys.PraiseBookCjkGroupStyle.DefaultValue;
 
     public string CurrentPraiseBookName { get; init; } = EasiSettingKeys.CurrentPraiseBookName.DefaultValue;
+
+    public string CurrentWorshipListName { get; init; } = EasiSettingKeys.CurrentWorshipListName.DefaultValue;
 
     public int SelectedSongFolderNo { get; init; } = EasiSettingKeys.SelectedSongFolderNo.DefaultValue;
 
@@ -1509,6 +1513,10 @@ public sealed class SettingsService : ISettingsService
         {
             Data = next.Data with { CurrentPraiseBookName = value },
         });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.CurrentWorshipListName.Id), next, value => next with
+        {
+            Data = next.Data with { CurrentWorshipListName = value },
+        });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.SelectedSongFolderNo.Id), next, issues, value => next with
         {
             Data = next.Data with { SelectedSongFolderNo = value },
@@ -1869,6 +1877,7 @@ public sealed class SettingsService : ISettingsService
             "media.liveCameraNumber" => snapshot.Media.LiveCameraNumber,
             "data.praiseBookCjkGroupStyle" => snapshot.Data.PraiseBookCjkGroupStyle,
             "data.currentPraiseBookName" => snapshot.Data.CurrentPraiseBookName,
+            "data.currentWorshipListName" => snapshot.Data.CurrentWorshipListName,
             "data.selectedSongFolderNo" => snapshot.Data.SelectedSongFolderNo,
             "data.adminDatabasePath" => snapshot.Data.AdminDatabasePath,
             "data.backupRoot" => snapshot.Data.BackupRoot,
@@ -2334,6 +2343,10 @@ public sealed class SettingsService : ISettingsService
             "data.currentPraiseBookName" => snapshot with
             {
                 Data = snapshot.Data with { CurrentPraiseBookName = Cast<string>(keyId, value) },
+            },
+            "data.currentWorshipListName" => snapshot with
+            {
+                Data = snapshot.Data with { CurrentWorshipListName = Cast<string>(keyId, value) },
             },
             "data.selectedSongFolderNo" => snapshot with
             {

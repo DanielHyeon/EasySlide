@@ -2336,6 +2336,21 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task LoadSelectedWorshipListCommand_PersistsFrmMainCurrentSession()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("Sunday AM", [new LiveQueueItem("song:1", "A", LiveItemKinds.Song)]);
+        var sut = CreateSut(settings: settings, worshipLists: store, seedSampleQueue: false);
+
+        sut.SelectedSavedWorshipList = "Sunday AM";
+        await sut.LoadSelectedWorshipListCommand.ExecuteAsync(null);
+
+        sut.CurrentWorshipListName.Should().Be("Sunday AM");
+        settings.Get(EasiSettingKeys.CurrentWorshipListName).Should().Be("Sunday AM");
+    }
+
+    [Fact]
     public async Task AddWorshipListSongsToUsagesAsync_RecordsDatabaseSongsFromWholeQueue()
     {
         // FrmMain AddToUsages 는 선택 행이 아니라 현재 Worship List 전체를 훑고 DB 곡(D/song:{id})만 기록한다.
@@ -2373,6 +2388,22 @@ public class MainViewModelTests
 
         sut.SavedWorshipListNames.Should().Equal("1.주일예배", "2.저녁예배");
         sut.SelectedSavedWorshipList.Should().Be("1.주일예배", "FrmMain SessionList처럼 시작 시 첫 저장 목록이 잡혀 있어야 함");
+        sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Constructor_SelectsPersistedCurrentWorshipListName()
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.CurrentWorshipListName, "Sunday PM").Succeeded.Should().BeTrue();
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("Sunday AM", Array.Empty<LiveQueueItem>());
+        await store.SaveAsync("Sunday PM", Array.Empty<LiveQueueItem>());
+
+        var sut = CreateSut(settings: settings, seedSampleQueue: false, worshipLists: store);
+
+        sut.SavedWorshipListNames.Should().Equal("Sunday AM", "Sunday PM");
+        sut.SelectedSavedWorshipList.Should().Be("Sunday PM", "FrmMain current_session should win over the first saved SessionList item");
         sut.LoadSelectedWorshipListCommand.CanExecute(null).Should().BeTrue();
     }
 

@@ -346,6 +346,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_CurrentWorshipListName_PersistsFrmMainCurrentSession()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.CurrentWorshipListName).Should().BeEmpty();
+        sut.Set(EasiSettingKeys.CurrentWorshipListName, "Sunday AM").Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.CurrentWorshipListName).Should().Be("Sunday AM");
+        ReadSnapshot(fixture.SettingsPath).Data.CurrentWorshipListName.Should().Be("Sunday AM");
+    }
+
+    [Fact]
     public void Set_SelectedSongFolderNo_PersistsFrmMainCurrentSourceFolder()
     {
         using var fixture = TempSettingsFolder.Create();

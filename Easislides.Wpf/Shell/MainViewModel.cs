@@ -2623,6 +2623,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 새로고침 전에 현재 선택을 기억한다 — 콤보의 ItemsSource 를 Clear 하면 WPF Selector 가
         // "선택 항목이 사라졌다"며 SelectedItem 을 null 로 풀어 버리기 때문(TwoWay 라 VM 선택도 함께 풀림).
         var previousSelection = SelectedSavedWorshipList;
+        var savedCurrentSession = _settings.Get(EasiSettingKeys.CurrentWorshipListName);
 
         SavedWorshipListNames.Clear();
         foreach (var name in _worshipLists.ListNames())
@@ -2635,7 +2636,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedSavedWorshipList =
             previousSelection is not null && SavedWorshipListNames.Contains(previousSelection)
                 ? previousSelection
-                : SavedWorshipListNames.FirstOrDefault();
+                : !string.IsNullOrWhiteSpace(savedCurrentSession) && SavedWorshipListNames.Contains(savedCurrentSession)
+                    ? savedCurrentSession
+                    : SavedWorshipListNames.FirstOrDefault();
     }
 
     /// <summary>
@@ -3092,6 +3095,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RecordRecentWorshipList(string name)
     {
         CurrentWorshipListName = name;
+        _settings.Set(EasiSettingKeys.CurrentWorshipListName, name);
         _recentWorshipLists.Record(name);
         RefreshRecentWorshipLists();
     }
