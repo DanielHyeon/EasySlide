@@ -8094,13 +8094,19 @@ public class MainViewModelTests
         sut.TogglePanelFontBoldCommand.Execute(null);
         sut.TogglePanelFontItalicCommand.Execute(null);
         sut.TogglePanelFontUnderlineCommand.Execute(null);
+        sut.TogglePanelFontShadowCommand.Execute(null);
+        sut.TogglePanelFontOutlineCommand.Execute(null);
 
         sut.ActivePanelFontBold.Should().BeTrue();
         sut.ActivePanelFontItalic.Should().BeTrue();
         sut.ActivePanelFontUnderline.Should().BeTrue();
+        sut.ActivePanelFontShadow.Should().BeTrue();
+        sut.ActivePanelFontOutline.Should().BeTrue();
         settings.Get(EasiSettingKeys.LyricsMonitorPanelBold).Should().BeTrue();
         settings.Get(EasiSettingKeys.LyricsMonitorPanelItalic).Should().BeTrue();
         settings.Get(EasiSettingKeys.LyricsMonitorPanelUnderline).Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelShadow).Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorPanelOutline).Should().BeTrue();
     }
 
     [Fact]

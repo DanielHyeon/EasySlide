@@ -146,6 +146,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private FontWeight _panelSecondaryFontWeight = FontWeights.Normal;
     private FontStyle _panelFontStyle = FontStyles.Normal;
     private TextDecorationCollection? _panelTextDecorations;
+    private bool _panelTextUnderline;
+    private bool _panelHasShadow;
+    private bool _panelHasOutline;
+    private double _panelTextStrokeThickness;
     private Visibility _backgroundImageVisibility = Visibility.Collapsed;
     // 배경 이미지 캐시: 같은(해석된) 경로를 매번 다시 디코딩하지 않도록 보관.
     private string? _cachedBackgroundImagePath;
@@ -632,6 +636,30 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _panelTextDecorations, value);
     }
 
+    public bool PanelTextUnderline
+    {
+        get => _panelTextUnderline;
+        private set => SetProperty(ref _panelTextUnderline, value);
+    }
+
+    public bool PanelHasShadow
+    {
+        get => _panelHasShadow;
+        private set => SetProperty(ref _panelHasShadow, value);
+    }
+
+    public bool PanelHasOutline
+    {
+        get => _panelHasOutline;
+        private set => SetProperty(ref _panelHasOutline, value);
+    }
+
+    public double PanelTextStrokeThickness
+    {
+        get => _panelTextStrokeThickness;
+        private set => SetProperty(ref _panelTextStrokeThickness, value);
+    }
+
     /// <summary>배경 이미지 표시 여부 — 곡별 배경 이미지가 로드됐을 때만 Visible(색 배경 위에 덮음).</summary>
     public Visibility BackgroundImageVisibility
     {
@@ -951,6 +979,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         PanelSecondaryFontWeight = scene.LyricsMonitorPanelBold ? FontWeights.Bold : FontWeights.Normal;
         PanelFontStyle = scene.LyricsMonitorPanelItalic ? FontStyles.Italic : FontStyles.Normal;
         PanelTextDecorations = scene.LyricsMonitorPanelUnderline ? TextDecorations.Underline : null;
+        PanelTextUnderline = scene.LyricsMonitorPanelUnderline;
+        PanelHasShadow = scene.LyricsMonitorPanelShadow;
+        PanelHasOutline = scene.LyricsMonitorPanelOutline;
+        PanelTextStrokeThickness = scene.LyricsMonitorPanelOutline ? 1.4 : 0.0;
         // 곡별 배경 이미지(있으면) 로드 — 색 배경 위에 표시(이미지 우선). 없거나 실패면 색 배경만 보인다.
         ApplyBackgroundImage(scene);
         LyricsAlertVisibility = scene.ShowsLyricsAlertBox || scene.ShowsLiveLyricsAlertMessage
@@ -1680,6 +1712,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelBold.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelItalic.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelUnderline.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelShadow.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.LyricsMonitorPanelOutline.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 위치 인디케이터 표시 토글도 라이브 출력에 즉시 반영(§7.3-A).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowPositionIndicator.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 절 헤딩 표시 토글도 라이브 출력에 즉시 반영(FrmMain Def_Head All).

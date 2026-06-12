@@ -2919,6 +2919,26 @@
                                             <TextBlock Text="U"
                                                        TextDecorations="Underline" />
                                         </ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelFontShadow"
+                                                      IsChecked="{Binding ActivePanelFontShadow, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelFontShadowCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="S"
+                                                      ToolTip="Display Panel Font Shadow"
+                                                      AutomationProperties.Name="Def PanelFont shadow" />
+                                        <ToggleButton x:Name="Def_PanelFontOutline"
+                                                      IsChecked="{Binding ActivePanelFontOutline, Mode=OneWay}"
+                                                      Command="{Binding TogglePanelFontOutlineCommand}"
+                                                      Style="{StaticResource ClassicOutputToggleButton}"
+                                                      MinHeight="30"
+                                                      Padding="9,0"
+                                                      Margin="0,0,6,6"
+                                                      Content="O"
+                                                      ToolTip="Display Panel Font Outline"
+                                                      AutomationProperties.Name="Def PanelFont outline" />
                                         <WrapPanel x:Name="Def_PanelFont"
                                                    Tag="Def_PanelFont"
                                                    Margin="0,0,0,6">

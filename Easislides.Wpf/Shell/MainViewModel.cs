@@ -354,6 +354,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _activePanelFontBold = EasiSettingKeys.LyricsMonitorPanelBold.DefaultValue;
     [ObservableProperty] private bool _activePanelFontItalic = EasiSettingKeys.LyricsMonitorPanelItalic.DefaultValue;
     [ObservableProperty] private bool _activePanelFontUnderline = EasiSettingKeys.LyricsMonitorPanelUnderline.DefaultValue;
+    [ObservableProperty] private bool _activePanelFontShadow = EasiSettingKeys.LyricsMonitorPanelShadow.DefaultValue;
+    [ObservableProperty] private bool _activePanelFontOutline = EasiSettingKeys.LyricsMonitorPanelOutline.DefaultValue;
 
     // 본문 여백 조절 범위·단계(설정 Validate 범위 0~400px 와 일치). FrmMain ShowLeftMargin/Right/Bottom 대응.
     private const int LyricsBodyMarginMin = 0;
@@ -1159,6 +1161,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         TogglePanelFontBoldCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelBold, ActivePanelFontBold));
         TogglePanelFontItalicCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelItalic, ActivePanelFontItalic));
         TogglePanelFontUnderlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelUnderline, ActivePanelFontUnderline));
+        TogglePanelFontShadowCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelShadow, ActivePanelFontShadow));
+        TogglePanelFontOutlineCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorPanelOutline, ActivePanelFontOutline));
         ToggleLyricsPositionIndicatorCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowPositionIndicator, ActiveLyricsPositionIndicator));
         ToggleLyricsVerseHeadingCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowVerseHeading, ActiveLyricsVerseHeading));
         ToggleLyricsItemNumberCommand = new RelayCommand(() => ToggleLyricsEffect(EasiSettingKeys.LyricsMonitorShowItemNumber, ActiveLyricsItemNumber));
@@ -1470,6 +1474,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand TogglePanelFontBoldCommand { get; }
     public IRelayCommand TogglePanelFontItalicCommand { get; }
     public IRelayCommand TogglePanelFontUnderlineCommand { get; }
+    public IRelayCommand TogglePanelFontShadowCommand { get; }
+    public IRelayCommand TogglePanelFontOutlineCommand { get; }
 
     public IRelayCommand ToggleLyricsPositionIndicatorCommand { get; }
     public IRelayCommand ToggleLyricsVerseHeadingCommand { get; }
@@ -8086,6 +8092,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(EasiSettingKeys.LyricsMonitorPanelBold, EasiSettingKeys.LyricsMonitorPanelBold.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorPanelItalic, EasiSettingKeys.LyricsMonitorPanelItalic.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorPanelUnderline, EasiSettingKeys.LyricsMonitorPanelUnderline.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelShadow, EasiSettingKeys.LyricsMonitorPanelShadow.DefaultValue);
+        _settings.Set(EasiSettingKeys.LyricsMonitorPanelOutline, EasiSettingKeys.LyricsMonitorPanelOutline.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowItemNumber, EasiSettingKeys.LyricsMonitorShowItemNumber.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowCopyright, EasiSettingKeys.LyricsMonitorShowCopyright.DefaultValue);
         _settings.Set(EasiSettingKeys.LyricsMonitorShowNextItem, EasiSettingKeys.LyricsMonitorShowNextItem.DefaultValue);
@@ -9402,6 +9410,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActivePanelFontBold = _settings.Get(EasiSettingKeys.LyricsMonitorPanelBold);
         ActivePanelFontItalic = _settings.Get(EasiSettingKeys.LyricsMonitorPanelItalic);
         ActivePanelFontUnderline = _settings.Get(EasiSettingKeys.LyricsMonitorPanelUnderline);
+        ActivePanelFontShadow = _settings.Get(EasiSettingKeys.LyricsMonitorPanelShadow);
+        ActivePanelFontOutline = _settings.Get(EasiSettingKeys.LyricsMonitorPanelOutline);
         ActiveLyricsPositionIndicator = _settings.Get(EasiSettingKeys.LyricsMonitorShowPositionIndicator);
         ActiveLyricsVerseHeading = _settings.Get(EasiSettingKeys.LyricsMonitorShowVerseHeading);
         ActiveLyricsItemNumber = _settings.Get(EasiSettingKeys.LyricsMonitorShowItemNumber);

@@ -1484,6 +1484,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("TogglePanelFontItalicCommand", "Def_PanelFontItalics should affect display-panel text");
         xaml.Should().Contain("x:Name=\"Def_PanelFontUnderline\"", "Default tab should expose FrmMain Def_PanelFontUnderline");
         xaml.Should().Contain("TogglePanelFontUnderlineCommand", "Def_PanelFontUnderline should affect display-panel text");
+        xaml.Should().Contain("x:Name=\"Def_PanelFontShadow\"", "Default tab should expose FrmMain Def_PanelFontShadow");
+        xaml.Should().Contain("TogglePanelFontShadowCommand", "Def_PanelFontShadow should affect display-panel text");
+        xaml.Should().Contain("x:Name=\"Def_PanelFontOutline\"", "Default tab should expose FrmMain Def_PanelFontOutline");
+        xaml.Should().Contain("TogglePanelFontOutlineCommand", "Def_PanelFontOutline should affect display-panel text");
         xaml.Should().Contain("ResetOutputAppearanceCommand", "Default tab restores the default output layout");
         xaml.Should().Contain("ApplyGlobalFormatToAllCommand", "Default tab can apply the current format globally");
         xaml.Should().Contain("ClearAllItemsFormattingCommand", "Default tab can clear item-specific formatting overrides");

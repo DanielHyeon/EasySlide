@@ -8,6 +8,28 @@
         Background="{Binding SceneBackgroundBrush}"
         Foreground="{Binding SceneForegroundBrush}"
         WindowStartupLocation="Manual">
+    <Window.Resources>
+        <Style x:Key="PanelOutlinedTextStyle" TargetType="{x:Type controls:OutlinedTextBlock}">
+            <Setter Property="Fill" Value="{Binding PanelForegroundBrush}" />
+            <Setter Property="Stroke" Value="Black" />
+            <Setter Property="StrokeThickness" Value="{Binding PanelTextStrokeThickness}" />
+            <Setter Property="FontStyle" Value="{Binding PanelFontStyle}" />
+            <Setter Property="Underline" Value="{Binding PanelTextUnderline}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PanelHasShadow}" Value="True">
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="Black"
+                                              BlurRadius="8"
+                                              ShadowDepth="2"
+                                              Direction="315"
+                                              Opacity="0.85" />
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid Background="{Binding SceneBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -334,12 +356,12 @@
                     Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding PositionIndicatorVisibility}">
-                <TextBlock Text="{Binding PositionLabel}"
-                           FontSize="{Binding PanelPrimaryFontSize}"
-                           FontWeight="{Binding PanelPrimaryFontWeight}"
-                           FontStyle="{Binding PanelFontStyle}"
-                           TextDecorations="{Binding PanelTextDecorations}"
-                           Foreground="{Binding PanelForegroundBrush}" />
+                <controls:OutlinedTextBlock Text="{Binding PositionLabel}"
+                                            FontSize="{Binding PanelPrimaryFontSize}"
+                                            FontWeight="{Binding PanelPrimaryFontWeight}"
+                                            MaxTextWidth="180"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
             </Border>
 
             <!-- 정보 패널 곡 제목(Display Panel Def_PanelTitle) — 좌측 상단 모서리. 설정 on + Live + 제목 있을 때만 표시.
@@ -355,14 +377,13 @@
                     Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding TitleOnPanelVisibility}">
-                <TextBlock Text="{Binding DisplayTitle}"
-                           FontSize="{Binding PanelSecondaryFontSize}"
-                           FontWeight="{Binding PanelPrimaryFontWeight}"
-                           FontStyle="{Binding PanelFontStyle}"
-                           TextDecorations="{Binding PanelTextDecorations}"
-                           TextTrimming="CharacterEllipsis"
-                           MaxWidth="520"
-                           Foreground="{Binding PanelForegroundBrush}" />
+                <controls:OutlinedTextBlock Text="{Binding DisplayTitle}"
+                                            FontSize="{Binding PanelSecondaryFontSize}"
+                                            FontWeight="{Binding PanelPrimaryFontWeight}"
+                                            MaxWidth="520"
+                                            MaxTextWidth="520"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
             </Border>
 
             <!-- 곡 번호(Display Panel "Show Item Number") — 좌측 하단 모서리. 설정 on + Live + 번호 있을 때만 표시. -->
@@ -374,12 +395,12 @@
                     Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding ItemNumberVisibility}">
-                <TextBlock Text="{Binding ItemNumberText}"
-                           FontSize="{Binding PanelPrimaryFontSize}"
-                           FontWeight="{Binding PanelPrimaryFontWeight}"
-                           FontStyle="{Binding PanelFontStyle}"
-                           TextDecorations="{Binding PanelTextDecorations}"
-                           Foreground="{Binding PanelForegroundBrush}" />
+                <controls:OutlinedTextBlock Text="{Binding ItemNumberText}"
+                                            FontSize="{Binding PanelPrimaryFontSize}"
+                                            FontWeight="{Binding PanelPrimaryFontWeight}"
+                                            MaxTextWidth="180"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
             </Border>
 
             <!-- 저작권(Display Panel "Show Copyright Information") — 하단 중앙(CCLI 푸터 관례).
@@ -392,15 +413,13 @@
                     Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding CopyrightVisibility}">
-                <TextBlock Text="{Binding CopyrightText}"
-                           FontSize="{Binding PanelSecondaryFontSize}"
-                           FontWeight="{Binding PanelSecondaryFontWeight}"
-                           FontStyle="{Binding PanelFontStyle}"
-                           TextDecorations="{Binding PanelTextDecorations}"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap"
-                           MaxWidth="520"
-                           Foreground="{Binding PanelForegroundBrush}" />
+                <controls:OutlinedTextBlock Text="{Binding CopyrightText}"
+                                            FontSize="{Binding PanelSecondaryFontSize}"
+                                            FontWeight="{Binding PanelSecondaryFontWeight}"
+                                            TextAlignment="Center"
+                                            MaxWidth="520"
+                                            MaxTextWidth="520"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
             </Border>
 
             <!-- 다음 항목(Display Panel PrevNext) — 우측 상단 모서리. 제목 헤딩 기본 정렬이 중앙이라
@@ -415,14 +434,13 @@
                     Background="{Binding PanelBackgroundBrush}"
                     IsHitTestVisible="False"
                     Visibility="{Binding NextItemVisibility}">
-                <TextBlock Text="{Binding NextItemText}"
-                           FontSize="{Binding PanelSecondaryFontSize}"
-                           FontWeight="{Binding PanelSecondaryFontWeight}"
-                           FontStyle="{Binding PanelFontStyle}"
-                           TextDecorations="{Binding PanelTextDecorations}"
-                           TextTrimming="CharacterEllipsis"
-                           MaxWidth="420"
-                           Foreground="{Binding PanelForegroundBrush}" />
+                <controls:OutlinedTextBlock Text="{Binding NextItemText}"
+                                            FontSize="{Binding PanelSecondaryFontSize}"
+                                            FontWeight="{Binding PanelSecondaryFontWeight}"
+                                            MaxWidth="420"
+                                            MaxTextWidth="420"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
             </Border>
         </Grid>
 

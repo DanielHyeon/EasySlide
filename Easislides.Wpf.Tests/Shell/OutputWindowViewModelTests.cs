@@ -1074,6 +1074,8 @@ public class OutputWindowViewModelTests
         settings.Set(EasiSettingKeys.LyricsMonitorPanelBold, true).Succeeded.Should().BeTrue();
         settings.Set(EasiSettingKeys.LyricsMonitorPanelItalic, true).Succeeded.Should().BeTrue();
         settings.Set(EasiSettingKeys.LyricsMonitorPanelUnderline, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelShadow, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelOutline, true).Succeeded.Should().BeTrue();
         var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
 
         sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
@@ -1082,6 +1084,26 @@ public class OutputWindowViewModelTests
         sut.PanelSecondaryFontWeight.Should().Be(FontWeights.Bold);
         sut.PanelFontStyle.Should().Be(FontStyles.Italic);
         sut.PanelTextDecorations.Should().BeSameAs(TextDecorations.Underline);
+        sut.PanelHasShadow.Should().BeTrue();
+        sut.PanelHasOutline.Should().BeTrue();
+        sut.PanelTextStrokeThickness.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void PanelFontStyle_UpdatesWhenShadowAndOutlineSettingsChange()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
+
+        sut.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Test", "Display 1", IsBlackout: false));
+
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelShadow, true).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.LyricsMonitorPanelOutline, true).Succeeded.Should().BeTrue();
+
+        sut.PanelHasShadow.Should().BeTrue();
+        sut.PanelHasOutline.Should().BeTrue();
+        sut.PanelTextStrokeThickness.Should().BeGreaterThan(0);
     }
 
     [Fact]
