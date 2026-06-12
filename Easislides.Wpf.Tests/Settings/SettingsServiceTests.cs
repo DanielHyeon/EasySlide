@@ -333,6 +333,19 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_CurrentPraiseBookName_PersistsFrmMainCurrentPraiseBook()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(EasiSettingKeys.CurrentPraiseBookName).Should().BeEmpty();
+        sut.Set(EasiSettingKeys.CurrentPraiseBookName, "주일예배").Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.CurrentPraiseBookName).Should().Be("주일예배");
+        ReadSnapshot(fixture.SettingsPath).Data.CurrentPraiseBookName.Should().Be("주일예배");
+    }
+
+    [Fact]
     public void Set_SelectedSongFolderNo_PersistsFrmMainCurrentSourceFolder()
     {
         using var fixture = TempSettingsFolder.Create();

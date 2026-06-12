@@ -46,6 +46,8 @@ public partial class MainWindow : Window
     private bool _mediaSourceLoadedOnce;
     private bool _praiseBookSourceLoadedOnce;
     private bool _initialWorshipListLoadedOnce;
+    private bool _inlinePraiseBookSelectionRestored;
+    private bool _suppressInlinePraiseBookSelectionChanged;
     private InfoScreenSourceViewModel? _inlineInfoScreens;
     private PowerPointLibraryViewModel? _inlinePowerPoint;
     private ImageLibraryViewModel? _inlineImages;
@@ -292,6 +294,51 @@ public partial class MainWindow : Window
         PraiseBookTab.DataContext = _inlinePraiseBook;
     }
 
+    private async Task EnsureInlinePraiseBookLoadedOnceAsync(MainViewModel viewModel)
+    {
+        EnsureInlinePraiseBookLoadedOnce(viewModel);
+        await RestoreInlinePraiseBookSelection().ConfigureAwait(true);
+    }
+
+    private async Task RestoreInlinePraiseBookSelection()
+    {
+        if (_inlinePraiseBookSelectionRestored || _inlinePraiseBook is null)
+        {
+            return;
+        }
+
+        _inlinePraiseBookSelectionRestored = true;
+        var savedName = ResolveInitialPraiseBookName();
+        if (string.IsNullOrWhiteSpace(savedName) && _inlinePraiseBook.SavedBooks.Count > 0)
+        {
+            savedName = _inlinePraiseBook.SavedBooks[0];
+        }
+
+        if (string.IsNullOrWhiteSpace(savedName))
+        {
+            return;
+        }
+
+        var actualName = _inlinePraiseBook.SavedBooks.FirstOrDefault(name =>
+            string.Equals(name, savedName, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrWhiteSpace(actualName))
+        {
+            return;
+        }
+
+        _suppressInlinePraiseBookSelectionChanged = true;
+        try
+        {
+            InlinePraiseBookSavedBooksCombo.SelectedItem = actualName;
+        }
+        finally
+        {
+            _suppressInlinePraiseBookSelectionChanged = false;
+        }
+
+        await OpenInlinePraiseBookByNameAsync(actualName, persistSelection: false).ConfigureAwait(true);
+    }
+
     private string ResolvePowerPointInitialFolder()
     {
         var workingFolder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
@@ -375,6 +422,35 @@ public partial class MainWindow : Window
         _settings?.Set(
             EasiSettingKeys.PraiseBookCjkGroupStyle,
             isWordCountSortEnabled ? (int)PraiseBookSortMode.WordCount : (int)PraiseBookSortMode.Alpha);
+    }
+
+    private string ResolveInitialPraiseBookName()
+    {
+        if (_settings is not null)
+        {
+            return _settings.Get(EasiSettingKeys.CurrentPraiseBookName);
+        }
+
+        var legacy = _services.GetService<ILegacySettingsSource>();
+        if (legacy?.TryGetString("current_praisebook", out var raw) == true)
+        {
+            return raw ?? string.Empty;
+        }
+
+        if (legacy?.TryGetString("CurPraiseBook", out raw) == true)
+        {
+            return raw ?? string.Empty;
+        }
+
+        return string.Empty;
+    }
+
+    private void SaveCurrentInlinePraiseBookName(string name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            _settings?.Set(EasiSettingKeys.CurrentPraiseBookName, name.Trim());
+        }
     }
 
     private void CommandPaletteOverlay_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -1272,7 +1348,7 @@ public partial class MainWindow : Window
         }
 
         await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
-        EnsureInlinePraiseBookLoadedOnce(viewModel);
+        await EnsureInlinePraiseBookLoadedOnceAsync(viewModel).ConfigureAwait(true);
     }
 
     private void AddBibleVerse_Click(object sender, RoutedEventArgs e)
@@ -3504,7 +3580,7 @@ public partial class MainWindow : Window
     }
 
     // 이미지 갤러리 — 폴더의 이미지를 썸네일로 보고 출력 배경으로 적용(FrmMain Images 탭 포팅).
-    private void InlinePraiseBookRefresh_Click(object sender, RoutedEventArgs e)
+    private async void InlinePraiseBookRefresh_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
         {
@@ -3513,14 +3589,23 @@ public partial class MainWindow : Window
 
         _inlinePraiseBook = CreatePraiseBookIndexViewModel(viewModel);
         _praiseBookSourceLoadedOnce = true;
+        _inlinePraiseBookSelectionRestored = false;
         PraiseBookTab.DataContext = _inlinePraiseBook;
+        await RestoreInlinePraiseBookSelection().ConfigureAwait(true);
     }
 
     private async void InlinePraiseBookOpenBook_Click(object sender, RoutedEventArgs e)
         => await OpenSelectedInlinePraiseBookAsync().ConfigureAwait(true);
 
     private async void InlinePraiseBookSavedBooksCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        => await OpenSelectedInlinePraiseBookAsync().ConfigureAwait(true);
+    {
+        if (_suppressInlinePraiseBookSelectionChanged)
+        {
+            return;
+        }
+
+        await OpenSelectedInlinePraiseBookAsync().ConfigureAwait(true);
+    }
 
     private async Task OpenSelectedInlinePraiseBookAsync()
     {
@@ -3535,7 +3620,21 @@ public partial class MainWindow : Window
             return;
         }
 
-        await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name);
+        await OpenInlinePraiseBookByNameAsync(name, persistSelection: true).ConfigureAwait(true);
+    }
+
+    private async Task OpenInlinePraiseBookByNameAsync(string name, bool persistSelection)
+    {
+        if (_inlinePraiseBook is null || string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name).ConfigureAwait(true);
+        if (persistSelection)
+        {
+            SaveCurrentInlinePraiseBookName(name);
+        }
     }
 
     private async void InlinePraiseBookAddSelected_Click(object sender, RoutedEventArgs e)

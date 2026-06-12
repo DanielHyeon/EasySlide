@@ -191,6 +191,9 @@ public static class LegacySettingsMap
 
         Automated("PraiseBookCjkGroupStyle", EasiSettingKeys.PraiseBookCjkGroupStyle.Id, SettingsSectionKind.Data, LegacySettingValueKind.Integer, "WPF compatibility", "Current WPF inline PraiseBook alpha/word-count sort alias."),
         Automated("PB_CJKGroupStyle", EasiSettingKeys.PraiseBookCjkGroupStyle.Id, SettingsSectionKind.Data, LegacySettingValueKind.Integer, "FrmMain SetSortButtonPB", "Legacy PraiseBook sort: 0=alpha, 1=CJK word count."),
+        Automated("CurrentPraiseBookName", EasiSettingKeys.CurrentPraiseBookName.Id, SettingsSectionKind.Data, LegacySettingValueKind.String, "WPF compatibility", "Current WPF inline PraiseBook selection alias."),
+        Automated("current_praisebook", EasiSettingKeys.CurrentPraiseBookName.Id, SettingsSectionKind.Data, LegacySettingValueKind.String, "RegUtil config/current_praisebook", "Legacy current PraiseBook name restored on startup."),
+        Automated("CurPraiseBook", EasiSettingKeys.CurrentPraiseBookName.Id, SettingsSectionKind.Data, LegacySettingValueKind.String, "Gf.CurPraiseBook", "Legacy current PraiseBook runtime name."),
         Automated("SelectedSongFolderNo", EasiSettingKeys.SelectedSongFolderNo.Id, SettingsSectionKind.Data, LegacySettingValueKind.Integer, "WPF compatibility", "Current WPF source SongFolder selection alias."),
         Automated("CurMainSelectedFolder", EasiSettingKeys.SelectedSongFolderNo.Id, SettingsSectionKind.Data, LegacySettingValueKind.Integer, "FrmMain SongFolder_Change", "Legacy current top-left SongFolder number restored on startup."),
         Automated("AdminDatabasePath", EasiSettingKeys.AdminDatabasePath.Id, SettingsSectionKind.Data, LegacySettingValueKind.Path, "WPF compatibility", "Current WPF setting import/export alias."),

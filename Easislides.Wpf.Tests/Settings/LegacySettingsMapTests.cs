@@ -80,6 +80,8 @@ public class LegacySettingsMapTests
             .Should().Contain(["PowerPointSourceListingStyle", "ExternalListing"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PraiseBookCjkGroupStyle.Id)
             .Should().Contain(["PraiseBookCjkGroupStyle", "PB_CJKGroupStyle"]);
+        LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.CurrentPraiseBookName.Id)
+            .Should().Contain(["CurrentPraiseBookName", "current_praisebook", "CurPraiseBook"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.SelectedSongFolderNo.Id)
             .Should().Contain(["SelectedSongFolderNo", "CurMainSelectedFolder"]);
         LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaDirectory.Id)
@@ -168,6 +170,7 @@ public class LegacySettingsMapTests
             ["PowerpointMaxFiles"] = "80",
             ["ExternalListing"] = "1",
             ["PB_CJKGroupStyle"] = "1",
+            ["current_praisebook"] = "주일예배",
             ["CurMainSelectedFolder"] = "2",
             ["UseMediaTab"] = "1",
             ["NoMediaPanelOverlay"] = "1",
@@ -206,6 +209,7 @@ public class LegacySettingsMapTests
         sut.Get(EasiSettingKeys.PowerPointMaxFiles).Should().Be(80);
         sut.Get(EasiSettingKeys.PowerPointSourceListingStyle).Should().Be(1);
         sut.Get(EasiSettingKeys.PraiseBookCjkGroupStyle).Should().Be(1);
+        sut.Get(EasiSettingKeys.CurrentPraiseBookName).Should().Be("주일예배");
         sut.Get(EasiSettingKeys.SelectedSongFolderNo).Should().Be(2);
         sut.Get(EasiSettingKeys.UseMediaTab).Should().BeTrue();
         sut.Get(EasiSettingKeys.NoMediaPanelOverlay).Should().BeTrue();

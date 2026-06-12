@@ -3271,6 +3271,7 @@
                                 <ComboBox x:Name="InlinePraiseBookSavedBooksCombo"
                                           Tag="PraiseBook"
                                           ItemsSource="{Binding SavedBooks}"
+                                          SelectedItem="{Binding CurrentBookName, Mode=TwoWay}"
                                           SelectionChanged="InlinePraiseBookSavedBooksCombo_SelectionChanged"
                                           MinHeight="28"
                                           Margin="0,0,4,0"
