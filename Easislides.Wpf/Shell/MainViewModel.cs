@@ -1171,6 +1171,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetDefaultItemTransitionCommand = new RelayCommand<TransitionEffectKind>(SetDefaultItemTransition);
         SetDefaultSlideTransitionCommand = new RelayCommand<TransitionEffectKind>(SetDefaultSlideTransition);
         ClearOutputBackgroundImageCommand = new RelayCommand(ClearOutputBackgroundImage, () => CanClearOutputBackgroundImage);
+        ClearDefaultMediaCommand = new RelayCommand(ClearDefaultMedia, () => CanClearDefaultMedia);
         OpenRecentWorshipListCommand = new AsyncRelayCommand<string>(OpenRecentWorshipListAsync);
         ValidateWorshipListCommand = new AsyncRelayCommand(ValidateWorshipListAsync);
         // 라이브 조옮김 ↑/↓/원조 — ±반음 이동(±11 클램프) 후 라이브 곡을 재송출해 코드 줄을 다시 그린다.
@@ -1337,6 +1338,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string OutputBackgroundNoImageToolTip => CanClearOutputBackgroundImage
         ? $"Remove Default Background '{ActiveOutputBackgroundImagePath}'"
         : "No Default Background";
+    public string DefaultMediaPath => _settings.Get(EasiSettingKeys.DefaultMediaPath);
+    public bool CanClearDefaultMedia => !string.IsNullOrWhiteSpace(DefaultMediaPath);
+    public string DefaultMediaToolTip => CanClearDefaultMedia
+        ? $"Remove Default Media '{Path.GetFileName(DefaultMediaPath)}'"
+        : "No Default Media";
 
     public IRelayCommand<LyricsGradientDirection> ApplyGradientDirectionCommand { get; }
 
@@ -1479,6 +1485,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<TransitionEffectKind> SetSelectedItemTransitionCommand { get; }
     public IRelayCommand<TransitionEffectKind> SetSelectedSlideTransitionCommand { get; }
     public IRelayCommand ClearOutputBackgroundImageCommand { get; }
+    public IRelayCommand ClearDefaultMediaCommand { get; }
     public IAsyncRelayCommand<string> OpenRecentWorshipListCommand { get; }
 
     /// <summary>최근 연/저장한 예배 순서 이름(최신순) — 파일 메뉴 "최근 예배 순서" 서브메뉴 바인딩(레거시 Recent Edits).</summary>
@@ -3634,6 +3641,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputMediaPlayPauseSymbol));
     }
 
+    private void NotifyDefaultMediaProperties()
+    {
+        OnPropertyChanged(nameof(DefaultMediaPath));
+        OnPropertyChanged(nameof(CanClearDefaultMedia));
+        OnPropertyChanged(nameof(DefaultMediaToolTip));
+        ClearDefaultMediaCommand.NotifyCanExecuteChanged();
+        NotifyOutputMediaProperties();
+    }
+
     private static string BuildPreviewItemInfoText(LiveQueueItem? item)
     {
         if (item is null)
@@ -4479,6 +4495,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return specificMediaPath;
         }
 
+        if (TryResolveDefaultMediaPath(out var defaultMediaPath))
+        {
+            return defaultMediaPath;
+        }
+
         if (!string.IsNullOrWhiteSpace(item.ContentPath)
             && IsSupportedWorshipOutputMediaFile(item.ContentPath)
             && TryResolveExistingFile(item.ContentPath, out var contentMediaPath))
@@ -4761,6 +4782,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return specificMediaPath;
         }
 
+        if (TryResolveDefaultMediaPath(out var defaultMediaPath))
+        {
+            return defaultMediaPath;
+        }
+
         if (!string.IsNullOrWhiteSpace(item.ContentPath)
             && IsSupportedWorshipOutputMediaFile(item.ContentPath)
             && TryResolveExistingFile(item.ContentPath, out var contentMediaPath))
@@ -4858,6 +4884,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private static bool TryResolveSpecificMediaPath(LiveQueueItem item, out string mediaPath)
     {
         var assigned = SongFormatData.Parse(item.FormatData)?.MediaPath;
+        return TryResolveExistingFile(assigned, out mediaPath);
+    }
+
+    private bool TryResolveDefaultMediaPath(out string mediaPath)
+    {
+        var assigned = _settings.Get(EasiSettingKeys.DefaultMediaPath);
         return TryResolveExistingFile(assigned, out mediaPath);
     }
 
@@ -8838,6 +8870,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // 인-셸 가사 폰트 크기 조절(+/- 단계) — 절대값 커밋 함수에 위임(직접 수치 입력과 동일 경로).
+    public void SetDefaultMedia(string? mediaPath)
+    {
+        var normalized = (mediaPath ?? string.Empty).Trim().Replace(">", string.Empty);
+        _settings.Set(EasiSettingKeys.DefaultMediaPath, normalized);
+        NotifyDefaultMediaProperties();
+        StatusText = string.IsNullOrWhiteSpace(normalized)
+            ? "Default media cleared"
+            : $"Default media: {Path.GetFileName(normalized)}";
+    }
+
+    private void ClearDefaultMedia()
+    {
+        if (!CanClearDefaultMedia)
+        {
+            return;
+        }
+
+        SetDefaultMedia(string.Empty);
+    }
+
     private void StepLyricsFontSize(int delta) => CommitLyricsFontSize(ActiveLyricsFontSize + delta);
 
     // 인-셸 가사 폰트 크기 절대값 커밋 — 범위로 클램프 후 설정 저장(출력 VM 라이브 반영).
@@ -9385,6 +9437,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         AutoRotateIntervalSeconds = _settings.Get(EasiSettingKeys.AutoRotateIntervalSeconds);
         ActiveAutoRotateMode = _settings.Get(EasiSettingKeys.AutoRotateMode);
         RefreshActiveAppearance();
+        NotifyDefaultMediaProperties();
         RefreshPowerPointLimitState(updateStatus);
         // 탭 가시성이 바뀌면 현재 선택 항목 기준으로 중앙 탭을 재평가 — 방금 숨겨진 탭이 선택된 채 남아
         // 빈 패널이 보이는 것을 막는다(WPF 는 가시성 Collapsed 시 선택을 자동으로 풀지 않음, code-review MINOR).
@@ -9418,6 +9471,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 string.Equals(key, EasiSettingKeys.UseMediaTab.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.NoMediaPanelOverlay.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.MediaDirectory.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.DefaultMediaPath.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LiveCameraNumber.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.AutoRotateIntervalSeconds.Id, StringComparison.OrdinalIgnoreCase))
             {
@@ -9571,6 +9625,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleSelectedItemItalic2Command.NotifyCanExecuteChanged();
         ToggleSelectedItemUnderline2Command.NotifyCanExecuteChanged();
         ClearOutputBackgroundImageCommand.NotifyCanExecuteChanged();
+        ClearDefaultMediaCommand.NotifyCanExecuteChanged();
         ClearSelectedItemFormattingCommand.NotifyCanExecuteChanged();
         CopySelectedItemFormattingCommand.NotifyCanExecuteChanged();
         PasteSelectedItemFormattingCommand.NotifyCanExecuteChanged();

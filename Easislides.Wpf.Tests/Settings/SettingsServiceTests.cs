@@ -270,6 +270,18 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Set_DefaultMediaPath_PersistsToDiskAndReloads()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Set(EasiSettingKeys.DefaultMediaPath, @"C:\media\default.mp4").Succeeded.Should().BeTrue();
+
+        sut.Get(EasiSettingKeys.DefaultMediaPath).Should().Be(@"C:\media\default.mp4");
+        ReadSnapshot(fixture.SettingsPath).Media.DefaultMediaPath.Should().Be(@"C:\media\default.mp4");
+    }
+
+    [Fact]
     public void Set_WhenValueIsInvalid_ReturnsIssueAndKeepsPreviousValue()
     {
         using var fixture = TempSettingsFolder.Create();
@@ -417,12 +429,14 @@ public class SettingsServiceTests
         using var fixture = TempSettingsFolder.Create();
         var sut = fixture.CreateService();
         sut.Set(EasiSettingKeys.Theme, ColorTheme.Light).Succeeded.Should().BeTrue();
+        var legacyDefaultMedia = Path.Combine(fixture.Root, "legacy-default.mp4");
         var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
         {
             ["Language"] = "en-US",
             ["WorkingFolder"] = fixture.LegacyFolder,
             ["Theme"] = "Dark",
             ["InterfaceSize"] = "Senior",
+            ["MediaLocation"] = legacyDefaultMedia,
             ["MediaVolume"] = "0.65",
             ["PowerPointRenderTimeoutSeconds"] = "45",
             ["UseSafetyConfirmations"] = "definitely",
@@ -439,6 +453,7 @@ public class SettingsServiceTests
         sut.Get(EasiSettingKeys.WorkingFolder).Should().Be(fixture.LegacyFolder);
         sut.Get(EasiSettingKeys.Theme).Should().Be(ColorTheme.Dark);
         sut.Get(EasiSettingKeys.InterfaceSize).Should().Be(InterfaceSize.Senior);
+        sut.Get(EasiSettingKeys.DefaultMediaPath).Should().Be(legacyDefaultMedia);
         sut.Get(EasiSettingKeys.MediaVolume).Should().Be(0.65);
         sut.Get(EasiSettingKeys.PowerPointRenderTimeoutSeconds).Should().Be(45);
         sut.Get(EasiSettingKeys.UseSafetyConfirmations).Should().BeTrue();

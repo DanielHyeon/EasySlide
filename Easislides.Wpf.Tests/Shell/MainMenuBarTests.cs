@@ -1405,6 +1405,12 @@ public class MainMenuBarTests
         xaml.Should().Contain("ClearOutputBackgroundImageCommand", "Def_NoImage should clear the default output background");
         xaml.Should().Contain("IsEnabled=\"{Binding CanClearOutputBackgroundImage}\"", "Def_NoImage should mirror FrmMain disabled state when no default image exists");
         xaml.Should().Contain("ToolTip=\"{Binding OutputBackgroundNoImageToolTip}\"", "Def_NoImage should expose FrmMain-style current-background feedback");
+        xaml.Should().Contain("x:Name=\"Def_AssignMedia\"", "Default tab should expose FrmMain Def_AssignMedia");
+        xaml.Should().Contain("Text=\"{Binding DefaultMediaPath, Mode=OneWay}\"", "Def_AssignMedia should show the current default media path");
+        xaml.Should().Contain("Click=\"SelectDefaultMedia_Click\"", "Def_AssignMedia should open a media picker from the Default panel");
+        xaml.Should().Contain("ClearDefaultMediaCommand", "Default tab should expose FrmMain-style default media clearing");
+        code.Should().Contain("private void SelectDefaultMedia_Click", "Def_AssignMedia should have a code-behind handler");
+        code.Should().Contain("viewModel.SetDefaultMedia(dialog.FileName)", "Def_AssignMedia should save the picked media through the VM");
         xaml.Should().Contain("x:Name=\"Def_BackColour\"", "Default tab should expose FrmMain Def_BackColour");
         xaml.Should().Contain("x:Name=\"Def_BackColourHex\"", "Def_BackColour should show the current default background hex");
         xaml.Should().Contain("ActiveBackgroundColorHex", "Def_BackColour should reflect the current default background colour");

@@ -413,6 +413,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> UseMediaTab = new("media.useMediaTab", false);
     public static readonly SettingKey<bool> NoMediaPanelOverlay = new("media.noPanelOverlay", false);
     public static readonly SettingKey<string> MediaDirectory = new("media.directory", "");
+    public static readonly SettingKey<string> DefaultMediaPath = new("media.defaultMediaPath", "");
     public static readonly SettingKey<double> MediaVolume = new("media.volume", 0.8);
     public static readonly SettingKey<double> MediaBalance = new("media.balance", 0.0);
     public static readonly SettingKey<bool> MediaMuted = new("media.muted", false);
@@ -536,6 +537,7 @@ public static class EasiSettingKeys
         UseMediaTab,
         NoMediaPanelOverlay,
         MediaDirectory,
+        DefaultMediaPath,
         MediaVolume,
         MediaBalance,
         MediaMuted,
@@ -787,6 +789,8 @@ public sealed record MediaSettings
     public bool NoPanelOverlay { get; init; } = EasiSettingKeys.NoMediaPanelOverlay.DefaultValue;
 
     public string Directory { get; init; } = EasiSettingKeys.MediaDirectory.DefaultValue;
+
+    public string DefaultMediaPath { get; init; } = EasiSettingKeys.DefaultMediaPath.DefaultValue;
 
     public double Volume { get; init; } = EasiSettingKeys.MediaVolume.DefaultValue;
 
@@ -1215,6 +1219,7 @@ public sealed class SettingsService : ISettingsService
             EasiSettingKeys.PowerPointSourceListingStyle.Id,
             issues);
         ValidatePath(candidate.Media.Directory, EasiSettingKeys.MediaDirectory.Id, issues, allowEmpty: true);
+        ValidatePath(candidate.Media.DefaultMediaPath, EasiSettingKeys.DefaultMediaPath.Id, issues, allowEmpty: true);
         RequireRange(candidate.Media.Volume, min: 0.0, max: 1.0, EasiSettingKeys.MediaVolume.Id, issues);
         RequireRange(candidate.Media.Balance, min: -1.0, max: 1.0, EasiSettingKeys.MediaBalance.Id, issues);
         RequireRange(candidate.Media.LiveCameraNumber, min: 1, max: 5, EasiSettingKeys.LiveCameraNumber.Id, issues);
@@ -1471,6 +1476,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaDirectory.Id), next, value => next with
         {
             Media = next.Media with { Directory = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DefaultMediaPath.Id), next, value => next with
+        {
+            Media = next.Media with { DefaultMediaPath = value },
         });
         next = ApplyLegacyDouble(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MediaVolume.Id), next, issues, NormalizeLegacyUnitScale, value => next with
         {
@@ -1845,6 +1854,7 @@ public sealed class SettingsService : ISettingsService
             "media.useMediaTab" => snapshot.Media.UseMediaTab,
             "media.noPanelOverlay" => snapshot.Media.NoPanelOverlay,
             "media.directory" => snapshot.Media.Directory,
+            "media.defaultMediaPath" => snapshot.Media.DefaultMediaPath,
             "media.volume" => snapshot.Media.Volume,
             "media.balance" => snapshot.Media.Balance,
             "media.muted" => snapshot.Media.Muted,
@@ -2287,6 +2297,10 @@ public sealed class SettingsService : ISettingsService
             "media.directory" => snapshot with
             {
                 Media = snapshot.Media with { Directory = Cast<string>(keyId, value) },
+            },
+            "media.defaultMediaPath" => snapshot with
+            {
+                Media = snapshot.Media with { DefaultMediaPath = Cast<string>(keyId, value) },
             },
             "media.volume" => snapshot with
             {

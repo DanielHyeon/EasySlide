@@ -3061,6 +3061,29 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SelectDefaultMedia_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Default media",
+            Filter = "Media (*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg)"
+                + "|*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg"
+                + "|All files (*.*)|*.*",
+            CheckFileExists = true,
+            InitialDirectory = ResolveMediaInitialFolder(),
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            viewModel.SetDefaultMedia(dialog.FileName);
+        }
+    }
+
     private void PickDefaultTextColor_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActiveTextColorHex, out var hex))

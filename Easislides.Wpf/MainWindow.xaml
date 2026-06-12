@@ -2575,6 +2575,44 @@
                                                 AutomationProperties.Name="Def background best fit" />
                                     </WrapPanel>
 
+                                    <TextBlock Text="Media"
+                                               Style="{StaticResource Type.Caption.Style}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="0,2,0,4" />
+                                    <WrapPanel x:Name="Def_AssignMediaPanel"
+                                               Tag="Def_AssignMedia">
+                                        <TextBox x:Name="Def_MediaPath"
+                                                 Text="{Binding DefaultMediaPath, Mode=OneWay}"
+                                                 MinWidth="180"
+                                                 MinHeight="30"
+                                                 VerticalContentAlignment="Center"
+                                                 Margin="0,0,4,6"
+                                                 ToolTip="{Binding DefaultMediaPath}"
+                                                 AutomationProperties.Name="Def default media path" />
+                                        <Button x:Name="Def_AssignMedia"
+                                                Tag="Def_AssignMedia"
+                                                Click="SelectDefaultMedia_Click"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,4,6"
+                                                Content="Media..."
+                                                ToolTip="FrmMain Def_AssignMedia"
+                                                AutomationProperties.Name="Def assign media" />
+                                        <Button x:Name="Def_ClearMedia"
+                                                Tag="Def_ClearMedia"
+                                                Command="{Binding ClearDefaultMediaCommand}"
+                                                IsEnabled="{Binding CanClearDefaultMedia}"
+                                                Style="{StaticResource EsButton.Secondary}"
+                                                MinHeight="30"
+                                                Padding="9,0"
+                                                Margin="0,0,6,6"
+                                                Content="None"
+                                                ToolTip="{Binding DefaultMediaToolTip}"
+                                                ToolTipService.ShowOnDisabled="True"
+                                                AutomationProperties.Name="Def clear media" />
+                                    </WrapPanel>
+
                                     <TextBlock Text="Background Colour"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}"

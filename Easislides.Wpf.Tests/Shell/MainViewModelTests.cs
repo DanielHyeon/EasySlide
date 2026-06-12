@@ -7585,6 +7585,72 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SetDefaultMedia_WritesSettingsAndReflects()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaFile = Path.Combine(folder.Root, "default-loop.mp4");
+        File.WriteAllText(mediaFile, "default media placeholder");
+        var settings = folder.CreateSettings();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+
+        sut.SetDefaultMedia($"  {mediaFile}  ");
+
+        settings.Get(EasiSettingKeys.DefaultMediaPath).Should().Be(mediaFile);
+        sut.DefaultMediaPath.Should().Be(mediaFile);
+        sut.CanClearDefaultMedia.Should().BeTrue();
+        sut.DefaultMediaToolTip.Should().Contain("default-loop.mp4");
+    }
+
+    [Fact]
+    public void ClearDefaultMediaCommand_ClearsSettingsAndReflects()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.DefaultMediaPath, @"C:\media\old-default.mp4").Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+
+        sut.ClearDefaultMediaCommand.Execute(null);
+
+        settings.Get(EasiSettingKeys.DefaultMediaPath).Should().BeEmpty();
+        sut.DefaultMediaPath.Should().BeEmpty();
+        sut.CanClearDefaultMedia.Should().BeFalse();
+    }
+
+    [Fact]
+    public void PlaySelectedWorshipMediaCommand_SongItem_UsesDefaultMediaPathBeforeTitleLookup()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var titleMedia = Path.Combine(mediaRoot, "Grace Song.mp4");
+        var defaultMedia = Path.Combine(mediaRoot, "Default Loop.mp4");
+        File.WriteAllText(titleMedia, "title media placeholder");
+        File.WriteAllText(defaultMedia, "default media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.DefaultMediaPath, defaultMedia).Succeeded.Should().BeTrue();
+        var launched = new List<string>();
+        var sut = CreateSut(
+            settings: settings,
+            seedSampleQueue: false,
+            worshipMediaLauncher: path =>
+            {
+                launched.Add(path);
+                return true;
+            });
+        var item = new LiveQueueItem("song:grace", "Grace Song", LiveItemKinds.Song)
+        {
+            Lyrics = "Grace Song lyrics",
+        };
+        sut.LoadQueue([item]);
+
+        sut.PlaySelectedWorshipMediaCommand.Execute(null);
+
+        launched.Should().ContainSingle().Which.Should().Be(defaultMedia);
+        sut.StatusText.Should().Contain("Default Loop.mp4");
+    }
+
+    [Fact]
     public void PlaySelectedWorshipMediaCommand_SongItem_UsesFormatDataSpecificMediaBeforeTitle()
     {
         using var folder = TempSettingsFolder.Create();

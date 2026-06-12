@@ -179,6 +179,8 @@ public static class LegacySettingsMap
         Automated("MediaDirectory", EasiSettingKeys.MediaDirectory.Id, SettingsSectionKind.Media, LegacySettingValueKind.Path, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("MediaDir", EasiSettingKeys.MediaDirectory.Id, SettingsSectionKind.Media, LegacySettingValueKind.Path, "FrmOptions.SaveVariables", "Legacy music/media directory."),
         Automated("media_dir", EasiSettingKeys.MediaDirectory.Id, SettingsSectionKind.Media, LegacySettingValueKind.Path, "RegUtil config/media_dir", "Registry-backed legacy media directory."),
+        Automated("DefaultMediaPath", EasiSettingKeys.DefaultMediaPath.Id, SettingsSectionKind.Media, LegacySettingValueKind.Path, "WPF compatibility", "Current WPF default media path alias."),
+        Automated("MediaLocation", EasiSettingKeys.DefaultMediaPath.Id, SettingsSectionKind.Media, LegacySettingValueKind.Path, "FrmMain Def_Media_Clicked", "Legacy default session media path."),
         Automated("MediaVolume", EasiSettingKeys.MediaVolume.Id, SettingsSectionKind.Media, LegacySettingValueKind.Double, "WPF compatibility", "Current WPF normalized 0..1 media volume."),
         Automated("LiveCamVolume", EasiSettingKeys.MediaVolume.Id, SettingsSectionKind.Media, LegacySettingValueKind.Double, "FrmOptions.SaveVariables", "Legacy trackbar scale is normalized into 0..1 when greater than 1."),
         Automated("MediaBalance", EasiSettingKeys.MediaBalance.Id, SettingsSectionKind.Media, LegacySettingValueKind.Double, "WPF compatibility", "Current WPF normalized -1..1 media balance."),
