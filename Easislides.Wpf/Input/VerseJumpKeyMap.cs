@@ -26,6 +26,7 @@ public static class VerseJumpKeyMap
             Key.D7 or Key.NumPad7 => "7",
             Key.D8 or Key.NumPad8 => "8",
             Key.D9 or Key.NumPad9 => "9",
+            Key.D0 or Key.NumPad0 => "c",
             Key.C => "c",
             Key.B when shift => "w",
             Key.B => "b",

@@ -18,10 +18,14 @@ public class VerseJumpKeyMapTests
 
     [Theory]
     [InlineData(Key.C, ModifierKeys.None, "c")]
+    [InlineData(Key.D0, ModifierKeys.None, "c")]
+    [InlineData(Key.NumPad0, ModifierKeys.None, "c")]
     [InlineData(Key.B, ModifierKeys.None, "b")]
     [InlineData(Key.E, ModifierKeys.None, "e")]
     [InlineData(Key.P, ModifierKeys.None, "p")]
     [InlineData(Key.C, ModifierKeys.Shift, "c")]
+    [InlineData(Key.D0, ModifierKeys.Shift, "c")]
+    [InlineData(Key.NumPad0, ModifierKeys.Shift, "c")]
     [InlineData(Key.B, ModifierKeys.Shift, "w")]
     [InlineData(Key.W, ModifierKeys.Shift, "w")]
     [InlineData(Key.E, ModifierKeys.Shift, "e")]
@@ -39,7 +43,6 @@ public class VerseJumpKeyMapTests
         => VerseJumpKeyMap.MapKeyToLabel(key, modifiers).Should().Be(expected);
 
     [Theory]
-    [InlineData(Key.D0)]
     [InlineData(Key.A)]
     [InlineData(Key.Z)]
     [InlineData(Key.F5)]
@@ -62,7 +65,7 @@ public class VerseJumpKeyMapTests
     [Fact]
     public void DigitAndNumPad_MapToSameLabel()
     {
-        for (var n = 1; n <= 9; n++)
+        for (var n = 0; n <= 9; n++)
         {
             var top = (Key)((int)Key.D0 + n);
             var pad = (Key)((int)Key.NumPad0 + n);
