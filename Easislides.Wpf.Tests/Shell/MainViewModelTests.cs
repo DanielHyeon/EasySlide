@@ -7568,6 +7568,57 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void SetSelectedItemMedia_WritesLegacySpecificMediaCodes50And51_AndReflects()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaFile = Path.Combine(folder.Root, "Specific Song.mp4");
+        File.WriteAllText(mediaFile, "test media placeholder");
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "Grace Song", "", 1, 1, "", "", "[1]\nGrace lyrics"));
+
+        sut.SetSelectedItemMedia($"  {mediaFile}  ");
+
+        sut.SelectedItem!.FormatData.Should().Contain("50=2", "FrmMain stores specific media mode in FormatData code 50");
+        sut.SelectedItem!.FormatData.Should().Contain($"51={mediaFile}", "FrmMain stores the specific media path in FormatData code 51");
+        sut.SelectedItemMediaPath.Should().Be(mediaFile);
+        sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("assigning item media is part of the FrmMain individual setting set");
+    }
+
+    [Fact]
+    public void PlaySelectedWorshipMediaCommand_SongItem_UsesFormatDataSpecificMediaBeforeTitle()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var mediaRoot = Path.Combine(folder.Root, "Media");
+        Directory.CreateDirectory(mediaRoot);
+        var titleMedia = Path.Combine(mediaRoot, "Grace Song.mp4");
+        var specificMedia = Path.Combine(mediaRoot, "Chosen Clip.mp4");
+        File.WriteAllText(titleMedia, "title media placeholder");
+        File.WriteAllText(specificMedia, "specific media placeholder");
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.MediaDirectory, mediaRoot).Succeeded.Should().BeTrue();
+        var launched = new List<string>();
+        var sut = CreateSut(
+            settings: settings,
+            seedSampleQueue: false,
+            worshipMediaLauncher: path =>
+            {
+                launched.Add(path);
+                return true;
+            });
+        var item = new LiveQueueItem("song:grace", "Grace Song", LiveItemKinds.Song)
+        {
+            Lyrics = "Grace Song lyrics",
+            FormatData = $"50=2>51={specificMedia}>",
+        };
+        sut.LoadQueue([item]);
+
+        sut.PlaySelectedWorshipMediaCommand.Execute(null);
+
+        launched.Should().ContainSingle().Which.Should().Be(specificMedia);
+        sut.StatusText.Should().Contain("Chosen Clip.mp4");
+    }
+
+    [Fact]
     public async Task WorshipListDoubleClickCommand_MediaItem_UsesLegacyMediaLauncherOnly()
     {
         // FrmMain WorshipListItems_DoubleClick: PreviewItem.Type == "M" 이면 RunProcess(mediaPath) 후

@@ -161,7 +161,11 @@ public sealed record SongFormatData
         if (!string.IsNullOrEmpty(FontName2)) Add(44, FontName2);
         if (FontSize1 is int fs1) Add(47, Num(fs1));
         if (FontSize2 is int fs2) Add(48, Num(fs2));
-        if (!string.IsNullOrEmpty(MediaPath)) Add(51, MediaPath);
+        if (!string.IsNullOrEmpty(MediaPath))
+        {
+            Add(50, "2");
+            Add(51, MediaPath);
+        }
         if (!string.IsNullOrEmpty(BackgroundImagePath)) Add(61, BackgroundImagePath);
         if (ToLegacyBackgroundImageMode(BackgroundImageMode) is int bgMode) Add(62, Num(bgMode));
         if (ToLegacyVerticalAlignment(VerticalAlignment) is int valign) Add(63, Num(valign));

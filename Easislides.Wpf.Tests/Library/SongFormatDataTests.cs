@@ -145,6 +145,15 @@ public sealed class SongFormatDataTests
         new SongFormatData { BackgroundImageMode = mode }.Encode().Should().Be(expected);
     }
 
+    [Fact]
+    public void Encode_MediaPath_UsesLegacySpecificMediaCodes50And51()
+    {
+        var encoded = new SongFormatData { MediaPath = @"C:\media\clip.mp4" }.Encode();
+
+        encoded.Should().Contain("50=2", "FrmMain stores specific media mode in code 50");
+        encoded.Should().Contain(@"51=C:\media\clip.mp4", "FrmMain stores the assigned media path in code 51");
+    }
+
     [Theory]
     [InlineData("63=0>", LyricsVerticalAlignment.Top)]
     [InlineData("63=1>", LyricsVerticalAlignment.Center)]

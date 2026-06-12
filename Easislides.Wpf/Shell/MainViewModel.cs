@@ -1082,6 +1082,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemBackgroundColorCommand = new RelayCommand<string?>(SetSelectedItemBackgroundColor, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageCommand = new RelayCommand<string?>(SetSelectedItemBackgroundImage, _ => CanEditSelectedItemColor);
         SetSelectedItemBackgroundImageModeCommand = new RelayCommand<LyricsBackgroundMode>(SetSelectedItemBackgroundImageMode, _ => CanEditSelectedItemColor);
+        SetSelectedItemMediaCommand = new RelayCommand<string?>(SetSelectedItemMedia, _ => CanEditSelectedItemColor);
         SetSelectedItemVerticalAlignmentCommand = new RelayCommand<LyricsVerticalAlignment>(SetSelectedItemVerticalAlignment, _ => CanEditSelectedItemColor);
         SetSelectedItemLeftMarginCommand = new RelayCommand<string?>(SetSelectedItemLeftMargin, _ => CanEditSelectedItemColor);
         SetSelectedItemRightMarginCommand = new RelayCommand<string?>(SetSelectedItemRightMargin, _ => CanEditSelectedItemColor);
@@ -1376,6 +1377,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string?> SetSelectedItemBackgroundColorCommand { get; }
     public IRelayCommand<string?> SetSelectedItemBackgroundImageCommand { get; }
     public IRelayCommand<LyricsBackgroundMode> SetSelectedItemBackgroundImageModeCommand { get; }
+    public IRelayCommand<string?> SetSelectedItemMediaCommand { get; }
     public IRelayCommand<LyricsVerticalAlignment> SetSelectedItemVerticalAlignmentCommand { get; }
     public IRelayCommand<string?> SetSelectedItemLeftMarginCommand { get; }
     public IRelayCommand<string?> SetSelectedItemRightMarginCommand { get; }
@@ -3581,6 +3583,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemBackgroundModeIsFit));
         OnPropertyChanged(nameof(SelectedItemBackgroundModeIsCenter));
         OnPropertyChanged(nameof(SelectedItemBackgroundModeIsTile));
+        OnPropertyChanged(nameof(SelectedItemMediaPath));
+        OnPropertyChanged(nameof(CanClearSelectedItemMedia));
+        OnPropertyChanged(nameof(SelectedItemMediaToolTip));
         OnPropertyChanged(nameof(SelectedItemVerticalAlignment));
         OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsTop));
         OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsCenter));
@@ -4469,6 +4474,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return directMediaPath;
         }
 
+        if (TryResolveSpecificMediaPath(item, out var specificMediaPath))
+        {
+            return specificMediaPath;
+        }
+
         if (!string.IsNullOrWhiteSpace(item.ContentPath)
             && IsSupportedWorshipOutputMediaFile(item.ContentPath)
             && TryResolveExistingFile(item.ContentPath, out var contentMediaPath))
@@ -4746,6 +4756,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return directMediaPath;
         }
 
+        if (TryResolveSpecificMediaPath(item, out var specificMediaPath))
+        {
+            return specificMediaPath;
+        }
+
         if (!string.IsNullOrWhiteSpace(item.ContentPath)
             && IsSupportedWorshipOutputMediaFile(item.ContentPath)
             && TryResolveExistingFile(item.ContentPath, out var contentMediaPath))
@@ -4839,6 +4854,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static bool IsSupportedWorshipOutputMediaFile(string filePath)
         => WorshipOutputMediaExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
+
+    private static bool TryResolveSpecificMediaPath(LiveQueueItem item, out string mediaPath)
+    {
+        var assigned = SongFormatData.Parse(item.FormatData)?.MediaPath;
+        return TryResolveExistingFile(assigned, out mediaPath);
+    }
 
     private static string NormalizeWorshipMediaLookupName(string value)
         => new(value.Where(char.IsLetterOrDigit).ToArray());
@@ -7233,6 +7254,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ? $"Remove Item Background '{SelectedItemBackgroundImagePath}'"
         : "No Item Background";
 
+    public string SelectedItemMediaPath
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.MediaPath ?? string.Empty;
+
+    public bool CanClearSelectedItemMedia
+        => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemMediaPath);
+
+    public string SelectedItemMediaToolTip => CanClearSelectedItemMedia
+        ? $"Remove Item Media '{SelectedItemMediaPath}'"
+        : "No Item Media";
+
     public LyricsBackgroundMode SelectedItemBackgroundImageMode
         => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fit;
 
@@ -7343,6 +7374,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = imagePath.Length == 0
                 ? "항목 배경 이미지: 전역 기본"
                 : $"항목 배경 이미지: {System.IO.Path.GetFileName(imagePath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+        }
+    }
+
+    public void SetSelectedItemMedia(string? path)
+    {
+        var mediaPath = string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim().Replace(">", string.Empty);
+        if (ApplySelectedSongFormatChange(format => format with { MediaPath = mediaPath }, wantsIndividual: mediaPath.Length > 0, out var turnedOn))
+        {
+            OnPropertyChanged(nameof(SelectedItemMediaPath));
+            OnPropertyChanged(nameof(CanClearSelectedItemMedia));
+            OnPropertyChanged(nameof(SelectedItemMediaToolTip));
+            StatusText = mediaPath.Length == 0
+                ? "항목 미디어: 없음"
+                : $"항목 미디어: {System.IO.Path.GetFileName(mediaPath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
         }
     }
 
@@ -9508,6 +9553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetSelectedItemBackgroundColorCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageCommand.NotifyCanExecuteChanged();
         SetSelectedItemBackgroundImageModeCommand.NotifyCanExecuteChanged();
+        SetSelectedItemMediaCommand.NotifyCanExecuteChanged();
         SetSelectedItemVerticalAlignmentCommand.NotifyCanExecuteChanged();
         SetSelectedItemLeftMarginCommand.NotifyCanExecuteChanged();
         SetSelectedItemRightMarginCommand.NotifyCanExecuteChanged();

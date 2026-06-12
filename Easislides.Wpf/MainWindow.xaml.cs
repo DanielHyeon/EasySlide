@@ -3038,6 +3038,29 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SelectPreviewItemMedia_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel || !viewModel.CanEditSelectedItemColor)
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "이 항목의 미디어 선택",
+            Filter = "미디어 (*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg)"
+                + "|*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg"
+                + "|모든 파일 (*.*)|*.*",
+            CheckFileExists = true,
+            InitialDirectory = ResolveMediaInitialFolder(),
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            viewModel.SetSelectedItemMedia(dialog.FileName);
+        }
+    }
+
     private void PickDefaultTextColor_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActiveTextColorHex, out var hex))

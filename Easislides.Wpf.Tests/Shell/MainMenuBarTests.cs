@@ -2014,6 +2014,18 @@ public class MainMenuBarTests
             "Ind_NoImage should mirror FrmMain disabled state when the selected item has no background image");
         xaml.Should().Contain("ToolTip=\"{Binding SelectedItemBackgroundNoImageToolTip}\"",
             "Ind_NoImage should expose selected-item background feedback");
+        xaml.Should().Contain("x:Name=\"Ind_AssignMedia\"",
+            "IndPanel should expose FrmMain's compact item media assignment button");
+        xaml.Should().Contain("Text=\"{Binding SelectedItemMediaPath, Mode=OneWay}\"",
+            "IndPanel should show the selected item's assigned media path from FormatData 51");
+        xaml.Should().Contain("Click=\"SelectPreviewItemMedia_Click\"",
+            "Ind_AssignMedia should choose a specific media file from the first-screen Preview Set panel");
+        xaml.Should().Contain("Command=\"{Binding SetSelectedItemMediaCommand}\"",
+            "IndPanel should also let operators clear the selected item's assigned media");
+        code.Should().Contain("private void SelectPreviewItemMedia_Click",
+            "Preview Set media assignment should be handled by the main shell view");
+        code.Should().Contain("viewModel.SetSelectedItemMedia(dialog.FileName)",
+            "Preview Set media selection should write legacy media FormatData via the selected-item VM method");
         xaml.Should().Contain("x:Name=\"Ind_ImageMode\"",
             "IndPanel should expose FrmMain's item background image format control");
         xaml.Should().Contain("x:Name=\"Ind_ImageTile\"",
