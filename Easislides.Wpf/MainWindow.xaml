@@ -1995,7 +1995,9 @@
                         <Grid Grid.Row="0" Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="4" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ComboBox x:Name="ImagesFolder"
@@ -2008,6 +2010,15 @@
                                       ToolTip="{Binding FolderPath}"
                                       AutomationProperties.Name="Images folder selector" />
                             <Button Grid.Column="2"
+                                    x:Name="Image_Import"
+                                    Tag="Image_Import"
+                                    Click="ImageImport_Click"
+                                    Style="{StaticResource ClassicOperatorStripButton}"
+                                    ToolTip="Import image"
+                                    AutomationProperties.Name="Import image into selected Images folder">
+                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionAdd}" />
+                            </Button>
+                            <Button Grid.Column="4"
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
                                     Content="Refresh"

@@ -48,6 +48,39 @@ public class ImageLibraryServiceTests
     }
 
     [Fact]
+    public void ImportImage_CopiesImageIntoDestinationFolder()
+    {
+        using var source = new TempFolder();
+        using var destination = new TempFolder();
+        source.Touch("new.jpg");
+        var sourcePath = System.IO.Path.Combine(source.Path, "new.jpg");
+        var sut = new ImageLibraryService();
+
+        var result = sut.ImportImage(sourcePath, destination.Path);
+
+        result.Succeeded.Should().BeTrue();
+        result.DestinationPath.Should().Be(System.IO.Path.Combine(destination.Path, "new.jpg"));
+        File.Exists(result.DestinationPath).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ImportImage_WhenDestinationExists_DoesNotOverwrite()
+    {
+        using var source = new TempFolder();
+        using var destination = new TempFolder();
+        source.Touch("same.jpg");
+        var sourcePath = System.IO.Path.Combine(source.Path, "same.jpg");
+        var destinationPath = System.IO.Path.Combine(destination.Path, "same.jpg");
+        File.WriteAllText(destinationPath, "keep");
+        var sut = new ImageLibraryService();
+
+        var result = sut.ImportImage(sourcePath, destination.Path);
+
+        result.Succeeded.Should().BeFalse("FrmMain File.Copy without overwrite rejects duplicate image names");
+        File.ReadAllText(destinationPath).Should().Be("keep");
+    }
+
+    [Fact]
     public void EnumerateImages_TopLevelOnly_ExcludesSubfolders()
     {
         using var folder = new TempFolder();

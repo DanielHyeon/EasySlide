@@ -7,6 +7,8 @@ namespace Easislides.Wpf.Rendering;
 
 public sealed record ImageFolderItem(string DisplayName, string FolderPath);
 
+public sealed record ImageImportResult(bool Succeeded, string SourcePath, string DestinationPath, string Message);
+
 /// <summary>
 /// 이미지 폴더 탐색기(FrmMain Images 탭 포팅) — 지정한 폴더의 이미지 파일 경로 목록을 돌려준다.
 /// 출력 배경으로 쓸 이미지를 운영자가 갤러리에서 고를 수 있게 하는 데이터 소스.
@@ -18,6 +20,8 @@ public interface IImageLibraryService
     IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders);
 
     IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder);
+
+    ImageImportResult ImportImage(string sourceFilePath, string destinationFolderPath);
 }
 
 public sealed class ImageLibraryService : IImageLibraryService
@@ -25,7 +29,7 @@ public sealed class ImageLibraryService : IImageLibraryService
     // 출력 배경으로 쓸 수 있는 이미지 확장자(ImageAssetService 의 디코드 가능 형식과 동일).
     private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".bmp", ".gif", ".jpg", ".jpeg", ".png", ".tif", ".tiff",
+        ".bmp", ".gif", ".ico", ".jpg", ".jpeg", ".png", ".tif", ".tiff",
     };
 
     public IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders)
@@ -71,6 +75,45 @@ public sealed class ImageLibraryService : IImageLibraryService
         }
 
         return folders;
+    }
+
+    public ImageImportResult ImportImage(string sourceFilePath, string destinationFolderPath)
+    {
+        var source = sourceFilePath ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(source) || !File.Exists(source))
+        {
+            return new ImageImportResult(false, source, string.Empty, "Image file not found.");
+        }
+
+        if (!ImageExtensions.Contains(Path.GetExtension(source)))
+        {
+            return new ImageImportResult(false, source, string.Empty, "Unsupported image file.");
+        }
+
+        if (string.IsNullOrWhiteSpace(destinationFolderPath))
+        {
+            return new ImageImportResult(false, source, string.Empty, "Image folder is not selected.");
+        }
+
+        var destinationPath = Path.Combine(destinationFolderPath, Path.GetFileName(source));
+        try
+        {
+            Directory.CreateDirectory(destinationFolderPath);
+            if (File.Exists(destinationPath))
+            {
+                return new ImageImportResult(false, source, destinationPath, "Image file already exists in the selected folder.");
+            }
+
+            File.Copy(source, destinationPath, overwrite: false);
+            return new ImageImportResult(true, source, destinationPath, string.Empty);
+        }
+        catch (Exception ex) when (ex is ArgumentException
+                                       or IOException
+                                       or NotSupportedException
+                                       or UnauthorizedAccessException)
+        {
+            return new ImageImportResult(false, source, destinationPath, ex.Message);
+        }
     }
 
     private static string RelativeFolderName(string root, string path)

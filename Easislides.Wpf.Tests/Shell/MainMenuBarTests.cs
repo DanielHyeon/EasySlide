@@ -1329,6 +1329,9 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"ImagesFolder\"", "Images source should expose FrmMain's ImagesFolder selector inline");
         xaml.Should().Contain("ItemsSource=\"{Binding FolderGroups}\"", "ImagesFolder should list Scenery/Tiles/Images plus subfolder groups");
         xaml.Should().Contain("SelectedItem=\"{Binding SelectedFolder, Mode=TwoWay}\"", "ImagesFolder selection should drive the displayed thumbnails");
+        xaml.Should().Contain("x:Name=\"Image_Import\"", "Images source should expose FrmMain's Image_Import toolbar icon");
+        xaml.Should().Contain("Tag=\"Image_Import\"", "Image_Import should keep the legacy toolbar role tag");
+        xaml.Should().Contain("Click=\"ImageImport_Click\"", "Image_Import should copy selected image files into the active ImagesFolder");
         xaml.Should().Contain("ItemsSource=\"{Binding Images}\"", "inline Images list reuses ImageLibraryViewModel");
         xaml.Should().Contain("Tag=\"flowLayoutImages\"", "inline Images list should keep the FrmMain flowLayoutImages role");
         xaml.Should().Contain("KeyDown=\"SourceListAddOnEnter_KeyDown\"", "Images Enter should reuse the left-source add/apply gesture");
@@ -1569,6 +1572,11 @@ public class MainMenuBarTests
             "external file Edit should use the Windows shell association like legacy Edit_Item");
         code.Should().Contain("EnsureInlineImageLoadedOnce(viewModel)", "Images source tab should lazy-load on first selection");
         code.Should().Contain("ImagesSourceTab.DataContext = _inlineImages", "inline Images tab should bind to ImageLibraryViewModel");
+        code.Should().Contain("private async void ImageImport_Click", "Image_Import should use a real WPF shell handler");
+        code.Should().Contain("Import An Image into folder:", "Image_Import dialog title should match FrmMain");
+        code.Should().Contain("Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico",
+            "Image_Import should start with FrmMain's legacy image filter");
+        code.Should().Contain("ImportImagesAsync(dialog.FileNames)", "Image_Import should import the selected files into the active ImagesFolder");
         code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");
         code.Should().Contain("_inlineImages.ApplySelectedImageCommand.Execute(null)", "Images shared add gesture should follow FrmMain item-first/default-fallback semantics");
         code.Should().Contain("viewModel.SetSelectedItemBackgroundImageCommand.Execute(path)", "Images Add to Item should reuse the selected-item background command");

@@ -2812,6 +2812,44 @@ public partial class MainWindow : Window
         InlineMediaList.Focus();
     }
 
+    private async void ImageImport_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+        {
+            return;
+        }
+
+        EnsureInlineImageLoadedOnce(viewModel);
+        if (_inlineImages is null)
+        {
+            return;
+        }
+
+        var folderName = _inlineImages.SelectedFolder?.DisplayName ?? _inlineImages.FolderPath;
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico",
+            Title = $"Import An Image into folder: {folderName}",
+            Multiselect = true,
+            CheckFileExists = true,
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            InlineImagesList.Focus();
+            return;
+        }
+
+        var results = await _inlineImages.ImportImagesAsync(dialog.FileNames).ConfigureAwait(true);
+        var importedCount = results.Count(result => result.Succeeded);
+        _viewModel.StatusText = importedCount == 0
+            ? "Image could not be imported."
+            : importedCount == 1
+                ? "Imported 1 image."
+                : $"Imported {importedCount} images.";
+        InlineImagesList.Focus();
+    }
+
     private void InlineImagesList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _imageDragStart = e.GetPosition(null);

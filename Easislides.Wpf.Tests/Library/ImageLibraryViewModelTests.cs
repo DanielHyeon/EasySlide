@@ -12,7 +12,7 @@ public class ImageLibraryViewModelTests
     // 폴더와 무관하게 고정 경로를 돌려주는 가짜 서비스(파일 시스템 없이 VM 로직만 검증).
     private sealed class FakeImageLibraryService : IImageLibraryService
     {
-        private readonly IReadOnlyList<string> _paths;
+        private readonly List<string> _paths;
         private readonly IReadOnlyList<ImageFolderItem> _folders;
 
         public FakeImageLibraryService(params string[] paths)
@@ -22,9 +22,11 @@ public class ImageLibraryViewModelTests
 
         public FakeImageLibraryService(IReadOnlyList<ImageFolderItem> folders, params string[] paths)
         {
-            _paths = paths;
+            _paths = paths.ToList();
             _folders = folders;
         }
+
+        public List<(string SourcePath, string DestinationFolder)> Imports { get; } = new();
 
         public string? LastEnumeratedFolder { get; private set; }
 
@@ -35,6 +37,15 @@ public class ImageLibraryViewModelTests
         }
 
         public IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder) => _folders;
+
+        public ImageImportResult ImportImage(string sourceFilePath, string destinationFolderPath)
+        {
+            Imports.Add((sourceFilePath, destinationFolderPath));
+            var destinationPath = System.IO.Path.Combine(destinationFolderPath, System.IO.Path.GetFileName(sourceFilePath));
+            _paths.Clear();
+            _paths.Add(destinationPath);
+            return new ImageImportResult(true, sourceFilePath, destinationPath, string.Empty);
+        }
     }
 
     private static ImageLibraryViewModel CreateSut(
@@ -336,6 +347,32 @@ public class ImageLibraryViewModelTests
         sut.FolderPath.Should().Be(@"C:\bg\Tiles");
         service.LastEnumeratedFolder.Should().Be(@"C:\bg\Tiles");
         sut.Images.Select(i => i.FileName).Should().Equal("tile.jpg");
+    }
+
+    [Fact]
+    public async System.Threading.Tasks.Task ImportImagesAsync_ImportsIntoSelectedFolderAndReloadsList()
+    {
+        var folders = new[]
+        {
+            new ImageFolderItem("Images", @"C:\bg"),
+            new ImageFolderItem("Scenery", @"C:\bg\Scenery"),
+        };
+        var service = new FakeImageLibraryService(folders);
+        var sut = new ImageLibraryViewModel(
+            service,
+            _ => null,
+            _ => { },
+            () => { },
+            initialFolder: @"C:\bg");
+        sut.SelectedFolder = folders[1];
+
+        var results = await sut.ImportImagesAsync(new[] { @"D:\incoming\new.jpg" });
+
+        results.Should().ContainSingle(r => r.Succeeded);
+        service.Imports.Should().ContainSingle().Which.DestinationFolder.Should().Be(@"C:\bg\Scenery");
+        service.LastEnumeratedFolder.Should().Be(@"C:\bg\Scenery");
+        sut.Images.Should().ContainSingle(i => i.FileName == "new.jpg");
+        sut.SelectedImage!.FileName.Should().Be("new.jpg");
     }
 
     [Theory]

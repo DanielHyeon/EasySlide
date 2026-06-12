@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -138,6 +139,45 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
     public void RefreshItemBackgroundCommandState()
         => ApplyToItemBackgroundCommand.NotifyCanExecuteChanged();
+
+    public async Task<IReadOnlyList<ImageImportResult>> ImportImagesAsync(IReadOnlyList<string> sourceFilePaths)
+    {
+        ArgumentNullException.ThrowIfNull(sourceFilePaths);
+
+        var destinationFolder = SelectedFolder?.FolderPath;
+        if (string.IsNullOrWhiteSpace(destinationFolder))
+        {
+            destinationFolder = string.IsNullOrWhiteSpace(FolderPath) ? _rootFolderPath : FolderPath;
+        }
+
+        var results = sourceFilePaths
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Select(path => _service.ImportImage(path, destinationFolder))
+            .ToList();
+        if (results.Count == 0)
+        {
+            StatusText = "No image file selected.";
+            return results;
+        }
+
+        var firstImported = results.FirstOrDefault(result => result.Succeeded)?.DestinationPath;
+        if (!string.IsNullOrWhiteSpace(firstImported))
+        {
+            await LoadAsync(CancellationToken.None).ConfigureAwait(true);
+            SelectedImage = Images.FirstOrDefault(image =>
+                string.Equals(image.FilePath, firstImported, StringComparison.OrdinalIgnoreCase));
+
+            var importedCount = results.Count(result => result.Succeeded);
+            StatusText = importedCount == 1
+                ? "Imported 1 image."
+                : $"Imported {importedCount} images.";
+            return results;
+        }
+
+        StatusText = results.FirstOrDefault(result => !string.IsNullOrWhiteSpace(result.Message))?.Message
+            ?? "Image could not be imported.";
+        return results;
+    }
 
     // 하위 폴더 포함 토글 시 즉시 다시 읽는다(CommunityToolkit 가 생성하는 변경 콜백).
     partial void OnIncludeSubfoldersChanged(bool value) => LoadCommand.Execute(null);
