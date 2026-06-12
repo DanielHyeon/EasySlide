@@ -9562,6 +9562,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void ApplyImageBackgroundItemFirst_WithSelectedSong_UsesItemBackground()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.AddSong(new SongSummary(1, "Song", "", 1, 1, "", "", "[1]\nVerse"));
+
+        sut.ApplyImageBackgroundItemFirst(@"C:\bg\drag.jpg");
+
+        sut.SelectedItemBackgroundImagePath.Should().Be(@"C:\bg\drag.jpg");
+        sut.ActiveOutputBackgroundImagePath.Should().BeEmpty("FrmMain ApplyBackground(..., 2) should prefer the selected item background before default background");
+        sut.SelectedItem!.FormatData.Should().Contain(@"61=C:\bg\drag.jpg");
+    }
+
+    [Fact]
+    public void ApplyImageBackgroundItemFirst_WithoutSelectedSong_FallsBackToDefaultBackground()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.ApplyImageBackgroundItemFirst(@"C:\bg\default.jpg");
+
+        sut.ActiveOutputBackgroundImagePath.Should().Be(@"C:\bg\default.jpg");
+        sut.SelectedItem.Should().BeNull();
+    }
+
+    [Fact]
     public void SetSelectedItemBackgroundImage_PreservesExistingTextColor()
     {
         // 배경 이미지만 바꾸고 기존 항목별 글자색(코드29)은 보존한다(공통 헬퍼 왕복).

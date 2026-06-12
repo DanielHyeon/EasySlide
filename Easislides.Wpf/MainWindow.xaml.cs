@@ -3354,7 +3354,7 @@ public partial class MainWindow : Window
         var imagePath = FirstDroppedImagePath(e);
         if (imagePath is not null)
         {
-            viewModel.SetOutputBackgroundImage(imagePath);
+            viewModel.ApplyImageBackgroundItemFirst(imagePath);
         }
     }
 

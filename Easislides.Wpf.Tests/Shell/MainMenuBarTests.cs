@@ -1578,6 +1578,8 @@ public class MainMenuBarTests
             "Images source drag should originate from the inline Images list");
         code.Should().Contain("new DataObject(DataFormats.FileDrop, new[] { image.FilePath })",
             "Images source drags should reuse the same image-file payload accepted by PreviewArea_Drop");
+        code.Should().Contain("viewModel.ApplyImageBackgroundItemFirst(imagePath)",
+            "dropping an image on Preview should use FrmMain ApplyBackground(..., 2) item-first/default-fallback semantics");
         code.Should().Contain("DataFormats.FileDrop", "source drags must reuse the WorshipListPanel external file drop contract");
         code.Should().Contain("Path.Combine(workingFolder, \"Powerpoint\")", "PowerPoint should prefer the legacy working-folder source directory");
         code.Should().Contain("Path.Combine(workingFolder, \"Media\")", "Media should prefer the legacy working-folder source directory");

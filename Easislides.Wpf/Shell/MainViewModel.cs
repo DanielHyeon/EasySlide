@@ -8860,6 +8860,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"출력 배경 이미지: {System.IO.Path.GetFileName(imagePath)}";
     }
 
+    public void ApplyImageBackgroundItemFirst(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return;
+        }
+
+        if (SetSelectedItemBackgroundImageCommand.CanExecute(imagePath))
+        {
+            SetSelectedItemBackgroundImage(imagePath);
+            return;
+        }
+
+        SetOutputBackgroundImage(imagePath);
+    }
+
     // 전역 출력 배경 이미지 해제 → 색 배경으로 복귀.
     private void ClearOutputBackgroundImage()
     {
