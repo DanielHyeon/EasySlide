@@ -26,6 +26,14 @@ jobs:
             9.0.x
             10.0.x
 
+      - name: Node.js 설치 (OpenSpec)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      - name: OpenSpec 계약 검증
+        run: npx --yes @fission-ai/openspec@1.4.1 validate --all --no-interactive
+
       - name: 복원
         run: dotnet restore Easislides.sln
 

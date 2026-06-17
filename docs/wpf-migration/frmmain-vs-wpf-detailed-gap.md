@@ -263,37 +263,39 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 
 ---
 
-## 5. production을 막는 치명적 갭 Top 10
+## 5. production 전환을 막는 현재 리스크 Top 10
 
-1. **이중 언어(Region 1/2) 출력 렌더링 전무** — 한/영·한/중 동시 송출이 불가. 다국어 회중에 사실상 사용 불가. (FrmMain의 `ShowRegion*`,`Interlace`,`R1/R2 Colour/Align/Font/Size`) — 단 `SongFormatData` 디코더가 region2 필드를 이미 파싱하므로 **렌더 경로만 구축**하면 되는 상태(완전 백지는 아님).
-2. **Display Panel(송출 하단 정보 바) 부재** — 제목/저작권/절·슬라이드/이전·다음 송출 정보 바 개념 자체 없음.
-3. **코드/악상·조옮김(Transpose/Capo/Notations) 부재** — 찬양 연주팀 운영 핵심.
-4. **절 라벨 직접 점프 부재** — 운영 중 "후렴으로", "3절로" 즉시 이동(1~9/c/b 버튼)이 없음. 순차 이동만.
-5. **Preview↔Output 2단 운영 부재** — FrmMain은 미리보기에서 준비→출력 전송이 분리. WPF는 단일 라이브라 "다음 곡 미리 준비" 워크플로 약함.
-6. **항목 검증(ValidateWorshipListItems) 부재** — 깨진 PPT/삭제된 곡을 라이브 직전에 거르지 못함(예배 중 사고 위험).
-7. ~~**placeholder 더미 큐** — 시작 시 가짜 항목 3개 시드(`SeedPlaceholderQueue`).~~ ✅ (2026-06-01 증분 31) 더미 시드 제거 → 빈 큐로 시작 + 좌측 패널 빈 상태 안내(`IsQueueEmpty`). 실제 큐 도메인 plumbing(곡·성경·파일 추가, 최근 예배 순서 불러오기)은 이미 동작.
-8. **PraiseBook 운영 UI ✅(2026-06-02 증분 44 — 머리글자 색인·명명 저장/열기/삭제·HTML 내보내기 + 곡 더블클릭→예배 순서 추가, SongId 정확 해석) / Worship Sessions·Session Notes·Recent Edits 부재** — PraiseBook 인터랙티브 목록은 포팅 완료. 나머지 곡 라이브러리 운영 보조(세션/노트/최근 편집)는 후속.
-9. **이미지/배경 라이브러리** — 배경 운영이 곡별 FormatData 이미지뿐. ~~배경 표시 모드 부재(UniformToFill 고정)~~ ✅ (2026-06-01 증분 32) 배경 표시 모드(채움/맞춤/가운데/타일) 추가 — `LyricsBackgroundMode` 설정+ImageBrush. (이미지 라이브러리 브라우저는 증분 8b 에 존재.)
-10. **전환 효과·중번체·Lyrics Monitor 메시지·미디어 전역키** 등 라이브 보조 기능 다수 부재.
+> 2026-06-17 재확인: 아래 판정은 OpenSpec `wpf-frmmain-1to1-operator-console-parity`와 CodeGraph 구조 확인을 우선 근거로 한다.
+
+1. **OpenSpec Phase 5 미완료** — 첫 화면 individual/default formatting, background, transition, live-safety controls가 아직 닫히지 않았다. Region/Display Panel/조옮김/전환의 일부 구현은 있으나, FrmMain의 기본값/개별값 적용 순서와 live 중 즉시 반영 규칙을 끝까지 검증해야 한다.
+2. **OpenSpec Phase 6 미완료** — `CommandCatalogTests` 기준 F12/F11/F9/F3/Space/Shift+Space 등 기본 단축키는 들어왔지만, FrmMain식 포커스 위치별 동작, 텍스트 입력 중 키 처리, List/Preview/Output 우선순위는 별도 검증이 필요하다.
+3. **OpenSpec Phase 7 미완료** — 전체 자동 테스트, WinForms build, WPF launch, 수동 UAT 증거가 아직 없다. production 전환은 코드 존재보다 이 검증 증거가 더 큰 게이트다.
+4. **항목 검증은 "부재"가 아니라 부분 구현** — `WorshipListValidator`의 PPT/미디어 파일 검사 뒤 `MainViewModel.GetWorshipListProblemsAsync`가 song DB 존재까지 확인한다. 다만 DB 경로가 없을 때의 skip 정책, 성경/공지/세션 항목 검증 범위, legacy `ValidateWorshipListItems`와의 메시지/차단 동등성은 아직 별도 확인이 필요하다.
+5. **Stage Preview/Output은 존재하나 동작 정책 검증 필요** — `PreviewWindowHost`는 stage 창에서 blackout/clear를 의도적으로 무시한다. 이 정책이 실제 운영자가 기대하는 FrmMain Preview와 일치하는지 멀티모니터 UAT가 필요하다.
+6. **Lyrics Monitor 메시지 전송 부재** — `OutputTextBoxLM`/`SendLyricsMonitorMessage` 대응 기능은 아직 보이지 않는다. 예배 중 보조 화면 안내 워크플로가 막힌다.
+7. **중국어 간체/번체 전환 부재** — `OutputChineseSwitch` 대응이 없으므로 한/중 회중 운영에서는 별도 리스크다.
+8. **미디어 송출 창 제어/전역키/리모컨 버스 갭** — MediaElement 기반 재생은 있으나 legacy의 별도 output monitor media player, top-most, remote action bus, global media keys까지 동등한지는 미확정이다.
+9. **AssignMedia 부재** — `Def_AssignMedia`/`Ind_AssignMedia` 대응이 없어 항목 제목/특정 미디어/live feed 배정 워크플로가 빠져 있다.
+10. **운영 보조 창의 완전 동등성 미달** — PraiseBook은 많이 닫혔지만 Worship Sessions bundle, InfoScreen legacy editor, PowerPoint thumbnail/import gallery, Bible notes/edit 계열은 아직 partial이다.
 
 ---
 
 ## 6. 정직한 커버리지 결론
 
-- **UI 표면**: 인터랙티브 컨트롤 수 기준 WPF ≈ FrmMain의 **15~20%**, 그나마 핵심인 **인-셸 포맷팅(Region/헤딩/전환/배경/Display Panel/조옮김)은 ~10% 미만**.
-- **운영 렌더링 기능**: 이중언어·Display Panel·코드·조옮김·절점프·전환이 빠져 있어 **실효 ~10%대**. 사용자가 말한 "5%"는 *이 영역* 기준으로 과장이 아니다.
-- **데이터 관리 창**(Import/Export/Copy/Move/검색 등)은 별도 창으로 ~75% 포팅됐으나, **운영 셸의 본질(라이브 다국어 송출)은 거의 비어 있다**.
-- 직전 per-song 폰트/배경·성경 CRUD 작업은 이 그림에서 **소수점 단위 기여**였고, 골격 갭을 줄이지 못했다.
+- 이 문서의 과거 결론처럼 Region 1/2, Display Panel, 코드/조옮김, 절 점프, Preview/Output, Validate가 "전무"하다는 평가는 더 이상 맞지 않는다.
+- 하지만 production 전환 기준으로는 아직 **OpenSpec Phase 5~7이 닫히지 않았다**. 즉 "큰 뼈대가 없다"가 아니라 "핵심 뼈대는 생겼지만 FrmMain 동작 동등성 검증과 잔여 live-safety 기능이 끝나지 않았다"가 현재 상태다.
+- 퍼센트 커버리지는 stale하기 쉽다. 이후에는 `docs/wpf-migration/inventory/frmmain-to-wpf-1to1-map.md`의 row별 `missing/partial/done + verification evidence`로만 완료 판정한다.
+- production 전환 판단은 코드 존재가 아니라 **빌드 + 테스트 + 멀티모니터 수동 UAT + OpenSpec DoD**로 한다.
 
 ---
 
-## 7. 권장 우선순위 (운영 가치 기준 — 골격부터)
+## 7. 권장 우선순위 (OpenSpec 기준)
 
-1. **P0 — 큐 도메인 plumbing 실체화**: `SeedPlaceholderQueue` 더미 제거 → 실제 항목 로드/검증(`ValidateWorshipListItems` 대응). 모든 운영 폼의 공통 선결.
-2. **P0 — 이중 언어(Region 1/2) 렌더 파이프라인**: `OutputSceneSnapshot`을 단일→이중 영역으로 확장(영역별 텍스트/색/정렬/폰트), `[region 2]` 마커 파서, 인터레이스. **이 프로그램을 "쓸 수 있게" 만드는 단일 최대 항목.**
-3. **P1 — 인-셸 포맷팅 인스펙터 확장**: 절 라벨 점프, Display Panel, 전환 효과 UI, 배경 이미지 모드, Use Individual Settings.
-4. **P1 — 코드/조옮김**: Transpose ↑↓, To Capo 0, Show Notations(+preview).
-5. **P2 — 콘텐츠 브라우징 보강**: 이미지 라이브러리, PraiseBooks, 세션/노트, InfoScreen 편집기 트랙.
-6. **P2 — 운영 견고성**: 항목 검증, legacy v3.2 로더, 리모컨/런치스크린 버스, 미디어 전역키.
+1. **P0 — Phase 5 완료**: first-screen/default/individual formatting, background, transition, live-safety controls의 남은 row를 mapping table에 맞춰 닫는다.
+2. **P0 — Phase 6 완료**: shortcut/focus parity를 자동 테스트와 수동 UAT로 나눈다. 전역키, ListBox 포커스, TextBox 입력 중 키 충돌을 별도 케이스로 둔다.
+3. **P0 — Phase 7 검증 증거 확보**: `dotnet test Easislides.Wpf.Tests`, `dotnet build Easislides\Easislides.csproj`, WPF launch, 멀티모니터 Preview/Output/Region1/2/Validate UAT를 한 번에 묶어 기록한다.
+4. **P1 — ValidateWorshipListItems 동등성 보강**: 파일 검증 이후 곡 DB 존재, 성경/공지/세션 항목 검증 범위를 legacy와 대조한다.
+5. **P1 — live 보조 갭 정리**: Lyrics Monitor 메시지, 중국어 변환, AssignMedia, media output/top-most/global keys/remote bus를 별도 OpenSpec slice로 분리한다.
+6. **P1 — 운영 보조 창 동등성**: Worship Sessions bundle, InfoScreen legacy editor, PowerPoint thumbnail/import gallery, Bible notes/edit 계열을 기능별 phase로 나눈다.
 
-> 결론: WPF는 "현대적 단일 콘솔"의 **뼈대와 일부 P0 인프라**는 갖췄지만, **다국어 라이브 송출이라는 EasiSlides의 본질 기능은 아직 비어 있다**. production 전환을 말하려면 최소 위 P0 2건(큐 실체화 + 이중언어 렌더)이 선결되어야 한다.
+> 결론: WPF는 더 이상 "Region/Display/Preview/Validate가 없는 상태"가 아니다. 현재 production blocker는 남은 OpenSpec Phase 5~7과 검증 증거 부족이다. 이후 production code 수정은 이 문서가 아니라 OpenSpec change의 tasks/design/spec delta를 먼저 갱신한 뒤 진행한다.

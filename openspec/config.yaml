@@ -1,20 +1,25 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Project: EasiSlides v2.6.x, a Windows worship-slide operator app for churches.
+  Stack: C#/.NET 10, WinForms legacy app, WPF migration in Easislides.Wpf, SQLite plus optional MariaDB/MySQL sync, Office/PowerPoint interop.
+  Operating contract: OpenSpec is the only official product/change contract. CodeGraph is required evidence for structural impact. Superpowers-style TDD is the execution rule for behavior changes. gstack/code-review gates are quality evidence, not the source of requirements.
+  Branch discipline: use a small feature/hotfix branch per approved OpenSpec change or approved implementation plan. Prefer branch names that include the change id, such as feat/wpf-frmmain-shortcut-parity.
+  Validation baseline: dotnet build Easislides\Easislides.csproj -nologo -v minimal, dotnet test Easislides.Wpf.Tests, and targeted manual worship-output QA for monitor/Office/DB-sensitive changes.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Always identify the user flow: songs, Bible, PPT, worship order, settings, or WPF migration.
+    - Always include non-goals and call out whether live output, preview only, Office interop, DB sync, or monitor geometry is affected.
+    - Do not use gstack, GSD, chat history, or agent memory as the official requirement source.
+  design:
+    - Include CodeGraph impact evidence before touching shared helpers, Office interop, database access, output geometry, or FrmMain partial logic.
+    - Prefer small surgical changes over broad refactors. Keep gf to Gf renames in a separate refactor-only change.
+    - For DB changes, include a rollback plan and route access through SQLiteController or gfDatabase.
+  tasks:
+    - Organize non-trivial work into phases with Goal, Scope, Tasks, DoD, Tests, and Constraints.
+    - Phase 0 is baseline and CodeGraph impact; Phase 1 is failing tests for behavior changes; Phase 2 is minimal implementation; Phase 3 is regression/build verification; Phase 4 is review and QA evidence.
+    - Each phase must be independently reviewable and must not mix UI, Interop, DB, and unrelated refactoring.
+  specs:
+    - Archive completed changes back into openspec/specs so specs remain the current source of truth.
+    - Public API or persisted-data behavior changes require an explicit spec delta.

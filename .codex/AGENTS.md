@@ -55,6 +55,15 @@ OpenSpec tasks.md에 Phase plan 작성 (Goal / Scope / Tasks / DoD / Tests / Con
 구현 세션과 리뷰 세션을 분리하고, 긴 작업 뒤 `/clear` 후 review-only로 검증한다. (gstack 명령은 모두 `/gstack-` 접두사 — flat `/review` 등 내장 스킬과 충돌 회피)
 `/gstack-ship`은 자동 push/deploy가 아니라 ship 가능 여부 확인 게이트로 다룬다. 실제 push/deploy는 사람이 diff·테스트 결과 승인 후 수행한다.
 
+### Codex SDD 실행 가이드
+Codex는 구현 에이전트로 동작한다. 기본 순서는 다음과 같다.
+
+1. **계약 확인**: production code 변경 전 `openspec/changes/<change-id>/proposal.md`, `design.md`, `tasks.md`, `codegraph-impact.md`를 먼저 확인한다.
+2. **영향 증거**: 구조 질문과 공유 심볼 영향은 CodeGraph(`codegraph_context`, `codegraph_impact`, `codegraph_callers`)로 확인한다.
+3. **TDD 실행**: 새 동작·버그 수정은 실패 테스트를 먼저 만들고 expected fail을 확인한 뒤 최소 구현한다.
+4. **게이트**: `openspec validate --all --no-interactive`, 관련 `dotnet build/test`, code-review/gstack, 수동 송출 QA 증거를 남긴다.
+5. **종결**: 완료 change는 `/opsx:sync`와 `/opsx:archive` 대상인지 확인한다.
+
 ### GSD Phase 흡수 원칙
 GSD는 정식 실행 계층으로 사용하지 않는다. 다만 GSD의 **phase-based execution pattern**은 OpenSpec `tasks.md`에 흡수한다.
 

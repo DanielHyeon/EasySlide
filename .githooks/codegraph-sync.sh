@@ -74,7 +74,31 @@ run_index() {
   fi
 }
 
+wait_for_git_index() {
+  lock_file="$(git rev-parse --git-path index.lock 2>/dev/null)"
+  if [ -z "$lock_file" ]; then
+    return 0
+  fi
+
+  tries=0
+  while [ -e "$lock_file" ] && [ "$tries" -lt 20 ]; do
+    sleep 0.25
+    tries=$((tries + 1))
+  done
+
+  if [ -e "$lock_file" ]; then
+    echo "codegraph: git index is locked; skipping $hook_name sync." >&2
+    return 1
+  fi
+
+  return 0
+}
+
 echo "Updating CodeGraph index ($hook_name)..."
+
+if ! wait_for_git_index; then
+  exit 0
+fi
 
 if [ "$hook_name" = "pre-commit" ] && git diff --cached --name-only --diff-filter=A -- '*.cs' | grep -q .; then
   run_index

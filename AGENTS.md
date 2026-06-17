@@ -25,7 +25,7 @@
 | 품질 | gstack | `/gstack-guard /gstack-freeze /gstack-review /gstack-cso /gstack-qa /gstack-ship` (계획용 `/gstack-spec /gstack-autoplan`은 OpenSpec 대체 아님, 아이디어 검토용만) |
 
 **도구 상태(2026-06-04 설치·검증 완료 / 2026-06-05 운영 정책 반영)**:
-CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(`openspec/`, 커맨드 `/opsx:*`) · gstack(`/gstack-*` 52스킬, `--prefix` 설치). GSD 1.2.0(커맨드 `/gsd:*`)은 설치되어 있어도 정식 실행 계층이 아니라 Phase 문서화 참고용으로만 사용한다. Superpowers는 에이전트의 TDD/debugging/review 실행 레이어로 사용하며, 설치되지 않은 환경에서는 동일 규칙을 수동으로 적용한다. 런타임: Node 24.16 / npm 11.13 / bun 1.3.14. Codex·Codex 양쪽 구성됨.
+CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(`openspec/`, 커맨드 `/opsx:*`) · gstack(`/gstack-*` 52스킬, `--prefix` 설치). GSD 1.2.0(커맨드 `/gsd:*`)은 설치되어 있어도 정식 실행 계층이 아니라 Phase 문서화 참고용으로만 사용한다. Superpowers는 에이전트의 TDD/debugging/review 실행 레이어로 사용하며, 설치되지 않은 환경에서는 동일 규칙을 수동으로 적용한다. 런타임: Node 24.16 / npm 11.13 / bun 1.3.14. Claude·Codex 양쪽 구성됨.
 
 ### 우선순위 (충돌 시 위가 이김)
 1. `openspec/changes/<change>/{proposal,design,tasks,codegraph-impact}.md`
@@ -42,7 +42,7 @@ CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(
 - Superpowers는 승인된 Phase 하나만 TDD로 실행한다. Phase를 임의로 추가하거나 OpenSpec의 scope, non-goals, acceptance criteria를 바꾸지 않는다.
 - GSD 산출물과 `.planning/`은 OpenSpec을 대체하지 않는다. 필요 시 과거 phase 참고 자료로만 사용한다.
 - 검증 증거 없는 "완료" 보고 금지. 다 안 했으면 다 했다고 하지 않는다.
-- Codex와 Codex가 같은 브랜치의 같은 파일을 동시에 수정하지 않는다(Single Writer).
+- Claude와 Codex가 같은 브랜치의 같은 파일을 동시에 수정하지 않는다(Single Writer).
 
 ### 표준 워크플로우 (실제 커맨드명)
 ```
