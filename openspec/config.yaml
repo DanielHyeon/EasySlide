@@ -11,7 +11,7 @@ rules:
   proposal:
     - Always identify the user flow: songs, Bible, PPT, worship order, settings, or WPF migration.
     - Always include non-goals and call out whether live output, preview only, Office interop, DB sync, or monitor geometry is affected.
-    - Do not use gstack, GSD, chat history, or agent memory as the official requirement source.
+    - Do not use gstack, chat history, or agent memory as the official requirement source.
   design:
     - Include CodeGraph impact evidence before touching shared helpers, Office interop, database access, output geometry, or FrmMain partial logic.
     - Prefer small surgical changes over broad refactors. Keep gf to Gf renames in a separate refactor-only change.
