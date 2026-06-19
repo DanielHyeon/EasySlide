@@ -34,7 +34,7 @@
 | 게이트 | gstack | guard · freeze · review · security(cso) · qa · ship 준비 게이트 |
 
 **도구 상태(2026-06-04 설치·검증 / 2026-06-19 GBrain 정책 반영)**:
-CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(`openspec/`, 커맨드 `/opsx:*`) · gstack(`/gstack-*` 접두사 스킬). **GBrain(기억 계층)** = MCP `gbrain_*`(`gbrain_recall`/`gbrain_store`/`gbrain_search_graph`); 이 저장소엔 아직 MCP 미구성(2026-06-19 기준) — 설정은 `/gstack-setup-gbrain`로 하고, 미구성 환경에서는 하니스 파일 메모리(`~/.claude/.../memory/`의 `MEMORY.md`)로 회고·저장 역할을 **수동 수행**한다. Superpowers도 동일 — 미설치 시 같은 TDD/리뷰 규칙을 수동 적용한다. 런타임: Node 24.16 / npm 11.13 / bun 1.3.14. Claude·Codex 양쪽 구성됨.
+CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(`openspec/`, 커맨드 `/opsx:*`) · gstack(`/gstack-*` 접두사 스킬). **GBrain(기억 계층)** = MCP `gbrain_*` 서버(garrytan/gbrain). **설치·등록 완료(2026-06-19)**: 로컬 PGLite 브레인 `~/.gbrain`, 소스 체크아웃 `C:\Users\Admin\.local\src\gbrain`, Claude Code MCP **user 스코프** 등록(✓connected, 새 세션부터 `gbrain_*` 로드), `gbrain` CLI는 `~/.local/bin` 셰임. ⚠️ 임베딩(시맨틱 검색)은 API 키(`ZEROENTROPY_API_KEY`/OpenAI 등) 설정 전까지 비활성 — 그전엔 키워드 검색·저장만. (Bun이 사내 프록시 루트 CA 미신뢰 → `NODE_EXTRA_CA_CERTS`에 Windows 루트 PEM 지정해 우회.) Superpowers도 동일 — 미설치 시 같은 TDD/리뷰 규칙을 수동 적용한다. 런타임: Node 24.16 / npm 11.13 / bun 1.3.14. Claude·Codex 양쪽 구성됨.
 
 ### 우선순위 (충돌 시 위가 이김)
 1. 현재 사용자 지시
