@@ -44,6 +44,14 @@
 - 현재 레지스트리 값 자체가 `UsePowerpointTab=0`, `UseMediaTab=0`이면 PowerPoint/Media tab 숨김은 FrmMain과 동일한 현재 설정 상태다.
 - PraiseBook은 `current_praisebook=PraiseBook 1`이 재동기화된다. `PraiseBook 1`이 실제 항목이 없는 책이면 UAT-212/UAT-213은 `주일예배.esp` 등 항목이 있는 책으로 선택을 바꾼 뒤 재수행해야 한다.
 
+## Phase 10 Deployment Update
+
+WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트에서 실행 검증했다.
+
+- 배포 실행 기준으로 registry/settings/data read parity는 PASS다.
+- WPF는 `CurrentPraiseBookName=PraiseBook 1`을 정상 반영하고 `찬양집 열림: PraiseBook 1 (0곡)`을 표시했다.
+- 따라서 UAT-212/UAT-213의 남은 조건은 WPF 설정 미반영이 아니라, 항목이 있는 PraiseBook을 선택한 뒤 add/delete/export gesture를 실제 수행하는 manual UAT다.
+
 ## Completion Mapping
 
 - PASS 25개는 current change evidence로 수락한다.

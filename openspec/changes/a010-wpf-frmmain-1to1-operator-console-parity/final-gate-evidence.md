@@ -24,12 +24,16 @@
 | Phase 9 focused settings tests | PASS | `SettingsBootstrapMigrationServiceTests|RegistryLegacySettingsSourceTests`: 실패 0, 통과 8, 건너뜀 0 |
 | Phase 9 full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
 | Phase 9 OpenSpec validation | PASS | `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`: Change is valid |
+| Phase 10 C:\EasiSlides WPF deployment | PASS | `dotnet publish ... -o C:\EasiSlides\EasislidesNext`, deployed `EasislidesNext.exe` launch smoke 통과 |
+| Phase 10 registry/settings parity | PASS | WPF deployed run synced `WorkingFolder=C:\EasiSlides\`, `CurrentWorshipListName=1.주일예배`, `CurrentPraiseBookName=PraiseBook 1`, `UsePowerPointTab=false`, `UseMediaTab=false`, `MediaDirectory=C:\EasiSlides\Media\` |
+| Phase 10 WinForms comparison smoke | PASS | `C:\EasiSlides\Easislides.exe` launch smoke 통과, 동일 source list/Worship 23 items 화면 확인 |
 
 ## Manual UAT Evidence
 
 - Checklist: `docs/wpf-migration/inventory/frmmain-manual-uat-checklist.md`
 - Summary: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/manual-uat-summary.md`
 - Screenshots: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/`
+- Deployment screenshots: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/screenshots/2026-06-21/phase10-deployed/`
 - Follow-up/defer register: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/follow-ups.md`
 
 ## Known Non-Ship Items
@@ -46,6 +50,17 @@
 사용자 확인에 따라 `HKCU\Software\EasiSlides`를 재검토했다. WPF는 `RegistryLegacySettingsSource`와 legacy settings map을 이미 가지고 있었지만, `%APPDATA%\EasislidesNext\settings.json`이 존재하면 bootstrap migration이 skip되어 `current_praisebook`, `current_session`, `UsePowerpointTab`, `UseMediaTab`, `media_dir` 같은 FrmMain runtime settings가 재반영되지 않았다.
 
 Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 반복 full migration으로 덮어쓰지 않고, MainWindow 시작 시 registry-backed runtime settings만 좁게 재동기화한다.
+
+## C:\EasiSlides Deployment Verification
+
+WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고, 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행 검증했다.
+
+- WPF 배포본: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`
+- WinForms 배포본: `C:\EasiSlides\Easislides.exe`
+- WPF launch result: `MainWindowTitle=EasiSlides`, descendants 358개, `Legacy worship list loaded: 1.주일예배 (23 .esw items)`.
+- WPF settings result: `WorkingFolder=C:\EasiSlides\`, `CurrentWorshipListName=1.주일예배`, `CurrentPraiseBookName=PraiseBook 1`, `UsePowerPointTab=false`, `UseMediaTab=false`, `MediaDirectory=C:\EasiSlides\Media\`.
+- Praise Book tab result: `찬양집 열림: PraiseBook 1 (0곡)`.
+- WinForms comparison result: `MainWindowTitle=EasiSlides`, same Folders song list and Worship 23 items screen observed.
 
 ## Warning Notes
 

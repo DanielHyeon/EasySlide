@@ -191,3 +191,13 @@ CodeGraph 확인:
 
 - `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~SettingsBootstrapMigrationServiceTests|FullyQualifiedName~RegistryLegacySettingsSourceTests" -v minimal`
 - 결과: 실패 0, 통과 8, 건너뜀 0.
+
+### Phase 10 deployed runtime verification impact (2026-06-21)
+
+Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
+
+- WPF Release publish: `C:\EasiSlides\EasislidesNext`.
+- 기존 WinForms 배포본: `C:\EasiSlides\Easislides.exe`.
+- 검증 대상 runtime path는 `App.OnStartup` -> `SettingsBootstrapMigrationService.MigrateIfNeededAsync()` -> `RegistryLegacySettingsSource`/`SettingsService` -> `MainWindow`/`MainViewModel`이다.
+- 배포 실행 결과 WPF settings snapshot이 `HKCU\Software\EasiSlides` 값과 일치했다.
+- UIAutomation과 캡처로 WPF/WinForms가 같은 Folders song list, current worship list `1.주일예배`, Worship 23 items 계열 화면을 표시함을 확인했다.

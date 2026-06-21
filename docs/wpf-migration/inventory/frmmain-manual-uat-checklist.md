@@ -156,6 +156,17 @@ Phase 9에서 `SettingsBootstrapMigrationService`를 수정해 기존 WPF 작업
 - 테스트 완료: `SettingsBootstrapMigrationServiceTests|RegistryLegacySettingsSourceTests` 실패 0, 통과 8, 건너뜀 0.
 - UAT 영향: `current_praisebook`/`current_session` 선택 상태와 PowerPoint/Media tab 표시 설정은 다음 WPF 시작부터 레지스트리 기준으로 재동기화된다. 단, `UsePowerpointTab=0`, `UseMediaTab=0` 값 자체가 legacy 현재 상태이면 해당 탭은 FrmMain과 동일하게 숨김 상태가 맞다.
 
+## Phase 10 C:\EasiSlides 배포 검증 (2026-06-21)
+
+WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행했다.
+
+- WPF 배포본 실행 확인: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, UIAutomation descendant 358개.
+- WPF 설정 동기화 확인: `WorkingFolder=C:\EasiSlides\`, `CurrentWorshipListName=1.주일예배`, `CurrentPraiseBookName=PraiseBook 1`, `UsePowerPointTab=false`, `UseMediaTab=false`, `MediaDirectory=C:\EasiSlides\Media\`.
+- WPF 데이터 로딩 확인: `Legacy worship list loaded: 1.주일예배 (23 .esw items)`, Folders/Bibles/Images/Default/Worship List/Praise Book/Preview/Output/Go Live surface 확인.
+- Praise Book 탭 확인: `찬양집 열림: PraiseBook 1 (0곡)`. 이는 현재 legacy registry 선택값과 해당 `.esp` 데이터 상태를 반영한 결과다.
+- WinForms 비교 실행 확인: `C:\EasiSlides\Easislides.exe`, `MainWindowTitle=EasiSlides`, 같은 Folders 찬송가 source list 및 Worship 23 items 화면 확인.
+- 캡처: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/screenshots/2026-06-21/phase10-deployed/`.
+
 ## 7. Completion Gate
 
 The WPF migration cannot be marked usable until:

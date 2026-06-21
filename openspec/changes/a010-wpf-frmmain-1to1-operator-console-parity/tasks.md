@@ -266,3 +266,52 @@ Evidence:
 - 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 8, 건너뜀 0.
 - 2026-06-21 full WPF tests 재실행 통과. `dotnet test Easislides.Wpf.Tests -v minimal` 결과: 실패 0, 통과 2423, 건너뜀 0.
 - 2026-06-21 OpenSpec validation 재실행 통과. `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict` 결과: Change is valid.
+
+### Phase 10: `C:\EasiSlides` Deployment Smoke And Legacy Data Parity
+
+Goal: WPF 프로그램을 실제 운영 루트 `C:\EasiSlides` 아래에 배포하고, WinForms 프로그램과 동일한 레지스트리 설정 및 운영 데이터를 읽는지 검증한다.
+
+Scope:
+
+- WPF publish output: `C:\EasiSlides\EasislidesNext`
+- Existing WinForms output: `C:\EasiSlides\Easislides.exe`
+- Legacy registry: `HKCU\Software\EasiSlides`
+- WPF settings snapshot: `%APPDATA%\EasislidesNext\settings.json`
+- Smoke UAT only; 운영 데이터 파일은 생성/삭제/수정하지 않는다.
+
+Tasks:
+
+- [x] `C:\EasiSlides` 루트의 기존 WinForms 배포본과 운영 데이터 존재를 확인한다.
+- [x] WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포한다.
+- [x] 배포된 `EasislidesNext.exe`를 실행해 MainWindow launch, UIAutomation, 설정 동기화를 확인한다.
+- [x] Praise Book 탭을 직접 선택해 `current_praisebook` 반영 여부를 확인한다.
+- [x] 기존 WinForms `C:\EasiSlides\Easislides.exe`를 실행해 동일 루트 데이터가 표시되는지 비교한다.
+- [x] WPF/WinForms 실행 화면을 캡처해 evidence로 저장한다.
+
+DoD:
+
+- WPF 배포본이 `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`로 존재하고 실행된다.
+- WPF settings snapshot이 registry-backed 값과 일치한다: `WorkingFolder=C:\EasiSlides\`, `CurrentWorshipListName=1.주일예배`, `CurrentPraiseBookName=PraiseBook 1`, `UsePowerPointTab=false`, `UseMediaTab=false`, `MediaDirectory=C:\EasiSlides\Media\`.
+- WPF UIAutomation에서 Folders/Bibles/Images/Default/Worship List/Praise Book/Preview/Output/Go Live surface가 확인된다.
+- WPF가 `Legacy worship list loaded: 1.주일예배 (23 .esw items)` 상태를 표시한다.
+- WinForms도 `C:\EasiSlides\Easislides.exe`에서 실행되고 같은 찬송가 source list 및 Worship 23 items 화면을 표시한다.
+
+Tests:
+
+- `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`
+- 배포 WPF UIAutomation launch smoke
+- 배포 WPF Praise Book tab selection smoke
+- WinForms UIAutomation launch smoke
+- screenshot capture comparison
+
+Evidence:
+
+- 2026-06-21 publish 통과. 출력: `C:\EasiSlides\EasislidesNext`, 파일 42개, `EasislidesNext.exe` 존재.
+- 2026-06-21 WPF deployment smoke 통과. `MainWindowTitle=EasiSlides`, `AutomationName=EasiSlides`, `AutomationClassName=Window`, descendants 358개.
+- 2026-06-21 WPF registry/settings parity 통과. Registry 값 `root_directory=C:\EasiSlides\`, `current_session=1.주일예배`, `current_praisebook=PraiseBook 1`, `media_dir=C:\EasiSlides\Media\`, `UsePowerpointTab=0`, `UseMediaTab=0`가 WPF settings에 반영됐다.
+- 2026-06-21 WPF UIAutomation 확인: Folders, Bibles, Images, Default, Worship List, Praise Book, Preview, Output, Go Live 표시. `Legacy worship list loaded: 1.주일예배 (23 .esw items)` 확인.
+- 2026-06-21 Praise Book tab 선택 확인: `찬양집 열림: PraiseBook 1 (0곡)` 확인. 현재 0곡은 WPF 미로딩이 아니라 legacy registry 선택값 `PraiseBook 1`의 현재 데이터 상태다.
+- 2026-06-21 WinForms comparison smoke 통과. `C:\EasiSlides\Easislides.exe` 실행, `MainWindowTitle=EasiSlides`, descendants 5502개, Folders source list와 Worship 23 items 화면 확인.
+- 2026-06-21 screenshots:
+  - `evidence/screenshots/2026-06-21/phase10-deployed/wpf-deployed-c-easislidesnext.png`
+  - `evidence/screenshots/2026-06-21/phase10-deployed/winforms-c-easislides.png`
