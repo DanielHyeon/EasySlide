@@ -181,20 +181,19 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task GoLiveCommand_RequiresSelectionAndOpenOutput()
+    public async Task GoLiveCommand_WhenOutputClosed_OpensOutputAndStartsPreviewLikeFrmMain()
     {
-        var sut = CreateSut();
+        var output = new OutputWindowService();
+        var sut = CreateSut(output: output);
         var item = new LiveQueueItem("song-1", "입례 찬양");
         sut.LoadQueue(new[] { item });
-
-        sut.GoLiveCommand.CanExecute(null).Should().BeFalse("출력 창이 열리기 전에는 라이브 시작을 막는다");
-
-        sut.OpenOutputCommand.Execute(null);
         sut.SelectedItem = item;
 
-        sut.GoLiveCommand.CanExecute(null).Should().BeTrue();
+        sut.GoLiveCommand.CanExecute(null).Should().BeTrue("FrmMain btnToLive/GoLive 흐름은 출력 창을 먼저 열라고 요구하지 않는다");
         await sut.GoLiveCommand.ExecuteAsync(null);
 
+        output.Current.IsOpen.Should().BeTrue();
+        output.Current.Placement.IsWindowed.Should().BeFalse("Live 시작은 회중용 출력 모니터 전체화면을 바로 연다");
         sut.LiveBar.State.Should().Be(LiveState.Active);
         sut.LiveBar.CurrentItemTitle.Should().Be("입례 찬양");
         sut.StatusText.Should().Contain("LIVE");

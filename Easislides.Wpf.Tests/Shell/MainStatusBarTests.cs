@@ -20,6 +20,24 @@ public class MainStatusBarTests
     public void MainWindow_HasStatusBar()
         => Xaml.Should().Contain("x:Name=\"StatusBar\"", "하단 상태바가 있어야 함");
 
+    [Fact]
+    public void MainWindow_HidesSeparateTopLiveBar()
+    {
+        Xaml.Should().Contain("x:Name=\"TopLiveBar\"");
+        Xaml.Should().Contain("Visibility=\"Collapsed\"",
+            "FrmMain처럼 Live 상태는 별도 빨간 상단 라인이 아니라 상태바/아이콘 상태로 보여야 한다");
+    }
+
+    [Fact]
+    public void StatusBar_ContainsCompactLiveIconStatus()
+    {
+        Xaml.Should().Contain("x:Name=\"CompactLiveStatus\"");
+        Xaml.Should().Contain("<controls:EsLiveIndicator State=\"{Binding LiveBar.State}\"",
+            "Live 상태는 하단 상태바의 아이콘 상태로 표시한다");
+        Xaml.Should().Contain("Text=\"{Binding LiveBar.StateLabel}\"");
+        Xaml.Should().Contain("Text=\"{Binding LiveBar.CurrentItemTitle}\"");
+    }
+
     [Theory]
     [InlineData("{Binding Queue.Count, StringFormat='예배 순서 {0}개'}")] // 예배 순서 항목 수
     [InlineData("Text=\"{Binding LyricsPageLabel}\"")]                    // 현재 절 위치

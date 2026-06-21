@@ -5783,7 +5783,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanGoLive()
-        => PreviewItem is not null && _output.Current.IsOpen && !HasPowerPointLimitViolation;
+        => PreviewItem is not null && !HasPowerPointLimitViolation;
 
     private bool CanStartOutputLive()
         => GetOutputLiveStartItem() is not null && !HasPowerPointLimitViolation;

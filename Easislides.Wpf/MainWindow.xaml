@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:composites="clr-namespace:Easislides.Wpf.Composites"
+        xmlns:controls="clr-namespace:Easislides.Wpf.Controls"
         xmlns:converters="clr-namespace:Easislides.Wpf.Converters"
         xmlns:rendering="clr-namespace:Easislides.Wpf.Rendering"
         xmlns:settings="clr-namespace:Easislides.Wpf.Settings"
@@ -828,8 +829,10 @@
             </MenuItem>
         </Menu>
 
-        <composites:LiveBar DockPanel.Dock="Top"
-                            DataContext="{Binding LiveBar}" />
+        <composites:LiveBar x:Name="TopLiveBar"
+                            DockPanel.Dock="Top"
+                            DataContext="{Binding LiveBar}"
+                            Visibility="Collapsed" />
 
         <!-- 하단 상태바(FrmMain StatusStrip 파리티) — 예배 순서 항목 수·현재 절 위치·운영 상태·출력 모니터.
              기존 VM 상태만 바인딩(Queue.Count·LyricsPageLabel·StatusText·SelectedOutputDisplay). 가장 아래에 깔린다. -->
@@ -858,6 +861,35 @@
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}"
                                AutomationProperties.Name="현재 절 위치" />
+                    <Border x:Name="CompactLiveStatus"
+                            Margin="14,0,0,0"
+                            Padding="8,1"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource Brush.Border.Default}"
+                            CornerRadius="{StaticResource CornerRadius.Small}"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Live icon status">
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <controls:EsLiveIndicator State="{Binding LiveBar.State}"
+                                                      Diameter="9"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,5,0" />
+                            <TextBlock Text="{Binding LiveBar.StateLabel}"
+                                       MinWidth="34"
+                                       VerticalAlignment="Center"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                            <TextBlock Text="{Binding LiveBar.CurrentItemTitle}"
+                                       MaxWidth="180"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <TextBlock Grid.Column="1"
