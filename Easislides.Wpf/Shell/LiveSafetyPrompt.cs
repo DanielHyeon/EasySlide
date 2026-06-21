@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using Easislides.Wpf.Composites;
 
 namespace Easislides.Wpf.Shell;
@@ -23,9 +24,15 @@ public sealed class WpfLiveSafetyPrompt : ILiveSafetyPrompt
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (Application.Current?.MainWindow is not FrameworkElement anchor)
+        if (Application.Current?.MainWindow is not FrameworkElement mainWindow)
         {
             return false;
+        }
+
+        var anchor = Mouse.DirectlyOver as FrameworkElement ?? Keyboard.FocusedElement as FrameworkElement;
+        if (anchor is null || !anchor.IsVisible)
+        {
+            anchor = mainWindow;
         }
 
         var confirmTask = SafetyConfirm.AskAsync(anchor, request.Question, request.Subtext, request.Timeout);

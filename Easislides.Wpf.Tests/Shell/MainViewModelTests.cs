@@ -5750,6 +5750,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ToggleOutputLiveCommand_WhenOutputWindowIsClosed_StaysEnabledAndOpensOutputLikeFrmMain()
+    {
+        var output = new OutputWindowService();
+        var sut = CreateSut(seedSampleQueue: false, output: output);
+        var prepared = new LiveQueueItem("song:prepared", "준비된 Output", LiveItemKinds.Song) { Lyrics = "[1]\n준비" };
+        sut.LoadQueue([prepared]);
+        sut.SelectedItem = prepared;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        output.Current.IsOpen.Should().BeFalse("Output 준비만으로 외부 출력 창을 열지는 않는다");
+        sut.ToggleOutputLiveCommand.CanExecute(null).Should().BeTrue(
+            "FrmMain 오른쪽 cbGoLive는 준비된 Output 항목이 있으면 출력 창이 아직 닫혀 있어도 누를 수 있어야 한다");
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+
+        output.Current.IsOpen.Should().BeTrue("cbGoLive 실행 시 필요한 출력 창을 연다");
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("준비된 Output");
+        sut.IsOutputLiveActive.Should().BeTrue();
+        sut.ToggleOutputBlackCommand.CanExecute(null).Should().BeTrue("Live 상태에서는 FrmMain처럼 Black 토글 아이콘을 바로 누를 수 있어야 한다");
+        sut.ToggleOutputClearCommand.CanExecute(null).Should().BeTrue("Live 상태에서는 FrmMain처럼 Clear 토글 아이콘을 바로 누를 수 있어야 한다");
+    }
+
+    [Fact]
     public async Task ToggleOutputLiveCommand_WhenNoPreparedOutput_StartsFirstWorshipItemLikeFrmMain()
     {
         var sut = CreateSut(seedSampleQueue: false);

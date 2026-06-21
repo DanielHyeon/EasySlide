@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -52,7 +53,7 @@ public static class SafetyConfirm
 
         popup = new Popup
         {
-            Placement = PlacementMode.Bottom,
+            Placement = PlacementMode.Center,
             PlacementTarget = anchor,
             AllowsTransparency = true,
             PopupAnimation = PopupAnimation.Fade,
@@ -146,6 +147,7 @@ public static class SafetyConfirm
             MinWidth = 70,
             IsCancel = true,
         };
+        AutomationProperties.SetName(cancelBtn, "Live safety cancel");
         cancelBtn.SetResourceReference(Button.StyleProperty, "EsButton.Secondary");
         cancelBtn.Click += (_, _) => onAnswer(false);
 
@@ -156,6 +158,7 @@ public static class SafetyConfirm
             MinWidth = 70,
             IsDefault = true,
         };
+        AutomationProperties.SetName(confirmBtn, "Live safety confirm");
         confirmBtn.SetResourceReference(Button.StyleProperty, "EsButton.Danger");
         confirmBtn.Click += (_, _) => onAnswer(true);
 

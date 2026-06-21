@@ -5758,7 +5758,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => PreviewItem is not null && _output.Current.IsOpen && !HasPowerPointLimitViolation;
 
     private bool CanStartOutputLive()
-        => _output.Current.IsOpen && GetOutputLiveStartItem() is not null && !HasPowerPointLimitViolation;
+        => GetOutputLiveStartItem() is not null && !HasPowerPointLimitViolation;
 
     private LiveQueueItem? GetOutputLiveStartItem()
         => OutputItem ?? Queue.FirstOrDefault();
@@ -5811,6 +5811,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             NotifyOutputLiveSafetyProperties();
             return;
+        }
+
+        if (!_output.Current.IsOpen)
+        {
+            OpenOutput();
         }
 
         await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);

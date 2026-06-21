@@ -1,0 +1,28 @@
+﻿[after_publish_copy_preview_to_output]
+cbOutputBlack: Name='Output 검은 화면', Enabled=False, Toggle=Off, Bounds=5845,132,40,35
+cbOutputClear: Name='Output 화면 비우기', Enabled=False, Toggle=Off, Bounds=5890,132,40,35
+cbGoLive: Name='Output 복귀', Enabled=True, Toggle=Off, Bounds=5935,132,54,35
+OutputBtnStopLive: Name='Output 라이브 중지', Enabled=False, Toggle=NoTogglePattern, Bounds=5017,841,39,41
+OutputBtnRefresh: Name='Output 새로고침', Enabled=False, Toggle=NoTogglePattern, Bounds=5095,841,38,41
+OutputBtnMedia: Name='Output 미디어 재생 일시정지', Enabled=False, Toggle=NoTogglePattern, Bounds=4940,841,38,41
+OutputBtnRefAlert: Name='Output 구절 알림', Enabled=False, Toggle=Off, Bounds=4978,841,39,41
+
+[after_golive_invoke]
+cbOutputBlack: Name='Output 검은 화면', Enabled=False, Toggle=Off, Bounds=5845,132,40,35
+cbOutputClear: Name='Output 화면 비우기', Enabled=False, Toggle=Off, Bounds=5890,132,40,35
+cbGoLive: Name='Output 복귀', Enabled=True, Toggle=On, Bounds=5935,132,54,35
+OutputBtnStopLive: Name='Output 라이브 중지', Enabled=False, Toggle=NoTogglePattern, Bounds=5017,841,39,41
+OutputBtnRefresh: Name='Output 새로고침', Enabled=False, Toggle=NoTogglePattern, Bounds=5095,841,38,41
+OutputBtnMedia: Name='Output 미디어 재생 일시정지', Enabled=False, Toggle=NoTogglePattern, Bounds=4940,841,38,41
+OutputBtnRefAlert: Name='Output 구절 알림', Enabled=False, Toggle=Off, Bounds=4978,841,39,41
+
+[after_black_toggle]
+cbOutputBlack: Name='Output 검은 화면', Enabled=False, Toggle=Off, Bounds=5845,132,40,35
+cbOutputClear: Name='Output 화면 비우기', Enabled=False, Toggle=Off, Bounds=5890,132,40,35
+cbGoLive: Name='Output 복귀', Enabled=True, Toggle=On, Bounds=5935,132,54,35
+OutputBtnStopLive: Name='Output 라이브 중지', Enabled=False, Toggle=NoTogglePattern, Bounds=5017,841,39,41
+OutputBtnRefresh: Name='Output 새로고침', Enabled=False, Toggle=NoTogglePattern, Bounds=5095,841,38,41
+OutputBtnMedia: Name='Output 미디어 재생 일시정지', Enabled=False, Toggle=NoTogglePattern, Bounds=4940,841,38,41
+OutputBtnRefAlert: Name='Output 구절 알림', Enabled=False, Toggle=Off, Bounds=4978,841,39,41
+
+copyInvoked=True; goLiveInvoked=True; blackInvoked=False; pid=40660
