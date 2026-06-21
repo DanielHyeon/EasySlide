@@ -4250,6 +4250,29 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewToLiveCommand_LegacyEswTextItemReloadsFileBodyLikeFrmLaunchShow()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var textPath = Path.Combine(temp.Root, "apostles.txt");
+        await File.WriteAllTextAsync(textPath, "Paragraph one\r\n\r\nParagraph two");
+        var legacyText = new LiveQueueItem($"esw:T:{textPath}", textPath, LiveItemKinds.Item)
+        {
+            ContentPath = textPath,
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([legacyText]);
+        sut.SelectedItem = legacyText;
+
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemKind.Should().Be(LiveItemKinds.Notice);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Paragraph one",
+            "FrmLaunchShow는 Live 시점에 T 항목 원본 파일을 다시 읽어 첫 문단/슬라이드를 송출한다");
+        sut.OutputLyricsText.Should().Be("Paragraph one");
+    }
+
+    [Fact]
     public async Task PreviewToLiveCommand_WhenOutputBlackHidden_RefreshesHiddenPayloadWithoutAdvancingPreview()
     {
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)

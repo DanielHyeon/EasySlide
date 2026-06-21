@@ -74,3 +74,10 @@
 - [x] 11.3 Text/성경/Notice Live 시작 경로가 WinForms처럼 처음부터 실제 출력 모니터 전체화면을 보장하도록 실패 테스트와 구현을 추가한다.
 - [x] 11.4 사도신경 같은 문단 단위 Text Live가 고정 1160px 영역이 아니라 실제 출력 화면 폭·높이를 기준으로 본문 렌더링 영역을 계산하도록 실패 테스트와 구현을 추가한다.
 - [x] 11.5 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포, 증거 문서 갱신을 수행한다.
+
+## 12. Phase 11 - WinForms LiveItem 재로드 기반 Text 송출 복구
+
+- [x] 12.1 WinForms `FrmLaunchShow.LoadWorshipListItemToLive`가 `WorshipSongs`의 타입/ID/제목 경로로 `Gf.LiveItem`을 다시 로드한 뒤 `FormatText`/`FormatDisplayLyrics`/`ShowDBSlide`를 호출하는 흐름을 재확인한다.
+- [x] 12.2 WPF 레거시 `.esw` Text 항목(`T1` + `Title1` 파일 경로)이 빈 `Lyrics` 상태로 Live 되어도 파일 본문을 다시 읽어 송출하는 실패 테스트를 추가한다.
+- [x] 12.3 WPF `ResolveLiveProjection` 경로가 WinForms처럼 레거시 타입/ID/ContentPath/Title 경로를 보수적으로 재해석하고 Text/Bible 본문 공백을 복구하도록 구현한다.
+- [x] 12.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.

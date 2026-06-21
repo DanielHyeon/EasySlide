@@ -3917,7 +3917,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static bool IsExternalTextFileItem(LiveQueueItem item)
         => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
-            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase);
+            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase)
+            || LiveItemKindMatcher.IsNotice(InferLegacyKind(item))
+               && IsTextContentPath(ResolveExternalTextContentPath(item));
 
     // 페이지 라벨에서 중복을 제거(첫 등장 순서)해 점프 버튼 목록을 만든다.
     private void RebuildAvailableSectionLabels()
@@ -5763,19 +5765,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        var prepared = PrepareLiveItemForOutput(item);
         var lyricsPageIndex = ReferenceEquals(item, SelectedItem)
             ? LyricsPageIndex
-            : item.LyricsPageIndex;
-        var projection = item with { LyricsPageIndex = lyricsPageIndex };
-        if (IsPowerPointItem(item) && OutputPowerPoint.SlideNumber > 0)
+            : prepared.LyricsPageIndex;
+        var projection = prepared with { LyricsPageIndex = lyricsPageIndex };
+        if (IsPowerPointItem(prepared) && OutputPowerPoint.SlideNumber > 0)
         {
             projection = projection with { SlideNumber = OutputPowerPoint.SlideNumber };
         }
 
-        SetLiveItemId(item.Id);
+        SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
         _session.UpdateHiddenContent(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        _telemetry.Record(commandId, succeeded: true, $"{item.Title} (hidden)");
+        _telemetry.Record(commandId, succeeded: true, $"{prepared.Title} (hidden)");
         return true;
     }
 
@@ -5787,11 +5790,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        OutputItem = item;
-        SetLiveItemId(item.Id);
+        var prepared = PrepareLiveItemForOutput(item);
+        OutputItem = prepared;
+        SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
-        _session.UpdateHiddenContent(ResolveLiveProjection(item, OutputPowerPoint), monitorName);
-        _telemetry.Record(commandId, succeeded: true, $"{item.Title} (hidden)");
+        _session.UpdateHiddenContent(ResolveLiveProjection(prepared, OutputPowerPoint), monitorName);
+        _telemetry.Record(commandId, succeeded: true, $"{prepared.Title} (hidden)");
         return true;
     }
 
@@ -5809,9 +5813,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private LiveQueueItem PrepareOutputFromItem(LiveQueueItem item)
     {
-        OutputItem = item;
-        PrepareOutputPowerPointForPublish(item);
-        return item;
+        var prepared = PrepareLiveItemForOutput(item);
+        OutputItem = prepared;
+        PrepareOutputPowerPointForPublish(prepared);
+        return prepared;
     }
 
     private LiveQueueItem? MovePreviewSelectionToNext(LiveQueueItem copiedItem)
@@ -6354,12 +6359,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var display = EnsureLiveOutputDisplay();
         var monitorName = display.Name;
-        OutputItem = item;
-        SetLiveItemId(item.Id);
+        var prepared = PrepareLiveItemForOutput(item);
+        OutputItem = prepared;
+        SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
 
-        var projection = item with { LyricsPageIndex = lyricsPageIndex };
-        if (IsPowerPointItem(item) && OutputPowerPoint.SlideNumber > 0)
+        var projection = prepared with { LyricsPageIndex = lyricsPageIndex };
+        if (IsPowerPointItem(prepared) && OutputPowerPoint.SlideNumber > 0)
         {
             projection = projection with { SlideNumber = OutputPowerPoint.SlideNumber };
         }
@@ -6370,8 +6376,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {item.Title}";
-        _telemetry.Record(commandId, succeeded: true, item.Title);
+        StatusText = $"LIVE: {prepared.Title}";
+        _telemetry.Record(commandId, succeeded: true, prepared.Title);
         NotifyCommandStates();
     }
 
@@ -6787,12 +6793,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        var prepared = PrepareLiveItemForOutput(item);
         if (_session.Current.State == LiveState.Active)
         {
-            OutputItem = item;
-            SetLiveItemId(item.Id);
-            _session.GoLive(ResolveLiveProjection(item), monitorName);
-            StatusText = $"Output visual refreshed: {item.Title}";
+            OutputItem = prepared;
+            SetLiveItemId(prepared.Id);
+            _session.GoLive(ResolveLiveProjection(prepared), monitorName);
+            StatusText = $"Output visual refreshed: {prepared.Title}";
             _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
             NotifyCommandStates();
             return;
@@ -6800,17 +6807,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (_session.Current.State == LiveState.Hidden)
         {
-            OutputItem = item;
-            SetLiveItemId(item.Id);
-            _session.UpdateHiddenContent(ResolveLiveProjection(item), monitorName);
-            StatusText = $"Output visual refreshed while hidden: {item.Title}";
+            OutputItem = prepared;
+            SetLiveItemId(prepared.Id);
+            _session.UpdateHiddenContent(ResolveLiveProjection(prepared), monitorName);
+            StatusText = $"Output visual refreshed while hidden: {prepared.Title}";
             _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
             NotifyCommandStates();
             return;
         }
 
-        OutputItem = item;
-        StatusText = $"Output visual ready: {item.Title}";
+        OutputItem = prepared;
+        StatusText = $"Output visual ready: {prepared.Title}";
         NotifyCommandStates();
     }
 
@@ -6848,20 +6855,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var display = EnsureLiveOutputDisplay();
         var monitorName = display.Name;
-        OutputItem = item;
-        SetLiveItemId(item.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
-        PrepareOutputPowerPointForPublish(item);
+        var prepared = PrepareLiveItemForOutput(item);
+        OutputItem = prepared;
+        SetLiveItemId(prepared.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
+        PrepareOutputPowerPointForPublish(prepared);
         // 새 곡을 송출하면 조옮김을 원조(0)로 초기화 — 각 곡이 작성된 키에서 시작하도록(절·슬라이드 이동은 유지).
         LiveTransposeSemitones = 0;
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
-        var projection = item with { LyricsPageIndex = GetPreviewLyricsPageIndex(item) };
+        var projection = prepared with { LyricsPageIndex = GetPreviewLyricsPageIndex(item) };
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
         if (!await StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true))
         {
             return;
         }
 
-        StatusText = $"LIVE: {item.Title}";
+        StatusText = $"LIVE: {prepared.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance && ReferenceEquals(item, SelectedItem))
         {
@@ -7727,6 +7735,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveQueueItem item,
         Rendering.PowerPointPreviewViewModel? powerPoint = null)
     {
+        item = PrepareLiveItemForOutput(item);
         var ppt = powerPoint ?? PowerPoint;
         var positionLabel = ComputePositionLabel(item, ppt);
         var nextTitle = ComputeNextTitle(item);
@@ -7764,6 +7773,137 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             TransposeSemitones = LiveTransposeSemitones,
             FormatData = formatData,
         };
+    }
+
+    private LiveQueueItem PrepareLiveItemForOutput(LiveQueueItem item)
+    {
+        var kind = InferLegacyKind(item);
+        var prepared = string.Equals(kind, item.Kind, StringComparison.Ordinal)
+            ? item
+            : item with { Kind = kind };
+
+        if (IsExternalTextFileItem(prepared))
+        {
+            var contentPath = ResolveExternalTextContentPath(prepared);
+            var fileText = TryReadTextFile(contentPath ?? string.Empty);
+            if (fileText is not null)
+            {
+                return prepared with
+                {
+                    Kind = LiveItemKinds.Notice,
+                    ContentPath = contentPath ?? prepared.ContentPath,
+                    Lyrics = fileText,
+                };
+            }
+
+            if (!string.Equals(prepared.Kind, LiveItemKinds.Notice, StringComparison.Ordinal))
+            {
+                return prepared with { Kind = LiveItemKinds.Notice };
+            }
+        }
+
+        if (LiveItemKindMatcher.IsBible(prepared.Kind) && string.IsNullOrWhiteSpace(prepared.Lyrics))
+        {
+            var bibleId = ResolveBibleSelectionId(prepared);
+            var body = string.IsNullOrWhiteSpace(bibleId) ? "" : Bible.ExpandSelectionBody(bibleId);
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                return prepared with { Kind = LiveItemKinds.Bible, Lyrics = body };
+            }
+        }
+
+        return prepared;
+    }
+
+    private static string InferLegacyKind(LiveQueueItem item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.Kind)
+            && !string.Equals(item.Kind, LiveItemKinds.Item, StringComparison.OrdinalIgnoreCase))
+        {
+            return item.Kind;
+        }
+
+        var typeCode = ResolveLegacyTypeCode(item);
+        return typeCode switch
+        {
+            "D" => LiveItemKinds.Song,
+            "S" => LiveItemKinds.Song,
+            "B" => LiveItemKinds.Bible,
+            "T" => LiveItemKinds.Notice,
+            "I" => LiveItemKinds.Notice,
+            "W" => LiveItemKinds.Notice,
+            "P" => LiveItemKinds.PowerPoint,
+            "M" => LiveItemKinds.Media,
+            _ when item.Id.StartsWith("song:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Song,
+            _ when item.Id.StartsWith("bible:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Bible,
+            _ when item.Id.StartsWith("powerpoint:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.PowerPoint,
+            _ when item.Id.StartsWith("media:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Media,
+            _ when item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Notice,
+            _ => item.Kind,
+        };
+    }
+
+    private static string ResolveLegacyTypeCode(LiveQueueItem item)
+    {
+        if (item.Id.StartsWith("esw:", StringComparison.OrdinalIgnoreCase))
+        {
+            var start = "esw:".Length;
+            var end = item.Id.IndexOf(':', start);
+            return end > start
+                ? item.Id.Substring(start, end - start).ToUpperInvariant()
+                : string.Empty;
+        }
+
+        if (item.Id.Length >= 2 && char.IsLetter(item.Id[0]) && char.IsDigit(item.Id[1]))
+        {
+            return char.ToUpperInvariant(item.Id[0]).ToString();
+        }
+
+        return string.Empty;
+    }
+
+    private static string? ResolveExternalTextContentPath(LiveQueueItem item)
+    {
+        if (IsTextContentPath(item.ContentPath))
+        {
+            return item.ContentPath!.Trim();
+        }
+
+        if (item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = item.Id.Substring("esw:T:".Length).Trim();
+            if (IsTextContentPath(path))
+            {
+                return path;
+            }
+        }
+
+        if (IsTextContentPath(item.Title))
+        {
+            return item.Title.Trim();
+        }
+
+        return null;
+    }
+
+    private static bool IsTextContentPath(string? path)
+        => !string.IsNullOrWhiteSpace(path)
+            && LooksLikeFilePath(path.Trim())
+            && string.Equals(Path.GetExtension(path.Trim()), ".txt", StringComparison.OrdinalIgnoreCase);
+
+    private static string ResolveBibleSelectionId(LiveQueueItem item)
+    {
+        if (item.Id.StartsWith("bible:", StringComparison.OrdinalIgnoreCase))
+        {
+            return item.Id.Substring("bible:".Length);
+        }
+
+        if (item.Id.StartsWith("B", StringComparison.OrdinalIgnoreCase))
+        {
+            return item.Id.Substring(1);
+        }
+
+        return item.Id;
     }
 
     // 다음 예배순서 항목 제목(출력 "다음 항목 표시" Display Panel PrevNext).
