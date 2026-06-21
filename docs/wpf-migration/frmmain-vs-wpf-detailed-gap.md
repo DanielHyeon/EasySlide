@@ -1,4 +1,4 @@
-# FrmMain ↔ WPF 상세 갭 분석 (UI/UX + 기능 전수)
+﻿# FrmMain ↔ WPF 상세 갭 분석 (UI/UX + 기능 전수)
 
 > 작성일: 2026-06-01 · 방법: **레거시 `FrmMain.*`(21,649줄) 전체와 WPF `Easislides.Wpf` 전체를 실제 코드로 전수 인벤토리**하여 컨트롤·기능 단위로 1:1 대조. 추정/요약이 아니라 Designer 컨트롤명·핸들러 메서드명·WPF Command/Property명을 근거로 표기한다.
 > 근거 파일: `FrmMain.Designer.cs`(7,318) · `FrmMain.cs`(8,822) · `FrmMain.Logic.cs`(3,115) · `FrmMain.Events/Fields/Layout.cs` ↔ `MainWindow.xaml(.cs)` · `Shell/MainViewModel.cs` · `Composites/*` · `Library/BibleWindow.xaml` 등.
@@ -265,7 +265,7 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 
 ## 5. production 전환을 막는 현재 리스크 Top 10
 
-> 2026-06-17 재확인: 아래 판정은 OpenSpec `wpf-frmmain-1to1-operator-console-parity`와 CodeGraph 구조 확인을 우선 근거로 한다.
+> 2026-06-17 재확인: 아래 판정은 OpenSpec `a010-wpf-frmmain-1to1-operator-console-parity`와 CodeGraph 구조 확인을 우선 근거로 한다.
 
 1. **OpenSpec Phase 5 미완료** — 첫 화면 individual/default formatting, background, transition, live-safety controls가 아직 닫히지 않았다. Region/Display Panel/조옮김/전환의 일부 구현은 있으나, FrmMain의 기본값/개별값 적용 순서와 live 중 즉시 반영 규칙을 끝까지 검증해야 한다.
 2. **OpenSpec Phase 6 미완료** — `CommandCatalogTests` 기준 F12/F11/F9/F3/Space/Shift+Space 등 기본 단축키는 들어왔지만, FrmMain식 포커스 위치별 동작, 텍스트 입력 중 키 처리, List/Preview/Output 우선순위는 별도 검증이 필요하다.

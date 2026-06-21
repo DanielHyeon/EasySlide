@@ -1,4 +1,4 @@
-# EasiSlides 하네스 엔지니어링 적용 보고서
+﻿# EasiSlides 하네스 엔지니어링 적용 보고서
 
 작성일: 2026-06-11  
 대상 저장소: `EasiSlides_v2.6.4`  
@@ -76,11 +76,11 @@
 
 대표 위치:
 
-- `openspec/changes/wpf-frmmain-1to1-operator-console-parity/`
-- `openspec/changes/wpf-frmmain-pane-role-parity-recovery/`
-- `openspec/changes/wpf-frmmain-functional-parity-recovery/`
-- `openspec/changes/wpf-frmmain-shortcut-parity/`
-- `openspec/changes/wpf-frmmain-visual-parity-correction/`
+- `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/`
+- `openspec/changes/a009-wpf-frmmain-pane-role-parity-recovery/`
+- `openspec/changes/a003-wpf-frmmain-functional-parity-recovery/`
+- `openspec/changes/a002-wpf-frmmain-shortcut-parity/`
+- `openspec/changes/a005-wpf-frmmain-visual-parity-correction/`
 
 적용 방식:
 
@@ -91,7 +91,7 @@
 
 대표 예:
 
-- `wpf-frmmain-1to1-operator-console-parity/tasks.md`는 Phase 0부터 Phase 7까지 WPF FrmMain 1:1 포팅을 쪼개고, Phase 5부터 Phase 7은 아직 미완료로 남겨 둔다.
+- `a010-wpf-frmmain-1to1-operator-console-parity/tasks.md`는 Phase 0부터 Phase 7까지 WPF FrmMain 1:1 포팅을 쪼개고, Phase 5부터 Phase 7은 아직 미완료로 남겨 둔다.
 - 이 방식은 "다 했다고 착각하는 것"을 막는 하네스다.
 
 ### 4.3 CodeGraph 구조 증거 하네스
@@ -103,9 +103,9 @@
 
 현재 적용:
 
-- `wpf-frmmain-1to1-operator-console-parity/codegraph-impact.md`는 Phase 0 문서화 전에 `FrmMain`, `MainWindow`, `MainViewModel` 영향 범위를 기록한다.
-- `wpf-frmmain-pane-role-parity-recovery/codegraph-impact.md`는 pane role 복구가 `MainWindow`, `PraiseBookIndexViewModel`, `ImageLibraryViewModel` 중심임을 기록한다.
-- `wpf-frmmain-visual-parity-correction/codegraph-impact.md`는 `MainWindow` XAML drift test 범위로 변경을 제한한다.
+- `a010-wpf-frmmain-1to1-operator-console-parity/codegraph-impact.md`는 Phase 0 문서화 전에 `FrmMain`, `MainWindow`, `MainViewModel` 영향 범위를 기록한다.
+- `a009-wpf-frmmain-pane-role-parity-recovery/codegraph-impact.md`는 pane role 복구가 `MainWindow`, `PraiseBookIndexViewModel`, `ImageLibraryViewModel` 중심임을 기록한다.
+- `a005-wpf-frmmain-visual-parity-correction/codegraph-impact.md`는 `MainWindow` XAML drift test 범위로 변경을 제한한다.
 
 교육 포인트:
 

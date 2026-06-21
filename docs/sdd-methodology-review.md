@@ -1,4 +1,4 @@
-# SDD 방법론 적용 검토 보고서 — EasiSlides v2.6.4 WPF 포팅
+﻿# SDD 방법론 적용 검토 보고서 — EasiSlides v2.6.4 WPF 포팅
 
 > 작성일: 2026-06-11 · 기준 브랜치: `feat/per-song-font-bg-bible-version-crud`
 > 검토 방법: 저장소 산출물(openspec/·docs/·.claude/·.codex/), git 이력(총 783커밋), 세션 핸드오프 메모리 기반의 **증거 중심 검토**.
@@ -55,7 +55,7 @@
 
 ### 4.1 OpenSpec (`/opsx:explore·propose·apply·sync·archive`)
 
-**실사용 증거**: change 10건(`wpf-frmmain-*` 9건 + `wpf-legacy-working-folder-autodetect`), 전건 proposal/design/tasks 보유, 7건 codegraph-impact 동반. 최초 커밋 2026-06-04(설치 당일 5건 일괄 생성 — 기존 작업의 소급 계약화 포함).
+**실사용 증거**: change 10건(`wpf-frmmain-*` 9건 + `a007-wpf-legacy-working-folder-autodetect`), 전건 proposal/design/tasks 보유, 7건 codegraph-impact 동반. 최초 커밋 2026-06-04(설치 당일 5건 일괄 생성 — 기존 작업의 소급 계약화 포함).
 
 | 장점 (이 프로젝트 실증) | 단점·리스크 (이 프로젝트 실증) |
 | --- | --- |

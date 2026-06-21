@@ -44,6 +44,27 @@ CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(
 5. Superpowers TDD 실행 결과 / phase별 검증 증거
 6. gstack 리뷰 결과 / 이 SDD 정책
 
+### OpenSpec change id convention
+
+새 OpenSpec change는 지금부터 `openspec/changes/<prefix><NNN>-short-kebab-intent/` 형식을 사용한다.
+
+예:
+
+- `openspec/changes/a001-wpf-mainwindow-shell/`
+- `openspec/changes/a002-wpf-shortcut-focus-parity/`
+- `openspec/changes/a999-wpf-some-change/`
+- `openspec/changes/b001-wpf-next-change/`
+
+규칙:
+
+- 접두사는 알파벳 소문자 순서로 증가한다: `a001`~`a999` 다음은 `b001`, 그 다음은 `c001`이다.
+- 첫 글자는 OpenSpec CLI가 요구하는 문자 시작 조건을 만족하기 위한 알파벳 접두사다.
+- `NNN`은 0으로 채운 생성 순서 번호이며, 우선순위·위험도·Phase 번호가 아니다.
+- 새 change를 만들 때 `openspec/changes/` 아래의 다음 생성 순서를 사용한다.
+- intent는 짧은 lowercase kebab-case로 쓴다.
+- 현재 프로젝트의 기존 active change는 `a001`~`a010`으로 번호 적용 완료. 앞으로 외부/legacy 무번호 change가 발견되면 문서·브랜치·저장된 에이전트 컨텍스트 참조 안정성을 위해 명시 승인 없이 rename하지 않는다.
+- archive 시에도 원래 번호를 유지해 생성 순서를 보존한다.
+
 ### Hard Rules
 - **production code 변경 전 기억 회고**: `gbrain_recall`(미구성 시 파일 메모리·`MEMORY.md`)로 관련 과거 히스토리·선호 아키텍처 패턴·장애 이력을 먼저 확인하고 계약(Spec)에 사전 반영한다.
 - 승인된 OpenSpec change 없이 production code를 바꾸지 않는다.
@@ -58,7 +79,7 @@ CodeGraph 0.9.4(`.codegraph/codegraph.db`, MCP `codegraph_*`) · OpenSpec 1.4.1(
 ### 표준 워크플로우 (기억 → 계약 → 증거 → 실행 → 게이트 → 기억 아카이브)
 ```
 gbrain_recall  (과거 작업·유저 선호·장애 디버깅 이력 회고)
-→ /opsx:explore → /opsx:propose <id>  →  CodeGraph impact 작성  →  사람 승인
+→ /opsx:explore → /opsx:propose <a001-short-kebab-intent>  →  CodeGraph impact 작성  →  사람 승인
 → OpenSpec tasks.md에 Phase plan 작성 (Goal / Scope / Tasks / DoD / Tests / Constraints)
 → /gstack-guard → /gstack-freeze <허용 경로> → Superpowers로 Phase <N>만 TDD 실행
 → /gstack-review → /gstack-cso → /gstack-qa → OpenSpec DoD 확인
@@ -70,7 +91,7 @@ gbrain_recall  (과거 작업·유저 선호·장애 디버깅 이력 회고)
 ### 빠른 명령 레퍼런스
 ```
 기억   gbrain_recall · gbrain_store · gbrain_search_graph   (미구성 시 파일 메모리 MEMORY.md)
-계약   /opsx:explore · /opsx:propose "<의도>" · /opsx:apply · /opsx:sync · /opsx:archive · openspec list
+계약   /opsx:explore · /opsx:propose "<a001-short-kebab-intent>" · /opsx:apply · /opsx:sync · /opsx:archive · openspec list
 증거   codegraph_search/callers/callees/impact/context/trace · codegraph sync
 실행   Superpowers (brainstorming · TDD · systematic-debugging) — Red→Green→Refactor→Verify
 게이트  /gstack-guard · /gstack-freeze · /gstack-review · /gstack-cso · /gstack-qa · /gstack-ship
@@ -84,7 +105,7 @@ gbrain_recall  (과거 작업·유저 선호·장애 디버깅 이력 회고)
 **A. 변경 1건 표준 절차 (Normal 기준)**
 
 0. **기억 회고**: `gbrain_recall`(미구성 시 `MEMORY.md`)로 관련 과거 작업·유저 선호 스타일·장애 이력을 확인해 계약에 반영.
-1. `/opsx:explore` → `/opsx:propose <id>`로 change 생성 + 아래 'EasiSlides 필수 질문' 답변.
+1. `/opsx:explore` → `/opsx:propose <a001-short-kebab-intent>`로 change 생성 + 아래 'EasiSlides 필수 질문' 답변.
 2. CodeGraph로 impact·context·affected 작성(공유 심볼이면 callers까지) → `codegraph-impact.md`.
 3. `tasks.md`에 Phase plan(Goal/Scope/Tasks/DoD/Tests/Constraints) — UI·Interop·DB·리팩터를 한 Phase에 섞지 말 것.
 4. 사람 승인 → `/gstack-guard` → `/gstack-freeze <허용 경로>`.
@@ -194,6 +215,7 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 ## 5. 코딩 / 금지 규칙
 
 - **한글 식별자·주석** — 초등학생도 이해할 수준. 단, 기존 스타일 일관성 우선.
+- **SDD 계약 문서(OpenSpec proposal/design/spec/tasks/codegraph-impact 및 직접 소유하는 SDD 문서)** — 기본 작성 언어는 한글. 예외적으로 외부 표준명, CLI 에러 원문, 코드 심볼, 경로, 명령어는 원문을 유지할 수 있다. OpenSpec이 파싱에 의존하는 구조 키워드(`## ADDED Requirements`, `### Requirement:`, `#### Scenario:`, `GIVEN`, `WHEN`, `THEN`, `AND`, `SHALL`, `MUST` 등)는 보수적으로 원문을 유지한다.
 - **작은 단위 커밋 + PR** (예: `feat(wpf): … (증분160-E)`). 문서·코드·테스트 일치, 문서 없이 기능 추가 지양(TDD 우선).
 - **백업 파일(`.bak`, `.bak2`…) 임의 삭제 금지** (리팩토링 중 의도적 생성).
 - **거대 파일은 partial/기능별 분할** 우선. 새 메서드는 적합한 `gf*.cs`를 먼저 찾고 없을 때만 새 파일.
