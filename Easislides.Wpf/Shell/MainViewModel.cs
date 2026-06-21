@@ -5868,13 +5868,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var powerPointStopError = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
         _session.Stop();
         SetLiveItemId(null);
         OutputPowerPoint.Clear();
         _outputThumbnailDeckPath = null;
-        StatusText = "라이브 중지";
-        _telemetry.Record(MainCommandIds.LiveStop, succeeded: true, StatusText);
+        StatusText = powerPointStopError is null
+            ? "라이브 중지"
+            : $"라이브 중지 (PowerPoint 종료 실패: {powerPointStopError})";
+        _telemetry.Record(MainCommandIds.LiveStop, powerPointStopError is null, StatusText);
         NotifyCommandStates();
+    }
+
+    private async Task<string?> StopPowerPointSlideShowForLiveAsync()
+    {
+        try
+        {
+            await _powerPointSlideShow.StopAsync().ConfigureAwait(true);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PPT] Slide show stop failed: {ex.Message}");
+            return ex.Message;
+        }
     }
 
     private bool CanMoveNext()

@@ -37,3 +37,11 @@
 - [x] 6.4 Live 버튼 경로가 PPT SlideShow 시작 Task를 기다리고, 실패 시 메시지 박스 없이 상태바/텔레메트리에 실패를 남기도록 한다.
 - [x] 6.5 Text 레거시 타입과 PPT SlideShow 실패 전파 회귀 테스트를 추가하고 집중 테스트를 통과시킨다.
 - [x] 6.6 전체 WPF 테스트, WinForms 빌드, WPF Release 배포를 다시 수행한다.
+
+## 7. Phase 6 - Live 종료 시 PowerPoint 종료
+
+- [x] 7.1 Stop/Live off 경로와 PowerPoint SlideShow control 영향 범위를 확인한다.
+- [x] 7.2 Live 종료 시 PowerPoint SlideShow stop/close 요청이 발생하는 실패 테스트를 추가한다.
+- [x] 7.3 `IPowerPointSlideShowControl`에 종료 API를 추가하고 Office 구현이 SlideShow와 PowerPoint application을 닫게 한다.
+- [x] 7.4 `StopLiveAsync`가 사용자 확인 후 PowerPoint 종료를 기다리고, 실패해도 Live 세션은 안전하게 Off로 전환하게 한다.
+- [x] 7.5 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.

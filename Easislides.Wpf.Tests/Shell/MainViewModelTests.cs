@@ -5817,6 +5817,63 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task StopLiveCommand_PowerPointLive_StopsSlideShowAndClosesPowerPoint()
+    {
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var deck = new LiveQueueItem("ppt:live", "Live deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "live.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.StopLiveCommand.ExecuteAsync(null);
+
+        slideShow.StopCount.Should().Be(1, "Live 종료는 WinForms ClearUpPowerpointWindows/QuitPowerPointApp처럼 PowerPoint를 닫아야 함");
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.OutputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle);
+        sut.StatusText.Should().Be("라이브 중지");
+    }
+
+    [Fact]
+    public async Task StopLiveCommand_WhenPowerPointCloseFails_StillStopsLiveAndReportsStatus()
+    {
+        var slideShow = new RecordingPowerPointSlideShowControl
+        {
+            StopException = new InvalidOperationException("close failed"),
+        };
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var deck = new LiveQueueItem("ppt:live", "Live deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "live.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.StopLiveCommand.ExecuteAsync(null);
+
+        slideShow.StopCount.Should().Be(1);
+        sut.Session.Current.State.Should().Be(LiveState.Off);
+        sut.StatusText.Should().Contain("PowerPoint 종료 실패");
+        sut.StatusText.Should().Contain("close failed");
+    }
+
+    [Fact]
     public async Task GoLiveCommand_PowerPointSlideShowFailure_ReportsStatusWithoutMessageBox()
     {
         var slideShow = new FailingPowerPointSlideShowControl("slide show unavailable");
@@ -12143,6 +12200,10 @@ public class MainViewModelTests
 
         public List<PowerPointSlideShowRequest> Requests { get; } = new();
 
+        public int StopCount { get; private set; }
+
+        public Exception? StopException { get; init; }
+
         public Task StartAsync(
             PowerPointSlideShowRequest request,
             string outputMonitorName,
@@ -12159,6 +12220,17 @@ public class MainViewModelTests
             Requests.Add(request);
             return Task.CompletedTask;
         }
+
+        public Task StopAsync(CancellationToken cancellationToken = default)
+        {
+            StopCount++;
+            if (StopException is not null)
+            {
+                return Task.FromException(StopException);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FailingPowerPointSlideShowControl(string message) : IPowerPointSlideShowControl
@@ -12172,6 +12244,9 @@ public class MainViewModelTests
         public Task TriggerNextAsync(
             PowerPointSlideShowRequest request,
             CancellationToken cancellationToken = default)
+            => Task.FromException(new InvalidOperationException(message));
+
+        public Task StopAsync(CancellationToken cancellationToken = default)
             => Task.FromException(new InvalidOperationException(message));
     }
 

@@ -26,6 +26,8 @@ public interface IPowerPointSlideShowControl
     Task TriggerNextAsync(
         PowerPointSlideShowRequest request,
         CancellationToken cancellationToken = default);
+
+    Task StopAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
@@ -45,6 +47,9 @@ public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
     public Task TriggerNextAsync(
         PowerPointSlideShowRequest request,
         CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
+    public Task StopAsync(CancellationToken cancellationToken = default)
         => Task.CompletedTask;
 }
 
@@ -105,6 +110,14 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         {
             throw new InvalidOperationException("PowerPoint slide show window was not available.");
         }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return _session.IsValueCreated
+            ? _session.Value.CloseAsync()
+            : Task.CompletedTask;
     }
 
     public void Dispose()
