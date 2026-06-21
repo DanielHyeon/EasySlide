@@ -8859,12 +8859,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool PublishNotice(string text, NoticeOptions? options = null)
     {
         options ??= new NoticeOptions();
-        if (string.IsNullOrWhiteSpace(text) || !_output.Current.IsOpen)
+        if (string.IsNullOrWhiteSpace(text))
         {
             return false;
         }
 
-        var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        var display = EnsureLiveOutputDisplay();
+        var monitorName = display.Name;
         // 글자 크기·정렬·색을 레거시 FormatData(47=pt·31=정렬·29=색)로 실어 기존 곡별 오버라이드 파이프라인을 그대로 재사용.
         // 모두 0(미지정)이면 FormatData 없음 → 출력 기본 사용. 디코더가 6~100pt·정렬 1~3·ARGB 로 검증한다.
         var formatData = BuildNoticeFormatData(options);

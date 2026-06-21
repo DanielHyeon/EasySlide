@@ -44,6 +44,66 @@ dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\
 - 결과: 통과
 - 배포 위치: `C:\EasiSlides\EasislidesNext`
 
+## 2026-06-22 후속 UAT 이슈: Text/InfoScreen Live Display 미오픈
+
+사용자 실제 UAT에서 PPT는 Live되지만 Text/성경 같은 텍스트 계열 항목이 Display에 Live되지 않는 문제가 다시 보고되어 같은 change의 Phase 8로 후속 처리했다.
+
+### 추가 원인
+
+- WinForms `btnToLive_Click` 흐름은 `PreviewItemToLive` → `CopyPreviewToOutput` → `GoLive(true)` → `Start_Presentation`으로 이어지며, 텍스트/공지/성경도 출력 쇼가 닫혀 있으면 먼저 Display를 열고 즉시 송출한다.
+- WPF `PublishNotice`는 본문이 있어도 `_output.Current.IsOpen == false`이면 즉시 `false`를 반환했다.
+- 이 때문에 Text/InfoScreen 계열 Live가 실제 Display 창을 열 기회를 얻지 못했고, PPT는 별도의 PowerPoint SlideShow 경로가 있어 상대적으로 동작하는 것처럼 보였다.
+
+### 추가 수정
+
+- `MainViewModel.PublishNotice`가 출력 창 닫힘을 실패 조건으로 보지 않고 `EnsureLiveOutputDisplay()`를 호출해 WinForms처럼 전체화면 Display를 먼저 준비하도록 수정했다.
+- `PublishNotice_WhenOutputClosed_OpensDisplayAndSendsNoticeBodyLiveLikeFrmMain` 회귀 테스트를 추가해 Text/InfoScreen Live가 닫힌 Display를 열고 `OutputWindowHost`가 바인딩한 VM까지 본문을 표시하는지 검증했다.
+- `GoLiveCommand_BibleItem_PublishesBodyToDisplayHost` 회귀 테스트를 추가해 성경 본문이 PowerPoint 경로 없이 WPF Display VM의 텍스트 레이어까지 도달하는지 검증했다.
+
+### 추가 집중 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore --filter "FullyQualifiedName~PublishNotice_WhenOutputClosed_OpensDisplayAndSendsNoticeBodyLiveLikeFrmMain|FullyQualifiedName~GoLiveCommand_BibleItem_PublishesBodyToDisplayHost|FullyQualifiedName~PublishNotice_WhenOutputOpen_SendsNoticeBodyLive" -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 3개
+
+### 추가 전체 WPF 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 2,442개
+
+### 추가 OpenSpec 검증
+
+```powershell
+openspec validate a011-wpf-live-output-flow-recovery --strict
+```
+
+- 결과: 통과
+
+### 추가 WinForms 빌드
+
+```powershell
+dotnet build Easislides\Easislides.csproj -nologo -v minimal
+```
+
+- 결과: 통과
+- 경고: 기존 NetOffice/DirectShow/WinForms analyzer 경고 유지
+
+### 추가 WPF 배포
+
+```powershell
+dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -v minimal
+```
+
+- 결과: 통과
+- 배포 위치: `C:\EasiSlides\EasislidesNext`
+
 ## 남은 수동 UAT
 
 - 실제 멀티모니터에서 Output 창을 X/Alt+F4로 닫은 뒤 Preview Live 재시도.

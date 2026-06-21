@@ -52,3 +52,10 @@
 - [x] 8.2 Notice 본문 없음, Bible 본문 확장 실패, GoLiveCommand Text/Bible 송출 경로에 회귀 테스트를 추가한다.
 - [x] 8.3 `LiveSessionService`와 `MainViewModel` Output 표면 본문 계산이 같은 폴백 규칙을 쓰도록 정렬한다.
 - [x] 8.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.
+
+## 9. Phase 8 - WinForms Text/InfoScreen Live Display 동작 정합
+
+- [x] 9.1 WinForms `PreviewItemToLive`/`CopyPreviewToOutput`/`GoLive`/`Start_Presentation` 기준 Text/InfoScreen Live 흐름을 재분석한다.
+- [x] 9.2 WPF `PublishNotice`와 Text/Bible `GoLiveCommand`가 실제 `OutputWindowHost` Display VM까지 본문을 전달하는 회귀 테스트를 추가한다.
+- [x] 9.3 출력 창이 닫힌 상태에서도 Text/InfoScreen Live가 WinForms처럼 Display를 열고 즉시 송출되도록 수정한다.
+- [x] 9.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Easislides.Wpf.Controls;
@@ -3455,15 +3456,27 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void PublishNotice_WhenOutputClosed_ReturnsFalseAndStaysOff()
+    public void PublishNotice_WhenOutputClosed_OpensDisplayAndSendsNoticeBodyLiveLikeFrmMain()
     {
-        // 출력 창이 닫혀 있으면 공지 송출은 실패(false)하고 라이브 상태를 바꾸지 않는다.
-        var sut = CreateSut();
+        // FrmMain PreviewItemToLive/GoLive(true)는 Text/InfoScreen도 출력 쇼가 닫혀 있으면 먼저 켜고 즉시 송출한다.
+        // WPF도 세션뿐 아니라 실제 OutputWindowHost가 바인딩한 Display VM까지 본문이 보여야 한다.
+        var output = new OutputWindowService();
+        var session = new LiveSessionService();
+        var surfaces = new List<RecordingOutputSurface>();
+        using var host = new OutputWindowHost(output, session, () => CreateOutputSurface(surfaces));
+        var sut = CreateSut(seedSampleQueue: false, output: output, liveSession: session);
 
         var ok = sut.PublishNotice("예배 후 다과");
 
-        ok.Should().BeFalse();
-        sut.Session.Current.State.Should().Be(LiveState.Off);
+        ok.Should().BeTrue();
+        output.Current.IsOpen.Should().BeTrue("Text/InfoScreen Live는 닫힌 Display도 WinForms처럼 열어야 한다");
+        output.Current.Placement.IsWindowed.Should().BeFalse("Live 송출은 운영 창이 아니라 전체화면 Display여야 한다");
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("예배 후 다과");
+        surfaces.Should().ContainSingle();
+        surfaces[0].ViewModel!.Scene.Kind.Should().Be(OutputSceneKind.Live);
+        surfaces[0].ViewModel!.BodyText.Should().Be("예배 후 다과");
+        surfaces[0].ViewModel!.BodyTextVisibility.Should().Be(Visibility.Visible);
     }
 
     [Fact]
@@ -3479,6 +3492,32 @@ public class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Active);
         sut.Session.Current.CurrentItemTitle.Should().Be("공지");
         sut.Session.Current.CurrentItemBodyText.Should().Contain("주차장 만차 안내");
+    }
+
+    [Fact]
+    public async Task GoLiveCommand_BibleItem_PublishesBodyToDisplayHost()
+    {
+        // 성경은 PowerPoint를 거치지 않고 WPF Display 창의 텍스트 레이어에 직접 그려진다.
+        // 따라서 실제 OutputWindowHost가 보는 VM까지 Live 본문이 도달해야 한다.
+        var output = new OutputWindowService();
+        var session = new LiveSessionService();
+        var surfaces = new List<RecordingOutputSurface>();
+        using var host = new OutputWindowHost(output, session, () => CreateOutputSurface(surfaces));
+        var sut = CreateSut(seedSampleQueue: false, output: output, liveSession: session);
+        var bible = new LiveQueueItem("0;krv.db;;43;3;16;3;16;", "요한복음 3:16", LiveItemKinds.Bible)
+        {
+            Lyrics = "하나님이 세상을 이처럼 사랑하사",
+        };
+        sut.LoadQueue([bible]);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        output.Current.IsOpen.Should().BeTrue();
+        output.Current.Placement.IsWindowed.Should().BeFalse();
+        surfaces.Should().ContainSingle();
+        surfaces[0].ViewModel!.State.Should().Be(LiveState.Active);
+        surfaces[0].ViewModel!.BodyText.Should().Be("하나님이 세상을 이처럼 사랑하사");
+        surfaces[0].ViewModel!.BodyTextVisibility.Should().Be(Visibility.Visible);
     }
 
     [Fact]
@@ -12151,6 +12190,36 @@ public class MainViewModelTests
         }
 
         return vm;
+    }
+
+    private static RecordingOutputSurface CreateOutputSurface(ICollection<RecordingOutputSurface> surfaces)
+    {
+        var surface = new RecordingOutputSurface();
+        surfaces.Add(surface);
+        return surface;
+    }
+
+    private sealed class RecordingOutputSurface : IOutputSurface
+    {
+        public event EventHandler? Closed;
+
+        public OutputWindowViewModel? ViewModel { get; private set; }
+
+        public OutputWindowPlacement? Placement { get; private set; }
+
+        public int ShowCount { get; private set; }
+
+        public int CloseCount { get; private set; }
+
+        public void Bind(OutputWindowViewModel viewModel) => ViewModel = viewModel;
+
+        public void ApplyPlacement(OutputWindowPlacement placement) => Placement = placement;
+
+        public void Show() => ShowCount++;
+
+        public void Close() => CloseCount++;
+
+        public void RaiseClosed() => Closed?.Invoke(this, EventArgs.Empty);
     }
 
     private sealed class NoopDisposable : IDisposable
