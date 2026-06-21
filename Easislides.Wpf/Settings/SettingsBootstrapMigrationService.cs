@@ -54,6 +54,14 @@ public sealed class SettingsBootstrapMigrationService : ISettingsBootstrapMigrat
             "media_dir",
             EasiSettingKeys.MediaDirectory,
             issues);
+        changed |= ApplyLegacyString(
+            "OutputmonitorName",
+            EasiSettingKeys.DefaultOutputMonitorId,
+            issues);
+        changed |= ApplyLegacyString(
+            "OutputMonitorName",
+            EasiSettingKeys.DefaultOutputMonitorId,
+            issues);
         changed |= ApplyLegacyBool(
             "UsePowerpointTab",
             EasiSettingKeys.UsePowerPointTab,
@@ -62,6 +70,15 @@ public sealed class SettingsBootstrapMigrationService : ISettingsBootstrapMigrat
             "UseMediaTab",
             EasiSettingKeys.UseMediaTab,
             issues);
+        changed |= ApplyLegacyBool(
+            "AlwaysTryDualMonitor",
+            EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor,
+            issues);
+        changed |= ApplyLegacyInt(
+            "LyricsMonitorFontSize",
+            EasiSettingKeys.LyricsMonitorFontSize,
+            issues,
+            NormalizeLegacyLyricsMonitorFontSize);
 
         if (!changed && issues.Count == 0)
         {
@@ -124,6 +141,41 @@ public sealed class SettingsBootstrapMigrationService : ISettingsBootstrapMigrat
         AddIssues(issues, result);
         return result.Succeeded;
     }
+
+    private bool ApplyLegacyInt(
+        string legacyKey,
+        SettingKey<int> settingKey,
+        ICollection<SettingsIssue> issues,
+        Func<int, int>? normalize = null)
+    {
+        if (!_legacySettingsSource.TryGetString(legacyKey, out var raw)
+            || string.IsNullOrWhiteSpace(raw))
+        {
+            return false;
+        }
+
+        if (!int.TryParse(raw.Trim(), out var parsed))
+        {
+            issues.Add(new SettingsIssue(
+                legacyKey,
+                SettingsIssueSeverity.Warning,
+                $"Legacy value '{raw}' is not a supported integer."));
+            return false;
+        }
+
+        var next = normalize?.Invoke(parsed) ?? parsed;
+        if (_settingsService.Get(settingKey) == next)
+        {
+            return false;
+        }
+
+        var result = _settingsService.Set(settingKey, next, SettingsChangeSource.Migration);
+        AddIssues(issues, result);
+        return result.Succeeded;
+    }
+
+    private static int NormalizeLegacyLyricsMonitorFontSize(int value)
+        => Math.Clamp(value, 24, 120);
 
     private static bool TryParseLegacyBool(string raw, out bool value)
     {

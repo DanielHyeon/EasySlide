@@ -117,6 +117,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 본문 세로 정렬이 "위"여도 헤딩과 포개지지 않게 한다(§7.3-A code-review MAJOR 반영). 기본 0.
     private Thickness _bodyContentMargin = new(0);
     private Thickness _bodyText2Margin = new(0, 8, 0, 0);
+    private double _bodyMaxWidth = DefaultViewportWidth;
+    private double _bodyMaxHeight = DefaultViewportHeight;
+    private double _bodyTextMaxHeight = DefaultViewportHeight;
+    private double _bodyText2MaxHeight;
     private double _bodyVerticalOffset;
     private Visibility _gapLogoVisibility = Visibility.Collapsed;
     private Visibility _blackoutOverlayVisibility = Visibility.Collapsed;
@@ -771,6 +775,34 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _bodyText2Margin, value);
     }
 
+    /// <summary>WinForms launch display buffer width equivalent for the live body block.</summary>
+    public double BodyMaxWidth
+    {
+        get => _bodyMaxWidth;
+        private set => SetProperty(ref _bodyMaxWidth, value);
+    }
+
+    /// <summary>WinForms launch display buffer height equivalent for the live body block.</summary>
+    public double BodyMaxHeight
+    {
+        get => _bodyMaxHeight;
+        private set => SetProperty(ref _bodyMaxHeight, value);
+    }
+
+    /// <summary>Maximum height for Region1 text after heading and Region2 space are accounted for.</summary>
+    public double BodyTextMaxHeight
+    {
+        get => _bodyTextMaxHeight;
+        private set => SetProperty(ref _bodyTextMaxHeight, value);
+    }
+
+    /// <summary>Maximum height for Region2 text. Zero when Region2 is hidden.</summary>
+    public double BodyText2MaxHeight
+    {
+        get => _bodyText2MaxHeight;
+        private set => SetProperty(ref _bodyText2MaxHeight, value);
+    }
+
     /// <summary>본문 묶음 세로 위치 오프셋(px, 음수=위) — FrmMain Ind_Reg1TopUpDown. TranslateTransform.Y 에 바인딩. 기본 0.</summary>
     public double BodyVerticalOffset
     {
@@ -1059,6 +1091,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             headingTop,
             scene.LyricsMonitorBodyRightMargin,
             scene.LyricsMonitorBodyBottomMargin);
+        UpdateBodyViewportBounds(scene, headingTop);
         var bodyShown = scene.ShowsBodyText;
         // 외곽선 효과(§7.3-A): on 이면 외곽선 렌더러만, off 면 일반 본문만 보이게 상호배타로 전환(겹침 방지).
         // 외곽선 기본 off 라 기존 테스트/동작에선 BodyTextVisibility=bodyShown 그대로다.
@@ -1072,6 +1105,33 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         ApplyGapLogo(scene, panelOverlay, bodyShown);
         BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) ? Visibility.Visible : Visibility.Collapsed;
         ApplyContentPlacement(scene);
+    }
+
+    private void UpdateBodyViewportBounds(OutputSceneSnapshot scene, double headingTop)
+    {
+        var viewportWidth = scene.Viewport.Width > 0 ? scene.Viewport.Width : GetViewportWidth(_output);
+        var viewportHeight = scene.Viewport.Height > 0 ? scene.Viewport.Height : GetViewportHeight(_output);
+        var maxWidth = Math.Max(
+            0,
+            viewportWidth - scene.LyricsMonitorBodyLeftMargin - scene.LyricsMonitorBodyRightMargin);
+        var maxHeight = Math.Max(
+            0,
+            viewportHeight - headingTop - scene.LyricsMonitorBodyBottomMargin);
+
+        BodyMaxWidth = maxWidth;
+        BodyMaxHeight = maxHeight;
+
+        if (!scene.ShowsBodyText2)
+        {
+            BodyTextMaxHeight = maxHeight;
+            BodyText2MaxHeight = 0;
+            return;
+        }
+
+        var regionGap = Math.Max(0, scene.LyricsMonitorRegionGapPx);
+        var availableTextHeight = Math.Max(0, maxHeight - regionGap);
+        BodyTextMaxHeight = availableTextHeight * 0.67;
+        BodyText2MaxHeight = Math.Max(0, availableTextHeight - BodyTextMaxHeight);
     }
 
     // 줄 교차(인터레이스) 줄 목록을 다시 만든다 — Region1·Region2 본문을 줄 단위로 번갈아 쌓는다.

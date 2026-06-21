@@ -42,6 +42,9 @@ public class SettingsBootstrapMigrationServiceTests
         settings.Set(EasiSettingKeys.UsePowerPointTab, false);
         settings.Set(EasiSettingKeys.UseMediaTab, false);
         settings.Set(EasiSettingKeys.MediaDirectory, @"D:\CurrentMedia");
+        settings.Set(EasiSettingKeys.DefaultOutputMonitorId, "");
+        settings.Set(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor, false);
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 48);
         var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
         {
             ["root_directory"] = @"C:\Legacy",
@@ -50,6 +53,9 @@ public class SettingsBootstrapMigrationServiceTests
             ["UsePowerpointTab"] = "1",
             ["UseMediaTab"] = "1",
             ["media_dir"] = @"C:\EasiSlides\Media\",
+            ["OutputmonitorName"] = @"\\.\DISPLAY2",
+            ["AlwaysTryDualMonitor"] = "1",
+            ["LyricsMonitorFontSize"] = "22",
         });
         var sut = new SettingsBootstrapMigrationService(settings, legacy, fixture.Options);
 
@@ -63,6 +69,11 @@ public class SettingsBootstrapMigrationServiceTests
         settings.Get(EasiSettingKeys.UsePowerPointTab).Should().BeTrue();
         settings.Get(EasiSettingKeys.UseMediaTab).Should().BeTrue();
         settings.Get(EasiSettingKeys.MediaDirectory).Should().Be(@"C:\EasiSlides\Media\");
+        settings.Get(EasiSettingKeys.DefaultOutputMonitorId).Should().Be(@"\\.\DISPLAY2");
+        settings.Get(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor).Should().BeTrue();
+        settings.Get(EasiSettingKeys.LyricsMonitorFontSize).Should().Be(
+            24,
+            "WinForms registry values can store the legacy 960px-base font size below the WPF validation minimum, so bootstrap clamps it to the closest supported output size");
     }
 
     [Fact]

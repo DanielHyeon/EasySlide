@@ -4740,7 +4740,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!_output.Current.IsOpen)
         {
-            OpenOutput();
+            EnsureLiveOutputDisplay();
         }
 
         OutputItem = item;
@@ -5872,7 +5872,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!_output.Current.IsOpen)
         {
-            OpenOutput();
+            EnsureLiveOutputDisplay();
         }
 
         await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);
@@ -6707,7 +6707,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!_output.Current.IsOpen)
         {
-            OpenOutput();
+            EnsureLiveOutputDisplay();
         }
 
         OutputItem = item;

@@ -66,3 +66,11 @@
 - [x] 10.2 사도신경 같은 빈 줄 구분 텍스트가 단락 페이지 단위로 Preview/Live 송출되는 회귀 테스트를 추가한다.
 - [x] 10.3 WPF 외부 `.txt`/ESW `T` 항목만 WinForms처럼 단락 페이지를 갖게 하고, 일반 공지/InfoScreen 즉시 송출은 전체 본문 유지로 보존한다.
 - [x] 10.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.
+
+## 11. Phase 10 - WinForms Text Live 모니터/렌더링 정합성 회귀 보정
+
+- [x] 11.1 WinForms `CopyPreviewToOutput`/`Start_Presentation`/`DisplayInfo.SizeLaunchDisplay`/`gfDisplay.DrawText` 흐름과 WPF `PreviewToLive`/`GoLive`/`OutputWindowHost`/`OutputWindowViewModel` 흐름을 다시 대조한다.
+- [x] 11.2 기존 WPF 설정 파일이 있어도 실제 WinForms 레지스트리 출력 모니터·Live 텍스트 설정이 런타임에 갱신되는 실패 테스트를 추가한다.
+- [x] 11.3 Text/성경/Notice Live 시작 경로가 WinForms처럼 처음부터 실제 출력 모니터 전체화면을 보장하도록 실패 테스트와 구현을 추가한다.
+- [x] 11.4 사도신경 같은 문단 단위 Text Live가 고정 1160px 영역이 아니라 실제 출력 화면 폭·높이를 기준으로 본문 렌더링 영역을 계산하도록 실패 테스트와 구현을 추가한다.
+- [x] 11.5 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포, 증거 문서 갱신을 수행한다.

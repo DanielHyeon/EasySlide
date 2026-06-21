@@ -44,6 +44,71 @@ dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\
 - 결과: 통과
 - 배포 위치: `C:\EasiSlides\EasislidesNext`
 
+## 2026-06-22 후속 UAT 이슈: Text Live 전체화면/사도신경 viewport 렌더링
+
+사용자 실제 UAT에서 Text Live가 여전히 모니터 전체화면으로 송출되지 않고, 사도신경 문단 선택 후 렌더링이 WinForms 대비 한쪽으로 치우쳐 보이는 문제가 보고되어 같은 change의 Phase 10으로 후속 처리했다.
+
+### 추가 원인
+
+- WinForms는 `PreviewItemToLive` → `CopyPreviewToOutput` → `GoLive` → `Start_Presentation`에서 `DisplayInfo.SizeLaunchDisplay()`를 통해 출력 모니터의 실제 좌표/크기와 버퍼 크기를 먼저 확정한 뒤 `gfDisplay.DrawText`가 그 크기를 기준으로 본문 영역을 계산한다.
+- WPF `PreviewToLiveAsync`와 `StartOutputLiveAsync` 일부 경로는 출력창이 닫혀 있을 때 `OpenOutput()`을 호출해 운영자용 windowed 출력창을 먼저 만들 수 있었다.
+- WPF `OutputWindow.xaml` 본문 묶음에 `MaxWidth=1160`, `MaxHeight=980`, 본문 `MaxHeight=660` 같은 고정 제약이 남아 있어 실제 1080p/프로젝터 폭을 충분히 사용하지 못했다.
+- 기존 WPF 설정 파일이 이미 있으면 WinForms 레지스트리의 `OutputmonitorName`, `AlwaysTryDualMonitor`, `LyricsMonitorFontSize`가 런타임에 다시 반영되지 않아 실제 배포 환경의 출력 모니터/텍스트 설정과 어긋날 수 있었다.
+
+### 추가 수정
+
+- Text/성경/Notice Live 시작 시 출력창이 닫혀 있으면 `EnsureLiveOutputDisplay()`를 사용해 WinForms처럼 실제 출력 모니터 전체화면 배치를 보장했다.
+- `SettingsBootstrapMigrationService`가 기존 WPF 설정 파일이 있어도 WinForms 레지스트리의 출력 모니터, 보조 모니터 우선 정책, Live 텍스트 폰트 크기를 갱신하도록 확장했다.
+- WinForms 실제 레지스트리 casing인 `OutputmonitorName`을 OpenSpec/WPF legacy alias에 추가했다.
+- WinForms 960px 기준 폰트 크기 값이 WPF 검증 최소값보다 작을 수 있어 `LyricsMonitorFontSize`/`LyricsMonitorFontSize2` legacy import는 WPF 허용 범위로 정규화했다.
+- `OutputWindowViewModel`에 `BodyMaxWidth`, `BodyMaxHeight`, `BodyTextMaxHeight`, `BodyText2MaxHeight`를 추가하고, `OutputWindow.xaml` 본문/외곽선/Region2/Interlace 고정 제약을 출력 viewport 기반 바인딩으로 교체했다.
+
+### 추가 집중 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore --filter "FullyQualifiedName~SettingsBootstrapMigrationServiceTests|FullyQualifiedName~PreviewToLiveCommand_TextItem_OpensSelectedOutputMonitorFullScreen|FullyQualifiedName~ApplyOutputAndSession_ActiveText_UsesOutputViewportForBodyBoundsLikeFrmMain" -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 7개
+
+### 추가 전체 WPF 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 2,446개
+
+### 추가 OpenSpec 검증
+
+```powershell
+openspec validate a011-wpf-live-output-flow-recovery --strict
+```
+
+- 결과: 통과
+
+### 추가 WinForms 빌드
+
+```powershell
+dotnet build Easislides\Easislides.csproj -nologo -v minimal
+```
+
+- 결과: 통과
+- 경고: 기존 NetOffice/DirectShow/WinForms analyzer 경고 유지
+
+### 추가 WPF 배포
+
+```powershell
+dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -v minimal
+```
+
+- 1차 결과: 실패. 실행 중인 `EasislidesNext (PID 41092)`가 `C:\EasiSlides\EasislidesNext\EasislidesNext.dll`을 잠그고 있었다.
+- 조치: 해당 WPF 앱 프로세스를 종료한 뒤 재시도.
+- 최종 결과: 통과
+- 배포 위치: `C:\EasiSlides\EasislidesNext`
+
 ## 2026-06-22 후속 UAT 이슈: 사도신경 외부 Text 파일 단락 선택 불일치
 
 사용자 실제 UAT에서 사도신경 같은 외부 `.txt` 항목이 WinForms처럼 단락 단위로 선택되지 않고 전체 본문으로 취급되는 문제가 보고되어, 같은 change의 Phase 9로 처리했다.

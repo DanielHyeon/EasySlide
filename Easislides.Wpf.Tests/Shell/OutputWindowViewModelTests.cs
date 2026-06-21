@@ -103,6 +103,29 @@ public class OutputWindowViewModelTests
     }
 
     [Fact]
+    public void ApplyOutputAndSession_ActiveText_UsesOutputViewportForBodyBoundsLikeFrmMain()
+    {
+        var projector = new OutputDisplay("projector", "Projector", 1920, 0, 1920, 1080, 1);
+        var sut = new OutputWindowViewModel();
+
+        sut.ApplyOutput(new OutputWindowState(
+            IsOpen: true,
+            projector,
+            new OutputWindowPlacement(1920, 0, 1920, 1080, IsWindowed: false)));
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active,
+            "Apostles",
+            "Projector",
+            IsBlackout: false,
+            CurrentItemBodyText: "Paragraph one"));
+
+        sut.BodyMaxWidth.Should().Be(1920);
+        sut.BodyMaxHeight.Should().Be(1080);
+        sut.BodyTextMaxHeight.Should().Be(1080);
+        sut.BodyText2MaxHeight.Should().Be(0);
+    }
+
+    [Fact]
     public void ApplySession_ActiveSongWithoutFontOverride_LeavesBodyFontFamilyInherited()
     {
         // 폰트 오버라이드가 없으면 BodyFontFamily 는 UnsetValue → XAML 이 테마 기본 글꼴을 상속(무회귀).

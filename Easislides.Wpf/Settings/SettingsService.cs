@@ -1453,6 +1453,14 @@ public sealed class SettingsService : ISettingsService
         {
             LiveOutput = next.LiveOutput with { LyricsMonitorBackgroundColorArgb = value },
         });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorFontSize.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { LyricsMonitorFontSize = Math.Clamp(value, 24, 120) },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorFontSize2.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { LyricsMonitorFontSize2 = value == 0 ? 0 : Math.Clamp(value, 24, 120) },
+        });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorShowNotations.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { LyricsMonitorShowNotations = value },

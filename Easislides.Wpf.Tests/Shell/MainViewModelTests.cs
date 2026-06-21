@@ -4216,6 +4216,40 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PreviewToLiveCommand_TextItem_OpensSelectedOutputMonitorFullScreen()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.DefaultOutputMonitorId, "projector");
+        var primary = new OutputDisplay("primary", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var projector = new OutputDisplay("projector", "Projector", 1920, 0, 1920, 1080, 1);
+        var output = new OutputWindowService();
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            output: output,
+            display: new FixedDisplayService(primary, projector),
+            settings: settings);
+        var text = new LiveQueueItem("text-file:apostles:0", "Apostles", LiveItemKinds.Notice)
+        {
+            Lyrics = "Paragraph one",
+        };
+        sut.LoadQueue([text]);
+        sut.SelectedItem = text;
+
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+
+        output.Current.IsOpen.Should().BeTrue();
+        output.Current.Display.Should().Be(projector);
+        output.Current.Placement.IsWindowed.Should().BeFalse("FrmMain PreviewItemToLive starts the launch display, not an operator window");
+        output.Current.Placement.Left.Should().Be(projector.X);
+        output.Current.Placement.Top.Should().Be(projector.Y);
+        output.Current.Placement.Width.Should().Be(projector.Width);
+        output.Current.Placement.Height.Should().Be(projector.Height);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("Paragraph one");
+    }
+
+    [Fact]
     public async Task PreviewToLiveCommand_WhenOutputBlackHidden_RefreshesHiddenPayloadWithoutAdvancingPreview()
     {
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
