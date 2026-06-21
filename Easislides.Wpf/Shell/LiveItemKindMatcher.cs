@@ -9,6 +9,28 @@ namespace Easislides.Wpf.Shell;
 /// </summary>
 public static class LiveItemKindMatcher
 {
+    /// <summary>찬양/가사 항목인지 — LiveItemKinds.Song + 레거시 ESW 타입(D/S/Song/Lyrics).</summary>
+    public static bool IsSong(string? kind)
+        => Eq(kind, "D")
+           || Eq(kind, "S")
+           || Eq(kind, LiveItemKinds.Song)
+           || Eq(kind, "Lyrics");
+
+    /// <summary>성경 항목인지 — LiveItemKinds.Bible + 레거시 ESW 타입(B/Bible).</summary>
+    public static bool IsBible(string? kind)
+        => Eq(kind, "B")
+           || Eq(kind, LiveItemKinds.Bible);
+
+    /// <summary>공지/텍스트 항목인지 — LiveItemKinds.Notice + 레거시 InfoScreen/Text 타입(T/I/W).</summary>
+    public static bool IsNotice(string? kind)
+        => Eq(kind, "T")
+           || Eq(kind, "I")
+           || Eq(kind, "W")
+           || Eq(kind, LiveItemKinds.Notice)
+           || Eq(kind, "Info")
+           || Eq(kind, "InfoScreen")
+           || Eq(kind, "Text");
+
     /// <summary>PowerPoint 항목인지 — LiveItemKinds.PowerPoint + 레거시 별칭(P/PPT/Presentation).</summary>
     public static bool IsPowerPoint(string? kind)
         => Eq(kind, "P")

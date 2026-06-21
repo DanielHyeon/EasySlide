@@ -5817,6 +5817,31 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLiveCommand_PowerPointSlideShowFailure_ReportsStatusWithoutMessageBox()
+    {
+        var slideShow = new FailingPowerPointSlideShowControl("slide show unavailable");
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var deck = new LiveQueueItem("ppt:live", "Live deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "live.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.StatusText.Should().Contain("PowerPoint 슬라이드 쇼 시작 실패");
+        sut.StatusText.Should().Contain("slide show unavailable");
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+    }
+
+    [Fact]
     public async Task NextOutputSlideCommand_PowerPointLive_MovesRunningSlideShow()
     {
         var slideShow = new RecordingPowerPointSlideShowControl();
@@ -12134,6 +12159,20 @@ public class MainViewModelTests
             Requests.Add(request);
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class FailingPowerPointSlideShowControl(string message) : IPowerPointSlideShowControl
+    {
+        public Task StartAsync(
+            PowerPointSlideShowRequest request,
+            string outputMonitorName,
+            CancellationToken cancellationToken = default)
+            => Task.FromException(new InvalidOperationException(message));
+
+        public Task TriggerNextAsync(
+            PowerPointSlideShowRequest request,
+            CancellationToken cancellationToken = default)
+            => Task.FromException(new InvalidOperationException(message));
     }
 
     private sealed class InMemoryWorshipListStore : IWorshipListStore

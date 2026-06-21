@@ -28,3 +28,12 @@
 - [x] 5.1 CodeGraph impact와 검증 결과를 change 문서에 남긴다.
 - [x] 5.2 커밋 및 푸시 전 변경 범위를 확인한다.
 - [x] 5.3 수정 내용, 검증 결과, 남은 수동 UAT 항목을 보고한다.
+
+## 6. Phase 5 - 실제 UAT 후속: Text/PPT Live 불능
+
+- [x] 6.1 Text Live 불능 원인을 레거시 `.esw` 타입 코드와 Live 본문 계산 경로 기준으로 재점검한다.
+- [x] 6.2 `LiveItemKindMatcher`가 Song/Bible/Notice 레거시 별칭까지 판별하도록 확장하고, Live 본문 계산과 Output 표면 본문 계산이 같은 판별 규칙을 쓰게 한다.
+- [x] 6.3 PPT Live가 PowerPoint 편집 창만 열리고 SlideShow가 안 뜨는 경로를 WinForms `RunPowerpointSong` 기준으로 보강한다.
+- [x] 6.4 Live 버튼 경로가 PPT SlideShow 시작 Task를 기다리고, 실패 시 메시지 박스 없이 상태바/텔레메트리에 실패를 남기도록 한다.
+- [x] 6.5 Text 레거시 타입과 PPT SlideShow 실패 전파 회귀 테스트를 추가하고 집중 테스트를 통과시킨다.
+- [x] 6.6 전체 WPF 테스트, WinForms 빌드, WPF Release 배포를 다시 수행한다.

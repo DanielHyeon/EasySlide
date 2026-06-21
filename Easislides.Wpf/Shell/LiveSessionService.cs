@@ -264,14 +264,14 @@ public sealed class LiveSessionService : ILiveSessionService
     {
         // 공지(InfoScreen)는 자유 텍스트라 가사 작성 마커([광고]·»·빈줄 등)를 해석하면 안 된다 —
         // 가사 포맷터를 건너뛰고 입력 그대로 본문으로 송출한다(마커 손상·빈 화면 false-positive 방지).
-        if (item.Kind == LiveItemKinds.Notice)
+        if (LiveItemKindMatcher.IsNotice(item.Kind))
         {
             return item.Lyrics ?? string.Empty;
         }
 
         // 성경 본문은 가사 코드 마커(») 규약을 쓰지 않는다 — 코드 전처리(ExpandNotations)를 건너뛰고,
         // 일부 번역의 인용부호 »…« 가 코드 마커로 오인돼 잘리지 않게 보호한 채 절만 나눈다.
-        if (item.Kind == LiveItemKinds.Bible)
+        if (LiveItemKindMatcher.IsBible(item.Kind))
         {
             return ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: false);
         }
@@ -314,13 +314,13 @@ public sealed class LiveSessionService : ILiveSessionService
     // Region1 과 동일 인덱스·Sequence(GetRegionPage)라 두 영역이 같은 절로 짝지어진다.
     private static string ComputeBodyText2(LiveQueueItem item)
     {
-        if (item.Kind == LiveItemKinds.Notice)
+        if (LiveItemKindMatcher.IsNotice(item.Kind))
         {
             return string.Empty;
         }
 
         // 성경은 코드 전처리를 건너뛰고 보조 언어(Region2) 절을 인용부호 보호한 채 추출(주 언어 경로와 대칭).
-        if (item.Kind == LiveItemKinds.Bible)
+        if (LiveItemKindMatcher.IsBible(item.Kind))
         {
             return ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: true);
         }
@@ -338,7 +338,7 @@ public sealed class LiveSessionService : ILiveSessionService
     //       성경 항목별 강조(굵게/기울임/밑줄)는 화면에서 억제된다(성경엔 후렴 개념이 없으니 자연스러운 동작 — 색·정렬·글꼴은 무관하게 적용).
     private static string ComputeCurrentSectionLabel(LiveQueueItem item)
     {
-        if (item.Kind != LiveItemKinds.Song || string.IsNullOrEmpty(item.Lyrics))
+        if (!LiveItemKindMatcher.IsSong(item.Kind) || string.IsNullOrEmpty(item.Lyrics))
         {
             return string.Empty;
         }

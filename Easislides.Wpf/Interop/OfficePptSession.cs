@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using NetOffice.OfficeApi.Enums;
 using NetOffice.PowerPointApi;
+using NetOffice.PowerPointApi.Enums;
 
 namespace Easislides.Wpf.Interop;
 
@@ -161,8 +162,7 @@ public sealed class OfficePptSession : IDisposable
                 throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
             }
 
-            presentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
-            presentation.SlideShowSettings.StartingSlide = slideNumber;
+            ConfigureSlideShowForLive(presentation, 1);
             var slideShowWindow = TryGetSlideShowWindow(presentation)
                 ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
@@ -171,7 +171,11 @@ public sealed class OfficePptSession : IDisposable
             }
 
             var view = slideShowWindow.View;
-            if (view.Slide.SlideIndex != slideNumber)
+            if (slideNumber < 2)
+            {
+                view.First();
+            }
+            else if (view.Slide.SlideIndex != slideNumber)
             {
                 view.GotoSlide(slideNumber, MsoTriState.msoFalse);
             }
@@ -203,7 +207,7 @@ public sealed class OfficePptSession : IDisposable
                 throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
             }
 
-            presentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
+            ConfigureSlideShowForLive(presentation, slideNumber);
             var slideShowWindow = TryGetSlideShowWindow(presentation)
                 ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
@@ -273,6 +277,19 @@ public sealed class OfficePptSession : IDisposable
         {
             return null;
         }
+    }
+
+    private static void ConfigureSlideShowForLive(_Presentation presentation, int startingSlide)
+    {
+        var slideCount = Math.Max(presentation.Slides.Count, 1);
+        var start = Math.Clamp(startingSlide, 1, slideCount);
+        var settings = presentation.SlideShowSettings;
+        settings.ShowPresenterView = MsoTriState.msoFalse;
+        settings.RangeType = PpSlideShowRangeType.ppShowSlideRange;
+        settings.StartingSlide = start;
+        settings.EndingSlide = slideCount;
+        settings.ShowType = PpSlideShowType.ppShowTypeSpeaker;
+        settings.AdvanceMode = PpSlideShowAdvanceMode.ppSlideShowUseSlideTimings;
     }
 
     private static void SaveSlideShowMonitor(string version, string outputMonitorName)

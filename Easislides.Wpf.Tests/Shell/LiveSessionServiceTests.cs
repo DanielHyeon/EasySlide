@@ -76,6 +76,21 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_LegacyTextKind_ProjectsLiteralText()
+    {
+        var sut = new LiveSessionService();
+        var item = new LiveQueueItem("text-legacy", "공지", "T")
+        {
+            Lyrics = "[공지]\n예배 안내입니다.",
+        };
+
+        sut.GoLive(item, "모니터 1");
+
+        sut.Current.CurrentItemBodyText.Should().Be("[공지]\n예배 안내입니다.");
+        sut.Current.CurrentItemBodyText2.Should().BeEmpty();
+    }
+
+    [Fact]
     public void HideOutput_MarksSessionHiddenWithoutForgettingCurrentItem()
     {
         var sut = new LiveSessionService();

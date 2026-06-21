@@ -66,11 +66,23 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return _session.Value.StartSlideShowAsync(
+        return StartCoreAsync(request, outputMonitorName, cancellationToken);
+    }
+
+    private async Task StartCoreAsync(
+        PowerPointSlideShowRequest request,
+        string outputMonitorName,
+        CancellationToken cancellationToken)
+    {
+        var started = await _session.Value.StartSlideShowAsync(
             request.FilePath,
             request.SlideNumber,
             outputMonitorName,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
+        if (!started)
+        {
+            throw new InvalidOperationException("PowerPoint slide show window was not created.");
+        }
     }
 
     public Task TriggerNextAsync(
@@ -78,10 +90,21 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return _session.Value.TriggerSlideShowNextAsync(
+        return TriggerNextCoreAsync(request, cancellationToken);
+    }
+
+    private async Task TriggerNextCoreAsync(
+        PowerPointSlideShowRequest request,
+        CancellationToken cancellationToken)
+    {
+        var triggered = await _session.Value.TriggerSlideShowNextAsync(
             request.FilePath,
             request.SlideNumber,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
+        if (!triggered)
+        {
+            throw new InvalidOperationException("PowerPoint slide show window was not available.");
+        }
     }
 
     public void Dispose()

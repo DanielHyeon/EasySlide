@@ -3878,14 +3878,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 절 수·본문 계산 전 항목 본문을 정리한다. 성경은 코드 마커(») 규약을 안 쓰므로 인용부호 »…« 를 보호 문자로
     // 임시 치환해 절 경계·본문이 잘리지 않게 한다. 곡 등 다른 항목은 원본 그대로(무회귀).
     private static string? GuardBibleNotation(LiveQueueItem item)
-        => item.Kind == LiveItemKinds.Bible
+        => LiveItemKindMatcher.IsBible(item.Kind)
             ? LyricsDisplayFormatter.GuardLiteralNotation(item.Lyrics)
             : item.Lyrics;
 
     // 절 단위로 페이지네이션되는(가사/구절 본문이 있는) 항목인지 — 곡과 성경. 본문 계산·절 이동·위치 라벨의 공통 판정.
     private static bool IsLyricsPaginated(LiveQueueItem? item)
         => item is not null
-            && (item.Kind == LiveItemKinds.Song || item.Kind == LiveItemKinds.Bible)
+            && (LiveItemKindMatcher.IsSong(item.Kind) || LiveItemKindMatcher.IsBible(item.Kind))
             && !string.IsNullOrEmpty(item.Lyrics);
 
     // 페이지 라벨에서 중복을 제거(첫 등장 순서)해 점프 버튼 목록을 만든다.
@@ -5042,28 +5042,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void StartPowerPointSlideShowForLive(LiveQueueItem item, string monitorName)
+    private async Task<bool> StartPowerPointSlideShowForLiveAsync(LiveQueueItem item, string monitorName)
     {
         if (!IsPowerPointItem(item) || string.IsNullOrWhiteSpace(item.ContentPath))
         {
-            return;
+            return true;
         }
 
         var slideNumber = item.SlideNumber > 0 ? item.SlideNumber : Math.Max(OutputPowerPoint.SlideNumber, 1);
-        _ = StartPowerPointSlideShowForLiveAsync(item.ContentPath, slideNumber, monitorName);
-    }
-
-    private async Task StartPowerPointSlideShowForLiveAsync(string filePath, int slideNumber, string monitorName)
-    {
         try
         {
             await _powerPointSlideShow.StartAsync(
-                new PowerPointSlideShowRequest(filePath, slideNumber, PowerPointSlideShowTarget.Output),
+                new PowerPointSlideShowRequest(item.ContentPath, slideNumber, PowerPointSlideShowTarget.Output),
                 monitorName).ConfigureAwait(true);
+            return true;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[PPT] Slide show start failed: {ex.Message}");
+            StatusText = $"PowerPoint 슬라이드 쇼 시작 실패: {ex.Message}";
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, StatusText);
+            NotifyCommandStates();
+            return false;
         }
     }
 
@@ -5110,7 +5110,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var monitorName = display.Name;
             var updated = item with { SlideNumber = target };
             _session.GoLive(ResolveLiveProjection(updated, OutputPowerPoint), monitorName);
-            StartPowerPointSlideShowForLive(updated, GetPowerPointOutputMonitorName(display));
+            await StartPowerPointSlideShowForLiveAsync(updated, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true);
         }
         else if (_session.Current.State == LiveState.Hidden)
         {
@@ -5382,7 +5382,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private string BuildOutputSurfaceText(LiveQueueItem item)
     {
-        if (item.Kind == LiveItemKinds.Notice)
+        if (LiveItemKindMatcher.IsNotice(item.Kind))
         {
             return item.Lyrics ?? string.Empty;
         }
@@ -5398,7 +5398,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             TransposeSemitones = LiveTransposeSemitones,
         };
 
-        if (projected.Kind == LiveItemKinds.Bible)
+        if (LiveItemKindMatcher.IsBible(projected.Kind))
         {
             var body = LyricsDisplayFormatter.NormalizeText(projected.Lyrics ?? string.Empty);
             var guarded = LyricsDisplayFormatter.GuardLiteralNotation(body);
@@ -5791,16 +5791,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem? GetOutputLiveStartItem()
         => OutputItem ?? Queue.FirstOrDefault();
 
-    private Task GoLiveAsync()
+    private async Task GoLiveAsync()
     {
         if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
-            return Task.CompletedTask;
+            return;
         }
 
-        PublishSelectedItem();
-        return Task.CompletedTask;
+        await PublishSelectedItemAsync().ConfigureAwait(true);
     }
 
     private async Task StartOutputLiveAsync()
@@ -5830,22 +5829,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);
         var prepared = OutputItem ?? item;
         var lyricsPageIndex = IsLyricsPaginated(prepared) ? GetOutputLyricsPageIndex(prepared) : 0;
-        PublishOutputItem(prepared, MainCommandIds.LiveGo, lyricsPageIndex);
+        await PublishOutputItemAsync(prepared, MainCommandIds.LiveGo, lyricsPageIndex).ConfigureAwait(true);
     }
 
     // 상단/메뉴 "송출 후 다음" — 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
     // FrmMain 지역 btnToOutputMoveNext 의 비송출 복사+다음은 CopyPreviewToOutputAndNextCommand 가 담당한다.
-    private Task SendToOutputAndNextAsync()
+    private async Task SendToOutputAndNextAsync()
     {
         if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
-            return Task.CompletedTask;
+            return;
         }
 
         // 자동 advance 를 끈 채 송출한 뒤(중복 이동 방지), 설정과 무관하게 명시적으로 다음 항목으로 이동.
         var published = item;
-        PublishSelectedItem(autoAdvance: false);
+        await PublishSelectedItemAsync(autoAdvance: false).ConfigureAwait(true);
         if (ReferenceEquals(published, SelectedItem))
         {
             AdvanceSelectionToNext(published);
@@ -5855,7 +5854,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             MovePreviewSelectionToNext(published);
         }
 
-        return Task.CompletedTask;
     }
 
     private async Task StopLiveAsync()
@@ -6284,6 +6282,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private void PublishOutputItem(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
+        => _ = PublishOutputItemAsync(item, commandId, lyricsPageIndex);
+
+    private async Task PublishOutputItemAsync(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
         var display = EnsureLiveOutputDisplay();
         var monitorName = display.Name;
@@ -6298,7 +6299,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        StartPowerPointSlideShowForLive(projection, GetPowerPointOutputMonitorName(display));
+        if (!await StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true))
+        {
+            return;
+        }
+
         StatusText = $"LIVE: {item.Title}";
         _telemetry.Record(commandId, succeeded: true, item.Title);
         NotifyCommandStates();
@@ -6317,7 +6322,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
         if (_session.Current.State == LiveState.Active)
         {
-            PublishOutputItem(target, MainCommandIds.LiveNext);
+            await PublishOutputItemAsync(target, MainCommandIds.LiveNext).ConfigureAwait(true);
             return;
         }
 
@@ -6765,6 +6770,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // autoAdvance: true 면 "자동 다음 항목" 설정에 따라 선택을 다음으로 옮긴다(기존 동작).
     // false 면 옮기지 않는다 — "전송 후 다음"(btnToOutputMoveNext) 처럼 호출부가 직접 이동을 제어할 때 쓴다.
     private void PublishSelectedItem(bool autoAdvance = true)
+        => _ = PublishSelectedItemAsync(autoAdvance);
+
+    private async Task PublishSelectedItemAsync(bool autoAdvance = true)
     {
         if (PreviewItem is not { } item)
         {
@@ -6782,7 +6790,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
         var projection = item with { LyricsPageIndex = GetPreviewLyricsPageIndex(item) };
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        StartPowerPointSlideShowForLive(projection, GetPowerPointOutputMonitorName(display));
+        if (!await StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true))
+        {
+            return;
+        }
+
         StatusText = $"LIVE: {item.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance && ReferenceEquals(item, SelectedItem))
