@@ -878,11 +878,11 @@
                            Foreground="{DynamicResource Brush.Text.Secondary}"
                            Visibility="Collapsed" />
 
-                <WrapPanel x:Name="toolStripMain"
-                           Tag="toolStripMain"
-                           Grid.Row="0"
-                           Orientation="Horizontal"
-                           Margin="0">
+                <StackPanel x:Name="toolStripMain"
+                            Tag="toolStripMain"
+                            Grid.Row="0"
+                            Orientation="Horizontal"
+                            Margin="0">
                     <Button x:Name="Main_New"
                             Tag="Main_New"
                             Click="Main_New_Click"
@@ -1031,12 +1031,14 @@
                             ToolTip="개역개정">
                         <TextBlock Text="개역개정" />
                     </Button>
-                </WrapPanel>
+                </StackPanel>
 
-                <!-- Classic Operator 고정 바 — FrmMain toolstrip처럼 조밀한 아이콘 바를 유지한다. -->
+                <!-- Classic Operator 고정 바: WinForms toolStripMain은 한 줄이므로 상단에서는 숨기고,
+                     명령 배선은 메뉴와 Preview/Output 패널에서 유지한다. -->
                 <WrapPanel x:Name="ClassicOperatorBar"
                            Grid.Row="1"
-                           Orientation="Horizontal">
+                           Orientation="Horizontal"
+                           Visibility="Collapsed">
                     <Button Command="{Binding GoLiveCommand}"
                             Style="{StaticResource ClassicTopOperatorStripButton}"
                             Margin="0,0,2,0"

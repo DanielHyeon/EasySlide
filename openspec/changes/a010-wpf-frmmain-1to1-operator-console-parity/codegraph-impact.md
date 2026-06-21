@@ -211,3 +211,25 @@ Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 - 검증 대상 runtime path는 `App.OnStartup` -> `SettingsBootstrapMigrationService.MigrateIfNeededAsync()` -> `RegistryLegacySettingsSource`/`SettingsService` -> `MainWindow`/`MainViewModel`이다.
 - 배포 실행 결과 WPF settings snapshot이 `HKCU\Software\EasiSlides` 값과 일치했다.
 - UIAutomation과 캡처로 WPF/WinForms가 같은 Folders song list, current worship list `1.주일예배`, Worship 23 items 계열 화면을 표시함을 확인했다.
+
+### Phase 12 Worship List item-operation toolbar impact (2026-06-21)
+
+사용자 확인으로 좌측 하단 Worship List 중간 조작 아이콘(`Move Item Up` 등)이 WinForms와 다르게 수평 배열되고 버튼 폭이 너무 큰 문제가 확인됐다.
+
+- Legacy baseline: `FrmMain.Designer.cs`의 `panelWorshipList2`는 폭 33px이고, `toolStripWorshipList2.LayoutStyle=VerticalStackWithOverflow`이며 `WL_Up/WL_Down/WL_Delete/WL_Word/WL_Notes`는 22x22 `ToolStripButton`이다.
+- WPF pre-fix behavior: `WorshipListPanel.xaml`에서 `WL_Manage/WL_Add/WL_Open`과 `MoveSelectedItemUpCommand` 이후 항목 조작 버튼들이 같은 `ClassicWorshipListToolStrip2` 수평 `StackPanel`에 섞여 있었다. 또한 `EsButton.Secondary`가 `EsButton.Base`의 `MinWidth=80`을 상속해, `Width=28` 지정에도 실제 버튼 폭이 WinForms보다 크게 잡힐 수 있었다.
+- Fix scope: `WorshipListPanel.xaml`만 production UI로 수정했다. 상단 관리 버튼은 `ClassicWorshipListToolStrip1` 수평 스트립으로 분리하고, 항목 조작 버튼은 `ClassicWorshipListToolStrip2Frame`/`ClassicWorshipListToolStrip2` 오른쪽 33px 세로 레일로 이동했다.
+- User correction: 최초 보정은 배열만 맞추고 WPF-only 편의 버튼(`MoveToTop/Bottom`, `Duplicate`, `SelectLive`, `Clear/Restore`, `Validate`)을 세로 레일에 남겨 WinForms 대비 아이콘 숫자가 많았다. 최종 보정에서는 WinForms `toolStripWorshipList2.Items`와 동일하게 `WL_Up`, `WL_Down`, `WL_Delete`, separator, `WL_Word`, `WL_Notes`만 남겼다.
+- Test scope: `WorshipListPanelTests`에 top strip/side rail 구조, `DockPanel.Dock=Right`, `Width=33`, `Orientation=Vertical`, compact `MinWidth=0/MinHeight=0`, `MoveSelectedItemUpCommand` 22x22 크기 가드를 추가했다.
+- 영향 제한: ViewModel command, WorshipList drag/drop, DB/Interop/송출 경로는 변경하지 않았다. UI 배치와 XAML 구조 가드만 변경했다.
+
+### Phase 13 Main top ToolStrip single-row impact (2026-06-21)
+
+사용자 확인으로 WinForms 상단 가로 아이콘은 두 줄이 아니라 한 줄인데, WPF 상단에 두 번째 가로 아이콘 줄이 보이는 문제가 확인됐다.
+
+- Legacy baseline: `FrmMain.Designer.cs`의 `toolStripMain`은 `Main_New`, `Main_Edit`, `Main_Copy`, `Main_Move`, `Main_Delete`, `Main_Media`, `Main_Refresh`, `Main_Options`, `Main_NoRotate`, `Main_RotateStyle`, `Main_Alerts`, `Main_Chinese`, `Main_Find`, `Main_QuickFind`, `Main_JumpA/B/C`를 한 줄 `ToolStrip`에 배치한다. 기준 크기는 `632x31`이다.
+- WPF pre-fix behavior: `MainWindow.xaml`의 `toolStripMain`은 `WrapPanel`이라 폭이 줄면 줄바꿈될 수 있었고, 바로 아래 `ClassicOperatorBar`가 `Grid.Row=1`의 visible `WrapPanel`로 붙어 WinForms에 없는 두 번째 가로 아이콘 줄을 만들었다.
+- Fix scope: `MainWindow.xaml`에서 `toolStripMain`을 `StackPanel Orientation=Horizontal`로 변경하고, `ClassicOperatorBar`를 `Visibility=Collapsed`로 접었다.
+- Command impact: 라이브/출력 명령 구현과 ViewModel command는 변경하지 않았다. 해당 명령은 기존 메뉴 및 Preview/Output 패널 경로에 남아 있으며, 숨겨진 `ClassicOperatorBar` XAML은 command regression test 대상으로 유지한다.
+- Test scope: `MainMenuBarTests`의 `ToolStripMainXaml` helper를 `StackPanel` 기준으로 갱신하고, `ClassicOperatorBar`가 두 번째 visible toolbar row를 만들지 않는다는 guard를 추가했다.
+- 영향 제한: DB, Office Interop, PPT 렌더링, Worship List 데이터/명령, 송출 창 로직은 변경하지 않았다. 변경은 WPF top toolbar XAML 배치와 XAML 구조 테스트에 한정된다.

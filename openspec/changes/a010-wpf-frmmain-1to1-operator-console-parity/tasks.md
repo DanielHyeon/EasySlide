@@ -356,3 +356,87 @@ Evidence:
 - 2026-06-21 OpenSpec validation 통과. 결과: `Change is valid`.
 - 2026-06-21 Release publish 통과. 결과: `C:\EasiSlides\EasislidesNext`.
 - 2026-06-21 deployed launch smoke 통과. 결과: `MainWindowTitle=EasiSlides`, `MainWindowHandle=9111326`.
+
+### Phase 12: Worship List Item Operation Toolbar Parity
+
+Goal: WPF 좌측 하단 Worship List의 중간 항목 조작 아이콘(`Move Item Up/Down` 등)이 WinForms `toolStripWorshipList2`처럼 세로 레일에 보이고, 버튼이 WinForms 22px ToolStripButton 크기 감각을 유지하도록 맞춘다.
+
+Scope:
+
+- `Easislides.Wpf/Composites/WorshipListPanel.xaml`
+- `Easislides.Wpf.Tests/Composites/WorshipListPanelTests.cs`
+
+Tasks:
+
+- [x] WinForms 기준 확인: `panelWorshipList2` 폭 33px, `toolStripWorshipList2.LayoutStyle=VerticalStackWithOverflow`, `WL_Up/WL_Down/WL_Delete/WL_Word/WL_Notes` 버튼 크기 22x22.
+- [x] WPF의 기존 수평 toolbar에서 `WL_Manage/WL_Add/WL_Open` 상단 스트립과 항목 조작 세로 레일을 분리한다.
+- [x] 항목 조작 레일을 `DockPanel.Dock=Right`, 폭 33px, `Orientation=Vertical`로 배치한다.
+- [x] WinForms `toolStripWorshipList2.Items`와 동일하게 세로 레일 버튼을 `WL_Up`, `WL_Down`, `WL_Delete`, separator, `WL_Word`, `WL_Notes`로 제한한다.
+- [x] WPF-only 편의 명령(`MoveToTop/Bottom`, `Duplicate`, `SelectLive`, `Clear/Restore`, `Validate`)은 세로 레일에서 제거한다.
+- [x] 레일 내부 버튼은 `EsButton.Secondary`의 inherited `MinWidth=80` 영향을 받지 않도록 local compact style에서 `MinWidth=0`, `MinHeight=0`을 고정한다.
+- [x] `MoveSelectedItemUpCommand` 등 레일 버튼 크기를 22x22로 고정한다.
+- [x] XAML 구조 회귀 테스트를 추가한다.
+
+DoD:
+
+- WPF Worship List 조작 버튼이 더 이상 한 줄 수평 배열로 잘리지 않는다.
+- `Move Item Up/Down` 계열 버튼이 Worship List 옆 33px 세로 레일에 배치된다.
+- 세로 레일의 버튼 수/구성은 WinForms와 동일하게 Up, Down, Delete, Word, Notes 5개 버튼과 separator 1개만 가진다.
+- 버튼 실제 레이아웃 폭이 `EsButton.Secondary` 기본 80px 최소폭으로 커지지 않는다.
+- WinForms 기준 버튼 크기 22x22가 테스트로 고정된다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter FullyQualifiedName~WorshipListPanelTests --no-restore -v minimal`
+
+Evidence:
+
+- 2026-06-21 코드 보정: `ClassicWorshipListToolStrip1`은 상단 수평 스트립으로 유지하고, `ClassicWorshipListToolStrip2Frame`/`ClassicWorshipListToolStrip2`를 오른쪽 33px 세로 레일로 분리했다.
+- 2026-06-21 버튼 크기 보정: 세로 레일 local style에서 `MinWidth=0`, `MinHeight=0`, `FontSize=16`을 고정하고 레일 버튼 `Width/Height=22`를 적용했다.
+- 2026-06-21 사용자 지적 반영: 세로 레일에서 WinForms에 없는 `MoveToTop/Bottom`, `Duplicate`, `SelectLive`, `Clear/Restore`, `Validate` 버튼을 제거하고 `toolStripWorshipList2`와 동일한 5개 버튼 구성으로 제한했다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 22, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2422, 건너뜀 0.
+- 2026-06-21 WPF 실행 캡처 확인: `evidence/screenshots/2026-06-21/phase12-worship-toolbar/wpf-worship-list-toolbar-after.png`.
+- 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
+- 2026-06-21 배포본 실행 smoke 통과: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:19:38`.
+- 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase12-worship-toolbar/wpf-deployed-worship-list-toolbar-after-exact-buttons.png`.
+
+### Phase 13: Main Top ToolStrip Single-Row Parity
+
+Goal: WPF 상단 가로 아이콘 바가 WinForms `toolStripMain`처럼 한 줄로만 표시되고, WPF 전용 두 번째 가로 OperatorBar가 첫 화면을 밀지 않도록 맞춘다.
+
+Scope:
+
+- `Easislides.Wpf/MainWindow.xaml`
+- `Easislides.Wpf.Tests/Shell/MainMenuBarTests.cs`
+
+Tasks:
+
+- [x] WinForms 기준 확인: `toolStripMain.Items`는 `Main_New`부터 `Main_JumpC`까지 한 줄 `ToolStrip`에 배치되고 `Size=632x31`이다.
+- [x] WPF `toolStripMain`을 줄바꿈 가능한 `WrapPanel`에서 비줄바꿈 `StackPanel Orientation=Horizontal`로 변경한다.
+- [x] WPF 전용 `ClassicOperatorBar`는 상단 두 번째 줄을 만들지 않도록 `Visibility=Collapsed`로 접는다.
+- [x] 라이브/출력 명령 배선은 메뉴와 Preview/Output 패널 경로에 유지한다.
+- [x] XAML 구조 회귀 테스트를 추가해 `toolStripMain`이 다시 `WrapPanel`로 돌아가거나 OperatorBar가 보이는 두 번째 줄이 되지 않도록 고정한다.
+
+DoD:
+
+- 상단 가로 아이콘은 배포본 첫 화면에서 한 줄로만 보인다.
+- `ClassicOperatorBar`는 명령 배선 회귀 확인용으로 남지만 visible toolbar row를 만들지 않는다.
+- `Main_New`, `Main_Edit`, `Main_QuickFind`, `Main_JumpA/B/C` 등 WinForms `toolStripMain` 항목은 계속 유지된다.
+- focused `MainMenuBarTests`와 full WPF tests가 통과한다.
+- `C:\EasiSlides\EasislidesNext` 배포본 캡처 증거가 기록된다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter FullyQualifiedName~MainMenuBarTests --no-restore -v minimal`
+- `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`
+
+Evidence:
+
+- 2026-06-21 코드 보정: `toolStripMain`을 `StackPanel Orientation=Horizontal`로 바꿔 줄바꿈을 차단했다.
+- 2026-06-21 코드 보정: `ClassicOperatorBar`를 `Visibility=Collapsed`로 접어 WinForms에 없는 두 번째 가로 아이콘 줄을 제거했다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 134, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2423, 건너뜀 0.
+- 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
+- 2026-06-21 배포본 실행 smoke 통과: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:25:30`.
+- 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase13-top-toolbar/wpf-deployed-top-toolbar-single-row.png`.

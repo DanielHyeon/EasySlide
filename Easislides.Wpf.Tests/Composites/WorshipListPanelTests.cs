@@ -73,8 +73,50 @@ public class WorshipListPanelTests
 
         composite.Descendants().Any(e => e.Name.LocalName == "Grid" && Attr(e, "Name") == "ClassicWorshipListSessionStrip")
             .Should().BeTrue("SessionList row should remain a compact FrmMain-style strip");
-        composite.Descendants().Any(e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip2")
-            .Should().BeTrue("WL_Up/WL_Down/WL_Delete commands should stay in the visible legacy tool strip");
+        var topToolStrip = composite.Descendants().Single(
+            e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip1");
+        Attr(topToolStrip, "DockPanel.Dock").Should().Be("Top",
+            "FrmMain toolStripWorshipList1 stays above the Worship List");
+        Attr(topToolStrip, "Orientation").Should().Be("Horizontal",
+            "WL_Manage/WL_Add/WL_Open should remain a compact top strip");
+        var itemToolStripFrame = composite.Descendants().Single(
+            e => e.Name.LocalName == "ScrollViewer" && Attr(e, "Name") == "ClassicWorshipListToolStrip2Frame");
+        Attr(itemToolStripFrame, "DockPanel.Dock").Should().Be("Right",
+            "FrmMain panelWorshipList2 sits beside WorshipListItems, not in the top horizontal toolbar");
+        Attr(itemToolStripFrame, "Width").Should().Be("33",
+            "FrmMain panelWorshipList2/toolStripWorshipList2 is a 33px side rail");
+        Attr(itemToolStripFrame, "HorizontalScrollBarVisibility").Should().Be("Disabled");
+        var itemToolStrip = composite.Descendants().Single(
+            e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip2");
+        Attr(itemToolStrip, "Orientation").Should().Be("Vertical",
+            "WL_Up/WL_Down/WL_Delete commands should stay in the visible legacy vertical tool strip");
+        Attr(itemToolStrip, "Width").Should().Be("33");
+        itemToolStrip.Elements().Where(e => e.Name.LocalName == "Button").Select(e => Attr(e, "Name"))
+            .Should().Equal(new[] { "WL_Up", "WL_Down", "WL_Delete", "WL_Word", "WL_Notes" },
+                "FrmMain toolStripWorshipList2 exposes only Up, Down, Delete, Word, and Notes");
+        itemToolStrip.Descendants().Where(e => e.Name.LocalName == "Button")
+            .Should().HaveCount(5, "WPF-only convenience commands must not expand the FrmMain side rail");
+        itemToolStrip.ToString().Should().NotContain("MoveSelectedItemToTopCommand")
+            .And.NotContain("MoveSelectedItemToBottomCommand")
+            .And.NotContain("DuplicateSelectedItemCommand")
+            .And.NotContain("SelectLiveItemCommand")
+            .And.NotContain("ClearWorshipListCommand")
+            .And.NotContain("RestoreClearedWorshipListCommand")
+            .And.NotContain("ValidateWorshipListCommand");
+        var compactButtonStyle = itemToolStrip.Descendants().Single(
+            e => e.Name.LocalName == "Style" && Attr(e, "Key") == "EsButton.Secondary");
+        compactButtonStyle.Descendants().Where(e => e.Name.LocalName == "Setter")
+            .Should().Contain(s => Attr(s, "Property") == "MinWidth" && Attr(s, "Value") == "0",
+                "the inherited 80px secondary-button minimum width must not expand WinForms-sized toolbar buttons");
+        compactButtonStyle.Descendants().Where(e => e.Name.LocalName == "Setter")
+            .Should().Contain(s => Attr(s, "Property") == "MinHeight" && Attr(s, "Value") == "0",
+                "the side rail buttons should remain compact like ToolStripButton 22x22");
+        var moveUpButton = itemToolStrip.Descendants().Single(
+            e => e.Name.LocalName == "Button" && Attr(e, "Command").Contains("MoveSelectedItemUpCommand"));
+        Attr(moveUpButton, "Width").Should().Be("22",
+            "FrmMain WL_Up is a fixed 22px ToolStripButton");
+        Attr(moveUpButton, "Height").Should().Be("22",
+            "FrmMain WL_Up is a fixed 22px ToolStripButton");
         var wlManage = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Manage");
         Attr(wlManage, "Tag").Should().Be("WL_Manage", "FrmMain WL_Manage role should be visible in the lower-left toolbar");
         Attr(wlManage, "Click").Should().Be("WL_Manage_Click", "FrmMain WL_Manage should open the worship-list manager from the lower-left toolbar");
@@ -438,16 +480,15 @@ public class WorshipListPanelTests
     }
 
     [Theory]
-    // 증분152 — 재정렬/복제 버튼의 접근성 이름이 카탈로그의 "실제" 단축키를 그대로 노출(메뉴·팔레트·Del 버튼과 같은 발견성 패턴).
+    // 증분152 — 재정렬 버튼의 접근성 이름이 카탈로그의 "실제" 단축키를 그대로 노출(메뉴·팔레트·Del 버튼과 같은 발견성 패턴).
     // 누군가 카탈로그 단축키를 바꾸면 ShortcutHint 가 달라져 이 테스트가 깨진다 → 버튼 힌트가 거짓이 되는 드리프트를 막는다.
     [InlineData("MoveSelectedItemUpCommand", MainCommandIds.WorshipMoveItemUp)]
     [InlineData("MoveSelectedItemDownCommand", MainCommandIds.WorshipMoveItemDown)]
-    [InlineData("DuplicateSelectedItemCommand", MainCommandIds.WorshipDuplicateItem)]
-    public void ReorderAndDuplicateButtons_AccessibleName_CarriesRealCatalogShortcut(string commandBinding, string commandId)
+    public void ReorderButtons_AccessibleName_CarriesRealCatalogShortcut(string commandBinding, string commandId)
     {
         var composite = LoadXaml("Easislides.Wpf/Composites/WorshipListPanel.xaml");
 
-        // 카탈로그의 기본 단축키 표시문자열(예: "Ctrl+Shift+Up", "Ctrl+D") — 버튼 힌트의 정답.
+        // 카탈로그의 기본 단축키 표시문자열(예: "Ctrl+Shift+Up") — 버튼 힌트의 정답.
         var hint = new CommandCatalog().All.Single(c => c.Id == commandId).ShortcutHint;
         hint.Should().NotBeEmpty("이 명령에 기본 단축키가 있어야 버튼 힌트가 의미를 가진다");
 
@@ -457,6 +498,6 @@ public class WorshipListPanelTests
         Attr(button, "AutomationProperties.Name").Should().Contain(hint,
             "버튼 접근성 이름이 카탈로그 실제 단축키를 노출해야 한다(드리프트 방지)");
         // 마우스 사용자용 툴팁도 채워져 있어야 한다(발견성).
-        Attr(button, "ToolTip").Should().NotBeEmpty("재정렬/복제 버튼은 호버 툴팁을 가진다");
+        Attr(button, "ToolTip").Should().NotBeEmpty("재정렬 버튼은 호버 툴팁을 가진다");
     }
 }

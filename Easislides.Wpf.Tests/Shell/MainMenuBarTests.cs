@@ -100,7 +100,7 @@ public class MainMenuBarTests
     [InlineData("OpenOutputCommand")]
     [InlineData("CloseOutputCommand")]
     public void OperatorBar_ExposesCoreLiveCommands(string commandName)
-        => OperatorBarXaml.Should().Contain($"{{Binding {commandName}}}", $"{commandName} 이 메뉴가 아니라 첫 화면 고정 바에 있어야 함");
+        => OperatorBarXaml.Should().Contain($"{{Binding {commandName}}}", $"{commandName} 명령 배선은 숨겨진 OperatorBar 회귀 검사용으로 유지돼야 함");
 
     [Fact]
     public void BibleSourceLoad_RetriesWhenInitialLoadFindsNoVersions()
@@ -137,8 +137,10 @@ public class MainMenuBarTests
     {
         var operatorBar = OperatorBarXaml;
 
+        operatorBar.Should().Contain("Visibility=\"Collapsed\"",
+            "WinForms toolStripMain is a single visible horizontal row; the WPF-only operator bar must not create a second top toolbar row");
         operatorBar.Should().Contain("Style=\"{StaticResource ClassicTopOperatorStripButton}\"",
-            "the first-screen operator bar should use the same compact icon-button density as FrmMain strips");
+            "the retained command strip should keep compact icon-button density if it is re-enabled intentionally");
         operatorBar.Should().NotContain("<StackPanel Orientation=\"Horizontal\">",
             "large text buttons make the WPF shell drift away from FrmMain's one-line toolstrip density");
         operatorBar.Should().NotContain("<TextBlock Text=\"Go Live\"",
@@ -181,6 +183,10 @@ public class MainMenuBarTests
             "the FrmMain jump buttons should stay compact even though they show text");
         toolStrip.Should().Contain("Style=\"{StaticResource ClassicTopToolStripComboBox}\"",
             "toolbar combo boxes should use a small font/padding so their text is not clipped at compact height");
+        toolStrip.Should().Contain("Orientation=\"Horizontal\"",
+            "FrmMain toolStripMain is one horizontal row");
+        toolStrip.Should().NotContain("<WrapPanel",
+            "FrmMain toolStripMain never wraps into a second horizontal icon row");
         toolStrip.Should().NotContain("Style=\"{StaticResource EsButton.Secondary}\"",
             "default WPF buttons make the top toolbar visibly taller than FrmMain");
         toolStrip.Should().NotContain("MinHeight=\"28\"",
@@ -225,6 +231,20 @@ public class MainMenuBarTests
         SectionBetween(xaml, "x:Name=\"SearchSourceTab\"", "<TabItem.Header>")
             .Should().Contain("Visibility=\"Collapsed\"",
                 "the WPF-only inline Search tab should not push FrmMain's Default source tab out of the normal tab strip");
+    }
+
+    [Fact]
+    public void MainWindow_KeepsFrmMainTopToolbarAsOneVisibleRow()
+    {
+        var topToolbarArea = SectionBetween(Xaml, "x:Name=\"toolStripContainerMain\"", "x:Name=\"ClassicFrmMainConsole\"");
+        var toolStrip = ToolStripMainXaml;
+        var operatorBar = OperatorBarXaml;
+
+        toolStrip.TrimStart().Should().StartWith("<StackPanel", "toolStripMain should use a non-wrapping one-row panel like FrmMain");
+        topToolbarArea.Should().Contain("x:Name=\"toolStripMain\"");
+        topToolbarArea.Should().Contain("x:Name=\"ClassicOperatorBar\"");
+        operatorBar.Should().Contain("Visibility=\"Collapsed\"",
+            "ClassicOperatorBar is WPF-only and must not appear as a second horizontal toolbar row");
     }
 
     [Fact]
@@ -2273,11 +2293,11 @@ public class MainMenuBarTests
             var marker = xaml.IndexOf("x:Name=\"toolStripMain\"", StringComparison.Ordinal);
             marker.Should().BeGreaterThanOrEqualTo(0, "FrmMain top toolStripMain should have a stable XAML name for drift tests");
 
-            var start = xaml.LastIndexOf("<WrapPanel", marker, StringComparison.Ordinal);
-            start.Should().BeGreaterThanOrEqualTo(0, "toolStripMain should be a WrapPanel");
+            var start = xaml.LastIndexOf("<StackPanel", marker, StringComparison.Ordinal);
+            start.Should().BeGreaterThanOrEqualTo(0, "toolStripMain should be a StackPanel so it cannot wrap into a second row");
 
-            var end = xaml.IndexOf("</WrapPanel>", marker, StringComparison.Ordinal);
-            end.Should().BeGreaterThan(marker, "the top toolStripMain WrapPanel range should be discoverable");
+            var end = xaml.IndexOf("</StackPanel>", marker, StringComparison.Ordinal);
+            end.Should().BeGreaterThan(marker, "the top toolStripMain StackPanel range should be discoverable");
 
             return xaml[start..end];
         }

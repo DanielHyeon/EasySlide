@@ -88,10 +88,29 @@
                 FrmMain 의 "Move Item Up/Down"·항목 제거에 대응. 아이콘 전용 버튼이라
                 접근성(AutomationProperties.Name)·툴팁을 함께 둔다.
             -->
-            <StackPanel x:Name="ClassicWorshipListToolStrip2"
+            <StackPanel x:Name="ClassicWorshipListToolStrip1"
                         DockPanel.Dock="Top"
                         Orientation="Horizontal"
                         Margin="0,0,0,4">
+                <StackPanel.Resources>
+                    <Style x:Key="EsButton.Secondary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+                        <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+                        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="MinWidth" Value="0" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Resources>
                 <Button x:Name="WL_Manage"
                         Tag="WL_Manage"
                         Click="WL_Manage_Click"
@@ -127,63 +146,83 @@
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="FolderOpen24" />
                 </Button>
-                <Button Command="{Binding MoveSelectedItemUpCommand}"
+            </StackPanel>
+
+            <ScrollViewer x:Name="ClassicWorshipListToolStrip2Frame"
+                          DockPanel.Dock="Right"
+                          Width="33"
+                          Margin="4,0,0,0"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="ClassicWorshipListToolStrip2"
+                            Orientation="Vertical"
+                            Width="33">
+                    <StackPanel.Resources>
+                        <Style x:Key="EsButton.Secondary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+                            <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="MinWidth" Value="0" />
+                            <Setter Property="MinHeight" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="FontSize" Value="16" />
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Resources>
+                <Button x:Name="WL_Up"
+                        Tag="WL_Up"
+                        Command="{Binding MoveSelectedItemUpCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="22"
+                        Height="22"
                         Padding="0"
                         ToolTip="선택 항목을 위로 이동 (Ctrl+Shift+↑)"
                         AutomationProperties.Name="항목 위로 이동 (Ctrl+Shift+Up)"
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowUp24" />
                 </Button>
-                <Button Command="{Binding MoveSelectedItemDownCommand}"
+                <Button x:Name="WL_Down"
+                        Tag="WL_Down"
+                        Command="{Binding MoveSelectedItemDownCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="22"
+                        Height="22"
                         Padding="0"
                         ToolTip="선택 항목을 아래로 이동 (Ctrl+Shift+↓)"
                         AutomationProperties.Name="항목 아래로 이동 (Ctrl+Shift+Down)"
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="ArrowDown24" />
                 </Button>
-                <!-- 맨 위로/맨 아래로 한 번에 이동(여러 번 드래그·클릭 없이, 모던 재정렬 UX). -->
-                <Button Command="{Binding MoveSelectedItemToTopCommand}"
+                <Button x:Name="WL_Delete"
+                        Tag="WL_Delete"
+                        Command="{Binding RemoveSelectedItemCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        ToolTip="선택 항목을 맨 위로 이동"
-                        AutomationProperties.Name="항목 맨 위로 이동"
-                        Margin="0,0,3,0">
-                    <ui:SymbolIcon Symbol="ArrowUpload24" />
-                </Button>
-                <Button Command="{Binding MoveSelectedItemToBottomCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        ToolTip="선택 항목을 맨 아래로 이동"
-                        AutomationProperties.Name="항목 맨 아래로 이동"
-                        Margin="0,0,3,0">
-                    <ui:SymbolIcon Symbol="ArrowDownload24" />
-                </Button>
-                <Button Command="{Binding RemoveSelectedItemCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="22"
+                        Height="22"
                         Padding="0"
                         ToolTip="선택 항목을 예배 순서에서 제거 (Del)"
                         AutomationProperties.Name="항목 제거 (Delete 키)"
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
+                <Separator Width="30"
+                           Height="6"
+                           Margin="0,0,3,0" />
                 <Button x:Name="WL_Word"
                         Tag="WL_Word"
                         Click="WL_Word_Click"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="22"
+                        Height="22"
                         Padding="0"
                         ToolTip="Generate RTF Document"
                         AutomationProperties.Name="예배 순서 RTF 문서 생성"
@@ -194,68 +233,16 @@
                         Tag="WL_Notes"
                         Click="WL_Notes_Click"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="22"
+                        Height="22"
                         Padding="0"
                         ToolTip="세션 메모 편집"
                         AutomationProperties.Name="세션 메모 편집"
                         Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Edit24" />
                 </Button>
-                <!-- 선택 항목 복제(같은 곡을 예배 중 두 번 부를 때 등) — 같은 내용·새 Id 로 바로 뒤에 추가. -->
-                <Button Command="{Binding DuplicateSelectedItemCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        Margin="0,0,3,0"
-                        ToolTip="선택 항목을 같은 내용으로 복제해 바로 뒤에 추가 (Ctrl+D)"
-                        AutomationProperties.Name="선택 항목 복제 (Ctrl+D)">
-                    <ui:SymbolIcon Symbol="Copy24" />
-                </Button>
-                <!-- 현재 송출 항목 선택 — 미리보기로 앞서 본 뒤 LIVE 배지 항목으로 선택을 되돌린다. 송출 중일 때만 활성. -->
-                <Button Command="{Binding SelectLiveItemCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        Margin="0,0,3,0"
-                        ToolTip="현재 송출(LIVE) 중인 항목으로 선택을 되돌립니다"
-                        AutomationProperties.Name="현재 송출 항목 선택">
-                    <ui:SymbolIcon Symbol="Target24" />
-                </Button>
-                <!-- 예배 순서 전체 비우기(레거시 Empty) + 되돌리기 — 실수로 다 지워도 한 번은 복구 가능. -->
-                <Button Command="{Binding ClearWorshipListCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        ToolTip="예배 순서 전체를 비웁니다(되돌리기로 복구 가능)"
-                        AutomationProperties.Name="예배 순서 전체 비우기"
-                        Margin="0,0,3,0">
-                    <ui:SymbolIcon Symbol="Dismiss24" />
-                </Button>
-                <Button Command="{Binding RestoreClearedWorshipListCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        ToolTip="방금 비운 예배 순서를 되돌립니다"
-                        AutomationProperties.Name="예배 순서 되돌리기"
-                        Margin="0,0,3,0">
-                    <ui:SymbolIcon Symbol="ArrowUndo24" />
-                </Button>
-                <Button Command="{Binding ValidateWorshipListCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일을 점검"
-                        AutomationProperties.Name="예배 순서 검증"
-                        Margin="0">
-                    <ui:SymbolIcon Symbol="CheckmarkCircle24" />
-                </Button>
-            </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
 
             <!--
                 예배 순서 검증 경고 — 문제(깨진 PPT·미디어 파일)가 있을 때만 보인다(HasWorshipListProblems).

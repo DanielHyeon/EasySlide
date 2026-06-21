@@ -62,6 +62,35 @@ Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 
 | OpenSpec strict validation | PASS | `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`: Change is valid |
 | C:\EasiSlides deployed publish and launch | PASS | `dotnet publish ... -o C:\EasiSlides\EasislidesNext`; launch smoke `MainWindowTitle=EasiSlides` |
 
+## Phase 12 Worship List Toolbar Gate
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| WinForms toolbar baseline | PASS | `panelWorshipList2`/`toolStripWorshipList2` 기준: 폭 33px, `VerticalStackWithOverflow`, `WL_Up` 22x22 |
+| WPF toolbar layout parity | PASS | `ClassicWorshipListToolStrip1` 상단 수평 스트립과 `ClassicWorshipListToolStrip2` 오른쪽 33px 세로 레일로 분리 |
+| WPF toolbar composition parity | PASS | 세로 레일은 WinForms `toolStripWorshipList2.Items`와 동일하게 `WL_Up`, `WL_Down`, `WL_Delete`, separator, `WL_Word`, `WL_Notes`만 포함 |
+| Button size parity | PASS | 레일 버튼 `MinWidth=0`, `MinHeight=0`, `Width=22`, `Height=22` 고정 |
+| Focused tests | PASS | `WorshipListPanelTests`: 실패 0, 통과 22, 건너뜀 0 |
+| Full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`: 실패 0, 통과 2422, 건너뜀 0 |
+| Screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase12-worship-toolbar/wpf-worship-list-toolbar-after.png` |
+| C:\EasiSlides deployment | PASS | `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal` |
+| Deployed launch smoke | PASS | `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:19:38` |
+| Deployed screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase12-worship-toolbar/wpf-deployed-worship-list-toolbar-after-exact-buttons.png` |
+
+## Phase 13 Main Top ToolStrip Single-Row Gate
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| WinForms toolbar baseline | PASS | `FrmMain.Designer.cs` 기준 `toolStripMain.Items`는 `Main_New`부터 `Main_JumpC`까지 한 줄 `ToolStrip`, `Size=632x31` |
+| WPF top toolbar non-wrap parity | PASS | `toolStripMain`을 `StackPanel Orientation=Horizontal`로 고정해 `WrapPanel` 줄바꿈 가능성을 제거 |
+| WPF second-row removal | PASS | WPF 전용 `ClassicOperatorBar`는 `Visibility=Collapsed`; 상단 visible toolbar row를 만들지 않음 |
+| Command retention | PASS | 라이브/출력 명령은 메뉴 및 Preview/Output 패널 경로에 유지되고, 숨겨진 OperatorBar XAML은 command regression guard로 남김 |
+| Focused tests | PASS | `MainMenuBarTests`: 실패 0, 통과 134, 건너뜀 0 |
+| Full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
+| C:\EasiSlides deployment | PASS | `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal` |
+| Deployed launch smoke | PASS | `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:25:30` |
+| Deployed screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase13-top-toolbar/wpf-deployed-top-toolbar-single-row.png` |
+
 ## C:\EasiSlides Deployment Verification
 
 WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고, 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행 검증했다.
