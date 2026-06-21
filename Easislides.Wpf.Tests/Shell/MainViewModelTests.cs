@@ -5774,6 +5774,83 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLiveCommand_WhenOutputWasWindowed_PromotesOutputToFullScreenLikeFrmMain()
+    {
+        var output = new OutputWindowService();
+        var sut = CreateSut(seedSampleQueue: false, output: output);
+        var song = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song) { Lyrics = "[1]\nLive text" };
+        sut.LoadQueue([song]);
+        sut.OpenOutputCommand.Execute(null);
+        output.Current.Placement.IsWindowed.Should().BeTrue("Open Output is an operator window before live starts");
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        output.Current.IsOpen.Should().BeTrue();
+        output.Current.Placement.IsWindowed.Should().BeFalse("Go Live should switch text output to the real full-screen audience monitor");
+        output.Current.Placement.Width.Should().Be(output.Current.Display!.Width);
+        output.Current.Placement.Height.Should().Be(output.Current.Display.Height);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+    }
+
+    [Fact]
+    public async Task GoLiveCommand_PowerPoint_StartsSlideShowOnSelectedOutputMonitor()
+    {
+        var primary = new OutputDisplay("primary", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var projector = new OutputDisplay("projector", "Projector", 1920, 0, 1920, 1080, 1);
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            display: new FixedDisplayService(primary, projector),
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var deck = new LiveQueueItem("ppt:live", "Live deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "live.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.SelectedOutputDisplay = projector;
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        slideShow.StartRequests.Should().ContainSingle().Which.Should().Be(
+            (new PowerPointSlideShowRequest("live.pptx", 1, PowerPointSlideShowTarget.Output), "Projector"));
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.OutputPowerPoint.SlideNumber.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task NextOutputSlideCommand_PowerPointLive_MovesRunningSlideShow()
+    {
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        var powerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: powerPoint,
+            outputPowerPoint: outputPowerPoint,
+            powerPointSlideShow: slideShow);
+        var deck = new LiveQueueItem("ppt:live", "Live deck", LiveItemKinds.PowerPoint)
+        {
+            ContentPath = "live.pptx",
+        };
+        sut.LoadQueue([deck]);
+        sut.OpenOutputCommand.Execute(null);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+
+        slideShow.StartRequests.Should().Equal(
+            (new PowerPointSlideShowRequest("live.pptx", 1, PowerPointSlideShowTarget.Output), OutputDisplay.PrimaryFallback.Name),
+            (new PowerPointSlideShowRequest("live.pptx", 2, PowerPointSlideShowTarget.Output), OutputDisplay.PrimaryFallback.Name));
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3");
+    }
+
+    [Fact]
     public async Task ToggleOutputLiveCommand_WhenNoPreparedOutput_StartsFirstWorshipItemLikeFrmMain()
     {
         var sut = CreateSut(seedSampleQueue: false);
@@ -12043,7 +12120,18 @@ public class MainViewModelTests
     // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.
     private sealed class RecordingPowerPointSlideShowControl : IPowerPointSlideShowControl
     {
+        public List<(PowerPointSlideShowRequest Request, string OutputMonitorName)> StartRequests { get; } = new();
+
         public List<PowerPointSlideShowRequest> Requests { get; } = new();
+
+        public Task StartAsync(
+            PowerPointSlideShowRequest request,
+            string outputMonitorName,
+            CancellationToken cancellationToken = default)
+        {
+            StartRequests.Add((request, outputMonitorName));
+            return Task.CompletedTask;
+        }
 
         public Task TriggerNextAsync(
             PowerPointSlideShowRequest request,

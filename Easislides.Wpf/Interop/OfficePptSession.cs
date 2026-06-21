@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using NetOffice.OfficeApi.Enums;
 using NetOffice.PowerPointApi;
 
@@ -135,7 +136,50 @@ public sealed class OfficePptSession : IDisposable
         });
     }
 
-    /// <summary>현재 세션 종료 — STA 스레드에서 Quit + ReleaseComObject.</summary>
+    /// <summary>Start a PowerPoint slide show on the configured output monitor.</summary>
+    public Task<bool> StartSlideShowAsync(
+        string filePath,
+        int slideNumber,
+        string outputMonitorName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentOutOfRangeException.ThrowIfLessThan(slideNumber, 1);
+
+        var fullPath = Path.GetFullPath(filePath);
+        return RunOnStaAsync(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _ppt ??= new Application();
+            _ = _ppt.Presentations.Count;
+
+            SaveSlideShowMonitor(_ppt.Version, outputMonitorName);
+            var presentation = FindOrOpenPresentation(fullPath);
+            if (slideNumber > presentation.Slides.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
+            }
+
+            presentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
+            var slideShowWindow = TryGetSlideShowWindow(presentation)
+                ?? presentation.SlideShowSettings.Run();
+            if (slideShowWindow is null)
+            {
+                return false;
+            }
+
+            var view = slideShowWindow.View;
+            if (view.Slide.SlideIndex != slideNumber)
+            {
+                view.GotoSlide(slideNumber, MsoTriState.msoFalse);
+            }
+
+            slideShowWindow.Activate();
+            return true;
+        });
+    }
+
     public Task<bool> TriggerSlideShowNextAsync(
         string filePath,
         int slideNumber,
@@ -152,38 +196,14 @@ public sealed class OfficePptSession : IDisposable
             _ppt ??= new Application();
             _ = _ppt.Presentations.Count;
 
-            _Presentation? presentation = null;
-            for (var i = 1; i <= _ppt.Presentations.Count; i++)
-            {
-                var candidate = _ppt.Presentations[i];
-                if (string.Equals(Path.GetFullPath(candidate.FullName), fullPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    presentation = candidate;
-                    break;
-                }
-            }
-
-            presentation ??= _ppt.Presentations.Open(
-                fullPath,
-                MsoTriState.msoFalse,
-                MsoTriState.msoFalse,
-                MsoTriState.msoFalse);
-
+            var presentation = FindOrOpenPresentation(fullPath);
             if (slideNumber > presentation.Slides.Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
             }
 
-            SlideShowWindow? slideShowWindow = null;
-            try
-            {
-                slideShowWindow = presentation.SlideShowWindow;
-            }
-            catch (COMException)
-            {
-            }
-
-            slideShowWindow ??= presentation.SlideShowSettings.Run();
+            var slideShowWindow = TryGetSlideShowWindow(presentation)
+                ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
             {
                 return false;
@@ -210,6 +230,61 @@ public sealed class OfficePptSession : IDisposable
 
             return true;
         });
+    }
+
+    private _Presentation FindOrOpenPresentation(string fullPath)
+    {
+        if (_ppt is null)
+        {
+            throw new InvalidOperationException("PowerPoint session is not open.");
+        }
+
+        for (var i = 1; i <= _ppt.Presentations.Count; i++)
+        {
+            var candidate = _ppt.Presentations[i];
+            if (string.Equals(Path.GetFullPath(candidate.FullName), fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+        }
+
+        return _ppt.Presentations.Open(
+            fullPath,
+            MsoTriState.msoFalse,
+            MsoTriState.msoFalse,
+            MsoTriState.msoFalse);
+    }
+
+    private static SlideShowWindow? TryGetSlideShowWindow(_Presentation presentation)
+    {
+        try
+        {
+            return presentation.SlideShowWindow;
+        }
+        catch (COMException)
+        {
+            return null;
+        }
+    }
+
+    private static void SaveSlideShowMonitor(string version, string outputMonitorName)
+    {
+        if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(outputMonitorName))
+        {
+            return;
+        }
+
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Office\{version}\PowerPoint\Options");
+            key?.SetValue("DisplayMonitor", outputMonitorName, RegistryValueKind.String);
+            key?.SetValue("UseAutoMonSelection", 0, RegistryValueKind.DWord);
+            key?.SetValue("UseMonMgr", 0, RegistryValueKind.DWord);
+        }
+        catch
+        {
+            // WinForms treats monitor registry writes as best-effort; keep text live output available.
+        }
     }
 
     public Task CloseAsync() => RunOnStaAsync(() =>

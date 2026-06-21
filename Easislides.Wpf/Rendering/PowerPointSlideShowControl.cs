@@ -18,6 +18,11 @@ public sealed record PowerPointSlideShowRequest(
 
 public interface IPowerPointSlideShowControl
 {
+    Task StartAsync(
+        PowerPointSlideShowRequest request,
+        string outputMonitorName,
+        CancellationToken cancellationToken = default);
+
     Task TriggerNextAsync(
         PowerPointSlideShowRequest request,
         CancellationToken cancellationToken = default);
@@ -30,6 +35,12 @@ public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
     private NullPowerPointSlideShowControl()
     {
     }
+
+    public Task StartAsync(
+        PowerPointSlideShowRequest request,
+        string outputMonitorName,
+        CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 
     public Task TriggerNextAsync(
         PowerPointSlideShowRequest request,
@@ -48,6 +59,19 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
 
     internal OfficePowerPointSlideShowControl(Func<OfficePptSession> sessionFactory)
         => _session = new Lazy<OfficePptSession>(sessionFactory);
+
+    public Task StartAsync(
+        PowerPointSlideShowRequest request,
+        string outputMonitorName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _session.Value.StartSlideShowAsync(
+            request.FilePath,
+            request.SlideNumber,
+            outputMonitorName,
+            cancellationToken);
+    }
 
     public Task TriggerNextAsync(
         PowerPointSlideShowRequest request,
