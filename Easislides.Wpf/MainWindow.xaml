@@ -22,7 +22,26 @@
         <converters:LegacyImageThumbnailSizeConverter x:Key="LegacyImageThumbnailSize" />
         <converters:LegacyLyricsRichTextBoxWidthConverter x:Key="LegacyLyricsRichTextBoxWidth" />
         <converters:LegacySampleScreenSizeConverter x:Key="LegacySampleScreenSize" />
+        <converters:ColorValueToBrushConverter x:Key="ColorValueToBrush" />
         <converters:SongRowDisplayConverter x:Key="SongRowDisplay" />
+        <Style x:Key="ClassicColorSwatch" TargetType="Border">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+        <DataTemplate x:Key="ColorPresetItemTemplate">
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Border Style="{StaticResource ClassicColorSwatch}"
+                        Background="{Binding Value, Converter={StaticResource ColorValueToBrush}}" />
+                <TextBlock Text="{Binding Key}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </DataTemplate>
         <Style x:Key="ClassicOutputToggleButton" TargetType="ToggleButton">
             <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
             <Setter Property="FontSize" Value="{DynamicResource Type.Button.FontSize}" />
@@ -2384,27 +2403,48 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="White"
                                                 ToolTip="FrmMain Def_R1Colour white"
-                                                AutomationProperties.Name="Def Region1 text colour white" />
+                                                AutomationProperties.Name="Def Region1 text colour white">
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Border Style="{StaticResource ClassicColorSwatch}"
+                                                        Background="White" />
+                                                <TextBlock Text="White"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                         <Button Command="{Binding ApplyTextColorHexCommand}"
                                                 CommandParameter="#FFFF00"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Yellow"
                                                 ToolTip="FrmMain Def_R1Colour yellow"
-                                                AutomationProperties.Name="Def Region1 text colour yellow" />
+                                                AutomationProperties.Name="Def Region1 text colour yellow">
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Border Style="{StaticResource ClassicColorSwatch}"
+                                                        Background="Yellow" />
+                                                <TextBlock Text="Yellow"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                         <Button Command="{Binding ApplyTextColorHexCommand}"
                                                 CommandParameter="#000000"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Black"
                                                 ToolTip="FrmMain Def_R1Colour black"
-                                                AutomationProperties.Name="Def Region1 text colour black" />
+                                                AutomationProperties.Name="Def Region1 text colour black">
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Border Style="{StaticResource ClassicColorSwatch}"
+                                                        Background="Black" />
+                                                <TextBlock Text="Black"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                         <Button x:Name="Def_R1ColourCustom"
                                                 Tag="Def_R1ColourCustom"
                                                 Click="PickDefaultTextColor_Click"
@@ -2412,9 +2452,16 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="..."
                                                 ToolTip="FrmMain Def_R1Colour custom"
-                                                AutomationProperties.Name="Def Region1 custom text colour" />
+                                                AutomationProperties.Name="Def Region1 custom text colour">
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Border Style="{StaticResource ClassicColorSwatch}"
+                                                        Background="{Binding ActiveTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                                <TextBlock Text="..."
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                     </WrapPanel>
 
                                     <TextBlock Text="Region 2 Align / Colour"
@@ -2438,7 +2485,7 @@
                                                   ItemsSource="{Binding LyricsTextColor2Presets}"
                                                   SelectedValue="{Binding LyricsTextColor2Input, Mode=TwoWay}"
                                                   SelectedValuePath="Value"
-                                                  DisplayMemberPath="Key"
+                                                  ItemTemplate="{StaticResource ColorPresetItemTemplate}"
                                                   MinWidth="118"
                                                   Height="30"
                                                   Margin="0,0,6,6"
@@ -2608,31 +2655,25 @@
                                                Margin="0,2,0,4" />
                                     <WrapPanel x:Name="Def_BackColour"
                                                Tag="Def_BackColour">
-                                        <TextBox x:Name="Def_BackColourHex"
-                                                 Text="{Binding ActiveBackgroundColorHex, Mode=OneWay}"
-                                                 Width="76"
-                                                 MinHeight="30"
-                                                 VerticalContentAlignment="Center"
-                                                 Margin="0,0,4,6"
-                                                 ToolTip="FrmMain Def_BackColour"
-                                                 AutomationProperties.Name="Def background colour hex">
-                                            <TextBox.InputBindings>
-                                                <KeyBinding Key="Return"
-                                                            Command="{Binding ApplyBackgroundColorHexCommand}"
-                                                            CommandParameter="{Binding Text, ElementName=Def_BackColourHex}" />
-                                            </TextBox.InputBindings>
-                                        </TextBox>
                                         <Button x:Name="Def_BackColourApply"
                                                 Tag="Def_BackColour"
                                                 Command="{Binding ApplyBackgroundColorHexCommand}"
-                                                CommandParameter="{Binding Text, ElementName=Def_BackColourHex}"
+                                                CommandParameter="{Binding ActiveBackgroundColorHex}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,4,6"
-                                                Content="Back"
-                                                ToolTip="Apply FrmMain Def_BackColour"
-                                                AutomationProperties.Name="Def background colour apply" />
+                                                ToolTip="{Binding ActiveBackgroundColorHex}"
+                                                AutomationProperties.Name="Def background colour apply">
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Border x:Name="Def_BackColourSwatch"
+                                                        Style="{StaticResource ClassicColorSwatch}"
+                                                        Background="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                                <TextBlock Text="Back"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                         <Button x:Name="Def_BackColourCustom"
                                                 Tag="Def_BackColourCustom"
                                                 Click="PickDefaultBackgroundColor_Click"
@@ -2790,30 +2831,24 @@
                                                       AutomationProperties.Name="Def PanelTransparent transparent background" />
                                         <WrapPanel Tag="Def_PanelBackColour"
                                                    Margin="0,0,6,6">
-                                            <TextBox x:Name="Def_PanelBackColourHex"
-                                                     Text="{Binding ActivePanelColorHex, Mode=OneWay}"
-                                                     Width="76"
-                                                     MinHeight="30"
-                                                     VerticalContentAlignment="Center"
-                                                     Margin="0,0,4,0"
-                                                     ToolTip="Display Panel Back Colour"
-                                                     AutomationProperties.Name="Def PanelBackColour hex">
-                                                <TextBox.InputBindings>
-                                                    <KeyBinding Key="Return"
-                                                                Command="{Binding ApplyPanelColorHexCommand}"
-                                                                CommandParameter="{Binding Text, ElementName=Def_PanelBackColourHex}" />
-                                                </TextBox.InputBindings>
-                                            </TextBox>
                                             <Button x:Name="Def_PanelBackColour"
                                                     Tag="Def_PanelBackColour"
                                                     Command="{Binding ApplyPanelColorHexCommand}"
-                                                    CommandParameter="{Binding Text, ElementName=Def_PanelBackColourHex}"
+                                                    CommandParameter="{Binding ActivePanelColorHex}"
                                                     Style="{StaticResource EsButton.Secondary}"
                                                     MinHeight="30"
                                                     Padding="9,0"
-                                                    Content="Back"
-                                                    ToolTip="Display Panel Back Colour"
-                                                    AutomationProperties.Name="Def PanelBackColour apply" />
+                                                    ToolTip="{Binding ActivePanelColorHex}"
+                                                    AutomationProperties.Name="Def PanelBackColour apply">
+                                                <StackPanel Orientation="Horizontal"
+                                                            VerticalAlignment="Center">
+                                                    <Border x:Name="Def_PanelBackColourSwatch"
+                                                            Style="{StaticResource ClassicColorSwatch}"
+                                                            Background="{Binding ActivePanelColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                                    <TextBlock Text="Back"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
                                             <Button x:Name="Def_PanelBackColourCustom"
                                                     Tag="Def_PanelBackColourCustom"
                                                     Click="PickPanelBackColor_Click"
@@ -2837,30 +2872,24 @@
                                                       AutomationProperties.Name="Def PanelAsR1 text colour follows Region1" />
                                         <WrapPanel Tag="Def_PanelTextColour"
                                                    Margin="0,0,6,6">
-                                            <TextBox x:Name="Def_PanelTextColourHex"
-                                                     Text="{Binding ActivePanelTextColorHex, Mode=OneWay}"
-                                                     Width="76"
-                                                     MinHeight="30"
-                                                     VerticalContentAlignment="Center"
-                                                     Margin="0,0,4,0"
-                                                     ToolTip="Display Panel Text Colour"
-                                                     AutomationProperties.Name="Def PanelTextColour hex">
-                                                <TextBox.InputBindings>
-                                                    <KeyBinding Key="Return"
-                                                                Command="{Binding ApplyPanelTextColorHexCommand}"
-                                                                CommandParameter="{Binding Text, ElementName=Def_PanelTextColourHex}" />
-                                                </TextBox.InputBindings>
-                                            </TextBox>
                                             <Button x:Name="Def_PanelTextColour"
                                                     Tag="Def_PanelTextColour"
                                                     Command="{Binding ApplyPanelTextColorHexCommand}"
-                                                    CommandParameter="{Binding Text, ElementName=Def_PanelTextColourHex}"
+                                                    CommandParameter="{Binding ActivePanelTextColorHex}"
                                                     Style="{StaticResource EsButton.Secondary}"
                                                     MinHeight="30"
                                                     Padding="9,0"
-                                                    Content="Text"
-                                                    ToolTip="Display Panel Text Colour"
-                                                    AutomationProperties.Name="Def PanelTextColour apply" />
+                                                    ToolTip="{Binding ActivePanelTextColorHex}"
+                                                    AutomationProperties.Name="Def PanelTextColour apply">
+                                                <StackPanel Orientation="Horizontal"
+                                                            VerticalAlignment="Center">
+                                                    <Border x:Name="Def_PanelTextColourSwatch"
+                                                            Style="{StaticResource ClassicColorSwatch}"
+                                                            Background="{Binding ActivePanelTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                                    <TextBlock Text="Text"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
                                             <Button x:Name="Def_PanelTextColourCustom"
                                                     Tag="Def_PanelTextColourCustom"
                                                     Click="PickPanelTextColor_Click"
@@ -5451,24 +5480,21 @@
                                    Margin="0,0,6,0"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
-                        <TextBox x:Name="TextColorHexBox"
-                                 Grid.Column="1"
-                                 Text="{Binding ActiveTextColorHex, Mode=OneWay}"
-                                 MinHeight="30"
-                                 AutomationProperties.Name="글자색 hex">
-                            <TextBox.InputBindings>
-                                <KeyBinding Key="Return"
-                                            Command="{Binding ApplyTextColorHexCommand}"
-                                            CommandParameter="{Binding Text, ElementName=TextColorHexBox}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
+                        <Border x:Name="TextColorSwatch"
+                                Grid.Column="1"
+                                Style="{StaticResource ClassicColorSwatch}"
+                                Width="Auto"
+                                MinWidth="76"
+                                Height="30"
+                                Background="{Binding ActiveTextColorHex, Converter={StaticResource ColorValueToBrush}}"
+                                ToolTip="{Binding ActiveTextColorHex}"
+                                AutomationProperties.Name="글자색 swatch" />
                         <Button Grid.Column="2"
-                                Command="{Binding ApplyTextColorHexCommand}"
-                                CommandParameter="{Binding Text, ElementName=TextColorHexBox}"
+                                Click="PickDefaultTextColor_Click"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Margin="6,0,0,0"
-                                Content="적용"
-                                AutomationProperties.Name="글자색 적용" />
+                                Content="..."
+                                AutomationProperties.Name="글자색 선택" />
                     </Grid>
                     <Grid Margin="0,6,0,0">
                         <Grid.ColumnDefinitions>
@@ -5481,24 +5507,21 @@
                                    Margin="0,0,6,0"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Secondary}" />
-                        <TextBox x:Name="BackgroundColorHexBox"
-                                 Grid.Column="1"
-                                 Text="{Binding ActiveBackgroundColorHex, Mode=OneWay}"
-                                 MinHeight="30"
-                                 AutomationProperties.Name="배경색 hex">
-                            <TextBox.InputBindings>
-                                <KeyBinding Key="Return"
-                                            Command="{Binding ApplyBackgroundColorHexCommand}"
-                                            CommandParameter="{Binding Text, ElementName=BackgroundColorHexBox}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
+                        <Border x:Name="BackgroundColorSwatch"
+                                Grid.Column="1"
+                                Style="{StaticResource ClassicColorSwatch}"
+                                Width="Auto"
+                                MinWidth="76"
+                                Height="30"
+                                Background="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}"
+                                ToolTip="{Binding ActiveBackgroundColorHex}"
+                                AutomationProperties.Name="배경색 swatch" />
                         <Button Grid.Column="2"
-                                Command="{Binding ApplyBackgroundColorHexCommand}"
-                                CommandParameter="{Binding Text, ElementName=BackgroundColorHexBox}"
+                                Click="PickDefaultBackgroundColor_Click"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Margin="6,0,0,0"
-                                Content="적용"
-                                AutomationProperties.Name="배경색 적용" />
+                                Content="..."
+                                AutomationProperties.Name="배경색 선택" />
                     </Grid>
 
                     <!-- 인-셸 가사 정렬(§7.3-A) — 모달 없이 좌/중/우 즉시 적용, 라이브 출력에 반영. -->
@@ -5658,7 +5681,7 @@
                     <ComboBox ItemsSource="{Binding LyricsTextColor2Presets}"
                               SelectedValue="{Binding LyricsTextColor2Input, Mode=TwoWay}"
                               SelectedValuePath="Value"
-                              DisplayMemberPath="Key"
+                              ItemTemplate="{StaticResource ColorPresetItemTemplate}"
                               Margin="0,4,0,0"
                               ToolTip="이중 언어 곡의 보조 영역(번역) 글자색. '본문과 동일'이면 본문(Region1) 색을 따릅니다. 곡별 색이 지정된 곡은 그 색이 우선합니다."
                               AutomationProperties.Name="보조영역 전역 글자색" />

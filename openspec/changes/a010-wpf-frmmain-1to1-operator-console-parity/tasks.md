@@ -561,3 +561,48 @@ Evidence:
 - 2026-06-21 최초 Release 배포는 기존 실행 프로세스 `EasislidesNext (17456)`의 DLL lock으로 실패했고, 해당 배포본 프로세스 종료 후 재시도하여 통과했다.
 - 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
 - 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase16-worship-rtf-combo-polish/wpf-deployed-worship-rtf-combo-polish-crop.png`, LastWriteTime=`2026-06-21 22:49:27`.
+
+### Phase 17: Default Tab Color Swatch Display Parity
+
+Goal: WPF Default 탭 상세 설정에서 색상이 `#RRGGBB` 같은 코드 중심으로 보이지 않고 WinForms처럼 실제 색상으로 즉시 식별되게 한다.
+
+Scope:
+
+- `Easislides.Wpf/MainWindow.xaml`
+- `Easislides.Wpf/Converters/ColorValueToBrushConverter.cs`
+- `Easislides.Wpf.Tests/Converters/ColorValueToBrushConverterTests.cs`
+- `Easislides.Wpf.Tests/Shell/MainMenuBarTests.cs`
+
+Tasks:
+
+- [x] Default 탭의 `Def_R1Colour` 빠른 색상 버튼에 실제 색상 스와치를 추가했다.
+- [x] `Def_R2Colour` 및 상세 보조영역 글자색 콤보를 텍스트 전용 `DisplayMemberPath`에서 색상 스와치 `ItemTemplate`으로 변경했다.
+- [x] `Def_BackColour`, `Def_PanelBackColour`, `Def_PanelTextColour`의 노출 hex TextBox를 제거하고 현재 색상 스와치 버튼으로 대체했다.
+- [x] 상세 설정의 `TextColorHexBox`, `BackgroundColorHexBox`를 노출하지 않고 현재 색상 스와치 + 색상 선택 버튼으로 대체했다.
+- [x] 문자열 hex/ARGB 값을 WPF `Brush`로 바꾸는 `ColorValueToBrushConverter`와 회귀 테스트를 추가했다.
+- [x] 배포본 실행 캡처로 Default 탭 색상 스와치 렌더링을 확인했다.
+
+DoD:
+
+- Default 탭에서 색상은 코드 문자열이 아니라 색상 칩/스와치로 먼저 읽힌다.
+- 기존 색상 피커와 ViewModel 색상 적용 명령은 유지된다.
+- 원시 hex 코드 TextBox가 Default 상세 설정의 기본 표시 UI로 되돌아가지 않도록 테스트가 막는다.
+- focused tests, full WPF tests, WinForms build, OpenSpec strict validation, Release publish, 배포본 캡처가 통과한다.
+
+Tests:
+
+- `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`
+- `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~ColorValueToBrushConverterTests|FullyQualifiedName~MainMenuBarTests" --no-restore -v minimal`
+- `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`
+- `dotnet build Easislides\Easislides.csproj -nologo -v minimal`
+- `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`
+
+Evidence:
+
+- 2026-06-21 CodeGraph context 확인: 변경 영향은 WPF converter 패턴, MainWindow XAML 표시 레이어, XAML 구조 테스트에 한정된다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 137, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2426, 건너뜀 0.
+- 2026-06-21 WinForms build 통과. 결과: 오류 0, 경고 35.
+- 2026-06-21 OpenSpec strict validation 통과.
+- 2026-06-21 Release 배포 통과: `C:\EasiSlides\EasislidesNext`, LastWriteTime=`2026-06-21 22:59:56`.
+- 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase17-default-color-swatch/wpf-deployed-default-color-swatch.png`, `wpf-deployed-default-color-swatch-scrolled.png`, `wpf-deployed-default-color-swatch-crop.png`.

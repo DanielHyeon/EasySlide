@@ -264,3 +264,14 @@ Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 - Combo change: `SessionCombo`는 Phase 14의 28px height와 `*` width semantics를 유지하고, 내부 padding을 `8,2,4,2`로 낮추며 `VerticalContentAlignment=Center`를 지정했다.
 - Test scope: `WorshipListPanelTests`에 `SessionCombo` padding/vertical alignment guard와 `WL_Word` icon symbol guard를 추가했다.
 - 영향 제한: ViewModel command, saved worship list loading, RTF document generation handler, DB, Office Interop, 송출 경로는 변경하지 않았다. 변경은 visual affordance와 text clipping 보정에 한정된다.
+
+### Phase 17 Default tab color swatch display impact (2026-06-21)
+
+사용자 확인으로 Default 탭 상세 설정에서 색상이 실제 색으로 보이지 않고 코드처럼 표시되는 문제가 확인됐다.
+
+- Impact surface: `MainWindow.xaml`의 Default 탭 색상 표시 XAML, 신규 `ColorValueToBrushConverter`, converter/XAML 구조 테스트에 한정된다.
+- Pre-fix behavior: `Def_BackColourHex`, `Def_PanelBackColourHex`, `Def_PanelTextColourHex`, `TextColorHexBox`, `BackgroundColorHexBox`가 색상 값을 `#RRGGBB` 텍스트로 노출했고, `Def_R2Colour`와 상세 보조영역 글자색 콤보는 `DisplayMemberPath=Key` 텍스트만 표시했다.
+- Fix scope: 색상 적용 ViewModel command와 코드비하인드 color picker handler는 유지하고, 노출 UI만 `ClassicColorSwatch`/`ColorPresetItemTemplate` 기반 색상 스와치로 변경했다.
+- Converter scope: `ColorValueToBrushConverter`는 string hex 및 int ARGB 값을 frozen `SolidColorBrush`로 바꾸는 표시용 converter이며, setting 저장/불러오기/송출 렌더링 로직은 변경하지 않는다.
+- Test scope: `ColorValueToBrushConverterTests`로 변환 동작을 검증하고, `MainMenuBarTests`로 raw hex TextBox 회귀와 `DisplayMemberPath` 텍스트 전용 표시 회귀를 막는다.
+- 영향 제한: ViewModel 색상 상태, 레지스트리/JSON 설정, DB, Office Interop, PPT/이미지 렌더링, 실제 송출 창 로직은 변경하지 않았다. 변경은 Default 탭 색상 표시 affordance에 한정된다.
