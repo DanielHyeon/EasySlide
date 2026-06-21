@@ -1360,6 +1360,38 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task ImportEswWorshipList_TextFile_UsesParagraphPagesLikeFrmMain()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var textPath = Path.Combine(folder.Root, "apostles-creed.txt");
+        await File.WriteAllTextAsync(
+            textPath,
+            "신앙 고백\n(사도신경)\n\n나는 전능하신\n아버지 하나님,\n천지의 창조주를\n믿습니다.\n\n나는 그의\n유일하신 아들,\n우리 주 예수\n그리스도를 믿습니다.");
+        var session = new LiveSessionService();
+        var sut = CreateSut(seedSampleQueue: false, liveSession: session);
+
+        sut.ImportEswWorshipList(new List<EswWorshipListItem>
+        {
+            new("T", "1", textPath, "", ""),
+        });
+
+        var item = sut.Queue.Single();
+        item.Kind.Should().Be(LiveItemKinds.Notice, "목록 아이콘/분류는 공지 텍스트 계열로 유지한다");
+        item.ContentPath.Should().Be(textPath);
+        sut.LyricsPageCount.Should().Be(3, "WinForms T 파일은 빈 줄 기준 단락 단위로 이동한다");
+        sut.PreviewLyricsPages.Select(page => page.BodyText).Should().Equal(
+            "신앙 고백\n(사도신경)",
+            "나는 전능하신\n아버지 하나님,\n천지의 창조주를\n믿습니다.",
+            "나는 그의\n유일하신 아들,\n우리 주 예수\n그리스도를 믿습니다.");
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        session.Current.CurrentItemBodyText.Should().Be(
+            "신앙 고백\n(사도신경)",
+            "Live도 전체 사도신경이 아니라 선택된 첫 단락만 송출해야 한다");
+    }
+
+    [Fact]
     public void ImportEswWorshipList_DbSongInLibrary_FillsLyricsAndNumber()
     {
         // 곡(D) 항목이 현재 라이브러리에 같은 SongId 로 있으면 가사·번호·저작권까지 채워 온전한 곡으로 가져온다.
@@ -3127,6 +3159,25 @@ public class MainViewModelTests
         item!.Title.Length.Should().BeLessThan(longLine.Length, "긴 제목은 줄임");
         item.Title.Should().EndWith("…");
         item.Lyrics.Should().Be(longLine, "본문은 전체 보존");
+    }
+
+    [Fact]
+    public void AddTextFileItem_UsesFileNameTitleAndParagraphPages()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+
+        var item = sut.AddTextFileItem(
+            @"D:\예배자료\주일예배\★★★사도신경★★★.txt",
+            "신앙 고백\n(사도신경)\n\n나는 전능하신\n아버지 하나님,\n천지의 창조주를\n믿습니다.");
+
+        item.Should().NotBeNull();
+        item!.Title.Should().Be("★★★사도신경★★★.txt");
+        item.Kind.Should().Be(LiveItemKinds.Notice, "목록 분류는 기존 텍스트/공지 계열을 유지한다");
+        item.ContentPath.Should().Be(@"D:\예배자료\주일예배\★★★사도신경★★★.txt");
+        sut.LyricsPageCount.Should().Be(2, "외부 .txt는 WinForms T 항목처럼 빈 줄 기준 단락 단위로 선택되어야 한다");
+        sut.PreviewLyricsPages.Select(page => page.BodyText).Should().Equal(
+            "신앙 고백\n(사도신경)",
+            "나는 전능하신\n아버지 하나님,\n천지의 창조주를\n믿습니다.");
     }
 
     [Fact]

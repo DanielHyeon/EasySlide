@@ -44,6 +44,68 @@ dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\
 - 결과: 통과
 - 배포 위치: `C:\EasiSlides\EasislidesNext`
 
+## 2026-06-22 후속 UAT 이슈: 사도신경 외부 Text 파일 단락 선택 불일치
+
+사용자 실제 UAT에서 사도신경 같은 외부 `.txt` 항목이 WinForms처럼 단락 단위로 선택되지 않고 전체 본문으로 취급되는 문제가 보고되어, 같은 change의 Phase 9로 처리했다.
+
+### 추가 원인
+
+- WinForms는 `.txt` 외부 파일을 WorshipList에 `T + 파일경로`로 저장하고, `Gf.LoadIndividualData`에서 파일 내용을 `CompleteLyrics`로 읽어 가사/구절과 같은 빈 줄 기준 페이지 선택 흐름을 사용한다.
+- WPF는 `.txt` 파일 추가 시 `AddTextItem`으로 일반 Notice 항목을 만들고, ESW `T` 항목도 Notice 전체 본문으로 계산해 사도신경 전체가 한 번에 Preview/Live 대상이 되었다.
+- 단순히 `Kind == "T"` 전체를 단락형으로 바꾸면 파일 경로가 없는 레거시 텍스트 `T` 항목의 `[공지]` 같은 첫 줄이 가사 포맷터에 의해 빠지는 회귀가 발생한다.
+
+### 추가 수정
+
+- `WorshipListPanel.AddTextFileAsNoticeAsync`가 외부 `.txt`를 `MainViewModel.AddTextFileItem`으로 추가하도록 변경했다.
+- `AddTextFileItem`은 파일명을 제목으로 유지하고 `ContentPath`와 본문을 보존하되, 항목 ID를 `text-file:`로 구분해 외부 파일 텍스트임을 명확히 했다.
+- `MainViewModel`과 `LiveSessionService`는 `esw:T:` 또는 `text-file:` 항목만 빈 줄 기준 단락 페이지로 계산한다.
+- 일반 Notice와 파일 경로 없는 레거시 `Kind == "T"` 텍스트는 기존처럼 본문을 그대로 송출하도록 보존했다.
+
+### 추가 집중 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore --filter "FullyQualifiedName~GoLive_LegacyTextKind_ProjectsLiteralText|FullyQualifiedName~ImportEswWorshipList_TextFile_UsesParagraphPagesLikeFrmMain|FullyQualifiedName~AddTextFileItem_UsesFileNameTitleAndParagraphPages|FullyQualifiedName~GoLive_NoticeItem_RendersTextVerbatim_NotThroughLyricsFormatter" -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 4개
+- 사전 Red 확인: `ImportEswWorshipList_TextFile_UsesParagraphPagesLikeFrmMain` 추가 직후 `LyricsPageCount`가 0으로 실패함을 확인했다.
+
+### 추가 전체 WPF 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 2,444개
+
+### 추가 OpenSpec 검증
+
+```powershell
+openspec validate a011-wpf-live-output-flow-recovery --strict
+```
+
+- 결과: 통과
+
+### 추가 WinForms 빌드
+
+```powershell
+dotnet build Easislides\Easislides.csproj -nologo -v minimal
+```
+
+- 결과: 통과
+- 경고: 기존 NetOffice/DirectShow/WinForms analyzer 경고 유지
+
+### 추가 WPF 배포
+
+```powershell
+dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -v minimal
+```
+
+- 결과: 통과
+- 배포 위치: `C:\EasiSlides\EasislidesNext`
+
 ## 2026-06-22 후속 UAT 이슈: Text/InfoScreen Live Display 미오픈
 
 사용자 실제 UAT에서 PPT는 Live되지만 Text/성경 같은 텍스트 계열 항목이 Display에 Live되지 않는 문제가 다시 보고되어 같은 change의 Phase 8로 후속 처리했다.

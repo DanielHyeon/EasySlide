@@ -174,7 +174,7 @@ public partial class WorshipListPanel : UserControl
         try
         {
             var text = await File.ReadAllTextAsync(fileName).ConfigureAwait(true);
-            viewModel.AddTextItem(ExtractLegacyInfoScreenText(text));
+            viewModel.AddTextFileItem(fileName, ExtractLegacyInfoScreenText(text));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

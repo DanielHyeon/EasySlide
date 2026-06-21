@@ -1689,6 +1689,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // 큐 목록 표시용 짧은 제목 — 첫 줄을 쓰되 너무 길면 줄여 표시(본문 전체는 Lyrics 에 보존).
+    public LiveQueueItem? AddTextFileItem(string fileName, string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            StatusText = "추가할 텍스트 파일 내용이 없습니다.";
+            NotifyCommandStates();
+            return null;
+        }
+
+        var title = DisplayTitleForPath(Path.GetFileName(fileName), fileName);
+        var item = new LiveQueueItem($"text-file:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
+        {
+            ContentPath = fileName,
+            Lyrics = text.Trim(),
+        };
+
+        var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
+        var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
+        Queue.Insert(insertIndex, item);
+        SelectedItem = item;
+        StatusText = $"텍스트 파일 항목 추가: {item.Title}";
+        NotifyCommandStates();
+        return item;
+    }
+
     private static string BuildTextItemTitle(string text)
     {
         var firstLine = text.Replace("\r", string.Empty).Split('\n')[0].Trim();
@@ -3885,8 +3910,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 절 단위로 페이지네이션되는(가사/구절 본문이 있는) 항목인지 — 곡과 성경. 본문 계산·절 이동·위치 라벨의 공통 판정.
     private static bool IsLyricsPaginated(LiveQueueItem? item)
         => item is not null
-            && (LiveItemKindMatcher.IsSong(item.Kind) || LiveItemKindMatcher.IsBible(item.Kind))
+            && (LiveItemKindMatcher.IsSong(item.Kind)
+                || LiveItemKindMatcher.IsBible(item.Kind)
+                || IsExternalTextFileItem(item))
             && !string.IsNullOrEmpty(item.Lyrics);
+
+    private static bool IsExternalTextFileItem(LiveQueueItem item)
+        => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
+            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase);
 
     // 페이지 라벨에서 중복을 제거(첫 등장 순서)해 점프 버튼 목록을 만든다.
     private void RebuildAvailableSectionLabels()
@@ -5382,6 +5413,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private string BuildOutputSurfaceText(LiveQueueItem item)
     {
+        if (IsExternalTextFileItem(item))
+        {
+            return TextOrTitle(
+                LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
+                item.Title);
+        }
+
         if (LiveItemKindMatcher.IsNotice(item.Kind))
         {
             return TextOrTitle(item.Lyrics, item.Title);

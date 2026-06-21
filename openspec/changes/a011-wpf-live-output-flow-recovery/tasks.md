@@ -59,3 +59,10 @@
 - [x] 9.2 WPF `PublishNotice`와 Text/Bible `GoLiveCommand`가 실제 `OutputWindowHost` Display VM까지 본문을 전달하는 회귀 테스트를 추가한다.
 - [x] 9.3 출력 창이 닫힌 상태에서도 Text/InfoScreen Live가 WinForms처럼 Display를 열고 즉시 송출되도록 수정한다.
 - [x] 9.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.
+
+## 10. Phase 9 - WinForms 외부 Text 파일 단락 선택 정합
+
+- [x] 10.1 WinForms `.txt` 외부 파일(`T`) 로드 흐름과 WPF `.txt`/ESW `T` 항목 변환 흐름을 재분석한다.
+- [x] 10.2 사도신경 같은 빈 줄 구분 텍스트가 단락 페이지 단위로 Preview/Live 송출되는 회귀 테스트를 추가한다.
+- [x] 10.3 WPF 외부 `.txt`/ESW `T` 항목만 WinForms처럼 단락 페이지를 갖게 하고, 일반 공지/InfoScreen 즉시 송출은 전체 본문 유지로 보존한다.
+- [x] 10.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.

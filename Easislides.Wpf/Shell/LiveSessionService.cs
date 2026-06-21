@@ -262,6 +262,13 @@ public sealed class LiveSessionService : ILiveSessionService
     //       이중 언어 + Sequence 동시 지원·절 라벨 점프는 차기 슬라이스.
     private static string ComputeBodyText(LiveQueueItem item)
     {
+        if (IsExternalTextFileItem(item))
+        {
+            return TextOrTitle(
+                LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
+                item.Title);
+        }
+
         // 공지(InfoScreen)는 자유 텍스트라 가사 작성 마커([광고]·»·빈줄 등)를 해석하면 안 된다 —
         // 가사 포맷터를 건너뛰고 입력 그대로 본문으로 송출한다(마커 손상·빈 화면 false-positive 방지).
         if (LiveItemKindMatcher.IsNotice(item.Kind))
@@ -314,7 +321,7 @@ public sealed class LiveSessionService : ILiveSessionService
     // Region1 과 동일 인덱스·Sequence(GetRegionPage)라 두 영역이 같은 절로 짝지어진다.
     private static string ComputeBodyText2(LiveQueueItem item)
     {
-        if (LiveItemKindMatcher.IsNotice(item.Kind))
+        if (LiveItemKindMatcher.IsNotice(item.Kind) || IsExternalTextFileItem(item))
         {
             return string.Empty;
         }
@@ -414,6 +421,10 @@ public sealed class LiveSessionService : ILiveSessionService
     // 화면 비우기(레거시 LiveClear) — 콘텐츠는 감추되 배경은 유지(완전 검정인 Black 과 구별).
     // State=Hidden + IsCleared=true 로 두어 출력 렌더러가 Cleared 씬(배경만)으로 해석한다.
     // 콘텐츠(가사·슬라이드 등)는 보존하므로 Restore 시 직전 항목이 그대로 다시 보인다.
+    private static bool IsExternalTextFileItem(LiveQueueItem item)
+        => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
+            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase);
+
     public void ClearOutput()
     {
         if (Current.State == LiveState.Off)
