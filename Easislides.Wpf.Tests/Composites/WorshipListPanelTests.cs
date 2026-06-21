@@ -77,6 +77,10 @@ public class WorshipListPanelTests
         Attr(sessionCombo, "Width").Should().BeEmpty("FrmMain ResizeComboAndToolBar expands SessionList to the available width at runtime");
         Attr(sessionCombo, "MinWidth").Should().Be("60", "FrmMain clamps resized combo width to at least 60px");
         Attr(sessionCombo, "Height").Should().Be("28", "FrmMain SessionList height is 28px");
+        Attr(sessionCombo, "Padding").Should().Be("8,2,4,2",
+            "the compact SessionList combo needs shallow vertical padding so Korean text is not clipped at the bottom");
+        Attr(sessionCombo, "VerticalContentAlignment").Should().Be("Center",
+            "the compact SessionList combo should keep the selected worship-list text vertically centered");
         var topToolStrip = composite.Descendants().Single(
             e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip1");
         Attr(topToolStrip, "Grid.Column").Should().Be("2",
@@ -163,6 +167,9 @@ public class WorshipListPanelTests
         Attr(wlWord, "Click").Should().Be("WL_Word_Click", "FrmMain WL_Word should generate an RTF document from the Worship List");
         Attr(wlWord, "ToolTip").Should().Be("Generate RTF Document");
         Attr(wlWord, "AutomationProperties.Name").Should().Contain("RTF");
+        wlWord.Descendants().Single(e => e.Name.LocalName == "SymbolIcon")
+            .Attribute("Symbol")!.Value.Should().Be("DocumentText24",
+                "RTF generation should read visually as a text document, not a download action");
         var wlNotes = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Notes");
         Attr(wlNotes, "Tag").Should().Be("WL_Notes", "FrmMain WL_Notes role should be visible in the lower-left toolbar");
         Attr(wlNotes, "Click").Should().Be("WL_Notes_Click", "FrmMain WL_Notes should open the session notes editor");

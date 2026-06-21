@@ -521,3 +521,43 @@ Evidence:
 - 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2423, 건너뜀 0.
 - 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
 - 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase15-worship-toolbar-spacing/wpf-deployed-worship-toolbar-spacing-crop.png`, LastWriteTime=`2026-06-21 22:41:24`.
+
+### Phase 16: Worship List RTF Icon And Session Combo Text Polish
+
+Goal: WPF Worship List의 RTF Document 버튼이 더 직관적인 문서 생성 아이콘으로 보이고, SessionList 콤보박스 내부 텍스트가 아래쪽에서 잘리지 않게 한다.
+
+Scope:
+
+- `Easislides.Wpf/Composites/WorshipListPanel.xaml`
+- `Easislides.Wpf.Tests/Composites/WorshipListPanelTests.cs`
+
+Tasks:
+
+- [x] `WL_Word` 아이콘을 다운로드처럼 보이는 `DocumentArrowDown24`에서 텍스트 문서 의미가 분명한 `DocumentText24`로 변경했다.
+- [x] `SessionCombo`는 기존 WinForms 높이 28px을 유지하면서 `Padding="8,2,4,2"`와 `VerticalContentAlignment="Center"`를 지정해 선택 텍스트의 아래쪽 잘림을 줄였다.
+- [x] XAML 구조 테스트에 RTF 아이콘과 SessionList padding/vertical alignment guard를 추가했다.
+- [x] 배포본 실행 캡처로 콤보 텍스트와 RTF 아이콘 렌더링을 확인했다.
+
+DoD:
+
+- RTF 버튼은 다운로드 동작이 아니라 RTF/text document 생성 동작으로 읽힌다.
+- SessionList 콤보는 28px 높이를 유지하면서 선택 텍스트가 아래쪽에서 잘려 보이지 않는다.
+- Worship List toolbar의 WinForms 기준 버튼 수, 순서, 크기, 배치는 유지된다.
+- focused `WorshipListPanelTests`와 full WPF tests가 통과한다.
+- `C:\EasiSlides\EasislidesNext` 배포본 캡처 증거가 기록된다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter FullyQualifiedName~WorshipListPanelTests --no-restore -v minimal`
+- `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`
+
+Evidence:
+
+- 2026-06-21 Wpf.Ui `SymbolRegular` enum 확인: `DocumentText24`가 존재함을 확인하고 사용했다.
+- 2026-06-21 코드 보정: `WL_Word`의 `ui:SymbolIcon`을 `DocumentText24`로 변경했다.
+- 2026-06-21 코드 보정: `SessionCombo`에 `Padding="8,2,4,2"`, `VerticalContentAlignment="Center"`를 추가했다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 22, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2423, 건너뜀 0.
+- 2026-06-21 최초 Release 배포는 기존 실행 프로세스 `EasislidesNext (17456)`의 DLL lock으로 실패했고, 해당 배포본 프로세스 종료 후 재시도하여 통과했다.
+- 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
+- 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase16-worship-rtf-combo-polish/wpf-deployed-worship-rtf-combo-polish-crop.png`, LastWriteTime=`2026-06-21 22:49:27`.

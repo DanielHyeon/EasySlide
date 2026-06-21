@@ -254,3 +254,13 @@ Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 - Vertical change: 22x22 세로 버튼의 크기는 유지하고 버튼 사이에 하단 3px margin을 추가했다. rail style은 `HorizontalAlignment=Center`로 고정하여 33px rail 안의 중앙 정렬을 유지한다.
 - Test scope: `WorshipListPanelTests`에 horizontal margin, final button no-overflow margin, vertical margin, centered side rail style guard를 추가했다.
 - 영향 제한: ViewModel command, WorshipList 데이터, DB, Office Interop, PPT/이미지 렌더링, 실제 송출 경로는 변경하지 않았다. 변경은 시각적 간격과 XAML 구조 테스트에 한정된다.
+
+### Phase 16 Worship List RTF icon and SessionCombo text polish impact (2026-06-21)
+
+사용자 확인으로 `Generate RTF Document` 아이콘이 직관적이지 않고, `SessionList` 콤보박스의 선택 텍스트 아래쪽이 잘려 보이는 문제가 확인됐다.
+
+- Impact surface: `WorshipListPanel.xaml`의 `WL_Word` icon symbol과 `SessionCombo` layout 속성만 변경했다.
+- Icon change: Wpf.Ui `SymbolRegular` enum에서 `DocumentText24` 존재를 확인하고, 기존 `DocumentArrowDown24`를 `DocumentText24`로 교체했다. `WL_Word_Click` handler와 RTF 생성 로직은 변경하지 않았다.
+- Combo change: `SessionCombo`는 Phase 14의 28px height와 `*` width semantics를 유지하고, 내부 padding을 `8,2,4,2`로 낮추며 `VerticalContentAlignment=Center`를 지정했다.
+- Test scope: `WorshipListPanelTests`에 `SessionCombo` padding/vertical alignment guard와 `WL_Word` icon symbol guard를 추가했다.
+- 영향 제한: ViewModel command, saved worship list loading, RTF document generation handler, DB, Office Interop, 송출 경로는 변경하지 않았다. 변경은 visual affordance와 text clipping 보정에 한정된다.

@@ -118,6 +118,18 @@ Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 
 | C:\EasiSlides deployment | PASS | `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal` |
 | WPF deployed screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase15-worship-toolbar-spacing/wpf-deployed-worship-toolbar-spacing-crop.png`, LastWriteTime=`2026-06-21 22:41:24` |
 
+## Phase 16 Worship List RTF Icon And Session Combo Text Gate
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| RTF icon clarity | PASS | `WL_Word` icon changed from `DocumentArrowDown24` to `DocumentText24` so it reads as text document generation rather than download |
+| Session combo text clipping | PASS | `SessionCombo` keeps 28px height but uses `Padding="8,2,4,2"` and `VerticalContentAlignment="Center"` |
+| Layout parity guard | PASS | Worship List toolbar button count, order, 22x22 side rail, 94px horizontal band remain unchanged |
+| Focused tests | PASS | `WorshipListPanelTests`: 실패 0, 통과 22, 건너뜀 0 |
+| Full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
+| C:\EasiSlides deployment | PASS | First publish was blocked by running `EasislidesNext (17456)` DLL lock; after closing that deployed process, `dotnet publish ... -o C:\EasiSlides\EasislidesNext` passed |
+| WPF deployed screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase16-worship-rtf-combo-polish/wpf-deployed-worship-rtf-combo-polish-crop.png`, LastWriteTime=`2026-06-21 22:49:27` |
+
 ## C:\EasiSlides Deployment Verification
 
 WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고, 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행 검증했다.

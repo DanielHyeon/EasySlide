@@ -90,6 +90,8 @@
                           Height="28"
                           MinWidth="60"
                           MinHeight="0"
+                          Padding="8,2,4,2"
+                          VerticalContentAlignment="Center"
                           ToolTip="저장된 예배 순서를 고르면 바로 불러옵니다. 콤보를 열면 목록이 새로고침됩니다."
                           AutomationProperties.Name="저장된 예배 순서 선택" />
                 <StackPanel x:Name="ClassicWorshipListToolStrip1"
@@ -216,7 +218,7 @@
                         ToolTip="Generate RTF Document"
                         AutomationProperties.Name="예배 순서 RTF 문서 생성"
                         Margin="0,0,0,3">
-                    <ui:SymbolIcon Symbol="DocumentArrowDown24" />
+                    <ui:SymbolIcon Symbol="DocumentText24" />
                 </Button>
                 <Button x:Name="WL_Notes"
                         Tag="WL_Notes"
