@@ -1004,7 +1004,9 @@ public class MainMenuBarTests
             "FrmMain disables Folders_WordCount while Use Song Numbering is enabled");
         xaml.Should().NotContain("x:Name=\"ClassicFoldersWordCountMode\"",
             "FrmMain exposes Folders_WordCount as a check button, not a sort-mode combo");
-        xaml.Should().Contain("<ListView Grid.Row=\"3\"", "SongsList should render as a compact details-style ListView");
+        xaml.Should().NotContain("AutomationProperties.Name=\"머리글자 점프 바\"",
+            "FrmMain Folders first screen has SongFolder, SongsList, and Folders_WordCount only; the WPF-only initial jump strip should stay out of the parity shell");
+        xaml.Should().Contain("<ListView Grid.Row=\"2\"", "SongsList should render directly below the search box as a compact details-style ListView");
         xaml.Should().Contain("x:Name=\"LibrarySongList\"", "existing drag and double-click handlers should keep their stable target");
         xaml.Should().Contain("Tag=\"SongsList\"", "LibrarySongList should be explicitly mapped to FrmMain SongsList");
         xaml.Should().Contain("SelectionMode=\"Extended\"", "FrmMain SongsList supports multi-select add/context gestures");
@@ -1131,7 +1133,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"BibleText\"", "Bible text surface should keep the FrmMain BibleText role");
         xaml.Should().Contain("x:Name=\"BiblePassageBox\"", "Bible text should keep a stable selection surface");
         xaml.Should().Contain("IsInactiveSelectionHighlightEnabled=\"True\"",
-            "FrmMain BibleText.HideSelection=false keeps the selected verses visible after the operator clicks the lower add icon");
+            "FrmMain BibleText.HideSelection=false keeps the selected verses visible after the operator changes focus");
         xaml.Should().Contain("SelectionOpacity=\"0.55\"",
             "selected Bible verses should stay visibly marked while preserving text readability");
         code.Should().Contain("BiblePassageBox.AddHandler",
@@ -1142,14 +1144,10 @@ public class MainMenuBarTests
             "FrmMain BibleText_MouseUp rebuilds the selected passage after a click/shift-click");
         code.Should().Contain("handledEventsToo: true",
             "Bible click selection must be handled after TextBox selection plumbing for reliable verse clicks");
-        xaml.Should().Contain("x:Name=\"Bibles_AddSelected\"",
-            "FrmMain exposes Bible add as a small lower strip icon, not a large primary button");
-        xaml.Should().Contain("Tag=\"Bibles_AddSelected\"",
-            "the selected-passage add icon should keep a stable legacy role for mapping/UAT");
-        xaml.Should().Contain("Style=\"{StaticResource ClassicOperatorStripButton}\"",
-            "Bible add should use the same compact operator strip button scale as FrmMain lower icons");
-        xaml.Should().Contain("Symbol=\"{x:Static theme:EsIcons.ActionAdd}\"",
-            "the compact add affordance should be an icon, matching the FrmMain lower tool strip");
+        xaml.Should().NotContain("x:Name=\"Bibles_AddSelected\"",
+            "FrmMain tabBibles bottom area has TabBibleVersions directly below BibleText and no extra lower add button");
+        xaml.Should().NotContain("Tag=\"Bibles_AddSelected\"",
+            "selected-passage add should stay on context menu, Enter/source add, and drag/drop paths rather than adding a non-legacy lower control");
         xaml.Should().NotContain("Content=\"선택 구절 추가\"",
             "the Bible tab should not use a large text button for the selected-passage add path");
         xaml.Should().Contain("x:Name=\"WorshipListTab\"",
@@ -1172,9 +1170,9 @@ public class MainMenuBarTests
         biblesAddRoute.Should().Contain("ResolveBibleSelectionForAdd",
             "WL_Add should use the current Bible text selection or clicked verse selection");
         biblesAddRoute.Should().Contain("BiblePassageBox.SelectionStart",
-            "the compact lower add icon should read the same BibleText selection surface as FrmMain");
+            "the source add route should read the same BibleText selection surface as FrmMain");
         biblesAddRoute.Should().Contain("BiblePassageBox.SelectionLength",
-            "multi-verse Shift-click ranges should be preserved when the lower add icon is pressed");
+            "multi-verse Shift-click ranges should be preserved when the source add route is executed");
         biblesAddRoute.Should().Contain("PreviewAndAddBibleSelection(viewModel, selection)",
             "WL_Add should preview and insert the selected Bible passage through the shared add path");
         biblesAddRoute.Should().Contain("ShowWorshipListTab();",
@@ -1348,11 +1346,11 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuImages_AddDefault\"", "Images menu should expose Add to Default");
         xaml.Should().Contain("x:Name=\"CMenuImages_Refresh\"", "Images menu should expose Refresh Images Lists");
         var imagesSource = SectionBetween(xaml, "x:Name=\"InlineImagesList\"", "<Grid Grid.Row=\"4\" Margin=\"0,8,0,0\">");
-        imagesSource.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
-            "FrmMain flowLayoutImages uses the same three-column thumbnail formula as PowerPoint thumbnails");
+        imagesSource.Should().Contain("Converter={StaticResource LegacyImageThumbnailSize}",
+            "FrmMain flowLayoutImages uses compact three-column thumbnails in the narrow source rail");
         imagesSource.Should().Contain("ConverterParameter=Height",
             "FrmMain image thumbnails use 4:3 height from the calculated thumbnail width");
-        imagesSource.Should().Contain("Width=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyPowerPointThumbnailSize}}\"",
+        imagesSource.Should().Contain("Width=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyImageThumbnailSize}}\"",
             "image thumbnail cards should react to the current Images source pane width");
         imagesSource.Should().NotContain("Width=\"116\"",
             "fixed WPF image cards break FrmMain flowLayoutImages three-column sizing");
@@ -1367,6 +1365,12 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"DefgroupBox1\"", "DefPanel should surface the legacy text/default-format group");
         xaml.Should().Contain("x:Name=\"DefgroupBox2\"", "DefPanel should surface the legacy background/transition group");
         xaml.Should().Contain("x:Name=\"DefgroupBox3\"", "DefPanel should surface the legacy apply/reset group");
+        xaml.IndexOf("x:Name=\"DefgroupBox3\"", StringComparison.Ordinal)
+            .Should().BeLessThan(xaml.IndexOf("x:Name=\"DefgroupBox1\"", StringComparison.Ordinal),
+                "FrmMain Default first viewport starts with Apply to All before the text-layout toolbar");
+        SectionBetween(xaml, "x:Name=\"DefgroupBox1\"", "x:Name=\"DefgroupBox2\"")
+            .Should().Contain("MaxHeight=\"180\"",
+                "the text layout controls must not push Default Background and Display Panel out of the FrmMain first viewport");
         xaml.Should().Contain("x:Name=\"Def_Head\"", "Default tab should expose FrmMain Def_Head");
         xaml.Should().Contain("ToggleLyricsTitleHeadingCommand", "Def_Head should connect to the real title heading toggle");
         xaml.Should().Contain("x:Name=\"Def_Outline\"", "Default tab should expose FrmMain Def_Outline");
@@ -1631,6 +1635,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("IsChecked=\"{Binding IsWordCountSortEnabled, Mode=OneWay}\"", "PB_WordCount should show the current CJK Word Count sort state");
         SectionBetween(xaml, "x:Name=\"PB_WordCount\"", "x:Name=\"InlinePraiseBookOpenBookButton\"")
             .Should().NotContain("IsEnabled=\"False\"", "PB_WordCount must remain usable like FrmMain CheckOnClick");
+        SectionBetween(xaml, "x:Name=\"InlinePraiseBookOpenBookButton\"", "x:Name=\"PB_Delete\"")
+            .Should().Contain("Width=\"28\"", "Open and Refresh should stay compact in the narrow FrmMain Praise Book toolbar");
+        SectionBetween(xaml, "x:Name=\"InlinePraiseBookOpenBookButton\"", "x:Name=\"PB_Delete\"")
+            .Should().NotContain("Content=\"Refresh\"", "text-heavy toolbar buttons overflow the FrmMain-sized Praise Book rail");
         xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
         xaml.Should().Contain("Tag=\"PB_Delete\"", "PB_Delete should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Word\"", "Praise Book toolbar should expose FrmMain PB_Word");
@@ -1640,7 +1648,12 @@ public class MainMenuBarTests
         xaml.Should().Contain("Grid.Column=\"8\"", "PB_Html should keep the FrmMain PB_Html button in the toolbar");
         CountOccurrences(SectionBetween(xaml, "<TabItem Tag=\"PraiseBook\"", "x:Name=\"PraiseBookItems\""), "<ColumnDefinition Width=\"Auto\" />")
             .Should().BeGreaterThanOrEqualTo(8, "PraiseBook toolbar columns must cover PB_Manage through PB_Html");
+        var praiseBookLayoutBeforeItems = SectionBetween(xaml, "<TabItem Tag=\"PraiseBook\"", "x:Name=\"PraiseBookItems\"");
         xaml.Should().Contain("x:Name=\"PraiseBookItems\"", "Praise Book entries should render as a FrmMain-style ListView surface");
+        CountOccurrences(praiseBookLayoutBeforeItems, "<RowDefinition Height=\"Auto\" />")
+            .Should().BeGreaterThanOrEqualTo(2, "the Praise Book status/window row must not overlap the entry list");
+        SectionBetween(xaml, "AutomationProperties.Name=\"Open Praise Book window\"", "</Grid>")
+            .Should().NotContain("Content=\"Window\"", "the auxiliary Praise Book window launcher should not consume the entry-list area");
         xaml.Should().Contain("Tag=\"PraiseBookItems\"", "PraiseBookItems role should remain explicit");
         xaml.Should().Contain("ItemsSource=\"{Binding Entries}\"", "flat PraiseBookItems should bind to the current book entries");
         xaml.Should().Contain("SelectionChanged=\"PraiseBookItems_SelectionChanged\"", "selecting a PraiseBook row should refresh the Preview item like FrmMain PraiseBookListIndexChanged");

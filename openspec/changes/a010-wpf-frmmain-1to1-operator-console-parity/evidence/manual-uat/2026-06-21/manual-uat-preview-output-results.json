@@ -1,0 +1,86 @@
+﻿[
+    {
+        "id":  "UAT-301",
+        "status":  "PASS",
+        "note":  "Song source add selected/loaded a real song and Preview header/text/large preview updated.",
+        "evidence":  "manual-uat-preview-start-song.png",
+        "timestamp":  "2026-06-21T20:05:39"
+    },
+    {
+        "id":  "UAT-302",
+        "status":  "PASS",
+        "note":  "Preview verse button 1 result=ok.",
+        "evidence":  "manual-uat-PreviewBtnVerse1.png",
+        "timestamp":  "2026-06-21T20:05:40"
+    },
+    {
+        "id":  "UAT-303",
+        "status":  "PARTIAL",
+        "note":  "Preview chorus button result=missing.",
+        "evidence":  "manual-uat-PreviewBtnVerseChorus.png",
+        "timestamp":  "2026-06-21T20:05:40"
+    },
+    {
+        "id":  "UAT-304",
+        "status":  "PASS",
+        "note":  "Preview next slide result=ok.",
+        "evidence":  "manual-uat-PreviewBtnSlideDown.png",
+        "timestamp":  "2026-06-21T20:05:41"
+    },
+    {
+        "id":  "UAT-305",
+        "status":  "PASS",
+        "note":  "Preview next item result=ok.",
+        "evidence":  "manual-uat-PreviewBtnItemDown.png",
+        "timestamp":  "2026-06-21T20:05:42"
+    },
+    {
+        "id":  "UAT-307",
+        "status":  "PASS",
+        "note":  "Preview Go Live result=ok.",
+        "evidence":  "manual-uat-preview-golive-run3.png",
+        "timestamp":  "2026-06-21T20:05:44"
+    },
+    {
+        "id":  "UAT-308",
+        "status":  "PASS",
+        "note":  "Preview send to Output and next result=ok.",
+        "evidence":  "manual-uat-preview-output-next-run3.png",
+        "timestamp":  "2026-06-21T20:05:45"
+    },
+    {
+        "id":  "UAT-402",
+        "status":  "PARTIAL",
+        "note":  "Output next slide result=disabled.",
+        "evidence":  "manual-uat-OutputBtnSlideDown-run3.png",
+        "timestamp":  "2026-06-21T20:05:45"
+    },
+    {
+        "id":  "UAT-403",
+        "status":  "PASS",
+        "note":  "Output next item result=ok.",
+        "evidence":  "manual-uat-OutputBtnItemDown-run3.png",
+        "timestamp":  "2026-06-21T20:05:46"
+    },
+    {
+        "id":  "UAT-404",
+        "status":  "PARTIAL",
+        "note":  "Output verse 1 jump result=missing.",
+        "evidence":  "manual-uat-OutputBtnVerse1-run3.png",
+        "timestamp":  "2026-06-21T20:05:46"
+    },
+    {
+        "id":  "UAT-306",
+        "status":  "BLOCKED",
+        "note":  "PowerPoint tab/data unavailable in this environment, so Preview PowerPoint thumbnails cannot be verified.",
+        "evidence":  "",
+        "timestamp":  "2026-06-21T20:05:46"
+    },
+    {
+        "id":  "UAT-405",
+        "status":  "BLOCKED",
+        "note":  "PowerPoint tab/data unavailable in this environment, so Output PPT thumbnails cannot be verified.",
+        "evidence":  "",
+        "timestamp":  "2026-06-21T20:05:46"
+    }
+]

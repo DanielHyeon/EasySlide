@@ -28,12 +28,12 @@ Scope:
 
 Tasks:
 
-- [ ] production edit 전에 Phase 5 target symbols에 대해 `codegraph-impact.md`를 갱신한다.
-- [ ] 모든 Phase 5 `partial` mapping row를 evidence와 함께 `implemented`, `partial`, `defer` 중 하나로 분류한다.
-- [ ] FrmMain과 동등한 운영에 필요한 누락된 first-screen `Ind_*`, `Def_*` controls를 닫는다.
-- [ ] image/background item-first/default-fallback behavior를 검증한다.
-- [ ] FrmMain이 구분하는 경우 item movement와 slide movement의 transition settings가 분리되어 있는지 검증한다.
-- [ ] Output live-safety controls가 Preview selection을 빼앗지 않고 hidden/live payload를 갱신하는지 검증한다.
+- [x] production edit 전에 Phase 5 target symbols에 대해 `codegraph-impact.md`를 갱신한다.
+- [x] 모든 Phase 5 `partial` mapping row를 evidence와 함께 `implemented`, `partial`, `defer` 중 하나로 분류한다.
+- [x] FrmMain과 동등한 운영에 필요한 누락된 first-screen `Ind_*`, `Def_*` controls를 닫는다.
+- [x] image/background item-first/default-fallback behavior를 검증한다.
+- [x] FrmMain이 구분하는 경우 item movement와 slide movement의 transition settings가 분리되어 있는지 검증한다.
+- [x] Output live-safety controls가 Preview selection을 빼앗지 않고 hidden/live payload를 갱신하는지 검증한다.
 
 DoD:
 
@@ -55,6 +55,13 @@ Constraints:
 - Phase 5 impact가 명시적으로 요구하고 CodeGraph impact를 갱신하지 않는 한 Office/PPT interop을 건드리지 않는다.
 - UI edit는 region-specific하게 유지하며 broad visual redesign을 하지 않는다.
 
+Evidence:
+
+- 2026-06-21 CodeGraph: `MainViewModel`, `LiveSessionService`, `OutputWindowViewModel`, `OutputWindowService` impact 갱신을 `codegraph-impact.md`에 기록.
+- 2026-06-21 XAML 확인: `DefPanel`, `Def_*`, `IndPanel`, `Ind_*`, `OutputBtnRefAlert`, `cbOutputBlack`, `cbOutputClear`, `cbGoLive`, `OutputTextBoxLM`, `OutputBtnLMSend`, `OutputBtnLMClear`, `flowLayoutImages` 존재 확인.
+- 2026-06-21 focused tests: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~ApplyImageBackgroundItemFirst|FullyQualifiedName~SetSelectedItemBackgroundImage|FullyQualifiedName~SetSelectedItemTransitions|FullyQualifiedName~SlideTransitionKindInput|FullyQualifiedName~UpdateHiddenContent|FullyQualifiedName~ToggleOutputBlackCommand|FullyQualifiedName~ToggleOutputClearCommand|FullyQualifiedName~RestoreOutputCommand|FullyQualifiedName~SendLiveMessageCommand|FullyQualifiedName~ToggleOutputReferenceAlertCommand|FullyQualifiedName~ApplySession_WithReferenceAlert|FullyQualifiedName~ApplySession_WithLyricsAlertMessage"` 통과. 결과: 실패 0, 통과 35, 건너뜀 0.
+- 남은 Phase 5 DoD: UAT-142, UAT-161, UAT-406~UAT-411 manual UAT 결과 기록. exact legacy chrome, full transition effect rendering, remote/icon sync, legacy duration/options는 `codegraph-impact.md`에서 partial/defer 범위로 분류.
+
 ### Phase 6: Keyboard Shortcut And Focus Parity
 
 Goal: FrmMain live-operation key가 현재 operator focus에 따라 같은 target으로 routing되게 하고, text input field에서는 live shortcut이 절대 발동하지 않게 한다.
@@ -67,13 +74,13 @@ Scope:
 
 Tasks:
 
-- [ ] production edit 전에 Phase 6 target symbols에 대해 `codegraph-impact.md`를 갱신한다.
-- [ ] Preview-focused keys가 Preview에만 영향을 주는지 검증한다.
-- [ ] Output-focused keys가 Output/live context에만 영향을 주는지 검증한다.
-- [ ] global F12/F11/F9/F3/F7/F8/F10/F5/F4/Space/Shift+Space behavior를 검증한다.
-- [ ] Shift mappings를 포함한 number/letter verse jumps를 검증한다.
-- [ ] QuickFind, Bible lookup, live message, editable setting text fields가 live shortcut routing을 차단하는지 검증한다.
-- [ ] `frmmain-shortcut-parity-map.md`와 `frmmain-to-wpf-1to1-map.md`를 evidence와 함께 갱신한다.
+- [x] production edit 전에 Phase 6 target symbols에 대해 `codegraph-impact.md`를 갱신한다.
+- [x] Preview-focused keys가 Preview에만 영향을 주는지 검증한다.
+- [x] Output-focused keys가 Output/live context에만 영향을 주는지 검증한다.
+- [x] global F12/F11/F9/F3/F7/F8/F10/F5/F4/Space/Shift+Space behavior를 검증한다.
+- [x] Shift mappings를 포함한 number/letter verse jumps를 검증한다.
+- [x] QuickFind, Bible lookup, live message, editable setting text fields가 live shortcut routing을 차단하는지 검증한다.
+- [x] `frmmain-shortcut-parity-map.md`와 `frmmain-to-wpf-1to1-map.md`를 evidence와 함께 갱신한다.
 
 DoD:
 
@@ -93,6 +100,13 @@ Constraints:
 - Preview와 Output keyboard context를 하나의 command path로 합치지 않는다.
 - visual polish를 evidence로 사용하지 않는다. command target과 resulting state를 기록한다.
 
+Evidence:
+
+- 2026-06-21 CodeGraph: `ShortcutRegistry`, `CommandCatalog`, `VerseJumpKeyMap`, `MediaPlayerKeyMap`, `WorshipListKeyMap` impact 갱신을 `codegraph-impact.md`에 기록.
+- 2026-06-21 code evidence: `MainWindow.OnPreviewKeyDown`, `IsTextInputFocused`, `VerseJumpKeyMap.MapKeyToLabel`, `MediaPlayerKeyRouter.Resolve`, `WorshipListKeyMap.IsRemoveSelectedItem` 확인.
+- 2026-06-21 focused tests: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~CommandCatalogTests|FullyQualifiedName~ShortcutRegistryTests|FullyQualifiedName~GlobalInputServiceTests|FullyQualifiedName~VerseJumpKeyMapTests|FullyQualifiedName~MediaPlayerKeyMapTests|FullyQualifiedName~WorshipListKeyMapTests|FullyQualifiedName~BindShortcuts_|FullyQualifiedName~MainWindow_UsesFocusedPreviewOutputKeyboardBeforeGlobalShortcuts|FullyQualifiedName~MainWindow_BlocksGlobalShortcutsWhenTextInputFocused|FullyQualifiedName~MainWindow_PassesShiftToVerseJumpKeyMap"` 통과. 결과: 실패 0, 통과 108, 건너뜀 0.
+- 남은 Phase 6 DoD: UAT-501~UAT-508 manual keyboard UAT 결과 기록. Global hook/window-focus edge case는 Phase 7 manual UAT에서 확인하거나 explicit defer로 전환.
+
 ### Phase 7: Verification Gate And Ship-Readiness Evidence
 
 Goal: scoped operator-console parity 작업 범위에서 WPF MainWindow가 FrmMain처럼 사용할 수 있다고 보고할 수 있는 concrete evidence를 수집한다.
@@ -107,13 +121,13 @@ Scope:
 
 Tasks:
 
-- [ ] `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`를 실행한다.
-- [ ] `dotnet test Easislides.Wpf.Tests`를 실행한다.
-- [ ] `dotnet build Easislides\Easislides.csproj -nologo -v minimal`을 실행한다.
-- [ ] WPF MainWindow를 실행하고 startup/layout evidence를 기록한다.
-- [ ] 실제 legacy data로 manual UAT checklist를 수행한다.
-- [ ] 모든 FAIL 또는 unresolved PARTIAL을 follow-up OpenSpec task 또는 explicit defer로 전환한다.
-- [ ] phase complete 표시 전에 final gate evidence를 이 파일에 기록한다.
+- [x] `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`를 실행한다.
+- [x] `dotnet test Easislides.Wpf.Tests`를 실행한다.
+- [x] `dotnet build Easislides\Easislides.csproj -nologo -v minimal`을 실행한다.
+- [x] WPF MainWindow를 실행하고 startup/layout evidence를 기록한다.
+- [x] 실제 legacy data로 manual UAT checklist를 수행한다.
+- [x] 모든 FAIL 또는 unresolved PARTIAL을 follow-up OpenSpec task 또는 explicit defer로 전환한다.
+- [x] phase complete 표시 전에 final gate evidence를 이 파일에 기록한다.
 
 DoD:
 
@@ -136,3 +150,81 @@ Constraints:
 - blocking regression이 발견되지 않는 한 이 phase는 verification-only다.
 - gate evidence가 기록되기 전에는 change를 archive하지 않는다.
 - gate가 통과하기 전에는 GBrain canonical lessons를 저장하지 않는다. unresolved notes는 non-canonical로 남긴다.
+
+Evidence:
+
+- 2026-06-21 `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict` 통과. 결과: Change is valid.
+- 2026-06-21 `dotnet test Easislides.Wpf.Tests` 통과. 결과: 실패 0, 통과 2417, 건너뜀 0.
+- 2026-06-21 `dotnet build Easislides\Easislides.csproj -nologo -v minimal` 통과. 결과: 오류 0, 경고 35. 주요 경고는 기존 NetOffice NU1701, WindowsDesktop SDK NETSDK1137, DirectShow CA1416, WinForms WFDEV004, Resources CS0649.
+- 2026-06-21 WPF launch smoke 통과. `Easislides.Wpf\bin\Debug\net10.0-windows\EasislidesNext.exe` 실행 결과 `MainWindowTitle=EasiSlides`, `MainWindowHandle=1966334`, UIAutomation `AutomationName=EasiSlides`, `AutomationClassName=Window`, descendant 355개 확인 후 `CloseMainWindow=True`로 정상 종료.
+- 2026-06-21 실제 legacy data smoke 확인. `C:\EasiSlides` 존재, `Admin`, `Backgrounds`, `HolyBibles`, `Images`, `InfoScreens`, `Media`, `Powerpoint` 폴더 확인. WPF UIAutomation에서 `Legacy worship list loaded: 1.주일예배 (23 .esw items)`, `Folders`, `InfoScr`, `Bibles`, `Images`, `Default`, `Worship List`, `Praise Book`, `Preview`, `Output`, `Go Live`, `Output 검은 화면`, `Output 화면 비우기`, `Output 복귀`, `Output 새로고침` 등 주요 first-screen 요소 확인.
+- 2026-06-21 screenshot comparison evidence 추가. 캡처 위치: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/screenshots/2026-06-21/`. 주요 파일: `frmmain-vs-wpf-printwindow-side-by-side.png`, `winforms-frmmain-printwindow-1440x900.png`, `wpf-mainwindow-printwindow-1440x900.png`, `wpf-mainwindow-printwindow-1180x760.png`, `wpf-mainwindow-printwindow-1920x1080.png`.
+- 2026-06-21 screenshot comparison 결과: WPF는 FrmMain처럼 좌상단 source browser, 좌하단 Worship List/Praise Book, 오른쪽 Preview/Output column, bottom preview/output surfaces를 첫 화면에 유지한다. UAT-001, UAT-002, UAT-003, UAT-004는 캡처 증거로 PASS 기록.
+- 2026-06-21 DPI 확인: WPF `MainWindow.xaml`은 `Width=1180`, `Height=760`, `MinWidth=1180`, `MinHeight=760`으로 정의되어 있다. 125% DPI 환경에서 1180x760 logical size가 1475x950 physical capture로 기록되므로, 이 크기 차이는 결함으로 보지 않는다.
+- 2026-06-21 source/list tab screenshot evidence 추가. 캡처 위치: `evidence/screenshots/2026-06-21/tabs/`. 주요 파일: `wpf-source-tabs-contact-sheet.png`, `source-01-folders.png`, `source-02-infoscr.png`, `source-03-bibles.png`, `source-04-images.png`, `source-05-default.png`, `list-01-worship-list.png`, `list-02-praise-book.png`.
+- 2026-06-21 source/list tab UAT 결과: UAT-101 Folders PASS(1개 폴더, 6444개 곡), UAT-131 Bibles PASS(DB 2개, 책/본문/버전 UI 표시), UAT-141 Images PARTIAL(117개 이미지/썸네일은 표시되나 첫 화면 밀도 보정 필요), UAT-161 Default PARTIAL(`Def_*`는 존재하나 first-viewport 순서/밀도 보정 필요), UAT-201/202 Worship List PASS(35개 `.esw`, `1.주일예배` 23개 항목), UAT-211 Praise Book PARTIAL(selector/entry surface는 표시되나 toolbar/list 밀도와 실제 entry population 추가 확인 필요).
+- 2026-06-21 source tab BLOCKED: UAT-111 InfoScr는 `C:\EasiSlides\InfoScreens` 파일 수 0으로 population 검증 불가. UAT-121 PowerPoint와 UAT-151 Media는 현재 설정 `UsePowerPointTab=false`, `UseMediaTab=false`로 탭이 숨겨지고 해당 폴더 파일 수 0이라 실제 데이터 population 검증 불가. XAML에는 `PowerPointSourceTab`, `MediaSourceTab`이 존재한다.
+- 2026-06-21 사용자 지적 반영: Bibles 탭 아래쪽 UI가 FrmMain과 달라 WPF-only `Bibles_AddSelected` 하단 버튼 및 선택 제목/상태 줄을 제거했다. `BibleText` 바로 아래 `TabBibleVersions`가 오는 FrmMain 구조로 재정렬했고, 재캡처 `tabs/source-03-bibles-after-frmmain-bottom-fix.png`에서 `AddButtonVisible=False` 확인. Focused `MainMenuBarTests` 133개 통과.
+- 2026-06-21 Bibles 하단 UI correction 후 전체 `dotnet test Easislides.Wpf.Tests` 재실행 통과. 결과: 실패 0, 통과 2417, 건너뜀 0. `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`도 통과.
+- 2026-06-21 추가 탭 시각 비교 반영: `tabs-compare/compare-02-infoscr.png`, `compare-04-images.png`, `compare-05-default.png`, `compare-06-worship-list.png`, `compare-07-praise-book.png`를 검토했다. Bibles 외에도 Folders의 WPF-only 머리글자 점프 바, Images 첫 화면 썸네일 밀도, Default 첫 화면 `Default Background`/`Display Panel` 순서와 밀도, Praise Book toolbar/list 밀도, Worship List toolbar density 차이를 확인했다.
+- 2026-06-21 Folders visual gap 수정: FrmMain `tabFolders`는 `SongFolder`, `SongsList`, `panelFolders/Folders_WordCount`만 가지므로 WPF-only 머리글자 점프 바를 제거했다. `MainMenuBarTests`에 “머리글자 점프 바 없음” 가드를 추가했고 focused `MainMenuBarTests` 133개 통과. 재캡처: `tabs/source-01-folders-after-initial-strip-fix.png`, `tabs-compare/compare-01-folders-after-initial-strip-fix.png`.
+- 2026-06-21 manual UAT 재분류: visual usability parity가 아직 부족한 UAT-141 Images, UAT-161 Default, UAT-211 Praise Book을 PASS에서 PARTIAL로 내렸다. 이는 기능 surface 존재와 FrmMain 첫 화면 사용성 동일성을 분리하기 위함이다.
+- 2026-06-21 Folders 보정 후 전체 `dotnet test Easislides.Wpf.Tests` 재실행 통과. 결과: 실패 0, 통과 2417, 건너뜀 0. `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`도 통과.
+- 2026-06-21 Go Live screenshot evidence 추가. 주요 파일: `wpf-before-preview-go-live.png`, `wpf-after-preview-go-live.png`, `wpf-live-safety-contact-sheet.png`, `wpf-live-before-safety-actions.png`, `wpf-output-black.png`, `wpf-output-clear.png`, `wpf-output-restore.png`.
+- 2026-06-21 Go Live UAT 결과: UAT-307, UAT-401 PASS. `Preview Go Live` 호출 후 live banner, Worship List LIVE badge, Output header/body, Output large screen이 선택 Preview 항목으로 갱신됨을 캡처로 확인.
+- 2026-06-21 live-safety note: Black/Clear/Restore 버튼 호출 캡처는 남겼지만, 실제 외부 송출 화면의 시각 결과를 직접 관찰하지 않았으므로 UAT-406~UAT-408은 아직 PASS로 처리하지 않는다.
+- 2026-06-21 actual manual UAT 수행 완료. `C:\EasiSlides` 실제 데이터로 WPF MainWindow를 실행하고 `docs/wpf-migration/inventory/frmmain-manual-uat-checklist.md`의 62개 row를 모두 채웠다. 결과: PASS 25, PARTIAL 25, BLOCKED 12, FAIL 0. 상세 evidence: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/manual-uat-summary.md`.
+- 2026-06-21 PARTIAL/BLOCKED 전환 완료. `follow-ups.md`에 PARTIAL 25개를 Follow-Up Tasks로, BLOCKED 12개를 Explicit Defers로 매핑했다. FAIL은 0개.
+- 2026-06-21 final gate evidence 기록 완료. `final-gate-evidence.md`에 OpenSpec validation, WPF tests, WinForms build, WPF launch, actual manual UAT, follow-up/defer register 결과를 요약했다.
+
+### Phase 8: PARTIAL/BLOCKED Closure
+
+Goal: manual UAT에서 남은 PARTIAL 25개와 BLOCKED 12개를 다시 확인하고, 코드로 닫을 수 있는 항목은 WPF MainWindow 구현과 테스트 증거로 닫는다.
+
+Scope:
+
+- `Easislides.Wpf/MainWindow.xaml`
+- WPF converter/tests
+- `docs/wpf-migration/inventory/frmmain-manual-uat-checklist.md`
+- `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/follow-ups.md`
+- `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/final-gate-evidence.md`
+
+Tasks:
+
+- [x] PARTIAL/BLOCKED 항목을 구현 누락, 수동 UAT 증거 부족, 외부 데이터/하드웨어 blocker로 재분류한다.
+- [x] CodeGraph impact/context로 WPF MainWindow 영향 범위를 확인한다.
+- [x] 코드로 닫을 수 있는 visual usability gap(Images, Default, Praise Book)을 FrmMain 첫 화면 밀도에 맞게 보정한다.
+- [x] 이미 구현된 gesture/keyboard/output/live-message 항목은 테스트와 코드 evidence로 PASS 또는 evidence-closed로 재분류한다.
+- [x] 실제 데이터/설정/외부 송출 모니터가 없어서 닫을 수 없는 BLOCKED 항목은 explicit external blocker로 유지하고 완료 불가 사유를 기록한다.
+- [x] focused tests, full WPF tests, OpenSpec validation, 필요 시 WinForms build를 실행하고 evidence를 기록한다.
+
+DoD:
+
+- PARTIAL 25개 각각이 `closed`, `code-fixed`, `evidence-closed`, `external-blocked` 중 하나로 재판정된다.
+- BLOCKED 12개 각각이 코드 결함인지 외부 의존성인지 재판정된다.
+- 코드로 보정한 항목은 자동 테스트가 통과한다.
+- 외부 데이터/하드웨어가 필요한 항목은 완료 불가 조건과 다음 UAT 조건이 명시된다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~LegacyImageThumbnailSizeConverterTests|FullyQualifiedName~FoldersTab_|FullyQualifiedName~ImagesSource|FullyQualifiedName~DefaultTab_|FullyQualifiedName~PraiseBook"`
+- `dotnet test Easislides.Wpf.Tests -v minimal`
+- `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`
+- `dotnet build Easislides\Easislides.csproj -nologo -v minimal`
+
+Constraints:
+
+- 실제 `C:\EasiSlides` 사용자 데이터는 생성/삭제/변경하지 않는다.
+- PowerPoint/Media/InfoScreen/PraiseBook 실제 데이터가 없는 BLOCKED 항목을 임의 샘플 데이터로 PASS 처리하지 않는다.
+- 외부 송출 모니터가 없는 항목은 operator surface 또는 unit test만으로 “완전 PASS”라고 과장하지 않는다.
+
+Evidence:
+
+- 2026-06-21 CodeGraph: `MainWindow` impact 확인. 영향 범위는 WPF shell gesture/visual surface 및 관련 tests 중심.
+- 2026-06-21 코드 보정: `LegacyImageThumbnailSizeConverter` 추가, Images source thumbnail을 compact 3열 sizing으로 분리, Default `Apply` 그룹 상단 이동 및 Text 그룹 높이 제한, Praise Book toolbar compact화 및 status/window row 겹침 수정.
+- 2026-06-21 screenshot evidence: `evidence/screenshots/2026-06-21/phase8/wpf-phase8-images.png`, `wpf-phase8-default-after-density-fix.png`, `wpf-phase8-praise-book-after-row-fix.png`.
+- 2026-06-21 focused tests: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~LegacyImageThumbnailSizeConverterTests|FullyQualifiedName~MainMenuBarTests" -v minimal` 통과. 결과: 실패 0, 통과 137, 건너뜀 0.
+- 2026-06-21 closure report: `evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`. PARTIAL 25개 중 코드 보정 3, 구현/테스트 증거로 닫음 19, 외부 송출 모니터 관찰 필요 3. BLOCKED 12개는 외부 데이터/설정 필요로 유지.
+- 2026-06-21 full WPF tests: `dotnet test Easislides.Wpf.Tests -v minimal` 통과. 결과: 실패 0, 통과 2421, 건너뜀 0.
+- 2026-06-21 OpenSpec validation: `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict` 통과. 결과: Change is valid.
+- 2026-06-21 WinForms build: `dotnet build Easislides\Easislides.csproj -nologo -v minimal` 통과. 결과: 오류 0, 경고 13.

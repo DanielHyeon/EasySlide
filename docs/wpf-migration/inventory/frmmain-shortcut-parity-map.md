@@ -30,9 +30,17 @@ FrmMain 기반 운영자가 예배 송출 중 기대하는 키보드 조작을 W
 - `F5` and `Ctrl+F5` intentionally coexist: the modifier makes refresh distinct from next item.
 - `Space` can also be a media playback key when live media is active; `MainWindow.OnPreviewKeyDown` routes media keys before generic shortcuts.
 
+## Phase 6 Evidence (2026-06-21)
+
+- CodeGraph impact refreshed for `ShortcutRegistry`, `CommandCatalog`, `VerseJumpKeyMap`, `MediaPlayerKeyMap`, and `WorshipListKeyMap`.
+- `MainWindow.OnPreviewKeyDown` routes focused Preview/Output surfaces before global shortcut fallback.
+- `MainWindow.IsTextInputFocused()` blocks final live shortcut routing while the operator is typing in QuickFind, Bible lookup, live message, or editable setting fields.
+- `VerseJumpKeyMap` covers digit and Shift verse mappings (`Shift+B/W/P/Q/T`) without allowing Ctrl/Alt/Win fallthrough.
+- Focused test command passed: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~CommandCatalogTests|FullyQualifiedName~ShortcutRegistryTests|FullyQualifiedName~GlobalInputServiceTests|FullyQualifiedName~VerseJumpKeyMapTests|FullyQualifiedName~MediaPlayerKeyMapTests|FullyQualifiedName~WorshipListKeyMapTests|FullyQualifiedName~BindShortcuts_|FullyQualifiedName~MainWindow_UsesFocusedPreviewOutputKeyboardBeforeGlobalShortcuts|FullyQualifiedName~MainWindow_BlocksGlobalShortcutsWhenTextInputFocused|FullyQualifiedName~MainWindow_PassesShiftToVerseJumpKeyMap"`; result: 108 passed, 0 failed, 0 skipped.
+
 ## Remaining Manual QA
 
 - Confirm `Space` advances worship items when no media playback key route is active.
 - Confirm `Space` controls media playback when a live media item is active and the media router can execute.
 - Confirm `F5`/`F4` global live navigation works while the output window has focus.
-- Confirm text input fields do not cause accidental verse jump; broader live-shortcut text focus behavior remains a follow-up candidate.
+- Confirm text input fields do not cause accidental verse jump on the running WPF shell; automated guards already cover the text-input block path.
