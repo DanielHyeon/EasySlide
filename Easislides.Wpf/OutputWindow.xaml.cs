@@ -787,10 +787,8 @@ public partial class OutputWindow : Window, IOutputSurface
 
     public void ApplyPlacement(OutputWindowPlacement placement)
     {
-        Left = placement.Left;
-        Top = placement.Top;
-        Width = placement.Width;
-        Height = placement.Height;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        WindowState = WindowState.Normal;
 
         if (placement.IsWindowed)
         {
@@ -798,6 +796,10 @@ public partial class OutputWindow : Window, IOutputSurface
             ResizeMode = ResizeMode.CanResize;
             Topmost = false;
             ShowInTaskbar = true;
+            Left = placement.Left;
+            Top = placement.Top;
+            Width = placement.Width;
+            Height = placement.Height;
             return;
         }
 
@@ -805,17 +807,23 @@ public partial class OutputWindow : Window, IOutputSurface
         ResizeMode = ResizeMode.NoResize;
         Topmost = true;
         ShowInTaskbar = false;
+        Left = placement.Left;
+        Top = placement.Top;
+        Width = placement.Width;
+        Height = placement.Height;
     }
 
     public new void Show()
     {
         if (_shown)
         {
+            Activate();
             return;
         }
 
         base.Show();
         _shown = true;
+        Activate();
     }
 
     public new void Close()

@@ -5106,10 +5106,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (_session.Current.State == LiveState.Active)
         {
-            var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+            var display = _output.Current.Display ?? OutputDisplay.PrimaryFallback;
+            var monitorName = display.Name;
             var updated = item with { SlideNumber = target };
             _session.GoLive(ResolveLiveProjection(updated, OutputPowerPoint), monitorName);
-            StartPowerPointSlideShowForLive(updated, monitorName);
+            StartPowerPointSlideShowForLive(updated, GetPowerPointOutputMonitorName(display));
         }
         else if (_session.Current.State == LiveState.Hidden)
         {
@@ -5790,25 +5791,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem? GetOutputLiveStartItem()
         => OutputItem ?? Queue.FirstOrDefault();
 
-    private async Task GoLiveAsync()
+    private Task GoLiveAsync()
     {
         if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
-            return;
-        }
-
-        var ok = await ConfirmLiveSafetyAsync(
-            MainCommandIds.LiveGo,
-            $"'{item.Title}' 항목을 라이브로 송출할까요?",
-            "선택 항목이 즉시 출력 화면에 표시됩니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
-        if (!ok)
-        {
-            NotifyOutputLiveSafetyProperties();
-            return;
+            return Task.CompletedTask;
         }
 
         PublishSelectedItem();
+        return Task.CompletedTask;
     }
 
     private async Task StartOutputLiveAsync()
@@ -5830,16 +5822,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var ok = await ConfirmLiveSafetyAsync(
-            MainCommandIds.LiveGo,
-            $"'{item.Title}' Output 항목으로 쇼를 시작할까요?",
-            "현재 준비된 Output 항목이 즉시 출력 화면에 표시됩니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
-        if (!ok)
-        {
-            NotifyOutputLiveSafetyProperties();
-            return;
-        }
-
         if (!_output.Current.IsOpen)
         {
             OpenOutput();
@@ -5853,22 +5835,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 상단/메뉴 "송출 후 다음" — 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
     // FrmMain 지역 btnToOutputMoveNext 의 비송출 복사+다음은 CopyPreviewToOutputAndNextCommand 가 담당한다.
-    private async Task SendToOutputAndNextAsync()
+    private Task SendToOutputAndNextAsync()
     {
         if (PreviewItem is not { } item)
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
-            return;
-        }
-
-        var ok = await ConfirmLiveSafetyAsync(
-            MainCommandIds.LiveGo,
-            $"'{item.Title}' 항목을 송출하고 다음 항목으로 넘어갈까요?",
-            "선택 항목이 즉시 출력 화면에 표시되고 선택이 다음 항목으로 이동합니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
-        if (!ok)
-        {
-            NotifyOutputLiveSafetyProperties();
-            return;
+            return Task.CompletedTask;
         }
 
         // 자동 advance 를 끈 채 송출한 뒤(중복 이동 방지), 설정과 무관하게 명시적으로 다음 항목으로 이동.
@@ -5882,6 +5854,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             MovePreviewSelectionToNext(published);
         }
+
+        return Task.CompletedTask;
     }
 
     private async Task StopLiveAsync()
@@ -6102,6 +6076,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return display;
     }
 
+    private static string GetPowerPointOutputMonitorName(OutputDisplay display)
+        => string.IsNullOrWhiteSpace(display.Id) ? display.Name : display.Id;
+
     private async Task<LiveQueueItem?> FindNextNonRotatingPreviewItemAsync()
     {
         var index = GetPreviewSelectionIndex();
@@ -6308,7 +6285,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void PublishOutputItem(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
-        var monitorName = EnsureLiveOutputDisplay().Name;
+        var display = EnsureLiveOutputDisplay();
+        var monitorName = display.Name;
         OutputItem = item;
         SetLiveItemId(item.Id);
         LiveTransposeSemitones = 0;
@@ -6320,7 +6298,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        StartPowerPointSlideShowForLive(projection, monitorName);
+        StartPowerPointSlideShowForLive(projection, GetPowerPointOutputMonitorName(display));
         StatusText = $"LIVE: {item.Title}";
         _telemetry.Record(commandId, succeeded: true, item.Title);
         NotifyCommandStates();
@@ -6553,14 +6531,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task HideOutputAsync(bool blackout)
     {
         var actionName = blackout ? MainCommandIds.LiveBlack : MainCommandIds.LiveHide;
-        var ok = await ConfirmLiveSafetyAsync(
-            actionName,
-            blackout ? "현재 송출을 검은 화면으로 전환할까요?" : "현재 송출을 숨길까요?",
-            "라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
-        if (!ok)
+        if (!blackout)
         {
-            NotifyOutputLiveSafetyProperties();
-            return;
+            var ok = await ConfirmLiveSafetyAsync(
+                actionName,
+                "현재 송출을 숨길까요?",
+                "라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+            if (!ok)
+            {
+                NotifyOutputLiveSafetyProperties();
+                return;
+            }
         }
 
         _session.HideOutput(blackout);
@@ -6791,7 +6772,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var monitorName = EnsureLiveOutputDisplay().Name;
+        var display = EnsureLiveOutputDisplay();
+        var monitorName = display.Name;
         OutputItem = item;
         SetLiveItemId(item.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
         PrepareOutputPowerPointForPublish(item);
@@ -6800,7 +6782,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
         var projection = item with { LyricsPageIndex = GetPreviewLyricsPageIndex(item) };
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        StartPowerPointSlideShowForLive(projection, monitorName);
+        StartPowerPointSlideShowForLive(projection, GetPowerPointOutputMonitorName(display));
         StatusText = $"LIVE: {item.Title}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance && ReferenceEquals(item, SelectedItem))

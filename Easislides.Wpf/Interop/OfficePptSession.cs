@@ -162,6 +162,7 @@ public sealed class OfficePptSession : IDisposable
             }
 
             presentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
+            presentation.SlideShowSettings.StartingSlide = slideNumber;
             var slideShowWindow = TryGetSlideShowWindow(presentation)
                 ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
@@ -202,6 +203,7 @@ public sealed class OfficePptSession : IDisposable
                 throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
             }
 
+            presentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
             var slideShowWindow = TryGetSlideShowWindow(presentation)
                 ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
@@ -252,16 +254,22 @@ public sealed class OfficePptSession : IDisposable
             fullPath,
             MsoTriState.msoFalse,
             MsoTriState.msoFalse,
-            MsoTriState.msoFalse);
+            MsoTriState.msoTrue);
     }
 
     private static SlideShowWindow? TryGetSlideShowWindow(_Presentation presentation)
     {
         try
         {
-            return presentation.SlideShowWindow;
+            var window = presentation.SlideShowWindow;
+            _ = window.View.Slide.SlideIndex;
+            return window;
         }
         catch (COMException)
+        {
+            return null;
+        }
+        catch (InvalidOperationException)
         {
             return null;
         }

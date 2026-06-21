@@ -227,7 +227,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task GoLiveCommand_WhenSafetyPromptDeclines_DoesNotChangeState()
+    public async Task GoLiveCommand_StartsImmediatelyWithoutSafetyPrompt()
     {
         var prompt = new RecordingSafetyPrompt(allow: false);
         var sut = CreateSut(prompt);
@@ -237,10 +237,10 @@ public class MainViewModelTests
 
         await sut.GoLiveCommand.ExecuteAsync(null);
 
-        prompt.Requests.Should().ContainSingle(request => request.ActionName == MainCommandIds.LiveGo);
-        sut.LiveBar.State.Should().Be(LiveState.Off);
-        sut.Session.Current.State.Should().Be(LiveState.Off);
-        sut.StatusText.Should().Be("라이브 안전 확인 취소");
+        prompt.Requests.Should().BeEmpty("Live 버튼은 FrmMain처럼 확인창 없이 즉시 송출해야 한다");
+        sut.LiveBar.State.Should().Be(LiveState.Active);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.StatusText.Should().Contain("LIVE");
     }
 
     [Fact]
@@ -5252,7 +5252,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task BlackScreenCommand_WhenLive_AsksSafetyPromptBeforeChangingState()
+    public async Task BlackScreenCommand_WhenLive_BlacksOutImmediatelyWithoutSafetyPrompt()
     {
         var prompt = new RecordingSafetyPrompt(allow: false);
         var sut = CreateSut(prompt);
@@ -5266,12 +5266,7 @@ public class MainViewModelTests
 
         await sut.BlackScreenCommand.ExecuteAsync(null);
 
-        prompt.Requests.Should().ContainSingle();
-        sut.LiveBar.State.Should().Be(LiveState.Active, "사용자가 취소하면 live 상태가 보존되어야 한다");
-
-        prompt.Allow = true;
-        await sut.BlackScreenCommand.ExecuteAsync(null);
-
+        prompt.Requests.Should().BeEmpty("Black 화면은 FrmMain처럼 확인창 없이 즉시 실행해야 한다");
         sut.LiveBar.State.Should().Be(LiveState.Hidden);
         sut.Session.Current.IsBlackout.Should().BeTrue();
     }
@@ -5817,7 +5812,7 @@ public class MainViewModelTests
         await sut.GoLiveCommand.ExecuteAsync(null);
 
         slideShow.StartRequests.Should().ContainSingle().Which.Should().Be(
-            (new PowerPointSlideShowRequest("live.pptx", 1, PowerPointSlideShowTarget.Output), "Projector"));
+            (new PowerPointSlideShowRequest("live.pptx", 1, PowerPointSlideShowTarget.Output), "projector"));
         sut.Session.Current.State.Should().Be(LiveState.Active);
         sut.OutputPowerPoint.SlideNumber.Should().Be(1);
     }
@@ -5844,8 +5839,8 @@ public class MainViewModelTests
         await sut.NextOutputSlideCommand.ExecuteAsync(null);
 
         slideShow.StartRequests.Should().Equal(
-            (new PowerPointSlideShowRequest("live.pptx", 1, PowerPointSlideShowTarget.Output), OutputDisplay.PrimaryFallback.Name),
-            (new PowerPointSlideShowRequest("live.pptx", 2, PowerPointSlideShowTarget.Output), OutputDisplay.PrimaryFallback.Name));
+            (new PowerPointSlideShowRequest("live.pptx", 1, PowerPointSlideShowTarget.Output), OutputDisplay.PrimaryFallback.Id),
+            (new PowerPointSlideShowRequest("live.pptx", 2, PowerPointSlideShowTarget.Output), OutputDisplay.PrimaryFallback.Id));
         sut.OutputPowerPoint.SlideNumber.Should().Be(2);
         sut.Session.Current.CurrentItemPositionLabel.Should().Be("2/3");
     }
