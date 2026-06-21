@@ -45,3 +45,10 @@
 - [x] 7.3 `IPowerPointSlideShowControl`에 종료 API를 추가하고 Office 구현이 SlideShow와 PowerPoint application을 닫게 한다.
 - [x] 7.4 `StopLiveAsync`가 사용자 확인 후 PowerPoint 종료를 기다리고, 실패해도 Live 세션은 안전하게 Off로 전환하게 한다.
 - [x] 7.5 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.
+
+## 8. Phase 7 - Text/Bible Live 본문 공백 폴백
+
+- [x] 8.1 Text/Notice와 Bible Live 경로가 빈 본문을 만들 수 있는 지점을 재점검한다.
+- [x] 8.2 Notice 본문 없음, Bible 본문 확장 실패, GoLiveCommand Text/Bible 송출 경로에 회귀 테스트를 추가한다.
+- [x] 8.3 `LiveSessionService`와 `MainViewModel` Output 표면 본문 계산이 같은 폴백 규칙을 쓰도록 정렬한다.
+- [x] 8.4 집중 테스트, 전체 WPF 테스트, OpenSpec 검증, WinForms 빌드, WPF Release 배포를 수행한다.

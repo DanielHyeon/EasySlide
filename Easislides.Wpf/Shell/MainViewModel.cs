@@ -1779,7 +1779,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var body = Bible.ExpandSelectionBody(selection.IdString);
         return new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible)
         {
-            Lyrics = body,
+            Lyrics = string.IsNullOrWhiteSpace(body) ? selection.Title : body,
         };
     }
 
@@ -5384,7 +5384,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (LiveItemKindMatcher.IsNotice(item.Kind))
         {
-            return item.Lyrics ?? string.Empty;
+            return TextOrTitle(item.Lyrics, item.Title);
+        }
+
+        if (LiveItemKindMatcher.IsBible(item.Kind) && string.IsNullOrWhiteSpace(item.Lyrics))
+        {
+            return item.Title;
         }
 
         if (!IsLyricsPaginated(item))
@@ -5405,13 +5410,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (LyricsDisplayFormatter.HasRegion2(guarded))
             {
                 var page = LyricsDisplayFormatter.GetRegionPage(guarded, projected.LyricsPageIndex, projected.Sequence);
-                return JoinOutputBodyText(
+                return TextOrTitle(JoinOutputBodyText(
                     LyricsDisplayFormatter.UnguardLiteralNotation(page.Region1),
-                    LyricsDisplayFormatter.UnguardLiteralNotation(page.Region2));
+                    LyricsDisplayFormatter.UnguardLiteralNotation(page.Region2)),
+                    projected.Title);
             }
 
-            return LyricsDisplayFormatter.UnguardLiteralNotation(
-                LyricsDisplayFormatter.GetVersePage(guarded, projected.LyricsPageIndex, projected.Sequence));
+            return TextOrTitle(
+                LyricsDisplayFormatter.UnguardLiteralNotation(
+                    LyricsDisplayFormatter.GetVersePage(guarded, projected.LyricsPageIndex, projected.Sequence)),
+                projected.Title);
         }
 
         var lyrics = LyricsDisplayFormatter.ExpandNotations(
@@ -5426,6 +5434,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         return LyricsDisplayFormatter.GetVersePage(lyrics, projected.LyricsPageIndex, projected.Sequence);
     }
+
+    private static string TextOrTitle(string? text, string title)
+        => string.IsNullOrWhiteSpace(text) ? title : text;
 
     private LiveQueueItem? GetLiveLyricsItem()
         => Queue.FirstOrDefault(item =>

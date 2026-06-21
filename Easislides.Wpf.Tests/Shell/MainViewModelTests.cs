@@ -243,6 +243,42 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLiveCommand_TextItem_PublishesLiteralBodyToOutput()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = sut.AddTextItem("예배 안내\n2부 예배 후 주차장을 비워 주세요");
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = item;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemKind.Should().Be(LiveItemKinds.Notice);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("예배 안내\n2부 예배 후 주차장을 비워 주세요");
+        sut.OutputLyricsText.Should().Be("예배 안내\n2부 예배 후 주차장을 비워 주세요");
+    }
+
+    [Fact]
+    public async Task GoLiveCommand_BibleWithoutExpandedBody_PublishesReferenceInsteadOfBlankOutput()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("0;krv.db;;43;3;16;3;16;", "요한복음 3:16", LiveItemKinds.Bible)
+        {
+            Lyrics = "",
+        };
+        sut.LoadQueue([item]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = item;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemKind.Should().Be(LiveItemKinds.Bible);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("요한복음 3:16");
+        sut.OutputLyricsText.Should().Be("요한복음 3:16");
+    }
+
+    [Fact]
     public async Task GoLiveCommand_WhenAdvanceNextItemEnabled_PublishesCurrentAndSelectsNext()
     {
         using var settingsFolder = TempSettingsFolder.Create();

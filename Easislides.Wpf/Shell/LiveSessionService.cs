@@ -266,14 +266,14 @@ public sealed class LiveSessionService : ILiveSessionService
         // 가사 포맷터를 건너뛰고 입력 그대로 본문으로 송출한다(마커 손상·빈 화면 false-positive 방지).
         if (LiveItemKindMatcher.IsNotice(item.Kind))
         {
-            return item.Lyrics ?? string.Empty;
+            return TextOrTitle(item.Lyrics, item.Title);
         }
 
         // 성경 본문은 가사 코드 마커(») 규약을 쓰지 않는다 — 코드 전처리(ExpandNotations)를 건너뛰고,
         // 일부 번역의 인용부호 »…« 가 코드 마커로 오인돼 잘리지 않게 보호한 채 절만 나눈다.
         if (LiveItemKindMatcher.IsBible(item.Kind))
         {
-            return ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: false);
+            return TextOrTitle(ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: false), item.Title);
         }
 
         // "코드 표시" on 이면 가사 위에 코드 줄을 끼운 전처리 가사를, off 면 원시 가사 그대로(무회귀)를 쓴다.
@@ -407,6 +407,9 @@ public sealed class LiveSessionService : ILiveSessionService
             LyricsAlertMessage = string.Empty,
         });
     }
+
+    private static string TextOrTitle(string? text, string title)
+        => string.IsNullOrWhiteSpace(text) ? title : text;
 
     // 화면 비우기(레거시 LiveClear) — 콘텐츠는 감추되 배경은 유지(완전 검정인 Black 과 구별).
     // State=Hidden + IsCleared=true 로 두어 출력 렌더러가 Cleared 씬(배경만)으로 해석한다.

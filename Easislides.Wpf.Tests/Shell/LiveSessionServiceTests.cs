@@ -91,6 +91,18 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void GoLive_NoticeWithoutLyrics_UsesTitleFallbackInsteadOfBlankScreen()
+    {
+        var sut = new LiveSessionService();
+        var item = new LiveQueueItem("text-empty", "예배 안내", LiveItemKinds.Notice);
+
+        sut.GoLive(item, "모니터 1");
+
+        sut.Current.CurrentItemBodyText.Should().Be("예배 안내");
+        sut.Current.CurrentItemBodyText2.Should().BeEmpty();
+    }
+
+    [Fact]
     public void HideOutput_MarksSessionHiddenWithoutForgettingCurrentItem()
     {
         var sut = new LiveSessionService();
@@ -305,6 +317,22 @@ public class LiveSessionServiceTests
         sut.GoLive(item, "모니터 2");
 
         sut.Current.CurrentItemBodyText.Should().Be("1:1 In the beginning"); // 첫 절.
+    }
+
+    [Fact]
+    public void GoLive_WithBibleItemEmptyBody_UsesReferenceFallbackInsteadOfBlankScreen()
+    {
+        // 성경 DB/작업 폴더 문제로 본문 확장이 실패해도 회중 화면을 빈 화면으로 만들지 않는다.
+        var item = new LiveQueueItem("0;krv.db;;43;3;16;3;16;", "요한복음 3:16", LiveItemKinds.Bible)
+        {
+            Lyrics = "",
+        };
+        var sut = new LiveSessionService();
+
+        sut.GoLive(item, "모니터 1");
+
+        sut.Current.CurrentItemBodyText.Should().Be("요한복음 3:16");
+        sut.Current.CurrentItemBodyText2.Should().BeEmpty();
     }
 
     [Fact]

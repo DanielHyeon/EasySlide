@@ -170,3 +170,63 @@ dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\
 - 조치: 해당 WPF 앱 프로세스를 종료한 뒤 재시도.
 - 최종 결과: 통과
 - 배포 위치: `C:\EasiSlides\EasislidesNext`
+
+## 2026-06-22 후속 UAT 이슈: Text/Bible 본문 Live 미표시
+
+사용자 실제 UAT에서 텍스트와 성경 문구가 여전히 Live 송출 화면에 나타나지 않는 문제가 보고되어 같은 change의 Phase 7로 후속 처리했다.
+
+### 추가 원인
+
+- Text/Notice 항목은 자유 텍스트 본문이 비어 있으면 Live 본문도 빈 문자열이 되어 출력 렌더러가 본문 없음으로 판단할 수 있었다.
+- 성경 항목 생성부 주석은 본문 확장 실패 시 제목 폴백을 의도하고 있었지만 실제 코드는 `Lyrics = body`만 저장했다.
+- 성경 DB/작업 폴더/본문 확장 실패 시 `Bible.ExpandSelectionBody(...)`가 빈 문자열을 반환하면 Live session과 Output 표면 텍스트가 모두 빈 상태가 될 수 있었다.
+
+### 추가 수정
+
+- `LiveSessionService`의 Notice/Bible 본문 계산에 `TextOrTitle` 폴백을 적용해 빈 Live 본문을 방지했다.
+- `MainViewModel.CreateBibleItem`이 성경 본문 확장 실패 시 선택 제목(예: `요한복음 3:16`)을 `Lyrics`에 저장하도록 수정했다.
+- `MainViewModel.BuildOutputSurfaceText`도 Live session과 같은 폴백 규칙을 사용하게 정렬했다.
+
+### 추가 집중 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore --filter "FullyQualifiedName~GoLive_NoticeWithoutLyrics_UsesTitleFallbackInsteadOfBlankScreen|FullyQualifiedName~GoLive_WithBibleItemEmptyBody_UsesReferenceFallbackInsteadOfBlankScreen|FullyQualifiedName~GoLiveCommand_TextItem_PublishesLiteralBodyToOutput|FullyQualifiedName~GoLiveCommand_BibleWithoutExpandedBody_PublishesReferenceInsteadOfBlankOutput" -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 4개
+
+### 추가 전체 WPF 테스트
+
+```powershell
+dotnet test Easislides.Wpf.Tests --no-restore -v minimal
+```
+
+- 결과: 통과
+- 테스트 수: 2,441개
+
+### 추가 OpenSpec 검증
+
+```powershell
+openspec validate a011-wpf-live-output-flow-recovery --strict
+```
+
+- 결과: 통과
+
+### 추가 WinForms 빌드
+
+```powershell
+dotnet build Easislides\Easislides.csproj -nologo -v minimal
+```
+
+- 결과: 통과
+- 경고: 기존 NetOffice/DirectShow/WinForms analyzer 경고 유지
+
+### 추가 WPF 배포
+
+```powershell
+dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -v minimal
+```
+
+- 결과: 통과
+- 배포 위치: `C:\EasiSlides\EasislidesNext`
