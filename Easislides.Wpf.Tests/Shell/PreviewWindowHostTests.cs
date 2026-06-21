@@ -160,6 +160,8 @@ public class PreviewWindowHostTests
 
     private sealed class FakeOutputSurface : IOutputSurface
     {
+        public event EventHandler? Closed;
+
         public OutputWindowViewModel? ViewModel { get; private set; }
         public OutputWindowPlacement? Placement { get; private set; }
         public int ShowCount { get; private set; }
@@ -172,5 +174,7 @@ public class PreviewWindowHostTests
         public void Show() => ShowCount++;
 
         public void Close() => CloseCount++;
+
+        public void RaiseClosed() => Closed?.Invoke(this, EventArgs.Empty);
     }
 }

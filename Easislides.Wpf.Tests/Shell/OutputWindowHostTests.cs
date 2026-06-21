@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
+using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
@@ -105,6 +106,28 @@ public class OutputWindowHostTests
     }
 
     [Fact]
+    public void ExternalSurfaceClose_MarksServiceClosedAndAllowsLiveReopen()
+    {
+        var output = new OutputWindowService();
+        var session = new LiveSessionService();
+        var surfaces = new List<FakeOutputSurface>();
+        using var sut = new OutputWindowHost(output, session, () => CreateSurface(surfaces));
+
+        output.Open(OutputDisplay.PrimaryFallback, windowed: false);
+        surfaces[0].RaiseClosed();
+
+        output.Current.IsOpen.Should().BeFalse("사용자가 출력 창을 직접 닫아도 host/service 상태가 닫힘으로 동기화되어야 한다");
+
+        output.Open(OutputDisplay.PrimaryFallback, windowed: false);
+        session.GoLive(new LiveQueueItem("song-1", "다시 송출"), OutputDisplay.PrimaryFallback.Name);
+
+        surfaces.Should().HaveCount(2);
+        surfaces[1].ShowCount.Should().Be(1);
+        surfaces[1].ViewModel!.State.Should().Be(LiveState.Active);
+        surfaces[1].ViewModel!.CurrentItemTitle.Should().Be("다시 송출");
+    }
+
+    [Fact]
     public void Dispose_UnsubscribesFromServices()
     {
         var output = new OutputWindowService();
@@ -127,6 +150,8 @@ public class OutputWindowHostTests
 
     private sealed class FakeOutputSurface : IOutputSurface
     {
+        public event EventHandler? Closed;
+
         public OutputWindowViewModel? ViewModel { get; private set; }
         public OutputWindowPlacement? Placement { get; private set; }
         public int ShowCount { get; private set; }
@@ -139,6 +164,8 @@ public class OutputWindowHostTests
         public void Show() => ShowCount++;
 
         public void Close() => CloseCount++;
+
+        public void RaiseClosed() => Closed?.Invoke(this, EventArgs.Empty);
     }
 
     private sealed class TempSettingsFolder : IDisposable

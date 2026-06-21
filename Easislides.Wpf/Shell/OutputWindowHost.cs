@@ -8,6 +8,8 @@ public delegate IOutputSurface OutputSurfaceFactory();
 
 public interface IOutputSurface
 {
+    event EventHandler? Closed;
+
     void Bind(OutputWindowViewModel viewModel);
     void ApplyPlacement(OutputWindowPlacement placement);
     void Show();
@@ -28,6 +30,7 @@ public sealed class OutputWindowHost : IOutputWindowHost
     private IOutputSurface? _surface;
     private OutputWindowViewModel? _viewModel;
     private LiveSessionSnapshot _lastSession;
+    private bool _closingSurfaceFromService;
     private bool _disposed;
 
     public OutputWindowHost(
@@ -120,15 +123,51 @@ public sealed class OutputWindowHost : IOutputWindowHost
         _viewModel.ApplySession(_lastSession);
 
         _surface = _surfaceFactory();
+        _surface.Closed += OnSurfaceClosed;
         _surface.Bind(_viewModel);
+    }
+
+    private void OnSurfaceClosed(object? sender, EventArgs e)
+    {
+        if (_surface is null || !ReferenceEquals(sender, _surface))
+        {
+            return;
+        }
+
+        _surface.Closed -= OnSurfaceClosed;
+        _surface = null;
+        _viewModel?.Dispose();
+        _viewModel = null;
+
+        if (!_disposed && !_closingSurfaceFromService && _output.Current.IsOpen)
+        {
+            _output.Close();
+        }
     }
 
     private void CloseSurface()
     {
-        _surface?.Close();
-        _viewModel?.Dispose();
+        var surface = _surface;
+        var viewModel = _viewModel;
+
         _surface = null;
         _viewModel = null;
+
+        if (surface is not null)
+        {
+            surface.Closed -= OnSurfaceClosed;
+            _closingSurfaceFromService = true;
+            try
+            {
+                surface.Close();
+            }
+            finally
+            {
+                _closingSurfaceFromService = false;
+            }
+        }
+
+        viewModel?.Dispose();
     }
 
 }
