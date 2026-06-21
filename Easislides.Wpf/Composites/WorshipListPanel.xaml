@@ -107,7 +107,7 @@
                         Padding="0"
                         ToolTip="Manage Worship Lists"
                         AutomationProperties.Name="Manage Worship Lists"
-                        Margin="0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Settings24" />
                 </Button>
                 <Button x:Name="WL_Add"
@@ -118,7 +118,7 @@
                         Padding="0"
                         ToolTip="Add to Worship List"
                         AutomationProperties.Name="현재 소스 항목을 예배 순서에 추가"
-                        Margin="0">
+                        Margin="0,0,3,0">
                     <ui:SymbolIcon Symbol="Add24" />
                 </Button>
                 <Button x:Name="WL_Open"
@@ -155,6 +155,7 @@
                             <Setter Property="MinHeight" Value="0" />
                             <Setter Property="Padding" Value="0" />
                             <Setter Property="FontSize" Value="16" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
@@ -175,7 +176,7 @@
                         Padding="0"
                         ToolTip="선택 항목을 위로 이동 (Ctrl+Shift+↑)"
                         AutomationProperties.Name="항목 위로 이동 (Ctrl+Shift+Up)"
-                        Margin="0,0,3,0">
+                        Margin="0,0,0,3">
                     <ui:SymbolIcon Symbol="ArrowUp24" />
                 </Button>
                 <Button x:Name="WL_Down"
@@ -187,7 +188,7 @@
                         Padding="0"
                         ToolTip="선택 항목을 아래로 이동 (Ctrl+Shift+↓)"
                         AutomationProperties.Name="항목 아래로 이동 (Ctrl+Shift+Down)"
-                        Margin="0,0,3,0">
+                        Margin="0,0,0,3">
                     <ui:SymbolIcon Symbol="ArrowDown24" />
                 </Button>
                 <Button x:Name="WL_Delete"
@@ -199,12 +200,12 @@
                         Padding="0"
                         ToolTip="선택 항목을 예배 순서에서 제거 (Del)"
                         AutomationProperties.Name="항목 제거 (Delete 키)"
-                        Margin="0,0,3,0">
+                        Margin="0,0,0,3">
                     <ui:SymbolIcon Symbol="Delete24" />
                 </Button>
                 <Separator Width="30"
                            Height="6"
-                           Margin="0,0,3,0" />
+                           Margin="0,1,0,3" />
                 <Button x:Name="WL_Word"
                         Tag="WL_Word"
                         Click="WL_Word_Click"
@@ -214,7 +215,7 @@
                         Padding="0"
                         ToolTip="Generate RTF Document"
                         AutomationProperties.Name="예배 순서 RTF 문서 생성"
-                        Margin="0,0,3,0">
+                        Margin="0,0,0,3">
                     <ui:SymbolIcon Symbol="DocumentArrowDown24" />
                 </Button>
                 <Button x:Name="WL_Notes"
@@ -226,7 +227,7 @@
                         Padding="0"
                         ToolTip="세션 메모 편집"
                         AutomationProperties.Name="세션 메모 편집"
-                        Margin="0,0,3,0">
+                        Margin="0">
                     <ui:SymbolIcon Symbol="Edit24" />
                 </Button>
                 </StackPanel>

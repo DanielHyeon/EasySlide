@@ -482,3 +482,42 @@ Evidence:
 - 2026-06-21 배포본 실행 smoke 통과: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:34:18`.
 - 2026-06-21 WinForms 비교 캡처: `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/winforms-worship-horizontal-toolbar-crop.png`.
 - 2026-06-21 WPF 최종 캡처: `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/wpf-deployed-worship-horizontal-toolbar-crop-final.png`.
+
+### Phase 15: Worship List Toolbar Icon Spacing
+
+Goal: WPF Worship List의 가로 아이콘과 세로 아이콘이 WinForms 기준의 위치와 크기를 유지하면서도 서로 너무 붙어 보이지 않도록 최소 간격을 둔다.
+
+Scope:
+
+- `Easislides.Wpf/Composites/WorshipListPanel.xaml`
+- `Easislides.Wpf.Tests/Composites/WorshipListPanelTests.cs`
+
+Tasks:
+
+- [x] 가로 `WL_Manage`, `WL_Add`, `WL_Open` 버튼은 한 줄 94px band 안에 유지하되 앞의 두 버튼에 오른쪽 3px 간격을 추가했다.
+- [x] 세로 `WL_Up`, `WL_Down`, `WL_Delete`, `WL_Word` 버튼은 22x22 크기를 유지하되 아래쪽 3px 간격을 추가했다.
+- [x] 세로 rail 버튼은 `HorizontalAlignment=Center`로 고정하여 33px rail 안에서 좌우로 치우치지 않게 했다.
+- [x] XAML 구조 테스트에 가로/세로 spacing guard를 추가하여 다시 붙거나 overflow되는 회귀를 막았다.
+- [x] 배포본 실행 캡처로 Worship List 하단 조작부의 실제 렌더링을 확인했다.
+
+DoD:
+
+- 가로 아이콘은 WinForms처럼 한 줄로 유지되며 서로 붙어 보이지 않는다.
+- 세로 아이콘은 WinForms 기준 22x22 크기와 33px rail을 유지하면서 서로 닿지 않는다.
+- 추가 간격으로 인해 가로 toolbar가 두 줄로 wrap되거나 세로 rail이 넓어지지 않는다.
+- focused `WorshipListPanelTests`와 full WPF tests가 통과한다.
+- `C:\EasiSlides\EasislidesNext` 배포본 캡처 증거가 기록된다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter FullyQualifiedName~WorshipListPanelTests --no-restore -v minimal`
+- `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`
+
+Evidence:
+
+- 2026-06-21 코드 보정: `ClassicWorshipListToolStrip1`의 `WL_Manage`, `WL_Add`에 `Margin="0,0,3,0"`을 추가하고 `WL_Open`은 `Margin="0"`으로 유지해 94px 고정 band overflow를 방지했다.
+- 2026-06-21 코드 보정: `ClassicWorshipListToolStrip2` 버튼 style에 `HorizontalAlignment=Center`를 추가하고 세로 버튼 사이에 3px 하단 간격을 부여했다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 22, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2423, 건너뜀 0.
+- 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
+- 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase15-worship-toolbar-spacing/wpf-deployed-worship-toolbar-spacing-crop.png`, LastWriteTime=`2026-06-21 22:41:24`.

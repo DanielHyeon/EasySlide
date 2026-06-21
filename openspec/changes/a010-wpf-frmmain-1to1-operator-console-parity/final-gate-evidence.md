@@ -106,6 +106,18 @@ Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 
 | WinForms screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/winforms-worship-horizontal-toolbar-crop.png` |
 | WPF screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/wpf-deployed-worship-horizontal-toolbar-crop-final.png` |
 
+## Phase 15 Worship List Toolbar Icon Spacing Gate
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Horizontal icon spacing | PASS | `WL_Manage`와 `WL_Add`에 오른쪽 3px 간격을 추가하고 `WL_Open`은 마지막 0px margin으로 유지하여 94px band 안의 한 줄 배치를 보존 |
+| Vertical icon spacing | PASS | `WL_Up/WL_Down/WL_Delete/WL_Word`는 22x22 크기 유지 + 하단 3px 간격, side rail style은 `HorizontalAlignment=Center` |
+| Layout parity guard | PASS | 가로 toolbar wrap 없음, 세로 rail width 33px 유지, WinForms 기준 버튼 수와 순서 유지 |
+| Focused tests | PASS | `WorshipListPanelTests`: 실패 0, 통과 22, 건너뜀 0 |
+| Full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
+| C:\EasiSlides deployment | PASS | `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal` |
+| WPF deployed screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase15-worship-toolbar-spacing/wpf-deployed-worship-toolbar-spacing-crop.png`, LastWriteTime=`2026-06-21 22:41:24` |
+
 ## C:\EasiSlides Deployment Verification
 
 WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고, 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행 검증했다.

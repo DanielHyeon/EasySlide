@@ -244,3 +244,13 @@ Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 - Fix scope: `ClassicWorshipListToolStrip1`을 `ClassicWorshipListSessionStrip` 내부 오른쪽 94px column으로 이동하고, `SessionCombo`는 남는 폭(`*`)을 쓰도록 변경했다. `LoadSelectedWorshipListCommand` 버튼은 이 band에서 제거했다.
 - Test scope: `WorshipListPanelTests`에 `SessionCombo` runtime resize semantics(`Width` 고정 없음, `MinWidth=60`), `ClassicWorshipListToolStrip1` column 위치, 버튼 순서/폭/tooltip guard를 추가했다.
 - 영향 제한: ViewModel command, WorshipList load/reorder/delete/export/notes handlers, DB/Interop/송출 경로는 변경하지 않았다. UI 배치와 XAML 구조 guard만 변경했다.
+
+### Phase 15 Worship List toolbar icon spacing impact (2026-06-21)
+
+사용자 확인으로 Phase 14 이후 가로 아이콘과 세로 아이콘이 서로 너무 붙어 보이는 문제가 남아 있음이 확인됐다.
+
+- Impact surface: `WorshipListPanel.xaml`의 `ClassicWorshipListToolStrip1`/`ClassicWorshipListToolStrip2` XAML layout 속성만 변경했다.
+- Horizontal change: `WL_Manage`, `WL_Add`에 오른쪽 3px margin을 추가하고 `WL_Open`은 마지막 버튼으로 0px margin을 유지했다. 총 폭은 `29+3+29+3+29=93`으로 94px band 안에 남아 wrap을 유발하지 않는다.
+- Vertical change: 22x22 세로 버튼의 크기는 유지하고 버튼 사이에 하단 3px margin을 추가했다. rail style은 `HorizontalAlignment=Center`로 고정하여 33px rail 안의 중앙 정렬을 유지한다.
+- Test scope: `WorshipListPanelTests`에 horizontal margin, final button no-overflow margin, vertical margin, centered side rail style guard를 추가했다.
+- 영향 제한: ViewModel command, WorshipList 데이터, DB, Office Interop, PPT/이미지 렌더링, 실제 송출 경로는 변경하지 않았다. 변경은 시각적 간격과 XAML 구조 테스트에 한정된다.

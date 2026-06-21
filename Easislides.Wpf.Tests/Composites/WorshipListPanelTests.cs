@@ -122,22 +122,31 @@ public class WorshipListPanelTests
         compactButtonStyle.Descendants().Where(e => e.Name.LocalName == "Setter")
             .Should().Contain(s => Attr(s, "Property") == "MinHeight" && Attr(s, "Value") == "0",
                 "the side rail buttons should remain compact like ToolStripButton 22x22");
+        compactButtonStyle.Descendants().Where(e => e.Name.LocalName == "Setter")
+            .Should().Contain(s => Attr(s, "Property") == "HorizontalAlignment" && Attr(s, "Value") == "Center",
+                "the side rail buttons should stay centered when a small vertical gap is added");
         var moveUpButton = itemToolStrip.Descendants().Single(
             e => e.Name.LocalName == "Button" && Attr(e, "Command").Contains("MoveSelectedItemUpCommand"));
         Attr(moveUpButton, "Width").Should().Be("22",
             "FrmMain WL_Up is a fixed 22px ToolStripButton");
         Attr(moveUpButton, "Height").Should().Be("22",
             "FrmMain WL_Up is a fixed 22px ToolStripButton");
+        Attr(moveUpButton, "Margin").Should().Be("0,0,0,3",
+            "vertical Worship List toolbar buttons need a small bottom gap so icons do not visually touch");
         var wlManage = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Manage");
         Attr(wlManage, "Tag").Should().Be("WL_Manage", "FrmMain WL_Manage role should be visible in the lower-left toolbar");
         Attr(wlManage, "Click").Should().Be("WL_Manage_Click", "FrmMain WL_Manage should open the worship-list manager from the lower-left toolbar");
         Attr(wlManage, "Width").Should().Be("29", "FrmMain WL_Manage is a 29px horizontal ToolStrip item");
         Attr(wlManage, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
+        Attr(wlManage, "Margin").Should().Be("0,0,3,0",
+            "horizontal Worship List toolbar icons need a small right gap while staying in one WinForms-like row");
         Attr(wlManage, "AutomationProperties.Name").Should().Be("Manage Worship Lists");
         var wlAdd = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Add");
         Attr(wlAdd, "Click").Should().Be("WL_Add_Click", "FrmMain WL_Add should route the current source selection to Worship List");
         Attr(wlAdd, "Width").Should().Be("29", "FrmMain WL_Add is a 29px horizontal ToolStrip item");
         Attr(wlAdd, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
+        Attr(wlAdd, "Margin").Should().Be("0,0,3,0",
+            "horizontal Worship List toolbar icons need a small right gap while staying in one WinForms-like row");
         Attr(wlAdd, "ToolTip").Should().Be("Add to Worship List");
         Attr(wlAdd, "AutomationProperties.Name").Should().Contain("예배 순서에 추가");
         var wlOpen = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Open");
@@ -145,6 +154,8 @@ public class WorshipListPanelTests
         Attr(wlOpen, "Click").Should().Be("WL_Open_Click", "FrmMain WL_Open should open external files from the lower-left toolbar");
         Attr(wlOpen, "Width").Should().Be("29", "FrmMain WL_Open is a 29px horizontal ToolStrip item");
         Attr(wlOpen, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
+        Attr(wlOpen, "Margin").Should().Be("0",
+            "the final horizontal icon should not overflow the fixed 94px toolbar strip");
         Attr(wlOpen, "ToolTip").Should().Be("Add External Document to Worship List");
         Attr(wlOpen, "AutomationProperties.Name").Should().Contain("외부 파일");
         var wlWord = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Word");
