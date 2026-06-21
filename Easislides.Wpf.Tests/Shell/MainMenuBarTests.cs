@@ -675,9 +675,9 @@ public class MainMenuBarTests
         var mainViewModel = MainViewModelCode;
         xaml.Should().Contain("x:Key=\"LegacyPowerPointThumbnailSize\"",
             "PPT thumbnail sizing should be pinned to the FrmMain three-column formula");
-        mainViewModel.Should().Contain("private const int PptThumbnailWidth = 4096",
-            "Preview/Output thumbnail source images should be rendered at high-resolution 4:3 before WPF downscales them");
-        mainViewModel.Should().Contain("private const int PptThumbnailHeight = 3072",
+        mainViewModel.Should().Contain("private const int PptThumbnailWidth = Rendering.LegacyPowerPointImageSize.Width",
+            "Preview/Output thumbnail source images should use FrmMain's 640x480 PowerPoint export contract");
+        mainViewModel.Should().Contain("private const int PptThumbnailHeight = Rendering.LegacyPowerPointImageSize.Height",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
         mainViewModel.Should().Contain("HasLowResolutionPowerPointThumbnails(viewModel)",
             "same-deck thumbnail strips should still reload if an older low-resolution render is present");
@@ -706,7 +706,7 @@ public class MainMenuBarTests
             pane.Should().Contain("Stretch=\"Uniform\"",
                 "the exported slide image should fit inside the legacy 4:3 thumbnail canvas");
             pane.Should().Contain("RenderOptions.BitmapScalingMode=\"HighQuality\"",
-                "WPF should downscale the high-resolution PPT export cleanly instead of nearest-neighbor blurring");
+                "WPF should scale FrmMain-sized PPT exports cleanly instead of nearest-neighbor blurring");
             pane.Should().Contain("SnapsToDevicePixels=\"True\"",
                 "PPT thumbnail borders/images should land on whole pixels so high-resolution exports do not look softened");
             pane.Should().Contain("UseLayoutRounding=\"True\"",

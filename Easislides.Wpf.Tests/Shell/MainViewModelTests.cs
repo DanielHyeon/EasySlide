@@ -4483,8 +4483,8 @@ public class MainViewModelTests
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
-        render.LastRequest!.PixelWidth.Should().Be(1920);
-        render.LastRequest.PixelHeight.Should().Be(1080);
+        render.LastRequest!.PixelWidth.Should().Be(640);
+        render.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]
@@ -4497,12 +4497,12 @@ public class MainViewModelTests
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
-        render.LastRequest!.PixelWidth.Should().Be(4096);
-        render.LastRequest.PixelHeight.Should().Be(3072);
+        render.LastRequest!.PixelWidth.Should().Be(640);
+        render.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]
-    public async Task SelectingPowerPoint_With4kOutput_ClampsRenderTo1080p()
+    public async Task SelectingPowerPoint_With4kOutput_UsesFrmMainExportSize()
     {
         // 초고해상도(4K) 출력에서 매 선택마다 거대한 JPG 를 만들지 않도록 1080p 로 상한.
         var render = new RecordingPowerPointRenderService();
@@ -4513,12 +4513,12 @@ public class MainViewModelTests
         await sut.ApplySelectedItemContentAsync(
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
-        render.LastRequest!.PixelWidth.Should().Be(1920);
-        render.LastRequest.PixelHeight.Should().Be(1080);
+        render.LastRequest!.PixelWidth.Should().Be(640);
+        render.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]
-    public async Task SelectingPowerPoint_WithNon16by9Output_PreservesAspectRatioWithinBounds()
+    public async Task SelectingPowerPoint_WithNon16by9Output_UsesFrmMainExportSize()
     {
         // 비-16:9(16:10) 출력: 두 축을 따로 자르지 않고 종횡비를 보존하며 1080p 상한 안에 맞춘다.
         var render = new RecordingPowerPointRenderService();
@@ -4531,13 +4531,12 @@ public class MainViewModelTests
 
         var width = render.LastRequest!.PixelWidth;
         var height = render.LastRequest.PixelHeight;
-        width.Should().BeLessThanOrEqualTo(1920);
-        height.Should().BeLessThanOrEqualTo(1080);
-        ((double)width / height).Should().BeApproximately(3840.0 / 2400.0, 0.01, "종횡비(16:10) 보존");
+        width.Should().Be(640);
+        height.Should().Be(480);
     }
 
     [Fact]
-    public async Task OpeningOutput_AfterSelectingPowerPoint_RerendersAtOutputResolution()
+    public async Task OpeningOutput_AfterSelectingPowerPoint_RerendersAtFrmMainExportSize()
     {
         // 항목을 먼저 고르고 출력을 나중에 여는 흐름: 출력 열림 시 현재 PPT 를 출력 해상도로 다시 렌더한다
         // (그렇지 않으면 직전 렌더가 미리보기 크기로 남아 송출이 흐림 — G1.2 후속 완성).
@@ -4546,15 +4545,15 @@ public class MainViewModelTests
         var ppt = new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" };
         sut.LoadQueue(new[] { ppt });
         sut.SelectedItem = ppt; // 출력 닫힘 → FrmMain식 고해상도 Preview 렌더
-        render.LastRequest!.PixelWidth.Should().Be(4096, "출력 닫힘 상태 선택도 고해상도 Preview 렌더");
-        render.LastRequest.PixelHeight.Should().Be(3072, "출력 닫힘 상태 선택은 FrmMain 4:3 고해상도 높이");
+        render.LastRequest!.PixelWidth.Should().Be(640, "PPT preview should use FrmMain's 640x480 export size");
+        render.LastRequest.PixelHeight.Should().Be(480, "PPT preview should use FrmMain's 4:3 export height");
 
         sut.SelectedOutputDisplay = new OutputDisplay("d", "Display", 0, 0, 1920, 1080, 1.0);
         sut.OpenOutputCommand.Execute(null); // 출력 열림 → 현재 PPT 재렌더
         await Task.Yield();
 
-        render.LastRequest!.PixelWidth.Should().Be(1920, "출력 열림 시 출력 해상도로 재렌더");
-        render.LastRequest.PixelHeight.Should().Be(1080);
+        render.LastRequest!.PixelWidth.Should().Be(640, "PPT output rerender should keep FrmMain's 640x480 export size");
+        render.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]
@@ -4770,8 +4769,8 @@ public class MainViewModelTests
             new LiveQueueItem("ppt:1", "Deck", "PowerPoint") { ContentPath = "deck.pptx" });
 
         powerPoint.Thumbnails.Should().HaveCount(3, "덱 슬라이드 수(3)만큼 썸네일 로드");
-        render.LastRequest!.PixelWidth.Should().Be(4096, "PPT thumbnail strips should render a sharp 4:3 source image before WPF downscales");
-        render.LastRequest.PixelHeight.Should().Be(3072);
+        render.LastRequest!.PixelWidth.Should().Be(640, "PPT thumbnail strips should use the same 640x480 source image as FrmMain");
+        render.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]
@@ -4816,8 +4815,8 @@ public class MainViewModelTests
 
         powerPoint.Thumbnails.Should().HaveCount(3, "FrmMain rebuilds the visible flow panel when thumbnails are missing");
         render.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        render.LastRequest!.PixelWidth.Should().Be(4096);
-        render.LastRequest.PixelHeight.Should().Be(3072);
+        render.LastRequest!.PixelWidth.Should().Be(640);
+        render.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]
@@ -4841,8 +4840,8 @@ public class MainViewModelTests
 
         sut.OutputPowerPoint.Thumbnails.Should().HaveCount(3, "Output flowLayoutPowerPoint should refill independently of Preview");
         outputRender.RequestCount.Should().BeGreaterThan(requestCountBeforeReload);
-        outputRender.LastRequest!.PixelWidth.Should().Be(4096);
-        outputRender.LastRequest.PixelHeight.Should().Be(3072);
+        outputRender.LastRequest!.PixelWidth.Should().Be(640);
+        outputRender.LastRequest.PixelHeight.Should().Be(480);
     }
 
     [Fact]

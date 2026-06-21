@@ -51,6 +51,17 @@
 
 Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 반복 full migration으로 덮어쓰지 않고, MainWindow 시작 시 registry-backed runtime settings만 좁게 재동기화한다.
 
+## Phase 11 PPT Resolution And Preview Speed Gate
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| WinForms PPT export baseline | PASS | `OfficeLib/PowerPoint.cs` uses `EXPORT_WIDTH=640`, `EXPORT_HEIGHT=480` |
+| WPF PPT render size parity | PASS | `LegacyPowerPointImageSize` centralizes WPF PPT preview/source/thumbnail render requests to `640x480` |
+| Focused tests | PASS | `PowerPointPreviewViewModelTests|PowerPointLibraryViewModelTests|MainViewModelTests|MainMenuBarTests`: 실패 0, 통과 791, 건너뜀 0 |
+| Full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
+| OpenSpec strict validation | PASS | `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`: Change is valid |
+| C:\EasiSlides deployed publish and launch | PASS | `dotnet publish ... -o C:\EasiSlides\EasislidesNext`; launch smoke `MainWindowTitle=EasiSlides` |
+
 ## C:\EasiSlides Deployment Verification
 
 WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고, 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행 검증했다.

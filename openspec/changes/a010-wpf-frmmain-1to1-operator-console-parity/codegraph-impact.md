@@ -194,6 +194,16 @@ CodeGraph 확인:
 
 ### Phase 10 deployed runtime verification impact (2026-06-21)
 
+### Phase 11 PPT image resolution and preview speed impact (2026-06-21)
+
+사용자 확인으로 WPF PPT 이미지가 WinForms보다 다른 해상도로 보이고 미리보기 체감 속도가 느린 문제가 확인되었다.
+
+- Legacy baseline: `OfficeLib/PowerPoint.cs`의 `EXPORT_WIDTH=640`, `EXPORT_HEIGHT=480`. WinForms는 PPT preview/output dump를 이 크기의 JPG로 만든 뒤 `ImageCanvas`에서 화면 썸네일 크기에 맞춰 그린다.
+- WPF pre-fix behavior: `PowerPointPreviewViewModel`, `PowerPointLibraryViewModel`, `MainViewModel`이 PPT preview/thumbnail 렌더 요청에 `4096x3072` 또는 출력 모니터 해상도 기반 크기를 사용했다.
+- CodeGraph impact: `PowerPointPreviewViewModel` 변경 영향은 `MainViewModel` PPT preview/output slide routing, `PowerPointLibraryViewModel` source preview thumbnails, `MainViewModelTests`, `PowerPointPreviewViewModelTests`, `PowerPointLibraryViewModelTests`, `MainMenuBarTests`에 집중된다.
+- Fix scope: `LegacyPowerPointImageSize`를 추가해 WPF PPT preview/source thumbnail/Preview-Output thumbnail strip 렌더 크기를 `640x480`으로 중앙화했다.
+- Expected effect: Office export와 WPF PNG/JPG decode 대상 픽셀 수가 약 25배 줄어 PowerPoint preview/source thumbnail 체감 지연을 줄이고, WinForms와 같은 PPT 이미지 해상도 기준을 유지한다.
+
 Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 
 - WPF Release publish: `C:\EasiSlides\EasislidesNext`.

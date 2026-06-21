@@ -46,8 +46,8 @@ public sealed partial class PowerPointFileItem : ObservableObject
 /// </summary>
 public sealed partial class PowerPointLibraryViewModel : ObservableObject
 {
-    private const int ThumbnailPixelWidth = 4096;
-    private const int ThumbnailPixelHeight = 3072;
+    private const int ThumbnailPixelWidth = LegacyPowerPointImageSize.Width;
+    private const int ThumbnailPixelHeight = LegacyPowerPointImageSize.Height;
 
     private readonly IPowerPointLibraryService _service;
     private readonly Action<string> _addToQueue;

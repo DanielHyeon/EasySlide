@@ -3506,18 +3506,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"스테이지 모니터 이동: {value.Name}";
     }
 
-    // PPT 렌더 크기 — FrmMain ImageCanvas처럼 고해상도 원본을 렌더한 뒤 화면에서 축소한다.
-    private const int PptPreviewWidth = 4096;
-    private const int PptPreviewHeight = 3072;
+    // PPT 렌더 크기 — FrmMain OfficeLib.PowerPoint의 JPG export 크기(640x480)에 맞춘다.
+    private const int PptPreviewWidth = Rendering.LegacyPowerPointImageSize.Width;
+    private const int PptPreviewHeight = Rendering.LegacyPowerPointImageSize.Height;
 
-    // 출력 창이 열려 있으면 PPT 를 출력 모니터 해상도로 렌더해 송출을 선명하게 한다.
-    // 다만 4K 등 초고해상도에서 매 선택마다 거대한 JPG 를 만드는 비용을 막기 위해 1080p 로 상한.
-    private const int PptMaxRenderWidth = 1920;
-    private const int PptMaxRenderHeight = 1080;
-
-    // 덱 썸네일 스트립 원본은 FrmMain PPT 캔버스와 같은 4:3 고해상도로 렌더링한 뒤 화면에서 축소한다.
-    private const int PptThumbnailWidth = 4096;
-    private const int PptThumbnailHeight = 3072;
+    // 덱 썸네일 스트립 원본도 같은 4:3 export 크기를 사용한다.
+    private const int PptThumbnailWidth = Rendering.LegacyPowerPointImageSize.Width;
+    private const int PptThumbnailHeight = Rendering.LegacyPowerPointImageSize.Height;
 
     private static readonly string[] WorshipOutputMediaExtensions =
     [
@@ -4942,33 +4937,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // PPT 슬라이드 렌더 크기 결정 — 출력 창이 열려 있으면 출력 모니터 해상도(1080p 상한)로 렌더해
-    // GoLive 송출 시 선명하게, 닫혀 있으면 가벼운 미리보기 크기로 렌더한다.
+    // PPT 슬라이드 렌더 크기 결정 — 출력 창 상태와 무관하게 WinForms dump 크기를 유지한다.
     private (int Width, int Height) ResolvePptRenderSize()
     {
-        var current = _output.Current;
-        if (current.IsOpen && current.Display is { } display)
-        {
-            var width = (int)Math.Round(display.Width);
-            var height = (int)Math.Round(display.Height);
-            if (width >= 1 && height >= 1)
-            {
-                // 1080p 상한 — 단, 두 축을 따로 자르면 비-16:9(16:10·울트라와이드) 출력에서
-                // 종횡비가 틀어져 선명도가 되레 나빠진다. 그래서 한 축 기준이 아니라 더 빡빡한 쪽
-                // 비율로 두 축을 함께 축소해 종횡비를 보존한다(상한보다 작으면 그대로 유지).
-                var scale = Math.Min(
-                    (double)PptMaxRenderWidth / width,
-                    (double)PptMaxRenderHeight / height);
-                if (scale < 1.0)
-                {
-                    width = Math.Max(1, (int)Math.Round(width * scale));
-                    height = Math.Max(1, (int)Math.Round(height * scale));
-                }
-
-                return (width, height);
-            }
-        }
-
         return (PptPreviewWidth, PptPreviewHeight);
     }
 

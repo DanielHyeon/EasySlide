@@ -315,3 +315,44 @@ Evidence:
 - 2026-06-21 screenshots:
   - `evidence/screenshots/2026-06-21/phase10-deployed/wpf-deployed-c-easislidesnext.png`
   - `evidence/screenshots/2026-06-21/phase10-deployed/winforms-c-easislides.png`
+
+### Phase 11: PPT Image Resolution And Preview Speed Parity
+
+Goal: WPF PPT preview/source thumbnails that were rendered at `4096x3072` must match WinForms `OfficeLib.PowerPoint` export behavior (`640x480`) and reduce preview latency.
+
+Scope:
+
+- `Easislides.Wpf/Rendering/PowerPointPreviewViewModel.cs`
+- `Easislides.Wpf/Library/PowerPointLibraryViewModel.cs`
+- `Easislides.Wpf/Shell/MainViewModel.cs`
+- `Easislides.Wpf/Rendering/LegacyPowerPointImageSize.cs`
+- PowerPoint preview/library/MainViewModel/MenuBar tests
+
+Tasks:
+
+- [x] WinForms 기준 PPT export 크기(`OfficeLib.PowerPoint.EXPORT_WIDTH=640`, `EXPORT_HEIGHT=480`)를 확인한다.
+- [x] WPF PPT preview, Preview/Output thumbnail strip, PowerPoint source preview thumbnail 렌더 요청을 `640x480` 기준으로 통일한다.
+- [x] 출력 창이 열려도 PPT 이미지 렌더 기본 크기를 WinForms dump와 같은 `640x480`으로 유지한다.
+- [x] 기존 `4096x3072` 고해상도 렌더 기대 테스트를 `640x480` WinForms parity 테스트로 갱신한다.
+- [x] focused PowerPoint/MainWindow 테스트를 실행한다.
+
+DoD:
+
+- WPF는 PPT 미리보기/썸네일 생성 시 더 이상 `4096x3072` 이미지를 요청하지 않는다.
+- PPT 렌더 크기 계약은 `LegacyPowerPointImageSize.Width=640`, `Height=480`으로 중앙화된다.
+- PowerPoint source preview와 Preview/Output thumbnail strip은 동일한 레거시 크기 계약을 사용한다.
+- 기존 thumbnail cache key는 pixel size를 포함하므로 새 `640x480` 렌더와 과거 `4096x3072` 캐시가 충돌하지 않는다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~PowerPointPreviewViewModelTests|FullyQualifiedName~PowerPointLibraryViewModelTests|FullyQualifiedName~MainViewModelTests|FullyQualifiedName~MainMenuBarTests" -v minimal`
+
+Evidence:
+
+- 2026-06-21 CodeGraph impact: `PowerPointPreviewViewModel` 영향 범위가 WPF PPT preview/thumbnail, `MainViewModel`, 관련 tests 중심임을 확인했다.
+- 2026-06-21 코드 보정: `LegacyPowerPointImageSize`를 추가하고 WPF PPT preview/library/source thumbnail 렌더 요청을 `640x480`으로 통일했다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 791, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2423, 건너뜀 0.
+- 2026-06-21 OpenSpec validation 통과. 결과: `Change is valid`.
+- 2026-06-21 Release publish 통과. 결과: `C:\EasiSlides\EasislidesNext`.
+- 2026-06-21 deployed launch smoke 통과. 결과: `MainWindowTitle=EasiSlides`, `MainWindowHandle=9111326`.
