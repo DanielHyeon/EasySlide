@@ -20,6 +20,11 @@
 | Phase 8 OpenSpec validation | PASS | `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`: Change is valid |
 | Phase 8 WinForms build | PASS | `dotnet build Easislides\Easislides.csproj -nologo -v minimal`: 오류 0, 경고 13 |
 
+| Phase 9 registry runtime sync | PASS | `HKCU\Software\EasiSlides` 확인 후 기존 WPF `settings.json` 존재 시 `current_praisebook` 등 runtime settings가 재반영되지 않는 원인을 수정 |
+| Phase 9 focused settings tests | PASS | `SettingsBootstrapMigrationServiceTests|RegistryLegacySettingsSourceTests`: 실패 0, 통과 8, 건너뜀 0 |
+| Phase 9 full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
+| Phase 9 OpenSpec validation | PASS | `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`: Change is valid |
+
 ## Manual UAT Evidence
 
 - Checklist: `docs/wpf-migration/inventory/frmmain-manual-uat-checklist.md`
@@ -35,6 +40,12 @@
 - Visual usability follow-up: Images thumbnail density, Default first-viewport density/order, Praise Book toolbar/list density.
 - External output hardware follow-up: black/clear/hide/restore 및 shortcut 결과의 실제 송출 모니터 확인.
 - Source/config defers: InfoScreen 직접 폴더, PowerPoint/Media source tab 옵션과 경로, PraiseBook 선택 책. 운영 PPT/Media는 `C:\EasiSlides\Documents` 바로가기 대상인 `D:\예배자료`에 존재함을 후속 확인했다.
+
+## Registry Runtime Settings Correction
+
+사용자 확인에 따라 `HKCU\Software\EasiSlides`를 재검토했다. WPF는 `RegistryLegacySettingsSource`와 legacy settings map을 이미 가지고 있었지만, `%APPDATA%\EasislidesNext\settings.json`이 존재하면 bootstrap migration이 skip되어 `current_praisebook`, `current_session`, `UsePowerpointTab`, `UseMediaTab`, `media_dir` 같은 FrmMain runtime settings가 재반영되지 않았다.
+
+Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 반복 full migration으로 덮어쓰지 않고, MainWindow 시작 시 registry-backed runtime settings만 좁게 재동기화한다.
 
 ## Warning Notes
 

@@ -229,3 +229,40 @@ Evidence:
 - 2026-06-21 full WPF tests: `dotnet test Easislides.Wpf.Tests -v minimal` 통과. 결과: 실패 0, 통과 2421, 건너뜀 0.
 - 2026-06-21 OpenSpec validation: `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict` 통과. 결과: Change is valid.
 - 2026-06-21 WinForms build: `dotnet build Easislides\Easislides.csproj -nologo -v minimal` 통과. 결과: 오류 0, 경고 13.
+
+### Phase 9: Legacy Registry Runtime Settings Sync
+
+Goal: `HKCU\Software\EasiSlides` 레지스트리에 있는 FrmMain 런타임 설정이 WPF `settings.json` 존재 여부와 무관하게 MainWindow 시작 시 반영되도록 한다.
+
+Scope:
+
+- `Easislides.Wpf/Settings/SettingsBootstrapMigrationService.cs`
+- `Easislides.Wpf.Tests/Settings/SettingsBootstrapMigrationServiceTests.cs`
+- registry-backed runtime keys: `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`
+
+Tasks:
+
+- [x] `HKCU\Software\EasiSlides` 실제 값을 확인한다.
+- [x] 기존 WPF `settings.json`이 있으면 full migration이 skip되어 `current_praisebook` 등 런타임 선택값이 반영되지 않는 원인을 확인한다.
+- [x] 기존 WPF 작업 폴더를 덮어쓰지 않으면서 FrmMain 런타임 선택값과 source tab 표시 설정만 재동기화한다.
+- [x] 기존 skip 테스트를 registry runtime refresh 테스트로 갱신한다.
+- [x] focused settings tests를 실행한다.
+
+DoD:
+
+- WPF 설정 파일이 이미 있어도 `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`가 레지스트리에서 갱신된다.
+- 기존 WPF `WorkingFolder`는 반복 full migration으로 덮어쓰지 않는다.
+- invalid legacy bool 값은 경고로 기록하고 startup을 막지 않는다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~SettingsBootstrapMigrationServiceTests|FullyQualifiedName~RegistryLegacySettingsSourceTests" -v minimal`
+
+Evidence:
+
+- 2026-06-21 registry 확인: `HKCU\Software\EasiSlides\config`에 `root_directory=C:\EasiSlides\`, `current_session=1.주일예배`, `current_praisebook=PraiseBook 1`, `media_dir=C:\EasiSlides\Media\`가 존재한다. `HKCU\Software\EasiSlides\options`에 `UsePowerpointTab=0`, `UseMediaTab=0`, `PowerpointMaxFiles=20`이 존재한다.
+- 2026-06-21 원인 확인: `%APPDATA%\EasislidesNext\settings.json`이 이미 존재하면 `SettingsBootstrapMigrationService.MigrateIfNeededAsync()`가 기존에는 `null`을 반환하여 registry-backed runtime settings를 재반영하지 않았다. 실제 WPF 설정 파일의 `Data.CurrentPraiseBookName`은 빈 값이었다.
+- 2026-06-21 코드 보정: 기존 설정 파일이 있으면 full migration은 반복하지 않고 `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`만 재동기화하도록 변경했다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 8, 건너뜀 0.
+- 2026-06-21 full WPF tests 재실행 통과. `dotnet test Easislides.Wpf.Tests -v minimal` 결과: 실패 0, 통과 2423, 건너뜀 0.
+- 2026-06-21 OpenSpec validation 재실행 통과. `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict` 결과: Change is valid.

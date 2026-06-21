@@ -32,6 +32,21 @@ manual UAT에서 남은 PARTIAL 25개와 BLOCKED 12개를 다시 확인했다.
 
 ## 코드 보정 완료
 
+## 레지스트리 런타임 설정 재검토
+
+사용자 확인에 따라 `HKCU\Software\EasiSlides`를 재검토했다.
+
+- `config/root_directory`: `C:\EasiSlides\`
+- `config/current_session`: `1.주일예배`
+- `config/current_praisebook`: `PraiseBook 1`
+- `config/media_dir`: `C:\EasiSlides\Media\`
+- `options/UsePowerpointTab`: `0`
+- `options/UseMediaTab`: `0`
+
+WPF에는 `RegistryLegacySettingsSource`와 legacy setting map이 이미 존재했지만, `%APPDATA%\EasislidesNext\settings.json`이 있으면 bootstrap migration이 skip되어 runtime registry settings가 재반영되지 않았다. 실제 WPF 설정 파일에서는 `Data.CurrentPraiseBookName`이 빈 값이었다.
+
+Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 반복 full migration으로 덮어쓰지 않고, `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`만 시작 시 재동기화한다.
+
 | UAT | 조치 | 증거 |
 | --- | --- | --- |
 | UAT-141 Images 탭 | PowerPoint용 큰 썸네일 sizing과 분리해 `LegacyImageThumbnailSizeConverter`를 추가하고 Images 탭은 좁은 source rail에서 3열 compact thumbnail을 사용하도록 수정했다. | `wpf-phase8-images.png`, `LegacyImageThumbnailSizeConverterTests` |

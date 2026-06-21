@@ -36,6 +36,14 @@
 | Media source config | UAT-151, UAT-152 | `UseMediaTab=true` 및 source 경로 재검증 | 운영 Media는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UseMediaTab=false`, `C:\EasiSlides\Media` 직접 폴더 파일 수 0 |
 | PraiseBook selection | UAT-212, UAT-213 | `주일예배.esp` 등 실제 항목이 있는 책을 선택해 add/delete/export UAT 재수행 | `C:\EasiSlides\Admin\PraiseBooks`에 `.esp` 2개 존재. 현재 선택값 `PraiseBook 1`은 빈/헤더 중심 책으로 관찰됨 |
 
+## Phase 9 Registry Runtime Sync Update
+
+`HKCU\Software\EasiSlides` 재검토 결과, WPF의 기존 설정 파일이 있으면 registry-backed runtime settings가 재반영되지 않는 코드 원인이 확인되어 수정했다.
+
+- `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`는 다음 WPF 시작부터 레지스트리 기준으로 재동기화된다.
+- 현재 레지스트리 값 자체가 `UsePowerpointTab=0`, `UseMediaTab=0`이면 PowerPoint/Media tab 숨김은 FrmMain과 동일한 현재 설정 상태다.
+- PraiseBook은 `current_praisebook=PraiseBook 1`이 재동기화된다. `PraiseBook 1`이 실제 항목이 없는 책이면 UAT-212/UAT-213은 `주일예배.esp` 등 항목이 있는 책으로 선택을 바꾼 뒤 재수행해야 한다.
+
 ## Completion Mapping
 
 - PASS 25개는 current change evidence로 수락한다.

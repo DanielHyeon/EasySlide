@@ -146,6 +146,16 @@ OpenSpec `a010-wpf-frmmain-1to1-operator-console-parity` Phase 8에서 PARTIAL 2
 
 상세 근거: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`.
 
+## Phase 9 레지스트리 런타임 설정 보정 (2026-06-21)
+
+사용자 확인으로 `HKCU\Software\EasiSlides` 아래에 FrmMain 관련 설정이 있음을 재확인했다. WPF는 레지스트리 소스를 가지고 있었지만, 기존 `%APPDATA%\EasislidesNext\settings.json`이 있으면 bootstrap migration을 건너뛰어 `current_praisebook`, `current_session`, `UsePowerpointTab`, `UseMediaTab`, `media_dir`가 재반영되지 않았다.
+
+Phase 9에서 `SettingsBootstrapMigrationService`를 수정해 기존 WPF 작업 폴더는 덮어쓰지 않고 위 runtime registry settings만 시작 시 재동기화하도록 했다.
+
+- 코드 보정 완료: `SettingsBootstrapMigrationService`.
+- 테스트 완료: `SettingsBootstrapMigrationServiceTests|RegistryLegacySettingsSourceTests` 실패 0, 통과 8, 건너뜀 0.
+- UAT 영향: `current_praisebook`/`current_session` 선택 상태와 PowerPoint/Media tab 표시 설정은 다음 WPF 시작부터 레지스트리 기준으로 재동기화된다. 단, `UsePowerpointTab=0`, `UseMediaTab=0` 값 자체가 legacy 현재 상태이면 해당 탭은 FrmMain과 동일하게 숨김 상태가 맞다.
+
 ## 7. Completion Gate
 
 The WPF migration cannot be marked usable until:

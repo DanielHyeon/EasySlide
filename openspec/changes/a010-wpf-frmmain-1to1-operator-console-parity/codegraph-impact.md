@@ -166,3 +166,28 @@ Folders 수정 및 검증:
 - `MainMenuBarTests`에 `AutomationProperties.Name="머리글자 점프 바"`가 없어야 한다는 guard를 추가했다.
 - Focused `MainMenuBarTests`: 133 passed, 0 failed.
 - 재캡처: `evidence/screenshots/2026-06-21/tabs/source-01-folders-after-initial-strip-fix.png`, `tabs-compare/compare-01-folders-after-initial-strip-fix.png`.
+
+### Phase 9 registry runtime settings sync impact (2026-06-21)
+
+사용자 확인으로 `HKCU\Software\EasiSlides` 아래 registry-backed FrmMain settings가 실제 source of truth임을 재확인했다.
+
+CodeGraph 확인:
+
+- `codegraph_context`: registry-backed settings parity query에서 `RegistryLegacySettingsSource`, `SettingsService`, `FileLegacySettingsSource`, `CompositeLegacySettingsSource`가 entry point로 확인됐다.
+- `codegraph_explore`: `App.OnStartup`은 `ISettingsBootstrapMigrationService.MigrateIfNeededAsync()`를 호출하고, `RegistryLegacySettingsSource`는 `Software\EasiSlides`의 `config`, `options`, `monitors` sections를 읽는다.
+- `LegacySettingsMap`에는 `root_directory`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`, `current_praisebook`, `current_session` alias가 이미 정의돼 있었다.
+
+원인:
+
+- 기존 `SettingsBootstrapMigrationService.MigrateIfNeededAsync()`는 `%APPDATA%\EasislidesNext\settings.json`이 있으면 `null`을 반환해 full migration을 skip했다.
+- 따라서 기존 WPF 설정 파일이 있는 환경에서는 `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`가 레지스트리에서 다시 반영되지 않았다.
+
+수정 범위:
+
+- `Easislides.Wpf/Settings/SettingsBootstrapMigrationService.cs`: 기존 설정 파일이 있을 때 full migration은 반복하지 않고 runtime registry settings만 재동기화한다.
+- `Easislides.Wpf.Tests/Settings/SettingsBootstrapMigrationServiceTests.cs`: 기존 skip 테스트를 runtime refresh 테스트로 갱신하고 invalid bool warning 테스트를 추가했다.
+
+검증:
+
+- `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~SettingsBootstrapMigrationServiceTests|FullyQualifiedName~RegistryLegacySettingsSourceTests" -v minimal`
+- 결과: 실패 0, 통과 8, 건너뜀 0.

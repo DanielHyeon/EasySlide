@@ -32,21 +32,83 @@ public class SettingsBootstrapMigrationServiceTests
     }
 
     [Fact]
-    public async Task MigrateIfNeededAsync_WhenSettingsFileExists_SkipsLegacyMigration()
+    public async Task MigrateIfNeededAsync_WhenSettingsFileExists_RefreshesLegacyRuntimeSelections()
     {
         using var fixture = TempSettingsFolder.Create();
         var settings = fixture.CreateSettings();
         settings.Set(EasiSettingKeys.WorkingFolder, @"D:\Current");
+        settings.Set(EasiSettingKeys.CurrentPraiseBookName, "");
+        settings.Set(EasiSettingKeys.CurrentWorshipListName, "");
+        settings.Set(EasiSettingKeys.UsePowerPointTab, false);
+        settings.Set(EasiSettingKeys.UseMediaTab, false);
+        settings.Set(EasiSettingKeys.MediaDirectory, @"D:\CurrentMedia");
         var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
         {
             ["root_directory"] = @"C:\Legacy",
+            ["current_praisebook"] = "PraiseBook 1",
+            ["current_session"] = "1.주일예배",
+            ["UsePowerpointTab"] = "1",
+            ["UseMediaTab"] = "1",
+            ["media_dir"] = @"C:\EasiSlides\Media\",
+        });
+        var sut = new SettingsBootstrapMigrationService(settings, legacy, fixture.Options);
+
+        var result = await sut.MigrateIfNeededAsync();
+
+        result.Should().NotBeNull();
+        result!.Succeeded.Should().BeTrue();
+        settings.Get(EasiSettingKeys.WorkingFolder).Should().Be(@"D:\Current", "기존 WPF 작업 폴더는 전체 재마이그레이션으로 덮어쓰지 않는다");
+        settings.Get(EasiSettingKeys.CurrentPraiseBookName).Should().Be("PraiseBook 1");
+        settings.Get(EasiSettingKeys.CurrentWorshipListName).Should().Be("1.주일예배");
+        settings.Get(EasiSettingKeys.UsePowerPointTab).Should().BeTrue();
+        settings.Get(EasiSettingKeys.UseMediaTab).Should().BeTrue();
+        settings.Get(EasiSettingKeys.MediaDirectory).Should().Be(@"C:\EasiSlides\Media\");
+    }
+
+    [Fact]
+    public async Task MigrateIfNeededAsync_WhenSettingsFileExistsAndRuntimeValuesMatch_ReturnsNull()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateSettings();
+        settings.Set(EasiSettingKeys.CurrentPraiseBookName, "PraiseBook 1");
+        settings.Set(EasiSettingKeys.CurrentWorshipListName, "1.주일예배");
+        settings.Set(EasiSettingKeys.UsePowerPointTab, false);
+        settings.Set(EasiSettingKeys.UseMediaTab, false);
+        settings.Set(EasiSettingKeys.MediaDirectory, @"C:\EasiSlides\Media\");
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["current_praisebook"] = "PraiseBook 1",
+            ["current_session"] = "1.주일예배",
+            ["UsePowerpointTab"] = "0",
+            ["UseMediaTab"] = "0",
+            ["media_dir"] = @"C:\EasiSlides\Media\",
         });
         var sut = new SettingsBootstrapMigrationService(settings, legacy, fixture.Options);
 
         var result = await sut.MigrateIfNeededAsync();
 
         result.Should().BeNull();
-        settings.Get(EasiSettingKeys.WorkingFolder).Should().Be(@"D:\Current");
+    }
+
+    [Fact]
+    public async Task MigrateIfNeededAsync_WhenExistingRegistryBoolIsInvalid_ReturnsWarning()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateSettings();
+        settings.Set(EasiSettingKeys.UsePowerPointTab, false);
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["UsePowerpointTab"] = "maybe",
+        });
+        var sut = new SettingsBootstrapMigrationService(settings, legacy, fixture.Options);
+
+        var result = await sut.MigrateIfNeededAsync();
+
+        result.Should().NotBeNull();
+        result!.Succeeded.Should().BeTrue();
+        result.Issues.Should().ContainSingle(issue =>
+            issue.Key == "UsePowerpointTab" && issue.Severity == SettingsIssueSeverity.Warning);
+        settings.Get(EasiSettingKeys.UsePowerPointTab).Should().BeFalse();
     }
 
     [Fact]
