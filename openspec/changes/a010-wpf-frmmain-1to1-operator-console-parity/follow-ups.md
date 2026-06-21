@@ -31,10 +31,10 @@
 
 | Group | UAT IDs | Deferred Until | Reason |
 | --- | --- | --- | --- |
-| InfoScreen data | UAT-111, UAT-112 | 실제 `C:\EasiSlides\InfoScreens` 데이터 확보 | 현재 파일 수 0 |
-| PowerPoint data/config | UAT-121, UAT-122, UAT-123, UAT-124, UAT-306, UAT-405 | `UsePowerPointTab=true` 및 실제 PPT 파일 확보 | 현재 `UsePowerPointTab=false`, `C:\EasiSlides\Powerpoint` 파일 수 0 |
-| Media data/config | UAT-151, UAT-152 | `UseMediaTab=true` 및 실제 media 파일 확보 | 현재 `UseMediaTab=false`, `C:\EasiSlides\Media` 파일 수 0 |
-| PraiseBook entries | UAT-212, UAT-213 | 실제 entry가 있는 PraiseBook 데이터 확보 | 현재 `PraiseBook 1`이 0곡으로 표시됨 |
+| InfoScreen source folder | UAT-111, UAT-112 | 실제 `C:\EasiSlides\InfoScreens` source 파일 확보 또는 legacy가 참조하는 다른 source 경로 확인 | 현재 직접 폴더 파일 수 0 |
+| PowerPoint source config | UAT-121, UAT-122, UAT-123, UAT-124, UAT-306, UAT-405 | `UsePowerPointTab=true` 및 source 경로 재검증 | 운영 PPT는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UsePowerPointTab=false`, `C:\EasiSlides\Powerpoint` 직접 폴더 파일 수 0 |
+| Media source config | UAT-151, UAT-152 | `UseMediaTab=true` 및 source 경로 재검증 | 운영 Media는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UseMediaTab=false`, `C:\EasiSlides\Media` 직접 폴더 파일 수 0 |
+| PraiseBook selection | UAT-212, UAT-213 | `주일예배.esp` 등 실제 항목이 있는 책을 선택해 add/delete/export UAT 재수행 | `C:\EasiSlides\Admin\PraiseBooks`에 `.esp` 2개 존재. 현재 선택값 `PraiseBook 1`은 빈/헤더 중심 책으로 관찰됨 |
 
 ## Completion Mapping
 
@@ -50,6 +50,6 @@
 - 코드 보정 완료: UAT-141, UAT-161, UAT-211.
 - 구현/테스트 증거로 닫음: UAT-103, UAT-104, UAT-134, UAT-135, UAT-205, UAT-206, UAT-207, UAT-208, UAT-303, UAT-402, UAT-404, UAT-411, UAT-501, UAT-502, UAT-503, UAT-504, UAT-505, UAT-506, UAT-507.
 - 외부 송출 모니터 관찰 필요: UAT-406, UAT-407, UAT-408.
-- 실제 데이터/설정 필요: BLOCKED 12개 유지.
+- source 폴더/설정/선택 상태 재검증 필요: BLOCKED 12개 유지.
 
 상세 근거: `evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`.

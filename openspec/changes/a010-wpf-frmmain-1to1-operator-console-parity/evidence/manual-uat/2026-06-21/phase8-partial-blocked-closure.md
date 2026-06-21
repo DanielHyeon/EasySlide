@@ -13,9 +13,22 @@ manual UAT에서 남은 PARTIAL 25개와 BLOCKED 12개를 다시 확인했다.
 | PARTIAL 중 코드 보정 완료 | 3 | UAT-141, UAT-161, UAT-211 |
 | PARTIAL 중 구현/테스트 증거로 닫음 | 19 | UAT-103, UAT-104, UAT-134, UAT-135, UAT-205~208, UAT-303, UAT-402, UAT-404, UAT-411, UAT-501~507 |
 | PARTIAL 중 외부 송출 모니터 관찰 필요 | 3 | UAT-406, UAT-407, UAT-408 |
-| BLOCKED 중 외부 데이터/설정 필요 | 12 | UAT-111, UAT-112, UAT-121~124, UAT-151, UAT-152, UAT-212, UAT-213, UAT-306, UAT-405 |
+| BLOCKED 중 source 폴더/설정/선택 상태 재검증 필요 | 12 | UAT-111, UAT-112, UAT-121~124, UAT-151, UAT-152, UAT-212, UAT-213, UAT-306, UAT-405 |
 
-결론: 코드 미구현으로 남은 PARTIAL은 없다. 현 환경에서 닫지 못한 항목은 외부 송출 모니터 직접 관찰 또는 실제 `C:\EasiSlides` 운영 데이터/설정이 필요한 항목이다.
+결론: 코드 미구현으로 남은 PARTIAL은 없다. 현 환경에서 닫지 못한 항목은 외부 송출 모니터 직접 관찰 또는 실제 source tab 설정/선택 상태 재검증이 필요한 항목이다.
+
+## 데이터 위치 정정
+
+2026-06-21 후속 확인에서 `C:\EasiSlides` 아래 운영 데이터 루트가 존재함을 확인했다.
+
+- `C:\EasiSlides\Admin\WorshipLists`: `.esw` 35개.
+- `C:\EasiSlides\Admin\PraiseBooks`: `.esp` 2개(`PraiseBook 1`, `주일예배`).
+- `C:\EasiSlides\Images` 및 `C:\EasiSlides\Backgrounds`: 이미지 데이터 존재.
+- `C:\EasiSlides\HolyBibles`: Bible DB 2개.
+- `C:\EasiSlides\Documents`: 예배자료 바로가기 4개. 각 바로가기는 `D:\예배자료\주일예배`, `D:\예배자료\주일오후`, `D:\예배자료\찬송가`, `D:\예배자료\특별예배`를 가리킨다.
+- `D:\예배자료` 링크 대상에는 PPT/Media가 존재한다(`주일예배` PPT 21개/Media 15개, `찬송가` PPT 1187개, `특별예배` PPT 42개/Media 15개 등).
+
+따라서 기존 “PPT/Media 실제 데이터 없음” 표현은 정확하지 않다. 정확한 blocker는 `C:\EasiSlides\Powerpoint`, `C:\EasiSlides\Media`, `C:\EasiSlides\InfoScreens` 직접 source 폴더가 비어 있고, 현재 레지스트리 옵션 `UsePowerPointTab=0`, `UseMediaTab=0` 때문에 해당 source tab manual UAT가 바로 수행되지 않았다는 점이다.
 
 ## 코드 보정 완료
 
@@ -41,10 +54,10 @@ manual UAT에서 남은 PARTIAL 25개와 BLOCKED 12개를 다시 확인했다.
 | 구분 | UAT | 닫을 수 없는 이유 |
 | --- | --- | --- |
 | 외부 송출 모니터 | UAT-406~408 | operator surface와 renderer state는 검증됐지만, 실제 회중용 외부 모니터의 black/clear/hide/restore 시각 결과는 현재 세션에서 독립 관찰할 수 없다. |
-| InfoScreen data | UAT-111, UAT-112 | `C:\EasiSlides\InfoScreens` 파일 수 0. 사용자 데이터 생성/삭제/변경 금지 원칙에 따라 임의 샘플을 만들지 않았다. |
-| PowerPoint data/config | UAT-121~124, UAT-306, UAT-405 | 현재 `UsePowerPointTab=false`, `C:\EasiSlides\Powerpoint` 파일 수 0. |
-| Media data/config | UAT-151, UAT-152 | 현재 `UseMediaTab=false`, `C:\EasiSlides\Media` 파일 수 0. |
-| PraiseBook entries | UAT-212, UAT-213 | 기존 선택 PraiseBook이 0곡으로 표시된다. entry가 있는 실제 PraiseBook 데이터가 있어야 add/delete/export manual UAT를 수행할 수 있다. |
+| InfoScreen source folder | UAT-111, UAT-112 | `C:\EasiSlides\InfoScreens` 직접 폴더 파일 수 0. 사용자 데이터 생성/삭제/변경 금지 원칙에 따라 임의 샘플을 만들지 않았다. |
+| PowerPoint source config | UAT-121~124, UAT-306, UAT-405 | 운영 PPT는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UsePowerPointTab=false`, `C:\EasiSlides\Powerpoint` 직접 폴더 파일 수 0이라 source tab UAT는 재설정 후 재수행 필요. |
+| Media source config | UAT-151, UAT-152 | 운영 Media는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UseMediaTab=false`, `C:\EasiSlides\Media` 직접 폴더 파일 수 0이라 source tab UAT는 재설정 후 재수행 필요. |
+| PraiseBook selection | UAT-212, UAT-213 | `C:\EasiSlides\Admin\PraiseBooks`에 `.esp` 2개가 존재한다. 현재 레지스트리 `current_praisebook=PraiseBook 1` 선택 상태가 빈/헤더 중심 책으로 보였으므로 `주일예배.esp` 선택 후 add/delete/export manual UAT를 재수행해야 한다. |
 
 ## 검증
 

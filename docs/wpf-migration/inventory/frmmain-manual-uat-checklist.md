@@ -141,7 +141,8 @@ OpenSpec `a010-wpf-frmmain-1to1-operator-console-parity` Phase 8에서 PARTIAL 2
 - 코드 보정 완료: UAT-141 Images, UAT-161 Default, UAT-211 Praise Book visual usability gap.
 - 구현/테스트 증거로 닫음: UAT-103, UAT-104, UAT-134, UAT-135, UAT-205~208, UAT-303, UAT-402, UAT-404, UAT-411, UAT-501~507.
 - 외부 송출 모니터 직접 관찰 필요: UAT-406~408.
-- 실제 데이터/설정 필요로 BLOCKED 유지: UAT-111, UAT-112, UAT-121~124, UAT-151, UAT-152, UAT-212, UAT-213, UAT-306, UAT-405.
+- source 폴더/설정/선택 상태 재검증 필요로 BLOCKED 유지: UAT-111, UAT-112, UAT-121~124, UAT-151, UAT-152, UAT-212, UAT-213, UAT-306, UAT-405.
+- 후속 확인: `C:\EasiSlides` 운영 데이터 루트는 존재한다. PPT/Media 운영 자료는 `C:\EasiSlides\Documents\*.lnk`가 가리키는 `D:\예배자료`에 존재한다. 다만 현재 `UsePowerPointTab=0`, `UseMediaTab=0`이고 `C:\EasiSlides\Powerpoint`, `C:\EasiSlides\Media`, `C:\EasiSlides\InfoScreens` 직접 source 폴더는 비어 있어 source tab UAT는 설정/경로 재확인 후 재수행해야 한다.
 
 상세 근거: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`.
 

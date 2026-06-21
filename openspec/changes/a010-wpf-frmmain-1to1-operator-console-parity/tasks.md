@@ -224,7 +224,8 @@ Evidence:
 - 2026-06-21 코드 보정: `LegacyImageThumbnailSizeConverter` 추가, Images source thumbnail을 compact 3열 sizing으로 분리, Default `Apply` 그룹 상단 이동 및 Text 그룹 높이 제한, Praise Book toolbar compact화 및 status/window row 겹침 수정.
 - 2026-06-21 screenshot evidence: `evidence/screenshots/2026-06-21/phase8/wpf-phase8-images.png`, `wpf-phase8-default-after-density-fix.png`, `wpf-phase8-praise-book-after-row-fix.png`.
 - 2026-06-21 focused tests: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~LegacyImageThumbnailSizeConverterTests|FullyQualifiedName~MainMenuBarTests" -v minimal` 통과. 결과: 실패 0, 통과 137, 건너뜀 0.
-- 2026-06-21 closure report: `evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`. PARTIAL 25개 중 코드 보정 3, 구현/테스트 증거로 닫음 19, 외부 송출 모니터 관찰 필요 3. BLOCKED 12개는 외부 데이터/설정 필요로 유지.
+- 2026-06-21 closure report: `evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`. PARTIAL 25개 중 코드 보정 3, 구현/테스트 증거로 닫음 19, 외부 송출 모니터 관찰 필요 3. BLOCKED 12개는 source 폴더/설정/선택 상태 재검증 필요로 유지.
+- 2026-06-21 데이터 위치 정정: `C:\EasiSlides` 운영 데이터 루트는 존재한다. PPT/Media 운영 자료는 `C:\EasiSlides\Documents\*.lnk`가 가리키는 `D:\예배자료`에 존재한다. 다만 현재 `UsePowerPointTab=0`, `UseMediaTab=0`이고 `C:\EasiSlides\Powerpoint`, `C:\EasiSlides\Media`, `C:\EasiSlides\InfoScreens` 직접 source 폴더는 비어 있어 source tab UAT는 설정/경로 재확인 후 재수행해야 한다.
 - 2026-06-21 full WPF tests: `dotnet test Easislides.Wpf.Tests -v minimal` 통과. 결과: 실패 0, 통과 2421, 건너뜀 0.
 - 2026-06-21 OpenSpec validation: `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict` 통과. 결과: Change is valid.
 - 2026-06-21 WinForms build: `dotnet build Easislides\Easislides.csproj -nologo -v minimal` 통과. 결과: 오류 0, 경고 13.

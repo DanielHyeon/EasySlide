@@ -14,7 +14,7 @@
 | WPF launch with legacy data | PASS | `EasislidesNext.exe` 실행 및 `C:\EasiSlides` 데이터 로딩 확인 |
 | Actual manual UAT | RECORDED | 62개 row 모두 판정 기록: PASS 25, PARTIAL 25, BLOCKED 12, FAIL 0 |
 | PARTIAL/BLOCKED disposition | RECORDED | `follow-ups.md`에 Follow-Up Tasks 및 Explicit Defers로 전환 |
-| Phase 8 PARTIAL/BLOCKED closure | RECORDED | PARTIAL 25개 재확인: 코드 보정 3, 구현/테스트 증거로 닫음 19, 외부 송출 모니터 관찰 필요 3. BLOCKED 12개는 외부 데이터/설정 필요로 유지 |
+| Phase 8 PARTIAL/BLOCKED closure | RECORDED | PARTIAL 25개 재확인: 코드 보정 3, 구현/테스트 증거로 닫음 19, 외부 송출 모니터 관찰 필요 3. BLOCKED 12개는 source 폴더/설정/선택 상태 재검증 필요로 유지 |
 | Phase 8 focused tests | PASS | `LegacyImageThumbnailSizeConverterTests|MainMenuBarTests`: 실패 0, 통과 137, 건너뜀 0 |
 | Phase 8 full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests -v minimal`: 실패 0, 통과 2421, 건너뜀 0 |
 | Phase 8 OpenSpec validation | PASS | `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`: Change is valid |
@@ -34,7 +34,7 @@
 - Gesture parity follow-up: song double-click/drag, Bible drag/Shift-click, Worship List drag/context menu.
 - Visual usability follow-up: Images thumbnail density, Default first-viewport density/order, Praise Book toolbar/list density.
 - External output hardware follow-up: black/clear/hide/restore 및 shortcut 결과의 실제 송출 모니터 확인.
-- Data/config defers: InfoScreen, PowerPoint, Media, PraiseBook entries.
+- Source/config defers: InfoScreen 직접 폴더, PowerPoint/Media source tab 옵션과 경로, PraiseBook 선택 책. 운영 PPT/Media는 `C:\EasiSlides\Documents` 바로가기 대상인 `D:\예배자료`에 존재함을 후속 확인했다.
 
 ## Warning Notes
 
