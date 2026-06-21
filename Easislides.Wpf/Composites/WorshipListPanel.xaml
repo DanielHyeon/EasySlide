@@ -54,45 +54,7 @@
             <Grid x:Name="ClassicWorshipListSessionStrip"
                   DockPanel.Dock="Top"
                   Margin="0,0,0,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <ComboBox Grid.Column="0"
-                          x:Name="SessionCombo"
-                          Tag="SessionList"
-                          DropDownOpened="SessionCombo_DropDownOpened"
-                          SelectionChanged="SessionCombo_SelectionChanged"
-                          KeyDown="SessionCombo_KeyDown"
-                          MouseDoubleClick="SessionCombo_MouseDoubleClick"
-                          ItemsSource="{Binding SavedWorshipListNames}"
-                          SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
-                          MinHeight="26"
-                          ToolTip="저장된 예배 순서를 고르면 바로 불러옵니다. 콤보를 열면 목록이 새로고침됩니다."
-                          AutomationProperties.Name="저장된 예배 순서 선택" />
-                <Button Grid.Column="1"
-                        Command="{Binding LoadSelectedWorshipListCommand}"
-                        Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
-                        Padding="0"
-                        Margin="4,0,0,0"
-                        ToolTip="선택한 예배 순서를 불러옵니다(현재 큐를 대체)"
-                        AutomationProperties.Name="선택한 예배 순서 불러오기">
-                    <ui:SymbolIcon Symbol="FolderOpen24" />
-                </Button>
-            </Grid>
-
-            <!--
-                예배 순서 도구 막대 — 선택 항목을 위/아래로 이동(재정렬)하거나 큐에서 제거.
-                FrmMain 의 "Move Item Up/Down"·항목 제거에 대응. 아이콘 전용 버튼이라
-                접근성(AutomationProperties.Name)·툴팁을 함께 둔다.
-            -->
-            <StackPanel x:Name="ClassicWorshipListToolStrip1"
-                        DockPanel.Dock="Top"
-                        Orientation="Horizontal"
-                        Margin="0,0,0,4">
-                <StackPanel.Resources>
+                <Grid.Resources>
                     <Style x:Key="EsButton.Secondary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
                         <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
                         <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
@@ -110,43 +72,69 @@
                             </Trigger>
                         </Style.Triggers>
                     </Style>
-                </StackPanel.Resources>
+                </Grid.Resources>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="94" />
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0"
+                          x:Name="SessionCombo"
+                          Tag="SessionList"
+                          DropDownOpened="SessionCombo_DropDownOpened"
+                          SelectionChanged="SessionCombo_SelectionChanged"
+                          KeyDown="SessionCombo_KeyDown"
+                          MouseDoubleClick="SessionCombo_MouseDoubleClick"
+                          ItemsSource="{Binding SavedWorshipListNames}"
+                          SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
+                          Height="28"
+                          MinWidth="60"
+                          MinHeight="0"
+                          ToolTip="저장된 예배 순서를 고르면 바로 불러옵니다. 콤보를 열면 목록이 새로고침됩니다."
+                          AutomationProperties.Name="저장된 예배 순서 선택" />
+                <StackPanel x:Name="ClassicWorshipListToolStrip1"
+                            Grid.Column="2"
+                            Orientation="Horizontal"
+                            Width="94"
+                            Height="33"
+                            Margin="0,-1,0,0">
                 <Button x:Name="WL_Manage"
                         Tag="WL_Manage"
                         Click="WL_Manage_Click"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="29"
+                        Height="33"
                         Padding="0"
                         ToolTip="Manage Worship Lists"
                         AutomationProperties.Name="Manage Worship Lists"
-                        Margin="0,0,3,0">
+                        Margin="0">
                     <ui:SymbolIcon Symbol="Settings24" />
                 </Button>
                 <Button x:Name="WL_Add"
                         Click="WL_Add_Click"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="29"
+                        Height="33"
                         Padding="0"
-                        ToolTip="현재 선택된 소스 항목을 예배 순서에 추가"
+                        ToolTip="Add to Worship List"
                         AutomationProperties.Name="현재 소스 항목을 예배 순서에 추가"
-                        Margin="0,0,3,0">
+                        Margin="0">
                     <ui:SymbolIcon Symbol="Add24" />
                 </Button>
                 <Button x:Name="WL_Open"
                         Tag="WL_Open"
                         Click="WL_Open_Click"
                         Style="{StaticResource EsButton.Secondary}"
-                        Width="28"
-                        Height="28"
+                        Width="29"
+                        Height="33"
                         Padding="0"
-                        ToolTip="외부 파일을 선택해 예배 순서에 추가"
+                        ToolTip="Add External Document to Worship List"
                         AutomationProperties.Name="외부 파일을 예배 순서에 추가"
-                        Margin="0,0,3,0">
+                        Margin="0">
                     <ui:SymbolIcon Symbol="FolderOpen24" />
                 </Button>
             </StackPanel>
+            </Grid>
 
             <ScrollViewer x:Name="ClassicWorshipListToolStrip2Frame"
                           DockPanel.Dock="Right"

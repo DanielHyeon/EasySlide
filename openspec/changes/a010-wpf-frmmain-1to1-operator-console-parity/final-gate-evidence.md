@@ -91,6 +91,21 @@ Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 
 | Deployed launch smoke | PASS | `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:25:30` |
 | Deployed screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase13-top-toolbar/wpf-deployed-top-toolbar-single-row.png` |
 
+## Phase 14 Worship List Horizontal ToolStrip Runtime Gate
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| WinForms runtime baseline | PASS | `ResizeComboAndToolBar`가 `SessionList`를 남는 폭으로 늘리고 `panelWorshipList1`을 그 오른쪽에 배치 |
+| WPF horizontal toolbar row parity | PASS | `ClassicWorshipListToolStrip1`은 별도 row가 아니라 `ClassicWorshipListSessionStrip` 오른쪽 94px column에 위치 |
+| WPF-only load button removal | PASS | WinForms에 없는 `LoadSelectedWorshipListCommand` 버튼을 해당 band에서 제거 |
+| Button composition/size parity | PASS | `WL_Manage`, `WL_Add`, `WL_Open` 순서 유지, 각 29px 폭, WinForms tooltip 문구 반영 |
+| Focused tests | PASS | `WorshipListPanelTests`: 실패 0, 통과 22, 건너뜀 0 |
+| Full WPF tests | PASS | `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`: 실패 0, 통과 2423, 건너뜀 0 |
+| C:\EasiSlides deployment | PASS | `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal` |
+| Deployed launch smoke | PASS | `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:34:18` |
+| WinForms screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/winforms-worship-horizontal-toolbar-crop.png` |
+| WPF screenshot evidence | PASS | `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/wpf-deployed-worship-horizontal-toolbar-crop-final.png` |
+
 ## C:\EasiSlides Deployment Verification
 
 WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고, 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행 검증했다.

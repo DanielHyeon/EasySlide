@@ -233,3 +233,14 @@ Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 - Command impact: 라이브/출력 명령 구현과 ViewModel command는 변경하지 않았다. 해당 명령은 기존 메뉴 및 Preview/Output 패널 경로에 남아 있으며, 숨겨진 `ClassicOperatorBar` XAML은 command regression test 대상으로 유지한다.
 - Test scope: `MainMenuBarTests`의 `ToolStripMainXaml` helper를 `StackPanel` 기준으로 갱신하고, `ClassicOperatorBar`가 두 번째 visible toolbar row를 만들지 않는다는 guard를 추가했다.
 - 영향 제한: DB, Office Interop, PPT 렌더링, Worship List 데이터/명령, 송출 창 로직은 변경하지 않았다. 변경은 WPF top toolbar XAML 배치와 XAML 구조 테스트에 한정된다.
+
+### Phase 14 Worship List horizontal ToolStrip runtime impact (2026-06-21)
+
+사용자 확인으로 좌측 하단 Worship List의 가로줄 아이콘 영역(`WL_Manage`, `WL_Add`, `WL_Open`)이 WinForms와 다르게 보이는 문제가 확인됐다.
+
+- Legacy baseline: `FrmMain.Designer.cs`의 초기 배치는 `SessionList`가 `(3,5)`, `panelWorshipList1`이 `(88,5)`이고, `toolStripWorshipList1.Items`는 `WL_Manage`, `WL_Add`, `WL_Open` 3개다.
+- Runtime baseline: `FrmMain.cs`의 `ResizeComboAndToolBar(tabControlLists, ref SessionList, ref panelWorshipList1)`가 `SessionList`를 `tabControlLists.Width - (panelWorshipList1.Width + 15)`로 늘리고, `panelWorshipList1.Left = SessionList.Left + SessionList.Width + 1`로 가로 아이콘 패널을 오른쪽에 붙인다.
+- WPF pre-fix behavior: `WorshipListPanel.xaml`은 `SessionCombo` 줄 아래에 `ClassicWorshipListToolStrip1`을 별도 `DockPanel.Dock=Top` row로 두고, WinForms에 없는 `LoadSelectedWorshipListCommand` 버튼을 `SessionCombo` 오른쪽에 표시했다.
+- Fix scope: `ClassicWorshipListToolStrip1`을 `ClassicWorshipListSessionStrip` 내부 오른쪽 94px column으로 이동하고, `SessionCombo`는 남는 폭(`*`)을 쓰도록 변경했다. `LoadSelectedWorshipListCommand` 버튼은 이 band에서 제거했다.
+- Test scope: `WorshipListPanelTests`에 `SessionCombo` runtime resize semantics(`Width` 고정 없음, `MinWidth=60`), `ClassicWorshipListToolStrip1` column 위치, 버튼 순서/폭/tooltip guard를 추가했다.
+- 영향 제한: ViewModel command, WorshipList load/reorder/delete/export/notes handlers, DB/Interop/송출 경로는 변경하지 않았다. UI 배치와 XAML 구조 guard만 변경했다.

@@ -440,3 +440,45 @@ Evidence:
 - 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
 - 2026-06-21 배포본 실행 smoke 통과: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:25:30`.
 - 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase13-top-toolbar/wpf-deployed-top-toolbar-single-row.png`.
+
+### Phase 14: Worship List Horizontal ToolStrip Runtime Parity
+
+Goal: WPF 좌측 하단 Worship List의 가로줄 아이콘(`WL_Manage`, `WL_Add`, `WL_Open`)이 WinForms 런타임처럼 `SessionList`와 같은 상단 band에 있으며, 별도 두 번째 toolbar row를 만들지 않도록 맞춘다.
+
+Scope:
+
+- `Easislides.Wpf/Composites/WorshipListPanel.xaml`
+- `Easislides.Wpf.Tests/Composites/WorshipListPanelTests.cs`
+
+Tasks:
+
+- [x] WinForms 기준 확인: `ResizeComboAndToolBar(tabControlLists, ref SessionList, ref panelWorshipList1)`는 `SessionList`를 남는 폭으로 늘리고 `panelWorshipList1`을 그 오른쪽으로 이동한다.
+- [x] WPF `ClassicWorshipListToolStrip1`을 별도 `DockPanel.Dock=Top` row에서 제거하고 `ClassicWorshipListSessionStrip` 안 오른쪽 94px column으로 이동한다.
+- [x] WPF-only `LoadSelectedWorshipListCommand` 버튼을 해당 band에서 제거한다. WinForms는 세션 콤보 선택 변경으로 로드하며, 이 위치에 별도 load 버튼이 없다.
+- [x] `SessionCombo`는 고정 75px이 아니라 `*` column으로 남는 폭을 사용하고, WinForms와 같은 최소 폭 60px clamp를 가진다.
+- [x] 가로 아이콘 3개는 WinForms `WL_Manage/WL_Add/WL_Open`과 같은 순서와 29px item 폭을 테스트로 고정한다.
+
+DoD:
+
+- Worship List 상단 band는 `SessionList` + 오른쪽 가로 아이콘 3개만 가진다.
+- `WL_Manage`, `WL_Add`, `WL_Open`은 별도 줄로 내려가지 않는다.
+- `WL_Add`/`WL_Open` tooltip은 WinForms 문구(`Add to Worship List`, `Add External Document to Worship List`)와 맞는다.
+- focused `WorshipListPanelTests`와 full WPF tests가 통과한다.
+- WinForms/WPF 배포본 캡처 증거가 기록된다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter FullyQualifiedName~WorshipListPanelTests --no-restore -v minimal`
+- `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`
+
+Evidence:
+
+- 2026-06-21 WinForms 기준 확인: `FrmMain.cs`의 `ResizeComboAndToolBar`는 `InCombo.Width = InTabControl.Width - (InToolBarPanel.Width + 15)`로 세션 콤보를 늘리고, `InToolBarPanel.Left = InCombo.Left + InCombo.Width + 1`로 가로 아이콘 패널을 오른쪽에 붙인다.
+- 2026-06-21 코드 보정: `ClassicWorshipListToolStrip1`을 `ClassicWorshipListSessionStrip` 내부 오른쪽 94px column으로 이동하고, `SessionCombo`를 `*` column + `MinWidth=60`으로 변경했다.
+- 2026-06-21 코드 보정: WinForms에 없는 별도 load 버튼을 제거하고 `WL_Manage/WL_Add/WL_Open`만 남겼다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 22, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2423, 건너뜀 0.
+- 2026-06-21 Release 배포 통과: `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`.
+- 2026-06-21 배포본 실행 smoke 통과: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, `LastWriteTime=2026-06-21 22:34:18`.
+- 2026-06-21 WinForms 비교 캡처: `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/winforms-worship-horizontal-toolbar-crop.png`.
+- 2026-06-21 WPF 최종 캡처: `evidence/screenshots/2026-06-21/phase14-worship-horizontal-toolbar/wpf-deployed-worship-horizontal-toolbar-crop-final.png`.

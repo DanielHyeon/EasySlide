@@ -73,12 +73,23 @@ public class WorshipListPanelTests
 
         composite.Descendants().Any(e => e.Name.LocalName == "Grid" && Attr(e, "Name") == "ClassicWorshipListSessionStrip")
             .Should().BeTrue("SessionList row should remain a compact FrmMain-style strip");
+        var sessionCombo = composite.Descendants().Single(e => e.Name.LocalName == "ComboBox" && Attr(e, "Tag") == "SessionList");
+        Attr(sessionCombo, "Width").Should().BeEmpty("FrmMain ResizeComboAndToolBar expands SessionList to the available width at runtime");
+        Attr(sessionCombo, "MinWidth").Should().Be("60", "FrmMain clamps resized combo width to at least 60px");
+        Attr(sessionCombo, "Height").Should().Be("28", "FrmMain SessionList height is 28px");
         var topToolStrip = composite.Descendants().Single(
             e => e.Name.LocalName == "StackPanel" && Attr(e, "Name") == "ClassicWorshipListToolStrip1");
-        Attr(topToolStrip, "DockPanel.Dock").Should().Be("Top",
-            "FrmMain toolStripWorshipList1 stays above the Worship List");
+        Attr(topToolStrip, "Grid.Column").Should().Be("2",
+            "FrmMain panelWorshipList1 sits on the same top band as SessionList, not on a separate row");
         Attr(topToolStrip, "Orientation").Should().Be("Horizontal",
             "WL_Manage/WL_Add/WL_Open should remain a compact top strip");
+        Attr(topToolStrip, "Width").Should().Be("94", "FrmMain panelWorshipList1 is 94px wide");
+        Attr(topToolStrip, "Height").Should().Be("33", "FrmMain panelWorshipList1 is 33px tall");
+        topToolStrip.Elements().Where(e => e.Name.LocalName == "Button").Select(e => Attr(e, "Name"))
+            .Should().Equal(new[] { "WL_Manage", "WL_Add", "WL_Open" },
+                "FrmMain toolStripWorshipList1 contains only Manage, Add, and Open");
+        topToolStrip.ToString().Should().NotContain("LoadSelectedWorshipListCommand",
+            "FrmMain has no separate load button between SessionList and toolStripWorshipList1");
         var itemToolStripFrame = composite.Descendants().Single(
             e => e.Name.LocalName == "ScrollViewer" && Attr(e, "Name") == "ClassicWorshipListToolStrip2Frame");
         Attr(itemToolStripFrame, "DockPanel.Dock").Should().Be("Right",
@@ -120,13 +131,21 @@ public class WorshipListPanelTests
         var wlManage = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Manage");
         Attr(wlManage, "Tag").Should().Be("WL_Manage", "FrmMain WL_Manage role should be visible in the lower-left toolbar");
         Attr(wlManage, "Click").Should().Be("WL_Manage_Click", "FrmMain WL_Manage should open the worship-list manager from the lower-left toolbar");
+        Attr(wlManage, "Width").Should().Be("29", "FrmMain WL_Manage is a 29px horizontal ToolStrip item");
+        Attr(wlManage, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
         Attr(wlManage, "AutomationProperties.Name").Should().Be("Manage Worship Lists");
         var wlAdd = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Add");
         Attr(wlAdd, "Click").Should().Be("WL_Add_Click", "FrmMain WL_Add should route the current source selection to Worship List");
+        Attr(wlAdd, "Width").Should().Be("29", "FrmMain WL_Add is a 29px horizontal ToolStrip item");
+        Attr(wlAdd, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
+        Attr(wlAdd, "ToolTip").Should().Be("Add to Worship List");
         Attr(wlAdd, "AutomationProperties.Name").Should().Contain("예배 순서에 추가");
         var wlOpen = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Open");
         Attr(wlOpen, "Tag").Should().Be("WL_Open", "FrmMain WL_Open role should be visible in the lower-left toolbar");
         Attr(wlOpen, "Click").Should().Be("WL_Open_Click", "FrmMain WL_Open should open external files from the lower-left toolbar");
+        Attr(wlOpen, "Width").Should().Be("29", "FrmMain WL_Open is a 29px horizontal ToolStrip item");
+        Attr(wlOpen, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
+        Attr(wlOpen, "ToolTip").Should().Be("Add External Document to Worship List");
         Attr(wlOpen, "AutomationProperties.Name").Should().Contain("외부 파일");
         var wlWord = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Word");
         Attr(wlWord, "Tag").Should().Be("WL_Word", "FrmMain WL_Word role should be visible in the lower-left toolbar");
@@ -137,8 +156,7 @@ public class WorshipListPanelTests
         Attr(wlNotes, "Tag").Should().Be("WL_Notes", "FrmMain WL_Notes role should be visible in the lower-left toolbar");
         Attr(wlNotes, "Click").Should().Be("WL_Notes_Click", "FrmMain WL_Notes should open the session notes editor");
         Attr(wlNotes, "AutomationProperties.Name").Should().Contain("세션 메모");
-        composite.Descendants().Any(e => e.Name.LocalName == "ComboBox" && Attr(e, "Tag") == "SessionList")
-            .Should().BeTrue("saved worship list combo should retain the FrmMain SessionList role");
+        sessionCombo.Should().NotBeNull("saved worship list combo should retain the FrmMain SessionList role");
     }
 
     [Fact]
