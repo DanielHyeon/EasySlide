@@ -606,3 +606,49 @@ Evidence:
 - 2026-06-21 OpenSpec strict validation 통과.
 - 2026-06-21 Release 배포 통과: `C:\EasiSlides\EasislidesNext`, LastWriteTime=`2026-06-21 22:59:56`.
 - 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase17-default-color-swatch/wpf-deployed-default-color-swatch.png`, `wpf-deployed-default-color-swatch-scrolled.png`, `wpf-deployed-default-color-swatch-crop.png`.
+
+### Phase 18: Output Text Preview Header Parity
+
+Goal: WPF 오른쪽 Output 텍스트 미리보기에서 WinForms에 없는 노란 제목 헤더 한 줄이 보이지 않게 한다.
+
+Scope:
+
+- `Easislides.Wpf/MainWindow.xaml`
+- `Easislides.Wpf/Shell/MainViewModel.cs`
+- `Easislides.Wpf.Tests/Shell/MainMenuBarTests.cs`
+- `Easislides.Wpf.Tests/Shell/MainViewModelTests.cs`
+
+Tasks:
+
+- [x] WinForms 기준 확인: `flowLayoutOutputLyrics`는 가사 RichTextBox rows만 표시하며 별도 `OutputItem.Title` 노란 헤더를 갖지 않는다.
+- [x] WPF `ClassicOutputInfo`에서 `OutputItem.Title` 노란 헤더 Border를 제거했다.
+- [x] `IsOutputHeaderTextVisible`을 false로 고정해 text Output 상태에서도 별도 제목 strip이 다시 켜지지 않게 했다.
+- [x] 오른쪽 Output 텍스트 scroller의 content margin을 왼쪽 Preview 텍스트 renderer와 같은 `Thickness.Lg`로 맞춰 좌우 렌더링 시작 위치를 정합했다.
+- [x] 구조 테스트에 오른쪽 Output text preview가 `OutputItem.Title`/`IsOutputHeaderTextVisible`/`#FFF6E600` header band를 포함하지 않도록 guard를 추가했다.
+- [x] ViewModel 테스트를 WinForms parity 기대값으로 갱신했다.
+
+DoD:
+
+- 오른쪽 Output 텍스트 미리보기 상단에 WPF 전용 노란 제목 한 줄이 보이지 않는다.
+- 현재 페이지 선택 강조(`TextRegionSlideBackColour` 계열 노란 row)는 WinForms RichTextBox selection parity로 유지한다.
+- focused tests, full WPF tests, WinForms build, OpenSpec strict validation, Release publish, 배포본 캡처가 통과한다.
+
+Tests:
+
+- `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~MainMenuBarTests|FullyQualifiedName~MainViewModelTests" --no-restore -v minimal`
+- `dotnet test Easislides.Wpf.Tests --no-restore -v minimal`
+- `dotnet build Easislides\Easislides.csproj -nologo -v minimal`
+- `openspec validate a010-wpf-frmmain-1to1-operator-console-parity --strict`
+- `dotnet publish Easislides.Wpf\Easislides.Wpf.csproj -c Release -o C:\EasiSlides\EasislidesNext -nologo -v minimal`
+
+Evidence:
+
+- 2026-06-21 CodeGraph context 확인: 영향은 WPF MainWindow OutputInfo XAML, MainViewModel Output header visibility, 관련 구조/VM 테스트에 한정된다.
+- 2026-06-21 WinForms 기준 확인: `gfUiText.HighlightRichTextBox`는 current row 배경을 `TextRegionSlideBackColour`로 칠하지만 `flowLayoutOutputLyrics` 위에 제목 header를 추가하지 않는다.
+- 2026-06-21 focused tests 통과. 결과: 실패 0, 통과 766, 건너뜀 0.
+- 2026-06-21 full WPF tests 통과. 결과: 실패 0, 통과 2426, 건너뜀 0.
+- 2026-06-21 WinForms build 통과. 결과: 오류 0, 경고 13.
+- 2026-06-21 OpenSpec strict validation 통과.
+- 2026-06-21 Release 배포 통과: `C:\EasiSlides\EasislidesNext`.
+- 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase18-output-text-preview-header/wpf-output-text-preview-no-yellow-title-full.png`, `wpf-output-text-preview-no-yellow-title-crop.png`. 오른쪽 Output 텍스트 미리보기의 WPF 전용 노란 제목 header는 제거됐고, 노란색은 현재 행 강조로만 남는다.
+- 2026-06-21 좌우 위치 parity 재확인: `ClassicOutputLyricsScrollViewer` margin을 왼쪽 Preview content와 같은 `Thickness.Lg`로 맞췄고, 배포본 비교 캡처 `wpf-preview-output-text-position-parity-full.png`, `wpf-preview-output-text-position-parity-crop.png`에서 Preview/Output 텍스트 row가 같은 content inset으로 시작함을 확인했다.

@@ -300,7 +300,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
     public bool HasOutputLyricsText => !string.IsNullOrWhiteSpace(OutputLyricsText);
 
-    public bool IsOutputHeaderTextVisible => HasOutputLyricsText && !IsOutputPowerPointContext;
+    public bool IsOutputHeaderTextVisible => false;
 
     public string PreviewPanelTitleText => PreviewItem?.Title ?? "Preview";
 

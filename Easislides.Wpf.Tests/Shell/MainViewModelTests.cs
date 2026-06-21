@@ -3970,7 +3970,7 @@ public class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(first);
         sut.OutputLyricsText.Should().Be("입례");
         sut.HasOutputLyricsText.Should().BeTrue();
-        sut.IsOutputHeaderTextVisible.Should().BeTrue("lyrics Output keeps FrmMain's yellow current text/title strip");
+        sut.IsOutputHeaderTextVisible.Should().BeFalse("FrmMain flowLayoutOutputLyrics has no separate yellow title header above the text rows");
         sut.OutputNavigationPositionLabel.Should().Be("1/2", "prepared OutputItem should expose its own page position even while live is off");
         sut.IsOutputPowerPointContext.Should().BeFalse();
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비만으로 라이브는 시작하지 않는다");

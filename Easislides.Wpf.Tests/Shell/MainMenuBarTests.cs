@@ -349,6 +349,11 @@ public class MainMenuBarTests
         xaml.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "non-PPT Output lyrics should only show when the Output target has lyrics/body text");
         var outputLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutOutputLyrics\"", "</ScrollViewer>");
+        var outputLyricsScroller = SectionBetween(xaml, "x:Name=\"ClassicOutputLyricsScrollViewer\"", "x:Name=\"flowLayoutOutputLyrics\"");
+        outputLyricsScroller.Should().Contain("Margin=\"{StaticResource Thickness.Lg}\"",
+            "Output text rows should use the same content inset as the left Preview text renderer");
+        outputLyricsScroller.Should().NotContain("Margin=\"8\"",
+            "Output text rows should not use an Output-only inset that drifts away from Preview positioning");
         outputLyricsSurface.Should().Contain("<StackPanel />",
             "FrmMain flowLayoutOutputLyrics stacks RichTextBox rows vertically through DockStyle.Top");
         outputLyricsSurface.Should().Contain("Converter=\"{StaticResource LegacyLyricsRichTextBoxWidth}\"",
@@ -359,6 +364,13 @@ public class MainMenuBarTests
             "the current Output lyrics row should use FrmMain's selected-slide yellow background");
         outputLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"Red\" />",
             "the current Output lyrics row should use FrmMain's selected-slide red text");
+        var outputInfoSurface = SectionBetween(xaml, "x:Name=\"ClassicOutputInfo\"", "x:Name=\"ClassicOutputPowerPointSurface\"");
+        outputInfoSurface.Should().NotContain("IsOutputHeaderTextVisible",
+            "FrmMain flowLayoutOutputLyrics does not add a separate title header above the text rows");
+        outputInfoSurface.Should().NotContain("Text=\"{Binding OutputItem.Title}\"",
+            "the right Output text preview should not show a WPF-only yellow title strip");
+        outputInfoSurface.Should().NotContain("Background=\"#FFF6E600\"",
+            "the only yellow in the text preview should be the current row highlight, not a title band");
         outputLyricsSurface.Should().NotContain("<WrapPanel />");
         outputLyricsSurface.Should().NotContain("Width=\"180\"");
         outputLyricsSurface.Should().NotContain("MaxHeight=\"90\"");

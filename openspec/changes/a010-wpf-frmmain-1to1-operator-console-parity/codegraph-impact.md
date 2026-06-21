@@ -275,3 +275,14 @@ Phase 10은 production code 변경 없이 배포/실행 검증만 수행했다.
 - Converter scope: `ColorValueToBrushConverter`는 string hex 및 int ARGB 값을 frozen `SolidColorBrush`로 바꾸는 표시용 converter이며, setting 저장/불러오기/송출 렌더링 로직은 변경하지 않는다.
 - Test scope: `ColorValueToBrushConverterTests`로 변환 동작을 검증하고, `MainMenuBarTests`로 raw hex TextBox 회귀와 `DisplayMemberPath` 텍스트 전용 표시 회귀를 막는다.
 - 영향 제한: ViewModel 색상 상태, 레지스트리/JSON 설정, DB, Office Interop, PPT/이미지 렌더링, 실제 송출 창 로직은 변경하지 않았다. 변경은 Default 탭 색상 표시 affordance에 한정된다.
+
+### Phase 18 Output text preview header impact (2026-06-21)
+
+사용자 확인으로 WPF 오른쪽 Output 텍스트 렌더링 미리보기 상단에 WinForms와 다른 노란 제목 영역이 보이는 문제가 확인됐다.
+
+- Impact surface: `MainWindow.xaml`의 `ClassicOutputInfo` text context, `MainViewModel.IsOutputHeaderTextVisible`, `MainMenuBarTests`, `MainViewModelTests`에 한정된다.
+- Legacy baseline: WinForms `flowLayoutOutputLyrics`는 `gfUiText.HighlightRichTextBox`가 현재 row 배경(`TextRegionSlideBackColour`)과 글자색(`TextRegionSlideTextColour`)만 바꾼다. 패널 위에 별도의 `OutputItem.Title` header strip을 만들지 않는다.
+- Pre-fix behavior: WPF `ClassicOutputInfo`가 `HasOutputLyricsText`일 때 `Background="#FFF6E600"`인 별도 `Border`를 표시하고, 그 안에 `OutputItem.Title`을 빨간 글씨로 보여 주었다. 이 줄이 사용자가 본 “윗쪽 한줄 노란 제목 영역”이다.
+- Fix scope: 별도 header `Border`를 제거하고 `IsOutputHeaderTextVisible`을 false로 고정했다. 또한 오른쪽 Output text scroller margin을 왼쪽 Preview text content와 같은 `Thickness.Lg`로 맞춰 좌우 텍스트 row 시작 위치를 정합했다. Output lyrics rows, page navigation, current row yellow highlight, lower 4:3 Output preview frame은 변경하지 않았다.
+- Test scope: `MainMenuBarTests`는 `ClassicOutputInfo`에 `IsOutputHeaderTextVisible`, `OutputItem.Title`, `#FFF6E600` title band가 없고 `ClassicOutputLyricsScrollViewer`가 Preview와 같은 content inset을 쓰는지 검증한다. `MainViewModelTests`는 lyrics Output 상태에서도 header visibility가 false임을 검증한다.
+- 영향 제한: Live session routing, Preview/Output item independence, DB, Office Interop, PPT/이미지 렌더링, 실제 송출 창 text rendering은 변경하지 않았다.

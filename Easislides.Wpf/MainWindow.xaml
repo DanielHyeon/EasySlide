@@ -4797,20 +4797,12 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <Border Background="#FFF6E600"
-                                    Padding="4,2"
-                                    Visibility="{Binding IsOutputHeaderTextVisible, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding OutputItem.Title}"
-                                           TextTrimming="CharacterEllipsis"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Status.Danger}" />
-                            </Border>
                             <Grid Grid.Row="1">
                                 <ScrollViewer x:Name="ClassicOutputLyricsScrollViewer"
                                               Focusable="True"
                                               MouseDown="ClassicKeyboardSurface_MouseDown"
                                               VerticalScrollBarVisibility="Auto"
-                                              Margin="8"
+                                              Margin="{StaticResource Thickness.Lg}"
                                               Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
                                               AutomationProperties.Name="Output 가사 페이지 영역">
                                     <ItemsControl x:Name="flowLayoutOutputLyrics"
