@@ -1,0 +1,55 @@
+# 기본: 텍스트 파일은 git이 자동 감지하고 저장소 안에서는 LF로 정규화한다.
+# 이렇게 하면 에디터/도구가 CRLF로 저장해도 git이 LF 기준으로 비교하므로
+# 라인엔딩 차이로 인한 대규모 churn(전체 파일이 수정으로 보이는 현상)이 생기지 않는다.
+* text=auto
+
+# --- 소스/텍스트 파일: 저장소 LF 고정 ---
+*.cs        text
+*.csproj    text
+*.sln       text
+*.xaml      text
+*.xml       text
+*.config    text
+*.json      text
+*.md        text
+*.txt       text
+*.yml       text
+*.yaml      text
+*.csv       text
+*.py        text
+*.sh        text eol=lf
+*.resx      text
+
+# Windows 전용 스크립트는 CRLF 유지
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# --- 바이너리: 변환/정규화 금지 ---
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.bmp       binary
+*.ico       binary
+*.cur       binary
+*.dll       binary
+*.exe       binary
+*.pdb       binary
+*.snk       binary
+*.pfx       binary
+*.db        binary
+*.sqlite    binary
+*.sqlite3   binary
+*.zip       binary
+*.7z        binary
+*.gz        binary
+*.pdf       binary
+*.ppt       binary
+*.pptx      binary
+*.doc       binary
+*.docx      binary
+*.ttf       binary
+*.otf       binary
+*.woff      binary
+*.woff2     binary
