@@ -11,11 +11,11 @@
 
 ---
 
-## 0-A. Mandatory Pre-Edit Hard Gate for Codex
+## 0-A. Mandatory Pre-Edit Hard Gate for Claude/Codex
 
 This section exists because a previous session read the SDD rules but still edited existing function logic before completing the required analysis artifacts. Treat this section as a hard execution gate, not guidance.
 
-Before any `apply_patch`, file rewrite, formatter-driven code rewrite, or production-code edit, Codex MUST do the following in the current session:
+Before any code edit, patch, file rewrite, formatter-driven code rewrite, or production-code change, the agent MUST do the following in the current session:
 
 1. Re-read this file enough to confirm the active SDD rules.
 2. State whether the requested change touches production code.
@@ -352,20 +352,6 @@ dotnet test Easislides.Wpf.Tests                                # 전체 green �
 
 ---
 
-## Codex 실행 가이드 (이 저장소)
-
-Codex는 구현 에이전트로 동작한다. 기본 순서:
-
-1. **기억 회고**: production code 변경 전 `gbrain search` / `mcp__gbrain__recall`(미구성 시 `MEMORY.md`)로 관련 과거 히스토리·유저 선호 패턴·장애 이력을 확인하고 계약에 반영.
-2. **계약 확인**: `openspec/changes/<change-id>/{proposal,design,tasks,codegraph-impact}.md`를 먼저 확인. 새 change는 `<prefix><NNN>-short-kebab-intent` 형식으로 만들고, `a001`~`a999` 다음은 `b001`, 그 다음은 `c001` 규칙을 따른다. 앞으로 외부/legacy 무번호 change가 발견되면 참조 안정성을 위해 별도 승인 없이 rename하지 않는다.
-3. **영향 증거**: 구조 질문·공유 심볼 영향은 CodeGraph(`codegraph_context`·`codegraph_impact`·`codegraph_callers`)로 확인.
-4. **TDD 실행**: 새 동작·버그 수정은 실패 테스트를 먼저 만들고 expected fail 확인 후 최소 구현.
-5. **게이트**: `openspec validate --all --no-interactive`, `dotnet build` + `dotnet test Easislides.Wpf.Tests`(green 유지), `/gstack-review`·`/gstack-cso`·`/gstack-qa`, 수동 송출 QA 증거.
-6. **종결 + 기억 승격**: 완료 change는 `/opsx:sync`·`/opsx:archive` 대상인지 확인하고, 전체 게이트 통과 후 이번 사이클 교훈·구조·의사결정을 `gbrain put` / `mcp__gbrain__put_page`(미구성 시 `MEMORY.md`)로 canonical 저장.
-7. **Single Writer**: Claude와 같은 브랜치의 같은 파일을 동시에 수정하지 않는다.
-
----
-
 ## 함수 내부 로직 분석 레이어 (Function-Level Logic Analysis) — 2026-06-23 추가
 
 ### 0. 목적
@@ -476,7 +462,6 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 ## 5. 코딩 / 금지 규칙
 
 - **한글 식별자·주석** — 초등학생도 이해할 수준. 단, 기존 스타일 일관성 우선.
-- **SDD 계약 문서(OpenSpec proposal/design/spec/tasks/codegraph-impact 및 직접 소유하는 SDD 문서)** — 기본 작성 언어는 한글. 예외적으로 외부 표준명, CLI 에러 원문, 코드 심볼, 경로, 명령어는 원문을 유지할 수 있다. OpenSpec이 파싱에 의존하는 구조 키워드(`## ADDED Requirements`, `### Requirement:`, `#### Scenario:`, `GIVEN`, `WHEN`, `THEN`, `AND`, `SHALL`, `MUST` 등)는 보수적으로 원문을 유지한다.
 - **작은 단위 커밋 + PR** (예: `feat(wpf): … (증분160-E)`). 문서·코드·테스트 일치, 문서 없이 기능 추가 지양(TDD 우선).
 - **백업 파일(`.bak`, `.bak2`…) 임의 삭제 금지** (리팩토링 중 의도적 생성).
 - **거대 파일은 partial/기능별 분할** 우선. 새 메서드는 적합한 `gf*.cs`를 먼저 찾고 없을 때만 새 파일.

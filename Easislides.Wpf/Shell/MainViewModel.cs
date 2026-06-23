@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -300,6 +301,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain flowLayoutOutputLyrics/OutputInfo 에 보여 줄 비-PPT Output 본문이 있는가.</summary>
     public bool HasOutputLyricsText => !string.IsNullOrWhiteSpace(OutputLyricsText);
 
+    public Brush PreviewSampleBackgroundBrush => CreateLyricsSampleBackgroundBrush(PreviewItem);
+    public Brush OutputSampleBackgroundBrush => CreateLyricsSampleBackgroundBrush(GetOutputNavigationItem());
+    public Brush PreviewSampleForegroundBrush => CreateLyricsSampleForegroundBrush(PreviewItem);
+    public Brush OutputSampleForegroundBrush => CreateLyricsSampleForegroundBrush(GetOutputNavigationItem());
+    public double PreviewSampleFontSize => CreateLyricsSampleFontSize(PreviewItem);
+    public double OutputSampleFontSize => CreateLyricsSampleFontSize(GetOutputNavigationItem());
+    public double PreviewSampleLineHeight => CreateLyricsSampleLineHeight(PreviewItem);
+    public double OutputSampleLineHeight => CreateLyricsSampleLineHeight(GetOutputNavigationItem());
+    public object PreviewSampleFontFamily => CreateLyricsSampleFontFamily(PreviewItem);
+    public object OutputSampleFontFamily => CreateLyricsSampleFontFamily(GetOutputNavigationItem());
+    public System.Windows.TextAlignment PreviewSampleTextAlignment => CreateLyricsSampleTextAlignment(PreviewItem);
+    public System.Windows.TextAlignment OutputSampleTextAlignment => CreateLyricsSampleTextAlignment(GetOutputNavigationItem());
+    public System.Windows.HorizontalAlignment PreviewSampleHorizontalAlignment => CreateLyricsSampleHorizontalAlignment(PreviewItem);
+    public System.Windows.HorizontalAlignment OutputSampleHorizontalAlignment => CreateLyricsSampleHorizontalAlignment(GetOutputNavigationItem());
+    public System.Windows.VerticalAlignment PreviewSampleVerticalAlignment => CreateLyricsSampleVerticalAlignment(PreviewItem);
+    public System.Windows.VerticalAlignment OutputSampleVerticalAlignment => CreateLyricsSampleVerticalAlignment(GetOutputNavigationItem());
+
     public bool IsOutputHeaderTextVisible => false;
 
     public string PreviewPanelTitleText => PreviewItem?.Title ?? "Preview";
@@ -538,6 +556,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _activeBackgroundColorHex = "#FFFFFF";
     [ObservableProperty] private string _activePanelColorHex = "#000000";
     [ObservableProperty] private string _activePanelTextColorHex = "#000000";
+    [ObservableProperty] private int _activeLyricsTextColorArgb = EasiSettingKeys.LyricsMonitorTextColorArgb.DefaultValue;
+    [ObservableProperty] private int _activeLyricsBackgroundColorArgb = EasiSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue;
+    [ObservableProperty] private int _activeLyricsBackgroundColor2Argb = EasiSettingKeys.LyricsMonitorBackgroundColor2Argb.DefaultValue;
+    [ObservableProperty] private bool _activeLyricsBackgroundIsGradient = EasiSettingKeys.LyricsMonitorBackgroundIsGradient.DefaultValue;
 
     // 출력 모양 템플릿(저장/불러오기) — 새 템플릿 이름 입력, 선택된 기존 템플릿.
     [ObservableProperty] private string _newAppearanceTemplateName = "";
@@ -3643,6 +3665,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemBold2));
         OnPropertyChanged(nameof(SelectedItemItalic2));
         OnPropertyChanged(nameof(SelectedItemUnderline2));
+        NotifyLyricsSampleAppearanceProperties();
 
         NotifyCommandStates();
     }
@@ -4685,6 +4708,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputVisualContext));
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyOutputPanelDisplayProperties();
+        NotifyLyricsSampleAppearanceProperties();
         NotifyCommandStates();
     }
 
@@ -4723,6 +4747,191 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         return $"{region1}{Environment.NewLine}{Environment.NewLine}{region2}";
+    }
+
+    private Brush CreateLyricsSampleBackgroundBrush(LiveQueueItem? item)
+    {
+        var format = SongFormatData.Parse(item?.FormatData);
+        var imagePath = !string.IsNullOrWhiteSpace(format?.BackgroundImagePath)
+            ? format!.BackgroundImagePath
+            : ActiveOutputBackgroundImagePath;
+        var image = TryLoadLyricsSampleBackgroundImage(imagePath);
+        if (image is not null)
+        {
+            return OutputWindowViewModel.BuildBackgroundImageBrush(
+                image,
+                format?.BackgroundImageMode ?? ActiveBackgroundMode);
+        }
+
+        var itemBackground = format?.BackgroundColorArgb1;
+        var color1 = itemBackground ?? ActiveLyricsBackgroundColorArgb;
+        var color2 = itemBackground ?? ActiveLyricsBackgroundColor2Argb;
+        return CreateLyricsSampleBackgroundBrush(color1, color2, itemBackground is null && ActiveLyricsBackgroundIsGradient);
+    }
+
+    private Brush CreateLyricsSampleForegroundBrush(LiveQueueItem? item)
+    {
+        var format = SongFormatData.Parse(item?.FormatData);
+        return CreateLyricsSampleBrush(format?.TextColorArgb1 ?? ActiveLyricsTextColorArgb);
+    }
+
+    private double CreateLyricsSampleFontSize(LiveQueueItem? item)
+    {
+        var format = SongFormatData.Parse(item?.FormatData);
+        return LegacyPointToPixel(format?.FontSize1) ?? ActiveLyricsFontSize;
+    }
+
+    private double CreateLyricsSampleLineHeight(LiveQueueItem? item)
+        => CreateLyricsSampleFontSize(item) * (ActiveLyricsLineSpacing / 100.0);
+
+    private object CreateLyricsSampleFontFamily(LiveQueueItem? item)
+    {
+        var format = SongFormatData.Parse(item?.FormatData);
+        var fontName = !string.IsNullOrWhiteSpace(format?.FontName1)
+            ? format!.FontName1
+            : ActiveLyricsFontFamily;
+        return string.IsNullOrWhiteSpace(fontName)
+            ? System.Windows.DependencyProperty.UnsetValue
+            : new FontFamily(fontName);
+    }
+
+    private System.Windows.TextAlignment CreateLyricsSampleTextAlignment(LiveQueueItem? item)
+        => ResolveLyricsSampleTextAlignment(item) switch
+        {
+            LyricsTextAlignment.Left => System.Windows.TextAlignment.Left,
+            LyricsTextAlignment.Right => System.Windows.TextAlignment.Right,
+            _ => System.Windows.TextAlignment.Center,
+        };
+
+    private System.Windows.HorizontalAlignment CreateLyricsSampleHorizontalAlignment(LiveQueueItem? item)
+        => ResolveLyricsSampleTextAlignment(item) switch
+        {
+            LyricsTextAlignment.Left => System.Windows.HorizontalAlignment.Left,
+            LyricsTextAlignment.Right => System.Windows.HorizontalAlignment.Right,
+            _ => System.Windows.HorizontalAlignment.Center,
+        };
+
+    private System.Windows.VerticalAlignment CreateLyricsSampleVerticalAlignment(LiveQueueItem? item)
+    {
+        var format = SongFormatData.Parse(item?.FormatData);
+        return (format?.VerticalAlignment ?? ActiveLyricsVerticalAlignment) switch
+        {
+            LyricsVerticalAlignment.Top => System.Windows.VerticalAlignment.Top,
+            LyricsVerticalAlignment.Bottom => System.Windows.VerticalAlignment.Bottom,
+            _ => System.Windows.VerticalAlignment.Center,
+        };
+    }
+
+    private LyricsTextAlignment ResolveLyricsSampleTextAlignment(LiveQueueItem? item)
+    {
+        var format = SongFormatData.Parse(item?.FormatData);
+        return format?.Alignment1 switch
+        {
+            1 => LyricsTextAlignment.Left,
+            3 => LyricsTextAlignment.Right,
+            2 => LyricsTextAlignment.Center,
+            _ => ActiveLyricsAlignment,
+        };
+    }
+
+    private ImageSource? TryLoadLyricsSampleBackgroundImage(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return null;
+        }
+
+        var resolved = ResolveLyricsSampleBackgroundImagePath(imagePath);
+        if (!File.Exists(resolved))
+        {
+            return null;
+        }
+
+        try
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.UriSource = new Uri(resolved, UriKind.Absolute);
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException or UriFormatException)
+        {
+            return null;
+        }
+    }
+
+    private string ResolveLyricsSampleBackgroundImagePath(string rawPath)
+    {
+        if (Path.IsPathRooted(rawPath))
+        {
+            return rawPath;
+        }
+
+        var workingFolder = _settings.Current.General.WorkingFolder;
+        return string.IsNullOrWhiteSpace(workingFolder)
+            ? rawPath
+            : Path.Combine(workingFolder, rawPath);
+    }
+
+    private static int? LegacyPointToPixel(int? legacyPointSize)
+        => legacyPointSize is int pointSize and > 0
+            ? (int)Math.Round(pointSize * 96.0 / 72.0, MidpointRounding.AwayFromZero)
+            : null;
+
+    private Brush CreateLyricsSampleBackgroundBrush(int color1Argb, int color2Argb, bool isGradient)
+    {
+        if (!isGradient || color1Argb == color2Argb)
+        {
+            return CreateLyricsSampleBrush(color1Argb);
+        }
+
+        var (start, end) = ActiveGradientDirection switch
+        {
+            LyricsGradientDirection.Horizontal => (new System.Windows.Point(0, 0.5), new System.Windows.Point(1, 0.5)),
+            LyricsGradientDirection.DiagonalDown => (new System.Windows.Point(0, 0), new System.Windows.Point(1, 1)),
+            LyricsGradientDirection.DiagonalUp => (new System.Windows.Point(0, 1), new System.Windows.Point(1, 0)),
+            _ => (new System.Windows.Point(0.5, 0), new System.Windows.Point(0.5, 1)),
+        };
+        var brush = new LinearGradientBrush(ColorFromArgb(color1Argb), ColorFromArgb(color2Argb), start, end);
+        brush.Freeze();
+        return brush;
+    }
+
+    private static Brush CreateLyricsSampleBrush(int argb)
+    {
+        var brush = new SolidColorBrush(ColorFromArgb(argb));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static Color ColorFromArgb(int argb)
+        => Color.FromArgb(
+            (byte)((uint)argb >> 24),
+            (byte)((uint)argb >> 16),
+            (byte)((uint)argb >> 8),
+            (byte)(uint)argb);
+
+    private void NotifyLyricsSampleAppearanceProperties()
+    {
+        OnPropertyChanged(nameof(PreviewSampleBackgroundBrush));
+        OnPropertyChanged(nameof(OutputSampleBackgroundBrush));
+        OnPropertyChanged(nameof(PreviewSampleForegroundBrush));
+        OnPropertyChanged(nameof(OutputSampleForegroundBrush));
+        OnPropertyChanged(nameof(PreviewSampleFontSize));
+        OnPropertyChanged(nameof(OutputSampleFontSize));
+        OnPropertyChanged(nameof(PreviewSampleLineHeight));
+        OnPropertyChanged(nameof(OutputSampleLineHeight));
+        OnPropertyChanged(nameof(PreviewSampleFontFamily));
+        OnPropertyChanged(nameof(OutputSampleFontFamily));
+        OnPropertyChanged(nameof(PreviewSampleTextAlignment));
+        OnPropertyChanged(nameof(OutputSampleTextAlignment));
+        OnPropertyChanged(nameof(PreviewSampleHorizontalAlignment));
+        OnPropertyChanged(nameof(OutputSampleHorizontalAlignment));
+        OnPropertyChanged(nameof(PreviewSampleVerticalAlignment));
+        OnPropertyChanged(nameof(OutputSampleVerticalAlignment));
     }
 
     private void PlaySelectedWorshipMediaOnOutput()
@@ -5564,6 +5773,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private OutputDisplay GetPreferredOutputDisplay(string? preferredId, IReadOnlyList<OutputDisplay>? displays = null)
     {
         var availableDisplays = displays ?? _display.GetDisplays();
+        if (_settings.Get(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor))
+        {
+            if (!string.IsNullOrWhiteSpace(preferredId))
+            {
+                var preferredSecondary = availableDisplays.FirstOrDefault(display =>
+                    !display.IsPrimary
+                    && string.Equals(display.Id, preferredId, StringComparison.OrdinalIgnoreCase));
+                if (preferredSecondary is not null)
+                {
+                    return preferredSecondary;
+                }
+            }
+
+            return availableDisplays.FirstOrDefault(display => !display.IsPrimary)
+                ?? availableDisplays.FirstOrDefault(display => display.IsPrimary)
+                ?? _display.GetPrimaryDisplay();
+        }
+
         if (!string.IsNullOrWhiteSpace(preferredId))
         {
             var preferred = availableDisplays.FirstOrDefault(display =>
@@ -5572,13 +5799,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 return preferred;
             }
-        }
-
-        if (_settings.Get(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor))
-        {
-            return availableDisplays.FirstOrDefault(display => !display.IsPrimary)
-                ?? availableDisplays.FirstOrDefault(display => display.IsPrimary)
-                ?? _display.GetPrimaryDisplay();
         }
 
         return availableDisplays.FirstOrDefault(display => display.IsPrimary)
@@ -5814,9 +6034,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem PrepareOutputFromItem(LiveQueueItem item)
     {
         var prepared = PrepareLiveItemForOutput(item);
-        OutputItem = prepared;
-        PrepareOutputPowerPointForPublish(prepared);
-        return prepared;
+        var lyricsPageIndex = IsLyricsPaginated(prepared)
+            ? GetPreviewLyricsPageIndex(item)
+            : prepared.LyricsPageIndex;
+        var output = prepared.LyricsPageIndex == lyricsPageIndex
+            ? prepared
+            : prepared with { LyricsPageIndex = lyricsPageIndex };
+        OutputItem = output;
+        PrepareOutputPowerPointForPublish(output);
+        return output;
     }
 
     private LiveQueueItem? MovePreviewSelectionToNext(LiveQueueItem copiedItem)
@@ -6359,7 +6585,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var display = EnsureLiveOutputDisplay();
         var monitorName = display.Name;
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = await PrepareLiveItemForOutputAsync(item).ConfigureAwait(true);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
@@ -6855,7 +7081,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var display = EnsureLiveOutputDisplay();
         var monitorName = display.Name;
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = await PrepareLiveItemForOutputAsync(item).ConfigureAwait(true);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
         PrepareOutputPowerPointForPublish(prepared);
@@ -7280,6 +7506,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         // 라이브 송출 중이면 같은 절로 다시 송출해 새 서식을 즉시 반영(세션 실제 라이브 절 사용 — 0절로 안 튀게).
         RepublishLiveSongForBodyChange();
+        NotifyLyricsSampleAppearanceProperties();
 
         NotifyCommandStates();
         return true;
@@ -7813,6 +8040,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         return prepared;
+    }
+
+    private async Task<LiveQueueItem> PrepareLiveItemForOutputAsync(LiveQueueItem item)
+    {
+        var prepared = PrepareLiveItemForOutput(item);
+        if (!LiveItemKindMatcher.IsSong(prepared.Kind)
+            || !string.IsNullOrWhiteSpace(prepared.Lyrics)
+            || !TryGetSongDatabaseId(prepared, out var songId))
+        {
+            return prepared;
+        }
+
+        try
+        {
+            var detail = await _songDetail.GetSongDetailAsync(ResolveSongDetailDatabasePath(), songId).ConfigureAwait(true);
+            if (detail is null || string.IsNullOrWhiteSpace(detail.Lyrics))
+            {
+                return prepared;
+            }
+
+            return prepared with
+            {
+                Title = string.IsNullOrWhiteSpace(prepared.Title) ? detail.Title : prepared.Title,
+                Lyrics = detail.Lyrics,
+                Sequence = string.IsNullOrWhiteSpace(prepared.Sequence) ? detail.Sequence : prepared.Sequence,
+                SongNumber = prepared.SongNumber != 0 ? prepared.SongNumber : detail.SongNumber,
+                Copyright = string.IsNullOrWhiteSpace(prepared.Copyright) ? detail.Copyright : prepared.Copyright,
+                BookReference = string.IsNullOrWhiteSpace(prepared.BookReference) ? detail.BookReference : prepared.BookReference,
+                UserReference = string.IsNullOrWhiteSpace(prepared.UserReference) ? detail.UserReference : prepared.UserReference,
+                FormatData = string.IsNullOrWhiteSpace(prepared.FormatData) ? detail.FormatData : prepared.FormatData,
+            };
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"곡 본문 로드 실패: {ex.Message}";
+            return prepared;
+        }
     }
 
     private static string InferLegacyKind(LiveQueueItem item)
@@ -9662,10 +9926,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTitleHeadingFirstScreenOnly = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly);
         ActiveTitleHeadingFollowBody = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody);
         ActiveTitleHeadingFollowRegion2 = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2);
+        ActiveLyricsTextColorArgb = text;
+        ActiveLyricsBackgroundColorArgb = bg1;
+        ActiveLyricsBackgroundColor2Argb = bg2;
+        ActiveLyricsBackgroundIsGradient = gradient;
         ActiveTextColorHex = FormatColorHex(text);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
         ActivePanelColorHex = FormatColorHex(panel);
         ActivePanelTextColorHex = FormatColorHex(panelText);
+        NotifyLyricsSampleAppearanceProperties();
     }
 
     private void ApplyOperationalSettings(bool updateStatus)

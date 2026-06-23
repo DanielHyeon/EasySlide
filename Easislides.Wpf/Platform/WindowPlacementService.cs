@@ -15,6 +15,7 @@ public sealed class WindowPlacementService : IWindowPlacementService
     private const double PreferredWindowedHeight = 720;
     private const double AspectRatio = PreferredWindowedWidth / PreferredWindowedHeight;
     private const double LegacyCustomAspectRatio = 4d / 3d;
+    private const int MinimumCustomWidth = 320;
 
     private readonly ISettingsService? _settings;
 
@@ -60,10 +61,18 @@ public sealed class WindowPlacementService : IWindowPlacementService
     {
         if (!TryGetCustomBounds(out var left, out var top, out var width))
         {
-            return new DisplayBounds(display.X, display.Y, display.Width, display.Height);
+            return new DisplayBounds(
+                ToDips(display.X, display),
+                ToDips(display.Y, display),
+                ToDips(display.Width, display),
+                ToDips(display.Height, display));
         }
 
-        return new DisplayBounds(left, top, width, width / LegacyCustomAspectRatio);
+        return new DisplayBounds(
+            ToDips(left, display),
+            ToDips(top, display),
+            ToDips(width, display),
+            ToDips(width / LegacyCustomAspectRatio, display));
     }
 
     private bool TryGetCustomBounds(out int left, out int top, out int width)
@@ -81,9 +90,20 @@ public sealed class WindowPlacementService : IWindowPlacementService
         top = _settings.Get(EasiSettingKeys.DisplayCustomTop);
         width = _settings.Get(EasiSettingKeys.DisplayCustomWidth);
 
+        if (width < MinimumCustomWidth)
+        {
+            return false;
+        }
+
         return left != EasiSettingKeys.DisplayCustomLeft.DefaultValue
             || top != EasiSettingKeys.DisplayCustomTop.DefaultValue
             || width != EasiSettingKeys.DisplayCustomWidth.DefaultValue;
+    }
+
+    private static double ToDips(double physicalPixels, OutputDisplay display)
+    {
+        var dpiScale = display.DpiScale > 0 ? display.DpiScale : 1d;
+        return physicalPixels / dpiScale;
     }
 
     private sealed record DisplayBounds(double Left, double Top, double Width, double Height);

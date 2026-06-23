@@ -201,6 +201,56 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task GoLiveCommand_WhenOutputClosed_UpdatesOutputWindowTextMonitorBody()
+    {
+        var output = new OutputWindowService();
+        var session = new LiveSessionService();
+        var surfaces = new List<RecordingOutputSurface>();
+        using var host = new OutputWindowHost(output, session, () => CreateOutputSurface(surfaces));
+        var sut = CreateSut(liveSession: session, output: output, seedSampleQueue: false);
+        var item = new LiveQueueItem("song-live-text", "Live text song", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\nFirst live line\n[C]\nChorus live line",
+            Sequence = "1 C",
+        };
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        surfaces.Should().ContainSingle("Live should open the actual output surface");
+        surfaces[0].ViewModel.Should().NotBeNull();
+        surfaces[0].ViewModel!.State.Should().Be(LiveState.Active);
+        surfaces[0].ViewModel!.CurrentItemTitle.Should().Be("Live text song");
+        surfaces[0].ViewModel!.BodyText.Should().Be("First live line");
+        surfaces[0].ViewModel!.Scene.BodyText.Should().Be("First live line");
+        sut.OutputLyricsText.Should().Be("First live line");
+    }
+
+    [Fact]
+    public async Task GoLiveCommand_WithDatabaseSongMissingLyrics_ReloadsTextMonitorBodyLikeWinForms()
+    {
+        var output = new OutputWindowService();
+        var session = new LiveSessionService();
+        var surfaces = new List<RecordingOutputSurface>();
+        var detail = SampleSongDetail(7, "Database song", "[1]\nLoaded verse\n[C]\nLoaded chorus", sequence: "1 C");
+        var repo = new StubSongDetailRepository(detail);
+        using var host = new OutputWindowHost(output, session, () => CreateOutputSurface(surfaces));
+        var sut = CreateSut(liveSession: session, output: output, songDetail: repo, seedSampleQueue: false);
+        var item = new LiveQueueItem("song:7", "Database song", LiveItemKinds.Song);
+        sut.LoadQueue([item]);
+        sut.SelectedItem = item;
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        repo.LastSongId.Should().Be(7);
+        session.Current.CurrentItemBodyText.Should().Be("Loaded verse");
+        surfaces.Should().ContainSingle();
+        surfaces[0].ViewModel!.BodyText.Should().Be("Loaded verse");
+        sut.OutputLyricsText.Should().Be("Loaded verse");
+    }
+
+    [Fact]
     public async Task LiveItemId_ReflectsPublishedItem_AndNotifiesAndClearsOnStop()
     {
         // 예배 순서 목록의 LIVE 표시 바인딩 소스 — 송출하면 그 항목 Id, 라이브 중지하면 null. 변경 시 PropertyChanged 알림.
@@ -4107,6 +4157,106 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void CopyPreviewToOutputCommand_PreparesCurrentPreviewLyricsPage()
+    {
+        var creed = new LiveQueueItem("text-file:apostles:0", "Apostles Creed", LiveItemKinds.Notice)
+        {
+            Lyrics = "Creed title\n\nSecond paragraph\nline two\n\nThird paragraph\nline two",
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([creed]);
+        sut.SelectedItem = creed;
+        sut.GoToPreviewLyricsPageCommand.Execute(2);
+
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.LyricsPageIndex.Should().Be(2);
+        sut.OutputLyricsText.Should().Be("Third paragraph\nline two");
+        sut.OutputLyricsPages.Single(card => card.PageIndex == 2).IsCurrent.Should().BeTrue();
+        sut.OutputNavigationPositionLabel.Should().Be("3/3");
+    }
+
+    [Fact]
+    public async Task ToggleOutputLiveCommand_AfterCopyPreviewToOutput_PublishesSelectedPageAndFormatting()
+    {
+        var session = new LiveSessionService();
+        var creed = new LiveQueueItem("text-file:apostles:0", "Apostles Creed", LiveItemKinds.Notice)
+        {
+            Lyrics = "Creed title\n\nSecond paragraph\nline two\n\nThird paragraph\nline two",
+            FormatData = @"29=-65536>26=-16776961>43=Batang>47=48>61=C:\Backgrounds\creed.jpg>62=1>",
+            UseIndividualFormatting = true,
+        };
+        var sut = CreateSut(liveSession: session, seedSampleQueue: false);
+        sut.LoadQueue([creed]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = creed;
+        sut.GoToPreviewLyricsPageCommand.Execute(2);
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+
+        session.Current.State.Should().Be(LiveState.Active);
+        session.Current.CurrentItemTitle.Should().Be("Apostles Creed");
+        session.Current.CurrentLyricsPageIndex.Should().Be(2);
+        session.Current.CurrentItemBodyText.Should().Be("Third paragraph\nline two");
+        session.Current.OverrideTextColorArgb.Should().Be(-65536);
+        session.Current.OverrideBackgroundColorArgb.Should().Be(-16776961);
+        session.Current.OverrideFontName.Should().Be("Batang");
+        session.Current.OverrideFontSizePx.Should().Be(64, "47=48 legacy pt is rendered as 64 WPF px");
+        session.Current.OverrideBackgroundImagePath.Should().Be(@"C:\Backgrounds\creed.jpg");
+        session.Current.OverrideBackgroundImageMode.Should().Be(LyricsBackgroundMode.Center);
+    }
+
+    [Fact]
+    public void OutputSampleAppearance_ReflectsLiveOutputSettings()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.LyricsMonitorTextColorArgb, unchecked((int)0xFF102030));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColorArgb, unchecked((int)0xFFE0D0C0));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb, unchecked((int)0xFFE0D0C0));
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundIsGradient, false);
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, string.Empty);
+        settings.Set(EasiSettingKeys.LyricsMonitorFontSize, 36);
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+
+        var background = sut.OutputSampleBackgroundBrush.Should().BeOfType<SolidColorBrush>().Subject;
+        var foreground = sut.OutputSampleForegroundBrush.Should().BeOfType<SolidColorBrush>().Subject;
+        background.Color.Should().Be(Color.FromArgb(0xFF, 0xE0, 0xD0, 0xC0));
+        foreground.Color.Should().Be(Color.FromArgb(0xFF, 0x10, 0x20, 0x30));
+        sut.OutputSampleFontSize.Should().Be(36);
+        sut.OutputSampleTextAlignment.Should().Be(TextAlignment.Center);
+        sut.OutputSampleHorizontalAlignment.Should().Be(HorizontalAlignment.Center);
+        sut.OutputSampleVerticalAlignment.Should().Be(VerticalAlignment.Center);
+    }
+
+    [Fact]
+    public void OutputSampleAppearance_UsesPreparedItemFormatting()
+    {
+        var creed = new LiveQueueItem("text-file:apostles:0", "Apostles Creed", LiveItemKinds.Notice)
+        {
+            Lyrics = "Creed title\n\nSecond paragraph",
+            FormatData = "29=-65536>26=-16776961>31=1>47=48>63=2>",
+            UseIndividualFormatting = true,
+        };
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([creed]);
+        sut.SelectedItem = creed;
+
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        var background = sut.OutputSampleBackgroundBrush.Should().BeOfType<SolidColorBrush>().Subject;
+        var foreground = sut.OutputSampleForegroundBrush.Should().BeOfType<SolidColorBrush>().Subject;
+        background.Color.Should().Be(Color.FromArgb(0xFF, 0x00, 0x00, 0xFF));
+        foreground.Color.Should().Be(Color.FromArgb(0xFF, 0xFF, 0x00, 0x00));
+        sut.OutputSampleFontSize.Should().Be(64);
+        sut.OutputSampleTextAlignment.Should().Be(TextAlignment.Left);
+        sut.OutputSampleHorizontalAlignment.Should().Be(HorizontalAlignment.Left);
+        sut.OutputSampleVerticalAlignment.Should().Be(VerticalAlignment.Bottom);
+    }
+
+    [Fact]
     public async Task CopyPreviewToOutputCommand_WhenBlackHidden_RefreshesHiddenPayloadWithoutRestoring()
     {
         // FrmMain btnToOutput: Black 상태에서 다음 OutputItem 을 준비하면 복귀될 payload 는 바뀌되 화면은 계속 숨겨져야 한다.
@@ -4135,7 +4285,9 @@ public class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Hidden, "btnToOutput 은 Black 상태를 해제하지 않는다");
         sut.Session.Current.IsBlackout.Should().BeTrue();
         sut.IsOutputBlackActive.Should().BeTrue();
-        sut.OutputItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(preview.Id);
+        sut.OutputItem.LyricsPageIndex.Should().Be(1);
         sut.LiveItemId.Should().Be(preview.Id);
         sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
         sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
@@ -4173,7 +4325,9 @@ public class MainViewModelTests
         sut.CopyPreviewToOutputCommand.Execute(null);
 
         sut.SelectedItem.Should().BeSameAs(preview, "btnToOutput 은 Preview 선택을 이동하지 않는다");
-        sut.OutputItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(preview.Id);
+        sut.OutputItem.LyricsPageIndex.Should().Be(1);
         sut.LiveItemId.Should().Be(preview.Id);
         sut.Session.Current.State.Should().Be(LiveState.Active);
         sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
@@ -4206,7 +4360,9 @@ public class MainViewModelTests
         await sut.PreviewToLiveCommand.ExecuteAsync(null);
 
         sut.SelectedItem.Should().BeSameAs(first, "btnToLive 는 GoLiveCommand 의 자동 다음 이동을 사용하지 않는다");
-        sut.OutputItem.Should().BeSameAs(first);
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(first.Id);
+        sut.OutputItem.LyricsPageIndex.Should().Be(1);
         sut.LiveItemId.Should().Be(first.Id);
         sut.Session.Current.State.Should().Be(LiveState.Active);
         sut.Session.Current.CurrentItemTitle.Should().Be("입례 찬양");
@@ -4296,7 +4452,9 @@ public class MainViewModelTests
         await sut.PreviewToLiveCommand.ExecuteAsync(null);
 
         sut.SelectedItem.Should().BeSameAs(preview, "btnToLive should not use the GoLive auto-next workflow");
-        sut.OutputItem.Should().BeSameAs(preview);
+        sut.OutputItem.Should().NotBeNull();
+        sut.OutputItem!.Id.Should().Be(preview.Id);
+        sut.OutputItem.LyricsPageIndex.Should().Be(1);
         sut.LiveItemId.Should().Be(preview.Id);
         sut.Session.Current.State.Should().Be(LiveState.Hidden);
         sut.Session.Current.IsBlackout.Should().BeTrue("Black should stay active until the operator restores Output");
@@ -5211,6 +5369,7 @@ public class MainViewModelTests
         using var settingsFolder = TempSettingsFolder.Create();
         var settings = settingsFolder.CreateSettings();
         settings.Set(EasiSettingKeys.DefaultOutputMonitorId, "primary");
+        settings.Set(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor, false);
         var primary = new OutputDisplay("primary", "주 모니터", 0, 0, 1920, 1080, 1, IsPrimary: true);
         var outputDisplay = new OutputDisplay("display-2", "송출 모니터", 1920, 0, 1920, 1080, 1.25);
         var sut = CreateSut(display: new FixedDisplayService(primary, outputDisplay), settings: settings);
@@ -5221,6 +5380,25 @@ public class MainViewModelTests
 
         sut.LiveBar.OutputMonitorName.Should().Be("주 모니터");
         sut.StatusText.Should().Contain("주 모니터");
+    }
+
+    [Fact]
+    public void OpenOutputCommand_WhenAlwaysUseSecondaryMonitorIgnoresStoredPrimaryMonitor()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.DefaultOutputMonitorId, "primary");
+        settings.Set(EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor, true);
+        var primary = new OutputDisplay("primary", "Primary", 0, 0, 1920, 1080, 1, IsPrimary: true);
+        var outputDisplay = new OutputDisplay("display-2", "Projector", 1920, 0, 1920, 1080, 1.25);
+        var sut = CreateSut(display: new FixedDisplayService(primary, outputDisplay), settings: settings);
+
+        sut.SelectedOutputDisplay.Should().Be(outputDisplay);
+
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.LiveBar.OutputMonitorName.Should().Be(outputDisplay.Name);
+        sut.StatusText.Should().Contain(outputDisplay.Name);
     }
 
     [Fact]

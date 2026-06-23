@@ -1,0 +1,9 @@
+id: sdd-live-text-monitor-invariants
+language: CSharp
+rule:
+  kind: invocation_expression
+  any:
+    - pattern: "$SESSION.GoLive($ITEM, $MONITOR)"
+    - pattern: "$SESSION.UpdateHiddenContent($ITEM, $MONITOR)"
+severity: info
+message: "SDD invariant checkpoint: live text monitor body/session/output-surface mutation."

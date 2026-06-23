@@ -18,7 +18,7 @@ public class WindowPlacementServiceTests
 
         var placement = sut.CreateOutputPlacement(display, windowed: false);
 
-        placement.Should().Be(new OutputWindowPlacement(-1920, 120, 1920, 1080, IsWindowed: false));
+        placement.Should().Be(new OutputWindowPlacement(-1536, 96, 1536, 864, IsWindowed: false));
     }
 
     [Fact]
@@ -30,7 +30,21 @@ public class WindowPlacementServiceTests
 
         var placement = sut.CreateOutputPlacement(display, windowed: false);
 
-        placement.Should().Be(new OutputWindowPlacement(-1920, 120, 1920, 1080, IsWindowed: false));
+        placement.Should().Be(new OutputWindowPlacement(-1536, 96, 1536, 864, IsWindowed: false));
+    }
+
+    [Fact]
+    public void CreateOutputPlacement_WithTinyCustomWidth_IgnoresInvalidCustomBounds()
+    {
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        settings.Set(EasiSettingKeys.DisplayCustomWidth, 1).Succeeded.Should().BeTrue();
+        var sut = new WindowPlacementService(settings);
+        var display = new OutputDisplay("secondary", "Secondary", 3440, 0, 2560, 1440, 1.25);
+
+        var placement = sut.CreateOutputPlacement(display, windowed: false);
+
+        placement.Should().Be(new OutputWindowPlacement(2752, 0, 2048, 1152, IsWindowed: false));
     }
 
     [Fact]
@@ -46,7 +60,7 @@ public class WindowPlacementServiceTests
 
         var placement = sut.CreateOutputPlacement(display, windowed: false);
 
-        placement.Should().Be(new OutputWindowPlacement(-240, 120, 1920, 1440, IsWindowed: false));
+        placement.Should().Be(new OutputWindowPlacement(-192, 96, 1536, 1152, IsWindowed: false));
     }
 
     [Fact]
@@ -64,8 +78,8 @@ public class WindowPlacementServiceTests
 
         placement.Width.Should().Be(1280);
         placement.Height.Should().Be(720);
-        placement.Left.Should().Be(360);
-        placement.Top.Should().Be(340);
+        placement.Left.Should().Be(160);
+        placement.Top.Should().Be(200);
         placement.IsWindowed.Should().BeTrue();
     }
 

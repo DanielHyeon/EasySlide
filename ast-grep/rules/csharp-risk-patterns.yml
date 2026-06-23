@@ -1,0 +1,9 @@
+id: csharp-risk-patterns
+language: CSharp
+rule:
+  kind: invocation_expression
+  any:
+    - pattern: "Convert.ToInt32($VALUE)"
+    - pattern: "Marshal.ReleaseComObject($VALUE)"
+severity: warning
+message: "SDD C# risk pattern: review exception handling, numeric conversion, or COM lifetime behavior."
