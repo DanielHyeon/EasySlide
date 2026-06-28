@@ -11,16 +11,16 @@
 
 ---
 
-## 0-A. Mandatory Pre-Edit Hard Gate for Codex
+## 0-A. Codex 코드 수정 전 필수 Hard Gate
 
-This section exists because a previous session read the SDD rules but still edited existing function logic before completing the required analysis artifacts. Treat this section as a hard execution gate, not guidance.
+이 섹션은 이전 세션에서 SDD 규칙을 읽었음에도 필수 분석 산출물을 완료하기 전에 기존 함수 내부 로직을 수정한 위반이 있었기 때문에 존재한다. 이 섹션은 참고 지침이 아니라 반드시 지켜야 하는 실행 차단 게이트다.
 
-Before any `apply_patch`, file rewrite, formatter-driven code rewrite, or production-code edit, Codex MUST do the following in the current session:
+`apply_patch`, 파일 재작성, 포매터 기반 코드 재작성, production 코드 수정 전에 Codex는 현재 세션에서 반드시 다음을 수행한다:
 
-1. Re-read this file enough to confirm the active SDD rules.
-2. State whether the requested change touches production code.
-3. State whether it modifies existing function-internal logic or depends on existing function-internal behavior.
-4. If the answer to step 3 is yes or uncertain, STOP before editing production code and complete the Function-Level Logic Analysis gate:
+1. 활성 SDD 규칙을 확인할 수 있을 만큼 이 파일을 다시 읽는다.
+2. 요청된 변경이 production 코드를 건드리는지 명시한다.
+3. 기존 함수 내부 로직을 수정하는지, 또는 기존 함수 내부 동작에 의존하는지 명시한다.
+4. 3번 답이 yes 또는 uncertain이면 production 코드 수정 전에 중단하고 함수 단위 로직 분석 게이트를 완료한다:
    - `codegraph_impact`
    - `codegraph_callers`
    - `openspec/changes/<id>/analysis/impact-map.md`
@@ -28,27 +28,27 @@ Before any `apply_patch`, file rewrite, formatter-driven code rewrite, or produc
    - `openspec/changes/<id>/analysis/function-ast-summary.md`
    - `openspec/changes/<id>/analysis/function-logic-map.md`
    - `openspec/changes/<id>/analysis/branch-test-map.md`
-5. Verify that `function-logic-map.md` and `branch-test-map.md` explicitly name the target function(s), changed branch(es), state mutation(s), fallback path(s), and required tests.
-6. Only then write the failing test and proceed with implementation.
+5. `function-logic-map.md`와 `branch-test-map.md`가 대상 함수, 변경 분기, 상태 변경, fallback 경로, 필수 테스트를 명시적으로 포함하는지 확인한다.
+6. 그 다음에만 실패 테스트를 작성하고 구현을 진행한다.
 
-Fail closed:
+Fail closed 원칙:
 
-- Existing analysis files are not sufficient merely because they exist. They must cover the current requested sub-scope and target symbols.
-- A previous session's claim that analysis was done is not sufficient. Re-check the files in the current session.
-- Passing tests, screenshots, or successful deployment are Gate evidence only. They do not replace the pre-edit Step 2 evidence gate.
-- If the user says "urgent", "deploy", "still not working", or asks for runtime capture, this does not waive SDD. Ask for an explicit hotfix exception before editing, and record the exception before implementation.
-- If the agent cannot tell whether a change touches existing function-internal logic, treat it as yes.
+- 기존 분석 파일은 존재한다는 이유만으로 충분하지 않다. 현재 요청의 세부 범위와 대상 심볼을 반드시 포함해야 한다.
+- 이전 세션에서 분석을 완료했다고 주장했더라도 충분하지 않다. 현재 세션에서 파일을 다시 확인한다.
+- 통과한 테스트, 캡처, 성공한 배포는 Gate 검증 증거일 뿐이다. 코드 수정 전 Step 2 증거 게이트를 대체하지 않는다.
+- 사용자가 "긴급", "배포", "아직 안 됨"이라고 말하거나 런타임 캡처를 요구해도 SDD는 면제되지 않는다. 수정 전에 명시적인 hotfix 예외를 요청하고, 구현 전에 예외를 기록한다.
+- 변경이 기존 함수 내부 로직을 건드리는지 판단할 수 없으면 yes로 취급한다.
 
-Required pre-edit declaration format:
+필수 pre-edit 선언 형식:
 
 ```text
 SDD Pre-Edit Gate:
-- Production code edit: yes/no
-- Existing function-internal logic touched or depended on: yes/no/uncertain
+- Production 코드 수정: yes/no
+- 기존 함수 내부 로직 수정 또는 의존: yes/no/uncertain
 - OpenSpec change id:
-- Target functions:
-- Required analysis artifacts present and current: yes/no
-- Decision: edit allowed / blocked until analysis / hotfix exception requested
+- 대상 함수:
+- 필수 분석 산출물 최신 상태: yes/no
+- 결정: 수정 가능 / 분석 전까지 차단 / hotfix 예외 요청
 ```
 
 ---
@@ -59,7 +59,7 @@ SDD Pre-Edit Gate:
 
 기본 방법론:
 
-> OpenSpec은 계약, CodeGraph는 증거, Superpowers는 TDD 실행, gstack은 게이트, GBrain은 검증된 과거 맥락의 기억이다.
+> OpenSpec은 계약, codebase-memory-mcp는 repo-level memory/search, CodeGraph는 구조 증거, Superpowers는 TDD 실행, gstack은 게이트, GBrain은 검증된 과거 맥락의 기억이다.
 
 ### 핵심 철학
 
@@ -73,6 +73,7 @@ SDD Pre-Edit Gate:
 
 | 계층 | 도구 | 책임 |
 | --- | --- | --- |
+| Repo Memory | codebase-memory-mcp Repo Memory Query | 후보 파일/클래스/메서드 탐색, call chain/route/cross-service link 보조, impact-map 초안 보조 |
 | 계약 | OpenSpec 또는 승인된 구현 계획 | 범위, 비목표(non-goals), 수용 기준, 설계, 승인 이력 |
 | 증거 | CodeGraph | 구조적 영향, 호출자/피호출자, 영향 받는 심볼, 영향 받는 테스트 |
 | 실행 | Superpowers | TDD 루프, 체계적 디버깅, 최소 구현, 1차 리뷰 |
@@ -85,10 +86,11 @@ SDD Pre-Edit Gate:
 ### 비자명 변경 규칙
 
 - production 코드를 변경하기 전에 승인된 spec, OpenSpec change, 이슈, 또는 구현 계획을 먼저 확인한다. 이때 GBrain을 **advisory로** 조회(`gbrain search` / `mcp__gbrain__recall`)하여 관련 과거 결정·장애 이력·검증된 학습이 있으면 계약(spec) 설계에 참고로 반영한다 — 단 GBrain 요약이 spec·수용 기준을 대체하거나 변경하지 못한다.
-- 사용 가능하면 구조적 영향 분석에 CodeGraph를 먼저 사용한다.
+- OpenSpec 계약 확인 뒤 codebase-memory-mcp Repo Memory Query로 repo-level 후보와 흐름을 먼저 좁히고, 구조적 영향 분석은 CodeGraph로 확정한다. codebase-memory-mcp 결과만으로 production code를 수정하지 않는다.
 - 작업을 작은 phase 단위로 실행한다. 각 phase는 `Goal`, `Scope`, `Tasks`, `DoD`, `Tests`, `Constraints`를 명시한다.
 - 동작 변경은 Superpowers 스타일 TDD를 따른다: Red → Green → Refactor → Verify.
 - 완료 전에 영향 받는 테스트와 관련 품질 게이트를 실행한다.
+- 구현 후에는 실제 앱을 실행해 변경된 화면·송출·설정 흐름을 반드시 캡처로 확인하고, 캡처 파일 경로를 `verification.md` 또는 최종 보고에 기록한다. UI가 없는 순수 내부 로직 변경만 예외이며, 이때도 캡처 불필요 사유를 명시한다.
 - 문서 전용·포맷 전용·동작을 보존하는 리팩터링이라면 테스트가 필요 없는 이유를 명시한다.
 - `/opsx:archive`로 변경을 닫은 **후**, 전체 게이트(Verify·테스트·review·security·ship)를 통과한 검증된 학습·결정만 GBrain에 canonical로 승격(write-back: `gbrain put` / `mcp__gbrain__put_page`)한다. 검증 전 잠정 메모는 inbox 태그로만.
 
@@ -133,9 +135,9 @@ GSD 계획, `.planning/`, gstack-spec, gstack-autoplan 산출물은 프로젝트
 
 - **Step 0 · 기억 회고 (GBrain, advisory)**: `gbrain search "<키워드>"` / `mcp__gbrain__recall`로 관련 과거 결정·유저 선호 패턴·장애 디버깅 이력을 먼저 조회 → 계약 설계 입력으로만 사용(원본 대체 불가).
 - **Step 1 · 계약**: `/opsx:propose "<변경 의도>"` → `openspec/changes/`에 proposal·specs·design·tasks 생성. 새 change id는 지금부터 `<prefix><NNN>-short-kebab-intent` 형식을 사용한다(예: `a001-wpf-mainwindow-shell`, `a002-wpf-shortcut-focus-parity`, `a999-wpf-some-change`, `b001-wpf-next-change`). 접두사는 `a001`~`a999` 다음 `b001`, 그 다음 `c001`처럼 알파벳 소문자 순서로 증가하고, 첫 글자는 OpenSpec CLI의 문자 시작 조건을 만족하기 위한 알파벳이다. `NNN`은 생성 순서 메타데이터이며 우선순위가 아니다. (간단/긴급 건은 `docs/` 구현 계획서로 대체 가능), 필요에 따라 gstack 리뷰 확인.
-- **Step 2 · 증거**: CodeGraph로 **함수 간** 영향 분석 — `codegraph_impact`·`codegraph_callers`로 영향 심볼·테스트 식별. 파일 직접 읽기 전에 먼저. **기존 함수의 내부 로직을 바꾸는(또는 그에 의존하는) 변경이면**, 호출 문맥만으로 끝내지 말고 `openspec/changes/<id>/analysis/`에 `impact-map.md` → `risk-pattern-report.md`(ast-grep) → `function-ast-summary.md`(tree-sitter) → `function-logic-map.md` → `branch-test-map.md`를 **먼저** 작성한다. `function-logic-map.md`·`branch-test-map.md` 없이 기존 함수 수정 금지 — 상세 게이트는 아래 `## 함수 내부 로직 분석 레이어` 참조.
+- **Step 2 · Repo Memory Query + 증거**: OpenSpec 직후 codebase-memory-mcp Repo Memory Query로 후보 파일/클래스/메서드, 관련 call chain/route/cross-service link, active/dead path 후보를 먼저 좁힌다. 그 다음 CodeGraph로 **함수 간** 영향 분석 — `codegraph_impact`·`codegraph_callers`로 영향 심볼·테스트 식별. 파일 직접 읽기 전에 먼저. **기존 함수의 내부 로직을 바꾸는(또는 그에 의존하는) 변경이면**, 호출 문맥만으로 끝내지 말고 `openspec/changes/<id>/analysis/`에 `repo-memory-query.md` → `impact-map.md` → `risk-pattern-report.md`(ast-grep) → `function-ast-summary.md`(tree-sitter) → `function-logic-map.md` → `branch-test-map.md`를 **먼저** 작성한다. `function-logic-map.md`·`branch-test-map.md` 없이 기존 함수 수정 금지 — 상세 게이트는 아래 `## 함수 내부 로직 분석 레이어` 참조.
 - **Step 3 · 실행**: Superpowers TDD — Red → Green → Refactor → Verify. 작은 phase 단위 커밋. 각 phase에 `Goal/Scope/Tasks/DoD/Tests/Constraints` 명시. (디버깅 막히면 `gbrain search`로 유사 에러 패턴 검색 가능)
-- **Step 4 · 게이트**: `/gstack-review` → `/gstack-cso` → 영향 테스트(`dotnet build` + `dotnet test Easislides.Wpf.Tests`, green 유지) → `/gstack-qa` → 수동 송출 QA. Release 빌드 시 DLL/BAML 심볼 반영 확인. 실제 push/배포는 사람이 diff·테스트 승인 후 수행.
+- **Step 4 · 게이트**: `/gstack-review` → `/gstack-cso` → 영향 테스트(`dotnet build` + `dotnet test Easislides.Wpf.Tests`, green 유지) → `/gstack-qa` → 수동 송출 QA → 실제 앱 실행 캡처 확인. Release 빌드 시 DLL/BAML 심볼 반영 확인. 실제 push/배포는 사람이 diff·테스트 승인 후 수행.
 - **Step 5 · 아카이브**: `/opsx:sync` → `/opsx:archive`로 완료 변경 기록.
 - **Step 6 · 기억 승격 (GBrain write-back)**: 전체 게이트 통과 후에만 이번 사이클의 검증된 학습·구조 변경·핵심 의사결정 요약을 `gbrain put` / `mcp__gbrain__put_page`로 canonical 저장. 미검증 메모는 inbox 태그로만.
 
@@ -340,6 +342,7 @@ dotnet build Easislides\Easislides.csproj -nologo -v minimal   # dotnet 없으�
 dotnet test Easislides.Wpf.Tests                                # 전체 green 유지
 ```
 - 구현 후 `code-reviewer` 에이전트 또는 `/gstack-review`·`/gstack-cso`. Release 빌드 시 DLL/BAML 심볼 반영 확인.
+- 구현 후 실제 앱을 실행해 변경 화면을 반드시 캡처한다. 송출/미리보기/설정/라이브 동작 변경은 캡처가 완료 증거의 필수 요소이며, `evidence/screenshots/<date>/<change-id>/` 아래 저장하고 경로를 `openspec/changes/<id>/verification.md`와 최종 보고에 남긴다.
 - 수동 송출 QA: 찬양·성경 검색 / WorshipList 전환 / PPT 썸네일 생성 / 싱글·멀티·None·수동좌표 송출 / PowerPoint·Word 좀비 프로세스 미발생 / SQLite·MariaDB 동기화 회귀 없음.
 
 ### Superpowers TDD 게이트 (완화 — 2026-06-04, 기본 정책)
@@ -379,7 +382,7 @@ Codex는 구현 에이전트로 동작한다. 기본 순서:
 
 ### 2. 최종 흐름 (이 순서를 건너뛰고 바로 구현하지 않는다)
 
-OpenSpec 계약 → CodeGraph Impact Map → ast-grep Risk Pattern Report → tree-sitter Function AST Summary → Function Logic Map → Branch Test Map → 실패 테스트 → 최소 구현 → gstack 검증 → verification/failure-log 기록.
+OpenSpec 계약 → codebase-memory-mcp Repo Memory Query → CodeGraph Impact Map → ast-grep Risk Pattern Report → tree-sitter-c-sharp Function AST Summary → Function Logic Map → Branch Test Map → 실패 테스트 → 최소 구현 → gstack 검증 → verification/failure-log 기록.
 
 기존 함수 수정이 포함되면 **`function-logic-map.md`와 `branch-test-map.md`가 없으면 구현 금지.**
 
@@ -389,6 +392,7 @@ OpenSpec 계약 → CodeGraph Impact Map → ast-grep Risk Pattern Report → tr
 openspec/changes/<change-id>/
   proposal.md  design.md  tasks.md
   analysis/
+    repo-memory-query.md     # codebase-memory-mcp 기반 repo-level 후보/흐름 조회
     impact-map.md             # CodeGraph 기반 호출/영향 분석
     risk-pattern-report.md    # ast-grep 기반 위험 패턴
     function-ast-summary.md   # tree-sitter 기반 함수 내부 구조 추출(기계)
@@ -401,8 +405,10 @@ openspec/changes/<change-id>/
 
 ### 4. 구성요소 역할 (EasiSlides는 C#/.NET — 도구를 C# 문법에 맞춰 사용)
 
+- **codebase-memory-mcp = repo-level memory/search**: 후보 파일·클래스·메서드 탐색, 관련 call chain/route/cross-service link 확인, active/dead path 후보 구분 보조, `impact-map.md` 초안 보조. → `repo-memory-query.md`. 단, CodeGraph·Function Logic Analysis를 대체하지 않으며 이 결과만으로 production code를 수정하면 안 된다.
 - **CodeGraph = 함수 간 문맥**: runtime entry point · caller/callee · 대상 함수 도달 경로 · 하위 호출 · 영향 파일/테스트 · legacy vs active path · feature flag 상위 경로. → `impact-map.md`.
 - **ast-grep = AI가 자주 놓치는 위험 구조 노출**(정답 판정 도구 아님). C# 탐지 예: `(int)$DECIMAL`/`Convert.ToInt32($X)` 정밀도 손실 · `catch (Exception)` / 빈 `catch { }` 예외 삼킴 · COM 생성 후 `Marshal.ReleaseComObject` 누락 · `SQLiteController`/`gfDatabase` 밖의 `new SQLiteConnection`/`new MySqlConnection` · `LS_Width=`/`LS_Height=`/`selectScreen=` 상태 변경 · audit/log/save 이전의 early `return` · feature flag 분기 이전 side effect · terminal/locked 상태 이후 값 재계산. → `risk-pattern-report.md`.
+- **ast-grep 2단계 게이트**: broad risk pattern은 warning/info evidence로만 유지한다. 기존 코드에 이미 존재하는 패턴(`new SQLiteConnection`, 빈 `catch`, `Convert.ToInt32`, COM release 등)을 error로 승격해 첫날부터 CI를 깨지 않는다. error tier는 **현재 0건인 genuinely new invariant**만 둔다. 현재 hard invariant seed는 `ast-grep/rules/csharp-hard-invariants.yml`의 `wpf-shell-no-raw-db-connection`이며, WPF presentation layer(`Easislides.Wpf/Shell`, `Controls`, `Rendering`)에서 raw DB connection 생성을 금지한다. CI/로컬 훅은 `tools/run-ast-grep-sdd.ps1`을 통해 advisory scan + enforced scan을 실행한다.
 - **tree-sitter query = 함수 내부 AST 구조 추출**(C# grammar): name · parameters · `if/else if/else` · `switch`/`case` · `return` · 대입 · 함수/메서드 호출 · 속성 쓰기 · 객체/컬렉션 mutation · `try/catch/finally` · 반복문. → `function-ast-summary.md`.
 - **추출 스크립트**(자동화, AI 추측 방지): `tools/logic_map/extract_function_ast.py`(C# grammar 사용)로 `--file <path> --function <name> --out analysis/function-ast-summary.md`. 초기 버전은 parameters·branch conditions·returns·assignments·calls·mutations·try/catch·loops만 추출하면 충분.
 
@@ -421,7 +427,7 @@ openspec/changes/<change-id>/
 
 ### 8. 구현 허용 조건 (모두 충족 시에만)
 
-CodeGraph로 runtime path 확인 · caller/callee 명확 · ast-grep 위험 패턴 확인 · `function-ast-summary.md` 생성 · Function Logic Map 작성 · Branch Test Map 작성 · 변경 관련 branch 실패 테스트 준비 · 수정 가능/금지 파일 구분 · 기존 불변식 명시 · 최소 패치 범위 확정. 분석 결론은 **`수정 가능` · `추가 분석 필요` · `수정 위험`** 중 하나로 낸다.
+codebase-memory-mcp Repo Memory Query로 후보 파일/흐름 확인 · CodeGraph로 runtime path 확인 · caller/callee 명확 · ast-grep 위험 패턴 확인 · `function-ast-summary.md` 생성 · Function Logic Map 작성 · Branch Test Map 작성 · 변경 관련 branch 실패 테스트 준비 · 수정 가능/금지 파일 구분 · 기존 불변식 명시 · 최소 패치 범위 확정. 분석 결론은 **`수정 가능` · `추가 분석 필요` · `수정 위험`** 중 하나로 낸다.
 
 ### 9. 구현 방식 (최소 패치)
 
@@ -434,7 +440,65 @@ CodeGraph로 runtime path 확인 · caller/callee 명확 · ast-grep 위험 패�
 
 ### 11. 최종 원칙
 
-호출 문맥은 **CodeGraph**, 함수 내부 문맥은 **tree-sitter**, 반복 실수는 **ast-grep**, AI의 이해는 **Function Logic Map**, 분기별 회귀는 **Branch Test Map**으로 검증·차단한다. → Function Logic Map 없이 기존 함수 수정 금지 · Branch Test Map 없이 branch 수정 금지 · Risk Pattern Report 없이 위험 로직 수정 금지 · Impact Map 없이 runtime path 수정 금지.
+Repo-level memory/search는 **codebase-memory-mcp**, 호출 문맥은 **CodeGraph**, 함수 내부 문맥은 **tree-sitter-c-sharp**, 반복 실수는 **ast-grep**, AI의 이해는 **Function Logic Map**, 분기별 회귀는 **Branch Test Map**으로 검증·차단한다. → Repo Memory Query 없이 후보/흐름 단정 금지 · Function Logic Map 없이 기존 함수 수정 금지 · Branch Test Map 없이 branch 수정 금지 · Risk Pattern Report 없이 위험 로직 수정 금지 · Impact Map 없이 runtime path 수정 금지.
+
+### 12. C# 의미 분석 한계 — tree-sitter는 Roslyn/빌드로 보강
+
+C# 코드는 **tree-sitter만으로 의미를 확정하지 않는다.** tree-sitter는 함수 내부 *문법 구조* 추출(branch/return/assignment/invocation/try-catch/loop/await/throw)에만 쓴다. 다음은 tree-sitter만으로 확정 금지:
+
+- 실제 타입 추론 · overload resolution · extension method 해석
+- interface 구현체 해석 · DI container binding
+- LINQ query 의미 · nullable flow
+- partial class / source generator 산출 결과 · attribute 기반 runtime behavior
+
+위 항목이 변경의 **핵심**이면 Roslyn 기반 분석 또는 빌드/`dotnet test` 검증 결과를 `function-logic-map.md`의 근거로 추가한다. 불확실한 부분은 "불확실"로 표기한다.
+
+### 13. 작업 지시 템플릿 — 분석 단계 (analysis-only, 코드 수정 금지)
+
+기존 C# 함수 내부 로직 분석이 필요한 작업의 시작 지시는 다음을 사용한다.
+
+```text
+지금은 코드 수정 금지. 이번 작업은 기존 C# 코드의 함수 내부 로직 분석이다.
+
+1. codebase-memory-mcp로 레포 구조 질의 → analysis/repo-memory-query.md
+   (관련 클래스/메서드, route/worker/scheduler, 비슷하지만 대상 아닌 경로, 불확실한 점)
+2. CodeGraph 기반 analysis/impact-map.md
+   (runtime entry point, call chain, target method, affected callers/tests, active vs legacy, risk area)
+3. ast-grep 관점 analysis/risk-pattern-report.md
+   (type conversion, early return, state mutation, DB write, external side effect, broad exception, feature flag bypass, 프로젝트 금지 패턴)
+4. tree-sitter-c-sharp extract_function_ast.py → analysis/function-ast-summary.md
+   (parameters, branch conditions, returns, assignments, invocations/await, type conversions, mutations, try/catch/finally/throw, loops)
+5. 소스 + function-ast-summary.md 기반 analysis/function-logic-map.md
+   (inputs, outputs, local variables, branch table, early returns, data transformations,
+    state mutations, side effects, fallback, invariants, suspicious logic, implementation boundary)
+6. analysis/branch-test-map.md
+   (branch별 기존 테스트, 추가 테스트, fallback/mutation 테스트, regression)
+
+주의:
+- production code 수정 금지 · codebase-memory-mcp 결과만으로 수정 금지
+- 호출 관계 분석만으로 끝내지 말 것
+- return/branch/mutation/type conversion/fallback 누락 금지
+- tree-sitter 결과에 없는 branch 임의 생성 금지
+- C# 타입추론/DI/interface 구현체/extension/overload는 tree-sitter만으로 확정 금지(§12)
+- 불확실한 부분은 "불확실"로 표기
+
+결론은 다음 중 하나로: 수정 가능 / 추가 분석 필요 / 수정 위험.
+```
+
+### 14. 작업 지시 템플릿 — 구현 단계 (분석 승인 후에만)
+
+```text
+이제 구현하라. 제약을 반드시 지켜라.
+
+1. function-logic-map.md의 implementation boundary 안에서만 수정
+2. branch-test-map.md의 실패 테스트를 먼저 작성
+3. production code 수정은 실패 테스트 작성 후 진행
+4. 최대 3개 파일 · 리팩터 금지 · branch 순서 임의 변경 금지
+5. 테스트 기대값 임의 변경 금지 · public API/DB schema/runtime config 변경 금지
+6. feature flag off 동작 유지 · legacy path 변경 금지
+
+구현 후 보고: 수정 파일 · 수정 이유 · 통과 테스트 · 실패 테스트 · 미검증 영역 · 남은 위험 · rollback 방법
+```
 
 ---
 
@@ -476,7 +540,7 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 ## 5. 코딩 / 금지 규칙
 
 - **한글 식별자·주석** — 초등학생도 이해할 수준. 단, 기존 스타일 일관성 우선.
-- **SDD 계약 문서(OpenSpec proposal/design/spec/tasks/codegraph-impact 및 직접 소유하는 SDD 문서)** — 기본 작성 언어는 한글. 예외적으로 외부 표준명, CLI 에러 원문, 코드 심볼, 경로, 명령어는 원문을 유지할 수 있다. OpenSpec이 파싱에 의존하는 구조 키워드(`## ADDED Requirements`, `### Requirement:`, `#### Scenario:`, `GIVEN`, `WHEN`, `THEN`, `AND`, `SHALL`, `MUST` 등)는 보수적으로 원문을 유지한다.
+- **모든 프로젝트 문서 작성 언어**: 에이전트가 새로 작성하거나 직접 수정하는 모든 문서(`openspec/`, `docs/`, `evidence/`, `analysis/`, `README`, `proposal/design/spec/tasks/verification/failure-log` 등)는 기본적으로 한글로 작성한다. 예외는 외부 표준명, CLI 에러 원문, 코드 심볼, 파일 경로, 명령어, API 이름, OpenSpec 파서 예약 키워드(`## ADDED Requirements`, `### Requirement:`, `#### Scenario:`, `GIVEN`, `WHEN`, `THEN`, `AND`, `SHALL`, `MUST` 등)뿐이다. 영어 문장을 초안으로 작성한 뒤 방치하지 말고 최종 산출물은 한글로 정리한다.
 - **작은 단위 커밋 + PR** (예: `feat(wpf): … (증분160-E)`). 문서·코드·테스트 일치, 문서 없이 기능 추가 지양(TDD 우선).
 - **백업 파일(`.bak`, `.bak2`…) 임의 삭제 금지** (리팩토링 중 의도적 생성).
 - **거대 파일은 partial/기능별 분할** 우선. 새 메서드는 적합한 `gf*.cs`를 먼저 찾고 없을 때만 새 파일.

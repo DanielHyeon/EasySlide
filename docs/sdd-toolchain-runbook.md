@@ -1,7 +1,7 @@
 # EasiSlides SDD Toolchain Runbook
 
 This runbook applies the linked SDD collaboration method to this repository.
-The rule is simple: OpenSpec is the contract, CodeGraph is evidence, Superpowers-style TDD is execution, and gstack/code-review is the gate.
+The rule is simple: OpenSpec is the contract, codebase-memory-mcp is repo-level memory/search, CodeGraph is structural evidence, Superpowers-style TDD is execution, and gstack/code-review is the gate.
 
 ## 1. Branch Discipline
 
@@ -22,8 +22,11 @@ openspec validate --all --no-interactive
 - Completed changes must be synced and archived so `openspec/specs/` stays current.
 - gstack/GSD/spec notes are advisory unless copied into OpenSpec.
 
-## 3. CodeGraph
+## 3. Repo Memory And CodeGraph
 
+- After OpenSpec, run a codebase-memory-mcp Repo Memory Query to narrow candidate files/classes/methods and related call chains, routes, or cross-service links.
+- Record that result in `openspec/changes/<change-id>/analysis/repo-memory-query.md` for non-trivial changes.
+- Repo Memory Query is source recon only. It does not replace CodeGraph, ast-grep, tree-sitter-c-sharp, Function Logic Map, or Branch Test Map, and it must not be the sole basis for production edits.
 - Structural questions use CodeGraph before manual file search.
 - Git hooks are enabled through:
 
@@ -57,10 +60,14 @@ codegraph sync .
 GitHub Actions is the final blocker for PRs. It runs:
 
 - OpenSpec validation
+- ast-grep SDD advisory scan across C# files
+- ast-grep SDD enforced scan for zero-baseline invariants
 - Solution restore
 - Debug build
 - Debug tests
 - Screenshot artifacts on failure
+
+ast-grep rules are discovered from the root `sgconfig.yml`. The advisory pass demotes all rules to warnings and reports findings without failing the build. The enforced pass keeps the zero-baseline error rules active. Broad risk patterns such as numeric conversion, COM lifetime, raw DB usage in legacy/test code, or empty catches remain warning/info evidence, not automatic verdicts.
 
 ## 7. Manual Worship QA
 

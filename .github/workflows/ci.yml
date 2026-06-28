@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: 체크아웃
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: .NET SDK 설치 (9.0 + 10.0)
         # OfficeLib 는 net9.0-windows, 그 외는 net10.0-windows 를 타깃하므로 둘 다 필요.
@@ -33,6 +35,12 @@ jobs:
 
       - name: OpenSpec 계약 검증
         run: npx --yes @fission-ai/openspec@1.4.1 validate --all --no-interactive
+
+      - name: ast-grep SDD advisory scan
+        run: .\tools\run-ast-grep-sdd.ps1 -Mode full -GithubFormat
+
+      - name: ast-grep SDD enforced scan
+        run: .\tools\run-ast-grep-sdd.ps1 -Mode full -Enforce -GithubFormat
 
       - name: 복원
         run: dotnet restore Easislides.sln

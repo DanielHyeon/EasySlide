@@ -1,0 +1,16 @@
+# SDD hard invariants: only zero-baseline rules belong here.
+# Broad review signals must stay in warning/info rules.
+
+id: wpf-shell-no-raw-db-connection
+language: CSharp
+files:
+  - Easislides.Wpf/Shell/**/*.cs
+  - Easislides.Wpf/Controls/**/*.cs
+  - Easislides.Wpf/Rendering/**/*.cs
+rule:
+  kind: object_creation_expression
+  any:
+    - pattern: "new SQLiteConnection($$$ARGS)"
+    - pattern: "new MySqlConnection($$$ARGS)"
+severity: error
+message: "SDD invariant: WPF presentation layers must not create raw DB connections; use the approved data/library layer."
