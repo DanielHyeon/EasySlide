@@ -4209,6 +4209,56 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void PreviewSampleAppearance_WhenIndividualFormattingOff_IgnoresItemBackgroundImage()
+    {
+        // Live 송출은 UseIndividualFormatting=false 일 때 FormatData 를 쓰지 않는다.
+        // Preview 샘플도 같은 규칙을 따라야 왼쪽 미리보기와 오른쪽 Live Show가 다르게 보이지 않는다.
+        using var settingsFolder = TempSettingsFolder.Create();
+        var settings = settingsFolder.CreateSettings();
+        var itemBackground = WriteTinyPng(settingsFolder.Root, "item-background.png");
+        var defaultBackground = WriteTinyPng(settingsFolder.Root, "default-background.png");
+        settings.Set(EasiSettingKeys.LyricsMonitorBackgroundImagePath, defaultBackground);
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var creed = new LiveQueueItem("text-file:apostles:0", "Apostles Creed", LiveItemKinds.Notice)
+        {
+            Lyrics = "Creed title",
+            FormatData = $"61={itemBackground}>62=1>",
+            UseIndividualFormatting = false,
+        };
+
+        sut.LoadQueue([creed]);
+        sut.SelectedItem = sut.Queue[0];
+
+        var brush = sut.PreviewSampleBackgroundBrush.Should().BeOfType<ImageBrush>().Subject;
+        var image = brush.ImageSource.Should().BeOfType<System.Windows.Media.Imaging.BitmapImage>().Subject;
+        image.UriSource.LocalPath.Should().Be(defaultBackground);
+    }
+
+    [Fact]
+    public async Task PreviewToLiveCommand_WithIndividualFormattingOn_CarriesPreviewBackgroundToLiveSession()
+    {
+        var session = new LiveSessionService();
+        var sut = CreateSut(liveSession: session, seedSampleQueue: false);
+        var creed = new LiveQueueItem("text-file:apostles:0", "Apostles Creed", LiveItemKinds.Notice)
+        {
+            Lyrics = "Creed title",
+            FormatData = @"29=-65536>61=C:\Backgrounds\creed.jpg>62=1>",
+            UseIndividualFormatting = true,
+        };
+        sut.LoadQueue([creed]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+
+        session.Current.State.Should().Be(LiveState.Active);
+        session.Current.CurrentItemTitle.Should().Be("Apostles Creed");
+        session.Current.OverrideTextColorArgb.Should().Be(-65536);
+        session.Current.OverrideBackgroundImagePath.Should().Be(@"C:\Backgrounds\creed.jpg");
+        session.Current.OverrideBackgroundImageMode.Should().Be(LyricsBackgroundMode.Center);
+    }
+
+    [Fact]
     public void OutputSampleAppearance_ReflectsLiveOutputSettings()
     {
         using var settingsFolder = TempSettingsFolder.Create();
@@ -9277,19 +9327,19 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemTextColor_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemTextColor_NonTextItem_IsNoOpAndCommandDisabled()
     {
-        // 곡이 아닌 항목엔 항목별 색이 붙지 않고, 명령도 비활성.
+        // 텍스트 본문이 없는 시각 자료 항목엔 항목별 색이 붙지 않고, 명령도 비활성.
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
         sut.CanEditSelectedItemColor.Should().BeFalse();
-        sut.SetSelectedItemTextColorCommand.CanExecute("#FFFFFFFF").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemTextColorCommand.CanExecute("#FFFFFFFF").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
 
         sut.SetSelectedItemTextColor("#FFFFFFFF");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 색이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 색이 붙지 않음");
     }
 
     [Fact]
@@ -9315,6 +9365,21 @@ public class MainViewModelTests
         sut.SelectedItem = sut.Queue[0];
 
         sut.CanEditSelectedItemColor.Should().BeFalse("본문 없는 성경 항목은 서식 편집 불가");
+    }
+
+    [Fact]
+    public void CanEditSelectedItemColor_True_ForNoticeTextItemWithBody()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var notice = new LiveQueueItem("text-file:apostles", "사도신경", LiveItemKinds.Notice)
+        {
+            Lyrics = "나는 그의\n유일하신 아들",
+        };
+        sut.LoadQueue([notice]);
+        sut.SelectedItem = sut.Queue[0];
+
+        sut.CanEditSelectedItemColor.Should().BeTrue("텍스트/공지 항목도 본문이 있으면 Use Individual Settings 패널에서 서식 편집 가능");
+        sut.SetSelectedItemFontSizeCommand.CanExecute("48").Should().BeTrue("화면의 개별 설정 컨트롤이 실제로 활성화되어야 함");
     }
 
     [Fact]
@@ -9735,16 +9800,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemAlignment_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemAlignment_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemAlignmentCommand.CanExecute("2").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemAlignmentCommand.CanExecute("2").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemAlignment("2");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 정렬이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 정렬이 붙지 않음");
     }
 
     // ── 항목별 글자 크기 인라인 편집(SetSelectedItemFontSize) — 선택한 곡만 크기(레거시 Ind_ 크기, 코드47 pt) ──
@@ -9826,16 +9891,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemFontSize_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemFontSize_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemFontSizeCommand.CanExecute("72").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemFontSizeCommand.CanExecute("72").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemFontSize("72");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 크기가 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 크기가 붙지 않음");
     }
 
     // ── 항목별 글꼴명 인라인 편집(SetSelectedItemFontName) — 선택한 곡만 글꼴(레거시 Ind_ 글꼴, 코드43) ──
@@ -9909,16 +9974,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemFontName_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemFontName_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemFontNameCommand.CanExecute("Arial").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemFontNameCommand.CanExecute("Arial").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemFontName("Arial");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 글꼴이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 글꼴이 붙지 않음");
     }
 
     // ── 항목별 배경색 인라인 편집(SetSelectedItemBackgroundColor) — 선택한 곡만 배경(레거시 Ind_ 배경, 코드26) ──
@@ -9990,16 +10055,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemBackgroundColor_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemBackgroundColor_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemBackgroundColorCommand.CanExecute("#FF000000").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemBackgroundColorCommand.CanExecute("#FF000000").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemBackgroundColor("#FF000000");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 배경이 붙지 않음");
     }
 
     // ── FrmMain Ind_LoadTemplate/Ind_SaveTemplate — .est ListHeader/FormatData 를 선택 항목에 적용/저장 ──
@@ -10029,13 +10094,13 @@ public class MainViewModelTests
     public void ApplySelectedItemFormatDataTemplate_NonFormattableItem_IsNoOp()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
         sut.ApplySelectedItemFormatDataTemplate("29=-1>").Should().BeFalse();
 
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 개별 설정 템플릿을 붙이지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 개별 설정 템플릿을 붙이지 않음");
     }
 
     // ── 항목별 배경 이미지 인라인 편집(SetSelectedItemBackgroundImage) — 선택한 곡만 배경 이미지(레거시 Ind_ 배경 이미지, 코드61) ──
@@ -10317,16 +10382,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemBackgroundImage_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemBackgroundImage_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemBackgroundImageCommand.CanExecute("").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemBackgroundImageCommand.CanExecute("").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemBackgroundImage(@"C:\bg\x.jpg");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 배경 이미지가 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 배경 이미지가 붙지 않음");
     }
 
     // ── 항목별 강조 인라인 토글(굵게/기울임/밑줄) — 선택한 곡만(레거시 Ind_ 강조, FormatData 코드41 비트) ──
@@ -10422,19 +10487,19 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void ToggleSelectedItemEmphasis_NonSong_IsNoOpAndCommandsDisabled()
+    public void ToggleSelectedItemEmphasis_NonTextItem_IsNoOpAndCommandsDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.ToggleSelectedItemBoldCommand.CanExecute(null).Should().BeFalse("곡이 아니면 비활성");
+        sut.ToggleSelectedItemBoldCommand.CanExecute(null).Should().BeFalse("텍스트 서식 대상이 아니면 비활성");
         sut.ToggleSelectedItemItalicCommand.CanExecute(null).Should().BeFalse();
         sut.ToggleSelectedItemUnderlineCommand.CanExecute(null).Should().BeFalse();
 
         sut.ToggleSelectedItemBold();
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 강조가 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 강조가 붙지 않음");
     }
 
     // ── 이중 언어 보조 영역(Region2) 항목별 글자색(SetSelectedItemTextColor2) — 선택한 곡만(레거시 Ind_ Region2 색, 코드30) ──
@@ -10507,16 +10572,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemTextColor2_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemTextColor2_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemTextColor2Command.CanExecute("#FFFFFF00").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemTextColor2Command.CanExecute("#FFFFFF00").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemTextColor2("#FFFFFF00");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 색이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 보조 영역 색이 붙지 않음");
     }
 
     // ── 이중 언어 보조 영역(Region2) 항목별 정렬(SetSelectedItemAlignment2) — 선택한 곡만(레거시 Ind_ Region2 정렬, 코드32) ──
@@ -10591,16 +10656,16 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemAlignment2_NonSong_IsNoOpAndCommandDisabled()
+    public void SetSelectedItemAlignment2_NonTextItem_IsNoOpAndCommandDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.SetSelectedItemAlignment2Command.CanExecute("2").Should().BeFalse("곡이 아니면 명령 비활성");
+        sut.SetSelectedItemAlignment2Command.CanExecute("2").Should().BeFalse("텍스트 서식 대상이 아니면 명령 비활성");
         sut.SetSelectedItemAlignment2("2");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 정렬이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 보조 영역 정렬이 붙지 않음");
     }
 
     // ── 이중 언어 보조 영역(Region2) 항목별 글자 크기(코드48)·글꼴(코드44) ──
@@ -10730,18 +10795,18 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void SetSelectedItemFontSize2AndName2_NonSong_CommandsDisabled()
+    public void SetSelectedItemFontSize2AndName2_NonTextItem_CommandsDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
         sut.SetSelectedItemFontSize2Command.CanExecute("72").Should().BeFalse();
         sut.SetSelectedItemFontName2Command.CanExecute("Arial").Should().BeFalse();
         sut.SetSelectedItemFontSize2("72");
         sut.SetSelectedItemFontName2("Arial");
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 서식이 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 보조 영역 서식이 붙지 않음");
     }
 
     // ── 이중 언어 보조 영역(Region2) 항목별 강조(굵게/기울임/밑줄, 코드41 상위비트 bit3/4/5) ──
@@ -10839,11 +10904,11 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void ToggleSelectedItemEmphasis2_NonSong_IsNoOpAndCommandsDisabled()
+    public void ToggleSelectedItemEmphasis2_NonTextItem_IsNoOpAndCommandsDisabled()
     {
         var sut = CreateSut(seedSampleQueue: false);
-        var notice = new LiveQueueItem("n", "공지", LiveItemKinds.Notice) { Lyrics = "안내" };
-        sut.LoadQueue([notice]);
+        var slide = new LiveQueueItem("ppt:1", "슬라이드", LiveItemKinds.PowerPoint);
+        sut.LoadQueue([slide]);
         sut.SelectedItem = sut.Queue[0];
 
         sut.ToggleSelectedItemBold2Command.CanExecute(null).Should().BeFalse();
@@ -10851,7 +10916,7 @@ public class MainViewModelTests
         sut.ToggleSelectedItemUnderline2Command.CanExecute(null).Should().BeFalse();
 
         sut.ToggleSelectedItemBold2();
-        sut.SelectedItem!.FormatData.Should().BeNull("공지 항목엔 보조 영역 강조가 붙지 않음");
+        sut.SelectedItem!.FormatData.Should().BeNull("시각 자료 항목엔 보조 영역 강조가 붙지 않음");
     }
 
     [Fact]
@@ -12834,6 +12899,15 @@ public class MainViewModelTests
         var image = new DrawingImage();
         image.Freeze();
         return image;
+    }
+
+    private static string WriteTinyPng(string folder, string fileName)
+    {
+        const string onePixelTransparentPng =
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+        var path = Path.Combine(folder, fileName);
+        File.WriteAllBytes(path, Convert.FromBase64String(onePixelTransparentPng));
+        return path;
     }
 
     private sealed class RecordingSafetyPrompt : ILiveSafetyPrompt

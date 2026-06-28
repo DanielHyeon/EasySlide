@@ -170,6 +170,34 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+        <Style x:Key="ClassicSettingsTextBox"
+               TargetType="TextBox"
+               BasedOn="{StaticResource EsTextBox.Default}">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ClassicCompactSettingsTextBox"
+               TargetType="TextBox"
+               BasedOn="{StaticResource ClassicSettingsTextBox}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="7,4" />
+        </Style>
+        <Style x:Key="ClassicSettingsCheckBox"
+               TargetType="CheckBox">
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="Padding" Value="2,4" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="ClassicSettingsComboBox"
+               TargetType="ComboBox"
+               BasedOn="{StaticResource EsComboBox.Default}">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
         <Style x:Key="ClassicTopOperatorStripButton"
                TargetType="Button"
                BasedOn="{StaticResource ClassicOperatorStripButton}">
@@ -2726,23 +2754,23 @@
                                                Tag="Def_Transition">
                                         <ComboBox x:Name="Def_TransItem"
                                                   Tag="Def_TransItem"
+                                                  Style="{StaticResource ClassicSettingsComboBox}"
                                                   ItemsSource="{Binding LegacyTransitionOptions}"
                                                   DisplayMemberPath="DisplayName"
                                                   SelectedValuePath="Kind"
                                                   SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}"
                                                   MinWidth="132"
-                                                  Height="30"
                                                   Margin="0,0,6,6"
                                                   ToolTip="Item Transition"
                                                   AutomationProperties.Name="Def item transition" />
                                         <ComboBox x:Name="Def_TransSlides"
                                                   Tag="Def_TransSlides"
+                                                  Style="{StaticResource ClassicSettingsComboBox}"
                                                   ItemsSource="{Binding LegacyTransitionOptions}"
                                                   DisplayMemberPath="DisplayName"
                                                   SelectedValuePath="Kind"
                                                   SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}"
                                                   MinWidth="132"
-                                                  Height="30"
                                                   Margin="0,0,6,6"
                                                   ToolTip="Slide Transition"
                                                   AutomationProperties.Name="Def slide transition" />
@@ -3782,6 +3810,7 @@
                                                         Visibility="{Binding IsPreviewFormatMode, Converter={StaticResource BoolToVis}}">
                                                 <CheckBox x:Name="Ind_checkBox"
                                                           Tag="Ind_checkBox"
+                                                          Style="{StaticResource ClassicSettingsCheckBox}"
                                                           Command="{Binding ToggleUseIndividualFormattingCommand}"
                                                           IsChecked="{Binding SelectedItem.UseIndividualFormatting, Mode=OneWay}"
                                                           Content="Use Individual Settings"
@@ -3880,31 +3909,33 @@
                                                           Header="Align / Size"
                                                           Margin="0,0,0,8">
                                                     <StackPanel Margin="8">
-                                                        <WrapPanel Margin="0,0,0,6">
+                                                        <UniformGrid x:Name="SelectedItemAlignmentButtons"
+                                                                     Columns="3"
+                                                                     Rows="1"
+                                                                     Margin="0,0,0,6">
                                                             <Button Content="Left"
                                                                     Command="{Binding SetSelectedItemAlignmentCommand}"
                                                                     CommandParameter="1"
                                                                     Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="52"
-                                                                    Margin="0,0,4,4" />
+                                                                    Margin="0,0,4,0" />
                                                             <Button Content="Center"
                                                                     Command="{Binding SetSelectedItemAlignmentCommand}"
                                                                     CommandParameter="2"
                                                                     Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="62"
-                                                                    Margin="0,0,4,4" />
+                                                                    Margin="0,0,4,0" />
                                                             <Button Content="Right"
                                                                     Command="{Binding SetSelectedItemAlignmentCommand}"
                                                                     CommandParameter="3"
                                                                     Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="56"
-                                                                    Margin="0,0,4,4" />
+                                                                    Margin="0" />
+                                                        </UniformGrid>
+                                                        <WrapPanel Margin="0,0,0,6">
                                                             <Button Content="Default"
                                                                     Command="{Binding SetSelectedItemAlignmentCommand}"
                                                                     CommandParameter="{x:Null}"
                                                                     Style="{StaticResource EsButton.Secondary}"
                                                                     MinWidth="62"
-                                                                    Margin="0,0,4,4" />
+                                                                    Margin="0,0,4,0" />
                                                         </WrapPanel>
                                                         <WrapPanel>
                                                             <Button Content="36"
@@ -4007,7 +4038,7 @@
                                                                      Tag="Ind_LeftUpDown"
                                                                      Text="{Binding SelectedItemLeftMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                                                      MinWidth="44"
-                                                                     Height="26"
+                                                                     Style="{StaticResource ClassicCompactSettingsTextBox}"
                                                                      TextAlignment="Right"
                                                                      VerticalContentAlignment="Center"
                                                                      AutomationProperties.Name="선택 항목 왼쪽 여백" />
@@ -4024,7 +4055,7 @@
                                                                      Tag="Ind_RightUpDown"
                                                                      Text="{Binding SelectedItemRightMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                                                      MinWidth="44"
-                                                                     Height="26"
+                                                                     Style="{StaticResource ClassicCompactSettingsTextBox}"
                                                                      TextAlignment="Right"
                                                                      VerticalContentAlignment="Center"
                                                                      AutomationProperties.Name="선택 항목 오른쪽 여백" />
@@ -4041,7 +4072,7 @@
                                                                      Tag="Ind_BottomUpDown"
                                                                      Text="{Binding SelectedItemBottomMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                                                      MinWidth="44"
-                                                                     Height="26"
+                                                                     Style="{StaticResource ClassicCompactSettingsTextBox}"
                                                                      TextAlignment="Right"
                                                                      VerticalContentAlignment="Center"
                                                                      AutomationProperties.Name="선택 항목 아래 여백" />
@@ -4120,10 +4151,10 @@
                                                                        Style="{StaticResource Type.Caption.Style}"
                                                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                                             <TextBox Grid.Column="1"
+                                                                     Style="{StaticResource ClassicCompactSettingsTextBox}"
                                                                      Text="{Binding SelectedItemBackgroundImagePath, Mode=OneWay}"
                                                                      IsReadOnly="True"
                                                                      MinWidth="120"
-                                                                     Height="26"
                                                                      Margin="0,0,4,0"
                                                                      ToolTip="{Binding SelectedItemBackgroundImagePath}"
                                                                      AutomationProperties.Name="선택 항목 배경 이미지 경로" />
@@ -4209,10 +4240,10 @@
                                                                        Style="{StaticResource Type.Caption.Style}"
                                                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                                             <TextBox Grid.Column="1"
+                                                                     Style="{StaticResource ClassicCompactSettingsTextBox}"
                                                                      Text="{Binding SelectedItemMediaPath, Mode=OneWay}"
                                                                      IsReadOnly="True"
                                                                      MinWidth="120"
-                                                                     Height="26"
                                                                      Margin="0,0,4,0"
                                                                      ToolTip="{Binding SelectedItemMediaPath}"
                                                                      AutomationProperties.Name="Ind assigned media path" />
@@ -4251,23 +4282,23 @@
                                                                IsEnabled="{Binding CanEditSelectedItemColor}">
                                                         <ComboBox x:Name="Ind_TransItem"
                                                                   Tag="Ind_TransItem"
+                                                                  Style="{StaticResource ClassicSettingsComboBox}"
                                                                   ItemsSource="{Binding LegacyTransitionOptions}"
                                                                   DisplayMemberPath="DisplayName"
                                                                   SelectedValuePath="Kind"
                                                                   SelectedValue="{Binding SelectedItemTransitionKindInput, Mode=TwoWay}"
                                                                   MinWidth="132"
-                                                                  Height="26"
                                                                   Margin="0,0,4,4"
                                                                   ToolTip="Item Transition"
                                                                   AutomationProperties.Name="선택 항목 전환" />
                                                         <ComboBox x:Name="Ind_TransSlides"
                                                                   Tag="Ind_TransSlides"
+                                                                  Style="{StaticResource ClassicSettingsComboBox}"
                                                                   ItemsSource="{Binding LegacyTransitionOptions}"
                                                                   DisplayMemberPath="DisplayName"
                                                                   SelectedValuePath="Kind"
                                                                   SelectedValue="{Binding SelectedSlideTransitionKindInput, Mode=TwoWay}"
                                                                   MinWidth="132"
-                                                                  Height="26"
                                                                   Margin="0,0,4,4"
                                                                   ToolTip="Slide Transition"
                                                                   AutomationProperties.Name="선택 항목 슬라이드 전환" />
@@ -5559,29 +5590,29 @@
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}"
                                Margin="0,12,0,0" />
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,4,0,0">
+                    <UniformGrid x:Name="GlobalLyricsAlignmentButtons"
+                                 Columns="3"
+                                 Rows="1"
+                                 Margin="0,4,0,0">
                         <Button Command="{Binding ApplyLyricsAlignmentCommand}"
                                 CommandParameter="{x:Static settings:LyricsTextAlignment.Left}"
                                 Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="56"
                                 Margin="0,0,6,0"
                                 Content="왼쪽"
                                 AutomationProperties.Name="가사 왼쪽 정렬" />
                         <Button Command="{Binding ApplyLyricsAlignmentCommand}"
                                 CommandParameter="{x:Static settings:LyricsTextAlignment.Center}"
                                 Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="56"
                                 Margin="0,0,6,0"
                                 Content="가운데"
                                 AutomationProperties.Name="가사 가운데 정렬" />
                         <Button Command="{Binding ApplyLyricsAlignmentCommand}"
                                 CommandParameter="{x:Static settings:LyricsTextAlignment.Right}"
                                 Style="{StaticResource EsButton.Secondary}"
-                                MinWidth="56"
+                                Margin="0"
                                 Content="오른쪽"
                                 AutomationProperties.Name="가사 오른쪽 정렬" />
-                    </StackPanel>
+                    </UniformGrid>
                     <TextBlock Text="{Binding ActiveLyricsAlignmentLabel, StringFormat=현재 정렬: {0}}"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
@@ -5645,6 +5676,7 @@
                         <!-- 직접 수치 입력(FrmMain NumericUpDown 대응) — 범위 밖 값은 자동 클램프, 입력 후 포커스 이동 시 적용. -->
                         <TextBox Text="{Binding LyricsFontSizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                  MinWidth="48"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  VerticalAlignment="Center"
                                  VerticalContentAlignment="Center"
                                  TextAlignment="Right"
@@ -5679,6 +5711,7 @@
                                 VerticalAlignment="Center">
                         <TextBox Text="{Binding LyricsFontSize2Input, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                  MinWidth="48"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  VerticalAlignment="Center"
                                  VerticalContentAlignment="Center"
                                  TextAlignment="Right"
@@ -5793,6 +5826,7 @@
                         <!-- 직접 수치 입력(FrmMain NumericUpDown 대응) — 범위 밖 값은 자동 클램프, 입력 후 포커스 이동 시 적용. -->
                         <TextBox Text="{Binding LyricsLineSpacingInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                  MinWidth="48"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  VerticalAlignment="Center"
                                  VerticalContentAlignment="Center"
                                  TextAlignment="Right"
@@ -5832,6 +5866,7 @@
                         <TextBox Grid.Row="0" Grid.Column="1"
                                  Text="{Binding LyricsLeftMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                  MinWidth="48" TextAlignment="Right" VerticalContentAlignment="Center"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  ToolTip="본문 왼쪽 여백 (0~400px)"
                                  AutomationProperties.Name="본문 왼쪽 여백 직접 입력" />
                         <!-- 오른쪽 -->
@@ -5842,6 +5877,7 @@
                         <TextBox Grid.Row="0" Grid.Column="4"
                                  Text="{Binding LyricsRightMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                  MinWidth="48" TextAlignment="Right" VerticalContentAlignment="Center"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  ToolTip="본문 오른쪽 여백 (0~400px)"
                                  AutomationProperties.Name="본문 오른쪽 여백 직접 입력" />
                         <!-- 아래 -->
@@ -5852,6 +5888,7 @@
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding LyricsBottomMarginInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
                                  MinWidth="48" TextAlignment="Right" VerticalContentAlignment="Center"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  ToolTip="본문 아래 여백 (0~400px)"
                                  AutomationProperties.Name="본문 아래 여백 직접 입력" />
                     </Grid>
@@ -6002,6 +6039,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Text="{Binding NewAppearanceTemplateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  MinHeight="30"
+                                 Style="{StaticResource ClassicSettingsTextBox}"
                                  ToolTip="새 템플릿 이름"
                                  AutomationProperties.Name="새 모양 템플릿 이름" />
                         <Button Grid.Column="1"

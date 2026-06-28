@@ -4751,7 +4751,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private Brush CreateLyricsSampleBackgroundBrush(LiveQueueItem? item)
     {
-        var format = SongFormatData.Parse(item?.FormatData);
+        var format = ParseEffectiveLyricsSampleFormat(item);
         var imagePath = !string.IsNullOrWhiteSpace(format?.BackgroundImagePath)
             ? format!.BackgroundImagePath
             : ActiveOutputBackgroundImagePath;
@@ -4771,13 +4771,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private Brush CreateLyricsSampleForegroundBrush(LiveQueueItem? item)
     {
-        var format = SongFormatData.Parse(item?.FormatData);
+        var format = ParseEffectiveLyricsSampleFormat(item);
         return CreateLyricsSampleBrush(format?.TextColorArgb1 ?? ActiveLyricsTextColorArgb);
     }
 
     private double CreateLyricsSampleFontSize(LiveQueueItem? item)
     {
-        var format = SongFormatData.Parse(item?.FormatData);
+        var format = ParseEffectiveLyricsSampleFormat(item);
         return LegacyPointToPixel(format?.FontSize1) ?? ActiveLyricsFontSize;
     }
 
@@ -4786,7 +4786,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private object CreateLyricsSampleFontFamily(LiveQueueItem? item)
     {
-        var format = SongFormatData.Parse(item?.FormatData);
+        var format = ParseEffectiveLyricsSampleFormat(item);
         var fontName = !string.IsNullOrWhiteSpace(format?.FontName1)
             ? format!.FontName1
             : ActiveLyricsFontFamily;
@@ -4813,7 +4813,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private System.Windows.VerticalAlignment CreateLyricsSampleVerticalAlignment(LiveQueueItem? item)
     {
-        var format = SongFormatData.Parse(item?.FormatData);
+        var format = ParseEffectiveLyricsSampleFormat(item);
         return (format?.VerticalAlignment ?? ActiveLyricsVerticalAlignment) switch
         {
             LyricsVerticalAlignment.Top => System.Windows.VerticalAlignment.Top,
@@ -4824,7 +4824,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private LyricsTextAlignment ResolveLyricsSampleTextAlignment(LiveQueueItem? item)
     {
-        var format = SongFormatData.Parse(item?.FormatData);
+        var format = ParseEffectiveLyricsSampleFormat(item);
         return format?.Alignment1 switch
         {
             1 => LyricsTextAlignment.Left,
@@ -4833,6 +4833,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ => ActiveLyricsAlignment,
         };
     }
+
+    private static SongFormatData? ParseEffectiveLyricsSampleFormat(LiveQueueItem? item)
+        => item is { UseIndividualFormatting: true }
+            ? SongFormatData.Parse(item.FormatData)
+            : null;
 
     private ImageSource? TryLoadLyricsSampleBackgroundImage(string? imagePath)
     {
@@ -7231,11 +7236,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => SelectedItem is { } item && IsPerItemFormattable(item);
 
     /// <summary>
-    /// 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 적용할 수 있는 항목인지 — <b>곡 또는 성경</b>이고 본문(가사/구절)이 있을 때.
+    /// 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 적용할 수 있는 항목인지 — <b>곡, 성경, 공지/텍스트</b>이고 본문(가사/구절/텍스트)이 있을 때.
     /// 선택 항목 게이트(<see cref="CanEditSelectedItemColor"/>)와 전 항목 일괄 적용이 같은 기준을 쓰도록 한 곳에 모은다(중복 방지).
     /// </summary>
     private static bool IsPerItemFormattable(LiveQueueItem item)
-        => item.Kind is LiveItemKinds.Song or LiveItemKinds.Bible && !string.IsNullOrWhiteSpace(item.Lyrics);
+        => (item.Kind is LiveItemKinds.Song or LiveItemKinds.Bible or LiveItemKinds.Notice)
+            && !string.IsNullOrWhiteSpace(item.Lyrics);
 
     /// <summary>
     /// "이 항목 서식 모두 지우기"를 누를 수 있는지 — 서식 편집 대상(곡·성경)이면서 실제로 지울 항목별 서식(FormatData)이 있을 때만.
