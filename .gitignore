@@ -227,3 +227,6 @@ $RECYCLE.BIN/
 .codegraph/
 
 .claude/
+
+# Local verification evidence and screenshots
+evidence/
