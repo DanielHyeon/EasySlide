@@ -894,6 +894,9 @@ namespace Easislides
 			FocusedTextRegionColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("options", "FocusedBackColour", FocusedTextRegionColour.ToArgb())));
 			TextRegionSlideTextColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("options", "SelectedSlideTextColour", TextRegionSlideTextColour.ToArgb())));
 			TextRegionSlideBackColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("options", "SelectedSlideBackColour", TextRegionSlideBackColour.ToArgb())));
+			// Missing value or registry read failure = modern look (GetRegValue falls back to the default 1).
+			// Value 0, or a value that is not a positive number, = previous look.
+			UseModernMainUi = RegUtil.GetRegValue("options", RegUtil.Reg_ModernMainUi, 1) > 0;
 			TotalMediaFileExt = 0;
 			MediaExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\MediaExtensions.txt";
 			AudioExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\AudioExtensions.txt";

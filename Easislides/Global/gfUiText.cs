@@ -19,7 +19,8 @@ namespace Easislides
 			Bridge2 = 103,
 			Ending = 101
 		}
-		public static void DisplayRichTextBoxSeries(ref SongSettings InItem, ref Panel InPanel, ref RichTextBox[] InRichTextBox, bool ScrollToCaret, bool PreviewNotations)
+		// SelectedTextColour / SelectedBackColour are forwarded to HighlightRichTextBox (null = user colours).
+		public static void DisplayRichTextBoxSeries(ref SongSettings InItem, ref Panel InPanel, ref RichTextBox[] InRichTextBox, bool ScrollToCaret, bool PreviewNotations, Color? SelectedTextColour = null, Color? SelectedBackColour = null)
 		{
 			InItem.CurSlide = ((InItem.CurSlide < 1) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
 			InItem.FolderNo = ((InItem.FolderNo <= 0) ? 1 : InItem.FolderNo);
@@ -114,7 +115,7 @@ namespace Easislides
 					InItem.Slide[i, 7] = headingLength;
 				}
 			}
-			HighlightRichTextBox(ref InRichTextBox, ref InPanel, InItem, OnEnterPanel: false, ScrollToCaret);
+			HighlightRichTextBox(ref InRichTextBox, ref InPanel, InItem, OnEnterPanel: false, ScrollToCaret, SelectedTextColour, SelectedBackColour);
 		}
 
 		public static void RefreshWindowsDesktop()
@@ -196,8 +197,12 @@ namespace Easislides
 			}
 		}
 
-		public static void HighlightRichTextBox(ref RichTextBox[] InRichTextBox, ref Panel InPanel, SongSettings InItem, bool OnEnterPanel, bool ScrollToTop)
+		// SelectedTextColour / SelectedBackColour: colours of the selected slide.
+		// When omitted, the user-configured TextRegionSlide* colours are used (previous behaviour).
+		public static void HighlightRichTextBox(ref RichTextBox[] InRichTextBox, ref Panel InPanel, SongSettings InItem, bool OnEnterPanel, bool ScrollToTop, Color? SelectedTextColour = null, Color? SelectedBackColour = null)
 		{
+			Color selectedTextColour = SelectedTextColour ?? TextRegionSlideTextColour;
+			Color selectedBackColour = SelectedBackColour ?? TextRegionSlideBackColour;
 			if (OnEnterPanel)
 			{
 				Control_Enter(InPanel);
@@ -217,8 +222,8 @@ namespace Easislides
 					Control_Enter(InRichTextBox[i]);
 					if ((string)InRichTextBox[i].Tag == InItem.CurSlide.ToString() && !InItem.GapItemOnDisplay)
 					{
-						InRichTextBox[i].ForeColor = TextRegionSlideTextColour;
-						InRichTextBox[i].BackColor = TextRegionSlideBackColour;
+						InRichTextBox[i].ForeColor = selectedTextColour;
+						InRichTextBox[i].BackColor = selectedBackColour;
 						int top = InRichTextBox[i].Top;
 						int num = top;
 						if (ScrollToTop)
@@ -262,8 +267,8 @@ namespace Easislides
 					Control_Leave(InRichTextBox[i]);
 					if ((string)InRichTextBox[i].Tag == InItem.CurSlide.ToString())
 					{
-						InRichTextBox[i].ForeColor = TextRegionSlideTextColour;
-						InRichTextBox[i].BackColor = TextRegionSlideBackColour;
+						InRichTextBox[i].ForeColor = selectedTextColour;
+						InRichTextBox[i].BackColor = selectedBackColour;
 					}
 					else
 					{

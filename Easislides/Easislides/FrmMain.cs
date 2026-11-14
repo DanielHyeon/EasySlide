@@ -8381,7 +8381,8 @@ namespace Easislides
                     return;
                 }
             }
-            Gf.DisplayRichTextBoxSeries(ref InItem, ref InPanel, ref InRichTextBox, ScrollToCaret: true, Gf.PreviewArea_ShowNotations);
+            GetLyricsSelectionColours(InPanel, out Color selectedText, out Color selectedBack);
+            Gf.DisplayRichTextBoxSeries(ref InItem, ref InPanel, ref InRichTextBox, ScrollToCaret: true, Gf.PreviewArea_ShowNotations, selectedText, selectedBack);
             for (int i = 1; i <= num; i++)
             {
                 InRichTextBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
@@ -8477,12 +8478,14 @@ namespace Easislides
 
         private void HighlightPreviewRichTextBox(bool OnEnter, bool ScrollToTop)
         {
-            Gf.HighlightRichTextBox(ref Lyrics_PreviewBox, ref flowLayoutPreviewLyrics, Gf.PreviewItem, OnEnter, ScrollToTop);
+            GetLyricsSelectionColours(flowLayoutPreviewLyrics, out Color selectedText, out Color selectedBack);
+            Gf.HighlightRichTextBox(ref Lyrics_PreviewBox, ref flowLayoutPreviewLyrics, Gf.PreviewItem, OnEnter, ScrollToTop, selectedText, selectedBack);
         }
 
         private void HighlightOutputRichTextBox(bool OnEnter, bool ScrollToTop)
         {
-            Gf.HighlightRichTextBox(ref Lyrics_OutputBox, ref flowLayoutOutputLyrics, Gf.OutputItem, OnEnter, ScrollToTop);
+            GetLyricsSelectionColours(flowLayoutOutputLyrics, out Color selectedText, out Color selectedBack);
+            Gf.HighlightRichTextBox(ref Lyrics_OutputBox, ref flowLayoutOutputLyrics, Gf.OutputItem, OnEnter, ScrollToTop, selectedText, selectedBack);
             ShowStatusBarSummary();
         }
 

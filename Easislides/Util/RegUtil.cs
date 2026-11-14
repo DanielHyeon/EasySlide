@@ -182,6 +182,9 @@ namespace Easislides.Util
 
 		public const string Reg_UseFocusedTextRegionColour = "UseFocusedBackColour";
 
+		// DWORD under options: missing value or registry read failure = modern main form look; 0 or a value that is not a positive number = previous look
+		public const string Reg_ModernMainUi = "ModernMainUi";
+
 		public const string Reg_JumpToA = "JumpToA";
 
 		public const string Reg_JumpToB = "JumpToB";

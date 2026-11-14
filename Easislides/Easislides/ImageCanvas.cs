@@ -73,6 +73,11 @@ namespace Easislides
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public int CurrentSelectedSlide { get; set; }
 
+		// Border colour of the selected PowerPoint thumbnail. Red is the previous look;
+		// FrmMain overrides it per column when the modern look is enabled.
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public Color SelectedBorderColor { get; set; } = Color.Red;
+
 		// Legacy property names for backward compatibility
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool PowerPoint
@@ -277,7 +282,7 @@ namespace Easislides
 
 		private void DrawBorder(Graphics graphics, Rectangle rect, float fontSize)
 		{
-			Color borderColor = (CurrentSelectedSlide == PowerPointSlideNumbering) ? Color.Red : base.Parent.BackColor;
+			Color borderColor = (CurrentSelectedSlide == PowerPointSlideNumbering) ? SelectedBorderColor : base.Parent.BackColor;
 			using (Pen pen = new Pen(borderColor, fontSize))
 			{
 				graphics.DrawRectangle(pen, rect);

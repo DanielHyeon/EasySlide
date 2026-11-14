@@ -728,9 +728,18 @@ namespace Easislides
 
 		public static Color NormalTextRegionBackColour = Color.Black;
 
-		public static Color TextRegionSlideTextColour = Color.Red;
+		// Built-in defaults of the selected-slide colours (single source; also used to detect user changes).
+		public static readonly Color DefaultTextRegionSlideTextColour = Color.Red;
 
-		public static Color TextRegionSlideBackColour = Color.Yellow;
+		public static readonly Color DefaultTextRegionSlideBackColour = Color.Yellow;
+
+		public static Color TextRegionSlideTextColour = DefaultTextRegionSlideTextColour;
+
+		public static Color TextRegionSlideBackColour = DefaultTextRegionSlideBackColour;
+
+		// Modern main form look (preview/live colour split). Registry: options\ModernMainUi.
+		// Missing value or registry read failure = modern look; 0 or a value that is not a positive number = previous look (see LoadSavedData).
+		public static bool UseModernMainUi = true;
 
 		public static string[,] MediaFileExtension = new string[3000, 2];
 

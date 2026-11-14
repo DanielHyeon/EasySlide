@@ -149,4 +149,25 @@ namespace Easislides
 			}
 		}
 	}
+
+	/// <summary>
+	/// Single source of the colours used by the modernised main form look
+	/// (openspec change modernize-main-form-ui, design D1).
+	/// Preview column uses the blue family, Live (output) column the orange family.
+	/// Only apply these behind FrmMain.IsModernUiActive (revert switch on and no Windows
+	/// high contrast theme); do not check Gf.UseModernMainUi directly.
+	/// </summary>
+	internal static class ModernUiPalette
+	{
+		public static readonly Color PreviewAccent = Color.FromArgb(0x00, 0x5F, 0xB8);
+		public static readonly Color PreviewTint = Color.FromArgb(0xE5, 0xF1, 0xFB);
+		public static readonly Color LiveAccent = Color.FromArgb(0xC4, 0x50, 0x0A);
+		public static readonly Color LiveTint = Color.FromArgb(0xFD, 0xED, 0xE3);
+		public static readonly Color NextSlide = Color.FromArgb(0x8A, 0x8A, 0x8A);
+		public static readonly Color Surface = Color.FromArgb(0xFF, 0xFF, 0xFF);
+		public static readonly Color SurfaceAlt = Color.FromArgb(0xF3, 0xF3, 0xF3);
+		public static readonly Color TextPrimary = Color.FromArgb(0x1B, 0x1B, 0x1B);
+		public static readonly Color TextSecondary = Color.FromArgb(0x5C, 0x5C, 0x5C);
+		public static readonly Color OnAccent = Color.FromArgb(0xFF, 0xFF, 0xFF);
+	}
 }

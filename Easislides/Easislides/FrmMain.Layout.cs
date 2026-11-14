@@ -168,6 +168,7 @@ namespace Easislides
             {
                 return false;
             }
+            ApplyModernUi();
             ApplyUseSongNumbers(Gf.UseSongNumbers);
             BuildFolderList();
 
@@ -475,6 +476,7 @@ namespace Easislides
                     InCanvas[index].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[index].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[index].PowerPoint = true;
+                    ApplyModernThumbStyle(InCanvas[index], InPanel);
                     InCanvas[index].Visible = true;
                 }
                 if (InPanel.Name == "flowLayoutPreviewPowerPoint")
@@ -517,6 +519,7 @@ namespace Easislides
                     InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[i].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[i].PowerPoint = true;
+                    ApplyModernThumbStyle(InCanvas[i], InPanel);
                 }
 
                 if (InPanel.Name == "flowLayoutPreviewPowerPoint")
@@ -576,6 +579,7 @@ namespace Easislides
                     InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
                     InCanvas[i].KeyUp += PowerPointImage_KeyUp;
                     InCanvas[i].PowerPoint = true;
+                    ApplyModernThumbStyle(InCanvas[i], InPanel);
 
                     ///daniel
                     if (InPanel.Name == "flowLayoutPreviewPowerPoint")
