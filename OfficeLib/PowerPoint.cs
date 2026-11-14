@@ -394,7 +394,14 @@ namespace OfficeLib
 						{
 							try
 							{
-								prePowerPointApp.Presentations[num4].Close();
+								// Close only the presentations this app opened. PowerPoint is single-instance,
+								// so other presentations in it may be the user's own (Close does not ask to save).
+								Presentation openPresentation = prePowerPointApp.Presentations[num4];
+								if (IsListedPresentation(openPresentation.FullName, PowerpointList, num))
+								{
+									openPresentation.Close();
+									num3++;
+								}
 							}
 							catch
 							{ }
@@ -414,6 +421,65 @@ namespace OfficeLib
 			return "Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3 + (flag ? ". Error When Closing" : ". No Error");
 		}
 
+		private static bool IsListedPresentation(string FullName, string[,] PowerpointList, int TotalPowerpointItems)
+		{
+			if (string.IsNullOrEmpty(FullName) || PowerpointList == null)
+			{
+				return false;
+			}
+			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			for (int i = 1; i <= last; i++)
+			{
+				if (string.Equals(PowerpointList[i, 1], FullName, StringComparison.OrdinalIgnoreCase))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Returns the number of presentations open in the given PowerPoint, or -1 when it cannot be read.
+		/// </summary>
+		private static int GetOpenPresentationCount(Application app)
+		{
+			try
+			{
+				return app.Presentations.Count;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error reading open presentations: {ex.Message}");
+				return -1;
+			}
+		}
+
+		/// <summary>
+		/// Releases this wrapper's reference to PowerPoint without quitting it.
+		/// Releasing every wrapper's reference at shutdown is what was observed to make the hidden
+		/// PowerPoint exit when the app closes.
+		/// </summary>
+		public void ReleasePowerPointApp()
+		{
+			Application app = prePowerPointApp;
+			prePowerPointApp = null;
+			if (app == null)
+			{
+				return;
+			}
+			try
+			{
+				if (!app.IsDisposed)
+				{
+					app.Dispose();
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error releasing PowerPoint application: {ex.Message}");
+			}
+		}
+
 
 
 
@@ -424,7 +490,11 @@ namespace OfficeLib
 		{
 			try
 			{
-				prePowerPointApp = new Application();
+				// Create the new reference first so a failure keeps the old, working one.
+				// Then release the old reference instead of orphaning it, so shutdown can release every reference.
+				Application newApp = new Application();
+				ReleasePowerPointApp();
+				prePowerPointApp = newApp;
 			}
 			catch (Exception)
             {
@@ -1251,7 +1321,20 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			{
 				if (prePowerPointApp != null && !prePowerPointApp.IsDisposed)
 				{
-					prePowerPointApp.Quit();
+					// PowerPoint is single-instance, so this may be the user's own PowerPoint.
+					// Quit closes every open presentation without asking to save, so only quit when none is open.
+					if (GetOpenPresentationCount(prePowerPointApp) == 0)
+					{
+						try
+						{
+							prePowerPointApp.Quit();
+						}
+						catch (Exception e)
+						{
+							Console.WriteLine($"Error quitting PowerPoint: {e.Message}");
+							ForceKillPowerPoint(prePowerPointApp);
+						}
+					}
 					prePowerPointApp.Dispose();  // Dispose()?? Quit() ???Ŀ? ???
 				}
 			}
@@ -1261,8 +1344,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine($"Error quitting PowerPoint: {e.Message}");
-				ForceKillPowerPoint(prePowerPointApp);
+				Console.WriteLine($"Error releasing PowerPoint: {e.Message}");
 			}
 			finally
 			{

@@ -184,7 +184,7 @@ namespace Easislides
                     }
                     //daniel
                     //???? ??????????????
-                    Gf.ClearUpPowerpointWindows();
+                    Gf.ShutdownPowerpoint(MainPPT);
                     gfFileHelpers.DeleteFolderFilesSafe(Gf.EasiSlidesTempDir);
 
                     WriteDebugLog("=== FORM CLOSED SUCCESSFULLY ===");

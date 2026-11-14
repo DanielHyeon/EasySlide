@@ -178,6 +178,29 @@ namespace Easislides
 			}
 		}
 
+		/// <summary>
+		/// Called once when the application exits. Closes the presentations opened for the live show,
+		/// quits PowerPoint when nothing else is open in it, and releases every PowerPoint reference the app holds.
+		/// All wrappers share one PowerPoint process; releasing every reference here is what was observed
+		/// to make the hidden PowerPoint exit when the app closes.
+		/// The wrapper objects themselves stay in place so late callers do not hit a null wrapper.
+		/// </summary>
+		public static void ShutdownPowerpoint(PowerPoint InMainPPT)
+		{
+			try
+			{
+				ClearUpPowerpointWindows();
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"ShutdownPowerpoint: clean-up of live presentations failed: {ex.Message}");
+			}
+			foreach (PowerPoint ppt in new[] { LivePP, PreviewPPT, OutputPPT, ExternalPPT, InMainPPT })
+			{
+				ppt?.ReleasePowerPointApp();
+			}
+		}
+
 		public static void ReMapKeyBoard(ref Keys InKey)
 		{
 			if (KeyBoardOption != 1)

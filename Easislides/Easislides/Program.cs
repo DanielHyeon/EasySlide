@@ -22,7 +22,8 @@ namespace Easislides
 
                 if (CommonUtil.OverlapProcessKill())
                 {
-                    CommonUtil.ProcessKill("POWERPNT");
+                    // Stop only hidden PowerPoint instances left by an earlier run; never the user's own PowerPoint.
+                    CommonUtil.ProcessKill("POWERPNT", OnlyWithoutWindow: true);
 
                     Application.SetHighDpiMode(HighDpiMode.SystemAware);
                     Application.SetCompatibleTextRenderingDefault(false);
