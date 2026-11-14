@@ -6997,27 +6997,98 @@ namespace Easislides
             try
             {
                 ApplyLyricsRichTextBoxFont(InMode);
-                BibleText.Font = new Font(BibleText.Font.Name, Gf.PreviewArea_FontSize, BibleText.Font.Style);
-                SongsList.Font = new Font(SongsList.Font.Name, Gf.PreviewArea_FontSize, SongsList.Font.Style);
-                InfoScreenList.Font = new Font(InfoScreenList.Font.Name, Gf.PreviewArea_FontSize, InfoScreenList.Font.Style);
-                WorshipListItems.Font = new Font(WorshipListItems.Font.Name, Gf.PreviewArea_FontSize, WorshipListItems.Font.Style);
-                PraiseBookItems.Font = new Font(PraiseBookItems.Font.Name, Gf.PreviewArea_FontSize, PraiseBookItems.Font.Style);
-                PreviewInfo.Font = new Font(PreviewInfo.Font.Name, Gf.PreviewArea_FontSize, PreviewInfo.Font.Style);
+                SetPreviewAreaFont(BibleText);
+                SetPreviewAreaFont(SongsList);
+                SetPreviewAreaFont(InfoScreenList);
+                SetPreviewAreaFont(WorshipListItems);
+                SetPreviewAreaFont(PraiseBookItems);
+                SetPreviewAreaFont(PreviewInfo);
             }
             catch
             {
             }
         }
 
+        // Sets the preview-area font size on a control, keeping its font name and style.
+        // The replaced font is disposed only when this form created it; designer fonts and fonts
+        // inherited from a parent are never disposed.
+        private void SetPreviewAreaFont(Control InControl)
+        {
+            Font font = new Font(InControl.Font.Name, Gf.PreviewArea_FontSize, InControl.Font.Style);
+            InControl.Font = font;
+            if (!ReferenceEquals(InControl.Font, font))
+            {
+                // The control did not keep this instance: either its current font is equal to it, or
+                // (RichTextBox with a handle and text) it stores its own copy. Nothing references it.
+                font.Dispose();
+                return;
+            }
+            if (previewAreaOwnedFonts.TryGetValue(InControl, out Font previous))
+            {
+                previous.Dispose();
+            }
+            previewAreaOwnedFonts[InControl] = font;
+        }
+
+        // Returns the font shared by all lyrics boxes of one lyrics panel. A new font is created only when
+        // the panel font or the preview font size changes; then every box of that panel is moved to the new
+        // font, and the old font is disposed only if no box still uses it. (A RichTextBox that has a handle
+        // and text stores its own copy of an assigned font, so a box may hold neither instance.)
+        private Font GetLyricsFont(Panel InPanel, RichTextBox[] InRichTextBox)
+        {
+            bool isPreview = ReferenceEquals(InPanel, flowLayoutPreviewLyrics);
+            (string Name, float Size, FontStyle Style) key = (InPanel.Font.Name, Gf.PreviewArea_FontSize, InPanel.Font.Style);
+            Font current = isPreview ? previewLyricsFont : outputLyricsFont;
+            if (current != null && key.Equals(isPreview ? previewLyricsFontKey : outputLyricsFontKey))
+            {
+                return current;
+            }
+
+            Font font = new Font(key.Name, key.Size, key.Style);
+            if (isPreview)
+            {
+                previewLyricsFont = font;
+                previewLyricsFontKey = key;
+            }
+            else
+            {
+                outputLyricsFont = font;
+                outputLyricsFontKey = key;
+            }
+
+            if (current != null)
+            {
+                bool currentStillUsed = false;
+                foreach (RichTextBox box in InRichTextBox)
+                {
+                    if (box == null)
+                    {
+                        continue;
+                    }
+                    box.Font = font;
+                    if (ReferenceEquals(box.Font, current))
+                    {
+                        currentStillUsed = true;
+                    }
+                }
+                if (!currentStillUsed)
+                {
+                    current.Dispose();
+                }
+            }
+            return font;
+        }
+
         private void ApplyLyricsRichTextBoxFont(int InMode)
         {
             if (InMode == 0 || InMode == 2)
             {
+                Font previewFont = GetLyricsFont(flowLayoutPreviewLyrics, Lyrics_PreviewBox);
                 for (int i = 1; i <= Gf.PreviewItem.TotalSlides; i++)
                 {
                     if (Lyrics_PreviewBox[i] != null)
                     {
-                        Lyrics_PreviewBox[i].Font = new Font(flowLayoutPreviewLyrics.Font.Name, Gf.PreviewArea_FontSize, flowLayoutPreviewLyrics.Font.Style);
+                        Lyrics_PreviewBox[i].Font = previewFont;
                         Lyrics_PreviewBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
                     }
                 }
@@ -7028,11 +7099,12 @@ namespace Easislides
             {
                 return;
             }
+            Font outputFont = GetLyricsFont(flowLayoutOutputLyrics, Lyrics_OutputBox);
             for (int i = 1; i <= Gf.OutputItem.TotalSlides; i++)
             {
                 if (Lyrics_OutputBox[i] != null)
                 {
-                    Lyrics_OutputBox[i].Font = new Font(flowLayoutOutputLyrics.Font.Name, Gf.PreviewArea_FontSize, flowLayoutOutputLyrics.Font.Style);
+                    Lyrics_OutputBox[i].Font = outputFont;
                     Lyrics_OutputBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
                 }
             }
@@ -8347,6 +8419,7 @@ namespace Easislides
 
             InPanel.AutoScroll = true;
             int num = Reset ? 1 : InItem.TotalSlides;
+            Font lyricsFont = GetLyricsFont(InPanel, InRichTextBox);
             for (int i = 1; i <= num; i++)
             {
                 if (InRichTextBox[i] == null)
@@ -8361,11 +8434,11 @@ namespace Easislides
                     InRichTextBox[i].ScrollBars = RichTextBoxScrollBars.None;
                     InRichTextBox[i].ReadOnly = true;
                     InRichTextBox[i].BorderStyle = BorderStyle.None;
-                    InRichTextBox[i].Font = new Font(InPanel.Font.Name, Gf.PreviewArea_FontSize, InPanel.Font.Style);
+                    InRichTextBox[i].Font = lyricsFont;
                 }
                 else
                 {
-                    InRichTextBox[i].Font = new Font(InPanel.Font.Name, Gf.PreviewArea_FontSize, InPanel.Font.Style);
+                    InRichTextBox[i].Font = lyricsFont;
                     InRichTextBox[i].BorderStyle = BorderStyle.None;
                 }
                 InPanel.Controls.Add(InRichTextBox[i]);

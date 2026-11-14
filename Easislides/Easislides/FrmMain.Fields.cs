@@ -204,6 +204,17 @@ namespace Easislides
 
         private PowerPoint MainPPT = new PowerPoint();
 
+        // Fonts this form creates for the preview area. Each is shared and disposed only after no control uses it.
+        private Font previewLyricsFont;
+
+        private (string Name, float Size, FontStyle Style) previewLyricsFontKey;
+
+        private Font outputLyricsFont;
+
+        private (string Name, float Size, FontStyle Style) outputLyricsFontKey;
+
+        private readonly System.Collections.Generic.Dictionary<Control, Font> previewAreaOwnedFonts = new System.Collections.Generic.Dictionary<Control, Font>();
+
         private int frmHeight;
 
         private int frmWidth;
