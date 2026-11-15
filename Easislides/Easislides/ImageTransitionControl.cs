@@ -894,7 +894,6 @@ namespace Easislides
 						num2 = (int)(num * _currentPercentage / 100f - num);
 						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
 					}
-					_cachedImageAttributes.Dispose();
 				}
 				else if (TransitionType == TransitionTypes.Descend)
 				{
@@ -926,7 +925,6 @@ namespace Easislides
 						num2 = (int)(num - num * _currentPercentage / 100f);
 						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
 					}
-					_cachedImageAttributes.Dispose();
 				}
 				else if (TransitionType == TransitionTypes.DoorsOpen)
 				{
@@ -1114,7 +1112,6 @@ namespace Easislides
 					_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * _currentPercentage / 100f);
 					_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 					DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
-					_cachedImageAttributes.Dispose();
 				}
 				else if (TransitionType == TransitionTypes.Flip_H)
 				{
@@ -1362,7 +1359,6 @@ namespace Easislides
 						e.Graphics.Transform = matrix2;
 						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
 						matrix2.Dispose();
-						_cachedImageAttributes.Dispose();
 					}
 				}
 				else if (TransitionType == TransitionTypes.Oval)
@@ -1539,7 +1535,6 @@ namespace Easislides
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.Current);
 						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, null, PanelType.Current);
-						_cachedImageAttributes.Dispose();
 						Matrix matrix = new Matrix(num16, 0f, 0f, num16, dx2, dy2);
 						matrix.Rotate(angle, MatrixOrder.Prepend);
 						e.Graphics.Transform = matrix;
@@ -1591,7 +1586,6 @@ namespace Easislides
 						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.Current);
 						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), DrawAlert: false, null, PanelType.Current);
 						DrawImageToOutput(e, _newTextImage, destinationRectangle3, new Rectangle(0, 0, _newTextImage.Width, _newTextImage.Height), DrawAlert: true, null, PanelType.NewWithTrans);
-						_cachedImageAttributes.Dispose();
 					}
 					else
 					{
@@ -1719,7 +1713,6 @@ namespace Easislides
 						Matrix matrix = new Matrix(num16, 0f, 0f, num16, dx, (float)base.Height * (1f - num16));
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.CurrentWithTrans);
-						_cachedImageAttributes.Dispose();
 						matrix.Dispose();
 					}
 					else
@@ -1775,7 +1768,6 @@ namespace Easislides
 						Matrix matrix = new Matrix(num16, 0f, 0f, num16, dx, (float)base.Height * (1f - num16));
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.Current);
-						_cachedImageAttributes.Dispose();
 						dx = base.Width / 2;
 						dy = base.Height / 3;
 						num16 = 0.2f + 0.8f * _currentPercentage / 100f;
