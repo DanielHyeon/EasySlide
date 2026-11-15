@@ -2410,6 +2410,11 @@ namespace Easislides
                     {
                         Console.WriteLine($"[Cache Hit] Output PPT already built: {InItem.ItemID}");
                         Console.WriteLine($"[ThumbPreview] Cache hit Output: TotalSlides={InItem.TotalSlides}");
+                        // Images are reused, but the verse data on InItem may belong to another item: reload it
+                        // (from the session cache, else from the notes). While the show runs, LoadItem calls
+                        // Gf.RunPowerpointSong right after this, which resets and re-reads the verses anyway,
+                        // so the file is not opened here in that case.
+                        Gf.OutputPPT.LoadVerses(InItem.Path, Gf.MAX_VERSES, Gf.DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol, allowOpen: !Gf.ShowRunning);
                         if (InItem.TotalSlides > 0)
                         {
                             FormatPowerPointThumbContainers(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, InItem.TotalSlides);
@@ -2445,6 +2450,9 @@ namespace Easislides
                     {
                         Console.WriteLine($"[Cache Hit] Preview PPT already built: {InItem.ItemID}");
                         Console.WriteLine($"[ThumbPreview] Cache hit Preview: TotalSlides={InItem.TotalSlides}");
+                        // Images are reused, but the verse data on InItem may belong to another item: reload it
+                        // (from the session cache, else from the notes).
+                        Gf.PreviewPPT.LoadVerses(InItem.Path, Gf.MAX_VERSES, Gf.DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol);
                         if (InItem.TotalSlides > 0)
                         {
                             FormatPowerPointThumbContainers(ref Powerpoint_PreviewCanvas, ref flowLayoutPreviewPowerPoint, InItem.TotalSlides);

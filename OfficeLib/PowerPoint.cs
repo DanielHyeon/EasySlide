@@ -1050,14 +1050,7 @@ namespace OfficeLib
 			try
 			{
 				Console.WriteLine($"[BuildScreenOutDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
-				for (int i = 1; i < TotalSlides; i++)
-				{
-					Slide[i, 0] = -1;
-				}
-				for (int j = 0; j <= TotalSlides; j++)
-				{
-					SongVerses[j] = 0;
-				}
+				ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
 				if (prePowerPointApp == null)
 				{
 					Console.WriteLine("[BuildScreenOutDumps] prePowerPointApp is null");
@@ -1078,6 +1071,7 @@ namespace OfficeLib
 					if (presentation != null)
 					{
 						ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+						StoreCachedVerses(FilePath, TotalSlides, MAX_VERSES, SongVerses, Slide);
 					}
 					return result;
 				}
@@ -1136,6 +1130,7 @@ namespace OfficeLib
 
 			// Verse 정보 파싱
 				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, TotalSlides, MAX_VERSES, SongVerses, Slide);
 
 				return result;
 			}
@@ -1160,6 +1155,117 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 	_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
 	Console.WriteLine($"[Cache Store] Images built successfully: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
 }
+
+		/// <summary>
+		/// Clears all verse data (same range as BuildScreenDumps) so nothing from a previously loaded item survives.
+		/// </summary>
+		public static void ResetVerses(int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide)
+		{
+			for (int i = 1; i < DB_MAXSLIDES; i++)
+			{
+				Slide[i, 0] = -1;
+			}
+			for (int j = 0; j <= MAX_VERSES; j++)
+			{
+				SongVerses[j] = 0;
+			}
+		}
+
+		// Verse data already parsed in this session, keyed by file path; the entry is valid only while the
+		// file's last write time is unchanged. Static (shared by all wrappers) because every caller runs on
+		// the UI thread, so no locking is needed.
+		private static readonly Dictionary<string, (DateTime LastWriteUtc, int[] SongVerses, int[] SlideTypes)> _verseCache =
+			new Dictionary<string, (DateTime, int[], int[])>(StringComparer.OrdinalIgnoreCase);
+
+		private static void StoreCachedVerses(string FilePath, int totalSlides, int MAX_VERSES, int[] SongVerses, int[,] Slide)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+				{
+					return;
+				}
+				int slideCount = Math.Max(0, Math.Min(totalSlides, Slide.GetLength(0) - 1));
+				int[] verses = new int[MAX_VERSES + 1];
+				Array.Copy(SongVerses, verses, verses.Length);
+				int[] types = new int[slideCount + 1];
+				for (int i = 1; i <= slideCount; i++)
+				{
+					types[i] = Slide[i, 0];
+				}
+				_verseCache[FilePath] = (File.GetLastWriteTimeUtc(FilePath), verses, types);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error caching verses: {ex.Message}");
+			}
+		}
+
+		// Resets the verse data, then copies the cached values when an up-to-date entry exists.
+		private static bool TryLoadCachedVerses(string FilePath, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide)
+		{
+			ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
+			if (string.IsNullOrEmpty(FilePath) || !_verseCache.TryGetValue(FilePath, out var entry))
+			{
+				return false;
+			}
+			if (!File.Exists(FilePath) || File.GetLastWriteTimeUtc(FilePath) != entry.LastWriteUtc)
+			{
+				// Stale: the file changed (or is gone) since it was parsed.
+				_verseCache.Remove(FilePath);
+				return false;
+			}
+			Array.Copy(entry.SongVerses, SongVerses, Math.Min(entry.SongVerses.Length, MAX_VERSES + 1));
+			for (int i = 1; i < entry.SlideTypes.Length && i < DB_MAXSLIDES; i++)
+			{
+				Slide[i, 0] = entry.SlideTypes[i];
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Re-reads the verse markers from the slide notes without exporting images
+		/// (used when the slide images are already built). Uses the values cached in this session when the
+		/// file is unchanged; otherwise opens the file, unless allowOpen is false.
+		/// Returns false on any failure (verse data is then left reset); never throws.
+		/// </summary>
+		public bool LoadVerses(string FilePath, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol, bool allowOpen = true)
+		{
+			_Presentation versePresentation = null;
+			try
+			{
+				if (TryLoadCachedVerses(FilePath, MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide))
+				{
+					return true;
+				}
+				if (!allowOpen || prePowerPointApp == null || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+				{
+					return false;
+				}
+				versePresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoTrue, MsoTriState.msoTrue, MsoTriState.msoFalse);
+				int slideCount = versePresentation.Slides.Count;
+				ParseVersesFromPresentation(versePresentation, slideCount, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, slideCount, MAX_VERSES, SongVerses, Slide);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error in LoadVerses: {ex.Message}");
+				try
+				{
+					// Do not leave partially parsed markers behind.
+					ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
+				}
+				catch
+				{
+				}
+				return false;
+			}
+			finally
+			{
+				ClosePresentation(ref versePresentation);
+			}
+		}
 
 		/// <summary>
 		/// daniel
@@ -1207,6 +1313,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 
 				// Verse 정보 파싱
 				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, TotalSlides, MAX_VERSES, SongVerses, Slide);
 
 				return result;
 			}
