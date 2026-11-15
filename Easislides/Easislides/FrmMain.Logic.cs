@@ -1996,9 +1996,12 @@ namespace Easislides
                     && text[0] == 'P'
                     && text.Length > 1
                     && !string.IsNullOrWhiteSpace(text.Substring(1));
+                // Skip only when the row still holds the item on the preview (Type + ID): after a reorder,
+                // a delete or a list switch another item can sit at the same row number.
                 if (!hasPptPathFromList
-                    || !Gf.PreviewPPT.IsBuildedFileCheck(Gf.PreviewItem.Path, filePrefix, ref Gf.PreviewItem.TotalSlides)
-                    || preSelectedItemNum != num)
+                    || preSelectedItemNum != num
+                    || Gf.PreviewItem.Type + Gf.PreviewItem.ItemID != text
+                    || !Gf.PreviewPPT.IsBuildedFileCheck(Gf.PreviewItem.Path, filePrefix, ref Gf.PreviewItem.TotalSlides))
                 {
                     LoadItem(ref Gf.PreviewItem, text, WorshipListItems.Items[num].SubItems[2].Text, StartingSlide, ref InTitle, ScrollToCaret: true);
                     UpdateDisplayPanelFields();
