@@ -151,7 +151,9 @@ namespace OfficeLib
 		{
 			try
 			{
-				prePowerPointApp.Presentations[InIndex].SlideShowSettings.Run();
+				using SlideShowSettings settings = prePowerPointApp.Presentations[InIndex].SlideShowSettings;
+				DisablePresenterView(settings);
+				settings.Run();
 			}
 			catch (Exception ex)
 			{
@@ -182,7 +184,9 @@ namespace OfficeLib
 					text2 = text3 + i + "-" + prePowerPointApp.Presentations[i].Name + "(" + prePowerPointApp.Presentations[i].FullName + ") ";
 					if (string.Equals(prePowerPointApp.Presentations[i].FullName, text, StringComparison.OrdinalIgnoreCase))
 					{
-						using SlideShowWindow window = prePowerPointApp.Presentations[i].SlideShowSettings.Run();
+						using SlideShowSettings settings = prePowerPointApp.Presentations[i].SlideShowSettings;
+						DisablePresenterView(settings);
+						using SlideShowWindow window = settings.Run();
 
 						return "Presentation Run OK";
 					}
@@ -194,6 +198,23 @@ namespace OfficeLib
 				return "Error: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
 			}
 			return "Can't find Presentations: " + text + ".  " + text2;
+		}
+
+		/// <summary>
+		/// Turns PowerPoint's Presenter View off before a slide show starts; otherwise it follows the user's
+		/// "Use Presenter View" option and opens on the control monitor. PowerPoint stores this as the user's
+		/// default (Options\UseMonMgr). Versions before 2013 have no such property: log and start the show anyway.
+		/// </summary>
+		private static void DisablePresenterView(SlideShowSettings settings)
+		{
+			try
+			{
+				settings.ShowPresenterView = MsoTriState.msoFalse;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"ShowPresenterView could not be turned off: {ex.Message}");
+			}
 		}
 
 		public string GetPresentationName(string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
@@ -635,7 +656,6 @@ namespace OfficeLib
                 switch (InKey)
 				{
 					case OfficeLibKeys.Left:
-                        activePresentation.SlideShowSettings.ShowPresenterView = MsoTriState.msoFalse;
                         slideShowWindow.View.First();
                         InCurSlide = 1;
                         break;
