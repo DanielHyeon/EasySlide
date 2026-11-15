@@ -203,7 +203,7 @@ namespace OfficeLib
 		/// <summary>
 		/// Turns PowerPoint's Presenter View off before a slide show starts; otherwise it follows the user's
 		/// "Use Presenter View" option and opens on the control monitor. PowerPoint stores this as the user's
-		/// default (Options\UseMonMgr). Versions before 2013 have no such property: log and start the show anyway.
+		/// default (Options\UseMonMgr). Older PowerPoint versions without this property: log and start the show anyway.
 		/// </summary>
 		private static void DisablePresenterView(SlideShowSettings settings)
 		{
