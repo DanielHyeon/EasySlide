@@ -2468,6 +2468,12 @@ namespace Easislides
 		{
 			if (_newBackgroundPicture != null)
 			{
+				// Cheap checks for setups that cannot succeed (zero-width message bitmap, font size <= 0).
+				if (string.IsNullOrWhiteSpace(InString) || InFont == null || InFont.Size <= 1f)
+				{
+					AbortAlert("StartAlert skipped: empty message or font too small");
+					return;
+				}
 				int num = _newBackgroundPicture.Width;
 				int num2 = (int)(Gf.MinBottomBorderFactor * (double)_newBackgroundPicture.Height * 1.2);
 				if (num < 1)
@@ -2483,76 +2489,85 @@ namespace Easislides
 				AlertFlash = InUseFlash;
 				AlertTransparent = InTransparent;
 
-				AlertimageBackground = new Bitmap(num, num2 + 6);
-				alertg = Graphics.FromImage(AlertimageBackground);
-				alertg.Clear(Color.Transparent);
-				alertg.Dispose();
-				AlertimageBackground.Dispose();
-
-				AlertimageBackground_Inverse = new Bitmap(num, num2 + 6);
-				alertg_Inverse = Graphics.FromImage(AlertimageBackground_Inverse);
-				alertg_Inverse.Clear(Color.Transparent);
-				AlertBorder = num / 20;
-				InFont = new Font(InFont.Name, InFont.Size - 1f, InFont.Style);
-				int num3 = (int)((double)Gf.ReduceFontToFit(alertg, InString, ref InFont, num - AlertBorder * 2, num2 - 2) * 1.1);
-				AlertMessageBackGroundRect = new Rectangle(0, 0, (int)alertg.MeasureString(InString, InFont).Width, num3);
-				num2 = num3 + 4;
-				alertg_Inverse.Dispose();
-				AlertimageBackground_Inverse.Dispose();
-
-				AlertimageMessage = new Bitmap(AlertMessageBackGroundRect.Width, num2);
-				alertMessageg = Graphics.FromImage(AlertimageMessage);
-				alertMessageg.Clear(AlertTransparent ? Color.Transparent : InBackColour);
-				alertMessageg.Dispose();
-				AlertimageMessage.Dispose();
-
-				AlertimageMessage_Inverse = new Bitmap(AlertMessageBackGroundRect.Width, num2);
-				alertMessageg_Inverse = Graphics.FromImage(AlertimageMessage_Inverse);
-				alertMessageg_Inverse.Clear(AlertTransparent ? Color.Transparent : InBackColour);
-				alertMessageg_Inverse.Dispose();
-				AlertimageMessage_Inverse.Dispose();
-
-				Gf.OutputOneLineToScreen(InItem, InString, InFont, alertMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num2 - AlertMessageBackGroundRect.Height) / 2, AlertMessageBackGroundRect.Width, 0);
-				Rectangle rectangle = default(Rectangle);
-				rectangle.Y = ((InVerticalAlignment != 0) ? (_newBackgroundPicture.Height - num2) : 0);
-				rectangle.Height = num2;
-				if (AlertAlign == 3)
+				// The alert bitmaps are drawn by OnPaint while the alert runs, so they must stay alive
+				// until the next alert replaces them (or the control is disposed). Release the previous
+				// ones first; paint runs on this (UI) thread, so it cannot observe the gap.
+				ReleaseAlertImages();
+				try
 				{
-					rectangle.X = num - (AlertMessageBackGroundRect.Width + AlertBorder * 2);
-					rectangle.Width = AlertMessageBackGroundRect.Width + AlertBorder * 2;
-					AlertMessageOriginX = rectangle.X + AlertMessageBackGroundRect.Width + AlertBorder / 2;
+					AlertimageBackground = new Bitmap(num, num2 + 6);
+					alertg = Graphics.FromImage(AlertimageBackground);
+					alertg.Clear(Color.Transparent);
+
+					AlertimageBackground_Inverse = new Bitmap(num, num2 + 6);
+					alertg_Inverse = Graphics.FromImage(AlertimageBackground_Inverse);
+					alertg_Inverse.Clear(Color.Transparent);
+					AlertBorder = num / 20;
+					InFont = new Font(InFont.Name, InFont.Size - 1f, InFont.Style);
+					int num3 = (int)((double)Gf.ReduceFontToFit(alertg, InString, ref InFont, num - AlertBorder * 2, num2 - 2) * 1.1);
+					AlertMessageBackGroundRect = new Rectangle(0, 0, (int)alertg.MeasureString(InString, InFont).Width, num3);
+					num2 = num3 + 4;
+
+					AlertimageMessage = new Bitmap(AlertMessageBackGroundRect.Width, num2);
+					alertMessageg = Graphics.FromImage(AlertimageMessage);
+					alertMessageg.Clear(AlertTransparent ? Color.Transparent : InBackColour);
+
+					AlertimageMessage_Inverse = new Bitmap(AlertMessageBackGroundRect.Width, num2);
+					alertMessageg_Inverse = Graphics.FromImage(AlertimageMessage_Inverse);
+					alertMessageg_Inverse.Clear(AlertTransparent ? Color.Transparent : InBackColour);
+
+					Gf.OutputOneLineToScreen(InItem, InString, InFont, alertMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num2 - AlertMessageBackGroundRect.Height) / 2, AlertMessageBackGroundRect.Width, 0);
+					Rectangle rectangle = default(Rectangle);
+					rectangle.Y = ((InVerticalAlignment != 0) ? (_newBackgroundPicture.Height - num2) : 0);
+					rectangle.Height = num2;
+					if (AlertAlign == 3)
+					{
+						rectangle.X = num - (AlertMessageBackGroundRect.Width + AlertBorder * 2);
+						rectangle.Width = AlertMessageBackGroundRect.Width + AlertBorder * 2;
+						AlertMessageOriginX = rectangle.X + AlertMessageBackGroundRect.Width + AlertBorder / 2;
+					}
+					else if (AlertAlign == 1)
+					{
+						rectangle.X = 0;
+						rectangle.Width = AlertMessageBackGroundRect.Width + AlertBorder * 2;
+						AlertMessageOriginX = rectangle.X + AlertMessageBackGroundRect.Width + AlertBorder;
+					}
+					else
+					{
+						rectangle.X = 0;
+						rectangle.Width = _newBackgroundPicture.Width;
+						AlertMessageOriginX = (_newBackgroundPicture.Width - AlertMessageBackGroundRect.Width) / 2 + AlertMessageBackGroundRect.Width + AlertBorder / 2;
+					}
+					AlertMessageOriginY = rectangle.Top + 1;
+					AlertOriginY = rectangle.Top;
+					AlertOverallBackGroundRect = new Rectangle(0, 0, num, rectangle.Height);
+					using (SolidBrush alertBrush = new SolidBrush(AlertTransparent ? Color.Transparent : InBackColour))
+					{
+						alertg.FillRectangle(alertBrush, rectangle.X, 0, rectangle.Width, rectangle.Height);
+						alertg_Inverse.FillRectangle(alertBrush, rectangle.X, 0, rectangle.Width, rectangle.Height);
+					}
+					// Setup is finished: the Graphics objects are no longer needed, the bitmaps are.
+					DisposeAlertGraphics();
+					AlertTransitionTime = InDuration;
+					float MessageDuration = AlertMessageTransitionTime;
+					AlertComputeOccurences(InString, AlertTransitionTime, ref MessageDuration, ref AlertOccurences);
+					AlertMessageTransitionTime = MessageDuration;
+					AlertGapRunning = false;
+					AlertOverallCurrentPercentage = 0f;
+					AlertMessagePercentage = 0f;
+					AlertRunning = true;
+					AlertStartTime = DateTime.Now;
+					AlertMessageStartTime = DateTime.Now;
+					Invalidate();
+					// Dispose previous timer to prevent multiple timers running
+					ta?.Dispose();
+					ta = new System.Threading.Timer(AlertTick, null, 150, 150);
 				}
-				else if (AlertAlign == 1)
+				catch (Exception ex)
 				{
-					rectangle.X = 0;
-					rectangle.Width = AlertMessageBackGroundRect.Width + AlertBorder * 2;
-					AlertMessageOriginX = rectangle.X + AlertMessageBackGroundRect.Width + AlertBorder;
+					// Never let a failed alert reach the caller (FrmMain.RemoteControlLiveShow would replace the show window).
+					AbortAlert("StartAlert failed: " + ex);
 				}
-				else
-				{
-					rectangle.X = 0;
-					rectangle.Width = _newBackgroundPicture.Width;
-					AlertMessageOriginX = (_newBackgroundPicture.Width - AlertMessageBackGroundRect.Width) / 2 + AlertMessageBackGroundRect.Width + AlertBorder / 2;
-				}
-				AlertMessageOriginY = rectangle.Top + 1;
-				AlertOriginY = rectangle.Top;
-				AlertOverallBackGroundRect = new Rectangle(0, 0, num, rectangle.Height);
-				alertg.FillRectangle(new SolidBrush(AlertTransparent ? Color.Transparent : InBackColour), rectangle.X, 0, rectangle.Width, rectangle.Height);
-				alertg_Inverse.FillRectangle(new SolidBrush(AlertTransparent ? Color.Transparent : InBackColour), rectangle.X, 0, rectangle.Width, rectangle.Height);
-				AlertTransitionTime = InDuration;
-				float MessageDuration = AlertMessageTransitionTime;
-				AlertComputeOccurences(InString, AlertTransitionTime, ref MessageDuration, ref AlertOccurences);
-				AlertMessageTransitionTime = MessageDuration;
-				AlertGapRunning = false;
-				AlertOverallCurrentPercentage = 0f;
-				AlertMessagePercentage = 0f;
-				AlertRunning = true;
-				AlertStartTime = DateTime.Now;
-				AlertMessageStartTime = DateTime.Now;
-				Invalidate();
-				// Dispose previous timer to prevent multiple timers running
-				ta?.Dispose();
-				ta = new System.Threading.Timer(AlertTick, null, 150, 150);
 			}
 		}
 
@@ -2674,6 +2689,45 @@ namespace Easislides
 			AlertStartTime = new DateTime(2005, 1, 1);
 		}
 
+		private void DisposeAlertGraphics()
+		{
+			alertg?.Dispose();
+			alertg = null;
+			alertg_Inverse?.Dispose();
+			alertg_Inverse = null;
+			alertMessageg?.Dispose();
+			alertMessageg = null;
+			alertMessageg_Inverse?.Dispose();
+			alertMessageg_Inverse = null;
+		}
+
+		// Called on the UI thread only (the same thread that paints), so OnPaint never sees a
+		// disposed alert bitmap. AlertimageMessage is the paint guard, so it is cleared first.
+		private void ReleaseAlertImages()
+		{
+			DisposeAlertGraphics();
+			AlertimageMessage?.Dispose();
+			AlertimageMessage = null;
+			AlertimageMessage_Inverse?.Dispose();
+			AlertimageMessage_Inverse = null;
+			AlertimageBackground?.Dispose();
+			AlertimageBackground = null;
+			AlertimageBackground_Inverse?.Dispose();
+			AlertimageBackground_Inverse = null;
+		}
+
+		// Leaves no alert running: releases the alert images and Graphics, stops the alert timer.
+		private void AbortAlert(string reason)
+		{
+			System.Diagnostics.Trace.WriteLine("ImageTransitionControl." + reason);
+			ReleaseAlertImages();
+			AlertRunning = false;
+			StopAlert();
+			ta?.Dispose();
+			ta = null;
+			Invalidate();
+		}
+
 		private void RefTick(object state)
 		{
 			TimeSpan timeSpan = DateTime.Now.Subtract(RefStartTime);
@@ -2693,6 +2747,19 @@ namespace Easislides
 
 		public void LoadRef(SongSettings InItem, string InString, int InDuration, Font InFont, bool InUseScroll, bool InUseFlash, bool InTransparent, bool InUseShadow, bool InUseOutline, Color InTextColour, Color InBackColour, int InAlignment, int InVerticalAlignment, double BottomBorderFactor)
 		{
+			// The reference bitmaps are drawn by OnPaint while the reference runs, so they stay alive
+			// until the next LoadRef replaces them (or the control is disposed).
+			ReleaseRefImages();
+			if (string.IsNullOrWhiteSpace(InString))
+			{
+				// No reference text (e.g. the " " the active indicator passes in): prepare nothing, stop a
+				// running reference, and keep RefDisplayString empty so RefGo and paint draw nothing (no empty box).
+				RefDisplayString = "";
+				StopRef();
+				tr?.Dispose();
+				tr = null;
+				return;
+			}
 			RefDisplayString = InString;
 			if (!(InString == ""))
 			{
@@ -2727,27 +2794,20 @@ namespace Easislides
 					RefimageBackground = new Bitmap(num, num3);
 					refg = Graphics.FromImage(RefimageBackground);
 					refg.Clear(Color.Transparent);
-					refg.Dispose();
-					RefimageBackground.Dispose();
 
 					RefimageBackground_Inverse = new Bitmap(num, num3);
 					refg_Inverse = Graphics.FromImage(RefimageBackground_Inverse);
 					refg_Inverse.Clear(Color.Transparent);
-					refg_Inverse.Dispose();
-					RefimageBackground_Inverse.Dispose();
 
 					RefimageMessage = new Bitmap(RefMessageBackGroundRect.Width, RefMessageBackGroundRect.Height);
 					refMessageg = Graphics.FromImage(RefimageMessage);
 					refMessageg.Clear(RefTransparent ? Color.Transparent : InBackColour);
-					refMessageg.Dispose();
-					RefimageMessage.Dispose();
 
 					RefimageMessage_Inverse = new Bitmap(RefMessageBackGroundRect.Width, RefMessageBackGroundRect.Height);
 					refMessageg_Inverse = Graphics.FromImage(RefimageMessage_Inverse);
 					refMessageg_Inverse.Clear(RefTransparent ? Color.Transparent : InBackColour);
+					// The text goes on the normal message bitmap; the inverse one stays background-only (as in StartAlert).
 					Gf.OutputOneLineToScreen(InItem, InString, InFont, refMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num3 - RefMessageBackGroundRect.Height) / 2, RefMessageBackGroundRect.Width, 0);
-					refMessageg_Inverse.Dispose();
-					RefimageMessage_Inverse.Dispose();
 
 					Rectangle rectangle = default(Rectangle);
 					switch (InVerticalAlignment)
@@ -2787,8 +2847,13 @@ namespace Easislides
 					RefMessageOriginY = rectangle.Top + 1;
 					RefOriginY = rectangle.Top;
 					RefOverallBackGroundRect = new Rectangle(0, 0, num, num3);
-					refg.FillRectangle(new SolidBrush(RefTransparent ? Color.Transparent : InBackColour), rectangle.X, 0, rectangle.Width, rectangle.Height);
-					refg_Inverse.FillRectangle(new SolidBrush(RefTransparent ? Color.Transparent : InBackColour), rectangle.X, 0, rectangle.Width, rectangle.Height);
+					using (SolidBrush refBrush = new SolidBrush(RefTransparent ? Color.Transparent : InBackColour))
+					{
+						refg.FillRectangle(refBrush, rectangle.X, 0, rectangle.Width, rectangle.Height);
+						refg_Inverse.FillRectangle(refBrush, rectangle.X, 0, rectangle.Width, rectangle.Height);
+					}
+					// Setup is finished: the Graphics objects are no longer needed, the bitmaps are.
+					DisposeRefGraphics();
 					RefTransitionTime = InDuration;
 					float MessageDuration = RefMessageTransitionTime;
 					RefComputeOccurences(InString, RefTransitionTime, ref MessageDuration, ref RefOccurences);
@@ -2796,10 +2861,41 @@ namespace Easislides
 					RefMessageTransitionTime = MessageDuration;
 					RefGapRunning = false;
 				}
-				catch
+				catch (Exception ex)
 				{
+					System.Diagnostics.Trace.WriteLine("ImageTransitionControl.LoadRef failed: " + ex);
+					// Leave no partially built (or disposed) bitmap reachable from paint, and nothing for RefGo to start.
+					ReleaseRefImages();
+					RefDisplayString = "";
 				}
 			}
+		}
+
+		private void DisposeRefGraphics()
+		{
+			refg?.Dispose();
+			refg = null;
+			refg_Inverse?.Dispose();
+			refg_Inverse = null;
+			refMessageg?.Dispose();
+			refMessageg = null;
+			refMessageg_Inverse?.Dispose();
+			refMessageg_Inverse = null;
+		}
+
+		// Called on the UI thread only (the same thread that paints), so OnPaint never sees a
+		// disposed reference bitmap. RefimageMessage is the paint guard, so it is cleared first.
+		private void ReleaseRefImages()
+		{
+			DisposeRefGraphics();
+			RefimageMessage?.Dispose();
+			RefimageMessage = null;
+			RefimageMessage_Inverse?.Dispose();
+			RefimageMessage_Inverse = null;
+			RefimageBackground?.Dispose();
+			RefimageBackground = null;
+			RefimageBackground_Inverse?.Dispose();
+			RefimageBackground_Inverse = null;
 		}
 
 		private void RefGo()
