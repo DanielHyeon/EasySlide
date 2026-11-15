@@ -3675,6 +3675,7 @@ namespace Easislides
                     GotoSlide = Gf.OutputItem.TotalSlides;
                 }
                 LoadThumbOutImages(flowLayoutOutputPowerPoint, ref Powerpoint_OutputCanvas, OutputPPImagename, Gf.OutputItem.TotalSlides, flowLayoutOutputPowerPoint.Width, Gf.OUTPPFullPath, GotoSlide, toolTip1, ExternalPP: true);
+                RefreshLiveIndicators();
             }
         }
 
@@ -4093,6 +4094,7 @@ namespace Easislides
                 FocusOutputArea();
                 Focus();
             }
+            RefreshLiveIndicators();
         }
 
         private void Start_Presentation()
@@ -4372,6 +4374,7 @@ namespace Easislides
             }
             labelGapItem.Visible = ((Gf.OutputItem.Type == "G") ? true : false);
             ResizeOutputBottomPanel();
+            RefreshLiveIndicators();
         }
 
         //private void LiveCam(bool InStatus)

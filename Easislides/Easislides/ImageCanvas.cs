@@ -73,11 +73,95 @@ namespace Easislides
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public int CurrentSelectedSlide { get; set; }
 
+		// Display markers. The border is baked into the rendered thumbnail, so a change that can
+		// alter what is drawn re-renders it from the cached source image on the next paint.
+		// A change that cannot alter this thumbnail (for example the selected-border width of an
+		// unselected thumbnail) only stores the value; the next full render uses it.
+		private Color _selectedBorderColor = Color.Red;
+		private bool _thinSelectedBorder;
+		private bool _isNextSlide;
+		private Color _nextSlideBorderColor = ModernUiPalette.NextSlide;
+		private bool _markersDirty;
+
+		// True when this thumbnail is drawn with the selected border. DrawBorder uses this same
+		// test. A canvas that was never built has both numbers at 0 and also counts as selected
+		// here, but draws nothing; callers that look for the selected slide skip unbuilt canvases.
+		[Browsable(false)]
+		public bool IsDrawnSelected => CurrentSelectedSlide == PowerPointSlideNumbering;
+
 		// Border colour of the selected PowerPoint thumbnail. Red is the previous look;
 		// FrmMain overrides it per column when the modern look is enabled.
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public Color SelectedBorderColor { get; set; } = Color.Red;
+		public Color SelectedBorderColor
+		{
+			get => _selectedBorderColor;
+			set
+			{
+				if (_selectedBorderColor.ToArgb() != value.ToArgb())
+				{
+					_selectedBorderColor = value;
+					if (IsDrawnSelected)
+					{
+						MarkMarkersDirty();
+					}
+				}
+			}
+		}
 
+		// Draws the selected border at a third of its normal visible width, at least 3 screen
+		// pixels (live column, slide selected but not actually on the screen).
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool ThinSelectedBorder
+		{
+			get => _thinSelectedBorder;
+			set
+			{
+				if (_thinSelectedBorder != value)
+				{
+					_thinSelectedBorder = value;
+					if (IsDrawnSelected)
+					{
+						MarkMarkersDirty();
+					}
+				}
+			}
+		}
+
+		// Draws a dashed border in NextSlideBorderColor (the slide after the selected one).
+		// Not drawn on the selected thumbnail itself.
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsNextSlide
+		{
+			get => _isNextSlide;
+			set
+			{
+				if (_isNextSlide != value)
+				{
+					_isNextSlide = value;
+					if (!IsDrawnSelected)
+					{
+						MarkMarkersDirty();
+					}
+				}
+			}
+		}
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public Color NextSlideBorderColor
+		{
+			get => _nextSlideBorderColor;
+			set
+			{
+				if (_nextSlideBorderColor.ToArgb() != value.ToArgb())
+				{
+					_nextSlideBorderColor = value;
+					if (_isNextSlide && !IsDrawnSelected)
+					{
+						MarkMarkersDirty();
+					}
+				}
+			}
+		}
 		// Legacy property names for backward compatibility
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool PowerPoint
@@ -194,8 +278,48 @@ namespace Easislides
 
 			if (!IsImageReady && !CalculateImage())
 				return;
+			if (_markersDirty && !RerenderMarkers())
+				return;
 
 			DrawImage(e);
+		}
+
+		private void MarkMarkersDirty()
+		{
+			_markersDirty = true;
+			if (base.Visible && IsHandleCreated && !IsDisposed)
+			{
+				Invalidate();
+			}
+		}
+
+		// Re-renders the thumbnail from the cached source image so only the border changes.
+		// No file access and no PowerPoint export. Falls back to a full reload when the cache
+		// does not belong to the current file.
+		// Returns false when there is nothing to draw.
+		private bool RerenderMarkers()
+		{
+			_markersDirty = false;
+			if (_cachedSourceImage == null || _cachedFileName != FileName)
+			{
+				IsImageReady = false;
+				return CalculateImage();
+			}
+			try
+			{
+				if (TryCalculateTargetSizes(_cachedSourceImage, out int storedImageWidth, out int storedImageHeight))
+				{
+					Bitmap rendered = RenderImage(_cachedSourceImage, storedImageWidth, storedImageHeight);
+					Image?.Dispose();
+					Image = rendered;
+					ResizeCanvas(base.Width, base.Height);
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error in RerenderMarkers: {ex.Message}");
+			}
+			return Image != null;
 		}
 
 		private void DrawImage(PaintEventArgs e)
@@ -282,13 +406,62 @@ namespace Easislides
 
 		private void DrawBorder(Graphics graphics, Rectangle rect, float fontSize)
 		{
-			Color borderColor = (CurrentSelectedSlide == PowerPointSlideNumbering) ? SelectedBorderColor : base.Parent.BackColor;
+			bool isSelected = IsDrawnSelected;
+			Color borderColor = isSelected ? SelectedBorderColor : base.Parent.BackColor;
 			using (Pen pen = new Pen(borderColor, fontSize))
 			{
 				graphics.DrawRectangle(pen, rect);
 			}
+			if (!ThinSelectedBorder && !IsNextSlide)
+			{
+				return;
+			}
+
+			// The pen above is centred on the bitmap edge, so half of it is visible: that is
+			// the thick selected band. The markers below are measured against it and drawn
+			// inset, so their whole width lies inside the bitmap.
+			float band = fontSize / 2f;
+			if (isSelected && ThinSelectedBorder)
+			{
+				using (Pen backPen = new Pen(base.Parent.BackColor, fontSize))
+				{
+					graphics.DrawRectangle(backPen, rect);
+				}
+				float thinWidth = MarkerWidth(band, 3f, ThinBorderMinScreenPixels);
+				using (Pen thinPen = new Pen(borderColor, thinWidth))
+				{
+					DrawInsetRectangle(graphics, thinPen, rect, thinWidth);
+				}
+			}
+			else if (!isSelected && IsNextSlide)
+			{
+				float dashWidth = MarkerWidth(band, 5f, NextSlideMinScreenPixels);
+				using (Pen dashPen = new Pen(NextSlideBorderColor, dashWidth))
+				{
+					// Dash and gap lengths are multiples of the pen width.
+					dashPen.DashPattern = new float[] { 4f, 3f };
+					DrawInsetRectangle(graphics, dashPen, rect, dashWidth);
+				}
+			}
 		}
 
+		// Minimum visible marker widths in screen pixels (design D9, D12).
+		private const float ThinBorderMinScreenPixels = 3f;
+		private const float NextSlideMinScreenPixels = 2f;
+
+		// A fraction of the thick band, at least the given screen pixels (the thumbnail is rendered
+		// at RESOLUTION_MULTIPLIER times its screen size), never wider than the band itself.
+		private static float MarkerWidth(float band, float divisor, float minScreenPixels)
+		{
+			float width = Math.Max(band / divisor, minScreenPixels * RESOLUTION_MULTIPLIER);
+			return Math.Min(width, band);
+		}
+
+		private static void DrawInsetRectangle(Graphics graphics, Pen pen, Rectangle rect, float width)
+		{
+			float inset = width / 2f;
+			graphics.DrawRectangle(pen, rect.X + inset, rect.Y + inset, rect.Width - width, rect.Height - width);
+		}
 		private bool ShouldDrawPowerPointOverlay()
 		{
 			return IsPowerPoint || IsExternalPowerPoint;
@@ -441,6 +614,7 @@ namespace Easislides
 				Image = RenderImage(sourceImage, storedImageWidth, storedImageHeight);
 
 				IsImageReady = true;
+				_markersDirty = false;
 				_deferredRepaintScheduled = false;
 				ResizeCanvas(base.Width, base.Height);
 			}

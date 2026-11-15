@@ -169,5 +169,7 @@ namespace Easislides
 		public static readonly Color TextPrimary = Color.FromArgb(0x1B, 0x1B, 0x1B);
 		public static readonly Color TextSecondary = Color.FromArgb(0x5C, 0x5C, 0x5C);
 		public static readonly Color OnAccent = Color.FromArgb(0xFF, 0xFF, 0xFF);
+		// Text on LiveTint (current live slide that is not on the screen); 5.6:1 on LiveTint.
+		public static readonly Color LiveAccentText = Color.FromArgb(0xA3, 0x3F, 0x00);
 	}
 }
