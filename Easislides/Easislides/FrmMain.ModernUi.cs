@@ -64,6 +64,9 @@ namespace Easislides
 
             ApplyLiveHeaderButtons();
             CreateLiveStatusRow();
+            CaptureShortcutTooltipBases();
+            RefreshShortcutTooltips();
+            InitQuickFindWidth();
 
             // Safety net for state changes that do not pass through FrmMain (design D9).
             // Repaint only: the handler never changes any state.
@@ -208,6 +211,12 @@ namespace Easislides
             try
             {
                 LiveIndicatorState state = CurrentLiveIndicatorState();
+                if (state.ModernUi != shortcutTooltipsModernUi)
+                {
+                    // High contrast switched on or off while the app runs.
+                    RefreshShortcutTooltips();
+                    UpdateQuickFindWidth();
+                }
                 if (state != lastLiveIndicatorState)
                 {
                     // Remember the state first: if the refresh fails it is not retried on
@@ -489,6 +498,279 @@ namespace Easislides
         {
             return Gf.TextRegionSlideTextColour.ToArgb() == Gf.DefaultTextRegionSlideTextColour.ToArgb()
                 && Gf.TextRegionSlideBackColour.ToArgb() == Gf.DefaultTextRegionSlideBackColour.ToArgb();
+        }
+
+        // ----- Shortcut keys in button tooltips (design D13) -----
+
+        // Tooltip text each button had before any suffix was added, so re-applying never doubles it.
+        private Dictionary<Control, string> shortcutTooltipBase;
+
+        // Gate state the tooltips and the find box were last drawn for.
+        private bool shortcutTooltipsModernUi;
+
+        /// <summary>
+        /// The one table of button -> shortcut (design D13). A key is listed only when pressing it
+        /// in the main window, at any time, does what the button does. Keys handled only by a
+        /// focused panel (arrows, PageUp/Down, Z, M, J ... in KeyboardActionHandler / ItemKeyPressed),
+        /// only while the show window has focus (FrmLaunchShow) or only by the media player window
+        /// are not listed. The key is read from where the app defines it (menu ShortcutKeys,
+        /// global hook options), so it follows the current settings. Keys.None = no shortcut.
+        /// </summary>
+        private (Control Button, Func<Keys> Key)[] ShortcutTooltipTable() => new (Control, Func<Keys>)[]
+        {
+            // Live header.
+            // F9 / F3 / F12 (Output menu) toggle the real state; the buttons follow their own checked
+            // state. Same result except after the checked state went stale (accepted, design D13).
+            (cbOutputBlack, EffectiveBlackScreenKey),
+            (cbOutputClear, () => Menu_ClearScreen.ShortcutKeys),
+            (cbGoLive, () => Menu_StartShow.ShortcutKeys),
+            // Preview header.
+            (btnToOutput, () => Gf.GlobalHookKey_F8 ? Keys.F8 : Keys.None), // global hook: CopyPreviewToOutput
+            (btnToLive, NoShortcut),            // F7 hook also turns black off and does not start the show
+            (btnToOutputMoveNext, NoShortcut),  // F11 also starts the show
+            // Preview tool row.
+            (IndcbPreviewNotes, NoShortcut),
+            (IndradioButtonFormat, NoShortcut),
+            (PreviewBtnItemUp, NoShortcut),     // PageUp only with the preview panel focused
+            (PreviewBtnItemDown, NoShortcut),
+            (PreviewBtnSlideUp, NoShortcut),    // Up only with the preview panel focused
+            (PreviewBtnSlideDown, NoShortcut),
+            // Live tool row.
+            (OutputBtnJumpToNonRotate, NoShortcut), // J only with the live panel focused
+            (OutputBtnMedia, NoShortcut),           // M only with the live panel focused
+            (OutputBtnRefAlert, NoShortcut),        // Z only with the live panel focused
+            (OutputBtnItemUp, NoShortcut),          // PageUp only with the live panel focused
+            (OutputBtnItemDown, NoShortcut),
+            // Up/Down need the live panel focused. With the global arrow hook plain Up/Down also
+            // moves the focused list's selection, and the Ctrl variant reads the modifier inside a
+            // delayed BeginInvoke, so neither does exactly what the button does.
+            (OutputBtnSlideUp, NoShortcut),
+            (OutputBtnSlideDown, NoShortcut),
+        };
+
+        private static Keys NoShortcut() => Keys.None;
+
+        // Key names as menus show them: "F9", "Ctrl+F" (Keys.ToString would give "F, Control").
+        private static readonly KeysConverter ShortcutKeyText = new KeysConverter();
+
+        /// <summary>
+        /// F9 toggles black from the main window through the Output menu shortcut, which
+        /// UpdateBlackScreenShortcut removes when a global F9/F10 hook is set, or through the
+        /// global F9 hook. With only the F10 hook set, F10 also opens the menu bar of the main
+        /// window, so it does more than the button: no key is shown then.
+        /// </summary>
+        private Keys EffectiveBlackScreenKey()
+        {
+            return Menu_BlackScreen.ShortcutKeys == Keys.F9 || Gf.GlobalHookKey_F9 ? Keys.F9 : Keys.None;
+        }
+
+        private void CaptureShortcutTooltipBases()
+        {
+            shortcutTooltipBase = new Dictionary<Control, string>();
+            foreach (var (button, _) in ShortcutTooltipTable())
+            {
+                // A button without a tooltip gets none (design D13).
+                string text = toolTip1.GetToolTip(button);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    shortcutTooltipBase[button] = text;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets each tooltip to "base (Key)", or back to its base text when there is no key or
+        /// the gate is closed. Always built from the stored base text, so it can run any number
+        /// of times. Called at start-up, from UpdateBlackScreenShortcut (form load and after the
+        /// options are saved) and when the gate changes while the app runs.
+        /// </summary>
+        private void RefreshShortcutTooltips()
+        {
+            if (shortcutTooltipBase == null)
+            {
+                // The new look was not active at start-up: the tooltips were never touched.
+                return;
+            }
+            try
+            {
+                bool modern = IsModernUiActive;
+                shortcutTooltipsModernUi = modern;
+                foreach (var (button, key) in ShortcutTooltipTable())
+                {
+                    if (!shortcutTooltipBase.TryGetValue(button, out string baseText))
+                    {
+                        continue;
+                    }
+                    Keys shortcut = modern ? key() : Keys.None;
+                    string text = shortcut == Keys.None ? baseText : $"{baseText} ({ShortcutKeyText.ConvertToString(shortcut)})";
+                    if (toolTip1.GetToolTip(button) != text)
+                    {
+                        toolTip1.SetToolTip(button, text);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"RefreshShortcutTooltips failed: {ex.Message}");
+            }
+        }
+
+        // ----- Wider quick-find box (design D14) -----
+
+        private const int QuickFindMaxWidth = 360;
+
+        // Spare pixels left at the right end of the toolbar row so rounding never makes it overflow.
+        private const int QuickFindRowSlack = 4;
+
+        private int quickFindMinWidth;
+        private bool quickFindResizing;
+
+        // Width of each toolbar item the last time it was laid out on the toolbar itself. An item
+        // that has just been pushed into the overflow menu (window made narrower) keeps counting
+        // with that width.
+        private readonly Dictionary<ToolStripItem, int> toolbarItemWidths = new Dictionary<ToolStripItem, int>();
+
+        private bool quickFindUpdatePosted;
+
+        // A width change was skipped because the drop-down list was open (design D14).
+        private bool quickFindWaitingForDropDown;
+
+        private void InitQuickFindWidth()
+        {
+            quickFindMinWidth = Main_QuickFind.Width;
+            // Changing the width closes an open drop-down list, so it waits until the list closes.
+            Main_QuickFind.DropDownClosed += QuickFind_DropDownClosed;
+            // Window narrower: shrink the box before the toolbar row is laid out at the new width,
+            // so no item is pushed into the overflow menu on the way.
+            toolStripContainerMain.Layout += (s, e) => UpdateQuickFindWidth(toolStripContainerMain.ClientSize.Width, growAllowed: false);
+            // Window wider (or any other change): once the row has its new width.
+            toolStripContainerMain.TopToolStripPanel.SizeChanged += (s, e) => UpdateQuickFindWidth();
+            // Other toolbar items changing width, e.g. the jump buttons getting their text.
+            toolStripMain.LayoutCompleted += QuickFindToolbar_LayoutCompleted;
+            UpdateQuickFindWidth();
+        }
+
+        private void QuickFindToolbar_LayoutCompleted(object sender, EventArgs e)
+        {
+            // Never resize from inside the toolbar's own layout: check once it has finished.
+            if (!quickFindResizing)
+            {
+                PostQuickFindUpdate();
+            }
+        }
+
+        private void QuickFind_DropDownClosed(object sender, EventArgs e)
+        {
+            if (quickFindWaitingForDropDown)
+            {
+                quickFindWaitingForDropDown = false;
+                // After the list has finished closing.
+                PostQuickFindUpdate();
+            }
+        }
+
+        private void PostQuickFindUpdate()
+        {
+            if (quickFindUpdatePosted || !IsHandleCreated)
+            {
+                return;
+            }
+            quickFindUpdatePosted = true;
+            BeginInvoke(new Action(() =>
+            {
+                quickFindUpdatePosted = false;
+                UpdateQuickFindWidth();
+            }));
+        }
+
+        private void UpdateQuickFindWidth()
+        {
+            UpdateQuickFindWidth(toolStripContainerMain.TopToolStripPanel.DisplayRectangle.Right, growAllowed: true);
+        }
+
+        /// <summary>
+        /// Gives the find box the toolbar row's free space, between its designer width and 360
+        /// logical pixels. The rest of the toolbar is measured item by item, so the box
+        /// never takes space another item needs: nothing goes to the overflow menu or is
+        /// hidden because of it. When the toolbar does not fit even with the designer width,
+        /// the box keeps the designer width, exactly as before. Gate closed: designer width.
+        /// </summary>
+        private void UpdateQuickFindWidth(int rowRight, bool growAllowed)
+        {
+            if (quickFindResizing || quickFindMinWidth <= 0)
+            {
+                return;
+            }
+            try
+            {
+                int target = quickFindMinWidth;
+                int othersWidth = ToolbarWidthWithoutQuickFind();
+                if (IsModernUiActive)
+                {
+                    int available = rowRight - toolStripMain.Left - toolStripMain.Margin.Right
+                        - LogicalToDeviceUnits(QuickFindRowSlack);
+                    int max = Math.Max(quickFindMinWidth, LogicalToDeviceUnits(QuickFindMaxWidth));
+                    target = Math.Clamp(available - othersWidth, quickFindMinWidth, max);
+                }
+                if (target == Main_QuickFind.Width || (!growAllowed && target > Main_QuickFind.Width))
+                {
+                    return;
+                }
+                if (Main_QuickFind.DroppedDown && target > Main_QuickFind.Width)
+                {
+                    // Growing would close the open list: grow once it has closed. A shrink is not
+                    // deferred: without it the box itself goes to the overflow menu and its open
+                    // list is left floating on its own (seen in the app).
+                    quickFindWaitingForDropDown = true;
+                    return;
+                }
+                quickFindResizing = true;
+                if (toolStripMain.Width < othersWidth + target)
+                {
+                    // Make room on the toolbar first: the row still gives it its old width until it
+                    // is laid out again, and the wider box would go to the overflow menu meanwhile.
+                    toolStripMain.Width = othersWidth + target;
+                }
+                toolStripMain.SuspendLayout();
+                Main_QuickFind.Size = new Size(target, Main_QuickFind.Height);
+                toolStripMain.ResumeLayout(false);
+                // Let the row give the toolbar its new width first, then lay the toolbar out once.
+                toolStripContainerMain.TopToolStripPanel.PerformLayout();
+                toolStripMain.PerformLayout();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"UpdateQuickFindWidth failed: {ex.Message}");
+            }
+            finally
+            {
+                quickFindResizing = false;
+            }
+        }
+
+        /// <summary>
+        /// Width the toolbar needs for everything except the find box, all on one row. Summed by
+        /// hand because the toolbar's own preferred size leaves out items that are in the
+        /// overflow menu at that moment, which happens for a moment while the window shrinks.
+        /// </summary>
+        private int ToolbarWidthWithoutQuickFind()
+        {
+            // Same terms as the toolbar's own preferred width: the grip margin counts even with the grip hidden.
+            int width = toolStripMain.Padding.Horizontal + toolStripMain.GripRectangle.Width + toolStripMain.GripMargin.Horizontal;
+            foreach (ToolStripItem item in toolStripMain.Items)
+            {
+                if (item == Main_QuickFind || !item.Available)
+                {
+                    continue;
+                }
+                if (item.Placement == ToolStripItemPlacement.Main)
+                {
+                    toolbarItemWidths[item] = item.Width;
+                }
+                int itemWidth = toolbarItemWidths.TryGetValue(item, out int known) ? known : item.Width;
+                width += itemWidth + item.Margin.Horizontal;
+            }
+            return width;
         }
     }
 }

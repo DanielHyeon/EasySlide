@@ -8867,6 +8867,8 @@ namespace Easislides
         {
             // Prevent double-toggle when global black-screen hotkeys are enabled.
             Menu_BlackScreen.ShortcutKeys = (Gf.GlobalHookKey_F9 || Gf.GlobalHookKey_F10) ? Keys.None : Keys.F9;
+            // The global key options may have changed: keep the button tooltips' keys in step.
+            RefreshShortcutTooltips();
         }
 
         #region Event handlers of particular events. They will be activated when an appropriate checkbox is checked.
