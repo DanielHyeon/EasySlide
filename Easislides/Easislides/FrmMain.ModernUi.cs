@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Easislides.Module;
 
 namespace Easislides
 {
@@ -67,6 +69,8 @@ namespace Easislides
             CaptureShortcutTooltipBases();
             RefreshShortcutTooltips();
             InitQuickFindWidth();
+
+            AttachWorshipListPainter();
 
             // Safety net for state changes that do not pass through FrmMain (design D9).
             // Repaint only: the handler never changes any state.
@@ -224,6 +228,8 @@ namespace Easislides
                     lastLiveIndicatorState = state;
                     RefreshLiveIndicators();
                 }
+                // Preview row changes (worship list clicks, item up/down buttons) are caught here.
+                RefreshWorshipListMarks();
             }
             catch (Exception ex)
             {
@@ -261,6 +267,7 @@ namespace Easislides
             }
             LiveIndicatorState state = CurrentLiveIndicatorState();
             lastLiveIndicatorState = state;
+            RefreshWorshipListMarks();
 
             if (!state.ModernUi)
             {
@@ -772,5 +779,798 @@ namespace Easislides
             }
             return width;
         }
+
+        // ----- Worship list rows (design D15, D16) -----
+
+        private WorshipListPainter worshipListPainter;
+
+        // Which panel item each row mark was last computed for, and the list row object that held
+        // that item at that moment (design D16). See VerifiedWorshipRow.
+        private (ItemSource Source, int ItemNo, string Type, string Id) worshipPreviewKey;
+        private (ItemSource Source, int ItemNo, string Type, string Id) worshipOutputKey;
+        private ListViewItem worshipPreviewRow;
+        private ListViewItem worshipOutputRow;
+
+        // Marks the rows were last invalidated for; the timer and the refresh points compare against it.
+        private WorshipListMarks lastWorshipListMarks = new WorshipListMarks(false, -1, -1, false);
+
+        private readonly record struct WorshipListMarks(bool ModernUi, int PreviewRow, int OutputRow, bool OutputLive);
+
+        /// <summary>
+        /// Owner-draws the worship list in the new look only (design D15). With the gate closed at
+        /// start-up this is never called: OwnerDraw stays false and no handler is added.
+        /// </summary>
+        private void AttachWorshipListPainter()
+        {
+            worshipListPainter = new WorshipListPainter(WorshipListItems, () => IsModernUiActive, WorshipRowMark, () => SongFolder.BackColor);
+            worshipListPainter.Attach();
+            Disposed += (s, e) => worshipListPainter?.Dispose();
+        }
+
+        private int WorshipRowMark(int index)
+        {
+            WorshipListMarks marks = CurrentWorshipListMarks();
+            if (index == marks.OutputRow)
+            {
+                return marks.OutputLive ? WorshipListPainter.MarkLive : WorshipListPainter.MarkOutput;
+            }
+            return index == marks.PreviewRow ? WorshipListPainter.MarkPreview : WorshipListPainter.MarkNone;
+        }
+
+        private WorshipListMarks CurrentWorshipListMarks()
+        {
+            int output = VerifiedWorshipRow(Gf.OutputItem, ref worshipOutputKey, ref worshipOutputRow, requireOutputFlag: true);
+            int preview = VerifiedWorshipRow(Gf.PreviewItem, ref worshipPreviewKey, ref worshipPreviewRow, requireOutputFlag: false);
+            return new WorshipListMarks(IsModernUiActive, preview, output, output >= 0 && IsOutputActuallyLive);
+        }
+
+        /// <summary>
+        /// Row index of the worship list that a panel item came from, or -1 (design D16: mark nothing
+        /// rather than a wrong row). All of these must hold:
+        /// - the item was loaded from the worship list (Source), not from the folder lists, the praise
+        ///   book or a file;
+        /// - its position (CurItemNo, 1-based, the value the app itself uses to find the row) is in range;
+        /// - that row holds the same item: its ID string (SubItems[1], type letter + ID / path) equals
+        ///   the item's Type + ItemID, which LoadIndividualData split from that string;
+        /// - that row is the same ListViewItem object that held the item when the item (source, position,
+        ///   type, ID) last changed. Loading another worship list creates new row objects without moving
+        ///   the item, so a row of the other list at the same position is never marked. A reorder that
+        ///   moves the item changes its position (the app updates CurItemNo), so the row is taken again;
+        /// - for the output item, the app's own output flag ("O" in SubItems[6], set by
+        ///   UpdateWorshipShowIcons) is on that row.
+        /// </summary>
+        private int VerifiedWorshipRow(SongSettings item, ref (ItemSource, int, string, string) key, ref ListViewItem keyRow, bool requireOutputFlag)
+        {
+            var current = (item.Source, item.CurItemNo, item.Type, item.ItemID);
+            int index = item.CurItemNo - 1;
+            ListView.ListViewItemCollection rows = WorshipListItems.Items;
+            ListViewItem row = item.Source == ItemSource.WorshipList && index >= 0 && index < rows.Count ? rows[index] : null;
+            bool holdsItem = row != null && row.SubItems.Count > 1 && !string.IsNullOrEmpty(item.Type)
+                && row.SubItems[1].Text == item.Type + item.ItemID;
+            if (current != key)
+            {
+                key = current;
+                keyRow = holdsItem ? row : null;
+            }
+            if (!holdsItem || !ReferenceEquals(row, keyRow))
+            {
+                return -1;
+            }
+            if (requireOutputFlag && (row.SubItems.Count < 7 || row.SubItems[6].Text != "O"))
+            {
+                return -1;
+            }
+            return index;
+        }
+
+        /// <summary>
+        /// Repaints the worship list rows whose mark changed: the old and the new preview / output row
+        /// (design D16). Repaint only. Called from RefreshLiveIndicatorsCore (show, black, gap and
+        /// output item changes) and from the flash timer (everything else, within 0.6 s).
+        /// </summary>
+        private void RefreshWorshipListMarks()
+        {
+            if (worshipListPainter == null)
+            {
+                return;
+            }
+            try
+            {
+                WorshipListMarks marks = CurrentWorshipListMarks();
+                WorshipListMarks last = lastWorshipListMarks;
+                if (marks == last)
+                {
+                    return;
+                }
+                lastWorshipListMarks = marks;
+                if (marks.ModernUi != last.ModernUi)
+                {
+                    // Gate changed while the app runs (high contrast): every row changes look.
+                    WorshipListItems.Invalidate();
+                    return;
+                }
+                worshipListPainter.InvalidateRows(last.PreviewRow, last.OutputRow, marks.PreviewRow, marks.OutputRow);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"RefreshWorshipListMarks failed: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Paints the rows of the worship list in the new look (design D15). Painting only: it never
+    /// changes the list's items, texts, icons, selection or order, and adds no input handler.
+    /// Row layout from the left: marker bar, the item's own icon, title (ends with an ellipsis when
+    /// it does not fit), one right-aligned tag. Text is drawn with GDI DrawText and the list's own
+    /// font handle (WM_GETFONT), as the list draws its rows: TextRenderer with list.Font gave visibly
+    /// larger glyphs than the list's own drawing (harness comparison). Whenever the gate is closed
+    /// (high contrast switched on while the app runs) every row is handed back to the default drawing.
+    /// </summary>
+    internal sealed class WorshipListPainter : IDisposable
+    {
+        public const int MarkNone = 0;
+        public const int MarkPreview = 1;
+        public const int MarkOutput = 2;  // on the output panel, not actually live (design D16)
+        public const int MarkLive = 3;    // on the output panel and actually live (design D9)
+
+        // Logical (96 dpi) sizes.
+        private const int MarkerBarWidth = 4;
+        private const int TypeTagMinListWidth = 260;
+        private const int TagRightPadding = 6;
+        private const int TagGap = 8;
+
+        private readonly ListView list;
+        private readonly Func<bool> isActive;
+        private readonly Func<int, int> markOf;
+        private readonly Func<Color> resetBackColour;
+
+        // Bold GDI font made from the list's font handle (boldFontSource); deleted when replaced.
+        private IntPtr boldFontHandle;
+        private IntPtr boldFontSource;
+        private readonly Dictionary<int, IntPtr> brushes = new Dictionary<int, IntPtr>();
+        private readonly Dictionary<(string Text, IntPtr Font), int> tagWidths = new Dictionary<(string, IntPtr), int>();
+        private bool attached;
+
+        /// <param name="list">The worship list.</param>
+        /// <param name="isActive">The new-look gate, read at every paint.</param>
+        /// <param name="markOf">Mark of a row index (MarkNone / MarkPreview / MarkOutput / MarkLive).</param>
+        /// <param name="resetBackColour">Colour the app gives every row when it resets the drag marker
+        /// (ResetListViewBackgroundColour); any other row back colour (the yellow drop marker) is kept.</param>
+        public WorshipListPainter(ListView list, Func<bool> isActive, Func<int, int> markOf, Func<Color> resetBackColour)
+        {
+            this.list = list;
+            this.isActive = isActive;
+            this.markOf = markOf;
+            this.resetBackColour = resetBackColour;
+            eraseFilter = new EraseFilter(this);
+        }
+
+        public void Attach()
+        {
+            if (attached)
+            {
+                return;
+            }
+            attached = true;
+            list.DrawColumnHeader += List_DrawColumnHeader;
+            list.DrawItem += List_DrawItem;
+            list.DrawSubItem += List_DrawSubItem;
+            list.FontChanged += List_FontChanged;
+            list.HandleCreated += List_HandleCreated;
+            list.OwnerDraw = true;
+            if (list.IsHandleCreated)
+            {
+                eraseFilter.AssignHandle(list.Handle);
+            }
+        }
+
+        // ----- No background erase under owner-drawn rows -----
+
+        // Before each repaint of a row (e.g. the live row's icon flashing every 0.6 s) the list erased it
+        // to its back colour, and only then the painter filled LiveTint / PreviewTint / SurfaceAlt: a frame
+        // grab in the app caught the live row all white once in 861 frames. In the old look the erase colour
+        // was the row colour, so it never showed. The filter excludes the rows the painter covers from the
+        // erase; the list still erases everything else (below the last row, right of the first column)
+        // exactly as before, and erases normally whenever the gate is closed.
+        private readonly EraseFilter eraseFilter;
+
+        private void List_HandleCreated(object sender, EventArgs e)
+        {
+            // A NativeWindow lets go of the handle when it is destroyed; take the new one.
+            if (eraseFilter.Handle != list.Handle)
+            {
+                eraseFilter.AssignHandle(list.Handle);
+            }
+        }
+
+        /// <summary>
+        /// Clips the erase DC so the visible rows' first-column rectangles (which List_DrawSubItem paints
+        /// completely) are left out. Returns the SaveDC level to restore, or 0 when nothing was changed.
+        /// </summary>
+        private int ExcludeRowsFromErase(IntPtr hdc)
+        {
+            if (hdc == IntPtr.Zero || !attached || !Active || list.Items.Count == 0 || list.Columns.Count == 0)
+            {
+                return 0;
+            }
+            int saved = SaveDC(hdc);
+            if (saved == 0)
+            {
+                return 0;
+            }
+            try
+            {
+                int width = list.Columns[0].Width;
+                int clientHeight = list.ClientSize.Height;
+                ListViewItem top = list.TopItem;
+                for (int i = top?.Index ?? 0; i < list.Items.Count; i++)
+                {
+                    Rectangle row = list.Items[i].Bounds;
+                    if (row.Top >= clientHeight)
+                    {
+                        break;
+                    }
+                    if (row.Bottom > 0)
+                    {
+                        ExcludeClipRect(hdc, row.Left, row.Top, row.Left + width, row.Bottom);
+                    }
+                }
+                return saved;
+            }
+            catch (Exception ex)
+            {
+                RestoreDC(hdc, saved);
+                Trace.WriteLine($"WorshipListPainter erase filter failed: {ex.Message}");
+                return 0;
+            }
+        }
+
+        private sealed class EraseFilter : NativeWindow
+        {
+            private readonly WorshipListPainter owner;
+
+            public EraseFilter(WorshipListPainter owner)
+            {
+                this.owner = owner;
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                const int WM_ERASEBKGND = 0x0014;
+                if (m.Msg != WM_ERASEBKGND)
+                {
+                    base.WndProc(ref m);
+                    return;
+                }
+                int saved = owner.ExcludeRowsFromErase(m.WParam);
+                try
+                {
+                    base.WndProc(ref m);
+                }
+                finally
+                {
+                    if (saved != 0)
+                    {
+                        RestoreDC(m.WParam, saved);
+                    }
+                }
+            }
+        }
+
+        [DllImport("gdi32.dll")]
+        private static extern int SaveDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool RestoreDC(IntPtr hdc, int savedDC);
+
+        [DllImport("gdi32.dll")]
+        private static extern int ExcludeClipRect(IntPtr hdc, int left, int top, int right, int bottom);
+
+        public void Dispose()
+        {
+            if (attached)
+            {
+                attached = false;
+                list.DrawColumnHeader -= List_DrawColumnHeader;
+                list.DrawItem -= List_DrawItem;
+                list.DrawSubItem -= List_DrawSubItem;
+                list.FontChanged -= List_FontChanged;
+                list.HandleCreated -= List_HandleCreated;
+                eraseFilter.ReleaseHandle();
+            }
+            DisposeFonts();
+            foreach (IntPtr brush in brushes.Values)
+            {
+                DeleteObject(brush);
+            }
+            brushes.Clear();
+            DisposeBuffer();
+        }
+
+        /// <summary>Repaints the given rows (indices out of range and duplicates are skipped).</summary>
+        public void InvalidateRows(params int[] rows)
+        {
+            if (!list.IsHandleCreated)
+            {
+                return;
+            }
+            int count = list.Items.Count;
+            for (int i = 0; i < rows.Length; i++)
+            {
+                int row = rows[i];
+                if (row < 0 || row >= count || Array.IndexOf(rows, row) < i)
+                {
+                    continue;
+                }
+                list.Invalidate(list.Items[row].Bounds);
+            }
+        }
+
+        private bool Active => isActive() && list.View == View.Details;
+
+        private void List_FontChanged(object sender, EventArgs e)
+        {
+            // The list font follows the preview font size option: drop the bold copy and the tag widths.
+            DisposeFonts();
+        }
+
+        private void DisposeFonts()
+        {
+            if (boldFontHandle != IntPtr.Zero)
+            {
+                DeleteObject(boldFontHandle);
+                boldFontHandle = IntPtr.Zero;
+            }
+            boldFontSource = IntPtr.Zero;
+            tagWidths.Clear();
+        }
+
+        private void List_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+
+        private void List_DrawItem(object sender, DrawListViewItemEventArgs e)
+        {
+            // Details view: the whole row is painted from the first column's sub-item (List_DrawSubItem),
+            // so nothing is drawn here. With the gate closed this asks for default drawing; DrawSubItem
+            // is still raised for the sub-items and also asks for default drawing then (!Active).
+            e.DrawDefault = !Active;
+        }
+
+        private void List_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        {
+            if (!Active)
+            {
+                e.DrawDefault = true;
+                return;
+            }
+            if (e.ColumnIndex != 0 || e.Item == null)
+            {
+                // The other columns have zero width and hold no visible text.
+                return;
+            }
+            try
+            {
+                PaintRow(e.Graphics, e.Item, e.Bounds);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"WorshipListPainter failed: {ex.Message}");
+                e.DrawDefault = true;
+            }
+        }
+
+        private void PaintRow(Graphics g, ListViewItem item, Rectangle bounds)
+        {
+            int mark = markOf(item.Index);
+            bool hasFocus = list.Focused;
+            // As the control shows it: with HideSelection the selection is not shown while unfocused.
+            bool selected = item.Selected && (hasFocus || !list.HideSelection);
+            bool section = IsSectionTitle(item.Text);
+            bool onOutput = mark == MarkOutput || mark == MarkLive;
+
+            Color itemBack = item.BackColor;
+            bool customBack = itemBack.ToArgb() != list.BackColor.ToArgb() && itemBack.ToArgb() != resetBackColour().ToArgb();
+            Color back;
+            Color text;
+            if (selected)
+            {
+                back = hasFocus ? SystemColors.Highlight : SystemColors.Control;
+                text = hasFocus ? SystemColors.HighlightText : SystemColors.ControlText;
+            }
+            else
+            {
+                // A back colour the app set on the row (the yellow drop marker while dragging) wins.
+                back = customBack ? itemBack
+                    : mark == MarkLive ? ModernUiPalette.LiveTint
+                    : mark == MarkPreview ? ModernUiPalette.PreviewTint
+                    : section ? ModernUiPalette.SurfaceAlt
+                    : itemBack;
+                // The output row is marked by bar and tag; its title is not drawn in the old red.
+                text = onOutput ? ModernUiPalette.TextPrimary : item.ForeColor;
+            }
+            Rectangle label = item.GetBounds(ItemBoundsPortion.Label);
+            string tag = TagText(item, mark, section);
+            IntPtr target = g.GetHdc();
+            IntPtr hdc = target;
+            try
+            {
+                // The row is painted off screen and copied in one step (see BeginRowBuffer).
+                hdc = BeginRowBuffer(target, bounds);
+
+                // Rows in the list's own colours (plain, drop marker, selected) are painted as the list paints
+                // them: the row colour starts at the label and the icon stands on the list's back colour.
+                // Tinted rows (preview, live, section) are tinted across the whole row.
+                bool tintedRow = !selected && !customBack && (mark == MarkLive || mark == MarkPreview || section);
+                int rowColourLeft = tintedRow ? bounds.Left : Math.Max(bounds.Left, Math.Min(label.Left, bounds.Right));
+                if (rowColourLeft > bounds.Left)
+                {
+                    Fill(hdc, Rectangle.FromLTRB(bounds.Left, bounds.Top, rowColourLeft, bounds.Bottom), list.BackColor);
+                }
+                Fill(hdc, Rectangle.FromLTRB(rowColourLeft, bounds.Top, bounds.Right, bounds.Bottom), back);
+
+                if (section)
+                {
+                    Fill(hdc, new Rectangle(bounds.X, bounds.Y, bounds.Width, 1), ModernUiPalette.TextSecondary);
+                }
+                if (mark != MarkNone)
+                {
+                    // The bar stays left of the icon, which keeps its place (the icon starts 4 px in at 96 dpi).
+                    int barWidth = list.LogicalToDeviceUnits(MarkerBarWidth);
+                    int iconGap = item.GetBounds(ItemBoundsPortion.Icon).Left - bounds.Left;
+                    if (iconGap >= 2 && iconGap < barWidth)
+                    {
+                        barWidth = iconGap;
+                    }
+                    Fill(hdc, new Rectangle(bounds.X, bounds.Y, barWidth, bounds.Height), onOutput ? ModernUiPalette.LiveAccent : ModernUiPalette.PreviewAccent);
+                }
+
+                // Icons of rows shown as selected are blended with the highlight colour as the list
+                // does it: 50 % while the list has focus, 25 % while it has not.
+                DrawIcon(hdc, item, !selected ? ILD_NORMAL : hasFocus ? ILD_BLEND50 : ILD_BLEND25);
+
+                IntPtr regular = RegularFontHandle();
+                int titleRight = bounds.Right;
+                if (tag != null)
+                {
+                    IntPtr tagFont = mark == MarkLive ? BoldFontHandle(regular) : regular;
+                    int tagWidth = TagWidth(hdc, tag, tagFont);
+                    int tagRight = bounds.Right - list.LogicalToDeviceUnits(TagRightPadding);
+                    // Never over the icon: in a list too narrow for the whole tag it starts where the
+                    // title would and ends with an ellipsis (only below about 100 px at 96 dpi).
+                    int tagLeft = Math.Max(tagRight - tagWidth, label.Left + TitleTextOffset);
+                    Rectangle tagRect = Rectangle.FromLTRB(tagLeft, bounds.Top, Math.Max(tagLeft, tagRight), bounds.Bottom);
+                    Color tagColour = selected ? text
+                        : onOutput ? ModernUiPalette.LiveAccentText
+                        : mark == MarkPreview ? ModernUiPalette.PreviewAccent
+                        : ModernUiPalette.TextSecondary;
+                    DrawGdiText(hdc, tag, tagFont, tagRect, tagColour, tagRect.Width < tagWidth ? TitleFlags : TagFlags);
+                    titleRight = tagRect.Left - list.LogicalToDeviceUnits(TagGap);
+                }
+
+                Rectangle titleRect = Rectangle.FromLTRB(label.Left + TitleTextOffset, bounds.Top,
+                    Math.Min(label.Right - TitleTextOffset, titleRight), bounds.Bottom);
+                if (titleRect.Width > 0)
+                {
+                    DrawGdiText(hdc, item.Text, section ? BoldFontHandle(regular) : regular, titleRect, text, TitleFlags);
+                }
+
+                if (hasFocus && item.Focused && ShowFocusCues())
+                {
+                    // The list's own focus rectangle (DrawFocusRect), from the label to the row's right end.
+                    RECT focus = new RECT { Left = label.Left, Top = bounds.Top, Right = bounds.Right, Bottom = bounds.Bottom };
+                    DrawFocusRect(hdc, ref focus);
+                }
+            }
+            finally
+            {
+                EndRowBuffer(target, hdc, bounds);
+                g.ReleaseHdc(target);
+            }
+        }
+
+        // ----- Row buffer: one off-screen bitmap, reused for every row -----
+
+        // Painting a row straight on the screen showed, for one frame at each repaint, the row's fill and
+        // tag without its title (frame grabs in the app); the list's own drawing never shows such a frame.
+        // So a row is painted into a bitmap compatible with the list's DC (same pixel format, so GDI and
+        // ClearType text come out exactly as on the screen) and copied with one BitBlt. The list's own
+        // double buffering (LVS_EX_DOUBLEBUFFER) was tried first and rejected: it changed the text
+        // rendering of every row, including rows drawn by default with the gate closed.
+        private IntPtr bufferDC;
+        private IntPtr bufferBitmap;
+        private IntPtr bufferOldBitmap;
+        private Size bufferSize;
+
+        // Returns a DC to paint the row in, with the row's list coordinates; the target itself when no
+        // buffer can be made (then the row is painted directly, as before).
+        private IntPtr BeginRowBuffer(IntPtr target, Rectangle bounds)
+        {
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                return target;
+            }
+            if (bufferDC == IntPtr.Zero)
+            {
+                bufferDC = CreateCompatibleDC(target);
+                if (bufferDC == IntPtr.Zero)
+                {
+                    return target;
+                }
+            }
+            if (bufferBitmap == IntPtr.Zero || bufferSize.Width < bounds.Width || bufferSize.Height < bounds.Height)
+            {
+                ReleaseBufferBitmap();
+                Size size = new Size(Math.Max(bounds.Width, bufferSize.Width), Math.Max(bounds.Height, bufferSize.Height));
+                bufferBitmap = CreateCompatibleBitmap(target, size.Width, size.Height);
+                if (bufferBitmap == IntPtr.Zero)
+                {
+                    return target;
+                }
+                bufferOldBitmap = SelectObject(bufferDC, bufferBitmap);
+                bufferSize = size;
+            }
+            SetViewportOrgEx(bufferDC, -bounds.X, -bounds.Y, IntPtr.Zero);
+            return bufferDC;
+        }
+
+        private static void EndRowBuffer(IntPtr target, IntPtr hdc, Rectangle bounds)
+        {
+            if (hdc != target)
+            {
+                const int SRCCOPY = 0x00CC0020;
+                BitBlt(target, bounds.X, bounds.Y, bounds.Width, bounds.Height, hdc, bounds.X, bounds.Y, SRCCOPY);
+            }
+        }
+
+        private void ReleaseBufferBitmap()
+        {
+            if (bufferBitmap != IntPtr.Zero)
+            {
+                SelectObject(bufferDC, bufferOldBitmap);
+                DeleteObject(bufferBitmap);
+                bufferBitmap = IntPtr.Zero;
+                bufferOldBitmap = IntPtr.Zero;
+                bufferSize = Size.Empty;
+            }
+        }
+
+        private void DisposeBuffer()
+        {
+            ReleaseBufferBitmap();
+            if (bufferDC != IntPtr.Zero)
+            {
+                DeleteDC(bufferDC);
+                bufferDC = IntPtr.Zero;
+            }
+        }
+
+        private void Fill(IntPtr hdc, Rectangle rect, Color colour)
+        {
+            RECT r = new RECT { Left = rect.Left, Top = rect.Top, Right = rect.Right, Bottom = rect.Bottom };
+            FillRect(hdc, ref r, Brush(colour));
+        }
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int width, int height);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool SetViewportOrgEx(IntPtr hdc, int x, int y, IntPtr oldOrigin);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool BitBlt(IntPtr dest, int x, int y, int width, int height, IntPtr source, int sx, int sy, int rop);
+
+        [DllImport("user32.dll")]
+        private static extern int FillRect(IntPtr hdc, ref RECT rect, IntPtr brush);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateSolidBrush(int colour);
+
+        // Left offset of the title inside the label rectangle, as the list draws it.
+        private int TitleTextOffset => list.LogicalToDeviceUnits(2);
+
+        // ----- GDI text, with the very font the list draws its own rows with -----
+
+        // DrawText flags: the list's own label drawing (single line, vertically centred, end ellipsis,
+        // no '&' prefix). A tag is measured first and drawn whole (TagFlags); only in a list too narrow
+        // for it does it get the title flags and end with an ellipsis.
+        private const int DT_SINGLELINE = 0x20, DT_VCENTER = 0x4, DT_NOPREFIX = 0x800, DT_END_ELLIPSIS = 0x8000;
+        private const int DT_CALCRECT = 0x400, DT_NOCLIP = 0x100;
+        private const int TitleFlags = DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS;
+        private const int TagFlags = DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_NOCLIP;
+
+        // The list's font handle (WM_GETFONT): set by WinForms from list.Font, owned by WinForms.
+        private IntPtr RegularFontHandle()
+        {
+            const int WM_GETFONT = 0x0031;
+            return SendMessage(list.Handle, WM_GETFONT, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        // Bold copy of the list's font, created only when the list's font handle changes.
+        private IntPtr BoldFontHandle(IntPtr regular)
+        {
+            if (boldFontHandle != IntPtr.Zero && boldFontSource == regular)
+            {
+                return boldFontHandle;
+            }
+            DisposeFonts();
+            var logFont = new LOGFONT();
+            if (regular == IntPtr.Zero || GetObject(regular, Marshal.SizeOf<LOGFONT>(), ref logFont) == 0)
+            {
+                return regular;
+            }
+            logFont.lfWeight = 700; // FW_BOLD
+            boldFontHandle = CreateFontIndirect(ref logFont);
+            boldFontSource = regular;
+            return boldFontHandle == IntPtr.Zero ? regular : boldFontHandle;
+        }
+
+        private static void DrawGdiText(IntPtr hdc, string text, IntPtr font, Rectangle rect, Color colour, int flags)
+        {
+            IntPtr oldFont = SelectObject(hdc, font);
+            int oldMode = SetBkMode(hdc, 1); // TRANSPARENT
+            int oldColour = SetTextColor(hdc, ColorTranslator.ToWin32(colour));
+            RECT r = new RECT { Left = rect.Left, Top = rect.Top, Right = rect.Right, Bottom = rect.Bottom };
+            DrawText(hdc, text, text.Length, ref r, flags);
+            SetTextColor(hdc, oldColour);
+            SetBkMode(hdc, oldMode);
+            SelectObject(hdc, oldFont);
+        }
+
+        private int TagWidth(IntPtr hdc, string tag, IntPtr font)
+        {
+            if (!tagWidths.TryGetValue((tag, font), out int width))
+            {
+                IntPtr oldFont = SelectObject(hdc, font);
+                RECT r = new RECT();
+                DrawText(hdc, tag, tag.Length, ref r, DT_CALCRECT | DT_SINGLELINE | DT_NOPREFIX);
+                SelectObject(hdc, oldFont);
+                width = r.Right - r.Left;
+                tagWidths[(tag, font)] = width;
+            }
+            return width;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left, Top, Right, Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct LOGFONT
+        {
+            public int lfHeight, lfWidth, lfEscapement, lfOrientation, lfWeight;
+            public byte lfItalic, lfUnderline, lfStrikeOut, lfCharSet, lfOutPrecision, lfClipPrecision, lfQuality, lfPitchAndFamily;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string lfFaceName;
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int DrawText(IntPtr hdc, string text, int count, ref RECT rect, int format);
+
+        [DllImport("user32.dll")]
+        private static extern bool DrawFocusRect(IntPtr hdc, ref RECT rect);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
+
+        [DllImport("gdi32.dll")]
+        private static extern int SetBkMode(IntPtr hdc, int mode);
+
+        [DllImport("gdi32.dll")]
+        private static extern int SetTextColor(IntPtr hdc, int colour);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetObject(IntPtr obj, int size, ref LOGFONT logFont);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr CreateFontIndirect(ref LOGFONT logFont);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr obj);
+
+        private const int ILD_NORMAL = 0x0, ILD_BLEND25 = 0x2, ILD_BLEND50 = 0x4;
+        private const int CLR_NONE = unchecked((int)0xFFFFFFFF), CLR_DEFAULT = unchecked((int)0xFF000000);
+
+        // The item's own icon from the list's image list, at the place the list puts it.
+        private void DrawIcon(IntPtr hdc, ListViewItem item, int style)
+        {
+            ImageList images = list.SmallImageList;
+            if (images == null)
+            {
+                return;
+            }
+            int index = item.ImageIndex >= 0 ? item.ImageIndex
+                : string.IsNullOrEmpty(item.ImageKey) ? -1 : images.Images.IndexOfKey(item.ImageKey);
+            if (index < 0 || index >= images.Images.Count)
+            {
+                return;
+            }
+            Rectangle iconRect = item.GetBounds(ItemBoundsPortion.Icon);
+            int y = iconRect.Y + (iconRect.Height - images.ImageSize.Height) / 2;
+            // CLR_DEFAULT foreground: blend with the system highlight colour, as the list does.
+            ImageList_DrawEx(images.Handle, index, hdc, iconRect.X, y, 0, 0, CLR_NONE, CLR_DEFAULT, style);
+        }
+
+        [DllImport("comctl32.dll")]
+        private static extern bool ImageList_DrawEx(IntPtr himl, int index, IntPtr hdc, int x, int y, int dx, int dy, int rgbBk, int rgbFg, int style);
+
+        private string TagText(ListViewItem item, int mark, bool section)
+        {
+            switch (mark)
+            {
+                case MarkLive:
+                    return "LIVE";
+                case MarkOutput:
+                    return "OUT";
+                case MarkPreview:
+                    return "PREVIEW";
+            }
+            // Section rows get no type tag; a narrow list keeps its width for the title.
+            if (section || list.ClientSize.Width < list.LogicalToDeviceUnits(TypeTagMinListWidth))
+            {
+                return null;
+            }
+            return TypeTag(item);
+        }
+
+        /// <summary>Item type from the ID string's type letter (SubItems[1]), as the app tells them apart.</summary>
+        internal static string TypeTag(ListViewItem item)
+        {
+            if (item.SubItems.Count < 2 || string.IsNullOrEmpty(item.SubItems[1].Text))
+            {
+                return null;
+            }
+            switch (item.SubItems[1].Text[0])
+            {
+                case 'D': return "Song";
+                case 'P': return "PPT";
+                case 'B': return "Bible";
+                case 'T': return "Text";
+                case 'I': return "Info";
+                case 'W': return "Doc";
+                case 'M': return "Media";
+                default: return null;
+            }
+        }
+
+        /// <summary>Section row (design D15): title starts with ■ or ★.</summary>
+        internal static bool IsSectionTitle(string title)
+        {
+            string t = title?.TrimStart();
+            return !string.IsNullOrEmpty(t) && (t[0] == '■' || t[0] == '★');
+        }
+
+        // GDI brushes, one per colour, kept until the painter is disposed.
+        private IntPtr Brush(Color colour)
+        {
+            int argb = colour.ToArgb();
+            if (!brushes.TryGetValue(argb, out IntPtr brush))
+            {
+                brush = CreateSolidBrush(ColorTranslator.ToWin32(colour));
+                brushes[argb] = brush;
+            }
+            return brush;
+        }
+
+        // Keyboard cues: the list draws its focus rectangle only when the window's UI state does not hide it.
+        private bool ShowFocusCues()
+        {
+            const int WM_QUERYUISTATE = 0x0129;
+            const int UISF_HIDEFOCUS = 0x1;
+            return ((int)SendMessage(list.Handle, WM_QUERYUISTATE, IntPtr.Zero, IntPtr.Zero) & UISF_HIDEFOCUS) == 0;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
     }
 }

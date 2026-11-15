@@ -2020,6 +2020,7 @@ namespace Easislides
                 ClearLyrics(ref flowLayoutPreviewLyrics);
                 UpdateDisplayPanelFields();
             }
+            RefreshWorshipListMarks();
         }
 
         private void SaveWorshipList()
