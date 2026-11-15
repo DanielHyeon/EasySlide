@@ -2248,6 +2248,12 @@ namespace Easislides
             MakePowerpointPreviewVisible(InItem, (text == "P") ? true : false);
             if (text == "P")
             {
+                if (Gf.ShowRunning && InItem.OutputStyleScreen)
+                {
+                    // Before the PowerPoint work below (it can pump messages): a lowering of the slide shows still
+                    // waiting in the show window after a non-PowerPoint item must not run any more.
+                    Gf.PowerPointItemLoading();
+                }
                 Gf.LoadIndividualData(ref InItem, InIDString, "", StartingSlide);
                 ValidatePowerpointItem(InItem);
                 Gf.LoadIndividualFormatData(ref InItem, "");
@@ -2273,6 +2279,8 @@ namespace Easislides
                 if (Gf.ShowRunning & InItem.OutputStyleScreen)
                 {
                     InItem.TotalSlides = Gf.RunPowerpointSong(ref InItem, ref MainPPT, StartingSlide, ShowResult: true);
+                    // The run above made the slide show topmost; the show window must stay above it.
+                    LiveShow?.KeepAboveSlideShow();
                     if (Gf.DualMonitorMode)
                     {
                         ShowDualMonitorPP_Preview(ref InItem);

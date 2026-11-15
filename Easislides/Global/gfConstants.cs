@@ -530,6 +530,12 @@ namespace Easislides
 
 		private const int SWP_SHOWWINDOW = 64;
 
+		private const uint SWP_NOSIZE = 0x0001;
+
+		private const uint SWP_NOMOVE = 0x0002;
+
+		private const uint SWP_NOACTIVATE = 0x0010;
+
 		private const int FO_DELETE = 3;
 
 		private const int FOF_ALLOWUNDO = 64;
@@ -2100,6 +2106,7 @@ namespace Easislides
 		private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
 		private static readonly IntPtr HWND_TOP = new IntPtr(0);
+		private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
 		private const int SW_MAXIMIZE = 3;
 	}
 }

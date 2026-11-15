@@ -4200,6 +4200,8 @@ namespace Easislides
                 Gf.SaveShowOptions = false;
                 Gf.OutputItem.GapItemOnDisplay = false;
                 DisplayInfo.SizeLaunchDisplay();
+                // Slide shows a crashed or killed run left topmost (they are not closed).
+                Gf.LowerLeftoverSlideShowWindows("Start_Presentation");
                 FormWindowState formWindowState;
                 if (Gf.DualMonitorMode)
                 {

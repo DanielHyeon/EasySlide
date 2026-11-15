@@ -28,6 +28,21 @@ namespace Easislides
                 {
                     // Stop only hidden PowerPoint instances left by an earlier run; never the user's own PowerPoint.
                     CommonUtil.ProcessKill("POWERPNT", OnlyWithoutWindow: true);
+                    // A PowerPoint with a window stays; a slide show an earlier run made topmost must not keep
+                    // covering the output monitor (or the operator's screen) after a crash.
+                    // OfficeLib directly: Gf and FrmMain are not touched before SetHighDpiMode below.
+                    try
+                    {
+                        int lowered = OfficeLib.PowerPoint.LowerLeftoverTopMostSlideShowWindows();
+                        if (lowered > 0)
+                        {
+                            Console.WriteLine("Program start: " + lowered + " topmost PowerPoint slide show window(s) left from an earlier run were taken off the top");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Program start: leftover slide show windows not checked: " + ex.Message);
+                    }
 
                     // Installed before any window exists (SetUnhandledExceptionMode requires that). An
                     // unhandled exception on a UI thread then goes to OnUiThreadException instead of

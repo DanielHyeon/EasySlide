@@ -358,6 +358,83 @@ namespace Easislides
 			return Gf.OutputMonitorName;
 		}
 
+		/// <summary>
+		/// Puts this window back above the PowerPoint slide show (dual monitor show), without activating it.
+		/// The main form runs the slide show a second time for the same item; when that run comes after this
+		/// window's own (the item was changed from this window: auto-rotate), the slide show is made topmost
+		/// after this window and would hide the alerts and references drawn here.
+		/// </summary>
+		internal void KeepAboveSlideShow()
+		{
+			if (!Gf.DualMonitorMode || !StayTopMost || !Visible || !IsHandleCreated)
+			{
+				return;
+			}
+			Gf.KeepWindowTopMost(Handle);
+		}
+
+		private System.Windows.Forms.Timer lowerSlideShowsTimer;
+		private DateTime lowerSlideShowsDeadline;
+		private int lowerSlideShowsRunCount;
+		private const int LowerSlideShowsPollMs = 40;
+		// Longest item transition is 1.5 s; a screen that is not painted must not keep the slide shows up.
+		private const int LowerSlideShowsMaxWaitMs = 3000;
+
+		/// <summary>
+		/// After a non-PowerPoint item was put on this window (dual monitor show): takes the slide shows the app
+		/// made topmost off the top, so the part of the output monitor this window does not cover shows what was
+		/// there before the show, not an earlier slide. Done once this window shows the new item completely: while
+		/// it is still (partly) transparent, the slide show must stay behind it. The next PowerPoint item raises its
+		/// own slide show again; a slide show run before the lowering is due cancels it.
+		/// </summary>
+		private void LowerSlideShowsWhenItemShown()
+		{
+			if (!Gf.DualMonitorMode || !PowerPoint.HasRaisedSlideShowWindows)
+			{
+				return;
+			}
+			if (lowerSlideShowsTimer == null)
+			{
+				lowerSlideShowsTimer = new System.Windows.Forms.Timer { Interval = LowerSlideShowsPollMs };
+				lowerSlideShowsTimer.Tick += LowerSlideShowsTimer_Tick;
+				Disposed += (sender, e) =>
+				{
+					lowerSlideShowsTimer?.Stop();
+					lowerSlideShowsTimer?.Dispose();
+					lowerSlideShowsTimer = null;
+				};
+			}
+			lowerSlideShowsRunCount = Gf.SlideShowRunCount;
+			lowerSlideShowsDeadline = DateTime.UtcNow.AddMilliseconds(LowerSlideShowsMaxWaitMs);
+			lowerSlideShowsTimer.Stop();
+			lowerSlideShowsTimer.Start();
+		}
+
+		private void LowerSlideShowsTimer_Tick(object sender, EventArgs e)
+		{
+			if (lowerSlideShowsRunCount != Gf.SlideShowRunCount || !Gf.ShowRunning)
+			{
+				// A PowerPoint item followed (its slide show is up again), or the show ended (it lowers them).
+				lowerSlideShowsTimer.Stop();
+				return;
+			}
+			if (LiveScreen.TransitionPending && DateTime.UtcNow < lowerSlideShowsDeadline)
+			{
+				return;
+			}			lowerSlideShowsTimer.Stop();
+			try
+			{
+				// WM_PAINT comes before WM_TIMER, so the last frame is normally painted already; make sure.
+				LiveScreen.Update();
+			}
+			catch
+			{
+			}
+			// Synchronous: a PowerPoint item that follows raises its window synchronously too, so this lowering
+			// can never be applied after that raise.
+			Gf.LowerSlideShowWindows("FrmLaunchShow: non-PowerPoint item shown", wait: true);
+		}
+
 		private void SetScreenOnTop(bool StartTimer)
 		{
 			StayTopMost = StartTimer;
@@ -451,6 +528,7 @@ namespace Easislides
 			TimerSingleScreen.Stop();
 			TimerRemote.Stop();
 			TimerMouseDown.Stop();
+			lowerSlideShowsTimer?.Stop();
 			if (Modal)
 			{
 				// Modal show (ShowDialog in Start_Presentation, only when DisplayInfo.SizeLaunchDisplay set
@@ -515,6 +593,11 @@ namespace Easislides
 			if (Gf.OutputItem.Type == "G")
 			{
 				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+				if (Gf.LiveItem.Type != "P")
+				{
+					// This window shows an opaque item now (a PowerPoint item stays transparent).
+					LowerSlideShowsWhenItemShown();
+				}
 			}
 			else
 			{
@@ -1370,6 +1453,12 @@ namespace Easislides
 				Gf.RestartCurrentItem = true;
 			}
 			string text = DataUtil.Left(InIDString, 1);
+			if (text == "P")
+			{
+				// Before any PowerPoint work: a lowering still waiting after a non-PowerPoint item must not run.
+				Gf.PowerPointItemLoading();
+				lowerSlideShowsTimer?.Stop();
+			}
 			string prevTitle = "";
 			string nextTitle = "";
 			bool flag = false;
@@ -1536,6 +1625,10 @@ namespace Easislides
 			if (InItem.Format.MediaTransparent)
 			{
 				Gf.MinimizePowerPointWindows(ref Gf.LivePP);
+			}
+			else
+			{
+				LowerSlideShowsWhenItemShown();
 			}
 			tempRotateTimings = "";
 			if (Gf.AutoRotateOn)

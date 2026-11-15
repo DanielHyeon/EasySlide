@@ -835,6 +835,13 @@ namespace Easislides
 			return g;
 		}
 
+		/// <summary>
+		/// True while a transition started by Go has not painted its last (100 %) frame yet. A screen shown
+		/// without a transition is not counted (its picture is painted at the next paint; see Control.Update).
+		/// Read on the UI thread.
+		/// </summary>
+		internal bool TransitionPending => t != null;
+
 		public void Go(TransitionAction TransitionAction, bool InFirstShowing, bool ClearAll, bool DoActiveIndicator, bool LiveCamOnShow)
 		{
 			ItemFirstShowing = ((InFirstShowing || DoActiveIndicator) ? true : false);

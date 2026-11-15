@@ -116,7 +116,184 @@ namespace Easislides
 
 		public static void MinimizePowerPointWindows(ref PowerPoint InPPT)
 		{
+			// The slide show windows are shrunk to one pixel at the primary monitor's corner: they must not
+			// stay topmost there.
+			LowerSlideShowWindows("MinimizePowerPointWindows", wait: true);
 			InPPT.ResSetAllShowWindows();
+		}
+
+		/// <summary>
+		/// Collects the result of one run of an item and reports it once the item's runs are done. In a dual
+		/// monitor show an item runs twice (main form and show window, in either order, one right after the
+		/// other on the UI thread); the report is posted, so it runs after both. The notice is shown only when
+		/// none of the item's runs made its slide show topmost (or that window is no longer topmost): a run that
+		/// does not find the window after another run raised it is not a failure. A failure that repeats is
+		/// logged in full once. "Not raised on purpose" (output area on the operator's monitor) is never
+		/// reported; it is logged once per session.
+		/// </summary>
+		private static void ReportSlideShowRaiseError(PowerPoint InPPT, string itemPath, string runFailure)
+		{
+			if (reportPostedAtUtc != DateTime.MinValue && (DateTime.UtcNow - reportPostedAtUtc).TotalMilliseconds > ReportPostLostAfterMs)
+			{
+				// The posted report never ran (e.g. the main form's handle was recreated): report what was
+				// collected now, so a lost post cannot keep reports off for the rest of the session.
+				ReportPendingSlideShowRaiseError();
+			}
+			if (reportItemPath != null && !string.Equals(reportItemPath, itemPath, StringComparison.OrdinalIgnoreCase))
+			{
+				// Another item's results are still waiting for the posted report: they are complete.
+				ReportPendingSlideShowRaiseError();
+			}
+			reportItemPath = itemPath ?? "";
+			if (InPPT.SlideShowRaiseSkipped != null)
+			{
+				if (!slideShowRaiseSkippedLogged)
+				{
+					slideShowRaiseSkippedLogged = true;
+					FrmMain.WriteDebugLog("RunPowerpointSong: slide show not brought to the front on purpose: " + InPPT.SlideShowRaiseSkipped + " (logged once per session)");
+				}
+			}
+			else if (InPPT.SlideShowRaiseError == null && InPPT.CurrentSlideShowWindow != IntPtr.Zero)
+			{
+				reportItemRaisedWindow = InPPT.CurrentSlideShowWindow;
+			}
+			else if (InPPT.SlideShowRaiseError != null)
+			{
+				reportItemError = InPPT.SlideShowRaiseError;
+			}
+			if (runFailure != null)
+			{
+				reportItemRunFailure = runFailure;
+			}
+			if (reportPostedAtUtc != DateTime.MinValue)
+			{
+				return;
+			}
+			FrmMain mainForm = FrmMain.frmMain;
+			if (mainForm == null || !mainForm.IsHandleCreated || mainForm.IsDisposed)
+			{
+				ReportPendingSlideShowRaiseError();
+				return;
+			}
+			reportPostedAtUtc = DateTime.UtcNow;
+			try
+			{
+				mainForm.BeginInvoke((MethodInvoker)ReportPendingSlideShowRaiseError);
+			}
+			catch
+			{
+				ReportPendingSlideShowRaiseError();
+			}
+		}
+
+		// The item whose run results wait for the posted report, and what its runs did.
+		private static string reportItemPath;
+		private static IntPtr reportItemRaisedWindow;
+		private static string reportItemError;
+		private static string reportItemRunFailure;
+		// When the report was posted; MinValue when none is waiting.
+		private static DateTime reportPostedAtUtc = DateTime.MinValue;
+		private const int ReportPostLostAfterMs = 5000;
+		private static bool slideShowRaiseSkippedLogged;
+
+		private static void ReportPendingSlideShowRaiseError()
+		{
+			reportPostedAtUtc = DateTime.MinValue;
+			string error = reportItemError;
+			string runFailure = reportItemRunFailure;
+			IntPtr raisedWindow = reportItemRaisedWindow;
+			reportItemPath = null;
+			reportItemError = null;
+			reportItemRunFailure = null;
+			reportItemRaisedWindow = IntPtr.Zero;
+			if (PowerPoint.IsTopMostWindow(raisedWindow))
+			{
+				return;
+			}
+			if (!string.IsNullOrEmpty(runFailure))
+			{
+				FrmMain.WriteDebugLogThrottled("RunPowerpointSong: start the slide show", new InvalidOperationException(runFailure));
+				FrmMain.ReportErrorNotice("The PowerPoint item could not be started: " + runFailure);
+				return;
+			}
+			if (string.IsNullOrEmpty(error))
+			{
+				return;
+			}
+			FrmMain.WriteDebugLogThrottled("RunPowerpointSong: bring the slide show to the front", new InvalidOperationException(error));
+			FrmMain.ReportErrorNotice("The PowerPoint slide show may be hidden behind another window on the output monitor: " + error);
+		}
+
+		/// <summary>
+		/// Called at the very start of loading a PowerPoint item (main form and show window), before any
+		/// PowerPoint work that can pump messages: a lowering still waiting after a non-PowerPoint item
+		/// (FrmLaunchShow) must not run any more, it could hit the slide show this item is about to raise.
+		/// </summary>
+		internal static void PowerPointItemLoading()
+		{
+			SlideShowRunCount++;
+		}
+
+		/// <summary>
+		/// Puts a window of this app at the top of the topmost windows without activating it.
+		/// </summary>
+		internal static void KeepWindowTopMost(IntPtr handle)
+		{
+			SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		}
+
+		/// <summary>
+		/// Counts the slide show runs (RunPowerpointSong). A delayed lowering of the slide show windows
+		/// (FrmLaunchShow, after a non-PowerPoint item) is dropped when a slide show was run since it was asked for.
+		/// </summary>
+		internal static int SlideShowRunCount;
+
+		/// <summary>
+		/// Tells the wrapper which monitor the output goes to (the monitor holding most of the output area
+		/// LS_Left/LS_Top/LS_Width/LS_Height) and which monitor the main form is on: the slide show is made
+		/// topmost only when it is on the first and not on the second.
+		/// </summary>
+		private static void SetSlideShowMonitorBounds(PowerPoint InPPT)
+		{
+			Rectangle output = Screen.FromRectangle(new Rectangle(LS_Left, LS_Top, Math.Max(1, LS_Width), Math.Max(1, LS_Height))).Bounds;
+			FrmMain mainForm = FrmMain.frmMain;
+			Rectangle operatorScreen = (mainForm != null && mainForm.IsHandleCreated) ? Screen.FromHandle(mainForm.Handle).Bounds : Screen.PrimaryScreen.Bounds;
+			InPPT.OutputMonitorBounds = (output.Left, output.Top, output.Right, output.Bottom);
+			InPPT.OperatorMonitorBounds = (operatorScreen.Left, operatorScreen.Top, operatorScreen.Right, operatorScreen.Bottom);
+		}
+
+		/// <summary>
+		/// Takes the topmost state off slide show windows that a crashed or killed run left topmost (app start,
+		/// show start). Window enumeration only; logs how many were found.
+		/// </summary>
+		internal static void LowerLeftoverSlideShowWindows(string where)
+		{
+			try
+			{
+				int count = PowerPoint.LowerLeftoverTopMostSlideShowWindows();
+				if (count > 0)
+				{
+					FrmMain.WriteDebugLog(where + ": " + count + " topmost PowerPoint slide show window(s) left from an earlier run were taken off the top");
+				}
+			}
+			catch (Exception ex)
+			{
+				FrmMain.WriteDebugLogThrottled(where + ": lower leftover slide show windows", ex);
+			}
+		}
+
+		/// <summary>
+		/// Takes the topmost state off the slide show windows the app made topmost (see RunPowerpointSong).
+		/// </summary>
+		internal static void LowerSlideShowWindows(string where, bool wait)
+		{
+			string error = PowerPoint.LowerRaisedSlideShowWindows(wait);
+			if (error == null)
+			{
+				return;
+			}
+			FrmMain.WriteDebugLogThrottled(where + ": take the slide show windows off the top", new InvalidOperationException(error));
+			FrmMain.ReportErrorNotice("A PowerPoint slide show window could not be taken off the top of the screen: " + error);
 		}
 
 		public static int RunPowerpointSong(ref SongSettings InItem, ref PowerPoint InPPT, int StartingSlide)
@@ -132,8 +309,25 @@ namespace Easislides
 			}
 			Array.Fill(InItem.SongVerses, 0, 0, Math.Min(SongVerseInitCount, InItem.SongVerses.Length));
 			InPPT.displayName = OutputMonitorName;
+			SlideShowRunCount++;
+			// Dual monitor show only: there the show window is transparent over a PowerPoint item, so the
+			// slide show must sit above other applications' windows on the output monitor. In single monitor
+			// mode the show window covers the screen and keeps itself on top with its own timer.
+			InPPT.KeepSlideShowOnTop = DualMonitorMode;
+			if (DualMonitorMode)
+			{
+				SetSlideShowMonitorBounds(InPPT);
+			}
 
 			string text = InPPT.Run(InItem.Path, ref PowerpointList, ref TotalPowerpointItems);
+			string runFailure = null;
+			if (InPPT.KeepSlideShowOnTop && !InPPT.LastRunStarted)
+			{
+				// The slide show of this item did not start: the previous PowerPoint item's slide show must not
+				// stay on top under the transparent show window (waiting, as after a non-PowerPoint item).
+				runFailure = string.IsNullOrEmpty(text) ? "(no result)" : text;
+				LowerSlideShowWindows("RunPowerpointSong: item not started", wait: true);
+			}
 			if (StartingSlide < 2)
 			{
 				InPPT.First();
@@ -164,6 +358,12 @@ namespace Easislides
 					InPPT.SetShowWindow(LS_Left, LS_Top, (float)LS_Width * scalef, (float)LS_Height * scalef);
 				}
 			}
+			// Once per item, after its last raise (Run, or SetShowWindow in custom output area mode, which may
+			// first move the slide show onto the output monitor).
+			if (InPPT.KeepSlideShowOnTop)
+			{
+				ReportSlideShowRaiseError(InPPT, InItem.Path, runFailure);
+			}
 
 			InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
 			return InPPT.Count();
@@ -171,6 +371,8 @@ namespace Easislides
 
 		public static void ClearUpPowerpointWindows()
 		{
+			// Before closing: if a presentation fails to close, its slide show must not stay on top.
+			LowerSlideShowWindows("ClearUpPowerpointWindows", wait: false);
 			string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
 			if (text == "")
 			{
