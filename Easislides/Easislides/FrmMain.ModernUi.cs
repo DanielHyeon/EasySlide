@@ -834,8 +834,11 @@ namespace Easislides
         ///   the item's Type + ItemID, which LoadIndividualData split from that string;
         /// - that row is the same ListViewItem object that held the item when the item (source, position,
         ///   type, ID) last changed. Loading another worship list creates new row objects without moving
-        ///   the item, so a row of the other list at the same position is never marked. A reorder that
-        ///   moves the item changes its position (the app updates CurItemNo), so the row is taken again;
+        ///   the item, so a row of the other list at the same position is not marked as preview. Only for
+        ///   the output item, when that object has left the list (the output row dropped on its own place
+        ///   is replaced by a copy), the row now at that position is taken again, checked like on a key
+        ///   change and confirmed by the "O" flag below. A reorder that moves the item changes its
+        ///   position (the app updates CurItemNo), so the row is taken again;
         /// - for the output item, the app's own output flag ("O" in SubItems[6], set by
         ///   UpdateWorshipShowIcons) is on that row.
         /// </summary>
@@ -850,6 +853,14 @@ namespace Easislides
             if (current != key)
             {
                 key = current;
+                keyRow = holdsItem ? row : null;
+            }
+            else if (requireOutputFlag && keyRow != null && keyRow.ListView != WorshipListItems)
+            {
+                // The remembered output row left the list (dropped on its own place, it is replaced by a
+                // copy): take the row at the item's position again, under the same conditions as on a key
+                // change; the app's "O" flag, checked below, confirms it. Not for the preview item, which
+                // has no such confirmation: it stays unmarked until its key changes (design D16).
                 keyRow = holdsItem ? row : null;
             }
             if (!holdsItem || !ReferenceEquals(row, keyRow))
@@ -900,7 +911,9 @@ namespace Easislides
 
     /// <summary>
     /// Paints the rows of the worship list in the new look (design D15). Painting only: it never
-    /// changes the list's items, texts, icons, selection or order, and adds no input handler.
+    /// changes the list's items, texts, icons, selection or order, and adds no input handler. Besides
+    /// the draw events it subclasses the list's window procedure (EraseFilter) for WM_ERASEBKGND only,
+    /// to keep the rows it paints out of the background erase; every other message passes unchanged.
     /// Row layout from the left: marker bar, the item's own icon, title (ends with an ellipsis when
     /// it does not fit), one right-aligned tag. Text is drawn with GDI DrawText and the list's own
     /// font handle (WM_GETFONT), as the list draws its rows: TextRenderer with list.Font gave visibly
@@ -990,17 +1003,19 @@ namespace Easislides
         /// </summary>
         private int ExcludeRowsFromErase(IntPtr hdc)
         {
-            if (hdc == IntPtr.Zero || !attached || !Active || list.Items.Count == 0 || list.Columns.Count == 0)
-            {
-                return 0;
-            }
-            int saved = SaveDC(hdc);
-            if (saved == 0)
-            {
-                return 0;
-            }
+            // Never throws: EraseFilter.WndProc must reach base.WndProc on every path.
+            int saved = 0;
             try
             {
+                if (hdc == IntPtr.Zero || !attached || !Active || list.Items.Count == 0 || list.Columns.Count == 0)
+                {
+                    return 0;
+                }
+                saved = SaveDC(hdc);
+                if (saved == 0)
+                {
+                    return 0;
+                }
                 int width = list.Columns[0].Width;
                 int clientHeight = list.ClientSize.Height;
                 ListViewItem top = list.TopItem;
@@ -1020,7 +1035,10 @@ namespace Easislides
             }
             catch (Exception ex)
             {
-                RestoreDC(hdc, saved);
+                if (saved != 0)
+                {
+                    RestoreDC(hdc, saved);
+                }
                 Trace.WriteLine($"WorshipListPainter erase filter failed: {ex.Message}");
                 return 0;
             }
@@ -1275,8 +1293,10 @@ namespace Easislides
 
         // Painting a row straight on the screen showed, for one frame at each repaint, the row's fill and
         // tag without its title (frame grabs in the app); the list's own drawing never shows such a frame.
-        // So a row is painted into a bitmap compatible with the list's DC (same pixel format, so GDI and
-        // ClearType text come out exactly as on the screen) and copied with one BitBlt. The list's own
+        // So a row is painted into a bitmap compatible with the list's DC (same pixel format) and copied
+        // with one BitBlt. The text is not pixel-identical to text drawn straight on the screen: ClearType
+        // fringe pixels differ by 1/255 per channel (about 100 to 450 pixels per row), which cannot be seen;
+        // with the gate closed nothing is drawn here and the rows are exactly the list's own. The list's own
         // double buffering (LVS_EX_DOUBLEBUFFER) was tried first and rejected: it changed the text
         // rendering of every row, including rows drawn by default with the gate closed.
         private IntPtr bufferDC;
