@@ -2750,10 +2750,11 @@ namespace Easislides
 			// The reference bitmaps are drawn by OnPaint while the reference runs, so they stay alive
 			// until the next LoadRef replaces them (or the control is disposed).
 			ReleaseRefImages();
-			if (string.IsNullOrWhiteSpace(InString))
+			if (string.IsNullOrEmpty(InString))
 			{
-				// No reference text (e.g. the " " the active indicator passes in): prepare nothing, stop a
-				// running reference, and keep RefDisplayString empty so RefGo and paint draw nothing (no empty box).
+				// No reference at all: prepare nothing, stop a running reference, and keep RefDisplayString
+				// empty so RefGo and paint draw nothing. Whitespace is not "no reference": the operator's toggle
+				// passes " " on purpose (active indicator), which is set up normally and shows an empty box.
 				RefDisplayString = "";
 				StopRef();
 				tr?.Dispose();
@@ -2867,6 +2868,7 @@ namespace Easislides
 					// Leave no partially built (or disposed) bitmap reachable from paint, and nothing for RefGo to start.
 					ReleaseRefImages();
 					RefDisplayString = "";
+					StopRef();
 				}
 			}
 		}
