@@ -373,9 +373,19 @@ namespace Easislides
 			TimerSingleScreen.Stop();
 			TimerRemote.Stop();
 			TimerMouseDown.Stop();
-			Gf.OutputItem.Type = Gf.LiveItem.Type;
-			Gf.OutputItem.CurItemNo = ((Gf.LiveItem.CurItemNo < 0) ? 1 : Gf.LiveItem.CurItemNo);
-			Gf.OutputItem.CurSlide = ((Gf.LiveItem.CurSlide < 1) ? 1 : Gf.LiveItem.CurSlide);
+			if (Modal)
+			{
+				// Modal show (ShowDialog in Start_Presentation, only when DisplayInfo.SizeLaunchDisplay set
+				// single monitor mode: custom mode "as single monitor", or output monitor None): the show
+				// window navigated on its own while the main form waited, and Start_Presentation reloads
+				// the output from these right after ShowDialog returns.
+				// Non-modal show (Show, also on an ordinary one-screen PC): the main form kept OutputItem
+				// current itself; LiveItem can be stale (e.g. the list was reordered during the show), so
+				// nothing is written back.
+				Gf.OutputItem.Type = Gf.LiveItem.Type;
+				Gf.OutputItem.CurItemNo = ((Gf.LiveItem.CurItemNo < 0) ? 1 : Gf.LiveItem.CurItemNo);
+				Gf.OutputItem.CurSlide = ((Gf.LiveItem.CurSlide < 1) ? 1 : Gf.LiveItem.CurSlide);
+			}
 			Gf.RestoreScreenSaverSettings();
 			Gf.ClearUpPowerpointWindows();
 			Gf.RefreshWindowsDesktop();
