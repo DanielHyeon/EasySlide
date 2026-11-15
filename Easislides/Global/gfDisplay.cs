@@ -309,19 +309,27 @@ namespace Easislides
 				return;
 			}
 			ResetLyricsLayout(ref InItem);
-			Image textImage;
-			Graphics g = GraphicsBufferPool.GetTextGraphics(width, height, out textImage);
-
-			Image panelImage;
-			Graphics panelGraphics = GraphicsBufferPool.GetPanelGraphics(width, height, out panelImage);
-
 			EnsureImageBuffers(ref InPictureBox);
 			ComputeTransition(InItem, ref InPictureBox, options.TransitionAction);
-			if (InPictureBox.TransitionType != 0)
-			{
-				InPictureBox.CurrentTextImage = (Image)InPictureBox.NewTextImage.Clone();
-				InPictureBox.CurrentPanelImage = (Image)InPictureBox.NewPanelImage.Clone();
-			}
+			// The transition starts from what the screen shows now: the layers shown before this draw.
+			// Each screen draws into its own buffers, into the one of each pair it does not show now
+			// (never the layers referred to here), so the starting layers stay intact and nothing is
+			// copied. Set before drawing (also when no transition follows), so the Current layers never
+			// point at the buffer being drawn. If this draw throws halfway while an earlier transition is
+			// still running, that transition goes on with Current = New = the layers shown before this
+			// draw: transitions that blend the text layers alone (TransitBackPictureAction None: Ascend,
+			// Descend, Doors...) then blend the new text with itself, so the old text disappears at once
+			// instead of fading out. The screen is never black and never shows the half-drawn buffer.
+			// Setting Current after drawing would be worse: on such a failure the half-drawn buffer
+			// would become the running transition's starting picture. The new layers become
+			// NewTextImage / NewPanelImage only after everything has been drawn (end of this method).
+			InPictureBox.CurrentTextImage = InPictureBox.NewTextImage;
+			InPictureBox.CurrentPanelImage = InPictureBox.NewPanelImage;
+			Image textImage;
+			Graphics g = InPictureBox.GetTextDrawGraphics(width, height, out textImage);
+
+			Image panelImage;
+			Graphics panelGraphics = InPictureBox.GetPanelDrawGraphics(width, height, out panelImage);
 			if (ShowRunning_UseShadowFont == 1)
 			{
 				options.UseShadowFont = ((options.UseShadowFont <= 0) ? 1 : 0);
@@ -349,17 +357,12 @@ namespace Easislides
 				g.Clear(BlackScreenColour);
 				panelGraphics.Clear(BlackScreenColour);
 			}
-			if (options.ClearAll || InItem.Lyrics[0].Font == null)
-			{
-				InPictureBox.NewPanelImage = panelImage;
-			}
-			else
+			if (!options.ClearAll && InItem.Lyrics[0].Font != null)
 			{
 				if (((ShowDataDisplayMode == 1 && options.HideDisplayPanel == 0) | InItem.Show_LicAdim) && InItem.Type != "G")
 				{
 					DrawDisplayPanel(InItem, options.HideDisplayPanel, ref InPictureBox, panelGraphics);
 				}
-				InPictureBox.NewPanelImage = panelImage;
 				if ((InItem.Type == "D") | (InItem.Type == "B") | (InItem.Type == "T") | (InItem.Type == "I") | (InItem.Type == "W") | (InItem.Type == "M"))
 				{
 					RenderSongRegions(ref InItem, ref InPictureBox, LyricsAndNotationsList, ref g, options.UseShadowFont, options.UseOutlineFont, options.ShowNotations, options.ShowInterlace, options.ShowVerticalAlign, interlaceEnabled, fitAllIntoOneScreen);
@@ -371,6 +374,7 @@ namespace Easislides
 			}
 			bool firstShowing = InItem.FirstShowing;
 			FinalizeTransitionAndGo(ref InItem, ref InPictureBox, options.ClearAll);
+			InPictureBox.NewPanelImage = panelImage;
 			InPictureBox.NewTextImage = textImage;
 			if (firstShowing || options.DoActiveIndicator)
 			{
@@ -412,13 +416,10 @@ namespace Easislides
 			if (InPictureBox.CurrentCombinedImage == null)
 			{
 				InPictureBox.CurrentBackgroundPicture = (Image)InPictureBox.BackgroundImage.Clone();
-				InPictureBox.CurrentTextImage = (Image)InPictureBox.BackgroundImage.Clone();
 				InPictureBox.CurrentCombinedImage = (Image)InPictureBox.BackgroundImage.Clone();
 			}
-			if (InPictureBox.CurrentPanelImage == null)
-			{
-				InPictureBox.CurrentPanelImage = (Image)InPictureBox.BackgroundImage.Clone();
-			}
+			// CurrentTextImage / CurrentPanelImage are not made here: DrawTextCore sets them to the New
+			// layers right after this, before anything reads them.
 			if (InPictureBox.NewTextImage == null)
 			{
 				InPictureBox.NewTextImage = (Image)InPictureBox.BackgroundImage.Clone();
@@ -525,10 +526,8 @@ namespace Easislides
 			{
 				InItem.FirstShowing = false;
 			}
-			if (InPictureBox.TransitionType != 0)
-			{
-				InPictureBox.CurrentTextImage = (Image)InPictureBox.NewTextImage.Clone();
-			}
+			// CurrentTextImage / CurrentPanelImage (the start of the transition) are taken in
+			// DrawTextCore before drawing; nothing to copy here.
 		}
 
 		public static int DrawOneRegion(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, int RegNum, ListView LyricsAndNotationsList, ref Graphics g, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, bool OnlyOneRegionShown, ref Font MainFont, ref Font NotationsFont, int OffsetAfterAlignment, bool InterlaceOption, int InShowVerticalAlign, int Region1Height, bool FitAllIntoOneScreen, bool UseLargestFontSize)
@@ -1010,77 +1009,6 @@ namespace Easislides
 		{
 			Alignment = StringAlignment.Far
 		};
-
-		private static class GraphicsBufferPool
-		{
-			private static Image _textBuffer;
-			private static Graphics _textGraphics;
-			private static Image _panelBuffer;
-			private static Graphics _panelGraphics;
-			private static int _currentWidth;
-			private static int _currentHeight;
-			private static readonly object _lock = new object();
-
-			public static Graphics GetTextGraphics(int width, int height, out Image image)
-			{
-				lock (_lock)
-				{
-					if (_textBuffer == null || _currentWidth != width || _currentHeight != height)
-					{
-						_textGraphics?.Dispose();
-						_textBuffer?.Dispose();
-
-						_currentWidth = width;
-						_currentHeight = height;
-						_textBuffer = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
-						_textGraphics = Graphics.FromImage(_textBuffer);
-						_textGraphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-					}
-
-					_textGraphics.Clear(Color.Transparent);
-					image = _textBuffer;
-					return _textGraphics;
-				}
-			}
-
-			public static Graphics GetPanelGraphics(int width, int height, out Image image)
-			{
-				lock (_lock)
-				{
-					if (_panelBuffer == null || _currentWidth != width || _currentHeight != height)
-					{
-						_panelGraphics?.Dispose();
-						_panelBuffer?.Dispose();
-
-						_panelBuffer = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
-						_panelGraphics = Graphics.FromImage(_panelBuffer);
-						_panelGraphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-					}
-
-					_panelGraphics.Clear(Color.Transparent);
-					image = _panelBuffer;
-					return _panelGraphics;
-				}
-			}
-
-			public static void Clear()
-			{
-				lock (_lock)
-				{
-					_textGraphics?.Dispose();
-					_textBuffer?.Dispose();
-					_panelGraphics?.Dispose();
-					_panelBuffer?.Dispose();
-
-					_textBuffer = null;
-					_textGraphics = null;
-					_panelBuffer = null;
-					_panelGraphics = null;
-					_currentWidth = 0;
-					_currentHeight = 0;
-				}
-			}
-		}
 
 		private static class RenderingCache
 		{

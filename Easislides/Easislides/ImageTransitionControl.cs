@@ -776,40 +776,132 @@ namespace Easislides
 			BackgroundImage = InBitmap;
 		}
 
+		// Guards _transitionGeneration and the progress written by Tick (thread-pool thread).
+		private readonly object _transitionLock = new object();
+		// Bumped whenever a transition starts or is ended early; a Tick carries the value it was started with.
+		private int _transitionGeneration;
+		// Combined images made by Go; only these are disposed when replaced (ReleaseCombinedImage).
+		private readonly HashSet<Image> _ownCombinedImages = new HashSet<Image>();
+
+		// Draw buffers of this screen for Gf.DrawText (text layer and panel layer), two per layer and
+		// never more. Gf.DrawText takes the layer shown before the draw as the transition's starting
+		// layer (CurrentTextImage / CurrentPanelImage, no copy), draws into the other buffer, and makes
+		// that NewTextImage / NewPanelImage only when the whole draw has succeeded. A draw that throws
+		// halfway therefore leaves the shown layer unchanged. Every screen has its own buffers; a
+		// buffer is reused while its size stays the same.
+		private readonly Bitmap[] _textDrawBuffers = new Bitmap[2];
+		private readonly Graphics[] _textDrawGraphics = new Graphics[2];
+		private readonly Bitmap[] _panelDrawBuffers = new Bitmap[2];
+		private readonly Graphics[] _panelDrawGraphics = new Graphics[2];
+
+		/// <summary>Cleared text draw buffer of this screen that is not shown now (UI thread only).</summary>
+		internal Graphics GetTextDrawGraphics(int width, int height, out Image image)
+		{
+			return GetHiddenDrawBuffer(_textDrawBuffers, _textDrawGraphics, _newTextImage, width, height, out image);
+		}
+
+		/// <summary>Cleared panel draw buffer of this screen that is not shown now (UI thread only).</summary>
+		internal Graphics GetPanelDrawGraphics(int width, int height, out Image image)
+		{
+			return GetHiddenDrawBuffer(_panelDrawBuffers, _panelDrawGraphics, _newPanelImage, width, height, out image);
+		}
+
+		private static Graphics GetHiddenDrawBuffer(Bitmap[] buffers, Graphics[] graphics, Image shownImage, int width, int height, out Image image)
+		{
+			int index = ReferenceEquals(shownImage, buffers[0]) ? 1 : 0;
+			if (buffers[index] == null || buffers[index].Width != width || buffers[index].Height != height)
+			{
+				// Not shown, so no paint can reach it: safe to replace.
+				graphics[index]?.Dispose();
+				buffers[index]?.Dispose();
+				graphics[index] = null;
+				buffers[index] = null;
+				buffers[index] = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
+				graphics[index] = Graphics.FromImage(buffers[index]);
+			}
+			Graphics g = graphics[index];
+			// The Graphics is reused: a draw that threw halfway may have left its state changed.
+			// Start every draw from the state a new Graphics had before the buffers were reused.
+			g.ResetTransform();
+			g.ResetClip();
+			g.SmoothingMode = SmoothingMode.Default;
+			g.InterpolationMode = InterpolationMode.Default;
+			g.PixelOffsetMode = PixelOffsetMode.Default;
+			g.CompositingMode = CompositingMode.SourceOver;
+			g.CompositingQuality = CompositingQuality.Default;
+			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+			g.Clear(Color.Transparent);
+			image = buffers[index];
+			return g;
+		}
+
 		public void Go(TransitionAction TransitionAction, bool InFirstShowing, bool ClearAll, bool DoActiveIndicator, bool LiveCamOnShow)
 		{
 			ItemFirstShowing = ((InFirstShowing || DoActiveIndicator) ? true : false);
-			Newbmp = new Bitmap(NewBackgroundPicture.Width, NewBackgroundPicture.Height, PixelFormat.Format32bppPArgb);
-			Newg = Graphics.FromImage(Newbmp);
-			if (LiveCamOnShow)
+			// Composed into a local bitmap first: if composing throws, the bitmap is disposed here and
+			// neither Newbmp nor any picture of this control refers to it.
+			Bitmap composed = new Bitmap(NewBackgroundPicture.Width, NewBackgroundPicture.Height, PixelFormat.Format32bppPArgb);
+			try
 			{
-				Newg.Clear(Gf.TransparentColour);
+				Newg = Graphics.FromImage(composed);
+				try
+				{
+					if (LiveCamOnShow)
+					{
+						Newg.Clear(Gf.TransparentColour);
+					}
+					else
+					{
+						Newg.DrawImageUnscaled(NewBackgroundPicture, 0, 0);
+						Newg.DrawImageUnscaled(NewTextImage, 0, 0);
+						Newg.DrawImageUnscaled(NewPanelImage, 0, 0);
+					}
+				}
+				finally
+				{
+					Newg.Dispose();
+					Newg = null;
+				}
 			}
-			else
+			catch
 			{
-				Newg.DrawImageUnscaled(NewBackgroundPicture, 0, 0);
-				Newg.DrawImageUnscaled(NewTextImage, 0, 0);
-				Newg.DrawImageUnscaled(NewPanelImage, 0, 0);
+				composed.Dispose();
+				throw;
 			}
-			Newg.Dispose();
+			Newbmp = composed;
+
+			_ownCombinedImages.Add(Newbmp);
 
 			if (TransitionAction == TransitionAction.None)
 			{
-				_currentPercentage = 100f;
+				lock (_transitionLock)
+				{
+					// Ends a transition that may still be running: its Ticks no longer write progress.
+					_transitionGeneration++;
+					_currentPercentage = 100f;
+				}
+				// Its timer is stopped here too, as the 100 % paint would: on a screen that is not painted
+				// (hidden) it would otherwise keep firing until the next paint.
+				t?.Dispose();
+				t = null;
 				if (ClearAll)
 				{
 					StopRef();
 				}
+				Image replacedNew = NewCombinedImage;
 				NewCombinedImage = Newbmp;
+				ReleaseCombinedImage(replacedNew);
 				Invalidate();
 				return;
 			}
+			Image replacedCurrent = CurrentCombinedImage;
 			if (NewCombinedImage != null)
 			{
 				CurrentCombinedImage = NewCombinedImage;
 			}
 			ImageWorkSpace = NewCombinedImage;
 			NewCombinedImage = Newbmp;
+			ReleaseCombinedImage(replacedCurrent);
 			_previousTransitionType = _transitionType;
 			if (TransitionAction == TransitionAction.AsFade)
 			{
@@ -817,9 +909,14 @@ namespace Easislides
 			}
 			// Dispose previous timer to prevent multiple timers running
 			t?.Dispose();
-			t = new System.Threading.Timer(Tick, null, 40, 40);
-			_currentPercentage = 0f;
-			_startTime = DateTime.Now;
+			int generation;
+			lock (_transitionLock)
+			{
+				generation = ++_transitionGeneration;
+				_currentPercentage = 0f;
+				_startTime = DateTime.Now;
+			}
+			t = new System.Threading.Timer(Tick, generation, 40, 40);
 			ResetBitsArray();
 			if (ClearAll)
 			{
@@ -830,13 +927,41 @@ namespace Easislides
 
 		private void Tick(object state)
 		{
-			TimeSpan timeSpan = DateTime.Now.Subtract(_startTime);
-			_currentPercentage = ((TransitionType == TransitionTypes.None) ? 100f : Convert.ToSingle(100.0 / _transitionTime.TotalSeconds * timeSpan.TotalSeconds));
-			if (_currentPercentage > 100f)
+			// Runs on a thread-pool thread. A Tick of a transition that has ended (replaced by Go,
+			// ended after a failed paint) must not write progress: it could put a finished screen back
+			// to a half blend with no timer left to finish it. The check and the write are one step
+			// under the lock that also ends transitions.
+			lock (_transitionLock)
 			{
-				_currentPercentage = 100f;
+				if (!(state is int generation) || generation != _transitionGeneration)
+				{
+					return;
+				}
+				TimeSpan timeSpan = DateTime.Now.Subtract(_startTime);
+				_currentPercentage = ((TransitionType == TransitionTypes.None) ? 100f : Convert.ToSingle(100.0 / _transitionTime.TotalSeconds * timeSpan.TotalSeconds));
+				if (_currentPercentage > 100f)
+				{
+					_currentPercentage = 100f;
+				}
 			}
 			Invalidate();
+		}
+
+		/// <summary>
+		/// Disposes a combined image that Go made once nothing of this control refers to it any more.
+		/// Images other code put into CurrentCombinedImage / NewCombinedImage (a background picture)
+		/// are not this control's and are left alone.
+		/// </summary>
+		private void ReleaseCombinedImage(Image image)
+		{
+			if (image == null || ReferenceEquals(image, _currentCombinedImage) || ReferenceEquals(image, _newCombinedImage) || ReferenceEquals(image, _imageWorkSpace))
+			{
+				return;
+			}
+			if (_ownCombinedImages.Remove(image))
+			{
+				image.Dispose();
+			}
 		}
 
 		private void DrawDefaultBackPattern(PaintEventArgs e)
@@ -850,6 +975,113 @@ namespace Easislides
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
+		{
+			// An exception leaving OnPaint makes WinForms stop painting this control for good (red
+			// cross); on the show window that would be the projector until restart. A failed frame is
+			// therefore caught here: logged (repeats only counted), shown in the main form's error
+			// notice, and skipped. A failed transition frame also ends the transition (see
+			// EndFailedTransition). The next paint is attempted normally.
+			try
+			{
+				PaintScreen(e);
+				_failedPaintRetries = 0;
+			}
+			catch (Exception ex)
+			{
+				FrmMain.WriteDebugLogThrottled("ImageTransitionControl.OnPaint (" + Name + ")", ex);
+				FrmMain.ReportErrorNotice("Screen " + Name + " could not be drawn: " + ex.Message);
+				EndFailedTransition();
+				// The control paints double-buffered: WinForms puts the back buffer on the screen even
+				// when this paint threw, so an empty or half-drawn frame would show black where nothing
+				// was drawn, and stay until the next slide. Cover it with the last complete picture.
+				PaintLastCompletePicture(e);
+				RequestRetryPaint();
+			}
+		}
+
+		// Retry paints requested in a row after failed paints (RequestRetryPaint); a paint that succeeds resets it.
+		private int _failedPaintRetries;
+		private const int MaxFailedPaintRetries = 3;
+
+		/// <summary>
+		/// Draws the last complete picture of this screen over a frame whose paint failed: the combined
+		/// image Go composed last (background, text and panel of the item shown now), which is also
+		/// what the screen shows at the end of a transition. Alert and reference text, drawn on top in
+		/// each paint, are missing from this frame. Draws nothing when there is no such picture yet.
+		/// Allocates no bitmap and never throws.
+		/// </summary>
+		private void PaintLastCompletePicture(PaintEventArgs e)
+		{
+			Image picture = _newCombinedImage;
+			if (picture == null)
+			{
+				return;
+			}
+			try
+			{
+				Graphics g = e.Graphics;
+				// The failed paint may have left a transform (zoom transitions), a clip (shape
+				// transitions) or another mode set.
+				g.ResetTransform();
+				g.ResetClip();
+				g.CompositingMode = CompositingMode.SourceCopy;
+				g.DrawImage(picture, base.ClientRectangle, 0, 0, picture.Width, picture.Height, GraphicsUnit.Pixel);
+			}
+			catch
+			{
+			}
+		}
+
+		/// <summary>
+		/// Asks for one more paint after a failed one, posted (not from inside this paint), at most
+		/// MaxFailedPaintRetries times in a row: a paint that keeps failing cannot repaint itself in a
+		/// loop. Never throws.
+		/// </summary>
+		private void RequestRetryPaint()
+		{
+			if (_failedPaintRetries >= MaxFailedPaintRetries)
+			{
+				return;
+			}
+			_failedPaintRetries++;
+			try
+			{
+				if (IsHandleCreated && !IsDisposed)
+				{
+					BeginInvoke((MethodInvoker)delegate
+					{
+						if (!IsDisposed)
+						{
+							Invalidate();
+						}
+					});
+				}
+			}
+			catch
+			{
+			}
+		}
+
+		/// <summary>
+		/// Treats the running transition as finished after a paint failed. The transition timer is
+		/// otherwise stopped only by the last transition frame, so a failing frame would keep it
+		/// invalidating (about 25 times a second, every frame failing again). The next paint then
+		/// draws the new image as the end of a transition does.
+		/// </summary>
+		private void EndFailedTransition()
+		{
+			System.Threading.Timer timer = t;
+			t = null;
+			timer?.Dispose();
+			lock (_transitionLock)
+			{
+				// Ticks of this transition still queued do not write progress any more (see Tick).
+				_transitionGeneration++;
+				_currentPercentage = 100f;
+			}
+		}
+
+		private void PaintScreen(PaintEventArgs e)
 		{
 			if (_currentCombinedImage == null || _newCombinedImage == null)
 			{
@@ -930,67 +1162,83 @@ namespace Easislides
 				{
 					_imageWorkSpace = new Bitmap(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 					wsg = Graphics.FromImage(_imageWorkSpace);
-					wsg.Clear(Color.Transparent);
-					int srcX = 0;
-					int srcY = 0;
-					int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-					int height = _newBackgroundPicture.Height;
-					Rectangle destRect = new Rectangle(0, 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
-					int srcX2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-					int srcY2 = 0;
-					int srcWidth2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-					int height2 = _newBackgroundPicture.Height;
-					Rectangle destRect2 = new Rectangle(Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) + (float)_newBackgroundPicture.Width * _currentPercentage / 200f), 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
-					if (TransitBackPictureAction == BackPicturesTransition.None)
+					try
 					{
-						Draw_NewImage(e);
-						wsg.DrawImage(_newBackgroundPicture, destRect, destRect.X, destRect.Y, destRect.Width, destRect.Height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_currentTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+						wsg.Clear(Color.Transparent);
+						int srcX = 0;
+						int srcY = 0;
+						int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int height = _newBackgroundPicture.Height;
+						Rectangle destRect = new Rectangle(0, 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
+						int srcX2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int srcY2 = 0;
+						int srcWidth2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int height2 = _newBackgroundPicture.Height;
+						Rectangle destRect2 = new Rectangle(Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) + (float)_newBackgroundPicture.Width * _currentPercentage / 200f), 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
+						if (TransitBackPictureAction == BackPicturesTransition.None)
+						{
+							Draw_NewImage(e);
+							wsg.DrawImage(_newBackgroundPicture, destRect, destRect.X, destRect.Y, destRect.Width, destRect.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+						}
+						else
+						{
+							Draw_NewImage(e);
+							wsg.DrawImage(_currentCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+						}
 					}
-					else
+					finally
 					{
-						Draw_NewImage(e);
-						wsg.DrawImage(_currentCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_currentCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+						// Both made for this frame only, as in the other workspace transitions.
+						wsg.Dispose();
+						_imageWorkSpace.Dispose();
 					}
-					_imageWorkSpace.Dispose();
 				}
 				else if (TransitionType == TransitionTypes.DoorsClose)
 				{
 					_imageWorkSpace = new Bitmap(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 					wsg = Graphics.FromImage(_imageWorkSpace);
-					wsg.Clear(Color.Transparent);
-					int srcX = 0;
-					int srcY = 0;
-					int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-					int height = _newBackgroundPicture.Height;
-					Rectangle destRect = new Rectangle(0, 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
-					int srcX2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-					int srcY2 = 0;
-					int srcWidth2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-					int height2 = _newBackgroundPicture.Height;
-					Rectangle destRect2 = new Rectangle(Convert.ToInt32((float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _currentPercentage / 200f), 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
-					if (TransitBackPictureAction == BackPicturesTransition.None)
+					try
 					{
-						Draw_CurrentImage(e);
-						wsg.DrawImage(_newBackgroundPicture, destRect, destRect.X, destRect.Y, destRect.Width, destRect.Height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+						wsg.Clear(Color.Transparent);
+						int srcX = 0;
+						int srcY = 0;
+						int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int height = _newBackgroundPicture.Height;
+						Rectangle destRect = new Rectangle(0, 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
+						int srcX2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int srcY2 = 0;
+						int srcWidth2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int height2 = _newBackgroundPicture.Height;
+						Rectangle destRect2 = new Rectangle(Convert.ToInt32((float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _currentPercentage / 200f), 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _currentPercentage / 200f), _newBackgroundPicture.Height);
+						if (TransitBackPictureAction == BackPicturesTransition.None)
+						{
+							Draw_CurrentImage(e);
+							wsg.DrawImage(_newBackgroundPicture, destRect, destRect.X, destRect.Y, destRect.Width, destRect.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+						}
+						else
+						{
+							Draw_CurrentImage(e);
+							wsg.DrawImage(_newCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+						}
 					}
-					else
+					finally
 					{
-						Draw_CurrentImage(e);
-						wsg.DrawImage(_newCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+						// Both made for this frame only, as in the other workspace transitions.
+						wsg.Dispose();
+						_imageWorkSpace.Dispose();
 					}
-					_imageWorkSpace.Dispose();
 				}
 				else if (TransitionType == TransitionTypes.Blinds_H)
 				{
@@ -2202,15 +2450,58 @@ namespace Easislides
 		/// <param name="InPanelType"></param>
 		private void DrawImageToOutputBitBlt(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, bool DrawAlert, ImageAttributes InImageAttributes, PanelType InPanelType)
 		{
-			IntPtr hdc = e.Graphics.GetHdc();
-			//IntPtr intPtr = Gf.CreateCompatibleDC(hdc);
-			IntPtr intPtr = CreateCompatibleDC(hdc);
-			//IntPtr intPtr2 = Gf.CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
-			IntPtr intPtr2 = CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
-			//Gf.SelectObject(intPtr, intPtr2);
-			IntPtr intPtr3 = SelectObject(intPtr, intPtr2);
+			// Everything borrowed or created here is given back in finally, also when drawing throws:
+			// a screen DC left borrowed makes every later paint of this control fail ("Object is
+			// currently in use elsewhere"), and the screen-sized bitmap would leak on every frame.
+			IntPtr hdc = IntPtr.Zero;
+			IntPtr memoryDc = IntPtr.Zero;
+			IntPtr memoryBitmap = IntPtr.Zero;
+			IntPtr previousBitmap = IntPtr.Zero;
+			Graphics graphics = null;
+			try
+			{
+				hdc = e.Graphics.GetHdc();
+				memoryDc = CreateCompatibleDC(hdc);
+				memoryBitmap = CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
+				previousBitmap = SelectObject(memoryDc, memoryBitmap);
+				graphics = Graphics.FromHdc(memoryDc);
+				DrawImageToMemoryDc(graphics, InImage, DestinationRectangle, SourceRectangle, InImageAttributes, InPanelType);
+				IntPtr memoryHdc = graphics.GetHdc();
+				try
+				{
+					BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, memoryHdc, 0, 0, 13369376);
+				}
+				finally
+				{
+					graphics.ReleaseHdc(memoryHdc);
+				}
+			}
+			finally
+			{
+				// The Graphics before the DC it draws on; the bitmap after it is no longer selected.
+				graphics?.Dispose();
+				if (memoryDc != IntPtr.Zero)
+				{
+					if (previousBitmap != IntPtr.Zero)
+					{
+						SelectObject(memoryDc, previousBitmap);
+					}
+					DeleteDC(memoryDc);
+				}
+				if (memoryBitmap != IntPtr.Zero)
+				{
+					DeleteObject(memoryBitmap);
+				}
+				if (hdc != IntPtr.Zero)
+				{
+					e.Graphics.ReleaseHdc(hdc);
+				}
+			}
+			// GC.Collect() removed - forced GC causes performance degradation
+		}
 
-			Graphics graphics = Graphics.FromHdc(intPtr);
+		private void DrawImageToMemoryDc(Graphics graphics, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, ImageAttributes InImageAttributes, PanelType InPanelType)
+		{
 			if (InImageAttributes == null)
 			{
 				graphics.DrawImage(InImage, DestinationRectangle, SourceRectangle, GraphicsUnit.Pixel);
@@ -2249,27 +2540,7 @@ namespace Easislides
 					break;
 				}
 			}
-
-			IntPtr hdc2 = graphics.GetHdc();
-			BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, hdc2, 0, 0, 13369376);
-			//Gf.BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, hdc2, 0, 0, 13369376);
-			graphics.ReleaseHdc(hdc2);
-
-			//Gf.DeleteDC(intPtr);
-			DeleteDC(intPtr);
-			//Gf.DeleteObject(intPtr);
-			DeleteObject(intPtr);
-			//Gf.DeleteObject(intPtr2);
-			DeleteObject(intPtr2);
-
-			DeleteObject(intPtr3);
-
-			e.Graphics.ReleaseHdc(hdc);
-
-			graphics.Dispose();
-
-			// GC.Collect() removed - forced GC causes performance degradation
-	}
+		}
 
 		private void Draw_TranSlideIn(PaintEventArgs e, TransitionTypes InTransType)
 		{
@@ -3060,15 +3331,27 @@ namespace Easislides
 				refMessageg_Inverse?.Dispose();
 
 				// Image 객체 ?�리
-				Newbmp?.Dispose();
-				_currentCombinedImage?.Dispose();
-				_newCombinedImage?.Dispose();
+				// Disposed here: the combined images Go made (Newbmp is one of them), the two background
+				// pictures (_newBackgroundPicture, _currentBackgroundPicture, as before this change, even
+				// when other code put BackgroundImage there), this screen's own layer buffers and the
+				// work space. Not disposed: whatever CurrentCombinedImage / NewCombinedImage and the
+				// Current / New text and panel layers point at besides those, e.g. a background picture
+				// other code assigned there, which is not this control's.
+				foreach (Image combined in _ownCombinedImages)
+				{
+					combined.Dispose();
+				}
+				_ownCombinedImages.Clear();
 				_newBackgroundPicture?.Dispose();
 				_currentBackgroundPicture?.Dispose();
-				_newTextImage?.Dispose();
-				_currentTextImage?.Dispose();
-				_newPanelImage?.Dispose();
-				_currentPanelImage?.Dispose();
+				// This screen's own layer buffers; their Graphics first, before the bitmaps they draw on.
+				for (int i = 0; i < 2; i++)
+				{
+					_textDrawGraphics[i]?.Dispose();
+					_panelDrawGraphics[i]?.Dispose();
+					_textDrawBuffers[i]?.Dispose();
+					_panelDrawBuffers[i]?.Dispose();
+				}
 				_imageWorkSpace?.Dispose();
 				AlertimageBackground?.Dispose();
 				AlertimageMessage?.Dispose();

@@ -231,9 +231,10 @@ namespace Easislides
 
         private ImageCanvas[] Powerpoint_ExternalCanvas = new ImageCanvas[1024];
 
-        private ImageTransitionControl PreviewScreen = new ImageTransitionControl();
+        // Named so that a paint failure in the log and the error notice says which screen failed.
+        private ImageTransitionControl PreviewScreen = new ImageTransitionControl { Name = "PreviewScreen" };
 
-        private ImageTransitionControl OutputScreen = new ImageTransitionControl();
+        private ImageTransitionControl OutputScreen = new ImageTransitionControl { Name = "OutputScreen" };
 
         private int ThumbImageClicked = 0;
 

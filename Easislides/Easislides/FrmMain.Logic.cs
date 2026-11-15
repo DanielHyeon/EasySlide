@@ -125,6 +125,9 @@ namespace Easislides
 
         private void SaveFormStateToRegistry()
         {
+            // A status bar shown only for the error notice is hidden first: the splitter distances
+            // saved below depend on it, and they must be those of the layout the operator chose.
+            HideStatusStripShownForNotice();
             switch (base.WindowState)
             {
                 case FormWindowState.Maximized:
@@ -2098,7 +2101,67 @@ namespace Easislides
 
         private const long MaxLogFileSize = 512 * 1024; // 512KB
 
-        private void WriteDebugLog(string message)
+        private static readonly System.Collections.Generic.Dictionary<string, int> repeatedErrorCounts = new System.Collections.Generic.Dictionary<string, int>();
+        private static readonly object repeatedErrorLock = new object();
+
+        /// <summary>
+        /// Logs an exception that may repeat (timers, paint): the first occurrence of a given
+        /// place + type + message + top frame + first frame of our own code in full, later ones only
+        /// as a count line every 100th time, so the log rotation cannot push the first report out.
+        /// Returns how often this exception has been seen. Never throws.
+        /// </summary>
+        internal static int WriteDebugLogThrottled(string where, Exception ex)
+        {
+            try
+            {
+                string[] frames = (ex?.StackTrace ?? "").Split('\n');
+                string topFrame = frames[0].Trim();
+                // GDI+ failures all share the same top frame (inside System.Drawing); the first frame in
+                // our own code tells them apart.
+                string ownFrame = "";
+                foreach (string frame in frames)
+                {
+                    // "at Namespace.Type.Method(...) in file:line N"; the leading word may be localized.
+                    string trimmed = frame.Trim();
+                    int space = trimmed.IndexOf(' ');
+                    string method = (space >= 0) ? trimmed.Substring(space + 1) : trimmed;
+                    if (method.StartsWith("Easislides.", StringComparison.Ordinal) || method.StartsWith("OfficeLib.", StringComparison.Ordinal))
+                    {
+                        ownFrame = trimmed;
+                        break;
+                    }
+                }
+                string key = where + " | " + ex?.GetType().FullName + ": " + ex?.Message + " | " + topFrame + " | " + ownFrame;
+                int count;
+                lock (repeatedErrorLock)
+                {
+                    if (repeatedErrorCounts.Count > 1000)
+                    {
+                        repeatedErrorCounts.Clear();
+                    }
+                    repeatedErrorCounts.TryGetValue(key, out count);
+                    count++;
+                    repeatedErrorCounts[key] = count;
+                }
+                if (count == 1)
+                {
+                    string text = where + " failed: " + (ex == null ? "(no exception)" : ex.ToString());
+                    System.Diagnostics.Trace.WriteLine(text);
+                    WriteDebugLog(text);
+                }
+                else if (count % 100 == 0)
+                {
+                    WriteDebugLog("(repeated " + count + " times so far) " + key);
+                }
+                return count;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        internal static void WriteDebugLog(string message)
         {
             try
             {

@@ -67,6 +67,9 @@ namespace Easislides
                 case 10:
                     Remote_EndShow();
                     break;
+                case 11:
+                    Remote_ShowStopped();
+                    break;
             }
         }
 

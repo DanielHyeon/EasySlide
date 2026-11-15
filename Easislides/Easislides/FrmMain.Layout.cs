@@ -747,6 +747,225 @@ namespace Easislides
             }
         }
 
+        // Error notice of the status strip: created on the first error, written by nothing else,
+        // hidden again by a click on it (which also restarts its count).
+        private ToolStripStatusLabel errorNoticeLabel;
+        private int errorNoticeCount;
+        // Message part of the notice shown now (count, prefix and suffix are added when it is laid out).
+        private string errorNoticeMessage = "";
+
+        private const string ErrorNoticeSuffix = " — see EasiSlides_Debug.log";
+        // While a notice is shown, the output monitor pane keeps at least this width (logical pixels),
+        // and the summary and preview panes give up width down to PaneMinWidth before the notice is cut.
+        private const int OutputPaneMinWidth = 120;
+        private const int PaneMinWidth = 40;
+        private const TextFormatFlags NoticeTextFlags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
+
+        /// <summary>
+        /// True once this form has been shown, whether or not Form1_Load ran to the end. From then on
+        /// an unhandled exception is reported in the error notice; before that
+        /// Program.OnUiThreadException shows a message box.
+        /// </summary>
+        internal bool ReadyForErrorNotices { get; private set; }
+
+        private void WatchFirstShown()
+        {
+            Shown += (sender, e) => ReadyForErrorNotices = true;
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            try
+            {
+                base.OnLoad(e);
+            }
+            finally
+            {
+                // WinForms raises Shown only when the Load handlers completed (measured: a Form1_Load
+                // that throws means no Shown), and Activated is no substitute (it comes before Load).
+                // The window is shown either way, so the flag is set here as well. It is posted, so it
+                // runs when this thread next handles its message queue, after Load has been abandoned and
+                // the exception has been reported. Nothing depends on whether the window is already
+                // visible at that moment. Measured with the start-up message box Program shows
+                // (DefaultDesktopOnly): it did not run while that box was open (15 s).
+                if (!ReadyForErrorNotices && IsHandleCreated)
+                {
+                    BeginInvoke((MethodInvoker)delegate { ReadyForErrorNotices = true; });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Shows <paramref name="message"/> in the main form's error notice, from any code and any
+        /// thread (a screen's paint, the show window). Does nothing while the main form has not been
+        /// shown yet (the caller logs the error itself). Never throws.
+        /// </summary>
+        internal static void ReportErrorNotice(string message)
+        {
+            try
+            {
+                FrmMain form = frmMain;
+                if (form != null && form.ReadyForErrorNotices)
+                {
+                    form.ShowErrorNotice(message);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        /// <summary>
+        /// Tells the operator in the status strip that an error occurred (an unhandled UI-thread
+        /// exception, a failed paint, or a failed action on the show window; details in the debug
+        /// log). Posted, so it never blocks the caller and is safe from any thread; does nothing
+        /// when this form is not usable. Never throws.
+        /// </summary>
+        internal void ShowErrorNotice(string message)
+        {
+            try
+            {
+                if (IsDisposed || Disposing || !IsHandleCreated)
+                {
+                    return;
+                }
+                BeginInvoke((MethodInvoker)delegate { ShowErrorNoticeNow(message); });
+            }
+            catch
+            {
+            }
+        }
+
+        private void ShowErrorNoticeNow(string message)
+        {
+            try
+            {
+                if (IsDisposed || statusStripMain.IsDisposed)
+                {
+                    return;
+                }
+                if (errorNoticeLabel == null)
+                {
+                    errorNoticeLabel = new ToolStripStatusLabel
+                    {
+                        Name = "StatusBarErrorNotice",
+                        AutoSize = false,
+                        AutoToolTip = false,
+                        ForeColor = Color.Red,
+                        TextAlign = ContentAlignment.MiddleLeft,
+                        Visible = false
+                    };
+                    errorNoticeLabel.Click += (sender, e) =>
+                    {
+                        // Dismissed: the next error starts counting from 1 again.
+                        errorNoticeLabel.Visible = false;
+                        statusStripMain.ShowItemToolTips = false;
+                        errorNoticeCount = 0;
+                        errorNoticeMessage = "";
+                        HideStatusStripShownForNotice();
+                        SetStatusbarSize();
+                    };
+                    // The full text of a shortened notice is in its tool tip. The strip shows item tool
+                    // tips only while the pointer is on the notice. The other panes have AutoToolTip = true
+                    // (designer), and ShowStatusBarSummary / ShowStatusBarOutputArea also give panes 2-4 a
+                    // ToolTipText, but none was ever shown because ShowItemToolTips was off; that stays so.
+                    errorNoticeLabel.MouseEnter += (sender, e) => statusStripMain.ShowItemToolTips = true;
+                    errorNoticeLabel.MouseLeave += (sender, e) => statusStripMain.ShowItemToolTips = false;
+                    // Appended after the four panes, which other code addresses by index.
+                    statusStripMain.Items.Add(errorNoticeLabel);
+                }
+                if (!Menu_StatusBar.Checked && !statusStripMain.Visible)
+                {
+                    // The operator has hidden the status bar (View > Status Bar), so the notice would not
+                    // be seen: show the bar while the notice is up. The menu check stays as the operator
+                    // set it, and the bar is hidden again when the notice is dismissed.
+                    statusStripShownForNotice = true;
+                    statusStripMain.Visible = true;
+                }
+                errorNoticeCount++;
+                string shortMessage = (message ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
+                if (shortMessage.Length > 500)
+                {
+                    shortMessage = shortMessage.Substring(0, 500);
+                }
+                // The newest message is shown: a failure that repeats (a timer, a paint) leaves the text as
+                // it is and only raises the count.
+                errorNoticeMessage = shortMessage;
+                errorNoticeLabel.ToolTipText = ErrorNoticeText(errorNoticeMessage) + " (click to hide)";
+                errorNoticeLabel.Visible = true;
+                SetStatusbarSize();
+            }
+            catch
+            {
+            }
+        }
+
+        // True while the status bar is shown only because of the error notice (the operator hid it).
+        private bool statusStripShownForNotice;
+
+        /// <summary>
+        /// Hides the status bar again if the notice had shown it. Setting Visible makes the form lay
+        /// out its docked panels again, as View > Status Bar does.
+        /// </summary>
+        private void HideStatusStripShownForNotice()
+        {
+            if (statusStripShownForNotice)
+            {
+                statusStripShownForNotice = false;
+                statusStripMain.Visible = Menu_StatusBar.Checked;
+            }
+        }
+
+        private string ErrorNoticeText(string shownMessage)
+        {
+            return "Error (" + errorNoticeCount + "): " + shownMessage + ErrorNoticeSuffix;
+        }
+
+        private int NoticeTextWidth(string text)
+        {
+            // Label padding plus a few pixels for the text renderer's own margins.
+            return TextRenderer.MeasureText(text, errorNoticeLabel.Font, Size.Empty, NoticeTextFlags).Width + errorNoticeLabel.Padding.Horizontal + 6;
+        }
+
+        /// <summary>
+        /// Notice text that fits <paramref name="width"/>: the full text, or the message cut and ended
+        /// with an ellipsis, or (when even the count and suffix do not fit) the whole text cut.
+        /// </summary>
+        private string FitErrorNoticeText(int width)
+        {
+            string full = ErrorNoticeText(errorNoticeMessage);
+            if (NoticeTextWidth(full) <= width)
+            {
+                return full;
+            }
+            const string Ellipsis = "…";
+            if (NoticeTextWidth(ErrorNoticeText(Ellipsis)) <= width)
+            {
+                return ErrorNoticeText(errorNoticeMessage.Substring(0, LongestFittingLength(errorNoticeMessage.Length, n => ErrorNoticeText(errorNoticeMessage.Substring(0, n).TrimEnd() + Ellipsis), width)).TrimEnd() + Ellipsis);
+            }
+            return full.Substring(0, LongestFittingLength(full.Length, n => full.Substring(0, n) + Ellipsis, width)) + Ellipsis;
+        }
+
+        private int LongestFittingLength(int maxLength, Func<int, string> textOfLength, int width)
+        {
+            // Binary search for the longest n whose text fits; 0 when none does.
+            int low = 0;
+            int high = maxLength;
+            while (low < high)
+            {
+                int mid = (low + high + 1) / 2;
+                if (NoticeTextWidth(textOfLength(mid)) <= width)
+                {
+                    low = mid;
+                }
+                else
+                {
+                    high = mid - 1;
+                }
+            }
+            return low;
+        }
+
         internal void ShowStatusBarSummary()
         {
             string text = "";
@@ -879,18 +1098,56 @@ namespace Easislides
 
         private void SetStatusbarSize()
         {
-            statusStripMain.Items[0].Width = splitContainerMain.Panel1.Width + 1;
-            statusStripMain.Items[1].Width = splitContainer2.Panel1.Width + 2;
-            if (Gf.KeyBoardOption == 1)
+            // Room the strip lays its items out in: the client width less the strip's padding (its
+            // right padding holds the sizing grip) and the items' margins, less 1 px: the strip's table
+            // layout does not place an item that ends exactly at the edge (measured). The old fixed
+            // "- 16" was 3 px short of the designer padding (1 + 18), so the output monitor pane and the
+            // keyboard pane after it were not placed at all.
+            int room = statusStripMain.DisplayRectangle.Width - 1;
+            foreach (ToolStripItem item in statusStripMain.Items)
             {
-                statusStripMain.Items[3].Width = 40;
+                if (item.Available)
+                {
+                    room -= item.Margin.Horizontal;
+                }
             }
-            else
+            int summaryWidth = splitContainerMain.Panel1.Width + 1;
+            int previewWidth = splitContainer2.Panel1.Width + 2;
+            int keyboardWidth = (Gf.KeyBoardOption == 1) ? 40 : 0;
+            int noticeWidth = 0;
+            // Available, not Visible: Visible reads false while the strip has no room to place the label.
+            if (errorNoticeLabel != null && errorNoticeLabel.Available)
             {
-                statusStripMain.Items[3].Width = 0;
+                // The notice takes at most half the strip and never more than is left once the output
+                // pane has its minimum; the summary and preview panes shrink to make room for it first.
+                int wanted = Math.Max(0, Math.Min(NoticeTextWidth(ErrorNoticeText(errorNoticeMessage)), room / 2));
+                int paneMin = LogicalToDeviceUnits(PaneMinWidth);
+                int shortage = wanted - (room - summaryWidth - previewWidth - keyboardWidth - LogicalToDeviceUnits(OutputPaneMinWidth));
+                if (shortage > 0)
+                {
+                    int cut = Math.Min(shortage, Math.Max(previewWidth - paneMin, 0));
+                    previewWidth -= cut;
+                    shortage -= cut;
+                }
+                if (shortage > 0)
+                {
+                    int cut = Math.Min(shortage, Math.Max(summaryWidth - paneMin, 0));
+                    summaryWidth -= cut;
+                    shortage -= cut;
+                }
+                noticeWidth = Math.Max(0, wanted - Math.Max(shortage, 0));
+                errorNoticeLabel.Width = noticeWidth;
+                string text = FitErrorNoticeText(noticeWidth);
+                if (errorNoticeLabel.Text != text)
+                {
+                    errorNoticeLabel.Text = text;
+                }
             }
-            int num = statusStripMain.Width - (statusStripMain.Items[0].Width + statusStripMain.Items[1].Width + 1 + statusStripMain.Items[3].Width) - 15;
-            statusStripMain.Items[2].Width = ((num > 0) ? num : 0);
+            statusStripMain.Items[0].Width = summaryWidth;
+            statusStripMain.Items[1].Width = previewWidth;
+            statusStripMain.Items[3].Width = keyboardWidth;
+            int outputWidth = room - (summaryWidth + previewWidth + keyboardWidth + noticeWidth);
+            statusStripMain.Items[2].Width = ((outputWidth > 0) ? outputWidth : 0);
         }
 
         private int GetImagesPanelWidth()

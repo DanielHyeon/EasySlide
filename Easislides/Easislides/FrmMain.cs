@@ -51,6 +51,7 @@ namespace Easislides
         public FrmMain()
         {
             InitializeComponent();
+            WatchFirstShown();
 
             Init();
 
@@ -2821,6 +2822,84 @@ namespace Easislides
             }
         }
 
+        /// <summary>
+        /// Ends a show whose start failed in the dual-monitor branch of Start_Presentation (called from
+        /// GoLive(true)). Gf.ShowRunning is still true here, so GoLive(false) takes the Stop button's
+        /// path: ShowRunning = false, LiveShow.StopShow() (FormClosingCleanup: screen saver restored,
+        /// the presentations PreLoadPowerpointFiles opened closed, task bar shown; the window hidden),
+        /// UpdateWorshipShowIcons(). The initialisation may have stopped anywhere, even after a slide
+        /// show or media had started on the projector, so all of that is needed. Each step is guarded:
+        /// whatever throws, this form ends in "show off" with ShowRunning false. Setting cbGoLive.Checked
+        /// raises no event (its only handler is Click), so the nested GoLive(false) re-enters nothing.
+        /// </summary>
+        private void EndFailedShowStart()
+        {
+            try
+            {
+                GoLive(InStatus: false);
+            }
+            catch (Exception ex)
+            {
+                // StopShow stopped somewhere in its clean-up: repeat the clean-up steps that are safe to
+                // repeat, each on its own.
+                WriteDebugLogThrottled("Start_Presentation stop after failed start", ex);
+                Gf.ShowRunning = false;
+                TryStep("RestoreScreenSaverSettings", Gf.RestoreScreenSaverSettings);
+                TryStep("ClearUpPowerpointWindows", Gf.ClearUpPowerpointWindows);
+                TryStep("ShowTaskBar", Gf.ShowTaskBar);
+                TryStep("Hide show window", () =>
+                {
+                    if (LiveShow != null && !LiveShow.IsDisposed && LiveShow.Visible)
+                    {
+                        LiveShow.Hide();
+                    }
+                });
+            }
+            // Button, menu, status row and worship list marks to "show off" (a no-op if GoLive(false)
+            // above completed).
+            TryStep("Remote_ShowStopped", Remote_ShowStopped);
+            // Load runs only once per window: a window whose Load never completed lacks what only Load
+            // does, so it is replaced by a new one at the next start (EnsureLiveShowWindow). A window
+            // whose later initialisation (InitForm from VisibleChanged) failed is kept: the next start
+            // shows it again and its VisibleChanged runs InitForm again.
+            TryStep("Dispose show window", () =>
+            {
+                if (LiveShow != null && !LiveShow.IsDisposed && !LiveShow.FirstLoadCompleted)
+                {
+                    LiveShow.Dispose();
+                    // LiveShow is never left a disposed instance: callers not gated on ShowRunning
+                    // (QueryShowActive) would act on it and fail.
+                    EnsureLiveShowWindow();
+                }
+            });
+        }
+
+        private static void TryStep(string what, Action step)
+        {
+            try
+            {
+                step();
+            }
+            catch (Exception ex)
+            {
+                WriteDebugLogThrottled("Start_Presentation clean-up: " + what, ex);
+            }
+        }
+
+        /// <summary>
+        /// The show window has ended a non-modal show itself (FrmLaunchShow.StopShowAndTellMainForm),
+        /// or a failed show start has been cleaned up (EndFailedShowStart): bring this form to
+        /// "show off". The show is already stopped (Gf.ShowRunning is false), so GoLive(false) only
+        /// resets the show button, menu and status row and does not stop it again; the worship list
+        /// marks are refreshed here because GoLive does that only when it stops the show.
+        /// </summary>
+        public void Remote_ShowStopped()
+        {
+            Gf.ShowRunning = false;
+            GoLive(InStatus: false);
+            UpdateWorshipShowIcons();
+        }
+
         private void ItemKeyPressed(SongSettings InItem, Keys KeyCode, bool ShiftKey)
         {
             // PraiseBook 모드이거나 Tab 키는 처리하지 않음
@@ -4128,21 +4207,33 @@ namespace Easislides
                     formWindowState = (base.WindowState = base.WindowState);
 
                     gfFileHelpers.PreLoadPowerpointFiles(ref Gf.LivePP, ref Gf.WorshipSongs);
+                    bool started = false;
                     try
                     {
+                        EnsureLiveShowWindow();
                         LiveShow.Show();
+                        if (LiveShow.StartInitCompleted)
+                        {
+                            started = true;
+                        }
+                        else
+                        {
+                            // The show window's initialisation for this start (Load, or InitForm from
+                            // its VisibleChanged) threw. That exception did not leave Show(): it went to
+                            // Application.ThreadException, which logged it and showed the notice, so
+                            // only the log line is written here.
+                            WriteDebugLogThrottled("Start_Presentation Show", new InvalidOperationException("The show window did not finish initialising for this start (see the exception logged before)."));
+                        }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        try
-                        {
-                            LiveShow = new FrmLaunchShow();
-                            LiveShow.OnMessage += LiveShow_OnMessage;
-                            LiveShow.Show();
-                        }
-                        catch
-                        {
-                        }
+                        // Show() itself threw: nothing else has reported it.
+                        LogLiveShowFailure("Start_Presentation Show", ex);
+                    }
+                    if (!started)
+                    {
+                        EndFailedShowStart();
+                        return;
                     }
                     FocusOutputArea();
                     return;
@@ -4152,22 +4243,30 @@ namespace Easislides
                 formWindowState = base.WindowState;
                 base.WindowState = FormWindowState.Minimized;
                 gfFileHelpers.PreLoadPowerpointFiles(ref Gf.LivePP, ref Gf.WorshipSongs);
+                EnsureLiveShowWindow();
                 try
                 {
                     LiveShow.ShowDialog();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        LiveShow = new FrmLaunchShow();
-                        LiveShow.OnMessage += LiveShow_OnMessage;
-                        LiveShow.ShowDialog();
-                    }
-                    catch
-                    {
-                    }
+                    // Only ShowDialog's own failures arrive here (e.g. the window is already visible);
+                    // exceptions inside the show window's Load / InitForm or later go to
+                    // Application.ThreadException instead. The code below restores the main window
+                    // and must run; the show window did not run, so the show is not running.
+                    LogLiveShowFailure("Start_Presentation ShowDialog", ex);
+                    Gf.ShowRunning = false;
                 }
+                // A window whose Load failed lacks what only Load does (LiveScreen mouse handlers, the
+                // hidden cursor) and Load never runs again for it: replace it for the next start.
+                TryStep("Replace show window after a failed Load", () =>
+                {
+                    if (LiveShow != null && !LiveShow.IsDisposed && !LiveShow.FirstLoadCompleted)
+                    {
+                        LiveShow.Dispose();
+                        EnsureLiveShowWindow();
+                    }
+                });
                 Gf.ParentalAlertLive = false;
                 Gf.MessageAlertLive = false;
                 if (Gf.OutputItem.CurItemNo == 0)
@@ -4658,6 +4757,8 @@ namespace Easislides
         private void Menu_StatusBar_Click(object sender, EventArgs e)
         {
             Menu_StatusBar.Checked = !Menu_StatusBar.Checked;
+            // The operator's choice replaces a bar the error notice had shown (HideStatusStripShownForNotice).
+            statusStripShownForNotice = false;
             statusStripMain.Visible = Menu_StatusBar.Checked;
         }
 
@@ -7376,19 +7477,35 @@ namespace Easislides
                         break;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                try
-                {
-                    LiveShow = new FrmLaunchShow();
-                    LiveShow.OnMessage += LiveShow_OnMessage;
-                    RemoteControlLiveShow(InAction);
-                }
-                catch
-                {
-                }
+                // The show window on the output monitor stays the one this form talks to: a failed
+                // action never swaps it for a new, never shown window. Only a window that no longer
+                // exists is replaced (for the next show); the action is not repeated on it.
+                LogLiveShowFailure("RemoteControlLiveShow(" + InAction + ")", ex);
+                EnsureLiveShowWindow();
             }
             return "";
+        }
+
+        /// <summary>
+        /// Gives LiveShow a usable show window: a new one, wired like the first instance (OnMessage,
+        /// see Form1_Load), when there is none or it has been disposed. A live window is kept.
+        /// </summary>
+        private void EnsureLiveShowWindow()
+        {
+            if (LiveShow == null || LiveShow.IsDisposed)
+            {
+                LiveShow = new FrmLaunchShow();
+                LiveShow.OnMessage += LiveShow_OnMessage;
+            }
+        }
+
+        private void LogLiveShowFailure(string where, Exception ex)
+        {
+            // Logged in full once, repeats only counted (Remote_GetMediaTimings runs every 600 ms).
+            WriteDebugLogThrottled(where, ex);
+            ShowErrorNotice("Show window: " + ex.Message);
         }
 
         private void InfoScreenFolder_SelectedIndexChanged(object sender, EventArgs e)

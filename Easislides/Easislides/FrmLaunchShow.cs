@@ -54,7 +54,7 @@ namespace Easislides
 
 		private string[] InHeaderData = new string[255];
 
-		private ImageTransitionControl LiveScreen = new ImageTransitionControl();
+		private ImageTransitionControl LiveScreen = new ImageTransitionControl { Name = "LiveScreen" };
 
 		private int ItemRotationNextTiming = 0;
 
@@ -88,6 +88,9 @@ namespace Easislides
 
 		public event Message OnMessage;
 
+		// An end-show request posted from FormClosing that has not run yet (see PostEndShowRequest).
+		private bool endShowRequestPending = false;
+
 		//Active �Ǿ� ���� ��쿡��?Active ȣ�� �� �� �ֵ��� ����
 		private bool isActivated = false;
 
@@ -106,6 +109,7 @@ namespace Easislides
 
 		private void FrmLaunchShow_Load(object sender, EventArgs e)
 		{
+			StartInitCompleted = false;
 			if (FormFirstLoad)
 			{
 				Bitmap bitmap = new Bitmap(55, 25);
@@ -122,7 +126,24 @@ namespace Easislides
 				bitmap.Dispose();
 				graphics.Dispose();
 			}
+			FirstLoadCompleted = true;
+			StartInitCompleted = true;
 		}
+
+		/// <summary>
+		/// True once the initialisation of the current show start has run to the end: Load on the
+		/// window's first show, InitForm from FrmLaunchShow_VisibleChanged on every later show. Set to
+		/// false when that initialisation begins; hiding the window does not change it. An exception in
+		/// either does not leave Show(): WinForms reports it through Application.ThreadException and
+		/// Show() returns normally, so Start_Presentation checks this afterwards.
+		/// </summary>
+		internal bool StartInitCompleted { get; private set; }
+
+		/// <summary>
+		/// True once FrmLaunchShow_Load has run to the end. Load runs only once per window, so a window
+		/// whose Load failed never gets what only Load does (cursor, mouse handlers).
+		/// </summary>
+		internal bool FirstLoadCompleted { get; private set; }
 
 		private void InitForm()
 		{
@@ -360,7 +381,64 @@ namespace Easislides
 
 		private void FrmLaunchShow_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			if (!Modal && Gf.ShowRunning && IsSelfCloseReason(e.CloseReason))
+			{
+				// Non-modal show (the main form does not wait for this window): a close that does not
+				// come from the main form would dispose this window while the main form still shows
+				// the show as running. Keep the window and let the main form end the show on its
+				// normal path (Remote_EndShow -> GoLive(false) -> StopShow, which hides this window).
+				// The request is posted, not called: it runs after this handler has returned.
+				e.Cancel = true;
+				PostEndShowRequest();
+				return;
+			}
 			FormClosingCleanup();
+		}
+
+		private static bool IsSelfCloseReason(CloseReason reason)
+		{
+			// Application exit, Windows shutdown and owner / MDI parent closes go through unchanged.
+			return reason == CloseReason.UserClosing || reason == CloseReason.TaskManagerClosing || reason == CloseReason.None;
+		}
+
+		private void PostEndShowRequest()
+		{
+			if (endShowRequestPending || !IsHandleCreated)
+			{
+				return;
+			}
+			endShowRequestPending = true;
+			BeginInvoke((MethodInvoker)delegate
+			{
+				endShowRequestPending = false;
+				// The show may have been stopped from the main form meanwhile: nothing left to end.
+				if (Gf.ShowRunning)
+				{
+					this.OnMessage?.Invoke(10, "");
+				}
+				// The main form ends the show only in dual monitor mode (Remote_EndShow). If it did
+				// not, end it here: a close request must never leave the window open.
+				if (Gf.ShowRunning && Visible)
+				{
+					StopShowAndTellMainForm();
+				}
+			});
+		}
+
+		/// <summary>
+		/// Ends the show from this window (Esc outside dual monitor mode, or a close request the main
+		/// form did not act on). In a non-modal show the main form is then told, and brings its show
+		/// button, status row and worship list marks to "show off" (Remote_ShowStopped); the show is
+		/// already stopped by then, so the main form does not stop it a second time.
+		/// </summary>
+		private void StopShowAndTellMainForm()
+		{
+			StopShow();
+			if (!Modal)
+			{
+				// A modal show is brought to "off" by Start_Presentation once ShowDialog returns.
+				this.OnMessage?.Invoke(11, "");
+			}
 		}
 
 		private void FormClosingCleanup()
@@ -669,7 +747,7 @@ namespace Easislides
 			{
 				//daniel
 				//esc Ű�� ������ �����̵� � ���� ��
-				StopShow();
+				StopShowAndTellMainForm();
 				return;
 			}
 			int num;
@@ -1872,11 +1950,15 @@ namespace Easislides
 			{
 				if (FormFirstLoad)
 				{
+					// First show: Load (raised before this) did the initialisation and set StartInitCompleted.
 					FormFirstLoad = false;
 				}
 				else
 				{
+					// A later show of the same window: Load does not run again, this is its initialisation.
+					StartInitCompleted = false;
 					InitForm();
+					StartInitCompleted = true;
 				}
 				Activate();
 			}
