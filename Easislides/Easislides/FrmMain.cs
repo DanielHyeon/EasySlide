@@ -2516,9 +2516,11 @@ namespace Easislides
                 WorshipListItems.Items[selectedIndex - 1].ImageIndex = imageIndex;
                 WorshipListItems.Items[selectedIndex].Selected = false;
                 WorshipListItems.Items[selectedIndex - 1].Selected = true;
-                WorshipListItems.EnsureVisible(selectedIndex - 1);
                 Gf.PreviewItem.CurItemNo = selectedIndex;
                 UpdateOutputCurItemNo();
+                UpdateWorshipShowIcons();
+                // Both calls above scroll to the output row; keep the moved row in view.
+                WorshipListItems.EnsureVisible(selectedIndex - 1);
                 TimerFlasher.Start();
             }
         }
@@ -2545,10 +2547,11 @@ namespace Easislides
                 WorshipListItems.Items[selectedIndex + 1].ImageIndex = imageIndex;
                 WorshipListItems.Items[selectedIndex].Selected = false;
                 WorshipListItems.Items[selectedIndex + 1].Selected = true;
-                WorshipListItems.EnsureVisible(selectedIndex + 1);
                 Gf.PreviewItem.CurItemNo = selectedIndex + 2;
                 UpdateOutputCurItemNo();
                 UpdateWorshipShowIcons();
+                // Both calls above scroll to the output row; keep the moved row in view.
+                WorshipListItems.EnsureVisible(selectedIndex + 1);
                 TimerFlasher.Start();
             }
         }
