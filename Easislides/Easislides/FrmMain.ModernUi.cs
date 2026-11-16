@@ -73,6 +73,8 @@ namespace Easislides
             // decides whether the texts fit (design D20).
             ApplyToolbarIcons();
             InitQuickFindWidth();
+            // Same index layout as imageListSys, new pictures (design D18; tasks 9.4, 9.5).
+            ApplyModernImageList();
 
             AttachWorshipListPainter();
 
@@ -145,6 +147,11 @@ namespace Easislides
             button.FlatAppearance.MouseDownBackColor = hover;
             bool bordered = button.Checked && button != cbGoLive;
             button.FlatAppearance.BorderSize = bordered ? LiveToggleCheckedBorder : 0;
+            if (button == cbGoLive)
+            {
+                // White icon on the LiveAccent fill while checked (design D11, D18).
+                UpdateShowButtonIcon();
+            }
         }
 
         /// <summary>
@@ -245,9 +252,18 @@ namespace Easislides
                 if (state.ModernUi != shortcutTooltipsModernUi)
                 {
                     // High contrast switched on or off while the app runs.
-                    RefreshShortcutTooltips();
-                    RefreshToolbarIconsForGate();
-                    UpdateQuickFindWidth();
+                    // Each part on its own: one failure must not leave the others in the other look.
+                    foreach (Action refresh in new Action[] { RefreshShortcutTooltips, RefreshToolbarIconsForGate, RefreshModernImageListForGate, UpdateQuickFindWidth })
+                    {
+                        try
+                        {
+                            refresh();
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.WriteLine($"Gate refresh {refresh.Method.Name} failed: {ex.Message}");
+                        }
+                    }
                 }
                 if (state != lastLiveIndicatorState)
                 {
@@ -868,7 +884,7 @@ namespace Easislides
         /// </summary>
         private void AttachWorshipListPainter()
         {
-            worshipListPainter = new WorshipListPainter(WorshipListItems, () => IsModernUiActive, WorshipRowMark, () => SongFolder.BackColor);
+            worshipListPainter = new WorshipListPainter(WorshipListItems, () => IsModernUiActive, WorshipRowMark, () => SongFolder.BackColor, WorshipRowPictureIndex);
             worshipListPainter.Attach();
             Disposed += (s, e) => worshipListPainter?.Dispose();
         }
@@ -1003,6 +1019,7 @@ namespace Easislides
         private readonly Func<bool> isActive;
         private readonly Func<int, int> markOf;
         private readonly Func<Color> resetBackColour;
+        private readonly Func<ListViewItem, int> pictureIndex;
 
         // Bold GDI font made from the list's font handle (boldFontSource); deleted when replaced.
         private IntPtr boldFontHandle;
@@ -1016,12 +1033,16 @@ namespace Easislides
         /// <param name="markOf">Mark of a row index (MarkNone / MarkPreview / MarkOutput / MarkLive).</param>
         /// <param name="resetBackColour">Colour the app gives every row when it resets the drag marker
         /// (ResetListViewBackgroundColour); any other row back colour (the yellow drop marker) is kept.</param>
-        public WorshipListPainter(ListView list, Func<bool> isActive, Func<int, int> markOf, Func<Color> resetBackColour)
+        /// <param name="pictureIndex">The image index to draw for a row (the row's own index, or another picture
+        /// for the same item type, design D25).</param>
+        public WorshipListPainter(ListView list, Func<bool> isActive, Func<int, int> markOf, Func<Color> resetBackColour,
+            Func<ListViewItem, int> pictureIndex)
         {
             this.list = list;
             this.isActive = isActive;
             this.markOf = markOf;
             this.resetBackColour = resetBackColour;
+            this.pictureIndex = pictureIndex;
             eraseFilter = new EraseFilter(this);
         }
 
@@ -1311,9 +1332,12 @@ namespace Easislides
                     Fill(hdc, new Rectangle(bounds.X, bounds.Y, barWidth, bounds.Height), onOutput ? ModernUiPalette.LiveAccent : ModernUiPalette.PreviewAccent);
                 }
 
-                // Icons of rows shown as selected are blended with the highlight colour as the list
-                // does it: 50 % while the list has focus, 25 % while it has not.
-                DrawIcon(hdc, item, !selected ? ILD_NORMAL : hasFocus ? ILD_BLEND50 : ILD_BLEND25);
+                // Icons of rows shown as selected are blended with the highlight colour as the list does it
+                // (50 % with focus, 25 % without) - except with the new 32-bit list: its icon area is the list's
+                // back colour, not the selection colour (a selected row is coloured from the label on), and a
+                // blend would tint the badge colours (design D25).
+                bool modernList = list.SmallImageList?.ColorDepth == ColorDepth.Depth32Bit;
+                DrawIcon(hdc, item, !selected || modernList ? ILD_NORMAL : hasFocus ? ILD_BLEND50 : ILD_BLEND25);
 
                 IntPtr regular = RegularFontHandle();
                 int titleRight = bounds.Right;
@@ -1575,7 +1599,7 @@ namespace Easislides
             {
                 return;
             }
-            int index = item.ImageIndex >= 0 ? item.ImageIndex
+            int index = item.ImageIndex >= 0 ? (pictureIndex?.Invoke(item) ?? item.ImageIndex)
                 : string.IsNullOrEmpty(item.ImageKey) ? -1 : images.Images.IndexOfKey(item.ImageKey);
             if (index < 0 || index >= images.Images.Count)
             {

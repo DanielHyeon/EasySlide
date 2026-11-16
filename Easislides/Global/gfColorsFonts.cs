@@ -195,5 +195,8 @@ namespace Easislides
 		public static readonly Color OnAccent = Color.FromArgb(0xFF, 0xFF, 0xFF);
 		// Text on LiveTint (current live slide that is not on the screen); 5.6:1 on LiveTint.
 		public static readonly Color LiveAccentText = Color.FromArgb(0xA3, 0x3F, 0x00);
+		// Badge colours of the PowerPoint and Word-document list icons (white letter on this square, design D25).
+		public static readonly Color PowerPointBadge = Color.FromArgb(0xC4, 0x3E, 0x1C);
+		public static readonly Color WordBadge = Color.FromArgb(0x18, 0x5A, 0xBD);
 	}
 }

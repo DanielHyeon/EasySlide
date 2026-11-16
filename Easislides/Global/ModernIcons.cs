@@ -40,8 +40,10 @@ namespace Easislides
 	/// dispose it, and <see cref="ClearCache"/> may only run when no control still shows it (after the
 	/// controls are disposed, e.g. when the main form closes). A bitmap a caller must own (anything
 	/// that outlives the cache, or that the caller disposes itself) comes from <see cref="Render"/>,
-	/// which returns a new bitmap on every call and never a cached one. An ImageList copies an image
-	/// on Add, so Get is fine for it; disposing the ImageList does not touch the cache.
+	/// which returns a new bitmap on every call and never a cached one. An ImageList does NOT copy on
+	/// Add: it keeps the image and reads it when its handle is created and whenever the handle is
+	/// recreated, so an image added to an ImageList must live as long as the list (Render, or the
+	/// caller's own bitmap; not a cached one that ClearCache may dispose first).
 	/// </para>
 	/// <para>
 	/// Showing the bitmap unscaled and with its alpha: for an ImageList set ColorDepth = Depth32Bit
@@ -180,6 +182,46 @@ namespace Easislides
 			catch (Exception ex)
 			{
 				LogOnce(name + "/" + style + "/" + pixelSize + "/render", "ModernIcons: icon '" + name + "' (" + style + ", " + pixelSize + " px) not drawn: " + ex.Message);
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Draws several icons on top of each other, each in its own colour (e.g. a coloured badge square and
+		/// the white letter on it), into a NEW bitmap the caller owns. Null (logged once) when any layer cannot
+		/// be drawn. Never throws.
+		/// </summary>
+		internal static Bitmap RenderComposite(ModernIconStyle style, int pixelSize, params (string Name, Color Colour)[] layers)
+		{
+			Bitmap result = null;
+			try
+			{
+				result = new Bitmap(pixelSize, pixelSize, PixelFormat.Format32bppPArgb);
+				using (Graphics g = Graphics.FromImage(result))
+				{
+					g.Clear(Color.Transparent);
+					foreach (var (name, colour) in layers)
+					{
+						using (Bitmap layer = Render(name, style, pixelSize, colour))
+						{
+							if (layer == null)
+							{
+								result.Dispose();
+								return null;
+							}
+							// Same size, pixel on pixel, alpha-blended over the layers below.
+							g.InterpolationMode = InterpolationMode.NearestNeighbor;
+							g.PixelOffsetMode = PixelOffsetMode.Half;
+							g.DrawImage(layer, new Rectangle(0, 0, pixelSize, pixelSize), 0, 0, pixelSize, pixelSize, GraphicsUnit.Pixel);
+						}
+					}
+				}
+				return result;
+			}
+			catch (Exception ex)
+			{
+				result?.Dispose();
+				LogOnce("composite/" + pixelSize, "ModernIcons: composite icon (" + pixelSize + " px) not drawn: " + ex.Message);
 				return null;
 			}
 		}
@@ -1559,6 +1601,11 @@ namespace Easislides
 		// grid separately. They are not copied from any icon set, so the MIT notice above does
 		// not apply to them.
 		//   bible: closed book with a cross on the cover (owner's choice, 2026-11-17, design D19).
+		//   verse_card: rounded card with a small cross and text lines, the database item in a "Word" folder
+		//     (owner's choice, design D25).
+		//   badge_square, letter_p, letter_w: the PowerPoint and Word-document list icons (D25) are two
+		//     layers, a coloured square and a white plain capital letter on it, composed by the caller with
+		//     RenderComposite. Plain geometric letters on a square; no Microsoft logo geometry.
 		// Every part is a simple shape or an outer/inner ring pair, so evenodd is exact.
 		// ---------------------------------------------------------------------------------------
 		private static readonly IconSource[] OwnSources =
@@ -1581,6 +1628,54 @@ namespace Easislides
 				"M6 2H15A2 2 0 0 1 17 4V16A2 2 0 0 1 15 18H6A2 2 0 0 1 4 16V4A2 2 0 0 1 6 2ZM10 4H11V6H13V7H11V12H10V7H8V6H10ZM5 14H16V15H5Z"),
 			new IconSource("bible", ModernIconStyle.Filled, 24, FillMode.Alternate,
 				"M6.5 2H17.5A2.5 2.5 0 0 1 20 4.5V19.5A2.5 2.5 0 0 1 17.5 22H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2ZM11 5H13V7H16V9H13V15H11V9H8V7H11ZM5.5 17H18.5V18.5H5.5Z"),
+			new IconSource("verse_card", ModernIconStyle.Regular, 16, FillMode.Alternate,
+				"M3 2H13A2 2 0 0 1 15 4V12A2 2 0 0 1 13 14H3A2 2 0 0 1 1 12V4A2 2 0 0 1 3 2ZM3 3H13A1 1 0 0 1 14 4V12A1 1 0 0 1 13 13H3A1 1 0 0 1 2 12V4A1 1 0 0 1 3 3Z",
+				"M3 4H4V5H5V6H4V8H3V6H2V5H3Z",
+				"M6 5H13V6H6ZM3 8H13V9H3ZM3 10H11V11H3Z"),
+			new IconSource("verse_card", ModernIconStyle.Regular, 20, FillMode.Alternate,
+				"M4 3H16A2 2 0 0 1 18 5V15A2 2 0 0 1 16 17H4A2 2 0 0 1 2 15V5A2 2 0 0 1 4 3ZM4 4H16A1 1 0 0 1 17 5V15A1 1 0 0 1 16 16H4A1 1 0 0 1 3 15V5A1 1 0 0 1 4 4Z",
+				"M5 5H6V7H8V8H6V10H5V8H3V7H5Z",
+				"M9 6H15V7H9ZM5 10H15V11H5ZM5 13H12V14H5Z"),
+			new IconSource("verse_card", ModernIconStyle.Regular, 24, FillMode.Alternate,
+				"M5 4H19A3 3 0 0 1 22 7V17A3 3 0 0 1 19 20H5A3 3 0 0 1 2 17V7A3 3 0 0 1 5 4ZM5 5.5H19A1.5 1.5 0 0 1 20.5 7V17A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V7A1.5 1.5 0 0 1 5 5.5Z",
+				"M6 6H7V8H9V9H7V12H6V9H4V8H6Z",
+				"M11 7H18V8.5H11ZM6 12H18V13.5H6ZM6 16H14V17.5H6Z"),
+			new IconSource("verse_card", ModernIconStyle.Filled, 16, FillMode.Alternate,
+				"M3 2H13A2 2 0 0 1 15 4V12A2 2 0 0 1 13 14H3A2 2 0 0 1 1 12V4A2 2 0 0 1 3 2ZM3 4H4V5H5V6H4V8H3V6H2V5H3ZM6 5H13V6H6ZM3 8H13V9H3ZM3 10H11V11H3Z"),
+			new IconSource("verse_card", ModernIconStyle.Filled, 20, FillMode.Alternate,
+				"M4 3H16A2 2 0 0 1 18 5V15A2 2 0 0 1 16 17H4A2 2 0 0 1 2 15V5A2 2 0 0 1 4 3ZM5 5H6V7H8V8H6V10H5V8H3V7H5ZM9 6H15V7H9ZM5 10H15V11H5ZM5 13H12V14H5Z"),
+			new IconSource("verse_card", ModernIconStyle.Filled, 24, FillMode.Alternate,
+				"M5 4H19A3 3 0 0 1 22 7V17A3 3 0 0 1 19 20H5A3 3 0 0 1 2 17V7A3 3 0 0 1 5 4ZM6 6H7V8H9V9H7V12H6V9H4V8H6ZM11 7H18V8.5H11ZM6 12H18V13.5H6ZM6 16H14V17.5H6Z"),
+			new IconSource("badge_square", ModernIconStyle.Regular, 16, FillMode.Alternate,
+				"M3 0.5H13A2.5 2.5 0 0 1 15.5 3V13A2.5 2.5 0 0 1 13 15.5H3A2.5 2.5 0 0 1 0.5 13V3A2.5 2.5 0 0 1 3 0.5Z"),
+			new IconSource("letter_p", ModernIconStyle.Regular, 16, FillMode.Alternate,
+				"M4.25 3.5H6.875V12.5H4.25Z",
+				"M6.875 3.5H9.125A2.625 2.625 0 0 1 11.75 6.125V6.5A2.625 2.625 0 0 1 9.125 9.125H6.875A2.625 2.625 0 0 1 4.25 6.5V6.125A2.625 2.625 0 0 1 6.875 3.5ZM7.625 5.6H8.6A0.75 0.75 0 0 1 9.35 6.35V6.35A0.75 0.75 0 0 1 8.6 7.1H7.625A0.75 0.75 0 0 1 6.875 6.35V6.35A0.75 0.75 0 0 1 7.625 5.6Z"),
+			new IconSource("letter_w", ModernIconStyle.Regular, 16, FillMode.Alternate,
+				"M1.819 3.939L4.519 12.639L6.381 12.061L3.681 3.361Z",
+				"M6.352 12.72L8.902 6.495L7.098 5.755L4.548 11.98Z",
+				"M7.098 6.495L9.648 12.72L11.452 11.98L8.902 5.755Z",
+				"M11.481 12.639L14.181 3.939L12.319 3.361L9.619 12.061Z"),
+			new IconSource("badge_square", ModernIconStyle.Regular, 20, FillMode.Alternate,
+				"M4 1H16A3 3 0 0 1 19 4V16A3 3 0 0 1 16 19H4A3 3 0 0 1 1 16V4A3 3 0 0 1 4 1Z"),
+			new IconSource("letter_p", ModernIconStyle.Regular, 20, FillMode.Alternate,
+				"M5.5 4.6H8.65V15.4H5.5Z",
+				"M8.65 4.6H11.35A3.15 3.15 0 0 1 14.5 7.75V8.2A3.15 3.15 0 0 1 11.35 11.35H8.65A3.15 3.15 0 0 1 5.5 8.2V7.75A3.15 3.15 0 0 1 8.65 4.6ZM9.55 7.12H10.72A0.9 0.9 0 0 1 11.62 8.02V8.02A0.9 0.9 0 0 1 10.72 8.92H9.55A0.9 0.9 0 0 1 8.65 8.02V8.02A0.9 0.9 0 0 1 9.55 7.12Z"),
+			new IconSource("letter_w", ModernIconStyle.Regular, 20, FillMode.Alternate,
+				"M2.583 5.127L5.823 15.567L8.057 14.873L4.817 4.433Z",
+				"M8.023 15.664L11.083 8.194L8.917 7.306L5.857 14.776Z",
+				"M8.917 8.194L11.977 15.664L14.143 14.776L11.083 7.306Z",
+				"M14.177 15.567L17.417 5.127L15.183 4.433L11.943 14.873Z"),
+			new IconSource("badge_square", ModernIconStyle.Regular, 24, FillMode.Alternate,
+				"M4.5 1H19.5A3.5 3.5 0 0 1 23 4.5V19.5A3.5 3.5 0 0 1 19.5 23H4.5A3.5 3.5 0 0 1 1 19.5V4.5A3.5 3.5 0 0 1 4.5 1Z"),
+			new IconSource("letter_p", ModernIconStyle.Regular, 24, FillMode.Alternate,
+				"M6.5 5.4H10.35V18.6H6.5Z",
+				"M10.35 5.4H13.65A3.85 3.85 0 0 1 17.5 9.25V9.8A3.85 3.85 0 0 1 13.65 13.65H10.35A3.85 3.85 0 0 1 6.5 9.8V9.25A3.85 3.85 0 0 1 10.35 5.4ZM11.45 8.48H12.88A1.1 1.1 0 0 1 13.98 9.58V9.58A1.1 1.1 0 0 1 12.88 10.68H11.45A1.1 1.1 0 0 1 10.35 9.58V9.58A1.1 1.1 0 0 1 11.45 8.48Z"),
+			new IconSource("letter_w", ModernIconStyle.Regular, 24, FillMode.Alternate,
+				"M2.934 6.044L6.894 18.804L9.626 17.956L5.666 5.196Z",
+				"M9.583 18.922L13.323 9.792L10.677 8.708L6.937 17.838Z",
+				"M10.677 9.792L14.417 18.922L17.063 17.838L13.323 8.708Z",
+				"M17.106 18.804L21.066 6.044L18.334 5.196L14.374 17.956Z"),
 		};
 	}
 }

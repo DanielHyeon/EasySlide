@@ -1148,6 +1148,7 @@ namespace Easislides
                         {
                             listViewItem.ImageIndex = 28;
                         }
+                        ApplyTitleListWordIcon(Initem.OutputStyleScreen ? OutputPanelDisplayName : PreviewPanelDisplayName, Initem);
                     }
 
                 }));
@@ -1197,6 +1198,7 @@ namespace Easislides
                     {
                         listViewItem.ImageIndex = 28;
                     }
+                    ApplyTitleListWordIcon(Initem.OutputStyleScreen ? OutputPanelDisplayName : PreviewPanelDisplayName, Initem);
                 }
             }
 
@@ -1698,7 +1700,9 @@ namespace Easislides
                             listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[5].Text);
                             listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[6].Text);
                             listViewItem.SubItems.Add("");
-                            listViewItem.SubItems.Add(SongFolder.Text);
+                            // The item's own folder (not the browsing text, e.g. "Search Results:"): saved as <Folder>.
+                            int folderNo = DataUtil.GetDataInt(dr, "FolderNo");
+                            listViewItem.SubItems.Add(folderNo > 0 && folderNo < Gf.FolderName.Length ? Gf.FolderName[folderNo] : SongFolder.Text);
                             AddToLocation++;
                             num++;
                         }
