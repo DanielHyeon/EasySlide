@@ -1316,10 +1316,6 @@ namespace Easislides
                 }
                 Fill(hdc, Rectangle.FromLTRB(rowColourLeft, bounds.Top, bounds.Right, bounds.Bottom), back);
 
-                if (section)
-                {
-                    Fill(hdc, new Rectangle(bounds.X, bounds.Y, bounds.Width, 1), ModernUiPalette.TextSecondary);
-                }
                 if (mark != MarkNone)
                 {
                     // The bar stays left of the icon, which keeps its place (the icon starts 4 px in at 96 dpi).
