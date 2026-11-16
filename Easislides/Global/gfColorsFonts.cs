@@ -116,6 +116,30 @@ namespace Easislides
 			InCombo.Items.Add("20");
 		}
 
+		// The requests ReferenceAlertFont and Alert_UserFont were last made for (GetReusedFont).
+		private static string ReferenceAlertFontKey;
+		private static string AlertUserFontKey;
+
+		/// <summary>
+		/// For a font kept in one Gf field and replaced on every use (ReferenceAlertFont, Alert_UserFont):
+		/// returns <paramref name="current"/> when it was made for the same request (name, size, style),
+		/// otherwise a new font from GetNewFont, and disposes the one it replaces. Those fields are only read
+		/// on the UI thread, for name, size and style, by calls that keep nothing (LoadRef, StartAlert), so
+		/// nothing uses the replaced font afterwards. <paramref name="currentKey"/> remembers the request.
+		/// </summary>
+		internal static Font GetReusedFont(Font current, ref string currentKey, string InFontName, int InFontSize, bool InBold, bool InItalic, bool InUnderline)
+		{
+			string key = InFontName + "|" + InFontSize + "|" + InBold + "|" + InItalic + "|" + InUnderline;
+			if (current != null && key == currentKey)
+			{
+				return current;
+			}
+			Font font = GetNewFont(InFontName, InFontSize, InBold, InItalic, InUnderline, ShowErrorMsg: false);
+			currentKey = key;
+			current?.Dispose();
+			return font;
+		}
+
 		public static Font GetNewFont(string InFontName, int InFontSize, bool InBold, bool InItalic, bool InUnderline)
 		{
 			return GetNewFont(InFontName, InFontSize, InBold, InItalic, InUnderline, ShowErrorMsg: true);

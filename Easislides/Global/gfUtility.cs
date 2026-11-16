@@ -985,25 +985,64 @@ namespace Easislides
 			SetColoursFormat(InItem, ref InPic, SetTransparent: false);
 		}
 
+		/// <summary>
+		/// A new background picture of the output size: transparent, or the item's colour pattern (its
+		/// background ID in <paramref name="patternID"/>). If drawing it throws, the picture and its Graphics
+		/// are disposed and the exception goes on to the caller, as before.
+		/// </summary>
+		private static Image NewBackgroundBitmap(SongSettings InItem, bool Transparent, out string patternID)
+		{
+			patternID = "";
+			Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
+			try
+			{
+				Graphics g = Graphics.FromImage(image);
+				try
+				{
+					if (Transparent)
+					{
+						BackPattern.Clear(ref g, TransparentColour);
+					}
+					else
+					{
+						BackPattern.Fill(ref g, InItem.Format.ShowScreenColour[0], InItem.Format.ShowScreenColour[1], InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref patternID);
+					}
+				}
+				finally
+				{
+					g.Dispose();
+				}
+			}
+			catch
+			{
+				image.Dispose();
+				throw;
+			}
+			return image;
+		}
+
 		public static void SetColoursFormat(SongSettings InItem, ref ImageTransitionControl InPic, bool SetTransparent)
 		{
+			// Background pictures made here are made for InPic alone and become its own when they are stored
+			// (AdoptImage): the screen disposes each once none of its fields refers to it. No picture is copied:
+			// nothing draws into a background picture after it is made, so the previous NewBackgroundPicture
+			// itself becomes CurrentBackgroundPicture (it was copied each time, and the copies were left to the
+			// finalizer).
 			if (SetTransparent)
 			{
-				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
-				Graphics g = Graphics.FromImage(image);
-				BackPattern.Clear(ref g, TransparentColour);
-				g.Dispose();
+				Image image = NewBackgroundBitmap(InItem, Transparent: true, out _);
+				InPic.AdoptImage(image);
 				InPic.NewBackgroundPicture = image;
 				InPic.NewTextImage = InPic.NewBackgroundPicture;
 				InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.None;
-				InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
-				
+				InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
+
 			}
 			else if (InItem.UseDefaultFormat)
 			{
 				if (InPic.NewBackgroundPicture != null)
 				{
-					InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
 				}
 				else
 				{
@@ -1025,14 +1064,10 @@ namespace Easislides
 			}
 			else
 			{
-				string text = "";
-				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
-				Graphics g = Graphics.FromImage(image);
-				BackPattern.Fill(ref g, InItem.Format.ShowScreenColour[0], InItem.Format.ShowScreenColour[1], InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref text);
-				g.Dispose();
+				Image image = NewBackgroundBitmap(InItem, Transparent: false, out string text);
 				if (InPic.NewBackgroundPicture != null)
 				{
-					InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
 				}
 				else
 				{
@@ -1041,6 +1076,7 @@ namespace Easislides
 					InPic.CurrentCombinedImage = InPic.BackgroundImage;
 					InPic.NewTextImage = InPic.BackgroundImage;
 				}
+				InPic.AdoptImage(image);
 				InPic.NewBackgroundPicture = image;
 				if (InPic.BackgroundID == text)
 				{
@@ -1064,27 +1100,23 @@ namespace Easislides
 			{
 				if (InPic.CurrentBackgroundPicture == null)
 				{
-					InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.CurrentBackgroundPicture = InPic.AdoptImage((Image)InPic.NewBackgroundPicture.Clone());
 				}
 				if (InPic.CurrentTextImage == null)
 				{
-					InPic.CurrentTextImage = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.CurrentTextImage = InPic.AdoptImage((Image)InPic.NewBackgroundPicture.Clone());
 				}
 				if (InPic.CurrentCombinedImage == null)
 				{
-					InPic.CurrentCombinedImage = (Image)InPic.NewBackgroundPicture.Clone();
-				}
-				if (InPic.NewBackgroundPicture == null)
-				{
-					InPic.NewBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.CurrentCombinedImage = InPic.AdoptImage((Image)InPic.NewBackgroundPicture.Clone());
 				}
 				if (InPic.NewTextImage == null)
 				{
-					InPic.NewTextImage = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.NewTextImage = InPic.AdoptImage((Image)InPic.NewBackgroundPicture.Clone());
 				}
 				if (InPic.NewCombinedImage == null)
 				{
-					InPic.NewCombinedImage = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.NewCombinedImage = InPic.AdoptImage((Image)InPic.NewBackgroundPicture.Clone());
 				}
 			}
 			catch (Exception ex)
@@ -1096,6 +1128,7 @@ namespace Easislides
 		public static void SetImageFormat(ref ImageTransitionControl InPic, string File_Name, ImageMode PicMode, bool SetTransparent)
 		{
 			Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
+			using UnstoredImageGuard imageGuard = new UnstoredImageGuard(image);
 			using Graphics graphics = Graphics.FromImage(image);
 
 			if (InPic.BackgroundID != "")
@@ -1211,9 +1244,13 @@ namespace Easislides
 							break;
 						}
 				}
+				// The picture becomes InPic's own (see SetColoursFormat); the previous NewBackgroundPicture
+				// itself becomes CurrentBackgroundPicture, without a copy.
+				InPic.AdoptImage(image);
+				imageGuard.Stored = true;
 				if (InPic.NewBackgroundPicture != null)
 				{
-					InPic.CurrentBackgroundPicture = (Image)InPic.NewBackgroundPicture.Clone();
+					InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
 				}
 				else
 				{
@@ -1225,6 +1262,31 @@ namespace Easislides
 			{
 				// Clean up loaded image
 				image2?.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Disposes a picture that was made for a screen but never handed to it (the method returned early
+		/// or threw). Declared before the Graphics drawing on the picture, so a using declaration disposes
+		/// that Graphics first.
+		/// </summary>
+		private sealed class UnstoredImageGuard : IDisposable
+		{
+			private readonly Image image;
+
+			public bool Stored;
+
+			public UnstoredImageGuard(Image image)
+			{
+				this.image = image;
+			}
+
+			public void Dispose()
+			{
+				if (!Stored)
+				{
+					image.Dispose();
+				}
 			}
 		}
 

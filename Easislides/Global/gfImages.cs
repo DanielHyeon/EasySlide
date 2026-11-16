@@ -423,7 +423,7 @@ namespace Easislides
 			}
 			else
 			{
-				ReferenceAlertFont = GetNewFont(ReferenceAlertFontName, ReferenceAlertFontSize, ReferenceAlertBold, ReferenceAlertItalic, ReferenceAlertUnderline, ShowErrorMsg: false);
+				ReferenceAlertFont = GetReusedFont(ReferenceAlertFont, ref ReferenceAlertFontKey, ReferenceAlertFontName, ReferenceAlertFontSize, ReferenceAlertBold, ReferenceAlertItalic, ReferenceAlertUnderline);
 				InScreen.LoadRef(InItem, DataUtil.Left(text, 50), ReferenceAlertDuration, ReferenceAlertFont, ReferenceAlertScroll, ReferenceAlertFlash, ReferenceAlertTransparent, ReferenceAlertShadow, ReferenceAlertOutline, ReferenceAlertTextColour, ReferenceAlertBackColour, ReferenceAlertTextAlign, ReferenceAlertVerticalAlign, BottomBorderFactor);
 			}
 		}
@@ -481,8 +481,19 @@ namespace Easislides
 				}
 
 				Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
-				Graphics g = Graphics.FromImage(image);
-				BackPattern.Fill(ref g, ShowScreenColour[0], ShowScreenColour[1], ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref DefaultBackgroundID);
+				try
+				{
+					using Graphics g = Graphics.FromImage(image);
+					Graphics pattern = g;
+					BackPattern.Fill(ref pattern, ShowScreenColour[0], ShowScreenColour[1], ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref DefaultBackgroundID);
+				}
+				catch
+				{
+					// Not handed to the screen: nothing else refers to it.
+					image.Dispose();
+					throw;
+				}
+				// The screen owns it from here (it releases the one it replaces).
 				InScreen.SetDefaultBackgroundPicture(image);
 			}
 			catch (Exception e)

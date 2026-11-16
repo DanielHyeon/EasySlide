@@ -488,9 +488,60 @@ namespace Easislides
 			TimerOpacity.Enabled = false;
 		}
 
+		protected override void WndProc(ref System.Windows.Forms.Message m)
+		{
+			if (m.Msg == FrmMain.WM_QUERYENDSESSION)
+			{
+				if (Modal)
+				{
+					// WinForms ends a modal dialog while it is only asked (DialogResult = Cancel), so a
+					// single-monitor show would end even when the shutdown is then cancelled. Answer "yes"
+					// without that; WM_ENDSESSION with wParam TRUE closes the window when the session ends.
+					m.Result = (IntPtr)1;
+					return;
+				}
+				FrmMain.QueryEndSessionDepth++;
+				try
+				{
+					base.WndProc(ref m);
+				}
+				finally
+				{
+					FrmMain.QueryEndSessionDepth--;
+				}
+				return;
+			}
+			if (m.Msg == FrmMain.WM_ENDSESSION && m.WParam != IntPtr.Zero)
+			{
+				FrmMain.SessionEnded = true;
+				FrmMain.EndSessionDepth++;
+				try
+				{
+					base.WndProc(ref m);
+				}
+				finally
+				{
+					FrmMain.EndSessionDepth--;
+				}
+				return;
+			}
+			base.WndProc(ref m);
+		}
+
 		private void FrmLaunchShow_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			if (!Modal && Gf.ShowRunning && IsSelfCloseReason(e.CloseReason))
+			if (FrmMain.QueryEndSessionDepth > 0)
+			{
+				// Asked while Windows queries whether it may end the session (this window's
+				// WM_QUERYENDSESSION, or the main form's, which raises FormOwnerClosing on an owned modal
+				// show): the shutdown can still be cancelled and the show go on, so nothing is cleaned up
+				// here. When the session really ends, OnFormClosed does it.
+				return;
+			}
+			// WinForms keeps WindowsShutDown as the close reason after a cancelled shutdown; outside the
+			// query it is an ordinary request from outside (e.g. Task Manager's End task).
+			CloseReason reason = (e.CloseReason == CloseReason.WindowsShutDown) ? CloseReason.TaskManagerClosing : e.CloseReason;
+			if (!Modal && Gf.ShowRunning && IsSelfCloseReason(reason))
 			{
 				// Non-modal show (the main form does not wait for this window): a close that does not
 				// come from the main form would dispose this window while the main form still shows
@@ -502,6 +553,18 @@ namespace Easislides
 				return;
 			}
 			FormClosingCleanup();
+		}
+
+		protected override void OnFormClosed(FormClosedEventArgs e)
+		{
+			// The session ends (WM_ENDSESSION with wParam TRUE, to this window or to the main form that owns a
+			// modal show): no FormClosing came for this close, or it came at the query and did nothing. The show
+			// may have been ended meanwhile (the main form's closing work: StopShow).
+			if (FrmMain.EndSessionDepth > 0 && Gf.ShowRunning)
+			{
+				FormClosingCleanup();
+			}
+			base.OnFormClosed(e);
 		}
 
 		private static bool IsSelfCloseReason(CloseReason reason)

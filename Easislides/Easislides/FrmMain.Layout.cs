@@ -1227,7 +1227,8 @@ namespace Easislides
                     Console.WriteLine(e.ToString());
                 }
 
-                InFlowPanel.ScrollControlIntoView(InCanvas[CurSelectedSlide - 1]);
+                // CurSelectedSlide is not limited to the thumbnail array (1024 entries) by the callers.
+                ScrollThumbIntoView(InFlowPanel, InCanvas, CurSelectedSlide);
 
                 System.Threading.Interlocked.Increment(ref LoadThumbOutlockkey);
                 previousOutSelectedSlide = CurSelectedSlide;
@@ -1304,12 +1305,23 @@ namespace Easislides
 
                 if (CurSelectedSlide > 0 && CurSelectedSlide <= TotalImagesCount)
                 {
-                    InFlowPanel.ScrollControlIntoView(InCanvas[CurSelectedSlide - 1]);
+                    // TotalImagesCount is not checked against the thumbnail array by the callers.
+                    ScrollThumbIntoView(InFlowPanel, InCanvas, CurSelectedSlide);
                 }
 
                 System.Threading.Interlocked.Increment(ref LoadThumbPreviewlockkey);
                 previousPreviewSelectedSlide = CurSelectedSlide;
 
+            }
+        }
+
+        /// <summary>Scrolls slide <paramref name="slideNumber"/>'s thumbnail into view when the array has one for it.</summary>
+        private static void ScrollThumbIntoView(FlowLayoutPanel flowPanel, ImageCanvas[] canvas, int slideNumber)
+        {
+            int index = slideNumber - 1;
+            if (index >= 0 && index < canvas.Length && canvas[index] != null)
+            {
+                flowPanel.ScrollControlIntoView(canvas[index]);
             }
         }
 

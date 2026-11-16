@@ -157,8 +157,101 @@ namespace Easislides
             SetNotesPreview(IndcbPreviewNotes.Checked);
         }
 
+        // The closing work below has started (it runs once). Read by Start_Presentation after a modal show.
+        private bool closingWorkStarted;
+        // FormClosing came while Windows asked whether it may end the session; the work waits for FormClosed.
+        private bool closingWorkDeferred;
+
+        // Set while a form of this app handles WM_QUERYENDSESSION, or WM_ENDSESSION with wParam TRUE (UI thread
+        // only). A close reason of WindowsShutDown is not enough: WinForms keeps that reason on the form after a
+        // cancelled shutdown, so a later Task Manager close would report it as well.
+        internal static int QueryEndSessionDepth;
+        internal static int EndSessionDepth;
+        // Set (never cleared) once a form of this app has handled WM_ENDSESSION with wParam TRUE: the session
+        // ends and the app with it. Read by the code that runs after a modal show (Start_Presentation, GoLive).
+        internal static bool SessionEnded;
+
+        /// <summary>The main form is being closed (or the Windows session is ending): no more UI work after a show.</summary>
+        internal bool MainFormClosing => closingWorkStarted || SessionEnded || IsDisposed || Disposing;
+        internal const int WM_QUERYENDSESSION = 0x0011;
+        internal const int WM_ENDSESSION = 0x0016;
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_QUERYENDSESSION)
+            {
+                QueryEndSessionDepth++;
+                try
+                {
+                    base.WndProc(ref m);
+                }
+                finally
+                {
+                    QueryEndSessionDepth--;
+                }
+                return;
+            }
+            if (m.Msg == WM_ENDSESSION && m.WParam != IntPtr.Zero)
+            {
+                SessionEnded = true;
+                EndSessionDepth++;
+                try
+                {
+                    base.WndProc(ref m);
+                }
+                finally
+                {
+                    EndSessionDepth--;
+                }
+                return;
+            }
+            base.WndProc(ref m);
+        }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // Cancelled already (validation, an owned window): the form stays open, so nothing is closed.
+            if (e.Cancel)
+            {
+                return;
+            }
+            // Windows asks whether it may end the session (WM_QUERYENDSESSION). The shutdown can still be
+            // cancelled afterwards (by another program or the user), leaving this app running, so nothing that
+            // cannot be undone happens here. FormClosed follows only when the session really ends
+            // (WM_ENDSESSION with wParam TRUE) and does the closing work then.
+            if (QueryEndSessionDepth > 0)
+            {
+                closingWorkDeferred = true;
+                return;
+            }
+            RunClosingWork(e.CloseReason, atSessionEnd: false);
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            // Deferred at the query, or a WM_ENDSESSION with wParam TRUE that came without a query before it.
+            if (closingWorkDeferred || EndSessionDepth > 0)
+            {
+                RunClosingWork(e.CloseReason, atSessionEnd: EndSessionDepth > 0);
+            }
+        }
+
+        /// <summary>
+        /// The main form's closing work (show end, hooks, saved form state, PowerPoint, temporary files), once:
+        /// from FormClosing, or from FormClosed after the closing was deferred. Controls still exist at
+        /// FormClosed (Dispose comes after it). At the end of a Windows session (inside WM_ENDSESSION) Windows
+        /// may end the process at any moment, so the hooks and the saved form state come first there. The show
+        /// end and PowerPoint steps still run after them, but their PowerPoint calls fail at once (COM refuses
+        /// outgoing calls during that sent message, RPC_E_CANTCALLOUT_ININPUTSYNCCALL) and are logged; Windows
+        /// ends PowerPoint itself. Otherwise the order is the one the closing always had.
+        /// </summary>
+        private void RunClosingWork(CloseReason reason, bool atSessionEnd)
+        {
+            if (closingWorkStarted)
+            {
+                return;
+            }
+            closingWorkStarted = true;
             if (!ForceFormClose)
             {
                 try
@@ -178,12 +271,28 @@ namespace Easislides
                     catch { }
                     WriteDebugLog($"=== FORM CLOSING === File: {filePath}, Items in file: {itemCountInFile}, Items in ListView: {WorshipListItems.Items.Count}, File last modified: {lastWriteTime}, UpdatingFormatFields: {UpdatingFormatFields}");
 
-                    RemoveHookBlackScreen();
-                    RemoveHookSlideUpDown();
-
-                    if (SaveToRegistryOnClosing)
+                    if (atSessionEnd)
                     {
-                        SaveFormStateToRegistry();
+                        WriteDebugLog("Windows is ending the session: saving the form state first; the PowerPoint calls after it are made but fail at once inside WM_ENDSESSION (RPC_E_CANTCALLOUT_ININPUTSYNCCALL, logged); Windows ends PowerPoint itself");
+                        RemoveHookBlackScreen();
+                        RemoveHookSlideUpDown();
+                        if (SaveToRegistryOnClosing)
+                        {
+                            SaveFormStateToRegistry();
+                        }
+                        EndShowBeforeClosing(reason);
+                    }
+                    else
+                    {
+                        EndShowBeforeClosing(reason);
+
+                        RemoveHookBlackScreen();
+                        RemoveHookSlideUpDown();
+
+                        if (SaveToRegistryOnClosing)
+                        {
+                            SaveFormStateToRegistry();
+                        }
                     }
                     //daniel
                     //???? ??????????????

@@ -2945,7 +2945,7 @@ namespace Easislides
 					Alert_Scroll = ParentalAlertScroll;
 					Alert_Transparent = ParentalAlertTransparent;
 					AlertTimeRemaining = ParentalAlertDuration;
-					Alert_UserFont = GetNewFont(ParentalAlertFontName, ParentalAlertFontSize, ParentalAlertBold, ParentalAlertItalic, ParentalAlertUnderline, ShowErrorMsg: false);
+					Alert_UserFont = GetReusedFont(Alert_UserFont, ref AlertUserFontKey, ParentalAlertFontName, ParentalAlertFontSize, ParentalAlertBold, ParentalAlertItalic, ParentalAlertUnderline);
 					Alert_UserFontShadow = ParentalAlertShadow;
 					Alert_UserFontOutline = ParentalAlertOutline;
 					BuildAlertSequence();
@@ -2962,7 +2962,7 @@ namespace Easislides
 					Alert_Scroll = MessageAlertScroll;
 					Alert_Transparent = MessageAlertTransparent;
 					AlertTimeRemaining = MessageAlertDuration;
-					Alert_UserFont = GetNewFont(MessageAlertFontName, MessageAlertFontSize, MessageAlertBold, MessageAlertItalic, MessageAlertUnderline, ShowErrorMsg: false);
+					Alert_UserFont = GetReusedFont(Alert_UserFont, ref AlertUserFontKey, MessageAlertFontName, MessageAlertFontSize, MessageAlertBold, MessageAlertItalic, MessageAlertUnderline);
 					Alert_UserFontShadow = MessageAlertShadow;
 					Alert_UserFontOutline = MessageAlertOutline;
 					BuildAlertSequence();

@@ -51,6 +51,7 @@ namespace Easislides
         public FrmMain()
         {
             InitializeComponent();
+            FormClosed += Form1_FormClosed;
             WatchFirstShown();
 
             Init();
@@ -1437,6 +1438,12 @@ namespace Easislides
                 CopyPreviewToOutput();
                 GoLive(InStatus: true);
                 //}
+                // A modal show (single-monitor mode) returns here only when it ends; the main form may have been
+                // closed meanwhile.
+                if (MainFormClosing)
+                {
+                    return;
+                }
             }
             WorshipListDoubleClick = true;
             FocusOutputArea();
@@ -2874,6 +2881,45 @@ namespace Easislides
             });
         }
 
+        /// <summary>
+        /// The main form closes while the show runs (any close reason: the operator, Task Manager's End task,
+        /// or Windows ending the session, then from FormClosed; see Form1_FormClosing). The application then
+        /// exits without closing the show window, so its FormClosing clean-up never ran: screen saver setting
+        /// and task bar not restored, the show's slide shows not taken off the top. End the show first on the
+        /// Stop button's path (GoLive(false) -> LiveShow.StopShow -> FormClosingCleanup), the same work and the
+        /// same PowerPoint calls as when the operator stops the show and then closes the app (ShutdownPowerpoint
+        /// afterwards finds nothing left to close). Never throws: a failure (e.g. the show window was already
+        /// closed and disposed by the same shutdown) is logged, the steps that are safe to repeat are run one by
+        /// one, and the closing goes on.
+        /// </summary>
+        private void EndShowBeforeClosing(CloseReason reason)
+        {
+            if (!Gf.ShowRunning)
+            {
+                return;
+            }
+            WriteDebugLog("Main form closing (" + reason + ") with the show running: ending the show first");
+            try
+            {
+                GoLive(InStatus: false);
+            }
+            catch (Exception ex)
+            {
+                WriteDebugLogThrottled("Form closing: end show", ex);
+                Gf.ShowRunning = false;
+                TryStep("RestoreScreenSaverSettings", Gf.RestoreScreenSaverSettings);
+                TryStep("ClearUpPowerpointWindows", Gf.ClearUpPowerpointWindows);
+                TryStep("ShowTaskBar", Gf.ShowTaskBar);
+                TryStep("Hide show window", () =>
+                {
+                    if (LiveShow != null && !LiveShow.IsDisposed && LiveShow.Visible)
+                    {
+                        LiveShow.Hide();
+                    }
+                });
+            }
+        }
+
         private static void TryStep(string what, Action step)
         {
             try
@@ -4271,6 +4317,11 @@ namespace Easislides
                 {
                     Menu_StartShow.Checked = InStatus;
                     Start_Presentation();
+                    // A modal show returns only when it ends; the main form may have been closed meanwhile.
+                    if (MainFormClosing)
+                    {
+                        return;
+                    }
                 }
             }
             else
@@ -4375,6 +4426,14 @@ namespace Easislides
                     // and must run; the show window did not run, so the show is not running.
                     LogLiveShowFailure("Start_Presentation ShowDialog", ex);
                     Gf.ShowRunning = false;
+                }
+                // The main form was closed while the modal show ran (Task Manager's End task, or the end of a Windows
+                // session; a shutdown that is only being asked about does not end the modal show, see
+                // FrmLaunchShow.WndProc): the show is ended (FormClosingCleanup / EndShowBeforeClosing) and the
+                // form is closing. Nothing below may touch it.
+                if (MainFormClosing || LiveShow == null || LiveShow.IsDisposed)
+                {
+                    return;
                 }
                 // A window whose Load failed lacks what only Load does (LiveScreen mouse handlers, the
                 // hidden cursor) and Load never runs again for it: replace it for the next start.

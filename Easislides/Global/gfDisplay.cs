@@ -413,20 +413,23 @@ namespace Easislides
 
 		private static void EnsureImageBuffers(ref ImageTransitionControl InPictureBox)
 		{
+			// The copies made here are the screen's own (AdoptImage): it disposes each once none of its fields
+			// refers to it, and when it is disposed. BackgroundImage stays where it is (the screen owns it too,
+			// through SetDefaultBackgroundPicture); only copies are made here.
 			if (InPictureBox.CurrentCombinedImage == null)
 			{
-				InPictureBox.CurrentBackgroundPicture = (Image)InPictureBox.BackgroundImage.Clone();
-				InPictureBox.CurrentCombinedImage = (Image)InPictureBox.BackgroundImage.Clone();
+				InPictureBox.CurrentBackgroundPicture = InPictureBox.AdoptImage((Image)InPictureBox.BackgroundImage.Clone());
+				InPictureBox.CurrentCombinedImage = InPictureBox.AdoptImage((Image)InPictureBox.BackgroundImage.Clone());
 			}
 			// CurrentTextImage / CurrentPanelImage are not made here: DrawTextCore sets them to the New
 			// layers right after this, before anything reads them.
 			if (InPictureBox.NewTextImage == null)
 			{
-				InPictureBox.NewTextImage = (Image)InPictureBox.BackgroundImage.Clone();
+				InPictureBox.NewTextImage = InPictureBox.AdoptImage((Image)InPictureBox.BackgroundImage.Clone());
 			}
 			if (InPictureBox.NewPanelImage == null)
 			{
-				InPictureBox.NewPanelImage = (Image)InPictureBox.BackgroundImage.Clone();
+				InPictureBox.NewPanelImage = InPictureBox.AdoptImage((Image)InPictureBox.BackgroundImage.Clone());
 			}
 		}
 
@@ -848,6 +851,9 @@ namespace Easislides
 			{
 				return x;
 			}
+			// One FontFamily for every string of this line (made when first needed), disposed when the method
+			// ends. GraphicsPath.AddString copies the outlines, so nothing refers to it afterwards.
+			using LineFontFamily lineFamily = new LineFontFamily(InFont.Name);
 			using (GraphicsPath graphicsPath = new GraphicsPath())
 			using (GraphicsPath graphicsPath2 = new GraphicsPath())
 			{
@@ -862,7 +868,7 @@ namespace Easislides
 				int num6 = y;
 				if (h > 0)
 				{
-					graphicsPath2.AddString(ExtractedText, new FontFamily(InFont.Name), (int)InFont.Style, num2, new Rectangle(num3 + x, y, w, h), stringFormat);
+					graphicsPath2.AddString(ExtractedText, lineFamily.Family, (int)InFont.Style, num2, new Rectangle(num3 + x, y, w, h), stringFormat);
 					int num7 = (int)graphicsPath2.GetBounds().Height + 10;
 					num6 += h - num7;
 				}
@@ -881,11 +887,11 @@ namespace Easislides
 					}
 					else if (h == 0)
 					{
-						graphicsPath.AddString(ExtractedText, new FontFamily(InFont.Name), (int)InFont.Style, num2, new Point(num3 + x + num8, y + num8), stringFormat);
+						graphicsPath.AddString(ExtractedText, lineFamily.Family, (int)InFont.Style, num2, new Point(num3 + x + num8, y + num8), stringFormat);
 					}
 					else
 					{
-						graphicsPath.AddString(ExtractedText, new FontFamily(InFont.Name), (int)InFont.Style, num2, new Rectangle(num3 + x + num8, num6 + num8, w, h), stringFormat);
+						graphicsPath.AddString(ExtractedText, lineFamily.Family, (int)InFont.Style, num2, new Rectangle(num3 + x + num8, num6 + num8, w, h), stringFormat);
 					}
 					g.FillPath(shadowBrush, graphicsPath);
 					num4 = (int)graphicsPath.GetBounds().Left;
@@ -913,11 +919,11 @@ namespace Easislides
 				}
 				else if (h == 0)
 				{
-					graphicsPath.AddString(ExtractedText, new FontFamily(InFont.Name), (int)InFont.Style, num2, new Point(num3 + x, y), stringFormat);
+					graphicsPath.AddString(ExtractedText, lineFamily.Family, (int)InFont.Style, num2, new Point(num3 + x, y), stringFormat);
 				}
 				else
 				{
-					graphicsPath.AddString(ExtractedText, new FontFamily(InFont.Name), (int)InFont.Style, num2, new Rectangle(num3 + x, num6, w, h), stringFormat);
+					graphicsPath.AddString(ExtractedText, lineFamily.Family, (int)InFont.Style, num2, new Rectangle(num3 + x, num6, w, h), stringFormat);
 				}
 				g.FillPath(textBrush, graphicsPath);
 				if (InUseOutlineFont > 0)
@@ -952,17 +958,43 @@ namespace Easislides
 		{
 			StringFormat stringFormat = AlignLeft ? StringFormatNear : StringFormatFar;
 			InFontSize = InFontSize * 7 / 10;
-			if (InRectangle.Height == 0)
+			using (FontFamily fontFamily = new FontFamily(InFont.Name))
 			{
-				pth.AddString(InText, new FontFamily(InFont.Name), (int)InFont.Style, InFontSize, new Point(InRectangle.Left, InRectangle.Top), stringFormat);
-			}
-			else
-			{
-				pth.AddString(InText, new FontFamily(InFont.Name), (int)InFont.Style, InFontSize, InRectangle, stringFormat);
+				if (InRectangle.Height == 0)
+				{
+					pth.AddString(InText, fontFamily, (int)InFont.Style, InFontSize, new Point(InRectangle.Left, InRectangle.Top), stringFormat);
+				}
+				else
+				{
+					pth.AddString(InText, fontFamily, (int)InFont.Style, InFontSize, InRectangle, stringFormat);
+				}
 			}
 			int num = (int)pth.GetBounds().Width;
 			int num2 = num / InText.Length * 2 / 3;
 			return num + num2;
+		}
+
+		/// <summary>
+		/// The FontFamily of one OutputOneLineToScreen call: made on first use (a line may need none, e.g.
+		/// a drawn line), shared by every AddString of the call, disposed with the call.
+		/// </summary>
+		private sealed class LineFontFamily : IDisposable
+		{
+			private readonly string name;
+			private FontFamily family;
+
+			public LineFontFamily(string name)
+			{
+				this.name = name;
+			}
+
+			public FontFamily Family => family ??= new FontFamily(name);
+
+			public void Dispose()
+			{
+				family?.Dispose();
+				family = null;
+			}
 		}
 
 		public static void DrawCapoSettings(SongSettings InItem, Graphics g)
@@ -1686,7 +1718,7 @@ namespace Easislides
 			int num = (InItem.Source == ItemSource.WorshipList) ? InItem.CurItemNo : 0;
 			int totalWorshipListItems = TotalWorshipListItems;
 			Color color = (PanelTextColourAsRegion1 > 0) ? InItem.Lyrics[3].ForeColour : PanelTextColour;
-			StringFormat stringFormat = new StringFormat();
+			using StringFormat stringFormat = new StringFormat();
 			string text = "";
 			string text2 = "";
 			FontStyle fontStyle = FontStyle.Regular;
