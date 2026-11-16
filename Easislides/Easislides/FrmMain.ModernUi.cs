@@ -34,6 +34,7 @@ namespace Easislides
         private Label liveStatusText;
         private Label liveStatusScreen;
         private Label liveStatusGap;
+        private Label liveStatusPowerPoint;
         private Font liveStatusRegularFont;
         private Font liveStatusBoldFont;
 
@@ -47,7 +48,7 @@ namespace Easislides
 
         private readonly record struct LiveIndicatorState(
             bool ModernUi, bool ShowRunning, bool Black, bool TextHidden, bool Gap,
-            string ItemId, string ItemType, int CurSlide, int TotalSlides);
+            string ItemId, string ItemType, int CurSlide, int TotalSlides, string PowerPointProblem);
 
         /// <summary>
         /// Applies the new look. Called once from InitFormControls,
@@ -165,7 +166,8 @@ namespace Easislides
             liveStatusText = CreateLiveStatusLabel("labelLiveStatusText");
             liveStatusScreen = CreateLiveStatusLabel("labelLiveStatusScreen");
             liveStatusGap = CreateLiveStatusLabel("labelLiveStatusGap");
-            liveStatusRow.Controls.AddRange(new Control[] { liveStatusShow, liveStatusText, liveStatusScreen, liveStatusGap });
+            liveStatusPowerPoint = CreateLiveStatusLabel("labelLiveStatusPowerPoint");
+            liveStatusRow.Controls.AddRange(new Control[] { liveStatusShow, liveStatusPowerPoint, liveStatusText, liveStatusScreen, liveStatusGap });
             liveStatusRow.Resize += (s, e) => LayoutLiveStatusRow();
             panel8.Controls.Add(liveStatusRow);
             liveStatusRow.BringToFront();
@@ -202,12 +204,34 @@ namespace Easislides
         /// "Actually live" (design D9): the show runs, the screen is not black and no gap item
         /// is on display. Hidden text still counts as live because the background is on the screen.
         /// </summary>
-        private static bool IsOutputActuallyLive => Gf.ShowRunning && !Gf.ShowLiveBlack && !IsGapItemOnDisplay;
+        private static bool IsOutputActuallyLive => Gf.ShowRunning && !Gf.ShowLiveBlack && !IsGapItemOnDisplay && LivePowerPointProblem == null;
+
+        /// <summary>
+        /// Why the live PowerPoint item is not on the projector (fix-ppt-wrong-presentation P4), or null: its
+        /// slide show did not start, or it was ended or closed in PowerPoint since. The show window's run
+        /// (Gf.LivePP) is the truth in both monitor modes, as it is the slide show behind the output. Reads
+        /// remembered state only; PowerPoint is not asked (this is evaluated by the flash timer).
+        /// </summary>
+        private static string LivePowerPointProblem
+        {
+            get
+            {
+                if (!Gf.ShowRunning || Gf.LiveItem.Type != "P")
+                {
+                    return null;
+                }
+                if (Gf.LivePowerPointNotStarted)
+                {
+                    return "PowerPoint: NOT STARTED";
+                }
+                return Gf.LivePowerPointEnded ? "PowerPoint: NOT RUNNING" : null;
+            }
+        }
 
         private static LiveIndicatorState CurrentLiveIndicatorState()
         {
             return new LiveIndicatorState(IsModernUiActive, Gf.ShowRunning, Gf.ShowLiveBlack, Gf.ShowLiveClear, IsGapItemOnDisplay,
-                Gf.OutputItem.ItemID, Gf.OutputItem.Type, Gf.OutputItem.CurSlide, Gf.OutputItem.TotalSlides);
+                Gf.OutputItem.ItemID, Gf.OutputItem.Type, Gf.OutputItem.CurSlide, Gf.OutputItem.TotalSlides, LivePowerPointProblem);
         }
 
         private void LiveIndicatorTimer_Tick(object sender, EventArgs e)
@@ -289,6 +313,7 @@ namespace Easislides
             SetLiveStatus(liveStatusScreen, state.Black ? "Screen: BLACK" : "Screen: normal", true,
                 state.Black, ModernUiPalette.TextPrimary);
             SetLiveStatus(liveStatusGap, "Gap item", state.Gap, true, ModernUiPalette.TextPrimary);
+            SetLiveStatus(liveStatusPowerPoint, state.PowerPointProblem ?? "", state.PowerPointProblem != null, true, ModernUiPalette.TextPrimary);
             LayoutLiveStatusRow();
 
             if (state.ItemType == "P")
@@ -323,7 +348,7 @@ namespace Easislides
             {
                 return;
             }
-            Label[] order = { liveStatusShow, liveStatusText, liveStatusScreen, liveStatusGap };
+            Label[] order = { liveStatusShow, liveStatusPowerPoint, liveStatusText, liveStatusScreen, liveStatusGap };
             bool[] show = new bool[order.Length];
             int total = 0;
             for (int i = 0; i < order.Length; i++)

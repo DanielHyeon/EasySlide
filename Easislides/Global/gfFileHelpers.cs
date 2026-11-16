@@ -487,6 +487,8 @@ namespace Easislides
         public static void PreLoadPowerpointFiles(ref PowerPoint InPP, ref string[,] InSongsArray)
         {
             bool flag = false;
+            int failedCount = 0;
+            string firstFailed = null;
             InPP.isLive = true;
             InPP.isEditable = false;
             for (int i = 0; i <= Gf.TotalWorshipListItems; i++)
@@ -498,9 +500,40 @@ namespace Easislides
                         if (!flag)
                         {
                             InPP.NewApp();
+                            // The main form's wrapper is made once at start-up; when PowerPoint was closed or
+                            // restarted since, it must not stay on the dead process while this one attached to
+                            // the new one. One cross-process call when it is fine.
+                            PowerPoint mainPPT = Gf.MainFormPPT;
+                            if (mainPPT != null && !ReferenceEquals(mainPPT, InPP))
+                            {
+                                if (mainPPT.EnsureAttached(out bool attachFailed))
+                                {
+                                    FrmMain.WriteDebugLog("PreLoadPowerpointFiles: the main form's PowerPoint reference no longer answered; attached it again");
+                                }
+                                else if (attachFailed)
+                                {
+                                    FrmMain.WriteDebugLog("PreLoadPowerpointFiles: the main form's PowerPoint reference no longer answered and could not be attached again");
+                                    if (Gf.FirstAttachFailureReport())
+                                    {
+                                        FrmMain.ReportErrorNotice("PowerPoint could not be reached from the main window: its slide keys may not move the slide show on the projector");
+                                    }
+                                }
+                            }
                             flag = true;
                         }
-                        InPP.Open(DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1), ref Gf.PowerpointList, ref Gf.TotalPowerpointItems);
+                        string path = DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1);
+                        string result = InPP.Open(path, ref Gf.PowerpointList, ref Gf.TotalPowerpointItems);
+                        if (!string.IsNullOrEmpty(result))
+                        {
+                            // Not opened: the item cannot start its slide show during this show. Each file is
+                            // reported once per show (a mid-show pre-load tries it again).
+                            FrmMain.WriteDebugLog("PreLoadPowerpointFiles: '" + path + "' was not opened: " + result);
+                            if (Gf.FirstPreloadFailureReport(path))
+                            {
+                                failedCount++;
+                                firstFailed ??= path;
+                            }
+                        }
                         InPP.prePowerPointApp.Activate();
                         InPP.prePowerPointApp.WindowState = NetOffice.PowerPointApi.Enums.PpWindowState.ppWindowMinimized;
                     }
@@ -510,6 +543,14 @@ namespace Easislides
                     Trace.WriteLine($"PreLoadPowerpointFiles failed: {ex.Message}");
                     Trace.WriteLine(ex.StackTrace);
                 }
+            }
+            if (failedCount > 0)
+            {
+                // One notice per pre-load.
+                string name = Path.GetFileName(firstFailed);
+                FrmMain.ReportErrorNotice(failedCount == 1
+                    ? "A PowerPoint file could not be opened for the show: " + name
+                    : failedCount + " PowerPoint files could not be opened for the show (first: " + name + ")");
             }
         }
     }

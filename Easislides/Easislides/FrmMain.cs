@@ -96,7 +96,7 @@ namespace Easislides
             LiveShow.OnMessage += LiveShow_OnMessage;
 
             MainPPT.Init();
-            MainPPT.preViewToOutputEvent = new OfficeLib.PreViewToOutputEvent(PreViewToOutput);
+            Gf.MainFormPPT = MainPPT;
             TimerToFront.Start();
             Gf.SplashScreenCanClose = true;
 
@@ -3085,6 +3085,12 @@ namespace Easislides
         {
             if (InItem.OutputStyleScreen)
             {
+                if (InItem.Type == "P" && InItem.TotalSlides <= 0)
+                {
+                    // A PowerPoint item with no slides on the main form: when the show window runs it, take that
+                    // run now (an earlier try may have met a busy PowerPoint); otherwise "next" would do nothing.
+                    ReconcileOutputWithLivePowerPoint();
+                }
                 if (InDirection != KeyDirection.NextOne || InItem.CurSlide < InItem.TotalSlides || Gf.AdvanceNextItem)
                 {
                     MoveToSlideOutputItem(InItem, InDirection, NotifyLiveShow: true);
@@ -3120,9 +3126,14 @@ namespace Easislides
                 {
                     if (Gf.ShowRunning & (InItem.Type == "P"))
                     {
-                        int num = MainPPT.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
-                        if (num > 0)
+                        int num = MainPptFor(InItem).ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+                        // The end of the item, so the next item: PowerPoint reached the end of the show (-1, also
+                        // when the show ended on this move), or there is no slide show to move (not started, or
+                        // ended earlier). A navigation error or a busy PowerPoint is not an end: the item stays.
+                        bool itemEnded = num <= 0 || (MainPPT.LastCallNotRunning && MainPPT.LastNavigationError == null);
+                        if (!itemEnded)
                         {
+                            Gf.ReportPowerpointNavigation(MainPPT, InItem);
                             RemoteControlLiveShow(LiveShowAction.Remote_SlideChanged, InDirection);
                             ShowDualMonitorPP_Preview(ref InItem);
                             if (InItem.CurSlide < 1)
@@ -3139,7 +3150,8 @@ namespace Easislides
             }
             if (Gf.ShowRunning & (InItem.Type == "P"))
             {
-                MainPPT.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+                MainPptFor(InItem).ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+                Gf.ReportPowerpointNavigation(MainPPT, InItem);
                 if (InItem.CurSlide >= 0 && InItem.CurSlide <= InItem.TotalSlides)
                 {
                     RemoteControlLiveShow(LiveShowAction.Remote_SlideChanged, InDirection);
@@ -3249,7 +3261,107 @@ namespace Easislides
         {
             if (MainPPT?.prePowerPointApp != null)
             {
-                MainPPT.SafePlayNext(slideNumber);
+                MainPptFor(Gf.OutputItem).SafePlayNext(slideNumber);
+                Gf.ReportPowerpointShowEnded(MainPPT, Gf.OutputItem);
+            }
+        }
+
+        /// <summary>
+        /// The main form's PowerPoint wrapper, set to drive the live item's slide show. In a dual monitor show
+        /// the main form and the show window both run each PowerPoint item; at show start only the show window
+        /// runs the item that is already live, so the main form follows the show window's run of it then (see
+        /// PowerPoint.FollowRunOf). It never falls back to PowerPoint's active presentation.
+        /// </summary>
+        private PowerPoint MainPptFor(SongSettings InItem)
+        {
+            // A slide show the show window believes ended is asked about again first (one lookup), so an
+            // earlier "ended" verdict does not stop the main form from following it.
+            Gf.ReprobeEndedLivePowerPoint();
+            MainPPT.FollowRunOf(Gf.LivePP, InItem.Path, Gf.PowerpointList, Gf.TotalPowerpointItems);
+            return MainPPT;
+        }
+
+        /// <summary>
+        /// The live PowerPoint item's slide show was found gone: the show window stops being transparent over it.
+        /// </summary>
+        internal void LivePowerPointEnded()
+        {
+            LiveShow?.PaintEndedPowerPointItem();
+        }
+
+        /// <summary>
+        /// The live PowerPoint item's slide show, believed ended, was found running: the show window becomes
+        /// transparent over it again.
+        /// </summary>
+        internal void LivePowerPointResumed()
+        {
+            LiveShow?.ResumeStartedPowerPointItem();
+        }
+
+        // The output item path whose slide show the main form's own run (or an adopted run) drives, or null.
+        private string mainPptRunItemPath;
+
+        // Counts the main form's loads of a PowerPoint output item; with Gf.LiveLoadSerial and the show window's
+        // run state it names the situation an adopt was last tried for (tried once per situation).
+        private int outputPowerpointLoadSerial;
+        private string adoptTriedFor;
+
+        // Gf.LiveLoadSerial when the main form last looked at the show window's run state.
+        private int liveLoadSerialSeen;
+
+        /// <summary>
+        /// Dual monitor show: makes the main form's output side agree with what the show window's run put on the
+        /// projector (the truth). Called after the main form's run of a PowerPoint item (LoadItem) and after the
+        /// show window has processed an item or slide change (RemoteControlLiveShow), so both orders of the two
+        /// runs are covered. Does nothing (and asks PowerPoint nothing) when both runs agree.
+        /// (a) The main form's run did not start, the show window's did: the main form takes the show window's
+        ///     run for slide count, verse data and the output pane.
+        /// (b) The show window's run did not start, the main form's did: the output pane shows the default
+        ///     background and the main form stops driving a slide show that is not on the projector.
+        /// </summary>
+        private void ReconcileOutputWithLivePowerPoint()
+        {
+            if (!Gf.ShowRunning || !Gf.DualMonitorMode || Gf.OutputItem.Type != "P" || Gf.LiveItem.Type != "P"
+                || !string.Equals(Gf.OutputItem.Path, Gf.LiveItem.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+            bool mainRuns = string.Equals(mainPptRunItemPath, Gf.OutputItem.Path, StringComparison.OrdinalIgnoreCase);
+            if (Gf.LivePowerPointRunState == Gf.LivePowerPointRun.Started && !mainRuns)
+            {
+                // Tried once per item load and show-window state, not on every key press; again on a later
+                // slide change or key only while the item still has no slides (a busy PowerPoint may have
+                // refused the first try, and with 0 slides "next" does nothing). Once taken, mainRuns is true.
+                string situation = outputPowerpointLoadSerial + "|" + Gf.LiveLoadSerial + "|" + Gf.LivePowerPointRunState;
+                if (situation == adoptTriedFor && Gf.OutputItem.TotalSlides > 0)
+                {
+                    return;
+                }
+                adoptTriedFor = situation;
+                WriteDebugLog("ReconcileOutputWithLivePowerPoint: adopting the show window's run of '" + Gf.OutputItem.Path + "'");
+                int count = Gf.AdoptLivePowerpointRun(ref Gf.OutputItem, MainPPT);
+                if (count <= 0)
+                {
+                    // Not taken: the item keeps its slide count and verse data.
+                    WriteDebugLog("ReconcileOutputWithLivePowerPoint: the show window's run could not be taken");
+                    return;
+                }
+                Gf.OutputItem.TotalSlides = count;
+                mainPptRunItemPath = Gf.OutputItem.Path;
+                Gf.OutputItem.CurSlide = Math.Max(1, Math.Min(Gf.LiveItem.CurSlide, Gf.OutputItem.TotalSlides));
+                ShowDualMonitorPP_Preview(ref Gf.OutputItem);
+                BuildVerseButtons(Gf.OutputItem);
+                ShowStatusBarSummary();
+                WriteDebugLog("ReconcileOutputWithLivePowerPoint: the main form follows the show window's run of '" + Gf.OutputItem.Path + "'");
+            }
+            else if (Gf.LivePowerPointRunState == Gf.LivePowerPointRun.NotStarted && mainRuns)
+            {
+                Gf.DropMainPowerpointRun(ref Gf.OutputItem, MainPPT);
+                mainPptRunItemPath = null;
+                Gf.ResetPictureBox(ref Gf.OutputItem, ref OutputScreen, GapType.Default, ImageTransitionControl.TransitionAction.None);
+                BuildVerseButtons(Gf.OutputItem);
+                ShowStatusBarSummary();
+                WriteDebugLog("ReconcileOutputWithLivePowerPoint: the show window's run of '" + Gf.OutputItem.Path + "' did not start; the main form no longer drives its own run");
             }
         }
 
@@ -4196,6 +4308,8 @@ namespace Easislides
             {
                 Gf.ShowRunning = true;
                 Gf.ResetShowRunningSettings();
+                Gf.ResetPowerPointShowState();
+                mainPptRunItemPath = null;
                 UpdateWorshipShowIcons();
                 Gf.SaveShowOptions = false;
                 Gf.OutputItem.GapItemOnDisplay = false;
@@ -4237,6 +4351,9 @@ namespace Easislides
                         EndFailedShowStart();
                         return;
                     }
+                    // The show window's load at its start is of the item already on the output: nothing the main
+                    // form's next item load has to reconcile with.
+                    liveLoadSerialSeen = Gf.LiveLoadSerial;
                     FocusOutputArea();
                     return;
                 }
@@ -7415,9 +7532,14 @@ namespace Easislides
                 {
                     case LiveShowAction.Remote_SongChanged:
                         LiveShow.Remote_SongChanged(ReLoadIfCaptureDevice: false);
+                        // The show window has just processed the current output item: its state is current.
+                        ReconcileOutputWithLivePowerPoint();
+                        liveLoadSerialSeen = Gf.LiveLoadSerial;
                         break;
                     case LiveShowAction.Remote_SlideChanged:
                         LiveShow.Remote_SlideChanged((int)InDirection);
+                        ReconcileOutputWithLivePowerPoint();
+                        liveLoadSerialSeen = Gf.LiveLoadSerial;
                         break;
                     case LiveShowAction.Remote_MessageAlertRequested:
                         LiveShow.Remote_MessageAlertRequested();
@@ -7447,7 +7569,10 @@ namespace Easislides
                         LiveShow.Remote_BackgroundChanged();
                         break;
                     case LiveShowAction.Remote_MoveToItemChanged:
+                        // Loads the next / previous item in the show window (item keys, end of a deck).
                         LiveShow.Remote_MoveToItemChanged();
+                        ReconcileOutputWithLivePowerPoint();
+                        liveLoadSerialSeen = Gf.LiveLoadSerial;
                         break;
                     case LiveShowAction.Remote_LiveBlackClearChanged:
                         LiveShow.Remote_LiveBlackClearChanged();
@@ -7475,7 +7600,10 @@ namespace Easislides
                     //case LiveShowAction.Remote_MediaItemPausePlay:
                     //    return LiveShow.Remote_MediaItemPausePlay();
                     case LiveShowAction.Remote_SongJumpTo:
+                        // Loads the jumped-to item (or a gap item) in the show window.
                         LiveShow.Remote_SongJumpTo();
+                        ReconcileOutputWithLivePowerPoint();
+                        liveLoadSerialSeen = Gf.LiveLoadSerial;
                         break;
                 }
             }

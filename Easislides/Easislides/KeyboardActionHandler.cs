@@ -58,17 +58,20 @@ namespace Easislides
             int slideNumber = DataUtil.ObjToInt(control.Tag) + 1;
             Debug.WriteLine($"PowerPointImage_DoubleClick name={control.Name} slide={slideNumber}");
 
-            // 슬라이드 번호 설정
             if (control.Name == "PP_Preview")
             {
-                Gf.PreviewItem.CurSlide = slideNumber;
+                // A preview thumbnail must not drive the live slide show (PlayPowerPointAnimation acts on the
+                // output item's deck): behave like a single click.
+                if (Gf.PreviewItem.CurSlide != slideNumber)
+                {
+                    Gf.PreviewItem.CurSlide = slideNumber;
+                    _form.MoveToSlide(Gf.PreviewItem, KeyDirection.Refresh);
+                }
+                return;
             }
-            else
-            {
-                Gf.OutputItem.CurSlide = slideNumber;
-            }
+            Gf.OutputItem.CurSlide = slideNumber;
 
-            // PowerPoint 애니메이션/비디오 트리거 (FrmMain을 통해 접근)
+            // Plays the animation / video of the live slide (through FrmMain).
             _form.PlayPowerPointAnimation(slideNumber);
         }
 

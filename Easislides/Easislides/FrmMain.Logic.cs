@@ -2279,11 +2279,31 @@ namespace Easislides
                 if (Gf.ShowRunning & InItem.OutputStyleScreen)
                 {
                     InItem.TotalSlides = Gf.RunPowerpointSong(ref InItem, ref MainPPT, StartingSlide, ShowResult: true);
+                    mainPptRunItemPath = MainPPT.LastRunStarted ? InItem.Path : null;
+                    outputPowerpointLoadSerial++;
                     // The run above made the slide show topmost; the show window must stay above it.
                     LiveShow?.KeepAboveSlideShow();
                     if (Gf.DualMonitorMode)
                     {
-                        ShowDualMonitorPP_Preview(ref InItem);
+                        if (MainPPT.LastRunStarted)
+                        {
+                            ShowDualMonitorPP_Preview(ref InItem);
+                        }
+                        else
+                        {
+                            // The slide show did not start: the output pane must not keep showing the previous
+                            // item's slide as if it were live (the show window shows its default background).
+                            Gf.ResetPictureBox(ref InItem, ref OutputScreen, GapType.Default, ImageTransitionControl.TransitionAction.None);
+                        }
+                        // When the show window ran this item first (it changed the item itself), its result is
+                        // known now: the output side follows it. Only a show-window load the main form has not
+                        // seen yet counts: in the usual order (main form first) the show window's state still
+                        // belongs to the previous live item, which may be the same file (listed twice, reload).
+                        if (Gf.LiveLoadSerial != liveLoadSerialSeen)
+                        {
+                            ReconcileOutputWithLivePowerPoint();
+                            liveLoadSerialSeen = Gf.LiveLoadSerial;
+                        }
                     }
                 }
                 else
@@ -2437,7 +2457,31 @@ namespace Easislides
             {
                 return true;
             }
-            MessageBox.Show("Sorry - Can't find the Powerpoint File '" + InItem.Path + "'");
+            if (Gf.ShowRunning)
+            {
+                // During a show no modal box: it stops the operator, and in single monitor mode it is hidden
+                // behind the show window, so the app looks frozen.
+                string originalPath = InItem.Path;
+                string message = "The PowerPoint file was not found: " + InItem.Path;
+                if (InItem.OutputStyleScreen)
+                {
+                    // The path stays: the copy opened at show start may still be open, then the item is shown
+                    // normally; if it is not, the run fails and is reported like any item that did not start.
+                    message += " (the copy opened at show start is used if it is still open)";
+                }
+                else
+                {
+                    InItem.Path = "";
+                }
+                WriteDebugLog("ValidatePowerpointItem: " + message);
+                // Once per item in this show (preview load, output load and a failed run of it are one problem).
+                if (Gf.FirstMissingFileReport(originalPath))
+                {
+                    ReportErrorNotice(message);
+                }
+                return false;
+            }
+            MessageBox.Show(this, "Sorry - Can't find the Powerpoint File '" + InItem.Path + "'");
             InItem.Path = "";
             return false;
         }
@@ -2710,7 +2754,8 @@ namespace Easislides
                 {
                     if (Gf.ShowRunning)
                     {
-                        MainPPT.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, OfficeLibKeys.None, InItem.CurSlide);
+                        MainPptFor(InItem).ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, OfficeLibKeys.None, InItem.CurSlide);
+                        Gf.ReportPowerpointNavigation(MainPPT, InItem);
                         ShowDualMonitorPP_Preview(ref InItem);
                         if (InItem.CurSlide < 1)
                         {
@@ -3165,14 +3210,6 @@ namespace Easislides
                 RemoteControlLiveShow(LiveShowAction.Remote_SongChanged);
             }
             FocusOutputArea();
-        }
-
-        private void PreViewToOutput()
-        {
-            if (Gf.PreviewItem.ItemID != "")
-            {
-                CopyPreviewToOutput();
-            }
         }
 
         private void ShowSong(ref SongSettings InItem)

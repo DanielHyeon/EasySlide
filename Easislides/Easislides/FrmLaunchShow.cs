@@ -359,6 +359,38 @@ namespace Easislides
 		}
 
 		/// <summary>
+		/// The live PowerPoint item's slide show has ended (found by a slide movement here or in the main form):
+		/// this window stops being transparent over it and shows the default background, as for an item whose
+		/// slide show did not start.
+		/// </summary>
+		internal void PaintEndedPowerPointItem()
+		{
+			if (!Gf.ShowRunning || Gf.LiveItem.Type != "P" || !Gf.LivePowerPointEnded || !IsHandleCreated || IsDisposed)
+			{
+				return;
+			}
+			SetShowWindow(max: true);
+			Gf.ResetPictureBox(ref Gf.LiveItem, ref LiveScreen, GapType.Default, ImageTransitionControl.TransitionAction.None);
+		}
+
+		/// <summary>
+		/// The live PowerPoint item's slide show, believed ended, runs again: this window becomes transparent over
+		/// it again, with the steps a started item gets in LoadItem (transparent background, window size for the
+		/// panel overlay option, the text layer).
+		/// </summary>
+		internal void ResumeStartedPowerPointItem()
+		{
+			if (!Gf.ShowRunning || Gf.LiveItem.Type != "P" || Gf.LivePowerPointRunState != Gf.LivePowerPointRun.Started
+				|| Gf.LivePP.RunShowLost || !IsHandleCreated || IsDisposed)
+			{
+				return;
+			}
+			Gf.SetTransparentBackground(Gf.LiveItem, ref LiveScreen);
+			SetShowWindow(max: !(Gf.DualMonitorMode && Gf.NoPowerpointPanelOverlay));
+			Gf.DrawText(ref Gf.LiveItem, ref LiveScreen, Gf.LiveItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
+		}
+
+		/// <summary>
 		/// Puts this window back above the PowerPoint slide show (dual monitor show), without activating it.
 		/// The main form runs the slide show a second time for the same item; when that run comes after this
 		/// window's own (the item was changed from this window: auto-rotate), the slide show is made topmost
@@ -1220,6 +1252,22 @@ namespace Easislides
 		{
 			if (InItem.Type == "P")
 			{
+				// A slide show believed ended is asked about again (one lookup): it may run again.
+				Gf.ReprobeEndedLivePowerPoint();
+				if (Gf.LivePowerPointNotStarted || Gf.LivePowerPointEnded)
+				{
+					// The item's slide show did not start, or has ended: this window must not be transparent over
+					// whatever is below it (the desktop, another application, an earlier slide show). The default
+					// background, as for any item this window cannot show.
+					SetShowWindow(max: true);
+					Gf.ResetPictureBox(ref InItem, ref LiveScreen, GapType.Default, TransitionAction);
+					return true;
+				}
+				if (InItem.CurSlide < 1)
+				{
+					// -1 is "the end of the show was reached": the last slide, as the main form shows it.
+					InItem.CurSlide = Math.Max(1, InItem.TotalSlides);
+				}
 				if ((Gf.DualMonitorMode && Gf.NoPowerpointPanelOverlay && InItem.Type == "P")/* || (Gf.DualMonitorMode && Gf.LiveCamNoPanelOverlay && Gf.ShowLiveCam)*/)
 				{
 					SetShowWindow(max: false);
@@ -1229,7 +1277,18 @@ namespace Easislides
 					SetShowWindow(max: true);
 
 				}
-				Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Keys.None, InItem.CurSlide);
+				// An item this window did not run as a slide show (live camera show) moves no deck: LivePP's run
+				// is an earlier item's.
+				if (Gf.LivePowerPointRunState != Gf.LivePowerPointRun.None)
+				{
+					Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Keys.None, InItem.CurSlide);
+					Gf.ReportPowerpointNavigation(Gf.LivePP, InItem);
+					if (Gf.LivePowerPointEnded)
+					{
+						PaintEndedPowerPointItem();
+						return true;
+					}
+				}
 				if (Gf.ShowLiveCam)
 				{
 					Gf.SetTransparentBackground(InItem, ref LiveScreen);
@@ -1385,11 +1444,16 @@ namespace Easislides
 				}
 				else if (InDirection == KeyDirection.NextOne && InItem.CurItemNo < Gf.TotalWorshipListItems && InItem.CurSlide >= InItem.TotalSlides)
 				{
-					if (InItem.Type == "P")
+					if (InItem.Type == "P" && Gf.LivePowerPointRunState != Gf.LivePowerPointRun.None)
 					{
 						int num = Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
-						if (num > 0)
+						// The end of the item, so the next item: PowerPoint reached the end of the show (-1, also
+						// when the show ended on this move), or there is no slide show to move (not started, or
+						// ended earlier). A navigation error or a busy PowerPoint is not an end: the item stays.
+						bool itemEnded = num <= 0 || (Gf.LivePP.LastCallNotRunning && Gf.LivePP.LastNavigationError == null);
+						if (!itemEnded)
 						{
+							Gf.ReportPowerpointNavigation(Gf.LivePP, InItem);
 							Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 							return;
 						}
@@ -1400,7 +1464,31 @@ namespace Easislides
 			}
 			if (Gf.ShowRunning & (InItem.Type == "P"))
 			{
-				Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+				// A slide show believed ended is asked about again (one lookup): it may run again.
+				Gf.ReprobeEndedLivePowerPoint();
+				if (Gf.LivePowerPointNotStarted || Gf.LivePowerPointEnded)
+				{
+					// No slide show to move; the default background stays (see ShowSlide).
+					return;
+				}
+				// An item this window did not run as a slide show (live camera show) moves no deck.
+				if (Gf.LivePowerPointRunState != Gf.LivePowerPointRun.None)
+				{
+					Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+					Gf.ReportPowerpointNavigation(Gf.LivePP, InItem);
+					if (InItem.CurSlide < 1)
+					{
+						// The end of the show was reached (-1): the last slide, as the main form shows it. Left at -1,
+						// later keys and refreshes would act on slide -1 (and on slide 0 with no slide count).
+						InItem.CurSlide = Math.Max(1, InItem.TotalSlides);
+					}
+					if (Gf.LivePowerPointEnded)
+					{
+						// Ended on this move, or found ended now.
+						PaintEndedPowerPointItem();
+						return;
+					}
+				}
 				Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 				return;
 			}
@@ -1453,6 +1541,9 @@ namespace Easislides
 				Gf.RestartCurrentItem = true;
 			}
 			string text = DataUtil.Left(InIDString, 1);
+			// Set again below when this item runs a slide show. The serial tells the main form this state is new.
+			Gf.LivePowerPointRunState = Gf.LivePowerPointRun.None;
+			Gf.LiveLoadSerial++;
 			if (text == "P")
 			{
 				// Before any PowerPoint work: a lowering still waiting after a non-PowerPoint item must not run.
@@ -1511,6 +1602,9 @@ namespace Easislides
 				if (text == "P")
 				{
 					Gf.MinimizePowerPointWindows(ref Gf.LivePP);
+					// This item is not run as a slide show: LivePP's run is an earlier item's, which nothing
+					// here may move.
+					Gf.LivePP.ForgetRun();
 				}
 				flag = true;
 			}
@@ -1519,19 +1613,26 @@ namespace Easislides
 				SetScreenOnTop(StartTimer: false);
 				Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
 				InItem.TotalSlides = Gf.RunPowerpointSong(ref InItem, ref Gf.LivePP, StartingSlide);
+				bool slideShowStarted = Gf.LivePP.LastRunStarted;
+				Gf.LivePowerPointRunState = slideShowStarted ? Gf.LivePowerPointRun.Started : Gf.LivePowerPointRun.NotStarted;
 				ResetMediaSettings();
-				Gf.SetTransparentBackground(Gf.LiveItem, ref LiveScreen);
+				if (slideShowStarted)
+				{
+					// Transparent over the slide show. An item that did not start gets the default background
+					// instead (ShowSlide below).
+					Gf.SetTransparentBackground(Gf.LiveItem, ref LiveScreen);
+				}
 				InItem.Format.ShowItemTransition = 0;
 				InItem.Format.ShowSlideTransition = 0;
 				if (Gf.ShowLiveCam)
 				{
 					Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 				}
-				else
+				else if (slideShowStarted)
 				{
 					Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
 				}
-				if (Gf.DualMonitorMode && Gf.NoPowerpointPanelOverlay)
+				if (Gf.DualMonitorMode && Gf.NoPowerpointPanelOverlay && slideShowStarted)
 				{
 					SetShowWindow(max: false);
 				}

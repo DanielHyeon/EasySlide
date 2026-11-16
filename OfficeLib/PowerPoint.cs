@@ -19,7 +19,6 @@ using System.Text;
 namespace OfficeLib
 {
 	public delegate void PreviewEvent(int index);
-	public delegate void PreViewToOutputEvent();
 
 
     public class PowerPoint
@@ -38,8 +37,6 @@ namespace OfficeLib
 		private const int VERSE_QUIET = 112;
 
 		public PreviewEvent preViewEvent;
-
-		public PreViewToOutputEvent preViewToOutputEvent;
 
 		public Application prePowerPointApp;
 
@@ -169,7 +166,9 @@ namespace OfficeLib
 			SlideShowRaiseError = null;
 			SlideShowRaiseSkipped = null;
 			LastRunStarted = false;
-			currentSlideShowWindow = IntPtr.Zero;			try
+			currentSlideShowWindow = IntPtr.Zero;
+			ForgetRunPresentation();
+			try
 			{
 				string version = prePowerPointApp.Version;
 
@@ -182,23 +181,30 @@ namespace OfficeLib
 					return "Cannot find opened Presentation: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
 				}
 
-				for (int i = 1; i <= prePowerPointApp.Presentations.Count; i++)
+				// Every proxy read through the collection is released with it at the end of the block.
+				using (Presentations presentations = prePowerPointApp.Presentations)
 				{
-					string text3 = text2;
-					text2 = text3 + i + "-" + prePowerPointApp.Presentations[i].Name + "(" + prePowerPointApp.Presentations[i].FullName + ") ";
-					if (string.Equals(prePowerPointApp.Presentations[i].FullName, text, StringComparison.OrdinalIgnoreCase))
+					int count = presentations.Count;
+					for (int i = 1; i <= count; i++)
 					{
-						using SlideShowSettings settings = prePowerPointApp.Presentations[i].SlideShowSettings;
-						DisablePresenterView(settings);
-						using SlideShowWindow window = settings.Run();
-						LastRunStarted = true;
-						if (KeepSlideShowOnTop)
+						Presentation candidate = presentations[i];
+						string fullName = candidate.FullName;
+						text2 = text2 + i + "-" + candidate.Name + "(" + fullName + ") ";
+						if (string.Equals(fullName, text, StringComparison.OrdinalIgnoreCase))
 						{
-							int index = i;
-							currentSlideShowWindow = FindSlideShowWindow(window, () => prePowerPointApp.Presentations[index].Name);							RaiseCurrentSlideShowWindow();
-						}
+							using SlideShowSettings settings = candidate.SlideShowSettings;
+							DisablePresenterView(settings);
+							using SlideShowWindow window = settings.Run();
+							LastRunStarted = true;
+							RememberRunPresentation(fullName, i);
+							if (KeepSlideShowOnTop)
+							{
+								currentSlideShowWindow = FindSlideShowWindow(window, () => candidate.Name);
+								RaiseCurrentSlideShowWindow();
+							}
 
-						return "Presentation Run OK";
+							return "Presentation Run OK";
+						}
 					}
 				}
 			}
@@ -827,11 +833,467 @@ namespace OfficeLib
 			return "";
 		}
 
+		// The presentation whose slide show the last successful Run of this wrapper started, by FullName (the key
+		// PowerpointList and the show-end close use), with its index in Presentations when it was last found.
+		// Every call after the run (slide movement, slide count, verses, window placement) acts on this
+		// presentation only, never on PowerPoint's ActivePresentation: that is whichever presentation PowerPoint
+		// last activated, which after a failed run is the previous item's, and can be the user's own document.
+		// The index is a hint: presentations opened or closed since (thumbnails are built from files opened in
+		// the same PowerPoint, also during a show) shift it, so the name is checked on every use and the
+		// collection is searched again when it does not match. No proxy is kept between calls: the wrapper's
+		// Application proxy is replaced by every pre-load (NewApp), which releases the proxies under it.
+		private string runPresentationName;
+		private int runPresentationIndex;
+		private int runPresentationGeneration;
+
+		// Counts the show-end closes of the presentations opened for a show (ClearUpPowerpointWindows, on any
+		// wrapper). A name remembered before such a close refers to a closed presentation, and PowerPoint gives
+		// the same "PresentationN" names again after a restart, so it is not used any more.
+		private static int closedPresentationsGeneration;
+
+		/// <summary>
+		/// Written by every call on this wrapper's run (First, Last, GotoSlide, Count, SetShowWindow,
+		/// LoadVersesAndSlides, ImplementPowerpointSlideMovement, SafePlayNext) on every path. True when the call
+		/// found nothing to act on: the last Run did not start a slide show, its presentation is gone, or (for
+		/// the calls that need the slide show, i.e. all but Count and LoadVersesAndSlides) its slide show has
+		/// ended. Also true when ImplementPowerpointSlideMovement found the slide show gone right after an error
+		/// (it ended on that move). False otherwise, including when the call failed with an error or because
+		/// PowerPoint was busy: that is not a slide show that has ended. Callers that do not look at it behave
+		/// as before when the slide show runs.
+		/// </summary>
+		public bool LastCallNotRunning { get; private set; }
+
+		/// <summary>
+		/// True when the slide show the last Run started was not found by a later call: it was ended (Esc in the
+		/// slide show) or closed in PowerPoint, or PowerPoint exited. Reset by the next Run, and when a later
+		/// call finds the slide show again.
+		/// </summary>
+		public bool RunShowLost { get; private set; }
+
+		/// <summary>
+		/// The exception the last ImplementPowerpointSlideMovement caught while moving a running slide show, or
+		/// null. The caller logs and reports it.
+		/// </summary>
+		public Exception LastNavigationError { get; private set; }
+
+		private string CurrentRunPresentationName =>
+			(runPresentationName != null && runPresentationGeneration == closedPresentationsGeneration) ? runPresentationName : null;
+
+		private void RememberRunPresentation(string fullName, int index)
+		{
+			runPresentationName = fullName;
+			runPresentationIndex = index;
+			runPresentationGeneration = closedPresentationsGeneration;
+			RunShowLost = false;
+		}
+
+		private void ForgetRunPresentation()
+		{
+			runPresentationName = null;
+			runPresentationIndex = 0;
+			RunShowLost = false;
+		}
+
+		/// <summary>
+		/// Stops this wrapper from acting on the slide show its last Run (or FollowRunOf) gave it: later calls do
+		/// nothing (LastCallNotRunning) until the next Run. Used when that slide show is not the one on the
+		/// projector, and for an item this wrapper does not run.
+		/// </summary>
+		public void ForgetRun()
+		{
+			ForgetRunPresentation();
+		}
+
+		/// <summary>
+		/// Looks the run's slide show up once and records the result (RunShowLost, LastCallNotRunning), without
+		/// acting on it: FOUND clears RunShowLost, GONE sets it, UNKNOWN changes nothing. Used when another
+		/// wrapper driving the same slide show found it gone, and to ask again about a slide show believed ended
+		/// (it may have been started again). One lookup. Never throws.
+		/// </summary>
+		public void RefreshRunShowState()
+		{
+			LastCallNotRunning = false;
+			try
+			{
+				using RunPresentation run = FindRunSlideShow(out _);
+			}
+			catch (Exception ex)
+			{
+				// UNKNOWN: nothing is known, nothing changes.
+				Console.WriteLine($"Error checking the slide show: {ex.Message}");
+			}
+		}
+
+		/// <summary>
+		/// Attaches this wrapper to PowerPoint again (NewApp) when its Application proxy no longer answers:
+		/// PowerPoint was closed or restarted since the proxy was made. The probe is one cross-process call
+		/// (Application.Version): well under a millisecond while PowerPoint runs, and it fails at once when the
+		/// process is gone. A busy PowerPoint counts as alive. The run is forgotten on a re-attach: it belonged to
+		/// the old process. Call only where PowerPoint is wanted anyway (new Application() starts it). Returns true
+		/// when it attached again; attachFailed is true when it had to attach again and could not (the old
+		/// reference is kept).
+		/// </summary>
+		public bool EnsureAttached(out bool attachFailed)
+		{
+			attachFailed = false;
+			Application app = prePowerPointApp;
+			if (app != null && !app.IsDisposed)
+			{
+				try
+				{
+					_ = app.Version;
+					return false;
+				}
+				catch (Exception ex)
+				{
+					if (IsPowerPointBusy(ex))
+					{
+						return false;
+					}
+					Console.WriteLine($"PowerPoint reference no longer answers: {ex.Message}");
+				}
+			}
+			ForgetRunPresentation();
+			Application before = prePowerPointApp;
+			NewApp();
+			bool attached = !ReferenceEquals(before, prePowerPointApp);
+			attachFailed = !attached;
+			return attached;
+		}
+
+		/// <summary>
+		/// Makes this wrapper act on the slide show another wrapper ran for the same presentation, when this
+		/// wrapper is not running that presentation itself. In a dual monitor show the main form and the show
+		/// window each run the item and drive the same slide show; at show start only the show window runs the
+		/// item that is already live, and the main form's slide keys must still move it. Nothing changes when
+		/// this wrapper already runs that presentation, or when the other wrapper does not (or its show is gone).
+		/// </summary>
+		public void FollowRunOf(PowerPoint other, string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
+		{
+			if (other == null || ReferenceEquals(other, this) || other.RunShowLost)
+			{
+				return;
+			}
+			string otherName = other.CurrentRunPresentationName;
+			if (otherName == null)
+			{
+				return;
+			}
+			string name = GetPresentationName(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
+			if (!string.Equals(name, otherName, StringComparison.OrdinalIgnoreCase))
+			{
+				return;
+			}
+			if (string.Equals(CurrentRunPresentationName, otherName, StringComparison.OrdinalIgnoreCase) && !RunShowLost)
+			{
+				return;
+			}
+			runPresentationName = otherName;
+			runPresentationIndex = other.runPresentationIndex;
+			runPresentationGeneration = other.runPresentationGeneration;
+			RunShowLost = false;
+		}
+
+		/// <summary>
+		/// The presentation of this wrapper's run, with the proxies it was read through. Disposing it releases
+		/// every proxy obtained through them (NetOffice releases child proxies with their parent).
+		/// </summary>
+		private sealed class RunPresentation : IDisposable
+		{
+			private readonly List<IDisposable> owned = new List<IDisposable>();
+
+			public RunPresentation(Presentations collection, Presentation presentation)
+			{
+				owned.Add(collection);
+				Presentation = presentation;
+			}
+
+			public Presentation Presentation { get; }
+
+			public void Own(IDisposable proxy)
+			{
+				owned.Add(proxy);
+			}
+
+			public void Dispose()
+			{
+				for (int i = owned.Count - 1; i >= 0; i--)
+				{
+					try
+					{
+						owned[i].Dispose();
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Error releasing a PowerPoint proxy: {ex.Message}");
+					}
+				}
+				owned.Clear();
+			}
+		}
+
+		/// <summary>
+		/// The run's slide show could not be looked up: PowerPoint answered with an error that does not say
+		/// whether the slide show still runs (busy, a server fault, a failed call). Nothing is concluded from it.
+		/// </summary>
+		private sealed class RunLookupException : Exception
+		{
+			public RunLookupException(string message, Exception inner) : base(message, inner)
+			{
+			}
+		}
+
+		private const int RPC_E_CALL_REJECTED = unchecked((int)0x80010001);
+		private const int RPC_E_SERVERCALL_RETRYLATER = unchecked((int)0x8001010A);
+		private const int RPC_E_DISCONNECTED = unchecked((int)0x80010108);
+		private const int RPC_S_SERVER_UNAVAILABLE = unchecked((int)0x800706BA);
+
+		// PowerPoint is busy (e.g. a modal dialog is open in it): the call failed, but PowerPoint is there.
+		private static bool IsPowerPointBusy(Exception ex)
+		{
+			return HasHResult(ex, RPC_E_CALL_REJECTED) || HasHResult(ex, RPC_E_SERVERCALL_RETRYLATER);
+		}
+
+		// The PowerPoint process is gone (closed, crashed): its slide shows are gone with it.
+		private static bool IsPowerPointGone(Exception ex)
+		{
+			return HasHResult(ex, RPC_E_DISCONNECTED) || HasHResult(ex, RPC_S_SERVER_UNAVAILABLE);
+		}
+
+		private static bool HasHResult(Exception ex, int hresult)
+		{
+			for (Exception e = ex; e != null; e = e.InnerException)
+			{
+				if (e.HResult == hresult)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Finds the presentation of this wrapper's run by name (the remembered index first). Three outcomes:
+		/// FOUND: returns it (also when other presentations could not be read).
+		/// GONE: returns null. Only when positively established: no run is remembered; PowerPoint is gone (the
+		/// Application proxy is null or disposed, or a call failed with RPC_E_DISCONNECTED or
+		/// RPC_S_SERVER_UNAVAILABLE); or every presentation in the collection was read without an error and none
+		/// has the run's name.
+		/// UNKNOWN: throws RunLookupException: the collection could not be read, PowerPoint is busy, or the run's
+		/// presentation was not found while at least one other presentation could not be read (it may have
+		/// been the run's).
+		/// </summary>
+		private RunPresentation FindRunPresentation()
+		{
+			string name = CurrentRunPresentationName;
+			Application app = prePowerPointApp;
+			if (name == null || app == null || app.IsDisposed)
+			{
+				return null;
+			}
+			Presentations presentations = null;
+			Exception unreadable = null;
+			try
+			{
+				presentations = app.Presentations;
+				int count = presentations.Count;
+				int hint = runPresentationIndex;
+				if (hint >= 1 && hint <= count)
+				{
+					Presentation candidate = presentations[hint];
+					if (string.Equals(ReadCandidateName(() => candidate.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase))
+					{
+						return new RunPresentation(presentations, candidate);
+					}
+				}
+				for (int i = 1; i <= count; i++)
+				{
+					if (i == hint)
+					{
+						continue;
+					}
+					Presentation candidate = presentations[i];
+					if (string.Equals(ReadCandidateName(() => candidate.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase))
+					{
+						runPresentationIndex = i;
+						return new RunPresentation(presentations, candidate);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				DisposeQuietly(presentations);
+				if (IsPowerPointGone(ex))
+				{
+					Console.WriteLine($"PowerPoint is gone: {ex.Message}");
+					return null;
+				}
+				throw new RunLookupException("The PowerPoint presentation could not be looked up: " + ex.GetBaseException().Message, ex);
+			}
+			DisposeQuietly(presentations);
+			if (unreadable != null)
+			{
+				// Not found, but not every presentation could be read.
+				throw new RunLookupException("The PowerPoint presentation could not be looked up: " + unreadable.GetBaseException().Message, unreadable);
+			}
+			// Every presentation was read and none is the run's.
+			return null;
+		}
+
+		/// <summary>
+		/// Reads one candidate's name during a scan. A candidate that cannot be read is skipped (null) and
+		/// remembered in unreadable, so the scan goes on to the others. PowerPoint gone or busy is not a
+		/// candidate's problem: rethrown, so the scan ends (GONE, or UNKNOWN without scanning a busy PowerPoint).
+		/// </summary>
+		private static string ReadCandidateName(Func<string> read, ref Exception unreadable)
+		{
+			try
+			{
+				return read();
+			}
+			catch (Exception ex)
+			{
+				if (IsPowerPointGone(ex) || IsPowerPointBusy(ex))
+				{
+					throw;
+				}
+				unreadable ??= ex;
+				return null;
+			}
+		}
+
+		private static void DisposeQuietly(IDisposable proxy)
+		{
+			try
+			{
+				proxy?.Dispose();
+			}
+			catch
+			{
+			}
+		}
+
+		/// <summary>
+		/// FindRunPresentation, and records the result: GONE sets LastCallNotRunning (and RunShowLost when a run
+		/// is remembered); FOUND clears LastCallNotRunning but leaves RunShowLost (finding the presentation says
+		/// nothing about its slide show); UNKNOWN throws RunLookupException with LastCallNotRunning false.
+		/// </summary>
+		private RunPresentation FindRunPresentationNoted()
+		{
+			LastCallNotRunning = false;
+			RunPresentation run = FindRunPresentation();
+			if (run == null)
+			{
+				NoteRunShow(false);
+			}
+			return run;
+		}
+
+		/// <summary>
+		/// The presentation of this wrapper's run and its slide show window. Three outcomes:
+		/// FOUND: returns them; LastCallNotRunning and RunShowLost are cleared.
+		/// GONE: returns null; LastCallNotRunning is set, and RunShowLost when a run is remembered. Only when
+		/// positively established: the presentation is GONE (see FindRunPresentation), or
+		/// Application.SlideShowWindows was read without an error and none of its windows belongs to the run's
+		/// presentation (compared by Presentation.FullName). The error PowerPoint raises for
+		/// Presentation.SlideShowWindow is not used to decide: it only sends the lookup to that enumeration.
+		/// UNKNOWN: throws RunLookupException with LastCallNotRunning false; RunShowLost is unchanged.
+		/// The window proxy is released with the returned object.
+		/// </summary>
+		private RunPresentation FindRunSlideShow(out SlideShowWindow window)
+		{
+			LastCallNotRunning = false;
+			window = null;
+			RunPresentation run = FindRunPresentation();
+			if (run != null)
+			{
+				try
+				{
+					window = run.Presentation.SlideShowWindow;
+				}
+				catch (Exception first)
+				{
+					try
+					{
+						window = FindSlideShowWindowOfRun(run, first);
+					}
+					catch
+					{
+						run.Dispose();
+						throw;
+					}
+				}
+				if (window == null)
+				{
+					run.Dispose();
+					run = null;
+				}
+			}
+			NoteRunShow(run != null);
+			return run;
+		}
+
+		/// <summary>
+		/// Reads Application.SlideShowWindows: the window that belongs to the run's presentation (also when other
+		/// windows could not be read), or null when every window was read without an error and none does (or
+		/// PowerPoint is gone). Throws RunLookupException when the collection could not be read, PowerPoint is
+		/// busy, or the run's window was not found while at least one window could not be read. The proxies are
+		/// owned by run.
+		/// </summary>
+		private SlideShowWindow FindSlideShowWindowOfRun(RunPresentation run, Exception first)
+		{
+			string name = CurrentRunPresentationName;
+			Exception unreadable = null;
+			try
+			{
+				SlideShowWindows windows = prePowerPointApp.SlideShowWindows;
+				run.Own(windows);
+				int count = windows.Count;
+				for (int i = 1; i <= count; i++)
+				{
+					SlideShowWindow candidate = windows[i];
+					if (string.Equals(ReadCandidateName(() => candidate.Presentation.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase))
+					{
+						return candidate;
+					}
+				}
+				if (unreadable == null)
+				{
+					// Every slide show window was read and none is the run's.
+					return null;
+				}
+			}
+			catch (Exception ex)
+			{
+				if (IsPowerPointGone(ex))
+				{
+					return null;
+				}
+				throw new RunLookupException("The PowerPoint slide show could not be looked up: " + first.GetBaseException().Message + " / " + ex.GetBaseException().Message, ex);
+			}
+			// Not found, but not every slide show window could be read.
+			throw new RunLookupException("The PowerPoint slide show could not be looked up: " + first.GetBaseException().Message + " / " + unreadable.GetBaseException().Message, unreadable);
+		}
+
+		private void NoteRunShow(bool running)
+		{
+			LastCallNotRunning = !running;
+			if (CurrentRunPresentationName != null)
+			{
+				RunShowLost = !running;
+			}
+		}
+
 		public void First()
 		{
 			try
 			{
-				prePowerPointApp.ActivePresentation.SlideShowWindow.View.First();
+				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
+				if (run == null)
+				{
+					return;
+				}
+				window.View.First();
 			}
 			catch (Exception ex)
 			{
@@ -843,7 +1305,12 @@ namespace OfficeLib
 		{
 			try
 			{
-				prePowerPointApp.ActivePresentation.SlideShowWindow.View.Last();
+				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
+				if (run == null)
+				{
+					return;
+				}
+				window.View.Last();
 			}
 			catch (Exception ex)
 			{
@@ -856,12 +1323,18 @@ namespace OfficeLib
 			if (StartingSlide <= 0)
 			{
 				Console.WriteLine($"GotoSlide: Invalid slide number {StartingSlide}");
+				LastCallNotRunning = false;
 				return;
 			}
 
 			try
 			{
-				prePowerPointApp.ActivePresentation.SlideShowWindow.View.GotoSlide(StartingSlide);
+				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
+				if (run == null)
+				{
+					return;
+				}
+				window.View.GotoSlide(StartingSlide);
 			}
 			catch (Exception ex)
 			{
@@ -869,17 +1342,24 @@ namespace OfficeLib
 			}
 		}
 
+		/// <summary>
+		/// The slide count of the presentation this wrapper ran; 0 when there is none (or it cannot be read).
+		/// </summary>
 		public int Count()
 		{
 			try
 			{
-				return prePowerPointApp.ActivePresentation.Slides.Count;
+				using RunPresentation run = FindRunPresentationNoted();
+				if (run == null)
+				{
+					return 0;
+				}
+				return run.Presentation.Slides.Count;
 			}
 			catch (Exception)
-		{
-			// ActivePresentation이 없거나 접근 불가 시 0 반환
-			return 0;
-		}
+			{
+				return 0;
+			}
 		}
 
 
@@ -918,14 +1398,18 @@ namespace OfficeLib
         {
             try
             {
-                prePowerPointApp.ActivePresentation.SlideShowWindow.Left = Left;
-                prePowerPointApp.ActivePresentation.SlideShowWindow.Top = Top;
-                prePowerPointApp.ActivePresentation.SlideShowWindow.Width = Width;
-                prePowerPointApp.ActivePresentation.SlideShowWindow.Height = Height;
+				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
+				if (run != null)
+				{
+					window.Left = Left;
+					window.Top = Top;
+					window.Width = Width;
+					window.Height = Height;
+				}
             }
             catch (Exception)
             {
-				// 예외 무시
+				// Ignored: the window stays where PowerPoint put it.
             }
 			// Moving the window can change its place in the z-order and its monitor (custom output area): raise
 			// the window found by Run again. This is the item's last raise; SlideShowRaiseError is its result.
@@ -935,31 +1419,42 @@ namespace OfficeLib
 			}
         }
 
-        public void ResSetAllShowWindows()
+		/// <summary>
+		/// Shrinks the slide show windows of the presentations this app opened for the show (PowerpointList) to
+		/// one pixel at the primary monitor's corner (live camera / video items). Other presentations in the same
+		/// PowerPoint may be the user's own; their slide shows are left alone.
+		/// </summary>
+        public void ResSetAllShowWindows(string[,] PowerpointList, int TotalPowerpointItems)
 		{
 			try
 			{
-				if (prePowerPointApp.Presentations.Count > 0)
+				using Presentations presentations = prePowerPointApp.Presentations;
+				int count = presentations.Count;
+				for (int i = 1; i <= count; i++)
 				{
-					for (int i = 1; i <= prePowerPointApp.Presentations.Count; i++)
+					try
 					{
-						try
+						Presentation presentation = presentations[i];
+						if (!IsListedPresentation(presentation.FullName, PowerpointList, TotalPowerpointItems))
 						{
-							prePowerPointApp.Presentations[i].SlideShowWindow.Left = 0f;
-							prePowerPointApp.Presentations[i].SlideShowWindow.Top = 0f;
-							prePowerPointApp.Presentations[i].SlideShowWindow.Width = 1f;
-							prePowerPointApp.Presentations[i].SlideShowWindow.Height = 1f;
+							continue;
 						}
-						catch (Exception)
-            {
-				// 예외 무시
-            }
+						// Throws when this presentation has no slide show running: nothing to shrink.
+						SlideShowWindow window = presentation.SlideShowWindow;
+						window.Left = 0f;
+						window.Top = 0f;
+						window.Width = 1f;
+						window.Height = 1f;
+					}
+					catch (Exception)
+					{
+						// Ignored: this presentation has no slide show running, or PowerPoint refused the change.
 					}
 				}
 			}
 			catch (Exception)
             {
-				// 예외 무시
+				// Ignored: PowerPoint is not available.
             }
 		}
 
@@ -982,6 +1477,9 @@ namespace OfficeLib
 			int num2 = 0;
 			int num3 = 0;
 			bool flag = false;
+			// The presentations of this show are closed now: no wrapper may act on a name it remembered from it.
+			closedPresentationsGeneration++;
+			ForgetRunPresentation();
 			try
 			{
 				if(prePowerPointApp != null && prePowerPointApp.Presentations != null)
@@ -1060,6 +1558,17 @@ namespace OfficeLib
 		/// </summary>
 		public void ReleasePowerPointApp()
 		{
+			ForgetRunPresentation();
+			ReleaseApplicationReference();
+		}
+
+		/// <summary>
+		/// Releases the Application proxy only. The remembered run presentation stays: NewApp attaches again to
+		/// the same PowerPoint, where the presentation keeps its name (NewApp runs at every pre-load, also during
+		/// a show, while an item's slide show is on the projector).
+		/// </summary>
+		private void ReleaseApplicationReference()
+		{
 			Application app = prePowerPointApp;
 			prePowerPointApp = null;
 			if (app == null)
@@ -1092,7 +1601,7 @@ namespace OfficeLib
 				// Create the new reference first so a failure keeps the old, working one.
 				// Then release the old reference instead of orphaning it, so shutdown can release every reference.
 				Application newApp = new Application();
-				ReleasePowerPointApp();
+				ReleaseApplicationReference();
 				prePowerPointApp = newApp;
 			}
 			catch (Exception)
@@ -1103,18 +1612,23 @@ namespace OfficeLib
 
         private DateTime lastClickTime = DateTime.MinValue;
 
+        /// <summary>
+        /// Plays the next animation step of the slide show of this wrapper's run. Does nothing when that slide
+        /// show is not running (LastCallNotRunning). Never throws.
+        /// </summary>
         public void SafePlayNext(int slideNumber = -1)
         {
-            var activePresentation = prePowerPointApp.ActivePresentation;
-            if (activePresentation == null || activePresentation.SlideShowWindow == null) return;
-
-            // 1. 디바운스 (유지)
-            if ((DateTime.Now - lastClickTime).TotalMilliseconds < 500) return;
-            lastClickTime = DateTime.Now;
-
             try
             {
-                var view = activePresentation.SlideShowWindow.View;
+                // Inside the try: reading PowerPoint can throw (e.g. PowerPoint has exited).
+                using RunPresentation run = FindRunSlideShow(out SlideShowWindow slideShowWindow);
+                if (run == null) return;
+
+                // 1. Debounce (kept).
+                if ((DateTime.Now - lastClickTime).TotalMilliseconds < 500) return;
+                lastClickTime = DateTime.Now;
+
+                var view = slideShowWindow.View;
 
                 // [핵심 수정 사항] 
                 // 입력된 번호가 유효하고(>0), '현재 보고 있는 슬라이드'와 '다를 때만' 이동합니다.
@@ -1125,7 +1639,7 @@ namespace OfficeLib
                     view.GotoSlide(slideNumber, MsoTriState.msoTrue);
                 }
 
-                activePresentation.SlideShowWindow.Activate();
+                slideShowWindow.Activate();
 
                 // 현재 상태 다시 조회 (GotoSlide를 했을 수도 있으므로 여기서 조회)
                 int totalClicks = view.Slide.TimeLine.MainSequence.Count;
@@ -1203,34 +1717,37 @@ namespace OfficeLib
 			}
 		} 
 
+		/// <summary>
+		/// Moves the slide show of this wrapper's run (see FindRunSlideShow) and returns the slide now shown, or
+		/// -1 at the end of the show (also put in InCurSlide).
+		/// - No PowerPoint reference (prePowerPointApp null): returns 1, InCurSlide unchanged, LastCallNotRunning.
+		/// - Slide show not running (not started, ended before this call): nothing is moved, InCurSlide is
+		///   returned unchanged, LastCallNotRunning.
+		/// - The slide show ended on this move (Next on the last slide ends it when PowerPoint's "End with black
+		///   slide" option is off, and the View calls after it fail): treated like the natural end, -1, with
+		///   LastCallNotRunning and RunShowLost; not an error.
+		/// - Any other error is not thrown: it is kept in LastNavigationError for the caller to log and report,
+		///   InCurSlide is returned unchanged, LastCallNotRunning is false.
+		/// </summary>
 		public int ImplementPowerpointSlideMovement(ref int InCurSlide, int InCurMaxSlide, OfficeLibKeys InKey, int InSlideNo)
 		{
+			LastNavigationError = null;
 			try
 			{
 				if (prePowerPointApp == null)
 				{
+					LastCallNotRunning = true;
 					return 1;
 				}
 
-                _Presentation activePresentation = prePowerPointApp.ActivePresentation;
-                
-                // SlideShowWindow가 존재하는지 확인 (슬라이드쇼가 실행 중이어야 함)
-                SlideShowWindow slideShowWindow = null;
-                try
+                // The slide show of the presentation this wrapper ran (slide show running), never the active one.
+                using RunPresentation run = FindRunSlideShow(out SlideShowWindow slideShowWindow);
+                if (run == null)
                 {
-                    slideShowWindow = activePresentation.SlideShowWindow;
-                }
-                catch (COMException)
-                {
-                    // 슬라이드쇼가 실행 중이 아니면 현재 슬라이드 번호를 그대로 반환
+                    // Not running: the current slide number is returned unchanged.
                     return InCurSlide;
                 }
-                
-                if (slideShowWindow == null)
-                {
-                    return InCurSlide;
-                }
-            
+
                 switch (InKey)
 				{
 					case OfficeLibKeys.Left:
@@ -1295,29 +1812,70 @@ namespace OfficeLib
                         break;
 				}
             }
-			catch
+			catch (Exception ex)
 			{
-				if(preViewToOutputEvent != null)
-					preViewToOutputEvent();
+				Console.WriteLine($"Error moving the slide show: {ex.Message}");
+				// A failed lookup (UNKNOWN) is not looked up again: nothing would be learnt; the next key tries again.
+				if (!(ex is RunLookupException) && RunSlideShowEnded())
+				{
+					// The slide show ended on this move: the end of the item, as when PowerPoint reports
+					// ppSlideShowDone above (-1). LastCallNotRunning and RunShowLost were set by the lookup.
+					InCurSlide = -1;
+					return InCurSlide;
+				}
+				// UNKNOWN, or the slide show still runs: logged and reported by the caller. The item on the output
+				// stays as it is.
+				LastNavigationError = ex;
+				LastCallNotRunning = false;
             }
 			return InCurSlide;
 		}
 
+		/// <summary>
+		/// After an error while moving: looks the run's slide show up again (FindRunSlideShow). True only for
+		/// GONE, which is positively established (the presentation or every slide show window was read and none
+		/// is the run's, or PowerPoint is gone); LastCallNotRunning and RunShowLost are then set. False for FOUND
+		/// (the slide show still runs: the error was the move's own) and for UNKNOWN (the lookup failed too;
+		/// nothing is recorded).
+		/// </summary>
+		private bool RunSlideShowEnded()
+		{
+			try
+			{
+				using RunPresentation run = FindRunSlideShow(out _);
+				return run == null;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Reads the verse markers from the slide notes of the presentation this wrapper ran. Nothing is read
+		/// when there is none (the caller has reset the verse data).
+		/// </summary>
         public void LoadVersesAndSlides(ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
 			try
 			{
+				using RunPresentation run = FindRunPresentationNoted();
+				if (run == null)
+				{
+					return;
+				}
+				Presentation presentation = run.Presentation;
 				int num = -1;
 				bool flag = false;
 				SequenceSymbol.GetUpperBound(0);
-				for (int i = 1; i <= prePowerPointApp.ActivePresentation.Slides.Count; i++)
+				for (int i = 1; i <= presentation.Slides.Count; i++)
 				{
 					try
 					{
-						if (prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
-							prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
+						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+							presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
 						{
-							num = GetVerseIndicator(prePowerPointApp.ActivePresentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
+							num = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
 							if (num >= 0)
 							{
 								if (num == VERSE_CHORUS)
@@ -2056,6 +2614,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				if (ReferenceEquals(prePowerPointApp, this.prePowerPointApp))
 				{
 					this.prePowerPointApp = null;
+					ForgetRunPresentation();
 				}
 			}
 		}

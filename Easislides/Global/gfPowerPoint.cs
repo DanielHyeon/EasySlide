@@ -119,7 +119,7 @@ namespace Easislides
 			// The slide show windows are shrunk to one pixel at the primary monitor's corner: they must not
 			// stay topmost there.
 			LowerSlideShowWindows("MinimizePowerPointWindows", wait: true);
-			InPPT.ResSetAllShowWindows();
+			InPPT.ResSetAllShowWindows(PowerpointList, TotalPowerpointItems);
 		}
 
 		/// <summary>
@@ -129,7 +129,8 @@ namespace Easislides
 		/// none of the item's runs made its slide show topmost (or that window is no longer topmost): a run that
 		/// does not find the window after another run raised it is not a failure. A failure that repeats is
 		/// logged in full once. "Not raised on purpose" (output area on the operator's monitor) is never
-		/// reported; it is logged once per session.
+		/// reported; it is logged once per session. A run that did not start is reported in both monitor modes
+		/// (in single monitor mode only that is collected: nothing is raised there).
 		/// </summary>
 		private static void ReportSlideShowRaiseError(PowerPoint InPPT, string itemPath, string runFailure)
 		{
@@ -202,6 +203,7 @@ namespace Easislides
 			string error = reportItemError;
 			string runFailure = reportItemRunFailure;
 			IntPtr raisedWindow = reportItemRaisedWindow;
+			string itemPath = reportItemPath;
 			reportItemPath = null;
 			reportItemError = null;
 			reportItemRunFailure = null;
@@ -213,7 +215,11 @@ namespace Easislides
 			if (!string.IsNullOrEmpty(runFailure))
 			{
 				FrmMain.WriteDebugLogThrottled("RunPowerpointSong: start the slide show", new InvalidOperationException(runFailure));
-				FrmMain.ReportErrorNotice("The PowerPoint item could not be started: " + runFailure);
+				// A missing file has already been reported for this item in this show (ValidatePowerpointItem).
+				if (!missingFileReported.Contains(itemPath ?? ""))
+				{
+					FrmMain.ReportErrorNotice("The PowerPoint item could not be started: " + runFailure);
+				}
 				return;
 			}
 			if (string.IsNullOrEmpty(error))
@@ -232,6 +238,223 @@ namespace Easislides
 		internal static void PowerPointItemLoading()
 		{
 			SlideShowRunCount++;
+		}
+
+		/// <summary>
+		/// What the show window's last item load did with PowerPoint (set by FrmLaunchShow.LoadItem): None for
+		/// an item it did not run as a slide show (not a PowerPoint item, or a live camera show), Started or
+		/// NotStarted after RunPowerpointSong for a PowerPoint item.
+		/// </summary>
+		internal enum LivePowerPointRun
+		{
+			None,
+			Started,
+			NotStarted
+		}
+
+		internal static LivePowerPointRun LivePowerPointRunState;
+
+		/// <summary>
+		/// The show window's run of the live PowerPoint item did not start (RunPowerpointSong failed). Together
+		/// with LivePowerPointEnded this says the projector does not show the live item's slide show. LivePP is
+		/// the run that puts the slides on the output in both monitor modes; in dual monitor mode the main form's
+		/// run only drives the same slide show. Remembered state only: PowerPoint is not asked.
+		/// </summary>
+		internal static bool LivePowerPointNotStarted => LivePowerPointRunState == LivePowerPointRun.NotStarted;
+
+		/// <summary>
+		/// The show window's run of the live PowerPoint item started, and a later call found its slide show gone
+		/// (ended in PowerPoint, Esc, closed, PowerPoint exited). Remembered state only.
+		/// </summary>
+		internal static bool LivePowerPointEnded => LivePowerPointRunState == LivePowerPointRun.Started && LivePP.RunShowLost;
+
+		/// <summary>
+		/// The main form's PowerPoint wrapper (set by FrmMain at start-up), so the pre-load can attach it again
+		/// when its PowerPoint is gone. Released with the others by ShutdownPowerpoint.
+		/// </summary>
+		internal static PowerPoint MainFormPPT;
+
+		// Notices given in this show, so each is given once: ended slide show (per item and run), navigation
+		// error (per item), missing file (per item), file not pre-opened (per file). Cleared at show start and end.
+		private static string showLostReportedPath;
+		private static readonly HashSet<string> navigationErrorReported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		private static readonly HashSet<string> missingFileReported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		private static readonly HashSet<string> preloadFailureReported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		private static bool attachFailureReported;
+
+		/// <summary>
+		/// Counts the show window's item loads (FrmLaunchShow.LoadItem). The main form uses it to tell whether
+		/// the show window's PowerPoint run state belongs to a load it has not seen yet, and not to an earlier
+		/// load of the same file.
+		/// </summary>
+		internal static int LiveLoadSerial;
+
+		/// <summary>
+		/// True the first time in this show the main form's PowerPoint reference could not be attached again.
+		/// </summary>
+		internal static bool FirstAttachFailureReport()
+		{
+			if (attachFailureReported)
+			{
+				return false;
+			}
+			attachFailureReported = true;
+			return true;
+		}
+
+		/// <summary>
+		/// Called at show start and show end: no PowerPoint state of the previous show carries over (the status
+		/// row must not say NOT STARTED for a show that has not loaded its first item yet).
+		/// </summary>
+		internal static void ResetPowerPointShowState()
+		{
+			attachFailureReported = false;
+			LivePowerPointRunState = LivePowerPointRun.None;
+			showLostReportedPath = null;
+			navigationErrorReported.Clear();
+			missingFileReported.Clear();
+			preloadFailureReported.Clear();
+		}
+
+		/// <summary>
+		/// True the first time in this show a missing PowerPoint file is reported for this path.
+		/// </summary>
+		internal static bool FirstMissingFileReport(string path)
+		{
+			return missingFileReported.Add(path ?? "");
+		}
+
+		/// <summary>
+		/// True the first time in this show the pre-load reports this file as not opened.
+		/// </summary>
+		internal static bool FirstPreloadFailureReport(string path)
+		{
+			return preloadFailureReported.Add(path ?? "");
+		}
+
+		/// <summary>
+		/// After a slide movement on a PowerPoint item: logs (throttled) an error the movement caught and reports
+		/// it once per item in this show; reports once per item when the item's slide show has ended or been
+		/// closed in PowerPoint. The item on the output is never changed here.
+		/// </summary>
+		internal static void ReportPowerpointNavigation(PowerPoint InPPT, SongSettings InItem)
+		{
+			Exception error = InPPT.LastNavigationError;
+			if (error != null)
+			{
+				FrmMain.WriteDebugLogThrottled("PowerPoint slide movement", error);
+				if (navigationErrorReported.Add(InItem?.Path ?? ""))
+				{
+					FrmMain.ReportErrorNotice("The PowerPoint slide could not be moved: " + error.GetBaseException().Message);
+				}
+				return;
+			}
+			if (!InPPT.LastCallNotRunning && !ReferenceEquals(InPPT, LivePP) && LivePowerPointEnded)
+			{
+				// The main form's wrapper moved the slide show, so it runs: the show window's earlier "ended"
+				// verdict is asked again (one lookup) and, when it runs, the show window shows it again.
+				ReprobeEndedLivePowerPoint();
+			}
+			ReportPowerpointShowEnded(InPPT, InItem);
+		}
+
+		/// <summary>
+		/// The live item's slide show was believed ended: looks it up once more (the verdict may have been
+		/// wrong, or the operator started it again). When it runs, the show window becomes transparent over it
+		/// again. Returns true when it runs. No timer calls this: only operations do, one lookup each.
+		/// </summary>
+		internal static bool ReprobeEndedLivePowerPoint()
+		{
+			if (!LivePowerPointEnded)
+			{
+				return LivePowerPointRunState == LivePowerPointRun.Started;
+			}
+			LivePP.RefreshRunShowState();
+			if (LivePowerPointEnded)
+			{
+				return false;
+			}
+			FrmMain.WriteDebugLog("PowerPoint: the live item's slide show runs again");
+			FrmMain.frmMain?.LivePowerPointResumed();
+			return true;
+		}
+
+		/// <summary>
+		/// Reports once per item when the slide show the wrapper ran for it is found gone (Esc in the slide show,
+		/// presentation closed, PowerPoint exited, or ended by the last Next). Nothing when it is running, or when
+		/// it never started (that was reported by RunPowerpointSong). When the main form's wrapper found it gone,
+		/// the show window's wrapper looks once too (they drive the same slide show; it is the truth for the
+		/// status row), and the show window then stops being transparent over it.
+		/// </summary>
+		internal static void ReportPowerpointShowEnded(PowerPoint InPPT, SongSettings InItem)
+		{
+			if (!InPPT.RunShowLost)
+			{
+				return;
+			}
+			if (!ReferenceEquals(InPPT, LivePP) && LivePowerPointRunState == LivePowerPointRun.Started && !LivePP.RunShowLost)
+			{
+				LivePP.RefreshRunShowState();
+			}
+			if (LivePowerPointEnded)
+			{
+				FrmMain.frmMain?.LivePowerPointEnded();
+			}
+			string path = InItem?.Path ?? "";
+			if (string.Equals(showLostReportedPath, path, StringComparison.OrdinalIgnoreCase))
+			{
+				return;
+			}
+			showLostReportedPath = path;
+			FrmMain.WriteDebugLog("PowerPoint: the slide show of '" + path + "' is no longer running (ended or closed in PowerPoint)");
+			FrmMain.ReportErrorNotice("The PowerPoint slide show of this item is no longer running (it was ended or closed in PowerPoint): " + Path.GetFileName(path));
+		}
+
+		/// <summary>
+		/// Dual monitor show, decision (a) of fix-ppt-wrong-presentation round 2: the main form's own run of the
+		/// output item did not start, but the show window's run of the same item did. The main form takes the
+		/// show window's run (FollowRunOf) and reads the slide count and verse data from it, as RunPowerpointSong
+		/// does after a run. Returns the slide count (0 when it could not be taken).
+		/// </summary>
+		internal static int AdoptLivePowerpointRun(ref SongSettings InItem, PowerPoint InMainPPT)
+		{
+			InMainPPT.FollowRunOf(LivePP, InItem.Path, PowerpointList, TotalPowerpointItems);
+			int count = InMainPPT.Count();
+			if (count <= 0)
+			{
+				// Not taken: the item keeps its slide count and verse data.
+				return 0;
+			}
+			// Verse data from this session's verse cache (filled when the slide images were built), so no slide
+			// notes are read through PowerPoint on a key press; from the slide show's notes only when the cache
+			// does not have the file.
+			if (!InMainPPT.LoadVerses(InItem.Path, MAX_VERSES, DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol, allowOpen: false))
+			{
+				ResetPowerpointVerses(ref InItem);
+				InMainPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
+			}
+			return count;
+		}
+
+		/// <summary>
+		/// Decision (b): the show window's run did not start while the main form's did. The main form stops
+		/// driving that slide show (it is not on the projector) and shows the item as not started.
+		/// </summary>
+		internal static void DropMainPowerpointRun(ref SongSettings InItem, PowerPoint InMainPPT)
+		{
+			InMainPPT.ForgetRun();
+			ResetPowerpointVerses(ref InItem);
+			InItem.TotalSlides = 0;
+			InItem.CurSlide = 1;
+		}
+
+		private static void ResetPowerpointVerses(ref SongSettings InItem)
+		{
+			for (int i = 1; i <= MaxSlideCount; i++)
+			{
+				InItem.Slide[i, 0] = -1;
+			}
+			Array.Fill(InItem.SongVerses, 0, 0, Math.Min(SongVerseInitCount, InItem.SongVerses.Length));
 		}
 
 		/// <summary>
@@ -303,11 +526,7 @@ namespace Easislides
 
 		public static int RunPowerpointSong(ref SongSettings InItem, ref PowerPoint InPPT, int StartingSlide, bool ShowResult)
 		{
-			for (int i = 1; i <= MaxSlideCount; i++)
-			{
-				InItem.Slide[i, 0] = -1;
-			}
-			Array.Fill(InItem.SongVerses, 0, 0, Math.Min(SongVerseInitCount, InItem.SongVerses.Length));
+			ResetPowerpointVerses(ref InItem);
 			InPPT.displayName = OutputMonitorName;
 			SlideShowRunCount++;
 			// Dual monitor show only: there the show window is transparent over a PowerPoint item, so the
@@ -320,14 +539,28 @@ namespace Easislides
 			}
 
 			string text = InPPT.Run(InItem.Path, ref PowerpointList, ref TotalPowerpointItems);
-			string runFailure = null;
-			if (InPPT.KeepSlideShowOnTop && !InPPT.LastRunStarted)
+			if (!InPPT.LastRunStarted)
 			{
-				// The slide show of this item did not start: the previous PowerPoint item's slide show must not
-				// stay on top under the transparent show window (waiting, as after a non-PowerPoint item).
-				runFailure = string.IsNullOrEmpty(text) ? "(no result)" : text;
-				LowerSlideShowWindows("RunPowerpointSong: item not started", wait: true);
+				// The slide show of this item did not start. Nothing below may run: it would act on no slide show
+				// at all (before the wrapper remembered its run it moved, measured and read the previous item's
+				// slide show, PowerPoint's active presentation, and returned that deck's slide count). 0 slides is
+				// what the readers already get when no presentation is open at all, and they cope with it
+				// (status "x/0", slide keys find nothing to move). The verse data was reset above, so no verse
+				// buttons.
+				string runFailure = string.IsNullOrEmpty(text) ? "(no result)" : text;
+				if (InPPT.KeepSlideShowOnTop)
+				{
+					// The previous PowerPoint item's slide show must not stay on top under the transparent show
+					// window (waiting, as after a non-PowerPoint item).
+					LowerSlideShowWindows("RunPowerpointSong: item not started", wait: true);
+				}
+				// Both monitor modes; one notice per item (the main form and the show window both run it).
+				ReportSlideShowRaiseError(InPPT, InItem.Path, runFailure);
+				InItem.CurSlide = 1;
+				return 0;
 			}
+			// A new slide show runs: its end, when a later call finds it gone, is reported again.
+			showLostReportedPath = null;
 			if (StartingSlide < 2)
 			{
 				InPPT.First();
@@ -362,7 +595,7 @@ namespace Easislides
 			// first move the slide show onto the output monitor).
 			if (InPPT.KeepSlideShowOnTop)
 			{
-				ReportSlideShowRaiseError(InPPT, InItem.Path, runFailure);
+				ReportSlideShowRaiseError(InPPT, InItem.Path, null);
 			}
 
 			InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
@@ -373,6 +606,8 @@ namespace Easislides
 		{
 			// Before closing: if a presentation fails to close, its slide show must not stay on top.
 			LowerSlideShowWindows("ClearUpPowerpointWindows", wait: false);
+			// Show end (and app exit): nothing of this show's PowerPoint state carries over.
+			ResetPowerPointShowState();
 			string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
 			if (text == "")
 			{
