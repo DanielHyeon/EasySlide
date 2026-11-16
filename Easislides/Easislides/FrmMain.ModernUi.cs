@@ -69,6 +69,9 @@ namespace Easislides
             CreateLiveStatusRow();
             CaptureShortcutTooltipBases();
             RefreshShortcutTooltips();
+            // Icons first: the toolbar texts are measured with them and InitQuickFindWidth
+            // decides whether the texts fit (design D20).
+            ApplyToolbarIcons();
             InitQuickFindWidth();
 
             AttachWorshipListPainter();
@@ -243,6 +246,7 @@ namespace Easislides
                 {
                     // High contrast switched on or off while the app runs.
                     RefreshShortcutTooltips();
+                    RefreshToolbarIconsForGate();
                     UpdateQuickFindWidth();
                 }
                 if (state != lastLiveIndicatorState)
@@ -733,22 +737,48 @@ namespace Easislides
             {
                 return;
             }
+            if (WindowState == FormWindowState.Minimized || rowRight <= 0)
+            {
+                // Minimized, the row reports a width of 0. Before the toolbar texts the box shrank to
+                // its minimum here and grew back on restore, unseen; now nothing changes while
+                // minimized, so restoring does not lay the toolbar out twice (texts, box).
+                return;
+            }
             try
             {
                 int target = quickFindMinWidth;
-                int othersWidth = ToolbarWidthWithoutQuickFind();
+                // Toolbar texts (design D20): the box shrinks to its minimum first, then the texts
+                // go; while they are shown nothing may go to the overflow menu.
+                int textExtra = ToolbarTextExtraWidth();
+                int othersImageOnly = ToolbarWidthWithoutQuickFind() - (toolbarTextsShown ? textExtra : 0);
+                int othersWithText = othersImageOnly + textExtra;
+                bool showTexts = false;
                 if (IsModernUiActive)
                 {
                     int available = rowRight - toolStripMain.Left - toolStripMain.Margin.Right
                         - LogicalToDeviceUnits(QuickFindRowSlack);
                     int max = Math.Max(quickFindMinWidth, LogicalToDeviceUnits(QuickFindMaxWidth));
-                    target = Math.Clamp(available - othersWidth, quickFindMinWidth, max);
+                    showTexts = textExtra > 0 && available - othersWithText >= quickFindMinWidth;
+                    if (!growAllowed && !toolbarTextsShown)
+                    {
+                        // Shrink-only pass: never show the texts here.
+                        showTexts = false;
+                    }
+                    if (showTexts || textExtra == 0)
+                    {
+                        target = Math.Clamp(available - (showTexts ? othersWithText : othersImageOnly), quickFindMinWidth, max);
+                    }
                 }
-                if (target == Main_QuickFind.Width || (!growAllowed && target > Main_QuickFind.Width))
+                if (!growAllowed && target > Main_QuickFind.Width)
+                {
+                    target = Main_QuickFind.Width;
+                }
+                bool textsChange = showTexts != toolbarTextsShown;
+                if (target == Main_QuickFind.Width && !textsChange)
                 {
                     return;
                 }
-                if (Main_QuickFind.DroppedDown && target > Main_QuickFind.Width)
+                if (Main_QuickFind.DroppedDown && (target > Main_QuickFind.Width || (showTexts && textsChange)))
                 {
                     // Growing would close the open list: grow once it has closed. A shrink is not
                     // deferred: without it the box itself goes to the overflow menu and its open
@@ -756,7 +786,14 @@ namespace Easislides
                     quickFindWaitingForDropDown = true;
                     return;
                 }
+                if (textsChange && !showTexts && Main_QuickFind.DroppedDown)
+                {
+                    // Hiding the texts moves the box to the left: close its list first (same rule as
+                    // the immediate shrink above, design D14) so it is never left apart from the box.
+                    Main_QuickFind.DroppedDown = false;
+                }
                 quickFindResizing = true;
+                int othersWidth = showTexts ? othersWithText : othersImageOnly;
                 if (toolStripMain.Width < othersWidth + target)
                 {
                     // Make room on the toolbar first: the row still gives it its old width until it
@@ -764,6 +801,10 @@ namespace Easislides
                     toolStripMain.Width = othersWidth + target;
                 }
                 toolStripMain.SuspendLayout();
+                if (textsChange)
+                {
+                    SetToolbarTexts(showTexts);
+                }
                 Main_QuickFind.Size = new Size(target, Main_QuickFind.Height);
                 toolStripMain.ResumeLayout(false);
                 // Let the row give the toolbar its new width first, then lay the toolbar out once.
