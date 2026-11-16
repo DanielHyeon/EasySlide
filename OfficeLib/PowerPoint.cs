@@ -91,22 +91,11 @@ namespace OfficeLib
 				{
 					TotalPowerpointItems = 0;
 				}
-				text = GetPresentationName(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
-				bool flag = false;
-				if (text != "")
-				{
-					for (int i = 1; i <= prePowerPointApp.Presentations.Count; i++)
-					{
-						if (flag)
-						{
-							break;
-						}
-						if (prePowerPointApp.Presentations[i].Name == text)
-						{
-							flag = true;
-						}
-					}
-				}
+				// One entry per path: a path whose copy is gone (closed in PowerPoint, or PowerPoint restarted) gets
+				// its entry replaced below, so the dead name cannot hide the new copy.
+				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
+				text = (entry > 0) ? PowerpointList[entry, 1] : "";
+				bool flag = entry > 0 && IsShowCopyOpen(text, PowerpointList[entry, 0]);
 				try
 				{
 					if (!flag)
@@ -114,9 +103,25 @@ namespace OfficeLib
 						presentation = prePowerPointApp.Presentations.Open(InPowerpointFullPath, MsoTriState.msoTrue, MsoTriState.msoTrue);
 						if (presentation != null)
 						{
-							PowerpointList[TotalPowerpointItems + 1, 0] = InPowerpointFullPath;
-							PowerpointList[TotalPowerpointItems + 1, 1] = presentation.FullName;
-							TotalPowerpointItems++;
+							// The mark that tells this copy from a user's presentation with the same "PresentationN"
+							// name (names start again from 1 when PowerPoint is restarted).
+							using (Tags tags = presentation.Tags)
+							{
+								tags.Add(ShowCopyTagName, ShowCopyMark(InPowerpointFullPath));
+							}
+							// Tags.Add marks the copy as changed: without this, closing it by hand in PowerPoint's own
+							// window asks the operator whether to save it (seen with PowerPoint 16). Presentation.Close
+							// called from the app does not ask either way.
+							presentation.Saved = MsoTriState.msoTrue;
+							int row = (entry > 0) ? entry : TotalPowerpointItems + 1;
+							string copyName = presentation.FullName;
+							PowerpointList[row, 0] = InPowerpointFullPath;
+							PowerpointList[row, 1] = copyName;
+							if (entry == 0)
+							{
+								TotalPowerpointItems++;
+							}
+							ClearStaleRowsWithName(copyName, row, PowerpointList, TotalPowerpointItems);
 							// presentation은 Presentations 컬렉션에서 관리되므로 여기서는 Dispose하지 않음
 						}
 					}
@@ -145,20 +150,6 @@ namespace OfficeLib
 			return "";
 		}
 
-		public void Run(int InIndex)
-		{
-			try
-			{
-				using SlideShowSettings settings = prePowerPointApp.Presentations[InIndex].SlideShowSettings;
-				DisablePresenterView(settings);
-				settings.Run();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error running presentation at index {InIndex}: {ex.Message}");
-			}
-		}
-
 		public string Run(string InPowerpointFullPath, ref string[,] PowerpointList, ref int TotalPowerpointItems)
 		{
 			string text = "";
@@ -174,15 +165,19 @@ namespace OfficeLib
 
 				SaveRegValue(version, @"PowerPoint\Options", "DisplayMonitor", displayName);
 
-				text = GetPresentationName(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
+				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
+				text = (entry > 0) ? PowerpointList[entry, 1] : "";
 				text2 = "";
 				if (!(text != ""))
 				{
 					return "Cannot find opened Presentation: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
 				}
+				string mark = ShowCopyMark(PowerpointList[entry, 0]);
+				bool unmarked = false;
 
 				// Every proxy read through the collection is released with it at the end of the block.
-				using (Presentations presentations = prePowerPointApp.Presentations)
+				Application app = prePowerPointApp;
+				using (Presentations presentations = app.Presentations)
 				{
 					int count = presentations.Count;
 					for (int i = 1; i <= count; i++)
@@ -192,20 +187,34 @@ namespace OfficeLib
 						text2 = text2 + i + "-" + candidate.Name + "(" + fullName + ") ";
 						if (string.Equals(fullName, text, StringComparison.OrdinalIgnoreCase))
 						{
+							if (!HasShowCopyMark(candidate, mark))
+							{
+								// The name of this item's copy, but not the copy: a presentation the app did not
+								// open (PowerPoint was restarted and gave the name again). Never run.
+								unmarked = true;
+								continue;
+							}
 							using SlideShowSettings settings = candidate.SlideShowSettings;
 							DisablePresenterView(settings);
 							using SlideShowWindow window = settings.Run();
 							LastRunStarted = true;
-							RememberRunPresentation(fullName, i);
+							RememberRunPresentation(fullName, i, mark, app);
 							if (KeepSlideShowOnTop)
 							{
-								currentSlideShowWindow = FindSlideShowWindow(window, () => candidate.Name);
+								// The slide show window's title holds FullName ("PresentationN"); Name can be
+								// another text for these untitled copies (seen with PowerPoint 16: the first
+								// slide's title).
+								currentSlideShowWindow = FindSlideShowWindow(window, () => fullName);
 								RaiseCurrentSlideShowWindow();
 							}
 
 							return "Presentation Run OK";
 						}
 					}
+				}
+				if (unmarked)
+				{
+					return "The copy opened for this item is no longer open (the presentation named " + text + " was not opened by EasiSlides)";
 				}
 			}
 			catch (Exception ex)
@@ -809,28 +818,128 @@ namespace OfficeLib
 				return "";
 			}
 
-			try
+			int entry = FindListedEntry(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
+			return (entry > 0) ? PowerpointList[entry, 1] : "";
+		}
+
+		/// <summary>
+		/// The row of PowerpointList that holds the copy opened for this path (compared without case: Windows
+		/// paths), or 0. Open keeps one row per path (it replaces the row when it opens a new copy), so this is
+		/// the newest copy's row; the last match is taken in case an older list has more than one.
+		/// </summary>
+		private static int FindListedEntry(string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
+		{
+			if (string.IsNullOrEmpty(InPowerpointFullPath) || PowerpointList == null)
 			{
-				for (int i = 1; i <= TotalPowerpointItems; i++)
+				return 0;
+			}
+			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			for (int i = last; i >= 1; i--)
+			{
+				if (string.Equals(PowerpointList[i, 0], InPowerpointFullPath, StringComparison.OrdinalIgnoreCase))
 				{
-					try
+					return i;
+				}
+			}
+			return 0;
+		}
+
+		// The mark Open puts on every copy it opens for the show (a presentation tag, in memory only: the copies
+		// are untitled and never saved). Its value is this process's run token and the copy's source path, so a
+		// presentation is the app's copy only when the name AND the mark match: a user's presentation that got the
+		// same "PresentationN" name (PowerPoint restarted during the show) has no mark, and a copy left by an
+		// earlier run of the app (crashed) has another token. Shared by all wrappers (they all drive one PowerPoint).
+		private const string ShowCopyTagName = "EASISLIDES_SHOWCOPY";
+		private static readonly string ShowCopyRunToken = Guid.NewGuid().ToString("N");
+
+		private static string ShowCopyMark(string path)
+		{
+			return ShowCopyRunToken + "|" + path;
+		}
+
+		/// <summary>
+		/// True when the presentation carries this mark. A missing tag reads as an empty string. Throws when the
+		/// tag cannot be read.
+		/// </summary>
+		private static bool HasShowCopyMark(Presentation presentation, string mark)
+		{
+			using Tags tags = presentation.Tags;
+			return string.Equals(tags[ShowCopyTagName], mark, StringComparison.OrdinalIgnoreCase);
+		}
+
+		/// <summary>
+		/// The source path of the listed copy this presentation is, or null: a row has its name AND that row's
+		/// mark. Every row with the name is tried: a stale row (its copy gone, e.g. after a PowerPoint restart) can
+		/// carry the name PowerPoint has since given to another path's copy. The tag is read once, and only when
+		/// some row has the name. Throws when the presentation cannot be read.
+		/// </summary>
+		private static string GetShowCopyPath(Presentation presentation, string fullName, string[,] PowerpointList, int TotalPowerpointItems)
+		{
+			if (string.IsNullOrEmpty(fullName) || PowerpointList == null)
+			{
+				return null;
+			}
+			string tag = null;
+			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			for (int i = 1; i <= last; i++)
+			{
+				if (string.Equals(PowerpointList[i, 1], fullName, StringComparison.OrdinalIgnoreCase))
+				{
+					if (tag == null)
 					{
-						if (PowerpointList[i, 0] == InPowerpointFullPath)
-						{
-							return PowerpointList[i, 1];
-						}
+						using Tags tags = presentation.Tags;
+						tag = tags[ShowCopyTagName] ?? "";
 					}
-					catch (Exception ex)
+					string path = PowerpointList[i, 0];
+					if (string.Equals(tag, ShowCopyMark(path), StringComparison.OrdinalIgnoreCase))
 					{
-						Console.WriteLine($"Error accessing PowerpointList at index {i}: {ex.Message}");
+						return path;
 					}
 				}
 			}
-			catch (Exception ex)
+			return null;
+		}
+
+		/// <summary>
+		/// After Open gave a row a new copy's name: any other row still holding that name is stale (names are
+		/// unique within one PowerPoint process, so its copy is gone). Its name is cleared, so that row reads as
+		/// "not opened" (Run reports the item as not started, the next pre-load opens it again) and can never be
+		/// matched against this copy. The row itself stays: no row number moves.
+		/// </summary>
+		private static void ClearStaleRowsWithName(string fullName, int keepRow, string[,] PowerpointList, int TotalPowerpointItems)
+		{
+			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			for (int i = 1; i <= last; i++)
 			{
-				Console.WriteLine($"Error in GetPresentationName: {ex.Message}");
+				if (i != keepRow && string.Equals(PowerpointList[i, 1], fullName, StringComparison.OrdinalIgnoreCase))
+				{
+					PowerpointList[i, 1] = "";
+				}
 			}
-			return "";
+		}
+
+		/// <summary>
+		/// True when the copy listed under this name for this path is open: a presentation has the name and the
+		/// mark. Throws when PowerPoint cannot be read (the caller reports the file as not opened).
+		/// </summary>
+		private bool IsShowCopyOpen(string fullName, string path)
+		{
+			if (string.IsNullOrEmpty(fullName))
+			{
+				return false;
+			}
+			string mark = ShowCopyMark(path);
+			using Presentations presentations = prePowerPointApp.Presentations;
+			int count = presentations.Count;
+			for (int i = 1; i <= count; i++)
+			{
+				Presentation candidate = presentations[i];
+				if (string.Equals(candidate.FullName, fullName, StringComparison.OrdinalIgnoreCase) && HasShowCopyMark(candidate, mark))
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 
 		// The presentation whose slide show the last successful Run of this wrapper started, by FullName (the key
@@ -845,6 +954,14 @@ namespace OfficeLib
 		private string runPresentationName;
 		private int runPresentationIndex;
 		private int runPresentationGeneration;
+		// The mark (see ShowCopyMark) of the run's presentation, and the Application proxy through which it was
+		// last verified. Names are unique within one PowerPoint process, and a proxy reaches one process only (when
+		// it dies, calls fail with RPC_E_DISCONNECTED), so the presentation found at the remembered index under that
+		// same proxy is the verified one: no tag is read on a slide key. The mark is read again when the proxy has
+		// changed since (NewApp at a pre-load, EnsureAttached, FollowRunOf) or the presentation is not at the
+		// remembered index (rescan).
+		private string runPresentationMark;
+		private Application runMarkVerifiedApp;
 
 		// Counts the show-end closes of the presentations opened for a show (ClearUpPowerpointWindows, on any
 		// wrapper). A name remembered before such a close refers to a closed presentation, and PowerPoint gives
@@ -879,11 +996,13 @@ namespace OfficeLib
 		private string CurrentRunPresentationName =>
 			(runPresentationName != null && runPresentationGeneration == closedPresentationsGeneration) ? runPresentationName : null;
 
-		private void RememberRunPresentation(string fullName, int index)
+		private void RememberRunPresentation(string fullName, int index, string mark, Application verifiedThrough)
 		{
 			runPresentationName = fullName;
 			runPresentationIndex = index;
 			runPresentationGeneration = closedPresentationsGeneration;
+			runPresentationMark = mark;
+			runMarkVerifiedApp = verifiedThrough;
 			RunShowLost = false;
 		}
 
@@ -891,6 +1010,8 @@ namespace OfficeLib
 		{
 			runPresentationName = null;
 			runPresentationIndex = 0;
+			runPresentationMark = null;
+			runMarkVerifiedApp = null;
 			RunShowLost = false;
 		}
 
@@ -991,6 +1112,9 @@ namespace OfficeLib
 			runPresentationName = otherName;
 			runPresentationIndex = other.runPresentationIndex;
 			runPresentationGeneration = other.runPresentationGeneration;
+			runPresentationMark = other.runPresentationMark;
+			// Verified through the other wrapper's proxy: this wrapper reads the mark once on its first lookup.
+			runMarkVerifiedApp = null;
 			RunShowLost = false;
 		}
 
@@ -1073,12 +1197,14 @@ namespace OfficeLib
 		}
 
 		/// <summary>
-		/// Finds the presentation of this wrapper's run by name (the remembered index first). Three outcomes:
+		/// Finds the presentation of this wrapper's run by name and mark (the remembered index first; the mark is
+		/// read only when the proxy changed since it was verified or on a rescan, see runMarkVerifiedApp). Three
+		/// outcomes:
 		/// FOUND: returns it (also when other presentations could not be read).
 		/// GONE: returns null. Only when positively established: no run is remembered; PowerPoint is gone (the
 		/// Application proxy is null or disposed, or a call failed with RPC_E_DISCONNECTED or
 		/// RPC_S_SERVER_UNAVAILABLE); or every presentation in the collection was read without an error and none
-		/// has the run's name.
+		/// has the run's name and mark (a presentation with the name but without the mark is not the run's).
 		/// UNKNOWN: throws RunLookupException: the collection could not be read, PowerPoint is busy, or the run's
 		/// presentation was not found while at least one other presentation could not be read (it may have
 		/// been the run's).
@@ -1103,7 +1229,16 @@ namespace OfficeLib
 					Presentation candidate = presentations[hint];
 					if (string.Equals(ReadCandidateName(() => candidate.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase))
 					{
-						return new RunPresentation(presentations, candidate);
+						// Same proxy as the last verification: the same presentation (see runMarkVerifiedApp).
+						if (ReferenceEquals(runMarkVerifiedApp, app))
+						{
+							return new RunPresentation(presentations, candidate);
+						}
+						if (IsMarkedCandidate(candidate, ref unreadable))
+						{
+							runMarkVerifiedApp = app;
+							return new RunPresentation(presentations, candidate);
+						}
 					}
 				}
 				for (int i = 1; i <= count; i++)
@@ -1113,9 +1248,11 @@ namespace OfficeLib
 						continue;
 					}
 					Presentation candidate = presentations[i];
-					if (string.Equals(ReadCandidateName(() => candidate.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase))
+					if (string.Equals(ReadCandidateName(() => candidate.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase)
+						&& IsMarkedCandidate(candidate, ref unreadable))
 					{
 						runPresentationIndex = i;
+						runMarkVerifiedApp = app;
 						return new RunPresentation(presentations, candidate);
 					}
 				}
@@ -1159,6 +1296,33 @@ namespace OfficeLib
 				}
 				unreadable ??= ex;
 				return null;
+			}
+		}
+
+		/// <summary>
+		/// During a scan: true when the candidate (which has the run's name) carries the run's mark. A candidate
+		/// whose mark cannot be read counts as unreadable, like ReadCandidateName (PowerPoint gone or busy is
+		/// rethrown). False with a readable tag means another presentation got the name: not the run's.
+		/// </summary>
+		private bool IsMarkedCandidate(Presentation candidate, ref Exception unreadable)
+		{
+			string mark = runPresentationMark;
+			if (mark == null)
+			{
+				return false;
+			}
+			try
+			{
+				return HasShowCopyMark(candidate, mark);
+			}
+			catch (Exception ex)
+			{
+				if (IsPowerPointGone(ex) || IsPowerPointBusy(ex))
+				{
+					throw;
+				}
+				unreadable ??= ex;
+				return false;
 			}
 		}
 
@@ -1422,7 +1586,8 @@ namespace OfficeLib
 		/// <summary>
 		/// Shrinks the slide show windows of the presentations this app opened for the show (PowerpointList) to
 		/// one pixel at the primary monitor's corner (live camera / video items). Other presentations in the same
-		/// PowerPoint may be the user's own; their slide shows are left alone.
+		/// PowerPoint may be the user's own (also one with a listed name but without the copy's mark); their slide
+		/// shows are left alone.
 		/// </summary>
         public void ResSetAllShowWindows(string[,] PowerpointList, int TotalPowerpointItems)
 		{
@@ -1435,7 +1600,7 @@ namespace OfficeLib
 					try
 					{
 						Presentation presentation = presentations[i];
-						if (!IsListedPresentation(presentation.FullName, PowerpointList, TotalPowerpointItems))
+						if (GetShowCopyPath(presentation, presentation.FullName, PowerpointList, TotalPowerpointItems) == null)
 						{
 							continue;
 						}
@@ -1468,6 +1633,9 @@ namespace OfficeLib
 		/// <returns></returns>
 		public string ClearUpPowerpointWindows(ref string[,] PowerpointList, ref int TotalPowerpointItems)
 		{
+			LastCloseFailedCount = 0;
+			LastCloseFailedName = null;
+			LastCloseError = null;
 			if (TotalPowerpointItems < 1)
 			{
 				return "";
@@ -1476,39 +1644,66 @@ namespace OfficeLib
 			int num = TotalPowerpointItems;
 			int num2 = 0;
 			int num3 = 0;
+			int unreadable = 0;
+			string firstUnreadableError = null;
 			bool flag = false;
 			// The presentations of this show are closed now: no wrapper may act on a name it remembered from it.
 			closedPresentationsGeneration++;
 			ForgetRunPresentation();
 			try
 			{
-				if(prePowerPointApp != null && prePowerPointApp.Presentations != null)
+				Application app = prePowerPointApp;
+				if (app != null && !app.IsDisposed)
                 {
-					num2 = prePowerPointApp.Presentations.Count;
-					if (TotalPowerpointItems > 0 && prePowerPointApp.Presentations.Count > 0)
+					// Every proxy read through the collection is released with it at the end of the block.
+					using Presentations presentations = app.Presentations;
+					num2 = presentations.Count;
+					for (int num4 = num2; num4 > 0; num4--)
 					{
-						for (int num4 = prePowerPointApp.Presentations.Count; num4 > 0; num4--)
+						// Close only the copies this app opened for the show: a listed name AND the copy's mark.
+						// PowerPoint is single-instance, so other presentations in it may be the user's own, also
+						// one that got a listed "PresentationN" name after a restart (Close does not ask to save).
+						Presentation openPresentation;
+						string fullName;
+						try
 						{
-							try
+							openPresentation = presentations[num4];
+							fullName = openPresentation.FullName;
+							if (GetShowCopyPath(openPresentation, fullName, PowerpointList, num) == null)
 							{
-								// Close only the presentations this app opened. PowerPoint is single-instance,
-								// so other presentations in it may be the user's own (Close does not ask to save).
-								Presentation openPresentation = prePowerPointApp.Presentations[num4];
-								if (IsListedPresentation(openPresentation.FullName, PowerpointList, num))
-								{
-									openPresentation.Close();
-									num3++;
-								}
+								continue;
 							}
-							catch
-							{ }
+						}
+						catch (Exception ex)
+						{
+							// Not known whether it is one of the copies: left open, reported below.
+							unreadable++;
+							firstUnreadableError ??= ex.GetBaseException().Message;
+							Console.WriteLine($"Error reading presentation {num4} at show end: {ex.Message}");
+							continue;
+						}
+						try
+						{
+							openPresentation.Close();
+							num3++;
+						}
+						catch (Exception ex)
+						{
+							LastCloseFailedCount++;
+							LastCloseFailedName ??= fullName;
+							Console.WriteLine($"Error closing presentation '{fullName}': {ex.Message}");
 						}
 					}
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
 				flag = true;
+				LastCloseError = "the open presentations could not be read: " + ex.GetBaseException().Message;
+			}
+			if (unreadable > 0 && LastCloseError == null)
+			{
+				LastCloseError = unreadable + " open presentation(s) could not be read: " + firstUnreadableError;
 			}
 			TotalPowerpointItems = 0;
 
@@ -1518,22 +1713,20 @@ namespace OfficeLib
 			return "Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3 + (flag ? ". Error When Closing" : ". No Error");
 		}
 
-		private static bool IsListedPresentation(string FullName, string[,] PowerpointList, int TotalPowerpointItems)
-		{
-			if (string.IsNullOrEmpty(FullName) || PowerpointList == null)
-			{
-				return false;
-			}
-			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
-			for (int i = 1; i <= last; i++)
-			{
-				if (string.Equals(PowerpointList[i, 1], FullName, StringComparison.OrdinalIgnoreCase))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
+		/// <summary>
+		/// Set by the last ClearUpPowerpointWindows: how many of the show's copies (listed name and mark) failed
+		/// to close, and the first one's name. Their slide show windows were already taken off the top.
+		/// </summary>
+		public int LastCloseFailedCount { get; private set; }
+
+		/// <inheritdoc cref="LastCloseFailedCount"/>
+		public string LastCloseFailedName { get; private set; }
+
+		/// <summary>
+		/// Set by the last ClearUpPowerpointWindows when it could not tell whether every copy was closed (the
+		/// presentations, or some of them, could not be read); null otherwise.
+		/// </summary>
+		public string LastCloseError { get; private set; }
 
 		/// <summary>
 		/// Returns the number of presentations open in the given PowerPoint, or -1 when it cannot be read.
@@ -1669,42 +1862,6 @@ namespace OfficeLib
                 System.Diagnostics.Debug.WriteLine("Error: " + ex.Message);
             }
         }
-        /// <summary>
-        /// ?�블?�릭 ??PowerPoint ?�라?�드??창을 ?�성?�하�??�니메이???�영?�을 ?�생?�는 메서??
-        /// </summary>
-        public void ActivateSlideShowAndTriggerClick(int slideNumber = -1)
-		{
-			try
-			{
-				if (prePowerPointApp == null)
-				{
-					return;
-				}
-
-				_Presentation activePresentation = prePowerPointApp.ActivePresentation;
-				if (activePresentation != null && activePresentation.SlideShowWindow != null)
-				{
-					// ?�재 ?�라?�드 ?�인
-					int currentSlide = activePresentation.SlideShowWindow.View.Slide.SlideIndex;
-
-					// ?�라?�드 번호가 지?�되?�고, ?�재 ?�라?�드?� ?�른 경우?�만 ?�동
-					if (slideNumber > 0)
-					{
-						activePresentation.SlideShowWindow.View.GotoSlide(slideNumber, MsoTriState.msoTrue);
-						//Thread.Sleep(200);
-					}
-
-					activePresentation.SlideShowWindow.Activate();
-					activePresentation.SlideShowWindow.View.GotoClick(0);
-					activePresentation.SlideShowWindow.View.Next();
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error activating SlideShow: {ex.Message}");
-			}
-		}
-
 		public int ImplementPowerpointSlideMovement(ref int InCurSlide, int InCurMaxSlide, OfficeLibKeys InKey)
 		{
 			try
@@ -1962,19 +2119,31 @@ namespace OfficeLib
 
 		/// <summary>
 		/// 프레젠테이션에서 Verse 정보를 파싱하여 배열에 저장
+		/// Returns false when a slide could not be read (its marker is then missing): such a result must not be
+		/// cached. A slide whose notes page has no body placeholder is a slide without a marker, not an error:
+		/// it is recognised by the placeholder count (reading the missing placeholder fails with the same generic
+		/// "integer out of range" error as other bad reads, so the error itself cannot tell them apart).
 		/// </summary>
-		private void ParseVersesFromPresentation(_Presentation presentation, int totalSlides, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
+		private bool ParseVersesFromPresentation(_Presentation presentation, int totalSlides, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
 			bool flag = false;
+			bool complete = true;
 			SequenceSymbol.GetUpperBound(0);
 			for (int i = 1; i <= totalSlides; i++)
 			{
 				try
 				{
-					if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
-						presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text.Length == 1)
+					Placeholders placeholders = presentation.Slides[i].NotesPage.Shapes.Placeholders;
+					if (placeholders.Count < NOTES_PLACEHOLDER_INDEX)
 					{
-						int verseIndicator = GetVerseIndicator(presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].TextFrame.TextRange.Text);
+						continue;
+					}
+					Shape notesBody = placeholders[NOTES_PLACEHOLDER_INDEX];
+					string notesText;
+					if (notesBody.PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
+						(notesText = notesBody.TextFrame.TextRange.Text).Length == 1)
+					{
+						int verseIndicator = GetVerseIndicator(notesText);
 						if (verseIndicator >= 0)
 						{
 							if (verseIndicator == VERSE_CHORUS)
@@ -2000,8 +2169,28 @@ namespace OfficeLib
 				}
 				catch (Exception ex)
 				{
+					complete = false;
 					Console.WriteLine($"Error processing verse for slide {i}: {ex.Message}");
 				}
+			}
+			return complete;
+		}
+
+		/// <summary>
+		/// The file's last write time, read before it is opened for parsing: a save while it is parsed then
+		/// leaves the cache entry older than the file, so the next check parses it again. Null when it cannot be
+		/// read (nothing is cached then).
+		/// </summary>
+		private static DateTime? GetLastWriteBeforeRead(string FilePath)
+		{
+			try
+			{
+				return (!string.IsNullOrEmpty(FilePath) && File.Exists(FilePath)) ? File.GetLastWriteTimeUtc(FilePath) : (DateTime?)null;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error reading the last write time of '{FilePath}': {ex.Message}");
+				return null;
 			}
 		}
 
@@ -2212,6 +2401,7 @@ namespace OfficeLib
 					Console.WriteLine("[BuildScreenOutDumps] prePowerPointApp is null");
 					return result;
 				}
+				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
 
 				// ✅ 먼저 캐시 체크 (프레젠테이션을 열기 전에)
 			Console.WriteLine($"[DEBUG BuildScreenOutDumps] Calling IsBuildedFileCheck...");
@@ -2226,8 +2416,8 @@ namespace OfficeLib
 					Console.WriteLine(FilePath);
 					if (presentation != null)
 					{
-						ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-						StoreCachedVerses(FilePath, TotalSlides, MAX_VERSES, SongVerses, Slide);
+						bool complete = ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+						StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, TotalSlides, MAX_VERSES, SongVerses, Slide);
 					}
 					return result;
 				}
@@ -2285,8 +2475,8 @@ namespace OfficeLib
 			UpdateImageBuildCache(FilePath, FilePrefix, TotalSlides);
 
 			// Verse 정보 파싱
-				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-				StoreCachedVerses(FilePath, TotalSlides, MAX_VERSES, SongVerses, Slide);
+				bool versesComplete = ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, lastWriteBeforeRead, versesComplete, TotalSlides, MAX_VERSES, SongVerses, Slide);
 
 				return result;
 			}
@@ -2333,12 +2523,22 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 		private static readonly Dictionary<string, (DateTime LastWriteUtc, int[] SongVerses, int[] SlideTypes)> _verseCache =
 			new Dictionary<string, (DateTime, int[], int[])>(StringComparer.OrdinalIgnoreCase);
 
-		private static void StoreCachedVerses(string FilePath, int totalSlides, int MAX_VERSES, int[] SongVerses, int[,] Slide)
+		/// <summary>
+		/// Caches the parsed verse data under the file's last write time read BEFORE the file was opened
+		/// (lastWriteBeforeRead), and only when every slide was read (complete).
+		/// </summary>
+		private static void StoreCachedVerses(string FilePath, DateTime? lastWriteBeforeRead, bool complete, int totalSlides, int MAX_VERSES, int[] SongVerses, int[,] Slide)
 		{
 			try
 			{
-				if (string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+				if (string.IsNullOrEmpty(FilePath) || lastWriteBeforeRead == null || !File.Exists(FilePath))
 				{
+					return;
+				}
+				if (!complete)
+				{
+					// A slide could not be read: its marker may be missing. Read again next time.
+					_verseCache.Remove(FilePath);
 					return;
 				}
 				int slideCount = Math.Max(0, Math.Min(totalSlides, Slide.GetLength(0) - 1));
@@ -2349,7 +2549,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				{
 					types[i] = Slide[i, 0];
 				}
-				_verseCache[FilePath] = (File.GetLastWriteTimeUtc(FilePath), verses, types);
+				_verseCache[FilePath] = (lastWriteBeforeRead.Value, verses, types);
 			}
 			catch (Exception ex)
 			{
@@ -2398,10 +2598,11 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				{
 					return false;
 				}
+				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
 				versePresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoTrue, MsoTriState.msoTrue, MsoTriState.msoFalse);
 				int slideCount = versePresentation.Slides.Count;
-				ParseVersesFromPresentation(versePresentation, slideCount, ref SongVerses, ref Slide, SequenceSymbol);
-				StoreCachedVerses(FilePath, slideCount, MAX_VERSES, SongVerses, Slide);
+				bool complete = ParseVersesFromPresentation(versePresentation, slideCount, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, slideCount, MAX_VERSES, SongVerses, Slide);
 				return true;
 			}
 			catch (Exception ex)
@@ -2455,6 +2656,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 					return result;
 				}
 
+				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
 				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
 				TotalSlides = presentation.Slides.Count;
 				if ((presentation == null) & (TotalSlides > 0))
@@ -2468,8 +2670,8 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				}
 
 				// Verse 정보 파싱
-				ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-				StoreCachedVerses(FilePath, TotalSlides, MAX_VERSES, SongVerses, Slide);
+				bool complete = ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, TotalSlides, MAX_VERSES, SongVerses, Slide);
 
 				return result;
 			}
@@ -2594,8 +2796,9 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 						}
 						catch (Exception e)
 						{
+							// Not killed: PowerPoint is one process and may hold the user's documents. Releasing
+							// every reference (ShutdownPowerpoint) is what lets a hidden PowerPoint exit.
 							Console.WriteLine($"Error quitting PowerPoint: {e.Message}");
-							ForceKillPowerPoint(prePowerPointApp);
 						}
 					}
 					prePowerPointApp.Dispose();  // Dispose()?? Quit() ???Ŀ? ???
@@ -2619,52 +2822,8 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			}
 		}
 
-		private void ForceKillPowerPoint(Application prePowerPointApp)
-		{
-			try
-			{
-				int processId = TryGetPowerPointProcessId(prePowerPointApp);
-				if (processId <= 0)
-				{
-					Console.WriteLine("PowerPoint process id could not be resolved; skip force kill.");
-					return;
-				}
-
-				Process.GetProcessById(processId).Kill();
-				Console.WriteLine($"PowerPoint process (PID={processId}) was forcibly terminated.");
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error killing PowerPoint process: {ex.Message}");
-			}
-		}
-
 		[DllImport("user32.dll")]
 		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-		private static int TryGetPowerPointProcessId(Application prePowerPointApp)
-		{
-			if (prePowerPointApp == null)
-			{
-				return 0;
-			}
-
-			try
-			{
-				int hwnd = prePowerPointApp.HWND;
-				if (hwnd == 0)
-				{
-					return 0;
-				}
-
-				GetWindowThreadProcessId(new IntPtr(hwnd), out uint pid);
-				return (int)pid;
-			}
-			catch
-			{
-				return 0;
-			}
-		}
 
 		public void ClosePresentation_Old(ref _Presentation presentation)
 		{

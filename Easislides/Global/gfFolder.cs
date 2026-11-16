@@ -726,22 +726,6 @@ namespace Easislides
 			}
 		}
 
-		public static void DeleteFolderFiles(string InFolder)
-		{
-			try
-			{
-				if (CommonUtil.ProcessKill("POWERPNT"))
-				{
-					Thread.Sleep(2000);
-					DeleteFolderContents(InFolder);
-				}
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-		}
-
 		public static void BuildSubFolderList(string InDir, string RemovePrefix, ref string[,] InGroup, ref int InTotal)
 		{
 			Stack<string> pending = new Stack<string>();

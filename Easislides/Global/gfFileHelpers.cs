@@ -48,90 +48,6 @@ namespace Easislides
             return false;
         }
 
-        public static void ReleasePowerpointApp(object pptApp)
-        {
-            if (pptApp == null) return;
-
-            try
-            {
-                // If it's our wrapper type, use its API to quit and release the underlying COM Application
-                if (pptApp is OfficeLib.PowerPoint wrapper)
-                {
-                    try
-                    {
-                        var app = wrapper.prePowerPointApp;
-                        if (app != null && !app.IsDisposed)
-                        {
-                            try
-                            {
-                                app.Quit();
-                            }
-                            catch (Exception ex)
-                            {
-                                Trace.WriteLine($"ReleasePowerpointApp - Quit failed: {ex.Message}");
-                            }
-
-                            try
-                            {
-                                if (Marshal.IsComObject(app))
-                                {
-                                    Marshal.FinalReleaseComObject(app);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Trace.WriteLine($"ReleasePowerpointApp - FinalReleaseComObject failed: {ex.Message}");
-                            }
-                            wrapper.prePowerPointApp = null;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.WriteLine($"ReleasePowerpointApp - wrapper handling failed: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    // Fallback: caller provided a raw COM application or interop object
-                    dynamic app = pptApp;
-                    try
-                    {
-                        app.Quit();
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            app.Close();
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine($"ReleasePowerpointApp - Close failed: {ex.Message}");
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                // Only try to release the object itself if it is an RCW (safe to swallow errors)
-                try
-                {
-                    if (Marshal.IsComObject(pptApp))
-                    {
-                        Marshal.FinalReleaseComObject(pptApp);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"ReleasePowerpointApp - final release failed: {ex.Message}");
-                }
-            }
-
-            // Note: Removed aggressive GC.Collect() calls for better performance.
-            // COM objects will be cleaned up by the GC in its normal cycle.
-            // If immediate cleanup is critical, caller should trigger GC at batch operation end.
-        }
-
         public static Image LoadImageNoLock(string path)
         {
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -183,36 +99,6 @@ namespace Easislides
             catch (Exception ex)
             {
                 Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-            }
-        }
-
-        /// <summary>
-        /// Release PowerPoint COM objects before deleting temp files.
-        /// Call this before DeleteFolderFilesSafe if PowerPoint may be holding file locks.
-        /// </summary>
-        public static void ReleasePowerpointObjectsForCleanup()
-        {
-            try
-            {
-                if (Gf.LivePP != null)
-                {
-                    ReleasePowerpointApp(Gf.LivePP);
-                    Gf.LivePP = null;
-                }
-                if (Gf.PreviewPPT != null)
-                {
-                    ReleasePowerpointApp(Gf.PreviewPPT);
-                    Gf.PreviewPPT = null;
-                }
-                if (Gf.OutputPPT != null)
-                {
-                    ReleasePowerpointApp(Gf.OutputPPT);
-                    Gf.OutputPPT = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"ReleasePowerpointObjectsForCleanup failed: {ex.Message}");
             }
         }
 

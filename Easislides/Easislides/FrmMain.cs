@@ -4680,7 +4680,7 @@ namespace Easislides
                     {
                         if (ShowErrorMessage)
                         {
-                            MessageBox.Show("Sorry - Can't find the song '" + Gf.RemoveMusicSym(text2) + "' in the Database!");
+                            MessageBox.Show(this, "Sorry - Can't find the song '" + Gf.RemoveMusicSym(text2) + "' in the Database!");
                         }
                         return i;
                     }
@@ -4688,7 +4688,7 @@ namespace Easislides
                     {
                         if (ShowErrorMessage)
                         {
-                            MessageBox.Show("Sorry - Can't show the Database song '" + Gf.RemoveMusicSym(text2) + "' because it has been deleted!");
+                            MessageBox.Show(this, "Sorry - Can't show the Database song '" + Gf.RemoveMusicSym(text2) + "' because it has been deleted!");
                         }
                         return i;
                     }
@@ -4701,7 +4701,7 @@ namespace Easislides
                         {
                             if (ShowErrorMessage)
                             {
-                                MessageBox.Show("Error - You have a Powerpoint item but there is no Microsoft Powerpoint Software on your computer");
+                                MessageBox.Show(this, "Error - You have a Powerpoint item but there is no Microsoft Powerpoint Software on your computer");
                             }
                             return i;
                         }
@@ -4712,7 +4712,7 @@ namespace Easislides
                     {
                         if (ShowErrorMessage)
                         {
-                            MessageBox.Show("Sorry - Can't find the Powerpoint File '" + Gf.RemoveMusicSym(text2) + "'");
+                            MessageBox.Show(this, "Sorry - Can't find the Powerpoint File '" + Gf.RemoveMusicSym(text2) + "'");
                         }
                         return i;
                     }
@@ -4768,7 +4768,18 @@ namespace Easislides
             Gf.TotalWorshipListItems = WorshipListItems.Items.Count;
             if (num > Gf.PP_MaxFiles)
             {
-                MessageBox.Show("Error - There are " + num + " Powerpoint files on the Worship List but you are only permitted to have " + Gf.PP_MaxFiles + ".");
+                string maxFilesMessage = "Error - There are " + num + " Powerpoint files on the Worship List but you are only permitted to have " + Gf.PP_MaxFiles + ".";
+                if (ShowErrorMessage)
+                {
+                    MessageBox.Show(this, maxFilesMessage);
+                }
+                else if (Gf.FirstPowerpointMaxFilesReport())
+                {
+                    // During a show: a box would block the operator (and hide behind the show window in single
+                    // monitor mode). Once per show.
+                    WriteDebugLog("ValidateWorshipListItems: " + maxFilesMessage);
+                    ReportErrorNotice(maxFilesMessage);
+                }
                 return 1;
             }
 

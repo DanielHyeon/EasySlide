@@ -281,6 +281,21 @@ namespace Easislides
 		private static readonly HashSet<string> missingFileReported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		private static readonly HashSet<string> preloadFailureReported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		private static bool attachFailureReported;
+		private static bool powerpointMaxFilesReported;
+
+		/// <summary>
+		/// True the first time in this show the worship list is found to hold more PowerPoint files than
+		/// PP_MaxFiles while the show runs (ValidateWorshipListItems without message boxes).
+		/// </summary>
+		internal static bool FirstPowerpointMaxFilesReport()
+		{
+			if (powerpointMaxFilesReported)
+			{
+				return false;
+			}
+			powerpointMaxFilesReported = true;
+			return true;
+		}
 
 		/// <summary>
 		/// Counts the show window's item loads (FrmLaunchShow.LoadItem). The main form uses it to tell whether
@@ -309,6 +324,7 @@ namespace Easislides
 		internal static void ResetPowerPointShowState()
 		{
 			attachFailureReported = false;
+			powerpointMaxFilesReported = false;
 			LivePowerPointRunState = LivePowerPointRun.None;
 			showLostReportedPath = null;
 			navigationErrorReported.Clear();
@@ -609,10 +625,37 @@ namespace Easislides
 			// Show end (and app exit): nothing of this show's PowerPoint state carries over.
 			ResetPowerPointShowState();
 			string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
+			ReportShowEndCloseFailures(text);
 			if (text == "")
 			{
 				LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
 			}
+		}
+
+		/// <summary>
+		/// Logs and reports the copies the show-end clean-up could not close (their slide shows stay open in
+		/// PowerPoint, already taken off the top), or that it could not check. PowerPoint is then not quit
+		/// (QuitPowerPointApp only quits when nothing is open), as before.
+		/// </summary>
+		private static void ReportShowEndCloseFailures(string summary)
+		{
+			int failed = LivePP.LastCloseFailedCount;
+			string error = LivePP.LastCloseError;
+			if (failed == 0 && error == null)
+			{
+				return;
+			}
+			string message = (failed > 0)
+				? (failed == 1
+					? "A PowerPoint presentation of this show could not be closed: " + LivePP.LastCloseFailedName
+					: failed + " PowerPoint presentations of this show could not be closed (first: " + LivePP.LastCloseFailedName + ")")
+				: "Not every PowerPoint presentation of this show could be checked for closing: " + error;
+			if (failed > 0 && error != null)
+			{
+				message += "; " + error;
+			}
+			FrmMain.WriteDebugLog("ClearUpPowerpointWindows: " + message + " (" + summary + ")");
+			FrmMain.ReportErrorNotice(message);
 		}
 
 		/// <summary>
