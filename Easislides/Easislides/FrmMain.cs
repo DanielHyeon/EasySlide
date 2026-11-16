@@ -4005,34 +4005,71 @@ namespace Easislides
             return "";
         }
 
+        // Each list passes its own selected items. DragListView names the source only while the drag runs
+        // (DoDragDrop returns when it ends), so a later drag from outside this form is never taken for it.
         private void SongsList_ItemDrag(object sender, ItemDragEventArgs e)
         {
             DragListView = DragDropSource.SongsList.ToString();
-            SongsList.DoDragDrop(SongsList.SelectedItems, DragDropEffects.Link);
+            try
+            {
+                SongsList.DoDragDrop(SongsList.SelectedItems, DragDropEffects.Link);
+            }
+            finally
+            {
+                DragListView = "";
+            }
         }
 
         private void InfoScreenList_ItemDrag(object sender, ItemDragEventArgs e)
         {
             DragListView = DragDropSource.InfoScreenList.ToString();
-            InfoScreenList.DoDragDrop(SongsList.SelectedItems, DragDropEffects.Link);
+            try
+            {
+                InfoScreenList.DoDragDrop(InfoScreenList.SelectedItems, DragDropEffects.Link);
+            }
+            finally
+            {
+                DragListView = "";
+            }
         }
 
         private void PowerpointList_ItemDrag(object sender, ItemDragEventArgs e)
         {
             DragListView = DragDropSource.PowerpointList.ToString();
-            PowerpointList.DoDragDrop(SongsList.SelectedItems, DragDropEffects.Link);
+            try
+            {
+                PowerpointList.DoDragDrop(PowerpointList.SelectedItems, DragDropEffects.Link);
+            }
+            finally
+            {
+                DragListView = "";
+            }
         }
 
         private void MediaList_ItemDrag(object sender, ItemDragEventArgs e)
         {
             DragListView = DragDropSource.MediaList.ToString();
-            MediaList.DoDragDrop(SongsList.SelectedItems, DragDropEffects.Link);
+            try
+            {
+                MediaList.DoDragDrop(MediaList.SelectedItems, DragDropEffects.Link);
+            }
+            finally
+            {
+                DragListView = "";
+            }
         }
 
         private void WorshipList_ItemDrag(object sender, ItemDragEventArgs e)
         {
             DragListView = DragDropSource.WorshipList.ToString();
-            WorshipListItems.DoDragDrop(WorshipListItems.SelectedItems, DragDropEffects.Link);
+            try
+            {
+                WorshipListItems.DoDragDrop(WorshipListItems.SelectedItems, DragDropEffects.Link);
+            }
+            finally
+            {
+                DragListView = "";
+            }
         }
 
         /// <summary>
@@ -4043,26 +4080,37 @@ namespace Easislides
         /// <param name="e"></param>
         private void WorshipList_DragEnter(object sender, DragEventArgs e)
         {
+            // A new drag over the list: no row is marked yet.
+            WorshipListInsertAt = -1;
+            e.Effect = WorshipListDropEffect(e);
+        }
+
+        /// <summary>
+        /// The drop effect the worship list offers for the dragged data, wherever it is dropped (Link for
+        /// list items, Bible passages and supported files; None for anything else).
+        /// </summary>
+        private DragDropEffects WorshipListDropEffect(DragEventArgs e)
+        {
             string a = DragDropItemType(e);
             if (a == DragDropSource.WorshipList.ToString())
             {
-                e.Effect = DragDropEffects.Link;
+                return DragDropEffects.Link;
             }
             else if (a == DragDropSource.SongsList.ToString())
             {
-                e.Effect = DragDropEffects.Link;
+                return DragDropEffects.Link;
             }
             else if (a == DragDropSource.InfoScreenList.ToString())
             {
-                e.Effect = DragDropEffects.Link;
+                return DragDropEffects.Link;
             }
             else if (a == DragDropSource.PowerpointList.ToString())
             {
-                e.Effect = DragDropEffects.Link;
+                return DragDropEffects.Link;
             }
             else if (a == DragDropSource.MediaList.ToString())
             {
-                e.Effect = DragDropEffects.Link;
+                return DragDropEffects.Link;
             }
             else if (a == DataFormats.FileDrop)
             {
@@ -4085,164 +4133,270 @@ namespace Easislides
                         }
                     }
                 }
-                e.Effect = (flag ? DragDropEffects.Link : DragDropEffects.None);
+                return (flag ? DragDropEffects.Link : DragDropEffects.None);
             }
             else if (a == DragDropSource.BiblePassage.ToString())
             {
-                e.Effect = DragDropEffects.Link;
+                return DragDropEffects.Link;
             }
-            else
+            return DragDropEffects.None;
+        }
+
+        /// <summary>
+        /// Marks the row under the cursor while something is dragged over the worship list, and shows
+        /// "no drop" where no place can be told (WorshipListDropIndex -1). The mark only shows the place;
+        /// the drop itself takes its place from the drop point.
+        /// </summary>
+        private void WorshipList_DragOver(object sender, DragEventArgs e)
+        {
+            int dropAt = WorshipListDropIndex(e.X, e.Y);
+            e.Effect = (dropAt < 0) ? DragDropEffects.None : WorshipListDropEffect(e);
+            ListViewItem itemAt = (dropAt >= 0 && dropAt < WorshipListItems.Items.Count) ? WorshipListItems.Items[dropAt] : null;
+            if (itemAt == null)
             {
-                e.Effect = DragDropEffects.None;
+                // No row here (below the last row, or no place): drop the mark, so no earlier row stays marked.
+                if (WorshipListInsertAt >= 0)
+                {
+                    ResetListViewBackgroundColour(WorshipListItems);
+                }
+                WorshipListInsertAt = -1;
+                return;
+            }
+            // The whole row counts, its last pixel line included (the drop goes before this row).
+            WorshipListInsertAt = itemAt.Index;
+            itemAt.BackColor = Color.Yellow;
+            if (WorshipListInsertAt > 0)
+            {
+                WorshipListItems.Items[WorshipListInsertAt - 1].BackColor = SongFolder.BackColor;
+                WorshipListItems.Items[WorshipListInsertAt - 1].EnsureVisible();
+            }
+            if (WorshipListInsertAt != WorshipListItems.Items.Count - 1)
+            {
+                WorshipListItems.Items[WorshipListInsertAt + 1].BackColor = SongFolder.BackColor;
+                WorshipListItems.Items[WorshipListInsertAt + 1].EnsureVisible();
             }
         }
 
-        private void WorshipList_DragOver(object sender, DragEventArgs e)
+        /// <summary>
+        /// Where dropped items go in the worship list, from the drop point (screen coordinates): before
+        /// the row level with the point; at the end when the point is below the last row or the list is empty;
+        /// -1 anywhere else (no place can be told: nothing is inserted or moved). Only the height counts: the
+        /// list shows column 0 alone (the other columns are 0 wide), and GetItemAt finds no row to the right
+        /// of it, so X is taken into column 0 first. With no header, -1 is left only for the list's own top
+        /// border, above the first visible row.
+        /// </summary>
+        private int WorshipListDropIndex(int screenX, int screenY)
         {
-            Point point = default(Point);
-            point = WorshipListItems.PointToClient(Cursor.Position);
-            ListViewItem itemAt = WorshipListItems.GetItemAt(point.X, point.Y);
-            if (itemAt == null)
+            Point point = WorshipListItems.PointToClient(new Point(screenX, screenY));
+            int columnWidth = (WorshipListItems.Columns.Count > 0) ? WorshipListItems.Columns[0].Width : WorshipListItems.ClientSize.Width;
+            int x = Math.Max(0, Math.Min(point.X, columnWidth - 1));
+            ListViewItem itemAt = WorshipListItems.GetItemAt(x, point.Y);
+            if (itemAt != null)
             {
-                return;
+                return itemAt.Index;
             }
-            WorshipListInsertAt = -1;
-            if (point.Y >= itemAt.Bounds.Height + itemAt.Bounds.Y - 1)
+            int count = WorshipListItems.Items.Count;
+            if (count == 0 || point.Y >= WorshipListItems.Items[count - 1].Bounds.Bottom)
             {
-                if (WorshipListItems.Items.Count > 0)
+                return count;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Whether moving the selected worship list rows before row InsertAt changes the order of the list.
+        /// The result order is: the other rows before InsertAt, the selected rows (in list order), the other
+        /// rows from InsertAt on - the same order the move in WorshipList_DragDrop produces.
+        /// </summary>
+        private bool WorshipListMoveChangesOrder(int InsertAt)
+        {
+            var before = new System.Collections.Generic.List<ListViewItem>();
+            var moved = new System.Collections.Generic.List<ListViewItem>();
+            var after = new System.Collections.Generic.List<ListViewItem>();
+            for (int i = 0; i < WorshipListItems.Items.Count; i++)
+            {
+                ListViewItem item = WorshipListItems.Items[i];
+                if (item.Selected)
                 {
-                    WorshipListItems.Items[WorshipListItems.Items.Count - 1].BackColor = SongFolder.BackColor;
+                    moved.Add(item);
+                }
+                else if (i < InsertAt)
+                {
+                    before.Add(item);
+                }
+                else
+                {
+                    after.Add(item);
                 }
             }
-            else if (WorshipListItems.Items.Count > 0)
+            if (moved.Count == 0)
             {
-                WorshipListInsertAt = itemAt.Index;
-                itemAt.BackColor = Color.Yellow;
-                if (WorshipListInsertAt > 0)
+                return false;
+            }
+            before.AddRange(moved);
+            before.AddRange(after);
+            for (int i = 0; i < before.Count; i++)
+            {
+                if (!ReferenceEquals(before[i], WorshipListItems.Items[i]))
                 {
-                    WorshipListItems.Items[WorshipListInsertAt - 1].BackColor = SongFolder.BackColor;
-                    WorshipListItems.Items[WorshipListInsertAt - 1].EnsureVisible();
-                }
-                if (WorshipListInsertAt != WorshipListItems.Items.Count - 1)
-                {
-                    WorshipListItems.Items[WorshipListInsertAt + 1].BackColor = SongFolder.BackColor;
-                    WorshipListItems.Items[WorshipListInsertAt + 1].EnsureVisible();
+                    return true;
                 }
             }
+            return false;
         }
 
         private void WorshipList_DragDrop(object sender, DragEventArgs e)
         {
-            int num = -1;
-            int num2 = 0;
+            // The place comes from the drop point, never from the row DragOver marked last: DragOver may not
+            // have run at all (a click the list control took for the start of a drag) or may be stale.
+            int dropAt = WorshipListDropIndex(e.X, e.Y);
+            WorshipListInsertAt = -1;
             string a = DragDropItemType(e);
             if (a == DragDropSource.WorshipList.ToString())
             {
                 e.Effect = DragDropEffects.Link;
-                num = ((WorshipListInsertAt >= 0) ? WorshipListInsertAt : WorshipListItems.Items.Count);
-                num2 = WorshipListItems.SelectedItems.Count;
-                int num3 = 0;
-                if (num > 0)
+                // A drop that leaves the order as it is (on the dragged row itself, on the row right after
+                // the dragged rows, or where no place can be told) changes nothing and saves nothing; the
+                // row objects stay, so the output and preview marks stay too.
+                if (dropAt >= 0 && WorshipListMoveChangesOrder(dropAt))
                 {
-                    for (int i = 0; i < num; i++)
+                    MoveSelectedWorshipListRows(dropAt);
+                }
+            }
+            // From the other lists, files and Bible passages: inserted before the row under the drop point
+            // (at the end below the last row); where no place can be told (dropAt -1) nothing is inserted.
+            else if (a == DragDropSource.SongsList.ToString())
+            {
+                e.Effect = DragDropEffects.Copy;
+                if (dropAt >= 0)
+                {
+                    AddFromSongsList(dropAt);
+                }
+            }
+            else if (a == DragDropSource.InfoScreenList.ToString())
+            {
+                e.Effect = DragDropEffects.Copy;
+                if (dropAt >= 0)
+                {
+                    AddFromInfoScreensList(dropAt);
+                }
+            }
+            else if (a == DragDropSource.PowerpointList.ToString())
+            {
+                e.Effect = DragDropEffects.Copy;
+                if (dropAt >= 0)
+                {
+                    AddFromPowerpointList(dropAt);
+                }
+            }
+            else if (a == DragDropSource.MediaList.ToString())
+            {
+                e.Effect = DragDropEffects.Copy;
+                if (dropAt >= 0)
+                {
+                    AddFromMediaFilesList(dropAt);
+                }
+            }
+            else if (a == DataFormats.FileDrop)
+            {
+                string[] array = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (Gf.SupportedImageFormat(array[0]))
+                {
+                    // An image is not inserted: it becomes the background of the row it is dropped on (that
+                    // row alone: ApplyBackground writes the preview item's format into every selected row),
+                    // or, dropped below the last row, the default background (no row selected). Where no
+                    // place can be told nothing happens: the default background would change the output.
+                    if (dropAt >= WorshipListItems.Items.Count)
                     {
-                        if (WorshipListItems.Items[i].Selected)
-                        {
-                            num3++;
-                        }
+                        WorshipList_UnselectAll();
+                        ApplyBackground(array[0]);
+                    }
+                    else if (dropAt >= 0)
+                    {
+                        SelectWorshipListItem(dropAt, 1);
+                        ApplyBackground(array[0]);
                     }
                 }
-                int num4 = 0;
-                foreach (ListViewItem selectedItem in WorshipListItems.SelectedItems)
+                else if (dropAt >= 0)
+                {
+                    int num2 = 0;
+                    for (int i = 0; i <= array.Length - 1; i++)
+                    {
+                        AddExternalFileToWorshipList(array[i], dropAt + num2);
+                        num2++;
+                    }
+                    if (array.Length > 0)
+                    {
+                        SelectWorshipListItem(dropAt, num2);
+                    }
+                }
+            }
+            else if (a == DragDropSource.BiblePassage.ToString())
+            {
+                if (dropAt >= 0)
+                {
+                    AddFromHolyBible(dropAt);
+                }
+            }
+            ResetListViewBackgroundColour(WorshipListItems);
+            WorshipListIndexChanged();
+            UpdateOutputCurItemNo();
+        }
+
+        /// <summary>
+        /// Moves the selected worship list rows before row InsertAt (an index of the list before the move;
+        /// Items.Count for the end), keeps them selected and saves the list. All or nothing: when a copy of a
+        /// row cannot be inserted, the copies already inserted are taken out again, the list and its
+        /// selection stay as they were, nothing is saved and the operator is told.
+        /// </summary>
+        private void MoveSelectedWorshipListRows(int InsertAt)
+        {
+            int num = InsertAt;
+            int num2 = WorshipListItems.SelectedItems.Count;
+            int num3 = 0;
+            for (int i = 0; i < num; i++)
+            {
+                if (WorshipListItems.Items[i].Selected)
+                {
+                    num3++;
+                }
+            }
+            ListViewItem[] selectedRows = new ListViewItem[num2];
+            WorshipListItems.SelectedItems.CopyTo(selectedRows, 0);
+            var inserted = new System.Collections.Generic.List<ListViewItem>();
+            try
+            {
+                foreach (ListViewItem selectedItem in selectedRows)
+                {
+                    ListViewItem copy = (ListViewItem)selectedItem.Clone();
+                    WorshipListItems.Items.Insert(num + inserted.Count, copy);
+                    inserted.Add(copy);
+                }
+            }
+            catch (Exception ex)
+            {
+                foreach (ListViewItem copy in inserted)
                 {
                     try
                     {
-                        WorshipListItems.Items.Insert(num + num4, (ListViewItem)selectedItem.Clone());
-                        num4++;
+                        WorshipListItems.Items.Remove(copy);
                     }
                     catch
                     {
                     }
                 }
-                RemoveWorshipListSong(UpdateCurItemNo: false);
-                num -= num3;
-                if (num > 0)
-                {
-                    for (int i = num; i < num2 + num; i++)
-                    {
-                        WorshipListItems.Items[i].Selected = true;
-                    }
-                }
-                SaveWorshipList();
+                WriteDebugLogThrottled("MoveSelectedWorshipListRows", ex);
+                ReportErrorNotice("The worship list item could not be moved; the list is unchanged");
+                return;
             }
-            else if (a == DragDropSource.SongsList.ToString())
+            RemoveWorshipListSong(UpdateCurItemNo: false);
+            num -= num3;
+            // Rows moved to the top (num 0) are selected as well.
+            for (int i = num; i < num2 + num && i < WorshipListItems.Items.Count; i++)
             {
-                e.Effect = DragDropEffects.Copy;
-                num = WorshipListInsertAt;
-                num2 = SongsList.SelectedItems.Count;
-                AddFromSongsList(WorshipListInsertAt);
+                WorshipListItems.Items[i].Selected = true;
             }
-            else if (a == DragDropSource.InfoScreenList.ToString())
-            {
-                e.Effect = DragDropEffects.Copy;
-                num = WorshipListInsertAt;
-                num2 = SongsList.SelectedItems.Count;
-                AddFromInfoScreensList(WorshipListInsertAt);
-            }
-            else if (a == DragDropSource.PowerpointList.ToString())
-            {
-                e.Effect = DragDropEffects.Copy;
-                num = WorshipListInsertAt;
-                num2 = SongsList.SelectedItems.Count;
-                AddFromPowerpointList(WorshipListInsertAt);
-            }
-            else if (a == DragDropSource.MediaList.ToString())
-            {
-                e.Effect = DragDropEffects.Copy;
-                num = WorshipListInsertAt;
-                num2 = SongsList.SelectedItems.Count;
-                AddFromMediaFilesList(WorshipListInsertAt);
-            }
-            else if (a == DataFormats.FileDrop)
-            {
-                string[] array = (string[])e.Data.GetData(DataFormats.FileDrop);
-                num = WorshipListInsertAt;
-                num2 = array.Length;
-                if (Gf.SupportedImageFormat(array[0]))
-                {
-                    if (WorshipListInsertAt < 0)
-                    {
-                        WorshipList_UnselectAll();
-                    }
-                    else
-                    {
-                        WorshipListItems.Items[WorshipListInsertAt].Selected = true;
-                        WorshipListIndexChanged();
-                    }
-                    ApplyBackground(array[0]);
-                    num2 = 1;
-                }
-                else
-                {
-                    int num4 = 0;
-                    for (int i = 0; i <= array.Length - 1; i++)
-                    {
-                        AddExternalFileToWorshipList(array[i], WorshipListInsertAt + num4);
-                        num4++;
-                    }
-                    if (array.Length > 0)
-                    {
-                        SelectWorshipListItem(WorshipListInsertAt, num4);
-                    }
-                }
-            }
-            else if (a == DragDropSource.BiblePassage.ToString())
-            {
-                AddFromHolyBible(WorshipListInsertAt);
-            }
-            ResetListViewBackgroundColour(WorshipListItems);
-            WorshipListIndexChanged();
-            UpdateOutputCurItemNo();
+            SaveWorshipList();
         }
 
         private void WorshipList_DragLeave(object sender, EventArgs e)
