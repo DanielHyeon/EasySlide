@@ -996,7 +996,32 @@ namespace Easislides
 					_currentPercentage = 100f;
 				}
 			}
-			Invalidate();
+			InvalidateFromTimer();
+		}
+
+		/// <summary>
+		/// Invalidate for the timer callbacks (Tick, AlertTick, RefTick), which run on thread-pool threads.
+		/// Timer.Dispose does not wait for a callback that is already running, so one can reach this while the
+		/// control is being disposed (the show window closing, the app exiting). Invalidate there could try to
+		/// create the handle on this thread and throw; an exception in a timer callback ends the process.
+		/// </summary>
+		private void InvalidateFromTimer()
+		{
+			if (IsDisposed || Disposing || !IsHandleCreated)
+			{
+				return;
+			}
+			try
+			{
+				Invalidate();
+			}
+			catch (Exception ex)
+			{
+				// The handle can still be destroyed between the check and Invalidate (ObjectDisposedException,
+				// InvalidOperationException, Win32Exception from a handle re-created on this thread). Any
+				// exception here would end the process; the next paint, if the screen still exists, catches up.
+				System.Diagnostics.Trace.WriteLine("ImageTransitionControl timer repaint skipped: " + ex.Message);
+			}
 		}
 
 		/// <summary>
@@ -2037,7 +2062,7 @@ namespace Easislides
 						wsg.Clear(Color.Transparent);
 						wsg.DrawImage(_newBackgroundPicture, destRect4, destRect4, GraphicsUnit.Pixel);
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
 						wsg.Dispose();
 						_imageWorkSpace.Dispose();
 					}
@@ -2061,7 +2086,7 @@ namespace Easislides
 						wsg.Clear(Color.Transparent);
 						wsg.DrawImage(_newBackgroundPicture, destRect4, destRect4, GraphicsUnit.Pixel);
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
 						wsg.Dispose();
 						_imageWorkSpace.Dispose();
 					}
@@ -2268,16 +2293,25 @@ namespace Easislides
 					int num39 = (int)((float)num38 * _currentPercentage / 100f) - TotalBitsArraySet;
 					lock (_bitsArrayLock)
 					{
-					for (int k = 0; k < num39 - 1; k++)
+					// Bars 0..num38-1 are drawn; the walk wrapped only past Height, adding bars that are never drawn,
+					// and one bar fewer than due was added per frame (the reveal lagged and snapped at 100 %).
+					for (int k = 0; k < num39; k++)
 					{
 						num37 = _random.Next(num38);
-						while (BitsArraySet.Contains(num37))
+						// At most one full lap: ends even if the set already holds every bar (e.g. indices left
+						// from another transition type after a failed draw).
+						int steps = 0;
+						while (BitsArraySet.Contains(num37) && steps++ < num38)
 						{
 							num37++;
-							if (num37 > base.Height)
+							if (num37 >= num38)
 							{
 								num37 = 0;
 							}
+						}
+						if (steps > num38)
+						{
+							break;
 						}
 						BitsArraySet.Add(num37);
 					}
@@ -2305,7 +2339,7 @@ namespace Easislides
 					int num41 = (int)((float)DissolveTotal * _currentPercentage / 100f) - TotalBitsArraySet;
 					lock (_bitsArrayLock)
 				{
-				for (int k = 0; k < num41 - 1; k++)
+				for (int k = 0; k < num41; k++)
 					{
 						num40 = _random.Next(DissolveTotal);
 						BitsArraySet.Add(num40);
@@ -2319,7 +2353,7 @@ namespace Easislides
 						if (BitsArraySet.Contains(k))
 						{
 							num42 = k / DissolveCountX;
-							num43 = k - num42 * DissolveCountX - 1;
+							num43 = k - num42 * DissolveCountX; // column 0..DissolveCountX-1 (was shifted one cell left)
 							TotalBitsArraySet++;
 							graphicsPath.AddRectangle(new Rectangle(num43 * DissolveSize, num42 * DissolveSize, DissolveSize, DissolveSize));
 						}
@@ -2337,16 +2371,22 @@ namespace Easislides
 					int num41 = (int)((float)DissolveTotal * _currentPercentage / 100f) - TotalBitsArraySet;
 					lock (_bitsArrayLock)
 				{
-				for (int k = 0; k < num41 - 1; k++)
+				for (int k = 0; k < num41; k++)
 					{
 						num40 = _random.Next(DissolveTotal);
-						while (BitsArraySet.Contains(num40))
+						// At most one full lap (see RandomBars).
+						int steps = 0;
+						while (BitsArraySet.Contains(num40) && steps++ < DissolveTotal)
 						{
 							num40++;
-							if (num40 > DissolveTotal)
+							if (num40 >= DissolveTotal)
 							{
 								num40 = 0;
 							}
+						}
+						if (steps > DissolveTotal)
+						{
+							break;
 						}
 						BitsArraySet.Add(num40);
 					}
@@ -2359,7 +2399,7 @@ namespace Easislides
 						if (BitsArraySet.Contains(k))
 						{
 							num42 = k / DissolveCountX;
-							num43 = k - num42 * DissolveCountX - 1;
+							num43 = k - num42 * DissolveCountX; // column 0..DissolveCountX-1 (was shifted one cell left)
 							TotalBitsArraySet++;
 							graphicsPath.AddRectangle(new Rectangle(num43 * DissolveSize, num42 * DissolveSize, DissolveSize, DissolveSize));
 						}
@@ -2398,7 +2438,7 @@ namespace Easislides
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
 						wsg.Transform = matrix;
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
 						matrix.Dispose();
 						wsg.Dispose();
 						_imageWorkSpace.Dispose();
@@ -2427,7 +2467,7 @@ namespace Easislides
 						float dy = base.Height / 2;
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * num16));
 						e.Graphics.Transform = matrix;
-						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.Current);
+						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.New);
 						matrix.Dispose();
 					}
 					else
@@ -2858,7 +2898,7 @@ namespace Easislides
 			{
 				AlertMessagePercentage = 100f;
 			}
-			Invalidate();
+			InvalidateFromTimer();
 		}
 
 		public void StartAlert(SongSettings InItem, string InString, int InDuration, Font InFont, bool InUseScroll, bool InUseFlash, bool InTransparent, bool InUseShadow, bool InUseOutline, Color InTextColour, Color InBackColour, int InAlignment, int InVerticalAlignment, double BottomBorderFactor)
@@ -3148,7 +3188,7 @@ namespace Easislides
 			{
 				RefMessagePercentage = 100f;
 			}
-			Invalidate();
+			InvalidateFromTimer();
 		}
 
 		public void LoadRef(SongSettings InItem, string InString, int InDuration, Font InFont, bool InUseScroll, bool InUseFlash, bool InTransparent, bool InUseShadow, bool InUseOutline, Color InTextColour, Color InBackColour, int InAlignment, int InVerticalAlignment, double BottomBorderFactor)
@@ -3174,7 +3214,10 @@ namespace Easislides
 				{
 					int num = _newBackgroundPicture.Width;
 					int num2 = (int)(Gf.MinBottomBorderFactor * (double)(float)_newBackgroundPicture.Height * 1.1000000238418579);
-					int num3 = (int)(Gf.MinBottomBorderFactor * (double)(float)base.ClientSize.Height * 3.0999999046325684);
+					// In picture coordinates like everything else here (paint scales the result to the screen). It used
+					// the control's client height: on the operator's small Output/Preview screens the reference text came
+					// out about 3.6 times smaller than on the projector, whose client size is the picture size.
+					int num3 = (int)(Gf.MinBottomBorderFactor * (double)(float)_newBackgroundPicture.Height * 3.0999999046325684);
 					if (num < 1)
 					{
 						num = 1;
@@ -3192,7 +3235,9 @@ namespace Easislides
 					refg = Graphics.FromImage(RefimageBackground);
 					setupFont = new Font(InFont.Name, InFont.Size - 1f, InFont.Style);
 					InFont = setupFont;
-					int num4 = Gf.ReduceFontToFit(refg, InString, ref InFont, num - RefBorder, num3);
+					// Width less a border on each side, as the right-aligned layout below uses (it used one border:
+					// a long right-aligned reference could start left of the screen).
+					int num4 = Gf.ReduceFontToFit(refg, InString, ref InFont, num - RefBorder * 2, num3);
 					RefMessageBackGroundRect = new Rectangle(0, 0, (int)refg.MeasureString(InString, InFont).Width, num4);
 					num3 = num4 + 4;
 					num2 = num2 * 2 + num3;
@@ -3215,7 +3260,9 @@ namespace Easislides
 					refMessageg_Inverse = Graphics.FromImage(RefimageMessage_Inverse);
 					refMessageg_Inverse.Clear(RefTransparent ? Color.Transparent : InBackColour);
 					// The text goes on the normal message bitmap; the inverse one stays background-only (as in StartAlert).
-					Gf.OutputOneLineToScreen(InItem, InString, InFont, refMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, (num3 - RefMessageBackGroundRect.Height) / 2, RefMessageBackGroundRect.Width, 0);
+					// At the top: the bitmap is exactly the text height (StartAlert's is 4 px taller), so the old
+					// offset (num3 - height) / 2 = 2 cut off the bottom 2 px of the text.
+					Gf.OutputOneLineToScreen(InItem, InString, InFont, refMessageg, InTextColour, StringAlignment.Center, InUseShadow ? 1 : 0, InUseOutline ? 1 : 0, 0, 0, RefMessageBackGroundRect.Width, 0);
 
 					Rectangle rectangle = default(Rectangle);
 					switch (InVerticalAlignment)
