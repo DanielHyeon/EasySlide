@@ -759,7 +759,6 @@ namespace Easislides
 			string ExtractedText = "";
 			R2_MaxLinesPermitted--;
 			SubDivideOneOutputText(InText, MainFont, NotationsFont, g, InWidth, InShowNotations, NotationsString, length, InSetLength, StartPos, ref EndExtractedTextPos, ref ExtractedText);
-			int num = (int)RenderingCache.MeasureString(g, ExtractedText, MainFont).Width;
 			HeightOffset += ((InShowNotations == 1) ? NotationsLineHeight : 0);
 			ActionUndoWordWrapSpacesAtStart(ref ExtractedText, ref ReplacedLog);
 			SubstituteDashes(ref ExtractedText, InShowNotations);

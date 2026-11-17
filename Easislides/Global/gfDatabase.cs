@@ -570,7 +570,8 @@ namespace Easislides
 			AltGapItemOption = GapType.None;
 			GapItemLogoFile = RegUtil.GetRegValue("options", "GapItemLogoFile", "");
 			GapItemUseFade = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GapItemUseFade", 1)) > 0) ? true : false);
-			WordWrapLeftAlignIndent = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "WordWrapLeftAlignIndent", 1)) > 0) ? true : false);
+			// Off unless chosen: indenting the wrapped lines made the first line look shifted to the left.
+			WordWrapLeftAlignIndent = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "WordWrapLeftAlignIndent", 0)) > 0;
 			WordWrapIgnoreStartSpaces = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "WordWrapIgnoreStartSpaces", 8));
 			if (WordWrapIgnoreStartSpaces < 1 || WordWrapIgnoreStartSpaces > 15)
 			{

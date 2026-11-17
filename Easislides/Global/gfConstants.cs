@@ -1903,7 +1903,7 @@ namespace Easislides
 
 		public static bool ShowLiveCam = false;
 
-		public static bool WordWrapLeftAlignIndent = true;
+		public static bool WordWrapLeftAlignIndent = false;
 
 		public static int WordWrapIgnoreStartSpaces = 8;
 
