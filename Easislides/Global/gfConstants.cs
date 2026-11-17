@@ -1,5 +1,11 @@
 //using JRO;
 //using Easislides.Model.EasiSlidesDbDataSetTableAdapters;
+using Easislides.Global;
+using Easislides.Module;
+using Easislides.Util;
+//using Microsoft.Office.Interop.Access.Dao;
+//using NetOffice.PowerPointApi;
+using OfficeLib;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,11 +14,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using Easislides.Module;
-using Easislides.Util;
-//using Microsoft.Office.Interop.Access.Dao;
-//using NetOffice.PowerPointApi;
-using OfficeLib;
 
 //using NetOffice.DAOApi;
 
@@ -716,7 +717,6 @@ namespace Easislides
 
 		public static string AssignAdmin2 = "";
 
-		public static string[,] LyricsArray = new string[10000, 3];
 
 		public static int LyricsArrayMax = 0;
 
@@ -881,19 +881,23 @@ namespace Easislides
 
 		public static int AbsoluteMaxHitoryItems = 20;
 
-		public static string[,] TempEditHistoryList = new string[AbsoluteMaxHitoryItems + 1, 2];
 
-		public static string[,] MainEditHistoryList = new string[AbsoluteMaxHitoryItems + 1, 2];
 
-		public static int TotalEditorEditHistory = 0;
+        public static EditHistoryList TempEditHistoryList = new EditHistoryList();
 
-		public static string[,] EditorEditHistoryList = new string[AbsoluteMaxHitoryItems + 1, 2];
 
-		public static int TotalInfoScreenEditHistory = 0;
+        public static EditHistoryList MainEditHistoryList = new EditHistoryList();
 
-		public static string[,] InfoScreenEditHistoryList = new string[AbsoluteMaxHitoryItems + 1, 2];
+        public static int TotalEditorEditHistory = 0;
 
-		public static string AlertsDataFile = "";
+
+        public static EditHistoryList EditorEditHistoryList = new EditHistoryList();
+
+        public static int TotalInfoScreenEditHistory = 0;
+
+        public static EditHistoryList InfoScreenEditHistoryList = new EditHistoryList();
+
+        public static string AlertsDataFile = "";
 
 		public static string ParentalDataFile = "";
 
@@ -1427,9 +1431,10 @@ namespace Easislides
 
 		public static int HB_CurVersionTabIndex = -1;
 
-		public static int[,] HB_VersesLocation = new int[3001, 7];
 
-		public static string Find_SQLString = "";
+        public static BibleVerseLocationList HB_VersesLocation = new BibleVerseLocationList();
+
+        public static string Find_SQLString = "";
 
 		public static string HB_SQLString = "";
 
@@ -1623,7 +1628,6 @@ namespace Easislides
 
 		public static string[,] FolderLyricsHeading = new string[MAXSONGSFOLDERS, 4];
 
-		public static string[] FolderName = new string[MAXSONGSFOLDERS];
 
 		public static int[] FolderHeadingPercentSize = new int[MAXSONGSFOLDERS];
 
@@ -1832,9 +1836,11 @@ namespace Easislides
 
 		public static bool AppCloseDown = false;
 
-		public static string[,] WorshipSongs = new string[20000, 5];
 
-		public static string[,] DocumentSongs = new string[20000, 5];
+        public static WorshipItemList WorshipSongs = new WorshipItemList();
+
+
+        public static DocumentItemList DocumentSongs = new DocumentItemList();
 
 		public static int TotalWorshipListItems = 0;
 
@@ -1944,9 +1950,9 @@ namespace Easislides
 
 		public static PowerPoint ExternalPPT = new PowerPoint();
 
-		public static string[,] PowerpointList = new string[1000, 2];
 
-		public static int TotalPowerpointItems = 0;
+        public static ShowCopyList PowerpointList = new ShowCopyList();
+
 
 		public static bool ShowLiveBlack = false;
 
@@ -2013,6 +2019,17 @@ namespace Easislides
 
 		public static bool formLoaded = false;
 
+        public static readonly FolderSettings[] Folders = CreateFolders();
+
+        private static FolderSettings[] CreateFolders()
+        {
+            var folders = new FolderSettings[MAXSONGSFOLDERS];
+            for (int i = 0; i < folders.Length; i++)
+            {
+                folders[i] = new FolderSettings();
+            }
+            return folders;
+        }
 
         private Gf()
 		{

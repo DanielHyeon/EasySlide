@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using Easislides.Global;
 using Easislides.Module;
 using Easislides.Util;
 using OfficeLib;
@@ -378,12 +379,12 @@ namespace Easislides
         /// answer, nothing is opened and the show goes on (Gf.PowerPointPreloadPending: the files are opened when a
         /// PowerPoint item is loaded after PowerPoint answers again).
         /// </summary>
-        public static void PreLoadPowerpointFiles(ref PowerPoint InPP, ref string[,] InSongsArray)
+        public static void PreLoadPowerpointFiles(ref PowerPoint InPP, ref WorshipItemList InSongsArray)
         {
             int files = 0;
             for (int i = 0; i <= Gf.TotalWorshipListItems; i++)
             {
-                if (InSongsArray[i, 1] == "P")
+                if (InSongsArray[i].Type == "P")
                 {
                     files++;
                 }
@@ -409,7 +410,7 @@ namespace Easislides
             }
         }
 
-        private static void PreLoadPowerpointFileCalls(ref PowerPoint InPP, ref string[,] InSongsArray)
+        private static void PreLoadPowerpointFileCalls(ref PowerPoint InPP, ref WorshipItemList InSongsArray)
         {
             bool flag = false;
             int failedCount = 0;
@@ -420,7 +421,7 @@ namespace Easislides
             {
                 try
                 {
-                    if (InSongsArray[i, 1] == "P")
+                    if (InSongsArray[i].Type == "P")
                     {
                         if (!flag)
                         {
@@ -446,8 +447,8 @@ namespace Easislides
                             }
                             flag = true;
                         }
-                        string path = DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1);
-                        string result = InPP.Open(path, ref Gf.PowerpointList, ref Gf.TotalPowerpointItems);
+                        string path = DataUtil.Right(InSongsArray[i].IdString, InSongsArray[i].IdString.Length - 1);
+                        string result = InPP.Open(path, ref Gf.PowerpointList);
                         if (result == PowerPoint.NotRespondingText || PowerPointCallLimit.CurrentAbandoned)
                         {
                             // PowerPoint did not answer: not a failure of this file (no "could not be opened"

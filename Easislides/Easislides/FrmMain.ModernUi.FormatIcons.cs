@@ -241,7 +241,7 @@ namespace Easislides
                 var ids = new List<string>();
                 for (int i = 1; i <= count; i++)
                 {
-                    ids.Add(Gf.MainEditHistoryList[i, 0] ?? "");
+                    ids.Add(Gf.MainEditHistoryList[i].Id ?? "");
                 }
                 HashSet<string> wordItems = EditHistoryWordItems(ids);
                 for (int i = 1; i <= count; i++)
@@ -370,7 +370,7 @@ namespace Easislides
                     }
                     return result;
                 }
-                string[] folders = Gf.FolderName;
+                string[] folders = Gf.Folders.Select(f => f.Name).ToArray();
                 foreach (DataRow row in table.Rows)
                 {
                     int folderNo = DataUtil.GetDataInt(row, "FolderNo");

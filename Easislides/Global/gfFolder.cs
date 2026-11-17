@@ -70,7 +70,7 @@ namespace Easislides
 			Dictionary<string, int> index = new Dictionary<string, int>(MAXSONGSFOLDERS, StringComparer.Ordinal);
 			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
-				string name = FolderName[i];
+				string name = Folders[i].Name;
 				if (!string.IsNullOrEmpty(name) && !index.ContainsKey(name))
 				{
 					index[name] = i;
@@ -206,7 +206,7 @@ namespace Easislides
 					while (dataReader.Read())
 					{
 						num = DataUtil.GetDataInt(dataReader, "FolderNo");
-						FolderName[num] = DataUtil.GetDataString(dataReader, "name");
+						Folders[num].Name = DataUtil.GetDataString(dataReader, "name");
 						FolderUse[num] = DataUtil.GetDataInt(dataReader, "Use");
 						FolderGroupStyle[num] = ToFolderSortBy(DataUtil.GetDataInt(dataReader, "GroupStyle"));
 						FolderLyricsHeading[num, 0] = DataUtil.GetDataString(dataReader, "PreChorusHeading");

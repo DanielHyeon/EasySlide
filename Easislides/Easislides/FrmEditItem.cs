@@ -422,12 +422,12 @@ namespace Easislides
 			{
 				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(Gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.Folders[i].Name);
 				}
 			}
 			if (SongFolder.Items.Count == 0)
 			{
-				SongFolder.Items.Add(Gf.FolderName[1]);
+				SongFolder.Items.Add(Gf.Folders[1].Name);
 			}
 			SongFolder.Text = SongFolder.Items[0].ToString();
 		}
@@ -1223,7 +1223,7 @@ namespace Easislides
 
 		private void AddToEditHistory(string InItemID)
 		{
-			if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.EditorEditHistoryList[1, 0] == InItemID)))
+			if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.EditorEditHistoryList[1].Id == InItemID)))
 			{
 				if (Gf.TotalEditorEditHistory < Gf.MaxUserEditHistory)
 				{
@@ -1235,9 +1235,9 @@ namespace Easislides
 				}
 				for (int num = Gf.TotalEditorEditHistory; num >= 2; num--)
 				{
-					Gf.EditorEditHistoryList[num, 0] = Gf.EditorEditHistoryList[num - 1, 0];
+					Gf.EditorEditHistoryList[num].Id = Gf.EditorEditHistoryList[num - 1].Id;
 				}
-				Gf.EditorEditHistoryList[1, 0] = InItemID;
+				Gf.EditorEditHistoryList[1].Id = InItemID;
 				Gf.RemoveDuplicateEditorHistoryItems(ref Gf.EditorEditHistoryList, ref Gf.TotalEditorEditHistory);
 				UpdateMenu_EditHistory();
 				Gf.SaveEditorEditHistoryToRegistry();
@@ -1256,23 +1256,23 @@ namespace Easislides
 				}
 				for (int i = 1; i <= Gf.TotalEditorEditHistory; i++)
 				{
-					text = Gf.GetItemTitle(Gf.EditorEditHistoryList[i, 0]);
-					if (text != "" && Gf.EditorEditHistoryList[num, 0] != Gf.EditorEditHistoryList[i, 0])
+					text = Gf.GetItemTitle(Gf.EditorEditHistoryList[i].Id);
+					if (text != "" && Gf.EditorEditHistoryList[num].Id != Gf.EditorEditHistoryList[i].Id)
 					{
 						num++;
-						Gf.EditorEditHistoryList[num, 0] = Gf.EditorEditHistoryList[i, 0];
-						Gf.EditorEditHistoryList[num, 1] = text;
+						Gf.EditorEditHistoryList[num].Id = Gf.EditorEditHistoryList[i].Id;
+						Gf.EditorEditHistoryList[num].Title = text;
 					}
 				}
 				Gf.TotalEditorEditHistory = num;
 				for (int i = Gf.TotalEditorEditHistory + 1; i <= Gf.AbsoluteMaxHitoryItems; i++)
 				{
-					Gf.EditorEditHistoryList[i, 0] = "";
-					Gf.EditorEditHistoryList[i, 1] = "";
+					Gf.EditorEditHistoryList[i].Id = "";
+					Gf.EditorEditHistoryList[i].Title = "";
 				}
 				for (int i = 1; i < Gf.AbsoluteMaxHitoryItems; i++)
 				{
-					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.EditorEditHistoryList[i, 1];
+					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.EditorEditHistoryList[i].Title;
 					Menu_EditHistoryList.DropDownItems[i - 1].Visible = ((i <= Gf.TotalEditorEditHistory) ? true : false);
 				}
 			}
@@ -1493,7 +1493,7 @@ namespace Easislides
 				Gf.EditItem1.Show_LicAdminInfo1 = Gf.EditItem1.In_LicAdminInfo1;
 				Gf.EditItem1.Show_LicAdminInfo2 = Gf.EditItem1.In_LicAdminInfo2;
 				SongTitle.Text = Gf.EditItem1.Title;
-				SongFolder.Text = Gf.FolderName[Gf.EditItem1.FolderNo];
+				SongFolder.Text = Gf.Folders[Gf.EditItem1.FolderNo].Name;
 				Title2IgnoreChange = true;
 				SongTitle2.Text = Gf.EditItem1.Title2;
 				SongNumber.Text = Gf.EditItem1.SongNumber.ToString();
@@ -2220,7 +2220,7 @@ namespace Easislides
 				int num = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
 				if (ActionBeforeNextEvent() != DialogResult.Cancel)
 				{
-					Gf.EditorItemID = DataUtil.StringToInt(DataUtil.Mid(Gf.EditorEditHistoryList[num, 0], 1));
+					Gf.EditorItemID = DataUtil.StringToInt(DataUtil.Mid(Gf.EditorEditHistoryList[num].Id, 1));
 					LoadSong(Gf.EditorItemID);
 					AddToEditHistory("D" + Gf.EditorItemID);
 					Gf.EditorLoadItem = true;

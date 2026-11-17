@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using Easislides.Global;
 using Easislides.Module;
 using Easislides.SQLite;
 using Easislides.Util;
@@ -950,7 +951,7 @@ namespace Easislides
 		/// <summary>
 		/// Validates history items by removing empty entries and ensuring count is within limits
 		/// </summary>
-		private static void ValidateHistoryItems(ref string[,] historyList, ref int totalCount, int maxItems, bool validateMaxLimit)
+		private static void ValidateHistoryItems(ref EditHistoryList historyList, ref int totalCount, int maxItems, bool validateMaxLimit)
 		{
 			if (validateMaxLimit && (totalCount < 0 || totalCount > maxItems))
 			{
@@ -960,10 +961,10 @@ namespace Easislides
 			int validCount = 0;
 			for (int i = 1; i <= totalCount; i++)
 			{
-				if (GetItemTitle(historyList[i, 0]) != "")
+				if (GetItemTitle(historyList[i].Id) != "")
 				{
 					validCount++;
-					historyList[validCount, 0] = historyList[i, 0];
+					historyList[validCount].Id = historyList[i].Id;
 				}
 			}
 			totalCount = validCount;

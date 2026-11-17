@@ -180,8 +180,8 @@ namespace Easislides
 			{
 				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(Gf.FolderName[i]);
-					if (Gf.FolderName[i] == Gf.ImportFolder_FolderName)
+					SongFolder.Items.Add(Gf.Folders[i].Name);
+					if (Gf.Folders[i].Name == Gf.ImportFolder_FolderName)
 					{
 						text = Gf.ImportFolder_FolderName;
 					}

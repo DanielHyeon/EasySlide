@@ -973,7 +973,7 @@ namespace Easislides
             }
             else if (BibleText.Text != "")
             {
-                text = "Verses listed: " + Gf.HB_VersesLocation[0, 0] + " / ";
+                text = "Verses listed: " + Gf.HB_VersesLocation[0].Version + " / ";
             }
             else if (Gf.HB_TotalVersions > 0)
             {
@@ -993,7 +993,7 @@ namespace Easislides
             {
                 if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
                 {
-                    text = text + " " + Gf.FolderName[Gf.PreviewItem.FolderNo];
+                    text = text + " " + Gf.Folders[Gf.PreviewItem.FolderNo].Name;
                 }
             }
             else if (Gf.PreviewItem.Source == ItemSource.ExternalFileInfoScreen)
@@ -1017,7 +1017,7 @@ namespace Easislides
                 text += "Worship";
                 if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
                 {
-                    text = text + " (" + Gf.FolderName[Gf.PreviewItem.FolderNo] + ")";
+                    text = text + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
                 }
             }
             else if (Gf.PreviewItem.Source == ItemSource.PraiseBook)
@@ -1025,7 +1025,7 @@ namespace Easislides
                 text += "PraiseBook";
                 if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
                 {
-                    text = text + " (" + Gf.FolderName[Gf.PreviewItem.FolderNo] + ")";
+                    text = text + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
                 }
             }
             else

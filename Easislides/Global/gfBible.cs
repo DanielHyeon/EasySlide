@@ -261,13 +261,13 @@ namespace Easislides
 							text6 = (InShowVerses ? (DataUtil.GetDataString(dr, "bibletext") ?? "") : "");
 							if (TrackOutput)
 							{
-								HB_VersesLocation[num2, 0] = InBiBleVersion;
-								HB_VersesLocation[num2, 1] = InBookNumber;
-								HB_VersesLocation[num2, 2] = dataInt;
-								HB_VersesLocation[num2, 3] = dataInt2;
-								HB_VersesLocation[num2, 4] = stringBuilder.Length;
+								HB_VersesLocation[num2].Version = InBiBleVersion;
+								HB_VersesLocation[num2].Book = InBookNumber;
+								HB_VersesLocation[num2].Chapter = dataInt;
+								HB_VersesLocation[num2].Verse = dataInt2;
+								HB_VersesLocation[num2].Start = stringBuilder.Length;
 								stringBuilder.Append(text + text5 + " " + text6 + "\n\n");
-								HB_VersesLocation[num2, 5] = stringBuilder.Length + 1 - HB_VersesLocation[num2, 4];
+								HB_VersesLocation[num2].Length = stringBuilder.Length + 1 - HB_VersesLocation[num2].Start;
 							}
 							else if (AdHocListing)
 							{
@@ -282,7 +282,7 @@ namespace Easislides
 					}
 					if (TrackOutput)
 					{
-						HB_VersesLocation[0, 0] = num2;
+						HB_VersesLocation[0].Version = num2;
 					}
 					InTextString.Append(DataUtil.TrimEnd(stringBuilder.ToString()));
 					if (recordset != null)
@@ -316,26 +316,26 @@ namespace Easislides
 				{
 					
 					DataTable recordset = null;
-					for (int i = 1; i <= HB_VersesLocation[0, 0]; i++)
+					for (int i = 1; i <= HB_VersesLocation[0].Version; i++)
 					{
 						try
 						{
-							text = "select * from bible where book =" + HB_VersesLocation[i, 1] + " and chapter=" + HB_VersesLocation[i, 2] + " and verse=" + HB_VersesLocation[i, 3] + " order by book, chapter, verse";
+							text = "select * from bible where book =" + HB_VersesLocation[i].Book + " and chapter=" + HB_VersesLocation[i].Chapter + " and verse=" + HB_VersesLocation[i].Verse + " order by book, chapter, verse";
 
 							recordset = DbController.GetDataTable(connection, text);	
 
 							if (recordset.Rows.Count>0)
 							{
-								HB_VersesLocation[i, 4] = stringBuilder.Length;
-								stringBuilder.Append(string.Concat(InBookList.Items[HB_VersesLocation[i, 1] - 1], " ", HB_VersesLocation[i, 2], ":", HB_VersesLocation[i, 3], " ", InShowVerses ? DataUtil.GetDataString(recordset.Rows[0], "bibletext") : "", "\n\n"));
-								HB_VersesLocation[i, 5] = stringBuilder.Length + 1 - HB_VersesLocation[i, 4];
+								HB_VersesLocation[i].Start = stringBuilder.Length;
+								stringBuilder.Append(string.Concat(InBookList.Items[HB_VersesLocation[i].Book - 1], " ", HB_VersesLocation[i].Chapter, ":", HB_VersesLocation[i].Verse, " ", InShowVerses ? DataUtil.GetDataString(recordset.Rows[0], "bibletext") : "", "\n\n"));
+								HB_VersesLocation[i].Length = stringBuilder.Length + 1 - HB_VersesLocation[i].Start;
 								recordset.Dispose();
 							}
 						}
 						catch
 						{
-							HB_VersesLocation[i, 4] = stringBuilder.Length;
-							HB_VersesLocation[i, 5] = 0;
+							HB_VersesLocation[i].Start = stringBuilder.Length;
+							HB_VersesLocation[i].Length = 0;
 						}
 					}
 					//InTextContainer.Text = DataUtil.TrimEnd(stringBuilder.ToString());
@@ -359,9 +359,9 @@ namespace Easislides
 			{
 				return false;
 			}
-			for (int i = 1; i <= HB_VersesLocation[0, 0]; i++)
+			for (int i = 1; i <= HB_VersesLocation[0].Version; i++)
 			{
-				HB_VersesLocation[i, 0] = InBibleVersion;
+				HB_VersesLocation[i].Version = InBibleVersion;
 			}
 			return true;
 		}
@@ -682,15 +682,15 @@ namespace Easislides
 							int dataInt2 = DataUtil.GetDataInt(dataReader, "chapter");
 							int dataInt3 = DataUtil.GetDataInt(dataReader, "verse");
 							text = string.Concat(InBookList.Items[dataInt - 1], " ", dataInt2, ":", dataInt3, " ");
-							HB_VersesLocation[num, 0] = InBibleVersion;
-							HB_VersesLocation[num, 1] = dataInt;
-							HB_VersesLocation[num, 2] = dataInt2;
-							HB_VersesLocation[num, 3] = dataInt3;
-							HB_VersesLocation[num, 4] = stringBuilder.Length;
+							HB_VersesLocation[num].Version = InBibleVersion;
+							HB_VersesLocation[num].Book = dataInt;
+							HB_VersesLocation[num].Chapter = dataInt2;
+							HB_VersesLocation[num].Verse = dataInt3;
+							HB_VersesLocation[num].Start = stringBuilder.Length;
 							stringBuilder.Append(text + (InShowVerses ? DataUtil.GetDataString(dataReader, "bibletext") : "") + "\n\n");
-							HB_VersesLocation[num, 5] = stringBuilder.Length + 1 - HB_VersesLocation[num, 4];
+							HB_VersesLocation[num].Length = stringBuilder.Length + 1 - HB_VersesLocation[num].Start;
 						}
-						HB_VersesLocation[0, 0] = num;
+						HB_VersesLocation[0].Version = num;
 						InTextContainer.Text = DataUtil.TrimEnd(stringBuilder.ToString());
 						if (num >= 3000)
 						{

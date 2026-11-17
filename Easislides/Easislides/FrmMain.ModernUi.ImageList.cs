@@ -1,3 +1,5 @@
+using Easislides.Global;
+using Easislides.Module;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +8,6 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Text;
 using System.Windows.Forms;
-using Easislides.Module;
 
 namespace Easislides
 {
@@ -284,8 +285,10 @@ namespace Easislides
                 }
                 // The item's own folder (set from the database when the item was loaded), whatever list it
                 // came from; not the folder the operator is browsing now.
-                string[] folders = Gf.FolderName;
-                string folder = folders != null && item.FolderNo > 0 && item.FolderNo < folders.Length ? folders[item.FolderNo] : "";
+                FolderSettings[] folders = Gf.Folders;
+                string folder = item.FolderNo > 0 && item.FolderNo < folders.Length ? folders[item.FolderNo].Name : "";
+
+                //string folder = folders != null && item.FolderNo > 0 && item.FolderNo < folders.Length ? folders[item.FolderNo] : "";
                 // Only the title row that shows this item.
                 if (titleList.Items[0].Text != item.Title)
                 {

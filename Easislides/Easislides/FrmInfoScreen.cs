@@ -385,7 +385,7 @@ namespace Easislides
 						{
 							inString = "1";
 						}
-						SongFolder.Text = Gf.FolderName[DataUtil.StringToInt(inString)];
+						SongFolder.Text = Gf.Folders[DataUtil.StringToInt(inString)].Name;
 						SongTitle.Text = DataUtil.ExtractOneInfo(ref InString, '>');
 						tbLyrics1.Paste();
 					}
@@ -419,12 +419,12 @@ namespace Easislides
 			{
 				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(Gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.Folders[i].Name);
 				}
 			}
 			if (SongFolder.Items.Count == 0)
 			{
-				SongFolder.Items.Add(Gf.FolderName[1]);
+				SongFolder.Items.Add(Gf.Folders[1].Name);
 			}
 			SongFolder.Text = SongFolder.Items[0].ToString();
 		}
@@ -1279,7 +1279,7 @@ namespace Easislides
 
 		private void AddToEditHistory(string InItemID)
 		{
-			if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.InfoScreenEditHistoryList[1, 0] == InItemID)))
+			if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.InfoScreenEditHistoryList[1].Id == InItemID)))
 			{
 				if (Gf.TotalInfoScreenEditHistory < Gf.MaxUserEditHistory)
 				{
@@ -1291,9 +1291,9 @@ namespace Easislides
 				}
 				for (int num = Gf.TotalInfoScreenEditHistory; num >= 2; num--)
 				{
-					Gf.InfoScreenEditHistoryList[num, 0] = Gf.InfoScreenEditHistoryList[num - 1, 0];
+					Gf.InfoScreenEditHistoryList[num].Id = Gf.InfoScreenEditHistoryList[num - 1].Id;
 				}
-				Gf.InfoScreenEditHistoryList[1, 0] = InItemID;
+				Gf.InfoScreenEditHistoryList[1].Id = InItemID;
 				Gf.RemoveDuplicateEditorHistoryItems(ref Gf.InfoScreenEditHistoryList, ref Gf.TotalInfoScreenEditHistory);
 				UpdateMenu_EditHistory();
 				Gf.SaveEditorEditHistoryToRegistry();
@@ -1312,23 +1312,23 @@ namespace Easislides
 				}
 				for (int i = 1; i <= Gf.TotalInfoScreenEditHistory; i++)
 				{
-					text = Gf.GetItemTitle(Gf.InfoScreenEditHistoryList[i, 0]);
-					if (text != "" && Gf.InfoScreenEditHistoryList[num, 0] != Gf.InfoScreenEditHistoryList[i, 0])
+					text = Gf.GetItemTitle(Gf.InfoScreenEditHistoryList[i].Id);
+					if (text != "" && Gf.InfoScreenEditHistoryList[num].Id != Gf.InfoScreenEditHistoryList[i].Id)
 					{
 						num++;
-						Gf.InfoScreenEditHistoryList[num, 0] = Gf.InfoScreenEditHistoryList[i, 0];
-						Gf.InfoScreenEditHistoryList[num, 1] = text;
+						Gf.InfoScreenEditHistoryList[num].Id = Gf.InfoScreenEditHistoryList[i].Id;
+						Gf.InfoScreenEditHistoryList[num].Title = text;
 					}
 				}
 				Gf.TotalInfoScreenEditHistory = num;
 				for (int i = Gf.TotalInfoScreenEditHistory + 1; i <= Gf.AbsoluteMaxHitoryItems; i++)
 				{
-					Gf.InfoScreenEditHistoryList[i, 0] = "";
-					Gf.InfoScreenEditHistoryList[i, 1] = "";
+					Gf.InfoScreenEditHistoryList[i].Id = "";
+					Gf.InfoScreenEditHistoryList[i].Title = "";
 				}
 				for (int i = 1; i <= Gf.AbsoluteMaxHitoryItems; i++)
 				{
-					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.InfoScreenEditHistoryList[i, 1];
+					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.InfoScreenEditHistoryList[i].Title;
 					Menu_EditHistoryList.DropDownItems[i - 1].Visible = ((i <= Gf.TotalInfoScreenEditHistory) ? true : false);
 				}
 			}
@@ -1575,7 +1575,7 @@ namespace Easislides
 			ThisItemFileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
 			int num = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref Info_HeaderData[31], '>', RemoveExtract: false, MinusOneIfBlank: false));
 			SongTitle.Text = Gf.InfoItem1.Title;
-			SongFolder.Text = Gf.FolderName[Gf.InfoItem1.FolderNo];
+			SongFolder.Text = Gf.Folders[Gf.InfoItem1.FolderNo].Name;
 			Title2IgnoreChange = true;
 			SongTitle2.Text = Gf.InfoItem1.Title2;
 			SongNumber.Text = Gf.InfoItem1.SongNumber.ToString();
@@ -2295,7 +2295,7 @@ namespace Easislides
 				int num = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
 				if (ActionBeforeNextEvent() != DialogResult.Cancel)
 				{
-					CurFileName = DataUtil.Mid(Gf.InfoScreenEditHistoryList[num, 0], 1);
+					CurFileName = DataUtil.Mid(Gf.InfoScreenEditHistoryList[num].Id, 1);
 					LoadInfoScreen(CurFileName);
 					AddToEditHistory("I" + CurFileName);
 					Gf.InfoScreenFileName = CurFileName;

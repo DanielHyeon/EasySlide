@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using Easislides.Global;
 using Easislides.Module;
 using Easislides.SQLite;
 using Easislides.Util;
@@ -257,12 +258,12 @@ namespace Easislides
 					for (int i = 1; i < MAXSONGSFOLDERS; i++)
 					{
 						num = i;
-						if (FolderName[i] != "")
+						if (Folders[i].Name != "")
 						{
 							DataRow dr = dataTable.Rows.Find($"{i}");
 							if (dr != null)
 							{
-								dr["name"] = FolderName[i];
+								dr["name"] = Folders[i].Name;
 								dr["Use"] = FolderUse[i];
 								dr["GroupStyle"] = FolderGroupStyle[i];
 								dr["PreChorusHeading"] = FolderLyricsHeading[i, 0];
@@ -323,9 +324,9 @@ namespace Easislides
 						{
 							num = i;
 							rowIndex = i - 1;
-							if (FolderName[i] != "")
+							if (Folders[i].Name != "")
 							{
-								dataTable.Rows[rowIndex]["name"] = FolderName[i];
+								dataTable.Rows[rowIndex]["name"] = Folders[i].Name;
 								dataTable.Rows[rowIndex]["Use"] = FolderUse[i];
 								dataTable.Rows[rowIndex]["GroupStyle"] = FolderGroupStyle[i];
 								dataTable.Rows[rowIndex]["PreChorusHeading"] = FolderLyricsHeading[i, 0];
@@ -1427,13 +1428,13 @@ namespace Easislides
 			}
 			for (int i = 1; i <= AbsoluteMaxHitoryItems; i++)
 			{
-				MainEditHistoryList[i, 0] = "";
+				MainEditHistoryList[i].Id = "";
 			}
 			TotalMainEditHistory = AbsoluteMaxHitoryItems;
 			for (int i = AbsoluteMaxHitoryItems; i >= 1; i--)
 			{
-				MainEditHistoryList[i, 0] = RegUtil.GetRegValue("maineditlist", i.ToString(), "");
-				if (MainEditHistoryList[i, 0] == "")
+				MainEditHistoryList[i].Id = RegUtil.GetRegValue("maineditlist", i.ToString(), "");
+				if (MainEditHistoryList[i].Id == "")
 				{
 					TotalMainEditHistory = i - 1;
 				}
@@ -1450,13 +1451,13 @@ namespace Easislides
 			}
 			for (int i = 1; i <= AbsoluteMaxHitoryItems; i++)
 			{
-				EditorEditHistoryList[i, 0] = "";
+				EditorEditHistoryList[i].Id = "";
 			}
 			TotalEditorEditHistory = AbsoluteMaxHitoryItems;
 			for (int i = AbsoluteMaxHitoryItems; i >= 1; i--)
 			{
-				EditorEditHistoryList[i, 0] = RegUtil.GetRegValue("editoreditlist", i.ToString(), "");
-				if (EditorEditHistoryList[i, 0] == "")
+				EditorEditHistoryList[i].Id = RegUtil.GetRegValue("editoreditlist", i.ToString(), "");
+				if (EditorEditHistoryList[i].Id == "")
 				{
 					TotalEditorEditHistory = i - 1;
 				}
@@ -1473,13 +1474,13 @@ namespace Easislides
 			}
 			for (int i = 1; i <= AbsoluteMaxHitoryItems; i++)
 			{
-				InfoScreenEditHistoryList[i, 0] = "";
+				InfoScreenEditHistoryList[i].Id = "";
 			}
 			TotalInfoScreenEditHistory = MaxUserEditHistory;
 			for (int i = AbsoluteMaxHitoryItems; i >= 1; i--)
 			{
-				InfoScreenEditHistoryList[i, 0] = RegUtil.GetRegValue("infoscreeneditlist", i.ToString(), "");
-				if (InfoScreenEditHistoryList[i, 0] == "")
+				InfoScreenEditHistoryList[i].Id = RegUtil.GetRegValue("infoscreeneditlist", i.ToString(), "");
+				if (InfoScreenEditHistoryList[i].Id == "")
 				{
 					TotalInfoScreenEditHistory = i - 1;
 				}
@@ -1552,15 +1553,15 @@ namespace Easislides
 			{
 				if (i <= TotalMainEditHistory)
 				{
-					RegUtil.SaveRegValue("maineditlist", i.ToString(), MainEditHistoryList[i, 0]);
+					RegUtil.SaveRegValue("maineditlist", i.ToString(), MainEditHistoryList[i].Id);
 					continue;
 				}
 				RegUtil.SaveRegValue("maineditlist", i.ToString(), "");
-				MainEditHistoryList[i, 0] = "";
+				MainEditHistoryList[i].Id = "";
 			}
 		}
 
-		public static void RemoveDuplicateEditorHistoryItems(ref string[,] InEditHistoryList, ref int InTotalEditorEditHistory)
+		public static void RemoveDuplicateEditorHistoryItems(ref EditHistoryList InEditHistoryList, ref int InTotalEditorEditHistory)
 		{
 			int num = (InTotalEditorEditHistory <= AbsoluteMaxHitoryItems) ? InTotalEditorEditHistory : AbsoluteMaxHitoryItems;
 			bool flag = false;
@@ -1569,22 +1570,22 @@ namespace Easislides
 			int num4 = 0;
 			for (num3 = 1; num3 <= AbsoluteMaxHitoryItems; num3++)
 			{
-				TempEditHistoryList[num3, 0] = "";
-				TempEditHistoryList[num3, 1] = "";
+				TempEditHistoryList[num3].Id = "";
+				TempEditHistoryList[num3].Title = "";
 			}
 			for (num3 = 1; num3 <= num; num3++)
 			{
 				if (num3 == 1)
 				{
 					num2 = 1;
-					TempEditHistoryList[1, 0] = InEditHistoryList[1, 0];
-					TempEditHistoryList[1, 1] = InEditHistoryList[1, 1];
+					TempEditHistoryList[1].Id = InEditHistoryList[1].Id;
+					TempEditHistoryList[1].Title = InEditHistoryList[1].Title;
 					continue;
 				}
 				flag = false;
 				for (num4 = 1; num4 <= num2; num4++)
 				{
-					if (InEditHistoryList[num3, 0] == TempEditHistoryList[num4, 0])
+					if (InEditHistoryList[num3].Id == TempEditHistoryList[num4].Id)
 					{
 						flag = true;
 					}
@@ -1592,14 +1593,14 @@ namespace Easislides
 				if (!flag)
 				{
 					num2++;
-					TempEditHistoryList[num2, 0] = InEditHistoryList[num3, 0];
-					TempEditHistoryList[num2, 1] = InEditHistoryList[num3, 1];
+					TempEditHistoryList[num2].Id = InEditHistoryList[num3].Id;
+					TempEditHistoryList[num2].Title = InEditHistoryList[num3].Title;
 				}
 			}
 			for (num3 = 1; num3 <= AbsoluteMaxHitoryItems; num3++)
 			{
-				InEditHistoryList[num3, 0] = TempEditHistoryList[num3, 0];
-				InEditHistoryList[num3, 1] = TempEditHistoryList[num3, 1];
+				InEditHistoryList[num3].Id = TempEditHistoryList[num3].Id;
+				InEditHistoryList[num3].Title = TempEditHistoryList[num3].Title;
 			}
 			InTotalEditorEditHistory = num2;
 		}
@@ -1615,11 +1616,11 @@ namespace Easislides
 			{
 				if (i <= TotalEditorEditHistory)
 				{
-					RegUtil.SaveRegValue("editoreditlist", i.ToString(), EditorEditHistoryList[i, 0]);
+					RegUtil.SaveRegValue("editoreditlist", i.ToString(), EditorEditHistoryList[i].Id);
 					continue;
 				}
 				RegUtil.SaveRegValue("editoreditlist", i.ToString(), "");
-				EditorEditHistoryList[i, 0] = "";
+				EditorEditHistoryList[i].Id = "";
 			}
 		}
 
@@ -1634,11 +1635,11 @@ namespace Easislides
 			{
 				if (i <= TotalInfoScreenEditHistory)
 				{
-					RegUtil.SaveRegValue("infoscreeneditlist", i.ToString(), InfoScreenEditHistoryList[i, 0]);
+					RegUtil.SaveRegValue("infoscreeneditlist", i.ToString(), InfoScreenEditHistoryList[i].Id);
 					continue;
 				}
 				RegUtil.SaveRegValue("infoscreeneditlist", i.ToString(), "");
-				InfoScreenEditHistoryList[i, 0] = "";
+				InfoScreenEditHistoryList[i].Id = "";
 			}
 		}
 

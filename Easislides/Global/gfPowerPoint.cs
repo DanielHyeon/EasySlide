@@ -119,7 +119,7 @@ namespace Easislides
 			// The slide show windows are shrunk to one pixel at the primary monitor's corner: they must not
 			// stay topmost there.
 			LowerSlideShowWindows("MinimizePowerPointWindows", wait: true);
-			InPPT.ResSetAllShowWindows(PowerpointList, TotalPowerpointItems);
+			InPPT.ResSetAllShowWindows(PowerpointList);
 		}
 
 		/// <summary>
@@ -434,7 +434,7 @@ namespace Easislides
 		/// </summary>
 		internal static int AdoptLivePowerpointRun(ref SongSettings InItem, PowerPoint InMainPPT)
 		{
-			InMainPPT.FollowRunOf(LivePP, InItem.Path, PowerpointList, TotalPowerpointItems);
+			InMainPPT.FollowRunOf(LivePP, InItem.Path, PowerpointList);
 			int count = InMainPPT.Count();
 			if (count <= 0)
 			{
@@ -606,7 +606,7 @@ namespace Easislides
 				}
 				else
 				{
-					text = InPPT.Run(InItem.Path, ref PowerpointList, ref TotalPowerpointItems);
+					text = InPPT.Run(InItem.Path, ref PowerpointList);
 					if (InPPT.LastRunStarted)
 					{
 						count = RunPowerpointSongCalls(ref InItem, InPPT, StartingSlide);
@@ -706,8 +706,7 @@ namespace Easislides
 		// T3: the show copies a show end could not close because PowerPoint did not answer (rows as in
 		// PowerpointList: source path, copy name), and whether a clean-up (these copies, the quit, or proxies that
 		// were not released) waits for PowerPoint. Tried again at the next show start and at app exit.
-		private static string[,] pendingShowCopies = new string[1000, 2];
-		private static int pendingShowCopyCount;
+		private static ShowCopyList pendingShowCopies = new ShowCopyList();
 		private static bool powerPointCleanUpPending;
 
 		public static void ClearUpPowerpointWindows()
@@ -737,7 +736,7 @@ namespace Easislides
 			// Show end (and app exit): nothing of this show's PowerPoint state carries over.
 			ResetPowerPointShowState();
 			// No copy listed and no reference: no PowerPoint call would be made (a show of lyrics items only).
-			bool liveWork = TotalPowerpointItems > 0 || LivePP.prePowerPointApp != null;
+			bool liveWork = PowerpointList.Count > 0 || LivePP.prePowerPointApp != null;
 			bool retryWork = atExit && powerPointCleanUpPending;
 			bool releaseWork = false;
 			if (atExit)
@@ -773,7 +772,7 @@ namespace Easislides
 				}
 				if (liveWork)
 				{
-					string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
+					string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList);
 					if (!PowerPointCallLimit.CurrentAbandoned)
 					{
 						ReportShowEndCloseFailures(text);
@@ -815,15 +814,15 @@ namespace Easislides
 			powerPointCleanUpPending = true;
 			if (atExit)
 			{
-				FrmMain.WriteDebugLog(where + ": " + reason + "; " + pendingShowCopyCount + " show copy(ies) not closed and no PowerPoint reference released (a release would wait for it). A hidden PowerPoint started by EasiSlides may remain running.");
+				FrmMain.WriteDebugLog(where + ": " + reason + "; " + pendingShowCopies.Count + " show copy(ies) not closed and no PowerPoint reference released (a release would wait for it). A hidden PowerPoint started by EasiSlides may remain running.");
 				return;
 			}
-			if (pendingShowCopyCount == 0)
+			if (pendingShowCopies.Count == 0)
 			{
 				FrmMain.WriteDebugLog(where + ": " + reason + "; every show copy was closed, PowerPoint was not quit (tried again at the next show start and app exit)");
 				return;
 			}
-			FrmMain.WriteDebugLog(where + ": " + reason + "; the PowerPoint clean-up was skipped (" + pendingShowCopyCount + " show copy(ies) kept for the next show start and app exit)");
+			FrmMain.WriteDebugLog(where + ": " + reason + "; the PowerPoint clean-up was skipped (" + pendingShowCopies.Count + " show copy(ies) kept for the next show start and app exit)");
 			FrmMain.ReportErrorNotice("PowerPoint is not responding: the show's PowerPoint copy could not be closed (tried again at the next show start)");
 		}
 
@@ -836,29 +835,27 @@ namespace Easislides
 		/// </summary>
 		private static void KeepShowCopiesForLater()
 		{
-			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			int last = PowerpointList.Count;
 			for (int i = 1; i <= last; i++)
 			{
-				string path = PowerpointList[i, 0];
-				string name = PowerpointList[i, 1];
+				string path = PowerpointList[i].SourcePath;
+				string name = PowerpointList[i].CopyName;
 				if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
 				{
 					continue;
 				}
 				bool known = false;
-				for (int k = 1; k <= pendingShowCopyCount && !known; k++)
+				for (int k = 1; k <= pendingShowCopies.Count && !known; k++)
 				{
-					known = string.Equals(pendingShowCopies[k, 1], name, StringComparison.OrdinalIgnoreCase)
-						&& string.Equals(pendingShowCopies[k, 0], path, StringComparison.OrdinalIgnoreCase);
+					known = string.Equals(pendingShowCopies[k].CopyName, name, StringComparison.OrdinalIgnoreCase)
+						&& string.Equals(pendingShowCopies[k].SourcePath, path, StringComparison.OrdinalIgnoreCase);
 				}
-				if (!known && pendingShowCopyCount < pendingShowCopies.GetUpperBound(0))
+				if (!known)
 				{
-					pendingShowCopyCount++;
-					pendingShowCopies[pendingShowCopyCount, 0] = path;
-					pendingShowCopies[pendingShowCopyCount, 1] = name;
+					pendingShowCopies.Add(path, name);
 				}
 			}
-			TotalPowerpointItems = 0;
+			PowerpointList.Clear();
 		}
 
 		/// <summary>
@@ -877,9 +874,9 @@ namespace Easislides
 				PowerPoint.PowerPointAnswer answer = PowerPoint.ProbePowerPoint(PowerPointProbeTimeoutMs, out string detail);
 				if (answer == PowerPoint.PowerPointAnswer.NotResponding)
 				{
-					FrmMain.WriteDebugLog(where + ": PowerPoint still does not answer (" + detail + "); the clean-up left by an earlier show end waits (" + pendingShowCopyCount + " show copy(ies))");
+					FrmMain.WriteDebugLog(where + ": PowerPoint still does not answer (" + detail + "); the clean-up left by an earlier show end waits (" + pendingShowCopies.Count + " show copy(ies))");
 					PowerPointGate.NoteNotResponding(where + ": PowerPoint still does not answer (" + detail + ")");
-					if (pendingShowCopyCount > 0)
+					if (pendingShowCopies.Count > 0)
 					{
 						FrmMain.ReportErrorNotice("PowerPoint is still not responding: the PowerPoint copy of an earlier show could not be closed");
 					}
@@ -913,8 +910,8 @@ namespace Easislides
 				// the same names again.
 				PowerPoint.ReleaseHeldProxies();
 				PowerPoint.ForgetShowCopyNames();
-				FrmMain.WriteDebugLog(where + ": PowerPoint is no longer running; the " + pendingShowCopyCount + " show copy(ies) an earlier show end could not close are gone with it");
-				pendingShowCopyCount = 0;
+				FrmMain.WriteDebugLog(where + ": PowerPoint is no longer running; the " + pendingShowCopies.Count + " show copy(ies) an earlier show end could not close are gone with it");
+				pendingShowCopies.Clear();
 				powerPointCleanUpPending = false;
 				return true;
 			}
@@ -928,7 +925,7 @@ namespace Easislides
 				}
 				PowerPoint.ReleaseHeldProxies();
 			}
-			if (pendingShowCopyCount > 0 || atExit)
+			if (pendingShowCopies.Count > 0 || atExit)
 			{
 				if (LivePP.prePowerPointApp == null)
 				{
@@ -941,13 +938,13 @@ namespace Easislides
 				if (LivePP.prePowerPointApp == null)
 				{
 					// Nothing could be checked: the kept copies stay kept for the next attempt.
-					FrmMain.WriteDebugLog(where + ": PowerPoint could not be attached again; the " + pendingShowCopyCount + " show copy(ies) an earlier show end could not close stay kept");
+					FrmMain.WriteDebugLog(where + ": PowerPoint could not be attached again; the " + pendingShowCopies.Count + " show copy(ies) an earlier show end could not close stay kept");
 					return true;
 				}
-				if (pendingShowCopyCount > 0)
+				if (pendingShowCopies.Count > 0)
 				{
-					int kept = pendingShowCopyCount;
-					string text = LivePP.ClearUpPowerpointWindows(ref pendingShowCopies, ref pendingShowCopyCount, quitWhenEmpty: atExit);
+					int kept = pendingShowCopies.Count;
+					string text = LivePP.ClearUpPowerpointWindows(ref pendingShowCopies, quitWhenEmpty: atExit);
 					if (PowerPointCallLimit.CurrentAbandoned)
 					{
 						return false;

@@ -39,7 +39,7 @@ namespace Easislides
 					{
 						listViewItem = SongsList.Items.Add(DataUtil.ObjToString(dr["Title_1"]));
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["SongID"]));
-						listViewItem.SubItems.Add(Gf.FolderName[DataUtil.ObjToInt(dr["FolderNo"])]);
+						listViewItem.SubItems.Add(Gf.Folders[DataUtil.ObjToInt(dr["FolderNo"])].Name);
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["Book_Reference"]));
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["User_Reference"]));
 						//recordSet.MoveNext();

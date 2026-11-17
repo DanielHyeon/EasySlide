@@ -1489,9 +1489,9 @@ namespace Easislides
 					Selecteditem = Gf.TotalWorshipListItems;
 				}
 			}
-			string inIDString = Gf.WorshipSongs[Selecteditem, 0];
-			string inFormatString = Gf.WorshipSongs[Selecteditem, 4];
-			string InTitle = Gf.WorshipSongs[Selecteditem, 2];
+			string inIDString = Gf.WorshipSongs[Selecteditem].IdString;
+			string inFormatString = Gf.WorshipSongs[Selecteditem].FormatString;
+			string InTitle = Gf.WorshipSongs[Selecteditem].Title;
 			Gf.LiveItem.CurItemNo = Selecteditem;
 			Gf.StartPresAt = (Gf.AdHocItemPresent ? Gf.StartPresAt : Gf.LiveItem.CurItemNo);
 			Gf.LiveItem.Source = ((Gf.LiveItem.CurItemNo > 0) ? ItemSource.WorshipList : Gf.OutputItem.Source);
@@ -1655,8 +1655,8 @@ namespace Easislides
 				{
 					num = -1;
 				}
-				prevTitle = ((num >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num, 2]) : "");
-				nextTitle = ((num2 >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num2, 2]) : "");
+				prevTitle = ((num >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num].Title) : "");
+				nextTitle = ((num2 >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num2].Title) : "");
 			}
 			Gf.InitialiseIndividualData(ref InItem, (text == "G" && Media_NextItemHasSameMedia()) ? GapMedia.SameAsPrevious : GapMedia.SessionMedia, "");
 			InItem.PrevTitle = prevTitle;
@@ -1852,17 +1852,17 @@ namespace Easislides
 			try
 			{
 				int num = Gf.StartPresAt + 1;
-				string inTitle = Gf.WorshipSongs[num, 2];
-				string text = Gf.WorshipSongs[num, 1];
+				string inTitle = Gf.WorshipSongs[num].Title;
+				string text = Gf.WorshipSongs[num].Type;
 				string Title = "";
-				string FormatString = Gf.WorshipSongs[num, 4];
+				string FormatString = Gf.WorshipSongs[num].FormatString;
 				if (text == "D")
 				{
-					Title = Gf.LookupDBTitle2(DataUtil.StringToInt(DataUtil.Mid(Gf.WorshipSongs[num, 0], 1)));
+					Title = Gf.LookupDBTitle2(DataUtil.StringToInt(DataUtil.Mid(Gf.WorshipSongs[num].IdString, 1)));
 				}
 				else if (text == "I")
 				{
-					Gf.GetTitle2AndFormatFromInfoFile(DataUtil.Mid(Gf.WorshipSongs[num, 0], 1), ref Title, ref FormatString);
+					Gf.GetTitle2AndFormatFromInfoFile(DataUtil.Mid(Gf.WorshipSongs[num].IdString, 1), ref Title, ref FormatString);
 				}
 				int inMediaOption = DataUtil.StringToInt(Gf.ExtractHeaderInfo(FormatString, 50, '>'));
 				bool inUseDefaultFormat = (FormatString == "") ? true : false;
@@ -2141,7 +2141,7 @@ namespace Easislides
 			try
 			{
 				int num = Gf.StartPresAt + 1;
-				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num, 0]);
+				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num].IdString);
 				if (itemRotateResult > 0)
 				{
 					if (itemRotateResult == 2)
@@ -2160,7 +2160,7 @@ namespace Easislides
 					int num2 = Gf.StartPresAt;
 					try
 					{
-						num2 = Gf.GetItemRotateResult(Gf.WorshipSongs[Gf.StartPresAt, 0]);
+						num2 = Gf.GetItemRotateResult(Gf.WorshipSongs[Gf.StartPresAt].IdString);
 					}
 					catch
 					{
@@ -2192,7 +2192,7 @@ namespace Easislides
 			try
 			{
 				int num = InItemNo - 1;
-				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num, 0]);
+				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num].IdString);
 				if (itemRotateResult > 0)
 				{
 					if (itemRotateResult == 2)

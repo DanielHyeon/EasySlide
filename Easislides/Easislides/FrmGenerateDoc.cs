@@ -329,7 +329,7 @@ namespace Easislides
 							string text3 = "";
 							if (Gf.PB_ShowWords[0] > 0)
 							{
-								text = DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[CurrentSong, 4], '>', RemoveExtract: false, MinusOneIfBlank: false);
+								text = DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[CurrentSong].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false);
 								text3 = ((!(text == "")) ? text : Convert.ToString(i + 1));
 							}
 							if (Gf.PB_ShowWords[1] > 0)
@@ -381,7 +381,7 @@ namespace Easislides
 							}
 							else
 							{
-								string InString = Gf.DocumentSongs[CurrentSong, 4];
+								string InString = Gf.DocumentSongs[CurrentSong].NumberAndInfo;
 								DataUtil.ExtractOneInfo(ref InString, '>');
 								InTransposeOffset = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InString, '>', RemoveExtract: false, MinusOneIfBlank: false), Minus1IfBlank: false);
 								if (InTransposeOffset != 0)
@@ -620,28 +620,28 @@ namespace Easislides
 						DocItem.FolderNo = SongFolderLog[0];
 						streamWriter.Write(AddtoRTF("INDEX", 0, 0, 4, 0, 0));
 						streamWriter.Write(AddtoRTF(Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
-						if (DataUtil.Left(Gf.DocumentSongs[1, 3], 1) != " ")
+						if (DataUtil.Left(Gf.DocumentSongs[1].IndexGroup, 1) != " ")
 						{
-							streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[1, 3])) + Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
+							streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[1].IndexGroup)) + Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
 						}
-						string inString = ((Gf.DocumentSongs[1, 2].Length < 4) ? (Gf.DocumentSongs[1, 2] + " ") : Gf.DocumentSongs[1, 2]) + Gf.RTFIndent[3] + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1, 4], '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? "1" : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1, 4], '>', RemoveExtract: false, MinusOneIfBlank: false));
+						string inString = ((Gf.DocumentSongs[1].Title.Length < 4) ? (Gf.DocumentSongs[1].Title + " ") : Gf.DocumentSongs[1].Title) + Gf.RTFIndent[3] + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? "1" : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false));
 						streamWriter.Write(AddtoRTF(inString, 0, 3, 0, 0, 0));
 						for (int i = 2; i <= Gf.TotalPraiseBookItems; i++)
 						{
-							if (DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i, 4], '>', RemoveExtract: false, MinusOneIfBlank: false) == "" && Gf.DocumentSongs[i, 3] != Gf.DocumentSongs[i - 1, 3])
+							if (DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "" && Gf.DocumentSongs[i].IndexGroup != Gf.DocumentSongs[i - 1].IndexGroup)
 							{
-								if (DataUtil.Left(Gf.DocumentSongs[i, 3], 1) == " ")
+								if (DataUtil.Left(Gf.DocumentSongs[i].IndexGroup, 1) == " ")
 								{
 									streamWriter.Write(AddtoRTF(Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
 								}
-								else if (Convert.ToInt32(Gf.DocumentSongs[i, 3]) < 17)
+								else if (Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup) < 17)
 								{
 									streamWriter.Write(AddtoRTF(Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
-									streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[i, 3])) + ((Convert.ToInt32(Gf.DocumentSongs[i, 3]) == 16) ? "+" : "") + Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
+									streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup)) + ((Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup) == 16) ? "+" : "") + Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
 								}
 							}
 							DocItem.FolderNo = SongFolderLog[i - 1];
-							inString = ((Gf.DocumentSongs[i, 2].Length < 4) ? (Gf.DocumentSongs[i, 2] + " ") : Gf.DocumentSongs[i, 2]) + Gf.RTFIndent[3] + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1, 4], '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? i.ToString() : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i, 4], '>', RemoveExtract: false, MinusOneIfBlank: false));
+							inString = ((Gf.DocumentSongs[i].Title.Length < 4) ? (Gf.DocumentSongs[i].Title + " ") : Gf.DocumentSongs[i].Title) + Gf.RTFIndent[3] + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? i.ToString() : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false));
 							streamWriter.Write(AddtoRTF(inString, 0, 3, 0, 0, 0));
 						}
 					}
@@ -935,14 +935,14 @@ namespace Easislides
 
 		private void LoadItem(ref SongSettings InItem)
 		{
-			string text = Gf.DocumentSongs[CurrentSong, 1];
-			string inIDString = Gf.DocumentSongs[CurrentSong, 0];
+			string text = Gf.DocumentSongs[CurrentSong].Type;
+			string inIDString = Gf.DocumentSongs[CurrentSong].IdString;
 			BibleItem = false;
 			Gf.InitialiseIndividualData(ref InItem);
 			if (text == "P")
 			{
 				InItem.Type = text;
-				InItem.Title = Gf.RTFCheck(Gf.DocumentSongs[CurrentSong, 2]);
+				InItem.Title = Gf.RTFCheck(Gf.DocumentSongs[CurrentSong].Title);
 				InItem.CompleteLyrics = "(Powerpoint File)";
 			}
 			else if (text == "D")
@@ -951,25 +951,25 @@ namespace Easislides
 			}
 			else if (text == "B")
 			{
-				string InTitle = Gf.DocumentSongs[CurrentSong, 2];
+				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				BibleItem = true;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 				InItem.CompleteLyrics = InItem.CompleteLyrics.Replace('\u0098'.ToString(), " ");
 			}
 			else if (text == "T")
 			{
-				string InTitle = Gf.DocumentSongs[CurrentSong, 2];
+				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 			}
 			else if (text == "I")
 			{
-				string InTitle = Gf.DocumentSongs[CurrentSong, 2];
+				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 				InItem.Title = InTitle;
 			}
 			else if (text == "W")
 			{
-				string InTitle = Gf.DocumentSongs[CurrentSong, 2];
+				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 			}
 			InItem.Title = Gf.RTFCheck(InItem.Title);

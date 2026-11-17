@@ -82,7 +82,7 @@ namespace OfficeLib
 		/// </summary>
 		public const string NotRespondingText = "PowerPoint is not responding";
 
-		public string Open(string InPowerpointFullPath, ref string[,] PowerpointList, ref int TotalPowerpointItems)
+		public string Open(string InPowerpointFullPath, ref ShowCopyList PowerpointList)
 		{
 			string text = "";
 			Presentation presentation = null;
@@ -104,15 +104,11 @@ namespace OfficeLib
 
 			try
 			{
-				if (TotalPowerpointItems < 0)
-				{
-					TotalPowerpointItems = 0;
-				}
 				// One entry per path: a path whose copy is gone (closed in PowerPoint, or PowerPoint restarted) gets
 				// its entry replaced below, so the dead name cannot hide the new copy.
-				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
-				text = (entry > 0) ? PowerpointList[entry, 1] : "";
-				bool flag = entry > 0 && IsShowCopyOpen(text, PowerpointList[entry, 0]);
+				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
+				text = (entry > 0) ? PowerpointList[entry].CopyName : "";
+				bool flag = entry > 0 && IsShowCopyOpen(text, PowerpointList[entry].SourcePath);
 				try
 				{
 					if (!flag)
@@ -135,17 +131,21 @@ namespace OfficeLib
 							// window asks the operator whether to save it (seen with PowerPoint 16). Presentation.Close
 							// called from the app does not ask either way.
 							presentation.Saved = MsoTriState.msoTrue;
-							int row = (entry > 0) ? entry : TotalPowerpointItems + 1;
-							string copyName = presentation.FullName;
-							PowerpointList[row, 0] = InPowerpointFullPath;
-							PowerpointList[row, 1] = copyName;
-							if (entry == 0)
-							{
-								TotalPowerpointItems++;
-							}
-							ClearStaleRowsWithName(copyName, row, PowerpointList, TotalPowerpointItems);
-							// presentation은 Presentations 컬렉션에서 관리되므로 여기서는 Dispose하지 않음
-						}
+                            string copyName = presentation.FullName;
+                            int row;
+                            if (entry > 0)
+                            {
+                                row = entry;
+                                PowerpointList[row].SourcePath = InPowerpointFullPath;
+                                PowerpointList[row].CopyName = copyName;
+                            }
+                            else
+                            {
+                                row = PowerpointList.Add(InPowerpointFullPath, copyName);
+                            }
+                            ClearStaleRowsWithName(copyName, row, PowerpointList);
+                            // presentation은 Presentations 컬렉션에서 관리되므로 여기서는 Dispose하지 않음
+                        }
 					}
 				}
 				catch (Exception ex)
@@ -180,7 +180,7 @@ namespace OfficeLib
 			return "";
 		}
 
-		public string Run(string InPowerpointFullPath, ref string[,] PowerpointList, ref int TotalPowerpointItems)
+		public string Run(string InPowerpointFullPath, ref ShowCopyList PowerpointList)
 		{
 			string text = "";
 			string text2 = "";
@@ -200,14 +200,14 @@ namespace OfficeLib
 
 				SaveRegValue(version, @"PowerPoint\Options", "DisplayMonitor", displayName);
 
-				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
-				text = (entry > 0) ? PowerpointList[entry, 1] : "";
+				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
+				text = (entry > 0) ? PowerpointList[entry].CopyName : "";
 				text2 = "";
 				if (!(text != ""))
 				{
-					return "Cannot find opened Presentation: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
+					return "Cannot find opened Presentation: " + PowerpointList.Count + ", " + InPowerpointFullPath;
 				}
-				string mark = ShowCopyMark(PowerpointList[entry, 0]);
+				string mark = ShowCopyMark(PowerpointList[entry].SourcePath);
 				bool unmarked = false;
 
 				// Every proxy read through the collection is released with it at the end of the block.
@@ -283,7 +283,7 @@ namespace OfficeLib
 					ForgetRunPresentation();
 					return NotRespondingText;
 				}
-				return "Error: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
+				return "Error: " + PowerpointList.Count + ", " + InPowerpointFullPath;
 			}
 			return "Can't find Presentations: " + text + ".  " + text2;
 		}
@@ -1012,7 +1012,7 @@ namespace OfficeLib
 			return error;
 		}
 
-		public string GetPresentationName(string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
+		public string GetPresentationName(string InPowerpointFullPath, ShowCopyList PowerpointList)
 		{
 			if (string.IsNullOrEmpty(InPowerpointFullPath))
 			{
@@ -1026,8 +1026,8 @@ namespace OfficeLib
 				return "";
 			}
 
-			int entry = FindListedEntry(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
-			return (entry > 0) ? PowerpointList[entry, 1] : "";
+			int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
+			return (entry > 0) ? PowerpointList[entry].CopyName : "";
 		}
 
 		/// <summary>
@@ -1035,22 +1035,21 @@ namespace OfficeLib
 		/// paths), or 0. Open keeps one row per path (it replaces the row when it opens a new copy), so this is
 		/// the newest copy's row; the last match is taken in case an older list has more than one.
 		/// </summary>
-		private static int FindListedEntry(string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
+		private static int FindListedEntry(string InPowerpointFullPath, ShowCopyList PowerpointList)
 		{
-			if (string.IsNullOrEmpty(InPowerpointFullPath) || PowerpointList == null)
-			{
-				return 0;
-			}
-			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
-			for (int i = last; i >= 1; i--)
-			{
-				if (string.Equals(PowerpointList[i, 0], InPowerpointFullPath, StringComparison.OrdinalIgnoreCase))
-				{
-					return i;
-				}
-			}
-			return 0;
-		}
+            if (string.IsNullOrEmpty(InPowerpointFullPath) || PowerpointList == null)
+            {
+                return 0;
+            }
+            for (int i = PowerpointList.Count; i >= 1; i--)
+            {
+                if (string.Equals(PowerpointList[i].SourcePath, InPowerpointFullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
 
 		// The mark Open puts on every copy it opens for the show (a presentation tag, in memory only: the copies
 		// are untitled and never saved). Its value is this process's run token and the copy's source path, so a
@@ -1088,17 +1087,17 @@ namespace OfficeLib
 		/// carry the name PowerPoint has since given to another path's copy. The tag is read once, and only when
 		/// some row has the name. Throws when the presentation cannot be read.
 		/// </summary>
-		private static string GetShowCopyPath(Presentation presentation, string fullName, string[,] PowerpointList, int TotalPowerpointItems)
+		private static string GetShowCopyPath(Presentation presentation, string fullName, ShowCopyList PowerpointList)
 		{
 			if (string.IsNullOrEmpty(fullName) || PowerpointList == null)
 			{
 				return null;
 			}
 			string tag = null;
-			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			int last = PowerpointList.Count;
 			for (int i = 1; i <= last; i++)
 			{
-				if (string.Equals(PowerpointList[i, 1], fullName, StringComparison.OrdinalIgnoreCase))
+				if (string.Equals(PowerpointList[i].CopyName, fullName, StringComparison.OrdinalIgnoreCase))
 				{
 					if (tag == null)
 					{
@@ -1112,7 +1111,7 @@ namespace OfficeLib
 							ReleaseProxy(tags);
 						}
 					}
-					string path = PowerpointList[i, 0];
+					string path = PowerpointList[i].SourcePath;
 					if (string.Equals(tag, ShowCopyMark(path), StringComparison.OrdinalIgnoreCase))
 					{
 						return path;
@@ -1128,17 +1127,16 @@ namespace OfficeLib
 		/// "not opened" (Run reports the item as not started, the next pre-load opens it again) and can never be
 		/// matched against this copy. The row itself stays: no row number moves.
 		/// </summary>
-		private static void ClearStaleRowsWithName(string fullName, int keepRow, string[,] PowerpointList, int TotalPowerpointItems)
+		private static void ClearStaleRowsWithName(string fullName, int keepRow, ShowCopyList PowerpointList)
 		{
-			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
-			for (int i = 1; i <= last; i++)
-			{
-				if (i != keepRow && string.Equals(PowerpointList[i, 1], fullName, StringComparison.OrdinalIgnoreCase))
-				{
-					PowerpointList[i, 1] = "";
-				}
-			}
-		}
+            for (int i = 1; i <= PowerpointList.Count; i++)
+            {
+                if (i != keepRow && string.Equals(PowerpointList[i].CopyName, fullName, StringComparison.OrdinalIgnoreCase))
+                {
+                    PowerpointList[i].CopyName = "";
+                }
+            }
+        }
 
 		/// <summary>
 		/// True when the copy listed under this name for this path is open: a presentation has the name and the
@@ -1352,7 +1350,7 @@ namespace OfficeLib
 		/// item that is already live, and the main form's slide keys must still move it. Nothing changes when
 		/// this wrapper already runs that presentation, or when the other wrapper does not (or its show is gone).
 		/// </summary>
-		public void FollowRunOf(PowerPoint other, string InPowerpointFullPath, string[,] PowerpointList, int TotalPowerpointItems)
+		public void FollowRunOf(PowerPoint other, string InPowerpointFullPath, ShowCopyList PowerpointList)
 		{
 			if (other == null || ReferenceEquals(other, this) || other.RunShowLost)
 			{
@@ -1363,7 +1361,7 @@ namespace OfficeLib
 			{
 				return;
 			}
-			string name = GetPresentationName(InPowerpointFullPath, PowerpointList, TotalPowerpointItems);
+			string name = GetPresentationName(InPowerpointFullPath, PowerpointList);
 			if (!string.Equals(name, otherName, StringComparison.OrdinalIgnoreCase))
 			{
 				return;
@@ -1887,7 +1885,7 @@ namespace OfficeLib
 		/// PowerPoint may be the user's own (also one with a listed name but without the copy's mark); their slide
 		/// shows are left alone.
 		/// </summary>
-        public void ResSetAllShowWindows(string[,] PowerpointList, int TotalPowerpointItems)
+        public void ResSetAllShowWindows(ShowCopyList PowerpointList)
 		{
 			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "shrink the slide show windows");
 			if (gate == null)
@@ -1905,7 +1903,7 @@ namespace OfficeLib
 					try
 					{
 						Presentation presentation = presentations[i];
-						if (GetShowCopyPath(presentation, presentation.FullName, PowerpointList, TotalPowerpointItems) == null)
+						if (GetShowCopyPath(presentation, presentation.FullName, PowerpointList) == null)
 						{
 							continue;
 						}
@@ -1938,11 +1936,10 @@ namespace OfficeLib
 		/// �ٸ� �۾� ������ �� �Ŀ�����Ʈ ������ ���� ����
 		/// </summary>
 		/// <param name="PowerpointList"></param>
-		/// <param name="TotalPowerpointItems"></param>
 		/// <returns></returns>
-		public string ClearUpPowerpointWindows(ref string[,] PowerpointList, ref int TotalPowerpointItems)
+		public string ClearUpPowerpointWindows(ref ShowCopyList PowerpointList)
 		{
-			return ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems, quitWhenEmpty: true);
+			return ClearUpPowerpointWindows(ref PowerpointList, quitWhenEmpty: true);
 		}
 
 		/// <summary>
@@ -1950,18 +1947,18 @@ namespace OfficeLib
 		/// closed (show start: the pre-load attaches to PowerPoint right after, it must not meet an exiting one).
 		/// Each completed read and Close is reported to the show-end time limit (PowerPointCallLimit.Progress).
 		/// </summary>
-		public string ClearUpPowerpointWindows(ref string[,] PowerpointList, ref int TotalPowerpointItems, bool quitWhenEmpty)
+		public string ClearUpPowerpointWindows(ref ShowCopyList PowerpointList, bool quitWhenEmpty)
 		{
 			LastCloseFailedCount = 0;
 			LastCloseFailedName = null;
 			LastCloseError = null;
-			if (TotalPowerpointItems < 1)
+			if (PowerpointList.Count < 1)
 			{
 				return "";
 			}
 
-			int num = TotalPowerpointItems;
-			int num2 = 0;
+			int num = PowerpointList.Count;
+            int num2 = 0;
 			int num3 = 0;
 			int unreadable = 0;
 			string firstUnreadableError = null;
@@ -1995,7 +1992,7 @@ namespace OfficeLib
 						{
 							openPresentation = presentations[num4];
 							fullName = openPresentation.FullName;
-							string copyPath = GetShowCopyPath(openPresentation, fullName, PowerpointList, num);
+							string copyPath = GetShowCopyPath(openPresentation, fullName, PowerpointList);
 							PowerPointCallLimit.Progress();
 							if (copyPath == null)
 							{
@@ -2057,7 +2054,7 @@ namespace OfficeLib
 			{
 				LastCloseError = unreadable + " open presentation(s) could not be read: " + firstUnreadableError;
 			}
-			TotalPowerpointItems = 0;
+			PowerpointList.Clear();
 
 			//daniel PowerPoint App ����
 			if (quitWhenEmpty)

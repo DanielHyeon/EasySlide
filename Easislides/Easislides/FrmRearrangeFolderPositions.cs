@@ -27,7 +27,7 @@ namespace Easislides
 			SongFolder.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				listViewItem = SongFolder.Items.Add(Gf.FolderName[i]);
+				listViewItem = SongFolder.Items.Add(Gf.Folders[i].Name);
 				listViewItem.SubItems.Add(i.ToString());
 			}
 		}
@@ -93,9 +93,9 @@ namespace Easislides
 		private void OKBtn_Click(object sender, EventArgs e)
 		{
 			Cursor = Cursors.WaitCursor;
-			string inName = Gf.FolderName[Gf.JumpToA];
-			string inName2 = Gf.FolderName[Gf.JumpToB];
-			string inName3 = Gf.FolderName[Gf.JumpToC];
+			string inName = Gf.Folders[Gf.JumpToA].Name;
+			string inName2 = Gf.Folders[Gf.JumpToB].Name;
+			string inName3 = Gf.Folders[Gf.JumpToC].Name;
 			if (Gf.SwapFolderNumbers(SongFolder))
 			{
 				Gf.LoadFolderNamesArray();

@@ -143,7 +143,7 @@ namespace Easislides
 				//DBEngine dBEngine = new DBEngine();// DBEngineClass();
 				//Workspace workspace = dBEngine.Workspaces[0];
 				//Database database = workspace.OpenDatabase(connection.DataSource, false, false);
-				string name = "select * from SONG where songid=" + DataUtil.Right(Gf.DocumentSongs[CurrentSong, 0], Gf.DocumentSongs[CurrentSong, 0].Length - 1);
+				string name = "select * from SONG where songid=" + DataUtil.Right(Gf.DocumentSongs[CurrentSong].IdString, Gf.DocumentSongs[CurrentSong].IdString.Length - 1);
 
 				using DataTable dt = DbController.GetDataTable(connection, name);
 				if (dt.Rows.Count > 0)
@@ -307,7 +307,7 @@ namespace Easislides
 					string text9 = "";
 					if (Gf.HTMLShowNumbers)
 					{
-						text5 = ((!Gf.UseSongNumbers) ? (Convert.ToString(CurrentSong) + ". ") : (Gf.DocumentSongs[CurrentSong, 4] + ". "));
+						text5 = ((!Gf.UseSongNumbers) ? (Convert.ToString(CurrentSong) + ". ") : (Gf.DocumentSongs[CurrentSong].NumberAndInfo + ". "));
 					}
 					text9 = DataUtil.HexString(songTitle);
 					SongFolderLog[i] = SongFolderNo;

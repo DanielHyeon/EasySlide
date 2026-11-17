@@ -22,7 +22,7 @@ namespace Easislides
 			{
 				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolder.Items.Add(Gf.FolderName[i]);
+					SongFolder.Items.Add(Gf.Folders[i].Name);
 				}
 			}
 		}

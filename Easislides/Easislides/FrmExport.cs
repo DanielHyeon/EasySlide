@@ -58,12 +58,12 @@ namespace Easislides
 			{
 				if (Gf.FolderUse[i] > 0)
 				{
-					FolderList.Items.Add(Gf.FolderName[i]);
+					FolderList.Items.Add(Gf.Folders[i].Name);
 				}
 			}
 			if (FolderList.Items.Count == 0)
 			{
-				FolderList.Items.Add(Gf.FolderName[1]);
+				FolderList.Items.Add(Gf.Folders[1].Name);
 			}
 			FolderList.Text = FolderList.Items[0].ToString();
 			SongsList.Items.Clear();
@@ -118,7 +118,7 @@ namespace Easislides
 							num2 = DataUtil.ObjToInt(dr["FolderNo"]);
 							listViewItem = SongsList.Items.Add(SongTitle);
 							listViewItem.SubItems.Add(SongID1);
-							listViewItem.SubItems.Add(Gf.FolderName[num2]);
+							listViewItem.SubItems.Add(Gf.Folders[num2].Name);
 						}
 					}
 				}
@@ -444,7 +444,7 @@ namespace Easislides
 				}
 				if (ExportItem.FolderNo > 0)
 				{
-					stringBuilder.Append(">f" + Gf.FolderName[ExportItem.FolderNo]);
+					stringBuilder.Append(">f" + Gf.Folders[ExportItem.FolderNo].Name);
 				}
 				if (ExportItem.SongNumber > 0)
 				{

@@ -57,10 +57,10 @@ namespace Easislides
 			FolderList.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if ((Gf.FolderName[i].ToString() != "") & (Gf.FolderUse[i] > 0))
+				if ((Gf.Folders[i].Name != "") & (Gf.FolderUse[i] > 0))
 				{
-					FolderList.Items.Add(Gf.FolderName[i]);
-					if (Gf.FindSongsFolder[Gf.GetFolderNumber(Gf.FolderName[i])])
+					FolderList.Items.Add(Gf.Folders[i].Name);
+					if (Gf.FindSongsFolder[Gf.GetFolderNumber(Gf.Folders[i].Name)])
 					{
 						FolderList.SetItemChecked(FolderList.Items.Count - 1, value: true);
 					}

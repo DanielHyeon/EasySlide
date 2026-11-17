@@ -96,7 +96,7 @@ namespace Easislides
         {
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                tempFolderName[i] = Gf.FolderName[i];
+                tempFolderName[i] = Gf.Folders[i].Name;
                 tempFolderGroupStyle[i] = (int)Gf.FolderGroupStyle[i];
                 tempFolderUse[i] = ((Gf.FolderUse[i] > 0) ? true : false);
                 tempLeftMargin[i] = Gf.ShowLeftMargin[i];
@@ -214,11 +214,11 @@ namespace Easislides
         {
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                if ((Gf.FolderName[i] != tempFolderName[i]) | (Gf.FolderGroupStyle[i] != (SortBy)tempFolderGroupStyle[i]) | (Gf.FolderUse[i] != (tempFolderUse[i] ? 1 : 0)))
+                if ((Gf.Folders[i].Name != tempFolderName[i]) | (Gf.FolderGroupStyle[i] != (SortBy)tempFolderGroupStyle[i]) | (Gf.FolderUse[i] != (tempFolderUse[i] ? 1 : 0)))
                 {
                     Gf.Options_FolderListChanged = true;
                 }
-                Gf.FolderName[i] = tempFolderName[i];
+                Gf.Folders[i].Name = tempFolderName[i];
                 Gf.FolderGroupStyle[i] = (SortBy)tempFolderGroupStyle[i];
                 Gf.FolderUse[i] = (tempFolderUse[i] ? 1 : 0);
                 if (Gf.ShowLeftMargin[i] != tempLeftMargin[i] || Gf.ShowRightMargin[i] != tempRightMargin[i] || Gf.ShowBottomMargin[i] != tempBottomMargin[i] || Gf.ShowLineSpacing[i, 0] != tempShowLineSpacing[i, 0] || Gf.ShowLineSpacing[i, 1] != tempShowLineSpacing[i, 1] || Gf.FolderHeadingPercentSize[i] != tempFolderHeadingPercentSize[i] || Gf.FolderHeadingOption[i] != tempFolderHeadingOption[i] || Gf.FolderHeadingFontBold[i, 0] != (tempFolderHeadingFontBold[i, 0] ? 1 : 0) || Gf.FolderHeadingFontItalic[i, 0] != (tempFolderHeadingFontItalic[i, 0] ? 1 : 0) || Gf.FolderHeadingFontUnderline[i, 0] != (tempFolderHeadingFontUnderline[i, 0] ? 1 : 0) || Gf.FolderHeadingFontBold[i, 1] != (tempFolderHeadingFontBold[i, 1] ? 1 : 0) || Gf.FolderHeadingFontItalic[i, 1] != (tempFolderHeadingFontItalic[i, 1] ? 1 : 0) || Gf.FolderHeadingFontUnderline[i, 1] != (tempFolderHeadingFontUnderline[i, 1] ? 1 : 0))

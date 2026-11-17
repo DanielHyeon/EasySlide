@@ -1738,7 +1738,6 @@ namespace Easislides
 			ListViewItem.ListViewSubItem listViewSubItem3 = LyricsLists.Items[LyricsIndex].SubItems[4];
 			listViewSubItem3.Text = listViewSubItem3.Text + Convert.ToString(length - num3 + 1) + '>';
 			LyricsLists.Items[LyricsIndex].SubItems[4].Text = Convert.ToString(num4 + 1) + '>' + Convert.ToString(MainFont.Size) + '>' + LyricsLists.Items[LyricsIndex].SubItems[4].Text;
-			LyricsArray[LyricsIndex, 2] = LyricsLists.Items[LyricsIndex].SubItems[4].Text;
 			return num4 + 1;
 		}
 
@@ -3476,7 +3475,7 @@ namespace Easislides
 				xtw.WriteStartElement("Item");
 				xtw.WriteElementString("Title1", InItem.Title);
 				xtw.WriteElementString("Title2", InItem.Title2);
-				xtw.WriteElementString("Folder", FolderName[InItem.FolderNo]);
+				xtw.WriteElementString("Folder", Folders[InItem.FolderNo].Name);
 				xtw.WriteElementString("SongNumber", InItem.SongNumber.ToString());
 				InItem.CompleteLyrics = InItem.CompleteLyrics.Replace("\r\n", "\n");
 				InItem.CompleteLyrics = InItem.CompleteLyrics.Replace("\n", "\r\n");
@@ -3816,7 +3815,7 @@ namespace Easislides
 				int num3 = startPresAt2 + 1;
 				for (num3 = startPresAt2 + 1; num3 <= TotalWorshipListItems; num3++)
 				{
-					int itemRotateResult = GetItemRotateResult(TempItem2, WorshipSongs[num3, 0]);
+					int itemRotateResult = GetItemRotateResult(TempItem2, WorshipSongs[num3].IdString);
 					if (itemRotateResult < 1)
 					{
 						if (num < 0)

@@ -112,9 +112,9 @@ namespace Easislides
 			{
 				if (Gf.FolderUse[i] > 0)
 				{
-					SongFolderA.Items.Add(Gf.FolderName[i]);
-					SongFolderB.Items.Add(Gf.FolderName[i]);
-					SongFolderC.Items.Add(Gf.FolderName[i]);
+					SongFolderA.Items.Add(Gf.Folders[i].Name);
+					SongFolderB.Items.Add(Gf.Folders[i].Name);
+					SongFolderC.Items.Add(Gf.Folders[i].Name);
 				}
 			}
 		}

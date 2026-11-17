@@ -666,7 +666,7 @@ namespace Easislides
                             if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.FolderUse[DataUtil.GetDataInt(dr, "FolderNo")] > 0)
                             {
                                 DisplayName1 = DataUtil.GetDataString(dr, "Title_1");
-                                FolderName = Gf.FolderName[DataUtil.GetDataInt(dr, "FolderNo")];
+                                FolderName = Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Name;
                                 FNum_ID = "D" + DataUtil.GetDataInt(dr, "songid");
                                 text4 = ((DataUtil.GetDataString(dr, "song_number") != "") ? DataUtil.GetDataString(dr, "song_number") : "0");
                                 flag = true;
@@ -829,16 +829,16 @@ namespace Easislides
             {
                 if (Gf.FolderUse[i] > 0)
                 {
-                    SongFolder.Items.Add(Gf.FolderName[i]);
-                    if (Gf.GetFolderNumber(Gf.FolderName[i]) == num3)
+                    SongFolder.Items.Add(Gf.Folders[i].Name);
+                    if (Gf.GetFolderNumber(Gf.Folders[i].Name) == num3)
                     {
                         num = i;
-                        text = Gf.FolderName[i];
+                        text = Gf.Folders[i].Name;
                     }
                     if (num2 == 0)
                     {
                         num2 = i;
-                        text2 = Gf.FolderName[i];
+                        text2 = Gf.Folders[i].Name;
                     }
                 }
             }
@@ -1236,21 +1236,21 @@ namespace Easislides
                         num5 = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InString, ';'));
                     }
                     BibleText.Focus();
-                    for (int i = 1; i <= Gf.HB_VersesLocation[0, 0]; i++)
+                    for (int i = 1; i <= Gf.HB_VersesLocation[0].Version; i++)
                     {
-                        if ((Gf.HB_VersesLocation[i, 1] == num) & (Gf.HB_VersesLocation[i, 2] == num2) & (Gf.HB_VersesLocation[i, 3] == num3))
+                        if ((Gf.HB_VersesLocation[i].Book == num) & (Gf.HB_VersesLocation[i].Chapter == num2) & (Gf.HB_VersesLocation[i].Verse == num3))
                         {
-                            BibleText.SelectionStart = Gf.HB_VersesLocation[i, 4];
-                            for (int j = i; j <= Gf.HB_VersesLocation[0, 0]; j++)
+                            BibleText.SelectionStart = Gf.HB_VersesLocation[i].Start;
+                            for (int j = i; j <= Gf.HB_VersesLocation[0].Version; j++)
                             {
-                                if ((Gf.HB_VersesLocation[j, 1] == num6) & (Gf.HB_VersesLocation[j, 2] == num4) & (Gf.HB_VersesLocation[j, 3] == num5))
+                                if ((Gf.HB_VersesLocation[j].Book == num6) & (Gf.HB_VersesLocation[j].Chapter == num4) & (Gf.HB_VersesLocation[j].Verse == num5))
                                 {
-                                    BibleText.SelectionLength = Gf.HB_VersesLocation[j, 4] - Gf.HB_VersesLocation[i, 4] + Gf.HB_VersesLocation[j, 5] - 2;
+                                    BibleText.SelectionLength = Gf.HB_VersesLocation[j].Start - Gf.HB_VersesLocation[i].Start + Gf.HB_VersesLocation[j].Length - 2;
                                     BibleText.ScrollToCaret();
-                                    j = Gf.HB_VersesLocation[0, 0];
+                                    j = Gf.HB_VersesLocation[0].Version;
                                 }
                             }
-                            i = Gf.HB_VersesLocation[0, 0];
+                            i = Gf.HB_VersesLocation[0].Version;
                         }
                     }
                     HB_StartBuildStringProcess();
@@ -1290,16 +1290,16 @@ namespace Easislides
                 int num4 = num3 + BibleText.SelectionLength;
                 if (num3 >= 0)
                 {
-                    for (int i = 1; i <= Gf.HB_VersesLocation[0, 0]; i++)
+                    for (int i = 1; i <= Gf.HB_VersesLocation[0].Version; i++)
                     {
-                        if (!((num3 >= Gf.HB_VersesLocation[i, 4]) & (num3 <= Gf.HB_VersesLocation[i, 4] + Gf.HB_VersesLocation[i, 5])))
+                        if (!((num3 >= Gf.HB_VersesLocation[i].Start) & (num3 <= Gf.HB_VersesLocation[i].Start + Gf.HB_VersesLocation[i].Length)))
                         {
                             continue;
                         }
                         num = i;
-                        for (int j = i; j <= Gf.HB_VersesLocation[0, 0]; j++)
+                        for (int j = i; j <= Gf.HB_VersesLocation[0].Version; j++)
                         {
-                            if ((num4 >= Gf.HB_VersesLocation[j, 4]) & (num4 <= Gf.HB_VersesLocation[j, 4] + Gf.HB_VersesLocation[j, 5]))
+                            if ((num4 >= Gf.HB_VersesLocation[j].Start) & (num4 <= Gf.HB_VersesLocation[j].Start + Gf.HB_VersesLocation[j].Length))
                             {
                                 num2 = j;
                                 j = 3002;
@@ -1322,34 +1322,34 @@ namespace Easislides
                 }
                 if (num >= 0)
                 {
-                    BibleText.SelectionStart = Gf.HB_VersesLocation[num, 4];
+                    BibleText.SelectionStart = Gf.HB_VersesLocation[num].Start;
                     if (num2 < 0)
                     {
                         num2 = num;
                     }
-                    BibleText.SelectionLength = Gf.HB_VersesLocation[num2, 4] - Gf.HB_VersesLocation[num, 4] + Gf.HB_VersesLocation[num2, 5] - 2;
+                    BibleText.SelectionLength = Gf.HB_VersesLocation[num2].Start - Gf.HB_VersesLocation[num].Start + Gf.HB_VersesLocation[num2].Length - 2;
                 }
                 BibleText.ScrollToCaret();
                 if (Gf.HB_SequentialListing)
                 {
-                    string text2 = Convert.ToString(Gf.HB_VersesLocation[num, 2]) + ":" + Convert.ToString(Gf.HB_VersesLocation[num, 3]);
-                    string text3 = " - " + Convert.ToString(Gf.HB_VersesLocation[num2, 2]) + ":" + Convert.ToString(Gf.HB_VersesLocation[num2, 3]);
-                    if (Gf.HB_VersesLocation[num, 2] == Gf.HB_VersesLocation[num2, 2])
+                    string text2 = Convert.ToString(Gf.HB_VersesLocation[num].Chapter) + ":" + Convert.ToString(Gf.HB_VersesLocation[num].Verse);
+                    string text3 = " - " + Convert.ToString(Gf.HB_VersesLocation[num2].Chapter) + ":" + Convert.ToString(Gf.HB_VersesLocation[num2].Verse);
+                    if (Gf.HB_VersesLocation[num].Chapter == Gf.HB_VersesLocation[num2].Chapter)
                     {
-                        text3 = ((Gf.HB_VersesLocation[num, 3] != Gf.HB_VersesLocation[num2, 3]) ? ("-" + Convert.ToString(Gf.HB_VersesLocation[num2, 3])) : "");
+                        text3 = ((Gf.HB_VersesLocation[num].Verse != Gf.HB_VersesLocation[num2].Verse) ? ("-" + Convert.ToString(Gf.HB_VersesLocation[num2].Verse)) : "");
                     }
-                    OutputTitle = Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[num, 1]) + " " + text2 + text3 + " (" + Gf.HB_Versions[InBibleVersion, 1] + ")";
+                    OutputTitle = Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[num].Book) + " " + text2 + text3 + " (" + Gf.HB_Versions[InBibleVersion, 1] + ")";
                     text = "0" + ';' + displayNameOnly + ';' + ';';
                     int i;
                     for (i = num; i <= num2; i++)
                     {
                         int num6;
-                        for (num6 = i; Gf.HB_VersesLocation[i, 2] == Gf.HB_VersesLocation[num6, 2] && i <= num2; i++)
+                        for (num6 = i; Gf.HB_VersesLocation[i].Chapter == Gf.HB_VersesLocation[num6].Chapter && i <= num2; i++)
                         {
                         }
                         int j = i - 1;
                         object obj = text;
-                        text = string.Concat(obj, Convert.ToString(Gf.HB_VersesLocation[num6, 1]), ';', Convert.ToString(Gf.HB_VersesLocation[num6, 2]), ';', Convert.ToString(Gf.HB_VersesLocation[num6, 3]), ';', Convert.ToString(Gf.HB_VersesLocation[j, 2]), ';', Convert.ToString(Gf.HB_VersesLocation[j, 3]), ';');
+                        text = string.Concat(obj, Convert.ToString(Gf.HB_VersesLocation[num6].Book), ';', Convert.ToString(Gf.HB_VersesLocation[num6].Chapter), ';', Convert.ToString(Gf.HB_VersesLocation[num6].Verse), ';', Convert.ToString(Gf.HB_VersesLocation[j].Chapter), ';', Convert.ToString(Gf.HB_VersesLocation[j].Verse), ';');
                         i = j;
                     }
                 }
@@ -1359,9 +1359,9 @@ namespace Easislides
                     for (int i = num; i <= num2; i++)
                     {
                         string text4 = OutputTitle;
-                        OutputTitle = text4 + DataUtil.Trim(DataUtil.Left(Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[i, 1]), 4)) + " " + Convert.ToString(Gf.HB_VersesLocation[i, 2]) + ":" + Convert.ToString(Gf.HB_VersesLocation[i, 3]) + ",";
+                        OutputTitle = text4 + DataUtil.Trim(DataUtil.Left(Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[i].Book), 4)) + " " + Convert.ToString(Gf.HB_VersesLocation[i].Chapter) + ":" + Convert.ToString(Gf.HB_VersesLocation[i].Verse) + ",";
                         object obj = text;
-                        text = string.Concat(obj, Convert.ToString(Gf.HB_VersesLocation[i, 1]), ';', Convert.ToString(Gf.HB_VersesLocation[i, 2]), ';', Convert.ToString(Gf.HB_VersesLocation[i, 3]), ';', Convert.ToString(Gf.HB_VersesLocation[i, 2]), ';', Convert.ToString(Gf.HB_VersesLocation[i, 3]), ';');
+                        text = string.Concat(obj, Convert.ToString(Gf.HB_VersesLocation[i].Book), ';', Convert.ToString(Gf.HB_VersesLocation[i].Chapter), ';', Convert.ToString(Gf.HB_VersesLocation[i].Verse), ';', Convert.ToString(Gf.HB_VersesLocation[i].Chapter), ';', Convert.ToString(Gf.HB_VersesLocation[i].Verse), ';');
                     }
                     OutputTitle = DataUtil.Left(OutputTitle, OutputTitle.Length - 1);
                     if (OutputTitle.Length > 60)
@@ -1881,7 +1881,7 @@ namespace Easislides
                             musicTitle = DataUtil.GetDataString(dr, "Title_2");
                             text = DataUtil.GetDataString(dr, "LICENCE_ADMIN1");
                             text2 = DataUtil.GetDataString(dr, "LICENCE_ADMIN2");
-                            FolderName = Gf.FolderName[DataUtil.GetDataInt(dr, "FolderNo")];
+                            FolderName = Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Name;
                             FNum_ID = "D" + DataUtil.GetDataInt(dr, "songid");
                             text3 = ((DataUtil.GetDataString(dr, "song_number") != "") ? DataUtil.GetDataString(dr, "song_number") : "0");
                             flag = true;
@@ -2097,10 +2097,10 @@ namespace Easislides
                 Gf.CurSession = SessionList.Text;
                 for (int i = 1; i <= WorshipListItems.Items.Count; i++)
                 {
-                    Gf.WorshipSongs[i, 2] = Gf.RemoveMusicSym(DataUtil.Trim(WorshipListItems.Items[i - 1].Text));
-                    Gf.WorshipSongs[i, 0] = DataUtil.Trim(WorshipListItems.Items[i - 1].SubItems[1].Text);
-                    Gf.WorshipSongs[i, 1] = DataUtil.Left(Gf.WorshipSongs[i, 0], 1);
-                    Gf.WorshipSongs[i, 4] = DataUtil.Trim(WorshipListItems.Items[i - 1].SubItems[2].Text);
+                    Gf.WorshipSongs[i].Title = Gf.RemoveMusicSym(DataUtil.Trim(WorshipListItems.Items[i - 1].Text));
+                    Gf.WorshipSongs[i].IdString = DataUtil.Trim(WorshipListItems.Items[i - 1].SubItems[1].Text);
+                    Gf.WorshipSongs[i].Type = DataUtil.Left(Gf.WorshipSongs[i].IdString, 1);
+                    Gf.WorshipSongs[i].FormatString = DataUtil.Trim(WorshipListItems.Items[i - 1].SubItems[2].Text);
                 }
                 Gf.TotalWorshipListItems = WorshipListItems.Items.Count;
 
@@ -2894,7 +2894,7 @@ namespace Easislides
 
         private void AddToEditHistory(string InItemID)
         {
-            if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.MainEditHistoryList[1, 0] == InItemID)))
+            if (!((Gf.GetItemTitle(InItemID) == "") | (Gf.MainEditHistoryList[1].Id == InItemID)))
             {
                 if (Gf.TotalMainEditHistory < Gf.MaxUserEditHistory)
                 {
@@ -2906,9 +2906,9 @@ namespace Easislides
                 }
                 for (int num = Gf.TotalMainEditHistory; num >= 2; num--)
                 {
-                    Gf.MainEditHistoryList[num, 0] = Gf.MainEditHistoryList[num - 1, 0];
+                    Gf.MainEditHistoryList[num].Id = Gf.MainEditHistoryList[num - 1].Id;
                 }
-                Gf.MainEditHistoryList[1, 0] = InItemID;
+                Gf.MainEditHistoryList[1].Id = InItemID;
                 Gf.RemoveDuplicateEditorHistoryItems(ref Gf.MainEditHistoryList, ref Gf.TotalMainEditHistory);
                 UpdateMenuEditHistory();
                 Gf.SaveMainEditHistoryToRegistry();
@@ -2924,23 +2924,23 @@ namespace Easislides
                 string text2 = "";
                 for (int i = 1; i <= Gf.TotalMainEditHistory; i++)
                 {
-                    text2 = Gf.GetItemTitle(Gf.MainEditHistoryList[i, 0]);
-                    if (text2 != "" && Gf.MainEditHistoryList[num, 0] != Gf.MainEditHistoryList[i, 0])
+                    text2 = Gf.GetItemTitle(Gf.MainEditHistoryList[i].Id);
+                    if (text2 != "" && Gf.MainEditHistoryList[num].Id != Gf.MainEditHistoryList[i].Id)
                     {
                         num++;
-                        Gf.MainEditHistoryList[num, 0] = Gf.MainEditHistoryList[i, 0];
-                        Gf.MainEditHistoryList[num, 1] = text2;
+                        Gf.MainEditHistoryList[num].Id = Gf.MainEditHistoryList[i].Id;
+                        Gf.MainEditHistoryList[num].Title = text2;
                     }
                 }
                 Gf.TotalMainEditHistory = num;
                 for (int i = Gf.TotalMainEditHistory + 1; i <= Gf.AbsoluteMaxHitoryItems; i++)
                 {
-                    Gf.MainEditHistoryList[i, 0] = "";
-                    Gf.MainEditHistoryList[i, 1] = "";
+                    Gf.MainEditHistoryList[i].Id = "";
+                    Gf.MainEditHistoryList[i].Title = "";
                 }
                 for (int i = 1; i < Gf.AbsoluteMaxHitoryItems; i++)
                 {
-                    Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.MainEditHistoryList[i, 1];
+                    Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.MainEditHistoryList[i].Title;
                     if (i > Gf.TotalMainEditHistory)
                     {
                         Menu_EditHistoryList.DropDownItems[i - 1].Visible = false;
@@ -2948,7 +2948,7 @@ namespace Easislides
                     else
                     {
                         Menu_EditHistoryList.DropDownItems[i - 1].Visible = true;
-                        text = DataUtil.Left(Gf.MainEditHistoryList[i, 0], 1);
+                        text = DataUtil.Left(Gf.MainEditHistoryList[i].Id, 1);
                         if (text == "D")
                         {
                             Menu_EditHistoryList.DropDownItems[i - 1].Image = Resources.ES_16;
@@ -3244,10 +3244,10 @@ namespace Easislides
             {
                 if (Gf.OutputItem.CurItemNo == 0)
                 {
-                    Gf.WorshipSongs[0, 2] = Gf.OutputItem.InMainItemText;
-                    Gf.WorshipSongs[0, 0] = Gf.OutputItem.InSubItemItem1Text;
-                    Gf.WorshipSongs[0, 1] = DataUtil.Left(Gf.WorshipSongs[0, 0], 1);
-                    Gf.WorshipSongs[0, 4] = Gf.PreviewItem.Format.FormatString;
+                    Gf.WorshipSongs[0].Title = Gf.OutputItem.InMainItemText;
+                    Gf.WorshipSongs[0].IdString = Gf.OutputItem.InSubItemItem1Text;
+                    Gf.WorshipSongs[0].Type = DataUtil.Left(Gf.WorshipSongs[0].IdString, 1);
+                    Gf.WorshipSongs[0].FormatString = Gf.PreviewItem.Format.FormatString;
                     Gf.AdHocItemPresent = true;
                 }
                 if (Gf.PreviewItem.Type == "P" && Gf.PreviewItem.Source != ItemSource.WorshipList)
