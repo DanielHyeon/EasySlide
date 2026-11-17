@@ -902,7 +902,8 @@ namespace Easislides
             str += SongListOrderClause(Gf.UseSongNumbers, CurStyle);
 
             string sQuery = str;
-            string sQueryCount = str.Replace("*", "Count(*)");
+            // Count the rows of the same query. (Replace("*", "Count(*)") also changed a '*' in the search text.)
+            string sQueryCount = $"select count(*) from ({str})";
 
             string sMultiQuery = $"{sQueryCount};{sQuery}";
 
@@ -972,8 +973,8 @@ namespace Easislides
         }
 
         /// <summary>
-        /// The "order by" of the song list. The count query is made from the whole statement with
-        /// Replace("*", "Count(*)"), so the clause must never contain a '*'.
+        /// The "order by" of the song list. The count query wraps the whole statement in
+        /// "select count(*) from (...)".
         /// Number (openspec change add-song-number-sort, N2): songs with a number (1 or more) by number,
         /// then the songs without one (0 or NULL; NULL &gt;= 1 is not true); ties and the unnumbered songs
         /// in title order. The global "Use Song Numbering" option keeps its own order.
