@@ -367,7 +367,8 @@ namespace Easislides
 			}
 			set
 			{
-				if (value == 0)
+				// The Checkerboard and Mesh steps divide by it; 0 or less would give a step of 0 (endless loop).
+				if (value <= 0)
 				{
 					value = 10;
 				}
@@ -384,7 +385,7 @@ namespace Easislides
 			}
 			set
 			{
-				if (value == 0)
+				if (value <= 0)
 				{
 					value = 8;
 				}
@@ -1414,11 +1415,13 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
 					int width = Convert.ToInt32((float)base.Width * _currentPercentage / 100f) / _nHDivs;
-					int num10 = base.Height / _nVDivs;
+					// At least 1 px: on a screen smaller than the divisions the steps were 0 and the loops never ended.
+					int num10 = Math.Max(1, base.Height / _nVDivs);
+					int stepX = Math.Max(1, base.Width / _nHDivs);
 					int num11 = 0;
 					for (int i = 0; i <= base.Height; i += num10)
 					{
-						for (int j = 0; j <= base.Width; j += base.Width / _nHDivs)
+						for (int j = 0; j <= base.Width; j += stepX)
 						{
 							Rectangle rect = new Rectangle(j, i, width, num10);
 							if ((num11 & 1) == 1)
@@ -1755,11 +1758,13 @@ namespace Easislides
 					int num20 = _nVDivs * 8;
 					graphicsPath = FrameObject(new GraphicsPath());
 					int width = Convert.ToInt32((float)base.Width * _currentPercentage / 100f) / num19;
-					int num10 = base.Height / num20;
+					// At least 1 px: on a screen under 64 px high (or 50 px wide) the steps were 0 and the loops never ended.
+					int num10 = Math.Max(1, base.Height / num20);
+					int stepX = Math.Max(1, base.Width / num19);
 					int num11 = 0;
 					for (int i = 0; i <= base.Height; i += num10)
 					{
-						for (int j = 0; j <= base.Width; j += base.Width / num19)
+						for (int j = 0; j <= base.Width; j += stepX)
 						{
 							Rectangle rect = new Rectangle(j, i, width, num10);
 							if ((num11 & 1) == 1)
@@ -3158,8 +3163,6 @@ namespace Easislides
 				// passes " " on purpose (active indicator), which is set up normally and shows an empty box.
 				RefDisplayString = "";
 				StopRef();
-				tr?.Dispose();
-				tr = null;
 				return;
 			}
 			RefDisplayString = InString;
@@ -3439,6 +3442,15 @@ namespace Easislides
 		{
 			RefStartTime = new DateTime(2005, 1, 1);
 			RefRunning = false;
+			// The timer is disposed by the 100 % paint only while RefRunning is true: stopped here it kept firing
+			// and repainting the whole screen every 150 ms until the next reference started.
+			tr?.Dispose();
+			tr = null;
+			// The reference box is erased by the next paint (that was the leaked timer's tick before).
+			if (IsHandleCreated && !IsDisposed)
+			{
+				Invalidate();
+			}
 		}
 
 		public bool RefStatus()
