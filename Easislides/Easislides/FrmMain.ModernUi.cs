@@ -81,6 +81,9 @@ namespace Easislides
             ApplyModernImageList();
 
             AttachWorshipListPainter();
+            // Song list: title and number apart, find in this folder (design D26).
+            AttachSongListPainter();
+            CreateSongFind();
 
             // Safety net for state changes that do not pass through FrmMain (design D9).
             // Repaint only: the handler never changes any state.
@@ -257,7 +260,7 @@ namespace Easislides
                 {
                     // High contrast switched on or off while the app runs.
                     // Each part on its own: one failure must not leave the others in the other look.
-                    foreach (Action refresh in new Action[] { RefreshSurfaceForGate, RefreshShortcutTooltips, RefreshToolbarIconsForGate, RefreshModernImageListForGate, UpdateQuickFindWidth })
+                    foreach (Action refresh in new Action[] { RefreshSurfaceForGate, RefreshShortcutTooltips, RefreshToolbarIconsForGate, RefreshModernImageListForGate, UpdateQuickFindWidth, RefreshSongListForGate })
                     {
                         try
                         {

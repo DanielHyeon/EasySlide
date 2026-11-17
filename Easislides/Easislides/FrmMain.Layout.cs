@@ -971,7 +971,7 @@ namespace Easislides
             string text = "";
             if (!IsSelectedTab(tabControlSource, "tabBibles"))
             {
-                text = (IsSelectedTab(tabControlSource, "tabFiles") ? ("InfoScreen: " + InfoScreenList.Items.Count + " Listed. / ") : ((!IsSelectedTab(tabControlSource, "tabMedia")) ? ("Folder: " + SongsList.Items.Count + ((SongsList.Items.Count < 1) ? " item. /" : " items / ")) : ("Media: " + MediaList.Items.Count + " Listed. / ")));
+                text = (IsSelectedTab(tabControlSource, "tabFiles") ? ("InfoScreen: " + InfoScreenList.Items.Count + " Listed. / ") : ((!IsSelectedTab(tabControlSource, "tabMedia")) ? ("Folder: " + SongFolderCountText()) : ("Media: " + MediaList.Items.Count + " Listed. / ")));
             }
             else if (BibleText.Text != "")
             {

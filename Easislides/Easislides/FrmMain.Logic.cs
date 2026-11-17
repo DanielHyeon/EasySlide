@@ -510,6 +510,8 @@ namespace Easislides
                 Gf.FindItemMediaOnly = false;
                 bool findItemInContents = Gf.FindItemInContents;
                 Gf.FindItemInContents = false;
+                // A full folder load shows every song: the find box is emptied first (design D26).
+                ResetSongFindForFolderLoad();
                 SongsList.Items.Clear();
                 SetSongListColWidth();
                 if (SongFolder.Items.Count >= 1)
@@ -857,12 +859,24 @@ namespace Easislides
         /// <param name="InItemMusicOnly"></param>
         private void FillList(int FNumber, string ListString, bool InItemMusicOnly)
         {
+            FillList(FNumber, ListString, InItemMusicOnly, rescanMedia: true);
+        }
+
+        /// <param name="ListString">With a folder (FNumber &gt; 0): when not empty, only the songs whose title
+        /// (Title_1) contains this text (find in this folder, design D26). Bound as a parameter, never part of the SQL.</param>
+        /// <param name="rescanMedia">False keeps the Media folder scan of the last fill (the find box reloads the
+        /// same folder on every keystroke burst; the media marker does not change in between).</param>
+        private void FillList(int FNumber, string ListString, bool InItemMusicOnly, bool rescanMedia)
+        {
             string text8 = "";
             string text9 = "";
             int num2 = 0;
             string text10 = "%";
 
-            Gf.TotalMusicFiles = -1;
+            if (rescanMedia)
+            {
+                Gf.TotalMusicFiles = -1;
+            }
             string text11 = "";
             if (FNumber == 0)
             {
@@ -870,7 +884,7 @@ namespace Easislides
                 {
                     if (Gf.FindSongsFolder[i])
                     {
-                        text11 = ((!(text11 == "")) ? ("{text11} or FolderNo = {Convert.ToString(i)}") : ($" and (FolderNo = {Convert.ToString(i)}"));
+                        text11 = ((!(text11 == "")) ? ($"{text11} or FolderNo = {Convert.ToString(i)}") : ($" and (FolderNo = {Convert.ToString(i)}"));
                     }
                 }
                 text11 += ")";
@@ -881,6 +895,14 @@ namespace Easislides
             }
             //string str = (FNumber < 0) ? Gf.Find_SQLString : ("select * from SONG where (lower(Title_1) like \"" + text10.ToLower() + "\" " + text11 + ") or (lower(Title_2) like \"" + text10.ToLower() + "\" " + text11 + ")");
             string str = (FNumber < 0) ? Gf.Find_SQLString : ($"select * from SONG where (lower(Title_1) like \"{text10.ToLower()}\" {text11}) or (lower(Title_2) like \"{text10.ToLower()}\" {text11})");
+            (string Name, object Value)[] parameters = Array.Empty<(string, object)>();
+            if (FNumber > 0 && !string.IsNullOrEmpty(ListString))
+            {
+                // Find in this folder (design D26): the displayed title only, the typed text bound as a parameter.
+                // The count query built below from this string gets the same condition.
+                str = $"select * from SONG where ({SongFindBox.TitleCondition} {text11})";
+                parameters = new (string, object)[] { ("@title", SongFindBox.LikePattern(ListString)) };
+            }
 
             string str2 = Gf.UseSongNumbers ? " order by song_number, cjk_strokecount" : ((CurStyle != SortBy.WordCount) ? " order by cjk_strokecount" : " order by cjk_wordcount, cjk_strokecount");
             str += str2;
@@ -897,7 +919,9 @@ namespace Easislides
                 DbConnection connection = null;
                 DbDataReader dataReader = null;
 
-                (connection, dataReader) = DbController.GetDataReader(Gf.ConnectStringMainDB, sMultiQuery);
+                (connection, dataReader) = parameters.Length == 0
+                    ? DbController.GetDataReader(Gf.ConnectStringMainDB, sMultiQuery)
+                    : DbController.GetDataReader(Gf.ConnectStringMainDB, sMultiQuery, parameters);
 
                 using (connection)
                 {
@@ -932,6 +956,12 @@ namespace Easislides
                                     });
                                     num3++;
                                 }
+                            }
+                            // With InItemMusicOnly fewer rows than counted are kept: no empty slots (AddRange
+                            // throws on a null item, which left the whole list empty).
+                            if (num3 < array.Length)
+                            {
+                                Array.Resize(ref array, num3);
                             }
                             SongsList.Items.AddRange(array);
                         }

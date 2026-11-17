@@ -134,6 +134,8 @@ namespace Easislides
         private void ResizetabControlSouceItems()
         {
             ResizeTabList(tabControlSource, SongsList, ToolBarMargin: false);
+            // The find box above the song list (new look only) takes its height from the list (design D26).
+            LayoutSongFind(listHeightIsBase: true);
             ResizeTabList(tabControlSource, InfoScreenList, ToolBarMargin: true);
             ResizeTabList(tabControlSource, PowerpointList, ToolBarMargin: true);
             ResizeTabList(tabControlSource, MediaList, ToolBarMargin: false);
@@ -5081,6 +5083,8 @@ namespace Easislides
         {
             if (IsSelectedTab(tabControlSource, "tabFolders"))
             {
+                // The listing is of the whole folder: a filter of the find box is dropped first (design D26).
+                ShowWholeSongFolderForReport();
                 if (SongsList.Items.Count > 0)
                 {
                     GenerateIndexReport();
@@ -7388,6 +7392,8 @@ namespace Easislides
                     break;
                 }
             }
+            // A title rewritten in place under a find-box filter: the filter is applied again (design D26).
+            ReapplySongFindAfterEdit();
             if (Gf.EditorItemTitleChanged)
             {
                 for (int i = 0; i < WorshipListItems.Items.Count; i++)

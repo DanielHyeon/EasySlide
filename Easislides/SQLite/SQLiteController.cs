@@ -438,6 +438,35 @@ namespace Easislides.SQLite
 			}
 		}
 
+		/// <summary>
+		/// As GetDataReader(ConnectString, FullSearchString), with bound parameters (name, value), so text
+		/// typed by the user never becomes part of the SQL string. A parameter is bound to every statement
+		/// of a multi-statement query that uses its name.
+		/// </summary>
+		public static (DbConnection, DbDataReader) GetDataReader(string ConnectString, string FullSearchString, params (string Name, object Value)[] parameters)
+		{
+			DbConnection connection = null;
+			try
+			{
+				connection = GetDbConnection(ConnectString);
+				using DbCommand command = new DbCommand(FullSearchString, connection);
+				foreach (var (name, value) in parameters)
+				{
+					command.Parameters.AddWithValue(name, value);
+				}
+
+				DbDataReader dataReader = command.ExecuteReader();
+
+				return (connection, dataReader);
+			}
+			catch (Exception e)
+			{
+				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				connection?.Dispose();
+				return (null, null);
+			}
+		}
+
 		public static DataRow GetDataRowScalar(DbConnection connection, string FullSearchString)
 		{
 			try

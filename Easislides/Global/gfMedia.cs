@@ -25,6 +25,9 @@ namespace Easislides
 			if (TotalMusicFiles < 0)
 			{
 				TotalMusicFiles = 0;
+				// A rescan starts from an empty list: before, every rescan (each folder load) appended the
+				// whole Media folder again, so the list and every MusicFound lookup grew with each load.
+				MediaFilesList.Clear();
 				MusicBuildContinue = true;
 				MusicBuildStartTime = DateTime.Now;
 				MusicBuildLapseTime = new TimeSpan(0L);
