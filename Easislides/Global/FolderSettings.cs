@@ -11,6 +11,7 @@ namespace Easislides.Global
         public string Name = "";
         public int Use;
         public SortBy GroupStyle = SortBy.Alpha;
+        public string RenameName;
 
         public FolderSettings Clone()
         {

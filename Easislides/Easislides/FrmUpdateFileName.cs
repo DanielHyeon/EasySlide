@@ -46,16 +46,16 @@ namespace Easislides
 			}
 			else if (Gf.NameChangeAction == 3)
 			{
-				Text = "Rename Folder '" + Gf.FolderRenameName[Gf.FolderRenameNo] + "'";
+				Text = "Rename Folder '" + Gf.Folders[Gf.FolderRenameNo].RenameName + "'";
 				Mess.Text = "Rename '" + Gf.SelectedListName + "' to:";
-				tbFileName.Text = Gf.FolderRenameName[Gf.FolderRenameNo];
+				tbFileName.Text = Gf.Folders[Gf.FolderRenameNo].RenameName;
 				tbFileName.SelectAll();
 			}
 			else if (Gf.NameChangeAction == 6)
 			{
 				Text = "Save InfoScreen as...";
 				Mess.Text = "Save as:";
-				tbFileName.Text = Gf.FolderRenameName[Gf.FolderRenameNo];
+				tbFileName.Text = Gf.Folders[Gf.FolderRenameNo].RenameName;
 				tbFileName.SelectAll();
 			}
 			else if (Gf.NameChangeAction == 7)
@@ -131,21 +131,21 @@ namespace Easislides
 			{
 				if (Gf.NameChangeAction == 3)
 				{
-					string text3 = Gf.FolderRenameName[Gf.FolderRenameNo];
+					string text3 = Gf.Folders[Gf.FolderRenameNo].RenameName;
 					string text4 = text;
 					bool flag = false;
 					if (Gf.ValidateDirNameFormat(text, "New folder name"))
 					{
 						for (int i = 1; i <= Gf.MAXSONGSFOLDERS; i++)
 						{
-							if (Gf.FolderRenameName[i].ToLower() == text.ToLower())
+							if (Gf.Folders[i].RenameName.ToLower() == text.ToLower())
 							{
 								flag = true;
 							}
 						}
 						if (!flag)
 						{
-							Gf.FolderRenameName[Gf.FolderRenameNo] = text;
+							Gf.Folders[Gf.FolderRenameNo].RenameName = text;
 							return true;
 						}
 						return false;

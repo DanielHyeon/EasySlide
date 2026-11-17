@@ -1584,8 +1584,6 @@ namespace Easislides
 
 		public static string CurPraiseBookNotes = "";
 
-		public static string[] FolderRenameName = new string[MAXSONGSFOLDERS];
-
 		public static string SelectedListName;
 
 		public static string InfoScreenDir;
