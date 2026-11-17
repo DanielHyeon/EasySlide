@@ -173,6 +173,10 @@ namespace Easislides
 				}
 				_scroll = scroll;
 				_flash = flash;
+				// A new box never inherits the previous one's gap or flashing (a box replaced while it was
+				// flashing kept flashing in the new one's first gap, even with flashing off).
+				_gapRunning = false;
+				_flashCount = 0;
 				int border = width / 20;
 				// Made for this setup only and disposed at its end. Nothing keeps it: the text is drawn into
 				// the bitmaps here and only sizes are stored. ReduceFontToFit may replace the font with one of
@@ -180,8 +184,9 @@ namespace Easislides
 				Font setupFont = null;
 				try
 				{
-					// The alert's background bitmaps have a fixed height (the limit + 6) and are made first; the
-					// reference's are exactly the box height, so it measures on a bitmap of its own first.
+					// The alert's background bitmaps have a fixed height (the limit + 6, or the box height when that
+					// is taller) and are made first; the reference's are exactly the box height, so it measures on
+					// a bitmap of its own first.
 					if (_kind == OverlayKind.Alert)
 					{
 						CreateBackgrounds(width, heightLimit + 6);
@@ -205,19 +210,28 @@ namespace Easislides
 					}
 					_messageBackGroundRect = new Rectangle(0, 0, (int)_backgroundGraphics.MeasureString(text, font).Width, textHeight);
 					int boxHeight = textHeight + 4;
-					if (_kind == OverlayKind.Reference)
+					if (_kind == OverlayKind.Reference || boxHeight > _background.Height)
 					{
+						// The reference's always; the alert's only when its box came out taller than the fixed
+						// height (a large font: text up to 1.1 x the limit), whose bottom rows then showed the
+						// picture instead of the box. Normal alerts keep their bitmaps, so they paint as before.
 						_backgroundGraphics.Dispose();
 						_backgroundGraphics = null;
 						_background.Dispose();
 						_background = null;
+						_backgroundInverseGraphics?.Dispose();
+						_backgroundInverseGraphics = null;
+						_backgroundInverse?.Dispose();
+						_backgroundInverse = null;
 						CreateBackgrounds(width, boxHeight);
 					}
 
 					// The text goes on the normal message bitmap; the inverse one stays background-only. The
-					// alert's message bitmap is the box height with the text 2 px down; the reference's is
-					// exactly the text height with the text at the top (an offset there cut off its bottom).
-					int messageHeight = (_kind == OverlayKind.Alert) ? boxHeight : textHeight;
+					// bitmap is exactly the text height with the text at the top: paint draws the text-height rows,
+					// so text drawn lower lost its bottom rows (the reference's before e38fd19; the alert's, drawn
+					// 2 px down in a box-height bitmap, until the alert got the same). The alert's message is placed
+					// those 2 px lower in the box instead (_messageOriginY), so its text stays where it was.
+					int messageHeight = textHeight;
 					_message = new Bitmap(_messageBackGroundRect.Width, messageHeight);
 					_messageGraphics = Graphics.FromImage(_message);
 					_messageGraphics.Clear(transparent ? Color.Transparent : backColour);
@@ -226,7 +240,7 @@ namespace Easislides
 					_messageInverseGraphics = Graphics.FromImage(_messageInverse);
 					_messageInverseGraphics.Clear(transparent ? Color.Transparent : backColour);
 
-					Gf.OutputOneLineToScreen(item, text, font, _messageGraphics, textColour, StringAlignment.Center, shadow ? 1 : 0, outline ? 1 : 0, 0, (messageHeight - _messageBackGroundRect.Height) / 2, _messageBackGroundRect.Width, 0);
+					Gf.OutputOneLineToScreen(item, text, font, _messageGraphics, textColour, StringAlignment.Center, shadow ? 1 : 0, outline ? 1 : 0, 0, 0, _messageBackGroundRect.Width, 0);
 
 					// Vertical alignment. Alert: 0 top, anything else bottom. Reference: 0 top, 2 bottom,
 					// anything else bottom raised by twice its margin.
@@ -271,7 +285,9 @@ namespace Easislides
 						box.Width = pictureWidth;
 						_messageOriginX = (pictureWidth - _messageBackGroundRect.Width) / 2 + _messageBackGroundRect.Width + border / 2;
 					}
-					_messageOriginY = box.Top + 1;
+					// The text 1 px below the box top (reference) or 3 px (alert: 1 + the 2 px it was drawn down in
+					// its old message bitmap). Both leave the text inside the box (text height + 4).
+					_messageOriginY = box.Top + ((_kind == OverlayKind.Alert) ? 3 : 1);
 					_originY = box.Top;
 					_overallBackGroundRect = new Rectangle(0, 0, width, boxHeight);
 					using (SolidBrush brush = new SolidBrush(transparent ? Color.Transparent : backColour))
@@ -315,7 +331,19 @@ namespace Easislides
 				int num = (int)((float)text.Length / _charPerSecond) + GapDuration;
 				if ((float)num > overallDuration)
 				{
-					_charPerSecond = (float)text.Length / (overallDuration - (float)GapDuration);
+					// One pass and the gap do not fit: a single pass, sped up to end when the gap starts
+					// (duration - gap). When the gap alone takes the whole duration there is no such time (it
+					// made the speed negative); the pass then gets the whole duration. Never slower than the
+					// configured speed, and the configured speed when the duration is not positive.
+					float passTime = overallDuration - (float)GapDuration;
+					if (passTime <= 0f)
+					{
+						passTime = overallDuration;
+					}
+					if (passTime > 0f)
+					{
+						_charPerSecond = Math.Max(_initialCharPerSecond, (float)text.Length / passTime);
+					}
 					_occurrences = 1;
 				}
 				else
@@ -326,11 +354,8 @@ namespace Easislides
 						_occurrences = 1;
 					}
 				}
+				// Positive: the speed is at least the configured one.
 				messageDuration = (float)text.Length / _charPerSecond;
-				if (messageDuration < 0f)
-				{
-					messageDuration = overallDuration;
-				}
 			}
 
 			/// <summary>Shows the box from the start and starts its timer. UI thread only.</summary>
@@ -338,6 +363,10 @@ namespace Easislides
 			{
 				_overallPercentage = 0f;
 				_messagePercentage = 0f;
+				// From the first pass: no gap or flashing left over from an earlier showing (RefGo restarts
+				// the same reference at each first showing without building it again).
+				_gapRunning = false;
+				_flashCount = 0;
 				_running = true;
 				_startTime = DateTime.Now;
 				_messageStartTime = DateTime.Now;
@@ -412,16 +441,16 @@ namespace Easislides
 				Rectangle backgroundRect = new Rectangle(0, (int)((float)_originY * scaleY), (int)((float)_overallBackGroundRect.Width * scaleX), (int)((float)_overallBackGroundRect.Height * scaleY));
 				int messageHeight = (int)((float)_messageBackGroundRect.Height * scaleY);
 				// Reference only: on a small screen the box, scaled down, can come out no taller than the text;
-				// it is then made 2 px taller than the text (not in the gap or while flashing).
-				Rectangle passBackgroundRect = backgroundRect;
-				if (_kind == OverlayKind.Reference && messageHeight >= passBackgroundRect.Height)
+				// it is then made 2 px taller than the text. The same box in every frame (pass, gap, flashing):
+				// the gap and flash frames used the unadjusted height, so the box jumped between them.
+				if (_kind == OverlayKind.Reference && messageHeight >= backgroundRect.Height)
 				{
-					passBackgroundRect.Height = messageHeight + 2;
+					backgroundRect.Height = messageHeight + 2;
 				}
 				e.Graphics.ResetTransform();
 				if (_messagePercentage < 100f)
 				{
-					e.Graphics.DrawImage(_background, passBackgroundRect, _overallBackGroundRect, GraphicsUnit.Pixel);
+					e.Graphics.DrawImage(_background, backgroundRect, _overallBackGroundRect, GraphicsUnit.Pixel);
 					if (_scroll)
 					{
 						DrawMessage(e, _message, (int)((float)_messageBackGroundRect.Width * _messagePercentage / 100f), scaleX, scaleY, messageHeight);
@@ -453,7 +482,7 @@ namespace Easislides
 				}
 				else
 				{
-					e.Graphics.DrawImage(_background, passBackgroundRect, _overallBackGroundRect, GraphicsUnit.Pixel);
+					e.Graphics.DrawImage(_background, backgroundRect, _overallBackGroundRect, GraphicsUnit.Pixel);
 					DrawMessage(e, _message, _messageBackGroundRect.Width, scaleX, scaleY, messageHeight);
 					if (_flash)
 					{
