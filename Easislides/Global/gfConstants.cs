@@ -1602,7 +1602,6 @@ namespace Easislides
 
 		public static string EditNotesHeading = "";
 
-
 		public static int UseOutlineFont = 0;
 
 		public static int UseShadowFont = 0;
