@@ -284,10 +284,10 @@ namespace Easislides
 						{
 							Folders[num].FontName[0] = "Microsoft Sans Serif";
 						}
-						ShowFontVPosition[num, 0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos0"));
-						if ((ShowFontVPosition[num, 0] < 0) | (ShowFontVPosition[num, 0] > 100))
+						Folders[num].FontVPosition[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos0"));
+						if ((Folders[num].FontVPosition[0] < 0) | (Folders[num].FontVPosition[0] > 100))
 						{
-							ShowFontVPosition[num, 0] = 0;
+							Folders[num].FontVPosition[0] = 0;
 						}
 						Folders[num].FontSize[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size1"));
 						if ((Folders[num].FontSize[1] < 1) | (Folders[num].FontSize[1] > 100))
@@ -306,10 +306,10 @@ namespace Easislides
 						{
 							Folders[num].FontName[1] = "Microsoft Sans Serif";
 						}
-						ShowFontVPosition[num, 1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos1"));
-						if ((ShowFontVPosition[num, 1] < ShowFontVPosition[num, 0]) | (ShowFontVPosition[num, 1] > 100))
+						Folders[num].FontVPosition[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos1"));
+						if ((Folders[num].FontVPosition[1] < Folders[num].FontVPosition[0]) | (Folders[num].FontVPosition[1] > 100))
 						{
-							ShowFontVPosition[num, 1] = ShowFontVPosition[num, 0] + (100 - ShowFontVPosition[num, 0]) / 2;
+							Folders[num].FontVPosition[1] = Folders[num].FontVPosition[0] + (100 - Folders[num].FontVPosition[0]) / 2;
 						}
 					}
 				}
