@@ -125,12 +125,7 @@ namespace Easislides
             {
                 return;
             }
-            if (!toolbarIconCacheHooked)
-            {
-                toolbarIconCacheHooked = true;
-                // The cache owns the bitmaps the items show: clear it only once the controls are gone.
-                Disposed += (s, e) => ModernIcons.ClearCache();
-            }
+            EnsureIconCacheReleasedOnClose();
             Color colour = ModernUiPalette.TextPrimary;
             foreach (var (item, icon) in ToolbarIconTable())
             {
@@ -192,6 +187,15 @@ namespace Easislides
             {
                 Trace.WriteLine($"ApplyToolbarIcons: separator failed: {ex.Message}");
             }
+            try
+            {
+                // Format toolbars, their drop-down menus, the main menu and Recent Edits (task 9.6).
+                ApplyFormatAndMenuIcons();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"ApplyToolbarIcons: format and menu icons failed: {ex.Message}");
+            }
             MeasureToolbarTexts();
             // The words change the buttons' accessible name (shown: the word; hidden: the tooltip).
             // Keep the name they report without the new look in both states.
@@ -203,6 +207,21 @@ namespace Easislides
                 }
             }
             toolbarIconsApplied = true;
+        }
+
+        /// <summary>
+        /// The cache owns the bitmaps the controls show: it is cleared once, when the form is disposed (after its
+        /// controls). Called by every entry point that can fill the cache, so the hook never depends on which
+        /// one runs first.
+        /// </summary>
+        private void EnsureIconCacheReleasedOnClose()
+        {
+            if (toolbarIconCacheHooked)
+            {
+                return;
+            }
+            toolbarIconCacheHooked = true;
+            Disposed += (s, e) => ModernIcons.ClearCache();
         }
 
         /// <summary>
@@ -254,7 +273,10 @@ namespace Easislides
                         ToolStripItem item = pair.Key;
                         ToolbarItemOriginal original = pair.Value;
                         item.ImageScaling = original.ImageScaling;
-                        // Colour first: the designer image is made transparent again exactly as at start-up.
+                        // The item may still show a shared cache bitmap: take it off first, because setting
+                        // the transparent colour runs MakeTransparent on the current image. Then the colour,
+                        // then the designer image, which is made transparent again exactly as at start-up.
+                        item.Image = null;
                         item.ImageTransparentColor = original.ImageTransparentColor;
                         item.Image = original.Image;
                         item.BackgroundImage = original.BackgroundImage;
@@ -268,6 +290,8 @@ namespace Easislides
                 try
                 {
                     SyncDropDownButtonImage(PP_ListType);
+                    SyncFormatDropDownButtons();
+                    RestoreEditHistoryIcons();
                     if (modernDeleteSeparator != null)
                     {
                         modernDeleteSeparator.Available = false;

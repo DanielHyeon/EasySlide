@@ -2926,6 +2926,8 @@ namespace Easislides
                         }
                     }
                 }
+                // New look only: the list type icons in place of the pictures above (task 9.6, design D25).
+                ApplyEditHistoryIcons();
             }
             catch
             {

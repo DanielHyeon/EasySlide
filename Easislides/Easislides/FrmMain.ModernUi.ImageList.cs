@@ -126,6 +126,7 @@ namespace Easislides
             {
                 return;
             }
+            EnsureIconCacheReleasedOnClose();
             try
             {
                 modernImageList ??= BuildModernImageList();
