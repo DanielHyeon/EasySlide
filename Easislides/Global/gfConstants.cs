@@ -1697,8 +1697,6 @@ namespace Easislides
 
 		public static string Temp_MediaOutputMonitorName = "";
 
-		public static double[,] MainFontSpacingFactor = new double[MAXSONGSFOLDERS, 2];
-
 		public static double NotationFontFactor = 0.75;
 
 		public static string Lookup_NameSelected;

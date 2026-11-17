@@ -1614,7 +1614,7 @@ namespace Easislides
 			Font MainFont = new Font(InLyricsFormat.Font.Name, InLyricsFormat.Font.Size, InLyricsFormat.Font.Style);
 			SizeF layoutArea = new SizeF(InLyricsFormat.FS_Width, 32000f);
 			string text = (RegionNumber == 0) ? "\n" : "";
-			double num = MainFontSpacingFactor[FolderNo, 0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
+			double num = Folders[FolderNo].FontSpacingFactor[0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
 			int num2 = (int)((double)(Region2Present ? InLyricsFormat.FS_Height_R2Bound : InLyricsFormat.FS_Height) / num);
 			string text2 = "";
 			for (int i = startline; i <= endline; i++)

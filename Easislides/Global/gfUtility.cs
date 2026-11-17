@@ -1312,7 +1312,7 @@ namespace Easislides
 			SizeF layoutArea = new SizeF(fS_Width, 32000f);
 			int num5 = 0;
 			int num6 = 0;
-			double num7 = MainFontSpacingFactor[InItem.FolderNo, (RegNum != 0) ? 1 : 0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
+			double num7 = Folders[InItem.FolderNo].FontSpacingFactor[(RegNum != 0) ? 1 : 0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
 			int num8;
 			int num9;
 			switch (RegNum)

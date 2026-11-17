@@ -548,7 +548,7 @@ namespace Easislides
 			int fS_Width = InItem.Lyrics[RegNum].FS_Width;
 			int regionHeight = (InItem.Slide[0, 3] > 0 && !OnlyOneRegionShown) ? InItem.Lyrics[RegNum].FS_Height_R2Bound : InItem.Lyrics[RegNum].FS_Height;
 			SizeF layoutArea = new SizeF(fS_Width, MaxLayoutHeight);
-			int oneLineHeight = (int)((double)RenderingCache.MeasureString(g, "A", MainFont, layoutArea).Height * MainFontSpacingFactor[InItem.FolderNo, (RegNum != 0) ? 1 : 0]);
+			int oneLineHeight = (int)((double)RenderingCache.MeasureString(g, "A", MainFont, layoutArea).Height * Folders[InItem.FolderNo].FontSpacingFactor[(RegNum != 0) ? 1 : 0]);
 			int notationsLineHeight = (int)((double)oneLineHeight * ((MainFont.Size >= 2f) ? NotationFontFactor : 1.0));
 			int notationsLineTextVOffset = 0;
 			string interlaceLinePattern = (RegNum == 1) ? InItem.Lyrics[RegNum].FS_InterlaceLinePattern : string.Empty;
@@ -1691,8 +1691,8 @@ namespace Easislides
 		{
 			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
-				MainFontSpacingFactor[i, 0] = Folders[i].LineSpacing[0] + 0.05;
-				MainFontSpacingFactor[i, 1] = Folders[i].LineSpacing[1] + 0.05;
+				Folders[i].FontSpacingFactor[0] = Folders[i].LineSpacing[0] + 0.05;
+				Folders[i].FontSpacingFactor[1] = Folders[i].LineSpacing[1] + 0.05;
 			}
 		}
 
