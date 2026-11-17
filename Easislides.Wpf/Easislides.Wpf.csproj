@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- 신규 WPF 프로젝트 — Sprint 0 PoC 단계. 정식 마이그레이션 산출물의 출발점. -->
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
     <RootNamespace>Easislides.Wpf</RootNamespace>
     <!-- 산출물 분리(§9.4/ADR-0007): 신규 WPF 빌드는 EasislidesNext.exe. legacy 는 Easislides.exe.
          RootNamespace 는 그대로 두어 코드 네임스페이스(Easislides.Wpf)는 바뀌지 않는다.
@@ -40,9 +40,7 @@
     <!-- PoC-B: PowerPoint COM 호출용. NetOffice 타입이 transitively 전파됨. -->
     <ProjectReference Include="..\OfficeLib\OfficeLib.csproj" />
     <!-- EasiDS 디자인 토큰 강제 분석기 (계획서 §9.2). 실행 어셈블리가 아닌 컴파일러 분석기로만 참조. -->
-    <ProjectReference Include="..\Easislides.Analyzers\Easislides.Analyzers.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Easislides.Analyzers\Easislides.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- ADR-0004 PoC-A: HookManager 소스를 file-link로 공유 (복사 X). Sprint 9에 라이브러리로 추출 후 ProjectReference로 교체 예정. -->

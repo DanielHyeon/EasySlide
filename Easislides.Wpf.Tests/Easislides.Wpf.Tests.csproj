@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- Sprint 1: xUnit 테스트 프로젝트 (계획서 §8.4) -->
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
     <RootNamespace>Easislides.Wpf.Tests</RootNamespace>
     <AssemblyName>Easislides.Wpf.Tests</AssemblyName>
     <UseWPF>true</UseWPF>

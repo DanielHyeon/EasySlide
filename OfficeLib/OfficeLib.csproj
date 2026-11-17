@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>library</OutputType>
-    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
     <UseWindowsForms>false</UseWindowsForms>
     <Platforms>AnyCPU;x64</Platforms>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>

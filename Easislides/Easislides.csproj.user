@@ -25,6 +25,24 @@
     <Compile Update="Easislides\FrmMain.Logic.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Easislides\FrmMain.ModernUi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.ModernUi.FormatIcons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.ModernUi.Icons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.ModernUi.ImageList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.ModernUi.SongList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Easislides\FrmMain.ModernUi.Surface.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Easislides\FrmSplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -131,6 +149,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="Easislides\ImageTransitionControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Easislides\SongFindBox.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="HookManager\GlobalEventProvider.cs">
