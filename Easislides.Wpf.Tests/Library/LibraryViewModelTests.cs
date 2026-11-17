@@ -278,6 +278,32 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task FolderGroupStyle_Number_OpensInSongNumberOrderWithUnnumberedSongsLast()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(EasiSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 4, GroupStyle: 2));
+        repository.SongsByFolder[1] = [
+            Song(10, "Beta", folderNo: 1, songNumber: 0),
+            Song(11, "Third", folderNo: 1, songNumber: 3),
+            Song(12, "Alpha", folderNo: 1, songNumber: 0),
+            Song(13, "First", folderNo: 1, songNumber: 1),
+        ];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+
+        await sut.LoadAsync();
+
+        sut.SortMode.Should().Be(LibrarySortMode.Number, "FOLDER.GroupStyle=2 is the WinForms song number order");
+        sut.IsWordCountSortEnabled.Should().BeFalse();
+        sut.Songs.Select(song => song.Title).Should().Equal(
+            ["First", "Third", "Alpha", "Beta"],
+            "numbered songs come first by number, then unnumbered songs by title (FrmMain SongListOrderClause)");
+        repository.LastFolder.Should().BeNull("opening a folder does not write its sort order");
+    }
+
+    [Fact]
     public async Task UseSongNumbering_ForcesNumberSortAndDisablesFoldersWordCount()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -785,7 +811,7 @@ public class LibraryViewModelTests
                 folder.Name,
                 folder.IsEnabled,
                 index >= 0 ? Folders[index].SongCount : 0,
-                folder.GroupStyle);
+                folder.GroupStyle ?? (index >= 0 ? Folders[index].GroupStyle : 0));
             if (index >= 0)
             {
                 Folders[index] = updated;

@@ -136,7 +136,7 @@ namespace Easislides
                     {
                         continue;
                     }
-                    Bitmap bitmap = ModernIcons.Get(icon, ModernIconStyle.Regular, ToolbarIconPixelSize(item), colour);
+                    Bitmap bitmap = ModernIcons.Get(icon, ModernIconStyle.Regular, ModernItemIcons.ToolbarIconPixelSize(item), colour);
                     if (bitmap == null)
                     {
                         continue; // logged once by ModernIcons; the item keeps its old picture (D18)
@@ -148,7 +148,7 @@ namespace Easislides
                         // as the item's image instead, unscaled, in the same 22x22 button.
                         item.BackgroundImage = null;
                     }
-                    SetSharedImage(item, bitmap);
+                    ModernItemIcons.SetSharedImage(item, bitmap);
                     item.ImageScaling = ToolStripItemImageScaling.None;
                 }
                 catch (Exception ex)
@@ -165,9 +165,7 @@ namespace Easislides
                 if (toolbarOriginals.ContainsKey(PP_ListStyle) || toolbarOriginals.ContainsKey(PP_PreviewStyle))
                 {
                     RememberToolbarItem(PP_ListType);
-                    PP_ListType.ImageTransparentColor = Color.Empty;
-                    PP_ListType.ImageScaling = ToolStripItemImageScaling.None;
-                    SyncDropDownButtonImage(PP_ListType);
+                    ModernItemIcons.PrepareDropDownButton(PP_ListType);
                 }
             }
             catch (Exception ex)
@@ -225,17 +223,6 @@ namespace Easislides
         }
 
         /// <summary>
-        /// Gives an item a bitmap of the icon cache. ToolStripItem.Image's setter calls
-        /// MakeTransparent(ImageTransparentColor) on the bitmap it gets (the designer sets Magenta),
-        /// which would rewrite the cache's shared bitmap: the item's transparent colour is cleared first.
-        /// </summary>
-        private static void SetSharedImage(ToolStripItem item, Bitmap bitmap)
-        {
-            item.ImageTransparentColor = Color.Empty;
-            item.Image = bitmap;
-        }
-
-        /// <summary>
         /// Gate closed while the app runs (high contrast switched on): every item gets back exactly what
         /// the designer gave it. Gate opened again: the new icons come back. The texts follow in
         /// UpdateQuickFindWidth, which runs right after this (design D14, D20).
@@ -289,7 +276,7 @@ namespace Easislides
                 }
                 try
                 {
-                    SyncDropDownButtonImage(PP_ListType);
+                    ModernItemIcons.SyncDropDownButtonImage(PP_ListType);
                     SyncFormatDropDownButtons();
                     RestoreEditHistoryIcons();
                     if (modernDeleteSeparator != null)
@@ -328,46 +315,6 @@ namespace Easislides
                 AccessibleName = item.AccessibleName,
                 ReportedName = item.AccessibilityObject.Name,
             };
-        }
-
-        /// <summary>
-        /// Pixel size the item really shows its picture at, read at run time: the toolbar's
-        /// ImageScalingSize (already scaled by WinForms for the screen's DPI). A drop-down menu item
-        /// gets its button's size, because the button shows a copy of the item's picture. A fixed-size
-        /// button smaller than that slot (the 22x22 WL_* buttons) gets its inner size less a 1 px
-        /// border on each side.
-        /// </summary>
-        private static int ToolbarIconPixelSize(ToolStripItem item)
-        {
-            ToolStrip strip = item.OwnerItem is ToolStripDropDownItem button && button.Owner != null ? button.Owner : item.Owner;
-            Size slot = strip?.ImageScalingSize ?? new Size(24, 24);
-            int size = Math.Min(slot.Width, slot.Height);
-            if (!item.AutoSize && !(item.OwnerItem is ToolStripDropDownItem))
-            {
-                int inner = Math.Min(item.Width - item.Padding.Horizontal, item.Height - item.Padding.Vertical);
-                if (inner < size)
-                {
-                    size = inner - 2;
-                }
-            }
-            return Math.Max(size, 8);
-        }
-
-        /// <summary>Shows on a drop-down button the picture of the menu item it stands for (its Tag).</summary>
-        private static void SyncDropDownButtonImage(ToolStripDropDownItem button)
-        {
-            if (button == null)
-            {
-                return;
-            }
-            foreach (ToolStripItem entry in button.DropDownItems)
-            {
-                if (entry.Tag != null && Equals(entry.Tag, button.Tag))
-                {
-                    button.Image = entry.Image;
-                    return;
-                }
-            }
         }
 
         // ----- Toolbar texts (design D20) -----

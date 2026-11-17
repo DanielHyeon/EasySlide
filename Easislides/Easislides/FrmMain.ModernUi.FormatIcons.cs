@@ -126,13 +126,13 @@ namespace Easislides
         {
             foreach (var (item, icon) in FormatToolbarIconTable())
             {
-                SetModernItemIcon(item, icon, ModernIconStyle.Regular, ToolbarIconPixelSize(item));
+                SetModernItemIcon(item, icon, ModernIconStyle.Regular, ModernItemIcons.ToolbarIconPixelSize(item));
             }
             // Menu items of a drop-down button: ToolbarIconPixelSize gives the button's toolbar size, because
             // the button shows the same bitmap; the menu shows it unscaled.
             foreach (var (item, icon) in FormatDropDownIconTable())
             {
-                SetModernItemIcon(item, icon, ModernIconStyle.Regular, ToolbarIconPixelSize(item));
+                SetModernItemIcon(item, icon, ModernIconStyle.Regular, ModernItemIcons.ToolbarIconPixelSize(item));
             }
             foreach (ToolStripDropDownItem button in FormatDropDownButtons())
             {
@@ -144,9 +144,7 @@ namespace Easislides
                     }
                     // The copied picture is a shared cache bitmap: no transparent colour (the setter would rewrite it).
                     RememberToolbarItem(button);
-                    button.ImageTransparentColor = Color.Empty;
-                    button.ImageScaling = ToolStripItemImageScaling.None;
-                    SyncDropDownButtonImage(button);
+                    ModernItemIcons.PrepareDropDownButton(button);
                 }
                 catch (Exception ex)
                 {
@@ -167,7 +165,7 @@ namespace Easislides
             {
                 try
                 {
-                    SyncDropDownButtonImage(button);
+                    ModernItemIcons.SyncDropDownButtonImage(button);
                 }
                 catch (Exception ex)
                 {
@@ -185,14 +183,7 @@ namespace Easislides
                 {
                     return;
                 }
-                Bitmap bitmap = ModernIcons.Get(icon, style, size, ModernUiPalette.TextPrimary);
-                if (bitmap == null)
-                {
-                    return; // logged once by ModernIcons; the item keeps its old picture (D18)
-                }
-                RememberToolbarItem(item);
-                SetSharedImage(item, bitmap);
-                item.ImageScaling = ToolStripItemImageScaling.None;
+                ModernItemIcons.TryApply(item, icon, style, size, ModernUiPalette.TextPrimary, RememberToolbarItem);
             }
             catch (Exception ex)
             {

@@ -90,6 +90,7 @@ namespace Easislides
 		public FrmOptions()
         {
             InitializeComponent();
+            InitModernUi();
         }
 
         private void FrmOptions_Load(object sender, EventArgs e)

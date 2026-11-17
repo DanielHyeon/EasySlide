@@ -5278,8 +5278,8 @@ private void InitializeComponent()
             Bibles_Info.ImageTransparentColor = Color.Magenta;
             Bibles_Info.Name = "Bibles_Info";
             Bibles_Info.Size = new Size(22, 22);
-            Bibles_Info.Tag = "delete";
-            Bibles_Info.ToolTipText = "Delete";
+            Bibles_Info.Tag = "";
+            Bibles_Info.ToolTipText = "Bible Info";
             Bibles_Info.Click += Bibles_Click;
             //
             // Bibles_Up
