@@ -255,11 +255,11 @@ namespace Easislides
 						{
 							Folders[num].LeftMargin = 2;
 						}
-						ShowRightMargin[num] = 2;
-						ShowRightMargin[num] = DataUtil.GetDataInt(dataReader, "RMargin");
-						if ((ShowRightMargin[num] < 0) | (ShowRightMargin[num] > 40))
+						Folders[num].RightMargin = 2;
+						Folders[num].RightMargin = DataUtil.GetDataInt(dataReader, "RMargin");
+						if ((Folders[num].RightMargin < 0) | (Folders[num].RightMargin > 40))
 						{
-							ShowRightMargin[num] = 2;
+							Folders[num].RightMargin = 2;
 						}
 						ShowBottomMargin[num] = 0;
 						ShowBottomMargin[num] = DataUtil.GetDataInt(dataReader, "BMargin");
