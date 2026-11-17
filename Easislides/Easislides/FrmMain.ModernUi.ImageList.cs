@@ -290,7 +290,8 @@ namespace Easislides
                 if (titleList.Items[0].Text != item.Title)
                 {
                     return;
-                }                if (IsWordFolder(folder) && titleList.Items[0].ImageIndex == 0)
+                }
+                if (IsWordFolder(folder) && titleList.Items[0].ImageIndex == 0)
                 {
                     titleList.Items[0].ImageIndex = WordItemIndex;
                 }

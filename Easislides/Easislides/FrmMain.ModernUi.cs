@@ -1115,7 +1115,14 @@ namespace Easislides
                 ListViewItem top = list.TopItem;
                 for (int i = top?.Index ?? 0; i < list.Items.Count; i++)
                 {
-                    Rectangle row = list.Items[i].Bounds;
+                    // While the list is being refilled or cleared the control can count rows it no longer has an
+                    // item for (Items[i] is null): nothing more is left out, the erase covers the rest.
+                    ListViewItem item = list.Items[i];
+                    if (item == null)
+                    {
+                        break;
+                    }
+                    Rectangle row = item.Bounds;
                     if (row.Top >= clientHeight)
                     {
                         break;
@@ -1215,7 +1222,12 @@ namespace Easislides
                 {
                     continue;
                 }
-                list.Invalidate(list.Items[row].Bounds);
+                // Null while the list is being refilled or cleared (see ExcludeRowsFromErase).
+                ListViewItem item = list.Items[row];
+                if (item != null)
+                {
+                    list.Invalidate(item.Bounds);
+                }
             }
         }
 
