@@ -26,12 +26,21 @@ namespace Easislides
 		// PowerPoint export, a failed export). Every repaint (hover, resize, scroll) used to try again: a
 		// PowerPoint export plus up to 150 ms of sleeping on the UI thread each time. Now a failed attempt
 		// is retried by a UI timer after 0.5 s and 2 s, then every 30 s; paints in between draw only the
-		// background. A successful load, or BuildNewImageThumbs giving the canvas a new build, clears it.
+		// background. A successful load clears it; so does BuildNewImageThumbs giving the canvas a new build,
+		// except for an external presentation whose picture path and file are unchanged (a resize or re-layout
+		// keeps the pause, since each attempt may be a PowerPoint export).
 		private static readonly int[] RetryDelaysMs = { 500, 2000 };
 		private const int FailedRetryPauseMs = 30000;
 		private int _failureCount;
 		private long _retryAtTicks; // Environment.TickCount64: no attempt before it
 		private System.Windows.Forms.Timer _retryTimer;
+
+		// The canvas shows the first slide of an external presentation (PowerPoint tab, thumbnail listing): FileName
+		// is its cached picture (Gf.ExternalPPT.GetFirstScreenDumpPath), exported only when it does not exist yet.
+		private bool _isExternalPresentationPreview;
+		// An export of this canvas is running: a paint re-entered meanwhile (PowerPoint calls pump messages) does
+		// not start another one.
+		private bool _exporting;
 
 		// Auto-properties
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -396,6 +405,7 @@ namespace Easislides
 				IsExternalPowerPoint = NewExternalPowerPoint;
 				CurrentSelectedSlide = NewCurSelectedSlide;
 
+				_isExternalPresentationPreview = false;
 				if (IsPowerPoint)
 				{
 					SlideNumber = PowerPointSlideNumbering;
@@ -405,12 +415,17 @@ namespace Easislides
 					SlideNumber = 0;
 					if (extension == ".ppt" || extension == ".pptx")
 					{
-						imagePath = $"{Gf.ExtPPrefix}{Gf.ExtPPrefix_Num}\\{Path.GetFileNameWithoutExtension(imagePath)}.jpg";
+						// The cached picture of the presentation's current version (null: not listed or unreadable).
+						// It is looked up only here: a presentation edited while its thumbnail stays on screen keeps
+						// the old picture until the next rebuild (listing, re-layout, resize).
+						imagePath = Gf.ExternalPPT.GetFirstScreenDumpPath(NewCanvasIndex, imagePath) ?? "";
+						_isExternalPresentationPreview = true;
 					}
 				}
 
-				// Re-render when (a) the path changed, (b) we always re-export for external PPT,
-				// or (c) the same path was re-built on disk (mtime advanced past our cache).
+				// Re-render when (a) the path changed, (b) always for external PPT (re-rendered from the
+				// cached picture; exported only when it is missing), or (c) the same path was re-built on
+				// disk (mtime advanced past our cache).
 				bool pathChanged = FileName != imagePath;
 				bool fileTouched = !pathChanged
 				                   && !string.IsNullOrEmpty(imagePath)
@@ -421,12 +436,19 @@ namespace Easislides
 					FileName = imagePath;
 					IsImageReady = false;
 					// A new build (new path, rebuilt file, or the listing redone): try it now, even after a failure.
-					ClearFailures();
+					// An external presentation whose picture is unchanged (a resize, a re-layout) keeps its retry
+					// pause: each attempt may be a PowerPoint export.
+					if (!_isExternalPresentationPreview || pathChanged || fileTouched)
+					{
+						ClearFailures();
+					}
 					BackColor = NewBackColour;
 					BorderWidthFactor = 0.04f;
 					base.Visible = true;
 
-					NewToolTip.SetToolTip(this, SlideNumber > 0 ? SlideNumber.ToString() : imagePath);
+					// An external presentation shows its own path, not the cache picture's hashed name.
+					string toolTipText = _isExternalPresentationPreview ? NewImageArray[NewCanvasIndex] : imagePath;
+					NewToolTip.SetToolTip(this, SlideNumber > 0 ? SlideNumber.ToString() : toolTipText);
 
 					PowerPointSlideNumbering = slideNumbering;
 
@@ -612,9 +634,25 @@ namespace Easislides
 		{
 			try
 			{
-				if (IsExternalPowerPoint)
+				if (_isExternalPresentationPreview && !string.IsNullOrEmpty(FileName) && !File.Exists(FileName))
 				{
-					Gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
+					if (_exporting)
+					{
+						// The outer attempt of this canvas is still exporting; it draws the result.
+						return false;
+					}
+					// No picture of this version yet: export it once. When it is not made (a failure, or refused
+					// because another thumbnail's export is running), the missing-file check below calls
+					// RememberFailure, so the retry timer tries again.
+					_exporting = true;
+					try
+					{
+						Gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
+					}
+					finally
+					{
+						_exporting = false;
+					}
 				}
 
 				// PowerPoint Interop's Slide.Export returns before the JPG is guaranteed to be visible
@@ -650,10 +688,20 @@ namespace Easislides
 					// MSDN: Image.FromStream requires the stream to remain open for the Image's
 					// lifetime. Clone into a standalone Bitmap so the file/stream can be released
 					// safely and DrawImage cannot fail with GDI+ generic errors on lazy pixel reads.
-					using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-					using (var tempImage = System.Drawing.Image.FromStream(stream))
+					try
 					{
-						_cachedSourceImage = new Bitmap(tempImage);
+						using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+						using (var tempImage = System.Drawing.Image.FromStream(stream))
+						{
+							_cachedSourceImage = new Bitmap(tempImage);
+						}
+					}
+					catch (Exception ex) when (_isExternalPresentationPreview && (ex is ArgumentException || ex is OutOfMemoryException))
+					{
+						// GDI+ could not decode the cached picture: delete it so the retry exports it again
+						// instead of loading the same broken file forever.
+						Gf.ExternalPPT.DiscardFirstScreenDump(FileName);
+						throw;
 					}
 					_cachedFileName = FileName;
 					_cachedFileTime = currentFileTime;

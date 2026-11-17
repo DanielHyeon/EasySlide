@@ -3219,65 +3219,166 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			}
 		}
 
-		public bool BuildFirstScreenDump(string[] InFileList, int MaxFileCount, string DumpFolderPrefix)
+		// The cache folder of the last BuildFirstScreenDump (see ExternalPreviewCache).
+		private string firstScreenDumpFolder;
+
+		// Pictures (one per presentation version: the name holds path, time and size) whose presentation could not be
+		// opened or exported (corrupt, password-protected, no slides): not tried again until the next listing or a
+		// new version of the file. UI thread only.
+		private readonly HashSet<string> failedFirstScreenDumps = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+		// True while BuildOneFirstScreenDump talks to PowerPoint. A COM call pumps messages, so another thumbnail's
+		// paint can call in meanwhile (inside the running group, where the gate does not stop it); it is refused and
+		// retried by that thumbnail's timer. UI thread only.
+		private bool firstScreenDumpRunning;
+
+		/// <summary>
+		/// Records the listed presentations (ScreenDumpFullPath[0, i]) and the cached first-slide picture of each one's
+		/// current version (ScreenDumpFullPath[1, i], see ExternalPreviewCache), then prunes the cache. No PowerPoint
+		/// call: the pictures are exported on demand by BuildOneFirstScreenDump, only when missing.
+		/// </summary>
+		public bool BuildFirstScreenDump(string[] InFileList, int MaxFileCount, string CacheFolder)
 		{
 			bool result = true;
 			try
 			{
-				if (prePowerPointApp == null)
+				firstScreenDumpFolder = CacheFolder;
+				// A new listing tries the presentations that could not be exported again.
+				failedFirstScreenDumps.Clear();
+				if (!string.IsNullOrEmpty(CacheFolder))
 				{
-					return result;
+					Directory.CreateDirectory(CacheFolder);
 				}
-				for (int i = 0; i < MaxFileCount; i++)
+				int count = Math.Min(Math.Min(MaxFileCount, InFileList.Length), ScreenDumpFullPath.GetLength(1));
+				List<string> listed = new List<string>(count);
+				for (int i = 0; i < count; i++)
 				{
 					ScreenDumpFullPath[0, i] = InFileList[i];
-					ScreenDumpFullPath[1, i] = DumpFolderPrefix + Path.GetFileNameWithoutExtension(InFileList[i]) + ".jpg";
+					ScreenDumpFullPath[1, i] = ExternalPreviewCache.GetPreviewPath(CacheFolder, InFileList[i]);
+					listed.Add(ScreenDumpFullPath[1, i]);
 				}
-				return result;
-			}
-			catch
-			{
-				return false;
-			}
-			finally
-			{
-				ClosePresentation(ref presentation);
-			}
-		}
-
-		public bool BuildOneFirstScreenDump(int PPNumbering)
-		{
-			int num = PPNumbering - 1;
-			if (num < 0 || ScreenDumpFullPath[0, num] == null)
-			{
-				return false;
-			}
-			bool result = true;
-			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the first slide image of " + Path.GetFileName(ScreenDumpFullPath[0, num]));
-			if (gate == null)
-			{
-				return false;
-			}
-			try
-			{
-				if (prePowerPointApp == null)
-				{
-					return result;
-				}
-				presentation = prePowerPointApp.Presentations.Open(ScreenDumpFullPath[0, num], MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
-				presentation.Slides[1].Export(ScreenDumpFullPath[1, num], "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-
+				ExternalPreviewCache.Prune(CacheFolder, listed, DateTime.UtcNow);
 				return result;
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error in BuildOneFirstScreenDump: {ex.Message}");
+				Console.WriteLine($"Error in BuildFirstScreenDump: {ex.Message}");
 				return false;
 			}
-			finally
-            {
-				ClosePresentation(ref presentation);
+		}
+
+		/// <summary>
+		/// The cached first-slide picture path of listed presentation index (0-based), recomputed from the file's
+		/// current version so an edit since the listing gets a new picture. Null when index does not hold
+		/// presentationPath or the presentation cannot be read.
+		/// </summary>
+		public string GetFirstScreenDumpPath(int index, string presentationPath)
+		{
+			if (index < 0 || index >= ScreenDumpFullPath.GetLength(1)
+				|| !string.Equals(ScreenDumpFullPath[0, index], presentationPath, StringComparison.OrdinalIgnoreCase))
+			{
+				return null;
 			}
+			ScreenDumpFullPath[1, index] = ExternalPreviewCache.GetPreviewPath(firstScreenDumpFolder, presentationPath);
+			return ScreenDumpFullPath[1, index];
+		}
+
+		/// <summary>
+		/// Deletes a cached first-slide picture (a GetFirstScreenDumpPath result) that could not be loaded, so the next
+		/// BuildOneFirstScreenDump exports it again. Only a picture file in the cache folder is ever deleted.
+		/// </summary>
+		public bool DiscardFirstScreenDump(string previewPath)
+		{
+			return ExternalPreviewCache.DiscardPreview(firstScreenDumpFolder, previewPath);
+		}
+
+		/// <summary>
+		/// Exports the first slide of listed presentation PPNumbering (1-based) to its cached picture, unless that
+		/// picture already exists. The export goes to a temporary file that is renamed only when it is complete.
+		/// Returns false without calling PowerPoint when PowerPoint is not attached, another export is running, or
+		/// this version already failed since the listing.
+		/// </summary>
+		public bool BuildOneFirstScreenDump(int PPNumbering)
+		{
+			int num = PPNumbering - 1;
+			if (num < 0 || num >= ScreenDumpFullPath.GetLength(1) || ScreenDumpFullPath[0, num] == null || string.IsNullOrEmpty(ScreenDumpFullPath[1, num]))
+			{
+				return false;
+			}
+			string presentationPath = ScreenDumpFullPath[0, num];
+			string previewPath = ScreenDumpFullPath[1, num];
+			if (File.Exists(previewPath) || ExternalPreviewCache.AdoptPendingExport(previewPath))
+			{
+				return true; // this version was exported before (or an earlier export finished late)
+			}
+			if (failedFirstScreenDumps.Contains(previewPath) || prePowerPointApp == null || firstScreenDumpRunning)
+			{
+				return false;
+			}
+			firstScreenDumpRunning = true;
+			try
+			{
+				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the first slide image of " + Path.GetFileName(presentationPath));
+				if (gate == null)
+				{
+					return false;
+				}
+				// A local presentation, never the shared field: no other flow can close or replace it meanwhile.
+				_Presentation tempPresentation = null;
+				Slides slides = null;
+				Slide slide = null;
+				string tempPath = ExternalPreviewCache.GetTempExportPath(previewPath);
+				try
+				{
+					// Read-only, titled, windowless: the user's file is never locked for writing, and a cancelled open
+					// is closed later (OpenTemporary).
+					tempPresentation = OpenTemporary(presentationPath, MsoTriState.msoTrue, MsoTriState.msoFalse);
+					slides = tempPresentation.Slides;
+					slide = slides[1];
+					slide.Export(tempPath, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+
+					return ExternalPreviewCache.CommitExport(tempPath, previewPath);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error in BuildOneFirstScreenDump: {ex.Message}");
+					// A cancelled export may still be written later by PowerPoint: then the prune removes it.
+					ExternalPreviewCache.DiscardTemp(tempPath);
+					if (!PowerPointCallLimit.CurrentAbandoned && !IsBusyOrCancelled(ex))
+					{
+						// The file itself cannot be opened or exported: not again for this version.
+						failedFirstScreenDumps.Add(previewPath);
+					}
+					return false;
+				}
+				finally
+				{
+					ReleaseProxy(slide);
+					ReleaseProxy(slides);
+					ClosePresentation(ref tempPresentation);
+				}
+			}
+			finally
+			{
+				firstScreenDumpRunning = false;
+			}
+		}
+
+		// PowerPoint was busy (a dialog, another call) or the call was cancelled: the file may be fine, so it is retried.
+		private static bool IsBusyOrCancelled(Exception ex)
+		{
+			for (Exception current = ex; current != null; current = current.InnerException)
+			{
+				if (current is COMException com)
+				{
+					uint code = unchecked((uint)com.HResult);
+					if (code == 0x80010001 || code == 0x8001010A || code == 0x80010002)
+					{
+						return true; // RPC_E_CALL_REJECTED, RPC_E_SERVERCALL_RETRYLATER, RPC_E_CALL_CANCELED
+					}
+				}
+			}
+			return false;
 		}
 
         /// <summary>

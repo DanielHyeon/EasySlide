@@ -1085,8 +1085,10 @@ namespace Easislides
                 {
                     // daniel
                     //string[] files1 = Directory.GetFiles(ExternalPPCurImagePath, "*.ppt");
+                    // Any case of .ppt/.pptx; not PowerPoint's owner files (~$name.pptx) of open presentations.
                     var files = Directory.GetFiles(ExternalPPCurImagePath, "*", SearchOption.AllDirectories)
-                        .Where(s => s.EndsWith(".ppt") || s.EndsWith(".pptx"));
+                        .Where(s => (s.EndsWith(".ppt", StringComparison.OrdinalIgnoreCase) || s.EndsWith(".pptx", StringComparison.OrdinalIgnoreCase))
+                                    && !Path.GetFileName(s).StartsWith("~$", StringComparison.Ordinal));
                     string[] array = files.ToArray();
                     foreach (string text in array)
                     {
@@ -1099,9 +1101,11 @@ namespace Easislides
                 }
             }
             listBox.Sorted = true;
-            ExternalPPTotalImagesCount = listBox.Items.Count;
+            // At most one entry per thumbnail canvas and file name slot (both 1024): FormatExternalPowerpointThumbContainers
+            // and LoadThumbImages index them up to this count.
+            ExternalPPTotalImagesCount = Math.Min(listBox.Items.Count, Math.Min(Powerpoint_ExternalCanvas.Length, ExternalPPImagename.Length));
             string text3 = "";
-            for (int i = 0; i < ((ExternalPPTotalImagesCount < 1024) ? ExternalPPTotalImagesCount : 1023); i++)
+            for (int i = 0; i < ExternalPPTotalImagesCount; i++)
             {
                 if (Gf.PowerpointListingStyle == 0)
                 {
@@ -1117,12 +1121,8 @@ namespace Easislides
             SetPowerpointListColWidth();
             if (Gf.PowerpointListingStyle == 1)
             {
-                Gf.ExtPPrefix_Num++;
-                if (!Directory.Exists(Gf.ExtPPrefix + Gf.ExtPPrefix_Num + "\\"))
-                {
-                    FileUtil.MakeDir(Gf.ExtPPrefix + Gf.ExtPPrefix_Num + "\\");
-                }
-                Gf.ExternalPPT.BuildFirstScreenDump(ExternalPPImagename, listBox.Items.Count, Gf.ExtPPrefix + Gf.ExtPPrefix_Num + "\\");
+                // First-slide pictures are cached per presentation version and exported only when missing.
+                Gf.ExternalPPT.BuildFirstScreenDump(ExternalPPImagename, ExternalPPTotalImagesCount, Gf.ExternalPreviewCacheDir);
                 FormatExternalPowerpointThumbContainers();
             }
             SetPowerpointListColWidth();

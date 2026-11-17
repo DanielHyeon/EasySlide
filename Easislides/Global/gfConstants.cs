@@ -807,9 +807,12 @@ namespace Easislides
 
 		public static string PREPPPrefix;
 
-		public static string ExtPPrefix;
-
-		public static int ExtPPrefix_Num = 0;
+		// First-slide pictures of the presentations listed in the PowerPoint tab (thumbnail style), kept across
+		// listings and across restarts (a sibling of EasiSlidesTempDir, which is emptied at start-up and exit), so
+		// a presentation is exported once per version, not once per session. Pruned by OfficeLib.ExternalPreviewCache
+		// (other versions of a listed presentation, entries unused for 30 days, at most 2000 files, least recently
+		// used first; only the cache's own file names).
+		public static string ExternalPreviewCacheDir => System.IO.Path.Combine(System.IO.Path.GetTempPath(), "EasiSlides Preview Cache") + "\\";
 
 		public static int OUTPPSequence = 0;
 

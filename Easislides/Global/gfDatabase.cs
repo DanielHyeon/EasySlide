@@ -958,7 +958,6 @@ namespace Easislides
 			}
 			OUTPPPrefix = EasiSlidesTempDir + "~OUTPPPreview";
 			PREPPPrefix = EasiSlidesTempDir + "~PREPPPreview";
-			ExtPPrefix = EasiSlidesTempDir + "ExtPPPreview";
 			LoadFolderNamesArray();
 			ComputeShowLineSpacing();
 			LoadLicAdminDetails();
