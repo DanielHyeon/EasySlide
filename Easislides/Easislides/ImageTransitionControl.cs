@@ -11,7 +11,7 @@ using Easislides.Util;
 
 namespace Easislides
 {
-    internal unsafe partial class ImageTransitionControl : Control
+    internal partial class ImageTransitionControl : Control
 	{
 		private enum PanelType
 		{
@@ -159,7 +159,11 @@ namespace Easislides
 
 		private Image _currentPanelImage;
 
-		private Image _imageWorkSpace;
+		// The work space of the transitions that compose a frame first (Doors, Flip, Gentle Zoom, Zoom In,
+		// Stretch, Slide In/Out/Reveal): this screen's own, kept from frame to frame and made again only when
+		// its size changes (it was a new picture-size bitmap every frame). Never shown or handed out, not
+		// in _ownImages; disposed in Dispose. See CreateFrameWorkSpace.
+		private Bitmap _workSpace;
 
 		// Bitmap pool for reuse to reduce GC pressure
 		private readonly ConcurrentBag<Bitmap> _bitmapPool = new ConcurrentBag<Bitmap>();
@@ -185,17 +189,6 @@ namespace Easislides
 
 		public string RefDisplayString = "";
 
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> CreateCompatibleDC = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&Gf.CreateCompatibleDC;
-
-		private delegate* unmanaged[Stdcall]<IntPtr, int, int, IntPtr> CreateCompatibleBitmap = (delegate* unmanaged[Stdcall]<IntPtr, int, int, IntPtr>)(delegate*<IntPtr, int, int, IntPtr>)&Gf.CreateCompatibleBitmap;
-
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr> SelectObject = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr, IntPtr>)&Gf.SelectObject;
-
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> DeleteDC = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&Gf.DeleteDC;
-
-		private delegate* unmanaged[Stdcall]<IntPtr, IntPtr> DeleteObject = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr>)(delegate*<IntPtr, IntPtr>)&Gf.DeleteObject;
-
-		private delegate* unmanaged[Stdcall]<IntPtr, int, int, int, int, IntPtr, int, int, int, bool> BitBlt = (delegate* unmanaged[Stdcall]<IntPtr, int, int, int, int, IntPtr, int, int, int, bool>)(delegate*<IntPtr, int, int, int, int, IntPtr, int, int, int, bool>)&Gf.BitBlt;
 		// Cached objects for performance optimization
 		private ImageAttributes _cachedImageAttributes;
 		private ColorMatrix _cachedColorMatrix;
@@ -404,21 +397,6 @@ namespace Easislides
 			{
 				Image replaced = _currentPanelImage;
 				_currentPanelImage = value;
-				ReleaseOwnedImage(replaced);
-			}
-		}
-
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Image ImageWorkSpace
-		{
-			get
-			{
-				return _imageWorkSpace;
-			}
-			set
-			{
-				Image replaced = _imageWorkSpace;
-				_imageWorkSpace = value;
 				ReleaseOwnedImage(replaced);
 			}
 		}
@@ -682,7 +660,7 @@ namespace Easislides
 		// Pictures this screen owns: the combined images Go makes, and the background pictures and copies Gf
 		// makes for this screen only, the default background picture included (AdoptImage). Only these are
 		// disposed: when no field of this screen refers to them any more (ReleaseOwnedImage, called by the
-		// picture setters, Go, the work space and SetDefaultBackgroundPicture) and when the screen is disposed.
+		// picture setters, Go and SetDefaultBackgroundPicture) and when the screen is disposed.
 		// Pictures of another owner and this screen's draw buffers are never in it.
 		private readonly HashSet<Image> _ownImages = new HashSet<Image>();
 
@@ -822,7 +800,6 @@ namespace Easislides
 			{
 				CurrentCombinedImage = NewCombinedImage;
 			}
-			ImageWorkSpace = NewCombinedImage;
 			NewCombinedImage = Newbmp;
 			ReleaseOwnedImage(replacedCurrent);
 			_previousTransitionType = _transitionType;
@@ -915,7 +892,7 @@ namespace Easislides
 
 		private bool IsReferenced(Image image)
 		{
-			return ReferenceEquals(image, _currentCombinedImage) || ReferenceEquals(image, _newCombinedImage) || ReferenceEquals(image, _imageWorkSpace)
+			return ReferenceEquals(image, _currentCombinedImage) || ReferenceEquals(image, _newCombinedImage)
 				|| ReferenceEquals(image, _newBackgroundPicture) || ReferenceEquals(image, _currentBackgroundPicture)
 				|| ReferenceEquals(image, _newTextImage) || ReferenceEquals(image, _currentTextImage)
 				|| ReferenceEquals(image, _newPanelImage) || ReferenceEquals(image, _currentPanelImage)
@@ -924,7 +901,7 @@ namespace Easislides
 
 		private void DrawDefaultBackPattern(PaintEventArgs e)
 		{
-			DrawImageToOutput(e, BackgroundImage, base.ClientRectangle, new Rectangle(0, 0, BackgroundImage.Width, BackgroundImage.Height), DrawAlert: false, null);
+			DrawImageToOutput(e, BackgroundImage, base.ClientRectangle, new Rectangle(0, 0, BackgroundImage.Width, BackgroundImage.Height), null);
 		}
 
 		private void DrawBackPatternOnWorkSpace(ref Graphics g, Image InBackgroundImage)
@@ -1039,9 +1016,9 @@ namespace Easislides
 			}
 		}
 
-		// GDI+ objects made for one transition frame (work space bitmap and its Graphics, paths, regions,
-		// matrices). PaintScreen disposes them when the frame ends, also when it throws. Most branches
-		// dispose them themselves as well; disposing twice is harmless. UI thread only (paint).
+		// GDI+ objects made for one transition frame (the work space's Graphics, paths, regions, matrices).
+		// PaintScreen disposes them when the frame ends, also when it throws. Most branches dispose them
+		// themselves as well; disposing twice is harmless. UI thread only (paint).
 		private readonly List<IDisposable> _frameObjects = new List<IDisposable>();
 
 		/// <summary>Registers an object made for the frame being painted (see _frameObjects) and returns it.</summary>
@@ -1052,19 +1029,25 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// Makes this frame's work space (_imageWorkSpace and wsg). Both are released when the frame ends
-		/// (also when it throws); the fields then keep pointing at the disposed objects, as before: other
-		/// code only compares _imageWorkSpace by reference (ReleaseOwnedImage).
+		/// Gets the work space (_workSpace) ready for this frame, cleared to transparent as a new bitmap is,
+		/// and makes its Graphics (wsg, released when the frame ends, also when it throws; a new one each
+		/// frame, so no transform or clip of the last frame is left on it). The bitmap is kept for the next
+		/// frame and made again only when the size changes. UI thread only (paint).
 		/// </summary>
 		private void CreateFrameWorkSpace(int width, int height)
 		{
-			// The work space may still hold a combined image Go put there; once no other field refers to
-			// it, it is released here (it would otherwise stay owned with nothing pointing at it).
-			Image replaced = _imageWorkSpace;
-			_imageWorkSpace = FrameObject(new Bitmap(width, height));
-			ReleaseOwnedImage(replaced);
-			wsg = FrameObject(Graphics.FromImage(_imageWorkSpace));
+			if (_workSpace == null || _workSpace.Width != width || _workSpace.Height != height)
+			{
+				Bitmap replaced = _workSpace;
+				_workSpace = null;
+				replaced?.Dispose();
+				_workSpace = new Bitmap(width, height, WorkSpaceFormat);
+			}
+			wsg = FrameObject(Graphics.FromImage(_workSpace));
+			wsg.Clear(Color.Transparent);
 		}
+
+		private const PixelFormat WorkSpaceFormat = PixelFormat.Format32bppPArgb;
 
 		/// <summary>Disposes the objects of the frame just painted, newest first (a Graphics before its bitmap). Never throws.</summary>
 		private void ReleaseFrameObjects()
@@ -1117,7 +1100,7 @@ namespace Easislides
 			{
 				if (TransitionType == TransitionTypes.None)
 				{
-					Draw_NewImageBitBlt(e);
+					DrawNewImageOpaque(e);
 				}
 				else if (TransitionType == TransitionTypes.Ascend)
 				{
@@ -1128,17 +1111,17 @@ namespace Easislides
 					float num3 = 0f;
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: false, null);
+						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
 						num3 = 0.003921569f * (255f * (1f - _currentPercentage / 60f));
 						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes, PanelType.Current);
+						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
 						num3 = 0.003921569f * (510f * _currentPercentage / 100f);
 						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						num = 0.15f * (float)_newCombinedImage.Height;
 						num2 = (int)(num * _currentPercentage / 100f - num);
-						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes, PanelType.New);
+						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.New);
 					}
 					else
 					{
@@ -1147,7 +1130,7 @@ namespace Easislides
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						num = 0.15f * (float)_newCombinedImage.Height;
 						num2 = (int)(num * _currentPercentage / 100f - num);
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Descend)
@@ -1159,17 +1142,17 @@ namespace Easislides
 					float num3 = 0f;
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: false, null);
+						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
 						num3 = 0.003921569f * (255f * (1f - _currentPercentage / 60f));
 						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes, PanelType.Current);
+						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
 						num3 = 0.003921569f * (510f * _currentPercentage / 100f);
 						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						num = 0.15f * (float)_newCombinedImage.Height;
 						num2 = (int)(num - num * _currentPercentage / 100f);
-						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes, PanelType.New);
+						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.New);
 					}
 					else
 					{
@@ -1178,7 +1161,7 @@ namespace Easislides
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						num = 0.15f * (float)_newCombinedImage.Height;
 						num2 = (int)(num - num * _currentPercentage / 100f);
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
 					}
 				}
 				else if (TransitionType == TransitionTypes.DoorsOpen)
@@ -1186,7 +1169,6 @@ namespace Easislides
 					CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 					try
 					{
-						wsg.Clear(Color.Transparent);
 						int srcX = 0;
 						int srcY = 0;
 						int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
@@ -1204,21 +1186,20 @@ namespace Easislides
 							wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
 							wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
 							wsg.DrawImage(_currentTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 						}
 						else
 						{
 							Draw_NewImage(e);
 							wsg.DrawImage(_currentCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
 							wsg.DrawImage(_currentCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 						}
 					}
 					finally
 					{
-						// Both made for this frame only, as in the other workspace transitions.
+						// The work space's Graphics is made for this frame only (the bitmap is kept).
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 				}
 				else if (TransitionType == TransitionTypes.DoorsClose)
@@ -1226,7 +1207,6 @@ namespace Easislides
 					CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 					try
 					{
-						wsg.Clear(Color.Transparent);
 						int srcX = 0;
 						int srcY = 0;
 						int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
@@ -1244,21 +1224,20 @@ namespace Easislides
 							wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
 							wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
 							wsg.DrawImage(_newTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						}
 						else
 						{
 							Draw_CurrentImage(e);
 							wsg.DrawImage(_newCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
 							wsg.DrawImage(_newCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
-							DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 						}
 					}
 					finally
 					{
-						// Both made for this frame only, as in the other workspace transitions.
+						// The work space's Graphics is made for this frame only (the bitmap is kept).
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 				}
 				else if (TransitionType == TransitionTypes.Blinds_H)
@@ -1266,7 +1245,7 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					for (int i = 0; i <= _nHDivs; i++)
 					{
-						DrawImageToOutput(SourceRectangle: new Rectangle(0, i * (_newCombinedImage.Height / _nHDivs), _newCombinedImage.Width, Convert.ToInt32((float)(_newCombinedImage.Height / _nHDivs) * _currentPercentage / 100f)), DestinationRectangle: new Rectangle(0, i * (base.Height / _nHDivs), base.Width, Convert.ToInt32((float)(base.Height / _nHDivs) * _currentPercentage / 100f)), e: e, InImage: _newCombinedImage, DrawAlert: true, InImageAttributes: null);
+						DrawImageToOutput(SourceRectangle: new Rectangle(0, i * (_newCombinedImage.Height / _nHDivs), _newCombinedImage.Width, Convert.ToInt32((float)(_newCombinedImage.Height / _nHDivs) * _currentPercentage / 100f)), DestinationRectangle: new Rectangle(0, i * (base.Height / _nHDivs), base.Width, Convert.ToInt32((float)(base.Height / _nHDivs) * _currentPercentage / 100f)), e: e, InImage: _newCombinedImage, InImageAttributes: null);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Blinds_V)
@@ -1274,7 +1253,7 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					for (int j = 0; j <= _nVDivs; j++)
 					{
-						DrawImageToOutput(SourceRectangle: new Rectangle(j * (_newCombinedImage.Width / _nVDivs), 0, Convert.ToInt32((float)(_newCombinedImage.Width / _nVDivs) * _currentPercentage / 100f), _newCombinedImage.Height), DestinationRectangle: new Rectangle(j * (base.Width / _nVDivs), 0, Convert.ToInt32((float)(base.Width / _nVDivs) * _currentPercentage / 100f), base.Height), e: e, InImage: _newCombinedImage, DrawAlert: true, InImageAttributes: null);
+						DrawImageToOutput(SourceRectangle: new Rectangle(j * (_newCombinedImage.Width / _nVDivs), 0, Convert.ToInt32((float)(_newCombinedImage.Width / _nVDivs) * _currentPercentage / 100f), _newCombinedImage.Height), DestinationRectangle: new Rectangle(j * (base.Width / _nVDivs), 0, Convert.ToInt32((float)(base.Width / _nVDivs) * _currentPercentage / 100f), base.Height), e: e, InImage: _newCombinedImage, InImageAttributes: null);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Rectangle)
@@ -1389,7 +1368,7 @@ namespace Easislides
 					// Reusing cached ColorMatrix
 					_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * _currentPercentage / 100f);
 					_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-					DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
+					DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
 				}
 				else if (TransitionType == TransitionTypes.Flip_H)
 				{
@@ -1399,17 +1378,16 @@ namespace Easislides
 						DrawDefaultBackPattern(e);
 						if (_currentPercentage < 50f)
 						{
-							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(0, Convert.ToInt32((float)base.Height * _currentPercentage / 100f), base.ClientRectangle.Width, Convert.ToInt32((float)base.Height - (float)base.Height * _currentPercentage / 50f)), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(0, Convert.ToInt32((float)base.Height * _currentPercentage / 100f), base.ClientRectangle.Width, Convert.ToInt32((float)base.Height - (float)base.Height * _currentPercentage / 50f)), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 						}
 						else
 						{
-							DrawImageToOutput(e, _newCombinedImage, new Rectangle(0, Convert.ToInt32((float)base.Height - (float)base.Height * _currentPercentage / 100f), base.ClientRectangle.Width, Convert.ToInt32((float)base.Height * (_currentPercentage - 50f) / 50f)), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _newCombinedImage, new Rectangle(0, Convert.ToInt32((float)base.Height - (float)base.Height * _currentPercentage / 100f), base.ClientRectangle.Width, Convert.ToInt32((float)base.Height * (_currentPercentage - 50f) / 50f)), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 						}
 					}
 					else
 					{
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.Clear(Color.Transparent);
 						int srcX3 = 0;
 						int srcY3 = 0;
 						int width2 = _currentCombinedImage.Width;
@@ -1428,7 +1406,7 @@ namespace Easislides
 									num15 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _currentPercentage / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_currentCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								else
 								{
@@ -1437,7 +1415,7 @@ namespace Easislides
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
 									wsg.DrawImage(_newPanelImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
 							case BackPicturesTransition.NewOnly:
@@ -1449,7 +1427,7 @@ namespace Easislides
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
 									wsg.DrawImage(_currentPanelImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								else
 								{
@@ -1457,7 +1435,7 @@ namespace Easislides
 									num15 = Convert.ToInt32((float)_currentCombinedImage.Height * (_currentPercentage - 50f) / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_newCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
 							default:
@@ -1468,7 +1446,7 @@ namespace Easislides
 									num15 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _currentPercentage / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 								}
 								else
 								{
@@ -1476,12 +1454,11 @@ namespace Easislides
 									num15 = Convert.ToInt32((float)_currentCombinedImage.Height * (_currentPercentage - 50f) / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 								}
 								break;
 						}
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 					
 				}
@@ -1493,17 +1470,16 @@ namespace Easislides
 						DrawDefaultBackPattern(e);
 						if (_currentPercentage < 50f)
 						{
-							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(Convert.ToInt32((float)base.Width * _currentPercentage / 100f), 0, Convert.ToInt32((float)base.Width - (float)base.Width * _currentPercentage / 50f), base.ClientRectangle.Height), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(Convert.ToInt32((float)base.Width * _currentPercentage / 100f), 0, Convert.ToInt32((float)base.Width - (float)base.Width * _currentPercentage / 50f), base.ClientRectangle.Height), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 						}
 						else
 						{
-							DrawImageToOutput(e, _newCombinedImage, new Rectangle(Convert.ToInt32((float)base.Width - (float)base.Width * _currentPercentage / 100f), 0, Convert.ToInt32((float)base.Width * (_currentPercentage - 50f) / 50f), base.ClientRectangle.Height), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _newCombinedImage, new Rectangle(Convert.ToInt32((float)base.Width - (float)base.Width * _currentPercentage / 100f), 0, Convert.ToInt32((float)base.Width * (_currentPercentage - 50f) / 50f), base.ClientRectangle.Height), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 						}
 					}
 					else
 					{
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.Clear(Color.Transparent);
 						int srcX3 = 0;
 						int srcY3 = 0;
 						int width2 = _currentCombinedImage.Width;
@@ -1522,7 +1498,7 @@ namespace Easislides
 									width3 = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _currentPercentage / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_currentCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								else
 								{
@@ -1531,7 +1507,7 @@ namespace Easislides
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
 									wsg.DrawImage(_newPanelImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
 							case BackPicturesTransition.NewOnly:
@@ -1542,7 +1518,7 @@ namespace Easislides
 									width3 = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _currentPercentage / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.CurrentWithTrans);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.CurrentWithTrans);
 								}
 								else
 								{
@@ -1550,7 +1526,7 @@ namespace Easislides
 									width3 = Convert.ToInt32((float)_currentCombinedImage.Width * (_currentPercentage - 50f) / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_newCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
 							default:
@@ -1561,7 +1537,7 @@ namespace Easislides
 									width3 = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _currentPercentage / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 								}
 								else
 								{
@@ -1569,12 +1545,11 @@ namespace Easislides
 									width3 = Convert.ToInt32((float)_currentCombinedImage.Width * (_currentPercentage - 50f) / 50f);
 									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
 									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 								}
 								break;
 						}
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 				}
 				else if (TransitionType == TransitionTypes.Gentle_Zoom)
@@ -1595,17 +1570,15 @@ namespace Easislides
 						float dx = _newBackgroundPicture.Width / 2;
 						float dy = _newBackgroundPicture.Height / 2;
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.Clear(Color.Transparent);
 						Rectangle destRect4 = new Rectangle(-_newBackgroundPicture.Width / 2, -1 - _newBackgroundPicture.Height / 2, _newBackgroundPicture.Width, _newBackgroundPicture.Height);
 						Rectangle rectangle = new Rectangle(destRect4.Width / 2 - (int)(num16 * (float)destRect4.Width / 2f), destRect4.Height / 2 - (int)(num16 * (float)destRect4.Height / 2f), (int)(num16 * (float)destRect4.Width), (int)(num16 * (float)destRect4.Height));
 						wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
 						wsg.Transform = matrix;
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						matrix.Dispose();
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 					else
 					{
@@ -1624,7 +1597,7 @@ namespace Easislides
 						num3 = 0.003921569f * (255f * (1f - _currentPercentage / 60f));
 						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: false, _cachedImageAttributes);
+						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), _cachedImageAttributes);
 						num3 = 0.003921569f * (510f * _currentPercentage / 100f);
 						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
@@ -1632,7 +1605,7 @@ namespace Easislides
 						float dy = base.Height / 2;
 						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
 						e.Graphics.Transform = matrix2;
-						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, _cachedImageAttributes);
+						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
 						matrix2.Dispose();
 					}
 				}
@@ -1783,14 +1756,14 @@ namespace Easislides
 					int num2 = (int)((float)_newCombinedImage.Height * _currentPercentage / 100f);
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: false, null);
-						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, num2, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: false, null, PanelType.Current);
-						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2 - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
+						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, num2, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null, PanelType.Current);
+						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2 - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), null);
 					}
 					else
 					{
-						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: false, null);
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2 - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2 - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), null);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Spin)
@@ -1805,17 +1778,17 @@ namespace Easislides
 					}
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), null);
 						// Reusing cached ImageAttributes
 						// Reusing cached ColorMatrix
 						_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * (1f - _currentPercentage / 100f));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.Current);
-						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, null, PanelType.Current);
+						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
+						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.Current);
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx2, dy2));
 						matrix.Rotate(angle, MatrixOrder.Prepend);
 						e.Graphics.Transform = matrix;
-						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						matrix.Dispose();
 					}
 					else
@@ -1824,7 +1797,7 @@ namespace Easislides
 						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx2, dy2));
 						matrix2.Rotate(angle, MatrixOrder.Prepend);
 						e.Graphics.Transform = matrix2;
-						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						matrix2.Dispose();
 					}
 				}
@@ -1859,15 +1832,15 @@ namespace Easislides
 						// Reusing cached ColorMatrix
 						_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * (1f - _currentPercentage / 200f));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), DrawAlert: true, null);
-						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.Current);
-						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), DrawAlert: false, null, PanelType.Current);
-						DrawImageToOutput(e, _newTextImage, destinationRectangle3, new Rectangle(0, 0, _newTextImage.Width, _newTextImage.Height), DrawAlert: true, null, PanelType.NewWithTrans);
+						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
+						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), _cachedImageAttributes, PanelType.Current);
+						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), null, PanelType.Current);
+						DrawImageToOutput(e, _newTextImage, destinationRectangle3, new Rectangle(0, 0, _newTextImage.Width, _newTextImage.Height), null, PanelType.NewWithTrans);
 					}
 					else
 					{
 						Draw_CurrentImage(e);
-						DrawImageToOutput(e, _newCombinedImage, destinationRectangle3, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newCombinedImage, destinationRectangle3, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Star)
@@ -1930,16 +1903,14 @@ namespace Easislides
 						int num15 = _newBackgroundPicture.Height;
 						Rectangle destRect4 = new Rectangle(x, num14, width3, num15);
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.Clear(Color.Transparent);
 						wsg.DrawImage(_newBackgroundPicture, destRect4, destRect4, GraphicsUnit.Pixel);
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 					else
 					{
-						DrawImageToOutput(e, _newCombinedImage, new Rectangle(Convert.ToInt32(((float)base.Width - (float)base.Width * _currentPercentage / 100f) / 2f), 0, Convert.ToInt32((float)base.Width * _currentPercentage / 100f), base.ClientRectangle.Height), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newCombinedImage, new Rectangle(Convert.ToInt32(((float)base.Width - (float)base.Width * _currentPercentage / 100f) / 2f), 0, Convert.ToInt32((float)base.Width * _currentPercentage / 100f), base.ClientRectangle.Height), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Stretch_V)
@@ -1954,23 +1925,21 @@ namespace Easislides
 						Rectangle destRect4 = new Rectangle(x, num14, width3, num15);
 						
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.Clear(Color.Transparent);
 						wsg.DrawImage(_newBackgroundPicture, destRect4, destRect4, GraphicsUnit.Pixel);
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 					else
 					{
-						DrawImageToOutput(e, _newCombinedImage, new Rectangle(0, Convert.ToInt32(((float)base.Height - (float)base.Height * _currentPercentage / 100f) / 2f), base.ClientRectangle.Width, Convert.ToInt32((float)base.Height * _currentPercentage / 100f)), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newCombinedImage, new Rectangle(0, Convert.ToInt32(((float)base.Height - (float)base.Height * _currentPercentage / 100f) / 2f), base.ClientRectangle.Width, Convert.ToInt32((float)base.Height * _currentPercentage / 100f)), new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 					}
 				}
 				else if (TransitionType == TransitionTypes.Away)
 				{
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), DrawAlert: false, null);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), null);
 						float dx = 0f;
 						float dy = 0f;
 						float num16 = 1f;
@@ -1987,7 +1956,7 @@ namespace Easislides
 						}
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, (float)base.Height * (1f - num16)));
 						e.Graphics.Transform = matrix;
-						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.CurrentWithTrans);
+						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.CurrentWithTrans);
 						matrix.Dispose();
 					}
 					else
@@ -2012,11 +1981,11 @@ namespace Easislides
 						e.Graphics.Transform = matrix2;
 						if (TransitBackPictureAction == BackPicturesTransition.NewOnly)
 						{
-							DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.CurrentWithTrans);
+							DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.CurrentWithTrans);
 						}
 						else
 						{
-							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
 						matrix2.Dispose();
 					}
@@ -2025,7 +1994,7 @@ namespace Easislides
 				{
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), DrawAlert: false, null);
+						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), null);
 						float dx = 0f;
 						float dy = 0f;
 						// Reusing cached ImageAttributes
@@ -2042,7 +2011,7 @@ namespace Easislides
 						}
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, (float)base.Height * (1f - num16)));
 						e.Graphics.Transform = matrix;
-						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, _cachedImageAttributes, PanelType.Current);
+						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
 						dx = base.Width / 2;
 						dy = base.Height / 3;
 						num16 = 0.2f + 0.8f * _currentPercentage / 100f;
@@ -2052,7 +2021,7 @@ namespace Easislides
 						}
 						matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
 						e.Graphics.Transform = matrix;
-						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.New);
+						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.New);
 						matrix.Dispose();
 					}
 					else
@@ -2069,11 +2038,11 @@ namespace Easislides
 						e.Graphics.Transform = matrix2;
 						if (TransitBackPictureAction == BackPicturesTransition.CurrentOnly)
 						{
-							DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, null);
+							DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
 						else
 						{
-							DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, null);
+							DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
 						num16 = 1f - 1f * _currentPercentage / 100f;
 						if (num16 == 0f)
@@ -2086,11 +2055,11 @@ namespace Easislides
 						e.Graphics.Transform = matrix2;
 						if (TransitBackPictureAction == BackPicturesTransition.NewOnly)
 						{
-							DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.Current);
+							DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.Current);
 						}
 						else
 						{
-							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
 						matrix2.Dispose();
 					}
@@ -2302,17 +2271,15 @@ namespace Easislides
 						float dy = _newBackgroundPicture.Height / 2;
 						
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.Clear(Color.Transparent);
 						Rectangle destRect4 = new Rectangle(-_newBackgroundPicture.Width / 2, -1 - _newBackgroundPicture.Height / 2, _newBackgroundPicture.Width, _newBackgroundPicture.Height);
 						Rectangle rectangle = new Rectangle(destRect4.Width / 2 - (int)(num16 * (float)destRect4.Width / 2f), destRect4.Height / 2 - (int)(num16 * (float)destRect4.Height / 2f), (int)(num16 * (float)destRect4.Width), (int)(num16 * (float)destRect4.Height));
 						wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
 						wsg.Transform = matrix;
 						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-						DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						matrix.Dispose();
 						wsg.Dispose();
-						_imageWorkSpace.Dispose();
 					}
 					else
 					{
@@ -2320,7 +2287,7 @@ namespace Easislides
 						float dy = base.Height / 2;
 						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
 						e.Graphics.Transform = matrix2;
-						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						matrix2.Dispose();
 					}
 				}
@@ -2333,12 +2300,12 @@ namespace Easislides
 					}
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), DrawAlert: false, null);
+						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), null);
 						float dx = base.Width / 2;
 						float dy = base.Height / 2;
 						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * num16));
 						e.Graphics.Transform = matrix;
-						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.New);
+						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.New);
 						matrix.Dispose();
 					}
 					else
@@ -2347,7 +2314,7 @@ namespace Easislides
 						float dy = base.Height / 2;
 						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * num16));
 						e.Graphics.Transform = matrix2;
-						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						matrix2.Dispose();
 					}
 				}
@@ -2373,6 +2340,10 @@ namespace Easislides
 					ItemFirstShowing = false;
 				}
 				_transitionType = _previousTransitionType;
+				// The transition is over: give back the work-space bitmap (picture size, ~8 MB at 1080p, ~33 MB at
+				// 4K) until the next one needs it. Its Graphics belonged to an earlier frame and is already disposed.
+				_workSpace?.Dispose();
+				_workSpace = null;
 				if (_alert.Running || _reference.Running)
 				{
 					_alert.EndIfComplete();
@@ -2386,14 +2357,27 @@ namespace Easislides
 
 		private void ReLoadNewImage(PaintEventArgs e)
 		{
-			DrawImageToOutputBitBlt(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: false, null, PanelType.NoAction);
+			DrawNewImageOpaque(e);
+		}
+
+		/// <summary>
+		/// Draws the new combined image over the whole screen, replacing what was there: on black, as the
+		/// memory-DC copy this replaces did (its bitmap started black and was copied over the screen), so a
+		/// picture with transparent parts or scaled edges comes out the same. Straight into the paint's
+		/// Graphics: no screen-size bitmap or memory DC per paint.
+		/// </summary>
+		private void DrawNewImageOpaque(PaintEventArgs e)
+		{
+			Rectangle client = base.ClientRectangle;
+			e.Graphics.FillRectangle(Brushes.Black, client);
+			e.Graphics.DrawImage(_newCombinedImage, client, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), GraphicsUnit.Pixel);
 		}
 
 		private void Draw_CurrentImage(PaintEventArgs e)
 		{
 			if (_currentPercentage < 100f)
 			{
-				DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), DrawAlert: false, null);
+				DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _currentCombinedImage.Width, _currentCombinedImage.Height), null);
 			}
 			AddAlertTextToImage(e);
 			AddRefTextToImage(e);
@@ -2401,25 +2385,16 @@ namespace Easislides
 
 		private void Draw_NewImage(PaintEventArgs e)
 		{
-			DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null);
+			DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 		}
 
-		private void Draw_NewImageBitBlt(PaintEventArgs e)
-		{
-			DrawImageToOutputBitBlt(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), DrawAlert: true, null, PanelType.NoAction);
-		}
-
-		private void DrawImageToOutput(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, bool DrawAlert, ImageAttributes InImageAttributes)
-		{
-			DrawImageToOutput(e, InImage, DestinationRectangle, SourceRectangle, DrawAlert, InImageAttributes, PanelType.NoAction);
-		}
-
-		private void DrawImageToOutput(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, bool DrawAlert, ImageAttributes InImageAttributes, PanelType InPanelType)
-		{
-			DrawImageToOutputNormal(e, InImage, DestinationRectangle, SourceRectangle, DrawAlert, InImageAttributes, InPanelType);
-		}
-
-		private void DrawImageToOutputNormal(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, bool DrawAlert, ImageAttributes InImageAttributes, PanelType InPanelType)
+		/// <summary>
+		/// Draws (part of) a picture into this paint's Graphics, with the current or new panel layer over it
+		/// when <paramref name="InPanelType"/> says so (the panel scaled like the picture, or taken from the same
+		/// source rectangle for the ...WithTrans types), and with <paramref name="InImageAttributes"/> (fades)
+		/// on both when given.
+		/// </summary>
+		private void DrawImageToOutput(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, ImageAttributes InImageAttributes, PanelType InPanelType = PanelType.NoAction)
 		{
 			if (InImageAttributes == null)
 			{
@@ -2461,115 +2436,8 @@ namespace Easislides
 			}
 		}
 
-		/// <summary>
-		/// daniel v2.2 ????
-		/// function pointer ????? ???? ???? ???
-		/// </summary>
-		/// <param name="e"></param>
-		/// <param name="InImage"></param>
-		/// <param name="DestinationRectangle"></param>
-		/// <param name="SourceRectangle"></param>
-		/// <param name="DrawAlert"></param>
-		/// <param name="InImageAttributes"></param>
-		/// <param name="InPanelType"></param>
-		private void DrawImageToOutputBitBlt(PaintEventArgs e, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, bool DrawAlert, ImageAttributes InImageAttributes, PanelType InPanelType)
-		{
-			// Everything borrowed or created here is given back in finally, also when drawing throws:
-			// a screen DC left borrowed makes every later paint of this control fail ("Object is
-			// currently in use elsewhere"), and the screen-sized bitmap would leak on every frame.
-			IntPtr hdc = IntPtr.Zero;
-			IntPtr memoryDc = IntPtr.Zero;
-			IntPtr memoryBitmap = IntPtr.Zero;
-			IntPtr previousBitmap = IntPtr.Zero;
-			Graphics graphics = null;
-			try
-			{
-				hdc = e.Graphics.GetHdc();
-				memoryDc = CreateCompatibleDC(hdc);
-				memoryBitmap = CreateCompatibleBitmap(hdc, DestinationRectangle.Width, DestinationRectangle.Height);
-				previousBitmap = SelectObject(memoryDc, memoryBitmap);
-				graphics = Graphics.FromHdc(memoryDc);
-				DrawImageToMemoryDc(graphics, InImage, DestinationRectangle, SourceRectangle, InImageAttributes, InPanelType);
-				IntPtr memoryHdc = graphics.GetHdc();
-				try
-				{
-					BitBlt(hdc, 0, 0, DestinationRectangle.Width, DestinationRectangle.Height, memoryHdc, 0, 0, 13369376);
-				}
-				finally
-				{
-					graphics.ReleaseHdc(memoryHdc);
-				}
-			}
-			finally
-			{
-				// The Graphics before the DC it draws on; the bitmap after it is no longer selected.
-				graphics?.Dispose();
-				if (memoryDc != IntPtr.Zero)
-				{
-					if (previousBitmap != IntPtr.Zero)
-					{
-						SelectObject(memoryDc, previousBitmap);
-					}
-					DeleteDC(memoryDc);
-				}
-				if (memoryBitmap != IntPtr.Zero)
-				{
-					DeleteObject(memoryBitmap);
-				}
-				if (hdc != IntPtr.Zero)
-				{
-					e.Graphics.ReleaseHdc(hdc);
-				}
-			}
-			// GC.Collect() removed - forced GC causes performance degradation
-		}
-
-		private void DrawImageToMemoryDc(Graphics graphics, Image InImage, Rectangle DestinationRectangle, Rectangle SourceRectangle, ImageAttributes InImageAttributes, PanelType InPanelType)
-		{
-			if (InImageAttributes == null)
-			{
-				graphics.DrawImage(InImage, DestinationRectangle, SourceRectangle, GraphicsUnit.Pixel);
-				switch (InPanelType)
-				{
-				case PanelType.Current:
-					graphics.DrawImage(CurrentPanelImage, DestinationRectangle, new Rectangle(0, 0, SourceRectangle.Width, SourceRectangle.Height), GraphicsUnit.Pixel);
-					break;
-				case PanelType.CurrentWithTrans:
-					graphics.DrawImage(CurrentPanelImage, DestinationRectangle, SourceRectangle, GraphicsUnit.Pixel);
-					break;
-				case PanelType.New:
-					graphics.DrawImage(NewPanelImage, DestinationRectangle, new Rectangle(0, 0, SourceRectangle.Width, SourceRectangle.Height), GraphicsUnit.Pixel);
-					break;
-				case PanelType.NewWithTrans:
-					graphics.DrawImage(NewPanelImage, DestinationRectangle, SourceRectangle, GraphicsUnit.Pixel);
-					break;
-				}
-			}
-			else
-			{
-				graphics.DrawImage(InImage, DestinationRectangle, SourceRectangle.Left, SourceRectangle.Top, SourceRectangle.Width, SourceRectangle.Height, GraphicsUnit.Pixel, InImageAttributes);
-				switch (InPanelType)
-				{
-				case PanelType.Current:
-					graphics.DrawImage(CurrentPanelImage, DestinationRectangle, 0, 0, SourceRectangle.Width, SourceRectangle.Height, GraphicsUnit.Pixel, InImageAttributes);
-					break;
-				case PanelType.CurrentWithTrans:
-					graphics.DrawImage(CurrentPanelImage, DestinationRectangle, SourceRectangle.Left, SourceRectangle.Top, SourceRectangle.Width, SourceRectangle.Height, GraphicsUnit.Pixel, InImageAttributes);
-					break;
-				case PanelType.New:
-					graphics.DrawImage(NewPanelImage, DestinationRectangle, 0, 0, SourceRectangle.Width, SourceRectangle.Height, GraphicsUnit.Pixel, InImageAttributes);
-					break;
-				case PanelType.NewWithTrans:
-					graphics.DrawImage(NewPanelImage, DestinationRectangle, SourceRectangle.Left, SourceRectangle.Top, SourceRectangle.Width, SourceRectangle.Height, GraphicsUnit.Pixel, InImageAttributes);
-					break;
-				}
-			}
-		}
-
 		private void Draw_TranSlideIn(PaintEventArgs e, TransitionTypes InTransType)
 		{
-			CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-			wsg.Clear(Color.Transparent);
 			float num = 0f;
 			float num2 = 0f;
 			Matrix transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, 1f));
@@ -2619,10 +2487,13 @@ namespace Easislides
 				int width = (num2 >= 0f) ? (_newBackgroundPicture.Width - (int)num2) : (_newBackgroundPicture.Width + (int)num2);
 				int height = (num >= 0f) ? (_newBackgroundPicture.Height - (int)num) : (_newBackgroundPicture.Height + (int)num);
 				Rectangle rectangle = new Rectangle(x, y, width, height);
+				// Only this branch uses the work space (it was made, and cleared, in the other one too).
+				CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 				wsg.DrawImage(_currentCombinedImage, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 				wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
 				wsg.DrawImage(_newTextImage, new Rectangle((int)num2, (int)num, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-				DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.New);
+				DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
+				wsg.Dispose();
 			}
 			else
 			{
@@ -2630,14 +2501,10 @@ namespace Easislides
 				e.Graphics.Transform = transform;
 				Draw_NewImage(e);
 			}
-			wsg.Dispose();
-			_imageWorkSpace.Dispose();
 		}
 
 		private void Draw_TranSlideOut(PaintEventArgs e, TransitionTypes InTransType)
 		{
-			CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-			wsg.Clear(Color.Transparent);
 			float num = 0f;
 			float num2 = 0f;
 			Matrix transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, 1f));
@@ -2687,10 +2554,13 @@ namespace Easislides
 				int width = (num2 >= 0f) ? (_newBackgroundPicture.Width - (int)num2) : (_newBackgroundPicture.Width + (int)num2);
 				int height = (num >= 0f) ? (_newBackgroundPicture.Height - (int)num) : (_newBackgroundPicture.Height + (int)num);
 				Rectangle rectangle = new Rectangle(x, y, width, height);
+				// Only this branch uses the work space (it was made, and cleared, in the other one too).
+				CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 				wsg.DrawImage(NewCombinedImage, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 				wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
 				wsg.DrawImage(_currentTextImage, new Rectangle((int)num2, (int)num, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
-				DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null, PanelType.Current);
+				DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
+				wsg.Dispose();
 			}
 			else
 			{
@@ -2698,8 +2568,6 @@ namespace Easislides
 				e.Graphics.Transform = transform;
 				Draw_CurrentImage(e);
 			}
-			wsg.Dispose();
-			_imageWorkSpace.Dispose();
 		}
 
 		private void Draw_TranSlideReveal(PaintEventArgs e, TransitionTypes InTransType)
@@ -2730,9 +2598,8 @@ namespace Easislides
 			}
 			Rectangle rectangle = new Rectangle(num, num2, width, height);
 			wsg.DrawImage(_currentCombinedImage, rectangle, rectangle, GraphicsUnit.Pixel);
-			DrawImageToOutput(e, _imageWorkSpace, base.ClientRectangle, new Rectangle(0, 0, _imageWorkSpace.Width, _imageWorkSpace.Height), DrawAlert: true, null);
+			DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 			wsg.Dispose();
-			_imageWorkSpace.Dispose();
 		}
 
 		public void StartAlert(SongSettings InItem, string InString, int InDuration, Font InFont, bool InUseScroll, bool InUseFlash, bool InTransparent, bool InUseShadow, bool InUseOutline, Color InTextColour, Color InBackColour, int InAlignment, int InVerticalAlignment, double BottomBorderFactor)
@@ -2848,18 +2715,17 @@ namespace Easislides
 		{
 			if (disposing)
 			{
-				// ?�?�머 ?��? �??�제
+				// Stop and release the transition timer.
 				t?.Dispose();
 				// The alert and the reference: their timers, setup Graphics and bitmaps.
 				_alert?.Dispose();
 				_reference?.Dispose();
 
-				// Graphics 객체 ?�리
+				// Graphics objects.
 				wsg?.Dispose();
 				Newg?.Dispose();
 
-				// Image 객체 ?�리
-				// Disposed here: the pictures this screen owns (_ownImages: the combined images Go made,
+				// Images. Disposed here: the pictures this screen owns (_ownImages: the combined images Go made,
 				// Newbmp among them, the default background picture, and the background pictures and copies Gf
 				// made for this screen), this screen's own layer buffers and the work space. Not disposed:
 				// pictures of another owner the picture fields may point at.
@@ -2876,8 +2742,9 @@ namespace Easislides
 					_textDrawBuffers[i]?.Dispose();
 					_panelDrawBuffers[i]?.Dispose();
 				}
-				_imageWorkSpace?.Dispose();
-			
+				_workSpace?.Dispose();
+				_workSpace = null;
+
 				// Cached objects cleanup
 				_cachedImageAttributes?.Dispose();
 				// ColorMatrix does not have Dispose method

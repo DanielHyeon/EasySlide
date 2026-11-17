@@ -2020,24 +2020,6 @@ namespace Easislides
 		[DllImport("user32.dll")]
 		public static extern bool InvalidateRect(IntPtr hwnd, IntPtr lpRect, bool bErase);
 
-		[DllImport("Gdi32.dll")]
-		public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-		[DllImport("Gdi32.dll")]
-		public static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int width, int height);
-
-		[DllImport("Gdi32.dll")]
-		public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
-
-		[DllImport("gdi32.dll")]
-		public static extern IntPtr DeleteDC(IntPtr hDc);
-
-		[DllImport("gdi32.dll")]
-		public static extern IntPtr DeleteObject(IntPtr hDc);
-
-		[DllImport("gdi32.dll")]
-		public static extern bool BitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, IntPtr hdcSrc, int nXSrc, int nYSrc, int dwRop);
-
 		public static delegate* unmanaged[Stdcall]<IntPtr, uint, uint, uint, int> SendMessage = (delegate* unmanaged[Stdcall]<IntPtr, uint, uint, uint, int>)(delegate*<IntPtr, uint, uint, uint, int>)&Gf.SendMessageW;
 
 
