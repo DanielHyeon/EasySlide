@@ -136,7 +136,14 @@ namespace Easislides
                     {
                         continue;
                     }
-                    Bitmap bitmap = ModernIcons.Get(icon, ModernIconStyle.Regular, ModernItemIcons.ToolbarIconPixelSize(item), colour);
+                    int size = ModernItemIcons.ToolbarIconPixelSize(item);
+                    if (item == Folders_WordCount || item == PB_WordCount)
+                    {
+                        // The sort/filter button beside the folder box looked too big next to the 16 px icons around
+                        // it (find box, list rows): two thirds of the toolbar slot, 16 px at 100 % scaling.
+                        size = Math.Max(8, size * 2 / 3);
+                    }
+                    Bitmap bitmap = ModernIcons.Get(icon, ModernIconStyle.Regular, size, colour);
                     if (bitmap == null)
                     {
                         continue; // logged once by ModernIcons; the item keeps its old picture (D18)
