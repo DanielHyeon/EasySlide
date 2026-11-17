@@ -2139,8 +2139,8 @@ namespace Easislides
 			int folderNumber = Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString());
 			try
 			{
-				SetRightToLeft1 = ((Gf.ShowFontRTL[folderNumber, 0] > 0) ? true : false);
-				SetRightToLeft2 = ((Gf.ShowFontRTL[folderNumber, 1] > 0) ? true : false);
+				SetRightToLeft1 = ((Gf.Folders[folderNumber].FontRTL[0] > 0) ? true : false);
+				SetRightToLeft2 = ((Gf.Folders[folderNumber].FontRTL[1] > 0) ? true : false);
 			}
 			catch
 			{

@@ -771,8 +771,6 @@ namespace Easislides
 
 		public static int[,] ShowFontUnderline = new int[MAXSONGSFOLDERS, 4];
 
-		public static int[,] ShowFontRTL = new int[MAXSONGSFOLDERS, 2];
-
 		public static int[] ShowLeftMargin = new int[MAXSONGSFOLDERS];
 
 		public static int[] ShowRightMargin = new int[MAXSONGSFOLDERS];

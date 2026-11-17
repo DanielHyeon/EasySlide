@@ -23,6 +23,7 @@ namespace Easislides.Global
         public int[] FontSize = new int[2];
         public int[] FontVPosition = new int[2];
         public int[] FontAlign = new int[2];
+        public int[] FontRTL = new int[2];
 
         public FolderSettings Clone()
         {
@@ -36,6 +37,7 @@ namespace Easislides.Global
             copy.FontSize = (int[])FontSize.Clone();
             copy.FontVPosition = (int[])FontVPosition.Clone();
             copy.FontAlign = (int[])FontAlign.Clone();
+            copy.FontRTL = (int[])FontRTL.Clone();
             return copy;
         }
     }

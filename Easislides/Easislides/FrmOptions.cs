@@ -123,7 +123,7 @@ namespace Easislides
                     tempShowFontBold[i, j] = ((Gf.ShowFontBold[i, j] > 0) ? true : false);
                     tempShowFontItalic[i, j] = ((Gf.ShowFontItalic[i, j] > 0) ? true : false);
                     tempShowFontUnderline[i, j] = ((Gf.ShowFontUnderline[i, j] > 0) ? true : false);
-                    tempShowFontRTL[i, j] = ((Gf.ShowFontRTL[i, j] > 0) ? true : false);
+                    tempShowFontRTL[i, j] = ((Gf.Folders[i].FontRTL[j] > 0) ? true : false);
                     tempShowFontBold[i, j + 2] = ((Gf.ShowFontBold[i, j + 2] > 0) ? true : false);
                     tempShowFontItalic[i, j + 2] = ((Gf.ShowFontItalic[i, j + 2] > 0) ? true : false);
                     tempShowFontUnderline[i, j + 2] = ((Gf.ShowFontUnderline[i, j + 2] > 0) ? true : false);
@@ -249,7 +249,7 @@ namespace Easislides
                 }
                 for (int j = 0; j <= 1; j++)
                 {
-                    if (Gf.Folders[i].FontSize[j] != tempShowFontSize[i, j] || Gf.ShowFontBold[i, j] != (tempShowFontBold[i, j] ? 1 : 0) || Gf.ShowFontItalic[i, j] != (tempShowFontItalic[i, j] ? 1 : 0) || Gf.ShowFontUnderline[i, j] != (tempShowFontUnderline[i, j] ? 1 : 0) || Gf.ShowFontRTL[i, j] != (tempShowFontRTL[i, j] ? 1 : 0) || Gf.ShowFontBold[i, j + 2] != (tempShowFontBold[i, j + 2] ? 1 : 0) || Gf.ShowFontItalic[i, j + 2] != (tempShowFontItalic[i, j + 2] ? 1 : 0) || Gf.ShowFontUnderline[i, j + 2] != (tempShowFontUnderline[i, j + 2] ? 1 : 0) || Gf.Folders[i].FontName[j] != tempShowFontName[i, j] || Gf.Folders[i].FontVPosition[j] != tempShowFontVPosition[i, j])
+                    if (Gf.Folders[i].FontSize[j] != tempShowFontSize[i, j] || Gf.ShowFontBold[i, j] != (tempShowFontBold[i, j] ? 1 : 0) || Gf.ShowFontItalic[i, j] != (tempShowFontItalic[i, j] ? 1 : 0) || Gf.ShowFontUnderline[i, j] != (tempShowFontUnderline[i, j] ? 1 : 0) || Gf.Folders[i].FontRTL[j] != (tempShowFontRTL[i, j] ? 1 : 0) || Gf.ShowFontBold[i, j + 2] != (tempShowFontBold[i, j + 2] ? 1 : 0) || Gf.ShowFontItalic[i, j + 2] != (tempShowFontItalic[i, j + 2] ? 1 : 0) || Gf.ShowFontUnderline[i, j + 2] != (tempShowFontUnderline[i, j + 2] ? 1 : 0) || Gf.Folders[i].FontName[j] != tempShowFontName[i, j] || Gf.Folders[i].FontVPosition[j] != tempShowFontVPosition[i, j])
                     {
                         Gf.Options_FolderFormatChanged = true;
                     }
@@ -257,7 +257,7 @@ namespace Easislides
                     Gf.ShowFontBold[i, j] = (tempShowFontBold[i, j] ? 1 : 0);
                     Gf.ShowFontItalic[i, j] = (tempShowFontItalic[i, j] ? 1 : 0);
                     Gf.ShowFontUnderline[i, j] = (tempShowFontUnderline[i, j] ? 1 : 0);
-                    Gf.ShowFontRTL[i, j] = (tempShowFontRTL[i, j] ? 1 : 0);
+                    Gf.Folders[i].FontRTL[j] = (tempShowFontRTL[i, j] ? 1 : 0);
                     Gf.ShowFontBold[i, j + 2] = (tempShowFontBold[i, j + 2] ? 1 : 0);
                     Gf.ShowFontItalic[i, j + 2] = (tempShowFontItalic[i, j + 2] ? 1 : 0);
                     Gf.ShowFontUnderline[i, j + 2] = (tempShowFontUnderline[i, j + 2] ? 1 : 0);

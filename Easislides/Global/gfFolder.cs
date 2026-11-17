@@ -278,7 +278,7 @@ namespace Easislides
 						ShowFontBold[num, 2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 4);
 						ShowFontItalic[num, 2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 5);
 						ShowFontUnderline[num, 2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 6);
-						ShowFontRTL[num, 0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 7);
+						Folders[num].FontRTL[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 7);
 						Folders[num].FontName[0] = DataUtil.GetDataString(dataReader, "FontName0");
 						if (Folders[num].FontName[0] == "")
 						{
@@ -300,7 +300,7 @@ namespace Easislides
 						ShowFontBold[num, 3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 4);
 						ShowFontItalic[num, 3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 5);
 						ShowFontUnderline[num, 3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 6);
-						ShowFontRTL[num, 1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 7);
+						Folders[num].FontRTL[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 7);
 						Folders[num].FontName[1] = DataUtil.GetDataString(dataReader, "FontName1");
 						if (Folders[num].FontName[1] == "")
 						{

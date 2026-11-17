@@ -52,8 +52,8 @@ namespace Easislides
 				array4[3] = ShowFontItalic[InItem.FolderNo, 3];
 				array5[0] = ShowFontUnderline[InItem.FolderNo, 0];
 				array5[1] = ShowFontUnderline[InItem.FolderNo, 1];
-				array6[0] = ShowFontRTL[InItem.FolderNo, 0];
-				array6[1] = ShowFontRTL[InItem.FolderNo, 1];
+				array6[0] = Folders[InItem.FolderNo].FontRTL[0];
+				array6[1] = Folders[InItem.FolderNo].FontRTL[1];
 				array7[0] = Folders[InItem.FolderNo].FontName[0];
 				array7[1] = Folders[InItem.FolderNo].FontName[1];
 				if (InItem.Type == "B")
@@ -4198,8 +4198,8 @@ namespace Easislides
 				ShowFontItalic[0, 1] = ShowFontItalic[num, num2];
 				ShowFontUnderline[0, 0] = ShowFontUnderline[folderNo, 0];
 				ShowFontUnderline[0, 1] = ShowFontUnderline[num, num2];
-				ShowFontRTL[0, 0] = ShowFontRTL[folderNo, 0];
-				ShowFontRTL[0, 1] = ShowFontRTL[num, num2];
+				Folders[0].FontRTL[0] = Folders[folderNo].FontRTL[0];
+				Folders[0].FontRTL[1] = Folders[num].FontRTL[num2];
 				ShowFontBold[0, 2] = ShowFontBold[folderNo, 0];
 				ShowFontBold[0, 3] = ShowFontBold[num, num2];
 				ShowFontItalic[0, 2] = ShowFontItalic[folderNo, 2];

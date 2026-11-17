@@ -520,8 +520,8 @@ namespace Easislides
                     CurStyle = Gf.Folders[folderNumber].GroupStyle;
                     Cursor = Cursors.WaitCursor;
                     SetSortButton(CurStyle);
-                    SongsList.RightToLeft = ((Gf.ShowFontRTL[folderNumber, 0] > 0) ? RightToLeft.Yes : RightToLeft.No);
-                    SongsList.RightToLeftLayout = ((Gf.ShowFontRTL[folderNumber, 0] > 0) ? true : false);
+                    SongsList.RightToLeft = ((Gf.Folders[folderNumber].FontRTL[0] > 0) ? RightToLeft.Yes : RightToLeft.No);
+                    SongsList.RightToLeftLayout = ((Gf.Folders[folderNumber].FontRTL[0] > 0) ? true : false);
                     FillList(folderNumber, "", Gf.FindItemMediaOnly);
                     Gf.FindItemMediaOnly = findItemMediaOnly;
                     Gf.FindItemInContents = findItemInContents;
