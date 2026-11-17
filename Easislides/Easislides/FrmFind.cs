@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using Easislides.Global;
 using Easislides.SQLite;
 using Easislides.Util;
 
@@ -270,7 +271,24 @@ namespace Easislides
 				Gf.FindItemUseDates = cbUseDates.Checked;
 				Gf.FindItemDateFrom = CalendarFrom.Value;
 				Gf.FindItemDateTo = CalendarTo.Value;
-				Gf.Find_SQLString = Gf.BuildItemSearchString(txtName.Text, Gf.FindItemInTitle, Gf.FindItemInContents, Gf.FindItemInSongNumber, Gf.FindItemInBookRef, Gf.FindItemInUserRef, Gf.FindItemInLicAdmin, Gf.FindItemInWriter, Gf.FindItemInCopyright, Gf.FindItemNotationsOnly, Gf.FindItemWithKey, Gf.FindItemWithTiming, Gf.FindItemUseDates, Gf.FindItemDateFrom, Gf.FindItemDateTo, FolderList);
+				var options = new ItemSearchOptions
+				{
+					InTitle = Gf.FindItemInTitle,
+					InContents = Gf.FindItemInContents,
+					InSongNumber = Gf.FindItemInSongNumber,
+					InBookRef = Gf.FindItemInBookRef,
+					InUserRef = Gf.FindItemInUserRef,
+					InLicAdmin = Gf.FindItemInLicAdmin,
+					InWriter = Gf.FindItemInWriter,
+					InCopyright = Gf.FindItemInCopyright,
+					NotationsOnly = Gf.FindItemNotationsOnly,
+					Key = Gf.FindItemWithKey,
+					Timing = Gf.FindItemWithTiming,
+					UseDates = Gf.FindItemUseDates,
+					DateFrom = Gf.FindItemDateFrom,
+					DateTo = Gf.FindItemDateTo,
+				};
+				Gf.Find_SQLString = Gf.BuildItemSearchString(txtName.Text, options, FolderList);
 				if (Gf.Find_SQLString != "")
 				{
 					Gf.FindFolderItems = true;

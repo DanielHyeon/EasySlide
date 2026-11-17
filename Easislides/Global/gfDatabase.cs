@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Easislides.Global;
 using Easislides.Module;
 using Easislides.SQLite;
 using Easislides.Util;
@@ -997,6 +1000,146 @@ namespace Easislides
 			{
 			}
 			return false;
+		}
+
+		/// <summary>The quick find search: every text column of the folders in use.</summary>
+		public static string BuildItemSearchString(string searchText)
+		{
+			return BuildItemSearchString(searchText, new ItemSearchOptions(), folderList: null);
+		}
+
+		/// <summary>
+		/// Builds the SONG query of the item search. A song is found when any chosen text column matches
+		/// and every chosen filter (folders, notations, key, timing, dates) holds. Also marks the searched
+		/// folders in Folders[i].FindSongs. folderList null means every folder in use.
+		/// </summary>
+		public static string BuildItemSearchString(string searchText, ItemSearchOptions options, CheckedListBox folderList)
+		{
+			string pattern = SqlText(LikePattern(searchText));
+
+			var textMatches = new List<string>();
+			void AddLike(bool enabled, params string[] columns)
+			{
+				if (!enabled)
+				{
+					return;
+				}
+				foreach (string column in columns)
+				{
+					textMatches.Add($"lower({column}) like {pattern}");
+				}
+			}
+			AddLike(options.InTitle, "Title_1", "Title_2");
+			AddLike(options.InContents, "lyrics");
+			AddLike(options.InBookRef, "BOOK_REFERENCE");
+			AddLike(options.InUserRef, "USER_REFERENCE");
+			AddLike(options.InLicAdmin, "licence_admin1", "licence_admin2");
+			AddLike(options.InWriter, "writer");
+			AddLike(options.InCopyright, "copyright");
+			if (options.InSongNumber && SongNumberCondition(searchText) is string numberMatch)
+			{
+				textMatches.Add(numberMatch);
+			}
+
+			bool anyTextColumn = options.InTitle || options.InContents || options.InSongNumber || options.InBookRef
+				|| options.InUserRef || options.InLicAdmin || options.InWriter || options.InCopyright;
+			var conditions = new List<string>();
+			if (textMatches.Count > 0)
+			{
+				conditions.Add("(" + string.Join(" or ", textMatches) + ")");
+			}
+			else if (anyTextColumn || !options.NotationsOnly)
+			{
+				// Chosen columns that cannot match (song number only, text not a number), or nothing to search in.
+				// Only "no text column + notations only" lists songs by the filters alone.
+				conditions.Add("1 = 0");
+			}
+			string folderFilter = BuildFolderFilter(folderList);
+			if (folderFilter != "")
+			{
+				conditions.Add(folderFilter);
+			}
+			if (options.NotationsOnly)
+			{
+				conditions.Add("msc <> ''");
+			}
+			if (!string.IsNullOrEmpty(options.Key))
+			{
+				conditions.Add("key = " + SqlText(options.Key));
+			}
+			if (!string.IsNullOrEmpty(options.Timing))
+			{
+				conditions.Add("timing = " + SqlText(options.Timing));
+			}
+			if (options.UseDates)
+			{
+				// LastModified is text starting with the date: 'yyyy-MM-dd', 'yyyy-MM-dd HH:mm:ss', or (written through a
+				// DataRow under ko-KR) 'yyyy-MM-dd 오전 12:00:00', which date() cannot read; so compare the first 10 characters.
+				string from = options.DateFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+				string to = options.DateTo.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+				conditions.Add($"substr(LastModified, 1, 10) between '{from}' and '{to}'");
+			}
+
+			return "select * from SONG where " + string.Join(" and ", conditions);
+		}
+
+		// "%text%": the text matches anywhere; a '%' typed by the user stays a wildcard.
+		private static string LikePattern(string text)
+		{
+			if (!text.StartsWith('%'))
+			{
+				text = "%" + text;
+			}
+			if (!text.EndsWith('%'))
+			{
+				text += "%";
+			}
+			return text.ToLower();
+		}
+
+		// A string literal for SQL: single quotes, with quotes inside doubled.
+		private static string SqlText(string value)
+		{
+			return "'" + value.Replace("'", "''") + "'";
+		}
+
+		// A positive number finds that song number; any other text (also "0") adds no song number condition.
+		private static string SongNumberCondition(string text)
+		{
+			if (!int.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out int number) || number <= 0)
+			{
+				return null;
+			}
+			return $"song_number = {number}";
+		}
+
+		// Marks the folders to search (Folders[i].FindSongs, read back by the Find dialog and the folder list)
+		// and returns "FolderNo in (...)", or "" when there is none.
+		private static string BuildFolderFilter(CheckedListBox folderList)
+		{
+			var numbers = new List<int>();
+			if (folderList != null)
+			{
+				foreach (object item in folderList.CheckedItems)
+				{
+					numbers.Add(GetFolderNumber(item.ToString()));
+				}
+			}
+			else
+			{
+				for (int i = 1; i < MAXSONGSFOLDERS; i++)
+				{
+					if (Folders[i].Use > 0)
+					{
+						numbers.Add(i);
+					}
+				}
+			}
+			for (int i = 1; i < MAXSONGSFOLDERS; i++)
+			{
+				Folders[i].FindSongs = numbers.Contains(i);
+			}
+			return (numbers.Count == 0) ? "" : "FolderNo in (" + string.Join(", ", numbers) + ")";
 		}
 	}
 }
