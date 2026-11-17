@@ -80,8 +80,9 @@ namespace Easislides
 			cbMusicOnly.Checked = Gf.FindItemMediaOnly;
 			cbNotationsOnly.Checked = Gf.FindItemNotationsOnly;
 			cbUseDates.Checked = Gf.FindItemUseDates;
-			CalendarFrom.Value = DateTime.Parse(Gf.FindItemDateFrom.ToShortTimeString());
-			CalendarTo.Value = DateTime.Parse(Gf.FindItemDateTo.ToShortTimeString());
+			// Was DateTime.Parse(date.ToShortTimeString()), which kept only the time: both pickers always showed today.
+			CalendarFrom.Value = WithinPicker(CalendarFrom, Gf.FindItemDateFrom.Date);
+			CalendarTo.Value = WithinPicker(CalendarTo, Gf.FindItemDateTo.Date);
 			cbUseDatesChanged();
 			PopulateKeyTiming();
 			TimerRestoreWindow.Start();
@@ -307,6 +308,16 @@ namespace Easislides
 					Gf.FindItemsRequested = true;
 				}
 			}
+		}
+
+		// A DateTimePicker throws when Value is outside MinDate..MaxDate.
+		private static DateTime WithinPicker(DateTimePicker picker, DateTime value)
+		{
+			if (value < picker.MinDate)
+			{
+				return picker.MinDate;
+			}
+			return (value > picker.MaxDate) ? picker.MaxDate : value;
 		}
 
 		private void BtnCancel_Click(object sender, EventArgs e)

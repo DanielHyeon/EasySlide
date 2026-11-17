@@ -947,27 +947,13 @@ namespace Easislides
 			FindItemInWriter = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "FindItemInWriter", 1)) > 0) ? true : false);
 			FindItemInCopyright = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "FindItemInCopyright", 1)) > 0) ? true : false);
 			FindItemUseDates = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "FindItemUseDates", 0)) > 0) ? true : false);
-			DateTime findItemDateFrom = DateTime.Now.Subtract(TimeSpan.FromDays(91.0));
-			string s = DataUtil.ObjToString(RegUtil.GetRegValue("options", "FindItemDateFrom", findItemDateFrom.ToString()));
-			try
-			{
-				FindItemDateFrom = DateTime.Parse(s);
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"Failed to parse FindItemDateFrom, using default: {ex.Message}");
-				FindItemDateFrom = findItemDateFrom;
-			}
-			s = DataUtil.ObjToString(RegUtil.GetRegValue("options", "FindItemDateTo", DateTime.Now.ToString()));
-			try
-			{
-				FindItemDateTo = DateTime.Parse(s);
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"Failed to parse FindItemDateTo, using default: {ex.Message}");
-				FindItemDateTo = DateTime.Now;
-			}
+			// Saved as yyyy-MM-dd; older versions saved DateTime.ToString() of the regional format (Korean or English).
+			FindItemDateFrom = DataUtil.TryParseStoredDate(RegUtil.GetRegValue("options", "FindItemDateFrom", ""), out DateTime dateFrom)
+				? dateFrom.Date
+				: DateTime.Today.Subtract(TimeSpan.FromDays(91.0));
+			FindItemDateTo = DataUtil.TryParseStoredDate(RegUtil.GetRegValue("options", "FindItemDateTo", ""), out DateTime dateTo)
+				? dateTo.Date
+				: DateTime.Today;
 			OutlineFontSizeThreshold = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "OutlineFontSizeThreshold", 55));
 			if ((OutlineFontSizeThreshold < 25) | (OutlineFontSizeThreshold > 100))
 			{

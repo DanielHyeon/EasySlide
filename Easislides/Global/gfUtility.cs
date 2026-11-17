@@ -466,8 +466,8 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "FindItemInCopyright", FindItemInCopyright ? 1 : 0);
 			RegUtil.SaveRegValue("options", "FindItemInTitle", FindItemInTitle ? 1 : 0);
 			RegUtil.SaveRegValue("options", "FindItemUseDates", FindItemUseDates ? 1 : 0);
-			RegUtil.SaveRegValue("options", "FindItemDateFrom", FindItemDateFrom.ToString());
-			RegUtil.SaveRegValue("options", "FindItemDateTo", FindItemDateTo.ToString());
+			RegUtil.SaveRegValue("options", "FindItemDateFrom", DataUtil.ToStoredDate(FindItemDateFrom));
+			RegUtil.SaveRegValue("options", "FindItemDateTo", DataUtil.ToStoredDate(FindItemDateTo));
 			RegUtil.SaveRegValue("options", "OutlineFontSizeThreshold", OutlineFontSizeThreshold);
 
 			RegUtil.SaveRegValue("monitors", "AlwaysTryDualMonitor", DMAlwaysUseSecondaryMonitor ? 1 : 0);
