@@ -31,7 +31,7 @@ namespace Easislides
 			{
 				try
 				{
-					InFontSize = InFontSize * FolderHeadingPercentSize[Folderno] / 100;
+					InFontSize = InFontSize * Folders[Folderno].HeadingPercentSize / 100;
 				}
 				catch
 				{

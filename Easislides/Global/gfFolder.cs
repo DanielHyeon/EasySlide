@@ -213,10 +213,10 @@ namespace Easislides
 						Folders[num].LyricsHeading[1] = DataUtil.GetDataString(dataReader, "ChorusHeading");
 						Folders[num].LyricsHeading[2] = DataUtil.GetDataString(dataReader, "BridgeHeading");
 						Folders[num].LyricsHeading[3] = DataUtil.GetDataString(dataReader, "EndingHeading");
-						FolderHeadingPercentSize[num] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "HeadingSize"));
-						if ((FolderHeadingPercentSize[num] < 0) | (FolderHeadingPercentSize[num] > 150))
+						Folders[num].HeadingPercentSize = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "HeadingSize"));
+						if ((Folders[num].HeadingPercentSize < 0) | (Folders[num].HeadingPercentSize > 150))
 						{
-							FolderHeadingPercentSize[num] = 100;
+							Folders[num].HeadingPercentSize = 100;
 						}
 						text2 = DataUtil.GetDataString(dataReader, "HeadingOption");
 						if (text2 == "")

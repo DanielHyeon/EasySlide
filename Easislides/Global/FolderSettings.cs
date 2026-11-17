@@ -14,6 +14,7 @@ namespace Easislides.Global
         public string RenameName;
         public bool FindSongs;
         public string[] LyricsHeading = new string[4]; // 0 PreChorus, 1 Chorus, 2 Bridge, 3 Ending
+        public int HeadingPercentSize;
 
         public FolderSettings Clone()
         {

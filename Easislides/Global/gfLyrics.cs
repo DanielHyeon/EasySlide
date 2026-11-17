@@ -4229,7 +4229,7 @@ namespace Easislides
 				FolderHeadingFontBold[0, 1] = FolderHeadingFontBold[folderNo, 1];
 				FolderHeadingFontItalic[0, 1] = FolderHeadingFontItalic[folderNo, 1];
 				FolderHeadingFontUnderline[0, 1] = FolderHeadingFontUnderline[folderNo, 1];
-				FolderHeadingPercentSize[0] = FolderHeadingPercentSize[folderNo];
+				Folders[0].HeadingPercentSize = Folders[folderNo].HeadingPercentSize;
 				FolderHeadingOption[0] = FolderHeadingOption[folderNo];
 				ShowLineSpacing[0, 0] = ShowLineSpacing[folderNo, 0];
 				ShowLineSpacing[0, 1] = ShowLineSpacing[folderNo, 1];
