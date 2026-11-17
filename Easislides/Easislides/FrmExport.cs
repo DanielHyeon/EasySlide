@@ -56,7 +56,7 @@ namespace Easislides
 			FolderList.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (Gf.FolderUse[i] > 0)
+				if (Gf.Folders[i].Use > 0)
 				{
 					FolderList.Items.Add(Gf.Folders[i].Name);
 				}

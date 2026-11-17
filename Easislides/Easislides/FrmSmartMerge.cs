@@ -110,7 +110,7 @@ namespace Easislides
 			SongFolderC.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (Gf.FolderUse[i] > 0)
+				if (Gf.Folders[i].Use > 0)
 				{
 					SongFolderA.Items.Add(Gf.Folders[i].Name);
 					SongFolderB.Items.Add(Gf.Folders[i].Name);

@@ -1641,8 +1641,6 @@ namespace Easislides
 
 		public static double[,] ShowLineSpacing = new double[MAXSONGSFOLDERS, 2];
 
-		public static int[] FolderUse = new int[MAXSONGSFOLDERS];
-
 		public static SortBy[] FolderGroupStyle = new SortBy[MAXSONGSFOLDERS];
 
 		public static int UseOutlineFont = 0;

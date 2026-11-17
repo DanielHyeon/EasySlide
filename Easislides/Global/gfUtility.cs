@@ -264,7 +264,7 @@ namespace Easislides
 							if (dr != null)
 							{
 								dr["name"] = Folders[i].Name;
-								dr["Use"] = FolderUse[i];
+								dr["Use"] = Folders[i].Use;
 								dr["GroupStyle"] = FolderGroupStyle[i];
 								dr["PreChorusHeading"] = FolderLyricsHeading[i, 0];
 								dr["ChorusHeading"] = FolderLyricsHeading[i, 1];
@@ -327,7 +327,7 @@ namespace Easislides
 							if (Folders[i].Name != "")
 							{
 								dataTable.Rows[rowIndex]["name"] = Folders[i].Name;
-								dataTable.Rows[rowIndex]["Use"] = FolderUse[i];
+								dataTable.Rows[rowIndex]["Use"] = Folders[i].Use;
 								dataTable.Rows[rowIndex]["GroupStyle"] = FolderGroupStyle[i];
 								dataTable.Rows[rowIndex]["PreChorusHeading"] = FolderLyricsHeading[i, 0];
 								dataTable.Rows[rowIndex]["ChorusHeading"] = FolderLyricsHeading[i, 1];
@@ -1506,7 +1506,7 @@ namespace Easislides
 
 					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
 
-					if (datatable.Rows.Count > 0 && DataUtil.GetDataInt(datatable.Rows[0], "FolderNo") > 0 && FolderUse[DataUtil.GetDataInt(datatable.Rows[0], "FolderNo")] > 0)
+					if (datatable.Rows.Count > 0 && DataUtil.GetDataInt(datatable.Rows[0], "FolderNo") > 0 && Folders[DataUtil.GetDataInt(datatable.Rows[0], "FolderNo")].Use > 0)
 					{
 						InFileName = DataUtil.GetDataString(datatable.Rows[0], "Title_1");
 					}
@@ -2062,7 +2062,7 @@ namespace Easislides
 			{
 				for (int i = 1; i < MAXSONGSFOLDERS; i++)
 				{
-					if (FolderUse[i] > 0)
+					if (Folders[i].Use > 0)
 					{
 						FindSongsFolder[i] = true;
 						text2 = ((!(text2 == "")) ? (text2 + " or FolderNo=" + i) : (" and (FolderNo=" + i));

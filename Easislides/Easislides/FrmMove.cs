@@ -20,7 +20,7 @@ namespace Easislides
 			SongFolder.Items.Clear();
 			for (int i = 1; i <= 40; i++)
 			{
-				if (Gf.FolderUse[i] > 0)
+				if (Gf.Folders[i].Use > 0)
 				{
 					SongFolder.Items.Add(Gf.Folders[i].Name);
 				}

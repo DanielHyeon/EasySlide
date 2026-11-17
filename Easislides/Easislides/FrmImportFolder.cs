@@ -178,7 +178,7 @@ namespace Easislides
 			SongFolder.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
-				if (Gf.FolderUse[i] > 0)
+				if (Gf.Folders[i].Use > 0)
 				{
 					SongFolder.Items.Add(Gf.Folders[i].Name);
 					if (Gf.Folders[i].Name == Gf.ImportFolder_FolderName)

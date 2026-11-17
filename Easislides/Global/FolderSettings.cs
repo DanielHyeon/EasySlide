@@ -7,6 +7,7 @@ namespace Easislides.Global
     public sealed class FolderSettings
     {
         public string Name = "";
+        public int Use;
 
         public FolderSettings Clone()
         {

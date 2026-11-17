@@ -990,7 +990,7 @@ namespace Easislides
 
 				if (datatable.Rows.Count > 0)
 				{
-					return (FolderUse[DataUtil.ObjToInt(datatable.Rows[0]["FolderNo"])] > 0) ? true : false;
+					return (Folders[DataUtil.ObjToInt(datatable.Rows[0]["FolderNo"])].Use > 0) ? true : false;
 				}
 			}
 			catch

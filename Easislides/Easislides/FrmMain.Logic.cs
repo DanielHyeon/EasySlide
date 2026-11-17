@@ -663,7 +663,7 @@ namespace Easislides
                         DataRow dr = DbController.GetDataRowScalar(connection, fullSearchString);
                         if (dr != null)
                         {
-                            if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.FolderUse[DataUtil.GetDataInt(dr, "FolderNo")] > 0)
+                            if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Use > 0)
                             {
                                 DisplayName1 = DataUtil.GetDataString(dr, "Title_1");
                                 FolderName = Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Name;
@@ -827,7 +827,7 @@ namespace Easislides
             SongFolder.Items.Clear();
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                if (Gf.FolderUse[i] > 0)
+                if (Gf.Folders[i].Use > 0)
                 {
                     SongFolder.Items.Add(Gf.Folders[i].Name);
                     if (Gf.GetFolderNumber(Gf.Folders[i].Name) == num3)
@@ -1875,7 +1875,7 @@ namespace Easislides
                     DataRow dr = DbController.GetDataRowScalar(connection, fullSearchString);
                     if (dr != null)
                     {
-                        if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.FolderUse[DataUtil.GetDataInt(dr, "FolderNo")] > 0)
+                        if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Use > 0)
                         {
                             DisplayName1 = DataUtil.GetDataString(dr, "Title_1");
                             musicTitle = DataUtil.GetDataString(dr, "Title_2");

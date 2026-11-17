@@ -6240,7 +6240,7 @@ namespace Easislides
             {
                 num = Gf.JumpToC;
             }
-            if (num > 0 && num < Gf.MAXSONGSFOLDERS && Gf.FolderUse[num] > 0)
+            if (num > 0 && num < Gf.MAXSONGSFOLDERS && Gf.Folders[num].Use > 0)
             {
                 try
                 {
