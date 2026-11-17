@@ -2027,16 +2027,22 @@ namespace Easislides
 		[DllImport("shell32.dll", EntryPoint = "FindExecutableA")]
 		public static extern int FindExecutable(string lpFile, string lpDirectory, string lpResult);
 
+		// SWP_HIDEWINDOW / SWP_SHOWWINDOW, posted to Explorer's thread (SWP_ASYNCWINDOWPOS): the task bar belongs to
+		// another process, and a SetWindowPos sent to it waits until Explorer handles it. Both are posted, so a hide
+		// and a later show reach it in that order.
+		private const uint TaskBarHideFlags = 0x0080u | 0x4000u;
+		private const uint TaskBarShowFlags = 0x0040u | 0x4000u;
+
 		public static void HideTaskBar()
 		{
 			IntPtr hWnd = FindWindow("Shell_TrayWnd", "");
-			SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, 128u);
+			SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, TaskBarHideFlags);
 		}
 
 		public static void ShowTaskBar()
 		{
 			IntPtr hWnd = FindWindow("Shell_TrayWnd", "");
-			SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, 64u);
+			SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, TaskBarShowFlags);
 		}
 
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]

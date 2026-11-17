@@ -713,6 +713,140 @@ namespace OfficeLib
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool IsHungAppWindow(IntPtr hWnd);
 
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
+		private const uint WM_NULL = 0x0000;
+		private const uint SMTO_ABORTIFHUNG = 0x0002;
+		private const int ERROR_TIMEOUT = 1460;
+
+		/// <summary>What ProbePowerPoint found.</summary>
+		public enum PowerPointAnswer
+		{
+			/// <summary>No PowerPoint process in this session: a call fails at once, nothing can hang.</summary>
+			NotRunning,
+			/// <summary>Every PowerPoint process of this session answered.</summary>
+			Answers,
+			/// <summary>A PowerPoint process has no window to ask (starting or exiting): not known.</summary>
+			NoWindow,
+			/// <summary>A PowerPoint process did not answer within the time.</summary>
+			NotResponding
+		}
+
+		/// <summary>
+		/// Asks PowerPoint whether it answers before a group of calls that must not hang the UI thread (show end,
+		/// app exit): WM_NULL through SendMessageTimeout (SMTO_ABORTIFHUNG) to the main window (class
+		/// "PPTFrameClass") of every PowerPoint process in this session. That window belongs to the thread that
+		/// serves PowerPoint's COM calls, and it exists, hidden, also when PowerPoint was started by the app and never
+		/// shown, so a healthy hidden PowerPoint answers at once (measured: under 1 ms; a suspended one: no answer,
+		/// about timeoutMs). A process without that window is asked through any other top-level window of it. No COM
+		/// call: the processes and windows are enumerated. The app's proxies cannot tell which process they reach
+		/// without a call, and PowerPoint runs one process per session, so every process is asked; one that does not
+		/// answer makes the result NotResponding. detail says what was found (for the log).
+		/// </summary>
+		public static PowerPointAnswer ProbePowerPoint(int timeoutMs, out string detail)
+		{
+			HashSet<uint> processIds = GetPowerPointProcessIds();
+			if (processIds.Count == 0)
+			{
+				detail = "no PowerPoint process";
+				return PowerPointAnswer.NotRunning;
+			}
+			Dictionary<uint, List<IntPtr>> frames = new Dictionary<uint, List<IntPtr>>();
+			Dictionary<uint, IntPtr> others = new Dictionary<uint, IntPtr>();
+			EnumWindows((handle, unused) =>
+			{
+				GetWindowThreadProcessId(handle, out uint processId);
+				if (!processIds.Contains(processId))
+				{
+					return true;
+				}
+				StringBuilder className = new StringBuilder(64);
+				GetClassName(handle, className, className.Capacity);
+				if (className.ToString() == "PPTFrameClass")
+				{
+					if (!frames.TryGetValue(processId, out List<IntPtr> list))
+					{
+						frames[processId] = list = new List<IntPtr>();
+					}
+					list.Add(handle);
+				}
+				else if (!others.ContainsKey(processId))
+				{
+					others[processId] = handle;
+				}
+				return true;
+			}, IntPtr.Zero);
+			PowerPointAnswer result = PowerPointAnswer.Answers;
+			StringBuilder text = new StringBuilder();
+			foreach (uint processId in processIds)
+			{
+				List<IntPtr> targets = frames.TryGetValue(processId, out List<IntPtr> found) ? found : new List<IntPtr>();
+				if (targets.Count == 0 && others.TryGetValue(processId, out IntPtr other))
+				{
+					targets.Add(other);
+				}
+				if (text.Length > 0)
+				{
+					text.Append("; ");
+				}
+				if (targets.Count == 0)
+				{
+					text.Append("POWERPNT ").Append(processId).Append(": no window");
+					if (result == PowerPointAnswer.Answers)
+					{
+						result = PowerPointAnswer.NoWindow;
+					}
+					continue;
+				}
+				// PowerPoint has one main window per open presentation, all on the same thread: one that answers or
+				// times out says it for all of them. The next one is asked only when a window failed at once (e.g. it
+				// was closed meanwhile), so a process never takes more than about timeoutMs.
+				// A process counts as not responding only when a send really timed out (ERROR_TIMEOUT, or about the
+				// whole time elapsed) or Windows reports the window hung; a send that fails at once on every window
+				// (window destroyed meanwhile, access denied) says nothing about PowerPoint: not known (NoWindow).
+				Stopwatch watch = Stopwatch.StartNew();
+				bool answered = false;
+				bool timedOut = false;
+				int lastError = 0;
+				foreach (IntPtr target in targets)
+				{
+					Stopwatch one = Stopwatch.StartNew();
+					if (SendMessageTimeout(target, WM_NULL, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, (uint)timeoutMs, out _) != IntPtr.Zero)
+					{
+						answered = true;
+						break;
+					}
+					lastError = Marshal.GetLastWin32Error();
+					if (lastError == ERROR_TIMEOUT || one.ElapsedMilliseconds >= timeoutMs * 9L / 10 || IsHungAppWindow(target))
+					{
+						timedOut = true;
+						break;
+					}
+					if (watch.ElapsedMilliseconds >= timeoutMs / 2)
+					{
+						break;
+					}
+				}
+				text.Append("POWERPNT ").Append(processId)
+					.Append(answered ? ": answered in " : (timedOut ? ": no answer in " : ": could not be asked in ")).Append(watch.ElapsedMilliseconds).Append(" ms");
+				if (!answered)
+				{
+					text.Append(" (error ").Append(lastError).Append(')');
+				}
+				if (timedOut)
+				{
+					result = PowerPointAnswer.NotResponding;
+				}
+				else if (!answered && result == PowerPointAnswer.Answers)
+				{
+					result = PowerPointAnswer.NoWindow;
+				}
+			}
+			detail = text.ToString();
+			return result;
+		}
+
 		/// <summary>
 		/// HWND_NOTOPMOST alone leaves the window above every other normal window; then it is sent to the bottom,
 		/// so the windows that were on the output monitor before are seen again.
@@ -863,8 +997,15 @@ namespace OfficeLib
 		/// </summary>
 		private static bool HasShowCopyMark(Presentation presentation, string mark)
 		{
-			using Tags tags = presentation.Tags;
-			return string.Equals(tags[ShowCopyTagName], mark, StringComparison.OrdinalIgnoreCase);
+			Tags tags = presentation.Tags;
+			try
+			{
+				return string.Equals(tags[ShowCopyTagName], mark, StringComparison.OrdinalIgnoreCase);
+			}
+			finally
+			{
+				ReleaseProxy(tags);
+			}
 		}
 
 		/// <summary>
@@ -887,8 +1028,15 @@ namespace OfficeLib
 				{
 					if (tag == null)
 					{
-						using Tags tags = presentation.Tags;
-						tag = tags[ShowCopyTagName] ?? "";
+						Tags tags = presentation.Tags;
+						try
+						{
+							tag = tags[ShowCopyTagName] ?? "";
+						}
+						finally
+						{
+							ReleaseProxy(tags);
+						}
 					}
 					string path = PowerpointList[i, 0];
 					if (string.Equals(tag, ShowCopyMark(path), StringComparison.OrdinalIgnoreCase))
@@ -967,6 +1115,16 @@ namespace OfficeLib
 		// wrapper). A name remembered before such a close refers to a closed presentation, and PowerPoint gives
 		// the same "PresentationN" names again after a restart, so it is not used any more.
 		private static int closedPresentationsGeneration;
+
+		/// <summary>
+		/// The show's copies are closed, or are to be treated as gone (the show end skipped them because PowerPoint
+		/// did not answer, or PowerPoint is no longer running): no wrapper acts on a run name or mark it remembered
+		/// from them any more, since PowerPoint gives the same "PresentationN" names again. No COM call.
+		/// </summary>
+		public static void ForgetShowCopyNames()
+		{
+			closedPresentationsGeneration++;
+		}
 
 		/// <summary>
 		/// Written by every call on this wrapper's run (First, Last, GotoSlide, Count, SetShowWindow,
@@ -1633,6 +1791,16 @@ namespace OfficeLib
 		/// <returns></returns>
 		public string ClearUpPowerpointWindows(ref string[,] PowerpointList, ref int TotalPowerpointItems)
 		{
+			return ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems, quitWhenEmpty: true);
+		}
+
+		/// <summary>
+		/// As above; quitWhenEmpty false leaves PowerPoint running and this wrapper attached after the copies are
+		/// closed (show start: the pre-load attaches to PowerPoint right after, it must not meet an exiting one).
+		/// Each completed read and Close is reported to the show-end time limit (PowerPointCallLimit.Progress).
+		/// </summary>
+		public string ClearUpPowerpointWindows(ref string[,] PowerpointList, ref int TotalPowerpointItems, bool quitWhenEmpty)
+		{
 			LastCloseFailedCount = 0;
 			LastCloseFailedName = null;
 			LastCloseError = null;
@@ -1648,18 +1816,25 @@ namespace OfficeLib
 			string firstUnreadableError = null;
 			bool flag = false;
 			// The presentations of this show are closed now: no wrapper may act on a name it remembered from it.
-			closedPresentationsGeneration++;
+			ForgetShowCopyNames();
 			ForgetRunPresentation();
+			// Every proxy read through the collection is released with it at the end (ReleaseProxy: kept instead
+			// when the group's time limit ran out).
+			Presentations presentations = null;
 			try
 			{
 				Application app = prePowerPointApp;
 				if (app != null && !app.IsDisposed)
                 {
-					// Every proxy read through the collection is released with it at the end of the block.
-					using Presentations presentations = app.Presentations;
+					presentations = app.Presentations;
 					num2 = presentations.Count;
+					PowerPointCallLimit.Progress();
 					for (int num4 = num2; num4 > 0; num4--)
 					{
+						if (PowerPointCallLimit.Current?.Expired() == true)
+						{
+							break;
+						}
 						// Close only the copies this app opened for the show: a listed name AND the copy's mark.
 						// PowerPoint is single-instance, so other presentations in it may be the user's own, also
 						// one that got a listed "PresentationN" name after a restart (Close does not ask to save).
@@ -1669,13 +1844,21 @@ namespace OfficeLib
 						{
 							openPresentation = presentations[num4];
 							fullName = openPresentation.FullName;
-							if (GetShowCopyPath(openPresentation, fullName, PowerpointList, num) == null)
+							string copyPath = GetShowCopyPath(openPresentation, fullName, PowerpointList, num);
+							PowerPointCallLimit.Progress();
+							if (copyPath == null)
 							{
 								continue;
 							}
 						}
 						catch (Exception ex)
 						{
+							if (PowerPointCallLimit.CurrentAbandoned)
+							{
+								// Cancelled by the time limit: no further call.
+								Console.WriteLine($"Show end: reading presentation {num4} was cancelled: {ex.GetBaseException().Message}");
+								break;
+							}
 							// Not known whether it is one of the copies: left open, reported below.
 							unreadable++;
 							firstUnreadableError ??= ex.GetBaseException().Message;
@@ -1686,9 +1869,15 @@ namespace OfficeLib
 						{
 							openPresentation.Close();
 							num3++;
+							PowerPointCallLimit.Progress();
 						}
 						catch (Exception ex)
 						{
+							if (PowerPointCallLimit.CurrentAbandoned)
+							{
+								Console.WriteLine($"Show end: closing '{fullName}' was cancelled: {ex.GetBaseException().Message}");
+								break;
+							}
 							LastCloseFailedCount++;
 							LastCloseFailedName ??= fullName;
 							Console.WriteLine($"Error closing presentation '{fullName}': {ex.Message}");
@@ -1701,6 +1890,18 @@ namespace OfficeLib
 				flag = true;
 				LastCloseError = "the open presentations could not be read: " + ex.GetBaseException().Message;
 			}
+			finally
+			{
+				ReleaseProxy(presentations);
+			}
+			if (PowerPointCallLimit.CurrentAbandoned)
+			{
+				// PowerPoint stopped answering: nothing more is asked of it, the list stays for a later attempt, and
+				// this wrapper's proxy is not used again.
+				// The caller reads PowerPointCallLimit.CurrentAbandoned; the text is for its log.
+				DropPowerPointApp();
+				return "Abandoned: Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3;
+			}
 			if (unreadable > 0 && LastCloseError == null)
 			{
 				LastCloseError = unreadable + " open presentation(s) could not be read: " + firstUnreadableError;
@@ -1708,7 +1909,10 @@ namespace OfficeLib
 			TotalPowerpointItems = 0;
 
 			//daniel PowerPoint App ����
-			QuitPowerPointApp(prePowerPointApp);
+			if (quitWhenEmpty)
+			{
+				QuitPowerPointApp(prePowerPointApp);
+			}
 
 			return "Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3 + (flag ? ". Error When Closing" : ". No Error");
 		}
@@ -1735,7 +1939,9 @@ namespace OfficeLib
 		{
 			try
 			{
-				return app.Presentations.Count;
+				int count = app.Presentations.Count;
+				PowerPointCallLimit.Progress();
+				return count;
 			}
 			catch (Exception ex)
 			{
@@ -1753,6 +1959,77 @@ namespace OfficeLib
 		{
 			ForgetRunPresentation();
 			ReleaseApplicationReference();
+		}
+
+		// Proxies that were not released because PowerPoint did not answer (see ReleaseProxy). Kept referenced, so
+		// the garbage collector does not release them either (that would make the UI thread wait for PowerPoint).
+		private static readonly List<IDisposable> heldProxies = new List<IDisposable>();
+
+		/// <summary>How many proxies wait to be released (ReleaseHeldProxies) after PowerPoint did not answer.</summary>
+		public static int HeldProxyCount => heldProxies.Count;
+
+		/// <summary>
+		/// Releases a proxy, unless the current show-end / exit group of calls was abandoned (PowerPoint does not
+		/// answer): releasing a proxy is a call to PowerPoint that waits for it and is not cancelled by the group's
+		/// message filter (measured with a suspended PowerPoint: the release returned only when PowerPoint was
+		/// resumed). The proxy is then kept, unused, until ReleaseHeldProxies after PowerPoint answers again.
+		/// </summary>
+		private static void ReleaseProxy(IDisposable proxy)
+		{
+			if (proxy == null)
+			{
+				return;
+			}
+			if (PowerPointCallLimit.CurrentAbandoned)
+			{
+				heldProxies.Add(proxy);
+				return;
+			}
+			try
+			{
+				proxy.Dispose();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error releasing a PowerPoint proxy: {ex.Message}");
+			}
+		}
+
+		/// <summary>
+		/// Releases the proxies kept by ReleaseProxy and DropPowerPointApp. Call only after PowerPoint answered
+		/// (ProbePowerPoint), or when it is not running (a release then fails at once).
+		/// </summary>
+		public static void ReleaseHeldProxies()
+		{
+			IDisposable[] proxies = heldProxies.ToArray();
+			heldProxies.Clear();
+			// In the order they were kept: a collection before the Application it was read through.
+			for (int i = 0; i < proxies.Length; i++)
+			{
+				try
+				{
+					proxies[i].Dispose();
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error releasing a held PowerPoint proxy: {ex.Message}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// PowerPoint did not answer at show end or app exit: this wrapper stops using its Application proxy (it is
+		/// kept unreleased, see ReleaseProxy) and forgets its run. The next use attaches again (NewApp).
+		/// </summary>
+		public void DropPowerPointApp()
+		{
+			ForgetRunPresentation();
+			Application app = prePowerPointApp;
+			prePowerPointApp = null;
+			if (app != null && !app.IsDisposed)
+			{
+				heldProxies.Add(app);
+			}
 		}
 
 		/// <summary>
@@ -2788,7 +3065,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				{
 					// PowerPoint is single-instance, so this may be the user's own PowerPoint.
 					// Quit closes every open presentation without asking to save, so only quit when none is open.
-					if (GetOpenPresentationCount(prePowerPointApp) == 0)
+					if (GetOpenPresentationCount(prePowerPointApp) == 0 && !PowerPointCallLimit.CurrentAbandoned)
 					{
 						try
 						{
@@ -2801,7 +3078,8 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 							Console.WriteLine($"Error quitting PowerPoint: {e.Message}");
 						}
 					}
-					prePowerPointApp.Dispose();  // Dispose()?? Quit() ???Ŀ? ???
+					// Kept unreleased when the show-end group's time ran out (ReleaseProxy).
+					ReleaseProxy(prePowerPointApp);  // Dispose()?? Quit() ???Ŀ? ???
 				}
 			}
 			catch (ObjectDisposedException)

@@ -643,7 +643,20 @@ namespace Easislides
 			Gf.ShowTaskBar();
 		}
 
+		// A show end that takes longer than this is logged with its time (e.g. PowerPoint did not answer).
+		private const int SlowStopShowLogMs = 1000;
+
 		public void StopShow()
+		{
+			System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+			StopShowSteps();
+			if (watch.ElapsedMilliseconds >= SlowStopShowLogMs)
+			{
+				FrmMain.WriteDebugLog("StopShow took " + watch.ElapsedMilliseconds + " ms");
+			}
+		}
+
+		private void StopShowSteps()
 		{
 			try
 			{

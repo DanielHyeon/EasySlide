@@ -4527,6 +4527,9 @@ namespace Easislides
                 DisplayInfo.SizeLaunchDisplay();
                 // Slide shows a crashed or killed run left topmost (they are not closed).
                 Gf.LowerLeftoverSlideShowWindows("Start_Presentation");
+                // The clean-up an earlier show end skipped because PowerPoint did not answer, before this show's
+                // pre-load opens its own copies (fix-ppt-show-end-timeout T3).
+                Gf.RetryPowerPointCleanUp("Start_Presentation");
                 FormWindowState formWindowState;
                 if (Gf.DualMonitorMode)
                 {

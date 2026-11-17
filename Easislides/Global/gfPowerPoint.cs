@@ -618,18 +618,274 @@ namespace Easislides
 			return InPPT.Count();
 		}
 
+		// Show end and app exit (fix-ppt-show-end-timeout): PowerPoint must answer a window message within the probe
+		// time before it is called (T1), and the calls that follow are given up when none of them has completed for
+		// PowerPointEndStallMs, or when they have run for PowerPointEndCapMs in all (T2, PowerPointCallLimit).
+		private const int PowerPointProbeTimeoutMs = 1000;
+		// App exit outside a Windows session end: a false "not responding" there leaves a hidden PowerPoint running.
+		private const int PowerPointExitProbeTimeoutMs = 3000;
+		private const int PowerPointEndStallMs = 5000;
+		private const int PowerPointEndCapMs = 30000;
+
+		// T3: the show copies a show end could not close because PowerPoint did not answer (rows as in
+		// PowerpointList: source path, copy name), and whether a clean-up (these copies, the quit, or proxies that
+		// were not released) waits for PowerPoint. Tried again at the next show start and at app exit.
+		private static string[,] pendingShowCopies = new string[1000, 2];
+		private static int pendingShowCopyCount;
+		private static bool powerPointCleanUpPending;
+
 		public static void ClearUpPowerpointWindows()
 		{
+			EndPowerPointShow("Show end", null);
+		}
+
+		/// <summary>
+		/// Probe time at app exit: 3 s, but 1 s while Windows ends the session (Windows may end the process at any
+		/// moment there, and ends PowerPoint itself).
+		/// </summary>
+		private static int ExitProbeTimeoutMs => FrmMain.EndSessionDepth > 0 ? PowerPointProbeTimeoutMs : PowerPointExitProbeTimeoutMs;
+
+		/// <summary>
+		/// Show end (exitWrappers null) or app exit (the wrappers whose references are released afterwards): the
+		/// slide show windows taken off the top, the show's PowerPoint state reset, then the show's copies closed and
+		/// PowerPoint quit when nothing else is open in it, as before. At app exit also the clean-up an earlier show
+		/// end could not do. PowerPoint is asked first whether it answers (T1); the calls run under the time limit
+		/// (T2). Returns false when PowerPoint did not answer or stopped answering: the copies are kept for a later
+		/// attempt, the wrapper's proxy is dropped, nothing waits.
+		/// </summary>
+		private static bool EndPowerPointShow(string where, PowerPoint[] exitWrappers)
+		{
+			bool atExit = exitWrappers != null;
 			// Before closing: if a presentation fails to close, its slide show must not stay on top.
 			LowerSlideShowWindows("ClearUpPowerpointWindows", wait: false);
 			// Show end (and app exit): nothing of this show's PowerPoint state carries over.
 			ResetPowerPointShowState();
-			string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
-			ReportShowEndCloseFailures(text);
-			if (text == "")
+			// No copy listed and no reference: no PowerPoint call would be made (a show of lyrics items only).
+			bool liveWork = TotalPowerpointItems > 0 || LivePP.prePowerPointApp != null;
+			bool retryWork = atExit && powerPointCleanUpPending;
+			bool releaseWork = false;
+			if (atExit)
 			{
-				LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
+				foreach (PowerPoint ppt in exitWrappers)
+				{
+					releaseWork |= ppt?.prePowerPointApp != null;
+				}
+				releaseWork |= PowerPoint.HeldProxyCount > 0;
 			}
+			if (!liveWork && !retryWork && !releaseWork)
+			{
+				return true;
+			}
+			PowerPoint.PowerPointAnswer answer = PowerPoint.ProbePowerPoint(atExit ? ExitProbeTimeoutMs : PowerPointProbeTimeoutMs, out string detail);
+			if (answer == PowerPoint.PowerPointAnswer.NotResponding)
+			{
+				PowerPointNotAnswering(where, "PowerPoint did not answer (" + detail + ")", atExit);
+				return false;
+			}
+			using (PowerPointCallLimit limit = PowerPointCallLimit.Begin(PowerPointEndStallMs, PowerPointEndCapMs))
+			{
+				if (retryWork && !RetryPendingCleanUpCalls(where, answer, atExit))
+				{
+					PowerPointNotAnswering(where, "PowerPoint stopped answering: the clean-up left by an earlier show end was abandoned " + LimitText(limit), atExit);
+					return false;
+				}
+				if (liveWork)
+				{
+					string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList, ref TotalPowerpointItems);
+					if (!PowerPointCallLimit.CurrentAbandoned)
+					{
+						ReportShowEndCloseFailures(text);
+						if (text == "")
+						{
+							LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
+						}
+					}
+					if (PowerPointCallLimit.CurrentAbandoned)
+					{
+						PowerPointNotAnswering(where, "PowerPoint stopped answering: the calls were abandoned " + LimitText(limit) + " (" + text + ")", atExit);
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		private static string LimitText(PowerPointCallLimit limit)
+		{
+			return limit == null ? "" : "after " + limit.ElapsedMilliseconds + " ms (" + limit.SinceProgressMilliseconds + " ms after the last completed call)";
+		}
+
+		/// <summary>
+		/// PowerPoint did not answer at a show end or app exit (T1), or stopped answering during the calls (T2):
+		/// nothing more is asked of it. The live wrapper stops using its proxy (kept unreleased), the show's copies
+		/// are kept for the next attempt (next show start, app exit), names remembered from them are forgotten,
+		/// logged; at a show end the operator is told when a copy could not be closed. When every copy was closed
+		/// already (PowerPoint stopped answering at the quit), there is nothing to tell: logged only.
+		/// </summary>
+		private static void PowerPointNotAnswering(string where, string reason, bool atExit)
+		{
+			LivePP.DropPowerPointApp();
+			KeepShowCopiesForLater();
+			PowerPoint.ForgetShowCopyNames();
+			powerPointCleanUpPending = true;
+			if (atExit)
+			{
+				FrmMain.WriteDebugLog(where + ": " + reason + "; " + pendingShowCopyCount + " show copy(ies) not closed and no PowerPoint reference released (a release would wait for it). A hidden PowerPoint started by EasiSlides may remain running.");
+				return;
+			}
+			if (pendingShowCopyCount == 0)
+			{
+				FrmMain.WriteDebugLog(where + ": " + reason + "; every show copy was closed, PowerPoint was not quit (tried again at the next show start and app exit)");
+				return;
+			}
+			FrmMain.WriteDebugLog(where + ": " + reason + "; the PowerPoint clean-up was skipped (" + pendingShowCopyCount + " show copy(ies) kept for the next show start and app exit)");
+			FrmMain.ReportErrorNotice("PowerPoint is not responding: the show's PowerPoint copy could not be closed (tried again at the next show start)");
+		}
+
+		/// <summary>
+		/// Moves the rows of PowerpointList to the copies kept for a later clean-up (once per name) and empties the
+		/// list, as a show end does: the next show opens new copies, and those get other names (names are unique in
+		/// one PowerPoint, and these copies keep theirs while they stay open). A kept copy is closed later only when
+		/// its name AND its mark match (ClearUpPowerpointWindows), so a presentation that is not one of the app's
+		/// copies is never closed.
+		/// </summary>
+		private static void KeepShowCopiesForLater()
+		{
+			int last = Math.Min(TotalPowerpointItems, PowerpointList.GetUpperBound(0));
+			for (int i = 1; i <= last; i++)
+			{
+				string path = PowerpointList[i, 0];
+				string name = PowerpointList[i, 1];
+				if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
+				{
+					continue;
+				}
+				bool known = false;
+				for (int k = 1; k <= pendingShowCopyCount && !known; k++)
+				{
+					known = string.Equals(pendingShowCopies[k, 1], name, StringComparison.OrdinalIgnoreCase)
+						&& string.Equals(pendingShowCopies[k, 0], path, StringComparison.OrdinalIgnoreCase);
+				}
+				if (!known && pendingShowCopyCount < pendingShowCopies.GetUpperBound(0))
+				{
+					pendingShowCopyCount++;
+					pendingShowCopies[pendingShowCopyCount, 0] = path;
+					pendingShowCopies[pendingShowCopyCount, 1] = name;
+				}
+			}
+			TotalPowerpointItems = 0;
+		}
+
+		/// <summary>
+		/// Show start (before the pre-load opens this show's copies): when an earlier show end could not clean up
+		/// because PowerPoint did not answer, tries it again, under the same rules (T1, T2). PowerPoint is not quit
+		/// here: the pre-load attaches to it right after.
+		/// </summary>
+		internal static void RetryPowerPointCleanUp(string where)
+		{
+			if (!powerPointCleanUpPending)
+			{
+				return;
+			}
+			try
+			{
+				PowerPoint.PowerPointAnswer answer = PowerPoint.ProbePowerPoint(PowerPointProbeTimeoutMs, out string detail);
+				if (answer == PowerPoint.PowerPointAnswer.NotResponding)
+				{
+					FrmMain.WriteDebugLog(where + ": PowerPoint still does not answer (" + detail + "); the clean-up left by an earlier show end waits (" + pendingShowCopyCount + " show copy(ies))");
+					if (pendingShowCopyCount > 0)
+					{
+						FrmMain.ReportErrorNotice("PowerPoint is still not responding: the PowerPoint copy of an earlier show could not be closed");
+					}
+					return;
+				}
+				using PowerPointCallLimit limit = PowerPointCallLimit.Begin(PowerPointEndStallMs, PowerPointEndCapMs);
+				if (!RetryPendingCleanUpCalls(where, answer, atExit: false))
+				{
+					PowerPointNotAnswering(where, "PowerPoint stopped answering: the clean-up left by an earlier show end was abandoned " + LimitText(limit), atExit: false);
+				}
+			}
+			catch (Exception ex)
+			{
+				FrmMain.WriteDebugLogThrottled(where + ": clean-up left by an earlier show end", ex);
+			}
+		}
+
+		/// <summary>
+		/// The calls of a retried clean-up, after PowerPoint answered, could not be asked (NoWindow), or is not
+		/// running. Releases the proxies kept unreleased (only after Answers or NotRunning: a release waits for
+		/// PowerPoint), closes the kept copies (name and mark, as at a show end) through the live wrapper, attached
+		/// again first when it dropped its proxy, and at app exit quits PowerPoint when nothing else is open in it
+		/// (also when no copy was kept: the quit itself may be what was left). Returns false when the time limit ran
+		/// out (what is still kept stays kept). The pending flag stays set when something could not be checked.
+		/// </summary>
+		private static bool RetryPendingCleanUpCalls(string where, PowerPoint.PowerPointAnswer answer, bool atExit)
+		{
+			if (answer == PowerPoint.PowerPointAnswer.NotRunning)
+			{
+				// The copies went with the process; a release of a proxy to it fails at once. A new PowerPoint gives
+				// the same names again.
+				PowerPoint.ReleaseHeldProxies();
+				PowerPoint.ForgetShowCopyNames();
+				FrmMain.WriteDebugLog(where + ": PowerPoint is no longer running; the " + pendingShowCopyCount + " show copy(ies) an earlier show end could not close are gone with it");
+				pendingShowCopyCount = 0;
+				powerPointCleanUpPending = false;
+				return true;
+			}
+			bool answered = answer == PowerPoint.PowerPointAnswer.Answers;
+			if (answered)
+			{
+				PowerPoint.ReleaseHeldProxies();
+			}
+			if (pendingShowCopyCount > 0 || atExit)
+			{
+				if (LivePP.prePowerPointApp == null)
+				{
+					LivePP.NewApp();
+				}
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					return false;
+				}
+				if (LivePP.prePowerPointApp == null)
+				{
+					// Nothing could be checked: the kept copies stay kept for the next attempt.
+					FrmMain.WriteDebugLog(where + ": PowerPoint could not be attached again; the " + pendingShowCopyCount + " show copy(ies) an earlier show end could not close stay kept");
+					return true;
+				}
+				if (pendingShowCopyCount > 0)
+				{
+					int kept = pendingShowCopyCount;
+					string text = LivePP.ClearUpPowerpointWindows(ref pendingShowCopies, ref pendingShowCopyCount, quitWhenEmpty: atExit);
+					if (PowerPointCallLimit.CurrentAbandoned)
+					{
+						return false;
+					}
+					FrmMain.WriteDebugLog(where + ": PowerPoint answers again; the " + kept + " show copy(ies) an earlier show end could not close were looked for and closed (" + text + ")");
+					int failed = LivePP.LastCloseFailedCount;
+					if (failed > 0 || LivePP.LastCloseError != null)
+					{
+						string message = failed > 0
+							? "A PowerPoint copy of an earlier show could not be closed: " + LivePP.LastCloseFailedName
+							: "Not every PowerPoint copy of an earlier show could be checked for closing: " + LivePP.LastCloseError;
+						FrmMain.WriteDebugLog(where + ": " + message);
+						FrmMain.ReportErrorNotice(message);
+					}
+				}
+				else
+				{
+					// App exit with no copy kept: only the quit was left (PowerPoint stopped answering at it).
+					LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
+					if (PowerPointCallLimit.CurrentAbandoned)
+					{
+						return false;
+					}
+					FrmMain.WriteDebugLog(where + ": PowerPoint answers again; the quit left by an earlier show end was done (only when nothing is open in it)");
+				}
+			}
+			// Proxies not released because PowerPoint could not be asked (NoWindow) keep the clean-up pending.
+			powerPointCleanUpPending = !answered && PowerPoint.HeldProxyCount > 0;
+			return true;
 		}
 
 		/// <summary>
@@ -664,18 +920,47 @@ namespace Easislides
 		/// All wrappers share one PowerPoint process; releasing every reference here is what was observed
 		/// to make the hidden PowerPoint exit when the app closes.
 		/// The wrapper objects themselves stay in place so late callers do not hit a null wrapper.
+		/// A release waits for PowerPoint and cannot be cancelled, so PowerPoint is asked once more right before the
+		/// releases; when it does not answer they are skipped (the process exit leaves them). A hang between that
+		/// question and a release can still make the release wait.
 		/// </summary>
 		public static void ShutdownPowerpoint(PowerPoint InMainPPT)
 		{
+			PowerPoint[] wrappers = { LivePP, PreviewPPT, OutputPPT, ExternalPPT, InMainPPT };
+			bool answered = true;
 			try
 			{
-				ClearUpPowerpointWindows();
+				answered = EndPowerPointShow("App exit", wrappers);
 			}
 			catch (Exception ex)
 			{
 				Trace.WriteLine($"ShutdownPowerpoint: clean-up of live presentations failed: {ex.Message}");
 			}
-			foreach (PowerPoint ppt in new[] { LivePP, PreviewPPT, OutputPPT, ExternalPPT, InMainPPT })
+			if (!answered)
+			{
+				// PowerPoint does not answer: releasing a reference would wait for it (logged by EndPowerPointShow).
+				return;
+			}
+			bool anyReference = PowerPoint.HeldProxyCount > 0;
+			foreach (PowerPoint ppt in wrappers)
+			{
+				anyReference |= ppt?.prePowerPointApp != null;
+			}
+			if (!anyReference)
+			{
+				return;
+			}
+			PowerPoint.PowerPointAnswer answer = PowerPoint.ProbePowerPoint(ExitProbeTimeoutMs, out string detail);
+			if (answer == PowerPoint.PowerPointAnswer.NotResponding)
+			{
+				FrmMain.WriteDebugLog("App exit: PowerPoint did not answer before the references were released (" + detail + "); no PowerPoint reference released (a release would wait for it). A hidden PowerPoint started by EasiSlides may remain running.");
+				return;
+			}
+			if (answer != PowerPoint.PowerPointAnswer.NoWindow)
+			{
+				PowerPoint.ReleaseHeldProxies();
+			}
+			foreach (PowerPoint ppt in wrappers)
 			{
 				ppt?.ReleasePowerPointApp();
 			}
