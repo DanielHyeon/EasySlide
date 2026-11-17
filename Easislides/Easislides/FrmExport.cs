@@ -87,9 +87,8 @@ namespace Easislides
 				string str;
 				if (OptExport1.Checked)
 				{
-					string text = CalendarFrom.Value.ToString("MM-dd-yyyy");
-					string text2 = CalendarTo.Value.ToString("MM-dd-yyyy");
-					str = " and LastModified >=#" + text + "# and LastModified <=#" + text2 + "#";
+					// Was Access syntax (#MM-dd-yyyy#), a syntax error in SQLite: the list stayed empty.
+					str = " and " + Gf.LastModifiedBetween(CalendarFrom.Value, CalendarTo.Value);
 				}
 				else
 				{
