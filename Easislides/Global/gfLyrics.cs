@@ -44,8 +44,8 @@ namespace Easislides
 				array[1] = ShowFontColour[1];
 				array2[0] = Folders[0].FontAlign[0];
 				array2[1] = Folders[0].FontAlign[1];
-				array3[0] = ShowFontBold[InItem.FolderNo, 0];
-				array3[1] = ShowFontBold[InItem.FolderNo, 1];
+				array3[0] = Folders[InItem.FolderNo].FontBold[0];
+				array3[1] = Folders[InItem.FolderNo].FontBold[1];
 				array4[0] = ShowFontItalic[InItem.FolderNo, 0];
 				array4[1] = ShowFontItalic[InItem.FolderNo, 1];
 				array4[2] = ShowFontItalic[InItem.FolderNo, 2];
@@ -4192,16 +4192,16 @@ namespace Easislides
 			if (folderNo >= 0)
 			{
 				InItem.FolderNo = folderNo;
-				ShowFontBold[0, 0] = ShowFontBold[folderNo, 0];
-				ShowFontBold[0, 1] = ShowFontBold[num, num2];
+				Folders[0].FontBold[0] = Folders[folderNo].FontBold[0];
+				Folders[0].FontBold[1] = Folders[num].FontBold[num2];
 				ShowFontItalic[0, 0] = ShowFontItalic[folderNo, 0];
 				ShowFontItalic[0, 1] = ShowFontItalic[num, num2];
 				ShowFontUnderline[0, 0] = ShowFontUnderline[folderNo, 0];
 				ShowFontUnderline[0, 1] = ShowFontUnderline[num, num2];
 				Folders[0].FontRTL[0] = Folders[folderNo].FontRTL[0];
 				Folders[0].FontRTL[1] = Folders[num].FontRTL[num2];
-				ShowFontBold[0, 2] = ShowFontBold[folderNo, 0];
-				ShowFontBold[0, 3] = ShowFontBold[num, num2];
+				Folders[0].FontBold[2] = Folders[folderNo].FontBold[0];
+				Folders[0].FontBold[3] = Folders[num].FontBold[num2];
 				ShowFontItalic[0, 2] = ShowFontItalic[folderNo, 2];
 				ShowFontItalic[0, 3] = ShowFontItalic[num, 3];
 				ShowFontUnderline[0, 2] = ShowFontUnderline[folderNo, 0];
@@ -4262,17 +4262,17 @@ namespace Easislides
 			num3 = ExtractNumericData(InItem.Format.HeaderData[32]);
 			InItem.Format.ShowFontAlign[1] = (((num3 < 1) | (num3 > 3)) ? Folders[0].FontAlign[1] : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[41]);
-			InItem.Format.ShowFontBold[0] = ((num3 < 0 || num3 > 127) ? ShowFontBold[0, 0] : DataUtil.GetBitValue(num3, 1));
+			InItem.Format.ShowFontBold[0] = ((num3 < 0 || num3 > 127) ? Folders[0].FontBold[0] : DataUtil.GetBitValue(num3, 1));
 			InItem.Format.ShowFontItalic[0] = ((num3 < 0 || num3 > 127) ? ShowFontItalic[0, 0] : DataUtil.GetBitValue(num3, 2));
 			InItem.Format.ShowFontUnderline[0] = ((num3 < 0 || num3 > 127) ? ShowFontUnderline[0, 0] : DataUtil.GetBitValue(num3, 3));
-			InItem.Format.ShowFontBold[2] = ((num3 < 0 || num3 > 127) ? ShowFontBold[0, 1] : DataUtil.GetBitValue(num3, 4));
+			InItem.Format.ShowFontBold[2] = ((num3 < 0 || num3 > 127) ? Folders[0].FontBold[1] : DataUtil.GetBitValue(num3, 4));
 			InItem.Format.ShowFontItalic[2] = ((num3 < 0 || num3 > 127) ? ShowFontItalic[0, 2] : DataUtil.GetBitValue(num3, 5));
 			InItem.Format.ShowFontUnderline[2] = ((num3 < 0 || num3 > 127) ? ShowFontUnderline[0, 1] : DataUtil.GetBitValue(num3, 6));
 			num3 = ExtractNumericData(InItem.Format.HeaderData[42]);
-			InItem.Format.ShowFontBold[1] = ((num3 < 0 || num3 > 127) ? ShowFontBold[0, 1] : DataUtil.GetBitValue(num3, 1));
+			InItem.Format.ShowFontBold[1] = ((num3 < 0 || num3 > 127) ? Folders[0].FontBold[1] : DataUtil.GetBitValue(num3, 1));
 			InItem.Format.ShowFontItalic[1] = ((num3 < 0 || num3 > 127) ? ShowFontItalic[0, 1] : DataUtil.GetBitValue(num3, 2));
 			InItem.Format.ShowFontUnderline[1] = ((num3 < 0 || num3 > 127) ? ShowFontUnderline[0, 1] : DataUtil.GetBitValue(num3, 3));
-			InItem.Format.ShowFontBold[3] = ((num3 < 0 || num3 > 127) ? ShowFontBold[0, 3] : DataUtil.GetBitValue(num3, 4));
+			InItem.Format.ShowFontBold[3] = ((num3 < 0 || num3 > 127) ? Folders[0].FontBold[3] : DataUtil.GetBitValue(num3, 4));
 			InItem.Format.ShowFontItalic[3] = ((num3 < 0 || num3 > 127) ? ShowFontItalic[0, 3] : DataUtil.GetBitValue(num3, 5));
 			InItem.Format.ShowFontUnderline[3] = ((num3 < 0 || num3 > 127) ? ShowFontUnderline[0, 3] : DataUtil.GetBitValue(num3, 6));
 			InItem.Format.ShowFontName[0] = ((InItem.Format.HeaderData[43] == "") ? Folders[0].FontName[0] : InItem.Format.HeaderData[43]);

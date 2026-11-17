@@ -765,8 +765,6 @@ namespace Easislides
 
 		public static bool SystemClientServerConnected = false;
 
-		public static int[,] ShowFontBold = new int[MAXSONGSFOLDERS, 4];
-
 		public static int[,] ShowFontItalic = new int[MAXSONGSFOLDERS, 4];
 
 		public static int[,] ShowFontUnderline = new int[MAXSONGSFOLDERS, 4];

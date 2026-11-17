@@ -275,11 +275,11 @@ namespace Easislides
 								dr["HeadingOption"] = Folders[i].HeadingOption;
 								dr["LineSpacing"] = ShowLineSpacing[i, 0];
 								dr["LineSpacing2"] = ShowLineSpacing[i, 1];
-								dr["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + Folders[i].FontRTL[0] * 64;
+								dr["BIU0"] = Folders[i].FontBold[0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + Folders[i].FontBold[2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + Folders[i].FontRTL[0] * 64;
 								dr["Size0"] = Folders[i].FontSize[0];
 								dr["FontName0"] = Folders[i].FontName[0];
 								dr["Vpos0"] = Folders[i].FontVPosition[0];
-								dr["BIU1"] = ShowFontBold[i, 1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + ShowFontBold[i, 3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + Folders[i].FontRTL[1] * 64;
+								dr["BIU1"] = Folders[i].FontBold[1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + Folders[i].FontBold[3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + Folders[i].FontRTL[1] * 64;
 								dr["Size1"] = Folders[i].FontSize[1];
 								dr["FontName1"] = Folders[i].FontName[1];
 								dr["Vpos1"] = Folders[i].FontVPosition[1];
@@ -338,11 +338,11 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["HeadingOption"] = Folders[i].HeadingOption;
 								dataTable.Rows[rowIndex]["LineSpacing"] = ShowLineSpacing[i, 0];
 								dataTable.Rows[rowIndex]["LineSpacing2"] = ShowLineSpacing[i, 1];
-								dataTable.Rows[rowIndex]["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + Folders[i].FontRTL[0] * 64;
+								dataTable.Rows[rowIndex]["BIU0"] = Folders[i].FontBold[0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + Folders[i].FontBold[2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + Folders[i].FontRTL[0] * 64;
 								dataTable.Rows[rowIndex]["Size0"] = Folders[i].FontSize[0];
 								dataTable.Rows[rowIndex]["FontName0"] = Folders[i].FontName[0];
 								dataTable.Rows[rowIndex]["Vpos0"] = Folders[i].FontVPosition[0];
-								dataTable.Rows[rowIndex]["BIU1"] = ShowFontBold[i, 1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + ShowFontBold[i, 3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + Folders[i].FontRTL[1] * 64;
+								dataTable.Rows[rowIndex]["BIU1"] = Folders[i].FontBold[1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + Folders[i].FontBold[3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + Folders[i].FontRTL[1] * 64;
 								dataTable.Rows[rowIndex]["Size1"] = Folders[i].FontSize[1];
 								dataTable.Rows[rowIndex]["FontName1"] = Folders[i].FontName[1];
 								dataTable.Rows[rowIndex]["Vpos1"] = Folders[i].FontVPosition[1];
