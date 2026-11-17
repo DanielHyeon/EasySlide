@@ -171,7 +171,7 @@ namespace Easislides
 					dr["USER_REFERENCE"] = USER_REFERENCE;
 					dr["SETTINGS"] = SETTINGS;
 					dr["FORMATDATA"] = FORMATDATA;
-					dr["LastModified"] = DateTime.Now.Date;
+					dr["LastModified"] = DataUtil.ToStoredDate(DateTime.Now);
 
 					dt.Rows.Add(dr);
 
@@ -229,7 +229,7 @@ namespace Easislides
 				command.Parameters.AddWithValue("@USER_REFERENCE", USER_REFERENCE);
 				command.Parameters.AddWithValue("@SETTINGS", SETTINGS);
 				command.Parameters.AddWithValue("@FORMATDATA", FORMATDATA);
-				command.Parameters.AddWithValue("@LastModified", DateTime.Now.Date);
+				command.Parameters.AddWithValue("@LastModified", DataUtil.ToStoredDate(DateTime.Now));
 				command.ExecuteNonQuery();
 				result = true;
 			}
@@ -1073,14 +1073,21 @@ namespace Easislides
 			}
 			if (options.UseDates)
 			{
-				// LastModified is text starting with the date: 'yyyy-MM-dd', 'yyyy-MM-dd HH:mm:ss', or (written through a
-				// DataRow under ko-KR) 'yyyy-MM-dd 오전 12:00:00', which date() cannot read; so compare the first 10 characters.
-				string from = options.DateFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-				string to = options.DateTo.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-				conditions.Add($"substr(LastModified, 1, 10) between '{from}' and '{to}'");
+				conditions.Add(LastModifiedBetween(options.DateFrom, options.DateTo));
 			}
 
 			return "select * from SONG where " + string.Join(" and ", conditions);
+		}
+
+		/// <summary>
+		/// SQL condition: SONG.LastModified between two dates (inclusive). The column is text starting with the date:
+		/// 'yyyy-MM-dd' (DataUtil.StoredDateFormat), 'yyyy-MM-dd HH:mm:ss', or 'yyyy-MM-dd 오전 12:00:00' written by older
+		/// versions under the Korean format, which date() cannot read; so the first 10 characters are compared.
+		/// (Older versions under the English (US) format wrote 'M/d/yyyy h:mm:ss tt'; such rows are not matched.)
+		/// </summary>
+		public static string LastModifiedBetween(DateTime from, DateTime to)
+		{
+			return $"substr(LastModified, 1, 10) between '{DataUtil.ToStoredDate(from)}' and '{DataUtil.ToStoredDate(to)}'";
 		}
 
 		// "%text%": the text matches anywhere; a '%' typed by the user stays a wildcard.

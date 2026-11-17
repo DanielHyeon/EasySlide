@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Easislides.Module;
@@ -206,16 +207,55 @@ namespace Easislides.Util
 			}
 		}
 
+		// Dates kept as text (SONG.LastModified, registry values) are written in this form, whatever the
+		// Windows regional format (Korean, English, ...) is.
+		public const string StoredDateFormat = "yyyy-MM-dd";
+
+		private static readonly string[] IsoDateFormats =
+		{
+			"yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.FFFFFFF", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH:mm:ss.FFFFFFFK",
+		};
+
+		public static string ToStoredDate(DateTime value)
+		{
+			return value.ToString(StoredDateFormat, CultureInfo.InvariantCulture);
+		}
+
+		// Reads a date written by any version: the ISO forms above, or DateTime.ToString() of the current,
+		// Korean or English (US) regional format (older versions wrote "2026-11-18 오전 12:00:00" or
+		// "11/18/2026 12:00:00 AM"). Returns false when none of them fits.
+		public static bool TryParseStoredDate(object value, out DateTime result)
+		{
+			if (value is DateTime dateTime)
+			{
+				result = dateTime;
+				return true;
+			}
+			string text = ObjToString(value).Trim();
+			if (text == "")
+			{
+				result = default;
+				return false;
+			}
+			if (DateTime.TryParseExact(text, IsoDateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+			{
+				return true;
+			}
+			foreach (CultureInfo culture in new[] { CultureInfo.CurrentCulture, CultureInfo.GetCultureInfo("ko-KR"), CultureInfo.GetCultureInfo("en-US") })
+			{
+				if (DateTime.TryParse(text, culture, DateTimeStyles.AllowWhiteSpaces, out result))
+				{
+					return true;
+				}
+			}
+			result = default;
+			return false;
+		}
+
 		public static DateTime ObjToDate(object InValue)
 		{
-			try
-			{
-				return (DateTime)InValue;
-			}
-			catch
-			{
-				return DateTime.Now;
-			}
+			// SONG.LastModified is a TEXT column, so the value is usually a string, not a DateTime.
+			return TryParseStoredDate(InValue, out DateTime result) ? result : DateTime.Now;
 		}
 
 		public static string Left(ReadOnlySpan<char> sString, int iLen)

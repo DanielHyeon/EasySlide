@@ -465,7 +465,7 @@ namespace Easislides
 							dr["FolderNo"] = update.NewFolder;
 							if (UpdateModifiedDate)
 							{
-								dr["LastModified"] = DateTime.Now.Date;
+								dr["LastModified"] = DataUtil.ToStoredDate(DateTime.Now);
 							}
 							update.Item.Remove();
 							RefileSongs[0]++;
@@ -547,7 +547,7 @@ namespace Easislides
 						{
 							dr["OldFolder"] = update.OldFolder;
 							dr["FolderNo"] = update.NewFolder;
-							dr["LastModified"] = DateTime.Now.Date;
+							dr["LastModified"] = DataUtil.ToStoredDate(DateTime.Now);
 							update.Item.Remove();
 						}
 					}
@@ -584,7 +584,7 @@ namespace Easislides
 					DbParameter lastModifiedParam = null;
 					if (UpdateModifiedDate)
 					{
-						lastModifiedParam = command.Parameters.Add("@LastModified", DbType.Date);
+						lastModifiedParam = command.Parameters.Add("@LastModified", DbType.String);
 					}
 					for (int num = SongItems.Count - 1; num >= 0; num--)
 					{
@@ -610,7 +610,7 @@ namespace Easislides
 							songIdParam.Value = songId;
 							if (UpdateModifiedDate && lastModifiedParam != null)
 							{
-								lastModifiedParam.Value = DateTime.Now.Date;
+								lastModifiedParam.Value = DataUtil.ToStoredDate(DateTime.Now);
 							}
 							command.ExecuteNonQuery();
 							SongItems[num].Remove();

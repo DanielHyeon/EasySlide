@@ -46,7 +46,7 @@ namespace Easislides
 						DateTime dateTime = DataUtil.ObjToDate(dr["LastModified"]);
 						listViewItem = SongsList.Items.Add(DataUtil.ObjToString(dr["Title_1"]));
 						listViewItem.SubItems.Add(Gf.Folders[num].Name);
-						listViewItem.SubItems.Add(dateTime.ToString("yyyy-MM-dd"));
+						listViewItem.SubItems.Add(DataUtil.ToStoredDate(dateTime));
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["SongID"]));
 						listViewItem.SubItems.Add(num.ToString());
 					}
