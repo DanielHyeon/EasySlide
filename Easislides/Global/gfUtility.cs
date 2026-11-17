@@ -285,7 +285,7 @@ namespace Easislides
 								dr["Vpos1"] = Folders[i].FontVPosition[1];
 								dr["LMargin"] = Folders[i].LeftMargin;
 								dr["RMargin"] = Folders[i].RightMargin;
-								dr["BMargin"] = ShowBottomMargin[i];
+								dr["BMargin"] = Folders[i].BottomMargin;
 							}
 
 						}
@@ -348,7 +348,7 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["Vpos1"] = Folders[i].FontVPosition[1];
 								dataTable.Rows[rowIndex]["LMargin"] = Folders[i].LeftMargin;
 								dataTable.Rows[rowIndex]["RMargin"] = Folders[i].RightMargin;
-								dataTable.Rows[rowIndex]["BMargin"] = ShowBottomMargin[i];
+								dataTable.Rows[rowIndex]["BMargin"] = Folders[i].BottomMargin;
 							}
 						}
 						DbController.UpdateTable(connection, text, dataTable);
@@ -1702,7 +1702,7 @@ namespace Easislides
 				stringBuilder.AppendFormat("{0}={1}>", 63, ShowVerticalAlign);
 				stringBuilder.AppendFormat("{0}={1}>", 64, Folders[0].LeftMargin);
 				stringBuilder.AppendFormat("{0}={1}>", 65, Folders[0].RightMargin);
-				stringBuilder.AppendFormat("{0}={1}>", 66, ShowBottomMargin[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 66, Folders[0].BottomMargin);
 				stringBuilder.AppendFormat("{0}={1}>", 72, GlobalImageCanvas.GetTransitionText(ShowItemTransition));
 				stringBuilder.AppendFormat("{0}={1}>", 73, GlobalImageCanvas.GetTransitionText(ShowSlideTransition));
 				for (int i = 0; i < 8; i++)

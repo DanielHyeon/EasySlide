@@ -765,8 +765,6 @@ namespace Easislides
 
 		public static bool SystemClientServerConnected = false;
 
-		public static int[] ShowBottomMargin = new int[MAXSONGSFOLDERS];
-
 		public static int ShowRotateGap = 0;
 
 		public static int ShowDataDisplayPrevNext = 0;

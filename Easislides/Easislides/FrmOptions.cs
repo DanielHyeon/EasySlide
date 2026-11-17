@@ -102,7 +102,7 @@ namespace Easislides
                 tempFolderUse[i] = ((Gf.Folders[i].Use > 0) ? true : false);
                 tempLeftMargin[i] = Gf.Folders[i].LeftMargin;
                 tempRightMargin[i] = Gf.Folders[i].RightMargin;
-                tempBottomMargin[i] = Gf.ShowBottomMargin[i];
+                tempBottomMargin[i] = Gf.Folders[i].BottomMargin;
                 tempFolderHeadingPercentSize[i] = Gf.Folders[i].HeadingPercentSize;
                 tempFolderHeadingOption[i] = Gf.Folders[i].HeadingOption;
                 tempFolderHeadingFontBold[i, 0] = ((Gf.Folders[i].HeadingFontBold[0] > 0) ? true : false);
@@ -222,11 +222,11 @@ namespace Easislides
                 Gf.Folders[i].Name = tempFolderName[i];
                 Gf.Folders[i].GroupStyle = (SortBy)tempFolderGroupStyle[i];
                 Gf.Folders[i].Use = (tempFolderUse[i] ? 1 : 0);
-                if (Gf.Folders[i].LeftMargin != tempLeftMargin[i] || Gf.Folders[i].RightMargin != tempRightMargin[i] || Gf.ShowBottomMargin[i] != tempBottomMargin[i] || Gf.Folders[i].LineSpacing[0] != tempShowLineSpacing[i, 0] || Gf.Folders[i].LineSpacing[1] != tempShowLineSpacing[i, 1] || Gf.Folders[i].HeadingPercentSize != tempFolderHeadingPercentSize[i] || Gf.Folders[i].HeadingOption != tempFolderHeadingOption[i] || Gf.Folders[i].HeadingFontBold[0] != (tempFolderHeadingFontBold[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontItalic[0] != (tempFolderHeadingFontItalic[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontUnderline[0] != (tempFolderHeadingFontUnderline[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontBold[1] != (tempFolderHeadingFontBold[i, 1] ? 1 : 0) || Gf.Folders[i].HeadingFontItalic[1] != (tempFolderHeadingFontItalic[i, 1] ? 1 : 0) || Gf.Folders[i].HeadingFontUnderline[1] != (tempFolderHeadingFontUnderline[i, 1] ? 1 : 0))
+                if (Gf.Folders[i].LeftMargin != tempLeftMargin[i] || Gf.Folders[i].RightMargin != tempRightMargin[i] || Gf.Folders[i].BottomMargin != tempBottomMargin[i] || Gf.Folders[i].LineSpacing[0] != tempShowLineSpacing[i, 0] || Gf.Folders[i].LineSpacing[1] != tempShowLineSpacing[i, 1] || Gf.Folders[i].HeadingPercentSize != tempFolderHeadingPercentSize[i] || Gf.Folders[i].HeadingOption != tempFolderHeadingOption[i] || Gf.Folders[i].HeadingFontBold[0] != (tempFolderHeadingFontBold[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontItalic[0] != (tempFolderHeadingFontItalic[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontUnderline[0] != (tempFolderHeadingFontUnderline[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontBold[1] != (tempFolderHeadingFontBold[i, 1] ? 1 : 0) || Gf.Folders[i].HeadingFontItalic[1] != (tempFolderHeadingFontItalic[i, 1] ? 1 : 0) || Gf.Folders[i].HeadingFontUnderline[1] != (tempFolderHeadingFontUnderline[i, 1] ? 1 : 0))
                 {
                     Gf.Folders[i].LeftMargin = tempLeftMargin[i];
                     Gf.Folders[i].RightMargin = tempRightMargin[i];
-                    Gf.ShowBottomMargin[i] = tempBottomMargin[i];
+                    Gf.Folders[i].BottomMargin = tempBottomMargin[i];
                     Gf.Folders[i].LineSpacing[0] = tempShowLineSpacing[i, 0];
                     Gf.Folders[i].LineSpacing[1] = tempShowLineSpacing[i, 1];
                     Gf.Folders[i].HeadingPercentSize = tempFolderHeadingPercentSize[i];

@@ -31,6 +31,7 @@ namespace Easislides.Global
         public double[] FontSpacingFactor = new double[2];
         public int LeftMargin;
         public int RightMargin;
+        public int BottomMargin;
 
         public FolderSettings Clone()
         {

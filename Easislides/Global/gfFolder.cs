@@ -261,11 +261,11 @@ namespace Easislides
 						{
 							Folders[num].RightMargin = 2;
 						}
-						ShowBottomMargin[num] = 0;
-						ShowBottomMargin[num] = DataUtil.GetDataInt(dataReader, "BMargin");
-						if ((ShowBottomMargin[num] < 0) | (ShowBottomMargin[num] > 100))
+						Folders[num].BottomMargin = 0;
+						Folders[num].BottomMargin = DataUtil.GetDataInt(dataReader, "BMargin");
+						if ((Folders[num].BottomMargin < 0) | (Folders[num].BottomMargin > 100))
 						{
-							ShowBottomMargin[num] = 0;
+							Folders[num].BottomMargin = 0;
 						}
 						Folders[num].FontSize[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size0"));
 						if ((Folders[num].FontSize[0] < 1) | (Folders[num].FontSize[0] > 100))
