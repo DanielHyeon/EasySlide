@@ -517,7 +517,7 @@ namespace Easislides
                 if (SongFolder.Items.Count >= 1)
                 {
                     int folderNumber = Gf.GetFolderNumber(SongFolder.Text);
-                    CurStyle = Gf.FolderGroupStyle[folderNumber];
+                    CurStyle = Gf.Folders[folderNumber].GroupStyle;
                     Cursor = Cursors.WaitCursor;
                     SetSortButton(CurStyle);
                     SongsList.RightToLeft = ((Gf.ShowFontRTL[folderNumber, 0] > 0) ? RightToLeft.Yes : RightToLeft.No);

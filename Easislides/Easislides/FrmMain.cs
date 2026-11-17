@@ -2163,7 +2163,7 @@ namespace Easislides
                 return;
             }
             SetSortButton(mode);
-            Gf.FolderGroupStyle[folderNumber] = CurStyle;
+            Gf.Folders[folderNumber].GroupStyle = CurStyle;
             Gf.SaveConfigSettings();
             SongFolder_Change();
         }

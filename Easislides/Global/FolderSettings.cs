@@ -1,3 +1,5 @@
+using Easislides.Module;
+
 namespace Easislides.Global
 {
     /// <summary>
@@ -8,6 +10,7 @@ namespace Easislides.Global
     {
         public string Name = "";
         public int Use;
+        public SortBy GroupStyle = SortBy.Alpha;
 
         public FolderSettings Clone()
         {

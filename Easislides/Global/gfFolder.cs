@@ -208,7 +208,7 @@ namespace Easislides
 						num = DataUtil.GetDataInt(dataReader, "FolderNo");
 						Folders[num].Name = DataUtil.GetDataString(dataReader, "name");
 						Folders[num].Use = DataUtil.GetDataInt(dataReader, "Use");
-						FolderGroupStyle[num] = ToFolderSortBy(DataUtil.GetDataInt(dataReader, "GroupStyle"));
+						Folders[num].GroupStyle = ToFolderSortBy(DataUtil.GetDataInt(dataReader, "GroupStyle"));
 						FolderLyricsHeading[num, 0] = DataUtil.GetDataString(dataReader, "PreChorusHeading");
 						FolderLyricsHeading[num, 1] = DataUtil.GetDataString(dataReader, "ChorusHeading");
 						FolderLyricsHeading[num, 2] = DataUtil.GetDataString(dataReader, "BridgeHeading");

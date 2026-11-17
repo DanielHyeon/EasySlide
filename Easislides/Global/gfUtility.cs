@@ -265,7 +265,7 @@ namespace Easislides
 							{
 								dr["name"] = Folders[i].Name;
 								dr["Use"] = Folders[i].Use;
-								dr["GroupStyle"] = FolderGroupStyle[i];
+								dr["GroupStyle"] = Folders[i].GroupStyle;
 								dr["PreChorusHeading"] = FolderLyricsHeading[i, 0];
 								dr["ChorusHeading"] = FolderLyricsHeading[i, 1];
 								dr["BridgeHeading"] = FolderLyricsHeading[i, 2];
@@ -328,7 +328,7 @@ namespace Easislides
 							{
 								dataTable.Rows[rowIndex]["name"] = Folders[i].Name;
 								dataTable.Rows[rowIndex]["Use"] = Folders[i].Use;
-								dataTable.Rows[rowIndex]["GroupStyle"] = FolderGroupStyle[i];
+								dataTable.Rows[rowIndex]["GroupStyle"] = Folders[i].GroupStyle;
 								dataTable.Rows[rowIndex]["PreChorusHeading"] = FolderLyricsHeading[i, 0];
 								dataTable.Rows[rowIndex]["ChorusHeading"] = FolderLyricsHeading[i, 1];
 								dataTable.Rows[rowIndex]["BridgeHeading"] = FolderLyricsHeading[i, 2];
