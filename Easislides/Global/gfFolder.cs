@@ -267,10 +267,10 @@ namespace Easislides
 						{
 							ShowBottomMargin[num] = 0;
 						}
-						ShowFontSize[num, 0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size0"));
-						if ((ShowFontSize[num, 0] < 1) | (ShowFontSize[num, 0] > 100))
+						Folders[num].FontSize[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size0"));
+						if ((Folders[num].FontSize[0] < 1) | (Folders[num].FontSize[0] > 100))
 						{
-							ShowFontSize[num, 0] = 37;
+							Folders[num].FontSize[0] = 37;
 						}
 						ShowFontBold[num, 0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 1);
 						ShowFontItalic[num, 0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 2);
@@ -289,10 +289,10 @@ namespace Easislides
 						{
 							ShowFontVPosition[num, 0] = 0;
 						}
-						ShowFontSize[num, 1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size1"));
-						if ((ShowFontSize[num, 1] < 1) | (ShowFontSize[num, 1] > 100))
+						Folders[num].FontSize[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size1"));
+						if ((Folders[num].FontSize[1] < 1) | (Folders[num].FontSize[1] > 100))
 						{
-							ShowFontSize[num, 1] = 37;
+							Folders[num].FontSize[1] = 37;
 						}
 						ShowFontBold[num, 1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 1);
 						ShowFontItalic[num, 1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 2);
