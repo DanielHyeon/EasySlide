@@ -34,8 +34,9 @@ namespace Easislides
         private readonly List<Control> modernImageListUsers = new List<Control>();
         private readonly Dictionary<ButtonBase, Image> outputButtonOriginals = new Dictionary<ButtonBase, Image>();
 
-        // Two more extra images after the show button's: the database item in a "Word" folder (design D25),
-        // normal and highlight, like the other type pairs.
+        // Two more extra images after the show button's: the database item that is scripture text (design D25:
+        // in a "Word" folder, or lyrics ending with a scripture reference), normal and highlight, like the other
+        // type pairs.
         private const int WordItemIndex = 53;
 
         /// <summary>
@@ -59,8 +60,21 @@ namespace Easislides
             (8, "info", (string)null, Color.Empty),                    // info screen
             (10, "badge_square", "letter_w", ModernUiPalette.WordBadge),     // Word document
             (28, "video", (string)null, Color.Empty),                  // media
-            (WordItemIndex, "verse_card", (string)null, Color.Empty),  // database item in a "Word" folder (D25)
+            // Database item that is scripture text (D25: in a "Word" folder, or its lyrics end with a
+            // scripture reference): the Bible book, like the Bible items.
+            (WordItemIndex, "bible", (string)null, Color.Empty),
         };
+
+        /// <summary>
+        /// A database item ("D" + SONGID) whose lyrics end with a scripture reference, e.g. "(Acts 9:31)"
+        /// (Gf.IsScriptureSong; the ids are cached).
+        /// </summary>
+        private static bool IsScriptureItemId(string id)
+        {
+            return id != null && id.Length > 1 && id[0] == 'D'
+                && int.TryParse(id.AsSpan(1), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int songId)
+                && Gf.IsScriptureSong(songId);
+        }
 
         private static bool IsWordFolder(string folder)
         {
@@ -251,7 +265,8 @@ namespace Easislides
 
         /// <summary>
         /// The image index the worship list painter draws for a row (design D25): the row's own index, except
-        /// that a database row (0 / 1) whose folder (SubItems[7]) is a "Word" folder shows the Word pair at
+        /// that a database row (0 / 1) that is scripture text (its folder, SubItems[7], is a "Word" folder, or
+        /// the song's lyrics end with a scripture reference, by its id in SubItems[1]) shows the Word pair at
         /// the same parity. Without the new list, or without the Word pair, the row's own index (song).
         /// ImageIndex itself is never changed, so the flash, the moves and the show icons work as before.
         /// </summary>
@@ -259,7 +274,8 @@ namespace Easislides
         {
             int index = item.ImageIndex;
             if ((index == 0 || index == 1) && modernImageListApplied && WorshipListItems.SmallImageList == modernImageList
-                && modernImageList.Images.Count > WordItemIndex + 1 && item.SubItems.Count > 7 && IsWordFolder(item.SubItems[7].Text))
+                && modernImageList.Images.Count > WordItemIndex + 1 && item.SubItems.Count > 7
+                && (IsWordFolder(item.SubItems[7].Text) || IsScriptureItemId(item.SubItems[1].Text)))
             {
                 return WordItemIndex + index;
             }
@@ -268,8 +284,9 @@ namespace Easislides
 
         /// <summary>
         /// Design D25 for the two title lists: called at the end of DisplaySettingsLabel. When the new list is
-        /// in use and the item is a database item in a "Word" folder, its title-list row shows the Word icon.
-        /// The folder is the item's own (FolderNo from the database), for every source.
+        /// in use and the item is a database item that is scripture text (in a "Word" folder, or its lyrics end
+        /// with a scripture reference), its title-list row shows the Word (Bible) icon. The folder is the item's
+        /// own (FolderNo from the database), for every source; the lyrics are the loaded item's.
         /// </summary>
         private void ApplyTitleListWordIcon(ListView titleList, SongSettings item)
         {
@@ -292,7 +309,7 @@ namespace Easislides
                 {
                     return;
                 }
-                if (IsWordFolder(folder) && titleList.Items[0].ImageIndex == 0)
+                if ((IsWordFolder(folder) || Gf.LyricsEndWithScriptureReference(item.CompleteLyrics)) && titleList.Items[0].ImageIndex == 0)
                 {
                     titleList.Items[0].ImageIndex = WordItemIndex;
                 }

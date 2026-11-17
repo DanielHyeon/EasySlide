@@ -216,8 +216,9 @@ namespace Easislides
 
         /// <summary>
         /// Design D25 for File > Recent Edits: called after UpdateMenuEditHistory has set the type pictures.
-        /// Puts the list type icons (normal variant, at the menu's image size) in their place. Database items in
-        /// a "Word" folder get the verse card. Does nothing in the old look.
+        /// Puts the list type icons (normal variant, at the menu's image size) in their place. Database items that
+        /// are scripture text (in a "Word" folder, or lyrics ending with a scripture reference) get the Bible
+        /// icon. Does nothing in the old look.
         /// </summary>
         private void ApplyEditHistoryIcons()
         {
@@ -295,7 +296,7 @@ namespace Easislides
         {
             switch (type)
             {
-                case "D": return ModernIcons.Get(wordFolder ? "verse_card" : "music_note_2", ModernIconStyle.Regular, size, ModernUiPalette.TextPrimary);
+                case "D": return ModernIcons.Get(wordFolder ? "bible" : "music_note_2", ModernIconStyle.Regular, size, ModernUiPalette.TextPrimary);
                 case "P": return EditHistoryBadge("letter_p", ModernUiPalette.PowerPointBadge, size);
                 case "B": return ModernIcons.Get("bible", ModernIconStyle.Regular, size, ModernUiPalette.TextPrimary);
                 case "T": return ModernIcons.Get("text_t", ModernIconStyle.Regular, size, ModernUiPalette.TextPrimary);
@@ -334,8 +335,9 @@ namespace Easislides
 
         /// <summary>
         /// The history keeps only the item id ("D" + number). One query reads the folder of every database item in
-        /// it; those in a "Word" folder (IsWordFolder, the same rule as the lists) are returned. Empty on any failure
-        /// (the song note is shown then).
+        /// it; the scripture items are returned (in a "Word" folder, IsWordFolder, or lyrics ending with a scripture
+        /// reference, Gf.IsScriptureSong: the same rules as the lists). Empty on any failure (the song note is
+        /// shown then).
         /// </summary>
         private static HashSet<string> EditHistoryWordItems(List<string> ids)
         {
@@ -366,7 +368,8 @@ namespace Easislides
                 {
                     int folderNo = DataUtil.GetDataInt(row, "FolderNo");
                     string folder = folders != null && folderNo > 0 && folderNo < folders.Length ? folders[folderNo] : "";
-                    if (IsWordFolder(folder))
+                    // Scripture text: in a "Word" folder, or the lyrics end with a scripture reference.
+                    if (IsWordFolder(folder) || Gf.IsScriptureSong(DataUtil.GetDataInt(row, "SONGID")))
                     {
                         result.Add("D" + DataUtil.GetDataInt(row, "SONGID"));
                     }

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Drawing;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Easislides.Global;
@@ -170,7 +171,9 @@ namespace Easislides
 				command.Parameters.AddWithValue("@SETTINGS", SETTINGS);
 				command.Parameters.AddWithValue("@FORMATDATA", FORMATDATA);
 				command.Parameters.AddWithValue("@LastModified", DataUtil.ToStoredDate(DateTime.Now));
-				return DataUtil.ObjToInt(command.ExecuteScalar());
+				int songId = DataUtil.ObjToInt(command.ExecuteScalar());
+				InvalidateScriptureSongs();
+				return songId;
 			}
 			catch (Exception ex)
 			{
@@ -223,6 +226,7 @@ namespace Easislides
 				command.Parameters.AddWithValue("@FORMATDATA", FORMATDATA);
 				command.Parameters.AddWithValue("@LastModified", DataUtil.ToStoredDate(DateTime.Now));
 				command.ExecuteNonQuery();
+				InvalidateScriptureSongs();
 				result = true;
 			}
 			catch (Exception ex)
@@ -1028,6 +1032,82 @@ namespace Easislides
 				Trace.WriteLine($"NormalizeLastModified ERROR : {ex.Message}");
 			}
 			return changed;
+		}
+
+		// ----- Scripture songs: database items whose text is a Bible passage, shown with the Bible icon -----
+
+		// Lyrics that end with a scripture reference in brackets (half or full width): an optional book number,
+		// a book name, chapter:verse (or the Korean chapter/verse words), an optional verse letter or verse word,
+		// more verses, and an optional version tag: "(Acts 9:31)", "(1 Cor 13:4)", "(John 3:16a, 18)",
+		// "(Romans 8:28 NIV)", and the same with Korean book names and version names.
+		private static readonly Regex ScriptureReferenceAtEnd = new Regex(
+			@"[\(（]\s*(?:[1-3]\s*)?\p{L}[\p{L}\p{M}\s.]{0,24}?\s*\d{1,3}\s*(?:[:：]\s*\d{1,3}|장\s*\d{1,3})\s*(?:절|[a-c])?"
+			+ @"(?:\s*[-~,]\s*\d{1,3}(?:\s*[:：]\s*\d{1,3})?\s*(?:절|[a-c])?)*(?:\s+(?:[A-Z]{2,5}|[가-힣]{2,4}))?\s*[\)）]\s*$",
+			RegexOptions.CultureInvariant);
+
+		// SONGIDs of the scripture songs; null until first needed, after any song is added or saved, and after a
+		// load that failed (so the next call tries again).
+		private static HashSet<int> scriptureSongIds;
+
+		public static bool LyricsEndWithScriptureReference(string lyrics)
+		{
+			return !string.IsNullOrEmpty(lyrics) && ScriptureReferenceAtEnd.IsMatch(lyrics);
+		}
+
+		/// <summary>
+		/// True when the song's lyrics end with a scripture reference. The ids are read in one query the first
+		/// time (UI thread) and kept until a song is added or saved (InvalidateScriptureSongs).
+		/// </summary>
+		public static bool IsScriptureSong(int songId)
+		{
+			if (scriptureSongIds == null && DateTime.UtcNow - scriptureLoadFailedAt > TimeSpan.FromSeconds(10))
+			{
+				scriptureSongIds = LoadScriptureSongIds();
+				if (scriptureSongIds == null)
+				{
+					// Not every row of every paint retries: the next attempt waits 10 seconds.
+					scriptureLoadFailedAt = DateTime.UtcNow;
+				}
+			}
+			return scriptureSongIds != null && scriptureSongIds.Contains(songId);
+		}
+
+		private static DateTime scriptureLoadFailedAt = DateTime.MinValue;
+
+		public static void InvalidateScriptureSongs()
+		{
+			scriptureSongIds = null;
+			scriptureLoadFailedAt = DateTime.MinValue;
+		}
+
+		// Null when the database cannot be read (not cached: the next call tries again).
+		private static HashSet<int> LoadScriptureSongIds()
+		{
+			var ids = new HashSet<int>();
+			try
+			{
+				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
+				if (connection == null)
+				{
+					return null;
+				}
+				// Only lyrics with a closing bracket (half or full width) can match; the expression decides.
+				using DbCommand command = new DbCommand("select SONGID, Lyrics from SONG where Lyrics like '%)%' or Lyrics like '%）%'", connection);
+				using System.Data.SQLite.SQLiteDataReader reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					if (!reader.IsDBNull(1) && LyricsEndWithScriptureReference(reader.GetString(1)))
+					{
+						ids.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"LoadScriptureSongIds ERROR : {ex.Message}");
+				return null;
+			}
+			return ids;
 		}
 
 		/// <summary>The quick find search: every text column of the folders in use.</summary>
