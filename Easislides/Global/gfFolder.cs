@@ -274,10 +274,10 @@ namespace Easislides
 						}
 						Folders[num].FontBold[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 1);
 						Folders[num].FontItalic[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 2);
-						ShowFontUnderline[num, 0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 3);
+						Folders[num].FontUnderline[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 3);
 						Folders[num].FontBold[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 4);
 						Folders[num].FontItalic[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 5);
-						ShowFontUnderline[num, 2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 6);
+						Folders[num].FontUnderline[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 6);
 						Folders[num].FontRTL[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 7);
 						Folders[num].FontName[0] = DataUtil.GetDataString(dataReader, "FontName0");
 						if (Folders[num].FontName[0] == "")
@@ -296,10 +296,10 @@ namespace Easislides
 						}
 						Folders[num].FontBold[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 1);
 						Folders[num].FontItalic[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 2);
-						ShowFontUnderline[num, 1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 3);
+						Folders[num].FontUnderline[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 3);
 						Folders[num].FontBold[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 4);
 						Folders[num].FontItalic[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 5);
-						ShowFontUnderline[num, 3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 6);
+						Folders[num].FontUnderline[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 6);
 						Folders[num].FontRTL[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 7);
 						Folders[num].FontName[1] = DataUtil.GetDataString(dataReader, "FontName1");
 						if (Folders[num].FontName[1] == "")
